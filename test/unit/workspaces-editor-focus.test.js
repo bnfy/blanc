@@ -38,3 +38,11 @@ test('a saved space with a failed binding returns to the list instead of invitin
   assert.equal(h.ui.state.kind, 'list'); assert.equal(h.doc.getElementById('workspaceName').isConnected, false);
   assert.match(h.text(), /Saved copy/); assert.match(h.text(), /was saved, but Blanc couldn’t open it/);
 });
+test('closing a menu that was never open leaves focus where it is (#1505)', () => {
+  // The panel closes the menu on every tab switch; the address field (any
+  // other focused element here) must keep the keyboard.
+  const h = harness(); const field = h.doc.createElement('input'); h.trigger.parent.append(field);
+  field.focus(); assert.equal(h.doc.activeElement, field);
+  h.ui.close(); assert.equal(h.doc.activeElement, field);
+  h.ui.reset(); assert.equal(h.doc.activeElement, field);
+});

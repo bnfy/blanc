@@ -3,6 +3,14 @@
 v1.49.0 is the current public release ([notes](v1.49.0.md)). Changes merged
 since then are below as they're recorded.
 
+## Changed
+
+- **New Tab goes to an unused new tab.** When the window already has a new
+  tab you haven't used, ⌘T (Ctrl+T on Windows and Linux) switches to it
+  instead of opening another, and ⌘⇧N does the same for private tabs. Pinned
+  and grouped tabs are left alone. To turn it off, use Settings → General →
+  Browsing → **Switch to an unused new tab** (#1505).
+
 ## Fixed
 
 - A page that fails to load is now named after its site in the Island and the

@@ -74,11 +74,12 @@
           ]
         },
         {
-          "label": "opts = {\"private\":true}",
+          "label": "opts = {\"private\":true,\"focusAddress\":true}",
           "args": [
             "https://example.com/",
             {
-              "private": true
+              "private": true,
+              "focusAddress": true
             }
           ],
           "sends": [
@@ -88,7 +89,8 @@
               "args": [
                 "https://example.com/",
                 {
-                  "private": true
+                  "private": true,
+                  "focusAddress": true
                 }
               ]
             }

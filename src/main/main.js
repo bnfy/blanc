@@ -303,6 +303,7 @@ const {
   MAX_SLEEP_SNAPSHOTS,
 } = require('./tab-sleep');
 const { TAB_ARCHIVE_DELAY_MS, ARCHIVE_GRACE_MS, archiveCandidates, buildArchiveEntry } = require('./tab-archive');
+const { findReusableNewTab, NEW_TAB_URL, PRIVATE_NEW_TAB_URL } = require('./new-tab-reuse');
 const adblockStats = require('./adblock-stats');
 const {
   createCaptureRecord, applyGrant, applySettlement, applyFrameReport,
@@ -447,10 +448,7 @@ const onePasswordBroker = ONE_PASSWORD_AVAILABLE
   ? createOnePasswordClient({ utilityProcess, deviceSupported: ONE_PASSWORD_DEVICE_SUPPORTED })
   : null;
 
-const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
-// The query flag tells the newtab page to show private copy + theme.
-const PRIVATE_NEW_TAB_URL = 'blanc://newtab/?private=1';
 const certificateObserver = createCertificateObserver();
 // Session-only "continue anyway" choices for local certificate failures
 // (certificate spec §4.1). Eviction closes the session's pooled connections
@@ -7648,8 +7646,8 @@ function installMacTabSwitchKeys(webContents, getRuntime) {
 
 const executeBrowserCommand = createBrowserCommandExecutor({
   'new-window': runtime => openNewWindow({ profileId: runtime.profileId }),
-  'new-tab': () => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true }),
-  'new-private-tab': () => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true }),
+  'new-tab': () => openOrReuseNewTab(),
+  'new-private-tab': () => openOrReuseNewTab({ private: true }),
   'close-tab': (runtime, sender) => {
     if (tabSwitcher.isSwitching(runtime)) return closeSwitcherPick(runtime);
     const tab = browserCommandTab(runtime, sender);
@@ -10615,6 +10613,45 @@ function closeTabsBeside(keepId, direction) {
   scheduleMenuRebuild();
 }
 
+// #1505: a plain new-tab request (⌘T, ⌘⇧N, the Island's New Tab buttons,
+// /new, /private) switches to an unused New Tab page already in this window,
+// which is also the current Space, instead of stacking another. Only Blanc's
+// own page counts, so a custom home page always opens fresh; New Tab in
+// Group, New Tab Below and the floor tabs never come here. A plain new tab
+// opens ungrouped (see CLAUDE.md → Tab groups).
+function openOrReuseNewTab({ private: isPrivate = false, focusAddress = true } = {}) {
+  const runtime = rt();
+  const url = isPrivate ? PRIVATE_NEW_TAB_URL : newTabUrl();
+  const reuse = settings.getSettings().reuseNewTab && (isPrivate || url === NEW_TAB_URL);
+  const id = (reuse && findReusableNewTab({
+    tabOrder: runtime.tabOrder,
+    tabs,
+    activeTabId: runtime.activeTabId,
+    glanceTabId: runtime.glanceTabId,
+    private: isPrivate,
+    isUsed: newTabPageUsed,
+  })) || createTab(url, { private: isPrivate });
+  // Re-selecting the active tab is a no-op in setActiveTab, so the address
+  // field is summoned directly when ⌘T lands on the tab already showing.
+  if (id && id === runtime.activeTabId) {
+    if (focusAddress) focusAddressBar();
+    return id;
+  }
+  setActiveTab(id, { focusContent: !focusAddress, focusAddress });
+  return id;
+}
+
+// Whether a tab showing the New Tab page has been used: it has history in
+// either direction (it went somewhere, even if it came back), or a
+// navigation away from the page is under way. A quiet tab has no contents,
+// so its snapshot answers instead.
+function newTabPageUsed(tab) {
+  const contents = liveContents(tab);
+  if (!contents) return (sleepSnapshots.get(tab.id)?.entries?.length ?? 0) > 1;
+  const current = contents.getURL();
+  return contents.navigationHistory.length() > 1 || (!!current && current !== tab.url);
+}
+
 /** New Tab Below (tab menu additions spec §2): a new tab directly under
  * `tabId`, inside its group if it has one. Under a pin it opens as the first
  * tab after the pins (the group's for a grouped pin). A private tab makes a
@@ -11729,21 +11766,17 @@ function registerIpcHandlers() {
   darkWebsites.install();
   chromeHandle('tabs:create', (_e, url, opts) => {
     const isPrivate = !!opts?.private;
-    // A plain new tab is deliberately ungrouped — createTab defaults groupId
-    // to null and we intentionally don't pass one. Link children
-    // (window.open, context menu) open ungrouped too (see CLAUDE.md → Tab
-    // groups); only explicit grouping moves a tab into a group.
-    const id = createTab(url || (isPrivate ? PRIVATE_NEW_TAB_URL : newTabUrl()), {
-      private: isPrivate,
-    });
     // A blank "New Tab" (no explicit url) is normally a launchpad — keep OS
-    // focus on the chrome so the address bar can take it. A url means the
-    // caller has somewhere specific to go, so focus the page content. The
-    // island footer's New-tab/Private buttons opt out with focusAddress:false:
-    // they close the panel and land the user directly on the fresh tab rather
-    // than re-summoning the launchpad.
-    const blank = !url;
-    const focusAddress = opts?.focusAddress ?? blank;
+    // focus on the chrome so the address bar can take it. The island
+    // footer's New-tab/Private buttons opt out with focusAddress:false: they
+    // close the panel and land the user directly on the tab rather than
+    // re-summoning the launchpad.
+    if (!url) return openOrReuseNewTab({ private: isPrivate, focusAddress: opts?.focusAddress ?? true });
+    // A url means the caller has somewhere specific to go, so focus the page
+    // content. Like a plain new tab it opens ungrouped (see CLAUDE.md → Tab
+    // groups); only explicit grouping moves a tab into a group.
+    const id = createTab(url, { private: isPrivate });
+    const focusAddress = opts?.focusAddress ?? false;
     setActiveTab(id, { focusContent: !focusAddress, focusAddress });
     return id;
   });
@@ -13228,8 +13261,8 @@ function menuContextActions(owner) {
     removeFromSplit: b((id) => removeTabFromSplit(id)),
     closeSplit: b((id) => { const split = splitForTab(rt().splits, id); if (split) closeSplit(split.id); }),
     quiet: b((id) => sleepTabNow(id)),
-    newTab: b(() => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true })),
-    newPrivateTab: b(() => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true })),
+    newTab: b(() => openOrReuseNewTab()),
+    newPrivateTab: b(() => openOrReuseNewTab({ private: true })),
     closeOthers: b((id) => closeOtherTabsInWindow(id)),
     closeBeside: b((id, direction) => closeTabsBeside(id, direction)),
     newTabBelow: b((id) => newTabBelow(id)),

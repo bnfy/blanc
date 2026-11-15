@@ -143,3 +143,103 @@ Then('a blank tab replaces it with the island address field focused', async func
   );
   assert.strictEqual(focused, 'addressInput');
 });
+
+// ---- #1505: New Tab switches to an unused new tab (F37-5..9) ----
+
+const MAHJONG = 'blanc://mahjong/';
+const PRIVATE_NEW_TAB = 'blanc://newtab/?private=1';
+
+// Leaves exactly `keep` open (in that order of creation), so the startup tab
+// can't be the unused new tab the shortcut finds.
+async function keepOnly(world, keep) {
+  const state = await world.waitForState((s) => keep.every((id) => s.tabs.some((t) => t.id === id)));
+  for (const tab of state.tabs) {
+    if (!keep.includes(tab.id)) await world.call('closeTab', tab.id);
+  }
+  return world.waitForState((s) => s.tabs.length === keep.length);
+}
+
+async function activateOrdinaryPage(world, keep) {
+  world.pageTabId = await world.call('openTab', MAHJONG);
+  const state = await keepOnly(world, [...keep, world.pageTabId]);
+  await world.waitForState((s) => s.activeTabId === world.pageTabId
+    && s.tabs.find((t) => t.id === world.pageTabId)?.loadedUrl?.startsWith(MAHJONG));
+  await world.call('closeOverlay');
+  world.tabCountBefore = state.tabs.length;
+  world.tabIdsBefore = state.tabs.map((t) => t.id);
+}
+
+Given('an unused new tab and an ordinary page are open, with the page active', async function () {
+  this.unusedTabId = await this.call('newTab');
+  await activateOrdinaryPage(this, [this.unusedTabId]);
+});
+
+// Leaving a fresh new tab replaces its entry, so "used" is a tab that went to
+// a page and then back to the start page: it shows the New Tab page again,
+// with history behind it.
+Given('a new tab that went to a page and came back, and an ordinary page active', async function () {
+  this.usedTabId = await this.call('newTab');
+  await this.call('navigateTab', this.usedTabId, MAHJONG);
+  await this.waitForState((s) => s.tabs.find((t) => t.id === this.usedTabId)?.loadedUrl?.startsWith(MAHJONG));
+  await this.call('navigateTab', this.usedTabId, 'blanc://newtab/');
+  await this.waitForState((s) => {
+    const tab = s.tabs.find((t) => t.id === this.usedTabId);
+    return tab?.url === 'blanc://newtab/' && tab.canGoBack;
+  });
+  await activateOrdinaryPage(this, [this.usedTabId]);
+});
+
+Given('an unused new tab in a group, an unused pinned new tab, and an ordinary page active', async function () {
+  const grouped = await this.call('newTab');
+  await this.waitForState((s) => s.activeTabId === grouped);
+  await this.call('groupActiveByName', 'Work');
+  await this.waitForState((s) => s.tabs.find((t) => t.id === grouped)?.groupId);
+  const pinned = await this.call('newTab');
+  await this.call('pinTab', pinned);
+  await this.waitForState((s) => s.tabs.find((t) => t.id === pinned)?.pinned);
+  await activateOrdinaryPage(this, [grouped, pinned]);
+});
+
+Given('switching to an unused new tab is turned off', async function () {
+  assert.strictEqual(await this.call('setReuseNewTab', false), false);
+});
+
+Given('an unused private new tab, an unused new tab and an ordinary page are open, with the page active', async function () {
+  this.privateTabId = await this.call('openTab', PRIVATE_NEW_TAB, { private: true });
+  this.unusedTabId = await this.call('newTab');
+  await activateOrdinaryPage(this, [this.privateTabId, this.unusedTabId]);
+});
+
+When('I press the New Tab shortcut', async function () {
+  assert.ok(await this.call('pressBrowserCommand', this.pageTabId, 'new-tab'));
+});
+
+When('I press the New Private Tab shortcut', async function () {
+  assert.ok(await this.call('pressBrowserCommand', this.pageTabId, 'new-private-tab'));
+});
+
+Then('the unused new tab is active with the island address field focused', async function () {
+  await this.waitForState((s) => s.activeTabId === this.unusedTabId);
+  const focused = await waitForValue(
+    () => this.call('overlayFocusedId'),
+    (id) => id === 'addressInput',
+    'the island address field to take keyboard focus',
+  );
+  assert.strictEqual(focused, 'addressInput');
+});
+
+Then('the unused private new tab is active', async function () {
+  await this.waitForState((s) => s.activeTabId === this.privateTabId);
+});
+
+Then('no tab was opened', async function () {
+  const state = await this.waitForState(() => true);
+  assert.deepStrictEqual(state.tabs.map((t) => t.id).sort(), [...this.tabIdsBefore].sort());
+});
+
+Then('a new blank tab is opened and active', async function () {
+  const state = await this.waitForState((s) => s.tabs.length === this.tabCountBefore + 1
+    && !this.tabIdsBefore.includes(s.activeTabId));
+  const tab = state.tabs.find((t) => t.id === state.activeTabId);
+  assert.strictEqual(tab.url, 'blanc://newtab/');
+});

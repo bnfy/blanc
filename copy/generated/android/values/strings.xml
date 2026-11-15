@@ -1023,6 +1023,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="switcher_opened">Switch tabs, %1$s, %2$s of %3$s</string>
     <string name="switcher_step">%1$s, %2$s of %3$s</string>
     <string name="settings_general_tab_switch_order_hint">Hold Ctrl and press Tab to go back through the tabs you used last, then let go of Ctrl to switch. Esc stays where you are.</string>
+    <string name="settings_general_reuse_new_tab_label">Switch to an unused new tab</string>
+    <string name="settings_general_reuse_new_tab_hint">New Tab goes to a new tab in this window that you haven\'t used yet, instead of opening another. New Private Tab does the same for private tabs.</string>
     <string name="settings_general_tab_switch_order_recent">In the order you used them</string>
     <string name="settings_general_tab_switch_order_list">In the order of the tab list</string>
     <string name="settings_general_tab_archive_label">Archive inactive tabs</string>

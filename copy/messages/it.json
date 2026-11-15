@@ -3699,6 +3699,14 @@
     "message": "Tieni premuto Ctrl e premi Tab per tornare alle schede usate più di recente, poi rilascia Ctrl per passarci. Esc ti lascia dove sei.",
     "source": "sha256:a1bc7a2aaa5992538e4b286c9711a02136ac03f7e0b81a2febded17a22892803"
   },
+  "settings.general.reuseNewTab.label": {
+    "message": "Passa a una nuova scheda non usata",
+    "source": "sha256:3cc61e626185cd0b23886d7d9066c4f2432f947eb8767bb4158cebc99187b62d"
+  },
+  "settings.general.reuseNewTab.hint": {
+    "message": "Nuova scheda passa a una nuova scheda di questa finestra che non hai ancora usato, invece di aprirne un’altra. Nuova scheda privata fa lo stesso con le schede private.",
+    "source": "sha256:99e5e05a5800398919ea3cf28d48c41a9b109fb8d2a951a5a2d10206132053a6"
+  },
   "settings.general.tabSwitchOrder.recent": {
     "message": "Nell’ordine in cui le hai usate",
     "source": "sha256:a55a18693b898163b09b865118594e02e3ed5451128acbe81ba66b8938a956a4"

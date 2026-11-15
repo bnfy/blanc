@@ -3783,6 +3783,14 @@
     "message": "Hold Ctrl and press Tab to go back through the tabs you used last, then let go of Ctrl to switch. Esc stays where you are.",
     "note": "Settings → General: explanation under a setting."
   },
+  "settings.general.reuseNewTab.label": {
+    "message": "Switch to an unused new tab",
+    "note": "Settings → General → Browsing: label of the switch (on by default) that makes New Tab and New Private Tab go to a new tab in the current window that hasn't been used yet (still on the start page, never navigated) instead of opening another one."
+  },
+  "settings.general.reuseNewTab.hint": {
+    "message": "New Tab goes to a new tab in this window that you haven't used yet, instead of opening another. New Private Tab does the same for private tabs.",
+    "note": "Settings → General → Browsing: hint under Switch to an unused new tab. New Tab and New Private Tab are the File menu items of the same name."
+  },
   "settings.general.tabSwitchOrder.recent": {
     "message": "In the order you used them",
     "note": "Settings → General → Switch tabs with Ctrl+Tab: option (most recently used first; the default)."

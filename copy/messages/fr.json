@@ -3699,6 +3699,14 @@
     "message": "Maintenez Ctrl et appuyez sur Tab pour revenir aux onglets utilisés en dernier, puis relâchez Ctrl pour changer. Échap vous laisse où vous êtes.",
     "source": "sha256:a1bc7a2aaa5992538e4b286c9711a02136ac03f7e0b81a2febded17a22892803"
   },
+  "settings.general.reuseNewTab.label": {
+    "message": "Aller à un nouvel onglet inutilisé",
+    "source": "sha256:3cc61e626185cd0b23886d7d9066c4f2432f947eb8767bb4158cebc99187b62d"
+  },
+  "settings.general.reuseNewTab.hint": {
+    "message": "Nouvel onglet va à un nouvel onglet de cette fenêtre que vous n’avez pas encore utilisé, au lieu d’en ouvrir un autre. Nouvel onglet privé fait de même pour les onglets privés.",
+    "source": "sha256:99e5e05a5800398919ea3cf28d48c41a9b109fb8d2a951a5a2d10206132053a6"
+  },
   "settings.general.tabSwitchOrder.recent": {
     "message": "Dans l’ordre où vous les avez utilisés",
     "source": "sha256:a55a18693b898163b09b865118594e02e3ed5451128acbe81ba66b8938a956a4"

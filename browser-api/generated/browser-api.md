@@ -246,9 +246,9 @@ How an invite left Blanc: opened in the person's mail app, or copied to the clip
 
 ### `CreateTabOptions`
 
-Options for a new tab. Only `private` is read by main today.
+Options for a new tab. `private` opens a private tab; `focusAddress` says whether the address field takes focus (by default only for a plain new tab).
 
-`{ private?: boolean }`
+`{ private?: boolean, focusAddress?: boolean }`
 
 ### `TabMoveTarget`
 
