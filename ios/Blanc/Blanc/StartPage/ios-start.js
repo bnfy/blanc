@@ -209,109 +209,28 @@
     whenUntouched(() => { try { popover?.showPopover(); } catch { /* already open */ } });
   }
 
-  // A long press on a shortcut or a favorite opens its menu, a sheet over the bottom of the screen,
-  // as on Android (the pin and × buttons are too small to tap). Each entry presses the page's own
-  // button, which ios-start.css hides from sight but leaves to VoiceOver. WebKit fires no
-  // contextmenu for a touch, so the long press is timed here; iOS's link preview is off on these
-  // tiles (ios-start.css), and a right click with a pointer opens the same menu.
-  const t = (key, params) => window.blancI18n?.t?.(key, params) ?? key;
-  const ITEMS = '#bbFavorites .bb-site, .fav-item';
-  function shortcutMenu() {
-    let menu = document.getElementById('iosShortcutMenu');
-    if (menu) return menu;
-    menu = document.createElement('div');
-    menu.id = 'iosShortcutMenu';
-    menu.className = 'ios-shortcut-menu';
-    // Manual: an auto popover is closed by the lift of the very finger that opened it (WebKit
-    // fires no contextmenu for a touch, so nothing cancels that touch as Chromium does). A tap
-    // outside it and Escape close it here instead.
-    menu.popover = 'manual';
-    menu.setAttribute('role', 'menu');
-    document.body.append(menu);
-    return menu;
-  }
-  function openShortcutMenu(item) {
-    const link = item.querySelector('a[href]');
-    if (!link) return false;
-    const pin = item.querySelector('.bb-site-pin, .fav-pin');
-    const hide = item.querySelector('.bb-site-dismiss');
-    const label = item.querySelector('.bb-fav .label, .fav .name');
-    const title = (label?.title || label?.textContent || link.textContent || '').trim();
-    const entries = [];
-    if (pin) {
-      entries.push([t(item.classList.contains('pinned') ? 'tabMenu.unpinStartPage' : 'tabMenu.pinStartPage'),
-        () => pin.click(), 'pin']);
-    }
-    if (hide) entries.push([t('newtab.billboard.hideTitle', {title}), () => hide.click(), 'hide']);
-    entries.push([t('contextMenu.openLinkInNewTab'), () => window.open(link.href, '_blank', 'noopener'), 'open']);
-    const menu = shortcutMenu();
-    const heading = document.createElement('div');
-    heading.className = 'ios-shortcut-menu-title';
-    heading.textContent = title;
-    heading.dataset.i18nIgnore = '';
-    const buttons = entries.map(([text, run, action]) => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.setAttribute('role', 'menuitem');
-      button.dataset.action = action;
-      button.textContent = text;
-      button.addEventListener('click', () => { menu.hidePopover(); run(); });
-      return button;
-    });
-    const cancel = document.createElement('button');
-    cancel.type = 'button';
-    cancel.className = 'ios-shortcut-menu-cancel';
-    cancel.dataset.action = 'cancel';
-    cancel.textContent = t('common.cancel');
-    cancel.addEventListener('click', () => menu.hidePopover());
-    menu.replaceChildren(heading, ...buttons, cancel);
-    menu.showPopover();
-    navigator.vibrate?.(10);
-    buttons[0]?.focus({preventScroll: true});
-    return true;
-  }
-  document.addEventListener('contextmenu', event => {
-    const item = event.target?.closest?.(ITEMS);
-    if (item && openShortcutMenu(item)) event.preventDefault();
-  });
-  let press = null, swallowClickUntil = 0;
-  const cancelPress = () => { if (press) clearTimeout(press.timer); press = null; };
-  const menuOpen = () => document.getElementById('iosShortcutMenu')?.matches(':popover-open');
-  // A tap outside the open menu closes it and does nothing else.
-  document.addEventListener('pointerdown', event => {
-    if (!menuOpen() || event.target?.closest?.('#iosShortcutMenu')) return;
-    document.getElementById('iosShortcutMenu').hidePopover();
-    swallowClickUntil = Date.now() + 800;
-  }, true);
-  document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && menuOpen()) document.getElementById('iosShortcutMenu').hidePopover();
-  });
-  document.addEventListener('touchstart', event => {
-    cancelPress();
-    const item = event.touches.length === 1 && event.target?.closest?.(ITEMS);
-    if (!item) return;
-    const {clientX: x, clientY: y} = event.touches[0];
-    press = {x, y, timer: setTimeout(() => {
-      press.fired = openShortcutMenu(item);
-    }, 500)};
-  }, {passive: true});
-  document.addEventListener('touchmove', event => {
-    const touch = event.touches[0];
-    // Once the menu is open the finger may drift; its lift is still not a tap.
-    if (press && !press.fired && touch && Math.hypot(touch.clientX - press.x, touch.clientY - press.y) > 10) cancelPress();
-  }, {passive: true});
-  // The finger lifting after a long press must not also tap the shortcut, or the menu now under it.
-  document.addEventListener('touchend', event => {
-    if (press?.fired) event.preventDefault();
-    cancelPress();
-  });
-  document.addEventListener('touchcancel', cancelPress, {passive: true});
-  document.addEventListener('click', event => {
-    if (Date.now() < swallowClickUntil && !event.target?.closest?.('#iosShortcutMenu')) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-  }, true);
+  // A long press on a shortcut or a favorite opens iOS's own menu (with its haptic), built natively
+  // (TabUIDelegate): it asks this for the tile's state and presses the page's own pin and hide
+  // buttons, which ios-start.css hides from sight but leaves to VoiceOver, so pinning and hiding work
+  // exactly as the fork's page does them. Sent items aren't shortcuts.
+  const ITEMS = '#bbFavorites .bb-site, .fav-item:not(.sent-item)';
+  const itemFor = href => [...document.querySelectorAll(ITEMS)].find(item => item.querySelector('a[href]')?.href === href);
+  window.blancIosShortcut = {
+    state(href) {
+      const item = itemFor(href);
+      if (!item) return null;
+      const link = item.querySelector('a[href]');
+      const label = item.querySelector('.bb-fav .label, .fav .name');
+      return {
+        title: (label?.title || label?.textContent || link.textContent || '').trim(),
+        canPin: !!item.querySelector('.bb-site-pin, .fav-pin'),
+        pinned: item.classList.contains('pinned'),
+        canHide: !!item.querySelector('.bb-site-dismiss'),
+      };
+    },
+    pin: href => itemFor(href)?.querySelector('.bb-site-pin, .fav-pin')?.click(),
+    hide: href => itemFor(href)?.querySelector('.bb-site-dismiss')?.click(),
+  };
 
   document.addEventListener('DOMContentLoaded', () => {
     const clock = document.getElementById('bbClock');

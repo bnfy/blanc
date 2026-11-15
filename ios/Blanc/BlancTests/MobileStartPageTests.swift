@@ -249,10 +249,29 @@ final class MobileStartPageTests: XCTestCase {
             window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
         })
         image.name = "iOS Start Page Favorites widget"
-        let clear = try await webView.evaluateJavaScript("document.getElementById('favoritesWidget').getBoundingClientRect().bottom <= document.querySelector('.ledger-footer').getBoundingClientRect().top") as? Bool
-        XCTAssertEqual(clear, true, "Scrolled to the end, the widget clears Customize")
+        // Lists redraw as site icons arrive; scroll to the end again until the page settles.
+        var clear: Bool?
+        for _ in 0..<20 {
+            clear = try await webView.evaluateJavaScript("""
+              scrollTo({top: document.scrollingElement.scrollHeight, behavior: 'instant'});
+              document.getElementById('favoritesWidget').getBoundingClientRect().bottom <= document.querySelector('.ledger-footer').getBoundingClientRect().top
+              """) as? Bool
+            if clear == true { break }
+            try await Task.sleep(nanoseconds: 100_000_000)
+        }
+        let layout = try await webView.evaluateJavaScript("JSON.stringify([document.getElementById('favoritesWidget').getBoundingClientRect().bottom, document.querySelector('.ledger-footer').getBoundingClientRect().top, scrollY, document.scrollingElement.scrollHeight, innerHeight])") as? String
+        XCTAssertEqual(clear, true, "Scrolled to the end, the widget clears Customize: \(layout ?? "")")
         image.lifetime = .keepAlways
         add(image)
+
+        // A long press opens iOS's menu, which asks the page what the tile allows (ios-start.js).
+        let state = try await webView.evaluateJavaScript("JSON.stringify(window.blancIosShortcut.state('https://blanc.day/'))") as? String
+        XCTAssertEqual(state, #"{"title":"Blanc","canPin":true,"pinned":false,"canHide":false}"#)
+        _ = try await webView.evaluateJavaScript("window.blancIosShortcut.pin('https://blanc.day/'); true")
+        for _ in 0..<30 where manager.services.startPage.pins.isEmpty {
+            try await Task.sleep(nanoseconds: 100_000_000)
+        }
+        XCTAssertEqual(manager.services.startPage.pins.first?["url"], "https://blanc.day/", "The menu's Pin pins the site")
 
         // Saved while the page is open (the Island's heart): it appears without a reload.
         _ = try await webView.evaluateJavaScript("window.__sameDocument = true; true")

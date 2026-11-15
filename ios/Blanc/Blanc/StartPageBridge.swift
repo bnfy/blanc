@@ -137,7 +137,7 @@ final class StartPageBridge: NSObject, WKScriptMessageHandler {
             catch StartPageStore.WidgetError.invalid(let reason) { return .reject(reason) }
             catch { return .reject("not-yet") }
         case "bookmarks" where args.isEmpty:
-            return .value(manager.favoritesPayload())
+            return .value(manager.favoritesPayload(fetchingIcons: !isPrivate))
         case "topSites":
             if isPrivate { return .value(.array([])) }
             var offset = 0, limit = 48
@@ -198,11 +198,17 @@ final class StartPageBridge: NSObject, WKScriptMessageHandler {
     /// private Start Page shows none (the page draws letters there anyway).
     private func withIcons(_ items: [[String: String]], isPrivate: Bool) -> [[String: String]] {
         guard !isPrivate, let icons = manager?.services.siteIcons else { return items }
-        return items.map { item in
+        var missing: [String] = []
+        let out = items.map { item in
             var item = item
-            if let url = item["url"], let icon = icons.icon(for: url) { item["favicon"] = icon }
+            if let url = item["url"] {
+                if let icon = icons.icon(for: url) { item["favicon"] = icon } else { missing.append(url) }
+            }
             return item
         }
+        // Those without one are fetched now; open Start Pages redraw as they arrive.
+        icons.backfill(missing)
+        return out
     }
 
     private func reply(_ id: String, _ result: BridgeResult, in webView: WKWebView) {
@@ -230,9 +236,12 @@ final class StartPageBridge: NSObject, WKScriptMessageHandler {
 
 /// What the Start Page and the Favorites page both read from Sync.
 extension TabsManager {
-    func favoritesPayload() -> JSONValue {
-        // A Favorite saved without an icon (the phone saves none) shows its site's.
-        .array(syncEngine.favorites.map {
+    func favoritesPayload(fetchingIcons: Bool = true) -> JSONValue {
+        // A Favorite saved without an icon (the phone saves none) shows its site's,
+        // fetched now if the phone has none yet.
+        let favorites = syncEngine.favorites
+        if fetchingIcons { services.siteIcons.backfill(favorites.filter { $0.favicon == nil && services.siteIcons.icon(for: $0.url) == nil }.map(\.url)) }
+        return .array(favorites.map {
             let favicon = $0.favicon ?? services.siteIcons.icon(for: $0.url)
             return .object([("addedAt", .number($0.addedAt)), ("updatedAt", .number($0.updatedAt)), ("id", .string($0.id)), ("url", .string($0.url)), ("title", .string($0.title)), ("favicon", favicon.map(JSONValue.string) ?? .null), ("folder", $0.folder.map(JSONValue.string) ?? .null)])
         })
