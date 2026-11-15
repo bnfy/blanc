@@ -14,6 +14,17 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-15 — Settings asked for at launch opens instead of vanishing:**
+  since the utility pages moved into the sheet (0814560c8, November 13), a
+  tab that loads Settings, History, Downloads or Favorites closes and the
+  sheet shows the page. In the first half second after launch,
+  `OpenUtilitySheet` ran before host.js had defined `BlancPrototypeHost`, so
+  its call did nothing while it still reported success and the gate closed
+  the tab: the page never appeared. The release check `beta-sync.mjs`, which
+  opens `chrome://settings/sync` as soon as the debugging port answers, failed
+  on the beta.5 candidate three times in a row (beta.1's build kept the tab).
+  The call now leaves the request in `window.blancPendingSheet` until host.js
+  is up, and host.js opens it then. Ships in the next beta.
 - **2026-11-14 — Hover previews in the vertical tab rail (patch 0084 plus
   host and native code, owner-approved layout A; design
   `docs/superpowers/specs/2026-11-14-rail-hover-previews-design.md`, plan

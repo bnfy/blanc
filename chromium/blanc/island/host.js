@@ -3289,6 +3289,13 @@
     if (!result.ok) await request('previewPageCommand', ['closeWindow']);
   }
   openPendingSpace().catch(error => notice(error.message));
+  // A utility page asked for before BlancPrototypeHost existed (one opened or
+  // restored at launch): OpenUtilitySheet left it here and closed its tab.
+  if (Array.isArray(window.blancPendingSheet)) {
+    const [name, section] = window.blancPendingSheet;
+    delete window.blancPendingSheet;
+    showSheet(name, section).catch(error => notice(error.message));
+  }
   let syncReading = false;
   async function refreshSyncSurfaces() {
     if (syncReading) return;

@@ -13549,15 +13549,20 @@ bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page, st
   auto* contents = view->GetWebContents();
   if (contents->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html") ||
       !contents->GetPrimaryMainFrame()->IsRenderFrameLive()) return false;
-  std::string call;
+  std::string args;
   if (patron) {
-    call = "window.BlancPrototypeHost?.openSheet('settings','help')";
+    args = "'settings','help'";
   } else {
     // JSON quotes the page and section as script string literals.
-    call = "window.BlancPrototypeHost?.openSheet(" + base::WriteJson(base::Value(std::string(page))).value_or("''");
-    if (!section.empty()) call += "," + base::WriteJson(base::Value(std::string(section))).value_or("''");
-    call += ")";
+    args = base::WriteJson(base::Value(std::string(page))).value_or("''");
+    if (!section.empty()) args += "," + base::WriteJson(base::Value(std::string(section))).value_or("''");
   }
+  // host.js defines BlancPrototypeHost only at the end of its first run, after
+  // host.html commits. A request before that (a utility page opened or
+  // restored at launch) waits in blancPendingSheet for host.js to open,
+  // instead of vanishing with the tab UtilityPageGate closes.
+  const std::string call = "window.BlancPrototypeHost ? window.BlancPrototypeHost.openSheet(" + args +
+                           ") : (window.blancPendingSheet = [" + args + "])";
   contents->GetPrimaryMainFrame()->ExecuteJavaScript(base::UTF8ToUTF16(call), base::NullCallback());
   return true;
 }
