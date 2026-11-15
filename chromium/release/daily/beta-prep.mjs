@@ -54,10 +54,29 @@ export function candidateOf(app) {
   return `macos-${sha256(fs.readFileSync(path.join(versions, dirs[0], 'Blanc Beta Framework'))).slice(0, 16)}`;
 }
 
+// The marker is claimed before any work ('wx' fails if it exists, with no
+// check-then-act gap), filled in when the release is prepared, and removed
+// again if preparing stops, so a failed prepare never blocks the nightly job.
 function prepare(nightFile, changesFile, targetedFile) {
   const night = readJSON(nightFile), targeted = targetedFile ? readJSON(targetedFile) : null;
   check(night.status === 'pass', 'the night did not pass; nothing was prepared');
-  check(!fs.existsSync(MARKER), 'a release is already in progress (records/RELEASE-IN-PROGRESS)');
+  let marker;
+  try { marker = fs.openSync(MARKER, 'wx', 0o600); } catch (error) {
+    if (error.code === 'EEXIST') throw Error('a release is already in progress (records/RELEASE-IN-PROGRESS)');
+    throw error;
+  }
+  let prepared = false;
+  try {
+    const result = prepareClaimed(night, targeted, changesFile, marker);
+    prepared = true;
+    return result;
+  } finally {
+    fs.closeSync(marker);
+    if (!prepared) fs.rmSync(MARKER, { force: true });
+  }
+}
+
+function prepareClaimed(night, targeted, changesFile, marker) {
   const build = targeted?.beta ?? night.beta;
   equal(git('rev-parse', 'HEAD'), build.sourceCommit, 'the Mac Studio checkout is not at the release source');
   equal(git('status', '--porcelain'), '', 'the Mac Studio checkout has uncommitted changes');
@@ -99,7 +118,7 @@ function prepare(nightFile, changesFile, targetedFile) {
   // The outbound check copies this exact app (beta.4 lesson: point it at the new candidate first).
   const setup = spawnSync('sh', [path.join(ROOT, 'chromium/tests/outbound/setup.sh'), '--refresh', '--beta', app, night.prototype.runtimeConfig], { stdio: ['ignore', 'ignore', 'inherit'] });
   check(setup.status === 0, 'the outbound check could not be pointed at the candidate');
-  fs.writeFileSync(MARKER, JSON.stringify({ version: r.version, work }) + '\n', { flag: 'wx', mode: 0o600 });
+  fs.writeFileSync(marker, JSON.stringify({ version: r.version, work }) + '\n');
   return { r, work, handChecks, carried };
 }
 
