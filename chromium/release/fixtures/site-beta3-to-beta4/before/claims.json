@@ -11,7 +11,8 @@
       "Show Blanc Beta on /download as the first of the page's tiles, in dark ink, right under the download (owner, 2026-11-14, with the page's reimagining); never a platform choice, so the regular Blanc stays the download.",
       "The Download button goes to /dl/beta on the blanc-ping Worker, counted like the other /dl/* routes.",
       "The section names both waived gates as limitations, matching the approved release notes.",
-      "Beta.3 (owner, 2026-11-14): the tile, its text and both limitations stay as for beta.2; only the release it names changes. Its release notes keep the caution that Sync isn't checked end to end."
+      "Beta.3 (owner, 2026-11-14): the tile, its text and both limitations stay as for beta.2; only the release it names changes. Its release notes keep the caution that Sync isn't checked end to end.",
+      "Version figures (owner, 2026-11-15): the tile shows the beta's number and the Chromium major version as large figures, with the full version and build, the full Chromium version and the release day beside them; the requirement line no longer carries the version. Every version line is written from the release by chromium/release/daily/site-pr.mjs. The button reads Download Beta for Mac with the Apple logo, so it is clear the beta is Mac-only."
     ]
   },
   "page": "site/src/pages/download.astro#beta",
@@ -33,12 +34,38 @@
       "evidence": "Own bundle id me.bnfy.blanc.beta and Blanc Beta data folder (release.json); profile-coexistence gate passed on the notarized app; the owner's webauthn checks confirmed the Electron app and its passkeys were untouched."
     },
     {
-      "text": "Apple Silicon Macs · macOS 13 or later · 2.0.0-beta.3",
-      "evidence": "release.json arches [arm64] under the owner's Intel waiver (renewed for beta.3), minimumSystemVersion 13.0, version 2.0.0-beta.3."
+      "text": "Beta 3",
+      "field": "beta-number",
+      "evidence": "release.json version 2.0.0-beta.3: beta 3 of Blanc Beta 2.0.0."
     },
     {
-      "text": "Download Blanc Beta",
-      "kind": "label"
+      "text": "2.0.0-beta.3 · build 3",
+      "field": "beta-version",
+      "evidence": "release.json version 2.0.0-beta.3 and build 3, the appcast's sparkle:version."
+    },
+    {
+      "text": "Chromium 158",
+      "field": "chromium-major",
+      "evidence": "release.json chromiumVersion 158.0.8127.2, the fork's Chromium tree (chrome/VERSION unchanged from upstream)."
+    },
+    {
+      "text": "158.0.8127.2",
+      "field": "chromium-version",
+      "evidence": "release.json chromiumVersion 158.0.8127.2; the release's SBOM names the same Chromium."
+    },
+    {
+      "text": "Apple Silicon Macs · macOS 13 or later",
+      "field": "requirement",
+      "evidence": "release.json arches [arm64] under the owner's standing Intel waiver, minimumSystemVersion 13.0 (2.0.0-beta.3)."
+    },
+    {
+      "text": "Released November 14, 2026",
+      "field": "released",
+      "evidence": "The GitHub pre-release chromium-beta-2.0.0-beta.3 was published on 2026-11-14 (UTC)."
+    },
+    {
+      "text": "Download Beta for Mac",
+      "evidence": "The only build is for Apple Silicon Macs (release.json arches [arm64]); the button names the platform beside the Apple logo (owner, 2026-11-15)."
     },
     {
       "text": "Not in this beta yet",
