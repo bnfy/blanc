@@ -3,6 +3,17 @@
 v1.49.0 is the current public release ([notes](v1.49.0.md)). Changes merged
 since then are below as they're recorded.
 
+## Fixed
+
+- A page that fails to load is now named after its site in the Island and the
+  tab list, instead of `blanc://error` and "Page failed to load".
+- On a Mac, the expanded Island no longer runs under the window's close,
+  minimize and zoom buttons when the window is narrow.
+- The welcome walkthrough points to `/allow-ads`, the command that turns
+  blocking off for a site, and shows the Island at blanc.day.
+- Settings names the Start Page layouts with capitals, as the Start Page does,
+  and the Theme setting no longer names macOS and Windows on every system.
+
 ## Still open from 1.49
 
 - **The pop-out certificate fix** (#1478) against a real local console, such

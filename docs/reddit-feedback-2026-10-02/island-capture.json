@@ -1,24 +1,24 @@
 {
-  "version": "1.31.0",
+  "version": "1.49.0",
   "state": "Quiet ordinary HTTPS page, three tabs, no pending downloads or contextual activity.",
   "fixture": "Blanc website URL and bundled favicon; page responses fulfilled locally. No user data.",
   "treatment": "Only document/strip backgrounds made transparent; no Island DOM, geometry, colors or icons modified. Uniform scaling in onboarding.",
   "sources": {
-    "src/renderer/index.html": "e2cff380403702e84793a2207e44807126a37d4fcc000b6a84fea90ae75ba605",
-    "src/renderer/styles.css": "c97790bc89d72b37cbd7bc26274c679135175dff25f7cca12a31def3edd6b76d",
-    "src/renderer/renderer.js": "4a76f99271aef6a15bddaad010322fced2cb702429dbd70001502f732f13a371"
+    "src/renderer/index.html": "3bc63b19c1e283f5218ba1f7beac6e703a4d6426d59ce2936be6e9495e17b74c",
+    "src/renderer/styles.css": "fb5507edbbc78fd98bf97ed8f9f707afa3daf4e699402ed6a84f0bb41461b484",
+    "src/renderer/renderer.js": "12ae26220a0f1dc5c534395bd75a05e2682266c6eb4569a523560d892fa72ae6"
   },
   "captures": [
     {
       "theme": "light",
       "file": "src/renderer/pages/onboarding-island-light.png",
-      "width": 984,
+      "width": 876,
       "height": 136,
-      "sha256": "467e249215c2f31359b1185864d5635de68d2d37cf0c5e49c5d446540eb74cac",
+      "sha256": "e217da66c43a9d05a345f9146190684f385a2c7b89f93569da6a906002dc2e27",
       "geometry": {
-        "x": 404.109375,
+        "x": 431.4375,
         "y": 11.5,
-        "width": 471.78125,
+        "width": 417.125,
         "height": 44,
         "transform": "none",
         "zoom": "1.15",
@@ -39,13 +39,13 @@
     {
       "theme": "dark",
       "file": "src/renderer/pages/onboarding-island-dark.png",
-      "width": 984,
+      "width": 876,
       "height": 136,
-      "sha256": "ab97411877170a2083c3daa8186963faeb5fff3b27cdf4f7e5ed81c4865f9079",
+      "sha256": "915a6cb4a6549079af2a966aadb7c980ac6199d247a44f5b21d24dff008ad602",
       "geometry": {
-        "x": 404.109375,
+        "x": 431.4375,
         "y": 11.5,
-        "width": 471.78125,
+        "width": 417.125,
         "height": 44,
         "transform": "none",
         "zoom": "1.15",
