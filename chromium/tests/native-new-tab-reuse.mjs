@@ -19,7 +19,8 @@ const ids=async()=>(await w.snapshot()).tabs.map(t=>String(t.id));
 const page=async name=>{const id=await w.call('openTab',f.base+'/'+name);
  await w.waitForState(s=>s.activeTabId===id&&s.tabs.some(t=>t.id===id&&!t.loading));return id;};
 // The Start Page reset leaves is unused; an ordinary page is made active.
-const fresh=async()=>{await w.reset();const blank=(await w.snapshot()).tabs[0].id;const p=await page('page');
+// world.reset turns reuse off between scenarios; these checks want it on unless asked.
+const fresh=async(reuse=true)=>{await w.reset();if(reuse)await w.native('setReuseNewTab',[true]);const blank=(await w.snapshot()).tabs[0].id;const p=await page('page');
  return {blank:String(blank),page:p,before:await ids()};};
 const pressNewTab=()=>w.native('previewPageCommand',['newTab']);
 const opened=async(before,label)=>{const s=await w.waitForState(s=>s.tabs.length===before.length+1);
@@ -51,7 +52,7 @@ try{
  result.checks.push('pinned and grouped Start Pages are left alone');
 
  assert.equal(await w.call('setReuseNewTab',false),false);
- s=await fresh();await pressNewTab();await opened(s.before,'setting off');
+ s=await fresh(false);await pressNewTab();await opened(s.before,'setting off');
  assert.equal(await w.call('setReuseNewTab',true),true);
  result.checks.push('with the setting off, ⌘T opens a new tab');
 

@@ -7453,6 +7453,16 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (args.size() == 2) next.Set("mapping", args[1].GetDict().Clone());
       const bool ok = SaveGestureSettings(profile, next);Reply(id, ok, base::Value(std::move(before)));return;
     }
+    // Shipping's setReuseNewTab hook (#1542): the preference Settings writes.
+    // The suite's reset turns it off, as shipping's steps at the fork's pinned
+    // reference never had reuse; native-new-tab-reuse.mjs turns it on.
+    if (message[1].GetString() == "setReuseNewTab" && message[2].GetList().size() == 1 &&
+        message[2].GetList()[0].is_bool()) {
+      Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetPrefs()->SetBoolean(
+          kReuseNewTabPref, message[2].GetList()[0].GetBool());
+      Reply(id, true, base::Value(message[2].GetList()[0].GetBool()));
+      return;
+    }
     // Shipping's setIslandHoverOpen hook: the preference Settings writes.
     if (message[1].GetString() == "setIslandHoverOpen" && message[2].GetList().size() == 1 &&
         message[2].GetList()[0].is_bool()) {
