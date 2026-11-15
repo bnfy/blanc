@@ -1935,8 +1935,9 @@
       // As in shipping, the address is loaded as given (the browser refuses
       // what a tab may not open); typed text goes through navigate instead.
       // A private tab (/private, ⌘⇧N) opens in this window on the private
-      // profile (D1).
-      await request('createTab', [url ? String(url) : 'chrome://newtab/', options?.private === true]);
+      // profile (D1). A blank one goes to an unused Start Page of its kind
+      // when the window has one (#1505), as shipping's createTab(null).
+      await request('createTab', url ? [String(url), options?.private === true] : ['chrome://newtab/', options?.private === true, true]);
       await refresh();
       if (options?.focusAddress) await show('');
     },

@@ -5655,6 +5655,9 @@ const std::optional<std::string>& LaunchUiLanguage() {
 // neither sync records nor website messages can install rules.
 constexpr char kLinkRoutesPref[] = "blanc.links.routes";
 constexpr char kLinkRoutesInAppPref[] = "blanc.links.in_app";
+// #1505: New Tab switches to an unused Start Page (shipping's reuseNewTab).
+// A profile pref like blanc.tabs.archive, registered in browser_prefs.cc.
+constexpr char kReuseNewTabPref[] = "blanc.tabs.reuse_new_tab";
 std::string RouteProfileId(Profile* profile) {
   const auto name = profile->GetOriginalProfile()->GetPath().BaseName().AsUTF8Unsafe();
   return name == "Default" ? "default" : name;
@@ -11245,10 +11248,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value());
       return;
     }
-    if (method == "createTab" && (args.size() == 1 || (args.size() == 2 && args[1].is_bool())) &&
+    if (method == "createTab" &&
+        (args.size() == 1 || (args.size() == 2 && args[1].is_bool()) ||
+         (args.size() == 3 && args[1].is_bool() && args[2].is_bool())) &&
         args[0].is_string()) {
       const GURL url(args[0].GetString());
-      const bool make_private = args.size() == 2 && args[1].GetBool();
+      const bool make_private = args.size() >= 2 && args[1].GetBool();
+      // The Island's own blank New Tab asks to reuse (#1505), as shipping's
+      // createTab(null) does; other callers always get a new tab.
+      const bool reuse = args.size() == 3 && args[2].GetBool();
       if (!url.SchemeIsHTTPOrHTTPS() && !url.IsAboutBlank() && url != GURL("chrome://newtab/") &&
           url != GURL("chrome://extensions/") &&
           url != GURL("chrome://settings/") &&
@@ -11268,6 +11276,16 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       // A private tab (D1) is born in the window profile's private profile.
       if (make_private && browser->GetProfile()->IsOffTheRecord()) {
         reply(false, base::Value("This window is already private.")); return;
+      }
+      // A blank New Tab goes to an unused Start Page when there is one
+      // (#1505); the host opens the Island itself when it was asked to.
+      if (reuse && url == GURL("chrome://newtab/")) {
+        if (auto* reused = ReuseNewTab(browser, make_private, /*open_island=*/false)) {
+          base::DictValue result; result.Set("status", "switched");
+          result.Set("tabId", sessions::SessionTabHelper::IdForTab(reused).id());
+          reply(true, base::Value(std::move(result)));
+          return;
+        }
       }
       // Utility pages open in the sheet, and re-invoking the shown one closes
       // it (shipping's createTab routes them through showUtilityPage).
@@ -13674,6 +13692,47 @@ content::WebContents* NewPrivateTab(BrowserWindowInterface* browser, const GURL&
   params.tabstrip_add_types = AddTabTypes::ADD_ACTIVE;
   Navigate(&params);
   return params.navigated_or_inserted_contents;
+}
+
+// #1505, as shipping's openOrReuseNewTab: a New Tab command switches to an
+// unused Start Page of the asked-for kind in this window (which is also its
+// Space) instead of stacking another. Unused is the plain Start Page with no
+// history and nothing on its way elsewhere; pinned, grouped, split, Glance
+// and restricted tabs never count, and a discarded (quiet) one does. The most
+// recently active wins. Off when blanc.tabs.reuse_new_tab is false.
+content::WebContents* ReuseNewTab(BrowserWindowInterface* browser, bool is_private, bool open_island) {
+  if (!IsIslandWindow(browser) || browser->GetProfile()->IsOffTheRecord() ||
+      !browser->GetProfile()->GetPrefs()->GetBoolean(kReuseNewTabPref)) return nullptr;
+  const GURL start(is_private ? "chrome://blanc-prototype/pages/newtab.html?private=1"
+                              : "chrome://blanc-prototype/pages/newtab.html");
+  const GURL entry("chrome://newtab/");
+  int glance = -1, overlay_glance = -1;
+  for (auto* owner : Owner::Live()) {
+    if (owner->browser == browser) { glance = owner->glance_reference; overlay_glance = owner->overlay_glance; }
+  }
+  auto* model = browser->GetTabStripModel();
+  int best = TabStripModel::kNoTab;
+  for (int i = 0; i < model->count(); ++i) {
+    auto* tab = model->GetWebContentsAt(i);
+    const int id = sessions::SessionTabHelper::IdForTab(tab).id();
+    const auto committed = tab->GetLastCommittedURL();
+    if (blanc::private_tabs::IsPrivateTab(tab) != is_private) continue;
+    if (committed != start && !(committed.is_empty() && tab->GetVisibleURL() == entry)) continue;
+    if (TabPinned(model, i) || model->GetTabGroupForTab(i) || model->GetSplitForTab(i) ||
+        id == glance || id == overlay_glance || HasInheritedDocumentPolicy(tab)) continue;
+    auto& controller = tab->GetController();
+    const auto* pending = controller.GetPendingEntry();
+    if (controller.GetEntryCount() > 1 ||
+        (pending && pending->GetURL() != entry && pending->GetURL() != start)) continue;
+    if (i == model->active_index()) { best = i; break; }
+    if (best == TabStripModel::kNoTab ||
+        tab->GetLastActiveTimeTicks() >= model->GetWebContentsAt(best)->GetLastActiveTimeTicks()) best = i;
+  }
+  if (best == TabStripModel::kNoTab) return nullptr;
+  auto* tab = model->GetWebContentsAt(best);
+  if (best != model->active_index()) model->ActivateTabAt(best);
+  if (open_island) OpenIsland(browser, true);
+  return tab;
 }
 
 bool MakePrivateWindow(BrowserWindowInterface* browser) {

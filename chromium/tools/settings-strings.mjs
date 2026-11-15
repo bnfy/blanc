@@ -117,6 +117,8 @@ export const STRINGS = [
   ['blancIslandSiteColorsHint', 'settings.general.islandSiteColors.hint'],
   ['blancIslandTabIcons', 'settings.general.islandTabIcons.label'],
   ['blancIslandTabIconsHint', 'settings.general.islandTabIcons.hint'],
+  ['blancReuseNewTab', 'settings.general.reuseNewTab.label'],
+  ['blancReuseNewTabHint', 'settings.general.reuseNewTab.hint'],
   ['blancProfiles', 'settings.profiles.title'],
   ['blancPatron', 'settings.patron.title'],
   ['blancPatronCheckout', 'settings.patron.patronCheckout'],
