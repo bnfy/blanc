@@ -101,3 +101,10 @@ test('unapproved hook exclusion fails before outbound', () => {
   const r = fixture({exclusions: [{scenario: '@F2-1', needs: '--blanc-unknown', reason: 'Unproven'}]});
   assert.notEqual(r.status, 0); assert.equal(r.trace, ''); assert.equal(r.report.verdict, 'fail');
 });
+
+test('release gate supports direct executable invocation', () => {
+  const r = spawnSync(fileURLToPath(shURL), [], {encoding: 'utf8'});
+  assert.equal(r.error, undefined, 'release-gate.sh must be executable');
+  assert.notEqual(r.status, 0);
+  assert.match(r.stderr, /Usage: release-gate.sh/);
+});
