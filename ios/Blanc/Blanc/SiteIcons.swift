@@ -50,7 +50,7 @@ final class SiteIcons {
 
     /// The icon kept for `url`'s site, a PNG data URL.
     func icon(for url: String) -> String? {
-        Self.key(URL(string: url)).flatMap { entries[$0]?.icon }
+        Self.key(URL(string: url)).flatMap { entries[$0]?.icon }.flatMap { $0.isEmpty ? nil : $0 }
     }
 
     func clear() {
@@ -98,8 +98,7 @@ final class SiteIcons {
 
     /// After a regular page finishes loading: fetch its site's icon unless one is fresh.
     func capture(from webView: WKWebView) {
-        guard let page = webView.url, let key = Self.key(page), !inFlight.contains(key) else { return }
-        if let entry = entries[key], Date().timeIntervalSince1970 - entry.at < Self.refreshAfter { return }
+        guard let page = webView.url, let key = Self.key(page), !inFlight.contains(key), !isFresh(key) else { return }
         inFlight.insert(key)
         let script = """
           return [...document.querySelectorAll('link[rel~="icon" i], link[rel="apple-touch-icon" i], link[rel="apple-touch-icon-precomposed" i]')]
@@ -110,15 +109,81 @@ final class SiteIcons {
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 defer { self.inFlight.remove(key) }
-                for url in Self.candidates(links, page: page) {
-                    guard let (data, response) = try? await self.session.data(from: url),
-                          (response as? HTTPURLResponse).map({ (200..<300).contains($0.statusCode) }) ?? false,
-                          let icon = Self.dataURL(from: data) else { continue }
-                    self.store(icon, for: key)
-                    return
-                }
+                await self.fetchFirst(Self.candidates(links, page: page), for: key)
             }
         }
+    }
+
+    /// Shortcuts, pins and Favorites the Start Page lists without an icon (sites
+    /// visited before icons were kept, or a Favorite from another device): their
+    /// pages are read, without cookies, for the icons they declare. A site with
+    /// none is remembered for a day, so it isn't asked again on every Start Page.
+    func backfill(_ urls: [String]) {
+        for case let page? in urls.map({ URL(string: $0) }) {
+            guard let key = Self.key(page), !inFlight.contains(key), !isFresh(key), !tried.contains(key) else { continue }
+            inFlight.insert(key)
+            tried.insert(key)
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                defer { self.inFlight.remove(key) }
+                var links: [[String: String]] = [], base = page
+                if let (data, response) = try? await self.session.data(from: page),
+                   (response as? HTTPURLResponse).map({ (200..<300).contains($0.statusCode) }) ?? false {
+                    base = response.url ?? page
+                    links = Self.links(inHTML: String(decoding: data.prefix(Self.maxBytes), as: UTF8.self))
+                }
+                if !(await self.fetchFirst(Self.candidates(links, page: base), for: key)) { self.storeMiss(key) }
+            }
+        }
+    }
+
+    /// Sites asked for this launch, found or not.
+    private var tried = Set<String>()
+    /// A site that answered with no icon is asked again after a day.
+    static let missRefreshAfter: TimeInterval = 24 * 60 * 60
+
+    private func isFresh(_ key: String) -> Bool {
+        guard let entry = entries[key] else { return false }
+        let age = Date().timeIntervalSince1970 - entry.at
+        return age < (entry.icon.isEmpty ? Self.missRefreshAfter : Self.refreshAfter)
+    }
+
+    /// The first candidate that downloads as an icon, stored. Whether one did.
+    @discardableResult
+    private func fetchFirst(_ candidates: [URL], for key: String) async -> Bool {
+        for url in candidates {
+            guard let (data, response) = try? await session.data(from: url),
+                  (response as? HTTPURLResponse).map({ (200..<300).contains($0.statusCode) }) ?? false,
+                  let icon = Self.dataURL(from: data) else { continue }
+            store(icon, for: key)
+            return true
+        }
+        return false
+    }
+
+    /// The `<link>` icons a page's HTML declares, as the page script reads them.
+    nonisolated static func links(inHTML html: String) -> [[String: String]] {
+        guard let tag = try? NSRegularExpression(pattern: #"<link\b[^>]*>"#, options: [.caseInsensitive]),
+              let attribute = try? NSRegularExpression(pattern: #"([a-zA-Z][\w-]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))"#) else { return [] }
+        let text = html as NSString
+        return tag.matches(in: html, range: NSRange(location: 0, length: text.length)).prefix(200).compactMap { match in
+            let element = text.substring(with: match.range) as NSString
+            var values: [String: String] = [:]
+            for found in attribute.matches(in: element as String, range: NSRange(location: 0, length: element.length)) {
+                let name = element.substring(with: found.range(at: 1)).lowercased()
+                let value = (2...4).map { found.range(at: $0) }.first { $0.location != NSNotFound }.map { element.substring(with: $0) } ?? ""
+                values[name] = value.replacingOccurrences(of: "&amp;", with: "&")
+            }
+            let rel = (values["rel"] ?? "").lowercased().split(separator: " ")
+            guard rel.contains("icon") || rel.contains("apple-touch-icon") || rel.contains("apple-touch-icon-precomposed") else { return nil }
+            return ["href": values["href"] ?? "", "rel": values["rel"] ?? "", "sizes": values["sizes"] ?? "", "type": values["type"] ?? ""]
+        }
+    }
+
+    private func storeMiss(_ key: String) {
+        guard entries[key]?.icon.isEmpty != false else { return }
+        entries[key] = Entry(icon: "", at: Date().timeIntervalSince1970)
+        save()
     }
 
     private func store(_ icon: String, for key: String) {
@@ -128,7 +193,11 @@ final class SiteIcons {
                 entries.removeValue(forKey: old.key)
             }
         }
-        if let data = try? JSONEncoder().encode(entries) { try? data.write(to: fileURL, options: .atomic) }
+        save()
         onChange?()
+    }
+
+    private func save() {
+        if let data = try? JSONEncoder().encode(entries) { try? data.write(to: fileURL, options: .atomic) }
     }
 }
