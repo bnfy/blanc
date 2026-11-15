@@ -41,6 +41,10 @@ in the lane file in its place. Numbering starts at 0101.
   (`blanc/android/island/res/xml/blanc_locales_config.xml`) as the app's
   `android:localeConfig`, so Android's App languages screen offers those six
   (A5c).
+- `0115-android-launch-ping.patch`: links the launch ping's native sender
+  (`//blanc/android:launch_ping_bridge`, `browser/launch_ping_bridge.cc`) into
+  `//chrome/browser`, beside the other bridges, so the ping goes through
+  Chromium's network stack and its NetLog.
 
 A file dropped or moved in the lane keeps its applied edits in an existing checkout
 (`apply.py` touches only the lane's files, and never deletes): restore a

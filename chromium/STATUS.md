@@ -3330,7 +3330,7 @@ walkthrough and the Settings rows; the launch ping, its native sender and the Wo
 - **Measure usage** is saved only when the privacy step was on screen: Continue saves the switch, and
   closing on that step saves what it shows. A card closed earlier saves nothing, so nothing will be sent
   and Settings → Privacy reads off until the person chooses. This diverges from the iPhone, which saves
-  the switch's default when Welcome is swiped away (D38). No ping exists yet.
+  the switch's default when Welcome is swiped away (D38).
 - **Default browser** asks with Android's browser-role dialog, at most twice (Android stops showing it to
   someone who turned it down twice), then opens Android's Default apps screen, as it does once Blanc is
   the default. The walkthrough skips the offer when Blanc already is (D4).
@@ -3349,8 +3349,16 @@ walkthrough and the Settings rows; the launch ping, its native sender and the Wo
 - **Emulator checks skip the card** while `/data/local/tmp/blanc-walkthrough-off` exists, which only a debug
   build reads (`FirstMinute.SKIP_FILE`); every gate script creates it, and `walkthrough.mjs` removes it and
   puts it back.
-- **Not yet:** the launch ping (next PR). Pairing in under a minute and the walkthrough on the Pixel wait for
-  the owner.
+- **The launch ping** (F21, its own PR) is the iPhone's, in desktop's shape with `platform: "android"`: once
+  per process the person opened, when Measure usage is saved on at launch or as soon as it's saved on. Nothing
+  leaves before that, and no install id exists until the first send (`LaunchPing.java`). A build with no Blanc
+  release version sends nowhere; a debuggable build started with `--blanc-test-ping-host` sends only to that
+  loopback collector. The request goes through Chromium's network stack (`launch_ping_bridge.cc`, linked by
+  patch 0115), so the outbound gate's NetLog sees it; `launch-ping.mjs` checks both ways on the emulator.
+  The ping Worker counts Android under `android:`, apart from desktop and the iPhone, with no GA mirror,
+  first-day signals or events, and an `android` block in `/stats`. The owner approved deploying it on
+  November 14, 2026, ahead of this PR (version `7955faed…`).
+- **Not yet:** pairing in under a minute and the walkthrough on the Pixel wait for the owner.
 
 | A5c gate (November 14, 2026) | Result | Evidence (`~/blanc-evidence/android/a5c-split/`) |
 | --- | --- | --- |
