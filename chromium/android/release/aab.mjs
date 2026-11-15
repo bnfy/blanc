@@ -12,9 +12,9 @@ const requireValue = (value, message) => { if (!value) throw new Error(message);
 // Input is the XML emitted by bundletool dump manifest, never binary XML.
 export function checkManifest(xml, record) {
   const problems = [];
-  const source = String(xml).replace(/<!--[\s\S]*?-->/g, '');
+  const source = String(xml);
   const manifests = [...source.matchAll(/<manifest\b([^>]*)>/g)];
-  // A comment left after one pass (a nested or broken one) makes the input invalid, not stripped.
+  // bundletool writes no comments, so any comment is refused rather than stripped: a stripped one could hide a match.
   if (manifests.length !== 1 || /<!--|<!DOCTYPE|<!ENTITY/i.test(source)) return ['invalid manifest XML'];
   const attributes = manifests[0][1];
   for (const [name, expected] of [['package', 'me.bnfy.blanc'], ['android:versionCode', String(record?.versionCode)], ['android:versionName', record?.versionName]]) {

@@ -92,7 +92,8 @@ for (const [name, value, expected] of [
   ['mismatched version code', xml().replace('versionCode="1"', 'versionCode="2"'), /versionCode/],
   ['mismatched version name', xml().replace('beta.1', 'beta.2'), /versionName/],
   ['missing manifest', '<application/>', /manifest/],
-  ['comment left after one strip', xml().replace('<manifest', '<!-<!-- x -->- y --><manifest'), /invalid manifest XML/],
+  ['comment', xml().replace('<manifest', '<!-- x --><manifest'), /invalid manifest XML/],
+  ['nested comment', xml().replace('<manifest', '<!-<!-- x -->- y --><manifest'), /invalid manifest XML/],
 ]) test(`manifest reports ${name}`, async () => assert.match((await api()).checkManifest(value, record).join('\n'), expected));
 test('all modules allow only arm64-v8a libraries and require Android notice paths', async () => {
   const { checkEntries } = await api();
