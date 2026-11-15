@@ -17,7 +17,10 @@ if (location.origin === 'chrome://blanc-prototype' && parent !== window) {
       event.target.select();
       return;
     }
-    if (event.key === 'Escape') {
+    // The overlay's own keydown handler (overlay.js) answers every Escape
+    // there, and the Glance picker's hands focus back to its Change control.
+    // A second, generic close raced that hand-back and often won it.
+    if (event.key === 'Escape' && !location.pathname.endsWith('/overlay.html')) {
       event.preventDefault();
       parent.BlancPrototypeHost.escape();
     }

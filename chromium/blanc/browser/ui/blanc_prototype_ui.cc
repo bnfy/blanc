@@ -264,6 +264,7 @@
 #include "components/tab_groups/tab_group_visual_data.h"
 #include "chrome/browser/ui/toolbar/toolbar_actions_model.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
+#include "chrome/browser/ui/views/infobars/infobar_container_view.h"
 #include "chrome/browser/ui/views/frame/toolbar_button_provider.h"
 #include "chrome/browser/ui/views/toolbar/app_menu_control.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_view.h"
@@ -297,6 +298,10 @@
 #include "ui/base/page_transition_types.h"
 #include "ui/base/webui/web_ui_util.h"
 #include "ui/gfx/image/image.h"
+#include "ui/gfx/image/image_skia_operations.h"
+#include "ui/gfx/color_utils.h"
+#include "ui/base/models/image_model.h"
+#include "skia/ext/image_operations.h"
 #include "ui/gfx/image/image_skia.h"
 #include "ui/gfx/image/image_skia_rep.h"
 #include "chrome/browser/ui/toolbar/toolbar_action_view_model.h"
@@ -1333,6 +1338,10 @@ class Owner : public base::SupportsUserData::Data,
   int rail_width = 248;
   gfx::Rect extension_bounds;
   gfx::Rect interactive_bounds;
+  // The Island band's current color (host.js syncBandColor): the page's
+  // sampled top edge, a theme's frame, the private band or the Start Page
+  // backdrop's color. Chromium's infobars take it (InfoBarStyleFor).
+  std::optional<SkColor> band_color;
   // Rail hover previews: the group list card's rectangle (host coordinates),
   // which takes the pointer while it shows, and the one tab thumbnail the
   // picture card watches (never a private or quiet tab's).
@@ -11059,6 +11068,24 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value(true));
       return;
     }
+    if (method == "bandColor" && args.size() == 1 && args[0].is_string()) {
+      const std::string& hex = args[0].GetString();
+      uint32_t rgb = 0;
+      if (hex.size() != 7 || hex[0] != '#' || !base::HexStringToUInt(std::string_view(hex).substr(1), &rgb)) {
+        reply(false, base::Value("bandColor: #rrggbb"));
+        return;
+      }
+      const SkColor color = SkColorSetA(rgb, SK_AlphaOPAQUE);
+      const bool changed = owner->band_color != color;
+      owner->band_color = color;
+      // Restyle the infobars showing now; new ones read the color as they theme.
+      auto* browser_view = BrowserView::GetBrowserViewForBrowser(owner->browser);
+      if (changed && browser_view && browser_view->infobar_container() &&
+          !browser_view->infobar_container()->children().empty() && browser_view->GetWidget())
+        browser_view->GetWidget()->ThemeChanged();
+      reply(true, base::Value(true));
+      return;
+    }
     if (method == "geometry" && (args.size() == 8 || args.size() == 10) &&
         std::ranges::all_of(args, [](const auto& v) { return v.is_int(); })) {
       if (args.size() == 10) {
@@ -13522,15 +13549,20 @@ bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page, st
   auto* contents = view->GetWebContents();
   if (contents->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html") ||
       !contents->GetPrimaryMainFrame()->IsRenderFrameLive()) return false;
-  std::string call;
+  std::string args;
   if (patron) {
-    call = "window.BlancPrototypeHost?.openSheet('settings','help')";
+    args = "'settings','help'";
   } else {
     // JSON quotes the page and section as script string literals.
-    call = "window.BlancPrototypeHost?.openSheet(" + base::WriteJson(base::Value(std::string(page))).value_or("''");
-    if (!section.empty()) call += "," + base::WriteJson(base::Value(std::string(section))).value_or("''");
-    call += ")";
+    args = base::WriteJson(base::Value(std::string(page))).value_or("''");
+    if (!section.empty()) args += "," + base::WriteJson(base::Value(std::string(section))).value_or("''");
   }
+  // host.js defines BlancPrototypeHost only at the end of its first run, after
+  // host.html commits. A request before that (a utility page opened or
+  // restored at launch) waits in blancPendingSheet for host.js to open,
+  // instead of vanishing with the tab UtilityPageGate closes.
+  const std::string call = "window.BlancPrototypeHost ? window.BlancPrototypeHost.openSheet(" + args +
+                           ") : (window.blancPendingSheet = [" + args + "])";
   contents->GetPrimaryMainFrame()->ExecuteJavaScript(base::UTF8ToUTF16(call), base::NullCallback());
   return true;
 }
@@ -13740,7 +13772,39 @@ bool IsCaption(views::View* parent, int x, int y) {
   if (owner && (StripHiddenFor(owner) || IslandFloating(owner)) && !owner->autohide_slide)
     return y >= 0 && y < 6 && x >= RailWidth(parent);
   if (y < view->y() || y >= view->y() + (owner ? owner->strip_height : 68)) return false;
+  // The vertical tabs rail is never a drag handle, as shipping marks the
+  // whole rail no-drag: its header shares the band, and a caption there
+  // turned the layout toggle's click into a window drag.
+  if (x < RailWidth(parent)) return false;
   return owner && !owner->interactive_bounds.Contains(x, y - view->y());
+}
+
+std::optional<InfoBarStyle> InfoBarStyleFor(const views::View* infobar) {
+  const auto* widget = infobar ? infobar->GetWidget() : nullptr;
+  auto* browser_view = widget ? BrowserView::GetBrowserViewForNativeWindow(widget->GetNativeWindow()) : nullptr;
+  if (!browser_view || !HasIsland(browser_view)) return std::nullopt;
+  auto* view = static_cast<views::WebView*>(browser_view->GetViewByID(kIslandViewId));
+  auto* owner = view ? GetOwner(view->GetWebContents()) : nullptr;
+  if (!owner || !owner->band_color) return std::nullopt;
+  const SkColor background = *owner->band_color;
+  const bool dark = color_utils::IsDark(background);
+  // Sunrise's ink and accent (styles.css --sunrise-text, --sunrise-accent),
+  // the accent nudged where a site's color would swallow it.
+  const SkColor foreground = dark ? SkColorSetRGB(0xf7, 0xf0, 0xe5) : SkColorSetRGB(0x12, 0x10, 0x0b);
+  const SkColor accent = dark ? SkColorSetRGB(0xd4, 0xad, 0x66) : SkColorSetRGB(0x80, 0x5d, 0x28);
+  return InfoBarStyle{background, foreground,
+      color_utils::BlendForMinContrast(accent, background).color};
+}
+
+ui::ImageModel InfoBarMark() {
+  static const base::NoDestructor<gfx::ImageSkia> mark([] {
+    auto bytes = blanc::island_resources::Find("pages/sunrise-mark.png");
+    if (!bytes) return gfx::ImageSkia();
+    const gfx::Image image = gfx::Image::CreateFrom1xPNGBytes(*bytes);
+    return gfx::ImageSkiaOperations::CreateResizedImage(image.AsImageSkia(),
+        skia::ImageOperations::RESIZE_BEST, gfx::Size(16, 16));
+  }());
+  return mark->isNull() ? ui::ImageModel() : ui::ImageModel::FromImageSkia(*mark);
 }
 
 void RestoreExtensions(views::View* parent) {

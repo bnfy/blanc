@@ -272,6 +272,43 @@ export const DIVERGENCES = new Map([
       assert.ok(dom.mahjongPill.top >= dom.footer.top - 1 && dom.mahjongPill.bottom <= dom.footer.bottom + 1, `${layout}: inside the footer`);
     }
   }}],
+  // V27 (owner, 2026-11-14, the rail hover previews design): with previews
+  // on, a rail row carries no native title tooltip, so it and the hover card
+  // never show together; the card names the tab instead. Same promise as
+  // shipping's F28-17 step: under reduced motion the title stays still, the
+  // row's accessible name is the whole title, and hovering shows the whole
+  // title (in the card, not a tooltip).
+  ['the truncated title remains still with its full accessible name', {divergence: 'V27', async run() {
+    const strip = this.frame('strip');
+    try {
+      const row = await strip.locator(`.vertical-tab-row[data-tab-id="${this.verticalTitleIds.longId}"]`).evaluate((row) => {
+        const viewport = row.querySelector('.vertical-tab-title');
+        const text = viewport?.querySelector('.vertical-tab-title-text');
+        const primary = row.querySelector('.vertical-tab-primary');
+        const transform = text ? getComputedStyle(text).transform : 'none';
+        return {
+          reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
+          scrolling: viewport?.classList.contains('scrolling') ?? false,
+          x: transform === 'none' ? 0 : new DOMMatrixReadOnly(transform).m41,
+          title: primary?.getAttribute('title'),
+          ariaLabel: primary?.getAttribute('aria-label') ?? '',
+          visibleText: text?.textContent ?? '',
+        };
+      });
+      assert.equal(row.reducedMotion, true);
+      assert.equal(row.scrolling, false);
+      assert.equal(row.x, 0);
+      assert.ok(row.visibleText.length > 0);
+      assert.ok(row.ariaLabel.includes(row.visibleText), 'the row is named by its whole title');
+      assert.equal(row.title, null, 'no native tooltip while hover previews are on');
+      const shown = await this.waitFor(() => this.hostEval(
+        `[...document.querySelectorAll('.rail-card-title')].filter(n => n.offsetParent).map(n => n.textContent)`),
+      (titles) => titles?.includes(row.visibleText), 'the hover card to show the whole title', 3000);
+      assert.ok(shown.includes(row.visibleText));
+    } finally {
+      await strip.emulateMedia({ reducedMotion: 'no-preference' });
+    }
+  }}],
   ['I close the Patron upgrade', {divergence: 'V25', async run() {
     const frame = await this.call('readStartFrameGeometry');
     assert.equal(frame.patronVisible, false, 'there is no Patron pill to close on the Start Page');

@@ -4,6 +4,8 @@
 
 #include "base/functional/callback.h"
 #include "base/values.h"
+#include <optional>
+#include "third_party/skia/include/core/SkColor.h"
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -18,6 +20,7 @@
 class GURL;
 struct NavigateParams;
 namespace sessions { struct SessionWindow; }
+namespace ui { class ImageModel; }
 namespace content { class WebContents; class RenderFrameHost; }
 namespace blanc::browser_api::mojom { class BrowserApiFactory; }
 class BrowserWindowInterface;
@@ -177,6 +180,13 @@ int RailWidth(views::View* parent);
 int HeaderHeight(views::View* parent);
 bool IsCaption(views::View* parent, int x, int y);
 void RestoreExtensions(views::View* parent);
+// Chromium's infobars in an Island window are part of the Island's band
+// (owner, 2026-11-14): its current color, with ink and a link color that read
+// on it. nullopt outside Island windows, where Chromium's own colors stay.
+struct InfoBarStyle { SkColor background; SkColor foreground; SkColor link; };
+std::optional<InfoBarStyle> InfoBarStyleFor(const views::View* infobar);
+// Blanc's Sunrise mark, for the infobars that show Chromium's logo.
+ui::ImageModel InfoBarMark();
 bool OpenExtensions(BrowserWindowInterface* browser);
 // Whether an extension may open its action popup in |browser| on its own
 // (chrome.action.openPopup): an Island window, unless a page is fullscreen.
