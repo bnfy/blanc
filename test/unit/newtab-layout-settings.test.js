@@ -214,7 +214,7 @@ test('Settings offers every supported start-page layout', () => {
   for (const layout of settingsSchema.newtabLayouts) {
     assert.match(
       html,
-      new RegExp(`<option value="${layout}">${layout}</option>`),
+      new RegExp(`<option value="${layout}">${layout[0].toUpperCase()}${layout.slice(1)}</option>`),
       `missing Settings option for ${layout}`
     );
   }

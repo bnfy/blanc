@@ -5606,6 +5606,7 @@ function createOverlay() {
         prefill: rt().overlayPrefill,
         purpose: rt().overlayPurpose,
         searchPriorityResults: settings.getSettings().searchPriorityResults === true,
+        panelSideClearance: currentChromeLayout().panelSideClearance,
       });
       syncShieldAnchor();
       rt().overlayView.webContents.focus();
@@ -5815,6 +5816,9 @@ function showOverlay(mode, { prefill, purpose } = {}) {
     // Read on every show: the setting changes only in the Settings sheet,
     // which the overlay never shares the screen with.
     searchPriorityResults: settings.getSettings().searchPriorityResults === true,
+    // The margin the centered panel keeps from each side of this view, wide
+    // enough on macOS to leave the window buttons their corner.
+    panelSideClearance: currentChromeLayout().panelSideClearance,
     // Where the resting pill is, in the overlay's OWN coordinates, so the
     // panel can start life at the pill's size and grow out of it. The two live
     // in different views, so this hand-off is the only way the overlay can

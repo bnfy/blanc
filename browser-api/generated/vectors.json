@@ -7446,7 +7446,8 @@
                 "width": 1,
                 "height": 1
               },
-              "searchPriorityResults": true
+              "searchPriorityResults": true,
+              "panelSideClearance": 1
             }
           ],
           "callbacks": [
@@ -7461,7 +7462,8 @@
                   "width": 1,
                   "height": 1
                 },
-                "searchPriorityResults": true
+                "searchPriorityResults": true,
+                "panelSideClearance": 1
               }
             ]
           ]
