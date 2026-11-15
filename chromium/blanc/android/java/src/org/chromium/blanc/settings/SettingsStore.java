@@ -82,7 +82,7 @@ public final class SettingsStore {
         return mPrefs.getInt(WALKTHROUGH_KEY, 0);
     }
 
-    // Written at once (commit): the walkthrough's last step can end with Blanc restarting.
+    // Written at once (commit): a closed walkthrough must not come back if Blanc stops right after.
     @SuppressLint("ApplySharedPref")
     public void setWalkthroughCompletedVersion(int version) {
         mPrefs.edit().putInt(WALKTHROUGH_KEY, version).commit();

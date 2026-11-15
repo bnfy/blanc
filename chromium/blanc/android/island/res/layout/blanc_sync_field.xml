@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
-<!-- A text field row in a card. Its hint (the label) and input type are set per field in SyncSheet.field(). -->
+<!-- A text field row in a card. Its hint (the label) and input type are set per field in SyncSheet.field();
+     autofill stays on, so a password manager can fill the passphrase. -->
 <EditText xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@null"
-    android:importantForAutofill="no"
     android:inputType="text"
     android:minHeight="@dimen/blanc_sync_row_min_height"
     android:paddingStart="@dimen/blanc_sync_row_padding_horizontal"
@@ -15,4 +15,4 @@
     android:textColor="@color/blanc_sunrise_text"
     android:textColorHint="@color/blanc_sunrise_text_dim"
     android:textSize="@dimen/blanc_sync_row_title_size"
-    tools:ignore="LabelFor" />
+    tools:ignore="Autofill,LabelFor" />

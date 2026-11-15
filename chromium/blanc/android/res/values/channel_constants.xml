@@ -7,10 +7,9 @@ widget that Chromium builds in never says Chrome; this build ships none, hence t
 -->
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:ignore="UnusedResources">
+    xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name" translatable="false">Blanc</string>
-    <string name="bookmark_widget_title" translatable="false">Blanc favorites</string>
-    <string name="search_widget_title" translatable="false">Blanc search</string>
-    <string name="quick_action_search_widget_title" translatable="false">Blanc quick action search</string>
+    <string name="bookmark_widget_title" translatable="false" tools:ignore="UnusedResources">Blanc favorites</string>
+    <string name="search_widget_title" translatable="false" tools:ignore="UnusedResources">Blanc search</string>
+    <string name="quick_action_search_widget_title" translatable="false" tools:ignore="UnusedResources">Blanc quick action search</string>
 </resources>
