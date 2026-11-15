@@ -1225,9 +1225,21 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .dl-tile--beta { border-color: transparent; background: var(--site-ink-warm); color: #F8F2E8; }
 .dl-tile--beta .dl-tile-label, .dl-tile--beta > p:not([class]), .dl-tile--beta .dl-tile-meta { color: rgb(248 242 232 / 0.66); }
 .dl-tile--beta .dl-tile-label { color: var(--site-gold-on-dark); }
-.dl-tile-button { display: inline-flex; margin-top: auto; padding: 12px 22px; border-radius: 999px; background: #F8F2E8; color: var(--site-ink-warm); font-size: 15px; font-weight: 500; text-decoration: none; transition: background 0.18s ease, transform 0.1s ease-out; }
+.dl-tile--beta .dl-tile-meta { margin-top: 18px; line-height: 1.6; }
+/* The beta's number and its Chromium as large figures, each over a caption and
+   its full version (owner, 2026-11-15). The figure leads visually; the caption
+   stays first in the markup so it reads "Beta 6". */
+.dl-beta-versions { display: flex; margin: 24px 0 0; }
+.dl-beta-versions > div { display: flex; flex-direction: column; padding: 0 24px; border-left: 1px solid rgb(248 242 232 / 0.16); }
+.dl-beta-versions > div:first-child { padding-left: 0; border-left: 0; }
+.dl-beta-versions dt { order: 2; margin-top: 10px; color: rgb(248 242 232 / 0.66); font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; }
+.dl-beta-versions dd { order: 3; margin: 4px 0 0; color: rgb(248 242 232 / 0.86); font-family: var(--font-mono); font-size: 12px; }
+.dl-beta-versions .dl-beta-figure { order: 1; margin: 0; color: #F8F2E8; font-family: var(--site-font-display); font-size: 64px; font-variant-numeric: lining-nums; line-height: 0.9; }
+.dl-beta-versions > div:first-child .dl-beta-figure { color: var(--site-gold-on-dark); }
+.dl-tile-button { display: inline-flex; align-items: center; gap: 8px; margin-top: auto; padding: 12px 22px; border-radius: 999px; background: #F8F2E8; color: var(--site-ink-warm); font-size: 15px; font-weight: 500; text-decoration: none; transition: background 0.18s ease, transform 0.1s ease-out; }
 .dl-tile-button:is(:hover, :focus-visible) { background: var(--site-gold-on-dark); }
 .dl-tile-button:active { transform: scale(0.97); }
+.dl-tile-button .platform-logo { width: 15px; height: 17px; margin-top: -2px; fill: currentColor; }
 .dl-notyet { margin-top: 14px; color: rgb(248 242 232 / 0.66); font-size: 13.5px; }
 .dl-notyet summary { cursor: pointer; list-style: none; font-family: var(--font-mono); font-size: 12px; }
 .dl-notyet summary::-webkit-details-marker { display: none; }
@@ -1264,6 +1276,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   .dl-more { grid-template-columns: 1fr; margin-top: 64px; }
   .dl-tile { min-height: 0; }
   .dl-tile-button { margin-top: 0; }
+  .dl-beta-versions > div { padding: 0 18px; }
+  .dl-beta-versions .dl-beta-figure { font-size: 52px; }
   .dl-tile--brew .terminal-window { margin-top: 22px; }
 }
 @media (prefers-reduced-motion: reduce) {
