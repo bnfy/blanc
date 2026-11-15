@@ -4304,7 +4304,11 @@ function install(refs) {
         islandTabIcons: false,
         launchSunrise: false,
         linkRoutesInApp: false,
-        reuseNewTab: true,
+        // Off between scenarios (#1505): each reset leaves one unused New Tab
+        // page, which reuse would hand back to /new, ⌘T and the rail's New Tab
+        // in scenarios that expect a new tab (F7-2, F28-8). The reuse scenarios
+        // turn it on in their Before hook (support/hooks.js).
+        reuseNewTab: false,
         islandAutoHide: false,
         islandAutoHideStyle: 'float',
         surfaceStyle: 'sunrise',
