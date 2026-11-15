@@ -5,11 +5,11 @@
     <link>https://blanc.day/updates/chromium-beta/arm64.xml</link>
     <description>Blanc Chromium beta updates</description>
     <item>
-      <title>Blanc Beta 2.0.0-beta.5</title>
-      <sparkle:version>5</sparkle:version>
-      <sparkle:shortVersionString>2.0.0-beta.5</sparkle:shortVersionString>
+      <title>Blanc Beta 2.0.0-beta.6</title>
+      <sparkle:version>6</sparkle:version>
+      <sparkle:shortVersionString>2.0.0-beta.6</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-      <enclosure url="https://github.com/bnfy/blanc/releases/download/chromium-beta-2.0.0-beta.5/Blanc-Beta-2.0.0-beta.5-mac-arm64.dmg" length="245825430" type="application/octet-stream" sparkle:edSignature="zwtV5KPd27NEfMV3MArKjqlNhDgeduAUEOFnUJGO1om3+FWas1Fg2a2crxQGexeZYlJVyr8R9UoVuMJXGDifDQ==" />
+      <enclosure url="https://github.com/bnfy/blanc/releases/download/chromium-beta-2.0.0-beta.6/Blanc-Beta-2.0.0-beta.6-mac-arm64.dmg" length="246698477" type="application/octet-stream" sparkle:edSignature="sSOdNSIhADFvZ/2kZpX85Far4h9hmuxCk4DRf9tRIXiVuRARtrbdFQaWlPP5AkLsTYTvqkqCWWvnHeUvBiS/Cg==" />
     </item>
   </channel>
 </rss>
