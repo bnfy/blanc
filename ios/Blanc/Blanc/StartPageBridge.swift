@@ -148,9 +148,9 @@ final class StartPageBridge: NSObject, WKScriptMessageHandler {
             }
             let sites = StartPageStore.topSites(services.historyStore.entries,
                                                 now: Int64(Date().timeIntervalSince1970 * 1000), offset: offset, limit: limit)
-            return .value(.from(sites))
+            return .value(.from(withIcons(sites, isPrivate: isPrivate)))
         case "pinsList" where args.isEmpty:
-            return .value(.from(services.startPage.pinsList))
+            return .value(.from(["max": StartPageStore.maxPins, "pins": withIcons(services.startPage.pins, isPrivate: isPrivate)]))
         case "pinsPin" where args.count == 2, "pinsUnpin" where args.count == 1:
             guard let url = text(0), method == "pinsUnpin" || text(1) != nil else { return .reject("Unsupported start-page request") }
             if isPrivate { return .value(method == "pinsPin" ? .object([("ok", .bool(false)), ("reason", .string("private"))]) : .bool(false)) }
@@ -194,6 +194,17 @@ final class StartPageBridge: NSObject, WKScriptMessageHandler {
         }
     }
 
+    /// Each item with its site's icon, as Android's `WithIcons` adds them; a
+    /// private Start Page shows none (the page draws letters there anyway).
+    private func withIcons(_ items: [[String: String]], isPrivate: Bool) -> [[String: String]] {
+        guard !isPrivate, let icons = manager?.services.siteIcons else { return items }
+        return items.map { item in
+            var item = item
+            if let url = item["url"], let icon = icons.icon(for: url) { item["favicon"] = icon }
+            return item
+        }
+    }
+
     private func reply(_ id: String, _ result: BridgeResult, in webView: WKWebView) {
         let (ok, payload): (Bool, String)
         switch result {
@@ -220,8 +231,10 @@ final class StartPageBridge: NSObject, WKScriptMessageHandler {
 /// What the Start Page and the Favorites page both read from Sync.
 extension TabsManager {
     func favoritesPayload() -> JSONValue {
+        // A Favorite saved without an icon (the phone saves none) shows its site's.
         .array(syncEngine.favorites.map {
-            .object([("addedAt", .number($0.addedAt)), ("updatedAt", .number($0.updatedAt)), ("id", .string($0.id)), ("url", .string($0.url)), ("title", .string($0.title)), ("favicon", $0.favicon.map(JSONValue.string) ?? .null), ("folder", $0.folder.map(JSONValue.string) ?? .null)])
+            let favicon = $0.favicon ?? services.siteIcons.icon(for: $0.url)
+            return .object([("addedAt", .number($0.addedAt)), ("updatedAt", .number($0.updatedAt)), ("id", .string($0.id)), ("url", .string($0.url)), ("title", .string($0.title)), ("favicon", favicon.map(JSONValue.string) ?? .null), ("folder", $0.folder.map(JSONValue.string) ?? .null)])
         })
     }
     /// Send to device (M7b): the Start Page's Sent to this device list, in
