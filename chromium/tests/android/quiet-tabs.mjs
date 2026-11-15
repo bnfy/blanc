@@ -14,6 +14,7 @@ import {fileURLToPath} from 'node:url';
 import {gridSwipe, nodeBounds} from './island-menu.mjs';
 import {matching} from './palette.mjs';
 import {hostPort} from './support/host-ports.mjs';
+import {androidPackage} from './release-gate.mjs';
 
 const PACKAGE = 'me.bnfy.blanc.dev';
 const PREFS = `shared_prefs/${PACKAGE}_preferences.xml`;
@@ -21,8 +22,9 @@ const PREFS = `shared_prefs/${PACKAGE}_preferences.xml`;
 const PORT = hostPort(9333);
 
 // Blanc's sandboxed processes in `ps -A`: renderers (a quiet tab has none) and the blocker's engine.
-export function renderers(ps) {
-  return ps.split('\n').filter(line => /me\.bnfy\.blanc\.dev:sandboxed_process/.test(line)).length;
+export function renderers(ps, packageName = 'me.bnfy.blanc.dev') {
+  androidPackage(packageName);
+  return ps.split('\n').filter(line => line.includes(`${packageName}:sandboxed_process`)).length;
 }
 
 async function evaluate(target, expression) {
