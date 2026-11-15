@@ -969,7 +969,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_cards_search">Search</string>
     <string name="settings_general_cards_browsing">Browsing</string>
     <string name="settings_general_theme_label">Theme</string>
-    <string name="settings_general_theme_hint">System follows your macOS/Windows theme</string>
+    <string name="settings_general_theme_hint">System follows your computer\'s light or dark mode</string>
     <string name="settings_general_theme_system">System</string>
     <string name="settings_general_theme_light">Light</string>
     <string name="settings_general_theme_dark">Dark</string>
@@ -1000,10 +1000,10 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_dark_exception_add">Add</string>
     <string name="settings_general_newtab_layout_label">New tab layout</string>
     <string name="settings_general_newtab_layout_hint">How the new tab page arranges itself; switchable from its footer too</string>
-    <string name="settings_general_newtab_layout_ledger">ledger</string>
-    <string name="settings_general_newtab_layout_billboard">billboard</string>
-    <string name="settings_general_newtab_layout_shelf">shelf</string>
-    <string name="settings_general_newtab_layout_tally">tally</string>
+    <string name="settings_general_newtab_layout_ledger">Ledger</string>
+    <string name="settings_general_newtab_layout_billboard">Billboard</string>
+    <string name="settings_general_newtab_layout_shelf">Shelf</string>
+    <string name="settings_general_newtab_layout_tally">Tally</string>
     <string name="settings_general_newtab_dynamic_wallpaper_label">Time-of-day wallpaper</string>
     <string name="settings_general_newtab_dynamic_wallpaper_hint">Wallpaper follows this machine’s local time.</string>
     <string name="settings_general_newtab_custom_wallpaper_label">Start Page image</string>
@@ -1620,14 +1620,14 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="newtab_pin_done">%1$s pinned to the Start Page.</string>
     <string name="newtab_unpin_done">%1$s unpinned from the Start Page.</string>
     <string name="newtab_pin_full">The Start Page holds %1$s pins. Unpin one first.</string>
-    <string name="onboarding_skip">skip setup</string>
+    <string name="onboarding_skip">Skip setup</string>
     <string name="onboarding_step_label">%1$s / %2$s — %3$s</string>
-    <string name="onboarding_step_default">default browser</string>
-    <string name="onboarding_step_import">import</string>
-    <string name="onboarding_step_island">the island</string>
-    <string name="onboarding_step_blocking">ad blocking</string>
-    <string name="onboarding_step_privacy">privacy</string>
-    <string name="onboarding_step_theme">theme</string>
+    <string name="onboarding_step_default">Default browser</string>
+    <string name="onboarding_step_import">Import</string>
+    <string name="onboarding_step_island">The Island</string>
+    <string name="onboarding_step_blocking">Ad blocking</string>
+    <string name="onboarding_step_privacy">Privacy</string>
+    <string name="onboarding_step_theme">Theme</string>
     <string name="onboarding_default_title">Make Blanc your default</string>
     <string name="onboarding_default_body">Links from other apps open here. You can change this anytime in Settings.</string>
     <string name="onboarding_default_set">Set as default</string>
@@ -1661,7 +1661,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
         <item quantity="one">That favorite was already saved.</item>
         <item quantity="other">All %1$d favorites were already saved.</item>
     </plurals>
-    <string name="onboarding_island_title">Meet the island</string>
+    <string name="onboarding_island_title">Meet the Island</string>
     <string name="onboarding_island_body">Tabs, search and navigation, all in one place.</string>
     <string name="onboarding_island_caption">Quiet Island with Back and Forward, three tab dots, the site\'s favicon and address, New Tab, blocker shield, Reload, Favorite and Close.</string>
     <string name="onboarding_island_hint">&lt;0&gt;%1$s&lt;/0&gt; to open it.</string>
@@ -1670,7 +1670,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="onboarding_island_archive">Archive tabs after 7 days&lt;0&gt;Loose tabs you haven\'t opened in 7 days close into your Archive for 30 days. Pinned tabs and groups stay.&lt;/0&gt;</string>
     <string name="onboarding_island_archive_label">Archive tabs after 7 days</string>
     <string name="onboarding_blocking_title">Block ads &amp; trackers</string>
-    <string name="onboarding_blocking_body">Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /off-leash.</string>
+    <string name="onboarding_blocking_body">Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /allow-ads.</string>
     <string name="onboarding_blocking_toggle">Block ads &amp; trackers</string>
     <string name="onboarding_blocking_toggle_label">Block ads and trackers</string>
     <string name="onboarding_privacy_title">Choose what Blanc may send</string>
@@ -1683,8 +1683,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="onboarding_privacy_save_failed">Could not save these choices. Check disk access and try again.</string>
     <string name="onboarding_theme_title">Pick your ink</string>
     <string name="onboarding_theme_body">Paper by day, ink by night. Change anytime with /theme.</string>
-    <string name="onboarding_theme_light">light</string>
-    <string name="onboarding_theme_dark">dark</string>
+    <string name="onboarding_theme_light">Light</string>
+    <string name="onboarding_theme_dark">Dark</string>
     <string name="onboarding_back">Back</string>
     <string name="onboarding_continue">Continue</string>
     <string name="onboarding_finish">Start browsing</string>
@@ -2626,5 +2626,9 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="android_settings_island_position_top">Top</string>
     <string name="android_settings_island_position_bottom">Bottom</string>
     <string name="android_settings_open_source_licenses">Open-source licenses</string>
+    <string name="android_welcome_share_title">Share from this phone</string>
+    <string name="android_welcome_measure_usage_help">Each time you open Blanc, it sends one anonymous count: a random ID for this install, the app version and the Android version. Never what you browse. See blanc.day/privacy.</string>
+    <string name="android_default_browser_body">Make Blanc your default browser so links from other apps open here.</string>
+    <string name="android_default_browser_open">Set as default</string>
     <string name="android_settings_auto_revoke_summary">To protect your data, let Blanc remove permissions from sites that you haven’t visited recently</string>
 </resources>

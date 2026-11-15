@@ -21,6 +21,7 @@ installed-theme.js
 invite-friend.js
 island-autohide.js
 island-hover-open.js
+island-proximity.js
 overlay.html
 overlay.js
 pages/bangs-catalog.js
@@ -185,6 +186,8 @@ panel-left.svg
 permission.html
 permission.js
 prototype.css
+rail-hover-card.js
+rail-hover.js
 renderer.js
 selection-tab-sections.js
 shield-model.js

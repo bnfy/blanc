@@ -117,10 +117,19 @@ if (blanc_beta_channel) {
     outputs = [ "{{bundle_resources_dir}}/blanc_blocker/{{source_file_part}}" ]
     public_deps = [ ":verify_blocker_bundle" ]
   }
+  # The Dock's Light and Dark images of the colorways that are not the
+  # bundle icon (branding/beta/render-dock-icons.mjs explains why images).
+  bundle_data("beta_dock_icons") {
+    sources = []
+    foreach(name, [ "Icon", "SunriseDark", "SunriseSpectrum", "SunriseAmber" ]) {
+      sources += [ "branding/beta/dock/$name-light.png", "branding/beta/dock/$name-dark.png" ]
+    }
+    outputs = [ "{{bundle_resources_dir}}/dock/{{source_file_part}}" ]
+  }
   group("sparkle_bundle") {
     public_deps = [ ":sparkle_framework_bundle", ":sparkle_license_bundle",
                     ":beta_notices", ":beta_chromium_license",
                     ":beta_chromium_credits", ":beta_sparkle_notice",
-                    ":beta_blocker_engine" ]
+                    ":beta_blocker_engine", ":beta_dock_icons" ]
   }
 }

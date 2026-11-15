@@ -39260,37 +39260,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "System follows your macOS/Windows theme"
+            "value": "System follows your computer's light or dark mode"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "System folgt dem Design von macOS/Windows"
+            "value": "System folgt dem hellen oder dunklen Modus deines Computers"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sistema sigue el tema de macOS o Windows"
+            "value": "Sistema sigue el modo claro u oscuro de tu ordenador"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Système suit le thème de macOS ou Windows"
+            "value": "Système suit le mode clair ou sombre de votre ordinateur"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sistema segue il tema di macOS o Windows"
+            "value": "Sistema segue la modalità chiara o scura del computer"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sistema segue o tema do macOS ou do Windows"
+            "value": "Sistema segue o modo claro ou escuro do computador"
           }
         }
       }
@@ -40562,37 +40562,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "ledger"
+            "value": "Ledger"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "ledger"
+            "value": "Ledger"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "ledger"
+            "value": "Ledger"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "ledger"
+            "value": "Ledger"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "ledger"
+            "value": "Ledger"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "ledger"
+            "value": "Ledger"
           }
         }
       }
@@ -40604,37 +40604,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "billboard"
+            "value": "Billboard"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "billboard"
+            "value": "Billboard"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "billboard"
+            "value": "Billboard"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "billboard"
+            "value": "Billboard"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "billboard"
+            "value": "Billboard"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "billboard"
+            "value": "Billboard"
           }
         }
       }
@@ -40646,37 +40646,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "shelf"
+            "value": "Shelf"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "shelf"
+            "value": "Shelf"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "shelf"
+            "value": "Shelf"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "shelf"
+            "value": "Shelf"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "shelf"
+            "value": "Shelf"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "shelf"
+            "value": "Shelf"
           }
         }
       }
@@ -40688,37 +40688,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "tally"
+            "value": "Tally"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "tally"
+            "value": "Tally"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "tally"
+            "value": "Tally"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "tally"
+            "value": "Tally"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "tally"
+            "value": "Tally"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "tally"
+            "value": "Tally"
           }
         }
       }
@@ -66296,43 +66296,43 @@
       }
     },
     "onboarding.skip": {
-      "comment": "Onboarding dialog: button that skips the remaining steps, lowercase by design.",
+      "comment": "Onboarding dialog: button that skips the remaining steps.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "skip setup"
+            "value": "Skip setup"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "überspringen"
+            "value": "Überspringen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "omitir los pasos"
+            "value": "Omitir los pasos"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "tout passer"
+            "value": "Tout passer"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "salta tutto"
+            "value": "Salta tutto"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "pular etapas"
+            "value": "Pular etapas"
           }
         }
       }
@@ -66380,13 +66380,13 @@
       }
     },
     "onboarding.step.default": {
-      "comment": "Onboarding dialog: name of step 1, lowercase by design.",
+      "comment": "Onboarding dialog: name of step 1.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "default browser"
+            "value": "Default browser"
           }
         },
         "de": {
@@ -66398,37 +66398,37 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "navegador predeterminado"
+            "value": "Navegador predeterminado"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "navigateur par défaut"
+            "value": "Navigateur par défaut"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "browser predefinito"
+            "value": "Browser predefinito"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "navegador padrão"
+            "value": "Navegador padrão"
           }
         }
       }
     },
     "onboarding.step.import": {
-      "comment": "Onboarding dialog: name of step 2, lowercase by design.",
+      "comment": "Onboarding dialog: name of step 2.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "import"
+            "value": "Import"
           }
         },
         "de": {
@@ -66440,79 +66440,79 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "importar"
+            "value": "Importar"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "importation"
+            "value": "Importation"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "importazione"
+            "value": "Importazione"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "importar"
+            "value": "Importar"
           }
         }
       }
     },
     "onboarding.step.island": {
-      "comment": "Onboarding dialog: name of step 3 (the Island), lowercase by design.",
+      "comment": "Onboarding dialog: name of step 3 (the Island).",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "the island"
+            "value": "The Island"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "die Island"
+            "value": "Die Island"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "la island"
+            "value": "La Island"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "l’island"
+            "value": "L’Island"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "l’island"
+            "value": "L’Island"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "a island"
+            "value": "A Island"
           }
         }
       }
     },
     "onboarding.step.blocking": {
-      "comment": "Onboarding dialog: name of step 4, lowercase by design.",
+      "comment": "Onboarding dialog: name of step 4.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "ad blocking"
+            "value": "Ad blocking"
           }
         },
         "de": {
@@ -66524,37 +66524,37 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "bloqueo de anuncios"
+            "value": "Bloqueo de anuncios"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "blocage des publicités"
+            "value": "Blocage des publicités"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "blocco degli annunci"
+            "value": "Blocco degli annunci"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "bloqueio de anúncios"
+            "value": "Bloqueio de anúncios"
           }
         }
       }
     },
     "onboarding.step.privacy": {
-      "comment": "Onboarding dialog: name of step 5, lowercase by design.",
+      "comment": "Onboarding dialog: name of step 5.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "privacy"
+            "value": "Privacy"
           }
         },
         "de": {
@@ -66566,37 +66566,37 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "privacidad"
+            "value": "Privacidad"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "confidentialité"
+            "value": "Confidentialité"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "privacy"
+            "value": "Privacy"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "privacidade"
+            "value": "Privacidade"
           }
         }
       }
     },
     "onboarding.step.theme": {
-      "comment": "Onboarding dialog: name of step 6, lowercase by design.",
+      "comment": "Onboarding dialog: name of step 6.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "theme"
+            "value": "Theme"
           }
         },
         "de": {
@@ -66608,25 +66608,25 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "tema"
+            "value": "Tema"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "thème"
+            "value": "Thème"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "tema"
+            "value": "Tema"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "tema"
+            "value": "Tema"
           }
         }
       }
@@ -67904,7 +67904,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Meet the island"
+            "value": "Meet the Island"
           }
         },
         "de": {
@@ -67916,25 +67916,25 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Te presentamos la island"
+            "value": "Te presentamos la Island"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Découvrez l’island"
+            "value": "Découvrez l’Island"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ecco l’island"
+            "value": "Ecco l’Island"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Conheça a island"
+            "value": "Conheça a Island"
           }
         }
       }
@@ -68276,43 +68276,43 @@
       }
     },
     "onboarding.blocking.body": {
-      "comment": "Onboarding dialog → step 4: explanation; /off-leash is a command.",
+      "comment": "Onboarding dialog → step 4: explanation; /allow-ads is a command.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /off-leash."
+            "value": "Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /allow-ads."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blockiert bekannte Werbung und Tracker mit mitgelieferten Regeln. Nicht jeder Tracker lässt sich stoppen. Schalte es pro Website mit /off-leash aus."
+            "value": "Blockiert bekannte Werbung und Tracker mit mitgelieferten Regeln. Nicht jeder Tracker lässt sich stoppen. Schalte es pro Website mit /allow-ads aus."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bloquea anuncios y rastreadores conocidos con reglas incluidas. No puede detener todos los rastreadores. Desactívalo en un sitio con /off-leash."
+            "value": "Bloquea anuncios y rastreadores conocidos con reglas incluidas. No puede detener todos los rastreadores. Desactívalo en un sitio con /allow-ads."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bloque les publicités et traceurs connus grâce à des règles intégrées. Il ne peut pas arrêter tous les traceurs. Désactivez-le site par site avec /off-leash."
+            "value": "Bloque les publicités et traceurs connus grâce à des règles intégrées. Il ne peut pas arrêter tous les traceurs. Désactivez-le site par site avec /allow-ads."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blocca gli annunci e i tracker noti usando regole integrate. Non può fermare tutti i tracker. Disattivalo sito per sito con /off-leash."
+            "value": "Blocca gli annunci e i tracker noti usando regole integrate. Non può fermare tutti i tracker. Disattivalo sito per sito con /allow-ads."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bloqueia anúncios e rastreadores conhecidos com regras incluídas. Não consegue impedir todos os rastreadores. Desative por site com /off-leash."
+            "value": "Bloqueia anúncios e rastreadores conhecidos com regras incluídas. Não consegue impedir todos os rastreadores. Desative por site com /allow-ads."
           }
         }
       }
@@ -68822,85 +68822,85 @@
       }
     },
     "onboarding.theme.light": {
-      "comment": "Onboarding dialog → step 6: theme choice, lowercase by design.",
+      "comment": "Onboarding dialog → step 6: theme choice.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "light"
+            "value": "Light"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "hell"
+            "value": "Hell"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "claro"
+            "value": "Claro"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "clair"
+            "value": "Clair"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "chiaro"
+            "value": "Chiaro"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "claro"
+            "value": "Claro"
           }
         }
       }
     },
     "onboarding.theme.dark": {
-      "comment": "Onboarding dialog → step 6: theme choice, lowercase by design.",
+      "comment": "Onboarding dialog → step 6: theme choice.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "dark"
+            "value": "Dark"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "dunkel"
+            "value": "Dunkel"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "oscuro"
+            "value": "Oscuro"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "sombre"
+            "value": "Sombre"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "scuro"
+            "value": "Scuro"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "escuro"
+            "value": "Escuro"
           }
         }
       }
@@ -107493,6 +107493,174 @@
           "stringUnit": {
             "state": "translated",
             "value": "Licenças de código aberto"
+          }
+        }
+      }
+    },
+    "android.welcome.shareTitle": {
+      "comment": "Blanc for Android walkthrough: the iPhone string ios.welcome.shareTitle with \"this phone\".",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share from this phone"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von diesem Telefon teilen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartir desde este teléfono"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partager depuis ce téléphone"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Condividi da questo telefono"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartilhar deste celular"
+          }
+        }
+      }
+    },
+    "android.welcome.measureUsageHelp": {
+      "comment": "Blanc for Android: under the Measure usage switch in the walkthrough and Settings; ios.welcome.measureUsageHelp with the Android version. Says exactly what the launch ping carries.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each time you open Blanc, it sends one anonymous count: a random ID for this install, the app version and the Android version. Never what you browse. See blanc.day/privacy."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei jedem Öffnen sendet Blanc einen anonymen Zähler: eine zufällige ID für diese Installation, die App-Version und die Android-Version. Nie, was du ansiehst. Siehe blanc.day/privacy."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada vez que abres Blanc, envía un recuento anónimo: un ID aleatorio para esta instalación, la versión de la app y la versión de Android. Nunca lo que navegas. Consulta blanc.day/privacy."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À chaque ouverture, Blanc envoie un comptage anonyme : un identifiant aléatoire pour cette installation, la version de l’app et la version d’Android. Jamais ce que vous consultez. Voir blanc.day/privacy."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni volta che apri Blanc, invia un conteggio anonimo: un ID casuale per questa installazione, la versione dell’app e la versione di Android. Mai ciò che navighi. Vedi blanc.day/privacy."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sempre que você abre o Blanc, ele envia uma contagem anônima: um ID aleatório para esta instalação, a versão do app e a versão do Android. Nunca o que você navega. Veja blanc.day/privacy."
+          }
+        }
+      }
+    },
+    "android.defaultBrowser.body": {
+      "comment": "Blanc for Android walkthrough: the default-browser step, ios.defaultBrowser.body without iPhone app names.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make Blanc your default browser so links from other apps open here."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mach Blanc zu deinem Standardbrowser, damit Links aus anderen Apps hier geöffnet werden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Haz de Blanc tu navegador predeterminado para que los enlaces de otras apps se abran aquí."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faites de Blanc votre navigateur par défaut pour que les liens des autres apps s’ouvrent ici."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rendi Blanc il tuo browser predefinito, così i link delle altre app si aprono qui."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Torne o Blanc seu navegador padrão para que os links de outros apps abram aqui."
+          }
+        }
+      }
+    },
+    "android.defaultBrowser.open": {
+      "comment": "Blanc for Android walkthrough: the button that asks Android to make Blanc the default browser (Android shows its own confirmation).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set as default"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Standard festlegen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Establecer como predeterminado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Définir par défaut"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imposta come predefinito"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Definir como padrão"
           }
         }
       }

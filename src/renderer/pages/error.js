@@ -19,6 +19,16 @@
   document.getElementById('errorTitle').textContent = certificateFailure
     ? t('error.certificate.title')
     : localFileRecord ? t('error.localFile.title') : t('error.title');
+  // Name the tab after the site that failed, so failed tabs can be told apart.
+  // This runs after the first t() above, which applies the static <title>.
+  if (!inert) {
+    try {
+      const host = new URL(url).host.replace(/^www\./, '');
+      if (host) document.title = host;
+    } catch {
+      // Not an address: keep the general title.
+    }
+  }
   document.getElementById('safetyLink').textContent = certificateFailure
     ? t('error.certificate.back')
     : t('error.newTab');

@@ -48,7 +48,9 @@ bool WindowActive(Owner* owner) {
 }
 
 bool AutoHidePinned(Owner* owner) {
-  return autohide::IslandPinned(owner->height > owner->strip_height, owner->autohide_test_hold, owner->autohide_intro.IsRunning());
+  return autohide::IslandPinned(owner->height > owner->strip_height,
+                                owner->autohide_test_hold || owner->extension_popup,
+                                owner->autohide_intro.IsRunning());
 }
 
 // Both layouts hide: in the vertical one the rail keeps its column and only
@@ -358,6 +360,7 @@ base::DictValue AutoHideState(Owner* owner) {
       .Set("enabled", AutoHideOn(owner))
       .Set("style", AutoHideStyle(owner))
       .Set("revealed", owner->autohide_revealed)
+      .Set("extensionPopup", owner->extension_popup)
       .Set("introducing", owner->autohide_intro.IsRunning())
       .Set("sliding", owner->autohide_slide.has_value())
       .Set("reducedMotion", gfx::Animation::PrefersReducedMotion())

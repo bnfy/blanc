@@ -1,0 +1,8 @@
+{
+  "manifest_version": 3,
+  "name": "Blanc open popup test",
+  "version": "1.0",
+  "description": "Opens its action popup by itself, as 1Password's Unlock button does (native-extension-open-popup.mjs).",
+  "action": {"default_popup": "popup.html", "default_title": "Open popup test"},
+  "background": {"service_worker": "sw.js"}
+}

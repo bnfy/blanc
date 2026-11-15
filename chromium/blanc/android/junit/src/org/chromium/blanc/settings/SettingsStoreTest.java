@@ -3,6 +3,9 @@
 package org.chromium.blanc.settings;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import android.content.SharedPreferences;
 
@@ -87,5 +90,23 @@ public class SettingsStoreTest {
     public void searchTemplateFollowsTheSavedEngine() {
         mStore.setSearchEngine("brave");
         assertEquals("https://search.brave.com/search?q=%s", mStore.searchTemplate());
+    }
+
+    @Test
+    public void measureUsageIsUnsavedUntilChosenAndShowsTheDefaultMeanwhile() {
+        assertNull(mStore.usagePing());
+        assertTrue(mStore.usagePingShown());
+        mStore.setUsagePing(false);
+        assertEquals(false, mStore.usagePing());
+        assertFalse(mStore.usagePingShown());
+        mStore.setUsagePing(true);
+        assertEquals(true, mStore.usagePing());
+    }
+
+    @Test
+    public void theWalkthroughsFinishedVersionStartsAtZero() {
+        assertEquals(0, mStore.walkthroughCompletedVersion());
+        mStore.setWalkthroughCompletedVersion(1);
+        assertEquals(1, mPrefs.getInt("blanc.walkthrough_completed_version", -1));
     }
 }

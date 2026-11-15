@@ -9,6 +9,9 @@ TREE="${BLANC_TREE:-$HOME/blanc}"
 EVIDENCE="${BLANC_EVIDENCE:-$HOME/blanc-evidence/android/a2}"
 APK=out/AndroidDebugX64/apks/ChromePublic.apk
 export PATH="$PWD/third_party/android_sdk/public/platform-tools:$PWD/third_party/node/linux/node-linux-x64/bin:$HOME/depot_tools:$PATH"
+# These checks start on the Start Page, not the first-minute walkthrough (FirstMinute.SKIP_FILE; walkthrough.mjs
+# tests the card and puts the file back).
+adb shell touch /data/local/tmp/blanc-walkthrough-off && adb shell chmod 644 /data/local/tmp/blanc-walkthrough-off
 mkdir -p "$EVIDENCE"
 failed=()
 source "$(dirname "${BASH_SOURCE[0]}")/gate-lib.sh"

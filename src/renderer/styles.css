@@ -2294,7 +2294,10 @@ body[data-mode="palette"] #backdrop {
   pointer-events: auto;
   position: relative;
   width: 620px;
-  max-width: calc(100vw - 24px);
+  /* 12px a side by default. In a narrow macOS window main widens the margin
+     (overlay:show panelSideClearance) so the panel never runs under the
+     window buttons, which macOS draws above every view. */
+  max-width: calc(100vw - 2 * var(--panel-side-clear, 12px));
   /* Never grow past the window edge. With enough open tabs the panel used to
      run off the bottom (measured 843px tall in an 800px window at 19 tabs),
      putting rows somewhere no click could reach. Cap it and let the tab list

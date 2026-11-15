@@ -999,7 +999,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_cards_search">Pesquisa</string>
     <string name="settings_general_cards_browsing">Navegação</string>
     <string name="settings_general_theme_label">Tema</string>
-    <string name="settings_general_theme_hint">Sistema segue o tema do macOS ou do Windows</string>
+    <string name="settings_general_theme_hint">Sistema segue o modo claro ou escuro do computador</string>
     <string name="settings_general_theme_system">Sistema</string>
     <string name="settings_general_theme_light">Claro</string>
     <string name="settings_general_theme_dark">Escuro</string>
@@ -1030,10 +1030,10 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_dark_exception_add">Adicionar</string>
     <string name="settings_general_newtab_layout_label">Layout da nova aba</string>
     <string name="settings_general_newtab_layout_hint">Como a página da nova aba se organiza; também dá para trocar pelo rodapé dela</string>
-    <string name="settings_general_newtab_layout_ledger">ledger</string>
-    <string name="settings_general_newtab_layout_billboard">billboard</string>
-    <string name="settings_general_newtab_layout_shelf">shelf</string>
-    <string name="settings_general_newtab_layout_tally">tally</string>
+    <string name="settings_general_newtab_layout_ledger">Ledger</string>
+    <string name="settings_general_newtab_layout_billboard">Billboard</string>
+    <string name="settings_general_newtab_layout_shelf">Shelf</string>
+    <string name="settings_general_newtab_layout_tally">Tally</string>
     <string name="settings_general_newtab_dynamic_wallpaper_label">Fundo conforme a hora do dia</string>
     <string name="settings_general_newtab_dynamic_wallpaper_hint">O fundo acompanha a hora local deste computador.</string>
     <string name="settings_general_newtab_custom_wallpaper_label">Imagem da página inicial</string>
@@ -1660,14 +1660,14 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="newtab_pin_done">%1$s foi fixado na página inicial.</string>
     <string name="newtab_unpin_done">%1$s foi desafixado da página inicial.</string>
     <string name="newtab_pin_full">A página inicial comporta %1$s fixados. Desafixe um primeiro.</string>
-    <string name="onboarding_skip">pular etapas</string>
+    <string name="onboarding_skip">Pular etapas</string>
     <string name="onboarding_step_label">%1$s / %2$s — %3$s</string>
-    <string name="onboarding_step_default">navegador padrão</string>
-    <string name="onboarding_step_import">importar</string>
-    <string name="onboarding_step_island">a island</string>
-    <string name="onboarding_step_blocking">bloqueio de anúncios</string>
-    <string name="onboarding_step_privacy">privacidade</string>
-    <string name="onboarding_step_theme">tema</string>
+    <string name="onboarding_step_default">Navegador padrão</string>
+    <string name="onboarding_step_import">Importar</string>
+    <string name="onboarding_step_island">A Island</string>
+    <string name="onboarding_step_blocking">Bloqueio de anúncios</string>
+    <string name="onboarding_step_privacy">Privacidade</string>
+    <string name="onboarding_step_theme">Tema</string>
     <string name="onboarding_default_title">Torne o Blanc seu navegador padrão</string>
     <string name="onboarding_default_body">Os links de outros apps vão abrir aqui. Você pode mudar isso quando quiser nas Configurações.</string>
     <string name="onboarding_default_set">Definir como padrão</string>
@@ -1705,7 +1705,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
         <item quantity="many">Todos os %1$d favoritos já estavam salvos.</item>
         <item quantity="other">Todos os %1$d favoritos já estavam salvos.</item>
     </plurals>
-    <string name="onboarding_island_title">Conheça a island</string>
+    <string name="onboarding_island_title">Conheça a Island</string>
     <string name="onboarding_island_body">Abas, pesquisa e navegação, tudo num só lugar.</string>
     <string name="onboarding_island_caption">Island em repouso com Voltar e Avançar, três pontos de abas, o favicon e o endereço do site, Nova aba, o escudo do bloqueador, Recarregar, Favorito e Fechar.</string>
     <string name="onboarding_island_hint">&lt;0&gt;%1$s&lt;/0&gt; para abri-la.</string>
@@ -1714,7 +1714,7 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="onboarding_island_archive">Arquivar abas após 7 dias&lt;0&gt;As abas soltas que você não abre há 7 dias são fechadas e guardadas no seu Arquivo por 30 dias. Abas fixadas e grupos ficam.&lt;/0&gt;</string>
     <string name="onboarding_island_archive_label">Arquivar abas após 7 dias</string>
     <string name="onboarding_blocking_title">Bloqueie anúncios e rastreadores</string>
-    <string name="onboarding_blocking_body">Bloqueia anúncios e rastreadores conhecidos com regras incluídas. Não consegue impedir todos os rastreadores. Desative por site com /off-leash.</string>
+    <string name="onboarding_blocking_body">Bloqueia anúncios e rastreadores conhecidos com regras incluídas. Não consegue impedir todos os rastreadores. Desative por site com /allow-ads.</string>
     <string name="onboarding_blocking_toggle">Bloquear anúncios e rastreadores</string>
     <string name="onboarding_blocking_toggle_label">Bloquear anúncios e rastreadores</string>
     <string name="onboarding_privacy_title">Escolha o que o Blanc pode enviar</string>
@@ -1727,8 +1727,8 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="onboarding_privacy_save_failed">Não foi possível salvar estas escolhas. Verifique o acesso ao disco e tente de novo.</string>
     <string name="onboarding_theme_title">Escolha sua tinta</string>
     <string name="onboarding_theme_body">Papel de dia, tinta à noite. Mude quando quiser com /theme.</string>
-    <string name="onboarding_theme_light">claro</string>
-    <string name="onboarding_theme_dark">escuro</string>
+    <string name="onboarding_theme_light">Claro</string>
+    <string name="onboarding_theme_dark">Escuro</string>
     <string name="onboarding_back">Voltar</string>
     <string name="onboarding_continue">Continuar</string>
     <string name="onboarding_finish">Começar a navegar</string>
@@ -2701,5 +2701,9 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="android_settings_island_position_top">No topo</string>
     <string name="android_settings_island_position_bottom">Na parte inferior</string>
     <string name="android_settings_open_source_licenses">Licenças de código aberto</string>
+    <string name="android_welcome_share_title">Compartilhar deste celular</string>
+    <string name="android_welcome_measure_usage_help">Sempre que você abre o Blanc, ele envia uma contagem anônima: um ID aleatório para esta instalação, a versão do app e a versão do Android. Nunca o que você navega. Veja blanc.day/privacy.</string>
+    <string name="android_default_browser_body">Torne o Blanc seu navegador padrão para que os links de outros apps abram aqui.</string>
+    <string name="android_default_browser_open">Definir como padrão</string>
     <string name="android_settings_auto_revoke_summary">Para proteger seus dados, deixe o Blanc remover as permissões de sites que você não visita há algum tempo</string>
 </resources>
