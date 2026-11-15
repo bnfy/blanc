@@ -15,14 +15,17 @@ set -uo pipefail
 BASE="${BLANC_STUDIO_BASE:-$HOME/Projects/Blanc}"
 cd "$BASE/repo" || exit 1
 NODE=${BLANC_NODE:-/usr/local/bin/node}
-# The checksum-verified cosign the release stages use (runbook, lessons from beta.2, item 3).
-export PATH="$BASE/repo/scripts/release-bin:$PATH"
+# Over SSH the search path is only the system folders: gh is in Homebrew
+# (beta.5 stopped at draft without it, 2026-11-15). release-bin routes cosign's
+# browser helper to Safari.
+export PATH="$BASE/repo/scripts/release-bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 MARKER="$BASE/records/RELEASE-IN-PROGRESS"
 
 APPLE_ID_VALUE=${LC_BLANC_APPLE_ID:-}; APPLE_PW_VALUE=${LC_BLANC_APPLE_PW:-}; SPARKLE_KEY_VALUE=${LC_BLANC_SPARKLE_KEY:-}
 unset LC_BLANC_APPLE_ID LC_BLANC_APPLE_PW LC_BLANC_SPARKLE_KEY
 forget() { unset APPLE_ID_VALUE APPLE_PW_VALUE SPARKLE_KEY_VALUE APPLE_ID APPLE_APP_SPECIFIC_PASSWORD BLANC_SPARKLE_KEY; }
-trap forget EXIT
+COSIGN_BIN=""
+trap 'forget; [ -z "$COSIGN_BIN" ] || rm -rf "$COSIGN_BIN"' EXIT
 
 [ -f "$MARKER" ] || { echo "No release is prepared on the Mac Studio. Nothing ran. Tell Claude."; exit 1; }
 WORK=$("$NODE" -e 'console.log(JSON.parse(require("fs").readFileSync(process.argv[1])).work)' "$MARKER")
@@ -35,6 +38,18 @@ touch "$STATUS"; chmod 600 "$STATUS"
 stop() { note "$1 FAILED"; echo; echo "STOPPED at: $1. $2 Tell Claude; running this again picks up from here."; exit 1; }
 next() { "$NODE" chromium/release/daily/release-steps.mjs next "$WORK"; }
 stage() { "$NODE" chromium/release/release.mjs "$1" "$WORK"; }
+# The tools of the GitHub and Sigstore steps, checked when one is next: gh,
+# and the checksum-verified cosign v3.1.3 (runbook, lessons from beta.2,
+# item 3), linked for this run only; nothing is installed.
+COSIGN=${BLANC_COSIGN:-"$HOME/Documents/ChatGPT/Blanc Browser/Chromium Preview/tools/cosign"}
+COSIGN_SHA256=77bbab240111761d50044f37541da0734d964dfe5f092cab6d584663c912372e
+release_tools() {
+  command -v gh >/dev/null || stop "$1" "gh isn't installed on the Mac Studio. Nothing ran."
+  [ -n "$COSIGN_BIN" ] && return
+  [ -f "$COSIGN" ] && [ "$(shasum -a 256 "$COSIGN" | cut -c1-64)" = "$COSIGN_SHA256" ] \
+    || stop "$1" "cosign is missing or doesn't match its recorded checksum. Nothing ran."
+  COSIGN_BIN=$(mktemp -d /private/tmp/blanc-cosign.XXXXXX) && ln -s "$COSIGN" "$COSIGN_BIN/cosign" && export PATH="$COSIGN_BIN:$PATH"
+}
 
 echo "Blanc Beta $VERSION"
 STEP=$(next) || stop "planning" "The release folder could not be read."
@@ -65,7 +80,10 @@ while :; do
       done
       [ -n "$RUN" ] || stop outbound "No finished run was found."
       mkdir -p "$EV/beta$N"
-      "$NODE" chromium/tests/outbound/analyze-beta.mjs "$RUN" > "$EV/beta$N/outbound-report.json.tmp" \
+      # The tested app's own update feed: Sparkle's check of it is the beta's to make.
+      FEED=$(/usr/libexec/PlistBuddy -c 'Print :SUFeedURL' "/Users/Shared/blanc-outbound/beta/Blanc Beta.app/Contents/Info.plist") \
+        || stop outbound "The tested app has no update feed."
+      "$NODE" chromium/tests/outbound/analyze-beta.mjs "$RUN" --feed "$FEED" > "$EV/beta$N/outbound-report.json.tmp" \
         && mv -n "$EV/beta$N/outbound-report.json.tmp" "$EV/beta$N/outbound-report.json" \
         || { rm -f "$EV/beta$N/outbound-report.json.tmp"; stop outbound "The beta reached something it shouldn't have, or the run was incomplete."; }
       ;;
@@ -73,10 +91,15 @@ while :; do
       [ -n "$APPLE_ID_VALUE" ] && [ -n "$APPLE_PW_VALUE" ] || stop "$STEP" "1Password didn't send the Apple values."
       APPLE_ID=$APPLE_ID_VALUE APPLE_APP_SPECIFIC_PASSWORD=$APPLE_PW_VALUE APPLE_TEAM_ID=XYGUCY4498 stage "$STEP" || stop "$STEP" "Nothing was published."
       ;;
-    dmg|preflight|sign|manifest|draft|publish|verify-public)
+    dmg|preflight|sign|manifest)
+      stage "$STEP" || stop "$STEP" "See the message above."
+      ;;
+    draft|publish|verify-public)
+      release_tools "$STEP"
       stage "$STEP" || stop "$STEP" "See the message above."
       ;;
     sigstore)
+      release_tools "$STEP"
       echo "Open the sign-in address printed below here on the MacBook Pro (Command-click it)."
       stage sigstore || stop sigstore "The draft stays private."
       ;;

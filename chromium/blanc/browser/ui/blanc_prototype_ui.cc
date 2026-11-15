@@ -5655,6 +5655,9 @@ const std::optional<std::string>& LaunchUiLanguage() {
 // neither sync records nor website messages can install rules.
 constexpr char kLinkRoutesPref[] = "blanc.links.routes";
 constexpr char kLinkRoutesInAppPref[] = "blanc.links.in_app";
+// #1505: New Tab switches to an unused Start Page (shipping's reuseNewTab).
+// A profile pref like blanc.tabs.archive, registered in browser_prefs.cc.
+constexpr char kReuseNewTabPref[] = "blanc.tabs.reuse_new_tab";
 std::string RouteProfileId(Profile* profile) {
   const auto name = profile->GetOriginalProfile()->GetPath().BaseName().AsUTF8Unsafe();
   return name == "Default" ? "default" : name;
@@ -7449,6 +7452,16 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       auto next = before.Clone();next.Set("enabled", args[0].GetBool());
       if (args.size() == 2) next.Set("mapping", args[1].GetDict().Clone());
       const bool ok = SaveGestureSettings(profile, next);Reply(id, ok, base::Value(std::move(before)));return;
+    }
+    // Shipping's setReuseNewTab hook (#1542): the preference Settings writes.
+    // The suite's reset turns it off, as shipping's steps at the fork's pinned
+    // reference never had reuse; native-new-tab-reuse.mjs turns it on.
+    if (message[1].GetString() == "setReuseNewTab" && message[2].GetList().size() == 1 &&
+        message[2].GetList()[0].is_bool()) {
+      Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetPrefs()->SetBoolean(
+          kReuseNewTabPref, message[2].GetList()[0].GetBool());
+      Reply(id, true, base::Value(message[2].GetList()[0].GetBool()));
+      return;
     }
     // Shipping's setIslandHoverOpen hook: the preference Settings writes.
     if (message[1].GetString() == "setIslandHoverOpen" && message[2].GetList().size() == 1 &&
@@ -9779,10 +9792,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     // The Dock icon (F17), as shipping draws it: the bundle icon live, every
     // other colorway as a Light or Dark image that host.js asks for again when
-    // the appearance changes. Blanc Beta's bundle icon is Sunrise Gold and its
-    // images are Icon Composer's own renders (blanc/branding/beta/dock); a
-    // named stack handed to the Dock stays drawn in Light. Elsewhere, and
-    // before macOS 26, the Dock takes shipping's flat images, its
+    // the appearance changes. Blanc Beta hands the Dock an image for every
+    // colorway, its bundle icon Sunrise Gold included, from Icon Composer's own
+    // renders (blanc/branding/beta/dock): a named stack handed to the Dock
+    // stays drawn in Light, and the Dock's bundle icon for an app updated in
+    // place can stay the old version's. Clear and Tinted take the bundle
+    // icon. Elsewhere, and before macOS 26, the Dock takes shipping's flat images, its
     // development-build path: the other channels' bundle icon is Sunrise
     // Dark, kept for Dock testing, so Sunrise there takes its flat Light or
     // Dark image like the rest.
@@ -9794,12 +9809,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
 #if BUILDFLAG(BLANC_BETA_CHANNEL)
       const char* stack = icon == "sunrise" ? "Icon"
           : icon == "sunrise-dark" ? "SunriseDark"
+          : icon == "sunrise-gold" ? "BlancDK"
           : icon == "sunrise-spectrum" ? "SunriseSpectrum"
           : icon == "sunrise-amber" ? "SunriseAmber" : nullptr;
-      if (icon == "sunrise-gold" ||
-          (stack && blanc::SetDockIconFromBundle(std::string(stack) + (dark ? "-dark" : "-light")))) {
-        if (!stack) blanc::SetDockIcon({});
-        replaced = stack != nullptr;
+      if (stack && blanc::SetDockIconFromBundle(std::string(stack) + (dark ? "-dark" : "-light"))) {
+        replaced = true;
         reply(true, base::Value());
         return;
       }
@@ -11245,10 +11259,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value());
       return;
     }
-    if (method == "createTab" && (args.size() == 1 || (args.size() == 2 && args[1].is_bool())) &&
+    if (method == "createTab" &&
+        (args.size() == 1 || (args.size() == 2 && args[1].is_bool()) ||
+         (args.size() == 3 && args[1].is_bool() && args[2].is_bool())) &&
         args[0].is_string()) {
       const GURL url(args[0].GetString());
-      const bool make_private = args.size() == 2 && args[1].GetBool();
+      const bool make_private = args.size() >= 2 && args[1].GetBool();
+      // The Island's own blank New Tab asks to reuse (#1505), as shipping's
+      // createTab(null) does; other callers always get a new tab.
+      const bool reuse = args.size() == 3 && args[2].GetBool();
       if (!url.SchemeIsHTTPOrHTTPS() && !url.IsAboutBlank() && url != GURL("chrome://newtab/") &&
           url != GURL("chrome://extensions/") &&
           url != GURL("chrome://settings/") &&
@@ -11268,6 +11287,16 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       // A private tab (D1) is born in the window profile's private profile.
       if (make_private && browser->GetProfile()->IsOffTheRecord()) {
         reply(false, base::Value("This window is already private.")); return;
+      }
+      // A blank New Tab goes to an unused Start Page when there is one
+      // (#1505); the host opens the Island itself when it was asked to.
+      if (reuse && url == GURL("chrome://newtab/")) {
+        if (auto* reused = ReuseNewTab(browser, make_private, /*open_island=*/false)) {
+          base::DictValue result; result.Set("status", "switched");
+          result.Set("tabId", sessions::SessionTabHelper::IdForTab(reused).id());
+          reply(true, base::Value(std::move(result)));
+          return;
+        }
       }
       // Utility pages open in the sheet, and re-invoking the shown one closes
       // it (shipping's createTab routes them through showUtilityPage).
@@ -13674,6 +13703,50 @@ content::WebContents* NewPrivateTab(BrowserWindowInterface* browser, const GURL&
   params.tabstrip_add_types = AddTabTypes::ADD_ACTIVE;
   Navigate(&params);
   return params.navigated_or_inserted_contents;
+}
+
+// #1505, as shipping's openOrReuseNewTab: a New Tab command switches to an
+// unused Start Page of the asked-for kind in this window (which is also its
+// Space) instead of stacking another. Unused is the plain Start Page with no
+// history and nothing on its way elsewhere; pinned, grouped, split, Glance
+// and restricted tabs never count, and a discarded (quiet) one does. The most
+// recently active wins. Off when blanc.tabs.reuse_new_tab is false.
+content::WebContents* ReuseNewTab(BrowserWindowInterface* browser, bool is_private, bool open_island) {
+  if (!IsIslandWindow(browser) || browser->GetProfile()->IsOffTheRecord() ||
+      !browser->GetProfile()->GetPrefs()->GetBoolean(kReuseNewTabPref)) return nullptr;
+  const GURL start(is_private ? "chrome://blanc-prototype/pages/newtab.html?private=1"
+                              : "chrome://blanc-prototype/pages/newtab.html");
+  const GURL entry("chrome://newtab/");
+  int glance = -1, overlay_glance = -1;
+  for (auto* owner : Owner::Live()) {
+    if (owner->browser == browser) { glance = owner->glance_reference; overlay_glance = owner->overlay_glance; }
+  }
+  auto* model = browser->GetTabStripModel();
+  int best = TabStripModel::kNoTab;
+  for (int i = 0; i < model->count(); ++i) {
+    auto* tab = model->GetWebContentsAt(i);
+    const int id = sessions::SessionTabHelper::IdForTab(tab).id();
+    const auto committed = tab->GetLastCommittedURL();
+    if (blanc::private_tabs::IsPrivateTab(tab) != is_private) continue;
+    // A Start Page commits as chrome://newtab/ or as its page's own address;
+    // one still loading has only the visible chrome://newtab/.
+    if (committed != start && committed != entry &&
+        !(committed.is_empty() && tab->GetVisibleURL() == entry)) continue;
+    if (TabPinned(model, i) || model->GetTabGroupForTab(i) || model->GetSplitForTab(i) ||
+        id == glance || id == overlay_glance || HasInheritedDocumentPolicy(tab)) continue;
+    auto& controller = tab->GetController();
+    const auto* pending = controller.GetPendingEntry();
+    if (controller.GetEntryCount() > 1 ||
+        (pending && pending->GetURL() != entry && pending->GetURL() != start)) continue;
+    if (i == model->active_index()) { best = i; break; }
+    if (best == TabStripModel::kNoTab ||
+        tab->GetLastActiveTimeTicks() >= model->GetWebContentsAt(best)->GetLastActiveTimeTicks()) best = i;
+  }
+  if (best == TabStripModel::kNoTab) return nullptr;
+  auto* tab = model->GetWebContentsAt(best);
+  if (best != model->active_index()) model->ActivateTabAt(best);
+  if (open_island) OpenIsland(browser, true);
+  return tab;
 }
 
 bool MakePrivateWindow(BrowserWindowInterface* browser) {

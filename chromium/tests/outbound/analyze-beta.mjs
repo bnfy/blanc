@@ -12,7 +12,15 @@
 // fresh profile has no Sync. The network log shows Chromium's own requests
 // only; Sparkle and macOS frameworks are covered by the pf log alone.
 //
-//   node analyze-beta.mjs RESULTS [--allow HOST ...] > report.json
+// --feed URL names the beta's own update feed (its Info.plist SUFeedURL).
+// Sparkle checks it at launch once its daily check is due, so a release
+// build's run may show blocked HTTPS to the feed's addresses; those count as
+// the update check (reported, not a failure) only when nettop names a Blanc
+// process on that very address (owner, 2026-11-15, after beta.5's run: beta.3
+// and beta.4 passed only because the test account's check wasn't due).
+//
+//   node analyze-beta.mjs RESULTS [--allow HOST ...] [--feed URL] > report.json
+import dns from 'node:dns/promises';
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -51,7 +59,7 @@ export function dnsQuestion(line = '') {
   return /\.53: \d+\+?(?: \[[^\]]*\])? [A-Za-z0-9]+\? (\S+?)\.? \(/.exec(line)?.[1]?.toLowerCase() ?? null;
 }
 
-export function judgeBeta({controls, pflog, owners, run, scenarios, netlogs, allow = []}) {
+export function judgeBeta({controls, pflog, owners, run, scenarios, netlogs, allow = [], feed = null}) {
   const problems = [], windows = [], missingRoute = [];
   for (const c of controls) {
     if (/ENETUNREACH|EHOSTUNREACH|EADDRNOTAVAIL/.test(c.outcome)) { missingRoute.push(c.name); continue; }
@@ -65,13 +73,15 @@ export function judgeBeta({controls, pflog, owners, run, scenarios, netlogs, all
   if (!scenarios?.length) problems.push('no beta scenarios ran: the run is invalid');
   const during = p => run && p.at >= run.start && p.at <= run.end;
   const background = new Map(), blanc = new Map();
-  let probeLookups = 0;
+  let probeLookups = 0, feedAttempts = 0;
+  const feedAddresses = new Set(feed?.addresses ?? []);
   for (const p of pflog) {
     if (!during(p) || windows.some(([from, to]) => p.at >= from && p.at <= to)) continue;
     // Chromium resolves names itself, so the page's probe host shows up as
     // DNS queries the pf block drops; those are the probe, not the beta.
     if (p.port === 53 && dnsQuestion(p.line) === PROBE_HOST) { probeLookups++; continue; }
     const {names, near} = ownersOf(owners, p.address);
+    if (p.port === 443 && feedAddresses.has(p.address) && !near && names.some(n => BLANC.test(n))) { feedAttempts++; continue; }
     if (LOCAL.test(p.address) || (names.length && !names.some(n => BLANC.test(n)))) {
       const key = `${p.address} (${names.length ? (near ? 'near ' : '') + names.join(', ') : 'multicast or link-local'})`;
       background.set(key, (background.get(key) ?? 0) + 1);
@@ -91,7 +101,9 @@ export function judgeBeta({controls, pflog, owners, run, scenarios, netlogs, all
     for (const [host, count] of seen) if (!allowed.has(host)) problems.push(`${s.name}: the beta tried to reach ${host} (${count} network log entries)`);
   }
   return {verdict: problems.length ? 'fail' : 'pass', problems, missingRoute, controls: controls.length, probeLookups,
-    pflogLines: pflog.length, backgroundDuringRun: Object.fromEntries(background), netlogHosts: hosts,
+    pflogLines: pflog.length,
+    ...(feed ? {updateFeed: {url: feed.url, addresses: [...feedAddresses], blockedAttempts: feedAttempts}} : {}),
+    backgroundDuringRun: Object.fromEntries(background), netlogHosts: hosts,
     allowed: [...allowed], coverage: 'Chromium network stack via its network log; everything else (Sparkle, macOS frameworks) via the pf log only'};
 }
 
@@ -99,6 +111,13 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const [results, ...rest] = process.argv.slice(2);
   if (!results) throw Error('Usage: analyze-beta.mjs RESULTS [--allow HOST ...]');
   const allow = rest.filter((v, i) => rest[i - 1] === '--allow');
+  const feedUrl = rest.find((v, i) => rest[i - 1] === '--feed');
+  let feed = null;
+  if (feedUrl) {
+    const url = new URL(feedUrl);
+    if (url.protocol !== 'https:') throw Error(`--feed must be an https address: ${feedUrl}`);
+    feed = {url: url.href, addresses: (await dns.lookup(url.hostname, {all: true})).map(a => a.address)};
+  }
   const read = name => fs.readFileSync(path.join(results, name), 'utf8');
   const controls = ['controls-before.json', 'controls-after.json'].flatMap(name => {
     const data = JSON.parse(read(name));
@@ -112,7 +131,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   // root.sh writes the pf log into results/, the beta run's parent folder.
   const pflogFile = [path.join(results, 'pflog.txt'), path.join(results, '..', 'pflog.txt')].find(f => fs.existsSync(f));
   if (!pflogFile) throw Error('no pf log (pflog.txt) beside the results');
-  const report = judgeBeta({controls, pflog: parsePflog(fs.readFileSync(pflogFile, 'utf8')), owners: parseNettop(read('nettop.csv')), run, scenarios, netlogs, allow});
+  const report = judgeBeta({controls, pflog: parsePflog(fs.readFileSync(pflogFile, 'utf8')), owners: parseNettop(read('nettop.csv')), run, scenarios, netlogs, allow, feed});
   console.log(JSON.stringify(report, null, 2));
   if (report.verdict !== 'pass') process.exitCode = 1;
 }

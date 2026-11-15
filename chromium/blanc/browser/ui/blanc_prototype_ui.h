@@ -171,6 +171,11 @@ bool IsHoldWindow(BrowserWindowInterface* browser);
 // Shipping's private tab (owner decision D1): |url| (the private Start Page
 // when empty) in a new private tab of |browser|, an ordinary window.
 content::WebContents* NewPrivateTab(BrowserWindowInterface* browser, const GURL& url);
+// #1505: switches |browser| to an unused Start Page of that kind (private or
+// not), opening the Island on it when |open_island|; null when there is none
+// or the setting is off, and the caller opens a new tab as before.
+content::WebContents* ReuseNewTab(BrowserWindowInterface* browser, bool is_private,
+                                  bool open_island = true);
 // The Dock's New Private Window, and ⌘⇧N with no window open: a window
 // Chromium just opened becomes one private tab, as shipping's
 // openNewWindow({private: true}). False leaves it as Chromium made it.

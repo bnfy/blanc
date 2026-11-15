@@ -90,6 +90,7 @@
     "patches/0082-blanc-beta-app-icon.patch",
     "patches/0083-blanc-dock-close.patch",
     "patches/0084-blanc-tab-thumbnails.patch",
-    "patches/0085-blanc-infobar-band.patch"
+    "patches/0085-blanc-infobar-band.patch",
+    "patches/0086-blanc-reuse-new-tab.patch"
   ]
 }

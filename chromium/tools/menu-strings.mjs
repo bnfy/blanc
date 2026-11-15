@@ -21,13 +21,14 @@ export const LABELS = [['new_mini_window', 'menu.newMiniWindow'], ['new_private_
   ['copy_clean_link', 'menu.copyCleanLink'], ['paste', 'menu.paste'],
   ['paste_and_go', 'addressMenu.pasteAndGo'], ['delete_text', 'menu.delete'], ['select_all', 'menu.selectAll']];
 
-const show = file => execFileSync('git', ['show', `${ref}:${file}`], {cwd: root, encoding: 'utf8'});
+const show = (file, at = ref) => execFileSync('git', ['show', `${at}:${file}`], {cwd: root, encoding: 'utf8'});
 
-export function catalogs(labels = LABELS) {
-  const locales = JSON.parse(show('src/main/i18n-locales.json')).filter(l => l.status === 'selectable');
+// `at` is the shipping commit to read; settings-strings.mjs passes its own pin.
+export function catalogs(labels = LABELS, at = ref) {
+  const locales = JSON.parse(show('src/main/i18n-locales.json', at)).filter(l => l.status === 'selectable');
   return locales.map(({code}) => {
     const context = {module: {exports: {}}};
-    vm.runInNewContext(show(`src/renderer/pages/strings.${code}.js`), context);
+    vm.runInNewContext(show(`src/renderer/pages/strings.${code}.js`, at), context);
     const values = labels.map(([, key]) => {
       const value = context.module.exports.messages?.[key];
       if (typeof value !== 'string' || !value) throw Error(`${code}: missing ${key}`);

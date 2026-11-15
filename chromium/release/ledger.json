@@ -65,6 +65,24 @@
         "production-sync-real-device"
       ],
       "note": "Third public Blanc Beta, published 2026-11-14 at 19:02 UTC as a GitHub pre-release (not latest). Fixes 1Password's Unlock button (extension popups open under the Island), keeps the main window's tabs on the red button as shipping Blanc does, keeps Sync publishing open pages and names the Mac as shipping Blanc does; adds the Sunrise Gold icon, the Island's pointer response and the vertical tabs' Space row. An earlier notarized build from e47bf1bcf was superseded before publication and never published. Owner waivers: the protected-video notice (moves to beta.5) and the real-iPhone Sync pass (the iPhone listed the first beta.4 build with its pages but not the rebuilt one after the red button; cause unknown). Hosted smoke passed (run 43631733437); the signed handoff beta.3 to beta.4 passed."
+    },
+    {
+      "build": 5,
+      "version": "2.0.0-beta.5",
+      "tag": "chromium-beta-2.0.0-beta.5",
+      "date": "2026-11-15",
+      "arches": [
+        "arm64"
+      ],
+      "archWaiver": "Owner standing decision 2026-11-14: daily betas are Apple Silicon only; Intel is deferred until a separately qualified native build.",
+      "sourceCommit": "a1604c40965a4cf2feeb93655698d516ae30638d",
+      "candidate": "macos-353a2eb6140259ee",
+      "dmgSHA256": "756f38c843393b2fa23db5707d286e6292cbc3c0056ced5e2c99dd1f52c337f8",
+      "gateWaivers": [
+        "production-sync-real-device",
+        "no-drm-handoff"
+      ],
+      "note": "Daily Blanc Beta, published 2026-11-15 as a GitHub pre-release (not latest) through the one release command. Signed with the pinned Developer ID, notarized and stapled; Sigstore-signed checksums; logged-out public verification passed. Waivers under the owner's standing decisions: production-sync-real-device, no-drm-handoff."
     }
   ]
 }

@@ -46,11 +46,13 @@ test('the appcast must point at the published DMG, and the site must not go back
 test('the record adds the ledger entry and moves lastPass only for checks that ran', async () => {
   const { recordRelease } = await import('./daily/beta-record.mjs');
   const { loadStanding } = await import('./standing.mjs');
-  const ledger = JSON.parse(fs.readFileSync(new URL('./ledger.json', import.meta.url)));
+  // The ledger and standing.json as they stood before beta.5 was recorded.
+  const full = JSON.parse(fs.readFileSync(new URL('./ledger.json', import.meta.url)));
+  const ledger = { ...full, builds: full.builds.filter(b => b.build <= 4) };
   const r5 = { ...structuredClone(r), version: '2.0.0-beta.5', tag: 'chromium-beta-2.0.0-beta.5', shortVersion: '2.0.0-beta.5', build: 5, previousBuild: 4,
     gateWaivers: { 'no-drm-handoff': 'Owner standing waiver 2026-11-14: x', 'production-sync-real-device': 'Owner standing waiver 2026-11-14: y' } };
   const state = { done: { 'notarize-dmg': { arm64: { dmgSHA256: 'a'.repeat(64) } }, publish: { at: '2026-11-15T09:00:00Z' }, 'verify-public': {} } };
-  const standing = loadStanding();
+  const standing = loadStanding(new URL('./fixtures/standing-before-beta5.json', import.meta.url));
   const out = recordRelease({ r: r5, state, ledger, standing, published: '2026-11-15',
     ranChecks: [{ gate: 'webauthn', evidence: 'evidence/foundation/beta5/webauthn.json', sha256: 'b'.repeat(64) }] });
   assert.deepEqual(out.ledger.builds.at(-1).gateWaivers, ['no-drm-handoff', 'production-sync-real-device']);

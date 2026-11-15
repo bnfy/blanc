@@ -53,6 +53,23 @@ test('the beta fails on its own outside traffic and the run is invalid without i
   assert.equal(judgeBeta({...allowed, allow: ['blanc.day']}).verdict, 'pass', 'an intended destination can be allowed by name');
 });
 
+test("the beta's own update feed is the update check, and only from a Blanc process", () => {
+  const feed = {url: 'https://blanc.day/updates/chromium-beta/arm64.xml', addresses: ['104.21.32.108', '172.67.185.164']};
+  const hit = address => ({at: T('2026-11-14T10:00:30Z'), address, port: 443});
+  const checked = clean(); checked.owners.set('104.21.32.108', new Set(['Blanc Beta'])); checked.owners.set('172.67.185.164', new Set(['Blanc Beta']));
+  checked.pflog.push(hit('104.21.32.108'), hit('172.67.185.164'), hit('104.21.32.108'));
+  const report = judgeBeta({...checked, feed});
+  assert.equal(report.verdict, 'pass', report.problems.join('; '));
+  assert.deepEqual(report.updateFeed, {...feed, blockedAttempts: 3});
+  assert.equal(judgeBeta(checked).verdict, 'fail', 'without --feed the same packets fail');
+  const unnamed = clean(); unnamed.pflog.push(hit('104.21.32.108'));
+  assert.equal(judgeBeta({...unnamed, feed}).verdict, 'fail', 'no process seen on the address');
+  const other = clean(); other.owners.set('104.21.32.108', new Set(['Blanc Beta'])); other.pflog.push({...hit('104.21.32.108'), port: 80});
+  assert.equal(judgeBeta({...other, feed}).verdict, 'fail', 'only HTTPS');
+  const chromium = clean(); chromium.netlogs['startup-idle'].set('blanc.day', 1);
+  assert.equal(judgeBeta({...chromium, feed}).verdict, 'fail', "the feed doesn't allow Chromium's own requests to its host");
+});
+
 test('DNS lookups of the probe host are the probe; any other name is the beta', () => {
   const line = name => `2026-11-14 10:05:00.000000 rule 0/0(match): block out on en0: 192.168.1.20.50000 > 192.168.1.1.53: 4242+ A? ${name}. (40)`;
   assert.equal(dnsQuestion(line(PROBE_HOST)), PROBE_HOST);
