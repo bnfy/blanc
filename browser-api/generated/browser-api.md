@@ -856,6 +856,7 @@ Sent when main shows the overlay.
 | `purpose` | `unknown` | Mode-specific: a string for Glance, an object for panel flows, a model for screen sharing. |
 | `pillRect?` | `Rect \| null` | The resting pill in the overlay's coordinates; absent when replayed after the overlay loads. |
 | `searchPriorityResults` | `boolean` | Settings → Search priority results: search suggestions lead typed results. |
+| `panelSideClearance?` | `number` | The margin the centered panel keeps from each side of the overlay view, wider on macOS where the window buttons sit beside it; absent for the switcher card. |
 
 ### `OverlayHidePayload`
 

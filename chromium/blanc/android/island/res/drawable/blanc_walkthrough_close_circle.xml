@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- The close button's small circle, inside its 48dp target. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:inset="@dimen/blanc_walkthrough_close_inset">
+    <shape android:shape="oval">
+        <solid android:color="@color/blanc_sunrise_surface_raised" />
+    </shape>
+</inset>

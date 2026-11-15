@@ -224,6 +224,22 @@ export class Device {
     throw Error('The palette opened without a focused field');
   }
   paletteRows() { return paletteRows(this.dump()); }
+  // Waits for `text` in the open palette, scrolling its list: rows below the open tabs (the Recently
+  // closed band) can sit under what the keyboard leaves on screen, where a dump doesn't see them.
+  // Swipes inside the list's own bounds, so any screen size and keyboard height works.
+  async scrollPaletteTo(text, what = text, seconds = 15) {
+    await this.waitFor(async () => {
+      const xml = this.dump();
+      if (xml.includes(text)) return true;
+      const list = /<node [^>]*class="android\.widget\.ScrollView"[^>]*scrollable="true"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/.exec(xml);
+      if (list) {
+        const [left, top, right, bottom] = list.slice(1).map(Number);
+        const x = Math.round((left + right) / 2), span = bottom - top;
+        this.swipe(x, Math.round(bottom - span * 0.15), x, Math.round(top + span * 0.15));
+      }
+      return false;
+    }, what, seconds);
+  }
   runInPalette(text) {
     this.openPalette();
     this.type(text);
@@ -270,6 +286,29 @@ export class Device {
   menu(entry) {
     this.tap({id: 'blanc_island_menu'});
     this.tap({text: entry});
+  }
+
+  // Whether Settings' Blanc Blocker switch is on, from the switch after its title. Swipes only once
+  // Settings is in front, and goes Back only if it opened, so the page underneath is never touched.
+  async blockerSwitchOn() {
+    const inSettings = () => adb('shell', 'dumpsys', 'activity', 'activities')
+        .split('\n').some(l => /ResumedActivity/.test(l) && l.includes('.settings.SettingsActivity'));
+    this.menu('Settings');
+    await this.waitFor(async () => inSettings(), 'Settings to open');
+    try {
+      const {width, height} = this.screenSize();
+      for (let i = 0; i < 10; i++) {
+        const nodes = this.dump().match(/<node [^>]*>/g) ?? [];
+        const title = nodes.findIndex(n => n.includes('text="Blanc Blocker"'));
+        const widget = title < 0 ? null : nodes.slice(title + 1, title + 8).find(n => n.includes('class="android.widget.Switch"'));
+        const state = widget && /checked="(true|false)"/.exec(widget);
+        if (state) return state[1] === 'true';
+        this.swipe(width / 2, height * 0.75, width / 2, height * 0.3, 300, 0.8);
+      }
+      throw Error('Settings shows no Blanc Blocker switch');
+    } finally {
+      this.back();
+    }
   }
 
   findCount() { return findCount(this.dump()); }

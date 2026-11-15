@@ -556,6 +556,8 @@ export interface OverlayShowPayload {
   pillRect?: Rect | null;
   /** Settings → Search priority results: search suggestions lead typed results. */
   searchPriorityResults: boolean;
+  /** The margin the centered panel keeps from each side of the overlay view, wider on macOS where the window buttons sit beside it; absent for the switcher card. */
+  panelSideClearance?: number;
 }
 
 /** Sent when main hides the overlay. */

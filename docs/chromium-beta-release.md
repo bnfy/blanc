@@ -903,6 +903,39 @@ installed it and relaunched. About shows 2.0.0-beta.3, and the installed app
 is notarized and stapled, with the released beta.3's code hash
 (`b9a1e9d53dc4cf6bc2ef105068cd8e4828909fed`).
 
+### Blanc Beta 2.0.0-beta.4 (2026-11-14)
+
+Published at 19:02 UTC as a GitHub pre-release, not latest:
+<https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.4>, tag at
+`57e3109dd`, candidate `macos-e8eb804f1ebb87a8`, DMG SHA-256
+`fd42bf1265db3fe3844372a34a5c7ce14e58307ca989a811186b474ec0658ed1`, nine assets.
+It carries 1Password's Unlock fix (patch 0081: an extension's own popup opens
+under the Island), the red button keeping the main window's tabs (patch 0083,
+like shipping Blanc's Dock close), Sync publishing open pages after every
+window closes, the Mac's name as shipping Blanc gives it, the Sunrise Gold icon
+(0082), the Island's pointer response and the vertical tabs' Space row. A first
+notarized beta.4 from `e47bf1bcf` was superseded by the red-button fix before
+publication. Every stage ran from the MacBook Pro over SSH, as for beta.3.
+Gates: 11 passed (acceptance by the owner's targeted decision, desktop Sync,
+notices and credits, blocker payload and test hooks absent on a copied
+candidate on the MacBook Pro, outbound isolation, profile coexistence, Touch
+ID passkeys carried from the first notarized beta.4, the update proof carried
+from beta.2, native signature, Gatekeeper) and 2 waived (no-drm-handoff,
+production-sync-real-device). After publication the website PR shipped the
+feed, the Download page tile and `/dl/beta` (#1529), and blanc-ping was
+deployed from `main` plus the unmerged Android ping change already live, so
+nothing rolled back. The hosted smoke check passed all six checks (run
+43631733437, dispatched on `chromium/next` with `check_feed=true`). The signed
+Sparkle handoff passed the same day on the MacBook Pro without touching the
+installed beta: a separate copy of the public beta.3 (DMG `a31422ed…`) with a
+throwaway profile (`--user-data-dir`) found beta.4 through Check for
+Updates…, downloaded and installed it. The updated copy reports 2.0.0-beta.4
+(build 4), passes Gatekeeper and the stapled ticket, and has the released
+beta.4's code hash (`2600f9dde659db1df04972ca3e2afbb6412b706f`). Its relaunch
+went to the Blanc Beta already running (the relaunch doesn't keep
+`--user-data-dir`, so Chromium hands it to the default profile's process);
+started again by hand, the copy opened as beta.4.
+
 ### Runbook for the next beta: lessons from beta.2 (2026-11-14)
 
 Beta.2 shipped, but cost hours on things that are now known. Do the next beta
@@ -1005,9 +1038,10 @@ in this order. Each item says what went wrong the first time.
       `~/Projects/Blanc/worktrees/deploy-main`, with the Blubird fonts
       installed from `~/Downloads/blubird` (`blubird-fonts.mjs install`).
     - Confirm Cloudflare reports Production on `main` at the expected SHA.
-16. **The hosted smoke check runs only from `main`.** Bring `chromium/next` to
-    `main` (merge `main` in first) before dispatching
-    `chromium-beta-smoke.yml` with `check_feed=true`.
+16. **Dispatch the hosted smoke check on a branch whose `policy.mjs` knows the
+    release's waivers.** `main` does only after `chromium/next` is merged
+    there; for beta.4, `gh workflow run chromium-beta-smoke.yml --ref
+    chromium/next -f tag=… -f check_feed=true` worked without that merge.
 17. **`main` requires review conversations to be resolved, and only the owner
     can resolve them.** CodeQL failed #1513 on code that is now fixed:
     - checking a file and then reading or writing it separately: open once,
@@ -1161,3 +1195,24 @@ these with buttons on 2026-11-14:
   beta.2's caution that Sync isn't checked end to end, and fix both faults in
   beta.4. `GATE_WAIVERS` lists it for 2.0.0-beta.3; the reason goes in the
   gate sources, because `release.json` was fixed before the check ran.
+
+### Lessons from beta.4 (2026-11-14)
+
+1. **Point the outbound check's config at the new candidate** before the owner
+   types the `blanc-test` password; it still named an old prototype and
+   refused with "Candidate identity mismatch", costing a second password.
+2. **The Sigstore page doesn't open on its own in a remote run.** Read the
+   exact sign-in URL from the wrapper's Terminal window and open it on the
+   MacBook Pro.
+3. **Another session may push patches to `chromium/next` mid-release.** Fetch
+   before committing a new patch and renumber if its number is taken (the
+   red-button patch became 0083).
+4. **The live blanc-ping Worker can carry unmerged code** (beta.4: the Android
+   ping branch). Compare the live version with `main` before deploying and
+   keep what is live, or the deploy rolls it back.
+5. **Check whether the website PR already merged** before acting on it.
+6. **Check the signed handoff on a copy, not the owner's install:** stage the
+   previous public beta in a scratch folder, launch its binary with its own
+   `--user-data-dir`, and drive Check for Updates… by process id (System
+   Events `first process whose unix id is …`), because both copies share one
+   bundle id. Compare the updated copy's code hash with the released DMG's.

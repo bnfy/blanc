@@ -157,3 +157,20 @@ test('conflict clock matrix matches v1.46.0 shipping mergeFromSync, including le
   }
   assert.deepEqual(run(cases).map(Number), expected);
 });
+
+// Beta.3 (2026-11-14): on macOS Chromium unloads a profile when its last window
+// closes, though the app keeps running, and loads a new Profile for the next
+// window. The service stays bound to the first one, so Settings said "Sync is
+// available only in the default profile" until a relaunch, and open tabs were
+// no longer published. The service keeps its profile loaded while Blanc runs.
+test('the Sync service keeps its profile loaded while Blanc runs', () => {
+  const cc = fs.readFileSync(path.join(root, 'blanc/browser/sync/desktop_sync_service.cc'), 'utf8');
+  const h = fs.readFileSync(path.join(root, 'blanc/browser/sync/desktop_sync_service.h'), 'utf8');
+  const gn = fs.readFileSync(path.join(root, 'blanc/browser/sync/BUILD.gn'), 'utf8');
+  assert.match(h, /std::unique_ptr<ScopedProfileKeepAlive> profile_keep_alive_;/);
+  const ctor = cc.slice(cc.indexOf('DesktopSyncService::DesktopSyncService(Profile* profile)'), cc.indexOf('DesktopSyncService::~DesktopSyncService()'));
+  assert.match(ctor, /profile_keep_alive_ = std::make_unique<ScopedProfileKeepAlive>\(\s*profile, ProfileKeepAliveOrigin::kBackgroundMode\);/);
+  const destroyed = cc.slice(cc.indexOf('void DesktopSyncService::OnProfileWillBeDestroyed('));
+  assert.match(destroyed.slice(0, destroyed.indexOf('\n}')), /profile_keep_alive_\.reset\(\);/);
+  assert.match(gn, /"\/\/chrome\/browser\/profiles\/keep_alive",/);
+});

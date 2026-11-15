@@ -969,7 +969,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_cards_search">Suche</string>
     <string name="settings_general_cards_browsing">Surfen</string>
     <string name="settings_general_theme_label">Design</string>
-    <string name="settings_general_theme_hint">System folgt dem Design von macOS/Windows</string>
+    <string name="settings_general_theme_hint">System folgt dem hellen oder dunklen Modus deines Computers</string>
     <string name="settings_general_theme_system">System</string>
     <string name="settings_general_theme_light">Hell</string>
     <string name="settings_general_theme_dark">Dunkel</string>
@@ -1000,10 +1000,10 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_dark_exception_add">Hinzufügen</string>
     <string name="settings_general_newtab_layout_label">Layout der Startseite</string>
     <string name="settings_general_newtab_layout_hint">Wie sich die Startseite anordnet; auch über ihre Fußleiste umschaltbar</string>
-    <string name="settings_general_newtab_layout_ledger">ledger</string>
-    <string name="settings_general_newtab_layout_billboard">billboard</string>
-    <string name="settings_general_newtab_layout_shelf">shelf</string>
-    <string name="settings_general_newtab_layout_tally">tally</string>
+    <string name="settings_general_newtab_layout_ledger">Ledger</string>
+    <string name="settings_general_newtab_layout_billboard">Billboard</string>
+    <string name="settings_general_newtab_layout_shelf">Shelf</string>
+    <string name="settings_general_newtab_layout_tally">Tally</string>
     <string name="settings_general_newtab_dynamic_wallpaper_label">Hintergrund nach Tageszeit</string>
     <string name="settings_general_newtab_dynamic_wallpaper_hint">Der Hintergrund folgt der Ortszeit dieses Geräts.</string>
     <string name="settings_general_newtab_custom_wallpaper_label">Bild für die Startseite</string>
@@ -1620,11 +1620,11 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="newtab_pin_done">%1$s an die Startseite angeheftet.</string>
     <string name="newtab_unpin_done">%1$s von der Startseite gelöst.</string>
     <string name="newtab_pin_full">Die Startseite fasst %1$s angeheftete Seiten. Löse zuerst eine.</string>
-    <string name="onboarding_skip">überspringen</string>
+    <string name="onboarding_skip">Überspringen</string>
     <string name="onboarding_step_label">%1$s / %2$s – %3$s</string>
     <string name="onboarding_step_default">Standardbrowser</string>
     <string name="onboarding_step_import">Import</string>
-    <string name="onboarding_step_island">die Island</string>
+    <string name="onboarding_step_island">Die Island</string>
     <string name="onboarding_step_blocking">Werbeblocker</string>
     <string name="onboarding_step_privacy">Datenschutz</string>
     <string name="onboarding_step_theme">Design</string>
@@ -1670,7 +1670,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="onboarding_island_archive">Tabs nach 7 Tagen archivieren&lt;0&gt;Lose Tabs, die du 7 Tage nicht geöffnet hast, werden geschlossen und 30 Tage in deinem Archiv aufbewahrt. Angeheftete Tabs und Gruppen bleiben.&lt;/0&gt;</string>
     <string name="onboarding_island_archive_label">Tabs nach 7 Tagen archivieren</string>
     <string name="onboarding_blocking_title">Werbung &amp; Tracker blockieren</string>
-    <string name="onboarding_blocking_body">Blockiert bekannte Werbung und Tracker mit mitgelieferten Regeln. Nicht jeder Tracker lässt sich stoppen. Schalte es pro Website mit /off-leash aus.</string>
+    <string name="onboarding_blocking_body">Blockiert bekannte Werbung und Tracker mit mitgelieferten Regeln. Nicht jeder Tracker lässt sich stoppen. Schalte es pro Website mit /allow-ads aus.</string>
     <string name="onboarding_blocking_toggle">Werbung &amp; Tracker blockieren</string>
     <string name="onboarding_blocking_toggle_label">Werbung und Tracker blockieren</string>
     <string name="onboarding_privacy_title">Wähle, was Blanc senden darf</string>
@@ -1683,8 +1683,8 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="onboarding_privacy_save_failed">Diese Auswahl konnte nicht gespeichert werden. Prüfe den Zugriff auf den Speicher und versuch es noch einmal.</string>
     <string name="onboarding_theme_title">Wähle deine Tinte</string>
     <string name="onboarding_theme_body">Papier am Tag, Tinte in der Nacht. Jederzeit mit /theme änderbar.</string>
-    <string name="onboarding_theme_light">hell</string>
-    <string name="onboarding_theme_dark">dunkel</string>
+    <string name="onboarding_theme_light">Hell</string>
+    <string name="onboarding_theme_dark">Dunkel</string>
     <string name="onboarding_back">Zurück</string>
     <string name="onboarding_continue">Weiter</string>
     <string name="onboarding_finish">Los geht’s</string>
@@ -2626,5 +2626,9 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="android_settings_island_position_top">Oben</string>
     <string name="android_settings_island_position_bottom">Unten</string>
     <string name="android_settings_open_source_licenses">Open-Source-Lizenzen</string>
+    <string name="android_welcome_share_title">Von diesem Telefon teilen</string>
+    <string name="android_welcome_measure_usage_help">Bei jedem Öffnen sendet Blanc einen anonymen Zähler: eine zufällige ID für diese Installation, die App-Version und die Android-Version. Nie, was du ansiehst. Siehe blanc.day/privacy.</string>
+    <string name="android_default_browser_body">Mach Blanc zu deinem Standardbrowser, damit Links aus anderen Apps hier geöffnet werden.</string>
+    <string name="android_default_browser_open">Als Standard festlegen</string>
     <string name="android_settings_auto_revoke_summary">Zum Schutz deiner Daten kann Blanc Berechtigungen von Websites entfernen, die du länger nicht besucht hast</string>
 </resources>
