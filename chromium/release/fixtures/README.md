@@ -10,3 +10,6 @@ blanc-beta.profile.json is the exception: it records what `security cms -D`
 shows for the committed ../blanc-beta.provisionprofile (public data, no secret),
 without the raw certificate and DER blobs, so the policy is tested on a real shape.
 No app, Chromium checkout, keychain, production service or network is needed.
+standing-before-beta5.json is ../standing.json as it stood when beta.5 was
+prepared (before b86146fe5 recorded it), so the daily-release tests keep testing
+that moment after later betas move lastPass.

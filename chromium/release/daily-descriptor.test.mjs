@@ -7,7 +7,8 @@ import { GATES } from './manifest.mjs';
 
 const ledger = JSON.parse(fs.readFileSync(new URL('./ledger.json', import.meta.url)));
 const upTo = n => ({ schema: 1, builds: ledger.builds.filter(b => b.build <= n) });
-const standing = loadStanding();
+// standing.json as it stood when beta.5 was prepared (before its record moved lastPass).
+const standing = loadStanding(new URL('./fixtures/standing-before-beta5.json', import.meta.url));
 // beta.4's published release.json (records/beta4-work/release.json on the Mac Studio).
 const beta4 = {
   sourceCommit: '57e3109dd3c166fe1ea76caf0cc1a3b93aa54585',
