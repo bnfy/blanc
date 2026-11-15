@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Evidence for the native-signature and gatekeeper gates from a notarized beta DMG.
 //   node signed-evidence.mjs WORK ARCH OUT_DIR
-// Read-only: verify.mjs on the DMG, then the DMG mounted read-only for codesign,
+// Read-only: verify.mjs on the notarized DMG (WORK/signed/ARCH), then the DMG mounted read-only for codesign,
 // spctl (Gatekeeper; may contact Apple) and stapler on the DMG and the app inside.
 // Writes OUT_DIR/native-signature.json and OUT_DIR/gatekeeper.json; exits 1 unless both pass.
 import fs from 'node:fs';
@@ -16,8 +16,12 @@ const {sha256, assetName, validateRelease} = await import(pathToFileURL(path.joi
 const {verifyArtifact} = await import(pathToFileURL(path.join(repo, 'chromium/release/verify.mjs')));
 const r = validateRelease(JSON.parse(fs.readFileSync(path.join(work, 'release.json'), 'utf8')));
 const state = JSON.parse(fs.readFileSync(path.join(work, 'state.json'), 'utf8'));
-const dmg = path.join(work, 'assets', assetName(r, arch));
+// The notarized DMG where notarize-dmg left it: this check runs before the
+// sparkle stage copies it into assets/ (the daily order; beta.5, 2026-11-15).
+const dmg = path.join(work, 'signed', arch, assetName(r, arch));
 const dmgSHA256 = sha256(fs.readFileSync(dmg));
+if (dmgSHA256 !== state.done['notarize-dmg']?.[arch]?.dmgSHA256) throw Error('the DMG changed after notarization');
+fs.mkdirSync(out, {recursive: true});
 const run = (cmd, args) => { const x = spawnSync(cmd, args, {encoding: 'utf8'}); return {status: x.status, text: `${x.stdout}${x.stderr}`.trim()}; };
 const release = {version: r.version, build: r.build, sourceCommit: r.sourceCommit, inputDigest: r.inputDigest, candidate: r.candidates[arch], dmgSHA256};
 const notary = {app: state.done['notarize-app'][arch], dmg: state.done['notarize-dmg'][arch].notarization};
