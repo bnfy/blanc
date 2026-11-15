@@ -2708,4 +2708,13 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="android_default_browser_body">Torne o Blanc seu navegador padrão para que os links de outros apps abram aqui.</string>
     <string name="android_default_browser_open">Definir como padrão</string>
     <string name="android_settings_auto_revoke_summary">Para proteger seus dados, deixe o Blanc remover as permissões de sites que você não visita há algum tempo</string>
+    <string name="android_licenses_title">Licenças de código aberto</string>
+    <string name="android_licenses_intro">Leia as licenças e os avisos do Blanc abaixo. Os créditos do Chromium listam suas próprias licenças e componentes de terceiros.</string>
+    <string name="android_licenses_chromium_credits">Licenças e créditos do Chromium</string>
+    <string name="android_licenses_license">Licença do software Blanc</string>
+    <string name="android_licenses_asset_license">Nomes, logotipos e elementos de identidade do Blanc</string>
+    <string name="android_licenses_third_party_notices">Avisos de terceiros do repositório</string>
+    <string name="android_licenses_chromium_fork_notices">Avisos do fork do Chromium</string>
+    <string name="android_licenses_loading">Carregando aviso…</string>
+    <string name="android_licenses_load_failed">Não foi possível carregar este aviso. Abra o link no título para ler o arquivo incluído.</string>
 </resources>

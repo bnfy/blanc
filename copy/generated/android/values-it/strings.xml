@@ -2708,4 +2708,13 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="android_default_browser_body">Rendi Blanc il tuo browser predefinito, così i link delle altre app si aprono qui.</string>
     <string name="android_default_browser_open">Imposta come predefinito</string>
     <string name="android_settings_auto_revoke_summary">Per proteggere i tuoi dati, consenti a Blanc di rimuovere le autorizzazioni dai siti che non visiti da un po’</string>
+    <string name="android_licenses_title">Licenze open source</string>
+    <string name="android_licenses_intro">Leggi le licenze e gli avvisi di Blanc qui sotto. I riconoscimenti di Chromium elencano le sue licenze e i componenti di terze parti.</string>
+    <string name="android_licenses_chromium_credits">Licenze e riconoscimenti di Chromium</string>
+    <string name="android_licenses_license">Licenza del software Blanc</string>
+    <string name="android_licenses_asset_license">Nomi, loghi ed elementi di identità di Blanc</string>
+    <string name="android_licenses_third_party_notices">Avvisi di terze parti del repository</string>
+    <string name="android_licenses_chromium_fork_notices">Avvisi del fork di Chromium</string>
+    <string name="android_licenses_loading">Caricamento dell’avviso…</string>
+    <string name="android_licenses_load_failed">Impossibile caricare questo avviso. Apri il link nel titolo per leggere il file incluso.</string>
 </resources>

@@ -1,0 +1,121 @@
+# Asset licence statement
+
+Software, documentation, and other material owned by Bananify Creative are
+released under the MIT License ([LICENSE](LICENSE)), except for the identity
+artwork reserved below. That grant follows ownership rather than directory:
+**no directory in this repository is excluded wholesale.** It does not
+supersede an upstream licence or grant rights in third-party material merely
+because that material is checked in or appears inside a screenshot or recording.
+
+This file identifies the artwork that is *not* covered by the MIT grant and the
+third-party imagery that was never Bananify Creative's to license. Other
+redistributed components are listed in
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) and in adjacent licence files.
+
+## Blanc identity artwork — all rights reserved
+
+The following files are the Blanc logo, app-icon compositions, and product
+marks. They are the visual identity of the software rather than part of it, and are reserved by
+Bananify Creative. They may be reproduced to refer to Blanc — press coverage,
+reviews, articles, store listings — but not as the identity of a modified or
+derivative build, and not modified into a new mark.
+
+Source mark:
+
+- `build/app-icons/Icon.icon/` — the Icon Composer document, including
+  `Assets/blanc-mark.svg`
+- `assets/sunrise-mark.svg` — the Sunrise mark as vector artwork, the source of
+  every Sunrise surface; `assets/sunrise-mark-4096.png` — its rendered master
+- `assets/sunrise-app-icon.png` — the static Sunrise platform icon, generated
+  from the vector mark
+- `build/icon.png` — 1024×1024 raster template
+
+Product marks:
+
+- `assets/horizon-shield.png` — layered copper/bronze Horizon Shield source artwork
+- `site/public/horizon-shield.webp` — transparent website export
+- `site/src/assets/blocker-shield-bronze.png` — bronze display interpretation of the original Blocker outline and slash
+- `site/public/blocker-shield-bronze.webp` — transparent website export of that interpretation
+- `site/src/data/blocker-shield-outline.json` — silhouette for that 3D display variant
+- `site/src/data/horizon-shield-outline.json` — silhouette for the website’s 3D product mark
+
+App-icon colorways:
+
+- `src/renderer/pages/icon-{sunrise,sunrise-dark,paper,ink,graphite,default,midnight,cream,forest,sage,ember,plum,gold}.png`
+- `export/app-icons-1024-square/icon-{sunrise,sunrise-dark,paper,ink,graphite,default,midnight,cream,forest,sage,ember,plum,gold}-1024.png`
+- `export/app-icons-1024-square/icon-sunrise{,-dark}-4096.png`
+- `export/app-icons-1024-square/icon-sunrise-enhanced-1024.png`
+- `export/app-icons-1024-square/icon-sunrise-dark-enhanced-1024.png`
+
+Platform-packaged forms of the same mark:
+
+- `build/windows-icons/icon-sunrise.ico`
+- `ios/Blanc/Blanc/AppIcons/` — the iPhone app icons (Icon Composer packages)
+- `ios/Blanc/Blanc/Assets.xcassets/AppIconPreview-*.imageset/` — their
+  previews in the iPhone App icon picker
+- `src/renderer/pages/icon.svg`
+- `site/public/sunrise-hero-mark.png` and `src/renderer/sunrise-hero-mark.png` —
+  the original gold Sunrise mark for the website and blocker dialog
+- `site/public/logo.png`, `site/public/favicon.svg`,
+  `site/public/favicon.ico`, `site/public/favicon-16x16.png`,
+  `site/public/favicon-32x32.png`, and `site/public/apple-touch-icon.png`
+- `site/public/blanc-email-signature.png` and
+  `site/public/blanc-email-signature-48.png` — transparent monochrome Sunrise
+  signature marks, with light edging for dark backgrounds
+- `site/public/blanc-signature.png` — clean ink Sunrise signature mark at
+  its native 48×48 display size
+- `site/public/blanc-signature-hires.png` — transparent 1024×1024 ink Sunrise
+  signature mark for resizing in an email editor
+- `export/app-icons-1024-square/contact-sheet.png`
+- `assets/wordmark/blanc-word-{display,small}-{ink,white}.svg` — the outlined
+  “Blanc” word of the Blanc lockup, drawn from Blubird by Rajesh Rajput (the
+  font files themselves are not in this repository)
+- `site/public/lockup/` — the lockup's word outlines and the Sunrise exports
+  (`sunrise-mark-{256,2048}.webp`, rendered from `assets/sunrise-mark.svg`) the
+  website pairs them with
+- `site/public/press/blanc-lockup-{ink,white}{.svg,.png,-480.png,-600.webp,-1200.webp}` —
+  the Blanc lockup as media-kit downloads, previews and the email header, rendered from the two
+  sources above by `site/scripts/render-press-lockup.mjs`
+
+Blanc Mail app icon (the Sunrise in a gold envelope; its Icon Composer source
+lives with the Blanc Mail app, outside this repository):
+
+- `site/public/blanc-mail-icon.webp` — website rendering
+- `site/public/press/blanc-mail-icon{,-dark}-1024.png` — media-kit downloads,
+  light and dark appearances
+- `site/public/press/blanc-mail-icon{,-dark}-1024{,-600}.webp` — media-kit
+  previews
+
+A build that replaces these files with its own artwork is unencumbered by this
+statement. Rebuilding Blanc from source without modification reproduces them,
+which is expected and permitted; redistributing that build under the Blanc name
+and mark as though it were an official release is not — see
+[TRADEMARKS.md](TRADEMARKS.md).
+
+## Third-party marks and depicted material
+
+- `site/public/favicons/*.ico` — favicons of third-party websites, used on the
+  marketing site to illustrate the browser in use. Each remains the property and
+  trademark of its respective owner. They are not licensed under Blanc's MIT
+  grant and are not redistributable as part of a derivative work on the strength
+  of it.
+- `site/public/revamp/glance-nyhavn.webp`, `glance-kusama.jpg`,
+  `visit-copenhagen-favicon.ico`, and `louisiana-favicon.ico` — third-party
+  photography, depicted artwork, and website marks used in the Glance demo.
+  Their owners retain their rights; these files are not covered by Blanc’s MIT
+  grant. Credits and source pages are recorded in
+  `site/public/revamp/credits.txt` and `docs/website-revamp-assets.json`.
+- Screenshots, videos, demos, and other media in this repository may reproduce
+  third-party websites, interfaces, names, logos, icons, or other content. The
+  MIT grant covers only the portions of those files owned by Bananify Creative;
+  it conveys no rights in the depicted third-party material.
+
+## Bananify Creative-owned material
+
+Except for the reserved identity artwork above, Bananify Creative-owned content
+in this repository — including source code, configuration, build scripts,
+written documentation, marketing copy, site source, press material, and design
+system sources — is covered by the MIT License. Upstream-licensed components,
+adjacent licence files, and third-party material described above retain their
+own terms; inclusion in this repository is not a claim that Bananify Creative
+owns or can relicense them.

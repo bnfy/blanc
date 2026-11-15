@@ -9892,5 +9892,41 @@
   "android.settings.autoRevokeSummary": {
     "message": "To protect your data, let Blanc remove permissions from sites that you haven’t visited recently",
     "note": "Android Settings → Site settings: summary under the unused-permissions switch (replaces Chromium’s text, which names Chrome)."
+  },
+  "android.licenses.title": {
+    "message": "Open-source licenses",
+    "note": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text."
+  },
+  "android.licenses.intro": {
+    "message": "Read Blanc's licenses and notices below. Chromium's credits list its own licenses and third-party components.",
+    "note": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text."
+  },
+  "android.licenses.chromiumCredits": {
+    "message": "Chromium licenses and credits",
+    "note": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text."
+  },
+  "android.licenses.license": {
+    "message": "Blanc software license",
+    "note": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text."
+  },
+  "android.licenses.assetLicense": {
+    "message": "Blanc names, logos and identity assets",
+    "note": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text."
+  },
+  "android.licenses.thirdPartyNotices": {
+    "message": "Repository third-party notices",
+    "note": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text."
+  },
+  "android.licenses.chromiumForkNotices": {
+    "message": "Chromium fork notices",
+    "note": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text."
+  },
+  "android.licenses.loading": {
+    "message": "Loading notice…",
+    "note": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text."
+  },
+  "android.licenses.loadFailed": {
+    "message": "This notice could not be loaded. Open its title link to read the bundled file.",
+    "note": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text."
   }
 }

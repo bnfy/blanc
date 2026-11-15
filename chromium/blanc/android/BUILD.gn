@@ -248,6 +248,23 @@ android_assets("sync_assets") {
   disable_compression = true
 }
 
+# Separate notice files let the release audit compare their hashes inside the AAB,
+# in addition to the WebUI's embedded copies (pages_resources/).
+android_assets("notices_assets") {
+  renaming_sources = [
+    "pages/notices/LICENSE.txt",
+    "pages/notices/ASSET-LICENSE.txt",
+    "pages/notices/THIRD-PARTY-NOTICES.txt",
+    "pages/notices/CHROMIUM-FORK-NOTICES.txt",
+  ]
+  renaming_destinations = [
+    "blanc/android/pages/notices/LICENSE.txt",
+    "blanc/android/pages/notices/ASSET-LICENSE.txt",
+    "blanc/android/pages/notices/THIRD-PARTY-NOTICES.txt",
+    "blanc/android/pages/notices/CHROMIUM-FORK-NOTICES.txt",
+  ]
+}
+
 # Blanc's Settings, wired to Chromium (A5a). //chrome/android:chrome_java depends on this (patch 0110).
 android_library("settings_chromium_java") {
   resources_package = "org.chromium.blanc.island"
@@ -256,6 +273,7 @@ android_library("settings_chromium_java") {
     "java/src/org/chromium/blanc/settings/chromium/ChromiumSettingsHost.java",
   ]
   deps = [
+    ":notices_assets",
     ":island_view_java",
     ":island_view_resources",
     ":settings_java",
