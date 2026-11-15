@@ -41,10 +41,10 @@
         "chromium/release/native.mjs"
       ],
       "lastPass": {
-        "version": "2.0.0-beta.4",
-        "sourceCommit": "e47bf1bcf9d7e243b296c3ba1a3b5c385e156531",
-        "evidence": "evidence/foundation/beta4-signed-superseded-e47bf1bcf/webauthn.json",
-        "sha256": "123884203ec350715fd67d038a6964a5059d5057d6cfa36971cfdaeb2788ae9a"
+        "version": "2.0.0-beta.5",
+        "sourceCommit": "a1604c40965a4cf2feeb93655698d516ae30638d",
+        "evidence": "evidence/foundation/beta5/webauthn.json",
+        "sha256": "270c7c7cd2fc1f5c2ce881fe888bdf7bffdc0c288f74cd8090cb0bc2ce1a14d3"
       }
     },
     "sparkle-N-to-N+1": {
@@ -59,10 +59,10 @@
         "chromium/release/stage-sparkle.py"
       ],
       "lastPass": {
-        "version": "2.0.0-beta.2",
-        "sourceCommit": "058277389292e4a02291be56e496acc7b8d68add",
-        "evidence": "evidence/foundation/sparkle-local-update-20261114.json",
-        "sha256": "85feef5dbfc6801234b286d2b0303f76470aa558b97dd8d48dd94dc2bc892202"
+        "version": "2.0.0-beta.5",
+        "sourceCommit": "a1604c40965a4cf2feeb93655698d516ae30638d",
+        "evidence": "evidence/foundation/beta5/sparkle-N-to-N+1.json",
+        "sha256": "6be7f7841a5c3b0587f53e219696d1ffd17f2e0cc18df3c54698d9f2678d17cc"
       }
     },
     "desktop-sync": {
@@ -74,10 +74,10 @@
         "chromium/patches/*sync*"
       ],
       "lastPass": {
-        "version": "2.0.0-beta.4",
-        "sourceCommit": "57e3109dd3c166fe1ea76caf0cc1a3b93aa54585",
-        "evidence": "evidence/foundation/beta4/acceptance/native-sync-organic-tabs.json",
-        "sha256": "60640a89b0d138b3db4940b88ffe925c921ed6fb12150626f73994f3b8c43d9f"
+        "version": "2.0.0-beta.5",
+        "sourceCommit": "a1604c40965a4cf2feeb93655698d516ae30638d",
+        "evidence": "evidence/foundation/beta5/desktop-sync.json",
+        "sha256": "0735e8937429d3c8cfb1d7faf93d9071c15dc4bb27c1ed64324bccac2969d481"
       }
     }
   }
