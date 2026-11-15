@@ -3328,6 +3328,11 @@ drop to the bottom edge it left. Each of those moves by the Island's height, the
   the old side for a moment; private Start Pages have no stored answer and start from the bottom.
 - **Moving the Island** reloads every open Start Page in that window, as the iPhone does
   (`IslandCoordinator.reloadStartPages`).
+- **On the emulator:** `start-island-top.mjs` moves the Island in Settings as a person would and judges
+  the layout from what's on screen (UI Automator bounds of the Island, the date and Customize): the bottom
+  layout, the move to Top with the open Start Page reloaded, a relaunch, Customize opened with the Island
+  on top, and the move back. 5 of 5 on November 14, 2026 (APK `0add18ce…`, the build server's second
+  emulator), and the A5c gate runs it. Not yet seen on the Pixel.
 
 ### A5c The first minute and the rest of Settings
 

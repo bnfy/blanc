@@ -20,6 +20,7 @@ run pages-phone node "$TREE/chromium/tests/android/pages-phone.mjs" --apk "$APK"
 run start-shortcuts node "$TREE/chromium/tests/android/start-shortcuts.mjs" --apk "$APK" --evidence "$EVIDENCE/start-shortcuts"
 # Takes Blanc as installed (start-shortcuts left this APK on the emulator).
 run start-page-ways node "$TREE/chromium/tests/android/start-page-ways.mjs" "$EVIDENCE/start-page-ways"
+run start-island-top node "$TREE/chromium/tests/android/start-island-top.mjs" --apk "$APK" --evidence "$EVIDENCE/start-island-top"
 run a5a-gate env BLANC_EVIDENCE="$EVIDENCE/a5a" bash "$TREE/chromium/tests/android/a5a-gate.sh"
 sha256sum "$APK" > "$EVIDENCE/apk.sha256"
 if ((${#failed[@]})); then echo "A5c gate: FAIL (${failed[*]})"; exit 1; fi
