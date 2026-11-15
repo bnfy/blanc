@@ -58,6 +58,8 @@ function main([apkArg, evidenceArg, ...extra]) {
     report.apkSHA256 = crypto.createHash('sha256').update(fs.readFileSync(apk)).digest('hex');
     report.sourceCommit = command('git', ['-C', repo, 'rev-parse', '--verify', 'HEAD^{commit}']).trim();
     if (!/^[a-f0-9]{40}$/.test(report.sourceCommit)) throw Error('Invalid source commit');
+    // The commit only vouches for the gate if the runner's tree is that commit: no edited scripts or scenarios.
+    if (command('git', ['-C', repo, 'status', '--porcelain', '--untracked-files=no']).trim()) throw Error('The gate runner\'s tree has uncommitted changes');
     report.package = /^package: name='([^']+)'/m.exec(command('aapt2', ['dump', 'badging', apk]))?.[1] ?? null;
     if (report.package !== 'me.bnfy.blanc') throw Error('APK package must be me.bnfy.blanc');
     report.exclusions = validateExclusions(JSON.parse(fs.readFileSync(path.join(here, 'release-gate-exclusions.json'), 'utf8')),

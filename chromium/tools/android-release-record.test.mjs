@@ -67,6 +67,9 @@ test('fixture build retries after guard refusal and records both release artifac
     write(path.join(bin, 'uname'), '#!/bin/sh\ncase "$1" in -s) echo Linux;; -m) echo x86_64;; esac\n', true);
     write(path.join(bin, 'ps'), '#!/bin/sh\nexit 0\n', true);
     write(path.join(bin, 'git'), `#!/bin/sh
+if [ "$2" = "$HOME/chromium-android/src" ]; then
+  case "$3" in rev-parse) echo '${'c'.repeat(40)}';; status) printf "$FIXTURE_CHROMIUM_STATUS";; *) exit 96;; esac; exit 0
+fi
 [ "$2" = "$HOME/blanc-release" ] || exit 99
 shift 2
 case "$1" in
@@ -89,7 +92,8 @@ fs.mkdirSync(path.join(out, 'gen/blanc/android/org/chromium/blanc'), {recursive:
 fs.writeFileSync(path.join(out, 'gen/blanc/android/org/chromium/blanc/BlancRelease.java'), 'VERSION = "1.0.0-beta.1"');
 fs.mkdirSync(path.join(out, 'apks'), {recursive:true}); fs.writeFileSync(path.join(out, 'apks', out.endsWith('X64') ? 'ChromePublic.apk' : 'ChromePublic.aab'), 'fixture artifact');\n`);
     for (const template of ['release-arm64.gn', 'release-x64.gn']) write(path.join(source, 'chromium/android/args', template), 'is_debug = false\n');
-    write(path.join(source, 'chromium/source-map-android.json'), JSON.stringify({ upstream: 'c'.repeat(40) }));
+    write(path.join(source, 'chromium/source-map-android.json'), JSON.stringify({ upstream: 'c'.repeat(40), upstreamFiles: { 'chrome/android/BUILD.gn': 'f'.repeat(64) } }));
+    write(path.join(temp, 'depot_tools/gn'), '#!/bin/sh\necho "$@" >> "$HOME/gn-calls"\n', true);
     assert.equal(spawnSync('tar', ['-cf', path.join(temp, 'source.tar'), '-C', source, '.']).status, 0);
     write(path.join(temp, 'blanc-assets/zxing/core-3.5.3.jar'), 'fixture jar');
     write(path.join(temp, 'blanc-assets/blocker/engine.js'), 'fixture blocker');
@@ -99,13 +103,30 @@ fs.mkdirSync(path.join(out, 'apks'), {recursive:true}); fs.writeFileSync(path.jo
     }
     const env = { ...process.env, HOME: temp, PATH: `${bin}:${process.env.PATH}` };
     const args = [fileURLToPath(script), entry.tag, '--previous-map', 'b'.repeat(40), '--gates'];
+    const stray = spawnSync('bash', args, { encoding: 'utf8', env: { ...env, FIXTURE_CHROMIUM_STATUS: ' M chrome/android/BUILD.gn\\n M chrome/browser/left-over.cc\\n' } });
+    assert.notEqual(stray.status, 0); assert.match(stray.stderr, /changes Blanc doesn't apply: chrome\/browser\/left-over\.cc/);
+    fs.rmSync(path.join(temp, 'blanc-evidence'), { recursive: true, force: true });
     const refused = spawnSync('bash', args, { encoding: 'utf8', env: { ...env, FIXTURE_REFUSE: '1' } });
     assert.notEqual(refused.status, 0); assert.match(refused.stderr, /No pinned environment/);
     const result = spawnSync('bash', args, { encoding: 'utf8', env });
     assert.equal(result.status, 0, result.stderr);
     const record = JSON.parse(fs.readFileSync(path.join(temp, 'blanc-evidence/android/release', entry.tag, 'build.json')));
+    assert.equal(record.upstream, 'c'.repeat(40));
+    assert.match(fs.readFileSync(path.join(temp, 'gn-calls'), 'utf8'), /^gen .*AndroidRelease\n/);
     assert.equal(record.appliedOver, 'b'.repeat(40)); assert.equal(record.aab.bytes, 16); assert.match(record.gatesApk.sha256, /^[a-f0-9]{64}$/);
     const duplicate = spawnSync('bash', args, { encoding: 'utf8', env });
     assert.notEqual(duplicate.status, 0); assert.match(duplicate.stderr, /build record already exists/);
   } finally { fs.rmSync(temp, { recursive: true, force: true }); }
+});
+
+test('the Chromium checkout may differ from upstream only in the files Blanc applies', async () => {
+  const { unexpectedChromiumChanges } = await import(moduleURL);
+  const managed = new Set(['chrome/android/BUILD.gn', 'chrome/browser/x.cc']);
+  assert.deepEqual(unexpectedChromiumChanges(' M chrome/android/BUILD.gn\n M chrome/browser/x.cc\n', managed), []);
+  assert.deepEqual(unexpectedChromiumChanges(' M chrome/android/BUILD.gn\n M chrome/browser/debug.cc\nD  content/y.cc\n', managed),
+    ['chrome/browser/debug.cc', 'content/y.cc']);
+  assert.deepEqual(unexpectedChromiumChanges('R  chrome/a.cc -> chrome/browser/x.cc\n', managed), ['chrome/a.cc']);
+  assert.deepEqual(unexpectedChromiumChanges('', managed), []);
+  // As the git helper returns it: trimmed, so the first line has lost its leading space.
+  assert.deepEqual(unexpectedChromiumChanges('M chrome/android/BUILD.gn\n M chrome/browser/debug.cc', managed), ['chrome/browser/debug.cc']);
 });

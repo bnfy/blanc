@@ -3354,16 +3354,19 @@ server and Play steps below wait for the owner's approvals.
 
 - **Release build:** `android/args/release-{arm64,x64}.gn` (official, PGO off, release package
   `me.bnfy.blanc`, `blanc_channel = "release"` so no test hooks, lint on). The release version reaches the
-  launch ping through `BlancRelease.VERSION`. `android/server/release-build.sh <tag>` builds only a clean,
+  launch ping through `BlancRelease.VERSION`. `android/server/release-build.sh <tag> --previous-map <commit>` builds only a clean,
   tagged commit whose ledger entry matches (`android/release/ledger.json`, codes from 1, names
-  `1.0.0-beta.N`) and writes a build record.
+  `1.0.0-beta.N`) and writes a build record. It also refuses a Chromium checkout that isn't at the pinned
+  upstream or that has changes Blanc doesn't apply, and regenerates GN when a release's arguments change.
 - **Gates:** `tests/android/release-gate.sh` runs the outbound (privacy) gate, then the acceptance smoke
-  set, on the x64 release APK; scenarios that need a preview hook are listed in
-  `release-gate-exclusions.json` and run on the same commit's debug build.
+  set, on the x64 release APK, from a clean runner tree. The exclusions list
+  (`release-gate-exclusions.json`) is empty; a scenario that needs a preview hook would have to be listed
+  there with that hook and run by hand on the same commit's debug build. Blanc's C++ never reads a test
+  switch outside a test-hook guard (`tools/test-hook-guards.test.mjs`).
 - **On the owner's Mac:** `android/release/release.mjs` (fetch, verify, sign, attest, upload) checks the
   bundle against the record, signs it with the upload key from 1Password, writes checksums, an SBOM and a
-  Sigstore bundle, and uploads to the internal track only after a typed confirmation
-  (`docs/android/release.md`).
+  Sigstore bundle, and uploads a draft release to the internal track only after a typed confirmation;
+  the owner rolls the draft out in Play Console (`docs/android/release.md`).
 - **About:** Settings → About → Open-source licenses opens Blanc's own notices page, which links to
   `chrome://credits`.
 - **Play and Google Cloud** were set up on November 15, 2026 (`docs/android/play-console.md`): the app,

@@ -20,7 +20,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
-import {pathToFileURL} from 'node:url';
+import {fileURLToPath} from 'node:url';
 import {ROOT, gatherComponents, makeSbom, readRegular, validateScan} from '../../release/sbom.mjs';
 import {sha256} from '../../release/policy.mjs';
 import {validateBuildRecord} from './record.mjs';
@@ -204,7 +204,8 @@ export function attest(workDir, env, run = spawnSync) {
   invoke(['verify-blob', '--bundle', bundle, '--certificate-identity', env.BLANC_COSIGN_IDENTITY, '--certificate-oidc-issuer', env.BLANC_COSIGN_OIDC_ISSUER, manifest]);
   return {sbom: 'Blanc-Android.cdx.json', checksums: 'SHA256SUMS', sigstore: 'SHA256SUMS.sigstore.json'};
 }
-if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+// Real paths: on macOS a temp or symlinked path (/var → /private/var) would otherwise never match.
+if (process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) {
   try {
     const [mode, work, src, review] = process.argv.slice(2);
     if (mode === 'review' && work && !src) {

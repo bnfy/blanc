@@ -74,6 +74,13 @@ def patched_hashes():
 
 if not args.patched_only:
     src = args.src.resolve()
+    # The version must be the checkout's own, or the pin would name a release it isn't.
+    version_file = src / 'chrome' / 'VERSION'
+    if version_file.is_file():
+        parts = dict(line.split('=', 1) for line in version_file.read_text().split() if '=' in line)
+        actual = '.'.join(parts.get(k, '?') for k in ('MAJOR', 'MINOR', 'BUILD', 'PATCH'))
+        if actual != args.version:
+            sys.exit(f'--version {args.version} is not the checkout\'s chrome/VERSION ({actual}); nothing was written')
     names = [safe(n) for n in manifest['files']]
     missing = [n for n in names if not (src / n).is_file() or (src / n).is_symlink()]
     if missing:

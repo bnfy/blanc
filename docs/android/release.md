@@ -146,10 +146,17 @@ node chromium/android/release/release.mjs upload "$WORK"
    The worker reads the Play credential, exchanges the in-memory JWT for a
    token, and calls the existing internal-track adapter. No credential or token
    crosses the worker's stdout or a file. The adapter creates a fresh edit,
-   uploads the signed AAB, updates only `internal`, and commits. Only after it
-   resolves does the worker persist a public `upload-receipt.json` containing
-   edit ID, version code and signed-AAB digest. The parent then marks the ledger
-   `uploaded` and records the finished stage. This does not publish production.
+   uploads the signed AAB, updates only `internal` with a **draft** release, and
+   commits. Play accepts nothing but drafts until the app has been published once,
+   so the owner then opens the internal testing track in Play Console and rolls the
+   draft out to testers. Only after the commit resolves does the worker persist a
+   public `upload-receipt.json` containing edit ID, version code and signed-AAB
+   digest. The parent then marks the ledger `uploaded` and records the finished
+   stage. This does not publish production.
+7. **Commit the ledger row.** Commit `chromium/android/release/ledger.json` with the
+   new `uploaded` row and merge it before tagging the next release: the server reads
+   the ledger from the tag, so a tag without the row would be given the same version
+   code again, and the Mac would refuse it only after the build.
 
 The size command intentionally supplies no upload keystore and no unsupported
 `--skip-apk-signing` flag. Bundletool uses an existing debug key if available,

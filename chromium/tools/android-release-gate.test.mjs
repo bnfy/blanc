@@ -37,7 +37,7 @@ if [ "$OUTCOME" = empty-acceptance ]; then echo '[]' > "$2/acceptance.json"; els
 [ "$OUTCOME" != acceptance ]
 `);
   write('bin/aapt2', `#!/bin/sh\necho "package: name='${options.pkg ?? 'me.bnfy.blanc'}' versionCode='1'"\n`, 0o755);
-  write('bin/git', '#!/bin/sh\nprintf "%040d\\n" 1\n', 0o755);
+  write('bin/git', `#!/bin/sh\ncase "$*" in *status*) printf '${options.dirty ? ' M chromium/tests/android/acceptance/run.sh\\n' : ''}' ;; *) printf "%040d\\n" 1 ;; esac\n`, 0o755);
   write('fixture.apk', 'fixture APK bytes');
   const result = spawnSync('bash', [path.join(dir, 'chromium/tests/android/release-gate.sh'), path.join(dir, 'fixture.apk'), path.join(dir, 'evidence')], {encoding: 'utf8', env: {...process.env, PATH: `${dir}/bin:${process.env.PATH}`, TRACE: `${dir}/trace`, OUTCOME: options.outcome ?? '', BLANC_GATE_SKIP: options.skip ?? '', BLANC_GATE_ONLY: options.only ?? ''}});
   const trace = fs.existsSync(`${dir}/trace`) ? fs.readFileSync(`${dir}/trace`, 'utf8') : '';
@@ -53,6 +53,7 @@ test('release gate runs outbound before acceptance using release package and bin
 for (const outcome of ['outbound', 'acceptance']) test(`${outcome} failure fails release gate`, () => {
   const r = fixture({outcome}); assert.notEqual(r.status, 0); assert.equal(r.report.verdict, 'fail'); assert.match(r.stdout, /Release gate: FAIL/);
 });
+test('a runner tree with uncommitted changes fails before any gate runs', () => { const r = fixture({dirty: true}); assert.notEqual(r.status, 0); assert.equal(r.trace, ''); assert.equal(r.report.verdict, 'fail'); });
 test('nonrelease package is refused before gates run', () => { const r = fixture({pkg: 'me.bnfy.blanc.dev'}); assert.notEqual(r.status, 0); assert.equal(r.trace, ''); assert.equal(r.report.verdict, 'fail'); });
 test('gate filters cannot bypass mandatory outbound or acceptance', () => {
   const r = fixture({skip: 'outbound acceptance', only: 'other'}); assert.equal(r.status, 0, r.stderr); assert.match(r.trace, /outbound[\s\S]*acceptance/);

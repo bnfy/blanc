@@ -3,7 +3,7 @@ import path from 'node:path';
 import process from 'node:process';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { pathToFileURL, fileURLToPath } from 'node:url';
+import { fileURLToPath } from 'node:url';
 
 const digest = value => crypto.createHash('sha256').update(value).digest('hex');
 export function changedInputs(saved, current) {
@@ -257,6 +257,7 @@ function main() {
     fs.rmdirSync(lock);
   }
 }
-if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+// Real paths: on macOS a temp or symlinked path (/var → /private/var) would otherwise never match.
+if (process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) {
   try { main(); } catch (error) { console.error(`Blanc build guard: ${error.message}`); process.exitCode = 1; }
 }

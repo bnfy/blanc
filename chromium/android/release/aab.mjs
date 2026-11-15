@@ -42,7 +42,8 @@ function execute(run, command, args, env = process.env) {
   let result;
   try {
     result = run(command, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
-      maxBuffer: 32 * 1024 * 1024, timeout: 120_000, env: { ...env, LC_ALL: 'C', LANG: 'C' } });
+      // op waits for the owner's 1Password approval, which has no fixed length.
+      maxBuffer: 32 * 1024 * 1024, timeout: command === 'op' ? 0 : 120_000, env: { ...env, LC_ALL: 'C', LANG: 'C' } });
   } catch { throw new Error(`${command} failed`); }
   if (result?.error?.code === 'ENOENT') throw new Error(`${command} is missing from PATH`);
   requireValue(!result?.error && result?.status === 0, `${command} failed`);

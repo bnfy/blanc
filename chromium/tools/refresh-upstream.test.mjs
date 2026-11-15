@@ -31,6 +31,7 @@ function fixture(t, {newFiles = {'chrome/a.txt': 'alpha 2\n', 'chrome/b.txt': 'b
     upstreamDir: 'upstream-android', sourceMap: 'source-map-android.json', fileCount: 2, patches: ['patches/android/0101-x.patch']}));
   write(root, 'source-map-android.json', JSON.stringify({upstream: OLD, selection: 'fixture', upstreamFiles: {'chrome/a.txt': sha('alpha 1\n'), 'chrome/b.txt': sha('beta 1\nblanc\n')}}));
   for (const [name, text] of Object.entries(newFiles)) write(src, name, text);
+  write(src, 'chrome/VERSION', 'MAJOR=157\nMINOR=0\nBUILD=2\nPATCH=3\n');
   execFileSync('git', ['init', '-q', src]);
   execFileSync('git', ['-C', src, 'add', '-A']);
   execFileSync('git', ['-C', src, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '-m', 'new']);
@@ -85,4 +86,13 @@ test('--patched-only recomputes the patched hashes once the patch is rebased', t
 test('a version that is not four numbers is refused before anything is read', t => {
   const f = fixture(t);
   assert.equal(f.run('--src', f.src, '--version', '157').status, 2);
+});
+
+test('a version that is not the checkout\'s own chrome/VERSION is refused, and nothing is written', t => {
+  const f = fixture(t);
+  const before = f.read('lanes/android.json');
+  const r = f.run('--src', f.src, '--version', '157.0.2.4');
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /157\.0\.2\.3/);
+  assert.deepEqual(f.read('lanes/android.json'), before);
 });

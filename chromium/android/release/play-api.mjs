@@ -80,7 +80,9 @@ export async function uploadToInternal({packageName, aabPath, versionCode, relea
     check(uploaded?.versionCode === versionCode, 'Uploaded Play bundle version code differs from requested version code');
     await request(fetchImpl, `${editURL}/tracks/internal`, {
       method: 'PUT', headers,
-      body: JSON.stringify({track: 'internal', releases: [{name: releaseName, versionCodes: [String(versionCode)], status: 'completed'}]}),
+      // A draft: Play refuses any other status until the app has been published once, and the owner rolls
+      // it out to testers from Play Console.
+      body: JSON.stringify({track: 'internal', releases: [{name: releaseName, versionCodes: [String(versionCode)], status: 'draft'}]}),
     }, 'internal track update', false);
     await request(fetchImpl, `${editURL}:commit`, {method: 'POST', headers}, 'edit commit', false);
     return {editId, versionCode};

@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import {fileURLToPath} from 'node:url';
 import { nextRelease, tagFor, validateLedger } from './versions.mjs';
 import { competingBuild, processListArgs } from '../../tools/build.mjs';
 const SHA = /^[a-f0-9]{64}$/;
@@ -31,6 +31,12 @@ function run(command, args, options = {}) {
 }
 const git = (tree, ...args) => run('git', ['-C', tree, ...args]);
 const jsonAt = (tree, revision, name) => JSON.parse(git(tree, 'show', `${revision}:${name}`));
+// Paths `git status --porcelain` reports as changed that Blanc doesn't apply (a rename counts both sides).
+export function unexpectedChromiumChanges(porcelain, managed) {
+  // The status letters may have lost their leading space to trimming, so strip them by pattern.
+  return porcelain.split('\n').filter(Boolean).flatMap(line => line.replace(/^\s*[MADRCUT?!]{1,2}\s+/, '').split(' -> '))
+    .filter(file => !managed.has(file));
+}
 function releaseEntry(tree, tag) {
   check(!git(tree, 'status', '--porcelain'), 'release checkout must be clean');
   const commit = git(tree, 'rev-parse', '--verify', 'HEAD^{commit}');
@@ -89,8 +95,9 @@ function main() {
     const entry = releaseEntry(clone, tag);
     console.log(`Would use blobless dedicated ${clone}, verify ${tag} at ${entry.commit}, and export it with git archive.
 Would reconstruct previous source map from ${previous}; apply Android source with a durable backup, refusing unknown cached bytes.
-Would copy ZXing/blocker assets and prepare tagged release arguments, preserving outputs and environment pins.
-Would build out/AndroidRelease chrome_public_bundle through build.mjs and verify BlancRelease.java.
+Would copy ZXing/blocker assets, refuse a Chromium checkout off the pin or with changes Blanc doesn't apply,
+write each output's release arguments and regenerate GN when they changed, recording the environment pin once.
+Would build out/AndroidRelease chrome_public_bundle through build.mjs (a full rebuild) and verify BlancRelease.java.
 ${gates ? 'Would build out/AndroidReleaseX64 chrome_public_apk through build.mjs.' : 'Use --gates to also build out/AndroidReleaseX64 chrome_public_apk.'}
 Would write ${evidence}/build.json. No changes made.`);
     return;
@@ -120,26 +127,40 @@ Would write ${evidence}/build.json. No changes made.`);
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.copyFileSync(path.join(home, 'blanc-assets', asset), target);
   }
+  // The bundle is only what the tag says if Chromium is at the pinned upstream and its only changes are
+  // the files Blanc applies: an edit left in from debugging would otherwise ship.
+  const androidMap = read('chromium/source-map-android.json');
+  const upstream = git(src, 'rev-parse', 'HEAD');
+  check(upstream === androidMap.upstream, `Chromium checkout is at ${upstream}, not the pinned ${androidMap.upstream}`);
+  const stray = unexpectedChromiumChanges(git(src, 'status', '--porcelain', '--untracked-files=no'), new Set(Object.keys(androidMap.upstreamFiles)));
+  check(!stray.length, `Chromium checkout has changes Blanc doesn't apply: ${stray.slice(0, 5).join(', ')}${stray.length > 5 ? ', …' : ''}`);
   const outputs = [['AndroidRelease', 'release-arm64.gn'], ...(gates ? [['AndroidReleaseX64', 'release-x64.gn']] : [])];
   for (const [outName, template] of outputs) {
     const out = path.join(src, 'out', outName);
     const args = fs.readFileSync(path.join(exported, 'chromium/android/args', template), 'utf8') + `\nblanc_android_version_name = "${entry.versionName}"\nandroid_override_version_name = "${entry.versionName}"\nandroid_override_version_code = "${entry.versionCode}"\n`;
     fs.mkdirSync(out, { recursive: true });
     const argsFile = path.join(out, 'args.gn');
-    if (fs.existsSync(argsFile)) check(fs.readFileSync(argsFile, 'utf8') === args, `${outName}/args.gn differs; review and prepare GN/environment explicitly`);
-    else fs.writeFileSync(argsFile, args, { flag: 'wx' });
-    // Never generate GN, record an environment, or waive the large-plan guard.
-    run(process.execPath, [path.join(tools, 'build.mjs'), src, '--lane=android', `--out=${outName}`, '--build'], { stdio: 'inherit' });
+    // Each release changes its version lines, so a release writes its arguments and regenerates GN.
+    if (!fs.existsSync(argsFile) || fs.readFileSync(argsFile, 'utf8') !== args) {
+      fs.writeFileSync(argsFile, args);
+      run(path.join(home, 'depot_tools/gn'), ['gen', out], { cwd: src, stdio: 'inherit' });
+    }
+    const buildTool = [path.join(tools, 'build.mjs'), src, '--lane=android', `--out=${outName}`];
+    // The toolchain baseline is recorded once per output; later changes to it still stop the build.
+    if (!fs.existsSync(path.join(out, '.blanc-build-environment.json'))) run(process.execPath, [...buildTool, '--record-environment'], { stdio: 'inherit' });
+    // A release is an intentional full rebuild, so the large-plan guard is waived here only.
+    run(process.execPath, [...buildTool, '--build', '--allow-large-build'], { stdio: 'inherit' });
     const generated = fs.readFileSync(path.join(out, 'gen/blanc/android/org/chromium/blanc/BlancRelease.java'), 'utf8');
     check(generated.includes(`VERSION = "${entry.versionName}"`), `${outName} generated BlancRelease.java version mismatch`);
   }
   const aabFile = path.join(src, 'out/AndroidRelease/apks/ChromePublic.aab');
   const bytes = fs.readFileSync(aabFile);
-  const record = { schema: 1, tag, commit: entry.commit, appliedOver: previous, upstream: read('chromium/source-map-android.json').upstream, versionName: entry.versionName, versionCode: entry.versionCode, argsSha256: digest(fs.readFileSync(path.join(src, 'out/AndroidRelease/args.gn'))), aab: { file: 'ChromePublic.aab', sha256: digest(bytes), bytes: bytes.length }, builtAt: new Date().toISOString() };
+  const record = { schema: 1, tag, commit: entry.commit, appliedOver: previous, upstream, versionName: entry.versionName, versionCode: entry.versionCode, argsSha256: digest(fs.readFileSync(path.join(src, 'out/AndroidRelease/args.gn'))), aab: { file: 'ChromePublic.aab', sha256: digest(bytes), bytes: bytes.length }, builtAt: new Date().toISOString() };
   if (gates) record.gatesApk = { sha256: digest(fs.readFileSync(path.join(src, 'out/AndroidReleaseX64/apks/ChromePublic.apk'))) };
   validateBuildRecord(record, entry);
   fs.writeFileSync(path.join(evidence, 'build.json'), JSON.stringify(record, null, 2) + '\n', { flag: 'wx' });
 }
-if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+// Real paths: on macOS a temp or symlinked path (/var → /private/var) would otherwise never match.
+if (process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) {
   try { main(); } catch (error) { console.error(`Android release: ${error.message}`); process.exitCode = 1; }
 }

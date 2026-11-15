@@ -78,7 +78,7 @@ test('uploadToInternal inserts, uploads binary media, sets the internal release 
   assert.equal(Buffer.isBuffer(fake.calls[1].body), true, 'binary body owns no open file handles');
   assert.deepEqual(fake.calls[1].body, bytes);
   assert.equal(new Headers(fake.calls[1].headers).get('content-type'), 'application/octet-stream');
-  assert.deepEqual(JSON.parse(fake.calls[2].body), {track: 'internal', releases: [{name: input.releaseName, versionCodes: ['7'], status: 'completed'}]});
+  assert.deepEqual(JSON.parse(fake.calls[2].body), {track: 'internal', releases: [{name: input.releaseName, versionCodes: ['7'], status: 'draft'}]});
   for (const call of fake.calls) {
     assert.equal(new Headers(call.headers).get('authorization') === `Bearer ${input.token}`, true);
     assert.equal(call.redirect, 'error');

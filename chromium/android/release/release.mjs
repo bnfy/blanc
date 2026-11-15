@@ -5,7 +5,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {createInterface} from 'node:readline/promises';
-import {fileURLToPath, pathToFileURL} from 'node:url';
+import {fileURLToPath} from 'node:url';
 import {nextRelease, tagFor, validateLedger} from './versions.mjs';
 import {validateBuildRecord} from './record.mjs';
 import {verifyBundle, signBundle} from './aab.mjs';
@@ -126,8 +126,10 @@ function receiptCheck(receipt, work, record) {
 }
 const defaults = () => ({run: spawnSync, platform: process.platform, tty: Boolean(process.stdin.isTTY && process.stdout.isTTY), env: process.env, pinFile: PIN,
   prompt: async text => { const terminal = createInterface({input: process.stdin, output: process.stdout}); try { return await terminal.question(text + '\n> '); } finally { terminal.close(); } }, attest});
+// The worker's stderr goes straight to the owner's terminal: its messages are already scrubbed, and
+// without them every failure (a missing pin, a Play error, an op sign-in) reads only "op failed".
 function launchWorker(stage, work, io) {
-  const output = execute(io.run, 'op', ['run', '--', process.execPath, SCRIPT, '--worker', stage, work], {env: {...io.env, BLANC_ANDROID_OP_RUN: '1'}, stdio: ['inherit', 'pipe', 'pipe']});
+  const output = execute(io.run, 'op', ['run', '--', process.execPath, SCRIPT, '--worker', stage, work], {env: {...io.env, BLANC_ANDROID_OP_RUN: '1'}, stdio: ['inherit', 'pipe', 'inherit']});
   try { return JSON.parse(output); } catch { throw new Error('op worker returned no valid public result'); }
 }
 
@@ -230,7 +232,8 @@ export async function secretWorker(stage, workDir, injected = {}) {
   writeSame(path.join(work, 'upload-receipt.json'), json(receipt)); return receipt;
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+// Real paths: on macOS a temp or symlinked path (/var → /private/var) would otherwise never match.
+if (process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) {
   try {
     const args = process.argv.slice(2), worker = args[0] === '--worker'; if (worker) args.shift();
     check(args.length === 2, 'usage: release.mjs status|fetch|verify|sign|attest|upload WORK');
