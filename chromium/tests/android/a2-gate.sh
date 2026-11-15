@@ -9,9 +9,13 @@ TREE="${BLANC_TREE:-$HOME/blanc}"
 EVIDENCE="${BLANC_EVIDENCE:-$HOME/blanc-evidence/android/a2}"
 APK=out/AndroidDebugX64/apks/ChromePublic.apk
 export PATH="$PWD/third_party/android_sdk/public/platform-tools:$PWD/third_party/node/linux/node-linux-x64/bin:$HOME/depot_tools:$PATH"
+# These checks start on the Start Page, not the first-minute walkthrough (FirstMinute.SKIP_FILE; walkthrough.mjs
+# tests the card and puts the file back).
+adb shell touch /data/local/tmp/blanc-walkthrough-off && adb shell chmod 644 /data/local/tmp/blanc-walkthrough-off
 mkdir -p "$EVIDENCE"
 failed=()
-run() { local name=$1; shift; echo "== $name"; if "$@" > "$EVIDENCE/$name.log" 2>&1; then echo pass; else echo FAIL; failed+=("$name"); fi; tail -12 "$EVIDENCE/$name.log" | grep -E "^(pass|FAIL)|PASSED|FAILED|verdict|scenarios \(" || true; }
+source "$(dirname "${BASH_SOURCE[0]}")/gate-lib.sh"
+run() { local name=$1; shift; gate_wants "$name" || return 0; echo "== $name"; if "$@" > "$EVIDENCE/$name.log" 2>&1; then echo pass; else echo FAIL; failed+=("$name"); fi; tail -12 "$EVIDENCE/$name.log" | grep -E "^(pass|FAIL)|PASSED|FAILED|verdict|scenarios \(" || true; }
 run a1-gate env BLANC_EVIDENCE="$EVIDENCE/a1" bash "$TREE/chromium/tests/android/a1-gate.sh"
 for check in tabs palette tab-grid find session-restore quiet-tabs tab-store; do
   run "$check" node "$TREE/chromium/tests/android/$check.mjs" --apk "$APK" --evidence "$EVIDENCE/$check"

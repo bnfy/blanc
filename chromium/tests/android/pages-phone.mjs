@@ -18,6 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {hostPort} from './support/host-ports.mjs';
 
 const PACKAGE = 'me.bnfy.blanc.dev';
 const PAGES = ['newtab', 'bookmarks', 'history', 'shortcuts', 'error', 'mahjong'];
@@ -26,7 +27,8 @@ const PHONE_LAYOUT = ['newtab', 'bookmarks', 'history', 'shortcuts'];
 // the adapter marks with the iPhone's phone layout.
 const platformOf = page => page === 'newtab' ? 'android' : 'ios';
 const LOCALES = ['en', 'de', 'es', 'fr', 'it', 'pt-BR'];
-const PORT = 9333;
+// This run's emulator's DevTools port (support/host-ports.mjs).
+const PORT = hostPort(9333);
 
 // What's wrong with one page, from what the page reported.
 export function pageProblems(page, locale, report) {

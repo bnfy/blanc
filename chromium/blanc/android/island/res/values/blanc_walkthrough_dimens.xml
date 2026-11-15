@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- The walkthrough card, at Blanc for iPhone's sizes (WalkthroughSheet.swift). -->
+<resources>
+    <dimen name="blanc_walkthrough_corner">30dp</dimen>
+    <dimen name="blanc_walkthrough_padding_horizontal">24dp</dimen>
+    <dimen name="blanc_walkthrough_padding_top">34dp</dimen>
+    <dimen name="blanc_walkthrough_padding_bottom">20dp</dimen>
+    <dimen name="blanc_walkthrough_gap">16dp</dimen>
+    <dimen name="blanc_walkthrough_line_gap">8dp</dimen>
+    <dimen name="blanc_walkthrough_title_size">24sp</dimen>
+    <dimen name="blanc_walkthrough_body_size">15sp</dimen>
+    <dimen name="blanc_walkthrough_button_size">16sp</dimen>
+    <dimen name="blanc_walkthrough_button_radius">16dp</dimen>
+    <dimen name="blanc_walkthrough_primary_height">50dp</dimen>
+    <dimen name="blanc_walkthrough_quiet_height">48dp</dimen>
+    <dimen name="blanc_walkthrough_mark_size">56dp</dimen>
+    <dimen name="blanc_walkthrough_close_target">48dp</dimen>
+    <dimen name="blanc_walkthrough_close_margin">6dp</dimen>
+    <dimen name="blanc_walkthrough_close_inset">10dp</dimen>
+    <dimen name="blanc_walkthrough_close_padding">18dp</dimen>
+</resources>

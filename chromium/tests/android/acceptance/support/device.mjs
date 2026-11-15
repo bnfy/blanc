@@ -11,12 +11,16 @@ import {matching, paletteField} from '../../palette.mjs';
 import {findCount} from '../../find.mjs';
 import {renderers} from '../../quiet-tabs.mjs';
 import {gridState, paletteRows, rawPixel} from './parse.mjs';
+import {hostPort} from '../../support/host-ports.mjs';
 
 export const PACKAGE = 'me.bnfy.blanc.dev';
 const PREFS = `shared_prefs/${PACKAGE}_preferences.xml`;
+// The fixture server's port on the device, which the switches below map the fixture hosts to, and on
+// this server (support/host-ports.mjs: each emulator's runs have their own), joined by adb reverse.
 const FIXTURE_PORT = 8765;
+const FIXTURE_HOST_PORT = hostPort(FIXTURE_PORT);
 let requestLog = null;
-const DEVTOOLS_PORT = 9333;
+const DEVTOOLS_PORT = hostPort(9333);
 const COMMAND_LINE = '/data/local/tmp/chrome-command-line';
 
 export const sleep = seconds => execFileSync('sleep', [String(seconds)]);
@@ -48,8 +52,8 @@ export function startFixtures() {
   adb('wait-for-device');
   // Shared with the server's thread: this thread reads it even while the server is busy.
   requestLog = new SharedArrayBuffer(1024 * 1024);
-  const worker = new Worker(new URL('./fixture-server.mjs', import.meta.url), {workerData: {dir, port: FIXTURE_PORT, requestLog}});
-  adb('reverse', `tcp:${FIXTURE_PORT}`, `tcp:${FIXTURE_PORT}`);
+  const worker = new Worker(new URL('./fixture-server.mjs', import.meta.url), {workerData: {dir, port: FIXTURE_HOST_PORT, requestLog}});
+  adb('reverse', `tcp:${FIXTURE_PORT}`, `tcp:${FIXTURE_HOST_PORT}`);
   commandLineDir = dir;
   setSwitches();
   return () => {
@@ -286,6 +290,29 @@ export class Device {
   menu(entry) {
     this.tap({id: 'blanc_island_menu'});
     this.tap({text: entry});
+  }
+
+  // Whether Settings' Blanc Blocker switch is on, from the switch after its title. Swipes only once
+  // Settings is in front, and goes Back only if it opened, so the page underneath is never touched.
+  async blockerSwitchOn() {
+    const inSettings = () => adb('shell', 'dumpsys', 'activity', 'activities')
+        .split('\n').some(l => /ResumedActivity/.test(l) && l.includes('.settings.SettingsActivity'));
+    this.menu('Settings');
+    await this.waitFor(async () => inSettings(), 'Settings to open');
+    try {
+      const {width, height} = this.screenSize();
+      for (let i = 0; i < 10; i++) {
+        const nodes = this.dump().match(/<node [^>]*>/g) ?? [];
+        const title = nodes.findIndex(n => n.includes('text="Blanc Blocker"'));
+        const widget = title < 0 ? null : nodes.slice(title + 1, title + 8).find(n => n.includes('class="android.widget.Switch"'));
+        const state = widget && /checked="(true|false)"/.exec(widget);
+        if (state) return state[1] === 'true';
+        this.swipe(width / 2, height * 0.75, width / 2, height * 0.3, 300, 0.8);
+      }
+      throw Error('Settings shows no Blanc Blocker switch');
+    } finally {
+      this.back();
+    }
   }
 
   findCount() { return findCount(this.dump()); }

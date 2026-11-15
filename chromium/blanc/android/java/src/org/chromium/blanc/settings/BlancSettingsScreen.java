@@ -67,6 +67,26 @@ public final class BlancSettingsScreen {
 
         /** The Start Page's Customize, where its widgets, clock and wallpaper are chosen (A5b). */
         void openStartPage();
+
+        /** Whether Blanc is the default browser, or null if Android can't say (A5c). */
+        @Nullable
+        Boolean defaultBrowser();
+
+        /** Android's browser-role request, or its Default apps screen (DefaultBrowser). */
+        void openDefaultBrowser();
+
+        /** The saved Measure usage choice; unsaved reads off, since nothing is sent then. */
+        boolean usagePing();
+
+        void setUsagePing(boolean on);
+
+        /** The Language row's summary: the chosen language, or "System (…)". */
+        String languageSummary();
+
+        void openLanguage();
+
+        /** Settings → Show the welcome again. */
+        void showWelcome();
     }
 
     /** Above every order Chromium assigns its own rows, so Blanc's sequence is the one that shows. */
@@ -150,6 +170,7 @@ public final class BlancSettingsScreen {
                 row = new ListPreference(context);
                 break;
             case "blanc_blocker":
+            case "blanc_measure_usage":
                 row = new SwitchPreferenceCompat(context);
                 break;
             default:
@@ -205,6 +226,30 @@ public final class BlancSettingsScreen {
                     host.setBlockerEnabled((Boolean) value);
                     return true;
                 });
+                break;
+            case "blanc_default_browser":
+                action(row, R.string.blanc_ios_default_browser_row, 0, host::openDefaultBrowser);
+                Boolean isDefault = host.defaultBrowser();
+                row.setSummary(isDefault == null ? null
+                                : isDefault ? host.appName()
+                                            : context.getString(R.string.blanc_ios_default_browser_not_blanc));
+                break;
+            case "blanc_measure_usage":
+                SwitchPreferenceCompat usage = (SwitchPreferenceCompat) row;
+                usage.setTitle(R.string.blanc_ios_welcome_measure_usage);
+                usage.setSummary(R.string.blanc_android_welcome_measure_usage_help);
+                usage.setChecked(host.usagePing());
+                usage.setOnPreferenceChangeListener((p, value) -> {
+                    host.setUsagePing((Boolean) value);
+                    return true;
+                });
+                break;
+            case "blanc_language":
+                action(row, R.string.blanc_settings_language_label, 0, host::openLanguage);
+                row.setSummary(host.languageSummary());
+                break;
+            case "blanc_show_welcome":
+                action(row, R.string.blanc_ios_welcome_show_again, 0, host::showWelcome);
                 break;
             case "blanc_start_page":
                 action(row, R.string.blanc_settings_general_cards_start_page, 0, host::openStartPage);

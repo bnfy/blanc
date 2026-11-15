@@ -3149,8 +3149,9 @@ Chromium's Site settings, Notifications and Downloads. Ways in: `/settings`, the
 `blanc://settings` with `#sync` and `#privacy`. One Chrome-worded string (auto-revoke summary) is overridden in
 all six languages; Accessibility is left out of More because its page names Chrome.
 
-- **Not built (A5c):** the default-browser row, Language, Measure usage and onboarding. The Start Page's
-  widgets, clock and wallpaper came with A5b (below): Settings has a Start Page row that opens its Customize.
+- **Since built:** the default-browser row, Language, Measure usage and the walkthrough came with A5c
+  (below). The Start Page's widgets, clock and wallpaper came with A5b (below): Settings has a Start Page row
+  that opens its Customize.
 - **Known gaps:** Chromium's own default search engine follows Blanc's choice only after Settings has been
   opened (a startup sync is a follow-up); Settings asks the sync runner for its status on every update; the
   Open-source licenses row opens Chromium's legal page, which the wording scan doesn't cover.
@@ -3161,10 +3162,14 @@ all six languages; Accessibility is left out of More because its page names Chro
 | Patch reconstruction, android and desktop lanes | Pass | `patches-*.log` |
 | Robolectric | 676 pass | `robolectric.log` |
 | Runner and tool tests (`node --test chromium/tools/*.test.mjs`, on the Mac) | 216 pass | local |
-| A4 gate (A1 to A3, sync, Spaces, Shared Spaces, shield race) | Pass | `a4/` |
+| A4 gate (A1 to A3, sync, Spaces, Shared Spaces, shield race) | Pass | `a4/` (overwritten, below) |
 | APK (x86_64, emulator) | `b57a4ca6…` | `apk.sha256` |
 | APK (arm64, for the Pixel) | `fed28dc1…` (`out/AndroidDebug/apks/ChromePublic.apk`), installed on the owner's Pixel 10 Pro | — |
 | Owner hands-on, Pixel and desktop (Sync through Settings) | Pass, November 11, 2026: Settings opened from `/settings` with every section; the Sync row opened the Sync sheet; the owner paired with their desktop and the desktop's Spaces arrived. Three bugs found (below). | owner |
+
+A later run on November 11 (APK `0042c649…`) wrote over `~/blanc-evidence/android/a5a-gate/`, so its A4 logs
+are that run's, not this gate's: it failed tabs, one Sync case (a lost Keystore key) and all six Shared Spaces
+cases ("Timed out waiting for the switch"). Shared Spaces passed 6 of 6 again in the A5c gate.
 
 The first full run failed twice: the A3 check "quick endings stop pages, and Retry recovers" slept a fixed six
 seconds and looked once for its notice (it passed alone; it now waits up to 30 s), and the tools tests need iOS
@@ -3234,8 +3239,8 @@ the iPhone's stylesheet centers the clock's box in the page, which on Android st
 low on a Pixel 10 Pro), so the adapter measures the figures from the clock's font and the stylesheet moves the
 clock by the difference. The pinned page copies moved from v1.46.0 to v1.47.1, which brings the iPhone's larger
 phone clock (30vw, capped at 120px). `pages-phone.mjs` checks the fresh install's clock and that its figures
-center on the screen. Not wired yet: the Start Page's layout for the Island along the top
-(`mobileIslandPosition`, which v1.47.1's phone script reads). Since A5b the Start Page is the desktop fork's, and
+center on the screen. The layout for the Island along the top is in the next section's Start Page (see "The
+Island along the top"). Since A5b the Start Page is the desktop fork's, and
 the clock rules above moved with it (next section).
 
 ### A5b The fork's Start Page
@@ -3300,7 +3305,7 @@ Android works (and how the iPhone will), and its choices stay on the phone, as t
   shipping's frosted band, tinted from the page's background (a Color's base for Solid and Gradient) so the
   labels read on any wallpaper. The first emulator run showed white labels lost on a cream fade over a blue
   Color wallpaper; this replaced it.
-- **Not yet:** the Island along the top on the Start Page, and a Settings row that opens Customize while several Blanc windows are open opens
+- **Not yet:** a Settings row that opens Customize while several Blanc windows are open opens
   it in each. The fork's all-language catalog (about 1 MB) loads with every Start Page.
 
 | A5b gate | Result | Evidence (`~/blanc-evidence/android/a5b/`) |
@@ -3341,6 +3346,99 @@ The first relaunch run failed every choice: the check stopped the app at once, b
 preferences. Each change is now written at once (`CommitPendingWrite`, as the fork does), and the check leaves
 Blanc for the home screen before stopping it, as a person would. The setters had worked all along (checked by
 hand over DevTools); the check now also fails if saving itself fails.
+
+### The Island along the top on the Start Page
+
+Settings → Island position offers Top, as on the iPhone, and the Start Page now makes room for it there:
+the header moves below the Island and the footer, Customize, the clock's settings and the long press's menu
+drop to the bottom edge it left. Each of those moves by the Island's height, the iPhone's own rule
+(`ios-start-page.css`'s top block), through two variables in `android-start.css`
+(`--android-island-above` and `--android-island-below`), so the two layouts can't drift apart.
+
+- **Where the page learns it:** `android-start.js` asks (`blancAndroidIsland`), and `blanc_pages_ui.cc`
+  answers from the setting itself, read through `IslandPositionBridge.java`
+  (`browser/island_position_bridge.cc`, built in the Island's linked bridge target so no new patch is
+  needed). The setting stays only in the app's preferences.
+- **No jump on open:** the page keeps the last answer in its own storage and lays out for it before the
+  answer comes. A Start Page opened just after the Island moved while none was open still starts from
+  the old side for a moment; private Start Pages have no stored answer and start from the bottom.
+- **Moving the Island** reloads every open Start Page in that window, as the iPhone does
+  (`IslandCoordinator.reloadStartPages`).
+- **On the emulator:** `start-island-top.mjs` moves the Island in Settings as a person would and judges
+  the layout from what's on screen (UI Automator bounds of the Island, the date and Customize): the bottom
+  layout, the move to Top with the open Start Page reloaded, a relaunch, Customize opened with the Island
+  on top, and the move back. 5 of 5 on November 14, 2026 (APK `0add18ce…`, the build server's second
+  emulator), and the A5c gate runs it. Not yet seen on the Pixel.
+
+### A5c The first minute and the rest of Settings
+
+The A5 row's onboarding and Settings, split in two PRs (owner, November 14, 2026): this one is the
+walkthrough and the Settings rows; the launch ping, its native sender and the Worker change adding
+`android` come next.
+
+- **The walkthrough** is Blanc for iPhone's (`WalkthroughFlow.swift`, `WalkthroughSheet.swift`): a card over
+  the bottom of the Start Page on a fresh install, at the iPhone's sizes. Welcome leads with Pair with your
+  Blanc, which opens the Sync screen `/sync` opens (Back returns to Welcome); a join shows What arrived (open
+  tabs per device, Favorites, settings, Spaces, counted once the first pass is in), then Share back (Share
+  open tabs and the Spaces switch), then Your privacy (Measure usage), then the default-browser offer. A
+  phone already paired starts at Share back. Back or the card's × closes it from any step, and it's seen
+  once per version (`blanc.walkthrough_completed_version`, device-local). Android's privacy step has
+  Measure usage only: Android has no search suggestions yet, so the iPhone's walkthrough version 2 is
+  Android's 1 (`WalkthroughFlow.java`). Patch 0114 starts it once the Island exists; background sync
+  launches build no Island, so they never show it.
+- **Measure usage** is saved only when the privacy step was on screen: Continue saves the switch, and
+  closing on that step saves what it shows. A card closed earlier saves nothing, so nothing will be sent
+  and Settings → Privacy reads off until the person chooses. This diverges from the iPhone, which saves
+  the switch's default when Welcome is swiped away (D38).
+- **Default browser** asks with Android's browser-role dialog, at most twice (Android stops showing it to
+  someone who turned it down twice), then opens Android's Default apps screen, as it does once Blanc is
+  the default. The walkthrough skips the offer when Blanc already is (D4).
+- **Language** (under More, as the Settings design places it) offers System and the six languages by their
+  endonyms (`AppLanguages.java`, desktop's `i18n-locales.json`). A choice is Android's per-app language
+  (`LocaleManager`, or Chromium's own override before Android 13), and Blanc restarts into it at once,
+  because Chromium loads its pages' language when it starts and otherwise kills itself on a locale change.
+  Patch 0114 names the six as the app's `localeConfig`, so Android's own App languages screen offers the
+  same six. A choice made there closes Blanc, which is Chromium's own behavior (seen on the emulator); that the
+  next launch then opens in it wasn't checked.
+- **Settings rows:** Default browser (Browsing; summary Blanc or Not Blanc), Measure usage (Privacy), Language
+  (More) and Show the welcome again (About).
+- **Strings:** the iPhone's walkthrough and default-browser copy in all six languages, with four Android
+  wordings where the iPhone's names iOS (`android.welcome.shareTitle`, `android.welcome.measureUsageHelp`,
+  `android.defaultBrowser.body`, `android.defaultBrowser.open`).
+- **Emulator checks skip the card** while `/data/local/tmp/blanc-walkthrough-off` exists, which only a debug
+  build reads (`FirstMinute.SKIP_FILE`); every gate script creates it, and `walkthrough.mjs` removes it and
+  puts it back.
+- **The launch ping** (F21, its own PR) is the iPhone's, in desktop's shape with `platform: "android"`: once
+  per process the person opened, when Measure usage is saved on at launch or as soon as it's saved on. Nothing
+  leaves before that, and no install id exists until the first send (`LaunchPing.java`). A build with no Blanc
+  release version sends nowhere; a debuggable build started with `--blanc-test-ping-host` sends only to that
+  loopback collector. The request goes through Chromium's network stack (`launch_ping_bridge.cc`, linked by
+  patch 0115), so the outbound gate's NetLog sees it; `launch-ping.mjs` checks both ways on the emulator.
+  The ping Worker counts Android under `android:`, apart from desktop and the iPhone, with no GA mirror,
+  first-day signals or events, and an `android` block in `/stats`. The owner approved deploying it on
+  November 14, 2026, ahead of this PR (version `7955faed…`).
+- **Not yet:** pairing in under a minute and the walkthrough on the Pixel wait for the owner.
+
+| A5c gate (November 14, 2026) | Result | Evidence (`~/blanc-evidence/android/a5c-split/`) |
+| --- | --- | --- |
+| Walkthrough | Pass, 12 of 12 | `lane1/walkthrough/` |
+| Launch ping (its PR) | Pass, 5 of 5 | `lane1/launch-ping/` |
+| Blanc's pages on a phone | Pass, 41 of 41 | `lane1/pages-phone/` |
+| Start Page shortcuts, and the ways into the Start Page | Pass, 10 of 10 and 2 of 2 | `lane1/start-*` |
+| A5a: Settings, patch reconstruction (both lanes), Robolectric | Pass: 22 of 22, passed, 904 tests | `lane1/a5a/` |
+| A4: Sync, Spaces, Shared Spaces | Pass: 17, 15, 6 of 6 | `lane2/a5a/a4/` |
+| A4: shield race | 1 miss in the gate run (the page didn't come back from the back-forward cache), then 3 runs of 2 loads and a 40-load run with none; cause not found | `lane1/a5a/a4/shield-race.log`, `fix-reruns/shield*.log` |
+| A3 blocking | 13 of 14 in the run; the Start Page case passes with #1535 | `lane2/a5a/a4/a3/`, `fix-reruns/blocking2.log` |
+| A2: tabs, palette, tab grid, find, session restore, Quiet Tabs, tab store | Pass | `lane1/a5a/a4/a3/a2/` |
+| A2 acceptance | 23 of 32 in the run; 32 of 32 with #1535 | `lane1/a5a/a4/a3/a2/acceptance/`, `fix-reruns/acceptance/` |
+| A1 (JUnit, insets at three sizes, menu, pages, outbound) | Pass | `lane1/a5a/a4/a3/a2/a1/` |
+| APK (x86_64, emulator) | `b55c9a2d…` | `lane*/apk.sha256` |
+
+The gate ran across both of the build server's emulators (each lane has its own steps), on one build of A5c
+with its launch ping and the Start Page's top Island merged in. The nine acceptance scenarios and the blocking
+case failed on main as well: the A5b Start Page (#1506) shows the week's blocked count, not an On/Off state,
+and both still read the On/Off field it dropped. #1535 changed the tests; the reruns above are from that change
+on the same APK. Shared Spaces passed 6 of 6 with #1531, after failing on November 11 (A5a, above).
 
 ### Shield count across a page's commit
 

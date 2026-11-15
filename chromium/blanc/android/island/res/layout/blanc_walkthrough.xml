@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- The first-minute walkthrough: a card over the bottom of the screen, as Blanc for iPhone's
+     WalkthroughSheet. Each step fills the content and the actions; the close button shows past Welcome. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/blanc_walkthrough_sheet">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/blanc_walkthrough_padding_horizontal"
+        android:paddingTop="@dimen/blanc_walkthrough_padding_top"
+        android:paddingEnd="@dimen/blanc_walkthrough_padding_horizontal"
+        android:paddingBottom="@dimen/blanc_walkthrough_padding_bottom">
+
+        <ScrollView
+            android:id="@+id/blanc_walkthrough_scroll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:id="@+id/blanc_walkthrough_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </ScrollView>
+
+        <LinearLayout
+            android:id="@+id/blanc_walkthrough_actions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/blanc_walkthrough_gap"
+            android:orientation="vertical" />
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/blanc_walkthrough_close"
+        android:layout_width="@dimen/blanc_walkthrough_close_target"
+        android:layout_height="@dimen/blanc_walkthrough_close_target"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="@dimen/blanc_walkthrough_close_margin"
+        android:layout_marginEnd="@dimen/blanc_walkthrough_close_margin"
+        android:background="@drawable/blanc_walkthrough_close_circle"
+        android:contentDescription="@string/blanc_fill_setup_enable_cancel_label"
+        android:padding="@dimen/blanc_walkthrough_close_padding"
+        android:scaleType="fitCenter"
+        android:src="@drawable/blanc_palette_close"
+        android:tint="@color/blanc_sunrise_text_dim"
+        android:visibility="gone" />
+</FrameLayout>

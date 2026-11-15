@@ -26,6 +26,14 @@ const SHIELD_POPOVER_WIDTH = 404;
 const SHIELD_POPOVER_HEIGHT = 580;
 const SHIELD_POPOVER_MARGIN = 12;
 
+// The ⌘L panel is centered in its view and keeps this margin from each side.
+const PANEL_SIDE_MARGIN = 12;
+// macOS draws its window buttons over the window's top-left corner, above
+// every view. They end 80pt in at the standard 18pt inset; with a 12pt gap
+// that is the 92px a side the resting Island already keeps (styles.css
+// #islandPill max-width), so the panel that grows out of it keeps the same.
+const MAC_WINDOW_BUTTONS_CLEARANCE = 92;
+
 const TAB_LAYOUTS = new Set(['island', 'vertical']);
 
 function normalizeTabLayout(value) {
@@ -132,6 +140,13 @@ function calculateChromeLayout({
     utilityBounds: { ...pageBounds },
     // Panel and palette both retain y=0 so the Island expands in place.
     panelBounds,
+    // How far the centered panel stays from each side of its view. On macOS
+    // a view that starts under the window buttons leaves them their corner;
+    // the vertical rail holds them otherwise.
+    panelSideClearance: Math.max(
+      PANEL_SIDE_MARGIN,
+      platform === 'darwin' ? MAC_WINDOW_BUTTONS_CLEARANCE - panelBounds.x : 0,
+    ),
     paletteBounds: { ...panelBounds },
     findBounds,
     // The root chrome renderer mirrors these bounds so the resting Island

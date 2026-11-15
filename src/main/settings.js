@@ -263,6 +263,9 @@ const DEFAULTS = {
   // the tab list's order ('list'). Device-local: a habit of the keyboard in
   // front of you. Only Linux offers 'recent' so far (tab-switcher.js).
   tabSwitchOrder: 'recent',
+  // #1505: ⌘T switches to an unused New Tab page in the window instead of
+  // opening another. Device-local, on by default.
+  reuseNewTab: true,
   // Palette of the internal pages; device-local, not Profile Synced.
   surfaceStyle: 'sunrise',
   // Floating Glance: the card's remembered size and place, as fractions of
@@ -566,6 +569,7 @@ function getSettings() {
   if (!isGlanceFrame(data.glanceFrame)) data.glanceFrame = null;
   data.linkRoutes = normalizeLinkRoutes(data.linkRoutes);
   if (typeof data.linkRoutesInApp !== 'boolean') data.linkRoutesInApp = DEFAULTS.linkRoutesInApp;
+  if (typeof data.reuseNewTab !== 'boolean') data.reuseNewTab = DEFAULTS.reuseNewTab;
   if (typeof data.darkWebsites !== 'boolean') data.darkWebsites = DEFAULTS.darkWebsites;
   data.darkWebsitesExceptions = normalizeHostnameList(data.darkWebsitesExceptions);
   if (typeof data.newtabDynamicWallpaper !== 'boolean') data.newtabDynamicWallpaper = false;
@@ -694,6 +698,7 @@ function sanitize(partial) {
   if (typeof partial.islandHoverOpen === 'boolean') clean.islandHoverOpen = partial.islandHoverOpen;
   if (typeof partial.islandTabIcons === 'boolean') clean.islandTabIcons = partial.islandTabIcons;
   if (typeof partial.linkRoutesInApp === 'boolean') clean.linkRoutesInApp = partial.linkRoutesInApp;
+  if (typeof partial.reuseNewTab === 'boolean') clean.reuseNewTab = partial.reuseNewTab;
   if (typeof partial.launchSunrise === 'boolean') clean.launchSunrise = partial.launchSunrise;
   if (typeof partial.searchPriorityResults === 'boolean') clean.searchPriorityResults = partial.searchPriorityResults;
   if (typeof partial.islandAutoHide === 'boolean') clean.islandAutoHide = partial.islandAutoHide;

@@ -93,6 +93,15 @@ export const ANDROID_KEYS = [
   'ios.palette.editAddress', 'tabMenu.copyLink', 'pill.notice.linkCopied', 'contextMenu.searchFor',
   'ios.island.pageZoom', 'menu.zoomIn', 'menu.zoomOut', 'menu.actualSize', 'ios.island.desktopSite',
   'ios.island.mobileSite',
+  // The first minute (A5c): the iPhone's walkthrough and default-browser copy, Android's where the
+  // iPhone's names iOS, and the Language and Measure usage rows.
+  'ios.welcome.title', 'ios.welcome.body', 'ios.welcome.browse', 'ios.welcome.connected', 'ios.welcome.arrived',
+  'ios.welcome.tabsOn', 'ios.welcome.settings', 'ios.welcome.spaces', 'ios.welcome.spacesLater',
+  'ios.welcome.arriving', 'ios.welcome.continue', 'ios.welcome.shareBody', 'ios.welcome.privacyTitle', 'ios.welcome.measureUsage',
+  'ios.welcome.showAgain', 'ios.defaultBrowser.title', 'ios.defaultBrowser.done', 'ios.defaultBrowser.notNow',
+  'ios.defaultBrowser.row', 'ios.defaultBrowser.notBlanc', 'android.welcome.shareTitle',
+  'android.welcome.measureUsageHelp', 'android.defaultBrowser.body', 'android.defaultBrowser.open',
+  'settings.language.label', 'settings.language.system',
 ];
 // ICU plurals, as Android <plurals>: the Island's tab count for TalkBack.
 export const ANDROID_PLURALS = ['sharedSpaces.waitingCount', 'newtab.groups.count', 'shield.count.blocked', 'tabGroups.tucked', 'tabsMenu.header',

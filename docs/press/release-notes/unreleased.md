@@ -1,7 +1,13 @@
 # Unreleased notes
 
-v1.49.0 is the current public release ([notes](v1.49.0.md)). Changes merged
-since then are below as they're recorded.
+Changes merged since v1.49.0 are included in the prepared
+[v1.49.1 release notes](v1.49.1.md). No additional release changes are
+recorded here.
+
+## Still open from 1.49.1
+
+- **New Tab reuse** (#1505) in a packaged build on macOS, Windows and Linux,
+  including a quiet unused new tab and the Settings switch.
 
 ## Still open from 1.49
 

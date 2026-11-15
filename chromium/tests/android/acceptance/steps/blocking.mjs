@@ -27,12 +27,11 @@ async function settled(device) {
   sleep(2);
 }
 
-// Blanc's own pages have no blocking row; the Start Page's bridge reports the setting.
+// Blanc's own pages have no blocking row, and the Start Page shows the week's count rather than
+// the setting, so on the Start Page the setting is read where a person sees it: Settings' switch.
 async function blockingOn(device) {
   await settled(device);
-  if (START_PAGE.test((await device.visibleUrl()) || '')) {
-    return device.page('window.bowserPages.start.data().then(x=>x.mobileAdblockEnabled)');
-  }
+  if (START_PAGE.test((await device.visibleUrl()) || '')) return device.blockerSwitchOn();
   return !menuText(device).includes(OFF_EVERYWHERE);
 }
 

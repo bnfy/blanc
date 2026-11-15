@@ -13,10 +13,12 @@ import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {gridSwipe, nodeBounds} from './island-menu.mjs';
 import {matching} from './palette.mjs';
+import {hostPort} from './support/host-ports.mjs';
 
 const PACKAGE = 'me.bnfy.blanc.dev';
 const PREFS = `shared_prefs/${PACKAGE}_preferences.xml`;
-const PORT = 9333;
+// This run's emulator's DevTools port (support/host-ports.mjs).
+const PORT = hostPort(9333);
 
 // Blanc's sandboxed processes in `ps -A`: renderers (a quiet tab has none) and the blocker's engine.
 export function renderers(ps) {
