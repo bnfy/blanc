@@ -1,26 +1,13 @@
 # Unreleased notes
 
-v1.49.0 is the current public release ([notes](v1.49.0.md)). Changes merged
-since then are below as they're recorded.
+Changes merged since v1.49.0 are included in the prepared
+[v1.49.1 release notes](v1.49.1.md). No additional release changes are
+recorded here.
 
-## Changed
+## Still open from 1.49.1
 
-- **New Tab goes to an unused new tab.** When the window already has a new
-  tab you haven't used, ⌘T (Ctrl+T on Windows and Linux) switches to it
-  instead of opening another, and ⌘⇧N does the same for private tabs. Pinned
-  and grouped tabs are left alone. To turn it off, use Settings → General →
-  Browsing → **Switch to an unused new tab** (#1505).
-
-## Fixed
-
-- A page that fails to load is now named after its site in the Island and the
-  tab list, instead of `blanc://error` and "Page failed to load".
-- On a Mac, the expanded Island no longer runs under the window's close,
-  minimize and zoom buttons when the window is narrow.
-- The welcome walkthrough points to `/allow-ads`, the command that turns
-  blocking off for a site, and shows the Island at blanc.day.
-- Settings names the Start Page layouts with capitals, as the Start Page does,
-  and the Theme setting no longer names macOS and Windows on every system.
+- **New Tab reuse** (#1505) in a packaged build on macOS, Windows and Linux,
+  including a quiet unused new tab and the Settings switch.
 
 ## Still open from 1.49
 
