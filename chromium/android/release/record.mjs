@@ -140,9 +140,7 @@ Would write ${evidence}/build.json. No changes made.`);
     const args = fs.readFileSync(path.join(exported, 'chromium/android/args', template), 'utf8') + `\nblanc_android_version_name = "${entry.versionName}"\nandroid_override_version_name = "${entry.versionName}"\nandroid_override_version_code = "${entry.versionCode}"\n`;
     fs.mkdirSync(out, { recursive: true });
     const argsFile = path.join(out, 'args.gn');
-    let current = null;
-    try { current = fs.readFileSync(argsFile, 'utf8'); } catch (error) { if (error.code !== 'ENOENT') throw error; }
-    if (current !== args) fs.writeFileSync(argsFile, args);
+    fs.writeFileSync(argsFile, args);
     // GN runs every time: a release changes its version lines, and a patch can change a BUILD.gn with
     // the arguments unchanged, which the build guard refuses until GN regenerates. Arguments come only
     // from the tagged templates above.

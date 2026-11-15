@@ -113,7 +113,7 @@ fs.mkdirSync(path.join(out, 'apks'), {recursive:true}); fs.writeFileSync(path.jo
     fs.rmSync(path.join(temp, 'gn-calls'), { force: true });
     const result = spawnSync('bash', args, { encoding: 'utf8', env });
     assert.equal(result.status, 0, result.stderr);
-    assert.deepEqual(fs.readFileSync(path.join(temp, 'gn-calls'), 'utf8').trim().split('\n').map(line => path.basename(line.split(' ')[1])), ['AndroidRelease', 'AndroidReleaseX64']);
+    assert.deepEqual(fs.readFileSync(path.join(temp, 'gn-calls'), 'utf8').trim().split('\n').map(line => path.basename(line.replace(/^gen /, ''))), ['AndroidRelease', 'AndroidReleaseX64']);
     const record = JSON.parse(fs.readFileSync(path.join(temp, 'blanc-evidence/android/release', entry.tag, 'build.json')));
     assert.equal(record.upstream, 'c'.repeat(40));
     assert.equal(record.appliedOver, 'b'.repeat(40)); assert.equal(record.aab.bytes, 16); assert.match(record.gatesApk.sha256, /^[a-f0-9]{64}$/);
