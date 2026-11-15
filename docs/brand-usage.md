@@ -276,6 +276,15 @@ base radius. On warm sheets, page headings are 30px/500, section headings are
 21px/500, card labels are dim 12px/600, and body text is 13px. Avoid uppercase
 letter-spaced labels on these surfaces.
 
+**Website text, November 15, 2026 (owner decision):** Blubird is for headings
+only. Its Text cuts read heavy in eyebrows and paragraphs, so every page's
+body copy, eyebrows, labels, header and footer are set in Instrument Sans, the
+apps' own face, through `--font-brand-text`. Headings, including small card
+titles, stay Blubird Display at regular weight. This supersedes “text in
+Blubird Text” above and in the October 15 decision. The social and Open Graph
+cards are rendered images and still use Blubird Text until they are
+regenerated.
+
 ### Blanc lockup
 
 The Blanc lockup is the Sunrise mark beside the word “Blanc” set in
@@ -319,6 +328,29 @@ public, so the `.woff2` files are never committed: they sit in the git-ignored
 them. App, product or corporate use beyond that licence needs Rajesh Rajput's
 written permission first.
 
+### Blanc Mail lockup
+
+The Blanc Mail lockup (owner decision, November 15, 2026, recorded in the Blanc
+Mail repository's `AGENTS.md` under “Wordmark”) follows the Blanc lockup with
+the gold envelope app icon in the Sunrise's place. The icon is beside the
+outlined “Blanc Mail” in Blubird, in one colour, with the same construction:
+the icon is 1.15× the l height, centred on the B, with a 0.3× B-height gap.
+“Blanc” is the outline above, unchanged; “Mail” follows it one word space
+later (190 units in the Display cut, 240 in the Text cut). The word never
+appears without the icon, and it is never recoloured, re-spaced or stacked.
+
+- On the site it is the Mail product bar's title (`MailBar.astro`): the Text
+  cut in white, `site/public/lockup/blanc-mail-word-small-white.svg`, beside
+  the gold icon (`/blanc-mail-icon.webp`), placed by `.mail-lockup` in
+  `mail.css`.
+- The media kit offers it in ink and white, as SVG, a 3000px PNG and WebP
+  previews (`site/public/press/blanc-mail-lockup-*`).
+- Its word outlines live in `assets/wordmark/blanc-mail-word-*`, which
+  `site/scripts/build-lockup-assets.mjs` copies with the Blanc word. The source,
+  build script and review sheet live with the Blanc Mail app, in
+  `docs/brand/wordmark/`.
+- The Blubird licence above applies: web and print only.
+
 ### Email
 
 **Owner direction, October 17, 2026:** every email Blanc sends is branded and
@@ -345,7 +377,7 @@ the same function, so change them together. Copy follows
 
 The shared website footer is warm ink (`#111`) on every page. It opens with
 the Display lockup (155×40px) as the home link, the tagline “A little less
-browser.” in Blubird Text, and the newsletter field, then three link columns
+browser.” in Instrument Sans, and the newsletter field, then three link columns
 (Explore, Resources, Blanc) and a fine rule above the compact legal and social
 row. Links rest in a light warm grey (`#C0BCB5`) and turn near-white on hover;
 focus rings are gold on dark (`--site-gold-on-dark`). A page may put numbered

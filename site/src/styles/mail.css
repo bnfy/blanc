@@ -13,7 +13,7 @@
 
 /* ---------- Page base ---------- */
 .mail-page{max-width:1120px;margin:0 auto;padding:clamp(40px,7vw,96px) 24px 100px;color:var(--site-text,#111)}
-.mail-page .mail-eyebrow{margin:0;color:var(--mail-gold);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+.mail-page .mail-eyebrow{margin:0;color:var(--mail-gold);font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase}
 /* Headings are Blubird Display at 0 tracking, like every page
    (test/site/blubird-reach.test.mjs). */
 .mail-page h1,.mail-page h2,.mail-page h3{font-family:var(--site-font-patron);font-weight:400;line-height:1.08;letter-spacing:0}
@@ -50,9 +50,15 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 .mail-bar{position:sticky;top:var(--mail-header-h);z-index:29;background:rgba(9,7,4,.95);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%)}
 .mail-bar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,#d9b46b00,#d9b46ba6 22%,#f3dda4 50%,#d9b46ba6 78%,#d9b46b00);box-shadow:0 0 14px #e0c08466;pointer-events:none}
 .mail-bar-inner{display:flex;align-items:center;gap:16px;max-width:1120px;height:var(--mail-bar-h);margin:0 auto;padding:0 24px}
-.mail-bar-title{display:flex;align-items:center;gap:10px;flex:none;color:var(--mail-band-text);font-size:16px;font-weight:600;letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
-.mail-bar .mail-icon{display:block;width:26px;height:26px}
-.mail-bar .mail-icon img{display:block;width:100%;height:100%;filter:drop-shadow(0 0 6px #e0c08440)}
+.mail-bar-title{display:flex;align-items:center;flex:none;color:var(--mail-band-text);text-decoration:none}
+/* The Blanc Mail lockup, by the Blanc lockup's construction in font units of
+   the word's 762-unit-tall Text cut: the icon is 1.15x the l (862.5 units),
+   centred on the B's middle (its top 31.25 units above the word's box), with
+   a gap of 0.3x the B (210 units). --mail-lockup-h is the word's height. */
+.mail-lockup{--mail-lockup-h:19px;display:flex;align-items:flex-start;gap:calc(var(--mail-lockup-h) * 210 / 762)}
+.mail-lockup-word{display:block;width:auto;height:var(--mail-lockup-h)}
+.mail-lockup .mail-icon{display:block;flex:none;width:calc(var(--mail-lockup-h) * 862.5 / 762);aspect-ratio:1;margin-top:calc(var(--mail-lockup-h) * -31.25 / 762)}
+.mail-lockup .mail-icon img{display:block;width:100%;height:100%;filter:drop-shadow(0 0 6px #e0c08440)}
 .mail-bar-join{flex:none;margin-left:auto;padding:7px 15px;border:0;border-radius:999px;background:var(--mail-gilt);color:#1b1306;font:inherit;font-size:13.5px;font-weight:600;white-space:nowrap;cursor:pointer;box-shadow:inset 0 1px 0 #fff8e2b3,inset 0 -1px 0 #7a5a2699;transition:filter 160ms ease,transform 100ms ease-out}
 .mail-bar-join:active{transform:scale(.96)}
 @media(hover:hover){
@@ -121,16 +127,16 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 .mail-stage{
   --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='b' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 1.6' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .65 -.15'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23b)'/%3E%3C/svg%3E");
   position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:center;
-  /* Light Blubird Text on black reads tight at its natural spacing, so the
-     stage's copy is opened up; headings keep 0 (the site's display rule). */
-  letter-spacing:.018em;
+  /* The stage's copy takes Instrument Sans's +0.01em, as in the apps;
+     headings keep 0 (the site's display rule). */
+  letter-spacing:.01em;
   padding:clamp(48px,7vh,80px) 24px clamp(56px,8vh,96px);overflow:hidden;color:var(--mail-band-text);
   background:#050403
 }
 .mail-soon{position:relative;display:flex;flex-direction:column;align-items:center;width:min(880px,100%);text-align:center}
 /* Black above, and a warm pool of light on the floor where the envelope stands. */
 .mail-soon::before{content:"";position:absolute;z-index:-1;top:-120px;bottom:-80px;left:50%;width:100vw;translate:-50% 0;background:radial-gradient(ellipse 58% 30% at 50% 60%,#8c76596b,#8c765900 70%);pointer-events:none}
-.mail-stage .mail-eyebrow{margin:0;color:#cfb27a;font-size:12px;font-weight:600;letter-spacing:.24em;text-transform:uppercase}
+.mail-stage .mail-eyebrow{margin:0;color:#cfb27a;font-size:12px;font-weight:500;letter-spacing:.24em;text-transform:uppercase}
 .mail-stage h1{margin:18px 0 0;font-family:var(--site-font-patron);font-size:clamp(44px,7vw,96px);font-weight:400;line-height:1.02;letter-spacing:0;text-wrap:balance}
 /* Gilt type: the metal's own gradient, clipped to the letters. */
 .mail-gold-text{background:var(--mail-gilt);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-box-decoration-break:clone;box-decoration-break:clone}
