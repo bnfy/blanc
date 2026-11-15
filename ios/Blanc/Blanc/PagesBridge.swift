@@ -328,6 +328,7 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
             manager?.historyStore.remove(url: url, visitedAt: visitedAt.int64Value)
         case ("history", "clear"):
             manager?.historyStore.clear()
+            manager?.services.siteIcons.clear()
             manager?.services.forgetTabHistories()
         case ("bookmarks", "remove"):
             guard let id = text(0) else { return .value(.null) }
