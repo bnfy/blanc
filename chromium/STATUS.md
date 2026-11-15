@@ -3347,6 +3347,46 @@ preferences. Each change is now written at once (`CommitPendingWrite`, as the fo
 Blanc for the home screen before stopping it, as a person would. The setters had worked all along (checked by
 hand over DevTools); the check now also fails if saving itself fails.
 
+### A7 Release pipeline and rebase drill
+
+Plan: `docs/superpowers/plans/2026-11-15-android-a7-release.md`. The tooling is written and tested; the
+server and Play steps below wait for the owner's approvals.
+
+- **Release build:** `android/args/release-{arm64,x64}.gn` (official, PGO off, release package
+  `me.bnfy.blanc`, `blanc_channel = "release"` so no test hooks, lint on). The release version reaches the
+  launch ping through `BlancRelease.VERSION`. `android/server/release-build.sh <tag>` builds only a clean,
+  tagged commit whose ledger entry matches (`android/release/ledger.json`, codes from 1, names
+  `1.0.0-beta.N`) and writes a build record.
+- **Gates:** `tests/android/release-gate.sh` runs the outbound (privacy) gate, then the acceptance smoke
+  set, on the x64 release APK; scenarios that need a preview hook are listed in
+  `release-gate-exclusions.json` and run on the same commit's debug build.
+- **On the owner's Mac:** `android/release/release.mjs` (fetch, verify, sign, attest, upload) checks the
+  bundle against the record, signs it with the upload key from 1Password, writes checksums, an SBOM and a
+  Sigstore bundle, and uploads to the internal track only after a typed confirmation
+  (`docs/android/release.md`).
+- **About:** Settings → About → Open-source licenses opens Blanc's own notices page, which links to
+  `chrome://credits`.
+- **Play and Google Cloud** were set up on November 15, 2026 (`docs/android/play-console.md`): the app,
+  the upload key, the API service account and the closed-test tester list. Play's automatic protection is
+  off.
+- **Rebase drill:** `tools/refresh-upstream.py` moves the lane's pin to a new checkout;
+  `docs/android/rebase.md` is the procedure and `android/rebase-ledger.json` its record.
+
+| A7 gate | Result |
+| --- | --- |
+| Tool and runner tests (`node --test chromium/tools/*.test.mjs chromium/tests/*.test.mjs chromium/release/*.test.mjs`) | Pass on the Mac, November 15 |
+| Release GN args exist at 156.0.8078.79 (`gn args --list`) | Pending (server) |
+| First official release build, wall time | Pending (server, owner approval) |
+| Release gate on the release APK | Pending (server) |
+| Signed bundle verified, SBOM and Sigstore verified | Pending (owner's Mac) |
+| Download size for the Pixel 10 Pro (K3) | Pending |
+| `1.0.0-beta.1` (code 1) on the internal track installs over Play on the Pixel | Pending (owner) |
+| Anything Play's review raises (K5) | Pending |
+| Rebase drill: time and cost in the ledger (K4) | Pending (server, owner approval) |
+
+The security clock (design §8.3) applies from the first production release: a stable security release
+within 7 days, an exploited-in-the-wild fix within 72 hours, every miss recorded here with its reason.
+
 ### The Island along the top on the Start Page
 
 Settings → Island position offers Top, as on the iPhone, and the Start Page now makes room for it there:
