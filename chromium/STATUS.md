@@ -71,6 +71,15 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   by a unit test and on screen: 15 of 15 on candidate macos-80a0b0baafd9ca87
   (one earlier run timed out opening a card at that step, likely the real
   mouse on the test window; the rerun passed).
+- **V27 — rail rows carry no native tooltip while hover previews are on (2026-11-14, owner, the rail hover previews design; fork only):**
+  the design (commit 8d57ddb46, layout A, owner-approved) keeps each rail
+  row's `title` attribute out so the system tooltip and the hover card never
+  show together; the card shows the whole title instead. The first nightly
+  (20261115-0102) failed vertical-tabs.feature:74 (F28-17) on shipping's last
+  step, which reads the row's `title`. That step now runs as a V27
+  replacement: under reduced motion the title stays still, the row's
+  accessible name is the whole title, there is no native tooltip, and the
+  hover card shows the whole title.
 - **2026-11-14 — The vertical tabs rail's layout toggle clicks again (owner's report):**
   On macOS the rail's header shares the title-bar band, and `IsCaption`
   treated every point of that band outside the Island pill as the window's
