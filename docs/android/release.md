@@ -30,18 +30,18 @@ Create `WORK/config.json` (schema 1):
   "schema": 1,
   "source": "/absolute/path/to/prepared-server-handoff",
   "secrets": {
-    "keystoreRef": "op://Dev/Blanc Android upload key/blanc-upload.p12",
+    "keystoreRef": "op://Dev/Blanc Android upload key/upload.p12",
     "aliasRef": "op://Dev/Blanc Android upload key/alias",
-    "passwordRef": "op://Dev/Blanc Android upload key/password",
-    "credentialRef": "op://Dev/Blanc Play API/credential"
+    "passwordRef": "op://Dev/Blanc Android upload key password/password",
+    "credentialRef": "op://Dev/Blanc Play API/blanc-play-upload.json"
   }
 }
 ```
 
-The upload key reference names the raw Document/attachment, **not** an encoded
-text field. The alias and password are fields, with the same store/key password;
-their actual setup and the upload-certificate pin are owner steps. The Play
-credential field holds the service-account JSON. No credential or private key
+These are the real items, created on November 15, 2026 (`docs/android/play-console.md`). The
+keystore and the Play credential are 1Password Documents, read by their file names; the alias
+(`blanc-upload`) is a text field on the keystore's item; the store and key share one password, kept
+in its own item. `upload-cert.json` pins the upload certificate's SHA-256. No credential or private key
 belongs in this file, `state.json`, shell arguments, logs, or a committed file.
 Keep these references in the configuration file, not environment variables:
 `op run` resolves references found in its environment before starting a worker.
