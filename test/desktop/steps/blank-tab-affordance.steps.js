@@ -233,6 +233,8 @@ Then('the unused private new tab is active', async function () {
 });
 
 Then('no tab was opened', async function () {
+  // Give a stray tab a moment to appear, so a late extra tab still fails.
+  await new Promise((resolve) => setTimeout(resolve, 500));
   const state = await this.waitForState(() => true);
   assert.deepStrictEqual(state.tabs.map((t) => t.id).sort(), [...this.tabIdsBefore].sort());
 });
