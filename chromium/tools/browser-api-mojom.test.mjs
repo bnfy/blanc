@@ -43,7 +43,7 @@ test('the codec keeps Island values contract-shaped', () => {
   const plain = v => JSON.parse(JSON.stringify(v));
   const {encode: rawEncode, decode: rawDecode} = codec();
   const encode = (...a) => plain(rawEncode(...a)), decode = (...a) => plain(rawDecode(...a));
-  assert.deepEqual(encode({struct: 'CreateTabOptions'}, {private: true}), {isPrivate: true});
+  assert.deepEqual(encode({struct: 'CreateTabOptions'}, {private: true}), {isPrivate: true, focusAddress: null});
   assert.deepEqual(decode({struct: 'CreateTabOptions'}, {isPrivate: null}), {});
   const fill = codec().table.methods.fillLoginFromOnePassword.returns;
   assert.equal(decode(fill, {boolValue: false}), false);

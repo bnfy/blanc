@@ -30,6 +30,7 @@ union FillLoginSuccessOrFillLoginFailureOrBool {
 };
 struct CreateTabOptions {
   bool? is_private;
+  bool? focus_address;
 };
 
 struct TabMoveTarget {
