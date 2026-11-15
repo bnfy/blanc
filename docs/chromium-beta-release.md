@@ -1344,6 +1344,27 @@ command again.
    `RELEASE-IN-PROGRESS`. Commit and push to `chromium/next`.
 7. Open the PR that merges the release tag into `main`.
 
+**Lessons from beta.5 (2026-11-15), the first release through the one command:**
+
+1. **Keep the Mac Studio checkout at the release's source commit until
+   preflight passes.** Preflight refuses any other HEAD. To use a newer tool
+   before then, run it from a separate copy. After preflight no stage reads
+   HEAD, so a tooling fix can be checked out.
+2. **The outbound check can see Sparkle's daily update check** of blanc.day
+   in a release build. The script now passes the app's own feed with
+   `--feed` (beta.3 and beta.4 passed only because the check wasn't due).
+3. **The daily script runs over SSH with only the system folders on PATH.**
+   It now adds Homebrew (`gh`) and links the pinned cosign before the GitHub
+   and Sigstore steps; signed evidence reads the DMG from `signed/arm64`.
+4. **Dispatch the hosted smoke check on `chromium/next`.** `main`'s release
+   policy may not know a newer beta's standing waivers yet, and then every
+   check that verifies the release fails on "no owner waiver".
+5. **Type the exact confirmation phrase at "publish".** A `y` left over from
+   cosign's terms prompt stops the run safely; run the command again.
+6. **Check the Dock icon after updating over an older beta.** An installed
+   copy that updated from beta.4 kept showing beta.4's dark bundle icon with
+   Sunrise Gold chosen; a fresh launch didn't. Open in beta.6.
+
 **Changing a decision.** Edit `standing.json` only on the owner's word, quoting
 it in the commit. Retire a waiver with `until` (the first beta it no longer
 covers); never delete it, so earlier releases still verify. A changed waiver
