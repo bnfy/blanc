@@ -108,11 +108,14 @@ fs.mkdirSync(path.join(out, 'apks'), {recursive:true}); fs.writeFileSync(path.jo
     fs.rmSync(path.join(temp, 'blanc-evidence'), { recursive: true, force: true });
     const refused = spawnSync('bash', args, { encoding: 'utf8', env: { ...env, FIXTURE_REFUSE: '1' } });
     assert.notEqual(refused.status, 0); assert.match(refused.stderr, /No pinned environment/);
+    // The refused run already wrote both outputs' arguments. GN still runs again: a changed BUILD.gn
+    // (a patch) needs regeneration with unchanged arguments, or the build guard stops the release.
+    fs.rmSync(path.join(temp, 'gn-calls'), { force: true });
     const result = spawnSync('bash', args, { encoding: 'utf8', env });
     assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(fs.readFileSync(path.join(temp, 'gn-calls'), 'utf8').trim().split('\n').map(line => path.basename(line.replace(/^gen /, ''))), ['AndroidRelease', 'AndroidReleaseX64']);
     const record = JSON.parse(fs.readFileSync(path.join(temp, 'blanc-evidence/android/release', entry.tag, 'build.json')));
     assert.equal(record.upstream, 'c'.repeat(40));
-    assert.match(fs.readFileSync(path.join(temp, 'gn-calls'), 'utf8'), /^gen .*AndroidRelease\n/);
     assert.equal(record.appliedOver, 'b'.repeat(40)); assert.equal(record.aab.bytes, 16); assert.match(record.gatesApk.sha256, /^[a-f0-9]{64}$/);
     const duplicate = spawnSync('bash', args, { encoding: 'utf8', env });
     assert.notEqual(duplicate.status, 0); assert.match(duplicate.stderr, /build record already exists/);

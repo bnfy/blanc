@@ -96,7 +96,7 @@ function main() {
     console.log(`Would use blobless dedicated ${clone}, verify ${tag} at ${entry.commit}, and export it with git archive.
 Would reconstruct previous source map from ${previous}; apply Android source with a durable backup, refusing unknown cached bytes.
 Would copy ZXing/blocker assets, refuse a Chromium checkout off the pin or with changes Blanc doesn't apply,
-write each output's release arguments and regenerate GN when they changed, recording the environment pin once.
+write each output's release arguments and regenerate GN with them, recording the environment pin once.
 Would build out/AndroidRelease chrome_public_bundle through build.mjs (a full rebuild) and verify BlancRelease.java.
 ${gates ? 'Would build out/AndroidReleaseX64 chrome_public_apk through build.mjs.' : 'Use --gates to also build out/AndroidReleaseX64 chrome_public_apk.'}
 Would write ${evidence}/build.json. No changes made.`);
@@ -140,13 +140,11 @@ Would write ${evidence}/build.json. No changes made.`);
     const args = fs.readFileSync(path.join(exported, 'chromium/android/args', template), 'utf8') + `\nblanc_android_version_name = "${entry.versionName}"\nandroid_override_version_name = "${entry.versionName}"\nandroid_override_version_code = "${entry.versionCode}"\n`;
     fs.mkdirSync(out, { recursive: true });
     const argsFile = path.join(out, 'args.gn');
-    // Each release changes its version lines, so a release writes its arguments and regenerates GN.
-    let current = null;
-    try { current = fs.readFileSync(argsFile, 'utf8'); } catch (error) { if (error.code !== 'ENOENT') throw error; }
-    if (current !== args) {
-      fs.writeFileSync(argsFile, args);
-      run(path.join(home, 'depot_tools/gn'), ['gen', out], { cwd: src, stdio: 'inherit' });
-    }
+    fs.writeFileSync(argsFile, args);
+    // GN runs every time: a release changes its version lines, and a patch can change a BUILD.gn with
+    // the arguments unchanged, which the build guard refuses until GN regenerates. Arguments come only
+    // from the tagged templates above.
+    run(path.join(home, 'depot_tools/gn'), ['gen', out], { cwd: src, stdio: 'inherit' });
     const buildTool = [path.join(tools, 'build.mjs'), src, '--lane=android', `--out=${outName}`];
     // The toolchain baseline is recorded once per output; later changes to it still stop the build.
     if (!fs.existsSync(path.join(out, '.blanc-build-environment.json'))) run(process.execPath, [...buildTool, '--record-environment'], { stdio: 'inherit' });
