@@ -3472,8 +3472,8 @@
     "source": "sha256:9f26b42c1f26d6b316e6ba7046aef543e22232ad9046dafd8711f4a0d8932a5c"
   },
   "settings.general.theme.hint": {
-    "message": "Système suit le thème de macOS ou Windows",
-    "source": "sha256:22516f21a7afeda313df03ff52f5d1ed0e885e281c78a19aa66a846495033f9f"
+    "message": "Système suit le mode clair ou sombre de votre ordinateur",
+    "source": "sha256:3f442f768378f67eba00f5e7f504d94f6311d645a8fac42244c79f44c2525046"
   },
   "settings.general.theme.system": {
     "message": "Système",
@@ -3608,20 +3608,20 @@
     "source": "sha256:2e3a7cffee8f1cd31157491641927314e451ab4a5216be878aedb28d21907193"
   },
   "settings.general.newtabLayout.ledger": {
-    "message": "ledger",
-    "source": "sha256:01e1e0e4958435810576fabcd0e5fe2fefae91f9e6814314ffff00517721ba5e"
+    "message": "Ledger",
+    "source": "sha256:8d0abb8e6ff41366f43bdb54c1248e349bdb1b2ce4b61a4347414809bba425d3"
   },
   "settings.general.newtabLayout.billboard": {
-    "message": "billboard",
-    "source": "sha256:a60d80ad209ff595be8db8d3227c15093e119b20fa926b7c9e8ea2342d1b5b17"
+    "message": "Billboard",
+    "source": "sha256:b7396dee01e1a1e198bf6f1681958196cf505bfeb09dfcfa25810faed283171e"
   },
   "settings.general.newtabLayout.shelf": {
-    "message": "shelf",
-    "source": "sha256:14799e36d74c91de53ef4776b3eef701a32630225b4d3cb52c785c4141cd82a5"
+    "message": "Shelf",
+    "source": "sha256:b9c6b86f2add65645faa6dc37355bbf65bd10d8cc1e7dfe726346593cf495d89"
   },
   "settings.general.newtabLayout.tally": {
-    "message": "tally",
-    "source": "sha256:ee74ccc5d66531c210ec1bda1a2bf346c3a22eab88886294dae47e032295c77d"
+    "message": "Tally",
+    "source": "sha256:c8b0d1dc112021795a6c1d94dbaf814ff0271d10be55e86e440b81dcfd1caf7a"
   },
   "settings.general.newtabDynamicWallpaper.label": {
     "message": "Fond selon l’heure",
@@ -5968,36 +5968,36 @@
     "source": "sha256:6fbb93e65570389bfea1c052fe00d3e09a248ed7f91bdcb42ab7dae32cba352d"
   },
   "onboarding.skip": {
-    "message": "tout passer",
-    "source": "sha256:6e1c80852caf2d033bb547c34317f5719323e92b269f54dda06349ee4edd0f58"
+    "message": "Tout passer",
+    "source": "sha256:64c29a739344f422372425c18a149227e344abd6318139e185ba66f7629e61cf"
   },
   "onboarding.stepLabel": {
     "message": "{step} / {total} — {name}",
     "source": "sha256:fead11ed329fd4b943fa90de31831464f8aded66b883610f84a4cfce7bb44b5e"
   },
   "onboarding.step.default": {
-    "message": "navigateur par défaut",
-    "source": "sha256:b12f95e3b29f367167b6de5b6eb3d760315fadb71d605995486189817b9c7d86"
+    "message": "Navigateur par défaut",
+    "source": "sha256:35a7689ef20dc9333ad5dd0ef2a63cdbde0196ba20af7d839b6bea2f74a15587"
   },
   "onboarding.step.import": {
-    "message": "importation",
-    "source": "sha256:1ae14f5234258298f7652dfb70e5e5895d5f9f1744747f142f8c21bdb20f806a"
+    "message": "Importation",
+    "source": "sha256:d18b28fc7583269241bc019b3a35a1ce2c3797fbe8c29f7af02b4f6d56fd016f"
   },
   "onboarding.step.island": {
-    "message": "l’island",
-    "source": "sha256:bd1508d85ba7499264101441a98f854a999ffc1a9d2d4ffd5afaa1ef1ca5fd4a"
+    "message": "L’Island",
+    "source": "sha256:153de96f1ec036a960c8871fad9522e42292e9b6719b0b981d5fd99a451ce8c3"
   },
   "onboarding.step.blocking": {
-    "message": "blocage des publicités",
-    "source": "sha256:8d785c80fe32b74d2ada949e8f62d6ab982c10f8b6abc527dd2c395845edc5c4"
+    "message": "Blocage des publicités",
+    "source": "sha256:a49964c5ff5dd14d9ae4f2377bdca7a44453401112a7913b3691b5520e546a8a"
   },
   "onboarding.step.privacy": {
-    "message": "confidentialité",
-    "source": "sha256:f755476b92046d0cc6631140f0c8d3478aa8fe790d7cb49eb52658f3188b81c3"
+    "message": "Confidentialité",
+    "source": "sha256:c9f00f2676963bbafb4c1c8274269d6108511b8b6ed2c021ff5b608c611ad561"
   },
   "onboarding.step.theme": {
-    "message": "thème",
-    "source": "sha256:daa960766d97dc095fd5752fb630cf5b37f9c0d3aa4333b7f3ccb87308ec0ee7"
+    "message": "Thème",
+    "source": "sha256:2074a5c422f616206ea056e4446406f1cc0210718631e04703155ddadb0aaa13"
   },
   "onboarding.default.title": {
     "message": "Faire de Blanc votre navigateur par défaut",
@@ -6084,8 +6084,8 @@
     "source": "sha256:39141329a03dab30a78354c71cb982d77235daefcd807c80f5c69587b36664cc"
   },
   "onboarding.island.title": {
-    "message": "Découvrez l’island",
-    "source": "sha256:df6d360cdfec87221db857b3d7cfcf7995b28a914e797a4824293b4829fa341b"
+    "message": "Découvrez l’Island",
+    "source": "sha256:4500c48b28df278ff7e14a4925112cbe60d3367a8eecd5a2b7a838ca35728c03"
   },
   "onboarding.island.body": {
     "message": "Onglets, recherche et navigation, tout au même endroit.",
@@ -6120,8 +6120,8 @@
     "source": "sha256:d7e6c436294d0ff743f61d8a370ef9e2da8ad9f33885cb9fd2cc7cb0868f709e"
   },
   "onboarding.blocking.body": {
-    "message": "Bloque les publicités et traceurs connus grâce à des règles intégrées. Il ne peut pas arrêter tous les traceurs. Désactivez-le site par site avec /off-leash.",
-    "source": "sha256:5c464be0e6cdfdda2e8f28d6ecb015f9e0fb6116b704f2c51e6f86edafa0c95d"
+    "message": "Bloque les publicités et traceurs connus grâce à des règles intégrées. Il ne peut pas arrêter tous les traceurs. Désactivez-le site par site avec /allow-ads.",
+    "source": "sha256:55258d0330c17692ddc6c42f51bdf1b7ed7c1a5b7be98873becfa19b8a00f1ef"
   },
   "onboarding.blocking.toggle": {
     "message": "Bloquer les publicités et traceurs",
@@ -6172,12 +6172,12 @@
     "source": "sha256:76dcf11f28d68d2500525416c3b85dd56cf95922db013e57c6a0d8faaea39ac0"
   },
   "onboarding.theme.light": {
-    "message": "clair",
-    "source": "sha256:53bf1cb352ca64b4904b95c97b0868337d56a789d5204a748eb75b55ad76f2f8"
+    "message": "Clair",
+    "source": "sha256:50074d1390058eb3c1f64f6af3ed07759293e6761b158e83c02cda0ca65dd3fb"
   },
   "onboarding.theme.dark": {
-    "message": "sombre",
-    "source": "sha256:6cad2abfb84589b727106430bf84884b8d32445713b170a059084331e43f9f5f"
+    "message": "Sombre",
+    "source": "sha256:aeda0ea95a6ba51c73ae64edc7962078056ba38e51158a5b770b88564a864d75"
   },
   "onboarding.back": {
     "message": "Retour",

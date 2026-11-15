@@ -1158,6 +1158,11 @@
         "searchPriorityResults": {
           "type": "boolean",
           "doc": "Settings → Search priority results: search suggestions lead typed results."
+        },
+        "panelSideClearance": {
+          "type": "number",
+          "doc": "The margin the centered panel keeps from each side of the overlay view, wider on macOS where the window buttons sit beside it; absent for the switcher card.",
+          "optional": true
         }
       }
     },

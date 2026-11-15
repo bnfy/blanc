@@ -999,7 +999,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_cards_search">Ricerca</string>
     <string name="settings_general_cards_browsing">Navigazione</string>
     <string name="settings_general_theme_label">Tema</string>
-    <string name="settings_general_theme_hint">Sistema segue il tema di macOS o Windows</string>
+    <string name="settings_general_theme_hint">Sistema segue la modalità chiara o scura del computer</string>
     <string name="settings_general_theme_system">Sistema</string>
     <string name="settings_general_theme_light">Chiaro</string>
     <string name="settings_general_theme_dark">Scuro</string>
@@ -1030,10 +1030,10 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_dark_exception_add">Aggiungi</string>
     <string name="settings_general_newtab_layout_label">Layout della nuova scheda</string>
     <string name="settings_general_newtab_layout_hint">Come si organizza la pagina della nuova scheda; puoi cambiarlo anche dal suo piè di pagina</string>
-    <string name="settings_general_newtab_layout_ledger">ledger</string>
-    <string name="settings_general_newtab_layout_billboard">billboard</string>
-    <string name="settings_general_newtab_layout_shelf">shelf</string>
-    <string name="settings_general_newtab_layout_tally">tally</string>
+    <string name="settings_general_newtab_layout_ledger">Ledger</string>
+    <string name="settings_general_newtab_layout_billboard">Billboard</string>
+    <string name="settings_general_newtab_layout_shelf">Shelf</string>
+    <string name="settings_general_newtab_layout_tally">Tally</string>
     <string name="settings_general_newtab_dynamic_wallpaper_label">Sfondo in base all’ora del giorno</string>
     <string name="settings_general_newtab_dynamic_wallpaper_hint">Lo sfondo segue l’ora locale di questo computer.</string>
     <string name="settings_general_newtab_custom_wallpaper_label">Immagine della pagina iniziale</string>
@@ -1660,14 +1660,14 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="newtab_pin_done">%1$s fissato nella pagina iniziale.</string>
     <string name="newtab_unpin_done">%1$s rilasciato dalla pagina iniziale.</string>
     <string name="newtab_pin_full">La pagina iniziale ne tiene %1$s fissate. Rilasciane una prima.</string>
-    <string name="onboarding_skip">salta tutto</string>
+    <string name="onboarding_skip">Salta tutto</string>
     <string name="onboarding_step_label">%1$s / %2$s — %3$s</string>
-    <string name="onboarding_step_default">browser predefinito</string>
-    <string name="onboarding_step_import">importazione</string>
-    <string name="onboarding_step_island">l’island</string>
-    <string name="onboarding_step_blocking">blocco degli annunci</string>
-    <string name="onboarding_step_privacy">privacy</string>
-    <string name="onboarding_step_theme">tema</string>
+    <string name="onboarding_step_default">Browser predefinito</string>
+    <string name="onboarding_step_import">Importazione</string>
+    <string name="onboarding_step_island">L’Island</string>
+    <string name="onboarding_step_blocking">Blocco degli annunci</string>
+    <string name="onboarding_step_privacy">Privacy</string>
+    <string name="onboarding_step_theme">Tema</string>
     <string name="onboarding_default_title">Imposta Blanc come predefinito</string>
     <string name="onboarding_default_body">I link dalle altre app si apriranno qui. Puoi cambiare questa scelta quando vuoi nelle Impostazioni.</string>
     <string name="onboarding_default_set">Imposta predefinito</string>
@@ -1705,7 +1705,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
         <item quantity="many">Tutti i %1$d preferiti erano già salvati.</item>
         <item quantity="other">Tutti i %1$d preferiti erano già salvati.</item>
     </plurals>
-    <string name="onboarding_island_title">Ecco l’island</string>
+    <string name="onboarding_island_title">Ecco l’Island</string>
     <string name="onboarding_island_body">Schede, ricerca e navigazione, tutto in un unico posto.</string>
     <string name="onboarding_island_caption">Island in riposo con Indietro e Avanti, tre punti delle schede, la favicon e l’indirizzo del sito, Nuova scheda, lo scudo del blocco, Ricarica, Preferito e Chiudi.</string>
     <string name="onboarding_island_hint">&lt;0&gt;%1$s&lt;/0&gt; per aprirla.</string>
@@ -1714,7 +1714,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="onboarding_island_archive">Archivia le schede dopo 7 giorni&lt;0&gt;Le schede sparse che non apri da 7 giorni vengono chiuse e conservate nel tuo Archivio per 30 giorni. Le schede fissate e i gruppi restano.&lt;/0&gt;</string>
     <string name="onboarding_island_archive_label">Archivia le schede dopo 7 giorni</string>
     <string name="onboarding_blocking_title">Blocca annunci e tracker</string>
-    <string name="onboarding_blocking_body">Blocca gli annunci e i tracker noti usando regole integrate. Non può fermare tutti i tracker. Disattivalo sito per sito con /off-leash.</string>
+    <string name="onboarding_blocking_body">Blocca gli annunci e i tracker noti usando regole integrate. Non può fermare tutti i tracker. Disattivalo sito per sito con /allow-ads.</string>
     <string name="onboarding_blocking_toggle">Blocca annunci e tracker</string>
     <string name="onboarding_blocking_toggle_label">Blocca gli annunci e i tracker</string>
     <string name="onboarding_privacy_title">Scegli cosa può inviare Blanc</string>
@@ -1727,8 +1727,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="onboarding_privacy_save_failed">Impossibile salvare queste scelte. Controlla l’accesso al disco e riprova.</string>
     <string name="onboarding_theme_title">Scegli il tuo inchiostro</string>
     <string name="onboarding_theme_body">Carta di giorno, inchiostro di notte. Cambia quando vuoi con /theme.</string>
-    <string name="onboarding_theme_light">chiaro</string>
-    <string name="onboarding_theme_dark">scuro</string>
+    <string name="onboarding_theme_light">Chiaro</string>
+    <string name="onboarding_theme_dark">Scuro</string>
     <string name="onboarding_back">Indietro</string>
     <string name="onboarding_continue">Continua</string>
     <string name="onboarding_finish">Inizia a navigare</string>

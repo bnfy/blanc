@@ -999,7 +999,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_cards_search">Recherche</string>
     <string name="settings_general_cards_browsing">Navigation</string>
     <string name="settings_general_theme_label">Thème</string>
-    <string name="settings_general_theme_hint">Système suit le thème de macOS ou Windows</string>
+    <string name="settings_general_theme_hint">Système suit le mode clair ou sombre de votre ordinateur</string>
     <string name="settings_general_theme_system">Système</string>
     <string name="settings_general_theme_light">Clair</string>
     <string name="settings_general_theme_dark">Sombre</string>
@@ -1030,10 +1030,10 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_dark_exception_add">Ajouter</string>
     <string name="settings_general_newtab_layout_label">Disposition du nouvel onglet</string>
     <string name="settings_general_newtab_layout_hint">La façon dont la page du nouvel onglet s’organise ; modifiable aussi depuis son pied de page</string>
-    <string name="settings_general_newtab_layout_ledger">ledger</string>
-    <string name="settings_general_newtab_layout_billboard">billboard</string>
-    <string name="settings_general_newtab_layout_shelf">shelf</string>
-    <string name="settings_general_newtab_layout_tally">tally</string>
+    <string name="settings_general_newtab_layout_ledger">Ledger</string>
+    <string name="settings_general_newtab_layout_billboard">Billboard</string>
+    <string name="settings_general_newtab_layout_shelf">Shelf</string>
+    <string name="settings_general_newtab_layout_tally">Tally</string>
     <string name="settings_general_newtab_dynamic_wallpaper_label">Fond selon l’heure</string>
     <string name="settings_general_newtab_dynamic_wallpaper_hint">Le fond suit l’heure locale de cet ordinateur.</string>
     <string name="settings_general_newtab_custom_wallpaper_label">Image de la page d’accueil</string>
@@ -1660,14 +1660,14 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="newtab_pin_done">%1$s épinglé à la page d’accueil.</string>
     <string name="newtab_unpin_done">%1$s détaché de la page d’accueil.</string>
     <string name="newtab_pin_full">La page d’accueil accepte %1$s épingles. Détachez-en une d’abord.</string>
-    <string name="onboarding_skip">tout passer</string>
+    <string name="onboarding_skip">Tout passer</string>
     <string name="onboarding_step_label">%1$s / %2$s — %3$s</string>
-    <string name="onboarding_step_default">navigateur par défaut</string>
-    <string name="onboarding_step_import">importation</string>
-    <string name="onboarding_step_island">l’island</string>
-    <string name="onboarding_step_blocking">blocage des publicités</string>
-    <string name="onboarding_step_privacy">confidentialité</string>
-    <string name="onboarding_step_theme">thème</string>
+    <string name="onboarding_step_default">Navigateur par défaut</string>
+    <string name="onboarding_step_import">Importation</string>
+    <string name="onboarding_step_island">L’Island</string>
+    <string name="onboarding_step_blocking">Blocage des publicités</string>
+    <string name="onboarding_step_privacy">Confidentialité</string>
+    <string name="onboarding_step_theme">Thème</string>
     <string name="onboarding_default_title">Faire de Blanc votre navigateur par défaut</string>
     <string name="onboarding_default_body">Les liens des autres apps s’ouvriront ici. Vous pouvez changer cela à tout moment dans les Réglages.</string>
     <string name="onboarding_default_set">Définir par défaut</string>
@@ -1705,7 +1705,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
         <item quantity="many">Les %1$d favoris étaient déjà enregistrés.</item>
         <item quantity="other">Les %1$d favoris étaient déjà enregistrés.</item>
     </plurals>
-    <string name="onboarding_island_title">Découvrez l’island</string>
+    <string name="onboarding_island_title">Découvrez l’Island</string>
     <string name="onboarding_island_body">Onglets, recherche et navigation, tout au même endroit.</string>
     <string name="onboarding_island_caption">Island au repos avec Précédent et Suivant, trois points d’onglets, le favicon et l’adresse du site, Nouvel onglet, le bouclier du bloqueur, Actualiser, Favori et Fermer.</string>
     <string name="onboarding_island_hint">&lt;0&gt;%1$s&lt;/0&gt; pour l’ouvrir.</string>
@@ -1714,7 +1714,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="onboarding_island_archive">Archiver les onglets après 7 jours&lt;0&gt;Les onglets isolés que vous n’avez pas ouverts depuis 7 jours sont fermés et gardés 30 jours dans vos Archives. Les onglets épinglés et les groupes restent.&lt;/0&gt;</string>
     <string name="onboarding_island_archive_label">Archiver les onglets après 7 jours</string>
     <string name="onboarding_blocking_title">Bloquez les publicités et traceurs</string>
-    <string name="onboarding_blocking_body">Bloque les publicités et traceurs connus grâce à des règles intégrées. Il ne peut pas arrêter tous les traceurs. Désactivez-le site par site avec /off-leash.</string>
+    <string name="onboarding_blocking_body">Bloque les publicités et traceurs connus grâce à des règles intégrées. Il ne peut pas arrêter tous les traceurs. Désactivez-le site par site avec /allow-ads.</string>
     <string name="onboarding_blocking_toggle">Bloquer les publicités et traceurs</string>
     <string name="onboarding_blocking_toggle_label">Bloquer les publicités et les traceurs</string>
     <string name="onboarding_privacy_title">Choisissez ce que Blanc peut envoyer</string>
@@ -1727,8 +1727,8 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="onboarding_privacy_save_failed">Impossible d’enregistrer ces choix. Vérifiez l’accès au disque et réessayez.</string>
     <string name="onboarding_theme_title">Choisissez votre encre</string>
     <string name="onboarding_theme_body">Papier le jour, encre la nuit. Changez à tout moment avec /theme.</string>
-    <string name="onboarding_theme_light">clair</string>
-    <string name="onboarding_theme_dark">sombre</string>
+    <string name="onboarding_theme_light">Clair</string>
+    <string name="onboarding_theme_dark">Sombre</string>
     <string name="onboarding_back">Retour</string>
     <string name="onboarding_continue">Continuer</string>
     <string name="onboarding_finish">Commencer à naviguer</string>
