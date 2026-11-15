@@ -14,6 +14,9 @@ enum UITestSeed {
   static var privateTab: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestPrivate") }
   /// `-BlancUITestReduceMotion`: as if Reduce Motion were on.
   static var reduceMotion: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestReduceMotion") }
+  /// `-BlancUITestNoTabDrag`: tabs can't be dragged. On an iPad a long press on a draggable tab starts a
+  /// drag lift beside its menu, and XCTest then waits 60 s for the app to stop animating at every step.
+  static var noTabDrag: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestNoTabDrag") }
   /// `-BlancUITestPageGeometry`: reports the page's frame and safe area.
   static var pageGeometry: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestPageGeometry") }
   /// `-BlancUITestTapPage`: sync off, one local page titled "tapped" once tapped.
