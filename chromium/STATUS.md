@@ -24,7 +24,11 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   opens `chrome://settings/sync` as soon as the debugging port answers, failed
   on the beta.5 candidate three times in a row (beta.1's build kept the tab).
   The call now leaves the request in `window.blancPendingSheet` until host.js
-  is up, and host.js opens it then. Ships in the next beta.
+  is up, and host.js opens it then. `beta-sync.mjs` also now opens Settings
+  again after it opens the page it shares, because a new tab dismisses the
+  sheet (as in shipping); it was written when Settings was a tab. On the
+  local-qualification beta.5 with the fix it passed 3 of 3. Ships in the
+  next beta.
 - **2026-11-14 — Hover previews in the vertical tab rail (patch 0084 plus
   host and native code, owner-approved layout A; design
   `docs/superpowers/specs/2026-11-14-rail-hover-previews-design.md`, plan
