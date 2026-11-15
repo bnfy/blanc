@@ -2,6 +2,7 @@
 
 package org.chromium.blanc.firstrun;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
@@ -50,6 +51,8 @@ public final class FirstMinute {
     // keeps the consent listener alive.
     @SuppressWarnings("UnusedVariable")
     private static SharedPreferences.@Nullable OnSharedPreferenceChangeListener sConsentListener;
+    // Cleared when its activity is destroyed (the DESTROYED branch below), so it never outlives it.
+    @SuppressLint("StaticFieldLeak")
     private static @Nullable WalkthroughSheet sShowing;
 
     private FirstMinute() {}

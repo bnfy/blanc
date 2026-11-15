@@ -17,6 +17,7 @@
 
         <ImageButton
             android:id="@+id/blanc_island_menu"
+            android:contentDescription="@string/blanc_ios_island_page_actions"
             android:layout_width="48dp"
             android:layout_height="@dimen/blanc_island_height"
             android:background="@null"
@@ -89,6 +90,7 @@
 
         <ImageButton
             android:id="@+id/blanc_island_new_tab"
+            android:contentDescription="@string/blanc_tab_new"
             android:layout_width="44dp"
             android:layout_height="@dimen/blanc_island_height"
             android:background="@null"

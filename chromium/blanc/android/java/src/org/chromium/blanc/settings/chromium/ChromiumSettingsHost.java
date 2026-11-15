@@ -2,6 +2,7 @@
 
 package org.chromium.blanc.settings.chromium;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.LocaleManager;
@@ -252,6 +253,12 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
     /** Chromium's own override, read at startup before Android 13 (ChromePreferenceKeys). */
     private static final String OVERRIDE_LANGUAGE = "Chrome.Language.ApplicationOverrideLanguage";
 
+    // commit, not apply: Blanc terminates right after, before a background write would land.
+    @SuppressLint("ApplySharedPref")
+    private static void commitLanguage(@Nullable String tag) {
+        ContextUtils.getAppSharedPreferences().edit().putString(OVERRIDE_LANGUAGE, tag).commit();
+    }
+
     /** The language Blanc was asked for, or null when it follows the phone's. */
     private @Nullable String chosenLanguage() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -320,7 +327,7 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
         if (manager != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             manager.setApplicationLocales(tag == null ? LocaleList.getEmptyLocaleList() : LocaleList.forLanguageTags(tag));
         } else {
-            ContextUtils.getAppSharedPreferences().edit().putString(OVERRIDE_LANGUAGE, tag).commit();
+            commitLanguage(tag);
         }
         ApplicationLifetime.terminate(true);
     }

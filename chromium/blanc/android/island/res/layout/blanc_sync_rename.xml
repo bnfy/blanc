@@ -11,6 +11,7 @@
         android:id="@+id/blanc_sync_rename_field"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:hint="@string/blanc_ios_settings_device_name"
         android:importantForAutofill="no"
         android:inputType="text|textNoSuggestions"
         android:singleLine="true" />

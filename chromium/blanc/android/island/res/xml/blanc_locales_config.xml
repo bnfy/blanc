@@ -2,7 +2,10 @@
 <!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
 <!-- Blanc's six interface languages (AppLanguages.java), which Android's App languages screen offers
      for Blanc: the manifest names this file (patch 0114). -->
-<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+<!-- Lint reads the merged manifest without that attribute, so it reports this file as unused. -->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="UnusedResources">
     <locale android:name="en" />
     <locale android:name="de" />
     <locale android:name="es" />
