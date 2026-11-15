@@ -1,0 +1,33 @@
+diff -ruN a/chrome/android/java/AndroidManifest.xml b/chrome/android/java/AndroidManifest.xml
+--- a/chrome/android/java/AndroidManifest.xml
++++ b/chrome/android/java/AndroidManifest.xml
+@@ -226,6 +226,7 @@
+         android:largeHeap="false"
+         android:manageSpaceActivity="@string/manage_space_activity"
+         android:supportsRtl="true"
++        android:localeConfig="@xml/blanc_locales_config"
+         android:zygotePreloadName="{{ zygote_preload_class }}"
+         {% if backup_key is defined %}
+         android:allowBackup="true"
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java b/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
+@@ -1841,6 +1841,18 @@
+                                 }
+                             }
+                         });
++        // Blanc (patch 0114): the first-minute walkthrough over the Start Page (A5c).
++        org.chromium.blanc.firstrun.FirstMinute.start(
++                mActivity,
++                (permission, done) ->
++                        mWindowAndroid.requestPermissions(
++                                new String[] {permission},
++                                (permissions, results) ->
++                                        done.onResult(
++                                                results.length > 0
++                                                        && results[0]
++                                                                == android.content.pm.PackageManager
++                                                                        .PERMISSION_GRANTED)));
+     }
+ 
+     /**

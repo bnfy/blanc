@@ -2626,5 +2626,9 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="android_settings_island_position_top">Oben</string>
     <string name="android_settings_island_position_bottom">Unten</string>
     <string name="android_settings_open_source_licenses">Open-Source-Lizenzen</string>
+    <string name="android_welcome_share_title">Von diesem Telefon teilen</string>
+    <string name="android_welcome_measure_usage_help">Bei jedem Öffnen sendet Blanc einen anonymen Zähler: eine zufällige ID für diese Installation, die App-Version und die Android-Version. Nie, was du ansiehst. Siehe blanc.day/privacy.</string>
+    <string name="android_default_browser_body">Mach Blanc zu deinem Standardbrowser, damit Links aus anderen Apps hier geöffnet werden.</string>
+    <string name="android_default_browser_open">Als Standard festlegen</string>
     <string name="android_settings_auto_revoke_summary">Zum Schutz deiner Daten kann Blanc Berechtigungen von Websites entfernen, die du länger nicht besucht hast</string>
 </resources>

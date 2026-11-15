@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- The Sunrise mark over Welcome and the default-browser step. -->
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/blanc_walkthrough_mark_size"
+    android:layout_height="@dimen/blanc_walkthrough_mark_size"
+    android:layout_gravity="center_horizontal"
+    android:importantForAccessibility="no"
+    android:src="@drawable/blanc_island_mark" />

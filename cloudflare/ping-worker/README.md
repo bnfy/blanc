@@ -52,6 +52,13 @@ one figure desktop doesn't: a 30-day return (`ios:return:m1:<D>`, a launch
 again on day 28 to 34 after the first-seen day), for the iPhone kill
 criteria. `/stats` reports all of it in an `ios` object.
 
+Blanc for Android is counted the same way under an `android:` prefix, with
+`"platform": "android"`, `"arch"` `arm64` (or `x64` on an emulator), and an
+optional `"device"` of `phone` or `tablet`. `platform:android` is the one
+shared key; it never reaches GA4, the first-day groups or `/event`, and
+`/stats` reports it in an `android` object. A deployment that predates this
+refuses Android's ping with 400.
+
 There are no URLs, searches, page content, game state, custom labels, names,
 accounts, email addresses, or precise locations. The raw installation UUID is
 HMACed immediately with `INSTALL_HASH_SECRET`; only the keyed hash reaches KV
