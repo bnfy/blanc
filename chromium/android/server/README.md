@@ -74,3 +74,58 @@ lower gates always run so the choice reaches the whole chain. Each lane keeps it
 The A5c gate split this way on November 14, 2026 took 102 minutes, against about 3 hours run in
 order: lane 1 finished in 96 and lane 2 (sync, Spaces, Shared Spaces, blocking) in 102. Rebalance
 `LANE2` from each lane's step logs if one lane starts finishing well after the other.
+
+## Release builds
+
+`release-build.sh TAG --previous-map COMMIT [--dry-run] [--gates]` builds the
+Android release from a tag. `COMMIT` is the Blanc commit last applied to the
+server's shared Chromium checkout, not its Chromium upstream pin. The script
+uses a dedicated blobless `~/blanc-release` clone; it never changes `~/blanc`
+or requires the script's own checkout to be clean or on the release tag.
+A real run creates the dedicated clone if missing, fetches the named tag and
+checks it out detached after refusing any local changes. A dry run needs that
+clone already prepared at the tag: it verifies the clean commit and ledger,
+prints the actions, and changes nothing. Both modes refuse any host other than
+x86-64 Linux and any competing Siso build before changing the shared checkout.
+
+The tag must match an entry in `chromium/android/release/ledger.json` with
+state `built` (pending), or be the next code and name permitted by the ledger.
+An absent entry allows the first tagged build with the initial empty ledger;
+the builder does not edit the ledger. Ensure `COMMIT` is available in the
+dedicated clone's object database before running. The previous map combines
+that commit's Android upstream/file hashes with its canonical source hashes.
+`apply.py` refuses cached source it cannot recognize and preserves changed
+preimages in a durable backup. ZXing and the blocker bundle come from the
+asset folders described above; no dependency installation or hooks run here.
+
+The arm64 target is `chrome_public_bundle`, producing
+`out/AndroidRelease/apks/ChromePublic.aab`. `--gates` also builds
+`out/AndroidReleaseX64/apks/ChromePublic.apk` for emulator checks. Each output
+uses its tagged release args template plus three version arguments:
+`blanc_android_version_name`, `android_override_version_name` and
+`android_override_version_code` (all GN strings). The generated
+`gen/blanc/android/org/chromium/blanc/BlancRelease.java` must report the tag's
+version before the build is recorded.
+
+Every compile runs through `chromium/tools/build.mjs --lane=android --build`
+with the corresponding `--out`. **Cold outputs need explicit operator setup:**
+review the tagged arguments, generate GN with those arguments, inspect the
+selected toolchain, and deliberately pin each output's environment using
+`build.mjs --record-environment`. The builder can write a missing `args.gn`
+but refuses to overwrite differing arguments. It never generates GN, records
+an environment or passes `--allow-large-build`. Review any large dry-run plan
+separately and authorize its intentional first build through the guard before
+rerunning this script; preserve all outputs, toolchains and Siso caches.
+When a version changes the args, review and prepare that change explicitly.
+
+Evidence lives in `~/blanc-evidence/android/release/TAG/`. Each attempt gets a
+fresh `attempt-*` directory containing its tagged source export, previous map
+and apply backup. A stopped guard or failed build leaves those files intact;
+a rerun creates another attempt without overwriting them. Only success writes
+`build.json` with schema 1, the tag/commit, `appliedOver`, upstream, version,
+args digest, bundle digest/size and UTC build time; `--gates` adds the APK
+digest. An existing `build.json` blocks another build for that tag. The script
+does not sign or upload anything.
+
+The server dry run, first official release build, emulator build and wall-time
+measurement are **pending**; local verification uses fixtures and stubs only.

@@ -86,7 +86,7 @@ export function outputName(options) {
 }
 // The lane decides the output, the target and the machine. Desktop keeps its
 // defaults; Android (chromium/android/) builds the APK on x86-64 Linux only.
-export const ANDROID_OUTPUTS = ['AndroidDebug', 'AndroidDebugX64'];
+export const ANDROID_OUTPUTS = ['AndroidDebug', 'AndroidDebugX64', 'AndroidRelease', 'AndroidReleaseX64'];
 export function buildLane(options) {
   const lanes = options.filter(option => option.startsWith('--lane='));
   if (lanes.length > 1 || (lanes.length && !['--lane=desktop', '--lane=android'].includes(lanes[0])))
@@ -97,7 +97,8 @@ export function buildLane(options) {
   const values = options.filter(option => option.startsWith('--out='));
   if (values.length > 1 || (values.length && !ANDROID_OUTPUTS.includes(values[0].slice('--out='.length))))
     throw new Error(`Use one --out=${ANDROID_OUTPUTS.join(' or --out=')} with --lane=android.`);
-  return { lane, out: values.length ? values[0].slice('--out='.length) : ANDROID_OUTPUTS[0], target: 'chrome_public_apk' };
+  const out = values.length ? values[0].slice('--out='.length) : ANDROID_OUTPUTS[0];
+  return { lane, out, target: out === 'AndroidRelease' ? 'chrome_public_bundle' : 'chrome_public_apk' };
 }
 export function requireAndroidHost(platform = process.platform, arch = process.arch) {
   if (platform !== 'linux' || arch !== 'x64') throw new Error(`The Android lane builds only on x86-64 Linux (this is ${platform} ${arch}). No build started.`);
@@ -189,7 +190,7 @@ function main() {
   const [source, ...options] = process.argv.slice(2);
   const allowed = new Set(['--check', '--build', '--record-environment', '--allow-large-build', '--reject-buildflags']);
   if (!source || options.some(option => !allowed.has(option) && !option.startsWith('--local-jobs=') && !option.startsWith('--out=') && !option.startsWith('--lane=') && !option.startsWith('--sdk-root=') && !option.startsWith('--max-actions='))) {
-    throw new Error('Usage: node build.mjs CHROMIUM_SRC [--check | --build | --record-environment] [--allow-large-build] [--reject-buildflags] [--max-actions=N] [--local-jobs=N] [--lane=desktop|android] [--out=BlancPrototype|BlancRelease|BlancBeta|AndroidDebug|AndroidDebugX64] [--sdk-root=ABSOLUTE_PATH]');
+    throw new Error('Usage: node build.mjs CHROMIUM_SRC [--check | --build | --record-environment] [--allow-large-build] [--reject-buildflags] [--max-actions=N] [--local-jobs=N] [--lane=desktop|android] [--out=BlancPrototype|BlancRelease|BlancBeta|AndroidDebug|AndroidDebugX64|AndroidRelease|AndroidReleaseX64] [--sdk-root=ABSOLUTE_PATH]');
   }
   const workerArgs = localJobs(options);
   const maxActions = maximumActions(options);
