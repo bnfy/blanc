@@ -141,7 +141,9 @@ Would write ${evidence}/build.json. No changes made.`);
     fs.mkdirSync(out, { recursive: true });
     const argsFile = path.join(out, 'args.gn');
     // Each release changes its version lines, so a release writes its arguments and regenerates GN.
-    if (!fs.existsSync(argsFile) || fs.readFileSync(argsFile, 'utf8') !== args) {
+    let current = null;
+    try { current = fs.readFileSync(argsFile, 'utf8'); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+    if (current !== args) {
       fs.writeFileSync(argsFile, args);
       run(path.join(home, 'depot_tools/gn'), ['gen', out], { cwd: src, stdio: 'inherit' });
     }

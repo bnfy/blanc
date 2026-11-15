@@ -23,8 +23,12 @@ const check = (value, message) => { if (!value) throw new Error(message); };
 const digest = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 const json = value => JSON.stringify(value, null, 2) + '\n';
 function read(file) {
-  check(fs.lstatSync(file).isFile(), `regular input required: ${path.basename(file)}`);
-  return fs.readFileSync(file);
+  // Check and read the same open file, so it can't be swapped between the two; a link is refused.
+  const fd = fs.openSync(file, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  try {
+    check(fs.fstatSync(fd).isFile(), `regular input required: ${path.basename(file)}`);
+    return fs.readFileSync(fd);
+  } finally { fs.closeSync(fd); }
 }
 const load = file => JSON.parse(read(file));
 function optional(file) {

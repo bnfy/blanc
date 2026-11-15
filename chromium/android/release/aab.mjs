@@ -14,7 +14,8 @@ export function checkManifest(xml, record) {
   const problems = [];
   const source = String(xml).replace(/<!--[\s\S]*?-->/g, '');
   const manifests = [...source.matchAll(/<manifest\b([^>]*)>/g)];
-  if (manifests.length !== 1 || /<!DOCTYPE|<!ENTITY/i.test(source)) return ['invalid manifest XML'];
+  // A comment left after one pass (a nested or broken one) makes the input invalid, not stripped.
+  if (manifests.length !== 1 || /<!--|<!DOCTYPE|<!ENTITY/i.test(source)) return ['invalid manifest XML'];
   const attributes = manifests[0][1];
   for (const [name, expected] of [['package', 'me.bnfy.blanc'], ['android:versionCode', String(record?.versionCode)], ['android:versionName', record?.versionName]]) {
     const values = [...attributes.matchAll(new RegExp(`(?:^|\\s)${name}\\s*=\\s*(["'])(.*?)\\1`, 'g'))];

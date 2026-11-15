@@ -50,9 +50,12 @@ function signingStub(f, { fail, cert = fingerprint, interrupt, missing, verifyFa
     if (command === 'unzip') return { status: 0, stdout: 'META-INF/MANIFEST.MF\nMETA-INF/OLD.SF\nMETA-INF/OLD.RSA\nMETA-INF/OLD.EC\nMETA-INF/services/keep\nbase/META-INF/KEEP.SF\n' };
     if (command === 'jarsigner' && !args.includes('-verify')) {
       key = args[args.indexOf('-keystore') + 1];
-      assert.equal(fs.statSync(key).mode & 0o777, 0o600);
+      const fd = fs.openSync(key, 'r');
+      try {
+        assert.equal(fs.fstatSync(fd).mode & 0o777, 0o600);
+        assert.equal(fs.readFileSync(fd, 'utf8'), 'fixture keystore');
+      } finally { fs.closeSync(fd); }
       assert.equal(fs.statSync(path.dirname(key)).mode & 0o777, 0o700);
-      assert.equal(fs.readFileSync(key, 'utf8'), 'fixture keystore');
       assert.ok(calls.find(call => call.command === 'zip'), 'old signatures stripped before signing');
       assert.ok(args.includes('-storepass:env') && args.includes('-keypass:env'));
       assert.equal(args[args.indexOf('-storepass:env') + 1], 'BLANC_ANDROID_UPLOAD_PASSWORD');
@@ -89,6 +92,7 @@ for (const [name, value, expected] of [
   ['mismatched version code', xml().replace('versionCode="1"', 'versionCode="2"'), /versionCode/],
   ['mismatched version name', xml().replace('beta.1', 'beta.2'), /versionName/],
   ['missing manifest', '<application/>', /manifest/],
+  ['comment left after one strip', xml().replace('<manifest', '<!-<!-- x -->- y --><manifest'), /invalid manifest XML/],
 ]) test(`manifest reports ${name}`, async () => assert.match((await api()).checkManifest(value, record).join('\n'), expected));
 test('all modules allow only arm64-v8a libraries and require Android notice paths', async () => {
   const { checkEntries } = await api();
