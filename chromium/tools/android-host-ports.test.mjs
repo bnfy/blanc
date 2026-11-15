@@ -38,3 +38,8 @@ test('an emulator given that runs another AVD, or none at all, is refused', () =
   assert.equal(pickEmulator(Object.keys(names), nameOf, 'android_36_google_apis_x64', 'emulator-5560'), undefined);
   assert.equal(pickEmulator(Object.keys(names), nameOf, 'android_36_google_apis_x64', 'emulator-5590'), undefined);
 });
+
+test('an emulator serial that is odd or below the first is refused, not given a made-up port', () => {
+  assert.throws(() => hostPort(9333, {ANDROID_SERIAL: 'emulator-5555'}), /emulator-5555/);
+  assert.throws(() => hostPort(9333, {ANDROID_SERIAL: 'emulator-5552'}), /emulator-5552/);
+});

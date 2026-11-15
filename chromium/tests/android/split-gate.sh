@@ -23,12 +23,15 @@ for serial in emulator-5554 emulator-5556; do
 done
 mkdir -p "$EVIDENCE/lane1" "$EVIDENCE/lane2"
 start=$(date +%s)
+# Each lane in its own process group, so stopping this script (Ctrl-C, a timeout, a closed session)
+# stops both lanes and every check they started, rather than leaving them driving the emulators.
 ANDROID_SERIAL=emulator-5554 BLANC_GATE_SKIP="$LANE2" BLANC_EVIDENCE="$EVIDENCE/lane1" \
-  bash "$HERE/$GATE" > "$EVIDENCE/lane1.log" 2>&1 &
+  setsid bash "$HERE/$GATE" > "$EVIDENCE/lane1.log" 2>&1 &
 lane1=$!
 ANDROID_SERIAL=emulator-5556 BLANC_GATE_ONLY="$LANE2" BLANC_EVIDENCE="$EVIDENCE/lane2" \
-  bash "$HERE/$GATE" > "$EVIDENCE/lane2.log" 2>&1 &
+  setsid bash "$HERE/$GATE" > "$EVIDENCE/lane2.log" 2>&1 &
 lane2=$!
+trap 'kill -TERM -- -"$lane1" -"$lane2" 2>/dev/null; exit 130' INT TERM HUP
 wait "$lane1"; one=$?
 wait "$lane2"; two=$?
 minutes=$(( ($(date +%s) - start + 59) / 60 ))

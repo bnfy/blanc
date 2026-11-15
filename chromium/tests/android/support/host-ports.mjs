@@ -6,5 +6,9 @@
 // each emulator has its own.
 export function hostPort(base, env = process.env) {
   const emulator = /^emulator-(\d+)$/.exec(env.ANDROID_SERIAL ?? '');
-  return emulator ? base + (Number(emulator[1]) - 5554) / 2 * 100 : base;
+  if (!emulator) return base;
+  const console = Number(emulator[1]);
+  // Emulators take even console ports from 5554; anything else has no port of its own here.
+  if (console < 5554 || console % 2) throw Error(`${env.ANDROID_SERIAL} isn't an emulator from 5554 up in steps of 2`);
+  return base + (console - 5554) / 2 * 100;
 }
