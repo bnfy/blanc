@@ -595,6 +595,9 @@ final class TabsManager {
         }
         tab.uiDelegate.canGlance = { [weak self] in self?.canOpenGlance ?? false }
         tab.uiDelegate.onGlance = { [weak self] url in self?.openInGlance(url) }
+        tab.uiDelegate.onOpenInNewTab = { [weak self, weak tab] url in
+            self?.createTab(url: url, isPrivate: tab?.isPrivate ?? false)
+        }
         tab.navigationDelegate.onSettingsNavigation = { [weak self] url in self?.routeSettings(url) ?? false }
         tab.navigationDelegate.wantsMobileSite = { [weak self] url in
             self?.wantsMobileSite(url, isPrivate: isPrivate) ?? false

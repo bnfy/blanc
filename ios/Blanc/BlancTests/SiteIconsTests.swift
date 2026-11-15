@@ -38,6 +38,17 @@ final class SiteIconsTests: XCTestCase {
         XCTAssertNil(SiteIcons.dataURL(from: Data("<html>not an icon</html>".utf8)))
     }
 
+    func testLinksReadFromAPagesHTML() {
+        let html = """
+        <html><head><LINK REL="icon" href="/a.png" sizes=32x32><link rel='apple-touch-icon' href='/t.png?x=1&amp;y=2'>
+        <link rel="stylesheet" href="/s.css"><link href="/b.ico" rel="shortcut icon" type="image/x-icon"></head></html>
+        """
+        XCTAssertEqual(SiteIcons.links(inHTML: html).map { $0["href"] ?? "" }, ["/a.png", "/t.png?x=1&y=2", "/b.ico"])
+        let page = URL(string: "https://example.com/news/")!
+        XCTAssertEqual(SiteIcons.candidates(SiteIcons.links(inHTML: html), page: page).first?.absoluteString,
+                       "https://example.com/t.png?x=1&y=2")
+    }
+
     func testEmptyStoreHasNoIcons() {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: dir) }
