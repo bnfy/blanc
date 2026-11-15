@@ -61,6 +61,16 @@ export function screenLocked(plistXml, user) {
 }
 
 // Only the two reviewed version keys change; anything else is refused.
+// The build's own progress step (tools/progress.mjs, run by build.mjs after a
+// prototype build that produced new output) rewrites tracker.json and the
+// generated "Candidate identities" line in STATUS.md. Neither is stale
+// source; any other change is.
+export const BUILD_WRITTEN = ['chromium/tracker.json', 'chromium/STATUS.md'];
+export function onlyCandidateLine(diff) {
+  const changed = diff.split('\n').filter(l => /^[-+](?![-+]{2} )/.test(l));
+  return changed.length > 0 && changed.every(l => /^[-+]Candidate identities: /.test(l));
+}
+
 export function bumpBetaArgs(text, version, build) {
   check(/^2\.0\.0-beta\.[1-9]\d*$/.test(version) && Number.isInteger(build) && build > 0, 'beta version');
   let seen = 0;
@@ -136,10 +146,12 @@ function night(mode) {
   if (!sh('bash', [path.join(BASE, 'scripts/rebuild.sh'), name], { out: 'prototype-build.log' })) return finish('fail', 'the prototype build stopped (see prototype-build.log)');
   const config = path.join(BASE, 'evidence/foundation', `${name}-runtime-config.json`);
   result.prototype = { candidate: readJSON(config).candidate, runtimeConfig: config };
-  // rebuild.sh points tracker.json at the new candidate; anything else changed means
+  // The build points tracker.json and STATUS.md's candidate line at the new
+  // candidate (BUILD_WRITTEN); anything else changed means
   // committed generated files (source map, asset hashes) are stale: the build then
   // isn't the committed source.
-  const dirty = git('status', '--porcelain').stdout.split('\n').filter(Boolean).filter(l => !l.endsWith('chromium/tracker.json'));
+  const dirty = git('status', '--porcelain').stdout.split('\n').filter(Boolean).filter(l => !l.endsWith('chromium/tracker.json'))
+    .filter(l => !(l.endsWith('chromium/STATUS.md') && onlyCandidateLine(git('diff', '-U0', '--', 'chromium/STATUS.md').stdout)));
   if (dirty.length) {
     fs.writeFileSync(log('stale-generated.patch'), git('diff').stdout);
     git('checkout', '--', '.');
@@ -250,7 +262,7 @@ function main(argv) {
     return { status: 'skipped', why };
   }
   fs.mkdirSync(lock);
-  try { return night(mode); } finally { spawnSync('git', ['-C', ROOT, 'checkout', '-q', '--', 'chromium/tracker.json']); fs.rmdirSync(lock); }
+  try { return night(mode); } finally { spawnSync('git', ['-C', ROOT, 'checkout', '-q', '--', ...BUILD_WRITTEN]); fs.rmdirSync(lock); }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {

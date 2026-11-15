@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { shouldSkip, bumpBetaArgs, onlyArgsChanged, judgeSuite } from './daily/nightly.mjs';
+import { shouldSkip, bumpBetaArgs, onlyArgsChanged, judgeSuite, onlyCandidateLine } from './daily/nightly.mjs';
 import { planTargeted, loadAreas } from './daily/targeted.mjs';
 
 const args = `target_os = "mac"
@@ -129,4 +129,12 @@ test('screenLocked reads the console session from ioreg', async () => {
   assert.equal(screenLocked(xml(session('owner', true, true)), 'owner'), true);
   assert.equal(screenLocked(xml(session('owner', null, false), session('blanc-test', null, true)), 'owner'), true);
   assert.equal(screenLocked(xml(session('blanc-test', null, true)), 'owner'), true);
+});
+
+test('the build\'s own candidate line in STATUS.md is not stale source; any other STATUS.md change is', () => {
+  const head = 'diff --git a/chromium/STATUS.md b/chromium/STATUS.md\n--- a/chromium/STATUS.md\n+++ b/chromium/STATUS.md\n@@ -3389 +3389 @@\n';
+  assert.equal(onlyCandidateLine(head + '-Candidate identities: macOS: macos-aaaa; Windows: none.\n+Candidate identities: macOS: macos-bbbb; Windows: none.\n'), true);
+  assert.equal(onlyCandidateLine(head + '-Candidate identities: macOS: macos-aaaa.\n+Candidate identities: macOS: macos-bbbb.\n+- **A new entry**\n'), false);
+  assert.equal(onlyCandidateLine(head + '-Some line\n+Another line\n'), false);
+  assert.equal(onlyCandidateLine(''), false);
 });
