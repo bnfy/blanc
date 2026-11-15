@@ -104,9 +104,10 @@ source_set("blocker_bridge") {
   ]
 }
 
-# The Island's two bridges: one target, since each generated srcjar brings its own GEN_JNI.
+# The Island's bridges: one target, since each generated srcjar brings its own GEN_JNI.
 generate_jni("island_jni") {
   sources = [
+    "java/src/org/chromium/blanc/island/IslandPositionBridge.java",
     "java/src/org/chromium/blanc/island/PagePinchBridge.java",
     "java/src/org/chromium/blanc/island/TopColorBridge.java",
   ]
@@ -124,9 +125,14 @@ source_set("page_pinch_bridge") {
   ]
 }
 
-# The page's top row for the status bar's color. //chrome/browser depends on this (patch 0112).
+# The page's top row for the status bar's color, and the Island's position for the Start Page
+# (blanc_pages_ui.cc). //chrome/browser depends on this (patch 0112).
 source_set("top_color_bridge") {
-  sources = [ "browser/top_color_bridge.cc" ]
+  sources = [
+    "browser/island_position.h",
+    "browser/island_position_bridge.cc",
+    "browser/top_color_bridge.cc",
+  ]
   deps = [
     ":island_jni",
     "//base",
@@ -434,6 +440,7 @@ android_library("island_ui_java") {
   srcjar_deps = [ ":island_jni" ]
   sources = [
     "java/src/org/chromium/blanc/island/IslandCoordinator.java",
+    "java/src/org/chromium/blanc/island/IslandPositionBridge.java",
     "java/src/org/chromium/blanc/island/PagePinchBridge.java",
     "java/src/org/chromium/blanc/island/TopColorBridge.java",
   ]

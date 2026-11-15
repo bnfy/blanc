@@ -1,5 +1,6 @@
 // Copyright 2026 Bananify Creative. MIT; see LICENSE.
 #include "blanc/android/browser/blanc_pages_ui.h"
+#include "blanc/android/browser/island_position.h"
 #include "blanc/android/browser/sync_start_data.h"
 
 #include <algorithm>
@@ -180,6 +181,9 @@ class PagesHandler : public content::WebUIMessageHandler {
     // The Start Page is the desktop fork's, and its own adapter asks over the fork's channel.
     web_ui()->RegisterMessageCallback(
         "blancNewTab", base::BindRepeating(&PagesHandler::OnStartCall, base::Unretained(this)));
+    // android-start.js asks where the Island sits, to make room for it.
+    web_ui()->RegisterMessageCallback(
+        "blancAndroidIsland", base::BindRepeating(&PagesHandler::OnIslandCall, base::Unretained(this)));
     Open().insert(this);
   }
 
@@ -274,6 +278,14 @@ class PagesHandler : public content::WebUIMessageHandler {
     start_prefs_.Add(kStartPagePinsPref, base::BindRepeating(&PagesHandler::StartEvent, base::Unretained(this), "pins"));
     bookmarks::BookmarkModel* model = Bookmarks();
     if (model && !bookmark_observation_.IsObserving()) bookmark_observation_.Observe(model);
+  }
+
+  // Where the Island sits (Settings → Island position). It's read each time a Start Page asks, and
+  // the Island reloads open Start Pages when it moves (IslandCoordinator), as the iPhone does.
+  void OnIslandCall(const base::ListValue& message) {
+    AllowJavascript();
+    if (!message.empty() || !IsStartPage()) return;
+    CallJavascriptFunction("blancAndroidIsland", base::Value(::blanc::IslandAtTop() ? "top" : "bottom"));
   }
 
   // [id, method, args], as the fork's newtab-adapter.js sends them.
