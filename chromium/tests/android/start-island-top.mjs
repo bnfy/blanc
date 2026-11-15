@@ -8,11 +8,13 @@
 //   node chromium/tests/android/start-island-top.mjs --apk <path> --evidence <dir>   (adb on PATH)
 import {execFileSync} from 'node:child_process';
 import fs from 'node:fs';
+import {hostPort} from './support/host-ports.mjs';
 
 const PACKAGE = 'me.bnfy.blanc.dev';
 const PREFS = `/data/data/${PACKAGE}/shared_prefs/${PACKAGE}_preferences.xml`;
 const PAGE = 'chrome://blanc/newtab';
-const PORT = 9334;
+// This server's end of the DevTools forward (support/host-ports.mjs: each emulator's runs have their own).
+const PORT = hostPort(9334);
 const adb = (...a) => execFileSync('adb', a, {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 << 20});
 const sleep = s => execFileSync('sleep', [String(s)]);
 const screenshot = file => fs.writeFileSync(file, execFileSync('adb', ['exec-out', 'screencap', '-p'], {maxBuffer: 64 << 20}));

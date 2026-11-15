@@ -12,7 +12,8 @@ export PATH="$PWD/third_party/android_sdk/public/platform-tools:$PWD/third_party
 adb shell touch /data/local/tmp/blanc-walkthrough-off && adb shell chmod 644 /data/local/tmp/blanc-walkthrough-off
 mkdir -p "$EVIDENCE"
 failed=()
-run() { local name=$1; shift; echo "== $name"; if "$@" > "$EVIDENCE/$name.log" 2>&1; then echo pass; else echo FAIL; failed+=("$name"); fi; grep -E "^(pass|FAIL) |gate: |scenarios \(" "$EVIDENCE/$name.log" | tail -16 || true; }
+source "$(dirname "${BASH_SOURCE[0]}")/gate-lib.sh"
+run() { local name=$1; shift; gate_wants "$name" || return 0; echo "== $name"; if "$@" > "$EVIDENCE/$name.log" 2>&1; then echo pass; else echo FAIL; failed+=("$name"); fi; grep -E "^(pass|FAIL) |gate: |scenarios \(" "$EVIDENCE/$name.log" | tail -16 || true; }
 run blocking node "$TREE/chromium/tests/android/blocking.mjs" --apk "$APK" --evidence "$EVIDENCE/blocking"
 run a2-gate env BLANC_EVIDENCE="$EVIDENCE/a2" bash "$TREE/chromium/tests/android/a2-gate.sh"
 sha256sum "$APK" > "$EVIDENCE/apk.sha256"

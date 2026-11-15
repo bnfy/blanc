@@ -5,9 +5,11 @@
 //   node chromium/tests/android/start-page-ways.mjs <evidence dir>   (adb on PATH, Blanc installed)
 import {execFileSync} from 'node:child_process';
 import fs from 'node:fs';
+import {hostPort} from './support/host-ports.mjs';
 
 const PACKAGE = 'me.bnfy.blanc.dev';
-const PORT = 9333;
+// This run's emulator's DevTools port (support/host-ports.mjs).
+const PORT = hostPort(9333);
 const adb = (...a) => execFileSync('adb', a, {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 << 20});
 const sleep = s => execFileSync('sleep', [String(s)]);
 const screenshot = file => fs.writeFileSync(file, execFileSync('adb', ['exec-out', 'screencap', '-p'], {maxBuffer: 64 << 20}));
