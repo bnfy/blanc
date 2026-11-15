@@ -2633,4 +2633,13 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="android_default_browser_body">Make Blanc your default browser so links from other apps open here.</string>
     <string name="android_default_browser_open">Set as default</string>
     <string name="android_settings_auto_revoke_summary">To protect your data, let Blanc remove permissions from sites that you haven’t visited recently</string>
+    <string name="android_licenses_title">Open-source licenses</string>
+    <string name="android_licenses_intro">Read Blanc\'s licenses and notices below. Chromium\'s credits list its own licenses and third-party components.</string>
+    <string name="android_licenses_chromium_credits">Chromium licenses and credits</string>
+    <string name="android_licenses_license">Blanc software license</string>
+    <string name="android_licenses_asset_license">Blanc names, logos and identity assets</string>
+    <string name="android_licenses_third_party_notices">Repository third-party notices</string>
+    <string name="android_licenses_chromium_fork_notices">Chromium fork notices</string>
+    <string name="android_licenses_loading">Loading notice…</string>
+    <string name="android_licenses_load_failed">This notice could not be loaded. Open its title link to read the bundled file.</string>
 </resources>

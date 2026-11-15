@@ -59,6 +59,16 @@
     "strings.pt-BR.js",
     "sunrise-mark.png"
   ],
+  "local": [
+    "licenses-strings.js",
+    "licenses.css",
+    "licenses.html",
+    "licenses.js",
+    "notices/ASSET-LICENSE.txt",
+    "notices/CHROMIUM-FORK-NOTICES.txt",
+    "notices/LICENSE.txt",
+    "notices/THIRD-PARTY-NOTICES.txt"
+  ],
   "start": {
     "from": "blanc/island/pages",
     "files": [

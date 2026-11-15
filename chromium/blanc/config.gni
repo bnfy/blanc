@@ -1,6 +1,8 @@
 # Preview hooks are opt-in at runtime and absent from release/official builds.
 declare_args() {
   blanc_channel = "preview"
+  # Android's release version is independent of desktop's; previews have none.
+  blanc_android_version_name = ""
   blanc_beta_version = "2.0.0-beta.1"
   blanc_beta_build = 1
   # Explicit local-only updater/Sync qualification; never a distributable build.
@@ -16,6 +18,11 @@ declare_args() {
   blanc_blocker_bundle = ""
 }
 assert(blanc_channel == "preview" || blanc_channel == "release" || blanc_channel == "beta")
+assert(blanc_android_version_name == "" || target_os == "android",
+       "A Blanc Android version is only valid for Android builds")
+assert(target_os != "android" || blanc_channel != "release" ||
+           blanc_android_version_name != "",
+       "Android release builds need blanc_android_version_name")
 blanc_beta_channel = blanc_channel == "beta"
 assert(!blanc_beta_local_qualification || (blanc_beta_channel && target_cpu == "arm64"))
 if (blanc_beta_channel) {

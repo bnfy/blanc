@@ -14,6 +14,7 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import org.chromium.base.test.BaseRobolectricTestRunner;
+import org.chromium.blanc.BlancRelease;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -35,9 +36,18 @@ public class LaunchPingTest {
 
     @Test
     public void aPreviewWithNoReleaseVersionSendsNowhere() {
+        if (BlancRelease.VERSION != null) return;
         assertNull(LaunchPing.RELEASE_VERSION);
         assertNull(LaunchPing.endpoint(false, null));
         assertNull(LaunchPing.version(false, null));
+    }
+
+    @Test
+    public void testReleaseVersionMatchesPattern() {
+        if (BlancRelease.VERSION == null) return;
+        assertEquals(BlancRelease.VERSION, LaunchPing.RELEASE_VERSION);
+        assertEquals(BlancRelease.VERSION, LaunchPing.version(false, null));
+        assertEquals(LaunchPing.ENDPOINT, LaunchPing.endpoint(false, null));
     }
 
     @Test

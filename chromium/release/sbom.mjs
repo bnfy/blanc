@@ -64,18 +64,17 @@ const inside = (base, rel) => {
   return full;
 };
 
-export function validateScan(scan) {
-  equal(scan?.schema, 1, 'scan schema'); equal(scan.target, '//chrome:chrome', 'scan target');
+export function validateScan(scan, {target = '//chrome:chrome'} = {}) {
+  equal(scan?.schema, 1, 'scan schema'); equal(scan.target, target, 'scan target');
   check(Array.isArray(scan.components) && scan.components.length > 100, 'scan lists too few components');
   equal(scan.components[0].name, 'The Chromium Project', 'scan starts with Chromium itself');
   check(Array.isArray(scan.skippedDirs), 'scan must record skipped folders');
 }
 
-// Everything build and audit need, read once and cross-checked: each licence
-// text's bytes against the scan, each Island file against the pinned asset
-// manifest, each Blanc asset against compliance/policy.json.
-export function gather(r, scan, src, {root = ROOT, extra = JSON.parse(fs.readFileSync(EXTRA))} = {}) {
-  validateRelease(r, {allowLocalQualification: true}); validateScan(scan);
+// Shared Chromium inventory: read and verify the scanned licence bytes once.
+// Desktop defaults remain its reviewed extras; other platforms supply their own.
+export function gatherComponents(scan, src, {extra = JSON.parse(fs.readFileSync(EXTRA)), target = '//chrome:chrome'} = {}) {
+  validateScan(scan, {target});
   const texts = new Map(); // sha256 -> bytes
   const keep = bytes => { const digest = sha256(bytes); texts.set(digest, bytes); return digest; };
   const chromium = [];
@@ -96,6 +95,19 @@ export function gather(r, scan, src, {root = ROOT, extra = JSON.parse(fs.readFil
     chromium.push({ref: `chromium:${a.dir}#${a.name}`, name: a.name, version: a.version || null, revision: null, url: a.url,
       license: a.license, cpe: null, dir: a.dir, files: [{path: a.licenseFile, sha256: keep(bytes)}], addition: true});
   }
+  const chromiumLicense = keep(text(path.join(src, 'LICENSE')));
+  const reviewed = new Set([...Object.keys(extra.reviewedSkips), ...extra.chromiumAdditions.map(a => a.dir)]);
+  const unreviewed = scan.skippedDirs.map(s => s.dir).filter(dir => !reviewed.has(dir));
+  return {chromium, texts, chromiumLicense, unreviewed};
+}
+
+// Everything build and audit need, read once and cross-checked: each licence
+// text's bytes against the scan, each Island file against the pinned asset
+// manifest, each Blanc asset against compliance/policy.json.
+export function gather(r, scan, src, {root = ROOT, extra = JSON.parse(fs.readFileSync(EXTRA))} = {}) {
+  validateRelease(r, {allowLocalQualification: true});
+  const {chromium, texts, chromiumLicense, unreviewed} = gatherComponents(scan, src, {extra});
+  const keep = bytes => { const digest = sha256(bytes); texts.set(digest, bytes); return digest; };
   const policy = JSON.parse(fs.readFileSync(path.join(root, 'compliance/policy.json')));
   const island = JSON.parse(fs.readFileSync(path.join(root, 'chromium/blanc/island-assets.json'))).manifest;
   const blanc = extra.blancAssets.map(entry => {
@@ -129,7 +141,6 @@ export function gather(r, scan, src, {root = ROOT, extra = JSON.parse(fs.readFil
     }),
   ];
   const sparkleLicense = keep(text(path.join(root, 'chromium/blanc/third_party/sparkle/LICENSE')));
-  const chromiumLicense = keep(text(path.join(src, 'LICENSE')));
   const blancLicense = keep(text(path.join(root, 'chromium/blanc/notices/LICENSE')));
   // Shipped components Chromium's credits page misses, credited in the beta's
   // notice instead: each must still ship, with the licence text committed.
@@ -139,8 +150,6 @@ export function gather(r, scan, src, {root = ROOT, extra = JSON.parse(fs.readFil
     check(shipped.files.some(f => f.sha256 === sha256(text(inside(root, a.licenseFile)))), `credits addition's licence differs from the tree: ${a.name}`);
     return a.name;
   }));
-  const reviewed = new Set([...Object.keys(extra.reviewedSkips), ...extra.chromiumAdditions.map(a => a.dir)]);
-  const unreviewed = scan.skippedDirs.map(s => s.dir).filter(dir => !reviewed.has(dir));
   return {r, scan, extra, chromium, blanc, bundle, blocker, creditsAdditions, texts, sparkleLicense, chromiumLicense, blancLicense, unreviewed};
 }
 
@@ -155,29 +164,31 @@ const site = url => /^https?:\/\//.test(url || '') ? [{type: 'website', url}] : 
 
 // Deterministic: the same inputs always give the same bytes, so audit can
 // rebuild and compare instead of trusting a file it was handed.
-export function makeSbom(g) {
+export function makeSbom(g, {platform = 'desktop', productName = 'Blanc Beta', productRef = BLANC_REF} = {}) {
+  const desktop = platform === 'desktop';
+  check(desktop || platform === 'android', 'unknown SBOM platform');
   const {r} = g;
   const chromiumRef = 'chromium', sparkleRef = 'sparkle';
   const components = [
     {type: 'framework', 'bom-ref': chromiumRef, name: 'Chromium', version: r.chromiumVersion, licenses: licenses('BSD-3-Clause'),
       purl: `pkg:generic/chromium@${r.chromiumVersion}`, externalReferences: [{type: 'vcs', url: 'https://chromium.googlesource.com/chromium/src'}],
       properties: [prop('blanc:upstreamCommit', r.upstream), prop('blanc:licenseText:sha256', g.chromiumLicense)]},
-    {type: 'framework', 'bom-ref': sparkleRef, name: 'Sparkle', version: r.sparkle.version, licenses: licenses('MIT'),
+    ...(desktop ? [{type: 'framework', 'bom-ref': sparkleRef, name: 'Sparkle', version: r.sparkle.version, licenses: licenses('MIT'),
       purl: `pkg:github/sparkle-project/Sparkle@${r.sparkle.version}`,
       hashes: [{alg: 'SHA-256', content: r.sparkle.archiveSHA256}],
       externalReferences: [{type: 'distribution', url: `https://github.com/sparkle-project/Sparkle/releases/tag/${r.sparkle.version}`}],
-      properties: [prop('blanc:licenseText:sha256', g.sparkleLicense)]},
+      properties: [prop('blanc:licenseText:sha256', g.sparkleLicense)]}] : []),
     ...g.blanc.map(b => ({type: 'file', 'bom-ref': b.ref, name: b.name, ...(b.version ? {version: b.version} : {}), licenses: licenses(b.license),
       ...(b.attribution ? {copyright: b.attribution} : {}), externalReferences: site(b.url),
       properties: [...b.files.map(f => prop(`blanc:file:${f.path}:sha256`, f.sha256)), prop('blanc:licenseText:sha256', b.licenseText)]})),
-    {type: 'file', 'bom-ref': 'blocker-engine', name: 'Blanc blocker engine bundle', version: g.bundle.engineVersion,
+    ...(desktop ? [{type: 'file', 'bom-ref': 'blocker-engine', name: 'Blanc blocker engine bundle', version: g.bundle.engineVersion,
       licenses: licenses('MPL-2.0 AND CC-BY-SA-3.0-or-later'), hashes: [{alg: 'SHA-256', content: g.bundle.bundleSha256}],
-      properties: [prop('blanc:path', BLOCKER_ENGINE), prop('blanc:referenceAppSha256', g.bundle.referenceAppSha256)]},
+      properties: [prop('blanc:path', BLOCKER_ENGINE), prop('blanc:referenceAppSha256', g.bundle.referenceAppSha256)]}] : []),
     ...g.blocker.map(b => ({type: b.type, 'bom-ref': b.ref, name: b.name, version: b.version, licenses: licenses(b.license),
       ...(b.purl ? {purl: b.purl} : {}), ...(b.hash ? {hashes: [{alg: 'SHA-256', content: b.hash}]} : {}), externalReferences: site(b.url),
       properties: b.licenseTexts.map(t => prop('blanc:licenseText:sha256', t))})),
-    ...g.chromium.map(c => ({type: 'library', 'bom-ref': c.ref, name: c.name, ...(c.version ? {version: c.version} : {}),
-      licenses: licenses(c.license), ...(/^cpe:/.test(c.cpe || '') ? {cpe: c.cpe} : {}), externalReferences: site(c.url),
+    ...g.chromium.map(c => ({type: c.type || 'library', 'bom-ref': c.ref, name: c.name, ...(c.version ? {version: c.version} : {}),
+      licenses: licenses(c.license), ...(c.hash ? {hashes: [{alg: 'SHA-256', content: c.hash}]} : {}), ...(/^cpe:/.test(c.cpe || '') ? {cpe: c.cpe} : {}), externalReferences: site(c.url),
       properties: [prop('blanc:chromiumDir', c.dir), ...(c.revision ? [prop('blanc:revision', c.revision)] : []),
         ...(c.version ? [] : [prop('blanc:inTreeAt', r.chromiumVersion)]), ...(c.addition ? [prop('blanc:skippedByLicensesPy', 'true')] : []),
         ...c.files.map(f => prop(`blanc:licenseText:${f.path}:sha256`, f.sha256))]})),
@@ -187,7 +198,7 @@ export function makeSbom(g) {
   const body = {
     metadata: {
       tools: {components: [{type: 'application', name: 'blanc chromium/release/sbom.mjs'}, {type: 'application', name: 'chromium tools/licenses/licenses.py'}]},
-      component: {type: 'application', 'bom-ref': BLANC_REF, name: 'Blanc Beta', version: r.version, licenses: licenses('MIT'),
+      component: {type: 'application', 'bom-ref': productRef, name: productName, version: r.version, licenses: licenses('MIT'),
         externalReferences: [{type: 'vcs', url: 'https://github.com/bnfy/blanc'}],
         properties: [prop('blanc:sourceCommit', r.sourceCommit), prop('blanc:inputDigest', r.inputDigest), prop('blanc:build', r.build),
           prop('blanc:gnTarget', g.scan.target), prop('blanc:licenseText:sha256', g.blancLicense),
@@ -195,8 +206,8 @@ export function makeSbom(g) {
     },
     components,
     dependencies: [
-      {ref: BLANC_REF, dependsOn: [chromiumRef, sparkleRef, 'blocker-engine', ...g.blanc.map(b => b.ref)]},
-      {ref: 'blocker-engine', dependsOn: g.blocker.map(b => b.ref)},
+      {ref: productRef, dependsOn: [chromiumRef, ...(desktop ? [sparkleRef, 'blocker-engine'] : []), ...g.blanc.map(b => b.ref)]},
+      ...(desktop ? [{ref: 'blocker-engine', dependsOn: g.blocker.map(b => b.ref)}] : []),
       {ref: chromiumRef, dependsOn: g.chromium.map(c => c.ref)},
     ],
   };

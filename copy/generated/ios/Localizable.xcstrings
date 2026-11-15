@@ -107790,6 +107790,384 @@
           }
         }
       }
+    },
+    "android.licenses.title": {
+      "comment": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open-source licenses"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open-Source-Lizenzen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licencias de código abierto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licences open source"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licenze open source"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licenças de código aberto"
+          }
+        }
+      }
+    },
+    "android.licenses.intro": {
+      "comment": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read Blanc's licenses and notices below. Chromium's credits list its own licenses and third-party components."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lies unten die Lizenzen und Hinweise von Blanc. Die Chromium-Credits enthalten die eigenen Lizenzen und Drittanbieterkomponenten von Chromium."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lee las licencias y los avisos de Blanc a continuación. Los créditos de Chromium incluyen sus propias licencias y componentes de terceros."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lis les licences et les mentions de Blanc ci-dessous. Les crédits de Chromium présentent ses propres licences et composants tiers."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leggi le licenze e gli avvisi di Blanc qui sotto. I riconoscimenti di Chromium elencano le sue licenze e i componenti di terze parti."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leia as licenças e os avisos do Blanc abaixo. Os créditos do Chromium listam suas próprias licenças e componentes de terceiros."
+          }
+        }
+      }
+    },
+    "android.licenses.chromiumCredits": {
+      "comment": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chromium licenses and credits"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chromium-Lizenzen und Credits"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licencias y créditos de Chromium"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licences et crédits de Chromium"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licenze e riconoscimenti di Chromium"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licenças e créditos do Chromium"
+          }
+        }
+      }
+    },
+    "android.licenses.license": {
+      "comment": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc software license"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc-Softwarelizenz"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licencia del software de Blanc"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licence du logiciel Blanc"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licenza del software Blanc"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licença do software Blanc"
+          }
+        }
+      }
+    },
+    "android.licenses.assetLicense": {
+      "comment": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc names, logos and identity assets"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Namen, Logos und Identitätsmerkmale von Blanc"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombres, logotipos y elementos de identidad de Blanc"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noms, logos et éléments d’identité de Blanc"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nomi, loghi ed elementi di identità di Blanc"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nomes, logotipos e elementos de identidade do Blanc"
+          }
+        }
+      }
+    },
+    "android.licenses.thirdPartyNotices": {
+      "comment": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repository third-party notices"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drittanbieterhinweise des Repositorys"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avisos de terceros del repositorio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mentions de tiers du dépôt"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avvisi di terze parti del repository"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avisos de terceiros do repositório"
+          }
+        }
+      }
+    },
+    "android.licenses.chromiumForkNotices": {
+      "comment": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chromium fork notices"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hinweise zum Chromium-Fork"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avisos de la bifurcación de Chromium"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mentions du fork de Chromium"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avvisi del fork di Chromium"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avisos do fork do Chromium"
+          }
+        }
+      }
+    },
+    "android.licenses.loading": {
+      "comment": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading notice…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hinweis wird geladen…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargando aviso…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chargement de la mention…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caricamento dell’avviso…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carregando aviso…"
+          }
+        }
+      }
+    },
+    "android.licenses.loadFailed": {
+      "comment": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This notice could not be loaded. Open its title link to read the bundled file."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Hinweis konnte nicht geladen werden. Öffne den Link im Titel, um die mitgelieferte Datei zu lesen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se ha podido cargar este aviso. Abre el enlace del título para leer el archivo incluido."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette mention n’a pas pu être chargée. Ouvre le lien de son titre pour lire le fichier inclus."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile caricare questo avviso. Apri il link nel titolo per leggere il file incluso."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível carregar este aviso. Abra o link no título para ler o arquivo incluído."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

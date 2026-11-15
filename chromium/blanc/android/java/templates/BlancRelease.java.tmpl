@@ -1,0 +1,14 @@
+// Copyright 2026 Bananify Creative. MIT; see LICENSE.
+// Generated from blanc_android_version_name. Do not edit.
+
+package org.chromium.blanc;
+
+import org.chromium.build.annotations.NullMarked;
+import org.chromium.build.annotations.Nullable;
+
+@NullMarked
+public final class BlancRelease {
+    public static final @Nullable String VERSION = {% if blanc_version %}{{ blanc_version | tojson }}{% else %}null{% endif %};
+
+    private BlancRelease() {}
+}
