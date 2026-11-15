@@ -24,7 +24,8 @@ const PORT = 8471;
 const VERSION = '0.1.0-test';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
-const decode = s => s.replace(/&amp;/g, '&').replace(/&quot;/g, '"');
+// &amp; last, so a literal "&amp;quot;" stays "&quot;".
+const decode = s => s.replace(/&quot;/g, '"').replace(/&amp;/g, '&');
 const bounds = (xml, text) => {
   const escaped = text.replace(/&/g, '&amp;').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const m = new RegExp(`<node[^>]*text="${escaped}"[^>]*bounds="\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]"`).exec(xml);
