@@ -16,6 +16,8 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
     /// load or whenever the page changes it: History renames the visit in
     /// place (desktop's page-title-updated).
     var onPageTitle: ((URL, String) -> Void)?
+    /// A main-frame load finished (the tab's site icon is taken then).
+    var onFinish: ((WKWebView) -> Void)?
     /// The load that wakes a quiet tab (`wake`). It shows a page the tab had
     /// already visited, so, like desktop's `tab.waking`, it records no visit
     /// and renames none until it settles.
@@ -90,6 +92,7 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
         // The Start Page's glass clock goes with its page: a load that fails
         // before it commits leaves the page, so the clock stays too.
         tab?.nativeClock.hide()
+        tab?.showsStartPage = StartPageBridge.isStartPage(webView.url)
         tab?.hasCommitted = true
         tab?.loadFailure = nil
         tab?.showIsland()
@@ -118,6 +121,7 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
                  didFinish navigation: WKNavigation!) {
         sync(webView, finished: true)
         settled(navigation)
+        onFinish?(webView)
         tab?.probeReader()
         Task { @MainActor [weak tab] in
             await Task.yield()

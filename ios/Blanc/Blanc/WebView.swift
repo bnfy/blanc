@@ -52,7 +52,8 @@ struct WebView: UIViewRepresentable {
         webView.layer.cornerRadius = cornerRadius
         webView.layer.cornerCurve = .continuous
         webView.clipsToBounds = cornerRadius > 0
-        let startPage = tab.currentURL.scheme == "blanc" && tab.currentURL.host == "newtab"
+        // The document on screen, not the address a load has just started for.
+        let startPage = tab.showsStartPage
         // The Start Page paints beneath the system bars and floating Island;
         // its stylesheet reserves space for the controls. Websites keep their
         // normal safe-area adjustment, plus room for the Island.

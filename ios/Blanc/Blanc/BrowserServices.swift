@@ -18,6 +18,8 @@ final class BrowserServices {
     let startAppearance: StartAppearanceStore
     /// The Start Page's widgets and pinned shortcuts.
     let startPage: StartPageStore
+    /// Sites' icons for the Start Page (never from a private tab).
+    let siteIcons: SiteIcons
     let schemeHandler: BlancSchemeHandler
     let sessionStore: SessionStore
     let tabHistory: TabHistoryStore
@@ -43,6 +45,7 @@ final class BrowserServices {
             appearance?.migratedToForkPage == false ? appearance?.legacyPhotoVersion : nil
         })
         startPage = StartPageStore(directory: settingsDirectory)
+        siteIcons = SiteIcons(directory: settingsDirectory)
         settingsStore = SettingsStore(directory: settingsDirectory)
         #if DEBUG
         // The App Store images show the Island without Back and Forward
@@ -76,6 +79,7 @@ final class BrowserServices {
             MainActor.assumeIsolated { self?.startPageState(isPrivate: isPrivate) ?? "" }
         }
         historyStore.onChange = { [weak self] in self?.historyChanged() }
+        siteIcons.onChange = { [weak self] in self?.historyChanged() }
         memoryObserver = NotificationCenter.default.addObserver(
             forName: UIApplication.didReceiveMemoryWarningNotification, object: nil, queue: .main
         ) { [weak self] _ in
@@ -110,11 +114,14 @@ final class BrowserServices {
                                     preferences: isPrivate ? startPage.preferences : nil)
     }
 
-    /// Open Start Pages rank History again, once a burst of visits settles.
+    /// Open Start Pages rank History again, and draw new site icons, once a
+    /// burst of visits settles.
     private var historyBroadcast: DispatchWorkItem?
     @MainActor private func historyChanged() {
         historyBroadcast?.cancel()
-        let work = DispatchWorkItem { [weak self] in MainActor.assumeIsolated { self?.broadcastStartPage("topSites") } }
+        let work = DispatchWorkItem { [weak self] in
+            MainActor.assumeIsolated { ["topSites", "pins", "bookmarks"].forEach { self?.broadcastStartPage($0) } }
+        }
         historyBroadcast = work
         DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: work)
     }
