@@ -17,16 +17,15 @@ changes update and reload existing web tabs. Five supported engines are shown.
 An existing synced `custom` choice still uses iOS's DuckDuckGo fallback; there is
 no custom-template editor in this change.
 
-Layout and appearance use shared manager methods from both the page bridge and
-the native controls. The manager broadcasts changes to open Start Pages and
-native Settings previews. Previews run the actual bundled Start Page, including
-the native clock renderer, but are noninteractive and absent from the session,
-history, tab sync, and tab strip. Their references are weak outside the views.
-
-Wallpaper and clock choices retain the existing `start-appearance.json` and
-image storage, validation, defaults, font limits, and device-local boundaries.
-The photo picker grants access only to the selected photo. Clock controls apply
-to Billboard; choosing another layout does not discard the clock preferences.
+The Start Page row opens the Start Page's own Customize (November 15, 2026,
+D39): the Start Page is the desktop fork's, as on Android, and its widgets,
+Shortcuts count, clock and wallpaper are chosen there. The row closes Settings
+and opens Customize on the Start Page in view, or on a new one
+(`TabsManager.customizeStartPage`). The native layout, wallpaper and clock
+screens and their live previews are gone. The clock stays in
+`start-appearance.json` (`StartPageBridge` answers the page's `clockRead` and
+`clockWrite`), widgets and pins in `start-page.json`, and the wallpaper and
+photo in the page's own storage; none of them sync.
 
 Allowed sites use the existing normalized host list. Changing an exception
 updates protection and reloads only affected open tabs. No new data-clearing,

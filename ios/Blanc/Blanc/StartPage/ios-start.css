@@ -1,0 +1,284 @@
+/* Copyright 2026 Bananify Creative. MIT; see LICENSE.
+   Blanc for iPhone's Start Page: the desktop fork's page on a phone, as Android's android-start.css
+   lays it out (the two are kept alike; differences are marked "iPhone"). The clock sits at the
+   middle of the screen; the line under it, the shortcuts and the widgets follow it down the page,
+   which scrolls when the widgets need the room. The footer (Customize) floats above the Island, and
+   Customize and the clock's settings open as sheets over the bottom of the screen. With the Island
+   along the top (Settings → Island position), the header moves below it and the footer and sheets
+   drop to the bottom edge it left. */
+html[data-platform="ios"] {
+  -webkit-text-size-adjust: 100%;
+  --ios-island: 68px;
+  --ios-footer: 64px;
+  /* The Island's room above the page and below it: the Island's height on its side, nothing on the
+     other (ios-start.js marks the side). */
+  --ios-island-above: 0px;
+  --ios-island-below: var(--ios-island);
+  /* The middle of the clock's box: the page's middle, moved so its figures center on the screen
+     (ios-start.js measures --ios-clock-nudge). */
+  --ios-clock-top: calc(50dvh + var(--ios-clock-nudge, 0px));
+}
+html[data-platform="ios"][data-island="top"] {
+  --ios-island-above: var(--ios-island);
+  --ios-island-below: 0px;
+}
+html[data-platform="ios"] .ledger-body {
+  position: relative;
+  min-width: 0;
+  min-height: 100dvh;
+  height: auto;
+  padding: 0 0 calc(var(--ios-island-below) + var(--ios-footer) + 24px + env(safe-area-inset-bottom, 0px));
+  --start-edge: 16px;
+  --start-gutter: 16px;
+}
+html[data-platform="ios"] .start-header {
+  padding: calc(20px + var(--ios-island-above) + env(safe-area-inset-top, 0px)) 24px 0;
+  justify-content: center;
+}
+html[data-platform="ios"] .start-brand { gap: 12px; justify-content: center; }
+html[data-platform="ios"] .start-brand-mark { width: 38px; height: 38px; }
+html[data-platform="ios"] .start-brand-date { font-size: 15px; }
+html[data-platform="ios"] .start-content {
+  flex: 1 0 auto;
+  margin: 0;
+  padding: 0 16px 24px;
+  width: 100%;
+  min-width: 0;
+  justify-content: flex-start;
+}
+
+/* The clock at the middle of the screen, scrolling with the page; what follows starts under it. */
+html[data-platform="ios"] .bb-clock { font-size: clamp(64px, 30vw, 120px); }
+html[data-platform="ios"] body:not(:has(#clockPopover:popover-open)) .bb-clock-row {
+  position: absolute;
+  inset: var(--ios-clock-top) 16px auto;
+  /* Shrunk only when shortcuts need the room (ios-start.js sets the fit). */
+  transform: translateY(-50%) scale(var(--ios-clock-fit, 1));
+  justify-content: center;
+  margin: 0;
+}
+html[data-platform="ios"] body:not(:has(#clockPopover:popover-open)) .bb-blocked {
+  position: absolute;
+  inset: calc(var(--ios-clock-top) + var(--ios-clock-height, 100px) * var(--ios-clock-fit, 1) / 2 + 12px) 16px auto;
+  text-align: center;
+  margin: 0;
+}
+html[data-platform="ios"] .billboard {
+  /* The clock's bottom is measured from the page's top, this padding from Billboard's own top. */
+  padding-top: calc(var(--ios-clock-top) + var(--ios-clock-height, 100px) * var(--ios-clock-fit, 1) / 2 + 56px
+    - var(--ios-billboard-top, 0px));
+  width: 100%;
+}
+html[data-platform="ios"] .bb-favs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px 8px;
+  width: 100%;
+  margin-top: 0;
+}
+html[data-platform="ios"] .bb-favs:has(.empty) { display: flex; }
+html[data-platform="ios"] .bb-site { width: 100%; display: block; min-width: 0; }
+html[data-platform="ios"] .bb-fav .tile { width: 48px; height: 48px; }
+html[data-platform="ios"] .bb-fav .label { max-width: 100%; font-size: 13px; }
+html[data-platform="ios"] .bb-groups { flex-wrap: wrap; margin-top: 24px; }
+
+/* The widgets in one column under the shortcuts. Cards are reordered on a wide desktop window only:
+   no grips here. */
+html[data-platform="ios"] .bb-widgets {
+  width: 100%;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 28px;
+}
+html[data-platform="ios"] .bb-rail { width: 100%; flex: none; gap: 12px; }
+html[data-platform="ios"] .bb-widget-grip,
+html[data-platform="ios"] .bb-widget-resize { display: none; }
+html[data-platform="ios"] #bbWidgets #favoritesList { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+html[data-platform="ios"] .fav { min-height: 48px; }
+
+/* The footer stays above the Island, as on the iPhone; what scrolls under it goes behind a frosted
+   band (below). Keyboard hints and Spaces (not on the Start Page here) go. */
+html[data-platform="ios"] .ledger-footer,
+html[data-platform="ios"] body:not([data-layout="ledger"]) .ledger-footer {
+  position: fixed;
+  inset: auto 0 calc(var(--ios-island-below) + env(safe-area-inset-bottom, 0px));
+  z-index: 3;
+  min-height: var(--ios-footer);
+  margin: 0;
+  padding: 12px 16px;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+/* Shipping's frosted band behind the footer (pages.css's .ledger-footer::before, in the wallpaper's
+   own tint, shown while something scrolls under it), carried down behind an Island below it. The fork's
+   photo fade (::after) stays off: it assumes a footer at the window's bottom edge. */
+html[data-platform="ios"] .ledger-footer::before {
+  inset: -28px 0 calc(-1 * (var(--ios-island-below) + env(safe-area-inset-bottom, 0px))) 0;
+  /* The page's own background, which the wallpaper rules switch to suit the ink (your photo's
+     Light or Dark, a Color's), so the footer's labels always read. Shipping's tint stays Sunrise's. */
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+}
+html[data-platform="ios"] body[data-wallpaper-fill="solid"] .ledger-footer::before,
+html[data-platform="ios"] body[data-wallpaper-fill="gradient"] .ledger-footer::before {
+  background: color-mix(in srgb, var(--start-color-base) 72%, transparent);
+}
+html[data-platform="ios"] #layoutFooter::after { display: none; }
+/* Shipping shows it once the content's end passes the footer, which here also has the Island under
+   it; with a widget on, something can always be under the footer, so the band always shows. */
+html[data-platform="ios"] body:has(.bb-rail[data-empty="false"]) .ledger-footer::before { opacity: 1; }
+html[data-platform="ios"] .ledger-footer :is(.footer-left, .footer-appearance) {
+  display: flex; align-items: center; gap: 10px; min-width: 0; flex: none; flex-basis: auto;
+}
+html[data-platform="ios"] .ledger-footer .footer-left { order: 1; }
+html[data-platform="ios"] .ledger-footer .footer-appearance { order: 2; }
+/* A shortcut's and a favorite's pin and × are too small for a finger (owner, November 14): a long
+   press opens their menu instead (ios-start.js). The buttons stay for VoiceOver, out of sight, and a
+   long press neither selects the label nor shows iOS's link preview. */
+html[data-platform="ios"] :is(.bb-site-pin, .bb-site-dismiss, .fav-pin) {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+  opacity: 1;
+}
+html[data-platform="ios"] :is(.bb-site, .fav-item) { -webkit-touch-callout: none; user-select: none; }
+
+/* The long press's menu: a sheet over the bottom of the screen, above the Island, like Customize. */
+html[data-platform="ios"] .ios-shortcut-menu:popover-open {
+  position: fixed;
+  inset: auto 12px calc(var(--ios-island-below) + 8px + env(safe-area-inset-bottom, 0px));
+  margin: 0 auto;
+  width: calc(100vw - 24px);
+  max-width: 480px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: 22px;
+  background: var(--start-float-fill);
+  backdrop-filter: blur(20px) saturate(140%);
+  box-shadow: var(--start-shadow-float);
+  color: var(--text);
+  font-family: var(--font-text);
+}
+html[data-platform="ios"] .ios-shortcut-menu::backdrop { background: rgb(0 0 0 / 0.18); }
+html[data-platform="ios"] .ios-shortcut-menu-title {
+  padding: 10px 12px 8px;
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--text-dim);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+html[data-platform="ios"] .ios-shortcut-menu button {
+  min-height: 48px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  text-align: left;
+}
+html[data-platform="ios"] .ios-shortcut-menu button:active { background: color-mix(in srgb, var(--text) 8%, transparent); }
+html[data-platform="ios"] .ios-shortcut-menu .ios-shortcut-menu-cancel {
+  margin-top: 4px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: 0 0 14px 14px;
+  color: var(--text-dim);
+}
+html[data-platform="ios"] :is(#goAnywhere, .footer-right, #version, .wallpaper-follow, #colorWallpaperFollow,
+  #colorWallpaperFollowHint, #storeThemeWallpaperPick) { display: none; }
+html[data-platform="ios"] .start-customize { min-height: 44px; padding-inline: 20px; font-size: 14px; }
+/* Mahjong isn't laid out for phones yet (owner, November 14, 2026 on Android, November 15 on the
+   iPhone), so the Start Page doesn't offer it; Customize stands alone. */
+html[data-platform="ios"] #mahjongPill { display: none; }
+html[data-platform="ios"] .ledger-footer .footer-left:not(:has(#migrationChecklistShell:not([hidden]), #whatsNew:not([hidden]))) {
+  display: none;
+}
+
+/* Customize and the clock's settings: sheets over the bottom of the screen, above the Island. */
+html[data-platform="ios"] #customizePopover:popover-open {
+  position: fixed;
+  position-anchor: auto;
+  position-area: none;
+  inset: auto 12px calc(var(--ios-island-below) + 8px + env(safe-area-inset-bottom, 0px)) !important;
+  margin: 0 auto;
+  width: calc(100vw - 24px) !important;
+  max-width: 480px;
+  height: auto !important;
+  max-height: min(72dvh, calc(100dvh - var(--ios-island) - 48px)) !important;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 18px 16px;
+  border-radius: 22px;
+}
+html[data-platform="ios"] .customize-cols { grid-template-columns: minmax(0, 1fr) !important; }
+html[data-platform="ios"] .customize-col-wallpaper { margin-top: 14px; padding-top: 14px; border-left: 0; padding-left: 0; }
+html[data-platform="ios"] :is(.wallpaper-seg button, .wallpaper-toggle, .wallpaper-caption-action, .clock-popover-back,
+  .shortcut-stepper button) { min-height: 44px; }
+html[data-platform="ios"] :is(.clock-slider, .wallpaper-fade) { min-height: 44px; touch-action: none; }
+html[data-platform="ios"] :is(.clock-swatch, .wallpaper-swatch) { min-width: 34px; min-height: 34px; }
+
+/* Editing the clock: the clock itself moves to the top as the live preview, the sheet below it. */
+html[data-platform="ios"] body:has(#clockPopover:popover-open) :is(.start-header, .ledger-footer, .bb-blocked,
+  .bb-favs, .bb-groups, .bb-widgets) { visibility: hidden; }
+html[data-platform="ios"] body:has(#clockPopover:popover-open) .bb-clock-row {
+  position: fixed;
+  inset: calc(12px + var(--ios-island-above) + env(safe-area-inset-top, 0px)) 16px auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  transform: none;
+}
+html[data-platform="ios"] body {
+  --ios-clock-panel-top: max(40dvh, calc(28px + var(--ios-island-above) + env(safe-area-inset-top, 0px)
+    + var(--ios-clock-height, 100px)));
+}
+html[data-platform="ios"] #clockPopover:popover-open {
+  position: fixed;
+  position-anchor: auto;
+  position-area: none;
+  position-try-fallbacks: none;
+  inset: auto 12px calc(var(--ios-island-below) + 8px + env(safe-area-inset-bottom, 0px)) !important;
+  margin: 0 auto;
+  width: calc(100vw - 24px) !important;
+  max-width: 480px;
+  height: auto !important;
+  max-height: calc(100dvh - var(--ios-clock-panel-top) - var(--ios-island-below) - 8px - env(safe-area-inset-bottom, 0px)) !important;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  border-radius: 22px;
+  /* It sits inside the footer, which hides while the clock is edited. */
+  visibility: visible;
+}
+html[data-platform="ios"] .clock-popover-head { grid-template-columns: 44px 1fr 44px; margin: 0 0 4px; }
+html[data-platform="ios"] .clock-popover-back { width: 44px; }
+html[data-platform="ios"] .clock-font { height: 44px; }
+html[data-platform="ios"] .clock-swatches { flex-wrap: wrap; gap: 10px; justify-content: flex-start; padding: 5px; }
+/* iPhone: a Glass clock is drawn by iOS over the page (NativeClockOverlay); the page's own figures
+   stay for layout and VoiceOver, out of sight. */
+html[data-platform="ios"] .native-clock-glass { opacity: 0; }
+/* iPhone: the clock's Glass or Solid row stays (owner, November 15, 2026); iOS draws Glass natively. */
+html[data-platform="ios"] .clock-styles button { min-height: 44px; }
+
+/* Display-sized numerals need room, as on the iPhone. */
+html[data-platform="ios"] .bb-clock { letter-spacing: .005em; font-kerning: none; }
+html[data-platform="ios"] .bb-clock[data-font="inter"] { letter-spacing: 0; }
+html[data-platform="ios"] .bb-clock[data-font="condensed"],
+html[data-platform="ios"] .bb-clock[data-font="flex"] { letter-spacing: .01em; }
+
+/* iPhone: the page runs under the status bar and the Island floats over it, as the iPhone's
+   other pages do; the page's own scrolling shows nothing past its ends. */
+html[data-platform="ios"] body { overscroll-behavior: none; }

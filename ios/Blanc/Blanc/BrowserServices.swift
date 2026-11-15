@@ -16,6 +16,8 @@ final class BrowserServices {
     let historyStore: HistoryStore
     let readerPreferences: ReaderPreferences
     let startAppearance: StartAppearanceStore
+    /// The Start Page's widgets and pinned shortcuts.
+    let startPage: StartPageStore
     let schemeHandler: BlancSchemeHandler
     let sessionStore: SessionStore
     let tabHistory: TabHistoryStore
@@ -38,8 +40,9 @@ final class BrowserServices {
         let appearance = StartAppearanceStore(directory: settingsDirectory)
         startAppearance = appearance
         schemeHandler = BlancSchemeHandler(wallpaperURL: appearance.imageURL, wallpaperVersion: { [weak appearance] in
-            appearance?.values["imageVersion"] as? String
+            appearance?.migratedToForkPage == false ? appearance?.legacyPhotoVersion : nil
         })
+        startPage = StartPageStore(directory: settingsDirectory)
         settingsStore = SettingsStore(directory: settingsDirectory)
         #if DEBUG
         // The App Store images show the Island without Back and Forward
@@ -47,7 +50,7 @@ final class BrowserServices {
         // reads more strongly in a screenshot than Liquid Glass (2026-11-12).
         if UITestSeed.appStore {
             settingsStore.update(islandBackForward: false)
-            _ = try? appearance.change("setClock", value: ["style": "solid"])
+            _ = try? appearance.writeClock(["newtabClockStyle": "solid"])
         }
         #endif
         sessionStore = SessionStore(directory: sessionDirectory)
@@ -67,6 +70,12 @@ final class BrowserServices {
             if !UITestSeed.settings { tabHistory.removeAll() }
         }
         #endif
+        // The Start Page's state is written for each page, and its ranked
+        // shortcuts follow History.
+        schemeHandler.startState = { [weak self] isPrivate in
+            MainActor.assumeIsolated { self?.startPageState(isPrivate: isPrivate) ?? "" }
+        }
+        historyStore.onChange = { [weak self] in self?.historyChanged() }
         memoryObserver = NotificationCenter.default.addObserver(
             forName: UIApplication.didReceiveMemoryWarningNotification, object: nil, queue: .main
         ) { [weak self] _ in
@@ -90,6 +99,29 @@ final class BrowserServices {
                 tab.pagePicture = nil
             }
         }
+    }
+
+    // MARK: The Start Page
+
+    /// `ios-start-state.js` for a Start Page about to load.
+    @MainActor func startPageState(isPrivate: Bool) -> String {
+        StartPageBridge.stateScript(islandTop: settingsStore.islandPosition == .top,
+                                    migration: isPrivate ? nil : startAppearance.forkMigration,
+                                    preferences: isPrivate ? startPage.preferences : nil)
+    }
+
+    /// Open Start Pages rank History again, once a burst of visits settles.
+    private var historyBroadcast: DispatchWorkItem?
+    @MainActor private func historyChanged() {
+        historyBroadcast?.cancel()
+        let work = DispatchWorkItem { [weak self] in MainActor.assumeIsolated { self?.broadcastStartPage("topSites") } }
+        historyBroadcast = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: work)
+    }
+
+    /// Tells every window's open Start Pages that `kind` changed.
+    @MainActor func broadcastStartPage(_ kind: String, except: WKWebView? = nil) {
+        StartPageBridge.broadcast(kind, to: windows.flatMap(\.tabs), except: except)
     }
 
     // MARK: Windows

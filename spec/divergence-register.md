@@ -365,12 +365,12 @@ app can observe individual blocked requests depends on the engine model.
   block (main.js already counts these per tab).
 - **Android:** exact — the fork's blocker counts each block per tab. There's no
   shield chip: the count is a line under the Sunrise menu's blocking row (A3).
-  The Start Page runs the iPhone's script, so it shows protection on or off, not
-  a weekly count.
+  Since A5b the Start Page (the desktop fork's) shows the week's blocked count
+  under the clock.
 - **iOS:** **not directly available** — `WKContentRuleList` blocks silently with no
   per-request callback. Recommended: show a binary "protected / paused" state
   instead of a live count (an approximate number that disagrees with reality is
-  worse than none).
+  worse than none). The Start Page shows no blocked line (D39).
 
 **Parity contract:** protection status is always visible; the *precision* of the
 count differs — exact on desktop/Android, a protected-state indicator on iOS. The
@@ -1011,3 +1011,44 @@ at any time.
 
 **Status:** Android implemented in A5c, unreleased. Whether the iPhone should
 follow is open.
+
+---
+
+## D39 — The desktop fork's Start Page on phones
+**Features:** F35, F49, F50, F54
+
+**Why:** The owner chose the desktop Chromium fork's Start Page (Billboard plus
+widgets you turn on, no layout picker) as how Android and the iPhone work
+(November 13, 2026), and for the iPhone kept its Liquid Glass clock and moved
+the Start Page's choices into the page's Customize, as on Android (November 15,
+2026).
+
+- **Desktop (shipping Electron):** four layouts, choices synced, Customize on
+  the page.
+- **Desktop fork, Android and iPhone:** the fork's page, byte for byte from
+  `chromium/blanc/island/pages` (Android serves it at `chrome://blanc/`; the
+  iPhone bundles the same copy, `chromium/blanc/android/pages/start/`, at
+  `blanc://newtab/`). Billboard is the one layout; Customize holds the widgets
+  (Favorites, On your other devices), the Shortcuts count (1–12), the clock's
+  Font & color and the wallpaper. The phones keep every choice on the device;
+  the wallpaper and photo stay in the page's own storage. Shortcuts rank the
+  last 90 days of the phone's history by every visit (search engines' results
+  pages don't count), with up to eight pins; a long press on a shortcut or a
+  favorite opens its menu. Settings → Start Page and the Island menu open
+  Customize.
+- **Android:** the clock is solid only (#1504); the Start Page shows the week's
+  blocked count.
+- **iPhone:** the clock keeps Glass or Solid, Glass drawn by iOS in Liquid Glass
+  (`NativeClockOverlay`); no blocked line (D13); a half-second hold on empty
+  space also opens Customize; a private Start Page draws the regular page's
+  wallpaper choices but never its photo. Choices made on the iPhone's earlier
+  Start Page carry over once (Ledger, Shelf and Tally become Billboard).
+- **Both phones:** Play Blanc Mahjong is hidden until the game is laid out for
+  phones (owner, November 14 and 15, 2026).
+
+**Parity contract that still holds:** the Start Page's content and copy (the
+fork's catalog), the clock's fonts, colors and height, the wallpaper sources and
+fades, and nothing fetched to draw a shortcut.
+
+**Status:** Android implemented in A5b, unreleased; iPhone implemented,
+unreleased on main.

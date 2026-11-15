@@ -141,64 +141,32 @@ import WebKit
         manager.applySettingsPatch(["searchEngine": "kagi", "theme": "dark"])
         XCTAssertEqual(manager.normalizer.searchURL(for: "test").host, "kagi.com")
         XCTAssertEqual(manager.settingsStore.theme, .dark)
-        manager.setStartLayout(.shelf)
-        XCTAssertEqual(manager.settingsStore.newtabLayout, .shelf)
-        let payload = try manager.changeStartAppearance("setClock", value: ["font": "flex", "height": 280])
-        let values = try XCTUnwrap(payload["settings"] as? [String: Any])
-        XCTAssertEqual(values["newtabClockHeight"] as? Int, 280)
+        let clock = try manager.startAppearance.writeClock(["newtabClockFont": "flex", "newtabClockHeight": 280])
+        XCTAssertEqual(clock["newtabClockHeight"] as? Int, 280)
         XCTAssertEqual(manager.startAppearance.values["newtabClockFont"] as? String, "flex")
         manager.setAdblockExceptions(["https://WWW.Example.com/path", "example.com"])
         XCTAssertEqual(manager.settingsStore.adblockExceptions, ["example.com"])
         manager.settingsStore.flush()
     }
 
-    func testPreviewIsOutsideSessionAndIsReleased() {
-        let manager = manager(), count = manager.tabs.count, id = manager.activeTabId
-        var preview: TabModel? = manager.makeStartPreview()
-        weak var weakPreview = preview
-        XCTAssertEqual(manager.startPreviews.count, 1)
-        XCTAssertEqual(manager.tabs.count, count)
-        XCTAssertEqual(manager.activeTabId, id)
-        preview = nil
-        XCTAssertNil(weakPreview)
-        XCTAssertTrue(manager.startPreviews.isEmpty)
-    }
-
-    func testNativeChangesReachTheRealStartPagePreview() async throws {
-        let manager = manager(), preview = manager.makeStartPreview(layout: .billboard)
-        let webView = preview.webView
-        defer { withExtendedLifetime(preview) {} }
-        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
-        let window = UIWindow(windowScene: scene)
-        let controller = UIViewController()
-        controller.view = webView
-        window.rootViewController = controller
-        window.frame = CGRect(x: 0, y: 0, width: 390, height: 600)
-        window.makeKeyAndVisible()
-        defer { window.isHidden = true }
-        var ready = false
-        for _ in 0..<300 {
-            if (try? await webView.evaluateJavaScript("document.body?.classList.contains('layout-ready')")) as? Bool == true { ready = true; break }
-            try await Task.sleep(for: .milliseconds(100))
-        }
-        XCTAssertTrue(ready)
-        guard ready else { return }
-        let customizeDisplay = try await webView.evaluateJavaScript("getComputedStyle(document.getElementById('customizeButton')).display") as? String
-        XCTAssertEqual(customizeDisplay, "none", "Read-only previews must not show the page’s customization controls")
-        // The footer sits above the Island on the phone; in the short preview
-        // that lands mid-page, and its frosted band covered the cards there.
-        let footerDisplay = try await webView.evaluateJavaScript("getComputedStyle(document.getElementById('layoutFooter')).display") as? String
-        XCTAssertEqual(footerDisplay, "none", "Previews must not draw the footer over the page")
-        _ = try await webView.evaluateJavaScript("window.bowserPages.start.onStatus(value => window.__nativeSettingsChange = value); true")
-        manager.setStartLayout(.ledger)
-        try await Task.sleep(for: .milliseconds(200))
-        let layout = try await webView.evaluateJavaScript("document.body.dataset.layout") as? String
-        XCTAssertEqual(layout, "billboard", "Clock previews remain on Billboard without changing the saved layout")
-        XCTAssertEqual(manager.settingsStore.newtabLayout, .ledger)
-        try manager.changeStartAppearance("setClock", value: ["font": "flex", "height": 280])
-        try await Task.sleep(for: .milliseconds(200))
-        let height = try await webView.evaluateJavaScript("window.__nativeSettingsChange.appearance.settings.newtabClockHeight") as? Int
-        XCTAssertEqual(height, 280)
+    /// The Start Page's choices live in its Customize, as on Android: Settings'
+    /// Start Page row (and blanc://settings#start-page) opens it on a Start Page.
+    func testStartPageSettingsOpenCustomize() {
+        let manager = manager()
+        manager.activeTab!.currentURL = URL(string: "https://example.com/")!
+        let count = manager.tabs.count
+        manager.showSettings(.startPage)
+        XCTAssertNil(manager.settingsDestination)
+        XCTAssertEqual(manager.tabs.count, count + 1)
+        XCTAssertEqual(manager.activeTab?.currentURL.absoluteString, "blanc://newtab/#customize")
+        // On a Start Page, that page opens it; no new tab.
+        manager.customizeStartPage()
+        XCTAssertEqual(manager.tabs.count, count + 1)
+        // Never on a private Start Page: a wallpaper chosen there would be forgotten.
+        manager.createTab(isPrivate: true)
+        manager.customizeStartPage()
+        XCTAssertEqual(manager.activeTab?.isPrivate, false)
+        XCTAssertEqual(manager.activeTab?.currentURL.absoluteString, "blanc://newtab/#customize")
     }
 
     func testSyncStatusMapping() {

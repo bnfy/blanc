@@ -10,8 +10,6 @@ final class TabsManager {
     private(set) var groups: [TabGroup] = []
     /// Split View (F53): pairs of tabs kept side by side (`SplitModel`).
     private(set) var splits: [TabSplit] = []
-    var isWallpaperPickerPresented = false
-    var wallpaperSelectionCompletion: ((UIImage?) -> Void)?
     var startAppearance: StartAppearanceStore { services.startAppearance }
     var isPalettePresented = false {
         didSet { if !isPalettePresented { paletteDraft = "" } }
@@ -35,42 +33,39 @@ final class TabsManager {
     private(set) var paletteTyped = true
     /// Downloads this window's pages start (F11).
     @ObservationIgnored let downloads = PageDownloads()
-    private final class WeakPreview {
-        weak var tab: TabModel?
-        let layout: BlancStartPageLayout?
-        init(_ tab: TabModel, layout: BlancStartPageLayout?) { self.tab = tab; self.layout = layout }
-    }
-    @ObservationIgnored private var previews: [WeakPreview] = []
-    var startPreviews: [TabModel] { previews.compactMap(\.tab) }
-
-    func previewLayout(for webView: WKWebView) -> BlancStartPageLayout? {
-        previews.first { $0.tab?.existingWebView === webView }?.layout
-    }
-
-    func makeStartPreview(layout: BlancStartPageLayout? = nil) -> TabModel {
-        let configuration = WebViewConfiguration.make(schemeHandler: schemeHandler, bridge: bridge, dataStore: siteDataStore)
-        // Marked from the start of every load (pages.css hides Customize under
-        // the class), so a reload never shows the button even for a moment.
-        configuration.userContentController.addUserScript(WKUserScript(source: """
-            document.documentElement.classList.add('start-preview');
-            """, injectionTime: .atDocumentStart, forMainFrameOnly: true))
-        let tab = TabModel(url: Self.newTabURL, configuration: configuration)
-        previews.removeAll { $0.tab == nil }
-        previews.append(WeakPreview(tab, layout: layout))
-        return tab
-    }
-
     var settingsDestination: SettingsDestination?
     var pendingSettingsDestination: SettingsDestination?
 
-    /// The Start Page was held: open its settings (see `StartPageHold`).
+    /// The Start Page was held: open Customize (see `StartPageHold`).
     func startPageHeld(_ tab: TabModel) {
-        guard tab.currentURL.scheme == "blanc", tab.currentURL.host == "newtab" else { return }
+        guard StartPageBridge.isStartPage(tab.currentURL) else { return }
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        showSettings(.startPage)
+        customizeStartPage()
+    }
+
+    /// The Start Page's choices live in its Customize, as on Android and the
+    /// desktop fork: the Start Page in view opens it, else a new Start Page
+    /// opens with it open (the page reads `#customize`). Never a private one:
+    /// its storage is forgotten, so a wallpaper chosen there wouldn't last.
+    func customizeStartPage() {
+        isPalettePresented = false
+        settingsDestination = nil
+        if let tab = activeTab, !tab.isPrivate, StartPageBridge.isStartPage(tab.currentURL), let webView = tab.existingWebView {
+            // The page clears the hash as it opens Customize, so this always changes it.
+            webView.evaluateJavaScript(PagesBridge.guardedScript("location.hash = 'customize';", host: "newtab"))
+        } else {
+            createTab(url: URL(string: "blanc://newtab/#customize")!)
+        }
+    }
+
+    /// The palette, with `text` in it (the Start Page's Island button).
+    func openPalette(text: String = "") {
+        isPalettePresented = true
+        if !text.isEmpty { paletteDraft = text }
     }
 
     func showSettings(_ destination: SettingsDestination = .root) {
+        if destination == .startPage { return customizeStartPage() }
         if isPalettePresented {
             pendingSettingsDestination = destination
             isPalettePresented = false
@@ -126,23 +121,6 @@ final class TabsManager {
         guard let destination = SettingsDestination.resolve(url) else { return false }
         showSettings(destination)
         return true
-    }
-
-    func setStartLayout(_ layout: BlancStartPageLayout) {
-        settingsStore.update(newtabLayout: layout)
-        bridge.emit("start.onStatus", payload: .object([("layout", .string(layout.rawValue))]), host: "newtab")
-    }
-
-    @discardableResult
-    func changeStartAppearance(_ method: String, value: Any?) throws -> [String: Any] {
-        let payload = try startAppearance.change(method, value: value)
-        bridge.broadcastAppearance()
-        return payload
-    }
-
-    func importWallpaper(_ image: UIImage) throws {
-        try startAppearance.importImage(image)
-        bridge.broadcastAppearance()
     }
 
     /// Moves the Island. Open Start Pages reload, so their header and footer
@@ -210,6 +188,7 @@ final class TabsManager {
     private var schemeHandler: BlancSchemeHandler { services.schemeHandler }
     @ObservationIgnored private lazy var bridge = PagesBridge(manager: self)
     @ObservationIgnored private lazy var startPageHold = StartPageHold(manager: self)
+    @ObservationIgnored private(set) lazy var startPageBridge = StartPageBridge(manager: self)
     private var contentBlocker: ContentBlocker { services.contentBlocker }
     private var sessionStore: SessionStore { services.sessionStore }
     @ObservationIgnored private var isRestoringSession = false
@@ -524,7 +503,7 @@ final class TabsManager {
         let config = WebViewConfiguration.make(
             schemeHandler: schemeHandler, bridge: bridge,
             dataStore: isPrivate ? privateDataStore : siteDataStore,
-            startPageHold: startPageHold)
+            startPageHold: startPageHold, startPageBridge: startPageBridge)
         if contentBlocker.enabled, !AdblockExceptions.isExcepted(url, in: settingsStore.adblockExceptions),
            let ruleList = contentBlocker.compiledRuleList {
             config.userContentController.add(ruleList)
@@ -661,7 +640,6 @@ final class TabsManager {
     /// private, made current over whatever sheet was open.
     func openIncomingLink(_ url: URL) {
         isPalettePresented = false
-        isWallpaperPickerPresented = false
         settingsDestination = nil
         createTab(url: url, isPrivate: false)
         incomingLinkCount += 1
