@@ -56,13 +56,22 @@ For a direct download, replace `source` with:
 starting with a letter/digit). The absolute server path allows only those
 characters and `/`, without `..` segments. Configure authentication and host-key
 verification independently; the script adds no SSH options or credentials.
-It invokes one `scp -r --` command with an explicit source for each of the six
-named handoff files below and `license-inputs/`, targeting a private staging
-folder inside WORK. It never recursively transfers the entire release directory:
-raw captures, source attempts, backups and unrelated logs remain on the server.
-It then performs the same import checks as local mode and never downloads through
-Node HTTP. A failed transfer publishes no finished stage or ledger reservation.
-Transfer behavior has been tested only with a stubbed CLI.
+It writes a local whitelist containing the six named handoff files below and
+`license-inputs`, then invokes one
+`rsync --recursive --links --files-from=WHITELIST -- host:path/ STAGING` command.
+The private staging folder and whitelist live inside WORK and are removed after
+the attempt. `--links` copies link text without reading the target; the local
+inventory then rejects every symlink before import or ledger reservation. There
+is no `--copy-links`, `--copy-dirlinks`, or `--copy-unsafe-links` option, and no
+fallback to `scp -r`, which follows remote links before the Mac could reject them.
+The whitelist keeps raw captures, source attempts, backups and unrelated logs
+on the server. Fetch performs the same import checks as local mode and never
+downloads through Node HTTP. A failed transfer publishes no finished stage or
+ledger reservation. Link/whitelist semantics were checked against the local
+macOS `rsync(1)` manual; tests use a faithful transfer stub only. Actual installed
+rsync compatibility on both Mac and server still needs an owner run. If either
+endpoint lacks a compatible rsync, fetch fails closed; use a separately prepared
+local handoff rather than substituting a link-following transport.
 
 Relative local source paths resolve from WORK. The ledger defaults to this
 repository's `chromium/android/release/ledger.json`. An optional `ledger` path
@@ -98,11 +107,13 @@ node chromium/android/release/release.mjs upload "$WORK"
 1. **status** reads and validates recorded configuration/output digests and
    prints `state.json`'s public contents. It runs no external command. An unused
    workspace reports empty stages. Missing or changed recorded files fail.
-2. **fetch** imports the prepared handoff locally or downloads it with `scp`.
+2. **fetch** imports the prepared handoff locally or downloads it with `rsync`.
    It validates the full build record, AAB bytes/hash, next ledger code and
    locally available source commit before reserving a `built` ledger row.
    An existing matching `built` row can resume; `uploaded` and `abandoned` codes
-   cannot be reused. It preserves the offline SBOM filenames and bytes.
+   cannot be reused. An unfinished code below the highest uploaded code is also
+   refused, even if its older row still says `built`. It preserves the offline
+   SBOM filenames and bytes.
 3. **verify** calls the shared AAB helper: `bundletool validate`, manifest
    checks for `me.bnfy.blanc`, version/code, nondebuggable release, arm64-only
    libraries and all required notices. It runs `bundletool build-apks` with
@@ -129,6 +140,9 @@ node chromium/android/release/release.mjs upload "$WORK"
    inputs, then asks for `upload 1.0.0-beta.1 (1) to internal` for that example
    version. Any other response, including added spaces, stops without a Play
    request. After approval it rechecks inputs and runs an `op run` worker.
+   The parent rejects an unfinished code below the highest uploaded code before
+   asking for approval; the worker independently rechecks that condition before
+   credential reads or Play requests.
    The worker reads the Play credential, exchanges the in-memory JWT for a
    token, and calls the existing internal-track adapter. No credential or token
    crosses the worker's stdout or a file. The adapter creates a fresh edit,
@@ -205,10 +219,22 @@ disk failure between Google's acknowledgement and writing the receipt.
   isolation and keeping 1Password references out of the environment. If a host
   needs other transfer semantics, prepare the local handoff first; no generalized
   remote execution or tag-fetch framework is included.
+- **Preserve remote symlinks with rsync's `--links`, then reject them.** A
+  link-following transfer can copy a private capture before local validation
+  ever sees the original link. The whitelist limits the transfer to handoff
+  paths; preserving links lets validation stop before importing files or
+  reserving a code. Cost: both endpoints need a compatible rsync, still
+  unverified on a real handoff; missing/incompatible tools stop fetch rather
+  than permitting a fallback that follows links.
 - **Reserve a code only after verified artifact import.** This prevents an
   incomplete or mismatched handoff from consuming the next code. If a verified
   built attempt is later discarded, explicitly record it as abandoned; code
   numbers remain consumed, using the existing ledger rules.
+- **Refuse unfinished codes below the highest uploaded code in both processes.**
+  An older `built` row does not make its version code eligible after a newer
+  upload. Cost: that unfinished workspace cannot continue; retain/reconcile it
+  and create a new attempt under the normal ledger rules. Completed stages
+  remain idempotent status and do not rerun Play.
 - **Use the strict bundletool CSV range with a pinned device.** This preserves
   machine-readable evidence without pretending an unmeasured Play size is known.
   If the installed version emits a different format, verification stops until
@@ -223,7 +249,8 @@ disk failure between Google's acknowledgement and writing the receipt.
   require inspection rather than another automatic upload.
 
 Runtime assumptions still needing real evidence: owner Mac/foreground Terminal,
-installed `op`, JDK signing tools, `unzip`/`zip`, bundletool and Cosign versions;
+installed `op`, JDK signing tools, `unzip`/`zip`, rsync on both endpoints,
+bundletool and Cosign versions;
 raw 1Password Document/field setup; upload-certificate pin; complete immutable
 source and offline licence inputs; server privacy/acceptance results; real size
 output; signed AAB/Sigstore verification; Play permissions/commit and Pixel

@@ -96,6 +96,8 @@ function predecessor(stage, state) {
   if (index) check(state.stages[STAGES[index - 1]], `${stage} requires predecessor stage ${STAGES[index - 1]}`);
 }
 function entryFor(record, ledger, reserve = false) {
+  const highestUploaded = Math.max(0, ...ledger.builds.filter(entry => entry.state === 'uploaded').map(entry => entry.versionCode));
+  check(record.versionCode >= highestUploaded, 'versionCode is below the highest uploaded code');
   const existing = ledger.builds.find(entry => entry.versionCode === record.versionCode);
   if (existing) {
     validateBuildRecord(record, existing);
@@ -145,7 +147,11 @@ export async function runStage(stage, workDir, injected = {}) {
         temporary = fs.mkdtempSync(path.join(work, '.fetch-'));
         source = path.join(temporary, 'handoff'); fs.mkdirSync(source);
         const remote = `${config.source.host}:${config.source.path.replace(/\/$/, '')}`;
-        execute(io.run, 'scp', ['-r', '--', ...[...HANDOFF, 'license-inputs'].map(name => `${remote}/${name}`), source]);
+        const files = path.join(temporary, 'files.txt');
+        fs.writeFileSync(files, [...HANDOFF, 'license-inputs'].join('\n') + '\n', {flag: 'wx', mode: 0o600});
+        // Preserve links as links, so inventory refuses them before any import.
+        // scp -r follows their targets, which could transfer private captures.
+        execute(io.run, 'rsync', ['--recursive', '--links', `--files-from=${files}`, '--', `${remote}/`, source]);
       }
       check(source !== work, 'handoff source must differ from WORK');
       const record = load(path.join(source, 'build.json')), entry = entryFor(record, ledger, true);

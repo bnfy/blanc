@@ -169,7 +169,7 @@ test('fetch downloads only whitelisted handoff inputs, leaving raw captures and 
   const f = fixture(t), {runStage} = await api(); const configFile = path.join(f.work, 'config.json'), config = read(configFile); config.source = {host: 'android-release', path: '/home/blanc/evidence/android-v1.0.0-beta.1-1'}; write(configFile, config);
   write(path.join(f.source, 'raw-session.pcap'), 'fixture raw capture stays server-side'); write(path.join(f.source, 'attempts/source-backup'), 'fixture source backup');
   const run = f.io.run; let transfers = 0; const whitelist = ['ChromePublic.aab', 'build.json', 'scan.json', 'sbom-inputs.json', 'release-gate.json', 'privacy-capture.json', 'license-inputs'];
-  f.io.run = (command, args, options) => { if (command !== 'scp') return run(command, args, options); transfers++; assert.deepEqual(args.slice(0, 2), ['-r', '--']); assert.deepEqual(args.slice(2, -1), whitelist.map(name => `android-release:/home/blanc/evidence/android-v1.0.0-beta.1-1/${name}`)); const destination = args.at(-1); assert.ok(destination.startsWith(f.work + path.sep)); for (const name of whitelist) fs.cpSync(path.join(f.source, name), path.join(destination, name), {recursive: true}); return {status: 0, stdout: ''}; };
+  f.io.run = (command, args, options) => { if (command !== 'rsync') return run(command, args, options); transfers++; assert.deepEqual(args.slice(0, 2), ['--recursive', '--links']); assert.deepEqual(args.slice(3, -1), ['--', 'android-release:/home/blanc/evidence/android-v1.0.0-beta.1-1/']); assert.deepEqual(fs.readFileSync(args[2].slice(13), 'utf8').trim().split('\n'), whitelist); const destination = args.at(-1); assert.ok(destination.startsWith(f.work + path.sep)); for (const name of whitelist) fs.cpSync(path.join(f.source, name), path.join(destination, name), {recursive: true, verbatimSymlinks: true}); return {status: 0, stdout: ''}; };
   await runStage('fetch', f.work, f.io); assert.equal(transfers, 1); assert.equal(read(path.join(f.work, 'state.json')).stages.fetch.outputs['ChromePublic.aab'], f.record.aab.sha256); assert.equal(fs.readdirSync(f.work).some(n => n.startsWith('.fetch-')), false); assert.equal(fs.existsSync(path.join(f.work, 'raw-session.pcap')), false); assert.equal(fs.existsSync(path.join(f.work, 'attempts')), false);
 });
 for (const source of [{host: '-evil', path: '/safe'}, {host: 'host;command', path: '/safe'}, {host: 'host', path: '/safe/../secret'}, {host: 'host', path: '/safe/$(command)'}, {host: 'host', path: 'relative'}]) test(`fetch refuses unsafe transport address ${JSON.stringify(source)}`, async t => {
@@ -178,8 +178,8 @@ for (const source of [{host: '-evil', path: '/safe'}, {host: 'host;command', pat
 });
 test('failed CLI transfer preserves no stage output or ledger reservation', async t => {
   const f = fixture(t), {runStage} = await api(); const config = read(path.join(f.work, 'config.json')); config.source = {host: 'android-release', path: '/safe'}; write(path.join(f.work, 'config.json'), config);
-  f.io.run = command => { assert.equal(command, 'scp'); return {status: 1, stderr: 'private host diagnostics'}; };
-  await assert.rejects(runStage('fetch', f.work, f.io), /scp failed/); assert.equal(fs.readdirSync(f.work).some(n => n.startsWith('.fetch-')), false); assert.deepEqual(read(f.ledger).builds, []); assert.equal(fs.existsSync(path.join(f.work, 'state.json')), false);
+  f.io.run = command => { assert.equal(command, 'rsync'); return {status: 1, stderr: 'private host diagnostics'}; };
+  await assert.rejects(runStage('fetch', f.work, f.io), /rsync failed/); assert.equal(fs.readdirSync(f.work).some(n => n.startsWith('.fetch-')), false); assert.deepEqual(read(f.ledger).builds, []); assert.equal(fs.existsSync(path.join(f.work, 'state.json')), false);
 });
 test('a changed upload-certificate pin after signing blocks reuse before another worker or command', async t => {
   const f = fixture(t), {runStage} = await api(); f.io.pinFile = path.join(f.dir, 'fixture-upload-cert.json'); write(f.io.pinFile, {sha256: '1'.repeat(64)});
@@ -197,4 +197,45 @@ test('a certificate pin changed while the signing worker runs cannot bind the re
   const f = fixture(t), {runStage} = await api(); f.io.pinFile = path.join(f.dir, 'fixture-upload-cert.json'); write(f.io.pinFile, {sha256: '1'.repeat(64)}); await through(f, 'verify');
   const worker = f.io.worker; f.io.worker = async (...args) => { const result = await worker(...args); write(f.io.pinFile, {sha256: '2'.repeat(64)}); return result; };
   await assert.rejects(runStage('sign', f.work, f.io), /pin.*changed.*signing/); assert.equal(read(path.join(f.work, 'state.json')).stages.sign, undefined);
+});
+for (const kind of ['file', 'directory']) test(`remote ${kind} symlink is preserved and refused before target bytes transfer or ledger reservation`, async t => {
+  const f = fixture(t), {runStage} = await api();
+  const configFile = path.join(f.work, 'config.json'), config = read(configFile); config.source = {host: 'android-release', path: '/private/release'}; write(configFile, config);
+  const outside = path.join(f.dir, kind === 'file' ? 'private.pcap' : 'private-captures');
+  if (kind === 'file') write(outside, 'PRIVATE CAPTURE'); else write(path.join(outside, 'private.pcap'), 'PRIVATE CAPTURE');
+  fs.symlinkSync(outside, path.join(f.source, 'license-inputs/private-capture'));
+  const run = f.io.run; let privateBytesTransferred = false;
+  f.io.run = (command, args, options) => {
+    if (!['scp', 'rsync'].includes(command)) return run(command, args, options);
+    // Faithful distinction: scp -r follows remote links; rsync --links copies
+    // link text without reading the target. Do not run either real transport.
+    const follow = command === 'scp' || args.includes('--copy-links') || args.includes('-L');
+    const names = command === 'scp' ? args.slice(2, -1).map(value => path.posix.basename(value)) : fs.readFileSync(args.find(value => value.startsWith('--files-from=')).slice(13), 'utf8').trim().split('\n');
+    const copy = (from, to) => {
+      const stat = fs.lstatSync(from);
+      if (stat.isSymbolicLink() && !follow) { if (command === 'rsync' && args.includes('--links')) fs.symlinkSync(fs.readlinkSync(from), to); return; }
+      const actual = stat.isSymbolicLink() ? fs.realpathSync(from) : from;
+      if (actual === outside || actual.startsWith(outside + path.sep)) privateBytesTransferred = true;
+      if (fs.statSync(actual).isDirectory()) { fs.mkdirSync(to, {recursive: true}); for (const name of fs.readdirSync(actual)) copy(path.join(actual, name), path.join(to, name)); }
+      else fs.copyFileSync(actual, to);
+    };
+    for (const name of names) copy(path.join(f.source, name), path.join(args.at(-1), name));
+    return {status: 0, stdout: ''};
+  };
+  await assert.rejects(runStage('fetch', f.work, f.io), /symlink/);
+  assert.equal(privateBytesTransferred, false); assert.deepEqual(read(f.ledger).builds, []); assert.equal(fs.existsSync(path.join(f.work, 'build.json')), false); assert.equal(fs.readdirSync(f.work).some(name => name.startsWith('.fetch-')), false);
+});
+for (const boundary of ['parent', 'worker']) test(`${boundary} refuses unfinished code below the highest uploaded code before approval or credentials`, async t => {
+  const f = fixture(t), {runStage, secretWorker} = await api(); await through(f, 'attest');
+  const ledger = read(f.ledger); ledger.builds.push({...ledger.builds[0], versionName: '1.0.0-beta.2', versionCode: 2, tag: 'android-v1.0.0-beta.2-2', state: 'uploaded'}); write(f.ledger, ledger);
+  let commands = 0, workers = 0; f.io.run = () => { commands++; throw new Error('must reject before credentials or source reads'); }; f.io.worker = () => { workers++; throw new Error('must reject before worker'); };
+  if (boundary === 'parent') await assert.rejects(runStage('upload', f.work, f.io), /below.*(highest|last).*uploaded/i);
+  else await assert.rejects(secretWorker('upload', f.work, {...f.io, env: {...f.io.env, BLANC_ANDROID_OP_RUN: '1'}}), /below.*(highest|last).*uploaded/i);
+  assert.equal(f.prompts.length, 0); assert.equal(commands, 0); assert.equal(workers, 0); assert.equal(read(f.ledger).builds[0].state, 'built');
+});
+test('finished older release remains idempotent status after a newer code uploads', async t => {
+  const f = fixture(t), {runStage} = await api(); await through(f, 'attest'); await runStage('upload', f.work, f.io);
+  const ledger = read(f.ledger); ledger.builds.push({...ledger.builds[0], versionName: '1.0.0-beta.2', versionCode: 2, tag: 'android-v1.0.0-beta.2-2', state: 'uploaded'}); write(f.ledger, ledger);
+  f.io.run = () => { throw new Error('must not rerun'); }; f.io.worker = () => { throw new Error('must not rerun'); }; f.io.prompt = () => { throw new Error('must not prompt'); };
+  assert.ok((await runStage('upload', f.work, f.io)).stages.upload); assert.ok((await runStage('status', f.work, f.io)).stages.upload);
 });
