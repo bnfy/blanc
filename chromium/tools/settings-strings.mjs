@@ -4,6 +4,10 @@
 // loadTimeData.getString(), generated from shipping's published catalogs
 // for each selectable language, as menu-strings.mjs does for the menus.
 //   node chromium/tools/settings-strings.mjs --write | --check
+// Their shipping commit is blanc/settings-strings.json's, pinned apart from
+// the Island renderer's (blanc/island-renderer.json) so a Settings string
+// can arrive without a renderer sync (owner, 2026-11-15, #1505). Move it
+// to a commit on main and run --write.
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -11,7 +15,7 @@ import {catalogs} from './menu-strings.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const header = path.join(root, 'blanc/common/settings_strings.h');
-const {ref, commit} = JSON.parse(fs.readFileSync(path.join(root, 'blanc/island-renderer.json'), 'utf8'));
+const {ref, commit} = JSON.parse(fs.readFileSync(path.join(root, 'blanc/settings-strings.json'), 'utf8'));
 // loadTimeData name, shipping message key.
 export const STRINGS = [
   ["blancGestureEmpty", "settings.gesture.empty"],
@@ -182,7 +186,7 @@ export const STRINGS = [
   ['blancLanguageRelaunch', 'settings.language.relaunch'],
 ];
 
-export function generate(rows = catalogs(STRINGS)) {
+export function generate(rows = catalogs(STRINGS, ref)) {
   const id = code => code.replace('-', '_');
   const fallback = rows.filter(({code}) => code !== 'en').map(({code}) =>
     `  if (primary == "${code.split('-')[0]}") return kStrings_${id(code)};`).join('\n');
