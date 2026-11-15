@@ -1,8 +1,7 @@
 {
   "schema": 1,
-  "note": "Owner's standing gate decisions for daily Blanc Betas (owner, 2026-11-14: they carry until the owner changes them). A waiver applies to betas from 'since' up to, not including, 'until'; retire one by setting 'until', never by deleting it, so earlier releases still verify. A carried gate counts only while no file matching 'paths' or 'anyChange' changed since its lastPass.sourceCommit. Evidence paths are on the Mac Studio; their digests are pinned here. Edit only on the owner's word, quoting it in the commit. docs/chromium-beta-release.md, 'Daily betas'.",
+  "note": "Owner's standing gate decisions for daily Blanc Betas (owner, 2026-11-14: they carry until the owner changes them). A waiver applies to betas from 'since' up to, not including, 'until'; retire one by setting 'until', never by deleting it, so earlier releases still verify. A carried gate counts only while no file matching 'paths' or 'anyChange' changed since its lastPass.sourceCommit. anyChange is the Chromium version alone (owner, 2026-11-15: the passkey check comes due only when passkey code or Chromium changes; a new patch in chromium/lanes/desktop.json no longer makes every carried check due). Evidence paths are on the Mac Studio; their digests are pinned here. Edit only on the owner's word, quoting it in the commit. docs/chromium-beta-release.md, 'Daily betas'.",
   "anyChange": [
-    "chromium/lanes/desktop.json",
     "chromium/upstream/**"
   ],
   "archWaiver": "Owner standing decision 2026-11-14: daily betas are Apple Silicon only; Intel is deferred until a separately qualified native build.",
