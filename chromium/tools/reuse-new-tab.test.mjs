@@ -52,6 +52,7 @@ test('only an unused plain Start Page of the asked-for kind is reused', () => {
     assert.ok(helper.includes(exclusion), exclusion);
   }
   assert.ok(!helper.includes('IsRegularStartPage'), 'the tour and preview variants never count');
+  assert.match(helper, /committed != start && committed != entry &&/, 'either committed form of the Start Page counts');
 });
 
 test('the Island\'s blank New Tab reuses without opening the Island itself', () => {

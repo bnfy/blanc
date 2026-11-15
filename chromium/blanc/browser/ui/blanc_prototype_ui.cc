@@ -13717,7 +13717,10 @@ content::WebContents* ReuseNewTab(BrowserWindowInterface* browser, bool is_priva
     const int id = sessions::SessionTabHelper::IdForTab(tab).id();
     const auto committed = tab->GetLastCommittedURL();
     if (blanc::private_tabs::IsPrivateTab(tab) != is_private) continue;
-    if (committed != start && !(committed.is_empty() && tab->GetVisibleURL() == entry)) continue;
+    // A Start Page commits as chrome://newtab/ or as its page's own address;
+    // one still loading has only the visible chrome://newtab/.
+    if (committed != start && committed != entry &&
+        !(committed.is_empty() && tab->GetVisibleURL() == entry)) continue;
     if (TabPinned(model, i) || model->GetTabGroupForTab(i) || model->GetSplitForTab(i) ||
         id == glance || id == overlay_glance || HasInheritedDocumentPolicy(tab)) continue;
     auto& controller = tab->GetController();
