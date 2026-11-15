@@ -4,11 +4,11 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 **"Update memory" means `CLAUDE.md` and this file.** When the owner says "update memory", review what has changed since these files last described the project and propose the edits in a PR, keeping `CLAUDE.md` and `AGENTS.md` in sync where they carry the same paragraph; do not route that request to an external memory store.
 
-**Mail/Suite licensing (October 13, 2026 owner correction):** Customers must
+**Mail/Bundle licensing (October 13, 2026 owner correction):** Customers must
 keep the exact Browser key across monthly ↔ annual billing changes, including
 existing Patron customers. Keep one key per app. The current separate Monthly
 and Annual benefits do not satisfy this; do not replace a benefit in a way that
-revokes existing keys or open Mail/Suite checkout before continuity is tested.
+revokes existing keys or open Mail/Bundle checkout before continuity is tested.
 See `docs/polar-mail-suite-sandbox.md` for purchase evidence and migration gates. The owner subsequently confirmed both production Monthly subscriptions are
 theirs and approved replacing only those keys. Production now retains
 `ed1cce8c` as the shared Browser benefit; Kiren's complete key is unchanged.
