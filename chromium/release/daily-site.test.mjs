@@ -26,10 +26,29 @@ test('the claims ledger names the release and keeps every page sentence', () => 
   assert.equal(ledger.release, '2.0.0-beta.4');
   assert.equal(ledger.sourceCommit, r.sourceCommit);
   assert.equal(ledger.claims.length, before.claims.length);
-  assert.ok(ledger.claims.some(c => c.text === 'Apple Silicon Macs · macOS 13 or later · 2.0.0-beta.4'));
-  assert.ok(!ledger.claims.some(c => c.text.endsWith('2.0.0-beta.3')));
+  for (const text of ['Beta 4', '2.0.0-beta.4 · build 4', 'Chromium 158', '158.0.8127.2', 'Apple Silicon Macs · macOS 13 or later', 'Released November 14, 2026'])
+    assert.ok(ledger.claims.some(c => c.text === text), text);
+  assert.ok(!ledger.claims.some(c => /beta\.3|Beta 3|build 3/.test(c.text)));
   for (const text of Object.values(LIMITATIONS)) assert.match(ledger.claims.find(c => c.text === text).evidence, /standing decision/);
   assert.match(ledger.ownerDecisions.decisions.at(-1), /^Beta\.4 \(standing decision, owner 2026-11-14\): .* as for beta\.3/);
+});
+
+test('a release without a Chromium version, or a ledger without the version lines, is refused', () => {
+  assert.throws(() => siteFiles({ ...input, r: { ...structuredClone(r), chromiumVersion: undefined } }), /chrome\/VERSION stays upstream/);
+  const prev = JSON.parse(files.prevLedger);
+  prev.claims = prev.claims.filter(c => c.field !== 'released');
+  assert.throws(() => siteFiles({ ...input, files: { ...files, prevLedger: JSON.stringify(prev) } }), /no released line/);
+});
+
+test('a ledger from before the version figures keeps its one requirement line', () => {
+  const prev = JSON.parse(files.prevLedger);
+  const at = prev.claims.findIndex(c => c.field);
+  prev.claims = prev.claims.filter(c => !c.field);
+  prev.claims.splice(at, 0, { text: 'Apple Silicon Macs · macOS 13 or later · 2.0.0-beta.3', evidence: 'release.json arches [arm64], minimumSystemVersion 13.0, version 2.0.0-beta.3.' });
+  const ledger = JSON.parse(siteFiles({ ...input, files: { ...files, prevLedger: JSON.stringify(prev) } })['docs/website-blanc-beta-2.0.0-beta.4-claims.json']);
+  assert.equal(ledger.claims.length, prev.claims.length);
+  assert.ok(ledger.claims.some(c => c.text === 'Apple Silicon Macs · macOS 13 or later · 2.0.0-beta.4'));
+  assert.ok(!ledger.claims.some(c => c.field));
 });
 
 test('a release whose waivers differ from the page\'s limitations is refused', () => {
