@@ -626,6 +626,16 @@ original reports:
   address. Neither Mahjong nor the pop-out fix was hand-checked in a packaged
   build before release; the What's New captures came from a development build.
   Don't claim a specific console works until someone has tried it.
+- **1.49.1:** New Tab reuse is its main change: when the window already has
+  a new tab that hasn't been used, New Tab (⌘T, Ctrl+T on Windows and Linux)
+  switches to it instead of opening another, and ⌘⇧N does the same for
+  private tabs. It is on by default and can be turned off in Settings →
+  General → Browsing (**Switch to an unused new tab**). Pinned, grouped and
+  split tabs are never reused, and only Blanc's own New Tab page counts, so
+  a custom home page always opens fresh. It wasn't hand-checked in a
+  packaged build before release. With vertical tabs on a Mac, the Space mark
+  sits on its own row below the window controls. Describe New Tab reuse as
+  since v1.49.1.
 - **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
   (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
   strip so the page fills the window. Pointing at or just above the top edge,
