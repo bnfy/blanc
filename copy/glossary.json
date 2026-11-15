@@ -168,6 +168,7 @@
   "sameAsSource": {
     "de": [
       "about.chromium",
+      "onboarding.step.import",
       "settings.language.system",
       "glance.eyebrow",
       "pill.downloads",

@@ -1,0 +1,11 @@
+diff -ruN a/chrome/browser/BUILD.gn b/chrome/browser/BUILD.gn
+--- a/chrome/browser/BUILD.gn
++++ b/chrome/browser/BUILD.gn
+@@ -926,6 +926,7 @@
+     "//blanc/android:page_pinch_bridge",
+     "//blanc/android:top_color_bridge",
+     "//blanc/android:sync_bridge",
++    "//blanc/android:launch_ping_bridge",  # Blanc (patch 0115)
+     "//blanc/services/blocker:browser",
+     "//base/allocator:buildflags",
+     "//build/config/linux/dbus:buildflags",

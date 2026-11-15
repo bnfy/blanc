@@ -10,12 +10,13 @@ import {NativeFixture} from './lib/fixture.mjs';
 import {installDriver} from './lib/test-driver.mjs';
 import {assertRendering,assertNodeRuntime} from './lib/render-guard.mjs';
 import {createWorld} from './world.mjs';
+import {jsLiteral} from './lib/js-literal.mjs';
 const [configFile,out]=process.argv.slice(2),config=JSON.parse(fs.readFileSync(configFile));
 assertNodeRuntime();assert.equal(fs.existsSync(out),false);fs.mkdirSync(out,{recursive:true});
 const f=new NativeFixture(),w=createWorld(f),result={candidate:config.candidate,checks:[]};
 const parent=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-rail-toggle-'));
 // Window coordinates of an element in the strip document, where the rail lives.
-const rect=id=>w.hostEval(`(()=>{const s=document.getElementById('strip'),o=s.getBoundingClientRect(),e=s.contentDocument?.getElementById(${JSON.stringify(id)});if(!e)return {x:0,y:0,width:0,height:0};const r=e.getBoundingClientRect();return {x:o.x+r.x,y:o.y+r.y,width:r.width,height:r.height};})()`);
+const rect=id=>w.hostEval(`(()=>{const s=document.getElementById('strip'),o=s.getBoundingClientRect(),e=s.contentDocument?.getElementById(${jsLiteral(id)});if(!e)return {x:0,y:0,width:0,height:0};const r=e.getBoundingClientRect();return {x:o.x+r.x,y:o.y+r.y,width:r.width,height:r.height};})()`);
 try{
  await f.launch(config,path.join(parent,'fixture'),{testHooks:true,diskAssets:false});
  await installDriver(f.host);await assertRendering(e=>f.host.eval(e));await w.reset();

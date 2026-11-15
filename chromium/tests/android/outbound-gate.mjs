@@ -106,12 +106,20 @@ function adb(serial, ...args) {
 }
 const pause = seconds => execFileSync('sleep', [String(seconds)]);
 
+// Which running emulator the session uses: the one this run was given (ANDROID_SERIAL), if it runs
+// `avd`, since the build server runs two of the same AVD; else the first that does. Undefined if none.
+export function pickEmulator(serials, nameOf, avd, given) {
+  if (given) return serials.includes(given) && nameOf(given) === avd ? given : undefined;
+  return serials.find(s => nameOf(s) === avd);
+}
+
 // The running emulator started from `avd`; the gate never boots one itself.
 function emulatorFor(avd) {
   const serials = execFileSync('adb', ['devices'], {encoding: 'utf8'}).split('\n')
     .map(line => /^(emulator-\d+)\s+device$/.exec(line)?.[1]).filter(Boolean);
-  const serial = serials.find(s => adb(s, 'emu', 'avd', 'name').split('\n')[0].trim() === avd);
-  if (!serial) throw Error(`No running emulator for AVD ${avd}; start it first (no session ran).`);
+  const given = process.env.ANDROID_SERIAL;
+  const serial = pickEmulator(serials, s => adb(s, 'emu', 'avd', 'name').split('\n')[0].trim(), avd, given);
+  if (!serial) throw Error(`No running emulator${given ? ` ${given}` : ''} for AVD ${avd}; start it first (no session ran).`);
   return serial;
 }
 

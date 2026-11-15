@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- A step's main action: a filled button in the text color, as the iPhone's. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/blanc_walkthrough_primary"
+    android:focusable="true"
+    android:gravity="center"
+    android:minHeight="@dimen/blanc_walkthrough_primary_height"
+    android:textColor="@color/blanc_sunrise_bg"
+    android:textSize="@dimen/blanc_walkthrough_button_size"
+    android:textStyle="bold" />

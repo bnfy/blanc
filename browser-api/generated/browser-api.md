@@ -246,9 +246,9 @@ How an invite left Blanc: opened in the person's mail app, or copied to the clip
 
 ### `CreateTabOptions`
 
-Options for a new tab. Only `private` is read by main today.
+Options for a new tab. `private` opens a private tab; `focusAddress` says whether the address field takes focus (by default only for a plain new tab).
 
-`{ private?: boolean }`
+`{ private?: boolean, focusAddress?: boolean }`
 
 ### `TabMoveTarget`
 
@@ -856,6 +856,7 @@ Sent when main shows the overlay.
 | `purpose` | `unknown` | Mode-specific: a string for Glance, an object for panel flows, a model for screen sharing. |
 | `pillRect?` | `Rect \| null` | The resting pill in the overlay's coordinates; absent when replayed after the overlay loads. |
 | `searchPriorityResults` | `boolean` | Settings → Search priority results: search suggestions lead typed results. |
+| `panelSideClearance?` | `number` | The margin the centered panel keeps from each side of the overlay view, wider on macOS where the window buttons sit beside it; absent for the switcher card. |
 
 ### `OverlayHidePayload`
 

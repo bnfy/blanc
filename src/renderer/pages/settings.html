@@ -129,7 +129,7 @@
             <div class="setting">
               <div class="label">
                 <span data-i18n="settings.general.theme.label">Theme</span>
-                <span class="hint" data-i18n="settings.general.theme.hint">System follows your macOS/Windows theme</span>
+                <span class="hint" data-i18n="settings.general.theme.hint">System follows your computer's light or dark mode</span>
               </div>
               <select id="theme">
                 <option value="system" data-i18n="settings.general.theme.system">System</option>
@@ -213,10 +213,10 @@
                 <span class="hint" data-i18n="settings.general.newtabLayout.hint">How the new tab page arranges itself; switchable from its footer too</span>
               </div>
               <select id="newtabLayout" aria-label="New tab layout" data-i18n-aria-label="settings.general.newtabLayout.label">
-                <option value="ledger" data-i18n="settings.general.newtabLayout.ledger">ledger</option>
-                <option value="billboard" data-i18n="settings.general.newtabLayout.billboard">billboard</option>
-                <option value="shelf" data-i18n="settings.general.newtabLayout.shelf">shelf</option>
-                <option value="tally" data-i18n="settings.general.newtabLayout.tally">tally</option>
+                <option value="ledger" data-i18n="settings.general.newtabLayout.ledger">Ledger</option>
+                <option value="billboard" data-i18n="settings.general.newtabLayout.billboard">Billboard</option>
+                <option value="shelf" data-i18n="settings.general.newtabLayout.shelf">Shelf</option>
+                <option value="tally" data-i18n="settings.general.newtabLayout.tally">Tally</option>
               </select>
             </div>
 
@@ -318,6 +318,14 @@
                 <option value="recent" data-i18n="settings.general.tabSwitchOrder.recent">In the order you used them</option>
                 <option value="list" data-i18n="settings.general.tabSwitchOrder.list">In the order of the tab list</option>
               </select>
+            </div>
+
+            <div class="setting" id="reuseNewTabSetting">
+              <div class="label">
+                <span data-i18n="settings.general.reuseNewTab.label">Switch to an unused new tab</span>
+                <span class="hint" id="reuseNewTabHint" data-i18n="settings.general.reuseNewTab.hint">New Tab goes to a new tab in this window that you haven't used yet, instead of opening another. New Private Tab does the same for private tabs.</span>
+              </div>
+              <label class="toggle"><input id="reuseNewTab" type="checkbox" aria-label="Switch to an unused new tab" aria-describedby="reuseNewTabHint" data-i18n-aria-label="settings.general.reuseNewTab.label"/><span class="track"></span></label>
             </div>
 
             <div class="setting" id="miniWindowSetting">

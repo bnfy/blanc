@@ -19,7 +19,10 @@ const userData = path.join(root, 'profile');
 fs.mkdirSync(`${userData}-Dev`);
 // List order keeps synthetic Ctrl+Tab presses switching at once; the
 // most-recent order is exercised below with real OS keys.
-fs.writeFileSync(path.join(`${userData}-Dev`, 'settings.json'), JSON.stringify({ onboardingVersion: 1, adblockEnabled: false, searchSuggestions: false, usagePing: false, tabSwitchOrder: 'list' }));
+// reuseNewTab off: this smoke counts the tabs each New Tab press opens, and
+// with #1505's switch on a press would go to the startup tab or a new
+// window's blank tab instead (that behavior has scenarios F37-5..9).
+fs.writeFileSync(path.join(`${userData}-Dev`, 'settings.json'), JSON.stringify({ onboardingVersion: 1, adblockEnabled: false, searchSuggestions: false, usagePing: false, tabSwitchOrder: 'list', reuseNewTab: false }));
 const uncaught = path.join(root, 'uncaught.log');
 const server = http.createServer((_req, res) => {
   res.setHeader('Content-Type', 'text/html');

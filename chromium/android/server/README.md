@@ -34,3 +34,43 @@ and copy it into the checkout after `apply.py` (`mkdir -p blanc/android/blocker_
 file fails the build. It comes from
 `experiments/chromium-extension-spike/native/blocker/bundle.mjs`, and Blanc refuses any bytes but
 `kBlancBlockerBundleSha256` (`blanc/services/blocker/bundle_hash.h`).
+
+## Two emulators
+
+The server runs two emulators of the same AVD (`android_36_google_apis_x64`, 4 cores and 4 GB each),
+so two checks can run at once. `bash chromium/android/server/emulators.sh` starts any that aren't
+running, each in its own tmux session:
+
+| Emulator | tmux session | Data |
+| --- | --- | --- |
+| `emulator-5554` | `emulator` | Kept across runs (`--no-read-only`). |
+| `emulator-5556` | `emulator2` | Read-only: what a run changes is gone when the emulator stops. |
+
+With both running, plain `adb` refuses to guess ("more than one device"), so every check names
+its emulator with `ANDROID_SERIAL`, which adb and every script here follow:
+
+```
+ANDROID_SERIAL=emulator-5554 BLANC_EVIDENCE=~/blanc-evidence/android/run-a bash chromium/tests/android/a4-gate.sh
+ANDROID_SERIAL=emulator-5556 BLANC_EVIDENCE=~/blanc-evidence/android/run-b bash chromium/tests/android/a5a-gate.sh
+```
+
+Give each run its own evidence folder. Ports on this server follow the emulator
+(`chromium/tests/android/support/host-ports.mjs`): `emulator-5556`'s runs use every host port plus
+100 (DevTools 9433, the acceptance fixtures 8865), because adb forward and adb reverse silently take
+over a host port another run is using. A check that adds a host port takes it through `hostPort()`.
+The outbound check runs on its run's emulator, not merely the first of that AVD. Both emulators run
+the APK from the same `out/AndroidDebugX64`, so don't rebuild while either is running a check.
+
+### Splitting a gate across both
+
+`bash chromium/tests/android/split-gate.sh a5a-gate.sh [evidence dir]` runs a whole gate on both
+emulators at once: lane 2 (`emulator-5556`) takes the steps named in its `LANE2` (the slow sync and
+Spaces checks), lane 1 everything else, including any step added to a gate later. Every gate's
+`run()` asks `gate-lib.sh` whether its run takes a step (`BLANC_GATE_ONLY`, `BLANC_GATE_SKIP`), and
+lower gates always run so the choice reaches the whole chain. Each lane keeps its own evidence
+(`lane1/`, `lane2/` and their logs), and the split passes only when both lanes do.
+`chromium/tools/android-split-gate.test.mjs` checks that the two lanes add up to the whole gate.
+
+The A5c gate split this way on November 14, 2026 took 102 minutes, against about 3 hours run in
+order: lane 1 finished in 96 and lane 2 (sync, Spaces, Shared Spaces, blocking) in 102. Rebalance
+`LANE2` from each lane's step logs if one lane starts finishing well after the other.

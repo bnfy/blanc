@@ -983,6 +983,7 @@ function install(refs) {
         reload: ['R', ['control']], 'hard-reload': ['R', ['control', 'shift']],
         'close-tab': ['W', ['control']], find: ['F', ['control']],
         back: ['Left', ['alt']], forward: ['Right', ['alt']], 'new-tab': ['T', ['control']],
+        'new-private-tab': ['N', ['control', 'shift']],
       };
       if (!keys[commandId]) throw new Error(`no key for ${commandId}`);
       const [keyCode, modifiers] = keys[commandId];
@@ -1212,6 +1213,7 @@ function install(refs) {
       return saved;
     },
     setTabSwitchOrder(order) { settings.setSettings({ tabSwitchOrder: order }); return settings.getSettings().tabSwitchOrder; },
+    setReuseNewTab(on) { settings.setSettings({ reuseNewTab: !!on }); return settings.getSettings().reuseNewTab; },
     async probeOnePasswordUtilityProcess() {
       const result = await probeOnePasswordPackage();
       return {
@@ -4302,6 +4304,11 @@ function install(refs) {
         islandTabIcons: false,
         launchSunrise: false,
         linkRoutesInApp: false,
+        // Off between scenarios (#1505): each reset leaves one unused New Tab
+        // page, which reuse would hand back to /new, ⌘T and the rail's New Tab
+        // in scenarios that expect a new tab (F7-2, F28-8). The reuse scenarios
+        // turn it on in their Before hook (support/hooks.js).
+        reuseNewTab: false,
         islandAutoHide: false,
         islandAutoHideStyle: 'float',
         surfaceStyle: 'sunrise',

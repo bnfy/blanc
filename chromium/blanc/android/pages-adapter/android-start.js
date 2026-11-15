@@ -12,6 +12,23 @@
   viewport.content = 'width=device-width, initial-scale=1, viewport-fit=cover';
   document.head.append(viewport);
 
+  // Where the Island sits (Settings → Island position, as on the iPhone): android-start.css makes
+  // room for it from the mark. Native code answers (blanc_pages_ui.cc); this page keeps the answer,
+  // so the next Start Page is laid out for it from its first paint instead of jumping into place.
+  const ISLAND_KEY = 'blanc.android.island';
+  const islandAt = value => value === 'top' ? 'top' : 'bottom';
+  function stored() {
+    try { return localStorage.getItem(ISLAND_KEY); } catch { return null; }
+  }
+  root.dataset.island = islandAt(stored());
+  window.blancAndroidIsland = value => {
+    root.dataset.island = islandAt(value);
+    try { localStorage.setItem(ISLAND_KEY, root.dataset.island); } catch { /* the mark still applies */ }
+    // The clock is placed from the header and the footer, which just moved.
+    dispatchEvent(new Event('resize'));
+  };
+  window.chrome?.send?.('blancAndroidIsland', []);
+
   // blanc:// links the fork's adapter doesn't take: the pages Android serves open here, Settings
   // through native code; anything else isn't a page on Android.
   const PAGES = ['bookmarks', 'history', 'mahjong', 'shortcuts'];
