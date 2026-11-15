@@ -200,6 +200,75 @@ final class MobileStartPageTests: XCTestCase {
         // The page's storage is the app's own: leave the next run the fork's defaults.
         _ = try await webView.evaluateJavaScript("localStorage.removeItem('blanc.prototype.start.preferences.v1'); true")
     }
+
+    /// Favorites on the fork's Start Page: the Favorites widget lists the
+    /// phone's synced Favorites, follows a change while the page is open (the
+    /// `bookmarks` event, no reload), and its heading opens the Favorites page.
+    func testFavoritesWidgetListsAndFollowsFavorites() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let manager = TabsManager(settingsDirectory: directory, sessionDirectory: directory)
+        func save(_ url: String, _ title: String) {
+            manager.syncEngine.editFavorites {
+                SyncedFavorites.toggle($0, url: url, title: title, favicon: nil,
+                                       now: Date().timeIntervalSince1970 * 1000, makeId: { UUID().uuidString.lowercased() }).store
+            }
+        }
+        save("https://blanc.day/", "Blanc")
+        try manager.services.startPage.changeWidgets("widgetsWrite", args: ["favorites", true])
+        let webView = try XCTUnwrap(manager.activeTab?.webView)
+        webView.reload()
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let window = UIWindow(windowScene: scene)
+        window.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        let controller = UIViewController()
+        controller.view = webView
+        window.rootViewController = controller
+        window.makeKeyAndVisible()
+        defer { window.isHidden = true }
+        webView.frame = window.bounds
+
+        let names = "JSON.stringify([...document.querySelectorAll('#favoritesWidget #favoritesList .fav-item .name')].map(e => e.textContent.trim()))"
+        func listed(_ expected: String) async throws -> String? {
+            var value: String?
+            for _ in 0..<100 {
+                value = try? await webView.evaluateJavaScript(names) as? String
+                if value == expected { break }
+                try await Task.sleep(nanoseconds: 100_000_000)
+            }
+            return value
+        }
+        let first = try await listed(#"["Blanc"]"#)
+        XCTAssertEqual(first, #"["Blanc"]"#, "The widget lists the saved Favorite")
+        let shown = try await webView.evaluateJavaScript("(() => { const w = document.getElementById('favoritesWidget'); return !!w && !w.hidden && w.getClientRects().length > 0; })()") as? Bool
+        XCTAssertEqual(shown, true, "The Favorites widget shows once it's switched on")
+        // Widgets follow the shortcuts down the page, which scrolls (as on Android).
+        _ = try await webView.evaluateJavaScript("scrollTo({top: document.scrollingElement.scrollHeight, behavior: 'instant'}); true")
+        try await Task.sleep(nanoseconds: 500_000_000)
+        let image = XCTAttachment(image: UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
+            window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+        })
+        image.name = "iOS Start Page Favorites widget"
+        let clear = try await webView.evaluateJavaScript("document.getElementById('favoritesWidget').getBoundingClientRect().bottom <= document.querySelector('.ledger-footer').getBoundingClientRect().top") as? Bool
+        XCTAssertEqual(clear, true, "Scrolled to the end, the widget clears Customize")
+        image.lifetime = .keepAlways
+        add(image)
+
+        // Saved while the page is open (the Island's heart): it appears without a reload.
+        _ = try await webView.evaluateJavaScript("window.__sameDocument = true; true")
+        save("https://example.com/", "Example")
+        let both = try await listed(#"["Blanc","Example"]"#)
+        XCTAssertEqual(both, #"["Blanc","Example"]"#, "A Favorite saved while the page is open appears")
+        let sameDocument = try await webView.evaluateJavaScript("window.__sameDocument === true") as? Bool
+        XCTAssertEqual(sameDocument, true, "The Start Page hears of Favorites; it isn't reloaded")
+
+        // The heading opens the Favorites page in this tab.
+        _ = try await webView.evaluateJavaScript("document.querySelector('#favoritesWidget a[href=\"blanc://bookmarks/\"]').click(); true")
+        for _ in 0..<50 where webView.url?.host != "bookmarks" {
+            try await Task.sleep(nanoseconds: 100_000_000)
+        }
+        XCTAssertEqual(webView.url?.host, "bookmarks")
+    }
 }
 
 /// A loopback port nothing listens on. It comes from below the ephemeral range
