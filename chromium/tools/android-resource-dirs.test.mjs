@@ -38,6 +38,7 @@ export function blancResourceTargets(gn, prefix) {
     }
     const body = gn.slice(match.index, end).split('\n').filter(line => !line.trim().startsWith('#')).join('\n');
     const sources = [...body.matchAll(/"([^"]+)"/g)].map(m => m[1])
+      .filter(s => !s.includes(':'))
       .map(s => s.startsWith('//blanc/android/') ? s.slice('//blanc/'.length) : prefix && !s.startsWith('/') && !s.startsWith(':') && /\.(xml|png|webp)$/.test(s) ? `${prefix}/${s}` : null)
       .filter(Boolean);
     if (sources.length) targets.push({name: match[1], sources});
@@ -52,13 +53,11 @@ export function unlisted(target, blancDir) {
   const dirs = new Set(target.sources.map(s => path.posix.dirname(path.posix.dirname(s))));
   const missing = [];
   for (const dir of dirs) {
-    for (const sub of fs.readdirSync(path.join(blancDir, dir), {withFileTypes: true})) {
-      if (!sub.isDirectory()) continue;
-      for (const file of fs.readdirSync(path.join(blancDir, dir, sub.name))) {
-        if (file.startsWith('.')) continue;
-        const rel = `${dir}/${sub.name}/${file}`;
-        if (!listed.has(rel)) missing.push(`${target.name}: ${rel}`);
-      }
+    // Every file below the folder, at any depth, as resource_utils walks it.
+    for (const entry of fs.readdirSync(path.join(blancDir, dir), {recursive: true, withFileTypes: true})) {
+      if (!entry.isFile() || entry.name.startsWith('.')) continue;
+      const rel = path.posix.join(dir, path.relative(path.join(blancDir, dir), path.join(entry.parentPath, entry.name)).split(path.sep).join('/'));
+      if (!listed.has(rel)) missing.push(`${target.name}: ${rel}`);
     }
   }
   return missing;
@@ -67,11 +66,12 @@ export function unlisted(target, blancDir) {
 test('the finder reports a file in a listed folder that the target leaves out', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-res-fixture-'));
   try {
-    for (const f of ['android/res/values/a.xml', 'android/res/values-de/b.xml']) {
+    for (const f of ['android/res/values/a.xml', 'android/res/values-de/b.xml', 'android/res/values/deep/c.xml']) {
       fs.mkdirSync(path.dirname(path.join(dir, f)), {recursive: true}); fs.writeFileSync(path.join(dir, f), '');
     }
-    const [target] = blancResourceTargets('android_resources("t") {\n sources = [ "//blanc/android/res/values/a.xml" ]\n}\n');
-    assert.deepEqual(unlisted(target, dir), ['t: android/res/values-de/b.xml']);
+    const [target] = blancResourceTargets('android_resources("t") {\n sources = [ "//blanc/android/res/values/a.xml" ]\n deps = [ "//blanc/android/res:other" ]\n}\n');
+    assert.deepEqual(target.sources, ['android/res/values/a.xml']);
+    assert.deepEqual(unlisted(target, dir).sort(), ['t: android/res/values-de/b.xml', 't: android/res/values/deep/c.xml']);
   } finally { fs.rmSync(dir, {recursive: true, force: true}); }
 });
 

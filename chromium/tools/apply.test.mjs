@@ -36,7 +36,7 @@ function fixture(t) {
   write(root, 'blanc/keep.txt', 'keep\n');
   write(root, 'source-map.json', JSON.stringify({canonicalSha256: {'blanc/keep.txt': sha('keep\n')}}));
   const previous = path.join(dir, 'previous.json');
-  fs.writeFileSync(previous, JSON.stringify({upstream: head, upstreamFiles: {}, canonicalSha256: {'blanc/keep.txt': sha('keep\n'), 'blanc/gone.txt': sha('gone\n')}}));
+  fs.writeFileSync(previous, JSON.stringify({upstream: head, upstreamFiles: {}, canonicalSha256: {'blanc/keep.txt': sha('keep\n'), 'blanc/gone.txt': sha('gone\n'), 'blanc/old/res/moved.txt': sha('moved\n')}}));
   const run = () => spawnSync('python3', [path.join(root, 'tools/apply.py'), '--lane', 'android', '--src', src, '--previous-map', previous, '--apply', '--backup', backup], {encoding: 'utf8'});
   return {src, backup, write, run};
 }
@@ -44,10 +44,12 @@ function fixture(t) {
 test('a file the previous map placed and the canonical source dropped is removed, with a preimage', t => {
   const f = fixture(t);
   f.write(f.src, 'blanc/gone.txt', 'gone\n');
+  f.write(f.src, 'blanc/old/res/moved.txt', 'moved\n');
   const r = f.run();
   assert.equal(r.status, 0, r.stderr);
   assert.equal(fs.existsSync(path.join(f.src, 'blanc/gone.txt')), false);
   assert.equal(fs.readFileSync(path.join(f.src, 'blanc/keep.txt'), 'utf8'), 'keep\n');
+  assert.equal(fs.existsSync(path.join(f.src, 'blanc/old')), false, 'the emptied folder goes too');
   assert.equal(fs.readFileSync(path.join(f.backup, 'preimages/blanc/gone.txt'), 'utf8'), 'gone\n');
   assert.deepEqual(JSON.parse(fs.readFileSync(path.join(f.backup, 'journal.json'), 'utf8')).find(c => c.path === 'blanc/gone.txt'),
     {path: 'blanc/gone.txt', before: sha('gone\n'), after: null});

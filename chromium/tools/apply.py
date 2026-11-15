@@ -69,5 +69,11 @@ with tempfile.TemporaryDirectory(prefix='blanc-source-apply-') as temp:
         for change in changes:
             p=args.src/change['path']
             if sha(p)!=change['before']:raise SystemExit('Source changed during backup')
-            if change['after'] is None: p.unlink(); continue
+            if change['after'] is None:
+                p.unlink()
+                # Folders the removal left empty go too, up to the checkout.
+                for d in p.parents:
+                    if d == args.src or any(d.iterdir()): break
+                    d.rmdir()
+                continue
             p.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(work/change['path'],p)
