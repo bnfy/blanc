@@ -168,9 +168,13 @@ Would write ${evidence}/build.json. No changes made.`);
     const buildTool = [path.join(tools, 'build.mjs'), src, '--lane=android', `--out=${outName}`];
     // The toolchain baseline is recorded once per output; later changes to it still stop the build.
     const pinFile = path.join(out, '.blanc-build-environment.json');
-    if (!fs.existsSync(pinFile)) run(process.execPath, [...buildTool, '--record-environment'], { stdio: 'inherit' });
+    // Read once and decide from what was read; the file is never tested for existence first.
+    let pin = null;
+    try { pin = JSON.parse(fs.readFileSync(pinFile, 'utf8')); }
+    catch (error) { if (error.code !== 'ENOENT') throw error; }
+    if (pin === null) run(process.execPath, [...buildTool, '--record-environment'], { stdio: 'inherit' });
     else {
-      const moved = pinForNewVersion(JSON.parse(fs.readFileSync(pinFile, 'utf8')), argsTemplate, entry.versionCode, args);
+      const moved = pinForNewVersion(pin, argsTemplate, entry.versionCode, args);
       if (moved) fs.writeFileSync(pinFile, JSON.stringify(moved, null, 2) + '\n');
     }
     // A release is an intentional full rebuild, so the large-plan guard is waived here only.
