@@ -96,6 +96,10 @@ export const STRINGS = [
   ["blancLinkRouteSaveFailed", "settings.linkRoutes.saveFailed"],
   ["blancLinkRouteLoadFailed", "settings.linkRoutes.loadFailed"],
 
+  ['blancTabSwitchOrder', 'settings.general.tabSwitchOrder.label'],
+  ['blancTabSwitchOrderHint', 'settings.general.tabSwitchOrder.hint'],
+  ['blancTabSwitchOrderRecent', 'settings.general.tabSwitchOrder.recent'],
+  ['blancTabSwitchOrderList', 'settings.general.tabSwitchOrder.list'],
   ['blancTabArchive', 'settings.general.tabArchive.label'],
   ['blancTabArchiveHint', 'settings.general.tabArchive.hint'],
   ['blancTabArchiveOff', 'settings.general.tabArchive.off'],

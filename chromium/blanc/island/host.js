@@ -1195,6 +1195,7 @@
   function positionShield() {
     if (overlayClosing === 'spaces') return;
     if (opened && overlayMode === 'spaces') { positionSpaces(); return; }
+    if (opened && overlayMode === 'switcher') { positionSwitcher(); return; }
     if (opened && overlayMode === 'find' && findTabId === snapshot?.glanceTabId) {
       const page = glancePayload()?.card.page;
       if (page) {
@@ -1910,6 +1911,8 @@
     setTabLayout: async value => { layout = value === 'vertical' ? 'vertical' : 'island'; await applyRail(true); return layout; },
     setVerticalTabsWidth: async width => { railWidth = Number(width) || 248; return applyRail(true); },
     previewVerticalTabsWidth: async width => { railWidth = Number(width) || 248; return applyRail(); },
+    // A click on an entry of the Ctrl+Tab card lands on it at once (F59).
+    switcherPick: async id => { tabSwitcher.choose(switchWindow, String(id)); },
     activateTabFromRail: async id => {
       railActivationSerial++; clearSelection();
       await close(false); await hideSheet(false);
@@ -3114,8 +3117,135 @@
   }
 
   const routedTokens = new Set();
+  // ---- Ctrl+Tab by most recent use (F59) ----
+  // Shipping's tab-switcher.js holds the session; native sends each Ctrl+Tab
+  // (TabSwitchCommand) and, from its key watcher, the Control release, Esc,
+  // Ctrl+W and what cancels. Nothing changes until the release, so stepping
+  // never moves focus or wakes a quiet tab.
+  const switchWindow = {};
+  let switchOrder = [];
+  let switchCardTimer = null;
+  let switchQueue = Promise.resolve();
+  const SWITCHER_CARD_DELAY_MS = 150;
+  const tabSwitcher = BlancTabSwitcher.createTabSwitcher({
+    orderFor: () => switchOrder,
+    land: (_, id) => {
+      request('switchTab', [nativeId(id)]).then(() => request('focusPage')).then(refresh)
+        .catch(error => notice(error.message));
+    },
+    isLive: (_, id) => !!snapshot?.tabs.some(tab => String(tab.id) === id),
+    onChange: () => updateSwitcherCard(),
+  });
+  const switcherPurpose = session => ({ switcher: { tabIds: [...session.order], pick: session.pick } });
+  // Shipping's switcherBounds: one row of tiles centred over the page pane,
+  // hanging just under the Island; the view's margin is the card's shadow.
+  function positionSwitcher() {
+    const stripRect = strip.getBoundingClientRect();
+    const pill = strip.contentDocument?.getElementById('islandPill')?.getBoundingClientRect();
+    const below = pill ? stripRect.y + pill.bottom : stripH();
+    const rail = effectiveRailWidth();
+    const b = BlancTabSwitcher.switcherBounds({ pageX: rail, pageWidth: innerWidth - rail,
+      windowHeight: 10000, top: below + 8 - BlancTabSwitcher.SWITCHER_SHADOW });
+    Object.assign(overlay.style, {left: b.x + 'px', top: b.y + 'px', right: 'auto', bottom: 'auto',
+      width: b.width + 'px', height: b.height + 'px'});
+    return b;
+  }
+  // The card never takes focus: the page keeps the keys, as in shipping.
+  async function showSwitcherCard(purpose) {
+    railDismiss('surface');
+    tooltip.hidden = true;
+    overlayClosing = null;
+    overlay.dataset.mode = 'switcher';
+    overlayMode = 'switcher';
+    overlayPurpose = purpose;
+    opened = true;
+    const bounds = positionSwitcher();
+    overlay.style.pointerEvents = '';
+    overlay.hidden = false;
+    emit('onIslandState', { mode: 'switcher', trigger: null, restoreTrigger: null });
+    emit('onOverlayShow', { mode: 'switcher', prefill: null, purpose,
+      searchPriorityResults: snapshot?.searchPriorityResults === true });
+    await request('height', [Math.max(stripH(), bounds.y + bounds.height), false]);
+    reportGeometry();
+  }
+  async function hideSwitcherCard() {
+    if (overlayMode !== 'switcher') return;
+    emit('onOverlayHide', {});
+    emit('onIslandState', { mode: null, trigger: null, restoreTrigger: null });
+    opened = false;
+    overlayMode = null;
+    overlayPurpose = null;
+    overlay.dataset.mode = '';
+    overlay.hidden = true;
+    for (const key of ['left', 'top', 'width', 'height', 'right', 'bottom']) overlay.style[key] = '';
+    if (!sheet.page) await restHeight();
+    reportGeometry();
+  }
+  // Drawn only over a bare page: with another Island surface open the switch
+  // works blind and lands as usual. A tap never flashes it; a second Tab
+  // shows it at once.
+  function updateSwitcherCard() {
+    const session = tabSwitcher.session(switchWindow);
+    if (!session) {
+      clearTimeout(switchCardTimer);
+      switchCardTimer = null;
+      hideSwitcherCard().catch(error => notice(error.message));
+      return;
+    }
+    if (overlayMode === 'switcher') {
+      overlayPurpose = switcherPurpose(session);
+      emit('onOverlayShow', { mode: 'switcher', prefill: null, purpose: overlayPurpose,
+        searchPriorityResults: snapshot?.searchPriorityResults === true });
+      return;
+    }
+    if (opened || sheet.page) return;
+    const showNow = () => {
+      switchCardTimer = null;
+      const current = tabSwitcher.session(switchWindow);
+      if (current && !opened && !sheet.page) showSwitcherCard(switcherPurpose(current)).catch(error => notice(error.message));
+    };
+    if (session.steps >= 2) { clearTimeout(switchCardTimer); showNow(); return; }
+    if (!switchCardTimer) switchCardTimer = setTimeout(showNow, SWITCHER_CARD_DELAY_MS);
+  }
+  async function runTabSwitch(action, direction) {
+    if (action === 'step' || action === 'tap') {
+      if (!tabSwitcher.isSwitching(switchWindow)) {
+        const recent = await request('tabActivationOrder');
+        await refresh();
+        const ids = new Map(snapshot.tabs.map(tab => [nativeId(tab.id), String(tab.id)]));
+        const history = recent.map(id => ids.get(id)).filter(id => id !== undefined).reverse();
+        switchOrder = BlancTabSwitcher.switcherOrder({ activeTabId: String(snapshot.activeTabId), history,
+          tabOrder: snapshot.tabs.map(tab => String(tab.id)),
+          splitOf: id => snapshot.tabs.find(tab => String(tab.id) === id)?.splitId ?? null });
+      }
+      tabSwitcher.step(switchWindow, direction < 0 ? -1 : 1);
+      if (action === 'tap') tabSwitcher.release(switchWindow);
+    } else if (action === 'release') tabSwitcher.release(switchWindow);
+    else if (action === 'cancel') tabSwitcher.cancel(switchWindow);
+    // A click may be on a card entry, which chooses it; anything else cancels.
+    else if (action === 'cancelSoon') setTimeout(() => tabSwitch('cancel'), 250);
+    else if (action === 'closePick') {
+      // Ctrl+W closes the picked tab, not the current one (shipping's D4).
+      const id = tabSwitcher.pick(switchWindow);
+      if (id == null || id === String(snapshot.activeTabId)) return;
+      await request('closeTab', [nativeId(id)]);
+      tabSwitcher.removed(switchWindow, id);
+      await refresh();
+    }
+  }
+  // One at a time: a release must not overtake the step still reading the order.
+  function tabSwitch(action, direction = 1) {
+    switchQueue = switchQueue.then(() => runTabSwitch(String(action), Number(direction)))
+      .catch(error => notice(error.message));
+    return switchQueue;
+  }
+
   window.BlancPrototypeHost = {
     api,
+    tabSwitch,
+    // The switch as tests read it: shipping's tabSwitchPick and tabSwitchOrder.
+    tabSwitchState: () => ({ pick: tabSwitcher.pick(switchWindow), order: tabSwitcher.session(switchWindow)?.order ?? null,
+      card: overlayMode === 'switcher' }),
     offerSpaceLink,
     routeExternalLink: async (token, id) => {
       if (routedTokens.has(token)) return;

@@ -176,6 +176,9 @@ content::WebContents* NewPrivateTab(BrowserWindowInterface* browser, const GURL&
 // or the setting is off, and the caller opens a new tab as before.
 content::WebContents* ReuseNewTab(BrowserWindowInterface* browser, bool is_private,
                                   bool open_island = true);
+// F59: a Ctrl+Tab (1) or Ctrl+Shift+Tab (-1) taken as a step of the
+// most-recent-use switch; false when Chromium should step by position.
+bool TabSwitchCommand(BrowserWindowInterface* browser, int direction);
 // The Dock's New Private Window, and ⌘⇧N with no window open: a window
 // Chromium just opened becomes one private tab, as shipping's
 // openNewWindow({private: true}). False leaves it as Chromium made it.

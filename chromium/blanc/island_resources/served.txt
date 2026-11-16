@@ -200,6 +200,7 @@ sunrise-hero-mark.png
 tab-drag.js
 tab-sections.js
 tab-selection.js
+tab-switcher.js
 vertical-tabs.js
 whats-new.js
 workspace-ui.js

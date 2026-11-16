@@ -38,6 +38,7 @@
     "glance-card.js",
     "clean-link.js",
     "invite-friend.js",
-    "site-security.js"
+    "site-security.js",
+    "tab-switcher.js"
   ]
 }

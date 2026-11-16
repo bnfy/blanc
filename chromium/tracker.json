@@ -1567,9 +1567,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "drafted",
-          "basis": "Not built (checked 2026-11-16): settings-keys.json lists tabSwitchOrder as 'later', and only shipping's generated renderer code names it; no native handling or Settings control exists. A test also needs a way to hold Ctrl across separate Tab presses, which no fork test has yet",
-          "candidate": "macos-4f9e9bb648216395"
+          "stage": "integrated",
+          "basis": "Built 2026-11-16 (patch 0088, tab_switch_keys_mac, shipping's tab-switcher.js in the host): native-tab-switch.mjs passes 8 of 8 checks on macos-9d3053da65b5aea9 with key events posted to the app's own queue (order by last use, nothing changes until Control up, card after 150 ms or a second Tab, tap, Esc, another key, Ctrl+W, a card click, list order); the card and the Settings row were seen on screen. Differences: a menu click on Select Next Tab stays positional (shipping makes it a tap). Not checked: hardware keys, another app coming to the front, Windows and Linux; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-9d3053da65b5aea9"
         },
         "windows": {
           "stage": "not-started",

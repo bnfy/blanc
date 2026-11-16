@@ -14,6 +14,42 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Ctrl+Tab by most recent use (F59; patch 0088, candidate macos-9d3053da65b5aea9):**
+  the fork had none of it (`tabSwitchOrder` was a later key). Now, as
+  shipping: Settings → Appearance → Switch tabs with Ctrl+Tab (pref
+  `blanc.tabs.switch_order`, `recent` by default or `list`, shipping's
+  strings); holding Control and pressing Tab steps back through the window's
+  tabs by last use, Shift+Tab forward; nothing changes until Control comes
+  up, so stepping never moves focus or wakes a quiet tab; the card shows
+  after 150 ms or at the second Tab, only over a bare page, and never takes
+  focus; Esc or any other key cancels; Ctrl+W closes the pick; a click on a
+  card tile lands on it. How: patch 0088 lets `chrome::SelectNextTab` and
+  `SelectPreviousTab` ask `blanc_prototype::TabSwitchCommand` first, which
+  takes the step only when the event being handled is Ctrl+Tab
+  (`tab_switch_keys_mac.mm` reads `NSApp.currentEvent`), so Ctrl+PageDown and
+  the ⌘ shortcuts stay positional. The host runs shipping's
+  `tab-switcher.js` unchanged (generated like `island-proximity.js`) over
+  Chromium's own last-active time per tab (`tabActivationOrder`), and a
+  local event monitor that lives from the first Ctrl+Tab until Control
+  comes up sends the release, Esc, Ctrl+W, other keys, clicks and the app
+  losing focus. The card is shipping's overlay `switcher` mode, placed by
+  shipping's `switcherBounds`; the host asks for room without focus
+  (`height`, false). Checked on the MacBook Pro against the Mac Studio's
+  build (GN regenerated with unchanged arguments for the new source file;
+  40 steps, then 7): `tests/native-tab-switch.mjs` passes 8 of 8, three
+  runs, posting real NSEvents to the app's own queue (`postTabSwitchKey`),
+  so the command path and the watcher both run; a screenshot shows the card
+  (five tiles by last use, the pick outlined, its title and host) and
+  Settings shows the row with both choices. Differences from shipping: a
+  menu click on Select Next Tab stays positional (shipping treats it as a
+  tap). Not checked: hardware keys from a keyboard, another app coming to
+  the front mid-switch, a split as one entry, a private window, Windows and
+  Linux (the hook returns false there). Ships in the next beta. Regression
+  on the same build: `tabs-and-groups.feature` 47 of 47 and
+  `island-and-commands.feature` 71 of 72 run, the one failure being
+  `:61` (hover-open under a resting pointer), which fails as often on the
+  unchanged nightly build on this Mac (2 of 4 against 4 of 6 passes,
+  interleaved): it depends on where the real pointer rests.
 - **2026-11-16 — A restored window keeps its size (patch 0087, candidate macos-ef1d86d7ab21bc63):**
   the open bug behind `vertical-tabs.feature:58` (a window reopening at an
   earlier size) is found and fixed. Cause, from an instrumented build: the
@@ -3581,11 +3617,11 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 | --- | ---: | ---: | ---: | ---: |
 | Not started / unassessed | 8 | 81 | 81 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
-| Drafted | 2 | 0 | 0 | 0 |
+| Drafted | 1 | 0 | 0 | 0 |
 | Implemented | 8 | 0 | 0 | 12 |
 | Built, isolated (legacy) | 0 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 0 | 0 | 0 | 0 |
-| Integrated | 62 | 0 | 0 | 0 |
+| Integrated | 63 | 0 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 | 0 |

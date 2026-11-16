@@ -337,6 +337,7 @@
 #include "build/build_config.h"
 #if BUILDFLAG(IS_MAC)
 #include "blanc/browser/ui/app_menus_mac.h"
+#include "blanc/browser/ui/tab_switch_keys_mac.h"
 #include "blanc/browser/ui/window_buttons_mac.h"
 #endif
 #include "ui/base/resource/resource_bundle.h"
@@ -5658,6 +5659,8 @@ constexpr char kLinkRoutesInAppPref[] = "blanc.links.in_app";
 // #1505: New Tab switches to an unused Start Page (shipping's reuseNewTab).
 // A profile pref like blanc.tabs.archive, registered in browser_prefs.cc.
 constexpr char kReuseNewTabPref[] = "blanc.tabs.reuse_new_tab";
+// F59: Settings → Switch tabs with Ctrl+Tab, "recent" (shipping's default) or "list".
+constexpr char kTabSwitchOrderPref[] = "blanc.tabs.switch_order";
 std::string RouteProfileId(Profile* profile) {
   const auto name = profile->GetOriginalProfile()->GetPath().BaseName().AsUTF8Unsafe();
   return name == "Default" ? "default" : name;
@@ -7452,6 +7455,27 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       auto next = before.Clone();next.Set("enabled", args[0].GetBool());
       if (args.size() == 2) next.Set("mapping", args[1].GetDict().Clone());
       const bool ok = SaveGestureSettings(profile, next);Reply(id, ok, base::Value(std::move(before)));return;
+    }
+#if BUILDFLAG(IS_MAC)
+    // F59: one key of a Ctrl+Tab gesture, posted to this app's own event
+    // queue for this window, so the real key path runs (the Select Next Tab
+    // command and the Control-release watcher). Nothing leaves the process.
+    if (message[1].GetString() == "postTabSwitchKey" && message[2].GetList().size() == 1 &&
+        message[2].GetList()[0].is_string()) {
+      auto* window = GetOwner(web_ui()->GetWebContents())->browser->GetWindow();
+      Reply(id, true, base::Value(blanc::PostTabSwitchKeyForTesting(
+          window->GetNativeWindow(), message[2].GetList()[0].GetString())));
+      return;
+    }
+#endif
+    // Shipping's setTabSwitchOrder hook: the preference Settings writes.
+    if (message[1].GetString() == "setTabSwitchOrder" && message[2].GetList().size() == 1 &&
+        message[2].GetList()[0].is_string()) {
+      const auto& order = message[2].GetList()[0].GetString();
+      if (order != "recent" && order != "list") {Reply(id, false, base::Value());return;}
+      Profile::FromWebUI(web_ui())->GetOriginalProfile()->GetPrefs()->SetString(kTabSwitchOrderPref, order);
+      Reply(id, true, base::Value(order));
+      return;
     }
     // Shipping's setReuseNewTab hook (#1542): the preference Settings writes.
     // The suite's reset turns it off, as shipping's steps at the fork's pinned
@@ -9912,6 +9936,21 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
 
     // Spaces' list data (F41): names, colors and order, per profile. Tabs stay
     // in the checked store below, under each Space's id.
+    // F59: this window's tabs, most recently shown first (Chromium keeps each
+    // tab's last active time), for the host's Ctrl+Tab order.
+    if (method == "tabActivationOrder" && args.empty()) {
+      std::vector<std::pair<base::TimeTicks, int>> shown;
+      for (int index = 0; index < model->count(); ++index) {
+        auto* tab = model->GetWebContentsAt(index);
+        shown.emplace_back(tab->GetLastActiveTimeTicks(), sessions::SessionTabHelper::IdForTab(tab).id());
+      }
+      std::stable_sort(shown.begin(), shown.end(),
+                       [](const auto& a, const auto& b) { return a.first > b.first; });
+      base::ListValue ids;
+      for (const auto& entry : shown) ids.Append(entry.second);
+      reply(true, base::Value(std::move(ids)));
+      return;
+    }
     if (method == "keepMiniWindow" && args.empty()) { reply(true, base::Value(KeepMiniWindow(browser))); return; }
     if (method == "spaceMeta" && args.empty()) {
       base::ListValue elsewhere, held;
@@ -13747,6 +13786,44 @@ content::WebContents* ReuseNewTab(BrowserWindowInterface* browser, bool is_priva
   if (best != model->active_index()) model->ActivateTabAt(best);
   if (open_island) OpenIsland(browser, true);
   return tab;
+}
+
+// F59, Ctrl+Tab by most recent use. The host runs shipping's tab-switcher.js;
+// this hands it each Tab press and, through the key watcher, the Control
+// release, Esc, Ctrl+W and anything that cancels. False leaves Chromium's
+// positional step: the setting on "list", another key (Ctrl+PageDown, the ⌘
+// shortcuts), a menu click, or a window without the Island.
+bool TabSwitchCommand(BrowserWindowInterface* browser, int direction) {
+#if BUILDFLAG(IS_MAC)
+  if (!IsIslandWindow(browser) ||
+      browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetString(kTabSwitchOrderPref) != "recent" ||
+      blanc::CurrentTabSwitchKey() != blanc::TabSwitchKey::kCtrlTab) {
+    return false;
+  }
+  content::WebContents* host = nullptr;
+  for (auto* owner : Owner::Live())
+    if (owner->browser == browser && owner->view) host = owner->view->GetWebContents();
+  if (!host || host->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html") ||
+      !host->GetPrimaryMainFrame()->IsRenderFrameLive()) {
+    return false;
+  }
+  host->GetPrimaryMainFrame()->ExecuteJavaScript(
+      direction > 0 ? u"window.BlancPrototypeHost?.tabSwitch('step', 1)"
+                    : u"window.BlancPrototypeHost?.tabSwitch('step', -1)",
+      base::NullCallback());
+  blanc::WatchTabSwitchKeys(base::BindRepeating(
+      [](base::WeakPtr<content::WebContents> host, const std::string& action) {
+        if (!host || !host->GetPrimaryMainFrame()->IsRenderFrameLive()) return;
+        // |action| is one of the watcher's four fixed words.
+        host->GetPrimaryMainFrame()->ExecuteJavaScript(
+            u"window.BlancPrototypeHost?.tabSwitch('" + base::ASCIIToUTF16(action) + u"')",
+            base::NullCallback());
+      },
+      host->GetWeakPtr()));
+  return true;
+#else
+  return false;
+#endif
 }
 
 bool MakePrivateWindow(BrowserWindowInterface* browser) {

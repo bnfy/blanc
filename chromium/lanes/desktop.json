@@ -92,6 +92,7 @@
     "patches/0084-blanc-tab-thumbnails.patch",
     "patches/0085-blanc-infobar-band.patch",
     "patches/0086-blanc-reuse-new-tab.patch",
-    "patches/0087-blanc-restored-window-frame.patch"
+    "patches/0087-blanc-restored-window-frame.patch",
+    "patches/0088-blanc-tab-switch-order.patch"
   ]
 }

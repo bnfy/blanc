@@ -36,7 +36,7 @@ const SHEET_BRIDGE = ['  <script src="strings.js"></script>\n', '  <script src="
 // siteInfo as shipping's tab projection does (S1.6). Each exposes its
 // exports on window under the given name.
 export const MAIN_FILES = {'island-hover-open.js': 'BlancIslandHoverOpen', 'island-proximity.js': 'BlancIslandProximity', 'island-autohide.js': 'BlancIslandAutoHide',
-  'whats-new.js': 'BlancWhatsNew', 'glance-card.js': 'BlancGlanceCard', 'clean-link.js': 'BlancCleanLink', 'invite-friend.js': 'BlancInviteFriend', 'site-security.js': 'BlancSiteSecurity'};
+  'whats-new.js': 'BlancWhatsNew', 'glance-card.js': 'BlancGlanceCard', 'clean-link.js': 'BlancCleanLink', 'invite-friend.js': 'BlancInviteFriend', 'site-security.js': 'BlancSiteSecurity', 'tab-switcher.js': 'BlancTabSwitcher'};
 // Trusted Types policy names, per hardened script.
 const HARDEN = {'overlay.js': 'overlay', 'renderer.js': 'renderer', 'vertical-tabs.js': 'vertical-tabs'};
 const PREVIEW_META = fs.readFileSync(path.join(root, 'tools/preview-build-meta.html'), 'utf8').trimEnd();

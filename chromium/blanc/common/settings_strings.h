@@ -14,7 +14,7 @@ struct String {
   std::string_view name;
   std::u16string_view value;
 };
-inline constexpr std::array<String, 162> kStrings_en = {{
+inline constexpr std::array<String, 166> kStrings_en = {{
     {"blancGestureEmpty", u"No gestures assigned."},
     {"blancGestureLabel", u"Mouse gestures"},
     {"blancGestureHint", u"With a mouse, hold the right button and drag, then release. On a trackpad, hold Alt/Option (⌥), click and hold with one finger, then drag."},
@@ -91,6 +91,10 @@ inline constexpr std::array<String, 162> kStrings_en = {{
     {"blancLinkRouteLimit", u"You can have up to {count} rules."},
     {"blancLinkRouteSaveFailed", u"Couldn’t save the rules."},
     {"blancLinkRouteLoadFailed", u"Couldn’t load the rules."},
+    {"blancTabSwitchOrder", u"Switch tabs with Ctrl+Tab"},
+    {"blancTabSwitchOrderHint", u"Hold Ctrl and press Tab to go back through the tabs you used last, then let go of Ctrl to switch. Esc stays where you are."},
+    {"blancTabSwitchOrderRecent", u"In the order you used them"},
+    {"blancTabSwitchOrderList", u"In the order of the tab list"},
     {"blancTabArchive", u"Archive inactive tabs"},
     {"blancTabArchiveHint", u"Blanc closes loose tabs you haven't opened in a while and keeps them in your Archive for 30 days. Pinned tabs and tab groups are never archived."},
     {"blancTabArchiveOff", u"Off"},
@@ -178,7 +182,7 @@ inline constexpr std::array<String, 162> kStrings_en = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Relaunch to apply"},
 }};
-inline constexpr std::array<String, 162> kStrings_de = {{
+inline constexpr std::array<String, 166> kStrings_de = {{
     {"blancGestureEmpty", u"Keine Gesten zugewiesen."},
     {"blancGestureLabel", u"Mausgesten"},
     {"blancGestureHint", u"Mit einer Maus: rechte Taste gedrückt halten, ziehen und loslassen. Auf einem Trackpad: Alt/Wahltaste (⌥) halten, mit einem Finger klicken und halten, dann ziehen."},
@@ -255,6 +259,10 @@ inline constexpr std::array<String, 162> kStrings_de = {{
     {"blancLinkRouteLimit", u"Du kannst bis zu {count} Regeln haben."},
     {"blancLinkRouteSaveFailed", u"Die Regeln konnten nicht gespeichert werden."},
     {"blancLinkRouteLoadFailed", u"Die Regeln konnten nicht geladen werden."},
+    {"blancTabSwitchOrder", u"Tabs mit Strg+Tab wechseln"},
+    {"blancTabSwitchOrderHint", u"Halte Strg gedrückt und drücke Tab, um durch die zuletzt genutzten Tabs zurückzugehen; lass Strg los, um zu wechseln. Mit Esc bleibst du, wo du bist."},
+    {"blancTabSwitchOrderRecent", u"In der Reihenfolge der Nutzung"},
+    {"blancTabSwitchOrderList", u"In der Reihenfolge der Tab-Liste"},
     {"blancTabArchive", u"Inaktive Tabs archivieren"},
     {"blancTabArchiveHint", u"Blanc schließt lose Tabs, die du länger nicht geöffnet hast, und bewahrt sie 30 Tage in deinem Archiv auf. Angeheftete Tabs und Tabgruppen werden nie archiviert."},
     {"blancTabArchiveOff", u"Aus"},
@@ -342,7 +350,7 @@ inline constexpr std::array<String, 162> kStrings_de = {{
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Zum Übernehmen neu starten"},
 }};
-inline constexpr std::array<String, 162> kStrings_es = {{
+inline constexpr std::array<String, 166> kStrings_es = {{
     {"blancGestureEmpty", u"No hay gestos asignados."},
     {"blancGestureLabel", u"Gestos del ratón"},
     {"blancGestureHint", u"Con un ratón, mantén pulsado el botón derecho y arrastra; luego suelta. En un trackpad, mantén pulsada Alt/Opción (⌥), haz clic y mantén pulsado con un dedo y arrastra."},
@@ -419,6 +427,10 @@ inline constexpr std::array<String, 162> kStrings_es = {{
     {"blancLinkRouteLimit", u"Puedes tener hasta {count} reglas."},
     {"blancLinkRouteSaveFailed", u"No se pudieron guardar las reglas."},
     {"blancLinkRouteLoadFailed", u"No se pudieron cargar las reglas."},
+    {"blancTabSwitchOrder", u"Cambiar de pestaña con Ctrl+Tab"},
+    {"blancTabSwitchOrderHint", u"Mantén pulsado Ctrl y pulsa Tab para volver por las pestañas que usaste por última vez; suelta Ctrl para cambiar. Esc te deja donde estás."},
+    {"blancTabSwitchOrderRecent", u"En el orden en que las usaste"},
+    {"blancTabSwitchOrderList", u"En el orden de la lista de pestañas"},
     {"blancTabArchive", u"Archivar las pestañas inactivas"},
     {"blancTabArchiveHint", u"Blanc cierra las pestañas sueltas que no abres desde hace tiempo y las guarda en tu Archivo durante 30 días. Las pestañas fijadas y los grupos de pestañas nunca se archivan."},
     {"blancTabArchiveOff", u"Desactivado"},
@@ -506,7 +518,7 @@ inline constexpr std::array<String, 162> kStrings_es = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Reiniciar para aplicar"},
 }};
-inline constexpr std::array<String, 162> kStrings_fr = {{
+inline constexpr std::array<String, 166> kStrings_fr = {{
     {"blancGestureEmpty", u"Aucun geste attribué."},
     {"blancGestureLabel", u"Gestes de la souris"},
     {"blancGestureHint", u"Avec une souris, maintenez le bouton droit enfoncé et faites glisser, puis relâchez. Sur un trackpad, maintenez Alt/Option (⌥), cliquez en maintenant un doigt, puis faites glisser."},
@@ -583,6 +595,10 @@ inline constexpr std::array<String, 162> kStrings_fr = {{
     {"blancLinkRouteLimit", u"Vous pouvez avoir jusqu’à {count} règles."},
     {"blancLinkRouteSaveFailed", u"Impossible d’enregistrer les règles."},
     {"blancLinkRouteLoadFailed", u"Impossible de charger les règles."},
+    {"blancTabSwitchOrder", u"Changer d’onglet avec Ctrl+Tab"},
+    {"blancTabSwitchOrderHint", u"Maintenez Ctrl et appuyez sur Tab pour revenir aux onglets utilisés en dernier, puis relâchez Ctrl pour changer. Échap vous laisse où vous êtes."},
+    {"blancTabSwitchOrderRecent", u"Dans l’ordre où vous les avez utilisés"},
+    {"blancTabSwitchOrderList", u"Dans l’ordre de la liste des onglets"},
     {"blancTabArchive", u"Archiver les onglets inactifs"},
     {"blancTabArchiveHint", u"Blanc ferme les onglets isolés que vous n’avez pas ouverts depuis un moment et les garde 30 jours dans vos Archives. Les onglets épinglés et les groupes d’onglets ne sont jamais archivés."},
     {"blancTabArchiveOff", u"Désactivé"},
@@ -670,7 +686,7 @@ inline constexpr std::array<String, 162> kStrings_fr = {{
     {"blancLanguageSystem", u"Système ({language})"},
     {"blancLanguageRelaunch", u"Redémarrer pour appliquer"},
 }};
-inline constexpr std::array<String, 162> kStrings_it = {{
+inline constexpr std::array<String, 166> kStrings_it = {{
     {"blancGestureEmpty", u"Nessun gesto assegnato."},
     {"blancGestureLabel", u"Gesti del mouse"},
     {"blancGestureHint", u"Con un mouse, tieni premuto il tasto destro e trascina, poi rilascia. Su un trackpad, tieni premuto Alt/Opzione (⌥), fai clic e tieni premuto con un dito, poi trascina."},
@@ -747,6 +763,10 @@ inline constexpr std::array<String, 162> kStrings_it = {{
     {"blancLinkRouteLimit", u"Puoi avere fino a {count} regole."},
     {"blancLinkRouteSaveFailed", u"Impossibile salvare le regole."},
     {"blancLinkRouteLoadFailed", u"Impossibile caricare le regole."},
+    {"blancTabSwitchOrder", u"Cambia scheda con Ctrl+Tab"},
+    {"blancTabSwitchOrderHint", u"Tieni premuto Ctrl e premi Tab per tornare alle schede usate più di recente, poi rilascia Ctrl per passarci. Esc ti lascia dove sei."},
+    {"blancTabSwitchOrderRecent", u"Nell’ordine in cui le hai usate"},
+    {"blancTabSwitchOrderList", u"Nell’ordine dell’elenco delle schede"},
     {"blancTabArchive", u"Archivia le schede inattive"},
     {"blancTabArchiveHint", u"Blanc chiude le schede sparse che non apri da un po’ e le conserva nel tuo Archivio per 30 giorni. Le schede fissate e i gruppi di schede non vengono mai archiviati."},
     {"blancTabArchiveOff", u"Disattivato"},
@@ -834,7 +854,7 @@ inline constexpr std::array<String, 162> kStrings_it = {{
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Riavvia per applicare"},
 }};
-inline constexpr std::array<String, 162> kStrings_pt_BR = {{
+inline constexpr std::array<String, 166> kStrings_pt_BR = {{
     {"blancGestureEmpty", u"Nenhum gesto atribuído."},
     {"blancGestureLabel", u"Gestos do mouse"},
     {"blancGestureHint", u"Com um mouse, segure o botão direito e arraste; depois solte. Num trackpad, segure Alt/Option (⌥), clique e segure com um dedo e arraste."},
@@ -911,6 +931,10 @@ inline constexpr std::array<String, 162> kStrings_pt_BR = {{
     {"blancLinkRouteLimit", u"Você pode ter até {count} regras."},
     {"blancLinkRouteSaveFailed", u"Não foi possível salvar as regras."},
     {"blancLinkRouteLoadFailed", u"Não foi possível carregar as regras."},
+    {"blancTabSwitchOrder", u"Trocar de aba com Ctrl+Tab"},
+    {"blancTabSwitchOrderHint", u"Segure Ctrl e pressione Tab para voltar pelas abas que você usou por último; solte Ctrl para trocar. Esc deixa você onde está."},
+    {"blancTabSwitchOrderRecent", u"Na ordem em que você as usou"},
+    {"blancTabSwitchOrderList", u"Na ordem da lista de abas"},
     {"blancTabArchive", u"Arquivar abas inativas"},
     {"blancTabArchiveHint", u"O Blanc fecha as abas soltas que você não abre há algum tempo e as guarda no seu Arquivo por 30 dias. Abas fixadas e grupos de abas nunca são arquivados."},
     {"blancTabArchiveOff", u"Desativado"},
