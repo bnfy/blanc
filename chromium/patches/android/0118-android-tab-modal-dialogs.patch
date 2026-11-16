@@ -13,8 +13,8 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/modaldialog/Chro
 -            mRunEnterAnimationOnCallback = true;
 -        }
 +        // Blanc (patch 0118): Chrome waits here until its toolbar is fully visible. Blanc keeps
-+        // that toolbar hidden for good (patch 0104), so the wait never ended and a site's
-+        // permission prompt, a JavaScript alert or an HTTP sign-in never appeared.
++        // that toolbar hidden for good (patch 0104), so the wait never ended and the dialog
++        // never appeared (seen with a site's camera prompt on 1.0.0-beta.1).
 +        runEnterAnimation();
          assert mTabObscuringToken == null;
          mTabObscuringToken =
