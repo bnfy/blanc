@@ -180,7 +180,7 @@ ImportedWindow::ImportedWindow(ImportedWindow&&) = default;
 ImportedWindow& ImportedWindow::operator=(ImportedWindow&&) = default;
 ImportedWindow::~ImportedWindow() = default;
 
-std::optional<ImportedWindow> ConvertImportedWindow(const base::DictValue& columns) {
+std::optional<ImportedWindow> ConvertImportedWindow(const base::DictValue& columns, bool allow_empty = false) {
   const auto* urls = columns.FindList("urls");
   if (!urls || urls->size() > 500) return std::nullopt;
   const auto* group_ids = columns.FindList("groupIds");
@@ -232,7 +232,17 @@ std::optional<ImportedWindow> ConvertImportedWindow(const base::DictValue& colum
     out.source.push_back(i);
     out.titles.push_back(std::move(title));
   }
-  if (tabs.empty()) return std::nullopt;
+  if (tabs.empty()) {
+    // An empty Space, or one whose tabs the fork cannot hold, keeps its name
+    // with one new tab (the fork has no Space without a tab); an empty saved
+    // window is nothing to open.
+    if (!allow_empty) return std::nullopt;
+    tabs.Append(base::DictValue().Set("url", "chrome://newtab/").Set("pinned", false).Set("group", -1));
+    out.source.push_back(0);
+    out.titles.emplace_back();
+    out_groups.clear();
+    active = 0;
+  }
   out.record = base::DictValue().Set("tabs", std::move(tabs)).Set("groups", std::move(out_groups)).Set("active", active);
   if (!ValidSpace(out.record)) return std::nullopt;
   return out;
@@ -241,7 +251,7 @@ std::optional<ImportedWindow> ConvertImportedWindow(const base::DictValue& colum
 std::optional<base::DictValue> ImportSpaceRecord(const base::DictValue& space, int sequence) {
   const auto* name = space.FindString("name");
   if (!name || name->empty() || name->size() > 512) return std::nullopt;
-  auto window = ConvertImportedWindow(space);
+  auto window = ConvertImportedWindow(space, /*allow_empty=*/true);
   if (!window) return std::nullopt;
   window->record.Set("importName", *name);
   window->record.Set("importSequence", sequence);
@@ -380,8 +390,9 @@ PreparedImport PrepareImport(const base::DictValue& stores) {
   }
   if (const auto* store = stores.FindDict("history.json")) {
     const auto* entries = store->FindList("entries");
+    // Site icons are absent from a history file written before Blanc kept them.
     const auto* icons = store->FindList("siteIcons");
-    if (!entries || !icons || entries->size() > 5000) return fail("history.json");
+    if (!entries || (store->contains("siteIcons") && !icons) || entries->size() > 5000) return fail("history.json");
     for (const auto& value : *entries) {
       const auto* item = value.GetIfDict();
       const auto* url = item ? item->FindString("url") : nullptr;
@@ -393,7 +404,8 @@ PreparedImport PrepareImport(const base::DictValue& stores) {
       out.visits.push_back({parsed, base::UTF8ToUTF16(title ? title->substr(0, 4096) : std::string()),
                             base::Time::FromMillisecondsSinceUnixEpoch(*when)});
     }
-    for (const auto& value : *icons) {
+    const base::ListValue no_icons;
+    for (const auto& value : icons ? *icons : no_icons) {
       const auto* item = value.GetIfDict();
       const auto* host = item ? item->FindString("key") : nullptr;
       const auto* data = item ? item->FindString("favicon") : nullptr;

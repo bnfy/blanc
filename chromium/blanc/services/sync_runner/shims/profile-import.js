@@ -92,7 +92,9 @@ const PROFILE_RULES = {
   },
   'history.json'(store, source, left) {
     const entries = list(store, 'entries');
-    list(store, 'siteIcons');
+    // A history file from before Blanc kept site icons has no list of them
+    // (found on a real profile, 2026-11-16).
+    if (store.siteIcons !== undefined) list(store, 'siteIcons');
     if (entries.length > HISTORY_CAP) {
       left.push({source: `${source}#/entries/${HISTORY_CAP}`, reason: 'Visits past the 5,000 shipping keeps are not imported.'});
     }

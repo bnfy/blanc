@@ -29,7 +29,8 @@ try{
  // The test's own pages are already in history; imports are counted from here.
  const base=await w.native('profileImportHistoryCount');
  // 1. A damaged store: nothing of that profile is imported, and the store is named.
- const damaged=makeImportSource(parent,dir=>fs.writeFileSync(path.join(dir,'workspaces.json'),'{"workspaces": [}'));
+ const damaged=makeImportSource(parent,dir=>{fs.writeFileSync(path.join(dir,'workspaces.json'),'{"workspaces": [}');
+  const file=path.join(dir,'profiles',NAMED,'history.json'),history=JSON.parse(fs.readFileSync(file,'utf8'));delete history.siteIcons;fs.writeFileSync(file,JSON.stringify(history));});
  let r=await run(damaged.userData);
  assert.equal(r.ok,true);assert.deepEqual(r.errors,[{profile:'personal',store:'workspaces.json',reason:'invalid-json'}]);
  assert.equal(r.profiles.personal,undefined,'expected the damaged profile not imported');
@@ -53,6 +54,10 @@ try{
  const source=makeImportSource(parent,dir=>{const file=path.join(dir,'settings.json');
   fs.writeFileSync(file,JSON.stringify({...JSON.parse(fs.readFileSync(file,'utf8')),islandSize:'large',islandHoverOpen:true,tabSleep:'6h',pageZoom:125,
    surfaceStyle:'bogus',tabSwitchOrder:'list',bangsEnabled:false,adblockExceptions:['example.org']}));
+  // Shapes found on real profiles: an empty Space, and (for the named profile) a history file without site icons.
+  const spaces=path.join(dir,'workspaces.json'),held=JSON.parse(fs.readFileSync(spaces,'utf8'));
+  held.workspaces.push({...held.workspaces[0],id:'personal_empty',name:'Empty one',urls:[],groupIds:[],pinned:[],meta:[],groups:[],activeIndex:0,color:'#376694',symbol:'star'});
+  fs.writeFileSync(spaces,JSON.stringify(held));
   const perms=path.join(dir,'site-permissions.json'),saved=JSON.parse(fs.readFileSync(perms,'utf8'));
   saved.decisions['https://old-deny.example.com|media']='deny';saved.decisions['https://old-allow.example.com|media']='allow';
   saved.decisions['not a site|geolocation']='allow';saved.decisions['https://odd.example.com|notifications']='maybe';
@@ -60,7 +65,7 @@ try{
  const before=digestTree(source.userData);
  r=await run(source.userData);
  assert.equal(r.ok,true,JSON.stringify(r).slice(0,400));assert.equal(r.sourceVersion,'1.49.1');assert.deepEqual(r.errors,[]);
- assert.deepEqual(r.profiles.personal,{favorites:2,history:5000,siteIcons:1,pins:1,archive:1,spaces:1,permissions:6});
+ assert.deepEqual(r.profiles.personal,{favorites:2,history:5000,siteIcons:1,pins:1,archive:1,spaces:2,permissions:6});
  assert.deepEqual(Object.keys(r.profiles),['personal']);assert.deepEqual(r.alreadyImported,[NAMED],'expected the named profile, imported above, not imported again');
  const favorites=await w.api('listFavorites');
  assert.deepEqual(favorites.map(x=>[x.url,x.title,x.folder??null]),[['https://personal.example.com/zeta','Zeta','Reading'],['https://personal.example.com/alpha','Alpha',null]]);
@@ -83,7 +88,9 @@ try{
 
  // 6. The Space, by name, with its tab.
  const spaces=(await w.api('listWorkspaces')).items;
- assert.deepEqual(spaces.map(x=>[x.name,x.tabCount]),[['Fixture space',1]]);
+ assert.deepEqual(spaces.map(x=>[x.name,x.tabCount]),[['Fixture space',1],['Empty one',1]]);
+ const emptySpace=await w.native('profileImportSpace',[spaces[1].id]);
+ assert.deepEqual(emptySpace.tabs.map(t=>t.url),['chrome://newtab/'],'expected an empty Space kept with one new tab');assert.equal(emptySpace.symbol,'star');
  const space=await w.native('profileImportSpace',[spaces[0].id]);
  assert.deepEqual(space.tabs.map(t=>[t.url,t.pinned,t.group]),[['https://named.example.com/page',false,-1]]);
  assert.equal(space.color,'#426c4c');assert.equal(space.symbol,'book');
@@ -162,7 +169,7 @@ try{
  r=await run(source.userData);
  assert.equal(r.ok,true);assert.deepEqual(r.profiles,{},'expected nothing imported twice');assert.deepEqual(r.alreadyImported.sort(),['personal',NAMED]);
  assert.equal((await w.api('listFavorites')).length,2);assert.equal(await w.native('profileImportHistoryCount'),base+5000);
- assert.equal((await w.api('listWorkspaces')).items.length,1);
+ assert.equal((await w.api('listWorkspaces')).items.length,2);
  assert.equal((await w.native('profileImportWindows')).length,windowsBefore+1,'expected no window opened twice');
  assert.equal((await w.native('profileImportProfiles')).length,2,'expected no profile created twice');
  assert.equal(digestTree(source.userData),before);

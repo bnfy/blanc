@@ -79,6 +79,16 @@ test('a damaged store fails its own profile and no other', async () => {
   assert.deepEqual(result.errors, [{profile: 'profile_22222222222242228222222222222222', store: 'archive.json', reason: 'invalid-json'}]);
 });
 
+test('a history file from before site icons were kept still imports', async () => {
+  const {files} = sourceFiles(f => { const h = JSON.parse(f['history.json']); delete h.siteIcons; f['history.json'] = JSON.stringify(h); });
+  const result = await plan(files);
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.profiles.personal.stores['history.json'].entries.length, 5000);
+  assert.ok(!Object.hasOwn(result.profiles.personal.stores['history.json'], 'siteIcons'));
+  const bad = sourceFiles(f => { f['history.json'] = JSON.stringify({entries: [], siteIcons: 'none'}); });
+  assert.equal((await plan(bad.files)).errors[0].reason, 'invalid-shape');
+});
+
 test('a store that was never written is simply absent', async () => {
   const {files} = sourceFiles(f => { delete f['archive.json']; delete f['reader-appearance.json']; });
   const result = await plan(files);
