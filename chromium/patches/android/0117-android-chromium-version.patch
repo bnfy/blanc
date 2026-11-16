@@ -1,7 +1,15 @@
 diff -ruN a/base/version_info/version_info.cc b/base/version_info/version_info.cc
 --- a/base/version_info/version_info.cc
 +++ b/base/version_info/version_info.cc
-@@ -19,7 +19,10 @@
+@@ -10,6 +10,7 @@
+ #include "base/strings/strcat.h"
+ #include "base/strings/string_number_conversions.h"
+ #include "base/version.h"
++#include "base/version_info/version_info_values.h"  // Blanc (patch 0117): PRODUCT_VERSION
+ 
+ #if BUILDFLAG(IS_ANDROID)
+ #include "base/android/apk_info.h"
+@@ -19,7 +20,10 @@
  
  #if BUILDFLAG(IS_ANDROID)
  std::string_view GetVersionNumber() {
