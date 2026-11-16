@@ -19,6 +19,35 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler,
   void OnJavascriptDisallowed() override;
 
  private:
+  // The Electron profile importer (profile_import.inc), from Settings. The
+  // released app's own folder is the source: the page sends no path. The
+  // reply is counts and codes only.
+  void HandleProfileImport(const base::ListValue& args) {
+    if (!Begin(args, 0)) return;
+    auto* personal = g_browser_process->profile_manager()->GetProfileByPath(
+        g_browser_process->profile_manager()->user_data_dir().AppendASCII("Default"));
+    if (!personal) {
+      ResolveJavascriptCallback(args[0], base::Value(base::DictValue().Set("ok", false).Set("error", "failed")));
+      return;
+    }
+    base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()}, base::BindOnce(&FindImportSource),
+        base::BindOnce([](base::WeakPtr<ChromiumSettingsHandler> self, base::WeakPtr<Profile> personal,
+                          base::Value callback, ImportSourceState source) {
+          if (!self || !self->IsJavascriptAllowed()) return;
+          const auto fail = [&](const char* error) {
+            self->ResolveJavascriptCallback(callback, base::Value(base::DictValue().Set("ok", false).Set("error", error)));
+          };
+          if (!personal) { fail("failed"); return; }
+          if (source.running) { fail("source-running"); return; }
+          if (source.path.empty()) { fail("no-source"); return; }
+          ProfileImport::Get()->Start(source.path, personal.get(),
+              base::BindOnce([](base::WeakPtr<ChromiumSettingsHandler> self, base::Value callback, base::Value result) {
+                if (self && self->IsJavascriptAllowed()) {
+                  self->ResolveJavascriptCallback(callback, base::Value(ImportSummary(result)));
+                }
+              }, self, std::move(callback)));
+        }, weak_factory_.GetWeakPtr(), personal->GetWeakPtr(), args[0].Clone()));
+  }
   // N16: the trust receipt. The signature and the dump count are read off
   // the UI thread; nothing here touches the network.
   void HandleTrustReceipt(const base::ListValue& args) {
@@ -547,6 +576,7 @@ void ChromiumSettingsHandler::RegisterMessages() {
   bind("blancSyncCall", &ChromiumSettingsHandler::HandleSyncCall);
   bind("blancSyncConfirmFirstUpload", &ChromiumSettingsHandler::HandleSyncConfirm);
   bind("blancSettingsGet", &ChromiumSettingsHandler::HandleGet);
+  bind("blancProfileImport", &ChromiumSettingsHandler::HandleProfileImport);
   bind("blancTrustReceipt", &ChromiumSettingsHandler::HandleTrustReceipt);
   bind("blancDiagnosticsClear", &ChromiumSettingsHandler::HandleDiagnosticsClear);
   bind("blancDiagnosticsReport", &ChromiumSettingsHandler::HandleDiagnosticsReport);

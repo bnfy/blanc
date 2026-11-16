@@ -201,6 +201,10 @@ std::optional<std::string> ReadElectronSafeStoragePassword() {
   return std::string(static_cast<const char*>(data.bytes), data.length);
 }
 
+bool ElectronBlancRunning() {
+  return [NSRunningApplication runningApplicationsWithBundleIdentifier:@"me.bnfy.bowser"].count > 0;
+}
+
 bool ElectronBlancInstalled() {
   return ElectronBlancApp() != nil;
 }

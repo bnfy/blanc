@@ -731,6 +731,58 @@ void StageImportedSync(Profile* profile, base::DictValue stores, std::optional<s
       }, std::move(stores), std::move(write)));
 }
 
+// Where the import reads from, and whether it may start (task 8). The folder
+// is the released Electron app's own data folder: nothing a page says picks
+// it. The import waits while that app is running, so it never reads stores
+// in the middle of being written. A test launch reads neither the real
+// folder nor the real app's state: both come from its hooks, and with none
+// set there is no source.
+std::optional<base::FilePath>& TestImportSource() {
+  static base::NoDestructor<std::optional<base::FilePath>> source;
+  return *source;
+}
+std::optional<bool>& TestImportElectronRunning() {
+  static std::optional<bool> running;
+  return running;
+}
+struct ImportSourceState {
+  base::FilePath path;
+  bool running = false;
+};
+ImportSourceState FindImportSource() {
+  ImportSourceState state;
+  if (blanc::BlancTestLaunch()) {
+    if (TestImportSource()) state.path = *TestImportSource();
+    state.running = TestImportElectronRunning().value_or(false);
+    return state;
+  }
+#if BUILDFLAG(IS_MAC)
+  base::FilePath support;
+  if (base::PathService::Get(base::DIR_APP_DATA, &support)) state.path = support.AppendASCII("Blanc");
+  state.running = blanc::ElectronBlancRunning();
+#endif
+  return state;
+}
+
+// What Settings shows of a finished import: counts and codes, no content.
+base::DictValue ImportSummary(const base::Value& result) {
+  const auto* dict = result.GetIfDict();
+  if (!dict || !dict->FindBool("ok").value_or(false)) {
+    const auto* error = dict ? dict->FindString("error") : nullptr;
+    return base::DictValue().Set("ok", false).Set("error", error ? *error : std::string("failed"));
+  }
+  const auto* profiles = dict->FindDict("profiles");
+  const auto* errors = dict->FindList("errors");
+  const auto* already = dict->FindList("alreadyImported");
+  const auto* sync = dict->FindDict("sync");
+  const auto* key = sync ? sync->FindString("key") : nullptr;
+  return base::DictValue().Set("ok", true)
+      .Set("imported", static_cast<int>(profiles ? profiles->size() : 0))
+      .Set("failed", static_cast<int>(errors ? errors->size() : 0))
+      .Set("already", static_cast<int>(already ? already->size() : 0))
+      .Set("sync", key ? *key : std::string("none"));
+}
+
 // One import at a time. Each profile in the plan is a job: Personal into the
 // first profile, and each named profile into an ordinary Chromium profile
 // created for it (owner, 2026-11-16: Chromium's own profiles, nothing
@@ -767,6 +819,7 @@ class ProfileImport final {
   std::vector<Job> jobs_;
   std::string version_;
   int windows_ = 0, tabs_ = 0;
+  bool created_profile_ = false;
   base::DictValue settings_synced_, settings_prefs_, install_, session_, sync_stores_;
   std::optional<std::string> sync_key_;
   base::ListValue settings_skipped_;
@@ -857,6 +910,14 @@ void ProfileImport::Planned(bool ok, const std::string& value) {
 }
 void ProfileImport::NextProfile() {
   if (jobs_.empty()) {
+    // With more than one profile Chromium opens its profile picker at each
+    // launch. Its own setting for that is switched off (owner, 2026-11-16),
+    // so Blanc reopens its windows as the Electron app did; the picker's
+    // checkbox switches it back on.
+    if (created_profile_) {
+      g_browser_process->local_state()->SetBoolean(prefs::kBrowserShowProfilePickerOnStartup, false);
+      g_browser_process->local_state()->CommitPendingWrite();
+    }
     result_.Set("session", base::DictValue().Set("windows", windows_).Set("tabs", tabs_));
     Finish(base::Value(std::move(result_)));
     return;
@@ -906,6 +967,7 @@ void ProfileImport::Applied(std::string key, std::string id, base::WeakPtr<Profi
   g_browser_process->local_state()->SetDict(kProfileImportPref, std::move(marker));
   g_browser_process->local_state()->CommitPendingWrite();
   result_.FindDict("profiles")->Set(key, std::move(applied));
+  if (key != "personal") created_profile_ = true;
   // The profile's saved windows.
   const auto opened = OpenImportedSession(profile.get(), session_, id);
   windows_ += opened.FindInt("windows").value_or(0);
@@ -930,6 +992,7 @@ void ProfileImport::Finish(base::Value result) {
   jobs_.clear();
   version_.clear();
   windows_ = tabs_ = 0;
+  created_profile_ = false;
   settings_synced_ = base::DictValue(); settings_prefs_ = base::DictValue(); install_ = base::DictValue();
   session_ = base::DictValue(); settings_skipped_ = base::ListValue();
   sync_stores_ = base::DictValue(); sync_key_.reset();

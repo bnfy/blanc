@@ -14,6 +14,35 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Electron profile importer, task 8: the Settings command and the profile picker (candidate macos-91f427ea33bb6e2a; patch 0093):**
+  Settings, About has a row, "Bring your data from the released Blanc app",
+  with **Import**. The page sends no path: the browser takes the released
+  app's own folder (`~/Library/Application Support/Blanc`), refuses while
+  that app is running (`NSRunningApplication` for `me.bnfy.bowser`), runs
+  the importer and replies with counts and codes, which the page turns into
+  one line (your data is here; Sync picks up after a restart; sign in to
+  Sync again; already imported; no data found; quit the released app;
+  update it to 1.40; some data left out; didn't finish) and **Try again**
+  where that helps. A test launch reads neither the real folder nor the
+  real app's state. After an import that created a profile the importer
+  switches off Chromium's own `profile.show_picker_on_startup` (owner
+  decision), so the next launch opens Blanc's windows. The fourteen new
+  strings are in `blanc/fork-strings.json` in six languages, which
+  `settings-strings.mjs` now also reads (`FORK_STRINGS`); the translations
+  were written here and not reviewed by native speakers.
+  Evidence on the Mac Studio: `native-profile-import-settings.mjs` 6 of 6
+  (the row; no source; the released app running; the import; a second run;
+  no profile picker and a Blanc window after a relaunch with two profiles);
+  `native-profile-import.mjs` 11, `native-profile-import-sync.mjs` 4 and
+  `native-trust-receipt.mjs` 3 still pass.
+  **Not done:** the row was not looked at on screen; a detailed list of what
+  came across and what did not; the replacement build's automatic import on
+  first launch; the Start Page's own settings and wallpaper; a real profile
+  and the real Keychain prompt (the owner's check, after a backup); the
+  beta's profile gate (`release/profile-evidence.mjs`) checks that a launch
+  creates or changes nothing in the released app's folders, which stays true
+  because the importer only reads them, and only on the person's command;
+  no gate yet runs the importer itself or covers its Keychain read.
 - **2026-11-16 — Owner decisions for the importer's last task:** (P1) Blanc
   Beta's Settings gets an import command now, and the replacement build
   also imports automatically on first launch. (P3) After an import that

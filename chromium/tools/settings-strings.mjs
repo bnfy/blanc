@@ -232,7 +232,34 @@ export const STRINGS = [
   ['blancLanguageRelaunch', 'settings.language.relaunch'],
 ];
 
-export function generate(rows = catalogs(STRINGS, ref)) {
+// Strings shipping has no words for (blanc/fork-strings.json), each in every
+// selectable language: loadTimeData name, fork message key.
+export const FORK_STRINGS = [
+  ['blancProfileImportTitle', 'settings.profileImport.title'],
+  ['blancProfileImportHint', 'settings.profileImport.hint'],
+  ['blancProfileImportStart', 'settings.profileImport.start'],
+  ['blancProfileImportRetry', 'settings.profileImport.retry'],
+  ['blancProfileImportWorking', 'settings.profileImport.working'],
+  ['blancProfileImportDone', 'settings.profileImport.done'],
+  ['blancProfileImportDoneRestart', 'settings.profileImport.doneRestart'],
+  ['blancProfileImportDoneSyncOff', 'settings.profileImport.doneSyncOff'],
+  ['blancProfileImportAlready', 'settings.profileImport.already'],
+  ['blancProfileImportNoSource', 'settings.profileImport.noSource'],
+  ['blancProfileImportRunning', 'settings.profileImport.running'],
+  ['blancProfileImportOld', 'settings.profileImport.old'],
+  ['blancProfileImportPartial', 'settings.profileImport.partial'],
+  ['blancProfileImportFailed', 'settings.profileImport.failed'],
+];
+const ALL = [...STRINGS, ...FORK_STRINGS];
+export function withForkStrings(rows) {
+  const own = JSON.parse(fs.readFileSync(path.join(root, 'blanc/fork-strings.json'), 'utf8'));
+  return rows.map(({code, values}) => ({code, values: [...values, ...FORK_STRINGS.map(([, key]) => {
+    const value = own[key]?.[code];
+    if (typeof value !== 'string' || !value) throw Error(`${code}: missing fork string ${key}`);
+    return value;
+  })]}));
+}
+export function generate(rows = withForkStrings(catalogs(STRINGS, ref))) {
   const id = code => code.replace('-', '_');
   const fallback = rows.filter(({code}) => code !== 'en').map(({code}) =>
     `  if (primary == "${code.split('-')[0]}") return kStrings_${id(code)};`).join('\n');
@@ -252,8 +279,8 @@ struct String {
   std::string_view name;
   std::u16string_view value;
 };
-${rows.map(({code, values}) => `inline constexpr std::array<String, ${STRINGS.length}> kStrings_${id(code)} = {{
-${STRINGS.map(([name], i) => `    {"${name}", u${JSON.stringify(values[i])}},`).join('\n')}
+${rows.map(({code, values}) => `inline constexpr std::array<String, ${ALL.length}> kStrings_${id(code)} = {{
+${ALL.map(([name], i) => `    {"${name}", u${JSON.stringify(values[i])}},`).join('\n')}
 }};`).join('\n')}
 
 // Chromium's application locale chooses, as for the settings page around

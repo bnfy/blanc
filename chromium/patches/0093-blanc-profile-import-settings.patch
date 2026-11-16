@@ -1,0 +1,80 @@
+diff --git a/chrome/browser/resources/settings/about_page/about_page.html.ts b/chrome/browser/resources/settings/about_page/about_page.html.ts
+--- a/chrome/browser/resources/settings/about_page/about_page.html.ts
++++ b/chrome/browser/resources/settings/about_page/about_page.html.ts
+@@ -109,6 +109,17 @@
+   <cr-link-row class="hr" id="blancWelcomeTour" @click="${this.onBlancWelcomeTourClick_}"
+       label="$i18n{blancWelcomeTour}" sub-label="$i18n{blancWelcomeTourHint}">
+   </cr-link-row>
++  <!-- Blanc: bring a person's data across from the released (Electron) app.
++       The browser picks that app's own folder; this page names nothing. -->
++  <div class="cr-row" id="blancImport">
++    <div class="flex cr-padded-text">
++      <div>$i18n{blancProfileImportTitle}</div>
++      <div class="secondary" id="blancImportStatus" role="status">${this.blancImportStatus_}</div>
++    </div>
++    <cr-button id="blancImportStart" ?disabled="${this.blancImportBusy_}" @click="${this.onBlancImportClick_}">
++      ${this.blancImportButton_}
++    </cr-button>
++  </div>
+   <!-- Blanc (N16): the trust receipt, as shipping's About & Trust: facts
+        checked on this device, with no network request. -->
+   <div class="cr-row" id="blancTrust">
+diff --git a/chrome/browser/resources/settings/about_page/about_page.ts b/chrome/browser/resources/settings/about_page/about_page.ts
+--- a/chrome/browser/resources/settings/about_page/about_page.ts
++++ b/chrome/browser/resources/settings/about_page/about_page.ts
+@@ -82,6 +82,9 @@
+     return {
+       currentUpdateStatusEvent_: {type: Object},
+       betaUpdateState_: {type: Object},
++      blancImportStatus_: {type: String},
++      blancImportBusy_: {type: Boolean},
++      blancImportButton_: {type: String},
+       blancTrust_: {type: Array},
+       blancTrustStatus_: {type: String},
+       blancCrashDumps_: {type: Number},
+@@ -335,7 +338,45 @@
+       this.blancDiagnosticsSummary_ = this.blancText_('blancDiagnosticsReadFailed');
+     }
+   }
++
++  // Blanc: the Electron profile importer. The reply is counts and codes.
++  protected accessor blancImportStatus_: string = loadTimeData.getString('blancProfileImportHint');
++  protected accessor blancImportBusy_: boolean = false;
++  protected accessor blancImportButton_: string = loadTimeData.getString('blancProfileImportStart');
+ 
++  protected async onBlancImportClick_() {
++    if (this.blancImportBusy_) return;
++    const t = (name: string) => loadTimeData.getString(name);
++    this.blancImportBusy_ = true;
++    this.blancImportStatus_ = t('blancProfileImportWorking');
++    let retry = true;
++    try {
++      const result = await sendWithPromise<{ok: boolean, error?: string, imported?: number, failed?: number,
++                                            already?: number, sync?: string}>('blancProfileImport');
++      if (!result.ok) {
++        this.blancImportStatus_ = t(({
++          'source-running': 'blancProfileImportRunning',
++          'no-source': 'blancProfileImportNoSource',
++          'unknown-version': 'blancProfileImportNoSource',
++          'unsupported-version': 'blancProfileImportOld',
++        } as Record<string, string>)[result.error ?? ''] ?? 'blancProfileImportFailed');
++      } else if ((result.failed ?? 0) > 0) {
++        this.blancImportStatus_ = t('blancProfileImportPartial');
++      } else if ((result.imported ?? 0) === 0) {
++        this.blancImportStatus_ = t('blancProfileImportAlready');
++        retry = false;
++      } else {
++        this.blancImportStatus_ = t(result.sync === 'kept' ? 'blancProfileImportDoneRestart'
++            : result.sync === 'unavailable' ? 'blancProfileImportDoneSyncOff' : 'blancProfileImportDone');
++        retry = false;
++      }
++    } catch {
++      this.blancImportStatus_ = t('blancProfileImportFailed');
++    }
++    this.blancImportButton_ = t(retry ? 'blancProfileImportRetry' : 'blancProfileImportStart');
++    this.blancImportBusy_ = false;
++  }
++
+   protected onBlancCrashDumpsClick_() {
+     BlancOpenWindow.getInstance().openUrl('chrome://crashes');
+   }

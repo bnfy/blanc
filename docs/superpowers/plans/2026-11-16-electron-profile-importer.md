@@ -136,10 +136,10 @@ Each task ends with its own passing tests and a push to `chromium/next`. Tasks 1
 
 Unblocked 2026-11-16 (P1, P3 answered).
 
-- [ ] Turn off Chromium's "show the picker at startup" setting when the import created a profile; test with a relaunch after a two-profile import.
-- [ ] A Settings command in Blanc Beta (and the Prototype) that picks the Electron folder itself (`~/Library/Application Support/Blanc`), never a folder the page names.
+- [x] Turn off Chromium's "show the picker at startup" setting when the import created a profile; test with a relaunch after a two-profile import.
+- [x] A Settings command in Blanc Beta (and the Prototype) that picks the Electron folder itself (`~/Library/Application Support/Blanc`), never a folder the page names.
 
-- [ ] Entry point, progress, the result summary (what came across, what did not and why), failure notice and Retry; refuse while the Electron app is running.
+- [x] Entry point, a working state, the result in one line, failure and Try again; refused while the Electron app is running. (2026-11-16, candidate macos-91f427ea33bb6e2a, patch 0093, 6 native checks.) Not built: a detailed list of what came across and what did not, and the replacement build's automatic import on first launch.
 - [ ] Wallpaper and the Start Page's layout settings, written through the Start Page itself on its next load.
 
 ## Owner decisions this plan needs

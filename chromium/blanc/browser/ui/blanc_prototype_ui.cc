@@ -7260,6 +7260,16 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           }, weak_factory_.GetWeakPtr(), id));
       return;
     }
+    // The Settings import command's source and the released app's state, for a
+    // test launch (profile_import.inc FindImportSource).
+    if (quiet_method == "setImportSource" && quiet_args.size() == 1) {
+      if (quiet_args[0].is_string()) TestImportSource() = base::FilePath(quiet_args[0].GetString());
+      else TestImportSource().reset();
+      Reply(id, true, base::Value(true)); return;
+    }
+    if (quiet_method == "setImportElectronRunning" && quiet_args.size() == 1 && quiet_args[0].is_bool()) {
+      TestImportElectronRunning() = quiet_args[0].GetBool(); Reply(id, true, base::Value(true)); return;
+    }
     if (quiet_method == "profileImportPins" && quiet_args.empty()) {
       Reply(id, true, base::Value(GetOwner(web_ui()->GetWebContents())->browser->GetProfile()->GetOriginalProfile()
           ->GetPrefs()->GetList(kStartPagePinsPref).Clone())); return;

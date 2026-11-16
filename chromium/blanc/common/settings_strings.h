@@ -14,7 +14,7 @@ struct String {
   std::string_view name;
   std::u16string_view value;
 };
-inline constexpr std::array<String, 207> kStrings_en = {{
+inline constexpr std::array<String, 221> kStrings_en = {{
     {"blancGestureEmpty", u"No gestures assigned."},
     {"blancGestureLabel", u"Mouse gestures"},
     {"blancGestureHint", u"With a mouse, hold the right button and drag, then release. On a trackpad, hold Alt/Option (⌥), click and hold with one finger, then drag."},
@@ -222,8 +222,22 @@ inline constexpr std::array<String, 207> kStrings_en = {{
     {"blancLanguageHint", u"Translations are machine-generated."},
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Relaunch to apply"},
+    {"blancProfileImportTitle", u"Bring your data from the released Blanc app"},
+    {"blancProfileImportHint", u"Copies favorites, history, Spaces, open tabs, settings and Sync from the released Blanc app on this Mac. Its own data is left as it is."},
+    {"blancProfileImportStart", u"Import"},
+    {"blancProfileImportRetry", u"Try again"},
+    {"blancProfileImportWorking", u"Importing…"},
+    {"blancProfileImportDone", u"Your data is here."},
+    {"blancProfileImportDoneRestart", u"Your data is here. Sync picks up after you restart."},
+    {"blancProfileImportDoneSyncOff", u"Your data is here. Sign in to Sync again to keep syncing."},
+    {"blancProfileImportAlready", u"Your data was already imported."},
+    {"blancProfileImportNoSource", u"No data from the released Blanc app was found on this Mac."},
+    {"blancProfileImportRunning", u"Quit the released Blanc app, then try again."},
+    {"blancProfileImportOld", u"Update the released Blanc app to 1.40 or later, then try again."},
+    {"blancProfileImportPartial", u"Some data couldn't be read and was left out. Nothing in the released Blanc app was changed."},
+    {"blancProfileImportFailed", u"The import didn't finish. Nothing in the released Blanc app was changed."},
 }};
-inline constexpr std::array<String, 207> kStrings_de = {{
+inline constexpr std::array<String, 221> kStrings_de = {{
     {"blancGestureEmpty", u"Keine Gesten zugewiesen."},
     {"blancGestureLabel", u"Mausgesten"},
     {"blancGestureHint", u"Mit einer Maus: rechte Taste gedrückt halten, ziehen und loslassen. Auf einem Trackpad: Alt/Wahltaste (⌥) halten, mit einem Finger klicken und halten, dann ziehen."},
@@ -431,8 +445,22 @@ inline constexpr std::array<String, 207> kStrings_de = {{
     {"blancLanguageHint", u"Übersetzungen werden maschinell erstellt."},
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Zum Übernehmen neu starten"},
+    {"blancProfileImportTitle", u"Daten aus der veröffentlichten Blanc-App übernehmen"},
+    {"blancProfileImportHint", u"Kopiert Favoriten, Verlauf, Spaces, geöffnete Tabs, Einstellungen und Sync aus der veröffentlichten Blanc-App auf diesem Mac. Deren eigene Daten bleiben unverändert."},
+    {"blancProfileImportStart", u"Importieren"},
+    {"blancProfileImportRetry", u"Erneut versuchen"},
+    {"blancProfileImportWorking", u"Wird importiert …"},
+    {"blancProfileImportDone", u"Deine Daten sind da."},
+    {"blancProfileImportDoneRestart", u"Deine Daten sind da. Sync läuft nach einem Neustart weiter."},
+    {"blancProfileImportDoneSyncOff", u"Deine Daten sind da. Melde dich erneut bei Sync an, um weiter zu synchronisieren."},
+    {"blancProfileImportAlready", u"Deine Daten wurden bereits importiert."},
+    {"blancProfileImportNoSource", u"Auf diesem Mac wurden keine Daten der veröffentlichten Blanc-App gefunden."},
+    {"blancProfileImportRunning", u"Beende die veröffentlichte Blanc-App und versuche es erneut."},
+    {"blancProfileImportOld", u"Aktualisiere die veröffentlichte Blanc-App auf 1.40 oder neuer und versuche es erneut."},
+    {"blancProfileImportPartial", u"Einige Daten konnten nicht gelesen werden und wurden ausgelassen. In der veröffentlichten Blanc-App wurde nichts geändert."},
+    {"blancProfileImportFailed", u"Der Import wurde nicht abgeschlossen. In der veröffentlichten Blanc-App wurde nichts geändert."},
 }};
-inline constexpr std::array<String, 207> kStrings_es = {{
+inline constexpr std::array<String, 221> kStrings_es = {{
     {"blancGestureEmpty", u"No hay gestos asignados."},
     {"blancGestureLabel", u"Gestos del ratón"},
     {"blancGestureHint", u"Con un ratón, mantén pulsado el botón derecho y arrastra; luego suelta. En un trackpad, mantén pulsada Alt/Opción (⌥), haz clic y mantén pulsado con un dedo y arrastra."},
@@ -640,8 +668,22 @@ inline constexpr std::array<String, 207> kStrings_es = {{
     {"blancLanguageHint", u"Las traducciones se generan automáticamente."},
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Reiniciar para aplicar"},
+    {"blancProfileImportTitle", u"Traer tus datos de la app Blanc publicada"},
+    {"blancProfileImportHint", u"Copia favoritos, historial, Spaces, pestañas abiertas, ajustes y Sync de la app Blanc publicada en este Mac. Sus propios datos no cambian."},
+    {"blancProfileImportStart", u"Importar"},
+    {"blancProfileImportRetry", u"Reintentar"},
+    {"blancProfileImportWorking", u"Importando…"},
+    {"blancProfileImportDone", u"Tus datos ya están aquí."},
+    {"blancProfileImportDoneRestart", u"Tus datos ya están aquí. Sync continúa cuando reinicies."},
+    {"blancProfileImportDoneSyncOff", u"Tus datos ya están aquí. Vuelve a iniciar sesión en Sync para seguir sincronizando."},
+    {"blancProfileImportAlready", u"Tus datos ya se habían importado."},
+    {"blancProfileImportNoSource", u"No se encontraron datos de la app Blanc publicada en este Mac."},
+    {"blancProfileImportRunning", u"Cierra la app Blanc publicada y vuelve a intentarlo."},
+    {"blancProfileImportOld", u"Actualiza la app Blanc publicada a la 1.40 o posterior y vuelve a intentarlo."},
+    {"blancProfileImportPartial", u"Algunos datos no se pudieron leer y se omitieron. No se cambió nada en la app Blanc publicada."},
+    {"blancProfileImportFailed", u"La importación no terminó. No se cambió nada en la app Blanc publicada."},
 }};
-inline constexpr std::array<String, 207> kStrings_fr = {{
+inline constexpr std::array<String, 221> kStrings_fr = {{
     {"blancGestureEmpty", u"Aucun geste attribué."},
     {"blancGestureLabel", u"Gestes de la souris"},
     {"blancGestureHint", u"Avec une souris, maintenez le bouton droit enfoncé et faites glisser, puis relâchez. Sur un trackpad, maintenez Alt/Option (⌥), cliquez en maintenant un doigt, puis faites glisser."},
@@ -849,8 +891,22 @@ inline constexpr std::array<String, 207> kStrings_fr = {{
     {"blancLanguageHint", u"Les traductions sont générées automatiquement."},
     {"blancLanguageSystem", u"Système ({language})"},
     {"blancLanguageRelaunch", u"Redémarrer pour appliquer"},
+    {"blancProfileImportTitle", u"Importer vos données depuis l'app Blanc publiée"},
+    {"blancProfileImportHint", u"Copie les favoris, l'historique, les Spaces, les onglets ouverts, les réglages et Sync depuis l'app Blanc publiée sur ce Mac. Ses propres données restent intactes."},
+    {"blancProfileImportStart", u"Importer"},
+    {"blancProfileImportRetry", u"Réessayer"},
+    {"blancProfileImportWorking", u"Importation…"},
+    {"blancProfileImportDone", u"Vos données sont là."},
+    {"blancProfileImportDoneRestart", u"Vos données sont là. Sync reprend après un redémarrage."},
+    {"blancProfileImportDoneSyncOff", u"Vos données sont là. Reconnectez-vous à Sync pour continuer à synchroniser."},
+    {"blancProfileImportAlready", u"Vos données ont déjà été importées."},
+    {"blancProfileImportNoSource", u"Aucune donnée de l'app Blanc publiée n'a été trouvée sur ce Mac."},
+    {"blancProfileImportRunning", u"Quittez l'app Blanc publiée, puis réessayez."},
+    {"blancProfileImportOld", u"Mettez à jour l'app Blanc publiée vers la 1.40 ou une version ultérieure, puis réessayez."},
+    {"blancProfileImportPartial", u"Certaines données n'ont pas pu être lues et ont été laissées de côté. Rien n'a été modifié dans l'app Blanc publiée."},
+    {"blancProfileImportFailed", u"L'importation ne s'est pas terminée. Rien n'a été modifié dans l'app Blanc publiée."},
 }};
-inline constexpr std::array<String, 207> kStrings_it = {{
+inline constexpr std::array<String, 221> kStrings_it = {{
     {"blancGestureEmpty", u"Nessun gesto assegnato."},
     {"blancGestureLabel", u"Gesti del mouse"},
     {"blancGestureHint", u"Con un mouse, tieni premuto il tasto destro e trascina, poi rilascia. Su un trackpad, tieni premuto Alt/Opzione (⌥), fai clic e tieni premuto con un dito, poi trascina."},
@@ -1058,8 +1114,22 @@ inline constexpr std::array<String, 207> kStrings_it = {{
     {"blancLanguageHint", u"Le traduzioni sono generate automaticamente."},
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Riavvia per applicare"},
+    {"blancProfileImportTitle", u"Porta i tuoi dati dall'app Blanc pubblicata"},
+    {"blancProfileImportHint", u"Copia preferiti, cronologia, Spaces, schede aperte, impostazioni e Sync dall'app Blanc pubblicata su questo Mac. I suoi dati restano come sono."},
+    {"blancProfileImportStart", u"Importa"},
+    {"blancProfileImportRetry", u"Riprova"},
+    {"blancProfileImportWorking", u"Importazione…"},
+    {"blancProfileImportDone", u"I tuoi dati sono qui."},
+    {"blancProfileImportDoneRestart", u"I tuoi dati sono qui. Sync riprende dopo il riavvio."},
+    {"blancProfileImportDoneSyncOff", u"I tuoi dati sono qui. Accedi di nuovo a Sync per continuare a sincronizzare."},
+    {"blancProfileImportAlready", u"I tuoi dati sono già stati importati."},
+    {"blancProfileImportNoSource", u"Su questo Mac non sono stati trovati dati dell'app Blanc pubblicata."},
+    {"blancProfileImportRunning", u"Chiudi l'app Blanc pubblicata, poi riprova."},
+    {"blancProfileImportOld", u"Aggiorna l'app Blanc pubblicata alla 1.40 o successiva, poi riprova."},
+    {"blancProfileImportPartial", u"Alcuni dati non sono stati letti e sono stati esclusi. Nulla è cambiato nell'app Blanc pubblicata."},
+    {"blancProfileImportFailed", u"L'importazione non è terminata. Nulla è cambiato nell'app Blanc pubblicata."},
 }};
-inline constexpr std::array<String, 207> kStrings_pt_BR = {{
+inline constexpr std::array<String, 221> kStrings_pt_BR = {{
     {"blancGestureEmpty", u"Nenhum gesto atribuído."},
     {"blancGestureLabel", u"Gestos do mouse"},
     {"blancGestureHint", u"Com um mouse, segure o botão direito e arraste; depois solte. Num trackpad, segure Alt/Option (⌥), clique e segure com um dedo e arraste."},
@@ -1267,6 +1337,20 @@ inline constexpr std::array<String, 207> kStrings_pt_BR = {{
     {"blancLanguageHint", u"As traduções são geradas automaticamente."},
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Reiniciar para aplicar"},
+    {"blancProfileImportTitle", u"Trazer seus dados do app Blanc lançado"},
+    {"blancProfileImportHint", u"Copia favoritos, histórico, Spaces, abas abertas, ajustes e Sync do app Blanc lançado neste Mac. Os dados dele ficam como estão."},
+    {"blancProfileImportStart", u"Importar"},
+    {"blancProfileImportRetry", u"Tentar de novo"},
+    {"blancProfileImportWorking", u"Importando…"},
+    {"blancProfileImportDone", u"Seus dados estão aqui."},
+    {"blancProfileImportDoneRestart", u"Seus dados estão aqui. O Sync continua depois que você reiniciar."},
+    {"blancProfileImportDoneSyncOff", u"Seus dados estão aqui. Entre no Sync de novo para continuar sincronizando."},
+    {"blancProfileImportAlready", u"Seus dados já foram importados."},
+    {"blancProfileImportNoSource", u"Nenhum dado do app Blanc lançado foi encontrado neste Mac."},
+    {"blancProfileImportRunning", u"Feche o app Blanc lançado e tente de novo."},
+    {"blancProfileImportOld", u"Atualize o app Blanc lançado para a 1.40 ou posterior e tente de novo."},
+    {"blancProfileImportPartial", u"Alguns dados não puderam ser lidos e ficaram de fora. Nada foi alterado no app Blanc lançado."},
+    {"blancProfileImportFailed", u"A importação não terminou. Nada foi alterado no app Blanc lançado."},
 }};
 
 // Chromium's application locale chooses, as for the settings page around

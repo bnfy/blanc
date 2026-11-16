@@ -56,6 +56,8 @@ bool ClickAppMenuItem(int item_tag);
 // The Electron Blanc app (me.bnfy.bowser), for the protected-video notice's
 // Open in Blanc: whether macOS knows it, and opening one web address in it.
 bool ElectronBlancInstalled();
+// Whether that app is running now; the profile importer waits until it is not.
+bool ElectronBlancRunning();
 // The password of the Electron app's safeStorage Keychain item ("Blanc Safe
 // Storage"), for the profile importer to open that app's protected Sync key.
 // Read-only: nothing is added or changed in the Keychain. macOS asks the
