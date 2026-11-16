@@ -64,6 +64,15 @@ Out of scope: F38, F42, X1 (owner chose Web Store extensions), Windows, Linux, A
 - **Two new owner questions for K9**, raised by the answer key: **O4** which Chromium profiles get the synced keys of the single device-wide `settings.json`; **O5** which non-secret `sync.json` fields migrate.
 - What remains is all Claude lane (§6 plus K11–K13) and needs Mac Studio builds.
 
+## 2d. Owner answers (2026-11-16)
+
+| # | Answer | Consequence |
+| --- | --- | --- |
+| O2 | The protected-video notice is a **capsule under the Island**, like the permission prompt: title "This video needs Blanc", body "Blanc Beta can't play protected video yet.", buttons **Not now** and **Open in Blanc**. It does not cover the page and goes when the person leaves the site; with Electron Blanc absent the action becomes getting Blanc | K8 can be built. New strings need the usual copy path |
+| O3 | **Sign in again.** Cookies and site storage are not migrated | K9 M.4 is dropped; the importer copies nothing from Electron's partitions |
+| O4 | Synced settings go to **Personal only** | Named profiles start with defaults |
+| O5 | **Keep Sync on**: the device identity moves and the Sync key is re-protected for the fork (one macOS Keychain prompt) | K9 M.3 key re-wrap is in scope |
+
 ## 3. Codex operating contract
 
 These rules are pasted verbatim at the top of every brief. They exist because of how the October fork work went wrong (124 continuation sections in a day, numbered draft copies, 22 `CODEX-NOTES-*.md` files, integration deferred).
@@ -190,7 +199,7 @@ Each item: a failing `native-*.mjs` or scenario first, then the change, an incre
 - [x] **K6** (done 2026-11-16, patch 0090; owner: keep crash dumps, say so, Clear deletes them) N16: trust receipt and diagnostics export in Settings → About, reading the fork's own release manifest.
 - [x] **K7** (2026-11-16: tab handoff built and tested against a stand-in relay; no build claims the link type yet, by owner decision) N20: tab import and handoff pages and the `blanc-import:` scheme; un-hide Bring Your Tabs paths that depend on it.
 - [ ] **K8** X2: protected-video notice with Open in Blanc, after O2. Retires the `no-drm-handoff` standing waiver (owner's word needed to set `until`).
-- [ ] **K9** Importer M.2 in the browser process against C4's fixtures and `expected.json`; M.3 key re-wrap; M.4 after O3.
+- [ ] **K9** Importer M.2 in the browser process against C4's fixtures and `expected.json`; M.3 key re-wrap (O5: Sync stays on). M.4 dropped by O3 (sign in again); O4: synced settings to Personal only.
 - [ ] **K10** Spaces menu fade flake (`F41…:211`), last: it passes on rerun and blocks nothing.
 - [x] **After C3 / K13** (2026-11-16: pins, renderer, strings and inventory at v1.49.1; the seven new cases pass; F37-9 found ⌘⇧N opening a private window under Chromium 158's action dispatch, fixed) move the tracker pin, run changed cases on the then-current candidate, fix or record gaps.
 - [ ] **Close-out:** a full nightly on the final head; refresh the tracker from it as on 2026-11-16; list what remains for the owner's Verified checklist.

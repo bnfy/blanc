@@ -14,6 +14,14 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Owner decisions for the protected-video notice and the importer:**
+  (1) the notice is a capsule under the Island, like the permission prompt:
+  "This video needs Blanc" / "Blanc Beta can't play protected video yet." /
+  **Not now**, **Open in Blanc**; it goes when the person leaves the site.
+  (2) Site sign-ins are not migrated: people sign in again. (3) The synced
+  settings of Electron's one device-wide `settings.json` go to Personal only.
+  (4) Sync stays on across the move: device identity kept, the key
+  re-protected (one Keychain prompt). Recorded in the plan, section 2d.
 - **2026-11-16 — Shipping target moved to v1.49.1 (plan K13), and Chromium 158's action dispatch (candidate macos-bed55af2cf2cf43d):**
   the pins, the generated Island renderer, the interface, menu and Settings
   strings, the asset copies and the Android strings copy are at v1.49.1
