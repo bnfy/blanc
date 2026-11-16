@@ -184,7 +184,7 @@ Each item: a failing `native-*.mjs` or scenario first, then the change, an incre
 - [ ] **K0** Stage the Codex workspace (§4) and start C1.
 - [x] **K1** (done 2026-11-16, patch 0087: AppKit's replayed window state overrode the session's bounds) Window size after relaunch. Next step is already named in STATUS: a Prototype build that logs which code creates the first window and with what bounds. Done when `vertical-tabs.feature:58` passes 10 of 10.
 - [ ] **K2** Fix each finding from C1 and C2, smallest first. Each fix turns its `expected-fail` check into a pass and moves the row in the tracker.
-- [ ] **K3** N18: Dock menu (New Window, New Private Tab, New Mini Window as shipping), app badge, Check for updates in the app menu wired to Sparkle. Test: extend `native-app-menu-about.mjs`.
+- [x] **K3** (done 2026-11-16, patch 0089) N18: Dock menu (New Window, New Private Tab, New Mini Window as shipping), app badge, Check for updates in the app menu wired to Sparkle. Test: extend `native-app-menu-about.mjs`.
 - [ ] **K4** N2: capture indicator chip and popover from Chromium's `MediaStreamCaptureIndicator`; truthful `permissions.query` is already Chromium's. Test: fake-device capture fixture, chip on and off.
 - [ ] **K5** N3: screen sharing through Chromium's native picker, checked in an Island window (no toolbar anchor) and in a Glance. Likely a small patch like 0081.
 - [ ] **K6** N16: trust receipt and diagnostics export in Settings → About, reading the fork's own release manifest.

@@ -2379,8 +2379,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification. No shipping scenario maps to this row; not rechecked in the 2026-11-16 tracker refresh."
+          "stage": "integrated",
+          "basis": "native-dock-menu.mjs passes 6 of 6 checks on macos-23064fbfabd20e7b (2026-11-16, patch 0089): the Dock menu leads with the front window's current tab (title and icon, cut at 75 characters, \"Private tab\" with no icon), then New Window, New Private Window and New Mini Window (patches 0013, 0067); the Dock tile has no badge; the app menu has Check for Updates… under About, and About opens in the Settings sheet (patch 0076, native-app-menu-about.mjs 3 of 3). Check for Updates… runs Blanc Beta's updater in a beta build, which was compiled but not run here; the preview build opens About. Not checked: the row with every window closed, a web page's Badging API; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-23064fbfabd20e7b"
         },
         "windows": {
           "stage": "not-started",

@@ -11,8 +11,18 @@
 
 @interface BlancMiniWindowMenuTarget : NSObject
 - (void)openMiniWindow:(id)sender;
+- (void)checkForUpdates:(id)sender;
+- (void)focusActiveWindow:(id)sender;
 @end
 @implementation BlancMiniWindowMenuTarget
+- (void)checkForUpdates:(id)sender {
+  [NSApp activateIgnoringOtherApps:YES];
+  blanc_prototype::CheckForUpdatesFromMenu();
+}
+- (void)focusActiveWindow:(id)sender {
+  [NSApp activateIgnoringOtherApps:YES];
+  blanc_prototype::FocusDockActiveWindow();
+}
 - (void)openMiniWindow:(id)sender {
   [NSApp activateIgnoringOtherApps:YES];
   blanc_prototype::OpenMiniWindow();
@@ -21,10 +31,46 @@
 
 namespace blanc {
 
+namespace {
+BlancMiniWindowMenuTarget* MenuTarget() {
+  static BlancMiniWindowMenuTarget* target = [[BlancMiniWindowMenuTarget alloc] init];
+  return target;
+}
+
+// Shipping's app menu: Check for Updates… directly under About.
+void InstallCheckForUpdates() {
+  NSMenu* app = [NSApp.mainMenu itemAtIndex:0].submenu;
+  if (!app || [app itemWithTag:65042]) return;
+  const NSInteger about = [app indexOfItemWithTag:IDC_ABOUT];
+  if (about == -1) return;
+  NSMenuItem* item = [[NSMenuItem alloc] initWithTitle:base::SysUTF16ToNSString(
+      menu::ForLocale(g_browser_process->GetApplicationLocale()).check_for_updates)
+      action:@selector(checkForUpdates:) keyEquivalent:@""];
+  item.target = MenuTarget(); item.tag = 65042;
+  [app insertItem:item atIndex:about + 1];
+}
+}  // namespace
+
+void AddDockActiveTab(NSMenu* menu) {
+  const auto tab = blanc_prototype::DockActiveTab();
+  if (tab.label.empty()) return;
+  NSMenuItem* item = [[NSMenuItem alloc] initWithTitle:base::SysUTF16ToNSString(tab.label)
+      action:@selector(focusActiveWindow:) keyEquivalent:@""];
+  item.target = MenuTarget(); item.tag = 65041;
+  if (!tab.icon_png.empty()) {
+    NSImage* icon = [[NSImage alloc] initWithData:[NSData dataWithBytes:tab.icon_png.data()
+                                                                 length:tab.icon_png.size()]];
+    if (icon) { icon.size = NSMakeSize(16, 16); item.image = icon; }
+  }
+  [menu addItem:item];
+  [menu addItem:[NSMenuItem separatorItem]];
+}
+
 void InstallMiniWindowMenu() {
+  InstallCheckForUpdates();
   NSMenu* file = [NSApp.mainMenu itemWithTag:IDC_FILE_MENU].submenu;
   if (!file || [file itemWithTag:65040]) return;
-  static BlancMiniWindowMenuTarget* target = [[BlancMiniWindowMenuTarget alloc] init];
+  BlancMiniWindowMenuTarget* target = MenuTarget();
   NSMenuItem* item = [[NSMenuItem alloc] initWithTitle:base::SysUTF16ToNSString(
       menu::ForLocale(g_browser_process->GetApplicationLocale()).new_mini_window)
       action:@selector(openMiniWindow:) keyEquivalent:@""];
@@ -55,6 +101,29 @@ std::u16string DockMenuItemTitle(int item_tag) {
 
 bool ClickDockMenuItem(int item_tag) {
   NSMenuItem* item = DockMenuItem(item_tag);
+  if (!item.action || !item.target) return false;
+  return [NSApp sendAction:item.action to:item.target from:item];
+}
+
+std::vector<std::u16string> DockMenuItemTitles() {
+  std::vector<std::u16string> titles;
+  id<NSApplicationDelegate> delegate = NSApp.delegate;
+  if (![delegate respondsToSelector:@selector(applicationDockMenu:)]) return titles;
+  for (NSMenuItem* item in [delegate applicationDockMenu:NSApp].itemArray)
+    titles.push_back(item.separatorItem ? u"-" : base::SysNSStringToUTF16(item.title));
+  return titles;
+}
+
+bool DockMenuItemHasImage(int item_tag) {
+  return DockMenuItem(item_tag).image != nil;
+}
+
+std::u16string DockBadge() {
+  return base::SysNSStringToUTF16(NSApp.dockTile.badgeLabel ?: @"");
+}
+
+bool ClickAppMenuItem(int item_tag) {
+  NSMenuItem* item = [[NSApp.mainMenu itemAtIndex:0].submenu itemWithTag:item_tag];
   if (!item.action || !item.target) return false;
   return [NSApp sendAction:item.action to:item.target from:item];
 }

@@ -210,6 +210,20 @@ void ExtensionPopupChanged(BrowserWindowInterface* browser, bool open);
 bool HoldWindowOnClose(BrowserWindowInterface* browser);
 // The Dock icon with no window showing: show the held primary window.
 bool ReopenHeldWindow();
+// The Dock menu's current-tab row (shipping's dockActiveTabDescriptor): the
+// front Island window's current tab. |label| is its title cut to 75
+// characters, the private label for a private tab, or empty while no window
+// shows; |icon_png| is its site icon, empty for a private tab or none.
+struct DockTab {
+  std::u16string label;
+  std::string icon_png;
+};
+DockTab DockActiveTab();
+// That row chosen: the window comes forward (the held one is shown again).
+void FocusDockActiveWindow();
+// The app menu's Check for Updates…: Blanc Beta's updater checks now; a build
+// with no updater opens About, where the version is.
+void CheckForUpdatesFromMenu();
 // History, Downloads and the bookmark manager in an Island window open
 // Blanc's utility sheet ("history", "downloads" or "bookmarks"), as
 // shipping's menu items do. False leaves Chromium's own page.

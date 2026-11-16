@@ -246,6 +246,8 @@
 #include "ui/views/controls/webview/unhandled_keyboard_event_handler.h"
 #include "chrome/browser/ui/browser_tabstrip.h"
 #include "chrome/browser/ui/browser_commands.h"
+#include "chrome/browser/ui/chrome_pages.h"
+#include "chrome/browser/ui/browser_window/public/browser_window_interface_iterator.h"
 #include "chrome/browser/ui/read_anything/read_anything_entry_point_controller.h"
 #include "chrome/browser/ui/navigator/browser_navigator.h"
 #include "chrome/browser/ui/navigator/browser_navigator_params.h"
@@ -7447,6 +7449,24 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(std::move(titles)));
       return;
     }
+    // N18: the Dock menu as it would open now, its current-tab row, the
+    // Dock tile's badge, and the app menu's Check for Updates… clicked.
+    if (message[1].GetString() == "dockMenu" && message[2].GetList().empty()) {
+      base::ListValue titles;
+      for (const auto& title : blanc::DockMenuItemTitles()) titles.Append(base::UTF16ToUTF8(title));
+      Reply(id, true, base::Value(base::DictValue().Set("titles", std::move(titles))
+          .Set("activeTabIcon", blanc::DockMenuItemHasImage(65041))
+          .Set("badge", base::UTF16ToUTF8(blanc::DockBadge()))));
+      return;
+    }
+    if (message[1].GetString() == "clickDockActiveTab" && message[2].GetList().empty()) {
+      Reply(id, true, base::Value(blanc::ClickDockMenuItem(65041)));
+      return;
+    }
+    if (message[1].GetString() == "clickAppMenuCheckForUpdates" && message[2].GetList().empty()) {
+      Reply(id, true, base::Value(blanc::ClickAppMenuItem(65042)));
+      return;
+    }
     if (message[1].GetString() == "clickAppMenuAbout" && message[2].GetList().empty()) {
       Reply(id, true, base::Value(blanc::ClickAppMenuAbout()));
       return;
@@ -13588,6 +13608,71 @@ bool ReopenHeldWindow() {
   }
 #endif
   return false;
+}
+
+#if BUILDFLAG(IS_MAC)
+namespace {
+// The Island window a Dock action means: the one last in front, while it shows.
+BrowserWindowInterface* DockFrontWindow() {
+  auto* browser = GetLastActiveBrowserWindowInterfaceWithAnyProfile();
+  if (!browser || !IsIslandWindow(browser) || browser->IsDeleteScheduled()) return nullptr;
+  auto* view = BrowserView::GetBrowserViewForBrowser(browser);
+  auto* widget = view ? view->GetWidget() : nullptr;
+  // Shipping shows no row over an app whose windows are all closed (the held
+  // window, after the red button): a Dock click already brings it back.
+  return widget && (widget->IsVisible() || widget->IsMinimized()) ? browser : nullptr;
+}
+}  // namespace
+#endif
+
+DockTab DockActiveTab() {
+  DockTab tab;
+#if BUILDFLAG(IS_MAC)
+  auto* browser = DockFrontWindow();
+  auto* contents = browser ? browser->GetTabStripModel()->GetActiveWebContents() : nullptr;
+  if (!contents) return tab;
+  const auto& labels = blanc::menu::ForLocale(g_browser_process->GetApplicationLocale());
+  if (blanc::private_tabs::IsPrivateTab(contents)) {
+    tab.label = std::u16string(labels.private_tab);
+    return tab;
+  }
+  const std::string custom = CustomTabName(contents);
+  std::u16string title = custom.empty() ? contents->GetTitle() : base::UTF8ToUTF16(custom);
+  if (title.empty()) title = std::u16string(contents->IsLoading() ? labels.loading_tab : labels.untitled_tab);
+  // Shipping cuts the row at 75 characters, the last an ellipsis.
+  if (title.size() > 75) title = title.substr(0, 74) + u"\u2026";
+  tab.label = std::move(title);
+  auto* entry = contents->GetController().GetLastCommittedEntry();
+  if (entry && entry->GetFavicon().valid && !entry->GetFavicon().image.IsEmpty()) {
+    if (auto png = entry->GetFavicon().image.As1xPNGBytes(); png && png->size())
+      tab.icon_png.assign(reinterpret_cast<const char*>(png->data()), png->size());
+  }
+#endif
+  return tab;
+}
+
+void FocusDockActiveWindow() {
+#if BUILDFLAG(IS_MAC)
+  if (auto* browser = DockFrontWindow()) {
+    auto* window = browser->GetWindow();
+    if (window->IsMinimized()) window->Restore();
+    window->Show();
+    window->Activate();
+    return;
+  }
+  ReopenHeldWindow();
+#endif
+}
+
+void CheckForUpdatesFromMenu() {
+#if BUILDFLAG(IS_MAC)
+  // Blanc Beta: Sparkle checks and shows its own window. No updater (a
+  // preview build): About, which carries the version.
+#if BUILDFLAG(BLANC_BETA_CHANNEL)
+  if (blanc::beta::GetUpdaterState().available && blanc::beta::CheckForUpdates()) return;
+#endif
+  if (auto* browser = GetLastActiveBrowserWindowInterfaceWithAnyProfile()) chrome::ShowAboutChrome(browser);
+#endif
 }
 
 // The popup anchors on the Island's Extensions button, which Auto-hide

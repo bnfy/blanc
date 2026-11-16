@@ -14,6 +14,24 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Dock menu's current-tab row and Check for Updates… (N18; patch 0089, candidate macos-23064fbfabd20e7b):**
+  the tracker had N18 as not started, but the Dock menu's New Window, New
+  Private Window and New Mini Window (patches 0013, 0067) and About in the
+  Settings sheet (0076) were already in. Two pieces were missing and are
+  now built as shipping's: the Dock menu leads with the front window's
+  current tab (`dock-menu.js`, `dockActiveTabDescriptor`: its icon and
+  title cut at 75 characters, "Private tab" with no icon for a private tab,
+  nothing while no window shows) and a separator, and choosing it brings
+  that window forward; and the application menu has Check for Updates…
+  directly under About. In Blanc Beta that item runs Sparkle's check; a
+  build with no updater opens About. `AppController`'s Dock menu calls
+  `blanc::AddDockActiveTab` (patch 0089, two lines); the rest is in
+  `app_menus_mac.mm`. `tests/native-dock-menu.mjs` passes 6 of 6;
+  `native-app-menu-about.mjs` 3 of 3, `native-mini-windows.mjs` 4 of 4 and
+  `native-tab-switch.mjs` 8 of 8 still pass. The Dock tile carries no badge
+  (shipping only ever clears one). Not checked: the beta's Check for
+  Updates… itself (compiled, not run), the row with every window closed, a
+  page calling the Badging API. Built incrementally (35 steps, then 6).
 - **2026-11-16 — Reading Mode is observable and checked (F58, candidate macos-b6c8f300a889d3a1):**
   `/reader` already ran Chromium's Reading Mode (owner, 2026-11-02), but
   nothing told the Island it was open, so shipping's exit button never
@@ -3628,13 +3646,13 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 8 | 81 | 81 | 69 |
+| Not started / unassessed | 7 | 81 | 81 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 0 | 0 | 0 | 0 |
 | Implemented | 8 | 0 | 0 | 12 |
 | Built, isolated (legacy) | 0 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 0 | 0 | 0 | 0 |
-| Integrated | 64 | 0 | 0 | 0 |
+| Integrated | 65 | 0 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 | 0 |

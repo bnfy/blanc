@@ -9,7 +9,20 @@
 
 #include "base/containers/span.h"
 
+#ifdef __OBJC__
+@class NSMenu;
 namespace blanc {
+// The Dock menu's first row, as shipping's dock-menu.js: the front window's
+// current tab (its icon and title; the private label for a private tab) and
+// a separator, tagged 65041. Choosing it brings that window forward. Nothing
+// is added while no window shows. AppController calls it on the menu it
+// builds each time the Dock asks.
+void AddDockActiveTab(NSMenu* menu);
+}  // namespace blanc
+#endif
+
+namespace blanc {
+// File → New Mini Window and, after About, Check for Updates… (tag 65042).
 void InstallMiniWindowMenu();
 
 // The app's menus as the test hooks read them (patch 0013 titles the
@@ -26,6 +39,13 @@ void SetDockIcon(base::span<const uint8_t> png);
 bool SetDockIconFromBundle(const std::string& name);
 std::u16string DockMenuItemTitle(int item_tag);
 bool ClickDockMenuItem(int item_tag);
+// The Dock menu top to bottom as the test hooks read it: each item's title,
+// "-" for a separator; whether an item carries an image; the Dock tile's
+// badge text ("" for none); and an application-menu item clicked by its tag.
+std::vector<std::u16string> DockMenuItemTitles();
+bool DockMenuItemHasImage(int item_tag);
+std::u16string DockBadge();
+bool ClickAppMenuItem(int item_tag);
 // The application menu's item titles in order (About, Hide, Quit… carry the
 // app's name, patch 0075), and clicking its About item as a person would.
 std::vector<std::u16string> AppMenuItemTitles();
