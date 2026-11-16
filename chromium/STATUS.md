@@ -55,6 +55,21 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   `island-and-commands.feature:49` (F1-6, motion inside the Island opens
   it): the hover state never reports inside. It passed in the nightly; its
   neighbor `:61` was already pointer-dependent. Not diagnosed.
+  **F27-12 fixed (candidate macos-7aef7a5dc6e2a13c):** shipping passes the
+  case on the Mac Studio at v1.49.1 with the same 328px panel and three-row
+  footer, but its panel starts 12px from the top; the fork's started at 48px.
+  `prototype.css` still carried the fork's own narrow-window rule (below
+  800px wide, drop the panel 48px to clear the window buttons), which
+  shipping's side clearance now replaces. The rule is removed, so the panel
+  sits where shipping's does. `sync.feature` 18 of 18 and
+  `island-and-commands.feature` 66 of 67 on that build; the tracker's
+  baseline stays the full run on macos-bed55af2cf2cf43d until the next
+  nightly. **F1-6 still open:** the first move inside the Island reports
+  inside and starts the dwell, but a move that lands as the panel opens is
+  read as outside (state back to inside=false, armed), and the step, which
+  sends no further move, waits on it and times out. Shipping's state would
+  read inside. Likely the host's pointer bookkeeping at the moment the
+  overlay takes the pointer (`hookHover` in `host.js`); not fixed.
   **Test runs moved to the Mac Studio (owner, 2026-11-16):** no fork test
   window opens on the MacBook Pro. Staging is `~/Projects/Blanc/scratch/tests`
   (`repo`, a worktree apart from the pinned release checkout; `app`, a copy
