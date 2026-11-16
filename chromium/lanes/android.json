@@ -28,6 +28,7 @@
     "patches/android/0118-android-tab-modal-dialogs.patch",
     "patches/android/0119-android-notification-ask.patch",
     "patches/android/0120-android-no-screen-capture.patch",
-    "patches/android/0121-android-tab-destroyed-notifications.patch"
+    "patches/android/0121-android-tab-destroyed-notifications.patch",
+    "patches/android/0122-android-capture-notification-startup.patch"
   ]
 }
