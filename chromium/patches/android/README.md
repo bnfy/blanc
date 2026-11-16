@@ -66,6 +66,21 @@ in the lane file in its place. Numbering starts at 0101.
   on 1.0.0-beta.1 with a site's camera prompt). Run on the emulator with the
   patch: a site's camera prompt and an HTTP sign-in. JavaScript alerts and
   confirms go through the same presenter and were not run.
+- `0119-android-notification-ask.patch`: asks for notification permission in
+  context (Chromium's callers: a download starting, a private tab's
+  notification, a site's request). 0104 removed the startup prompt and counted
+  on this, but `ContextualNotificationPermissionRequesterImpl` keeps it behind
+  a field-trial parameter that is off by default, so Blanc never asked and its
+  notifications never showed (found on 1.0.0-beta.1).
+- `0120-android-no-screen-capture.patch`: drops the screen-capture foreground
+  service: the `FOREGROUND_SERVICE_MEDIA_PROJECTION` permission and the
+  `mediaProjection|mediaPlayback` types of `MediaCaptureNotificationService`
+  in the manifest, and the matching types in
+  `MediaCaptureNotificationServiceImpl`. Websites can't share the screen in
+  Blanc (Chromium leaves `getDisplayMedia` experimental on Android), and
+  Google Play asks for a demonstration of every declared type. With
+  chrome://flags' experimental web features on, a screen share has no
+  foreground service and is not expected to work.
 
 A Chromium file dropped from the lane keeps its applied edits in an existing
 checkout: restore it with `git checkout` there. A Blanc file the source drops or

@@ -1,0 +1,37 @@
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/app/notifications/ContextualNotificationPermissionRequesterImpl.java b/chrome/android/java/src/org/chromium/chrome/browser/app/notifications/ContextualNotificationPermissionRequesterImpl.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/app/notifications/ContextualNotificationPermissionRequesterImpl.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/app/notifications/ContextualNotificationPermissionRequesterImpl.java
+@@ -12,7 +12,6 @@
+ import org.chromium.build.annotations.NullMarked;
+ import org.chromium.build.annotations.Nullable;
+ import org.chromium.chrome.browser.ChromeTabbedActivity;
+-import org.chromium.chrome.browser.flags.ChromeFeatureList;
+ import org.chromium.chrome.browser.notifications.permissions.NotificationPermissionController;
+ import org.chromium.ui.permissions.ContextualNotificationPermissionRequester;
+ 
+@@ -23,9 +22,6 @@
+ @NullMarked
+ public class ContextualNotificationPermissionRequesterImpl
+         extends ContextualNotificationPermissionRequester {
+-    private static final String FIELD_TRIAL_ENABLE_CONTEXTUAL_PERMISSION_REQUESTS =
+-            "enable_contextual_permission_requests";
+-
+     private static class LazyHolder {
+         static final ContextualNotificationPermissionRequesterImpl INSTANCE =
+                 new ContextualNotificationPermissionRequesterImpl();
+@@ -38,12 +34,9 @@
+ 
+     @Override
+     public void requestPermissionIfNeeded() {
+-        boolean isContextualPermissionRequestEnabled =
+-                ChromeFeatureList.getFieldTrialParamByFeatureAsBoolean(
+-                        ChromeFeatureList.NOTIFICATION_PERMISSION_VARIANT,
+-                        FIELD_TRIAL_ENABLE_CONTEXTUAL_PERMISSION_REQUESTS,
+-                        false);
+-        if (!isContextualPermissionRequestEnabled) return;
++        // Blanc (patch 0119): always ask in context. Blanc has no notification prompt at startup
++        // (patch 0104), and Chrome keeps this request behind a field-trial parameter that is off
++        // by default, so nothing ever asked.
+         NotificationPermissionController permissionController =
+                 getNotificationPermissionController();
+         if (permissionController == null) return;
