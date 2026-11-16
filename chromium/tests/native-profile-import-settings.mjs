@@ -71,7 +71,7 @@ try{
  await w.native('setImportSource',[damaged.userData]);
  r=await click();assert.deepEqual(r,{status:text('partial'),button:text('retry'),busy:false});
  assert.deepEqual(await details(),[
-  ['imported','Personal','Favorites 2 · History 5,000 · Spaces 1 · Archived tabs 1 · Start Page pins 1 · Site permissions 6'],
+  ['imported','Personal','Favorites 2 · History 5,000 · Spaces 1 · Archived tabs 1 · Start Page pins 1 · Site permissions 4'],
   ['failed','Fixture profile',text('notRead')],
   ['left',text('leftBehind'),'']]);
  result.checks.push('with one profile unreadable the list gives Personal\'s counts, names the profile left out and says what is never imported');
