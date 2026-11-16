@@ -14,6 +14,18 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Remaining-work plan started; F49, F50 and F54 rechecked:**
+  the split with Codex is `docs/superpowers/plans/2026-11-16-macos-fork-remaining-work.md`.
+  Codex works sandboxed in `~/Projects/Blanc-Codex/repo` (branch
+  `codex/fork-lane`) and writes tests it cannot run; Claude runs them on a
+  staged copy of the nightly's Prototype (`~/Projects/Blanc-Codex/app`,
+  candidate macos-4f9e9bb648216395) and audits before merging. Card C2a
+  (ee26ec3d5): `tests/native-recheck-f49.mjs`, `-f50.mjs` and `-f54.mjs`
+  pass on the staged app (4, 4 and 7 checks), their expected values match
+  shipping at 8a4e57e78, and a wrong expected color fails the clock test. The
+  three rows are Integrated. Found on the way: the fork's Match each space's
+  color control is unavailable, and the fork stores an imported wallpaper in
+  IndexedDB where shipping writes `current.jpg`.
 - **2026-11-16 — Tracker refreshed from the first full nightly (candidate macos-4f9e9bb648216395):**
   `tracker.json` still described early November: it listed the vertical rail,
   Sync, passkeys and 21 other rows as not started, and its shipping commit and
@@ -3520,9 +3532,9 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 2 | 0 | 0 | 0 |
 | Implemented | 9 | 0 | 0 | 12 |
-| Built, isolated (legacy) | 1 | 0 | 0 | 0 |
-| Integrated, partial (legacy) | 2 | 0 | 0 | 0 |
-| Integrated | 58 | 0 | 0 | 0 |
+| Built, isolated (legacy) | 0 | 0 | 0 | 0 |
+| Integrated, partial (legacy) | 0 | 0 | 0 | 0 |
+| Integrated | 61 | 0 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 | 0 |

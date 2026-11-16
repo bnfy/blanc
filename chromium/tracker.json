@@ -1350,8 +1350,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-integrated-partial",
-          "basis": "approved spec macOS inventory; awaiting candidate verification. No shipping scenario maps to this row; not rechecked in the 2026-11-16 tracker refresh."
+          "stage": "integrated",
+          "basis": "native-recheck-f49.mjs passes 4 of 4 checks on macos-4f9e9bb648216395 (2026-11-16): Your image imports a PNG, Wash and Fade apply and are stored, and all three survive a relaunch. The fork keeps the image in IndexedDB, not shipping's current.jpg; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-4f9e9bb648216395"
         },
         "windows": {
           "stage": "not-started",
@@ -1380,8 +1381,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-built-isolated",
-          "basis": "approved spec macOS inventory; awaiting candidate verification. No shipping scenario maps to this row; not rechecked in the 2026-11-16 tracker refresh."
+          "stage": "integrated",
+          "basis": "native-recheck-f50.mjs passes 4 of 4 checks on macos-4f9e9bb648216395 (2026-11-16): Color applies shipping's Sage gradient, Solid changes it, it survives a relaunch, and Sunrise removes it. Match each space's color is not available in the fork; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-4f9e9bb648216395"
         },
         "windows": {
           "stage": "not-started",
@@ -1503,8 +1505,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-integrated-partial",
-          "basis": "approved spec macOS inventory; awaiting candidate verification. No shipping scenario maps to this row; not rechecked in the 2026-11-16 tracker refresh."
+          "stage": "integrated",
+          "basis": "native-recheck-f54.mjs passes 7 of 7 checks on macos-4f9e9bb648216395 (2026-11-16): shipping's four fonts and defaults, each font's computed family and width, Sky at tone 50, and persistence across a relaunch. Height, weight and Glass not checked; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-4f9e9bb648216395"
         },
         "windows": {
           "stage": "not-started",
