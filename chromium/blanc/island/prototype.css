@@ -20,12 +20,10 @@
    sizes, corners and shadow (owner, 2026-11-13): no overrides here. */
 #nativeExtensions { display: inline-block; flex: 0 0 auto; width: calc(26px / var(--pill-zoom)); height: calc(26px / var(--pill-zoom)); }
 
-/* At narrow widths the expanded panel crosses the native button cluster.
-   Leave the real macOS controls clear and keep the panel's bottom inset. */
-@media (max-width: 800px) {
-  #panelAnchor { top: 48px; }
-  #islandPanel { max-height: calc(100vh - 60px); }
-}
+/* A narrow window's panel stays clear of the macOS window buttons through
+   shipping's own side margin (v1.49.1, overlay:show panelSideClearance, sent
+   by host.js). The fork's earlier rule, which dropped the panel 48px below
+   800px wide, is gone: both together cost the tab list its room (F27-12). */
 
 .prototype-tab-menu {position:fixed; z-index:2000; min-width:180px; padding:5px;
  background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:10px; box-shadow:0 8px 32px #0003;}
