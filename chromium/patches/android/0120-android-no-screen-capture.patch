@@ -1,0 +1,60 @@
+diff -ruN a/chrome/android/java/AndroidManifest.xml b/chrome/android/java/AndroidManifest.xml
+--- a/chrome/android/java/AndroidManifest.xml
++++ b/chrome/android/java/AndroidManifest.xml
+@@ -74,10 +74,8 @@
+     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
+     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+-    {% set enable_screen_capture = enable_screen_capture|default(0) %}
+-    {% if enable_screen_capture == "true" %}
+-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+-    {% endif %}
++    <!-- Blanc (patch 0120): no screen-capture foreground service. Websites can't share the
++         screen here (Chromium leaves it experimental on Android). -->
+     <!-- TODO(crbug.com/40259231): Remove this tools:ignore attribute once it's no longer necessary. -->
+     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" tools:ignore="SystemPermissionTypo" />
+     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" tools:ignore="SystemPermissionTypo" />
+@@ -1260,11 +1258,7 @@
+             android:exported="false"/>
+ 
+         <service android:name="org.chromium.chrome.browser.media.MediaCaptureNotificationService"
+-            {% if enable_screen_capture == "true" %}
+-            android:foregroundServiceType="camera|microphone|mediaProjection|mediaPlayback"
+-            {% else %}
+             android:foregroundServiceType="camera|microphone"
+-            {% endif %}
+             android:exported="false"/>
+         <service android:name="org.chromium.chrome.browser.GracefulShutdownService"
+             android:foregroundServiceType="shortService|dataSync"
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java b/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java
+@@ -392,11 +392,6 @@
+     private int getRequiredForegroundServiceType() {
+         // Since we can only have one media notification on the large screen device at a time,
+         // we use it to include all of the necessary foreground service types.
+-        Set<@MediaType Integer> allMediaTypes = new HashSet<>();
+-        for (Set<@MediaType Integer> types : mNotificationsType.values()) {
+-            allMediaTypes.addAll(types);
+-        }
+-
+         int foregroundServiceType = 0;
+         if (ActivityCompat.checkSelfPermission(getService(), Manifest.permission.CAMERA)
+                 == PackageManager.PERMISSION_GRANTED) {
+@@ -406,14 +401,8 @@
+                 == PackageManager.PERMISSION_GRANTED) {
+             foregroundServiceType |= ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE;
+         }
+-        if (allMediaTypes.contains(MediaType.TAB_CAPTURE)) {
+-            foregroundServiceType |= ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK;
+-            foregroundServiceType |= ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION;
+-        }
+-        if (allMediaTypes.contains(MediaType.SCREEN_CAPTURE)
+-                || allMediaTypes.contains(MediaType.WINDOW_CAPTURE)) {
+-            foregroundServiceType |= ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION;
+-        }
++        // Blanc (patch 0120): camera and microphone only, the types the manifest declares.
++        // Android refuses a foreground service started with a type its manifest doesn't list.
+         return foregroundServiceType;
+     }
+ 
