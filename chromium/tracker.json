@@ -2259,9 +2259,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "implemented",
-          "basis": "Patch 0068 and mouse_gesture_controller.inc are in the tree with tests/native-mouse-gestures.mjs; the mapped shipping cases are phone-only and excluded. Not rechecked on the current candidate in the 2026-11-16 refresh",
-          "candidate": "macos-4f9e9bb648216395"
+          "stage": "integrated",
+          "basis": "native-mouse-gestures.mjs passes 13 of 13 checks on macos-1f6cbe46be1f2dfd (2026-11-16): off by default, the Settings switch and mapping, right-drag and Option-left-drag gestures through native input, and the navigation boundaries. The mapped shipping cases are phone-only and excluded; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-1f6cbe46be1f2dfd"
         },
         "windows": {
           "stage": "not-started",
@@ -2291,7 +2291,8 @@
       "platformProgress": {
         "macos": {
           "stage": "implemented",
-          "basis": "granted local HTML tabs, as shipping's official builds: tabs-and-groups.feature:292 (n15-pinned-file-2) and nine native checks (n15-local-files-smoke-4) pass on macos-dae7f4583f5966a0; the DRM-build isolated preview window and the public.html association are not built. No shipping scenario maps to this row; not rechecked in the 2026-11-16 tracker refresh."
+          "basis": "native-local-files.mjs passes 9 of 9 checks on macos-1f6cbe46be1f2dfd (2026-11-16) and tabs-and-groups.feature:292 passes in the nightly: a local HTML file opens in a tab that holds the grant for that file. Still not built: the macOS public.html file association, and shipping's isolated preview window",
+          "candidate": "macos-1f6cbe46be1f2dfd"
         },
         "windows": {
           "stage": "not-started",
@@ -2445,7 +2446,8 @@
       "platformProgress": {
         "macos": {
           "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification. No shipping scenario maps to this row; not rechecked in the 2026-11-16 tracker refresh."
+          "basis": "Two parts. The tab import page (Bring Your Tabs, Arc import) is built and passes under F40 (15 of 15) and F45 (7 of 7). Tab handoff is not started (checked 2026-11-16): no blanc-import: scheme in the app's Info.plist, no handling of an incoming blanc-import://tabs link, no relay claim or decryption (shipping's tab-import-handoff.js), and no tab-handoff page. It is the path the Bring Your Tabs browser extension uses to send tabs to Blanc",
+          "candidate": "macos-1f6cbe46be1f2dfd"
         },
         "windows": {
           "stage": "not-started",

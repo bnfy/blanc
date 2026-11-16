@@ -14,6 +14,18 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — N14 and N15 rerun; what N20 still lacks (candidate macos-1f6cbe46be1f2dfd):**
+  `tests/native-mouse-gestures.mjs` passes 13 of 13 (N14 Integrated) and
+  `tests/native-local-files.mjs` 9 of 9 (N15 stays Implemented: no
+  `public.html` association or isolated preview window). **N20** is half
+  there: the tab import page works (F40, F45), but tab handoff, the path the
+  Bring Your Tabs extension uses, is not started: no `blanc-import:` scheme
+  in the app, nothing takes a `blanc-import://tabs` link, and none of
+  shipping's `tab-import-handoff.js` (claim from the relay at
+  `tabs.blancbrowser.com`, AES-GCM decryption with the key from the link,
+  a 10-minute lifetime, at most 100 web tabs) or its `tab-handoff` page is
+  in the fork. It adds a URL scheme other apps can call and an outbound
+  request, so it needs its own short design before code.
 - **2026-11-16 — Trust receipt and Diagnostics in Settings → About (N16; patch 0090, candidate macos-1f6cbe46be1f2dfd):**
   shipping's About & Trust and Diagnostics, in Chromium's About page. The
   receipt lists, from this device and with no network request: the build
@@ -3709,10 +3721,10 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 | Not started / unassessed | 4 | 81 | 81 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 0 | 0 | 0 | 0 |
-| Implemented | 9 | 0 | 0 | 12 |
+| Implemented | 8 | 0 | 0 | 12 |
 | Built, isolated (legacy) | 0 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 0 | 0 | 0 | 0 |
-| Integrated | 67 | 0 | 0 | 0 |
+| Integrated | 68 | 0 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 | 0 |
