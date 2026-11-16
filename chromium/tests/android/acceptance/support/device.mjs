@@ -193,6 +193,8 @@ export class Device {
     const prefs = withPref(adb('shell', ...prefix, 'cat', prefPath), xmlEntry, name);
     // Write in place so the app's existing ownership and SELinux context remain intact.
     adb('shell', `${release ? '' : `run-as ${PACKAGE} `}sh -c 'cat > ${prefPath}' <<'EOF'\n${prefs}\nEOF`);
+    // Read back: a lost edit would otherwise surface later as an unrelated failure.
+    if (!adb('shell', ...prefix, 'cat', prefPath).includes(xmlEntry)) throw Error(`The preference ${name} was not written to ${prefPath}`);
     await this.launch();
   }
 
