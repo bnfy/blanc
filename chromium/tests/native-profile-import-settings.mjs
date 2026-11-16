@@ -30,17 +30,18 @@ const row=()=>inSettings(w,'help',async(a,d)=>{
  const button=root.getElementById('blancImportStart');
  return {value:{title:root.querySelector('#blancImport .flex > div').textContent.trim(),status:root.getElementById('blancImportStatus').textContent.trim(),
   button:button.textContent.trim(),busy:button.disabled}};});
-// The result list under the row: kind, label and value of each line.
-const details=()=>inSettings(w,'help',async(a,d)=>{
- const root=d.find('#blancImport').getRootNode();
- return {value:[...root.querySelectorAll('.blanc-import-row')].map(x=>[x.dataset.kind,x.querySelector('.flex').textContent.trim(),x.querySelector('.blanc-import-value').textContent.trim()])};});
+// The result list under the row, as the last click left it: kind, label and value of each line.
+let shown=[];const details=async()=>shown;
 // A person's click, and the row once the import has answered.
-const click=()=>inSettings(w,'help',async(a,d)=>{
+const click=async()=>{const value=await clickRow();shown=value.details;delete value.details;return value;};
+const clickRow=()=>inSettings(w,'help',async(a,d)=>{
  const root=d.find('#blancImport').getRootNode(),button=root.getElementById('blancImportStart'),status=root.getElementById('blancImportStatus');
  const before=status.textContent.trim();button.click();
  const end=Date.now()+30000;
  while(Date.now()<end){await new Promise(r=>setTimeout(r,100));const now=status.textContent.trim();if(!button.disabled&&now!==before&&now!==a)break;}
- return {value:{status:status.textContent.trim(),button:button.textContent.trim(),busy:button.disabled}};},text('working'));
+ await new Promise(r=>setTimeout(r,200));
+ return {value:{status:status.textContent.trim(),button:button.textContent.trim(),busy:button.disabled,
+  details:[...root.querySelectorAll('.blanc-import-row')].map(x=>[x.dataset.kind,x.querySelector('.flex').textContent.trim(),x.querySelector('.blanc-import-value').textContent.trim()])}};},text('working'));
 try{
  await f.launch(config,path.join(parent,'fixture'),{testHooks:true,diskAssets:false});await installDriver(f.host);await visible();await w.reset();
 
