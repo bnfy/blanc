@@ -10416,6 +10416,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         {"slot7", IDC_SELECT_TAB_6}, {"slot8", IDC_SELECT_TAB_7}, {"slot9", IDC_SELECT_LAST_TAB},
         {"closeWindow", IDC_CLOSE_WINDOW}, {"find", IDC_FIND}, {"newTab", IDC_NEW_TAB},
         {"newPrivateTab", IDC_NEW_INCOGNITO_WINDOW},
+        {"history", IDC_SHOW_HISTORY}, {"downloads", IDC_SHOW_DOWNLOADS},
+        {"bookmarks", IDC_SHOW_BOOKMARK_MANAGER}, {"settings", IDC_OPTIONS},
         {"nextTab", IDC_SELECT_NEXT_TAB}, {"previousTab", IDC_SELECT_PREVIOUS_TAB},
         {"hardReload", IDC_RELOAD_BYPASSING_CACHE}, {"close", IDC_CLOSE_TAB},
         {"zoomIn", IDC_ZOOM_PLUS}, {"zoomOut", IDC_ZOOM_MINUS},
@@ -13119,8 +13121,33 @@ bool IsPersistentSplitTab(content::WebContents* tab) {
 // A page command (zoom, Back, Forward, Reload, Stop) while focus is in a
 // Glance over a split goes to the Glance page, as shipping's commands follow
 // focus into the card (#1441). Find follows through the Island's focused tab.
+// Chromium 158 runs browser commands through its actions
+// (features::ShouldUseActionsForBrowserCommands), so the menu and keyboard no
+// longer reach BrowserCommandController::HandleCommandWithDisposition, where
+// patches 0011, 0012, 0019, 0076 and 0086 answer these commands. They are
+// answered here instead, from the one call every command still passes
+// (ExecuteForFocusedGlance below, patch 0074).
+bool ExecuteIslandCommand(BrowserWindowInterface* browser, int command_id) {
+  if (!IsIslandWindow(browser)) return false;
+  switch (command_id) {
+    case IDC_NEW_INCOGNITO_WINDOW:
+      // Owner, 2026-11-02: a private tab in this window, never an incognito
+      // window; an unused private Start Page is used first (#1505).
+      if (browser->GetProfile()->IsOffTheRecord()) return false;
+      if (!ReuseNewTab(browser, /*is_private=*/true)) NewPrivateTab(browser, GURL());
+      return true;
+    case IDC_SHOW_BOOKMARK_MANAGER: return OpenUtilitySheet(browser, "bookmarks");
+    case IDC_SHOW_HISTORY: return OpenUtilitySheet(browser, "history");
+    case IDC_SHOW_DOWNLOADS: return OpenUtilitySheet(browser, "downloads");
+    case IDC_OPTIONS: return OpenUtilitySheet(browser, "settings");
+    case IDC_ABOUT: return OpenUtilitySheet(browser, "about");
+    default: return false;
+  }
+}
+
 bool ExecuteForFocusedGlance(BrowserWindowInterface* browser, int command_id) {
   if (!IsEnabled() || !browser) return false;
+  if (ExecuteIslandCommand(browser, command_id)) return true;
   for (auto* owner : Owner::Live()) {
     if (owner->browser != browser || owner->overlay_glance < 0 || !owner->overlay_focused) continue;
     auto* target = owner->CommandTarget();
