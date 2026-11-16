@@ -28,14 +28,19 @@ export function releaseArgs(template, versionName, versionCode) {
   return template + `\nblanc_android_version_name = "${versionName}"\nandroid_override_version_name = "${versionName}"\nandroid_override_version_code = "${versionCode}"\n`;
 }
 // The build guard pins each output's arguments, and every release changes them by its version
-// lines. When the pin is exactly this template with an earlier release's version, only the version
-// changed: the pin with the new arguments' hash, every toolchain field untouched. Otherwise null,
-// and the guard stops the build for a review.
-export function pinForNewVersion(pin, template, earlierBuilds, args) {
+// lines. When the pin is exactly this template with an earlier version (any 1.0.0-beta.N with a
+// lower version code, whether or not that build reached the ledger), only the version changed:
+// the pin with the new arguments' hash, every toolchain field untouched. Otherwise null, and the
+// guard stops the build for a review.
+export function pinForNewVersion(pin, template, versionCode, args) {
   const next = digest(args);
   if (pin?.argsSha256 === next) return null;
-  const known = earlierBuilds.some(build => digest(releaseArgs(template, build.versionName, build.versionCode)) === pin?.argsSha256);
-  return known ? { ...pin, argsSha256: next } : null;
+  for (let code = 1; code < versionCode; code++) {
+    for (let beta = 1; beta <= code; beta++) {
+      if (digest(releaseArgs(template, `1.0.0-beta.${beta}`, code)) === pin?.argsSha256) return { ...pin, argsSha256: next };
+    }
+  }
+  return null;
 }
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, ...options });
@@ -165,8 +170,7 @@ Would write ${evidence}/build.json. No changes made.`);
     const pinFile = path.join(out, '.blanc-build-environment.json');
     if (!fs.existsSync(pinFile)) run(process.execPath, [...buildTool, '--record-environment'], { stdio: 'inherit' });
     else {
-      const earlier = jsonAt(clone, entry.commit, 'chromium/android/release/ledger.json').builds.filter(build => build.versionCode < entry.versionCode);
-      const moved = pinForNewVersion(JSON.parse(fs.readFileSync(pinFile, 'utf8')), argsTemplate, earlier, args);
+      const moved = pinForNewVersion(JSON.parse(fs.readFileSync(pinFile, 'utf8')), argsTemplate, entry.versionCode, args);
       if (moved) fs.writeFileSync(pinFile, JSON.stringify(moved, null, 2) + '\n');
     }
     // A release is an intentional full rebuild, so the large-plan guard is waived here only.
