@@ -15,6 +15,19 @@ test('a download asks for notification permission', () => {
   assert.doesNotMatch(body, /isContextualPermissionRequestEnabled/);
 });
 
+// Chrome's own explainer card says "Chrome notifications make things easier" and names Incognito,
+// and it opens on the browser window, behind the Downloads screen a download brings up. Blanc goes
+// straight to Android's permission prompt.
+test('the notification request is Android\'s own prompt, not Chrome\'s explainer card', () => {
+  const source = patchedChromiumFile(
+      'chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java');
+  const start = source.indexOf('int shouldRequestPermission() {');
+  assert.notEqual(start, -1);
+  const body = source.slice(start, source.indexOf('\n    }\n', start));
+  assert.match(body, /return PermissionRequestMode\.REQUEST_ANDROID_PERMISSION;/);
+  assert.doesNotMatch(body, /REQUEST_PERMISSION_WITH_RATIONALE/);
+});
+
 // Websites can't share the screen in Blanc (Chromium leaves getDisplayMedia experimental on
 // Android), so the app must not declare the screen-capture foreground service: Google Play asks
 // for a demonstration of every declared type.

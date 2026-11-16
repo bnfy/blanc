@@ -28,6 +28,7 @@
     "chrome/browser/chrome_content_browser_client_receiver_bindings.cc": "255d1fab72adf7d606515a24ab8f63035c48f0dfaea05941d92cadffa6e49b2c",
     "chrome/browser/flags/android/chrome_feature_list.cc": "c4d157b9d4e8007c6fea81fe87c6a46026b6c900813d7eeb9a430c201e52674d",
     "chrome/browser/flags/android/java/src/org/chromium/chrome/browser/flags/ChromeFeatureList.java": "dfa696a398bfbd5dd7f49921c251060e3cafb51aebc81d9f498abb20c32526e2",
+    "chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java": "b11692db5f9822d153fdeb3f3b199c1ec9902dae184794170fe6dd7512668051",
     "chrome/browser/prefs/browser_prefs.cc": "758e5727c98e59e423e8903527db456d44a10914c671f58ddc94b30667698078",
     "chrome/browser/preloading/preloading_prefs.cc": "a0582ae62ef2ff7d64bf9f5406f5fe3884eb76784964c220a980732e3753f9c5",
     "chrome/browser/tab_group_sync/android/java/src/org/chromium/chrome/browser/tab_group_sync/TabGroupSyncFeatures.java": "5eefa91772c00470d7db593899def03c7fdf1c0e23730244fb16855d85c171eb",

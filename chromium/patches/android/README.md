@@ -71,7 +71,10 @@ in the lane file in its place. Numbering starts at 0101.
   notification, a site's request). 0104 removed the startup prompt and counted
   on this, but `ContextualNotificationPermissionRequesterImpl` keeps it behind
   a field-trial parameter that is off by default, so Blanc never asked and its
-  notifications never showed (found on 1.0.0-beta.1).
+  notifications never showed (found on 1.0.0-beta.1). The request is always
+  Android's own prompt (`NotificationPermissionController`): Chrome's
+  explainer card names Chrome and Incognito and opens on the browser window,
+  behind the Downloads screen a download brings up.
 - `0120-android-no-screen-capture.patch`: drops the screen-capture foreground
   service: the `FOREGROUND_SERVICE_MEDIA_PROJECTION` permission and the
   `mediaProjection|mediaPlayback` types of `MediaCaptureNotificationService`
