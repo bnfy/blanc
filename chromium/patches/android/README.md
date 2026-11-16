@@ -98,7 +98,16 @@ in the lane file in its place. Numbering starts at 0101.
   already posted (and its saved id) and stays running while it has one. A page
   opened at a cold start can be using the microphone before that task runs;
   the task removed its notification and stopped the foreground service, so
-  the microphone was in use with nothing shown (found on 1.0.0-beta.2).
+  the microphone was in use with nothing shown (found on 1.0.0-beta.2). Only
+  that startup pass keeps them: the service still cancels everything when it
+  is destroyed or unbound.
+- `0123-android-device-notification-startup.patch`: the same deferred startup
+  task clears last run's Bluetooth and USB notifications the same way.
+  `BluetoothNotificationManager` and `UsbNotificationManager` now keep a
+  notification this run already posted (and its saved id), and their services
+  stay running while they have one; their services still cancel everything
+  when destroyed or unbound. Serial has the same code, but nothing
+  calls its clearing at startup, so it is left alone.
 
 A Chromium file dropped from the lane keeps its applied edits in an existing
 checkout: restore it with `git checkout` there. A Blanc file the source drops or

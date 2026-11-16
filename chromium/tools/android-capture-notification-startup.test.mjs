@@ -14,7 +14,7 @@ const method = (source, signature) => {
 };
 
 test('clearing last run\'s capture notifications keeps the ones this run posted', () => {
-  const clear = method(patchedChromiumFile(SERVICE), 'private void cancelPreviousWebRtcNotifications() {');
+  const clear = method(patchedChromiumFile(SERVICE), 'private void cancelLastRunWebRtcNotifications() {');
   // A notification this run owns is skipped, and its saved id stays saved.
   assert.match(clear, /if \(mNotificationsType\.containsKey\(notificationId\)\) \{\s+live\.add\(id\);\s+continue;/);
   assert.match(clear, /writeStringSet\(\s*ChromePreferenceKeys\.MEDIA_WEBRTC_NOTIFICATION_IDS, live\)/);
@@ -22,5 +22,12 @@ test('clearing last run\'s capture notifications keeps the ones this run posted'
 
 test('the capture service keeps running after the clearing task while it still has a notification', () => {
   const start = method(patchedChromiumFile(SERVICE), 'public int onStartCommand(');
-  assert.match(start, /cancelPreviousWebRtcNotifications\(\);\s+if \(mNotificationsType\.isEmpty\(\)\) getService\(\)\.stopSelf\(\);/);
+  assert.match(start, /cancelLastRunWebRtcNotifications\(\);\s+if \(mNotificationsType\.isEmpty\(\)\) getService\(\)\.stopSelf\(\);/);
+});
+
+test('the capture service still cancels every notification when it is destroyed or unbound', () => {
+  const source = patchedChromiumFile(SERVICE);
+  assert.doesNotMatch(method(source, 'private void cancelPreviousWebRtcNotifications() {'), /live/);
+  assert.match(method(source, 'public void onDestroy() {'), /cancelPreviousWebRtcNotifications\(\);/);
+  assert.match(method(source, 'public boolean onUnbind('), /cancelPreviousWebRtcNotifications\(\);/);
 });
