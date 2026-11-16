@@ -14,6 +14,37 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Tracker refreshed from the first full nightly (candidate macos-4f9e9bb648216395):**
+  `tracker.json` still described early November: it listed the vertical rail,
+  Sync, passkeys and 21 other rows as not started, and its shipping commit and
+  scenario list were v1.46.0's. It now takes the nightly full suite
+  20261116-0700 on the Mac Studio (fork e7b716378, shipping 8a4e57e78) as the
+  macOS baseline, committed as
+  `scenarios/baseline-macos-4f9e9bb648216395.json`: 629 of 661 cases pass, 1
+  fails (`F41-named-workspaces.feature:211`, the Spaces menu's closing fade,
+  which passed on its rerun; the baseline keeps the failure), 3 are undefined
+  (runner gaps: `platform-services.feature:25` the in-app updater,
+  `private-tabs.feature:40` private-tab passkeys,
+  `supporter-and-session.feature:12` Patron) and 28 are excluded. Every row
+  with passing shipping cases is Integrated on that candidate with its
+  counts; rows with no scenario moved only on recorded evidence (the beta's
+  gates in `release/standing.json`, a native test, or host code) and say so,
+  and the rest are marked "not rechecked". macOS Bar B: 58 Integrated, 9
+  Implemented, 14 below that, 0 Verified (the manual accessibility and visual
+  checklist has not been run for any row). Not Integrated on macOS:
+  - Not started: X2 protected-video notice and handoff; N2 capture indicator;
+    N3 screen-sharing picker; N16 trust receipt and diagnostics export; N18
+    Dock menu, badge and Check for updates; N20 tab import and handoff pages;
+    F38 and F42 (owner: Web Store extensions instead); X1 uBO (research).
+  - Implemented, not proven end to end: F22 updates (beta channel only; no
+    replacement channel, Intel build or Electron bridge), R2 and R3 Sync
+    with a real iPhone, N1 Recently closed's Forget and Clear all, N13 site
+    mute and page tint, N14 mouse gestures, N15 local HTML, N17 Invite, F51
+    What's New.
+  - Not rechecked (legacy or drafted stage kept): F49 and F50 wallpaper, F54
+    clock Font & color, F58 Reader, F59 Ctrl+Tab recent order.
+  Also outside the rows: the Electron profile importer (plan M.1–M.4) has no
+  code, and the shipping target is still v1.48.0-36 while shipping is v1.49.1.
 - **2026-11-15 — Settings asked for at launch opens instead of vanishing:**
   since the utility pages moved into the sheet (0814560c8, November 13), a
   tab that loads Settings, History, Downloads or Favorites closes and the
@@ -3473,11 +3504,11 @@ on that site, and a wrong search address still fails it.
 
 | Platform | Current-candidate baseline |
 | --- | --- |
-| macOS | Not run for current candidate (previous baseline is stale) |
-| Windows | Not run (640 cases) |
-| Linux | Not run (640 cases) |
+| macOS | 629/661 executable cases pass; 1 failed; 3 undefined/not run; 28 excluded — [baseline](scenarios/baseline-macos-4f9e9bb648216395.json)<br>S1 rows: 255/258 pass; 0 failed; 1 undefined; 2 excluded |
+| Windows | Not run (661 cases) |
+| Linux | Not run (661 cases) |
 
-640 executable cases from 591 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
+661 executable cases from 612 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
 
 Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acceptance/` (A2, A3): 32 (F2–F8, F12, F18, and the phone-only F31-11 and F56-1–3), run on the build server's emulator by `run.sh`; desktop cases don't apply to it.
 
@@ -3485,13 +3516,13 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 24 | 81 | 81 | 69 |
+| Not started / unassessed | 8 | 81 | 81 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
-| Drafted | 5 | 0 | 0 | 0 |
-| Implemented | 6 | 0 | 0 | 12 |
-| Built, isolated (legacy) | 4 | 0 | 0 | 0 |
-| Integrated, partial (legacy) | 3 | 0 | 0 | 0 |
-| Integrated | 38 | 0 | 0 | 0 |
+| Drafted | 2 | 0 | 0 | 0 |
+| Implemented | 9 | 0 | 0 | 12 |
+| Built, isolated (legacy) | 1 | 0 | 0 | 0 |
+| Integrated, partial (legacy) | 2 | 0 | 0 | 0 |
+| Integrated | 58 | 0 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 | 0 |
@@ -3499,5 +3530,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-cf13e2bc70dce670; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-4f9e9bb648216395; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
