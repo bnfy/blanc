@@ -133,3 +133,29 @@ test('the Chromium checkout may differ from upstream only in the files Blanc app
   // As the git helper returns it: trimmed, so the first line has lost its leading space.
   assert.deepEqual(unexpectedChromiumChanges('M chrome/android/BUILD.gn\n M chrome/browser/debug.cc', managed), ['chrome/browser/debug.cc']);
 });
+
+// The build guard pins each output's arguments. A release writes its version into them, so the
+// second release (1.0.0-beta.2) stopped before compiling: "Build inputs changed: argsSha256".
+test('a new version moves the pinned arguments only when nothing but the version changed', async () => {
+  const { releaseArgs, pinForNewVersion } = await import(moduleURL);
+  const crypto = await import('node:crypto');
+  const sha = text => crypto.createHash('sha256').update(text).digest('hex');
+  const template = 'is_official_build = true\nblanc_channel = "release"\n';
+  const pin = { host: 'linux x64', ndk: 'r28', argsSha256: sha(releaseArgs(template, '1.0.0-beta.1', 1)) };
+  const next = releaseArgs(template, '1.0.0-beta.2', 2);
+  assert.match(next, /android_override_version_name = "1\.0\.0-beta\.2"\nandroid_override_version_code = "2"\n$/);
+  assert.deepEqual(pinForNewVersion(pin, template, 2, next), { host: 'linux x64', ndk: 'r28', argsSha256: sha(next) });
+  // The previous build never reached the ledger (dropped before upload): its arguments still count.
+  const dropped = { ...pin, argsSha256: sha(releaseArgs(template, '1.0.0-beta.2', 3)) };
+  const fourth = releaseArgs(template, '1.0.0-beta.2', 4);
+  assert.equal(pinForNewVersion(dropped, template, 4, fourth).argsSha256, sha(fourth));
+  // The template changed too: that is a real arguments change, and the guard must stop it.
+  assert.equal(pinForNewVersion(pin, template + 'symbol_level = 1\n', 2, releaseArgs(template + 'symbol_level = 1\n', '1.0.0-beta.2', 2)), null);
+  // The pin isn't any earlier version's arguments (someone edited args.gn by hand).
+  assert.equal(pinForNewVersion({ ...pin, argsSha256: sha('other') }, template, 2, next), null);
+  // Already this version's arguments: nothing to move.
+  assert.equal(pinForNewVersion({ ...pin, argsSha256: sha(next) }, template, 2, next), null);
+  // The first release has no earlier version.
+  assert.equal(pinForNewVersion(pin, template, 1, releaseArgs(template, '1.0.0-beta.1', 1)), null);
+  assert.equal(pinForNewVersion({}, template, 2, next), null);
+});
