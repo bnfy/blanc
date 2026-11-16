@@ -12,7 +12,7 @@
     "chrome/android/java/res_base/drawable/ic_launcher_round.xml": "0a7b0fe2ae98d76b45db4c24397a36bf2eff0475882320a8dfd584ae2de9a495",
     "chrome/android/java/src/org/chromium/chrome/browser/ChromeTabbedActivity.java": "37276940ff28505db5326066695918ec0f5be0a085871680ebd9f2b0f1754cd9",
     "chrome/android/java/src/org/chromium/chrome/browser/SwipeRefreshHandler.java": "bd1234a82d6a5d3e38f993a0113b17678afae0095c880802a05097f79231831f",
-    "chrome/android/java/src/org/chromium/chrome/browser/app/notifications/ContextualNotificationPermissionRequesterImpl.java": "6c00484c80745bf6fb7ed62a1473693771bb691da27ce1796e7965b3b8cac78b",
+    "chrome/android/java/src/org/chromium/chrome/browser/app/notifications/ContextualNotificationPermissionRequesterImpl.java": "90e37ab8993f52e27c15449bb3b97019af83bebeabbd43d55ea9be575a5c33fe",
     "chrome/android/java/src/org/chromium/chrome/browser/background_task_scheduler/ChromeBackgroundTaskFactory.java": "1795f0c8f29bbf145ef38e7f592803a74b955f5dea9361e201ffb866fa665534",
     "chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java": "af19c62f69bf27963e11e3886e7cb4c4a74e9282e726b7d1d768da3039339996",
     "chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java": "68f9e24b2e29d282973c91706cb0b2633ea32a4a91c7e846cdcb54a97da7094a",

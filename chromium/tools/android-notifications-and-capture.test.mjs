@@ -15,6 +15,17 @@ test('a download asks for notification permission', () => {
   assert.doesNotMatch(body, /isContextualPermissionRequestEnabled/);
 });
 
+// A download opens the Downloads screen, its own activity. Chrome looks for the browser window
+// only in the last focused activity, so once that screen has focus nothing would ask.
+test('the request finds the browser window when another Blanc screen is in front', () => {
+  const source = patchedChromiumFile(
+      'chrome/android/java/src/org/chromium/chrome/browser/app/notifications/ContextualNotificationPermissionRequesterImpl.java');
+  const start = source.indexOf('NotificationPermissionController getNotificationPermissionController() {');
+  assert.notEqual(start, -1);
+  const body = source.slice(start, source.indexOf('\n    }\n', start));
+  assert.match(body, /ApplicationStatus\.getRunningActivities\(\)/);
+});
+
 // Chrome's own explainer card says "Chrome notifications make things easier" and names Incognito,
 // and it opens on the browser window, behind the Downloads screen a download brings up. Blanc goes
 // straight to Android's permission prompt.

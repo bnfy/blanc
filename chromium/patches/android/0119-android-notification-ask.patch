@@ -35,6 +35,26 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/app/notification
          NotificationPermissionController permissionController =
                  getNotificationPermissionController();
          if (permissionController == null) return;
+@@ -60,7 +53,18 @@
+ 
+     private @Nullable NotificationPermissionController getNotificationPermissionController() {
+         Activity activity = ApplicationStatus.getLastTrackedFocusedActivity();
+-        if (!(activity instanceof ChromeTabbedActivity)) return null;
++        if (!(activity instanceof ChromeTabbedActivity)) {
++            // Blanc (patch 0119): a download opens the Downloads screen, its own activity; ask
++            // through the browser window behind it.
++            activity = null;
++            for (Activity running : ApplicationStatus.getRunningActivities()) {
++                if (running instanceof ChromeTabbedActivity) {
++                    activity = running;
++                    break;
++                }
++            }
++            if (activity == null) return null;
++        }
+ 
+         // TODO(shaktisahu): Maybe split out the contextual permission logic out of
+         // NotificationPermissionController entirely to serve non-chrome activities.
 diff -ruN a/chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java b/chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java
 --- a/chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java
 +++ b/chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java
