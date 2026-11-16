@@ -28,6 +28,8 @@ final class WebViewFullscreenTests: XCTestCase {
         webView.navigationDelegate = delegate
         webView.loadHTMLString("<video></video>", baseURL: URL(string: "https://example.com/"))
         await fulfillment(of: [loaded], timeout: 30)
+        // The web view holds its delegate weakly.
+        withExtendedLifetime(delegate) {}
         let enabled = try await webView.evaluateJavaScript("document.fullscreenEnabled") as? Bool
         XCTAssertEqual(enabled, true)
     }
