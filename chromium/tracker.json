@@ -1536,9 +1536,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "drafted",
-          "basis": "Owner decision 2026-11-02: Chromium's native Reading Mode replaces shipping's reader; all three shipping cases are excluded. host.js dispatches the reader command to a window Reading Mode command, with no private-tab refusal; the native snapshot never fills readerActive, so nothing can yet observe it open (checked 2026-11-16). Not run on screen",
-          "candidate": "macos-4f9e9bb648216395"
+          "stage": "integrated",
+          "basis": "Owner decision 2026-11-02: Chromium's native Reading Mode replaces shipping's reader, so shipping's three cases are excluded. native-recheck-f58.mjs passes 2 of 2 checks on macos-b6c8f300a889d3a1 (2026-11-16): /reader opens Reading Mode over the page pane with the article's text, the Island reports it (readerActive, new in the native snapshot), the command closes it, and a private tab does the same; seen in a screenshot. Not checked: the View menu item, Reading Mode's own controls, a page with no article; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-b6c8f300a889d3a1"
         },
         "windows": {
           "stage": "not-started",

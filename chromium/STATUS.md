@@ -14,6 +14,19 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Reading Mode is observable and checked (F58, candidate macos-b6c8f300a889d3a1):**
+  `/reader` already ran Chromium's Reading Mode (owner, 2026-11-02), but
+  nothing told the Island it was open, so shipping's exit button never
+  showed and no test could see it. The native tab snapshot now carries
+  `readerActive` for the tab in front
+  (`ReadAnythingEntryPointController::IsUIShowing`). In Chromium 158 Reading
+  Mode is a full reading view over the page pane, not a side panel.
+  `tests/native-recheck-f58.mjs` passes 2 of 2, twice: the command opens it
+  at the page pane's size with the article's heading and body text, the
+  Island reports it, the command closes it, and a private tab does the same.
+  A screenshot shows the view with its own controls. Not checked: the View
+  menu item, Reading Mode's controls, a page with no article. Built
+  incrementally (6 steps).
 - **2026-11-16 — Ctrl+Tab by most recent use (F59; patch 0088, candidate macos-9d3053da65b5aea9):**
   the fork had none of it (`tabSwitchOrder` was a later key). Now, as
   shipping: Settings → Appearance → Switch tabs with Ctrl+Tab (pref
@@ -3617,11 +3630,11 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 | --- | ---: | ---: | ---: | ---: |
 | Not started / unassessed | 8 | 81 | 81 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
-| Drafted | 1 | 0 | 0 | 0 |
+| Drafted | 0 | 0 | 0 | 0 |
 | Implemented | 8 | 0 | 0 | 12 |
 | Built, isolated (legacy) | 0 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 0 | 0 | 0 | 0 |
-| Integrated | 63 | 0 | 0 | 0 |
+| Integrated | 64 | 0 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 | 0 |

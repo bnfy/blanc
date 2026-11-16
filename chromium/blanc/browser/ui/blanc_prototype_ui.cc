@@ -246,6 +246,7 @@
 #include "ui/views/controls/webview/unhandled_keyboard_event_handler.h"
 #include "chrome/browser/ui/browser_tabstrip.h"
 #include "chrome/browser/ui/browser_commands.h"
+#include "chrome/browser/ui/read_anything/read_anything_entry_point_controller.h"
 #include "chrome/browser/ui/navigator/browser_navigator.h"
 #include "chrome/browser/ui/navigator/browser_navigator_params.h"
 #include "chrome/app/chrome_command_ids.h"
@@ -4280,6 +4281,10 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                     .Set("pageTitle", CustomTabName(contents).empty() ? base::Value() : base::Value(base::UTF16ToUTF8(contents->GetTitle())))
                     .Set("rendererLive", contents->GetPrimaryMainFrame()->IsRenderFrameLive())
                     .Set("asleep", TabAsleep(contents))
+                    // /reader is Chromium's Reading Mode (owner, 2026-11-02): shown
+                    // for the tab in front, as shipping's readerActive.
+                    .Set("readerActive", contents == model->GetActiveWebContents() &&
+                        read_anything::ReadAnythingEntryPointController::IsUIShowing(browser))
                     .Set("blockedCount", blanc::ShieldBlockedCount(contents))
                     .Set("certificate", CertificateState(contents))
                     .Set("adblockExcepted", blanc::BlockingSiteExcepted(browser->GetProfile(), committed))
