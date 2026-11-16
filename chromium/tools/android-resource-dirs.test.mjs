@@ -13,8 +13,8 @@ import {fileURLToPath} from 'node:url';
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const lane = JSON.parse(fs.readFileSync(path.join(ROOT, 'lanes/android.json'), 'utf8'));
 
-// The pinned chrome/android/BUILD.gn with every Android patch applied.
-function patchedChromeBuild() {
+// A pinned Chromium file with every Android patch applied.
+export function patchedChromiumFile(name) {
   const work = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-res-dirs-'));
   try {
     const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, lane.upstreamDir, 'manifest.json'), 'utf8'));
@@ -23,7 +23,7 @@ function patchedChromeBuild() {
       fs.copyFileSync(path.join(ROOT, lane.upstreamDir, name), path.join(work, name));
     }
     for (const patch of lane.patches) execFileSync('git', ['apply', path.join(ROOT, patch)], {cwd: work});
-    return fs.readFileSync(path.join(work, 'chrome/android/BUILD.gn'), 'utf8');
+    return fs.readFileSync(path.join(work, name), 'utf8');
   } finally { fs.rmSync(work, {recursive: true, force: true}); }
 }
 
@@ -77,8 +77,14 @@ test('the finder reports a file in a listed folder that the target leaves out', 
 
 test('every Chromium resource target over Blanc files lists every file in its folders', () => {
   const blancDir = path.join(ROOT, 'blanc');
-  const targets = [...blancResourceTargets(patchedChromeBuild()),
+  const targets = [...blancResourceTargets(patchedChromiumFile('chrome/android/BUILD.gn')),
     ...blancResourceTargets(fs.readFileSync(path.join(blancDir, 'android/BUILD.gn'), 'utf8'), 'android')];
   assert.ok(targets.some(t => t.name === 'chrome_base_module_resources'), 'the base module resources were found');
   assert.deepEqual(targets.flatMap(t => unlisted(t, blancDir)), []);
+});
+
+// Chromium's own loader reserves a fixed 192 MB, and the release library is larger, so a release
+// app that used it stopped at launch (patch 0116). Debug (component) builds never use it.
+test('the app loads its native library with Android\'s own loader', () => {
+  assert.match(patchedChromiumFile('chrome/android/chrome_public_apk_tmpl.gni'), /^\s*use_chromium_linker = false$/m);
 });

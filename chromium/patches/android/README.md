@@ -45,7 +45,12 @@ in the lane file in its place. Numbering starts at 0101.
   (`//blanc/android:launch_ping_bridge`, `browser/launch_ping_bridge.cc`) into
   `//chrome/browser`, beside the other bridges, so the ping goes through
   Chromium's network stack and its NetLog.
+- `0116-android-system-loader.patch`: loads the native library with Android's
+  own loader instead of Chromium's (`use_chromium_linker = false` in
+  `chrome_public_apk_tmpl.gni`). Chromium's loader reserves a fixed 192 MB, and
+  the release library (no PGO profiles) is larger, so the release app stopped at
+  launch. Debug builds never used it (component builds can't).
 
-A file dropped or moved in the lane keeps its applied edits in an existing checkout
-(`apply.py` touches only the lane's files, and never deletes): restore a
-Chromium file with `git checkout` there, and delete a moved Blanc file by hand.
+A Chromium file dropped from the lane keeps its applied edits in an existing
+checkout: restore it with `git checkout` there. A Blanc file the source drops or
+moves is removed by `apply.py`, when its bytes are what the previous map placed.

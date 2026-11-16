@@ -1,0 +1,15 @@
+diff -ruN a/chrome/android/chrome_public_apk_tmpl.gni b/chrome/android/chrome_public_apk_tmpl.gni
+--- a/chrome/android/chrome_public_apk_tmpl.gni
++++ b/chrome/android/chrome_public_apk_tmpl.gni
+@@ -630,7 +630,10 @@
+     }
+ 
+     # Chromium Linker used for shared relros.
+-    use_chromium_linker = chromium_linker_supported && !_is_test
++    # Blanc (patch 0116): Android's own loader. Chromium's reserves a fixed 192 MB, and Blanc's
++    # release library is larger without Google's PGO profiles, so Chromium's loader can't map it
++    # and the app stops at launch. Tab processes no longer share relocated read-only data.
++    use_chromium_linker = false
+ 
+     if (use_chromium_linker) {
+       if (android_64bit_target_cpu && !_is_64_bit_browser) {
