@@ -14,6 +14,8 @@ import {installDriver} from './lib/test-driver.mjs';
 import {assertRendering,assertNodeRuntime} from './lib/render-guard.mjs';
 import {createWorld} from './world.mjs';
 import {makeHandoff} from './lib/handoff-fixture.mjs';
+import {nativeCall} from './lib/test-driver.mjs';
+import {createProfile} from './fork-steps/profiles.mjs';
 const [configFile,out]=process.argv.slice(2),config=JSON.parse(fs.readFileSync(configFile));
 assertNodeRuntime();assert.equal(fs.existsSync(out),false,'expected a new output folder');fs.mkdirSync(out,{recursive:true});
 const f=new NativeFixture(),w=createWorld(f),result={candidate:config.candidate,checks:[]};
@@ -38,12 +40,13 @@ const serve=(q,r)=>{
 const put=(options,extra={})=>{const h=makeHandoff(options);relay.records.set(h.id,{reply:h.reply,...extra});return h;};
 const queue=link=>w.native('queueTabHandoff',[link,f.base]);
 // The handoff sheet as a person reads it.
-const sheet=()=>w.hostEval(`(()=>{const frame=[...document.querySelectorAll('iframe')].find(f=>!f.hidden&&/pages\\/tab-handoff\\.html/.test(f.src));
+const sheetIn=cdp=>cdp.eval(`(()=>{const frame=[...document.querySelectorAll('iframe')].find(f=>!f.hidden&&/pages\\/tab-handoff\\.html/.test(f.src));
  const d=frame?.contentDocument;if(!d||d.readyState!=='complete'||!d.getElementById('summary'))return null;
  const text=id=>{const e=d.getElementById(id);return e&&!e.hidden?e.textContent.trim():null;};
  return {summary:text('summary'),error:text('error'),skipped:text('skipped'),accept:d.getElementById('accept').disabled?null:d.getElementById('accept').textContent.trim(),
   rows:d.getElementById('list').hidden?[]:[...d.querySelectorAll('.tab-handoff-row')].map(r=>({title:r.querySelector('.title').textContent,domain:r.querySelector('.url').textContent,first:!!r.querySelector('.tab-handoff-active')})),
   html:d.body.innerHTML};})()`);
+const sheet=()=>sheetIn(f.host);
 const press=id=>w.hostEval(`(()=>{const frame=[...document.querySelectorAll('iframe')].find(f=>/pages\\/tab-handoff\\.html/.test(f.src));frame.contentDocument.getElementById(${JSON.stringify(id)}).click();return true;})()`);
 const tabs=async()=>(await w.snapshot()).tabs.map(t=>({id:String(t.id),url:t.url,asleep:!!t.asleep}));
 const shown=ok=>w.waitFor(sheet,s=>s&&ok(s),'the handoff sheet',10000);
@@ -59,7 +62,7 @@ try{
  assert.equal(await queue(h.link),true,'expected the link taken');
  let s=await shown(s=>s.rows.length===3);
  assert.deepEqual(s.rows,[{title:'Page one',domain:'127.0.0.1',first:false},{title:'Page two',domain:'127.0.0.1',first:true},{title:'127.0.0.1',domain:'127.0.0.1',first:false}]);
- assert.match(s.summary,/3/);assert.match(s.summary,/Firefox/);assert.match(s.skipped,/2/);
+ assert.match(s.summary,/3/);assert.match(s.summary,/Firefox/);assert.match(s.summary,/this Personal window/,'expected the first profile called Personal');assert.match(s.skipped,/2/);
  assert.ok(!s.html.includes('secret-one')&&!s.html.includes('/one')&&!s.html.includes(h.id),'expected no address, path or handoff id in the page');
  assert.deepEqual(await tabs(),before,'expected nothing opened before the person chooses');
  assert.ok(!(await tabs()).some(t=>t.url.startsWith('blanc-import')),'expected the link never to become a tab');
@@ -142,6 +145,13 @@ try{
  assert.equal(theirs.size,1);assert.ok(!theirs.has(mine),'expected the tabs in another window');
  assert.equal(fresh.length,2,'expected the new window to hold only the two tabs');
  result.checks.push('Open in a new window puts the tabs in a window of their own');
+ // 9. A window of another profile is named in the sheet.
+ const work=await createProfile(w,'Work');
+ h=put({tabs:[{url:f.base+'/work-one',title:'Work one',active:true}]});
+ assert.equal(await nativeCall(work.cdp,'queueTabHandoff',[h.link,f.base]),true);
+ const named=await w.waitFor(()=>sheetIn(work.cdp),x=>x&&x.rows.length===1,'the handoff sheet in the Work window',10000);
+ assert.match(named.summary,/this Work window/,'expected the Work profile named: '+named.summary);
+ result.checks.push('the sheet names the window\'s profile: Personal for the first, its own name for another');
  await visible();result.result='pass';
 }catch(error){result.result=error.code==='BLANC_ENVIRONMENT_STOP'?'blocked-environment':'fail';result.error=String(error.stack);process.exitCode=1;}
 finally{

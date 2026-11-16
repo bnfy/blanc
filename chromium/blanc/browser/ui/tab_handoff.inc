@@ -296,8 +296,17 @@ base::DictValue TabHandoff::Projection(BrowserWindowInterface* browser) {
         .Set("domain", std::string(GURL(*tab.GetDict().FindString("url")).GetHost()))
         .Set("active", *tab.GetDict().FindBool("active")));
   }
+  // The window's profile, as shipping's projection names it. Empty for the
+  // first profile under its default name, which the page calls Personal in
+  // the person's language.
+  std::string profile_name;
+  auto* entry = g_browser_process->profile_manager()->GetProfileAttributesStorage()
+      .GetProfileAttributesWithPath(browser->GetProfile()->GetOriginalProfile()->GetPath());
+  if (entry && !(entry->GetPath().BaseName().AsUTF8Unsafe() == "Default" && entry->IsUsingDefaultName())) {
+    profile_name = base::UTF16ToUTF8(entry->GetLocalProfileName());
+  }
   return base::DictValue().Set("state", "ready").Set("sourceBrowser", *payload_.FindString("sourceBrowser"))
-      .Set("profileName", "").Set("skippedCount", skipped_).Set("tabs", std::move(rows));
+      .Set("profileName", profile_name).Set("skippedCount", skipped_).Set("tabs", std::move(rows));
 }
 
 void TabHandoff::Cancel(BrowserWindowInterface* browser) {
