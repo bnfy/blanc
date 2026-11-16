@@ -155,3 +155,11 @@ Found in task 7: once the import has created a second profile, Chromium opens it
 ## Not imported, by design
 
 Site cookies and storage (O3); reader appearance (the fork uses Chromium's Reading Mode); the Patron licence (no store yet); uBlock Origin and Widevine folders; blocker caches; `site-zoom.json`, `bang-icons.json`, `adblock-stats.json` and `crash-ledger.json` (not in the spec's table: listed in the import report as left behind).
+
+## Trials on real data (2026-11-16)
+
+Private copies on the Mac Studio (`~/Projects/Blanc/scratch/real-import/`), counts only, `chromium/tests/real-profile-import.mjs`. Delete the copies when the owner says.
+
+- **Mac Studio's folder** (one profile): no errors. Found: `install.json` with `createdAt: "legacy"`; fixed.
+- **MacBook Pro's folder** (Personal and four named profiles): found a `history.json` with no `siteIcons` list (two named profiles refused) and an empty Space dropped silently; both fixed (candidate macos-a094fb86f8dba413). Rerun: no errors, five profiles, source unchanged.
+

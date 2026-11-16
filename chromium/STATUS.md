@@ -14,6 +14,27 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Electron profile importer: second trial on real data (candidate macos-a094fb86f8dba413):**
+  the data files of the MacBook Pro's Blanc folder (v1.49.1, 30 stores,
+  Personal and four named profiles) were copied to the Mac Studio's
+  `~/Projects/Blanc/scratch/real-import/` and imported from the copy into a
+  throwaway test profile, counts only. **Two real faults found and fixed:**
+  a `history.json` written before Blanc kept site icons has no `siteIcons`
+  list, so two named profiles were refused whole (`invalid-shape`); the list
+  is now optional, and still refused if present and not a list. And a Space
+  with no saved tabs was dropped without a word; it is now kept by name,
+  color and symbol with one new tab, since the fork has no Space without a
+  tab (an empty saved window is still nothing to open). Tests for both in
+  `profile-import.test.mjs` and `native-profile-import.mjs`. Result after
+  the fixes: no errors; Personal 25 Favorites, 4,996 visits, 232 site
+  icons, 21 permissions, 1 pin, 10 archived tabs, 1 Space, one saved window
+  of 24 tabs in 3 groups with 23 left unloaded; four Chromium profiles
+  created (1, 22, 41 and 3 visits; one with 2 Spaces); 26 settings copied
+  and 7 converted; the copy's stores hash the same before and after. The
+  history read-back reports 3,581 added for Personal's 4,996 visits;
+  Chromium's count takes an address once a day, which is the likely
+  reason, not checked visit by visit. Still not tried: the real Keychain
+  prompt and a real Sync account (the owner's check).
 - **2026-11-16 — Electron profile importer: first trial on real data (candidate macos-911d46dcfc30de03):**
   the Mac Studio's own Blanc folder (v1.49.1, 17 stores, one profile) was
   copied to `~/Projects/Blanc/scratch/real-import/` (a private APFS copy,
