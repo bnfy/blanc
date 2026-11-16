@@ -509,7 +509,7 @@
     "blanc/browser/ui/modules/selected_shipping_browser.cc": "950d071452d53421a68f9887eb65226c8919c31bfa9536b92e81c258cf08a882",
     "blanc/browser/ui/mouse_gesture_controller.inc": "dce84b2e74b7ad486c9a5631f4d4d9961e123ba40c3e7d9db2658f7a9b630a0d",
     "blanc/browser/ui/permission_prompt.inc": "113d0806e5e9bf52be9cb0570fe45e88f05945cb8baf5f65c0e76d2947a9dbfa",
-    "blanc/browser/ui/profile_import.inc": "f2a4e753462ce2e67fb4b915c6cc009349140f5e7758bf6f6f8ceeaa4e3d988a",
+    "blanc/browser/ui/profile_import.inc": "3ef8da6d1c8a10377d7340a71b6a9c93d1b9fea72ed2dcddbd9b2db3d3e4d2d7",
     "blanc/browser/ui/protected_media.inc": "f3dfe2c204a2cb148115d682b3a1f8a4a58bb23729cc35bdf7d740ccc1156499",
     "blanc/browser/ui/start_page_pin_menu.inc": "4a53e5d68f1c8556cc63dfee6e4d66b865b38f5e4f83a9685e57ba62cffc534c",
     "blanc/browser/ui/start_page_pins.inc": "0ce3d70b44e0f16dbf3f5a04f5d5d06dd6e972fdd2ea38f3e0d0032cdba3eb27",

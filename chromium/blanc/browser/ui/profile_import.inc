@@ -913,8 +913,8 @@ void ProfileImport::Planned(bool ok, const std::string& value) {
       .Set("alreadyImported", base::ListValue()).Set("names", base::DictValue());
   // A profile the plan builder refused is named for the result list; the
   // error rows themselves stay profile, store and reason.
-  for (auto& value : *result_.FindList("errors")) {
-    auto* error = value.GetIfDict();
+  for (auto& row : *result_.FindList("errors")) {
+    auto* error = row.GetIfDict();
     const auto* profile = error ? error->FindString("profile") : nullptr;
     const auto* name = error ? error->FindString("name") : nullptr;
     if (profile && name) result_.FindDict("names")->Set(*profile, name->substr(0, 64));
