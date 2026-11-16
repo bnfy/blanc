@@ -85,6 +85,13 @@ in the lane file in its place. Numbering starts at 0101.
   Google Play asks for a demonstration of every declared type. With
   chrome://flags' experimental web features on, a screen share has no
   foreground service and is not expected to work.
+- `0121-android-tab-destroyed-notifications.patch`: when a tab's page is
+  destroyed, `TabWebContentsObserver` clears the tab's capture, Bluetooth, USB
+  and serial notifications with an empty address if the tab never loaded in
+  this run. Chromium passed the missing address on, and each manager reads it
+  when the tab still has a saved notification: after Blanc was killed while a
+  site was using the microphone, the next cold start died closing that tab
+  (found on 1.0.0-beta.2).
 
 A Chromium file dropped from the lane keeps its applied edits in an existing
 checkout: restore it with `git checkout` there. A Blanc file the source drops or
