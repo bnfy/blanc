@@ -73,6 +73,11 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   moves the test window clear of the real pointer before `@island-hover`
   cases (`tests/lib/real-pointer.mjs`; the pointer is read, never moved) and
   records what it found on the case. `island-and-commands.feature` 67 of 67.
+  **Tab handoff names the window's profile (candidate
+  macos-b318dc8cdfcc630e):** the sheet said Personal for every profile; the
+  projection now carries the profile's name (empty for the first profile
+  under its default name, which the page calls Personal).
+  `native-tab-handoff.mjs` 9 checks; the new one failed on the build before.
   **Test runs moved to the Mac Studio (owner, 2026-11-16):** no fork test
   window opens on the MacBook Pro. Staging is `~/Projects/Blanc/scratch/tests`
   (`repo`, a worktree apart from the pinned release checkout; `app`, a copy
