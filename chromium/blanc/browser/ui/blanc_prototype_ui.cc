@@ -188,6 +188,7 @@
 #include "chrome/common/webui_url_constants.h"
 #include "chrome/browser/platform_util.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/profiles/profile_avatar_icon_util.h"
 #include "chrome/browser/profiles/profile_manager.h"
 #include "chrome/browser/profiles/profile_attributes_entry.h"
 #include "chrome/browser/profiles/profile_attributes_storage.h"
@@ -7156,9 +7157,39 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           row.Set("split", split ? base::Value(split->ToString()) : base::Value());
           tabs.Append(std::move(row));
         }
-        windows.Append(base::DictValue().Set("tabs", std::move(tabs)));
+        windows.Append(base::DictValue().Set("tabs", std::move(tabs))
+            .Set("profile", owner->browser->GetProfile()->GetOriginalProfile()->GetPath().BaseName().AsUTF8Unsafe()));
       }
       Reply(id, true, base::Value(std::move(windows))); return;
+    }
+    if (quiet_method == "profileImportFavorites" && quiet_args.empty()) {
+      auto* model = LoadedBookmarkModel(GetOwner(web_ui()->GetWebContents())->browser->GetProfile()->GetOriginalProfile());
+      base::ListValue rows;
+      if (const auto* root = model ? model->other_node() : nullptr) {
+        // Folders first hold their own entries; the reader lists each entry
+        // with its folder, in the order the importer added them.
+        std::vector<std::pair<base::Time, base::ListValue>> ordered;
+        const auto add = [&](const bookmarks::BookmarkNode* node, const bookmarks::BookmarkNode* folder) {
+          ordered.emplace_back(node->date_added(), base::ListValue().Append(node->url().spec())
+              .Append(base::UTF16ToUTF8(node->GetTitle()))
+              .Append(folder ? base::Value(base::UTF16ToUTF8(folder->GetTitle())) : base::Value()));
+        };
+        for (const auto& child : root->children()) {
+          if (child->is_url()) { add(child.get(), nullptr); continue; }
+          for (const auto& inner : child->children()) if (inner->is_url()) add(inner.get(), child.get());
+        }
+        std::ranges::stable_sort(ordered, {}, [](const auto& row) { return row.first; });
+        for (auto& row : ordered) rows.Append(std::move(row.second));
+      }
+      Reply(id, true, base::Value(std::move(rows))); return;
+    }
+    if (quiet_method == "profileImportProfiles" && quiet_args.empty()) {
+      base::ListValue rows;
+      for (auto* entry : g_browser_process->profile_manager()->GetProfileAttributesStorage().GetAllProfilesAttributes()) {
+        rows.Append(base::DictValue().Set("name", base::UTF16ToUTF8(entry->GetLocalProfileName()))
+            .Set("directory", entry->GetPath().BaseName().AsUTF8Unsafe()));
+      }
+      Reply(id, true, base::Value(std::move(rows))); return;
     }
     if (quiet_method == "profileImportPins" && quiet_args.empty()) {
       Reply(id, true, base::Value(GetOwner(web_ui()->GetWebContents())->browser->GetProfile()->GetOriginalProfile()

@@ -14,6 +14,32 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Electron profile importer, task 5: named profiles (candidate macos-2b57f628562ead96):**
+  the importer works through the plan's profiles in turn: Personal into the
+  first profile, then each named profile into an ordinary Chromium profile
+  created with `ProfileManager::CreateMultiProfileAsync` (the Blanc name,
+  Chromium's placeholder avatar). A profile's data is converted in full
+  before its profile is created, the apply waits for the new profile's
+  Favorites to load, and its saved windows open in it. The marker records
+  each profile's `directory`. Nothing Blanc-specific is kept beyond that
+  (owner direction, 2026-11-16).
+  Evidence on the Mac Studio: `native-profile-import.mjs` 10 of 10: a
+  damaged Personal store fails Personal only while the named profile still
+  imports; the named profile has its own Favorites, 5,000 visits, pin,
+  archived tab, Space and window; the profile being deleted is not created;
+  Personal's Favorites stay its own; nothing is created twice.
+  **Divergences from Electron Blanc, recorded for the owner, not built:**
+  (1) *Settings scope:* Electron's device-wide settings (Island size,
+  auto-hide, quiet delay and the rest) land in Personal only; a named
+  profile starts on Chromium's per-profile defaults. (2) *Deleting a
+  profile* is Chromium's own confirmation, with no typed-name check and no
+  crash-resumable deletion. (3) *Avatar and color:* imported profiles get
+  Chromium's placeholder avatar; Blanc profiles had none. (4) *Profile ids:*
+  Electron's opaque ids exist only in the import marker, so link routes,
+  which name a profile by id, are still not carried. (5) *The picker:*
+  whether Chromium shows its profile picker at launch once several profiles
+  exist was not checked. (6) A second import after the marker is lost would
+  create a second profile of the same name.
 - **2026-11-16 — Owner direction on profiles:** use Chromium's own profile
   feature to the fullest before building custom support to match the
   Electron build. The importer's named profiles become ordinary Chromium

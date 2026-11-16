@@ -13,6 +13,9 @@ import {installDriver} from './lib/test-driver.mjs';
 import {assertRendering,assertNodeRuntime} from './lib/render-guard.mjs';
 import {createWorld} from './world.mjs';
 import {makeImportSource,digestTree} from './lib/profile-import-fixture.mjs';
+import {nativeCall} from './lib/test-driver.mjs';
+import {profileHosts} from './fork-steps/profiles.mjs';
+const NAMED='profile_22222222222242228222222222222222';
 const [configFile,out]=process.argv.slice(2),config=JSON.parse(fs.readFileSync(configFile));
 assertNodeRuntime();assert.equal(fs.existsSync(out),false,'expected a new output folder');fs.mkdirSync(out,{recursive:true});
 const f=new NativeFixture(),w=createWorld(f),result={candidate:config.candidate,checks:[]};
@@ -32,8 +35,10 @@ try{
  assert.equal(r.profiles.personal,undefined,'expected the damaged profile not imported');
  assert.equal((await w.api('listFavorites')).length,0,'expected no Favorite from a failed profile');
  assert.equal(await w.native('profileImportHistoryCount'),base,'expected no history from a failed profile');
- assert.deepEqual((await w.native('profileImportState')).profiles??{},{});
- result.checks.push('a damaged store leaves its profile untouched and is named in the result');
+ // Only that profile fails: the other one in the folder still comes across.
+ assert.deepEqual(Object.keys(r.profiles),[NAMED]);
+ assert.deepEqual(Object.keys((await w.native('profileImportState')).profiles??{}),[NAMED]);
+ result.checks.push('a damaged store leaves its own profile untouched and is named, while the other profile still imports');
 
  // 2. Refusals: not a Blanc folder, and a source older than v1.40.0.
  const empty=path.join(parent,'empty');fs.mkdirSync(empty);
@@ -52,6 +57,7 @@ try{
  r=await run(source.userData);
  assert.equal(r.ok,true,JSON.stringify(r).slice(0,400));assert.equal(r.sourceVersion,'1.49.1');assert.deepEqual(r.errors,[]);
  assert.deepEqual(r.profiles.personal,{favorites:2,history:5000,siteIcons:1,pins:1,archive:1,spaces:1});
+ assert.deepEqual(Object.keys(r.profiles),['personal']);assert.deepEqual(r.alreadyImported,[NAMED],'expected the named profile, imported above, not imported again');
  const favorites=await w.api('listFavorites');
  assert.deepEqual(favorites.map(x=>[x.url,x.title,x.folder??null]),[['https://personal.example.com/zeta','Zeta','Reading'],['https://personal.example.com/alpha','Alpha',null]]);
  assert.ok(!favorites.some(x=>/removed/.test(x.url)),'expected no tombstoned Favorite');
@@ -96,7 +102,7 @@ try{
  assert.deepEqual(r.session,{windows:1,tabs:3});
  const windows=await w.waitFor(()=>w.native('profileImportWindows'),list=>list.length===windowsBefore+1&&list.some(x=>x.tabs.length===3),'the saved window to open',10000);
  await new Promise(r=>setTimeout(r,1500));
- assert.equal((await w.native('profileImportWindows')).length,windowsBefore+1,'expected one new window, and none for another profile');
+ assert.equal((await w.native('profileImportWindows')).length,windowsBefore+1,'expected one new window for Personal\'s saved window');
  const restored=windows.find(x=>x.tabs.some(t=>t.url==='https://example.com/left'));
  assert.ok(restored,'expected the saved window: '+JSON.stringify(windows).slice(0,600));
  result.sessionWindow=restored;
@@ -111,18 +117,38 @@ try{
  assert.deepEqual(restored.tabs.map(t=>t.quiet),[true,false,false]);
  assert.equal(restored.tabs[0].title,'personal page 1');
  assert.ok(restored.tabs[1].split&&restored.tabs[1].split===restored.tabs[2].split&&!restored.tabs[0].split,'expected the saved split');
- assert.ok(!windows.some(x=>x.tabs.some(t=>/named\.example\.com/.test(t.url))),'expected no window from another profile');
  result.checks.push('the saved window opens with its tabs, titles, pin, group, color, split and current tab, the others unloaded');
 
- // 9. The source is untouched, and a second run adds nothing.
+ // 9. The named profile is an ordinary Chromium profile with its own data and window.
+ const hosts=await w.waitFor(()=>profileHosts(w),list=>list.some(x=>x.name==='Fixture profile'),'a window of the named profile',15000);
+ const named=hosts.find(x=>x.name==='Fixture profile');
+ assert.notEqual(named.directory,'Default');assert.ok(!hosts.some(x=>x.name==='Removed fixture'),'expected no profile for one being deleted');
+ assert.deepEqual(await nativeCall(named.cdp,'profileImportFavorites'),[['https://named.example.com/zeta','Zeta','Reading'],['https://named.example.com/alpha','Alpha',null]]);
+ const namedVisits=await nativeCall(named.cdp,'profileImportHistoryCount');
+ assert.ok(namedVisits>=5000&&namedVisits<=5002,'expected the named profile\'s own 5,000 visits: '+namedVisits);
+ assert.deepEqual(await nativeCall(named.cdp,'profileImportPins'),[{url:'https://named.example.com/pin',title:'Pinned fixture'}]);
+ const namedPrefs=(await nativeCall(named.cdp,'profileImportPrefs',[['blanc.tabs.archive_entries','blanc.spaces.meta','blanc.island.size']])).prefs;
+ assert.deepEqual(namedPrefs['blanc.tabs.archive_entries'].map(x=>x.id),[`arch-${AT}-2`]);
+ assert.deepEqual(Object.values(namedPrefs['blanc.spaces.meta'].items).map(x=>x.name),['Fixture space']);
+ assert.equal(namedPrefs['blanc.island.size'],'default','expected the named profile on Chromium\'s per-profile defaults');
+ const namedWindow=(await w.native('profileImportWindows')).find(x=>x.tabs.some(t=>t.url==='https://named.example.com/page'));
+ assert.ok(namedWindow&&namedWindow.tabs.length===1,'expected the named profile\'s saved window');
+ assert.equal(namedWindow.profile,named.directory,'expected that window in the named profile');
+ assert.deepEqual((await w.api('listFavorites')).map(x=>x.url),['https://personal.example.com/zeta','https://personal.example.com/alpha'],'expected Personal\'s Favorites to stay its own');
+ const marker=await w.native('profileImportState');
+ assert.deepEqual(Object.keys(marker.profiles).sort(),['personal',NAMED]);assert.equal(marker.profiles[NAMED].directory,named.directory);
+ result.checks.push('the named profile is created as a Chromium profile with its own Favorites, history, pin, archive, Space and window');
+
+ // 10. The source is untouched, and a second run adds nothing.
  assert.equal(digestTree(source.userData),before,'expected the Electron folder byte for byte as it was');
  const state=await w.native('profileImportState');
- assert.equal(state.sourceVersion,'1.49.1');assert.deepEqual(Object.keys(state.profiles),['personal']);
+ assert.equal(state.sourceVersion,'1.49.1');
  r=await run(source.userData);
- assert.equal(r.ok,true);assert.deepEqual(r.profiles,{},'expected nothing imported twice');assert.deepEqual(r.alreadyImported,['personal']);
+ assert.equal(r.ok,true);assert.deepEqual(r.profiles,{},'expected nothing imported twice');assert.deepEqual(r.alreadyImported.sort(),['personal',NAMED]);
  assert.equal((await w.api('listFavorites')).length,2);assert.equal(await w.native('profileImportHistoryCount'),base+5000);
  assert.equal((await w.api('listWorkspaces')).items.length,1);
  assert.equal((await w.native('profileImportWindows')).length,windowsBefore+1,'expected no window opened twice');
+ assert.equal((await w.native('profileImportProfiles')).length,2,'expected no profile created twice');
  assert.equal(digestTree(source.userData),before);
  result.checks.push('the Electron folder is unchanged, and a second run imports nothing again');
  await visible();result.result='pass';

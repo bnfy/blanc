@@ -8,10 +8,10 @@
 // browser then applies a profile's part only when all of it converted, and
 // records what it imported in Local State so a second run adds nothing.
 //
-// Built so far (tasks 2 to 4): the Personal profile's Favorites, history,
-// site icons, Start Page pins, Tab Archive and Spaces; settings and the
-// install id; the saved session's windows. Named profiles, permissions,
-// downloads and Sync follow in later tasks.
+// Built so far (tasks 2 to 5): each profile's Favorites, history, site
+// icons, Start Page pins, Tab Archive, Spaces and saved windows, a named
+// profile becoming an ordinary Chromium profile; Personal's settings and the
+// install id. Permissions, downloads and Sync follow in later tasks.
 //
 // Included by blanc_prototype_ui.cc inside its unnamed namespace.
 
@@ -341,15 +341,16 @@ int OpenImportedWindow(Profile* profile, const base::DictValue& columns) {
   return static_cast<int>(created.size());
 }
 
-// The saved session: each of the first profile's windows, at most ten.
-base::DictValue OpenImportedSession(Profile* profile, const base::DictValue& session) {
+// The saved session: each window the profile with Electron id |id| owned, at
+// most ten. A window with no owner recorded is Personal's.
+base::DictValue OpenImportedSession(Profile* profile, const base::DictValue& session, const std::string& id) {
   int windows = 0, tabs = 0;
   if (const auto* saved = session.FindList("windows")) {
     for (const auto& value : *saved) {
       const auto* columns = value.GetIfDict();
       if (!columns || windows >= 10) continue;
       const auto* owner = columns->FindString("profileId");
-      if (owner && *owner != "default") continue;
+      if ((owner ? *owner : std::string("default")) != id) continue;
       if (const int opened = OpenImportedWindow(profile, *columns)) { ++windows; tabs += opened; }
     }
   }
@@ -451,7 +452,16 @@ PreparedImport PrepareImport(const base::DictValue& stores) {
 // Writes a prepared profile. Spaces go first: their file is the one write
 // that can refuse (no room, a switch in progress), and nothing else has been
 // written yet when it does.
-void ApplyImport(Profile* profile, PreparedImport prepared, base::OnceCallback<void(base::Value)> done) {
+void ApplyImport(Profile* profile, PreparedImport prepared, base::OnceCallback<void(base::Value)> done, int attempt) {
+  // A profile created a moment ago is still loading its Favorites.
+  if (auto* loading = BookmarkModelFactory::GetForBrowserContext(profile); loading && !loading->loaded() && attempt < 100) {
+    base::SingleThreadTaskRunner::GetCurrentDefault()->PostDelayedTask(FROM_HERE,
+        base::BindOnce([](base::WeakPtr<Profile> profile, PreparedImport prepared, base::OnceCallback<void(base::Value)> done, int attempt) {
+          if (!profile) { std::move(done).Run(base::Value("profile-closed")); return; }
+          ApplyImport(profile.get(), std::move(prepared), std::move(done), attempt + 1);
+        }, profile->GetWeakPtr(), std::move(prepared), std::move(done), attempt), base::Milliseconds(100));
+    return;
+  }
   auto spaces = prepared.spaces.Clone();
   base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
       base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"), "importSpaces",
@@ -577,8 +587,12 @@ bool ApplyImportedInstall(const base::DictValue* install) {
   return true;
 }
 
-// One import at a time. The result names what came across, what failed and
-// what was imported before.
+// One import at a time. Each profile in the plan is a job: Personal into the
+// first profile, and each named profile into an ordinary Chromium profile
+// created for it (owner, 2026-11-16: Chromium's own profiles, nothing
+// custom). A job's data is converted in full before its profile is created
+// or written. The result names what came across, what failed and what was
+// imported before.
 class ProfileImport final {
  public:
   using Done = base::OnceCallback<void(base::Value)>;
@@ -588,18 +602,36 @@ class ProfileImport final {
   void Start(base::FilePath source, Profile* personal, Done done);
 
  private:
+  struct Job {
+    Job();
+    Job(Job&&);
+    Job& operator=(Job&&);
+    ~Job();
+    std::string key, id, name;
+    base::DictValue stores;
+  };
   void SourceRead(std::optional<base::DictValue> files);
   void Planned(bool ok, const std::string& value);
-  void Applied(std::string version, base::Value applied);
+  void NextProfile();
+  void ProfileReady(std::string key, std::string id, PreparedImport prepared, Profile* profile);
+  void Applied(std::string key, std::string id, base::WeakPtr<Profile> profile, base::Value applied);
+  void Fail(const std::string& key, const std::string& store, const std::string& reason);
   void Finish(base::Value result);
   std::unique_ptr<ProfileImportRunner> runner_;
   base::WeakPtr<Profile> personal_;
+  std::vector<Job> jobs_;
+  std::string version_;
+  int windows_ = 0, tabs_ = 0;
   base::DictValue settings_synced_, settings_prefs_, install_, session_;
   base::ListValue settings_skipped_;
   base::DictValue result_;
   Done done_;
   base::WeakPtrFactory<ProfileImport> weak_{this};
 };
+ProfileImport::Job::Job() = default;
+ProfileImport::Job::Job(Job&&) = default;
+ProfileImport::Job& ProfileImport::Job::operator=(Job&&) = default;
+ProfileImport::Job::~Job() = default;
 ProfileImport::ProfileImport() = default;
 ProfileImport::~ProfileImport() = default;
 ProfileImport* ProfileImport::Get() {
@@ -629,21 +661,11 @@ void ProfileImport::Planned(bool ok, const std::string& value) {
   const auto* version = parsed->FindString("sourceVersion");
   const auto* profiles = parsed->FindDict("profiles");
   if (!version || !profiles || !personal_) { Finish(base::Value(base::DictValue().Set("ok", false).Set("error", "invalid-plan"))); return; }
+  version_ = *version;
   result_ = base::DictValue().Set("ok", true).Set("sourceVersion", *version).Set("profiles", base::DictValue())
       .Set("errors", parsed->FindList("errors") ? parsed->FindList("errors")->Clone() : base::ListValue())
       .Set("notImported", parsed->FindList("notImported") ? parsed->FindList("notImported")->Clone() : base::ListValue())
       .Set("alreadyImported", base::ListValue());
-  const auto* done = g_browser_process->local_state()->GetDict(kProfileImportPref).FindDict("profiles");
-  const auto* personal = profiles->FindDict("personal");
-  const auto* stores = personal ? personal->FindDict("stores") : nullptr;
-  if (done && done->contains("personal")) {
-    result_.FindList("alreadyImported")->Append("personal");
-    Finish(base::Value(std::move(result_)));
-    return;
-  }
-  if (!stores) { Finish(base::Value(std::move(result_))); return; }
-  // Kept for after the profile's own data lands (Applied).
-  if (const auto* synced = stores->FindDict("settings.json")) settings_synced_ = synced->Clone();
   if (const auto* rules = parsed->FindDict("settingsPrefs")) {
     if (const auto* prefs = rules->FindDict("prefs")) settings_prefs_ = prefs->Clone();
     if (const auto* skipped = rules->FindList("skipped")) settings_skipped_ = skipped->Clone();
@@ -652,42 +674,98 @@ void ProfileImport::Planned(bool ok, const std::string& value) {
     if (const auto* install = device->FindDict("install.json")) install_ = install->Clone();
     if (const auto* session = device->FindDict("session.json")) session_ = session->Clone();
   }
-  auto prepared = PrepareImport(*stores);
-  if (!prepared.error.empty()) {
-    result_.FindList("errors")->Append(base::DictValue().Set("profile", "personal").Set("store", prepared.error).Set("reason", "invalid-shape"));
-    Finish(base::Value(std::move(result_)));
-    return;
+  // Personal first, then the named profiles in the plan's order; one
+  // imported before is only named.
+  const auto* done = g_browser_process->local_state()->GetDict(kProfileImportPref).FindDict("profiles");
+  std::vector<Job> named;
+  for (auto [key, planned] : *profiles) {
+    const auto* entry = planned.GetIfDict();
+    const auto* stores = entry ? entry->FindDict("stores") : nullptr;
+    const auto* id = entry ? entry->FindString("id") : nullptr;
+    if (!stores || !id) continue;
+    if (done && done->contains(key)) { result_.FindList("alreadyImported")->Append(key); continue; }
+    Job job;
+    job.key = key;
+    job.id = *id;
+    if (const auto* name = entry->FindString("name")) job.name = *name;
+    job.stores = stores->Clone();
+    if (key == "personal") {
+      if (const auto* synced = stores->FindDict("settings.json")) settings_synced_ = synced->Clone();
+    }
+    if (key == "personal") jobs_.insert(jobs_.begin(), std::move(job)); else named.push_back(std::move(job));
   }
-  ApplyImport(personal_.get(), std::move(prepared), base::BindOnce(&ProfileImport::Applied, weak_.GetWeakPtr(), *version));
+  // Processed from the back, so Personal, at the front, goes last in the
+  // vector and first in time.
+  std::ranges::reverse(named);
+  if (!jobs_.empty()) { named.push_back(std::move(jobs_.front())); jobs_.clear(); }
+  jobs_ = std::move(named);
+  NextProfile();
 }
-void ProfileImport::Applied(std::string version, base::Value applied) {
-  if (applied.is_string()) {
-    result_.FindList("errors")->Append(base::DictValue().Set("profile", "personal").Set("store", "apply").Set("reason", applied.GetString()));
+void ProfileImport::NextProfile() {
+  if (jobs_.empty()) {
+    result_.Set("session", base::DictValue().Set("windows", windows_).Set("tabs", tabs_));
     Finish(base::Value(std::move(result_)));
     return;
   }
-  if (personal_) {
-    auto settings = ApplyImportedSettings(personal_.get(), &settings_synced_, &settings_prefs_);
+  Job job = std::move(jobs_.back());
+  jobs_.pop_back();
+  auto prepared = PrepareImport(job.stores);
+  if (!prepared.error.empty()) { Fail(job.key, prepared.error, "invalid-shape"); return; }
+  if (job.key == "personal") {
+    ProfileReady(job.key, job.id, std::move(prepared), personal_.get());
+    return;
+  }
+  // An ordinary Chromium profile, created the standard way with the Blanc
+  // profile's name and Chromium's default avatar.
+  std::u16string name;
+  base::TrimWhitespace(base::UTF8ToUTF16(job.name), base::TRIM_ALL, &name);
+  if (name.empty()) name = u"Profile";
+  ProfileManager::CreateMultiProfileAsync(name.substr(0, 64), profiles::GetPlaceholderAvatarIndex(), /*is_hidden=*/false,
+      base::BindOnce(&ProfileImport::ProfileReady, weak_.GetWeakPtr(), job.key, job.id, std::move(prepared)));
+}
+void ProfileImport::ProfileReady(std::string key, std::string id, PreparedImport prepared, Profile* profile) {
+  if (!profile) { Fail(key, "profile", "profile-not-created"); return; }
+  ApplyImport(profile, std::move(prepared),
+      base::BindOnce(&ProfileImport::Applied, weak_.GetWeakPtr(), key, id, profile->GetWeakPtr()), 0);
+}
+void ProfileImport::Fail(const std::string& key, const std::string& store, const std::string& reason) {
+  result_.FindList("errors")->Append(base::DictValue().Set("profile", key).Set("store", store).Set("reason", reason));
+  NextProfile();
+}
+void ProfileImport::Applied(std::string key, std::string id, base::WeakPtr<Profile> profile, base::Value applied) {
+  if (applied.is_string() || !profile) { Fail(key, "apply", applied.is_string() ? applied.GetString() : "profile-closed"); return; }
+  // Settings and the install id travel with Personal (owner, 2026-11-16);
+  // a named profile keeps Chromium's per-profile defaults.
+  if (key == "personal") {
+    auto settings = ApplyImportedSettings(profile.get(), &settings_synced_, &settings_prefs_);
     settings.Set("skipped", std::move(settings_skipped_));
     result_.Set("settings", std::move(settings));
+    result_.Set("install", ApplyImportedInstall(&install_));
   }
-  result_.Set("install", ApplyImportedInstall(&install_));
-  if (personal_) result_.Set("session", OpenImportedSession(personal_.get(), session_));
-  // The marker: the source's version and when each profile came across.
+  // The marker: the source's version, when each profile came across, and
+  // which Chromium profile it became.
   auto marker = g_browser_process->local_state()->GetDict(kProfileImportPref).Clone();
-  marker.Set("sourceVersion", version);
-  marker.EnsureDict("profiles")->Set("personal",
-      base::DictValue().Set("importedAt", base::Time::Now().InMillisecondsFSinceUnixEpoch()));
+  marker.Set("sourceVersion", version_);
+  marker.EnsureDict("profiles")->Set(key, base::DictValue()
+      .Set("importedAt", base::Time::Now().InMillisecondsFSinceUnixEpoch())
+      .Set("directory", profile->GetPath().BaseName().AsUTF8Unsafe()));
   g_browser_process->local_state()->SetDict(kProfileImportPref, std::move(marker));
   g_browser_process->local_state()->CommitPendingWrite();
-  result_.FindDict("profiles")->Set("personal", std::move(applied));
-  Finish(base::Value(std::move(result_)));
+  result_.FindDict("profiles")->Set(key, std::move(applied));
+  // The profile's saved windows.
+  const auto opened = OpenImportedSession(profile.get(), session_, id);
+  windows_ += opened.FindInt("windows").value_or(0);
+  tabs_ += opened.FindInt("tabs").value_or(0);
+  NextProfile();
 }
 void ProfileImport::Finish(base::Value result) {
   runner_.reset();
   result_ = base::DictValue();
-  settings_synced_ = base::DictValue(); settings_prefs_ = base::DictValue(); install_ = base::DictValue(); session_ = base::DictValue();
-  settings_skipped_ = base::ListValue();
+  jobs_.clear();
+  version_.clear();
+  windows_ = tabs_ = 0;
+  settings_synced_ = base::DictValue(); settings_prefs_ = base::DictValue(); install_ = base::DictValue();
+  session_ = base::DictValue(); settings_skipped_ = base::ListValue();
   personal_.reset();
   if (done_) std::move(done_).Run(std::move(result));
 }
