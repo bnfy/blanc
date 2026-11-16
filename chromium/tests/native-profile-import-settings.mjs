@@ -93,7 +93,8 @@ try{
 
  // 7. Chromium's profile picker stays out of the way at the next launch.
  assert.equal((await w.native('profileImportPrefs',[['profile.show_picker_on_startup']])).prefs['profile.show_picker_on_startup'],false);
- await w.relaunch();await visible();
+ // The imported windows reopen too and can cover the test's own, which then draws nothing.
+ await w.relaunch();await f.host.send('Page.bringToFront');await visible();
  assert.ok(!(await f.targets()).some(t=>/^chrome:\/\/profile-picker/.test(t.url)),'expected no profile picker at launch');
  assert.ok((await w.snapshot()).tabs.length>=1,'expected a Blanc window at launch');
  result.checks.push('after an import that created a profile, the next launch opens Blanc\'s windows, not Chromium\'s profile picker');

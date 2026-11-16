@@ -140,6 +140,7 @@ Unblocked 2026-11-16 (P1, P3 answered).
 - [x] A Settings command in Blanc Beta (and the Prototype) that picks the Electron folder itself (`~/Library/Application Support/Blanc`), never a folder the page names.
 
 - [x] Entry point, a working state, the result in one line, failure and Try again; refused while the Electron app is running. (2026-11-16, candidate macos-91f427ea33bb6e2a, patch 0093, 6 native checks.) Not built: a detailed list of what came across and what did not, and the replacement build's automatic import on first launch.
+- [x] The detailed list (2026-11-16, candidate macos-88c3fcc0786de627): under the row, a line for each profile by its own name with what came across (Favorites, History, Spaces, Archived tabs, Start Page pins, Site permissions; zero counts left out), a line for a profile that could not be read, and one line saying what is never imported (website sign-ins, the downloads list, a few settings). Labels are shipping's strings; three new lines are in `fork-strings.json` in six languages, translations unreviewed. The plan builder now names a refused profile. Not built: the replacement build's automatic import on first launch.
 - [ ] Wallpaper and the Start Page's layout settings, written through the Start Page itself on its next load.
 
 ## Owner decisions this plan needs

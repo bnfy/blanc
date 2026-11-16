@@ -14,6 +14,16 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Electron profile importer: the result list (candidate macos-88c3fcc0786de627, patch 0093):**
+  after an import, Settings, About lists each profile by its own name with
+  what came across, names a profile that could not be read, and says what
+  is never imported (website sign-ins, the downloads list, a few settings).
+  The labels are shipping's own strings; three new lines are fork strings
+  in six languages, translations unreviewed. Profile names reach the
+  Settings page only; test hooks and the real-data tool still get counts
+  and codes. `native-profile-import-settings.mjs` has 7 checks. The trial
+  on the MacBook Pro profile copy was repeated on this build: no errors,
+  five profiles, source unchanged. Not seen on screen by the owner.
 - **2026-11-16 — Electron profile importer: second trial on real data (candidate macos-a094fb86f8dba413):**
   the data files of the MacBook Pro's Blanc folder (v1.49.1, 30 stores,
   Personal and four named profiles) were copied to the Mac Studio's
