@@ -11,6 +11,7 @@ import {waitFor} from './lib/cdp.mjs';
 import {installDriver,nativeCall} from './lib/test-driver.mjs';
 import {assertRendering,assertNodeRuntime} from './lib/render-guard.mjs';
 import {matchStep,beforeHooks} from './steps.mjs';
+import {avoidRealPointer} from './lib/real-pointer.mjs';
 import {prepareSyncFixture} from './fork-steps/sync.mjs';
 import {aggregateCases} from './results.mjs';
 import {macosForkExclusions} from './macos-fork-exclusions.mjs';
@@ -86,6 +87,10 @@ async function runCase(matches,steps,tags=[]){
   });
   world.bindShippingContext();
   entry.executed=true;entry.steps=[];
+  // Hover-open cases: a real pointer resting inside the test window makes
+  // Chromium report it leaving as the panel opens (lib/real-pointer.mjs), so
+  // the window is moved clear of it. The pointer is only read.
+  if(tags.includes('@island-hover'))await phase('stepSetup',async()=>{entry.realPointer=await avoidRealPointer(fixture);});
   // Shipping's support/hooks.js turns New Tab reuse on for these cases (#1505);
   // the reset leaves it off for every other one.
   if(['@F37-5','@F37-6','@F37-7','@F37-9'].some(tag=>tags.includes(tag)))await phase('stepSetup',()=>world.native('setReuseNewTab',[true]));
