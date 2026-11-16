@@ -22,6 +22,7 @@ struct NavigateParams;
 namespace sessions { struct SessionWindow; }
 namespace ui { class ImageModel; }
 namespace content { class WebContents; class RenderFrameHost; }
+namespace page_load_metrics { class PageLoadTracker; }
 namespace blanc::browser_api::mojom { class BrowserApiFactory; }
 class BrowserWindowInterface;
 class MultiContentsView;
@@ -183,6 +184,9 @@ bool TabSwitchCommand(BrowserWindowInterface* browser, int direction);
 // Chromium just opened becomes one private tab, as shipping's
 // openNewWindow({private: true}). False leaves it as Chromium made it.
 bool MakePrivateWindow(BrowserWindowInterface* browser);
+// The protected-video notice (protected_media.inc): watches a page load for
+// a request for protected playback. Called for each tracked page (patch 0091).
+void AddProtectedMediaObserver(page_load_metrics::PageLoadTracker* tracker);
 bool HasIsland(views::View* parent);
 int RailWidth(views::View* parent);
 int HeaderHeight(views::View* parent);

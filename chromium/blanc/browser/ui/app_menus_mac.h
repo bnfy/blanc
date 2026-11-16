@@ -10,8 +10,11 @@
 
 #include "base/containers/span.h"
 
+class GURL;
+
 #ifdef __OBJC__
 @class NSMenu;
+
 namespace blanc {
 // The Dock menu's first row, as shipping's dock-menu.js: the front window's
 // current tab (its icon and title; the private label for a private tab) and
@@ -49,6 +52,10 @@ std::pair<std::string, std::string> BundleVersion();
 bool DockMenuItemHasImage(int item_tag);
 std::u16string DockBadge();
 bool ClickAppMenuItem(int item_tag);
+// The Electron Blanc app (me.bnfy.bowser), for the protected-video notice's
+// Open in Blanc: whether macOS knows it, and opening one web address in it.
+bool ElectronBlancInstalled();
+void OpenInElectronBlanc(const GURL& url);
 // The application menu's item titles in order (About, Hide, Quit… carry the
 // app's name, patch 0075), and clicking its About item as a person would.
 std::vector<std::u16string> AppMenuItemTitles();

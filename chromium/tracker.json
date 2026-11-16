@@ -1816,9 +1816,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "Nothing built. D3 accepts no DRM for beta only; the required protected-video notice and Open in Blanc handoff are not built and ride a standing beta waiver (standing.json, no-drm-handoff). Replacement D3 is undecided",
-          "candidate": "macos-bed55af2cf2cf43d"
+          "stage": "implemented",
+          "basis": "The beta requirement is built (2026-11-16, patch 0091, protected_media.inc): a page asking for protected playback gets the owner's notice under the Island (\"Blanc Beta can't play this video yet\", Not now, Open in released Blanc, or Get released Blanc where the Electron app is absent), from Blink's use counter for requestMediaKeySystemAccess. native-protected-media.mjs passes 8 of 8 on macos-e1f8cb12fc0a503f. DRM playback itself is not built (D3: excepted for beta only; replacement D3 undecided). Not checked on live sites (a test launch has no outside network), and the standing waiver no-drm-handoff still stands until the owner retires it",
+          "candidate": "macos-e1f8cb12fc0a503f"
         },
         "windows": {
           "stage": "not-started",

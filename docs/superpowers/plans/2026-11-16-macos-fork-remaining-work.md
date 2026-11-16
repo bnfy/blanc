@@ -68,7 +68,7 @@ Out of scope: F38, F42, X1 (owner chose Web Store extensions), Windows, Linux, A
 
 | # | Answer | Consequence |
 | --- | --- | --- |
-| O2 | The protected-video notice is a **capsule under the Island**, like the permission prompt: title "This video needs Blanc", body "Blanc Beta can't play protected video yet.", buttons **Not now** and **Open in Blanc**. It does not cover the page and goes when the person leaves the site; with Electron Blanc absent the action becomes getting Blanc | K8 can be built. New strings need the usual copy path |
+| O2 | The protected-video notice is a **capsule under the Island**: title "Blanc Beta can't play this video yet", body "Protected video works in the released Blanc app.", buttons **Not now** and **Open in released Blanc** (the owner replaced the first wording, "This video needs Blanc", the same day). It does not cover the page and goes when the person leaves the site; with Electron Blanc absent the action becomes getting Blanc | K8 can be built. New strings need the usual copy path |
 | O3 | **Sign in again.** Cookies and site storage are not migrated | K9 M.4 is dropped; the importer copies nothing from Electron's partitions |
 | O4 | Synced settings go to **Personal only** | Named profiles start with defaults |
 | O5 | **Keep Sync on**: the device identity moves and the Sync key is re-protected for the fork (one macOS Keychain prompt) | K9 M.3 key re-wrap is in scope |
@@ -198,7 +198,7 @@ Each item: a failing `native-*.mjs` or scenario first, then the change, an incre
 - [x] **K5** (2026-11-16: sharing chip and Stop built and tested for a tab share; the picker and a screen share still need a hand check) N3: screen sharing through Chromium's native picker, checked in an Island window (no toolbar anchor) and in a Glance. Likely a small patch like 0081.
 - [x] **K6** (done 2026-11-16, patch 0090; owner: keep crash dumps, say so, Clear deletes them) N16: trust receipt and diagnostics export in Settings → About, reading the fork's own release manifest.
 - [x] **K7** (2026-11-16: tab handoff built and tested against a stand-in relay; no build claims the link type yet, by owner decision) N20: tab import and handoff pages and the `blanc-import:` scheme; un-hide Bring Your Tabs paths that depend on it.
-- [ ] **K8** X2: protected-video notice with Open in Blanc, after O2. Retires the `no-drm-handoff` standing waiver (owner's word needed to set `until`).
+- [x] **K8** (2026-11-16: built and tested, patch 0091; wording changed by the owner to "Blanc Beta can't play this video yet" / "Open in released Blanc"; live sites and the real handoff are hand checks) X2: protected-video notice with Open in Blanc, after O2. Retires the `no-drm-handoff` standing waiver (owner's word needed to set `until`).
 - [ ] **K9** Importer M.2 in the browser process against C4's fixtures and `expected.json`; M.3 key re-wrap (O5: Sync stays on). M.4 dropped by O3 (sign in again); O4: synced settings to Personal only.
 - [ ] **K10** Spaces menu fade flake (`F41…:211`), last: it passes on rerun and blocks nothing.
 - [x] **After C3 / K13** (2026-11-16: pins, renderer, strings and inventory at v1.49.1; the seven new cases pass; F37-9 found ⌘⇧N opening a private window under Chromium 158's action dispatch, fixed) move the tracker pin, run changed cases on the then-current candidate, fix or record gaps.

@@ -14,6 +14,43 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — The protected-video notice (X2 beta requirement, plan K8; patch 0091; candidate macos-e1f8cb12fc0a503f):**
+  a page asking for protected playback gets a card under the Island: "Blanc
+  Beta can't play this video yet" / "Protected video works in the released
+  Blanc app." with **Not now** and **Open in released Blanc** (owner's
+  design and wording, 2026-11-16; the first wording, "This video needs
+  Blanc", was dropped because a person in the beta already thinks of it as
+  Blanc). Where the Electron app is absent the action is **Get released
+  Blanc**, which opens blanc.day/download in a tab.
+  *Signal:* Blink's own use counter for `requestMediaKeySystemAccess`
+  (`kEncryptedMediaSecureOrigin`), read by a page-load observer
+  (`protected_media.inc`; patch 0091 registers it in
+  `page_load_metrics_initialize.cc`), so no renderer change. It does not
+  name the key system: a page asking only for Clear Key, which the beta can
+  play, is noticed too. *Behavior:* the notice belongs to the page that
+  asked (a new page load clears it) and shows only while its tab is current;
+  an open Island panel, a sheet or a permission prompt takes its place; it
+  never takes focus; Not now and the handoff put it away for that site until
+  Blanc quits. *Handoff:* the page's address goes to the app with bundle id
+  `me.bnfy.bowser` through NSWorkspace; only http and https; a private tab's
+  address is handed off too. A test launch records the handoff and starts
+  nothing. *Strings:* shipping has no words for this, so the fork has its
+  first own catalog, `blanc/fork-strings.json`, merged into the Island's
+  `strings.js` by `interface-strings.mjs`; every key must carry all six
+  languages and may not shadow a shipping key (unit-tested). The five
+  translations were written here and not reviewed by native speakers.
+  *The browser serves its pages without queries* unless one is allowlisted,
+  so the notice's document asks the host which action it carries.
+  Evidence on the Mac Studio: `native-protected-media.mjs` 8 of 8 (failed on
+  the build before); `permissions-and-auth` 6 of 6, `island-and-commands` 67
+  of 67, `native-tab-handoff` 9, `native-new-tab-reuse` 8,
+  `native-capture-indicator` 5. Screenshots:
+  `docs/chromium-replacement/images/protected-video-notice-{light,dark}.png`.
+  **Not done:** no check on live sites (a test launch blocks outside
+  network), so whether sites such as YouTube ask for protected playback on
+  ordinary videos is unknown; the real handoff to an installed Electron
+  Blanc was not exercised; the standing waiver `no-drm-handoff` stays until
+  the owner retires it; Windows and Linux have no handoff.
 - **2026-11-16 — Owner decisions for the protected-video notice and the importer:**
   (1) the notice is a capsule under the Island, like the permission prompt:
   "This video needs Blanc" / "Blanc Beta can't play protected video yet." /
@@ -3835,10 +3872,10 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 3 | 81 | 81 | 69 |
+| Not started / unassessed | 2 | 81 | 81 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 0 | 0 | 0 | 0 |
-| Implemented | 9 | 0 | 0 | 12 |
+| Implemented | 10 | 0 | 0 | 12 |
 | Built, isolated (legacy) | 0 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 0 | 0 | 0 | 0 |
 | Integrated | 68 | 0 | 0 | 0 |

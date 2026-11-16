@@ -1023,6 +1023,7 @@
         emit('onDownloadsActivity', snapshot.downloadsActivity);
       }
       // Shipping's tab records name their split; the panel draws one row from it.
+      syncProtected();
       nameExtensionTabs(snapshot.tabs);
       for (const tab of snapshot.tabs) tab.splitId = snapshot.splits?.find(split => split.tabIds.includes(tab.id))?.id ?? null;
       syncGlance();
@@ -1231,9 +1232,11 @@
 
   function reportGeometry() {
     positionShield();
+    placeProtected();
     const slot = strip.contentDocument?.getElementById('nativeExtensions');
     const panel = paneMenu ?? (extensionsOpened ? document.getElementById('extensionsPanel')
       : !opened && !sheet.page && prompts.size ? permissionFrame
+      : !opened && !sheet.page && protectedKey ? protectedFrame
       : opened ? overlay.contentDocument?.getElementById(overlayMode === 'find' ? 'findBar' : overlayMode === 'shield' ? 'shieldPop' : overlayMode === 'capture' ? 'capturePop'
         : overlayMode === 'group-menu' ? 'groupMenu' : overlayMode === 'spaces' ? 'workspaceSwitcher' : 'islandPanel')
       : strip.contentDocument?.getElementById('islandPill'));
@@ -1517,13 +1520,47 @@
   // The Island's resting height: the strip, or, while a prompt is pending,
   // the window, so the prompt can draw over the page.
   function restHeight() {
-    return request('height', prompts.size ? [10000, false] : [stripH()]);
+    return request('height', prompts.size || protectedKey ? [10000, false] : [stripH()]);
   }
   async function syncPermission() {
     if (!prompts.size) permissionFrame.hidden = true;
     if (!opened && !extensionsOpened && !sheet.page && !paneMenu) await restHeight();
     if (prompts.size) placePermission();
     reportGeometry();
+  }
+  // ---- The protected-video notice (replacement spec D3/X2; owner's design,
+  // 2026-11-16): native's snapshot names the current tab's site when its page
+  // asked for protected playback (protected_media.inc). The notice is its own
+  // document under the Island, as the permission prompt is its own at the
+  // bottom; a pending prompt, an open panel or a sheet takes its place, and
+  // it never takes focus.
+  const protectedFrame = document.getElementById('protectedNotice');
+  let protectedKey = null;
+  function placeProtected() {
+    const show = !!protectedKey && !prompts.size && !opened && !sheet.page && !extensionsOpened && !paneMenu &&
+      innerHeight >= stripH() + 150;
+    protectedFrame.hidden = !show;
+    if (!show) return;
+    // The frame holds the 380px card and room for its shadow (protected-notice.css).
+    const width = Math.min(416, Math.max(0, innerWidth - 24));
+    Object.assign(protectedFrame.style, { left: `${Math.round((innerWidth - width) / 2)}px`,
+      top: `${stripH() + 4}px`, width: `${width}px`, height: '142px' });
+  }
+  function syncProtected() {
+    const want = snapshot?.protectedMedia ?? null;
+    const key = want ? `${want.host}|${want.blancInstalled ? 1 : 0}` : null;
+    if (key === protectedKey) return;
+    protectedKey = key;
+    // Loaded afresh for each notice: the document asks protectedNoticeState
+    // which action it carries (the browser serves its pages without queries).
+    if (key) protectedFrame.src = protectedFrame.dataset.src;
+    syncPermission().catch(error => notice(error.message));
+  }
+  async function protectedNotice(action) {
+    if (action !== 'later' && action !== 'open') return false;
+    const result = await request(action === 'open' ? 'protectedMediaOpen' : 'protectedMediaDismiss');
+    await refreshNow();
+    return result;
   }
   function permissionPrompt(payload) {
     railDismiss('surface');
@@ -3371,6 +3408,10 @@
     sheetBridge, sheetLink, sheetEscape,
     // Native's permission requests (permission_prompt.inc).
     permissionPrompt, permissionGone,
+    // The protected-video notice's two buttons, and its state for tests.
+    protectedNotice,
+    protectedNoticeState: () => ({ visible: !protectedFrame.hidden, host: snapshot?.protectedMedia?.host ?? null,
+      blancInstalled: snapshot?.protectedMedia?.blancInstalled === true }),
     openSheet: (name, section) => showSheet(name, section),
     closeSheet: () => hideSheet(),
     sheetState: () => ({ visible: sheet.page === 'settings' ? !settingsSheet.hidden

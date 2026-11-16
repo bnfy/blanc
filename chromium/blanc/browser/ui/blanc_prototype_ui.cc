@@ -358,6 +358,10 @@
 #include "chrome/browser/webauthn/chrome_web_authentication_delegate.h"
 #endif
 #include "build/build_config.h"
+#include "components/page_load_metrics/browser/page_load_metrics_observer.h"
+#include "components/page_load_metrics/browser/page_load_tracker.h"
+#include "third_party/blink/public/common/use_counter/use_counter_feature.h"
+#include "third_party/blink/public/mojom/use_counter/metrics/web_feature.mojom.h"
 #if BUILDFLAG(IS_MAC)
 #include "blanc/browser/ui/app_menus_mac.h"
 #include "blanc/browser/ui/tab_switch_keys_mac.h"
@@ -4222,6 +4226,9 @@ base::Value IslandRelativeBounds(BrowserWindowInterface* browser, content::WebCo
 
 // Aggregate all default-profile windows before handing a snapshot to Sync.
 // A restoring/switching window is not an empty inventory. Wait for it.
+// protected_media.inc, included further down.
+base::Value ProtectedMediaFor(BrowserWindowInterface* browser);
+
 void PublishSyncTabs(Profile* profile) {
   auto* service = blanc::DesktopSyncService::ForProfile(profile);
   if (!service || SessionRestore::IsRestoring(profile)) return;
@@ -4472,7 +4479,9 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       .Set("adblockEnabled", blanc::BlockerAvailable() && blanc::BlockingEnabled(browser->GetProfile()))
       .Set("captureChip", base::DictValue().Set("audio", capture_audio).Set("video", capture_video))
       .Set("capturePopover", base::DictValue().Set("rows", std::move(capture_rows)))
-      .Set("displayShares", std::move(display_shares));
+      .Set("displayShares", std::move(display_shares))
+      // The protected-video notice for the current tab (protected_media.inc).
+      .Set("protectedMedia", ProtectedMediaFor(browser));
 }
 
 // Only the bundled top-level start page gets this scoped profile bridge.
@@ -6014,6 +6023,7 @@ constexpr char kLinkRouteActivation[] = "blanc.link-route.activation";
 
 #include "blanc/browser/ui/tab_handoff.inc"
 #include "blanc/browser/ui/trust_receipt.inc"
+#include "blanc/browser/ui/protected_media.inc"
 #include "blanc/browser/ui/chromium_settings_handler.inc"
 #include "blanc/browser/ui/utility_sheet_ops.inc"
 
@@ -7080,6 +7090,17 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       auto* browser = GlobalBrowserCollection::GetInstance()->GetActiveBrowser();
       auto* page = browser ? browser->GetTabStripModel()->GetActiveWebContents() : nullptr;
       Reply(id, true, page ? base::Value(base::UTF16ToUTF8(page->GetTitle())) : base::Value()); return;
+    }
+    // The protected-video notice: the Electron app's presence, what Open in
+    // Blanc would have handed off, and a clean slate between checks.
+    if (quiet_method == "setProtectedMediaBlancInstalled" && quiet_args.size() == 1 && quiet_args[0].is_bool()) {
+      TestElectronBlancInstalled() = quiet_args[0].GetBool(); Reply(id, true, base::Value(true)); return;
+    }
+    if (quiet_method == "protectedMediaHandoffs" && quiet_args.empty()) {
+      Reply(id, true, base::Value(TestProtectedHandoffs().Clone())); return;
+    }
+    if (quiet_method == "resetProtectedMedia" && quiet_args.empty()) {
+      ProtectedMediaDismissed().clear(); TestProtectedHandoffs().clear(); Reply(id, true, base::Value(true)); return;
     }
     if (quiet_method == "windowButtonPosition" && quiet_args.empty()) {
 #if BUILDFLAG(IS_MAC)
@@ -10038,6 +10059,12 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // host names only; the list itself stays here.
     if (method == "tabHandoffGet" && args.empty()) {
       reply(true, base::Value(TabHandoff::Get()->Projection(browser))); return;
+    }
+    if (method == "protectedMediaDismiss" && args.empty()) {
+      DismissProtectedMedia(browser); reply(true, base::Value(true)); return;
+    }
+    if (method == "protectedMediaOpen" && args.empty()) {
+      reply(true, base::Value(OpenProtectedMediaInBlanc(browser))); return;
     }
     if (method == "tabHandoffCancel" && args.empty()) {
       TabHandoff::Get()->Cancel(browser); reply(true, base::Value(true)); return;
@@ -13931,6 +13958,10 @@ bool IsHoldWindow(BrowserWindowInterface* browser) {
   if (!browser || browser->GetType() != BrowserWindowInterface::Type::TYPE_POPUP) return false;
   auto* hold = SpaceHold::Get(browser->GetProfile());
   return hold && hold->IsWindow(browser);
+}
+
+void AddProtectedMediaObserver(page_load_metrics::PageLoadTracker* tracker) {
+  if (IsEnabled()) tracker->AddObserver(std::make_unique<ProtectedMediaObserver>());
 }
 
 content::WebContents* NewPrivateTab(BrowserWindowInterface* browser, const GURL& url) {

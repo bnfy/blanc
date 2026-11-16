@@ -188,6 +188,9 @@ pages/type-to-open.js
 panel-left.svg
 permission.html
 permission.js
+protected-notice.css
+protected-notice.html
+protected-notice.js
 prototype.css
 rail-hover-card.js
 rail-hover.js

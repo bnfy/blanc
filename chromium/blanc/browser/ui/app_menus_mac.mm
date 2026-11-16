@@ -7,6 +7,8 @@
 #include "blanc/browser/ui/blanc_prototype_ui.h"
 #include "blanc/common/menu_strings.h"
 #include "chrome/app/chrome_command_ids.h"
+#include "net/base/apple/url_conversions.h"
+#include "url/gurl.h"
 #include "chrome/browser/browser_process.h"
 
 @interface BlancMiniWindowMenuTarget : NSObject
@@ -174,6 +176,26 @@ bool SetDockIconFromBundle(const std::string& name) {
   if (!image) return false;
   NSApp.applicationIconImage = image;
   return true;
+}
+
+namespace {
+NSURL* ElectronBlancApp() {
+  return [NSWorkspace.sharedWorkspace URLForApplicationWithBundleIdentifier:@"me.bnfy.bowser"];
+}
+}  // namespace
+
+bool ElectronBlancInstalled() {
+  return ElectronBlancApp() != nil;
+}
+
+void OpenInElectronBlanc(const GURL& url) {
+  NSURL* app = ElectronBlancApp();
+  NSURL* page = url.SchemeIsHTTPOrHTTPS() ? net::NSURLWithGURL(url) : nil;
+  if (!app || !page) return;
+  [NSWorkspace.sharedWorkspace openURLs:@[ page ]
+                   withApplicationAtURL:app
+                          configuration:[NSWorkspaceOpenConfiguration configuration]
+                      completionHandler:nil];
 }
 
 }  // namespace blanc

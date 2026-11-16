@@ -1,0 +1,34 @@
+{
+  "protectedMedia.title": {
+    "en": "Blanc Beta can't play this video yet",
+    "de": "Blanc Beta kann dieses Video noch nicht abspielen",
+    "es": "Blanc Beta todavía no puede reproducir este vídeo",
+    "fr": "Blanc Beta ne peut pas encore lire cette vidéo",
+    "it": "Blanc Beta non può ancora riprodurre questo video",
+    "pt-BR": "O Blanc Beta ainda não reproduz este vídeo"
+  },
+  "protectedMedia.body": {
+    "en": "Protected video works in the released Blanc app.",
+    "de": "Geschützte Videos laufen in der veröffentlichten Blanc-App.",
+    "es": "El vídeo protegido funciona en la app Blanc publicada.",
+    "fr": "Les vidéos protégées fonctionnent dans l'app Blanc publiée.",
+    "it": "I video protetti funzionano nell'app Blanc pubblicata.",
+    "pt-BR": "Vídeo protegido funciona no app Blanc lançado."
+  },
+  "protectedMedia.open": {
+    "en": "Open in released Blanc",
+    "de": "In veröffentlichtem Blanc öffnen",
+    "es": "Abrir en Blanc publicado",
+    "fr": "Ouvrir dans Blanc publié",
+    "it": "Apri in Blanc pubblicato",
+    "pt-BR": "Abrir no Blanc lançado"
+  },
+  "protectedMedia.getBlanc": {
+    "en": "Get released Blanc",
+    "de": "Veröffentlichtes Blanc laden",
+    "es": "Obtener Blanc publicado",
+    "fr": "Obtenir Blanc publié",
+    "it": "Scarica Blanc pubblicato",
+    "pt-BR": "Baixar o Blanc lançado"
+  }
+}

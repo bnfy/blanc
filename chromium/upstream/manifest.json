@@ -25,6 +25,7 @@
     "chrome/browser/global_keyboard_shortcuts_mac.mm": "bc64058936d1809065cfe08eda58aa2df7abac6c55f9cb8eacab2c9d5f54c42f",
     "chrome/browser/lifetime/application_lifetime_desktop.cc": "80adb29041a1f25af0c90cc550ed7c092c3abe50f6a4cf527d07cba137d88cc2",
     "chrome/browser/media/webrtc/tab_desktop_media_list.cc": "ec4a92a2514e002a3af7d1b923167b19723c91c6ba0759314e72425478015a98",
+    "chrome/browser/page_load_metrics/page_load_metrics_initialize.cc": "19a5d2793c4bb3d861dabc20ceb218909e6aa45ed1045aed8fe9580732884ee3",
     "chrome/browser/performance_manager/policies/transient_keep_alive_policy.cc": "02618ba88ccee43b5581b488f90f728be794cbc8e72a46474fb8600ccf59d34a",
     "chrome/browser/performance_manager/policies/transient_keep_alive_policy.h": "7bdcda1da7ab48582ccc26f2a89df4dbee047b894ba74b1a0923bd3caf79b33e",
     "chrome/browser/prefs/browser_prefs.cc": "380ab7f07fe47c5743f9799d5e864a1f487254cc8cefaac74642fbcb71181306",

@@ -43,6 +43,7 @@ source_set(target_name) {
     "//components/download/public/common:public",
     "//components/input",
     "//components/keyed_service/core",
+    "//components/page_load_metrics/browser",
     "//components/tab_groups",
     "//components/viz/common",
     "//chrome/browser/ui/views/frame:app_menu_button",
