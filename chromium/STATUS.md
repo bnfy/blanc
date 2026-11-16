@@ -14,6 +14,12 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Owner direction on profiles:** use Chromium's own profile
+  feature to the fullest before building custom support to match the
+  Electron build. The importer's named profiles become ordinary Chromium
+  profiles (standard creation, Chromium's per-profile settings, Chromium's
+  picker, rename and delete); differences from Electron are recorded as
+  divergences, not coded around. Importer plan, task 5.
 - **2026-11-16 — Electron profile importer, task 4: the open session (candidate macos-beb93342b0ee850e):**
   each of the first profile's saved windows (`session.json` v2, at most ten)
   opens as a window of its own: tabs restored unloaded with their titles,

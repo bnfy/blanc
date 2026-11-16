@@ -102,9 +102,17 @@ Each task ends with its own passing tests and a push to `chromium/next`. Tasks 1
 
 ### Task 5: Named profiles
 
-- [ ] Test: the fixture's named profile exists as a Chromium profile with its name and its own Favorites, history, pins, archive and Spaces; the profile pending deletion is not created; the marker lists both profiles.
-- [ ] Implement profile creation (from the draft `native_local_profile_registry`), then Task 2's apply steps per profile.
+**Owner direction (2026-11-16): use Chromium's own profiles to the fullest before building anything custom to match the Electron build.** So an imported named profile is an ordinary Chromium profile and nothing more:
+
+- It is created with Chromium's standard profile creation (`ProfileManager`), with the Blanc profile's name and Chromium's default avatar and color. No Blanc profile registry, no copy of Electron's ids kept beyond the import marker, and none of the earlier `native_local_profile_registry` draft.
+- Its settings are Chromium's per-profile settings at their defaults. Electron's device-wide settings are not copied into each profile.
+- Managing it afterwards (rename, delete, switch, the picker at launch) is Chromium's, unchanged. Blanc's typed-name deletion and crash-resumable deletion are not rebuilt.
+- Where Electron behaves differently, the difference is written down as a divergence for the owner, not coded around.
+
+- [ ] Test: the fixture's named profile exists as a Chromium profile with its name and its own Favorites, history, pins, archive and Spaces; its saved window opens in it; the profile pending deletion is not created; the marker lists both profiles and maps each Electron id to its Chromium profile; a second run creates nothing.
+- [ ] Implement: create the profile, then Task 2's apply steps and Task 4's windows for it.
 - [ ] Build, pass, commit and push.
+- [ ] List the divergences found (settings scope, deletion, avatar) in STATUS for the owner.
 
 ### Task 6: Permissions and downloads list
 
