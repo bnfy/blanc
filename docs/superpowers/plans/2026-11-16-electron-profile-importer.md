@@ -134,7 +134,10 @@ Each task ends with its own passing tests and a push to `chromium/next`. Tasks 1
 
 ### Task 8: The person's side
 
-Blocked on the owner decision below.
+Unblocked 2026-11-16 (P1, P3 answered).
+
+- [ ] Turn off Chromium's "show the picker at startup" setting when the import created a profile; test with a relaunch after a two-profile import.
+- [ ] A Settings command in Blanc Beta (and the Prototype) that picks the Electron folder itself (`~/Library/Application Support/Blanc`), never a folder the page names.
 
 - [ ] Entry point, progress, the result summary (what came across, what did not and why), failure notice and Retry; refuse while the Electron app is running.
 - [ ] Wallpaper and the Start Page's layout settings, written through the Start Page itself on its next load.
@@ -145,8 +148,8 @@ Found in task 7: once the import has created a second profile, Chromium opens it
 
 | # | Decision | Needed before |
 | --- | --- | --- |
-| P1 | Where the import starts: automatically on the replacement build's first launch only, or also as a command in Blanc Beta's Settings so beta testers (and the owner's dogfood) can bring their data across | Task 8 |
-| P3 | After an import that created named profiles, the next launch shows Chromium's profile picker. Leave it, or have the importer turn off Chromium's own "show at startup" setting so Blanc reopens its windows as Electron did | Task 8 |
+| P1 | Where the import starts: **answered 2026-11-16: a command in Blanc Beta's Settings too**, and automatically on the replacement build's first launch | Task 8 |
+| P3 | The profile picker at launch after an import that created profiles: **answered 2026-11-16: the importer turns off Chromium's own "show at startup" setting**, so Blanc reopens its windows; anyone can switch it back on in the picker | Task 8 |
 | P2 | Downloads list: **answered 2026-11-16: leave it behind** | Task 6 |
 
 ## Not imported, by design

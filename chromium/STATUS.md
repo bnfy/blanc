@@ -14,6 +14,12 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Owner decisions for the importer's last task:** (P1) Blanc
+  Beta's Settings gets an import command now, and the replacement build
+  also imports automatically on first launch. (P3) After an import that
+  created a profile, the importer turns off Chromium's own "show the profile
+  picker at startup" setting, so Blanc reopens its windows as the Electron
+  app did. Importer plan, task 8.
 - **2026-11-16 — Electron profile importer, task 7: Sync's stores and key (candidate macos-22d3967de015b079):**
   the plan passes Electron's protected Sync key on as it is (a legacy plain
   key never). The browser opens it with the password of Electron's Keychain
