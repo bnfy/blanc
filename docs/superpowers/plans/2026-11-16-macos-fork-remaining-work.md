@@ -43,6 +43,13 @@ Out of scope: F38, F42, X1 (owner chose Web Store extensions), Windows, Linux, A
 | O2 | Wording and design of the protected-video notice (STATUS says to show you options first) | K8 |
 | O3 | D5: migrate site sign-ins, or sign in again | K9's last step (M.4) only |
 
+## 2a. Changes after staging (2026-11-16)
+
+- **O1 answered: yes.** The staged app is at `~/Projects/Blanc-Codex/` and passes a four-case runner smoke there.
+- **Codex cannot run the browser tests.** Its sandbox refuses the harness's helper processes (`spawnSync /bin/ps EPERM`; loopback listening needs `network_access=true` as well). Owner's choice: Codex stays sandboxed and writes the tests without running them; Claude runs each on the staged app and hands the output to one fix-up run. So in C2 Codex reports no pass or fail, and every selector, hook and world call it uses must already appear in a working test.
+- **C1 moves to Claude.** Last night's run names what the three undefined cases lack: the updater case needs a signed feed, the private-passkey case needs Touch ID on a signed build, and the Patron case needs a native `setSupporterActive` hook. None is test-only work.
+- **C2 runs in batches of three rows:** C2a F49, F50, F54; C2b F59, N1, N17; C2c F58, N13, F51. C3 and C4 need no browser and are unchanged.
+
 ## 3. Codex operating contract
 
 These rules are pasted verbatim at the top of every brief. They exist because of how the October fork work went wrong (124 continuation sections in a day, numbered draft copies, 22 `CODEX-NOTES-*.md` files, integration deferred).
