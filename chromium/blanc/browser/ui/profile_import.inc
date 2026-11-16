@@ -616,10 +616,20 @@ base::DictValue ApplyImportedSettings(Profile* profile, const base::DictValue* s
 // installs does not see a new one.
 bool ApplyImportedInstall(const base::DictValue* install) {
   const auto* id = install ? install->FindString("id") : nullptr;
-  const auto created = install ? install->FindDouble("createdAt") : std::nullopt;
-  if (!id || !base::Uuid::ParseCaseInsensitive(*id).is_valid() || !created || !std::isfinite(*created) || *created <= 0) return false;
+  if (!id || !base::Uuid::ParseCaseInsensitive(*id).is_valid()) return false;
+  // An install older than shipping's first-day signals has the word "legacy"
+  // for its date (telemetry.js installMeta; found on a real profile,
+  // 2026-11-16). It is kept as 0, a date no first-day window contains.
+  double created = 0;
+  if (const auto number = install->FindDouble("createdAt")) {
+    if (!std::isfinite(*number) || *number <= 0) return false;
+    created = *number;
+  } else {
+    const auto* word = install->FindString("createdAt");
+    if (!word || *word != "legacy") return false;
+  }
   g_browser_process->local_state()->SetDict("blanc.telemetry.install", base::DictValue()
-      .Set("id", base::ToLowerASCII(*id)).Set("createdAt", *created)
+      .Set("id", base::ToLowerASCII(*id)).Set("createdAt", created)
       .Set("day1Default", install->FindBool("day1Default").value_or(false))
       .Set("day1Browsed", install->FindBool("day1Browsed").value_or(false)));
   g_browser_process->local_state()->CommitPendingWrite();

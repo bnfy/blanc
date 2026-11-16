@@ -23,7 +23,9 @@ const parent=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-profile-import-sync-'))
 const DEVICE='44444444-4444-4444-8444-444444444444';
 const key=crypto.randomBytes(32),password=crypto.randomBytes(16).toString('base64');
 // The fixture with Sync turned on and its key protected the way Electron does.
-const syncing=({personalOnly=false}={})=>makeImportSource(parent,dir=>{const file=path.join(dir,'sync.json');
+const syncing=({personalOnly=false,legacyInstall=false}={})=>makeImportSource(parent,dir=>{const file=path.join(dir,'sync.json');
+ // An install from before shipping recorded its date carries the word "legacy".
+ if(legacyInstall){const install=path.join(dir,'install.json');fs.writeFileSync(install,JSON.stringify({...JSON.parse(fs.readFileSync(install,'utf8')),createdAt:'legacy'}));}
  fs.writeFileSync(file,JSON.stringify({...JSON.parse(fs.readFileSync(file,'utf8')),enabled:true,handle:'fixture',protectedKey:electronProtect(key,password)}));
  // With a second profile Chromium opens its profile picker at the next launch
  // (recorded for the owner); the relaunch check keeps to one profile.
@@ -36,7 +38,7 @@ const closed=async()=>{const exit=await f.close();if(exit?.code!==0)throw Error(
  if(f.directory&&fs.existsSync(path.join(f.directory,'browser.log')))fs.copyFileSync(path.join(f.directory,'browser.log'),path.join(out,path.basename(f.directory)+'.log'));f=null;};
 try{
  // 1. The Keychain read refused: everything else imports, and Sync is left off.
- let w=await launch('refused');let source=syncing();let before=digestTree(source.userData);
+ let w=await launch('refused');let source=syncing({legacyInstall:true});let before=digestTree(source.userData);
  let r=await w.native('profileImportRun',[source.userData]);
  assert.equal(r.ok,true);assert.ok(r.profiles.personal,'expected the rest of the import');
  assert.deepEqual(r.sync,{staged:true,key:'unavailable'});
@@ -44,7 +46,10 @@ try{
  assert.equal(staged.ready,true);assert.equal(staged.sync.deviceId,DEVICE);assert.equal(staged.sync.enabled,false,'expected Sync off without its key');
  assert.equal(staged.hasKey,false);assert.equal(staged.key,null);
  assert.equal(digestTree(source.userData),before);
- result.checks.push('with the Keychain read refused the rest imports, Sync is left off and the device identity is kept');
+ assert.equal(r.install,true,'expected an old install\'s id kept');
+ assert.deepEqual((await w.native('profileImportPrefs',[['blanc.telemetry.install']])).prefs['blanc.telemetry.install'],
+  {id:'99999999-9999-4999-8999-999999999999',createdAt:0,day1Default:false,day1Browsed:true});
+ result.checks.push('with the Keychain read refused the rest imports, Sync is left off and the device identity is kept; an old install keeps its id');
  await closed();
 
  // 2. The key re-protected: Sync stays on, as the same device.

@@ -14,6 +14,25 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Electron profile importer: first trial on real data (candidate macos-911d46dcfc30de03):**
+  the Mac Studio's own Blanc folder (v1.49.1, 17 stores, one profile) was
+  copied to `~/Projects/Blanc/scratch/real-import/` (a private APFS copy,
+  which is also the backup; the original was not touched and Blanc there
+  was not quit) and imported from the copy into a throwaway test profile
+  with `tests/real-profile-import.mjs`, which prints counts, store names
+  and reason codes only. Result: no errors in 0.3 s; 45 Favorites, 436
+  visits, 43 site icons, 3 pins, 2 permissions, 26 settings copied and 7
+  converted, one saved window of 10 tabs with 9 left unloaded; no
+  `workspaces.json`, `archive.json` or `profiles.json` in that folder, which
+  the importer treats as absent; the copy's stores hash the same before and
+  after. Sync was staged with its key `unavailable`, as a test launch reads
+  no Keychain item. **A real bug found and fixed:** an install older than
+  shipping's first-day signals has the word "legacy" for its date, not a
+  number, so the install id was refused; it is now kept, with the date 0
+  (a new check in `native-profile-import-sync.mjs`). The synthetic fixture
+  has only the number form. Not tried: a profile with named profiles and
+  Spaces (the MacBook Pro's has four profiles), and the real Keychain
+  prompt.
 - **2026-11-16 — Electron profile importer, task 8: the Settings command and the profile picker (candidate macos-91f427ea33bb6e2a; patch 0093):**
   Settings, About has a row, "Bring your data from the released Blanc app",
   with **Import**. The page sends no path: the browser takes the released
