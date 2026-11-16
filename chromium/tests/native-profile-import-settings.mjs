@@ -80,7 +80,7 @@ try{
  await w.native('setImportSource',[source.userData]);
  r=await click();assert.deepEqual(r,{status:text('done'),button:text('start'),busy:false});
  const list=await details();
- assert.deepEqual(list.map(x=>x[0]),['imported','left']);assert.equal(list[0][1],'Fixture profile');assert.match(list[0][2],/^History \d/);
+ assert.deepEqual(list.map(x=>x[0]),['imported','left']);assert.equal(list[0][1],'Fixture profile');assert.match(list[0][2],/^Favorites \d.* · History \d/);
  assert.deepEqual((await w.api('listFavorites')).map(x=>x.url),['https://personal.example.com/zeta','https://personal.example.com/alpha']);
  assert.equal((await w.native('profileImportProfiles')).length,2,'expected the named profile created');
  assert.equal(digestTree(source.userData),before,'expected the released app\'s folder unchanged');
