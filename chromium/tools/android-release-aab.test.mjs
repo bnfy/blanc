@@ -102,6 +102,11 @@ test('all modules allow only arm64-v8a libraries and require Android notice path
   assert.match(checkEntries([...entries, 'feature/assets/libbad.so']).join('\n'), /arm64-v8a/);
   for (const notice of notices) assert.match(checkEntries(entries.filter(name => name !== notice)).join('\n'), /notice/i);
   assert.match(checkEntries(entries.map(name => name.replace('/blanc/android/', '/blanc/'))).join('\n'), /notice/i);
+  // Chromium's bundle puts browser assets in its install-time `chrome` module, not `base`.
+  const inChrome = entries.map(name => name.replace(/^base\/assets\/blanc\//, 'chrome/assets/blanc/'));
+  assert.deepEqual(checkEntries(inChrome), []);
+  // A module fetched after install would leave a fresh install without its notices.
+  assert.match(checkEntries(entries.map(name => name.replace(/^base\/assets\/blanc\//, 'on_demand_feature/assets/blanc/'))).join('\n'), /notice/i);
 });
 test('verification checks recorded bytes and digest before tools, then validates bundle and manifest', async () => {
   const { verifyBundle } = await api(); const dir = temp(); const file = path.join(dir, 'fixture.aab');
