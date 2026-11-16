@@ -7,25 +7,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {patchedChromiumFile} from './android-patched-file.mjs';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
-const lane = JSON.parse(fs.readFileSync(path.join(ROOT, 'lanes/android.json'), 'utf8'));
-
-// The pinned chrome/android/BUILD.gn with every Android patch applied.
-function patchedChromeBuild() {
-  const work = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-res-dirs-'));
-  try {
-    const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, lane.upstreamDir, 'manifest.json'), 'utf8'));
-    for (const name of Object.keys(manifest.files)) {
-      fs.mkdirSync(path.dirname(path.join(work, name)), {recursive: true});
-      fs.copyFileSync(path.join(ROOT, lane.upstreamDir, name), path.join(work, name));
-    }
-    for (const patch of lane.patches) execFileSync('git', ['apply', path.join(ROOT, patch)], {cwd: work});
-    return fs.readFileSync(path.join(work, 'chrome/android/BUILD.gn'), 'utf8');
-  } finally { fs.rmSync(work, {recursive: true, force: true}); }
-}
 
 // Each android_resources("name") { … } block's //blanc/android/… sources, as paths under chromium/blanc.
 export function blancResourceTargets(gn, prefix) {
@@ -77,8 +62,9 @@ test('the finder reports a file in a listed folder that the target leaves out', 
 
 test('every Chromium resource target over Blanc files lists every file in its folders', () => {
   const blancDir = path.join(ROOT, 'blanc');
-  const targets = [...blancResourceTargets(patchedChromeBuild()),
+  const targets = [...blancResourceTargets(patchedChromiumFile('chrome/android/BUILD.gn')),
     ...blancResourceTargets(fs.readFileSync(path.join(blancDir, 'android/BUILD.gn'), 'utf8'), 'android')];
   assert.ok(targets.some(t => t.name === 'chrome_base_module_resources'), 'the base module resources were found');
   assert.deepEqual(targets.flatMap(t => unlisted(t, blancDir)), []);
 });
+
