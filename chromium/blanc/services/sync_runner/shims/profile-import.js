@@ -224,7 +224,8 @@ module.exports = function plan(files) {
       notImported.push(...left);
     } catch (error) {
       if (!(error instanceof StoreError)) throw error;
-      errors.push({profile: key, store: error.store, reason: error.message});
+      // The name lets the result say which profile was left out.
+      errors.push({profile: key, name: typeof entry.name === 'string' ? entry.name.slice(0, 64) : '', store: error.store, reason: error.message});
     }
   }
   return {ok: true, schema: SCHEMA, sourceVersion: version.sourceVersion, profiles, device, notImported, errors,

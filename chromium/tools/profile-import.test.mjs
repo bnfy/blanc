@@ -76,7 +76,7 @@ test('a damaged store fails its own profile and no other', async () => {
   const result = await plan(files);
   assert.ok(result.profiles.personal);
   assert.equal(result.profiles.profile_22222222222242228222222222222222, undefined);
-  assert.deepEqual(result.errors, [{profile: 'profile_22222222222242228222222222222222', store: 'archive.json', reason: 'invalid-json'}]);
+  assert.deepEqual(result.errors, [{profile: 'profile_22222222222242228222222222222222', name: 'Fixture profile', store: 'archive.json', reason: 'invalid-json'}]);
 });
 
 test('a history file from before site icons were kept still imports', async () => {
@@ -87,6 +87,14 @@ test('a history file from before site icons were kept still imports', async () =
   assert.ok(!Object.hasOwn(result.profiles.personal.stores['history.json'], 'siteIcons'));
   const bad = sourceFiles(f => { f['history.json'] = JSON.stringify({entries: [], siteIcons: 'none'}); });
   assert.equal((await plan(bad.files)).errors[0].reason, 'invalid-shape');
+});
+
+test('a refused profile is named, so the result can say which one was left out', async () => {
+  const NAMED_ID = 'profile_22222222222242228222222222222222';
+  const {files} = sourceFiles(f => { f[`profiles/${NAMED_ID}/history.json`] = '{'; });
+  const result = await plan(files);
+  assert.deepEqual(result.errors.map(e => [e.profile, e.name, e.store]), [[NAMED_ID, 'Fixture profile', 'history.json']]);
+  assert.ok(result.profiles.personal);
 });
 
 test('a store that was never written is simply absent', async () => {

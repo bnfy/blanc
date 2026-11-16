@@ -18,6 +18,13 @@ const header = path.join(root, 'blanc/common/settings_strings.h');
 const {ref, commit} = JSON.parse(fs.readFileSync(path.join(root, 'blanc/settings-strings.json'), 'utf8'));
 // loadTimeData name, shipping message key.
 export const STRINGS = [
+  // The import's result list: shipping's own names for what came across.
+  ["blancProfileImportPersonal", "tabHandoff.personalProfile"],
+  ["blancProfileImportFavorites", "settings.sync.what.favorites"],
+  ["blancProfileImportHistory", "footer.history"],
+  ["blancProfileImportSpaces", "spaces.menuLabel"],
+  ["blancProfileImportArchived", "history.view.archived"],
+  ["blancProfileImportPermissions", "settings.privacy.sitePermissions.title"],
   ["blancGestureEmpty", "settings.gesture.empty"],
   ["blancGestureLabel", "settings.general.mouseGesturesEnabled.label"],
   ["blancGestureHint", "settings.general.mouseGesturesEnabled.hint"],
@@ -249,6 +256,9 @@ export const FORK_STRINGS = [
   ['blancProfileImportOld', 'settings.profileImport.old'],
   ['blancProfileImportPartial', 'settings.profileImport.partial'],
   ['blancProfileImportFailed', 'settings.profileImport.failed'],
+  ['blancProfileImportPins', 'settings.profileImport.pins'],
+  ['blancProfileImportNotRead', 'settings.profileImport.notRead'],
+  ['blancProfileImportLeftBehind', 'settings.profileImport.leftBehind'],
 ];
 const ALL = [...STRINGS, ...FORK_STRINGS];
 export function withForkStrings(rows) {

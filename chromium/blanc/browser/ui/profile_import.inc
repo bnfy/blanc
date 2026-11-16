@@ -798,7 +798,31 @@ base::DictValue ImportSummary(const base::Value& result) {
   const auto* already = dict->FindList("alreadyImported");
   const auto* sync = dict->FindDict("sync");
   const auto* key = sync ? sync->FindString("key") : nullptr;
-  return base::DictValue().Set("ok", true)
+  // The list a person reads: each profile by its own name with its counts,
+  // and each one that could not be read. Names go to the Settings page only.
+  const auto* names = dict->FindDict("names");
+  const auto name_of = [&](const std::string& profile) {
+    const auto* name = names ? names->FindString(profile) : nullptr;
+    return name ? *name : std::string();
+  };
+  base::ListValue details;
+  if (profiles) {
+    for (auto [profile, counts] : *profiles) {
+      if (!counts.is_dict()) continue;
+      details.Append(base::DictValue().Set("personal", profile == "personal").Set("name", name_of(profile))
+          .Set("failed", false).Set("counts", counts.Clone()));
+    }
+  }
+  std::set<std::string> failed;
+  if (errors) {
+    for (const auto& value : *errors) {
+      const auto* profile = value.is_dict() ? value.GetDict().FindString("profile") : nullptr;
+      if (!profile || (profiles && profiles->contains(*profile)) || !failed.insert(*profile).second) continue;
+      if (*profile != "personal" && name_of(*profile).empty()) continue;
+      details.Append(base::DictValue().Set("personal", *profile == "personal").Set("name", name_of(*profile)).Set("failed", true));
+    }
+  }
+  return base::DictValue().Set("ok", true).Set("details", std::move(details))
       .Set("imported", static_cast<int>(profiles ? profiles->size() : 0))
       .Set("failed", static_cast<int>(errors ? errors->size() : 0))
       .Set("already", static_cast<int>(already ? already->size() : 0))
@@ -886,7 +910,16 @@ void ProfileImport::Planned(bool ok, const std::string& value) {
   result_ = base::DictValue().Set("ok", true).Set("sourceVersion", *version).Set("profiles", base::DictValue())
       .Set("errors", parsed->FindList("errors") ? parsed->FindList("errors")->Clone() : base::ListValue())
       .Set("notImported", parsed->FindList("notImported") ? parsed->FindList("notImported")->Clone() : base::ListValue())
-      .Set("alreadyImported", base::ListValue());
+      .Set("alreadyImported", base::ListValue()).Set("names", base::DictValue());
+  // A profile the plan builder refused is named for the result list; the
+  // error rows themselves stay profile, store and reason.
+  for (auto& value : *result_.FindList("errors")) {
+    auto* error = value.GetIfDict();
+    const auto* profile = error ? error->FindString("profile") : nullptr;
+    const auto* name = error ? error->FindString("name") : nullptr;
+    if (profile && name) result_.FindDict("names")->Set(*profile, name->substr(0, 64));
+    if (error) error->Remove("name");
+  }
   if (const auto* rules = parsed->FindDict("settingsPrefs")) {
     if (const auto* prefs = rules->FindDict("prefs")) settings_prefs_ = prefs->Clone();
     if (const auto* skipped = rules->FindList("skipped")) settings_skipped_ = skipped->Clone();
@@ -913,6 +946,7 @@ void ProfileImport::Planned(bool ok, const std::string& value) {
     job.key = key;
     job.id = *id;
     if (const auto* name = entry->FindString("name")) job.name = *name;
+    result_.FindDict("names")->Set(key, job.name.substr(0, 64));
     job.stores = stores->Clone();
     if (key == "personal") {
       if (const auto* synced = stores->FindDict("settings.json")) settings_synced_ = synced->Clone();

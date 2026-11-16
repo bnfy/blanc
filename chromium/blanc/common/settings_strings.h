@@ -14,7 +14,13 @@ struct String {
   std::string_view name;
   std::u16string_view value;
 };
-inline constexpr std::array<String, 221> kStrings_en = {{
+inline constexpr std::array<String, 230> kStrings_en = {{
+    {"blancProfileImportPersonal", u"Personal"},
+    {"blancProfileImportFavorites", u"Favorites"},
+    {"blancProfileImportHistory", u"History"},
+    {"blancProfileImportSpaces", u"Spaces"},
+    {"blancProfileImportArchived", u"Archived tabs"},
+    {"blancProfileImportPermissions", u"Site permissions"},
     {"blancGestureEmpty", u"No gestures assigned."},
     {"blancGestureLabel", u"Mouse gestures"},
     {"blancGestureHint", u"With a mouse, hold the right button and drag, then release. On a trackpad, hold Alt/Option (⌥), click and hold with one finger, then drag."},
@@ -236,8 +242,17 @@ inline constexpr std::array<String, 221> kStrings_en = {{
     {"blancProfileImportOld", u"Update the released Blanc app to 1.40 or later, then try again."},
     {"blancProfileImportPartial", u"Some data couldn't be read and was left out. Nothing in the released Blanc app was changed."},
     {"blancProfileImportFailed", u"The import didn't finish. Nothing in the released Blanc app was changed."},
+    {"blancProfileImportPins", u"Start Page pins"},
+    {"blancProfileImportNotRead", u"Couldn't be read, so nothing from this profile was imported."},
+    {"blancProfileImportLeftBehind", u"Not imported: website sign-ins, the downloads list and a few settings. You'll need to sign in to websites again."},
 }};
-inline constexpr std::array<String, 221> kStrings_de = {{
+inline constexpr std::array<String, 230> kStrings_de = {{
+    {"blancProfileImportPersonal", u"Personal"},
+    {"blancProfileImportFavorites", u"Favoriten"},
+    {"blancProfileImportHistory", u"Verlauf"},
+    {"blancProfileImportSpaces", u"Spaces"},
+    {"blancProfileImportArchived", u"Archivierte Tabs"},
+    {"blancProfileImportPermissions", u"Website-Berechtigungen"},
     {"blancGestureEmpty", u"Keine Gesten zugewiesen."},
     {"blancGestureLabel", u"Mausgesten"},
     {"blancGestureHint", u"Mit einer Maus: rechte Taste gedrückt halten, ziehen und loslassen. Auf einem Trackpad: Alt/Wahltaste (⌥) halten, mit einem Finger klicken und halten, dann ziehen."},
@@ -459,8 +474,17 @@ inline constexpr std::array<String, 221> kStrings_de = {{
     {"blancProfileImportOld", u"Aktualisiere die veröffentlichte Blanc-App auf 1.40 oder neuer und versuche es erneut."},
     {"blancProfileImportPartial", u"Einige Daten konnten nicht gelesen werden und wurden ausgelassen. In der veröffentlichten Blanc-App wurde nichts geändert."},
     {"blancProfileImportFailed", u"Der Import wurde nicht abgeschlossen. In der veröffentlichten Blanc-App wurde nichts geändert."},
+    {"blancProfileImportPins", u"Angeheftet auf der Startseite"},
+    {"blancProfileImportNotRead", u"Konnte nicht gelesen werden, daher wurde aus diesem Profil nichts importiert."},
+    {"blancProfileImportLeftBehind", u"Nicht importiert: Website-Anmeldungen, die Download-Liste und einige Einstellungen. Du musst dich bei Websites erneut anmelden."},
 }};
-inline constexpr std::array<String, 221> kStrings_es = {{
+inline constexpr std::array<String, 230> kStrings_es = {{
+    {"blancProfileImportPersonal", u"Personal"},
+    {"blancProfileImportFavorites", u"Favoritos"},
+    {"blancProfileImportHistory", u"Historial"},
+    {"blancProfileImportSpaces", u"Spaces"},
+    {"blancProfileImportArchived", u"Pestañas archivadas"},
+    {"blancProfileImportPermissions", u"Permisos de los sitios"},
     {"blancGestureEmpty", u"No hay gestos asignados."},
     {"blancGestureLabel", u"Gestos del ratón"},
     {"blancGestureHint", u"Con un ratón, mantén pulsado el botón derecho y arrastra; luego suelta. En un trackpad, mantén pulsada Alt/Opción (⌥), haz clic y mantén pulsado con un dedo y arrastra."},
@@ -682,8 +706,17 @@ inline constexpr std::array<String, 221> kStrings_es = {{
     {"blancProfileImportOld", u"Actualiza la app Blanc publicada a la 1.40 o posterior y vuelve a intentarlo."},
     {"blancProfileImportPartial", u"Algunos datos no se pudieron leer y se omitieron. No se cambió nada en la app Blanc publicada."},
     {"blancProfileImportFailed", u"La importación no terminó. No se cambió nada en la app Blanc publicada."},
+    {"blancProfileImportPins", u"Fijados de la página de inicio"},
+    {"blancProfileImportNotRead", u"No se pudo leer, así que no se importó nada de este perfil."},
+    {"blancProfileImportLeftBehind", u"No se importaron: los inicios de sesión en sitios web, la lista de descargas y algunos ajustes. Tendrás que volver a iniciar sesión en los sitios web."},
 }};
-inline constexpr std::array<String, 221> kStrings_fr = {{
+inline constexpr std::array<String, 230> kStrings_fr = {{
+    {"blancProfileImportPersonal", u"Personal"},
+    {"blancProfileImportFavorites", u"Favoris"},
+    {"blancProfileImportHistory", u"Historique"},
+    {"blancProfileImportSpaces", u"Spaces"},
+    {"blancProfileImportArchived", u"Onglets archivés"},
+    {"blancProfileImportPermissions", u"Autorisations des sites"},
     {"blancGestureEmpty", u"Aucun geste attribué."},
     {"blancGestureLabel", u"Gestes de la souris"},
     {"blancGestureHint", u"Avec une souris, maintenez le bouton droit enfoncé et faites glisser, puis relâchez. Sur un trackpad, maintenez Alt/Option (⌥), cliquez en maintenant un doigt, puis faites glisser."},
@@ -905,8 +938,17 @@ inline constexpr std::array<String, 221> kStrings_fr = {{
     {"blancProfileImportOld", u"Mettez à jour l'app Blanc publiée vers la 1.40 ou une version ultérieure, puis réessayez."},
     {"blancProfileImportPartial", u"Certaines données n'ont pas pu être lues et ont été laissées de côté. Rien n'a été modifié dans l'app Blanc publiée."},
     {"blancProfileImportFailed", u"L'importation ne s'est pas terminée. Rien n'a été modifié dans l'app Blanc publiée."},
+    {"blancProfileImportPins", u"Épinglés sur la page d’accueil"},
+    {"blancProfileImportNotRead", u"Lecture impossible : rien n’a été importé de ce profil."},
+    {"blancProfileImportLeftBehind", u"Non importés : les connexions aux sites web, la liste des téléchargements et quelques réglages. Vous devrez vous reconnecter aux sites web."},
 }};
-inline constexpr std::array<String, 221> kStrings_it = {{
+inline constexpr std::array<String, 230> kStrings_it = {{
+    {"blancProfileImportPersonal", u"Personal"},
+    {"blancProfileImportFavorites", u"Preferiti"},
+    {"blancProfileImportHistory", u"Cronologia"},
+    {"blancProfileImportSpaces", u"Spaces"},
+    {"blancProfileImportArchived", u"Schede archiviate"},
+    {"blancProfileImportPermissions", u"Autorizzazioni dei siti"},
     {"blancGestureEmpty", u"Nessun gesto assegnato."},
     {"blancGestureLabel", u"Gesti del mouse"},
     {"blancGestureHint", u"Con un mouse, tieni premuto il tasto destro e trascina, poi rilascia. Su un trackpad, tieni premuto Alt/Opzione (⌥), fai clic e tieni premuto con un dito, poi trascina."},
@@ -1128,8 +1170,17 @@ inline constexpr std::array<String, 221> kStrings_it = {{
     {"blancProfileImportOld", u"Aggiorna l'app Blanc pubblicata alla 1.40 o successiva, poi riprova."},
     {"blancProfileImportPartial", u"Alcuni dati non sono stati letti e sono stati esclusi. Nulla è cambiato nell'app Blanc pubblicata."},
     {"blancProfileImportFailed", u"L'importazione non è terminata. Nulla è cambiato nell'app Blanc pubblicata."},
+    {"blancProfileImportPins", u"Fissati nella pagina iniziale"},
+    {"blancProfileImportNotRead", u"Non è stato possibile leggerlo, quindi da questo profilo non è stato importato nulla."},
+    {"blancProfileImportLeftBehind", u"Non importati: gli accessi ai siti web, l’elenco dei download e alcune impostazioni. Dovrai accedere di nuovo ai siti web."},
 }};
-inline constexpr std::array<String, 221> kStrings_pt_BR = {{
+inline constexpr std::array<String, 230> kStrings_pt_BR = {{
+    {"blancProfileImportPersonal", u"Personal"},
+    {"blancProfileImportFavorites", u"Favoritos"},
+    {"blancProfileImportHistory", u"Histórico"},
+    {"blancProfileImportSpaces", u"Spaces"},
+    {"blancProfileImportArchived", u"Abas arquivadas"},
+    {"blancProfileImportPermissions", u"Permissões dos sites"},
     {"blancGestureEmpty", u"Nenhum gesto atribuído."},
     {"blancGestureLabel", u"Gestos do mouse"},
     {"blancGestureHint", u"Com um mouse, segure o botão direito e arraste; depois solte. Num trackpad, segure Alt/Option (⌥), clique e segure com um dedo e arraste."},
@@ -1351,6 +1402,9 @@ inline constexpr std::array<String, 221> kStrings_pt_BR = {{
     {"blancProfileImportOld", u"Atualize o app Blanc lançado para a 1.40 ou posterior e tente de novo."},
     {"blancProfileImportPartial", u"Alguns dados não puderam ser lidos e ficaram de fora. Nada foi alterado no app Blanc lançado."},
     {"blancProfileImportFailed", u"A importação não terminou. Nada foi alterado no app Blanc lançado."},
+    {"blancProfileImportPins", u"Fixados na página inicial"},
+    {"blancProfileImportNotRead", u"Não foi possível ler, então nada deste perfil foi importado."},
+    {"blancProfileImportLeftBehind", u"Não importados: logins em sites, a lista de downloads e algumas configurações. Você precisará entrar nos sites de novo."},
 }};
 
 // Chromium's application locale chooses, as for the settings page around

@@ -15,6 +15,7 @@ import {assertRendering,assertNodeRuntime} from './lib/render-guard.mjs';
 import {createWorld} from './world.mjs';
 import {inSettings} from './adapters/commands.mjs';
 import {makeImportSource,digestTree} from './lib/profile-import-fixture.mjs';
+const NAMED='profile_22222222222242228222222222222222';
 const [configFile,out]=process.argv.slice(2),config=JSON.parse(fs.readFileSync(configFile));
 assertNodeRuntime();assert.equal(fs.existsSync(out),false,'expected a new output folder');fs.mkdirSync(out,{recursive:true});
 const f=new NativeFixture(),w=createWorld(f),result={candidate:config.candidate,checks:[]};
@@ -29,6 +30,10 @@ const row=()=>inSettings(w,'help',async(a,d)=>{
  const button=root.getElementById('blancImportStart');
  return {value:{title:root.querySelector('#blancImport .flex > div').textContent.trim(),status:root.getElementById('blancImportStatus').textContent.trim(),
   button:button.textContent.trim(),busy:button.disabled}};});
+// The result list under the row: kind, label and value of each line.
+const details=()=>inSettings(w,'help',async(a,d)=>{
+ const root=d.find('#blancImport').getRootNode();
+ return {value:[...root.querySelectorAll('.blanc-import-row')].map(x=>[x.dataset.kind,x.querySelector('.flex').textContent.trim(),x.querySelector('.blanc-import-value').textContent.trim()])};});
 // A person's click, and the row once the import has answered.
 const click=()=>inSettings(w,'help',async(a,d)=>{
  const root=d.find('#blancImport').getRootNode(),button=root.getElementById('blancImportStart'),status=root.getElementById('blancImportStatus');
@@ -57,19 +62,35 @@ try{
  assert.deepEqual((await w.native('profileImportState')).profiles??{},{});
  result.checks.push('while the released app is running the import does not start');
 
- // 4. The import.
+ assert.deepEqual(await details(),[],'expected no result list before an import');
+
+ // 4. One profile unreadable: the rest comes across, and the list names each profile.
  await w.native('setImportElectronRunning',[false]);
+ const damaged=makeImportSource(parent,dir=>fs.writeFileSync(path.join(dir,'profiles',NAMED,'history.json'),'{'));
+ await w.native('setImportSource',[damaged.userData]);
+ r=await click();assert.deepEqual(r,{status:text('partial'),button:text('retry'),busy:false});
+ assert.deepEqual(await details(),[
+  ['imported','Personal','Favorites 2 · History 5,000 · Spaces 1 · Archived tabs 1 · Start Page pins 1 · Site permissions 6'],
+  ['failed','Fixture profile',text('notRead')],
+  ['left',text('leftBehind'),'']]);
+ result.checks.push('with one profile unreadable the list gives Personal\'s counts, names the profile left out and says what is never imported');
+
+ // 5. The import of the rest.
+ await w.native('setImportSource',[source.userData]);
  r=await click();assert.deepEqual(r,{status:text('done'),button:text('start'),busy:false});
+ const list=await details();
+ assert.deepEqual(list.map(x=>x[0]),['imported','left']);assert.equal(list[0][1],'Fixture profile');assert.match(list[0][2],/^History \d/);
  assert.deepEqual((await w.api('listFavorites')).map(x=>x.url),['https://personal.example.com/zeta','https://personal.example.com/alpha']);
  assert.equal((await w.native('profileImportProfiles')).length,2,'expected the named profile created');
  assert.equal(digestTree(source.userData),before,'expected the released app\'s folder unchanged');
  result.checks.push('the command imports from the released app\'s folder and says the data is here');
 
- // 5. Again: nothing new.
+ // 6. Again: nothing new.
  r=await click();assert.deepEqual(r,{status:text('already'),button:text('start'),busy:false});
+ assert.deepEqual(await details(),[],'expected no list when nothing was imported');
  result.checks.push('a second run says the data was already imported');
 
- // 6. Chromium's profile picker stays out of the way at the next launch.
+ // 7. Chromium's profile picker stays out of the way at the next launch.
  assert.equal((await w.native('profileImportPrefs',[['profile.show_picker_on_startup']])).prefs['profile.show_picker_on_startup'],false);
  await w.relaunch();await visible();
  assert.ok(!(await f.targets()).some(t=>/^chrome:\/\/profile-picker/.test(t.url)),'expected no profile picker at launch');

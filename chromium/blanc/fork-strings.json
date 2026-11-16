@@ -142,5 +142,29 @@
     "fr": "L'importation ne s'est pas terminée. Rien n'a été modifié dans l'app Blanc publiée.",
     "it": "L'importazione non è terminata. Nulla è cambiato nell'app Blanc pubblicata.",
     "pt-BR": "A importação não terminou. Nada foi alterado no app Blanc lançado."
+  },
+  "settings.profileImport.pins": {
+    "en": "Start Page pins",
+    "de": "Angeheftet auf der Startseite",
+    "es": "Fijados de la página de inicio",
+    "fr": "Épinglés sur la page d’accueil",
+    "it": "Fissati nella pagina iniziale",
+    "pt-BR": "Fixados na página inicial"
+  },
+  "settings.profileImport.notRead": {
+    "en": "Couldn't be read, so nothing from this profile was imported.",
+    "de": "Konnte nicht gelesen werden, daher wurde aus diesem Profil nichts importiert.",
+    "es": "No se pudo leer, así que no se importó nada de este perfil.",
+    "fr": "Lecture impossible : rien n’a été importé de ce profil.",
+    "it": "Non è stato possibile leggerlo, quindi da questo profilo non è stato importato nulla.",
+    "pt-BR": "Não foi possível ler, então nada deste perfil foi importado."
+  },
+  "settings.profileImport.leftBehind": {
+    "en": "Not imported: website sign-ins, the downloads list and a few settings. You'll need to sign in to websites again.",
+    "de": "Nicht importiert: Website-Anmeldungen, die Download-Liste und einige Einstellungen. Du musst dich bei Websites erneut anmelden.",
+    "es": "No se importaron: los inicios de sesión en sitios web, la lista de descargas y algunos ajustes. Tendrás que volver a iniciar sesión en los sitios web.",
+    "fr": "Non importés : les connexions aux sites web, la liste des téléchargements et quelques réglages. Vous devrez vous reconnecter aux sites web.",
+    "it": "Non importati: gli accessi ai siti web, l’elenco dei download e alcune impostazioni. Dovrai accedere di nuovo ai siti web.",
+    "pt-BR": "Não importados: logins em sites, a lista de downloads e algumas configurações. Você precisará entrar nos sites de novo."
   }
 }
