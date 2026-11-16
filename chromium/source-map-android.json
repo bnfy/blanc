@@ -14,6 +14,7 @@
     "chrome/android/java/src/org/chromium/chrome/browser/SwipeRefreshHandler.java": "bd1234a82d6a5d3e38f993a0113b17678afae0095c880802a05097f79231831f",
     "chrome/android/java/src/org/chromium/chrome/browser/background_task_scheduler/ChromeBackgroundTaskFactory.java": "1795f0c8f29bbf145ef38e7f592803a74b955f5dea9361e201ffb866fa665534",
     "chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java": "af19c62f69bf27963e11e3886e7cb4c4a74e9282e726b7d1d768da3039339996",
+    "chrome/android/java/src/org/chromium/chrome/browser/modaldialog/ChromeTabModalPresenter.java": "9ba3f0d1369002448ba78655af2f7386d0414014d006a02255bd20acf7355564",
     "chrome/android/java/src/org/chromium/chrome/browser/settings/MainSettings.java": "05ff4a696a30372b0290c3c04a05f31361b027510fe9944ed7f9c55e1d510ca8",
     "chrome/android/java/src/org/chromium/chrome/browser/settings/SettingsActivity.java": "503de1ae58e799e35eacfff2c4dc3e7ab45703174872de625dee15f13e7d9c4d",
     "chrome/android/java/src/org/chromium/chrome/browser/settings/SettingsMenuHelper.java": "af699946479c29d521f07e0bfbbb1608b2786d38b28d1ea013f37c3983fa725c",

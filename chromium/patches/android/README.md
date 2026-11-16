@@ -59,6 +59,13 @@ in the lane file in its place. Numbering starts at 0101.
   package with Blanc's version (`1.0.0-beta.1`), which isn't a valid
   `base::Version`: variations CHECK-failed at launch, and the user agent would
   have read `Chrome/1.0.0-beta.1`.
+- `0118-android-tab-modal-dialogs.patch`: shows a dialog that belongs to a tab
+  at once, from the top of the page. `ChromeTabModalPresenter` waited for
+  Chrome's toolbar to be fully visible and started below its height; 0104
+  keeps that toolbar hidden, so the page dimmed and no dialog appeared (found
+  on 1.0.0-beta.1 with a site's camera prompt). Run on the emulator with the
+  patch: a site's camera prompt and an HTTP sign-in. JavaScript alerts and
+  confirms go through the same presenter and were not run.
 
 A Chromium file dropped from the lane keeps its applied edits in an existing
 checkout: restore it with `git checkout` there. A Blanc file the source drops or
