@@ -15,10 +15,12 @@ const entry = (versionCode, overrides = {}) => ({
   ...overrides,
 });
 
-test('the checked-in Android release ledger starts empty', () => {
-  const initial = JSON.parse(fs.readFileSync(new URL('../android/release/ledger.json', import.meta.url), 'utf8'));
-  assert.deepEqual(initial, ledger());
-  assert.equal(validateLedger(initial), undefined);
+test('the checked-in Android release ledger is valid, and its codes run from 1 without a gap', () => {
+  const checkedIn = JSON.parse(fs.readFileSync(new URL('../android/release/ledger.json', import.meta.url), 'utf8'));
+  assert.equal(validateLedger(checkedIn), undefined);
+  assert.deepEqual(checkedIn.builds.map(build => build.versionCode), checkedIn.builds.map((_, index) => index + 1));
+  // The first row is the first upload: 1.0.0-beta.1, version code 1.
+  assert.deepEqual([checkedIn.builds[0].versionName, checkedIn.builds[0].tag, checkedIn.builds[0].state], ['1.0.0-beta.1', 'android-v1.0.0-beta.1-1', 'uploaded']);
 });
 
 test('the first Android release gets code 1 and its versioned tag', () => {
