@@ -78,7 +78,7 @@ test('outbound release session launches release package and reads release NetLog
 for (const pkg of ['me.bnfy.blanc', 'me.bnfy.blanc.dev']) test(`acceptance ${pkg} preferences and renderer counts target selected package`, () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'release-device-'));
   try {
-    fs.writeFileSync(`${dir}/adb`, '#!/bin/sh\necho "$*" >> "$TRACE"\ncase "$*" in *"id -u") echo 0;; *cat*) echo "<map></map>";; esac\n', {mode: 0o755});
+    fs.writeFileSync(`${dir}/adb`, '#!/bin/sh\necho "$*" >> "$TRACE"\n# A write keeps what it was given, so the read-back after it sees the entry.\ncase "$*" in *"id -u") echo 0;; *"cat > "*) echo "$*" > "$TRACE.prefs";; *cat*) if [ -f "$TRACE.prefs" ]; then cat "$TRACE.prefs"; else echo "<map></map>"; fi;; esac\n', {mode: 0o755});
     const deviceURL = new URL('../tests/android/acceptance/support/device.mjs', import.meta.url).href;
     const quietURL = new URL('../tests/android/quiet-tabs.mjs', import.meta.url).href;
     const code = `import assert from 'node:assert/strict'; import {Device,PACKAGE} from ${JSON.stringify(deviceURL)}; import {renderers} from ${JSON.stringify(quietURL)}; assert.equal(PACKAGE,process.env.BLANC_ANDROID_PACKAGE); const d=new Device(); d.launch=async()=>{}; await d.setPref('<long name="fixture" value="1" />','fixture'); assert.equal(renderers('u0 123 1 me.bnfy.blanc:sandboxed_process0\\nu0 124 1 me.bnfy.blanc:sandboxed_process1\\nu0 456 1 me.bnfy.blanc.dev:sandboxed_process0',PACKAGE), ${pkg === 'me.bnfy.blanc' ? '2' : '1'});`;
