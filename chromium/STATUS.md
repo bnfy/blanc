@@ -14,6 +14,20 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Importer fixtures and answer key (plan M.1; Codex card C4, c2274c41d):**
+  `node chromium/tools/importer-fixtures.mjs --out <new dir>` writes a
+  synthetic Electron `userData` (Personal, one named profile and one pending
+  deletion; 32 files in shipping v1.49.1's formats, invented data only) and
+  `expected.json`, what a correct importer carries over after each rule of
+  spec §7: Favorites tombstones dropped, 5,001 visits bounded to 5,000, a
+  `clipboard-read` permission dropped, the pending profile removed. Two runs
+  are byte-identical; its 15 unit tests pass, and the copied constants are
+  compared with `git show v1.49.1`. No Sync or Patron secret, no site
+  storage. The answer key leaves two questions open, for the owner before
+  M.2: which Chromium profiles receive the synced keys of the one
+  device-wide `settings.json` (and where `_syncMeta` and the tie-breakers
+  go), and which non-secret `sync.json` fields migrate when the key is
+  re-wrapped separately. The importer itself (M.2–M.4) is not started.
 - **2026-11-16 — N1 rechecked; F59 and F58 need native work first (Codex card C2b, 71d6ca969):**
   `tests/native-recheck-n1.mjs` passes 5 of 5 on the staged
   macos-4f9e9bb648216395 (entry and title, nothing for a private tab, Forget,

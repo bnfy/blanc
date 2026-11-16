@@ -58,6 +58,12 @@ Out of scope: F38, F42, X1 (owner chose Web Store extensions), Windows, Linux, A
 - **C3 moves to Claude.** The scenario change to v1.49.1 is small (44 lines in two feature files), but the pin is shared by `tests/lib/shipping-core.cjs`, the tracker and eleven unit tests that compare the fork's ports with shipping, and moving it goes with a renderer sync and a build. It becomes **K13**, a shipping-target move like the one to v1.48.0.
 - **C4 is running** (importer fixtures and answer key). It is Codex's last card in this plan.
 
+## 2c. Codex lane finished (2026-11-16)
+
+- **C4 landed** (c2274c41d): the fixture generator and answer key, 15 tests. Codex's lane in this plan is done: three cards landed, each one commit inside its allowed files, none rejected.
+- **Two new owner questions for K9**, raised by the answer key: **O4** which Chromium profiles get the synced keys of the single device-wide `settings.json`; **O5** which non-secret `sync.json` fields migrate.
+- What remains is all Claude lane (§6 plus K11–K13) and needs Mac Studio builds.
+
 ## 3. Codex operating contract
 
 These rules are pasted verbatim at the top of every brief. They exist because of how the October fork work went wrong (124 continuation sections in a day, numbered draft copies, 22 `CODEX-NOTES-*.md` files, integration deferred).
