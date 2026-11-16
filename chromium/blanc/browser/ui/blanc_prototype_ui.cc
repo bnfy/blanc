@@ -7121,6 +7121,17 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (quiet_method == "profileImportState" && quiet_args.empty()) {
       Reply(id, true, base::Value(g_browser_process->local_state()->GetDict(kProfileImportPref).Clone())); return;
     }
+    if (quiet_method == "profileImportPrefs" && quiet_args.size() == 1 && quiet_args[0].is_list()) {
+      auto* profile = GetOwner(web_ui()->GetWebContents())->browser->GetProfile()->GetOriginalProfile();
+      base::DictValue values;
+      for (const auto& name : quiet_args[0].GetList()) {
+        if (!name.is_string()) continue;
+        PrefService* store = profile->GetPrefs()->FindPreference(name.GetString()) ? profile->GetPrefs() : g_browser_process->local_state();
+        if (const auto* pref = store->FindPreference(name.GetString())) values.Set(name.GetString(), pref->GetValue()->Clone());
+      }
+      Reply(id, true, base::Value(base::DictValue().Set("prefs", std::move(values))
+          .Set("synced", blanc::ReadDesktopSyncSettings(profile)))); return;
+    }
     if (quiet_method == "profileImportPins" && quiet_args.empty()) {
       Reply(id, true, base::Value(GetOwner(web_ui()->GetWebContents())->browser->GetProfile()->GetOriginalProfile()
           ->GetPrefs()->GetList(kStartPagePinsPref).Clone())); return;

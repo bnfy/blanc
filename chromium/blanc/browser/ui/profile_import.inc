@@ -8,9 +8,10 @@
 // browser then applies a profile's part only when all of it converted, and
 // records what it imported in Local State so a second run adds nothing.
 //
-// Built so far (task 2): the Personal profile's Favorites, history, site
-// icons, Start Page pins, Tab Archive and Spaces. Settings, the session,
-// named profiles, permissions, downloads and Sync follow in later tasks.
+// Built so far (tasks 2 and 3): the Personal profile's Favorites, history,
+// site icons, Start Page pins, Tab Archive and Spaces; settings and the
+// install id. The session, named profiles, permissions, downloads and Sync
+// follow in later tasks.
 //
 // Included by blanc_prototype_ui.cc inside its unnamed namespace.
 
@@ -382,6 +383,59 @@ void ApplyImport(Profile* profile, PreparedImport prepared, base::OnceCallback<v
       }, profile->GetWeakPtr(), std::move(prepared), std::move(done)));
 }
 
+// Settings (task 3). The seven keys Sync carries go through Sync's own
+// converter; the rest arrive from the plan builder as preference names and
+// values it already checked against the settings table. Here a value is
+// written only into a Blanc preference (or the one Chromium preference the
+// table names) that is registered with the same type, in the profile's
+// store or, failing that, Local State.
+base::DictValue ApplyImportedSettings(Profile* profile, const base::DictValue* synced, const base::DictValue* prefs) {
+  int converted = 0, copied = 0;
+  base::ListValue refused;
+  if (synced) {
+    base::DictValue patch;
+    for (auto [key, value] : *synced) {
+      if (blanc::SupportedDesktopSyncSetting(key, value)) { patch.Set(key, value.Clone()); ++converted; }
+    }
+    if (!patch.empty()) blanc::ApplyDesktopSyncSettings(profile, patch);
+  }
+  if (prefs) {
+    for (auto [name, value] : *prefs) {
+      if (!name.starts_with("blanc.") && name != "search.suggest_enabled") { refused.Append(name); continue; }
+      PrefService* store = profile->GetPrefs()->FindPreference(name) ? profile->GetPrefs() : g_browser_process->local_state();
+      const auto* pref = store->FindPreference(name);
+      if (!pref || !pref->IsUserModifiable()) { refused.Append(name); continue; }
+      if (pref->GetType() == base::Value::Type::DOUBLE && value.is_int()) {
+        store->SetDouble(name, value.GetInt());
+      } else if (pref->GetType() == value.type() &&
+                 (value.is_bool() || value.is_int() || value.is_double() || value.is_string())) {
+        store->Set(name, value.Clone());
+      } else {
+        refused.Append(name);
+        continue;
+      }
+      ++copied;
+    }
+  }
+  profile->GetPrefs()->CommitPendingWrite();
+  g_browser_process->local_state()->CommitPendingWrite();
+  return base::DictValue().Set("synced", converted).Set("prefs", copied).Set("refused", std::move(refused));
+}
+
+// The install id travels with the person (spec section 7), so a count of
+// installs does not see a new one.
+bool ApplyImportedInstall(const base::DictValue* install) {
+  const auto* id = install ? install->FindString("id") : nullptr;
+  const auto created = install ? install->FindDouble("createdAt") : std::nullopt;
+  if (!id || !base::Uuid::ParseCaseInsensitive(*id).is_valid() || !created || !std::isfinite(*created) || *created <= 0) return false;
+  g_browser_process->local_state()->SetDict("blanc.telemetry.install", base::DictValue()
+      .Set("id", base::ToLowerASCII(*id)).Set("createdAt", *created)
+      .Set("day1Default", install->FindBool("day1Default").value_or(false))
+      .Set("day1Browsed", install->FindBool("day1Browsed").value_or(false)));
+  g_browser_process->local_state()->CommitPendingWrite();
+  return true;
+}
+
 // One import at a time. The result names what came across, what failed and
 // what was imported before.
 class ProfileImport final {
@@ -399,6 +453,8 @@ class ProfileImport final {
   void Finish(base::Value result);
   std::unique_ptr<ProfileImportRunner> runner_;
   base::WeakPtr<Profile> personal_;
+  base::DictValue settings_synced_, settings_prefs_, install_;
+  base::ListValue settings_skipped_;
   base::DictValue result_;
   Done done_;
   base::WeakPtrFactory<ProfileImport> weak_{this};
@@ -445,6 +501,15 @@ void ProfileImport::Planned(bool ok, const std::string& value) {
     return;
   }
   if (!stores) { Finish(base::Value(std::move(result_))); return; }
+  // Kept for after the profile's own data lands (Applied).
+  if (const auto* synced = stores->FindDict("settings.json")) settings_synced_ = synced->Clone();
+  if (const auto* rules = parsed->FindDict("settingsPrefs")) {
+    if (const auto* prefs = rules->FindDict("prefs")) settings_prefs_ = prefs->Clone();
+    if (const auto* skipped = rules->FindList("skipped")) settings_skipped_ = skipped->Clone();
+  }
+  if (const auto* device = parsed->FindDict("device")) {
+    if (const auto* install = device->FindDict("install.json")) install_ = install->Clone();
+  }
   auto prepared = PrepareImport(*stores);
   if (!prepared.error.empty()) {
     result_.FindList("errors")->Append(base::DictValue().Set("profile", "personal").Set("store", prepared.error).Set("reason", "invalid-shape"));
@@ -459,6 +524,12 @@ void ProfileImport::Applied(std::string version, base::Value applied) {
     Finish(base::Value(std::move(result_)));
     return;
   }
+  if (personal_) {
+    auto settings = ApplyImportedSettings(personal_.get(), &settings_synced_, &settings_prefs_);
+    settings.Set("skipped", std::move(settings_skipped_));
+    result_.Set("settings", std::move(settings));
+  }
+  result_.Set("install", ApplyImportedInstall(&install_));
   // The marker: the source's version and when each profile came across.
   auto marker = g_browser_process->local_state()->GetDict(kProfileImportPref).Clone();
   marker.Set("sourceVersion", version);
@@ -472,6 +543,8 @@ void ProfileImport::Applied(std::string version, base::Value applied) {
 void ProfileImport::Finish(base::Value result) {
   runner_.reset();
   result_ = base::DictValue();
+  settings_synced_ = base::DictValue(); settings_prefs_ = base::DictValue(); install_ = base::DictValue();
+  settings_skipped_ = base::ListValue();
   personal_.reset();
   if (done_) std::move(done_).Run(std::move(result));
 }

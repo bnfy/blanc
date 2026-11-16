@@ -44,7 +44,10 @@ try{
  result.checks.push('a folder that is not Blanc\'s, and one older than v1.40.0, are refused whole');
 
  // 3. The fixture: the Personal profile comes across.
- const source=makeImportSource(parent);const before=digestTree(source.userData);
+ const source=makeImportSource(parent,dir=>{const file=path.join(dir,'settings.json');
+  fs.writeFileSync(file,JSON.stringify({...JSON.parse(fs.readFileSync(file,'utf8')),islandSize:'large',islandHoverOpen:true,tabSleep:'6h',pageZoom:125,
+   surfaceStyle:'bogus',tabSwitchOrder:'list',bangsEnabled:false,adblockExceptions:['example.org']}));});
+ const before=digestTree(source.userData);
  r=await run(source.userData);
  assert.equal(r.ok,true,JSON.stringify(r).slice(0,400));assert.equal(r.sourceVersion,'1.49.1');assert.deepEqual(r.errors,[]);
  assert.deepEqual(r.profiles.personal,{favorites:2,history:5000,siteIcons:1,pins:1,archive:1,spaces:1});
@@ -75,7 +78,20 @@ try{
  assert.equal(space.color,'#426c4c');assert.equal(space.symbol,'book');
  result.checks.push('the Space comes across with its name, color, symbol and tab');
 
- // 7. The source is untouched, and a second run adds nothing.
+ // 7. Settings and the install id.
+ assert.equal(r.settings.synced>=3,true,JSON.stringify(r.settings));assert.deepEqual(r.settings.refused,[]);
+ assert.deepEqual(r.settings.skipped,[{key:'surfaceStyle',reason:'invalid-value'}]);assert.equal(r.install,true);
+ const names=['blanc.island.size','blanc.island.hover_open','blanc.prototype.quiet_delay','blanc.page_zoom','blanc.tabs.switch_order',
+  'blanc.appearance.surface_style','blanc.telemetry.usage_ping','blanc.first_run.completed_at','blanc.telemetry.install'];
+ const read=await w.native('profileImportPrefs',[names]);
+ assert.deepEqual(read.prefs,{'blanc.island.size':'large','blanc.island.hover_open':true,'blanc.prototype.quiet_delay':'6h','blanc.page_zoom':125,
+  'blanc.tabs.switch_order':'list','blanc.appearance.surface_style':'sunrise','blanc.telemetry.usage_ping':false,
+  'blanc.first_run.completed_at':1794528000000,
+  'blanc.telemetry.install':{id:'99999999-9999-4999-8999-999999999999',createdAt:1794528000000,day1Default:false,day1Browsed:true}});
+ assert.equal(read.synced.theme,'dark');assert.equal(read.synced.bangsEnabled,false);assert.deepEqual(read.synced.adblockExceptions,['example.org']);
+ result.checks.push('settings land in their preferences (a value the fork would refuse is skipped), and the install id is kept');
+
+ // 8. The source is untouched, and a second run adds nothing.
  assert.equal(digestTree(source.userData),before,'expected the Electron folder byte for byte as it was');
  const state=await w.native('profileImportState');
  assert.equal(state.sourceVersion,'1.49.1');assert.deepEqual(Object.keys(state.profiles),['personal']);

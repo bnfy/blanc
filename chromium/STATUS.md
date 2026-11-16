@@ -14,6 +14,26 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Electron profile importer, task 3: settings and the install id (candidate macos-2fde2b7b2c1ae676):**
+  `chromium/settings-keys.json` is at v1.49.1 (85 keys, `reuseNewTab`
+  added) and marks each importable key with an `import` field (its
+  preference, and the values or range it may take). The bundle builder turns
+  those into the plan builder's rules with each preference's registered type;
+  the plan carries `settingsPrefs` `{prefs, skipped, notCarried}`. In the
+  browser the seven keys Sync carries go through Sync's own converter
+  (`ApplyDesktopSyncSettings`), and the rest are written only into a `blanc.`
+  preference (or `search.suggest_enabled`) registered with the same type, in
+  the profile's store or Local State. A value the fork would refuse is
+  skipped and named. The install id and its dates replace the fork's own in
+  Local State. Settings land in the first profile only for now.
+  Evidence: `native-profile-import.mjs` 8 of 8 on the Mac Studio (Island
+  size, hover-open, quiet delay, page zoom, Ctrl+Tab order, usage
+  measurement, first-run time, theme, Bangs, blocking exceptions and the
+  install id read back; an invalid surface style skipped);
+  `profile-import.test.mjs` 10 of 10.
+  **Not carried yet:** the Start Page's own settings (they live in the page's
+  storage), link routes (they name profile ids), the mouse gesture mapping,
+  the WebRTC policy, secure DNS, recent Bangs and the checklist markers.
 - **2026-11-16 — Electron profile importer, task 2: the runner, the marker and the Personal profile's data (candidate macos-0998ddd2080544a0; patch 0092):**
   `profile_import.inc`. *Reading:* the browser reads the folder's known
   stores only (regular files, never through a link, 32 MiB each and 256 MiB

@@ -129,6 +129,28 @@ test('private downloads and unpromptable permissions never reach the plan', asyn
   assert.ok(result.notImported.some(row => row.source === 'userData/downloads.json#/items/1'));
 });
 
+test('device settings become preferences only when their value is one the fork accepts', async () => {
+  const {files} = sourceFiles(f => {
+    f['settings.json'] = JSON.stringify({...JSON.parse(f['settings.json']), islandSize: 'large', islandHoverOpen: true,
+      tabSleep: '6h', pageZoom: 125, surfaceStyle: 'bogus', islandAutoHide: 'yes', miniWindowShortcut: 'alt-cmd-n',
+      tabArchive: '7d', uiLanguage: 'fr', searchSuggestions: false, verticalTabsTextSize: 'huge', tabSwitchOrder: 'list'});
+  });
+  const {settingsPrefs} = await plan(files);
+  assert.deepEqual(Object.fromEntries(['blanc.island.size', 'blanc.island.hover_open', 'blanc.prototype.quiet_delay', 'blanc.page_zoom',
+    'blanc.mini_window.shortcut', 'blanc.tabs.archive', 'blanc.ui_language', 'search.suggest_enabled', 'blanc.tabs.switch_order',
+    'blanc.telemetry.usage_ping', 'blanc.first_run.completed_at', 'blanc.tabs.reuse_new_tab'].map(name => [name, settingsPrefs.prefs[name]])),
+    {'blanc.island.size': 'large', 'blanc.island.hover_open': true, 'blanc.prototype.quiet_delay': '6h', 'blanc.page_zoom': 125,
+      'blanc.mini_window.shortcut': 'alt-cmd-n', 'blanc.tabs.archive': '7d', 'blanc.ui_language': 'fr', 'search.suggest_enabled': false,
+      'blanc.tabs.switch_order': 'list', 'blanc.telemetry.usage_ping': false, 'blanc.first_run.completed_at': 1794528000000,
+      'blanc.tabs.reuse_new_tab': true});
+  for (const name of ['blanc.appearance.surface_style', 'blanc.island.auto_hide', 'blanc.vertical_tabs.text_size']) assert.ok(!Object.hasOwn(settingsPrefs.prefs, name), name);
+  assert.deepEqual(settingsPrefs.skipped.map(row => row.key).sort(), ['islandAutoHide', 'surfaceStyle', 'verticalTabsTextSize']);
+  for (const name of Object.keys(settingsPrefs.prefs)) assert.ok(/^blanc\.[a-z_.]+$/.test(name) || name === 'search.suggest_enabled', name);
+  // Keys with no rule are named, never guessed at; Sync's seven are the browser's to convert.
+  assert.ok(settingsPrefs.notCarried.includes('webrtcPolicy') && settingsPrefs.notCarried.includes('newtabClockFont') && settingsPrefs.notCarried.includes('linkRoutes'));
+  for (const key of ['theme', 'searchEngine', 'adblockEnabled', 'customBangs', 'islandSize', '_syncMeta', 'patron']) assert.ok(!settingsPrefs.notCarried.includes(key), key);
+});
+
 test('only the plan call exists, and the bundle touches no host', async () => {
   const {files} = sourceFiles();
   assert.deepEqual(await plan(files, 'desktop.import'), {failed: 'forbidden'});

@@ -84,11 +84,13 @@ Each task ends with its own passing tests and a push to `chromium/next`. Tasks 1
 
 ### Task 3: Settings and install id
 
+**Done 2026-11-16** (candidate macos-2fde2b7b2c1ae676, 8 native checks, 10 plan-builder tests). The table marks each importable key with an `import` field; the bundle builder turns those into the plan builder's rules, with each preference's registered type. 28 keys copy directly, 7 go through Sync's converter, and the rest are named in `settingsPrefs.notCarried` (the Start Page's own settings, link routes, mouse gesture mapping, WebRTC policy, secure DNS and the migration markers among them) for later tasks. Device settings land in the Personal profile; Task 5 applies them to named profiles too.
+
 **Files:** modify `chromium/settings-keys.json`, `chromium/tools/settings-keys.mjs`, `profile_import.inc`; extend the native test.
 
-- [ ] Refresh `settings-keys.json` to v1.49.1 and add the keys built since (`reuseNewTab`, `tabSwitchOrder`, link routes, Glance frame, mouse gestures, Mini Window shortcut and the others the survey lists); each key is marked `profile`, `device`, `page` or `not-imported` with a reason.
-- [ ] Test: after import, each mapped pref equals the fixture's setting, synced keys only in Personal; the install id equals the fixture's; unmapped keys appear in the import report.
-- [ ] Implement, build, pass, commit and push.
+- [x] Refresh `settings-keys.json` to v1.49.1 and add the keys built since (`reuseNewTab`, `tabSwitchOrder`, link routes, Glance frame, mouse gestures, Mini Window shortcut and the others the survey lists); each key is marked `profile`, `device`, `page` or `not-imported` with a reason.
+- [x] Test: after import, each mapped pref equals the fixture's setting, synced keys only in Personal; the install id equals the fixture's; unmapped keys appear in the import report.
+- [x] Implement, build, pass, commit and push.
 
 ### Task 4: The open session
 

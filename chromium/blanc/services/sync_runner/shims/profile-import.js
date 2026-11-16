@@ -34,6 +34,33 @@ const PROFILE_STORES = ['bookmarks.json', 'history.json', 'downloads.json', 'sit
 const DEVICE_STORES = ['session.json', 'profiles.json', 'profile-deletions.json', 'sync.json', 'tab-sync.json',
   'tab-icons.json', 'sends.json', 'install.json', 'wallpaper.json'];
 
+// The settings Sync carries are converted by the browser with Sync's own
+// converter (desktop_sync_settings.cc), so no rule is needed for them here.
+const SYNC_CONVERTED = ['theme', 'adblockEnabled', 'adblockExceptions', 'searchEngine', 'searchEngineTemplate', 'bangsEnabled', 'customBangs'];
+
+// Device settings as fork preferences. SETTINGS_IMPORT is put in the bundle
+// by its builder from chromium/settings-keys.json: [{key, pref, type,
+// values?, min?, max?}]. A value the fork would not accept is skipped.
+function settingsPrefs(settings) {
+  const prefs = {};
+  const skipped = [];
+  const ruled = new Set(SETTINGS_IMPORT.map(rule => rule.key));
+  for (const rule of SETTINGS_IMPORT) {
+    if (!Object.prototype.hasOwnProperty.call(settings, rule.key)) continue;
+    const value = settings[rule.key];
+    const fine = rule.type === 'Boolean' ? typeof value === 'boolean'
+      : rule.type === 'String' ? typeof value === 'string' && value.length <= 256 && (!rule.values || rule.values.includes(value))
+      : rule.type === 'Integer' ? Number.isInteger(value) && (rule.min === undefined || value >= rule.min) && (rule.max === undefined || value <= rule.max)
+      : rule.type === 'Double' ? typeof value === 'number' && Number.isFinite(value) && value >= 0
+      : false;
+    if (fine) prefs[rule.pref] = value;
+    else skipped.push({key: rule.key, reason: 'invalid-value'});
+  }
+  const notCarried = Object.keys(settings).filter(key => !ruled.has(key) && !SYNC_CONVERTED.includes(key) &&
+    !Object.prototype.hasOwnProperty.call(SETTINGS_LEFT_BEHIND, key)).sort();
+  return {prefs, skipped, notCarried};
+}
+
 const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const pointer = segment => String(segment).replaceAll('~', '~0').replaceAll('/', '~1');
 class StoreError extends Error {}
@@ -195,5 +222,6 @@ module.exports = function plan(files) {
       errors.push({profile: key, store: error.store, reason: error.message});
     }
   }
-  return {ok: true, schema: SCHEMA, sourceVersion: version.sourceVersion, profiles, device, notImported, errors};
+  return {ok: true, schema: SCHEMA, sourceVersion: version.sourceVersion, profiles, device, notImported, errors,
+    settingsPrefs: settingsPrefs(settings)};
 };
