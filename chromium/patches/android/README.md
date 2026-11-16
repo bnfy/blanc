@@ -52,7 +52,10 @@ in the lane file in its place. Numbering starts at 0101.
   launch. Debug builds never used it (component builds can't).
 - `0117-android-chromium-version.patch`: `version_info::GetVersionNumber()`
   returns Chromium's own version (`PRODUCT_VERSION`) on Android, as on
-  desktop, instead of the package's version name. Release builds name the
+  desktop, instead of the package's version name, and the generated
+  `version_info_values.h` defines `PRODUCT_VERSION` on Android too (Chromium
+  leaves it out there so one library can serve several app versions; Blanc
+  ships one). Release builds name the
   package with Blanc's version (`1.0.0-beta.1`), which isn't a valid
   `base::Version`: variations CHECK-failed at launch, and the user agent would
   have read `Chrome/1.0.0-beta.1`.
