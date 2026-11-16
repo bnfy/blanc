@@ -14,6 +14,31 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Electron profile importer, task 2: the runner, the marker and the Personal profile's data (candidate macos-0998ddd2080544a0; patch 0092):**
+  `profile_import.inc`. *Reading:* the browser reads the folder's known
+  stores only (regular files, never through a link, 32 MiB each and 256 MiB
+  in all, profile folders by id pattern, at most 64) and never writes there.
+  *Planning:* `ProfileImportRunner` starts the sandboxed service with the
+  pinned profile-import bundle (hash checked, 60-second limit, every host
+  call refused). *Applying:* a profile's stores are all converted first
+  (`PrepareImport`); then Spaces are written (the one write that can refuse),
+  then Favorites (`browser_import::Import`), history (`AddPage` with each
+  visit's own time, then titles), site icons, Start Page pins and the Tab
+  Archive. *Marker:* Local State `blanc.profile_import`
+  `{sourceVersion, profiles: {personal: {importedAt}}}`; a second run reports
+  `alreadyImported` and writes nothing. Only the first (`Default`) profile is
+  imported so far; reached only through the test hook `profileImportRun`.
+  Evidence on the Mac Studio: `native-profile-import.mjs` 7 of 7 (failed on
+  the build before): a damaged store leaves the profile untouched; a
+  non-Blanc folder and a v1.39 source are refused; Favorites in order with
+  their folder; 5,000 visits with their own times; the pin; the archived
+  tab; the Space with its name, color, symbol and tab; the source folder
+  byte for byte unchanged; nothing imported twice. Also
+  `arc-spaces-import` 7 of 7, `find-favorites-history` 7 of 7,
+  `native-tab-handoff` 9, `native-protected-media` 8.
+  **Not done or not checked:** splits inside a Space; site icons on screen;
+  a real profile (only the synthetic fixture was imported); the service's
+  size limit for a very large real history or icon store.
 - **2026-11-16 — Electron profile importer, task 1: the plan builder (plan `docs/superpowers/plans/2026-11-16-electron-profile-importer.md`):**
   `shims/profile-import.js`, built into `generated/profile-import-bundle.js`
   (pinned hash in `profile_import_bundle_hash.h`) by

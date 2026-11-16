@@ -96,6 +96,7 @@
     "patches/0088-blanc-tab-switch-order.patch",
     "patches/0089-blanc-dock-active-tab.patch",
     "patches/0090-blanc-trust-receipt.patch",
-    "patches/0091-blanc-protected-media-notice.patch"
+    "patches/0091-blanc-protected-media-notice.patch",
+    "patches/0092-blanc-profile-import-marker.patch"
   ]
 }

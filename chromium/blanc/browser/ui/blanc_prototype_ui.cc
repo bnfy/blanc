@@ -5,6 +5,9 @@
 #include "blanc/services/sync_runner/sync_resources.h"
 #include "blanc/services/sync_runner/import_bundle_hash.h"
 #include "blanc/services/sync_runner/handoff_bundle_hash.h"
+#include "blanc/services/sync_runner/profile_import_bundle_hash.h"
+#include "base/files/file_enumerator.h"
+#include "net/base/data_url.h"
 #include "content/public/browser/service_process_host.h"
 #include "mojo/public/cpp/bindings/remote.h"
 #include "build/build_config.h"
@@ -6024,6 +6027,7 @@ constexpr char kLinkRouteActivation[] = "blanc.link-route.activation";
 #include "blanc/browser/ui/tab_handoff.inc"
 #include "blanc/browser/ui/trust_receipt.inc"
 #include "blanc/browser/ui/protected_media.inc"
+#include "blanc/browser/ui/profile_import.inc"
 #include "blanc/browser/ui/chromium_settings_handler.inc"
 #include "blanc/browser/ui/utility_sheet_ops.inc"
 
@@ -7101,6 +7105,53 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     if (quiet_method == "resetProtectedMedia" && quiet_args.empty()) {
       ProtectedMediaDismissed().clear(); TestProtectedHandoffs().clear(); Reply(id, true, base::Value(true)); return;
+    }
+    // The Electron profile importer (profile_import.inc): run it on a folder,
+    // and read back what it wrote.
+    if (quiet_method == "profileImportRun" && quiet_args.size() == 1 && quiet_args[0].is_string()) {
+      auto* personal = g_browser_process->profile_manager()->GetProfileByPath(
+          g_browser_process->profile_manager()->user_data_dir().AppendASCII("Default"));
+      if (!personal) { reject("The first profile is not loaded."); return; }
+      ProfileImport::Get()->Start(base::FilePath(quiet_args[0].GetString()), personal,
+          base::BindOnce([](base::WeakPtr<Handler> self, std::string id, base::Value result) {
+            if (self) self->Reply(id, true, std::move(result));
+          }, weak_factory_.GetWeakPtr(), id));
+      return;
+    }
+    if (quiet_method == "profileImportState" && quiet_args.empty()) {
+      Reply(id, true, base::Value(g_browser_process->local_state()->GetDict(kProfileImportPref).Clone())); return;
+    }
+    if (quiet_method == "profileImportPins" && quiet_args.empty()) {
+      Reply(id, true, base::Value(GetOwner(web_ui()->GetWebContents())->browser->GetProfile()->GetOriginalProfile()
+          ->GetPrefs()->GetList(kStartPagePinsPref).Clone())); return;
+    }
+    if (quiet_method == "profileImportHistoryCount" && quiet_args.empty()) {
+      auto* history = HistoryServiceFactory::GetForProfile(
+          GetOwner(web_ui()->GetWebContents())->browser->GetProfile()->GetOriginalProfile(), ServiceAccessType::EXPLICIT_ACCESS);
+      if (!history) { reject("History unavailable."); return; }
+      history->GetHistoryCount(base::Time(), base::Time::Max(), history::VisitQuery404sPolicy::kExclude404s,
+          base::BindOnce([](base::WeakPtr<Handler> self, std::string id, history::HistoryCountResult result) {
+            if (self) self->Reply(id, true, base::Value(result.success ? result.count : -1));
+          }, weak_factory_.GetWeakPtr(), id), &tracker_);
+      return;
+    }
+    if (quiet_method == "profileImportSpace" && quiet_args.size() == 1 && quiet_args[0].is_string()) {
+      auto* profile = GetOwner(web_ui()->GetWebContents())->browser->GetProfile()->GetOriginalProfile();
+      const auto* items = profile->GetPrefs()->GetDict(kSpacesMetaPref).FindDict("items");
+      const auto* meta = items ? items->FindDict(quiet_args[0].GetString()) : nullptr;
+      base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
+          base::BindOnce([](base::FilePath path, std::string space) {
+            std::string text;
+            auto store = base::ReadFileToString(path, &text) ? base::JSONReader::ReadDict(text, base::JSON_PARSE_RFC) : std::nullopt;
+            const auto* items = store ? store->FindDict("items") : nullptr;
+            const auto* record = items ? items->FindDict(space) : nullptr;
+            return record ? record->Clone() : base::DictValue();
+          }, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"), quiet_args[0].GetString()),
+          base::BindOnce([](base::WeakPtr<Handler> self, std::string id, base::DictValue meta, base::DictValue record) {
+            record.Merge(std::move(meta));
+            if (self) self->Reply(id, true, base::Value(std::move(record)));
+          }, weak_factory_.GetWeakPtr(), id, meta ? meta->Clone() : base::DictValue()));
+      return;
     }
     if (quiet_method == "windowButtonPosition" && quiet_args.empty()) {
 #if BUILDFLAG(IS_MAC)

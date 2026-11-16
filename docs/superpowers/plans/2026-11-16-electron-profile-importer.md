@@ -71,14 +71,16 @@ Each task ends with its own passing tests and a push to `chromium/next`. Tasks 1
 
 ### Task 2: Runner, marker, and the Personal profile's own data
 
-**Files:** create `chromium/blanc/browser/ui/profile_import.inc`, `chromium/tests/native-profile-import.mjs`, `chromium/tests/lib/import-fixture.mjs`; modify `blanc_prototype_ui.cc`.
+**Done 2026-11-16** (candidate macos-0998ddd2080544a0, patch 0092, 7 checks). Splits inside a Space are not carried yet (the fixture's Space has none): they come with the session in Task 4. Site icons are applied to up to 500 imported pages per host and are counted, not yet checked on screen.
+
+**Files:** create `chromium/blanc/browser/ui/profile_import.inc`, `chromium/tests/native-profile-import.mjs`, `chromium/tests/lib/profile-import-fixture.mjs`; patch `0092` (the marker's Local State registration); modify `blanc_prototype_ui.cc`, the service's `BUILD.gn`.
 
 **Produces:** `ProfileImportRunner` (modeled on `HandoffRunner`: pinned bundle, 60-second limit, host refusing every capability); `ProfileImport::Start(base::FilePath source, callback)`; Local State dict `blanc.profile_import` `{sourceVersion, profiles: {<id>: {importedAt}}}`; test hooks `profileImportRun [dir]`, `profileImportState`.
 
-- [ ] Write the native test: import the fixture, then Favorites equal the answer key in order; history has 5,000 entries with the fixture's visit times and site icons; pins and archive match; each Space opens with its tabs, groups and splits; the fixture folder's hashes are unchanged; a second run changes nothing; a fixture with one damaged store leaves the profile untouched and reports the store.
-- [ ] Run on the current build; expect failure (unknown hook).
-- [ ] Implement reading (regular files only, no symlinks, capped sizes), the runner, the apply steps for Favorites, history, icons, pins, archive and Spaces, and the marker.
-- [ ] Build on the Mac Studio; run the test; expect pass. Commit and push.
+- [x] Write the native test: import the fixture, then Favorites equal the answer key in order; history has 5,000 entries with the fixture's visit times and site icons; pins and archive match; each Space opens with its tabs, groups and splits; the fixture folder's hashes are unchanged; a second run changes nothing; a fixture with one damaged store leaves the profile untouched and reports the store.
+- [x] Run on the current build; expect failure (unknown hook).
+- [x] Implement reading (regular files only, no symlinks, capped sizes), the runner, the apply steps for Favorites, history, icons, pins, archive and Spaces, and the marker.
+- [x] Build on the Mac Studio; run the test; expect pass. Commit and push.
 
 ### Task 3: Settings and install id
 
