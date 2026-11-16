@@ -94,9 +94,11 @@ Each task ends with its own passing tests and a push to `chromium/next`. Tasks 1
 
 ### Task 4: The open session
 
-- [ ] Test: after import the fixture's windows, tabs, groups, pins and splits are open, all quiet except each window's active tab; no private tab appears.
-- [ ] Implement through `TabImporter::ApplyTabs`, one call per saved window.
-- [ ] Build, pass, commit and push.
+**Done 2026-11-16** (candidate macos-beb93342b0ee850e, 9 native checks). Each of the first profile's saved windows opens as a window of its own (at most ten), through its own `OpenImportedWindow` and not `TabImporter::ApplyTabs`, which has no group color, split or current-tab handling. The saved current tab is added first: the first tab added to a window is always shown and loaded. The two panes of a saved split load because they are on screen. Windows of named profiles wait for Task 5. Splits inside a saved Space are still not carried.
+
+- [x] Test: after import the fixture's windows, tabs, groups, pins and splits are open, all quiet except each window's active tab; no private tab appears.
+- [x] Implement through `TabImporter::ApplyTabs`, one call per saved window.
+- [x] Build, pass, commit and push.
 
 ### Task 5: Named profiles
 

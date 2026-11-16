@@ -43,6 +43,7 @@ try{
  assert.deepEqual(await run(path.join(parent,'missing')),{ok:false,error:'no-source'});
  result.checks.push('a folder that is not Blanc\'s, and one older than v1.40.0, are refused whole');
 
+ const windowsBefore=(await w.native('profileImportWindows')).length;
  // 3. The fixture: the Personal profile comes across.
  const source=makeImportSource(parent,dir=>{const file=path.join(dir,'settings.json');
   fs.writeFileSync(file,JSON.stringify({...JSON.parse(fs.readFileSync(file,'utf8')),islandSize:'large',islandHoverOpen:true,tabSleep:'6h',pageZoom:125,
@@ -91,7 +92,29 @@ try{
  assert.equal(read.synced.theme,'dark');assert.equal(read.synced.bangsEnabled,false);assert.deepEqual(read.synced.adblockExceptions,['example.org']);
  result.checks.push('settings land in their preferences (a value the fork would refuse is skipped), and the install id is kept');
 
- // 8. The source is untouched, and a second run adds nothing.
+ // 8. The open session: Personal's saved window opens as a window of its own, quiet.
+ assert.deepEqual(r.session,{windows:1,tabs:3});
+ const windows=await w.waitFor(()=>w.native('profileImportWindows'),list=>list.length===windowsBefore+1&&list.some(x=>x.tabs.length===3),'the saved window to open',10000);
+ await new Promise(r=>setTimeout(r,1500));
+ assert.equal((await w.native('profileImportWindows')).length,windowsBefore+1,'expected one new window, and none for another profile');
+ const restored=windows.find(x=>x.tabs.some(t=>t.url==='https://example.com/left'));
+ assert.ok(restored,'expected the saved window: '+JSON.stringify(windows).slice(0,600));
+ result.sessionWindow=restored;
+ assert.deepEqual(restored.tabs.map(t=>[t.url,t.pinned,t.group,t.groupColor]),[
+  ['https://example.com/home',true,null,null],
+  ['https://example.com/left',false,'Reading','#426c4c'],
+  ['https://example.com/right',false,'Reading','#426c4c']]);
+ assert.deepEqual(restored.tabs.map(t=>t.active),[false,true,false],'expected the saved current tab');
+ // The two panes of the saved split are on screen, so they load (and, with
+ // no network in a test, are titled by their host); the tab behind them stays
+ // unloaded and keeps its saved title.
+ assert.deepEqual(restored.tabs.map(t=>t.quiet),[true,false,false]);
+ assert.equal(restored.tabs[0].title,'personal page 1');
+ assert.ok(restored.tabs[1].split&&restored.tabs[1].split===restored.tabs[2].split&&!restored.tabs[0].split,'expected the saved split');
+ assert.ok(!windows.some(x=>x.tabs.some(t=>/named\.example\.com/.test(t.url))),'expected no window from another profile');
+ result.checks.push('the saved window opens with its tabs, titles, pin, group, color, split and current tab, the others unloaded');
+
+ // 9. The source is untouched, and a second run adds nothing.
  assert.equal(digestTree(source.userData),before,'expected the Electron folder byte for byte as it was');
  const state=await w.native('profileImportState');
  assert.equal(state.sourceVersion,'1.49.1');assert.deepEqual(Object.keys(state.profiles),['personal']);
@@ -99,6 +122,7 @@ try{
  assert.equal(r.ok,true);assert.deepEqual(r.profiles,{},'expected nothing imported twice');assert.deepEqual(r.alreadyImported,['personal']);
  assert.equal((await w.api('listFavorites')).length,2);assert.equal(await w.native('profileImportHistoryCount'),base+5000);
  assert.equal((await w.api('listWorkspaces')).items.length,1);
+ assert.equal((await w.native('profileImportWindows')).length,windowsBefore+1,'expected no window opened twice');
  assert.equal(digestTree(source.userData),before);
  result.checks.push('the Electron folder is unchanged, and a second run imports nothing again');
  await visible();result.result='pass';

@@ -8,10 +8,10 @@
 // browser then applies a profile's part only when all of it converted, and
 // records what it imported in Local State so a second run adds nothing.
 //
-// Built so far (tasks 2 and 3): the Personal profile's Favorites, history,
+// Built so far (tasks 2 to 4): the Personal profile's Favorites, history,
 // site icons, Start Page pins, Tab Archive and Spaces; settings and the
-// install id. The session, named profiles, permissions, downloads and Sync
-// follow in later tasks.
+// install id; the saved session's windows. Named profiles, permissions,
+// downloads and Sync follow in later tasks.
 //
 // Included by blanc_prototype_ui.cc inside its unnamed namespace.
 
@@ -158,21 +158,37 @@ int ImportGroupColor(const std::string* hex) {
   return 0;
 }
 
-// Shipping's saved window columns (workspaces-model.js) as the fork's Space
-// record. Tabs the fork cannot hold are left out, with groups and the active
-// tab following; a Space left with no tab is not imported.
-std::optional<base::DictValue> ImportSpaceRecord(const base::DictValue& space, int sequence) {
-  const auto* name = space.FindString("name");
-  const auto* urls = space.FindList("urls");
-  if (!name || name->empty() || name->size() > 512 || !urls || urls->size() > 500) return std::nullopt;
-  const auto* group_ids = space.FindList("groupIds");
-  const auto* pinned = space.FindList("pinned");
-  const auto* meta = space.FindList("meta");
-  const auto* groups = space.FindList("groups");
+// Shipping's saved window columns (workspaces-model.js, session-workspace.js)
+// as the fork's Space record. Tabs the fork cannot hold are left out, with
+// groups and the current tab following; a window left with no tab is not
+// imported. `source` maps each kept tab to its place in the columns, and
+// `titles` holds each kept tab's title, for a window that is opened.
+struct ImportedWindow {
+  ImportedWindow();
+  ImportedWindow(ImportedWindow&&);
+  ImportedWindow& operator=(ImportedWindow&&);
+  ~ImportedWindow();
+  base::DictValue record;
+  std::vector<size_t> source;
+  std::vector<std::string> titles;
+};
+ImportedWindow::ImportedWindow() = default;
+ImportedWindow::ImportedWindow(ImportedWindow&&) = default;
+ImportedWindow& ImportedWindow::operator=(ImportedWindow&&) = default;
+ImportedWindow::~ImportedWindow() = default;
+
+std::optional<ImportedWindow> ConvertImportedWindow(const base::DictValue& columns) {
+  const auto* urls = columns.FindList("urls");
+  if (!urls || urls->size() > 500) return std::nullopt;
+  const auto* group_ids = columns.FindList("groupIds");
+  const auto* pinned = columns.FindList("pinned");
+  const auto* meta = columns.FindList("meta");
+  const auto* groups = columns.FindList("groups");
   std::map<std::string, int> group_index;
   base::ListValue out_groups, tabs;
+  ImportedWindow out;
   int active = 0;
-  const int wanted_active = space.FindInt("activeIndex").value_or(0);
+  const int wanted_active = columns.FindInt("activeIndex").value_or(0);
   for (size_t i = 0; i < urls->size(); ++i) {
     if (!(*urls)[i].is_string()) continue;
     GURL url((*urls)[i].GetString());
@@ -202,17 +218,142 @@ std::optional<base::DictValue> ImportSpaceRecord(const base::DictValue& space, i
     if (static_cast<int>(i) == wanted_active) active = static_cast<int>(tabs.size());
     auto tab = base::DictValue().Set("url", url.spec())
         .Set("pinned", pinned && i < pinned->size() && (*pinned)[i].GetIfBool().value_or(false)).Set("group", group);
+    std::string title;
     if (meta && i < meta->size() && (*meta)[i].is_dict()) {
-      const auto* home = (*meta)[i].GetDict().FindString("pinnedHomeUrl");
+      const auto& row = (*meta)[i].GetDict();
+      const auto* home = row.FindString("pinnedHomeUrl");
       if (home && ValidPinnedHome(GURL(*home))) tab.Set("pinnedHomeUrl", *home);
+      if (const auto* text = row.FindString("title")) title = text->substr(0, 4096);
     }
     tabs.Append(std::move(tab));
+    out.source.push_back(i);
+    out.titles.push_back(std::move(title));
   }
   if (tabs.empty()) return std::nullopt;
-  auto record = base::DictValue().Set("tabs", std::move(tabs)).Set("groups", std::move(out_groups))
-      .Set("active", active).Set("importName", *name).Set("importSequence", sequence);
-  if (!ValidSpace(record)) return std::nullopt;
-  return record;
+  out.record = base::DictValue().Set("tabs", std::move(tabs)).Set("groups", std::move(out_groups)).Set("active", active);
+  if (!ValidSpace(out.record)) return std::nullopt;
+  return out;
+}
+
+std::optional<base::DictValue> ImportSpaceRecord(const base::DictValue& space, int sequence) {
+  const auto* name = space.FindString("name");
+  if (!name || name->empty() || name->size() > 512) return std::nullopt;
+  auto window = ConvertImportedWindow(space);
+  if (!window) return std::nullopt;
+  window->record.Set("importName", *name);
+  window->record.Set("importSequence", sequence);
+  return std::move(window->record);
+}
+
+// A saved window (task 4) opened as a window of its own: every tab restored
+// unloaded with its title, then pins, groups and splits, and only the saved
+// current tab loaded. Returns how many tabs opened, or 0.
+int OpenImportedWindow(Profile* profile, const base::DictValue& columns) {
+  auto window = ConvertImportedWindow(columns);
+  if (!window || GetBrowserWindowCreationStatusForProfile(*profile) != BrowserWindowInterface::CreationStatus::kOk) return 0;
+  BrowserWindowCreateParams params(profile, true);
+  params.should_trigger_session_restore = false;
+  BrowserWindowInterface* browser = CreateBrowserWindow(std::move(params));
+  auto* context = browser ? BrowserLiveTabContext::From(browser) : nullptr;
+  if (!context) return 0;
+  // Shown before its tabs are added: tabs restored into a window that is not
+  // showing yet were all loaded when it appeared.
+  browser->GetWindow()->Show();
+  auto* model = browser->GetTabStripModel();
+  auto* placeholder = model->GetActiveWebContents();
+  const auto& tabs = *window->record.FindList("tabs");
+  // The first tab added to a window is shown, and so loaded, whichever tab it
+  // is (as in Chromium's own session restore, patch 0051). The saved current
+  // tab therefore goes in first and the others take their places around it.
+  std::vector<content::WebContents*> created(tabs.size(), nullptr);
+  const size_t current = static_cast<size_t>(*window->record.FindInt("active"));
+  const int base_index = model->count();
+  std::vector<size_t> order = {current};
+  for (size_t i = 0; i < tabs.size(); ++i) if (i != current) order.push_back(i);
+  bool complete = true;
+  for (size_t i : order) {
+    const auto& spec = tabs[i].GetDict();
+    sessions::tab_restore::Tab saved;
+    sessions::SerializedNavigationEntry nav;
+    nav.set_index(0);
+    nav.set_virtual_url(GURL(*spec.FindString("url")));
+    nav.set_title(base::UTF8ToUTF16(window->titles[i]));
+    saved.navigations.push_back(std::move(nav));
+    saved.current_navigation_index = 0;
+    if (*spec.FindBool("pinned")) {
+      saved.extra_data[kGroupPinKey] = "1";
+      const auto* home = spec.FindString("pinnedHomeUrl");
+      saved.extra_data[kPinnedHomeKey] = home ? *home : *spec.FindString("url");
+    }
+    // Before the current tab: at its own place. After it: at the end so far.
+    const int at = i < current ? base_index + static_cast<int>(i) : model->count();
+    auto* live = context->AddRestoredTab(saved, at, false, false, sessions::tab_restore::TAB);
+    auto* tab = live ? model->GetWebContentsAt(at) : nullptr;
+    if (!tab || sessions::SessionTabHelper::IdForTab(tab) != live->GetSessionID()) { complete = false; break; }
+    created[i] = tab;
+  }
+  if (!complete) {
+    browser->GetWindow()->Close();
+    return 0;
+  }
+  const auto& groups = *window->record.FindList("groups");
+  for (size_t g = 0; g < groups.size(); ++g) {
+    std::vector<int> indices;
+    for (size_t i = 0; i < tabs.size(); ++i) {
+      if (tabs[i].GetDict().FindInt("group") == static_cast<int>(g)) indices.push_back(model->GetIndexOfWebContents(created[i]));
+    }
+    if (indices.empty()) continue;
+    const auto& group = groups[g].GetDict();
+    const auto id = NewPinnedGroup(model, indices);
+    model->ChangeTabGroupVisuals(id, tab_groups::TabGroupVisualData(GroupName(*group.FindString("name")),
+        static_cast<tab_groups::TabGroupColorId>(*group.FindInt("color")), *group.FindBool("collapsed")));
+  }
+  auto* front = created[*window->record.FindInt("active")];
+  model->ActivateTabAt(model->GetIndexOfWebContents(front));
+  // Splits: two kept neighbors that shared a split in the saved columns.
+  const auto* splits = columns.FindList("splits");
+  const auto* split_ids = columns.FindList("splitIds");
+  if (splits && split_ids) {
+    for (const auto& value : *splits) {
+      const auto* split = value.GetIfDict();
+      const auto* id = split ? split->FindString("id") : nullptr;
+      const auto* layout = split ? split->FindDict("layout") : nullptr;
+      const auto* widths = layout ? layout->FindList("widths") : nullptr;
+      if (!id || !widths || widths->size() != 2 || !(*widths)[0].GetIfDouble()) continue;
+      const double ratio = *(*widths)[0].GetIfDouble();
+      if (!std::isfinite(ratio) || ratio < .2 || ratio > .8) continue;
+      base::ListValue members;
+      for (size_t i = 0; i < created.size(); ++i) {
+        const size_t at = window->source[i];
+        if (at < split_ids->size() && (*split_ids)[at].is_string() && (*split_ids)[at].GetString() == *id) {
+          members.Append(base::DictValue().Set("id", sessions::SessionTabHelper::IdForTab(created[i]).id()));
+        }
+      }
+      if (members.size() != 2) continue;
+      RestoreBatchSplit(browser, base::DictValue().Set("ratio", ratio).Set("members", std::move(members))
+          .Set("focused", std::clamp(split->FindInt("focusedIndex").value_or(0), 0, 1)));
+    }
+  }
+  front->GetController().LoadIfNecessary();
+  if (placeholder && model->GetIndexOfWebContents(placeholder) >= 0) {
+    model->CloseWebContentsAt(model->GetIndexOfWebContents(placeholder), TabCloseTypes::CLOSE_NONE);
+  }
+  return static_cast<int>(created.size());
+}
+
+// The saved session: each of the first profile's windows, at most ten.
+base::DictValue OpenImportedSession(Profile* profile, const base::DictValue& session) {
+  int windows = 0, tabs = 0;
+  if (const auto* saved = session.FindList("windows")) {
+    for (const auto& value : *saved) {
+      const auto* columns = value.GetIfDict();
+      if (!columns || windows >= 10) continue;
+      const auto* owner = columns->FindString("profileId");
+      if (owner && *owner != "default") continue;
+      if (const int opened = OpenImportedWindow(profile, *columns)) { ++windows; tabs += opened; }
+    }
+  }
+  return base::DictValue().Set("windows", windows).Set("tabs", tabs);
 }
 
 PreparedImport PrepareImport(const base::DictValue& stores) {
@@ -453,7 +594,7 @@ class ProfileImport final {
   void Finish(base::Value result);
   std::unique_ptr<ProfileImportRunner> runner_;
   base::WeakPtr<Profile> personal_;
-  base::DictValue settings_synced_, settings_prefs_, install_;
+  base::DictValue settings_synced_, settings_prefs_, install_, session_;
   base::ListValue settings_skipped_;
   base::DictValue result_;
   Done done_;
@@ -509,6 +650,7 @@ void ProfileImport::Planned(bool ok, const std::string& value) {
   }
   if (const auto* device = parsed->FindDict("device")) {
     if (const auto* install = device->FindDict("install.json")) install_ = install->Clone();
+    if (const auto* session = device->FindDict("session.json")) session_ = session->Clone();
   }
   auto prepared = PrepareImport(*stores);
   if (!prepared.error.empty()) {
@@ -530,6 +672,7 @@ void ProfileImport::Applied(std::string version, base::Value applied) {
     result_.Set("settings", std::move(settings));
   }
   result_.Set("install", ApplyImportedInstall(&install_));
+  if (personal_) result_.Set("session", OpenImportedSession(personal_.get(), session_));
   // The marker: the source's version and when each profile came across.
   auto marker = g_browser_process->local_state()->GetDict(kProfileImportPref).Clone();
   marker.Set("sourceVersion", version);
@@ -543,7 +686,7 @@ void ProfileImport::Applied(std::string version, base::Value applied) {
 void ProfileImport::Finish(base::Value result) {
   runner_.reset();
   result_ = base::DictValue();
-  settings_synced_ = base::DictValue(); settings_prefs_ = base::DictValue(); install_ = base::DictValue();
+  settings_synced_ = base::DictValue(); settings_prefs_ = base::DictValue(); install_ = base::DictValue(); session_ = base::DictValue();
   settings_skipped_ = base::ListValue();
   personal_.reset();
   if (done_) std::move(done_).Run(std::move(result));

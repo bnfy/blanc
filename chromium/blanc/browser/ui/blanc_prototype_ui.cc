@@ -7132,6 +7132,34 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(base::DictValue().Set("prefs", std::move(values))
           .Set("synced", blanc::ReadDesktopSyncSettings(profile)))); return;
     }
+    if (quiet_method == "profileImportWindows" && quiet_args.empty()) {
+      base::ListValue windows;
+      for (auto* owner : Owner::Live()) {
+        if (!owner->browser || !IsIslandWindow(owner->browser)) continue;
+        auto* model = owner->browser->GetTabStripModel();
+        base::ListValue tabs;
+        for (int i = 0; i < model->count(); ++i) {
+          auto* tab = model->GetWebContentsAt(i);
+          auto row = base::DictValue().Set("url", tab->GetVisibleURL().spec())
+              .Set("title", base::UTF16ToUTF8(tab->GetTitle())).Set("pinned", TabPinned(model, i))
+              .Set("active", i == model->active_index()).Set("quiet", TabAsleep(tab));
+          // The saved title, which a tab keeps until its page loads.
+          if (auto* entry = tab->GetController().GetLastCommittedEntry(); entry && tab->GetController().NeedsReload()) {
+            row.Set("title", base::UTF16ToUTF8(entry->GetTitle()));
+          }
+          row.Set("entries", tab->GetController().GetEntryCount());
+          const auto group = model->GetTabGroupForTab(i);
+          const auto* visuals = group ? GroupVisuals(model, *group) : nullptr;
+          row.Set("group", visuals ? base::Value(base::UTF16ToUTF8(visuals->title())) : base::Value());
+          row.Set("groupColor", visuals ? base::Value(GroupColor(visuals->color())) : base::Value());
+          const auto split = model->GetSplitForTab(i);
+          row.Set("split", split ? base::Value(split->ToString()) : base::Value());
+          tabs.Append(std::move(row));
+        }
+        windows.Append(base::DictValue().Set("tabs", std::move(tabs)));
+      }
+      Reply(id, true, base::Value(std::move(windows))); return;
+    }
     if (quiet_method == "profileImportPins" && quiet_args.empty()) {
       Reply(id, true, base::Value(GetOwner(web_ui()->GetWebContents())->browser->GetProfile()->GetOriginalProfile()
           ->GetPrefs()->GetList(kStartPagePinsPref).Clone())); return;

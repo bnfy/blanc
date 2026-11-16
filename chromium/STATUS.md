@@ -14,6 +14,25 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Electron profile importer, task 4: the open session (candidate macos-beb93342b0ee850e):**
+  each of the first profile's saved windows (`session.json` v2, at most ten)
+  opens as a window of its own: tabs restored unloaded with their titles,
+  pins with their home address, groups with name, color and folded state,
+  two-pane splits with their ratio and focus, and the saved current tab
+  loaded. `ConvertImportedWindow` is shared with the Space conversion and
+  keeps each kept tab's place in the saved columns. **Found on the way:** the
+  first tab added to a window is always shown and loaded, whichever it is,
+  so the current tab is added first and the others placed around it (the
+  handoff and tab-import batches never met this because they make their
+  first tab current). Evidence on the Mac Studio:
+  `native-profile-import.mjs` 9 of 9 (the saved window with its pin, group,
+  color, split and current tab; the tab behind the split unloaded with its
+  saved title; no window from another profile; none opened twice), two
+  probes with other window shapes (current tab last; no split), and
+  `arc-spaces-import` and `native-tab-handoff` still passing.
+  **Not done:** windows of named profiles (task 5); splits inside a saved
+  Space; a tab's custom name; three-pane and grid splits (the fork has
+  two-pane splits only); placing a window where it was.
 - **2026-11-16 — Electron profile importer, task 3: settings and the install id (candidate macos-2fde2b7b2c1ae676):**
   `chromium/settings-keys.json` is at v1.49.1 (85 keys, `reuseNewTab`
   added) and marks each importable key with an `import` field (its
