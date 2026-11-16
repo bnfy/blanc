@@ -1298,6 +1298,10 @@
       // Search priority results (S1.7) is read where the panel opens, as
       // shipping's overlay:show carries it.
       emit('onOverlayShow', { mode, prefill, pillRect, ...(purpose ? { purpose } : {}),
+        // Shipping v1.49.1's chrome-layout.js: the panel keeps 12px from each
+        // side, and on macOS 92px less the rail, so it never runs under the
+        // window buttons in a narrow window (the rail holds them otherwise).
+        panelSideClearance: Math.max(12, /Mac/.test(navigator.platform) ? 92 - effectiveRailWidth() : 0),
         searchPriorityResults: snapshot?.searchPriorityResults === true });
       reportGeometry();
       if (prefill !== undefined) {

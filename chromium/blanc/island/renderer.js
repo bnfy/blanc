@@ -596,14 +596,8 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
   /** Short label for a tab's location: host for web pages, page name for
    * internal ones, empty for a blank new tab. */
   function tabDomain(tab) {
-    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';
-    if (tab.extensionName) return tab.extensionName;
-    try {
-      const u = new URL(viewSourceTarget(tab.url) ?? tab.url);
-      return u.protocol === 'blanc:' ? `blanc://${u.host}` : u.host;
-    } catch {
-      return tab.url;
-    }
+    if (tab?.extensionName && tab.url && !tab.url.startsWith('blanc://newtab')) return tab.extensionName;
+    return TabSections.locationLabel(tab?.url);
   }
 
 

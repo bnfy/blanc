@@ -73,8 +73,10 @@ export const EDITS = {
   'renderer.js': [
     ["    pillSpace.hidden = spaceMarkOnIsland();", "    pillSpace.hidden = document.documentElement.hasAttribute('data-mini-window') || spaceMarkOnIsland();"],
     // An extension's page goes by the extension's name, not its 32-letter id.
-    ["function tabDomain(tab) {\n    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';\n",
-     "function tabDomain(tab) {\n    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';\n    if (tab.extensionName) return tab.extensionName;\n"],
+    // An extension's page shows the extension's name, not its 32-letter id
+    // (a blank new tab still shows nothing, as shipping's locationLabel).
+    ["    return TabSections.locationLabel(tab?.url);\n",
+     "    if (tab?.extensionName && tab.url && !tab.url.startsWith('blanc://newtab')) return tab.extensionName;\n    return TabSections.locationLabel(tab?.url);\n"],
     // The native extension menu anchors to the Favorite button.
     ["  const favoriteBtn = pillButton('heart', blancI18n.t('pill.favorite'), () => window.browserAPI.toggleBookmark());\n",
       "  const favoriteBtn = pillButton('heart', blancI18n.t('pill.favorite'), () => window.browserAPI.toggleBookmark());\n  favoriteBtn.id = 'pillHeart';\n"],
@@ -102,8 +104,8 @@ export const EDITS = {
     ['    row.innerHTML = \'<span class="ghead-name"></span><span class="ghead-n"></span>\';',
      '    for (const name of ["ghead-name", "ghead-n"]) {\n      const span = document.createElement("span");\n      span.className = name;\n      row.append(span);\n    }'],
     // An extension's page goes by the extension's name, not its 32-letter id.
-    ["function tabDomain(tab) {\n    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';\n",
-     "function tabDomain(tab) {\n    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';\n    if (tab.extensionName) return tab.extensionName;\n"],
+    ["    return TabSections.locationLabel(tab?.url, { stripWww: true });\n",
+     "    if (tab?.extensionName && tab.url && !tab.url.startsWith('blanc://newtab')) return tab.extensionName;\n    return TabSections.locationLabel(tab?.url, { stripWww: true });\n"],
     ["    if (tab.url.startsWith('blanc://newtab') || tab.url.startsWith('file://')) return '';\n",
      "    if (tab.url.startsWith('blanc://newtab') || tab.url.startsWith('file://')) return '';\n    // An extension's page shows the extension's name, not its 32-letter id.\n    if (tab.extensionName) return tab.extensionName;\n"],
     // An untouched extension name is a label, not something to search for.
