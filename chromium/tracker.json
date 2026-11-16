@@ -2445,9 +2445,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "Two parts. The tab import page (Bring Your Tabs, Arc import) is built and passes under F40 (15 of 15) and F45 (7 of 7). Tab handoff is not started (checked 2026-11-16): no blanc-import: scheme in the app's Info.plist, no handling of an incoming blanc-import://tabs link, no relay claim or decryption (shipping's tab-import-handoff.js), and no tab-handoff page. It is the path the Bring Your Tabs browser extension uses to send tabs to Blanc",
-          "candidate": "macos-1f6cbe46be1f2dfd"
+          "stage": "implemented",
+          "basis": "The tab import page is built and passes under F40 (15 of 15) and F45 (7 of 7). Tab handoff built 2026-11-16 per docs/superpowers/specs/2026-11-16-fork-tab-handoff-design.md: a blanc-import: link is never loaded; shipping's tab-import-handoff.js (v1.49.1, unchanged, in a sandboxed bundle with a pinned hash) reads the link, checks and decrypts the relay's reply and cleans the list; the browser makes the one claim request, rechecks the list, shows shipping's sheet and opens the tabs quiet. native-tab-handoff.mjs passes 8 of 8 on macos-6e37801aafbe77a1 against a stand-in relay on 127.0.0.1, handoff.test.mjs 6 of 6. Not Integrated: by owner decision D1 no build registers the blanc-import: link type yet (only the replacement build will), so the path from macOS, the real extension and the real relay are unchecked, as is a link arriving before any window exists",
+          "candidate": "macos-6e37801aafbe77a1"
         },
         "windows": {
           "stage": "not-started",

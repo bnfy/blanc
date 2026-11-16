@@ -14,6 +14,47 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Tab handoff (N20; candidate macos-6e37801aafbe77a1; design `docs/superpowers/specs/2026-11-16-fork-tab-handoff-design.md`, approved by the owner with D1–D3):**
+  the Bring Your Tabs extension's `blanc-import://tabs?v=1&id=…&key=…` link.
+  `OpenExternalLink` hands such a link to `TabHandoff` (`tab_handoff.inc`)
+  and it is never a navigation, a tab or a history entry. A short-lived
+  sandboxed service (`HandoffRunner`, host refusing every call) runs
+  shipping's `tab-import-handoff.js` at v1.49.1 unchanged
+  (`tools/build-handoff-bundle.mjs` → `generated/handoff-bundle.js`, SHA-256
+  pinned in `handoff_bundle_hash.h`): it reads the link and returns only the
+  claim address; the browser checks that address is the relay's claim path
+  and makes the one request itself (`POST`, no credentials, cache or
+  referrer, redirects an error, 10 seconds, shipping's size cap); the
+  service then validates the envelope, decrypts it with the link's key and
+  the id and expiry as additional data, checks the 10-minute lifetime and
+  cleans the list; the browser checks the cleaned list again (web addresses
+  only, at most 100, exactly one active) and keeps it in memory. Shipping's
+  `tab-handoff` sheet shows the count, source browser, titles and host names
+  (never an address); Open in this window or in a new window opens the tabs
+  quiet, all or none, with the source's active tab in front; Cancel, Esc or
+  closing the sheet discards the list. The service's AES-GCM helper takes an
+  optional fourth argument for additional data; Sync still passes three,
+  and the Sync and import bundles are byte-identical to before
+  (`--check`). The handoff bundle has its own crypto shim for that reason.
+  **Differences from the design and from shipping:** the browser makes the
+  claim request directly, not through the service's host `Fetch` (same
+  limits; the host refuses every call); shipping's "waiting" state is gone,
+  because a cancelled claim is destroyed at once here; the sheet names the
+  profile "Personal" for every profile; shipping's official-builds-only
+  check is not ported (every build from this tree may use the relay).
+  **D1:** no build registers `blanc-import:`. `release/verify.mjs` already
+  refuses a beta whose link types are anything but its own four, and
+  `branding/beta/metadata.py` now strips `blanc-import` too (test). Checked:
+  `tools/handoff.test.mjs` 6 of 6 in bare V8 (the bundle is the pin's
+  module; a link gives only its claim address; cleaning; each error code;
+  the 100-tab ceiling; nothing else can be dispatched);
+  `tests/native-tab-handoff.mjs` 8 of 8, twice, against a stand-in relay on
+  127.0.0.1 with real AES-256-GCM envelopes (the sheet's contents and one
+  bare claim; a second link not claimed; Open here; a used link; Cancel;
+  ten failures each showing shipping's message; a malformed link; a new
+  window). Regression on the same build: `sync.feature` 18 of 18 and
+  `tab-migration.feature` 15 of 15. Not checked: a link from macOS, the
+  real extension and relay, a link arriving with no window open.
 - **2026-11-16 — N14 and N15 rerun; what N20 still lacks (candidate macos-1f6cbe46be1f2dfd):**
   `tests/native-mouse-gestures.mjs` passes 13 of 13 (N14 Integrated) and
   `tests/native-local-files.mjs` 9 of 9 (N15 stays Implemented: no
@@ -3718,10 +3759,10 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 4 | 81 | 81 | 69 |
+| Not started / unassessed | 3 | 81 | 81 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 0 | 0 | 0 | 0 |
-| Implemented | 8 | 0 | 0 | 12 |
+| Implemented | 9 | 0 | 0 | 12 |
 | Built, isolated (legacy) | 0 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 0 | 0 | 0 | 0 |
 | Integrated | 68 | 0 | 0 | 0 |

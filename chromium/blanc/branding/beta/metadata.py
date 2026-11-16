@@ -19,11 +19,13 @@ def metadata(info, version, build):
                   LSMinimumSystemVersion='13.0')
     # tweak_info_plist drops unknown direct-launch schemes. Keep web/document
     # declarations and add only beta's own external launch registration.
+    # Never blanc-import: the tab handoff link belongs to the Blanc a person
+    # uses, and macOS gives a link type to one app (handoff design, D1).
     urls = []
     for entry in result.get('CFBundleURLTypes', []):
         entry = dict(entry)
         entry['CFBundleURLSchemes'] = [s for s in entry.get('CFBundleURLSchemes', [])
-            if s not in ('chromium', 'google-chrome', 'blanc', 'blanc-beta', '%DIRECT_LAUNCH_URL_SCHEME%')]
+            if s not in ('chromium', 'google-chrome', 'blanc', 'blanc-beta', 'blanc-import', '%DIRECT_LAUNCH_URL_SCHEME%')]
         if entry['CFBundleURLSchemes']:
             urls.append(entry)
     urls.append({'CFBundleURLName': 'me.bnfy.blanc.beta', 'CFBundleURLSchemes': ['blanc-beta']})

@@ -4,6 +4,7 @@
 #include "ui/base/accelerators/global_accelerator_listener/global_accelerator_listener.h"
 #include "blanc/services/sync_runner/sync_resources.h"
 #include "blanc/services/sync_runner/import_bundle_hash.h"
+#include "blanc/services/sync_runner/handoff_bundle_hash.h"
 #include "content/public/browser/service_process_host.h"
 #include "mojo/public/cpp/bindings/remote.h"
 #include "build/build_config.h"
@@ -263,6 +264,8 @@
 #include "content/public/browser/render_process_host_observer.h"
 #include "content/public/common/process_type.h"
 #include "net/dns/public/secure_dns_mode.h"
+#include "net/base/load_flags.h"
+#include "services/network/public/mojom/url_response_head.mojom.h"
 #include "chrome/browser/ui/chrome_pages.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface_iterator.h"
 #include "chrome/browser/ui/read_anything/read_anything_entry_point_controller.h"
@@ -6009,6 +6012,7 @@ class LinkRouteSource final : public base::SupportsUserData::Data {
 constexpr char kLinkRouteSource[] = "blanc.link-route.source";
 constexpr char kLinkRouteActivation[] = "blanc.link-route.activation";
 
+#include "blanc/browser/ui/tab_handoff.inc"
 #include "blanc/browser/ui/trust_receipt.inc"
 #include "blanc/browser/ui/chromium_settings_handler.inc"
 #include "blanc/browser/ui/utility_sheet_ops.inc"
@@ -7526,6 +7530,17 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       return;
     }
 #endif
+    // N20, shipping's queueTabHandoffForTest: a handoff link as the OS would
+    // deliver it, with the relay replaced by the test's own stand-in (an
+    // http://127.0.0.1 origin only; nothing else is accepted).
+    if (message[1].GetString() == "queueTabHandoff" && message[2].GetList().size() == 2 &&
+        message[2].GetList()[0].is_string() && message[2].GetList()[1].is_string()) {
+      const GURL relay(message[2].GetList()[1].GetString());
+      if (!relay.is_valid() || !relay.SchemeIs("http") || relay.GetHost() != "127.0.0.1") {Reply(id, false, base::Value("relay"));return;}
+      TabHandoff::Get()->SetRelayForTesting(relay.DeprecatedGetOriginAsURL().spec());
+      Reply(id, true, base::Value(OpenExternalLink(GURL(message[2].GetList()[0].GetString()))));
+      return;
+    }
     // Shipping's setTabSwitchOrder hook: the preference Settings writes.
     if (message[1].GetString() == "setTabSwitchOrder" && message[2].GetList().size() == 1 &&
         message[2].GetList()[0].is_string()) {
@@ -10007,6 +10022,22 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       base::ListValue ids;
       for (const auto& entry : shown) ids.Append(entry.second);
       reply(true, base::Value(std::move(ids)));
+      return;
+    }
+    // N20: the tab handoff sheet's three calls. The page gets titles and
+    // host names only; the list itself stays here.
+    if (method == "tabHandoffGet" && args.empty()) {
+      reply(true, base::Value(TabHandoff::Get()->Projection(browser))); return;
+    }
+    if (method == "tabHandoffCancel" && args.empty()) {
+      TabHandoff::Get()->Cancel(browser); reply(true, base::Value(true)); return;
+    }
+    if (method == "tabHandoffAccept" && args.size() == 1 && args[0].is_string() &&
+        (args[0].GetString() == "current-window" || args[0].GetString() == "new-window")) {
+      TabHandoff::Get()->Accept(browser, args[0].GetString() == "new-window",
+          base::BindOnce([](base::WeakPtr<Handler> self, std::string id, base::Value result) {
+            if (self) self->Reply(id, true, std::move(result));
+          }, weak_factory_.GetWeakPtr(), id));
       return;
     }
     if (method == "keepMiniWindow" && args.empty()) { reply(true, base::Value(KeepMiniWindow(browser))); return; }
@@ -12914,6 +12945,8 @@ bool IsMiniWindow(BrowserWindowInterface* browser) { return MiniState(browser) !
 void OpenMiniWindow() { CreateMiniWindow(); }
 
 bool OpenExternalLink(const GURL& url) {
+  // A blanc-import: link is a tab handoff (N20), never a page to load.
+  if (IsEnabled() && TabHandoff::Get()->Queue(url)) return true;
   // A local file never reaches Chromium's own startup tabs: Blanc opens a
   // supported HTML document itself and drops everything else (N15).
   if (url.SchemeIsFile() && IsEnabled()) { OpenLocalHtmlFile(url); return true; }

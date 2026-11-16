@@ -1551,11 +1551,12 @@
   // over the page, never as tabs. The frame claims the window as the palette
   // does, its page draws its own scrim and card, and the host answers its
   // window.bowserPages (pages/sheet-adapter.js) from Chromium's models.
-  const SHEET_PAGES = ['bookmarks', 'history', 'downloads', 'tab-import'];
+  const SHEET_PAGES = ['bookmarks', 'history', 'downloads', 'tab-import', 'tab-handoff'];
   // Settings sections a typed blanc://settings/<section> may name (the
   // browser's SettingsSheetURL accepts the same names).
   const SETTINGS_SECTIONS = new Set(['general', 'blocking', 'search', 'sync', 'appearance', 'privacy', 'security',
     'content', 'clearBrowserData', 'downloads', 'languages', 'defaultBrowser', 'help', 'profiles', 'people']);
+  let handoffKeeps = false;
   const sheet = { frame: null, page: null, contents: 0, epoch: 0, tabs: null,
     escapeArmed: false, escapeListeners: new Set() };
   const sheetCurrent = (win, page) => !!sheet.frame && sheet.frame.contentWindow === win && sheet.page === page;
@@ -1696,9 +1697,13 @@
   async function hideSheet(focus = true) {
     if (!sheet.page) return;
     const importing = sheet.page === 'tab-import';
+    // Closing the handoff sheet any way but Open discards the list (shipping's
+    // cancelPendingTabHandoff); a reload for a new state keeps it.
+    const handoff = sheet.page === 'tab-handoff' && !handoffKeeps;
     const epoch = ++sheet.epoch;
     sheet.page = null;
     if (importing) await request('importDiscard').catch(() => {});
+    if (handoff) await request('tabHandoffCancel').catch(() => {});
     sheet.tabs = null;
     sheet.escapeArmed = false;
     sheet.escapeListeners.clear();
@@ -1757,6 +1762,27 @@
         return () => sheet.escapeListeners.delete(callback);
       },
     };
+    // N20: shipping's tab-handoff page. Native keeps the list; the page gets
+    // titles and host names, and an error arrives as shipping's code, named
+    // here in shipping's words (main.js tabHandoffErrorMessage).
+    if (page === 'tab-handoff') return { surface, tabHandoff: {
+      get: async () => {
+        const data = await call('tabHandoffGet');
+        if (data?.state !== 'error') return data;
+        const t = strip.contentWindow.blancI18n.t;
+        const key = { 'invalid-expiry': 'invalidExpiry', 'too-many-tabs': 'tooManyTabs', empty: 'empty',
+          'multiple-active-tabs': 'multipleActive', 'decryption-failed': 'unverified', 'invalid-envelope': 'unverified',
+          'invalid-payload': 'unverified', unavailable: 'unavailable', offline: 'offline',
+          'service-unavailable': 'serviceUnavailable' }[data.error] ?? 'generic';
+        return { state: 'error', message: t('handoff.error.' + key, { limit: 100 }) };
+      },
+      accept: async where => {
+        const result = await call('tabHandoffAccept', [String(where)]);
+        if (result?.ok) { handoffKeeps = true; try { await hideSheet(false); } finally { handoffKeeps = false; } await refresh(); }
+        return result;
+      },
+      cancel: async () => { await hideSheet(); return { ok: true }; },
+    } };
     if (page === 'tab-import') return { surface, tabImport: {
       sources: () => call('importSources'),
       openSource: (id, options = {}) => call('importOpenSource', [String(id), options]),
@@ -3246,9 +3272,27 @@
     return switchQueue;
   }
 
+  // N20: native shows the handoff sheet, reloads it when the handoff's state
+  // changes (the page reads it once), and hides it.
+  async function handoffSheet(action) {
+    if (action === 'hide') {
+      if (sheet.page !== 'tab-handoff') return;
+      handoffKeeps = true;
+      try { await hideSheet(false); } finally { handoffKeeps = false; }
+      return;
+    }
+    if (sheet.page === 'tab-handoff' && sheet.frame) {
+      sheet.frame.src = 'pages/tab-handoff.html';
+      sheet.frame.contentWindow.focus();
+      return;
+    }
+    await showSheet('tab-handoff');
+  }
+
   window.BlancPrototypeHost = {
     api,
     tabSwitch,
+    handoffSheet: action => handoffSheet(String(action)).catch(error => notice(error.message)),
     // The switch as tests read it: shipping's tabSwitchPick and tabSwitchOrder.
     tabSwitchState: () => ({ pick: tabSwitcher.pick(switchWindow), order: tabSwitcher.session(switchWindow)?.order ?? null,
       card: overlayMode === 'switcher' }),
@@ -3426,6 +3470,9 @@
     if (!result.ok) await request('previewPageCommand', ['closeWindow']);
   }
   openPendingSpace().catch(error => notice(error.message));
+  // A handoff link that arrived before this window's host was up (N20).
+  request('tabHandoffGet').then(data => { if (data?.state && data.state !== 'empty') return handoffSheet('show'); })
+    .catch(() => {});
   // A utility page asked for before BlancPrototypeHost existed (one opened or
   // restored at launch): OpenUtilitySheet left it here and closed its tab.
   if (Array.isArray(window.blancPendingSheet)) {

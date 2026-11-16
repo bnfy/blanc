@@ -28,7 +28,10 @@
     "pages/downloads.js",
     "pages/tab-import.html",
     "pages/tab-import-open-tabs.js",
-    "pages/tab-import-arc.js"
+    "pages/tab-import-arc.js",
+    "pages/tab-handoff.html",
+    "pages/tab-handoff.js",
+    "pages/tab-handoff.css"
   ],
   "mainFiles": [
     "island-hover-open.js",

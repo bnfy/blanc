@@ -178,6 +178,9 @@ pages/start-site-name.js
 pages/strings.js
 pages/sunrise-favicon-mark.png
 pages/sunrise-mark.png
+pages/tab-handoff.css
+pages/tab-handoff.html
+pages/tab-handoff.js
 pages/tab-import-arc.js
 pages/tab-import-open-tabs.js
 pages/tab-import.html
