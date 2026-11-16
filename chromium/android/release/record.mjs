@@ -23,6 +23,20 @@ export function validateBuildRecord(record, ledgerEntry) {
   check(Number.isFinite(date) && new Date(date).toISOString() === record.builtAt, 'invalid builtAt');
   if (Object.hasOwn(record, 'gatesApk')) check(SHA.test(record.gatesApk?.sha256 ?? ''), 'invalid gatesApk');
 }
+// A release's arguments: the tagged template plus its version lines.
+export function releaseArgs(template, versionName, versionCode) {
+  return template + `\nblanc_android_version_name = "${versionName}"\nandroid_override_version_name = "${versionName}"\nandroid_override_version_code = "${versionCode}"\n`;
+}
+// The build guard pins each output's arguments, and every release changes them by its version
+// lines. When the pin is exactly this template with an earlier release's version, only the version
+// changed: the pin with the new arguments' hash, every toolchain field untouched. Otherwise null,
+// and the guard stops the build for a review.
+export function pinForNewVersion(pin, template, earlierBuilds, args) {
+  const next = digest(args);
+  if (pin?.argsSha256 === next) return null;
+  const known = earlierBuilds.some(build => digest(releaseArgs(template, build.versionName, build.versionCode)) === pin?.argsSha256);
+  return known ? { ...pin, argsSha256: next } : null;
+}
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, ...options });
   if (result.error) throw result.error;
@@ -137,7 +151,8 @@ Would write ${evidence}/build.json. No changes made.`);
   const outputs = [['AndroidRelease', 'release-arm64.gn'], ...(gates ? [['AndroidReleaseX64', 'release-x64.gn']] : [])];
   for (const [outName, template] of outputs) {
     const out = path.join(src, 'out', outName);
-    const args = fs.readFileSync(path.join(exported, 'chromium/android/args', template), 'utf8') + `\nblanc_android_version_name = "${entry.versionName}"\nandroid_override_version_name = "${entry.versionName}"\nandroid_override_version_code = "${entry.versionCode}"\n`;
+    const argsTemplate = fs.readFileSync(path.join(exported, 'chromium/android/args', template), 'utf8');
+    const args = releaseArgs(argsTemplate, entry.versionName, entry.versionCode);
     fs.mkdirSync(out, { recursive: true });
     const argsFile = path.join(out, 'args.gn');
     fs.writeFileSync(argsFile, args);
@@ -147,7 +162,13 @@ Would write ${evidence}/build.json. No changes made.`);
     run(path.join(home, 'depot_tools/gn'), ['gen', out], { cwd: src, stdio: 'inherit' });
     const buildTool = [path.join(tools, 'build.mjs'), src, '--lane=android', `--out=${outName}`];
     // The toolchain baseline is recorded once per output; later changes to it still stop the build.
-    if (!fs.existsSync(path.join(out, '.blanc-build-environment.json'))) run(process.execPath, [...buildTool, '--record-environment'], { stdio: 'inherit' });
+    const pinFile = path.join(out, '.blanc-build-environment.json');
+    if (!fs.existsSync(pinFile)) run(process.execPath, [...buildTool, '--record-environment'], { stdio: 'inherit' });
+    else {
+      const earlier = jsonAt(clone, entry.commit, 'chromium/android/release/ledger.json').builds.filter(build => build.versionCode < entry.versionCode);
+      const moved = pinForNewVersion(JSON.parse(fs.readFileSync(pinFile, 'utf8')), argsTemplate, earlier, args);
+      if (moved) fs.writeFileSync(pinFile, JSON.stringify(moved, null, 2) + '\n');
+    }
     // A release is an intentional full rebuild, so the large-plan guard is waived here only.
     run(process.execPath, [...buildTool, '--build', '--allow-large-build'], { stdio: 'inherit' });
     const generated = fs.readFileSync(path.join(out, 'gen/blanc/android/org/chromium/blanc/BlancRelease.java'), 'utf8');
