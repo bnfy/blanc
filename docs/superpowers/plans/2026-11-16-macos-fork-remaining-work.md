@@ -192,7 +192,7 @@ Each item: a failing `native-*.mjs` or scenario first, then the change, an incre
 - [ ] **K8** X2: protected-video notice with Open in Blanc, after O2. Retires the `no-drm-handoff` standing waiver (owner's word needed to set `until`).
 - [ ] **K9** Importer M.2 in the browser process against C4's fixtures and `expected.json`; M.3 key re-wrap; M.4 after O3.
 - [ ] **K10** Spaces menu fade flake (`F41…:211`), last: it passes on rerun and blocks nothing.
-- [ ] **After C3:** move the tracker pin, run changed cases on the then-current candidate, fix or record gaps.
+- [x] **After C3 / K13** (2026-11-16: pins, renderer, strings and inventory at v1.49.1; the seven new cases pass; F37-9 found ⌘⇧N opening a private window under Chromium 158's action dispatch, fixed) move the tracker pin, run changed cases on the then-current candidate, fix or record gaps.
 - [ ] **Close-out:** a full nightly on the final head; refresh the tracker from it as on 2026-11-16; list what remains for the owner's Verified checklist.
 
 ## Review Focus
@@ -201,6 +201,6 @@ What neither lane's tests catch by themselves, most likely first:
 
 1. A Codex test that passes for the wrong reason (reads the fork's own state back instead of shipping's expected value). Audit step 5's positive control is the guard.
 2. A Codex assertion with an invented number. Audit step 4.
-3. Test windows stealing focus from the owner on the MacBook Pro mid-typing. If it happens once, Codex's browser runs move to off-hours or stop (O1).
+3. (Closed 2026-11-16: the owner moved all test runs to the Mac Studio.) Test windows stealing focus from the owner on the MacBook Pro mid-typing. If it happens once, Codex's browser runs move to off-hours or stop (O1).
 4. A staged app that no longer matches the tracker's candidate after Claude's first K-build: Codex cards keep using the staged nightly copy on purpose; Claude reruns their tests on the new candidate when landing.
 5. `expected.json` encoding a migration choice the spec leaves open. Anything D5 touches stays out.

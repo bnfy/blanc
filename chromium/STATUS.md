@@ -14,6 +14,37 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Shipping target moved to v1.49.1 (plan K13), and Chromium 158's action dispatch (candidate macos-bed55af2cf2cf43d):**
+  the pins, the generated Island renderer, the interface, menu and Settings
+  strings, the asset copies and the Android strings copy are at v1.49.1
+  (`673ff2eb`); the inventory is 618 declarations, 667 cases. The host sends
+  `panelSideClearance` with the panel, as shipping's main does. New at
+  v1.49.1 and now bound: F37-5..9 (New Tab reuse; the runner turns reuse on
+  for the cases shipping's `support/hooks.js` does), F37-9's New Private Tab
+  command, and F28-21 (the rail's Space mark clear of the traffic lights,
+  read from the real window through the `windowButtonPosition` hook).
+  **Found by F37-9:** Chromium 158 runs browser commands through its actions
+  (`features::ShouldUseActionsForBrowserCommands`, on by default), so the
+  menu and keyboard never reach `HandleCommandWithDisposition`, where patches
+  0011, 0012, 0019, 0076 and 0086 answer ⌘⇧N and the sheet commands. ⌘⇧N
+  therefore opened a separate private window, not a private tab (shown with
+  logging in a test build; no real key was pressed, and Blanc Beta
+  2.0.0-beta.5, on the same Chromium, was not checked). Fixed without a new
+  upstream hunk: `ExecuteIslandCommand` answers New Private Tab, History,
+  Downloads, Favorites, Settings and About from `ExecuteForFocusedGlance`,
+  the one call every command still passes (patch 0074). Whether the sheet
+  commands were broken before is not known. The switch edits in those five
+  patches are now dead code, to remove at the next patch consolidation.
+  Evidence on the Mac Studio: `blank-tab-affordance.feature` 9 of 9,
+  `vertical-tabs.feature` 20 of 20 (1 excluded),
+  `native-new-tab-reuse.mjs` 8 checks (the command opens a private tab, then
+  reuses it; four sheet commands open their sheets), and
+  `native-tab-switch`, `-dock-menu`, `-tab-handoff`, `-trust-receipt`,
+  `-capture-indicator` and `-window-size-relaunch` pass.
+  **Test runs moved to the Mac Studio (owner, 2026-11-16):** no fork test
+  window opens on the MacBook Pro. Staging is `~/Projects/Blanc/scratch/tests`
+  (`repo`, a worktree apart from the pinned release checkout; `app`, a copy
+  of the build; `config.json`); windows launched over SSH draw there.
 - **2026-11-16 — Tab handoff (N20; candidate macos-6e37801aafbe77a1; design `docs/superpowers/specs/2026-11-16-fork-tab-handoff-design.md`, approved by the owner with D1–D3):**
   the Bring Your Tabs extension's `blanc-import://tabs?v=1&id=…&key=…` link.
   `OpenExternalLink` hands such a link to `TabHandoff` (`tab_handoff.inc`)
@@ -3747,11 +3778,11 @@ on that site, and a wrong search address still fails it.
 
 | Platform | Current-candidate baseline |
 | --- | --- |
-| macOS | 629/661 executable cases pass; 1 failed; 3 undefined/not run; 28 excluded — [baseline](scenarios/baseline-macos-4f9e9bb648216395.json)<br>S1 rows: 255/258 pass; 0 failed; 1 undefined; 2 excluded |
-| Windows | Not run (661 cases) |
-| Linux | Not run (661 cases) |
+| macOS | Not run for current candidate (previous baseline is stale) |
+| Windows | Not run (667 cases) |
+| Linux | Not run (667 cases) |
 
-661 executable cases from 612 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
+667 executable cases from 618 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
 
 Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acceptance/` (A2, A3): 32 (F2–F8, F12, F18, and the phone-only F31-11 and F56-1–3), run on the build server's emulator by `run.sh`; desktop cases don't apply to it.
 
