@@ -15,6 +15,7 @@
     "chrome/android/java/src/org/chromium/chrome/browser/app/notifications/ContextualNotificationPermissionRequesterImpl.java": "a510694307da5ce58b0f77983db8360d7e3375cdd636c2ae1850c5838c98a69a",
     "chrome/android/java/src/org/chromium/chrome/browser/background_task_scheduler/ChromeBackgroundTaskFactory.java": "3f94b4d9ad95a56886bbbade9b8fcd66339ec5211890782be17e68895c29132d",
     "chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompatApplication.java": "bcd45e73b8fa5daf1eb2939f2199bc8522b56beaccb9d58feae775ec2439e9dd",
+    "chrome/android/java/src/org/chromium/chrome/browser/incognito/IncognitoNotificationPresenceController.java": "2a718afc5c6de52bb2eeafa287b682e9659514f2f26e63382fda0271f1460d0c",
     "chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java": "d5391fb65d8371c2b1e5acb73ceb8d4079f6272b2e58af7c0a93b5b4e01e4531",
     "chrome/android/java/src/org/chromium/chrome/browser/modaldialog/ChromeTabModalPresenter.java": "2d20a9b32a0432660ef3913981f2a8163c7a2423a6654598efdea7c946b50e27",
     "chrome/android/java/src/org/chromium/chrome/browser/settings/MainSettings.java": "b2eefd044831c0eed2c8e89b54d2a61fbf99e5c7ab705a98e9ca185d891535c7",

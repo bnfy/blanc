@@ -26,6 +26,15 @@ test('the request finds the browser window when another Blanc screen is in front
   assert.match(body, /ApplicationStatus\.getRunningActivities\(\)/);
 });
 
+// Chrome also asks when the first private tab opens. In Blanc that prompt came with nothing to
+// show for it (no private-tab notification followed on the emulator), so private tabs don't ask.
+test('opening a private tab does not ask for notification permission', () => {
+  const source = patchedChromiumFile(
+      'chrome/android/java/src/org/chromium/chrome/browser/incognito/IncognitoNotificationPresenceController.java');
+  assert.doesNotMatch(source, /requestPermissionIfNeeded/);
+  assert.match(source, /IncognitoNotificationManager\.showIncognitoNotification\(\);/);
+});
+
 // Chrome's own explainer card says "Chrome notifications make things easier" and names Incognito,
 // and it opens on the browser window, behind the Downloads screen a download brings up. Blanc goes
 // straight to Android's permission prompt.

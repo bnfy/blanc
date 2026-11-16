@@ -55,6 +55,29 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/app/notification
  
          // TODO(shaktisahu): Maybe split out the contextual permission logic out of
          // NotificationPermissionController entirely to serve non-chrome activities.
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/incognito/IncognitoNotificationPresenceController.java b/chrome/android/java/src/org/chromium/chrome/browser/incognito/IncognitoNotificationPresenceController.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/incognito/IncognitoNotificationPresenceController.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/incognito/IncognitoNotificationPresenceController.java
+@@ -8,7 +8,6 @@
+ import org.chromium.chrome.browser.tabmodel.IncognitoTabHostUtils;
+ import org.chromium.chrome.browser.tabmodel.IncognitoTabModelObserver;
+ import org.chromium.chrome.browser.tabmodel.TabModelSelector;
+-import org.chromium.ui.permissions.ContextualNotificationPermissionRequester;
+ 
+ /**
+  * Controls the presence incognito notification through {@link IncognitoNotificationManager}.
+@@ -33,9 +32,8 @@
+     @Override
+     public void wasFirstTabCreated() {
+         IncognitoNotificationManager.showIncognitoNotification();
+-        ContextualNotificationPermissionRequester requester =
+-                ContextualNotificationPermissionRequester.getInstance();
+-        if (requester != null) requester.requestPermissionIfNeeded();
++        // Blanc (patch 0119): a private tab doesn't ask for notification permission; a download
++        // or a site's request does.
+     }
+ 
+     @Override
 diff -ruN a/chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java b/chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java
 --- a/chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java
 +++ b/chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java

@@ -67,8 +67,9 @@ in the lane file in its place. Numbering starts at 0101.
   patch: a site's camera prompt and an HTTP sign-in. JavaScript alerts and
   confirms go through the same presenter and were not run.
 - `0119-android-notification-ask.patch`: asks for notification permission in
-  context (Chromium's callers: a download starting, a private tab's
-  notification, a site's request). 0104 removed the startup prompt and counted
+  context: a download starting or a site's request, through the browser window
+  even when the Downloads screen has focus. Not when a private tab opens
+  (Chromium's third caller, `IncognitoNotificationPresenceController`). 0104 removed the startup prompt and counted
   on this, but `ContextualNotificationPermissionRequesterImpl` keeps it behind
   a field-trial parameter that is off by default, so Blanc never asked and its
   notifications never showed (found on 1.0.0-beta.1). The request is always
