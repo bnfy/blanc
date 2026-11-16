@@ -28,7 +28,7 @@ test('a pointer just outside the window is left alone', () => {
 
 test('a small screen gets the tight margin', () => {
   // The Mac Studio's display: 40px clear fits on no side, 8px fits on the left.
-  assert.deepEqual(clearOfPointer({x: 1215, y: 183}, bounds, {left: 0, top: 25, width: 1920, height: 1055}), {left: 6, top: 52});
+  assert.deepEqual(clearOfPointer({x: 1215, y: 183}, bounds, {left: 0, top: 25, width: 1920, height: 1000}), {left: 6, top: 52});
 });
 
 test('nowhere to go on a small screen leaves the window alone', () => {

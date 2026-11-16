@@ -64,12 +64,15 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   sits where shipping's does. `sync.feature` 18 of 18 and
   `island-and-commands.feature` 66 of 67 on that build; the tracker's
   baseline stays the full run on macos-bed55af2cf2cf43d until the next
-  nightly. **F1-6 still open:** the first move inside the Island reports
-  inside and starts the dwell, but a move that lands as the panel opens is
-  read as outside (state back to inside=false, armed), and the step, which
-  sends no further move, waits on it and times out. Shipping's state would
-  read inside. Likely the host's pointer bookkeeping at the moment the
-  overlay takes the pointer (`hookHover` in `host.js`); not fixed.
+  nightly. **F1-6 was the test bench, not the fork:** the Mac Studio's
+  real pointer was resting inside the test window, over the page. When the
+  panel opens, Chromium re-reads the real pointer, the host sees it leave
+  the Island (a trusted mouseleave at the real pointer's coordinates, logged
+  in a probe) and the hover-opened panel closes, as it should for a person.
+  This is the cause of the pointer-dependent hover flakes. The runner now
+  moves the test window clear of the real pointer before `@island-hover`
+  cases (`tests/lib/real-pointer.mjs`; the pointer is read, never moved) and
+  records what it found on the case. `island-and-commands.feature` 67 of 67.
   **Test runs moved to the Mac Studio (owner, 2026-11-16):** no fork test
   window opens on the MacBook Pro. Staging is `~/Projects/Blanc/scratch/tests`
   (`repo`, a worktree apart from the pinned release checkout; `app`, a copy
