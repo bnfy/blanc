@@ -14,6 +14,19 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Electron profile importer, task 6: site permissions; the downloads list left behind (candidate macos-a458cc792c40c1c5):**
+  each profile's saved answers for microphone, camera, location and
+  notifications are written to Chromium's content settings
+  (`SetContentSettingDefaultScope`, origin for both sides). An old
+  `origin|media` answer covered both devices: a deny is kept for both, an
+  allow is asked again, as shipping reads it. Only http and https origins,
+  only allow and deny. **Owner decision:** the downloads list is not
+  imported (files stay on disk; Chromium's own list is used); the answer key
+  and the plan builder name it as left behind. Evidence on the Mac Studio:
+  `native-profile-import.mjs` 11 of 11 (the four answers read back; old
+  broad deny and allow; an unknown answer and an invalid origin ignored);
+  `permissions-and-auth` scenarios still pass; `profile-import.test.mjs` 10,
+  `importer-fixtures.test.mjs` 15.
 - **2026-11-16 — Electron profile importer, task 5: named profiles (candidate macos-2b57f628562ead96):**
   the importer works through the plan's profiles in turn: Personal into the
   first profile, then each named profile into an ordinary Chromium profile

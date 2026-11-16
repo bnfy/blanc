@@ -11,7 +11,8 @@
 // Built so far (tasks 2 to 5): each profile's Favorites, history, site
 // icons, Start Page pins, Tab Archive, Spaces and saved windows, a named
 // profile becoming an ordinary Chromium profile; Personal's settings and the
-// install id. Permissions, downloads and Sync follow in later tasks.
+// install id; site permissions. The downloads list is left behind (owner).
+// Sync follows in a later task.
 //
 // Included by blanc_prototype_ui.cc inside its unnamed namespace.
 
@@ -142,6 +143,8 @@ struct PreparedImport {
   base::ListValue archive;
   base::DictValue spaces;                // id -> record, for SpaceDisk importSpaces
   base::DictValue space_identity;        // id -> {color, symbol}
+  struct Permission { GURL origin; ContentSettingsType type; ContentSetting setting; };
+  std::vector<Permission> permissions;
   std::string error;
 };
 
@@ -428,6 +431,36 @@ PreparedImport PrepareImport(const base::DictValue& stores) {
       out.archive.Append(std::move(row));
     }
   }
+  // Site permissions (task 6): shipping's keys are origin|kind, or
+  // origin|media|audio and origin|media|video. An old origin|media answer
+  // covered both devices: a deny holds for both, an allow is asked again
+  // (shipping's permission-decisions.js storedDecision).
+  if (const auto* store = stores.FindDict("site-permissions.json")) {
+    const auto* decisions = store->FindDict("decisions");
+    if (!decisions) return fail("site-permissions.json");
+    for (auto [key, value] : *decisions) {
+      const auto* decision = value.GetIfString();
+      const auto parts = base::SplitString(key, "|", base::KEEP_WHITESPACE, base::SPLIT_WANT_ALL);
+      if (!decision || (*decision != "allow" && *decision != "deny") || parts.size() < 2 || parts.size() > 3) continue;
+      const GURL site(parts[0]);
+      if (!site.is_valid() || !site.SchemeIsHTTPOrHTTPS() || site.has_username() || site.has_password()) continue;
+      const GURL origin = site.DeprecatedGetOriginAsURL();
+      const ContentSetting setting = *decision == "allow" ? CONTENT_SETTING_ALLOW : CONTENT_SETTING_BLOCK;
+      if (parts[1] == "geolocation" && parts.size() == 2) {
+        out.permissions.push_back({origin, ContentSettingsType::GEOLOCATION, setting});
+      } else if (parts[1] == "notifications" && parts.size() == 2) {
+        out.permissions.push_back({origin, ContentSettingsType::NOTIFICATIONS, setting});
+      } else if (parts[1] == "media" && parts.size() == 3 && parts[2] == "audio") {
+        out.permissions.push_back({origin, ContentSettingsType::MEDIASTREAM_MIC, setting});
+      } else if (parts[1] == "media" && parts.size() == 3 && parts[2] == "video") {
+        out.permissions.push_back({origin, ContentSettingsType::MEDIASTREAM_CAMERA, setting});
+      } else if (parts[1] == "media" && parts.size() == 2 && setting == CONTENT_SETTING_BLOCK) {
+        out.permissions.push_back({origin, ContentSettingsType::MEDIASTREAM_MIC, setting});
+        out.permissions.push_back({origin, ContentSettingsType::MEDIASTREAM_CAMERA, setting});
+      }
+    }
+    if (out.permissions.size() > 5000) return fail("site-permissions.json");
+  }
   if (const auto* store = stores.FindDict("workspaces.json")) {
     const auto* spaces = store->FindList("workspaces");
     if (!spaces) return fail("workspaces.json");
@@ -523,6 +556,11 @@ void ApplyImport(Profile* profile, PreparedImport prepared, base::OnceCallback<v
           }
           prefs->SetList(kArchiveEntriesPref, std::move(archive));
         }
+        if (auto* settings = HostContentSettingsMapFactory::GetForProfile(profile.get())) {
+          for (const auto& permission : prepared.permissions) {
+            settings->SetContentSettingDefaultScope(permission.origin, permission.origin, permission.type, permission.setting);
+          }
+        }
         prefs->CommitPendingWrite();
         std::move(done).Run(base::Value(base::DictValue()
             .Set("favorites", favorites.FindInt("added").value_or(0))
@@ -530,7 +568,8 @@ void ApplyImport(Profile* profile, PreparedImport prepared, base::OnceCallback<v
             .Set("siteIcons", static_cast<int>(prepared.icons.size()))
             .Set("pins", static_cast<int>(prepared.pins.size()))
             .Set("archive", static_cast<int>(prepared.archive.size()))
-            .Set("spaces", static_cast<int>(prepared.spaces.size()))));
+            .Set("spaces", static_cast<int>(prepared.spaces.size()))
+            .Set("permissions", static_cast<int>(prepared.permissions.size()))));
       }, profile->GetWeakPtr(), std::move(prepared), std::move(done)));
 }
 

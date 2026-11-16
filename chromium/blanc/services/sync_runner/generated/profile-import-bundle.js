@@ -101,15 +101,6 @@ const PROFILE_RULES = {
     }
     return {...store, entries: entries.slice(0, HISTORY_CAP)};
   },
-  'downloads.json'(store, source, left) {
-    const items = list(store, 'items');
-    const kept = [];
-    items.forEach((item, index) => {
-      if (isObject(item) && item.private !== true) kept.push(item);
-      else left.push({source: `${source}#/items/${index}`, reason: 'A private or unreadable download is never imported.'});
-    });
-    return {...store, items: kept};
-  },
   'site-permissions.json'(store, source, left) {
     if (!isObject(store.decisions)) throw new StoreError('invalid-shape');
     const decisions = {};
@@ -132,6 +123,12 @@ function profileStores(files, prefix, source, left) {
     try { store = read(files, prefix + name); }
     catch (error) { throw Object.assign(error, {store: name}); }
     if (store === undefined) continue;
+    // The downloads list is left behind (owner, 2026-11-16): the files stay on
+    // disk and the fork keeps Chromium's own list.
+    if (name === 'downloads.json') {
+      left.push({source: `${source}/${name}`, reason: 'The downloads list is not imported; downloaded files stay on disk.'});
+      continue;
+    }
     try { stores[name] = PROFILE_RULES[name] ? PROFILE_RULES[name](store, `${source}/${name}`, left) : store; }
     catch (error) { throw Object.assign(error, {store: name}); }
   }

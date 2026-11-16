@@ -191,9 +191,11 @@ test('shipping cannot serialize a private session tab: exercise the writer, do n
 test('schema-for-schema stores, download metadata, device maps and install identity are carried unchanged', () => {
   const fixture = buildFixture();
   for (const {read, expected} of profileInputs(fixture)) {
-    for (const name of ['start-page-pins.json', 'archive.json', 'workspaces.json', 'shared-spaces.json', 'synced-closed.json', 'reader-appearance.json', 'downloads.json']) {
+    for (const name of ['start-page-pins.json', 'archive.json', 'workspaces.json', 'shared-spaces.json', 'synced-closed.json', 'reader-appearance.json']) {
       assert.deepEqual(expected[name], read(name), name);
     }
+    // Owner, 2026-11-16: the downloads list is left behind.
+    assert.ok(!Object.hasOwn(expected, 'downloads.json'));
     assert.deepEqual(plain(model('src/main/workspaces-model.js').normalizeFile(read('workspaces.json'))), read('workspaces.json'));
     const record = read('downloads.json').items[0];
     assert.equal(record.state, 'completed');
@@ -283,16 +285,18 @@ test('all sources are accounted for and unresolved files have questions instead 
     const named = relative.match(/^profiles\/([^/]+)\/(.+)$/);
     const answer = named ? fixture.expected.profiles[named[1]]?.[named[2]]
       : fixture.expected.profiles.personal[relative] ?? fixture.expected.device[relative];
-    assert.ok(answer !== undefined || fixture.expected.undecided.some(row => row.source === name), name);
+    // A whole file left behind is accounted for by its own notImported row.
+    assert.ok(answer !== undefined || fixture.expected.notImported.some(row => row.source === name), name);
   }
   for (const row of fixture.expected.notImported) {
     assert.ok(row.reason);
     const [file, pointer] = row.source.split('#');
     let content = JSON.parse(fixture.files[file]);
+    if (pointer === undefined) continue;
     for (const segment of pointer.slice(1).split('/')) content = content[segment.replaceAll('~1', '/').replaceAll('~0', '~')];
     assert.notEqual(content, undefined, row.source);
   }
-  const stores = ['bookmarks.json', 'history.json', 'downloads.json', 'site-permissions.json',
+  const stores = ['bookmarks.json', 'history.json', 'site-permissions.json',
     'start-page-pins.json', 'archive.json', 'workspaces.json', 'shared-spaces.json',
     'synced-closed.json', 'reader-appearance.json'];
   // Personal also receives the synced settings (owner, 2026-11-16); no other profile does.

@@ -188,6 +188,10 @@
 #include "chrome/common/webui_url_constants.h"
 #include "chrome/browser/platform_util.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/content_settings/host_content_settings_map_factory.h"
+#include "components/content_settings/core/browser/host_content_settings_map.h"
+#include "components/content_settings/core/common/content_settings.h"
+#include "components/content_settings/core/common/content_settings_types.mojom.h"
 #include "chrome/browser/profiles/profile_avatar_icon_util.h"
 #include "chrome/browser/profiles/profile_manager.h"
 #include "chrome/browser/profiles/profile_attributes_entry.h"
@@ -7190,6 +7194,17 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
             .Set("directory", entry->GetPath().BaseName().AsUTF8Unsafe()));
       }
       Reply(id, true, base::Value(std::move(rows))); return;
+    }
+    if (quiet_method == "profileImportPermission" && quiet_args.size() == 2 && quiet_args[0].is_string() && quiet_args[1].is_string()) {
+      const std::string& kind = quiet_args[1].GetString();
+      const auto type = kind == "microphone" ? ContentSettingsType::MEDIASTREAM_MIC
+          : kind == "camera" ? ContentSettingsType::MEDIASTREAM_CAMERA
+          : kind == "geolocation" ? ContentSettingsType::GEOLOCATION : ContentSettingsType::NOTIFICATIONS;
+      const GURL origin(quiet_args[0].GetString());
+      auto* map = HostContentSettingsMapFactory::GetForProfile(
+          GetOwner(web_ui()->GetWebContents())->browser->GetProfile()->GetOriginalProfile());
+      const auto setting = map->GetContentSetting(origin, origin, type);
+      Reply(id, true, base::Value(setting == CONTENT_SETTING_ALLOW ? "allow" : setting == CONTENT_SETTING_BLOCK ? "deny" : "ask")); return;
     }
     if (quiet_method == "profileImportPins" && quiet_args.empty()) {
       Reply(id, true, base::Value(GetOwner(web_ui()->GetWebContents())->browser->GetProfile()->GetOriginalProfile()

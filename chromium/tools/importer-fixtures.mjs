@@ -205,11 +205,15 @@ export function buildFixture() {
     answer['history.json'].entries = answer['history.json'].entries.slice(0, HISTORY_CAP);
     const unsupported = Object.keys(answer['site-permissions.json'].decisions).find(name => name.endsWith('|clipboard-read'));
     delete answer['site-permissions.json'].decisions[unsupported];
+    // Owner, 2026-11-16: the downloads list is left behind (the files stay
+    // where they are); the fork keeps Chromium's own list.
+    delete answer['downloads.json'];
     expected.profiles[profileId === PERSONAL_ID ? 'personal' : profileId] = answer;
     for (const [name, content] of Object.entries(input)) files[`${prefix}/${name}`] = json(content);
     expected.notImported.push(
       {source: `${prefix}/bookmarks.json#/tombstones`, reason: 'Section 7: deletion tombstones are dropped; live Favorites retain their order.'},
       {source: `${prefix}/history.json#/entries/${HISTORY_CAP}`, reason: 'Section 7: oldest overflow visit exceeds the shipping history cap.'},
+      {source: `${prefix}/downloads.json`, reason: 'Owner, 2026-11-16: the downloads list is not imported; downloaded files stay on disk.'},
       {source: `${prefix}/site-permissions.json#/decisions/${unsupported.replaceAll('~', '~0').replaceAll('/', '~1')}`, reason: 'Section 7: clipboard-read is not a shipping-promptable permission type.'},
     );
   }

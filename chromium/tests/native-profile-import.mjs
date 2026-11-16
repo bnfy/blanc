@@ -52,11 +52,15 @@ try{
  // 3. The fixture: the Personal profile comes across.
  const source=makeImportSource(parent,dir=>{const file=path.join(dir,'settings.json');
   fs.writeFileSync(file,JSON.stringify({...JSON.parse(fs.readFileSync(file,'utf8')),islandSize:'large',islandHoverOpen:true,tabSleep:'6h',pageZoom:125,
-   surfaceStyle:'bogus',tabSwitchOrder:'list',bangsEnabled:false,adblockExceptions:['example.org']}));});
+   surfaceStyle:'bogus',tabSwitchOrder:'list',bangsEnabled:false,adblockExceptions:['example.org']}));
+  const perms=path.join(dir,'site-permissions.json'),saved=JSON.parse(fs.readFileSync(perms,'utf8'));
+  saved.decisions['https://old-deny.example.com|media']='deny';saved.decisions['https://old-allow.example.com|media']='allow';
+  saved.decisions['not a site|geolocation']='allow';saved.decisions['https://odd.example.com|notifications']='maybe';
+  fs.writeFileSync(perms,JSON.stringify(saved));});
  const before=digestTree(source.userData);
  r=await run(source.userData);
  assert.equal(r.ok,true,JSON.stringify(r).slice(0,400));assert.equal(r.sourceVersion,'1.49.1');assert.deepEqual(r.errors,[]);
- assert.deepEqual(r.profiles.personal,{favorites:2,history:5000,siteIcons:1,pins:1,archive:1,spaces:1});
+ assert.deepEqual(r.profiles.personal,{favorites:2,history:5000,siteIcons:1,pins:1,archive:1,spaces:1,permissions:6});
  assert.deepEqual(Object.keys(r.profiles),['personal']);assert.deepEqual(r.alreadyImported,[NAMED],'expected the named profile, imported above, not imported again');
  const favorites=await w.api('listFavorites');
  assert.deepEqual(favorites.map(x=>[x.url,x.title,x.folder??null]),[['https://personal.example.com/zeta','Zeta','Reading'],['https://personal.example.com/alpha','Alpha',null]]);
@@ -97,6 +101,18 @@ try{
   'blanc.telemetry.install':{id:'99999999-9999-4999-8999-999999999999',createdAt:1794528000000,day1Default:false,day1Browsed:true}});
  assert.equal(read.synced.theme,'dark');assert.equal(read.synced.bangsEnabled,false);assert.deepEqual(read.synced.adblockExceptions,['example.org']);
  result.checks.push('settings land in their preferences (a value the fork would refuse is skipped), and the install id is kept');
+
+ // 7b. Site permissions: the answers Blanc asked about, kept as answered.
+ const answer=(origin,kind)=>w.native('profileImportPermission',[origin,kind]);
+ const site='https://personal.example.com';
+ assert.deepEqual([await answer(site,'microphone'),await answer(site,'camera'),await answer(site,'geolocation'),await answer(site,'notifications')],['allow','deny','deny','allow']);
+ // An old "media" answer covered both devices: a deny still holds for both;
+ // an allow is asked again, as shipping does, because it may have been for one.
+ assert.deepEqual([await answer('https://old-deny.example.com','microphone'),await answer('https://old-deny.example.com','camera')],['deny','deny']);
+ assert.deepEqual([await answer('https://old-allow.example.com','microphone'),await answer('https://old-allow.example.com','camera')],['ask','ask']);
+ assert.deepEqual([await answer('https://odd.example.com','notifications'),await answer('https://never-asked.example.com','geolocation')],['ask','ask']);
+ assert.ok(r.notImported.some(x=>x.source==='userData/downloads.json'),'expected the downloads list named as left behind');
+ result.checks.push('site permissions keep their answers; an old broad allow is asked again; the downloads list is left behind');
 
  // 8. The open session: Personal's saved window opens as a window of its own, quiet.
  assert.deepEqual(r.session,{windows:1,tabs:3});

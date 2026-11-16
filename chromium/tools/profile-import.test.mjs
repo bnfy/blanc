@@ -111,7 +111,7 @@ test('profile folders are read only for profiles the registry still lists', asyn
   assert.deepEqual(Object.keys(result.profiles).sort(), ['personal', 'profile_22222222222242228222222222222222']);
 });
 
-test('private downloads and unpromptable permissions never reach the plan', async () => {
+test('the downloads list and unpromptable permissions never reach the plan', async () => {
   const {files} = sourceFiles(f => {
     const downloads = JSON.parse(f['downloads.json']);
     downloads.items.push({...downloads.items[0], id: 'private_one', private: true});
@@ -122,11 +122,11 @@ test('private downloads and unpromptable permissions never reach the plan', asyn
     f['site-permissions.json'] = JSON.stringify(permissions);
   });
   const result = await plan(files);
-  assert.deepEqual(result.profiles.personal.stores['downloads.json'].items.map(item => item.id), ['personal_download']);
+  assert.ok(!Object.hasOwn(result.profiles.personal.stores, 'downloads.json'), 'the downloads list is left behind');
+  assert.ok(result.notImported.some(row => row.source === 'userData/downloads.json'));
   const kept = Object.keys(result.profiles.personal.stores['site-permissions.json'].decisions);
   assert.ok(!kept.some(key => /midiSysex|clipboard-read/.test(key)));
   assert.ok(kept.includes('https://personal.example.com|media'), 'a legacy broad media decision is kept for the applier to read as shipping does');
-  assert.ok(result.notImported.some(row => row.source === 'userData/downloads.json#/items/1'));
 });
 
 test('device settings become preferences only when their value is one the fork accepts', async () => {

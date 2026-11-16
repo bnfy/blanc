@@ -118,9 +118,11 @@ Each task ends with its own passing tests and a push to `chromium/next`. Tasks 1
 
 ### Task 6: Permissions and downloads list
 
-- [ ] Test: each promptable decision in the fixture answers the same way without a prompt; `clipboard-read` is absent; the downloads list shows the fixture's finished downloads, with files untouched and private ones absent.
-- [ ] Implement `HostContentSettingsMap` writes and download-history rows.
-- [ ] Build, pass, commit and push.
+**Done 2026-11-16** (candidate macos-a458cc792c40c1c5, 11 native checks). **Owner decision P2: the downloads list is left behind** (the files stay on disk; the fork keeps Chromium's own list), so only permissions were built. The answer key and plan builder name the downloads list as not imported.
+
+- [x] Test: each promptable decision in the fixture answers the same way without a prompt; `clipboard-read` is absent; the downloads list shows the fixture's finished downloads, with files untouched and private ones absent.
+- [x] Implement `HostContentSettingsMap` writes and download-history rows.
+- [x] Build, pass, commit and push.
 
 ### Task 7: Sync stores and the key (M.3)
 
@@ -140,7 +142,7 @@ Blocked on the owner decision below.
 | # | Decision | Needed before |
 | --- | --- | --- |
 | P1 | Where the import starts: automatically on the replacement build's first launch only, or also as a command in Blanc Beta's Settings so beta testers (and the owner's dogfood) can bring their data across | Task 8 |
-| P2 | Downloads list: import it (new code) or leave it behind (files stay on disk either way) | Task 6 |
+| P2 | Downloads list: **answered 2026-11-16: leave it behind** | Task 6 |
 
 ## Not imported, by design
 
