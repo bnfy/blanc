@@ -14,6 +14,17 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — N1 rechecked; F59 and F58 need native work first (Codex card C2b, 71d6ca969):**
+  `tests/native-recheck-n1.mjs` passes 5 of 5 on the staged
+  macos-4f9e9bb648216395 (entry and title, nothing for a private tab, Forget,
+  Clear all, reopen), and fails when its expected entry count is made wrong;
+  N1 is Integrated. Codex reported the other two as blocked and wrote no
+  test for them, and both hold up: **F59** Ctrl+Tab recent order is not
+  built (`settings-keys.json` has `tabSwitchOrder` as `later`; nothing
+  native reads it), and **F58** has no way to observe Reading Mode open
+  (the native snapshot never fills `readerActive`). Both are Claude-lane
+  items now. Difference noted: Recently closed is profile-wide here
+  (Chromium's TabRestoreService), per window in shipping.
 - **2026-11-16 — Remaining-work plan started; F49, F50 and F54 rechecked:**
   the split with Codex is `docs/superpowers/plans/2026-11-16-macos-fork-remaining-work.md`.
   Codex works sandboxed in `~/Projects/Blanc-Codex/repo` (branch
@@ -3531,10 +3542,10 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 | Not started / unassessed | 8 | 81 | 81 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 2 | 0 | 0 | 0 |
-| Implemented | 9 | 0 | 0 | 12 |
+| Implemented | 8 | 0 | 0 | 12 |
 | Built, isolated (legacy) | 0 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 0 | 0 | 0 | 0 |
-| Integrated | 61 | 0 | 0 | 0 |
+| Integrated | 62 | 0 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 | 0 |

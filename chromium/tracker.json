@@ -1537,7 +1537,8 @@
       "platformProgress": {
         "macos": {
           "stage": "drafted",
-          "basis": "Owner decision 2026-11-02: Chromium's native Reading Mode replaces shipping's reader; all three shipping cases are excluded. Not rechecked in the 2026-11-16 tracker refresh"
+          "basis": "Owner decision 2026-11-02: Chromium's native Reading Mode replaces shipping's reader; all three shipping cases are excluded. host.js dispatches the reader command to a window Reading Mode command, with no private-tab refusal; the native snapshot never fills readerActive, so nothing can yet observe it open (checked 2026-11-16). Not run on screen",
+          "candidate": "macos-4f9e9bb648216395"
         },
         "windows": {
           "stage": "not-started",
@@ -1567,7 +1568,8 @@
       "platformProgress": {
         "macos": {
           "stage": "drafted",
-          "basis": "approved spec macOS inventory; awaiting candidate verification. No shipping scenario maps to this row; not rechecked in the 2026-11-16 tracker refresh."
+          "basis": "Not built (checked 2026-11-16): settings-keys.json lists tabSwitchOrder as 'later', and only shipping's generated renderer code names it; no native handling or Settings control exists. A test also needs a way to hold Ctrl across separate Tab presses, which no fork test has yet",
+          "candidate": "macos-4f9e9bb648216395"
         },
         "windows": {
           "stage": "not-started",
@@ -1854,8 +1856,8 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "implemented",
-          "basis": "The Recently closed band and its closedSlot are in the Island host (host.js, tab-drag.js) with tests/native-closed-batches.mjs; reopen cases pass under F2/F3 in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78). Forget/Clear all not rechecked in the 2026-11-16 refresh",
+          "stage": "integrated",
+          "basis": "native-recheck-n1.mjs passes 5 of 5 checks on macos-4f9e9bb648216395 (2026-11-16): a closed tab's entry and title, no entry for a private tab, Forget, Clear all, and reopen. The fork keeps Chromium's profile-wide TabRestoreService history where shipping keeps it per window; expiry and the cap not checked; manual accessibility/visual checklist pending for Verified",
           "candidate": "macos-4f9e9bb648216395"
         },
         "windows": {
