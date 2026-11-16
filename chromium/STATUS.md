@@ -41,6 +41,20 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   reuses it; four sheet commands open their sheets), and
   `native-tab-switch`, `-dock-menu`, `-tab-handoff`, `-trust-receipt`,
   `-capture-indicator` and `-window-size-relaunch` pass.
+  **Full suite on this candidate (Mac Studio, 2026-11-16):** 633 of 667
+  cases pass, 3 fail, 3 undefined, 28 excluded (the 07:00 nightly at
+  v1.49.0: 629 of 661, 1 fail). `link-routing.feature:37` passes alone.
+  Two fail again alone and are **open**: (1) `sync.feature:120` (F27-12,
+  the Other devices drawer in a 640 by 480 window at 125%): the tab list is
+  52px, under the two rows asked for. Measured: v1.49.1's
+  `panelSideClearance` (92px a side on macOS, same number as shipping's
+  `chrome-layout.js`) makes the panel 328px wide, the footer wraps to three
+  rows (105px) and the list loses the room. Whether shipping passes this
+  case on a Mac at v1.49.1 was not established (its scenario would not
+  launch from the Studio's node_modules). (2)
+  `island-and-commands.feature:49` (F1-6, motion inside the Island opens
+  it): the hover state never reports inside. It passed in the nightly; its
+  neighbor `:61` was already pointer-dependent. Not diagnosed.
   **Test runs moved to the Mac Studio (owner, 2026-11-16):** no fork test
   window opens on the MacBook Pro. Staging is `~/Projects/Blanc/scratch/tests`
   (`repo`, a worktree apart from the pinned release checkout; `app`, a copy
@@ -3778,7 +3792,7 @@ on that site, and a wrong search address still fails it.
 
 | Platform | Current-candidate baseline |
 | --- | --- |
-| macOS | Not run for current candidate (previous baseline is stale) |
+| macOS | 633/667 executable cases pass; 3 failed; 3 undefined/not run; 28 excluded — [baseline](scenarios/baseline-macos-bed55af2cf2cf43d.json)<br>S1 rows: 259/263 pass; 1 failed; 1 undefined; 2 excluded |
 | Windows | Not run (667 cases) |
 | Linux | Not run (667 cases) |
 
@@ -3804,5 +3818,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-4f9e9bb648216395; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-bed55af2cf2cf43d; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

@@ -20,8 +20,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "43 of 43 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; 1 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "43 of 43 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; 1 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -51,8 +51,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "14 of 14 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "14 of 14 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -82,8 +82,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "51 of 51 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "51 of 51 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -113,8 +113,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "5 of 6 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; private-tabs.feature:40 undefined (runner gap: no fork step adapter); manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "5 of 6 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; private-tabs.feature:40 undefined (runner gap: no fork step adapter); manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -144,8 +144,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "14 of 14 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; 1 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "14 of 14 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; 1 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -175,8 +175,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "2 of 2 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "2 of 2 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -206,8 +206,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "9 of 9 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "9 of 9 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -237,8 +237,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "1 of 1 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "1 of 1 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -268,8 +268,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "4 of 4 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "4 of 4 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -299,8 +299,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "3 of 3 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "3 of 3 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -330,8 +330,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "5 of 5 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "5 of 5 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -361,8 +361,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "10 of 10 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "10 of 10 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -392,8 +392,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "2 of 2 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "2 of 2 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -423,8 +423,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "6 of 6 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "6 of 6 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -454,8 +454,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "2 of 2 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "2 of 2 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -485,8 +485,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "10 of 10 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "10 of 10 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -516,8 +516,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "2 of 3 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; supporter-and-session.feature:12 undefined (runner gap: no fork step adapter); manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "2 of 3 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; supporter-and-session.feature:12 undefined (runner gap: no fork step adapter); manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -547,8 +547,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "1 of 1 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "1 of 1 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -578,8 +578,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "3 of 3 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "3 of 3 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -609,8 +609,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "4 of 4 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "4 of 4 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -640,8 +640,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "2 of 2 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "2 of 2 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -672,7 +672,7 @@
         "macos": {
           "stage": "implemented",
           "basis": "Beta channel only: Blanc Beta updates itself with Sparkle 2.10.1 (Apple Silicon), and the signed handoff from the public beta.5 to beta.6 passed (chromium/release/standing.json, sparkle-N-to-N+1). The in-app updater case platform-services.feature:25 is undefined (runner gap). Not started: the replacement channel, Intel, and the Electron bridge release (plan R.4–R.6)",
-          "candidate": "macos-4f9e9bb648216395"
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -702,8 +702,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "1 of 1 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "1 of 1 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -733,8 +733,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "basis": "18 of 18 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "basis": "18 of 18 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -764,8 +764,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "basis": "19 of 19 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; 1 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "basis": "19 of 19 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; 1 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -795,8 +795,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "13 of 13 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "13 of 13 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -826,8 +826,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "basis": "32 of 32 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; 2 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "basis": "32 of 32 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; 2 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -857,8 +857,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "2 of 2 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "2 of 2 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -888,8 +888,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "2 of 2 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; 1 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "2 of 2 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; 1 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -919,8 +919,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "69 of 69 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; 2 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "69 of 69 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; 2 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -950,8 +950,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "basis": "25 of 25 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "basis": "25 of 25 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -981,8 +981,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "9 of 9 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "9 of 9 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -1012,8 +1012,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "4 of 4 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "4 of 4 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -1073,8 +1073,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "basis": "15 of 15 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "basis": "15 of 15 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1104,8 +1104,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "83 of 84 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; F41-named-workspaces.feature:211 (the Spaces menu's closing fade) failed and passed on its rerun, a known intermittent; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "83 of 84 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; F41-named-workspaces.feature:211 (the Spaces menu's closing fade) failed and passed on its rerun, a known intermittent; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -1135,8 +1135,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "basis": "33 of 33 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "basis": "33 of 33 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1196,8 +1196,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "5 of 5 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "5 of 5 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -1227,8 +1227,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "basis": "7 of 7 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; 1 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "basis": "7 of 7 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; 1 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1258,8 +1258,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "basis": "10 of 10 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "basis": "10 of 10 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1289,8 +1289,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "18 of 18 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "18 of 18 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -1320,8 +1320,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "basis": "7 of 7 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "basis": "7 of 7 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1351,8 +1351,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "basis": "native-recheck-f49.mjs passes 4 of 4 checks on macos-4f9e9bb648216395 (2026-11-16): Your image imports a PNG, Wash and Fade apply and are stored, and all three survive a relaunch. The fork keeps the image in IndexedDB, not shipping's current.jpg; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "basis": "native-recheck-f49.mjs passes 4 of 4 checks on macos-bed55af2cf2cf43d (2026-11-16): Your image imports a PNG, Wash and Fade apply and are stored, and all three survive a relaunch. The fork keeps the image in IndexedDB, not shipping's current.jpg; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1382,8 +1382,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "basis": "native-recheck-f50.mjs passes 4 of 4 checks on macos-4f9e9bb648216395 (2026-11-16): Color applies shipping's Sage gradient, Solid changes it, it survives a relaunch, and Sunrise removes it. Match each space's color is not available in the fork; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "basis": "native-recheck-f50.mjs passes 4 of 4 checks on macos-bed55af2cf2cf43d (2026-11-16): Color applies shipping's Sage gradient, Solid changes it, it survives a relaunch, and Sunrise removes it. Match each space's color is not available in the fork; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1444,8 +1444,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "basis": "20 of 20 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "basis": "20 of 20 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1475,8 +1475,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "34 of 34 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "34 of 34 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -1506,8 +1506,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "basis": "native-recheck-f54.mjs passes 7 of 7 checks on macos-4f9e9bb648216395 (2026-11-16): shipping's four fonts and defaults, each font's computed family and width, Sky at tone 50, and persistence across a relaunch. Height, weight and Glass not checked; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "basis": "native-recheck-f54.mjs passes 7 of 7 checks on macos-bed55af2cf2cf43d (2026-11-16): shipping's four fonts and defaults, each font's computed family and width, Sky at tone 50, and persistence across a relaunch. Height, weight and Glass not checked; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1599,8 +1599,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "basis": "7 of 7 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "basis": "7 of 7 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1631,8 +1631,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "basis": "5 of 5 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "basis": "5 of 5 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1663,8 +1663,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "basis": "11 of 11 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "basis": "11 of 11 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1694,8 +1694,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "basis": "F35-19 (Launch Sunrise) passes in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "basis": "F35-19 (Launch Sunrise) passes in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1726,7 +1726,7 @@
         "macos": {
           "stage": "implemented",
           "basis": "Desktop Sync S4a–S4c: sync.feature passes 18 of 18 in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) against the local Worker. Production Sync with a real iPhone is a waived beta gate (standing.json, production-sync-real-device), so not Integrated",
-          "candidate": "macos-4f9e9bb648216395"
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1757,7 +1757,7 @@
         "macos": {
           "stage": "implemented",
           "basis": "S4b (2026-11-09): Settings offers iPhone/add-device pairing with shipping's code, QR, expiry and cancel states. Not checked with a real iPhone on the current candidate (gate production-sync-real-device is waived)",
-          "candidate": "macos-4f9e9bb648216395"
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1818,7 +1818,7 @@
         "macos": {
           "stage": "not-started",
           "basis": "Nothing built. D3 accepts no DRM for beta only; the required protected-video notice and Open in Blanc handoff are not built and ride a standing beta waiver (standing.json, no-drm-handoff). Replacement D3 is undecided",
-          "candidate": "macos-4f9e9bb648216395"
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1857,8 +1857,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "basis": "native-recheck-n1.mjs passes 5 of 5 checks on macos-4f9e9bb648216395 (2026-11-16): a closed tab's entry and title, no entry for a private tab, Forget, Clear all, and reopen. The fork keeps Chromium's profile-wide TabRestoreService history where shipping keeps it per window; expiry and the cap not checked; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "basis": "native-recheck-n1.mjs passes 5 of 5 checks on macos-bed55af2cf2cf43d (2026-11-16): a closed tab's entry and title, no entry for a private tab, Forget, Clear all, and reopen. The fork keeps Chromium's profile-wide TabRestoreService history where shipping keeps it per window; expiry and the cap not checked; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1981,8 +1981,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-4f9e9bb648216395",
-          "basis": "11 of 11 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "11 of 11 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -2044,7 +2044,7 @@
         "macos": {
           "stage": "integrated",
           "basis": "V19, Chromium's native passkeys: the owner's Touch ID passkey check passed on the notarized beta.5 and carries to beta.6 (chromium/release/standing.json, webauthn); the one shipping scenario is mobile-only and excluded; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -2105,8 +2105,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "basis": "8 of 8 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "basis": "8 of 8 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -2198,8 +2198,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "basis": "Shipping's Mahjong files are ported byte-identical and the Start Page footer opens it (V25); the Mahjong cases of newtab-layouts.feature pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-4f9e9bb648216395. Sound cues not checked; manual accessibility/visual checklist pending for Verified",
-          "candidate": "macos-4f9e9bb648216395"
+          "basis": "Shipping's Mahjong files are ported byte-identical and the Start Page footer opens it (V25); the Mahjong cases of newtab-layouts.feature pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d. Sound cues not checked; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -2230,7 +2230,7 @@
         "macos": {
           "stage": "implemented",
           "basis": "Mute Site is Chromium's own sound setting (V21) and Match site colors drives the page tint (STATUS, S3 decisions and Appearance settings). No shipping scenario maps here; not rechecked on the current candidate in the 2026-11-16 refresh",
-          "candidate": "macos-4f9e9bb648216395"
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -2354,7 +2354,7 @@
         "macos": {
           "stage": "implemented",
           "basis": "/invite is answered by the host (inviteFriend in island/host.js, shipping's invite-friend.js). The Help menu item and an on-screen check were not confirmed in the 2026-11-16 refresh",
-          "candidate": "macos-4f9e9bb648216395"
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -2528,11 +2528,11 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-4f9e9bb648216395",
-      "frameworkSha256": "4f9e9bb6482163955267073cd625b7a2bf0dc4f108be889bac4618cb493ed04a",
+      "id": "macos-bed55af2cf2cf43d",
+      "frameworkSha256": "bed55af2cf2cf43db8e7de5b862a5739bb8d0db557aee59afbf1d09a36484a2a",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
-      "qualification": "nightly full suite 20261116-0700: 629 of 661 cases pass, 1 fails (passed on its rerun), 3 undefined (runner gaps), 28 excluded"
+      "qualification": "full suite on the Mac Studio 2026-11-16 at shipping v1.49.1: 633 of 667 cases pass, 3 fail (link-routing:37 passes alone; island-and-commands:49 and sync:120 fail again alone, see STATUS), 3 undefined, 28 excluded"
     },
     "android": {
       "id": "android-arm64-7bd35e94ef746069",
@@ -2544,7 +2544,7 @@
     }
   },
   "baselines": {
-    "macos": "scenarios/baseline-macos-4f9e9bb648216395.json"
+    "macos": "scenarios/baseline-macos-bed55af2cf2cf43d.json"
   },
   "scenarioIds": [
     "spec/acceptance/F41-named-workspaces.feature:4",
