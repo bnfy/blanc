@@ -271,7 +271,8 @@ test('wallpaper is a real JPEG byte string and its unchanged metadata hash descr
 
 test('all sources are accounted for and unresolved files have questions instead of invented expected values', () => {
   const fixture = buildFixture();
-  assert.deepEqual(fixture.expected.undecided.map(row => row.source).sort(), ['userData/settings.json', 'userData/sync.json']);
+  // The owner answered both earlier questions on 2026-11-16; none is open.
+  assert.deepEqual(fixture.expected.undecided, []);
   for (const row of fixture.expected.undecided) {
     assert.ok(row.question.endsWith('.') && row.question.includes('?'));
     assert.ok(Object.hasOwn(fixture.files, row.source));
@@ -294,7 +295,13 @@ test('all sources are accounted for and unresolved files have questions instead 
   const stores = ['bookmarks.json', 'history.json', 'downloads.json', 'site-permissions.json',
     'start-page-pins.json', 'archive.json', 'workspaces.json', 'shared-spaces.json',
     'synced-closed.json', 'reader-appearance.json'];
-  for (const {expected} of profileInputs(fixture)) assert.deepEqual(Object.keys(expected).sort(), stores.sort());
+  // Personal also receives the synced settings (owner, 2026-11-16); no other profile does.
+  for (const {expected} of profileInputs(fixture)) assert.deepEqual(Object.keys(expected).filter(name => name !== 'settings.json').sort(), stores.sort());
+  assert.deepEqual(Object.keys(fixture.expected.profiles).filter(id => Object.hasOwn(fixture.expected.profiles[id], 'settings.json')), ['personal']);
+  const settings = input(fixture, 'settings.json');
+  assert.deepEqual({...fixture.expected.profiles.personal['settings.json'], ...fixture.expected.device['settings.json']},
+    Object.fromEntries(Object.entries(settings).filter(([key]) => !['_syncMeta', '_syncTieBreakers', 'supporter', 'patron'].includes(key))));
+  assert.deepEqual(fixture.expected.device['sync.json'], input(fixture, 'sync.json'));
   assert.equal(Object.keys(fixture.expected.profiles).length, 2);
   for (const name of Object.keys(fixture.files)) assert.ok(!/Cookies|Local Storage|IndexedDB|Service Worker|managed-ublock|WidevineCdm|cache/i.test(name), name);
   const sync = input(fixture, 'sync.json');

@@ -14,6 +14,24 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Electron profile importer, task 1: the plan builder (plan `docs/superpowers/plans/2026-11-16-electron-profile-importer.md`):**
+  `shims/profile-import.js`, built into `generated/profile-import-bundle.js`
+  (pinned hash in `profile_import_bundle_hash.h`) by
+  `tools/build-profile-import-bundle.mjs`, turns the text of an Electron data
+  folder's stores into one plan: each listed profile's stores in shipping's
+  shapes, the device's stores, what is left behind with reasons, and which
+  profile failed. It has no prelude and makes no host call. Rules from the
+  answer key: tombstones dropped, 5,000 visits, only promptable permission
+  kinds, private downloads never, a half-finished profile deletion finished
+  by not importing it, folders read only for profiles the registry lists,
+  the Sync keys never in a plan. A damaged store fails its own profile only;
+  a source older than v1.40.0, or with no readable settings, is refused
+  whole. The source version is read from `settings.lastRunVersion`, which a
+  real profile that never recorded one would fail: to check against real data
+  in task 2. The answer key now carries the owner's answers (synced settings
+  to Personal only; every Sync field but the keys), so `undecided` is empty.
+  `profile-import.test.mjs` 9 of 9, `importer-fixtures.test.mjs` 15 of 15.
+  Not built into the browser yet: no build was needed or run.
 - **2026-11-16 — The protected-video notice (X2 beta requirement, plan K8; patch 0091; candidate macos-e1f8cb12fc0a503f):**
   a page asking for protected playback gets a card under the Island: "Blanc
   Beta can't play this video yet" / "Protected video works in the released

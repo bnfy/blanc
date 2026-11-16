@@ -57,15 +57,17 @@ Each task ends with its own passing tests and a push to `chromium/next`. Tasks 1
 
 ### Task 1: The plan builder (no browser)
 
-**Files:** create `chromium/blanc/services/sync_runner/shims/profile-import.js`, `chromium/tools/build-profile-import-bundle.mjs`, `chromium/tools/profile-import.test.mjs`; generated `generated/profile-import-bundle.js`, `profile_import_bundle_hash.h`; modify the service's `BUILD.gn`.
+**Done 2026-11-16** (9 tests). The bundle has no prelude and no host call; embedding it in the service's `BUILD.gn` moves to Task 2, where the runner first uses it and a build can check it. The plan's stores keep shipping's shapes (`profiles.<id>.stores["bookmarks.json"]`, …), as the answer key does; Task 2 converts them as it applies them.
 
-**Produces:** `__call('profile.plan', {files})` returning `{schema: 1, sourceVersion, profiles: {<id>: {name, favorites, history, siteIcons, pins, archive, spaces, permissions, downloads}}, device: {settings, session, install, syncStores, wallpaper}, notImported: [{source, reason}], errors: [{profile, store, reason}]}`.
+**Files:** create `chromium/blanc/services/sync_runner/shims/profile-import.js`, `chromium/tools/build-profile-import-bundle.mjs`, `chromium/tools/profile-import.test.mjs`; generated `generated/profile-import-bundle.js`, `profile_import_bundle_hash.h`.
 
-- [ ] Update the answer key: replace the two `undecided` entries in `importer-fixtures.mjs` with the owner's answers (settings: synced keys to Personal only; sync: all fields except the keys) and update its test.
-- [ ] Write `profile-import.test.mjs`: for the fixture, `profile.plan` equals `expected.profiles` and `expected.device` store for store; `notImported` equals the answer key's list; a store over its size cap, invalid JSON, and a v1.39 source each give the named error and no plan for that profile.
-- [ ] Run it; expect failure (no bundle).
-- [ ] Write the shim (pure functions over parsed JSON; no shipping module is needed for reading) and the bundle builder, modeled on `build-handoff-bundle.mjs`.
-- [ ] Run the test; expect pass. Commit.
+**Produces:** `__call('profile.plan', [files])`, `files` mapping each path under the data folder to its text, returning `{ok: true, schema: 1, sourceVersion, profiles: {personal|<id>: {id, name, stores}}, device: {<store>: json} | null, notImported: [{source, reason}], errors: [{profile, store, reason}]}` or `{ok: false, error: 'no-source'|'unknown-version'|'unsupported-version', sourceVersion?}`. Store errors are `invalid-json`, `invalid-shape`, `too-large`.
+
+- [x] Update the answer key: replace the two `undecided` entries in `importer-fixtures.mjs` with the owner's answers (settings: synced keys to Personal only; sync: all fields except the keys) and update its test.
+- [x] Write `profile-import.test.mjs`: for the fixture, `profile.plan` equals `expected.profiles` and `expected.device` store for store; `notImported` equals the answer key's list; a store over its size cap, invalid JSON, and a v1.39 source each give the named error and no plan for that profile.
+- [x] Run it; expect failure (no bundle).
+- [x] Write the shim (pure functions over parsed JSON; no shipping module is needed for reading) and the bundle builder, modeled on `build-handoff-bundle.mjs`.
+- [x] Run the test; expect pass. Commit.
 
 ### Task 2: Runner, marker, and the Personal profile's own data
 

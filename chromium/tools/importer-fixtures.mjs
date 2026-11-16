@@ -65,6 +65,16 @@ const SETTINGS_DEFAULTS = {
   deviceNames: {}, _syncMeta: {}, _syncTieBreakers: {},
 };
 
+// v1.49.1:src/main/settings.js:119.
+export const SYNCED_KEYS = ['searchEngine', 'searchEngineTemplate', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabDynamicWallpaper', 'newtabColorWallpaper', 'newtabWallpaperColor', 'newtabWallpaperFill', 'newtabFollowSpaceColor', 'newtabClockFont', 'newtabClockWeight', 'newtabClockColor', 'newtabClockTone', 'newtabClockStyle', 'newtabClockHeight', 'bangsEnabled', 'customBangs', 'deviceNames'];
+// Settings the importer leaves in the Electron folder, each with its reason.
+export const SETTINGS_LEFT_BEHIND = {
+  _syncMeta: 'Owner, 2026-11-16: Sync clocks describe the Electron store; the fork keeps its own.',
+  _syncTieBreakers: 'Owner, 2026-11-16: Sync tie-breakers describe the Electron store; the fork keeps its own.',
+  supporter: 'The fork has no supporter store yet.',
+  patron: 'The fork has no Patron licence store yet; the licence stays with the Electron app.',
+};
+
 const json = value => `${JSON.stringify(value, null, 2)}\n`;
 const copy = value => structuredClone(value);
 
@@ -179,11 +189,11 @@ export function buildFixture() {
   const files = {};
   const expected = {
     schema: 1, source: 'v1.49.1', profiles: {}, device: {}, notImported: [],
-    // These are questions, not assertions that the source data should be lost.
-    undecided: [
-      {source: 'userData/settings.json', question: 'Which profiles receive the synced keys from the single device-scoped store, and where do _syncMeta, _syncTieBreakers, migration markers and non-secret Patron metadata go? Section 7 only names the preference split and licence re-wrapping.'},
-      {source: 'userData/sync.json', question: 'Which non-secret Sync fields migrate, and how should enabled/account state behave when credentials are absent? Device identity must remain the same; protectedKey and legacy key are deliberately omitted, so re-wrapping is untested.'},
-    ],
+    // Both earlier questions were answered by the owner on 2026-11-16 (plan
+    // docs/superpowers/plans/2026-11-16-electron-profile-importer.md): the
+    // synced settings go to Personal only, and every Sync field but the keys
+    // moves so Sync stays on as the same device.
+    undecided: [],
   };
   // v1.49.1:src/main/store.js:33-36,54-59: Personal root, named subfolder;
   // unscoped stores are device-wide. Do not manufacture named settings/session.
@@ -259,7 +269,16 @@ export function buildFixture() {
   };
   for (const [name, content] of Object.entries(deviceInput)) {
     files[`userData/${name}`] = json(content);
-    if (name !== 'settings.json' && name !== 'sync.json') expected.device[name] = copy(content);
+    if (name !== 'settings.json') expected.device[name] = copy(content);
+  }
+  // Settings split (owner, 2026-11-16): shipping's SYNCED_KEYS go to the
+  // Personal profile only; the rest stay with the device. Sync's own clocks
+  // describe Electron's store, and the fork has no Patron or supporter store.
+  expected.profiles.personal['settings.json'] = Object.fromEntries(SYNCED_KEYS.map(key => [key, copy(settings[key])]));
+  expected.device['settings.json'] = Object.fromEntries(Object.entries(copy(settings))
+    .filter(([key]) => !SYNCED_KEYS.includes(key) && !SETTINGS_LEFT_BEHIND[key]));
+  for (const [key, reason] of Object.entries(SETTINGS_LEFT_BEHIND)) {
+    expected.notImported.push({source: `userData/settings.json#/${key}`, reason});
   }
   expected.device['profiles.json'].profiles = profiles.profiles.filter(profile => profile.id !== DELETING_ID);
   expected.device['profile-deletions.json'].profileIds = [];
