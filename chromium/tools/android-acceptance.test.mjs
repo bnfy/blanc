@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {gridState, paletteRows, fixtureUrl, pageTitle, rawPixel} from '../tests/android/acceptance/support/parse.mjs';
+import {devtoolsSocket, gridState, paletteRows, fixtureUrl, pageTitle, rawPixel} from '../tests/android/acceptance/support/parse.mjs';
 import {RUNNABLE} from '../tests/android/acceptance/cucumber.mjs';
 import {boundsAfter} from '../tests/android/tab-store.mjs';
 import {fixturePage} from '../tests/android/acceptance/support/fixture-server.mjs';
@@ -84,4 +84,17 @@ test('every runnable id names a scenario in spec/acceptance', () => {
     .map(f => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n');
   for (const id of RUNNABLE) assert.match(text, new RegExp(`${id}(\\s|$)`), id);
   assert.equal(new Set(RUNNABLE).size, RUNNABLE.length);
+});
+
+// Chromium names its DevTools socket chrome_devtools_remote, or chrome_devtools_remote_<pid> when
+// another Chromium app holds that name: on the gate's emulator the debug app often does.
+test('the DevTools socket is the app\'s own, by its process id when the plain name is taken', () => {
+  const unix = ['Num RefCount Protocol Flags Type St Inode Path',
+    '0000: 00000002 00000000 00010000 0001 01 810976 @chrome_devtools_remote',
+    '0000: 00000002 00000000 00010000 0001 01 873387 @chrome_devtools_remote_11772'].join('\n');
+  assert.equal(devtoolsSocket('11772', unix), 'chrome_devtools_remote_11772');
+  assert.equal(devtoolsSocket('11772', unix.replaceAll('\n', '\r\n')), 'chrome_devtools_remote_11772');
+  assert.equal(devtoolsSocket('500', unix), 'chrome_devtools_remote');
+  assert.equal(devtoolsSocket('', unix), 'chrome_devtools_remote');
+  assert.equal(devtoolsSocket('1177', unix), 'chrome_devtools_remote', 'a pid that only prefixes another never matches');
 });

@@ -73,3 +73,11 @@ export function rawPixel(raw, x, y) {
   const offset = raw.length - width * height * 4 + (y * width + x) * 4;
   return [raw[offset], raw[offset + 1], raw[offset + 2]];
 }
+
+// The DevTools socket of the app whose main process is `pid`, from /proc/net/unix: Chromium names
+// it chrome_devtools_remote, or chrome_devtools_remote_<pid> when another Chromium app (the debug
+// build, say) already holds that name.
+export function devtoolsSocket(pid, unixTable) {
+  const own = `chrome_devtools_remote_${pid}`;
+  return pid && new RegExp(`@${own}$`, 'm').test(unixTable) ? own : 'chrome_devtools_remote';
+}

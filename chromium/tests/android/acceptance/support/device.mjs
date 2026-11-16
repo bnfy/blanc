@@ -10,12 +10,14 @@ import {gridSwipe, nodeBounds} from '../../island-menu.mjs';
 import {matching, paletteField} from '../../palette.mjs';
 import {findCount} from '../../find.mjs';
 import {renderers} from '../../quiet-tabs.mjs';
-import {gridState, paletteRows, rawPixel} from './parse.mjs';
+import {devtoolsSocket, gridState, paletteRows, rawPixel} from './parse.mjs';
 import {hostPort} from '../../support/host-ports.mjs';
 import {androidPackage} from '../../release-gate.mjs';
 
 export const PACKAGE = androidPackage();
 const PREFS = `shared_prefs/${PACKAGE}_preferences.xml`;
+// SettingsStore.WALKTHROUGH_KEY: the walkthrough version someone finished.
+const WALKTHROUGH_KEY = 'blanc.walkthrough_completed_version';
 // The fixture server's port on the device, which the switches below map the fixture hosts to, and on
 // this server (support/host-ports.mjs: each emulator's runs have their own), joined by adb reverse.
 const FIXTURE_PORT = 8765;
@@ -28,6 +30,11 @@ export const sleep = seconds => execFileSync('sleep', [String(seconds)]);
 export const adb = (...args) => execFileSync('adb', args, {encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe']});
 const center = b => [Math.round((b.left + b.right) / 2), Math.round((b.top + b.bottom) / 2)];
 const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// One connection per DevTools request: a kept-alive one outlives `adb forward` being pointed at
+// another app's socket and would go on answering for the old app. Timed out, because a frozen app
+// accepts a connection and never answers.
+const devtoolsRequest = ms => ({headers: {connection: 'close'}, signal: AbortSignal.timeout(ms)});
 
 let commandLineDir = null;
 
@@ -135,12 +142,37 @@ export class Device {
     adb('shell', 'am', 'force-stop', PACKAGE);
     adb('shell', 'pm', 'clear', PACKAGE);
     await this.launch();
+    // A release build shows the welcome card on every fresh start (only debug builds skip it, while
+    // FirstMinute.SKIP_FILE exists), and it would cover every scenario. The card has its own checks
+    // (tests/android/walkthrough.mjs); here it is marked done, as for someone who finished it, which
+    // relaunches Blanc.
+    if (PACKAGE === 'me.bnfy.blanc') {
+      // Android writes the preferences file a moment after the first page shows.
+      await this.waitFor(() => adb('shell', 'ls', `/data/data/${PACKAGE}/shared_prefs/`).includes(`${PACKAGE}_preferences.xml`),
+        'Blanc to write its preferences', 20);
+      await this.setPref(`<int name="${WALKTHROUGH_KEY}" value="2147483647" />`, WALKTHROUGH_KEY);
+    }
   }
 
   async launch() {
     adb('shell', 'monkey', '-p', PACKAGE, '-c', 'android.intent.category.LAUNCHER', '1');
-    adb('forward', `tcp:${DEVTOOLS_PORT}`, 'localabstract:chrome_devtools_remote');
-    await this.waitFor(async () => (await this.visibleUrl()) !== null, 'Blanc to show a page', 30);
+    // The socket appears once Blanc starts, named by its process id when another Chromium app (the
+    // debug build on the gate's emulator) holds the plain name, so it is found again on each try and
+    // trusted only when it answers for this package.
+    await this.waitFor(async () => {
+      let pid = '';
+      try { pid = adb('shell', 'pidof', PACKAGE).trim().split(/\s+/)[0]; } catch {} // not running yet
+      adb('forward', `tcp:${DEVTOOLS_PORT}`, `localabstract:${devtoolsSocket(pid, adb('shell', 'cat', '/proc/net/unix'))}`);
+      return await this.devtoolsPackage() === PACKAGE && (await this.visibleUrl()) !== null;
+    }, 'Blanc to show a page', 30);
+  }
+
+  async devtoolsPackage() {
+    try {
+      return (await (await fetch(`http://localhost:${DEVTOOLS_PORT}/json/version`, devtoolsRequest(2000))).json())['Android-Package'];
+    } catch {
+      return null;
+    }
   }
 
   async relaunch() {
@@ -173,7 +205,7 @@ export class Device {
 
   async targets() {
     try {
-      return (await (await fetch(`http://localhost:${DEVTOOLS_PORT}/json`)).json()).filter(t => t.type === 'page');
+      return (await (await fetch(`http://localhost:${DEVTOOLS_PORT}/json`, devtoolsRequest(5000))).json()).filter(t => t.type === 'page');
     } catch {
       return [];
     }
