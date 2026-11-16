@@ -7,25 +7,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {patchedChromiumFile} from './android-patched-file.mjs';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
-const lane = JSON.parse(fs.readFileSync(path.join(ROOT, 'lanes/android.json'), 'utf8'));
-
-// A pinned Chromium file with every Android patch applied.
-export function patchedChromiumFile(name) {
-  const work = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-res-dirs-'));
-  try {
-    const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, lane.upstreamDir, 'manifest.json'), 'utf8'));
-    for (const name of Object.keys(manifest.files)) {
-      fs.mkdirSync(path.dirname(path.join(work, name)), {recursive: true});
-      fs.copyFileSync(path.join(ROOT, lane.upstreamDir, name), path.join(work, name));
-    }
-    for (const patch of lane.patches) execFileSync('git', ['apply', path.join(ROOT, patch)], {cwd: work});
-    return fs.readFileSync(path.join(work, name), 'utf8');
-  } finally { fs.rmSync(work, {recursive: true, force: true}); }
-}
 
 // Each android_resources("name") { … } block's //blanc/android/… sources, as paths under chromium/blanc.
 export function blancResourceTargets(gn, prefix) {
@@ -83,16 +68,3 @@ test('every Chromium resource target over Blanc files lists every file in its fo
   assert.deepEqual(targets.flatMap(t => unlisted(t, blancDir)), []);
 });
 
-// Chromium's own loader reserves a fixed 192 MB, and the release library is larger, so a release
-// app that used it stopped at launch (patch 0116). Debug (component) builds never use it.
-test('the app loads its native library with Android\'s own loader', () => {
-  assert.match(patchedChromiumFile('chrome/android/chrome_public_apk_tmpl.gni'), /^\s*use_chromium_linker = false$/m);
-});
-
-// Release builds name the package with Blanc's version; Chromium's own version (the user agent,
-// variations) must stay Chromium's, or variations CHECK-fails at launch (patch 0117).
-test('Chromium\'s version is its own, not the package\'s version name', () => {
-  const source = patchedChromiumFile('base/version_info/version_info.cc');
-  assert.match(source, /GetVersionNumber\(\) \{[^}]*return PRODUCT_VERSION;/);
-  assert.doesNotMatch(source, /return base::android::apk_info::package_version_name\(\);/);
-});
