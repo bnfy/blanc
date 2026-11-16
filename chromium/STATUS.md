@@ -14,6 +14,32 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — A restored window keeps its size (patch 0087, candidate macos-ef1d86d7ab21bc63):**
+  the open bug behind `vertical-tabs.feature:58` (a window reopening at an
+  earlier size) is found and fixed. Cause, from an instrumented build: the
+  session file's bounds were right and the window was created with them, and
+  about 40 ms later Chromium replayed AppKit's archived window state onto it
+  (`-restoreStateWithCoder:` in `native_widget_ns_window_bridge.mm`, which
+  Chromium uses to return a window to its Space). That archive includes the
+  frame and is written half a second after a change, so it often held an
+  older one. On a build that logged the frame either side of the replay
+  (macos-914063c2e1c2a1ac), it changed the frame in 11 of 16 relaunches: to
+  640 by 480 twice and to the first launch's 1200 by 841 nine times. The
+  scenario only caught the narrow case, so the bug was far more common than
+  its 1-in-10 failures suggested: most relaunches soon after a resize got a
+  wrong size. Patch 0087 keeps the frame the window was created with across
+  the replay (skipped for a full-screen window), so the Space still comes
+  from the archive and the size and position from the session. Checked on
+  the MacBook Pro against builds copied from the Mac Studio (incremental, 7
+  to 10 steps each; diagnostics removed, and the tree's file matches
+  `source-map.json`): `vertical-tabs.feature:58` passes 16 of 16 on the
+  logging build and 10 of 10 on the final one (before: 2 of 6, 9 of 10 and
+  3 of 4 on the unpatched build); new `tests/native-window-size-relaunch.mjs`
+  passes 3 of 3 checks and `native-mini-windows.mjs` 4 of 4. That new test
+  is a regression check only: it also passed without the patch. Not checked:
+  a window restored into full screen, a window on a second display or
+  another Space, and the beta build. Ships in the next beta. Upstream
+  Chromium has the same behavior.
 - **2026-11-16 — Importer fixtures and answer key (plan M.1; Codex card C4, c2274c41d):**
   `node chromium/tools/importer-fixtures.mjs --out <new dir>` writes a
   synthetic Electron `userData` (Personal, one named profile and one pending

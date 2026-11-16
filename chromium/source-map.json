@@ -949,6 +949,7 @@
     "components/os_crypt/common/keychain_password_mac.mm": "70c17b91cc8cd69f18a24beaf6619f876176b803af2112dcae58373268313080",
     "components/permissions/permission_request_manager.cc": "cbdc0e05be84f375cbc7a14d76dbf55409e935a03b23d27b119e35b981f7406a",
     "components/remote_cocoa/app_shim/browser_native_widget_window_mac.mm": "4fd84b1dc64e5968c50bafb9841ee22bd06c6488b83d8201214acbf596baa3a7",
+    "components/remote_cocoa/app_shim/native_widget_ns_window_bridge.mm": "4cd11cce169be0fb3fcc998e47cc3f14fea97dd673db525645c94e6e0c6690b7",
     "components/security_interstitials/content/stateful_ssl_host_state_delegate.cc": "6a6aa776c2099af34c7929c10a838a7e39789faed4714d3b0905128834ccd29a",
     "components/security_interstitials/content/stateful_ssl_host_state_delegate.h": "38672be417a5b02f4cca38dbff7c87c4360c42cabbc39a64e7845da64dac4eb0",
     "components/sessions/content/content_live_tab.cc": "e034de29ac87c88244bb57e5c005026664a860f110b3278c8964dd49d7fc9b3c",
