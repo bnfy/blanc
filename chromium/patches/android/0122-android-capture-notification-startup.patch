@@ -1,0 +1,53 @@
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java b/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java
+@@ -54,7 +54,6 @@
+ 
+ import java.util.ArrayList;
+ import java.util.HashSet;
+-import java.util.Iterator;
+ import java.util.List;
+ import java.util.Set;
+ import java.util.TreeMap;
+@@ -114,7 +113,7 @@
+     public int onStartCommand(@Nullable Intent intent, int flags, int startId) {
+         if (intent == null || intent.getExtras() == null) {
+             cancelPreviousWebRtcNotifications();
+-            getService().stopSelf();
++            if (mNotificationsType.isEmpty()) getService().stopSelf();
+         } else {
+             String action = intent.getAction();
+             int notificationId = intent.getIntExtra(NOTIFICATION_ID_EXTRA, Tab.INVALID_TAB_ID);
+@@ -168,15 +167,24 @@
+                 mSharedPreferences.readStringSet(
+                         ChromePreferenceKeys.MEDIA_WEBRTC_NOTIFICATION_IDS, null);
+         if (notificationIds == null) return;
+-        Iterator<String> iterator = notificationIds.iterator();
+-        while (iterator.hasNext()) {
+-            // When background media capturing is enabled, this operation is a no-op because the
+-            // foreground service handles notification updates. We avoid calling
+-            // isBackgroundMediaCapturingEnabled() here because this code may execute during early
+-            // startup before the JNI library is initialized.
+-            mNotificationManager.cancel(NOTIFICATION_NAMESPACE, Integer.parseInt(iterator.next()));
++        // Blanc (patch 0122): this runs from a deferred startup task. A page opened at a cold
++        // start can already be using the microphone by then, so a notification this run posted
++        // stays, with its saved id; only the ones left from the last run go.
++        Set<String> live = new HashSet<>();
++        for (String id : notificationIds) {
++            int notificationId = Integer.parseInt(id);
++            if (mNotificationsType.containsKey(notificationId)) {
++                live.add(id);
++                continue;
++            }
++            mNotificationManager.cancel(NOTIFICATION_NAMESPACE, notificationId);
+         }
+-        mSharedPreferences.removeKey(ChromePreferenceKeys.MEDIA_WEBRTC_NOTIFICATION_IDS);
++        if (live.isEmpty()) {
++            mSharedPreferences.removeKey(ChromePreferenceKeys.MEDIA_WEBRTC_NOTIFICATION_IDS);
++        } else {
++            mSharedPreferences.writeStringSet(
++                    ChromePreferenceKeys.MEDIA_WEBRTC_NOTIFICATION_IDS, live);
++        }
+     }
+ 
+     /**

@@ -92,6 +92,13 @@ in the lane file in its place. Numbering starts at 0101.
   when the tab still has a saved notification: after Blanc was killed while a
   site was using the microphone, the next cold start died closing that tab
   (found on 1.0.0-beta.2).
+- `0122-android-capture-notification-startup.patch`: Chromium clears the
+  capture notifications left from the last run in a deferred startup task.
+  `MediaCaptureNotificationServiceImpl` now keeps a notification this run
+  already posted (and its saved id) and stays running while it has one. A page
+  opened at a cold start can be using the microphone before that task runs;
+  the task removed its notification and stopped the foreground service, so
+  the microphone was in use with nothing shown (found on 1.0.0-beta.2).
 
 A Chromium file dropped from the lane keeps its applied edits in an existing
 checkout: restore it with `git checkout` there. A Blanc file the source drops or
