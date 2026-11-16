@@ -10,7 +10,7 @@ import {gridSwipe, nodeBounds} from '../../island-menu.mjs';
 import {matching, paletteField} from '../../palette.mjs';
 import {findCount} from '../../find.mjs';
 import {renderers} from '../../quiet-tabs.mjs';
-import {devtoolsSocket, gridState, paletteRows, rawPixel} from './parse.mjs';
+import {devtoolsSocket, gridState, paletteRows, rawPixel, withPref} from './parse.mjs';
 import {hostPort} from '../../support/host-ports.mjs';
 import {androidPackage} from '../../release-gate.mjs';
 
@@ -190,9 +190,9 @@ export class Device {
     if (release && adb('shell', 'id', '-u').trim() !== '0') throw Error('Release preferences require rooted emulator adbd');
     const prefPath = release ? `/data/data/${PACKAGE}/${PREFS}` : PREFS;
     const prefix = release ? [] : ['run-as', PACKAGE];
-    const prefs = adb('shell', ...prefix, 'cat', prefPath).replace(new RegExp(`\\s*<[a-z]+ name="${escape(name)}"[^>]*?(/>|>[^<]*</[a-z]+>)`), '');
+    const prefs = withPref(adb('shell', ...prefix, 'cat', prefPath), xmlEntry, name);
     // Write in place so the app's existing ownership and SELinux context remain intact.
-    adb('shell', `${release ? '' : `run-as ${PACKAGE} `}sh -c 'cat > ${prefPath}' <<'EOF'\n${prefs.replace('</map>', `    ${xmlEntry}\n</map>`)}\nEOF`);
+    adb('shell', `${release ? '' : `run-as ${PACKAGE} `}sh -c 'cat > ${prefPath}' <<'EOF'\n${prefs}\nEOF`);
     await this.launch();
   }
 
