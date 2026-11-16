@@ -6,7 +6,10 @@ import { spawnSync } from 'node:child_process';
 
 const SHA256 = /^[a-f0-9]{64}$/;
 const NOTICES = ['LICENSE', 'ASSET-LICENSE', 'THIRD-PARTY-NOTICES', 'CHROMIUM-FORK-NOTICES']
-  .map(name => `base/assets/blanc/android/pages/notices/${name}.txt`);
+  .map(name => `assets/blanc/android/pages/notices/${name}.txt`);
+// The bundle's modules installed with the app: `base`, and Chromium's `chrome` module
+// (dist:onDemand="false"), where browser assets go. Any other module may arrive after install.
+const INSTALL_TIME_MODULES = ['base', 'chrome'];
 const requireValue = (value, message) => { if (!value) throw new Error(message); };
 
 // Input is the XML emitted by bundletool dump manifest, never binary XML.
@@ -33,7 +36,9 @@ export function checkEntries(names) {
       problems.push(`native library must be under module/lib/arm64-v8a/: ${name}`);
     }
   }
-  for (const notice of NOTICES) if (!names.includes(notice)) problems.push(`missing notice: ${notice}`);
+  for (const notice of NOTICES) {
+    if (!INSTALL_TIME_MODULES.some(module => names.includes(`${module}/${notice}`))) problems.push(`missing notice: ${notice}`);
+  }
   return problems;
 }
 
