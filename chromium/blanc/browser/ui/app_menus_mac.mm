@@ -105,6 +105,12 @@ bool ClickDockMenuItem(int item_tag) {
   return [NSApp sendAction:item.action to:item.target from:item];
 }
 
+std::pair<std::string, std::string> BundleVersion() {
+  NSString* version = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+  NSString* build = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
+  return {base::SysNSStringToUTF8(version ?: @""), base::SysNSStringToUTF8(build ?: @"")};
+}
+
 std::vector<std::u16string> DockMenuItemTitles() {
   std::vector<std::u16string> titles;
   id<NSApplicationDelegate> delegate = NSApp.delegate;

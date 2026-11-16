@@ -14,6 +14,40 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Trust receipt and Diagnostics in Settings → About (N16; patch 0090, candidate macos-1f6cbe46be1f2dfd):**
+  shipping's About & Trust and Diagnostics, in Chromium's About page. The
+  receipt lists, from this device and with no network request: the build
+  (the bundle's version and build number; "development" unless a beta
+  build), Chromium's version, platform, the publisher (the app's own
+  signature read with `codesign`: verified against team XYGUCY4498, a
+  mismatch, unavailable, or a development build), the embedded blocker
+  bundle's SHA-256, Sync and open-tab sharing, usage measurement, search
+  suggestions, secure DNS and the crash ledger. The ledger is Blanc's own
+  (`blanc.crash_ledger` in Local State, at most 50 events of time, process
+  type and reason; renderer and child-process crashes), with Export
+  diagnostics… and Clear crash history, which asks on the first click in
+  shipping's words. All text is shipping's, through `settings-strings.mjs`
+  (41 strings), including its one plural.
+  **V28, crash dump files (owner, 2026-11-16):** Chromium writes a dump
+  file per crash under the app's default data folder (`Crashpad/`); a dump
+  is a slice of memory and can hold page addresses, which shipping's ledger
+  never does. Blanc builds have no upload address
+  (`crash_reporter_client.cc` sets one only for Google Chrome), so nothing
+  is sent. The owner chose to keep the dumps for debugging the beta, say so,
+  and have Clear delete them: About shows their count on a `chrome://crashes`
+  row (an address, so no new untranslated copy) that opens Chromium's page.
+  `tests/native-trust-receipt.mjs` passes 3 of 3 (the facts for this build,
+  a real renderer crash recorded with nothing of the page in the report,
+  Clear asking first). **Incident:** Chromium keeps that dump folder in the
+  default data folder whatever `--user-data-dir` says, so the test's first
+  passing run shared the real preview build's folder on the MacBook Pro
+  (`~/Library/Application Support/Blanc Chromium Preview/Crashpad`) and its
+  Clear emptied it: six dump files, most or all from this session's own
+  test crashes, gone. Blanc Beta's folder was not touched. Clear now leaves
+  dump files alone under a test launch (`BlancTestLaunch()`), and the test
+  asserts that; each run still adds its one test crash's dump there.
+  Not checked: the Verified line on a signed build, Export's saved file,
+  dump deletion on purpose (seen only in that accident), other languages.
 - **2026-11-16 — Capture indicator checked; a screen share lights the Island (N2, N3; candidate macos-039ca82eb0d47756):**
   **N2** was listed as not started but is built: shipping's
   `permissions-and-auth.feature:13` has passed all along (it maps to F13).
@@ -3672,13 +3706,13 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 5 | 81 | 81 | 69 |
+| Not started / unassessed | 4 | 81 | 81 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 0 | 0 | 0 | 0 |
 | Implemented | 9 | 0 | 0 | 12 |
 | Built, isolated (legacy) | 0 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 0 | 0 | 0 | 0 |
-| Integrated | 66 | 0 | 0 | 0 |
+| Integrated | 67 | 0 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 | 0 |

@@ -187,7 +187,7 @@ Each item: a failing `native-*.mjs` or scenario first, then the change, an incre
 - [x] **K3** (done 2026-11-16, patch 0089) N18: Dock menu (New Window, New Private Tab, New Mini Window as shipping), app badge, Check for updates in the app menu wired to Sparkle. Test: extend `native-app-menu-about.mjs`.
 - [x] **K4** (done 2026-11-16: already built; camera test added) N2: capture indicator chip and popover from Chromium's `MediaStreamCaptureIndicator`; truthful `permissions.query` is already Chromium's. Test: fake-device capture fixture, chip on and off.
 - [x] **K5** (2026-11-16: sharing chip and Stop built and tested for a tab share; the picker and a screen share still need a hand check) N3: screen sharing through Chromium's native picker, checked in an Island window (no toolbar anchor) and in a Glance. Likely a small patch like 0081.
-- [ ] **K6** N16: trust receipt and diagnostics export in Settings → About, reading the fork's own release manifest.
+- [x] **K6** (done 2026-11-16, patch 0090; owner: keep crash dumps, say so, Clear deletes them) N16: trust receipt and diagnostics export in Settings → About, reading the fork's own release manifest.
 - [ ] **K7** N20: tab import and handoff pages and the `blanc-import:` scheme; un-hide Bring Your Tabs paths that depend on it.
 - [ ] **K8** X2: protected-video notice with Open in Blanc, after O2. Retires the `no-drm-handoff` standing waiver (owner's word needed to set `until`).
 - [ ] **K9** Importer M.2 in the browser process against C4's fixtures and `expected.json`; M.3 key re-wrap; M.4 after O3.

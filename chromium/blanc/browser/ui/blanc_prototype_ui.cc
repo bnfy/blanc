@@ -246,6 +246,23 @@
 #include "ui/views/controls/webview/unhandled_keyboard_event_handler.h"
 #include "chrome/browser/ui/browser_tabstrip.h"
 #include "chrome/browser/ui/browser_commands.h"
+#if BUILDFLAG(IS_MAC)
+#include "base/apple/bundle_locations.h"
+#endif
+#include "base/no_destructor.h"
+#include "base/process/launch.h"
+#include "base/scoped_multi_source_observation.h"
+#include "blanc/services/blocker/bundle_hash.h"
+#include "components/crash/core/app/crashpad.h"
+#include "components/version_info/version_info.h"
+#include "content/public/browser/browser_child_process_observer.h"
+#include "content/public/browser/child_process_data.h"
+#include "content/public/browser/child_process_termination_info.h"
+#include "content/public/browser/render_process_host.h"
+#include "content/public/browser/render_process_host_creation_observer.h"
+#include "content/public/browser/render_process_host_observer.h"
+#include "content/public/common/process_type.h"
+#include "net/dns/public/secure_dns_mode.h"
 #include "chrome/browser/ui/chrome_pages.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface_iterator.h"
 #include "chrome/browser/ui/read_anything/read_anything_entry_point_controller.h"
@@ -5992,6 +6009,7 @@ class LinkRouteSource final : public base::SupportsUserData::Data {
 constexpr char kLinkRouteSource[] = "blanc.link-route.source";
 constexpr char kLinkRouteActivation[] = "blanc.link-route.activation";
 
+#include "blanc/browser/ui/trust_receipt.inc"
 #include "blanc/browser/ui/chromium_settings_handler.inc"
 #include "blanc/browser/ui/utility_sheet_ops.inc"
 

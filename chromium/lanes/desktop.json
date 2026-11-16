@@ -94,6 +94,7 @@
     "patches/0086-blanc-reuse-new-tab.patch",
     "patches/0087-blanc-restored-window-frame.patch",
     "patches/0088-blanc-tab-switch-order.patch",
-    "patches/0089-blanc-dock-active-tab.patch"
+    "patches/0089-blanc-dock-active-tab.patch",
+    "patches/0090-blanc-trust-receipt.patch"
   ]
 }

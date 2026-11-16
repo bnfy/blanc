@@ -2320,8 +2320,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification. No shipping scenario maps to this row; not rechecked in the 2026-11-16 tracker refresh."
+          "stage": "integrated",
+          "basis": "Built 2026-11-16 (patch 0090, trust_receipt.inc): Settings → About shows shipping's receipt facts (build, Chromium, platform, the app's own code signature checked with codesign, the blocker bundle's digest, Sync, usage measurement, search suggestions, secure DNS, the crash ledger), a 50-event crash ledger of time, process type and reason, Export and Clear. native-trust-receipt.mjs passes 3 of 3 on macos-1f6cbe46be1f2dfd, with a real renderer crash, and the section was seen in a screenshot. Owner decision 2026-11-16: Chromium's crash dump files are kept (never uploaded; Blanc builds have no upload address), their count shows on a chrome://crashes row, and Clear deletes them (not under a test launch, which shares the folder). Differences: one blocker digest, no per-list rows or snapshot date; no release links row; Export saves through the page's download, not a save dialog. Not checked: a signed build's Verified line, Export's saved file, other languages; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-1f6cbe46be1f2dfd"
         },
         "windows": {
           "stage": "not-started",

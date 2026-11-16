@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "base/containers/span.h"
@@ -43,6 +44,8 @@ bool ClickDockMenuItem(int item_tag);
 // "-" for a separator; whether an item carries an image; the Dock tile's
 // badge text ("" for none); and an application-menu item clicked by its tag.
 std::vector<std::u16string> DockMenuItemTitles();
+// The app bundle's CFBundleShortVersionString and CFBundleVersion.
+std::pair<std::string, std::string> BundleVersion();
 bool DockMenuItemHasImage(int item_tag);
 std::u16string DockBadge();
 bool ClickAppMenuItem(int item_tag);
