@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-15",
+  "updated": "2026-11-16",
   "stages": [
     { "id": "now", "label": "Now", "summary": "In the works" },
     { "id": "next", "label": "Next", "summary": "On the horizon" },
@@ -11,7 +11,7 @@
       "stage": "now",
       "product": "Blanc Mail",
       "title": "Blanc Mail for Mac",
-      "line": "A native Gmail app from the makers of Blanc.",
+      "line": "A native Mac app for Gmail and Proton Mail, from the makers of Blanc.",
       "icon": "/blanc-mail-icon.webp?v=80583d44",
       "link": { "href": "/mail", "label": "Join the waitlist" }
     },
