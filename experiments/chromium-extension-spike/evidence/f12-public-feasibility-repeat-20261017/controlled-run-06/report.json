@@ -1,0 +1,80 @@
+{
+  "kind": "controlled-record-offline-replay",
+  "passed": true,
+  "started": "2026-10-17T18:39:14.885Z",
+  "runs": [
+    {
+      "kind": "regular",
+      "letter": "a",
+      "runId": "04a53a3a-70df-4039-94d7-8cdaa3992f57",
+      "requests": 6,
+      "faults": 0
+    },
+    {
+      "kind": "regular",
+      "letter": "b",
+      "runId": "9c229348-c207-4462-b41f-48ea21f7a2e8",
+      "requests": 6,
+      "faults": 0
+    },
+    {
+      "kind": "private",
+      "letter": "a",
+      "runId": "1750af86-388a-4722-b1d2-4d1a5a002da4",
+      "requests": 6,
+      "faults": 0
+    },
+    {
+      "kind": "private",
+      "letter": "b",
+      "runId": "7d2cd6e2-116a-48c7-9ecb-42777eb9aa20",
+      "requests": 6,
+      "faults": 0
+    }
+  ],
+  "sourceAsarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+  "acceptanceCorpusRequests": 0,
+  "nativeBuilds": 0,
+  "cleanup": {
+    "sourceAsarUnchanged": true,
+    "ownedChildrenExited": true,
+    "disposableTreeRemoved": true
+  },
+  "sourceHashes": {
+    "scrub.cjs": "6c5cf6f101a470d0ae931fe8c787a96aa754bb7d45edba89af1ac8aa54889d0b",
+    "recorder.mjs": "d09afb99ea055e03f44db32487c3d22f8c5d3f899786cb0e956abbf919903bc2",
+    "offline.mjs": "cbfd1392df807f94a6829269ae81d886b79941f2a55292c676c931a319727a60",
+    "transport.mjs": "bd149705aafe7c65a25113f2a4eb0715533926010876162bb34968d08117aa14",
+    "stability.mjs": "1ae223651ad384cfe50ad5c83dc71b190ba4033cd4ecdbe84747240adfeb4820",
+    "bootstrap.cjs": "c8dcc09d5798416cd9db9015dbfa1b4f0d50d3d4baa517fc4a8a1016806045ed",
+    "roundtrip.mjs": "0c481755ac793016fece440b6060daffe5db110d209f91d7eda85e096d547f03"
+  },
+  "acquisition": {
+    "runId": "0e2bd8c6-8f77-41f1-bf7b-394b730e4010",
+    "requestCount": 6,
+    "bundleSha256": "9657997c20e7cbedbcd9227b5358991cc238aa6f123de355b37280115b4faf5e",
+    "upstreamHits": [
+      {
+        "url": "https://page.blanc-fixture.test/pilot.html",
+        "cookiePresent": false,
+        "authPresent": false
+      },
+      {
+        "url": "https://asset.blanc-fixture.test/control.js",
+        "cookiePresent": false,
+        "authPresent": false
+      },
+      {
+        "url": "https://asset.blanc-fixture.test/no-referrer.json",
+        "cookiePresent": false,
+        "authPresent": false
+      },
+      {
+        "url": "https://asset.blanc-fixture.test/data.json",
+        "cookiePresent": false,
+        "authPresent": false
+      }
+    ]
+  },
+  "finished": "2026-10-17T18:39:22.580Z"
+}

@@ -1,0 +1,184 @@
+--- a/chrome/BUILD.gn
++++ b/chrome/BUILD.gn
+@@ -544,14 +544,20 @@
+   if (blanc_beta_channel) {
+     assert(!enable_widevine && !bundle_widevine_cdm && !enable_updater)
+     assert(mac_deployment_target == "13.0" && mac_min_system_version == "13.0")
++    _beta_updater_config_path = "$target_gen_dir/blanc_beta_updater.json"
++    _beta_updater_config = { public_key = blanc_sparkle_public_key
++                             arch = current_cpu }
++    write_file(_beta_updater_config_path, _beta_updater_config, "json")
+     action("blanc_beta_app_plist") {
+       script = "//blanc/branding/beta/metadata.py"
+       sources = get_target_outputs(":chrome_app_plist")
++      inputs = [ _beta_updater_config_path ]
+       deps = [ ":chrome_app_plist" ]
+       outputs = [ "$target_gen_dir/blanc_beta_app.plist" ]
+       args = [ "--input", rebase_path(sources[0], root_build_dir),
+                "--output", rebase_path(outputs[0], root_build_dir),
+-               "--version", blanc_beta_version, "--build", "$blanc_beta_build" ]
++               "--version", blanc_beta_version, "--build", "$blanc_beta_build",
++               "--config", rebase_path(_beta_updater_config_path, root_build_dir) ]
+     }
+   }
+ 
+@@ -568,6 +574,10 @@
+       "CHROMIUM_SHORT_NAME=$chrome_product_short_name",
+       "CHROMIUM_CREATOR=$chrome_mac_creator_code",
+     ]
++
++    if (blanc_beta_channel) {
++      public_deps = [ "//blanc:sparkle_bundle" ]
++    }
+ 
+     sources = [ "app/chrome_exe_main_mac.c" ]
+ 
+--- a/chrome/browser/BUILD.gn
++++ b/chrome/browser/BUILD.gn
+@@ -1801,6 +1801,7 @@
+   }
+ 
+   if (is_mac) {
++    deps += [ "//blanc:beta_updater" ]
+     sources += [
+       "app_controller_mac.mm",
+       "browser_process_platform_part_mac.mm",
+--- a/chrome/browser/app_controller_mac.mm
++++ b/chrome/browser/app_controller_mac.mm
+@@ -3,6 +3,10 @@
+ // found in the LICENSE file.
+ 
+ #import "chrome/browser/app_controller_mac.h"
++#include "blanc/buildflags.h"
++#if BUILDFLAG(BLANC_BETA_CHANNEL)
++#import "blanc/browser/mac/beta_updater.h"
++#endif
+ 
+ #include <AppKit/AppKit.h>
+ #include <dispatch/dispatch.h>
+@@ -772,6 +776,9 @@
+   // `activationPolicy` for `NSRunningApplication.currentApplication` we can
+   // recreate `_keepAlive` if and when the activation policy changes.
+   std::unique_ptr<ScopedKeepAlive> _keepAlive;
++#if BUILDFLAG(BLANC_BETA_CHANNEL)
++  BlancBetaUpdater* __strong _blancBetaUpdater;
++#endif
+ 
+   // Set to `NSRunningApplication.currentApplication` while we're observing
+   // the `activationPolicy` of ourselves.
+@@ -1059,6 +1066,9 @@
+ // HandleAppExitingForPlatform(), not from within AppKit!) At this point,
+ // termination will happen, so tear everything down.
+ - (void)applicationWillTerminate:(NSNotification*)aNotification {
++#if BUILDFLAG(BLANC_BETA_CHANNEL)
++  [_blancBetaUpdater applicationWillTerminate];
++#endif
+   // There better be no browser windows left at this point.
+   CHECK(!KeepAliveRegistry::GetInstance()->IsOriginRegistered(
+       KeepAliveOrigin::BROWSER));
+@@ -1342,6 +1352,12 @@
+   [self registerServicesMenuTypesTo:[notify object]];
+ 
+   _startupComplete = YES;
++#if BUILDFLAG(BLANC_BETA_CHANNEL)
++  if (!_blancBetaUpdater) {
++    _blancBetaUpdater = [[BlancBetaUpdater alloc] init];
++    [_blancBetaUpdater start];
++  }
++#endif
+ 
+   if (base::CommandLine::ForCurrentProcess()->HasSwitch(switches::kKioskMode))
+     ConfigureNSAppForKioskMode();
+--- a/chrome/browser/ui/webui/settings/settings_ui.cc
++++ b/chrome/browser/ui/webui/settings/settings_ui.cc
+@@ -284,6 +284,7 @@
+   // Blanc desktop Sync (S4a): English fallback through the same loadTimeData
+   // mechanism as the other Blanc Settings controls. Shipping keys and new
+   // consent copy are recorded in CODEX-NOTES-s4a-sync-ui.md.
++  html_source->AddBoolean("blancBetaUpdater", blanc_prototype::IsBetaBuild());
+   html_source->AddString("blancVerticalTabsTextSize", u"Vertical tab text size");
+   html_source->AddString("blancVerticalTabsTextSizeHint", u"Make tab titles and group names easier to read in the vertical tab rail.");
+   html_source->AddString("blancSyncStartWithPassphrase", u"Start with a name and passphrase");
+--- a/chrome/browser/resources/settings/about_page/about_page.ts
++++ b/chrome/browser/resources/settings/about_page/about_page.ts
+@@ -26,6 +26,7 @@
+ // </if>
+ import {OpenWindowProxyImpl as BlancOpenWindow} from 'chrome://resources/js/open_window_proxy.js';
+ import {blancSettings} from '../blanc_settings_proxy.js';
++import {sendWithPromise} from 'chrome://resources/js/cr.js';
+ import {sanitizeInnerHtml} from 'chrome://resources/js/parse_html_subset.js';
+ import {CrLitElement} from 'chrome://resources/lit/v3_0/lit.rollup.js';
+ import type {PropertyValues} from 'chrome://resources/lit/v3_0/lit.rollup.js';
+@@ -80,6 +81,7 @@
+   static override get properties() {
+     return {
+       currentUpdateStatusEvent_: {type: Object},
++      betaUpdateState_: {type: Object},
+       isManaged_: {type: Boolean},
+       managedByIcon_: {type: String},
+ 
+@@ -130,6 +132,19 @@
+   protected accessor feedbackAllowedPref_:
+       chrome.settingsPrivate.PrefObject<boolean>|undefined;
+ 
++  private betaUpdaterTimer_: number|null = null;
++  protected readonly betaBuild_ = loadTimeData.getBoolean('blancBetaUpdater');
++  protected accessor betaUpdateState_: {available: boolean, canCheck: boolean,
++    inProgress: boolean, version: string}|null = null;
++  private async refreshBetaUpdater_() {
++    if (this.betaBuild_) this.betaUpdateState_ = await sendWithPromise('blancBetaUpdaterState');
++  }
++  protected async onBlancCheckForUpdatesClick_() {
++    if (!this.betaUpdateState_?.canCheck) return;
++    await sendWithPromise('blancBetaCheckForUpdates');
++    await this.refreshBetaUpdater_();
++  }
++
+   private aboutBrowserProxy_: AboutPageBrowserProxy =
+       AboutPageBrowserProxyImpl.getInstance();
+ 
+@@ -137,6 +152,12 @@
+     super.connectedCallback();
+ 
+     this.aboutBrowserProxy_.pageReady();
++    void this.refreshBetaUpdater_().catch(() => { this.betaUpdateState_ = null; });
++    if (this.betaBuild_ && this.betaUpdaterTimer_ === null) {
++      this.betaUpdaterTimer_ = window.setInterval(() => {
++        void this.refreshBetaUpdater_().catch(() => { this.betaUpdateState_ = null; });
++      }, 2000);
++    }
+ 
+     // <if expr="not is_chromeos">
+     this.startListening_();
+@@ -148,6 +169,12 @@
+   }
+ 
+   // <if expr="not is_chromeos">
++  override disconnectedCallback() {
++    if (this.betaUpdaterTimer_ !== null) window.clearInterval(this.betaUpdaterTimer_);
++    this.betaUpdaterTimer_ = null;
++    super.disconnectedCallback();
++  }
++
+   override willUpdate(changedProperties: PropertyValues<this>) {
+     super.willUpdate(changedProperties);
+ 
+--- a/chrome/browser/resources/settings/about_page/about_page.html.ts
++++ b/chrome/browser/resources/settings/about_page/about_page.html.ts
+@@ -12,6 +12,16 @@
+   // clang-format off
+   return html`<!--_html_template_start_-->
+ <settings-section page-title="$i18n{aboutPageTitle}">
++  ${this.betaBuild_ ? html`
++    <div class="cr-row two-line">
++      <div class="flex cr-padded-text">
++        <div>Blanc Beta ${this.betaUpdateState_?.version || ''}</div>
++        <div class="secondary">Check for beta updates. The update window lets you download an update and choose when to install and restart.</div>
++        <div role="status">${this.betaUpdateState_?.inProgress ? 'An update check is in progress.' : ''}</div>
++      </div>
++      <cr-button id="blancBetaUpdate" ?disabled="${!this.betaUpdateState_?.canCheck}"
++          @click="${this.onBlancCheckForUpdatesClick_}">Check for Updates…</cr-button>
++    </div>` : ''}
+   <div class="cr-row two-line first">
+     <img id="productLogo" @click="${this.onProductLogoClick_}"
+         srcset="chrome://theme/current-channel-logo@1x 1x,

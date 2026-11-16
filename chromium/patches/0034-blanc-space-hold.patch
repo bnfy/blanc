@@ -1,0 +1,242 @@
+diff --git a/chrome/browser/app_controller_mac.mm b/chrome/browser/app_controller_mac.mm
+index 92ecb90..728d4d9 100644
+--- a/chrome/browser/app_controller_mac.mm
++++ b/chrome/browser/app_controller_mac.mm
+@@ -351,6 +351,11 @@ void ConfigureNSAppForKioskMode() {
+             BrowserWindowInterface::TYPE_APP) {
+           return true;
+         }
++        // Blanc (F41): the window holding set-aside pages is never shown, so a
++        // Dock click must not count it as one to focus.
++        if (blanc_prototype::IsHoldWindow(browser_window_interface)) {
++          return true;
++        }
+         [result addObject:browser_window_interface->GetWindow()
+                               ->GetNativeWindow()
+                               .GetNativeNSWindow()];
+diff --git a/chrome/browser/chrome_content_browser_client.cc b/chrome/browser/chrome_content_browser_client.cc
+index 78924ba..b94424b 100644
+--- a/chrome/browser/chrome_content_browser_client.cc
++++ b/chrome/browser/chrome_content_browser_client.cc
+@@ -9,6 +9,7 @@
+ #include "blanc/content/public/browser/blanc_websocket_gate.h"
+ #include "blanc/browser/ui/browser_api/http_auth.h"
+ #include "blanc/browser/ui/browser_api/page_handoff.h"
++#include "blanc/common/held_page.h"
+ #include "blanc/common/island_mode.h"
+ 
+ #include <algorithm>
+@@ -4407,6 +4408,11 @@ base::OnceClosure ChromeContentBrowserClient::SelectClientCertificate(
+       !matching_certificates.empty() ? std::move(matching_certificates)
+                                      : std::move(nonmatching_certificates);
+ 
++  // Blanc (F41): no one can answer for a set-aside page. Dropping the delegate
++  // cancels the request without remembering "no certificate" for the host.
++  if (web_contents && web_contents->GetUserData(blanc::kHeldPageKey)) {
++    return base::OnceClosure();
++  }
+   return ShowSSLClientCertificateSelector(web_contents, cert_request_info,
+                                           std::move(client_cert_choices),
+                                           std::move(delegate));
+@@ -7564,6 +7570,12 @@ bool ChromeContentBrowserClient::HandleExternalProtocol(
+ 
+   // Blanc: schemes on shipping's deny list never reach the OS or a prompt;
+   // the navigation is cancelled silently (N6).
++  // Blanc (F41): a set-aside page can't reach another app, or a prompt no one
++  // would see.
++  if (auto* page = web_contents_getter.Run();
++      page && page->GetUserData(blanc::kHeldPageKey)) {
++    return true;
++  }
+   if (blanc::IslandMode() && blanc::browser_api::HandlePageExternalProtocol(url)) {
+     return true;
+   }
+diff --git a/chrome/browser/extensions/browser_extension_window_controller.cc b/chrome/browser/extensions/browser_extension_window_controller.cc
+index 497220f..8a60ec9 100644
+--- a/chrome/browser/extensions/browser_extension_window_controller.cc
++++ b/chrome/browser/extensions/browser_extension_window_controller.cc
+@@ -4,6 +4,8 @@
+ 
+ #include "chrome/browser/extensions/browser_extension_window_controller.h"
+ 
++#include "blanc/browser/ui/blanc_prototype_ui.h"
++
+ #include <optional>
+ #include <string>
+ 
+@@ -183,6 +185,10 @@ content::WebContents* BrowserExtensionWindowController::GetWebContentsAt(
+ bool BrowserExtensionWindowController::IsVisibleToTabsAPIForExtension(
+     const Extension* extension,
+     bool allow_dev_tools_windows) const {
++  // Blanc (F41): the window holding set-aside pages isn't one to list.
++  if (blanc_prototype::IsHoldWindow(&browser_.get())) {
++    return false;
++  }
+   // TODO(joelhockey): We are assuming that the caller is webui when |extension|
+   // is null and allowing access to all windows. It would be better if we could
+   // pass in mojom::ContextType or some way to detect caller type.
+diff --git a/chrome/browser/media/webrtc/tab_desktop_media_list.cc b/chrome/browser/media/webrtc/tab_desktop_media_list.cc
+index 973bd0c..63bc0ca 100644
+--- a/chrome/browser/media/webrtc/tab_desktop_media_list.cc
++++ b/chrome/browser/media/webrtc/tab_desktop_media_list.cc
+@@ -4,6 +4,8 @@
+ 
+ #include "chrome/browser/media/webrtc/tab_desktop_media_list.h"
+ 
++#include "blanc/browser/ui/blanc_prototype_ui.h"
++
+ #include <ranges>
+ #include <utility>
+ 
+@@ -131,6 +133,10 @@ void TabDesktopMediaList::Refresh(bool update_thumbnails) {
+   std::vector<BrowserWindowInterface*> browsers;
+   ForEachCurrentBrowserWindowInterfaceOrderedByActivation(
+       [&browsers, profile](BrowserWindowInterface* browser) {
++        // Blanc (F41): set-aside pages aren't offered for sharing.
++        if (blanc_prototype::IsHoldWindow(browser)) {
++          return true;
++        }
+         // Omit all the IWAs for TabDesktopMediaList as they are already
+         // present in NativeDesktopMediaList.
+         if ((!base::FeatureList::IsEnabled(
+diff --git a/chrome/browser/ui/browser_window/internal/browser_collection.cc b/chrome/browser/ui/browser_window/internal/browser_collection.cc
+index 8fcf108..7c9447d 100644
+--- a/chrome/browser/ui/browser_window/internal/browser_collection.cc
++++ b/chrome/browser/ui/browser_window/internal/browser_collection.cc
+@@ -4,6 +4,8 @@
+ 
+ #include "chrome/browser/ui/browser_window/public/browser_collection.h"
+ 
++#include "blanc/browser/ui/blanc_prototype_ui.h"
++
+ #include "base/scoped_observation.h"
+ #include "chrome/browser/ui/browser_window/public/browser_collection_observer.h"
+ #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
+@@ -75,8 +77,13 @@ void BrowserCollection::ForEach(
+ }
+ 
+ BrowserWindowInterface* BrowserCollection::GetLastActiveBrowser() {
+-  auto browsers = GetBrowsers(Order::kActivation);
+-  return browsers.empty() ? nullptr : browsers.front();
++  // Blanc (F41): the window holding set-aside pages is never the one to use.
++  for (BrowserWindowInterface* browser : GetBrowsers(Order::kActivation)) {
++    if (!blanc_prototype::IsHoldWindow(browser)) {
++      return browser;
++    }
++  }
++  return nullptr;
+ }
+ 
+ BrowserWindowInterface* BrowserCollection::FindBrowserWithWindow(
+diff --git a/chrome/browser/ui/browser_window/internal/browser_window_interface_iterator_non_android.cc b/chrome/browser/ui/browser_window/internal/browser_window_interface_iterator_non_android.cc
+index 325fc1a..78390b6 100644
+--- a/chrome/browser/ui/browser_window/internal/browser_window_interface_iterator_non_android.cc
++++ b/chrome/browser/ui/browser_window/internal/browser_window_interface_iterator_non_android.cc
+@@ -3,6 +3,8 @@
+ // found in the LICENSE file.
+ 
+ #include "base/functional/function_ref.h"
++
++#include "blanc/browser/ui/blanc_prototype_ui.h"
+ #include "chrome/browser/ui/browser_window/public/browser_window_interface_iterator.h"
+ #include "chrome/browser/ui/browser_window/public/global_browser_collection.h"
+ 
+@@ -38,6 +40,10 @@ BrowserWindowInterface* GetLastActiveBrowserWindowInterfaceWithAnyProfile() {
+   BrowserWindowInterface* last_active = nullptr;
+   ForEachCurrentBrowserWindowInterfaceOrderedByActivation(
+       [&](BrowserWindowInterface* browser) {
++        // Blanc (F41): the window holding set-aside pages doesn't count.
++        if (blanc_prototype::IsHoldWindow(browser)) {
++          return true;
++        }
+         last_active = browser;
+         return false;  // stop iterating
+       });
+diff --git a/chrome/browser/ui/unload_controller.cc b/chrome/browser/ui/unload_controller.cc
+index 9cefffb..33c45be 100644
+--- a/chrome/browser/ui/unload_controller.cc
++++ b/chrome/browser/ui/unload_controller.cc
+@@ -4,6 +4,8 @@
+ 
+ #include "chrome/browser/ui/unload_controller.h"
+ 
++#include "blanc/browser/ui/blanc_prototype_ui.h"
++
+ #include <algorithm>
+ 
+ #include "base/functional/bind.h"
+@@ -558,6 +560,10 @@ UnloadController::GetTabsNeedingBeforeUnloadFired() const {
+   }
+ 
+   UnloadListenerSet tabs_needing_beforeunload;
++  // Blanc (F41): a set-aside page never stops a quit or asks to stay.
++  if (blanc_prototype::IsHoldWindow(browser_)) {
++    return tabs_needing_beforeunload;
++  }
+   for (int i = 0; i < browser_->tab_strip_model()->count(); ++i) {
+     content::WebContents* const contents =
+         browser_->tab_strip_model()->GetWebContentsAt(i);
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+index 69e4482..db691c0 100644
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -1639,6 +1639,10 @@ void BrowserView::OnVerticalTabStripModeChanged(
+ // BrowserView, BrowserWindow implementation:
+ 
+ void BrowserView::Show() {
++  // Blanc (F41): the window holding set-aside pages is never shown.
++  if (blanc_prototype::IsHoldWindow(browser())) {
++    return;
++  }
+   // Attempts to show closed windows should no-op.
+   if (browser_widget_->IsClosed()) {
+     return;
+@@ -1704,6 +1708,10 @@ void BrowserView::Show() {
+ }
+ 
+ void BrowserView::ShowInactive() {
++  // Blanc (F41): the window holding set-aside pages is never shown.
++  if (blanc_prototype::IsHoldWindow(browser())) {
++    return;
++  }
+   if (!browser_widget_->IsVisible()) {
+     browser_widget_->ShowInactive();
+   }
+@@ -1742,6 +1750,10 @@ void BrowserView::Close() {
+ }
+ 
+ void BrowserView::Activate() {
++  // Blanc (F41): the window holding set-aside pages is never shown.
++  if (blanc_prototype::IsHoldWindow(browser())) {
++    return;
++  }
+   if (browser_widget_->IsClosed()) {
+     // Since the activation is asynchronous, it's possible that the browser has
+     // been closed before the activation is ready, in this case, we don't have
+diff --git a/components/permissions/permission_request_manager.cc b/components/permissions/permission_request_manager.cc
+index ddbb3fc..e2c82bb 100644
+--- a/components/permissions/permission_request_manager.cc
++++ b/components/permissions/permission_request_manager.cc
+@@ -4,6 +4,8 @@
+ 
+ #include "components/permissions/permission_request_manager.h"
+ 
++#include "blanc/common/held_page.h"
++
+ #include <algorithm>
+ #include <memory>
+ #include <optional>
+@@ -234,6 +236,13 @@ void PermissionRequestManager::AddRequest(
+     return;
+   }
+ 
++  // Blanc (F41): a set-aside page is refused, as shipping refuses it. Cancelled,
++  // because a denial would be saved for the site with no one having been asked.
++  if (web_contents()->GetUserData(blanc::kHeldPageKey)) {
++    request->Cancelled();
++    return;
++  }
++
+   if (source_frame->IsInactiveAndDisallowActivation(
+           content::DisallowActivationReasonId::kPermissionAddRequest)) {
+     request->Cancelled();

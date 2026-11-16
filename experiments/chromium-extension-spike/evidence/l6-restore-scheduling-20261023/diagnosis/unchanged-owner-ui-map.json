@@ -1,0 +1,8 @@
+{
+  "nativeUIFile": "chrome/browser/ui/blanc_prototype_ui.cc",
+  "sha256": "a1f62eaaadc84118376b265b5e41fa4d0279fbd36aa93c8f8e044047410c4dbe",
+  "identicalToOwnerConfirmed7065": true,
+  "ownerNormalRestartRecord": "../l8-normal-startup-20261023/signed-qualification/owner-normal-restart-confirmation.json",
+  "priorRecoveryUIAcceptance": "Owner accepted mapped unchanged recovery UI during L6 qualification; no new spoken/physical observation claimed.",
+  "newSchedulingCode": "chrome/browser/ui/startup/startup_browser_creator_impl.cc"
+}

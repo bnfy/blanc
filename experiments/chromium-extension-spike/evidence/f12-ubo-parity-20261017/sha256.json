@@ -1,0 +1,202 @@
+[
+  {
+    "path": "NOTICE",
+    "sha256": "ff0b0c18c0c67e46f82285f4f61a19353a2a1c1661b054f862e9e624ae2c7449",
+    "bytes": 1767
+  },
+  {
+    "path": "README.md",
+    "sha256": "1f606a109722ad35d59cbcc170428b596c840758ebd2e4a741f42592b515a1b1",
+    "bytes": 5828
+  },
+  {
+    "path": "archives.json",
+    "sha256": "371eef1bffbd51d17b481d9f0ce567532c7a4b90bcf6a6ad52bb0a5f557618a7",
+    "bytes": 676
+  },
+  {
+    "path": "blanc-service-changed-parity01.log",
+    "sha256": "5b126037d11f67a67620311e39682a902f3a0cf053db9a48ad62a5c18fb855bf",
+    "bytes": 280
+  },
+  {
+    "path": "blanc-service-changed-parity01.tar.gz",
+    "sha256": "f9dc3921e03754095a53789aedeaef07aa9531a26e4f533bb792edd6958c3a2f",
+    "bytes": 31575
+  },
+  {
+    "path": "blanc-service-unchanged01.log",
+    "sha256": "5b126037d11f67a67620311e39682a902f3a0cf053db9a48ad62a5c18fb855bf",
+    "bytes": 280
+  },
+  {
+    "path": "blanc-service-unchanged01.tar.gz",
+    "sha256": "8ec6b858fe1136e5efe9ca25a74c7fae8e9505da098c65eff5185200046003bb",
+    "bytes": 27326
+  },
+  {
+    "path": "blanc-ubo-parity-audit.tar.gz",
+    "sha256": "4206e6eda1d25c22e78fa0548418d8cb2e1c915d6a43d9d3060c1edce27d031a",
+    "bytes": 34451
+  },
+  {
+    "path": "blanc-ubo-parity-build-check.log",
+    "sha256": "c5b2ea96710d515c3cb30bb0844fb07af778ec266c08943ed9a297707e8b6ab4",
+    "bytes": 196
+  },
+  {
+    "path": "blanc-ubo-parity-full01.log",
+    "sha256": "1c990f42efa7ac2f147d6f7dd2e68aad00fa266b50fb30967c9fe0f46172c466",
+    "bytes": 2695
+  },
+  {
+    "path": "blanc-ubo-parity-full01.tar.gz",
+    "sha256": "6951ee1fca47c4d283b5ab1dde8265a7c0dda96513d801c1a85e6a10c98135c4",
+    "bytes": 1171274
+  },
+  {
+    "path": "blanc-ubo-parity-full02.log",
+    "sha256": "aae7d79e171b52557d42fd5fd696f040983bb435043e2c2381fd6a37c7b145bf",
+    "bytes": 154950
+  },
+  {
+    "path": "blanc-ubo-parity-full02.tar.gz",
+    "sha256": "b008acd4039d438c3a09f2db38a50d25cb67432d0ee3ce271dd61019e93e9be0",
+    "bytes": 3799239
+  },
+  {
+    "path": "blanc-ubo-parity-lint-final.log",
+    "sha256": "435c0491f17cb0c5200678f0f597d112d5f17c17e285455f9c20c8d6db5ea23d",
+    "bytes": 38
+  },
+  {
+    "path": "blanc-ubo-parity-lint.log",
+    "sha256": "99e6f6c5fb5599143861618d298f2ef16443d5cdb6248c1f96f2294848c59f70",
+    "bytes": 38
+  },
+  {
+    "path": "blanc-ubo-parity-probe01.log",
+    "sha256": "e9d721d35937ecd147cacd427bf03cf8734cb99ec2549b231f9f99660c41614f",
+    "bytes": 1789
+  },
+  {
+    "path": "blanc-ubo-parity-probe01.tar.gz",
+    "sha256": "9f07a806cd6c585497989d9d6da4d63fbbef7a0d15c8c3aff4af19bfd7f9bfb5",
+    "bytes": 1139
+  },
+  {
+    "path": "blanc-ubo-parity-probe02.log",
+    "sha256": "9c1aee7a138fe63a6db9a5b3ef13a4151c7a8d60cf41efa5f2684f904b3c5be0",
+    "bytes": 1432
+  },
+  {
+    "path": "blanc-ubo-parity-probe02.tar.gz",
+    "sha256": "73282cb09d7f223e6aeccba214836c611d4b5dfaf9c8db424b30d2ba298fca61",
+    "bytes": 10767
+  },
+  {
+    "path": "blanc-ubo-parity-service-verify.log",
+    "sha256": "ec6dfed86e019e24453bb2c119a9569a840407656a6e957e5dc3e1df9a647f9b",
+    "bytes": 127
+  },
+  {
+    "path": "blanc-ubo-parity-suite-loopback.log",
+    "sha256": "d9d87fee1db9bc6fb49d11523810f7d2517ad7ef3f436a26aadf4f31afaa3d96",
+    "bytes": 24521
+  },
+  {
+    "path": "blanc-ubo-parity-suite.log",
+    "sha256": "07d674264646b75f09b4d0fb017bc1afdb54824c9caa37e639fad2143c8794e9",
+    "bytes": 28882
+  },
+  {
+    "path": "blanc-ubo-parity-tests.log",
+    "sha256": "b9712d9608d519bbd23533fe1b4439f86621104af89235c893ef227b301f72b2",
+    "bytes": 1738
+  },
+  {
+    "path": "blanc-ubo-parity-verify.log",
+    "sha256": "7d58051d44e024ed3723af876a0343250893e035928151d8af29de6350238893",
+    "bytes": 171
+  },
+  {
+    "path": "capture-source/fixtures/replay/pipeline/bootstrap.cjs",
+    "sha256": "054b50cdc659ece103a8a7bd515523a68ebefd7afcc300ce8035515af02ac31a",
+    "bytes": 6777
+  },
+  {
+    "path": "capture-source/fixtures/replay/synthetic/page.mjs",
+    "sha256": "f9cba4814df85c8adea3acdbc86a877392c7a69ecdc743d7917ede0d2c7ba6bc",
+    "bytes": 2474
+  },
+  {
+    "path": "capture-source/fixtures/replay/synthetic/service-lifecycle-run.mjs",
+    "sha256": "0bd1eb544e41bb49f1246c2ed0b65929f0554d94c90082cead9847689fe4c481",
+    "bytes": 8142
+  },
+  {
+    "path": "capture-source/fixtures/replay/synthetic/service-lifecycle-verify.mjs",
+    "sha256": "51845b5d7d5bb3103e075f4bea7429d7efeb0c977f2d34c52ed3b28869e55af4",
+    "bytes": 4543
+  },
+  {
+    "path": "capture-source/fixtures/replay/synthetic/session.mjs",
+    "sha256": "9a892727c5194a329eb1253ef53b1bf7b516579a0f321c265b60a05d9b0332b8",
+    "bytes": 10104
+  },
+  {
+    "path": "capture-source/fixtures/replay/synthetic/transport.mjs",
+    "sha256": "2232100bf834a499f133b1c2b2e905e95fbcf5f07180d2a35d38502e1a905e1c",
+    "bytes": 2059
+  },
+  {
+    "path": "capture-source/fixtures/replay/synthetic/ubo-parity-run.mjs",
+    "sha256": "041ce35c025d3ca9d0b96b31c4dd5868e0b35d0e6b1ddb03b0fcbd703590fbc5",
+    "bytes": 7254
+  },
+  {
+    "path": "capture-source/fixtures/replay/synthetic/ubo-parity-verify.mjs",
+    "sha256": "8176f1c95d50c6c7ed1acc9e20ba16524f171e227c71c9a86ec7ba897b4fb916",
+    "bytes": 3287
+  },
+  {
+    "path": "capture-source/fixtures/replay/synthetic/worker-observer.mjs",
+    "sha256": "5b6eba621e4ff44eb8f0155d72bee30b224d304ed921e03af466e36f3e081c9f",
+    "bytes": 7209
+  },
+  {
+    "path": "capture-source/ubo-component.mjs",
+    "sha256": "751f8f09df4b4b6e1a7919ec662415eb718e65dec377e88c7483603d0afd06ce",
+    "bytes": 6298
+  },
+  {
+    "path": "capture-source/ubo-reload-guard.js",
+    "sha256": "cc312bb4b83ccb738541dfbe2d74ac2df3c929c36e21cd66cdbf222efb9da2f8",
+    "bytes": 947
+  },
+  {
+    "path": "changed-context-proof.json",
+    "sha256": "5c34fd13bfeff6d170710a6b672c109e2bb6c189de234917f3e4166e67d434d9",
+    "bytes": 29033
+  },
+  {
+    "path": "changed-report.json",
+    "sha256": "2c4b0ed52086945f3a15f1d87720e92dac3fd41f9ef216070a0f1375862ccbd7",
+    "bytes": 4583
+  },
+  {
+    "path": "parity-report.json",
+    "sha256": "b58009c9d81eaabe8fa29ce3b4ed7ac2a7d0caf66611f22568dd9e54268ee832",
+    "bytes": 221057
+  },
+  {
+    "path": "unchanged-context-proof.json",
+    "sha256": "08532f9b6ee3019e549a29d715c69a6e8db826a6f64176cb114f7184280545e2",
+    "bytes": 29019
+  },
+  {
+    "path": "unchanged-report.json",
+    "sha256": "d42c9d33cf524f3186764e8192e25804f962b879583105a3c5a965e24c7b69bc",
+    "bytes": 4580
+  }
+]

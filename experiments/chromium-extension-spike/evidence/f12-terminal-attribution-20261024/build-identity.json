@@ -1,0 +1,11 @@
+{
+  "baseCommit": "632c81d52638ea87300f2c28e8177d9d3701dd1e",
+  "sourceDeltaSha256": "85284f2056120dc4f9e8df906b661f7642293ed81d8799adafdf7a969a37d638",
+  "sourceSha256": "39f52c71a418a8ebd03737cfedc7c8d571b6241979eb153836e0a42cbad47466",
+  "testBinaries": {
+    "Contents/MacOS/Blanc Prototype": "33e6b2806167d00ce95c5c7333385b7b3db96b50246f25a415416dc1fd7398ab",
+    "Contents/Frameworks/Blanc Prototype Framework.framework/Blanc Prototype Framework": "a03c9454e62b7f9dc5398945b8dce6eae02aee3c4269716258f915f3be0edf89"
+  },
+  "deniedEvidenceBuild": "Prior632c81d5 trace implementation, before timeout-only repair",
+  "newBuild": "Native test output; not signed/notarized replacement"
+}

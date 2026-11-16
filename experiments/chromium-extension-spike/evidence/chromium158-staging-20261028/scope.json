@@ -1,0 +1,9 @@
+{
+  "scheduledActions": 57943,
+  "clangCompileCommands": 47169,
+  "clangPlusPlusCompileCommands": 44362,
+  "linkerDriverCommands": 70,
+  "pendingBuildflagCommands": 0,
+  "metadataActionsCompleted": 122,
+  "compilationStarted": false
+}

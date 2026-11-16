@@ -1,0 +1,185 @@
+{
+  "passed": [
+    {
+      "path": "evidence/f12-method-redirect-20261024/run.mjs",
+      "call": 0,
+      "refuse": false
+    },
+    {
+      "path": "evidence/f12-method-redirect-20261024/run.mjs",
+      "call": 0,
+      "refuse": true
+    },
+    {
+      "path": "evidence/f12-method-redirect-20261024/run.mjs",
+      "call": 1,
+      "refuse": false
+    },
+    {
+      "path": "evidence/f12-method-redirect-20261024/run.mjs",
+      "call": 1,
+      "refuse": true
+    },
+    {
+      "path": "evidence/f12-redirect-overrides-20261024/run.mjs",
+      "call": 0,
+      "refuse": false
+    },
+    {
+      "path": "evidence/f12-redirect-overrides-20261024/run.mjs",
+      "call": 0,
+      "refuse": true
+    },
+    {
+      "path": "evidence/f12-redirect-overrides-20261024/run.mjs",
+      "call": 1,
+      "refuse": false
+    },
+    {
+      "path": "evidence/f12-redirect-overrides-20261024/run.mjs",
+      "call": 1,
+      "refuse": true
+    },
+    {
+      "path": "evidence/f12-redirect-overrides-20261024/signed-run.mjs",
+      "call": 0,
+      "refuse": false
+    },
+    {
+      "path": "evidence/f12-redirect-overrides-20261024/signed-run.mjs",
+      "call": 0,
+      "refuse": true
+    },
+    {
+      "path": "evidence/f12-redirect-overrides-20261024/signed-run.mjs",
+      "call": 1,
+      "refuse": false
+    },
+    {
+      "path": "evidence/f12-redirect-overrides-20261024/signed-run.mjs",
+      "call": 1,
+      "refuse": true
+    },
+    {
+      "path": "evidence/f12-redirect-overrides-20261024/signed-run.mjs",
+      "call": 2,
+      "refuse": false
+    },
+    {
+      "path": "evidence/f12-redirect-overrides-20261024/signed-run.mjs",
+      "call": 2,
+      "refuse": true
+    },
+    {
+      "path": "evidence/f12-redirect-overrides-20261024/signed-initial-run.mjs",
+      "call": 0,
+      "refuse": false
+    },
+    {
+      "path": "evidence/f12-redirect-overrides-20261024/signed-initial-run.mjs",
+      "call": 0,
+      "refuse": true
+    },
+    {
+      "path": "evidence/f12-redirect-overrides-20261024/signed-initial-run.mjs",
+      "call": 1,
+      "refuse": false
+    },
+    {
+      "path": "evidence/f12-redirect-overrides-20261024/signed-initial-run.mjs",
+      "call": 1,
+      "refuse": true
+    },
+    {
+      "path": "evidence/f12-redirect-overrides-20261024/signed-initial-run.mjs",
+      "call": 2,
+      "refuse": false
+    },
+    {
+      "path": "evidence/f12-redirect-overrides-20261024/signed-initial-run.mjs",
+      "call": 2,
+      "refuse": true
+    },
+    {
+      "path": "evidence/f12-redirect-overrides-20261024/initial-run.mjs",
+      "call": 0,
+      "refuse": false
+    },
+    {
+      "path": "evidence/f12-redirect-overrides-20261024/initial-run.mjs",
+      "call": 0,
+      "refuse": true
+    },
+    {
+      "path": "evidence/f12-redirect-overrides-20261024/initial-run.mjs",
+      "call": 1,
+      "refuse": false
+    },
+    {
+      "path": "evidence/f12-redirect-overrides-20261024/initial-run.mjs",
+      "call": 1,
+      "refuse": true
+    },
+    {
+      "path": "evidence/f12-redirect-repair-20261025/run.mjs",
+      "call": 0,
+      "refuse": false
+    },
+    {
+      "path": "evidence/f12-redirect-repair-20261025/run.mjs",
+      "call": 0,
+      "refuse": true
+    },
+    {
+      "path": "evidence/f12-redirect-repair-20261025/run.mjs",
+      "call": 1,
+      "refuse": false
+    },
+    {
+      "path": "evidence/f12-redirect-repair-20261025/run.mjs",
+      "call": 1,
+      "refuse": true
+    },
+    {
+      "path": "evidence/f12-redirect-repair-20261025/run.mjs",
+      "call": 2,
+      "refuse": false
+    },
+    {
+      "path": "evidence/f12-redirect-repair-20261025/run.mjs",
+      "call": 2,
+      "refuse": true
+    },
+    {
+      "path": "evidence/f12-devtools-signed-20261026/affected-checks/run.mjs",
+      "call": 0,
+      "refuse": false
+    },
+    {
+      "path": "evidence/f12-devtools-signed-20261026/affected-checks/run.mjs",
+      "call": 0,
+      "refuse": true
+    },
+    {
+      "path": "evidence/f12-devtools-signed-20261026/affected-checks/run.mjs",
+      "call": 1,
+      "refuse": false
+    },
+    {
+      "path": "evidence/f12-devtools-signed-20261026/affected-checks/run.mjs",
+      "call": 1,
+      "refuse": true
+    },
+    {
+      "path": "evidence/f12-devtools-signed-20261026/affected-checks/run.mjs",
+      "call": 2,
+      "refuse": false
+    },
+    {
+      "path": "evidence/f12-devtools-signed-20261026/affected-checks/run.mjs",
+      "call": 2,
+      "refuse": true
+    }
+  ],
+  "scriptCount": 7
+}

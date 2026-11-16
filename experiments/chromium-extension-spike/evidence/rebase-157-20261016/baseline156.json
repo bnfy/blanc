@@ -1,0 +1,7 @@
+{
+  "out/BlancPrototype/args.gn": "414e3baad6c84730b3c17f411ed82c5065561ba344fe2a202675654e1e18a057",
+  "out/BlancPrototype/.blanc-build-environment.json": "258e18a7fe4e4f73b434f71ee10a8d9eadd6b2916428b965f8ce9fa032268c08",
+  "third_party/llvm-build/Release+Asserts/cr_build_revision": "d7ca8a50aadb3896544e88a5be6b532f1974429b0795717cddaa846b5ef209b1",
+  "source_head": "5a93aa59e3043e747eff68659dcf7d20193d160e",
+  "clang_revision": "llvmorg-24-init-7747-g62397f8b-53"
+}

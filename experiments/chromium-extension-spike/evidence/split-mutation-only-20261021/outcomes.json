@@ -1,0 +1,74 @@
+[
+  {
+    "schedule": "blanc-mutation-only-encrypted",
+    "pass": false,
+    "checkpoints": 12,
+    "outcome": {
+      "result": {
+        "success": true
+      },
+      "elapsed": 45,
+      "mutations": 1
+    }
+  },
+  {
+    "schedule": "blanc-mutation-only-encrypted-1",
+    "pass": false,
+    "checkpoints": 5,
+    "outcome": null
+  },
+  {
+    "schedule": "blanc-mutation-only-encrypted-2",
+    "pass": true,
+    "checkpoints": 12,
+    "outcome": {
+      "result": {
+        "success": true
+      },
+      "elapsed": 20,
+      "mutations": 2
+    }
+  },
+  {
+    "schedule": "blanc-mutation-only-encrypted-3",
+    "pass": true,
+    "checkpoints": 12,
+    "outcome": {
+      "result": {
+        "success": true
+      },
+      "elapsed": 32,
+      "mutations": 2
+    }
+  },
+  {
+    "schedule": "blanc-mutation-only-clear-1",
+    "pass": true,
+    "checkpoints": 12,
+    "outcome": {
+      "result": {
+        "success": true
+      },
+      "elapsed": 27,
+      "mutations": 2
+    }
+  },
+  {
+    "schedule": "blanc-mutation-only-clear-2",
+    "pass": true,
+    "checkpoints": 12,
+    "outcome": {
+      "result": {
+        "success": true
+      },
+      "elapsed": 17,
+      "mutations": 2
+    }
+  },
+  {
+    "schedule": "blanc-mutation-only-clear-3",
+    "pass": false,
+    "checkpoints": 2,
+    "outcome": null
+  }
+]

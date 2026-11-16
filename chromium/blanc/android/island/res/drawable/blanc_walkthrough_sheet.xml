@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- The walkthrough card: the surface, rounded at the top as the iPhone's sheet. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/blanc_sunrise_surface" />
+    <corners
+        android:topLeftRadius="@dimen/blanc_walkthrough_corner"
+        android:topRightRadius="@dimen/blanc_walkthrough_corner" />
+</shape>

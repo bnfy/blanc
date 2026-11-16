@@ -263,11 +263,13 @@
     placement: () => (mode === 'spaces' ? 'view' : 'anchored'),
     onOpenChange(open) {
       workspaceSwitcherOpen = open; window.browserAPI.setWorkspaceSwitcherOpen(open);
-      // Opened from the Island's space mark the menu is the whole overlay, so
-      // closing it closes the overlay and focus returns to the mark.
+      // Opened as its own overlay (the rail's space mark, or a command) the
+      // menu is the whole overlay, so closing it closes the overlay and focus
+      // returns to the mark, or the Island when the mark is hidden.
       if (!open && mode === 'spaces') window.browserAPI.closeOverlay('cancel');
     },
   });
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => workspaceUI.repaintTrigger());
 
   // --- Drag to reorder (tab-drag.js; spec 2026-10-07) ---
   const dragApi = window.blancTabDrag;
@@ -505,28 +507,11 @@
   }
 
 
-  /** The page URL behind a `view-source:` URL, else null. Chromium's
-   * view-source: is a non-special scheme, so `new URL(...).host` is '' and
-   * the row would fall back to the literal "new tab".
-   * (Keep in sync with renderer.js.) */
-  function viewSourceTarget(url) {
-    if (!url?.startsWith('view-source:')) return null;
-    // A bare "view-source:" has no page behind it — null, not '', so callers
-    // can trust a truthy result to be a URL worth parsing.
-    return url.slice('view-source:'.length) || null;
-  }
-
   /** Short label for a tab's location: host for web pages (sans the noise
    * "www." carries in a list this dense), page name for internal ones,
    * empty for a blank new tab. */
   function tabDomain(tab) {
-    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';
-    try {
-      const u = new URL(viewSourceTarget(tab.url) ?? tab.url);
-      return u.protocol === 'blanc:' ? `blanc://${u.host}` : u.host.replace(/^www\./, '');
-    } catch {
-      return tab.url;
-    }
+    return TabSections.locationLabel(tab?.url, { stripWww: true });
   }
 
   // `base` kept for parity with renderer.js's twin (the dot-peek reuses it
@@ -561,8 +546,13 @@
   // --- Dedicated Glance tab picker ---------------------------------------
 
   function eligibleGlanceTabs() {
+    // Pages already on screen can't be chosen: the main page, the current
+    // Glance, and the panes of a visible split, which Glance floats over
+    // (#1441). Taking a pane out of its split stays a tab-menu choice.
+    const shownSplit = (state.splits ?? []).find((s) => s.tabIds.includes(state.activeTabId));
     return state.tabs.filter((tab) =>
       tab.id !== state.activeTabId && tab.id !== state.glanceTabId
+      && !shownSplit?.tabIds.includes(tab.id)
     );
   }
 
@@ -882,7 +872,11 @@
       row.append(mute);
     }
 
-    if (tab.id !== state.activeTabId) {
+    // Glance floats over the page or over a whole visible split (#1441). A
+    // pane of a two-pane split leaves it for Glance (main's openTabMenuGlance,
+    // like the tab menu); a larger split's panes can't, so they get no button.
+    const shownSplit = (state.splits ?? []).find((s) => s.tabIds.includes(state.activeTabId));
+    if (tab.id !== state.activeTabId && !(shownSplit?.tabIds.includes(tab.id) && shownSplit.tabIds.length !== 2)) {
       const glance = document.createElement('button');
       const isGlance = tab.id === state.glanceTabId;
       glance.className = 'row-glance' + (isGlance ? ' on' : '');
@@ -2755,6 +2749,8 @@
     // The private theme scope follows the active tab.
     if (activeTab()?.private) document.documentElement.dataset.theme = 'private';
     else delete document.documentElement.dataset.theme;
+    // The footer's Spaces button draws the space's tile for that theme.
+    workspaceUI.repaintTrigger();
     renderPanelChrome();
     renderList();
   }
@@ -3562,6 +3558,11 @@
   window.browserAPI.onOverlayShow((show) => {
     const { mode: next, prefill, purpose, pillRect } = show;
     searchPriorityResults = show.searchPriorityResults === true;
+    // The panel's side margin (styles.css #islandPanel): main widens it where
+    // the macOS window buttons sit beside the panel.
+    if (Number.isFinite(show.panelSideClearance)) {
+      document.documentElement.style.setProperty('--panel-side-clear', `${show.panelSideClearance}px`);
+    }
     stepHoverLeave({ type: 'open', hoverOpened: next === 'panel' && purpose?.hoverOpened === true });
     const wasOpen = mode === next;
     endOverlayExit();

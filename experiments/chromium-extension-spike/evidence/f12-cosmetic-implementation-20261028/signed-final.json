@@ -1,0 +1,16 @@
+{
+  "source": "569d830d69c472aff2bc232e95a50b121fc47fbd",
+  "notarization": {
+    "status": "Accepted",
+    "id": "d4e28cc4-dfa8-489f-b66e-af4a3fa208c2",
+    "message": "Processing complete"
+  },
+  "archive": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/cosmetic-20261028/Blanc-Chromium-Preview-157.0.8103.15-569d830d-arm64.zip",
+  "sha256": "0e6573cc704d1c5d76d15ff10196b0518a6ea48805947115fb710e71d248cd78",
+  "tested_files_unchanged": 457,
+  "added_files": [
+    "Contents/CodeResources"
+  ],
+  "signed_affected_checks": 20,
+  "release_approval": false
+}

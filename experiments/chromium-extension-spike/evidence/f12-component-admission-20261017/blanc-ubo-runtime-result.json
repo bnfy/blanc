@@ -1,0 +1,181 @@
+{
+  "root": "/private/tmp/blanc-ubo-runtime-uV3Gsb",
+  "scope": "offline admission only",
+  "backgroundPages": [],
+  "targets": {
+    "targetInfos": [
+      {
+        "targetId": "2FD3BA8308E82D9DFD1564DC72BDB0B4",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/background.js",
+        "url": "chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/background.js",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "391494BE8229DA4A26C1509ED415496A"
+      },
+      {
+        "targetId": "B35D2E74F7C6695C31B36C9E5AB0F921",
+        "type": "browser_ui",
+        "title": "Omnibox Popup",
+        "url": "chrome://omnibox-popup.top-chrome/",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "391494BE8229DA4A26C1509ED415496A"
+      },
+      {
+        "targetId": "E9B22661FE30FA53BA414D724453A4E7",
+        "type": "page",
+        "title": "Blanc Chromium prototype",
+        "url": "chrome://blanc-prototype/host.html",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "391494BE8229DA4A26C1509ED415496A"
+      },
+      {
+        "targetId": "E43CAB687D96CF173EED9143589CE647",
+        "type": "background_page",
+        "title": "uBlock Origin",
+        "url": "chrome-extension://oddhmofgkplblkmckempfepikkophank/background.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "391494BE8229DA4A26C1509ED415496A"
+      },
+      {
+        "targetId": "7D1B228349F6D67D321A8C55B9F3247A",
+        "type": "page",
+        "title": "about:blank",
+        "url": "about:blank",
+        "attached": true,
+        "canAccessOpener": false,
+        "browserContextId": "391494BE8229DA4A26C1509ED415496A"
+      }
+    ]
+  },
+  "runtime": {
+    "manifest": {
+      "author": "Raymond Hill & contributors",
+      "background": {
+        "page": "background.html"
+      },
+      "browser_action": {
+        "default_icon": {
+          "16": "img/icon_16.png",
+          "32": "img/icon_32.png",
+          "64": "img/icon_64.png"
+        },
+        "default_popup": "popup-fenix.html",
+        "default_title": "uBlock Origin"
+      },
+      "commands": {
+        "launch-element-picker": {
+          "description": "__MSG_popupTipPicker__"
+        },
+        "launch-element-zapper": {
+          "description": "__MSG_popupTipZapper__"
+        },
+        "launch-logger": {
+          "description": "__MSG_popupTipLog__"
+        },
+        "open-dashboard": {
+          "description": "__MSG_popupTipDashboard__"
+        },
+        "relax-blocking-mode": {
+          "description": "__MSG_relaxBlockingMode__"
+        },
+        "toggle-cosmetic-filtering": {
+          "description": "__MSG_toggleCosmeticFiltering__"
+        },
+        "toggle-javascript": {
+          "description": "__MSG_toggleJavascript__"
+        }
+      },
+      "content_scripts": [
+        {
+          "all_frames": true,
+          "js": [
+            "/js/vapi.js",
+            "/js/vapi-client.js",
+            "/js/contentscript.js"
+          ],
+          "match_about_blank": true,
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "run_at": "document_start"
+        },
+        {
+          "all_frames": false,
+          "js": [
+            "/js/scriptlets/subscriber.js"
+          ],
+          "matches": [
+            "https://easylist.to/*",
+            "https://*.fanboy.co.nz/*",
+            "https://filterlists.com/*",
+            "https://forums.lanik.us/*",
+            "https://github.com/*",
+            "https://*.github.io/*"
+          ],
+          "run_at": "document_idle"
+        },
+        {
+          "all_frames": false,
+          "js": [
+            "/js/scriptlets/updater.js"
+          ],
+          "matches": [
+            "https://github.com/uBlockOrigin/*",
+            "https://ublockorigin.github.io/*",
+            "https://*.reddit.com/r/uBlockOrigin/*"
+          ],
+          "run_at": "document_idle"
+        }
+      ],
+      "content_security_policy": "script-src 'self'; object-src 'self'",
+      "default_locale": "en",
+      "description": "__MSG_extShortDesc__",
+      "icons": {
+        "16": "img/icon_16.png",
+        "32": "img/icon_32.png",
+        "64": "img/icon_64.png",
+        "128": "img/icon_128.png"
+      },
+      "incognito": "not_allowed",
+      "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgmQ2nqsfUeKcq4+s+lUz53iaJ97Kay2Jxn0wR+ihw4xt0cDc+bC6DhN+4AgtpI2+5HqBsM9DX3d3IFe2umzq8f6tCxT/hsEHjifB1ZemwH22QEFSVBQb6M8XDYYjQ1Sjs4dbQHiC3uQE1GXaRNm6nbtgfWsHDkS66MffjZNQlr6Mwqm2FH1sdJPn/vcNZDg50wwi+Hy9/nU2lRUnNkd3zXtPJ2+2tffD3oC9nW5XVjqSGCgD0R54VhHUInJzYgsBkkgFyhLjNsJzBV0j7YKrmisdlBR2kB6WwFmDLg4Y1J9y3mwdH2u+5CEl9NZdvPA4w2YVBujvFoFDszZugp7fkQIDAQAB",
+      "manifest_version": 2,
+      "minimum_chrome_version": "93.0",
+      "name": "uBlock Origin",
+      "options_ui": {
+        "open_in_tab": true,
+        "page": "dashboard.html"
+      },
+      "permissions": [
+        "alarms",
+        "contextMenus",
+        "privacy",
+        "storage",
+        "tabs",
+        "unlimitedStorage",
+        "webNavigation",
+        "webRequest",
+        "webRequestBlocking",
+        "<all_urls>"
+      ],
+      "short_name": "uBlock₀",
+      "storage": {
+        "managed_schema": "managed_storage.json"
+      },
+      "version": "1.75.0",
+      "web_accessible_resources": [
+        "/web_accessible_resources/*"
+      ]
+    },
+    "id": "oddhmofgkplblkmckempfepikkophank",
+    "incognitoAllowed": false
+  },
+  "popupUrl": "chrome-extension://oddhmofgkplblkmckempfepikkophank/popup-fenix.html",
+  "passed": true,
+  "rejectedRequests": 19,
+  "profileRemoved": true
+}

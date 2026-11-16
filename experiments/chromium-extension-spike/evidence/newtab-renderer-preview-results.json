@@ -1,0 +1,50 @@
+{
+  "method": "Renderer-only preview with fixture bridge and emulated visibility; native integration not asserted",
+  "initial": {
+    "visibility": "visible",
+    "clock": "10:56",
+    "layout": "billboard",
+    "sites": 1,
+    "errors": [],
+    "fonts": "loaded"
+  },
+  "layouts": [
+    {
+      "layout": "ledger",
+      "errors": []
+    },
+    {
+      "layout": "shelf",
+      "errors": []
+    },
+    {
+      "layout": "tally",
+      "errors": []
+    },
+    {
+      "layout": "billboard",
+      "errors": []
+    }
+  ],
+  "wallpaper": {
+    "phase": "day",
+    "visibility": "visible",
+    "resources": [
+      {
+        "name": "http://127.0.0.1:18765/pages/start-page-sunrise.png",
+        "size": 1085936
+      },
+      {
+        "name": "http://127.0.0.1:18765/pages/start-page-day.png",
+        "size": 1311762
+      }
+    ],
+    "pressed": "true",
+    "errors": []
+  },
+  "restored": {
+    "layout": "billboard",
+    "phase": "day",
+    "errors": []
+  }
+}

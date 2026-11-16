@@ -1,0 +1,296 @@
+{
+  "workingDirectory": "/private/tmp/blanc-f12-spike-a",
+  "nativeBuildInvocations": [],
+  "invocations": [
+    {
+      "kind": "Electron synthetic replay",
+      "argv": [
+        "/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "experiments/chromium-extension-spike/fixtures/replay/synthetic/run.mjs",
+        "/private/tmp/blanc-f12-runtime/dist/Electron.app/Contents/MacOS/Electron",
+        "/Applications/Blanc.app/Contents/Resources/app.asar",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/@electron/asar/lib/asar.js",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/playwright/index.mjs",
+        "/private/tmp/blanc-f12-expanded-01",
+        "probe",
+        "no-referrer"
+      ],
+      "started": "2026-10-17T19:02:37.372Z",
+      "finished": "2026-10-17T19:02:43.781Z",
+      "passed": true,
+      "evidence": "electron-01"
+    },
+    {
+      "kind": "Electron synthetic replay",
+      "argv": [
+        "/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "experiments/chromium-extension-spike/fixtures/replay/synthetic/run.mjs",
+        "/private/tmp/blanc-f12-runtime/dist/Electron.app/Contents/MacOS/Electron",
+        "/Applications/Blanc.app/Contents/Resources/app.asar",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/@electron/asar/lib/asar.js",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/playwright/index.mjs",
+        "/private/tmp/blanc-f12-expanded-02",
+        "full",
+        "default"
+      ],
+      "started": "2026-10-17T19:02:55.936Z",
+      "finished": "2026-10-17T19:03:09.605Z",
+      "passed": false,
+      "evidence": "electron-02"
+    },
+    {
+      "kind": "Electron synthetic replay",
+      "argv": [
+        "/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "experiments/chromium-extension-spike/fixtures/replay/synthetic/run.mjs",
+        "/private/tmp/blanc-f12-runtime/dist/Electron.app/Contents/MacOS/Electron",
+        "/Applications/Blanc.app/Contents/Resources/app.asar",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/@electron/asar/lib/asar.js",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/playwright/index.mjs",
+        "/private/tmp/blanc-f12-expanded-03",
+        "full",
+        "default"
+      ],
+      "started": "2026-10-17T19:04:26.405Z",
+      "finished": "2026-10-17T19:04:43.191Z",
+      "passed": false,
+      "evidence": "electron-03"
+    },
+    {
+      "kind": "Electron synthetic replay",
+      "argv": [
+        "/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "experiments/chromium-extension-spike/fixtures/replay/synthetic/run.mjs",
+        "/private/tmp/blanc-f12-runtime/dist/Electron.app/Contents/MacOS/Electron",
+        "/Applications/Blanc.app/Contents/Resources/app.asar",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/@electron/asar/lib/asar.js",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/playwright/index.mjs",
+        "/private/tmp/blanc-f12-expanded-04",
+        "full",
+        "default"
+      ],
+      "started": "2026-10-17T19:05:21.538Z",
+      "finished": "2026-10-17T19:05:39.150Z",
+      "passed": false,
+      "evidence": "electron-04"
+    },
+    {
+      "kind": "Electron synthetic replay",
+      "argv": [
+        "/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "experiments/chromium-extension-spike/fixtures/replay/synthetic/run.mjs",
+        "/private/tmp/blanc-f12-runtime/dist/Electron.app/Contents/MacOS/Electron",
+        "/Applications/Blanc.app/Contents/Resources/app.asar",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/@electron/asar/lib/asar.js",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/playwright/index.mjs",
+        "/private/tmp/blanc-f12-expanded-05",
+        "probe",
+        "no-referrer"
+      ],
+      "started": "2026-10-17T19:05:46.359Z",
+      "finished": "2026-10-17T19:05:52.139Z",
+      "passed": true,
+      "evidence": "electron-05"
+    },
+    {
+      "kind": "Electron synthetic replay",
+      "argv": [
+        "/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "experiments/chromium-extension-spike/fixtures/replay/synthetic/run.mjs",
+        "/private/tmp/blanc-f12-runtime/dist/Electron.app/Contents/MacOS/Electron",
+        "/Applications/Blanc.app/Contents/Resources/app.asar",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/@electron/asar/lib/asar.js",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/playwright/index.mjs",
+        "/private/tmp/blanc-f12-expanded-06",
+        "full",
+        "default"
+      ],
+      "started": "2026-10-17T19:06:03.861Z",
+      "finished": "2026-10-17T19:06:20.130Z",
+      "passed": false,
+      "evidence": "electron-06"
+    },
+    {
+      "kind": "Electron synthetic replay",
+      "argv": [
+        "/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "experiments/chromium-extension-spike/fixtures/replay/synthetic/run.mjs",
+        "/private/tmp/blanc-f12-runtime/dist/Electron.app/Contents/MacOS/Electron",
+        "/Applications/Blanc.app/Contents/Resources/app.asar",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/@electron/asar/lib/asar.js",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/playwright/index.mjs",
+        "/private/tmp/blanc-f12-expanded-07",
+        "full",
+        "default"
+      ],
+      "started": "2026-10-17T19:06:45.258Z",
+      "finished": "2026-10-17T19:07:02.030Z",
+      "passed": false,
+      "evidence": "electron-07"
+    },
+    {
+      "kind": "Electron synthetic replay",
+      "argv": [
+        "/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "experiments/chromium-extension-spike/fixtures/replay/synthetic/run.mjs",
+        "/private/tmp/blanc-f12-runtime/dist/Electron.app/Contents/MacOS/Electron",
+        "/Applications/Blanc.app/Contents/Resources/app.asar",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/@electron/asar/lib/asar.js",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/playwright/index.mjs",
+        "/private/tmp/blanc-f12-expanded-08",
+        "full",
+        "default"
+      ],
+      "started": "2026-10-17T19:07:34.563Z",
+      "finished": "2026-10-17T19:07:44.117Z",
+      "passed": false,
+      "evidence": "electron-08"
+    },
+    {
+      "kind": "Electron synthetic replay",
+      "argv": [
+        "/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "experiments/chromium-extension-spike/fixtures/replay/synthetic/run.mjs",
+        "/private/tmp/blanc-f12-runtime/dist/Electron.app/Contents/MacOS/Electron",
+        "/Applications/Blanc.app/Contents/Resources/app.asar",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/@electron/asar/lib/asar.js",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/playwright/index.mjs",
+        "/private/tmp/blanc-f12-expanded-09",
+        "full",
+        "default"
+      ],
+      "started": "2026-10-17T19:08:29.704Z",
+      "finished": "2026-10-17T19:08:56.776Z",
+      "passed": true,
+      "evidence": "electron-09"
+    },
+    {
+      "kind": "Electron synthetic replay",
+      "argv": [
+        "/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "experiments/chromium-extension-spike/fixtures/replay/synthetic/run.mjs",
+        "/private/tmp/blanc-f12-runtime/dist/Electron.app/Contents/MacOS/Electron",
+        "/Applications/Blanc.app/Contents/Resources/app.asar",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/@electron/asar/lib/asar.js",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/playwright/index.mjs",
+        "/private/tmp/blanc-f12-expanded-10",
+        "probe",
+        "no-referrer"
+      ],
+      "started": "2026-10-17T19:09:13.000Z",
+      "finished": "2026-10-17T19:09:20.347Z",
+      "passed": true,
+      "evidence": "electron-10"
+    },
+    {
+      "kind": "Chromium no-blocker control",
+      "argv": [
+        "/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "experiments/chromium-extension-spike/fixtures/replay/synthetic/chromium-baseline.mjs",
+        "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+        "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/generated",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/playwright/index.mjs",
+        "/private/tmp/blanc-f12-expanded-01",
+        "/private/tmp/blanc-f12-chromium-baseline-01"
+      ],
+      "started": "not recorded",
+      "finished": "not recorded",
+      "passed": false,
+      "evidence": "chromium-01",
+      "note": "Uncaught ECONNRESET before flush"
+    },
+    {
+      "kind": "Chromium no-blocker control",
+      "argv": [
+        "/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "experiments/chromium-extension-spike/fixtures/replay/synthetic/chromium-baseline.mjs",
+        "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+        "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/generated",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/playwright/index.mjs",
+        "/private/tmp/blanc-f12-expanded-01",
+        "/private/tmp/blanc-f12-chromium-baseline-02"
+      ],
+      "started": "2026-10-17T19:04:40.914Z",
+      "finished": "2026-10-17T19:04:42.833Z",
+      "passed": false,
+      "evidence": "chromium-02",
+      "note": ""
+    },
+    {
+      "kind": "Chromium no-blocker control",
+      "argv": [
+        "/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "experiments/chromium-extension-spike/fixtures/replay/synthetic/chromium-baseline.mjs",
+        "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+        "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/generated",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/playwright/index.mjs",
+        "/private/tmp/blanc-f12-expanded-05",
+        "/private/tmp/blanc-f12-chromium-baseline-03"
+      ],
+      "started": "2026-10-17T19:06:10.317Z",
+      "finished": "2026-10-17T19:06:11.774Z",
+      "passed": false,
+      "evidence": "chromium-03",
+      "note": ""
+    },
+    {
+      "kind": "Chromium no-blocker control",
+      "argv": [
+        "/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "experiments/chromium-extension-spike/fixtures/replay/synthetic/chromium-baseline.mjs",
+        "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+        "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/generated",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/playwright/index.mjs",
+        "/private/tmp/blanc-f12-expanded-05",
+        "/private/tmp/blanc-f12-chromium-baseline-04"
+      ],
+      "started": "2026-10-17T19:07:35.586Z",
+      "finished": "2026-10-17T19:07:43.143Z",
+      "passed": true,
+      "evidence": "chromium-04",
+      "note": ""
+    },
+    {
+      "kind": "Chromium no-blocker control",
+      "argv": [
+        "/Users/anthonyjloria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "experiments/chromium-extension-spike/fixtures/replay/synthetic/chromium-baseline.mjs",
+        "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+        "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/generated",
+        "/private/tmp/blanc-electron-drag-fix/node_modules/playwright/index.mjs",
+        "/private/tmp/blanc-f12-expanded-09",
+        "/private/tmp/blanc-f12-chromium-baseline-05"
+      ],
+      "started": "2026-10-17T19:09:10.716Z",
+      "finished": "2026-10-17T19:14:22.307Z",
+      "passed": true,
+      "evidence": "chromium-05",
+      "note": ""
+    },
+    {
+      "kind": "Separate TLS security control",
+      "script": "experiments/chromium-extension-spike/fixtures/replay/synthetic/trust-probe.mjs",
+      "output": "tls-security-01.json",
+      "started": "not recorded",
+      "finished": "not recorded",
+      "passed": false
+    },
+    {
+      "kind": "Separate TLS security control",
+      "script": "experiments/chromium-extension-spike/fixtures/replay/synthetic/trust-probe.mjs",
+      "output": "tls-security-02.json",
+      "started": "not recorded",
+      "finished": "not recorded",
+      "passed": false
+    },
+    {
+      "kind": "Separate TLS security control",
+      "script": "experiments/chromium-extension-spike/fixtures/replay/synthetic/trust-probe.mjs",
+      "output": "tls-security-03.json",
+      "started": "not recorded",
+      "finished": "not recorded",
+      "passed": true
+    }
+  ],
+  "attention": "not measured; do not infer from wall-clock brackets"
+}

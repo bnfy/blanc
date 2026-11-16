@@ -1,0 +1,108 @@
+--- a/components/os_crypt/async/browser/keychain_key_provider.h
++++ b/components/os_crypt/async/browser/keychain_key_provider.h
+@@ -8,6 +8,7 @@
+ #include <stdint.h>
+ 
+ #include <string>
++#include <optional>
+ #include <vector>
+ 
+ #include "base/containers/span.h"
+@@ -27,6 +28,10 @@
+ class COMPONENT_EXPORT(OS_CRYPT_ASYNC) KeychainKeyProvider
+     : public KeyProvider {
+  public:
++  struct ReadOnlyLookup { std::string service, account; };
++  // Migration source only: never create a missing item or select this key for
++  // new encryption. The caller owns source identity/consent authorization.
++  explicit KeychainKeyProvider(ReadOnlyLookup lookup);
+   KeychainKeyProvider();
+   KeychainKeyProvider(std::string key_tag,
+                       base::span<const uint8_t> pbkdf2_salt);
+@@ -53,6 +58,7 @@
+   bool UseForEncryption() override;
+ 
+   raw_ptr<crypto::apple::KeychainV2> keychain_for_testing_ = nullptr;
++  std::optional<ReadOnlyLookup> read_only_lookup_;
+   const std::string key_tag_;
+   const std::vector<uint8_t> pbkdf2_salt_;
+ };
+--- a/components/os_crypt/async/browser/keychain_key_provider.mm
++++ b/components/os_crypt/async/browser/keychain_key_provider.mm
+@@ -24,6 +24,7 @@
+ #include "crypto/apple/keychain_v2.h"
+ #include "crypto/kdf.h"
+ #include "crypto/subtle_passkey.h"
++#include "crypto/secure_util.h"
+ 
+ namespace os_crypt_async {
+ 
+@@ -40,7 +41,8 @@
+ base::expected<Encryptor::Key, KeyProvider::KeyError> GetKeyTask(
+     crypto::SubtlePassKey subtle_passkey,
+     base::span<const uint8_t> pbkdf2_salt,
+-    crypto::apple::KeychainV2* keychain_for_testing) {
++    crypto::apple::KeychainV2* keychain_for_testing,
++    std::optional<KeychainKeyProvider::ReadOnlyLookup> read_only_lookup) {
+   std::unique_ptr<crypto::apple::FakeKeychainV2> scoped_fake_keychain;
+   crypto::apple::KeychainV2* keychain_to_use = keychain_for_testing;
+   if (!keychain_to_use) {
+@@ -54,8 +56,21 @@
+     }
+   }
+ 
+-  KeychainPassword keychain_password(*keychain_to_use);
+-  std::string password = keychain_password.GetPassword();
++  std::string password;
++  if (read_only_lookup) {
++    if (read_only_lookup->service.empty() || read_only_lookup->account.empty() ||
++        read_only_lookup->service.size() > 256 || read_only_lookup->account.size() > 256)
++      return base::unexpected(KeyProvider::KeyError::kTemporarilyUnavailable);
++    auto found = keychain_to_use->FindGenericPassword(read_only_lookup->service,
++                                                     read_only_lookup->account);
++    if (!found.has_value())
++      return base::unexpected(KeyProvider::KeyError::kTemporarilyUnavailable);
++    password.assign(found->begin(), found->end());
++    crypto::SecureZeroBuffer(*found);
++  } else {
++    KeychainPassword keychain_password(*keychain_to_use);
++    password = keychain_password.GetPassword();
++  }
+ 
+   // `password` can be an empty string if keychain access is denied by the user
+   // or some other error occurs.
+@@ -68,10 +83,18 @@
+                               base::as_byte_span(password), pbkdf2_salt,
+                               key_bytes, subtle_passkey);
+ 
+-  return Encryptor::Key(key_bytes, mojom::Algorithm::kAES128CBC);
++  Encryptor::Key key(key_bytes, mojom::Algorithm::kAES128CBC);
++  crypto::SecureZeroBuffer(key_bytes);
++  crypto::SecureZeroBuffer(base::as_writable_byte_span(password));
++  return key;
+ }
+ 
+ }  // namespace
++
++KeychainKeyProvider::KeychainKeyProvider(ReadOnlyLookup lookup)
++    : KeychainKeyProvider(kDefaultKeyTag, kDefaultSalt) {
++  read_only_lookup_ = std::move(lookup);
++}
+ 
+ KeychainKeyProvider::KeychainKeyProvider()
+     : KeychainKeyProvider(kDefaultKeyTag, kDefaultSalt) {}
+@@ -101,12 +124,12 @@
+   base::ThreadPool::PostTaskAndReplyWithResult(
+       FROM_HERE, {base::TaskPriority::USER_BLOCKING, base::MayBlock()},
+       base::BindOnce(&GetKeyTask, crypto::SubtlePassKey{}, pbkdf2_salt_,
+-                     keychain_for_testing_),
++                     keychain_for_testing_, read_only_lookup_),
+       base::BindOnce(std::move(callback), key_tag_));
+ }
+ 
+ bool KeychainKeyProvider::UseForEncryption() {
+-  return true;
++  return !read_only_lookup_.has_value();
+ }
+ 
+ }  // namespace os_crypt_async

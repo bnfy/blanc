@@ -1,0 +1,32 @@
+diff --git aa/chrome/browser/sessions/session_service_base.cc bb/chrome/browser/sessions/session_service_base.cc
+index 75f43fb..43514d3 100644
+--- aa/chrome/browser/sessions/session_service_base.cc
++++ bb/chrome/browser/sessions/session_service_base.cc
+@@ -4,0 +5 @@
++#include "chrome/browser/ui/blanc_prototype_ui.h"
+@@ -690,0 +692,6 @@ void SessionServiceBase::BuildCommandsForBrowser(
++  const auto identity = blanc_prototype::WindowIdentity(browser);
++  if (!identity.empty()) {
++    command_storage_manager()->AppendRebuildCommand(
++        sessions::CreateAddWindowExtraDataCommand(browser->GetSessionID(),
++            blanc_prototype::kWindowIdentityKey, identity));
++  }
+diff --git aa/chrome/browser/sessions/session_restore.cc bb/chrome/browser/sessions/session_restore.cc
+index 816c2a0..0b6f853 100644
+--- aa/chrome/browser/sessions/session_restore.cc
++++ bb/chrome/browser/sessions/session_restore.cc
+@@ -4,0 +5 @@
++#include "chrome/browser/ui/blanc_prototype_ui.h"
+@@ -1394,0 +1396 @@ class SessionRestoreImpl : public BrowserCollectionObserver {
++    blanc_prototype::RestoreWindowIdentity(browser_window, extra_data);
+diff --git aa/chrome/browser/ui/browser_live_tab_context.cc bb/chrome/browser/ui/browser_live_tab_context.cc
+index d48ee3c..02e33df 100644
+--- aa/chrome/browser/ui/browser_live_tab_context.cc
++++ bb/chrome/browser/ui/browser_live_tab_context.cc
+@@ -4,0 +5 @@
++#include "chrome/browser/ui/blanc_prototype_ui.h"
+@@ -209,0 +211,2 @@ BrowserLiveTabContext::GetExtraDataForWindow() const {
++  const auto identity = blanc_prototype::WindowIdentity(&browser_.get());
++  if (!identity.empty()) data[blanc_prototype::kWindowIdentityKey] = identity;
+@@ -565,0 +569 @@ sessions::LiveTabContext* BrowserLiveTabContext::Create(
++  blanc_prototype::RestoreWindowIdentity(browser, extra_data);

@@ -18,6 +18,22 @@
     "URLs, so the report can disclose the real tab count. The per-page column",
     "divides by workload pages regardless, so this never flatters a browser.",
     "",
+    "windows is an optional block of overrides used only when the harness runs",
+    "on Windows. bundlePath is then an install DIRECTORY (not an .app bundle)",
+    "and may use %LOCALAPPDATA%, %ProgramFiles% and %ProgramFiles(x86)%;",
+    "executableName is the .exe inside it. A browser with no windows block is",
+    "reported 'not installed' there, never run from its macOS path: no block",
+    "means nobody has checked that browser's process layout on Windows. A",
+    "windows block's notes REPLACE the shared ones (which are written about",
+    "macOS); leave notes out to keep them.",
+    "Firefox (and so Zen and LibreWolf) deliberately has NO windows block yet:",
+    "on Windows firefox.exe is a launcher that hands off to a second process",
+    "and exits, so the root pid the harness attributes from is gone at once. A",
+    "hosted-runner probe confirmed it: the warm-up's real process outlived its",
+    "root, kept the template profile's files locked, and failed every cell.",
+    "Supporting it means attributing from the launcher's successor, which has",
+    "not been built.",
+    "",
     "blockingClass drives the report's grouping: none | trackers | ads+trackers.",
     "It is NOT cosmetic. A browser that blocks ads renders less content, so",
     "ranking it against a non-blocking browser in one column would present a",
@@ -34,6 +50,10 @@
       "engine": "Chromium (Electron)",
       "bundlePath": ["/Applications/Blanc.app"],
       "executableName": "Blanc",
+      "windows": {
+        "bundlePath": ["%LOCALAPPDATA%\\Programs\\blanc"],
+        "executableName": "Blanc.exe"
+      },
       "extraBlankTabs": 1,
       "blocking": "built-in (EasyList + EasyPrivacy, network layer)",
       "blockingClass": "ads+trackers",
@@ -57,6 +77,10 @@
       "engine": "Chromium (Electron)",
       "bundlePath": ["/Applications/Blanc.app"],
       "executableName": "Blanc",
+      "windows": {
+        "bundlePath": ["%LOCALAPPDATA%\\Programs\\blanc"],
+        "executableName": "Blanc.exe"
+      },
       "extraBlankTabs": 1,
       "blocking": "none",
       "blockingClass": "none",
@@ -70,12 +94,54 @@
       ]
     },
     {
+      "id": "blanc-beta",
+      "label": "Blanc Beta",
+      "family": "chromium",
+      "engine": "Chromium (Blink)",
+      "bundlePath": ["/Applications/Blanc Beta.app"],
+      "executableName": "Blanc Beta",
+      "blocking": "built-in Blanc Blocker (embedded EasyList + EasyPrivacy engine)",
+      "blockingClass": "ads+trackers",
+      "notes": [
+        "Blanc's Chromium fork (2.0.0-beta.N), a separate app beside Blanc. It",
+        "takes positional URLs and --user-data-dir and keeps its visit log in",
+        "Default/History, so the chromium family fits. Checked on 2.0.0-beta.3",
+        "(2026-11-14): two URLs on a throwaway profile opened exactly two tabs,",
+        "and both appeared in Default/History's visits, hence no extraBlankTabs.",
+        "Its Island is itself a page (chrome://blanc-prototype/host.html), an",
+        "always-live renderer like Blanc's and Vivaldi's interface. The blocker",
+        "and Sync run in their own utility processes (blanc.mojom.Blocker,",
+        "blanc.mojom.SyncRunner); Blanc keeps both in its main process. All of",
+        "them are in the measured tree, so compare totals with 'blanc' as whole",
+        "browsers, not process by process.",
+        "Sparkle starts at launch (chromium/blanc/browser/mac/beta_updater.mm) and",
+        "keeps its schedule in ~/Library/Preferences/me.bnfy.blanc.beta, which",
+        "--user-data-dir does not reset, so a check fires when the last one is",
+        "more than a day old. There is no switch to stop it. UNVERIFIED whether",
+        "that check, or an update window, lands mid-measurement: open Blanc Beta",
+        "once shortly before a run so a check has just happened.",
+        "A fresh profile has no Sync, Shared Spaces or extensions, so this",
+        "measures the beta as it ships, not a person's beta with password-manager",
+        "extensions. No blocking-off variant yet: that needs a chromium-family",
+        "profile seed (blanc.blocking.enabled false) the runner does not have.",
+        "macOS only: Blanc Beta has no Windows build, so no windows block."
+      ]
+    },
+    {
       "id": "chrome",
       "label": "Google Chrome",
       "family": "chromium",
       "engine": "Chromium (Blink)",
       "bundlePath": ["/Applications/Google Chrome.app"],
       "executableName": "Google Chrome",
+      "windows": {
+        "bundlePath": [
+          "%ProgramFiles%\\Google\\Chrome\\Application",
+          "%ProgramFiles(x86)%\\Google\\Chrome\\Application",
+          "%LOCALAPPDATA%\\Google\\Chrome\\Application"
+        ],
+        "executableName": "chrome.exe"
+      },
       "blocking": "none (stock profile)",
       "blockingClass": "none",
       "notes": [
@@ -155,6 +221,21 @@
       "engine": "Chromium (Blink)",
       "bundlePath": ["/Applications/Brave Browser.app"],
       "executableName": "Brave Browser",
+      "windows": {
+        "bundlePath": [
+          "%ProgramFiles%\\BraveSoftware\\Brave-Browser\\Application",
+          "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\Application"
+        ],
+        "executableName": "brave.exe",
+        "notes": [
+          "--disable-brave-update is inherited from the macOS entry. On Windows",
+          "Brave updates through its own updater service, outside the install",
+          "directory, which that flag may not reach. UNVERIFIED that no update",
+          "check runs mid-measurement.",
+          "UNVERIFIED: whether Brave opens a welcome tab on a fresh profile despite",
+          "--no-first-run. If it does, extraBlankTabs must be raised."
+        ]
+      },
       "extraArgs": ["--disable-brave-update"],
       "blocking": "built-in Brave Shields",
       "blockingClass": "ads+trackers",
@@ -176,6 +257,19 @@
       "engine": "Chromium (Blink)",
       "bundlePath": ["/Applications/Microsoft Edge.app"],
       "executableName": "Microsoft Edge",
+      "windows": {
+        "bundlePath": [
+          "%ProgramFiles(x86)%\\Microsoft\\Edge\\Application",
+          "%ProgramFiles%\\Microsoft\\Edge\\Application"
+        ],
+        "executableName": "msedge.exe",
+        "notes": [
+          "UNVERIFIED on Windows: Edge can stay resident after its window closes",
+          "(startup boost, background mode) and can open its own first-run or",
+          "welcome page despite --no-first-run. quit() force-kills survivors after",
+          "its grace period; an extra tab shows up in the tab count."
+        ]
+      },
       "blocking": "tracking prevention (stock, Balanced)",
       "blockingClass": "trackers"
     },
@@ -186,6 +280,13 @@
       "engine": "Chromium (Blink)",
       "bundlePath": ["/Applications/Vivaldi.app"],
       "executableName": "Vivaldi",
+      "windows": {
+        "bundlePath": [
+          "%LOCALAPPDATA%\\Vivaldi\\Application",
+          "%ProgramFiles%\\Vivaldi\\Application"
+        ],
+        "executableName": "vivaldi.exe"
+      },
       "blocking": "built-in blocker, trackers only at stock settings",
       "blockingClass": "trackers",
       "notes": [

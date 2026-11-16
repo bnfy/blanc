@@ -62,6 +62,7 @@ test('every selectable colorway has a named native icon stack', () => {
       definition.imageName,
       ...(definition.extraLayers ?? []).map((extra) => extra.imageName),
       definition.rimImageName,
+      definition.darkRimImageName,
       definition.tileImageName,
       definition.darkTileImageName,
     ];
@@ -105,7 +106,7 @@ test('the Sunrise Gold stack is a glass mark over per-appearance gold tiles', ()
   for (const layer of tiles.layers) assert.equal(layer.glass, false);
 });
 
-test('Sunrise Spectrum and Amber stack a glass sun, rays and water over a white rim', () => {
+test('Sunrise Spectrum and Amber stack a glass sun, rays and water over a white rim, muted in Dark', () => {
   for (const [id, nativeName, prefix] of [
     ['sunrise-spectrum', 'SunriseSpectrum', 'spectrum'],
     ['sunrise-amber', 'SunriseAmber', 'amber'],
@@ -123,11 +124,21 @@ test('Sunrise Spectrum and Amber stack a glass sun, rays and water over a white 
     );
     assert.equal(mark.specular, true);
     assert.equal(mark.lighting, 'individual');
+    // The white rim shows in Light; a muted warm one replaces it in Dark.
     assert.deepEqual(rim.layers, [{
+      glass: false,
+      'image-name': `${prefix}-rim-dark.png`,
+      name: 'DarkRim',
+      'hidden-specializations': [
+        { value: true },
+        { appearance: 'dark', value: false },
+        { appearance: 'tinted', value: true },
+      ],
+    }, {
       glass: false,
       'image-name': `${prefix}-rim.png`,
       name: 'Rim',
-      'hidden-specializations': [{ appearance: 'tinted', value: true }],
+      'hidden-specializations': [{ appearance: 'dark', value: true }, { appearance: 'tinted', value: true }],
     }]);
     // Spectrum's graded gray tile is too much for a one-color fill, so it is
     // drawn as tile images over the fill, with a near-black one in Dark.

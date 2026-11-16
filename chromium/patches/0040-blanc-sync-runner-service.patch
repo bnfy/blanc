@@ -1,0 +1,39 @@
+diff --git a/chrome/utility/BUILD.gn b/chrome/utility/BUILD.gn
+index 3c9f8dbaf5dcc923cb727a75b4b48e44fe952bcc..2558af0e288d2d07641a27483671e24c61ae88ad 100644
+--- a/chrome/utility/BUILD.gn
++++ b/chrome/utility/BUILD.gn
+@@ -31,6 +31,7 @@ static_library("utility") {
+   public_deps = []
+   deps = [
+     "//blanc/services/blocker:service",
++    "//blanc/services/sync_runner:service",
+     "//base",
+     "//build:chromeos_buildflags",
+     "//chrome:resources",
+diff --git a/chrome/utility/services.cc b/chrome/utility/services.cc
+index 75ff34ab61495ac4feb3e5ca452a77581097bac1..6c86c53341a0f74317f1fa891fc58ea49a86270c 100644
+--- a/chrome/utility/services.cc
++++ b/chrome/utility/services.cc
+@@ -4,6 +4,7 @@
+ 
+ #include "chrome/utility/services.h"
+ #include "blanc/services/blocker/blocker_service.h"
++#include "blanc/services/sync_runner/sync_runner_service.h"
+ 
+ #include <memory>
+ #include <utility>
+@@ -508,8 +509,14 @@ auto RunBlancBlocker(mojo::PendingReceiver<blanc::mojom::Blocker> receiver) {
+   return std::make_unique<blanc::BlockerService>(std::move(receiver));
+ }
+ 
++// Blanc Sync: shipping's sync code in a sandboxed, jitless utility (S4).
++auto RunBlancSync(mojo::PendingReceiver<blanc::mojom::SyncRunner> receiver) {
++  return std::make_unique<blanc::SyncRunnerService>(std::move(receiver));
++}
++
+ void RegisterMainThreadServices(mojo::ServiceFactory& services) {
+   services.Add(RunBlancBlocker);
++  services.Add(RunBlancSync);
+   services.Add(RunFilePatcher);
+   services.Add(RunUnzipper);
+   services.Add(RunCSVPasswordParser);

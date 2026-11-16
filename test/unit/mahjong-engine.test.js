@@ -899,3 +899,25 @@ test('every layout is physically valid, opens as specified, and always deals', (
     }
   }
 });
+
+test('a deal keeps its deal id and tile set through save and restore', () => {
+  const dealId = '6f1c2d3e-4a5b-4c6d-8e7f-90a1b2c3d4e5';
+  const game = E.createGame({ seed: 41, layoutId: 'turtle', mode: 'classic', dealId, tileTheme: 'carved' });
+  assert.equal(game.dealId, dealId);
+  assert.equal(game.tileTheme, 'carved');
+  const restored = E.restoreGame(E.serializeGame(game));
+  assert.equal(restored.dealId, dealId);
+  assert.equal(restored.tileTheme, 'carved');
+
+  // Saves from before deals carried either still restore, with neither set.
+  const legacy = E.serializeGame(E.createGame({ seed: 41, layoutId: 'turtle', mode: 'classic' }));
+  delete legacy.dealId;
+  delete legacy.tileTheme;
+  const fromLegacy = E.restoreGame(legacy);
+  assert.equal(fromLegacy.dealId, null);
+  assert.equal(fromLegacy.tileTheme, null);
+
+  for (const bad of [{ dealId: 7 }, { dealId: '' }, { tileTheme: 3 }, { tileTheme: 'x'.repeat(33) }]) {
+    assert.equal(E.restoreGame({ ...E.serializeGame(game), ...bad }), null, JSON.stringify(bad));
+  }
+});

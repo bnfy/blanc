@@ -1,0 +1,11 @@
+{
+  "v8": true,
+  "third_party/skia": true,
+  "third_party/angle": true,
+  "third_party/dawn": true,
+  "third_party/devtools-frontend/src": true,
+  "third_party/pdfium": true,
+  "third_party/webrtc": true,
+  "third_party/icu": true,
+  "third_party/libvpx/source/libvpx": true
+}

@@ -196,6 +196,12 @@ panes. If you need it for longer, **Keep as split** turns it into a split.
 
 - **Split View:** unchanged. Glance still can't open while a split shows,
   and making a split still ends a Glance. Keep as split is described above.
+  *(Amended November 11, 2026, owner decision on #1441: the card floats over
+  the whole visible split. Focus moving between the split's panes keeps it, a
+  pane closing or leaving the split hands the window to the remaining pane
+  with the card still over it, the visible panes aren't offered in the
+  picker, and Keep as split is hidden while a split shows. Making a split
+  still ends a Glance.)*
 - **Floating Island:** the card sits below the Island band and below every
   Island surface. Stacking order: tabs < Glance card < utility sheet <
   Island float views < fill capsule < overlay < permission view < tooltip

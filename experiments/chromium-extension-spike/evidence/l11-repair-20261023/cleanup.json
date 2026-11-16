@@ -1,0 +1,8 @@
+{
+  "profiles": [
+    "crlset-profile",
+    "crlset-profile-2"
+  ],
+  "temporaryPrivateKeyRemoved": true,
+  "permanentProfilesTouched": false
+}

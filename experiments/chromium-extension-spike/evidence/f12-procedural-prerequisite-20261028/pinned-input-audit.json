@@ -1,0 +1,68 @@
+{
+  "scope": "Pinned cosmetic parser compatibility; offline inventory, not browser outcomes",
+  "lists": [
+    {
+      "file": "easylist.txt",
+      "sha256": "ceac7bd34d538ad448f05a7237b600485f2185a620d8ce32f77ae7365e1e662b"
+    },
+    {
+      "file": "easyprivacy.txt",
+      "sha256": "5b69cbb6958485b5688e76bf2a43a548acaa5cc57380aed7d3dc800da7e0bf6b"
+    }
+  ],
+  "total": 24350,
+  "accepted": 24343,
+  "rejected": [
+    {
+      "file": "easylist.txt",
+      "line": 75719,
+      "rule": "gamepadla.com#?#.pMain:has(div:-abp-properties(Partner))",
+      "normalized": "gamepadla.com##.pMain:has(div:-abp-properties(Partner))"
+    },
+    {
+      "file": "easylist.txt",
+      "line": 78069,
+      "rule": "redtube.com,tube8.com,tube8.es,tube8.fr,xvideos.com,youjizz.com,youporn.com##:-abp-properties(*data:image*)",
+      "normalized": "redtube.com,tube8.com,tube8.es,tube8.fr,xvideos.com,youjizz.com,youporn.com##:-abp-properties(*data:image*)"
+    },
+    {
+      "file": "easylist.txt",
+      "line": 78070,
+      "rule": "redtube.com,tube8.com,tube8.es,tube8.fr,xvideos.com,youjizz.com,youporn.com##:-abp-properties(base64)",
+      "normalized": "redtube.com,tube8.com,tube8.es,tube8.fr,xvideos.com,youjizz.com,youporn.com##:-abp-properties(base64)"
+    },
+    {
+      "file": "easylist.txt",
+      "line": 78071,
+      "rule": "redtube.com,tube8.com,tube8.es,tube8.fr,xvideos.com,youjizz.com,youporn.com##:-abp-properties(data:)",
+      "normalized": "redtube.com,tube8.com,tube8.es,tube8.fr,xvideos.com,youjizz.com,youporn.com##:-abp-properties(data:)"
+    },
+    {
+      "file": "easylist.txt",
+      "line": 78072,
+      "rule": "pornhub.com,youporn.com##:-abp-properties(float: right; margin-top: 30px; width: 50%;)",
+      "normalized": "pornhub.com,youporn.com##:-abp-properties(float: right; margin-top: 30px; width: 50%;)"
+    },
+    {
+      "file": "easylist.txt",
+      "line": 78073,
+      "rule": "pornhub.com##:-abp-properties(height: 300px; width: 315px;)",
+      "normalized": "pornhub.com##:-abp-properties(height: 300px; width: 315px;)"
+    },
+    {
+      "file": "easylist.txt",
+      "line": 78074,
+      "rule": "redtube.com,tube8.com,tube8.es,tube8.fr,xvideos.com,youjizz.com,youporn.com##:-abp-properties(image/)",
+      "normalized": "redtube.com,tube8.com,tube8.es,tube8.fr,xvideos.com,youjizz.com,youporn.com##:-abp-properties(image/)"
+    }
+  ],
+  "extendedFamilies": {
+    "not": 54,
+    "has": 642,
+    "rgb": 1,
+    "void": 2,
+    "has-text": 274,
+    "rgba": 1,
+    "style": 4
+  }
+}

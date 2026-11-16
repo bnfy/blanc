@@ -1,0 +1,60 @@
+{
+  "kind": "private",
+  "binary": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/procedural-20261028/Blanc Chromium Preview.app/Contents/MacOS/Blanc Preview Launcher",
+  "args": [
+    "--host-resolver-rules=MAP gamepadla.com 127.0.0.1, MAP foreign.example 127.0.0.1, MAP neutral.example 127.0.0.1",
+    "--no-proxy-server",
+    "--user-data-dir=../evidence/procedural-signed-property-private/profile",
+    "--remote-debugging-port=60851",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--use-mock-keychain",
+    "--incognito",
+    "http://gamepadla.com:60852/start"
+  ],
+  "checks": [
+    {
+      "name": "healthy request reaches fixture",
+      "pass": true
+    },
+    {
+      "name": "health is ready",
+      "pass": true
+    },
+    {
+      "name": "pinned nested property rule hides parent",
+      "pass": true
+    },
+    {
+      "name": "neutral parent remains visible",
+      "pass": true
+    },
+    {
+      "name": "readable foreign stylesheet excluded",
+      "pass": true
+    },
+    {
+      "name": "stylesheet mutation removes stale hide",
+      "pass": true
+    },
+    {
+      "name": "stylesheet mutation restores hide",
+      "pass": true
+    },
+    {
+      "name": "matching child moved outside parent reveals it",
+      "pass": true
+    },
+    {
+      "name": "matching child returned hides parent",
+      "pass": true
+    }
+  ],
+  "complete": true,
+  "stage": "affected native cosmetics and pinned scriptlet controls",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "requestCount": 3
+}

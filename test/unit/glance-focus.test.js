@@ -111,3 +111,16 @@ test('a split in a set-aside window shows nothing extra, and an inactive split i
   assert.deepEqual(visiblePaneIds({ activeTabId: 'b', resident: true, splits: [{ id: 's', tabIds: ['a', 'b'] }] }), ['b']);
   assert.deepEqual(visiblePaneIds({ activeTabId: 'c', splits: [{ id: 's', tabIds: ['a', 'b'] }] }), ['c']);
 });
+
+// #1441: a Glance floats over the whole visible split, so its page is visible
+// beside every pane and commands can follow focus into it.
+test('a Glance over a visible split is a visible pane after the split\'s tabs', () => {
+  const runtime = { activeTabId: 'b', glanceTabId: 'g', focusedPaneTabId: 'g', splits: [{ id: 's', tabIds: ['a', 'b'] }] };
+  assert.deepEqual(visiblePaneIds(runtime), ['a', 'b', 'g']);
+  assert.equal(isVisiblePaneId(runtime, 'g'), true);
+  const contents = { a: { id: 'a' }, b: { id: 'b' }, g: { id: 'g' } };
+  assert.equal(commandTargetTab(runtime, contents.g, (id) => contents[id] ?? null), 'g');
+  assert.equal(commandTargetTab(runtime, contents.a, (id) => contents[id] ?? null), 'a');
+  assert.equal(commandTargetTab(runtime, null, (id) => contents[id] ?? null), 'g', 'the recorded focused pane');
+  assert.equal(focusedPane(runtime), 'glance');
+});

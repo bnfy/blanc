@@ -14,6 +14,7 @@ struct WalkthroughSheet: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var pairModel = SyncSettingsModel()
     @State private var measureUsage = BlancSettingsDefaults.usagePing
+    @State private var searchSuggestions = BlancSettingsDefaults.searchSuggestions
     @State private var showSpacesChooser = false
     @State private var defaultBrowser = DefaultBrowserStatus()
     @State private var detent: PresentationDetent = .height(360)
@@ -41,9 +42,10 @@ struct WalkthroughSheet: View {
         .presentationDetents(Set([detent]), selection: $detent)
         .presentationDragIndicator(.visible)
         .presentationBackground(style.surface)
-        .presentationCornerRadius(30)
+        .modifier(WalkthroughCorners())
         .onAppear {
             measureUsage = manager.settingsStore.usagePingShown
+            searchSuggestions = manager.settingsStore.searchSuggestionsShown
             detent = detent(for: step)
             // Someone already default skips the offer.
             defaultBrowser.refresh()
@@ -73,7 +75,7 @@ struct WalkthroughSheet: View {
         case .pair: .large
         case .arrived: .height(430)
         case .shareBack: .height(490)
-        case .privacy: .height(360)
+        case .privacy: .height(480)
         case .defaultBrowser: .height(340)
         case .welcome, nil: .height(360)
         }
@@ -157,16 +159,20 @@ struct WalkthroughSheet: View {
         card {
             heading(SyncCopy.text("ios.welcome.privacyTitle"), line: nil, leading: true)
             VStack(alignment: .leading, spacing: 10) {
+                Toggle(isOn: $searchSuggestions) { wrapping(SyncCopy.text("settings.general.searchSuggestions.label")) }
+                    .accessibilityIdentifier("welcome.searchSuggestions")
+                Text(SyncCopy.text("ios.welcome.suggestionsHelp")).font(.footnote).foregroundStyle(style.secondary).fixedSize(horizontal: false, vertical: true)
                 Toggle(isOn: $measureUsage) { wrapping(SyncCopy.text("ios.welcome.measureUsage")) }
+                    .padding(.top, 4)
                     .accessibilityIdentifier("welcome.measureUsage")
                 Text(SyncCopy.text("ios.welcome.measureUsageHelp")).font(.footnote).foregroundStyle(style.secondary).fixedSize(horizontal: false, vertical: true)
             }
             .padding(16).background(style.raised, in: RoundedRectangle(cornerRadius: 16))
         } actions: {
             primary(SyncCopy.text("ios.welcome.continue"), id: "welcome.continue") {
-                manager.settingsStore.update(usagePing: measureUsage)
+                manager.settingsStore.update(usagePing: measureUsage, searchSuggestions: searchSuggestions)
                 manager.walkthrough.next()
-                if manager.walkthrough.current == nil { manager.closeWalkthrough(usagePingShown: measureUsage) }
+                if manager.walkthrough.current == nil { close() }
             }
         }
     }
@@ -193,11 +199,16 @@ struct WalkthroughSheet: View {
 
     private func finish() {
         manager.walkthrough.next()
-        manager.closeWalkthrough(usagePingShown: measureUsage)
+        close()
+    }
+
+    /// Closing keeps what the privacy step shows, or would have shown.
+    private func close() {
+        manager.closeWalkthrough(usagePingShown: measureUsage, searchSuggestionsShown: searchSuggestions)
     }
 
     private var closeButton: some View {
-        Button { manager.closeWalkthrough(usagePingShown: measureUsage) } label: {
+        Button { close() } label: {
             Image(systemName: "xmark").font(.system(size: 12, weight: .semibold)).foregroundStyle(style.secondary)
                 .frame(width: 28, height: 28).background(style.raised, in: Circle())
                 .frame(width: 44, height: 44)
@@ -296,5 +307,14 @@ struct WalkthroughArrived: View {
 
     private func count(_ n: Int) -> some View {
         Text("\(n)").font(BrowserStyle.font(15, semibold: true)).monospacedDigit()
+    }
+}
+
+/// On iOS 26 a sheet at a partial height floats inside the screen and its
+/// corners follow the display's; a fixed radius left the bottom ones tighter
+/// than the screen's curve, so the display cut them off. Earlier iOS keeps 30.
+private struct WalkthroughCorners: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26, *) { content } else { content.presentationCornerRadius(30) }
     }
 }

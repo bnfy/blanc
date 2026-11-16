@@ -1,0 +1,39 @@
+// Shipping test-hook state(), projected from the fork's native snapshot.
+// Fields the fork snapshot cannot supply are left out, so reading one raises
+// an undefined-adapter error instead of a guessed value.
+import {createRequire} from 'node:module';
+import {shippingPageUrl} from '../lib/page-shim.mjs';
+const require=createRequire(import.meta.url);
+const {loadShippingModule}=require('../lib/shipping-core.cjs');
+const {sectionsOf}=loadShippingModule('src/renderer/tab-sections.js');
+const id=value=>value==null?null:String(value);
+export function shippingState(snapshot){
+ const splitOf=new Map((snapshot.splits||[]).flatMap(s=>s.tabIds.map(t=>[String(t),String(s.id)])));
+ const tabs=snapshot.tabs.map(t=>({
+  // A native WebContents can exist without a live renderer after restore
+  // or discard. Shipping's view identity is null in that state.
+  // Chromium's certificate warning is the fork's certificate page (V8), so a
+  // tab showing it reads as shipping's blanc://error/?kind=certificate.
+  id:String(t.id),webContentsId:t.rendererLive===false?null:Number(t.id),url:shippingPageUrl(t.url),
+  loadedUrl:t.certificate?.state==='error'?`blanc://error/?kind=certificate&url=${encodeURIComponent(t.committedUrl)}`
+   :t.committedUrl==null?null:shippingPageUrl(t.committedUrl),
+  // A renamed tab's snapshot title is its name and pageTitle the page's
+  // own; shipping's state keeps them as title and customTitle.
+  loading:!!t.isLoading,isLoading:!!t.isLoading,...(typeof t.waking==='boolean'?{waking:t.waking}:{}),title:(t.pageTitle??t.title)||'',customTitle:t.pageTitle!=null?t.title:null,favicon:t.favicon||null,
+  bounds:t.viewBounds??null,groupId:id(t.groupId),splitId:splitOf.get(String(t.id))??null,pinned:!!t.pinned,
+  muted:!!(t.muted||t.siteMuted),audioMuted:t.audioMuted??!!t.muted,...(typeof t.audioGuarded==='boolean'?{audioGuarded:t.audioGuarded}:{}),audible:!!t.audible,canGoBack:!!t.canGoBack,canGoForward:!!t.canGoForward,
+  // A private tab's contents live in the off-the-record profile (D1), the
+  // fork's private session, which never persists.
+  private:!!t.private,sessionKind:t.private?'private':'default',sessionPersistent:!t.private,asleep:!!t.asleep,
+ }));
+ const layout=tabs.map(t=>({id:t.id,groupId:t.groupId,pinned:t.pinned,splitId:t.splitId}));
+ const groups=(snapshot.groups||[]).map(g=>({id:String(g.id),name:g.name,collapsed:!!g.collapsed,color:g.color||null}));
+ const named=new Set(groups.map(g=>g.id));
+ const clusters=sectionsOf(layout).filter(s=>s.groupId?named.has(s.groupId):s.key.startsWith('run:'))
+  .map(s=>({key:s.key,groupId:s.groupId??null,tabIds:[...s.tabIds]}));
+ const pins=tabs.filter(t=>t.pinned&&!t.groupId).map(t=>t.id);
+ if(pins.length)clusters.unshift({key:'pinned',groupId:null,tabIds:pins});
+ return {tabs,tabOrder:tabs.map(t=>t.id),clusters,groups,
+  splits:(snapshot.splits||[]).map(s=>({id:String(s.id),tabIds:s.tabIds.map(String),layout:s.layout,focusedIndex:s.focusedIndex})),
+  activeTabId:id(snapshot.activeTabId),glanceTabId:id(snapshot.glanceTabId),focusedPaneTabId:id(snapshot.focusedTabId)};
+}

@@ -1,0 +1,83 @@
+{
+  "app": "/private/tmp/blanc-l11-signed-replacement/Blanc Chromium Preview.app",
+  "scope": "signed default settings; no feature overrides; no page debugger before activation; kill exact disposable blocker utility after armed timer",
+  "runs": [
+    {
+      "mode": "private",
+      "checks": [
+        {
+          "name": "real prerender observed before activation",
+          "pass": true,
+          "details": {
+            "state": "ready",
+            "was": "true"
+          }
+        },
+        {
+          "name": "blocker loss prevents prerender activation",
+          "pass": false,
+          "details": {
+            "url": "http://127.0.0.1:61835/target",
+            "title": "Prerender target",
+            "activationStart": 1598.3999999761581,
+            "body": ""
+          }
+        }
+      ],
+      "events": [],
+      "args": [
+        "--user-data-dir=/private/tmp/blanc-prerender-acceptance-20261024/utility-loss-private/private/profile",
+        "--remote-debugging-port=0",
+        "--no-first-run",
+        "--incognito"
+      ],
+      "observationsBeforeActivation": [
+        {
+          "state": "ready",
+          "was": "true"
+        }
+      ],
+      "beforeClickHits": [
+        {
+          "url": "/entry?mode=private",
+          "purpose": null
+        },
+        {
+          "url": "/favicon.ico",
+          "purpose": null
+        },
+        {
+          "url": "/target",
+          "purpose": "prefetch;prerender"
+        },
+        {
+          "url": "/observed?state=ready&was=true",
+          "purpose": "prefetch;prerender"
+        }
+      ],
+      "killedUtility": {
+        "pid": 23233,
+        "parentPid": 23213
+      },
+      "postLossTargets": [
+        {
+          "id": "6FCD761D1376FE33A07466AC6D738F1F",
+          "url": "http://127.0.0.1:61835/target",
+          "type": "page"
+        }
+      ],
+      "postLossPage": {
+        "url": "http://127.0.0.1:61835/target",
+        "title": "Prerender target",
+        "activationStart": 1598.3999999761581,
+        "body": ""
+      },
+      "freshFetch": {
+        "ok": false,
+        "error": "TypeError: Failed to fetch"
+      }
+    }
+  ],
+  "error": "AssertionError [ERR_ASSERTION]: blocker loss prevents prerender activation",
+  "stack": "AssertionError [ERR_ASSERTION]: blocker loss prevents prerender activation\n    at check (file:///private/tmp/blanc-prerender-acceptance-20261024/utility-loss-private.mjs:7:171)\n    at file:///private/tmp/blanc-prerender-acceptance-20261024/utility-loss-private.mjs:7:3012"
+}

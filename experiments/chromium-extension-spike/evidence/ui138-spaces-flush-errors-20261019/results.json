@@ -1,0 +1,50 @@
+[
+  {
+    "mode": "backup-flush",
+    "pass": true,
+    "marker": {
+      "pid": 80730,
+      "path": "/private/tmp/blanc-spaces-flush/chromium-profile/Default/.day.blanc.prototype.BlancPrototypeSpaces.json.backup.wU9qsE",
+      "mode": "backup-flush",
+      "op": "fsync",
+      "errno": 5
+    },
+    "reported_error": "Previous space checkpoint write failed."
+  },
+  {
+    "mode": "primary-flush",
+    "pass": true,
+    "marker": {
+      "pid": 80794,
+      "path": "/private/tmp/blanc-spaces-flush/chromium-profile/Default/.day.blanc.prototype.BlancPrototypeSpaces.json.UuxZJF",
+      "mode": "primary-flush",
+      "op": "fsync",
+      "errno": 5
+    },
+    "reported_error": "Space write failed."
+  },
+  {
+    "mode": "backup-rename",
+    "pass": true,
+    "marker": {
+      "pid": 80856,
+      "path": "/private/tmp/blanc-spaces-flush/chromium-profile/Default/BlancPrototypeSpaces.json.backup",
+      "mode": "backup-rename",
+      "op": "rename",
+      "errno": 5
+    },
+    "reported_error": "Previous space checkpoint write failed."
+  },
+  {
+    "mode": "primary-rename",
+    "pass": true,
+    "marker": {
+      "pid": 80921,
+      "path": "/private/tmp/blanc-spaces-flush/chromium-profile/Default/BlancPrototypeSpaces.json",
+      "mode": "primary-rename",
+      "op": "rename",
+      "errno": 5
+    },
+    "reported_error": "Space write failed."
+  }
+]

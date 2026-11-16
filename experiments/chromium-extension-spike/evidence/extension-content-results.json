@@ -1,0 +1,64 @@
+{
+  "checkedAt": "2026-10-16T13:17:34.767Z",
+  "page": {
+    "title": "Blanc fixture react",
+    "counterBefore": "Count 0",
+    "counterAfter": "Count 1",
+    "reactRenderers": [
+      {
+        "id": 1,
+        "version": "18.3.1",
+        "package": "react-dom",
+        "roots": 1
+      }
+    ],
+    "bitwardenContentMessage": "responded",
+    "pageHasNativeBridge": false
+  },
+  "extensionContexts": [
+    {
+      "name": "Grammarly: AI Writing Assistant and Grammar Checker App",
+      "origin": "chrome-extension://kbfnbcaeplbcioakkpcpgfkobkghlhen"
+    },
+    {
+      "name": "1Password – Password Manager",
+      "origin": "chrome-extension://aeblfdkhhhdcdjpifhhbdiojplfjncoa"
+    },
+    {
+      "name": "React Developer Tools",
+      "origin": "chrome-extension://fmkadmapgofadopljbjfkapdkoienihi"
+    },
+    {
+      "name": "Tampermonkey",
+      "origin": "chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo"
+    },
+    {
+      "name": "MetaMask",
+      "origin": "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn"
+    },
+    {
+      "name": "Bitwarden Password Manager",
+      "origin": "chrome-extension://nngceckbapebfimnlniiiahkandclblb"
+    }
+  ],
+  "extensionScripts": [
+    "chrome-extension://aeblfdkhhhdcdjpifhhbdiojplfjncoa/inline/inject-content-scripts.js",
+    "chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/build/prepareInjection.js",
+    "chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/build/fallbackEvalContext.js",
+    "chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/build/installHook.js",
+    "chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/build/proxy.js",
+    "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/scripts/contentscript.js",
+    "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/scripts/inpage.js",
+    "chrome-extension://nngceckbapebfimnlniiiahkandclblb/content/content-message-handler.js",
+    "chrome-extension://nngceckbapebfimnlniiiahkandclblb/content/bootstrap-autofill-overlay-notifications.js",
+    "chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/content.js",
+    "chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/page.js",
+    "chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/userscript.html?name=Blanc-compatibility-probe.user.js&id=33af01eb-0254-4824-a360-fe5ed33f6ede",
+    "chrome-extension://nngceckbapebfimnlniiiahkandclblb/content/contextMenuHandler.js",
+    "chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/build/fileFetcher.js",
+    "chrome-extension://aeblfdkhhhdcdjpifhhbdiojplfjncoa/inline/injected.js",
+    "chrome-extension://kbfnbcaeplbcioakkpcpgfkobkghlhen/src/js/Grammarly-check.styles.js",
+    "chrome-extension://kbfnbcaeplbcioakkpcpgfkobkghlhen/src/js/Grammarly-check.js",
+    "chrome-extension://kbfnbcaeplbcioakkpcpgfkobkghlhen/src/js/nonEditableTextHighlightToGoCheck.common.chunk.js"
+  ]
+}

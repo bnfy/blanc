@@ -105,8 +105,8 @@ struct SettingsSheet: View {
                     switch destination {
                     case .sync: SyncSettingsView(engine: manager.syncEngine, manager: manager)
                     case .privacy: PrivacySettingsView(manager: manager)
-                    case .startPage: StartSettingsView(manager: manager)
-                    case .root: root
+                    // The Start Page's choices are in its Customize (customizeStartPage).
+                    case .startPage, .root: root
                     }
                 }
         }
@@ -117,9 +117,11 @@ struct SettingsSheet: View {
         .tint(BrowserStyle.adaptiveText)
         .toggleStyle(BrowserSwitchStyle())
         .presentationDetents([.large])
+        // A wide window's tall card, which a long list needs; a phone's sheet is unchanged.
+        .presentationSizing(.page)
         .presentationDragIndicator(.visible)
         .presentationBackground(style.surface)
-        .onAppear { if destination != .root { path = [destination] } }
+        .onAppear { if destination != .root, destination != .startPage { path = [destination] } }
     }
 
     private var root: some View {
@@ -145,8 +147,8 @@ struct SettingsSheet: View {
                     set: { manager.settingsStore.update(islandTucksOnScroll: $0) }))
                     .accessibilityIdentifier("settings.islandTuck")
                 Toggle(SettingsCopy.text("islandHistoryButtons"), isOn: Binding(
-                    get: { manager.settingsStore.islandHistoryButtons },
-                    set: { manager.settingsStore.update(islandHistoryButtons: $0) }))
+                    get: { manager.settingsStore.islandBackForward },
+                    set: { manager.settingsStore.update(islandBackForward: $0) }))
                     .accessibilityIdentifier("settings.islandHistoryButtons")
             } header: { Text(SettingsCopy.text("island")) } footer: { Text(SettingsCopy.text("islandHistoryButtonsHelp")) }
             Section(SettingsCopy.text("appearance")) {
@@ -156,9 +158,12 @@ struct SettingsSheet: View {
                 NavigationLink { AppIconSettingsView(model: appIcons) } label: {
                     summary("appIcon", value: appIcons.current.label)
                 }.accessibilityIdentifier("settings.appIcon")
-                NavigationLink(value: SettingsDestination.startPage) {
-                    summary("startPage", value: SettingsCopy.text(manager.settingsStore.newtabLayout.rawValue))
-                }.accessibilityIdentifier("settings.startPage")
+                // Customize, on the Start Page itself, as on Android.
+                Button { manager.customizeStartPage() } label: {
+                    LabeledContent(SettingsCopy.text("startPage")) {
+                        Image(systemName: "slider.horizontal.3").foregroundStyle(.secondary)
+                    }.contentShape(Rectangle())
+                }.buttonStyle(.plain).accessibilityIdentifier("settings.startPage")
             }
             Section(SettingsCopy.text("privacySync")) {
                 NavigationLink(value: SettingsDestination.privacy) {
@@ -281,6 +286,14 @@ struct PrivacySettingsView: View {
                         .accessibilityIdentifier("settings.clearSiteData.done")
                 }
             } footer: { Text(SettingsCopy.text("clearSiteDataHelp")) }
+            // The walkthrough's privacy step asks first (F5); until that
+            // choice is saved, this reads off.
+            Section {
+                Toggle(SyncCopy.text("settings.general.searchSuggestions.label"), isOn: Binding(
+                    get: { manager.settingsStore.searchSuggestionsOn },
+                    set: { manager.settingsStore.update(searchSuggestions: $0) }))
+                    .accessibilityIdentifier("settings.searchSuggestions")
+            } footer: { Text(SyncCopy.text("settings.general.searchSuggestions.hint")) }
             // The launch ping's consent (F21, M18 §7.1); off stops it at once.
             Section {
                 Toggle(SyncCopy.text("ios.welcome.measureUsage"), isOn: Binding(
@@ -313,72 +326,5 @@ struct PrivacySettingsView: View {
         }
         manager.setAdblockExceptions(manager.settingsStore.adblockExceptions + [host])
         site = ""; error = nil
-    }
-}
-
-struct StartSettingsView: View {
-    let manager: TabsManager
-    var body: some View {
-        Form {
-            Section {
-                StartSettingsPreview(manager: manager).frame(height: 250)
-                    .accessibilityLabel(SettingsCopy.text("preview"))
-                    .listRowInsets(EdgeInsets())
-                Picker(SettingsCopy.text("layout"), selection: Binding(get: { manager.settingsStore.newtabLayout }, set: { manager.setStartLayout($0) })) {
-                    ForEach(BlancStartPageLayout.allCases, id: \.self) { Text(SettingsCopy.text($0.rawValue)).tag($0) }
-                }.accessibilityIdentifier("settings.layout")
-            }
-            Section {
-                NavigationLink(SettingsCopy.text("wallpaper")) { WallpaperSettingsView(manager: manager) }.accessibilityIdentifier("settings.wallpaper")
-                NavigationLink(SettingsCopy.text("clock")) { ClockSettingsView(manager: manager) }.accessibilityIdentifier("settings.clock")
-            } footer: { Text(SettingsCopy.text("clockHelp")) }
-        }.settingsFormStyle().settingsTitle(SettingsCopy.text("startPage"))
-    }
-}
-
-/// The preview uses the actual bundled Start Page, including its native clock.
-/// It never joins the session, records visits, or accepts interaction.
-struct StartSettingsPreview: UIViewRepresentable {
-    let manager: TabsManager
-    var layout: BlancStartPageLayout? = nil
-    func makeUIView(context: Context) -> PreviewContainer {
-        let tab = manager.makeStartPreview(layout: layout)
-        context.coordinator.tab = tab
-        return PreviewContainer(webView: tab.webView)
-    }
-    func updateUIView(_ view: PreviewContainer, context: Context) {}
-    func makeCoordinator() -> Coordinator { Coordinator() }
-    final class Coordinator { var tab: TabModel? }
-    final class PreviewContainer: UIView {
-        let webView: WKWebView
-        private let spinner = UIActivityIndicatorView(style: .medium)
-        private var loadingObservation: NSKeyValueObservation?
-        init(webView: WKWebView) {
-            self.webView = webView
-            super.init(frame: .zero)
-            clipsToBounds = true
-            isUserInteractionEnabled = false
-            accessibilityElementsHidden = true
-            webView.scrollView.contentInsetAdjustmentBehavior = .never
-            addSubview(webView)
-            addSubview(spinner)
-            loadingObservation = webView.observe(\.isLoading, options: [.initial, .new]) { [weak self] view, _ in
-                let loading = view.isLoading
-                DispatchQueue.main.async { [weak self] in
-                    if loading { self?.spinner.startAnimating() } else { self?.spinner.stopAnimating() }
-                }
-            }
-        }
-        required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-        override func layoutSubviews() {
-            super.layoutSubviews()
-            guard bounds.width > 0, bounds.height > 0 else { return }
-            let scale = bounds.width / 390
-            webView.transform = .identity
-            webView.bounds = CGRect(x: 0, y: 0, width: 390, height: bounds.height / scale)
-            webView.center = CGPoint(x: bounds.midX, y: bounds.midY)
-            webView.transform = CGAffineTransform(scaleX: scale, y: scale)
-            spinner.center = CGPoint(x: bounds.midX, y: bounds.midY)
-        }
     }
 }

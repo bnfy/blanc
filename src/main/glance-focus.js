@@ -6,13 +6,14 @@
 
 /** The window's visible page tab ids: the main page, then the reference; or,
  * while the active tab is in a Split View (F53), every tab of that split in
- * pane order. A set-aside (resident) window shows no split. */
+ * pane order, then a Glance floating over it (#1441). A set-aside (resident)
+ * window shows no split. */
 function visiblePaneIds(runtime) {
   if (!runtime) return [];
   const split = runtime.resident ? null
     : (runtime.splits ?? []).find((s) => s.tabIds.includes(runtime.activeTabId));
-  if (split) return [...split.tabIds];
-  return [runtime.activeTabId, runtime.glanceTabId].filter((id) => id != null);
+  const pages = split ? split.tabIds : [runtime.activeTabId];
+  return [...pages, runtime.glanceTabId].filter((id, index, all) => id != null && all.indexOf(id) === index);
 }
 
 function isVisiblePaneId(runtime, tabId) {

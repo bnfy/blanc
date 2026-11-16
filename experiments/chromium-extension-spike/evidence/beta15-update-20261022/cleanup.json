@@ -1,0 +1,19 @@
+{
+  "activeFixtureProcesses": [],
+  "removedDisposablePaths": [
+    "regular-security/profile",
+    "private-security/profile",
+    "private-security/history-audit.sqlite",
+    "recovery/isolated-home",
+    "verified/isolated-home",
+    "splits/isolated-home",
+    "private-lifecycle/profile-final",
+    "pipe-profile",
+    "isolation/shipping-profile",
+    "isolation/preview-profile",
+    "isolation/apps"
+  ],
+  "masterSignedCandidatePreserved": true,
+  "cachedNativeOutputPreserved": true,
+  "googleBaselineTouched": false
+}

@@ -1,0 +1,18 @@
+{
+  "binary-hashes.json": "c804f8f321b886697be6960e1f007c9a64df2a2c46b5dfaf91df0d20a75c8229",
+  "cdp.mjs": "ab23d6e9e2240b1dd4f3f9b8faa83bee7d7ceec9b6cbf29e70a9a096a049f112",
+  "check.mjs": "1163461137e994cc13df4d63bf525955fbc37969a36497a8bec3a96fbdfdbbea",
+  "cleanup.json": "a7deece9220e26cf94709d3c68c7de9bc7f6798a2c49a805c5d79009c516eed3",
+  "cleanup.mjs": "e50ad18f27b3b2475fd8ef0168480ed9ba1a367b76d758d6c7e3164c2c1ccb46",
+  "fixture.pdf": "1975aa5a7d850921c1e9d935e4dab325c6b7734b417da30a98d288c174335e9c",
+  "guard.log": "c5b2ea96710d515c3cb30bb0844fb07af778ec266c08943ed9a297707e8b6ab4",
+  "hash.py": "b0b249230a7364da69160a2f58cbf28082344dea27beeebaa43d54147f22c580",
+  "invocations.jsonl": "57caf733e1f8aa25a5aa32a23629c865528df5623f1437d0f1a18b07e71f681a",
+  "invoke.py": "e0c931bff1a3083dfd4ef1099ecb62f1b44eb782f8c6ef12a888a1eed6074e56",
+  "launch.mjs": "ae75e35a907bb2dba5a9adb803166efbaaa5b26d65c4ac00988f1ef6a1d45cfb",
+  "package.py": "3c9574107ca54adc8eebd3fb47d1996fe1b345c156ee93010b51b5e5460d1325",
+  "results.json": "df2ba7ffc80042bee98c3c064f957b7f7ed8c2aaa5bc7aa903fc3ab2f6184ad1",
+  "server.cjs": "3297ba62ce71f3cc4b23ce637d08d01ff9b5781e347176020b73162f9cf8f8c0",
+  "source-head.json": "4b779a9623be3e204cd8bc60ca4dad2c31eaf358e5b7e95ef404de1227737adc",
+  "start.mjs": "8087ebc89bf697b2746ca1208f4669c41e324d276688ce3e92383c38f194b6a4"
+}

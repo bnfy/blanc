@@ -1,0 +1,51 @@
+[
+  {
+    "path": "evidence/f12-method-redirect-20261024/run.mjs",
+    "originalSha256": "6efc94eed46dcd279ce636cd8c3df6e984c7da6a84ed0e741ae4c21d376a294c",
+    "originalArchive": "evidence/f12-method-redirect-20261024/run.mjs.original.gz",
+    "updatedSha256": "516150f744502e3b63a10b5bd2c1a4697b1c5fb79ea047a4bc6dee49a95bf33e",
+    "replacedCalls": 2
+  },
+  {
+    "path": "evidence/f12-redirect-overrides-20261024/run.mjs",
+    "originalSha256": "be32f705d4f1cbb69d686d2cb592ad3d4ff78765eb3b0989fd74da9cf5cdcc89",
+    "originalArchive": "evidence/f12-redirect-overrides-20261024/run.mjs.original.gz",
+    "updatedSha256": "7a132b1107d29fa8c80f000e06c99c5097e07ab621714121566deab057e6aa39",
+    "replacedCalls": 2
+  },
+  {
+    "path": "evidence/f12-redirect-overrides-20261024/signed-run.mjs",
+    "originalSha256": "c9ef70c4050b84a404add52340f5d44380fb702d24df4739eaea4f634cd363bf",
+    "originalArchive": "evidence/f12-redirect-overrides-20261024/signed-run.mjs.original.gz",
+    "updatedSha256": "abd75b289700f558525126d0fb9ebd88cecda416d46112ac04cf25ed73fd6088",
+    "replacedCalls": 3
+  },
+  {
+    "path": "evidence/f12-redirect-overrides-20261024/signed-initial-run.mjs",
+    "originalSha256": "b0430c01e463fd26cc3f1a083bff79ad485e308d0e68474a6a504f9f4a5efd04",
+    "originalArchive": "evidence/f12-redirect-overrides-20261024/signed-initial-run.mjs.original.gz",
+    "updatedSha256": "9586e4aaca0c319af9c69da4808a85e72e35406a8b658f9ee362f0bfc5b3aaf3",
+    "replacedCalls": 3
+  },
+  {
+    "path": "evidence/f12-redirect-overrides-20261024/initial-run.mjs",
+    "originalSha256": "e94db09ee45c15c337741a6029a50b368a931a756d11c5b3baa8001df2f44654",
+    "originalArchive": "evidence/f12-redirect-overrides-20261024/initial-run.mjs.original.gz",
+    "updatedSha256": "6c231e7272858b9d9bf646fa466bdbb855e60edca48f3ae90abe34111ae318c3",
+    "replacedCalls": 2
+  },
+  {
+    "path": "evidence/f12-redirect-repair-20261025/run.mjs",
+    "originalSha256": "da333c4cc518f0c38fd71f872b8dfb310f0e47d82dcf8f988b9d996dd4433e35",
+    "originalArchive": "evidence/f12-redirect-repair-20261025/run.mjs.original.gz",
+    "updatedSha256": "06c02085305f595fdd93b24a872d09298d70c5b6eec4aaee2a19ab695b108862",
+    "replacedCalls": 3
+  },
+  {
+    "path": "evidence/f12-devtools-signed-20261026/affected-checks/run.mjs",
+    "originalSha256": "e64b1fa1b0800713e747adfe7ffa504978d293b60d10e5f9c0984f7925fd31af",
+    "originalArchive": "evidence/f12-devtools-signed-20261026/affected-checks/run.mjs.original.gz",
+    "updatedSha256": "ff8d4887b004749ba6abc104b4dde18681d9f50a4f9fe5c8a6d84c385df3e803",
+    "replacedCalls": 3
+  }
+]

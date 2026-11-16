@@ -1,0 +1,29 @@
+{
+  "devBefore": [
+    {
+      "urls": [
+        "blanc://newtab/",
+        "blanc://newtab/"
+      ],
+      "selectedIndex": 1
+    }
+  ],
+  "devAfter": [
+    {
+      "urls": [
+        "blanc://newtab/",
+        "blanc://newtab/"
+      ],
+      "selectedIndex": 1
+    }
+  ],
+  "baselineAfter": [
+    {
+      "urls": [
+        "blanc://newtab/"
+      ],
+      "selectedIndex": 0
+    }
+  ],
+  "devPreserved": true
+}

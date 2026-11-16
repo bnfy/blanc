@@ -1,0 +1,10 @@
+COMPANY_FULLNAME=Bananify Creative
+COMPANY_SHORTNAME=Bananify Creative
+PRODUCT_FULLNAME=Blanc Beta
+PRODUCT_SHORTNAME=Blanc Beta
+PRODUCT_INSTALLER_FULLNAME=Blanc Beta Installer
+PRODUCT_INSTALLER_SHORTNAME=Blanc Beta Installer
+COPYRIGHT=Copyright @LASTCHANGE_YEAR@ Bananify Creative and The Chromium Authors. All rights reserved.
+MAC_BUNDLE_ID=me.bnfy.blanc.beta
+MAC_CREATOR_CODE=Cr24
+MAC_TEAM_ID=XYGUCY4498

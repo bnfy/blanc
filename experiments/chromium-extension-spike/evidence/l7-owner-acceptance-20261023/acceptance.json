@@ -1,0 +1,17 @@
+{
+  "acceptedAtUtc": "2026-10-23T15:55:01.573649+00:00",
+  "gate": "L7",
+  "decision": "accepted",
+  "approver": "Anthony Loria",
+  "authorizationSource": "Direct owner message in this chat",
+  "ownerStatement": "I approve L7 for this signed candidate. Update the plan and evidence, then continue with the next launch gate on #1028. Keep Google baseline separate, latency deferred, and the Electron build pending.",
+  "candidateSource": "09985c160803f3432f0d2b40a21caa13e249e53c",
+  "candidateArchiveSha256": "4c86c89e7ec81791ef8bedf525187b302c313f913a5e5b07a26d4d2a45b9ef00",
+  "chromiumVersion": "157.0.8103.15",
+  "notarizationId": "1818186c-4b95-4571-b822-397bf8705161",
+  "evidence": "../l7-security-repair-20261023/README.md",
+  "scope": "Security/privacy acceptance of this signed candidate only; no public release, merge, Decision 2 or unrelated gate approval",
+  "latency": "deferred",
+  "electronDiagnosticBuild": "pending approval/unstarted",
+  "googleBaseline": "separate, unchanged"
+}

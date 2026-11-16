@@ -18,7 +18,16 @@
 //      second signal, unioned with the descendant walk and then filtered
 //      through the pre-existing set from (1).
 
+//
+// Windows differs in two ways that matter here. A process whose parent exits
+// keeps its stale parent id instead of being re-parented, so the descendant walk
+// loses it exactly as it does on macOS and the path match is what finds it. And
+// paths are case-insensitive and use backslashes, so bundle matching normalizes
+// both before comparing.
+
 const { execFile } = require('node:child_process');
+
+const winps = require('./winps');
 
 /**
  * Parse `ps -axo pid=,ppid=,comm=` output.
@@ -57,6 +66,31 @@ function parsePsSnapshot(stdout) {
     const m = line.match(/^\s*(\d+)\s+(\d+)\s+(.*\S)\s*$/);
     if (!m) continue;
     rows.push({ pid: Number(m[1]), ppid: Number(m[2]), state: null, command: m[3] });
+  }
+  return rows;
+}
+
+/**
+ * Parse the process list PowerShell emits for `Get-CimInstance Win32_Process`.
+ *
+ * `ExecutablePath` is null for processes this user cannot inspect (System, and
+ * other protected ones); those keep an empty command so they still take part in
+ * the parent walk but can never match a bundle. Windows has no zombie state, so
+ * `state` is always null.
+ *
+ * @param {string} stdout
+ * @returns {Array<{pid: number, ppid: number, state: null, command: string}>}
+ */
+function parseWindowsProcessJson(stdout) {
+  const rows = [];
+  for (const raw of winps.parseJsonRows(stdout)) {
+    if (!Number.isInteger(raw.ProcessId)) continue;
+    rows.push({
+      pid: raw.ProcessId,
+      ppid: Number.isInteger(raw.ParentProcessId) ? raw.ParentProcessId : 0,
+      state: null,
+      command: typeof raw.ExecutablePath === 'string' ? raw.ExecutablePath : '',
+    });
   }
   return rows;
 }
@@ -109,6 +143,9 @@ function descendantsOf(rows, rootPid) {
   return [...seen].sort((a, b) => a - b);
 }
 
+/** A drive-letter path, or anything using backslashes (which no macOS bundle path does). */
+const isWindowsPath = (p) => /^[A-Za-z]:[\\/]/.test(p) || p.includes('\\');
+
 /**
  * Pids whose executable path sits inside `bundlePath`.
  *
@@ -122,6 +159,24 @@ function descendantsOf(rows, rootPid) {
  */
 function matchingBundle(rows, bundlePath) {
   if (!bundlePath) return [];
+
+  // A Windows install directory: compare case-insensitively and across both
+  // slash directions, with the same slash boundary so "...\Application" cannot
+  // match "...\Application2" or "...\Chrome Beta\Application". macOS paths keep
+  // the exact comparison they always had.
+  if (isWindowsPath(bundlePath)) {
+    const normalize = (p) => String(p || '').replace(/\\/g, '/').toLowerCase();
+    const root = normalize(bundlePath).replace(/\/+$/, '');
+    const windowsPrefix = `${root}/`;
+    return rows
+      .filter((r) => {
+        const command = normalize(r.command);
+        return command === root || command.startsWith(windowsPrefix);
+      })
+      .map((r) => r.pid)
+      .sort((a, b) => a - b);
+  }
+
   const prefix = bundlePath.replace(/\/+$/, '') + '/';
   return rows
     .filter((r) => r.command === bundlePath || r.command.startsWith(prefix))
@@ -151,7 +206,7 @@ function browserProcessSet(rows, options) {
 }
 
 /** Live `ps` snapshot of the whole process table, including process state. */
-function snapshot() {
+function snapshotPs() {
   return new Promise((resolve, reject) => {
     execFile(
       '/bin/ps',
@@ -162,8 +217,33 @@ function snapshot() {
   });
 }
 
+/**
+ * Live snapshot of the Windows process table. Unlike the macOS path this fails
+ * loudly: an empty list would mean "no pre-existing processes", and the tester's
+ * own browser would then be counted as the one under test.
+ */
+async function snapshotWindows() {
+  const r = await winps.runPowerShell(
+    'Get-CimInstance -ClassName Win32_Process | ' +
+      'Select-Object ProcessId, ParentProcessId, ExecutablePath | ConvertTo-Json -Compress'
+  );
+  const rows = r.ok ? parseWindowsProcessJson(r.stdout) : [];
+  if (!rows.length) {
+    throw new Error(
+      `could not list Windows processes${r.stderr.trim() ? `: ${r.stderr.trim().slice(0, 300)}` : ''}`
+    );
+  }
+  return rows;
+}
+
+/** @param {string} [platform] defaults to the machine running this process */
+function snapshot(platform = process.platform) {
+  return platform === 'win32' ? snapshotWindows() : snapshotPs();
+}
+
 module.exports = {
   parsePsSnapshot,
+  parseWindowsProcessJson,
   isZombie,
   descendantsOf,
   matchingBundle,

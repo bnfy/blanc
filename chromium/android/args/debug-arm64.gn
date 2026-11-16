@@ -1,0 +1,25 @@
+# Blanc for Android, debug channel (arm64). Copied to out/AndroidDebug/args.gn by
+# chromium/android/server/bootstrap.sh. Check every name against
+# `gn args <out> --list` at the pinned milestone; drop one it doesn't define,
+# with a comment saying why.
+target_os = "android"
+target_cpu = "arm64"
+is_debug = false
+# A debuggable Java build: Java DCHECKs on, `run-as` and the command-line file
+# work on a non-rooted Pixel (the outbound gate). It also skips the stable
+# channel's release-size manifest checks, which expect 32-bit variants.
+is_java_debug = true
+is_component_build = false
+symbol_level = 1
+# Run lint, Error Prone and bytecode checks inside the build. The default,
+# "build_server", needs Chromium's autoninja, and build.mjs calls Siso directly.
+android_static_analysis = "on"
+# Lint treats every warning as an error, and it flagged Blanc's icon and
+# widget-name resources as unused. Off for debug builds; release (A7) runs it.
+disable_android_lint = true
+android_channel = "stable"
+# Debug identity, installable beside release me.bnfy.blanc. The app name and
+# icon come from patch 0101.
+chrome_public_manifest_package = "me.bnfy.blanc.dev"
+# No Google API keys: features that need them stay off (design §2).
+use_official_google_api_keys = false

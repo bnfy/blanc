@@ -1,0 +1,17 @@
+The following is a diff from the previous accessibility tree for Window: "Example Domain" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 60-73
+~					57 container Extensions
+~						58 container
+~							59 button Back to tabs
++							60 heading Extensions, Value: 1
++								61 text Extensions
++							62 button Close extensions
++						63 combo box (settable) Find an extension, Placeholder: Find an extension…
++						64 list box Installed extensions and Chrome Web Store results
++							65 text Installed Island removal fixture Open extension
++						66 container
++							67 button Manage extensions
++							68 button Browse web store
++						69 text ↑ ↓ to move   Enter to open   Esc to close
++	70 menu button Window sharing
+The focused UI element is 71 text (selected) Help: Island removal fixture, Value: Island removal fixture Open extension

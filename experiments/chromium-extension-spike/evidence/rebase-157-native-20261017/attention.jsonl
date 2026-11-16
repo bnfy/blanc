@@ -1,0 +1,2 @@
+{"at": "2026-10-17T16:15:37.096954+00:00", "event": "agent-session-start", "scope": "unlocked native acceptance; includes tool execution; owner attention not inferred"}
+{"at": "2026-10-17T16:32:22.007618+00:00", "event": "native-execution-ended", "scope": "elapsed native-test session including tool execution and harness repair; not exclusive active-agent time; no owner hands-on input requested"}

@@ -1,0 +1,60 @@
+{
+  "prototype_parent": "58a57d13bd11067fbba46be6a51fb8f4dd923783",
+  "artifacts": [
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+      "sha256": "e435953c2135e132c58bfd0437daa4298e4f49983aa917b01c2fdd41418ea978",
+      "bytes": 76016
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Blanc Prototype Framework",
+      "sha256": "e119b5e1f78243f1b5e71376a7958d8b5582cebbc843688c6df6a755e4db9a41",
+      "bytes": 595855792
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/chrome/browser/chrome_content_browser_client.cc",
+      "sha256": "f3cd8b9319483239559b89e00cca52ca5093f3164b2ba0e4b93b50cc6ed95c74",
+      "bytes": 407955
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/chrome/services/blanc_blocker/blocker_proxy.cc",
+      "sha256": "224e4964ce47743129db8a926301b80da59156660ea75a8d56a9f068bdc7c960",
+      "bytes": 41310
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/chrome/services/blanc_blocker/blocker_proxy.h",
+      "sha256": "44777696381cf4c71f5ef932efc89b79abe8d600b085d06d6d5e7ecfb389af3c",
+      "bytes": 1393
+    },
+    {
+      "path": "/private/tmp/blanc-f12-native-assets/engine.js",
+      "sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+      "bytes": 4676324
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/native/blocker/prepare.mjs",
+      "sha256": "ba2aa1fba77dc9cc2606e4bab4a7913f82e641d4e6e4d6d3d4fc3cc77fdc81f7",
+      "bytes": 9636
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-server.py",
+      "sha256": "ed1a29bcbbb83409d3c69122abc5d8213c4da01d35605f02a670dfbbe073dff1",
+      "bytes": 2673
+    },
+    {
+      "path": "/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-run.mjs",
+      "sha256": "161da01d5d7bd82d2374b69d52ca73c857559a0c14544655fa56c81465b31e81",
+      "bytes": 5752
+    },
+    {
+      "path": "/private/tmp/blanc-http3-venv/lib/python3.9/site-packages/aioquic/h3/connection.py",
+      "sha256": "e7e89dc74f7b353771132a7fdfad10ff81208a7102cb58ff33b8e0e09088d7dd",
+      "bytes": 43238
+    },
+    {
+      "path": "/private/tmp/blanc-http3-venv/lib/python3.9/site-packages/aioquic/h3/events.py",
+      "sha256": "7c0b13e001194793d609875c8fa7eae8784dbc342b4a824f20d8a5a2ad72e68a",
+      "bytes": 2147
+    }
+  ]
+}

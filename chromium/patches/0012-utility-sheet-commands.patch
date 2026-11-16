@@ -1,0 +1,29 @@
+diff --git a/chrome/browser/ui/browser_command_controller.cc b/chrome/browser/ui/browser_command_controller.cc
+index fdf3c98..5ce38cb 100644
+--- a/chrome/browser/ui/browser_command_controller.cc
++++ b/chrome/browser/ui/browser_command_controller.cc
+@@ -1297,6 +1297,8 @@ void BrowserCommandController::HandleCommandWithDisposition(
+                          kChromeUIHistorySyncedTabs);
+       break;
+     case IDC_SHOW_BOOKMARK_MANAGER:
++      // Blanc (S1.5): these open the Island's utility sheet, never a tab.
++      if (blanc_prototype::OpenUtilitySheet(browser_, "bookmarks")) break;
+       ShowBookmarkManager(webui::GetBrowserForOpeningWebUi(browser_));
+       break;
+     case IDC_MANAGE_SKILLS:
+@@ -1321,6 +1323,7 @@ void BrowserCommandController::HandleCommandWithDisposition(
+       ShowAvatarMenu(browser_);
+       break;
+     case IDC_SHOW_HISTORY:
++      if (blanc_prototype::OpenUtilitySheet(browser_, "history")) break;
+       ShowHistory(webui::GetBrowserForOpeningWebUi(browser_));
+       break;
+     case IDC_SHOW_HISTORY_CLUSTERS_SIDE_PANEL:
+@@ -1332,6 +1335,7 @@ void BrowserCommandController::HandleCommandWithDisposition(
+                                         SidePanelOpenTrigger::kAppMenu);
+       break;
+     case IDC_SHOW_DOWNLOADS:
++      if (blanc_prototype::OpenUtilitySheet(browser_, "downloads")) break;
+       ShowDownloads(webui::GetBrowserForOpeningWebUi(browser_));
+       break;
+     case IDC_SHOW_COMMENTS_SIDE_PANEL:

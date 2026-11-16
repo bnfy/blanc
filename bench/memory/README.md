@@ -8,7 +8,9 @@ answer in this repository, and because the alternative — quoting a number from
 memory or from someone else's blog post — is exactly the kind of claim
 `test/unit/public-truth.test.js` exists to prevent.
 
-macOS only. The metric it depends on is a macOS concept.
+Runs on **macOS** and **Windows x64**. The two measure different things (see
+[Running on Windows](#running-on-windows)), so a run is only ever compared with
+itself: never put a Windows figure beside a macOS one. Linux is not supported.
 
 ## Quick start
 
@@ -56,6 +58,62 @@ root, which is not the configuration anyone uses and not what you want to
 measure. If the backend cannot read hardened processes, either grant the
 measurement tool the access it needs or fall back to `--backend=ps` and accept
 that the report will mark itself unpublishable.
+
+## Running on Windows
+
+Design and open questions: `docs/superpowers/specs/2026-11-09-windows-memory-benchmark-design.md`.
+
+```powershell
+npm run bench:memory -- --list     # which browsers it found (paths come from browsers.json "windows" blocks)
+npm run bench:memory -- --probe    # which metric this machine allows
+npm run bench:memory -- --browsers=blanc,chrome,edge --workloads=mixed --reps=3
+```
+
+Run it from an ordinary, **non-elevated** session on an idle x64 machine, with
+Blanc installed from the public installer (`%LOCALAPPDATA%\Programs\blanc`).
+Windows on Arm is not a valid target: Blanc ships x64 only, and emulated x64
+against native ARM competitors would not be a fair comparison.
+
+**The metric is private working set**, the same figure as Task Manager's Memory
+column, read for the whole process tree in one CIM query
+(`Win32_PerfRawData_PerfProc_Process.WorkingSetPrivate`). Plain working set
+(`Get-Process` `WorkingSet64`) is the fallback backend and is marked
+unpublishable like `ps` RSS, for the same reason: it counts pages shared between
+processes once per process.
+
+It is the nearest Windows counterpart to `phys_footprint`, not the same measure:
+
+- It counts **resident pages only**. Anything Windows has compressed or paged out
+  is missing from it, where `phys_footprint` includes compressed pages. With
+  spare RAM the gap is small; under pressure every browser would look lighter and
+  nothing in the number would say so. Use a machine with plenty of free RAM and
+  check `totalRamGiB` in the report.
+- Chromium can trim the working set of a backgrounded process. Keep the browser
+  windows visible and unminimized for the whole run.
+- Quitting is graceful (`taskkill /PID`, then a forced kill after a grace
+  period) because a hard kill skips the browser's shutdown and can lose the
+  newest visits, which the page check reads.
+
+Windows-only hazards worth knowing before you trust a row:
+
+- Firefox starts through a launcher process, and Edge can stay resident after its
+  window closes. Both are recorded as unverified in `browsers.json` until a run
+  has shown the process counts.
+- A browser with no `windows` block is reported "not installed", not run from a
+  macOS path. Add a block only after installing the browser and checking its
+  process layout.
+- A hosted CI runner is shared hardware on a datacenter address, and sites treat
+  it differently from a person. On 2026-11-09 Reddit returned a page with no
+  title there and Stack Overflow served Cloudflare's "Just a moment..." challenge
+  twice, which Chrome, Edge and Brave still counted as visits. Blanc does not
+  record a page whose response is an HTTP error, so those pages fail Blanc's
+  cell alone, which is the check working. Good enough to prove the harness runs;
+  not evidence for a published figure.
+- On Windows, Electron needs `--` before several URLs, so the Blanc launch adds
+  it (Chrome, Edge and Brave take plain URLs). Without it Blanc exits with code
+  -1 before any app code runs.
+- Firefox is not supported on Windows yet: `firefox.exe` is a launcher that hands
+  off to a second process, so attributing from the root pid finds nothing.
 
 ## What stops a browser quietly reporting a number it did not earn
 
@@ -137,9 +195,10 @@ later repetition's growth ratio is inflated and understated cells pass.
 
 1. **Quit every browser**, including background ones. Pre-existing processes are
    excluded from the totals, but their memory pressure still perturbs the machine.
-2. **Plug in**, and turn off Low Power Mode.
+2. **Plug in**, and turn off Low Power Mode (Windows: Battery saver).
 3. Close anything that indexes or syncs in the background.
-4. Benchmark the **packaged `/Applications/Blanc.app`**, never `npm start`. An
+4. Benchmark the **packaged `/Applications/Blanc.app`** (Windows: the installed
+   app), never `npm start`. An
    unpackaged Blanc relocates its userData to `<dir>-Dev` (`main.js:144`) and is
    not the configuration that ships.
 5. Do **not** set `BLANC_TEST=1`. `acceptanceTestMode` disables ad blocking
@@ -164,7 +223,7 @@ engine-efficiency result. Compare within a group; across groups, read it as
 | vs ref | Percentage against the **reference** browser (Chrome by default), not against the lowest row. Anchoring a vendor benchmark to its own product's best configuration is the shape reviewers distrust |
 | Range | min–max across repetitions. **Overlapping ranges mean the two browsers are not distinguishable** at that sample size |
 | Per page | `(loaded median − idle median) / workload pages` — marginal cost of a page, fixed startup cost removed. Divides by workload pages, never by a browser's own inflated tab count |
-| Procs | Lowest process count across the samples the median came from. Chromium and Firefox both isolate content by site; their process models differ in ways this benchmark does not measure, so **do not read a process-count difference as the explanation for a memory difference**. See [Mozilla's process model docs](https://firefox-source-docs.mozilla.org/dom/ipc/process_model.html). Browsers whose UI is itself a web page (Blanc, Vivaldi) carry extra always-live renderers |
+| Procs | Lowest process count across the samples the median came from. Chromium and Firefox both isolate content by site; their process models differ in ways this benchmark does not measure, so **do not read a process-count difference as the explanation for a memory difference**. See [Mozilla's process model docs](https://firefox-source-docs.mozilla.org/dom/ipc/process_model.html). Browsers whose UI is itself a web page (Blanc, Blanc Beta, Vivaldi) carry extra always-live renderers |
 | Reps | How many repetitions actually produced a measurement. A row backed by 1 of 3 has a Range that looks precise and is not |
 | ⚠️N | N repetitions were still drifting when sampling gave up |
 
@@ -192,6 +251,10 @@ changes cost from what Gecko costs, and without it a Zen number is unreadable.
 `blanc-noblock` runs Blanc with `adblockEnabled: false` seeded into the
 throwaway profile — the honest way to show what the built-in blocker
 contributes rather than asserting it.
+
+`blanc-beta` is Blanc's Chromium fork, which runs its blocker and Sync in their
+own processes where Blanc keeps them in its main process: compare the two as
+whole browsers, not process by process. It has no blocking-off variant yet.
 
 ## Adding a browser
 

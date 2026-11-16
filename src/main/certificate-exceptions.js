@@ -31,6 +31,15 @@ function originKey(url) {
   }
 }
 
+// The key a failing request is looked up under. A page's WebSockets use the
+// same TLS endpoint as the page, and Chromium reports their certificate
+// failure with a wss: address, so wss: reads the https: choice for that host
+// and port (found while investigating #1437). Only `matches` uses this: a
+// choice is still made, shown and removed by its https: origin alone.
+function requestKey(url) {
+  return originKey(String(url).replace(/^wss:/i, 'https:'));
+}
+
 function hasDates(certificate) {
   return Number.isFinite(certificate?.validFrom) && Number.isFinite(certificate?.validTo);
 }
@@ -90,7 +99,7 @@ function createCertificateExceptions({ cap = DEFAULT_CAP, onEvict = () => {} } =
   }
 
   function matches(browsingSession, { url, error, certificate, now }) {
-    const entry = entriesFor(browsingSession, false)?.get(originKey(url));
+    const entry = entriesFor(browsingSession, false)?.get(requestKey(url));
     if (!entry || !certificate || !hasDates(certificate)) return false;
     return entry.fingerprint === certificate.fingerprint &&
       entry.error === errorCode(error) &&

@@ -1,0 +1,30 @@
+Executable=/Users/anthonyjloria/Projects/BlancPreviewArtifacts/cosmetic-20261028/Blanc Chromium Preview.app/Contents/MacOS/Blanc Preview Launcher
+Identifier=me.bnfy.blanc.chromium.preview
+Format=app bundle with Mach-O thin (arm64)
+CodeDirectory v=20500 size=458 flags=0x12a00(kill,restrict,library-validation,runtime) hashes=3+7 location=embedded
+VersionPlatform=1
+VersionMin=1703936
+VersionSDK=1769472
+Hash type=sha256 size=32
+CandidateCDHash sha256=423450e709aa8310f86d88bf671f198b2f94cf72
+CandidateCDHashFull sha256=423450e709aa8310f86d88bf671f198b2f94cf72643b564e2f061f27ca9376f1
+Hash choices=sha256
+CMSDigest=423450e709aa8310f86d88bf671f198b2f94cf72643b564e2f061f27ca9376f1
+CMSDigestType=2
+Executable Segment base=0
+Executable Segment limit=16384
+Executable Segment flags=0x1
+Page size=16384
+CDHash=423450e709aa8310f86d88bf671f198b2f94cf72
+Signature size=8977
+Authority=Developer ID Application: Anthony Loria (XYGUCY4498)
+Authority=Developer ID Certification Authority
+Authority=Apple Root CA
+Timestamp=Oct 28, 2026 at 9:30:51 AM
+Info.plist entries=36
+TeamIdentifier=XYGUCY4498
+Runtime Version=27.0.0
+Sealed Resources version=2 rules=13 files=163
+Internal requirements count=1 size=192
+Total signatures=1
+Chosen signature=1

@@ -1,0 +1,13 @@
+{
+  "text": "Extensions\nEsc\nInstalled\nBitwarden Password Manager\nOpen extension\nEnter\n\nManage extensions\nBrowse web store\n↑ ↓ to move   Enter to open   Esc to close",
+  "targets": [
+    {
+      "type": "page",
+      "url": "https://chromewebstore.google.com/detail/bitwarden-password-manage/nngceckbapebfimnlniiiahkandclblb"
+    },
+    {
+      "type": "service_worker",
+      "url": "chrome-extension://nngceckbapebfimnlniiiahkandclblb/background.js"
+    }
+  ]
+}

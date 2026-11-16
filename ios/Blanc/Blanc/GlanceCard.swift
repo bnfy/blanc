@@ -20,7 +20,12 @@ struct GlanceCard: View {
                 header(base: base, area: area)
                 WebView(tab: tab, cornerRadius: GlanceGeometry.radius - GlanceGeometry.pageInset)
                     .overlay {
-                        if !tab.hasCommitted { style.background.allowsHitTesting(false) }
+                        if let failure = tab.loadFailure {
+                            LoadFailureView(tab: tab, failure: failure, style: style)
+                                .clipShape(RoundedRectangle(cornerRadius: GlanceGeometry.radius - GlanceGeometry.pageInset))
+                        } else if !tab.hasCommitted {
+                            style.background.allowsHitTesting(false)
+                        }
                     }
                     .padding([.horizontal, .bottom], GlanceGeometry.pageInset)
             }

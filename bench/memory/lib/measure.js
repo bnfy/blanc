@@ -13,8 +13,20 @@
 // several at startup, keep the highest-fidelity one that actually works on this
 // machine, and record its name in the results. A run measured with `ps` RSS is
 // still useful, but it is never silently mixed with a phys_footprint run.
+//
+// Windows has the same trap under another name. Plain *working set* includes
+// pages shared between processes, so it counts the engine's DLLs once per
+// renderer exactly as RSS does. The analogue of phys_footprint there is
+// *private working set* — resident pages that belong to one process alone, which
+// is what Task Manager's Memory column shows. It is the first Windows backend;
+// plain working set is the labelled-unpublishable fallback. Unlike phys_footprint
+// it counts resident pages only, so memory Windows has compressed or paged out
+// is missing from it; the report says so. See
+// docs/superpowers/specs/2026-11-09-windows-memory-benchmark-design.md.
 
 const { execFile } = require('node:child_process');
+
+const winps = require('./winps');
 
 const EXEC_TIMEOUT_MS = 20_000;
 const EXEC_MAX_BUFFER = 32 * 1024 * 1024;
@@ -260,6 +272,114 @@ const BACKENDS = [
   },
 ];
 
+// --- Windows ---------------------------------------------------------------
+
+const WINDOWS_COUNTER_CLASS = 'Win32_PerfRawData_PerfProc_Process';
+
+/**
+ * The PowerShell that reads one memory figure for a set of pids, as JSON of
+ * `{pid, bytes}` rows so a single parser serves both backends.
+ *
+ * The ids are interpolated into script text, so only non-negative integers may
+ * get in; anything else throws instead of being escaped. One query covers the
+ * whole tree, as `top` does on macOS: spawning PowerShell per process would cost
+ * a few hundred milliseconds each and widen the window in which a renderer exits.
+ *
+ * `WorkingSetPrivate` in the raw performance class is the instantaneous count of
+ * private resident bytes (Task Manager's Memory column), not a rate.
+ *
+ * @param {string} backendId 'perf-private-ws' | 'get-process-ws'
+ * @param {number[]} pids
+ * @returns {string}
+ */
+function windowsMemoryScript(backendId, pids) {
+  for (const pid of pids) {
+    if (!Number.isInteger(pid) || pid < 0) {
+      throw new Error(`The Windows memory script needs integer pids, got ${JSON.stringify(pid)}`);
+    }
+  }
+  const ids = `@(${pids.join(',')})`;
+  if (backendId === 'perf-private-ws') {
+    return (
+      `$ids = ${ids}; ` +
+      `Get-CimInstance -ClassName ${WINDOWS_COUNTER_CLASS} | ` +
+      'Where-Object { $ids -contains [int]$_.IDProcess } | ' +
+      "Select-Object @{N='pid';E={[int]$_.IDProcess}}, @{N='bytes';E={[uint64]$_.WorkingSetPrivate}} | " +
+      'ConvertTo-Json -Compress'
+    );
+  }
+  if (backendId === 'get-process-ws') {
+    return (
+      `$ids = ${ids}; ` +
+      'Get-Process -Id $ids -ErrorAction SilentlyContinue | ' +
+      "Select-Object @{N='pid';E={[int]$_.Id}}, @{N='bytes';E={[uint64]$_.WorkingSet64}} | " +
+      'ConvertTo-Json -Compress'
+    );
+  }
+  throw new Error(`Unknown Windows memory backend: ${backendId}`);
+}
+
+/**
+ * Parse the `{pid, bytes}` JSON the Windows scripts emit into pid -> bytes.
+ *
+ * A zero or negative reading is dropped rather than recorded. A live browser
+ * process never has zero private bytes, and the performance counters return 0 for
+ * a process they could not inspect; summing that as "0 bytes" would be an
+ * undercount that nothing downstream could see. Dropped, the pid is reported
+ * missing, and run.js fails the cell if the process is still alive.
+ *
+ * @param {string} stdout
+ * @returns {Map<number, number>}
+ */
+function parseWindowsMemoryJson(stdout) {
+  const out = new Map();
+  for (const row of winps.parseJsonRows(stdout)) {
+    if (!Number.isInteger(row.pid)) continue;
+    if (typeof row.bytes !== 'number' || !Number.isFinite(row.bytes) || row.bytes <= 0) continue;
+    out.set(row.pid, row.bytes);
+  }
+  return out;
+}
+
+async function sampleWindows(backendId, pids) {
+  if (!pids.length) return new Map();
+  const r = await winps.runPowerShell(windowsMemoryScript(backendId, pids));
+  if (!r.ok) return new Map();
+  return parseWindowsMemoryJson(r.stdout);
+}
+
+// Fidelity order again, and `metric` is carried into the results for the same
+// reason: a report must never present plain working set as private working set.
+const WINDOWS_BACKENDS = [
+  {
+    id: 'perf-private-ws',
+    metric: 'private_working_set',
+    description: 'CIM Win32_PerfRawData_PerfProc_Process WorkingSetPrivate — Task Manager\'s Memory column',
+    sample: (pids) => sampleWindows('perf-private-ws', pids),
+  },
+  {
+    id: 'get-process-ws',
+    metric: 'working_set',
+    description: 'Get-Process WorkingSet64 — always available, OVERCOUNTS shared pages across processes',
+    sample: (pids) => sampleWindows('get-process-ws', pids),
+  },
+];
+
+/**
+ * The backends for a platform, strictly: an unsupported platform throws instead
+ * of being handed another platform's tools.
+ *
+ * @param {string} [platform] defaults to macOS so pure callers behave the same on any host
+ */
+function backendsFor(platform = 'darwin') {
+  if (platform === 'darwin') return BACKENDS;
+  if (platform === 'win32') return WINDOWS_BACKENDS;
+  throw new Error(`Memory measurement is not supported on ${platform}`);
+}
+
+/** The backends for the machine running this process; non-supported hosts keep the macOS list, which cannot run there. */
+const hostBackends = () => (process.platform === 'win32' ? WINDOWS_BACKENDS : BACKENDS);
+
 /**
  * Find the highest-fidelity backend that actually returns a number for a live
  * process on this machine. Probed against our own pid, which every backend is
@@ -272,7 +392,8 @@ const BACKENDS = [
  */
 async function selectBackend(options = {}) {
   const { probePid, only } = options;
-  const candidates = only ? BACKENDS.filter((b) => b.id === only) : BACKENDS;
+  const available = hostBackends();
+  const candidates = only ? available.filter((b) => b.id === only) : available;
   if (!candidates.length) throw new Error(`Unknown measurement backend: ${only}`);
 
   const pids = [process.pid];
@@ -333,7 +454,7 @@ async function canReadPid(backend, pid) {
  * @returns {Promise<{backend: object|null, downgradedFrom: string|null, tried: string[]}>}
  */
 async function resolveReadableBackend(backend, pid, options = {}) {
-  const { pinned = false, candidates = BACKENDS } = options;
+  const { pinned = false, candidates = hostBackends() } = options;
   const tried = [backend.id];
   if (await canReadPid(backend, pid)) return { backend, downgradedFrom: null, tried };
   if (pinned) return { backend: null, downgradedFrom: null, tried };
@@ -378,6 +499,9 @@ async function sampleTotal(backend, pids) {
 
 module.exports = {
   BACKENDS,
+  backendsFor,
+  windowsMemoryScript,
+  parseWindowsMemoryJson,
   parseSizeToBytes,
   parseVmmapSummary,
   parseFootprint,

@@ -1,0 +1,27 @@
+[
+  {
+    "path": "/private/tmp/blanc-f12-redirect-overrides-20261024/profile-final-private",
+    "process_absent": true,
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/blanc-f12-redirect-overrides-20261024/profile-final-regular",
+    "process_absent": true,
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/blanc-f12-redirect-overrides-20261024/profile-regular",
+    "process_absent": true,
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/blanc-f12-redirect-overrides-20261024/signed/profile-final-private",
+    "process_absent": true,
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/blanc-f12-redirect-overrides-20261024/signed/profile-final-regular",
+    "process_absent": true,
+    "removed": true
+  }
+]

@@ -22,14 +22,17 @@ row; without scripting they wrap onto a second row). It never hides on scroll:
 the homepage's sticky scenes sit just below it. Site-wide styles are `src/styles/site.css`
 plus `revamp.css`, both imported by `BaseLayout.astro`; pages add their own
 (`home.css`, `features-bento.css`, `mail.css` …)
-(bundled + hashed). **Every page is set in Blubird** since October 15, 2026
+(bundled + hashed). **Every page's headings are Blubird Display** since October 15, 2026
 (owner direction: the fonts roll out across the whole site, not only the
-redesigned homepage): headings in Blubird Display at regular weight and 0
+redesigned homepage), at regular weight and 0
 tracking (`--site-font-display` and `--site-font-patron`); a small Display title, 24px
 and under, may open up to +0.03em (owner, October 22, 2026), never
-negative, and headlines stay at 0. Text in Blubird
-Text (the `html, body` stack and the site's own labels and controls); see
-*Blubird and the lockup* below. Mockups of the app's own UI (the Island
+negative, and headlines stay at 0. **Text is Instrument Sans** (owner
+direction, November 15, 2026: Blubird's Text cuts read heavy in eyebrows and
+paragraphs, so Blubird is for headings only): the `html, body` stack and the
+site's own labels and controls, through `--font-brand-text`, which points at
+`--font-app`. The site loads no Blubird Text cut. See *Blubird and the lockup*
+below. Mockups of the app's own UI (the Island
 figures, demo UI, coded illustrations) use the app's face, Instrument Sans at
 width 98 and +0.01em, never Blubird (owner direction, October 17, 2026); its
 `@font-face` comes from the app's own file,
@@ -70,8 +73,8 @@ rename these.
 
 **Blubird and the lockup:** the homepage, header and footer use Blubird by
 Rajesh Rajput (`src/styles/blubird.css`: `--font-brand-display` for headlines,
-set at 0 letter-spacing, and `--font-brand-text` for copy), falling back to
-Inter. Its licence forbids redistributing the font files and this repository
+set at 0 letter-spacing; copy is Instrument Sans through `--font-brand-text`),
+falling back to Inter. Its licence forbids redistributing the font files and this repository
 is public, so they are never committed: they live in the git-ignored
 `public/fonts/blubird/` on the deploying machine (`npm run site:fonts --
 /path/to/Blubird.zip`), CI and contributors see Inter, and `npm run site:deploy`
@@ -200,6 +203,17 @@ Mail launch announcement (runbook in the Worker README). The form copy, the
 Worker contract and the privacy page's `#mail-waitlist` section must change
 together.
 
+**Blanc Mail survey:** `pages/mail/survey.astro` and
+`components/MailSurveyForm.astro` post anonymous answers to the separate
+`blanc-mail-survey` Worker (`cloudflare/mail-survey-worker/`), which keeps no
+request logs and stores only the answers and the ISO week. Its ids live in the
+Worker's `src/survey.js`; the page, the Worker contract and the privacy page's
+`#mail-survey` section change together. `src/data/mail-survey.json` (`open`)
+shows the form or a closed message, and ships `false` until the go-live PR
+in the Worker README opens it with the Worker; the page is noindex and unlisted, and
+closing (summary, purge, flag, privacy update) follows the Worker README.
+Spec: `docs/superpowers/specs/2026-11-12-mail-feature-survey-design.md`.
+
 **Ambassador applications:** `src/pages/ambassadors.astro` posts the compact
 application form to `/ambassador-apply` on the same Worker. It sends name,
 email, one HTTPS creator-profile URL, a short introduction, and the hidden
@@ -284,9 +298,21 @@ until a release ships it; `test/unit/site-slash-commands.test.js` compares
 that list with the latest release in `releases.json`, so the post-release
 changelog refresh is also when a shipped command comes off it.
 
-The Windows download page
-notes the installer is not yet code-signed; update that copy only when Azure
-Trusted Signing actually ships a signed build. The JSON-LD deliberately has
+**Download page (`/download`, reimagined November 14, 2026):** the owner
+asked for far fewer words. One button for the visitor's system sits under a
+Mac / Windows / Linux / iPhone segmented control (radios that switch the
+panels in CSS, so it works without scripting; `src/scripts/download-switcher.js`
+only preselects the system). Below come three tiles (Blanc Beta first, in dark
+ink; iPhone and iPad; Homebrew) and one line of facts. Keep every `/dl/*`
+link, the `#download-options` anchor the rest of the site links to, the
+measurement disclosure before the tiles, the phone note and the iCloud
+Keychain limitation. Every piece of text is recorded in
+`docs/website-download-redesign-2026-11-14-claims.json` (the beta tile in
+`docs/website-blanc-beta-<version>-claims.json`), and
+`test/unit/site-download-page.test.js` fails on any unrecorded text; large
+headings carry no full stop.
+
+The JSON-LD deliberately has
 **no `aggregateRating`** — no real user ratings exist yet; fabricating one
 violates Google's structured-data policy. `logo.png` (1024², mark at 80%
 height), `apple-touch-icon.png` (180², mark at 66%), the favicon family,

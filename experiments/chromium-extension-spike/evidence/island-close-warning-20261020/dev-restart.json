@@ -1,0 +1,14 @@
+{
+  "beforeUrls": [
+    "blanc://newtab/",
+    "blanc://newtab/"
+  ],
+  "afterUrls": [
+    "blanc://newtab/",
+    "blanc://newtab/"
+  ],
+  "beforeSelectedIndex": 1,
+  "afterSelectedIndex": 1,
+  "method": "graceful Browser.close then same-profile --restore-last-session",
+  "urlFallbackNeeded": false
+}

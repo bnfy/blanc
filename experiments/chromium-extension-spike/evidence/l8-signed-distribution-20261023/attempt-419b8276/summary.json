@@ -1,0 +1,69 @@
+{
+  "status": "in_progress",
+  "candidate": {
+    "stem": "Blanc-Chromium-Preview-157.0.8103.15-419b8276",
+    "source": "419b8276fd42e115fdea793d461fb5f4e1642a24",
+    "version": "157.0.8103.15",
+    "archive": "Blanc-Chromium-Preview-157.0.8103.15-419b8276-arm64.zip",
+    "archiveSha256": "1f5741767869d612776df7a7a1ce3a271db7ec4467801bfd1f47ecf7b06306f2",
+    "notary": "a301d8b5-1af8-4d34-a3e8-9bb55ca27cd8",
+    "regularFiles": 458,
+    "symlinks": 5
+  },
+  "readiness": {
+    "count": 8,
+    "total": 12,
+    "delta": 0,
+    "open": [
+      "L4",
+      "L8",
+      "L11",
+      "L12"
+    ]
+  },
+  "localSignedChecks": 39,
+  "sourceTests": {
+    "compliance": 9,
+    "artifactVerifier": 7,
+    "notice": 4
+  },
+  "manifestAuthentication": {
+    "version": "157.0.8103.15",
+    "source": "419b8276fd42e115fdea793d461fb5f4e1642a24",
+    "archiveSha256": "1f5741767869d612776df7a7a1ce3a271db7ec4467801bfd1f47ecf7b06306f2",
+    "authenticatedFiles": 4,
+    "signer": "anthony@bnfy.me",
+    "issuer": "https://github.com/login/oauth"
+  },
+  "tamperControls": [
+    {
+      "case": "manifest",
+      "exitCode": 1,
+      "rejected": true
+    },
+    {
+      "case": "artifact",
+      "exitCode": 1,
+      "rejected": true
+    }
+  ],
+  "nextRequired": [
+    "MacBook native HTTPS download with actual Safari quarantine",
+    "normal Gatekeeper launch and isolated native extension integration",
+    "final distribution/provenance acceptance"
+  ],
+  "build": "No Chromium compilation; packaging launcher only; native zero-action guard passes",
+  "scope": "Unpublished draft acceptance fixture; no public release or CI/hermetic-build claim",
+  "hostedDraft": {
+    "id": 422192935,
+    "draft": true,
+    "sixAssetDigestsVerified": true,
+    "transport": "Anonymous HTTPS HEAD archive; anonymous HTTPS GET checksum matches. Native Safari archive download remains pending."
+  },
+  "localNativeDownload": {
+    "matchedFiles": 458,
+    "matchedSymlinks": 5,
+    "SafariQuarantine": true,
+    "secondMacAcceptance": false
+  }
+}

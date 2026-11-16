@@ -1,0 +1,5 @@
+{
+  "source": "experiments/chromium-extension-spike/evidence/rebase-157-native-20261017/electron-followup/google-version-probe.py",
+  "originalSha256": "75b19400012976da0e5c38a836949ef209c52b8f43cc9b32e48ac28acbed32ae",
+  "change": "Output directory only; six recorded versions and query unchanged."
+}

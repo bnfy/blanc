@@ -1,0 +1,81 @@
+{
+  "checkedAt": "2026-10-16T13:08:57.872Z",
+  "results": [
+    {
+      "name": "Island new-tab button",
+      "result": "pass",
+      "detail": {
+        "tabId": 60438541,
+        "overlayVisible": true
+      }
+    },
+    {
+      "name": "Island address Enter",
+      "result": "pass",
+      "detail": {
+        "url": "http://127.0.0.1:18763/a",
+        "overlayHidden": true
+      }
+    },
+    {
+      "name": "Island back",
+      "result": "pass",
+      "detail": {
+        "url": "http://127.0.0.1:18763/a"
+      }
+    },
+    {
+      "name": "Island forward",
+      "result": "pass",
+      "detail": {
+        "url": "http://127.0.0.1:18763/b"
+      }
+    },
+    {
+      "name": "Island reload",
+      "result": "pass",
+      "detail": {
+        "requestsBefore": 5,
+        "requestsAfter": 6
+      }
+    },
+    {
+      "name": "Island tab dot",
+      "result": "pass",
+      "detail": {
+        "activeTabId": 60438541
+      }
+    },
+    {
+      "name": "Island close tab",
+      "result": "pass",
+      "detail": {
+        "remainingFixtureId": 60438542,
+        "closedId": 60438541
+      }
+    },
+    {
+      "name": "Island stop",
+      "result": "pass",
+      "detail": {
+        "url": "http://127.0.0.1:18763/slow",
+        "isLoading": false
+      }
+    },
+    {
+      "name": "Island Escape",
+      "result": "pass",
+      "detail": {
+        "overlayHidden": true
+      }
+    },
+    {
+      "name": "Host error notice",
+      "result": "pass",
+      "detail": {
+        "text": "",
+        "visible": false
+      }
+    }
+  ]
+}

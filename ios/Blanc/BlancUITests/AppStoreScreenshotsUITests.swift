@@ -114,9 +114,7 @@ final class AppStoreScreenshotsUITests: XCTestCase {
 
   func test3Spaces() throws {
     launch()
-    let mark = app.buttons["island.space"]
-    XCTAssertTrue(mark.waitForExistence(timeout: 5))
-    mark.tap()
+    app.openSpacesCard()
     XCTAssertTrue(app.buttons["spaces.row.Trip"].waitForExistence(timeout: 5))
     try shoot("3-spaces", settle: 4)
   }
@@ -152,8 +150,9 @@ final class AppStoreScreenshotsUITests: XCTestCase {
     XCTAssertTrue(item.waitForExistence(timeout: 5))
     item.tap()
     XCTAssertTrue(app.buttons["pill.private"].waitForExistence(timeout: 10))
-    run("https://www.metmuseum.org/art/collection/search/436524")
-    waitForSite("metmuseum.org")
+    // A dark page suits the private theme (owner's choice, 2026-11-11).
+    run("https://noddingoffapp.com")
+    waitForSite("noddingoffapp.com")
     sleep(8)
     // The menu shows Ad & tracker blocking on, in a private tab too.
     app.openIslandMenu()

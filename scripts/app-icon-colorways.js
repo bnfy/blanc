@@ -8,7 +8,7 @@
 // colorway yields:
 //   - four Icon Composer layers on the full-bleed 1024 canvas: the sun (the
 //     ring above the horizon), the rays and the water in color, and the white
-//     rim drawn behind them with its drop shadow;
+//     rim drawn behind them with its drop shadow (a muted warm one in Dark);
 //   - flat Dock fallbacks for Light and Dark on the 824px visible tile, with
 //     the glass approximated (glow, rim, colors).
 
@@ -37,6 +37,9 @@ const RIM = 24;
 const SHADOW_DY = 12;
 const SHADOW_BLUR = 16;
 const SHADOW_OPACITY = 0.32;
+// In Dark the rim is a muted warm gray: a white one glares on the near-black
+// tile (owner, 2026-11-14).
+const DARK_RIM = '#5C534A';
 // The mark, rim included, fills MARK_FILL px of the full-bleed 1024 canvas in
 // its longer direction. macOS paints the native tile full-bleed; the flat copy
 // draws an 824px tile, so its mark takes the same share of the visible tile.
@@ -142,8 +145,8 @@ function outline(color) {
   return `<g filter="url(#drop)">${rays(color, RIM)}${sunAbove(color, RIM)}${water(color, RIM)}</g>`;
 }
 
-function nativeRim() {
-  return svg(SHADOW + ABOVE, placed(outline('#FFFFFF'), NATIVE_SCALE, 512));
+function nativeRim(color = '#FFFFFF') {
+  return svg(SHADOW + ABOVE, placed(outline(color), NATIVE_SCALE, 512));
 }
 
 // A full-bleed tile image, for a tile that needs more than the single color an
@@ -163,7 +166,7 @@ function flatIcon(colorway, tile, dark) {
     + SHADOW + paints(colorway);
   const mark = `<g filter="url(#glow)" opacity="${dark ? 0.7 : 0.55}">`
       + `${rays('url(#sun)', 5)}${sunAbove('url(#sun)', 5)}${water('url(#water)', 5)}</g>`
-    + `<g opacity="0.92">${outline(dark ? '#F4EEF8' : '#FFFFFF')}</g>`
+    + `<g opacity="${dark ? 0.95 : 0.92}">${outline(dark ? DARK_RIM : '#FFFFFF')}</g>`
     + `<g opacity="0.92">${rays('url(#sun)')}${sunAbove('url(#sun)')}${waterWithRing()}</g>`;
   const body = '<rect x="100" y="100" width="824" height="824" rx="184" fill="url(#tile)" filter="url(#shadow)"/>'
     + placed(mark, FLAT_SCALE, 512);
@@ -181,6 +184,7 @@ function colorwaySources() {
       sources[`build/app-icons/colorways/${prefix}-${part}.png`] = nativePart(colorway, part);
     }
     sources[`build/app-icons/colorways/${prefix}-rim.png`] = nativeRim();
+    sources[`build/app-icons/colorways/${prefix}-rim-dark.png`] = nativeRim(DARK_RIM);
     if (colorway.tileLayer) {
       sources[`build/app-icons/colorways/${prefix}-tile.png`] = nativeTile(colorway.tile);
       sources[`build/app-icons/colorways/${prefix}-tile-dark.png`] = nativeTile(DARK_TILE);

@@ -12,6 +12,8 @@
 		502D58412FFED0A000B5B1DE /* pages in Resources */ = {isa = PBXBuildFile; fileRef = 502D58402FFED0A000B5B1DE /* pages */; };
 		502D58422FFED0A000B5B1DE /* generated in Resources */ = {isa = PBXBuildFile; fileRef = 502D58432FFED0A000B5B1DE /* generated */; };
 		502D58442FFED0A000B5B1DE /* bridges.json in Resources */ = {isa = PBXBuildFile; fileRef = 502D58452FFED0A000B5B1DE /* bridges.json */; };
+		7B1A00012FFF100000B5B1DE /* start in Resources */ = {isa = PBXBuildFile; fileRef = 7B1A00022FFF100000B5B1DE /* start */; };
+		7B1A00032FFF100000B5B1DE /* whats-new.js in Resources */ = {isa = PBXBuildFile; fileRef = 7B1A00042FFF100000B5B1DE /* whats-new.js */; };
 		5A5E00012FFF000000B5B1DE /* BlancShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5A5E00022FFF000000B5B1DE /* BlancShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5A5E00102FFF000000B5B1DE /* SharedLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A5E00112FFF000000B5B1DE /* SharedLink.swift */; };
 /* End PBXBuildFile section */
@@ -61,6 +63,8 @@
 		502D58312FFEC0EE00B5B1DE /* BlancSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlancSettings.swift; sourceTree = "<group>"; };
 		502D58402FFED0A000B5B1DE /* pages */ = {isa = PBXFileReference; lastKnownFileType = folder; name = pages; path = ../../src/renderer/pages; sourceTree = "<group>"; };
 		502D58432FFED0A000B5B1DE /* generated */ = {isa = PBXFileReference; lastKnownFileType = folder; name = generated; path = ../../adblock/generated; sourceTree = "<group>"; };
+		7B1A00022FFF100000B5B1DE /* start */ = {isa = PBXFileReference; lastKnownFileType = folder; name = start; path = ../../chromium/blanc/android/pages/start; sourceTree = "<group>"; };
+		7B1A00042FFF100000B5B1DE /* whats-new.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "whats-new.js"; path = "../../chromium/blanc/android/pages/whats-new.js"; sourceTree = "<group>"; };
 		502D58452FFED0A000B5B1DE /* bridges.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = bridges.json; path = ../../browser-api/bridges.json; sourceTree = "<group>"; };
 		502D59012FFEBF0D00B5B1DE /* BlancUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BlancUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5A5E00022FFF000000B5B1DE /* BlancShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BlancShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -121,6 +125,8 @@
 				502D58402FFED0A000B5B1DE /* pages */,
 				502D58432FFED0A000B5B1DE /* generated */,
 				502D58452FFED0A000B5B1DE /* bridges.json */,
+				7B1A00022FFF100000B5B1DE /* start */,
+				7B1A00042FFF100000B5B1DE /* whats-new.js */,
 				502D58312FFEC0EE00B5B1DE /* BlancSettings.swift */,
 				502D582F2FFEC0C300B5B1DE /* Tokens.swift */,
 				502D57F92FFEBF0C00B5B1DE /* Blanc */,
@@ -291,6 +297,8 @@
 				502D58412FFED0A000B5B1DE /* pages in Resources */,
 				502D58422FFED0A000B5B1DE /* generated in Resources */,
 				502D58442FFED0A000B5B1DE /* bridges.json in Resources */,
+				7B1A00012FFF100000B5B1DE /* start in Resources */,
+				7B1A00032FFF100000B5B1DE /* whats-new.js in Resources */,
 			);
 		};
 		502D58022FFEBF0D00B5B1DE /* Resources */ = {
@@ -479,7 +487,7 @@
 		502D58172FFEBF0D00B5B1DE /* Debug configuration for PBXNativeTarget "Blanc" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "SunriseDawn Sunrise SunriseDark SunriseSpectrum SunriseAmber";
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "SunriseBronze SunriseGold SunriseDawn SunriseDark SunriseSpectrum SunriseAmber";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Blanc.entitlements;
@@ -500,7 +508,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = me.bnfy.blanc;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -513,14 +521,14 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
 		502D58182FFEBF0D00B5B1DE /* Release configuration for PBXNativeTarget "Blanc" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "SunriseDawn Sunrise SunriseDark SunriseSpectrum SunriseAmber";
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "SunriseBronze SunriseGold SunriseDawn SunriseDark SunriseSpectrum SunriseAmber";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Blanc.entitlements;
@@ -541,7 +549,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = me.bnfy.blanc;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -554,7 +562,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -567,7 +575,7 @@
 				DEVELOPMENT_TEAM = XYGUCY4498;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = me.bnfy.BlancTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -589,7 +597,7 @@
 				DEVELOPMENT_TEAM = XYGUCY4498;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = me.bnfy.BlancTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -610,7 +618,7 @@
 				DEVELOPMENT_TEAM = XYGUCY4498;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = me.bnfy.BlancUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -631,7 +639,7 @@
 				DEVELOPMENT_TEAM = XYGUCY4498;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = me.bnfy.BlancUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -660,7 +668,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = me.bnfy.blanc.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -669,7 +677,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -689,7 +697,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = me.bnfy.blanc.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -698,7 +706,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};

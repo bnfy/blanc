@@ -133,15 +133,6 @@ Then('neither split pane is quiet', async function () {
   }
 });
 
-Then('Glance cannot open while the split shows', async function () {
-  const other = await openLoaded(this, 'split-glance');
-  await this.call('activateTab', this.splitA);
-  await this.waitForState((state) => state.activeTabId === this.splitA);
-  await this.call('setGlance', other);
-  const state = await this.state();
-  assert.equal(state.glanceTabId, null);
-});
-
 // ---- Making, leaving and closing (F53-5 … F53-10) ----
 
 const splitTabsOf = async (world) => {
@@ -646,4 +637,72 @@ Then('that pane floats in Glance over the remaining tab without reloading either
   const closed = await this.state();
   assert.equal(closed.activeTabId, this.remainingSplitTab);
   assert.ok(closed.tabs.some((t) => t.id === this.glanceFromSplit), 'closing Glance keeps its tab');
+});
+
+// ---- Glance over a split (F53-29, F53-30, #1441) ----
+
+When('I open the ordinary tab in Glance from its tab menu', async function () {
+  this.splitLoadCounts = [await loadCount(this, this.splitA), await loadCount(this, this.splitB)];
+  const item = await this.call('tabMenuItem', this.ordinaryId, 'glance');
+  assert.ok(item?.enabled, 'the tab menu offers Glance while the split shows');
+  await this.call('runTabMenuItem', this.ordinaryId, 'glance');
+  await this.waitForState((state) => state.glanceTabId === this.ordinaryId);
+});
+
+Then('the ordinary tab floats in Glance over both split panes', async function () {
+  const state = await this.state();
+  assert.equal(state.activeTabId, this.splitA);
+  assert.deepEqual(state.splits.map((s) => s.tabIds), [[this.splitA, this.splitB]], 'the split is unchanged');
+  const layout = await waitForValue(() => this.call('splitLayout'), (l) => l?.panes?.length === 2, 'the split to stay laid out');
+  assert.deepEqual(layout.panes.map((p) => p.tabId), [this.splitA, this.splitB]);
+  await waitForValue(() => this.call('glancePageViewVisible'), Boolean, 'the Glance page to be visible');
+  const card = await waitForValue(() => this.call('getGlanceCard'), (c) => c?.cardViewVisible === true, 'the Glance card to show');
+  const attached = await this.call('attachedTabViewIds');
+  for (const id of [this.splitA, this.splitB, this.ordinaryId]) assert.ok(attached.includes(id), `${id} attached: ${attached}`);
+  // The card and the page inside it sit above every pane and corner tab.
+  const { stackIndex } = card;
+  const below = Math.max(...stackIndex.panes, ...stackIndex.corners);
+  assert.ok(stackIndex.panes.every((index) => index >= 0), `panes in the window: ${JSON.stringify(stackIndex)}`);
+  assert.ok(stackIndex.card > below && stackIndex.glance > stackIndex.card, `card above the split: ${JSON.stringify(stackIndex)}`);
+  assert.deepEqual(card.viewBounds, card.page, 'the Glance page fills the card');
+});
+
+Then('the Glance header offers no Keep as split', async function () {
+  const page = await waitForValue(async () => ctx.app.windows().find((p) =>
+    !p.isClosed() && p.url() === 'blanc-chrome://glance/') ?? null, Boolean, 'the Glance card document');
+  const shown = await waitForValue(() => page.evaluate(() => ({
+    keep: document.getElementById('glanceKeepSplit')?.getClientRects().length > 0,
+    openAsTab: document.getElementById('glanceOpenAsTab')?.getClientRects().length > 0,
+  })), (value) => value && value.openAsTab, 'the Glance header');
+  assert.equal(shown.keep, false, 'Keep as split is hidden over a split');
+});
+
+When("focus moves to the split's second pane", async function () {
+  await this.call('activateTab', this.splitB);
+  await this.waitForState((state) => state.activeTabId === this.splitB);
+});
+
+Then('the Glance stays open over the split and no page reloaded', async function () {
+  const state = await this.state();
+  assert.equal(state.glanceTabId, this.ordinaryId);
+  assert.deepEqual(state.splits.map((s) => s.tabIds), [[this.splitA, this.splitB]]);
+  assert.deepEqual([await loadCount(this, this.splitA), await loadCount(this, this.splitB)], this.splitLoadCounts);
+  await waitForValue(() => this.call('glancePageViewVisible'), Boolean, 'the Glance page to stay visible');
+  await this.call('closeGlance');
+  const closed = await this.state();
+  assert.equal(closed.activeTabId, this.splitB, 'closing Glance leaves the focused pane current');
+  assert.deepEqual(closed.splits.map((s) => s.tabIds), [[this.splitA, this.splitB]]);
+});
+
+When("I close the split's first tab", async function () {
+  await this.call('closeTab', this.splitA);
+});
+
+Then("the split's second tab has the window and the Glance stays open over it", async function () {
+  const state = await this.waitForState((s) => s.activeTabId === this.splitB && !s.tabs.some((t) => t.id === this.splitA));
+  assert.equal(state.glanceTabId, this.ordinaryId);
+  assert.deepEqual(state.splits, [], 'a split left with one tab dissolves');
+  await waitForValue(() => this.call('glancePageViewVisible'), Boolean, 'the Glance page to stay visible');
+  const card = await waitForValue(() => this.call('getGlanceCard'), (c) => c?.cardViewVisible === true, 'the Glance card');
+  assert.deepEqual(card.mainViewBounds, card.pageBounds, 'the survivor takes the whole page area');
 });

@@ -1,0 +1,358 @@
+{
+  "checks": [
+    {
+      "name": "grouped split Spaces round trip",
+      "value": {
+        "groups": [
+          {
+            "name": "Source group",
+            "color": "#376694",
+            "collapsed": true,
+            "urls": [
+              "http://127.0.0.1:9278/source-a",
+              "http://127.0.0.1:9278/source-b"
+            ]
+          }
+        ],
+        "uuid": "5b2c8047-702a-4747-a3fe-acada70849e4",
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9278/source-a",
+          "http://127.0.0.1:9278/source-b"
+        ],
+        "active": "blanc://newtab/",
+        "splits": [
+          {
+            "focus": 1,
+            "ids": [
+              "http://127.0.0.1:9278/source-a",
+              "http://127.0.0.1:9278/source-b"
+            ],
+            "widths": [
+              0.5,
+              0.5
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "two regular window split identities",
+      "value": {
+        "source": {
+          "groups": [
+            {
+              "name": "Source group",
+              "color": "#376694",
+              "collapsed": true,
+              "urls": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ]
+            }
+          ],
+          "uuid": "5b2c8047-702a-4747-a3fe-acada70849e4",
+          "urls": [
+            "blanc://newtab/",
+            "http://127.0.0.1:9278/source-a",
+            "http://127.0.0.1:9278/source-b"
+          ],
+          "active": "blanc://newtab/",
+          "splits": [
+            {
+              "focus": 1,
+              "ids": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ],
+              "widths": [
+                0.5,
+                0.5
+              ]
+            }
+          ]
+        },
+        "decoy": {
+          "groups": [
+            {
+              "name": "Decoy group",
+              "color": "",
+              "collapsed": false,
+              "urls": [
+                "http://127.0.0.1:9278/decoy-a",
+                "http://127.0.0.1:9278/decoy-b"
+              ]
+            }
+          ],
+          "uuid": "c1c30f62-f984-48b9-a74b-42946d9e32db",
+          "urls": [
+            "http://127.0.0.1:9278/decoy-a",
+            "http://127.0.0.1:9278/decoy-b"
+          ],
+          "active": "http://127.0.0.1:9278/decoy-a",
+          "splits": [
+            {
+              "focus": 0,
+              "ids": [
+                "http://127.0.0.1:9278/decoy-a",
+                "http://127.0.0.1:9278/decoy-b"
+              ],
+              "widths": [
+                0.5,
+                0.5
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "full live snapshots before crash",
+      "value": [
+        {
+          "activeTabId": "13207797",
+          "adblockEnabled": false,
+          "closed": [
+            {
+              "id": "13207787",
+              "tabCount": 1,
+              "title": "Split fixture",
+              "url": "http://127.0.0.1:9278/source-a"
+            },
+            {
+              "id": "13207788",
+              "tabCount": 1,
+              "title": "Split fixture",
+              "url": "http://127.0.0.1:9278/source-b"
+            },
+            {
+              "id": "13207793",
+              "tabCount": 1,
+              "title": "Split fixture",
+              "url": "http://127.0.0.1:9278/source-a"
+            },
+            {
+              "id": "13207794",
+              "tabCount": 1,
+              "title": "Split fixture",
+              "url": "http://127.0.0.1:9278/source-b"
+            }
+          ],
+          "displayShares": [],
+          "extensionsWidth": 26,
+          "focusedTabId": "13207797",
+          "glanceTabId": null,
+          "groups": [
+            {
+              "collapsed": false,
+              "color": "",
+              "id": "7DCA21344C0D015650F590CEFABDD9CE",
+              "name": "Decoy group"
+            }
+          ],
+          "initialWindowSaveFailed": false,
+          "initialWindowSaved": true,
+          "spaceAutosaveError": "",
+          "spaceBusy": false,
+          "spaceName": "Decoy",
+          "spaceWindowIdentity": "c1c30f62-f984-48b9-a74b-42946d9e32db",
+          "splits": [
+            {
+              "focusedIndex": 0,
+              "focusedTabId": "13207797",
+              "id": "split-0",
+              "layout": {
+                "kind": "columns",
+                "widths": [
+                  0.5,
+                  0.5
+                ]
+              },
+              "tabIds": [
+                "13207797",
+                "13207798"
+              ]
+            }
+          ],
+          "tabLayout": "island",
+          "tabs": [
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": "7DCA21344C0D015650F590CEFABDD9CE",
+              "id": "13207797",
+              "isLoading": false,
+              "muted": false,
+              "pageBg": "#ffffff",
+              "pinned": false,
+              "private": false,
+              "siteMuted": false,
+              "title": "Split fixture",
+              "url": "http://127.0.0.1:9278/decoy-a"
+            },
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": "7DCA21344C0D015650F590CEFABDD9CE",
+              "id": "13207798",
+              "isLoading": false,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": false,
+              "siteMuted": false,
+              "title": "Split fixture",
+              "url": "http://127.0.0.1:9278/decoy-b"
+            }
+          ],
+          "verticalTabsDefaultWidth": 248,
+          "verticalTabsMaxWidth": 360,
+          "verticalTabsMinWidth": 200,
+          "verticalTabsPreferredWidth": 248,
+          "verticalTabsWidth": 248,
+          "closedSlot": 1
+        },
+        {
+          "activeTabId": "13207790",
+          "adblockEnabled": false,
+          "closed": [
+            {
+              "id": "13207787",
+              "tabCount": 1,
+              "title": "Split fixture",
+              "url": "http://127.0.0.1:9278/source-a"
+            },
+            {
+              "id": "13207788",
+              "tabCount": 1,
+              "title": "Split fixture",
+              "url": "http://127.0.0.1:9278/source-b"
+            },
+            {
+              "id": "13207793",
+              "tabCount": 1,
+              "title": "Split fixture",
+              "url": "http://127.0.0.1:9278/source-a"
+            },
+            {
+              "id": "13207794",
+              "tabCount": 1,
+              "title": "Split fixture",
+              "url": "http://127.0.0.1:9278/source-b"
+            }
+          ],
+          "displayShares": [],
+          "extensionsWidth": 26,
+          "focusedTabId": "13207790",
+          "glanceTabId": null,
+          "groups": [
+            {
+              "collapsed": true,
+              "color": "#376694",
+              "id": "31FCEDA1705424397AE25DEA61A90DB6",
+              "name": "Source group"
+            }
+          ],
+          "initialWindowSaveFailed": false,
+          "initialWindowSaved": true,
+          "spaceAutosaveError": "",
+          "spaceBusy": false,
+          "spaceName": "Source",
+          "spaceWindowIdentity": "5b2c8047-702a-4747-a3fe-acada70849e4",
+          "splits": [
+            {
+              "focusedIndex": 1,
+              "focusedTabId": "13207792",
+              "id": "split-0",
+              "layout": {
+                "kind": "columns",
+                "widths": [
+                  0.5,
+                  0.5
+                ]
+              },
+              "tabIds": [
+                "13207791",
+                "13207792"
+              ]
+            }
+          ],
+          "tabLayout": "island",
+          "tabs": [
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==",
+              "groupId": null,
+              "id": "13207790",
+              "isLoading": false,
+              "muted": false,
+              "pageBg": "#f7f0e6",
+              "pinned": false,
+              "private": false,
+              "siteMuted": null,
+              "title": "New Tab",
+              "url": "blanc://newtab/"
+            },
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": "31FCEDA1705424397AE25DEA61A90DB6",
+              "id": "13207791",
+              "isLoading": false,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": false,
+              "siteMuted": false,
+              "title": "Split fixture",
+              "url": "http://127.0.0.1:9278/source-a"
+            },
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": "31FCEDA1705424397AE25DEA61A90DB6",
+              "id": "13207792",
+              "isLoading": false,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": false,
+              "siteMuted": false,
+              "title": "Split fixture",
+              "url": "http://127.0.0.1:9278/source-b"
+            }
+          ],
+          "verticalTabsDefaultWidth": 248,
+          "verticalTabsMaxWidth": 360,
+          "verticalTabsMinWidth": 200,
+          "verticalTabsPreferredWidth": 248,
+          "verticalTabsWidth": 248,
+          "closedSlot": 2
+        }
+      ]
+    }
+  ],
+  "pass": false,
+  "error": "Error: wait timeout",
+  "stack": "Error: wait timeout\n    at wait (file:///private/tmp/blanc-grouped-fix/test.mjs:6:127)\n    at async file:///private/tmp/blanc-grouped-fix/test.mjs:17:509"
+}

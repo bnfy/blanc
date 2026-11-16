@@ -257,27 +257,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "site-133-download-01",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Free, including Blanc Spaces",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "freeSpaces"
-      ],
-      "verdict": "verified"
-    },
-    {
-      "id": "site-133-download-02",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Every feature is free, including tab groups and saved Blanc Spaces. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It supports Blanc’s development and unlocks nothing.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "freeSpaces",
-        "patron"
-      ],
-      "verdict": "verified"
-    },
-    {
       "id": "site-133-about-01",
       "source": "site/src/pages/about.astro",
       "exactWording": "Every feature is free, including tab groups and saved Blanc Spaces. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It funds Blanc’s development and unlocks nothing. Earlier one-time supporters keep their lifetime Patron access.",
@@ -483,6 +462,31 @@
       ],
       "verdict": "verified",
       "reason": "October 29, 2026, after public v1.45.0 shipped Shared Spaces, Recently closed for shared Spaces and Turn on Sync without a passphrase (and Connect your iPhone, for Blanc for iPhone’s public TestFlight beta). The replacement wording is recorded in docs/website-v1.45-claims.json."
+    }
+  ],
+  "retiredForDownloadRedesign": [
+    {
+      "id": "site-133-download-01",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Free, including Blanc Spaces",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces"
+      ],
+      "verdict": "verified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
+    },
+    {
+      "id": "site-133-download-02",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Every feature is free, including tab groups and saved Blanc Spaces. Blanc Patron is the optional subscription: US$30 per year or US$4 per month, plus applicable tax. It supports Blanc’s development and unlocks nothing.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "freeSpaces",
+        "patron"
+      ],
+      "verdict": "verified",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
     }
   ]
 }

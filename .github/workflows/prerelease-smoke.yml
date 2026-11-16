@@ -71,6 +71,25 @@ jobs:
           }
       - name: Install AppImage runtime
         run: |
+          # Same mirror switch as release-windows-linux.yml (#1449):
+          # azure.archive.ubuntu.com, the hosted runners' default mirror,
+          # intermittently failed to resolve on November 11, 2026, and this job
+          # failed here for v1.48.0. apt still checks every package against
+          # Ubuntu's archive keys; only the download host changes.
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            # kernel.org alone, as in #1452: apt tried a failing archive.ubuntu.com first.
+            printf '%s\n' http://mirrors.edge.kernel.org/ubuntu/ | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+          fi
+          for file in /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+            if [ -f "$file" ]; then
+              sudo sed -E -i 's#https?://azure\.archive\.ubuntu\.com/ubuntu/?#http://mirrors.edge.kernel.org/ubuntu/#g' "$file"
+            fi
+          done
+          if grep -rqs 'azure\.archive\.ubuntu\.com' /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d; then
+            echo "azure.archive.ubuntu.com is still configured" >&2
+            exit 1
+          fi
+          echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/80-blanc-retries >/dev/null
           sudo apt-get update
           sudo apt-get install --yes libfuse2 xvfb
       - name: Download published AppImage and manifest

@@ -243,7 +243,7 @@
   },
   "pill.placeholder": {
     "message": "Rechercher ou saisir une URL",
-    "source": "sha256:cfb8ca4be5f793f910258121250c991cd9bc736ccfd07285de5dacff603913cc"
+    "source": "sha256:8d94349d68e65bad7b02e39aa7e4eafbf42f58c875dec41fe663ba8005f16a77"
   },
   "pill.notice.cleanLinkCopied": {
     "message": "Lien épuré copié",
@@ -2630,6 +2630,10 @@
     "message": "Cette synchronisation n’existe plus. Désactivez-la ici, puis ajoutez de nouveau ce téléphone depuis votre ordinateur.",
     "source": "sha256:342277ecfd5ccbdacb710e5e2298d117d09f2c93ed789df46e65a8c170878f01"
   },
+  "sync.error.accountGone.ipad": {
+    "message": "Cette synchronisation n’existe plus. Désactivez-la ici, puis ajoutez de nouveau cet iPad depuis votre ordinateur.",
+    "source": "sha256:1931925bccfddf21adc23eb371e617e8370dc8250bdd1a9501b4aa24c105d064"
+  },
   "settings.sync.recovery.dialogMessage": {
     "message": "Copier le code de récupération de la synchronisation ?",
     "source": "sha256:f845de77b6c5ee8077b4523af5750307d27f07c5805b9e6d4ef92fb3934817fa"
@@ -2998,10 +3002,6 @@
   "glance.status.closed": {
     "message": "Glance fermé",
     "source": "sha256:1008c10836b5872a9ac50e128369c885836df91e8e756948e2b3abf4aed4a15e"
-  },
-  "split.glanceUnavailable": {
-    "message": "Glance n’est pas disponible pendant l’affichage d’une vue partagée",
-    "source": "sha256:f2310b15f7e0b49d589da7dfe191a1033dd0c654dc19f4c4e1b15b87d5c8256f"
   },
   "glance.status.openedAsTab": {
     "message": "{title} est maintenant l'onglet actuel",
@@ -3472,8 +3472,8 @@
     "source": "sha256:9f26b42c1f26d6b316e6ba7046aef543e22232ad9046dafd8711f4a0d8932a5c"
   },
   "settings.general.theme.hint": {
-    "message": "Système suit le thème de macOS ou Windows",
-    "source": "sha256:22516f21a7afeda313df03ff52f5d1ed0e885e281c78a19aa66a846495033f9f"
+    "message": "Système suit le mode clair ou sombre de votre ordinateur",
+    "source": "sha256:3f442f768378f67eba00f5e7f504d94f6311d645a8fac42244c79f44c2525046"
   },
   "settings.general.theme.system": {
     "message": "Système",
@@ -3608,20 +3608,20 @@
     "source": "sha256:2e3a7cffee8f1cd31157491641927314e451ab4a5216be878aedb28d21907193"
   },
   "settings.general.newtabLayout.ledger": {
-    "message": "ledger",
-    "source": "sha256:01e1e0e4958435810576fabcd0e5fe2fefae91f9e6814314ffff00517721ba5e"
+    "message": "Ledger",
+    "source": "sha256:8d0abb8e6ff41366f43bdb54c1248e349bdb1b2ce4b61a4347414809bba425d3"
   },
   "settings.general.newtabLayout.billboard": {
-    "message": "billboard",
-    "source": "sha256:a60d80ad209ff595be8db8d3227c15093e119b20fa926b7c9e8ea2342d1b5b17"
+    "message": "Billboard",
+    "source": "sha256:b7396dee01e1a1e198bf6f1681958196cf505bfeb09dfcfa25810faed283171e"
   },
   "settings.general.newtabLayout.shelf": {
-    "message": "shelf",
-    "source": "sha256:14799e36d74c91de53ef4776b3eef701a32630225b4d3cb52c785c4141cd82a5"
+    "message": "Shelf",
+    "source": "sha256:b9c6b86f2add65645faa6dc37355bbf65bd10d8cc1e7dfe726346593cf495d89"
   },
   "settings.general.newtabLayout.tally": {
-    "message": "tally",
-    "source": "sha256:ee74ccc5d66531c210ec1bda1a2bf346c3a22eab88886294dae47e032295c77d"
+    "message": "Tally",
+    "source": "sha256:c8b0d1dc112021795a6c1d94dbaf814ff0271d10be55e86e440b81dcfd1caf7a"
   },
   "settings.general.newtabDynamicWallpaper.label": {
     "message": "Fond selon l’heure",
@@ -3698,6 +3698,14 @@
   "settings.general.tabSwitchOrder.hint": {
     "message": "Maintenez Ctrl et appuyez sur Tab pour revenir aux onglets utilisés en dernier, puis relâchez Ctrl pour changer. Échap vous laisse où vous êtes.",
     "source": "sha256:a1bc7a2aaa5992538e4b286c9711a02136ac03f7e0b81a2febded17a22892803"
+  },
+  "settings.general.reuseNewTab.label": {
+    "message": "Aller à un nouvel onglet inutilisé",
+    "source": "sha256:3cc61e626185cd0b23886d7d9066c4f2432f947eb8767bb4158cebc99187b62d"
+  },
+  "settings.general.reuseNewTab.hint": {
+    "message": "Nouvel onglet va à un nouvel onglet de cette fenêtre que vous n’avez pas encore utilisé, au lieu d’en ouvrir un autre. Nouvel onglet privé fait de même pour les onglets privés.",
+    "source": "sha256:99e5e05a5800398919ea3cf28d48c41a9b109fb8d2a951a5a2d10206132053a6"
   },
   "settings.general.tabSwitchOrder.recent": {
     "message": "Dans l’ordre où vous les avez utilisés",
@@ -5968,36 +5976,36 @@
     "source": "sha256:6fbb93e65570389bfea1c052fe00d3e09a248ed7f91bdcb42ab7dae32cba352d"
   },
   "onboarding.skip": {
-    "message": "tout passer",
-    "source": "sha256:6e1c80852caf2d033bb547c34317f5719323e92b269f54dda06349ee4edd0f58"
+    "message": "Tout passer",
+    "source": "sha256:64c29a739344f422372425c18a149227e344abd6318139e185ba66f7629e61cf"
   },
   "onboarding.stepLabel": {
     "message": "{step} / {total} — {name}",
     "source": "sha256:fead11ed329fd4b943fa90de31831464f8aded66b883610f84a4cfce7bb44b5e"
   },
   "onboarding.step.default": {
-    "message": "navigateur par défaut",
-    "source": "sha256:b12f95e3b29f367167b6de5b6eb3d760315fadb71d605995486189817b9c7d86"
+    "message": "Navigateur par défaut",
+    "source": "sha256:35a7689ef20dc9333ad5dd0ef2a63cdbde0196ba20af7d839b6bea2f74a15587"
   },
   "onboarding.step.import": {
-    "message": "importation",
-    "source": "sha256:1ae14f5234258298f7652dfb70e5e5895d5f9f1744747f142f8c21bdb20f806a"
+    "message": "Importation",
+    "source": "sha256:d18b28fc7583269241bc019b3a35a1ce2c3797fbe8c29f7af02b4f6d56fd016f"
   },
   "onboarding.step.island": {
-    "message": "l’island",
-    "source": "sha256:bd1508d85ba7499264101441a98f854a999ffc1a9d2d4ffd5afaa1ef1ca5fd4a"
+    "message": "L’Island",
+    "source": "sha256:153de96f1ec036a960c8871fad9522e42292e9b6719b0b981d5fd99a451ce8c3"
   },
   "onboarding.step.blocking": {
-    "message": "blocage des publicités",
-    "source": "sha256:8d785c80fe32b74d2ada949e8f62d6ab982c10f8b6abc527dd2c395845edc5c4"
+    "message": "Blocage des publicités",
+    "source": "sha256:a49964c5ff5dd14d9ae4f2377bdca7a44453401112a7913b3691b5520e546a8a"
   },
   "onboarding.step.privacy": {
-    "message": "confidentialité",
-    "source": "sha256:f755476b92046d0cc6631140f0c8d3478aa8fe790d7cb49eb52658f3188b81c3"
+    "message": "Confidentialité",
+    "source": "sha256:c9f00f2676963bbafb4c1c8274269d6108511b8b6ed2c021ff5b608c611ad561"
   },
   "onboarding.step.theme": {
-    "message": "thème",
-    "source": "sha256:daa960766d97dc095fd5752fb630cf5b37f9c0d3aa4333b7f3ccb87308ec0ee7"
+    "message": "Thème",
+    "source": "sha256:2074a5c422f616206ea056e4446406f1cc0210718631e04703155ddadb0aaa13"
   },
   "onboarding.default.title": {
     "message": "Faire de Blanc votre navigateur par défaut",
@@ -6084,8 +6092,8 @@
     "source": "sha256:39141329a03dab30a78354c71cb982d77235daefcd807c80f5c69587b36664cc"
   },
   "onboarding.island.title": {
-    "message": "Découvrez l’island",
-    "source": "sha256:df6d360cdfec87221db857b3d7cfcf7995b28a914e797a4824293b4829fa341b"
+    "message": "Découvrez l’Island",
+    "source": "sha256:4500c48b28df278ff7e14a4925112cbe60d3367a8eecd5a2b7a838ca35728c03"
   },
   "onboarding.island.body": {
     "message": "Onglets, recherche et navigation, tout au même endroit.",
@@ -6120,8 +6128,8 @@
     "source": "sha256:d7e6c436294d0ff743f61d8a370ef9e2da8ad9f33885cb9fd2cc7cb0868f709e"
   },
   "onboarding.blocking.body": {
-    "message": "Bloque les publicités et traceurs connus grâce à des règles intégrées. Il ne peut pas arrêter tous les traceurs. Désactivez-le site par site avec /off-leash.",
-    "source": "sha256:5c464be0e6cdfdda2e8f28d6ecb015f9e0fb6116b704f2c51e6f86edafa0c95d"
+    "message": "Bloque les publicités et traceurs connus grâce à des règles intégrées. Il ne peut pas arrêter tous les traceurs. Désactivez-le site par site avec /allow-ads.",
+    "source": "sha256:55258d0330c17692ddc6c42f51bdf1b7ed7c1a5b7be98873becfa19b8a00f1ef"
   },
   "onboarding.blocking.toggle": {
     "message": "Bloquer les publicités et traceurs",
@@ -6172,12 +6180,12 @@
     "source": "sha256:76dcf11f28d68d2500525416c3b85dd56cf95922db013e57c6a0d8faaea39ac0"
   },
   "onboarding.theme.light": {
-    "message": "clair",
-    "source": "sha256:53bf1cb352ca64b4904b95c97b0868337d56a789d5204a748eb75b55ad76f2f8"
+    "message": "Clair",
+    "source": "sha256:50074d1390058eb3c1f64f6af3ed07759293e6761b158e83c02cda0ca65dd3fb"
   },
   "onboarding.theme.dark": {
-    "message": "sombre",
-    "source": "sha256:6cad2abfb84589b727106430bf84884b8d32445713b170a059084331e43f9f5f"
+    "message": "Sombre",
+    "source": "sha256:aeda0ea95a6ba51c73ae64edc7962078056ba38e51158a5b770b88564a864d75"
   },
   "onboarding.back": {
     "message": "Retour",
@@ -7327,6 +7335,10 @@
     "message": "plateau",
     "source": "sha256:3427faa722440de430c983369e0e58b06701bc2990a647d782ad0a1d8df17d67"
   },
+  "mahjong.setup.dailyLayoutHint": {
+    "message": "La donne du jour utilise la disposition du jour. Passez à « Aléatoire » pour en choisir une autre.",
+    "source": "sha256:24ae317b8e6bafdaa017aa28bd5de16c9cad98e1a4d978c34fa769e01922ce47"
+  },
   "mahjong.layout.turtleDetail": {
     "message": "144 tuiles · paisible",
     "source": "sha256:64841fe57365e0fe1eb676f73cf291e3841e56b119084ecade3e5b655713add4"
@@ -7423,17 +7435,17 @@
     "message": "<0>Partie Zen</0> Masque le temps et les points, et exclut cette partie du palmarès.",
     "source": "sha256:e8fdf7aee42c0d71edd6664a8ab56c4d058ce69c39845175dd18db5af5c0741e"
   },
-  "mahjong.setup.freeHighlight": {
-    "message": "<0>Surlignage renforcé des tuiles libres</0> Ajoute un anneau permanent à fort contraste autour de chaque tuile jouable.",
-    "source": "sha256:650c89c61e8a6a0d5510c12d722e090728f1a1e6de5fa1721488b217fc687810"
-  },
   "mahjong.setup.replaces": {
     "message": "Commencer remplace le plateau actuellement sur cette table.",
     "source": "sha256:9aed92ef1a9909b68f6232fec4819c25a5b95b6775c1f6fdb98b9644760bb5d8"
   },
   "mahjong.setup.copyDeal": {
-    "message": "copier la donne actuelle",
-    "source": "sha256:5eb79d2bca875e7438c52b53e1c3c598bc6f59db0360798c907f722367071ef9"
+    "message": "copier le lien",
+    "source": "sha256:e72d235453e7a7f28c0215905385db9ae7471632a9f936085b2f480577cb469c"
+  },
+  "mahjong.setup.linkCopied": {
+    "message": "lien copié",
+    "source": "sha256:1feca2c795efb3afdcb911a8b712f3fb9b5b5227b343581ceb84830dab95a946"
   },
   "mahjong.setup.start": {
     "message": "commencer",
@@ -7599,33 +7611,33 @@
     "message": "dragon blanc, {motif}",
     "source": "sha256:a6bf943e9af21299811463503ef949a13e36ab8d058bd3bd174add09e0456639"
   },
-  "mahjong.tile.motif.sunrise": {
-    "message": "lever de soleil",
-    "source": "sha256:fd26826556dbf0a583900e526636c4d75e3d4aa0df5ad9be34b4dccddc0ff0b2"
+  "mahjong.tile.windEastPlain": {
+    "message": "vent d’est",
+    "source": "sha256:e7c8667b5055ce85371a5cf4e8bc3d8fce72126a14d5c82c088c58e425a94ff7"
   },
-  "mahjong.tile.motif.sun": {
-    "message": "soleil",
-    "source": "sha256:cb8156bf23b6e637692cf64e1eaa490ed46dea42e0bb19b1cbf7979cb45cac19"
+  "mahjong.tile.windSouthPlain": {
+    "message": "vent du sud",
+    "source": "sha256:de27fa7079e569c8aaf88b1ada511e1f53042b745939c7afc2adacf749cf5ccd"
   },
-  "mahjong.tile.motif.moonAndWave": {
-    "message": "lune et vague",
-    "source": "sha256:4dcf189c43f12523227b974b4810938b34d029aeed4d865eab5fa838e849f651"
+  "mahjong.tile.windWestPlain": {
+    "message": "vent d’ouest",
+    "source": "sha256:ea00b1481a4e7963056ee52a50eb4bfcc9e8860c542d1ded6a8af1fc1eb2257f"
   },
-  "mahjong.tile.motif.mountain": {
-    "message": "montagne",
-    "source": "sha256:f72104660aba44adcb1053a54c857f6fd83179df9f701a81a61f860b4b2c701a"
+  "mahjong.tile.windNorthPlain": {
+    "message": "vent du nord",
+    "source": "sha256:7d96b46e40c442f15c489e552797bc2e14b8733372c45607c07a3aa2e361e4b8"
+  },
+  "mahjong.tile.dragonRedPlain": {
+    "message": "dragon rouge",
+    "source": "sha256:f91061d529f95302034707e06f46939fba314c681b9efd8f4887cede141b38f6"
+  },
+  "mahjong.tile.dragonGreenPlain": {
+    "message": "dragon vert",
+    "source": "sha256:1e9c9024c8352f016af6767d8647870992fb4d1e4c68ffd9432012dfa38144f3"
   },
   "mahjong.tile.motif.compass": {
     "message": "boussole",
     "source": "sha256:2df6fdfece5cf4d3e8071d49fe04f6efc39d99bc9564c55cc25972cd9b8f06b9"
-  },
-  "mahjong.tile.motif.flame": {
-    "message": "flamme",
-    "source": "sha256:72af75562afdb2f2ea0ad6d1edfa2ae4acdc5dcf4aa508cdf7f65f347512cd7b"
-  },
-  "mahjong.tile.motif.flourish": {
-    "message": "arabesque",
-    "source": "sha256:b68da143e73e6d42eddc3dd177b6b995873fd78e304927ce8135f45049797f44"
   },
   "mahjong.tile.motif.blancMark": {
     "message": "logo Blanc",
@@ -7842,6 +7854,42 @@
   "mahjong.win.quietTitle": {
     "message": "Une fin paisible.",
     "source": "sha256:02044e13ec6e158bac2a971fc2e2f0ea9a63389de0f00fd67ced1158658b03fa"
+  },
+  "mahjong.win.titleRecord": {
+    "message": "Un nouveau record personnel.",
+    "source": "sha256:296fcbb0bf58ad579037f2e45e127d049b3b1c26f693421cb9020637fa75b48b"
+  },
+  "mahjong.win.titleFirst": {
+    "message": "Première fois que vous terminez {layout}.",
+    "source": "sha256:492d6aee3583db3f28e2578a9b2531ca85caaee02f5a62e02a9991440f275bc7"
+  },
+  "mahjong.win.titleStreak": {
+    "message": "{run} d’affilée. De nouvelles tuiles ensuite.",
+    "source": "sha256:642b6f59f40afb5e5161033f33ce4c7700840ed95dc8a4661e5df6bc0990aca3"
+  },
+  "mahjong.win.titleDaily": {
+    "message": "Le défi du jour est réussi.",
+    "source": "sha256:5c4ba8ca52573baefdc2b9f533cea468af0bf4041862d8d153c58c1d0616bcf5"
+  },
+  "mahjong.win.titleSweep": {
+    "message": "Table rase.",
+    "source": "sha256:ba94fd22d040b82da4dd12d0b04a8cea340475f79ff03ba35c9914619c54242c"
+  },
+  "mahjong.win.titleHome": {
+    "message": "Chaque tuile à sa place.",
+    "source": "sha256:097b24e605ab4fa2f4bd27482d89d76b863ca4429ca966a29adb6b65dc854586"
+  },
+  "mahjong.win.titleLastPair": {
+    "message": "C’était la dernière paire.",
+    "source": "sha256:32c4a8460e463ac717226fee92ed5ebfe95a18bff9fe55598d0f1e5004b347e0"
+  },
+  "mahjong.win.titleTidy": {
+    "message": "Une table bien rangée.",
+    "source": "sha256:a1d6b160c314c1638f860cba6143d4fca81dc29319754587e71336c6f0d7895f"
+  },
+  "mahjong.win.titleWellPlayed": {
+    "message": "Bien joué.",
+    "source": "sha256:100e0ace2b71fb0d9ae9c39be6d84ea1dbd06f5240d3cf33845a984f12350b47"
   },
   "mahjong.win.rules": {
     "message": "{mode} · {rules}",
@@ -8331,6 +8379,10 @@
     "message": "Configurez la synchronisation sur votre ordinateur, puis ajoutez ce téléphone avec un code.",
     "source": "sha256:afd19ac9e6a3c113db62227c93337efcff83cfbd57e0ac89625576ed0a69db94"
   },
+  "settings.sync.createOnComputer.ipad": {
+    "message": "Configurez la synchronisation sur votre ordinateur, puis ajoutez cet iPad avec un code.",
+    "source": "sha256:5c2568d59005c18c7ffc4927335198d152c66c919bf3a3727a192e336fe25b49"
+  },
   "settings.sync.enterSyncName": {
     "message": "Saisissez le nom de votre synchronisation",
     "source": "sha256:21c2e58d05113dfe2f34338ed74a4f308bb6e0f5adf43b77754fc2107cbf540d"
@@ -8783,13 +8835,25 @@
     "message": "Partagez les onglets ouverts ordinaires de cet iPhone avec vos autres appareils. Les onglets privés ne sont jamais partagés.",
     "source": "sha256:83d7996fbe9b9d874ba434cbe43221a9fd2799fc25d6f692d05310d6844e087b"
   },
+  "ios.settings.shareTabsHelp.ipad": {
+    "message": "Partagez les onglets ouverts ordinaires de cet iPad avec vos autres appareils. Les onglets privés ne sont jamais partagés.",
+    "source": "sha256:8856a9ddc34f97998d7b672757de8378f7279da16210ca14f98b79cacd63af7b"
+  },
   "ios.settings.disconnectHelp": {
     "message": "Déconnecter cet iPhone ? Vos favoris et réglages locaux restent ici. Vos autres appareils ne sont pas affectés.",
     "source": "sha256:0d8334eb54e8e7eb72a963a6d65e2b3f72ddcf351d20fe7ec101467fc4b4b1dd"
   },
+  "ios.settings.disconnectHelp.ipad": {
+    "message": "Déconnecter cet iPad ? Vos favoris et réglages locaux restent ici. Vos autres appareils ne sont pas affectés.",
+    "source": "sha256:1cd1481e376119473a304b072dddcc0ee0ebb14c37c5dae99a114acdd25dca1d"
+  },
   "ios.settings.switchHelp": {
     "message": "Cet iPhone quittera sa synchronisation actuelle. Vos favoris et réglages locaux restent ici. Vos autres appareils ne sont pas affectés.",
     "source": "sha256:82889fc299ef71255083ed05c51921fbfccc2eb8977562d6a8ae7c56b793c272"
+  },
+  "ios.settings.switchHelp.ipad": {
+    "message": "Cet iPad quittera sa synchronisation actuelle. Vos favoris et réglages locaux restent ici. Vos autres appareils ne sont pas affectés.",
+    "source": "sha256:a1c1a51482b0d8f4264e4a55dea3e68d240c16cceb90bc27607fe8b94b0a24d1"
   },
   "ios.settings.timeOfDay": {
     "message": "Heure de la journée",
@@ -9085,6 +9149,10 @@
     "message": "Cet iPhone",
     "source": "sha256:872a9b15efd10d5c23b321f11d4d2d26630ac2b462424389c61a940f04e7887c"
   },
+  "spaces.thisPhone": {
+    "message": "Ce téléphone",
+    "source": "sha256:b026046d8dfbc3b8b3eade4d617aecce3c30cbd1b4aa8b741164583a8a88a4a9"
+  },
   "spaces.thisIPad": {
     "message": "Cet iPad",
     "source": "sha256:1585758383f584e1390802e41ffe68d77fa9d99d958b462f50a6cd08561edb39"
@@ -9117,9 +9185,17 @@
     "message": "Garder les Spaces et les groupes synchronisés sur cet iPhone",
     "source": "sha256:37f571fc1dc4b0a7299b0c4062eee63119c24848a52820fa96405910b0ea0683"
   },
+  "sharedSpaces.switch.iphone.ipad": {
+    "message": "Garder les Spaces et les groupes synchronisés sur cet iPad",
+    "source": "sha256:3ce594881d5c46e96863d972e9b48ba9beff75c9a62d1127d3fcd580baf6c9d3"
+  },
   "sharedSpaces.switch.line.iphone": {
     "message": "Les onglets de vos Spaces partagés sont synchronisés depuis cet iPhone.",
     "source": "sha256:3a52ae761ef984f6537ac718ef7cedb34fe1f6b59d01620d9daeb0218cb6c242"
+  },
+  "sharedSpaces.switch.line.iphone.ipad": {
+    "message": "Les onglets de vos Spaces partagés sont synchronisés depuis cet iPad.",
+    "source": "sha256:6b31e8c7523b0c0f758b9cbed0cd67513d03e11b86cb351dad6c08a01f042d91"
   },
   "sharedSpaces.waitingCount": {
     "message": "{count, plural, one {# Space partagé vous attend} many {# Spaces partagés vous attendent} other {# Spaces partagés vous attendent}}",
@@ -9129,13 +9205,25 @@
     "message": "Enregistrer Cet iPhone comme Space",
     "source": "sha256:29322ed63d9fca7aca123a8d29dc57c0a922a43fb008c9200098b0b7ae357249"
   },
+  "sharedSpaces.saveThisIPhone.ipad": {
+    "message": "Enregistrer Cet iPad comme Space",
+    "source": "sha256:eefbb4136228567c028b7d81b8511d4805c5134f50d1f31ada985b95820cdd7b"
+  },
   "sharedSpaces.recoveryName.iphone": {
     "message": "{name} · conservé sur cet iPhone",
     "source": "sha256:4fc90d0e3a8eda549190a942e5b17c1a84a1ce47c17803da49681e2132c32c38"
   },
+  "sharedSpaces.recoveryName.iphone.ipad": {
+    "message": "{name} · conservé sur cet iPad",
+    "source": "sha256:cf35525e5abdf98f03fac55871601309408e05e0b7ec09e8fb382f7326477c6e"
+  },
   "sharedSpaces.deletedEverywhere": {
     "message": "Supprimé partout. Annuler garde une copie sur cet iPhone.",
     "source": "sha256:8321dabd3f5afe88f2cecd37514c421fa323e4e7f662a13e0a34b282c1f484ec"
+  },
+  "sharedSpaces.deletedEverywhere.ipad": {
+    "message": "Supprimé partout. Annuler garde une copie sur cet iPad.",
+    "source": "sha256:6a614aff72b50de906d5d7823c762682f8480cd2cfff0ff7eef2b8713d45c9b6"
   },
   "spaces.onDevice": {
     "message": "Sur {device}",
@@ -9144,6 +9232,10 @@
   "bringSpace.action": {
     "message": "Copier sur l’iPhone",
     "source": "sha256:ea5b99999b3b68bd5611ae0e535c7372be51f0cdc24fdf62fef0d03d1dd70d3e"
+  },
+  "bringSpace.action.ipad": {
+    "message": "Copier sur l’iPad",
+    "source": "sha256:09f4059d161d3ae253303a844736d34f186059a21056d2af5f09eadea8285fe2"
   },
   "bringSpace.copyNote": {
     "message": "Cette copie ne changera pas quand le Space changera sur {device}. Activez la synchronisation des Spaces pour les garder identiques.",
@@ -9167,11 +9259,11 @@
   },
   "ios.settings.islandHistoryButtons": {
     "message": "Boutons Précédent et Suivant",
-    "source": "sha256:7ec1dc0623cd5f25a9dcfa770869e362aafdc346e914ccc97f40dea0f71903bc"
+    "source": "sha256:24b5daf02568586be73f80ddd0aeb9272f802b6b953247fe9c0dc9df17cfa571"
   },
   "ios.settings.islandHistoryButtonsHelp": {
-    "message": "Quand l’Island est étroite, ils remplacent Actualiser et Nouvel onglet. Tirez une page vers le bas pour l’actualiser.",
-    "source": "sha256:9b44c7b2c85805ae6a76e80aab9923e805e4820cfe9a1b0f457ca7be60456265"
+    "message": "Désactivés, ils laissent la place à Actualiser. Vous pouvez aussi tirer une page vers le bas pour l’actualiser.",
+    "source": "sha256:4cc6e57fb31059f5f1acd09b2e8f9790272f49bdd10a4ce96eabcd702c3ec041"
   },
   "ios.settings.islandPosition": {
     "message": "Position",
@@ -9221,6 +9313,30 @@
     "message": "Aucun résultat. Appuyez sur Retour pour l’ouvrir comme adresse ou recherche.",
     "source": "sha256:46db92f26b57de707da442b42408e8bf0086343fd07da52e5967f9e4912de2cf"
   },
+  "ios.palette.editAddress": {
+    "message": "Modifier l’adresse",
+    "source": "sha256:dfbb61b6b19e7cb18c745888e725052c4c00764e10af5bffdf6d678594f96330"
+  },
+  "ios.island.pageZoom": {
+    "message": "Zoom de page",
+    "source": "sha256:20d98a6a2b92cc042344220be60fe3b39d67547c2b978597bf622d53fc1780dd"
+  },
+  "ios.island.desktopSite": {
+    "message": "Demander le site web pour ordinateur",
+    "source": "sha256:26fce8e023bb66144767cd3297b77ecf89bd966f2a482e07e330c2d4ef10ac8f"
+  },
+  "ios.island.mobileSite": {
+    "message": "Demander le site web mobile",
+    "source": "sha256:d85602f2c34cb0dc8c6fe1d7b89d47ae3d3b28ca4226a91a70c44d20b02a3b0c"
+  },
+  "ios.appLink.message": {
+    "message": "Cette page souhaite ouvrir une autre application.",
+    "source": "sha256:0ec329b3a709623bad526c6473165ac3c8e2cb0bd289e2140f75e975a26bacba"
+  },
+  "ios.downloads.failed": {
+    "message": "Impossible de télécharger {file}",
+    "source": "sha256:528a807eb1ee9254b624cc9abbaae34a1bf5d4cddd78d1349911e1e8b2bd43b5"
+  },
   "ios.tabs.openTabs": {
     "message": "Onglets ouverts",
     "source": "sha256:89493dd0e4a5f4bb1e277a1821982fe52cd694db0d06e69eecdddbbb74ed1fce"
@@ -9252,6 +9368,10 @@
   "ios.welcome.title": {
     "message": "Votre Blanc, dans votre poche.",
     "source": "sha256:9b3d61d7c90b5e7efb6caab1e5abe9561db5d8701d0cfc23ad3291cc847fb9d1"
+  },
+  "ios.welcome.title.ipad": {
+    "message": "Votre Blanc, sur votre iPad.",
+    "source": "sha256:0a588438f990307df5acdd5232d9bc88f4745ecd8afef73071aa233ecccc2c08"
   },
   "ios.welcome.body": {
     "message": "Récupérez les onglets, les Spaces et les favoris de Blanc sur votre ordinateur.",
@@ -9297,6 +9417,26 @@
     "message": "Partager depuis cet iPhone",
     "source": "sha256:61dd993df0201b989d53efd771e1d61505b3e653e4c43fdc60c1edc0ad5498fd"
   },
+  "ios.welcome.shareTitle.ipad": {
+    "message": "Partager depuis cet iPad",
+    "source": "sha256:b2710f3259484b8979dfe18aab1d64924103bac618b8276b8eb518fe0c7b674d"
+  },
+  "ios.menu.requestMobileSite": {
+    "message": "Demander le site web mobile",
+    "source": "sha256:18811c9eb691ba477ea5989dab4bfb497b56f9619ac817b6d56ac9ed31dfbf38"
+  },
+  "ios.menu.requestDesktopSite": {
+    "message": "Demander le site web pour ordinateur",
+    "source": "sha256:527f089f6269388ded9f5cd79a376ca933cd5475dc40b51f79e82bf6256a5d0e"
+  },
+  "menu.focusNextPane": {
+    "message": "Panneau suivant",
+    "source": "sha256:11dc6350ef1ae461ccb42190827924d52f4cad3c6a0120717ebf2ea55825f22f"
+  },
+  "menu.focusPreviousPane": {
+    "message": "Panneau précédent",
+    "source": "sha256:de933dbf93f18b308af517f1758b7f69d31394e277488b353280f907c6b8288e"
+  },
   "ios.welcome.shareBody": {
     "message": "Les deux restent désactivés jusqu’à ce que vous les activiez. Vous pourrez les modifier dans Réglages → Synchronisation.",
     "source": "sha256:8a81a001677bb25429863d7754431e93c3916de0846173acf9df6399edac60fc"
@@ -9312,6 +9452,10 @@
   "ios.welcome.measureUsageHelp": {
     "message": "À chaque ouverture, Blanc envoie un comptage anonyme : un identifiant aléatoire pour cette installation, la version de l’app et celle d’iOS. Jamais ce que vous consultez. Voir blanc.day/privacy.",
     "source": "sha256:918daf894fa3d224ceb4594a9ca31bb335ea73f40215009a0e188c3b261689bc"
+  },
+  "ios.welcome.suggestionsHelp": {
+    "message": "Pendant que vous saisissez une recherche, le texte est envoyé à votre moteur de recherche, qui renvoie des suggestions. Jamais depuis un onglet privé, et jamais une adresse, un texte collé ou quoi que ce soit qui ressemble à un mot de passe ou à une clé.",
+    "source": "sha256:54fe76e488a4dfe5362d990df43edc375a3c92743a380cefe519fda8cfe1f6dd"
   },
   "ios.welcome.showAgain": {
     "message": "Revoir l’accueil",
@@ -9392,5 +9536,115 @@
   "settings.general.miniWindow.shortcut.ctrlShiftSpace": {
     "message": "Ctrl+Maj+Espace",
     "source": "sha256:5f579d29dff6300530617e41e4a883a52c075e51ffb3573d781ced720a7601a8"
+  },
+  "sharedSpaces.switch.android": {
+    "message": "Garder les Spaces et les groupes synchronisés sur ce téléphone",
+    "source": "sha256:3fd5725f20014ae99a8e54ec771f70bbd0aded56cb6824418f77a77cfc7bb6c1"
+  },
+  "sharedSpaces.switch.line.android": {
+    "message": "Les onglets de vos Spaces partagés sont synchronisés depuis ce téléphone.",
+    "source": "sha256:dae75716c578c9f174cf391630377e6676fca184fd18647585425a86875711ab"
+  },
+  "sharedSpaces.saveThisPhone": {
+    "message": "Enregistrer Ce téléphone comme Space",
+    "source": "sha256:3d504e97fd5a0cddac0a501fa8d33ca344ed24a3713465e62185521241253809"
+  },
+  "sharedSpaces.recoveryName.android": {
+    "message": "{name} · conservé sur ce téléphone",
+    "source": "sha256:4ccdeab1c50b3fe66996ffa42c4a38124fde8c3f993668d7eb50aca7d00a2e57"
+  },
+  "sharedSpaces.deletedEverywhere.android": {
+    "message": "Supprimé partout. Annuler garde une copie sur ce téléphone.",
+    "source": "sha256:0b22cfb62b4d2dc6a91b7a64abc4d4013cd2ac2c4ce370e256b185300f2e9dda"
+  },
+  "bringSpace.action.android": {
+    "message": "Copier sur ce téléphone",
+    "source": "sha256:40fcc327dd131cea58c7905b3b43f52fa94da02544a82c79a46c5fea88ca8abf"
+  },
+  "android.settings.more": {
+    "message": "Plus",
+    "note": "Android Settings: heading of the section holding Chromium’s own pages (Site settings, Accessibility, Notifications, Downloads).",
+    "source": "sha256:047283b6437421a2bd68afdf7cf3c7c1d0fcc4bd6e2b6e55449d8b014afbebdf"
+  },
+  "android.settings.islandPosition": {
+    "message": "Position de l’Island",
+    "note": "Android Settings → Appearance: row choosing whether the Island sits at the top or the bottom of the screen.",
+    "source": "sha256:7233ccf8203f09ca9a51bc8a0246b4ebfe922b0057cf7eb3624119a10ab7f703"
+  },
+  "android.settings.islandPosition.top": {
+    "message": "En haut",
+    "note": "Android Settings → Island position: the Island sits at the top of the screen.",
+    "source": "sha256:c223c393b804a6ac07e537be031b49aeb9a01f212380daf57e9095de6011cab3"
+  },
+  "android.settings.islandPosition.bottom": {
+    "message": "En bas",
+    "note": "Android Settings → Island position: the Island sits at the bottom of the screen.",
+    "source": "sha256:206e35c0a394e6a73d39040dd0cab63b48af03b1d6d0ed533d44b3af8f709528"
+  },
+  "android.settings.openSourceLicenses": {
+    "message": "Licences open source",
+    "note": "Android Settings → About: row opening the list of open-source licenses.",
+    "source": "sha256:ee73136a612e3f11806cd153e9242381073980855674daf373395a55d4bee467"
+  },
+  "android.welcome.shareTitle": {
+    "message": "Partager depuis ce téléphone",
+    "note": "Blanc for Android walkthrough: the iPhone string ios.welcome.shareTitle with \"this phone\".",
+    "source": "sha256:4734ec05405720aee9f9c2be173c845a1a7c3b3c2a848bb92874cad6d86582ae"
+  },
+  "android.welcome.measureUsageHelp": {
+    "message": "À chaque ouverture, Blanc envoie un comptage anonyme : un identifiant aléatoire pour cette installation, la version de l’app et la version d’Android. Jamais ce que vous consultez. Voir blanc.day/privacy.",
+    "note": "Blanc for Android: under the Measure usage switch in the walkthrough and Settings; ios.welcome.measureUsageHelp with the Android version. Says exactly what the launch ping carries.",
+    "source": "sha256:d4696330c340c778e600462c4e853fb7f6c7d774d64f25d0fa42a3a49913b7dc"
+  },
+  "android.defaultBrowser.body": {
+    "message": "Faites de Blanc votre navigateur par défaut pour que les liens des autres apps s’ouvrent ici.",
+    "note": "Blanc for Android walkthrough: the default-browser step, ios.defaultBrowser.body without iPhone app names.",
+    "source": "sha256:5da61b8d64796e893236b193ddfcafbe8c4185dc942fcca31e150b38aae772e6"
+  },
+  "android.defaultBrowser.open": {
+    "message": "Définir par défaut",
+    "note": "Blanc for Android walkthrough: the button that asks Android to make Blanc the default browser (Android shows its own confirmation).",
+    "source": "sha256:5183a6b5762927630c64cdd4e9f172d64e8284a07f4311b84965a01add5e877f"
+  },
+  "android.settings.autoRevokeSummary": {
+    "message": "Pour protéger vos données, laissez Blanc supprimer les autorisations des sites que vous n’avez pas consultés récemment",
+    "note": "Android Settings → Site settings: summary under the unused-permissions switch (replaces Chromium’s text, which names Chrome).",
+    "source": "sha256:11f7585d6d6ab59263e345cb2858770fa61bbd956373179f8accfe4cf0afb3f8"
+  },
+  "android.licenses.title": {
+    "message": "Licences open source",
+    "source": "sha256:c84920ec51de86f1788fa7c241102677c3bcab126fc3f18a294fe6a05a1fa2b1"
+  },
+  "android.licenses.intro": {
+    "message": "Lis les licences et les mentions de Blanc ci-dessous. Les crédits de Chromium présentent ses propres licences et composants tiers.",
+    "source": "sha256:b73591377c8e30167aace94d5072a1c457e8803308b7b091b28bba583cb40523"
+  },
+  "android.licenses.chromiumCredits": {
+    "message": "Licences et crédits de Chromium",
+    "source": "sha256:836d9421155d5abab34e471f6c036be4b1aa3dbe5e297acd8fd3c5c1d1b6fa6c"
+  },
+  "android.licenses.license": {
+    "message": "Licence du logiciel Blanc",
+    "source": "sha256:fc087b770fad11eaa405006fbb57913b940be11d72cc346fdaa220b2ba3105dd"
+  },
+  "android.licenses.assetLicense": {
+    "message": "Noms, logos et éléments d’identité de Blanc",
+    "source": "sha256:edeff99b2051b835c2aee1afb9fd6afecdc4ac78fe3648143fafb39e831debfa"
+  },
+  "android.licenses.thirdPartyNotices": {
+    "message": "Mentions de tiers du dépôt",
+    "source": "sha256:7cb5a509d3909dc8304f5eabdf751fd9d6930e09f3bf3a62933d8f348dec118f"
+  },
+  "android.licenses.chromiumForkNotices": {
+    "message": "Mentions du fork de Chromium",
+    "source": "sha256:1c29ebb79158e30c9f7198f1be802264df59da16b0b2d18a1a864e1f2202b425"
+  },
+  "android.licenses.loading": {
+    "message": "Chargement de la mention…",
+    "source": "sha256:d0e14ec68bc4b1568a3ca46b44e90022eaae9f56d9eab2009856a32f588631bb"
+  },
+  "android.licenses.loadFailed": {
+    "message": "Cette mention n’a pas pu être chargée. Ouvre le lien de son titre pour lire le fichier inclus.",
+    "source": "sha256:10f1e03f68d92e46522c957048d32e387885e1b7ac56bfbfcaf0b315488731c3"
   }
 }

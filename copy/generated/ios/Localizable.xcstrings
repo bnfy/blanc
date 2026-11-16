@@ -2480,13 +2480,13 @@
       }
     },
     "pill.placeholder": {
-      "comment": "Pill label on a blank new tab, inviting the user to open the command bar.",
+      "comment": "Pill label on a blank new tab, inviting the user to open the command bar. Also the iPhone Island's dimmed label on the Start Page, where it must fit a narrow Island.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search or type a URL"
+            "value": "Search or type URL"
           }
         },
         "de": {
@@ -29473,6 +29473,48 @@
         }
       }
     },
+    "sync.error.accountGone.ipad": {
+      "comment": "iPad: sync.error.accountGone's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This sync no longer exists. Turn sync off here, then add this iPad again from your computer."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Synchronisierung gibt es nicht mehr. Schalte sie hier aus und füge dieses iPad dann auf deinem Computer erneut hinzu."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta sincronización ya no existe. Desactívala aquí y vuelve a añadir este iPad desde tu ordenador."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette synchronisation n’existe plus. Désactivez-la ici, puis ajoutez de nouveau cet iPad depuis votre ordinateur."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa sincronizzazione non esiste più. Disattivala qui, poi aggiungi di nuovo questo iPad dal tuo computer."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta sincronização não existe mais. Desative-a aqui e adicione este iPad de novo pelo seu computador."
+          }
+        }
+      }
+    },
     "settings.sync.recovery.dialogMessage": {
       "comment": "Settings → Sync → Copy recovery code: native dialog title.",
       "extractionState": "manual",
@@ -33333,48 +33375,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Glance fechado"
-          }
-        }
-      }
-    },
-    "split.glanceUnavailable": {
-      "comment": "Screen reader announcement and status when Glance is asked to open while a Split View (F53) is showing.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Glance isn't available while a split is showing"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Glance ist nicht verfügbar, solange eine geteilte Ansicht angezeigt wird"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Glance no está disponible mientras se muestra una vista dividida"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Glance n’est pas disponible pendant l’affichage d’une vue partagée"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Glance non è disponibile mentre è visibile una vista divisa"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O Glance não está disponível enquanto uma visualização dividida é exibida"
           }
         }
       }
@@ -39260,37 +39260,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "System follows your macOS/Windows theme"
+            "value": "System follows your computer's light or dark mode"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "System folgt dem Design von macOS/Windows"
+            "value": "System folgt dem hellen oder dunklen Modus deines Computers"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sistema sigue el tema de macOS o Windows"
+            "value": "Sistema sigue el modo claro u oscuro de tu ordenador"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Système suit le thème de macOS ou Windows"
+            "value": "Système suit le mode clair ou sombre de votre ordinateur"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sistema segue il tema di macOS o Windows"
+            "value": "Sistema segue la modalità chiara o scura del computer"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sistema segue o tema do macOS ou do Windows"
+            "value": "Sistema segue o modo claro ou escuro do computador"
           }
         }
       }
@@ -40562,37 +40562,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "ledger"
+            "value": "Ledger"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "ledger"
+            "value": "Ledger"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "ledger"
+            "value": "Ledger"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "ledger"
+            "value": "Ledger"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "ledger"
+            "value": "Ledger"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "ledger"
+            "value": "Ledger"
           }
         }
       }
@@ -40604,37 +40604,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "billboard"
+            "value": "Billboard"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "billboard"
+            "value": "Billboard"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "billboard"
+            "value": "Billboard"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "billboard"
+            "value": "Billboard"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "billboard"
+            "value": "Billboard"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "billboard"
+            "value": "Billboard"
           }
         }
       }
@@ -40646,37 +40646,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "shelf"
+            "value": "Shelf"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "shelf"
+            "value": "Shelf"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "shelf"
+            "value": "Shelf"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "shelf"
+            "value": "Shelf"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "shelf"
+            "value": "Shelf"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "shelf"
+            "value": "Shelf"
           }
         }
       }
@@ -40688,37 +40688,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "tally"
+            "value": "Tally"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "tally"
+            "value": "Tally"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "tally"
+            "value": "Tally"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "tally"
+            "value": "Tally"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "tally"
+            "value": "Tally"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "tally"
+            "value": "Tally"
           }
         }
       }
@@ -41517,6 +41517,90 @@
           "stringUnit": {
             "state": "translated",
             "value": "Segure Ctrl e pressione Tab para voltar pelas abas que você usou por último; solte Ctrl para trocar. Esc deixa você onde está."
+          }
+        }
+      }
+    },
+    "settings.general.reuseNewTab.label": {
+      "comment": "Settings → General → Browsing: label of the switch (on by default) that makes New Tab and New Private Tab go to a new tab in the current window that hasn't been used yet (still on the start page, never navigated) instead of opening another one.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch to an unused new tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu einem unbenutzten neuen Tab wechseln"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ir a una pestaña nueva sin usar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aller à un nouvel onglet inutilisé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passa a una nuova scheda non usata"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ir para uma nova aba não usada"
+          }
+        }
+      }
+    },
+    "settings.general.reuseNewTab.hint": {
+      "comment": "Settings → General → Browsing: hint under Switch to an unused new tab. New Tab and New Private Tab are the File menu items of the same name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Tab goes to a new tab in this window that you haven't used yet, instead of opening another. New Private Tab does the same for private tabs."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„Neuer Tab“ wechselt zu einem neuen Tab in diesem Fenster, den du noch nicht benutzt hast, statt einen weiteren zu öffnen. „Neuer privater Tab“ macht dasselbe für private Tabs."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva pestaña va a una pestaña nueva de esta ventana que aún no has usado, en lugar de abrir otra. Nueva pestaña privada hace lo mismo con las pestañas privadas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvel onglet va à un nouvel onglet de cette fenêtre que vous n’avez pas encore utilisé, au lieu d’en ouvrir un autre. Nouvel onglet privé fait de même pour les onglets privés."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuova scheda passa a una nuova scheda di questa finestra che non hai ancora usato, invece di aprirne un’altra. Nuova scheda privata fa lo stesso con le schede private."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nova aba vai para uma nova aba desta janela que você ainda não usou, em vez de abrir outra. Nova aba privada faz o mesmo com as abas privadas."
           }
         }
       }
@@ -66296,43 +66380,43 @@
       }
     },
     "onboarding.skip": {
-      "comment": "Onboarding dialog: button that skips the remaining steps, lowercase by design.",
+      "comment": "Onboarding dialog: button that skips the remaining steps.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "skip setup"
+            "value": "Skip setup"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "überspringen"
+            "value": "Überspringen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "omitir los pasos"
+            "value": "Omitir los pasos"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "tout passer"
+            "value": "Tout passer"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "salta tutto"
+            "value": "Salta tutto"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "pular etapas"
+            "value": "Pular etapas"
           }
         }
       }
@@ -66380,13 +66464,13 @@
       }
     },
     "onboarding.step.default": {
-      "comment": "Onboarding dialog: name of step 1, lowercase by design.",
+      "comment": "Onboarding dialog: name of step 1.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "default browser"
+            "value": "Default browser"
           }
         },
         "de": {
@@ -66398,37 +66482,37 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "navegador predeterminado"
+            "value": "Navegador predeterminado"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "navigateur par défaut"
+            "value": "Navigateur par défaut"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "browser predefinito"
+            "value": "Browser predefinito"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "navegador padrão"
+            "value": "Navegador padrão"
           }
         }
       }
     },
     "onboarding.step.import": {
-      "comment": "Onboarding dialog: name of step 2, lowercase by design.",
+      "comment": "Onboarding dialog: name of step 2.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "import"
+            "value": "Import"
           }
         },
         "de": {
@@ -66440,79 +66524,79 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "importar"
+            "value": "Importar"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "importation"
+            "value": "Importation"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "importazione"
+            "value": "Importazione"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "importar"
+            "value": "Importar"
           }
         }
       }
     },
     "onboarding.step.island": {
-      "comment": "Onboarding dialog: name of step 3 (the Island), lowercase by design.",
+      "comment": "Onboarding dialog: name of step 3 (the Island).",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "the island"
+            "value": "The Island"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "die Island"
+            "value": "Die Island"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "la island"
+            "value": "La Island"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "l’island"
+            "value": "L’Island"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "l’island"
+            "value": "L’Island"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "a island"
+            "value": "A Island"
           }
         }
       }
     },
     "onboarding.step.blocking": {
-      "comment": "Onboarding dialog: name of step 4, lowercase by design.",
+      "comment": "Onboarding dialog: name of step 4.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "ad blocking"
+            "value": "Ad blocking"
           }
         },
         "de": {
@@ -66524,37 +66608,37 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "bloqueo de anuncios"
+            "value": "Bloqueo de anuncios"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "blocage des publicités"
+            "value": "Blocage des publicités"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "blocco degli annunci"
+            "value": "Blocco degli annunci"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "bloqueio de anúncios"
+            "value": "Bloqueio de anúncios"
           }
         }
       }
     },
     "onboarding.step.privacy": {
-      "comment": "Onboarding dialog: name of step 5, lowercase by design.",
+      "comment": "Onboarding dialog: name of step 5.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "privacy"
+            "value": "Privacy"
           }
         },
         "de": {
@@ -66566,37 +66650,37 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "privacidad"
+            "value": "Privacidad"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "confidentialité"
+            "value": "Confidentialité"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "privacy"
+            "value": "Privacy"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "privacidade"
+            "value": "Privacidade"
           }
         }
       }
     },
     "onboarding.step.theme": {
-      "comment": "Onboarding dialog: name of step 6, lowercase by design.",
+      "comment": "Onboarding dialog: name of step 6.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "theme"
+            "value": "Theme"
           }
         },
         "de": {
@@ -66608,25 +66692,25 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "tema"
+            "value": "Tema"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "thème"
+            "value": "Thème"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "tema"
+            "value": "Tema"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "tema"
+            "value": "Tema"
           }
         }
       }
@@ -67904,7 +67988,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Meet the island"
+            "value": "Meet the Island"
           }
         },
         "de": {
@@ -67916,25 +68000,25 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Te presentamos la island"
+            "value": "Te presentamos la Island"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Découvrez l’island"
+            "value": "Découvrez l’Island"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ecco l’island"
+            "value": "Ecco l’Island"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Conheça a island"
+            "value": "Conheça a Island"
           }
         }
       }
@@ -68276,43 +68360,43 @@
       }
     },
     "onboarding.blocking.body": {
-      "comment": "Onboarding dialog → step 4: explanation; /off-leash is a command.",
+      "comment": "Onboarding dialog → step 4: explanation; /allow-ads is a command.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /off-leash."
+            "value": "Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /allow-ads."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blockiert bekannte Werbung und Tracker mit mitgelieferten Regeln. Nicht jeder Tracker lässt sich stoppen. Schalte es pro Website mit /off-leash aus."
+            "value": "Blockiert bekannte Werbung und Tracker mit mitgelieferten Regeln. Nicht jeder Tracker lässt sich stoppen. Schalte es pro Website mit /allow-ads aus."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bloquea anuncios y rastreadores conocidos con reglas incluidas. No puede detener todos los rastreadores. Desactívalo en un sitio con /off-leash."
+            "value": "Bloquea anuncios y rastreadores conocidos con reglas incluidas. No puede detener todos los rastreadores. Desactívalo en un sitio con /allow-ads."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bloque les publicités et traceurs connus grâce à des règles intégrées. Il ne peut pas arrêter tous les traceurs. Désactivez-le site par site avec /off-leash."
+            "value": "Bloque les publicités et traceurs connus grâce à des règles intégrées. Il ne peut pas arrêter tous les traceurs. Désactivez-le site par site avec /allow-ads."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blocca gli annunci e i tracker noti usando regole integrate. Non può fermare tutti i tracker. Disattivalo sito per sito con /off-leash."
+            "value": "Blocca gli annunci e i tracker noti usando regole integrate. Non può fermare tutti i tracker. Disattivalo sito per sito con /allow-ads."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bloqueia anúncios e rastreadores conhecidos com regras incluídas. Não consegue impedir todos os rastreadores. Desative por site com /off-leash."
+            "value": "Bloqueia anúncios e rastreadores conhecidos com regras incluídas. Não consegue impedir todos os rastreadores. Desative por site com /allow-ads."
           }
         }
       }
@@ -68822,85 +68906,85 @@
       }
     },
     "onboarding.theme.light": {
-      "comment": "Onboarding dialog → step 6: theme choice, lowercase by design.",
+      "comment": "Onboarding dialog → step 6: theme choice.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "light"
+            "value": "Light"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "hell"
+            "value": "Hell"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "claro"
+            "value": "Claro"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "clair"
+            "value": "Clair"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "chiaro"
+            "value": "Chiaro"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "claro"
+            "value": "Claro"
           }
         }
       }
     },
     "onboarding.theme.dark": {
-      "comment": "Onboarding dialog → step 6: theme choice, lowercase by design.",
+      "comment": "Onboarding dialog → step 6: theme choice.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "dark"
+            "value": "Dark"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "dunkel"
+            "value": "Dunkel"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "oscuro"
+            "value": "Oscuro"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "sombre"
+            "value": "Sombre"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "scuro"
+            "value": "Scuro"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "escuro"
+            "value": "Escuro"
           }
         }
       }
@@ -82399,6 +82483,48 @@
         }
       }
     },
+    "mahjong.setup.dailyLayoutHint": {
+      "comment": "Mahjong → Boards (choose your game): shown beside the layout heading while the Daily deal is selected, when the other layouts are dimmed. “Random” is the deal button’s name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily plays today’s layout. Switch to Random to pick another."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Tagespartie spielt das heutige Layout. Wechsle zu „Zufällig“, um ein anderes zu wählen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La partida diaria usa el diseño de hoy. Cambia a «Aleatoria» para elegir otro."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La donne du jour utilise la disposition du jour. Passez à « Aléatoire » pour en choisir une autre."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La partita del giorno usa la disposizione di oggi. Passa a «Casuale» per sceglierne un’altra."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A partida do dia usa o layout de hoje. Mude para “Aleatória” para escolher outro."
+          }
+        }
+      }
+    },
     "mahjong.layout.turtleDetail": {
       "comment": "Mahjong → Boards (choose your game): tile count and pace under a board name on a narrow card; keep it short.",
       "extractionState": "manual",
@@ -83407,48 +83533,6 @@
         }
       }
     },
-    "mahjong.setup.freeHighlight": {
-      "comment": "Mahjong → Boards (choose your game): text (span).",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "<0>Stronger free-tile highlight</0> Adds a persistent high-contrast ring to every tile available to play."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "<0>Stärkere Hervorhebung freier Steine</0> Fügt jedem spielbaren Stein einen dauerhaften, kontrastreichen Ring hinzu."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "<0>Resaltado más fuerte de fichas libres</0> Añade un anillo fijo de alto contraste a cada ficha que se puede jugar."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "<0>Surlignage renforcé des tuiles libres</0> Ajoute un anneau permanent à fort contraste autour de chaque tuile jouable."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "<0>Evidenziazione più marcata delle tessere libere</0> Aggiunge un anello fisso ad alto contrasto a ogni tessera giocabile."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "<0>Destaque mais forte das peças livres</0> Adiciona um anel fixo de alto contraste a cada peça que pode ser jogada."
-          }
-        }
-      }
-    },
     "mahjong.setup.replaces": {
       "comment": "Mahjong → Boards (choose your game): text (p).",
       "extractionState": "manual",
@@ -83492,43 +83576,85 @@
       }
     },
     "mahjong.setup.copyDeal": {
-      "comment": "Mahjong → Boards (choose your game): button.",
+      "comment": "Mahjong → Boards (choose your game): button that copies a link to the board on the table, so someone else can play the same deal.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "copy current deal"
+            "value": "copy board link"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Partie kopieren"
+            "value": "Partie-Link kopieren"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "copiar la partida actual"
+            "value": "copiar enlace"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "copier la donne actuelle"
+            "value": "copier le lien"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "copia partita attuale"
+            "value": "copia link"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "copiar a partida atual"
+            "value": "copiar link"
+          }
+        }
+      }
+    },
+    "mahjong.setup.linkCopied": {
+      "comment": "Mahjong → Boards: the copy button reads this for a moment after the link is copied.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "link copied"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link kopiert"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "enlace copiado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "lien copié"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "link copiato"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "link copiado"
           }
         }
       }
@@ -85255,170 +85381,254 @@
         }
       }
     },
-    "mahjong.tile.motif.sunrise": {
-      "comment": "Mahjong: accessible tile name: picture on the east wind tile.",
+    "mahjong.tile.windEastPlain": {
+      "comment": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "sunrise"
+            "value": "east wind"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sonnenaufgang"
+            "value": "Ostwind"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "amanecer"
+            "value": "viento del este"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "lever de soleil"
+            "value": "vent d’est"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "alba"
+            "value": "vento dell’est"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "nascer do sol"
+            "value": "vento leste"
           }
         }
       }
     },
-    "mahjong.tile.motif.sun": {
-      "comment": "Mahjong: accessible tile name: picture on the south wind tile.",
+    "mahjong.tile.windSouthPlain": {
+      "comment": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "sun"
+            "value": "south wind"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sonne"
+            "value": "Südwind"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "sol"
+            "value": "viento del sur"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "soleil"
+            "value": "vent du sud"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "sole"
+            "value": "vento del sud"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "sol"
+            "value": "vento sul"
           }
         }
       }
     },
-    "mahjong.tile.motif.moonAndWave": {
-      "comment": "Mahjong: accessible tile name: picture on the west wind tile.",
+    "mahjong.tile.windWestPlain": {
+      "comment": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "moon and wave"
+            "value": "west wind"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mond und Welle"
+            "value": "Westwind"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "luna y ola"
+            "value": "viento del oeste"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "lune et vague"
+            "value": "vent d’ouest"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "luna e onda"
+            "value": "vento dell’ovest"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "lua e onda"
+            "value": "vento oeste"
           }
         }
       }
     },
-    "mahjong.tile.motif.mountain": {
-      "comment": "Mahjong: accessible tile name: picture on the north wind tile.",
+    "mahjong.tile.windNorthPlain": {
+      "comment": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "mountain"
+            "value": "north wind"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Berg"
+            "value": "Nordwind"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "montaña"
+            "value": "viento del norte"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "montagne"
+            "value": "vent du nord"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "montagna"
+            "value": "vento del nord"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "montanha"
+            "value": "vento norte"
+          }
+        }
+      }
+    },
+    "mahjong.tile.dragonRedPlain": {
+      "comment": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "red dragon"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roter Drache"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dragón rojo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dragon rouge"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "drago rosso"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dragão vermelho"
+          }
+        }
+      }
+    },
+    "mahjong.tile.dragonGreenPlain": {
+      "comment": "Mahjong: accessible tile name for the standard tile art, which shows only the wind or dragon itself.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "green dragon"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grüner Drache"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dragón verde"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dragon vert"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "drago verde"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dragão verde"
           }
         }
       }
@@ -85461,90 +85671,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "bússola"
-          }
-        }
-      }
-    },
-    "mahjong.tile.motif.flame": {
-      "comment": "Mahjong: accessible tile name: picture on the red dragon tile.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "flame"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Flamme"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "llama"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "flamme"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "fiamma"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "chama"
-          }
-        }
-      }
-    },
-    "mahjong.tile.motif.flourish": {
-      "comment": "Mahjong: accessible tile name: picture on the green dragon tile (an ornamental swirl).",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "flourish"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ornament"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "floritura"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "arabesque"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ghirigoro"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "arabesco"
           }
         }
       }
@@ -88485,6 +88611,384 @@
           "stringUnit": {
             "state": "translated",
             "value": "Um final tranquilo."
+          }
+        }
+      }
+    },
+    "mahjong.win.titleRecord": {
+      "comment": "Mahjong: board-cleared card title when this clear set a new record.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A new personal best."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue persönliche Bestleistung."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un nuevo récord personal."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un nouveau record personnel."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un nuovo record personale."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um novo recorde pessoal."
+          }
+        }
+      }
+    },
+    "mahjong.win.titleFirst": {
+      "comment": "Mahjong: board-cleared card title for the first clear of a layout; {layout} is its name, such as Arch.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First time clearing %1$@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zum ersten Mal %1$@ abgeräumt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Primera vez que completas %1$@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Première fois que vous terminez %1$@."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prima volta che completi %1$@."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Primeira vez que você completa %1$@."
+          }
+        }
+      }
+    },
+    "mahjong.win.titleStreak": {
+      "comment": "Mahjong: board-cleared card title on every third board cleared in a row, when the next deal switches to a new tile set. {run} starts the sentence: a capitalized number word (Three, Six, Nine) or digits above nine.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ in a row. New tiles next."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ in Folge. Als Nächstes neue Steine."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ seguidas. Ahora, fichas nuevas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ d’affilée. De nouvelles tuiles ensuite."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ di fila. Ora tessere nuove."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ seguidas. Agora, peças novas."
+          }
+        }
+      }
+    },
+    "mahjong.win.titleDaily": {
+      "comment": "Mahjong: board-cleared card title after finishing today’s Daily.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today’s Daily, done."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das heutige Tagesspiel ist geschafft."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La diaria de hoy, completada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le défi du jour est réussi."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La quotidiana di oggi è completata."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A diária de hoje está concluída."
+          }
+        }
+      }
+    },
+    "mahjong.win.titleSweep": {
+      "comment": "Mahjong: one of the rotating board-cleared card titles.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clean sweep."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles abgeräumt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mesa limpia."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Table rase."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tavolo pulito."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mesa limpa."
+          }
+        }
+      }
+    },
+    "mahjong.win.titleHome": {
+      "comment": "Mahjong: one of the rotating board-cleared card titles (every tile has found its pair).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every tile, home."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeder Stein an seinem Platz."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada ficha en su sitio."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chaque tuile à sa place."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni tessera al suo posto."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada peça em seu lugar."
+          }
+        }
+      }
+    },
+    "mahjong.win.titleLastPair": {
+      "comment": "Mahjong: one of the rotating board-cleared card titles.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That’s the last pair."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das war das letzte Paar."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Era la última pareja."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "C’était la dernière paire."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Era l’ultima coppia."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Era o último par."
+          }
+        }
+      }
+    },
+    "mahjong.win.titleTidy": {
+      "comment": "Mahjong: one of the rotating board-cleared card titles.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A tidy table."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein aufgeräumter Tisch."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una mesa ordenada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une table bien rangée."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un tavolo in ordine."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma mesa arrumada."
+          }
+        }
+      }
+    },
+    "mahjong.win.titleWellPlayed": {
+      "comment": "Mahjong: one of the rotating board-cleared card titles.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Well played."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gut gespielt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bien jugado."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bien joué."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ben giocato."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bem jogado."
           }
         }
       }
@@ -94093,6 +94597,48 @@
         }
       }
     },
+    "settings.sync.createOnComputer.ipad": {
+      "comment": "iPad: settings.sync.createOnComputer's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start your sync on your computer, then add this iPad with a code."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starte die Synchronisierung auf deinem Computer und füge dann dieses iPad mit einem Code hinzu."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicia la sincronización en tu ordenador y después añade este iPad con un código."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurez la synchronisation sur votre ordinateur, puis ajoutez cet iPad avec un code."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avvia la sincronizzazione sul computer, poi aggiungi questo iPad con un codice."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicie a sincronização no seu computador e adicione este iPad com um código."
+          }
+        }
+      }
+    },
     "settings.sync.enterSyncName": {
       "comment": "Settings → Sync: field label when joining an existing sync; asks for the credential already used on another device, not a new one.",
       "extractionState": "manual",
@@ -98839,6 +99385,48 @@
         }
       }
     },
+    "ios.settings.shareTabsHelp.ipad": {
+      "comment": "iPad: ios.settings.shareTabsHelp's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share this iPad’s regular open tabs with your other devices. Private tabs are never shared."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teile die normalen offenen Tabs dieses iPads mit deinen anderen Geräten. Private Tabs werden nie geteilt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comparte las pestañas abiertas normales de este iPad con tus otros dispositivos. Las pestañas privadas nunca se comparten."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partagez les onglets ouverts ordinaires de cet iPad avec vos autres appareils. Les onglets privés ne sont jamais partagés."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Condividi le normali schede aperte di questo iPad con gli altri dispositivi. Le schede private non vengono mai condivise."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartilhe as abas abertas normais deste iPad com seus outros dispositivos. Abas privadas nunca são compartilhadas."
+          }
+        }
+      }
+    },
     "ios.settings.disconnectHelp": {
       "comment": "Native iOS Settings sheet: disconnectHelp.",
       "extractionState": "manual",
@@ -98881,6 +99469,48 @@
         }
       }
     },
+    "ios.settings.disconnectHelp.ipad": {
+      "comment": "iPad: ios.settings.disconnectHelp's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnect this iPad? Your local Favorites and settings stay here. Your other devices are not affected."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses iPad trennen? Deine lokalen Favoriten und Einstellungen bleiben hier. Deine anderen Geräte sind nicht betroffen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Desconectar este iPad? Tus Favoritos y ajustes locales permanecerán aquí. Tus otros dispositivos no se verán afectados."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déconnecter cet iPad ? Vos favoris et réglages locaux restent ici. Vos autres appareils ne sont pas affectés."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnettere questo iPad? I preferiti e le impostazioni locali restano qui. Gli altri dispositivi non sono interessati."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desconectar este iPad? Seus Favoritos e ajustes locais ficam aqui. Seus outros dispositivos não são afetados."
+          }
+        }
+      }
+    },
     "ios.settings.switchHelp": {
       "comment": "Native iOS Settings sheet: switchHelp.",
       "extractionState": "manual",
@@ -98919,6 +99549,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "Este iPhone sairá da sincronização atual. Seus Favoritos e ajustes locais ficam aqui. Seus outros dispositivos não são afetados."
+          }
+        }
+      }
+    },
+    "ios.settings.switchHelp.ipad": {
+      "comment": "iPad: ios.settings.switchHelp's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This iPad will leave its current sync. Your local Favorites and settings stay here. Your other devices are not affected."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses iPad verlässt seine aktuelle Synchronisierung. Deine lokalen Favoriten und Einstellungen bleiben hier. Deine anderen Geräte sind nicht betroffen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este iPad saldrá de su sincronización actual. Tus Favoritos y ajustes locales permanecerán aquí. Tus otros dispositivos no se verán afectados."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cet iPad quittera sa synchronisation actuelle. Vos favoris et réglages locaux restent ici. Vos autres appareils ne sont pas affectés."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo iPad lascerà la sincronizzazione attuale. I preferiti e le impostazioni locali restano qui. Gli altri dispositivi non sono interessati."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este iPad sairá da sincronização atual. Seus Favoritos e ajustes locais ficam aqui. Seus outros dispositivos não são afetados."
           }
         }
       }
@@ -102181,6 +102853,48 @@
         }
       }
     },
+    "spaces.thisPhone": {
+      "comment": "Android: the phone's own tabs that are in no Space, first row of the Spaces menu.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This phone"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Telefon"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este teléfono"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce téléphone"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo telefono"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este telefone"
+          }
+        }
+      }
+    },
     "spaces.thisIPad": {
       "comment": "iPad: the iPad's own tabs that are in no Space, first row of the Spaces menu. spaces.thisIPhone's counterpart on an iPad.",
       "extractionState": "manual",
@@ -102613,6 +103327,48 @@
         }
       }
     },
+    "sharedSpaces.switch.iphone.ipad": {
+      "comment": "iPad: sharedSpaces.switch.iphone's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep Spaces and groups in sync on this iPad"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spaces und Gruppen auf diesem iPad synchron halten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantener Spaces y grupos sincronizados en este iPad"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garder les Spaces et les groupes synchronisés sur cet iPad"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantieni Spaces e gruppi sincronizzati su questo iPad"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manter Spaces e grupos sincronizados neste iPad"
+          }
+        }
+      }
+    },
     "sharedSpaces.switch.line.iphone": {
       "comment": "iPhone Settings → Sync: the consent line under the Shared Spaces switch (M17).",
       "extractionState": "manual",
@@ -102651,6 +103407,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "As abas dos seus Spaces compartilhados são sincronizadas a partir deste iPhone."
+          }
+        }
+      }
+    },
+    "sharedSpaces.switch.line.iphone.ipad": {
+      "comment": "iPad: sharedSpaces.switch.line.iphone's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs in your shared Spaces are synced from this iPad."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs in deinen geteilten Spaces werden von diesem iPad synchronisiert."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las pestañas de tus Spaces compartidos se sincronizan desde este iPad."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les onglets de vos Spaces partagés sont synchronisés depuis cet iPad."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le schede dei tuoi Spaces condivisi vengono sincronizzate da questo iPad."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As abas dos seus Spaces compartilhados são sincronizadas a partir deste iPad."
           }
         }
       }
@@ -102835,6 +103633,48 @@
         }
       }
     },
+    "sharedSpaces.saveThisIPhone.ipad": {
+      "comment": "iPad: sharedSpaces.saveThisIPhone's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save This iPad as a Space"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses iPad als Space sichern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar Este iPad como Space"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer Cet iPad comme Space"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva Questo iPad come Space"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvar Este iPad como Space"
+          }
+        }
+      }
+    },
     "sharedSpaces.recoveryName.iphone": {
       "comment": "iPhone: name of the local Space that keeps tabs a long-stale phone could not publish (M17).",
       "extractionState": "manual",
@@ -102877,6 +103717,48 @@
         }
       }
     },
+    "sharedSpaces.recoveryName.iphone.ipad": {
+      "comment": "iPad: sharedSpaces.recoveryName.iphone's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · kept on this iPad"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · auf diesem iPad behalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · guardado en este iPad"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · conservé sur cet iPad"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · conservato su questo iPad"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · mantido neste iPad"
+          }
+        }
+      }
+    },
     "sharedSpaces.deletedEverywhere": {
       "comment": "iPhone: Undo banner after deleting a shared Space; Undo restores only a local copy because the deletion reached every device (M17).",
       "extractionState": "manual",
@@ -102915,6 +103797,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "Excluído em todos os lugares. Desfazer mantém uma cópia neste iPhone."
+          }
+        }
+      }
+    },
+    "sharedSpaces.deletedEverywhere.ipad": {
+      "comment": "iPad: sharedSpaces.deletedEverywhere's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted everywhere. Undo keeps a copy on this iPad."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überall gelöscht. Rückgängig behält eine Kopie auf diesem iPad."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminado en todas partes. Deshacer conserva una copia en este iPad."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimé partout. Annuler garde une copie sur cet iPad."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminato ovunque. Annulla ne conserva una copia su questo iPad."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Excluído em todos os lugares. Desfazer mantém uma cópia neste iPad."
           }
         }
       }
@@ -102999,6 +103923,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "Trazer para o iPhone"
+          }
+        }
+      }
+    },
+    "bringSpace.action.ipad": {
+      "comment": "iPad: bringSpace.action's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring to iPad"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf das iPad holen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traer al iPad"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier sur l’iPad"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Porta su iPad"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trazer para o iPad"
           }
         }
       }
@@ -103214,7 +104180,7 @@
       }
     },
     "ios.settings.islandHistoryButtons": {
-      "comment": "iOS Settings → Island: switch that puts Back and Forward on the iPhone Island. Off by default.",
+      "comment": "iOS Settings → Island: switch that puts Back and Forward on the Island (iPhone and iPad). On by default.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -103256,43 +104222,43 @@
       }
     },
     "ios.settings.islandHistoryButtonsHelp": {
-      "comment": "iOS Settings → Island: footer under the Back and Forward switch. 'Narrow' is the iPhone Island; the wider Island keeps every button.",
+      "comment": "iOS Settings → Island: footer under the Back and Forward switch. Applies to every Island, iPhone and iPad.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "When the Island is narrow, they take the place of Reload and New Tab. Pull down on a page to reload it."
+            "value": "Turn them off to show Reload in their place. You can also pull down on a page to reload it."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ist die Island schmal, ersetzen sie „Neu laden“ und „Neuer Tab“. Ziehe eine Seite nach unten, um sie neu zu laden."
+            "value": "Sind sie aus, steht dort „Neu laden“. Du kannst auch eine Seite nach unten ziehen, um sie neu zu laden."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cuando la Island es estrecha, sustituyen a Recargar y Nueva pestaña. Desliza una página hacia abajo para recargarla."
+            "value": "Si los desactivas, aparece Recargar en su lugar. También puedes deslizar una página hacia abajo para recargarla."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quand l’Island est étroite, ils remplacent Actualiser et Nouvel onglet. Tirez une page vers le bas pour l’actualiser."
+            "value": "Désactivés, ils laissent la place à Actualiser. Vous pouvez aussi tirer une page vers le bas pour l’actualiser."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quando la Island è stretta, sostituiscono Ricarica e Nuova scheda. Trascina una pagina verso il basso per ricaricarla."
+            "value": "Se li disattivi, al loro posto compare Ricarica. Puoi anche trascinare una pagina verso il basso per ricaricarla."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quando a Island está estreita, eles substituem Recarregar e Nova aba. Puxe uma página para baixo para recarregá-la."
+            "value": "Se desativá-los, Recarregar aparece no lugar deles. Você também pode puxar uma página para baixo para recarregá-la."
           }
         }
       }
@@ -103801,6 +104767,258 @@
         }
       }
     },
+    "ios.palette.editAddress": {
+      "comment": "iOS palette: accessible name of the row that shows the current page's full address; tapping it puts the address in the field to edit.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit address"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adresse bearbeiten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editar dirección"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifier l’adresse"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifica indirizzo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editar endereço"
+          }
+        }
+      }
+    },
+    "ios.island.pageZoom": {
+      "comment": "iOS Sunrise menu: submenu holding Zoom In, Zoom Out and Actual Size for the current page.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page Zoom"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seitenzoom"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoom de página"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoom de page"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoom della pagina"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoom da página"
+          }
+        }
+      }
+    },
+    "ios.island.desktopSite": {
+      "comment": "iOS Sunrise menu: reloads the page asking the site for its desktop version.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request Desktop Website"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desktop-Website anfordern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar sitio web de escritorio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander le site web pour ordinateur"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richiedi sito desktop"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar site para computador"
+          }
+        }
+      }
+    },
+    "ios.island.mobileSite": {
+      "comment": "iOS Sunrise menu: shown in place of Request Desktop Website once the desktop version was asked for; reloads the page as a phone again.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request Mobile Website"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mobile Website anfordern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar sitio web móvil"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander le site web mobile"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richiedi sito mobile"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar site para celular"
+          }
+        }
+      }
+    },
+    "ios.appLink.message": {
+      "comment": "iOS: message of the alert shown when a tapped link belongs to another app (an App Store or maps link). The alert's title is the site; its buttons are Cancel and Open.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This page wants to open another app."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Seite möchte eine andere App öffnen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta página quiere abrir otra aplicación."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette page souhaite ouvrir une autre application."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa pagina vuole aprire un’altra applicazione."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta página quer abrir outro aplicativo."
+          }
+        }
+      }
+    },
+    "ios.downloads.failed": {
+      "comment": "iOS: notice over the Island when a download fails; {file} is the file name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t download %1$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ konnte nicht heruntergeladen werden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo descargar %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de télécharger %1$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile scaricare %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível baixar %1$@"
+          }
+        }
+      }
+    },
     "ios.tabs.openTabs": {
       "comment": "iOS palette and tab grid: heading over the open tabs.",
       "extractionState": "manual",
@@ -104133,6 +105351,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "Seu Blanc, no seu bolso."
+          }
+        }
+      }
+    },
+    "ios.welcome.title.ipad": {
+      "comment": "iOS first-minute walkthrough on an iPad: the Welcome card's heading. ios.welcome.title's counterpart; the phone's says “in your pocket.”",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Blanc, on your iPad."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Blanc, auf deinem iPad."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu Blanc, en tu iPad."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre Blanc, sur votre iPad."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo Blanc, sul tuo iPad."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu Blanc, no seu iPad."
           }
         }
       }
@@ -104599,6 +105859,216 @@
         }
       }
     },
+    "ios.welcome.shareTitle.ipad": {
+      "comment": "iPad: ios.welcome.shareTitle's counterpart on an iPad. SyncCopy uses a key's .ipad sibling there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share from this iPad"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von diesem iPad teilen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartir desde este iPad"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partager depuis cet iPad"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Condividi da questo iPad"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartilhar deste iPad"
+          }
+        }
+      }
+    },
+    "ios.menu.requestMobileSite": {
+      "comment": "iPad Sunrise menu: asks this site for its phone layout, as Safari's item does. iPads get desktop sites by default.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request Mobile Website"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mobile Website anfordern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar sitio web móvil"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander le site web mobile"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richiedi sito web mobile"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar site para celular"
+          }
+        }
+      }
+    },
+    "ios.menu.requestDesktopSite": {
+      "comment": "iPad Sunrise menu: on a site set to its phone layout, goes back to the desktop site.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request Desktop Website"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desktop-Website anfordern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar sitio web de escritorio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander le site web pour ordinateur"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richiedi sito web desktop"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar site para computador"
+          }
+        }
+      }
+    },
+    "menu.focusNextPane": {
+      "comment": "iPad menu bar, Tabs: moves focus to the split's other pane (⌥⌘→).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focus Next Pane"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächster Bereich"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panel siguiente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panneau suivant"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riquadro successivo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Próximo painel"
+          }
+        }
+      }
+    },
+    "menu.focusPreviousPane": {
+      "comment": "iPad menu bar, Tabs: moves focus to the split's other pane (⌥⌘←).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focus Previous Pane"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorheriger Bereich"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panel anterior"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panneau précédent"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riquadro precedente"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Painel anterior"
+          }
+        }
+      }
+    },
     "ios.welcome.shareBody": {
       "comment": "iOS walkthrough: the Share back card's line under the heading.",
       "extractionState": "manual",
@@ -104763,6 +106233,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cada vez que você abre o Blanc, ele envia uma contagem anônima: um ID aleatório desta instalação, a versão do app e a versão do iOS. Nunca o que você navega. Veja blanc.day/privacy."
+          }
+        }
+      }
+    },
+    "ios.welcome.suggestionsHelp": {
+      "comment": "iOS walkthrough: under the Search suggestions switch on the privacy card; says what is sent to the chosen search engine and what never is.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "While you type a search, the text goes to your search provider, which sends back suggestions. Never from a private tab, and never an address, pasted text or anything that looks like a password or key."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Während du eine Suche eintippst, geht der Text an deinen Suchanbieter, der Vorschläge zurückschickt. Nie aus einem privaten Tab und nie eine Adresse, eingefügter Text oder etwas, das wie ein Passwort oder Schlüssel aussieht."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mientras escribes una búsqueda, el texto se envía a tu buscador, que devuelve sugerencias. Nunca desde una pestaña privada, y nunca una dirección, texto pegado ni nada que parezca una contraseña o una clave."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pendant que vous saisissez une recherche, le texte est envoyé à votre moteur de recherche, qui renvoie des suggestions. Jamais depuis un onglet privé, et jamais une adresse, un texte collé ou quoi que ce soit qui ressemble à un mot de passe ou à une clé."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mentre scrivi una ricerca, il testo viene inviato al tuo motore di ricerca, che restituisce suggerimenti. Mai da una scheda privata, e mai un indirizzo, testo incollato o qualcosa che sembri una password o una chiave."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enquanto você digita uma pesquisa, o texto vai para o seu provedor de pesquisa, que devolve sugestões. Nunca de uma aba privada, e nunca um endereço, texto colado ou qualquer coisa que pareça uma senha ou chave."
           }
         }
       }
@@ -105603,6 +107115,1056 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ctrl+Shift+Espaço"
+          }
+        }
+      }
+    },
+    "sharedSpaces.switch.android": {
+      "comment": "Blanc for Android: the iPhone string with \"this phone\".",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep Spaces and groups in sync on this phone"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spaces und Gruppen auf diesem Telefon synchron halten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantener Spaces y grupos sincronizados en este teléfono"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garder les Spaces et les groupes synchronisés sur ce téléphone"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantieni Spaces e gruppi sincronizzati su questo telefono"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manter Spaces e grupos sincronizados neste telefone"
+          }
+        }
+      }
+    },
+    "sharedSpaces.switch.line.android": {
+      "comment": "Blanc for Android: the iPhone string with \"this phone\".",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs in your shared Spaces are synced from this phone."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabs in deinen geteilten Spaces werden von diesem Telefon synchronisiert."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las pestañas de tus Spaces compartidos se sincronizan desde este teléfono."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les onglets de vos Spaces partagés sont synchronisés depuis ce téléphone."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le schede dei tuoi Spaces condivisi vengono sincronizzate da questo telefono."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As abas dos seus Spaces compartilhados são sincronizadas a partir deste telefone."
+          }
+        }
+      }
+    },
+    "sharedSpaces.saveThisPhone": {
+      "comment": "Blanc for Android: the iPhone string with \"this phone\".",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save This Phone as a Space"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Telefon als Space sichern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar Este teléfono como Space"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer Ce téléphone comme Space"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva Questo telefono come Space"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvar Este telefone como Space"
+          }
+        }
+      }
+    },
+    "sharedSpaces.recoveryName.android": {
+      "comment": "Blanc for Android: the iPhone string with \"this phone\".",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · kept on this phone"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · auf diesem Telefon behalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · guardado en este teléfono"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · conservé sur ce téléphone"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · conservato su questo telefono"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · mantido neste telefone"
+          }
+        }
+      }
+    },
+    "sharedSpaces.deletedEverywhere.android": {
+      "comment": "Blanc for Android: the iPhone string with \"this phone\".",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted everywhere. Undo keeps a copy on this phone."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überall gelöscht. Rückgängig behält eine Kopie auf diesem Telefon."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminado en todas partes. Deshacer conserva una copia en este teléfono."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimé partout. Annuler garde une copie sur ce téléphone."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminato ovunque. Annulla ne conserva una copia su questo telefono."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Excluído em todos os lugares. Desfazer mantém uma cópia neste telefone."
+          }
+        }
+      }
+    },
+    "bringSpace.action.android": {
+      "comment": "Blanc for Android: the iPhone string with \"this phone\".",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring to this phone"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf dieses Telefon holen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traer a este teléfono"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier sur ce téléphone"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Porta su questo telefono"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trazer para este telefone"
+          }
+        }
+      }
+    },
+    "android.settings.more": {
+      "comment": "Android Settings: heading of the section holding Chromium’s own pages (Site settings, Accessibility, Notifications, Downloads).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mehr"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plus"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Altro"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mais"
+          }
+        }
+      }
+    },
+    "android.settings.islandPosition": {
+      "comment": "Android Settings → Appearance: row choosing whether the Island sits at the top or the bottom of the screen.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Island position"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Position der Island"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posición de la Island"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Position de l’Island"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posizione dell’Island"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posição da Island"
+          }
+        }
+      }
+    },
+    "android.settings.islandPosition.top": {
+      "comment": "Android Settings → Island position: the Island sits at the top of the screen.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Top"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arriba"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En haut"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In alto"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No topo"
+          }
+        }
+      }
+    },
+    "android.settings.islandPosition.bottom": {
+      "comment": "Android Settings → Island position: the Island sits at the bottom of the screen.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bottom"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abajo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En bas"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In basso"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na parte inferior"
+          }
+        }
+      }
+    },
+    "android.settings.openSourceLicenses": {
+      "comment": "Android Settings → About: row opening the list of open-source licenses.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open-source licenses"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open-Source-Lizenzen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licencias de código abierto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licences open source"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licenze open source"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licenças de código aberto"
+          }
+        }
+      }
+    },
+    "android.welcome.shareTitle": {
+      "comment": "Blanc for Android walkthrough: the iPhone string ios.welcome.shareTitle with \"this phone\".",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share from this phone"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von diesem Telefon teilen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartir desde este teléfono"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partager depuis ce téléphone"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Condividi da questo telefono"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartilhar deste celular"
+          }
+        }
+      }
+    },
+    "android.welcome.measureUsageHelp": {
+      "comment": "Blanc for Android: under the Measure usage switch in the walkthrough and Settings; ios.welcome.measureUsageHelp with the Android version. Says exactly what the launch ping carries.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each time you open Blanc, it sends one anonymous count: a random ID for this install, the app version and the Android version. Never what you browse. See blanc.day/privacy."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei jedem Öffnen sendet Blanc einen anonymen Zähler: eine zufällige ID für diese Installation, die App-Version und die Android-Version. Nie, was du ansiehst. Siehe blanc.day/privacy."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada vez que abres Blanc, envía un recuento anónimo: un ID aleatorio para esta instalación, la versión de la app y la versión de Android. Nunca lo que navegas. Consulta blanc.day/privacy."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À chaque ouverture, Blanc envoie un comptage anonyme : un identifiant aléatoire pour cette installation, la version de l’app et la version d’Android. Jamais ce que vous consultez. Voir blanc.day/privacy."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni volta che apri Blanc, invia un conteggio anonimo: un ID casuale per questa installazione, la versione dell’app e la versione di Android. Mai ciò che navighi. Vedi blanc.day/privacy."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sempre que você abre o Blanc, ele envia uma contagem anônima: um ID aleatório para esta instalação, a versão do app e a versão do Android. Nunca o que você navega. Veja blanc.day/privacy."
+          }
+        }
+      }
+    },
+    "android.defaultBrowser.body": {
+      "comment": "Blanc for Android walkthrough: the default-browser step, ios.defaultBrowser.body without iPhone app names.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make Blanc your default browser so links from other apps open here."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mach Blanc zu deinem Standardbrowser, damit Links aus anderen Apps hier geöffnet werden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Haz de Blanc tu navegador predeterminado para que los enlaces de otras apps se abran aquí."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faites de Blanc votre navigateur par défaut pour que les liens des autres apps s’ouvrent ici."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rendi Blanc il tuo browser predefinito, così i link delle altre app si aprono qui."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Torne o Blanc seu navegador padrão para que os links de outros apps abram aqui."
+          }
+        }
+      }
+    },
+    "android.defaultBrowser.open": {
+      "comment": "Blanc for Android walkthrough: the button that asks Android to make Blanc the default browser (Android shows its own confirmation).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set as default"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Standard festlegen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Establecer como predeterminado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Définir par défaut"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imposta come predefinito"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Definir como padrão"
+          }
+        }
+      }
+    },
+    "android.settings.autoRevokeSummary": {
+      "comment": "Android Settings → Site settings: summary under the unused-permissions switch (replaces Chromium’s text, which names Chrome).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To protect your data, let Blanc remove permissions from sites that you haven’t visited recently"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zum Schutz deiner Daten kann Blanc Berechtigungen von Websites entfernen, die du länger nicht besucht hast"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Para proteger tus datos, permite que Blanc quite los permisos de los sitios que no has visitado recientemente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pour protéger vos données, laissez Blanc supprimer les autorisations des sites que vous n’avez pas consultés récemment"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per proteggere i tuoi dati, consenti a Blanc di rimuovere le autorizzazioni dai siti che non visiti da un po’"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Para proteger seus dados, deixe o Blanc remover as permissões de sites que você não visita há algum tempo"
+          }
+        }
+      }
+    },
+    "android.licenses.title": {
+      "comment": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open-source licenses"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open-Source-Lizenzen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licencias de código abierto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licences open source"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licenze open source"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licenças de código aberto"
+          }
+        }
+      }
+    },
+    "android.licenses.intro": {
+      "comment": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read Blanc's licenses and notices below. Chromium's credits list its own licenses and third-party components."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lies unten die Lizenzen und Hinweise von Blanc. Die Chromium-Credits enthalten die eigenen Lizenzen und Drittanbieterkomponenten von Chromium."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lee las licencias y los avisos de Blanc a continuación. Los créditos de Chromium incluyen sus propias licencias y componentes de terceros."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lis les licences et les mentions de Blanc ci-dessous. Les crédits de Chromium présentent ses propres licences et composants tiers."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leggi le licenze e gli avvisi di Blanc qui sotto. I riconoscimenti di Chromium elencano le sue licenze e i componenti di terze parti."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leia as licenças e os avisos do Blanc abaixo. Os créditos do Chromium listam suas próprias licenças e componentes de terceiros."
+          }
+        }
+      }
+    },
+    "android.licenses.chromiumCredits": {
+      "comment": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chromium licenses and credits"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chromium-Lizenzen und Credits"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licencias y créditos de Chromium"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licences et crédits de Chromium"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licenze e riconoscimenti di Chromium"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licenças e créditos do Chromium"
+          }
+        }
+      }
+    },
+    "android.licenses.license": {
+      "comment": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc software license"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc-Softwarelizenz"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licencia del software de Blanc"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licence du logiciel Blanc"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licenza del software Blanc"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licença do software Blanc"
+          }
+        }
+      }
+    },
+    "android.licenses.assetLicense": {
+      "comment": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc names, logos and identity assets"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Namen, Logos und Identitätsmerkmale von Blanc"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombres, logotipos y elementos de identidad de Blanc"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noms, logos et éléments d’identité de Blanc"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nomi, loghi ed elementi di identità di Blanc"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nomes, logotipos e elementos de identidade do Blanc"
+          }
+        }
+      }
+    },
+    "android.licenses.thirdPartyNotices": {
+      "comment": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repository third-party notices"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drittanbieterhinweise des Repositorys"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avisos de terceros del repositorio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mentions de tiers du dépôt"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avvisi di terze parti del repository"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avisos de terceiros do repositório"
+          }
+        }
+      }
+    },
+    "android.licenses.chromiumForkNotices": {
+      "comment": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chromium fork notices"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hinweise zum Chromium-Fork"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avisos de la bifurcación de Chromium"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mentions du fork de Chromium"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avvisi del fork di Chromium"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avisos do fork do Chromium"
+          }
+        }
+      }
+    },
+    "android.licenses.loading": {
+      "comment": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading notice…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hinweis wird geladen…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargando aviso…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chargement de la mention…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caricamento dell’avviso…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carregando aviso…"
+          }
+        }
+      }
+    },
+    "android.licenses.loadFailed": {
+      "comment": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This notice could not be loaded. Open its title link to read the bundled file."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Hinweis konnte nicht geladen werden. Öffne den Link im Titel, um die mitgelieferte Datei zu lesen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se ha podido cargar este aviso. Abre el enlace del título para leer el archivo incluido."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette mention n’a pas pu être chargée. Ouvre le lien de son titre pour lire le fichier inclus."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile caricare questo avviso. Apri il link nel titolo per leggere il file incluso."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível carregar este aviso. Abra o link no título para ler o arquivo incluído."
           }
         }
       }

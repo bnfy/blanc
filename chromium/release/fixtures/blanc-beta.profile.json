@@ -1,0 +1,39 @@
+{
+  "certificates": [
+    {
+      "fingerprint": "55283A84D3706D5A22386D5F002A0CD4845ECFD4",
+      "subject": "UID=XYGUCY4498\nCN=Developer ID Application: Anthony Loria (XYGUCY4498)\nOU=XYGUCY4498\nO=Anthony Loria\nC=US",
+      "validFrom": "Jul 14 02:13:58 2025 GMT",
+      "validTo": "Feb  1 22:12:15 2027 GMT"
+    }
+  ],
+  "data": {
+    "AppIDName": "Blanc Beta",
+    "ApplicationIdentifierPrefix": [
+      "XYGUCY4498"
+    ],
+    "CreationDate": "2026-11-10T04:26:02Z",
+    "Entitlements": {
+      "com.apple.application-identifier": "XYGUCY4498.me.bnfy.blanc.beta",
+      "com.apple.developer.team-identifier": "XYGUCY4498",
+      "keychain-access-groups": [
+        "XYGUCY4498.*"
+      ]
+    },
+    "ExpirationDate": "2044-11-05T04:26:02Z",
+    "IsXcodeManaged": false,
+    "Name": "Blanc Beta Developer ID",
+    "PPQCheck": false,
+    "Platform": [
+      "OSX"
+    ],
+    "ProvisionsAllDevices": true,
+    "TeamIdentifier": [
+      "XYGUCY4498"
+    ],
+    "TeamName": "Anthony Loria",
+    "TimeToLive": 6570,
+    "UUID": "48f40490-9d2a-495d-8b4e-d0a8463c72d9",
+    "Version": 1
+  }
+}

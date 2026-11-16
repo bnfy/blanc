@@ -1,0 +1,31 @@
+> October23 L11 harness maintenance: affected fixture sources now pass values as CDP protocol arguments, render request-derived text without HTML interpolation, and compare parsed URL origins/hosts. Original runtime observations retain their dates and candidate identities; those suites were not rerun by this source-only maintenance. See [L11 repair record](../l11-repair-20261023/README.md).
+
+# Split View visual parity with shipping Blanc 1.42.1 — October 23, 2026
+
+The owner passed the prior signed candidate's divider drag/reset, pane menus/Escape and narrow/wide checks, then requested parity with the currently shipping Electron build. This checkpoint uses the actual installed `/Applications/Blanc.app` **1.42.1**, its packaged CSS/layout and a live local-page Split View comparison. [Reference identity](shipping-reference.json) records the app.asar digest. Comparison tabs/window were closed; all pre-existing shipping tabs remained. No Electron build ran. The local comparison contributes normal history/recently-closed entries only.
+
+The native two-pane presentation now matches shipping's card contract: **8 px outer/inter-pane gaps, one 1 px outline with 8 px radius, stronger active outline, bottom-right corner tabs, and a quiet 4×32 divider grip on hover/focus**. Inactive corners show favicon/host; active corners shrink to ×. The font is Instrument Sans. Full-width header toolbars and their stacked lines are removed. Context-click or Shift+F10 opens the existing validated pane menu; Escape returns focus. × removes the pane from Split View while keeping its tab. The existing Cocoa/Views hit-test fix remains, and only the actual corner controls and divider intercept page input. Measured widths are clamped to36–240 px by the existing trusted Island geometry method; no new untrusted-page API or permission surface is added.
+
+Private windows use a separate read-only presentation predicate. The history persistence predicate is [byte-identical](private-persistence-source.json), including its private exclusion. Card surrounds use Blanc's surface palette rather than the native Chromium background. Saved ratio/membership and responsive stacking/focus fallbacks remain native. **This is two-pane visual parity, not new three/four-pane support or a claim of complete feature parity.**
+
+## Final signed candidate
+
+- Source: `8439cabc865167f0e70cddedd22b390a3bec4438`.
+- Archive SHA-256: `8783c93501a199b7194957ee2e0672178617aff8e795a2ea4411cc8884b3f985`.
+- Apple Accepted: `12b32e11-5d97-4639-ad5d-605ff26b2bef`; stapling, Gatekeeper and strict deep signature pass.
+- Chromium 157.0.8103.15; Apple Silicon on macOS 27.2; separate Preview identities/keychain namespace. All 17 Mach-O and seven selected asset hashes [remain unchanged](final-candidate-audit.json) through testing.
+- Native guard **0 actions**; current footprint **70 files/173 hunks**, unchanged. Incremental builds only. The final native pass took 1m22.24s / 21 steps; earlier partial preparations, successful iterations and the failed compile are retained rather than hidden.
+
+## Bounded verification
+
+**75 signed regression checkpoints** pass: regular 17, private 16, API-scope 19, core 17 and recovery 6. **56 signed geometry/input checkpoints** pass:28 regular and 28 private across1280×800 columns,620×800 stacked panes,620×380 focus-only, both focus-only pane selections, widening and independent retained text. Native CUA clicks/typing in both panes, right-click menus, Shift+F10/Escape focus return, keyboard resize/reset, actual pointer drag 50→59 and double-click reset 50 pass. Native Remove from Split preserves both tabs. [Observations](observations.json) distinguish these actual native inputs from protocol setup/size control. They are not a VoiceOver audio recording or a new owner acceptance.
+
+21 focused source tests, seven capture tests, 11 counter tests and scoped lint pass. [Shipping screenshot](shipping-1.42.1.jpg) and [regular Preview screenshot](preview-regular.jpg) have the same1280×800 window size (2560×1600pixels). Shipping's existing auto-hide setting hides its Island, whereas Preview's normal Island remains; page-region heights therefore differ. [Private Preview](preview-private.jpg) is also captured. Screenshots are original JPEG bytes.
+
+## Earlier findings and limitations
+
+The first focus-only preflight hid a native container and hit Chromium's visibility assertion. Keeping the inactive container alive with empty bounds corrects it; both final focus-only switches and widening pass. Private visual inspection caught a duplicate native frame because the old suppression predicate excluded private tabs. A separate presentation helper fixes it; private persistence remains excluded. An intermediate rename failed compilation against the session-service caller; its original helper was restored unchanged before final builds.
+
+Two fixture errors are retained separately: the first recovery runner omitted its app path and launched no browser; the initial private bridge wrapper raced page initialization and restored an undefined callback. The corrected fixture waits for the actual bridge. A first native divider drag used logical coordinates; corrected screenshot-device coordinates pass. These are not counted as candidate failures or targeted passes. An earlier Apple-accepted artifact/receipt in `earlier-attempts` predates the private correction and is **not** this final candidate.
+
+The owner has not yet approved this replacement's visual/VoiceOver session. **L5 stays open. L6 stays reopened for the independent owner-observed close-history acknowledgement warning; these passing regressions do not erase it. Readiness6/12 (50%), delta 0.** No exact-head CI, merge, release or broader lifecycle approval is implied. Google baseline/rebase ledger remains separate and uncommitted. Permanent profiles/tabs and original source/output are preserved. Completed regression fixtures and remote signing staging/jobs are removed; the new disposable review window remains open at CDP 9875 / local 9874, the previous owner window remains untouched, and diagnostic profiles/signed archives are retained. Authorized SSH access is retained per standing preference. Latency deferred; Electron diagnostic build pending approval/unstarted.

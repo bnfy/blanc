@@ -1,0 +1,104 @@
+{
+  "verified": true,
+  "nativeLoaderJoins": 8,
+  "crossRuntimeAcceptance": false,
+  "latencyQualified": false,
+  "proofs": [
+    {
+      "label": "chromium-regular-a",
+      "status": "proven-native",
+      "token": "blanc-sw-update/4C6E92884CC438A463AFD49426313294",
+      "registrationId": "0",
+      "checkedVersionId": "0",
+      "scope": "https://page.blanc-fixture.test/blanc-fixture/registration/a/",
+      "storageKey": "https://page.blanc-fixture.test/",
+      "profile": "regular",
+      "executionRealm": "not-required-for-byte-check",
+      "crossRuntimeAcceptance": false
+    },
+    {
+      "label": "chromium-regular-a",
+      "status": "proven-native",
+      "token": "blanc-sw-update/DCCD5D013AF61F18F416500B6F872813",
+      "registrationId": "1",
+      "checkedVersionId": "1",
+      "scope": "https://page.blanc-fixture.test/blanc-fixture/registration/b/",
+      "storageKey": "https://page.blanc-fixture.test/",
+      "profile": "regular",
+      "executionRealm": "not-required-for-byte-check",
+      "crossRuntimeAcceptance": false
+    },
+    {
+      "label": "chromium-regular-b",
+      "status": "proven-native",
+      "token": "blanc-sw-update/6792634C474E61CD0BA68234F95637B5",
+      "registrationId": "0",
+      "checkedVersionId": "0",
+      "scope": "https://page.blanc-fixture.test/blanc-fixture/registration/a/",
+      "storageKey": "https://page.blanc-fixture.test/",
+      "profile": "regular",
+      "executionRealm": "not-required-for-byte-check",
+      "crossRuntimeAcceptance": false
+    },
+    {
+      "label": "chromium-regular-b",
+      "status": "proven-native",
+      "token": "blanc-sw-update/4CF06378BAC569D95D3273147F47A1F3",
+      "registrationId": "1",
+      "checkedVersionId": "1",
+      "scope": "https://page.blanc-fixture.test/blanc-fixture/registration/b/",
+      "storageKey": "https://page.blanc-fixture.test/",
+      "profile": "regular",
+      "executionRealm": "not-required-for-byte-check",
+      "crossRuntimeAcceptance": false
+    },
+    {
+      "label": "chromium-private-a",
+      "status": "proven-native",
+      "token": "blanc-sw-update/862EF630265ED0EE1C793BB7A20F8BEA",
+      "registrationId": "0",
+      "checkedVersionId": "0",
+      "scope": "https://page.blanc-fixture.test/blanc-fixture/registration/a/",
+      "storageKey": "https://page.blanc-fixture.test/",
+      "profile": "private",
+      "executionRealm": "not-required-for-byte-check",
+      "crossRuntimeAcceptance": false
+    },
+    {
+      "label": "chromium-private-a",
+      "status": "proven-native",
+      "token": "blanc-sw-update/648A6013FBE19639FE707535F5EF52DA",
+      "registrationId": "1",
+      "checkedVersionId": "1",
+      "scope": "https://page.blanc-fixture.test/blanc-fixture/registration/b/",
+      "storageKey": "https://page.blanc-fixture.test/",
+      "profile": "private",
+      "executionRealm": "not-required-for-byte-check",
+      "crossRuntimeAcceptance": false
+    },
+    {
+      "label": "chromium-private-b",
+      "status": "proven-native",
+      "token": "blanc-sw-update/3B997907104FCC169883E0B4E511140B",
+      "registrationId": "0",
+      "checkedVersionId": "0",
+      "scope": "https://page.blanc-fixture.test/blanc-fixture/registration/a/",
+      "storageKey": "https://page.blanc-fixture.test/",
+      "profile": "private",
+      "executionRealm": "not-required-for-byte-check",
+      "crossRuntimeAcceptance": false
+    },
+    {
+      "label": "chromium-private-b",
+      "status": "proven-native",
+      "token": "blanc-sw-update/7FA520C949641454A80687512BFA7276",
+      "registrationId": "1",
+      "checkedVersionId": "1",
+      "scope": "https://page.blanc-fixture.test/blanc-fixture/registration/b/",
+      "storageKey": "https://page.blanc-fixture.test/",
+      "profile": "private",
+      "executionRealm": "not-required-for-byte-check",
+      "crossRuntimeAcceptance": false
+    }
+  ]
+}

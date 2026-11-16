@@ -1,0 +1,82 @@
+{
+  "version": "157.0.8103.6",
+  "scope": "source inspection explains the two matching modes; opaque remote-parent failure is consistent with the code but no internal trace proves the specific bailout. Static data/nested-data/nested-blob receiver absence remains an observation, not a settled source-level cause.",
+  "files": [
+    {
+      "path": "extensions/browser/api/execute_code_function.cc",
+      "sha256": "a897851e09d6a8a2b828e628a16b4660e1f95c773e8a8d95ca03d8f7b965257e",
+      "excerpts": [
+        {
+          "startLine": 90,
+          "endLine": 102,
+          "text": "      details_->all_frames.value_or(false) ? ScriptExecutor::INCLUDE_SUB_FRAMES\n                                           : ScriptExecutor::SPECIFIED_FRAMES;\n\n  root_frame_id_ = details_->frame_id.value_or(GetRootFrameId());\n\n  mojom::MatchOriginAsFallbackBehavior match_about_blank =\n      details_->match_about_blank.value_or(false)\n          ? mojom::MatchOriginAsFallbackBehavior::\n                kMatchForAboutSchemeAndClimbTree\n          : mojom::MatchOriginAsFallbackBehavior::kNever;\n\n  mojom::RunLocation run_at = ConvertRunLocation(details_->run_at);\n"
+        }
+      ]
+    },
+    {
+      "path": "extensions/common/manifest_handlers/content_scripts_handler.cc",
+      "sha256": "a4691644a7d9ed5c2ae02e66a230ebc61e5e10915bfe9b5fdaa9955cdad27f5b",
+      "excerpts": [
+        {
+          "startLine": 68,
+          "endLine": 90,
+          "text": "  serialized_script.all_frames = content_script.all_frames;\n\n  // match_origin_as_fallback and match_about_blank.\n  // Note: `match_about_blank` is ignored if `match_origin_as_fallback` was\n  // specified.\n  if (content_script.match_origin_as_fallback) {\n    serialized_script.match_origin_as_fallback =\n        content_script.match_origin_as_fallback;\n  }\n  // Manifest content scripts support `match_about_blank` (unlike\n  // `SerializedUserScript`). If `match_about_blank` is specified, we'll\n  // override the `match_origin_as_fallback` behavior on the user script later.\n  std::optional<mojom::MatchOriginAsFallbackBehavior>\n      match_origin_as_fallback_override;\n  if (!serialized_script.match_origin_as_fallback.has_value() &&\n      content_script.match_about_blank && *content_script.match_about_blank) {\n    match_origin_as_fallback_override =\n        mojom::MatchOriginAsFallbackBehavior::kMatchForAboutSchemeAndClimbTree;\n  }\n\n  serialized_script.include_globs = std::move(content_script.include_globs);\n  serialized_script.exclude_globs = std::move(content_script.exclude_globs);\n  serialized_script.run_at = content_script.run_at;"
+        }
+      ]
+    },
+    {
+      "path": "extensions/common/content_script_injection_url_getter.cc",
+      "sha256": "0e910f78e40853cf5b25c398fe25fc418456791c288338aa6ac889b17415838d",
+      "excerpts": [
+        {
+          "startLine": 23,
+          "endLine": 35,
+          "text": "  // The following schemes are considered for opaque origins if the\n  // `match_origin_as_fallback` behavior is to always match.\n  // NOTE(devlin): This isn't an exhaustive list of schemes: some schemes may\n  // be missing, or more schemes may be added in the future. Would it make\n  // sense to turn this into a blocklist? Just doing this for all opaque\n  // schemes *should* be safe, since We still have a permission check against\n  // the precursor origin. This would only be a problem if an\n  // extension-accessible precursor origin can create an opaque-origin frame\n  // that *shouldn't* be accessible.\n  static const char* const kAllowedSchemesToMatchOriginAsFallback[] = {\n      url::kAboutScheme,\n      url::kBlobScheme,\n      url::kDataScheme,"
+        },
+        {
+          "startLine": 90,
+          "endLine": 138,
+          "text": "  // https://example.com will have the security origin of https://example.com.\n  // Other frames, like data: frames, will have an opaque origin. For these,\n  // we can get the precursor origin.\n  const url::Origin frame_origin = context_data.GetOrigin();\n  const url::SchemeHostPort& tuple_or_precursor_tuple =\n      frame_origin.GetTupleOrPrecursorTupleIfOpaque();\n\n  // When there's no valid tuple (which can happen in the case of e.g. a\n  // browser-initiated navigation to an opaque URL), there's no origin to\n  // fallback to. Bail.\n  if (!tuple_or_precursor_tuple.IsValid()) {\n    TRACE_EVENT_INSTANT(\"extensions\",\n                        \"ContentScriptInjectionUrlGetter::Get/invalid-tuple\");\n    return document_url;\n  }\n\n  const url::Origin origin_or_precursor_origin =\n      url::Origin::Create(tuple_or_precursor_tuple.GetURL());\n\n  if (!allow_inaccessible_parents &&\n      !context_data.CanAccess(origin_or_precursor_origin)) {\n    // The `context_data` can't access its precursor. Bail.\n    TRACE_EVENT_INSTANT(\n        \"extensions\",\n        \"ContentScriptInjectionUrlGetter::Get/no-precursor-access\");\n    return document_url;\n  }\n\n  // Note: Just because the frame origin can theoretically access its\n  // precursor origin, there may be more restrictions in practice - such as\n  // if the frame has the disallowdocumentaccess attribute. It's okay to\n  // ignore this case for context classification because it's not meant as an\n  // origin boundary (unlike e.g. a sandboxed frame).\n\n  // Looks like the initiator origin is an appropriate fallback!\n\n  if (match_origin_as_fallback ==\n      mojom::MatchOriginAsFallbackBehavior::kAlways) {\n    // The easy case! We use the origin directly. We're done.\n    TRACE_EVENT_INSTANT(\n        \"extensions\",\n        \"ContentScriptInjectionUrlGetter::Get/origin-or-precursor\");\n    return origin_or_precursor_origin.GetURL();\n  }\n\n  DCHECK_EQ(\n      mojom::MatchOriginAsFallbackBehavior::kMatchForAboutSchemeAndClimbTree,\n      match_origin_as_fallback);\n"
+        },
+        {
+          "startLine": 153,
+          "endLine": 164,
+          "text": "  base::flat_set<uintptr_t> already_visited_frame_ids;\n  do {\n    already_visited_frame_ids.insert(parent_context_data->GetId());\n    parent_context_data = parent_context_data->GetLocalParentOrOpener();\n\n    // We reached the end of the ancestral chain without finding a valid parent,\n    // or found a remote web frame (in which case, it's a different origin).\n    // Bail and use the original URL.\n    if (!parent_context_data) {\n      TRACE_EVENT_INSTANT(\n          \"extensions\", \"ContentScriptInjectionUrlGetter::Get/no-more-parents\");\n      return document_url;"
+        }
+      ]
+    },
+    {
+      "path": "extensions/renderer/script_context.cc",
+      "sha256": "25c0c94c8e16b41c198e9a5877ae768573d22aacb2e96900b5c8b5cb1fd77380",
+      "excerpts": [
+        {
+          "startLine": 426,
+          "endLine": 436,
+          "text": "GURL ScriptContext::GetEffectiveDocumentURLForInjection(\n    blink::WebLocalFrame* frame,\n    const GURL& document_url,\n    mojom::MatchOriginAsFallbackBehavior match_origin_as_fallback) {\n  // We explicitly allow inaccessible parents here. Extensions should still be\n  // able to inject into a sandboxed iframe if it has access to the embedding\n  // origin.\n  constexpr bool allow_inaccessible_parents = true;\n  return GetEffectiveDocumentURL(frame, document_url, match_origin_as_fallback,\n                                 allow_inaccessible_parents);\n}"
+        }
+      ]
+    },
+    {
+      "path": "extensions/renderer/user_script_injector.cc",
+      "sha256": "f3fc2f2b46fb95d9ed20ca53a1ed2f04efa1e80e3f964ecff70508aa718dbe50",
+      "excerpts": [
+        {
+          "startLine": 244,
+          "endLine": 255,
+          "text": "#endif\n\n  GURL effective_document_url =\n      ScriptContext::GetEffectiveDocumentURLForInjection(\n          web_frame, web_frame->GetDocument().Url(),\n          script_->match_origin_as_fallback());\n\n  return injection_host->CanExecuteOnFrame(\n      effective_document_url,\n      content::RenderFrame::FromWebFrame(web_frame),\n      tab_id,\n      is_declarative_);"
+        }
+      ]
+    },
+    {
+      "path": "chrome/browser/extensions/api/web_navigation/frame_navigation_state.cc",
+      "sha256": "e12def0180013a3774898430869dedebe0d6f28898cc4e904036b8abf0fbf896",
+      "excerpts": [
+        {
+          "startLine": 30,
+          "endLine": 50,
+          "text": "// static\nbool FrameNavigationState::IsValidUrl(const GURL& url) {\n  constexpr auto kValidSchemes = base::MakeFixedFlatSet<std::string_view>({\n      content::kChromeUIScheme,\n      url::kHttpScheme,\n      url::kHttpsScheme,\n      url::kFileScheme,\n      url::kFtpScheme,\n      url::kJavaScriptScheme,\n      url::kDataScheme,\n      url::kFileSystemScheme,\n  });\n\n  if (kValidSchemes.contains(url.scheme())) {\n    return true;\n  }\n\n  // Allow about:blank and about:srcdoc.\n  if (url.IsAboutBlank() || url.IsAboutSrcdoc()) {\n    return true;\n  }"
+        }
+      ]
+    }
+  ]
+}

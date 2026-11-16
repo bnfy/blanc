@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- A heading above a card (Sync is off, Enter a code, Use a passphrase). -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="@dimen/blanc_sync_row_padding_horizontal"
+    android:paddingTop="@dimen/blanc_sync_card_gap"
+    android:paddingEnd="@dimen/blanc_sync_row_padding_horizontal"
+    android:textColor="@color/blanc_sunrise_text"
+    android:textSize="@dimen/blanc_sync_heading_size" />

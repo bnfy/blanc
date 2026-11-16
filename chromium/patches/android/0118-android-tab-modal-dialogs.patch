@@ -1,0 +1,32 @@
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/modaldialog/ChromeTabModalPresenter.java b/chrome/android/java/src/org/chromium/chrome/browser/modaldialog/ChromeTabModalPresenter.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/modaldialog/ChromeTabModalPresenter.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/modaldialog/ChromeTabModalPresenter.java
+@@ -179,13 +179,10 @@
+     protected void showDialogContainer() {
+         maybeUpdateDialogLayout();
+ 
+-        // Don't show the dialog container before browser controls are guaranteed fully visible.
+-        if (BrowserControlsUtils.areBrowserControlsFullyVisible(
+-                mBrowserControlsVisibilityManager)) {
+-            runEnterAnimation();
+-        } else {
+-            mRunEnterAnimationOnCallback = true;
+-        }
++        // Blanc (patch 0118): Chrome waits here until its toolbar is fully visible. Blanc keeps
++        // that toolbar hidden for good (patch 0104), so the wait never ended and the dialog
++        // never appeared (seen with a site's camera prompt on 1.0.0-beta.1).
++        runEnterAnimation();
+         assert mTabObscuringToken == null;
+         mTabObscuringToken =
+                 mTabObscuringHandlerSupplier.get().obscure(TabObscuringHandler.Target.TAB_CONTENT);
+@@ -382,7 +379,9 @@
+      * @return The container top margin.
+      */
+     public static int getContainerTopMargin(BrowserControlsStateProvider provider) {
+-        return provider.getTopControlsHeight();
++        // Blanc (patch 0118): the page starts at the top of the window; Chrome's toolbar, whose
++        // height this was, is hidden (patch 0104).
++        return 0;
+     }
+ 
+     /**

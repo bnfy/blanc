@@ -1,0 +1,223 @@
+{
+  "blanc-service-update-diagnostic-02": {
+    "files": [
+      {
+        "path": "chromium-private-a.json",
+        "sha256": "0bc64083f690e625291727ff60b10224d08be1b3059db74cb4b663c4a159cfd7"
+      },
+      {
+        "path": "chromium-private-b.json",
+        "sha256": "f75835afb5bb98f58b34d1651d6e67e9e00131cb14e8b3f2acd994891c9a5d46"
+      },
+      {
+        "path": "chromium-regular-a.json",
+        "sha256": "547500b6456c8bb232d19ffc30d36b23c424944c506eb9e0c5d81d377bc7407d"
+      },
+      {
+        "path": "chromium-regular-b.json",
+        "sha256": "39b2f60b90b9c8c74150ff6fa010ba0bf8ea9f8ce26d40ec27b7ed8ac3bb11ac"
+      },
+      {
+        "path": "electron-private-a.json",
+        "sha256": "3e3e28d73ca1a2d35fcbfdd963375f86232e815f4f72c7f87bcd306723545526"
+      },
+      {
+        "path": "electron-private-b.json",
+        "sha256": "8843b022d6414fc32fdad38ab3b9fb1696db4026ee8e72f6c84f9d5c2912891d"
+      },
+      {
+        "path": "electron-regular-a.json",
+        "sha256": "13da90a53814cdd6a7a81b45f797daf299320b600958e96cb2697fff538b4b9e"
+      },
+      {
+        "path": "electron-regular-b.json",
+        "sha256": "326f998076a60381cff8c548740f466f3d9b2516ed62c54aab719a52ea640dca"
+      },
+      {
+        "path": "fixtures.json",
+        "sha256": "dc8d19fd967c1fac9920e4cb5c63c2b609e3d5b65aef625b07f1417dacfde6f0"
+      },
+      {
+        "path": "replacement.js",
+        "sha256": "848390c3654e466922128b052a476cfd7e9addfade8ee7d4c52e4224197f04fd"
+      },
+      {
+        "path": "report.json",
+        "sha256": "2d6e2f07a7a9b83456ee71379425a4a241648ce6e684fd030d89a1eee6befcfd"
+      }
+    ],
+    "sha256": "e8b29ab01584ae957c5bc4ae9c460bf1b751d585f2d47e60195a5b23daff8acf"
+  },
+  "blanc-service-same-url-01": {
+    "files": [
+      {
+        "path": "electron-regular-a.json",
+        "sha256": "8901852d8f5a1337109d2c401b8c97bf68714e59a4bfe1ed775048e66b52bbba"
+      },
+      {
+        "path": "fixtures.json",
+        "sha256": "dc8d19fd967c1fac9920e4cb5c63c2b609e3d5b65aef625b07f1417dacfde6f0"
+      },
+      {
+        "path": "replacement.js",
+        "sha256": "848390c3654e466922128b052a476cfd7e9addfade8ee7d4c52e4224197f04fd"
+      },
+      {
+        "path": "report.json",
+        "sha256": "d777f74baa38ab7da6cc3eca089a052e2824437fa58df2e7f310a741ea0dd95c"
+      }
+    ],
+    "sha256": "9a116c78e0872ee5d2c8e6f23b144ea6342beb6bb549b7c631f2fbf883f24949"
+  },
+  "blanc-service-same-url-02": {
+    "files": [
+      {
+        "path": "chromium-private-a.json",
+        "sha256": "c62824c140119ab46f86345826466e05d0491ae566551ad29b686bb8fd970482"
+      },
+      {
+        "path": "chromium-private-b.json",
+        "sha256": "aca81ffb417e718ee5749f8e1f56f76699bc32983c95218bbf111fce441b0e80"
+      },
+      {
+        "path": "chromium-regular-a.json",
+        "sha256": "84513df4549356b49cd5b4d30a3d8ac9a734a97916f4e9dd402cb135cc62ba81"
+      },
+      {
+        "path": "chromium-regular-b.json",
+        "sha256": "f677d5f38c3d5a82955303ba982470c0cd0e1af095cd2653105e9eb8c455d4b4"
+      },
+      {
+        "path": "electron-private-a.json",
+        "sha256": "71fbf370a3232d702449dee2556735b32e7317b7971e53d0f6f88b9ff7f5a101"
+      },
+      {
+        "path": "electron-private-b.json",
+        "sha256": "c55ed5ab2ffb4923145eb445f2a9127d8626a420cedeed13346947e9863f6eb9"
+      },
+      {
+        "path": "electron-regular-a.json",
+        "sha256": "3088a06eaa5590952d27ec2fa6f2c437bbcd78091b6eef72443758b9c5ad9cdc"
+      },
+      {
+        "path": "electron-regular-b.json",
+        "sha256": "9b61a58e1ca27a7f814361013393fbda375334f0009acc35eda960e56d35ae1f"
+      },
+      {
+        "path": "fixtures.json",
+        "sha256": "dc8d19fd967c1fac9920e4cb5c63c2b609e3d5b65aef625b07f1417dacfde6f0"
+      },
+      {
+        "path": "replacement.js",
+        "sha256": "848390c3654e466922128b052a476cfd7e9addfade8ee7d4c52e4224197f04fd"
+      },
+      {
+        "path": "report.json",
+        "sha256": "d0a7dc40528b78c2833f53d168953f380415282c5194951b40293ff861f782ee"
+      }
+    ],
+    "sha256": "ccd46a38e65be6f2958fb4ba0b3bf03c4fb6ae4abdf0b69749f9bbcee6421c8c"
+  },
+  "blanc-service-update-path-regression": {
+    "files": [
+      {
+        "path": "cases.json",
+        "sha256": "123c229c3ffcc74f51f328075b0fe8832f879ad7efa5750ab89fa35267b55b4f"
+      },
+      {
+        "path": "chromium-private-a.json",
+        "sha256": "9061393e5d8ecdf68079afb7660cd36c86f5a478dff76fc3d9d853731d7662cb"
+      },
+      {
+        "path": "chromium-private-b.json",
+        "sha256": "7356fa631b395364ad7d577514daf6683f972d57a57acc282c038fd9e026e6db"
+      },
+      {
+        "path": "chromium-regular-a.json",
+        "sha256": "8c1a0464172a940211ef1b9b476d2d195dc8cbb9228828547526f020f8f44788"
+      },
+      {
+        "path": "chromium-regular-b.json",
+        "sha256": "ff34941c80520a50d1c94fbd53b6461ebba8216d4df58a776c9638bf6a1ddb97"
+      },
+      {
+        "path": "comparison.json",
+        "sha256": "f8241bb8d2988b3b93f8e1ac2ea594d9786279b500f2bb7d306234cabc727b6e"
+      },
+      {
+        "path": "electron-private-a.json",
+        "sha256": "7855a14cc74631de2331d86c30ba5182afd6a3b1e5ec6a637b24cb9553c0bae8"
+      },
+      {
+        "path": "electron-private-b.json",
+        "sha256": "94367f492e90ed8f7ba2215b5d19062bdcb2b300e531bd126c70bfd8da4dd847"
+      },
+      {
+        "path": "electron-regular-a.json",
+        "sha256": "3139ca768ab215d2a5323a19bb08bb776a97d3e3a9cd6ac37846b344b54454f9"
+      },
+      {
+        "path": "electron-regular-b.json",
+        "sha256": "a41c99b0ca5792e1a6b04bc59fd05c955c177b297f4eede151bd3b9b9035d3e6"
+      },
+      {
+        "path": "fixtures.json",
+        "sha256": "8dd136a84811b06f24e4c869b838262049609a339bde6ff4b6b1e0bdb44bb562"
+      },
+      {
+        "path": "report.json",
+        "sha256": "7e96d6c4578c45ac6dd50b69153445895597be2d55b27c6ea261a9c4e00714f2"
+      }
+    ],
+    "sha256": "26083154175dc0e80eac320d29b63dd077f33fb7af136d72c6d4140d3c1bafca"
+  },
+  "blanc-service-same-url-final": {
+    "files": [
+      {
+        "path": "chromium-private-a.json",
+        "sha256": "c37da6df85bb19304fb0efe62a35aa68c2b22d11671ffc5c3665790ef5d6ddfc"
+      },
+      {
+        "path": "chromium-private-b.json",
+        "sha256": "c94f6467b8e21bf38c14acd59e98e26a68d06d97af91de530d05cdd6042f0a68"
+      },
+      {
+        "path": "chromium-regular-a.json",
+        "sha256": "6dca14f90d1ae76d82206e09a19a9f72079d27ebbbf66a8b341954415d1c6a24"
+      },
+      {
+        "path": "chromium-regular-b.json",
+        "sha256": "0785eac7b942924060d40244ef6d6557659a9b46344732378e99f67ca77abe90"
+      },
+      {
+        "path": "electron-private-a.json",
+        "sha256": "9af9c1a4d3ad2b4f96cf780539dcf54811a623fccaf9c6b7b550df0bb621e293"
+      },
+      {
+        "path": "electron-private-b.json",
+        "sha256": "bf6be94039064519c8397eb1d55bac15fb0413b06af21bb1fea642ac1d0041fa"
+      },
+      {
+        "path": "electron-regular-a.json",
+        "sha256": "16062ca391b4ecb7df34fb14c2696de57d0c2c4eb79ea872eee26eec80ab1737"
+      },
+      {
+        "path": "electron-regular-b.json",
+        "sha256": "bc2620c052a781a870d25480532268ced6c1c20b9f8bd4471fb222a63630a704"
+      },
+      {
+        "path": "fixtures.json",
+        "sha256": "dc8d19fd967c1fac9920e4cb5c63c2b609e3d5b65aef625b07f1417dacfde6f0"
+      },
+      {
+        "path": "replacement.js",
+        "sha256": "848390c3654e466922128b052a476cfd7e9addfade8ee7d4c52e4224197f04fd"
+      },
+      {
+        "path": "report.json",
+        "sha256": "58cac5c55276d939204960230ae1d6f7351cc6a977c56d9b2d6ed89ea0b1c4f2"
+      }
+    ],
+    "sha256": "2b690134941d7c2db015947a1e36bc58a64edab4aedddb9150868a4a24b8a330"
+  }
+}

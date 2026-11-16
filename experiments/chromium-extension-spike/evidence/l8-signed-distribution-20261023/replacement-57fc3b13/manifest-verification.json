@@ -1,0 +1,8 @@
+{
+  "version": "157.0.8103.15",
+  "source": "57fc3b131a087b3b085dbaf65766d130c6b7baed",
+  "archiveSha256": "a3212c1b6d0750f76825a29d3606f188f9fb17961a21bad35250e72d09d875fd",
+  "authenticatedFiles": 4,
+  "signer": "anthony@bnfy.me",
+  "issuer": "https://github.com/login/oauth"
+}

@@ -10,8 +10,6 @@ final class TabsManager {
     private(set) var groups: [TabGroup] = []
     /// Split View (F53): pairs of tabs kept side by side (`SplitModel`).
     private(set) var splits: [TabSplit] = []
-    var isWallpaperPickerPresented = false
-    var wallpaperSelectionCompletion: ((UIImage?) -> Void)?
     var startAppearance: StartAppearanceStore { services.startAppearance }
     var isPalettePresented = false {
         didSet { if !isPalettePresented { paletteDraft = "" } }
@@ -19,43 +17,55 @@ final class TabsManager {
     /// The palette's text. It lives here rather than in the palette's view so
     /// folding or unfolding, which swaps the sheet and the panel, keeps it
     /// (Duo-1); every close clears it.
-    var paletteDraft = ""
-    private final class WeakPreview {
-        weak var tab: TabModel?
-        let layout: BlancStartPageLayout?
-        init(_ tab: TabModel, layout: BlancStartPageLayout?) { self.tab = tab; self.layout = layout }
+    var paletteDraft = "" {
+        didSet {
+            if paletteDraft.isEmpty {
+                paletteTyped = true
+            } else if !SearchSuggestions.isTypedEdit(from: oldValue, to: paletteDraft) {
+                paletteTyped = false
+            }
+        }
     }
-    @ObservationIgnored private var previews: [WeakPreview] = []
-    var startPreviews: [TabModel] { previews.compactMap(\.tab) }
-
-    func previewLayout(for webView: WKWebView) -> BlancStartPageLayout? {
-        previews.first { $0.tab?.existingWebView === webView }?.layout
-    }
-
-    func makeStartPreview(layout: BlancStartPageLayout? = nil) -> TabModel {
-        let configuration = WebViewConfiguration.make(schemeHandler: schemeHandler, bridge: bridge, dataStore: siteDataStore)
-        // Marked from the start of every load (pages.css hides Customize under
-        // the class), so a reload never shows the button even for a moment.
-        configuration.userContentController.addUserScript(WKUserScript(source: """
-            document.documentElement.classList.add('start-preview');
-            """, injectionTime: .atDocumentStart, forMainFrameOnly: true))
-        let tab = TabModel(url: Self.newTabURL, configuration: configuration)
-        previews.removeAll { $0.tab == nil }
-        previews.append(WeakPreview(tab, layout: layout))
-        return tab
-    }
-
+    /// False once the palette's text arrived more than a character at a time:
+    /// pasted, dictated, or put there by Blanc (the page's address to edit).
+    /// Such text is never sent for search suggestions (F5); emptying the
+    /// field starts over.
+    private(set) var paletteTyped = true
+    /// Downloads this window's pages start (F11).
+    @ObservationIgnored let downloads = PageDownloads()
     var settingsDestination: SettingsDestination?
     var pendingSettingsDestination: SettingsDestination?
 
-    /// The Start Page was held: open its settings (see `StartPageHold`).
+    /// The Start Page was held: open Customize (see `StartPageHold`).
     func startPageHeld(_ tab: TabModel) {
-        guard tab.currentURL.scheme == "blanc", tab.currentURL.host == "newtab" else { return }
+        guard StartPageBridge.isStartPage(tab.currentURL) else { return }
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        showSettings(.startPage)
+        customizeStartPage()
+    }
+
+    /// The Start Page's choices live in its Customize, as on Android and the
+    /// desktop fork: the Start Page in view opens it, else a new Start Page
+    /// opens with it open (the page reads `#customize`). Never a private one:
+    /// its storage is forgotten, so a wallpaper chosen there wouldn't last.
+    func customizeStartPage() {
+        isPalettePresented = false
+        settingsDestination = nil
+        if let tab = activeTab, !tab.isPrivate, StartPageBridge.isStartPage(tab.currentURL), let webView = tab.existingWebView {
+            // The page clears the hash as it opens Customize, so this always changes it.
+            webView.evaluateJavaScript(PagesBridge.guardedScript("location.hash = 'customize';", host: "newtab"))
+        } else {
+            createTab(url: URL(string: "blanc://newtab/#customize")!)
+        }
+    }
+
+    /// The palette, with `text` in it (the Start Page's Island button).
+    func openPalette(text: String = "") {
+        isPalettePresented = true
+        if !text.isEmpty { paletteDraft = text }
     }
 
     func showSettings(_ destination: SettingsDestination = .root) {
+        if destination == .startPage { return customizeStartPage() }
         if isPalettePresented {
             pendingSettingsDestination = destination
             isPalettePresented = false
@@ -111,23 +121,6 @@ final class TabsManager {
         guard let destination = SettingsDestination.resolve(url) else { return false }
         showSettings(destination)
         return true
-    }
-
-    func setStartLayout(_ layout: BlancStartPageLayout) {
-        settingsStore.update(newtabLayout: layout)
-        bridge.emit("start.onStatus", payload: .object([("layout", .string(layout.rawValue))]), host: "newtab")
-    }
-
-    @discardableResult
-    func changeStartAppearance(_ method: String, value: Any?) throws -> [String: Any] {
-        let payload = try startAppearance.change(method, value: value)
-        bridge.broadcastAppearance()
-        return payload
-    }
-
-    func importWallpaper(_ image: UIImage) throws {
-        try startAppearance.importImage(image)
-        bridge.broadcastAppearance()
     }
 
     /// Moves the Island. Open Start Pages reload, so their header and footer
@@ -195,6 +188,7 @@ final class TabsManager {
     private var schemeHandler: BlancSchemeHandler { services.schemeHandler }
     @ObservationIgnored private lazy var bridge = PagesBridge(manager: self)
     @ObservationIgnored private lazy var startPageHold = StartPageHold(manager: self)
+    @ObservationIgnored private(set) lazy var startPageBridge = StartPageBridge(manager: self)
     private var contentBlocker: ContentBlocker { services.contentBlocker }
     private var sessionStore: SessionStore { services.sessionStore }
     @ObservationIgnored private var isRestoringSession = false
@@ -363,6 +357,13 @@ final class TabsManager {
         // Glance needs the layout, which the window reports once it shows.
         defer { if UITestSeed.glance { DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [self] in showInGlance(tabs[1].id) } } }
         defer { if UITestSeed.twoTabs { activeTabId = tabs.first?.id } }
+        defer {
+            if UITestSeed.formPage {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [self] in
+                    activeTab?.webView.loadHTMLString(UITestSeed.formPageHTML, baseURL: UITestSeed.pageURL)
+                }
+            }
+        }
         #endif
         // The first window to start reads the saved sets; the rest share them.
         if !library.loaded {
@@ -462,10 +463,13 @@ final class TabsManager {
         }
     }
 
-    /// Closes the card by any path: the privacy choice is saved with the value
-    /// on screen if it wasn't already (§3.2), and this version counts as seen.
-    func closeWalkthrough(usagePingShown: Bool) {
-        if walkthrough.close() { settingsStore.update(usagePing: usagePingShown) }
+    /// Closes the card by any path: the privacy choices are saved with the
+    /// values on screen if they weren't already (§3.2), and this version
+    /// counts as seen.
+    func closeWalkthrough(usagePingShown: Bool, searchSuggestionsShown: Bool) {
+        if walkthrough.close() {
+            settingsStore.update(usagePing: usagePingShown, searchSuggestions: searchSuggestionsShown)
+        }
         settingsStore.update(walkthroughCompletedVersion: WalkthroughFlow.version)
         settingsStore.flush()
     }
@@ -499,7 +503,7 @@ final class TabsManager {
         let config = WebViewConfiguration.make(
             schemeHandler: schemeHandler, bridge: bridge,
             dataStore: isPrivate ? privateDataStore : siteDataStore,
-            startPageHold: startPageHold)
+            startPageHold: startPageHold, startPageBridge: startPageBridge)
         if contentBlocker.enabled, !AdblockExceptions.isExcepted(url, in: settingsStore.adblockExceptions),
            let ruleList = contentBlocker.compiledRuleList {
             config.userContentController.add(ruleList)
@@ -551,6 +555,7 @@ final class TabsManager {
             url: url ?? URL(string: "about:blank")!, configuration: configuration,
             isPrivate: opener.isPrivate, load: false)
         tab.readerAllowed = false // A page-opened child may inherit sandbox policy.
+        tab.openedByPage = true
         add(tab)
         return tab.webView
     }
@@ -568,9 +573,35 @@ final class TabsManager {
             contentBlocker.attach(to: tab.webView)
         }
         tab.onPagePinch = { [weak self] in self?.onPagePinch?($0) }
+        // Wired here, so a tab moved to another window closes in that one.
+        if tab.openedByPage {
+            tab.uiDelegate.onClose = { [weak self, weak tab] in
+                if let self, let tab { self.closeTab(tab.id) }
+            }
+        }
+        // The page still showing is on screen: say why its link or reload did
+        // nothing. A background tab's page simply stays as it was.
+        tab.navigationDelegate.onLoadFailure = { [weak self, weak tab] failure in
+            if let self, tab?.existingWebView?.window != nil { self.showNotice(failure.reason) }
+        }
+        tab.navigationDelegate.onDownload = { [weak self] download in
+            guard let self else { return }
+            self.downloads.onNotice = { [weak self] in self?.showNotice($0) }
+            self.downloads.begin(download)
+        }
+        tab.navigationDelegate.onAppLink = { [weak self, weak tab] url in
+            guard let self, let view = tab?.existingWebView else { return }
+            AppLinks.ask(url, from: view) { [weak self] in self?.showNotice($0) }
+        }
         tab.uiDelegate.canGlance = { [weak self] in self?.canOpenGlance ?? false }
         tab.uiDelegate.onGlance = { [weak self] url in self?.openInGlance(url) }
+        tab.uiDelegate.onOpenInNewTab = { [weak self, weak tab] url in
+            self?.createTab(url: url, isPrivate: tab?.isPrivate ?? false)
+        }
         tab.navigationDelegate.onSettingsNavigation = { [weak self] url in self?.routeSettings(url) ?? false }
+        tab.navigationDelegate.wantsMobileSite = { [weak self] url in
+            self?.wantsMobileSite(url, isPrivate: isPrivate) ?? false
+        }
         // Re-persist whenever this tab settles on a new URL (navigation/redirect).
         tab.navigationDelegate.onURLChange = { [weak self] _ in
             self?.persistSession()
@@ -580,6 +611,9 @@ final class TabsManager {
         }
         tab.navigationDelegate.onPageTitle = { [weak self] url, title in
             if !isPrivate { self?.historyStore.updateTitle(url: url, title: title) }
+        }
+        tab.navigationDelegate.onFinish = { [weak self] webView in
+            if !isPrivate { self?.services.siteIcons.capture(from: webView) }
         }
         tab.navigationDelegate.onTitleChange = { [weak self] in
             self?.syncEngine.tabsChanged()
@@ -605,12 +639,13 @@ final class TabsManager {
     /// Each step of a pinch on a page, for the window to follow. A callback,
     /// because `onChange` merges steps that land together and would lose one.
     @ObservationIgnored var onPagePinch: ((PagePinchUpdate) -> Void)?
+    /// Private tabs' Request Mobile Website choices, gone when the app quits.
+    @ObservationIgnored private var privateMobileSites: [String: Bool] = [:]
 
     /// A link from another app (`IncomingLinks`): a new ordinary tab, never
     /// private, made current over whatever sheet was open.
     func openIncomingLink(_ url: URL) {
         isPalettePresented = false
-        isWallpaperPickerPresented = false
         settingsDestination = nil
         createTab(url: url, isPrivate: false)
         incomingLinkCount += 1
@@ -623,7 +658,8 @@ final class TabsManager {
     }
 
     /// What the last send said, shown over the Island for five seconds; the
-    /// Sunrise menu's Send and `/send` share it.
+    /// Sunrise menu's Send and `/send` share it, and so does a load that
+    /// failed behind a page that stays on screen.
     private(set) var sendNotice: String?
 
     /// Sends `tab`'s page to `target` and shows the result.
@@ -631,7 +667,7 @@ final class TabsManager {
         let url = tab.currentURL.absoluteString, title = tab.pageTitle
         Task {
             let result = await syncEngine.send(url: url, title: title, to: target.id)
-            showSendNotice(SyncCopy.sendResult(result, device: target.name))
+            showNotice(SyncCopy.sendResult(result, device: target.name))
         }
     }
 
@@ -640,21 +676,42 @@ final class TabsManager {
     func sendActiveTab(toDeviceNamed name: String) {
         guard let tab = activeTab, !tab.isPrivate else { return }
         let targets = syncEngine.sendTargets
-        guard !targets.isEmpty else { return showSendNotice(SyncCopy.text("sends.none")) }
+        guard !targets.isEmpty else { return showNotice(SyncCopy.text("sends.none")) }
         guard let target = SlashCommand.sendTarget(named: name, in: targets) else {
-            return showSendNotice(SyncCopy.text("sends.noMatch", ["name": name]))
+            return showNotice(SyncCopy.text("sends.noMatch", ["name": name]))
         }
-        guard canSend(tab) else { return showSendNotice(SyncCopy.text("sends.unavailable")) }
+        guard canSend(tab) else { return showNotice(SyncCopy.text("sends.unavailable")) }
         send(tab, to: target)
     }
 
-    private func showSendNotice(_ message: String) {
+    func showNotice(_ message: String) {
         sendNotice = message
         UIAccessibility.post(notification: .announcement, argument: message)
         Task { [weak self] in
             try? await Task.sleep(for: .seconds(5))
             if self?.sendNotice == message { self?.sendNotice = nil }
         }
+    }
+
+    /// Copy Link in the Sunrise menu and the palette: the page's whole address.
+    func copyLink(_ tab: TabModel) {
+        UIPasteboard.general.string = tab.currentURL.absoluteString
+        showNotice(SyncCopy.text("error.inert.copied"))
+    }
+
+    /// Search suggestions for the palette's text, or none: only with the
+    /// setting on, for text typed by hand, and never from a private tab.
+    func searchSuggestions(for text: String) async -> [String] {
+        guard settingsStore.searchSuggestionsOn, paletteTyped, activeTab?.isPrivate != true else { return [] }
+        return await SearchSuggestions.fetch(engine: settingsStore.searchEngine, query: text)
+    }
+
+    /// The palette's "Search for …" row and a tapped suggestion: always a
+    /// search, whatever the text looks like.
+    func search(for query: String) {
+        guard let tab = activeTab else { return }
+        tab.addressText = normalizer.searchURL(for: query).absoluteString
+        submitActiveTabAddress()
     }
 
     /// `/find` asks for Find in page; the page shows it once the palette has
@@ -935,6 +992,21 @@ final class TabsManager {
         setActive(tabs[(index + offset + tabs.count) % tabs.count].id)
     }
 
+    /// ⌥⌘← and ⌥⌘→: focus moves to the split's other pane.
+    func focusPane(by offset: Int) {
+        guard let split = activeSplit, let id = activeTabId, let index = split.tabIds.firstIndex(of: id) else { return }
+        let count = split.tabIds.count
+        setActive(split.tabIds[(index + offset + count) % count])
+    }
+
+    /// ⌘Return in the palette: a new tab behind this one, as private as it is.
+    func openInBackground(_ url: URL) {
+        // Only a web page can wait behind; Blanc's pages open as they always do.
+        let background = ["http", "https"].contains(url.scheme?.lowercased() ?? "")
+        createTab(url: url, isPrivate: activeTab?.isPrivate ?? false, quiet: background)
+    }
+    func openInBackground(typed text: String) { openInBackground(normalizer.normalize(text)) }
+
     /// ⌘+, ⌘− and ⌘0 on the current page.
     func zoomActive(step: Int) {
         guard let webView = activeTab?.existingWebView else { return }
@@ -984,6 +1056,13 @@ final class TabsManager {
     }
 
     func closeGlance() { glanceTabId = nil }
+
+    /// ⌘⇧G: closes the card, or shows the next tab in it. (Desktop opens a
+    /// picker; here the Sunrise menu's Open in Glance ▸ is that list.)
+    func toggleGlance() {
+        if glanceTabId != nil { closeGlance() } else if let next = glanceCandidates.first { showInGlance(next.id) }
+    }
+    var canToggleGlance: Bool { glanceTabId != nil || (canOpenGlance && !glanceCandidates.isEmpty) }
 
     /// The tabs Glance could show over the current one.
     var glanceCandidates: [TabModel] {
@@ -1308,8 +1387,9 @@ final class TabsManager {
     var shownSpace: SpaceRecord? { spaces.first { $0.id == shownSetId } }
     /// The Spaces menu over the Island (M17).
     var isSpacesMenuPresented = false
-    /// The Island shows a Space mark once a Space exists, never on a private tab.
-    var showsSpaceMark: Bool { activeTab?.isPrivate != true && !spaces.isEmpty }
+    /// The palette's footer offers the Spaces card once a Space exists, never
+    /// on a private tab (the resting Island carries no Space mark).
+    var offersSpacesButton: Bool { activeTab?.isPrivate != true && !spaces.isEmpty }
     /// Tabs in a set, for the Spaces menu's counts.
     func tabCount(_ id: String) -> Int {
         id == shownSetId ? tabs.filter { !$0.isPrivate }.count : (savedSet(id)?.tabs.count ?? 0)
@@ -2204,8 +2284,8 @@ final class TabsManager {
     /// shown now; This iPhone keeps a Start Page. Returns the Space's id.
     @discardableResult
     func saveIPhoneAsSpace() throws -> String {
-        let base = syncEngine.status["deviceName"]?.text.flatMap { $0.isEmpty ? nil : $0 } ?? "iPhone"
-        var name = TabSets.spaceName(base) ?? "iPhone"
+        let base = syncEngine.status["deviceName"]?.text.flatMap { $0.isEmpty ? nil : $0 } ?? ThisDevice.name
+        var name = TabSets.spaceName(base) ?? ThisDevice.name
         var n = 2
         while nameTaken(name) { name = TabSets.spaceName("\(base) \(n)") ?? "\(base) \(n)"; n += 1 }
         let preset = SpaceIdentity.presets[spaces.count % SpaceIdentity.presets.count]
@@ -2367,6 +2447,31 @@ final class TabsManager {
         var list = settingsStore.adblockExceptions.filter { $0 != host }
         if !on { list.append(host) }
         setAdblockExceptions(list)
+    }
+
+    /// Request Mobile Website (iPad): whether `tab`'s site gets its phone
+    /// layout, which it keeps across tabs and launches. A private tab's choice
+    /// stays in memory and only applies to private tabs.
+    func wantsMobileSite(_ url: URL, isPrivate: Bool) -> Bool {
+        guard let host = AdblockExceptions.host(for: url) else { return false }
+        if isPrivate, let chosen = privateMobileSites.first(where: { SettingsStore.site($0.key, covers: host) }) {
+            return chosen.value
+        }
+        return settingsStore.mobileSites.contains { SettingsStore.site($0, covers: host) }
+    }
+
+    /// Asks the site `tab` shows for its phone or desktop layout, then reloads it.
+    func setMobileSite(_ tab: TabModel, mobile: Bool) {
+        guard let host = AdblockExceptions.host(for: tab.currentURL) else { return }
+        if tab.isPrivate {
+            privateMobileSites = privateMobileSites.filter { !SettingsStore.sameSite($0.key, host) }
+            privateMobileSites[host] = mobile
+        } else {
+            settingsStore.setMobileSite(host, mobile: mobile)
+        }
+        tab.exitReader()
+        // Loaded afresh: a reload keeps the layout the page was asked for with.
+        tab.navigationDelegate.loadAgain(tab.currentURL, in: tab.webView)
     }
 
     /// Puts the tab's blocking rules on or off for the site it is about to show.

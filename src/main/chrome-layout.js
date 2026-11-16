@@ -26,6 +26,14 @@ const SHIELD_POPOVER_WIDTH = 404;
 const SHIELD_POPOVER_HEIGHT = 580;
 const SHIELD_POPOVER_MARGIN = 12;
 
+// The ⌘L panel is centered in its view and keeps this margin from each side.
+const PANEL_SIDE_MARGIN = 12;
+// macOS draws its window buttons over the window's top-left corner, above
+// every view. They end 80pt in at the standard 18pt inset; with a 12pt gap
+// that is the 92px a side the resting Island already keeps (styles.css
+// #islandPill max-width), so the panel that grows out of it keeps the same.
+const MAC_WINDOW_BUTTONS_CLEARANCE = 92;
+
 const TAB_LAYOUTS = new Set(['island', 'vertical']);
 
 function normalizeTabLayout(value) {
@@ -132,6 +140,13 @@ function calculateChromeLayout({
     utilityBounds: { ...pageBounds },
     // Panel and palette both retain y=0 so the Island expands in place.
     panelBounds,
+    // How far the centered panel stays from each side of its view. On macOS
+    // a view that starts under the window buttons leaves them their corner;
+    // the vertical rail holds them otherwise.
+    panelSideClearance: Math.max(
+      PANEL_SIDE_MARGIN,
+      platform === 'darwin' ? MAC_WINDOW_BUTTONS_CLEARANCE - panelBounds.x : 0,
+    ),
     paletteBounds: { ...panelBounds },
     findBounds,
     // The root chrome renderer mirrors these bounds so the resting Island
@@ -225,17 +240,19 @@ const SPACES_MENU_MAX_HEIGHT = 640;
 /**
  * Bounds for the 'spaces' overlay mode: the menu's left edge under the mark,
  * just below it. The menu is kept inside the window; its shadow room may run
- * past the window's edge, so a mark near either edge still lines up.
- * @param {{windowWidth: number, windowHeight: number, stripHeight: number, anchorLeft?: number|null, anchorBottom?: number|null}} input
+ * past the window's edge, so a mark near either edge still lines up. It never
+ * hangs lower than `anchorLimit` (the strip, unless given: with vertical tabs
+ * the mark sits in the rail's header, which on macOS runs below the strip).
+ * @param {{windowWidth: number, windowHeight: number, stripHeight: number, anchorLimit?: number, anchorLeft?: number|null, anchorBottom?: number|null}} input
  */
-function calculateSpacesBounds({ windowWidth, windowHeight, stripHeight, anchorLeft, anchorBottom }) {
+function calculateSpacesBounds({ windowWidth, windowHeight, stripHeight, anchorLimit = stripHeight, anchorLeft, anchorBottom }) {
   const winWidth = dimension(windowWidth);
   const winHeight = dimension(windowHeight);
   if (!winWidth) return { x: 0, y: 0, width: 0, height: 0 };
   const width = SPACES_MENU_WIDTH + SPACES_MENU_SIDE * 2;
   const wanted = Number.isFinite(anchorLeft) ? anchorLeft : (winWidth - SPACES_MENU_WIDTH) / 2;
   const x = Math.round(Math.max(0, Math.min(wanted, winWidth - SPACES_MENU_WIDTH))) - SPACES_MENU_SIDE;
-  const below = Number.isFinite(anchorBottom) ? Math.min(anchorBottom, dimension(stripHeight)) : dimension(stripHeight);
+  const below = Number.isFinite(anchorBottom) ? Math.min(anchorBottom, dimension(anchorLimit)) : dimension(stripHeight);
   const y = Math.max(0, Math.round(below + SPACES_MENU_GAP - SPACES_MENU_PAD));
   const height = Math.max(0, Math.min(SPACES_MENU_MAX_HEIGHT, winHeight - y));
   return { x, y, width, height };

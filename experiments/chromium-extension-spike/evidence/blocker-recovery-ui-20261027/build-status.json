@@ -1,0 +1,17 @@
+{
+  "baseline": {
+    "steps": 57677,
+    "duration": "3h5m34.66s",
+    "normalGuardActions": 0
+  },
+  "uiBuild": {
+    "initialFailure": "missing SingleThreadTaskRunner include; original log retained",
+    "repair": "explicit header include",
+    "resumeDuration": "55.03s",
+    "resumeSteps": 11,
+    "normalGuardActions": 0
+  },
+  "runtimeAcceptance": "pending",
+  "signedAcceptance": "pending",
+  "gateCredit": false
+}

@@ -1,0 +1,226 @@
+[
+  [
+    "https://00e2120672.com/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "application/javascript",
+      "body": "window.blancFixtureExecuted=(window.blancFixtureExecuted||[]).concat(\"case-cigeialdmedaodlf\");\nfetch(\"https://page.blanc-fixture.test/blanc-fixture/child/case-cigeialdmedaodlf.json\",{credentials:'omit'}).then(()=>{window.blancFixtureChildren=(window.blancFixtureChildren||[]).concat(\"case-cigeialdmedaodlf\");}).catch(()=>{});\n",
+      "sha256": "15f62e167f383bc444dea9ef119581eb43d7ad9c6ee6f5446885698787f1e749"
+    }
+  ],
+  [
+    "https://page.blanc-fixture.test/blanc-fixture/child/case-cigeialdmedaodlf.json",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-child\"}",
+      "causedBy": "case-cigeialdmedaodlf"
+    }
+  ],
+  [
+    "https://015ea24446.com/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "application/javascript",
+      "body": "window.blancFixtureExecuted=(window.blancFixtureExecuted||[]).concat(\"case-oonlhkiiohimnfln\");\nfetch(\"https://page.blanc-fixture.test/blanc-fixture/child/case-oonlhkiiohimnfln.json\",{credentials:'omit'}).then(()=>{window.blancFixtureChildren=(window.blancFixtureChildren||[]).concat(\"case-oonlhkiiohimnfln\");}).catch(()=>{});\n",
+      "sha256": "5cb1d92381cc1fa20cfe2152b45fdb28293e7b99750217ac94ca66b788d90f64"
+    }
+  ],
+  [
+    "https://page.blanc-fixture.test/blanc-fixture/child/case-oonlhkiiohimnfln.json",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-child\"}",
+      "causedBy": "case-oonlhkiiohimnfln"
+    }
+  ],
+  [
+    "https://01counter.com/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "application/javascript",
+      "body": "window.blancFixtureExecuted=(window.blancFixtureExecuted||[]).concat(\"case-dbblbejidkfcfldb\");\nfetch(\"https://page.blanc-fixture.test/blanc-fixture/child/case-dbblbejidkfcfldb.json\",{credentials:'omit'}).then(()=>{window.blancFixtureChildren=(window.blancFixtureChildren||[]).concat(\"case-dbblbejidkfcfldb\");}).catch(()=>{});\n",
+      "sha256": "3aa2c818bb33b2479bcdefd5eedf77a6c1f5049343effbe749ecdb99ba15c69b"
+    }
+  ],
+  [
+    "https://page.blanc-fixture.test/blanc-fixture/child/case-dbblbejidkfcfldb.json",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-child\"}",
+      "causedBy": "case-dbblbejidkfcfldb"
+    }
+  ],
+  [
+    "https://029519cbdc.com/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "application/javascript",
+      "body": "window.blancFixtureExecuted=(window.blancFixtureExecuted||[]).concat(\"case-gndhjfnlobjkocfh\");\nfetch(\"https://page.blanc-fixture.test/blanc-fixture/child/case-gndhjfnlobjkocfh.json\",{credentials:'omit'}).then(()=>{window.blancFixtureChildren=(window.blancFixtureChildren||[]).concat(\"case-gndhjfnlobjkocfh\");}).catch(()=>{});\n",
+      "sha256": "0d1985c83c1f67f73cc8be59382714222d5342e0cef4a6a6ca74fcfe3747c8ba"
+    }
+  ],
+  [
+    "https://page.blanc-fixture.test/blanc-fixture/child/case-gndhjfnlobjkocfh.json",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-child\"}",
+      "causedBy": "case-gndhjfnlobjkocfh"
+    }
+  ],
+  [
+    "https://00e2120672.com.blanc-control.test/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "application/javascript",
+      "body": "window.blancFixtureExecuted=(window.blancFixtureExecuted||[]).concat(\"case-kkgddpifilomlfle\");\nfetch(\"https://page.blanc-fixture.test/blanc-fixture/child/case-kkgddpifilomlfle.json\",{credentials:'omit'}).then(()=>{window.blancFixtureChildren=(window.blancFixtureChildren||[]).concat(\"case-kkgddpifilomlfle\");}).catch(()=>{});\n",
+      "sha256": "e1d672c08d1f87948f6fbec8bd3a82d1e3dfc15b2aa3e9856e26255252343cdd"
+    }
+  ],
+  [
+    "https://page.blanc-fixture.test/blanc-fixture/child/case-kkgddpifilomlfle.json",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-child\"}",
+      "causedBy": "case-kkgddpifilomlfle"
+    }
+  ],
+  [
+    "https://015ea24446.com.blanc-control.test/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "application/javascript",
+      "body": "window.blancFixtureExecuted=(window.blancFixtureExecuted||[]).concat(\"case-jgnklpcnfhnpkjmh\");\nfetch(\"https://page.blanc-fixture.test/blanc-fixture/child/case-jgnklpcnfhnpkjmh.json\",{credentials:'omit'}).then(()=>{window.blancFixtureChildren=(window.blancFixtureChildren||[]).concat(\"case-jgnklpcnfhnpkjmh\");}).catch(()=>{});\n",
+      "sha256": "b55cdb2a345c1631a8c427bcd27f394d5f6624194a437617be88d0491e2edaa1"
+    }
+  ],
+  [
+    "https://page.blanc-fixture.test/blanc-fixture/child/case-jgnklpcnfhnpkjmh.json",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-child\"}",
+      "causedBy": "case-jgnklpcnfhnpkjmh"
+    }
+  ],
+  [
+    "https://01counter.com.blanc-control.test/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "application/javascript",
+      "body": "window.blancFixtureExecuted=(window.blancFixtureExecuted||[]).concat(\"case-gemelcafedkfkeli\");\nfetch(\"https://page.blanc-fixture.test/blanc-fixture/child/case-gemelcafedkfkeli.json\",{credentials:'omit'}).then(()=>{window.blancFixtureChildren=(window.blancFixtureChildren||[]).concat(\"case-gemelcafedkfkeli\");}).catch(()=>{});\n",
+      "sha256": "00b9900b74031b3284ba629cff07031017adb7f3273eb7c9c527673ed10f1b50"
+    }
+  ],
+  [
+    "https://page.blanc-fixture.test/blanc-fixture/child/case-gemelcafedkfkeli.json",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-child\"}",
+      "causedBy": "case-gemelcafedkfkeli"
+    }
+  ],
+  [
+    "https://029519cbdc.com.blanc-control.test/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "application/javascript",
+      "body": "window.blancFixtureExecuted=(window.blancFixtureExecuted||[]).concat(\"case-knbhgjhaagfcffpf\");\nfetch(\"https://page.blanc-fixture.test/blanc-fixture/child/case-knbhgjhaagfcffpf.json\",{credentials:'omit'}).then(()=>{window.blancFixtureChildren=(window.blancFixtureChildren||[]).concat(\"case-knbhgjhaagfcffpf\");}).catch(()=>{});\n",
+      "sha256": "9f017216cd1b34f6e102b33c7c9acd406da59e7021d976ee210eb855b5274eb7"
+    }
+  ],
+  [
+    "https://page.blanc-fixture.test/blanc-fixture/child/case-knbhgjhaagfcffpf.json",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-child\"}",
+      "causedBy": "case-knbhgjhaagfcffpf"
+    }
+  ],
+  [
+    "https://accuweather.com/bundles/prebid.",
+    {
+      "status": 200,
+      "contentType": "application/javascript",
+      "body": "window.blancFixtureExecuted=(window.blancFixtureExecuted||[]).concat(\"case-kiaipddgomehpejk\");\nfetch(\"https://page.blanc-fixture.test/blanc-fixture/child/case-kiaipddgomehpejk.json\",{credentials:'omit'}).then(()=>{window.blancFixtureChildren=(window.blancFixtureChildren||[]).concat(\"case-kiaipddgomehpejk\");}).catch(()=>{});\n",
+      "sha256": "0fb35e576ee9b6e648eaf11772dd563ee82db65488de4bbeeeb68d6e17dc8417"
+    }
+  ],
+  [
+    "https://page.blanc-fixture.test/blanc-fixture/child/case-kiaipddgomehpejk.json",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-child\"}",
+      "causedBy": "case-kiaipddgomehpejk"
+    }
+  ],
+  [
+    "https://adap.tv/redir/javascript/vpaid.js",
+    {
+      "status": 200,
+      "contentType": "application/javascript",
+      "body": "window.blancFixtureExecuted=(window.blancFixtureExecuted||[]).concat(\"case-dhmobacdhgjbnmbm\");\nfetch(\"https://page.blanc-fixture.test/blanc-fixture/child/case-dhmobacdhgjbnmbm.json\",{credentials:'omit'}).then(()=>{window.blancFixtureChildren=(window.blancFixtureChildren||[]).concat(\"case-dhmobacdhgjbnmbm\");}).catch(()=>{});\n",
+      "sha256": "01009b043dac8813dc488de2ca375ad52953ad4f741625a432cd2f2e3ef57e46"
+    }
+  ],
+  [
+    "https://page.blanc-fixture.test/blanc-fixture/child/case-dhmobacdhgjbnmbm.json",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-child\"}",
+      "causedBy": "case-dhmobacdhgjbnmbm"
+    }
+  ],
+  [
+    "https://apv-launcher.minute.ly/api/",
+    {
+      "status": 200,
+      "contentType": "application/javascript",
+      "body": "window.blancFixtureExecuted=(window.blancFixtureExecuted||[]).concat(\"case-phnaoogceigcoiij\");\nfetch(\"https://page.blanc-fixture.test/blanc-fixture/child/case-phnaoogceigcoiij.json\",{credentials:'omit'}).then(()=>{window.blancFixtureChildren=(window.blancFixtureChildren||[]).concat(\"case-phnaoogceigcoiij\");}).catch(()=>{});\n",
+      "sha256": "5855dc4121dc6259e0a829ee384ed72b598be61d4ddf23eeef4e9713b2c1b612"
+    }
+  ],
+  [
+    "https://page.blanc-fixture.test/blanc-fixture/child/case-phnaoogceigcoiij.json",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-child\"}",
+      "causedBy": "case-phnaoogceigcoiij"
+    }
+  ],
+  [
+    "https://basinnow.com/upload/settings/advertise-img.jpg",
+    {
+      "status": 200,
+      "contentType": "application/javascript",
+      "body": "window.blancFixtureExecuted=(window.blancFixtureExecuted||[]).concat(\"case-ebojnfjncfiaiaap\");\nfetch(\"https://page.blanc-fixture.test/blanc-fixture/child/case-ebojnfjncfiaiaap.json\",{credentials:'omit'}).then(()=>{window.blancFixtureChildren=(window.blancFixtureChildren||[]).concat(\"case-ebojnfjncfiaiaap\");}).catch(()=>{});\n",
+      "sha256": "d32db5517e27ef5f51d3a1b8d0824c96d3a2066aa55342e5f1dd2870bd45b4a3"
+    }
+  ],
+  [
+    "https://page.blanc-fixture.test/blanc-fixture/child/case-ebojnfjncfiaiaap.json",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-child\"}",
+      "causedBy": "case-ebojnfjncfiaiaap"
+    }
+  ],
+  [
+    "https://page.blanc-fixture.test/blanc-fixture/index.html",
+    {
+      "status": 200,
+      "contentType": "text/html",
+      "body": "<!doctype html><meta charset=\"utf-8\"><link rel=\"icon\" href=\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2232%22%20height%3D%2232%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20fill%3D%22red%22%2F%3E%3C%2Fsvg%3E\"><title>Blanc synthetic probe</title>\n<script>window.pilot={done:false,loads:[]};(async()=>{\nfor(const c of [{\"id\":\"case-cigeialdmedaodlf\",\"url\":\"https://00e2120672.com/blanc-fixture/resource.js\"},{\"id\":\"case-oonlhkiiohimnfln\",\"url\":\"https://015ea24446.com/blanc-fixture/resource.js\"},{\"id\":\"case-dbblbejidkfcfldb\",\"url\":\"https://01counter.com/blanc-fixture/resource.js\"},{\"id\":\"case-gndhjfnlobjkocfh\",\"url\":\"https://029519cbdc.com/blanc-fixture/resource.js\"},{\"id\":\"case-kkgddpifilomlfle\",\"url\":\"https://00e2120672.com.blanc-control.test/blanc-fixture/resource.js\"},{\"id\":\"case-jgnklpcnfhnpkjmh\",\"url\":\"https://015ea24446.com.blanc-control.test/blanc-fixture/resource.js\"},{\"id\":\"case-gemelcafedkfkeli\",\"url\":\"https://01counter.com.blanc-control.test/blanc-fixture/resource.js\"},{\"id\":\"case-knbhgjhaagfcffpf\",\"url\":\"https://029519cbdc.com.blanc-control.test/blanc-fixture/resource.js\"},{\"id\":\"case-kiaipddgomehpejk\",\"url\":\"https://accuweather.com/bundles/prebid.\"},{\"id\":\"case-dhmobacdhgjbnmbm\",\"url\":\"https://adap.tv/redir/javascript/vpaid.js\"},{\"id\":\"case-phnaoogceigcoiij\",\"url\":\"https://apv-launcher.minute.ly/api/\"},{\"id\":\"case-ebojnfjncfiaiaap\",\"url\":\"https://basinnow.com/upload/settings/advertise-img.jpg\"}]) {\n await new Promise(resolve=>{const s=document.createElement('script');s.src=c.url;s.onload=()=>{pilot.loads.push({id:c.id,event:'load'});resolve();};s.onerror=()=>{pilot.loads.push({id:c.id,event:'error'});resolve();};document.head.append(s);});\n}pilot.done=true;})();</script>"
+    }
+  ]
+]

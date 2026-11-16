@@ -1,0 +1,56 @@
+[
+  {
+    "name": "fresh-two-final",
+    "alive": true,
+    "frame": {
+      "id": "31DE82EC413BEE7744823B3581C1CA1E",
+      "loaderId": "D5AF6A76CE0A0D86C07C372D3334088B",
+      "url": "chrome://blanc-prototype/host.html",
+      "domainAndRegistry": "",
+      "securityOrigin": "chrome://blanc-prototype",
+      "securityOriginDetails": {
+        "isLocalhost": false
+      },
+      "mimeType": "text/html",
+      "adFrameStatus": {
+        "adFrameType": "none"
+      },
+      "secureContextType": "Secure",
+      "crossOriginIsolatedContextType": "NotIsolated",
+      "gatedAPIFeatures": []
+    },
+    "urls": [
+      "blanc://newtab/"
+    ],
+    "selected": 0,
+    "startPage": true,
+    "cleanProcessExit": true
+  },
+  {
+    "name": "fresh-three-final",
+    "alive": true,
+    "frame": {
+      "id": "FD23E7B0708D011A9CB55EA627679E4D",
+      "loaderId": "049D264DDA034B293BC8374A087693AE",
+      "url": "chrome://blanc-prototype/host.html",
+      "domainAndRegistry": "",
+      "securityOrigin": "chrome://blanc-prototype",
+      "securityOriginDetails": {
+        "isLocalhost": false
+      },
+      "mimeType": "text/html",
+      "adFrameStatus": {
+        "adFrameType": "none"
+      },
+      "secureContextType": "Secure",
+      "crossOriginIsolatedContextType": "NotIsolated",
+      "gatedAPIFeatures": []
+    },
+    "urls": [
+      "blanc://newtab/"
+    ],
+    "selected": 0,
+    "startPage": true,
+    "cleanProcessExit": true
+  }
+]

@@ -73,6 +73,20 @@ test('an iPhone ping is accepted and counted under ios:, with platform:ios share
   assert.deepEqual(unprefixed, [], 'nothing desktop reads moves');
 });
 
+test('iPads and iPhones are counted apart; a build that says neither still counts', async () => {
+  const e = env();
+  await send(e, phone({ device: 'ipad' }));
+  await send(e, phone({ device: 'iphone' }));
+  await send(e, phone());
+  await send(e, phone({ device: 'toaster' }));
+  await send(e, mac({ device: 'ipad' }));
+  assert.equal(await e.PINGS.get('ios:device:ipad'), '1');
+  assert.equal(await e.PINGS.get('ios:device:iphone'), '1');
+  assert.equal(await e.PINGS.get('ios:total'), '4');
+  assert.equal(await e.PINGS.get('ios:new:device:ipad'), '1', 'one install, however many launches');
+  assert.equal(countKeys(e).filter((k) => k.includes(':device:') && !k.includes('new:')).length, 2, 'only known devices, only from iOS');
+});
+
 test('iPhone 1.0.0 never adds to desktop 1.0.0, and desktop keys are unchanged', async () => {
   const e = env();
   await send(e, mac({ version: '1.0.0' }));

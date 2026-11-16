@@ -1,0 +1,105 @@
+{
+  "kind": "synthetic-electron-resource-replay",
+  "selectionMode": "probe",
+  "referrerMode": "no-referrer",
+  "passed": true,
+  "started": "2026-10-17T19:09:13.000Z",
+  "runs": [
+    {
+      "kind": "regular",
+      "letter": "a",
+      "runId": "f3ac4326-a1a9-4841-845d-4cecfac2ec3c",
+      "requests": 34,
+      "faults": 0
+    },
+    {
+      "kind": "regular",
+      "letter": "b",
+      "runId": "a8dc32e5-19dc-49b6-9637-381f41a72718",
+      "requests": 34,
+      "faults": 0,
+      "candidateDecisions": {
+        "block": 9,
+        "allow": 15
+      }
+    },
+    {
+      "kind": "private",
+      "letter": "a",
+      "runId": "d8a3e904-8da4-4886-9d26-b10456e37c8d",
+      "requests": 34,
+      "faults": 0
+    },
+    {
+      "kind": "private",
+      "letter": "b",
+      "runId": "375e4ce1-227a-4db9-995f-58eea2c2b9c8",
+      "requests": 34,
+      "faults": 0,
+      "candidateDecisions": {
+        "block": 9,
+        "allow": 15
+      }
+    }
+  ],
+  "trust": {
+    "mode": "ephemeral-leaf-SPKI-and-exact-proxy-authorities",
+    "systemTrustChanged": false,
+    "sessionVerifierRetained": true
+  },
+  "sourceAsarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+  "acceptanceCorpusRequests": 0,
+  "nativeBuilds": 0,
+  "cleanup": {
+    "sourceAsarUnchanged": true,
+    "ownedChildrenExited": true,
+    "disposableTreeRemoved": true
+  },
+  "sourceHashes": {
+    "generate.mjs": "16ac0367e84a8ae583e21abe4f2c58fa351c4dd6bab3eb61a25481220eae1b42",
+    "transport.mjs": "f380dd4931ee609247b6068c977f2c3f67778b7296122d636338e6213e91e44e",
+    "stability.mjs": "450a78e27d1f6df22c131140c290a5040884393f251fc61878d0d9043020a386",
+    "run.mjs": "06c4e6e6a3b48ab0d0bbf41ace5dc02f43e041b2be01dafa4154dc3fa2f0a874",
+    "coverage.json": "4af0b13922516ebf000af2ad403be7a802b9fff9b746a5b833af165dc536eac7",
+    "page.mjs": "a9681d7410d051fa01c507f8aeae91fb631025e001f75b614e0aa4a90e9fc518",
+    "certificate-set.mjs": "342f1ff63a111ef9536aa8250e213d972435c89b3445d285955e332ec7d0ad78",
+    "fixture-trust.cjs": "f147cd3a6b29ba656242b5e7f6d9de69a877c5151899fc842c9ae430d4077bf6",
+    "../pipeline/transport.mjs": "c57b469ddf99848e6eb8389d2621fb03577977a5bd2ef274df0e29544b47a6eb",
+    "../pilot/fixture-trust.cjs": "5519cf4c6baf9d0d996fb9caaa62c3ee144dc02ca68d33bcd9794e8dfcc3a963"
+  },
+  "fixtureCertificateFingerprints": [
+    {
+      "hosts": [
+        "00e2120672.com",
+        "page.blanc-fixture.test",
+        "015ea24446.com",
+        "00e2120672.com.blanc-control.test",
+        "015ea24446.com.blanc-control.test",
+        "accuweather.com",
+        "adap.tv",
+        "00609c257b.com",
+        "00a39e6dfd.com",
+        "00609c257b.com.blanc-control.test",
+        "00a39e6dfd.com.blanc-control.test",
+        "basinnow.com",
+        "go.xlirdr.com",
+        "00427011ae.com",
+        "02228640b9.com",
+        "00427011ae.com.blanc-control.test",
+        "02228640b9.com.blanc-control.test",
+        "airplaydirect.com",
+        "amazon-adsystem.com",
+        "000491b06a.com",
+        "0019x.com",
+        "000491b06a.com.blanc-control.test",
+        "0019x.com.blanc-control.test",
+        "aone-soft.com",
+        "banmancounselling.com"
+      ],
+      "leafFingerprint": "21:E7:B4:E1:89:B0:E8:56:C1:BF:A3:5C:1C:8A:7E:8E:EC:5A:77:97:47:ED:BD:4E:60:A9:56:3E:8B:2A:45:95"
+    }
+  ],
+  "fixtureCandidates": 28,
+  "bundleSha256": "527430a60cd4c699466a80d85f1e0699d0e4011a7bff075cf9efc1d7350a8c48",
+  "finished": "2026-10-17T19:09:20.347Z"
+}

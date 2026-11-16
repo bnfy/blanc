@@ -1,0 +1,12 @@
+{
+  "approvedBy": "owner in chat",
+  "approvedActions": 57677,
+  "approvedClangCompileCommands": 47083,
+  "workers": 8,
+  "target": "157.0.8103.15",
+  "log": "/Users/anthonyjloria/Projects/BlancChromium157Recovery/records/20261027/recovery-build.log",
+  "status": "wrapper launched; preflight/build in progress",
+  "electron": "paused",
+  "latency": "deferred",
+  "googleBaseline": "separate"
+}

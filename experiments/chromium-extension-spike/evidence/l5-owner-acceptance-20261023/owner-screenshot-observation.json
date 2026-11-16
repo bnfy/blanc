@@ -1,0 +1,11 @@
+{
+  "filename": "Screenshot 2026-10-23 at 2.16.09\u202fPM.png",
+  "sha256": "c6b2c707e3dfb4d03cd5d5d96acee3550f3fe2d552fc204a715e20a0712241f3",
+  "originalPixels": [
+    1856,
+    2128
+  ],
+  "observation": "Bitwarden optional default-password-manager setup with Continue and Skip; VoiceOver caption instructs Control-Option-Shift-Down to enter web content. This is normal web-area interaction guidance, not a failure or audio recording.",
+  "publication": "Original desktop screenshot remains local; only digest and relevant observation published.",
+  "subsequentOwnerResponse": "Passed, including Cancel leaving Bitwarden uninstalled before retrying. Record L5 as accepted and update the plan and evidence on #1028. Keep Google baseline separate, latency deferred, and the Electron build pending."
+}

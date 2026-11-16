@@ -1,0 +1,6276 @@
+{
+  "label": "geometry",
+  "checks": [
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": false,
+        "requestedWidth": 1200,
+        "ratio": 0.2,
+        "bounds": {
+          "bounds": {
+            "left": 22,
+            "top": 52,
+            "width": 1200,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 1200,
+          "height": 98,
+          "divider": {
+            "x": 236,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 244,
+            "bottom": 98,
+            "left": 236
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 240,
+                "height": 30,
+                "top": 68,
+                "right": 240,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 239,
+              "client": 239,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 135.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 162.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 162.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 187.921875,
+                    "bottom": 96,
+                    "left": 162.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 187.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 215.4375,
+                    "bottom": 96,
+                    "left": 187.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 215.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 239,
+                    "bottom": 96,
+                    "left": 215.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 240,
+                "y": 68,
+                "width": 960,
+                "height": 30,
+                "top": 68,
+                "right": 1200,
+                "bottom": 98,
+                "left": 240
+              },
+              "scroll": 959,
+              "client": 959,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 240,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 266.875,
+                    "bottom": 97,
+                    "left": 240
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 266.875,
+                    "y": 68,
+                    "width": 855.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1122.1015625,
+                    "bottom": 97,
+                    "left": 266.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 1122.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1147.921875,
+                    "bottom": 97,
+                    "left": 1122.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 1147.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1175.4375,
+                    "bottom": 97,
+                    "left": 1147.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 1175.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1199,
+                    "bottom": 97,
+                    "left": 1175.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 225,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          },
+          {
+            "width": 929,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": false,
+        "requestedWidth": 1200,
+        "ratio": 0.5,
+        "bounds": {
+          "bounds": {
+            "left": 22,
+            "top": 52,
+            "width": 1200,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 1200,
+          "height": 98,
+          "divider": {
+            "x": 596,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 604,
+            "bottom": 98,
+            "left": 596
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 600,
+                "height": 30,
+                "top": 68,
+                "right": 600,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 599,
+              "client": 599,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 495.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 522.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 522.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 547.921875,
+                    "bottom": 96,
+                    "left": 522.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 547.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 575.4375,
+                    "bottom": 96,
+                    "left": 547.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 575.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 599,
+                    "bottom": 96,
+                    "left": 575.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 600,
+                "y": 68,
+                "width": 600,
+                "height": 30,
+                "top": 68,
+                "right": 1200,
+                "bottom": 98,
+                "left": 600
+              },
+              "scroll": 599,
+              "client": 599,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 600,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 626.875,
+                    "bottom": 97,
+                    "left": 600
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 626.875,
+                    "y": 68,
+                    "width": 495.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1122.1015625,
+                    "bottom": 97,
+                    "left": 626.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 1122.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1147.921875,
+                    "bottom": 97,
+                    "left": 1122.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 1147.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1175.4375,
+                    "bottom": 97,
+                    "left": 1147.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 1175.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1199,
+                    "bottom": 97,
+                    "left": 1175.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 577,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          },
+          {
+            "width": 577,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": false,
+        "requestedWidth": 1200,
+        "ratio": 0.8,
+        "bounds": {
+          "bounds": {
+            "left": 22,
+            "top": 52,
+            "width": 1200,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 1200,
+          "height": 98,
+          "divider": {
+            "x": 956,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 964,
+            "bottom": 98,
+            "left": 956
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 960,
+                "height": 30,
+                "top": 68,
+                "right": 960,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 959,
+              "client": 959,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 855.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 882.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 882.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 907.921875,
+                    "bottom": 96,
+                    "left": 882.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 907.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 935.4375,
+                    "bottom": 96,
+                    "left": 907.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 935.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 959,
+                    "bottom": 96,
+                    "left": 935.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 960,
+                "y": 68,
+                "width": 240,
+                "height": 30,
+                "top": 68,
+                "right": 1200,
+                "bottom": 98,
+                "left": 960
+              },
+              "scroll": 239,
+              "client": 239,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 960,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 986.875,
+                    "bottom": 97,
+                    "left": 960
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 986.875,
+                    "y": 68,
+                    "width": 135.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1122.1015625,
+                    "bottom": 97,
+                    "left": 986.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 1122.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1147.921875,
+                    "bottom": 97,
+                    "left": 1122.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 1147.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1175.4375,
+                    "bottom": 97,
+                    "left": 1147.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 1175.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1199,
+                    "bottom": 97,
+                    "left": 1175.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 929,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          },
+          {
+            "width": 225,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": false,
+        "requestedWidth": 900,
+        "ratio": 0.2,
+        "bounds": {
+          "bounds": {
+            "left": 22,
+            "top": 52,
+            "width": 900,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 900,
+          "height": 98,
+          "divider": {
+            "x": 176,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 184,
+            "bottom": 98,
+            "left": 176
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 180,
+                "height": 30,
+                "top": 68,
+                "right": 180,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 179,
+              "client": 179,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 75.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 102.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 102.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 127.921875,
+                    "bottom": 96,
+                    "left": 102.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 127.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 155.4375,
+                    "bottom": 96,
+                    "left": 127.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 155.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 179,
+                    "bottom": 96,
+                    "left": 155.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 180,
+                "y": 68,
+                "width": 720,
+                "height": 30,
+                "top": 68,
+                "right": 900,
+                "bottom": 98,
+                "left": 180
+              },
+              "scroll": 719,
+              "client": 719,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 180,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 206.875,
+                    "bottom": 97,
+                    "left": 180
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 206.875,
+                    "y": 68,
+                    "width": 615.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 822.1015625,
+                    "bottom": 97,
+                    "left": 206.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 822.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 847.921875,
+                    "bottom": 97,
+                    "left": 822.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 847.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 875.4375,
+                    "bottom": 97,
+                    "left": 847.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 875.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 899,
+                    "bottom": 97,
+                    "left": 875.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 165,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          },
+          {
+            "width": 689,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": false,
+        "requestedWidth": 900,
+        "ratio": 0.5,
+        "bounds": {
+          "bounds": {
+            "left": 22,
+            "top": 52,
+            "width": 900,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 900,
+          "height": 98,
+          "divider": {
+            "x": 446,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 454,
+            "bottom": 98,
+            "left": 446
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 450,
+                "height": 30,
+                "top": 68,
+                "right": 450,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 449,
+              "client": 449,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 345.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 372.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 372.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 397.921875,
+                    "bottom": 96,
+                    "left": 372.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 397.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 425.4375,
+                    "bottom": 96,
+                    "left": 397.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 425.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 449,
+                    "bottom": 96,
+                    "left": 425.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 450,
+                "y": 68,
+                "width": 450,
+                "height": 30,
+                "top": 68,
+                "right": 900,
+                "bottom": 98,
+                "left": 450
+              },
+              "scroll": 449,
+              "client": 449,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 450,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 476.875,
+                    "bottom": 97,
+                    "left": 450
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 476.875,
+                    "y": 68,
+                    "width": 345.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 822.1015625,
+                    "bottom": 97,
+                    "left": 476.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 822.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 847.921875,
+                    "bottom": 97,
+                    "left": 822.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 847.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 875.4375,
+                    "bottom": 97,
+                    "left": 847.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 875.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 899,
+                    "bottom": 97,
+                    "left": 875.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 427,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          },
+          {
+            "width": 427,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": false,
+        "requestedWidth": 900,
+        "ratio": 0.8,
+        "bounds": {
+          "bounds": {
+            "left": 22,
+            "top": 52,
+            "width": 900,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 900,
+          "height": 98,
+          "divider": {
+            "x": 716,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 724,
+            "bottom": 98,
+            "left": 716
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 720,
+                "height": 30,
+                "top": 68,
+                "right": 720,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 719,
+              "client": 719,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 615.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 642.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 642.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 667.921875,
+                    "bottom": 96,
+                    "left": 642.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 667.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 695.4375,
+                    "bottom": 96,
+                    "left": 667.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 695.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 719,
+                    "bottom": 96,
+                    "left": 695.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 720,
+                "y": 68,
+                "width": 180,
+                "height": 30,
+                "top": 68,
+                "right": 900,
+                "bottom": 98,
+                "left": 720
+              },
+              "scroll": 179,
+              "client": 179,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 720,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 746.875,
+                    "bottom": 97,
+                    "left": 720
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 746.875,
+                    "y": 68,
+                    "width": 75.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 822.1015625,
+                    "bottom": 97,
+                    "left": 746.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 822.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 847.921875,
+                    "bottom": 97,
+                    "left": 822.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 847.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 875.4375,
+                    "bottom": 97,
+                    "left": 847.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 875.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 899,
+                    "bottom": 97,
+                    "left": 875.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 689,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          },
+          {
+            "width": 165,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": false,
+        "requestedWidth": 700,
+        "ratio": 0.2,
+        "bounds": {
+          "bounds": {
+            "left": 22,
+            "top": 52,
+            "width": 700,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 700,
+          "height": 98,
+          "divider": {
+            "x": 136,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 144,
+            "bottom": 98,
+            "left": 136
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 140,
+                "height": 30,
+                "top": 68,
+                "right": 140,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 139,
+              "client": 139,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 35.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 62.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 62.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 87.921875,
+                    "bottom": 96,
+                    "left": 62.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 87.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 115.4375,
+                    "bottom": 96,
+                    "left": 87.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 115.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 139,
+                    "bottom": 96,
+                    "left": 115.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 140,
+                "y": 68,
+                "width": 560,
+                "height": 30,
+                "top": 68,
+                "right": 700,
+                "bottom": 98,
+                "left": 140
+              },
+              "scroll": 559,
+              "client": 559,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 140,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 166.875,
+                    "bottom": 97,
+                    "left": 140
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 166.875,
+                    "y": 68,
+                    "width": 455.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 622.1015625,
+                    "bottom": 97,
+                    "left": 166.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 622.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 647.921875,
+                    "bottom": 97,
+                    "left": 622.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 647.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 675.4375,
+                    "bottom": 97,
+                    "left": 647.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 675.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 699,
+                    "bottom": 97,
+                    "left": 675.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 125,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          },
+          {
+            "width": 529,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": false,
+        "requestedWidth": 700,
+        "ratio": 0.5,
+        "bounds": {
+          "bounds": {
+            "left": 22,
+            "top": 52,
+            "width": 700,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 700,
+          "height": 98,
+          "divider": {
+            "x": 346,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 354,
+            "bottom": 98,
+            "left": 346
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 350,
+                "height": 30,
+                "top": 68,
+                "right": 350,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 349,
+              "client": 349,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 245.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 272.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 272.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 297.921875,
+                    "bottom": 96,
+                    "left": 272.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 297.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 325.4375,
+                    "bottom": 96,
+                    "left": 297.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 325.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 349,
+                    "bottom": 96,
+                    "left": 325.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 350,
+                "y": 68,
+                "width": 350,
+                "height": 30,
+                "top": 68,
+                "right": 700,
+                "bottom": 98,
+                "left": 350
+              },
+              "scroll": 349,
+              "client": 349,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 350,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 376.875,
+                    "bottom": 97,
+                    "left": 350
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 376.875,
+                    "y": 68,
+                    "width": 245.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 622.1015625,
+                    "bottom": 97,
+                    "left": 376.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 622.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 647.921875,
+                    "bottom": 97,
+                    "left": 622.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 647.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 675.4375,
+                    "bottom": 97,
+                    "left": 647.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 675.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 699,
+                    "bottom": 97,
+                    "left": 675.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 327,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          },
+          {
+            "width": 327,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": false,
+        "requestedWidth": 700,
+        "ratio": 0.8,
+        "bounds": {
+          "bounds": {
+            "left": 22,
+            "top": 52,
+            "width": 700,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 700,
+          "height": 98,
+          "divider": {
+            "x": 556,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 564,
+            "bottom": 98,
+            "left": 556
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 560,
+                "height": 30,
+                "top": 68,
+                "right": 560,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 559,
+              "client": 559,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 455.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 482.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 482.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 507.921875,
+                    "bottom": 96,
+                    "left": 482.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 507.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 535.4375,
+                    "bottom": 96,
+                    "left": 507.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 535.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 559,
+                    "bottom": 96,
+                    "left": 535.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 560,
+                "y": 68,
+                "width": 140,
+                "height": 30,
+                "top": 68,
+                "right": 700,
+                "bottom": 98,
+                "left": 560
+              },
+              "scroll": 139,
+              "client": 139,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 560,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 586.875,
+                    "bottom": 97,
+                    "left": 560
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 586.875,
+                    "y": 68,
+                    "width": 35.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 622.1015625,
+                    "bottom": 97,
+                    "left": 586.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 622.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 647.921875,
+                    "bottom": 97,
+                    "left": 622.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 647.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 675.4375,
+                    "bottom": 97,
+                    "left": 647.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 675.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 699,
+                    "bottom": 97,
+                    "left": 675.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 529,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          },
+          {
+            "width": 125,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": false,
+        "requestedWidth": 600,
+        "ratio": 0.2,
+        "bounds": {
+          "bounds": {
+            "left": 22,
+            "top": 52,
+            "width": 600,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 600,
+          "height": 98,
+          "divider": {
+            "x": 116,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 124,
+            "bottom": 98,
+            "left": 116
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 120,
+                "height": 30,
+                "top": 68,
+                "right": 120,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 120,
+              "client": 119,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 16,
+                    "height": 28,
+                    "top": 68,
+                    "right": 42.875,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 42.875,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 68.6953125,
+                    "bottom": 96,
+                    "left": 42.875
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 68.6953125,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 96.2109375,
+                    "bottom": 96,
+                    "left": 68.6953125
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 96.2109375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 119.7734375,
+                    "bottom": 96,
+                    "left": 96.2109375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 120,
+                "y": 68,
+                "width": 480,
+                "height": 30,
+                "top": 68,
+                "right": 600,
+                "bottom": 98,
+                "left": 120
+              },
+              "scroll": 479,
+              "client": 479,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 120,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 146.875,
+                    "bottom": 97,
+                    "left": 120
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 146.875,
+                    "y": 68,
+                    "width": 375.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 522.1015625,
+                    "bottom": 97,
+                    "left": 146.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 522.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 547.921875,
+                    "bottom": 97,
+                    "left": 522.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 547.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 575.4375,
+                    "bottom": 97,
+                    "left": 547.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 575.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 599,
+                    "bottom": 97,
+                    "left": 575.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 105,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          },
+          {
+            "width": 449,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": false,
+        "requestedWidth": 600,
+        "ratio": 0.5,
+        "bounds": {
+          "bounds": {
+            "left": 22,
+            "top": 52,
+            "width": 600,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 600,
+          "height": 98,
+          "divider": {
+            "x": 296,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 304,
+            "bottom": 98,
+            "left": 296
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 300,
+                "height": 30,
+                "top": 68,
+                "right": 300,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 299,
+              "client": 299,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 195.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 222.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 222.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 247.921875,
+                    "bottom": 96,
+                    "left": 222.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 247.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 275.4375,
+                    "bottom": 96,
+                    "left": 247.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 275.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 299,
+                    "bottom": 96,
+                    "left": 275.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 300,
+                "y": 68,
+                "width": 300,
+                "height": 30,
+                "top": 68,
+                "right": 600,
+                "bottom": 98,
+                "left": 300
+              },
+              "scroll": 299,
+              "client": 299,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 300,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 326.875,
+                    "bottom": 97,
+                    "left": 300
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 326.875,
+                    "y": 68,
+                    "width": 195.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 522.1015625,
+                    "bottom": 97,
+                    "left": 326.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 522.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 547.921875,
+                    "bottom": 97,
+                    "left": 522.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 547.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 575.4375,
+                    "bottom": 97,
+                    "left": 547.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 575.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 599,
+                    "bottom": 97,
+                    "left": 575.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 277,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          },
+          {
+            "width": 277,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": false,
+        "requestedWidth": 600,
+        "ratio": 0.8,
+        "bounds": {
+          "bounds": {
+            "left": 22,
+            "top": 52,
+            "width": 600,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 600,
+          "height": 98,
+          "divider": {
+            "x": 476,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 484,
+            "bottom": 98,
+            "left": 476
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 480,
+                "height": 30,
+                "top": 68,
+                "right": 480,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 479,
+              "client": 479,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 375.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 402.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 402.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 427.921875,
+                    "bottom": 96,
+                    "left": 402.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 427.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 455.4375,
+                    "bottom": 96,
+                    "left": 427.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 455.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 479,
+                    "bottom": 96,
+                    "left": 455.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 480,
+                "y": 68,
+                "width": 120,
+                "height": 30,
+                "top": 68,
+                "right": 600,
+                "bottom": 98,
+                "left": 480
+              },
+              "scroll": 120,
+              "client": 119,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 480,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 506.875,
+                    "bottom": 97,
+                    "left": 480
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 506.875,
+                    "y": 68,
+                    "width": 16,
+                    "height": 29,
+                    "top": 68,
+                    "right": 522.875,
+                    "bottom": 97,
+                    "left": 506.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 522.875,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 548.6953125,
+                    "bottom": 97,
+                    "left": 522.875
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 548.6953125,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 576.2109375,
+                    "bottom": 97,
+                    "left": 548.6953125
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 576.2109375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 599.7734375,
+                    "bottom": 97,
+                    "left": 576.2109375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 449,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          },
+          {
+            "width": 105,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": false,
+        "requestedWidth": 500,
+        "ratio": 0.2,
+        "bounds": {
+          "bounds": {
+            "left": 22,
+            "top": 52,
+            "width": 500,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 500,
+          "height": 98,
+          "divider": {
+            "x": 96,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 104,
+            "bottom": 98,
+            "left": 96
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 100,
+                "height": 30,
+                "top": 68,
+                "right": 100,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 120,
+              "client": 99,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 16,
+                    "height": 28,
+                    "top": 68,
+                    "right": 42.875,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 42.875,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 68.6953125,
+                    "bottom": 96,
+                    "left": 42.875
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 68.6953125,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 96.2109375,
+                    "bottom": 96,
+                    "left": 68.6953125
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 96.2109375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 119.7734375,
+                    "bottom": 96,
+                    "left": 96.2109375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 100,
+                "y": 68,
+                "width": 400,
+                "height": 30,
+                "top": 68,
+                "right": 500,
+                "bottom": 98,
+                "left": 100
+              },
+              "scroll": 399,
+              "client": 399,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 100,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 126.875,
+                    "bottom": 97,
+                    "left": 100
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 126.875,
+                    "y": 68,
+                    "width": 295.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 422.1015625,
+                    "bottom": 97,
+                    "left": 126.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 422.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 447.921875,
+                    "bottom": 97,
+                    "left": 422.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 447.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 475.4375,
+                    "bottom": 97,
+                    "left": 447.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 475.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 499,
+                    "bottom": 97,
+                    "left": 475.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 85,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          },
+          {
+            "width": 369,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": false,
+        "requestedWidth": 500,
+        "ratio": 0.5,
+        "bounds": {
+          "bounds": {
+            "left": 22,
+            "top": 52,
+            "width": 500,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 500,
+          "height": 98,
+          "divider": {
+            "x": 246,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 254,
+            "bottom": 98,
+            "left": 246
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 250,
+                "height": 30,
+                "top": 68,
+                "right": 250,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 249,
+              "client": 249,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 145.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 172.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 172.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 197.921875,
+                    "bottom": 96,
+                    "left": 172.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 197.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 225.4375,
+                    "bottom": 96,
+                    "left": 197.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 225.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 249,
+                    "bottom": 96,
+                    "left": 225.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 250,
+                "y": 68,
+                "width": 250,
+                "height": 30,
+                "top": 68,
+                "right": 500,
+                "bottom": 98,
+                "left": 250
+              },
+              "scroll": 249,
+              "client": 249,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 250,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 276.875,
+                    "bottom": 97,
+                    "left": 250
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 276.875,
+                    "y": 68,
+                    "width": 145.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 422.1015625,
+                    "bottom": 97,
+                    "left": 276.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 422.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 447.921875,
+                    "bottom": 97,
+                    "left": 422.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 447.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 475.4375,
+                    "bottom": 97,
+                    "left": 447.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 475.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 499,
+                    "bottom": 97,
+                    "left": 475.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 227,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          },
+          {
+            "width": 227,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": false,
+        "requestedWidth": 500,
+        "ratio": 0.8,
+        "bounds": {
+          "bounds": {
+            "left": 22,
+            "top": 52,
+            "width": 500,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 500,
+          "height": 98,
+          "divider": {
+            "x": 396,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 404,
+            "bottom": 98,
+            "left": 396
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 400,
+                "height": 30,
+                "top": 68,
+                "right": 400,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 399,
+              "client": 399,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 295.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 322.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 322.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 347.921875,
+                    "bottom": 96,
+                    "left": 322.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 347.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 375.4375,
+                    "bottom": 96,
+                    "left": 347.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 375.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 399,
+                    "bottom": 96,
+                    "left": 375.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 400,
+                "y": 68,
+                "width": 100,
+                "height": 30,
+                "top": 68,
+                "right": 500,
+                "bottom": 98,
+                "left": 400
+              },
+              "scroll": 120,
+              "client": 99,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 400,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 426.875,
+                    "bottom": 97,
+                    "left": 400
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 426.875,
+                    "y": 68,
+                    "width": 16,
+                    "height": 29,
+                    "top": 68,
+                    "right": 442.875,
+                    "bottom": 97,
+                    "left": 426.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 442.875,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 468.6953125,
+                    "bottom": 97,
+                    "left": 442.875
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 468.6953125,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 496.2109375,
+                    "bottom": 97,
+                    "left": 468.6953125
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 496.2109375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 519.7734375,
+                    "bottom": 97,
+                    "left": 496.2109375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 369,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          },
+          {
+            "width": 85,
+            "height": 604,
+            "x": 22,
+            "y": 52
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": true,
+        "requestedWidth": 1200,
+        "ratio": 0.2,
+        "bounds": {
+          "bounds": {
+            "left": 44,
+            "top": 74,
+            "width": 1200,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 1200,
+          "height": 98,
+          "divider": {
+            "x": 236,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 244,
+            "bottom": 98,
+            "left": 236
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 240,
+                "height": 30,
+                "top": 68,
+                "right": 240,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 239,
+              "client": 239,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 135.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 162.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 162.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 187.921875,
+                    "bottom": 96,
+                    "left": 162.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 187.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 215.4375,
+                    "bottom": 96,
+                    "left": 187.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 215.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 239,
+                    "bottom": 96,
+                    "left": 215.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 240,
+                "y": 68,
+                "width": 960,
+                "height": 30,
+                "top": 68,
+                "right": 1200,
+                "bottom": 98,
+                "left": 240
+              },
+              "scroll": 959,
+              "client": 959,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 240,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 266.875,
+                    "bottom": 97,
+                    "left": 240
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 266.875,
+                    "y": 68,
+                    "width": 855.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1122.1015625,
+                    "bottom": 97,
+                    "left": 266.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 1122.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1147.921875,
+                    "bottom": 97,
+                    "left": 1122.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 1147.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1175.4375,
+                    "bottom": 97,
+                    "left": 1147.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 1175.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1199,
+                    "bottom": 97,
+                    "left": 1175.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 225,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          },
+          {
+            "width": 929,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": true,
+        "requestedWidth": 1200,
+        "ratio": 0.5,
+        "bounds": {
+          "bounds": {
+            "left": 44,
+            "top": 74,
+            "width": 1200,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 1200,
+          "height": 98,
+          "divider": {
+            "x": 596,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 604,
+            "bottom": 98,
+            "left": 596
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 600,
+                "height": 30,
+                "top": 68,
+                "right": 600,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 599,
+              "client": 599,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 495.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 522.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 522.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 547.921875,
+                    "bottom": 96,
+                    "left": 522.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 547.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 575.4375,
+                    "bottom": 96,
+                    "left": 547.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 575.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 599,
+                    "bottom": 96,
+                    "left": 575.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 600,
+                "y": 68,
+                "width": 600,
+                "height": 30,
+                "top": 68,
+                "right": 1200,
+                "bottom": 98,
+                "left": 600
+              },
+              "scroll": 599,
+              "client": 599,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 600,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 626.875,
+                    "bottom": 97,
+                    "left": 600
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 626.875,
+                    "y": 68,
+                    "width": 495.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1122.1015625,
+                    "bottom": 97,
+                    "left": 626.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 1122.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1147.921875,
+                    "bottom": 97,
+                    "left": 1122.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 1147.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1175.4375,
+                    "bottom": 97,
+                    "left": 1147.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 1175.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1199,
+                    "bottom": 97,
+                    "left": 1175.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 577,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          },
+          {
+            "width": 577,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": true,
+        "requestedWidth": 1200,
+        "ratio": 0.8,
+        "bounds": {
+          "bounds": {
+            "left": 44,
+            "top": 74,
+            "width": 1200,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 1200,
+          "height": 98,
+          "divider": {
+            "x": 956,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 964,
+            "bottom": 98,
+            "left": 956
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 960,
+                "height": 30,
+                "top": 68,
+                "right": 960,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 959,
+              "client": 959,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 855.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 882.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 882.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 907.921875,
+                    "bottom": 96,
+                    "left": 882.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 907.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 935.4375,
+                    "bottom": 96,
+                    "left": 907.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 935.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 959,
+                    "bottom": 96,
+                    "left": 935.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 960,
+                "y": 68,
+                "width": 240,
+                "height": 30,
+                "top": 68,
+                "right": 1200,
+                "bottom": 98,
+                "left": 960
+              },
+              "scroll": 239,
+              "client": 239,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 960,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 986.875,
+                    "bottom": 97,
+                    "left": 960
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 986.875,
+                    "y": 68,
+                    "width": 135.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1122.1015625,
+                    "bottom": 97,
+                    "left": 986.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 1122.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1147.921875,
+                    "bottom": 97,
+                    "left": 1122.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 1147.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1175.4375,
+                    "bottom": 97,
+                    "left": 1147.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 1175.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 1199,
+                    "bottom": 97,
+                    "left": 1175.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 929,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          },
+          {
+            "width": 225,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": true,
+        "requestedWidth": 900,
+        "ratio": 0.2,
+        "bounds": {
+          "bounds": {
+            "left": 44,
+            "top": 74,
+            "width": 900,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 900,
+          "height": 98,
+          "divider": {
+            "x": 176,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 184,
+            "bottom": 98,
+            "left": 176
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 180,
+                "height": 30,
+                "top": 68,
+                "right": 180,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 179,
+              "client": 179,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 75.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 102.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 102.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 127.921875,
+                    "bottom": 96,
+                    "left": 102.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 127.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 155.4375,
+                    "bottom": 96,
+                    "left": 127.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 155.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 179,
+                    "bottom": 96,
+                    "left": 155.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 180,
+                "y": 68,
+                "width": 720,
+                "height": 30,
+                "top": 68,
+                "right": 900,
+                "bottom": 98,
+                "left": 180
+              },
+              "scroll": 719,
+              "client": 719,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 180,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 206.875,
+                    "bottom": 97,
+                    "left": 180
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 206.875,
+                    "y": 68,
+                    "width": 615.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 822.1015625,
+                    "bottom": 97,
+                    "left": 206.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 822.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 847.921875,
+                    "bottom": 97,
+                    "left": 822.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 847.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 875.4375,
+                    "bottom": 97,
+                    "left": 847.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 875.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 899,
+                    "bottom": 97,
+                    "left": 875.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 165,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          },
+          {
+            "width": 689,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": true,
+        "requestedWidth": 900,
+        "ratio": 0.5,
+        "bounds": {
+          "bounds": {
+            "left": 44,
+            "top": 74,
+            "width": 900,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 900,
+          "height": 98,
+          "divider": {
+            "x": 446,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 454,
+            "bottom": 98,
+            "left": 446
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 450,
+                "height": 30,
+                "top": 68,
+                "right": 450,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 449,
+              "client": 449,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 345.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 372.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 372.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 397.921875,
+                    "bottom": 96,
+                    "left": 372.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 397.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 425.4375,
+                    "bottom": 96,
+                    "left": 397.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 425.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 449,
+                    "bottom": 96,
+                    "left": 425.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 450,
+                "y": 68,
+                "width": 450,
+                "height": 30,
+                "top": 68,
+                "right": 900,
+                "bottom": 98,
+                "left": 450
+              },
+              "scroll": 449,
+              "client": 449,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 450,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 476.875,
+                    "bottom": 97,
+                    "left": 450
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 476.875,
+                    "y": 68,
+                    "width": 345.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 822.1015625,
+                    "bottom": 97,
+                    "left": 476.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 822.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 847.921875,
+                    "bottom": 97,
+                    "left": 822.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 847.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 875.4375,
+                    "bottom": 97,
+                    "left": 847.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 875.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 899,
+                    "bottom": 97,
+                    "left": 875.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 427,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          },
+          {
+            "width": 427,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": true,
+        "requestedWidth": 900,
+        "ratio": 0.8,
+        "bounds": {
+          "bounds": {
+            "left": 44,
+            "top": 74,
+            "width": 900,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 900,
+          "height": 98,
+          "divider": {
+            "x": 716,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 724,
+            "bottom": 98,
+            "left": 716
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 720,
+                "height": 30,
+                "top": 68,
+                "right": 720,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 719,
+              "client": 719,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 615.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 642.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 642.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 667.921875,
+                    "bottom": 96,
+                    "left": 642.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 667.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 695.4375,
+                    "bottom": 96,
+                    "left": 667.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 695.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 719,
+                    "bottom": 96,
+                    "left": 695.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 720,
+                "y": 68,
+                "width": 180,
+                "height": 30,
+                "top": 68,
+                "right": 900,
+                "bottom": 98,
+                "left": 720
+              },
+              "scroll": 179,
+              "client": 179,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 720,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 746.875,
+                    "bottom": 97,
+                    "left": 720
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 746.875,
+                    "y": 68,
+                    "width": 75.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 822.1015625,
+                    "bottom": 97,
+                    "left": 746.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 822.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 847.921875,
+                    "bottom": 97,
+                    "left": 822.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 847.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 875.4375,
+                    "bottom": 97,
+                    "left": 847.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 875.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 899,
+                    "bottom": 97,
+                    "left": 875.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 689,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          },
+          {
+            "width": 165,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": true,
+        "requestedWidth": 700,
+        "ratio": 0.2,
+        "bounds": {
+          "bounds": {
+            "left": 44,
+            "top": 74,
+            "width": 700,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 700,
+          "height": 98,
+          "divider": {
+            "x": 136,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 144,
+            "bottom": 98,
+            "left": 136
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 140,
+                "height": 30,
+                "top": 68,
+                "right": 140,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 139,
+              "client": 139,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 35.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 62.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 62.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 87.921875,
+                    "bottom": 96,
+                    "left": 62.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 87.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 115.4375,
+                    "bottom": 96,
+                    "left": 87.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 115.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 139,
+                    "bottom": 96,
+                    "left": 115.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 140,
+                "y": 68,
+                "width": 560,
+                "height": 30,
+                "top": 68,
+                "right": 700,
+                "bottom": 98,
+                "left": 140
+              },
+              "scroll": 559,
+              "client": 559,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 140,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 166.875,
+                    "bottom": 97,
+                    "left": 140
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 166.875,
+                    "y": 68,
+                    "width": 455.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 622.1015625,
+                    "bottom": 97,
+                    "left": 166.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 622.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 647.921875,
+                    "bottom": 97,
+                    "left": 622.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 647.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 675.4375,
+                    "bottom": 97,
+                    "left": 647.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 675.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 699,
+                    "bottom": 97,
+                    "left": 675.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 125,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          },
+          {
+            "width": 529,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": true,
+        "requestedWidth": 700,
+        "ratio": 0.5,
+        "bounds": {
+          "bounds": {
+            "left": 44,
+            "top": 74,
+            "width": 700,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 700,
+          "height": 98,
+          "divider": {
+            "x": 346,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 354,
+            "bottom": 98,
+            "left": 346
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 350,
+                "height": 30,
+                "top": 68,
+                "right": 350,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 349,
+              "client": 349,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 245.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 272.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 272.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 297.921875,
+                    "bottom": 96,
+                    "left": 272.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 297.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 325.4375,
+                    "bottom": 96,
+                    "left": 297.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 325.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 349,
+                    "bottom": 96,
+                    "left": 325.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 350,
+                "y": 68,
+                "width": 350,
+                "height": 30,
+                "top": 68,
+                "right": 700,
+                "bottom": 98,
+                "left": 350
+              },
+              "scroll": 349,
+              "client": 349,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 350,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 376.875,
+                    "bottom": 97,
+                    "left": 350
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 376.875,
+                    "y": 68,
+                    "width": 245.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 622.1015625,
+                    "bottom": 97,
+                    "left": 376.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 622.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 647.921875,
+                    "bottom": 97,
+                    "left": 622.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 647.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 675.4375,
+                    "bottom": 97,
+                    "left": 647.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 675.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 699,
+                    "bottom": 97,
+                    "left": 675.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 327,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          },
+          {
+            "width": 327,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": true,
+        "requestedWidth": 700,
+        "ratio": 0.8,
+        "bounds": {
+          "bounds": {
+            "left": 44,
+            "top": 74,
+            "width": 700,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 700,
+          "height": 98,
+          "divider": {
+            "x": 556,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 564,
+            "bottom": 98,
+            "left": 556
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 560,
+                "height": 30,
+                "top": 68,
+                "right": 560,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 559,
+              "client": 559,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 455.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 482.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 482.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 507.921875,
+                    "bottom": 96,
+                    "left": 482.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 507.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 535.4375,
+                    "bottom": 96,
+                    "left": 507.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 535.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 559,
+                    "bottom": 96,
+                    "left": 535.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 560,
+                "y": 68,
+                "width": 140,
+                "height": 30,
+                "top": 68,
+                "right": 700,
+                "bottom": 98,
+                "left": 560
+              },
+              "scroll": 139,
+              "client": 139,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 560,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 586.875,
+                    "bottom": 97,
+                    "left": 560
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 586.875,
+                    "y": 68,
+                    "width": 35.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 622.1015625,
+                    "bottom": 97,
+                    "left": 586.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 622.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 647.921875,
+                    "bottom": 97,
+                    "left": 622.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 647.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 675.4375,
+                    "bottom": 97,
+                    "left": 647.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 675.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 699,
+                    "bottom": 97,
+                    "left": 675.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 529,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          },
+          {
+            "width": 125,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": true,
+        "requestedWidth": 600,
+        "ratio": 0.2,
+        "bounds": {
+          "bounds": {
+            "left": 44,
+            "top": 74,
+            "width": 600,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 600,
+          "height": 98,
+          "divider": {
+            "x": 116,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 124,
+            "bottom": 98,
+            "left": 116
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 120,
+                "height": 30,
+                "top": 68,
+                "right": 120,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 120,
+              "client": 119,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 16,
+                    "height": 28,
+                    "top": 68,
+                    "right": 42.875,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 42.875,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 68.6953125,
+                    "bottom": 96,
+                    "left": 42.875
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 68.6953125,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 96.2109375,
+                    "bottom": 96,
+                    "left": 68.6953125
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 96.2109375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 119.7734375,
+                    "bottom": 96,
+                    "left": 96.2109375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 120,
+                "y": 68,
+                "width": 480,
+                "height": 30,
+                "top": 68,
+                "right": 600,
+                "bottom": 98,
+                "left": 120
+              },
+              "scroll": 479,
+              "client": 479,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 120,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 146.875,
+                    "bottom": 97,
+                    "left": 120
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 146.875,
+                    "y": 68,
+                    "width": 375.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 522.1015625,
+                    "bottom": 97,
+                    "left": 146.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 522.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 547.921875,
+                    "bottom": 97,
+                    "left": 522.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 547.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 575.4375,
+                    "bottom": 97,
+                    "left": 547.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 575.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 599,
+                    "bottom": 97,
+                    "left": 575.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 105,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          },
+          {
+            "width": 449,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": true,
+        "requestedWidth": 600,
+        "ratio": 0.5,
+        "bounds": {
+          "bounds": {
+            "left": 44,
+            "top": 74,
+            "width": 600,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 600,
+          "height": 98,
+          "divider": {
+            "x": 296,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 304,
+            "bottom": 98,
+            "left": 296
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 300,
+                "height": 30,
+                "top": 68,
+                "right": 300,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 299,
+              "client": 299,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 195.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 222.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 222.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 247.921875,
+                    "bottom": 96,
+                    "left": 222.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 247.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 275.4375,
+                    "bottom": 96,
+                    "left": 247.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 275.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 299,
+                    "bottom": 96,
+                    "left": 275.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 300,
+                "y": 68,
+                "width": 300,
+                "height": 30,
+                "top": 68,
+                "right": 600,
+                "bottom": 98,
+                "left": 300
+              },
+              "scroll": 299,
+              "client": 299,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 300,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 326.875,
+                    "bottom": 97,
+                    "left": 300
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 326.875,
+                    "y": 68,
+                    "width": 195.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 522.1015625,
+                    "bottom": 97,
+                    "left": 326.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 522.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 547.921875,
+                    "bottom": 97,
+                    "left": 522.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 547.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 575.4375,
+                    "bottom": 97,
+                    "left": 547.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 575.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 599,
+                    "bottom": 97,
+                    "left": 575.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 277,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          },
+          {
+            "width": 277,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": true,
+        "requestedWidth": 600,
+        "ratio": 0.8,
+        "bounds": {
+          "bounds": {
+            "left": 44,
+            "top": 74,
+            "width": 600,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 600,
+          "height": 98,
+          "divider": {
+            "x": 476,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 484,
+            "bottom": 98,
+            "left": 476
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 480,
+                "height": 30,
+                "top": 68,
+                "right": 480,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 479,
+              "client": 479,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 375.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 402.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 402.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 427.921875,
+                    "bottom": 96,
+                    "left": 402.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 427.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 455.4375,
+                    "bottom": 96,
+                    "left": 427.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 455.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 479,
+                    "bottom": 96,
+                    "left": 455.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 480,
+                "y": 68,
+                "width": 120,
+                "height": 30,
+                "top": 68,
+                "right": 600,
+                "bottom": 98,
+                "left": 480
+              },
+              "scroll": 120,
+              "client": 119,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 480,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 506.875,
+                    "bottom": 97,
+                    "left": 480
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 506.875,
+                    "y": 68,
+                    "width": 16,
+                    "height": 29,
+                    "top": 68,
+                    "right": 522.875,
+                    "bottom": 97,
+                    "left": 506.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 522.875,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 548.6953125,
+                    "bottom": 97,
+                    "left": 522.875
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 548.6953125,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 576.2109375,
+                    "bottom": 97,
+                    "left": 548.6953125
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 576.2109375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 599.7734375,
+                    "bottom": 97,
+                    "left": 576.2109375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 449,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          },
+          {
+            "width": 105,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": true,
+        "requestedWidth": 500,
+        "ratio": 0.2,
+        "bounds": {
+          "bounds": {
+            "left": 44,
+            "top": 74,
+            "width": 500,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 500,
+          "height": 98,
+          "divider": {
+            "x": 96,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 104,
+            "bottom": 98,
+            "left": 96
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 100,
+                "height": 30,
+                "top": 68,
+                "right": 100,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 120,
+              "client": 99,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 16,
+                    "height": 28,
+                    "top": 68,
+                    "right": 42.875,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 42.875,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 68.6953125,
+                    "bottom": 96,
+                    "left": 42.875
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 68.6953125,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 96.2109375,
+                    "bottom": 96,
+                    "left": 68.6953125
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 96.2109375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 119.7734375,
+                    "bottom": 96,
+                    "left": 96.2109375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 100,
+                "y": 68,
+                "width": 400,
+                "height": 30,
+                "top": 68,
+                "right": 500,
+                "bottom": 98,
+                "left": 100
+              },
+              "scroll": 399,
+              "client": 399,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 100,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 126.875,
+                    "bottom": 97,
+                    "left": 100
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 126.875,
+                    "y": 68,
+                    "width": 295.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 422.1015625,
+                    "bottom": 97,
+                    "left": 126.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 422.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 447.921875,
+                    "bottom": 97,
+                    "left": 422.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 447.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 475.4375,
+                    "bottom": 97,
+                    "left": 447.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 475.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 499,
+                    "bottom": 97,
+                    "left": 475.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 85,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          },
+          {
+            "width": 369,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": true,
+        "requestedWidth": 500,
+        "ratio": 0.5,
+        "bounds": {
+          "bounds": {
+            "left": 44,
+            "top": 74,
+            "width": 500,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 500,
+          "height": 98,
+          "divider": {
+            "x": 246,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 254,
+            "bottom": 98,
+            "left": 246
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 250,
+                "height": 30,
+                "top": 68,
+                "right": 250,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 249,
+              "client": 249,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 145.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 172.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 172.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 197.921875,
+                    "bottom": 96,
+                    "left": 172.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 197.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 225.4375,
+                    "bottom": 96,
+                    "left": 197.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 225.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 249,
+                    "bottom": 96,
+                    "left": 225.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 250,
+                "y": 68,
+                "width": 250,
+                "height": 30,
+                "top": 68,
+                "right": 500,
+                "bottom": 98,
+                "left": 250
+              },
+              "scroll": 249,
+              "client": 249,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 250,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 276.875,
+                    "bottom": 97,
+                    "left": 250
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 276.875,
+                    "y": 68,
+                    "width": 145.2265625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 422.1015625,
+                    "bottom": 97,
+                    "left": 276.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 422.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 447.921875,
+                    "bottom": 97,
+                    "left": 422.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 447.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 475.4375,
+                    "bottom": 97,
+                    "left": 447.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 475.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 499,
+                    "bottom": 97,
+                    "left": 475.4375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 227,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          },
+          {
+            "width": 227,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          }
+        ]
+      }
+    },
+    {
+      "name": "geometry",
+      "value": {
+        "privateMode": true,
+        "requestedWidth": 500,
+        "ratio": 0.8,
+        "bounds": {
+          "bounds": {
+            "left": 44,
+            "top": 74,
+            "width": 500,
+            "height": 720,
+            "windowState": "normal"
+          }
+        },
+        "host": {
+          "width": 500,
+          "height": 98,
+          "divider": {
+            "x": 396,
+            "y": 68,
+            "width": 8,
+            "height": 30,
+            "top": 68,
+            "right": 404,
+            "bottom": 98,
+            "left": 396
+          },
+          "headers": [
+            {
+              "rect": {
+                "x": 0,
+                "y": 68,
+                "width": 400,
+                "height": 30,
+                "top": 68,
+                "right": 400,
+                "bottom": 98,
+                "left": 0
+              },
+              "scroll": 399,
+              "client": 399,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 0,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 28,
+                    "top": 68,
+                    "right": 26.875,
+                    "bottom": 96,
+                    "left": 0
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 26.875,
+                    "y": 68,
+                    "width": 295.2265625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 322.1015625,
+                    "bottom": 96,
+                    "left": 26.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 322.1015625,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 28,
+                    "top": 68,
+                    "right": 347.921875,
+                    "bottom": 96,
+                    "left": 322.1015625
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 347.921875,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 375.4375,
+                    "bottom": 96,
+                    "left": 347.921875
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 375.4375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 28,
+                    "top": 68,
+                    "right": 399,
+                    "bottom": 96,
+                    "left": 375.4375
+                  }
+                }
+              ]
+            },
+            {
+              "rect": {
+                "x": 400,
+                "y": 68,
+                "width": 100,
+                "height": 30,
+                "top": 68,
+                "right": 500,
+                "bottom": 98,
+                "left": 400
+              },
+              "scroll": 120,
+              "client": 99,
+              "buttons": [
+                {
+                  "label": "Back in Split eligibility fixture",
+                  "rect": {
+                    "x": 400,
+                    "y": 68,
+                    "width": 26.875,
+                    "height": 29,
+                    "top": 68,
+                    "right": 426.875,
+                    "bottom": 97,
+                    "left": 400
+                  }
+                },
+                {
+                  "label": "Focus Split eligibility fixture",
+                  "rect": {
+                    "x": 426.875,
+                    "y": 68,
+                    "width": 16,
+                    "height": 29,
+                    "top": 68,
+                    "right": 442.875,
+                    "bottom": 97,
+                    "left": 426.875
+                  }
+                },
+                {
+                  "label": "Reload Split eligibility fixture",
+                  "rect": {
+                    "x": 442.875,
+                    "y": 68,
+                    "width": 25.8203125,
+                    "height": 29,
+                    "top": 68,
+                    "right": 468.6953125,
+                    "bottom": 97,
+                    "left": 442.875
+                  }
+                },
+                {
+                  "label": "Actions for Split eligibility fixture",
+                  "rect": {
+                    "x": 468.6953125,
+                    "y": 68,
+                    "width": 27.515625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 496.2109375,
+                    "bottom": 97,
+                    "left": 468.6953125
+                  }
+                },
+                {
+                  "label": "Remove Split eligibility fixture from Split View",
+                  "rect": {
+                    "x": 496.2109375,
+                    "y": 68,
+                    "width": 23.5625,
+                    "height": 29,
+                    "top": 68,
+                    "right": 519.7734375,
+                    "bottom": 97,
+                    "left": 496.2109375
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "pages": [
+          {
+            "width": 369,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          },
+          {
+            "width": 85,
+            "height": 604,
+            "x": 44,
+            "y": 74
+          }
+        ]
+      }
+    }
+  ],
+  "pass": true
+}

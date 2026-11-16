@@ -1,0 +1,12 @@
+{
+  "id": 1,
+  "result": {
+    "result": {
+      "type": "object",
+      "value": {
+        "armed": true,
+        "active": true
+      }
+    }
+  }
+}

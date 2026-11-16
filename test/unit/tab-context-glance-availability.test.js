@@ -12,7 +12,7 @@ const main = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'ut
 const contextSource = main.match(/function tabContextData\(tab, owner\) \{[\s\S]*?\n\}/)[0];
 const splitSource = main.match(/function visibleSplitOf\(runtime = rt\(\)\) \{[\s\S]*?\n\}/)[0];
 
-test('either pane of a visible two-pane split offers Glance, but unrelated rows do not', () => {
+test('a visible two-pane split\'s panes and every other row offer Glance (#1441)', () => {
   const owner = { id: 'window', activeTabId: 'main', groups: [], tabOrder: ['main', 'reference'],
     splits: [{ id: 'split', tabIds: ['main', 'reference'] }] };
   const tab = { id: 'reference', runtimeId: owner.id, url: 'https://example.com', splitId: 'split' };
@@ -34,7 +34,11 @@ test('either pane of a visible two-pane split offers Glance, but unrelated rows 
   owner.activeTabId = tab.id;
   assert.equal(menu().find((item) => item.id === 'glance').enabled, true);
   owner.activeTabId = 'main';
+  // Glance floats over a split it isn't part of.
   owner.splits[0].tabIds = ['main', 'unrelated'];
+  assert.equal(menu().find((item) => item.id === 'glance').enabled, true);
+  // A larger split's panes would leave it still showing: not offered.
+  owner.splits[0].tabIds = ['main', 'reference', 'third'];
   assert.equal(menu().find((item) => item.id === 'glance').enabled, false);
   owner.activeTabId = 'other';
   assert.equal(menu().find((item) => item.id === 'glance').enabled, true);
@@ -43,7 +47,7 @@ test('either pane of a visible two-pane split offers Glance, but unrelated rows 
 const actionSource = main.match(/async function openTabMenuGlance\(id\) \{[\s\S]*?\n\}/)[0];
 
 test('invalid or unavailable split panes never mutate the split', async () => {
-  for (const issue of ['missing', 'sleeping', 'asleep', 'destroyed', 'other-window', 'larger-split', 'non-member']) {
+  for (const issue of ['missing', 'sleeping', 'asleep', 'destroyed', 'other-window', 'larger-split']) {
     const runtime = {};
     const tab = { id: 'reference', sleeping: issue === 'sleeping', asleep: issue === 'asleep' };
     const split = { tabIds: ['main', 'reference'] };
@@ -93,4 +97,18 @@ test('an unavailable survivor leaves the split, tab order and selection intact',
     assert.equal(JSON.stringify({ runtime, tabs: [...tabs] }), before, `${issue}: preserve the complete split state`);
     assert.equal(persisted, 0, `${issue}: do not persist a dissolved split`);
   }
+});
+
+test('a tab outside the visible split floats over it without changing the split (#1441)', async () => {
+  const split = { tabIds: ['main', 'other'] };
+  let opened = null;
+  const sandbox = {
+    rt: () => ({}), visibleSplitOf: () => split,
+    removeTabFromSplit: () => assert.fail('must not change the split'),
+    setGlanceTab: (id) => { opened = id; return true; },
+  };
+  vm.runInNewContext(`${actionSource}\nthis.open = openTabMenuGlance;`, sandbox);
+  assert.equal(await sandbox.open('reference'), true);
+  assert.equal(opened, 'reference');
+  assert.deepEqual(split.tabIds, ['main', 'other']);
 });

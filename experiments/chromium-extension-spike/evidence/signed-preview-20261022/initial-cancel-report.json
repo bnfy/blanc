@@ -1,0 +1,7 @@
+{
+  "app": "/private/tmp/blanc-signed-preview-20261022/Relocated Preview.app",
+  "mockKeychain": true,
+  "checks": [],
+  "error": "Error: {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":32,\"scriptId\":\"3\",\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"TypeError\",\"description\":\"TypeError: Cannot read properties of null (reading 'click')\\n    at <anonymous>:1:33\",\"objectId\":\"-2198843733312765070.1.2\"}}",
+  "forcedCleanup": true
+}

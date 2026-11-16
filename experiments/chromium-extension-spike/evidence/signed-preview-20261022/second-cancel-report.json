@@ -1,0 +1,6 @@
+{
+  "app": "/private/tmp/blanc-signed-preview-20261022/Relocated Preview.app",
+  "mockKeychain": true,
+  "checks": [],
+  "error": "Error: timeout Page.handleJavaScriptDialog"
+}

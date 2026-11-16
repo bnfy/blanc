@@ -1,0 +1,30 @@
+{
+  "schedules": [
+    {
+      "schedule": "ratio",
+      "pass": false,
+      "diagnosticCheckpoints": 10,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   0.5,\n+   0.5\n-   0.35,\n-   0.65\n  ]\n    at file:///private/tmp/blanc-save-lifecycle-ratio/test.mjs:31:30"
+    },
+    {
+      "schedule": "ratio-settled",
+      "pass": true,
+      "diagnosticCheckpoints": 13,
+      "error": null
+    },
+    {
+      "schedule": "group",
+      "pass": true,
+      "diagnosticCheckpoints": 12,
+      "error": null
+    },
+    {
+      "schedule": "owner",
+      "pass": true,
+      "diagnosticCheckpoints": 11,
+      "error": null
+    }
+  ],
+  "diagnosticCheckpoints": 46,
+  "immediateRatioRecoveryPassed": false
+}

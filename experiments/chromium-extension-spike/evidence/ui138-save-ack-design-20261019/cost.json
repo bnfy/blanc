@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "components/sessions/core/command_storage_backend.h",
+      "new_file": true,
+      "before_hunks": 0,
+      "after_hunks": 1
+    },
+    {
+      "path": "components/sessions/core/command_storage_backend.cc",
+      "new_file": true,
+      "before_hunks": 0,
+      "after_hunks": 1
+    },
+    {
+      "path": "components/sessions/core/command_storage_manager.h",
+      "new_file": true,
+      "before_hunks": 0,
+      "after_hunks": 2
+    },
+    {
+      "path": "components/sessions/core/command_storage_manager.cc",
+      "new_file": true,
+      "before_hunks": 0,
+      "after_hunks": 1
+    },
+    {
+      "path": "chrome/browser/sessions/session_service_base.h",
+      "new_file": true,
+      "before_hunks": 0,
+      "after_hunks": 1
+    },
+    {
+      "path": "chrome/browser/sessions/session_service_base.cc",
+      "new_file": false,
+      "before_hunks": 2,
+      "after_hunks": 3
+    }
+  ],
+  "projected_files": 49,
+  "projected_hunks": 114,
+  "git": "git version 2.54.0 (Apple Git-157)",
+  "status": "unapplied draft; not compiled or accepted"
+}

@@ -1,0 +1,357 @@
+{
+  "reviewedAt": "2026-11-10",
+  "chromiumRevision": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
+  "sparkleTag": "2.10.1",
+  "scope": "Pinned Chromium source plus owner-approved first-party Sparkle release, archive, license and security-advisory review. No Blanc releases, Apple, production Sync or 1Password contacted.",
+  "chromium": [
+    {
+      "path": "build/apple/tweak_info_plist.gni",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/build/apple/tweak_info_plist.gni",
+      "sha256": "aae679d5d1bc0941f94f9892cfa33abcaf1e84dc4c14cf7abb99a12550658066"
+    },
+    {
+      "path": "build/apple/tweak_info_plist.py",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/build/apple/tweak_info_plist.py",
+      "sha256": "1ead673421068cbc41111382dfa6db831af03d6e994d97b192dace41fbe4e096"
+    },
+    {
+      "path": "build/config/mac/mac_sdk.gni",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/build/config/mac/mac_sdk.gni",
+      "sha256": "c102782943742b0cc45f8121bf8e3b6e3012785e2e4554ca6163f5bb078e5859"
+    },
+    {
+      "path": "build/config/mac/rules.gni",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/build/config/mac/rules.gni",
+      "sha256": "afbe6efaa8289c3232327168d9cb1a298c7cada5b40fb658dd58a0899f2e5c4d"
+    },
+    {
+      "path": "build/util/branding.gni",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/build/util/branding.gni",
+      "sha256": "bea1ea627b838a56f404e66a50e8fa6c3f3ad2d165d2a326de6f55f0dec2f80d"
+    },
+    {
+      "path": "chrome/VERSION",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/VERSION",
+      "sha256": "814af2ffc6188bb1095641b002bee5e2c1ea2cae85e7c80ed0c5fbe9dacefb23"
+    },
+    {
+      "path": "chrome/app/app-entitlements.plist",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/app/app-entitlements.plist",
+      "sha256": "bab6f068004a79a5c439958d4060ff74edaad6301ca1390fed2cb666af4d28b7"
+    },
+    {
+      "path": "chrome/app/framework-Info.plist",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/app/framework-Info.plist",
+      "sha256": "1f84140dc429f179127b51b943366deb7757db6c48e927c70b0126a8a41e9a74"
+    },
+    {
+      "path": "chrome/app/helper-Info.plist",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/app/helper-Info.plist",
+      "sha256": "8c4d6816561b6c63b7fbd8a42484259df21b5226811a1459b73c0524d634ea8f"
+    },
+    {
+      "path": "chrome/app/helper-gpu-entitlements.plist",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/app/helper-gpu-entitlements.plist",
+      "sha256": "958648f799e436860b51eaf55ec8f92d2c62da17001e23d96bc05ffc748f2a2a"
+    },
+    {
+      "path": "chrome/app/helper-renderer-entitlements.plist",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/app/helper-renderer-entitlements.plist",
+      "sha256": "958648f799e436860b51eaf55ec8f92d2c62da17001e23d96bc05ffc748f2a2a"
+    },
+    {
+      "path": "chrome/app/theme/chromium/BRANDING",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/app/theme/chromium/BRANDING",
+      "sha256": "15ac20cb8744ebac0815961059231baefa71fd4ed3023cb2094aaf8a34ae423b"
+    },
+    {
+      "path": "chrome/browser/webauthn/chrome_authenticator_request_delegate.cc",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/browser/webauthn/chrome_authenticator_request_delegate.cc",
+      "sha256": "5e3d40d3abeb6ec142dfb19bec5c89e9d1e7581cca49da78336b03e12eaaad8b"
+    },
+    {
+      "path": "chrome/browser/webauthn/chrome_authenticator_request_delegate_mac.mm",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/browser/webauthn/chrome_authenticator_request_delegate_mac.mm",
+      "sha256": "6aa6f80bd058066dd135df2f282b803f6215dd77422351b79beb40482a2eda02"
+    },
+    {
+      "path": "chrome/browser/webauthn/chrome_web_authentication_delegate.cc",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/browser/webauthn/chrome_web_authentication_delegate.cc",
+      "sha256": "acfca55a1b8ef65fd8ef8d4f70a88f6867353894dc9ee7ddcbcd6d532c307226"
+    },
+    {
+      "path": "chrome/common/chrome_paths_mac.mm",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/common/chrome_paths_mac.mm",
+      "sha256": "d1dfa65cbd46600c6340aa51fa3ebdc5559aa91d20f78a375364a0af6ab3e588"
+    },
+    {
+      "path": "chrome/common/mac/app_mode_common.mm",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/common/mac/app_mode_common.mm",
+      "sha256": "924876bdcb4f76af4427b98ca9139e01f2a6e38205dfac2c76568464f8c0916c"
+    },
+    {
+      "path": "chrome/installer/mac/BUILD.gn",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/installer/mac/BUILD.gn",
+      "sha256": "ffa1bd928dd0655fb87cb93ca0f13d5c79457c0d450e78ffc462e0339b193935"
+    },
+    {
+      "path": "chrome/installer/mac/sign_chrome.py",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/installer/mac/sign_chrome.py",
+      "sha256": "3b064aaba121488e3e62db93dd9c96e1831b0dac76f10d6f37d10ef8fd76266d"
+    },
+    {
+      "path": "chrome/installer/mac/signing/build_props_config.py.in",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/installer/mac/signing/build_props_config.py.in",
+      "sha256": "8bc8e572bde4df55692796b213000ec1eca3a4fa9cea15518c1fed2f7c46f441"
+    },
+    {
+      "path": "chrome/installer/mac/signing/chromium_config.py",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/installer/mac/signing/chromium_config.py",
+      "sha256": "68a3d6930fafcb00d1a10c33cb16592b4d197ae8893feb402a5ff88a41e38741"
+    },
+    {
+      "path": "chrome/installer/mac/signing/commands.py",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/installer/mac/signing/commands.py",
+      "sha256": "1bd795ef0578ec9b665629a0828c07bb5e70ca4ad43987017bd4c8c2998d0057"
+    },
+    {
+      "path": "chrome/installer/mac/signing/config.py",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/installer/mac/signing/config.py",
+      "sha256": "1d6fe0854445dc19241e43e36d3e80be496db37314c9bbfc1bb259defd19483c"
+    },
+    {
+      "path": "chrome/installer/mac/signing/config_factory.py",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/installer/mac/signing/config_factory.py",
+      "sha256": "343ece21c3dfdad26f722c21af7e566eef5f74ed02368f97a3d3984e808ef7e2"
+    },
+    {
+      "path": "chrome/installer/mac/signing/driver.py",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/installer/mac/signing/driver.py",
+      "sha256": "b1ee0bf518dba36d8c6784ddf61cf99499ae49ba4a5e10319342fe44b10fbd45"
+    },
+    {
+      "path": "chrome/installer/mac/signing/invoker.py",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/installer/mac/signing/invoker.py",
+      "sha256": "bce353a941acea53509e3eafab6934ac639012e45c39e2c84df1f47111c7eb77"
+    },
+    {
+      "path": "chrome/installer/mac/signing/model.py",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/installer/mac/signing/model.py",
+      "sha256": "fa810319cd078c546f290083eb6bd327b30d778b6352015df82e53f9a77eaaa3"
+    },
+    {
+      "path": "chrome/installer/mac/signing/modification.py",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/installer/mac/signing/modification.py",
+      "sha256": "6c95981e84d4154e22db2a2477859a96b6ab7cefea533eaea95b15ae6bdb38fd"
+    },
+    {
+      "path": "chrome/installer/mac/signing/notarize.py",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/installer/mac/signing/notarize.py",
+      "sha256": "f708900d2ed1affb9f529139a716085da966070f684edda62dcdc37848495591"
+    },
+    {
+      "path": "chrome/installer/mac/signing/parts.py",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/installer/mac/signing/parts.py",
+      "sha256": "e5878973553323f6c73dc315b03e51717d8c1003a0c5ee753ecfdcae8bca7c17"
+    },
+    {
+      "path": "chrome/installer/mac/signing/pipeline.py",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/installer/mac/signing/pipeline.py",
+      "sha256": "0a7caab729715f567f8d0af84f730120a5d9f6b1ba9112784961e7999481d760"
+    },
+    {
+      "path": "chrome/installer/mac/signing/rebranding.py",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/installer/mac/signing/rebranding.py",
+      "sha256": "693d87a98732e39a2593a1e6a8c61cecc6fdc5457d2b66b7e308502dca979db8"
+    },
+    {
+      "path": "chrome/installer/mac/signing/signing.py",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/installer/mac/signing/signing.py",
+      "sha256": "a732556f9307e59fb52453c0f1bd0b8e40d2d327655d91c5dd295aa4dfe00edb"
+    },
+    {
+      "path": "chrome/version.gni",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/version.gni",
+      "sha256": "0b2313fd49995228b60eb7524343f6eb182328006ee5b73cfebe21e5894757b1"
+    },
+    {
+      "path": "third_party/widevine/cdm/widevine.gni",
+      "url": "https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/third_party/widevine/cdm/widevine.gni",
+      "sha256": "4582c3205a869e55108e3b92329cc3c210b75bd6e75b3b04393e01950a2dffe8"
+    }
+  ],
+  "sparkle": [
+    {
+      "path": "Configurations/ConfigCommon.xcconfig",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Configurations/ConfigCommon.xcconfig",
+      "sha256": "1b17b8791eb24e90d48ef2dedd3b316d1711a65e0269cba42b19288ea1d7012e"
+    },
+    {
+      "path": "Configurations/ConfigDownloader.xcconfig",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Configurations/ConfigDownloader.xcconfig",
+      "sha256": "3b722beebfe9a377f15b8a967abe14a806f91e002bab7b7658f2d0440f67f974"
+    },
+    {
+      "path": "Configurations/ConfigFramework.xcconfig",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Configurations/ConfigFramework.xcconfig",
+      "sha256": "267819ba1df34992d93eeb93871453caaacacc8eb251f1ade60a0cfd31149338"
+    },
+    {
+      "path": "Configurations/ConfigInstallerLauncher.xcconfig",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Configurations/ConfigInstallerLauncher.xcconfig",
+      "sha256": "fb8446c6d2a7f1efe19c56c4523da3dfa1214a3a9489245a089164ce6585078a"
+    },
+    {
+      "path": "Configurations/ConfigInstallerProgress.xcconfig",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Configurations/ConfigInstallerProgress.xcconfig",
+      "sha256": "e13bb9dc5dd3f0606d4f397449f0bf68d14d39b3d66f5dd16dc1c14f37d106d2"
+    },
+    {
+      "path": "Configurations/ConfigRelaunch.xcconfig",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Configurations/ConfigRelaunch.xcconfig",
+      "sha256": "46b752d3aa19f0f2de0eba6898ef415e5be8faeab00aaa9aab9cc0b94e09a3f7"
+    },
+    {
+      "path": "Downloader/Info.plist",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Downloader/Info.plist",
+      "sha256": "e1643ea943b133b84291fa17a5b9e0699a71642cdc97c4b120a671d397621505"
+    },
+    {
+      "path": "InstallerLauncher/Info.plist",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/InstallerLauncher/Info.plist",
+      "sha256": "415fa99aa54d4d0e43e2dbf62ad26c61f8123076f35e0741e4f11a978ebc44ea"
+    },
+    {
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/LICENSE",
+      "sha256": "389a4e4e9a32f059775b13a06e25a591445ba229d2838d26dd3e7c0c45127cfe"
+    },
+    {
+      "path": "Sparkle/SPUStandardUpdaterController.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Sparkle/SPUStandardUpdaterController.h",
+      "sha256": "f45dfdf2315664c5891b97ad0d7ffce9ab09d067effbd2921b10b58b4831ef0f"
+    },
+    {
+      "path": "Sparkle/Sparkle-Info.plist",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Sparkle/Sparkle-Info.plist",
+      "sha256": "5c8610a0bf328c6318321f0d15a874de10717d2e343eea4acab4aafda2ff1f40"
+    },
+    {
+      "path": "Sparkle.xcodeproj/project.pbxproj",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Sparkle.xcodeproj/project.pbxproj",
+      "sha256": "944888408724f46fb0fd0e1594bbe6bbe47f12a7bde20f0c38070d33e7e71eed"
+    },
+    {
+      "path": "Sparkle/SPUUpdateCheck.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Sparkle/SPUUpdateCheck.h",
+      "sha256": "1f7d05da2e466263aefe3e09130e56b2e65b8862579e07b9829c9bf5ed921c03"
+    },
+    {
+      "path": "Sparkle/SPUUpdater.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Sparkle/SPUUpdater.h",
+      "sha256": "a30b876dc722a2861fb8f271a0bf0c95bd664db4cf2af57d216d190f2e010ee7"
+    },
+    {
+      "path": "Sparkle/SPUUpdaterDelegate.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Sparkle/SPUUpdaterDelegate.h",
+      "sha256": "20ea4bf5273eaa6560160941d680acec6565965162737f50ea4240845a7dde24"
+    },
+    {
+      "path": "Sparkle/SPUUserDriver.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Sparkle/SPUUserDriver.h",
+      "sha256": "db9fe6cf78aca0f2f79a99898d38daff566f96c823de2bb2b985511ad77017dc"
+    },
+    {
+      "path": "Sparkle/SPUUserUpdateState.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Sparkle/SPUUserUpdateState.h",
+      "sha256": "59f95e933f8b5b2b39c1e7c465aa39af021a2c88820b4b09dbcfc55b1dd19c30"
+    },
+    {
+      "path": "Sparkle/SUAppcastItem.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Sparkle/SUAppcastItem.h",
+      "sha256": "21df22d4f0ebd4eaba530f77f520a29451a057b70093efec3104ce0253026cf9"
+    },
+    {
+      "path": "Sparkle/SUExport.h",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Sparkle/SUExport.h",
+      "sha256": "5cef024266c54e12db620f78f4d106860de0fa2a2e230dffdfe04208bb447451"
+    }
+  ],
+  "unverified": [
+    "Dedicated beta official GN effective values, native Sparkle linkage and full N-to-N+1 installation remain to be qualified. Prototype args were read and preserved (see runbook).",
+    "Developer ID private-key availability and expiry were not queried. The committed beta provisioning profile is covered by offline tests.",
+    "Developer ID signing, notarization, production real-device Sync and public distribution remain unauthorized operator work."
+  ],
+  "securityReview": {
+    "checked": "2026-11-10",
+    "pin": "2.10.1",
+    "status": "Owner-approved newest stable 2.x; known post-2.8.0 advisories reviewed and fixed by this pin. Native integration and distribution gates remain separate.",
+    "record": "chromium/release/sparkle-review-2026-11-10.md",
+    "sources": [
+      "https://github.com/sparkle-project/Sparkle/releases/tag/2.10.1",
+      "https://github.com/sparkle-project/Sparkle/releases/tag/2.10.0",
+      "https://sparkle-project.org/documentation/security-and-reliability/",
+      "https://github.com/sparkle-project/Sparkle/discussions/2838",
+      "https://github.com/sparkle-project/Sparkle/security/advisories/GHSA-3x7w-j75x-ppq5",
+      "https://github.com/sparkle-project/Sparkle/security/advisories/GHSA-4v99-qgq9-6pxp",
+      "https://github.com/sparkle-project/Sparkle/security/advisories/GHSA-gmj2-gq3j-vqmj",
+      "https://github.com/sparkle-project/Sparkle/security/advisories/GHSA-hg88-v3cw-3qrh",
+      "https://github.com/sparkle-project/Sparkle/security/advisories/GHSA-g3hp-f6mg-559v"
+    ]
+  },
+  "sparkleDistribution": {
+    "version": "2.10.1",
+    "frameworkBuild": "2065",
+    "minimumMacOS": "12.0",
+    "releaseURL": "https://github.com/sparkle-project/Sparkle/releases/tag/2.10.1",
+    "publishedAt": "2026-10-25T14:36:36Z",
+    "url": "https://github.com/sparkle-project/Sparkle/releases/download/2.10.1/Sparkle-2.10.1.tar.xz",
+    "bytes": 16346336,
+    "sha256": "1a856d2a9edb8e628de88121d7be04cf0e2167f8641650b78fca00b14244cf27",
+    "digestSource": "GitHub first-party release asset digest; independently hashed downloaded bytes",
+    "licenseSHA256": "389a4e4e9a32f059775b13a06e25a591445ba229d2838d26dd3e7c0c45127cfe",
+    "nativeInputs": "evidence/foundation/sparkle-2.10.1-review/native-inputs.json",
+    "architectures": [
+      "arm64",
+      "x86_64"
+    ],
+    "upstreamSignatures": "Ad-hoc, no team; five binaries pass local strict integrity verification. Production must re-sign with the pinned Developer ID."
+  },
+  "qualificationSources": [
+    {
+      "path": "common_cli/Signing.swift",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/common_cli/Signing.swift",
+      "sha256": "c7e502d683c84e62da5ff4d7d1579ea31b0f9489838fb808ec2205ca7c597a7f"
+    },
+    {
+      "path": "generate_keys/main.swift",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/generate_keys/main.swift",
+      "sha256": "6e6e5bfa43e98bc4be8a28c7acb1a1b48feb299d7914fbf7be16799ebe42f873"
+    },
+    {
+      "path": "sign_update/main.swift",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/sign_update/main.swift",
+      "sha256": "2abf05c401f240103ef5061e862c35dd5d1848c484ec14f956a70911d2b89948"
+    },
+    {
+      "path": "Autoupdate/AppInstaller.m",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Autoupdate/AppInstaller.m",
+      "sha256": "39369669a98181f81fa58ab7d409c8310fbe4b5ff046fb48bd11a39632195dd1"
+    },
+    {
+      "path": "Autoupdate/SUCodeSigningVerifier.m",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Autoupdate/SUCodeSigningVerifier.m",
+      "sha256": "9ca1226912254de42cf0c36e2b266a6ebcd437bf164a9c48d3594aa677fd7b9f"
+    },
+    {
+      "path": "Autoupdate/SUInstaller.m",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Autoupdate/SUInstaller.m",
+      "sha256": "30d38f074235b0bbfc21326c5f5b8710444e2e03f740411426eee29fbf6c3532"
+    },
+    {
+      "path": "Autoupdate/SUPlainInstaller.m",
+      "url": "https://raw.githubusercontent.com/sparkle-project/Sparkle/2.10.1/Autoupdate/SUPlainInstaller.m",
+      "sha256": "d5191e8b7684df756383c2122dcfcaaa011d5bae237b2ddbf9fa05986c8f5b55"
+    }
+  ]
+}

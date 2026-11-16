@@ -1,0 +1,11 @@
+{
+  "zip": "/private/tmp/blanc-pending-read-repair/Blanc-Chromium-Preview-stapled.zip",
+  "sha256": "18272ab548d0117744209536bc24c0b6cc09ece38c01fec4976cf8e78899306f",
+  "notary": {
+    "status": "Accepted",
+    "message": "Processing complete",
+    "id": "f527392f-6720-4974-b831-53f5ffa49c8b"
+  },
+  "testedCodeUnchanged": true,
+  "runtimeAssertions": 16
+}

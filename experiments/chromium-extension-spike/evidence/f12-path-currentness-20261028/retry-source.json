@@ -1,0 +1,252 @@
+[
+  {
+    "path": "content/browser/loader/keep_alive_url_loader.cc",
+    "sha256": "31f70f790dbc5f364bcfa4ec81ef7e517231de6e2e6d1e01d3ecbe239ab932e1",
+    "relevantLines": [
+      {
+        "line": 485,
+        "text": "void KeepAliveURLLoader::StartInternal(bool is_retry) {"
+      },
+      {
+        "line": 486,
+        "text": "  CHECK(!is_started_ || is_retry);"
+      },
+      {
+        "line": 487,
+        "text": "  TRACE_EVENT(\"loading\", \"KeepAliveURLLoader::Start\", \"request_id\","
+      },
+      {
+        "line": 488,
+        "text": "              request_id_);"
+      },
+      {
+        "line": 489,
+        "text": "  is_started_ = true;"
+      },
+      {
+        "line": 490,
+        "text": "  if (!is_retry) {"
+      },
+      {
+        "line": 491,
+        "text": "    first_request_start_time_ = base::TimeTicks::Now();"
+      },
+      {
+        "line": 492,
+        "text": "  }"
+      },
+      {
+        "line": 493,
+        "text": ""
+      },
+      {
+        "line": 494,
+        "text": "  LogFetchKeepAliveRequestMetric(is_retry ? \"Retried\" : \"Started\");"
+      },
+      {
+        "line": 495,
+        "text": "  for (auto& request_tracker : request_trackers_) {"
+      },
+      {
+        "line": 496,
+        "text": "    request_tracker->AdvanceToNextStage("
+      },
+      {
+        "line": 497,
+        "text": "        KeepAliveRequestTracker::RequestStageType::kRequestStarted);"
+      },
+      {
+        "line": 498,
+        "text": "  }"
+      },
+      {
+        "line": 499,
+        "text": "  if (IsFetchLater()) {"
+      },
+      {
+        "line": 500,
+        "text": "    if (is_retry) {"
+      },
+      {
+        "line": 501,
+        "text": "      base::UmaHistogramBoolean(\"FetchLater.Browser.Total.Retried\", true);"
+      },
+      {
+        "line": 502,
+        "text": "    } else {"
+      },
+      {
+        "line": 503,
+        "text": "      base::UmaHistogramBoolean(\"FetchLater.Browser.Total.Started\", true);"
+      },
+      {
+        "line": 504,
+        "text": "    }"
+      },
+      {
+        "line": 505,
+        "text": "    // Logs to DevTools only if the initiator is still alive."
+      },
+      {
+        "line": 506,
+        "text": "    if (RenderFrameHostImpl* rfh = GetInitiator(); rfh) {"
+      },
+      {
+        "line": 507,
+        "text": "      devtools_instrumentation::OnFetchKeepAliveRequestWillBeSent("
+      },
+      {
+        "line": 508,
+        "text": "          rfh->frame_tree_node(), devtools_request_id_, resource_request_);"
+      },
+      {
+        "line": 509,
+        "text": "    }"
+      },
+      {
+        "line": 510,
+        "text": "  }"
+      },
+      {
+        "line": 511,
+        "text": ""
+      },
+      {
+        "line": 512,
+        "text": "  GetContentClient()->browser()->OnKeepaliveRequestStarted("
+      },
+      {
+        "line": 513,
+        "text": "      storage_partition_->browser_context());"
+      },
+      {
+        "line": 514,
+        "text": ""
+      },
+      {
+        "line": 515,
+        "text": "  // Asks the network service to create a URL loader with passed in params."
+      },
+      {
+        "line": 516,
+        "text": "  url_loader_ = blink::ThrottlingURLLoader::CreateLoaderAndStart("
+      },
+      {
+        "line": 517,
+        "text": "      network_loader_factory_, throttles_getter_.Run(), request_id_, options_,"
+      },
+      {
+        "line": 518,
+        "text": "      &resource_request_, forwarding_client_.get(),"
+      },
+      {
+        "line": 519,
+        "text": "      is_retry ? kKeepAliveRetryAnnotationTag : traffic_annotation_,"
+      },
+      {
+        "line": 520,
+        "text": "      base::SingleThreadTaskRunner::GetCurrentDefault(),"
+      },
+      {
+        "line": 521,
+        "text": "      /*cors_exempt_header_list=*/std::nullopt,"
+      },
+      {
+        "line": 522,
+        "text": "      // `this`'s lifetime is at least the same as `url_loader_`."
+      },
+      {
+        "line": 523,
+        "text": "      /*client_receiver_delegate=*/this);"
+      },
+      {
+        "line": 524,
+        "text": ""
+      },
+      {
+        "line": 525,
+        "text": "  // `url_loader_` now re-runs a subset of throttles that have been run"
+      },
+      {
+        "line": 526,
+        "text": "  // in renderer, which is necessary to handle in-browser redirects."
+      }
+    ]
+  },
+  {
+    "path": "third_party/blink/renderer/platform/runtime_enabled_features.json5",
+    "sha256": "88214b18ae77b56f9dda3bd29b2cbc27a9f5d507036ea5444303e2f7472f8137",
+    "relevantLines": [
+      {
+        "line": 3077,
+        "text": "      // The retry ability for Fetch keepalive requests."
+      },
+      {
+        "line": 3079,
+        "text": "      name: \"FetchRetry\","
+      },
+      {
+        "line": 3080,
+        "text": "      origin_trial_feature_name: \"FetchRetry\","
+      },
+      {
+        "line": 3083,
+        "text": "      base_feature: \"FetchRetry\","
+      },
+      {
+        "line": 4118,
+        "text": "      // Clear stale shaping when a line-breaking retry overflows."
+      }
+    ]
+  },
+  {
+    "path": "third_party/blink/renderer/core/fetch/retry_options.idl",
+    "sha256": "19d77c1afd73f7f4b8bb8e3d73a1f6f29a723ea9bb654daa03f953d4593c9d0a",
+    "relevantLines": [
+      {
+        "line": 5,
+        "text": "// Explainer: https://github.com/explainers-by-googlers/fetch-retry."
+      },
+      {
+        "line": 9,
+        "text": "dictionary RetryOptions {"
+      },
+      {
+        "line": 10,
+        "text": "  // Required: Maximum number of retry attempts after the initial one fails."
+      },
+      {
+        "line": 14,
+        "text": "  // Optional: Delay before the first retry attempt in milliseconds."
+      },
+      {
+        "line": 22,
+        "text": "  // Maximum total time allowed for all retry attempts in milliseconds, measure"
+      },
+      {
+        "line": 31,
+        "text": "  boolean retryAfterUnload = false;"
+      },
+      {
+        "line": 33,
+        "text": "  // Optional: Specifies whether to retry when the HTTP request method is"
+      },
+      {
+        "line": 35,
+        "text": "  // request method of the fetch is non-idempotent, no retry will be attempted."
+      },
+      {
+        "line": 37,
+        "text": "  boolean retryNonIdempotent = false;"
+      },
+      {
+        "line": 39,
+        "text": "  // Optional: Specifies whether to retry when the network request is guaranteed"
+      },
+      {
+        "line": 41,
+        "text": "  boolean retryOnlyIfServerUnreached = false;"
+      }
+    ]
+  }
+]

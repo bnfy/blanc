@@ -1,0 +1,33 @@
+{
+  "checks": {
+    "default-write": true,
+    "encrypted-write": true,
+    "timeout": true,
+    "changed-source": true,
+    "default-write-eio": true,
+    "default-flush-eio": true,
+    "encrypted-write-eio": true,
+    "encrypted-flush-eio": true,
+    "explicit-clear-write-eio": true,
+    "explicit-clear-flush-eio": true,
+    "read": true,
+    "duplicate-duplicate": true,
+    "malformed-invalid-malformed": true,
+    "malformed-uppercase-malformed": true
+  },
+  "scope": "Bounded save/flush acknowledgement, timeout and source changes; not full lifecycle or power-loss qualification",
+  "budget": {
+    "files": 49,
+    "hunks": 114,
+    "limit_files": 49,
+    "limit_hunks": 120
+  },
+  "native_input": "pending",
+  "latency": "deferred",
+  "electron_diagnostic_build": "unapproved",
+  "retained_failures": [
+    "initial native compile",
+    "15-second native deadline exceeded 10-second bridge deadline",
+    "subsequent test launch refused because prior failed test process remained; cleaned before retry"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "profiles": [
+    {
+      "path": "/private/tmp/blanc-f12-request-join-20261024/profile-regular",
+      "removed": true
+    },
+    {
+      "path": "/private/tmp/blanc-f12-request-join-20261024/profile-navigation-regular",
+      "removed": true
+    },
+    {
+      "path": "/private/tmp/blanc-f12-request-join-20261024/profile-navigation-private",
+      "removed": true
+    }
+  ],
+  "googleOrOwnerProfilesUsed": false,
+  "acceptedSignedAppChanged": false
+}

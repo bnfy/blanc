@@ -379,6 +379,7 @@ html { --stage-w: 100vw; }
   color: var(--text-dim);
 }
 .glance-action { gap: 5px; padding: 0 8px; font-size: 11.5px; }
+.glance-header button[hidden] { display: none; }
 .glance-action svg,
 .glance-move svg { width: 14px; height: 14px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
 .glance-close { width: 30px; padding: 0; }
@@ -667,10 +668,11 @@ html { --stage-w: 100vw; }
 }
 .vertical-tabs-toolbar .vertical-tabs-layout-button { margin-left: auto; }
 
-/* The Island's Space mark, moved into this row while tabs are vertical
-   (vertical-tabs.js placeSpaceMark). It names the Space and opens the Spaces
+/* The Space mark, moved into this row while tabs are vertical
+   (vertical-tabs.js placeSpaceMark); the resting Island never shows it. It names the Space and opens the Spaces
    menu. It takes the room the row has and shrinks before anything else, its
    name ending in an ellipsis, so the layout toggle always stays in the rail.
+   On macOS it has a row of its own under the traffic lights (below).
    With no Spaces yet it shows the neutral Spaces glyph (renderer.js keeps it
    visible here), so the row always offers them. */
 .vertical-tabs-toolbar #pillSpace {
@@ -690,12 +692,25 @@ html { --stage-w: 100vw; }
 }
 
 /* The rail background owns the entire left edge. On macOS its first row also
-   acts as the title-bar safe area: content starts after the native traffic
-   lights, while the main pane's sampled website gutter remains independent. */
+   acts as the title-bar safe area: the native traffic lights share it only
+   with the layout toggle, centered on them, while the main pane's sampled
+   website gutter remains independent. The Space mark takes a second row
+   beneath, across the rail's whole width and in line with the tab rows, so a
+   long Space name has room and never runs into the traffic lights; at the
+   narrowest rail it still ends in an ellipsis. 16px between the rows keeps the
+   name clear of the lights (owner, November 14, 2026), so the header runs
+   below the strip and the Spaces menu hangs from the mark there (main.js
+   spacesAnchorLimit). */
 body.mac .vertical-tabs-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: 28px 28px;
+  row-gap: 16px;
   min-height: var(--strip-h);
-  padding: 8px 10px 7px 103px;
+  padding: 11px 10px 1px 14px;
 }
+body.mac .vertical-tabs-toolbar .vertical-tabs-layout-button { grid-row: 1; grid-column: 2; margin-left: 0; }
+body.mac .vertical-tabs-toolbar #pillSpace { grid-row: 2; grid-column: 1 / -1; justify-self: start; max-width: 100%; }
 
 /* Windows and Linux: with vertical tabs the main-menu button moves out of the
    strip into this row (vertical-tabs.js placeMainMenuButton), leading it as
@@ -2279,7 +2294,10 @@ body[data-mode="palette"] #backdrop {
   pointer-events: auto;
   position: relative;
   width: 620px;
-  max-width: calc(100vw - 24px);
+  /* 12px a side by default. In a narrow macOS window main widens the margin
+     (overlay:show panelSideClearance) so the panel never runs under the
+     window buttons, which macOS draws above every view. */
+  max-width: calc(100vw - 2 * var(--panel-side-clear, 12px));
   /* Never grow past the window edge. With enough open tabs the panel used to
      run off the bottom (measured 843px tall in an 800px window at 19 tabs),
      putting rows somewhere no click could reach. Cap it and let the tab list
@@ -3427,11 +3445,15 @@ body.split-tab-surface.focused { --split-tab-border: var(--split-pane-focused-bo
 }
 
 /* The Spaces button is icon-only like the other footer acts; the space's name
-   is in its tooltip. A --surface fill marks a window that is in a space. */
+   is in its tooltip. A --surface fill marks a window that is in a space, and
+   the space's own tile (workspace-ui.js) stands in for the planet there: the
+   resting Island carries no Space mark, so this says which space it is. */
 .footer-act.ws.bound {
   background: var(--surface);
   color: var(--text);
 }
+#footerWorkspace .ws-trigger-tile { width: 18px; height: 18px; border-radius: 5px; }
+#footerWorkspace .ws-trigger-tile svg { width: 11px; height: 11px; stroke-width: 1.7; }
 .footer-act.ws.bound:focus-visible {
   outline: none;
   background: var(--accent-dim);
@@ -4299,11 +4321,12 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
 }
 
 /* ---- Blanc Spaces mark (strip) -------------------------------------------
-   The current space at the Island's leading edge, quietly: its exact colour
-   fills a small square behind its symbol (white or black on it, from
-   space-identity.js), and its name is the Island's ordinary text. Authored
-   inside #islandPill's zoom, so 24px renders at ~28px. Neutral = in no space
-   yet: the grey Spaces planet. */
+   The current space, quietly: its exact colour fills a small square behind
+   its symbol (white or black on it, from space-identity.js), and its name is
+   ordinary text. Neutral = in no space yet: the grey Spaces planet. Since
+   November 11, 2026 the resting Island never shows it (renderer.js hides it
+   there, so the closed Island stays short and Spaces live in the ⌘L footer);
+   it is drawn only in the vertical tabs rail's first row. */
 .space-mark {
   flex: none;
   display: inline-flex;
@@ -4347,7 +4370,6 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
 .space-mark:is([data-state="neutral"], .vertical-tabs-toolbar [data-state="none"]) { width: 24px; padding: 0; justify-content: center; color: var(--text-dim); background: color-mix(in srgb, var(--text) 6%, transparent); }
 .space-mark:is([data-state="neutral"], .vertical-tabs-toolbar [data-state="none"]) .space-mark-name { display: none; }
 .space-mark:is([data-state="neutral"], .vertical-tabs-toolbar [data-state="none"]) .space-mark-symbol svg { width: 16px; height: 16px; stroke-width: 2; } /* the Spaces planet, as the ⌘L footer's */
-#islandPill:has(> .space-mark:not([hidden])) { padding-left: 7px; }
 .island-row .row-space-tile { width: 20px; height: 20px; border-radius: 6px; }
 .island-row .row-space-tile .ws-symbol { width: 12px; height: 12px; }
 
@@ -4361,9 +4383,6 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
 
 /* Dev-only comparison of how strongly a space tints the chrome (spec §11,
    BLANC_SPACE_TINT in an unpackaged build). 'mark' — the chip alone — ships. */
-:root[data-space-tint="island"] #islandPill.has-space::after {
-  background: linear-gradient(var(--space-band-wash), var(--space-band-wash)), var(--island-resting-surface);
-}
 :root[data-space-tint="island"] .space-mark[data-state="space"] { color: var(--space-on); background: var(--space-fill); padding: 0; width: 24px; justify-content: center; }
 :root[data-space-tint="island"] .space-mark[data-state="space"] .space-mark-symbol { background: none; box-shadow: none; }
 :root[data-space-tint="island"] .space-mark[data-state="space"] .space-mark-name { display: none; }

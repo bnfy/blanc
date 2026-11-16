@@ -58,8 +58,12 @@ enum TabDrag {
 
 extension View {
     /// Lets a tab be dragged to another window, or out to make one.
-    func tabDrag(_ tab: TabModel) -> some View {
+    @ViewBuilder func tabDrag(_ tab: TabModel) -> some View {
+        #if DEBUG
+        if UITestSeed.noTabDrag { self } else { onDrag { TabDrag.itemProvider(for: tab) } }
+        #else
         onDrag { TabDrag.itemProvider(for: tab) }
+        #endif
     }
 
     /// Takes a tab dragged here from another window.

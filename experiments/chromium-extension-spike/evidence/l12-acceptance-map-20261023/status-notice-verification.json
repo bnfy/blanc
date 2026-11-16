@@ -1,0 +1,10 @@
+{
+  "pr": 1028,
+  "headAtUpdate": "b425099a63b202742905c38613619d4394f2ea22",
+  "base": "codex/chromium157-rebase",
+  "draft": true,
+  "statusNoticeSha256": "dee6461ac435a0632cde141023fcb4b6b45814d4da3647d7ac2c4f7987d0ed20",
+  "outsideStatusSectionPreserved": true,
+  "publicReleaseApproved": false,
+  "commentCreated": false
+}

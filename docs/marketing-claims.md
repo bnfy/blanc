@@ -208,7 +208,11 @@ original reports:
   menu offers Open Link in Glance, and `/glance` opens the picker. Glance
   holds one reference at a time; do not describe more panes, tiling of
   several tabs, or automatic pairing of related pages. Material about v1.39.0
-  or earlier describes the side-by-side Glance of those releases.
+  or earlier describes the side-by-side Glance of those releases. Since
+  v1.48.0 Glance also opens over a Split View, as one card over both panes;
+  clicking between the panes keeps it open, and Keep as split is hidden while
+  a split shows. It has run only in the Linux acceptance suite, not by hand in
+  a packaged build, so don't describe how it looks on a given platform.
 - **Split View:** Since v1.40.0 two tabs can show side by side in one window,
   made from a tab's Split with menu or Glance's Keep as split. The divider
   resizes the panes, the pane you click is the current tab, and a split stays
@@ -381,8 +385,11 @@ original reports:
   eight layouts. Device-local state remembers the last layout, mode, and deal,
   can offer to continue an unfinished board from another tab, and keeps records
   and daily streaks. The game also includes scoring, timed combos, automatic
-  clears, hints, shuffle, undo, and sound controls. Do not describe it as
-  online multiplayer, cloud-synced, or
+  clears, hints, shuffle, undo, and sound controls. Since v1.49.0 it has a
+  Sunrise design in light and dark mode and three tile sets (Porcelain, Carved
+  and Inlay), moving to the next set after three boards cleared in a row, plus
+  a short match trail and board-cleared celebration (a brief glow with reduced
+  motion on). Do not describe it as online multiplayer, cloud-synced, or
   AI-generated.
 - **Call audio buffering:** Automatic, Stable, and Resilient are receive-buffer
   choices for WebRTC calls. Stable targets about 400 ms and Resilient about one
@@ -535,6 +542,18 @@ original reports:
   update ships them. There is no Android app. Evidence:
   `docs/ios/app-store-connect.md` item 21 and
   `docs/website-iphone-1.0-claims.json`.
+- **Blanc for iPad (held for App Review):** App Store version 1.0.3 (build
+  202611121714, from `44280ff1d`, with #1479 and #1480) adds iPad to the same
+  listing. Until App Review approves it and it is on sale, don't say Blanc
+  runs on iPad. After that, say it as the App Store description does: Blanc
+  for iPhone and iPad; on iPad a native full-screen app in every orientation,
+  with Split View (two tabs side by side), a floating Glance card for links,
+  tabs in their own windows and hardware-keyboard shortcuts like ⌘L and ⌘T;
+  pages load their desktop layout by default, with Request Mobile Website per
+  site. Never claim trackpad or pointer support (not tested on a real iPad)
+  or Stage Manager, and never present it as a desktop app feature. The site
+  copy waits in `docs/website-ipad-1.0.3-claims.json`, whose test fails until
+  `approvedOn` and `publicRelease` are filled.
 - **Play the Sunrise when Blanc opens:** Since v1.45.0, opt-in in Settings →
   Appearance and set on each device: the Sunrise plays once on the first
   Start Page after launch, ends on any click or key and is skipped when the
@@ -587,6 +606,36 @@ original reports:
 - **Quitting with Shared Spaces:** Since v1.47.0 a Shared Space arriving from
   another device during a quit no longer overwrites the saved windows file.
   Don't claim more than that, and don't say any tabs were lost before.
+- **1.47.1 is fixes only:** Since v1.47.1 a frame that fails its certificate
+  check is refused without crashing Blanc. The crash came with v1.47.0's
+  Electron 45 runtime. The fix was run in Blanc on macOS only, so don't say it
+  was tested on Linux or Windows. It adds no feature: describe new capabilities
+  as since v1.47.0, never v1.47.1.
+- **1.48.0:** Glance over a split (see Glance) is its one new feature. It also
+  fixes live connections (WebSockets) after **Continue** on a certificate
+  warning for a local or private-network address, for that same address and
+  certificate only. Neither was hand-checked against a packaged build before
+  release; don't claim a specific console such as Proxmox works until someone
+  has tried it.
+- **1.49.0:** The refreshed Mahjong (see Mahjong) is its main change. The
+  closed Island no longer shows the current Space's mark; Spaces open from the
+  ⌘L panel's footer button, which shows the Space's symbol on its color, and
+  vertical tabs still show the mark at the top of the side list. It also
+  fixes windows a page opens on its own (such as Proxmox's separate console)
+  after **Continue** on a certificate warning for a local or private-network
+  address. Neither Mahjong nor the pop-out fix was hand-checked in a packaged
+  build before release; the What's New captures came from a development build.
+  Don't claim a specific console works until someone has tried it.
+- **1.49.1:** New Tab reuse is its main change: when the window already has
+  a new tab that hasn't been used, New Tab (⌘T, Ctrl+T on Windows and Linux)
+  switches to it instead of opening another, and ⌘⇧N does the same for
+  private tabs. It is on by default and can be turned off in Settings →
+  General → Browsing (**Switch to an unused new tab**). Pinned, grouped and
+  split tabs are never reused, and only Blanc's own New Tab page counts, so
+  a custom home page always opens fresh. It wasn't hand-checked in a
+  packaged build before release. With vertical tabs on a Mac, the Space mark
+  sits on its own row below the window controls. Describe New Tab reuse as
+  since v1.49.1.
 - **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
   (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
   strip so the page fills the window. Pointing at or just above the top edge,

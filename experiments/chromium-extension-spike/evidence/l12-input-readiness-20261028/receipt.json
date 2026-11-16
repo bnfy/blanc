@@ -1,0 +1,1065 @@
+{
+  "runtime": "chromium",
+  "requireIdle": true,
+  "config": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/l12-input-readiness-20261028/config.json",
+  "configuration": {
+    "chromium": "/Users/anthonyjloria/Projects/BlancChromium157Recovery/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+    "engine": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/artifacts/procedural-groups-combined-20261028",
+    "ui": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets"
+  },
+  "signedResources": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources",
+  "oracle": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/formal-latency-inputs-20261028",
+  "candidateCount": 5127,
+  "candidateSource": "73217ee50b6f2e4eaa8eb8b27f75df8c2cff9bd2",
+  "scope": "Unsigned native measurement prepared with candidate-matching production assets; not signed runtime acceptance",
+  "files": [
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/artifacts/procedural-groups-combined-20261028/engine.js",
+      "sha256": "6f5947ad20511daf0defd7ee1d01981b01af200f709ccc746b48a7df6855d797"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/artifacts/procedural-groups-combined-20261028/manifest.json",
+      "sha256": "7b4a39d65c9192372e86928aa025e6fd09d50256f8b7ff717b844fdc4bb4a67f"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/artifacts/procedural-groups-combined-20261028/procedural.js",
+      "sha256": "03c7e11627648bc85ac33e949906796ee0916036a302bb3876b0e43be1a75b4f"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/formal-latency-inputs-20261028/candidate-manifest.json",
+      "sha256": "7c1cc9d39140f898c252fd7600c8d33bc7effea623a1ce0e1bcfeffb35a702e8"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/formal-latency-inputs-20261028/input-recovery.json",
+      "sha256": "754c9f1c2c9757471a6e2eac75a9b0ccc87276872f96abd556024aee2b27fc96"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/formal-latency-inputs-20261028/private-a-run.json",
+      "sha256": "06cd594051e7191fb280862b13d2c5ade1b4ab8844749be65186cd23b77e9ad2"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/formal-latency-inputs-20261028/private-stability.json",
+      "sha256": "7226525ab51748c07e970c347a69d9aeb7100fb870b827c27a53bf4526ec45ab"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/formal-latency-inputs-20261028/regular-a-run.json",
+      "sha256": "c93238de5051c44f30320fd8273d1f2803cd323c829d36141257e433ffbf0a72"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/formal-latency-inputs-20261028/regular-stability.json",
+      "sha256": "fdd3ff78f9830a48892f42ca2877f918e5fbfa7b6512392fc8a3fd0675b5a71d"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/formal-latency-inputs-20261028/responses.json",
+      "sha256": "1175e598ef1fce547f55058f7d44130460e60fecd6265d86775e6120a7f2d931"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/l12-input-readiness-20261028/config.json",
+      "sha256": "490ee23b5a5821011524d715eec7941fb97791205a5d606960b9e15a2e45bfd6"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/pilot/certificates.mjs",
+      "sha256": "2f513f79268394d92a3db40c7afe109c4c3aa4de878d829a31c7759651abd598"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/pilot/proxy-test.mjs",
+      "sha256": "232cc8efaab20dd5e52468b5f4784b2689725c4165f706d97fb677fb718a5f08"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/pilot/proxy.mjs",
+      "sha256": "389b384892d6c89e3aacba6c7fda30e2d40d70a9f7d2238275ee6473328a0da7"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/pilot/run.mjs",
+      "sha256": "c2de0cabd9a27cd19d62fd9cee0b280639c892c2642a5cca9e5fed342c244f40"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/pilot/tls-test.mjs",
+      "sha256": "966c1a981c27c02cc6afd89810a5067a21aac8c04ea611c6873cf67e57b5d77f"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/pipeline/feasibility.mjs",
+      "sha256": "2c68e7df0c9278bf4c6138d1764583b7552253780c981cc9950b651d161f4e5a"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/pipeline/network-test.mjs",
+      "sha256": "de91ccc8f809016cf0d8e5a70d54b42c38f3607c257aea9168809011baa54bd0"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/pipeline/offline.mjs",
+      "sha256": "cbfd1392df807f94a6829269ae81d886b79941f2a55292c676c931a319727a60"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/pipeline/pipeline-test.mjs",
+      "sha256": "2e8a06069f906a85ee3f74f37819a120f1e61d816ad229c1509a8ea3f5ea5646"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/pipeline/recorder.mjs",
+      "sha256": "0f3eebcda98e9567dfec0860a7ac33e48f3494d9dbb1f6ac6ba606d7587dd510"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/pipeline/roundtrip.mjs",
+      "sha256": "0c481755ac793016fece440b6060daffe5db110d209f91d7eda85e096d547f03"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/pipeline/stability.mjs",
+      "sha256": "1ae223651ad384cfe50ad5c83dc71b190ba4033cd4ecdbe84747240adfeb4820"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/pipeline/transport.mjs",
+      "sha256": "4f32dff75fb64c874002eb3dabf56df92c95881cf1f68cb359edd4e8405fc2f6"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/blanc-cosmetic-delivery.mjs",
+      "sha256": "78428cd389712f3f3229eb0851b2e2dd82b5eb1a5cf14759f89f6ddaf47f97b8"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/blanc-cosmetic-paired.mjs",
+      "sha256": "d678fd4b334793c36c4d14df833b8ddf06745c88171b73aec2880bd734c0f3e4"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/blanc-cosmetic-reference-delivery.mjs",
+      "sha256": "e361c6d13cccc6abddaf57000f28a55fadddd64bfbde2f9cfeb2339494249d6b"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/certificate-set.mjs",
+      "sha256": "342f1ff63a111ef9536aa8250e213d972435c89b3445d285955e332ec7d0ad78"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/chromium-baseline.mjs",
+      "sha256": "f26d9eb6317239b57026bff16932ad281a39a511aac2d18124d2b06188a36b2f"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/chromium-native.mjs",
+      "sha256": "4a52c738b44b78902f48848d26d6a41b7ae2eeea38f380d80751b934056be1b1"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/comparison-test.mjs",
+      "sha256": "dbffae9ef275d4faf9c824e702c84bcc2706e2b137327e35414cb6f08fa229e7"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/comparison.mjs",
+      "sha256": "c960d0ebb8de584d3f9723c891b3178eb4cc1adc30ad754640d8ec15eb1859ee"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/delivery-order-payload.mjs",
+      "sha256": "18ecba2fec9c05a2fbae79993249736e866567243e5b7b5963a27118c55b3fc7"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/delivery-order-run.mjs",
+      "sha256": "1f014d83bee2fe2d9cc01086bb09f1da1ca73c887076bd2e7d7f110b57868273"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/delivery-order-test.mjs",
+      "sha256": "314cff2d3ab8da2a340284c6eac6db40fe000687295a9756beccdab1f46d86dd"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/delivery-order-verify.mjs",
+      "sha256": "4e043a047586bc4f72d8108ba1c7db586695b916d9d2e35d999510683eb56c4e"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/document-start-safety-run.mjs",
+      "sha256": "5e8283a9138d8bea43e87ef2094dee4b4eec4a3c1d7ee6e21d3a44c290a9d7ae"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/document-start-verify.mjs",
+      "sha256": "7c43804586612ca4b655d75ce6e7eff83541a03a3f73922a66a363dfbd89c731"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/document-target-payload.mjs",
+      "sha256": "e2db9c7b2286282525b63d080ac82b6cd70835136509789ef2521bd5a069588c"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/document-target-run.mjs",
+      "sha256": "0c0faab5b429cfd0748f9ea051adc05c2419d83edeaea5094ddd2bccf2b02adc"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/document-target-verify.mjs",
+      "sha256": "5ac4ea545a0a51ac589db113731d0b124f20bdd9144f785f3526ef6fcc95f90f"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/frame-observer-scrub-test.mjs",
+      "sha256": "4936ee34d86957b8e5742cfdc41db14a9c8e55b3aced523ec36b3b6226549770"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/generate-test.mjs",
+      "sha256": "1bdef990b17f0a8398a4c73683f25336503a2b46f3a573bc482699915349703e"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/generate.mjs",
+      "sha256": "a35a3853c7bbf516a451dc11763fdd4b3a275357165e952f5d3b4514b06cf3f9"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/helper-channels-run.mjs",
+      "sha256": "a97712321878a3aa50fc658bedc8f9eb7c93b0523b63adaed3daad209f86213e"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/helper-channels-verify.mjs",
+      "sha256": "fd47feff61452533703aec73af4af40fb60f6f3556d40baf55ea4aa3a2752790"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/helper-delivery-run.mjs",
+      "sha256": "5f1a5398b674c82509f67982141ba0972b32eae693e31ab96cc6f6010ae2862a"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/helper-delivery-test.mjs",
+      "sha256": "1d509b40caa0d305aa2b56b604f8506ff96a3b2ddbe96053288e4006af0c7bd4"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/helper-delivery-verify.mjs",
+      "sha256": "b12f6c49cf6daca9001d51a66067c2209c6996a22220a4a7e718c17453de6aad"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/inherited-frame-safety-run.mjs",
+      "sha256": "39e07a9a1c2d139cf1dbf0abeb703c913f117c92e8e894352376bc3268070feb"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/keepalive-retry.mjs",
+      "sha256": "15e72cc988462d03087b76ea940e57da95c33306b9cbb6de1995e4be40f1220a"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/latency-run.mjs",
+      "sha256": "44e0ad013d3fd5ac4b527c447471f6fc13391f9a4e5fe59bd26f5f8a851bd7b5"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/latency-validate-test.mjs",
+      "sha256": "e6ab47862e8c76383f8f09673235f3be90efed9b66e9ebcfbed2df82be7c4c20"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/latency-validate.mjs",
+      "sha256": "7826c7058f487d836afeeff0beb4fb8388eb184fc3dfd453b62ccd4757aca63e"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/lifecycle-followup-test.mjs",
+      "sha256": "e7b6e71aecfdb99bfcc93171e14b5480c9fa063f2fac1469fd33f7f78e4341d0"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/lifecycle-followup-verify.mjs",
+      "sha256": "9c468ac7caca1359f66580d5a23b76926d2255d79b2065ebf752e76f82fc62e8"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/lifecycle-leases-run.mjs",
+      "sha256": "45e49d6e3378b9c014d8a102cb44b0d477a4a07b43b1a4f976910db4ce012729"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/lifecycle-run.mjs",
+      "sha256": "26416e99a94a250235dae26f229d7d8ae490268da800500dde8f8953212ee217"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/lifecycle-test.mjs",
+      "sha256": "1f327d3476af830a232b4a0bf6d982faedc1379f02ef1911ffb71c293046f700"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/lifecycle-verify.mjs",
+      "sha256": "fe4debf42ede809bd93541cc444b513f0905df34ce511842ab613304509802ff"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/native-comparison-test.mjs",
+      "sha256": "9ac8063ae00854eb68136c70048b8fa47c3d9d78000f872956a466a0ce3eb17f"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/native-comparison.mjs",
+      "sha256": "9a4f087155cf0bf402c8c28d95093377487f10f5011fbfbb1bc7c7a0e7acc1db"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/native-latency-trace-test.mjs",
+      "sha256": "f7eb0804d04dac28a42cfa8f679026f7ba0612ccaf501589e083a09b6678d73c"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/native-latency-trace.mjs",
+      "sha256": "9fd2adb0b1aefcdc3ed31af320d4dbe1badb6713c187425983893426907d1f4c"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/native-recovery-run.mjs",
+      "sha256": "a65c5076783838671b825da923e2698d150ccca1bf9d164839a08928bf7cf9ef"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/native-recovery-test.mjs",
+      "sha256": "8c06bf75c005526cee4f1eb85e8f67362889671c607679e9e55e19f72e76f09d"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/native-recovery-verify.mjs",
+      "sha256": "ff328db33f6f6bf9226771e9e80b05f64fccb7b9bea4fa82f34aede6fad5597d"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/nonhttp-context-fixtures.mjs",
+      "sha256": "d0607cf623d86518924ce5633565d45650081f8ea11c9161cbf7351d8cc88c1a"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/nonhttp-context-run.mjs",
+      "sha256": "e83e286c31552fccf87bd00b7930c0cb15f4d9e34a4c57133febb83e1c0963db"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/nonhttp-context-test.mjs",
+      "sha256": "2650cf51be7d7e03a9266edded8a7606d41c96a69e821e993dee963114fbee19"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/nonhttp-context-verify.mjs",
+      "sha256": "76669b806e4b23236399561379b9b9aa469506e1414f2194c640c8c7549a7433"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/opaque-boundary-run.mjs",
+      "sha256": "15e80be24273522b79367bd3390046276371c9364b541c4334ce079c63367801"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/opaque-frame-fixtures.mjs",
+      "sha256": "cde56b88afe4202732b7844a229ac93fed2e0ff27ca16bce5ec6bfce069a86d4"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/opaque-frame-run.mjs",
+      "sha256": "c18b2969731af5ca218b784afdd5a5e6976a8ffe5111a10998a184bef221a85f"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/opaque-frame-test.mjs",
+      "sha256": "307f38105a34cca4dc2733dedd76cfd2a8ed04916855cdd8de4c432487b91e4c"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/opaque-frame-verify.mjs",
+      "sha256": "9cee589c16570230ac6c9e28614c09fd03ef921ed981e227f39ed72d73276076"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/opaque-late-run.mjs",
+      "sha256": "7c4f0dee7fe54dba1c5eba24a7351ca78d3b06755507a935d2a7360c34d528dd"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/opaque-late-test.mjs",
+      "sha256": "8b01938b20007204dcc7ee50c0e85529e5b9bf2266c0c15e769de3f1a57d8ab4"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/opaque-late-verify.mjs",
+      "sha256": "9733dfb84b2faba79b652439d389ff587cc44391e95a32c56912f84d581569ae"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/origin-fallback-payload.mjs",
+      "sha256": "231f9684c4f6d97f71acbd58100512153cb90b71ab614e8528e1ebc044dc182b"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/origin-fallback-run.mjs",
+      "sha256": "fcce9563e31ceab7c935aafd4a729138a68384339472a9124b2edad6568db0a9"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/origin-fallback-test.mjs",
+      "sha256": "23c51422e497a821d0e0f8da0c687f9d3ba2bef520f1212cb7bd940705ad3fee"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/origin-fallback-verify.mjs",
+      "sha256": "5513d63921675de8417de9b3758fb1eb930fee4f68f1744af83983048c3f0417"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/page.mjs",
+      "sha256": "f9cba4814df85c8adea3acdbc86a877392c7a69ecdc743d7917ede0d2c7ba6bc"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/paths-compare-test.mjs",
+      "sha256": "262a028a29d5ab09c46680e511bc8453517de56d072bca9666124d99cb6734fa"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/paths-compare.mjs",
+      "sha256": "48f2ced9104aecacab531be667011b18642700da1708fc4e62befa37287616a2"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/paths-fixtures.mjs",
+      "sha256": "229b55fedd5a6f9f802e6828b5489d3845fa1835986b324811e88ba69f87ef2d"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/paths-run.mjs",
+      "sha256": "236383e7ee5716973d4d25740bb5aab644d99b5af7fa9cc036df5ef2297eb9cf"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/prefetch-cancellation-veto-run.mjs",
+      "sha256": "79ef36f1751034ad1f89c5b3e6b69ccadfaae3646a25e287fd1e29c31f02fd02"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/prefetch-concurrent-veto-run.mjs",
+      "sha256": "b120ba65b21a1a193e157bce7140db710764d954cc38900ba8d7fb3458603c9e"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/prefetch-consumption-run.mjs",
+      "sha256": "86ee7ac1a9ff7cf906dbd65e3770448cb2ec6b1994f62361e02343dcca019e64"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/prefetch-cross-profile-guards-run.mjs",
+      "sha256": "3c29f7fb07ff7c061246947c20a652f3b406cd499722735380f650cedd084de1"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/prefetch-cross-profile-high-guards-run.mjs",
+      "sha256": "077cc08c5304f611baf17c807e8c0f0e27238d8e298f9049fe715278e42c1294"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/prefetch-cross-profile-repeated-high-guards-run.mjs",
+      "sha256": "752e1040dafffadeba6316b1750dcdcfc8ccc8ce62257acd5fbb36476b663158"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/prefetch-cross-profile-veto-run.mjs",
+      "sha256": "92b0dca7d3a2cc908f753c24aff57c15d21815f646a0a1a3f5f2006acc3db0c3"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/prefetch-high-concurrency-veto-run.mjs",
+      "sha256": "3e4a84b0bbf6f50c4aa8f2fe8b4212199c5eae724c44a15679d591cc594eac67"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/prefetch-native-run.mjs",
+      "sha256": "51d37cadf35a63b4145f97d2046285d29cf60778757adf2f8bb88200e9329c2a"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/prefetch-postready-loss-run.mjs",
+      "sha256": "7d7e4df83efa3304a5e5733682f2024ebe8c8604c9aa4e49d3c88676011eabeb"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/prefetch-postready-repair-run.mjs",
+      "sha256": "4d0a07c09cfc0f0121a0ba97fef6641faddaca3a78893370416ce4e886f44ec5"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/prefetch-private-cross-profile-run.mjs",
+      "sha256": "2d9239e99cf114fd3d8ffbecf1610baa14768d5a4e0f3c338af9e8528b02bc8b"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/prefetch-private-only-cross-profile-run.mjs",
+      "sha256": "2ecf3b453df8d5e35093dcb142307c987a1a9b0df98803830d573e9b81e695cd"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/prefetch-profile-shutdown-run.mjs",
+      "sha256": "9c49ad824d17d19a97f4b9ba7d6804194edbfd3b550beab1888162927fe0b231"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/prefetch-repeated-high-concurrency-veto-run.mjs",
+      "sha256": "adb64d226d23d6aaf6dfcd165bafd782032703b092093c87ef382544c199f92b"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/prefetch-repeated-veto-run.mjs",
+      "sha256": "9ba82ee7796e888c7c6d5676e07cefb3c593d8263a2b4ef70c46e0c37687388b"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/prefetch-response-lifecycle-run.mjs",
+      "sha256": "3ad59c339750c4cb7f80c94cb7956afc1f32c0b351798f75d2d8b12394bc2d8b"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/prerender-raw-run.mjs",
+      "sha256": "e3e09b1376aed5b470ad177793b79293b0bda3843165d0e49b3df85238222285"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/property-groups-production.mjs",
+      "sha256": "15c6e6ded9f2bb17e30854d5a4a706dc1ecd86fd2e2dd8f5e87cacfda87748de"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/property-groups.mjs",
+      "sha256": "df84a2cc11b26eeacb449252f6668babfa7ddba6cd9789085b010448940f5905"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/renderer-target-run.mjs",
+      "sha256": "22a44fe382bcd3272fe962f6752880a678c17292718f9807998fbb284b560885"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/renderer-target-test.mjs",
+      "sha256": "61cbd84074f85b54eb1bdecdd741d39ba6574ee5b685cb45b5e8d65077a9eb7d"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/renderer-target-verify.mjs",
+      "sha256": "681cfbb2c483d8c41dc95e122489cb45a7857b256be15a72811439f833e72798"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/run.mjs",
+      "sha256": "06c4e6e6a3b48ab0d0bbf41ace5dc02f43e041b2be01dafa4154dc3fa2f0a874"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/scriptlet-dedup-run.mjs",
+      "sha256": "05ab765540a2b1060f92056e2d717e3eb597c9a388ea09640490e1916b67089c"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/scriptlet-dedup-test.mjs",
+      "sha256": "39b415252d754f5ee031be288d9b35496c828af9930cb680d550b4af4976fb84"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/scriptlet-dedup-verify.mjs",
+      "sha256": "1d5a42f57d0d340b2e673013c665586a891fc8907a75216142041181a5a06890"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/scriptlet-timing-observer.mjs",
+      "sha256": "76d043eb72683d51926134150c6030fd43af5a12c9b5ba6da64faf359828d155"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/scriptlet-timing-run.mjs",
+      "sha256": "32d66f77ccb32342620d69008231d2d4f9ddbea1b215f05e2dd46eb4c2fcf44c"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/scriptlet-timing-test.mjs",
+      "sha256": "ae58574e9998fecc639015d6f0814d352c04db63964bf416a821d2c26ffd6017"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/scriptlet-timing-verify.mjs",
+      "sha256": "5a62c89b62c94ce14567c651e1ef64e0749737129b5fe961ac187f0c4a7eedc7"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/sender-close-check.mjs",
+      "sha256": "46a7c65f25de429796ed09e87778e46d40aca19e8fd7bd17660ae94a291c8ad2"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/sender-close-run.mjs",
+      "sha256": "2301e9d30ee5d0b185cf86f9ed11b2c8edecb945abdf669c779612c09d512d22"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/service-lifecycle-run.mjs",
+      "sha256": "0bd1eb544e41bb49f1246c2ed0b65929f0554d94c90082cead9847689fe4c481"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/service-lifecycle-verify.mjs",
+      "sha256": "51845b5d7d5bb3103e075f4bea7429d7efeb0c977f2d34c52ed3b28869e55af4"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/service-script-context-test.mjs",
+      "sha256": "d26d7545825ae86963b327f3a729e0f5143cf570432cfdec80310d8fdebaa034"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/service-script-context.mjs",
+      "sha256": "73eb182f0475fa7fc747674fa72a0572d88b2e3aac9bc9cc11351b88851dafc4"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/service-update-collision-run.mjs",
+      "sha256": "b47d2ac5cdaf9212a44d85a9239268f3f1d2e41485801ae77e920021c1f1a1d8"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/service-update-collision-verify.mjs",
+      "sha256": "a3e1ca03b18e46c5fa7a2477986279aa2bd3734df468c612c07fa791912e2c26"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/session.mjs",
+      "sha256": "57891d2f47fcfec38484e11febf6978017573078303ded9e909895b939d08ab6"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/shared-client-context-test.mjs",
+      "sha256": "151e916ba112b7e93b332ba63dee5e62f72766f4a1891bd40748d619956614f9"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/shared-client-context.mjs",
+      "sha256": "ac628dfeccfb3903e85ce69f9cd55783b41a98f9a8d841b0066faf0ebecf0134"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/shared-client-observer.mjs",
+      "sha256": "ccc7128bffa85310af813ea309987392e8c061181bfd2b19e560eff4a8940fd9"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/shared-lifecycle-compare.mjs",
+      "sha256": "31f5a6d91c13a166b88e5860b6583f9a925ea0f326c07d7a3cf4a2c224e502e7"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/shared-lifecycle-fixtures.mjs",
+      "sha256": "f42286e88a5d8278eee1dfbc18a3f64020a59325f07bde7eb491dafb404f5fc6"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/shared-lifecycle-run.mjs",
+      "sha256": "5b3e87be0ae935dd9e47202e7a156b33f8ed04c723f0edb7905d26380d5def53"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/stability-test.mjs",
+      "sha256": "33f765290202941000e9235d326b78ace7c33f26e572c141ed73ec036621499f"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/stability.mjs",
+      "sha256": "450a78e27d1f6df22c131140c290a5040884393f251fc61878d0d9043020a386"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/static-csp-run.mjs",
+      "sha256": "fc6b77d9883dddf399ade1c762f5834de1a342a9d01f26404e6908448a0cfdc8"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/static-csp-test.mjs",
+      "sha256": "7a47c0a634d649f08ba6d6eadadad78527fbf658e46ba65159c37266fb573856"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/static-csp-verify.mjs",
+      "sha256": "274cab3b03e99b5b6b901fb4428baa363d601986c8a35601edd08120b9081f46"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/static-integration-run.mjs",
+      "sha256": "8723814c6b38719a7e33f7b8554ff8a3df152498390fdf5ab85eb6c73529c376"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/static-integration-test.mjs",
+      "sha256": "224a759cdf0e4fc324055bb8f37a79fcc2c667e6353b27667a42d9c5cd28b506"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/static-integration-verify.mjs",
+      "sha256": "36b14410051693e0b5bf454dd2c168bb9e450974936227b4630fc2bdef761e54"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/static-policy-run.mjs",
+      "sha256": "2b5e25fbf275650cdf8065c82aeffd1ef87b3a5a4a622a635456bdbd59da7193"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/static-policy-test.mjs",
+      "sha256": "546683a8283d47bf5eb18ebe85e5dcf5576140e06278c0f6ed091153bed94077"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/static-policy-verify.mjs",
+      "sha256": "e5122c616cdfb57312ce1fa72e734e98d142534d067caf20f713190d32eef010"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/static-race-payload.mjs",
+      "sha256": "1b0295d2ca90be8e42146c9dfb65ebffdac7d880978e6c75bb84149a0691a23b"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/static-race-run.mjs",
+      "sha256": "ed9feac310856d0baa4806b007795352ac7b7838bd6c37b4b63278adcf121734"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/static-race-test.mjs",
+      "sha256": "405e929497a603f0a0b8bd52ec579c0c47803b95cc066f14e8f4ced47b6ca8d3"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/static-race-verify.mjs",
+      "sha256": "49faf1818ebdfca0611dcb89f92fb47b80ea16f8a57459bb049c122c0f841fa2"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/subframe-scriptlet-run.mjs",
+      "sha256": "0dd3256ac42e5abb419b5f4bbb9e0fae34413f8aa8881b579b20a35c8ffd8f6c"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/subframe-scriptlet-test.mjs",
+      "sha256": "1adb6d99a1025a9c7b7ebe25f89896892f12bae44e0f960b782a07dfa99c5800"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/subframe-scriptlet-verify.mjs",
+      "sha256": "fd993c13258704a2676bb51f7eb73fe237216eee7e2c21aa4331af15addffc67"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/summarize.mjs",
+      "sha256": "69ae7cb5a0b931eda82fc5d1cab3917db82551b5c4898795bed3b98d7ff9e471"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/transport-test.mjs",
+      "sha256": "7f35bf5271e4c47a9558a45bd2896dddcad58a5c09026d08b37b31fa199a5a50"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/transport.mjs",
+      "sha256": "d612e050697103354b893b024dfc50bb3a2fd426c184de4d6c4c1810bccf1a9a"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/trust-probe.mjs",
+      "sha256": "aaa353d21baa686022b0bbeea1a53738328bf64e8539ca03729592f00894a4ed"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/trust-test.mjs",
+      "sha256": "c03c7ff2e0e6c2c05529b19cbe89c6449f7c1d4cfb41accedbab0c0cb8c6e7a7"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/ubo-cosmetic-fixtures.mjs",
+      "sha256": "493031b4369355b72fe80bd4494db0a8f1b5efd9b5e9e40c4c6e347a25636688"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/ubo-cosmetic-run.mjs",
+      "sha256": "5135864452f53ca6ad7c7e3a04049e70ed0a6335585f8fdce59cd5e15ebf3fba"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/ubo-cosmetic-test.mjs",
+      "sha256": "614127718db69514b507b5304eb6c88a7017f774c5da6ecb842c4be2e213cc95"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/ubo-cosmetic-verify.mjs",
+      "sha256": "3d90c365b93582e1ede1c82bec2df812dfc8a569c25ee3784b3b53f57c381a81"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/ubo-parity-run.mjs",
+      "sha256": "041ce35c025d3ca9d0b96b31c4dd5868e0b35d0e6b1ddb03b0fcbd703590fbc5"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/ubo-parity-verify.mjs",
+      "sha256": "8176f1c95d50c6c7ed1acc9e20ba16524f171e227c71c9a86ec7ba897b4fb916"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/update-loader-identity-test.mjs",
+      "sha256": "41d823139467061df89924f94ed7c6ddaaed35a216f43ba9868cc76b19632de8"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/update-loader-identity.mjs",
+      "sha256": "46d9187cc634c9d7109fe3ab60b38cf612a61b84fc99214c9b1801fc62b8daaf"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/update-loader-verify.mjs",
+      "sha256": "e3a6497a7953d136e1dd55cc0b267aae14a96aed717e6beee607745681559be5"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/update-trace-test.mjs",
+      "sha256": "9eba5849f1d90f89bacea03525d8db4a10aac39fe436251f357ad7419ad175cd"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/update-trace-verify.mjs",
+      "sha256": "67d5d22ef181ec3f6fea6b3a0cfaaa72a7cb30aceca9455673c50192531e7fe7"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/websocket-handshake.mjs",
+      "sha256": "d6c01cee3035988d4a8716237132ee111416a5b1ddef1f7d86867e7aec0bf7d2"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/websocket-handshake.test.mjs",
+      "sha256": "1c58bfefb1d55ee0ec2023a12699f8b3c239a7504255e02592a3bebf124c1651"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/websocket-lifecycle-run.mjs",
+      "sha256": "cac30cdde2f96ce2501384a39a342680db3fe686801ffb7c3534d1a88f9e4673"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/websocket-run.mjs",
+      "sha256": "a435a153ac46c1db36a8d48ebc3a852b566a12fc623fd34b96f774972f2da5d4"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-admission-held-run.mjs",
+      "sha256": "079e0f8f0e1667125dacda37419d6c5836d55793430b97db0191cc818eb793bf"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-admission-run.mjs",
+      "sha256": "68a626429f7b72ddf97e7cdf52fb0d9f897142b17b386d9f61f35cb8111c581c"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-cancel-crash-run.mjs",
+      "sha256": "dad1b786d3ee9ea82b65f7ac9d85d820b3d6c8f5a2cfc4d30bbb50aa3482ce69"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-cancel-restart-run.mjs",
+      "sha256": "5d927eebf7b4ebf6953bf53fdc3e818bbc3f88b92d10747e29435059e01435f9"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-cancel-utility-loss-run.mjs",
+      "sha256": "c8819225e4a6db59b2b8cdacbdd308f6e937ea8c41597e73b00e08c5a862656f"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-concurrent-cancel-run.mjs",
+      "sha256": "0007a6513ccfb3c99f9a71dd4dcc5fe2a85ca5d7a3f8388f94b2067e0f87ad9b"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-consecutive-crash-service-run.mjs",
+      "sha256": "bb6017a4caf09cdca17e07e1244159cacec72935b4d0d881ca7b0f9943df6bc8"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-lifecycle-run.mjs",
+      "sha256": "eb9b0f1c2b221446c366a67e52a86694c2906aca1914857d405a4f8f6fe22ede"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-load-cancel-run.mjs",
+      "sha256": "98e229ddf6c934433035f052f0f685f9c160be2212e4788502266bf5d16cb078"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-mixed-queued-cancel-run.mjs",
+      "sha256": "602b17b298366ca5009f7cc83bf7d51bd2a3b86d0bd7324f6e9392bbc55dfe0d"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-pending-crash-run.mjs",
+      "sha256": "3ff9755d304573ef692a7295ae966de84b6788b38544a0fe36631a66b66a12ce"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-profile-crash-run.mjs",
+      "sha256": "2a538c7cea1e330b51d5d27eb57128352f65634bd99a31ee7e06b6ef4bf3b95f"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-registration-crash-run.mjs",
+      "sha256": "d88348cba6eab342519d2c4df39991b72a275a820e19aeedfd2c528b7e5cff5f"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-repeated-pending-service-run.mjs",
+      "sha256": "7fccd41ad0d43430649453a412fb100bb734efcc16244b794bdec73bbd9400a7"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-repeated-service-run.mjs",
+      "sha256": "63c560ee142924a35f008f4568007848a7f256148cd93f6a9242941696777373"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-restart-service-run.mjs",
+      "sha256": "152de03d29c353e64f83c3ca1ca8bf528959dd67a2c70bd2794638ffa9a9ce01"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-run.mjs",
+      "sha256": "161da01d5d7bd82d2374b69d52ca73c857559a0c14544655fa56c81465b31e81"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/webtransport-teardown-run.mjs",
+      "sha256": "d92d48af999672081fc2d34ab9c50e6cae1b9d5d18fd721c400e1eea073297e1"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/worker-context-test.mjs",
+      "sha256": "1ed782136270b786d3b16f809f0da2ef7d4b20726f43099c0fed52c48e9baa1a"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/worker-context.mjs",
+      "sha256": "96c545b22c593ad81d40e9f6e74c3a312d7dcf11964c3f180f37c4ac27a23fba"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/worker-observer-test.mjs",
+      "sha256": "ecb2301431411c1931c0fa91829dc438a39271c0608912b6827e1c86b561e275"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/worker-observer.mjs",
+      "sha256": "111db0031ed3e714c2f91999d995bb57246f7732c6c99890575673e6a841017b"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/fixtures/replay/synthetic/youtube-outcomes.mjs",
+      "sha256": "64bad1465c96e408965b02892b7d35d8c9be5baecfdfae7e4620b76661092ed6"
+    },
+    {
+      "path": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/tools/verify-timing-inputs.py",
+      "sha256": "c514303ff061f5037206e9d303111647fc50123470971e01ba4017e70da55be0"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157Recovery/src/out/BlancPrototype/Blanc Prototype.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/Current/Blanc Prototype Framework",
+      "sha256": "6be9cc7478fcc66c3fe034a36c675ad20e3066b99b0312e8dc7bfda4f8a2cf61"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157Recovery/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+      "sha256": "33e6b2806167d00ce95c5c7333385b7b3db96b50246f25a415416dc1fd7398ab"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/adapter.js",
+      "sha256": "54e561319035e5a21a0921f31a73420b4709e2dad80f4644622136ed82cfb6b4"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/extensions.css",
+      "sha256": "c91af1c5bb163ce53458080c2bf2bb92704caac221120dbb0800610f3bd406ee"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/extensions.js",
+      "sha256": "e6c24a5f8fb1559e077045c3707a0dd33d3e58a8af7c16c5a5365eb9cf74ca4d"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/host.css",
+      "sha256": "c16f3126d4c411387a4a2022a2a4af44d881c9824089a663d306343e31885df3"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/host.html",
+      "sha256": "daec6220bc75ce60517ca7bf866e121b29ecca099f771d4c8ba88b2f99e4b32c"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/host.js",
+      "sha256": "53840280b2fe2c8286de92c1ccd048d84c326f5837f0fd94574b29c0c12e2b72"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/i18n.js",
+      "sha256": "5749b9e67f1876fdd535f6f47908d8a3982ee7c5868b2e23dc50085a1ab27793"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/icons/chevron-left.svg",
+      "sha256": "83b0681aa38bf55e9d52a1e4b4cced624abe1fe7678ecafda133a574f1161d93"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/icons/external-link.svg",
+      "sha256": "3891241b8c3bfc3a8a930078f26ffc5a7e9763da6d0162ace2050b28d4c1d1fe"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/icons/search.svg",
+      "sha256": "9322d964b61cf729b3a81210568d5a97eaf4a1f3239f25a056fda3013bf35611"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/icons/settings.svg",
+      "sha256": "3c7bee2696ce0c2d48d34e813f4fcda31f0ad21ab9309aee3751cde4280ad737"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/index.html",
+      "sha256": "5b2d6ab1ab869bec1021c4803ded6d3cc2cc4f6472bdcbe91c03ba062095afdf"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/installed-theme.js",
+      "sha256": "23493f31da733ca0d72c82da7bc888304d36d66a5484a9eed245c0efd1dec433"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/mac-icon/Assets.car",
+      "sha256": "66a32d12bed6d48587c6fcb792d25063b5b77f18ae873fd5a2f66e715c8828eb"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/mac-icon/BlancDK.icns",
+      "sha256": "d34201f7710f10d7943193f4afb3bda378acba1b96381468245f553d7234a8c1"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/mac-icon/manifest.json",
+      "sha256": "aa11c5ed7b187827d1a312aef495cf3fb8755d48e83b7bfe5b351d36c9f3b56c"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/overlay.html",
+      "sha256": "513773ed24e56ad1006f91b5208b70a255a371883396a1462f4c5043ff7b5b81"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/overlay.js",
+      "sha256": "3f2aa810d475515062e032ccc6b90af23a351c0d84f74c546d79aed5e742ee50"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/bangs-catalog.js",
+      "sha256": "8129954e3909f0c0bc6a738d5f9b3164965c2822c7aeb344dcf87814f16e756e"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/bangs.js",
+      "sha256": "72c301416757bd8d587203865c1c13e33e1dfaa6776fc00bf7123bfbb1d2ebc0"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/caveat-latin.woff2",
+      "sha256": "d0b7b931b8980049327e8f8f9ac264617c8200b8422d62e886473d3d9527bad3"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/close.svg",
+      "sha256": "c01aed78767c6a5ce62887881338450f038b0bfc0bb62651e608bdbd237168bb"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/i18n.js",
+      "sha256": "5749b9e67f1876fdd535f6f47908d8a3982ee7c5868b2e23dc50085a1ab27793"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/icon-sunrise-dark.png",
+      "sha256": "7d5242612ea1bc54532ca7ff6124a03d29ec2bf6f43c0485f27fb1e765fce326"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/icon-sunrise.png",
+      "sha256": "ecfb27402a864a8c7ca5aa6bf5cf83670f95fe0af889a5b8a7883fcc3e904248"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/installed-theme.js",
+      "sha256": "23493f31da733ca0d72c82da7bc888304d36d66a5484a9eed245c0efd1dec433"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/instrument-sans-latin-wdth-normal.woff2",
+      "sha256": "8b74e9bc6e415d564a5ffd32125c92ffd50b1635043e77543cb871e0a3cfcaf2"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/inter-latin.woff2",
+      "sha256": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/jetbrains-mono-latin.woff2",
+      "sha256": "2c32b9b3ee358c119e210f6f5195f9bd34894d78a785ff2e95d60e718e400af4"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/newtab-adapter.js",
+      "sha256": "910a3c0271a05fd351e4643c7db3435874e2450b8224f4bffd2deac2fe68376d"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/newtab-prototype.css",
+      "sha256": "dfef55d4112245075ad0de7b4c3a2381cd8a1a8d8279269a9f4c50553b25b27c"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/newtab-wallpaper.js",
+      "sha256": "c079ac33cbde79bb96f6cbc76254dc7f44a87586bde31b4c9452269be30c9580"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/newtab.html",
+      "sha256": "a864431de2809de4abb6b6adfc814f770283c630d2fafff29ab889f0ffa8d4cf"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/newtab.js",
+      "sha256": "ab24bdb2a68615ba83d9e99f8d10122c35bfebd6fcd5f20e6590c91e3c0f3bf5"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/onboarding-island-dark.png",
+      "sha256": "ab97411877170a2083c3daa8186963faeb5fff3b27cdf4f7e5ed81c4865f9079"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/onboarding-island-light.png",
+      "sha256": "467e249215c2f31359b1185864d5635de68d2d37cf0c5e49c5d446540eb74cac"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/pages.css",
+      "sha256": "c58e8f556864dbaf0d0b4b27a7fa7a94652f26c8065673fa07a4680bfbb3e796"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/select-caret-dark.svg",
+      "sha256": "bbbe8d0be60d98f847504a6230172897ef15a5f526b95b70cb0c3caf6014fa1f"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/select-caret.svg",
+      "sha256": "ac8c5ab581fef7e9f4ad790469e5bd1d916683b19c330766ac55e382e7b16853"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/space-identity.js",
+      "sha256": "eb08327c21b1f26ede0709942b5f37067f9e8e925616ef5dda804c845b5c9e3d"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/start-page-day.png",
+      "sha256": "4a10b44351e7ebb7774663fd10e8a69067198684afcd524b929b75dfa08f5955"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/start-page-dusk.png",
+      "sha256": "5c0940099310921b66dfb3f8cebaa6b1b986a7aa355e3c735bd4d0c3d5aa2772"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/start-page-night.png",
+      "sha256": "f61f38ce140214979d0577d0362d8da58215ccc765491acc65b5a9a7a76c0669"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/start-page-paint.js",
+      "sha256": "0da869256b7909e7157837f1e16876e22deb48a580fa0b8187eef4636bbbf55c"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/start-page-sunrise.png",
+      "sha256": "4757c6450f317f4380ec416065c70e314d3046ca53eccb877fd51d0412216451"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/start-site-name.js",
+      "sha256": "6524d6586a8991999ee01855d51d2e185936548db045e33bec03e3a99363868a"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/strings.js",
+      "sha256": "2891ec68299d07bd8746b6570f5e7d5eb899f453493415d0e8e17705bd86f7b8"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/sunrise-favicon-mark.png",
+      "sha256": "ee5ab81f089be18c5fe2c6d261c1e4132a507a05225a0f4948d8a2158c37e353"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/sunrise-mark.png",
+      "sha256": "cccdd5335d743552eff18ea7e63284005bf99246854acf64e0a241b2c3fbb3c3"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/pages/type-to-open.js",
+      "sha256": "62724f58203e25bc28e7b7750c824dac0515639aaf05a6d3b8a703f85375b98e"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/panel-left.svg",
+      "sha256": "e5ef535508042a015df99b9016b20787e158e35df775e1a811abad410e409bfc"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/prototype.css",
+      "sha256": "1cbd6d309ddd75a02847f71d621e05fee55a35bcb05324da741f46cfa16e2b30"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/renderer.js",
+      "sha256": "288253ddf5bc2ec673ceb20811afd3e1b71d8988984f8fb0604acf769a0f9641"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/space-identity.js",
+      "sha256": "eb08327c21b1f26ede0709942b5f37067f9e8e925616ef5dda804c845b5c9e3d"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/space-picker.js",
+      "sha256": "e3a3b5a0c963c82b532078551a0b191c7ae243cea20d749af6e230f4de96ea26"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/strings.js",
+      "sha256": "2891ec68299d07bd8746b6570f5e7d5eb899f453493415d0e8e17705bd86f7b8"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/styles.css",
+      "sha256": "952489aa5d488e73d05536c2950c8175a657abb5bcbad35af591d8b62bd5c2b7"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/sunrise-hero-mark.png",
+      "sha256": "ff24ef691d8b9523d6696ebfa833614ba29855cbad4e86cf37c44b5ec3c866aa"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/tab-drag.js",
+      "sha256": "2ed9df14d2f1768e5e45423769d7cbec10abe092b65a1f4708fced65ac0f1e7e"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/tab-sections.js",
+      "sha256": "b77839cc86205ac0ca7f1097ca8d6436f52981992ae402c72b883a681ea8a39f"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/vertical-tabs.js",
+      "sha256": "c0e3c46236025fbbd08c9789be721c675a93ed77fa0b4f33365041067f5f5461"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancAssets/workspace-ui.js",
+      "sha256": "f7707ac61cc9f83238bde15d9ff25eead9839fc1e72b8ee361b0786c614a979b"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancBlocker/engine.js",
+      "sha256": "6f5947ad20511daf0defd7ee1d01981b01af200f709ccc746b48a7df6855d797"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/property-groups-20261028/Blanc Chromium Preview.app/Contents/Resources/BlancBlocker/manifest.json",
+      "sha256": "7b4a39d65c9192372e86928aa025e6fd09d50256f8b7ff717b844fdc4bb4a67f"
+    }
+  ]
+}

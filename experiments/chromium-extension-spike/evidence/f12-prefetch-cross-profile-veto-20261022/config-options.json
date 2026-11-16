@@ -1,0 +1,13 @@
+{
+  "profiles": [
+    "Default",
+    "Profile 1"
+  ],
+  "guardOwners": [
+    "Default",
+    "Profile 1"
+  ],
+  "consumersPerProfile": 1,
+  "vetoRounds": 2,
+  "exitRequestsPerRound": 2
+}

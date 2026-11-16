@@ -54,6 +54,27 @@
 
     <section class="mj-game" aria-label="Mahjong game surface" data-i18n-aria-label="mahjong.surface">
       <div class="mj-board-frame">
+        <div id="mjCelebrate" class="mj-celebrate" aria-hidden="true" hidden>
+          <div class="mj-celebrate-art mj-celebrate-horizon-bloom">
+            <img class="mj-celebrate-landscape" src="start-page-sunrise.png" alt="" />
+            <img class="mj-celebrate-mark" src="sunrise-mark.png" alt="" />
+            <span class="mj-celebrate-orbit"></span>
+          </div>
+          <div class="mj-celebrate-art mj-celebrate-tile-echo">
+            <span class="mj-echo-tile" data-celebrate-kind="dot-1"></span>
+            <span class="mj-echo-tile" data-celebrate-kind="bam-1"></span>
+            <span class="mj-echo-tile" data-celebrate-kind="wind-n-motif"></span>
+            <span class="mj-echo-tile" data-celebrate-kind="drg-c-motif"></span>
+            <span class="mj-echo-tile" data-celebrate-kind="flower-1"></span>
+            <img class="mj-celebrate-mark" src="sunrise-mark.png" alt="" />
+          </div>
+          <div class="mj-celebrate-art mj-celebrate-gilded-fan">
+            <span class="mj-fan-ray"></span><span class="mj-fan-ray"></span><span class="mj-fan-ray"></span>
+            <span class="mj-fan-ray"></span><span class="mj-fan-ray"></span><span class="mj-fan-ray"></span>
+            <span class="mj-fan-ray"></span><span class="mj-fan-ray"></span><span class="mj-fan-ray"></span>
+            <img class="mj-celebrate-mark" src="sunrise-mark.png" alt="" />
+          </div>
+        </div>
         <div class="mj-board-wrap" id="mjBoardWrap">
           <div id="mjBoard" class="mj-board" role="group" tabindex="-1" aria-label="Mahjong tiles. Use arrow keys to move and Enter or Spacebar to select." data-i18n-aria-label="mahjong.board"></div>
 
@@ -89,8 +110,8 @@
 
     <section id="mjWin" class="mj-win mj-card-overlay" role="dialog" aria-modal="true" aria-labelledby="mjWinTitle" hidden>
       <div class="mj-win-visual" aria-hidden="true">
-        <img class="mj-win-particles" src="mahjong-combo-particles.png" alt="" />
-        <img class="mj-win-glint" src="mahjong-combo-glint.png" alt="" />
+        <img class="mj-win-mark" src="sunrise-mark.png" alt="" />
+        <img class="mj-win-landscape" src="start-page-sunrise.png" alt="" />
       </div>
       <div class="mj-win-copy">
         <p class="mj-overline" data-i18n="mahjong.win.kicker">board cleared</p>
@@ -110,8 +131,8 @@
         <span id="mjWinAutoStat"><small data-i18n="mahjong.win.autoClears">auto clears</small><strong id="mjWinAutoClears">0</strong></span>
       </div>
       <div class="mj-overlay-actions">
-        <button id="mjWinNew" class="mj-button mj-button-primary" type="button" data-i18n="mahjong.win.playAnother">play another</button>
         <button id="mjWinBoards" class="mj-button" type="button" data-i18n="mahjong.win.chooseBoard">choose board</button>
+        <button id="mjWinNew" class="mj-button mj-button-primary" type="button" data-autofocus data-i18n="mahjong.win.playAnother">play another</button>
       </div>
     </section>
 
@@ -183,7 +204,7 @@
         </header>
 
         <fieldset class="mj-choice-group" id="mjLayoutChoices">
-          <legend data-i18n="mahjong.setup.layoutLegend">layout</legend>
+          <legend><span data-i18n="mahjong.setup.layoutLegend">layout</span><span id="mjLayoutHint" class="mj-layout-hint" hidden data-i18n="mahjong.setup.dailyLayoutHint">Daily plays today’s layout. Switch to Random to pick another.</span></legend>
           <div class="mj-layout-grid">
             <button id="mjLayoutTurtle" class="mj-choice mj-layout-choice selected" type="button" data-layout="turtle" aria-pressed="true">
               <span class="mj-layout-mini mj-layout-mini-turtle" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
@@ -256,18 +277,10 @@
           </span>
         </label>
 
-        <label class="mj-accessibility-toggle" for="mjFreeHighlight">
-          <input id="mjFreeHighlight" type="checkbox" />
-          <span data-i18n="mahjong.setup.freeHighlight">
-            <strong>Stronger free-tile highlight</strong>
-            Adds a persistent high-contrast ring to every tile available to play.
-          </span>
-        </label>
-
         <footer class="mj-modal-foot">
           <p data-i18n="mahjong.setup.replaces">Starting replaces the board currently on this table.</p>
           <div class="mj-modal-foot-actions">
-            <button id="mjCopyDeal" class="mj-button" type="button" data-i18n="mahjong.setup.copyDeal">copy current deal</button>
+            <button id="mjCopyDeal" class="mj-button mj-copy-button" type="button"><span class="mj-copy-label" data-i18n="mahjong.setup.copyDeal">copy board link</span><span class="mj-copy-done" aria-hidden="true" data-i18n="mahjong.setup.linkCopied">link copied</span></button>
             <button id="mjStart" class="mj-button mj-button-primary" type="button" data-i18n="mahjong.setup.start">start game</button>
           </div>
         </footer>
@@ -330,6 +343,7 @@
   <script src="mahjong-engine.js"></script>
   <script src="mahjong-state.js"></script>
   <script src="mahjong-sound.js"></script>
+  <script src="mahjong-fx.js"></script>
   <script src="mahjong.js"></script>
 </body>
 </html>

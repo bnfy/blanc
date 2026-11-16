@@ -1,0 +1,15 @@
+{
+  "profiles": [
+    "Default",
+    "Profile 1"
+  ],
+  "cyclesPerChoice": 3,
+  "choices": [
+    "cancel-first",
+    "accept-first-cancel-second"
+  ],
+  "consumersPerProfile": 8,
+  "roundsPerCycle": 2,
+  "exitRequestsPerRound": 2,
+  "reuseTabsAndWindows": true
+}

@@ -1,0 +1,37 @@
+{
+  "source": "4a77b4147663eb4f56e55eb3e1f0b356de4a66ae",
+  "archiveSha256": "270c0848539fa52a13a676aee8f0e33e6920d3ca9c08206c3a77d186ab36cbb5",
+  "matchedFiles": 459,
+  "matchedSymlinks": 5,
+  "checks": [
+    {
+      "command": [
+        "codesign",
+        "--verify",
+        "--deep"
+      ],
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "xcrun",
+        "stapler",
+        "validate"
+      ],
+      "exit": 0,
+      "output": "Processing: /Users/anthonyjloria/Projects/BlancPreviewArtifacts/procedural-20261028/archive-readback/Blanc Chromium Preview.app\nThe validate action worked!\n"
+    },
+    {
+      "command": [
+        "spctl",
+        "--assess",
+        "--type"
+      ],
+      "exit": 0,
+      "output": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/procedural-20261028/archive-readback/Blanc Chromium Preview.app: accepted\nsource=Notarized Developer ID\n"
+    }
+  ],
+  "complete": true,
+  "note": "Raw ZIP includes AppleDouble metadata; ditto unpacking restores it as filesystem metadata. Direct byte comparison of ordinary ZIP members initially rejected these metadata entries; extracted full inventory matches exactly."
+}

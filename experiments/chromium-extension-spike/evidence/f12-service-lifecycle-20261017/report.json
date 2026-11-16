@@ -1,0 +1,168 @@
+{
+  "started": "2026-10-17T23:57:20.462Z",
+  "behaviorPassed": true,
+  "acceptance": false,
+  "sources": {
+    "service-lifecycle-run.mjs": "8263b924dfcb3c182a4a454f8ee3483467bb99def800cb61a1b1f23fc86c587b",
+    "session.mjs": "2b3c9199e55aa949767034aaa091d9e61e97398cdd269fc382b90385fe49df3a",
+    "transport.mjs": "2232100bf834a499f133b1c2b2e905e95fbcf5f07180d2a35d38502e1a905e1c",
+    "worker-observer.mjs": "1b844a9e269e32a2e08016a7f47d90b0f34d8e029abbf43eed4e3c75c9b57714"
+  },
+  "runs": [
+    {
+      "label": "electron-regular-a",
+      "outcome": {
+        "failedRegistration": true,
+        "before": "v1",
+        "networkBody": "network response",
+        "cacheBody": "cached response",
+        "blockedOutcome": "error",
+        "after": "v2"
+      },
+      "cacheNetworkArrivals": 0,
+      "blockedNetworkArrivals": 0,
+      "rejectedBackgroundConnections": 0,
+      "workerObservationFaults": [
+        "Error: {\"code\":-32001,\"message\":\"Session with given id not found.\"}"
+      ],
+      "contextAcceptance": false
+    },
+    {
+      "label": "electron-regular-b",
+      "outcome": {
+        "failedRegistration": true,
+        "before": "v1",
+        "networkBody": "network response",
+        "cacheBody": "cached response",
+        "blockedOutcome": "error",
+        "after": "v2"
+      },
+      "cacheNetworkArrivals": 0,
+      "blockedNetworkArrivals": 0,
+      "rejectedBackgroundConnections": 0,
+      "workerObservationFaults": [
+        "Error: {\"code\":-32001,\"message\":\"Session with given id not found.\"}"
+      ],
+      "contextAcceptance": false
+    },
+    {
+      "label": "electron-private-a",
+      "outcome": {
+        "failedRegistration": true,
+        "before": "v1",
+        "networkBody": "network response",
+        "cacheBody": "cached response",
+        "blockedOutcome": "error",
+        "after": "v2"
+      },
+      "cacheNetworkArrivals": 0,
+      "blockedNetworkArrivals": 0,
+      "rejectedBackgroundConnections": 0,
+      "workerObservationFaults": [
+        "Error: {\"code\":-32001,\"message\":\"Session with given id not found.\"}"
+      ],
+      "contextAcceptance": false
+    },
+    {
+      "label": "electron-private-b",
+      "outcome": {
+        "failedRegistration": true,
+        "before": "v1",
+        "networkBody": "network response",
+        "cacheBody": "cached response",
+        "blockedOutcome": "error",
+        "after": "v2"
+      },
+      "cacheNetworkArrivals": 0,
+      "blockedNetworkArrivals": 0,
+      "rejectedBackgroundConnections": 0,
+      "workerObservationFaults": [
+        "Error: {\"code\":-32001,\"message\":\"Session with given id not found.\"}"
+      ],
+      "contextAcceptance": false
+    },
+    {
+      "label": "chromium-regular-a",
+      "outcome": {
+        "failedRegistration": true,
+        "before": "v1",
+        "networkBody": "network response",
+        "cacheBody": "cached response",
+        "blockedOutcome": "error",
+        "after": "v2"
+      },
+      "cacheNetworkArrivals": 0,
+      "blockedNetworkArrivals": 0,
+      "rejectedBackgroundConnections": 9,
+      "workerObservationFaults": [
+        "Error: {\"code\":-32001,\"message\":\"Session with given id not found.\"}"
+      ],
+      "contextAcceptance": false
+    },
+    {
+      "label": "chromium-regular-b",
+      "outcome": {
+        "failedRegistration": true,
+        "before": "v1",
+        "networkBody": "network response",
+        "cacheBody": "cached response",
+        "blockedOutcome": "error",
+        "after": "v2"
+      },
+      "cacheNetworkArrivals": 0,
+      "blockedNetworkArrivals": 0,
+      "rejectedBackgroundConnections": 9,
+      "workerObservationFaults": [
+        "Error: {\"code\":-32001,\"message\":\"Session with given id not found.\"}"
+      ],
+      "contextAcceptance": false
+    },
+    {
+      "label": "chromium-private-a",
+      "outcome": {
+        "failedRegistration": true,
+        "before": "v1",
+        "networkBody": "network response",
+        "cacheBody": "cached response",
+        "blockedOutcome": "error",
+        "after": "v2"
+      },
+      "cacheNetworkArrivals": 0,
+      "blockedNetworkArrivals": 0,
+      "rejectedBackgroundConnections": 10,
+      "workerObservationFaults": [
+        "Error: {\"code\":-32001,\"message\":\"Session with given id not found.\"}"
+      ],
+      "contextAcceptance": false
+    },
+    {
+      "label": "chromium-private-b",
+      "outcome": {
+        "failedRegistration": true,
+        "before": "v1",
+        "networkBody": "network response",
+        "cacheBody": "cached response",
+        "blockedOutcome": "error",
+        "after": "v2"
+      },
+      "cacheNetworkArrivals": 0,
+      "blockedNetworkArrivals": 0,
+      "rejectedBackgroundConnections": 9,
+      "workerObservationFaults": [
+        "Error: {\"code\":-32001,\"message\":\"Session with given id not found.\"}"
+      ],
+      "contextAcceptance": false
+    }
+  ],
+  "gaps": [
+    "strict per-request controlled-fetch context comparison",
+    "failed script correlation without worker realm",
+    "same-URL update() revalidation",
+    "client reassignment during in-flight requests",
+    "cache eviction and worker restart"
+  ],
+  "cleanup": {
+    "removed": true
+  },
+  "finished": "2026-10-17T23:57:48.293Z"
+}

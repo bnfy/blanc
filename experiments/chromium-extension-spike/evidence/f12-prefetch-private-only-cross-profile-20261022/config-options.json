@@ -1,0 +1,15 @@
+{
+  "profiles": [
+    "Default",
+    "Profile 1"
+  ],
+  "privateOnly": true,
+  "regularAnchorClosed": true,
+  "choices": [
+    "cancel-first",
+    "accept-first-cancel-second"
+  ],
+  "roundsPerChoice": 2,
+  "consumersPerProfile": 1,
+  "exitRequestsPerRound": 2
+}

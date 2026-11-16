@@ -1,0 +1,21 @@
+{
+  "removed": [
+    "/private/tmp/blanc-close-loading-repair/loading-close-crash-profile",
+    "/private/tmp/blanc-close-loading-repair/history-eio-profile",
+    "/private/tmp/blanc-close-loading-repair/cancellation-history-final-profile",
+    "/private/tmp/blanc-close-loading-repair/final-cancel-history-profile",
+    "/private/tmp/blanc-close-loading-repair/session-eio-profile",
+    "/private/tmp/blanc-close-loading-repair/loading-close-profile",
+    "/private/tmp/blanc-close-loading-repair/final-history-eio-profile",
+    "/private/tmp/blanc-close-loading-repair/cancellation-history-profile",
+    "/private/tmp/blanc-close-loading-repair/final-session-eio-profile",
+    "/private/tmp/blanc-close-loading-repair/final-close-profile",
+    "/private/tmp/blanc-close-loading-repair/native-crash-control-profile",
+    "/private/tmp/blanc-close-loading-repair/final-crash-profile",
+    "/private/tmp/blanc-close-loading-repair/Blanc Chromium Preview.app",
+    "/private/tmp/blanc-close-loading-repair/final/Blanc Chromium Preview.app"
+  ],
+  "remaining_owned_browser_processes": 0,
+  "retained_zip": "/private/tmp/blanc-close-loading-repair/Blanc-Chromium-Preview-close-history.zip",
+  "zip_sha256": "827834d8b5aef9ab34528383fc7ce0a5cb994c2cf8fe8a1d73e31c5a42eba384"
+}

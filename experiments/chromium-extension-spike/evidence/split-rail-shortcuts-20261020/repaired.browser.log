@@ -1,0 +1,11 @@
+[24989:235114:1020/155054.949110:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[24989:235066:1020/155055.246533:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9287/devtools/browser/f5c299b8-5512-4ee2-b86f-7f7f7de1b470
+[24989:235066:1020/155059.488465:ERROR:base/process/kill_posix.cc:33] waitpid(24998): No child processes (10)
+[25021:235824:1020/155059.798654:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[25021:235794:1020/155100.088903:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9287/devtools/browser/434f479e-f91a-4ce7-b6ae-a8cab77b8f03
+[25021:235794:1020/155100.384988:ERROR:chrome/browser/ui/views/user_education/impl/browser_user_education_interface_impl.cc:186] Attempting to show IPH IPH_SideBySidePinnableFeature before browser initialization complete; IPH will not be shown.
+[25021:235794:1020/155101.028283:ERROR:chrome/browser/ui/views/user_education/impl/browser_user_education_interface_impl.cc:186] Attempting to show IPH IPH_SideBySidePinnableFeature before browser initialization complete; IPH will not be shown.

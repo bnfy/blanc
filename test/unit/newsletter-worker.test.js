@@ -503,6 +503,202 @@ test('confirming twice leaves exactly one removal lookup for the address', async
   assert.deepEqual([...env.SUBSCRIBERS.values.values()].filter((v) => v.includes('twice@example.com')), []);
 });
 
+function androidBetaRequest(body, headers = {}) {
+  return new Request('https://newsletter.test/android-beta', {
+    method: 'POST',
+    headers: {
+      Origin: 'https://blanc.day',
+      'CF-Connecting-IP': '203.0.113.30',
+      'Content-Type': 'application/json',
+      ...headers,
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+test('the Android beta list has its own double opt-in and joins neither the newsletter nor the Mail waitlist', async (t) => {
+  const env = { ...environment(), ADMIN_TOKEN: 'admin', SIGNUP_ALERT_TO: 'support@blanc.day' };
+  const originalFetch = globalThis.fetch;
+  const mails = [];
+  globalThis.fetch = async (_url, init) => {
+    mails.push(JSON.parse(init.body));
+    return new Response(JSON.stringify({ id: `mail-${mails.length}` }), { status: 200 });
+  };
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  assert.equal((await worker.fetch(androidBetaRequest({ email: 'a@example.com' }, { Origin: 'https://evil.example' }), env)).status, 403);
+  const preflight = await worker.fetch(new Request('https://newsletter.test/android-beta', { method: 'OPTIONS', headers: { Origin: 'https://blanc.day' } }), env);
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get('Access-Control-Allow-Origin'), 'https://blanc.day');
+  assert.equal((await worker.fetch(androidBetaRequest({ email: 'nope' }), env)).status, 400);
+  assert.equal(mails.length, 0);
+
+  const pending = await worker.fetch(androidBetaRequest({ email: ' Tester@Example.com ', website: '' }), env);
+  assert.equal(pending.status, 202);
+  const [mail] = mails;
+  assert.deepEqual(mail.to, ['tester@example.com']);
+  assert.match(mail.subject, /Blanc for Android beta/);
+  assert.match(mail.text, /does not subscribe you to the Blanc newsletter/);
+  assert.match(mail.text, /deleted when the beta ends/);
+  assert.equal(await env.SUBSCRIBERS.get('androidbeta:tester@example.com'), null, 'nothing is on the list before confirmation');
+
+  // A beta token confirms nothing on the other lists.
+  const token = mail.text.match(/\/android-beta\/confirm\?token=([A-Za-z0-9_-]{43})/)?.[1];
+  assert.ok(token);
+  for (const other of ['/confirm', '/mail-waitlist/confirm']) {
+    assert.match(await (await worker.fetch(new Request(`https://newsletter.test${other}?token=${token}`), env)).text(), /invalid or expired/, other);
+  }
+
+  const confirmed = await worker.fetch(new Request(`https://newsletter.test/android-beta/confirm?token=${token}`), env);
+  assert.match(await confirmed.text(), /on the beta list/);
+  const record = await env.SUBSCRIBERS.get('androidbeta:tester@example.com', { type: 'json' });
+  assert.match(record.unsubscribeToken, /^[A-Za-z0-9_-]{43}$/);
+  assert.equal(await env.SUBSCRIBERS.get('sub:tester@example.com'), null);
+  assert.equal(await env.SUBSCRIBERS.get('mailwait:tester@example.com'), null);
+  assert.match(mails.at(-1).subject, /^New Blanc for Android beta signup: tester@example\.com$/);
+  assert.match(mails.at(-1).text, /That makes 1 person on the beta list\./);
+
+  assert.equal((await (await worker.fetch(admin('/subscribers'), env)).json()).count, 0);
+  assert.equal((await (await worker.fetch(admin('/mail-waitlist/members'), env)).json()).count, 0);
+  const beta = await (await worker.fetch(admin('/android-beta/members'), env)).json();
+  assert.deepEqual(beta.subscribers.map(({ email }) => email), ['tester@example.com']);
+  assert.match(beta.subscribers[0].unsubscribeUrl, /^https:\/\/blanc-newsletter\.bnfy-441\.workers\.dev\/android-beta\/leave\?token=/);
+
+  const left = await worker.fetch(new Request(`https://newsletter.test/android-beta/leave?token=${record.unsubscribeToken}`), env);
+  assert.match(await left.text(), /removed from the Blanc for Android beta list/);
+  assert.equal(await env.SUBSCRIBERS.get('androidbeta:tester@example.com'), null);
+});
+
+test('Android beta honeypot hits are quarantined on their own and send nothing', async (t) => {
+  const env = environment();
+  const originalFetch = globalThis.fetch;
+  let mailCalls = 0;
+  globalThis.fetch = async () => { mailCalls += 1; return new Response('{}'); };
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  const trapped = await worker.fetch(androidBetaRequest({ email: 'bot@example.com', website: 'x' }), env);
+  assert.equal(trapped.status, 202);
+  assert.equal(mailCalls, 0);
+  assert.ok(await env.SUBSCRIBERS.get('androidbeta-hp:bot@example.com'));
+  assert.equal(await env.SUBSCRIBERS.get('hp:bot@example.com'), null);
+  assert.equal(await env.SUBSCRIBERS.get('mailwait-hp:bot@example.com'), null);
+});
+
+test('Android beta admin endpoints fail closed, and each purge empties only its own list', async (t) => {
+  const env = { ...environment(), ADMIN_TOKEN: 'admin' };
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response('{}');
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  await env.SUBSCRIBERS.put('sub:reader@example.com', JSON.stringify({ ts: 't' }));
+  await env.SUBSCRIBERS.put('mailwait:waiting@example.com', JSON.stringify({ ts: 't' }));
+  await env.SUBSCRIBERS.put('androidbeta:tester@example.com', JSON.stringify({ ts: 't' }));
+  await env.SUBSCRIBERS.put('androidbeta-leave:hash', 'tester@example.com');
+  await env.SUBSCRIBERS.put('androidbeta-hp:bot@example.com', JSON.stringify({ ts: 't' }));
+
+  assert.equal((await worker.fetch(admin('/android-beta/members', 'GET', null), env)).status, 401);
+  assert.equal((await worker.fetch(admin('/android-beta/members', 'DELETE', 'wrong'), env)).status, 401);
+  assert.equal((await worker.fetch(admin('/android-beta/member?email=tester@example.com', 'DELETE', null), env)).status, 401);
+  assert.equal((await worker.fetch(admin('/android-beta/members', 'DELETE'), env)).status, 400);
+  assert.ok(await env.SUBSCRIBERS.get('androidbeta:tester@example.com'));
+
+  const purged = await worker.fetch(admin('/android-beta/members?confirm=delete-all', 'DELETE'), env);
+  assert.deepEqual(await purged.json(), { deleted: 1, remaining: false });
+  assert.deepEqual([...env.SUBSCRIBERS.values.keys()].sort(), ['mailwait:waiting@example.com', 'sub:reader@example.com']);
+
+  await env.SUBSCRIBERS.put('androidbeta:tester@example.com', JSON.stringify({ ts: 't' }));
+  await worker.fetch(admin('/mail-waitlist/members?confirm=delete-all', 'DELETE'), env);
+  assert.deepEqual([...env.SUBSCRIBERS.values.keys()].sort(), ['androidbeta:tester@example.com', 'sub:reader@example.com']);
+
+  assert.equal((await worker.fetch(admin('/android-beta/member?email=Tester@Example.com', 'DELETE'), env)).status, 204);
+  assert.deepEqual([...env.SUBSCRIBERS.values.keys()], ['sub:reader@example.com']);
+});
+
+test('unknown paths beside a waitlist are not routes', async () => {
+  const env = { ...environment(), ADMIN_TOKEN: 'admin' };
+  for (const pathname of ['/android-beta/', '/android-betas', '/android-beta/other', '/mail-waitlist/x']) {
+    assert.equal((await worker.fetch(admin(pathname), env)).status, 404, pathname);
+  }
+});
+
+// Signs up through `request`, then returns the confirmation link from the mail.
+async function signUpAndGetLink(env, request, mails) {
+  await worker.fetch(request, env);
+  return mails.at(-1).text.match(/https:\/\/\S+\/confirm\?token=[A-Za-z0-9_-]{43}/)[0];
+}
+
+test('opening a used confirmation link again shows success while the address is on the list, and alerts once', async (t) => {
+  for (const [name, request, member, leave] of [
+    ['newsletter', () => subscribeRequest({ email: 'twice@example.com' }), 'sub:twice@example.com', '/unsubscribe'],
+    ['Android beta', () => androidBetaRequest({ email: 'twice@example.com' }), 'androidbeta:twice@example.com', '/android-beta/leave'],
+  ]) {
+    const env = { ...environment(), SIGNUP_ALERT_TO: 'support@blanc.day', ADMIN_TOKEN: 'admin' };
+    const originalFetch = globalThis.fetch;
+    const mails = [];
+    globalThis.fetch = async (_url, init) => { mails.push(JSON.parse(init.body)); return new Response('{}'); };
+    t.after(() => { globalThis.fetch = originalFetch; });
+
+    const link = await signUpAndGetLink(env, request(), mails);
+    const first = await (await worker.fetch(new Request(link), env)).text();
+    const again = await (await worker.fetch(new Request(link), env)).text();
+    assert.doesNotMatch(first, /invalid or expired/, name);
+    assert.equal(again, first, `${name}: the repeat visit gets the same page`);
+    assert.equal(mails.filter((m) => /^New /.test(m.subject)).length, 1, `${name}: one signup notice`);
+
+    // Leaving deletes the record and the marker, so the old link no longer says "on the list".
+    const record = await env.SUBSCRIBERS.get(member, { type: 'json' });
+    const leaveUrl = `https://newsletter.test${leave}?token=${record.unsubscribeToken}`;
+    await worker.fetch(new Request(leaveUrl), env);
+    assert.equal(await env.SUBSCRIBERS.get(member), null, name);
+    assert.match(await (await worker.fetch(new Request(link), env)).text(), /invalid or expired/, name);
+    assert.deepEqual([...env.SUBSCRIBERS.values.values()].filter((v) => v.includes('twice@example.com')), [], `${name}: no copy of the address is left`);
+  }
+});
+
+test('admin removal and a second confirmation drop the used-link marker', async (t) => {
+  const env = { ...environment(), ADMIN_TOKEN: 'admin' };
+  const originalFetch = globalThis.fetch;
+  const mails = [];
+  globalThis.fetch = async (_url, init) => { mails.push(JSON.parse(init.body)); return new Response('{}'); };
+  t.after(() => { globalThis.fetch = originalFetch; });
+  const markers = () => [...env.SUBSCRIBERS.values.entries()].filter(([k, v]) => k.startsWith('androidbeta-pending:') && v.includes('confirmedAt'));
+
+  // Two requests pending at once (the cooldown has passed), both confirmed:
+  // the second replaces the first's marker, and the first link stops working.
+  const firstLink = await signUpAndGetLink(env, androidBetaRequest({ email: 'again@example.com' }), mails);
+  await env.SUBSCRIBERS.delete([...env.SUBSCRIBERS.values.keys()].find((k) => k.startsWith('androidbeta-sent:')));
+  const secondLink = await signUpAndGetLink(env, androidBetaRequest({ email: 'again@example.com' }), mails);
+  assert.notEqual(firstLink, secondLink);
+  await worker.fetch(new Request(firstLink), env);
+  assert.equal(markers().length, 1);
+  await worker.fetch(new Request(secondLink), env);
+  assert.equal(markers().length, 1);
+  assert.match(await (await worker.fetch(new Request(firstLink), env)).text(), /invalid or expired/);
+  assert.match(await (await worker.fetch(new Request(secondLink), env)).text(), /on the beta list/);
+
+  assert.equal((await worker.fetch(admin('/android-beta/member?email=again@example.com', 'DELETE'), env)).status, 204);
+  assert.equal(markers().length, 0);
+  assert.deepEqual([...env.SUBSCRIBERS.values.values()].filter((v) => v.includes('again@example.com')), []);
+});
+
+test('a used-link marker expires with the link and the purge deletes it', async (t) => {
+  const env = { ...environment(), ADMIN_TOKEN: 'admin' };
+  const originalFetch = globalThis.fetch;
+  const mails = [];
+  globalThis.fetch = async (_url, init) => { mails.push(JSON.parse(init.body)); return new Response('{}'); };
+  t.after(() => { globalThis.fetch = originalFetch; });
+  const ttls = new Map();
+  const put = env.SUBSCRIBERS.put.bind(env.SUBSCRIBERS);
+  env.SUBSCRIBERS.put = async (key, value, options) => { ttls.set(key, options?.expirationTtl); return put(key, value, options); };
+
+  await worker.fetch(new Request(await signUpAndGetLink(env, androidBetaRequest({ email: 'ttl@example.com' }), mails)), env);
+  const [marker] = [...env.SUBSCRIBERS.values.entries()].find(([, v]) => v.includes('confirmedAt'));
+  assert.equal(ttls.get(marker), 24 * 60 * 60);
+
+  await worker.fetch(admin('/android-beta/members?confirm=delete-all', 'DELETE'), env);
+  assert.equal(env.SUBSCRIBERS.values.has(marker), false);
+});
+
 // Records console.error lines for one test and restores it afterwards.
 function captureErrors(t) {
   const lines = [];

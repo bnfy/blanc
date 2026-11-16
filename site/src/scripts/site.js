@@ -95,7 +95,9 @@ const openAIAttribution = (() => {
   let os = null;
   if (/Windows/i.test(ua)) os = 'win';
   else if (/Android|iPhone|iPad|iPod/i.test(ua)) os = null;
-  else if (/Mac OS X|Macintosh/i.test(ua)) os = 'mac';
+  // iPadOS asks for desktop sites with a Mac user agent; touch gives it away,
+  // and an iPad can't run a Mac installer.
+  else if (/Mac OS X|Macintosh/i.test(ua)) os = navigator.maxTouchPoints > 1 ? null : 'mac';
   else if (/Linux/i.test(ua)) os = 'linux';
 
   // On the dedicated download page, make the relevant installer the first

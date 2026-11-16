@@ -1,0 +1,448 @@
+{
+  "kind": "ten-public-page-feasibility",
+  "started": "2026-10-17T18:27:58.351Z",
+  "pages": [
+    {
+      "index": 0,
+      "entrypoint": "https://en.wikipedia.org/wiki/Web_browser",
+      "started": "2026-10-17T18:27:58.352Z",
+      "completed": true,
+      "versions": {
+        "electron": "44.8.0",
+        "chromium": "152.0.7977.167"
+      },
+      "observer": {
+        "decisions": {
+          "mainFrame|allow|admitted": 1
+        },
+        "faults": {},
+        "trust": {
+          "accepted": 1,
+          "refused": 0
+        }
+      },
+      "transport": {
+        "audit": [
+          {
+            "outcome": "refused",
+            "destination": "document",
+            "reason": "vary-unsupported"
+          }
+        ],
+        "faults": [
+          {
+            "id": "fault-1",
+            "code": "vary-unsupported"
+          }
+        ],
+        "pending": 0
+      },
+      "ownedChildExited": true,
+      "stderrBytes": 681,
+      "rawObservationFilesAbsent": true,
+      "finished": "2026-10-17T18:28:15.081Z"
+    },
+    {
+      "index": 1,
+      "entrypoint": "https://developer.mozilla.org/en-US/docs/Web",
+      "started": "2026-10-17T18:28:15.081Z",
+      "completed": true,
+      "versions": {
+        "electron": "44.8.0",
+        "chromium": "152.0.7977.167"
+      },
+      "observer": {
+        "decisions": {
+          "mainFrame|allow|admitted": 1
+        },
+        "faults": {},
+        "trust": {
+          "accepted": 1,
+          "refused": 0
+        }
+      },
+      "transport": {
+        "audit": [
+          {
+            "outcome": "refused",
+            "destination": "document",
+            "reason": "vary-unsupported"
+          }
+        ],
+        "faults": [
+          {
+            "id": "fault-1",
+            "code": "vary-unsupported"
+          }
+        ],
+        "pending": 0
+      },
+      "ownedChildExited": true,
+      "stderrBytes": 681,
+      "rawObservationFilesAbsent": true,
+      "finished": "2026-10-17T18:28:31.397Z"
+    },
+    {
+      "index": 2,
+      "entrypoint": "https://www.bbc.com/",
+      "started": "2026-10-17T18:28:31.397Z",
+      "completed": true,
+      "versions": {
+        "electron": "44.8.0",
+        "chromium": "152.0.7977.167"
+      },
+      "observer": {
+        "decisions": {
+          "mainFrame|allow|admitted": 1
+        },
+        "faults": {},
+        "trust": {
+          "accepted": 1,
+          "refused": 0
+        }
+      },
+      "transport": {
+        "audit": [
+          {
+            "outcome": "refused",
+            "destination": "document",
+            "reason": "vary-unsupported"
+          }
+        ],
+        "faults": [
+          {
+            "id": "fault-1",
+            "code": "vary-unsupported"
+          }
+        ],
+        "pending": 0
+      },
+      "ownedChildExited": true,
+      "stderrBytes": 412,
+      "rawObservationFilesAbsent": true,
+      "finished": "2026-10-17T18:28:47.700Z"
+    },
+    {
+      "index": 3,
+      "entrypoint": "https://www.theguardian.com/international",
+      "started": "2026-10-17T18:28:47.700Z",
+      "completed": true,
+      "versions": {
+        "electron": "44.8.0",
+        "chromium": "152.0.7977.167"
+      },
+      "observer": {
+        "decisions": {
+          "mainFrame|allow|admitted": 1
+        },
+        "faults": {},
+        "trust": {
+          "accepted": 1,
+          "refused": 0
+        }
+      },
+      "transport": {
+        "audit": [
+          {
+            "outcome": "refused",
+            "destination": "document",
+            "reason": "vary-unsupported"
+          }
+        ],
+        "faults": [
+          {
+            "id": "fault-1",
+            "code": "vary-unsupported"
+          }
+        ],
+        "pending": 0
+      },
+      "ownedChildExited": true,
+      "stderrBytes": 681,
+      "rawObservationFilesAbsent": true,
+      "finished": "2026-10-17T18:29:03.955Z"
+    },
+    {
+      "index": 4,
+      "entrypoint": "https://www.reuters.com/",
+      "started": "2026-10-17T18:29:03.956Z",
+      "completed": true,
+      "versions": {
+        "electron": "44.8.0",
+        "chromium": "152.0.7977.167"
+      },
+      "observer": {
+        "decisions": {
+          "mainFrame|allow|admitted": 1
+        },
+        "faults": {},
+        "trust": {
+          "accepted": 1,
+          "refused": 0
+        }
+      },
+      "transport": {
+        "audit": [
+          {
+            "outcome": "refused",
+            "destination": "document",
+            "reason": "status-unsupported"
+          }
+        ],
+        "faults": [
+          {
+            "id": "fault-1",
+            "code": "status-unsupported"
+          }
+        ],
+        "pending": 0
+      },
+      "ownedChildExited": true,
+      "stderrBytes": 143,
+      "rawObservationFilesAbsent": true,
+      "finished": "2026-10-17T18:29:20.210Z"
+    },
+    {
+      "index": 5,
+      "entrypoint": "https://apnews.com/",
+      "started": "2026-10-17T18:29:20.210Z",
+      "completed": true,
+      "versions": {
+        "electron": "44.8.0",
+        "chromium": "152.0.7977.167"
+      },
+      "observer": {
+        "decisions": {
+          "mainFrame|allow|admitted": 1
+        },
+        "faults": {},
+        "trust": {
+          "accepted": 1,
+          "refused": 0
+        }
+      },
+      "transport": {
+        "audit": [
+          {
+            "outcome": "refused",
+            "destination": "document",
+            "reason": "status-unsupported"
+          }
+        ],
+        "faults": [
+          {
+            "id": "fault-1",
+            "code": "status-unsupported"
+          }
+        ],
+        "pending": 0
+      },
+      "ownedChildExited": true,
+      "stderrBytes": 143,
+      "rawObservationFilesAbsent": true,
+      "finished": "2026-10-17T18:29:36.541Z"
+    },
+    {
+      "index": 6,
+      "entrypoint": "https://www.nytimes.com/",
+      "started": "2026-10-17T18:29:36.542Z",
+      "completed": true,
+      "versions": {
+        "electron": "44.8.0",
+        "chromium": "152.0.7977.167"
+      },
+      "observer": {
+        "decisions": {
+          "mainFrame|allow|admitted": 1
+        },
+        "faults": {},
+        "trust": {
+          "accepted": 1,
+          "refused": 0
+        }
+      },
+      "transport": {
+        "audit": [
+          {
+            "outcome": "refused",
+            "destination": "document",
+            "reason": "status-unsupported"
+          }
+        ],
+        "faults": [
+          {
+            "id": "fault-1",
+            "code": "status-unsupported"
+          }
+        ],
+        "pending": 0
+      },
+      "ownedChildExited": true,
+      "stderrBytes": 681,
+      "rawObservationFilesAbsent": true,
+      "finished": "2026-10-17T18:29:52.817Z"
+    },
+    {
+      "index": 7,
+      "entrypoint": "https://www.theverge.com/",
+      "started": "2026-10-17T18:29:52.817Z",
+      "completed": true,
+      "versions": {
+        "electron": "44.8.0",
+        "chromium": "152.0.7977.167"
+      },
+      "observer": {
+        "decisions": {
+          "mainFrame|allow|admitted": 1
+        },
+        "faults": {},
+        "trust": {
+          "accepted": 1,
+          "refused": 0
+        }
+      },
+      "transport": {
+        "audit": [
+          {
+            "outcome": "refused",
+            "destination": "document",
+            "reason": "vary-unsupported"
+          }
+        ],
+        "faults": [
+          {
+            "id": "fault-1",
+            "code": "vary-unsupported"
+          }
+        ],
+        "pending": 0
+      },
+      "ownedChildExited": true,
+      "stderrBytes": 681,
+      "rawObservationFilesAbsent": true,
+      "finished": "2026-10-17T18:30:09.072Z"
+    },
+    {
+      "index": 8,
+      "entrypoint": "https://arstechnica.com/",
+      "started": "2026-10-17T18:30:09.073Z",
+      "completed": true,
+      "versions": {
+        "electron": "44.8.0",
+        "chromium": "152.0.7977.167"
+      },
+      "observer": {
+        "decisions": {
+          "mainFrame|allow|admitted": 1
+        },
+        "faults": {},
+        "trust": {
+          "accepted": 1,
+          "refused": 0
+        }
+      },
+      "transport": {
+        "audit": [
+          {
+            "outcome": "refused",
+            "destination": "document",
+            "reason": "vary-unsupported"
+          }
+        ],
+        "faults": [
+          {
+            "id": "fault-1",
+            "code": "vary-unsupported"
+          }
+        ],
+        "pending": 0
+      },
+      "ownedChildExited": true,
+      "stderrBytes": 681,
+      "rawObservationFilesAbsent": true,
+      "finished": "2026-10-17T18:30:25.365Z"
+    },
+    {
+      "index": 9,
+      "entrypoint": "https://www.nasa.gov/",
+      "started": "2026-10-17T18:30:25.366Z",
+      "completed": true,
+      "versions": {
+        "electron": "44.8.0",
+        "chromium": "152.0.7977.167"
+      },
+      "observer": {
+        "decisions": {
+          "mainFrame|allow|admitted": 1,
+          "other|allow|admitted": 1
+        },
+        "faults": {},
+        "trust": {
+          "accepted": 1,
+          "refused": 0
+        }
+      },
+      "transport": {
+        "audit": [
+          {
+            "outcome": "refused",
+            "destination": "document",
+            "reason": "vary-unsupported"
+          },
+          {
+            "outcome": "refused",
+            "destination": "empty",
+            "reason": "body-type-unsupported"
+          }
+        ],
+        "faults": [
+          {
+            "id": "fault-1",
+            "code": "vary-unsupported"
+          },
+          {
+            "id": "fault-2",
+            "code": "body-type-unsupported"
+          }
+        ],
+        "pending": 0
+      },
+      "ownedChildExited": true,
+      "stderrBytes": 681,
+      "rawObservationFilesAbsent": true,
+      "finished": "2026-10-17T18:30:41.644Z"
+    }
+  ],
+  "sourceAsarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+  "sourceHashes": {
+    "feasibility.mjs": "839f92afa13633b050c2b778b0bd5b8d8c2da40512269ecf37010461fc05f84f",
+    "bootstrap.cjs": "44a20db152be2adf5f2d68dce95be8e6c98ebe795676fd760abf7e8302c595a8",
+    "recorder.mjs": "2c1c2ea1bd819a3ab122551f46b9c833ae90b81e604acd92c55f277ef35ede59",
+    "scrub.cjs": "a68fe97005e9477b89d2f55e9ab862a238cbcc7caf01923605c83359ce568f39",
+    "transport.mjs": "bd149705aafe7c65a25113f2a4eb0715533926010876162bb34968d08117aa14"
+  },
+  "hosts": [
+    "en.wikipedia.org",
+    "developer.mozilla.org",
+    "www.bbc.com",
+    "www.theguardian.com",
+    "www.reuters.com",
+    "apnews.com",
+    "www.nytimes.com",
+    "www.theverge.com",
+    "arstechnica.com",
+    "www.nasa.gov"
+  ],
+  "policy": "existing scrub; explicit entry-host allowlist; no redirects; aggregate-only; real blocker enabled",
+  "observation": "15 seconds after starting each navigation; no claim of page completeness",
+  "profileKind": "regular",
+  "acceptanceCorpusRequests": 0,
+  "bundlesWritten": 0,
+  "nativeBuilds": 0,
+  "cleanup": {
+    "ownedChildrenExited": true,
+    "sourceAsarUnchanged": true,
+    "disposableTreeRemoved": true
+  },
+  "finished": "2026-10-17T18:30:41.684Z"
+}

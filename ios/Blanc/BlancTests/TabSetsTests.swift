@@ -96,13 +96,24 @@ import XCTest
         XCTAssertEqual(m.recentlyDeleted.count, 1)
     }
 
-    func testSpaceMarkShowsOnceASpaceExistsAndNeverOnAPrivateTab() throws {
+    func testSpacesButtonShowsOnceASpaceExistsAndNeverOnAPrivateTab() throws {
         let m = manager()
-        XCTAssertFalse(m.showsSpaceMark, "nothing before the first Space")
+        XCTAssertFalse(m.offersSpacesButton, "nothing before the first Space")
         _ = try m.createSpace(name: "Work", color: "#426c4c", symbol: "briefcase")
-        XCTAssertTrue(m.showsSpaceMark)
+        XCTAssertTrue(m.offersSpacesButton)
         m.createTab(isPrivate: true)
-        XCTAssertFalse(m.showsSpaceMark)
+        XCTAssertFalse(m.offersSpacesButton)
+    }
+
+    func testSpacesButtonClosesThePaletteBeforeTheSpacesCardOpens() throws {
+        let m = manager()
+        _ = try m.createSpace(name: "Work", color: "#426c4c", symbol: "briefcase")
+        m.isPalettePresented = true
+        m.runSpaceCommand("")
+        XCTAssertFalse(m.isPalettePresented)
+        XCTAssertFalse(m.isSpacesMenuPresented, "the card waits for the palette to close")
+        m.presentPendingSettings()
+        XCTAssertTrue(m.isSpacesMenuPresented)
     }
 
     func testEditAndReorderSpaces() throws {

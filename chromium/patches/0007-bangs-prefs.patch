@@ -1,0 +1,18 @@
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+index 2b06974..0b088cd 100644
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -2065,6 +2065,13 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
+   registry->RegisterBooleanPref("blanc.blocking.enabled", true);
+   registry->RegisterListPref("blanc.blocking.exceptions");
+ #endif
++#if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
++  // Bangs (S1.1): shipping's switch (on by default), the person's own bangs
++  // and the ten most recently used codes (blanc/browser/ui/browser_api/bangs.h).
++  registry->RegisterBooleanPref("blanc.bangs.enabled", true);
++  registry->RegisterListPref("blanc.bangs.custom");
++  registry->RegisterListPref("blanc.bangs.recent");
++#endif
+ #if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
+   registry->RegisterStringPref("blanc.prototype.preference_write", "");
+ #endif

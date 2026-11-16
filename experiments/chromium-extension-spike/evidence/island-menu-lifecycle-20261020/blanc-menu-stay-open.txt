@@ -1,0 +1,12 @@
+The following is a diff from the previous accessibility tree for Window: "Example Domain" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 28-30
+~							18 heading Extensions, Value: 1
+~						21 combo box (settable) Find an extension, Placeholder: Find an extension…
++		42 menu
++			43 (disabled) Island removal fixture
++			44 Pin to Toolbar
++			45 Remove from Blanc
++			46 Manage Extension
++			47 View Web Permissions
++	48 menu button Window sharing
+The focused UI element is 49 text (selected) Help: Island removal fixture, Value: Island removal fixture Open extension

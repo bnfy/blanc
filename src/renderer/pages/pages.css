@@ -3825,6 +3825,10 @@ body[data-layout="tally"] #layoutTally { display: grid; }
    The footer too: it sits above the Island on the phone, which in the short
    preview is mid-page, where its frosted band covered the cards. */
 .start-preview :is(.start-customize, .ledger-footer) { display: none !important; }
+/* A Billboard preview shows the clock alone: a tall clock in the short
+   preview otherwise ran over the Sunrise mark and date. Gone rather than
+   hidden, so --start-header-h is 0 and the clock centres in the row. */
+.start-preview body[data-layout="billboard"] .start-header { display: none !important; }
 .start-customize:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 3px; }
 
 /* Level-2 material: near-opaque, because it floats over the translucent footer. */

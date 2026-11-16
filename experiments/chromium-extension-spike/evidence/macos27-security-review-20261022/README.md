@@ -1,0 +1,23 @@
+# macOS27.2 signed candidate security review and acceptance
+
+October22,2026. PR1028 checkpoint4e705605 plus documentation-only scope amendment. Exact tested archive SHA256921422c6f0e37b47256ba43e0de21a3c532cce2b8bb984665e6103fac9fd6874; Developer ID XYGUCY4498, notarizationfb2c7d4f-6254-4fc1-83b6-a1774730bdcb. Owner replaced macOS26 acceptance with macOS27; this host27.2 is now in scope. Current binary minimum26 is not a promise of26 support.
+
+## Result: security acceptance blocked
+
+**SR1 — Privileged WebUI disables Trusted Types.** Native UI constructor calls DisableTrustedTypesCSP. A harmless detached div.innerHTML string assignment succeeds in the privileged Island on the signed artifact. Generated renderer/overlay have string HTML sinks. This confirms the missing defense, not an attacker-controlled XSS exploit. The primary implementation plan already requires restoring Trusted Types. Before L7 acceptance, remove the exemption, migrate required static sinks to DOM construction or narrowly reviewed policies, test rejection of untrusted strings and all affected UI flows on a replacement signed artifact.
+
+**SR2 — Distribution retains prototype diagnostic opt-ins capable of private URL persistence.** Blocker Record appends metadata when blanc-blocker-log is supplied. The signed launcher's argument forwarding permits it. With a pre-created task-only log, three private fixture request records are written, containing URL/origin/profile-kind. Without the flag, Record returns before writing. This is not default leakage or a remote exploit. It conflicts with L7's distribution-free-of-diagnostic-hooks criterion and needs production gating/removal or an explicitly reviewed product diagnostic design that excludes private data. A launcher-only filter is insufficient because the contained browser executable can be invoked directly. The first attempt omitted the pre-created file and produced no log; it is retained separately, not counted as absence of capability.
+
+## Positive evidence
+
+- Nine strengthened private-window boundary checks pass, including fully loaded HTTP page, no web-accessible bridge, privileged iframe remaining about:blank, rejected internal/traversal-shaped/file fetches, owner integrity and clean exit. Two private flags confirmed. Earlier fixture lacked explicit readiness and is superseded for boundary conclusions.
+- Private fixture URL absent from the closed disposable History database (zero rows). This is not proof that every private datum is excluded from every store.
+- Quarantined relocated copy passes Gatekeeper assessment and strict signature verification. Six real-keychain recovery checks pass on27.2: fresh explicit profile, settledtabs, encryptedfile, clean encrypted-only restart/order/selection, loadingclose, immediate post-ack crash recovery. Test launch invokes the executable directly; this is not a Finder first-download UI claim.
+- Ten bundle/browser entitlement sets inspected: no get-task-allow or disable-library-validation. Role-specific Chromium entitlements retained.
+- Source review: Island dispatch requires native owner and exact host URL; tab/group lookup scoped to owner's model; NewTab dispatch checks actual committed document; private history/Spaces/ratio admission refused at reviewed paths; asset reads use exact allowlist and bounded size; icon fetch validates exact HTTPS host and omits credentials/redirects; theme mutation needs transient activation and native removal confirmation; blocker bundle hash verified before sandboxed no-JIT utility execution, bounded queues/timeouts and weak context/document ownership retained.
+
+## Review limits and required closeout
+
+This is an artifact-bound findings checkpoint, not completed full security signoff. All privileged method argument/dataflow paths, renderer-to-native caller-frame behavior, private durable-store inventory, forged/cross-owner identifiers, installer/uninstaller coexistence, complete recovery/functional/accessibility suite, exact-head CI/security alerts and maintenance/public-release decisions still require closeout. Chromium upstream is not independently re-audited here. No all-clear claim and no gate awarded. Resolve SR1/SR2 before accepting the replacement artifact; retain the current candidate as evidence, not release-ready.
+
+No native or Electron build. No latency measurement campaign (diagnostic records include existing timings; no performance conclusions). Google/dev tabs unchanged. Fixture profiles and relocated app removed after observed clean exits; original signed app/archive and preview keychain retained. Google baseline ledger/fixture remain separate. 1/12 gates, delta0.

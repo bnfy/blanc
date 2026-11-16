@@ -1,0 +1,43 @@
+{
+  "observedAtUtc": "2026-10-24T00:00:57.229560+00:00",
+  "observedAtNewYork": "2026-10-23T20:00:57.229560-04:00",
+  "googleHttp200Count": 6,
+  "requestBrowserVersion": "157.0.8103.6",
+  "installedBitwardenVersionFromDisk": "2026.10.0",
+  "fromWebstoreFromDisk": true,
+  "disableReasonsFromDisk": [],
+  "googleBitwardenStatus": "noupdate",
+  "actualVersionUpgrade": false,
+  "L4": "open: no eligible Google offer",
+  "baselineProcess": "not running; no listener on 9225; prior PID3679 absent",
+  "baselineExitTypeFromPreferences": "Normal",
+  "isolatedProfileAndBackupPresent": true,
+  "isolatedCriticalFileHashesUnchanged": {
+    "Default/Extensions/nngceckbapebfimnlniiiahkandclblb/2026.10.0_0/manifest.json": true,
+    "Default/Preferences": true,
+    "Default/Secure Preferences": true,
+    "Default/Sessions/Session_13437161156628376": true,
+    "Default/Sessions/Session_13437161512181390": true,
+    "Default/Sessions/Tabs_13437091579416098": true,
+    "Default/Sessions/Tabs_13437161512471789": true,
+    "Local State": true
+  },
+  "backupCriticalFileHashesUnchanged": {
+    "Default/Extensions/nngceckbapebfimnlniiiahkandclblb/2026.10.0_0/manifest.json": true,
+    "Default/Preferences": true,
+    "Default/Secure Preferences": true,
+    "Default/Sessions/Session_13437066542538565": true,
+    "Default/Sessions/Session_13437067081713047": true,
+    "Default/Sessions/Tabs_13437067078532657": true,
+    "Default/Sessions/Tabs_13437067082079990": true,
+    "Local State": true
+  },
+  "freshNativeEnabledInspection": false,
+  "nativeUpdaterInvoked": false,
+  "browserRestarted": false,
+  "permanentProfilesTouched": false,
+  "latency": "deferred",
+  "electronDiagnosticBuild": "pending; unstarted",
+  "otherOffersAreOnlyFixtureOpportunities": true,
+  "sourceCheckpoint": "2fcb59e51f3f16abc31fabc426d56e8d85fd1c00"
+}

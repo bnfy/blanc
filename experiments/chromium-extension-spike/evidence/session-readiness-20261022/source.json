@@ -1,0 +1,18 @@
+{
+  "components/sessions/core/command_storage_manager.cc": {
+    "original": "dc0fd010024eb95de156c55eb632a4c5cf7c5cbddd16f208ecb5d383ff15fac3",
+    "diagnostic": "21027910262a61537dd995236c94633931265050da78d4dc1ef1add87023591c"
+  },
+  "components/sessions/core/command_storage_backend.cc": {
+    "original": "4c4a0a124ca376a573ef2df46109f4bf706985254029d00669179008edfc4df7",
+    "diagnostic": "d9a63fbf6a98d8627f52f2343670fe4e7cf824a48ff697553a7ea9aaf5439bc5"
+  },
+  "chrome/browser/sessions/session_service_base.cc": {
+    "original": "a7fc8d5076eef9ce0c1236778965011e3a8b469ee45d10d3d9bf66209123ea55",
+    "diagnostic": "f67ebf170c09f5ee14ace67840f3c986aa8bdea7b1c5255d9a5814c21e68cfcd"
+  },
+  "chrome/browser/sessions/session_restore.cc": {
+    "original": "417b175cada245f050a1e193b90270f1890e5e291aa06f807e802010352bb7f8",
+    "diagnostic": "8f8aa5014810bd5a12a1fddce17307e8edd1aa89556f0d4606a860177739470f"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "paths-01": {
+    "snapshot": "paths-01-source",
+    "mismatches": [],
+    "cleanup": {
+      "removed": true
+    },
+    "passed": true
+  },
+  "paths-02": {
+    "snapshot": "paths-02-source",
+    "mismatches": [
+      "shared-client-context.mjs",
+      "service-script-context.mjs"
+    ],
+    "cleanup": {
+      "removed": true
+    },
+    "passed": true
+  },
+  "paths-03": {
+    "snapshot": "paths-03-source",
+    "mismatches": [],
+    "cleanup": {
+      "removed": true
+    },
+    "passed": true
+  },
+  "paths-04": {
+    "snapshot": "capture-source",
+    "mismatches": [],
+    "cleanup": {
+      "removed": true
+    },
+    "passed": true
+  },
+  "controlled-05": {
+    "snapshot": "capture-source",
+    "mismatches": [],
+    "cleanup": {
+      "removed": true
+    },
+    "passed": true
+  },
+  "no-referrer-06": {
+    "snapshot": "capture-source",
+    "mismatches": [],
+    "cleanup": {
+      "removed": true
+    },
+    "passed": true
+  }
+}

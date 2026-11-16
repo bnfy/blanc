@@ -1,0 +1,43 @@
+{
+  "ref": "b28b91b316854dc43f7557720e9985ca7ccdbe87",
+  "commit": "b28b91b316854dc43f7557720e9985ca7ccdbe87",
+  "files": [
+    "index.html",
+    "overlay.html",
+    "overlay.js",
+    "renderer.js",
+    "styles.css",
+    "tab-drag.js",
+    "tab-sections.js",
+    "vertical-tabs.js",
+    "workspace-ui.js",
+    "glance-card-drag.js",
+    "hover-panel-leave.js",
+    "permission.html",
+    "permission.js",
+    "pages/onboarding.js",
+    "pages/sheet.js",
+    "pages/row-icon.js",
+    "pages/history-groups.js",
+    "pages/downloads-row-model.js",
+    "pages/bookmarks.html",
+    "pages/bookmarks.js",
+    "pages/history.html",
+    "pages/history.js",
+    "pages/downloads.html",
+    "pages/downloads.js",
+    "pages/tab-import.html",
+    "pages/tab-import-open-tabs.js",
+    "pages/tab-import-arc.js"
+  ],
+  "mainFiles": [
+    "island-hover-open.js",
+    "island-proximity.js",
+    "island-autohide.js",
+    "whats-new.js",
+    "glance-card.js",
+    "clean-link.js",
+    "invite-friend.js",
+    "site-security.js"
+  ]
+}

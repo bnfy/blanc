@@ -233,7 +233,7 @@ private final class Box<T> {
       ("lastSyncedAt", s.lastSyncedAt.map { .number(Double($0)) } ?? .null),
       ("lastError", s.lastError.map { .string(SyncCopy.error($0)) } ?? .null),
       ("syncTabs", .bool(s.syncTabs)), ("deviceName", .string(chosenName)),
-      ("deviceNamePublished", .string("iPhone")),
+      ("deviceNamePublished", .string(ThisDevice.name)),
     ])
   }
   private var chosenName: String {
@@ -907,7 +907,7 @@ private final class Box<T> {
     }
     var withOwn = devices
     withOwn[ownId] =
-      SyncedClosed.ownEntry(previous: devices[ownId], name: "iPhone", platform: "ios", now: now).entry
+      SyncedClosed.ownEntry(previous: devices[ownId], name: ThisDevice.name, platform: "ios", now: now).entry
     devices = SyncedClosed.mergeDevices(local: withOwn, remote: nil, ownId: ownId, now: now)
     let payload: JSONValue = .object([("devices", SyncedClosed.applyBudget(devices, ownId: ownId))])
     var published = closed["published"] == .bool(true)
@@ -1482,7 +1482,7 @@ private final class Box<T> {
     var out = devices
     out[stateStore.state.deviceId] =
       SyncSends.ownEntry(
-        previous: devices[stateStore.state.deviceId], name: "iPhone", platform: "ios",
+        previous: devices[stateStore.state.deviceId], name: ThisDevice.name, platform: "ios",
         now: Double(clock())
       ).entry
     return out
@@ -1512,7 +1512,7 @@ private final class Box<T> {
       let now = Double(clock())
       guard
         case .success(let added) = SyncSends.addItem(
-          to: SyncSends.ownEntry(previous: merged[ownId], name: "iPhone", platform: "ios", now: now)
+          to: SyncSends.ownEntry(previous: merged[ownId], name: ThisDevice.name, platform: "ios", now: now)
             .entry,
           url: url, title: title, to: target, ownId: ownId, now: now,
           makeId: { UUID().uuidString.lowercased() })
@@ -1608,7 +1608,7 @@ private final class Box<T> {
     var devices = closed["devices"] ?? .object([])
     guard
       let entry = SyncedClosed.addItem(
-        to: devices[ownId], item: item, name: "iPhone", platform: "ios", now: now)
+        to: devices[ownId], item: item, name: ThisDevice.name, platform: "ios", now: now)
     else { return }
     devices[ownId] = entry
     closed["devices"] = devices
@@ -1631,7 +1631,7 @@ private final class Box<T> {
     let rows = closedInbox
     var devices = closed["devices"] ?? .object([])
     var entry =
-      SyncedClosed.ownEntry(previous: devices[ownId], name: "iPhone", platform: "ios", now: now, force: true)
+      SyncedClosed.ownEntry(previous: devices[ownId], name: ThisDevice.name, platform: "ios", now: now, force: true)
       .entry
     let ownIds = (entry["items"]?.array ?? []).compactMap { (v: JSONValue) -> String? in v["id"]?.string }
     entry["items"] = .array([])

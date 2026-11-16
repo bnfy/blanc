@@ -1,0 +1,39 @@
+diff --git a/chrome/browser/ui/cocoa/main_menu_builder.mm b/chrome/browser/ui/cocoa/main_menu_builder.mm
+--- a/chrome/browser/ui/cocoa/main_menu_builder.mm
++++ b/chrome/browser/ui/cocoa/main_menu_builder.mm
+@@ -9,6 +9,8 @@
+ #include "base/feature_list.h"
+ #include "base/i18n/rtl.h"
+ #include "base/mac/mac_util.h"
++#include "base/strings/sys_string_conversions.h"
++#include "blanc/common/island_mode.h"
+ #include "build/branding_buildflags.h"
+ #include "chrome/app/chrome_command_ids.h"
+ #include "chrome/browser/browser_features.h"
+@@ -618,6 +620,17 @@
+                       bool is_rtl) {
+   AcceleratorsCocoa::CreateForPWA(is_pwa);
+ 
++  // Blanc: About, Hide, Quit and Help name the app as macOS shows it (Blanc,
++  // Blanc Beta), not Chromium's built-in product name.
++  std::u16string app_name = product_name;
++  if (blanc::IslandMode() && !is_pwa) {
++    NSString* bundle_name =
++        [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleName"];
++    if ([bundle_name isKindOfClass:NSString.class] && bundle_name.length) {
++      app_name = base::SysNSStringToUTF16(bundle_name);
++    }
++  }
++
+   NSMenu* main_menu = [[NSMenu alloc] initWithTitle:@""];
+   for (auto* builder : {
+            &BuildAppMenu,
+@@ -631,7 +644,7 @@
+            &BuildWindowMenu,
+            &BuildHelpMenu,
+        }) {
+-    auto item = builder(nsapp, app_delegate, product_name, is_pwa, is_rtl);
++    auto item = builder(nsapp, app_delegate, app_name, is_pwa, is_rtl);
+     if (item) {
+       [main_menu addItem:item];
+     }

@@ -1,0 +1,228 @@
+{
+  "app": "/private/tmp/blanc-prerender-final-20261024/Blanc Chromium Preview.app",
+  "scope": "signed default settings; no feature overrides; no page debugger",
+  "runs": [
+    {
+      "mode": "regular",
+      "checks": [
+        {
+          "name": "real prerender observed before activation",
+          "pass": true,
+          "details": {
+            "state": "ready",
+            "was": "true"
+          }
+        },
+        {
+          "name": "real default prerender activation",
+          "pass": true,
+          "details": {
+            "state": "activated",
+            "was": "true",
+            "activationStart": "102.39999997615814"
+          }
+        },
+        {
+          "name": "native tab commits activated target",
+          "pass": true
+        },
+        {
+          "name": "clean native exit",
+          "pass": true,
+          "details": {
+            "code": 0,
+            "signal": null
+          }
+        }
+      ],
+      "events": [],
+      "args": [
+        "--user-data-dir=/private/tmp/blanc-prerender-final-20261024/prerender-healthy/regular/profile",
+        "--remote-debugging-port=0",
+        "--no-first-run"
+      ],
+      "observationsBeforeActivation": [
+        {
+          "state": "ready",
+          "was": "true"
+        }
+      ],
+      "beforeClickHits": [
+        {
+          "url": "/entry?mode=regular",
+          "purpose": null
+        },
+        {
+          "url": "/favicon.ico",
+          "purpose": null
+        },
+        {
+          "url": "/target",
+          "purpose": "prefetch;prerender"
+        },
+        {
+          "url": "/observed?state=ready&was=true",
+          "purpose": "prefetch;prerender"
+        }
+      ],
+      "activation": {
+        "state": "activated",
+        "was": "true",
+        "activationStart": "102.39999997615814"
+      },
+      "observations": [
+        {
+          "state": "ready",
+          "was": "true"
+        },
+        {
+          "state": "activated",
+          "was": "true",
+          "activationStart": "102.39999997615814"
+        }
+      ],
+      "hits": [
+        {
+          "url": "/entry?mode=regular",
+          "purpose": null
+        },
+        {
+          "url": "/favicon.ico",
+          "purpose": null
+        },
+        {
+          "url": "/target",
+          "purpose": "prefetch;prerender"
+        },
+        {
+          "url": "/observed?state=ready&was=true",
+          "purpose": "prefetch;prerender"
+        },
+        {
+          "url": "/command",
+          "purpose": null
+        },
+        {
+          "url": "/observed?state=activated&was=true&activationStart=102.39999997615814",
+          "purpose": null
+        },
+        {
+          "url": "/favicon.ico",
+          "purpose": null
+        }
+      ]
+    },
+    {
+      "mode": "private",
+      "checks": [
+        {
+          "name": "real prerender observed before activation",
+          "pass": true,
+          "details": {
+            "state": "ready",
+            "was": "true"
+          }
+        },
+        {
+          "name": "real default prerender activation",
+          "pass": true,
+          "details": {
+            "state": "activated",
+            "was": "true",
+            "activationStart": "102.5"
+          }
+        },
+        {
+          "name": "native tab commits activated target",
+          "pass": true
+        },
+        {
+          "name": "clean native exit",
+          "pass": true,
+          "details": {
+            "code": 0,
+            "signal": null
+          }
+        }
+      ],
+      "events": [],
+      "args": [
+        "--user-data-dir=/private/tmp/blanc-prerender-final-20261024/prerender-healthy/private/profile",
+        "--remote-debugging-port=0",
+        "--no-first-run",
+        "--incognito"
+      ],
+      "observationsBeforeActivation": [
+        {
+          "state": "ready",
+          "was": "true"
+        }
+      ],
+      "beforeClickHits": [
+        {
+          "url": "/entry?mode=private",
+          "purpose": null
+        },
+        {
+          "url": "/favicon.ico",
+          "purpose": null
+        },
+        {
+          "url": "/target",
+          "purpose": "prefetch;prerender"
+        },
+        {
+          "url": "/observed?state=ready&was=true",
+          "purpose": "prefetch;prerender"
+        }
+      ],
+      "activation": {
+        "state": "activated",
+        "was": "true",
+        "activationStart": "102.5"
+      },
+      "observations": [
+        {
+          "state": "ready",
+          "was": "true"
+        },
+        {
+          "state": "activated",
+          "was": "true",
+          "activationStart": "102.5"
+        }
+      ],
+      "hits": [
+        {
+          "url": "/entry?mode=private",
+          "purpose": null
+        },
+        {
+          "url": "/favicon.ico",
+          "purpose": null
+        },
+        {
+          "url": "/target",
+          "purpose": "prefetch;prerender"
+        },
+        {
+          "url": "/observed?state=ready&was=true",
+          "purpose": "prefetch;prerender"
+        },
+        {
+          "url": "/command",
+          "purpose": null
+        },
+        {
+          "url": "/observed?state=activated&was=true&activationStart=102.5",
+          "purpose": null
+        },
+        {
+          "url": "/favicon.ico",
+          "purpose": null
+        }
+      ]
+    }
+  ],
+  "complete": true
+}

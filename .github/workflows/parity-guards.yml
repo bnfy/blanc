@@ -29,13 +29,18 @@ permissions:
 jobs:
   changes:
     # Decides whether this change can affect the desktop app. Pull requests that
-    # touch only website and documentation paths skip the Electron jobs below;
+    # touch only website and documentation paths, and pull-request pushes that
+    # change only the Chromium fork, skip the Electron jobs below;
     # every other change, every push to main and any failure here runs them all.
     # Gated jobs use `if:` (not workflow `paths`), so a required check that is
     # skipped still reports, as "skipped", and never leaves the PR blocked.
     # The unit suite, lint and drift guards in `substrate` always run: unit tests
     # also guard the website's claims ledgers and read site/ and docs/ files.
     runs-on: ubuntu-latest
+    # actions: read lets the classifier check the previous head's run.
+    permissions:
+      contents: read
+      actions: read
     outputs:
       app: ${{ steps.classify.outputs.app }}
     steps:
@@ -45,9 +50,20 @@ jobs:
           fetch-depth: 2 # The PR merge commit and its base parent.
       - id: classify
         name: Classify changed paths
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ACTION: ${{ github.event.action }}
+          AFTER: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ github.head_ref }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           app=true
-          if [ "$GITHUB_EVENT_NAME" = pull_request ] && git rev-parse --verify -q HEAD^2 >/dev/null; then
+          if [ "$(sh scripts/ci-fork-only-push.sh)" = true ]; then
+            # Only the Chromium fork changed since a head of this PR that
+            # these jobs passed on (scripts/ci-fork-only-push.sh).
+            app=false
+            echo "Fork-only push." >> "$GITHUB_STEP_SUMMARY"
+          elif [ "$GITHUB_EVENT_NAME" = pull_request ] && git rev-parse --verify -q HEAD^2 >/dev/null; then
             # Old and new paths of every rename count, compared with the base.
             git diff --name-only --no-renames HEAD^1 HEAD > "$RUNNER_TEMP/changed.txt"
             app=false
@@ -305,6 +321,7 @@ jobs:
       - run: npm ci
       - name: Shared Spaces window and consent acceptance
         run: |
+          bash scripts/ci-apt-mirror.sh
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends gnome-keyring dbus-x11 libsecret-1-0
           bash scripts/ci-enable-linux-sandbox.sh
@@ -426,7 +443,7 @@ jobs:
       # the Control release arrives (docs/superpowers/specs/2026-10-24-mru-tab-switcher-design.md §8).
       - name: Install xdotool (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get update -q && sudo apt-get install -y -q xdotool
+        run: bash scripts/ci-apt-mirror.sh && sudo apt-get update -q && sudo apt-get install -y -q xdotool
       - name: Browser commands and Settings (Linux)
         if: runner.os == 'Linux'
         run: |

@@ -1,0 +1,2 @@
+Sunrise Dark icon compiled; bundle resources prepared.
+chromium spike: chrome/browser/ui/BUILD.gn: expected one anchor, found 0:       "views/frame/browser_view.cc",

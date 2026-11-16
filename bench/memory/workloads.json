@@ -22,7 +22,19 @@
     "Blanc defect and is not. dailymail.co.uk cost three runs this way: it",
     "geo-redirects UK-addressed requests to dailymail.com, a different host, so",
     "not even host-level matching could bridge it. Use the URL that a tester in",
-    "your region actually lands on."
+    "your region actually lands on.",
+    "",
+    "A PAGE THAT ANSWERS WITH AN HTTP ERROR FAILS BLANC'S CELL ALONE. Blanc",
+    "records no history entry for a 4xx or 5xx response (historyEligible in",
+    "src/main/tab-view.js), while Chromium and Gecko do record it. So a site that",
+    "blocks the tester's address reads as 'load not confirmed' for Blanc and as a",
+    "clean visit for everyone else. That is the check working: what rendered was",
+    "an error page, not the workload. Seen on a hosted Windows runner on",
+    "2026-11-09, where Reddit returned a page with no title (Blanc recorded none)",
+    "and Stack Overflow served Cloudflare's 'Just a moment...' challenge twice",
+    "before the real page. Chrome, Edge and Brave counted all of those as visits,",
+    "so a 10/10 from them does not prove the real page loaded. Measure from the",
+    "address a real user has, and read the titles a browser stored if in doubt."
   ],
   "workloads": {
     "baseline": {

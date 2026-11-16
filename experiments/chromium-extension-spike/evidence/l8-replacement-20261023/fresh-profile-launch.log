@@ -1,0 +1,10 @@
+[58411:7910136:1023/191904.477520:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[58411:7910142:1023/191904.553358:ERROR:components/os_crypt/common/keychain_password_mac.mm:112] Keychain lookup failed: Error Domain=NSOSStatusErrorDomain Code=-25308 "errKCInteractionNotAllowed / errSecInteractionNotAllowed: / Interaction is not allowed with the Security Server." (-25308)
+[58411:7910075:1023/191904.683881:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition().
+
+DevTools listening on ws://127.0.0.1:60697/devtools/browser/40f8ac83-6796-413f-b043-4048e4d4fc6f
+[58411:7910136:1023/191905.288613:ERROR:components/password_manager/core/browser/password_store/login_database_async_helper.cc:100] Encryption is not available.
+[58411:7910151:1023/191905.289691:ERROR:components/password_manager/core/browser/password_store/login_database_async_helper.cc:100] Encryption is not available.
+[58411:7910075:1023/191905.669469:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[58411:7910075:1023/191905.672705:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[58411:7910075:1023/191905.947338:ERROR:base/process/kill_posix.cc:33] waitpid(58421): No child processes (10)

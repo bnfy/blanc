@@ -153,12 +153,19 @@
       else popup.style.setProperty('--ws-bottom', `${win.innerHeight - (anchor.top - 6)}px`);
       popup.style.setProperty('--ws-right', `${Math.max(8, Math.min(win.innerWidth - anchor.right, win.innerWidth - popup.offsetWidth - 8))}px`);
     }
+    // The footer button's own glyph (the Spaces planet), shown in no space.
+    const planet = [...trigger.children];
     function syncIdentity() {
       const bound = current();
       trigger.dataset.tooltip = bound ? t('ws.trigger.current', { name: bound.name }) : t('footer.workspaces');
       trigger.setAttribute('aria-label', trigger.dataset.tooltip);
       trigger.setAttribute('aria-expanded', String(opened));
       trigger.classList.toggle('bound', !!bound);
+      // In a space the button shows that space's tile, painted for the
+      // current theme: the resting Island carries no Space mark (owner,
+      // November 11, 2026), so this is where the open Island says which
+      // space the window is in. The name stays in the tooltip.
+      trigger.replaceChildren(...(bound ? [tile(bound, 'ws-tile ws-trigger-tile')] : planet));
     }
     const saveError = () => (state.kind === 'edit' && failedEdit?.id === state.id ? failedEdit.message : '');
     function open() {
@@ -188,10 +195,14 @@
       // A reshape still running would leave only its height transition, and
       // the menu would vanish instead of fading back into its trigger.
       popup.classList.remove('morphing');
+      const wasOpen = opened;
       opened = false; popup.hidden = true; onOpenChange(false); syncIdentity();
       if (state.kind !== 'decision' && !state.original) state = { kind: 'list' };
       undo = null;
-      (invoker?.isConnected ? invoker : trigger)?.focus();
+      // Only a menu that was showing hands focus back to its trigger. The
+      // panel closes the menu on every tab switch, and taking focus there
+      // when it was never open pulled it off the address field (#1505).
+      if (wasOpen) (invoker?.isConnected ? invoker : trigger)?.focus();
       return true;
     }
     function toList() { flushUpdate(); state = { kind: 'list' }; render(); popup.querySelector('[data-current="true"]')?.focus(); }
@@ -727,6 +738,8 @@
         if (!same && !state.pending && !['new', 'edit'].includes(state.kind)) render();
       },
       open, close, cancel, render, layout,
+      // The theme the tile is painted for changed (a private tab, dark mode).
+      repaintTrigger: syncIdentity,
       showLinkError(name, error) {
         state = { kind: 'list', error: `${t('ws.error.openLinkFailed', { name })} ${errors[error] || t('ws.error.generic')}` };
         open();

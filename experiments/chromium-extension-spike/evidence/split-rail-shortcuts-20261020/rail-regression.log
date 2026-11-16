@@ -1,0 +1,7 @@
+{
+  pass: false,
+  checks: 7,
+  error: 'Error: wait timeout\n' +
+    '    at wait (file:///private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/evidence/split-narrow-fix-20261020/regression.mjs:5:130)\n' +
+    '    at async file:///private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/evidence/split-narrow-fix-20261020/regression.mjs:59:1'
+}

@@ -1,0 +1,6 @@
+{
+  "app": "/private/tmp/blanc-l8-startup-final/Blanc Chromium Preview.app",
+  "checks": [],
+  "mode": "preflight",
+  "error": "Error: Readiness deadline"
+}

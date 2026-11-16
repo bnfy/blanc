@@ -1,0 +1,96 @@
+{
+  "source": "f4996df4e88c775bc1947a574b2bd7a0f9ad7539",
+  "chromium": "157.0.8103.15",
+  "platform": "Apple Silicon/macOS 27.2",
+  "archiveSha256": "bc145e5ea41278971fd3384d0334d15f7140e0d4170e6b05f8e6a8d8f5c52bca",
+  "notaryAccepted": "9a8bd400-bb73-4555-8740-f2e09f115fd6",
+  "signedChecks": 70,
+  "recoverySchedules": [
+    {
+      "schedule": "recovery",
+      "exitCode": 0,
+      "checkpoints": 6,
+      "error": null
+    },
+    {
+      "schedule": "verified",
+      "exitCode": 0,
+      "checkpoints": 4,
+      "error": null
+    },
+    {
+      "schedule": "splits",
+      "exitCode": 0,
+      "checkpoints": 5,
+      "error": null
+    },
+    {
+      "schedule": "private-lifecycle",
+      "exitCode": 0,
+      "checkpoints": 10,
+      "error": null
+    },
+    {
+      "schedule": "grouped",
+      "exitCode": 0,
+      "checkpoints": 6,
+      "error": null
+    },
+    {
+      "schedule": "close",
+      "exitCode": 0,
+      "checkpoints": 6,
+      "error": null
+    },
+    {
+      "schedule": "nonregular",
+      "exitCode": 0,
+      "checkpoints": 6,
+      "error": null
+    },
+    {
+      "schedule": "teardown",
+      "exitCode": 0,
+      "checkpoints": 6,
+      "error": null
+    }
+  ],
+  "additionalChecks": {
+    "NewTabBoundaries": 9,
+    "emptyHistorySessionWriteFailureRetry": 5,
+    "loadedHistoryRestart": 4,
+    "IslandButton": 3
+  },
+  "localAdHocPreflightExcluded": 9,
+  "historicalBaselineNegativeControlExcluded": 3,
+  "freshRecoveryWaitingScreen": false,
+  "recoveryUiAcceptance": "Previously owner-approved mapped UI, verified source unchanged; no fresh provider-outage observation.",
+  "L6": "reopened regression resolved; prior bounded recovery acceptance reinstated",
+  "readiness": {
+    "count": 8,
+    "total": 12,
+    "percent": 66.7,
+    "delta": "+1 L6",
+    "accepted": [
+      "L1",
+      "L2",
+      "L3",
+      "L5",
+      "L6",
+      "L7",
+      "L9",
+      "L10"
+    ],
+    "open": [
+      "L4",
+      "L8",
+      "L11",
+      "L12"
+    ]
+  },
+  "build": "37.63s / 6 steps incremental; final guard zero",
+  "footprint": "70 files / 173 hunks unchanged",
+  "GoogleBaselineChanged": false,
+  "latency": "deferred",
+  "ElectronDiagnosticBuild": "pending approval/unstarted"
+}

@@ -1,0 +1,11 @@
+{
+  "measured_at": "2026-10-17T03:04:04.373520+00:00",
+  "method": "du -sk (allocated KiB); df -k (available KiB)",
+  "source_including_output_kib": 60036720,
+  "output_kib": 8831560,
+  "available_kib": 428000000,
+  "before_available_gib": 480.7,
+  "before_source": "Approved task0-cold-build-request.md measurement, October 16",
+  "peak": "not measured",
+  "note": "Endpoint only; free-space delta is not task-exclusive and source total includes output. Sibling depot_tools and _bad_scm outside src are excluded."
+}

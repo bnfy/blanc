@@ -1,0 +1,9 @@
+{
+  "verified": true,
+  "automaticLateDelivery": 15,
+  "duplicateBodies": 0,
+  "pagePoliciesRemainEnforced": true,
+  "extensionDeliveryExemptFromPagePolicies": true,
+  "fullContainment": false,
+  "latencyMeasured": false
+}

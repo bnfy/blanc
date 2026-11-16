@@ -1,0 +1,8 @@
+{
+  "version": "44.8.0",
+  "archive": "electron-v44.8.0-darwin-arm64.zip",
+  "sha256": "ccd9ba800d39d403375211d8f8da528469ebae3213cce4ec72b42e4dcc847513",
+  "expected_sha256": "ccd9ba800d39d403375211d8f8da528469ebae3213cce4ec72b42e4dcc847513",
+  "checksum_source": "electron@44.8.0 npm package checksums.json; fetched using @electron/get",
+  "native_build_invocations": 0
+}

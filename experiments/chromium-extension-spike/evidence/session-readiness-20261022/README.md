@@ -1,0 +1,15 @@
+# Browser-session read and encryption readiness — October 22, 2026
+
+The intermittent restored-profile startup stall remains unresolved. This investigation identifies the active read path but does not establish the original failure's cause or claim a production repair.
+
+Temporary native markers cover the effective storage stage, encryptor readiness and queued operation count, backend read entry/result, session replay entry/result, and the synchronous restore wait. Five targeted starts pass: the original failed disposable profile copied once, the retained three-tab profile copied and restarted, and another three-tab copy explicitly configured for encrypted-preferred reads and restarted. All restore exact URLs/order/selection and exit cleanly. No sample threshold or original native wait stall is reached.
+
+All five report stage 2 (`kWriteBothReadPreferEncrypted`), including the three without an explicit feature override. Each browser-session read (type 1) first reports `ready=0`, waits, receives `encryptor_ready ... pending=1`, re-enters with `ready=1`, and completes clear and encrypted backend reads with status 1 (`kSuccess`). Replay produces one window and the restore wait resumes. The explicit configuration runs therefore confirm the same effective path, not a second storage-mode comparison. Logging records counts/status only, not session content or encryption keys. Backend markers do not independently identify Session versus Tabs; ordering and the surrounding manager/replay markers identify the browser restore chain in these runs.
+
+This proves that an encryption-readiness deferral occurs and resolves in these tested startups. It does not prove encryption caused the historical hang, test a real OS provider failure, or qualify timing-independent reliability. All use the existing mock-keychain fixture configuration. No delays, provider failures, or fallback mechanisms were injected. The next recurrence needs these markers to distinguish missing encryptor completion, backend read completion, reply delivery, or replay completion; do not bypass the wait or discard sessions.
+
+Early `BlancPrototypeHost is not defined` entries are bounded polling before host initialization; later reads pass. They are not the historical CDP-unresponsive native stall. Source originals and original disposable profiles are verified unchanged; Google/dev snapshots match. Diagnostic app and copied profiles are removed after process checks. The original failed profile remains retained.
+
+Temporary source changes are removed byte-for-byte, followed by an incremental normal build and zero-action guard (logs attached). Prior upstream 59 files/142 hunks unchanged. No production source change, cold build, latency measurement, or Electron diagnostic build. Test host macOS 27.2 is not approved macOS 26 acceptance. L2 remains open; launch progress 1/12 (8.3%), delta 0.
+
+Incremental diagnostic build: 35.14 seconds/9 steps. Normal restoration: 36.60 seconds/9 steps. Final check-only guard: zero pending actions. Syntax, exact trace/order/state validation, source restoration and diff checks pass.

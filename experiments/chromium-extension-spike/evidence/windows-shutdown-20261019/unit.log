@@ -1,0 +1,150 @@
+TAP version 13
+# Subtest: nothing is created at startup
+ok 1 - nothing is created at startup
+  ---
+  duration_ms: 0.533
+  ...
+# Subtest: the first request creates the helper and reaches the broker once it is ready
+ok 2 - the first request creates the helper and reaches the broker once it is ready
+  ---
+  duration_ms: 3.623292
+  ...
+# Subtest: requests during startup share one helper, and later ones go straight to the broker
+ok 3 - requests during startup share one helper, and later ones go straight to the broker
+  ---
+  duration_ms: 0.620542
+  ...
+# Subtest: a ready message from anything but the helper is ignored
+ok 4 - a ready message from anything but the helper is ignored
+  ---
+  duration_ms: 0.473583
+  ...
+# Subtest: a helper that fails to load fails the request, and the next request starts over
+ok 5 - a helper that fails to load fails the request, and the next request starts over
+  ---
+  duration_ms: 1.1045
+  ...
+# Subtest: a helper that crashes fails the request, and the next request starts over
+ok 6 - a helper that crashes fails the request, and the next request starts over
+  ---
+  duration_ms: 0.467958
+  ...
+# Subtest: a helper that is destroyed fails the request, and the next request starts over
+ok 7 - a helper that is destroyed fails the request, and the next request starts over
+  ---
+  duration_ms: 0.773542
+  ...
+# Subtest: a helper that is not ready in time fails the request, and the next request starts over
+ok 8 - a helper that is not ready in time fails the request, and the next request starts over
+  ---
+  duration_ms: 0.372417
+  ...
+# Subtest: a subframe load failure does not fail the helper
+ok 9 - a subframe load failure does not fail the helper
+  ---
+  duration_ms: 0.437167
+  ...
+# Subtest: the broker registers on the real ipcMain
+ok 10 - the broker registers on the real ipcMain
+  ---
+  duration_ms: 0.489583
+  ...
+# Subtest: main creates the helper only through the lazy broker
+ok 11 - main creates the helper only through the lazy broker
+  ---
+  duration_ms: 1.424375
+  ...
+# Subtest: primary macOS close detaches the active and Glance page views exactly once
+ok 12 - primary macOS close detaches the active and Glance page views exactly once
+  ---
+  duration_ms: 1.006083
+  ...
+# Subtest: quit and secondary-window closes do not preserve attached page views
+ok 13 - quit and secondary-window closes do not preserve attached page views
+  ---
+  duration_ms: 0.121208
+  ...
+# Subtest: Windows and Linux closes keep the normal window-owned destruction path
+ok 14 - Windows and Linux closes keep the normal window-owned destruction path
+  ---
+  duration_ms: 0.073542
+  ...
+# Subtest: Dock reopen reuses only a live or quiet active tab
+ok 15 - Dock reopen reuses only a live or quiet active tab
+  ---
+  duration_ms: 0.110459
+  ...
+# Subtest: macOS lifecycle detaches before native teardown and reattaches the same document
+ok 16 - macOS lifecycle detaches before native teardown and reattaches the same document
+  ---
+  duration_ms: 0.358584
+  ...
+# Subtest: Dock reopen creates and activates a start tab when no document is reusable
+ok 17 - Dock reopen creates and activates a start tab when no document is reusable
+  ---
+  duration_ms: 0.072541
+  ...
+# Subtest: chrome readiness flushes pending handoffs even without a reusable tab
+ok 18 - chrome readiness flushes pending handoffs even without a reusable tab
+  ---
+  duration_ms: 0.575083
+  ...
+# Subtest: a failed pre-close checkpoint prevents native teardown and preserves the runtime
+ok 19 - a failed pre-close checkpoint prevents native teardown and preserves the runtime
+  ---
+  duration_ms: 0.101625
+  ...
+# Subtest: a successful pre-close checkpoint runs before the runtime enters teardown
+ok 20 - a successful pre-close checkpoint runs before the runtime enters teardown
+  ---
+  duration_ms: 0.259542
+  ...
+# Subtest: a user close decides its session effect once and the closed handler can read it
+ok 21 - a user close decides its session effect once and the closed handler can read it
+  ---
+  duration_ms: 0.294459
+  ...
+# Subtest: a blocked close records no session effect
+ok 22 - a blocked close records no session effect
+  ---
+  duration_ms: 0.104625
+  ...
+# Subtest: forced closes skip the session effect and the checkpoint
+ok 23 - forced closes skip the session effect and the checkpoint
+  ---
+  duration_ms: 0.064625
+  ...
+# Subtest: main installs both handlers from the tested Dock-reopen lifecycle
+ok 24 - main installs both handlers from the tested Dock-reopen lifecycle
+  ---
+  duration_ms: 1.551166
+  ...
+# Subtest: releases hidden windows when the last visible window closes on Windows
+ok 25 - releases hidden windows when the last visible window closes on Windows
+  ---
+  duration_ms: 0.534417
+  ...
+# Subtest: releases hidden windows when the last visible window closes on Linux
+ok 26 - releases hidden windows when the last visible window closes on Linux
+  ---
+  duration_ms: 0.046083
+  ...
+# Subtest: keeps hidden windows while another visible window is still open
+ok 27 - keeps hidden windows while another visible window is still open
+  ---
+  duration_ms: 0.03925
+  ...
+# Subtest: keeps hidden windows on macOS, where Blanc stays alive without windows
+ok 28 - keeps hidden windows on macOS, where Blanc stays alive without windows
+  ---
+  duration_ms: 0.035542
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 28
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 41.679375

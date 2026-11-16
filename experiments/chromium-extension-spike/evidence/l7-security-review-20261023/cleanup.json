@@ -1,0 +1,14 @@
+{
+  "ownedProcessesRemaining": [],
+  "removedDisposableProfiles": [
+    "/private/tmp/blanc-l7-security-20261023/regular/profile",
+    "/private/tmp/blanc-l7-security-20261023/private/profile",
+    "/private/tmp/blanc-l7-security-20261023/scope/profile",
+    "/private/tmp/blanc-l7-security-20261023/probe/profile",
+    "/private/tmp/blanc-l7-security-20261023/worker-private/profile",
+    "/private/tmp/blanc-l7-security-20261023/worker-private-ready/profile",
+    "/private/tmp/blanc-l7-security-20261023/default/profile"
+  ],
+  "preservedCandidate": "/private/tmp/blanc-preview-notice-final/Blanc Chromium Preview.app",
+  "googleBaseline": "not modified or requalified"
+}

@@ -24,7 +24,7 @@ test('ping-worker dl pure logic', async (t) => {
   ];
 
   await t.test('targets are exactly the four site cards (no ambiguous mac)', () => {
-    assert.deepEqual([...DL_TARGETS].sort(), ['linux', 'mac-arm64', 'mac-x64', 'win']);
+    assert.deepEqual([...DL_TARGETS].sort(), ['beta', 'linux', 'mac-arm64', 'mac-x64', 'win']);
   });
 
   await t.test('pickAsset mirrors site.js per-platform selection', () => {

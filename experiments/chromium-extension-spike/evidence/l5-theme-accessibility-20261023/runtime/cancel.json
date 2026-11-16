@@ -1,0 +1,1993 @@
+{
+  "theme": {
+    "background": "#ffffff",
+    "backgroundText": "#323232",
+    "frame": "#2b244e",
+    "id": "lelfanicbadaahlibeimcpfpedfjccnk",
+    "link": "#063774",
+    "surface": "#dc9d99",
+    "text": "#3c4043",
+    "toolbarImage": "chrome://blanc-prototype/theme-toolbar.png?lelfanicbadaahlibeimcpfpedfjccnk",
+    "toolbarImageText": "#2b244e"
+  },
+  "ax": {
+    "nodes": [
+      {
+        "nodeId": "1",
+        "ignored": false,
+        "role": {
+          "type": "internalRole",
+          "value": "RootWebArea"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 144
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Blanc Chromium prototype",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "attribute": "aria-label"
+            },
+            {
+              "type": "attribute",
+              "attribute": "aria-label",
+              "superseded": true
+            },
+            {
+              "type": "relatedElement",
+              "value": {
+                "type": "computedString",
+                "value": "Blanc Chromium prototype"
+              },
+              "nativeSource": "title"
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "focusable",
+            "value": {
+              "type": "booleanOrUndefined",
+              "value": true
+            }
+          },
+          {
+            "name": "focused",
+            "value": {
+              "type": "booleanOrUndefined",
+              "value": true
+            }
+          },
+          {
+            "name": "url",
+            "value": {
+              "type": "string",
+              "value": "chrome://blanc-prototype/host.html"
+            }
+          }
+        ],
+        "childIds": [
+          "3"
+        ],
+        "backendDOMNodeId": 1,
+        "frameId": "31455DC3E83B4C428F2847A792F87C9B"
+      },
+      {
+        "nodeId": "3",
+        "ignored": true,
+        "ignoredReasons": [
+          {
+            "name": "uninteresting",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          }
+        ],
+        "role": {
+          "type": "role",
+          "value": "none"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 0
+        },
+        "parentId": "1",
+        "childIds": [
+          "4"
+        ],
+        "backendDOMNodeId": 3
+      },
+      {
+        "nodeId": "4",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "generic"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 88
+        },
+        "name": {
+          "type": "computedString",
+          "value": "",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "attribute": "aria-label"
+            }
+          ]
+        },
+        "properties": [],
+        "parentId": "3",
+        "childIds": [
+          "81"
+        ],
+        "backendDOMNodeId": 4
+      },
+      {
+        "nodeId": "81",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "region"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 143
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Extensions",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "value": {
+                "type": "computedString",
+                "value": "Extensions"
+              },
+              "attribute": "aria-label",
+              "attributeValue": {
+                "type": "string",
+                "value": "Extensions"
+              }
+            },
+            {
+              "type": "attribute",
+              "attribute": "title",
+              "superseded": true
+            }
+          ]
+        },
+        "properties": [],
+        "parentId": "4",
+        "childIds": [
+          "82",
+          "87",
+          "95",
+          "100",
+          "101",
+          "106"
+        ],
+        "backendDOMNodeId": 81
+      },
+      {
+        "nodeId": "82",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "sectionheader"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 95
+        },
+        "name": {
+          "type": "computedString",
+          "value": "",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "attribute": "aria-label"
+            },
+            {
+              "type": "attribute",
+              "attribute": "title"
+            }
+          ]
+        },
+        "properties": [],
+        "parentId": "81",
+        "childIds": [
+          "83",
+          "85",
+          "86"
+        ],
+        "backendDOMNodeId": 82
+      },
+      {
+        "nodeId": "87",
+        "ignored": false,
+        "role": {
+          "type": "internalRole",
+          "value": "LabelText"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 104
+        },
+        "name": {
+          "type": "computedString",
+          "value": "",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "attribute": "aria-label"
+            },
+            {
+              "type": "attribute",
+              "attribute": "title"
+            }
+          ]
+        },
+        "properties": [],
+        "parentId": "81",
+        "childIds": [
+          "88",
+          "89"
+        ],
+        "backendDOMNodeId": 87
+      },
+      {
+        "nodeId": "95",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "generic"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 88
+        },
+        "name": {
+          "type": "computedString",
+          "value": "",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "attribute": "aria-label"
+            }
+          ]
+        },
+        "properties": [],
+        "parentId": "81",
+        "childIds": [
+          "96",
+          "97"
+        ],
+        "backendDOMNodeId": 95
+      },
+      {
+        "nodeId": "100",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "status"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 159
+        },
+        "name": {
+          "type": "computedString",
+          "value": "",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "attribute": "aria-label"
+            },
+            {
+              "type": "attribute",
+              "attribute": "title"
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "live",
+            "value": {
+              "type": "token",
+              "value": "polite"
+            }
+          },
+          {
+            "name": "atomic",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          {
+            "name": "relevant",
+            "value": {
+              "type": "tokenList",
+              "value": "additions text"
+            }
+          }
+        ],
+        "parentId": "81",
+        "childIds": [],
+        "backendDOMNodeId": 100
+      },
+      {
+        "nodeId": "101",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "sectionfooter"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 86
+        },
+        "name": {
+          "type": "computedString",
+          "value": "",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "attribute": "aria-label"
+            },
+            {
+              "type": "attribute",
+              "attribute": "title"
+            }
+          ]
+        },
+        "properties": [],
+        "parentId": "81",
+        "childIds": [
+          "102",
+          "104"
+        ],
+        "backendDOMNodeId": 101
+      },
+      {
+        "nodeId": "106",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "generic"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 88
+        },
+        "name": {
+          "type": "computedString",
+          "value": "",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "attribute": "aria-label"
+            }
+          ]
+        },
+        "properties": [],
+        "parentId": "81",
+        "childIds": [
+          "116"
+        ],
+        "backendDOMNodeId": 106
+      },
+      {
+        "nodeId": "83",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "button"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 9
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Back to tabs",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "value": {
+                "type": "computedString",
+                "value": "Back to tabs"
+              },
+              "attribute": "aria-label",
+              "attributeValue": {
+                "type": "string",
+                "value": "Back to tabs"
+              }
+            },
+            {
+              "type": "relatedElement",
+              "superseded": true,
+              "nativeSource": "label"
+            },
+            {
+              "type": "contents",
+              "superseded": true
+            },
+            {
+              "type": "attribute",
+              "attribute": "title",
+              "superseded": true
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "invalid",
+            "value": {
+              "type": "token",
+              "value": "false"
+            }
+          },
+          {
+            "name": "focusable",
+            "value": {
+              "type": "booleanOrUndefined",
+              "value": true
+            }
+          }
+        ],
+        "parentId": "82",
+        "childIds": [
+          "84"
+        ],
+        "backendDOMNodeId": 83
+      },
+      {
+        "nodeId": "85",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "heading"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 96
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Extensions",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "attribute": "aria-label"
+            },
+            {
+              "type": "contents",
+              "value": {
+                "type": "computedString",
+                "value": "Extensions"
+              }
+            },
+            {
+              "type": "attribute",
+              "attribute": "title",
+              "superseded": true
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "level",
+            "value": {
+              "type": "integer",
+              "value": 1
+            }
+          }
+        ],
+        "parentId": "82",
+        "childIds": [
+          "111"
+        ],
+        "backendDOMNodeId": 85
+      },
+      {
+        "nodeId": "86",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "button"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 9
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Close extensions",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "value": {
+                "type": "computedString",
+                "value": "Close extensions"
+              },
+              "attribute": "aria-label",
+              "attributeValue": {
+                "type": "string",
+                "value": "Close extensions"
+              }
+            },
+            {
+              "type": "relatedElement",
+              "superseded": true,
+              "nativeSource": "label"
+            },
+            {
+              "type": "contents",
+              "value": {
+                "type": "computedString",
+                "value": "Esc"
+              },
+              "superseded": true
+            },
+            {
+              "type": "attribute",
+              "attribute": "title",
+              "superseded": true
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "invalid",
+            "value": {
+              "type": "token",
+              "value": "false"
+            }
+          },
+          {
+            "name": "focusable",
+            "value": {
+              "type": "booleanOrUndefined",
+              "value": true
+            }
+          }
+        ],
+        "parentId": "82",
+        "childIds": [
+          "112"
+        ],
+        "backendDOMNodeId": 86
+      },
+      {
+        "nodeId": "88",
+        "ignored": true,
+        "ignoredReasons": [
+          {
+            "name": "emptyAlt",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          }
+        ],
+        "role": {
+          "type": "role",
+          "value": "none"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 0
+        },
+        "parentId": "87",
+        "childIds": [],
+        "backendDOMNodeId": 88
+      },
+      {
+        "nodeId": "89",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "combobox"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 171
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Find an extension",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "value": {
+                "type": "computedString",
+                "value": "Find an extension"
+              },
+              "attribute": "aria-label",
+              "attributeValue": {
+                "type": "string",
+                "value": "Find an extension"
+              }
+            },
+            {
+              "type": "relatedElement",
+              "value": {
+                "type": "computedString",
+                "value": ""
+              },
+              "superseded": true,
+              "nativeSource": "labelwrapped",
+              "nativeSourceValue": {
+                "type": "nodeList",
+                "relatedNodes": [
+                  {
+                    "backendDOMNodeId": 87,
+                    "text": ""
+                  }
+                ]
+              }
+            },
+            {
+              "type": "attribute",
+              "attribute": "title",
+              "superseded": true
+            },
+            {
+              "type": "placeholder",
+              "value": {
+                "type": "computedString",
+                "value": "Find an extension…"
+              },
+              "attribute": "placeholder",
+              "attributeValue": {
+                "type": "string",
+                "value": "Find an extension…"
+              },
+              "superseded": true
+            },
+            {
+              "type": "placeholder",
+              "attribute": "aria-placeholder",
+              "superseded": true
+            },
+            {
+              "type": "attribute",
+              "attribute": "title",
+              "superseded": true
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "invalid",
+            "value": {
+              "type": "token",
+              "value": "false"
+            }
+          },
+          {
+            "name": "focusable",
+            "value": {
+              "type": "booleanOrUndefined",
+              "value": true
+            }
+          },
+          {
+            "name": "focused",
+            "value": {
+              "type": "booleanOrUndefined",
+              "value": true
+            }
+          },
+          {
+            "name": "editable",
+            "value": {
+              "type": "token",
+              "value": "plaintext"
+            }
+          },
+          {
+            "name": "settable",
+            "value": {
+              "type": "booleanOrUndefined",
+              "value": true
+            }
+          },
+          {
+            "name": "autocomplete",
+            "value": {
+              "type": "token",
+              "value": "list"
+            }
+          },
+          {
+            "name": "hasPopup",
+            "value": {
+              "type": "token",
+              "value": "listbox"
+            }
+          },
+          {
+            "name": "required",
+            "value": {
+              "type": "boolean",
+              "value": false
+            }
+          },
+          {
+            "name": "expanded",
+            "value": {
+              "type": "booleanOrUndefined",
+              "value": true
+            }
+          },
+          {
+            "name": "controls",
+            "value": {
+              "type": "idrefList",
+              "value": "extensionList",
+              "relatedNodes": [
+                {
+                  "backendDOMNodeId": 96,
+                  "idref": "extensionList"
+                }
+              ]
+            }
+          }
+        ],
+        "parentId": "87",
+        "childIds": [
+          "90",
+          "91"
+        ],
+        "backendDOMNodeId": 89
+      },
+      {
+        "nodeId": "96",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "listbox"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 112
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Installed extensions and Chrome Web Store results",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "value": {
+                "type": "computedString",
+                "value": "Installed extensions and Chrome Web Store results"
+              },
+              "attribute": "aria-label",
+              "attributeValue": {
+                "type": "string",
+                "value": "Installed extensions and Chrome Web Store results"
+              }
+            },
+            {
+              "type": "attribute",
+              "attribute": "title",
+              "superseded": true
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "multiselectable",
+            "value": {
+              "type": "boolean",
+              "value": false
+            }
+          },
+          {
+            "name": "orientation",
+            "value": {
+              "type": "token",
+              "value": "vertical"
+            }
+          },
+          {
+            "name": "required",
+            "value": {
+              "type": "boolean",
+              "value": false
+            }
+          }
+        ],
+        "parentId": "95",
+        "childIds": [],
+        "backendDOMNodeId": 96
+      },
+      {
+        "nodeId": "97",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "region"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 143
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Installed themes",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "value": {
+                "type": "computedString",
+                "value": "Installed themes"
+              },
+              "attribute": "aria-labelledby",
+              "attributeValue": {
+                "type": "idrefList",
+                "value": "installedThemesHeading",
+                "relatedNodes": [
+                  {
+                    "backendDOMNodeId": 98,
+                    "idref": "installedThemesHeading",
+                    "text": "Installed themes"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "attribute",
+              "attribute": "aria-label",
+              "superseded": true
+            },
+            {
+              "type": "attribute",
+              "attribute": "title",
+              "superseded": true
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "labelledby",
+            "value": {
+              "type": "nodeList",
+              "relatedNodes": [
+                {
+                  "backendDOMNodeId": 98,
+                  "idref": "installedThemesHeading",
+                  "text": "Installed themes"
+                }
+              ]
+            }
+          }
+        ],
+        "parentId": "95",
+        "childIds": [
+          "98",
+          "99"
+        ],
+        "backendDOMNodeId": 97
+      },
+      {
+        "nodeId": "102",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "button"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 9
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Manage extensions",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "attribute": "aria-label"
+            },
+            {
+              "type": "relatedElement",
+              "nativeSource": "label"
+            },
+            {
+              "type": "contents",
+              "value": {
+                "type": "computedString",
+                "value": "Manage extensions"
+              }
+            },
+            {
+              "type": "attribute",
+              "attribute": "title",
+              "superseded": true
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "invalid",
+            "value": {
+              "type": "token",
+              "value": "false"
+            }
+          },
+          {
+            "name": "focusable",
+            "value": {
+              "type": "booleanOrUndefined",
+              "value": true
+            }
+          }
+        ],
+        "parentId": "101",
+        "childIds": [
+          "103",
+          "114"
+        ],
+        "backendDOMNodeId": 102
+      },
+      {
+        "nodeId": "104",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "button"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 9
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Browse web store",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "attribute": "aria-label"
+            },
+            {
+              "type": "relatedElement",
+              "nativeSource": "label"
+            },
+            {
+              "type": "contents",
+              "value": {
+                "type": "computedString",
+                "value": "Browse web store"
+              }
+            },
+            {
+              "type": "attribute",
+              "attribute": "title",
+              "superseded": true
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "invalid",
+            "value": {
+              "type": "token",
+              "value": "false"
+            }
+          },
+          {
+            "name": "focusable",
+            "value": {
+              "type": "booleanOrUndefined",
+              "value": true
+            }
+          }
+        ],
+        "parentId": "101",
+        "childIds": [
+          "105",
+          "115"
+        ],
+        "backendDOMNodeId": 104
+      },
+      {
+        "nodeId": "116",
+        "ignored": false,
+        "role": {
+          "type": "internalRole",
+          "value": "StaticText"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 158
+        },
+        "name": {
+          "type": "computedString",
+          "value": "↑ ↓ to move   Enter to open   Tab for theme actions   Esc to close",
+          "sources": [
+            {
+              "type": "contents",
+              "value": {
+                "type": "computedString",
+                "value": "↑ ↓ to move   Enter to open   Tab for theme actions   Esc to close"
+              }
+            }
+          ]
+        },
+        "properties": [],
+        "parentId": "106",
+        "childIds": [
+          "-1000000120"
+        ],
+        "backendDOMNodeId": 116
+      },
+      {
+        "nodeId": "84",
+        "ignored": true,
+        "ignoredReasons": [
+          {
+            "name": "emptyAlt",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          }
+        ],
+        "role": {
+          "type": "role",
+          "value": "none"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 0
+        },
+        "parentId": "83",
+        "childIds": [],
+        "backendDOMNodeId": 84
+      },
+      {
+        "nodeId": "111",
+        "ignored": false,
+        "role": {
+          "type": "internalRole",
+          "value": "StaticText"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 158
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Extensions",
+          "sources": [
+            {
+              "type": "contents",
+              "value": {
+                "type": "computedString",
+                "value": "Extensions"
+              }
+            }
+          ]
+        },
+        "properties": [],
+        "parentId": "85",
+        "childIds": [
+          "-1000000112"
+        ],
+        "backendDOMNodeId": 111
+      },
+      {
+        "nodeId": "112",
+        "ignored": false,
+        "role": {
+          "type": "internalRole",
+          "value": "StaticText"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 158
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Esc",
+          "sources": [
+            {
+              "type": "contents",
+              "value": {
+                "type": "computedString",
+                "value": "Esc"
+              }
+            }
+          ]
+        },
+        "properties": [],
+        "parentId": "86",
+        "childIds": [
+          "-1000000113"
+        ],
+        "backendDOMNodeId": 112
+      },
+      {
+        "nodeId": "90",
+        "ignored": true,
+        "ignoredReasons": [],
+        "role": {
+          "type": "role",
+          "value": "none"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 0
+        },
+        "parentId": "89",
+        "childIds": [],
+        "backendDOMNodeId": 90
+      },
+      {
+        "nodeId": "91",
+        "ignored": true,
+        "ignoredReasons": [],
+        "role": {
+          "type": "role",
+          "value": "none"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 0
+        },
+        "parentId": "89",
+        "childIds": [
+          "93"
+        ],
+        "backendDOMNodeId": 91
+      },
+      {
+        "nodeId": "93",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "generic"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 88
+        },
+        "name": {
+          "type": "computedString",
+          "value": "",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "attribute": "aria-label"
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "editable",
+            "value": {
+              "type": "token",
+              "value": "plaintext"
+            }
+          }
+        ],
+        "parentId": "91",
+        "childIds": [],
+        "backendDOMNodeId": 93
+      },
+      {
+        "nodeId": "98",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "heading"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 96
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Installed themes",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "attribute": "aria-label"
+            },
+            {
+              "type": "contents",
+              "value": {
+                "type": "computedString",
+                "value": "Installed themes"
+              }
+            },
+            {
+              "type": "attribute",
+              "attribute": "title",
+              "superseded": true
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "level",
+            "value": {
+              "type": "integer",
+              "value": 2
+            }
+          }
+        ],
+        "parentId": "97",
+        "childIds": [
+          "113"
+        ],
+        "backendDOMNodeId": 98
+      },
+      {
+        "nodeId": "99",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "generic"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 88
+        },
+        "name": {
+          "type": "computedString",
+          "value": "",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "attribute": "aria-label"
+            }
+          ]
+        },
+        "properties": [],
+        "parentId": "97",
+        "childIds": [
+          "798"
+        ],
+        "backendDOMNodeId": 99
+      },
+      {
+        "nodeId": "103",
+        "ignored": true,
+        "ignoredReasons": [
+          {
+            "name": "emptyAlt",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          }
+        ],
+        "role": {
+          "type": "role",
+          "value": "none"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 0
+        },
+        "parentId": "102",
+        "childIds": [],
+        "backendDOMNodeId": 103
+      },
+      {
+        "nodeId": "114",
+        "ignored": false,
+        "role": {
+          "type": "internalRole",
+          "value": "StaticText"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 158
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Manage extensions",
+          "sources": [
+            {
+              "type": "contents",
+              "value": {
+                "type": "computedString",
+                "value": "Manage extensions"
+              }
+            }
+          ]
+        },
+        "properties": [],
+        "parentId": "102",
+        "childIds": [
+          "-1000000118"
+        ],
+        "backendDOMNodeId": 114
+      },
+      {
+        "nodeId": "105",
+        "ignored": true,
+        "ignoredReasons": [
+          {
+            "name": "emptyAlt",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          }
+        ],
+        "role": {
+          "type": "role",
+          "value": "none"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 0
+        },
+        "parentId": "104",
+        "childIds": [],
+        "backendDOMNodeId": 105
+      },
+      {
+        "nodeId": "115",
+        "ignored": false,
+        "role": {
+          "type": "internalRole",
+          "value": "StaticText"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 158
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Browse web store",
+          "sources": [
+            {
+              "type": "contents",
+              "value": {
+                "type": "computedString",
+                "value": "Browse web store"
+              }
+            }
+          ]
+        },
+        "properties": [],
+        "parentId": "104",
+        "childIds": [
+          "-1000000119"
+        ],
+        "backendDOMNodeId": 115
+      },
+      {
+        "nodeId": "-1000000120",
+        "ignored": false,
+        "role": {
+          "type": "internalRole",
+          "value": "InlineTextBox"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 101
+        },
+        "name": {
+          "type": "computedString",
+          "value": "↑ ↓ to move   Enter to open   Tab for theme actions   Esc to close"
+        },
+        "properties": [],
+        "parentId": "116",
+        "childIds": []
+      },
+      {
+        "nodeId": "-1000000112",
+        "ignored": false,
+        "role": {
+          "type": "internalRole",
+          "value": "InlineTextBox"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 101
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Extensions"
+        },
+        "properties": [],
+        "parentId": "111",
+        "childIds": []
+      },
+      {
+        "nodeId": "-1000000113",
+        "ignored": false,
+        "role": {
+          "type": "internalRole",
+          "value": "InlineTextBox"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 101
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Esc"
+        },
+        "properties": [],
+        "parentId": "112",
+        "childIds": []
+      },
+      {
+        "nodeId": "113",
+        "ignored": false,
+        "role": {
+          "type": "internalRole",
+          "value": "StaticText"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 158
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Installed themes",
+          "sources": [
+            {
+              "type": "contents",
+              "value": {
+                "type": "computedString",
+                "value": "Installed themes"
+              }
+            }
+          ]
+        },
+        "properties": [],
+        "parentId": "98",
+        "childIds": [
+          "-1000000114"
+        ],
+        "backendDOMNodeId": 113
+      },
+      {
+        "nodeId": "798",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "group"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 93
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Cherry Blossom Tree HD Wallpapers Theme — Active",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "value": {
+                "type": "computedString",
+                "value": "Cherry Blossom Tree HD Wallpapers Theme — Active"
+              },
+              "attribute": "aria-labelledby",
+              "attributeValue": {
+                "type": "idrefList",
+                "value": "theme-name-lelfanicbadaahlibeimcpfpedfjccnk",
+                "relatedNodes": [
+                  {
+                    "backendDOMNodeId": 795,
+                    "idref": "theme-name-lelfanicbadaahlibeimcpfpedfjccnk",
+                    "text": "Cherry Blossom Tree HD Wallpapers Theme — Active"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "attribute",
+              "attribute": "aria-label",
+              "superseded": true
+            },
+            {
+              "type": "attribute",
+              "attribute": "title",
+              "superseded": true
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "labelledby",
+            "value": {
+              "type": "nodeList",
+              "relatedNodes": [
+                {
+                  "backendDOMNodeId": 795,
+                  "idref": "theme-name-lelfanicbadaahlibeimcpfpedfjccnk",
+                  "text": "Cherry Blossom Tree HD Wallpapers Theme — Active"
+                }
+              ]
+            }
+          }
+        ],
+        "parentId": "99",
+        "childIds": [
+          "795",
+          "796",
+          "797"
+        ],
+        "backendDOMNodeId": 798
+      },
+      {
+        "nodeId": "-1000000118",
+        "ignored": false,
+        "role": {
+          "type": "internalRole",
+          "value": "InlineTextBox"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 101
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Manage extensions"
+        },
+        "properties": [],
+        "parentId": "114",
+        "childIds": []
+      },
+      {
+        "nodeId": "-1000000119",
+        "ignored": false,
+        "role": {
+          "type": "internalRole",
+          "value": "InlineTextBox"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 101
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Browse web store"
+        },
+        "properties": [],
+        "parentId": "115",
+        "childIds": []
+      },
+      {
+        "nodeId": "-1000000114",
+        "ignored": false,
+        "role": {
+          "type": "internalRole",
+          "value": "InlineTextBox"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 101
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Installed themes"
+        },
+        "properties": [],
+        "parentId": "113",
+        "childIds": []
+      },
+      {
+        "nodeId": "795",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "generic"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 88
+        },
+        "name": {
+          "type": "computedString",
+          "value": "",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "attribute": "aria-label"
+            }
+          ]
+        },
+        "properties": [],
+        "parentId": "798",
+        "childIds": [
+          "799"
+        ],
+        "backendDOMNodeId": 795
+      },
+      {
+        "nodeId": "796",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "button"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 9
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Apply Cherry Blossom Tree HD Wallpapers Theme",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "value": {
+                "type": "computedString",
+                "value": "Apply Cherry Blossom Tree HD Wallpapers Theme"
+              },
+              "attribute": "aria-label",
+              "attributeValue": {
+                "type": "string",
+                "value": "Apply Cherry Blossom Tree HD Wallpapers Theme"
+              }
+            },
+            {
+              "type": "relatedElement",
+              "superseded": true,
+              "nativeSource": "label"
+            },
+            {
+              "type": "contents",
+              "value": {
+                "type": "computedString",
+                "value": "Apply"
+              },
+              "superseded": true
+            },
+            {
+              "type": "attribute",
+              "attribute": "title",
+              "superseded": true
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "disabled",
+            "value": {
+              "type": "boolean",
+              "value": true
+            }
+          },
+          {
+            "name": "invalid",
+            "value": {
+              "type": "token",
+              "value": "false"
+            }
+          }
+        ],
+        "parentId": "798",
+        "childIds": [
+          "800"
+        ],
+        "backendDOMNodeId": 796
+      },
+      {
+        "nodeId": "797",
+        "ignored": false,
+        "role": {
+          "type": "role",
+          "value": "button"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 9
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Remove Cherry Blossom Tree HD Wallpapers Theme",
+          "sources": [
+            {
+              "type": "relatedElement",
+              "attribute": "aria-labelledby"
+            },
+            {
+              "type": "attribute",
+              "value": {
+                "type": "computedString",
+                "value": "Remove Cherry Blossom Tree HD Wallpapers Theme"
+              },
+              "attribute": "aria-label",
+              "attributeValue": {
+                "type": "string",
+                "value": "Remove Cherry Blossom Tree HD Wallpapers Theme"
+              }
+            },
+            {
+              "type": "relatedElement",
+              "superseded": true,
+              "nativeSource": "label"
+            },
+            {
+              "type": "contents",
+              "value": {
+                "type": "computedString",
+                "value": "Remove"
+              },
+              "superseded": true
+            },
+            {
+              "type": "attribute",
+              "attribute": "title",
+              "superseded": true
+            }
+          ]
+        },
+        "properties": [
+          {
+            "name": "invalid",
+            "value": {
+              "type": "token",
+              "value": "false"
+            }
+          },
+          {
+            "name": "focusable",
+            "value": {
+              "type": "booleanOrUndefined",
+              "value": true
+            }
+          }
+        ],
+        "parentId": "798",
+        "childIds": [
+          "801"
+        ],
+        "backendDOMNodeId": 797
+      },
+      {
+        "nodeId": "799",
+        "ignored": false,
+        "role": {
+          "type": "internalRole",
+          "value": "StaticText"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 158
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Cherry Blossom Tree HD Wallpapers Theme — Active",
+          "sources": [
+            {
+              "type": "contents",
+              "value": {
+                "type": "computedString",
+                "value": "Cherry Blossom Tree HD Wallpapers Theme — Active"
+              }
+            }
+          ]
+        },
+        "properties": [],
+        "parentId": "795",
+        "childIds": [
+          "-1000000115"
+        ],
+        "backendDOMNodeId": 799
+      },
+      {
+        "nodeId": "800",
+        "ignored": false,
+        "role": {
+          "type": "internalRole",
+          "value": "StaticText"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 158
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Apply",
+          "sources": [
+            {
+              "type": "contents",
+              "value": {
+                "type": "computedString",
+                "value": "Apply"
+              }
+            }
+          ]
+        },
+        "properties": [],
+        "parentId": "796",
+        "childIds": [
+          "-1000000116"
+        ],
+        "backendDOMNodeId": 800
+      },
+      {
+        "nodeId": "801",
+        "ignored": false,
+        "role": {
+          "type": "internalRole",
+          "value": "StaticText"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 158
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Remove",
+          "sources": [
+            {
+              "type": "contents",
+              "value": {
+                "type": "computedString",
+                "value": "Remove"
+              }
+            }
+          ]
+        },
+        "properties": [],
+        "parentId": "797",
+        "childIds": [
+          "-1000000117"
+        ],
+        "backendDOMNodeId": 801
+      },
+      {
+        "nodeId": "-1000000115",
+        "ignored": false,
+        "role": {
+          "type": "internalRole",
+          "value": "InlineTextBox"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 101
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Cherry Blossom Tree HD Wallpapers Theme — Active"
+        },
+        "properties": [],
+        "parentId": "799",
+        "childIds": []
+      },
+      {
+        "nodeId": "-1000000116",
+        "ignored": false,
+        "role": {
+          "type": "internalRole",
+          "value": "InlineTextBox"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 101
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Apply"
+        },
+        "properties": [],
+        "parentId": "800",
+        "childIds": []
+      },
+      {
+        "nodeId": "-1000000117",
+        "ignored": false,
+        "role": {
+          "type": "internalRole",
+          "value": "InlineTextBox"
+        },
+        "chromeRole": {
+          "type": "internalRole",
+          "value": 101
+        },
+        "name": {
+          "type": "computedString",
+          "value": "Remove"
+        },
+        "properties": [],
+        "parentId": "801",
+        "childIds": []
+      }
+    ]
+  }
+}

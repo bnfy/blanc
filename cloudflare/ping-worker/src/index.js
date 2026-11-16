@@ -27,7 +27,7 @@ import {
   buildDownloadConversionEvent,
   validOppref,
   pickAsset,
-  pinnedDownload,
+  pinnedDownload, fixedDownload,
   dlCountKey,
   groupDlCounts,
 } from './dl.js';
@@ -42,13 +42,19 @@ import {
   DAY_ONE_GROUPS,
 } from './first-seen.js';
 
-const ALLOWED_PLATFORMS = new Set(['darwin', 'win32', 'linux', 'ios']);
+const ALLOWED_PLATFORMS = new Set(['darwin', 'win32', 'linux', 'ios', 'android']);
 // Blanc for iPhone (M18 design §7.2) is counted entirely apart from desktop:
 // every key its ping touches carries this prefix, so iPhone 1.0.0 never adds
 // to desktop 1.0.0 and desktop's figures don't move. platform:ios is the one
 // shared key. The phone sends only the launch ping: no product events, no
 // first-day signals, and nothing is mirrored to Google Analytics.
 const IOS_KEY_PREFIX = 'ios:';
+// Blanc for Android is counted the same way, apart from desktop and from the
+// iPhone, under android: with platform:android shared.
+const ANDROID_KEY_PREFIX = 'android:';
+// The phones' namespaces. hasOwn, so a platform named '__proto__' never matches.
+const PHONE_KEY_PREFIXES = Object.freeze({ ios: IOS_KEY_PREFIX, android: ANDROID_KEY_PREFIX });
+const isPhone = (platform) => Object.hasOwn(PHONE_KEY_PREFIXES, platform);
 
 // A view of KV with every key under `prefix`; list() returns names without
 // it, so the counting and reading helpers work unchanged on either view.
@@ -64,6 +70,11 @@ function prefixedKV(kv, prefix) {
   };
 }
 const ALLOWED_ARCHES = new Set(['arm64', 'x64', 'ia32']);
+// iOS only, and optional: the iPhone 1.0 build sends none and still counts.
+const ALLOWED_IOS_DEVICES = new Set(['iphone', 'ipad']);
+// Android's, also optional: a phone or a tablet (smallest width 600dp or more).
+const ALLOWED_ANDROID_DEVICES = new Set(['phone', 'tablet']);
+const ALLOWED_PHONE_DEVICES = Object.freeze({ ios: ALLOWED_IOS_DEVICES, android: ALLOWED_ANDROID_DEVICES });
 const VERSION_RE = /^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.]+)?$/;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // The client already coarsens the OS to a bare major (src/main/telemetry.js
@@ -125,7 +136,7 @@ const DAY_ONE_SIGNALS_MIN_VERSION = '1.31.0';
 // VERSION_RE has already validated `version`, so its first three parts are
 // numeric. A pre-release of the minimum version counts as eligible.
 function sendsDayOneSignals(version, platform) {
-  if (platform === 'ios') return false;
+  if (isPhone(platform)) return false;
   const have = version.split(/[.-]/, 3).map(Number);
   const need = DAY_ONE_SIGNALS_MIN_VERSION.split('.').map(Number);
   for (let i = 0; i < 3; i++) if (have[i] !== need[i]) return have[i] > need[i];
@@ -304,7 +315,8 @@ function validatedClientFields(body) {
       ? String(Math.floor(body.sessionId))
       : null;
   if (!version || !platform || !arch || !installId || !sessionId) return null;
-  return { version, platform, arch, osVersion, installId, sessionId };
+  const device = isPhone(platform) && ALLOWED_PHONE_DEVICES[platform].has(body.device) ? body.device : null;
+  return { version, platform, arch, osVersion, installId, sessionId, device };
 }
 
 async function readClientRequest(request) {
@@ -323,13 +335,13 @@ async function handlePing(request, env, ctx, now) {
     console.warn(JSON.stringify({ event: 'ping-rejected', reason: 'implausible-payload' }));
     return new Response('bad request', { status: 400 });
   }
-  const { version, platform, arch, osVersion, installId, sessionId } = client.fields;
+  const { version, platform, arch, osVersion, installId, sessionId, device } = client.fields;
 
   // The raw id stops here: everything downstream — KV seen-keys AND the GA
   // mirror — sees only the keyed hash (or nothing, if the secret is unset).
   const hashedId = installId ? await hashInstallId(env, installId) : null;
-  const ios = platform === 'ios';
-  const kv = ios ? prefixedKV(env.PINGS, IOS_KEY_PREFIX) : env.PINGS;
+  const phone = isPhone(platform);
+  const kv = phone ? prefixedKV(env.PINGS, PHONE_KEY_PREFIXES[platform]) : env.PINGS;
 
   // A public endpoint cannot authenticate a shipped binary, but it can make
   // retries/replays cheap: an identical install/session event is processed
@@ -342,7 +354,7 @@ async function handlePing(request, env, ctx, now) {
 
   // GA mirror is queued before the KV writes so a KV failure can't cost
   // the launch event too. The phone is never mirrored.
-  if (!ios) ctx.waitUntil(forwardToGA(env, { version, platform, arch, osVersion, installId: hashedId, sessionId }));
+  if (!phone) ctx.waitUntil(forwardToGA(env, { version, platform, arch, osVersion, installId: hashedId, sessionId }));
 
   // KV get/put can throw transiently; the counts are best-effort anyway
   // (see bump()), so log and still 204 rather than turning a blip into a
@@ -354,14 +366,17 @@ async function handlePing(request, env, ctx, now) {
     bump(env.PINGS, `platform:${platform}`),
     // Keyed with the platform: a bare '11' would merge macOS 11 and Windows
     // 11. The phone's own namespace holds only iOS, so it keys the major alone.
-    bump(kv, ios ? `os:${osVersion}` : `os:${platform}:${osVersion}`),
+    bump(kv, phone ? `os:${osVersion}` : `os:${platform}:${osVersion}`),
   ];
+  if (device) work.push(bump(kv, `device:${device}`));
   if (hashedId) {
     work.push(
       // One extra KV read per install per launch-day at most — the event:
       // dedup and markActive reads already dwarf it.
-      markFirstSeen(kv, hashedId, dayBucket(now), bump).then((isNew) =>
-        isNew && sendsDayOneSignals(version, platform) && markDayOneEligible(kv, hashedId, dayBucket(now), bump)),
+      markFirstSeen(kv, hashedId, dayBucket(now), bump).then(async (isNew) => {
+        if (isNew && device) await bump(kv, `new:device:${device}`);
+        if (isNew && sendsDayOneSignals(version, platform)) await markDayOneEligible(kv, hashedId, dayBucket(now), bump);
+      }),
       markNextDayReturn(kv, hashedId, dayBucket(now), prevDayBucket(now), bump),
       markWeekTwoReturn(kv, hashedId, dayBucket(now), bump),
       markActive(kv, 'day', dayBucket(now), hashedId, DAY_SEEN_TTL),
@@ -369,7 +384,7 @@ async function handlePing(request, env, ctx, now) {
       markActive(kv, 'month', monthBucket(now), hashedId, MONTH_SEEN_TTL)
     );
     // The kill criteria's 30-day retention (port revisit), for the phone only.
-    if (ios) work.push(markMonthReturn(kv, hashedId, dayBucket(now), bump));
+    if (phone) work.push(markMonthReturn(kv, hashedId, dayBucket(now), bump));
   }
   await Promise.all(work).catch((err) => console.error('KV write failed:', err.message));
 
@@ -410,9 +425,9 @@ async function handleUsageEvent(request, env, ctx, now) {
   const signal = client && Object.hasOwn(DAY_ONE_EVENTS, client.body.event)
     ? DAY_ONE_EVENTS[client.body.event]
     : undefined;
-  if (signal && client.fields.platform !== 'ios') return handleDayOneSignal(env, client.fields, signal, now);
-  // The phone sends only its launch ping (M18 §7.2).
-  const usage = client && client.fields.platform !== 'ios' ? usageEventFrom(client.body) : null;
+  if (signal && !isPhone(client.fields.platform)) return handleDayOneSignal(env, client.fields, signal, now);
+  // The phones send only their launch ping (M18 §7.2).
+  const usage = client && !isPhone(client.fields.platform) ? usageEventFrom(client.body) : null;
   if (!client || !usage) {
     console.warn(JSON.stringify({ event: 'usage-rejected', reason: 'implausible-payload' }));
     return new Response('bad request', { status: 400 });
@@ -662,17 +677,19 @@ function monthReturnByCohort(newByDay, returnM1ByDay, today) {
   return { byDay };
 }
 
-// The phone's block in /stats (M18 §7.2): the launch, active-user, retention
+// A phone's block in /stats (M18 §7.2; Android's has the same shape): the launch, active-user, retention
 // and return figures desktop's top level has, read from the ios: namespace,
 // plus the 30-day return. No downloads, product usage or first-day split.
 async function iosStats(kv, now) {
   const [
-    total, byDay, byVersion, byOsVersion, daily, weekly, monthly, newByDay, returnD1ByDay, returnW2ByDay, returnM1ByDay,
+    total, byDay, byVersion, byOsVersion, byDevice, newByDevice, daily, weekly, monthly, newByDay, returnD1ByDay, returnW2ByDay, returnM1ByDay,
   ] = await Promise.all([
     kv.get('total'),
     readMap(kv, 'day:'),
     readMap(kv, 'version:'),
     readMap(kv, 'os:'),
+    readMap(kv, 'device:'),
+    readMap(kv, 'new:device:'),
     readMap(kv, 'active:day:'),
     readMap(kv, 'active:week:'),
     readMap(kv, 'active:month:'),
@@ -692,7 +709,7 @@ async function iosStats(kv, now) {
   const cohortSize = cohort.ids.size;
   const today = dayBucket(now);
   return {
-    launches: { total: parseInt(total ?? '0', 10), byDay, byVersion, byOsVersion },
+    launches: { total: parseInt(total ?? '0', 10), byDay, byVersion, byOsVersion, byDevice },
     activeUsers: { daily: pickRecent(daily, 30), weekly: pickRecent(weekly, 12), monthly: pickRecent(monthly, 12) },
     retention: {
       cohortMonth: lastMonth,
@@ -702,7 +719,7 @@ async function iosStats(kv, now) {
       rate: cohortSize ? Number((returned / cohortSize).toFixed(4)) : 0,
       truncated: cohort.truncated || current.truncated,
     },
-    newInstalls: { byDay: pickRecent(newByDay, 60) },
+    newInstalls: { byDay: pickRecent(newByDay, 60), byDevice: newByDevice },
     nextDayReturn: nextDayReturnByCohort(newByDay, returnD1ByDay, today),
     weekTwoReturn: weekTwoReturnByCohort(newByDay, returnW2ByDay, today),
     monthReturn: monthReturnByCohort(newByDay, returnM1ByDay, today),
@@ -737,7 +754,10 @@ async function handleStats(request, env, now) {
     readMap(env.PINGS, 'return:w2:'),
     readProductUsage(env.PINGS),
   ]);
-  const ios = await iosStats(prefixedKV(env.PINGS, IOS_KEY_PREFIX), now);
+  const [ios, android] = await Promise.all([
+    iosStats(prefixedKV(env.PINGS, IOS_KEY_PREFIX), now),
+    iosStats(prefixedKV(env.PINGS, ANDROID_KEY_PREFIX), now),
+  ]);
 
   // Month-over-month retention: of the installs active last month, how many
   // came back this month. Bounded by collectSeen's cap.
@@ -785,6 +805,7 @@ async function handleStats(request, env, now) {
     weekTwoReturn: weekTwoReturnByCohort(newByDay, returnW2ByDay, dayBucket(now)),
     productUsage,
     ios,
+    android,
   };
   return new Response(JSON.stringify(stats, null, 2), {
     headers: { 'Content-Type': 'application/json' },
@@ -859,8 +880,8 @@ async function handleDownload(request, env, ctx, now, target) {
       }).catch(() => console.warn('OpenAI conversion send failed'))
     );
   }
-  const pinned = pinnedDownload(target);
-  if (pinned) return redirect(pinned);
+  const fixed = fixedDownload(target) ?? pinnedDownload(target);
+  if (fixed) return redirect(fixed);
   const assets = await latestReleaseAssets(env, now);
   const asset = assets ? pickAsset(assets, target) : null;
   return redirect(asset ? asset.browser_download_url : RELEASES_LATEST_PAGE);

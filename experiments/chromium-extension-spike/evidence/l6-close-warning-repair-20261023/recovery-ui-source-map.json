@@ -1,0 +1,14 @@
+{
+  "historicalSource": "09985c160803f3432f0d2b40a21caa13e249e53c",
+  "candidateSource": "f4996df4e88c775bc1947a574b2bd7a0f9ad7539",
+  "function": "ShowSessionRecovery",
+  "sameSource": true,
+  "sha256": "78a04478f69ecc18196d946bfb05339656395a9a7c19d257134221e4d7b6e991",
+  "otherUnchangedSources": {
+    "experiments/chromium-extension-spike/session-recovery.mjs": "0d83859b9d7373d83542599e7b88e634856ea5c86fbe1eb76d85882c85dcfa05",
+    "experiments/chromium-extension-spike/save-ack.mjs": "86c2a77bb9be2a4bf6bb34e26546740fd6ef6fca4c2b299e9516f79eef6e0078",
+    "experiments/chromium-extension-spike/preview/launcher.c": "b23fb701eeb0783ba7390dca9172b66963a21aa23d0247e97e24801e53eda2b4"
+  },
+  "ownerPriorDecision": "Accept mapped UI evidence; close L6",
+  "scope": "Source mapping of previously accepted recovery UI only; not a fresh encryption-provider outage or waiting-screen observation."
+}

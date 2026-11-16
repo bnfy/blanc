@@ -1,0 +1,82 @@
+{
+  "sourceRevision": "7065f9c04f0a0493f172a6e67b389ac742e37f6f",
+  "passedFinalCheckpoints": 89,
+  "startup": {
+    "checks": 7,
+    "explicitRestoreFlag": false,
+    "report": "/private/tmp/blanc-l8-startup-recovery/verification-signed.json"
+  },
+  "recovery": [
+    {
+      "schedule": "recovery",
+      "exitCode": 0,
+      "checkpoints": 6,
+      "error": null
+    },
+    {
+      "schedule": "verified",
+      "exitCode": 0,
+      "checkpoints": 4,
+      "error": null
+    },
+    {
+      "schedule": "splits",
+      "exitCode": 0,
+      "checkpoints": 5,
+      "error": null
+    },
+    {
+      "schedule": "private-lifecycle",
+      "exitCode": 0,
+      "checkpoints": 10,
+      "error": null
+    },
+    {
+      "schedule": "grouped",
+      "exitCode": 0,
+      "checkpoints": 6,
+      "error": null
+    },
+    {
+      "schedule": "close",
+      "exitCode": 0,
+      "checkpoints": 6,
+      "error": null
+    },
+    {
+      "schedule": "nonregular",
+      "exitCode": 0,
+      "checkpoints": 6,
+      "error": null
+    },
+    {
+      "schedule": "teardown",
+      "exitCode": 0,
+      "checkpoints": 6,
+      "error": null
+    }
+  ],
+  "coreAndNotice": [
+    {
+      "schedule": "core",
+      "exitCode": 0,
+      "checks": 17,
+      "error": null
+    },
+    {
+      "schedule": "notice",
+      "exitCode": 0,
+      "checks": 16,
+      "error": null
+    }
+  ],
+  "unresolvedFindings": [
+    {
+      "finding": "An earlier nonregular-session schedule timed out during its second launch; native stack waited in synchronous session restoration. The subsequent full schedule and equivalent online/offline old/new copy controls passed. Causality and intermittent-stall disposition remain unqualified.",
+      "evidence": "regression/nonregular/first-unsatisfied-restart",
+      "status": "open"
+    }
+  ],
+  "ownerNormalMacBookRestart": "pending",
+  "gateAcceptance": "L6 and L8 remain open"
+}

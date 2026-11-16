@@ -1,6 +1,6 @@
 ---
 // The Blanc Mail product bar, on /mail and its Privacy and Terms: the
-// product's name, which leads back to the one Mail page, and the waitlist,
+// Blanc Mail lockup, which leads back to the one Mail page, and the waitlist,
 // sticky under the site header
 // (docs/superpowers/specs/2026-10-12-mail-pages-redesign-design.md §3).
 // The waitlist uses the Popover API, so light dismiss, Escape and returning
@@ -10,7 +10,10 @@ import MailWaitlistForm from './MailWaitlistForm.astro';
 ---
 <div class="mail-bar" data-mail-bar>
   <nav class="mail-bar-inner" aria-label="Blanc Mail">
-    <a class="mail-bar-title" href="/mail"><MailIcon class="mail-bar-icon" decorative /><span>Blanc Mail</span></a>
+    <!-- The Blanc Mail lockup (docs/brand-usage.md, "Blanc Mail lockup"): the
+         gold icon beside the outlined Blubird word, in its Text cut. -->
+    <a class="mail-bar-title" href="/mail"><span class="mail-lockup"><MailIcon decorative /><img
+      class="mail-lockup-word" src="/lockup/blanc-mail-word-small-white.svg" width="4531" height="762" alt="Blanc Mail" /></span></a>
     <button class="mail-bar-join" type="button" popovertarget="mail-bar-waitlist">Join<span class="mail-bar-join-tail"> the waitlist</span></button>
   </nav>
   <div class="mail-bar-pop mail-bar-waitlist" id="mail-bar-waitlist" popover data-align="end">

@@ -23,7 +23,8 @@ test('the built /pair page runs nothing: no scripts, analytics or chat', async (
   assert.match(html, /Pair with your Blanc/);
   assert.match(html, /Settings → Sync/);
   assert.match(html, /href="https:\/\/apps\.apple\.com\/app\/id6828027794"/, 'links the App Store listing');
-  assert.doesNotMatch(html, /TestFlight/, 'Blanc for iPhone is on the App Store, not only a beta');
+  assert.doesNotMatch(html, /TestFlight/, 'Blanc for iPhone and iPad is on the App Store, not only a beta');
+  assert.match(html, /Pair your iPhone or iPad with Blanc/);
 });
 
 test('_headers forbids scripts, connections and frames on /pair', async () => {

@@ -1,0 +1,18 @@
+{
+  "profiles": [
+    {
+      "path": "/private/tmp/blanc-f12-path-disposition-20261024/profile-feature-state",
+      "removed": true
+    },
+    {
+      "path": "/private/tmp/blanc-f12-path-disposition-20261024/profile-feature-state-corrected",
+      "removed": true
+    }
+  ],
+  "firstAttempt": "internal page not reached by tab API; condition timeout; clean exit0",
+  "correctedAttempt": "Target.createTarget internal page; complete; clean exit0",
+  "ownerOrGoogleProfilesUsed": false,
+  "newFeatureStateRuns": 1,
+  "failedFixtureAttempts": 1,
+  "existingPassingRuntimeTestsRepeated": 0
+}

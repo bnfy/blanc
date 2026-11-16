@@ -1,0 +1,42 @@
+{
+  "asset-recovery.json": {
+    "sha256": "ec404696408c8f412aa4945c3d8975d2ef0366324336957062d07ddd2306cbfa",
+    "bytes": 2508
+  },
+  "native-fingerprints.json": {
+    "sha256": "7309908c62f5fc6b508f5adf4bd8fe381e56a2a98834f91cab1258d3c87037b8",
+    "bytes": 459
+  },
+  "README.md": {
+    "sha256": "f7672fb886eaa41eee6013f8521979eb66387634307b5dc2c8226c7080826cd2",
+    "bytes": 4511
+  },
+  "validation.json": {
+    "sha256": "9f370ab9d6483eb1537e6a5fc395adaf04b4eedda63783addd3531cf80fdfae8",
+    "bytes": 950
+  },
+  "preflight.json": {
+    "sha256": "52ce7e1d99a89e1df3b0de81df6ff720f1d8793af4bed7f4f23b9c94e0146cc7",
+    "bytes": 516
+  },
+  "native-run-01/report.json": {
+    "sha256": "893a51b946959150da68d90186ba868c6bf68036c99a5f60a1ab1b036a24a94f",
+    "bytes": 1234
+  },
+  "native-run-01/regular-keepalive.json": {
+    "sha256": "caf584f6da2dc542455110ba42a3c682078d3af8694a2f1f21c66f9012524728",
+    "bytes": 12413
+  },
+  "native-run-01/regular-beacon.json": {
+    "sha256": "c762ceca9688b375693e922b13581c926b4cff4d0df9450a0da0983e79c90eb7",
+    "bytes": 12586
+  },
+  "native-run-01/private-keepalive.json": {
+    "sha256": "b785c31ca292fe42d5ce652a095d145486c46b78897fdafb8dedb3510d67e29b",
+    "bytes": 12586
+  },
+  "native-run-01/private-beacon.json": {
+    "sha256": "40bd35b09093036cf3d56ea7a0231a2929a5d9bfec617bed023213bf2ad68180",
+    "bytes": 12587
+  }
+}

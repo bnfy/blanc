@@ -1,0 +1,8 @@
+{
+  "app": "/Users/anthonyjloria/Projects/BlancChromium158/src/out/BlancPrototype/Blanc Prototype.app",
+  "profile": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/chromium158-affected-checks/splits/node22-home/Library/Application Support/Blanc Chromium Preview",
+  "mockKeychain": false,
+  "checks": [],
+  "error": "Error: readiness deadline",
+  "forcedCleanup": true
+}

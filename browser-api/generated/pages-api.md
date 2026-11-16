@@ -168,7 +168,7 @@ IPC the preload sends without exposing an API to the page.
 
 | Channel | Documents | Description |
 | --- | --- | --- |
-| `page-tint:changed` | https://example.com/, http://example.com/, blanc://newtab/ | Isolated-world invalidation for the strip's page tint: no arguments, no API exposed to the page. |
+| `page-tint:changed` | https://example.com/, http://example.com/, blanc://newtab/, blanc://mahjong/ | Isolated-world invalidation for the strip's page tint: no arguments, no API exposed to the page. |
 
 # window.blancFillStatus
 

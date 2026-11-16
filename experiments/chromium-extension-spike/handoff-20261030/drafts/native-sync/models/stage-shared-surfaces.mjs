@@ -1,0 +1,22 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+const [repo, commit] = process.argv.slice(2);
+if (!repo || !/^[a-f0-9]{40}$/.test(commit || '')) throw new Error('Supply repository and currently verified shipping source commit.');
+const sourcePath = 'src/main/shared-spaces-surfaces.js';
+const source = execFileSync('git', ['show', `${commit}:${sourcePath}`], {cwd:repo, encoding:'utf8'});
+if (/\brequire\s*\(|\bprocess\s*\.|\belectron\s*\./.test(source)) throw new Error('New runtime dependency requires review.');
+const generated = '// Generated verbatim from shipping shared-spaces-surfaces.js; pure presentation only.\nconst module = {exports:{}};\n' + source + '\nexport {hideOccurrences, markState, closedBand, publishedOccurrence};\n';
+const dir = path.dirname(fileURLToPath(import.meta.url));
+const sha = value => crypto.createHash('sha256').update(value).digest('hex');
+fs.writeFileSync(path.join(dir, 'shared-surfaces.mjs'), generated);
+fs.writeFileSync(path.join(dir, 'shared-surfaces-receipt.json'), JSON.stringify({sourceCommit:commit, sourcePath, sourceSha256:sha(source), moduleSha256:sha(generated), scope:'pure presentation; native validation and visibility authority required'},null,2)+'\n');
+
+const namesPath = 'src/main/device-names.js';
+const namesSource = execFileSync('git', ['show', `${commit}:${namesPath}`], {cwd:repo, encoding:'utf8'});
+if (/\brequire\s*\(|\bprocess\s*\.|\belectron\s*\./.test(namesSource)) throw new Error('New names dependency requires review.');
+const namesGenerated = '// Generated verbatim from shipping device-names.js.\nconst module = {exports:{}};\n' + namesSource + '\nexport {normalizeDeviceNames, setDeviceNameEntry, mergeDeviceNames, resolveDeviceName, deviceNamesEqual};\n';
+fs.writeFileSync(path.join(dir, 'device-names.mjs'), namesGenerated);
+fs.writeFileSync(path.join(dir, 'device-names-receipt.json'), JSON.stringify({sourceCommit:commit, sourcePath:namesPath, sourceSha256:sha(namesSource), moduleSha256:sha(namesGenerated), scope:'pure presentation and model; native authority required'},null,2)+'\n');

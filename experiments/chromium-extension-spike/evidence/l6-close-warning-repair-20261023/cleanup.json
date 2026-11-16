@@ -1,0 +1,30 @@
+{
+  "atUtc": "2026-10-23T18:33:06.434493+00:00",
+  "ownedBrowserProcessesRemaining": [],
+  "removedOnlyCompletedDisposablePaths": [
+    "/private/tmp/blanc-l6-close-warning-final/profile-native-empty",
+    "/private/tmp/blanc-l6-close-warning-final/profile-signed-empty-session-failure",
+    "/private/tmp/blanc-l6-close-warning-final/profile-signed-boundaries",
+    "/private/tmp/blanc-l6-close-warning-final/profile-signed-loaded-history",
+    "/private/tmp/blanc-l6-close-warning-final/profile-local-preflight",
+    "/private/tmp/blanc-l6-close-warning/profile-baseline",
+    "/private/tmp/blanc-l6-close-warning/profile-baseline-newtab",
+    "/private/tmp/blanc-l6-close-warning-final/regression/recovery/node22-home",
+    "/private/tmp/blanc-l6-close-warning-final/regression/verified/node22-home",
+    "/private/tmp/blanc-l6-close-warning-final/regression/splits/node22-home",
+    "/private/tmp/blanc-l6-close-warning-final/regression/private-lifecycle/profile-final",
+    "/private/tmp/blanc-l6-close-warning-final/regression/grouped/profile-ready",
+    "/private/tmp/blanc-l6-close-warning-final/regression/grouped/after",
+    "/private/tmp/blanc-l6-close-warning-final/regression/close/profile",
+    "/private/tmp/blanc-l6-close-warning-final/regression/nonregular/pipe-profile",
+    "/private/tmp/blanc-l6-close-warning-final/regression/teardown-profile-final",
+    "/private/tmp/blanc-l6-close-warning-final/regression/nonregular/regular-session-backup"
+  ],
+  "currentOwnerReviewWindowsPreserved": true,
+  "permanentProfilesAndTabsChanged": false,
+  "GoogleBaselineChanged": false,
+  "originalSourceAndOutputChanged": false,
+  "signedMasterAndArchivesPreserved": true,
+  "retainedAuthorizedSigningKey": true,
+  "remoteSigningCleanup": "completed before publication"
+}

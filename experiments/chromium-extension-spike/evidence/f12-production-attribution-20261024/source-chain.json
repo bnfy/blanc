@@ -1,0 +1,121 @@
+{
+  "candidateSource": "14706b0e8d4753d2a7ef35ea32a875b516366b0d",
+  "sourceFiles": [
+    {
+      "path": "content/browser/service_worker/service_worker_register_job.cc",
+      "sha256": "785f794fa932a20f68a13f5ea17bb93024e0a21a48b0413cb667db5fc41b6e5a",
+      "excerpts": [
+        {
+          "start": 674,
+          "end": 696,
+          "text": "674: void ServiceWorkerRegisterJob::UpdateAndContinue() {\n675:   SetPhase(UPDATE);\n676: \n677:   context_->NotifyWillCreateURLLoaderFactory(scope_);\n678: \n679:   // The network restrictions of the creator (e.g., frame) must be\n680:   // enforced for service worker script fetches.\n681:   scoped_refptr<network::SharedURLLoaderFactory> loader_factory =\n682:       context_->wrapper()->GetLoaderFactoryForUpdateCheck(\n683:           scope_,\n684:           network::mojom::ClientSecurityState::New(\n685:               creator_policy_container_policies_.cross_origin_embedder_policy,\n686:               creator_policy_container_policies_.is_web_secure_context,\n687:               creator_policy_container_policies_.ip_address_space,\n688:               DeriveLocalNetworkAccessRequestPolicy(\n689:                   creator_policy_container_policies_,\n690:                   LocalNetworkAccessRequestContext::kWorker),\n691:               creator_policy_container_policies_.document_isolation_policy),\n692:           creator_network_restrictions_id_);\n693:   if (!loader_factory) {\n694:     // We can't continue with update checking appropriately without\n695:     // |loader_factory|. Null |loader_factory| means that the storage partition\n696:     // was not available probably because it's shutting down."
+        },
+        {
+          "start": 719,
+          "end": 739,
+          "text": "719:       base::Time::Now() - registration()->last_update_check();\n720:   std::vector<storage::mojom::ServiceWorkerResourceRecordPtr> resources =\n721:       version_to_update->script_cache_map()->GetResources();\n722:   int64_t script_resource_id =\n723:       version_to_update->script_cache_map()->LookupResourceId(script_url_);\n724:   CHECK_NE(script_resource_id, blink::mojom::kInvalidServiceWorkerResourceId,\n725:            base::NotFatalUntil::M159);\n726:   const std::optional<std::string> script_sha256_chekcsum =\n727:       version_to_update->script_cache_map()->LookupSha256Checksum(script_url_);\n728: \n729:   update_checker_ = std::make_unique<ServiceWorkerUpdateChecker>(\n730:       std::move(resources), script_url_, script_resource_id,\n731:       script_sha256_chekcsum, version_to_update, std::move(loader_factory),\n732:       force_bypass_cache_, worker_script_type_,\n733:       registration()->update_via_cache(), time_since_last_check, context_,\n734:       outside_fetch_client_settings_object_.Clone(),\n735:       creator_network_restrictions_id_, network_restrictions_id_,\n736:       creator_policy_container_policies_.Clone());\n737:   update_checker_->Start(\n738:       base::BindOnce(&ServiceWorkerRegisterJob::OnUpdateCheckFinished,\n739:                      weak_factory_.GetWeakPtr()));"
+        }
+      ]
+    },
+    {
+      "path": "content/browser/service_worker/service_worker_context_wrapper.cc",
+      "sha256": "64fe54718ac5b32d34028b33a2a02af323a414f23db2ee067d7a6c2e0514072c",
+      "excerpts": [
+        {
+          "start": 1940,
+          "end": 1957,
+          "text": "1940: \n1941: scoped_refptr<network::SharedURLLoaderFactory>\n1942: ServiceWorkerContextWrapper::GetLoaderFactoryForUpdateCheck(\n1943:     const GURL& scope,\n1944:     network::mojom::ClientSecurityStatePtr client_security_state,\n1945:     const base::UnguessableToken& creator_network_restrictions_id) {\n1946:   DCHECK_CURRENTLY_ON(BrowserThread::UI);\n1947:   // TODO(crbug.com/40767578): Do we want to instrument this with\n1948:   // devtools? It is currently not recorded at all.\n1949:   return GetLoaderFactoryForBrowserInitiatedRequest(\n1950:       scope,\n1951:       /*version_id=*/std::nullopt, std::move(client_security_state),\n1952:       // The network restrictions of the creator (e.g., frame) must be\n1953:       // enforced for service worker script fetches.\n1954:       creator_network_restrictions_id);\n1955: }\n1956: \n1957: scoped_refptr<network::SharedURLLoaderFactory>"
+        },
+        {
+          "start": 1975,
+          "end": 2014,
+          "text": "1975:     network::mojom::ClientSecurityStatePtr client_security_state,\n1976:     const base::UnguessableToken& creator_network_restrictions_id) {\n1977:   DCHECK_CURRENTLY_ON(BrowserThread::UI);\n1978: \n1979:   // TODO(falken): Replace this with URLLoaderInterceptor.\n1980:   if (loader_factory_for_test_)\n1981:     return loader_factory_for_test_;\n1982: \n1983:   if (!storage_partition()) {\n1984:     return nullptr;\n1985:   }\n1986: \n1987:   const url::Origin scope_origin = url::Origin::Create(scope);\n1988: \n1989:   mojo::PendingRemote<network::mojom::URLLoaderFactory> remote;\n1990:   network::URLLoaderFactoryBuilder factory_builder;\n1991:   mojo::PendingRemote<network::mojom::TrustedURLLoaderHeaderClient>\n1992:       header_client;\n1993:   bool bypass_redirect_checks = false;\n1994:   // Here we give nullptr for |factory_override|, because CORS is no-op for\n1995:   // requests for this factory.\n1996:   // TODO(yhirano): Use |factory_override| because someday not just CORS but\n1997:   // ORB/CORP will use the factory and those are not no-ops for it\n1998:   GetContentClient()->browser()->WillCreateURLLoaderFactory(\n1999:       storage_partition_->browser_context(), /*frame=*/nullptr,\n2000:       ChildProcessHost::kInvalidUniqueID,\n2001:       ContentBrowserClient::URLLoaderFactoryType::kServiceWorkerScript,\n2002:       scope_origin, net::IsolationInfo(),\n2003:       /*navigation_id=*/std::nullopt, ukm::kInvalidSourceIdObj, factory_builder,\n2004:       &header_client, &bypass_redirect_checks,\n2005:       /*disable_secure_dns=*/nullptr,\n2006:       /*factory_override=*/nullptr,\n2007:       /*navigation_response_task_runner=*/nullptr,\n2008:       /*is_for_network_service=*/true);\n2009: \n2010:   // If we have a version_id, we are fetching a worker main script. We have a\n2011:   // DevtoolsAgentHost ready for the worker and we can add the devtools override\n2012:   // before instantiating the URLFactoryLoader.\n2013:   if (auto params = devtools_instrumentation::WillCreateURLLoaderFactoryParams::\n2014:           ForServiceWorkerMainScript(this, version_id)) {"
+        }
+      ]
+    },
+    {
+      "path": "content/browser/service_worker/service_worker_update_checker.cc",
+      "sha256": "d71c2a8eddf11bd4ba011579e79a0a07f6640d95c98059160df350f72bcdd71d",
+      "excerpts": [
+        {
+          "start": 270,
+          "end": 289,
+          "text": "270:   registry.GetRemoteStorageControl()->CreateResourceWriter(\n271:       new_resource_id, writer.BindNewPipeAndPassReceiver());\n272: \n273:   running_checker_ = std::make_unique<ServiceWorkerSingleScriptUpdateChecker>(\n274:       url, is_main_script, main_script_url_, version_to_update_->scope(),\n275:       force_bypass_cache_, worker_script_type_, update_via_cache_,\n276:       fetch_client_settings_object_, time_since_last_check_,\n277:       context_->wrapper()->browser_context(),\n278:       BlancUpdateFactory(loader_factory_, version_to_update_->registration_id(),\n279:           version_to_update_->version_id(), version_to_update_->scope(),\n280:           version_to_update_->key(), context_->wrapper()->browser_context()->IsOffTheRecord(), is_main_script),\n281:       std::move(compare_reader), std::move(copy_reader), std::move(writer),\n282:       new_resource_id,\n283:       // If the main script checksum is empty, then calculate each script\n284:       // checksum even if the check result is kIdentical.\n285:       main_script_sha256_checksum_\n286:           ? ServiceWorkerSingleScriptUpdateChecker::ScriptChecksumUpdateOption::\n287:                 kDefault\n288:           : ServiceWorkerSingleScriptUpdateChecker::ScriptChecksumUpdateOption::\n289:                 kForceUpdate,"
+        }
+      ]
+    },
+    {
+      "path": "chrome/browser/chrome_content_browser_client.cc",
+      "sha256": "7f485dd27862e033fe9b152f93ec6bbddf093887c5a7d3d16563bcfedf22aac8",
+      "excerpts": [
+        {
+          "start": 6884,
+          "end": 6908,
+          "text": "6884:     bool is_for_network_service) {\n6885: #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)\n6886:   auto* web_request_api =\n6887:       extensions::BrowserContextKeyedAPIFactory<extensions::WebRequestAPI>::Get(\n6888:           browser_context);\n6889: \n6890:   // NOTE: Some unit test environments do not initialize\n6891:   // BrowserContextKeyedAPI factories for e.g. WebRequest.\n6892:   if (web_request_api) {\n6893:     bool use_proxy_for_web_request =\n6894:         web_request_api->MaybeProxyURLLoaderFactory(\n6895:             browser_context, frame, render_process_id, type,\n6896:             std::move(navigation_id), ukm_source_id, factory_builder,\n6897:             header_client, navigation_response_task_runner, request_initiator);\n6898:     if (bypass_redirect_checks) {\n6899:       *bypass_redirect_checks = use_proxy_for_web_request;\n6900:     }\n6901:   }\n6902: #endif\n6903: \n6904:   // Blanc network factories only; WebUI/data/file loaders keep their own protocol.\n6905:   if (is_for_network_service)\n6906:     blanc::MaybeProxy(browser_context, frame, static_cast<int>(type), isolation_info, factory_builder);\n6907: \n6908:   // Install the HTTP Header Injection proxying factory."
+        }
+      ]
+    },
+    {
+      "path": "chrome/services/blanc_blocker/blocker_proxy.cc",
+      "sha256": "0f162c37953a3f993b12a4af2de62e986b4d06408c62bc3fd9af67b630ca2656",
+      "excerpts": [
+        {
+          "start": 393,
+          "end": 404,
+          "text": "393: struct Context {\n394:   base::WeakPtr<content::BrowserContext> browser_context;\n395:   std::string factory_instance;\n396:   bool private_profile;\n397:   content::GlobalRenderFrameHostId frame;\n398:   int factory_type;\n399:   net::IsolationInfo isolation_info;\n400: };\n401: #if BLANC_RESEARCH_HOOKS\n402: // Offline component prototype only. Cancel while unready; never queue a request\n403: // which might already have traversed an empty extension webRequest engine.\n404: struct UboHold : public base::SupportsUserData::Data {"
+        },
+        {
+          "start": 450,
+          "end": 471,
+          "text": "450:  public:\n451:   Request(Context context, scoped_refptr<network::SharedURLLoaderFactory> factory,\n452:       mojo::PendingReceiver<network::mojom::URLLoader> receiver, int32_t id, uint32_t options,\n453:       const network::ResourceRequest& request, mojo::PendingRemote<network::mojom::URLLoaderClient> client,\n454:       const net::MutableNetworkTrafficAnnotationTag& annotation)\n455:       : context_(context), factory_(std::move(factory)), id_(id), options_(options), request_(request),\n456:         annotation_(annotation), receiver_(this, std::move(receiver)), client_(std::move(client)), incoming_(this) {\n457:     // Snapshot the actual originating frame before an asynchronous decision can\n458:     // outlive it. Worker factories may intentionally have no associated frame.\n459:     auto* frame = content::RenderFrameHost::FromID(context_.frame);\n460:     frame_state_ = frame ? \"live-at-entry\" : context_.frame == content::GlobalRenderFrameHostId()\n461:         ? \"not-associated\" : \"gone-at-entry\";\n462:     if (frame) {\n463:       top_origin_ = frame->GetMainFrame()->GetLastCommittedOrigin().Serialize();\n464:       frame_role_ = frame->GetParent() ? \"sub\" : \"main\";\n465:     }\n466:     receiver_.set_disconnect_handler(base::BindOnce(&Request::Destroy, base::Unretained(this)));\n467:     client_.set_disconnect_handler(base::BindOnce(&Request::Destroy, base::Unretained(this)));\n468:   }\n469:   void Begin(base::TimeTicks entered) {\n470: #if BLANC_RESEARCH_HOOKS\n471:     if (UboProbe() && request_.url.host() == \"blanc-ubo-control.invalid\") {"
+        },
+        {
+          "start": 635,
+          "end": 659,
+          "text": "635:     if (!request_.url.SchemeIsHTTPOrHTTPS()) { std::move(allowed).Run(); return; }\n636:     start_ = entered;\n637: #if BLANC_RESEARCH_HOOKS\n638:     if (UboProbe() && !context_.private_profile) {\n639:       // Exact background-document list acquisition must not deadlock the hold.\n640:       auto& state = UboState(context_.browser_context.get());\n641:       const bool ready = state.ready && state.document.AsRenderFrameHostIfValid();\n642:       if (!ready && !UboBackground(context_, request_)) {\n643:         base::DictValue event; event.Set(\"event\", \"ubo-hold-cancel\"); Record(std::move(event));\n644:         Complete(net::ERR_BLOCKED_BY_CLIENT); return;\n645:       }\n646:       std::move(allowed).Run(); return;\n647:     }\n648: #endif\n649:     timeout_.Start(FROM_HERE, base::Seconds(35), base::BindOnce(&Request::TimedOut, weak_.GetWeakPtr()));\n650:     Engine::Get().Decide(request_.url.spec(), Type(request_), request_.referrer.spec(),\n651:       base::BindOnce(&Request::Decided, weak_.GetWeakPtr(), std::move(allowed)));\n652:   }\n653:   void TimedOut() {\n654:     Log(-1); Complete(net::ERR_BLOCKED_BY_CLIENT); Engine::Get().Fail();\n655:   }\n656:   void Log(int result) {\n657:     const auto elapsed = base::TimeTicks::Now() - start_;\n658:     const auto type = Type(request_);\n659:     base::DictValue event;"
+        },
+        {
+          "start": 688,
+          "end": 741,
+          "text": "688:   void Decided(base::OnceClosure allowed, int result) {\n689:     if (completed_) return;\n690:     if (!context_.browser_context) { Complete(net::ERR_BLOCKED_BY_CLIENT); return; }\n691:     timeout_.Stop();\n692:     // Measure through application of the decision, not just receipt of the Mojo\n693:     // reply. Capture time before optional context/logging work adds overhead.\n694:     if (result != 0) Complete(net::ERR_BLOCKED_BY_CLIENT);\n695:     else std::move(allowed).Run();\n696:     Log(result);\n697:   }\n698:   void Start() {\n699:     factory_->CreateLoaderAndStart(loader_.BindNewPipeAndPassReceiver(), id_, options_, request_,\n700:                                    incoming_.BindNewPipeAndPassRemote(), annotation_);\n701:     incoming_.set_disconnect_handler(base::BindOnce(&Request::Complete, weak_.GetWeakPtr(), net::ERR_FAILED));\n702:     if (priority_) loader_->SetPriority(*priority_, intra_);\n703:   }\n704:   Context context_;\n705:   std::string top_origin_ = \"unresolved\";\n706:   std::string frame_role_ = \"unresolved\";\n707:   std::string frame_state_;\n708:   scoped_refptr<network::SharedURLLoaderFactory> factory_;\n709:   int32_t id_; uint32_t options_;\n710:   network::ResourceRequest request_;\n711:   net::MutableNetworkTrafficAnnotationTag annotation_;\n712:   mojo::Receiver<network::mojom::URLLoader> receiver_;\n713:   mojo::Remote<network::mojom::URLLoaderClient> client_;\n714:   mojo::Remote<network::mojom::URLLoader> loader_;\n715:   mojo::Receiver<network::mojom::URLLoaderClient> incoming_;\n716:   std::optional<net::RequestPriority> priority_;\n717:   int32_t intra_ = 0; int redirect_index_ = 0; bool redirect_pending_ = false; bool completed_ = false;\n718:   base::TimeTicks start_;\n719:   base::OneShotTimer timeout_;\n720:   base::WeakPtrFactory<Request> weak_{this};\n721: };\n722: class Factory : public network::SelfDeletingURLLoaderFactory {\n723:  public:\n724:   Factory(mojo::PendingReceiver<network::mojom::URLLoaderFactory> receiver,\n725:           mojo::PendingRemote<network::mojom::URLLoaderFactory> remote, Context context,\n726:           base::SelfDeletingPassKey key)\n727:       : network::SelfDeletingURLLoaderFactory(std::move(receiver), key), context_(context),\n728:         target_(base::MakeRefCounted<network::WrapperSharedURLLoaderFactory>(std::move(remote))) {}\n729:   void CreateLoaderAndStart(mojo::PendingReceiver<network::mojom::URLLoader> receiver,\n730:       int32_t id, uint32_t options, const network::ResourceRequest& request,\n731:       mojo::PendingRemote<network::mojom::URLLoaderClient> client,\n732:       const net::MutableNetworkTrafficAnnotationTag& annotation) override {\n733:     if (!request.url.SchemeIsHTTPOrHTTPS()) {\n734:       target_->CreateLoaderAndStart(std::move(receiver), id, options, request, std::move(client), annotation);\n735:       return;\n736:     }\n737:     const auto entered = base::TimeTicks::Now();\n738:     auto* proxy = new Request(context_, target_, std::move(receiver), id, options, request, std::move(client), annotation);\n739:     proxy->Begin(entered);\n740:   }\n741:  private:"
+        },
+        {
+          "start": 843,
+          "end": 860,
+          "text": "843: #if BLANC_RESEARCH_HOOKS\n844:   if (command->HasSwitch(\"blanc-ubo-component-probe\")) return;\n845: #endif\n846:   registry.AddThrottle(std::make_unique<NavigationResponseGate>(registry));\n847: }\n848: void MaybeProxy(content::BrowserContext* context, content::RenderFrameHost* frame,\n849:                 int factory_type, const net::IsolationInfo& isolation_info,\n850:                 network::URLLoaderFactoryBuilder& builder) {\n851:   if (!base::CommandLine::ForCurrentProcess()->HasSwitch(\"blanc-blocker-assets\")\n852: #if BLANC_RESEARCH_HOOKS\n853:       && !UboProbe()\n854: #endif\n855:       ) return;\n856:   auto [receiver, remote] = builder.Append();\n857:   base::MakeSelfDeleting<Factory>(std::move(receiver), std::move(remote),\n858:       Context{context->GetWeakPtr(), base::UnguessableToken::Create().ToString(), context->IsOffTheRecord(), frame ? frame->GetGlobalId() : content::GlobalRenderFrameHostId(), factory_type, isolation_info});\n859: }\n860: }"
+        }
+      ]
+    },
+    {
+      "path": "content/browser/service_worker/blanc_update_identity.inc",
+      "sha256": "65b6b25a3f0497475e37377786da2953db74e0f227e6085403bb8044d8feefa2",
+      "excerpts": [
+        {
+          "start": 14,
+          "end": 29,
+          "text": "14: #include \"third_party/blink/public/common/storage_key/storage_key.h\"\n15: namespace {\n16: #if BLANC_RESEARCH_HOOKS\n17: void BlancUpdateIdentity(network::ResourceRequest& request, int64_t registration,\n18:                          int64_t version, const GURL& scope,\n19:                          const blink::StorageKey& storage_key, bool private_profile,\n20:                          bool main_script) {\n21:   // Refuse private data before creating an identity or inspecting its URL.\n22:   if (private_profile) return;\n23:   const auto file = base::CommandLine::ForCurrentProcess()->GetSwitchValuePath(\"blanc-worker-update-log\");\n24:   if (file.empty() || registration < 0 || version < 0) return;\n25:   const auto token = \"blanc-sw-update/\" + base::UnguessableToken::Create().ToString();\n26:   if (request.devtools_request_id.has_value()) return;\n27:   request.devtools_request_id = token;\n28:   base::DictValue row;\n29:   row.Set(\"token\", token); row.Set(\"registrationId\", base::NumberToString(registration));"
+        },
+        {
+          "start": 75,
+          "end": 92,
+          "text": "75: scoped_refptr<network::SharedURLLoaderFactory> BlancUpdateFactory(\n76:     scoped_refptr<network::SharedURLLoaderFactory> target, int64_t registration,\n77:     int64_t version, GURL scope, blink::StorageKey key, bool private_profile,\n78:     bool main_script) {\n79:   if (private_profile || !base::CommandLine::ForCurrentProcess()->HasSwitch(\"blanc-worker-update-log\")) return target;\n80:   mojo::PendingRemote<network::mojom::URLLoaderFactory> remote;\n81:   base::MakeSelfDeleting<BlancUpdateProxy>(remote.InitWithNewPipeAndPassReceiver(),\n82:       target, registration, version, scope, key, private_profile, main_script);\n83:   return base::MakeRefCounted<network::WrapperSharedURLLoaderFactory>(std::move(remote));\n84: }\n85: #else\n86: scoped_refptr<network::SharedURLLoaderFactory> BlancUpdateFactory(\n87:     scoped_refptr<network::SharedURLLoaderFactory> target, int64_t, int64_t,\n88:     GURL, blink::StorageKey, bool, bool) {\n89:   return target;\n90: }\n91: #endif\n92: }"
+        }
+      ]
+    },
+    {
+      "path": "content/public/common/blanc_research_build.h",
+      "sha256": "27665fabd5e87d6733f2f26ca2256eb4b1b3fe32305c83290db0eda37aba68a6",
+      "excerpts": [
+        {
+          "start": 1,
+          "end": 4,
+          "text": "1: #ifndef CONTENT_PUBLIC_COMMON_BLANC_RESEARCH_BUILD_H_\n2: #define CONTENT_PUBLIC_COMMON_BLANC_RESEARCH_BUILD_H_\n3: #define BLANC_RESEARCH_HOOKS 0\n4: #endif"
+        }
+      ]
+    }
+  ],
+  "repoAndPreparedProxyEqual": true,
+  "repoAndPreparedUpdateWrapperEqual": true,
+  "researchHooks": 0,
+  "claim": "Source routing and current implementation continuity only; not a new runtime proof"
+}

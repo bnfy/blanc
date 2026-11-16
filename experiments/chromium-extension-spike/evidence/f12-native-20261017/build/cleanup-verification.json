@@ -1,0 +1,10 @@
+{
+  "nativeBlockerExperimentProcessPidsRemaining": [],
+  "sisoProcessPidsRemaining": [],
+  "failureTempDirsRemaining": [],
+  "existingPrototypePidsObserved": [
+    52518,
+    98575
+  ],
+  "scope": "Read-only process snapshot; final comparison reports separately record disposable profile/key removal. No changes to existing prototypes."
+}

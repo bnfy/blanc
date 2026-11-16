@@ -1,0 +1,5 @@
+{
+  "checks": [],
+  "pass": false,
+  "error": "Error: {\"exceptionId\":1,\"text\":\"Uncaught (in promise) Error: Save the complete current window before switching.\",\"lineNumber\":73,\"columnNumber\":64,\"scriptId\":\"4\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancPrototypeReply\",\"scriptId\":\"4\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":72,\"columnNumber\":63},{\"functionName\":\"\",\"scriptId\":\"53\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Save the complete current window before switching.\\n    at window.blancPrototypeReply (chrome://blanc-prototype/host.js:73:64)\\n    at <anonymous>:1:1\",\"objectId\":\"-1370266390896266855.1.7\"}}\n    at call (file:///private/tmp/blanc-partial-restart-left-settled-session-seeded/test.mjs:8:334)\n    at async file:///private/tmp/blanc-partial-restart-left-settled-session-seeded/test.mjs:18:103"
+}

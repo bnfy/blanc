@@ -1,0 +1,88 @@
+{
+  "blanc-service-lifecycle-01": {
+    "files": [
+      {
+        "path": "chromium-regular-a.json",
+        "sha256": "3a4a65de19014cece881eecc812dd7683f60eaf0a206d8dde81cd9048f495530"
+      },
+      {
+        "path": "electron-private-a.json",
+        "sha256": "ea9c870adfb89d94a59d6835f11a178e2bfb51e7e1ed2d6cb45fa7d3dc1c30e9"
+      },
+      {
+        "path": "electron-private-b.json",
+        "sha256": "b0ca8e4394927585a80f3ec9de9e3d25f2ac624a570560b650346b015f14a453"
+      },
+      {
+        "path": "electron-regular-a.json",
+        "sha256": "dfc94e4629b88a77a615a3ca68bfc748d8de4e26b095b582986e5e23efaa4cf3"
+      },
+      {
+        "path": "electron-regular-b.json",
+        "sha256": "565ad64f7964cb626f77a274a1297b3ddae4c96380e4e32bf0eb27b4d76e0edc"
+      },
+      {
+        "path": "fixtures.json",
+        "sha256": "dc8d19fd967c1fac9920e4cb5c63c2b609e3d5b65aef625b07f1417dacfde6f0"
+      },
+      {
+        "path": "replacement.js",
+        "sha256": "848390c3654e466922128b052a476cfd7e9addfade8ee7d4c52e4224197f04fd"
+      },
+      {
+        "path": "report.json",
+        "sha256": "f3da1665674735bed0dd70340573ff0778e99b4745238f885fee1c8540d28dce"
+      }
+    ],
+    "sha256": "13ec9531ff197f1cb730774a92fa6b9c4cc39aa2db72a8e67ce2ff79cbddb2ed"
+  },
+  "blanc-service-lifecycle-02": {
+    "files": [
+      {
+        "path": "chromium-private-a.json",
+        "sha256": "a8c4196b52f9392083b81c056c8ec63672bd343cb07bc52576be77c6efa1da8b"
+      },
+      {
+        "path": "chromium-private-b.json",
+        "sha256": "80d62d00d6565cc575f73ffcd0a61dfed36c28b3e0dea700db93df6e1e456ad8"
+      },
+      {
+        "path": "chromium-regular-a.json",
+        "sha256": "4e30df4cf62d0e2034261e2fe78157fc10faa8815910cabbb21c05fddac8d2b1"
+      },
+      {
+        "path": "chromium-regular-b.json",
+        "sha256": "f7c6c06b8d1a09e726bb4882a9ca8403d7e3d4dbacc0f458fe7e862dadc0a0b6"
+      },
+      {
+        "path": "electron-private-a.json",
+        "sha256": "6f0f4f0361a06c679c4fc4436c5e943c7e00385b31f0ae31e22aaa5afcebaf98"
+      },
+      {
+        "path": "electron-private-b.json",
+        "sha256": "b718eab8b7b644e5cab39d813d2ec316c5f2a41058517ce6f70b59db8e08c1a8"
+      },
+      {
+        "path": "electron-regular-a.json",
+        "sha256": "59fb5ab7fa8343b71908b0d0b0244fd1cd64447253ceeaf79c03a0110946460f"
+      },
+      {
+        "path": "electron-regular-b.json",
+        "sha256": "69bf5907cd0e31054efd16642d9c4da168e0425568efaa91ea4c93dd63e203e5"
+      },
+      {
+        "path": "fixtures.json",
+        "sha256": "dc8d19fd967c1fac9920e4cb5c63c2b609e3d5b65aef625b07f1417dacfde6f0"
+      },
+      {
+        "path": "replacement.js",
+        "sha256": "848390c3654e466922128b052a476cfd7e9addfade8ee7d4c52e4224197f04fd"
+      },
+      {
+        "path": "report.json",
+        "sha256": "87bf5cfcf3f9f8abf91c2589c6f4dc284bb615cdcbe793b1d616e82c92c55baa"
+      }
+    ],
+    "sha256": "96169880c5fb28d03fd9a4486d217233db1d55db18ebf2967aae55d9270856db"
+  }
+}

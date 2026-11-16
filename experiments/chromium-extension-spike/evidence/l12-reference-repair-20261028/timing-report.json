@@ -1,0 +1,4565 @@
+{
+  "started": "2026-10-28T23:46:24.641Z",
+  "completed": true,
+  "protocol": "one discarded full warm-up then five full repetitions per profile in the same process; nearest-rank percentiles; median-of-five",
+  "pageScheduling": "26 sequential page loads per repetition, 200 candidates per page except last; each page issues its resources concurrently without pacing; full corpus unchanged; repeated roots excluded from unique URL floor",
+  "nativeClock": "base::TimeTicks from factory entry or redirect receipt through decision application; Mojo included",
+  "electronClock": "process.hrtime.bigint at JS provider-observer entry through real provider result; preceding Electron native dispatch excluded; reference only",
+  "fullAcceptance": false,
+  "sources": {
+    "latency-run.mjs": "a67e86e2f728280781e75d98bccb9462eae1a765926d44fcf5a98258d67b90d0",
+    "latency-validate.mjs": "7826c7058f487d836afeeff0beb4fb8388eb184fc3dfd453b62ccd4757aca63e",
+    "session.mjs": "98ed2bd70467a09f8dec63667ec6dd765205f3245c45e209f3e06349109dc275",
+    "page.mjs": "f9cba4814df85c8adea3acdbc86a877392c7a69ecdc743d7917ede0d2c7ba6bc",
+    "native-latency-trace.mjs": "9fd2adb0b1aefcdc3ed31af320d4dbe1badb6713c187425983893426907d1f4c"
+  },
+  "runs": [
+    {
+      "label": "electron-regular",
+      "rep": 0,
+      "warmup": true,
+      "started": "2026-10-28T23:46:31.092Z",
+      "finished": "2026-10-28T23:46:42.333Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:46:31.092Z",
+          "user": 47.17,
+          "system": 24.22,
+          "idle": 28.59
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.013792,
+        "p95": 0.065,
+        "p99": 0.124208
+      },
+      "first200Ms": {
+        "p50": 0.020917,
+        "p95": 0.1655,
+        "p99": 0.3375
+      },
+      "first200MaximumMs": 0.854958,
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "electron-regular",
+      "rep": 1,
+      "warmup": false,
+      "started": "2026-10-28T23:46:45.885Z",
+      "finished": "2026-10-28T23:46:57.436Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:46:45.885Z",
+          "user": 42.86,
+          "system": 26.48,
+          "idle": 30.64
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.011417,
+        "p95": 0.049292,
+        "p99": 0.089083
+      },
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "electron-regular",
+      "rep": 2,
+      "warmup": false,
+      "started": "2026-10-28T23:47:00.961Z",
+      "finished": "2026-10-28T23:47:13.273Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:47:00.961Z",
+          "user": 42.54,
+          "system": 26.51,
+          "idle": 30.93
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.010875,
+        "p95": 0.049540999999999995,
+        "p99": 0.089708
+      },
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "electron-regular",
+      "rep": 3,
+      "warmup": false,
+      "started": "2026-10-28T23:47:16.844Z",
+      "finished": "2026-10-28T23:47:29.692Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:47:16.844Z",
+          "user": 44.62,
+          "system": 19.47,
+          "idle": 35.89
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.010625,
+        "p95": 0.04525,
+        "p99": 0.074708
+      },
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "electron-regular",
+      "rep": 4,
+      "warmup": false,
+      "started": "2026-10-28T23:47:33.215Z",
+      "finished": "2026-10-28T23:47:51.204Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:47:33.215Z",
+          "user": 51.15,
+          "system": 22.99,
+          "idle": 25.85
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.012208,
+        "p95": 0.086125,
+        "p99": 0.13625
+      },
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "electron-regular",
+      "rep": 5,
+      "warmup": false,
+      "started": "2026-10-28T23:47:54.762Z",
+      "finished": "2026-10-28T23:48:10.350Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:47:54.761Z",
+          "user": 45.5,
+          "system": 25.35,
+          "idle": 29.58
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.011125,
+        "p95": 0.060709000000000006,
+        "p99": 0.111542
+      },
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "electron-private",
+      "rep": 0,
+      "warmup": true,
+      "started": "2026-10-28T23:48:17.020Z",
+      "finished": "2026-10-28T23:48:28.441Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:48:17.020Z",
+          "user": 44.22,
+          "system": 27.75,
+          "idle": 28.2
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.014292,
+        "p95": 0.072,
+        "p99": 0.139
+      },
+      "first200Ms": {
+        "p50": 0.020417,
+        "p95": 0.067583,
+        "p99": 0.28254199999999996
+      },
+      "first200MaximumMs": 0.783875,
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "electron-private",
+      "rep": 1,
+      "warmup": false,
+      "started": "2026-10-28T23:48:32.017Z",
+      "finished": "2026-10-28T23:48:44.973Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:48:32.017Z",
+          "user": 39.87,
+          "system": 25.4,
+          "idle": 35.7
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.011208000000000001,
+        "p95": 0.065125,
+        "p99": 0.114667
+      },
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "electron-private",
+      "rep": 2,
+      "warmup": false,
+      "started": "2026-10-28T23:48:48.474Z",
+      "finished": "2026-10-28T23:49:00.518Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:48:48.474Z",
+          "user": 48.79,
+          "system": 20.16,
+          "idle": 31.4
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.01125,
+        "p95": 0.050457999999999996,
+        "p99": 0.10108299999999999
+      },
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "electron-private",
+      "rep": 3,
+      "warmup": false,
+      "started": "2026-10-28T23:49:04.046Z",
+      "finished": "2026-10-28T23:49:16.528Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:49:04.046Z",
+          "user": 44.49,
+          "system": 20.1,
+          "idle": 35.39
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.010708,
+        "p95": 0.041832999999999995,
+        "p99": 0.076
+      },
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "electron-private",
+      "rep": 4,
+      "warmup": false,
+      "started": "2026-10-28T23:49:20.098Z",
+      "finished": "2026-10-28T23:49:33.542Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:49:20.098Z",
+          "user": 46.78,
+          "system": 23.39,
+          "idle": 29.81
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.010625,
+        "p95": 0.04325,
+        "p99": 0.084458
+      },
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    },
+    {
+      "label": "electron-private",
+      "rep": 5,
+      "warmup": false,
+      "started": "2026-10-28T23:49:37.101Z",
+      "finished": "2026-10-28T23:49:51.658Z",
+      "idleSamples": [
+        {
+          "at": "2026-10-28T23:49:37.101Z",
+          "user": 38.1,
+          "system": 27.83,
+          "idle": 34.14
+        }
+      ],
+      "idleConditionMet": false,
+      "count": 6406,
+      "valid": true,
+      "percentilesMs": {
+        "p50": 0.010417,
+        "p95": 0.046708,
+        "p99": 0.08466599999999999
+      },
+      "pages": [
+        {
+          "index": 0,
+          "valid": true,
+          "count": 223,
+          "faults": []
+        },
+        {
+          "index": 1,
+          "valid": true,
+          "count": 228,
+          "faults": []
+        },
+        {
+          "index": 2,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 3,
+          "valid": true,
+          "count": 227,
+          "faults": []
+        },
+        {
+          "index": 4,
+          "valid": true,
+          "count": 225,
+          "faults": []
+        },
+        {
+          "index": 5,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 6,
+          "valid": true,
+          "count": 229,
+          "faults": []
+        },
+        {
+          "index": 7,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 8,
+          "valid": true,
+          "count": 226,
+          "faults": []
+        },
+        {
+          "index": 9,
+          "valid": true,
+          "count": 230,
+          "faults": []
+        },
+        {
+          "index": 10,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 11,
+          "valid": true,
+          "count": 219,
+          "faults": []
+        },
+        {
+          "index": 12,
+          "valid": true,
+          "count": 247,
+          "faults": []
+        },
+        {
+          "index": 13,
+          "valid": true,
+          "count": 234,
+          "faults": []
+        },
+        {
+          "index": 14,
+          "valid": true,
+          "count": 221,
+          "faults": []
+        },
+        {
+          "index": 15,
+          "valid": true,
+          "count": 232,
+          "faults": []
+        },
+        {
+          "index": 16,
+          "valid": true,
+          "count": 218,
+          "faults": []
+        },
+        {
+          "index": 17,
+          "valid": true,
+          "count": 249,
+          "faults": []
+        },
+        {
+          "index": 18,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 19,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 20,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 21,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 22,
+          "valid": true,
+          "count": 300,
+          "faults": []
+        },
+        {
+          "index": 23,
+          "valid": true,
+          "count": 299,
+          "faults": []
+        },
+        {
+          "index": 24,
+          "valid": true,
+          "count": 301,
+          "faults": []
+        },
+        {
+          "index": 25,
+          "valid": true,
+          "count": 180,
+          "faults": []
+        }
+      ]
+    }
+  ],
+  "profiles": {
+    "electron-regular": {
+      "source": {
+        "browserKind": "electron",
+        "kind": "regular",
+        "referenceRepair": {
+          "kind": "isolated-reference-correction",
+          "originalVersion": "1.36.0",
+          "changes": [
+            {
+              "name": "src/main/adblock.js",
+              "before": "b196eae6a33e28b101aeab01b63f0d08cdd68771eff2df54c79c4e6811e535d5",
+              "after": "c842eaa0958fd1f9a296781a042a51b3162e370b1710b339b538f5f8384783f7"
+            },
+            {
+              "name": "src/main/adblock-owned-css.js",
+              "before": "25675654f81c55f66df52a6d70def5e0e5753d4aba06cd6b56a4121afa9ff870",
+              "after": "c6ffe7422da74ddae0438380e7e778e379a21f5cd83e3297ef74afbcecbd3c43"
+            },
+            {
+              "name": "node_modules/@ghostery/adblocker-electron-preload/dist/index.cjs",
+              "before": "a3cf09716cadd00c1e1a699d7a5bf0324e3d8ab73ec00e0202f5dead36e0a8e0",
+              "after": "6c39f30c978c39c358fc42009be8380bb2b2b98e387617c70e036a636c5c0d6a"
+            }
+          ],
+          "preloadSourceSha256": "a75b88bdf6f93773001d0f93566a7d21be88d385c5296aeec7849672b383ea04",
+          "repairSourceSha256": "21aa20f52d3f0f72d63518c59d6e3e3f1a59a804921da51f6716072b76f98687"
+        },
+        "bootstrapSha256": "bd2eaf9fd487903aecc81036d2d19adc70747e36d72dac9d9eac59248a1700f9",
+        "asarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+        "versions": {
+          "node": "24.22.0",
+          "acorn": "8.18.0",
+          "ada": "4.0.0",
+          "amaro": "1.1.11",
+          "ares": "1.34.8",
+          "brotli": "1.2.0",
+          "cldr": "48.0",
+          "icu": "78.2",
+          "llhttp": "9.4.3",
+          "merve": "1.2.2",
+          "modules": "149",
+          "napi": "10",
+          "nbytes": "0.1.4",
+          "ncrypto": "0.0.1",
+          "nghttp2": "1.70.0",
+          "nghttp3": "",
+          "ngtcp2": "",
+          "openssl": "0.0.0",
+          "simdjson": "4.6.11",
+          "simdutf": "7.7.0",
+          "sqlite": "3.53.4",
+          "tz": "2026d",
+          "undici": "7.29.1",
+          "unicode": "17.0",
+          "uv": "1.52.1",
+          "uvwasi": "0.0.23",
+          "v8": "15.2.124.43-electron.0",
+          "zlib": "1.3.2.1-motley",
+          "zstd": "1.6.0",
+          "electron": "44.8.0",
+          "chrome": "152.0.7977.167"
+        }
+      },
+      "idleBeforeSession": {
+        "at": "2026-10-28T23:46:26.114Z",
+        "user": 34.12,
+        "system": 20.45,
+        "idle": 45.41
+      },
+      "repetitions": [
+        {
+          "label": "electron-regular",
+          "rep": 0,
+          "warmup": true,
+          "started": "2026-10-28T23:46:31.092Z",
+          "finished": "2026-10-28T23:46:42.333Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:46:31.092Z",
+              "user": 47.17,
+              "system": 24.22,
+              "idle": 28.59
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.013792,
+            "p95": 0.065,
+            "p99": 0.124208
+          },
+          "first200Ms": {
+            "p50": 0.020917,
+            "p95": 0.1655,
+            "p99": 0.3375
+          },
+          "first200MaximumMs": 0.854958,
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        },
+        {
+          "label": "electron-regular",
+          "rep": 1,
+          "warmup": false,
+          "started": "2026-10-28T23:46:45.885Z",
+          "finished": "2026-10-28T23:46:57.436Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:46:45.885Z",
+              "user": 42.86,
+              "system": 26.48,
+              "idle": 30.64
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.011417,
+            "p95": 0.049292,
+            "p99": 0.089083
+          },
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        },
+        {
+          "label": "electron-regular",
+          "rep": 2,
+          "warmup": false,
+          "started": "2026-10-28T23:47:00.961Z",
+          "finished": "2026-10-28T23:47:13.273Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:47:00.961Z",
+              "user": 42.54,
+              "system": 26.51,
+              "idle": 30.93
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.010875,
+            "p95": 0.049540999999999995,
+            "p99": 0.089708
+          },
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        },
+        {
+          "label": "electron-regular",
+          "rep": 3,
+          "warmup": false,
+          "started": "2026-10-28T23:47:16.844Z",
+          "finished": "2026-10-28T23:47:29.692Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:47:16.844Z",
+              "user": 44.62,
+              "system": 19.47,
+              "idle": 35.89
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.010625,
+            "p95": 0.04525,
+            "p99": 0.074708
+          },
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        },
+        {
+          "label": "electron-regular",
+          "rep": 4,
+          "warmup": false,
+          "started": "2026-10-28T23:47:33.215Z",
+          "finished": "2026-10-28T23:47:51.204Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:47:33.215Z",
+              "user": 51.15,
+              "system": 22.99,
+              "idle": 25.85
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.012208,
+            "p95": 0.086125,
+            "p99": 0.13625
+          },
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        },
+        {
+          "label": "electron-regular",
+          "rep": 5,
+          "warmup": false,
+          "started": "2026-10-28T23:47:54.762Z",
+          "finished": "2026-10-28T23:48:10.350Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:47:54.761Z",
+              "user": 45.5,
+              "system": 25.35,
+              "idle": 29.58
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.011125,
+            "p95": 0.060709000000000006,
+            "p99": 0.111542
+          },
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        }
+      ],
+      "boundMs": null,
+      "medianMs": {
+        "p50": 0.011125,
+        "p95": 0.049540999999999995,
+        "p99": 0.089708
+      },
+      "timingBoundMet": null,
+      "idleConditionMet": false,
+      "ownerAuthorizedLoadedBoundMet": null,
+      "formalNativeGatePassed": null
+    },
+    "electron-private": {
+      "source": {
+        "browserKind": "electron",
+        "kind": "private",
+        "referenceRepair": {
+          "kind": "isolated-reference-correction",
+          "originalVersion": "1.36.0",
+          "changes": [
+            {
+              "name": "src/main/adblock.js",
+              "before": "b196eae6a33e28b101aeab01b63f0d08cdd68771eff2df54c79c4e6811e535d5",
+              "after": "c842eaa0958fd1f9a296781a042a51b3162e370b1710b339b538f5f8384783f7"
+            },
+            {
+              "name": "src/main/adblock-owned-css.js",
+              "before": "25675654f81c55f66df52a6d70def5e0e5753d4aba06cd6b56a4121afa9ff870",
+              "after": "c6ffe7422da74ddae0438380e7e778e379a21f5cd83e3297ef74afbcecbd3c43"
+            },
+            {
+              "name": "node_modules/@ghostery/adblocker-electron-preload/dist/index.cjs",
+              "before": "a3cf09716cadd00c1e1a699d7a5bf0324e3d8ab73ec00e0202f5dead36e0a8e0",
+              "after": "6c39f30c978c39c358fc42009be8380bb2b2b98e387617c70e036a636c5c0d6a"
+            }
+          ],
+          "preloadSourceSha256": "a75b88bdf6f93773001d0f93566a7d21be88d385c5296aeec7849672b383ea04",
+          "repairSourceSha256": "21aa20f52d3f0f72d63518c59d6e3e3f1a59a804921da51f6716072b76f98687"
+        },
+        "bootstrapSha256": "bd2eaf9fd487903aecc81036d2d19adc70747e36d72dac9d9eac59248a1700f9",
+        "asarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+        "versions": {
+          "node": "24.22.0",
+          "acorn": "8.18.0",
+          "ada": "4.0.0",
+          "amaro": "1.1.11",
+          "ares": "1.34.8",
+          "brotli": "1.2.0",
+          "cldr": "48.0",
+          "icu": "78.2",
+          "llhttp": "9.4.3",
+          "merve": "1.2.2",
+          "modules": "149",
+          "napi": "10",
+          "nbytes": "0.1.4",
+          "ncrypto": "0.0.1",
+          "nghttp2": "1.70.0",
+          "nghttp3": "",
+          "ngtcp2": "",
+          "openssl": "0.0.0",
+          "simdjson": "4.6.11",
+          "simdutf": "7.7.0",
+          "sqlite": "3.53.4",
+          "tz": "2026d",
+          "undici": "7.29.1",
+          "unicode": "17.0",
+          "uv": "1.52.1",
+          "uvwasi": "0.0.23",
+          "v8": "15.2.124.43-electron.0",
+          "zlib": "1.3.2.1-motley",
+          "zstd": "1.6.0",
+          "electron": "44.8.0",
+          "chrome": "152.0.7977.167"
+        }
+      },
+      "idleBeforeSession": {
+        "at": "2026-10-28T23:48:12.014Z",
+        "user": 46.7,
+        "system": 27.33,
+        "idle": 26.59
+      },
+      "repetitions": [
+        {
+          "label": "electron-private",
+          "rep": 0,
+          "warmup": true,
+          "started": "2026-10-28T23:48:17.020Z",
+          "finished": "2026-10-28T23:48:28.441Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:48:17.020Z",
+              "user": 44.22,
+              "system": 27.75,
+              "idle": 28.2
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.014292,
+            "p95": 0.072,
+            "p99": 0.139
+          },
+          "first200Ms": {
+            "p50": 0.020417,
+            "p95": 0.067583,
+            "p99": 0.28254199999999996
+          },
+          "first200MaximumMs": 0.783875,
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        },
+        {
+          "label": "electron-private",
+          "rep": 1,
+          "warmup": false,
+          "started": "2026-10-28T23:48:32.017Z",
+          "finished": "2026-10-28T23:48:44.973Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:48:32.017Z",
+              "user": 39.87,
+              "system": 25.4,
+              "idle": 35.7
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.011208000000000001,
+            "p95": 0.065125,
+            "p99": 0.114667
+          },
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        },
+        {
+          "label": "electron-private",
+          "rep": 2,
+          "warmup": false,
+          "started": "2026-10-28T23:48:48.474Z",
+          "finished": "2026-10-28T23:49:00.518Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:48:48.474Z",
+              "user": 48.79,
+              "system": 20.16,
+              "idle": 31.4
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.01125,
+            "p95": 0.050457999999999996,
+            "p99": 0.10108299999999999
+          },
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        },
+        {
+          "label": "electron-private",
+          "rep": 3,
+          "warmup": false,
+          "started": "2026-10-28T23:49:04.046Z",
+          "finished": "2026-10-28T23:49:16.528Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:49:04.046Z",
+              "user": 44.49,
+              "system": 20.1,
+              "idle": 35.39
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.010708,
+            "p95": 0.041832999999999995,
+            "p99": 0.076
+          },
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        },
+        {
+          "label": "electron-private",
+          "rep": 4,
+          "warmup": false,
+          "started": "2026-10-28T23:49:20.098Z",
+          "finished": "2026-10-28T23:49:33.542Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:49:20.098Z",
+              "user": 46.78,
+              "system": 23.39,
+              "idle": 29.81
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.010625,
+            "p95": 0.04325,
+            "p99": 0.084458
+          },
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        },
+        {
+          "label": "electron-private",
+          "rep": 5,
+          "warmup": false,
+          "started": "2026-10-28T23:49:37.101Z",
+          "finished": "2026-10-28T23:49:51.658Z",
+          "idleSamples": [
+            {
+              "at": "2026-10-28T23:49:37.101Z",
+              "user": 38.1,
+              "system": 27.83,
+              "idle": 34.14
+            }
+          ],
+          "idleConditionMet": false,
+          "count": 6406,
+          "valid": true,
+          "percentilesMs": {
+            "p50": 0.010417,
+            "p95": 0.046708,
+            "p99": 0.08466599999999999
+          },
+          "pages": [
+            {
+              "index": 0,
+              "valid": true,
+              "count": 223,
+              "faults": []
+            },
+            {
+              "index": 1,
+              "valid": true,
+              "count": 228,
+              "faults": []
+            },
+            {
+              "index": 2,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 3,
+              "valid": true,
+              "count": 227,
+              "faults": []
+            },
+            {
+              "index": 4,
+              "valid": true,
+              "count": 225,
+              "faults": []
+            },
+            {
+              "index": 5,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 6,
+              "valid": true,
+              "count": 229,
+              "faults": []
+            },
+            {
+              "index": 7,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 8,
+              "valid": true,
+              "count": 226,
+              "faults": []
+            },
+            {
+              "index": 9,
+              "valid": true,
+              "count": 230,
+              "faults": []
+            },
+            {
+              "index": 10,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 11,
+              "valid": true,
+              "count": 219,
+              "faults": []
+            },
+            {
+              "index": 12,
+              "valid": true,
+              "count": 247,
+              "faults": []
+            },
+            {
+              "index": 13,
+              "valid": true,
+              "count": 234,
+              "faults": []
+            },
+            {
+              "index": 14,
+              "valid": true,
+              "count": 221,
+              "faults": []
+            },
+            {
+              "index": 15,
+              "valid": true,
+              "count": 232,
+              "faults": []
+            },
+            {
+              "index": 16,
+              "valid": true,
+              "count": 218,
+              "faults": []
+            },
+            {
+              "index": 17,
+              "valid": true,
+              "count": 249,
+              "faults": []
+            },
+            {
+              "index": 18,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 19,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 20,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 21,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 22,
+              "valid": true,
+              "count": 300,
+              "faults": []
+            },
+            {
+              "index": 23,
+              "valid": true,
+              "count": 299,
+              "faults": []
+            },
+            {
+              "index": 24,
+              "valid": true,
+              "count": 301,
+              "faults": []
+            },
+            {
+              "index": 25,
+              "valid": true,
+              "count": 180,
+              "faults": []
+            }
+          ]
+        }
+      ],
+      "boundMs": null,
+      "medianMs": {
+        "p50": 0.010708,
+        "p95": 0.046708,
+        "p99": 0.08466599999999999
+      },
+      "timingBoundMet": null,
+      "idleConditionMet": false,
+      "ownerAuthorizedLoadedBoundMet": null,
+      "formalNativeGatePassed": null
+    }
+  },
+  "gaps": [
+    "Electron native-entry TimeTicks unavailable through this observer",
+    "engine-internal timing not exposed separately"
+  ],
+  "requireIdle": false,
+  "admissionPolicy": "owner-authorized available load; measured idle retained",
+  "pageLayoutSha256": "ddf5a81237bd3cfa2b6a3acea7730bdbc2e7a69c116690a5ca77eb2aa4cc42c4",
+  "baseFixtureBundleSha256": "d0b37595faa4d1354c2b54cc0b75e979567e825959a2d66a1a9c46c57094a15d",
+  "cleanup": {
+    "removed": false,
+    "retainedFixtureRoot": "/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/l12-reference-repair-20261028/timing/sessions-wCOKuR"
+  },
+  "finished": "2026-10-28T23:49:51.848Z"
+}

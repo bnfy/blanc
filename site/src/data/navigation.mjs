@@ -10,8 +10,8 @@ export const browserMenu = {
     { href: '/download#download-options', label: 'macOS' },
     { href: '/download#dl-win', label: 'Windows' },
     { href: '/download#dl-linux', label: 'Linux' },
-    // Not a download: the iPhone section links the App Store listing.
-    { href: '/download#iphone', label: 'iPhone' },
+    // Not a download: the iPhone and iPad section links the App Store listing.
+    { href: '/download#iphone', label: 'iPhone and iPad' },
   ],
   features: [
     { href: '/features/island', label: 'The Island' },

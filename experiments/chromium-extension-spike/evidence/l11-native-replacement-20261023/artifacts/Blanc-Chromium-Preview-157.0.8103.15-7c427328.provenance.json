@@ -1,0 +1,128 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://github.com/bnfy/blanc/blob/7c427328100d1ba76cb7e8b651a1f36d74ec86c6/experiments/chromium-extension-spike/preview/README.md",
+      "externalParameters": {
+        "nativeOutput": "out/BlancPrototype",
+        "packageSource": {
+          "addedNativeSourceSha256": {
+            "chrome/browser/ui/blanc_extensions_branding.h": "17d77bbc267d13477a24bd971021f2291c505567a32383229505c13b53238a02",
+            "chrome/browser/ui/blanc_prototype_ui.cc": "a1f62eaaadc84118376b265b5e41fa4d0279fbd36aa93c8f8e044047410c4dbe",
+            "chrome/browser/ui/blanc_prototype_ui.h": "a6261906f6783cabba6bdeaffa86ad7f2474bc6291ac4f9f21bcdc0cc208bfc3",
+            "chrome/browser/ui/blanc_webstore_promotion.h": "2095cbea3733a7e78bf76b77ff80c039389a18e2633128980ee440898c11c9b6",
+            "chrome/services/blanc_blocker/BUILD.gn": "a672411fad445cb1aa1252a247af5b29bf1318dc94e78b7aa76d1658aa00782a",
+            "chrome/services/blanc_blocker/blocker.mojom": "2f3b6f1a650f3170f84837c15629116f090ef60f12893122880fe66cfe1bd948",
+            "chrome/services/blanc_blocker/blocker_proxy.cc": "c6c37e79aeb2933d2a60aa68a4f49d8604a8cb1e128faeaef1ac869f17167cac",
+            "chrome/services/blanc_blocker/blocker_proxy.h": "f738abcf22692fe7196190ce8132b24ecfa548cc4706e4b09bdb7aa42ba0a8fd",
+            "chrome/services/blanc_blocker/blocker_service.cc": "2cda73f30d45bd825aae56aa4deaafba52d99579ea67989267084dc9e5118387",
+            "chrome/services/blanc_blocker/blocker_service.h": "bb1fb778032102f90c8ac97c8dc445ddf537f6f0744de45102e47ecafc678aee",
+            "chrome/services/blanc_blocker/bundle_hash.h": "043b8dbaf73a78cc89dbd52c5c85affe806fa7318e40c6b127292e2a09d23dca",
+            "chrome/services/blanc_blocker/document_start.inc": "91d8f9270dec23afdf443c168c4d22ff389395478499c3003da8aa87cf5c9f83",
+            "chrome/services/blanc_blocker/document_start_renderer.inc": "b7fb8f5710ae687d7f8ebd2f13eb2bc1aab7c7f6de181d295f52c838e26d9459",
+            "chrome/services/blanc_blocker/update_identity.inc": "65b6b25a3f0497475e37377786da2953db74e0f227e6085403bb8044d8feefa2",
+            "content/browser/service_worker/blanc_update_identity.inc": "65b6b25a3f0497475e37377786da2953db74e0f227e6085403bb8044d8feefa2",
+            "content/public/browser/blanc_document_token.h": "7fba8c8ac526416683e43128737e4c5ce06e8228910fa4ccd952d1ac5d58de1c",
+            "content/public/browser/blanc_websocket_gate.h": "2e542a56bb7527d2c70f7a8635fe9b689cda749887dd659cce3f45485ff768b2",
+            "content/public/common/blanc_research_build.h": "27665fabd5e87d6733f2f26ca2256eb4b1b3fe32305c83290db0eda37aba68a6"
+          },
+          "blockerManifestSha256": "8e82749b038ab94b191951a904ff4bfe37f4415b98dcecaf4a6fef81d34d86a2",
+          "buildEnvironment": {
+            "argsSha256": "414e3baad6c84730b3c17f411ed82c5065561ba344fe2a202675654e1e18a057",
+            "clangRevision": "llvmorg-24-init-7747-g62397f8b-67",
+            "clangVersion": "clang version 24.0.0git (https://chromium.googlesource.com/a/external/github.com/llvm/llvm-project 86922d51225db089fffb99475eefc4904f79e3c8)\nTarget: arm64-apple-darwin27.2.0\nThread model: posix\nInstalledDir: /private/tmp/blanc-chromium157-update/src/third_party/llvm-build/Release+Asserts/bin",
+            "developerDir": "/Applications/Xcode.app/Contents/Developer",
+            "sdkBuild": "26A425",
+            "sdkPath": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk",
+            "sdkVersion": "27.0",
+            "xcode": "Xcode 27.1\nBuild version 27A9275"
+          },
+          "buildRecord": {
+            "completedAt": "2026-10-23T23:31:18.661Z",
+            "inputs": {
+              "argsSha256": "414e3baad6c84730b3c17f411ed82c5065561ba344fe2a202675654e1e18a057",
+              "clangRevision": "llvmorg-24-init-7747-g62397f8b-67",
+              "clangVersion": "clang version 24.0.0git (https://chromium.googlesource.com/a/external/github.com/llvm/llvm-project 86922d51225db089fffb99475eefc4904f79e3c8)\nTarget: arm64-apple-darwin27.2.0\nThread model: posix\nInstalledDir: /private/tmp/blanc-chromium157-update/src/third_party/llvm-build/Release+Asserts/bin",
+              "developerDir": "/Applications/Xcode.app/Contents/Developer",
+              "sdkBuild": "26A425",
+              "sdkPath": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk",
+              "sdkVersion": "27.0",
+              "xcode": "Xcode 27.1\nBuild version 27A9275"
+            }
+          },
+          "filterPinsSha256": "df317cd3e925466fb3011a143c86340e415ed10425866af26bc7c70f5f3479dc",
+          "nativeDiffSha256": "68b64181608c6a6b92bd3b6dd8c4cf1c9f7e46e07f502104a240ea4217e7fdae",
+          "nativeUpstreamRevision": "1aa07b638799e59656559ae6c6649d4b197f555e",
+          "provenanceScope": "Materials observed at packaging; local incremental native build, not a hosted or independent hermetic rebuild. Final signed artifact digest and authenticated distribution manifest are external to avoid a self-hash cycle.",
+          "repository": "https://github.com/bnfy/blanc",
+          "resolvedDependencyPinsSha256": "c51f1bd9743e0bf60093fcc6b5d65c828be648cb68c53b2e0d3dd88bbcd198cc",
+          "schemaVersion": 1,
+          "sourceRevision": "7c427328100d1ba76cb7e8b651a1f36d74ec86c6",
+          "sourceTree": "150e490083da83547a1bf3bfeb0f6f6bcdeabbe9",
+          "upstreamLicenseInventorySha256": "ebf5a3796b04f319d8e839ac2919cb14c82c43a14bb1dbf750e7723193b90c1e"
+        },
+        "sourceRevision": "7c427328100d1ba76cb7e8b651a1f36d74ec86c6",
+        "target": "Apple Silicon macOS 27 (tested 27.2)",
+        "version": "157.0.8103.15"
+      },
+      "internalParameters": {
+        "execution": "Existing local guarded incremental native output; Developer ID signing on the separate release Mac; Apple notarization. No hosted-build, independent-rebuild or SLSA-level claim.",
+        "nativeCompilationInThisPackagingStep": false
+      },
+      "resolvedDependencies": [
+        {
+          "digest": {
+            "gitCommit": "7c427328100d1ba76cb7e8b651a1f36d74ec86c6"
+          },
+          "uri": "git+https://github.com/bnfy/blanc"
+        },
+        {
+          "digest": {
+            "gitCommit": "1aa07b638799e59656559ae6c6649d4b197f555e"
+          },
+          "uri": "git+https://chromium.googlesource.com/chromium/src"
+        },
+        {
+          "digest": {
+            "sha256": "df0999208be06f3d442627fd17e01f9a79a073d07a3a741bd25812dd9ad263be"
+          },
+          "name": "source-materials.json"
+        }
+      ]
+    },
+    "runDetails": {
+      "builder": {
+        "id": "https://github.com/bnfy/blanc/local-preview-packager"
+      },
+      "byproducts": [
+        {
+          "annotations": {
+            "id": "e46dbe18-f1f1-424e-abe9-ab44b79ef29c",
+            "status": "Accepted"
+          },
+          "name": "Apple notarization"
+        },
+        {
+          "digest": {
+            "sha256": "d540dc7a3ce47ab56881c969ca191917f9b06228070226f3f8365f539ec6944b"
+          },
+          "name": "runtime-sbom.cdx.json"
+        }
+      ],
+      "metadata": {
+        "finishedOn": "2026-10-24T00:44:36.519136+00:00",
+        "invocationId": "abe15207-0285-4cf7-b9de-b8ad92ca553b",
+        "startedOn": "2026-10-24T00:03:01+00:00"
+      }
+    }
+  },
+  "predicateType": "https://slsa.dev/provenance/v1",
+  "subject": [
+    {
+      "digest": {
+        "sha256": "ffcfefdfbb5421619f3ba359bb4c5d92134b468ac8475c18eda12153a7f5e4ed"
+      },
+      "name": "Blanc-Chromium-Preview-157.0.8103.15-7c427328-arm64.zip"
+    }
+  ]
+}

@@ -1,0 +1,440 @@
+{
+  "verified": true,
+  "runs": [
+    {
+      "runtime": "electron",
+      "profile": "regular",
+      "results": [
+        {
+          "name": "http",
+          "scope": "unqualified-scriptlet-context",
+          "status": "gap",
+          "scriptletAcceptance": false,
+          "firstFlag": false,
+          "lateFlag": true,
+          "probeArrivals": 1
+        },
+        {
+          "name": "sandbox-http",
+          "scope": "unqualified-scriptlet-context",
+          "status": "gap",
+          "scriptletAcceptance": false,
+          "firstFlag": false,
+          "lateFlag": true,
+          "probeArrivals": 1
+        },
+        {
+          "name": "sandbox-no-scripts",
+          "scope": "sandbox-script-enforcement",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "srcdoc-inherited",
+          "scope": "unqualified-scriptlet-context",
+          "status": "gap",
+          "scriptletAcceptance": false,
+          "firstFlag": false,
+          "lateFlag": false,
+          "probeArrivals": 1
+        },
+        {
+          "name": "srcdoc-opaque",
+          "scope": "unqualified-scriptlet-context",
+          "status": "gap",
+          "scriptletAcceptance": false,
+          "firstFlag": false,
+          "lateFlag": false,
+          "probeArrivals": 1
+        },
+        {
+          "name": "data-opaque",
+          "scope": "unqualified-scriptlet-context",
+          "status": "gap",
+          "scriptletAcceptance": false,
+          "firstFlag": false,
+          "lateFlag": false,
+          "probeArrivals": 1
+        },
+        {
+          "name": "blank-inherited",
+          "scope": "unqualified-scriptlet-context",
+          "status": "gap",
+          "scriptletAcceptance": false,
+          "firstFlag": false,
+          "lateFlag": false,
+          "probeArrivals": 1
+        }
+      ],
+      "fullAcceptance": false
+    },
+    {
+      "runtime": "electron",
+      "profile": "regular",
+      "results": [
+        {
+          "name": "http",
+          "scope": "unqualified-scriptlet-context",
+          "status": "gap",
+          "scriptletAcceptance": false,
+          "firstFlag": false,
+          "lateFlag": true,
+          "probeArrivals": 1
+        },
+        {
+          "name": "sandbox-http",
+          "scope": "unqualified-scriptlet-context",
+          "status": "gap",
+          "scriptletAcceptance": false,
+          "firstFlag": false,
+          "lateFlag": true,
+          "probeArrivals": 1
+        },
+        {
+          "name": "sandbox-no-scripts",
+          "scope": "sandbox-script-enforcement",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "srcdoc-inherited",
+          "scope": "unqualified-scriptlet-context",
+          "status": "gap",
+          "scriptletAcceptance": false,
+          "firstFlag": false,
+          "lateFlag": false,
+          "probeArrivals": 1
+        },
+        {
+          "name": "srcdoc-opaque",
+          "scope": "unqualified-scriptlet-context",
+          "status": "gap",
+          "scriptletAcceptance": false,
+          "firstFlag": false,
+          "lateFlag": false,
+          "probeArrivals": 1
+        },
+        {
+          "name": "data-opaque",
+          "scope": "unqualified-scriptlet-context",
+          "status": "gap",
+          "scriptletAcceptance": false,
+          "firstFlag": false,
+          "lateFlag": false,
+          "probeArrivals": 1
+        },
+        {
+          "name": "blank-inherited",
+          "scope": "unqualified-scriptlet-context",
+          "status": "gap",
+          "scriptletAcceptance": false,
+          "firstFlag": false,
+          "lateFlag": false,
+          "probeArrivals": 1
+        }
+      ],
+      "fullAcceptance": false
+    },
+    {
+      "runtime": "electron",
+      "profile": "private",
+      "results": [
+        {
+          "name": "http",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "sandbox-http",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "sandbox-no-scripts",
+          "scope": "sandbox-script-enforcement",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "srcdoc-inherited",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "srcdoc-opaque",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "data-opaque",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "blank-inherited",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        }
+      ],
+      "fullAcceptance": false
+    },
+    {
+      "runtime": "electron",
+      "profile": "private",
+      "results": [
+        {
+          "name": "http",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "sandbox-http",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "sandbox-no-scripts",
+          "scope": "sandbox-script-enforcement",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "srcdoc-inherited",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "srcdoc-opaque",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "data-opaque",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "blank-inherited",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        }
+      ],
+      "fullAcceptance": false
+    },
+    {
+      "runtime": "chromium",
+      "profile": "regular",
+      "results": [
+        {
+          "name": "http",
+          "scope": "native-http-document-start",
+          "status": "pass",
+          "scriptletAcceptance": true
+        },
+        {
+          "name": "sandbox-http",
+          "scope": "native-http-document-start",
+          "status": "pass",
+          "scriptletAcceptance": true
+        },
+        {
+          "name": "sandbox-no-scripts",
+          "scope": "sandbox-script-enforcement",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "srcdoc-inherited",
+          "scope": "native-inherited-document-start",
+          "status": "pass",
+          "scriptletAcceptance": true
+        },
+        {
+          "name": "srcdoc-opaque",
+          "scope": "native-opaque-about-document-start",
+          "status": "pass",
+          "scriptletAcceptance": true
+        },
+        {
+          "name": "data-opaque",
+          "scope": "unqualified-scriptlet-context",
+          "status": "gap",
+          "scriptletAcceptance": false,
+          "firstFlag": false,
+          "lateFlag": false,
+          "probeArrivals": 1
+        },
+        {
+          "name": "blank-inherited",
+          "scope": "native-inherited-document-start",
+          "status": "pass",
+          "scriptletAcceptance": true
+        }
+      ],
+      "fullAcceptance": false
+    },
+    {
+      "runtime": "chromium",
+      "profile": "regular",
+      "results": [
+        {
+          "name": "http",
+          "scope": "native-http-document-start",
+          "status": "pass",
+          "scriptletAcceptance": true
+        },
+        {
+          "name": "sandbox-http",
+          "scope": "native-http-document-start",
+          "status": "pass",
+          "scriptletAcceptance": true
+        },
+        {
+          "name": "sandbox-no-scripts",
+          "scope": "sandbox-script-enforcement",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "srcdoc-inherited",
+          "scope": "native-inherited-document-start",
+          "status": "pass",
+          "scriptletAcceptance": true
+        },
+        {
+          "name": "srcdoc-opaque",
+          "scope": "native-opaque-about-document-start",
+          "status": "pass",
+          "scriptletAcceptance": true
+        },
+        {
+          "name": "data-opaque",
+          "scope": "unqualified-scriptlet-context",
+          "status": "gap",
+          "scriptletAcceptance": false,
+          "firstFlag": false,
+          "lateFlag": false,
+          "probeArrivals": 1
+        },
+        {
+          "name": "blank-inherited",
+          "scope": "native-inherited-document-start",
+          "status": "pass",
+          "scriptletAcceptance": true
+        }
+      ],
+      "fullAcceptance": false
+    },
+    {
+      "runtime": "chromium",
+      "profile": "private",
+      "results": [
+        {
+          "name": "http",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "sandbox-http",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "sandbox-no-scripts",
+          "scope": "sandbox-script-enforcement",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "srcdoc-inherited",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "srcdoc-opaque",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "data-opaque",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "blank-inherited",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        }
+      ],
+      "fullAcceptance": false
+    },
+    {
+      "runtime": "chromium",
+      "profile": "private",
+      "results": [
+        {
+          "name": "http",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "sandbox-http",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "sandbox-no-scripts",
+          "scope": "sandbox-script-enforcement",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "srcdoc-inherited",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "srcdoc-opaque",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "data-opaque",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        },
+        {
+          "name": "blank-inherited",
+          "scope": "private-ubo-disabled-blanc-protected",
+          "status": "pass",
+          "scriptletAcceptance": false
+        }
+      ],
+      "fullAcceptance": false
+    }
+  ],
+  "latencyMeasured": false
+}

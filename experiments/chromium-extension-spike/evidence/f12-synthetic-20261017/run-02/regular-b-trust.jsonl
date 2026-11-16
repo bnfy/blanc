@@ -1,0 +1,9 @@
+{"hostname":"page.blanc-fixture.test","accepted":true,"profileKind":"regular","originalResult":"net::ERR_CERT_AUTHORITY_INVALID"}
+{"hostname":"00e2120672.com.blanc-control.test","accepted":true,"profileKind":"regular","originalResult":"net::ERR_CERT_AUTHORITY_INVALID"}
+{"hostname":"015ea24446.com.blanc-control.test","accepted":true,"profileKind":"regular","originalResult":"net::ERR_CERT_AUTHORITY_INVALID"}
+{"hostname":"01counter.com.blanc-control.test","accepted":true,"profileKind":"regular","originalResult":"net::ERR_CERT_AUTHORITY_INVALID"}
+{"hostname":"029519cbdc.com.blanc-control.test","accepted":true,"profileKind":"regular","originalResult":"net::ERR_CERT_AUTHORITY_INVALID"}
+{"hostname":"accuweather.com","accepted":true,"profileKind":"regular","originalResult":"net::ERR_CERT_AUTHORITY_INVALID"}
+{"hostname":"adap.tv","accepted":true,"profileKind":"regular","originalResult":"net::ERR_CERT_AUTHORITY_INVALID"}
+{"hostname":"apv-launcher.minute.ly","accepted":true,"profileKind":"regular","originalResult":"net::ERR_CERT_AUTHORITY_INVALID"}
+{"hostname":"basinnow.com","accepted":true,"profileKind":"regular","originalResult":"net::ERR_CERT_AUTHORITY_INVALID"}

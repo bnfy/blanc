@@ -1,0 +1,32 @@
+diff --git a/chrome/browser/resource_coordinator/tab_lifecycle_unit.cc b/chrome/browser/resource_coordinator/tab_lifecycle_unit.cc
+--- a/chrome/browser/resource_coordinator/tab_lifecycle_unit.cc
++++ b/chrome/browser/resource_coordinator/tab_lifecycle_unit.cc
+@@ -273,7 +273,9 @@
+     LifecycleUnitDiscardReason discard_reason,
+     uint64_t tab_memory_footprint_estimate) {
+   content::WebContents* const old_contents = web_contents();
+-  content::WebContents::CreateParams create_params(tab_strip_model_->profile());
++  // Blanc permits private contents in a regular window. The replacement and
++  // copied session-storage namespaces must belong to the original context.
++  content::WebContents::CreateParams create_params(old_contents->GetBrowserContext());
+   // TODO(fdoray): Consider setting |initially_hidden| to true when the tab is
+   // OCCLUDED. Will require checking that the tab reload correctly when it
+   // becomes VISIBLE.
+diff --git a/components/sessions/content/content_serialized_navigation_builder.cc b/components/sessions/content/content_serialized_navigation_builder.cc
+--- a/components/sessions/content/content_serialized_navigation_builder.cc
++++ b/components/sessions/content/content_serialized_navigation_builder.cc
+@@ -38,8 +38,12 @@
+   navigation.referrer_policy_ = static_cast<int>(entry->GetReferrer().policy);
+   navigation.virtual_url_ = entry->GetVirtualURL();
+   navigation.title_ = entry->GetTitle();
+-  if (!(serialization_options & SerializationOptions::EXCLUDE_PAGE_STATE))
+-    navigation.encoded_page_state_ = entry->GetPageState().ToEncodedData();
++  // Blanc keeps recovery page state only in the live/discarded controller.
++  // All serialized navigation consumers (incremental session writes, rebuild,
++  // Recently closed and session sync) receive metadata only. Do not mutate
++  // entry: waking the same tab still needs its in-memory history/form state.
++  // ToNavigationEntry already reconstructs URL-only records on restore.
++  navigation.encoded_page_state_.clear();
+   navigation.transition_type_ = entry->GetTransitionType();
+   navigation.has_post_data_ = entry->GetHasPostData();
+   navigation.post_id_ = entry->GetPostID();

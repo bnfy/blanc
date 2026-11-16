@@ -1,0 +1,120 @@
+{
+  "label": "candidate",
+  "hits": [
+    {
+      "url": "/guard",
+      "method": "GET",
+      "held": true
+    },
+    {
+      "url": "/favicon.ico",
+      "method": "GET",
+      "held": true
+    },
+    {
+      "url": "/pending-veto",
+      "method": "GET",
+      "held": true
+    },
+    {
+      "url": "/favicon.ico",
+      "method": "GET",
+      "held": false
+    },
+    {
+      "url": "/pending-veto",
+      "method": "GET",
+      "held": false
+    },
+    {
+      "url": "/favicon.ico",
+      "method": "GET",
+      "held": false
+    }
+  ],
+  "before": {
+    "tabs": [
+      {
+        "url": "blanc://newtab/",
+        "isLoading": false,
+        "private": false
+      },
+      {
+        "url": "http://127.0.0.1:9471/guard",
+        "isLoading": false,
+        "private": false
+      },
+      {
+        "url": "http://127.0.0.1:9471/pending-veto",
+        "isLoading": true,
+        "private": false
+      }
+    ],
+    "selected": 2
+  },
+  "activation": {
+    "active": true,
+    "handler": true,
+    "url": "http://127.0.0.1:9471/guard"
+  },
+  "quitTarget": {
+    "targetId": "7E3564D78164A121203C836125C4379F"
+  },
+  "dialogType": "beforeunload",
+  "connected": true,
+  "pageURLs": [
+    "http://127.0.0.1:9471/guard",
+    "chrome://blanc-prototype/host.html",
+    "chrome://blanc-prototype/pages/newtab.html"
+  ],
+  "nativePrompt": true,
+  "cancelled": true,
+  "afterCancellation": {
+    "tabs": [
+      {
+        "url": "blanc://newtab/",
+        "isLoading": false,
+        "private": false
+      },
+      {
+        "url": "http://127.0.0.1:9471/guard",
+        "isLoading": false,
+        "private": false
+      },
+      {
+        "url": "http://127.0.0.1:9471/pending-veto",
+        "isLoading": true,
+        "private": false
+      },
+      {
+        "url": "",
+        "isLoading": false,
+        "private": false
+      }
+    ],
+    "selected": 1
+  },
+  "firstCleanExit": true,
+  "after": {
+    "tabs": [
+      {
+        "url": "blanc://newtab/",
+        "isLoading": false,
+        "private": false
+      },
+      {
+        "url": "http://127.0.0.1:9471/guard",
+        "isLoading": false,
+        "private": false
+      },
+      {
+        "url": "http://127.0.0.1:9471/pending-veto",
+        "isLoading": true,
+        "private": false
+      }
+    ],
+    "selected": 1
+  },
+  "secondCleanExit": true,
+  "pass": true
+}

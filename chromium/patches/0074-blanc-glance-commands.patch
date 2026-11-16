@@ -1,0 +1,15 @@
+diff --git a/chrome/browser/ui/browser_command_controller.cc b/chrome/browser/ui/browser_command_controller.cc
+--- a/chrome/browser/ui/browser_command_controller.cc
++++ b/chrome/browser/ui/browser_command_controller.cc
+@@ -675,6 +675,11 @@
+     return true;
+   }
+ 
++  // Blanc (F53-29): page commands follow focus into a Glance over a split.
++  if (blanc_prototype::ExecuteForFocusedGlance(browser_, id)) {
++    return true;
++  }
++
+   DCHECK(IsCommandEnabled(id)) << "Invalid/disabled command " << id;
+ 
+   return command_updater_->ExecuteCommandWithDisposition(

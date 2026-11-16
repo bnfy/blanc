@@ -1,0 +1,983 @@
+TAP version 13
+# Subtest: every boundary entry matches its file hash and literal channels
+ok 1 - every boundary entry matches its file hash and literal channels
+  ---
+  duration_ms: 26.163917
+  ...
+# Subtest: the committed inventory is exactly what --write renders
+ok 2 - the committed inventory is exactly what --write renders
+  ---
+  duration_ms: 16.792208
+  ...
+# Subtest: channel extraction keeps the inventory conventions
+ok 3 - channel extraction keeps the inventory conventions
+  ---
+  duration_ms: 0.194084
+  ...
+# Subtest: drift in a boundary file is reported
+ok 4 - drift in a boundary file is reported
+  ---
+  duration_ms: 2.248208
+  ...
+# Subtest: preload coverage gaps are reported
+ok 5 - preload coverage gaps are reported
+  ---
+  duration_ms: 1.284666
+  ...
+# Subtest: sanitizeAdapterSnapshot strips source and device identifiers
+ok 6 - sanitizeAdapterSnapshot strips source and device identifiers
+  ---
+  duration_ms: 0.914
+  ...
+# Subtest: buildAdapterCapabilities describes downscale-only adapter support from source
+ok 7 - buildAdapterCapabilities describes downscale-only adapter support from source
+  ---
+  duration_ms: 0.849667
+  ...
+# Subtest: larger max than source succeeds and keeps source-sized output
+ok 8 - larger max than source succeeds and keeps source-sized output
+  ---
+  duration_ms: 0.474834
+  ...
+# Subtest: oversized ideal is best-effort within adapter capabilities
+ok 9 - oversized ideal is best-effort within adapter capabilities
+  ---
+  duration_ms: 0.140458
+  ...
+# Subtest: impossible required min rejects with constraint name width
+ok 10 - impossible required min rejects with constraint name width
+  ---
+  duration_ms: 0.257625
+  ...
+# Subtest: impossible exact rejects with the failing constraint name
+ok 11 - impossible exact rejects with the failing constraint name
+  ---
+  duration_ms: 0.112666
+  ...
+# Subtest: contradictory ranges reject
+ok 12 - contradictory ranges reject
+  ---
+  duration_ms: 0.18375
+  ...
+# Subtest: exact within range selects that output size
+ok 13 - exact within range selects that output size
+  ---
+  duration_ms: 0.110292
+  ...
+# Subtest: inline adapter and module agree on sanitize, capabilities, and resolve
+ok 14 - inline adapter and module agree on sanitize, capabilities, and resolve
+  ---
+  duration_ms: 2.109667
+  ...
+# Subtest: all facts true admits
+ok 15 - all facts true admits
+  ---
+  duration_ms: 1.272
+  ...
+# Subtest: truthy non-true facts fail closed
+ok 16 - truthy non-true facts fail closed
+  ---
+  duration_ms: 0.220375
+  ...
+# Subtest: missing policy API fails closed
+ok 17 - missing policy API fails closed
+  ---
+  duration_ms: 0.107458
+  ...
+# Subtest: no transient activation is denied
+ok 18 - no transient activation is denied
+  ---
+  duration_ms: 0.076125
+  ...
+# Subtest: background or unfocused document is denied before picker
+ok 19 - background or unfocused document is denied before picker
+  ---
+  duration_ms: 0.11025
+  ...
+# Subtest: dead frame is denied
+ok 20 - dead frame is denied
+  ---
+  duration_ms: 0.088625
+  ...
+# Subtest: documentVisible requires an unminimized visible window and attached view
+ok 21 - documentVisible requires an unminimized visible window and attached view
+  ---
+  duration_ms: 0.123
+  ...
+# Subtest: a tab is a visible pane as the main page or the Glance reference, never otherwise
+ok 22 - a tab is a visible pane as the main page or the Glance reference, never otherwise
+  ---
+  duration_ms: 0.114084
+  ...
+# Subtest: authorized helper sender requires live wc, exact URL, and token
+ok 23 - authorized helper sender requires live wc, exact URL, and token
+  ---
+  duration_ms: 0.338375
+  ...
+# Subtest: display-capture-broker revokes the captured contents after its window is destroyed
+ok 24 - display-capture-broker revokes the captured contents after its window is destroyed
+  ---
+  duration_ms: 1.156167
+  ...
+# Subtest: display-capture-broker-linux revokes the captured contents after its window is destroyed
+ok 25 - display-capture-broker-linux revokes the captured contents after its window is destroyed
+  ---
+  duration_ms: 1.3315
+  ...
+# Subtest: display-capture-broker-playout revokes the captured contents after its window is destroyed
+ok 26 - display-capture-broker-playout revokes the captured contents after its window is destroyed
+  ---
+  duration_ms: 1.149542
+  ...
+# [display-capture] stop-share {"shareId":"share-2","reason":"helper-gone","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"AbortError","reason":"helper-gone","alreadyResolved":false}
+# [display-capture] stop-share {"shareId":"share-2","reason":"helper-gone","requestId":"req-1","hadPending":true,"computerAudio":false,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"AbortError","reason":"helper-gone","alreadyResolved":false}
+# [display-capture] stop-share {"shareId":"share-2","reason":"helper-gone","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"AbortError","reason":"helper-gone","alreadyResolved":false}
+# [display-capture] stop-share {"shareId":"share-2","reason":"helper-gone","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"AbortError","reason":"helper-gone","alreadyResolved":false}
+# [display-capture] stop-share {"shareId":"share-2","reason":"helper-gone","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"AbortError","reason":"helper-gone","alreadyResolved":false}
+# [display-capture] stop-share {"shareId":"share-2","reason":"cancel","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"NotAllowedError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"NotAllowedError","reason":"cancel","alreadyResolved":false}
+# Subtest: forged sender identity is ignored; admission uses trusted facts
+ok 27 - forged sender identity is ignored; admission uses trusted facts
+  ---
+  duration_ms: 1.527458
+  ...
+# [display-capture] stop-share {"shareId":"share-4","reason":"helper-gone","requestId":"req-3","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-3","shareId":"share-4","errorName":"AbortError","reason":"helper-gone","alreadyResolved":false}
+# Subtest: public ICE never reaches the helper
+ok 28 - public ICE never reaches the helper
+  ---
+  duration_ms: 1.1805
+  ...
+# Subtest: computerAudioApproved is ignored when audio was not requested
+ok 29 - computerAudioApproved is ignored when audio was not requested
+  ---
+  duration_ms: 0.859417
+  ...
+# Subtest: authorize job default systemAudioProcessing is default
+ok 30 - authorize job default systemAudioProcessing is default
+  ---
+  duration_ms: 0.327291
+  ...
+# Subtest: authorize job passes systemAudioProcessing off from env
+ok 31 - authorize job passes systemAudioProcessing off from env
+  ---
+  duration_ms: 0.512125
+  ...
+# Subtest: portal source authorizes one-source helper capture without a display-media handler
+ok 32 - portal source authorizes one-source helper capture without a display-media handler
+  ---
+  duration_ms: 0.38975
+  ...
+# [display-capture] stop-share {"shareId":"share-2","reason":"navigation","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"AbortError","reason":"navigation","alreadyResolved":false}
+# [display-capture] stop-share {"shareId":"share-2","reason":"frame-gone","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"AbortError","reason":"frame-gone","alreadyResolved":false}
+# [display-capture] stop-share {"shareId":"share-2","reason":"page-gone","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"AbortError","reason":"page-gone","alreadyResolved":false}
+# [display-capture] stop-share {"shareId":"share-2","reason":"helper-gone","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"AbortError","reason":"helper-gone","alreadyResolved":false}
+# [display-capture] stop-share {"shareId":"share-2","reason":"source-ended","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"AbortError","reason":"source-ended","alreadyResolved":false}
+# [display-capture] stop-share {"shareId":"share-2","reason":"timeout","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"AbortError","reason":"timeout","alreadyResolved":false}
+# [display-capture] helper-offer {"shareId":"share-2","video":true,"audio":true,"computerAudio":true}
+# [display-capture] stop-share {"shareId":"share-2","reason":"helper-gone","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"AbortError","reason":"helper-gone","alreadyResolved":true}
+# [display-capture] helper-offer {"shareId":"share-2","video":true,"audio":true,"computerAudio":false}
+# [display-capture] stop-share {"shareId":"share-2","reason":"helper-gone","requestId":"req-1","hadPending":true,"computerAudio":false,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"AbortError","reason":"helper-gone","alreadyResolved":true}
+# [display-capture] stop-share {"shareId":"share-2","reason":"cancel","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"NotAllowedError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"NotAllowedError","reason":"cancel","alreadyResolved":false}
+# [display-capture] helper-offer {"shareId":"share-2","video":true,"audio":true,"computerAudio":false}
+# [display-capture] stop-share {"shareId":"share-2","reason":"helper-gone","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"AbortError","reason":"helper-gone","alreadyResolved":false}
+# [display-capture] stop-share {"shareId":"share-2","reason":"no-source","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"AbortError","reason":"no-source","alreadyResolved":false}
+# [display-capture] helper-offer {"shareId":"share-2","video":true,"audio":true,"computerAudio":true}
+# Subtest: cancelled portal-source capture holds the next share until native settlement
+ok 33 - cancelled portal-source capture holds the next share until native settlement
+  ---
+  duration_ms: 4.669709
+  ...
+# Subtest: navigation ends the share and stops helper tracks
+ok 34 - navigation ends the share and stops helper tracks
+  ---
+  duration_ms: 0.695458
+  ...
+# Subtest: frame destruction ends the share
+ok 35 - frame destruction ends the share
+  ---
+  duration_ms: 1.263916
+  ...
+# Subtest: requesting renderer crash ends the share
+ok 36 - requesting renderer crash ends the share
+  ---
+  duration_ms: 0.53825
+  ...
+# Subtest: helper crash invalidates every share
+ok 37 - helper crash invalidates every share
+  ---
+  duration_ms: 0.184167
+  ...
+# Subtest: native source ending stops the share
+ok 38 - native source ending stops the share
+  ---
+  duration_ms: 0.125375
+  ...
+# Subtest: relay timeout without tracks rejects
+ok 39 - relay timeout without tracks rejects
+  ---
+  duration_ms: 0.108916
+  ...
+# Subtest: helper offer resolves page with displaySurface from surfaceKind
+ok 40 - helper offer resolves page with displaySurface from surfaceKind
+  ---
+  duration_ms: 0.437916
+  ...
+# Subtest: window surfaceKind maps to window displaySurface
+ok 41 - window surfaceKind maps to window displaySurface
+  ---
+  duration_ms: 0.141125
+  ...
+# Subtest: cancel during acquisition stops a late helper offer
+ok 42 - cancel during acquisition stops a late helper offer
+  ---
+  duration_ms: 0.121583
+  ...
+# Subtest: unrelated sender cannot forward ICE or release another share audio
+ok 43 - unrelated sender cannot forward ICE or release another share audio
+  ---
+  duration_ms: 0.288084
+  ...
+# Subtest: missing selected source is rejected instead of sharing the first source
+ok 44 - missing selected source is rejected instead of sharing the first source
+  ---
+  duration_ms: 0.289
+  ...
+# [display-capture] stop-share {"shareId":"share-2","reason":"timeout","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"AbortError","reason":"timeout","alreadyResolved":true}
+# [display-capture] helper-offer {"shareId":"share-2","video":true,"audio":true,"computerAudio":true}
+# [display-capture] stop-share {"shareId":"share-2","reason":"stop","requestId":"req-1","hadPending":false,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] helper-offer {"shareId":"share-2","video":true,"audio":true,"computerAudio":true}
+# Subtest: startup timeout stays armed until usable page tracks arrive
+ok 45 - startup timeout stays armed until usable page tracks arrive
+  ---
+  duration_ms: 70.570708
+  ...
+# Subtest: trusted Stop notifies an active page after its startup wait was cleared
+ok 46 - trusted Stop notifies an active page after its startup wait was cleared
+  ---
+  duration_ms: 1.4525
+  ...
+# [display-capture] stop-share {"shareId":"share-2","reason":"timeout","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"AbortError","reason":"timeout","alreadyResolved":true}
+# [display-capture] helper-offer {"shareId":"share-2","video":true,"audio":true,"computerAudio":true}
+# Subtest: video-only page tracks do not satisfy an approved-audio share
+ok 47 - video-only page tracks do not satisfy an approved-audio share
+  ---
+  duration_ms: 71.744458
+  ...
+# [display-capture] stop-share {"shareId":"share-2","reason":"timeout","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"AbortError","reason":"timeout","alreadyResolved":true}
+# [display-capture] helper-offer {"shareId":"share-2","video":true,"audio":true,"computerAudio":true}
+# Subtest: muted track-added does not clear the startup timeout
+ok 48 - muted track-added does not clear the startup timeout
+  ---
+  duration_ms: 70.935459
+  ...
+# [display-capture] stop-share {"shareId":"share-2","reason":"helper-gone","requestId":"req-1","hadPending":false,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] install-handler {"shareId":"share-2","computerAudio":true,"sourceId":"screen:a"}
+# Subtest: required page tracks from the owner clear the startup timeout
+ok 49 - required page tracks from the owner clear the startup timeout
+  ---
+  duration_ms: 72.016083
+  ...
+# [display-capture] handler-grant {"shareId":"share-2","computerAudio":true,"sourceId":"screen:a"}
+# [display-capture] helper-offer {"shareId":"share-2","video":true,"audio":true,"computerAudio":true}
+# [display-capture] install-handler {"shareId":"share-4","computerAudio":true,"sourceId":"screen:b"}
+# [display-capture] handler-grant {"shareId":"share-4","computerAudio":true,"sourceId":"screen:b"}
+# [display-capture] stop-share {"shareId":"share-2","reason":"helper-gone","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"AbortError","reason":"helper-gone","alreadyResolved":true}
+# [display-capture] stop-share {"shareId":"share-4","reason":"helper-gone","requestId":"req-3","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-3","shareId":"share-4","errorName":"AbortError","reason":"helper-gone","alreadyResolved":false}
+# [display-capture] install-handler {"shareId":"share-2","computerAudio":true,"sourceId":"screen:a"}
+# [display-capture] stop-share {"shareId":"share-2","reason":"cancel","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"NotAllowedError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"NotAllowedError","reason":"cancel","alreadyResolved":false}
+# Subtest: second capture cannot replace an in-flight display-media handler
+ok 50 - second capture cannot replace an in-flight display-media handler
+  ---
+  duration_ms: 1.217375
+  ...
+# [display-capture] handler-stale-deny {"shareId":"share-2","generation":1}
+# [display-capture] install-handler {"shareId":"share-4","computerAudio":true,"sourceId":"screen:b"}
+# [display-capture] handler-grant {"shareId":"share-4","computerAudio":true,"sourceId":"screen:b"}
+# [display-capture] stop-share {"shareId":"share-4","reason":"helper-gone","requestId":"req-3","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-3","shareId":"share-4","errorName":"AbortError","reason":"helper-gone","alreadyResolved":false}
+# [display-capture] install-handler {"shareId":"share-2","computerAudio":true,"sourceId":"screen:a"}
+# [display-capture] stop-share {"shareId":"share-2","reason":"cancel","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"NotAllowedError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"NotAllowedError","reason":"cancel","alreadyResolved":false}
+# Subtest: cancel after authorization revokes the handler and holds the next share
+ok 51 - cancel after authorization revokes the handler and holds the next share
+  ---
+  duration_ms: 1.473875
+  ...
+# [display-capture] install-handler {"shareId":"share-4","computerAudio":true,"sourceId":"screen:b"}
+# [display-capture] handler-grant {"shareId":"share-4","computerAudio":true,"sourceId":"screen:b"}
+# [display-capture] stop-share {"shareId":"share-4","reason":"helper-gone","requestId":"req-3","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-3","shareId":"share-4","errorName":"AbortError","reason":"helper-gone","alreadyResolved":false}
+# [display-capture] install-handler {"shareId":"share-2","computerAudio":true,"sourceId":"screen:a"}
+# [display-capture] stop-share {"shareId":"share-2","reason":"cancel","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"NotAllowedError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"NotAllowedError","reason":"cancel","alreadyResolved":false}
+# [display-capture] helper-signal {"type":"error","shareId":"share-2","name":"NotAllowedError","message":"denied"}
+# [display-capture] stop-share {"shareId":"share-2","reason":"NotAllowedError","hadPending":false,"computerAudio":false,"pageErrorName":"NotAllowedError"}
+# [display-capture] install-handler {"shareId":"share-4","computerAudio":true,"sourceId":"screen:b"}
+# [display-capture] handler-grant {"shareId":"share-4","computerAudio":true,"sourceId":"screen:b"}
+# Subtest: early helper stopped keeps the queue while A capture is still pending
+ok 52 - early helper stopped keeps the queue while A capture is still pending
+  ---
+  duration_ms: 1.659625
+  ...
+# [display-capture] stop-share {"shareId":"share-4","reason":"helper-gone","requestId":"req-3","hadPending":true,"computerAudio":true,"pageErrorName":"AbortError"}
+# [display-capture] fail-pending {"requestId":"req-3","shareId":"share-4","errorName":"AbortError","reason":"helper-gone","alreadyResolved":false}
+# Subtest: cancelled capture rejection releases the queue for the next share
+ok 53 - cancelled capture rejection releases the queue for the next share
+  ---
+  duration_ms: 0.787833
+  ...
+# [display-capture] stop-share {"shareId":"share-2","reason":"cancel","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"NotAllowedError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"NotAllowedError","reason":"cancel","alreadyResolved":false}
+# [display-capture] stop-share {"shareId":"share-2","reason":"cancel","hadPending":false,"computerAudio":false,"pageErrorName":"NotAllowedError"}
+# [display-capture] stop-share {"shareId":"share-2","reason":"stop","requestId":"req-1","hadPending":false,"computerAudio":false,"pageErrorName":"AbortError"}
+# [display-capture] stop-share {"shareId":"share-4","reason":"stop","requestId":"req-3","hadPending":false,"computerAudio":false,"pageErrorName":"AbortError"}
+# [display-capture] helper-signal {"type":"error","shareId":"share-2","name":"OverconstrainedError","message":"Constraints could not be satisfied."}
+# [display-capture] stop-share {"shareId":"share-2","reason":"OverconstrainedError","requestId":"req-1","hadPending":true,"computerAudio":true,"pageErrorName":"OverconstrainedError"}
+# [display-capture] fail-pending {"requestId":"req-1","shareId":"share-2","errorName":"OverconstrainedError","reason":"OverconstrainedError","alreadyResolved":false}
+# Subtest: cancelled selection is revalidated after getSources
+ok 54 - cancelled selection is revalidated after getSources
+  ---
+  duration_ms: 0.400208
+  ...
+# Subtest: strip or overlay Stop ends only the named share; other chrome cannot
+ok 55 - strip or overlay Stop ends only the named share; other chrome cannot
+  ---
+  duration_ms: 0.193084
+  ...
+# Subtest: helper OverconstrainedError reaches the page as OverconstrainedError
+ok 56 - helper OverconstrainedError reaches the page as OverconstrainedError
+  ---
+  duration_ms: 0.227333
+  ...
+# Subtest: omitted video is required video
+ok 57 - omitted video is required video
+  ---
+  duration_ms: 0.333
+  ...
+# Subtest: video false is TypeError before picker
+ok 58 - video false is TypeError before picker
+  ---
+  duration_ms: 0.05075
+  ...
+# Subtest: advanced and mandatory display constraints reject before opening a picker
+ok 59 - advanced and mandatory display constraints reject before opening a picker
+  ---
+  duration_ms: 0.06425
+  ...
+# Subtest: valid frameRate does not fail before picker
+ok 60 - valid frameRate does not fail before picker
+  ---
+  duration_ms: 0.257917
+  ...
+# Subtest: merges extras onto an existing comma list without duplicates
+ok 61 - merges extras onto an existing comma list without duplicates
+  ---
+  duration_ms: 0.521875
+  ...
+# Subtest: empty prior keeps only extras
+ok 62 - empty prior keeps only extras
+  ---
+  duration_ms: 0.067791
+  ...
+# Subtest: capture flags stay platform-specific and preserve existing disables
+ok 63 - capture flags stay platform-specific and preserve existing disables
+  ---
+  duration_ms: 0.291917
+  ...
+# Subtest: Wayland sessions prefer ozone wayland unless already pinned
+ok 64 - Wayland sessions prefer ozone wayland unless already pinned
+  ---
+  duration_ms: 0.103833
+  ...
+# Subtest: applyLinuxCaptureOzone appends only when preferred
+ok 65 - applyLinuxCaptureOzone appends only when preferred
+  ---
+  duration_ms: 0.093292
+  ...
+# Subtest: helper system-audio processing defaults to default
+ok 66 - helper system-audio processing defaults to default
+  ---
+  duration_ms: 0.394125
+  ...
+# Subtest: helper system-audio processing off is explicit
+ok 67 - helper system-audio processing off is explicit
+  ---
+  duration_ms: 0.129292
+  ...
+# Subtest: helper offer includes native video adapter snapshot
+ok 68 - helper offer includes native video adapter snapshot
+  ---
+  duration_ms: 4.665334
+  ...
+# Subtest: helper consumes a portal-selected desktop source without getDisplayMedia
+ok 69 - helper consumes a portal-selected desktop source without getDisplayMedia
+  ---
+  duration_ms: 0.772625
+  ...
+# Subtest: portal-selected video-only capture does not request loopback audio
+ok 70 - portal-selected video-only capture does not request loopback audio
+  ---
+  duration_ms: 2.238209
+  ...
+# Subtest: stop during pending portal-source capture discards its late stream
+ok 71 - stop during pending portal-source capture discards its late stream
+  ---
+  duration_ms: 1.154292
+  ...
+# Subtest: helper requests boolean audio true by default for system audio
+ok 72 - helper requests boolean audio true by default for system audio
+  ---
+  duration_ms: 1.318084
+  ...
+# Subtest: helper requests APM off only for system audio when processing is off
+ok 73 - helper requests APM off only for system audio when processing is off
+  ---
+  duration_ms: 1.561541
+  ...
+# Subtest: helper does not request APM-off audio when computer audio is off
+ok 74 - helper does not request APM-off audio when computer audio is off
+  ---
+  duration_ms: 0.881791
+  ...
+# Subtest: second acquisition keeps the first share live
+ok 75 - second acquisition keeps the first share live
+  ---
+  duration_ms: 1.004917
+  ...
+# Subtest: stop and audio release are keyed by shareId
+ok 76 - stop and audio release are keyed by shareId
+  ---
+  duration_ms: 2.758084
+  ...
+# Subtest: stop during getDisplayMedia cancels late tracks and does not offer
+ok 77 - stop during getDisplayMedia cancels late tracks and does not offer
+  ---
+  duration_ms: 1.772458
+  ...
+# Subtest: stop during pending getDisplayMedia does not send settled stopped
+ok 78 - stop during pending getDisplayMedia does not send settled stopped
+  ---
+  duration_ms: 0.820042
+  ...
+# Subtest: cancelled getDisplayMedia rejection reports native settlement
+ok 79 - cancelled getDisplayMedia rejection reports native settlement
+  ---
+  duration_ms: 1.925583
+  ...
+# Subtest: video release stops only that share video track
+ok 80 - video release stops only that share video track
+  ---
+  duration_ms: 1.560958
+  ...
+# Subtest: helper tears down capture on transport failure without page notification
+ok 81 - helper tears down capture on transport failure without page notification
+  ---
+  duration_ms: 3.054458
+  ...
+# Subtest: rejects a public candidate
+ok 82 - rejects a public candidate
+  ---
+  duration_ms: 0.963959
+  ...
+# Subtest: keeps a verified same-machine host address
+ok 83 - keeps a verified same-machine host address
+  ---
+  duration_ms: 0.279292
+  ...
+# Subtest: typ host alone is not enough without a local address
+ok 84 - typ host alone is not enough without a local address
+  ---
+  duration_ms: 0.116625
+  ...
+# Subtest: two active shares project as a collection keyed by shareId
+ok 85 - two active shares project as a collection keyed by shareId
+  ---
+  duration_ms: 0.742209
+  ...
+# Subtest: pending and active both appear; mic-only capturing yields no display shares
+ok 86 - pending and active both appear; mic-only capturing yields no display shares
+  ---
+  duration_ms: 0.151291
+  ...
+# Subtest: isolated policy does not fall back to page-controlled executeJavaScript
+ok 87 - isolated policy does not fall back to page-controlled executeJavaScript
+  ---
+  duration_ms: 0.550208
+  ...
+# Subtest: nothing is created at startup
+ok 88 - nothing is created at startup
+  ---
+  duration_ms: 0.507666
+  ...
+# Subtest: the first request creates the helper and reaches the broker once it is ready
+ok 89 - the first request creates the helper and reaches the broker once it is ready
+  ---
+  duration_ms: 2.919417
+  ...
+# Subtest: requests during startup share one helper, and later ones go straight to the broker
+ok 90 - requests during startup share one helper, and later ones go straight to the broker
+  ---
+  duration_ms: 0.589791
+  ...
+# Subtest: a ready message from anything but the helper is ignored
+ok 91 - a ready message from anything but the helper is ignored
+  ---
+  duration_ms: 0.567083
+  ...
+# Subtest: a helper that fails to load fails the request, and the next request starts over
+ok 92 - a helper that fails to load fails the request, and the next request starts over
+  ---
+  duration_ms: 0.94775
+  ...
+# Subtest: a helper that crashes fails the request, and the next request starts over
+ok 93 - a helper that crashes fails the request, and the next request starts over
+  ---
+  duration_ms: 0.348334
+  ...
+# Subtest: a helper that is destroyed fails the request, and the next request starts over
+ok 94 - a helper that is destroyed fails the request, and the next request starts over
+  ---
+  duration_ms: 0.878541
+  ...
+# Subtest: a helper that is not ready in time fails the request, and the next request starts over
+ok 95 - a helper that is not ready in time fails the request, and the next request starts over
+  ---
+  duration_ms: 0.546042
+  ...
+# Subtest: a subframe load failure does not fail the helper
+ok 96 - a subframe load failure does not fail the helper
+  ---
+  duration_ms: 0.6665
+  ...
+# Subtest: the broker registers on the real ipcMain
+ok 97 - the broker registers on the real ipcMain
+  ---
+  duration_ms: 1.017958
+  ...
+# Subtest: main creates the helper only through the lazy broker
+ok 98 - main creates the helper only through the lazy broker
+  ---
+  duration_ms: 2.550416
+  ...
+# Subtest: Mac returns the relay video itself and never constructs an adapter clock
+ok 99 - Mac returns the relay video itself and never constructs an adapter clock
+  ---
+  duration_ms: 3.492125
+  ...
+# Subtest: Mac preserves muted private-clone audio playout and trusted abort cleanup
+ok 100 - Mac preserves muted private-clone audio playout and trusted abort cleanup
+  ---
+  duration_ms: 1.749292
+  ...
+# Subtest: Mac video-only capture never creates a private audio sink
+ok 101 - Mac video-only capture never creates a private audio sink
+  ---
+  duration_ms: 0.489125
+  ...
+# Subtest: package gate verifies darwin runtime and rejects a substituted helper
+ok 102 - package gate verifies darwin runtime and rejects a substituted helper
+  ---
+  duration_ms: 4.103916
+  ...
+# Subtest: package gate verifies win32 runtime and rejects a substituted helper
+ok 103 - package gate verifies win32 runtime and rejects a substituted helper
+  ---
+  duration_ms: 1.072333
+  ...
+# Subtest: package gate verifies linux runtime and rejects a substituted helper
+ok 104 - package gate verifies linux runtime and rejects a substituted helper
+  ---
+  duration_ms: 1.110083
+  ...
+# Subtest: Linux runtime changes cannot become Windows or Mac package runtime
+ok 105 - Linux runtime changes cannot become Windows or Mac package runtime
+  ---
+  duration_ms: 2.5815
+  ...
+# Subtest: package gate rejects dispatch drift even when the runtime hashes match
+ok 106 - package gate rejects dispatch drift even when the runtime hashes match
+  ---
+  duration_ms: 0.767959
+  ...
+# Subtest: a shared relay change reopens every platform instead of silently carrying forward passes
+ok 107 - a shared relay change reopens every platform instead of silently carrying forward passes
+  ---
+  duration_ms: 0.715083
+  ...
+# Subtest: trusted abort after readiness ends the original and its clones and closes relay
+ok 108 - trusted abort after readiness ends the original and its clones and closes relay
+  ---
+  duration_ms: 4.848583
+  ...
+# Subtest: video false is TypeError before any broker request
+ok 109 - video false is TypeError before any broker request
+  ---
+  duration_ms: 0.562791
+  ...
+# Subtest: muted live ontrack still emits track-ready so startup can clear
+ok 110 - muted live ontrack still emits track-ready so startup can clear
+  ---
+  duration_ms: 4.593084
+  ...
+# Subtest: relayed video getSettings reports displaySurface from picker enum
+ok 111 - relayed video getSettings reports displaySurface from picker enum
+  ---
+  duration_ms: 1.514875
+  ...
+# Subtest: dimensionless video times out instead of publishing and releases audio playout
+ok 112 - dimensionless video times out instead of publishing and releases audio playout
+  ---
+  duration_ms: 10003.790542
+  ...
+# Subtest: video becoming usable after two seconds is not published early
+ok 113 - video becoming usable after two seconds is not published early
+  ---
+  duration_ms: 2204.262875
+  ...
+# Subtest: unmute plus dimensions can resolve before the publish deadline
+ok 114 - unmute plus dimensions can resolve before the publish deadline
+  ---
+  duration_ms: 105.664416
+  ...
+# Subtest: video ending during publish wait rejects instead of hanging
+ok 115 - video ending during publish wait rejects instead of hanging
+  ---
+  duration_ms: 1.603167
+  ...
+# Subtest: required audio ending before video arrives rejects instead of hanging
+ok 116 - required audio ending before video arrives rejects instead of hanging
+  ---
+  duration_ms: 2.4685
+  ...
+# Subtest: unmuted video with zero height is not publishable until height is non-zero
+ok 117 - unmuted video with zero height is not publishable until height is non-zero
+  ---
+  duration_ms: 153.318958
+  ...
+# Subtest: unmuted video with zero width is not publishable
+ok 118 - unmuted video with zero width is not publishable
+  ---
+  duration_ms: 155.290375
+  ...
+# Subtest: approved computer audio waits for a live audio track
+ok 119 - approved computer audio waits for a live audio track
+  ---
+  duration_ms: 3.206792
+  ...
+# Subtest: page audio handoff emits Meet-boundary page-diag
+ok 120 - page audio handoff emits Meet-boundary page-diag
+  ---
+  duration_ms: 2.139875
+  ...
+# Subtest: energy probe samples page and outbound input in parallel with timestamps
+ok 121 - energy probe samples page and outbound input in parallel with timestamps
+  ---
+  duration_ms: 84.756791
+  ...
+# Subtest: energy probe is inconclusive when Meet uses a non-brokered transformed track
+ok 122 - energy probe is inconclusive when Meet uses a non-brokered transformed track
+  ---
+  duration_ms: 62.569209
+  ...
+# Subtest: clone increments consumers; stopping one clone does not emit the sibling key
+ok 123 - clone increments consumers; stopping one clone does not emit the sibling key
+  ---
+  duration_ms: 2.158958
+  ...
+# Subtest: computer audio starts muted receiver playout before resolving, without adding a page consumer
+ok 124 - computer audio starts muted receiver playout before resolving, without adding a page consumer
+  ---
+  duration_ms: 2.16225
+  ...
+# Subtest: video-only share does not create a receiver audio sink
+ok 125 - video-only share does not create a receiver audio sink
+  ---
+  duration_ms: 1.416792
+  ...
+# Subtest: receiver sink survives original audio stop until the last audio clone stops
+ok 126 - receiver sink survives original audio stop until the last audio clone stops
+  ---
+  duration_ms: 2.081625
+  ...
+# Subtest: trusted Stop removes only the named share sink and leaves independent capture live
+ok 127 - trusted Stop removes only the named share sink and leaves independent capture live
+  ---
+  duration_ms: 2.708625
+  ...
+# Subtest: cancel during receiver play startup rejects and disposes a late play completion
+ok 128 - cancel during receiver play startup rejects and disposes a late play completion
+  ---
+  duration_ms: 4.11675
+  ...
+# Subtest: receiver play rejection rejects the share and releases its native clone
+ok 129 - receiver play rejection rejects the share and releases its native clone
+  ---
+  duration_ms: 1.589167
+  ...
+# Subtest: receiver play startup has a bounded timeout even after track-ready
+ok 130 - receiver play startup has a bounded timeout even after track-ready
+  ---
+  duration_ms: 2.097833
+  ...
+# Subtest: natural audio end releases receiver sink without stopping video
+ok 131 - natural audio end releases receiver sink without stopping video
+  ---
+  duration_ms: 0.907125
+  ...
+# Subtest: adapter capabilities exclude native identifiers and describe real support
+ok 132 - adapter capabilities exclude native identifiers and describe real support
+  ---
+  duration_ms: 0.704833
+  ...
+# Subtest: Meet-like max constraints succeed on adapter video
+ok 133 - Meet-like max constraints succeed on adapter video
+  ---
+  duration_ms: 1.039791
+  ...
+# Subtest: impossible required constraints reject with constraint name and keep prior config
+ok 134 - impossible required constraints reject with constraint name and keep prior config
+  ---
+  duration_ms: 0.642833
+  ...
+# Subtest: track.clone consumers constrain independently and inherit accepted constraints
+ok 135 - track.clone consumers constrain independently and inherit accepted constraints
+  ---
+  duration_ms: 0.570375
+  ...
+# Subtest: MediaStream.clone consumers constrain independently and inherit accepted constraints
+ok 136 - MediaStream.clone consumers constrain independently and inherit accepted constraints
+  ---
+  duration_ms: 0.730541
+  ...
+# Subtest: stopping a MediaStream clone leaves the original canvas output live
+ok 137 - stopping a MediaStream clone leaves the original canvas output live
+  ---
+  duration_ms: 0.580042
+  ...
+# Subtest: frameRate constraints reconfigure the physical canvas capture rate
+ok 138 - frameRate constraints reconfigure the physical canvas capture rate
+  ---
+  duration_ms: 0.519208
+  ...
+# Subtest: remote relay ending ends the dependent canvas output
+ok 139 - remote relay ending ends the dependent canvas output
+  ---
+  duration_ms: 1.714625
+  ...
+# Subtest: silent relay readyState end is observed by the canvas pump
+ok 140 - silent relay readyState end is observed by the canvas pump
+  ---
+  duration_ms: 0.775667
+  ...
+# Subtest: clone frameRate apply retimes the retained native canvas track
+ok 141 - clone frameRate apply retimes the retained native canvas track
+  ---
+  duration_ms: 1.102875
+  ...
+# Subtest: without canvas, required resize is OverconstrainedError and settings stay real
+ok 142 - without canvas, required resize is OverconstrainedError and settings stay real
+  ---
+  duration_ms: 0.878666
+  ...
+# Subtest: silent source end closes every per-consumer AudioContext
+ok 143 - silent source end closes every per-consumer AudioContext
+  ---
+  duration_ms: 0.5645
+  ...
+# Subtest: Stop settles an in-flight native apply before native completion
+ok 144 - Stop settles an in-flight native apply before native completion
+  ---
+  duration_ms: 25.59975
+  ...
+# Subtest: Stop aborts pending applyConstraints and late completion does not revive config
+ok 145 - Stop aborts pending applyConstraints and late completion does not revive config
+  ---
+  duration_ms: 1.411292
+  ...
+# Subtest: display-capture is denied without a prompt
+ok 146 - display-capture is denied without a prompt
+  ---
+  duration_ms: 0.811125
+  ...
+# Subtest: empty mediaTypes is denied even with a remembered device allow
+ok 147 - empty mediaTypes is denied even with a remembered device allow
+  ---
+  duration_ms: 0.362708
+  ...
+# Subtest: display media handler still grants no stream
+ok 148 - display media handler still grants no stream
+  ---
+  duration_ms: 0.225375
+  ...
+# Subtest: source projection retains only picker metadata and treats names as text
+ok 149 - source projection retains only picker metadata and treats names as text
+  ---
+  duration_ms: 1.34
+  ...
+# Subtest: only the owning overlay can select; missing source and forged labels cannot grant
+ok 150 - only the owning overlay can select; missing source and forged labels cannot grant
+  ---
+  duration_ms: 0.870459
+  ...
+# Subtest: computer audio requires the site request as well as consent
+ok 151 - computer audio requires the site request as well as consent
+  ---
+  duration_ms: 0.220458
+  ...
+# Subtest: second picker in one window denies without replacing first; another window is independent
+ok 152 - second picker in one window denies without replacing first; another window is independent
+  ---
+  duration_ms: 0.267833
+  ...
+# Subtest: cancel while enumerating prevents late sources reopening the picker
+ok 153 - cancel while enumerating prevents late sources reopening the picker
+  ---
+  duration_ms: 0.453416
+  ...
+# Subtest: Linux waits for Continue and portal completion, then passes that exact source to capture
+ok 154 - Linux waits for Continue and portal completion, then passes that exact source to capture
+  ---
+  duration_ms: 0.815875
+  ...
+# Subtest: Linux portal cancel or late completion after cancellation grants nothing
+ok 155 - Linux portal cancel or late completion after cancellation grants nothing
+  ---
+  duration_ms: 0.400125
+  ...
+# Subtest: Linux enumerated list requires an explicit source selection
+ok 156 - Linux enumerated list requires an explicit source selection
+  ---
+  duration_ms: 0.267792
+  ...
+# Subtest: Linux without an established portal requires selection even for a single source
+ok 157 - Linux without an established portal requires selection even for a single source
+  ---
+  duration_ms: 0.367417
+  ...
+# Subtest: darwin selects one complete locked capture runtime
+ok 158 - darwin selects one complete locked capture runtime
+  ---
+  duration_ms: 1.261084
+  ...
+# Subtest: win32 selects one complete locked capture runtime
+ok 159 - win32 selects one complete locked capture runtime
+  ---
+  duration_ms: 0.386
+  ...
+# Subtest: linux selects one complete locked capture runtime
+ok 160 - linux selects one complete locked capture runtime
+  ---
+  duration_ms: 0.53375
+  ...
+# Subtest: runtime selection rejects unsupported platforms and page-supplied values
+ok 161 - runtime selection rejects unsupported platforms and page-supplied values
+  ---
+  duration_ms: 0.204458
+  ...
+# Subtest: Windows retains its original runtime paths while Linux gets separate files
+ok 162 - Windows retains its original runtime paths while Linux gets separate files
+  ---
+  duration_ms: 0.06175
+  ...
+# Subtest: main selects both broker and browsing preload through the platform policy
+ok 163 - main selects both broker and browsing preload through the platform policy
+  ---
+  duration_ms: 1.666542
+  ...
+# Subtest: shared permission, relay, and capture dependencies cannot change silently
+ok 164 - shared permission, relay, and capture dependencies cannot change silently
+  ---
+  duration_ms: 0.507334
+  ...
+# Subtest: locked capture runtime bytes keep LF endings on every platform checkout
+ok 165 - locked capture runtime bytes keep LF endings on every platform checkout
+  ---
+  duration_ms: 0.382666
+  ...
+# Subtest: one pending request per tab
+ok 166 - one pending request per tab
+  ---
+  duration_ms: 0.606375
+  ...
+# Subtest: stale approve is ignored
+ok 167 - stale approve is ignored
+  ---
+  duration_ms: 0.13425
+  ...
+# Subtest: computer audio cannot be approved when the site did not request it
+ok 168 - computer audio cannot be approved when the site did not request it
+  ---
+  duration_ms: 0.068583
+  ...
+# Subtest: clone consumers are independent; last audio consumer releases audio only
+ok 169 - clone consumers are independent; last audio consumer releases audio only
+  ---
+  duration_ms: 0.100541
+  ...
+# Subtest: stopShare releases every consumer
+ok 170 - stopShare releases every consumer
+  ---
+  duration_ms: 0.142916
+  ...
+# Subtest: getShare exposes owner binding for a live share
+ok 171 - getShare exposes owner binding for a live share
+  ---
+  duration_ms: 0.06775
+  ...
+# Subtest: tabHasBlockingShare is true for pending and active
+ok 172 - tabHasBlockingShare is true for pending and active
+  ---
+  duration_ms: 0.092792
+  ...
+# Subtest: releases hidden windows when the last visible window closes on Windows
+ok 173 - releases hidden windows when the last visible window closes on Windows
+  ---
+  duration_ms: 0.290292
+  ...
+# Subtest: releases hidden windows when the last visible window closes on Linux
+ok 174 - releases hidden windows when the last visible window closes on Linux
+  ---
+  duration_ms: 0.040583
+  ...
+# Subtest: keeps hidden windows while another visible window is still open
+ok 175 - keeps hidden windows while another visible window is still open
+  ---
+  duration_ms: 0.033333
+  ...
+# Subtest: keeps hidden windows on macOS, where Blanc stays alive without windows
+ok 176 - keeps hidden windows on macOS, where Blanc stays alive without windows
+  ---
+  duration_ms: 0.031541
+  ...
+1..176
+# tests 176
+# suites 0
+# pass 176
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 14665.553584

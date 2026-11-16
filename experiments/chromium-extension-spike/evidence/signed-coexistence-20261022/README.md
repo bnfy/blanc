@@ -1,0 +1,11 @@
+# Signed side-by-side isolation — October 22, 2026
+
+**L2 remains open: restored preview web documents fail.** Tested notarized preview archive `7725b7886208b1aa047609cf0b48e9bb03604447238edb384208fd459fd51923` after security commit `cf2c103d4144a7adb507d2d8fd2f0bb2625cbfcf`, alongside an unchanged signed copy of installed shipping Blanc 1.42.1 (1421), on macOS 27.2. Separate pre-created disposable profiles; shipping updater disabled only for this fixture using its fail-closed channel policy. No permanent profile copies or Electron builds.
+
+Initial schedule passes six state assertions: both apps run, each owns its two fixture URLs, preview quit preserves shipping state, preview restart restores URLs/selection, shipping quit preserves preview state. Its immediate shipping restart assertion fails while active selection is still -1; the on-disk shipping session contains all three correct URLs and selected index2. This is not evidence of shipping data loss.
+
+The repeat adds shipping readiness and actual restored preview document checks. Both attempts log renderer termination reason332 after preview restart. Independent CDP probes of both restored HTTP fixture pages time out. The repeat was stopped rather than waiting through its overly long per-document retry loop; no completed repeat pass count is claimed. App removal/uninstall acceptance was not reached. First script's state-only successes do not establish usable restored pages.
+
+Chromium's guard maps332 to RFH_INVALID_DOCUMENT_SEQUENCE_NUMBER and rejects a DidCommitNavigation with document_sequence_number=-1. That identifies the immediate rejection; the producer of the invalid state is not yet established. Next priority is inspect saved/restored navigation page state and fix its producer, preserving the security guard. Earlier 39 security/recovery assertions remain bounded to their checks and did not validate restored page content; they do not close this new acceptance blocker.
+
+Disposable app copies/profiles and logs retained under `/private/tmp/blanc-isolation-acceptance-20261022` for diagnosis; test browsers were asked to close. Google/dev URL lists and selection unchanged. No native build, latency measurement or Electron build. Security publication completed on #1028; this subsequent acceptance evidence is not a release approval.

@@ -1,0 +1,18 @@
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+index 47dd99c..d67b80a 100644
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -2264,6 +2264,13 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
+   safe_browsing::file_type::RegisterProfilePrefs(registry);
+ #endif
+   safe_browsing::RegisterProfilePrefs(registry);
++#if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
++  // Blanc (desktop spec §6.1, owner 2026-11-14): Safe Browsing is off by
++  // default. Shipping Blanc has none, and Chromium's default fetches Google's
++  // lists in the background (found by beta.3's outbound check). Off for every
++  // profile, Chromium neither updates the lists nor sends download checks.
++  registry->SetDefaultPrefValue(prefs::kSafeBrowsingEnabled, base::Value(false));
++#endif
+   safety_check::prefs::RegisterProfilePrefs(registry);
+   SearchPrefetchService::RegisterProfilePrefs(registry);
+   blocked_content::SafeBrowsingTriggeredPopupBlocker::RegisterProfilePrefs(

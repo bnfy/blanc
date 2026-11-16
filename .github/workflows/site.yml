@@ -5,7 +5,7 @@ name: Site
 # drift. Root package.json is a build input (JSON-LD softwareVersion) and
 # provides Playwright; the changelog generator is part of the releases.json
 # contract; the wordmark outlines and the Sunrise artwork are the sources of
-# the site's lockup assets.
+# the site's lockup assets; the apt mirror script runs before Playwright.
 on:
   push:
     branches: [main]
@@ -14,6 +14,7 @@ on:
       - 'test/site/**'
       - 'package.json'
       - 'scripts/generate-site-changelog.mjs'
+      - 'scripts/ci-apt-mirror.sh'
       - 'assets/wordmark/**'
       - 'assets/sunrise-mark.svg'
       - '.github/workflows/site.yml'
@@ -23,6 +24,7 @@ on:
       - 'test/site/**'
       - 'package.json'
       - 'scripts/generate-site-changelog.mjs'
+      - 'scripts/ci-apt-mirror.sh'
       - 'assets/wordmark/**'
       - 'assets/sunrise-mark.svg'
       - '.github/workflows/site.yml'
@@ -54,7 +56,10 @@ jobs:
       - run: npm ci
         env:
           ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
-      - run: npx playwright install --with-deps chromium
+      # Chromium's system libraries come through apt, so point apt off
+      # the runner's default mirror first (scripts/ci-apt-mirror.sh): that
+      # mirror stopped resolving on November 11, 2026.
+      - run: bash scripts/ci-apt-mirror.sh && npx playwright install --with-deps chromium
       - run: npm ci
         working-directory: site
       # The condensed Newsreader headings are derived from the pinned fontsource

@@ -303,6 +303,7 @@ const {
   MAX_SLEEP_SNAPSHOTS,
 } = require('./tab-sleep');
 const { TAB_ARCHIVE_DELAY_MS, ARCHIVE_GRACE_MS, archiveCandidates, buildArchiveEntry } = require('./tab-archive');
+const { findReusableNewTab, NEW_TAB_URL, PRIVATE_NEW_TAB_URL } = require('./new-tab-reuse');
 const adblockStats = require('./adblock-stats');
 const {
   createCaptureRecord, applyGrant, applySettlement, applyFrameReport,
@@ -447,10 +448,7 @@ const onePasswordBroker = ONE_PASSWORD_AVAILABLE
   ? createOnePasswordClient({ utilityProcess, deviceSupported: ONE_PASSWORD_DEVICE_SUPPORTED })
   : null;
 
-const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
-// The query flag tells the newtab page to show private copy + theme.
-const PRIVATE_NEW_TAB_URL = 'blanc://newtab/?private=1';
 const certificateObserver = createCertificateObserver();
 // Session-only "continue anyway" choices for local certificate failures
 // (certificate spec §4.1). Eviction closes the session's pooled connections
@@ -5029,10 +5027,13 @@ function removeTabFromSplit(tabId) {
   withWindowRuntime(runtime, () => {
     // The removed tab, if it was showing, steps out of view: the rest of the
     // split (or the survivor, full-window) takes the window.
+    // A Glance floating over the split stays over what remains of it.
     if (runtime.activeTabId === tabId) {
       const next = rest ? rest.tabIds[rest.focusedIndex] : dissolved[0];
-      if (next) setActiveTab(next);
-    } else if (visibleSplitOf(runtime) || dissolved.includes(runtime.activeTabId)) {
+      if (next) setActiveTab(next, { keepGlance: true });
+    } else if ((visibleSplitOf(runtime) || dissolved.includes(runtime.activeTabId))
+      && tabId !== runtime.glanceTabId) {
+      // Never the Glance page: it can come from a split that isn't showing.
       if (liveContents(tab)) detachTabView(tab, { retainManagedRoot: true });
       resizeActiveView();
     }
@@ -5229,6 +5230,7 @@ function overlayBounds() {
       windowWidth: rt().window.getContentBounds().width,
       windowHeight: rt().window.getContentBounds().height,
       stripHeight: rt().chromeHeight,
+      anchorLimit: spacesAnchorLimit(),
       anchorLeft: rt().spacesAnchorLeft,
       anchorBottom: rt().spacesAnchorBottom,
     });
@@ -5245,10 +5247,17 @@ function setShieldAnchor(anchor) {
   rt().shieldAnchorBottom = valid ? anchor.bottom : null;
 }
 
+/** How low the Spaces menu's anchor may be: the strip's bottom, or with
+ * vertical tabs the window's, since the mark then sits in the rail's header,
+ * which on macOS runs below the strip (styles.css body.mac .vertical-tabs-toolbar). */
+function spacesAnchorLimit() {
+  return tabLayout === 'vertical' ? (rt().window?.getContentBounds().height ?? 0) : rt().chromeHeight;
+}
+
 function setSpacesAnchor(anchor) {
   const width = rt().window?.getContentBounds().width ?? 0;
   const valid = Number.isFinite(anchor?.left) && anchor.left >= 0 && anchor.left <= width
-    && Number.isFinite(anchor?.bottom) && anchor.bottom >= 0 && anchor.bottom <= rt().chromeHeight;
+    && Number.isFinite(anchor?.bottom) && anchor.bottom >= 0 && anchor.bottom <= spacesAnchorLimit();
   rt().spacesAnchorLeft = valid ? anchor.left : null;
   rt().spacesAnchorBottom = valid ? anchor.bottom : null;
 }
@@ -5595,6 +5604,7 @@ function createOverlay() {
         prefill: rt().overlayPrefill,
         purpose: rt().overlayPurpose,
         searchPriorityResults: settings.getSettings().searchPriorityResults === true,
+        panelSideClearance: currentChromeLayout().panelSideClearance,
       });
       syncShieldAnchor();
       rt().overlayView.webContents.focus();
@@ -5804,6 +5814,9 @@ function showOverlay(mode, { prefill, purpose } = {}) {
     // Read on every show: the setting changes only in the Settings sheet,
     // which the overlay never shares the screen with.
     searchPriorityResults: settings.getSettings().searchPriorityResults === true,
+    // The margin the centered panel keeps from each side of this view, wide
+    // enough on macOS to leave the window buttons their corner.
+    panelSideClearance: currentChromeLayout().panelSideClearance,
     // Where the resting pill is, in the overlay's OWN coordinates, so the
     // panel can start life at the pill's size and grow out of it. The two live
     // in different views, so this hand-off is the only way the overlay can
@@ -7294,21 +7307,22 @@ function resizeActiveView() {
     });
   } else {
     roundSplitPane(tab, false);
-    // The floating Glance card: the main page keeps the whole page area; the
-    // card's chrome view and the Glance page inside it float over it.
+    // The main page keeps the whole page area.
     if (liveContents(tab)) presentationView(tab).setBounds(place(layout.pageBounds));
-    const cardDrawn = rt().glanceCardDrawn === true;
-    // The card is fixed to the window: a pushed Island sliding in moves the
-    // main page beneath it, never the card or the page inside it.
-    if (liveContents(glanceTab) && card) {
-      presentationView(glanceTab).setBounds(card.page);
-      roundGlancePage(glanceTab, true);
-      if (presentationView(glanceTab).getVisible?.() !== cardDrawn) setTabViewVisible(glanceTab, cardDrawn);
-    }
-    if (cardView) {
-      if (card) cardView.setBounds(card.chrome);
-      cardView.setVisible(!!card && cardDrawn);
-    }
+  }
+  // The floating Glance card: its chrome view and the Glance page inside it
+  // float over the main page, or over every pane of a split (#1441).
+  const cardDrawn = rt().glanceCardDrawn === true;
+  // The card is fixed to the window: a pushed Island sliding in moves the
+  // pages beneath it, never the card or the page inside it.
+  if (liveContents(glanceTab) && card) {
+    presentationView(glanceTab).setBounds(card.page);
+    roundGlancePage(glanceTab, true);
+    if (presentationView(glanceTab).getVisible?.() !== cardDrawn) setTabViewVisible(glanceTab, cardDrawn);
+  }
+  if (cardView) {
+    if (card) cardView.setBounds(card.chrome);
+    cardView.setVisible(!!card && cardDrawn);
   }
   syncSplitCornerTabs(split, place);
   keepIslandFloatOnTop();
@@ -7632,8 +7646,8 @@ function installMacTabSwitchKeys(webContents, getRuntime) {
 
 const executeBrowserCommand = createBrowserCommandExecutor({
   'new-window': runtime => openNewWindow({ profileId: runtime.profileId }),
-  'new-tab': () => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true }),
-  'new-private-tab': () => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true }),
+  'new-tab': () => openOrReuseNewTab(),
+  'new-private-tab': () => openOrReuseNewTab({ private: true }),
   'close-tab': (runtime, sender) => {
     if (tabSwitcher.isSwitching(runtime)) return closeSwitcherPick(runtime);
     const tab = browserCommandTab(runtime, sender);
@@ -9817,6 +9831,7 @@ function setActiveTab(id, {
   focusAddress = false,
   dismissUtilitySheet = true,
   keepSpacesEditor = false,
+  keepGlance = false,
 } = {}) {
   const next = tabs.get(id);
   if (!next || next.sleeping || windowRuntimes.runtimeForTab(id) !== rt()) return;
@@ -9874,7 +9889,13 @@ function setActiveTab(id, {
   // tab ends it, and choosing the Glance tab itself (an Island dot, ⌘1–9, the
   // ⌘L list) opens that page as the tab, like Open as tab. Interacting inside
   // the Glance page never reaches here: its focus handler doesn't activate.
-  if (rt().glanceTabId) closeGlance({ focusContent: false });
+  // Over a split (#1441) it floats over every pane, so focus moving between
+  // the panes of the split it was opened over keeps it, as does the split's
+  // own survivor taking over when a pane closes or leaves (keepGlance).
+  const withinShownSplit = shownBefore.has(prevId) && shownBefore.has(id);
+  if (rt().glanceTabId && !((keepGlance || withinShownSplit) && id !== rt().glanceTabId)) {
+    closeGlance({ focusContent: false });
+  }
   if (prev) {
     // Quiet Tabs: the tab is leaving the foreground — this is the ONLY moment
     // that defines "idle since" (spec §4.3). Stamp before a potential detach
@@ -9955,15 +9976,18 @@ function setActiveTab(id, {
   }
 }
 
-/** A two-pane split can release either pane into a floating Glance. */
+/** Glance from the tab menu or the ⌘L row's button. Any other tab floats
+ * over the visible split (#1441); a pane of a two-pane split instead leaves
+ * the split and floats over the remaining tab. With no split showing it is
+ * setGlanceTab. */
 async function openTabMenuGlance(id) {
   const runtime = rt();
   const split = visibleSplitOf(runtime);
-  if (split) {
+  if (split?.tabIds.includes(id)) {
     const tab = tabs.get(id);
-    // Validate before changing the split. Other rows (and larger splits)
-    // cannot float over a split that would still be visible afterward.
-    if (split.tabIds.length !== 2 || !split.tabIds.includes(id)
+    // Validate before changing the split. A larger split would still be
+    // showing with this pane in it, so its panes can't go to Glance.
+    if (split.tabIds.length !== 2
       || !tab || tab.sleeping || tab.asleep || !liveContents(tab)
       || windowRuntimes.runtimeForTab(id) !== runtime) return false;
     // Removing the active pane must hand the window to its survivor. Do not
@@ -9978,19 +10002,15 @@ async function openTabMenuGlance(id) {
 }
 
 async function setGlanceTab(id) {
-  if (visibleSplitOf()) {
-    // Glance and a visible split never share a window (F53).
-    if (hasLiveWindow()) stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('split.glanceUnavailable'));
-    return false;
-  }
   let tab = tabs.get(id);
   // A tab mid-sleep-teardown (`sleeping`) still reads back live contents, but
   // its renderer is already being discarded — attaching it would paint a dead
   // pane. Refuse; the picker reports the failure and a retry finds it asleep
-  // and takes the wake path.
+  // and takes the wake path. Glance floats over the main page or over the
+  // whole visible split (#1441), so it never shows a page already on screen.
   if (
     !hasLiveWindow() || !tab || id === rt().activeTabId || tab.sleeping ||
-    windowRuntimes.runtimeForTab(id) !== rt()
+    visibleSplitTabIds().includes(id) || windowRuntimes.runtimeForTab(id) !== rt()
   ) return false;
 
   const requestEpoch = rt().glanceRequestEpoch ?? 0;
@@ -10011,7 +10031,7 @@ async function setGlanceTab(id) {
   tab = tabs.get(id);
   if (
     !hasLiveWindow() || !tab || id === rt().activeTabId || tab.sleeping ||
-    windowRuntimes.runtimeForTab(id) !== rt()
+    visibleSplitTabIds().includes(id) || windowRuntimes.runtimeForTab(id) !== rt()
   ) return false;
   if (!liveContents(tab) || !tab.view) return false;
 
@@ -10118,10 +10138,6 @@ function openLinkInGlance(opener, url) {
 
 function openGlancePicker(query = '') {
   if (!hasLiveWindow()) return false;
-  if (visibleSplitOf()) {
-    stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('split.glanceUnavailable'));
-    return false;
-  }
   rt().window.focus();
   // With a Glance open, the Change picker hangs from the card header's Change
   // control. With a single tab the picker still opens, to say what to do.
@@ -10471,6 +10487,18 @@ function closeTab(id) {
     const survivingGlanceId = rt().glanceTabId && tabs.has(rt().glanceTabId)
       ? rt().glanceTabId
       : null;
+    const splitSurvivor = splitSurvivors.find((other) => tabs.has(other));
+    if (splitSurvivor) {
+      // The split's other pane takes the window. A Glance floating over the
+      // split (#1441) stays, over what remains of it.
+      rt().activeTabId = null;
+      pruneSplits(rt());
+      setActiveTab(splitSurvivor, { keepGlance: true });
+      if (!splitForTab(rt().splits, splitSurvivor) && hasLiveWindow()) {
+        announceSplit(mainI18n.t('split.dissolved', { title: displayTitle(tabs.get(splitSurvivor)) || mainI18n.t('tab.untitledShort') }));
+      }
+      return;
+    }
     if (survivingGlanceId) {
       // Closing the main page leaves the visible reference as the sole page.
       // Promote it and collapse Glance rather than silently choosing a third
@@ -10483,16 +10511,6 @@ function closeTab(id) {
         stripSurfaces(rt()).send('chrome:glance-status', mainI18n.t('glance.status.mainClosed', {
           title: displayTitle(promoted) || mainI18n.t('tab.untitledShort'),
         }));
-      }
-      return;
-    }
-    const splitSurvivor = splitSurvivors.find((other) => tabs.has(other));
-    if (splitSurvivor) {
-      rt().activeTabId = null;
-      pruneSplits(rt());
-      setActiveTab(splitSurvivor);
-      if (!splitForTab(rt().splits, splitSurvivor) && hasLiveWindow()) {
-        announceSplit(mainI18n.t('split.dissolved', { title: displayTitle(tabs.get(splitSurvivor)) || mainI18n.t('tab.untitledShort') }));
       }
       return;
     }
@@ -10593,6 +10611,45 @@ function closeTabsBeside(keepId, direction) {
   if (entry.tabs.length > 0) pushClosedEntry(entry);
   broadcastTabs();
   scheduleMenuRebuild();
+}
+
+// #1505: a plain new-tab request (⌘T, ⌘⇧N, the Island's New Tab buttons,
+// /new, /private) switches to an unused New Tab page already in this window,
+// which is also the current Space, instead of stacking another. Only Blanc's
+// own page counts, so a custom home page always opens fresh; New Tab in
+// Group, New Tab Below and the floor tabs never come here. A plain new tab
+// opens ungrouped (see CLAUDE.md → Tab groups).
+function openOrReuseNewTab({ private: isPrivate = false, focusAddress = true } = {}) {
+  const runtime = rt();
+  const url = isPrivate ? PRIVATE_NEW_TAB_URL : newTabUrl();
+  const reuse = settings.getSettings().reuseNewTab && (isPrivate || url === NEW_TAB_URL);
+  const id = (reuse && findReusableNewTab({
+    tabOrder: runtime.tabOrder,
+    tabs,
+    activeTabId: runtime.activeTabId,
+    glanceTabId: runtime.glanceTabId,
+    private: isPrivate,
+    isUsed: newTabPageUsed,
+  })) || createTab(url, { private: isPrivate });
+  // Re-selecting the active tab is a no-op in setActiveTab, so the address
+  // field is summoned directly when ⌘T lands on the tab already showing.
+  if (id && id === runtime.activeTabId) {
+    if (focusAddress) focusAddressBar();
+    return id;
+  }
+  setActiveTab(id, { focusContent: !focusAddress, focusAddress });
+  return id;
+}
+
+// Whether a tab showing the New Tab page has been used: it has history in
+// either direction (it went somewhere, even if it came back), or a
+// navigation away from the page is under way. A quiet tab has no contents,
+// so its snapshot answers instead.
+function newTabPageUsed(tab) {
+  const contents = liveContents(tab);
+  if (!contents) return (sleepSnapshots.get(tab.id)?.entries?.length ?? 0) > 1;
+  const current = contents.getURL();
+  return contents.navigationHistory.length() > 1 || (!!current && current !== tab.url);
 }
 
 /** New Tab Below (tab menu additions spec §2): a new tab directly under
@@ -11709,21 +11766,17 @@ function registerIpcHandlers() {
   darkWebsites.install();
   chromeHandle('tabs:create', (_e, url, opts) => {
     const isPrivate = !!opts?.private;
-    // A plain new tab is deliberately ungrouped — createTab defaults groupId
-    // to null and we intentionally don't pass one. Link children
-    // (window.open, context menu) open ungrouped too (see CLAUDE.md → Tab
-    // groups); only explicit grouping moves a tab into a group.
-    const id = createTab(url || (isPrivate ? PRIVATE_NEW_TAB_URL : newTabUrl()), {
-      private: isPrivate,
-    });
     // A blank "New Tab" (no explicit url) is normally a launchpad — keep OS
-    // focus on the chrome so the address bar can take it. A url means the
-    // caller has somewhere specific to go, so focus the page content. The
-    // island footer's New-tab/Private buttons opt out with focusAddress:false:
-    // they close the panel and land the user directly on the fresh tab rather
-    // than re-summoning the launchpad.
-    const blank = !url;
-    const focusAddress = opts?.focusAddress ?? blank;
+    // focus on the chrome so the address bar can take it. The island
+    // footer's New-tab/Private buttons opt out with focusAddress:false: they
+    // close the panel and land the user directly on the tab rather than
+    // re-summoning the launchpad.
+    if (!url) return openOrReuseNewTab({ private: isPrivate, focusAddress: opts?.focusAddress ?? true });
+    // A url means the caller has somewhere specific to go, so focus the page
+    // content. Like a plain new tab it opens ungrouped (see CLAUDE.md → Tab
+    // groups); only explicit grouping moves a tab into a group.
+    const id = createTab(url, { private: isPrivate });
+    const focusAddress = opts?.focusAddress ?? false;
     setActiveTab(id, { focusContent: !focusAddress, focusAddress });
     return id;
   });
@@ -11745,7 +11798,8 @@ function registerIpcHandlers() {
   chromeHandle('tabs:select', (_e, id, mode) => selectTabRows(id, mode));
   chromeHandle('tabs:switch', (_e, id) => { clearTabSelection(); return setActiveTab(id); });
   chromeHandle('tabs:activate-from-rail', (_e, id) => { clearTabSelection(); return activateTabFromRail(id); });
-  chromeHandle('tabs:set-glance', (_e, id) => setGlanceTab(id));
+  // The ⌘L row's Glance button: same split rule as the tab menu (#1441).
+  chromeHandle('tabs:set-glance', (_e, id) => openTabMenuGlance(id));
   chromeHandle('tabs:open-glance-picker', (_e, query) => openGlancePicker(typeof query === 'string' ? query.slice(0, 200) : ''));
   chromeHandle('tabs:close-glance', () => closeGlance());
   chromeHandle('tabs:open-glance-as-tab', () => openGlanceAsTab());
@@ -12946,8 +13000,9 @@ function tabContextData(tab, owner) {
     groups: owner.groups.map((g) => ({ id: g.id, name: g.name })),
     activeTabId: owner.activeTabId,
     glanceTabId: owner.glanceTabId ?? null,
-    canGlance: !visibleSplit || (visibleSplit.tabIds.length === 2
-      && visibleSplit.tabIds.includes(tab.id)),
+    // Any other tab floats over a visible split (#1441); a pane of a
+    // two-pane split leaves it for Glance (openTabMenuGlance).
+    canGlance: !visibleSplit?.tabIds.includes(tab.id) || visibleSplit.tabIds.length === 2,
     canCloseOthers: closableTabIds({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id }).length > 0,
     canMoveToNewWindow: owner.tabOrder.length > 1,
     // A page-opened tab can't be copied into a fresh view (document-policy.js).
@@ -13206,8 +13261,8 @@ function menuContextActions(owner) {
     removeFromSplit: b((id) => removeTabFromSplit(id)),
     closeSplit: b((id) => { const split = splitForTab(rt().splits, id); if (split) closeSplit(split.id); }),
     quiet: b((id) => sleepTabNow(id)),
-    newTab: b(() => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true })),
-    newPrivateTab: b(() => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true })),
+    newTab: b(() => openOrReuseNewTab()),
+    newPrivateTab: b(() => openOrReuseNewTab({ private: true })),
     closeOthers: b((id) => closeOtherTabsInWindow(id)),
     closeBeside: b((id, direction) => closeTabsBeside(id, direction)),
     newTabBelow: b((id) => newTabBelow(id)),
@@ -16206,7 +16261,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           viewBounds: glanceView?.getBounds() ?? null,
           cardViewBounds: cardView?.getBounds() ?? null,
           cardViewVisible: cardView?.getVisible?.() ?? false,
-          stackIndex: { main: children.indexOf(mainView), card: children.indexOf(cardView), glance: children.indexOf(glanceView) },
+          stackIndex: {
+            main: children.indexOf(mainView), card: children.indexOf(cardView), glance: children.indexOf(glanceView),
+            // A Glance over a split (#1441): every pane and corner tab.
+            panes: visibleSplitTabIds().map((id) => children.indexOf(presentationView(tabs.get(id)))),
+            corners: [...rt().splitCornerViews.values()].map((entry) => children.indexOf(entry.view)),
+          },
         };
       },
       runLinkSpaceMenuItem: (tabId, url, text, itemId) => {

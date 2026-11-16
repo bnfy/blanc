@@ -1,5 +1,5 @@
 const assert = require('node:assert/strict');
-const { Given, When, Then } = require('@cucumber/cucumber');
+const { Given, When, Then, After } = require('@cucumber/cucumber');
 
 Given('I navigate to a site with an untrusted certificate', async function () {
   this.untrustedCertificateTabId = await this.call('openTab', this.untrustedFixtureUrl('bad-cert'));
@@ -207,4 +207,126 @@ When('I go forward in the lab tab', async function () {
 
 Then('the lab tab still reports that I continued past a warning', async function () {
   await waitForSiteState(this, this.labTabId, 'certificate-exception');
+});
+
+Given('a page embeds a frame with an untrusted certificate', async function () {
+  this.untrustedFrameUrl = this.untrustedFixtureUrl('framed-bad-cert');
+  this.frameHostUrl = this.fixtureUrl('frame-host-untrusted');
+  this.frameHostTabId = await this.call('openTab', this.frameHostUrl);
+  await this.waitForState((state) => state.tabs.some((tab) =>
+    tab.id === this.frameHostTabId && tab.loadedUrl === this.frameHostUrl), { timeout: 10_000 });
+  const outcome = await this.call('executeTab', this.frameHostTabId, `new Promise((resolve) => {
+    const frame = document.createElement('iframe');
+    frame.onload = () => resolve('loaded');
+    frame.src = ${JSON.stringify(this.untrustedFrameUrl)};
+    document.body.append(frame);
+  })`);
+  assert.equal(outcome, 'loaded');
+});
+
+Then('the embedded frame is refused', async function () {
+  // Read in the main process, because a cross-origin frame can't be inspected
+  // from its page. Origins, not URLs: a refused frame's error page still
+  // reports the URL it tried.
+  const origins = await ctx.app.evaluate(({ webContents }, url) => {
+    const host = webContents.getAllWebContents().find((wc) => !wc.isDestroyed() && wc.getURL() === url);
+    return host ? host.mainFrame.framesInSubtree.map((frame) => frame.origin) : null;
+  }, this.frameHostUrl);
+  assert.ok(origins, 'the page that embeds the frame is gone');
+  assert.equal(origins.length, 2, `frames were ${JSON.stringify(origins)}`);
+  assert.ok(origins.includes(new URL(this.frameHostUrl).origin), `frames were ${JSON.stringify(origins)}`);
+  assert.equal(origins.includes(new URL(this.untrustedFrameUrl).origin), false, `frames were ${JSON.stringify(origins)}`);
+});
+
+Then('the page that embeds it stays open', async function () {
+  const state = await this.state();
+  assert.equal(state.tabs.find((tab) => tab.id === this.frameHostTabId)?.loadedUrl, this.frameHostUrl);
+  const payload = await this.call('serializedTabsPayload');
+  assert.notEqual(payload.find((entry) => entry.id === this.frameHostTabId)?.siteInfo?.state, 'certificate-error');
+});
+
+Given('I continued past the warning on a local page that opens a WebSocket', async function () {
+  this.localTabId = await this.call('openTab', this.localFixtureUrl('local-socket', '?socket=1'));
+  await continueLocal(this, this.localTabId);
+});
+
+Then('the WebSocket to the local address opens', async function () {
+  const deadline = Date.now() + 10_000;
+  for (;;) {
+    const state = await this.call('executeTab', this.localTabId, 'window.__socketState');
+    if (state === 'open') return;
+    if (state === 'error' || Date.now() > deadline) throw new Error(`the WebSocket was ${state}, expected open`);
+    await new Promise((r) => setTimeout(r, 100));
+  }
+});
+
+// F39-10/11: a featureful window.open (Proxmox's console button) becomes a
+// real BrowserWindow, not a tab, so these reach it through the main process.
+const POPUP_PATH = '/site/local-console';
+
+function popupContents(script) {
+  return ctx.app.evaluate(async ({ BrowserWindow }, { path, source }) => {
+    const win = BrowserWindow.getAllWindows().find((w) => !w.isDestroyed() &&
+      w.webContents.getURL().includes(path));
+    if (!win) return { found: false };
+    const wc = win.webContents;
+    const run = new Function('wc', `return (${source})(wc);`);
+    return { found: true, value: await run(wc) };
+  }, { path: POPUP_PATH, source: script.toString() });
+}
+
+// Settled means not loading on two readings 300 ms apart, so a navigation
+// that hasn't started yet can't pass for one that finished.
+async function waitForPopup() {
+  const deadline = Date.now() + 10_000;
+  let settledReadings = 0;
+  for (;;) {
+    const result = await popupContents((wc) => !wc.isLoading());
+    settledReadings = result.found && result.value ? settledReadings + 1 : 0;
+    if (settledReadings >= 2) return;
+    if (Date.now() > deadline) throw new Error('the pop-up window never finished loading');
+    await new Promise((r) => setTimeout(r, 300));
+  }
+}
+
+When('the local page opens a console in a pop-up window', async function () {
+  const url = this.localFixtureUrl('local-console', '?socket=1');
+  // Without this the pop-up's page rides the tab's already-accepted
+  // connection and only its WebSocket handshakes again; closing them makes
+  // the page's own load check the certificate too.
+  const wcId = await this.call('tabWebContentsId', this.localTabId);
+  await ctx.app.evaluate(({ webContents }, id) => webContents.fromId(id).session.closeAllConnections(), wcId);
+  const opened = await this.call('executeTab', this.localTabId,
+    `window.open(${JSON.stringify(url)}, 'console', 'width=640,height=400') !== null`);
+  assert.equal(opened, true);
+  await waitForPopup();
+});
+
+Then("the pop-up window's page loads", async function () {
+  const result = await popupContents((wc) => wc.executeJavaScript('typeof window.__socketState'));
+  assert.equal(result.value, 'string', 'the pop-up window has no page from the local address');
+});
+
+Then("the pop-up window's WebSocket to the local address opens", async function () {
+  const deadline = Date.now() + 10_000;
+  for (;;) {
+    const { value: state } = await popupContents((wc) => wc.executeJavaScript('window.__socketState'));
+    if (state === 'open') return;
+    if (state === 'error' || Date.now() > deadline) throw new Error(`the pop-up's WebSocket was ${state}, expected open`);
+    await new Promise((r) => setTimeout(r, 100));
+  }
+});
+
+Then("the pop-up window's page is refused", async function () {
+  const result = await popupContents((wc) => wc.executeJavaScript('typeof window.__socketState'));
+  assert.equal(result.found, true);
+  assert.equal(result.value, 'undefined', 'the pop-up window loaded a page its tab never accepted');
+});
+
+After({ tags: '@F39-10 or @F39-11' }, async function () {
+  await ctx.app?.evaluate(({ BrowserWindow }, path) => {
+    for (const w of BrowserWindow.getAllWindows()) {
+      if (!w.isDestroyed() && w.webContents.getURL().includes(path)) w.destroy();
+    }
+  }, POPUP_PATH).catch(() => {});
 });

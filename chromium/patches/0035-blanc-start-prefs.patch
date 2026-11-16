@@ -1,0 +1,14 @@
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -1734,6 +1734,11 @@
+   registry->RegisterBooleanPref("blanc.checklist.default_done", false);
+   // What's New (F51): shipping's five device-local settings.
+   registry->RegisterDictionaryPref("blanc.whats_new");
++  // Start Page Patron callout snooze (F35-11): 0 until closed once, then the
++  // close time in ms since the epoch, as in shipping's patronCalloutDismissedAt.
++  registry->RegisterInt64Pref("blanc.start.patron_callout_dismissed_at", 0);
++  // Play the Sunrise when Blanc opens (F35-19), device-local as in shipping.
++  registry->RegisterBooleanPref("blanc.start.launch_sunrise", false);
+ #endif
+   // Call outs to individual subsystems that register Local State (browser-wide)
+   // prefs en masse. See RegisterProfilePrefs for per-profile prefs. Please

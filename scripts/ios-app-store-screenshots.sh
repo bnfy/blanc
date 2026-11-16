@@ -17,9 +17,19 @@
 #
 #   npm run ios:app-store-screenshots              # capture, then compose
 #   npm run ios:app-store-screenshots -- --compose # compose the committed captures
+#
+# With --ipad, the same two steps make the 13" iPad set instead: the
+# captures (AppStoreIPadScreenshotsUITests) on an iPad Pro 13-inch (M5)
+# simulator on iOS 27.2 or later, into captures/ipad-13/, and the iPad
+# artboards alone into docs/ios/app-store/ipad-13/; the iPhone and Duo sets
+# are left as they are.
+#
+#   npm run ios:app-store-screenshots -- --ipad
+#   npm run ios:app-store-screenshots -- --ipad --compose
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
+if [ "${1:-}" = "--ipad" ]; then exec bash "$root/scripts/ios-app-store-screenshots-ipad.sh" "${@:2}"; fi
 if [ "${1:-}" = "--compose" ]; then exec node "$root/scripts/ios-app-store-compose.mjs"; fi
 out="$root/docs/ios/app-store/captures"
 name="Blanc App Store 6.9"

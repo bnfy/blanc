@@ -1,0 +1,64 @@
+{
+  "checks": [
+    {
+      "name": "both isolated apps running",
+      "pass": true
+    },
+    {
+      "name": "shipping owns only its fixture tabs",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9820/shipping/one",
+          "http://127.0.0.1:9820/shipping/two"
+        ],
+        "selected": 2
+      }
+    },
+    {
+      "name": "preview owns only its fixture tabs",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9820/preview/one",
+          "http://127.0.0.1:9820/preview/two"
+        ],
+        "selected": 2
+      }
+    },
+    {
+      "name": "shipping survives preview quit",
+      "pass": true
+    },
+    {
+      "name": "preview restart preserves tabs",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9820/preview/one",
+          "http://127.0.0.1:9820/preview/two"
+        ],
+        "selected": 2
+      }
+    },
+    {
+      "name": "preview survives shipping quit",
+      "pass": true
+    },
+    {
+      "name": "shipping restart preserves tabs",
+      "pass": false,
+      "details": {
+        "urls": [
+          "blanc://newtab/"
+        ],
+        "selected": -1
+      }
+    }
+  ],
+  "shippingUpdater": "disabled for disposable test via unsupported channel; ownership inspected separately",
+  "error": "Error: shipping restart preserves tabs"
+}

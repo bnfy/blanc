@@ -163,12 +163,4 @@ final class TabModelTests: XCTestCase {
         try await waitUntil { tab.webView.canGoBack }
         try await waitUntil { tab.canGoBack }
     }
-
-    @MainActor private func waitUntil(_ condition: () -> Bool) async throws {
-        for _ in 0..<100 {
-            if condition() { return }
-            try await Task.sleep(for: .milliseconds(50))
-        }
-        XCTFail("timed out")
-    }
 }

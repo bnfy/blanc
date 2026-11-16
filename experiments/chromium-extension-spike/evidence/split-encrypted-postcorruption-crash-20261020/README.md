@@ -1,0 +1,7 @@
+## Abrupt crash after fresh history following corruption — October 20
+
+Two bounded schedules complete20 diagnostic checkpoints after both encrypted stores were truncated and the browser fell back to a usable blank window. Fresh tab creation/close/restore works; it is then closed again. Immediate SIGKILL after the close reply loses the fresh closed tab across encrypted-only restart (freshRecovered:false). A five-second settled control followed by SIGKILL recovers it exactly once (freshRecovered:true). Plaintext records are removed while stopped before restart; all windows are inspected.
+
+IMPORTANT: the immediate harness pass means its observation/no-duplicates/usability assertions passed, not that persistence succeeded. Immediate fresh-history persistence remains a gap; no product repair is applied. The close reply is not demonstrated to acknowledge durable storage. This compares application-level schedules, not an instrumented interruption inside a write syscall, minimum durability delay, power-loss guarantee or general corruption matrix. Only the both-stores-truncated precursor is exercised here; mock keychain and diagnostic crash-bubble bypass remain in use.
+
+No native compile/product edits; guard zero; prior52files/124hunks unchanged. Published source/results hashed, runtime logs local. Disposable profiles removed after exit verification; retained preview untouched. Native input pending, latency deferred, Electron diagnostic build pending approval. Plan/evidence retain the immediate-loss boundary regardless of green CI.

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- Applied to SettingsActivity (patch 0110) so Chromium's own Settings pages read as Blanc: the
+     attributes Chromium draws Settings with (settings_bg_color is colorSurfaceContainerHigh, its cards
+     colorSurfaceBright) take the Sunrise tokens in light and dark. -->
+<resources>
+    <style name="ThemeOverlay.Blanc.Settings" parent="">
+        <item name="colorSurface">@color/blanc_sunrise_bg</item>
+        <item name="colorSurfaceContainerHigh">@color/blanc_sunrise_surface</item>
+        <item name="colorSurfaceBright">@color/blanc_sunrise_surface_raised</item>
+        <item name="colorOnSurface">@color/blanc_sunrise_text</item>
+        <item name="colorOnSurfaceVariant">@color/blanc_sunrise_text_dim</item>
+        <item name="colorPrimary">@color/blanc_sunrise_accent</item>
+        <item name="colorOutlineVariant">@color/blanc_sunrise_border</item>
+    </style>
+</resources>

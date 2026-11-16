@@ -1,0 +1,1202 @@
+{
+  "complete": true,
+  "runs": [
+    {
+      "label": "electron-regular-0",
+      "browserKind": "electron",
+      "kind": "regular",
+      "repetition": 0,
+      "observed": {
+        "ads": [
+          {
+            "url": "https://www.youtube.com/pagead/interaction/?ai=abc",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/pagead/lvz?foo=1",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/youtubei/v1/player/ad_break?key=AIza",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/api/stats/ads?ver=2&docid=xyz",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/get_midroll_info?v=abc",
+            "error": "TypeError"
+          }
+        ],
+        "api": "ordinary-player-response",
+        "script": true,
+        "mediaReady": true,
+        "mediaDuration": 1,
+        "neutralVisible": true
+      },
+      "checks": {
+        "fiveAdResponsesRefused": true,
+        "noAdServerArrivals": true,
+        "ordinaryApi": true,
+        "ordinaryScript": true,
+        "authoredMediaDecoded": true,
+        "neutralVisible": true,
+        "ordinaryHome": true
+      },
+      "arrivals": [
+        {
+          "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          "sha256": "4f98290d06c5fb566e3c48b917356f8dfc6f782d22fb6ebc2e05093a6d69100b",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/s/player/abcdef/player_ias.vflset/en_US/base.js",
+          "sha256": "ff23916fe998c8b0264830724d979f3772b10cb9e7613468e2154a12f8f391b6",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/youtubei/v1/player?key=AIza",
+          "sha256": "93314834aa6793b62eb697b072b6c0a6798e1d85e8f1b4983e038fe5775fe10e",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://rr1---sn-abc.googlevideo.com/videoplayback?id=xyz",
+          "sha256": "56d4af65701c26df20bd4021eda95b6e830348ce3a746086079fe89285548dc9",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/",
+          "sha256": "85470ee746fd2eb86f6217d72637c0b54977dbc6ec85049775187a8af558b70f",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ],
+      "faults": [],
+      "source": {
+        "browserKind": "electron",
+        "kind": "regular",
+        "bootstrapSha256": "bd2eaf9fd487903aecc81036d2d19adc70747e36d72dac9d9eac59248a1700f9",
+        "asarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+        "versions": {
+          "node": "24.22.0",
+          "acorn": "8.18.0",
+          "ada": "4.0.0",
+          "amaro": "1.1.11",
+          "ares": "1.34.8",
+          "brotli": "1.2.0",
+          "cldr": "48.0",
+          "icu": "78.2",
+          "llhttp": "9.4.3",
+          "merve": "1.2.2",
+          "modules": "149",
+          "napi": "10",
+          "nbytes": "0.1.4",
+          "ncrypto": "0.0.1",
+          "nghttp2": "1.70.0",
+          "nghttp3": "",
+          "ngtcp2": "",
+          "openssl": "0.0.0",
+          "simdjson": "4.6.11",
+          "simdutf": "7.7.0",
+          "sqlite": "3.53.4",
+          "tz": "2026d",
+          "undici": "7.29.1",
+          "unicode": "17.0",
+          "uv": "1.52.1",
+          "uvwasi": "0.0.23",
+          "v8": "15.2.124.43-electron.0",
+          "zlib": "1.3.2.1-motley",
+          "zstd": "1.6.0",
+          "electron": "44.8.0",
+          "chrome": "152.0.7977.167"
+        }
+      }
+    },
+    {
+      "label": "electron-regular-1",
+      "browserKind": "electron",
+      "kind": "regular",
+      "repetition": 1,
+      "observed": {
+        "ads": [
+          {
+            "url": "https://www.youtube.com/pagead/interaction/?ai=abc",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/pagead/lvz?foo=1",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/youtubei/v1/player/ad_break?key=AIza",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/api/stats/ads?ver=2&docid=xyz",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/get_midroll_info?v=abc",
+            "error": "TypeError"
+          }
+        ],
+        "api": "ordinary-player-response",
+        "script": true,
+        "mediaReady": true,
+        "mediaDuration": 1,
+        "neutralVisible": true
+      },
+      "checks": {
+        "fiveAdResponsesRefused": true,
+        "noAdServerArrivals": true,
+        "ordinaryApi": true,
+        "ordinaryScript": true,
+        "authoredMediaDecoded": true,
+        "neutralVisible": true,
+        "ordinaryHome": true
+      },
+      "arrivals": [
+        {
+          "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          "sha256": "4f98290d06c5fb566e3c48b917356f8dfc6f782d22fb6ebc2e05093a6d69100b",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/s/player/abcdef/player_ias.vflset/en_US/base.js",
+          "sha256": "ff23916fe998c8b0264830724d979f3772b10cb9e7613468e2154a12f8f391b6",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://rr1---sn-abc.googlevideo.com/videoplayback?id=xyz",
+          "sha256": "56d4af65701c26df20bd4021eda95b6e830348ce3a746086079fe89285548dc9",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/youtubei/v1/player?key=AIza",
+          "sha256": "93314834aa6793b62eb697b072b6c0a6798e1d85e8f1b4983e038fe5775fe10e",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/",
+          "sha256": "85470ee746fd2eb86f6217d72637c0b54977dbc6ec85049775187a8af558b70f",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ],
+      "faults": [],
+      "source": {
+        "browserKind": "electron",
+        "kind": "regular",
+        "bootstrapSha256": "bd2eaf9fd487903aecc81036d2d19adc70747e36d72dac9d9eac59248a1700f9",
+        "asarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+        "versions": {
+          "node": "24.22.0",
+          "acorn": "8.18.0",
+          "ada": "4.0.0",
+          "amaro": "1.1.11",
+          "ares": "1.34.8",
+          "brotli": "1.2.0",
+          "cldr": "48.0",
+          "icu": "78.2",
+          "llhttp": "9.4.3",
+          "merve": "1.2.2",
+          "modules": "149",
+          "napi": "10",
+          "nbytes": "0.1.4",
+          "ncrypto": "0.0.1",
+          "nghttp2": "1.70.0",
+          "nghttp3": "",
+          "ngtcp2": "",
+          "openssl": "0.0.0",
+          "simdjson": "4.6.11",
+          "simdutf": "7.7.0",
+          "sqlite": "3.53.4",
+          "tz": "2026d",
+          "undici": "7.29.1",
+          "unicode": "17.0",
+          "uv": "1.52.1",
+          "uvwasi": "0.0.23",
+          "v8": "15.2.124.43-electron.0",
+          "zlib": "1.3.2.1-motley",
+          "zstd": "1.6.0",
+          "electron": "44.8.0",
+          "chrome": "152.0.7977.167"
+        }
+      }
+    },
+    {
+      "label": "electron-private-0",
+      "browserKind": "electron",
+      "kind": "private",
+      "repetition": 0,
+      "observed": {
+        "ads": [
+          {
+            "url": "https://www.youtube.com/pagead/interaction/?ai=abc",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/pagead/lvz?foo=1",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/youtubei/v1/player/ad_break?key=AIza",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/api/stats/ads?ver=2&docid=xyz",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/get_midroll_info?v=abc",
+            "error": "TypeError"
+          }
+        ],
+        "api": "ordinary-player-response",
+        "script": true,
+        "mediaReady": true,
+        "mediaDuration": 1,
+        "neutralVisible": true
+      },
+      "checks": {
+        "fiveAdResponsesRefused": true,
+        "noAdServerArrivals": true,
+        "ordinaryApi": true,
+        "ordinaryScript": true,
+        "authoredMediaDecoded": true,
+        "neutralVisible": true,
+        "ordinaryHome": true
+      },
+      "arrivals": [
+        {
+          "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          "sha256": "4f98290d06c5fb566e3c48b917356f8dfc6f782d22fb6ebc2e05093a6d69100b",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/s/player/abcdef/player_ias.vflset/en_US/base.js",
+          "sha256": "ff23916fe998c8b0264830724d979f3772b10cb9e7613468e2154a12f8f391b6",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://rr1---sn-abc.googlevideo.com/videoplayback?id=xyz",
+          "sha256": "56d4af65701c26df20bd4021eda95b6e830348ce3a746086079fe89285548dc9",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/youtubei/v1/player?key=AIza",
+          "sha256": "93314834aa6793b62eb697b072b6c0a6798e1d85e8f1b4983e038fe5775fe10e",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/",
+          "sha256": "85470ee746fd2eb86f6217d72637c0b54977dbc6ec85049775187a8af558b70f",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ],
+      "faults": [],
+      "source": {
+        "browserKind": "electron",
+        "kind": "private",
+        "bootstrapSha256": "bd2eaf9fd487903aecc81036d2d19adc70747e36d72dac9d9eac59248a1700f9",
+        "asarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+        "versions": {
+          "node": "24.22.0",
+          "acorn": "8.18.0",
+          "ada": "4.0.0",
+          "amaro": "1.1.11",
+          "ares": "1.34.8",
+          "brotli": "1.2.0",
+          "cldr": "48.0",
+          "icu": "78.2",
+          "llhttp": "9.4.3",
+          "merve": "1.2.2",
+          "modules": "149",
+          "napi": "10",
+          "nbytes": "0.1.4",
+          "ncrypto": "0.0.1",
+          "nghttp2": "1.70.0",
+          "nghttp3": "",
+          "ngtcp2": "",
+          "openssl": "0.0.0",
+          "simdjson": "4.6.11",
+          "simdutf": "7.7.0",
+          "sqlite": "3.53.4",
+          "tz": "2026d",
+          "undici": "7.29.1",
+          "unicode": "17.0",
+          "uv": "1.52.1",
+          "uvwasi": "0.0.23",
+          "v8": "15.2.124.43-electron.0",
+          "zlib": "1.3.2.1-motley",
+          "zstd": "1.6.0",
+          "electron": "44.8.0",
+          "chrome": "152.0.7977.167"
+        }
+      }
+    },
+    {
+      "label": "electron-private-1",
+      "browserKind": "electron",
+      "kind": "private",
+      "repetition": 1,
+      "observed": {
+        "ads": [
+          {
+            "url": "https://www.youtube.com/pagead/interaction/?ai=abc",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/pagead/lvz?foo=1",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/youtubei/v1/player/ad_break?key=AIza",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/api/stats/ads?ver=2&docid=xyz",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/get_midroll_info?v=abc",
+            "error": "TypeError"
+          }
+        ],
+        "api": "ordinary-player-response",
+        "script": true,
+        "mediaReady": true,
+        "mediaDuration": 1,
+        "neutralVisible": true
+      },
+      "checks": {
+        "fiveAdResponsesRefused": true,
+        "noAdServerArrivals": true,
+        "ordinaryApi": true,
+        "ordinaryScript": true,
+        "authoredMediaDecoded": true,
+        "neutralVisible": true,
+        "ordinaryHome": true
+      },
+      "arrivals": [
+        {
+          "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          "sha256": "4f98290d06c5fb566e3c48b917356f8dfc6f782d22fb6ebc2e05093a6d69100b",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/s/player/abcdef/player_ias.vflset/en_US/base.js",
+          "sha256": "ff23916fe998c8b0264830724d979f3772b10cb9e7613468e2154a12f8f391b6",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://rr1---sn-abc.googlevideo.com/videoplayback?id=xyz",
+          "sha256": "56d4af65701c26df20bd4021eda95b6e830348ce3a746086079fe89285548dc9",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/youtubei/v1/player?key=AIza",
+          "sha256": "93314834aa6793b62eb697b072b6c0a6798e1d85e8f1b4983e038fe5775fe10e",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/",
+          "sha256": "85470ee746fd2eb86f6217d72637c0b54977dbc6ec85049775187a8af558b70f",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ],
+      "faults": [],
+      "source": {
+        "browserKind": "electron",
+        "kind": "private",
+        "bootstrapSha256": "bd2eaf9fd487903aecc81036d2d19adc70747e36d72dac9d9eac59248a1700f9",
+        "asarSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+        "versions": {
+          "node": "24.22.0",
+          "acorn": "8.18.0",
+          "ada": "4.0.0",
+          "amaro": "1.1.11",
+          "ares": "1.34.8",
+          "brotli": "1.2.0",
+          "cldr": "48.0",
+          "icu": "78.2",
+          "llhttp": "9.4.3",
+          "merve": "1.2.2",
+          "modules": "149",
+          "napi": "10",
+          "nbytes": "0.1.4",
+          "ncrypto": "0.0.1",
+          "nghttp2": "1.70.0",
+          "nghttp3": "",
+          "ngtcp2": "",
+          "openssl": "0.0.0",
+          "simdjson": "4.6.11",
+          "simdutf": "7.7.0",
+          "sqlite": "3.53.4",
+          "tz": "2026d",
+          "undici": "7.29.1",
+          "unicode": "17.0",
+          "uv": "1.52.1",
+          "uvwasi": "0.0.23",
+          "v8": "15.2.124.43-electron.0",
+          "zlib": "1.3.2.1-motley",
+          "zstd": "1.6.0",
+          "electron": "44.8.0",
+          "chrome": "152.0.7977.167"
+        }
+      }
+    },
+    {
+      "label": "chromium-regular-0",
+      "browserKind": "chromium",
+      "kind": "regular",
+      "repetition": 0,
+      "observed": {
+        "ads": [
+          {
+            "url": "https://www.youtube.com/pagead/interaction/?ai=abc",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/pagead/lvz?foo=1",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/youtubei/v1/player/ad_break?key=AIza",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/api/stats/ads?ver=2&docid=xyz",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/get_midroll_info?v=abc",
+            "error": "TypeError"
+          }
+        ],
+        "api": "ordinary-player-response",
+        "script": true,
+        "mediaReady": true,
+        "mediaDuration": 1,
+        "neutralVisible": true
+      },
+      "checks": {
+        "fiveAdResponsesRefused": true,
+        "noAdServerArrivals": true,
+        "ordinaryApi": true,
+        "ordinaryScript": true,
+        "authoredMediaDecoded": true,
+        "neutralVisible": true,
+        "ordinaryHome": true
+      },
+      "arrivals": [
+        {
+          "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          "sha256": "4f98290d06c5fb566e3c48b917356f8dfc6f782d22fb6ebc2e05093a6d69100b",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/s/player/abcdef/player_ias.vflset/en_US/base.js",
+          "sha256": "ff23916fe998c8b0264830724d979f3772b10cb9e7613468e2154a12f8f391b6",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/youtubei/v1/player?key=AIza",
+          "sha256": "93314834aa6793b62eb697b072b6c0a6798e1d85e8f1b4983e038fe5775fe10e",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://rr1---sn-abc.googlevideo.com/videoplayback?id=xyz",
+          "sha256": "56d4af65701c26df20bd4021eda95b6e830348ce3a746086079fe89285548dc9",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/",
+          "sha256": "85470ee746fd2eb86f6217d72637c0b54977dbc6ec85049775187a8af558b70f",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ],
+      "faults": [
+        {
+          "code": "plaintext-refused",
+          "authority": "clients2.google.com"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "accounts.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "accounts.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        }
+      ],
+      "source": {
+        "browserKind": "chromium",
+        "kind": "regular",
+        "isOffTheRecord": false,
+        "version": "157.0.8103.15"
+      }
+    },
+    {
+      "label": "chromium-regular-1",
+      "browserKind": "chromium",
+      "kind": "regular",
+      "repetition": 1,
+      "observed": {
+        "ads": [
+          {
+            "url": "https://www.youtube.com/pagead/interaction/?ai=abc",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/pagead/lvz?foo=1",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/youtubei/v1/player/ad_break?key=AIza",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/api/stats/ads?ver=2&docid=xyz",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/get_midroll_info?v=abc",
+            "error": "TypeError"
+          }
+        ],
+        "api": "ordinary-player-response",
+        "script": true,
+        "mediaReady": true,
+        "mediaDuration": 1,
+        "neutralVisible": true
+      },
+      "checks": {
+        "fiveAdResponsesRefused": true,
+        "noAdServerArrivals": true,
+        "ordinaryApi": true,
+        "ordinaryScript": true,
+        "authoredMediaDecoded": true,
+        "neutralVisible": true,
+        "ordinaryHome": true
+      },
+      "arrivals": [
+        {
+          "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          "sha256": "4f98290d06c5fb566e3c48b917356f8dfc6f782d22fb6ebc2e05093a6d69100b",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/s/player/abcdef/player_ias.vflset/en_US/base.js",
+          "sha256": "ff23916fe998c8b0264830724d979f3772b10cb9e7613468e2154a12f8f391b6",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://rr1---sn-abc.googlevideo.com/videoplayback?id=xyz",
+          "sha256": "56d4af65701c26df20bd4021eda95b6e830348ce3a746086079fe89285548dc9",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/youtubei/v1/player?key=AIza",
+          "sha256": "93314834aa6793b62eb697b072b6c0a6798e1d85e8f1b4983e038fe5775fe10e",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/",
+          "sha256": "85470ee746fd2eb86f6217d72637c0b54977dbc6ec85049775187a8af558b70f",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ],
+      "faults": [
+        {
+          "code": "plaintext-refused",
+          "authority": "clients2.google.com"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "accounts.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "accounts.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        }
+      ],
+      "source": {
+        "browserKind": "chromium",
+        "kind": "regular",
+        "isOffTheRecord": false,
+        "version": "157.0.8103.15"
+      }
+    },
+    {
+      "label": "chromium-private-0",
+      "browserKind": "chromium",
+      "kind": "private",
+      "repetition": 0,
+      "observed": {
+        "ads": [
+          {
+            "url": "https://www.youtube.com/pagead/interaction/?ai=abc",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/pagead/lvz?foo=1",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/youtubei/v1/player/ad_break?key=AIza",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/api/stats/ads?ver=2&docid=xyz",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/get_midroll_info?v=abc",
+            "error": "TypeError"
+          }
+        ],
+        "api": "ordinary-player-response",
+        "script": true,
+        "mediaReady": true,
+        "mediaDuration": 1,
+        "neutralVisible": true
+      },
+      "checks": {
+        "fiveAdResponsesRefused": true,
+        "noAdServerArrivals": true,
+        "ordinaryApi": true,
+        "ordinaryScript": true,
+        "authoredMediaDecoded": true,
+        "neutralVisible": true,
+        "ordinaryHome": true
+      },
+      "arrivals": [
+        {
+          "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          "sha256": "4f98290d06c5fb566e3c48b917356f8dfc6f782d22fb6ebc2e05093a6d69100b",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/s/player/abcdef/player_ias.vflset/en_US/base.js",
+          "sha256": "ff23916fe998c8b0264830724d979f3772b10cb9e7613468e2154a12f8f391b6",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://rr1---sn-abc.googlevideo.com/videoplayback?id=xyz",
+          "sha256": "56d4af65701c26df20bd4021eda95b6e830348ce3a746086079fe89285548dc9",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/youtubei/v1/player?key=AIza",
+          "sha256": "93314834aa6793b62eb697b072b6c0a6798e1d85e8f1b4983e038fe5775fe10e",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/",
+          "sha256": "85470ee746fd2eb86f6217d72637c0b54977dbc6ec85049775187a8af558b70f",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ],
+      "faults": [
+        {
+          "code": "plaintext-refused",
+          "authority": "clients2.google.com"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "accounts.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "accounts.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        }
+      ],
+      "source": {
+        "browserKind": "chromium",
+        "kind": "private",
+        "isOffTheRecord": true,
+        "version": "157.0.8103.15"
+      }
+    },
+    {
+      "label": "chromium-private-1",
+      "browserKind": "chromium",
+      "kind": "private",
+      "repetition": 1,
+      "observed": {
+        "ads": [
+          {
+            "url": "https://www.youtube.com/pagead/interaction/?ai=abc",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/pagead/lvz?foo=1",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/youtubei/v1/player/ad_break?key=AIza",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/api/stats/ads?ver=2&docid=xyz",
+            "error": "TypeError"
+          },
+          {
+            "url": "https://www.youtube.com/get_midroll_info?v=abc",
+            "error": "TypeError"
+          }
+        ],
+        "api": "ordinary-player-response",
+        "script": true,
+        "mediaReady": true,
+        "mediaDuration": 1,
+        "neutralVisible": true
+      },
+      "checks": {
+        "fiveAdResponsesRefused": true,
+        "noAdServerArrivals": true,
+        "ordinaryApi": true,
+        "ordinaryScript": true,
+        "authoredMediaDecoded": true,
+        "neutralVisible": true,
+        "ordinaryHome": true
+      },
+      "arrivals": [
+        {
+          "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          "sha256": "4f98290d06c5fb566e3c48b917356f8dfc6f782d22fb6ebc2e05093a6d69100b",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/s/player/abcdef/player_ias.vflset/en_US/base.js",
+          "sha256": "ff23916fe998c8b0264830724d979f3772b10cb9e7613468e2154a12f8f391b6",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/youtubei/v1/player?key=AIza",
+          "sha256": "93314834aa6793b62eb697b072b6c0a6798e1d85e8f1b4983e038fe5775fe10e",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://rr1---sn-abc.googlevideo.com/videoplayback?id=xyz",
+          "sha256": "56d4af65701c26df20bd4021eda95b6e830348ce3a746086079fe89285548dc9",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        },
+        {
+          "url": "https://www.youtube.com/",
+          "sha256": "85470ee746fd2eb86f6217d72637c0b54977dbc6ec85049775187a8af558b70f",
+          "protocol": {
+            "browserToProxy": {
+              "httpVersion": "1.1",
+              "alpn": null
+            },
+            "upstream": null
+          }
+        }
+      ],
+      "faults": [
+        {
+          "code": "plaintext-refused",
+          "authority": "clients2.google.com"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "accounts.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "accounts.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        },
+        {
+          "code": "connect-refused",
+          "authority": "www.google.com:443"
+        }
+      ],
+      "source": {
+        "browserKind": "chromium",
+        "kind": "private",
+        "isOffTheRecord": true,
+        "version": "157.0.8103.15"
+      }
+    }
+  ],
+  "cleanup": true
+}

@@ -76,7 +76,7 @@ test('an event that stops returning its unsubscribe, or forwards ipcRenderer.on,
 
 test('the page-tint signal leaking to another internal page is reported', () => {
   const problems = api.checkPagesPreload(api.loadBridges(),
-    mutate(TAB_PRELOAD, "window.location.host === 'newtab'", "window.location.host !== ''"));
+    mutate(TAB_PRELOAD, "['newtab', 'mahjong'].includes(window.location.host)", "window.location.host !== ''"));
   expectProblem(problems, 'blanc://settings/', "'page-tint:changed'");
 });
 

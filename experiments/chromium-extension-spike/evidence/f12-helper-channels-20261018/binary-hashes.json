@@ -1,0 +1,16 @@
+{
+  "nativeBuild": false,
+  "files": [
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+      "sha256": "e435953c2135e132c58bfd0437daa4298e4f49983aa917b01c2fdd41418ea978",
+      "bytes": 76016
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Blanc Prototype Framework",
+      "sha256": "8c2e8fc861a9b29d20814bb4dbddd00cf3afc6537b348cb34399e200d770a693",
+      "bytes": 594920816
+    }
+  ],
+  "unchangedFrom": "249b086c"
+}

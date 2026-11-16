@@ -1,0 +1,204 @@
+{
+  "commit": "742cfb4bcf0cc9ee653452c81b5e483babf21bd5",
+  "checks": [
+    {
+      "name": "disposable-instance",
+      "at": "2026-10-16T21:44:21.965Z",
+      "pid": "45479",
+      "profile": "/private/tmp/blanc-pr864-profile-742cfb4b"
+    },
+    {
+      "name": "baseline",
+      "at": "2026-10-16T21:44:22.119Z",
+      "tabs": [
+        {
+          "id": "1177135821",
+          "url": "blanc://newtab/"
+        }
+      ],
+      "history": [],
+      "favorites": []
+    },
+    {
+      "name": "seeded-history-favorite",
+      "at": "2026-10-16T21:44:25.239Z",
+      "history": [
+        {
+          "favicon": null,
+          "title": "Controls861 A",
+          "url": "http://127.0.0.1:8785/A",
+          "visitedAt": 1792187062644.803
+        },
+        {
+          "favicon": null,
+          "title": "Controls861 B",
+          "url": "http://127.0.0.1:8785/B",
+          "visitedAt": 1792187062621.194
+        }
+      ],
+      "favorites": [
+        {
+          "addedAt": 1792187064498.232,
+          "favicon": null,
+          "folder": null,
+          "id": "5",
+          "title": "Controls861 B",
+          "url": "http://127.0.0.1:8785/B"
+        }
+      ]
+    },
+    {
+      "name": "open-billboard-before-clear",
+      "at": "2026-10-16T21:44:37.379Z",
+      "data": {
+        "token": "same-document-1792187065244",
+        "layout": "billboard",
+        "sites": [
+          {
+            "key": "127.0.0.1",
+            "title": "Controls861 B",
+            "url": "http://127.0.0.1:8785/B"
+          },
+          {
+            "key": "chrome.google.com",
+            "title": "Web Store",
+            "url": "https://chrome.google.com/webstore?hl=en"
+          }
+        ],
+        "links": [
+          "http://127.0.0.1:8785/B",
+          "https://chrome.google.com/webstore?hl=en"
+        ],
+        "events": [
+          {
+            "kind": "topSites",
+            "at": 1792187076740
+          }
+        ]
+      }
+    },
+    {
+      "name": "native-clear-pass",
+      "at": "2026-10-16T21:44:53.416Z",
+      "history": [],
+      "favorites": [
+        {
+          "addedAt": 1792187064498.232,
+          "favicon": null,
+          "folder": null,
+          "id": "5",
+          "title": "Controls861 B",
+          "url": "http://127.0.0.1:8785/B"
+        }
+      ],
+      "retained": {
+        "cookie": "blancClearSentinel=kept",
+        "storage": "kept"
+      },
+      "openStartPage": {
+        "token": "same-document-1792187065244",
+        "sites": [
+          {
+            "key": "chrome.google.com",
+            "title": "Web Store",
+            "url": "https://chrome.google.com/webstore?hl=en"
+          }
+        ],
+        "links": [
+          "https://chrome.google.com/webstore?hl=en"
+        ],
+        "events": [
+          {
+            "kind": "topSites",
+            "at": 1792187076740
+          },
+          {
+            "kind": "topSites",
+            "at": 1792187092330
+          }
+        ]
+      }
+    },
+    {
+      "name": "history-manager-empty",
+      "at": "2026-10-16T21:45:23.326Z",
+      "historyUI": {
+        "items": [],
+        "emptyText": [
+          "History",
+          "html {\n      /* Remove 300ms delay for 'click' event, when using touch interface. */\n      touch-action: manipulation;\n    }\n\n    html,\n    body {\n      height: 100%;\n      margin: 0;\n      overflow: hidden;\n    }\n\n    body {\n      cursor: default;\n    }\n\n    @media (prefers-color-scheme: dark) {\n      html {\n        background: var(--md-background-color);\n      }\n    }\n\n    html[webui-refresh-2026] {\n      background: var(--color-webui-page-background);\n    }\n\n    /* Minimal styling required to display app shim. */\n    .loading history-app {\n      visibility: hidden;\n    }\n\n    #app-shim {\n      display: none;\n    }\n\n    .loading #app-shim {\n      display: block;\n      position: absolute;\n      inset: 0;\n      font-size: 123%;\n      color: var(--md-loading-message-color);\n      font-weight: 500;\n      align-content: center;\n      text-align: center;\n    }",
+          "History",
+          "Search history",
+          "See your history on other devices",
+          "To get your history from your other devices, sign in and sync history. You\u2019ll also get your passwords and more on all your devices. You can stop syncing anytime in settings. Google may personalize Search and other services based on your history.",
+          "Sync history",
+          "Easily get back to sites you've visited by signing in to the same account on both devices",
+          "Your browsing history appears here"
+        ]
+      }
+    },
+    {
+      "name": "native-private-clear-refused",
+      "at": "2026-10-16T21:45:29.209Z",
+      "notice": "Clear history from a regular window.",
+      "regularHistory": [
+        {
+          "favicon": null,
+          "title": "Controls861 C",
+          "url": "http://127.0.0.1:8785/C",
+          "visitedAt": 1792187123371.57
+        }
+      ]
+    },
+    {
+      "name": "disposable-ready-for-restart",
+      "at": "2026-10-16T21:45:34.280Z",
+      "favorites": [
+        {
+          "addedAt": 1792187064498.232,
+          "favicon": null,
+          "folder": null,
+          "id": "5",
+          "title": "Controls861 B",
+          "url": "http://127.0.0.1:8785/B"
+        }
+      ]
+    },
+    {
+      "name": "restart-history-empty-favorite-preserved",
+      "at": "2026-10-16T21:45:46.069Z",
+      "history": [],
+      "favorites": [
+        {
+          "addedAt": 1792187064498.232,
+          "favicon": null,
+          "folder": null,
+          "id": "5",
+          "title": "Controls861 B",
+          "url": "http://127.0.0.1:8785/B"
+        }
+      ],
+      "tabs": [
+        {
+          "url": "blanc://newtab/"
+        }
+      ]
+    },
+    {
+      "name": "restart-cookie-preserved",
+      "at": "2026-10-16T21:45:46.077Z",
+      "cookies": [
+        {
+          "name": "blancClearSentinel",
+          "value": "kept"
+        }
+      ]
+    },
+    {
+      "name": "disposable-profile-removed",
+      "at": "2026-10-16T21:45:46.658Z",
+      "profile": "/private/tmp/blanc-pr864-profile-742cfb4b",
+      "exists": false
+    }
+  ]
+}

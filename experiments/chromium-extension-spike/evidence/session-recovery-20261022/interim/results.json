@@ -1,0 +1,354 @@
+[
+  {
+    "label": "delay",
+    "pid": 35619,
+    "mode": "delay",
+    "initialRecords": {
+      "Sessions/Session_13437164554498590": "ab0391d0423a8ab04a1a2a7de120ca92911255ae67634af09b0c6dbc0913831b",
+      "Sessions/Session_13437164558584866": "33190766eca16e281bad30d31b029ba4ce6f784c81d668f6932761da6af542eb",
+      "Sessions/Tabs_13437164554875298": "f0cebf1a883167ed754d02293b7b737823f81a5d7752c7edc60bd1e729669c0e",
+      "Sessions/Tabs_13437164558972550": "aa4c70da363cba4f3c84d532bee8d010414a9137b4973d99fd79d50c86424df6",
+      "Sessions_Encrypted/Session_13437164554499145": "cfb0107e67321f397f772a1dc1017812b28ba25e5d6db8dc788b215484b5e539",
+      "Sessions_Encrypted/Session_13437164558585647": "d80608c9f6fb8e01e205ed151837fe80b3310de4ddc633863b3c2d7a8a9569f0",
+      "Sessions_Encrypted/Tabs_13437164554876066": "e332cdc53e0ffea8abe168e5f802241c3aa7ef91f837847a6ea8a2e741c35083",
+      "Sessions_Encrypted/Tabs_13437164558972883": "69a551fbc83b2850d928f3d671c07bce75e79fb4f3d3b4ba162087047ff3f462"
+    },
+    "lastReadError": "Error: {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":0,\"scriptId\":\"3\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"3\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: BlancPrototypeHost is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"7585180711429653075.1.2\"}}",
+    "waitingRecords": {
+      "Sessions/Session_13437164554498590": "ab0391d0423a8ab04a1a2a7de120ca92911255ae67634af09b0c6dbc0913831b",
+      "Sessions/Session_13437164558584866": "33190766eca16e281bad30d31b029ba4ce6f784c81d668f6932761da6af542eb",
+      "Sessions/Tabs_13437164554875298": "f0cebf1a883167ed754d02293b7b737823f81a5d7752c7edc60bd1e729669c0e",
+      "Sessions/Tabs_13437164558972550": "aa4c70da363cba4f3c84d532bee8d010414a9137b4973d99fd79d50c86424df6",
+      "Sessions_Encrypted/Session_13437164554499145": "cfb0107e67321f397f772a1dc1017812b28ba25e5d6db8dc788b215484b5e539",
+      "Sessions_Encrypted/Session_13437164558585647": "d80608c9f6fb8e01e205ed151837fe80b3310de4ddc633863b3c2d7a8a9569f0",
+      "Sessions_Encrypted/Tabs_13437164554876066": "e332cdc53e0ffea8abe168e5f802241c3aa7ef91f837847a6ea8a2e741c35083",
+      "Sessions_Encrypted/Tabs_13437164558972883": "69a551fbc83b2850d928f3d671c07bce75e79fb4f3d3b4ba162087047ff3f462"
+    },
+    "sampled": true,
+    "states": [
+      {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9470/one",
+          "http://127.0.0.1:9470/two"
+        ],
+        "selected": 1
+      }
+    ],
+    "ready": true,
+    "callbacks": [
+      "BLANC_PROVIDER delay_begin",
+      "BLANC_RECOVERY shown",
+      "BLANC_PROVIDER completion success=1",
+      "BLANC_RECOVERY dismissed"
+    ],
+    "cleanExit": true,
+    "exited": true,
+    "finalRecords": {
+      "Sessions/Session_13437164558584866": "33190766eca16e281bad30d31b029ba4ce6f784c81d668f6932761da6af542eb",
+      "Sessions/Session_13437181273185593": "6fe34650c0bb7134a47c7965559597f2ae24e52fbb82f7f783935f4955ce9993",
+      "Sessions/Tabs_13437164558972550": "aa4c70da363cba4f3c84d532bee8d010414a9137b4973d99fd79d50c86424df6",
+      "Sessions/Tabs_13437181273810628": "e3c35d4e4db1191e7d0b9fd000b41a72eb92c8ee31b51278ef80d91860978de0",
+      "Sessions_Encrypted/Session_13437164558585647": "d80608c9f6fb8e01e205ed151837fe80b3310de4ddc633863b3c2d7a8a9569f0",
+      "Sessions_Encrypted/Session_13437181273186308": "52eb266ae7b20caa250155347e9bc3d12a24806e34e9759e6e5c173332f6afab",
+      "Sessions_Encrypted/Tabs_13437164558972883": "69a551fbc83b2850d928f3d671c07bce75e79fb4f3d3b4ba162087047ff3f462",
+      "Sessions_Encrypted/Tabs_13437181273811499": "066b34ca206e2b33f1628cc36d8de0694b5bd3b598c8698ae8eb83e68f4e5cb9"
+    },
+    "recoveryShown": 1,
+    "recoveryDismissed": 1
+  },
+  {
+    "label": "delay-recovery",
+    "pid": 35856,
+    "mode": "normal",
+    "initialRecords": {
+      "Sessions/Session_13437164558584866": "33190766eca16e281bad30d31b029ba4ce6f784c81d668f6932761da6af542eb",
+      "Sessions/Session_13437181273185593": "6fe34650c0bb7134a47c7965559597f2ae24e52fbb82f7f783935f4955ce9993",
+      "Sessions/Tabs_13437164558972550": "aa4c70da363cba4f3c84d532bee8d010414a9137b4973d99fd79d50c86424df6",
+      "Sessions/Tabs_13437181273810628": "e3c35d4e4db1191e7d0b9fd000b41a72eb92c8ee31b51278ef80d91860978de0",
+      "Sessions_Encrypted/Session_13437164558585647": "d80608c9f6fb8e01e205ed151837fe80b3310de4ddc633863b3c2d7a8a9569f0",
+      "Sessions_Encrypted/Session_13437181273186308": "52eb266ae7b20caa250155347e9bc3d12a24806e34e9759e6e5c173332f6afab",
+      "Sessions_Encrypted/Tabs_13437164558972883": "69a551fbc83b2850d928f3d671c07bce75e79fb4f3d3b4ba162087047ff3f462",
+      "Sessions_Encrypted/Tabs_13437181273811499": "066b34ca206e2b33f1628cc36d8de0694b5bd3b598c8698ae8eb83e68f4e5cb9"
+    },
+    "lastReadError": "Error: {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":0,\"scriptId\":\"3\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"3\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: BlancPrototypeHost is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"-7711797078754976924.1.2\"}}",
+    "states": [
+      {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9470/one",
+          "http://127.0.0.1:9470/two"
+        ],
+        "selected": 1
+      }
+    ],
+    "ready": true,
+    "callbacks": [
+      "BLANC_PROVIDER completion success=1"
+    ],
+    "cleanExit": true,
+    "exited": true,
+    "finalRecords": {
+      "Sessions/Session_13437181273185593": "6fe34650c0bb7134a47c7965559597f2ae24e52fbb82f7f783935f4955ce9993",
+      "Sessions/Session_13437181276135268": "b4739299fd73965134fa2ff92c41c718f4740d73d57f8524fdf62e1f8e6c1c5d",
+      "Sessions/Tabs_13437181273810628": "e3c35d4e4db1191e7d0b9fd000b41a72eb92c8ee31b51278ef80d91860978de0",
+      "Sessions/Tabs_13437181276599325": "1dcbec784a707c1b0aa46b2b22841e0a3199ba5f2139bcd10ea6719f8bdba6f9",
+      "Sessions_Encrypted/Session_13437181273186308": "52eb266ae7b20caa250155347e9bc3d12a24806e34e9759e6e5c173332f6afab",
+      "Sessions_Encrypted/Session_13437181276141135": "d0984a90f1b3e07573c79035749e73ec3cdad62e2878fa57c692c8b7893f592d",
+      "Sessions_Encrypted/Tabs_13437181273811499": "066b34ca206e2b33f1628cc36d8de0694b5bd3b598c8698ae8eb83e68f4e5cb9",
+      "Sessions_Encrypted/Tabs_13437181276600130": "4dc012996f9dbda3cf77dff42219c4c6ca161eb885fde9448692da7d5cf7a15e"
+    },
+    "recoveryShown": 0,
+    "recoveryDismissed": 0
+  },
+  {
+    "label": "quit",
+    "pid": 35887,
+    "mode": "quit",
+    "initialRecords": {
+      "Sessions/Session_13437164554498590": "ab0391d0423a8ab04a1a2a7de120ca92911255ae67634af09b0c6dbc0913831b",
+      "Sessions/Session_13437164558584866": "33190766eca16e281bad30d31b029ba4ce6f784c81d668f6932761da6af542eb",
+      "Sessions/Tabs_13437164554875298": "f0cebf1a883167ed754d02293b7b737823f81a5d7752c7edc60bd1e729669c0e",
+      "Sessions/Tabs_13437164558972550": "aa4c70da363cba4f3c84d532bee8d010414a9137b4973d99fd79d50c86424df6",
+      "Sessions_Encrypted/Session_13437164554499145": "cfb0107e67321f397f772a1dc1017812b28ba25e5d6db8dc788b215484b5e539",
+      "Sessions_Encrypted/Session_13437164558585647": "d80608c9f6fb8e01e205ed151837fe80b3310de4ddc633863b3c2d7a8a9569f0",
+      "Sessions_Encrypted/Tabs_13437164554876066": "e332cdc53e0ffea8abe168e5f802241c3aa7ef91f837847a6ea8a2e741c35083",
+      "Sessions_Encrypted/Tabs_13437164558972883": "69a551fbc83b2850d928f3d671c07bce75e79fb4f3d3b4ba162087047ff3f462"
+    },
+    "lastReadError": "TypeError: fetch failed",
+    "waitingRecords": {
+      "Sessions/Session_13437164554498590": "ab0391d0423a8ab04a1a2a7de120ca92911255ae67634af09b0c6dbc0913831b",
+      "Sessions/Session_13437164558584866": "33190766eca16e281bad30d31b029ba4ce6f784c81d668f6932761da6af542eb",
+      "Sessions/Tabs_13437164554875298": "f0cebf1a883167ed754d02293b7b737823f81a5d7752c7edc60bd1e729669c0e",
+      "Sessions/Tabs_13437164558972550": "aa4c70da363cba4f3c84d532bee8d010414a9137b4973d99fd79d50c86424df6",
+      "Sessions_Encrypted/Session_13437164554499145": "cfb0107e67321f397f772a1dc1017812b28ba25e5d6db8dc788b215484b5e539",
+      "Sessions_Encrypted/Session_13437164558585647": "d80608c9f6fb8e01e205ed151837fe80b3310de4ddc633863b3c2d7a8a9569f0",
+      "Sessions_Encrypted/Tabs_13437164554876066": "e332cdc53e0ffea8abe168e5f802241c3aa7ef91f837847a6ea8a2e741c35083",
+      "Sessions_Encrypted/Tabs_13437164558972883": "69a551fbc83b2850d928f3d671c07bce75e79fb4f3d3b4ba162087047ff3f462"
+    },
+    "sampled": true,
+    "states": [],
+    "ready": false,
+    "callbacks": [
+      "BLANC_PROVIDER withheld",
+      "BLANC_RECOVERY shown",
+      "BLANC_RECOVERY dismissed"
+    ],
+    "fixtureKilled": true,
+    "exited": true,
+    "finalRecords": {
+      "Sessions/Session_13437164554498590": "ab0391d0423a8ab04a1a2a7de120ca92911255ae67634af09b0c6dbc0913831b",
+      "Sessions/Session_13437164558584866": "33190766eca16e281bad30d31b029ba4ce6f784c81d668f6932761da6af542eb",
+      "Sessions/Tabs_13437164554875298": "f0cebf1a883167ed754d02293b7b737823f81a5d7752c7edc60bd1e729669c0e",
+      "Sessions/Tabs_13437164558972550": "aa4c70da363cba4f3c84d532bee8d010414a9137b4973d99fd79d50c86424df6",
+      "Sessions_Encrypted/Session_13437164554499145": "cfb0107e67321f397f772a1dc1017812b28ba25e5d6db8dc788b215484b5e539",
+      "Sessions_Encrypted/Session_13437164558585647": "d80608c9f6fb8e01e205ed151837fe80b3310de4ddc633863b3c2d7a8a9569f0",
+      "Sessions_Encrypted/Tabs_13437164554876066": "e332cdc53e0ffea8abe168e5f802241c3aa7ef91f837847a6ea8a2e741c35083",
+      "Sessions_Encrypted/Tabs_13437164558972883": "69a551fbc83b2850d928f3d671c07bce75e79fb4f3d3b4ba162087047ff3f462"
+    },
+    "recoveryShown": 1,
+    "recoveryDismissed": 1
+  },
+  {
+    "label": "quit-recovery",
+    "pid": 36257,
+    "mode": "normal",
+    "initialRecords": {
+      "Sessions/Session_13437164554498590": "ab0391d0423a8ab04a1a2a7de120ca92911255ae67634af09b0c6dbc0913831b",
+      "Sessions/Session_13437164558584866": "33190766eca16e281bad30d31b029ba4ce6f784c81d668f6932761da6af542eb",
+      "Sessions/Tabs_13437164554875298": "f0cebf1a883167ed754d02293b7b737823f81a5d7752c7edc60bd1e729669c0e",
+      "Sessions/Tabs_13437164558972550": "aa4c70da363cba4f3c84d532bee8d010414a9137b4973d99fd79d50c86424df6",
+      "Sessions_Encrypted/Session_13437164554499145": "cfb0107e67321f397f772a1dc1017812b28ba25e5d6db8dc788b215484b5e539",
+      "Sessions_Encrypted/Session_13437164558585647": "d80608c9f6fb8e01e205ed151837fe80b3310de4ddc633863b3c2d7a8a9569f0",
+      "Sessions_Encrypted/Tabs_13437164554876066": "e332cdc53e0ffea8abe168e5f802241c3aa7ef91f837847a6ea8a2e741c35083",
+      "Sessions_Encrypted/Tabs_13437164558972883": "69a551fbc83b2850d928f3d671c07bce75e79fb4f3d3b4ba162087047ff3f462"
+    },
+    "lastReadError": "Error: {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":0,\"scriptId\":\"3\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"3\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: BlancPrototypeHost is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"5013794177223637502.1.2\"}}",
+    "states": [
+      {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9470/one",
+          "http://127.0.0.1:9470/two"
+        ],
+        "selected": 1
+      }
+    ],
+    "ready": true,
+    "callbacks": [
+      "BLANC_PROVIDER completion success=1"
+    ],
+    "cleanExit": true,
+    "exited": true,
+    "finalRecords": {
+      "Sessions/Session_13437164558584866": "33190766eca16e281bad30d31b029ba4ce6f784c81d668f6932761da6af542eb",
+      "Sessions/Session_13437181312282576": "fc16c1e01930cdbd40d2f19007b755471e510282a44380da8bef5b3fdaf709e6",
+      "Sessions/Tabs_13437164558972550": "aa4c70da363cba4f3c84d532bee8d010414a9137b4973d99fd79d50c86424df6",
+      "Sessions/Tabs_13437181312837449": "10b6eb9f8ad9df7b7d2e530a48fc4f61b699b6cd59c634f897a3c32921578c70",
+      "Sessions_Encrypted/Session_13437164558585647": "d80608c9f6fb8e01e205ed151837fe80b3310de4ddc633863b3c2d7a8a9569f0",
+      "Sessions_Encrypted/Session_13437181312283317": "30663e74ff065908693a195f763d6e36a3c1180029a336d119a83e8e6dba5f11",
+      "Sessions_Encrypted/Tabs_13437164558972883": "69a551fbc83b2850d928f3d671c07bce75e79fb4f3d3b4ba162087047ff3f462",
+      "Sessions_Encrypted/Tabs_13437181312838040": "702b4b4aaf7c50aef56383babfbff25fab57b64b3e3ddd440750b210dff11dff"
+    },
+    "recoveryShown": 0,
+    "recoveryDismissed": 0
+  },
+  {
+    "label": "temporary",
+    "pid": 36318,
+    "mode": "temporary",
+    "initialRecords": {
+      "Sessions/Session_13437164554498590": "ab0391d0423a8ab04a1a2a7de120ca92911255ae67634af09b0c6dbc0913831b",
+      "Sessions/Session_13437164558584866": "33190766eca16e281bad30d31b029ba4ce6f784c81d668f6932761da6af542eb",
+      "Sessions/Tabs_13437164554875298": "f0cebf1a883167ed754d02293b7b737823f81a5d7752c7edc60bd1e729669c0e",
+      "Sessions/Tabs_13437164558972550": "aa4c70da363cba4f3c84d532bee8d010414a9137b4973d99fd79d50c86424df6",
+      "Sessions_Encrypted/Session_13437164554499145": "cfb0107e67321f397f772a1dc1017812b28ba25e5d6db8dc788b215484b5e539",
+      "Sessions_Encrypted/Session_13437164558585647": "d80608c9f6fb8e01e205ed151837fe80b3310de4ddc633863b3c2d7a8a9569f0",
+      "Sessions_Encrypted/Tabs_13437164554876066": "e332cdc53e0ffea8abe168e5f802241c3aa7ef91f837847a6ea8a2e741c35083",
+      "Sessions_Encrypted/Tabs_13437164558972883": "69a551fbc83b2850d928f3d671c07bce75e79fb4f3d3b4ba162087047ff3f462"
+    },
+    "lastReadError": "Error: {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":0,\"scriptId\":\"3\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"3\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: BlancPrototypeHost is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"4114252816626082281.1.2\"}}",
+    "states": [
+      {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9470/one",
+          "http://127.0.0.1:9470/two"
+        ],
+        "selected": 1
+      }
+    ],
+    "ready": true,
+    "callbacks": [
+      "BLANC_PROVIDER failure temporary=1",
+      "BLANC_PROVIDER completion success=0"
+    ],
+    "cleanExit": true,
+    "exited": true,
+    "finalRecords": {
+      "Sessions/Session_13437164558584866": "33190766eca16e281bad30d31b029ba4ce6f784c81d668f6932761da6af542eb",
+      "Sessions/Session_13437181315023295": "f57fa86e83d34721c425c5821518fe9679e31194c9a3694247692b46b8b7ada6",
+      "Sessions/Tabs_13437164558972550": "aa4c70da363cba4f3c84d532bee8d010414a9137b4973d99fd79d50c86424df6",
+      "Sessions/Tabs_13437181315401134": "9f18b7c5f8c2d242939840f92e1ff356a3dbf7ee99d5a037008a9960d7b16b19"
+    },
+    "recoveryShown": 0,
+    "recoveryDismissed": 0
+  },
+  {
+    "label": "temporary-recovery",
+    "pid": 36342,
+    "mode": "normal",
+    "initialRecords": {
+      "Sessions/Session_13437164558584866": "33190766eca16e281bad30d31b029ba4ce6f784c81d668f6932761da6af542eb",
+      "Sessions/Session_13437181315023295": "f57fa86e83d34721c425c5821518fe9679e31194c9a3694247692b46b8b7ada6",
+      "Sessions/Tabs_13437164558972550": "aa4c70da363cba4f3c84d532bee8d010414a9137b4973d99fd79d50c86424df6",
+      "Sessions/Tabs_13437181315401134": "9f18b7c5f8c2d242939840f92e1ff356a3dbf7ee99d5a037008a9960d7b16b19"
+    },
+    "lastReadError": "Error: {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":0,\"scriptId\":\"3\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"3\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: BlancPrototypeHost is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"7871363764027685308.1.2\"}}",
+    "states": [
+      {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9470/one",
+          "http://127.0.0.1:9470/two"
+        ],
+        "selected": 1
+      }
+    ],
+    "ready": true,
+    "callbacks": [
+      "BLANC_PROVIDER completion success=1"
+    ],
+    "cleanExit": true,
+    "exited": true,
+    "finalRecords": {
+      "Sessions/Session_13437181315023295": "f57fa86e83d34721c425c5821518fe9679e31194c9a3694247692b46b8b7ada6",
+      "Sessions/Session_13437181318031613": "3ca63910f934a39257707df36f19c6dbcb1729d96b1116d482e52e0bebadf3f0",
+      "Sessions/Tabs_13437181315401134": "9f18b7c5f8c2d242939840f92e1ff356a3dbf7ee99d5a037008a9960d7b16b19",
+      "Sessions/Tabs_13437181318403965": "1071f9dd2ed0d1e7412984bfe9499f4c2c80cc4b099c4addacb9ecf2682eece7",
+      "Sessions_Encrypted/Session_13437181318032544": "cdf7b2c7a28b8336103c0623549dcf5878dbe5fdf3449eafc8485257f8736df7",
+      "Sessions_Encrypted/Tabs_13437181318404894": "8b2827082f8b4746eb5d66cf817b1c513ab71dbbb86249824b9ae9c69a0a6f37"
+    },
+    "recoveryShown": 0,
+    "recoveryDismissed": 0
+  },
+  {
+    "label": "permanent",
+    "pid": 36364,
+    "mode": "permanent",
+    "initialRecords": {
+      "Sessions/Session_13437164554498590": "ab0391d0423a8ab04a1a2a7de120ca92911255ae67634af09b0c6dbc0913831b",
+      "Sessions/Session_13437164558584866": "33190766eca16e281bad30d31b029ba4ce6f784c81d668f6932761da6af542eb",
+      "Sessions/Tabs_13437164554875298": "f0cebf1a883167ed754d02293b7b737823f81a5d7752c7edc60bd1e729669c0e",
+      "Sessions/Tabs_13437164558972550": "aa4c70da363cba4f3c84d532bee8d010414a9137b4973d99fd79d50c86424df6",
+      "Sessions_Encrypted/Session_13437164554499145": "cfb0107e67321f397f772a1dc1017812b28ba25e5d6db8dc788b215484b5e539",
+      "Sessions_Encrypted/Session_13437164558585647": "d80608c9f6fb8e01e205ed151837fe80b3310de4ddc633863b3c2d7a8a9569f0",
+      "Sessions_Encrypted/Tabs_13437164554876066": "e332cdc53e0ffea8abe168e5f802241c3aa7ef91f837847a6ea8a2e741c35083",
+      "Sessions_Encrypted/Tabs_13437164558972883": "69a551fbc83b2850d928f3d671c07bce75e79fb4f3d3b4ba162087047ff3f462"
+    },
+    "lastReadError": "Error: {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":0,\"scriptId\":\"3\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"3\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: BlancPrototypeHost is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"-8291151387278402348.1.2\"}}",
+    "states": [
+      {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9470/one",
+          "http://127.0.0.1:9470/two"
+        ],
+        "selected": 1
+      }
+    ],
+    "ready": true,
+    "callbacks": [
+      "BLANC_PROVIDER failure temporary=0",
+      "BLANC_PROVIDER completion success=0"
+    ],
+    "cleanExit": true,
+    "exited": true,
+    "finalRecords": {
+      "Sessions/Session_13437164558584866": "33190766eca16e281bad30d31b029ba4ce6f784c81d668f6932761da6af542eb",
+      "Sessions/Session_13437181320598625": "53729801c2f70283c998d8dded623ed0264fbdd51bfac1d87a523a36db640074",
+      "Sessions/Tabs_13437164558972550": "aa4c70da363cba4f3c84d532bee8d010414a9137b4973d99fd79d50c86424df6",
+      "Sessions/Tabs_13437181320976343": "7d2a88cae029140592ede77c6cfae969816b48f40f82f37dd8609a8770f84c43"
+    },
+    "recoveryShown": 0,
+    "recoveryDismissed": 0
+  },
+  {
+    "label": "permanent-recovery",
+    "pid": 36384,
+    "mode": "normal",
+    "initialRecords": {
+      "Sessions/Session_13437164558584866": "33190766eca16e281bad30d31b029ba4ce6f784c81d668f6932761da6af542eb",
+      "Sessions/Session_13437181320598625": "53729801c2f70283c998d8dded623ed0264fbdd51bfac1d87a523a36db640074",
+      "Sessions/Tabs_13437164558972550": "aa4c70da363cba4f3c84d532bee8d010414a9137b4973d99fd79d50c86424df6",
+      "Sessions/Tabs_13437181320976343": "7d2a88cae029140592ede77c6cfae969816b48f40f82f37dd8609a8770f84c43"
+    },
+    "lastReadError": "Error: {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":0,\"scriptId\":\"3\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"3\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: BlancPrototypeHost is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"-8328811712017270764.1.2\"}}",
+    "states": [
+      {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9470/one",
+          "http://127.0.0.1:9470/two"
+        ],
+        "selected": 1
+      }
+    ],
+    "ready": true,
+    "callbacks": [
+      "BLANC_PROVIDER completion success=1"
+    ],
+    "cleanExit": true,
+    "exited": true,
+    "finalRecords": {
+      "Sessions/Session_13437181320598625": "53729801c2f70283c998d8dded623ed0264fbdd51bfac1d87a523a36db640074",
+      "Sessions/Session_13437181323760290": "c2400d33a87f6432c7dd6025125d6aa50105b74e02ecfb8b2ab025222cf0578f",
+      "Sessions/Tabs_13437181320976343": "7d2a88cae029140592ede77c6cfae969816b48f40f82f37dd8609a8770f84c43",
+      "Sessions/Tabs_13437181324164645": "783ef28f2d6f7a8ee3a001db1ad99882ae68ea8044c7f1a465d86c814243dd6f",
+      "Sessions_Encrypted/Session_13437181323760658": "55c41acec4cdc50e32bc8f0895bd67d6e93cc77f254b7aea852ed53753671d31",
+      "Sessions_Encrypted/Tabs_13437181324165228": "5664d21fd619a52f1e515399355629cbf63ad3bf31256a445feed63dd0717876"
+    },
+    "recoveryShown": 0,
+    "recoveryDismissed": 0
+  }
+]

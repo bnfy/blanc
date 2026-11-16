@@ -1,0 +1,845 @@
+{
+  "commit": "3b6b4189b073795548716041c8e1d851dc00476e",
+  "checks": [
+    {
+      "name": "before-relaunch",
+      "at": "2026-10-16T21:25:20.597Z",
+      "pages": []
+    },
+    {
+      "name": "relaunched",
+      "at": "2026-10-16T21:25:26.188Z",
+      "pages": [
+        {
+          "id": "FBF89EAA45BB0728BB416226568F345B",
+          "title": "New Tab",
+          "url": "chrome://newtab/"
+        }
+      ]
+    },
+    {
+      "name": "baseline",
+      "at": "2026-10-16T21:25:26.307Z",
+      "tabs": [
+        {
+          "audible": false,
+          "blockedCount": 0,
+          "bookmarked": false,
+          "canGoBack": false,
+          "canGoForward": false,
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==",
+          "groupId": null,
+          "id": 138413088,
+          "isLoading": false,
+          "muted": false,
+          "pageBg": "#f7f0e6",
+          "pinned": false,
+          "private": false,
+          "title": "New Tab",
+          "url": "blanc://newtab/"
+        }
+      ]
+    },
+    {
+      "name": "fixtures-created",
+      "at": "2026-10-16T21:25:27.386Z",
+      "tabs": [
+        {
+          "id": 138413088,
+          "url": "blanc://newtab/",
+          "pinned": false,
+          "muted": false
+        },
+        {
+          "id": 138413128,
+          "url": "http://127.0.0.1:8785/A",
+          "pinned": false,
+          "muted": false
+        },
+        {
+          "id": 138413129,
+          "url": "http://127.0.0.1:8785/B",
+          "pinned": false,
+          "muted": false
+        },
+        {
+          "id": 138413130,
+          "url": "http://127.0.0.1:8785/C",
+          "pinned": false,
+          "muted": false
+        }
+      ]
+    },
+    {
+      "name": "native-row-pin-leading",
+      "at": "2026-10-16T21:25:55.022Z",
+      "tabs": [
+        {
+          "id": 138413128,
+          "url": "http://127.0.0.1:8785/A",
+          "pinned": true,
+          "muted": false
+        },
+        {
+          "id": 138413088,
+          "url": "blanc://newtab/",
+          "pinned": false,
+          "muted": false
+        },
+        {
+          "id": 138413129,
+          "url": "http://127.0.0.1:8785/B",
+          "pinned": false,
+          "muted": false
+        },
+        {
+          "id": 138413130,
+          "url": "http://127.0.0.1:8785/C",
+          "pinned": false,
+          "muted": false
+        },
+        {
+          "id": 138413131,
+          "url": "chrome://media-internals/",
+          "pinned": false,
+          "muted": false
+        }
+      ],
+      "dots": [
+        138413128,
+        138413088,
+        138413129,
+        138413130,
+        138413131
+      ]
+    },
+    {
+      "name": "native-row-unpin",
+      "at": "2026-10-16T21:25:55.922Z"
+    },
+    {
+      "name": "native-slash-pin-on-off",
+      "at": "2026-10-16T21:26:04.178Z"
+    },
+    {
+      "name": "failure",
+      "at": "2026-10-16T21:26:11.468Z",
+      "message": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(order.indexOf(B)<order.indexOf(A))\n\n    at file:///private/tmp/blanc-pr861-controls.mjs:11:90"
+    },
+    {
+      "name": "drag-probe",
+      "at": "2026-10-16T21:26:48.833Z",
+      "tabs": [
+        {
+          "id": 138413130,
+          "url": "http://127.0.0.1:8785/C",
+          "pinned": true
+        },
+        {
+          "id": 138413128,
+          "url": "http://127.0.0.1:8785/A",
+          "pinned": false
+        },
+        {
+          "id": 138413088,
+          "url": "blanc://newtab/",
+          "pinned": false
+        },
+        {
+          "id": 138413129,
+          "url": "http://127.0.0.1:8785/B",
+          "pinned": false
+        },
+        {
+          "id": 138413131,
+          "url": "chrome://media-internals/",
+          "pinned": false
+        }
+      ]
+    },
+    {
+      "name": "native-loose-drag-failure",
+      "at": "2026-10-16T21:27:59.577Z",
+      "calls": [
+        {
+          "args": [
+            "138413129",
+            {
+              "groupId": null,
+              "beforeId": "138413088"
+            }
+          ],
+          "error": "Expected a real tab ID."
+        }
+      ],
+      "tabs": [
+        {
+          "id": 138413130,
+          "url": "http://127.0.0.1:8785/C",
+          "pinned": true
+        },
+        {
+          "id": 138413128,
+          "url": "http://127.0.0.1:8785/A",
+          "pinned": false
+        },
+        {
+          "id": 138413088,
+          "url": "blanc://newtab/",
+          "pinned": false
+        },
+        {
+          "id": 138413129,
+          "url": "http://127.0.0.1:8785/B",
+          "pinned": false
+        },
+        {
+          "id": 138413131,
+          "url": "chrome://media-internals/",
+          "pinned": false
+        }
+      ]
+    },
+    {
+      "name": "native-pinned-drag-failure",
+      "at": "2026-10-16T21:28:02.774Z",
+      "calls": [
+        {
+          "args": [
+            "138413129",
+            {
+              "groupId": null,
+              "beforeId": "138413088"
+            }
+          ],
+          "error": "Expected a real tab ID."
+        }
+      ],
+      "tabs": [
+        {
+          "id": 138413130,
+          "url": "http://127.0.0.1:8785/C",
+          "pinned": true
+        },
+        {
+          "id": 138413128,
+          "url": "http://127.0.0.1:8785/A",
+          "pinned": true
+        },
+        {
+          "id": 138413088,
+          "url": "blanc://newtab/",
+          "pinned": false
+        },
+        {
+          "id": 138413129,
+          "url": "http://127.0.0.1:8785/B",
+          "pinned": false
+        },
+        {
+          "id": 138413131,
+          "url": "chrome://media-internals/",
+          "pinned": false
+        }
+      ]
+    },
+    {
+      "name": "native-cross-boundary-drop-no-change",
+      "at": "2026-10-16T21:28:04.994Z"
+    },
+    {
+      "name": "native-keyboard-reorder-failure",
+      "at": "2026-10-16T21:28:11.159Z",
+      "focusedRow": 138413128,
+      "unchanged": true,
+      "calls": [
+        {
+          "args": [
+            "138413129",
+            {
+              "groupId": null,
+              "beforeId": "138413088"
+            }
+          ],
+          "error": "Expected a real tab ID."
+        }
+      ]
+    },
+    {
+      "name": "keyboard-type-mismatch",
+      "at": "2026-10-16T21:28:11.171Z",
+      "probe": {
+        "stringId": null,
+        "numericId": {
+          "intent": {
+            "kind": "tab",
+            "id": 138413129,
+            "groupId": null,
+            "beforeId": 138413088
+          }
+        }
+      }
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T21:28:11.374Z",
+      "path": "/private/tmp/blanc-pr861-reorder-failure.png"
+    },
+    {
+      "name": "audio-playing",
+      "at": "2026-10-16T21:28:22.621Z",
+      "tab": {
+        "id": 138413130,
+        "audible": true,
+        "muted": false
+      },
+      "media": [
+        {
+          "at": 1792185927924,
+          "channel_layout": "MONO",
+          "channels": 1,
+          "component_id": 0,
+          "component_type": 1,
+          "device_id": "default",
+          "device_type": "pcm_low_latency",
+          "effects": "384",
+          "frames_per_buffer": 1024,
+          "owner_id": 0,
+          "render_process_id": 17,
+          "sample_rate": 48000,
+          "status": "started",
+          "web_contents_title": "Controls861 C"
+        },
+        {
+          "at": 1792185927925,
+          "channel_layout": "MONO",
+          "channels": 1,
+          "component_id": 0,
+          "component_type": 2,
+          "device_id": "BuiltInSpeakerDevice",
+          "device_type": "pcm_low_latency",
+          "effects": "128",
+          "frames_per_buffer": 1024,
+          "owner_id": 0,
+          "sample_rate": 48000,
+          "status": "started",
+          "volume": 1
+        },
+        {
+          "at": 1792185937499,
+          "component_id": 0,
+          "component_type": 2,
+          "owner_id": 0,
+          "status": "stopped"
+        },
+        {
+          "at": 1792185937499,
+          "component_id": 0,
+          "component_type": 1,
+          "owner_id": 0,
+          "status": "stopped"
+        },
+        {
+          "at": 1792185942488,
+          "component_id": 0,
+          "component_type": 1,
+          "owner_id": 0,
+          "status": "closed"
+        },
+        {
+          "at": 1792185947490,
+          "component_id": 0,
+          "component_type": 2,
+          "owner_id": 0,
+          "status": "closed"
+        },
+        {
+          "at": 1792186101818,
+          "channel_layout": "MONO",
+          "channels": 1,
+          "component_id": 1,
+          "component_type": 2,
+          "device_id": "BuiltInSpeakerDevice",
+          "device_type": "pcm_low_latency",
+          "effects": "128",
+          "frames_per_buffer": 1024,
+          "owner_id": 1,
+          "sample_rate": 48000,
+          "status": "created"
+        },
+        {
+          "at": 1792186101818,
+          "channel_layout": "MONO",
+          "channels": 1,
+          "component_id": 0,
+          "component_type": 1,
+          "device_id": "default",
+          "device_type": "pcm_low_latency",
+          "effects": "384",
+          "frames_per_buffer": 1024,
+          "owner_id": 1,
+          "sample_rate": 48000,
+          "status": "created"
+        },
+        {
+          "at": 1792186101819,
+          "component_id": 0,
+          "component_type": 1,
+          "owner_id": 1,
+          "render_process_id": 17,
+          "web_contents_title": "Controls861 C"
+        },
+        {
+          "at": 1792186101819,
+          "component_id": 1,
+          "component_type": 2,
+          "owner_id": 1,
+          "volume": 1
+        },
+        {
+          "at": 1792186101841,
+          "component_id": 1,
+          "component_type": 2,
+          "owner_id": 1,
+          "status": "started"
+        },
+        {
+          "at": 1792186101841,
+          "component_id": 0,
+          "component_type": 1,
+          "owner_id": 1,
+          "status": "started"
+        }
+      ],
+      "fixture": {
+        "paused": false,
+        "time": 0.730427,
+        "muted": false,
+        "volume": 1
+      }
+    },
+    {
+      "name": "native-row-mute",
+      "at": "2026-10-16T21:28:25.062Z",
+      "badge": true,
+      "media": [
+        {
+          "at": 1792185927924,
+          "channel_layout": "MONO",
+          "channels": 1,
+          "component_id": 0,
+          "component_type": 1,
+          "device_id": "default",
+          "device_type": "pcm_low_latency",
+          "effects": "384",
+          "frames_per_buffer": 1024,
+          "owner_id": 0,
+          "render_process_id": 17,
+          "sample_rate": 48000,
+          "status": "started",
+          "web_contents_title": "Controls861 C"
+        },
+        {
+          "at": 1792185927925,
+          "channel_layout": "MONO",
+          "channels": 1,
+          "component_id": 0,
+          "component_type": 2,
+          "device_id": "BuiltInSpeakerDevice",
+          "device_type": "pcm_low_latency",
+          "effects": "128",
+          "frames_per_buffer": 1024,
+          "owner_id": 0,
+          "sample_rate": 48000,
+          "status": "started",
+          "volume": 1
+        },
+        {
+          "at": 1792185937499,
+          "component_id": 0,
+          "component_type": 2,
+          "owner_id": 0,
+          "status": "stopped"
+        },
+        {
+          "at": 1792185937499,
+          "component_id": 0,
+          "component_type": 1,
+          "owner_id": 0,
+          "status": "stopped"
+        },
+        {
+          "at": 1792185942488,
+          "component_id": 0,
+          "component_type": 1,
+          "owner_id": 0,
+          "status": "closed"
+        },
+        {
+          "at": 1792185947490,
+          "component_id": 0,
+          "component_type": 2,
+          "owner_id": 0,
+          "status": "closed"
+        },
+        {
+          "at": 1792186101818,
+          "channel_layout": "MONO",
+          "channels": 1,
+          "component_id": 1,
+          "component_type": 2,
+          "device_id": "BuiltInSpeakerDevice",
+          "device_type": "pcm_low_latency",
+          "effects": "128",
+          "frames_per_buffer": 1024,
+          "owner_id": 1,
+          "sample_rate": 48000,
+          "status": "created"
+        },
+        {
+          "at": 1792186101818,
+          "channel_layout": "MONO",
+          "channels": 1,
+          "component_id": 0,
+          "component_type": 1,
+          "device_id": "default",
+          "device_type": "pcm_low_latency",
+          "effects": "384",
+          "frames_per_buffer": 1024,
+          "owner_id": 1,
+          "sample_rate": 48000,
+          "status": "created"
+        },
+        {
+          "at": 1792186101819,
+          "component_id": 0,
+          "component_type": 1,
+          "owner_id": 1,
+          "render_process_id": 17,
+          "web_contents_title": "Controls861 C"
+        },
+        {
+          "at": 1792186101819,
+          "component_id": 1,
+          "component_type": 2,
+          "owner_id": 1,
+          "volume": 1
+        },
+        {
+          "at": 1792186101841,
+          "component_id": 1,
+          "component_type": 2,
+          "owner_id": 1,
+          "status": "started"
+        },
+        {
+          "at": 1792186101841,
+          "component_id": 0,
+          "component_type": 1,
+          "owner_id": 1,
+          "status": "started"
+        },
+        {
+          "at": 1792186104049,
+          "component_id": 1,
+          "component_type": 2,
+          "owner_id": 1,
+          "status": "stopped"
+        }
+      ],
+      "fixture": {
+        "paused": false,
+        "time": 1.053604,
+        "muted": false,
+        "volume": 1
+      }
+    },
+    {
+      "name": "native-row-unmute",
+      "at": "2026-10-16T21:28:26.576Z",
+      "media": [
+        {
+          "at": 1792185927924,
+          "channel_layout": "MONO",
+          "channels": 1,
+          "component_id": 0,
+          "component_type": 1,
+          "device_id": "default",
+          "device_type": "pcm_low_latency",
+          "effects": "384",
+          "frames_per_buffer": 1024,
+          "owner_id": 0,
+          "render_process_id": 17,
+          "sample_rate": 48000,
+          "status": "started",
+          "web_contents_title": "Controls861 C"
+        },
+        {
+          "at": 1792185927925,
+          "channel_layout": "MONO",
+          "channels": 1,
+          "component_id": 0,
+          "component_type": 2,
+          "device_id": "BuiltInSpeakerDevice",
+          "device_type": "pcm_low_latency",
+          "effects": "128",
+          "frames_per_buffer": 1024,
+          "owner_id": 0,
+          "sample_rate": 48000,
+          "status": "started",
+          "volume": 1
+        },
+        {
+          "at": 1792185937499,
+          "component_id": 0,
+          "component_type": 2,
+          "owner_id": 0,
+          "status": "stopped"
+        },
+        {
+          "at": 1792185937499,
+          "component_id": 0,
+          "component_type": 1,
+          "owner_id": 0,
+          "status": "stopped"
+        },
+        {
+          "at": 1792185942488,
+          "component_id": 0,
+          "component_type": 1,
+          "owner_id": 0,
+          "status": "closed"
+        },
+        {
+          "at": 1792185947490,
+          "component_id": 0,
+          "component_type": 2,
+          "owner_id": 0,
+          "status": "closed"
+        },
+        {
+          "at": 1792186101818,
+          "channel_layout": "MONO",
+          "channels": 1,
+          "component_id": 1,
+          "component_type": 2,
+          "device_id": "BuiltInSpeakerDevice",
+          "device_type": "pcm_low_latency",
+          "effects": "128",
+          "frames_per_buffer": 1024,
+          "owner_id": 1,
+          "sample_rate": 48000,
+          "status": "created"
+        },
+        {
+          "at": 1792186101818,
+          "channel_layout": "MONO",
+          "channels": 1,
+          "component_id": 0,
+          "component_type": 1,
+          "device_id": "default",
+          "device_type": "pcm_low_latency",
+          "effects": "384",
+          "frames_per_buffer": 1024,
+          "owner_id": 1,
+          "sample_rate": 48000,
+          "status": "created"
+        },
+        {
+          "at": 1792186101819,
+          "component_id": 0,
+          "component_type": 1,
+          "owner_id": 1,
+          "render_process_id": 17,
+          "web_contents_title": "Controls861 C"
+        },
+        {
+          "at": 1792186101819,
+          "component_id": 1,
+          "component_type": 2,
+          "owner_id": 1,
+          "volume": 1
+        },
+        {
+          "at": 1792186101841,
+          "component_id": 1,
+          "component_type": 2,
+          "owner_id": 1,
+          "status": "started"
+        },
+        {
+          "at": 1792186101841,
+          "component_id": 0,
+          "component_type": 1,
+          "owner_id": 1,
+          "status": "started"
+        },
+        {
+          "at": 1792186104049,
+          "component_id": 1,
+          "component_type": 2,
+          "owner_id": 1,
+          "status": "stopped"
+        },
+        {
+          "at": 1792186105529,
+          "component_id": 1,
+          "component_type": 2,
+          "owner_id": 1,
+          "volume": 1
+        },
+        {
+          "at": 1792186105552,
+          "component_id": 1,
+          "component_type": 2,
+          "owner_id": 1,
+          "status": "started"
+        }
+      ]
+    },
+    {
+      "name": "native-slash-mute-on-off",
+      "at": "2026-10-16T21:28:34.802Z"
+    },
+    {
+      "name": "audio-suite-complete",
+      "at": "2026-10-16T21:28:34.804Z"
+    },
+    {
+      "name": "numeric-bridge-reorder-and-rejections",
+      "at": "2026-10-16T21:28:55.029Z",
+      "note": "Automated bridge checks only; native input failed separately."
+    },
+    {
+      "name": "before-session-restore",
+      "at": "2026-10-16T21:28:55.057Z",
+      "tabs": [
+        {
+          "url": "http://127.0.0.1:8785/A",
+          "pinned": true
+        },
+        {
+          "url": "http://127.0.0.1:8785/C",
+          "pinned": true
+        },
+        {
+          "url": "blanc://newtab/",
+          "pinned": false
+        },
+        {
+          "url": "http://127.0.0.1:8785/B",
+          "pinned": false
+        }
+      ]
+    },
+    {
+      "name": "before-relaunch",
+      "at": "2026-10-16T21:28:55.127Z",
+      "pages": [
+        {
+          "id": "1B9D577CA36EFFF557EBD7D4C172177D",
+          "title": "Controls861 C",
+          "url": "http://127.0.0.1:8785/C"
+        },
+        {
+          "id": "AF9A93FA25B423A265DDC64FC0076B17",
+          "title": "Controls861 B",
+          "url": "http://127.0.0.1:8785/B"
+        },
+        {
+          "id": "DB8158A97FE26D386159544096099BE6",
+          "title": "Controls861 A",
+          "url": "http://127.0.0.1:8785/A"
+        },
+        {
+          "id": "FBF89EAA45BB0728BB416226568F345B",
+          "title": "New Tab",
+          "url": "chrome://newtab/"
+        }
+      ]
+    },
+    {
+      "name": "relaunched",
+      "at": "2026-10-16T21:28:57.204Z",
+      "pages": [
+        {
+          "id": "77664F2A579CF5B32F2BB34CAD5CA56E",
+          "title": "Controls861 C",
+          "url": "http://127.0.0.1:8785/C"
+        },
+        {
+          "id": "29431AC757968E0C2F6773B8252F720B",
+          "title": "Controls861 A",
+          "url": "http://127.0.0.1:8785/A"
+        },
+        {
+          "id": "3B5DBF69DD38BC0D154363D28E1507C7",
+          "title": "127.0.0.1:8785/B",
+          "url": "http://127.0.0.1:8785/B"
+        },
+        {
+          "id": "0FC65664D40C12776C2BA92EEE2E0346",
+          "title": "New Tab",
+          "url": "chrome://newtab/"
+        }
+      ]
+    },
+    {
+      "name": "pin-order-restart-persistence",
+      "at": "2026-10-16T21:28:57.927Z",
+      "tabs": [
+        {
+          "url": "http://127.0.0.1:8785/A",
+          "pinned": true
+        },
+        {
+          "url": "http://127.0.0.1:8785/C",
+          "pinned": true
+        },
+        {
+          "url": "blanc://newtab/",
+          "pinned": false
+        },
+        {
+          "url": "http://127.0.0.1:8785/B",
+          "pinned": false
+        }
+      ],
+      "muted": [
+        {
+          "url": "http://127.0.0.1:8785/A",
+          "muted": false
+        },
+        {
+          "url": "http://127.0.0.1:8785/C",
+          "muted": false
+        },
+        {
+          "url": "blanc://newtab/",
+          "muted": false
+        },
+        {
+          "url": "http://127.0.0.1:8785/B",
+          "muted": false
+        }
+      ]
+    },
+    {
+      "name": "cleanup-complete",
+      "at": "2026-10-16T21:30:29.885Z",
+      "tabs": [
+        {
+          "id": 138413202,
+          "url": "blanc://newtab/"
+        }
+      ],
+      "historyRowsRemoved": 3,
+      "favorites": []
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T21:30:30.190Z",
+      "path": "/private/tmp/blanc-pr861-final.png"
+    }
+  ]
+}

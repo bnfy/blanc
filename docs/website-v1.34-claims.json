@@ -204,17 +204,6 @@
       "replaces": "trust-125-380"
     },
     {
-      "id": "v134-1p-007",
-      "source": "site/src/pages/download.astro",
-      "exactWording": "Blanc has no general third-party extension runtime. Its device-bound Touch ID passkeys are macOS-only, and its optional, user-invoked 1Password bridge isn’t available on Windows on Arm. Synced provider passkeys, including iCloud Keychain, are not supported. If your workflow depends on an extension, check that limitation before switching.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "onePassword"
-      ],
-      "verdict": "qualified",
-      "replaces": "reddit-409"
-    },
-    {
       "id": "v134-1p-008",
       "source": "site/src/components/guides/security.astro",
       "exactWording": "1Password login fill.",
@@ -437,6 +426,20 @@
       "verdict": "qualified",
       "replaces": "onepassword-126-002",
       "reason": "October 18, 2026: the owner asked for concise, less repetitive hero copy on the feature landing pages. The replacement wording is recorded in docs/website-v1.37-claims.json."
+    }
+  ],
+  "retiredForDownloadRedesign": [
+    {
+      "id": "v134-1p-007",
+      "source": "site/src/pages/download.astro",
+      "exactWording": "Blanc has no general third-party extension runtime. Its device-bound Touch ID passkeys are macOS-only, and its optional, user-invoked 1Password bridge isn’t available on Windows on Arm. Synced provider passkeys, including iCloud Keychain, are not supported. If your workflow depends on an extension, check that limitation before switching.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePassword"
+      ],
+      "verdict": "qualified",
+      "replaces": "reddit-409",
+      "reason": "Removed from /download on November 14, 2026, when the owner had the page reimagined with far fewer words (one button per system, three tiles, one line of facts). The new wording is recorded in docs/website-download-redesign-2026-11-14-claims.json."
     }
   ]
 }

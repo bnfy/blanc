@@ -1,0 +1,10 @@
+{
+  "unchangedPreexistingSignedFiles": 457,
+  "changed": [],
+  "strictSignature": "passed",
+  "stapledTicket": "validated",
+  "gatekeeper": "accepted Notarized Developer ID",
+  "source": "d3eddfd222436ad9b99e58ec3f249946da2d1714",
+  "signedAffectedChecks": 12,
+  "nativeInputMapping": "same native source and exact runtime files; prior regular/private physical input and quit-veto observations mapped, not repeated"
+}

@@ -1,0 +1,771 @@
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+index 773b60d..1b726ea 100644
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -1731,6 +1731,7 @@ void RegisterLocalState(PrefRegistrySimple* registry) {
+   registry->RegisterDictionaryPref("blanc.glance.frame");
+   // The moving-in checklist (N11), device-wide as in shipping.
+   registry->RegisterBooleanPref("blanc.checklist.dismissed", false);
++  registry->RegisterDictionaryPref("blanc.checklist.progress");
+   registry->RegisterBooleanPref("blanc.checklist.default_done", false);
+   // What's New (F51): shipping's five device-local settings.
+   registry->RegisterDictionaryPref("blanc.whats_new");
+diff --git a/chrome/browser/resources/settings/BUILD.gn b/chrome/browser/resources/settings/BUILD.gn
+index 87db570..f2c9e02 100644
+--- a/chrome/browser/resources/settings/BUILD.gn
++++ b/chrome/browser/resources/settings/BUILD.gn
+@@ -156,6 +156,8 @@ build_webui("build") {
+   # -----------------ts_files start ----------------------------
+ 
+   ts_files = [
++    "blanc_sync_page/pairing_model.ts",
++    "blanc_sync_page/qr_code.ts",
+     "privacy_icons.html.ts",
+     "a11y_page/a11y_browser_proxy.ts",
+     "a11y_page/a11y_page.html.ts",
+diff --git a/chrome/browser/resources/settings/blanc_settings_proxy.ts b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+index f0ce544..70cabb2 100644
+--- a/chrome/browser/resources/settings/blanc_settings_proxy.ts
++++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+@@ -61,6 +61,7 @@ export const blancSettings = {
+   openWelcomeTour: () => sendWithPromise<boolean>('blancSettingsWelcomeTour'),
+   openPreviewNotice: () => sendWithPromise<boolean>('blancSettingsPreviewNotice'),
+   font: () => sendWithPromise<string|null>('blancSettingsFont'),
++  capture: (showing: boolean) => sendWithPromise('blancSyncCapture', showing),
+   listen: (callback: (state: BlancSettingsState) => void): WebUiListener =>
+       addWebUiListener('blanc-settings-changed', callback),
+   stopListening: (listener: WebUiListener) => removeWebUiListener(listener),
+@@ -313,7 +314,8 @@ export interface BlancSyncEvent {
+ }
+ 
+ export type BlancSyncMethod = 'sync.startNew'|'sync.joinWithCode'|
+-    'sync.preflight'|'sync.enable'|'sync.syncNow'|'sync.disable'|'sync.status';
++    'sync.preflight'|'sync.enable'|'sync.syncNow'|'sync.disable'|'sync.status'|'sync.beginPairing'|'sync.cancelPairing'|'sync.pairingState'|
++    'sync.setPairingWatch';
+ 
+ interface BlancSyncReply<T> {
+   ok: boolean;
+@@ -339,6 +341,7 @@ export const blancSync = {
+       throw new Error(reply.error || 'sync-confirm-failed');
+     }
+   },
++  capture: (showing: boolean) => sendWithPromise('blancSyncCapture', showing),
+   listen: (callback: (event: BlancSyncEvent) => void): WebUiListener =>
+       addWebUiListener('blanc-sync-changed', callback),
+   stopListening: (listener: WebUiListener) => removeWebUiListener(listener),
+diff --git a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.css b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.css
+index 3301ecb..75fdfec 100644
+--- a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.css
++++ b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.css
+@@ -89,3 +89,28 @@ cr-button,
+   color: var(--cr-primary-text-color);
+   overflow-wrap: anywhere;
+ }
++
++dialog {
++  background: var(--cr-card-background-color);
++  border: var(--cr-separator-line);
++  border-radius: 16px;
++  color: var(--cr-primary-text-color);
++  max-width: 420px;
++  padding: 24px;
++}
++
++dialog::backdrop {
++  background: #0006;
++}
++
++#syncPairingQr {
++  background: white;
++  fill: black;
++  height: 192px;
++  width: 192px;
++}
++
++#syncPairingCode {
++  font-size: 24px;
++  letter-spacing: .15em;
++}
+diff --git a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html
+index a6988ac..988e101 100644
+--- a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html
++++ b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html
+@@ -13,6 +13,8 @@
+               ?disabled="${this.busy_}" @click="${this.onTurnOnClick_}">
+             $i18n{blancSyncTurnOn}
+           </cr-button>
++          <cr-button id="syncConnectIphone" ?disabled="${this.busy_}"
++              @click="${this.onIphoneClick_}">Connect your iPhone</cr-button>
+           <p>$i18n{blancSyncHaveCode}</p>
+           <cr-button id="syncPathCode" ?disabled="${this.busy_}"
+               @click="${this.onChooseCodeClick_}">$i18n{blancSyncAddCode}</cr-button>
+@@ -75,11 +77,36 @@
+         <p id="syncAccount">${this.state_?.status?.handle ?? ''}</p>
+         <cr-button id="syncNow" ?disabled="${this.busy_}"
+             @click="${this.onSyncNowClick_}">$i18n{blancSyncNow}</cr-button>
++        <cr-button id="syncAddDevice" ?disabled="${this.busy_}" @click="${this.onAddDeviceClick_}">Add device</cr-button>
+         <p class="secondary">$i18n{blancSyncTurnOffHint}</p>
+         <cr-button id="syncDisable" ?disabled="${this.busy_ || this.confirming_}"
+             @click="${this.onTurnOffClick_}">$i18n{blancSyncDisable}</cr-button>
+       </div>
+ 
++      <dialog id="syncPairingDialog" aria-labelledby="syncPairingTitle" @cancel="${this.onPairCancel_}">
++        <h2 id="syncPairingTitle">${this.pair_.viaIphone ? 'Connect your iPhone' : 'Add another device'}</h2>
++        <div id="syncPairingStart" ?hidden="${!this.pairView_().startShown && !this.pairView_().notReadyShown}">
++          <p ?hidden="${this.pairView_().notReadyShown}">This turns on Sync for this Mac. You won’t need a name or passphrase.</p>
++          <p ?hidden="${!this.pairView_().notReadyShown}">Sync is on, but couldn’t reach the server yet. Blanc will keep trying.</p>
++          <cr-button id="syncPairingContinue" ?hidden="${this.pairView_().notReadyShown}"
++              ?disabled="${this.pairView_().startBusy}" @click="${this.onPairContinueClick_}">Continue</cr-button>
++          <cr-button id="syncPairingRetry" ?hidden="${!this.pairView_().notReadyShown}" @click="${this.onPairRetryClick_}">Try again</cr-button>
++          <cr-button id="syncPairingAddThisFirst" ?hidden="${this.pairView_().notReadyShown}" @click="${this.onAddThisFirstClick_}">Add this Mac with a code first</cr-button>
++        </div>
++        <p ?hidden="${!this.pairView_().makingCode}">Making a code…</p>
++        <div id="syncPairing" ?hidden="${!this.pairView_().showing}">
++          <p>On your iPhone, open Blanc and choose Pair with your Blanc. Point it at this code.</p>
++          <svg id="syncPairingQr" viewBox="${this.qrBox_()}" aria-label="Pairing QR code"><path d="${this.qrPath_()}"></path></svg>
++          <p>Or type it in Settings → Sync:</p>
++          <p id="syncPairingCode">${this.pairView_().codeText}</p>
++          <p id="syncPairingRemaining">Expires in ${this.pairView_().remainingText}</p>
++          <cr-button id="syncPairingCopy" @click="${this.onPairCopyClick_}">Copy code</cr-button>
++        </div>
++        <p id="syncPairingJoined" ?hidden="${!this.pairView_().joined}">${this.pairView_().joinedName || 'Your device'} joined.</p>
++        <cr-button id="syncPairingCancel" @click="${this.onPairCancelClick_}">${this.pairView_().joined ? 'Done' : 'Cancel'}</cr-button>
++        <p role="status">${this.pairView_().noticeText}</p>
++      </dialog>
++      <p id="syncPairingNotice" role="status" ?hidden="${!!this.pairView_().sheetOpen}">${this.pairView_().expired ? 'That code expired. Make a new one when you’re ready.' : this.pairView_().noticeText}</p>
+       <section id="syncFirstUpload" aria-labelledby="syncFirstUploadTitle"
+           ?hidden="${!this.state_?.status?.enabled || !this.state_?.pendingFirstUpload}">
+         <h2 id="syncFirstUploadTitle">$i18n{blancSyncFirstUploadTitle}</h2>
+diff --git a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts
+index 6069988..ed07448 100644
+--- a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts
++++ b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts
+@@ -14,6 +14,8 @@ import type {SettingsPlugin} from '../settings_main/settings_plugin.js';
+ import {getCss as getSettingsSharedLit} from '../settings_shared_lit.css.js';
+ 
+ import {getCss} from './blanc_sync_page.css.js';
++import {pairing_model as pairing} from './pairing_model.js';
++import {qr_code as qr} from './qr_code.js';
+ import {getHtml} from './blanc_sync_page.html.js';
+ 
+ export interface BlancSyncPageElement {
+@@ -47,6 +49,8 @@ export class BlancSyncPageElement extends CrLitElement implements
+       codeValid_: {type: Boolean},
+       credentialsValid_: {type: Boolean},
+       confirming_: {type: Boolean},
++      pair_: {type: Object},
++      pairNow_: {type: Number},
+     };
+   }
+ 
+@@ -57,6 +61,13 @@ export class BlancSyncPageElement extends CrLitElement implements
+   protected accessor codeValid_: boolean = false;
+   protected accessor credentialsValid_: boolean = false;
+   protected accessor confirming_: boolean = false;
++  protected accessor pair_ = pairing.createPairingModel();
++  protected accessor pairNow_: number = Date.now();
++  private pairTimer_: number|null = null;
++  private pairReading_ = false;
++  private pairRevision_ = 0;
++  private capture_ = false;
++  private visibility_ = () => { void this.watchPair_(); };
+   private listener_: WebUiListener|null = null;
+   private lifetime_: number = 0;
+   private revision_: number = 0;
+@@ -66,12 +77,31 @@ export class BlancSyncPageElement extends CrLitElement implements
+     this.busy_ = false;
+     this.confirming_ = false;
+     this.listener_ = blancSync.listen(event => this.onSyncChanged_(event));
+-    void this.refresh_();
++    void this.refresh_().then(async () => {
++      await this.readPair_();
++      if (location.hash === '#pair' && this.state_?.available) {
++        history.replaceState(null, '', location.pathname);
++        this.pairEvent_({type: 'open', syncOn: !!this.state_.status?.enabled});
++      }
++    });
++    document.addEventListener('visibilitychange', this.visibility_);
++    this.pairTimer_ = window.setInterval(() => {
++      this.pairNow_ = Date.now();
++      this.pairEvent_({type: 'tick', now: this.pairNow_});
++      if (document.visibilityState === 'visible' && this.pairView_().showing) void this.readPair_();
++    }, 1000);
+   }
+ 
+   override disconnectedCallback() {
+     super.disconnectedCallback();
+     ++this.lifetime_;
++    if (this.pairTimer_ !== null) window.clearInterval(this.pairTimer_);
++    this.pairTimer_ = null;
++    document.removeEventListener('visibilitychange', this.visibility_);
++    void blancSync.capture(false).catch(() => {});
++    void blancSync.call('sync.setPairingWatch', [false]).catch(() => {});
++    this.capture_ = false;
++    this.pair_ = pairing.createPairingModel();
+     if (this.listener_) {
+       blancSync.stopListening(this.listener_);
+       this.listener_ = null;
+@@ -79,6 +109,84 @@ export class BlancSyncPageElement extends CrLitElement implements
+     this.clearCredentials_();
+   }
+ 
++  protected pairView_() { return pairing.pairingView(this.pair_, this.pairNow_); }
++  protected qrBox_(): string {
++    if (!this.pairView_().showing) return '0 0 1 1';
++    const n = qr.viewBoxSize(qr.encode(`https://blanc.day/pair#${this.pair_.code}`));
++    return `0 0 ${n} ${n}`;
++  }
++  protected qrPath_(): string {
++    return this.pairView_().showing ? qr.svgPath(qr.encode(`https://blanc.day/pair#${this.pair_.code}`)) : '';
++  }
++  private async watchPair_() {
++    const active = this.isConnected && document.visibilityState === 'visible' && this.pairView_().showing;
++    if (active === this.capture_) return;
++    this.capture_ = active;
++    await blancSync.capture(active).catch(() => {});
++    await blancSync.call('sync.setPairingWatch', [active]).catch(() => {});
++  }
++  private async readPair_() {
++    if (this.pairReading_ || !this.state_?.available || !this.state_.status?.enabled) return;
++    this.pairReading_ = true;
++    const revision = this.pairRevision_;
++    const lifetime = this.lifetime_;
++    try {
++      const result = await blancSync.call<Record<string, unknown>>('sync.pairingState');
++      if (this.isConnected && lifetime === this.lifetime_ && revision === this.pairRevision_)
++        this.pairEvent_({type: 'resume', ...result});
++    } catch { /* An unavailable runner is not an expired or cancelled code. */ }
++    finally { this.pairReading_ = false; }
++  }
++  private pairEvent_(event: Record<string, unknown>) {
++    if (event['type'] !== 'resume' && event['type'] !== 'tick') ++this.pairRevision_;
++    const {state, effect} = pairing.pairingTransition(this.pair_, event);
++    this.pair_ = state;
++    void this.updateComplete.then(() => {
++      if (!this.isConnected) return;
++      const dialog = this.shadowRoot.querySelector<HTMLDialogElement>('#syncPairingDialog')!;
++      if (this.pairView_().sheetOpen && !dialog.open) dialog.showModal();
++      if (!this.pairView_().sheetOpen && dialog.open) dialog.close();
++      void this.watchPair_();
++    });
++    if (effect) void this.pairEffect_(effect.type);
++  }
++  private async pairEffect_(type: string) {
++    if (type === 'open-code-path') { this.choose_('code'); return; }
++    const lifetime = this.lifetime_;
++    try {
++      if (type === 'pair-cancel') { await blancSync.call('sync.cancelPairing'); return; }
++      if (type === 'pair-begin') {
++        const result = await blancSync.call<BlancSyncResult & {code?: string, expiresAt?: number}>('sync.beginPairing');
++        if (!this.isConnected || lifetime !== this.lifetime_) return;
++        this.pairEvent_({type: 'began', ...result, message: result.ok ? '' : this.errorText_(result.error ?? '')});
++      } else if (type === 'start-new' || type === 'retry-sync') {
++        const result = await blancSync.call<BlancSyncResult & {synced?: boolean}>(
++            type === 'start-new' ? 'sync.startNew' : 'sync.syncNow',
++            type === 'start-new' ? [{handle: blancString('blancSyncDefaultName')}] : []);
++        await this.refresh_();
++        if (!this.isConnected || lifetime !== this.lifetime_) return;
++        this.pairEvent_({type: 'started', ok: result.ok !== false,
++          synced: (this.state_?.status?.lastSyncedAt ?? 0) > 0,
++          message: result.ok === false ? this.errorText_(result.error ?? '') : ''});
++      }
++    } catch {
++      if (this.isConnected && lifetime === this.lifetime_)
++        this.pairEvent_({type: type === 'pair-begin' ? 'began' : 'started', ok: false,
++          message: blancString('blancSyncCheckFailed')});
++    }
++  }
++  protected onIphoneClick_() { this.pairEvent_({type: 'open', syncOn: !!this.state_?.status?.enabled}); }
++  protected onAddDeviceClick_() { this.pairEvent_({type: 'begin'}); }
++  protected onPairContinueClick_() { this.pairEvent_({type: 'continue'}); }
++  protected onPairRetryClick_() { this.pairEvent_({type: 'retry'}); }
++  protected onAddThisFirstClick_() { this.pairEvent_({type: 'add-this-first'}); }
++  protected onPairCancelClick_() { this.onPairCancel_(); }
++  protected onPairCancel_(event?: Event) {
++    event?.preventDefault();
++    this.pairEvent_({type: this.pairView_().joined ? 'done' : 'cancel'});
++  }
++  protected onPairCopyClick_() { void navigator.clipboard.writeText(this.pair_.code).catch(() => {}); }
++
+   async searchContents(query: string) {
+     const request = await getSearchManager().search(query, this);
+     return request.getSearchResult();
+@@ -107,6 +215,7 @@ export class BlancSyncPageElement extends CrLitElement implements
+       this.notice_ = this.errorText_(String(event.value));
+       this.confirming_ = false;
+     }
++    if (status?.enabled === false) this.pairEvent_({type: 'dismiss'});
+     if (status?.enabled) {
+       this.path_ = '';
+       this.clearCredentials_();
+@@ -171,6 +280,7 @@ export class BlancSyncPageElement extends CrLitElement implements
+ 
+   protected errorText_(error: string): string {
+     const names: Record<string, string> = {
++      'not-ready': 'NotReady',
+       'pair-invalid': 'PairInvalid',
+       'pair-not-found': 'PairNotFound',
+       'pair-unavailable': 'PairUnavailable',
+diff --git a/chrome/browser/resources/settings/blanc_sync_page/pairing_model.ts b/chrome/browser/resources/settings/blanc_sync_page/pairing_model.ts
+new file mode 100644
+index 0000000..6137a66
+--- /dev/null
++++ b/chrome/browser/resources/settings/blanc_sync_page/pairing_model.ts
+@@ -0,0 +1,188 @@
++// @ts-nocheck
++// First-party shipping algorithm from src/renderer/pages/settings-sync-pairing-model.js.
++// Only the UMD wrapper is replaced for Chromium resource compilation.
++export const pairing_model = (() => {
++  // Mirror of src/main/sync-pairing.js so the buttons can disable before
++  // submit; main remains the authority and re-validates every code.
++  const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTVWXYZ23456789';
++  const CODE_LENGTH = 8;
++  function normalizeCode(input) {
++    if (typeof input !== 'string') return null;
++    const code = input.trim().toUpperCase().replace(/[-\s]/g, '');
++    if (code.length !== CODE_LENGTH) return null;
++    for (const ch of code) if (!CODE_ALPHABET.includes(ch)) return null;
++    return code;
++  }
++  const isRecoveryCode = (input) => typeof input === 'string' && input.trim().startsWith('blanc-sync:');
++  const codeAcceptable = (input) => !!normalizeCode(input) || isRecoveryCode(input);
++  const formatCode = (code) => (code && code.length === CODE_LENGTH ? `${code.slice(0, 4)}-${code.slice(4)}` : code || '');
++
++  const none = (state) => ({ state, effect: null });
++
++  // ---- Add another device ----
++  function createPairingModel() {
++    return { phase: 'idle', code: '', expiresAt: 0, notice: null, joined: null, questionId: null, viaIphone: false };
++  }
++
++  // The device that took the code (design 2026-10-28 §6.4). Desktop names a
++  // nameless device 'unknown device'; the sheet says what kind it is instead.
++  const joinedDevice = (event) => ({ name: String(event.name ?? ''), platform: String(event.platform ?? '') });
++  const joinedState = (device) => ({ ...createPairingModel(), phase: 'joined', joined: device });
++
++  function pairingTransition(state, event) {
++    switch (event.type) {
++      // Connect your iPhone (design 2026-10-28 §6.1–§6.2). With Sync off the
++      // sheet opens on a start state that creates nothing until Continue.
++      case 'open':
++        if (state.phase !== 'idle' && state.phase !== 'error' && state.phase !== 'expired') return none(state);
++        if (!event.syncOn) return none({ ...createPairingModel(), phase: 'start', viaIphone: true });
++        return { state: { ...createPairingModel(), phase: 'starting', viaIphone: true }, effect: { type: 'pair-begin' } };
++      case 'continue':
++        if (state.phase !== 'start') return none(state);
++        return { state: { ...state, phase: 'starting-new', notice: null }, effect: { type: 'start-new' } };
++      case 'started':
++        if (state.phase !== 'starting-new') return none(state);
++        if (event.ok === false) return none({ ...state, phase: 'start', notice: String(event.message ?? '') });
++        if (!event.synced) return none({ ...state, phase: 'not-ready', notice: null });
++        return { state: { ...state, phase: 'starting', notice: null }, effect: { type: 'pair-begin' } };
++      case 'retry':
++        if (state.phase !== 'not-ready') return none(state);
++        return { state: { ...state, phase: 'starting-new' }, effect: { type: 'retry-sync' } };
++      case 'add-this-first':
++        if (state.phase !== 'start') return none(state);
++        return { state: createPairingModel(), effect: { type: 'open-code-path' } };
++      case 'begin':
++        if (state.phase === 'starting' || state.phase === 'showing') return none(state);
++        return { state: { ...state, phase: 'starting', notice: null, viaIphone: false }, effect: { type: 'pair-begin' } };
++      case 'began':
++        // A code that lands after Cancel would stay live for ten minutes: retract it.
++        if (state.phase !== 'starting') return { state, effect: event.ok ? { type: 'pair-cancel' } : null };
++        if (event.ok) return none({ ...state, phase: 'showing', code: String(event.code ?? ''), expiresAt: Number(event.expiresAt) || 0, notice: null });
++        return none({ ...state, phase: 'error', code: '', expiresAt: 0, notice: String(event.message ?? '') });
++      case 'resume':
++        if (state.phase === 'starting') return none(state);
++        if (!event.active && event.joined && state.phase !== 'joined') return none(joinedState(joinedDevice(event.joined)));
++        if (!event.active) return none(state.phase === 'showing' ? createPairingModel() : state);
++        return none({ ...state, phase: 'showing', code: String(event.code ?? ''), expiresAt: Number(event.expiresAt) || 0, notice: null });
++      case 'tick':
++        if (state.phase !== 'showing') return none(state);
++        if (event.now >= state.expiresAt) return none({ ...state, phase: 'expired', code: '', expiresAt: 0 });
++        return none(state);
++      case 'cancel':
++        if (state.phase === 'start' || state.phase === 'not-ready' || state.phase === 'starting-new') return none(createPairingModel());
++        if (state.phase === 'starting' && state.viaIphone) return { state: createPairingModel(), effect: { type: 'pair-cancel' } };
++        if (state.phase !== 'showing') return none(state);
++        return { state: createPairingModel(), effect: { type: 'pair-cancel' } };
++      case 'joined':
++        if (state.phase !== 'showing') return none(state);
++        return none(joinedState(joinedDevice(event)));
++      case 'question':
++        if (state.phase !== 'joined' || !event.deviceId) return none(state);
++        return none({ ...state, questionId: String(event.deviceId) });
++      case 'spaces-answer': {
++        if (state.phase !== 'joined' || !state.questionId) return none(state);
++        const deviceId = state.questionId;
++        if (event.answer === 'on') return { state: createPairingModel(), effect: { type: 'spaces-turn-on', deviceId } };
++        return { state: { ...state, questionId: null }, effect: { type: 'spaces-acknowledge', deviceId } };
++      }
++      case 'done':
++        if (state.phase !== 'joined') return none(state);
++        // Clears main's record of the join; an unanswered question stays
++        // pending for the Settings and start-page notices.
++        return { state: createPairingModel(), effect: { type: 'pair-cancel' } };
++      case 'dismiss':
++        return none(createPairingModel());
++      default:
++        return none(state);
++    }
++  }
++
++  function remainingText(expiresAt, now) {
++    const seconds = Math.max(0, Math.ceil((expiresAt - now) / 1000));
++    return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
++  }
++
++  function joinedName(device) {
++    const name = device?.name && device.name !== 'unknown device' ? device.name : '';
++    const key = name ? null : (device?.platform === 'ios' ? 'settings.sync.sheet.yourIphone' : 'settings.sync.sheet.yourDevice');
++    return { name, key };
++  }
++
++  function pairingView(state, now, { recoveryPrompt = false } = {}) {
++    const showing = state.phase === 'showing';
++    const joined = state.phase === 'joined';
++    const starting = state.phase === 'start' || state.phase === 'starting-new';
++    const notReady = state.phase === 'not-ready';
++    // A sheet opened as Connect your iPhone keeps that title until it closes.
++    const viaIphone = state.viaIphone && (starting || notReady || showing || state.phase === 'starting');
++    const named = joinedName(state.joined);
++    return {
++      sheetOpen: showing || joined || starting || notReady || (viaIphone && state.phase === 'starting'),
++      startShown: starting,
++      makingCode: state.viaIphone && state.phase === 'starting',
++      startBusy: state.phase === 'starting-new',
++      notReadyShown: notReady,
++      titleKey: viaIphone ? 'settings.sync.connectIphone' : 'settings.sync.addAnotherDevice',
++      joined,
++      joinedName: joined ? named.name : '',
++      joinedNameKey: joined ? named.key : null,
++      askingSpaces: joined && !!state.questionId,
++      recoveryLine: joined && recoveryPrompt,
++      showing,
++      codeText: showing ? formatCode(state.code) : '',
++      remainingText: showing ? remainingText(state.expiresAt, now) : '',
++      expired: state.phase === 'expired',
++      noticeText: state.notice ?? '',
++      beginVisible: !showing && !joined && !starting && !notReady && state.phase !== 'starting',
++    };
++  }
++
++  // ---- Connect to a different sync ----
++  function createSwitchModel() {
++    return { open: false, code: '', wipeRemote: false, phase: 'idle', token: 0, notice: null };
++  }
++
++  function switchTransition(state, event) {
++    const nextToken = () => (state.phase === 'pending' ? state.token + 1 : state.token);
++    switch (event.type) {
++      case 'open':
++        return none({ ...createSwitchModel(), open: true, token: nextToken() });
++      case 'cancel':
++        return none({ ...createSwitchModel(), token: nextToken() });
++      case 'code-input':
++        return none({ ...state, code: String(event.code ?? ''), phase: 'idle', notice: null, token: nextToken() });
++      case 'toggle-wipe':
++        return none({ ...state, wipeRemote: !!event.on });
++      case 'submit': {
++        if (!state.open || state.phase === 'pending' || !codeAcceptable(state.code)) return none(state);
++        const token = state.token + 1;
++        return {
++          state: { ...state, token, phase: 'pending', notice: null },
++          effect: { type: 'switch-code', token, code: state.code.trim(), wipeRemote: state.wipeRemote },
++        };
++      }
++      case 'switch-reply':
++        if (state.phase !== 'pending' || event.token !== state.token) return none(state);
++        if (event.ok) return none({ ...createSwitchModel(), token: state.token });
++        return none({ ...state, phase: 'idle', notice: String(event.message ?? '') });
++      default:
++        return none(state);
++    }
++  }
++
++  function switchView(state) {
++    return {
++      open: state.open,
++      codeValue: state.code,
++      wipeRemote: state.wipeRemote,
++      submitDisabled: !state.open || state.phase === 'pending' || !codeAcceptable(state.code),
++      noticeText: state.notice ?? '',
++    };
++  }
++
++  return {
++    createPairingModel, pairingTransition, pairingView,
++    createSwitchModel, switchTransition, switchView,
++    normalizeCode, isRecoveryCode, formatCode,
++  };
++})();
+diff --git a/chrome/browser/resources/settings/blanc_sync_page/qr_code.ts b/chrome/browser/resources/settings/blanc_sync_page/qr_code.ts
+new file mode 100644
+index 0000000..ea326ad
+--- /dev/null
++++ b/chrome/browser/resources/settings/blanc_sync_page/qr_code.ts
+@@ -0,0 +1,251 @@
++// @ts-nocheck
++// First-party shipping algorithm from src/renderer/pages/qr-code.js.
++// Only the UMD wrapper is replaced for Chromium resource compilation.
++export const qr_code = (() => {
++  // Level M, per version: total codewords, EC codewords per block, blocks.
++  const VERSIONS = {
++    1: { total: 26, ec: 10, blocks: 1, align: [] },
++    2: { total: 44, ec: 16, blocks: 1, align: [6, 18] },
++    3: { total: 70, ec: 26, blocks: 1, align: [6, 22] },
++    4: { total: 100, ec: 18, blocks: 2, align: [6, 26] },
++  };
++  const dataCodewords = (v) => VERSIONS[v].total - VERSIONS[v].ec * VERSIONS[v].blocks;
++  // Byte mode: 4-bit mode, 8-bit count (versions 1–9), then the bytes.
++  const capacity = (v) => Math.floor((dataCodewords(v) * 8 - 12) / 8);
++
++  // GF(256) with the QR polynomial x^8 + x^4 + x^3 + x^2 + 1.
++  const EXP = new Array(512);
++  const LOG = new Array(256);
++  for (let i = 0, x = 1; i < 255; i += 1) {
++    EXP[i] = x;
++    LOG[x] = i;
++    x <<= 1;
++    if (x & 0x100) x ^= 0x11d;
++  }
++  for (let i = 255; i < 512; i += 1) EXP[i] = EXP[i - 255];
++  const mul = (a, b) => (a === 0 || b === 0 ? 0 : EXP[LOG[a] + LOG[b]]);
++
++  function generator(degree) {
++    let poly = [1];
++    for (let i = 0; i < degree; i += 1) {
++      const next = new Array(poly.length + 1).fill(0);
++      for (let j = 0; j < poly.length; j += 1) {
++        next[j] ^= poly[j];
++        next[j + 1] ^= mul(poly[j], EXP[i]);
++      }
++      poly = next;
++    }
++    return poly;
++  }
++
++  function reedSolomon(data, degree) {
++    const gen = generator(degree);
++    const rem = new Array(degree).fill(0);
++    for (const byte of data) {
++      const factor = byte ^ rem.shift();
++      rem.push(0);
++      for (let i = 0; i < degree; i += 1) rem[i] ^= mul(gen[i + 1], factor);
++    }
++    return rem;
++  }
++
++  function codewords(bytes, v) {
++    const bits = [];
++    const push = (value, length) => { for (let i = length - 1; i >= 0; i -= 1) bits.push((value >>> i) & 1); };
++    push(0b0100, 4);
++    push(bytes.length, 8);
++    for (const byte of bytes) push(byte, 8);
++    const room = dataCodewords(v) * 8;
++    push(0, Math.min(4, room - bits.length));
++    while (bits.length % 8) bits.push(0);
++    const data = [];
++    for (let i = 0; i < bits.length; i += 8) data.push(bits.slice(i, i + 8).reduce((acc, bit) => (acc << 1) | bit, 0));
++    for (let pad = 0xec; data.length < dataCodewords(v); pad ^= 0xec ^ 0x11) data.push(pad);
++    // Split into blocks, append each block's error correction, interleave.
++    const { ec, blocks } = VERSIONS[v];
++    const per = data.length / blocks;
++    const dataBlocks = Array.from({ length: blocks }, (_, b) => data.slice(b * per, (b + 1) * per));
++    const ecBlocks = dataBlocks.map((block) => reedSolomon(block, ec));
++    const out = [];
++    for (let i = 0; i < per; i += 1) for (const block of dataBlocks) out.push(block[i]);
++    for (let i = 0; i < ec; i += 1) for (const block of ecBlocks) out.push(block[i]);
++    return out;
++  }
++
++  const MASKS = [
++    (r, c) => (r + c) % 2 === 0,
++    (r) => r % 2 === 0,
++    (r, c) => c % 3 === 0,
++    (r, c) => (r + c) % 3 === 0,
++    (r, c) => (Math.floor(r / 2) + Math.floor(c / 3)) % 2 === 0,
++    (r, c) => ((r * c) % 2) + ((r * c) % 3) === 0,
++    (r, c) => (((r * c) % 2) + ((r * c) % 3)) % 2 === 0,
++    (r, c) => (((r + c) % 2) + ((r * c) % 3)) % 2 === 0,
++  ];
++
++  // Format information: level M (00) and the mask, BCH(15,5), then the
++  // standard XOR so it is never all zeros.
++  function formatBits(mask) {
++    const data = (0b00 << 3) | mask;
++    let rem = data;
++    for (let i = 0; i < 10; i += 1) rem = (rem << 1) ^ ((rem >>> 9) * 0x537);
++    return ((data << 10) | rem) ^ 0x5412;
++  }
++
++  function baseMatrix(v) {
++    const size = 17 + 4 * v;
++    const modules = Array.from({ length: size }, () => new Array(size).fill(false));
++    const reserved = Array.from({ length: size }, () => new Array(size).fill(false));
++    const set = (r, c, dark) => { modules[r][c] = dark; reserved[r][c] = true; };
++    // Finder patterns with their separators.
++    for (const [r0, c0] of [[0, 0], [0, size - 7], [size - 7, 0]]) {
++      for (let r = -1; r <= 7; r += 1) {
++        for (let c = -1; c <= 7; c += 1) {
++          const rr = r0 + r;
++          const cc = c0 + c;
++          if (rr < 0 || cc < 0 || rr >= size || cc >= size) continue;
++          const ring = Math.max(Math.abs(r - 3), Math.abs(c - 3));
++          set(rr, cc, r >= 0 && r <= 6 && c >= 0 && c <= 6 && ring !== 2);
++        }
++      }
++    }
++    // Timing patterns.
++    for (let i = 8; i < size - 8; i += 1) {
++      set(6, i, i % 2 === 0);
++      set(i, 6, i % 2 === 0);
++    }
++    // Alignment patterns (one, at most, for versions 2–4).
++    const align = VERSIONS[v].align;
++    for (const r of align) {
++      for (const c of align) {
++        if (reserved[r][c]) continue;
++        for (let dr = -2; dr <= 2; dr += 1) for (let dc = -2; dc <= 2; dc += 1) set(r + dr, c + dc, Math.max(Math.abs(dr), Math.abs(dc)) !== 1);
++      }
++    }
++    // The format areas, and the module that is always dark.
++    for (let i = 0; i < 9; i += 1) {
++      reserved[8][i] = true;
++      reserved[i][8] = true;
++    }
++    for (let i = 0; i < 8; i += 1) {
++      reserved[8][size - 1 - i] = true;
++      reserved[size - 1 - i][8] = true;
++    }
++    set(size - 8, 8, true);
++    return { size, modules, reserved };
++  }
++
++  function placeData({ size, modules, reserved }, words) {
++    const bits = [];
++    for (const word of words) for (let i = 7; i >= 0; i -= 1) bits.push((word >>> i) & 1);
++    let index = 0;
++    let upward = true;
++    for (let right = size - 1; right >= 1; right -= 2) {
++      if (right === 6) right = 5; // the vertical timing column is skipped
++      for (let step = 0; step < size; step += 1) {
++        const r = upward ? size - 1 - step : step;
++        for (const c of [right, right - 1]) {
++          if (reserved[r][c]) continue;
++          modules[r][c] = index < bits.length ? bits[index] === 1 : false; // remainder bits are light
++          index += 1;
++        }
++      }
++      upward = !upward;
++    }
++  }
++
++  function applyMask({ size, modules, reserved }, mask) {
++    const test = MASKS[mask];
++    for (let r = 0; r < size; r += 1) for (let c = 0; c < size; c += 1) if (!reserved[r][c] && test(r, c)) modules[r][c] = !modules[r][c];
++  }
++
++  function drawFormat({ size, modules }, mask) {
++    const bits = formatBits(mask);
++    const bit = (i) => ((bits >>> i) & 1) === 1;
++    for (let i = 0; i <= 5; i += 1) modules[i][8] = bit(i);
++    modules[7][8] = bit(6);
++    modules[8][8] = bit(7);
++    modules[8][7] = bit(8);
++    for (let i = 9; i < 15; i += 1) modules[8][14 - i] = bit(i);
++    for (let i = 0; i < 8; i += 1) modules[8][size - 1 - i] = bit(i);
++    for (let i = 8; i < 15; i += 1) modules[size - 15 + i][8] = bit(i);
++    modules[size - 8][8] = true;
++  }
++
++  // The standard's four penalty rules; the lowest total picks the mask.
++  function penalty({ size, modules }) {
++    let score = 0;
++    const at = (r, c, vertical) => (vertical ? modules[c][r] : modules[r][c]);
++    for (const vertical of [false, true]) {
++      for (let line = 0; line < size; line += 1) {
++        let run = 0;
++        let last = null;
++        let window = 0;
++        for (let i = 0; i < size; i += 1) {
++          const dark = at(line, i, vertical);
++          if (dark === last) run += 1;
++          else {
++            if (run >= 5) score += 3 + (run - 5);
++            last = dark;
++            run = 1;
++          }
++          // 1:1:3:1:1 finder-like runs with four light modules on one side.
++          window = ((window << 1) & 0x7ff) | (dark ? 1 : 0);
++          if (i >= 10 && (window === 0x5d0 || window === 0x05d)) score += 40;
++        }
++        if (run >= 5) score += 3 + (run - 5);
++      }
++    }
++    for (let r = 0; r < size - 1; r += 1) {
++      for (let c = 0; c < size - 1; c += 1) {
++        const sum = modules[r][c] + modules[r][c + 1] + modules[r + 1][c] + modules[r + 1][c + 1];
++        if (sum === 0 || sum === 4) score += 3;
++      }
++    }
++    const dark = modules.flat().filter(Boolean).length;
++    score += Math.abs(Math.ceil((dark * 100) / (size * size) / 5) - 10) * 10;
++    return score;
++  }
++
++  function utf8(text) {
++    if (typeof TextEncoder !== 'undefined') return Array.from(new TextEncoder().encode(text));
++    return Array.from(Buffer.from(text, 'utf8'));
++  }
++
++  /** { version, size, mask, modules: boolean[][] } for text in byte mode, level M. */
++  function encode(text, { mask } = {}) {
++    const bytes = utf8(String(text));
++    const version = [1, 2, 3, 4].find((v) => bytes.length <= capacity(v));
++    if (!version) throw new RangeError('QR text too long for versions 1–4 at level M');
++    const words = codewords(bytes, version);
++    const build = (m) => {
++      const matrix = baseMatrix(version);
++      placeData(matrix, words);
++      applyMask(matrix, m);
++      drawFormat(matrix, m);
++      return matrix;
++    };
++    let chosen = Number.isInteger(mask) && mask >= 0 && mask < 8 ? mask : null;
++    if (chosen === null) {
++      let best = Infinity;
++      for (let m = 0; m < 8; m += 1) {
++        const score = penalty(build(m));
++        if (score < best) { best = score; chosen = m; }
++      }
++    }
++    const { size, modules } = build(chosen);
++    return { version, size, mask: chosen, modules };
++  }
++
++  const QUIET = 4;
++  const viewBoxSize = (matrix) => matrix.size + 2 * QUIET;
++
++  /** One SVG path of unit squares, offset by the four-module quiet zone. */
++  function svgPath(matrix) {
++    let d = '';
++    matrix.modules.forEach((row, r) => row.forEach((dark, c) => { if (dark) d += `M${c + QUIET} ${r + QUIET}h1v1h-1z`; }));
++    return d;
++  }
++
++  return { encode, svgPath, viewBoxSize };
++})();
+diff --git a/chrome/browser/ui/webui/settings/settings_ui.cc b/chrome/browser/ui/webui/settings/settings_ui.cc
+index 7930580..51792c5 100644
+--- a/chrome/browser/ui/webui/settings/settings_ui.cc
++++ b/chrome/browser/ui/webui/settings/settings_ui.cc
+@@ -322,6 +322,7 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
+   html_source->AddString("blancSyncRecoveryTitle", u"Keep a way back in");
+   html_source->AddString("blancSyncRecoveryBody", u"This sync has no passphrase. If you ever lose all your devices, its recovery code is the only way to reach your synced data. Save it in your password manager.");
+   html_source->AddString("blancSyncOff", u"Sync is off.");
++  html_source->AddString("blancSyncNotReady", u"Sync is on, but couldn’t reach the server yet. Blanc will keep trying.");
+   html_source->AddString("blancSyncPairInvalid", u"That doesn’t look like a code. Check it and try again.");
+   html_source->AddString("blancSyncPairNotFound", u"That code isn’t valid any more. Make a new one on your other device.");
+   html_source->AddString("blancSyncPairUnavailable", u"Pairing isn’t available right now. You can still connect with your sync name and passphrase.");

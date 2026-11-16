@@ -1,0 +1,52 @@
+diff --git a/chrome/browser/app_controller_mac.mm b/chrome/browser/app_controller_mac.mm
+index b5aa7d0..92ecb90 100644
+--- a/chrome/browser/app_controller_mac.mm
++++ b/chrome/browser/app_controller_mac.mm
+@@ -152,7 +152,9 @@
+ #include "ui/menus/cocoa/menu_controller.h"
+ #include "ui/native_theme/native_theme.h"
+ #include "url/gurl.h"
++#include "blanc/browser/ui/blanc_prototype_ui.h"
+ #include "blanc/common/island_mode.h"
++#include "blanc/common/menu_strings.h"
+ 
+ namespace {
+ 
+@@ -1770,6 +1772,13 @@ - (void)executeCommand:(id)sender withProfile:(Profile*)profile {
+                              IDC_FOCUS_SEARCH);
+       break;
+     case IDC_NEW_INCOGNITO_WINDOW:
++      // Blanc (D1): a new window holding one private tab, never an
++      // incognito window.
++      if (blanc::IslandMode() &&
++          blanc_prototype::MakePrivateWindow(CreateBrowser(profile->GetOriginalProfile()))) {
++        break;
++      }
++      [[fallthrough]];
+     case IDC_NEW_ISOLATED_WINDOW:
+       CreateBrowser(profile->GetPrimaryOTRProfile(/*create_if_needed=*/true));
+       break;
+@@ -2179,7 +2188,10 @@ - (NSMenu*)applicationDockMenu:(NSApplication*)sender {
+ 
+   if (IncognitoModePrefs::GetIncognitoModeType(profile) ==
+       IncognitoModePrefs::IncognitoModeType::kStandard) {
+-    titleStr = l10n_util::GetNSStringWithFixup(IDS_NEW_INCOGNITO_WINDOW_MAC);
++    titleStr = blanc::IslandMode()
++        ? base::SysUTF16ToNSString(blanc::menu::ForLocale(
++              g_browser_process->GetApplicationLocale()).new_private_window)
++        : l10n_util::GetNSStringWithFixup(IDS_NEW_INCOGNITO_WINDOW_MAC);
+     item = [[NSMenuItem alloc] initWithTitle:titleStr
+                                       action:@selector(commandFromDock:)
+                                keyEquivalent:@""];
+@@ -2276,6 +2288,11 @@ - (void)setLastProfile:(Profile*)profile {
+         sourceItem.keyEquivalentModifierMask = 0;
+       }
+     }
++    // Blanc (D1): ⌘⇧N opens a private tab in this window.
++    if (incognitoItem && blanc::IslandMode()) {
++      incognitoItem.title = base::SysUTF16ToNSString(blanc::menu::ForLocale(
++          g_browser_process->GetApplicationLocale()).new_private_tab);
++    }
+   }
+ 
+   NSMenuItem* bookmarkItem = [NSApp.mainMenu itemWithTag:IDC_BOOKMARKS_MENU];

@@ -1,0 +1,5 @@
+
+> blanc@1.36.0 audit-inventory:check
+> node scripts/audit-surface-inventory.mjs --check
+
+security/audit-surface-inventory.json: 55 boundary entries match their files

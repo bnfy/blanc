@@ -1,0 +1,172 @@
+diff --git a/chrome/browser/ui/navigator/browser_navigator.cc b/chrome/browser/ui/navigator/browser_navigator.cc
+index d5d5691..4cd80f1 100644
+--- a/chrome/browser/ui/navigator/browser_navigator.cc
++++ b/chrome/browser/ui/navigator/browser_navigator.cc
+@@ -4,6 +4,8 @@
+ 
+ #include "chrome/browser/ui/navigator/browser_navigator.h"
+ 
++#include "blanc/private/private_tabs.h"
++
+ #include <algorithm>
+ #include <memory>
+ #include <optional>
+@@ -575,13 +577,16 @@ std::unique_ptr<content::WebContents> CreateTargetContents(
+   // subsequent navigation is cross-process (i.e. cross-SiteInstance), then it
+   // will stay in the same BrowsingInstance (creating frame proxies as needed)
+   // preserving the requested opener relationship along the way.
++  // Blanc (D1): a private tab's new contents are created in its private
++  // profile, though the window is an ordinary one.
++  Profile* contents_profile = blanc::private_tabs::ContentsProfile(
++      params.browser->GetProfile(), params.initiating_profile);
+   scoped_refptr<content::SiteInstance> initial_site_instance_for_new_contents =
+       params.opener ? params.opener->GetSiteInstance()
+-                    : tab_util::GetSiteInstanceForNewTab(
+-                          params.browser->GetProfile(), url);
++                    : tab_util::GetSiteInstanceForNewTab(contents_profile, url);
+ 
+   WebContents::CreateParams create_params(
+-      params.browser->GetProfile(), initial_site_instance_for_new_contents);
++      contents_profile, initial_site_instance_for_new_contents);
+   create_params.main_frame_name = params.frame_name;
+   if (params.opener) {
+     create_params.opener_id = params.opener->GetGlobalId();
+@@ -671,7 +676,17 @@ base::WeakPtr<content::NavigationHandle> NavigateImpl(
+   CHECK(params);
+   BrowserWindowInterface* source_browser = params->browser;
+   if (source_browser) {
+-    params->initiating_profile = source_browser->GetProfile();
++    // Blanc (D1): a navigation asked for privately, or from a private tab,
++    // stays private in this ordinary window; an off-the-record disposition
++    // opens a private tab here instead of an incognito window.
++    Profile* window_profile = source_browser->GetProfile();
++    params->initiating_profile = blanc::private_tabs::NavigationProfile(
++        window_profile, params->initiating_profile, GetSourceProfile(params),
++        params->disposition == WindowOpenDisposition::kOffTheRecord);
++    if (params->disposition == WindowOpenDisposition::kOffTheRecord &&
++        params->initiating_profile != window_profile) {
++      params->disposition = WindowOpenDisposition::kNewForegroundTab;
++    }
+   }
+   DCHECK(params->initiating_profile);
+ 
+@@ -939,7 +954,9 @@ base::WeakPtr<content::NavigationHandle> NavigateImpl(
+ 
+   // Navigate() must not return early after this point.
+ 
+-  if (GetSourceProfile(params) != params->browser->GetProfile()) {
++  if (GetSourceProfile(params) !=
++      blanc::private_tabs::ContentsProfile(params->browser->GetProfile(),
++                                           params->initiating_profile)) {
+     // A tab is being opened from a link from a different profile, we must reset
+     // source information that may cause state to be shared.
+     params->opener = nullptr;
+diff --git a/components/sessions/content/content_live_tab.cc b/components/sessions/content/content_live_tab.cc
+index 2d4396f..053402e 100644
+--- a/components/sessions/content/content_live_tab.cc
++++ b/components/sessions/content/content_live_tab.cc
+@@ -4,12 +4,16 @@
+ 
+ #include "components/sessions/content/content_live_tab.h"
+ 
++#include "blanc/common/island_mode.h"
++
+ #include <memory>
+ 
+ #include "base/memory/ptr_util.h"
+ #include "components/sessions/content/content_platform_specific_tab_data.h"
+ #include "components/sessions/content/session_tab_helper.h"
++#include "content/public/browser/browser_context.h"
+ #include "content/public/browser/navigation_controller.h"
++#include "content/public/browser/web_contents.h"
+ #include "third_party/blink/public/common/user_agent/user_agent_metadata.h"
+ 
+ namespace sessions {
+@@ -50,6 +54,9 @@ sessions::SerializedNavigationEntry ContentLiveTab::GetPendingEntry() {
+ }
+ 
+ int ContentLiveTab::GetEntryCount() {
++  // Blanc (D1): a private tab in an ordinary window has nothing for Recently
++  // closed, closing alone or with its window, as shipping's private tabs.
++  if (blanc::IslandMode() && GetWebContents().GetBrowserContext()->IsOffTheRecord()) return 0;
+   return navigation_controller().GetEntryCount();
+ }
+ 
+diff --git a/chrome/browser/ui/sync/tab_contents_synced_tab_delegate.cc b/chrome/browser/ui/sync/tab_contents_synced_tab_delegate.cc
+index 6449bdd..a06103e 100644
+--- a/chrome/browser/ui/sync/tab_contents_synced_tab_delegate.cc
++++ b/chrome/browser/ui/sync/tab_contents_synced_tab_delegate.cc
+@@ -4,6 +4,8 @@
+ 
+ #include "chrome/browser/ui/sync/tab_contents_synced_tab_delegate.h"
+ 
++#include "blanc/private/private_tabs.h"
++
+ #include "base/memory/ref_counted.h"
+ #include "chrome/browser/complex_tasks/task_tab_helper.h"
+ #include "chrome/browser/profiles/profile.h"
+@@ -143,6 +145,10 @@ TabContentsSyncedTabDelegate::GetBlockedNavigations() const {
+ 
+ bool TabContentsSyncedTabDelegate::ShouldSync(
+     sync_sessions::SyncSessionsClient* sessions_client) {
++  // Blanc (D1): a private tab is never synced, whatever window it is in.
++  if (blanc::private_tabs::IsPrivateTab(web_contents_)) {
++    return false;
++  }
+   if (sessions_client->GetSyncedWindowDelegatesGetter()->FindById(
+           GetWindowId()) == nullptr) {
+     return false;
+diff --git a/chrome/browser/ui/browser_command_controller.cc b/chrome/browser/ui/browser_command_controller.cc
+index 8e35ab0..fdf3c98 100644
+--- a/chrome/browser/ui/browser_command_controller.cc
++++ b/chrome/browser/ui/browser_command_controller.cc
+@@ -774,6 +774,12 @@ void BrowserCommandController::HandleCommandWithDisposition(
+       NewWindow(browser_);
+       break;
+     case IDC_NEW_INCOGNITO_WINDOW:
++      // Blanc (owner, 2026-11-02): ⌘⇧N opens a private tab in this window,
++      // as shipping's does, instead of an incognito window.
++      if (blanc_prototype::IsIslandWindow(browser_) && !profile()->IsOffTheRecord()) {
++        blanc_prototype::NewPrivateTab(browser_, GURL());
++        break;
++      }
+       NewIncognitoWindow(profile());
+       break;
+     case IDC_NEW_ISOLATED_WINDOW:
+diff --git a/chrome/browser/sessions/session_service_base.cc b/chrome/browser/sessions/session_service_base.cc
+index 65764fd..d6b53bf 100644
+--- a/chrome/browser/sessions/session_service_base.cc
++++ b/chrome/browser/sessions/session_service_base.cc
+@@ -3,6 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "blanc/browser/ui/blanc_prototype_ui.h"
++#include "blanc/private/private_tabs.h"
+ #include "chrome/browser/sessions/session_service_base.h"
+ 
+ #include <stddef.h>
+@@ -280,6 +281,10 @@ void SessionServiceBase::SetTabIndexInWindow(SessionID window_id,
+ }
+ 
+ void SessionServiceBase::TabInserted(WebContents* contents) {
++  // Blanc (D1): a private tab in an ordinary window is never saved.
++  if (blanc::private_tabs::IsPrivateTab(contents)) {
++    return;
++  }
+   sessions::SessionTabHelper* session_tab_helper =
+       sessions::SessionTabHelper::FromWebContents(contents);
+   if (!ShouldTrackChangesToWindow(session_tab_helper->window_id())) {
+@@ -837,8 +842,11 @@ void SessionServiceBase::BuildCommandsForBrowser(
+     const std::optional<split_tabs::SplitTabId> split_id =
+         tab_strip->GetSplitForTab(index);
+ 
+-    BuildCommandsForTab(browser->GetSessionID(), tab, index, group_id, split_id,
+-                        tab_interface->IsPinned(), tab_to_available_range);
++    if (!blanc::private_tabs::IsPrivateTab(tab)) {
++      BuildCommandsForTab(browser->GetSessionID(), tab, index, group_id,
++                          split_id, tab_interface->IsPinned(),
++                          tab_to_available_range);
++    }
+ 
+     index++;
+   }

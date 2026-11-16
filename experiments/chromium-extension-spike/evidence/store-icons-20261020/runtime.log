@@ -1,0 +1,9 @@
+[3787:8086240:1020/104255.883076:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[3787:8086145:1020/104255.975845:WARNING:chrome/browser/signin/account_consistency_mode_manager.cc:74] Desktop Identity Consistency cannot be enabled as no OAuth client ID and client secret have been configured.
+[3787:8086145:1020/104255.981304:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+[3787:8086145:1020/104301.924815:ERROR:content/browser/renderer_host/render_process_host_impl.cc:6437] Terminating render process for bad Mojo message: Received bad user message: Incorrect scheme
+[3787:8086145:1020/104301.924932:ERROR:content/browser/bad_message.cc:29] Terminating renderer for bad IPC message, reason 123
+[3787:8086145:1020/104302.182509:ERROR:content/browser/renderer_host/render_process_host_impl.cc:6437] Terminating render process for bad Mojo message: Received bad user message: Incorrect scheme
+[3787:8086145:1020/104302.182544:ERROR:content/browser/bad_message.cc:29] Terminating renderer for bad IPC message, reason 123
+[3955:8089458:1020/104429.144274:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up day.blanc.prototype.icontest.MachPortRendezvousServer.1: Permission denied (1100)
+[3955:8089458:1020/104429.144875:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)

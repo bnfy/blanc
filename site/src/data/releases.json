@@ -1,5 +1,439 @@
 [
   {
+    "tag": "v1.49.1",
+    "version": "1.49.1",
+    "name": "1.49.1",
+    "publishedAt": "2026-11-15T18:47:05.000Z",
+    "humanDate": "November 15, 2026",
+    "machineDate": "2026-11-15",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.49.1",
+    "anchor": "v1-49-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "New Tab goes to an unused new tab."
+                  },
+                  {
+                    "type": "text",
+                    "value": " When the window already has a new tab you haven't used, ⌘T (Ctrl+T on Windows and Linux) switches to it instead of opening another, and ⌘⇧N does the same for private tabs. Pinned and grouped tabs are left alone. To turn it off, use Settings → General → Browsing → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Switch to an unused new tab"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With vertical tabs on a Mac, the current Space's mark has its own row below the window's close, minimize and zoom buttons, so longer Space names fit."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On a Mac, the Sunrise Spectrum and Sunrise Amber app icons have a muted warm outline in Dark instead of a bright white one."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A page that fails to load is now named after its site in the Island and the tab list, instead of "
+                  },
+                  {
+                    "type": "code",
+                    "value": "blanc://error"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and \"Page failed to load\"."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On a Mac, the expanded Island no longer runs under the window's close, minimize and zoom buttons when the window is narrow."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The welcome walkthrough points to "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/allow-ads"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", the command that turns blocking off for a site, and shows the Island at blanc.day."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Settings names the Start Page layouts with capitals, as the Start Page does, and the Theme setting no longer names macOS and Windows on every system."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.49.0",
+    "version": "1.49.0",
+    "name": "1.49.0",
+    "publishedAt": "2026-11-13T18:21:57.000Z",
+    "humanDate": "November 13, 2026",
+    "machineDate": "2026-11-13",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.49.0",
+    "anchor": "v1-49-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A refreshed Mahjong."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Mahjong has a new design in Blanc's Sunrise look, in light and dark mode, with new tile artwork, a simpler setup sheet and a smaller results card. On wide windows the Burst rack sits beside the board."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Mahjong tile sets."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Mahjong now has three tile sets, Porcelain, Carved and Inlay, and moves to the next one after every three boards you clear in a row. A board keeps the set it was dealt in. Starting a new game partway through a board you've played on starts the count again."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Mahjong celebrations."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Matching two tiles draws a short trail between them, and clearing a board plays a short celebration before the results card. A click or any key skips straight to the card. With reduced motion on, matched tiles glow briefly in place instead."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Screen readers now name Mahjong's wind and dragon tiles plainly, such as \"north wind\" or \"red dragon\"."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Mahjong's board-cleared card is smaller and fits its content, and its title says what happened, such as a new personal best, a first clear of a layout or three boards in a row, instead of always reading \"A beautiful finish.\""
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Choose your game"
+                  },
+                  {
+                    "type": "text",
+                    "value": " fits without scrolling at ordinary window sizes. While Daily is selected, a note explains how to pick another layout, and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "copy current deal"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is now "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "copy board link"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and confirms when it has copied."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The stronger free-tile highlight option is gone from Mahjong's setup."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The Island matches Mahjong's background, as it does on the Start Page."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Long Burst scores shrink to fit the rack beside the board."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The closed Island no longer leads with the current Space's mark, so it stays shorter. Spaces open from the Spaces button in the ⌘L panel's footer, which now shows the current Space's symbol on its color (the planet when the window isn't in a Space). With vertical tabs, the side list still shows the mark at the top."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The Island's address field now reads "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Search or type URL"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "After "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Continue"
+                  },
+                  {
+                    "type": "text",
+                    "value": " on a certificate warning for a local or private-network address, windows that page opens on its own, such as Proxmox's separate console, now load and connect too, instead of staying black or white."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.48.0",
+    "version": "1.48.0",
+    "name": "1.48.0",
+    "publishedAt": "2026-11-11T16:14:11.000Z",
+    "humanDate": "November 11, 2026",
+    "machineDate": "2026-11-11",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.48.0",
+    "anchor": "v1-48-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Glance over a split."
+                  },
+                  {
+                    "type": "text",
+                    "value": " With Split View showing, Glance now opens as a floating card over both panes, from a tab's Glance button in the ⌘L panel, a tab's menu, the View menu (⌘⇧G on a Mac, Ctrl+Shift+G on Windows and Linux) or "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/glance"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". Clicking between the two panes keeps the Glance open, and if you close one pane, the other fills the window with the Glance still over it. Before, the Glance button looked available over a split but did nothing. Choosing Glance for one of the split's own two tabs still takes that tab out of the split and floats it over the other, and the card's "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Keep as split"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is hidden while a split is showing."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "After choosing "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Continue"
+                  },
+                  {
+                    "type": "text",
+                    "value": " past a certificate warning on a local or private-network address, the page couldn't open live connections (WebSockets) back to the same address, so consoles and live views such as Proxmox's couldn't connect. They now use the same choice, for that same address and certificate only."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.47.1",
+    "version": "1.47.1",
+    "name": "1.47.1",
+    "publishedAt": "2026-11-09T19:47:15.000Z",
+    "humanDate": "November 9, 2026",
+    "machineDate": "2026-11-09",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.47.1",
+    "anchor": "v1-47-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc no longer crashes when a page contains a frame that fails its certificate check. The frame is refused and the rest of the page stays open."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.47.0",
     "version": "1.47.0",
     "name": "1.47.0",

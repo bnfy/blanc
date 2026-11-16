@@ -1,0 +1,496 @@
+{
+  "app": "/private/tmp/blanc-l8-startup-corrected/Blanc Chromium Preview.app",
+  "mode": "old",
+  "purpose": "Functional event ordering, no latency benchmark",
+  "checks": [],
+  "mainMarkers": [
+    {
+      "args": {},
+      "cat": "toplevel",
+      "id2": {
+        "local": "0xbd"
+      },
+      "name": "ChromeBrowserMainParts::MainMessageLoopRun",
+      "ph": "b",
+      "pid": 53587,
+      "tid": 6685906,
+      "ts": 268140953523
+    }
+  ],
+  "restoreMarkers": [
+    {
+      "args": {
+        "location": {
+          "file_name": "chrome/browser/sessions/session_restore.cc",
+          "function_name": "Restore",
+          "line_number": 429
+        }
+      },
+      "cat": "test",
+      "dur": 69579,
+      "name": "RunLoop::Run",
+      "ph": "X",
+      "pid": 53587,
+      "tdur": 35793,
+      "tid": 6685906,
+      "ts": 268140600832,
+      "tts": 189206
+    }
+  ],
+  "relevant": [
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53587,
+      "tid": 6685982,
+      "ts": 268140037368
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53587,
+      "tid": 6685989,
+      "ts": 268140041090
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53587,
+      "tid": 6685990,
+      "ts": 268140041126
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53587,
+      "tid": 6685992,
+      "ts": 268140061937
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53587,
+      "tid": 6685995,
+      "ts": 268140088961
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53587,
+      "tid": 6686001,
+      "ts": 268140116550
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53596,
+      "tid": 6686023,
+      "ts": 268140182868
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53596,
+      "tid": 6686028,
+      "ts": 268140183967
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53596,
+      "tid": 6686029,
+      "ts": 268140188114
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "content/utility/utility_main.cc",
+          "function_name": "UtilityMain",
+          "line_number": 539
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53596,
+      "tid": 6686009,
+      "ts": 268140190688
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53595,
+      "tid": 6686031,
+      "ts": 268140193777
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53596,
+      "tid": 6686032,
+      "ts": 268140196127
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53595,
+      "tid": 6686044,
+      "ts": 268140256123
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53595,
+      "tid": 6686045,
+      "ts": 268140256181
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53595,
+      "tid": 6686051,
+      "ts": 268140257469
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "content/gpu/gpu_main.cc",
+          "function_name": "GpuMain",
+          "line_number": 498
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53595,
+      "tid": 6686003,
+      "ts": 268140259644
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53595,
+      "tid": 6686052,
+      "ts": 268140273043
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53595,
+      "tid": 6686053,
+      "ts": 268140273108
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53587,
+      "tid": 6686062,
+      "ts": 268140531370
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53587,
+      "tid": 6686071,
+      "ts": 268140554133
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53597,
+      "tid": 6686073,
+      "ts": 268140555243
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53597,
+      "tid": 6686074,
+      "ts": 268140555469
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "content/utility/utility_main.cc",
+          "function_name": "UtilityMain",
+          "line_number": 539
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53597,
+      "tid": 6686059,
+      "ts": 268140555711
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53587,
+      "tid": 6686087,
+      "ts": 268140595190
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "chrome/browser/sessions/session_restore.cc",
+          "function_name": "Restore",
+          "line_number": 429
+        }
+      },
+      "cat": "test",
+      "dur": 69579,
+      "name": "RunLoop::Run",
+      "ph": "X",
+      "pid": 53587,
+      "tdur": 35793,
+      "tid": 6685906,
+      "ts": 268140600832,
+      "tts": 189206
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53599,
+      "tid": 6686142,
+      "ts": 268140687654
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53599,
+      "tid": 6686143,
+      "ts": 268140687733
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "content/utility/utility_main.cc",
+          "function_name": "UtilityMain",
+          "line_number": 539
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53599,
+      "tid": 6686119,
+      "ts": 268140688174
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53587,
+      "tid": 6686148,
+      "ts": 268140739748
+    },
+    {
+      "args": {
+        "location": {
+          "file_name": "base/threading/thread.cc",
+          "function_name": "Run",
+          "line_number": 356
+        }
+      },
+      "cat": "test",
+      "name": "RunLoop::Run",
+      "ph": "B",
+      "pid": 53601,
+      "tid": 6686164,
+      "ts": 268140784022
+    }
+  ],
+  "complete": true
+}

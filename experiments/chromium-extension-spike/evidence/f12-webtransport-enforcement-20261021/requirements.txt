@@ -1,0 +1,10 @@
+aioquic==1.2.0
+attrs==26.1.0
+certifi==2026.10.19
+cffi==2.0.0
+cryptography==50.0.2
+pycparser==2.23
+pylsqpack==0.3.22
+pyOpenSSL==26.4.0
+service-identity==26.1.0
+typing_extensions==4.16.0

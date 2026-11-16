@@ -51,7 +51,7 @@
     },
     {
       "file": "cloudflare/newsletter-worker/src/index.js",
-      "sha256": "13d5b0b95a688b96822dc74b6e2591a5e90a287f169447af677b718f1ef3d0c5",
+      "sha256": "337ca2057aa9033e7d9faec35b539804e5c28dadddefca1fb11e3a58a868a2a8",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -63,7 +63,7 @@
     },
     {
       "file": "cloudflare/ping-worker/src/dl.js",
-      "sha256": "dbbe49d56e4fedbc02229535d6f4847722b64c2d39eb6e3c43c17b89702f2505",
+      "sha256": "b6938ca37712132aea35aec5945ee4fd214280e2095a171d3ac98000345bf519",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -75,7 +75,7 @@
     },
     {
       "file": "cloudflare/ping-worker/src/index.js",
-      "sha256": "7232de6e86e9d20f85ad98f41244dc41ecec13df1db404fdfa4781ac84bf3a47",
+      "sha256": "39e2c34f63b0970eb1977fb844f6ee3b7bc172e372ce5147c76103c47473842a",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -260,7 +260,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "639b73f041db9cd103758b4e3d41c694fd6644b401c9aaf8145bc2c6fe640083",
+      "sha256": "d058955d4f196cdce4069a0d61f64455452388d56c7e2a26941d926024bdc000",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -506,7 +506,7 @@
     },
     {
       "file": "src/main/page-tint-policy.js",
-      "sha256": "482979bdc155e8f7782c130fe07dc8b108628e9f193331219df9b8bb701eb487",
+      "sha256": "b3287b2472ab57b642a3a20fd0c3e7b91ff4c78edaadf24df82d359ca88f3235",
       "literalChannels": [],
       "role": "foreground/main-frame eligibility policy"
     },
@@ -983,7 +983,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "77c36a7b0ef913b38a90983ec9534f594ff7beba05c40440a7d68ef4a738f38d",
+      "sha256": "2382ad567d5996a9c4834acbbf4be4db3a71f5ca066f6b367e8112a83b2055fa",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -1143,7 +1143,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "1addfe4ae5bd844a2384c6fcea421ba2c3da5bcdc24cc18191a41a5d88e05d28",
+      "sha256": "2a90edb5e62310785085402a74dab910adbd77f1da432f81487b84359713181e",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

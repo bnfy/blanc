@@ -11,6 +11,12 @@ test('samples web pages and the Sunrise Start Page for the Island faux header', 
   assert.equal(shouldSamplePageTint({ url: 'blanc://newtab/?layout=billboard', private: false }), true);
 });
 
+test('Mahjong matches its Sunrise backdrop like the Start Page', () => {
+  assert.equal(shouldSamplePageTint({ url: 'blanc://mahjong/', private: false }), true);
+  assert.equal(shouldSamplePageTint({ url: 'blanc://mahjong/?game=abc', private: false }), true);
+  assert.equal(shouldSamplePageTint({ url: 'blanc://mahjong/?private=1', private: true }), true);
+});
+
 test('a private Start Page matches its wallpaper too', () => {
   assert.equal(shouldSamplePageTint({ url: 'blanc://newtab/?private=1', private: true }), true);
 });

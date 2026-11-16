@@ -14,7 +14,25 @@ final class TabModel: Identifiable {
     /// Whether the web view has committed a page yet. Until then it would show
     /// WebKit's blank white, so the page area keeps the theme's background.
     var hasCommitted = false
+    /// What went wrong with a load that left this tab with no page at all.
+    /// The tab shows it, with Try again, where the page would be.
+    var loadFailure: LoadFailure?
+    /// A tab a page opened (`window.open`, a link with a target), which that
+    /// page may also close.
+    @ObservationIgnored var openedByPage = false
+    /// Request Desktop Website: this tab asks sites for what they give a Mac,
+    /// until it's closed or asked for the phone's again.
+    @ObservationIgnored var wantsDesktopSite = false
+    /// How far the page's load has got, 0 to 1, for the Island's hairline.
+    var loadProgress: Double = 0
+    @ObservationIgnored private var progressObservation: NSKeyValueObservation?
     var pageTitle = ""
+    /// Whether the document on screen is the Start Page. Unlike `currentURL`,
+    /// which follows WebKit's address as soon as a load starts, it changes when
+    /// the next page commits: until then the Start Page is still what shows, and
+    /// keeps its edge-to-edge insets (`WebView.configureInsets`), or it would be
+    /// laid out again, shorter, while the tapped site loads.
+    var showsStartPage = false
     /// Never saved, synced or recorded in History; its web data lives only in
     /// memory (`TabsManager.privateDataStore`).
     let isPrivate: Bool
@@ -88,6 +106,7 @@ final class TabModel: Identifiable {
          quiet: Bool = false, load: Bool = true) {
         self.isPrivate = isPrivate
         self.currentURL = url
+        self.showsStartPage = StartPageBridge.isStartPage(url)
         self.addressText = url.absoluteString
         self.pageTitle = title
         self.configuration = configuration
@@ -120,7 +139,9 @@ final class TabModel: Identifiable {
         // from WebKit's actual document URL as well as delegate callbacks.
         readerURLObservation = webView.observe(\.url, options: [.new]) { [weak self] webView, _ in
             Task { @MainActor [weak self, weak webView] in
-                guard let self, let url = webView?.url else { return }
+                // A failed load from the Start Page puts its address back;
+                // the tab keeps the one that failed (`LoadFailureView`).
+                guard let self, let url = webView?.url, self.loadFailure == nil else { return }
                 self.navigationDelegate.applyURL(url, to: self)
             }
         }
@@ -145,6 +166,11 @@ final class TabModel: Identifiable {
                 }
             },
         ]
+        progressObservation = webView.observe(\.estimatedProgress, options: [.new]) { [weak self] webView, _ in
+            Task { @MainActor [weak self, weak webView] in
+                if let webView { self?.loadProgress = webView.estimatedProgress }
+            }
+        }
         // The pull's spinner and the Island take the style that shows against
         // the page.
         pageColorObservation = webView.observe(\.underPageBackgroundColor, options: [.new]) { [weak self] _, _ in
@@ -181,13 +207,18 @@ final class TabModel: Identifiable {
         navigationDelegate.load(dest, in: webView)
     }
 
+    /// Twice the detail for an iPad-sized page, whose cards are drawn bigger.
+    static func thumbnailSide(_ page: CGSize) -> CGFloat { min(page.width, page.height) >= 600 ? 640 : 320 }
+
     /// In-memory square preview of the last visible page, including native glass.
     /// Never mount or load background tabs just to produce a thumbnail.
     @MainActor
     func captureThumbnail(allowCovered: Bool = false, afterScreenUpdates: Bool = true) {
+        // A load that failed left the web view empty: its card names the site.
+        guard loadFailure == nil else { return forgetPictures() }
         guard let webView = storage, let window = webView.window, allowCovered || window.rootViewController?.presentedViewController == nil,
               webView.bounds.width > 0, webView.bounds.height > 0 else { return }
-        let side: CGFloat = 320
+        let side = Self.thumbnailSide(webView.bounds.size)
         let scale = side / min(webView.bounds.width, webView.bounds.height)
         let size = CGSize(width: webView.bounds.width * scale, height: webView.bounds.height * scale)
         let rect = CGRect(x: (side - size.width) / 2, y: currentURL.scheme == "blanc" ? (side - size.height) / 2 : 0, width: size.width, height: size.height)
@@ -210,18 +241,19 @@ final class TabModel: Identifiable {
     @MainActor
     func capturePreparedThumbnail() async {
         let url = currentURL
+        guard loadFailure == nil else { return forgetPictures() }
         guard let webView = storage else { return }
         if url.scheme == "blanc" {
             captureThumbnail(allowCovered: true)
             return
         }
         let configuration = WKSnapshotConfiguration()
-        // 320 on the short side: a page wider than tall would otherwise be scaled up.
+        // The side is the page's short one: a page wider than tall would otherwise be scaled up.
         let bounds = webView.bounds.size
-        configuration.snapshotWidth = NSNumber(value: Double(320 * max(1, bounds.width / max(bounds.height, 1))))
+        configuration.snapshotWidth = NSNumber(value: Double(Self.thumbnailSide(bounds) * max(1, bounds.width / max(bounds.height, 1))))
         guard let full = try? await webView.takeSnapshot(configuration: configuration),
               currentURL == url, !Task.isCancelled, full.size.width > 0, full.size.height > 0 else { return }
-        let side: CGFloat = 320
+        let side = Self.thumbnailSide(webView.bounds.size)
         let factor = side / min(full.size.width, full.size.height)
         let size = CGSize(width: full.size.width * factor, height: full.size.height * factor)
         let format = UIGraphicsImageRendererFormat()
@@ -232,6 +264,11 @@ final class TabModel: Identifiable {
         thumbnail = UIGraphicsImageRenderer(size: CGSize(width: side, height: side), format: format).image { _ in
             full.draw(in: CGRect(x: (side - size.width) / 2, y: 0, width: size.width, height: size.height))
         }
+    }
+
+    private func forgetPictures() {
+        if thumbnail != nil { thumbnail = nil }
+        pagePicture = nil
     }
 
     /// The Start Page keeps its Island: it's the page's own address bar.
@@ -259,7 +296,19 @@ final class TabModel: Identifiable {
 
     func goBack() { storage?.goBack() }
     func goForward() { storage?.goForward() }
-    func reload() { storage?.reload() }
+    /// With no page to reload, a failed load's address is tried once more.
+    func reload() {
+        if loadFailure != nil { retryFailedLoad() } else { storage?.reload() }
+    }
+    /// Asks the site for its desktop or phone version and loads the page again.
+    func setDesktopSite(_ desktop: Bool) {
+        wantsDesktopSite = desktop
+        reload()
+    }
+    func retryFailedLoad() {
+        guard let failure = loadFailure else { return }
+        navigationDelegate.retry(failure.url ?? currentURL, in: webView)
+    }
     func stop() {
         storage?.stopLoading()
         endPullToRefresh()

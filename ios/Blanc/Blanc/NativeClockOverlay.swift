@@ -36,8 +36,11 @@ final class NativeClockOverlay {
         // The regular system material adapts its edges for narrow glyph
         // counters; clear glass produces harsh dark refractions there.
         let content = AnyView(Color.clear.glassEffect(.regular.tint(tint), in: shape)
-            .shadow(color: .black.opacity(0.32), radius: max(2, size * 0.025), x: 0, y: max(1, size * 0.012))
-            .shadow(color: .black.opacity(0.18), radius: max(5, size * 0.07), x: 0, y: max(2, size * 0.025))
+            // A light, close lift off the page, not a gray halo (owner,
+            // 2026-11-11: opacity halved from 0.32 and 0.18, blur and drop
+            // halved from 0.025/0.012 and 0.07/0.025 of the type size).
+            .shadow(color: .black.opacity(0.16), radius: max(1, size * 0.0125), x: 0, y: max(0.5, size * 0.006))
+            .shadow(color: .black.opacity(0.08), radius: max(2.5, size * 0.035), x: 0, y: max(1, size * 0.0125))
             .accessibilityHidden(true).allowsHitTesting(false))
         if host == nil {
             host = UIHostingController(rootView: content)

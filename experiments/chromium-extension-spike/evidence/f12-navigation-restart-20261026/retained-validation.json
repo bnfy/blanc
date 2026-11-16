@@ -1,0 +1,46 @@
+{
+  "sourceReportSha256": "55bbeae6041a438fe97782313f0c1b2be102589cfd6139846f3100b10e0b8d5a",
+  "scope": "Offline correction only; no browser rerun. Initial, checked redirect, replacement restart have indices0,1,0. Original six wrong-count failures retained; actual four main-frame failures remain.",
+  "checks": [
+    {
+      "name": "regular/sub-allow: three-stage native restart attribution",
+      "pass": true
+    },
+    {
+      "name": "regular/sub-block: three-stage native restart attribution",
+      "pass": true
+    },
+    {
+      "name": "regular/main-allow: three-stage native restart attribution",
+      "pass": true
+    },
+    {
+      "name": "private/sub-allow: three-stage native restart attribution",
+      "pass": true
+    },
+    {
+      "name": "private/sub-block: three-stage native restart attribution",
+      "pass": true
+    },
+    {
+      "name": "private/main-allow: three-stage native restart attribution",
+      "pass": true
+    },
+    {
+      "name": "negative control: missing restarted decision",
+      "pass": true
+    },
+    {
+      "name": "negative control: wrong request identity",
+      "pass": true
+    },
+    {
+      "name": "negative control: wrong profile",
+      "pass": true
+    },
+    {
+      "name": "negative control: wrong hop reset",
+      "pass": true
+    }
+  ]
+}

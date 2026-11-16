@@ -1,0 +1,253 @@
+TAP version 13
+# Subtest: lift found the tab-drag API
+ok 1 - lift found the tab-drag API
+  ---
+  duration_ms: 0.527209
+  ...
+# Subtest: a gap inside the source bucket resolves to beforeId
+ok 2 - a gap inside the source bucket resolves to beforeId
+  ---
+  duration_ms: 0.360167
+  ...
+# Subtest: the gap after a bucket's last row resolves to null
+ok 3 - the gap after a bucket's last row resolves to null
+  ---
+  duration_ms: 0.101125
+  ...
+# Subtest: a loose tab dropped among group rows joins that group
+ok 4 - a loose tab dropped among group rows joins that group
+  ---
+  duration_ms: 0.097583
+  ...
+# Subtest: a grouped tab dropped in the loose section leaves its group
+ok 5 - a grouped tab dropped in the loose section leaves its group
+  ---
+  duration_ms: 0.086125
+  ...
+# Subtest: the pin boundary inside a group is valid for both states; deeper gaps only for their own
+ok 6 - the pin boundary inside a group is valid for both states; deeper gaps only for their own
+  ---
+  duration_ms: 0.412708
+  ...
+# Subtest: the middle of a header (collapsed or not) appends to that group
+ok 7 - the middle of a header (collapsed or not) appends to that group
+  ---
+  duration_ms: 0.110167
+  ...
+# Subtest: outside the list resolves to nothing
+ok 8 - outside the list resolves to nothing
+  ---
+  duration_ms: 0.032666
+  ...
+# Subtest: an empty loose zone is a valid target for unpinned tabs only
+ok 9 - an empty loose zone is a valid target for unpinned tabs only
+  ---
+  duration_ms: 0.208625
+  ...
+# Subtest: group drops resolve between group bands
+ok 10 - group drops resolve between group bands
+  ---
+  duration_ms: 0.280084
+  ...
+# Subtest: keyboard swaps inside a bucket
+ok 11 - keyboard swaps inside a bucket
+  ---
+  duration_ms: 0.157625
+  ...
+# Subtest: keyboard crosses into the next eligible bucket, skipping collapsed groups
+ok 12 - keyboard crosses into the next eligible bucket, skipping collapsed groups
+  ---
+  duration_ms: 0.040917
+  ...
+# Subtest: keyboard never enters an opposite-state bucket and stops at the ends
+ok 13 - keyboard never enters an opposite-state bucket and stops at the ends
+  ---
+  duration_ms: 0.051625
+  ...
+# Subtest: keyboard group moves and end stops
+ok 14 - keyboard group moves and end stops
+  ---
+  duration_ms: 0.047958
+  ...
+# Subtest: describeMove names reorders, joins, leaves and dissolving groups
+ok 15 - describeMove names reorders, joins, leaves and dissolving groups
+  ---
+  duration_ms: 0.456916
+  ...
+# Subtest: session: a 3px × 3px diagonal (over 4px in total) starts a drag
+ok 16 - session: a 3px × 3px diagonal (over 4px in total) starts a drag
+  ---
+  duration_ms: 0.208416
+  ...
+# Subtest: session: under 4px stays a click; 4px starts a drag
+ok 17 - session: under 4px stays a click; 4px starts a drag
+  ---
+  duration_ms: 0.14275
+  ...
+# Subtest: session: a valid drop keeps the source dimmed until the IPC settles
+ok 18 - session: a valid drop keeps the source dimmed until the IPC settles
+  ---
+  duration_ms: 3.9175
+  ...
+# Subtest: session: a drop that resolves false restores the source and announces
+ok 19 - session: a drop that resolves false restores the source and announces
+  ---
+  duration_ms: 0.492
+  ...
+# Subtest: session: a drop that resolves reject restores the source and announces
+ok 20 - session: a drop that resolves reject restores the source and announces
+  ---
+  duration_ms: 0.276083
+  ...
+# Subtest: session: Escape while settling is consumed and does not end the drop
+ok 21 - session: Escape while settling is consumed and does not end the drop
+  ---
+  duration_ms: 0.2495
+  ...
+# Subtest: session: a forced end while settling tears down and ignores a late true
+ok 22 - session: a forced end while settling tears down and ignores a late true
+  ---
+  duration_ms: 0.40125
+  ...
+# Subtest: session: a forced end while settling tears down and ignores a late false
+ok 23 - session: a forced end while settling tears down and ignores a late false
+  ---
+  duration_ms: 0.155708
+  ...
+# Subtest: session: a forced end while settling tears down and ignores a late reject
+ok 24 - session: a forced end while settling tears down and ignores a late reject
+  ---
+  duration_ms: 0.255125
+  ...
+# Subtest: session: Escape cancels with full teardown and no drop
+ok 25 - session: Escape cancels with full teardown and no drop
+  ---
+  duration_ms: 0.079833
+  ...
+# Subtest: session: pointercancel cancels with full teardown and no drop
+ok 26 - session: pointercancel cancels with full teardown and no drop
+  ---
+  duration_ms: 0.055708
+  ...
+# Subtest: session: lostpointercapture cancels with full teardown and no drop
+ok 27 - session: lostpointercapture cancels with full teardown and no drop
+  ---
+  duration_ms: 0.037458
+  ...
+# Subtest: session: release over nothing cancels with full teardown and no drop
+ok 28 - session: release over nothing cancels with full teardown and no drop
+  ---
+  duration_ms: 0.041792
+  ...
+# Subtest: session: escape when idle is not handled
+ok 29 - session: escape when idle is not handled
+  ---
+  duration_ms: 0.038958
+  ...
+# Subtest: session: an invalid gap shows no indicator
+ok 30 - session: an invalid gap shows no indicator
+  ---
+  duration_ms: 0.085
+  ...
+# Subtest: session: auto-scroll near an edge scrolls and refreshes rects before resolving
+ok 31 - session: auto-scroll near an edge scrolls and refreshes rects before resolving
+  ---
+  duration_ms: 0.138334
+  ...
+# Subtest: session: scrolled() refreshes rects
+ok 32 - session: scrolled() refreshes rects
+  ---
+  duration_ms: 0.040875
+  ...
+# Subtest: session: a payload missing the source cancels; a present source does not
+ok 33 - session: a payload missing the source cancels; a present source does not
+  ---
+  duration_ms: 0.079083
+  ...
+# Subtest: session: a tab drag cancels when its original group or pinned state changes
+ok 34 - session: a tab drag cancels when its original group or pinned state changes
+  ---
+  duration_ms: 0.103167
+  ...
+# Subtest: session: payloads while settling are only deferred
+ok 35 - session: payloads while settling are only deferred
+  ---
+  duration_ms: 1.366667
+  ...
+# Subtest: session: a group drag drops a group intent
+ok 36 - session: a group drag drops a group intent
+  ---
+  duration_ms: 0.231083
+  ...
+# Subtest: session: events for another pointer are ignored
+ok 37 - session: events for another pointer are ignored
+  ---
+  duration_ms: 0.041375
+  ...
+# Subtest: session: releasing beside the list (over the page) is not a drop
+ok 38 - session: releasing beside the list (over the page) is not a drop
+  ---
+  duration_ms: 0.239125
+  ...
+# Subtest: empty pinned section cannot swallow the first loose-tab gap
+not ok 39 - empty pinned section cannot swallow the first loose-tab gap
+  ---
+  duration_ms: 0.42925
+  location: '/private/tmp/blanc-chromium157-work/test/unit/tab-drag.test.js:457:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    undefined !== 'A'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'A'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/blanc-chromium157-work/test/unit/tab-drag.test.js:462:10)
+    Test.runInAsyncScope (node:async_hooks:211:14)
+    Test.run (node:internal/test_runner/test:979:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+    Test.postRun (node:internal/test_runner/test:1090:19)
+    Test.run (node:internal/test_runner/test:1018:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:677:7)
+  ...
+# Subtest: coincident boundary accepts each source only into its own bucket
+not ok 40 - coincident boundary accepts each source only into its own bucket
+  ---
+  duration_ms: 0.110583
+  location: '/private/tmp/blanc-chromium157-work/test/unit/tab-drag.test.js:465:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+
+    undefined !== 'A'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'A'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/private/tmp/blanc-chromium157-work/test/unit/tab-drag.test.js:470:10)
+    Test.runInAsyncScope (node:async_hooks:211:14)
+    Test.run (node:internal/test_runner/test:979:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:677:18)
+    Test.postRun (node:internal/test_runner/test:1090:19)
+    Test.run (node:internal/test_runner/test:1018:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:677:7)
+  ...
+# Subtest: a pinned source still prefers the pinned section beside empty loose
+ok 41 - a pinned source still prefers the pinned section beside empty loose
+  ---
+  duration_ms: 0.035
+  ...
+1..41
+# tests 41
+# suites 0
+# pass 39
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 72.997209

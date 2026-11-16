@@ -1,0 +1,205 @@
+diff --git a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts
+--- a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts
++++ b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts
+@@ -57,6 +57,12 @@
+       pairNow_: {type: Number},
+       spaces_: {type: Object},
+       choices_: {type: Array},
++      wipeRemote_: {type: Boolean},
++      eraseFailed_: {type: Boolean},
++      spacesChecking_: {type: Boolean},
++      spacesSaving_: {type: Boolean},
++      spacesOpen_: {type: Boolean},
++      spacesError_: {type: String},
+     };
+   }
+ 
+@@ -71,6 +77,14 @@
+   protected accessor pairNow_: number = Date.now();
+   protected accessor spaces_: SpacesStatus = {};
+   protected accessor choices_: SpaceChoice[] = [];
++  protected accessor spacesChecking_: boolean = false;
++  protected accessor spacesSaving_: boolean = false;
++  protected accessor spacesOpen_: boolean = false;
++  protected accessor spacesError_: string = '';
++  protected accessor wipeRemote_: boolean = false;
++  protected accessor eraseFailed_: boolean = false;
++  private spacesSheet_ = 0;
++  private spacesCheck_: Promise<{ok: boolean; changed: boolean}>|null = null;
+   private pairTimer_: number|null = null;
+   private pairReading_ = false;
+   private pairRevision_ = 0;
+@@ -203,32 +217,94 @@
+     if (id) await blancSync.call('desktop.spaces.acknowledge', [id]);
+     this.spaces_ = await blancSync.call<SpacesStatus>('desktop.spaces.status');
+   }
++  protected onSpacesToggleChange_(event: Event) {
++    if ((event.target as HTMLInputElement).checked) void this.onSpacesChooseClick_();
++    else void this.onSpacesOffClick_();
++  }
++  private mergeChoices_(next: SpaceChoice[]) {
++    const old = new Map(this.choices_.map(choice => [choice.id, choice]));
++    this.choices_ = next.map(choice => {
++      const prior = old.get(choice.id);
++      return prior && prior.mode === choice.mode && prior.shared === choice.shared && prior.reason === choice.reason ?
++          {...choice, checked: prior.checked} : choice;
++    });
++  }
+   protected async onSpacesChooseClick_() {
+-    this.busy_ = true;
++    if (this.spacesSaving_) return;
++    const epoch = ++this.spacesSheet_;
++    const lifetime = this.lifetime_;
++    this.spacesChecking_ = true;
++    this.spacesError_ = '';
++    this.notice_ = '';
+     try {
+-      const preview = await blancSync.call<SpacesPreview>('desktop.spaces.preview');
+-      if (!preview.ok) {this.notice_ = 'Spaces sync is unavailable. Favorites, settings, open tabs and Send to device still work.'; return;}
+-      this.choices_ = preview.choices ?? [];
++      const local = await blancSync.call<SpacesPreview>('desktop.spaces.preview', [{local: true}]);
++      if (!this.isConnected || lifetime !== this.lifetime_ || epoch !== this.spacesSheet_) return;
++      if (!local.ok) throw new Error('unavailable');
++      this.choices_ = local.choices ?? [];
++      this.spacesOpen_ = true;
+       await this.updateComplete;
+       const pair = this.shadowRoot.querySelector<HTMLDialogElement>('#syncPairingDialog')!;
+       if (pair.open) this.pairEvent_({type: 'done'});
+       this.shadowRoot.querySelector<HTMLDialogElement>('#syncSpacesDialog')!.showModal();
+-    } finally {this.busy_ = false;}
++      const shape = (choices: SpaceChoice[]) => JSON.stringify(choices.map(({id, mode, shared, reason}) => [id, mode, shared, reason]));
++      const before = shape(this.choices_);
++      this.spacesCheck_ = blancSync.call<SpacesPreview>('desktop.spaces.preview').then(next => {
++        const changed = shape(next.choices ?? []) !== before;
++        if (this.isConnected && lifetime === this.lifetime_ && epoch === this.spacesSheet_) {
++          this.spacesChecking_ = false;
++          if (next.ok) this.mergeChoices_(next.choices ?? []);
++        }
++        return {ok: next.ok === true, changed};
++      }, () => ({ok: false, changed: false}));
++      void this.spacesCheck_.then(result => {
++        if (!result.ok && this.isConnected && lifetime === this.lifetime_ && epoch === this.spacesSheet_ && !this.spacesSaving_) {
++          this.onSpacesCancelClick_();
++          this.notice_ = 'Spaces sync is unavailable. Favorites, settings, open-tab sharing and Send to device continue.';
++        }
++      });
++    } catch {
++      if (this.isConnected && lifetime === this.lifetime_ && epoch === this.spacesSheet_) {
++        this.spacesChecking_ = false;
++        this.notice_ = 'Spaces sync is unavailable. Favorites, settings, open-tab sharing and Send to device continue.';
++      }
++    }
+   }
+   protected onSpaceChoiceChange_(event: Event) {
+     const input = event.target as HTMLInputElement;
+     this.choices_ = this.choices_.map(choice => choice.id === input.value ? {...choice, checked: input.checked} : choice);
+   }
+-  protected onSpacesCancelClick_() {this.shadowRoot.querySelector<HTMLDialogElement>('#syncSpacesDialog')!.close();}
++  protected onSpacesDialogCancel_(event: Event) {this.onSpacesCancelClick_(event);}
++  protected onSpacesCancelClick_(event?: Event) {
++    event?.preventDefault();
++    this.shadowRoot.querySelector<HTMLDialogElement>('#syncSpacesDialog')!.close();
++    ++this.spacesSheet_;
++    this.spacesOpen_ = false;
++    if (this.spacesSaving_) this.notice_ = 'Uploading your Spaces. You can keep browsing.';
++  }
+   protected async onSpacesShareClick_() {
+-    this.busy_ = true;
++    if (this.spacesSaving_) return;
++    const epoch = this.spacesSheet_, lifetime = this.lifetime_, checking = this.spacesChecking_;
++    // Closing after this point dismisses the sheet, not the requested save.
++    const selected = this.choices_.filter(choice => choice.checked && !choice.shared).map(({id, mode}) => ({id, mode}));
++    this.spacesSaving_ = true;
+     try {
+-      const result = await blancSync.call<BlancSyncResult>('desktop.spaces.apply', [{enabled: true,
+-        selections: this.choices_.filter(choice => choice.checked).map(({id, mode}) => ({id, mode}))}]);
+-      if (!result.ok) {this.notice_ = 'Could not share these Spaces. Your local Spaces are kept.'; return;}
++      const checked = await this.spacesCheck_;
++      if (!checked?.ok) throw new Error('unavailable');
++      if (checking && checked.changed) {
++        if (epoch === this.spacesSheet_) this.spacesError_ = 'The list was updated. Check it, then confirm again.';
++        else this.notice_ = '';
++        return;
++      }
++      const result = await blancSync.call<BlancSyncResult>('desktop.spaces.apply', [{enabled: true, selections: selected}]);
++      if (!result.ok) throw new Error('unavailable');
++      if (!this.isConnected || lifetime !== this.lifetime_) return;
+       await this.onSpacesNotNowClick_();
+-      this.onSpacesCancelClick_();
+-    } finally {this.busy_ = false;}
++      this.notice_ = 'Uploading your Spaces. You can keep browsing.';
++      if (epoch === this.spacesSheet_) this.onSpacesCancelClick_();
++    } catch {
++      if (this.isConnected && lifetime === this.lifetime_)
++        this.notice_ = 'Spaces sync is unavailable. Favorites, settings, open-tab sharing and Send to device continue.';
++    } finally {this.spacesSaving_ = false;}
+   }
+   protected async onSpacesOffClick_() {
+     await blancSync.call('desktop.spaces.apply', [{enabled: false, selections: []}]);
+@@ -327,6 +403,8 @@
+   }
+ 
+   protected errorText_(error: string): string {
++    if (error === 'erasure-pending') return 'The server copy is still being erased. Try again to finish erasing it, or turn off sync without erasing.';
++    if (error === 'wipe-offline' || error.startsWith('wipe-failed:')) return 'Could not erase the server copy. Sync stays on so you can retry.';
+     const names: Record<string, string> = {
+       'not-ready': 'NotReady',
+       'pair-invalid': 'PairInvalid',
+@@ -482,8 +560,15 @@
+     this.run_('sync.syncNow');
+   }
+ 
++  protected onWipeChange_(event: Event) {this.wipeRemote_ = (event.target as HTMLInputElement).checked;}
++  protected onEraseRetryClick_() {this.wipeRemote_ = true; this.onTurnOffClick_();}
+   protected onTurnOffClick_() {
+-    this.run_('sync.disable');
++    void this.act_(async () => {
++      const result = await blancSync.call<BlancSyncResult>('sync.disable', [{wipeRemote: this.wipeRemote_}]);
++      this.eraseFailed_ = !result.ok && this.wipeRemote_;
++      if (result.ok) this.wipeRemote_ = false;
++      return result;
++    });
+   }
+ 
+   private run_(method: BlancSyncMethod) {
+diff --git a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html
+--- a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html
++++ b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html
+@@ -77,7 +77,7 @@
+         <label id="syncTabsShareSetting"><input id="syncTabsShare" type="checkbox"
+             .checked="${!!this.state_?.status?.syncTabs}" ?disabled="${this.busy_}"
+             @change="${this.onTabsShareChange_}"> Open tabs — From this device</label>
+-        <p>Keep Spaces and groups in sync on this device</p>
++        <label><input id="syncSpacesToggle" type="checkbox" .checked="${!!this.spaces_.enabled || this.spacesOpen_ || this.spacesSaving_}" ?disabled="${this.spacesSaving_}" @change="${this.onSpacesToggleChange_}"> Keep Spaces and groups in sync on this device</label>
+         <p class="secondary">Tabs in your shared Spaces sync from this device. Turning this off keeps a local copy; your other devices keep syncing.</p>
+         <cr-button id="syncSpacesChoose" @click="${this.onSpacesChooseClick_}" ?disabled="${this.busy_}">Choose Spaces</cr-button>
+         <cr-button id="syncSpacesOff" ?hidden="${!this.spaces_.enabled}" @click="${this.onSpacesOffClick_}">Turn off Spaces sync</cr-button>
+@@ -86,6 +86,8 @@
+             @click="${this.onSyncNowClick_}">$i18n{blancSyncNow}</cr-button>
+         <cr-button id="syncAddDevice" ?disabled="${this.busy_}" @click="${this.onAddDeviceClick_}">Add device</cr-button>
+         <p class="secondary">$i18n{blancSyncTurnOffHint}</p>
++        <label><input id="syncWipe" type="checkbox" .checked="${this.wipeRemote_}" ?disabled="${this.busy_}" @change="${this.onWipeChange_}"> Also delete synced data</label>
++        <cr-button id="syncEraseRetry" ?hidden="${!this.eraseFailed_ && this.state_?.status?.lastError !== 'erasure-pending'}" ?disabled="${this.busy_}" @click="${this.onEraseRetryClick_}">Try erasing again</cr-button>
+         <cr-button id="syncDisable" ?disabled="${this.busy_ || this.confirming_}"
+             @click="${this.onTurnOffClick_}">$i18n{blancSyncDisable}</cr-button>
+       </div>
+@@ -119,13 +121,15 @@
+         <cr-button id="syncPairingCancel" @click="${this.onPairCancelClick_}">${this.pairView_().joined ? 'Done' : 'Cancel'}</cr-button>
+         <p role="status">${this.pairView_().noticeText}</p>
+       </dialog>
+-      <dialog id="syncSpacesDialog" aria-label="Choose Spaces">
+-        <h2>Choose Spaces</h2>
++      <dialog id="syncSpacesDialog" aria-label="Choose Spaces to sync" @cancel="${this.onSpacesDialogCancel_}">
++        <h2>Choose Spaces to sync</h2>
++        <p id="syncSpacesChecking" role="status" ?hidden="${!this.spacesChecking_}">Checking your other devices…</p>
++        <p role="alert">${this.spacesError_}</p>
+         <p>Every device that turns this on can change these Spaces.</p>
+         ${this.choices_.map(choice => html`<label><input type="checkbox" .value="${choice.id}"
+           .checked="${choice.checked}" ?disabled="${!!choice.reason || choice.shared}"
+-          @change="${this.onSpaceChoiceChange_}">${choice.name} (${choice.tabCount} tabs)</label>`)}
+-        <cr-button id="syncSpacesShare" ?disabled="${this.busy_}" @click="${this.onSpacesShareClick_}">Share</cr-button>
++          @change="${this.onSpaceChoiceChange_}">${choice.name} (${choice.tabCount} tabs) ${choice.shared ? 'Shared' : ''}</label>`)}
++        <cr-button id="syncSpacesShare" ?disabled="${this.spacesSaving_}" @click="${this.onSpacesShareClick_}">${this.spacesSaving_ ? 'Checking…' : this.spaces_.enabled ? 'Share' : 'Turn on'}</cr-button>
+         <cr-button @click="${this.onSpacesCancelClick_}">Cancel</cr-button>
+       </dialog>
+       <p id="syncPairingNotice" role="status" ?hidden="${!!this.pairView_().sheetOpen}">${this.pairView_().expired ? 'That code expired. Make a new one when you’re ready.' : this.pairView_().noticeText}</p>

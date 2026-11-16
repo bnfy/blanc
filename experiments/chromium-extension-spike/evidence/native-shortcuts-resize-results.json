@@ -1,0 +1,125 @@
+{
+  "checkedAt": "2026-10-16T13:29:43.603Z",
+  "results": [
+    {
+      "name": "Native Cmd+A selection in Island",
+      "result": "gap",
+      "detail": {
+        "before": {
+          "value": "http://127.0.0.1:18763/b",
+          "start": 24,
+          "end": 24
+        },
+        "after": {
+          "value": "http://127.0.0.1:18763/b",
+          "start": 24,
+          "end": 24
+        }
+      }
+    },
+    {
+      "name": "Native Cmd+L Island visibility",
+      "result": "gap",
+      "detail": {
+        "note": "Cmd+L focuses the stock Chromium address bar; Island remains closed.",
+        "nativeFocusReadback": {
+          "role": "AXTextField",
+          "title": "Address and search bar"
+        }
+      }
+    },
+    {
+      "name": "Expanded Island at 1200x900",
+      "result": "pass",
+      "detail": {
+        "window": {
+          "width": 1200,
+          "height": 900
+        },
+        "hostRect": {
+          "x": 427,
+          "y": 158,
+          "width": 1200,
+          "height": 640
+        },
+        "contentAvailable": 814,
+        "viewport": {
+          "width": 1200,
+          "height": 640
+        },
+        "panel": {
+          "x": 290,
+          "y": 12,
+          "width": 620,
+          "height": 287.5,
+          "bottom": 299.5
+        },
+        "footer": {
+          "bottom": 268
+        }
+      }
+    },
+    {
+      "name": "Expanded Island at 800x600",
+      "result": "pass",
+      "detail": {
+        "window": {
+          "width": 800,
+          "height": 600
+        },
+        "hostRect": {
+          "x": 427,
+          "y": 158,
+          "width": 800,
+          "height": 640
+        },
+        "contentAvailable": 514,
+        "viewport": {
+          "width": 800,
+          "height": 640
+        },
+        "panel": {
+          "x": 90,
+          "y": 12,
+          "width": 620,
+          "height": 287.5,
+          "bottom": 299.5
+        },
+        "footer": {
+          "bottom": 268
+        }
+      }
+    },
+    {
+      "name": "Expanded Island at 600x420",
+      "result": "pass",
+      "detail": {
+        "window": {
+          "width": 600,
+          "height": 420
+        },
+        "hostRect": {
+          "x": 427,
+          "y": 158,
+          "width": 600,
+          "height": 640
+        },
+        "contentAvailable": 334,
+        "viewport": {
+          "width": 600,
+          "height": 640
+        },
+        "panel": {
+          "x": 12,
+          "y": 12,
+          "width": 576,
+          "height": 287.5,
+          "bottom": 299.5
+        },
+        "footer": {
+          "bottom": 268
+        }
+      }
+    }
+  ]
+}

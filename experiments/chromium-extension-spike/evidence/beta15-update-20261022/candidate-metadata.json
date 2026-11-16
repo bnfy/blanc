@@ -1,0 +1,8 @@
+{
+  "upstream": "1aa07b638799e59656559ae6c6649d4b197f555e",
+  "version": "157.0.8103.15",
+  "bundleId": "me.bnfy.blanc.chromium.preview",
+  "os": "ProductName:\t\tmacOS\nProductVersion:\t\t27.2\nBuildVersion:\t\t26B118",
+  "buildGuard": "Dry-run scheduled actions: 0 (generated outputs may add work). Plan: /private/tmp/blanc-chromium157-update/src/out/BlancPrototype/blanc-build-plan.log\nCheck only; no compilation started.\n",
+  "acceptedOldArtifactNotReused": true
+}

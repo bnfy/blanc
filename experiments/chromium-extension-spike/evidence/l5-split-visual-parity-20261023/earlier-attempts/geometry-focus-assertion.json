@@ -1,0 +1,187 @@
+{
+  "checks": [
+    {
+      "name": "layout 1280x800",
+      "pass": true,
+      "data": {
+        "divider": {
+          "height": 716,
+          "width": 8,
+          "x": 636,
+          "y": 76
+        },
+        "frames": [
+          {
+            "height": 716,
+            "width": 628,
+            "x": 8,
+            "y": 76
+          },
+          {
+            "height": 716,
+            "width": 628,
+            "x": 644,
+            "y": 76
+          }
+        ],
+        "headers": [
+          {
+            "height": 36,
+            "width": 37,
+            "x": 599,
+            "y": 756
+          },
+          {
+            "height": 36,
+            "width": 144,
+            "x": 1128,
+            "y": 756
+          }
+        ],
+        "mode": "columns",
+        "originX": 8,
+        "usableWidth": 1256
+      }
+    },
+    {
+      "name": "8px inset columns",
+      "pass": true,
+      "data": [
+        {
+          "height": 716,
+          "width": 628,
+          "x": 8,
+          "y": 76
+        },
+        {
+          "height": 716,
+          "width": 628,
+          "x": 644,
+          "y": 76
+        }
+      ]
+    },
+    {
+      "name": "corner tabs columns",
+      "pass": true,
+      "data": [
+        {
+          "height": 36,
+          "width": 37,
+          "x": 599,
+          "y": 756
+        },
+        {
+          "height": 36,
+          "width": 144,
+          "x": 1128,
+          "y": 756
+        }
+      ]
+    },
+    {
+      "name": "no header bars columns",
+      "pass": true
+    },
+    {
+      "name": "one outline columns",
+      "pass": true
+    },
+    {
+      "name": "focus controls columns",
+      "pass": true
+    },
+    {
+      "name": "layout 620x800",
+      "pass": true,
+      "data": {
+        "divider": {
+          "height": 8,
+          "width": 604,
+          "x": 8,
+          "y": 430
+        },
+        "frames": [
+          {
+            "height": 354,
+            "width": 604,
+            "x": 8,
+            "y": 76
+          },
+          {
+            "height": 354,
+            "width": 604,
+            "x": 8,
+            "y": 438
+          }
+        ],
+        "headers": [
+          {
+            "height": 36,
+            "width": 37,
+            "x": 575,
+            "y": 394
+          },
+          {
+            "height": 36,
+            "width": 144,
+            "x": 468,
+            "y": 756
+          }
+        ],
+        "mode": "rows",
+        "originX": 8,
+        "usableWidth": 596
+      }
+    },
+    {
+      "name": "8px inset rows",
+      "pass": true,
+      "data": [
+        {
+          "height": 354,
+          "width": 604,
+          "x": 8,
+          "y": 76
+        },
+        {
+          "height": 354,
+          "width": 604,
+          "x": 8,
+          "y": 438
+        }
+      ]
+    },
+    {
+      "name": "corner tabs rows",
+      "pass": true,
+      "data": [
+        {
+          "height": 36,
+          "width": 37,
+          "x": 575,
+          "y": 394
+        },
+        {
+          "height": 36,
+          "width": 144,
+          "x": 468,
+          "y": 756
+        }
+      ]
+    },
+    {
+      "name": "no header bars rows",
+      "pass": true
+    },
+    {
+      "name": "one outline rows",
+      "pass": true
+    },
+    {
+      "name": "focus controls rows",
+      "pass": true
+    }
+  ],
+  "error": "Error: timeout Browser.setWindowBounds"
+}

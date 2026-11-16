@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+const [repo,commit,log,receiptFile,outputFile]=process.argv.slice(2);
+assert.match(commit,/^[a-f0-9]{40}$/);
+const source=execFileSync('git',['show',`${commit}:src/main/tabsync-model.js`],{cwd:repo,encoding:'utf8'});
+const receipt=JSON.parse(fs.readFileSync(receiptFile,'utf8'));
+assert.equal(receipt.sourceSha256,crypto.createHash('sha256').update(source).digest('hex'));
+const module={exports:{}};Function('module','Buffer',source)(module,Buffer);
+const input={updatedAt:1000,name:'n'.repeat(79)+'😀',platform:'darwin',tabs:[{url:'https://example.org',title:'t'.repeat(199)+'😀'}],groups:[]};
+const expected=JSON.stringify(module.exports.sanitizeEntry(input));
+const native=fs.readFileSync(log,'utf8').split('\n').find(line=>line.startsWith('{'));
+assert.equal(native,expected);
+const result={pass:true,sourceCommit:commit,sourceSha256:receipt.sourceSha256,comparison:'byte-exact JSON.stringify of released model sanitizer with split UTF16 surrogate boundaries in name and title',nativeEngine:'cached Chromium158 Gin/V8',reference:'released pure model under bundled Node24; no Electron process',nativeJsonLoneSurrogateProbe:true,nativeUtf8LengthOfLoneSurrogate:3,appIntegrated:false};
+fs.writeFileSync(outputFile,JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result));

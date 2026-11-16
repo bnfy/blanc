@@ -1,0 +1,42 @@
+[
+  {
+    "path": "components/metrics/persistent_system_profile.cc",
+    "sha256": "b8176394fa3abc7efd4b5dcc64c28d5b857719f08a13c3ae4650fa571f62b0ae",
+    "matchesPinnedUpstream": true
+  },
+  {
+    "path": "base/metrics/persistent_memory_allocator.cc",
+    "sha256": "6c203753c2cba58272d61c6ebf7adec3ac2065eba0f8f5d5348935c1a1eb8bf1",
+    "matchesPinnedUpstream": true
+  },
+  {
+    "path": "content/browser/file_system_access/file_system_access_manager_impl.cc",
+    "sha256": "f7a6d21059143886d18b98cdb06e522c0a5c1265ffc665c74e5e7a20f2e0f36e",
+    "matchesPinnedUpstream": true
+  },
+  {
+    "path": "content/browser/file_system_access/file_system_access_manager_impl.h",
+    "sha256": "f361b6853270f6e9fd1892a3db791e0dde295e28954a852615ef8c8c4301b8ac",
+    "matchesPinnedUpstream": true
+  },
+  {
+    "path": "ui/views/controls/menu/menu_runner_impl.cc",
+    "sha256": "775085e29bf348c26316ce09b71f583aaa071eba803d1ba72ca2e571e262cc14",
+    "matchesPinnedUpstream": true
+  },
+  {
+    "path": "media/base/cdm_promise_adapter.cc",
+    "sha256": "493e39957fdc99f95229f5b9d92b140c8004a312da35a74a6af55e314fef8d94",
+    "matchesPinnedUpstream": true
+  },
+  {
+    "path": "cc/tiles/image_controller.cc",
+    "sha256": "fe348b3884da80303ea70da1d82dcf9b742ecf181d0dbf24ee765f9f88ab0a13",
+    "matchesPinnedUpstream": true
+  },
+  {
+    "path": "cc/tiles/image_controller.h",
+    "sha256": "7e4425abe23959665d31cc31131b66a9bcf41586e5c0dcf7ae3a0e0b02be9740",
+    "matchesPinnedUpstream": true
+  }
+]

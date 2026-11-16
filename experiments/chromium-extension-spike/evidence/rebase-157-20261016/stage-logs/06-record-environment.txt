@@ -1,0 +1,4 @@
+Recorded build environment: /Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/.blanc-build-environment.json
+Xcode 27.1
+Build version 27A9275
+No build started.

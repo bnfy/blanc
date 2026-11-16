@@ -1,0 +1,93 @@
+{
+  "stable": true,
+  "faults": [],
+  "requestCount": 6,
+  "oracle": [
+    {
+      "id": "21ca7b300d578661865a5e6400e345f6a68354a4a0947c7bbbd9544a6f2d8f08",
+      "context": {
+        "url": "https://page.blanc-fixture.test/pilot.html",
+        "method": "GET",
+        "resource_type": "mainFrame",
+        "initiator_origin": "absent",
+        "top_frame_origin": "https://page.blanc-fixture.test",
+        "frame_role": "main",
+        "profile_kind": "private",
+        "redirect_index": 0
+      },
+      "decision": "allow"
+    },
+    {
+      "id": "e60a6a4d4def6b0e48908274f809fd0ac5468de7773fdd421fffc6842e99937c",
+      "context": {
+        "url": "https://asset.blanc-fixture.test/control.js",
+        "method": "GET",
+        "resource_type": "script",
+        "initiator_origin": "https://page.blanc-fixture.test",
+        "top_frame_origin": "https://page.blanc-fixture.test",
+        "frame_role": "main",
+        "profile_kind": "private",
+        "redirect_index": 0
+      },
+      "decision": "allow"
+    },
+    {
+      "id": "1a4f7d3e9d4cbe27088bb1fe2322ea3e5a0e81f6545aadd0e3484a59d5852b8a",
+      "context": {
+        "url": "https://ad.doubleclick.net/advertisement.js",
+        "method": "GET",
+        "resource_type": "script",
+        "initiator_origin": "https://page.blanc-fixture.test",
+        "top_frame_origin": "https://page.blanc-fixture.test",
+        "frame_role": "main",
+        "profile_kind": "private",
+        "redirect_index": 0
+      },
+      "decision": "block"
+    },
+    {
+      "id": "8bc5b5cfdbcbf675d38a86020de1438131d3be511c22ca58ad79670b369ea395",
+      "context": {
+        "url": "https://asset.blanc-fixture.test/data.json",
+        "method": "GET",
+        "resource_type": "xhr",
+        "initiator_origin": "https://page.blanc-fixture.test",
+        "top_frame_origin": "https://page.blanc-fixture.test",
+        "frame_role": "main",
+        "profile_kind": "private",
+        "redirect_index": 0
+      },
+      "decision": "allow"
+    },
+    {
+      "id": "4ea0ee9b162433e518cf79be65a080f2c7065534cb1798fd01fb81c3277217ce",
+      "context": {
+        "url": "https://asset.blanc-fixture.test/no-referrer.json",
+        "method": "GET",
+        "resource_type": "xhr",
+        "initiator_origin": "https://page.blanc-fixture.test",
+        "top_frame_origin": "https://page.blanc-fixture.test",
+        "frame_role": "main",
+        "profile_kind": "private",
+        "redirect_index": 0
+      },
+      "decision": "allow"
+    },
+    {
+      "id": "f4fccaf8744173ec908c7c6f1747b5746a3542831c5d44a702e9097ef91125c8",
+      "context": {
+        "url": "https://doubleclick.net/pagead/ads?client=fixture",
+        "method": "GET",
+        "resource_type": "xhr",
+        "initiator_origin": "https://page.blanc-fixture.test",
+        "top_frame_origin": "https://page.blanc-fixture.test",
+        "frame_role": "main",
+        "profile_kind": "private",
+        "redirect_index": 0
+      },
+      "decision": "block"
+    }
+  ],
+  "captureProvenanceVerified": false,
+  "scope": "single main frame; no redirects, repeated-context ambiguity, workers or opaque origins"
+}

@@ -1,0 +1,19 @@
+{
+  "removedAppCopies": [
+    "Blanc Chromium Preview.app",
+    "fixed/Blanc Chromium Preview.app",
+    "relocated/Blanc Chromium Preview.app",
+    "final/Blanc Chromium Preview.app",
+    "final-relocated/Blanc Chromium Preview.app"
+  ],
+  "retainedProfile": "/private/tmp/blanc-pending-tab-repair/final-relocated-profile",
+  "before": {
+    "Local State": "4b8e65187c177a29a37da257b67d89a7dbcf4e783778f3f5b4eac4d9ab0d337c",
+    "Default/Preferences": "b904772b489d3f8fab793e12b0255001187a8840ae054e6ef6776d02f157f48d"
+  },
+  "after": {
+    "Local State": "4b8e65187c177a29a37da257b67d89a7dbcf4e783778f3f5b4eac4d9ab0d337c",
+    "Default/Preferences": "b904772b489d3f8fab793e12b0255001187a8840ae054e6ef6776d02f157f48d"
+  },
+  "unchanged": true
+}

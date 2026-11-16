@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "checks": [
+    "clear removes registered CSS",
+    "clearAll removes registered CSS",
+    "disallowed insertion skipped",
+    "revoked pending insertion removed"
+  ],
+  "sourceSha256": "c6ffe7422da74ddae0438380e7e778e379a21f5cd83e3297ef74afbcecbd3c43"
+}

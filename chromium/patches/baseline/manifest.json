@@ -1,0 +1,728 @@
+{
+  "upstream": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
+  "qualification": "source reconstruction only; not built or promoted",
+  "excludedOverlayJournalSha256": "61007c7b9a515ba50f69d1fa694b388baab6ca898ad183182cf0b4b74228626c",
+  "patchSha256": "bd4b6f3a4a39a837af593d24ac74ac45f134ab975bb1cc57e4bfe73e4bbdd117",
+  "files": [
+    {
+      "path": "chrome/android/java/src/org/chromium/chrome/browser/common/ChromeIsolatedWorldIds.java",
+      "kind": "tracked",
+      "sha256": "4b4022b69ac8898c90651117193147079529b85e799f98ee97038cb8783fc367",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/app/app-Info.plist",
+      "kind": "tracked",
+      "sha256": "2995c3a86a27fa73381041bf754fff7dd88d217bfac1d98cc3bd92d0e8e4e2dc",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/app/theme/chromium/BRANDING",
+      "kind": "tracked",
+      "sha256": "f5f8523b018bad98267740d3942625a29f8a24b14599feafa93e5410c9926b8b",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/app/theme/chromium/mac/Assets.car",
+      "kind": "tracked",
+      "sha256": "78e0f110a403ff1f6febdf819d60e2ff7a01d224a6dba70b0629862b19efe42a",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/app/theme/chromium/mac/app.icns",
+      "kind": "tracked",
+      "sha256": "d34201f7710f10d7943193f4afb3bda378acba1b96381468245f553d7234a8c1",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/BUILD.gn",
+      "kind": "tracked",
+      "sha256": "6516cc16881add44a40b27e50580c961fdae31ba320cd43d995ae8dd4fd4582d",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/app_controller_mac.mm",
+      "kind": "tracked",
+      "sha256": "7533626ede0692862ae0adf5ef032999bd93ffcbff276b968eab8a53f22e5eff",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/chrome_content_browser_client.cc",
+      "kind": "tracked",
+      "sha256": "559eb78e69811a64c9e203d54d4bd139d81de729f9e27453abc356cbbcbd4677",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/chrome_content_browser_client_receiver_bindings.cc",
+      "kind": "tracked",
+      "sha256": "da15bac36ba23ec63ebc61183555059338f53ba549c571ec131526bf420ba2e5",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/extensions/component_extensions_allowlist/allowlist.cc",
+      "kind": "tracked",
+      "sha256": "124e5beaa908607a036825281a6e83841ab50c19205961e2d32491db20aeab43",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/extensions/component_loader.cc",
+      "kind": "tracked",
+      "sha256": "8cf34aa22ddedb1726a31fbf3c7ccd0191a62e3536e1aaca3a4df5c7bd6e9fb5",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/lifetime/application_lifetime_desktop.cc",
+      "kind": "tracked",
+      "sha256": "1f96b198dbb40fb181e885b4065fc857a4754c925bfad00470c9b65538777089",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/prefs/browser_prefs.cc",
+      "kind": "tracked",
+      "sha256": "27acd2b517972724e41d7a07fb1d407df3e517e058bb157e54a459ee5c286c3c",
+      "origin": "verified preimage before unbuilt overlay"
+    },
+    {
+      "path": "chrome/browser/prefs/session_startup_pref.cc",
+      "kind": "tracked",
+      "sha256": "83be2113170f79ede585d543cd3d3aa1f29c8bd87c4e950ffc42d72e3426f4a8",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/resources/glic/glic_api_impl/generate_impl/BUILD.gn",
+      "kind": "tracked",
+      "sha256": "0f1cc67ae3d32fb047f96fd34aec47005b0df71ae91816e30613c48e4710b547",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/search/search.cc",
+      "kind": "tracked",
+      "sha256": "655828d06178bce8ab2a1433a7eedb7d38b8576629dbeb0d74b222e56685ed00",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/sessions/session_restore.cc",
+      "kind": "tracked",
+      "sha256": "6eae814d0dc4788cb170d38c37252da1132916f1e25365d5cc32ae87d34d9974",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/sessions/session_service.cc",
+      "kind": "tracked",
+      "sha256": "9f076304bc69d0bc74c1a6eb38c3e03d35b260b8d4ae90161c5db77661b65d10",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/sessions/session_service_base.cc",
+      "kind": "tracked",
+      "sha256": "e6a87bf47669c8c115455d3e756ec31bf78a28c5ac7bb67e58b757e6b2a82fdf",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/sessions/session_service_base.h",
+      "kind": "tracked",
+      "sha256": "5cf8d680e2e129c3bc9d3833270cf1c6f087b1fe8f2b975d22f2cf06267531e7",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/BUILD.gn",
+      "kind": "tracked",
+      "sha256": "b7788518af671e78cb3fd40fb05c4cb2ecb14d508347286dcee8bde437b69712",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/browser_command_controller.cc",
+      "kind": "tracked",
+      "sha256": "c4634d7dc5405e322db49d7ccac48be406099863843ffd781b2256d75c7d60f0",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/browser_commands.cc",
+      "kind": "tracked",
+      "sha256": "b80c86053124e61e2b262f73f3d5f08f4da48f9a071c57a4e643e377b922f336",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/browser_live_tab_context.cc",
+      "kind": "tracked",
+      "sha256": "f2e9230b0514677484b4379c21899c146563fafb7b1de5f64a674cc433068693",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/browser_tab_restorer.cc",
+      "kind": "tracked",
+      "sha256": "f54aae677403119e264403aa49036bd6d91edae9979a25adf1bb6026db6891a6",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/omnibox/omnibox_everywhere/omnibox_everywhere_controller.cc",
+      "kind": "tracked",
+      "sha256": "1a68221e0b60f5bb716638e6017d75cac1eee203b7bb9cf7ba402a780eb90c68",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/omnibox/omnibox_next_features.cc",
+      "kind": "tracked",
+      "sha256": "66c41d1303dc45f18ed307f1b15f3c620a08f9b0c0219ec2fe1e9d5683ba74af",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/startup/startup_browser_creator.cc",
+      "kind": "tracked",
+      "sha256": "95c60d0bdae303e097e74ef843ee19976552efbe2420a7c30cd9acc76d3b5f74",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/startup/startup_browser_creator_impl.cc",
+      "kind": "tracked",
+      "sha256": "bd86e0b886b1d4687e025a83e79a5f62fd604946afca5c01a4b064ecbc11fc8a",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/views/extensions/extensions_toolbar_button.cc",
+      "kind": "tracked",
+      "sha256": "531460dfe405f7525e2fc9d1c169523da20482788be3c168f6b3c2bbc926ec3e",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/views/extensions/extensions_toolbar_button.h",
+      "kind": "tracked",
+      "sha256": "6bfa41a9432e2337abbc7297586a5a9d0ce956bf3fbe03d6d0acb6d81ce3b4a0",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc",
+      "kind": "tracked",
+      "sha256": "8c52244be84542ce99b54e12137ae43122a409a0e6500aaf1f1eac667d733e7a",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/BUILD.gn",
+      "kind": "tracked",
+      "sha256": "6de7ae41ac1fd86ef0062adc5b4212f89af7009c641f9c013d3821092f5ed69d",
+      "origin": "verified preimage before unbuilt overlay"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/browser_frame_view_mac.mm",
+      "kind": "tracked",
+      "sha256": "b2121d1f6f68127c3b50a677f418be19ebd00ad729163b62c213434537be6f8c",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/browser_native_widget_mac.mm",
+      "kind": "tracked",
+      "sha256": "9328de2e5b2b4d60c7abe5cfa3418145c738b15b9f96cf6dc552da23cd723f7e",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/browser_view.cc",
+      "kind": "tracked",
+      "sha256": "d776939f8903c816cd81f4c80250b9ada2d554e2ac6c7b34371cf4aa4b98f020",
+      "origin": "verified preimage before unbuilt overlay"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc",
+      "kind": "tracked",
+      "sha256": "955b9949ad9c91dff52411cf52b17acafc6986ecafbf0e4ae8fc8c7999661478",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/multi_contents_view.cc",
+      "kind": "tracked",
+      "sha256": "a3f07c05598acaafac676233f1de436fbe31dba0108a9e5781a8b0b6ba1dff9f",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/webui/chrome_web_ui_configs.cc",
+      "kind": "tracked",
+      "sha256": "305dc46528eb9a80f7f887c2206e85e43d6c63055cc825cafb6693f8df73e2ea",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/window_feature_controller/window_feature_controller.cc",
+      "kind": "tracked",
+      "sha256": "a341d1a231e70e40f55d43c602d701f9263c3c52e22ede0b9cf54e104d72f5a7",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/common/chrome_isolated_world_ids.h",
+      "kind": "tracked",
+      "sha256": "072b9ced507ac197d9ac158f1a1f9bf4be28179fbe401f7b3675322d12001fdb",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/renderer/BUILD.gn",
+      "kind": "tracked",
+      "sha256": "a1f4e3e45aab11b5583844f73b80c4c272c76ed6dfe8ea672cf1492c066cf2a2",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/renderer/chrome_content_renderer_client.cc",
+      "kind": "tracked",
+      "sha256": "b6573dd1141200331a01da6088a1ab5a324507d8c840df9eb76a44ee8caf63cb",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/utility/BUILD.gn",
+      "kind": "tracked",
+      "sha256": "df3649967382a8af49f6852f4840aa5b3b4dbc89967ce0aba5d23c2083c5d68a",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/utility/services.cc",
+      "kind": "tracked",
+      "sha256": "8b8a69b52b12a36dcba2419827e4140c6301fc47cbe31bcbfc7c8bf1655b14e5",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "components/os_crypt/common/keychain_password_mac.mm",
+      "kind": "tracked",
+      "sha256": "d904c1c0b2d077d77315f2f97465184a6696a9b0e978d53d828096eb162c0ee5",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "components/remote_cocoa/app_shim/browser_native_widget_window_mac.mm",
+      "kind": "tracked",
+      "sha256": "c78b489abc4f9264cb9273bbe2188f810d196000afb0c9c2726aad1b3036c815",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "components/sessions/content/content_serialized_navigation_builder.cc",
+      "kind": "tracked",
+      "sha256": "a9c8e70bbdb92dee4ba215d026e00d7fc769de80d6fdb3c4660a27cca940894c",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "components/sessions/core/command_storage_backend.cc",
+      "kind": "tracked",
+      "sha256": "1ffa17f784eceebaaf5f3d92a5a8bfa6ba085f05aba5d223e4c2718f3801dd62",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "components/sessions/core/command_storage_backend.h",
+      "kind": "tracked",
+      "sha256": "c6155b0885b12189609b4240457381c2d40576cac2e74ecb44a16d59ae1d08a5",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "components/sessions/core/command_storage_manager.cc",
+      "kind": "tracked",
+      "sha256": "dc0fd010024eb95de156c55eb632a4c5cf7c5cbddd16f208ecb5d383ff15fac3",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "components/sessions/core/command_storage_manager.h",
+      "kind": "tracked",
+      "sha256": "bd38efe6f687d3efe1c02228215dacc2818579e8ecbef53d1dac5b0d2d9007e0",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "components/sessions/core/tab_restore_service.h",
+      "kind": "tracked",
+      "sha256": "57a0e44cef8755e30b63bec80f6210e94058295e261ad38d636d284cd4d9a457",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "components/sessions/core/tab_restore_service_impl.cc",
+      "kind": "tracked",
+      "sha256": "f3e25df8b0079c17f36506ec15ae37d0c97702c725e5fb714ab917f82ac80735",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "components/sessions/core/tab_restore_service_impl.h",
+      "kind": "tracked",
+      "sha256": "0ed35e674a00d329ac0c0dfece0eb1ed8685373beae73090c697a4935ea5460b",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "content/app_shim_remote_cocoa/web_contents_view_cocoa.mm",
+      "kind": "tracked",
+      "sha256": "8c89435c1e843c6b9238f089e500514cbdccfa678dee597b51354c80d6c78251",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "content/browser/devtools/devtools_url_loader_interceptor.cc",
+      "kind": "tracked",
+      "sha256": "73dca4c2c65aa0be79f7ed6dbd5b4281a2d39cde01395d7eb86205bdb3f9d121",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "content/browser/loader/navigation_url_loader_impl.cc",
+      "kind": "tracked",
+      "sha256": "f35177093a2c4e261f0d4b4a65bc5fc7c7c03404b5becd142bcae39648d12e92",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "content/browser/loader/url_loader_factory_utils.cc",
+      "kind": "tracked",
+      "sha256": "5267120887056bdffaa55556ba2f57a3630d1a1c0d4fbcd2f2db130964eef457",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "content/browser/loader/url_loader_factory_utils.h",
+      "kind": "tracked",
+      "sha256": "2f2f129a281de976e9e07c695b8d76e3ef6bad973da9f5d81dbed63926530845",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "content/browser/renderer_host/render_frame_host_impl.cc",
+      "kind": "tracked",
+      "sha256": "511adf25966ed52ab12a13b8c02b2727082724642d11102126372e0ee9319602",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "content/browser/service_worker/service_worker_update_checker.cc",
+      "kind": "tracked",
+      "sha256": "d71c2a8eddf11bd4ba011579e79a0a07f6640d95c98059160df350f72bcdd71d",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "content/browser/web_contents/web_contents_view_mac.h",
+      "kind": "tracked",
+      "sha256": "ebaed625aae5a937d35ea743799c5058ee843b5f4becbd6591c2af001e7fd04d",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "content/browser/web_contents/web_contents_view_mac.mm",
+      "kind": "tracked",
+      "sha256": "d4fe1a289ba0ab7ee5fa505214e96e9163a8841c5a01728d29a0a51cb5e1cb9c",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "content/browser/web_contents/web_contents_view_mac_unittest.mm",
+      "kind": "tracked",
+      "sha256": "794b02744c21dc57e736d92d85834db5ffd0eb3e01a4fba8144b18024a4be283",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "content/browser/websockets/websocket_connector_impl.cc",
+      "kind": "tracked",
+      "sha256": "cba18aae1deaebd320448ad1535886cf69fe97fc5f264d65b237ed864399dc88",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "content/public/browser/BUILD.gn",
+      "kind": "tracked",
+      "sha256": "b10f65c69e7123e729d36f506d2b3d016b070851ed27043baa00a6b02a3b7ccd",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "extensions/browser/api/execute_code_function.cc",
+      "kind": "tracked",
+      "sha256": "86fc6855a5f62c02a6d051b0805593369c448bee705a56caf913b74045dffc55",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "extensions/browser/script_executor.cc",
+      "kind": "tracked",
+      "sha256": "964185f58be1a68f54db96de9e5aba7b982fa9dfd73e5c541dcb72c8f4fa3b4a",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "extensions/browser/script_executor.h",
+      "kind": "tracked",
+      "sha256": "23b1705c8db172ab266bb9ceb296d9fb6a463292d52635d2aa1f4c0c366e75f7",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "extensions/common/api/extension_types.json",
+      "kind": "tracked",
+      "sha256": "4d0839720a4927d6477d894ce5d590df5d6932e61e50edd8a82f8f120aa7e485",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "extensions/common/mojom/frame.mojom",
+      "kind": "tracked",
+      "sha256": "c400f0c155420f69b944f5474288743cdcfc8b93f72e1c297a25c3efb6655bc4",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "extensions/renderer/programmatic_script_injector.cc",
+      "kind": "tracked",
+      "sha256": "263adeb4532ce3d1f001420b8a02441d89d8fbaa5e9a64ad7d2a5463a5f01f51",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "extensions/renderer/script_injection.cc",
+      "kind": "tracked",
+      "sha256": "b9aa0589756b0514a3509b67b9157263a3bb28b1268e53225d1b54f88d2bf131",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "ui/base/cocoa/views_hostable.h",
+      "kind": "tracked",
+      "sha256": "4f640f0ba4831713e172687a39635354962ca882e0a43fac804564a7c852026c",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "ui/views/controls/native/native_view_host_mac.h",
+      "kind": "tracked",
+      "sha256": "96d69c1168ef8c49a860a353e25b44101931b704f9208c90901018c5328b896d",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "ui/views/controls/native/native_view_host_mac.mm",
+      "kind": "tracked",
+      "sha256": "4653dfb7085c798cc6b0bea832f1b74e453f3a6f8d6c4509c6527834ded3c2a3",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "ui/views/controls/native/native_view_host_mac_unittest.mm",
+      "kind": "tracked",
+      "sha256": "eeeee2a3282635cd68e01d4665f6d4f0a0c40d340475591ec4a8bd4a388bf714",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "ui/webui/resources/tools/eslint/BUILD.gn",
+      "kind": "tracked",
+      "sha256": "ed3f1b6301d3c33ade0df432eaadfe7d899e91a41d67a35d3164c87ef24eb3de",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/billboard_clock_settings.inc",
+      "kind": "added",
+      "sha256": "57ce0ed0160903e1b90c3d65fd5cd7cd33218d5774a3b2d8fdb448b0d49c9892",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/blanc_extensions_branding.h",
+      "kind": "added",
+      "sha256": "17d77bbc267d13477a24bd971021f2291c505567a32383229505c13b53238a02",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/blanc_prototype_ui.cc",
+      "kind": "added",
+      "sha256": "0e690b4e19f2a6b59628417cdbac870f337bbb8caf151679eb50ce266f0e56b7",
+      "origin": "verified preimage before unbuilt overlay"
+    },
+    {
+      "path": "chrome/browser/ui/blanc_prototype_ui.h",
+      "kind": "added",
+      "sha256": "106357b2ed86cb55423a188e4b14d1222da7875f246fa451ac18cfa5514cee8a",
+      "origin": "verified preimage before unbuilt overlay"
+    },
+    {
+      "path": "chrome/browser/ui/blanc_quiet_media.h",
+      "kind": "added",
+      "sha256": "8fb187c5b49e762de12f5db114149ac462b06c9ca16f16a78ef50363a80e061f",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/blanc_quiet_probe.h",
+      "kind": "added",
+      "sha256": "47467fe0a2004e804cda235613a0aea6b88d494b84b3608bf6af991a6aa07dfd",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/blanc_quiet_schedule.h",
+      "kind": "added",
+      "sha256": "f5e3c6919a752eb63393cd7c1d4e54436746ce79179fb3d16fbd2df7c0c3fcc4",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/blanc_quiet_strings.h",
+      "kind": "added",
+      "sha256": "3daaf170f6545b9de664dc49a35eb31e463a860cc456d38d1f8524c61089d446",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/blanc_tab_name_rules.h",
+      "kind": "added",
+      "sha256": "374c5064e93cb2ab5c36c7ea1edfb338e65cb25db57ca2459dab5707513aeed6",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/blanc_webstore_promotion.h",
+      "kind": "added",
+      "sha256": "2095cbea3733a7e78bf76b77ff80c039389a18e2633128980ee440898c11c9b6",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/blocking_settings_handler.inc",
+      "kind": "added",
+      "sha256": "d2e7aa6c3ed0f842b54db9d78f1f9a8da451f94e1c160a4520a45a4f2c53e7ec",
+      "origin": "verified preimage before unbuilt overlay"
+    },
+    {
+      "path": "chrome/browser/ui/modules/custom_template.cc",
+      "kind": "added",
+      "sha256": "cfecac0516a96d6eb62f9ed0f0171dccb3f9ac12747a652fc600a7c516277c0c",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/modules/custom_template.h",
+      "kind": "added",
+      "sha256": "d5e4d9e602a7fd74c604a6bfb44da5305e1402b828ecd9df8f080d30d10454ca",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/modules/selected_custom.cc",
+      "kind": "added",
+      "sha256": "f0adf7f8298beefa82f6662fdc22bda965fe505d6356e91e7a21baa277beba40",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/modules/selected_custom.h",
+      "kind": "added",
+      "sha256": "9ab2ad9c99cf640cef07947f4ec9782bf6a28a0d94e22f47b1cdc3a5d03e6e92",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/modules/selected_shipping.cc",
+      "kind": "added",
+      "sha256": "a3ec9e9244ae62205994c9e475ab85046479c661cb9419222d045c1b924e194d",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/modules/selected_shipping.h",
+      "kind": "added",
+      "sha256": "22cf60920620ed482df8286f9399feba8b595949805db6cdd4139a451147b7ee",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/modules/selected_shipping_browser.cc",
+      "kind": "added",
+      "sha256": "950d071452d53421a68f9887eb65226c8919c31bfa9536b92e81c258cf08a882",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/start_page_pin_menu.inc",
+      "kind": "added",
+      "sha256": "4a53e5d68f1c8556cc63dfee6e4d66b865b38f5e4f83a9685e57ba62cffc534c",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/browser/ui/start_page_pins.inc",
+      "kind": "added",
+      "sha256": "b30b6292d5576cfb3a6dd1c9bd6c0a2560f201405192ccf223cab3f40d244753",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/services/blanc_blocker/BUILD.gn",
+      "kind": "added",
+      "sha256": "266c36cf291a864f3f14afcab2020178f89af0fc20fcec1740cfd7523d47765a",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/services/blanc_blocker/blocker.mojom",
+      "kind": "added",
+      "sha256": "624133c73c4dfe715ce6f069a91fc942a6b4c4b108db6e70f8c2be63fed3aab7",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/services/blanc_blocker/blocker_proxy.cc",
+      "kind": "added",
+      "sha256": "4ee9f5664651322f6299636cf2d5126f683bee87b9d560e67e834e85b358b650",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/services/blanc_blocker/blocker_proxy.h",
+      "kind": "added",
+      "sha256": "efc127393c233feba72f1f09b659a047d8cfb9a1fdad8555fc5b495a4f790b56",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/services/blanc_blocker/blocker_service.cc",
+      "kind": "added",
+      "sha256": "2c2be29ca3c1150ffa28f472a8bcb6fcede85a8250f164b13e9b691a3ef8a884",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/services/blanc_blocker/blocker_service.h",
+      "kind": "added",
+      "sha256": "601b1e0d82d694a01be19a381c239852699768ec78e9b07248347eec23f7e3d2",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/services/blanc_blocker/blocking_policy.inc",
+      "kind": "added",
+      "sha256": "dee602db764a8225c34c7f2960b983acfe598bb8209bcd9c2be71891d376d02b",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/services/blanc_blocker/bundle_hash.h",
+      "kind": "added",
+      "sha256": "a4a84735413cdaac0a7dd126951d0ba5bc303c92bd160df096e851d490c486f9",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/services/blanc_blocker/cosmetic_collector.h",
+      "kind": "added",
+      "sha256": "a0b598f6f0819f554a2294cf86da2c8e7fbc2bad7e012cc6a8ba7508cd75727b",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/services/blanc_blocker/cosmetic_document.inc",
+      "kind": "added",
+      "sha256": "42b24c8d67148ca40d99fc58d69ce0fe5d13fb8faf34c8caa0cd0fc6eb5cc22c",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/services/blanc_blocker/cosmetic_renderer.inc",
+      "kind": "added",
+      "sha256": "c184caab25eff2475c8defc261a5547bab247565bca735a8d980bf957b7699f5",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/services/blanc_blocker/document_start.inc",
+      "kind": "added",
+      "sha256": "91d8f9270dec23afdf443c168c4d22ff389395478499c3003da8aa87cf5c9f83",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/services/blanc_blocker/document_start_renderer.inc",
+      "kind": "added",
+      "sha256": "b7fb8f5710ae687d7f8ebd2f13eb2bc1aab7c7f6de181d295f52c838e26d9459",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/services/blanc_blocker/procedural_renderer.h",
+      "kind": "added",
+      "sha256": "3c3476c00c407fcca73902bcdf4cc59fbc7bba9fc961fc10aff9cb022ac5cc38",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/services/blanc_blocker/shield_count.inc",
+      "kind": "added",
+      "sha256": "e5750d2f6e9f1544fabd9d3980002458ac3da5987c0e148c2e4874da1d489bae",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "chrome/services/blanc_blocker/update_identity.inc",
+      "kind": "added",
+      "sha256": "f4a4c29a41d6a0a1120bc40c387003d5b732b6aa16c2376fe8fbaf90a0dd51bd",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "content/browser/service_worker/blanc_update_identity.inc",
+      "kind": "added",
+      "sha256": "f4a4c29a41d6a0a1120bc40c387003d5b732b6aa16c2376fe8fbaf90a0dd51bd",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "content/public/browser/blanc_document_token.h",
+      "kind": "added",
+      "sha256": "7fba8c8ac526416683e43128737e4c5ce06e8228910fa4ccd952d1ac5d58de1c",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "content/public/browser/blanc_url_loader_gate.h",
+      "kind": "added",
+      "sha256": "f7237607aa43df79e905a0e9fef918f196626b3c0de203c2353c79fdca010b48",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "content/public/browser/blanc_websocket_gate.h",
+      "kind": "added",
+      "sha256": "2e542a56bb7527d2c70f7a8635fe9b689cda749887dd659cce3f45485ff768b2",
+      "origin": "cached checkout"
+    },
+    {
+      "path": "content/public/common/blanc_research_build.h",
+      "kind": "added",
+      "sha256": "27665fabd5e87d6733f2f26ca2256eb4b1b3fe32305c83290db0eda37aba68a6",
+      "origin": "cached checkout"
+    }
+  ]
+}

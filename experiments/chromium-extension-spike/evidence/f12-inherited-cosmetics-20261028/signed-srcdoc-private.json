@@ -1,0 +1,48 @@
+{
+  "kind": "private",
+  "binary": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/cosmetic-combined-20261028/Blanc Chromium Preview.app/Contents/MacOS/Blanc Preview Launcher",
+  "args": [
+    "--host-resolver-rules=MAP cosmetic.example 127.0.0.1, MAP accuweather.com 127.0.0.1, MAP neutral.example 127.0.0.1",
+    "--no-proxy-server",
+    "--user-data-dir=/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/evidence/cosmetic-combined-signed-srcdoc-private/profile",
+    "--remote-debugging-port=56622",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--use-mock-keychain",
+    "--incognito",
+    "http://cosmetic.example:56623/start"
+  ],
+  "checks": [
+    {
+      "name": "healthy request reaches fixture",
+      "pass": true
+    },
+    {
+      "name": "health is ready",
+      "pass": true
+    },
+    {
+      "name": "srcdoc inherited origin selects parent scriptlet",
+      "pass": true
+    },
+    {
+      "name": "srcdoc receives cosmetic CSS",
+      "pass": true
+    },
+    {
+      "name": "opaque sandbox does not inherit parent scriptlets",
+      "pass": true
+    },
+    {
+      "name": "opaque sandbox receives no inherited cosmetic selection",
+      "pass": true
+    }
+  ],
+  "complete": true,
+  "stage": "affected inherited-origin cosmetics controls",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "requestCount": 4
+}

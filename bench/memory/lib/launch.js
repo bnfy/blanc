@@ -22,7 +22,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { spawn } = require('node:child_process');
+const { spawn, execFile } = require('node:child_process');
 
 /** Prefs shared by every Gecko profile: keep first-run pages, update checks and
  *  telemetry pings from adding tabs or background work mid-measurement.
@@ -74,18 +74,27 @@ function geckoUserJs(urls, extraPrefs = {}) {
  *
  * @param {object} browser registry entry
  * @param {{profileDir: string, urls: string[]}} context
+ * @param {string} [platform] defaults to macOS so the result is the same on any host
  * @returns {{args: string[], files: Array<{path: string, contents: string}>, tabCount: number}}
  */
-function buildLaunchPlan(browser, context) {
+function buildLaunchPlan(browser, context, platform = 'darwin') {
   const { profileDir, urls } = context;
   const extra = Number(browser.extraBlankTabs) || 0;
 
   if (browser.family === 'chromium' || browser.family === 'blanc') {
+    // Electron on Windows exits with -1, before the app's own code runs, when
+    // more than one URL follows the switches without a `--` first (its
+    // CVE-2018-1000006 guard; src/main/startup-urls.js documents it, and a
+    // hosted-runner probe confirmed it: one URL ran, two or more exited at once
+    // with no output). Chrome and the other Chromium browsers are not Electron
+    // and take plain positional URLs, so only the blanc family gets it.
+    const separator = platform === 'win32' && browser.family === 'blanc' && urls.length ? ['--'] : [];
     const args = [
       `--user-data-dir=${profileDir}`,
       '--no-first-run',
       '--no-default-browser-check',
       ...(browser.extraArgs || []),
+      ...separator,
       ...urls,
     ];
     return { args, files: [], tabCount: urls.length + extra };
@@ -140,13 +149,37 @@ function staleProfileArtifacts(browser, profileDir) {
   ];
 }
 
-/** Absolute path to the executable inside a macOS .app bundle. */
-function executablePath(browser) {
+/**
+ * Absolute path to the executable: inside a macOS .app bundle, or directly in a
+ * Windows install directory.
+ *
+ * @param {object} browser
+ * @param {string} [platform] defaults to macOS so the result is the same on any host
+ */
+function executablePath(browser, platform = 'darwin') {
   if (browser.binary) return browser.binary;
   if (!browser.bundlePath || !browser.executableName) {
     throw new Error(`Browser ${browser.id} needs either binary, or bundlePath + executableName`);
   }
+  if (platform === 'win32') return path.win32.join(browser.bundlePath, browser.executableName);
   return path.join(browser.bundlePath, 'Contents', 'MacOS', browser.executableName);
+}
+
+/**
+ * How to ask a browser to exit politely.
+ *
+ * On Windows `process.kill(pid, 'SIGTERM')` is TerminateProcess: the process is
+ * simply ended, with none of the shutdown a browser runs when its window closes.
+ * That is not harmless here, because the harness reads each browser's visit log
+ * after it quits — a hard kill can lose the newest visits and fail a good cell as
+ * "page not loaded". `taskkill /PID` without /F posts WM_CLOSE to the process's
+ * windows, which is what clicking the close button does.
+ *
+ * @returns {{command: string, args: string[]} | {signal: string}}
+ */
+function gracefulExit(pid, platform = 'darwin') {
+  if (platform === 'win32') return { command: 'taskkill', args: ['/PID', String(pid)] };
+  return { signal: 'SIGTERM' };
 }
 
 /**
@@ -159,14 +192,14 @@ function executablePath(browser) {
  * @returns {Promise<{pid: number, child: import('node:child_process').ChildProcess, tabCount: number, argv: string[]}>}
  */
 async function launch(browser, { profileDir, urls }) {
-  const plan = buildLaunchPlan(browser, { profileDir, urls });
+  const plan = buildLaunchPlan(browser, { profileDir, urls }, process.platform);
   fs.mkdirSync(profileDir, { recursive: true });
   for (const file of plan.files) {
     fs.mkdirSync(path.dirname(file.path), { recursive: true });
     fs.writeFileSync(file.path, file.contents);
   }
 
-  const bin = executablePath(browser);
+  const bin = executablePath(browser, process.platform);
   if (!fs.existsSync(bin)) {
     throw new Error(`${browser.label}: executable not found at ${bin}`);
   }
@@ -182,6 +215,20 @@ async function launch(browser, { profileDir, urls }) {
     detached: false,
   });
   child.on('error', () => {}); // surfaced by the caller's liveness check instead
+  // Neither the child handle nor its stderr pipe may keep this process alive. A
+  // browser that leaves a helper running holds an inherited copy of the pipe open,
+  // and a runner that has finished its work then never exits: one hosted run sat
+  // until its 60-minute timeout for exactly that reason. Data is still delivered
+  // while anything else (every wait in a cell is a timer) keeps the loop going.
+  child.unref();
+  if (child.stderr && typeof child.stderr.unref === 'function') child.stderr.unref();
+
+  // Remembered so a browser that dies at startup can say how: a crash code and a
+  // deliberate exit 0 look identical to a bare liveness check.
+  let exitInfo = null;
+  child.on('exit', (code, signal) => {
+    exitInfo = { code, signal };
+  });
 
   // Drained continuously so a chatty browser cannot fill the pipe and block,
   // but only the tail is retained.
@@ -201,6 +248,7 @@ async function launch(browser, { profileDir, urls }) {
     tabCount: plan.tabCount,
     argv: [bin, ...plan.args],
     stderr: () => stderr.trim(),
+    exitInfo: () => exitInfo,
   };
 }
 
@@ -237,10 +285,23 @@ async function quit(pid, { pids = [], graceMs = 8000, pollMs = 250 } = {}) {
 
   // Ask the root first: a graceful browser shutdown reaps its own helpers, and
   // signalling helpers directly can make the root treat it as a crash.
-  try {
-    process.kill(pid, 'SIGTERM');
-  } catch {
-    /* already gone — fall through to the sweep */
+  const exit = gracefulExit(pid, process.platform);
+  if (exit.command) {
+    // taskkill's own verdict is ignored: it reports an error for a process that
+    // is already gone, and the poll below is what decides whether to insist.
+    await new Promise((resolve) => {
+      try {
+        execFile(exit.command, exit.args, { timeout: 10_000, windowsHide: true }, () => resolve());
+      } catch {
+        resolve();
+      }
+    });
+  } else {
+    try {
+      process.kill(pid, exit.signal);
+    } catch {
+      /* already gone — fall through to the sweep */
+    }
   }
 
   const deadline = Date.now() + graceMs;
@@ -267,6 +328,7 @@ module.exports = {
   staleProfileArtifacts,
   buildLaunchPlan,
   executablePath,
+  gracefulExit,
   launch,
   isAlive,
   quit,

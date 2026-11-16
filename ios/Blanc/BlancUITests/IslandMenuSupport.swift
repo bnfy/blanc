@@ -8,6 +8,22 @@ extension XCUIApplication {
     mark.tap()
   }
 
+  /// Opens the palette (the open Island) and returns its footer's Spaces
+  /// button, whose label names the shown Space ("Space: Work"). The resting
+  /// Island carries no Space mark.
+  @discardableResult
+  func paletteSpacesButton(file: StaticString = #filePath, line: UInt = #line) -> XCUIElement {
+    buttons["pill.palette"].tap()
+    let spaces = buttons["palette.spaces"]
+    XCTAssertTrue(spaces.waitForExistence(timeout: 5), "the palette offers Spaces", file: file, line: line)
+    return spaces
+  }
+
+  /// Opens the Spaces card from the palette's footer.
+  func openSpacesCard(file: StaticString = #filePath, line: UInt = #line) {
+    paletteSpacesButton(file: file, line: line).tap()
+  }
+
   /// Closes an open menu by tapping the page above it.
   func dismissIslandMenu() {
     coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25)).tap()

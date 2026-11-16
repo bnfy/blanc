@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {decodeNativeTiming} from './native-latency-trace.mjs';
+const hash=s=>createHash('sha256').update(s).digest('hex').toUpperCase();
+const context={url:'https://fixture.invalid/resource.js',method:'GET',resource_type:'script',initiator_origin:'https://fixture.invalid',top_frame_origin:'https://fixture.invalid',frame_role:'main',profile_kind:'private',redirect_index:0};
+const reference={referrer:'https://fixture.invalid/page'};const request={requestId:'fixture-1',url:context.url};
+const fields=[context.url,context.method,context.resource_type,context.initiator_origin,context.top_frame_origin,context.frame_role,context.profile_kind,context.redirect_index,reference.referrer];
+const event={args:{request_digest:hash(request.requestId),context_digest:hash(JSON.stringify(fields)),hook_to_decision_us:125,result:1}};
+assert.equal(decodeNativeTiming(event,request,{context},reference).nativeContextDigestVerified,true);
+for(const changed of [{request_digest:hash('wrong')},{context_digest:hash('wrong')},{hook_to_decision_us:-1},{hook_to_decision_us:NaN},{result:2}])assert.throws(()=>decodeNativeTiming({args:{...event.args,...changed}},request,{context},reference));
+assert.throws(()=>decodeNativeTiming(event,{...request,url:'https://different.invalid/'},{context},reference));
+assert.throws(()=>decodeNativeTiming(event,request,{context:{...context,profile_kind:'regular'}},reference));
+assert.throws(()=>decodeNativeTiming(event,request,{context},{referrer:'https://wrong.invalid/'}));
+assert.throws(()=>decodeNativeTiming(event,null,{context},reference));
+console.log('10 timing decoder controls passed: one valid join, nine rejection controls');

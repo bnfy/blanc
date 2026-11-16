@@ -1,0 +1,58 @@
+{
+  "passed": true,
+  "runs": [
+    {
+      "label": "regular-healthy",
+      "distinctNativeStarts": [
+        63943,
+        -8
+      ],
+      "results": [
+        0,
+        0
+      ],
+      "actualFetchRetryServerArrivals": 1,
+      "transportArrivals": 3
+    },
+    {
+      "label": "regular-utility-loss",
+      "distinctNativeStarts": [
+        415497,
+        -8
+      ],
+      "results": [
+        0,
+        -1
+      ],
+      "actualFetchRetryServerArrivals": 0,
+      "transportArrivals": 2
+    },
+    {
+      "label": "private-healthy",
+      "distinctNativeStarts": [
+        776360,
+        -12
+      ],
+      "results": [
+        0,
+        0
+      ],
+      "actualFetchRetryServerArrivals": 1,
+      "transportArrivals": 2
+    },
+    {
+      "label": "private-utility-loss",
+      "distinctNativeStarts": [
+        407424,
+        -12
+      ],
+      "results": [
+        0,
+        -1
+      ],
+      "actualFetchRetryServerArrivals": 0,
+      "transportArrivals": 1
+    }
+  ],
+  "scope": "Offline validation of existing completed traces; no new browser run"
+}

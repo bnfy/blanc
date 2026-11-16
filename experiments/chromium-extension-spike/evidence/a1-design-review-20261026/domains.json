@@ -1,0 +1,942 @@
+{
+  "summary": {
+    "identity_branding": {
+      "files": 5,
+      "hunks": 6
+    },
+    "build_edges": {
+      "files": 5,
+      "hunks": 7
+    },
+    "session_recovery": {
+      "files": 19,
+      "hunks": 51
+    },
+    "native_hit_testing": {
+      "files": 8,
+      "hunks": 10
+    },
+    "network_enforcement": {
+      "files": 8,
+      "hunks": 26
+    },
+    "research_provider_identity": {
+      "files": 10,
+      "hunks": 24
+    },
+    "certificate_policy": {
+      "files": 1,
+      "hunks": 1
+    },
+    "build_compatibility": {
+      "files": 2,
+      "hunks": 2
+    },
+    "island_shell": {
+      "files": 17,
+      "hunks": 57
+    }
+  },
+  "paths": [
+    {
+      "path": "chrome/app/app-Info.plist",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "a854057b23414bd87c5158bfa2dfca23b453bbb15ff132c0eb7f6183583b2532",
+      "working_sha256": "2995c3a86a27fa73381041bf754fff7dd88d217bfac1d98cc3bd92d0e8e4e2dc",
+      "domain": "identity_branding"
+    },
+    {
+      "path": "chrome/app/theme/chromium/BRANDING",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "3f4f115c76d6441b7eb05953e33328ae00e5d7957fe6e6d20764d0263e5c9179",
+      "working_sha256": "f5f8523b018bad98267740d3942625a29f8a24b14599feafa93e5410c9926b8b",
+      "domain": "identity_branding"
+    },
+    {
+      "path": "chrome/app/theme/chromium/mac/Assets.car",
+      "binary": true,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "3ae47349633f1e991eb4a3c4575e0a0346e7470345c18bec1f969e4a0d88a90f",
+      "working_sha256": "78e0f110a403ff1f6febdf819d60e2ff7a01d224a6dba70b0629862b19efe42a",
+      "domain": "identity_branding"
+    },
+    {
+      "path": "chrome/app/theme/chromium/mac/app.icns",
+      "binary": true,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "09f518a0d219b9a2a0b8ced5aca9e35f8323dbe9076f5520e2293bdca548f332",
+      "working_sha256": "d34201f7710f10d7943193f4afb3bda378acba1b96381468245f553d7234a8c1",
+      "domain": "identity_branding"
+    },
+    {
+      "path": "chrome/browser/BUILD.gn",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "f6f020eadec89362ef04bbacaa86c73ca2f67ec663670cc183abbc61763f0adb",
+      "working_sha256": "e199c64fdcb70e4f0597c8b3952a4ad69051b8c2f804529eb5865e0b73d84af0",
+      "domain": "build_edges"
+    },
+    {
+      "path": "chrome/browser/app_controller_mac.mm",
+      "binary": false,
+      "attributes": {
+        "diff": "objc",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "dc0c708db63fa9c3542faa3f5f538d988fa517c875807f2c4754127efdf92d40",
+      "working_sha256": "219abcc34bcaf5d20b71c89016c5ae0c18f63a49b608fd46580c2553e64d1898",
+      "domain": "island_shell"
+    },
+    {
+      "path": "chrome/browser/chrome_content_browser_client.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 7,
+      "patch_sha256": "c6c47f167ad088ddc212547e9425e0533fbfa89445c5f3418890a014ad4ad849",
+      "working_sha256": "2b48f7660b60110ead9d1b3b445e549e5bbc2a8dda3261eff1f1a851bf9f816e",
+      "domain": "network_enforcement"
+    },
+    {
+      "path": "chrome/browser/chrome_content_browser_client_receiver_bindings.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 3,
+      "patch_sha256": "73056c403410e08881617c6c449e137733a79ca85112243232ddc902de4d2f23",
+      "working_sha256": "b38aa8011ca28d0d342d57e55f65d432f3045c35d12a312ffab0df70e3db6ddd",
+      "domain": "network_enforcement"
+    },
+    {
+      "path": "chrome/browser/extensions/component_extensions_allowlist/allowlist.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 3,
+      "patch_sha256": "08310ee11aeab610bc8a0da43fb8de808613ee733c6872151c7e4e8c51e3b36a",
+      "working_sha256": "50fd13e31830ec94e808b6e3236524254c785fe0b4f6780bbc28e08dff1791a7",
+      "domain": "research_provider_identity"
+    },
+    {
+      "path": "chrome/browser/extensions/component_loader.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "190150cc3bdfa59d0b77d9594288022d0fa85132abd9eee6b43cd00de94c411d",
+      "working_sha256": "7758277e044e74d62f52a05a1eca4448daf33f7024d5e9812aac18c0fc44c99d",
+      "domain": "research_provider_identity"
+    },
+    {
+      "path": "chrome/browser/lifetime/application_lifetime_desktop.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "5630d045847b3507c19fbef3ddbd2ee2bedda354086bbebb01fad85634078829",
+      "working_sha256": "8dcbd89599131847890f5da31c5245bbdbb4f1ffa3e230b5d1f5c875484478af",
+      "domain": "session_recovery"
+    },
+    {
+      "path": "chrome/browser/prefs/browser_prefs.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "3121b9f133db6b4af33c65b3c8258ae3d4243691c9869c9dbf558370527ba6d3",
+      "working_sha256": "57c551a071ae955459c5e436f23239271c247e1f6a8d4f736cc406a60ab2480c",
+      "domain": "session_recovery"
+    },
+    {
+      "path": "chrome/browser/prefs/session_startup_pref.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "6caca5d1f25cf2db93dac293219314b4e8ae8d27e19217a4d8d211dac3be932c",
+      "working_sha256": "83be2113170f79ede585d543cd3d3aa1f29c8bd87c4e950ffc42d72e3426f4a8",
+      "domain": "session_recovery"
+    },
+    {
+      "path": "chrome/browser/search/search.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "4111a888d19d9ce4802ee03e1aa4063f8ed65697317e31a305a6ba95a7cfd7d1",
+      "working_sha256": "2408709d1aa7cafa09950af2971058b7ef4b1c2c6f909d251c0472144c5ec34c",
+      "domain": "island_shell"
+    },
+    {
+      "path": "chrome/browser/sessions/session_restore.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 7,
+      "patch_sha256": "7c6dc60a7c2b63706cbb8f2ac46b4357d3ed2b4818ce16cff13523f6d4acae50",
+      "working_sha256": "052fe073bfaddf0e8679ea0a918ca53f076ff61c2efaebdca0cd14cbad591ae0",
+      "domain": "session_recovery"
+    },
+    {
+      "path": "chrome/browser/sessions/session_service.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "5e54cbf8cbece17cdc2d58d465351f5fdc2e4a2a9d0dac52096ed923ffb104f7",
+      "working_sha256": "4ba56cb8362abb9a2941724830547ebfb84d8772b7fe2ea467be0582495efa91",
+      "domain": "session_recovery"
+    },
+    {
+      "path": "chrome/browser/sessions/session_service_base.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 8,
+      "patch_sha256": "c478d4d6e081b474b6f0c4ecc1f5056c45671c4aaccf3056d028719b78c32f23",
+      "working_sha256": "b5a6058cf7e462bcd634b4ccf91161e44f29f9a31491384a0e1b3c5f96736e74",
+      "domain": "session_recovery"
+    },
+    {
+      "path": "chrome/browser/sessions/session_service_base.h",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "cc40d62d7ad2737f1fcb4d7facbb400313b465dc68ffd2d22a6660c7c2883689",
+      "working_sha256": "5cf8d680e2e129c3bc9d3833270cf1c6f087b1fe8f2b975d22f2cf06267531e7",
+      "domain": "session_recovery"
+    },
+    {
+      "path": "chrome/browser/ui/browser_command_controller.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "2220a2cee502bced881bce24ad8760ff9e9483b3fe2b5ce5257f9617378d74fe",
+      "working_sha256": "72b8a84fbc7648c3c6f9e53943b6d20481e899a32f0383aef3e906335bf36f18",
+      "domain": "island_shell"
+    },
+    {
+      "path": "chrome/browser/ui/browser_commands.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 8,
+      "patch_sha256": "88c566bcbccd151b4b0f5245612ade28ca9db397f2ac56627304438115947336",
+      "working_sha256": "c18e799ce8a911526c533b93e5dffcc45f7ec21e5567f7b4d4a04b40c6d0d7bc",
+      "domain": "island_shell"
+    },
+    {
+      "path": "chrome/browser/ui/browser_live_tab_context.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 4,
+      "patch_sha256": "fe01e4c8015c052068e0a2caa349cfb7f783b9f544367bd18ac11a6daadb3c79",
+      "working_sha256": "eea278f9d907dae1855acdf54d6c5c008be907a14310746f20cfe24a382cb941",
+      "domain": "session_recovery"
+    },
+    {
+      "path": "chrome/browser/ui/browser_tab_restorer.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "88087945ef13e903c1fe083de9aeaefec02a2bd4489ef94004aca0416b95cad0",
+      "working_sha256": "1b566da57d884e59b275cfb9b073ba5a23c3110149e7e3e1f73583352ff4f1ca",
+      "domain": "session_recovery"
+    },
+    {
+      "path": "chrome/browser/ui/omnibox/omnibox_everywhere/omnibox_everywhere_controller.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "b31bcfa03dfa407521a19a20054e56b293114ac15545e819c65cbe54288ce030",
+      "working_sha256": "1a68221e0b60f5bb716638e6017d75cac1eee203b7bb9cf7ba402a780eb90c68",
+      "domain": "island_shell"
+    },
+    {
+      "path": "chrome/browser/ui/omnibox/omnibox_next_features.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "4ee17c6f0c0e000a0b9cc857512edece6f60ff7d067dff3cc333fc4ef810213d",
+      "working_sha256": "13b7360f98a1e6eb195da8192564e6c209d1544d9b9988823fb2dd1f8c81d850",
+      "domain": "island_shell"
+    },
+    {
+      "path": "chrome/browser/ui/startup/startup_browser_creator.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "0527dde7be9096dc521fd8886e28638fc8dac3075ca347b0073f256b9e708f99",
+      "working_sha256": "19e59118f0a8fd37650c3b7de90fcdd95e262bbeb2f6aeb4b2ff078934fc1721",
+      "domain": "session_recovery"
+    },
+    {
+      "path": "chrome/browser/ui/startup/startup_browser_creator_impl.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 5,
+      "patch_sha256": "f528f30b7e5007fc88730f8e6ecb22c08c1f6e549a527a3c9eb49d0bd13a80c0",
+      "working_sha256": "b4a9acca144e43b2fdf044bbea24d91c65f3170478fb1d90b846745c3db17789",
+      "domain": "session_recovery"
+    },
+    {
+      "path": "chrome/browser/ui/views/extensions/extensions_toolbar_button.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 7,
+      "patch_sha256": "f258ace6866a8cd9e2d20b48dab5b2bb41e694f4c9e5e379652cc5f77eb05c06",
+      "working_sha256": "bd01c9191419a43d4a46f924901b0ebac8e57748fabab987b305668bbea753b1",
+      "domain": "island_shell"
+    },
+    {
+      "path": "chrome/browser/ui/views/extensions/extensions_toolbar_button.h",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "fa99fa45c45e86ca0e723611045d326ae189b01e689632a52f3dd7405ede873c",
+      "working_sha256": "be1eac000b0ea249eb71088f0386d98df26f07ea0cc83d7c8b9ab0b94e64d1a7",
+      "domain": "island_shell"
+    },
+    {
+      "path": "chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 6,
+      "patch_sha256": "5e528a1b29cdacc050fdd20e45cad7916d06f4ad9bbb5cd9b493bbc5fc4f99d6",
+      "working_sha256": "3dc012050085e1852754c28d8e48c1324e93a9f571a9de496c3a21a55d0e745a",
+      "domain": "island_shell"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/BUILD.gn",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 3,
+      "patch_sha256": "baa229ef2b3c1b730f5446911a502ac078757d0a09f42634546dd3c24125fa20",
+      "working_sha256": "8109e83e669686f0413aa3eca8c229e3735584503d3a41da02c8a6db953bbea4",
+      "domain": "build_edges"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/browser_frame_view_mac.mm",
+      "binary": false,
+      "attributes": {
+        "diff": "objc",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "99bf207384c72436d2fe50f8d467265bf2e144eb665f8a4bb9ea008d9f1badb7",
+      "working_sha256": "8b3b7576a0e2fa8a0cb929b6dbfa8bdc99770b30514f64443f83b7d6972a8570",
+      "domain": "island_shell"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/browser_native_widget_mac.mm",
+      "binary": false,
+      "attributes": {
+        "diff": "objc",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "0764032bf816615504a0185901bc67357aa6ccc70a193cb5d9395fcdef70a83f",
+      "working_sha256": "9b133bca41fe654451aecfb8296648aac2d39b26eb529c629def3b8894238acd",
+      "domain": "island_shell"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/browser_view.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 10,
+      "patch_sha256": "01ab5ec9f7b890b09e5de66f5daf332b70c2e1fe9b8767ce1581623cf4d42040",
+      "working_sha256": "589a9bbb4b555a7b79b68bfd81e4e455f02b5cf4a2c03a039c53e292471bf2e6",
+      "domain": "island_shell"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 4,
+      "patch_sha256": "33624278171925b949e8b5a0a21368f16395239d04976b70f0d471338dc88121",
+      "working_sha256": "8748e56ac2044985558b5ef7c95746a8500e881ef5190954f18597be34a77017",
+      "domain": "island_shell"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/multi_contents_view.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 3,
+      "patch_sha256": "e32cf8b526afd3763f22a6db66da5da6a4f4f6a95b7d00d9d9a06a487e17308b",
+      "working_sha256": "a3f07c05598acaafac676233f1de436fbe31dba0108a9e5781a8b0b6ba1dff9f",
+      "domain": "island_shell"
+    },
+    {
+      "path": "chrome/browser/ui/webui/chrome_web_ui_configs.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "0a47de0ef4c8962d3699734a3f767e6baa6e956fccecb3ec579f99acbaa7046e",
+      "working_sha256": "c257761a6b6396a9661e42eee12b044c47596cc3de9ee9ba7554c676e7477c91",
+      "domain": "island_shell"
+    },
+    {
+      "path": "chrome/browser/ui/window_feature_controller/window_feature_controller.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 3,
+      "patch_sha256": "68cf5c0f47608b60c7509952d89dec2c237e668cd9fc153344bda0562eeef237",
+      "working_sha256": "47004f680b82a715a39a2656066ffd70b4d03cd5a2e889181200dd7caeb7e117",
+      "domain": "island_shell"
+    },
+    {
+      "path": "chrome/renderer/BUILD.gn",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "58ec22c415bafab631fb936134921feddf95199ba08d8c694c7ba96699a3d6d1",
+      "working_sha256": "69ed6865c9fbe7e956acd0b9927411a5a622af74feab45abe6a5ced42c711118",
+      "domain": "build_edges"
+    },
+    {
+      "path": "chrome/renderer/chrome_content_renderer_client.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 3,
+      "patch_sha256": "6aa43ccd8a1af8f9ef574e2ce97844fcf780881f1c430cd659e18496dacfec8a",
+      "working_sha256": "0933f4189fae4b8f8ba6fd5e53730b764fa5bfef525d7755f1dbeab9b16db0fd",
+      "domain": "network_enforcement"
+    },
+    {
+      "path": "chrome/utility/BUILD.gn",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "baf3a1cff68b8c4d3f068c69887866e163059f4fc6859371393fbd83a7012f6d",
+      "working_sha256": "df3649967382a8af49f6852f4840aa5b3b4dbc89967ce0aba5d23c2083c5d68a",
+      "domain": "build_edges"
+    },
+    {
+      "path": "chrome/utility/services.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 3,
+      "patch_sha256": "27e00a0914e6f23be5efec6a3644258d1a646ea6b0627de321f2fb3915252f1b",
+      "working_sha256": "aab965cba35e6d6ec8a210bc259edb97a68a80e7f4e76f7dc72abfd5ef2b9003",
+      "domain": "network_enforcement"
+    },
+    {
+      "path": "components/os_crypt/common/keychain_password_mac.mm",
+      "binary": false,
+      "attributes": {
+        "diff": "objc",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "c873ade4ac41bfe816684ca26612b1db8e73c4883996434f6ec9831addaeffeb",
+      "working_sha256": "d904c1c0b2d077d77315f2f97465184a6696a9b0e978d53d828096eb162c0ee5",
+      "domain": "identity_branding"
+    },
+    {
+      "path": "components/remote_cocoa/app_shim/browser_native_widget_window_mac.mm",
+      "binary": false,
+      "attributes": {
+        "diff": "objc",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "ee2a995e643efec0ed23c9c6cd2325cbaa1dda4643f0528ae98ddf8cf682e2e4",
+      "working_sha256": "c78b489abc4f9264cb9273bbe2188f810d196000afb0c9c2726aad1b3036c815",
+      "domain": "island_shell"
+    },
+    {
+      "path": "components/sessions/content/content_serialized_navigation_builder.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "a97a8b4f4e1c032d131686c70065cf3b0aaa98a3776717482014a60f96ac561c",
+      "working_sha256": "a9c8e70bbdb92dee4ba215d026e00d7fc769de80d6fdb3c4660a27cca940894c",
+      "domain": "session_recovery"
+    },
+    {
+      "path": "components/sessions/core/command_storage_backend.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 4,
+      "patch_sha256": "43f2155b6146573cc438b8035bb1e85ca762765b93b0462d25499c1b714ca548",
+      "working_sha256": "1ffa17f784eceebaaf5f3d92a5a8bfa6ba085f05aba5d223e4c2718f3801dd62",
+      "domain": "session_recovery"
+    },
+    {
+      "path": "components/sessions/core/command_storage_backend.h",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "1eaf032429d80103937c0e330bd021d5c1fed300643f16f1ced841546b85e074",
+      "working_sha256": "c6155b0885b12189609b4240457381c2d40576cac2e74ecb44a16d59ae1d08a5",
+      "domain": "session_recovery"
+    },
+    {
+      "path": "components/sessions/core/command_storage_manager.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "f18967796cbc1acd72ac797bf2aa0545a37dfe82e6677a34bc58e1a1c65b28db",
+      "working_sha256": "dc0fd010024eb95de156c55eb632a4c5cf7c5cbddd16f208ecb5d383ff15fac3",
+      "domain": "session_recovery"
+    },
+    {
+      "path": "components/sessions/core/command_storage_manager.h",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "a8a254b1110881bc76373e266e8557b1cab0d9d715fb41c39f8c37b5afef70ec",
+      "working_sha256": "bd38efe6f687d3efe1c02228215dacc2818579e8ecbef53d1dac5b0d2d9007e0",
+      "domain": "session_recovery"
+    },
+    {
+      "path": "components/sessions/core/tab_restore_service.h",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "820fbb36edf89132fab0a7278879d1a37d72eb30dadc353da7b04d666cd491e7",
+      "working_sha256": "57a0e44cef8755e30b63bec80f6210e94058295e261ad38d636d284cd4d9a457",
+      "domain": "session_recovery"
+    },
+    {
+      "path": "components/sessions/core/tab_restore_service_impl.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 4,
+      "patch_sha256": "7c6514347946004fdd07198e3573b6db8a535d618b7911340e45bdff4dc691e0",
+      "working_sha256": "9e76efbd23bd578110cc23f141499a2de586a7c8ca7d5cbb92b2eef0d3ccf095",
+      "domain": "session_recovery"
+    },
+    {
+      "path": "components/sessions/core/tab_restore_service_impl.h",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "3da2d43b1d2726c49ff2e6339091a8e2c6edf0047c679b14c4d2037c72a7e91d",
+      "working_sha256": "0ed35e674a00d329ac0c0dfece0eb1ed8685373beae73090c697a4935ea5460b",
+      "domain": "session_recovery"
+    },
+    {
+      "path": "content/app_shim_remote_cocoa/web_contents_view_cocoa.mm",
+      "binary": false,
+      "attributes": {
+        "diff": "objc",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "54ff21efdb3c138535d1cb77b68a0840e7eb3a85ddda5eaccb9bcd51ce36b694",
+      "working_sha256": "cfe21d2831c10aca25002af92afd324524aeefa92e95a40a0bb96c07cb1d5552",
+      "domain": "native_hit_testing"
+    },
+    {
+      "path": "content/browser/loader/url_loader_factory_utils.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 4,
+      "patch_sha256": "d21e0524bc8d1461099893e39d0847015c0a0a0809853700c16a803354615431",
+      "working_sha256": "5267120887056bdffaa55556ba2f57a3630d1a1c0d4fbcd2f2db130964eef457",
+      "domain": "network_enforcement"
+    },
+    {
+      "path": "content/browser/loader/url_loader_factory_utils.h",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "553c1c7da761ef220fa249a2fe07c3cb5a370d6e1dc94640defb194aa268fa1f",
+      "working_sha256": "2f2f129a281de976e9e07c695b8d76e3ef6bad973da9f5d81dbed63926530845",
+      "domain": "network_enforcement"
+    },
+    {
+      "path": "content/browser/renderer_host/render_frame_host_impl.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "4873d845989cfbd257cb286d9946ff3142c29e7e9ffc6b8f70ffd8a0bdb23320",
+      "working_sha256": "47e60e0111e09dd12bc6074a6f6d712182cf224abd2141b39596a50579170fad",
+      "domain": "research_provider_identity"
+    },
+    {
+      "path": "content/browser/service_worker/service_worker_update_checker.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "bda639a97d8f4954e731ea42921a64760e9e1a0af48f640980db4ba4a7fc0b65",
+      "working_sha256": "d71c2a8eddf11bd4ba011579e79a0a07f6640d95c98059160df350f72bcdd71d",
+      "domain": "network_enforcement"
+    },
+    {
+      "path": "content/browser/web_contents/web_contents_view_mac.h",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "35097b21a8bf98515046f3a1dd5310430e8b7da25a23a064fb190f318483525c",
+      "working_sha256": "ebaed625aae5a937d35ea743799c5058ee843b5f4becbd6591c2af001e7fd04d",
+      "domain": "native_hit_testing"
+    },
+    {
+      "path": "content/browser/web_contents/web_contents_view_mac.mm",
+      "binary": false,
+      "attributes": {
+        "diff": "objc",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "110c320c6729b615e21d5e11b115f940ec7916b1861990bab1bbf59cd8b81bd2",
+      "working_sha256": "d4fe1a289ba0ab7ee5fa505214e96e9163a8841c5a01728d29a0a51cb5e1cb9c",
+      "domain": "native_hit_testing"
+    },
+    {
+      "path": "content/browser/web_contents/web_contents_view_mac_unittest.mm",
+      "binary": false,
+      "attributes": {
+        "diff": "objc",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "cbd31de4176e8a426d1060b51941a3d72ca4756737202ef1d629eb3eae1b1005",
+      "working_sha256": "794b02744c21dc57e736d92d85834db5ffd0eb3e01a4fba8144b18024a4be283",
+      "domain": "native_hit_testing"
+    },
+    {
+      "path": "content/browser/websockets/websocket_connector_impl.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 3,
+      "patch_sha256": "556ca470671582689b2c090bb7e867cc0b66a9dbe100a12ea13e6071b42ae44e",
+      "working_sha256": "2f8172dc8996441e28a72b781120a528a348a32bb08899145dfc955e42f749e8",
+      "domain": "network_enforcement"
+    },
+    {
+      "path": "content/public/browser/BUILD.gn",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "5cc0b23f6776e49bc1d044ca299e1646eab94029a2b2be4499b30021d7972349",
+      "working_sha256": "bdc90c275a8774c86eb23ca84ed8b9c4214cd5f748bda1e7c51c08d9a8f3af47",
+      "domain": "build_edges"
+    },
+    {
+      "path": "extensions/browser/api/execute_code_function.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 5,
+      "patch_sha256": "154f582c86fc94478d82b5514731e0433baa9d58ee7099e677c9c422edab5ef2",
+      "working_sha256": "86fc6855a5f62c02a6d051b0805593369c448bee705a56caf913b74045dffc55",
+      "domain": "research_provider_identity"
+    },
+    {
+      "path": "extensions/browser/script_executor.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 6,
+      "patch_sha256": "b6820e3e107146ac5ec6a02011fa31ade97b148ccd4744366ce9565b1364bd9c",
+      "working_sha256": "964185f58be1a68f54db96de9e5aba7b982fa9dfd73e5c541dcb72c8f4fa3b4a",
+      "domain": "research_provider_identity"
+    },
+    {
+      "path": "extensions/browser/script_executor.h",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "f516a1dd8ca3d6ddf9dbc60d9ff5a1da65d77814033369dd64d48b1d4edc7be0",
+      "working_sha256": "23b1705c8db172ab266bb9ceb296d9fb6a463292d52635d2aa1f4c0c366e75f7",
+      "domain": "research_provider_identity"
+    },
+    {
+      "path": "extensions/common/api/extension_types.json",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "745396be69e76df45ef759974b1f9e1bbe5ee6899d631fada1fc72b693935cdb",
+      "working_sha256": "4d0839720a4927d6477d894ce5d590df5d6932e61e50edd8a82f8f120aa7e485",
+      "domain": "research_provider_identity"
+    },
+    {
+      "path": "extensions/common/mojom/frame.mojom",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "e7014fa3087f2b4977c45af6b32294561ed6c4d3637c6cef7a2870d3502f83b4",
+      "working_sha256": "c400f0c155420f69b944f5474288743cdcfc8b93f72e1c297a25c3efb6655bc4",
+      "domain": "research_provider_identity"
+    },
+    {
+      "path": "extensions/renderer/programmatic_script_injector.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "e5f473af4a491faf8f950e5b8b68b2fab7ec49961ead47ca14b43e4a49c0f01c",
+      "working_sha256": "263adeb4532ce3d1f001420b8a02441d89d8fbaa5e9a64ad7d2a5463a5f01f51",
+      "domain": "research_provider_identity"
+    },
+    {
+      "path": "extensions/renderer/script_injection.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "a21ec04e79ba30049abac79618deee6c89470f114f67b5bf884a83dc88f8ba6a",
+      "working_sha256": "b9aa0589756b0514a3509b67b9157263a3bb28b1268e53225d1b54f88d2bf131",
+      "domain": "research_provider_identity"
+    },
+    {
+      "path": "net/cert/cert_verify_proc_blocklist.inc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "16a9b88f4e3e5ca83a042986e56eace767d9086e9e1f8f626bef1307f61504ae",
+      "working_sha256": "62d9c8fe16c369829e2c3d851affe59e07baa93f5efa1f54bab3a26727850f08",
+      "domain": "certificate_policy"
+    },
+    {
+      "path": "ui/base/cocoa/views_hostable.h",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "6e2fa26ca82e3fe9c57918cf8e44d50bb330bb167a84d824e51136a1f44923c4",
+      "working_sha256": "4f640f0ba4831713e172687a39635354962ca882e0a43fac804564a7c852026c",
+      "domain": "native_hit_testing"
+    },
+    {
+      "path": "ui/views/controls/native/native_view_host_mac.h",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "14b04ffe3de00d571423c1f483e2e6334975bf0d0646347567ff14812423d57e",
+      "working_sha256": "96d69c1168ef8c49a860a353e25b44101931b704f9208c90901018c5328b896d",
+      "domain": "native_hit_testing"
+    },
+    {
+      "path": "ui/views/controls/native/native_view_host_mac.mm",
+      "binary": false,
+      "attributes": {
+        "diff": "objc",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "64f4f5eb8141bc0951c0d1c27759d0d9be1cc3a146bf41225409a2546830886b",
+      "working_sha256": "4653dfb7085c798cc6b0bea832f1b74e453f3a6f8d6c4509c6527834ded3c2a3",
+      "domain": "native_hit_testing"
+    },
+    {
+      "path": "ui/views/controls/native/native_view_host_mac_unittest.mm",
+      "binary": false,
+      "attributes": {
+        "diff": "objc",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "e7fff51f398c8c77bfdf4e2058e02916c1f164f27072942d35734b314d46fb0f",
+      "working_sha256": "eeeee2a3282635cd68e01d4665f6d4f0a0c40d340475591ec4a8bd4a388bf714",
+      "domain": "native_hit_testing"
+    },
+    {
+      "path": "ui/webui/resources/tools/eslint/BUILD.gn",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "f4a089cb4cd3a827c39a89ad91c41119d114f02ece22ce64dd38620463471d7c",
+      "working_sha256": "f26a38237858b6c6098433cc105e3c2304957b34f5a800e4b125acb6d5cbc1bd",
+      "domain": "build_compatibility"
+    },
+    {
+      "path": "ui/webui/resources/tools/eslint/tsconfig_base.json",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "a3baf33b5fdd0e21b73561b3530fa0acb58af0ae67c0748ce6580bd669d8362f",
+      "working_sha256": "15055b9fc868bd50199d7056c8f43856cc3009f7584765f932d1354c53ed12a2",
+      "domain": "build_compatibility"
+    }
+  ]
+}

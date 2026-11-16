@@ -1,0 +1,50 @@
+[
+  {
+    "schedule": "cross-clear",
+    "pass": false,
+    "diagnosticCheckpoints": 12,
+    "completedCycles": 8427,
+    "timeoutObservedMs": 10020,
+    "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   0.3,\n+   0.7\n-   0.35,\n-   0.65\n  ]\n    at file:///private/tmp/blanc-timeout-cross-clear/test.mjs:37:203"
+  },
+  {
+    "schedule": "cross-encrypted",
+    "pass": false,
+    "diagnosticCheckpoints": 12,
+    "completedCycles": 7325,
+    "timeoutObservedMs": 10020,
+    "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   0.3,\n+   0.7\n-   0.35,\n-   0.65\n  ]\n    at file:///private/tmp/blanc-timeout-cross-encrypted/test.mjs:37:203"
+  },
+  {
+    "schedule": "destroy-clear3",
+    "pass": false,
+    "diagnosticCheckpoints": 14,
+    "completedCycles": 8034,
+    "timeoutObservedMs": 10028,
+    "error": "AssertionError [ERR_ASSERTION]: explicitly closed source must not resurrect\n\n1 !== 0\n\n    at file:///private/tmp/blanc-timeout-destroy-clear3/test.mjs:41:61"
+  },
+  {
+    "schedule": "destroy-encrypted3",
+    "pass": false,
+    "diagnosticCheckpoints": 14,
+    "completedCycles": 9240,
+    "timeoutObservedMs": 10030,
+    "error": "AssertionError [ERR_ASSERTION]: explicitly closed source must not resurrect\n\n1 !== 0\n\n    at file:///private/tmp/blanc-timeout-destroy-encrypted3/test.mjs:41:61"
+  },
+  {
+    "schedule": "sameowner-control",
+    "pass": true,
+    "diagnosticCheckpoints": 15,
+    "completedCycles": 7603,
+    "timeoutObservedMs": 10027,
+    "error": null
+  },
+  {
+    "schedule": "destroy-settled-control",
+    "pass": true,
+    "diagnosticCheckpoints": 17,
+    "completedCycles": 7235,
+    "timeoutObservedMs": 10030,
+    "error": null
+  }
+]

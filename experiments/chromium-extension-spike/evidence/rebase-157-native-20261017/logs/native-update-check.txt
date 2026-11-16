@@ -1,0 +1,1 @@
+{"name":"extension-update-check-only","before":{"version":"2026.10.0","state":"ENABLED"},"after":{"version":"2026.10.0","state":"ENABLED"},"qualification":"Native updater API completed; same version means no version-upgrade acceptance claim. Older signed CRX fixture unavailable."}

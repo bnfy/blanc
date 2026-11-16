@@ -1,0 +1,20 @@
+[
+  {
+    "decision": "block",
+    "engine_result": -1,
+    "event": "decision",
+    "factory_type": 0,
+    "frame_role": "main",
+    "hook_to_decision_us": 205,
+    "initiator_origin": "absent",
+    "initiator_present": false,
+    "method": "GET",
+    "profile_kind": "regular",
+    "redirect_index": 0,
+    "referrer": "",
+    "resource_type": "mainFrame",
+    "status": "engine-error",
+    "top_frame_origin": "http://127.0.0.1:63490",
+    "url": "http://127.0.0.1:63490/missing"
+  }
+]

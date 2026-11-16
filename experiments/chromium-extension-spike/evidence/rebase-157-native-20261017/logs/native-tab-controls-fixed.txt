@@ -1,0 +1,6 @@
+{"name":"native-row-pin-unpin"}
+{"name":"native-loose-row-drag"}
+{"name":"native-pinned-row-drag"}
+{"name":"native-pinned-boundary-refusal"}
+{"name":"native-audible-row-and-slash-mute"}
+{"name":"native-row-close"}

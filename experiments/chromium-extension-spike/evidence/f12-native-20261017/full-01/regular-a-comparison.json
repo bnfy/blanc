@@ -1,0 +1,21 @@
+{
+  "kind": "native-synthetic-fixture-comparison",
+  "valid": true,
+  "parity": true,
+  "faults": [],
+  "counts": {
+    "candidateUrls": 5123,
+    "electronBlocked": 2503,
+    "electronAllowed": 2620,
+    "blockToAllow": 0,
+    "allowToBlock": 0,
+    "matchedDecisions": 5123,
+    "coverageControls": 4,
+    "nativeRequests": 6381
+  },
+  "differences": [],
+  "descendants": [],
+  "nativeContextMatched": true,
+  "acceptance": false,
+  "scope": "single main frame; script/xhr/image/stylesheet; regular/private; exact observed initiator, referrer and top frame. Full request-path and cosmetic matrix remains incomplete."
+}

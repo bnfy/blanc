@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "builds": [
+    {
+      "build": 1,
+      "version": "2.0.0-beta.1",
+      "date": "2026-11-10",
+      "arches": [
+        "arm64"
+      ],
+      "archWaiver": "Owner approval 2026-11-10: Apple Silicon only; Intel deferred until a separately qualified native build.",
+      "localQualification": true,
+      "note": "Reserved private local-qualification build. The first cold attempt (2026-11-10) stopped after 6.42 seconds on the absent optional Metal Toolchain, before the owner hold was enforced; no app or distribution. The owner lifted the hold on 2026-11-13; the Metal Toolchain is now installed (Xcode component 27B47) and the local qualification build resumed with a fresh throwaway EdDSA key held only in an owner-only temporary folder. Never publish these bytes or reuse the reserved version for production. On 2026-11-14 a private local-qualification 2.0.0-beta.2 (build 2) was built only as the local update proof's N+1 (throwaway key, loopback feed, never left the owner's Mac); its copies were deleted, and the owner kept 2.0.0-beta.2 (build 2) for the first public beta."
+    },
+    {
+      "build": 2,
+      "version": "2.0.0-beta.2",
+      "tag": "chromium-beta-2.0.0-beta.2",
+      "date": "2026-11-14",
+      "arches": [
+        "arm64"
+      ],
+      "archWaiver": "Owner approved 2026-11-10: the first public beta is Apple Silicon only; Intel deferred until a separately qualified native build.",
+      "sourceCommit": "058277389292e4a02291be56e496acc7b8d68add",
+      "candidate": "macos-176939e3a1706e6f",
+      "dmgSHA256": "d155c31638b7a7c7d849269cae75be81977f4b8293d1bcbcad00493c6d382e62",
+      "gateWaivers": [
+        "no-drm-handoff",
+        "production-sync-real-device"
+      ],
+      "note": "First public Blanc Beta, published 2026-11-14 as a GitHub pre-release (not latest). Signed with the pinned Developer ID, notarized and stapled; Sigstore-signed checksums; logged-out public verification passed. Owner waivers: protected-video notice (due beta.3) and the real-iPhone Sync pass. Known issue: the vertical tab rail can reopen at its narrow cap after a relaunch (vertical-tabs.feature:58, intermittent)."
+    },
+    {
+      "build": 3,
+      "version": "2.0.0-beta.3",
+      "tag": "chromium-beta-2.0.0-beta.3",
+      "date": "2026-11-14",
+      "arches": [
+        "arm64"
+      ],
+      "archWaiver": "Owner approved 2026-11-14: beta.3 is Apple Silicon only again; Intel deferred until a separately qualified native build.",
+      "sourceCommit": "c3a3bc89883cd6ad4daaf1b8255d0badbfa35fe1",
+      "candidate": "macos-39d309c3cba37076",
+      "dmgSHA256": "a31422ed7f63b4664e03906406827491bae91f513e9ea76abcaad63791bedb57",
+      "gateWaivers": [
+        "no-drm-handoff",
+        "production-sync-real-device"
+      ],
+      "note": "Second public Blanc Beta, published 2026-11-14 as a GitHub pre-release (not latest). Fixes beta.2's Sync lockout (Settings could say \"Could not check sync\" until a relaunch) and turns Safe Browsing off by default. Every release stage ran from the owner's MacBook Pro over SSH to the Mac Studio. Signed with the pinned Developer ID, notarized and stapled; Sigstore-signed checksums; logged-out public verification passed. Owner waivers: the protected-video notice (due beta.4) and the real-iPhone Sync pass (the beta published no open tabs and said nothing after a join; fixed for beta.4)."
+    },
+    {
+      "build": 4,
+      "version": "2.0.0-beta.4",
+      "tag": "chromium-beta-2.0.0-beta.4",
+      "date": "2026-11-14",
+      "arches": [
+        "arm64"
+      ],
+      "archWaiver": "Owner approved 2026-11-14: beta.4 is Apple Silicon only again; Intel deferred until a separately qualified native build.",
+      "sourceCommit": "57e3109dd3c166fe1ea76caf0cc1a3b93aa54585",
+      "candidate": "macos-e8eb804f1ebb87a8",
+      "dmgSHA256": "fd42bf1265db3fe3844372a34a5c7ce14e58307ca989a811186b474ec0658ed1",
+      "gateWaivers": [
+        "no-drm-handoff",
+        "production-sync-real-device"
+      ],
+      "note": "Third public Blanc Beta, published 2026-11-14 at 19:02 UTC as a GitHub pre-release (not latest). Fixes 1Password's Unlock button (extension popups open under the Island), keeps the main window's tabs on the red button as shipping Blanc does, keeps Sync publishing open pages and names the Mac as shipping Blanc does; adds the Sunrise Gold icon, the Island's pointer response and the vertical tabs' Space row. An earlier notarized build from e47bf1bcf was superseded before publication and never published. Owner waivers: the protected-video notice (moves to beta.5) and the real-iPhone Sync pass (the iPhone listed the first beta.4 build with its pages but not the rebuilt one after the red button; cause unknown). Hosted smoke passed (run 43631733437); the signed handoff beta.3 to beta.4 passed."
+    },
+    {
+      "build": 5,
+      "version": "2.0.0-beta.5",
+      "tag": "chromium-beta-2.0.0-beta.5",
+      "date": "2026-11-15",
+      "arches": [
+        "arm64"
+      ],
+      "archWaiver": "Owner standing decision 2026-11-14: daily betas are Apple Silicon only; Intel is deferred until a separately qualified native build.",
+      "sourceCommit": "a1604c40965a4cf2feeb93655698d516ae30638d",
+      "candidate": "macos-353a2eb6140259ee",
+      "dmgSHA256": "756f38c843393b2fa23db5707d286e6292cbc3c0056ced5e2c99dd1f52c337f8",
+      "gateWaivers": [
+        "production-sync-real-device",
+        "no-drm-handoff"
+      ],
+      "note": "Daily Blanc Beta, published 2026-11-15 as a GitHub pre-release (not latest) through the one release command. Signed with the pinned Developer ID, notarized and stapled; Sigstore-signed checksums; logged-out public verification passed. Waivers under the owner's standing decisions: production-sync-real-device, no-drm-handoff."
+    }
+  ]
+}

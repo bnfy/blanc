@@ -1,0 +1,206 @@
+{
+  "checks": [
+    "reference focus retains main identity",
+    "Island reload follows focused reference; main unchanged",
+    "back routes focused reference",
+    "Find opens on focused reference and returns its match",
+    "split capture refused",
+    "native atomic save A",
+    "unsaved changed source refused",
+    "switch B to A restores URLs, pin, group name/color/collapse",
+    "switch back B",
+    "private read/write refused"
+  ],
+  "focus": {
+    "activeTabId": "495554636",
+    "adblockEnabled": false,
+    "closed": [],
+    "displayShares": [],
+    "extensionsWidth": 26,
+    "focusedTabId": "495554637",
+    "glanceTabId": "495554637",
+    "groups": [],
+    "tabLayout": "island",
+    "tabs": [
+      {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": false,
+        "canGoForward": false,
+        "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==",
+        "groupId": null,
+        "id": "495554635",
+        "isLoading": false,
+        "muted": false,
+        "pageBg": "",
+        "pinned": false,
+        "private": false,
+        "siteMuted": null,
+        "title": "New Tab",
+        "url": "blanc://newtab/"
+      },
+      {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": false,
+        "canGoForward": false,
+        "favicon": null,
+        "groupId": null,
+        "id": "495554636",
+        "isLoading": false,
+        "muted": false,
+        "pageBg": "",
+        "pinned": false,
+        "private": false,
+        "siteMuted": false,
+        "title": "Mute lifecycle",
+        "url": "http://127.0.0.1:9265/main"
+      },
+      {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": false,
+        "canGoForward": false,
+        "favicon": null,
+        "groupId": null,
+        "id": "495554637",
+        "isLoading": false,
+        "muted": false,
+        "pageBg": "#ffffff",
+        "pinned": false,
+        "private": false,
+        "siteMuted": false,
+        "title": "Mute lifecycle",
+        "url": "http://127.0.0.1:9265/reference"
+      }
+    ],
+    "verticalTabsDefaultWidth": 248,
+    "verticalTabsMaxWidth": 360,
+    "verticalTabsMinWidth": 200,
+    "verticalTabsPreferredWidth": 248,
+    "verticalTabsWidth": 248,
+    "closedSlot": 3
+  },
+  "find": {
+    "activeMatchOrdinal": 1,
+    "matches": 1,
+    "finalUpdate": true
+  },
+  "groupBefore": [
+    {
+      "collapsed": true,
+      "color": "#376694",
+      "id": "BE5DEB73FA21C597F9E3662CF25480EB",
+      "name": "Reference"
+    }
+  ],
+  "restored": {
+    "activeTabId": "495554639",
+    "adblockEnabled": false,
+    "closed": [
+      {
+        "id": "495554641",
+        "tabCount": 1,
+        "title": "Mute lifecycle",
+        "url": "http://127.0.0.1:9265/changed"
+      },
+      {
+        "id": "495554642",
+        "tabCount": 1,
+        "title": "Mute lifecycle",
+        "url": "http://127.0.0.1:9265/reference"
+      },
+      {
+        "id": "495554643",
+        "tabCount": 1,
+        "title": "New Tab",
+        "url": "chrome://newtab/"
+      }
+    ],
+    "displayShares": [],
+    "extensionsWidth": 26,
+    "focusedTabId": "495554639",
+    "glanceTabId": null,
+    "groups": [
+      {
+        "collapsed": true,
+        "color": "#376694",
+        "id": "222251599580F7029EE224EE44BA3D44",
+        "name": "Reference"
+      }
+    ],
+    "tabLayout": "island",
+    "tabs": [
+      {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": false,
+        "canGoForward": false,
+        "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==",
+        "groupId": null,
+        "id": "495554638",
+        "isLoading": false,
+        "muted": false,
+        "pageBg": "",
+        "pinned": true,
+        "private": false,
+        "siteMuted": null,
+        "title": "New Tab",
+        "url": "blanc://newtab/"
+      },
+      {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": false,
+        "canGoForward": false,
+        "favicon": null,
+        "groupId": null,
+        "id": "495554639",
+        "isLoading": false,
+        "muted": false,
+        "pageBg": "#ffffff",
+        "pinned": false,
+        "private": false,
+        "siteMuted": false,
+        "title": "Mute lifecycle",
+        "url": "http://127.0.0.1:9265/main"
+      },
+      {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": false,
+        "canGoForward": false,
+        "favicon": null,
+        "groupId": "222251599580F7029EE224EE44BA3D44",
+        "id": "495554640",
+        "isLoading": false,
+        "muted": false,
+        "pageBg": "",
+        "pinned": false,
+        "private": false,
+        "siteMuted": false,
+        "title": "Mute lifecycle",
+        "url": "http://127.0.0.1:9265/reference"
+      }
+    ],
+    "verticalTabsDefaultWidth": 248,
+    "verticalTabsMaxWidth": 360,
+    "verticalTabsMinWidth": 200,
+    "verticalTabsPreferredWidth": 248,
+    "verticalTabsWidth": 248,
+    "closedSlot": 2
+  },
+  "names": {
+    "names": [
+      "A",
+      "B"
+    ]
+  },
+  "pass": true
+}

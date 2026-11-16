@@ -1,0 +1,2 @@
+{"name":"disposable-history-db","audit":{"urls":[["http://127.0.0.1:8786/Alpha",0,0],["http://127.0.0.1:8786/B",0,0],["http://127.0.0.1:8786/Beta",0,0],["http://127.0.0.1:8786/NativeKeys",0,0]],"segments":[]}}
+{"name":"isolated-restart"}
