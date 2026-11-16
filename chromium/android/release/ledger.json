@@ -1,4 +1,14 @@
 {
   "schema": 1,
-  "builds": []
+  "builds": [
+    {
+      "versionCode": 1,
+      "versionName": "1.0.0-beta.1",
+      "tag": "android-v1.0.0-beta.1-1",
+      "commit": "a87a4e68a3023525edaf12f0c6fb342533d88a80",
+      "state": "uploaded",
+      "date": "2026-11-16T03:12:43.509Z",
+      "note": "Verified local Android handoff; release/device evidence pending."
+    }
+  ]
 }
