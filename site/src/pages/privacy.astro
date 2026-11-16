@@ -12,7 +12,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 >
 <main id="main-content" class="legal-doc">
   <h1>Privacy Policy</h1>
-  <p class="legal-updated">Last updated November 14, 2026</p>
+  <p class="legal-updated">Last updated November 16, 2026</p>
 
   <div class="legal-tldr">
     <p><strong>The short version.</strong> Blanc keeps browsing data on your device unless you enable end-to-end-encrypted Sync for eligible data or explicitly create a one-time tab handoff. A fresh install asks before search suggestions or pseudonymous usage measurement can send anything; both choices are presented on and can be turned off before continuing. Usage measurement counts launches and a small allowlist of local feature actions, never browsing activity, and excludes private tabs from feature-use events. The blocker ships with the app instead of downloading filter code at first launch. This website counts page views with Cloudflare's cookieless Web Analytics.</p>
@@ -20,7 +20,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </div>
 
   <h2>Who is responsible</h2>
-  <p>This policy covers the Blanc desktop browser for macOS, Windows, and Linux, Blanc for iPhone and iPad, and its website, blanc.day (formerly blancbrowser.com). The data controller is <strong>Bananify</strong>, an independent software studio in Rochester, New York, United States. Contact <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off--> for privacy questions or requests.</p>
+  <p>This policy covers the Blanc desktop browser for macOS, Windows, and Linux, Blanc for iPhone and iPad, Blanc for Android, and its website, blanc.day (formerly blancbrowser.com). The data controller is <strong>Bananify</strong>, an independent software studio in Rochester, New York, United States. Contact <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off--> for privacy questions or requests.</p>
 
   <h2 id="what-stays-on-your-device">What stays on your device</h2>
   <p>Blanc stores these records locally and does not send them to Bananify unless an optional feature below explicitly says otherwise:</p>
@@ -99,6 +99,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   <h2 id="blanc-for-iphone">Blanc for iPhone and iPad</h2>
   <p>Blanc for iPhone and iPad is available on Apple's App Store, and as a beta through Apple's TestFlight. It keeps history, favorites, settings, open tabs, and website data on the device; private tabs are never saved to history or synced. Each open tab's Back and Forward history is saved on the device too, so it survives a relaunch. It can include details of those pages, such as what you typed into a form; it isn't synced or included in device backups, it is never saved for private tabs, and clearing your history or website data deletes it. With Measure usage on, each time you open Blanc it sends one anonymous count: a random ID for this install, the app version, the iOS or iPadOS version and whether it is an iPhone or an iPad, and never what you browse. You can turn this off in Settings → Privacy. Otherwise the app sends Bananify nothing unless you turn on Sync, and it offers no search suggestions. Sync joins a sync you started in Blanc on a computer, uses the same end-to-end encryption described under Sync, keeps its key in the device's Keychain, and shares this device's open tabs only if you turn that on. Its blocker uses the same bundled EasyList and EasyPrivacy rules through Apple's content-blocking system. Apple operates the App Store and TestFlight. If you choose in your iPhone's or iPad's settings to share analytics with app developers, Apple may share crash reports and usage statistics with Bananify; if you join the TestFlight beta, Apple may share with Bananify crash reports, the feedback and screenshots you choose to send, and basic device information. Both are under Apple's terms.</p>
+
+  <h2 id="blanc-for-android">Blanc for Android</h2>
+  <p>Blanc for Android is in a beta on Google Play. It keeps history, favorites, settings, open tabs, and website data on the device. Private tabs are never saved to history or synced, and they close when Blanc restarts.</p>
+  <p><strong>Measure usage.</strong> If you turn on Measure usage, Blanc sends one count each time you open it: a random ID for this installation, a random ID for that launch, the app version, the major Android version, the processor type, and whether the device is a phone or a tablet. It never sends what you browse. Nothing is sent until you save a choice, either on the welcome card's privacy step or in Settings → Privacy. The welcome card shows the switch on, and you can turn it off before you continue. The collector replaces the installation ID with a keyed hash on arrival, as described under usage measurement, and doesn't forward Android counts to Google Analytics. The installation ID is kept in storage that Android doesn't back up, so reinstalling Blanc creates a new one.</p>
+  <p><strong>Search.</strong> The app has no search suggestions. A search you submit goes to the search engine you chose (DuckDuckGo unless you change it).</p>
+  <p><strong>Sync.</strong> Sync joins a sync you started in Blanc on a computer and uses the end-to-end encryption described under Sync. Its key is protected by Android Keystore. It shares this device's open tabs only if you turn that on. While Sync is on, Android may run Blanc in the background, about every 15 minutes at most, to fetch changes. When you pair by scanning a code, the camera image is read on the device and never leaves it.</p>
+  <p><strong>Blocking.</strong> The blocker uses the same bundled EasyList and EasyPrivacy rules and doesn't download filter lists.</p>
+  <p><strong>Google services.</strong> Blanc for Android turns off Chromium's own Google sign-in, usage and crash reporting, component updater, network time queries, and autofill server predictions, and has no crash reporting of its own. Google Play distributes the app. If you share usage and diagnostics data with Google on your device, Google may give Bananify crash and performance reports through Google Play, under Google's terms.</p>
 
   <h2>This website</h2>
   <ul>
