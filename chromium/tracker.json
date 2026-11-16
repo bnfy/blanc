@@ -1887,8 +1887,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification. No shipping scenario maps to this row; not rechecked in the 2026-11-16 tracker refresh."
+          "stage": "integrated",
+          "basis": "The capture indicator was already built: shipping's permissions-and-auth.feature:13 (microphone chip, window-wide, popover Stop, truthful permissions.query) passes in the nightly and again on macos-039ca82eb0d47756 (6 of 6 in that file). native-capture-indicator.mjs adds the camera, both glyphs together, the popover row going to its tab and Stop ending both: 5 of 5 on macos-039ca82eb0d47756 (2026-11-16), with Chromium's fake devices. Not checked: real devices, capture from an iframe or a pop-up window; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-039ca82eb0d47756"
         },
         "windows": {
           "stage": "not-started",
@@ -1917,8 +1918,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification. No shipping scenario maps to this row; not rechecked in the 2026-11-16 tracker refresh."
+          "stage": "implemented",
+          "basis": "Screen sharing is Chromium's own getDisplayMedia and picker (native, not shipping's broker). New 2026-11-16: an active share now lights the Island's sharing chip and gets shipping's popover row with Stop (displayShares from Chromium's capture indicator; stopDisplayShare). native-display-share.mjs passes 3 of 3 on macos-039ca82eb0d47756 for a tab share with the picker answered by Chromium's test switch. Not Integrated: Chromium's picker in an Island window and a window or whole-screen share were not run (they open system UI and need the macOS Screen Recording permission); the row names the kind of surface, not its title; Linux PipeWire is not built",
+          "candidate": "macos-039ca82eb0d47756"
         },
         "windows": {
           "stage": "not-started",

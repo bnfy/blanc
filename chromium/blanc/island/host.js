@@ -1153,7 +1153,7 @@
         emit('onTabsUpdated', snapshot);
         emit('onSplitLayout', currentSplitLayout());
       }
-      if (opened && overlayMode === 'capture' && !snapshot.capturePopover?.rows.length)
+      if (opened && overlayMode === 'capture' && !snapshot.capturePopover?.rows.length && !snapshot.displayShares?.length)
         await close(false);
       // A newer fully processed snapshot can retire only its own older timeout.
       // Preserve any later unrelated notice and wait while any snapshot is pending.
@@ -1213,7 +1213,11 @@
       }
       return;
     }
-    const trigger = strip.contentDocument?.getElementById(overlayMode === 'capture' ? 'pillCapture' : shieldTrigger === 'insecure' ? 'pillInsecure' : 'pillShield');
+    // The capture popover hangs under whichever of its two chips shows.
+    const captureChip = strip.contentDocument?.getElementById('pillCapture');
+    const trigger = overlayMode === 'capture' && captureChip?.hidden
+      ? strip.contentDocument.getElementById('pillDisplayShare')
+      : strip.contentDocument?.getElementById(overlayMode === 'capture' ? 'pillCapture' : shieldTrigger === 'insecure' ? 'pillInsecure' : 'pillShield');
     const rect = trigger?.getBoundingClientRect();
     const stripRect = strip.getBoundingClientRect();
     const width = Math.min(404, Math.max(0, innerWidth - 24));
@@ -1873,10 +1877,12 @@
     openCapturePopover: async () => {
       if (opened && overlayMode === 'capture') return close(false);
       await refresh();
-      if (!snapshot?.capturePopover?.rows.length) return false;
+      if (!snapshot?.capturePopover?.rows.length && !snapshot?.displayShares?.length) return false;
       await show(undefined, 'capture', 'capture');
       return true;
     },
+    // Stop in a share's popover row ends that tab's screen, window or tab share.
+    stopDisplayShare: async id => { await request('stopDisplayShare', [nativeId(id)]); await refresh(); },
     captureStop: async id => { await request('captureStop', [nativeId(id)]); await refresh(); },
     captureFocus: async id => {
       await request('switchTab', [nativeId(id)]); await close(false);

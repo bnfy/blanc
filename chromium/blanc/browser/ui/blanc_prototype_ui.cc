@@ -4249,7 +4249,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
   auto* model = browser->GetTabStripModel();
   auto* favorites = LoadedBookmarkModel(browser->GetProfile());
   std::set<int> live_tab_ids;
-  base::ListValue tabs, capture_rows;
+  base::ListValue tabs, capture_rows, display_shares;
   bool capture_audio = false, capture_video = false;
   auto capture_indicator = MediaCaptureDevicesDispatcher::GetInstance()->GetMediaStreamCaptureIndicator();
   for (int index = 0; index < model->count(); ++index) {
@@ -4266,6 +4266,21 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       capture_rows.Append(base::DictValue().Set("surfaceId", base::NumberToString(tab_id))
           .Set("host", contents->GetLastCommittedURL().GetHost()).Set("kind", "tab")
           .Set("audio", capturing_audio).Set("video", capturing_video));
+    // A tab sharing a tab, a window or a screen (getDisplayMedia), as
+    // shipping's displayShares: the chip is window-wide and the popover's row
+    // goes to the sharing tab and stops the share. Chromium knows which kind
+    // of surface, not its name.
+    const bool sharing_tab = capture_indicator->IsCapturingTab(contents);
+    const bool sharing_window = capture_indicator->IsCapturingWindow(contents);
+    const bool sharing_screen = capture_indicator->IsCapturingDisplay(contents);
+    if (sharing_tab || sharing_window || sharing_screen)
+      display_shares.Append(base::DictValue().Set("shareId", base::NumberToString(tab_id))
+          .Set("pending", false)
+          .Set("origin", url::Origin::Create(contents->GetLastCommittedURL()).Serialize())
+          .Set("surfaceLabel", base::Value())
+          .Set("surfaceKind", sharing_screen ? "screen" : sharing_window ? "window" : "tab")
+          .Set("computerAudio", false)
+          .Set("tabId", base::NumberToString(tab_id)));
     // Favorite state follows the committed document, never the virtual or
     // pending URL, so a typed address is not reported as saved before it lands.
     const GURL& committed = contents->GetPrimaryMainFrame()->GetLastCommittedURL();
@@ -4437,7 +4452,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
       .Set("adblockEnabled", blanc::BlockerAvailable() && blanc::BlockingEnabled(browser->GetProfile()))
       .Set("captureChip", base::DictValue().Set("audio", capture_audio).Set("video", capture_video))
       .Set("capturePopover", base::DictValue().Set("rows", std::move(capture_rows)))
-      .Set("displayShares", base::ListValue());
+      .Set("displayShares", std::move(display_shares));
 }
 
 // Only the bundled top-level start page gets this scoped profile bridge.
@@ -11711,6 +11726,14 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       return;
     }
     auto* tab = model->GetWebContentsAt(index);
+    if (method == "stopDisplayShare" && args.size() == 1) {
+      // Ends this tab's getDisplayMedia streams; its camera and microphone
+      // stay. Chromium does not allow stopping the managed all-screens kind
+      // here (it CHECKs), and Blanc never starts one.
+      MediaCaptureDevicesDispatcher::GetInstance()->GetMediaStreamCaptureIndicator()
+          ->StopMediaCapturing(tab, MediaStreamCaptureIndicator::kDisplayMedia);
+      reply(true, base::Value(true)); return;
+    }
     if (method == "captureStop" && args.size() == 1) {
       // Resolve only a current tab in this native window. Stop the real
       // browser-owned stream; the chip remains lit until its indicator clears.

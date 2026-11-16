@@ -2,8 +2,9 @@
    and panel hearts and the Favorites/History footer buttons are backed by
    Chromium's bookmark and history services; the row pin and mute controls and
    drag-to-reorder by TabStripModel; the warning badge by the host's siteInfo
-   (S1.6). Glance has no native counterpart yet. */
-#pillFillHint, #pillDisplayShare,
+   (S1.6); the sharing chip by Chromium's capture indicator (N3). Glance has
+   no native counterpart yet. */
+#pillFillHint,
 #panelSiteInfo {
   display: none !important;
 }

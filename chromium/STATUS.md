@@ -14,6 +14,32 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Capture indicator checked; a screen share lights the Island (N2, N3; candidate macos-039ca82eb0d47756):**
+  **N2** was listed as not started but is built: shipping's
+  `permissions-and-auth.feature:13` has passed all along (it maps to F13).
+  `tests/native-capture-indicator.mjs` adds what that case leaves out (the
+  camera, both glyphs, the popover row going to its tab, Stop ending both):
+  5 of 5. **N3**: sharing is Chromium's own `getDisplayMedia`, and a tab
+  share worked, but the Island never showed it: the native snapshot always
+  sent an empty `displayShares` and `prototype.css` hid the chip. Now each
+  tab that shares a tab, a window or a screen is reported as shipping's
+  share row (Chromium's capture indicator knows the kind of surface, not
+  its name), the sharing chip shows window-wide, the capture popover opens
+  for a share alone and hangs under whichever chip shows, and its row's Stop
+  ends the share (`stopDisplayShare`, the display-media kind only).
+  `tests/native-display-share.mjs` passes 3 of 3, three runs. The first
+  version of Stop also asked Chromium to stop the managed all-screens kind,
+  which it CHECKs against; the test caught the crash before it was
+  committed. Both tests run with `--use-fake-device-for-media-stream`; the
+  share's source is chosen by `--auto-select-tab-capture-source-by-title`,
+  so no picker opens and no screen is captured. **Incident:** the first run
+  of the capture test lacked the fake-device flag, so the page's
+  `getUserMedia({video:true})` reached for the MacBook Pro's real camera.
+  No stream started (the call never resolved and the test timed out), but
+  macOS may have shown its camera prompt for Blanc Prototype for a few
+  seconds. The test now sets the flag before launch and says why. Not
+  checked: Chromium's picker in an Island window, a window or screen share,
+  real devices. N3 stays Implemented for that reason.
 - **2026-11-16 — Dock menu's current-tab row and Check for Updates… (N18; patch 0089, candidate macos-23064fbfabd20e7b):**
   the tracker had N18 as not started, but the Dock menu's New Window, New
   Private Window and New Mini Window (patches 0013, 0067) and About in the
@@ -3646,13 +3672,13 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 7 | 81 | 81 | 69 |
+| Not started / unassessed | 5 | 81 | 81 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 0 | 0 | 0 | 0 |
-| Implemented | 8 | 0 | 0 | 12 |
+| Implemented | 9 | 0 | 0 | 12 |
 | Built, isolated (legacy) | 0 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 0 | 0 | 0 | 0 |
-| Integrated | 65 | 0 | 0 | 0 |
+| Integrated | 66 | 0 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 | 0 |
