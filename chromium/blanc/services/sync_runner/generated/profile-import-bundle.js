@@ -158,6 +158,7 @@ module.exports = function plan(files) {
   const notImported = [];
   const errors = [];
   const profiles = {};
+  let syncProtectedKey = null;
 
   // The device's own stores. One that cannot be read fails the device part.
   let device = {};
@@ -175,6 +176,11 @@ module.exports = function plan(files) {
     if (device['sync.json']) {
       const {key, protectedKey, ...rest} = device['sync.json'];
       device['sync.json'] = rest;
+      // The protected key is ciphertext only Electron's Keychain item opens;
+      // it is passed on for the browser to re-protect. A legacy plain key is
+      // dropped: shipping itself refuses to keep one.
+      if (typeof protectedKey === 'string' && protectedKey.length > 0 && protectedKey.length <= 4096 &&
+          /^[A-Za-z0-9+/]+={0,2}$/.test(protectedKey)) syncProtectedKey = protectedKey;
     }
     const wallpaper = files['wallpaper/current.jpg'];
     if (typeof wallpaper === 'string' && wallpaper.length <= MAX_WALLPAPER_CHARS) device['wallpaper/current.jpg'] = wallpaper;
@@ -223,7 +229,7 @@ module.exports = function plan(files) {
     }
   }
   return {ok: true, schema: SCHEMA, sourceVersion: version.sourceVersion, profiles, device, notImported, errors,
-    settingsPrefs: settingsPrefs(settings)};
+    settingsPrefs: settingsPrefs(settings), syncProtectedKey};
 };
 
 })(module,module.exports);const plan=module.exports;

@@ -14,6 +14,34 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Electron profile importer, task 7: Sync's stores and key (candidate macos-22d3967de015b079):**
+  the plan passes Electron's protected Sync key on as it is (a legacy plain
+  key never). The browser opens it with the password of Electron's Keychain
+  item (`Blanc Safe Storage`, read with `SecItemCopyMatching` and nothing
+  else; OSCrypt v10: PBKDF2-HMAC-SHA1, AES-128-CBC), checks it is a 32-byte
+  key and protects it again with the fork's own Encryptor. Sync's stores
+  (`sync.json`, `tab-sync.json`, `tab-icons.json`, `sends.json` and
+  Personal's `shared-spaces.json`, `synced-closed.json`) are staged in
+  `<Default>/BlancSyncImport/`, `ready` written last, and
+  `AdoptImportedSyncStores` (desktop_sync_service.cc) moves them into
+  `BlancSync/` at the next launch before the runner reads its stores, unless
+  that profile is already syncing. Where the key cannot be opened (the
+  Keychain read refused, a wrong password, no protected key) the stores are
+  staged with Sync off and the device identity kept. A test launch never
+  reads the real Keychain item.
+  Evidence on the Mac Studio: `native-profile-import-sync.mjs` 4 of 4
+  (refused: the rest imports and Sync is off; kept: the same key under the
+  fork's protection, the stores staged with the same device id; a wrong
+  password is a refusal; after a relaunch the live Sync folder holds the
+  imported stores, device id and key and the staging folder is gone);
+  `native-profile-import.mjs` and `native-tab-handoff.mjs` still pass;
+  `profile-import.test.mjs` 11 of 11.
+  **Found:** once the import has created a second profile, Chromium opens
+  its profile picker at the next launch instead of the saved windows
+  (owner decision P3 in the importer plan).
+  **Not done:** the real-account check and the real Keychain prompt (the
+  owner's, after a backup); Sync actually resuming against the production
+  service; Windows and Linux key formats.
 - **2026-11-16 — Electron profile importer, task 6: site permissions; the downloads list left behind (candidate macos-a458cc792c40c1c5):**
   each profile's saved answers for microphone, camera, location and
   notifications are written to Chromium's content settings

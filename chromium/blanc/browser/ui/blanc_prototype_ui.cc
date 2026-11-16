@@ -6,6 +6,10 @@
 #include "blanc/services/sync_runner/import_bundle_hash.h"
 #include "blanc/services/sync_runner/handoff_bundle_hash.h"
 #include "blanc/services/sync_runner/profile_import_bundle_hash.h"
+#include "components/os_crypt/async/browser/os_crypt_async.h"
+#include "components/os_crypt/async/common/encryptor.h"
+#include "crypto/aes_cbc.h"
+#include "third_party/boringssl/src/include/openssl/evp.h"
 #include "base/files/file_enumerator.h"
 #include "net/base/data_url.h"
 #include "content/public/browser/service_process_host.h"
@@ -7205,6 +7209,56 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           GetOwner(web_ui()->GetWebContents())->browser->GetProfile()->GetOriginalProfile());
       const auto setting = map->GetContentSetting(origin, origin, type);
       Reply(id, true, base::Value(setting == CONTENT_SETTING_ALLOW ? "allow" : setting == CONTENT_SETTING_BLOCK ? "deny" : "ask")); return;
+    }
+    // The stand-in for Electron's Keychain password; a test launch reads no
+    // real Keychain item (profile_import.inc).
+    if (quiet_method == "setImportSafeStoragePassword" && quiet_args.size() == 1) {
+      if (quiet_args[0].is_string()) TestSafeStoragePassword() = quiet_args[0].GetString();
+      else TestSafeStoragePassword().reset();
+      Reply(id, true, base::Value(true)); return;
+    }
+    // A Sync folder of the first profile (the staging folder or the live one):
+    // its stores, sync.json without the key, and the key as the fork's own
+    // protection opens it.
+    if (quiet_method == "profileImportSyncFiles" && quiet_args.size() == 1 && quiet_args[0].is_string() &&
+        (quiet_args[0].GetString() == kImportSyncStaging || quiet_args[0].GetString() == "BlancSync")) {
+      const base::FilePath dir = g_browser_process->profile_manager()->user_data_dir()
+          .AppendASCII("Default").AppendASCII(quiet_args[0].GetString());
+      base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
+          base::BindOnce([](base::FilePath dir) {
+            base::ListValue names;
+            std::vector<std::string> sorted;
+            base::FileEnumerator files(dir, false, base::FileEnumerator::FILES, FILE_PATH_LITERAL("*.json"));
+            for (auto path = files.Next(); !path.empty(); path = files.Next()) sorted.push_back(path.BaseName().AsUTF8Unsafe());
+            std::ranges::sort(sorted);
+            for (auto& name : sorted) names.Append(std::move(name));
+            std::string text;
+            auto sync = base::ReadFileToString(dir.AppendASCII("sync.json"), &text) ? base::JSONReader::ReadDict(text, base::JSON_PARSE_RFC) : std::nullopt;
+            return base::DictValue().Set("files", std::move(names)).Set("ready", base::PathExists(dir.AppendASCII("ready")))
+                .Set("sync", sync ? base::Value(std::move(*sync)) : base::Value());
+          }, dir),
+          base::BindOnce([](base::WeakPtr<Handler> self, std::string id, base::DictValue read) {
+            std::string sealed;
+            if (auto* sync = read.FindDict("sync")) {
+              if (const auto* found = sync->FindString("protectedKey")) sealed = *found;
+              sync->Remove("protectedKey");
+            }
+            read.Set("hasKey", !sealed.empty());
+            const auto bytes = base::Base64Decode(sealed);
+            if (sealed.empty() || !bytes || !g_browser_process->os_crypt_async()) {
+              read.Set("key", base::Value());
+              if (self) self->Reply(id, true, base::Value(std::move(read)));
+              return;
+            }
+            g_browser_process->os_crypt_async()->GetInstance(base::BindOnce(
+                [](base::WeakPtr<Handler> self, std::string id, base::DictValue read, std::vector<uint8_t> bytes,
+                   scoped_refptr<os_crypt_async::Encryptor> encryptor) {
+                  const auto plain = encryptor ? encryptor->DecryptData(bytes) : std::nullopt;
+                  read.Set("key", plain ? base::Value(*plain) : base::Value());
+                  if (self) self->Reply(id, true, base::Value(std::move(read)));
+                }, self, id, std::move(read), *bytes));
+          }, weak_factory_.GetWeakPtr(), id));
+      return;
     }
     if (quiet_method == "profileImportPins" && quiet_args.empty()) {
       Reply(id, true, base::Value(GetOwner(web_ui()->GetWebContents())->browser->GetProfile()->GetOriginalProfile()

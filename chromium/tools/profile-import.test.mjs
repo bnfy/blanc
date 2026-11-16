@@ -151,6 +151,19 @@ test('device settings become preferences only when their value is one the fork a
   for (const key of ['theme', 'searchEngine', 'adblockEnabled', 'customBangs', 'islandSize', '_syncMeta', 'patron']) assert.ok(!settingsPrefs.notCarried.includes(key), key);
 });
 
+test('the protected Sync key is passed on as it is; a plain key never is', async () => {
+  const withKey = sourceFiles(f => { f['sync.json'] = JSON.stringify({...JSON.parse(f['sync.json']), enabled: true, protectedKey: 'djEwQUJDRA==', key: 'cGxhaW4='}); });
+  const result = await plan(withKey.files);
+  assert.equal(result.syncProtectedKey, 'djEwQUJDRA==');
+  assert.ok(!Object.hasOwn(result.device['sync.json'], 'protectedKey') && !Object.hasOwn(result.device['sync.json'], 'key'));
+  assert.ok(!JSON.stringify(result).includes('cGxhaW4='), 'a legacy plain key appears nowhere in the plan');
+  assert.equal((await plan(sourceFiles().files)).syncProtectedKey, null);
+  for (const bad of [42, '', 'not base64!', 'A'.repeat(5000)]) {
+    const odd = sourceFiles(f => { f['sync.json'] = JSON.stringify({...JSON.parse(f['sync.json']), protectedKey: bad}); });
+    assert.equal((await plan(odd.files)).syncProtectedKey, null, String(bad).slice(0, 20));
+  }
+});
+
 test('only the plan call exists, and the bundle touches no host', async () => {
   const {files} = sourceFiles();
   assert.deepEqual(await plan(files, 'desktop.import'), {failed: 'forbidden'});

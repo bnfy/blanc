@@ -3,6 +3,8 @@
 
 #import <AppKit/AppKit.h>
 
+#import <Security/Security.h>
+
 #include "base/strings/sys_string_conversions.h"
 #include "blanc/browser/ui/blanc_prototype_ui.h"
 #include "blanc/common/menu_strings.h"
@@ -183,6 +185,21 @@ NSURL* ElectronBlancApp() {
   return [NSWorkspace.sharedWorkspace URLForApplicationWithBundleIdentifier:@"me.bnfy.bowser"];
 }
 }  // namespace
+
+std::optional<std::string> ReadElectronSafeStoragePassword() {
+  NSDictionary* query = @{
+    (__bridge id)kSecClass : (__bridge id)kSecClassGenericPassword,
+    (__bridge id)kSecAttrService : @"Blanc Safe Storage",
+    (__bridge id)kSecAttrAccount : @"Blanc",
+    (__bridge id)kSecReturnData : @YES,
+    (__bridge id)kSecMatchLimit : (__bridge id)kSecMatchLimitOne,
+  };
+  CFTypeRef found = nullptr;
+  if (SecItemCopyMatching((__bridge CFDictionaryRef)query, &found) != errSecSuccess || !found) return std::nullopt;
+  NSData* data = CFBridgingRelease(found);
+  if (!data.length || data.length > 1024) return std::nullopt;
+  return std::string(static_cast<const char*>(data.bytes), data.length);
+}
 
 bool ElectronBlancInstalled() {
   return ElectronBlancApp() != nil;

@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -55,6 +56,12 @@ bool ClickAppMenuItem(int item_tag);
 // The Electron Blanc app (me.bnfy.bowser), for the protected-video notice's
 // Open in Blanc: whether macOS knows it, and opening one web address in it.
 bool ElectronBlancInstalled();
+// The password of the Electron app's safeStorage Keychain item ("Blanc Safe
+// Storage"), for the profile importer to open that app's protected Sync key.
+// Read-only: nothing is added or changed in the Keychain. macOS asks the
+// person once, since the item belongs to another app; a refusal is nullopt.
+// It blocks on that prompt, so it is never called on the UI thread.
+std::optional<std::string> ReadElectronSafeStoragePassword();
 void OpenInElectronBlanc(const GURL& url);
 // The application menu's item titles in order (About, Hide, Quit… carry the
 // app's name, patch 0075), and clicking its About item as a person would.

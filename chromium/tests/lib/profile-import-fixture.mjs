@@ -31,3 +31,12 @@ export function digestTree(dir) {
   walk(dir);
   return JSON.stringify(rows);
 }
+
+// A Sync key protected as Electron's safeStorage does on macOS (Chromium's
+// OSCrypt "v10": AES-128-CBC under a key derived from the Keychain item's
+// password), for a test's own invented key and password.
+export function electronProtect(key, password) {
+  const derived = crypto.pbkdf2Sync(password, 'saltysalt', 1003, 16, 'sha1');
+  const cipher = crypto.createCipheriv('aes-128-cbc', derived, Buffer.alloc(16, ' '));
+  return Buffer.concat([Buffer.from('v10'), cipher.update(key.toString('base64'), 'utf8'), cipher.final()]).toString('base64');
+}

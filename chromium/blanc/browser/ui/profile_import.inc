@@ -11,8 +11,8 @@
 // Built so far (tasks 2 to 5): each profile's Favorites, history, site
 // icons, Start Page pins, Tab Archive, Spaces and saved windows, a named
 // profile becoming an ordinary Chromium profile; Personal's settings and the
-// install id; site permissions. The downloads list is left behind (owner).
-// Sync follows in a later task.
+// install id; site permissions; Sync's stores and key, staged for the next
+// launch. The downloads list is left behind (owner).
 //
 // Included by blanc_prototype_ui.cc inside its unnamed namespace.
 
@@ -626,6 +626,111 @@ bool ApplyImportedInstall(const base::DictValue* install) {
   return true;
 }
 
+// Sync (task 7). Its stores are shipping's own files, which the fork's Sync
+// reads once when it starts, so the importer stages them beside the profile
+// (BlancSyncImport) and the next launch takes them up before Sync starts
+// (desktop_sync_service.cc AdoptImportedSyncStores). The key is ciphertext
+// only Electron's Keychain item opens: it is opened with that item's
+// password and protected again with the fork's own, so Sync stays on as the
+// same device (owner, 2026-11-16). Where the key cannot be opened, the
+// stores are staged with Sync off and the person signs in again.
+constexpr char kImportSyncStaging[] = "BlancSyncImport";
+constexpr const char* kImportSyncDeviceStores[] = {"sync.json", "tab-sync.json", "tab-icons.json", "sends.json"};
+constexpr const char* kImportSyncProfileStores[] = {"shared-spaces.json", "synced-closed.json"};
+
+// A test launch never reads the real Keychain item: its password is a
+// stand-in, and with none set the read counts as refused.
+std::optional<std::string>& TestSafeStoragePassword() {
+  static base::NoDestructor<std::optional<std::string>> password;
+  return *password;
+}
+std::optional<std::string> ElectronSafeStoragePassword() {
+  if (blanc::BlancTestLaunch()) return TestSafeStoragePassword();
+#if BUILDFLAG(IS_MAC)
+  return blanc::ReadElectronSafeStoragePassword();
+#else
+  return std::nullopt;
+#endif
+}
+
+// Electron's safeStorage on macOS is Chromium's OSCrypt "v10": AES-128-CBC,
+// sixteen spaces as the IV, under PBKDF2-HMAC-SHA1(password, "saltysalt",
+// 1003 rounds). Shipping stores base64(encrypt(base64(key))); the result here
+// is that inner base64 text, checked to be a 32-byte key.
+std::optional<std::string> UnwrapElectronSyncKey(const std::string& protected_key, const std::string& password) {
+  const auto blob = base::Base64Decode(protected_key);
+  if (!blob || blob->size() < 3 + 16 || (*blob)[0] != 'v' || (*blob)[1] != '1' || (*blob)[2] != '0') return std::nullopt;
+  std::array<uint8_t, 16> derived;
+  static constexpr char kSalt[] = "saltysalt";
+  if (!PKCS5_PBKDF2_HMAC_SHA1(password.data(), password.size(), reinterpret_cast<const uint8_t*>(kSalt), 9, 1003,
+                              derived.size(), derived.data())) return std::nullopt;
+  std::array<uint8_t, 16> iv;
+  iv.fill(' ');
+  const auto plain = crypto::aes_cbc::Decrypt(derived, iv, base::span(*blob).subspan(3u));
+  if (!plain) return std::nullopt;
+  std::string text(plain->begin(), plain->end());
+  const auto key = base::Base64Decode(text);
+  if (!key || key->size() != 32) return std::nullopt;
+  return text;
+}
+std::optional<std::string> OpenElectronSyncKey(std::string protected_key) {
+  const auto password = ElectronSafeStoragePassword();
+  return password ? UnwrapElectronSyncKey(protected_key, *password) : std::nullopt;
+}
+
+// Writes the staging folder afresh: the stores, then `ready` last, so a
+// folder without it is never taken up.
+bool WriteImportSyncStaging(base::FilePath dir, base::DictValue stores) {
+  if (!base::DeletePathRecursively(dir) || !base::CreateDirectory(dir)) return false;
+  for (auto [name, value] : stores) {
+    const auto json = base::WriteJson(value);
+    if (!json || !base::ImportantFileWriter::WriteFileAtomically(dir.AppendASCII(name), *json)) return false;
+  }
+  return base::WriteFile(dir.AppendASCII("ready"), "1");
+}
+
+// Stages Sync for the first profile. `key_state` in the reply is kept (the
+// key re-protected), unavailable (it could not be opened) or none (the
+// Electron app was not syncing, or kept no protected key).
+void StageImportedSync(Profile* profile, base::DictValue stores, std::optional<std::string> protected_key,
+                       base::OnceCallback<void(base::DictValue)> done) {
+  auto* sync = stores.FindDict("sync.json");
+  if (!sync) { std::move(done).Run(base::DictValue().Set("staged", false).Set("key", "none")); return; }
+  const base::FilePath dir = profile->GetPath().AppendASCII(kImportSyncStaging);
+  auto write = base::BindOnce([](base::FilePath dir, base::OnceCallback<void(base::DictValue)> done,
+                                 base::DictValue stores, std::string key_state) {
+    base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
+        base::BindOnce(&WriteImportSyncStaging, dir, std::move(stores)),
+        base::BindOnce([](base::OnceCallback<void(base::DictValue)> done, std::string key_state, bool written) {
+          std::move(done).Run(base::DictValue().Set("staged", written).Set("key", key_state));
+        }, std::move(done), std::move(key_state)));
+  }, dir, std::move(done));
+  if (!sync->FindBool("enabled").value_or(false) || !protected_key) {
+    sync->Set("enabled", false);
+    std::move(write).Run(std::move(stores), "none");
+    return;
+  }
+  base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
+      base::BindOnce(&OpenElectronSyncKey, *protected_key),
+      base::BindOnce([](base::DictValue stores, base::OnceCallback<void(base::DictValue, std::string)> write,
+                        std::optional<std::string> key) {
+        if (!key || !g_browser_process->os_crypt_async()) {
+          stores.FindDict("sync.json")->Set("enabled", false);
+          std::move(write).Run(std::move(stores), "unavailable");
+          return;
+        }
+        g_browser_process->os_crypt_async()->GetInstance(base::BindOnce(
+            [](base::DictValue stores, base::OnceCallback<void(base::DictValue, std::string)> write, std::string key,
+               scoped_refptr<os_crypt_async::Encryptor> encryptor) {
+              const auto sealed = encryptor && encryptor->IsEncryptionAvailable() ? encryptor->EncryptString(key) : std::nullopt;
+              auto* sync = stores.FindDict("sync.json");
+              if (sealed) sync->Set("protectedKey", base::Base64Encode(*sealed));
+              else sync->Set("enabled", false);
+              std::move(write).Run(std::move(stores), sealed ? "kept" : "unavailable");
+            }, std::move(stores), std::move(write), std::move(*key)));
+      }, std::move(stores), std::move(write)));
+}
+
 // One import at a time. Each profile in the plan is a job: Personal into the
 // first profile, and each named profile into an ordinary Chromium profile
 // created for it (owner, 2026-11-16: Chromium's own profiles, nothing
@@ -655,13 +760,15 @@ class ProfileImport final {
   void ProfileReady(std::string key, std::string id, PreparedImport prepared, Profile* profile);
   void Applied(std::string key, std::string id, base::WeakPtr<Profile> profile, base::Value applied);
   void Fail(const std::string& key, const std::string& store, const std::string& reason);
+  void SyncStaged(base::DictValue staged);
   void Finish(base::Value result);
   std::unique_ptr<ProfileImportRunner> runner_;
   base::WeakPtr<Profile> personal_;
   std::vector<Job> jobs_;
   std::string version_;
   int windows_ = 0, tabs_ = 0;
-  base::DictValue settings_synced_, settings_prefs_, install_, session_;
+  base::DictValue settings_synced_, settings_prefs_, install_, session_, sync_stores_;
+  std::optional<std::string> sync_key_;
   base::ListValue settings_skipped_;
   base::DictValue result_;
   Done done_;
@@ -712,7 +819,11 @@ void ProfileImport::Planned(bool ok, const std::string& value) {
   if (const auto* device = parsed->FindDict("device")) {
     if (const auto* install = device->FindDict("install.json")) install_ = install->Clone();
     if (const auto* session = device->FindDict("session.json")) session_ = session->Clone();
+    for (const char* name : kImportSyncDeviceStores) {
+      if (const auto* store = device->FindDict(name)) sync_stores_.Set(name, store->Clone());
+    }
   }
+  if (const auto* sealed = parsed->FindString("syncProtectedKey")) sync_key_ = *sealed;
   // Personal first, then the named profiles in the plan's order; one
   // imported before is only named.
   const auto* done = g_browser_process->local_state()->GetDict(kProfileImportPref).FindDict("profiles");
@@ -730,6 +841,10 @@ void ProfileImport::Planned(bool ok, const std::string& value) {
     job.stores = stores->Clone();
     if (key == "personal") {
       if (const auto* synced = stores->FindDict("settings.json")) settings_synced_ = synced->Clone();
+      // Personal's Sync stores travel with the device's.
+      for (const char* name : kImportSyncProfileStores) {
+        if (const auto* store = stores->FindDict(name)) sync_stores_.Set(name, store->Clone());
+      }
     }
     if (key == "personal") jobs_.insert(jobs_.begin(), std::move(job)); else named.push_back(std::move(job));
   }
@@ -795,6 +910,18 @@ void ProfileImport::Applied(std::string key, std::string id, base::WeakPtr<Profi
   const auto opened = OpenImportedSession(profile.get(), session_, id);
   windows_ += opened.FindInt("windows").value_or(0);
   tabs_ += opened.FindInt("tabs").value_or(0);
+  // Sync belongs to Personal: staged once its own data is in.
+  if (key == "personal") {
+    StageImportedSync(profile.get(), std::move(sync_stores_), std::move(sync_key_),
+        base::BindOnce(&ProfileImport::SyncStaged, weak_.GetWeakPtr()));
+    sync_stores_ = base::DictValue();
+    sync_key_.reset();
+    return;
+  }
+  NextProfile();
+}
+void ProfileImport::SyncStaged(base::DictValue staged) {
+  result_.Set("sync", std::move(staged));
   NextProfile();
 }
 void ProfileImport::Finish(base::Value result) {
@@ -805,6 +932,7 @@ void ProfileImport::Finish(base::Value result) {
   windows_ = tabs_ = 0;
   settings_synced_ = base::DictValue(); settings_prefs_ = base::DictValue(); install_ = base::DictValue();
   session_ = base::DictValue(); settings_skipped_ = base::ListValue();
+  sync_stores_ = base::DictValue(); sync_key_.reset();
   personal_.reset();
   if (done_) std::move(done_).Run(std::move(result));
 }

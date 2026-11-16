@@ -126,9 +126,11 @@ Each task ends with its own passing tests and a push to `chromium/next`. Tasks 1
 
 ### Task 7: Sync stores and the key (M.3)
 
-- [ ] Test (stand-in Keychain): the Sync stores land under `BlancSync/`, the device id is the fixture's, the key decrypts with the stand-in and is re-protected with the fork's own; a denied Keychain read leaves Sync off with the message and imports everything else.
-- [ ] Implement from the drafts (`legacy_sync_record`, `legacy_recovery_broker`), reading Electron's Keychain item read-only.
-- [ ] Build, pass, commit and push. The real-account check is the owner's, after a backup.
+**Done 2026-11-16** (candidate macos-22d3967de015b079, 4 native checks in `native-profile-import-sync.mjs`). The fork's Sync reads its stores once, when it starts, and has no restart, so the stores are **staged** (`<Default>/BlancSyncImport/`) and taken up at the next launch before Sync starts (`AdoptImportedSyncStores`), unless that profile is already syncing. The key is opened with the Electron Keychain item's password (read-only `SecItemCopyMatching`; a stand-in under a test launch) and protected again with the fork's own. The earlier drafts in `experiments/…/drafts/native-sync/` were written for a different Sync design and were not used. **Not done:** the real-account check (the owner's, after a backup); the real Keychain prompt has never been shown.
+
+- [x] Test (stand-in Keychain): the Sync stores land under `BlancSync/`, the device id is the fixture's, the key decrypts with the stand-in and is re-protected with the fork's own; a denied Keychain read leaves Sync off with the message and imports everything else.
+- [x] Implement from the drafts (`legacy_sync_record`, `legacy_recovery_broker`), reading Electron's Keychain item read-only.
+- [x] Build, pass, commit and push. The real-account check is the owner's, after a backup.
 
 ### Task 8: The person's side
 
@@ -139,9 +141,12 @@ Blocked on the owner decision below.
 
 ## Owner decisions this plan needs
 
+Found in task 7: once the import has created a second profile, Chromium opens its **profile picker** at the next launch instead of the saved windows (decision P3 below).
+
 | # | Decision | Needed before |
 | --- | --- | --- |
 | P1 | Where the import starts: automatically on the replacement build's first launch only, or also as a command in Blanc Beta's Settings so beta testers (and the owner's dogfood) can bring their data across | Task 8 |
+| P3 | After an import that created named profiles, the next launch shows Chromium's profile picker. Leave it, or have the importer turn off Chromium's own "show at startup" setting so Blanc reopens its windows as Electron did | Task 8 |
 | P2 | Downloads list: **answered 2026-11-16: leave it behind** | Task 6 |
 
 ## Not imported, by design
