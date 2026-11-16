@@ -15,6 +15,9 @@ enum WebViewConfiguration {
         let config = WKWebViewConfiguration()
         config.websiteDataStore = dataStore
         config.setURLSchemeHandler(schemeHandler, forURLScheme: "blanc")
+        // WebKit hides the Fullscreen API from pages unless asked, and then a
+        // site's own full screen button does nothing on iPad.
+        config.preferences.isElementFullscreenEnabled = true
 
         let userScript = WKUserScript(
             source: PagesBridge.userScriptSource,
