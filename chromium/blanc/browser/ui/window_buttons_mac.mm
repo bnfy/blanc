@@ -24,4 +24,13 @@ bool WindowButtonsVisible(gfx::NativeWindow window) {
   return close && !close.hidden;
 }
 
+gfx::Point WindowButtonPosition(gfx::NativeWindow window) {
+  NSWindow* ns_window = window.GetNativeNSWindow();
+  NSButton* close = [ns_window standardWindowButton:NSWindowCloseButton];
+  if (!close) return gfx::Point();
+  const NSRect frame = [close convertRect:close.bounds toView:nil];
+  return gfx::Point(static_cast<int>(NSMinX(frame)),
+                    static_cast<int>(NSHeight(ns_window.frame) - NSMaxY(frame)));
+}
+
 }  // namespace blanc

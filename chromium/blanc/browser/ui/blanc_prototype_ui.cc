@@ -7081,6 +7081,16 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       auto* page = browser ? browser->GetTabStripModel()->GetActiveWebContents() : nullptr;
       Reply(id, true, page ? base::Value(base::UTF16ToUTF8(page->GetTitle())) : base::Value()); return;
     }
+    if (quiet_method == "windowButtonPosition" && quiet_args.empty()) {
+#if BUILDFLAG(IS_MAC)
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      const gfx::Point at = blanc::WindowButtonPosition(owner->browser->GetWindow()->GetNativeWindow());
+      Reply(id, true, base::Value(base::DictValue().Set("x", at.x()).Set("y", at.y())));
+#else
+      Reply(id, true, base::Value());
+#endif
+      return;
+    }
     if (quiet_method == "profileInfo" && quiet_args.empty()) {
       auto* owner = GetOwner(web_ui()->GetWebContents());
       auto* profile = owner->browser->GetProfile()->GetOriginalProfile();
@@ -10405,6 +10415,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         {"slot4", IDC_SELECT_TAB_3}, {"slot5", IDC_SELECT_TAB_4}, {"slot6", IDC_SELECT_TAB_5},
         {"slot7", IDC_SELECT_TAB_6}, {"slot8", IDC_SELECT_TAB_7}, {"slot9", IDC_SELECT_LAST_TAB},
         {"closeWindow", IDC_CLOSE_WINDOW}, {"find", IDC_FIND}, {"newTab", IDC_NEW_TAB},
+        {"newPrivateTab", IDC_NEW_INCOGNITO_WINDOW},
         {"nextTab", IDC_SELECT_NEXT_TAB}, {"previousTab", IDC_SELECT_PREVIOUS_TAB},
         {"hardReload", IDC_RELOAD_BYPASSING_CACHE}, {"close", IDC_CLOSE_TAB},
         {"zoomIn", IDC_ZOOM_PLUS}, {"zoomOut", IDC_ZOOM_MINUS},

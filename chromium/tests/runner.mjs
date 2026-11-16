@@ -86,6 +86,9 @@ async function runCase(matches,steps,tags=[]){
   });
   world.bindShippingContext();
   entry.executed=true;entry.steps=[];
+  // Shipping's support/hooks.js turns New Tab reuse on for these cases (#1505);
+  // the reset leaves it off for every other one.
+  if(['@F37-5','@F37-6','@F37-7','@F37-9'].some(tag=>tags.includes(tag)))await phase('stepSetup',()=>world.native('setReuseNewTab',[true]));
   for(const hook of beforeHooks)if(hook.tags.split(' or ').some(tag=>tags.includes(tag)))await phase('stepSetup',()=>hook.run.call(world));
   for(let i=0;i<matches.length;i++){
    const match=matches[i];await phase('steps',async()=>{await world.app.refresh();await match.definition.run.call(world,...match.args);});
