@@ -50,6 +50,14 @@ Out of scope: F38, F42, X1 (owner chose Web Store extensions), Windows, Linux, A
 - **C1 moves to Claude.** Last night's run names what the three undefined cases lack: the updater case needs a signed feed, the private-passkey case needs Touch ID on a signed build, and the Patron case needs a native `setSupporterActive` hook. None is test-only work.
 - **C2 runs in batches of three rows:** C2a F49, F50, F54; C2b F59, N1, N17; C2c F58, N13, F51. C3 and C4 need no browser and are unchanged.
 
+## 2b. Progress and changes (2026-11-16, later)
+
+- **C2a landed** (ee26ec3d5): F49, F50, F54 Integrated.
+- **C2b landed** (71d6ca969): N1 Integrated. Codex reported F59 and F58 blocked, correctly: F59 (Ctrl+Tab recent order) is not built in the fork, and F58 has nothing that observes Reading Mode open. Both join the Claude lane as **K11** (build F59: the `tabSwitchOrder` setting, shipping's switcher card, and a held-Ctrl test helper) and **K12** (fill `readerActive` from native, then test F58).
+- **C2c is cancelled for Codex.** Its rows can't be tested blind without touching the owner's Mac: N13 plays audio, N17 opens the mail app or writes the clipboard, F51 needs a release-version hook. Claude tests them with the harness's isolation.
+- **C3 moves to Claude.** The scenario change to v1.49.1 is small (44 lines in two feature files), but the pin is shared by `tests/lib/shipping-core.cjs`, the tracker and eleven unit tests that compare the fork's ports with shipping, and moving it goes with a renderer sync and a build. It becomes **K13**, a shipping-target move like the one to v1.48.0.
+- **C4 is running** (importer fixtures and answer key). It is Codex's last card in this plan.
+
 ## 3. Codex operating contract
 
 These rules are pasted verbatim at the top of every brief. They exist because of how the October fork work went wrong (124 continuation sections in a day, numbered draft copies, 22 `CODEX-NOTES-*.md` files, integration deferred).
