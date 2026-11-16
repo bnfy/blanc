@@ -1,0 +1,15 @@
+diff -ruN a/base/version_info/version_info.cc b/base/version_info/version_info.cc
+--- a/base/version_info/version_info.cc
++++ b/base/version_info/version_info.cc
+@@ -19,7 +19,10 @@
+ 
+ #if BUILDFLAG(IS_ANDROID)
+ std::string_view GetVersionNumber() {
+-  return base::android::apk_info::package_version_name();
++  // Blanc (patch 0117): Chromium's own version, as on desktop. The package's version name is
++  // Blanc's (1.0.0-beta.1), which isn't a valid base::Version: variations CHECK-failed at
++  // launch, and the user agent would read Chrome/1.0.0-beta.1.
++  return PRODUCT_VERSION;
+ }
+ #endif
+ 

@@ -3,6 +3,7 @@
   "version": "156.0.8078.79",
   "files": {
     "BUILD.gn": "3ac1c40941ec13b48f3a855c6d5aef985b6bdf3cb7272d3940cf6cdf5f188617",
+    "base/version_info/version_info.cc": "bd67a7af2ccfd8a96eea631d143c743fa8ef9fa61e0441617242b03c4749cdf5",
     "chrome/android/BUILD.gn": "0ddb8f56c59166dcdb6cc49f2e5a8d2ab22491aa8a3822d4ac27a133fa2d3760",
     "chrome/android/chrome_public_apk_tmpl.gni": "326a15927e5ee513175b0c0edc5482d00949f467f87f3153ce214a3a53b16356",
     "chrome/android/java/AndroidManifest.xml": "55cb5be8a4f0e03b228ce778487d9a6a26ae13e72cf81739c4b08fea4255c802",

@@ -50,6 +50,12 @@ in the lane file in its place. Numbering starts at 0101.
   `chrome_public_apk_tmpl.gni`). Chromium's loader reserves a fixed 192 MB, and
   the release library (no PGO profiles) is larger, so the release app stopped at
   launch. Debug builds never used it (component builds can't).
+- `0117-android-chromium-version.patch`: `version_info::GetVersionNumber()`
+  returns Chromium's own version (`PRODUCT_VERSION`) on Android, as on
+  desktop, instead of the package's version name. Release builds name the
+  package with Blanc's version (`1.0.0-beta.1`), which isn't a valid
+  `base::Version`: variations CHECK-failed at launch, and the user agent would
+  have read `Chrome/1.0.0-beta.1`.
 
 A Chromium file dropped from the lane keeps its applied edits in an existing
 checkout: restore it with `git checkout` there. A Blanc file the source drops or
