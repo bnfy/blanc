@@ -33,7 +33,8 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   never takes focus; Not now and the handoff put it away for that site until
   Blanc quits. *Handoff:* the page's address goes to the app with bundle id
   `me.bnfy.bowser` through NSWorkspace; only http and https; a private tab's
-  address is handed off too. A test launch records the handoff and starts
+  address is handed off too (owner, 2026-11-16: keep it; the released app
+  opens it as an ordinary tab). A test launch records the handoff and starts
   nothing. *Strings:* shipping has no words for this, so the fork has its
   first own catalog, `blanc/fork-strings.json`, merged into the Island's
   `strings.js` by `interface-strings.mjs`; every key must carry all six

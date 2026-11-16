@@ -81,7 +81,8 @@ void DismissProtectedMedia(BrowserWindowInterface* browser) {
 }
 
 // Open in Blanc: the current page's address goes to the Electron app, which
-// opens it as any link from another app. Where that app is absent, its
+// opens it as any link from another app. A private tab's address goes too
+// (owner, 2026-11-16): the click is the person's own choice. Where that app is absent, its
 // download page opens in a new tab instead. Returns whether it was handed off.
 bool OpenProtectedMediaInBlanc(BrowserWindowInterface* browser) {
   auto* active = browser->GetTabStripModel()->GetActiveWebContents();
