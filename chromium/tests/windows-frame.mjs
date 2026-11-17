@@ -30,17 +30,19 @@ const BUTTON={close:22,maximize:68,minimize:114};
 const near=(a,b,slack=2)=>Math.abs(a-b)<=slack;
 
 const fixtures=[];
-async function launched(name,extraArgs=[]){
+async function launched(name,extraArgs=[],{fresh=true}={}){
  const fixture=new NativeFixture();fixture.extraArgs=extraArgs;fixtures.push(fixture);
  await fixture.launch(config,path.join(scratch,name),{testHooks:true,diskAssets:false});
  await installDriver(fixture.host);
  // The launch tab carries Chromium's "unsupported command-line flag" infobar
  // (the fixture's resolver rules), which takes height from the page. A fresh
  // tab has none, as every suite case's does after its reset.
+ if(fresh){
  const made=await nativeCall(fixture.host,'createTab',[fixture.base+'/initial']);
  // The native snapshot carries the native tab ids its hooks take.
  for(const t of (await nativeCall(fixture.host,'snapshot')).tabs)if(String(t.id)!==String(made.tabId))await nativeCall(fixture.host,'closeTab',[t.id]);
  await waitFor(fixture.snapshot,s=>s.tabs.length===1&&!s.tabs[0].isLoading,'one fresh tab');
+ }
  // The closed tab's page stays alive for a while (Recently closed holds it),
  // so two pages share the address: the fresh tab's is the visible one.
  const visiblePage=async()=>{
@@ -65,7 +67,29 @@ async function launched(name,extraArgs=[]){
   const w=await win(),host=await fixture.host.eval('({w:innerWidth,h:innerHeight})'),inner=await page.eval('({w:innerWidth,h:innerHeight})');
   return {ok:host.w===w.width&&inner.w===w.width&&host.h+inner.h===w.height,window:w,host,page:inner};
  };
- return {fixture,win,strip,fills};
+ // Windows' own close button: the window must go at once. Whether the
+ // process then ends, and how soon, is reported beside it.
+ const closeByButton=async(wait=15000)=>{
+  const w=await win();
+  realInput(clickSteps(w.left+w.width-BUTTON.close,w.top+14));
+  const pressed=Date.now();
+  const windowGone=await waitFor(()=>win().then(()=>false,()=>true),Boolean,'window closed by its button',8000).then(()=>true,()=>false);
+  for(let i=0;i<wait/100&&!fixture.exit;i++)await pause(100);
+  return {windowGone,exit:fixture.exit,exitAfterMs:fixture.exit?Date.now()-pressed:null};
+ };
+ // The Island's menu button opens Chromium's app menu; Escape closes it.
+ const menuByButton=async(capture=null)=>{
+  const w=await win();
+  const button=await strip(`(()=>{const r=document.getElementById('mainMenuButton').getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);
+  const expanded=()=>strip(`document.getElementById('mainMenuButton').getAttribute('aria-expanded')`);
+  realInput(clickSteps(w.left+button.x,w.top+button.y));
+  const opened=await waitFor(expanded,v=>v==='true','menu button marked open').then(()=>true,()=>false);
+  await pause(600);if(capture)desktopCapture(capture);
+  realInput(keySteps(0x1B));
+  const closed=await waitFor(expanded,v=>v==='false','menu button marked closed').then(()=>true,()=>false);
+  return {button,opened,closed};
+ };
+ return {fixture,win,strip,fills,closeByButton,menuByButton};
 }
 
 let failure=null;
@@ -120,28 +144,28 @@ try{
  await fixture.browser.send('Browser.setWindowBounds',{windowId:w.windowId,bounds:{windowState:'normal'}});
  await waitFor(win,x=>x.state==='normal','window restored');await pause(400);
 
- // The Island's menu button opens Chromium's app menu; Escape closes it.
- w=await win();
- const button=await strip(`(()=>{const r=document.getElementById('mainMenuButton').getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);
- const expanded=()=>strip(`document.getElementById('mainMenuButton').getAttribute('aria-expanded')`);
- realInput(clickSteps(w.left+button.x,w.top+button.y));
- const opened=await waitFor(expanded,v=>v==='true','menu button marked open').then(()=>true,()=>false);
- await pause(600);desktopCapture(path.join(out,'menu.png'));
- realInput(keySteps(0x1B));
- const closed=await waitFor(expanded,v=>v==='false','menu button marked closed').then(()=>true,()=>false);
- record.checks.menuButtonOpensAndCloses=opened&&closed;record.details.menuButton={button,opened,closed};
+ const menu=await a.menuByButton(path.join(out,'menu.png'));
+ record.checks.menuButtonOpensAndCloses=menu.opened&&menu.closed;record.details.menuButton=menu;
 
- // Windows' own close button ends the browser cleanly.
- w=await win();
- // The window must go at once; the process is given a minute, and how long
- // it took is recorded (a page held for Recently closed can keep it a while).
- realInput(clickSteps(w.left+w.width-BUTTON.close,w.top+14));
- const pressed=Date.now();
- const windowGone=await waitFor(()=>win().then(()=>false,()=>true),Boolean,'window closed by its button',8000).then(()=>true,()=>false);
- for(let i=0;i<600&&!fixture.exit;i++)await pause(100);
- record.checks.closeButton=windowGone&&fixture.exit?.code===0;
- record.details.close={windowGone,exit:fixture.exit,exitAfterMs:fixture.exit?Date.now()-pressed:null};
+ // Close after a tab was closed and the menu was used: the window goes;
+ // the process's exit is recorded (see plainClose below for the required one).
+ const closeAfterUse=await a.closeByButton();
+ record.checks.closeButtonClosesWindow=closeAfterUse.windowGone;record.details.closeAfterTabCloseAndMenu=closeAfterUse;
  await fixture.close().catch(()=>{});
+
+ // Close on a window nothing else was done to: the process ends cleanly.
+ const c=await launched('plain-close',[],{fresh:false});
+ const plain=await c.closeByButton();
+ record.checks.closeButtonEndsBrowser=plain.windowGone&&plain.exit?.code===0;record.details.plainClose=plain;
+ await c.fixture.close().catch(()=>{});
+ // The same after the menu was opened and closed, with no tab closed: tells
+ // the menu's part in a slow exit from a closed tab's.
+ const d=await launched('menu-close',[],{fresh:false});
+ const menuOnly=await d.menuByButton();
+ const afterMenu=await d.closeByButton();
+ record.details.closeAfterMenuOnly={menu:menuOnly,close:afterMenu};
+ record.checks.closeAfterMenuEndsBrowser=afterMenu.windowGone&&afterMenu.exit?.code===0;
+ await d.fixture.close().catch(()=>{});
 
  // ---- at 150% ----
  const b=await launched('scale-150',['--force-device-scale-factor=1.5']);
@@ -163,7 +187,7 @@ finally{
  try{fs.rmSync(scratch,{recursive:true,force:true,maxRetries:10,retryDelay:300});}catch(error){record.tidyError=String(error.message||error);}
 }
 const required=['contentFillsWindow','islandDrawsNoWindowButtons','maximizeButton','contentFillsWhenMaximized','restoreButton','minimizeButton',
- 'dragByStrip','resizeByTopEdge','doubleClickMaximizes','menuButtonOpensAndCloses','closeButton','contentFillsAt150','cleanExitAt150'];
+ 'dragByStrip','resizeByTopEdge','doubleClickMaximizes','menuButtonOpensAndCloses','closeButtonClosesWindow','closeButtonEndsBrowser','closeAfterMenuEndsBrowser','contentFillsAt150','cleanExitAt150'];
 record.pass=!failure&&required.every(name=>record.checks[name]===true);
 fs.writeFileSync(path.join(out,'frame.json'),JSON.stringify(record,null,2)+'\n');
 console.log(JSON.stringify({candidate:record.candidate,pass:record.pass,checks:record.checks,error:record.error},null,2));
