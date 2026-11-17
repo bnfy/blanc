@@ -691,8 +691,13 @@ base::DictValue ApplyImportedStartPage(Profile* profile, const base::DictValue& 
       base::BindOnce([](base::FilePath folder, std::string bytes) {
         base::DeletePathRecursively(folder);
         if (bytes.empty()) return true;
-        return base::CreateDirectory(folder) && base::SetPosixFilePermissions(folder, 0700) &&
-               base::WriteFile(folder.AppendASCII(kStartPageImportImage), bytes);
+        if (!base::CreateDirectory(folder)) return false;
+#if BUILDFLAG(IS_POSIX)
+        // Owner-only. On Windows the profile folder's own access list, which
+        // this folder inherits, already admits only its owner.
+        if (!base::SetPosixFilePermissions(folder, 0700)) return false;
+#endif
+        return base::WriteFile(folder.AppendASCII(kStartPageImportImage), bytes);
       }, profile->GetPath().AppendASCII(kStartPageImportFolder), with_image ? std::move(*image) : std::string()),
       base::BindOnce([](base::DictValue pending, bool staged) {
         if (!staged) pending.Set("image", false);

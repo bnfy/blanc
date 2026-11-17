@@ -37,9 +37,11 @@ inline bool SupportedLocalHtmlUrl(const GURL& url) {
   base::FilePath path;
   if (!url.is_valid() || !url.SchemeIsFile() || !url.host().empty() || url.has_query() ||
       url.spec().size() > 8192 || !net::FileURLToFilePath(url, &path) || !path.IsAbsolute()) return false;
-  const std::string extension = base::ToLowerASCII(path.Extension());
-  return extension == ".htm" || extension == ".html" || extension == ".xht" ||
-      extension == ".xhtm" || extension == ".xhtml";
+  // A path's own string type: wide on Windows, narrow elsewhere.
+  const base::FilePath::StringType extension = base::ToLowerASCII(path.Extension());
+  return extension == FILE_PATH_LITERAL(".htm") || extension == FILE_PATH_LITERAL(".html") ||
+      extension == FILE_PATH_LITERAL(".xht") || extension == FILE_PATH_LITERAL(".xhtm") ||
+      extension == FILE_PATH_LITERAL(".xhtml");
 }
 
 inline GURL LocalFileWithoutRef(const GURL& url) {

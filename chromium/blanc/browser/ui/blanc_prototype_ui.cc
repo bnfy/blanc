@@ -7173,7 +7173,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       auto* personal = g_browser_process->profile_manager()->GetProfileByPath(
           g_browser_process->profile_manager()->user_data_dir().AppendASCII("Default"));
       if (!personal) { reject("The first profile is not loaded."); return; }
-      ProfileImport::Get()->Start(base::FilePath(quiet_args[0].GetString()), personal,
+      ProfileImport::Get()->Start(base::FilePath::FromUTF8Unsafe(quiet_args[0].GetString()), personal,
           base::BindOnce([](base::WeakPtr<Handler> self, std::string id, base::Value result) {
             if (self) self->Reply(id, true, std::move(result));
           }, weak_factory_.GetWeakPtr(), id));
@@ -7315,7 +7315,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // The Settings import command's source and the released app's state, for a
     // test launch (profile_import.inc FindImportSource).
     if (quiet_method == "setImportSource" && quiet_args.size() == 1) {
-      if (quiet_args[0].is_string()) TestImportSource() = base::FilePath(quiet_args[0].GetString());
+      if (quiet_args[0].is_string()) TestImportSource() = base::FilePath::FromUTF8Unsafe(quiet_args[0].GetString());
       else TestImportSource().reset();
       Reply(id, true, base::Value(true)); return;
     }
