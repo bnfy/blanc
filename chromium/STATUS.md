@@ -3650,7 +3650,7 @@ toolchain package and the cold build on 2026-11-17. Per-platform differences:
 | 2. `progress.mjs --check` with a Windows candidate | Pass | Candidate identities below |
 | 3. `chrome.exe` for x64 built on the server through the guard | Pass | `~/blanc-evidence/windows/build-3.log` |
 | 4. Launches on a hosted Windows runner; Island draws; blocker ready; a page loads | Pass (Windows Server 2025, run 44137463714) | `smoke.json`, `desktop.png` in the run's artifact |
-| 5. The suite runs on Windows and its report is committed | ad-blocking subset 9 of 9 (run 44139407718); **full run pending** | — |
+| 5. The suite runs on Windows and its report is committed | Pass: 667 cases in 1 h 41 min (run 44139976463): 534 pass, 103 fail, 24 undefined, 6 excluded. 56 of the failures are one gap, the window frame (W1) | `reports/f0-windows.json`, `reports/s1-windows.json`, Bar A below |
 | 6. This section and `PLATFORMS.md` | Written | — |
 
 ## Android
@@ -4337,7 +4337,7 @@ on that site, and a wrong search address still fails it.
 | Platform | Current-candidate baseline |
 | --- | --- |
 | macOS | 635/667 executable cases pass; 1 failed; 3 undefined/not run; 28 excluded — [baseline](scenarios/baseline-macos-1400e3914b1a7bdf.json)<br>S1 rows: 260/263 pass; 0 failed; 1 undefined; 2 excluded |
-| Windows | Not run (667 cases) |
+| Windows | 534/667 executable cases pass; 103 failed; 24 undefined/not run; 6 excluded — [baseline](scenarios/baseline-windows-x64-bdcf3cca0b966646.json)<br>S1 rows: 217/263 pass; 44 failed; 2 undefined; 0 excluded |
 | Linux | Not run (667 cases) |
 
 667 executable cases from 618 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.

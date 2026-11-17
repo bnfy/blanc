@@ -2548,11 +2548,12 @@
       "dllSha256": "bdcf3cca0b96664613558954b7d07590571d4f31369a963acf1ce19fe311f994",
       "version": "158.0.8127.2",
       "treeCommit": "cae9db2dde6d101de4671d5ea9590af98a08288d",
-      "qualification": "cross-compiled candidate; runtime acceptance pending"
+      "qualification": "cross-compiled preview; launch check passed on a hosted Windows runner (run 44137463714); full suite 2026-11-17 (run 44139976463, fork 7a6140435, shipping v1.49.1): 534 of 667 cases pass, 103 fail (56 on the window frame not yet being the Island's, W1), 24 undefined, 6 excluded"
     }
   },
   "baselines": {
-    "macos": "scenarios/baseline-macos-1400e3914b1a7bdf.json"
+    "macos": "scenarios/baseline-macos-1400e3914b1a7bdf.json",
+    "windows": "scenarios/baseline-windows-x64-bdcf3cca0b966646.json"
   },
   "scenarioIds": [
     "spec/acceptance/F41-named-workspaces.feature:4",
