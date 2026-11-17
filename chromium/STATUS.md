@@ -14,6 +14,25 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Mute Site is Chromium's sound setting (V21; candidate macos-4148a26f1387076a):**
+  the recheck found Mute Site kept its sites in memory, as shipping does,
+  not as approved divergence V21 says. The owner confirmed V21 on
+  2026-11-16. Mute Site now writes Chromium's own sound setting for the
+  site, as Chromium's own Mute site does, so a muted site stays muted
+  after a relaunch until it is unmuted and shows in Chromium's site
+  settings. A private profile reads the regular profile's sites and keeps
+  its own changes for its session (Chromium's map; not tested here). The
+  per-tab mute, the unmute of one tab on a muted site and the background
+  guard are unchanged. Difference from before: the setting is per origin
+  (scheme, host and port), where the in-memory set was per host.
+  `native-recheck-n13.mjs` passes 4 checks, now asserting muted after a
+  relaunch and unmuted after an unmute and a relaunch. Shipping's step
+  "the tab on {string} is not muted", used only after the relaunch in
+  "Mute Site lasts until Blanc quits", is rebound to V21 in
+  `fork-steps/divergences.mjs`; that scenario and the Glance mute cases
+  pass. The rest of the suite was not re-run. GN was regenerated with
+  unchanged arguments after the merge with `main` (an Android-only
+  argument in `config.gni`).
 - **2026-11-16 — Rechecks for N17, F51 and N13, and the Spaces fade flake (candidate macos-f581c659f1207624):**
   three new tests, all passing on the Mac Studio. **N17 Invite**
   (`native-recheck-n17.mjs`, 2 checks): `/invite` hands the mail app
