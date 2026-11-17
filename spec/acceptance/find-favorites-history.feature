@@ -33,6 +33,22 @@ Feature: Find in page, favorites, and history
     And the favorites page is open in the utility sheet
     Then every favorites row shows a site icon
 
+  @F63-1 @F63 @F9 @desktop
+  Scenario: The Favorites menu shows nested folders as submenus
+    Given a favorite for "https://clients.example/" titled "Acme" in "Work › Clients"
+    And a favorite for "https://loose.example/" titled "Loose" in no folder
+    Then the Favorites menu holds "Work", then a separator, then "Loose"
+    And the Favorites menu's "Work" submenu holds "Clients" with "Acme" in it
+
+  @F63-2 @F63 @F9 @desktop
+  Scenario: /save files the page into a nested folder by its name or by a path
+    Given a favorite for "https://clients.example/" titled "Acme" in "Work › Clients"
+    And the active tab is on "keep.example"
+    When I run the slash command "/save clients"
+    Then "keep.example" is a favorite in "Work › Clients"
+    When I run the slash command "/save Work > Reading"
+    Then "keep.example" is a favorite in "Work › Reading"
+
   @F10-1 @F10 @all
   Scenario: A visit is recorded with the final page title
     When I visit "read.example" with title "Reader"

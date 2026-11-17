@@ -2,7 +2,6 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const {
   addImported, applySaveFavorite, applySetFolder, applyRenameFolder, applyRemoveFolder, canonicalizeFolders,
-  groupFavoritesForMenu,
 } = require('../../src/main/bookmark-data');
 
 const NOW = 2000;
@@ -112,28 +111,6 @@ test('canonicalizeFolders: mixed spellings collapse deterministically without to
   assert.deepEqual(canonicalizeFolders(out).map((it) => it.folder), out.map((it) => it.folder));
 });
 
-test('groupFavoritesForMenu: folders alphabetical (case-insensitive) + newest-first, then ungrouped newest-first', () => {
-  const items = [
-    { id: '1', url: 'ua', title: 'A', addedAt: 1, folder: 'Zeta' },
-    { id: '2', url: 'ub', title: 'B', addedAt: 5, folder: 'alpha' },
-    { id: '3', url: 'uc', title: 'C', addedAt: 3, folder: 'alpha' },
-    { id: '4', url: 'ud', title: 'D', addedAt: 2, folder: null },
-    { id: '5', url: 'ue', title: 'E', addedAt: 9, folder: null },
-  ];
-  const { folders, ungrouped } = groupFavoritesForMenu(items);
-  assert.deepEqual(folders.map((f) => f.name), ['alpha', 'Zeta']); // case-insensitive alpha order
-  assert.deepEqual(folders[0].items.map((b) => b.title), ['B', 'C']); // newest-first (addedAt 5, 3)
-  assert.deepEqual(ungrouped.map((b) => b.title), ['E', 'D']); // newest-first (addedAt 9, 2)
-});
-
-test('groupFavoritesForMenu: empty and all-ungrouped inputs', () => {
-  assert.deepEqual(groupFavoritesForMenu([]), { folders: [], ungrouped: [] });
-  const only = [{ id: '1', url: 'u', title: 'T', addedAt: 1, folder: null }];
-  const r = groupFavoritesForMenu(only);
-  assert.equal(r.folders.length, 0);
-  assert.equal(r.ungrouped.length, 1);
-});
-
 test('applySaveFavorite: new url adds at top level (folder null)', () => {
   const res = applySaveFavorite(snap([]), { url: 'https://a.com/', title: 'A', favicon: null, folder: null }, opts);
   assert.equal(res.changed, true);
@@ -198,7 +175,7 @@ test('applySaveFavorite: adding clears a prior tombstone for that url', () => {
 const {
   applyCreateFolder, applyMoveFolder, applyMoveFavorites, applyReorder, applyRemoveFavorites, keepEmptiedFolders,
 } = require('../../src/main/bookmark-data');
-const { favoriteChildKey } = require('../../src/main/favorites-tree');
+const { favoriteChildKey, folderChildKey } = require('../../src/main/favorites-tree');
 const { EMPTY_LAYOUT } = require('../../src/main/favorites-layout-model');
 
 const CTX = { now: 9, tie: 't' };
@@ -563,4 +540,85 @@ test('repair removes the old flat folder it emptied, even when that folder had i
   assert.equal(r.layout.folders.keep.gone, undefined);
   const { buildTree: tree } = require('../../src/main/favorites-tree');
   assert.deepEqual(tree(r.items, r.layout).children.filter((c) => c.kind === 'folder').map((c) => c.folder.name).sort(), ['Bar', 'Keep']);
+});
+
+// --- The Favorites menu and /save paths (F63) ---
+
+const { favoritesMenuModel, resolveSavePath } = require('../../src/main/bookmark-data');
+
+const kinds = (model) => model.map((x) => x.kind);
+
+test('menu nests in tree order', () => {
+  const m = favoritesMenuModel([fav('a', 'Work › Clients', 1), fav('b', null, 2)], EMPTY_LAYOUT);
+  assert.deepEqual(kinds(m), ['folder', 'separator', 'favorite']);
+  assert.equal(m[0].name, 'Work');
+  assert.equal(m[0].children[0].name, 'Clients');
+  assert.equal(m[0].children[0].children[0].item.url, 'a');
+});
+
+test('menu: an untouched profile reads as it always did', () => {
+  const items = [fav('a', 'Zeta', 1), fav('b', 'alpha', 5), fav('c', 'alpha', 3), fav('d', null, 2), fav('e', null, 9)];
+  const m = favoritesMenuModel(items, EMPTY_LAYOUT);
+  assert.deepEqual(m.map((x) => x.name ?? x.item?.url ?? '|'), ['alpha', 'Zeta', '|', 'e', 'd']);
+  assert.deepEqual(m[0].children.map((x) => x.item.url), ['b', 'c']);
+});
+
+test('menu follows a chosen order, and no separator once a favorite leads a folder', () => {
+  let s = state([fav('a', 'Work', 1), fav('b', null, 2)]);
+  s = applyReorder(s, null, [favoriteChildKey('b'), folderChildKey('Work')], CTX);
+  const m = favoritesMenuModel(s.items, s.layout);
+  assert.deepEqual(kinds(m), ['favorite', 'folder']);
+});
+
+test('menu leaves out folders holding no favorites at any depth', () => {
+  let s = state([fav('a', null, 1)]);
+  s = applyCreateFolder(s, null, 'Empty', CTX);
+  s = applyCreateFolder(s, 'Empty', 'Deeper', CTX);
+  assert.equal(s.changed, true);
+  assert.deepEqual(kinds(favoritesMenuModel(s.items, s.layout)), ['favorite']);
+  assert.deepEqual(favoritesMenuModel([], EMPTY_LAYOUT), []);
+});
+
+test('/save resolves a unique leaf, then creates from the top', () => {
+  const items = [fav('a', 'Work › Clients', 1)];
+  assert.equal(resolveSavePath(items, EMPTY_LAYOUT, 'clients'), 'Work › Clients');
+  assert.equal(resolveSavePath(items, EMPTY_LAYOUT, 'Work > New'), 'Work › New');
+  assert.equal(resolveSavePath(items, EMPTY_LAYOUT, 'Recipes'), 'Recipes');
+});
+
+test('/save: an existing full path wins over a leaf elsewhere', () => {
+  const items = [fav('a', 'Work › Clients', 1), fav('b', 'Clients', 1)];
+  assert.equal(resolveSavePath(items, EMPTY_LAYOUT, 'clients'), 'Clients');
+  assert.equal(resolveSavePath(items, EMPTY_LAYOUT, 'work › clients'), 'Work › Clients');
+});
+
+test('/save: a name used by two nested folders creates it at the top level', () => {
+  const items = [fav('a', 'Work › Clients', 1), fav('b', 'Home › Clients', 1)];
+  assert.equal(resolveSavePath(items, EMPTY_LAYOUT, 'Clients'), 'Clients');
+});
+
+test('/save: an empty folder from the layout counts as existing', () => {
+  const s = applyCreateFolder(applyCreateFolder(state([]), null, 'Work', CTX), 'Work', 'Drafts', CTX);
+  assert.equal(s.changed, true);
+  assert.equal(resolveSavePath(s.items, s.layout, 'drafts'), 'Work › Drafts');
+});
+
+test('/save refuses an empty name or a path past the limit', () => {
+  assert.equal(resolveSavePath([], EMPTY_LAYOUT, 'Work > > x'), null);
+  assert.equal(resolveSavePath([], EMPTY_LAYOUT, 'a'.repeat(60) + ' > ' + 'b'.repeat(60)), null);
+  assert.equal(resolveSavePath([], EMPTY_LAYOUT, '   '), null);
+});
+
+test('/save files a page into the one nested folder its name matches', () => {
+  const s = state([fav('https://a/', 'Work › Clients', 1)]);
+  const r = applySaveFavorite(s, { url: 'https://b/', title: 'B', folder: 'clients' }, { ...CTX, makeId: () => 'x' });
+  assert.equal(r.items.find((i) => i.url === 'https://b/').folder, 'Work › Clients');
+  const typed = applySaveFavorite(s, { url: 'https://c/', title: 'C', folder: 'work > New' }, { ...CTX, makeId: () => 'y' });
+  assert.equal(typed.items.find((i) => i.url === 'https://c/').folder, 'Work › New');
+});
+
+test('/save still reaches an existing folder whose name holds >', () => {
+  const items = [fav('a', 'Dev > Tools', 1)];
+  assert.equal(resolveSavePath(items, EMPTY_LAYOUT, 'dev > tools'), 'Dev > Tools');
+  assert.equal(resolveSavePath(items, EMPTY_LAYOUT, 'Dev > Docs'), 'Dev › Docs');
 });

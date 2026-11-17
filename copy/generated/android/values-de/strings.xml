@@ -11,7 +11,7 @@
     <string name="slash_favorites_hint">Favoriten öffnen</string>
     <string name="slash_bring_tabs_hint">Offene Tabs aus einem anderen Browser übernehmen</string>
     <string name="slash_save_hint">Diese Seite zu den Favoriten hinzufügen – mit Ordnernamen direkt einsortieren</string>
-    <string name="slash_save_doc">Diese Seite zu den Favoriten hinzufügen, in einen Ordner, wenn du einen nennst</string>
+    <string name="slash_save_doc">Diese Seite zu den Favoriten hinzufügen, in einen Ordner, wenn du einen nennst. Setze &gt; zwischen Ordnernamen, um einen Ordner in einem Ordner zu erreichen, etwa Arbeit &gt; Kunden</string>
     <string name="slash_history_hint">Verlauf öffnen</string>
     <string name="slash_archive_hint">Tabs ansehen, die Blanc für dich archiviert hat</string>
     <string name="slash_downloads_hint">Downloads öffnen</string>

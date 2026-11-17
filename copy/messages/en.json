@@ -41,7 +41,7 @@
     "note": "Slash command hint shown in the ⌘L palette for /save."
   },
   "slash.save.doc": {
-    "message": "Save this page to favorites, into a folder if you name one",
+    "message": "Save this page to favorites, into a folder if you name one. Put > between folder names to reach a folder inside a folder, as in Work > Clients",
     "note": "Reference description of /save [folder] on blanc://shortcuts and in Help → Slash Commands."
   },
   "slash.history.hint": {

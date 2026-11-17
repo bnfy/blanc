@@ -11,7 +11,7 @@
     <string name="slash_favorites_hint">Abrir favoritos</string>
     <string name="slash_bring_tabs_hint">Traer las pestañas abiertas de otro navegador</string>
     <string name="slash_save_hint">Guardar esta página en favoritos; escribe el nombre de una carpeta para archivarla</string>
-    <string name="slash_save_doc">Guarda esta página en favoritos, en una carpeta si indicas su nombre</string>
+    <string name="slash_save_doc">Guarda esta página en favoritos, en una carpeta si indicas su nombre. Pon &gt; entre nombres de carpeta para llegar a una carpeta dentro de otra, como Trabajo &gt; Clientes</string>
     <string name="slash_history_hint">Abrir el historial de navegación</string>
     <string name="slash_archive_hint">Ver las pestañas que Blanc archivó por ti</string>
     <string name="slash_downloads_hint">Abrir descargas</string>

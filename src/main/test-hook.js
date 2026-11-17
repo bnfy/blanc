@@ -1132,6 +1132,17 @@ function install(refs) {
     bookmarkRecords() {
       return bookmarks.listBookmarks().map(({ url, title, folder }) => ({ url, title, folder }));
     },
+    saveFavoriteTo(url, title, folder) { return bookmarks.saveFavorite(url, title, null, folder); },
+    /** The native Favorites menu as labels, '—' for a separator and
+     * { label: [...] } for a submenu; null until the menu is built. */
+    favoritesMenuOutline() {
+      const show = Menu.getApplicationMenu()?.getMenuItemById('favorites-show');
+      const outline = (menu) => (menu?.items ?? []).map((item) => {
+        if (item.type === 'separator') return '—';
+        return item.submenu ? { [item.label]: outline(item.submenu) } : item.label;
+      });
+      return show ? outline(show.menu) : null;
+    },
 
     // ---- history store ----
     seedHistory() { history.addVisit('http://seed.local/', 'Seed'); },
