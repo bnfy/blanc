@@ -38,7 +38,8 @@ async function launched(name,extraArgs=[]){
  // (the fixture's resolver rules), which takes height from the page. A fresh
  // tab has none, as every suite case's does after its reset.
  const made=await nativeCall(fixture.host,'createTab',[fixture.base+'/initial']);
- for(const t of (await fixture.snapshot()).tabs)if(String(t.id)!==String(made.tabId))await nativeCall(fixture.host,'closeTab',[t.id]);
+ // The native snapshot carries the native tab ids its hooks take.
+ for(const t of (await nativeCall(fixture.host,'snapshot')).tabs)if(String(t.id)!==String(made.tabId))await nativeCall(fixture.host,'closeTab',[t.id]);
  await waitFor(fixture.snapshot,s=>s.tabs.length===1&&!s.tabs[0].isLoading,'one fresh tab');
  const pageTargets=async()=>(await fixture.targets()).filter(t=>t.type==='page'&&t.url===fixture.base+'/initial');
  const [target]=await waitFor(pageTargets,ts=>ts.length===1,'the fresh tab as the only page');
