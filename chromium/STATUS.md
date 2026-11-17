@@ -12,6 +12,12 @@ the cold release build needed it. Pinned environments unchanged.
 D1 decided 2026-10-31: in-window private tabs.
 D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
+D4 decided for Windows 2026-11-17: cross-compiled on the Android lane's Linux
+server, tested on GitHub-hosted Windows runners. Approved with it: a second
+checkout there, the Visual Studio toolchain package, one cold Windows build
+and its incremental rebuilds, and one GN regeneration on the Mac Studio
+(`docs/superpowers/specs/2026-11-17-windows-fork-design.md`). Linux desktop
+hardware stays pending.
 
 ## Current work
 - **2026-11-17 — Carried checks come due on the Chromium version alone (owner: "Yes, narrow it"):**
@@ -3611,6 +3617,42 @@ Chromium 156 checkout (`~/Projects/BlancChromium`), the 157 recovery tree
 evidence folders; older notes that name them are historical. Kept: the 158
 checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
 
+## Windows
+Design `docs/superpowers/specs/2026-11-17-windows-fork-design.md`, plan
+`docs/superpowers/plans/2026-11-17-windows-fork-w0.md`. Milestone **W0 First
+build** (the fork plan's PW.1). Owner decided D4 and approved the checkout, the
+toolchain package and the cold build on 2026-11-17. Per-platform differences:
+`PLATFORMS.md`.
+
+- **Lane:** the desktop lane, unchanged pin (158.0.8127.2, chromium
+  `681cd621e82e606d7536eae8ea2576afb3c7d65c`). One Windows patch so far:
+  `patches/0094` (each channel's own data folder and registry key).
+- **Server:** the Android lane's Linux server, cross-compiling for Windows x64
+  (Chromium's `docs/win_cross.md`). Checkout `~/chromium-desktop/src` (46 GB
+  with dependencies), output `out/BlancWinPrototype`, its own depot_tools,
+  evidence in `~/blanc-evidence/windows/`. Layout: `windows/server/README.md`.
+- **Toolchain:** Visual Studio 2026 (compiler toolset 14.51.36231) and Windows
+  SDK 10.0.28000.0, package `b4f603a344` (tree hash `3bfcb536c8`), made by
+  `chromium-windows-toolchain.yml` run 44110078328 and encrypted to a key only
+  the server holds.
+- **Candidate:** `windows-x64-bdcf3cca0b966646` (tree `cae9db2dd`), `chrome.dll`
+  SHA-256 `bdcf3cca0b96664613558954b7d07590571d4f31369a963acf1ce19fe311f994`,
+  zip 352 MB, on the unpublished draft release `fork-windows-candidate`.
+- **Cold build:** 89,220 steps planned. The first attempt stopped after 11 min
+  on "Too many open files" (the ciopfs mount's 1024 limit, now raised by
+  `mount-toolchain.sh`); the second ran 1 h 13 min and stopped on four compile
+  errors in Blanc's own source (file paths and POSIX permissions); the third
+  finished the last 1,392 steps in 3 min 25 s.
+
+| W0 gate | Result | Evidence |
+| --- | --- | --- |
+| 1. `check-patches.py` for both lanes; fork unit suite; next Mac nightly builds | Checks pass; shared C++ passes a syntax-only compile on the Mac Studio; source applied there and both outputs' GN files regenerated with unchanged arguments (2026-11-17, guard dry-runs 4 and 5 actions); **nightly pending** | `tools/check-patches.test.mjs` |
+| 2. `progress.mjs --check` with a Windows candidate | Pass | Candidate identities below |
+| 3. `chrome.exe` for x64 built on the server through the guard | Pass | `~/blanc-evidence/windows/build-3.log` |
+| 4. Launches on a hosted Windows runner; Island draws; blocker ready; a page loads | Pass (Windows Server 2025, run 44137463714) | `smoke.json`, `desktop.png` in the run's artifact |
+| 5. The suite runs on Windows and its report is committed | Pass: 667 cases in 1 h 41 min (run 44139976463): 534 pass, 103 fail, 24 undefined, 6 excluded. 56 of the failures are one gap, the window frame (W1) | `reports/f0-windows.json`, `reports/s1-windows.json`, Bar A below |
+| 6. This section and `PLATFORMS.md` | Written | — |
+
 ## Android
 Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
 [PR #1333](https://github.com/bnfy/blanc/pull/1333)). Milestones: **A0
@@ -4295,7 +4337,7 @@ on that site, and a wrong search address still fails it.
 | Platform | Current-candidate baseline |
 | --- | --- |
 | macOS | 635/667 executable cases pass; 1 failed; 3 undefined/not run; 28 excluded — [baseline](scenarios/baseline-macos-1400e3914b1a7bdf.json)<br>S1 rows: 260/263 pass; 0 failed; 1 undefined; 2 excluded |
-| Windows | Not run (667 cases) |
+| Windows | 534/667 executable cases pass; 103 failed; 24 undefined/not run; 6 excluded — [baseline](scenarios/baseline-windows-x64-bdcf3cca0b966646.json)<br>S1 rows: 217/263 pass; 44 failed; 2 undefined; 0 excluded |
 | Linux | Not run (667 cases) |
 
 667 executable cases from 618 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
@@ -4320,5 +4362,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-1400e3914b1a7bdf; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-1400e3914b1a7bdf; Windows: windows-x64-bdcf3cca0b966646; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

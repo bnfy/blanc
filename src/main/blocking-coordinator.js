@@ -17,7 +17,7 @@ function createBlockingCoordinator({ trace } = {}) {
   let veto = null;
   function ensure(session) {
     if (sessions.has(session)) return sessions.get(session);
-    const state = { provider: null, gate: null, beforeSendHeaders: null, observing: false };
+    const state = { provider: null, gate: null, localNetwork: null, beforeSendHeaders: null, observing: false };
     // Diagnostics only on persistent sessions: private browsing (and every
     // other in-memory session) is never traced. Unknown fails closed.
     const traceable = !!trace && typeof session.isPersistent === 'function' && session.isPersistent() === true;
@@ -39,6 +39,14 @@ function createBlockingCoordinator({ trace } = {}) {
         if (event === 'onBeforeRequest' && veto?.(details)) { traced('veto'); return respond({ cancel: true }); }
         if (event === 'onBeforeRequest' && state.gate?.(details)) { traced('gate'); return respond({ cancel: true }); }
         const run = async () => {
+          // Local Network Access (permissions.js localNetworkPolicyFor): null
+          // when the request isn't gated, else a promise of allow; it may hold
+          // the request while the person answers a prompt. A refusal or a
+          // failure cancels before any provider sees the request.
+          if (event === 'onBeforeRequest' && state.localNetwork) {
+            const gated = state.localNetwork(details);
+            if (gated && !(await gated)) return { cancel: true };
+          }
           const policy = event === 'onBeforeSendHeaders' && state.beforeSendHeaders
             ? state.beforeSendHeaders(details) : {};
           if (policy?.requestHeaders) details = { ...details, requestHeaders: policy.requestHeaders };
@@ -70,6 +78,7 @@ function createBlockingCoordinator({ trace } = {}) {
     setProvider,
     setGate: (session, gate) => { ensure(session).gate = gate; },
     setVeto: (fn) => { veto = typeof fn === 'function' ? fn : null; },
+    setLocalNetworkPolicy: (session, policy) => { ensure(session).localNetwork = typeof policy === 'function' ? policy : null; },
     setBeforeSendHeaders: (session, policy) => { ensure(session).beforeSendHeaders = policy; },
     observeCancel: observer => { cancelObserver = typeof observer === 'function' ? observer : null; },
   };

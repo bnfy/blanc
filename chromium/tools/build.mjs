@@ -75,13 +75,19 @@ export function maximumActions(options) {
     throw new Error('Use one --max-actions=N with N between 0 and 999999999.');
   return Number(values[0].split('=')[1]);
 }
+// Windows is a second build of the desktop lane, cross-compiled on the
+// x86-64 Linux server (chromium/windows/). It shares the lane's patches and
+// source with the Mac; only the output and the machine differ.
+export const WINDOWS_OUTPUTS = ['BlancWinPrototype'];
+const MAC_OUTPUTS = ['BlancPrototype', 'BlancRelease', 'BlancBeta'];
 // The preview candidate's output, or the release channel's own (F0.3); never
 // an arbitrary path, so a typo cannot start a cold build somewhere new.
 export function outputName(options) {
   const values = options.filter(option => option.startsWith('--out='));
   if (!values.length) return 'BlancPrototype';
-  if (values.length !== 1 || !['--out=BlancPrototype', '--out=BlancRelease', '--out=BlancBeta'].includes(values[0]))
-    throw new Error('Use one --out=BlancPrototype, --out=BlancRelease or --out=BlancBeta.');
+  const names = [...MAC_OUTPUTS, ...WINDOWS_OUTPUTS];
+  if (values.length !== 1 || !names.includes(values[0].slice('--out='.length)))
+    throw new Error(`Use one --out=${names.join(' or --out=')}.`);
   return values[0].slice('--out='.length);
 }
 // The lane decides the output, the target and the machine. Desktop keeps its
@@ -92,7 +98,12 @@ export function buildLane(options) {
   if (lanes.length > 1 || (lanes.length && !['--lane=desktop', '--lane=android'].includes(lanes[0])))
     throw new Error('Use one --lane=desktop or --lane=android.');
   const lane = lanes.length ? lanes[0].slice('--lane='.length) : 'desktop';
-  if (lane === 'desktop') return { lane, out: outputName(options), target: 'chrome' };
+  if (lane === 'desktop') {
+    const out = outputName(options);
+    if (WINDOWS_OUTPUTS.includes(out) && options.some(option => option.startsWith('--sdk-root=')))
+      throw new Error('--sdk-root is a macOS option; the Windows output has none.');
+    return { lane, out, target: 'chrome' };
+  }
   if (options.some(option => option.startsWith('--sdk-root='))) throw new Error('--sdk-root is a macOS option; the Android lane has none.');
   const values = options.filter(option => option.startsWith('--out='));
   if (values.length > 1 || (values.length && !ANDROID_OUTPUTS.includes(values[0].slice('--out='.length))))
@@ -102,6 +113,25 @@ export function buildLane(options) {
 }
 export function requireAndroidHost(platform = process.platform, arch = process.arch) {
   if (platform !== 'linux' || arch !== 'x64') throw new Error(`The Android lane builds only on x86-64 Linux (this is ${platform} ${arch}). No build started.`);
+}
+// A desktop output belongs to one kind of machine: the Mac outputs to macOS,
+// the Windows output to the x86-64 Linux server that cross-compiles it.
+export function requireDesktopHost(outName, platform = process.platform, arch = process.arch) {
+  if (WINDOWS_OUTPUTS.includes(outName)) {
+    if (platform !== 'linux' || arch !== 'x64') throw new Error(`${outName} builds only on x86-64 Linux (this is ${platform} ${arch}). No build started.`);
+  } else if (platform !== 'darwin') {
+    throw new Error(`${outName} builds only on macOS (this is ${platform} ${arch}). No build started.`);
+  }
+}
+// The Visual Studio package and SDK the pinned tree asks for. Both are plain
+// string assignments in build/vs_toolchain.py; anything else needs a person.
+export function windowsToolchainPins(vsToolchainSource) {
+  const pin = name => {
+    const match = new RegExp(`^${name} = '([0-9A-Za-z.]+)'$`, 'm').exec(vsToolchainSource);
+    if (!match) throw new Error(`Cannot read ${name} from build/vs_toolchain.py; review the toolchain by hand.`);
+    return match[1];
+  };
+  return { toolchainHash: pin('TOOLCHAIN_HASH'), sdkVersion: pin('SDK_VERSION') };
 }
 // Also catches legacy invocations outside this wrapper. Be conservative
 // across checkouts because a second browser compile competes for the machine.
@@ -163,6 +193,28 @@ function androidEnvironment(src, out) {
   };
   return { inputs, env };
 }
+// The unpacked Windows SDK is served through a case-insensitive FUSE mount
+// that a reboot removes; without it every compile fails on a missing header.
+export function windowsToolchainMounted(procMounts, src) {
+  const mount = path.join(src, 'third_party/depot_tools/win_toolchain/vs_files');
+  return procMounts.split('\n').some(line => { const [, where, type] = line.split(' '); return where === mount && type === 'fuse.ciopfs'; });
+}
+// The Windows output's pinned inputs: Chromium's own clang, the Visual Studio
+// package the tree asks for, and the package gclient actually unpacked
+// (build/win_toolchain.json, written by its hook).
+function windowsEnvironment(src, out) {
+  const env = { ...process.env, DEPOT_TOOLS_UPDATE: '0' };
+  const read = file => fs.readFileSync(path.join(src, file), 'utf8');
+  const inputs = {
+    host: `${process.platform} ${process.arch}`,
+    clangRevision: read('third_party/llvm-build/Release+Asserts/cr_build_revision').trim(),
+    clangVersion: run(path.join(src, 'third_party/llvm-build/Release+Asserts/bin/clang'), ['--version']),
+    ...windowsToolchainPins(read('build/vs_toolchain.py')),
+    toolchainSha256: digest(read('build/win_toolchain.json')),
+    argsSha256: digest(fs.readFileSync(path.join(out, 'args.gn'))),
+  };
+  return { inputs, env };
+}
 function environment(src, out, sdkRoot = null) {
   const developerDir = fs.realpathSync(process.env.DEVELOPER_DIR || run('/usr/bin/xcode-select', ['-p']));
   const env = { ...process.env, DEVELOPER_DIR: developerDir, DEPOT_TOOLS_UPDATE: '0' };
@@ -190,7 +242,7 @@ function main() {
   const [source, ...options] = process.argv.slice(2);
   const allowed = new Set(['--check', '--build', '--record-environment', '--allow-large-build', '--reject-buildflags']);
   if (!source || options.some(option => !allowed.has(option) && !option.startsWith('--local-jobs=') && !option.startsWith('--out=') && !option.startsWith('--lane=') && !option.startsWith('--sdk-root=') && !option.startsWith('--max-actions='))) {
-    throw new Error('Usage: node build.mjs CHROMIUM_SRC [--check | --build | --record-environment] [--allow-large-build] [--reject-buildflags] [--max-actions=N] [--local-jobs=N] [--lane=desktop|android] [--out=BlancPrototype|BlancRelease|BlancBeta|AndroidDebug|AndroidDebugX64|AndroidRelease|AndroidReleaseX64] [--sdk-root=ABSOLUTE_PATH]');
+    throw new Error('Usage: node build.mjs CHROMIUM_SRC [--check | --build | --record-environment] [--allow-large-build] [--reject-buildflags] [--max-actions=N] [--local-jobs=N] [--lane=desktop|android] [--out=BlancPrototype|BlancRelease|BlancBeta|BlancWinPrototype|AndroidDebug|AndroidDebugX64|AndroidRelease|AndroidReleaseX64] [--sdk-root=ABSOLUTE_PATH]');
   }
   const workerArgs = localJobs(options);
   const maxActions = maximumActions(options);
@@ -199,17 +251,21 @@ function main() {
   const mode = modes[0] || '--check';
   const src = fs.realpathSync(source);
   const { lane, out: outName, target } = buildLane(options);
-  if (lane === 'android') requireAndroidHost();
+  if (lane === 'android') requireAndroidHost(); else requireDesktopHost(outName);
+  const windows = WINDOWS_OUTPUTS.includes(outName);
+  if (windows && !windowsToolchainMounted(fs.readFileSync('/proc/mounts', 'utf8'), src))
+    throw new Error('The Windows toolchain is not mounted. Run chromium/windows/server/mount-toolchain.sh, then rerun. No build started.');
   const out = path.join(src, 'out', outName);
   const pinFile = path.join(out, '.blanc-build-environment.json');
   const lock = path.join(out, '.blanc-build-guard.lock');
-  const observe = () => lane === 'android' ? androidEnvironment(src, out) : environment(src, out, selectedSdk(options, out));
+  const observe = () => lane === 'android' ? androidEnvironment(src, out)
+    : windows ? windowsEnvironment(src, out) : environment(src, out, selectedSdk(options, out));
   const { inputs, env } = observe();
   if (mode === '--record-environment') {
     // A declared baseline, never a claim that the build passed. Recording is
     // separate from compilation and cannot bypass the large-plan guard.
     fs.writeFileSync(pinFile, JSON.stringify(inputs, null, 2) + '\n');
-    console.log(`Recorded build environment: ${pinFile}\n${inputs.xcode ?? inputs.jdk}\nNo build started.`);
+    console.log(`Recorded build environment: ${pinFile}\n${inputs.xcode ?? inputs.jdk ?? `Visual Studio package ${inputs.toolchainHash}, Windows SDK ${inputs.sdkVersion}`}\nNo build started.`);
     return;
   }
   if (!fs.existsSync(pinFile)) throw new Error('No pinned environment. Review the toolchain and record it with --record-environment first.');

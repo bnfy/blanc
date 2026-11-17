@@ -1,0 +1,147 @@
+# Runs a Windows build of the Chromium fork on a hosted Windows runner
+# (docs/superpowers/specs/2026-11-17-windows-fork-design.md). The build is
+# cross-compiled on the Linux build server and reaches GitHub as the asset of
+# one reused, unpublished draft release, which only repository collaborators
+# can read (chromium/windows/ship-candidate.sh). Run by hand from the fork
+# branch, with the SHA-256 the packaging step printed:
+#   gh workflow run chromium-windows-candidate.yml --ref chromium/next -f sha256=<sha256>
+# The scripts it runs come from the ref it is dispatched on. A preview build
+# is never a release: nothing here publishes, signs or distributes it.
+name: chromium-windows-candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha256:
+        description: SHA-256 of the candidate zip, as printed when it was packaged
+        required: true
+        type: string
+      suite:
+        description: What to run after the launch check
+        required: true
+        default: smoke
+        type: choice
+        options:
+          - smoke
+          - f0
+      only:
+        description: Optional case-id text, to run a development subset of the suite
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  candidate:
+    name: candidate (windows x64)
+    runs-on: windows-2025
+    timeout-minutes: 240
+    # Draft releases are readable only with write access to contents, and the
+    # build cannot pass between jobs as an artifact (artifacts of a public
+    # repository are downloadable by any signed-in user). So this one job holds
+    # the grant; the token is passed to the download step alone, and neither
+    # the browser nor the test scripts receive it.
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      CANDIDATE_SHA256: ${{ inputs.sha256 }}
+      SUITE: ${{ inputs.suite }}
+      ONLY: ${{ inputs.only }}
+      DRAFT_TAG: fork-windows-candidate
+      ASSET: blanc-windows-candidate.zip
+    steps:
+      - name: Validate inputs
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:CANDIDATE_SHA256 -notmatch '^[0-9a-f]{64}$') { throw 'sha256 must be 64 lowercase hex digits.' }
+          if ($env:ONLY -notmatch '^[A-Za-z0-9 _.,:@-]{0,200}$') { throw 'only holds unsupported characters.' }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      # The harness reads shipping's own test files from Git at its pinned
+      # shipping commits. The checkout is shallow (the full history is large),
+      # so fetch exactly those; the repository is public, so no token.
+      - name: Fetch the pinned shipping commits
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not (Test-Path chromium/windows/pinned-commits.mjs)) { throw "chromium/windows/pinned-commits.mjs is not on $env:GITHUB_REF_NAME. Run this workflow with --ref chromium/next." }
+          $commits = @(node chromium/windows/pinned-commits.mjs)
+          if ($LASTEXITCODE -ne 0 -or -not $commits) { throw 'Could not list the pinned shipping commits.' }
+          foreach ($commit in $commits) {
+            if ($commit -notmatch '^[0-9a-f]{40}$') { throw "Not a full commit: $commit" }
+            git fetch --quiet --depth=1 origin $commit
+            if ($LASTEXITCODE -ne 0) { throw "Could not fetch shipping commit $commit." }
+            git cat-file -e "${commit}:package.json"
+            if ($LASTEXITCODE -ne 0) { throw "Shipping commit $commit is not readable." }
+          }
+          "Fetched: $($commits -join ', ')"
+      - name: Download the candidate from the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory "$env:RUNNER_TEMP\candidate" | Out-Null
+          $draft = gh release view $env:DRAFT_TAG --repo $env:GITHUB_REPOSITORY --json isDraft --jq .isDraft
+          if ($LASTEXITCODE -ne 0 -or $draft -ne 'true') { throw "$env:DRAFT_TAG must exist and be an unpublished draft." }
+          gh release download $env:DRAFT_TAG --repo $env:GITHUB_REPOSITORY --pattern $env:ASSET --dir "$env:RUNNER_TEMP\candidate"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download the candidate.' }
+      - name: Verify and unpack it
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $zip = "$env:RUNNER_TEMP\candidate\$env:ASSET"
+          $actual = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
+          if ($actual -ne $env:CANDIDATE_SHA256) { throw "The draft holds $actual, not the candidate asked for." }
+          # bsdtar: faster than Expand-Archive and without its 260-character limit.
+          New-Item -ItemType Directory "$env:RUNNER_TEMP\blanc" | Out-Null
+          tar -xf $zip -C "$env:RUNNER_TEMP\blanc"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not unpack the candidate.' }
+          if (-not (Test-Path "$env:RUNNER_TEMP\blanc\candidate.json")) { throw 'The zip has no candidate.json at its top level; it was not made by chromium/windows/package-candidate.mjs.' }
+          # Chromium's sandboxed processes run as app containers and must be
+          # able to read the folder the browser runs from; an installer grants
+          # this (W1). Without it the browser stops at "Sandbox cannot access
+          # executable". ALL APPLICATION PACKAGES and ALL RESTRICTED APPLICATION
+          # PACKAGES get read and execute, as Chrome's own installer gives them.
+          icacls "$env:RUNNER_TEMP\blanc" /grant '*S-1-15-2-1:(OI)(CI)(RX)' /grant '*S-1-15-2-2:(OI)(CI)(RX)' /T /Q
+          if ($LASTEXITCODE -ne 0) { throw 'Could not grant the sandbox access to the candidate folder.' }
+          "CANDIDATE_DIR=$env:RUNNER_TEMP\blanc" >> $env:GITHUB_ENV
+          "RESULTS=$env:RUNNER_TEMP\results" >> $env:GITHUB_ENV
+          Get-Content "$env:RUNNER_TEMP\blanc\candidate.json"
+      - name: Require the fork's Windows scripts on this ref
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($script in 'chromium/tests/windows-smoke.mjs', 'chromium/windows/run-suite.mjs') {
+            if (-not (Test-Path $script)) { throw "$script is not on $env:GITHUB_REF_NAME. Run this workflow with --ref chromium/next." }
+          }
+      # The harness loads shipping modules and their packages; nothing it uses
+      # needs an install script.
+      - name: Install the harness's dependencies
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+        run: npm ci --ignore-scripts
+      - name: Launch check
+        run: node chromium/tests/windows-smoke.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\smoke"
+      - name: Foundation suite
+        if: inputs.suite == 'f0'
+        run: |
+          # An empty filter is no filter: a full run must never be recorded as a subset.
+          # One array, splatted: each element reaches node as one argument,
+          # whatever PowerShell would make of a bare --name=value.with.dots.
+          $arguments = @('chromium/windows/run-suite.mjs', $env:CANDIDATE_DIR, "$env:RESULTS\f0", '--slice=f0')
+          if ($env:ONLY) { $arguments += "--only=$env:ONLY" }
+          node @arguments
+      - name: Keep the results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chromium-windows-candidate-${{ github.run_id }}
+          path: ${{ runner.temp }}/results
+          if-no-files-found: warn
+          retention-days: 14

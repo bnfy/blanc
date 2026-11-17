@@ -35,11 +35,12 @@ function fixtureCertificate(name,hosts=[name],file=name){
 const LOCAL_HOSTS=['nas.home.arpa','lab.home.arpa'];
 const TLS_HOSTS=['insecure.test','secure.test','badcert.test',...LOCAL_HOSTS];
 import {connect, waitFor, pause} from './cdp.mjs';
+import {chromeProfileRoot,listProcesses,candidateIdentityFiles} from './platform.mjs';
 const digest = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 // Shipping's acceptance home: a Chrome with two profiles to import from.
 function browserHome(fixture){
  const home=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-browser-home-'));fixture.browserHome=home;
- const root=path.join(home,'Library','Application Support','Google','Chrome');
+ const root=chromeProfileRoot(home);
  fs.mkdirSync(path.join(root,'Default'),{recursive:true});fs.mkdirSync(path.join(root,'Profile 1'),{recursive:true});
  fs.writeFileSync(path.join(root,'Local State'),JSON.stringify({profile:{info_cache:{Default:{name:'Acceptance profile'},'Profile 1':{name:'Tab migration fixture'}}}}));
  fs.writeFileSync(path.join(root,'Default','Bookmarks'),JSON.stringify({roots:{
@@ -56,7 +57,7 @@ export class NativeFixture {
   async launch(config, directory, {testHooks=false, privateMode=false, pages=null, diskAssets=true, direct=null} = {}) {
     this.directory=directory; this.connections=[]; this.sockets=new Set();
     if(fs.existsSync(directory))throw Error('Refusing to overwrite fixture');
-    if(digest(config.framework)!==config.frameworkSha256||digest(config.executable)!==config.executableSha256)throw Error('Candidate identity mismatch');
+    if(candidateIdentityFiles(config).some(([file,sha256])=>digest(file)!==sha256))throw Error('Candidate identity mismatch');
     fs.mkdirSync(directory,{recursive:true,mode:0o700});
     this.profile=path.join(directory,'profile');fs.mkdirSync(this.profile,{mode:0o700});
     const track=s=>{this.sockets.add(s);s.once('close',()=>this.sockets.delete(s));};
@@ -163,8 +164,7 @@ export class NativeFixture {
   reapHelpers(){
     if(!this.profile)return [];
     const flag='--user-data-dir='+this.profile;
-    const orphans=execFileSync('/bin/ps',['-axo','pid=,command='],{encoding:'utf8'}).split('\n')
-      .filter(l=>l.includes(flag+' ')||l.endsWith(flag)).map(l=>Number(l.trim().split(/\s+/)[0])).filter(pid=>pid&&pid!==process.pid);
+    const orphans=listProcesses().filter(p=>p.command.includes(flag+' ')||p.command.endsWith(flag)).map(p=>p.pid).filter(pid=>pid!==process.pid);
     for(const pid of orphans)try{process.kill(pid,'SIGKILL');}catch{}
     this.reapedHelpers=orphans.length;return orphans;
   }

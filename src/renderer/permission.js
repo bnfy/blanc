@@ -38,6 +38,9 @@
     }
     if (permission === 'geolocation') return blancI18n.parts('permission.prompt.geolocation', { host });
     if (permission === 'notifications') return blancI18n.parts('permission.prompt.notifications', { host });
+    if (permission === 'loopback-network') return blancI18n.parts('permission.prompt.loopbackNetwork', { host });
+    if (permission === 'local-network') return blancI18n.parts('permission.prompt.localNetwork', { host });
+    if (permission === 'local-network-access') return blancI18n.parts('permission.prompt.localNetworkAccess', { host });
     return blancI18n.parts('permission.prompt.other', { host, permission });
   }
 

@@ -25,7 +25,7 @@ export const STAGES = [
   { id: 'unit', script: 'test:unit' },
   { id: 'acceptance-dry', script: 'test:acceptance:dry' },
   { id: 'acceptance', script: 'test:acceptance:gate', acceptance: true },
-  { id: 'favorites-picker', script: 'test:favorites-picker:desktop' },
+  { id: 'favorites-manager', script: 'test:favorites-manager:desktop' },
   { id: 'wallpaper', script: 'test:wallpaper:desktop' },
   { id: 'cold-launch', script: 'test:cold-launch' },
   { id: 'browser-shortcuts', script: 'test:browser-shortcuts:desktop' },

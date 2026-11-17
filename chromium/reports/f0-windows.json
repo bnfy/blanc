@@ -1,0 +1,109 @@
+{
+ "slice": "F0",
+ "platform": "windows",
+ "status": "W0 exit gate: launch and suite run recorded; failures are open gaps",
+ "candidate": {
+  "id": "windows-x64-bdcf3cca0b966646",
+  "exeSha256": "c6728b1ad35768cb95c7893393f1f92399f3c58b0b115befc84b25e554bdd542",
+  "dllSha256": "bdcf3cca0b96664613558954b7d07590571d4f31369a963acf1ce19fe311f994",
+  "version": "158.0.8127.2",
+  "treeCommit": "cae9db2dde6d101de4671d5ea9590af98a08288d",
+  "qualification": "cross-compiled preview; launch check passed on a hosted Windows runner (run 44137463714); full suite 2026-11-17 (run 44139976463, fork 7a6140435, shipping v1.49.1): 534 of 667 cases pass, 103 fail (56 on the window frame not yet being the Island's, W1), 24 undefined, 6 excluded"
+ },
+ "build": {
+  "host": "x86-64 Linux, cross-compiled (Chromium docs/win_cross.md)",
+  "output": "out/BlancWinPrototype",
+  "args": "chromium/windows/args/prototype-x64.gn",
+  "toolchain": "Visual Studio 2026 toolset 14.51.36231, Windows SDK 10.0.28000.0, package b4f603a344 (tree hash 3bfcb536c8)",
+  "coldBuild": "89,220 steps planned; three passes (open-file limit, four compile errors in Blanc source, then 1,392 steps in 3 min 25 s)"
+ },
+ "checks": {
+  "patchReconstruction": "passed; 183 upstream files, both lanes",
+  "sourceMap": "current; 809 custom files",
+  "forkUnitSuite": "passed; 869 tests",
+  "guardedBuild": "passed; chrome.exe and chrome.dll for x64"
+ },
+ "launchCheck": {
+  "run": "chromium-windows-candidate.yml 44137463714",
+  "host": "Windows Server 2025 (10.0.26100) x64, GitHub-hosted",
+  "checks": [
+   "launched",
+   "test hooks answer",
+   "Island draws (animation frame)",
+   "blocker ready",
+   "fixture page loaded",
+   "clean quit (exit 0)"
+  ],
+  "islandPlatform": "Win32",
+  "evidence": "smoke.json, desktop.png, island.png, page.png in the run's artifact (14 days)"
+ },
+ "suite": {
+  "run": "chromium-windows-candidate.yml 44139976463",
+  "durationMinutes": 101,
+  "shippingTag": "v1.49.1",
+  "forkCommit": "7a6140435a0a275493d8cded427aa6be4552a853",
+  "baseline": "scenarios/baseline-windows-x64-bdcf3cca0b966646.json",
+  "baselineSha256": "53bc682c356434b1ffe03a586ceb64d6a94b41f724930a8b963714754b3a8f94",
+  "junit": "reports/f0-windows-junit.xml",
+  "cases": 667,
+  "executableSummary": {
+   "pass": 534,
+   "fail": 103,
+   "undefined": 24,
+   "excluded": 6
+  },
+  "declarationSummary": {
+   "pass": 486,
+   "fail": 102,
+   "undefined": 24,
+   "excluded": 6
+  },
+  "macosForComparison": "635 pass, 1 fail, 3 undefined, 28 excluded on macos-1400e3914b1a7bdf"
+ },
+ "failureGroups": [
+  {
+   "cases": 56,
+   "cause": "The window's content does not fill its frame: Windows' own title bar and caption buttons are still drawn above the Island, whose own window controls then make two sets",
+   "closes": "W1 (window frame)",
+   "features": {
+    "island-and-commands.feature": 28,
+    "glance.feature": 10,
+    "vertical-tabs.feature": 7,
+    "newtab-layouts.feature": 5,
+    "split-view.feature": 3,
+    "sync.feature": 2,
+    "onboarding.feature": 1
+   }
+  },
+  {
+   "cases": 47,
+   "cause": "Not yet grouped by cause: import fixtures and detected browser profiles (tab-migration, browser-migration, arc-spaces-import), Mac-only settings such as the app icon, downloads interrupted on the runner, and single cases",
+   "closes": "W2 (the S1 suite on Windows)",
+   "features": {
+    "tab-migration.feature": 14,
+    "arc-spaces-import.feature": 7,
+    "browser-migration.feature": 4,
+    "interface-language.feature": 4,
+    "split-view.feature": 3,
+    "F41-named-workspaces.feature": 2,
+    "downloads.feature": 2,
+    "newtab-layouts.feature": 2,
+    "tabs-and-groups.feature": 2,
+    "glance.feature": 1,
+    "link-routing.feature": 1,
+    "local-profiles.feature": 1,
+    "navigation-and-context-menu.feature": 1,
+    "settings-and-theming.feature": 1,
+    "supporter-and-session.feature": 1,
+    "vertical-tabs.feature": 1
+   }
+  }
+ ],
+ "notCompleted": [
+  "The 22 exclusions approved for the Mac (macos-fork-exclusions.mjs) are not reviewed for Windows; windows-fork-exclusions.mjs is empty, so those cases count as failed or undefined here",
+  "Tracker rows keep windows: not-started; per-row evidence is W2",
+  "No hand check on a real Windows desktop: the owner's Parallels VM was not used",
+  "Outbound isolation (Windows firewall rules for the test binary) is not set up",
+  "No crash reporting in a cross build"
+ ]
+}

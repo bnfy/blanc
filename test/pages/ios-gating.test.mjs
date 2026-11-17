@@ -150,7 +150,9 @@ test('editable Favorites retain folder, move, remove, import and pin controls', 
   const { page } = await open('bookmarks');
   try {
     assert.equal(await visible(page, '#readOnlyNote'), false);
-    for (const selector of ['#importBtn', '#browserFindBtn', '#bringTabsBtn', '.folder-actions button', '.folder-chip', '.pin-toggle', '.bookmark-actions .danger']) {
+    assert.equal(await page.locator('#importMenuBtn').isVisible(), true, '#importMenuBtn');
+    await page.locator('#importMenuBtn').click();
+    for (const selector of ['#importDialog', '#browserSource', '#importWhatTabs', '#browserImportBtn', '.folder-actions button', '.folder-chip', '.pin-toggle', '.bookmark-actions .danger']) {
       assert.equal(await page.locator(selector).first().isVisible(), true, selector);
     }
   } finally { await page.close(); }

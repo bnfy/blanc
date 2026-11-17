@@ -41,7 +41,7 @@
     "note": "Slash command hint shown in the ⌘L palette for /save."
   },
   "slash.save.doc": {
-    "message": "Save this page to favorites, into a folder if you name one",
+    "message": "Save this page to favorites, into a folder if you name one. Put > between folder names to reach a folder inside a folder, as in Work > Clients",
     "note": "Reference description of /save [folder] on blanc://shortcuts and in Help → Slash Commands."
   },
   "slash.history.hint": {
@@ -681,6 +681,18 @@
   "permission.prompt.notifications": {
     "message": "<0>{host}</0> wants to show notifications",
     "note": "Permission prompt; <0>{host}</0> is the requesting site's host."
+  },
+  "permission.prompt.loopbackNetwork": {
+    "message": "<0>{host}</0> wants to connect to apps on this device",
+    "note": "Permission prompt for Local Network Access to this computer; <0>{host}</0> is the requesting site's host."
+  },
+  "permission.prompt.localNetwork": {
+    "message": "<0>{host}</0> wants to connect to devices on your local network",
+    "note": "Permission prompt for Local Network Access to other devices on the network; <0>{host}</0> is the requesting site's host."
+  },
+  "permission.prompt.localNetworkAccess": {
+    "message": "<0>{host}</0> wants to connect to apps and devices on your local network",
+    "note": "Permission prompt asking for both kinds of Local Network Access at once; <0>{host}</0> is the requesting site's host."
   },
   "permission.prompt.other": {
     "message": "<0>{host}</0> wants to use “{permission}”",
@@ -4806,6 +4818,14 @@
     "message": "Notifications",
     "note": "Settings → Privacy → Site permissions: permission name."
   },
+  "settings.permissions.loopbackNetwork": {
+    "message": "Apps on this device",
+    "note": "Settings → Privacy → Site permissions: permission name (connections to apps on this computer)."
+  },
+  "settings.permissions.localNetwork": {
+    "message": "Devices on your local network",
+    "note": "Settings → Privacy → Site permissions: permission name (connections to other devices on the network)."
+  },
   "settings.permissions.audio": {
     "message": "Microphone",
     "note": "Settings → Privacy → Site permissions: permission name."
@@ -6566,6 +6586,18 @@
     "message": "{count, plural, one {Skipped # already saved.} other {Skipped # already saved.}}",
     "note": "Favorites page → import: second sentence of the result; # favorites were already saved."
   },
+  "favorites.import.moved": {
+    "message": "{count, plural, one {Moved # into its folder.} other {Moved # into their folders.}}",
+    "note": "Favorites page → import: sentence of the result; # favorites saved earlier were moved into the nested folders the other browser has them in."
+  },
+  "favorites.import.shortened": {
+    "message": "{count, plural, one {Placed # in a parent folder because its folder path was too long.} other {Placed # in a parent folder because their folder paths were too long.}}",
+    "note": "Favorites page → import: sentence of the result; # favorites went into a parent folder because the full folder path is too long to save."
+  },
+  "favorites.import.orderDropped": {
+    "message": "Some folders are in the default order because the collection is very large.",
+    "note": "Favorites page → import: sentence of the result when the collection is too large to keep the chosen order of every folder."
+  },
   "favorites.import.allSaved": {
     "message": "{count, plural, one {That favorite was already saved.} other {All # favorites were already saved.}}",
     "note": "Favorites page → import: result when every one was already saved."
@@ -6647,6 +6679,134 @@
   "favorites.row.removeLabel": {
     "message": "Remove {title} from Favorites",
     "note": "Favorites page: accessible name of the remove button; {title} is the page’s title."
+  },
+  "favorites.manager.all": {
+    "message": "All favorites",
+    "note": "Favorites manager: the top of the folder tree and of the breadcrumb."
+  },
+  "favorites.manager.tree": {
+    "message": "Folders",
+    "note": "Favorites manager: accessible name of the folder tree."
+  },
+  "favorites.manager.breadcrumb": {
+    "message": "Folder path",
+    "note": "Favorites manager: accessible name of the breadcrumb above the list."
+  },
+  "favorites.manager.chooseFolder": {
+    "message": "Folder",
+    "note": "Favorites manager: accessible name of the folder menu shown instead of the tree in a narrow window."
+  },
+  "favorites.manager.search": {
+    "message": "Search favorites",
+    "note": "Favorites manager: placeholder and accessible name of the search field."
+  },
+  "favorites.manager.newFolder": {
+    "message": "New folder",
+    "note": "Favorites manager: button that adds a folder in the folder that is open."
+  },
+  "favorites.manager.newFolderPlaceholder": {
+    "message": "Folder name",
+    "note": "Favorites manager: placeholder of the name field for a new folder."
+  },
+  "favorites.manager.newFolderInside": {
+    "message": "New folder inside",
+    "note": "Favorites manager: folder menu item."
+  },
+  "favorites.manager.open": {
+    "message": "Open",
+    "note": "Favorites manager: folder menu item that opens the folder."
+  },
+  "favorites.manager.rename": {
+    "message": "Rename",
+    "note": "Favorites manager: folder menu item."
+  },
+  "favorites.manager.moveTo": {
+    "message": "Move to…",
+    "note": "Favorites manager: menu item that lists folders to move into."
+  },
+  "favorites.manager.moveUp": {
+    "message": "Move up",
+    "note": "Favorites manager: menu item that moves a row one place up."
+  },
+  "favorites.manager.moveDown": {
+    "message": "Move down",
+    "note": "Favorites manager: menu item that moves a row one place down."
+  },
+  "favorites.manager.remove": {
+    "message": "Remove",
+    "note": "Favorites manager: menu item and selection button that remove favorites."
+  },
+  "favorites.manager.deleteFolder": {
+    "message": "Delete folder",
+    "note": "Favorites manager: folder menu item. Its favorites move up one level; none are deleted."
+  },
+  "favorites.manager.topLevel": {
+    "message": "Top level",
+    "note": "Favorites manager: first entry of Move to…, outside every folder."
+  },
+  "favorites.manager.more": {
+    "message": "More actions for {title}",
+    "note": "Favorites manager: accessible name of a row’s ⋮ button; {title} is the favorite or folder."
+  },
+  "favorites.manager.items": {
+    "message": "{count, plural, one {# favorite} other {# favorites}}",
+    "note": "Favorites manager: count on a folder row; # favorites are in it and its sub-folders."
+  },
+  "favorites.manager.selected": {
+    "message": "{count, plural, one {# selected} other {# selected}}",
+    "note": "Favorites manager: how many rows are selected."
+  },
+  "favorites.manager.clearSelection": {
+    "message": "Clear selection",
+    "note": "Favorites manager: button that clears the selection."
+  },
+  "favorites.manager.noResults": {
+    "message": "No favorites match.",
+    "note": "Favorites manager: search found nothing."
+  },
+  "favorites.manager.emptyFolder": {
+    "message": "This folder is empty.",
+    "note": "Favorites manager: the open folder has nothing in it."
+  },
+  "favorites.manager.error.tooLong": {
+    "message": "That folder path would be longer than Blanc can sync. Use a shorter name or fewer levels.",
+    "note": "Favorites manager: a rename or move was refused because a folder path would be over 100 characters, the most Sync carries."
+  },
+  "favorites.manager.error.cycle": {
+    "message": "A folder can’t move into itself.",
+    "note": "Favorites manager: a folder was dropped into itself or one of its folders."
+  },
+  "favorites.manager.error.invalid": {
+    "message": "That name can’t be used.",
+    "note": "Favorites manager: a folder name was blank or over 100 characters."
+  },
+  "favorites.manager.error.missing": {
+    "message": "That folder no longer exists.",
+    "note": "Favorites manager: the folder was changed elsewhere (another device, another window) before the edit arrived."
+  },
+  "favorites.import.menu": {
+    "message": "Bring my stuff to Blanc",
+    "note": "Favorites page: the one button that opens every way to bring things over from another browser."
+  },
+  "favorites.manager.results": {
+    "message": "{count, plural, one {# result} other {# results}}",
+    "note": "Favorites manager: label above search results; # is how many."
+  },
+  "favorites.manager.removeConfirm": {
+    "message": "{count, plural, one {Remove # item?} other {Remove # items?}}",
+    "note": "Favorites manager: asks before removing several selected rows (favorites or folders); # is how many."
+  },
+  "favorites.manager.cancel": {
+    "message": "Cancel",
+    "note": "Favorites manager: keeps the selection instead of removing it."
+  },
+  "favorites.manager.pin": {
+    "message": "Pin",
+    "note": "Favorites manager: row button that pins the favorite to the Start Page."
+  },
+  "favorites.manager.unpin": {
+    "message": "Unpin",
+    "note": "Favorites manager: row button that unpins the favorite from the Start Page."
   },
   "favorites.picker.label": {
     "message": "Move {title} to a folder",
@@ -9928,5 +10088,41 @@
   "android.licenses.loadFailed": {
     "message": "This notice could not be loaded. Open its title link to read the bundled file.",
     "note": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text."
+  },
+  "favorites.import.lede": {
+    "message": "Copy your favorites and open tabs from another browser. Nothing there changes.",
+    "note": "Favorites page → Bring my stuff to Blanc: the line under the dialog title. Opening the dialog looks for other browsers."
+  },
+  "favorites.import.from": {
+    "message": "From",
+    "note": "Favorites page → Bring my stuff to Blanc: label of the menu of browser profiles and a bookmarks file."
+  },
+  "favorites.import.fileOption": {
+    "message": "Bookmarks file (HTML)…",
+    "note": "Favorites page → Bring my stuff to Blanc: last entry of the From menu; Import then opens a file picker."
+  },
+  "favorites.import.what": {
+    "message": "What to bring",
+    "note": "Favorites page → Bring my stuff to Blanc: heading of the checkboxes for what to copy."
+  },
+  "favorites.import.whatTabs": {
+    "message": "Open tabs",
+    "note": "Favorites page → Bring my stuff to Blanc: checkbox; Import then goes on to Bring Your Tabs."
+  },
+  "favorites.import.go": {
+    "message": "Import",
+    "note": "Favorites page → Bring my stuff to Blanc: the button that copies what was chosen."
+  },
+  "favorites.import.cancel": {
+    "message": "Cancel",
+    "note": "Favorites page → Bring my stuff to Blanc: closes the dialog without copying anything."
+  },
+  "favorites.manager.deleteFolderLabel": {
+    "message": "Delete folder {title}",
+    "note": "Favorites manager: accessible name of a folder row’s × button; {title} is the folder. What was in it moves up a level."
+  },
+  "favorites.import.tabsSkipped": {
+    "message": "Open tabs weren’t brought over.",
+    "note": "Favorites page → Bring my stuff to Blanc: added after the result when Open tabs was ticked but the favorites import was cancelled or failed, so Blanc did not go on to Bring Your Tabs."
   }
 }

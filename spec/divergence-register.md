@@ -569,7 +569,9 @@ The available source formats also differ.
 
 **Parity contract:** Both discovery and import begin only after an explicit
 user action — no platform scans for other browsers merely because a migration
-surface was rendered. Import accepts only supported web Favorites, preserves
+surface was rendered. Opening a dialog whose only purpose is bringing things
+over from another browser is such an action; rendering the page or sheet that
+offers it is not. Import accepts only supported web Favorites, preserves
 folders where the source carries them, deduplicates without replacing existing
 data, and never expands into passwords, history, cookies, or sessions without a
 separately specified choice.
@@ -578,7 +580,9 @@ separately specified choice.
 just import — require an explicit action, since profile display names commonly
 carry a person's real name or email address. Amended 2026-10-15 to read
 Chrome's `AccountBookmarks` file beside `Bookmarks`, after signed-in Chrome
-profiles were found to import nothing.
+profiles were found to import nothing. Amended 2026-11-16 (owner): on desktop, opening the Favorites
+sheet's Bring my stuff to Blanc dialog is the explicit action, as Chrome's and
+Edge's import dialogs list browsers when they open.
 
 ## D23 — Who decides when a background tab loses its renderer
 **Features:** F31 (the behaviour itself is D8)
@@ -1052,3 +1056,30 @@ fades, and nothing fetched to draw a shortcut.
 
 **Status:** Android implemented in A5b, unreleased; iPhone implemented,
 unreleased on main.
+
+---
+
+## D40 — Nested Favorites folders show flat on phones and the fork
+**Features:** F9, F63
+
+**Why:** Nested folders (F63) were built in the shipping desktop first, with a
+sync format the other clients can adopt later (owner, November 16, 2026). A path
+is stored in the `folder` field every client already syncs, so nothing has to
+change elsewhere for nothing to be lost.
+
+- **Desktop (shipping Electron, this release onward):** the tree, a chosen order,
+  and empty folders.
+- **iPhone, Android, the desktop fork and older desktops:** each path is one flat
+  folder named by the path (`Work › Clients`). A folder edit there acts on that
+  one string: renaming `Work` renames only the favorites directly in it, so the
+  desktop then shows both the new folder and a `Work` that still holds its
+  sub-folders; deleting `Work › Clients` ungroups its favorites to the top level
+  instead of moving them up one level. The iPhone and the fork keep
+  `favoritesLayout` whole by its clock; older desktops drop it, and a newer
+  desktop restores it at most once every 10 minutes.
+
+**Parity contract that still holds:** every favorite and its full path survive
+every sync, and no client rewrites a path it didn't edit.
+
+**Status:** desktop merged, unreleased. Each other client adopts the tree in its
+own follow-up.

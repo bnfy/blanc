@@ -5,6 +5,7 @@ const {
 } = require('./permission-decisions');
 const { withLocalProfile } = require('./local-profile-context');
 const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
+const { addressSpaceOfHost, gatedScope, classifyRequest } = require('./local-network-access');
 
 /**
  * Permission policy for web content. Electron's default is ALLOW
@@ -16,6 +17,16 @@ const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
  */
 const AUTO_ALLOWED = new Set(['fullscreen', 'pointerLock', 'clipboard-sanitized-write']);
 const PROMPTED = new Set(['media', 'geolocation', 'notifications']);
+
+// Local Network Access (spec 2026-11-17-local-network-access-design.md). The
+// two scopes are stored like any PROMPTED permission (`origin|scope`); the
+// legacy combined name is answered from both. Blanc's own request gate
+// (localNetworkPolicyFor, run by the blocking coordinator) is what actually
+// decides: Electron 45 neither enforces nor requests these by itself.
+const LNA_SCOPES = ['loopback-network', 'local-network'];
+const LNA_LEGACY = 'local-network-access';
+const LNA_TARGET_SPACE = { 'loopback-network': 'loopback', 'local-network': 'local' };
+const lnaScopesFor = (name) => (name === LNA_LEGACY ? LNA_SCOPES : LNA_SCOPES.includes(name) ? [name] : null);
 
 // store.js requires electron at load, so it's pulled in lazily: the module
 // itself then loads under plain `node --test`, and the private-permissions
@@ -55,6 +66,15 @@ function setCaptureGrantObserver(fn) { captureGrantObserver = fn; }
  * persisted store made outside any session (Settings "forget"). */
 let decisionObserver = null;
 function setPermissionDecisionObserver(fn) { decisionObserver = fn; }
+
+/** The same hook for Local Network Access decisions: `{ session, origin }`,
+ * session null for a removal in Settings. */
+let localNetworkObserver = null;
+function setLocalNetworkDecisionObserver(fn) { localNetworkObserver = typeof fn === 'function' ? fn : null; }
+const notifyLocalNetworkChange = (session, origin) => {
+  if (!localNetworkObserver) return;
+  try { localNetworkObserver({ session, origin }); } catch {}
+};
 const notifyDecisionChange = (session, origin, mediaTypes) => {
   if (!decisionObserver || !mediaTypes.length) return;
   try { decisionObserver({ session, origin, mediaTypes }); } catch {}
@@ -104,6 +124,25 @@ function removeDecision(key) {
   ensureStore().update((d) => { delete d.decisions[key]; });
   const scopes = mediaScopesForDecisionKey(key);
   if (scopes) notifyDecisionChange(null, scopes.origin, scopes.mediaTypes);
+  const [origin, permission] = typeof key === 'string' ? key.split('|') : [];
+  if (origin && LNA_SCOPES.includes(permission)) notifyLocalNetworkChange(null, origin);
+}
+
+/** 'granted' | 'denied' | 'prompt' for a Local Network Access name, from the
+ * page origin's own address space and its stored decisions. A scope the page
+ * would never be gated for (a localhost page calling localhost) is granted. */
+function localNetworkState(decisions, origin, name) {
+  const scopes = lnaScopesFor(name);
+  if (!scopes) return null;
+  const pageSpace = addressSpaceOfHost(new URL(origin).hostname);
+  const states = scopes.map((scope) => {
+    if (!gatedScope(pageSpace, LNA_TARGET_SPACE[scope])) return 'granted';
+    const decision = storedDecision(decisions, origin, scope);
+    return decision === 'allow' ? 'granted' : decision === 'deny' ? 'denied' : 'prompt';
+  });
+  if (states.every((state) => state === 'granted')) return 'granted';
+  if (states.every((state) => state === 'denied')) return 'denied';
+  return 'prompt';
 }
 
 // Session → its readDecisions, so mediaQueryState can answer for whichever
@@ -140,6 +179,52 @@ function mediaQueryState(session, rawUrl, mediaType) {
   return 'prompt';
 }
 
+/**
+ * Truthful three-state for the main-world Local Network Access query shim
+ * (local-network-preload.js). Never prompts or grants; null means "no
+ * answer" (unknown session, a name outside the three, a non-web page) and
+ * the shim falls back to the real query.
+ */
+function localNetworkQueryState(session, rawUrl, name) {
+  if (!lnaScopesFor(name)) return null;
+  const reader = session ? queryReaders.get(session) : null;
+  if (!reader) return null;
+  const origin = normalizedOrigin(rawUrl);
+  if (!origin) return null;
+  return localNetworkState(reader.readDecisions(), origin, name);
+}
+
+function frameInfoOf(details) {
+  try {
+    const frame = details.frame;
+    if (!frame || frame.isDestroyed?.()) return null;
+    return { frameOrigin: frame.origin || null, topOrigin: frame.top?.origin || null };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The blocking coordinator's Local Network Access policy for one session:
+ * null when a request isn't gated, otherwise a promise of allow (true) or
+ * cancel (false). Decisions are saved through the session's own store, so a
+ * private session keeps them in memory only.
+ */
+function localNetworkPolicyFor(session) {
+  return (details) => {
+    const reader = queryReaders.get(session);
+    if (!reader) return null;
+    const gated = classifyRequest(details, () => frameInfoOf(details));
+    if (!gated) return null;
+    if (gated.mode === 'deny' || !gated.origin) return Promise.resolve(false);
+    const webContents = details.webContents ?? null;
+    if (gated.mode === 'stored-only' || !webContents) {
+      return Promise.resolve(reader.localNetworkDecision(gated.origin, gated.scope) === 'allow');
+    }
+    return reader.requestLocalNetwork({ webContents, origin: gated.origin, scopes: [gated.scope] });
+  };
+}
+
 function setupPermissionPolicy(
   session,
   {
@@ -161,10 +246,6 @@ function setupPermissionPolicy(
     : () => null;
   const hasNativeMediaAccessLayer = (mediaTypes) =>
     mediaTypes.some((mediaType) => readNativeMediaAccessState(mediaType) !== null);
-  queryReaders.set(session, {
-    readDecisions,
-    nativeMediaAccessState: readNativeMediaAccessState,
-  });
   const saveDecision = (origin, permission, mediaTypes, allow) => withLocalProfile(profileId, () => {
     if (persistDecisions) {
       ensureStore().update((d) => rememberDecision(d.decisions, origin, permission, mediaTypes, allow));
@@ -176,6 +257,41 @@ function setupPermissionPolicy(
     }
   });
 
+  // One prompt per (tab, site, scopes): a sign-in page probing several ports
+  // at once waits on a single answer. Every caller gets the same outcome.
+  const pendingLocalNetwork = new Map();
+  const localNetworkDecision = (origin, scope) => storedDecision(readDecisions(), origin, scope);
+  const requestLocalNetwork = ({ webContents, origin, scopes }) => {
+    if (heldRequester(webContents)) return Promise.resolve(false);
+    const saved = scopes.map((scope) => localNetworkDecision(origin, scope));
+    if (saved.some((decision) => decision === 'deny')) return Promise.resolve(false);
+    if (saved.every((decision) => decision === 'allow')) return Promise.resolve(true);
+    if (!prompter) return Promise.resolve(false);
+    const key = `${webContents?.id ?? ''}|${origin}|${scopes.join(',')}`;
+    if (pendingLocalNetwork.has(key)) return pendingLocalNetwork.get(key);
+    const permission = scopes.length === 1 ? scopes[0] : LNA_LEGACY;
+    const asked = (async () => {
+      let allow = null;
+      try { allow = await prompter({ origin, permission, mediaTypes: [], requestingWebContents: webContents }); }
+      catch { allow = null; }
+      // Same rules as every prompt: only a real answer is saved, and never
+      // for a tab that closed or was parked while the prompt was open.
+      if (allow === null || webContents?.isDestroyed?.() || heldRequester(webContents)) return false;
+      for (const scope of scopes) saveDecision(origin, scope, [], allow);
+      notifyLocalNetworkChange(session, origin);
+      return allow === true;
+    })().finally(() => pendingLocalNetwork.delete(key));
+    pendingLocalNetwork.set(key, asked);
+    return asked;
+  };
+
+  queryReaders.set(session, {
+    readDecisions,
+    nativeMediaAccessState: readNativeMediaAccessState,
+    localNetworkDecision,
+    requestLocalNetwork,
+  });
+
   session.setPermissionRequestHandler((wc, permission, callback, details) =>
     withLocalProfile(profileId, async () => {
     if (heldRequester(wc)) return callback(false);
@@ -184,6 +300,24 @@ function setupPermissionPolicy(
       return callback(false);
     }
     if (AUTO_ALLOWED.has(permission)) return callback(true);
+    const lnaScopes = lnaScopesFor(permission);
+    if (lnaScopes) {
+      // Electron 45 never sends these; if a later runtime does, they go
+      // through the same prompt and store as Blanc's own gate.
+      const lnaOrigin = normalizedOrigin(details?.requestingUrl);
+      if (!lnaOrigin) return callback(false);
+      // As in the gate: the decision belongs to the top-level site, and a
+      // frame from another site is refused rather than prompted.
+      let topOrigin = lnaOrigin;
+      if (details?.isMainFrame === false) {
+        try { topOrigin = normalizedOrigin(wc?.getURL?.()); } catch { topOrigin = null; }
+      }
+      if (topOrigin !== lnaOrigin) return callback(false);
+      const pageSpace = addressSpaceOfHost(new URL(lnaOrigin).hostname);
+      const gatedScopes = lnaScopes.filter((scope) => gatedScope(pageSpace, LNA_TARGET_SPACE[scope]));
+      if (!gatedScopes.length) return callback(true);
+      return callback(await requestLocalNetwork({ webContents: wc, origin: lnaOrigin, scopes: gatedScopes }));
+    }
     if (!PROMPTED.has(permission)) return callback(false);
 
     const origin = normalizedOrigin(details.requestingUrl);
@@ -244,6 +378,14 @@ function setupPermissionPolicy(
       return false;
     }
     if (AUTO_ALLOWED.has(permission)) return true;
+    if (lnaScopesFor(permission)) {
+      // Decisions belong to the top-level site; a cross-origin frame is
+      // refused, as Blanc's request gate refuses it.
+      const own = normalizedOrigin(requestingOrigin);
+      const top = normalizedOrigin(details?.embeddingOrigin ?? requestingOrigin);
+      if (!own || own !== top) return false;
+      return localNetworkState(readDecisions(), top, permission) === 'granted';
+    }
     if (!PROMPTED.has(permission)) return false;
     const origin = normalizedOrigin(requestingOrigin);
     if (!origin) return false;
@@ -264,4 +406,5 @@ function setupPermissionPolicy(
 module.exports = {
   setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, listDecisions, removeDecision,
   mediaQueryState, setPermissionDecisionObserver, mediaScopesForDecisionKey, setHeldRequesterCheck,
+  localNetworkPolicyFor, localNetworkQueryState, setLocalNetworkDecisionObserver,
 };

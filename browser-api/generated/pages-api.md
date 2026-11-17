@@ -24,6 +24,12 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `bookmarks.setFolder` | invoke | `pages:bookmarks:set-folder` | bookmarks | Move a Favorite into a folder, or out of folders with null. |
 | `bookmarks.renameFolder` | invoke | `pages:bookmarks:rename-folder` | bookmarks | Rename a Favorites folder. |
 | `bookmarks.removeFolder` | invoke | `pages:bookmarks:remove-folder` | bookmarks | Remove a Favorites folder, keeping its Favorites. |
+| `bookmarks.tree` | invoke | `pages:bookmarks:tree` | bookmarks | The Favorites folder tree in display order (Favorites manager). |
+| `bookmarks.createFolder` | invoke | `pages:bookmarks:create-folder` | bookmarks | Create a Favorites folder inside another, or at the top level with null. |
+| `bookmarks.moveFolder` | invoke | `pages:bookmarks:move-folder` | bookmarks | Move a Favorites folder into another, or to the top level with null. |
+| `bookmarks.move` | invoke | `pages:bookmarks:move` | bookmarks | Move Favorites into a folder path, or to the top level with null. |
+| `bookmarks.reorder` | invoke | `pages:bookmarks:reorder` | bookmarks | Save the order chosen for one folder's children. |
+| `bookmarks.removeMany` | invoke | `pages:bookmarks:remove-many` | bookmarks | Remove several Favorites at once. |
 | `start.data` | invoke | `pages:start:data` | newtab | Everything the Start Page renders at load: groups, top sites, blocked counts, synced devices, onboarding and the shared start status. |
 | `start.topSites` | invoke | `pages:start:top-sites` | newtab | Frequently visited sites for the Start Page. |
 | `start.focusGroup` | invoke | `pages:start:focus-group` | newtab | Focus a tab group picked on the Start Page. |

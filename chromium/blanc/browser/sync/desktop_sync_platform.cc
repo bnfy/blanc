@@ -5,6 +5,7 @@
 
 #include "base/command_line.h"
 #include "blanc/buildflags.h"
+#include "blanc/common/host_platform.h"
 #include "base/json/json_writer.h"
 #include "base/values.h"
 #include "blanc/services/sync_runner/sync_endpoint.h"
@@ -36,13 +37,7 @@ std::string DesktopSyncPlatform::Endpoint() {
 }
 std::string DesktopSyncPlatform::ConfigJson() {
   base::DictValue config;
-#if BUILDFLAG(IS_MAC)
-  config.Set("platform", "darwin");
-#elif BUILDFLAG(IS_WIN)
-  config.Set("platform", "win32");
-#else
-  config.Set("platform", "linux");
-#endif
+  config.Set("platform", blanc::kHostPlatform);
   config.Set("version", std::string(version_info::GetVersionNumber()));
   config.Set("deviceName", device_name_);
   config.Set("keyStore", true);

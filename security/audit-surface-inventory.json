@@ -14,6 +14,7 @@
     "src/main/display-capture-helper-preload.js",
     "src/main/fill-status-preload.js",
     "src/main/link-route-preload.js",
+    "src/main/local-network-preload.js",
     "src/main/preload.js",
     "src/main/reader-preload.js",
     "src/main/scoped-capture-preload-linux.js",
@@ -253,6 +254,15 @@
       "role": "privileged implementation or service"
     },
     {
+      "file": "src/main/local-network-preload.js",
+      "sha256": "22ff277373f75f8ac3696ac70fd7d96a69e0ea5212dc08722421d34b0fda61ce",
+      "literalChannels": [
+        "local-network:permission-changed",
+        "local-network:permission-query"
+      ],
+      "role": "preload"
+    },
+    {
       "file": "src/main/local-profiles.js",
       "sha256": "d8baba8cbfb484cbc5a696c430af5ad512d37200eb2b9a8823fef0f164cbc41b",
       "literalChannels": [],
@@ -260,7 +270,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "d058955d4f196cdce4069a0d61f64455452388d56c7e2a26941d926024bdc000",
+      "sha256": "f75db31f5fd22199c88fa72e8f2a1f5bd257233959ba83caefd85cfdbb24eb5c",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -390,6 +400,8 @@
         "groups:ungroup",
         "input-event",
         "link-route:activated",
+        "local-network:permission-changed",
+        "local-network:permission-query",
         "login",
         "open-file",
         "open-url",
@@ -518,7 +530,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "0b3e4a1d96ff351d4b432ef607e862f6ef49a144fd582ee524743f874ad10a16",
+      "sha256": "79ebda1d655506fe2601d88e64e9c0c4ef027d3d7232f6abf70a5b389d2c3e98",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -536,13 +548,19 @@
         "pages:bookmarks:browser-sources",
         "pages:bookmarks:capabilities",
         "pages:bookmarks:clear-favicon",
+        "pages:bookmarks:create-folder",
         "pages:bookmarks:import",
         "pages:bookmarks:import-browser",
         "pages:bookmarks:list",
+        "pages:bookmarks:move",
+        "pages:bookmarks:move-folder",
         "pages:bookmarks:remove",
         "pages:bookmarks:remove-folder",
+        "pages:bookmarks:remove-many",
         "pages:bookmarks:rename-folder",
+        "pages:bookmarks:reorder",
         "pages:bookmarks:set-folder",
+        "pages:bookmarks:tree",
         "pages:clear-browsing-data",
         "pages:default-browser:get",
         "pages:default-browser:set",
@@ -663,7 +681,7 @@
     },
     {
       "file": "src/main/permissions.js",
-      "sha256": "9a7ab75ac32998ab9b95d416225d202750bc722e1d42c1f0e6026fc864b74032",
+      "sha256": "1be194bfaa7c1db487a1be27c2906084fcf79f1a11e1c1db09539c967cf148a7",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -983,7 +1001,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "2382ad567d5996a9c4834acbbf4be4db3a71f5ca066f6b367e8112a83b2055fa",
+      "sha256": "bc8b19ccd8ad93ae3a93510735d71ba65c0d097f7f9a8bcd78f0ad6b3940a06e",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -1001,13 +1019,19 @@
         "pages:bookmarks:browser-sources",
         "pages:bookmarks:capabilities",
         "pages:bookmarks:clear-favicon",
+        "pages:bookmarks:create-folder",
         "pages:bookmarks:import",
         "pages:bookmarks:import-browser",
         "pages:bookmarks:list",
+        "pages:bookmarks:move",
+        "pages:bookmarks:move-folder",
         "pages:bookmarks:remove",
         "pages:bookmarks:remove-folder",
+        "pages:bookmarks:remove-many",
         "pages:bookmarks:rename-folder",
+        "pages:bookmarks:reorder",
         "pages:bookmarks:set-folder",
+        "pages:bookmarks:tree",
         "pages:clear-browsing-data",
         "pages:default-browser:get",
         "pages:default-browser:set",

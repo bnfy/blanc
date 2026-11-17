@@ -36,7 +36,10 @@ test('a version moves on every PUT and stays put otherwise',async()=>{
   const two=await h.put('sends',{ct:'2'},one);assert.notEqual(two,one);
   assert.equal((await h.versions()).body.stores.sends,two);
 });
-test('the check counts against the account\'s GET limit',async()=>{
+test('the check counts against the account\'s GET limit',async t=>{
+  // The limit is per clock minute: hold the clock, or a run that crosses a
+  // minute boundary starts a fresh budget and the 31st check is allowed.
+  const now=Date.now();t.mock.method(Date,'now',()=>now);
   const h=await setup();await h.put('settings',{ct:'s'});
   for(let n=0;n<30;n++)assert.equal((await h.versions()).status,200);
   assert.equal((await h.versions()).status,429);

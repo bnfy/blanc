@@ -46,8 +46,8 @@
     "source": "sha256:e9916376c8ff6435790e53cb63890d84c7fb6f0841326a391a8c408000f18a62"
   },
   "slash.save.doc": {
-    "message": "Enregistre cette page dans les favoris, dans un dossier si vous en indiquez un",
-    "source": "sha256:9238f1f272ff3660d8448539ce9531df770c04358a2832bb9fd98c57b4443b79"
+    "message": "Enregistre cette page dans les favoris, dans un dossier si vous en indiquez un. Mettez > entre les noms de dossier pour atteindre un dossier dans un dossier, par exemple Travail > Clients",
+    "source": "sha256:1a1708b5caf18b9f26af2a7efcf6a5633c0bb30b43f04a432c62ae60bd3d8e22"
   },
   "slash.history.hint": {
     "message": "Ouvrir l’historique de navigation",
@@ -665,6 +665,18 @@
   "permission.prompt.notifications": {
     "message": "<0>{host}</0> veut afficher des notifications",
     "source": "sha256:719bfda7b224a17a04561ea30b797f4a7751efe9023e82ec9a24aea1880222e7"
+  },
+  "permission.prompt.loopbackNetwork": {
+    "message": "<0>{host}</0> veut se connecter à des apps sur cet appareil",
+    "source": "sha256:0c1db9073278b6bf78d873bba5ca69e4dad3f6955a1534f113e017c2f24cca5f"
+  },
+  "permission.prompt.localNetwork": {
+    "message": "<0>{host}</0> veut se connecter à des appareils de votre réseau local",
+    "source": "sha256:9f48a9a589d092ea156a2dc58b83e2e16f7a88ca414410e209bdb433cfe473d4"
+  },
+  "permission.prompt.localNetworkAccess": {
+    "message": "<0>{host}</0> veut se connecter à des apps et des appareils de votre réseau local",
+    "source": "sha256:0d35eb7192121f8a0ba56878188846dc8434aa3cbb0d07e3cd6a862cb99b5023"
   },
   "permission.prompt.other": {
     "message": "<0>{host}</0> veut utiliser « {permission} »",
@@ -4663,6 +4675,14 @@
     "message": "Notifications",
     "source": "sha256:c4680e6dc26649d98acb935fb59000027e2f1b5015b5ba503b916599166eed57"
   },
+  "settings.permissions.loopbackNetwork": {
+    "message": "Apps sur cet appareil",
+    "source": "sha256:075cb6bb2b371c4665531bd3056c1aa6f64c6d665cc75d341681bb779183ac69"
+  },
+  "settings.permissions.localNetwork": {
+    "message": "Appareils du réseau local",
+    "source": "sha256:13c37de04f384a1d7f8f5f72346331085ebda8c718dc54fc0c3a57573283a762"
+  },
   "settings.permissions.audio": {
     "message": "Micro",
     "source": "sha256:d1298ec779fd64aad3684a098249e7f3501a1aac2ba323bdcba2754c8c3d96f3"
@@ -6359,6 +6379,18 @@
     "message": "{count, plural, one {# déjà enregistré ignoré.} many {# déjà enregistrés ignorés.} other {# déjà enregistrés ignorés.}}",
     "source": "sha256:b0687b46dbc51a7fc5d6cd797109c1d69572b402bc153f104d23383d79ad5d42"
   },
+  "favorites.import.moved": {
+    "message": "{count, plural, one {# déplacé dans son dossier.} many {# déplacés dans leurs dossiers.} other {# déplacés dans leurs dossiers.}}",
+    "source": "sha256:26511ae34f7bdc1f34717e61551f648937b4d2cdbeacf48d7440b1f0c082499f"
+  },
+  "favorites.import.shortened": {
+    "message": "{count, plural, one {# placé dans un dossier parent, car le chemin de son dossier était trop long.} many {# placés dans un dossier parent, car les chemins de leurs dossiers étaient trop longs.} other {# placés dans un dossier parent, car les chemins de leurs dossiers étaient trop longs.}}",
+    "source": "sha256:c312b814b12f37225d01d235054f8b3c4427f895e843a3bdaaa95913484330db"
+  },
+  "favorites.import.orderDropped": {
+    "message": "Certains dossiers sont dans l’ordre par défaut, car la collection est très volumineuse.",
+    "source": "sha256:7a467a3953790b3c9296cc69e32ffe1b2c86d20e16a34d289ae4402ca6b45ddf"
+  },
   "favorites.import.allSaved": {
     "message": "{count, plural, one {Ce favori était déjà enregistré.} many {Les # favoris étaient déjà enregistrés.} other {Les # favoris étaient déjà enregistrés.}}",
     "source": "sha256:8b6c880284a40001a5d6c372521715124ac2ef12827463bb86ca15e93dd28c32"
@@ -6434,6 +6466,134 @@
   "favorites.row.removeLabel": {
     "message": "Retirer {title} des Favoris",
     "source": "sha256:69ac136739dbc47415bc5925a9c1f827f40485cb41149d56bf7ef157e23066bf"
+  },
+  "favorites.manager.all": {
+    "message": "Tous les favoris",
+    "source": "sha256:20ded998648ab1b1bb4d7d837a4e20b7a9d5d8bdbd7bd3105db8130b0621054a"
+  },
+  "favorites.manager.tree": {
+    "message": "Dossiers",
+    "source": "sha256:d9b16d9388e49907e2f68e02ce2ffdb1530e395b7f9be08a70d59d9ff9568a43"
+  },
+  "favorites.manager.breadcrumb": {
+    "message": "Chemin du dossier",
+    "source": "sha256:3133f617da8c3b4cf1be9be96708e07862956ad6f38e919ba1e48120e08207a8"
+  },
+  "favorites.manager.chooseFolder": {
+    "message": "Dossier",
+    "source": "sha256:82f86df173352ee2698c4c3a0ad12e4c03ca20398ba60df166bb476ddf24f4b8"
+  },
+  "favorites.manager.search": {
+    "message": "Rechercher dans les favoris",
+    "source": "sha256:1c47c6a8d5b01ea62a42cef0d3b827a84ada05a47f2750ffd506f3e815d01a97"
+  },
+  "favorites.manager.newFolder": {
+    "message": "Nouveau dossier",
+    "source": "sha256:ad0facc6847071f0f0835d0bac47f49b43cdd695cc567fa8d1b3631d7f5691d1"
+  },
+  "favorites.manager.newFolderPlaceholder": {
+    "message": "Nom du dossier",
+    "source": "sha256:88991c0e3885a5bdcd5fe3f3c163de6713d1833c6b26b4fd6c7b2c98f6641030"
+  },
+  "favorites.manager.newFolderInside": {
+    "message": "Nouveau dossier à l’intérieur",
+    "source": "sha256:dab747bea508930688b45304b4dee12e77d4a164bd98ca66e2d862ea168b8546"
+  },
+  "favorites.manager.open": {
+    "message": "Ouvrir",
+    "source": "sha256:98165cb83a653062e518a74698022d51c9d271dbbadc3f3b833a9f3ef04dd0ca"
+  },
+  "favorites.manager.rename": {
+    "message": "Renommer",
+    "source": "sha256:d19e2c4c9563c366291550fb70f71eb99d064e68c1576f8a84486f52602decc0"
+  },
+  "favorites.manager.moveTo": {
+    "message": "Déplacer vers…",
+    "source": "sha256:89643af2ee7695b419aa9026c07962cea9281591a708d5da9e3f441ec2e8a0fc"
+  },
+  "favorites.manager.moveUp": {
+    "message": "Monter",
+    "source": "sha256:3462406cde0ad03b8642a23b1a166a7e56f5b50e6051e9d7e5951346e14c22a4"
+  },
+  "favorites.manager.moveDown": {
+    "message": "Descendre",
+    "source": "sha256:a792aa25b0ab36a6c7436cc5742655fd635c482dfab74966a52ad0284dcd6d20"
+  },
+  "favorites.manager.remove": {
+    "message": "Retirer",
+    "source": "sha256:37e7549d64f2f88b7944d0fb623f14e1a29dec32ce0b14071407a0c933746ee3"
+  },
+  "favorites.manager.deleteFolder": {
+    "message": "Supprimer le dossier",
+    "source": "sha256:709257dd1f5ed12aa5262faef2e24c9fafecf8ce2fd5b453861305159ba27a50"
+  },
+  "favorites.manager.topLevel": {
+    "message": "Niveau supérieur",
+    "source": "sha256:f63f13705ff75ec6af4469ca8094493040903f8ec50548c689b91cbcb2a6ffc7"
+  },
+  "favorites.manager.more": {
+    "message": "Autres actions pour {title}",
+    "source": "sha256:e8bff454a6c5f075a0cddbd5cf0b6efdc3eb2dbe51efd8c74ce7d23d6f33e6de"
+  },
+  "favorites.manager.items": {
+    "message": "{count, plural, one {# favori} many {# favoris} other {# favoris}}",
+    "source": "sha256:47d261aa98996300edf02d900703b69efc69a3935f953b61d7f6589fe96f1735"
+  },
+  "favorites.manager.selected": {
+    "message": "{count, plural, one {# sélectionné} many {# sélectionnés} other {# sélectionnés}}",
+    "source": "sha256:5373e272db91815325c357ddcd14b9c1f5ef617b72839b467dd0f044afbd3d3f"
+  },
+  "favorites.manager.clearSelection": {
+    "message": "Désélectionner",
+    "source": "sha256:942ac29b767db95da4414316acb56cbb989e61f0a058d4b4ce35b36049c09911"
+  },
+  "favorites.manager.noResults": {
+    "message": "Aucun favori ne correspond.",
+    "source": "sha256:8f86932adf04493deb62b703e3478802df34371a48e148f93b394b97c1af52cd"
+  },
+  "favorites.manager.emptyFolder": {
+    "message": "Ce dossier est vide.",
+    "source": "sha256:a270bd647ef156138e1ea4a35f6bf63c043dca5a4c3f0c9f26e763f6cfa27643"
+  },
+  "favorites.manager.error.tooLong": {
+    "message": "Ce chemin de dossier serait plus long que ce que Blanc peut synchroniser. Utilisez un nom plus court ou moins de niveaux.",
+    "source": "sha256:702fc267b3169ad16ea77f05ea4f5fc45d21492a2d44c0f37be8c90f9c148980"
+  },
+  "favorites.manager.error.cycle": {
+    "message": "Un dossier ne peut pas être déplacé dans lui-même.",
+    "source": "sha256:46ba5c6ce992e8cbdeb3d9d8a35a2946ac4aef894c48876632a6f93186bf155a"
+  },
+  "favorites.manager.error.invalid": {
+    "message": "Ce nom ne peut pas être utilisé.",
+    "source": "sha256:1de200d65ef4bdcc0b788833f6e2a77067c0ed6e18e153b14857d02119d257fd"
+  },
+  "favorites.manager.error.missing": {
+    "message": "Ce dossier n’existe plus.",
+    "source": "sha256:da15e822ea7414bdea99ba50faf98629849cd2c7bc8e38befbdaaea0c4be91e7"
+  },
+  "favorites.import.menu": {
+    "message": "Apporter mes données dans Blanc",
+    "source": "sha256:7c0b597b34e0d5fc033ac5ac1476dac7ebce2209ba9000c93c7e51abcf813144"
+  },
+  "favorites.manager.results": {
+    "message": "{count, plural, one {# résultat} many {# résultats} other {# résultats}}",
+    "source": "sha256:af1fd513441f4a7b789abaa9483aaeb718cd2677c9bc2bca731345172f7b8a42"
+  },
+  "favorites.manager.removeConfirm": {
+    "message": "{count, plural, one {Retirer # élément ?} many {Retirer # éléments ?} other {Retirer # éléments ?}}",
+    "source": "sha256:7a71259f4ac41a6bba212d7539b7179020d57bb057285db4983dca3a10549eb2"
+  },
+  "favorites.manager.cancel": {
+    "message": "Annuler",
+    "source": "sha256:417d9366fed6571bb49c5677f56393a7f1ed62496af3b7e5508942d42ac8cba0"
+  },
+  "favorites.manager.pin": {
+    "message": "Épingler",
+    "source": "sha256:1d11e161f9a0b77ff9a8865e610bdd563f4ba3620e1ab35fd562d9a27b2d6e9c"
+  },
+  "favorites.manager.unpin": {
+    "message": "Désépingler",
+    "source": "sha256:f85ccf92edab1ffdf0dfbbf0fb291402b6ed6be9ff487641528a69b700d93cbf"
   },
   "favorites.picker.label": {
     "message": "Déplacer {title} vers un dossier",
@@ -9646,5 +9806,41 @@
   "android.licenses.loadFailed": {
     "message": "Cette mention n’a pas pu être chargée. Ouvre le lien de son titre pour lire le fichier inclus.",
     "source": "sha256:10f1e03f68d92e46522c957048d32e387885e1b7ac56bfbfcaf0b315488731c3"
+  },
+  "favorites.import.lede": {
+    "message": "Copiez vos favoris et onglets ouverts depuis un autre navigateur. Rien n’y change.",
+    "source": "sha256:7b27cd690be548ecaaee09172c868e1c008c44ab16b9f5cbaf756274e6feea26"
+  },
+  "favorites.import.from": {
+    "message": "Depuis",
+    "source": "sha256:079498949d082389942f09acaea05caa852f1259197162cc9b0bb7ef2bdca4ca"
+  },
+  "favorites.import.fileOption": {
+    "message": "Fichier de signets (HTML)…",
+    "source": "sha256:7b8d9a3c934ef85b6eee9fe7e6286694e1a94725ab4d26a1f6dd211ffa5645b8"
+  },
+  "favorites.import.what": {
+    "message": "Quoi importer",
+    "source": "sha256:abf914f00212fcefc08da2e8b764634a8fff7c3d1ee41e403b22aca484c557fa"
+  },
+  "favorites.import.whatTabs": {
+    "message": "Onglets ouverts",
+    "source": "sha256:1f3a10d9d1b7c6a4da7dfb18927334194890a580bd45102018872b8836a9b0e9"
+  },
+  "favorites.import.go": {
+    "message": "Importer",
+    "source": "sha256:886f9f28a5489791fe4fdd9bffc45def05b37f68e7430321759f821910041e4b"
+  },
+  "favorites.import.cancel": {
+    "message": "Annuler",
+    "source": "sha256:5d290921c79b35afa02449fdc247ccd75820b9ae9dd9f7e7f0df8a31ba454947"
+  },
+  "favorites.manager.deleteFolderLabel": {
+    "message": "Supprimer le dossier {title}",
+    "source": "sha256:8985ef05df353e0e17eb14d0dfb0f4a502a7e6a555ef06d37ec5dc698bec68ef"
+  },
+  "favorites.import.tabsSkipped": {
+    "message": "Les onglets ouverts n’ont pas été importés.",
+    "source": "sha256:2151e2cc32789e69ff84dc7e3125d6a0221be22bf0d122a82c7f3a2f6b2da94f"
   }
 }

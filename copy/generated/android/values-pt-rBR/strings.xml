@@ -11,7 +11,7 @@
     <string name="slash_favorites_hint">Abrir favoritos</string>
     <string name="slash_bring_tabs_hint">Trazer abas abertas de outro navegador</string>
     <string name="slash_save_hint">Salvar esta página nos favoritos — digite o nome de uma pasta para arquivá-la</string>
-    <string name="slash_save_doc">Salva esta página nos favoritos, numa pasta se você informar o nome</string>
+    <string name="slash_save_doc">Salva esta página nos favoritos, numa pasta se você informar o nome. Coloque &gt; entre nomes de pasta para chegar a uma pasta dentro de outra, como Trabalho &gt; Clientes</string>
     <string name="slash_history_hint">Abrir o histórico de navegação</string>
     <string name="slash_archive_hint">Ver as abas que o Blanc arquivou para você</string>
     <string name="slash_downloads_hint">Abrir downloads</string>
@@ -186,6 +186,9 @@
     <string name="permission_prompt_microphone">&lt;0&gt;%1$s&lt;/0&gt; quer usar seu microfone</string>
     <string name="permission_prompt_geolocation">&lt;0&gt;%1$s&lt;/0&gt; quer saber sua localização</string>
     <string name="permission_prompt_notifications">&lt;0&gt;%1$s&lt;/0&gt; quer mostrar notificações</string>
+    <string name="permission_prompt_loopback_network">&lt;0&gt;%1$s&lt;/0&gt; quer se conectar a apps neste dispositivo</string>
+    <string name="permission_prompt_local_network">&lt;0&gt;%1$s&lt;/0&gt; quer se conectar a dispositivos da sua rede local</string>
+    <string name="permission_prompt_local_network_access">&lt;0&gt;%1$s&lt;/0&gt; quer se conectar a apps e dispositivos da sua rede local</string>
     <string name="permission_prompt_other">&lt;0&gt;%1$s&lt;/0&gt; quer usar “%2$s”</string>
     <string name="fill_surface_title">Status do preenchimento</string>
     <string name="fill_dismiss">Dispensar</string>
@@ -1294,6 +1297,8 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_permissions_media">Câmera/microfone</string>
     <string name="settings_permissions_geolocation">Localização</string>
     <string name="settings_permissions_notifications">Notificações</string>
+    <string name="settings_permissions_loopback_network">Apps neste dispositivo</string>
+    <string name="settings_permissions_local_network">Dispositivos da rede local</string>
     <string name="settings_permissions_audio">Microfone</string>
     <string name="settings_permissions_video">Câmera</string>
     <string name="settings_permissions_allowed">%1$s — Permitido</string>
@@ -1782,6 +1787,17 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
         <item quantity="many">%1$d já salvos foram ignorados.</item>
         <item quantity="other">%1$d já salvos foram ignorados.</item>
     </plurals>
+    <plurals name="favorites_import_moved">
+        <item quantity="one">%1$d movido para sua pasta.</item>
+        <item quantity="many">%1$d movidos para suas pastas.</item>
+        <item quantity="other">%1$d movidos para suas pastas.</item>
+    </plurals>
+    <plurals name="favorites_import_shortened">
+        <item quantity="one">%1$d colocado em uma pasta superior porque o caminho da pasta era longo demais.</item>
+        <item quantity="many">%1$d colocados em uma pasta superior porque os caminhos das pastas eram longos demais.</item>
+        <item quantity="other">%1$d colocados em uma pasta superior porque os caminhos das pastas eram longos demais.</item>
+    </plurals>
+    <string name="favorites_import_order_dropped">Algumas pastas estão na ordem padrão porque a coleção é muito grande.</string>
     <plurals name="favorites_import_all_saved">
         <item quantity="one">Esse favorito já estava salvo.</item>
         <item quantity="many">Todos os %1$d favoritos já estavam salvos.</item>
@@ -1805,6 +1821,54 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="favorites_row_pinned">Fixado na página inicial</string>
     <string name="favorites_row_remove">remover</string>
     <string name="favorites_row_remove_label">Remover %1$s dos Favoritos</string>
+    <string name="favorites_manager_all">Todos os favoritos</string>
+    <string name="favorites_manager_tree">Pastas</string>
+    <string name="favorites_manager_breadcrumb">Caminho da pasta</string>
+    <string name="favorites_manager_choose_folder">Pasta</string>
+    <string name="favorites_manager_search">Pesquisar favoritos</string>
+    <string name="favorites_manager_new_folder">Nova pasta</string>
+    <string name="favorites_manager_new_folder_placeholder">Nome da pasta</string>
+    <string name="favorites_manager_new_folder_inside">Nova pasta dentro</string>
+    <string name="favorites_manager_open">Abrir</string>
+    <string name="favorites_manager_rename">Renomear</string>
+    <string name="favorites_manager_move_to">Mover para…</string>
+    <string name="favorites_manager_move_up">Mover para cima</string>
+    <string name="favorites_manager_move_down">Mover para baixo</string>
+    <string name="favorites_manager_remove">Remover</string>
+    <string name="favorites_manager_delete_folder">Excluir pasta</string>
+    <string name="favorites_manager_top_level">Nível superior</string>
+    <string name="favorites_manager_more">Mais ações para %1$s</string>
+    <plurals name="favorites_manager_items">
+        <item quantity="one">%1$d favorito</item>
+        <item quantity="many">%1$d favoritos</item>
+        <item quantity="other">%1$d favoritos</item>
+    </plurals>
+    <plurals name="favorites_manager_selected">
+        <item quantity="one">%1$d selecionado</item>
+        <item quantity="many">%1$d selecionados</item>
+        <item quantity="other">%1$d selecionados</item>
+    </plurals>
+    <string name="favorites_manager_clear_selection">Limpar seleção</string>
+    <string name="favorites_manager_no_results">Nenhum favorito corresponde.</string>
+    <string name="favorites_manager_empty_folder">Esta pasta está vazia.</string>
+    <string name="favorites_manager_error_too_long">Esse caminho de pasta ficaria mais longo do que o Blanc consegue sincronizar. Use um nome mais curto ou menos níveis.</string>
+    <string name="favorites_manager_error_cycle">Uma pasta não pode ser movida para dentro de si mesma.</string>
+    <string name="favorites_manager_error_invalid">Esse nome não pode ser usado.</string>
+    <string name="favorites_manager_error_missing">Essa pasta não existe mais.</string>
+    <string name="favorites_import_menu">Trazer minhas coisas para o Blanc</string>
+    <plurals name="favorites_manager_results">
+        <item quantity="one">%1$d resultado</item>
+        <item quantity="many">%1$d resultados</item>
+        <item quantity="other">%1$d resultados</item>
+    </plurals>
+    <plurals name="favorites_manager_remove_confirm">
+        <item quantity="one">Remover %1$d item?</item>
+        <item quantity="many">Remover %1$d itens?</item>
+        <item quantity="other">Remover %1$d itens?</item>
+    </plurals>
+    <string name="favorites_manager_cancel">Cancelar</string>
+    <string name="favorites_manager_pin">Fixar</string>
+    <string name="favorites_manager_unpin">Desafixar</string>
     <string name="favorites_picker_label">Mover %1$s para uma pasta</string>
     <string name="favorites_picker_none">→ nenhuma</string>
     <string name="favorites_picker_new_folder">nova pasta…</string>
@@ -2717,4 +2781,13 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="android_licenses_chromium_fork_notices">Avisos do fork do Chromium</string>
     <string name="android_licenses_loading">Carregando aviso…</string>
     <string name="android_licenses_load_failed">Não foi possível carregar este aviso. Abra o link no título para ler o arquivo incluído.</string>
+    <string name="favorites_import_lede">Copie seus favoritos e abas abertas de outro navegador. Nada muda nele.</string>
+    <string name="favorites_import_from">De</string>
+    <string name="favorites_import_file_option">Arquivo de favoritos (HTML)…</string>
+    <string name="favorites_import_what">O que trazer</string>
+    <string name="favorites_import_what_tabs">Abas abertas</string>
+    <string name="favorites_import_go">Importar</string>
+    <string name="favorites_import_cancel">Cancelar</string>
+    <string name="favorites_manager_delete_folder_label">Excluir a pasta %1$s</string>
+    <string name="favorites_import_tabs_skipped">As abas abertas não foram trazidas.</string>
 </resources>

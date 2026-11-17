@@ -173,8 +173,8 @@ jobs:
       - run: npm ci
       - name: Google OAuth compatibility contract
         run: xvfb-run -a npm run test:oauth:desktop
-      - name: Favorites folder picker layering and interaction regression
-        run: xvfb-run -a npm run test:favorites-picker:desktop
+      - name: Favorites manager (F63) folders, order and menus
+        run: xvfb-run -a npm run test:favorites-manager:desktop
       - name: Local-clock dynamic wallpaper regression
         run: xvfb-run -a npm run test:wallpaper:desktop
       - name: Custom Start Page wallpaper (F49)

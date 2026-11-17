@@ -468,25 +468,25 @@ const openSheet = async ({ app, chrome }, name, ready) => {
 const UTILITY_SURFACES = [
   {
     name: 'favorites (empty)',
-    files: ['src/renderer/pages/bookmarks.html', 'src/renderer/pages/bookmarks.js', ...UTILITY_FILES],
-    open: (ctx) => openSheet(ctx, 'bookmarks', () => document.querySelector('#list .empty')),
+    files: ['src/renderer/pages/bookmarks.html', 'src/renderer/pages/bookmarks.js', 'src/renderer/pages/favorites-manager.js', ...UTILITY_FILES],
+    open: (ctx) => openSheet(ctx, 'bookmarks', () => document.querySelector('#manager .empty')),
   },
   {
-    name: 'favorites (folder picker)',
-    files: ['src/renderer/pages/bookmarks.html', 'src/renderer/pages/bookmarks.js', ...UTILITY_FILES],
+    name: 'favorites (folder menu)',
+    files: ['src/renderer/pages/bookmarks.html', 'src/renderer/pages/bookmarks.js', 'src/renderer/pages/favorites-manager.js', ...UTILITY_FILES],
     open: async (ctx) => {
       const id = await callTestHook(ctx.app, 'openTab', [permissionPageUrl]);
       await waitForValue(async () => (await callTestHook(ctx.app, 'state')).tabs.find((t) => t.id === id && !t.isLoading), Boolean, 'page to favorite');
       await callTestHook(ctx.app, 'favoriteActive');
-      const page = await openSheet(ctx, 'bookmarks', () => document.querySelector('#list .row'));
+      const page = await openSheet(ctx, 'bookmarks', () => document.querySelector('#manager .fav-row'));
       await page.evaluate(async () => {
         const [first] = await window.bowserPages.bookmarks.list();
         await window.bowserPages.bookmarks.setFolder(first.id, 'zzz-folder');
       });
       await page.reload();
-      await page.waitForFunction(() => document.querySelector('.folder-section .folder-actions'));
-      await page.locator('.folder-chip').first().click();
-      await page.locator('.folder-picker').waitFor({ state: 'visible' });
+      await page.waitForFunction(() => document.querySelector('.fav-folder-row'));
+      await page.locator('.fav-folder-row .fav-more').first().click();
+      await page.locator('.fav-menu').waitFor({ state: 'visible' });
       return page;
     },
     close: (page) => page.keyboard.press('Escape'),

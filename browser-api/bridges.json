@@ -316,6 +316,113 @@
         "doc": "Remove a Favorites folder, keeping its Favorites."
       },
       {
+        "name": "bookmarks.tree",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:tree",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "The Favorites folder tree in display order (Favorites manager)."
+      },
+      {
+        "name": "bookmarks.createFolder",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:create-folder",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "parentPath",
+            "type": "unknown"
+          },
+          {
+            "name": "name",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Create a Favorites folder inside another, or at the top level with null."
+      },
+      {
+        "name": "bookmarks.moveFolder",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:move-folder",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "path",
+            "type": "unknown"
+          },
+          {
+            "name": "newParentPath",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Move a Favorites folder into another, or to the top level with null."
+      },
+      {
+        "name": "bookmarks.move",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:move",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "ids",
+            "type": "unknown"
+          },
+          {
+            "name": "path",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Move Favorites into a folder path, or to the top level with null."
+      },
+      {
+        "name": "bookmarks.reorder",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:reorder",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "path",
+            "type": "unknown"
+          },
+          {
+            "name": "orderKeys",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Save the order chosen for one folder's children."
+      },
+      {
+        "name": "bookmarks.removeMany",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:remove-many",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "ids",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Remove several Favorites at once."
+      },
+      {
         "name": "start.data",
         "kind": "invoke",
         "channel": "pages:start:data",
@@ -442,7 +549,7 @@
           }
         ],
         "returns": "unknown",
-        "doc": "Set how strongly the theme wash covers the Start Page image (integer 0\u2013100)."
+        "doc": "Set how strongly the theme wash covers the Start Page image (integer 0–100)."
       },
       {
         "name": "start.setWallpaperStyle",
@@ -1381,7 +1488,7 @@
           }
         ],
         "returns": "unknown",
-        "doc": "Set how strongly the theme wash covers the Start Page image (integer 0\u2013100)."
+        "doc": "Set how strongly the theme wash covers the Start Page image (integer 0–100)."
       },
       {
         "name": "settings.setWallpaperStyle",
