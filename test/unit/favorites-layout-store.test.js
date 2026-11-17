@@ -133,9 +133,11 @@ test('folder operations write both stores and report errors', () => {
   assert.deepEqual(bookmarks.listBookmarks().map((b) => b.folder), ['Jobs', 'Jobs']);
 });
 
-// Until the manager can show and delete an empty folder (KEEPS_EMPTIED_FOLDERS
-// in bookmarks.js), emptying a folder leaves nothing behind, as before.
-test('toggle does not keep an emptied folder until the manager ships', () => {
+// A host whose Favorites page has no tree (setManagerLive(false)): emptying a
+// folder leaves nothing behind, as before paths.
+test('with the manager off, toggle does not keep an emptied folder', (t) => {
+  bookmarks.setManagerLive(false);
+  t.after(() => bookmarks.setManagerLive(true));
   reset();
   bookmarks.saveFavorite('https://a.example/', 'A', null, 'Solo');
   assert.equal(bookmarks.toggleBookmark('https://a.example/', 'A', null), false);
@@ -143,7 +145,9 @@ test('toggle does not keep an emptied folder until the manager ships', () => {
   assert.equal(layout.exportForSync(), null);
 });
 
-test('removing by id and moving several leave no empty folders either', () => {
+test('with the manager off, removing by id and moving several leave no empty folders either', (t) => {
+  bookmarks.setManagerLive(false);
+  t.after(() => bookmarks.setManagerLive(true));
   reset();
   bookmarks.saveFavorite('https://a.example/', 'A', null, 'One');
   bookmarks.saveFavorite('https://b.example/', 'B', null, 'Two');
@@ -166,7 +170,9 @@ test('a favorites change notifies once per operation', () => {
 
 // --- Import (the manager switch) ---
 
-test('until the manager ships, import flattens as before and writes no order', () => {
+test('with the manager off, import flattens as before and writes no order', (t) => {
+  bookmarks.setManagerLive(false);
+  t.after(() => bookmarks.setManagerLive(true));
   reset();
   const counts = bookmarks.importBookmarks([
     { url: 'https://a.example/', title: 'A', folder: 'Work › Clients › Acme', flatFolder: 'Acme' },
@@ -178,10 +184,11 @@ test('until the manager ships, import flattens as before and writes no order', (
 });
 
 test('with the manager live, import repairs the flattened favorite, keeps order, and emptied folders stay', async (t) => {
-  // Repair covers favorites unchanged since the manager first ran here.
+  // Repair covers favorites unchanged since the manager first ran here: as
+  // on a device updating from a version without it.
+  layout.resetForTests();
   await new Promise((resolve) => { setTimeout(resolve, 5); });
-  bookmarks.setManagerLiveForTests(true);
-  t.after(() => bookmarks.setManagerLiveForTests(false));
+  bookmarks.setManagerLive(true);
   let changes = 0;
   bookmarks.onChanged(() => { changes += 1; });
   const counts = bookmarks.importBookmarks([

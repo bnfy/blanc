@@ -13,6 +13,7 @@ const sync = require('./sync');
 const history = require('./history');
 const archive = require('./archive');
 const bookmarks = require('./bookmarks');
+const favoritesLayout = require('./favorites-layout');
 const startPagePins = require('./start-page-pins');
 const path = require('node:path');
 const fs = require('node:fs');
@@ -1746,7 +1747,7 @@ function install(refs) {
       if (!wc || wc.isDestroyed()) return null;
       return wc.executeJavaScript(`(() => {
         if (location.host !== 'bookmarks') return null;
-        return [...document.querySelectorAll('#list .row[data-url]')].map((row) => ({
+        return [...document.querySelectorAll('#list .row[data-url], #manager .fav-row[data-url]')].map((row) => ({
           url: row.dataset.url,
           title: row.querySelector('.title')?.textContent ?? '',
           pinned: row.classList.contains('start-pinned'),
@@ -1761,7 +1762,7 @@ function install(refs) {
       const wc = getUtilitySheetWebContents();
       if (!wc || wc.isDestroyed()) return false;
       return wc.executeJavaScript(`(() => {
-        const row = [...document.querySelectorAll('#list .row[data-url]')]
+        const row = [...document.querySelectorAll('#list .row[data-url], #manager .fav-row[data-url]')]
           .find((candidate) => candidate.querySelector('.title')?.textContent === ${JSON.stringify(String(title))});
         const button = row?.querySelector('.pin-toggle');
         if (!button || button.disabled) return false;
@@ -4279,6 +4280,8 @@ function install(refs) {
       setArchiveGraceUntil(0);
       refs.setFirstRunPendingForTest(false);
       for (const b of bookmarks.listBookmarks()) bookmarks.removeBookmark(b.id);
+      // Folders the removals emptied, and any order a scenario chose.
+      favoritesLayout.resetForTests();
       settings.setSettings({
         searchEngine: 'duckduckgo',
         searchEngineTemplate: '',

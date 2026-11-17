@@ -115,6 +115,7 @@ function resetForTests() {
     d.layout = normalizeLayout(null);
     d.clock = 0;
     d.tie = '';
+    delete d.treeSince;
   });
 }
 

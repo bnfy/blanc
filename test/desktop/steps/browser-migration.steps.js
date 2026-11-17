@@ -72,8 +72,11 @@ Then('their immediate folders are preserved', async function () {
   const records = new Map(
     (await this.call('bookmarkRecords')).map((record) => [record.url, record])
   );
+  // Desktop keeps the whole folder path (F63), which ends in the immediate
+  // folder; the step text is shared with the Chromium fork, which keeps only
+  // the immediate folder.
   assert.equal(records.get('https://migration-one.example/').folder, 'Bookmarks bar');
-  assert.equal(records.get('https://migration-two.example/').folder, 'Reading');
+  assert.equal(records.get('https://migration-two.example/').folder, 'Bookmarks bar › Reading');
   assert.equal(records.get('https://migration-three.example/').folder, 'Other bookmarks');
 });
 
@@ -287,7 +290,8 @@ Then("the account's folders are kept", async function () {
     (await this.call('bookmarkRecords')).map((record) => [record.url, record.folder])
   );
   assert.equal(folders.get('https://account-one.example/'), 'Bookmarks bar');
-  assert.equal(folders.get('https://account-two.example/'), 'Recipes');
+  // The whole folder path on desktop (F63).
+  assert.equal(folders.get('https://account-two.example/'), 'Bookmarks bar › Recipes');
   assert.equal(folders.get('https://account-mobile.example/'), 'Mobile bookmarks');
 });
 

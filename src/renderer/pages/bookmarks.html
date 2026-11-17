@@ -32,11 +32,18 @@
     <p id="browserImportGuidance" class="section-hint import-guidance" hidden></p>
     <p id="readOnlyNote" class="section-hint" data-i18n="favorites.readOnlyNote" hidden>Favorites sync from your computer. Edit them there for now.</p>
     <p id="importStatus" class="section-hint" role="status"></p>
+    <div id="favToolbar" class="fav-toolbar" hidden>
+      <input type="search" class="fav-search" placeholder="Search favorites" aria-label="Search favorites" data-i18n-placeholder="favorites.manager.search" data-i18n-aria-label="favorites.manager.search" />
+      <button type="button" class="fav-new-folder" data-i18n="favorites.manager.newFolder">New folder</button>
+    </div>
+    <div id="manager" class="fav-manager" hidden></div>
     <div id="list" class="row-list"></div>
   </div>
   <script src="sheet.js"></script>
   <script src="row-icon.js"></script>
   <script src="start-pins.js"></script>
+  <script src="favorites-manager-model.js"></script>
+  <script src="favorites-manager.js"></script>
   <script src="bookmarks.js"></script>
 </body>
 </html>

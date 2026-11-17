@@ -6660,6 +6660,110 @@
     "message": "Remove {title} from Favorites",
     "note": "Favorites page: accessible name of the remove button; {title} is the page’s title."
   },
+  "favorites.manager.all": {
+    "message": "All favorites",
+    "note": "Favorites manager: the top of the folder tree and of the breadcrumb."
+  },
+  "favorites.manager.tree": {
+    "message": "Folders",
+    "note": "Favorites manager: accessible name of the folder tree."
+  },
+  "favorites.manager.breadcrumb": {
+    "message": "Folder path",
+    "note": "Favorites manager: accessible name of the breadcrumb above the list."
+  },
+  "favorites.manager.chooseFolder": {
+    "message": "Folder",
+    "note": "Favorites manager: accessible name of the folder menu shown instead of the tree in a narrow window."
+  },
+  "favorites.manager.search": {
+    "message": "Search favorites",
+    "note": "Favorites manager: placeholder and accessible name of the search field."
+  },
+  "favorites.manager.newFolder": {
+    "message": "New folder",
+    "note": "Favorites manager: button that adds a folder in the folder that is open."
+  },
+  "favorites.manager.newFolderPlaceholder": {
+    "message": "Folder name",
+    "note": "Favorites manager: placeholder of the name field for a new folder."
+  },
+  "favorites.manager.newFolderInside": {
+    "message": "New folder inside",
+    "note": "Favorites manager: folder menu item."
+  },
+  "favorites.manager.open": {
+    "message": "Open",
+    "note": "Favorites manager: folder menu item that opens the folder."
+  },
+  "favorites.manager.rename": {
+    "message": "Rename",
+    "note": "Favorites manager: folder menu item."
+  },
+  "favorites.manager.moveTo": {
+    "message": "Move to…",
+    "note": "Favorites manager: menu item that lists folders to move into."
+  },
+  "favorites.manager.moveUp": {
+    "message": "Move up",
+    "note": "Favorites manager: menu item that moves a row one place up."
+  },
+  "favorites.manager.moveDown": {
+    "message": "Move down",
+    "note": "Favorites manager: menu item that moves a row one place down."
+  },
+  "favorites.manager.remove": {
+    "message": "Remove",
+    "note": "Favorites manager: menu item and selection button that remove favorites."
+  },
+  "favorites.manager.deleteFolder": {
+    "message": "Delete folder",
+    "note": "Favorites manager: folder menu item. Its favorites move up one level; none are deleted."
+  },
+  "favorites.manager.topLevel": {
+    "message": "Top level",
+    "note": "Favorites manager: first entry of Move to…, outside every folder."
+  },
+  "favorites.manager.more": {
+    "message": "More actions for {title}",
+    "note": "Favorites manager: accessible name of a row’s ⋮ button; {title} is the favorite or folder."
+  },
+  "favorites.manager.items": {
+    "message": "{count, plural, one {# favorite} other {# favorites}}",
+    "note": "Favorites manager: count on a folder row; # favorites are in it and its sub-folders."
+  },
+  "favorites.manager.selected": {
+    "message": "{count, plural, one {# selected} other {# selected}}",
+    "note": "Favorites manager: how many rows are selected."
+  },
+  "favorites.manager.clearSelection": {
+    "message": "Clear selection",
+    "note": "Favorites manager: button that clears the selection."
+  },
+  "favorites.manager.noResults": {
+    "message": "No favorites match.",
+    "note": "Favorites manager: search found nothing."
+  },
+  "favorites.manager.emptyFolder": {
+    "message": "This folder is empty.",
+    "note": "Favorites manager: the open folder has nothing in it."
+  },
+  "favorites.manager.error.tooLong": {
+    "message": "That folder path would be longer than Blanc can sync. Use a shorter name or fewer levels.",
+    "note": "Favorites manager: a rename or move was refused because a folder path would be over 100 characters, the most Sync carries."
+  },
+  "favorites.manager.error.cycle": {
+    "message": "A folder can’t move into itself.",
+    "note": "Favorites manager: a folder was dropped into itself or one of its folders."
+  },
+  "favorites.manager.error.invalid": {
+    "message": "That name can’t be used.",
+    "note": "Favorites manager: a folder name was blank or over 100 characters."
+  },
+  "favorites.manager.error.missing": {
+    "message": "That folder no longer exists.",
+    "note": "Favorites manager: the folder was changed elsewhere (another device, another window) before the edit arrived."
+  },
   "favorites.picker.label": {
     "message": "Move {title} to a folder",
     "note": "Favorites page → folder picker: accessible name; {title} is the page’s title."

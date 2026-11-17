@@ -145,6 +145,14 @@
       "state": "guarded",
       "allow": []
     },
+    "src/renderer/pages/favorites-manager.js": {
+      "state": "guarded",
+      "allow": []
+    },
+    "src/renderer/pages/favorites-manager-model.js": {
+      "state": "guarded",
+      "allow": []
+    },
     "src/renderer/pages/history.html": {
       "state": "guarded",
       "allow": []

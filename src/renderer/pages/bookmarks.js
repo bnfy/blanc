@@ -53,6 +53,12 @@
   // The same test the Start Page uses: any http(s) URL, in any letter case.
   const isWebPage = (url) => startPins.siteKey(url) !== null;
 
+  // The Favorites manager (F63, favorites-manager.js) when the host can draw
+  // the folder tree; otherwise this page keeps its flat list (the Chromium
+  // fork and Android serve this page through bridges without the tree).
+  let manager = null;
+  const refresh = () => (manager ? manager.refresh() : refreshFlat());
+
   // This stays inside the existing utility sheet. Main's will-navigate guard
   // permits only allowlisted blanc:// utility pages and updates the sheet's
   // owned URL before this document is replaced.
@@ -204,7 +210,7 @@
     return { folders, ungrouped, names: folders.map((f) => f.name) };
   }
 
-  async function refresh() {
+  async function refreshFlat() {
     const [items] = await Promise.all([window.bowserPages.bookmarks.list(), loadPins()]);
     closeMenu();
     list.replaceChildren();
@@ -514,5 +520,33 @@
     nameInput.focus({ preventScroll: true });
   }
 
+  if (capabilities.tree === true && window.FavoritesManager) {
+    list.hidden = true;
+    const isPinned = (url) => pinnedUrls.includes(startPins.canonicalUrl(url));
+    manager = window.FavoritesManager.mount({
+      root: document.getElementById('manager'),
+      toolbar: document.getElementById('favToolbar'),
+      status: importStatus,
+      t,
+      editable,
+      canPin,
+      isWebPage,
+      pins: {
+        state: (url) => ({ pinned: isPinned(url), full: pinsMax > 0 && pinnedUrls.length >= pinsMax, max: pinsMax }),
+        async toggle(item) {
+          ownPinChange = true;
+          try {
+            if (isPinned(item.url)) await window.bowserPages.pins.unpin(item.url);
+            else await window.bowserPages.pins.pin(item.url, item.title);
+          } finally {
+            ownPinChange = false;
+          }
+        },
+        reload: loadPins,
+      },
+      rowIcon: (url, favicon) => window.blancRowIcon.rowIcon(document, url, favicon),
+      showError: showEditError,
+    });
+  }
   refresh();
 })();

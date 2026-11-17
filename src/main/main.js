@@ -234,6 +234,7 @@ function bangsState() {
 }
 const patron = require('./patron');
 const bookmarks = require('./bookmarks');
+const favoritesLayout = require('./favorites-layout');
 const { groupFavoritesForMenu, mayWriteFavoriteFavicon } = require('./bookmark-data');
 const history = require('./history');
 const archive = require('./archive');
@@ -16996,6 +16997,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // pill's favorite state; open internal pages still pull on their next load,
     // as with any cross-surface bookmark change.
     bookmarks.onMerged(refreshBookmarkFlags);
+    // A pulled folder order changes the Favorites menu too.
+    favoritesLayout.onMerged(refreshBookmarkFlags);
   };
 
   // Website sign-in belongs to the website. Never turn an HTTP basic/digest
