@@ -3,10 +3,10 @@
 // changed. All folder identity/canonicalization rules live here.
 const { validFavicon, validFolder, folderKey } = require('./bookmark-validate');
 const {
-  MAX_PATH, cleanSegment, splitPath, joinPath, validPath, pathKey, parentPath, leafName, isWithin, shownPath,
+  MAX_PATH, cleanSegment, splitPath, joinPath, validPath, pathKey, parentPath, leafName, isWithin, shownPath, storedPath,
 } = require('./favorites-tree');
 const {
-  EMPTY_LAYOUT, setFolderOrder, ensureFolder, removeFolderEntry, movePrefix, layoutsEqual,
+  EMPTY_LAYOUT, layoutEntry, setFolderOrder, ensureFolder, removeFolderEntry, movePrefix, layoutsEqual,
 } = require('./favorites-layout-model');
 
 /** Map folderKey -> canonical spelling, chosen from the item with the oldest
@@ -76,11 +76,14 @@ const unchanged = (state, extra = {}) => ({
   items: state.items, tombstones: state.tombstones ?? [], layout: layoutOf(state), changed: false, ...extra,
 });
 
+// A favorite's folder read as a path (favorites-tree.storedPath).
+const folderOf = (it) => storedPath(it.folder);
+
 /** A folder exists while a favorite sits in or under it, or the layout
  * record lists it (an empty folder). */
 function folderExists(items, layout, path) {
   if (pathKey(path) === '') return true;
-  return items.some((it) => it.folder != null && isWithin(it.folder, path))
+  return items.some((it) => folderOf(it) !== null && isWithin(folderOf(it), path))
     || Object.values(layout.folders).some((entry) => !entry.gone && entry.path !== null && isWithin(entry.path, path));
 }
 
@@ -91,7 +94,7 @@ function keepEmptiedFolders(beforeItems, afterItems, layout, ctx) {
   const used = (items) => {
     const paths = new Map(); // folder key -> path
     for (const it of items) {
-      const segments = splitPath(validPath(it.folder));
+      const segments = splitPath(folderOf(it));
       for (let depth = 1; depth <= segments.length; depth += 1) {
         const path = joinPath(segments.slice(0, depth));
         if (!paths.has(pathKey(path))) paths.set(pathKey(path), path);
@@ -113,8 +116,9 @@ function rewritePrefix(items, from, toSegments, dropDepth, now) {
   let changed = false;
   let tooLong = false;
   const next = items.map((it) => {
-    if (it.folder == null || !isWithin(it.folder, from)) return it;
-    const target = joinPath([...toSegments, ...splitPath(it.folder).slice(dropDepth)]);
+    const stored = folderOf(it);
+    if (stored === null || !isWithin(stored, from)) return it;
+    const target = joinPath([...toSegments, ...splitPath(stored).slice(dropDepth)]);
     if (target !== null && target.length > MAX_PATH) tooLong = true;
     if ((it.folder ?? null) === target) return it;
     changed = true;
@@ -127,7 +131,12 @@ function rewritePrefix(items, from, toSegments, dropDepth, now) {
 function relocateFolder(state, from, to, ctx) {
   const layout = layoutOf(state);
   const moved = rewritePrefix(state.items, from, splitPath(to), splitPath(from).length, ctx.now);
-  if (moved.tooLong) return unchanged(state, { error: 'too-long' });
+  // An empty folder underneath must be able to follow, or nothing moves.
+  const depth = splitPath(from).length;
+  const stranded = Object.values(layout.folders).some((entry) => !entry.gone && entry.path !== null
+    && isWithin(entry.path, from)
+    && joinPath([...splitPath(to), ...splitPath(entry.path).slice(depth)]).length > MAX_PATH);
+  if (moved.tooLong || stranded) return unchanged(state, { error: 'too-long' });
   const nextLayout = movePrefix(layout, from, to, clockOf(ctx));
   const changed = moved.changed || !layoutsEqual(nextLayout, layout);
   if (!changed) return unchanged(state);
@@ -143,7 +152,7 @@ function applyCreateFolder(state, parentPath, name, ctx) {
   if (path === null) return unchanged(state, { error: 'too-long' });
   const shown = shownPath(state.items, path);
   if (folderExists(state.items, layout, shown)) {
-    const entry = layout.folders[pathKey(shown)];
+    const entry = layoutEntry(layout, shown);
     return unchanged(state, { path: entry && !entry.gone ? entry.path : shown });
   }
   return { items: state.items, tombstones: state.tombstones ?? [], layout: ensureFolder(layout, shown, clockOf(ctx)), changed: true, path: shown };
@@ -153,7 +162,7 @@ function applyCreateFolder(state, parentPath, name, ctx) {
  * case-only rename takes the new spelling as typed; a name a sibling already
  * has merges the two folders under the sibling's spelling. */
 function applyRenameFolder(state, path, newName, ctx) {
-  const from = validPath(path);
+  const from = storedPath(path);
   const segment = cleanSegment(newName);
   if (from === null || segment === null) return unchanged(state, { error: 'invalid' });
   if (!folderExists(state.items, layoutOf(state), from)) return unchanged(state, { error: 'missing' });
@@ -165,7 +174,7 @@ function applyRenameFolder(state, path, newName, ctx) {
 }
 
 function applyMoveFolder(state, path, newParentPath, ctx) {
-  const from = validPath(path);
+  const from = storedPath(path);
   const parent = newParentPath == null ? null : validPath(newParentPath);
   if (from === null || (newParentPath != null && parent === null)) return unchanged(state, { error: 'invalid' });
   if (!folderExists(state.items, layoutOf(state), from)) return unchanged(state, { error: 'missing' });
@@ -181,7 +190,7 @@ function applyMoveFolder(state, path, newParentPath, ctx) {
  * top level from a top-level folder, as before paths). Nothing is deleted
  * with it. */
 function applyRemoveFolder(state, path, ctx) {
-  const from = validPath(path);
+  const from = storedPath(path);
   if (from === null) return unchanged(state, { error: 'invalid' });
   const layout = layoutOf(state);
   if (!folderExists(state.items, layout, from)) return unchanged(state, { error: 'missing' });
@@ -197,12 +206,17 @@ function applyRemoveFolder(state, path, ctx) {
       subfolders.set(pathKey(sub), sub);
     }
   };
-  for (const it of state.items) if (it.folder != null) note(it.folder);
+  for (const it of state.items) if (folderOf(it) !== null) note(folderOf(it));
   for (const entry of Object.values(layout.folders)) if (!entry.gone && entry.path !== null) note(entry.path);
+  // A sub-folder with the deleted folder's own name moves onto its path and
+  // must not then be marked removed.
+  let replaced = false;
   for (const sub of subfolders.values()) {
-    nextLayout = movePrefix(nextLayout, sub, joinPath([...parent, leafName(sub)]), clockOf(ctx));
+    const target = joinPath([...parent, leafName(sub)]);
+    if (pathKey(target) === pathKey(from)) replaced = true;
+    nextLayout = movePrefix(nextLayout, sub, target, clockOf(ctx));
   }
-  nextLayout = removeFolderEntry(nextLayout, from, clockOf(ctx));
+  if (!replaced) nextLayout = removeFolderEntry(nextLayout, from, clockOf(ctx));
   return { items: moved.changed ? moved.items : state.items, tombstones: state.tombstones ?? [], layout: nextLayout, changed: true };
 }
 
@@ -231,6 +245,7 @@ function applyMoveFavorites(state, ids, path, ctx) {
 }
 
 function applySetFolder(state, id, folder, ctx) {
+  if (folder === undefined) return unchanged(state); // only an explicit null is the top level
   return applyMoveFavorites(state, [id], folder, ctx);
 }
 
@@ -254,9 +269,9 @@ function applyReorder(state, path, orderKeys, ctx) {
   if (path != null && folder === null) return unchanged(state, { error: 'invalid' });
   if (!folderExists(state.items, layout, folder)) return unchanged(state, { error: 'missing' });
   const shown = shownPath(state.items, folder);
-  const current = layout.folders[pathKey(shown)];
+  const current = layoutEntry(layout, shown);
   const proposed = setFolderOrder(layout, shown, orderKeys, clockOf(ctx));
-  const order = proposed.folders[pathKey(shown)]?.order;
+  const order = layoutEntry(proposed, shown)?.order;
   if (!order || (current && !current.gone && JSON.stringify(current.order) === JSON.stringify(order))) return unchanged(state);
   return { items: state.items, tombstones: state.tombstones ?? [], layout: proposed, changed: true };
 }

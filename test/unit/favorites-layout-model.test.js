@@ -124,3 +124,26 @@ test('layoutsEqual ignores key order', () => {
   assert.ok(layoutsEqual(a, b));
   assert.ok(!layoutsEqual(a, EMPTY_LAYOUT));
 });
+
+// --- Review findings ---
+
+test('merge treats odd keys like any other, from either side', () => {
+  const odd = JSON.parse('{"version":1,"folders":{"__proto__":{"path":"__proto__","order":["u:1"],"at":3,"tie":""},"constructor":{"path":"constructor","order":[],"at":3,"tie":""}}}');
+  const ab = mergeLayouts(EMPTY_LAYOUT, odd, { now: 9 });
+  const ba = mergeLayouts(odd, EMPTY_LAYOUT, { now: 9 });
+  assert.deepEqual(Object.keys(ab.folders), ['__proto__', 'constructor']);
+  assert.ok(layoutsEqual(ab, ba));
+  assert.equal(ensureFolder(EMPTY_LAYOUT, 'constructor', { at: 1, tie: '' }).folders.constructor.path, 'constructor');
+  assert.equal({}.polluted, undefined);
+});
+
+test('boundLayout drops markers, then the oldest empty folders, when lists are not enough', () => {
+  let l = EMPTY_LAYOUT;
+  for (let i = 0; i < 3000; i += 1) l = ensureFolder(l, `${String(i).padStart(4, '0')}${'n'.repeat(87)}`, { at: i + 1, tie: '' });
+  l = removeFolderEntry(l, `0000${'n'.repeat(87)}`, { at: 5000, tie: '' });
+  const { layout } = boundLayout(l);
+  assert.ok(Buffer.byteLength(JSON.stringify(layout)) <= LAYOUT_MAX_BYTES);
+  const keys = Object.keys(layout.folders);
+  assert.equal(keys.includes(`0000${'n'.repeat(87)}`), false);
+  assert.equal(keys.includes(`2999${'n'.repeat(87)}`), true);
+});

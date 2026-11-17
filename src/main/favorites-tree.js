@@ -82,11 +82,14 @@ function favoriteChildKey(url) {
   return `u:${crypto.createHash('sha256').update(String(url)).digest().subarray(0, 6).toString('base64url')}`;
 }
 
-/** The stored path of a favorite as segments; anything unusable is the top level. */
-function itemSegments(item) {
-  const segments = splitPath(item?.folder).map(cleanSegment);
-  return segments.includes(null) ? [] : segments;
+/** A stored folder string read as a path: each name cleaned, unusable names
+ * skipped. Names saved before paths existed may hold a bare › or an empty
+ * segment; reading every stored string this one way keeps them editable. */
+function storedPath(folder) {
+  return joinPath(splitPath(folder).map(cleanSegment).filter(Boolean));
 }
+
+const itemSegments = (item) => splitPath(storedPath(item?.folder));
 
 /** For every folder key in use, its name as spelled by the oldest favorite
  * at or under it (ties: the smaller id), the rule buildCanonMap has. Stored
@@ -204,5 +207,5 @@ module.exports = {
   SEP, MAX_PATH,
   cleanSegment, splitPath, joinPath, validPath, pathKey, parentPath, leafName, isWithin,
   fitSegments, parseTypedPath, folderChildKey, favoriteChildKey,
-  buildTree, shownPath, listFolderPaths,
+  storedPath, buildTree, shownPath, listFolderPaths,
 };

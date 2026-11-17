@@ -341,3 +341,48 @@ test('flat callers without a layout still work', () => {
   assert.equal(r.items[0].folder, 'Work');
   assert.deepEqual(r.layout, EMPTY_LAYOUT);
 });
+
+// --- Review findings ---
+
+test('folders named like object internals work', () => {
+  for (const name of ['constructor', '__proto__', 'toString']) {
+    const made = applyCreateFolder(state([]), null, name, CTX);
+    assert.equal(made.changed, true);
+    assert.equal(Object.hasOwn(made.layout.folders, name.toLowerCase()), true, name);
+    assert.equal(applyCreateFolder(made, null, name, CTX).changed, false);
+    const s = state([fav('a', `${name} › x`, 1)]);
+    assert.equal(applyRenameFolder(s, `${name} › x`, 'y', CTX).items[0].folder, `${name} › y`);
+    assert.equal(applyReorder(s, name, ['u:1'], CTX).changed, true);
+  }
+});
+
+test('a rename that an empty descendant cannot follow is refused whole', () => {
+  const made = applyCreateFolder(state([fav('a', 'A', 1)]), 'A', 'L'.repeat(90), CTX);
+  const r = applyRenameFolder(made, 'A', 'B'.repeat(20), CTX);
+  assert.equal(r.error, 'too-long');
+  assert.equal(r.items, made.items);
+  assert.equal(r.layout, made.layout);
+  const other = applyCreateFolder(made, null, 'C'.repeat(20), CTX);
+  assert.equal(applyMoveFolder(other, 'A', 'C'.repeat(20), CTX).error, 'too-long');
+});
+
+test('deleting a folder keeps a same-named sub-folder that takes its place', () => {
+  let s = applyCreateFolder(state([fav('a', 'A', 1)]), 'A', 'A', CTX);
+  s = applyReorder(s, 'A › A', ['u:q'], CTX);
+  const r = applyRemoveFolder(s, 'A', CTX);
+  assert.equal(r.layout.folders.a.gone, undefined);
+  assert.deepEqual(r.layout.folders.a.order, ['u:q']);
+  assert.equal(r.layout.folders['a › a'].gone, true);
+});
+
+test('a flat name saved with a bare › can still be renamed and removed', () => {
+  const s = state([fav('a', 'a›b', 1), fav('b', 'x ›  › y', 1)]);
+  assert.equal(applyRenameFolder(s, 'a›b', 'c', CTX).items[0].folder, 'c');
+  assert.equal(applyRemoveFolder(s, 'a›b', CTX).items[0].folder, null);
+  assert.equal(applyRenameFolder(s, 'x ›  › y', 'z', CTX).items[1].folder, 'x › z');
+});
+
+test('an undefined folder is not a move to the top level', () => {
+  const s = state([fav('a', 'Work', 1, 'id-a')]);
+  assert.equal(applySetFolder(s, 'id-a', undefined, CTX).changed, false);
+});

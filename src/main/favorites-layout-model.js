@@ -22,6 +22,14 @@ const CHILD_KEY = /^[fu]:.{1,110}$/s;
 
 const EMPTY_LAYOUT = Object.freeze({ version: 1, folders: Object.freeze({}) });
 
+// Folder names are keys here, and a folder may be called "constructor" or
+// "__proto__": read entries only as own properties, and build with
+// Object.fromEntries or a Map, never by assignment.
+const entryAt = (layout, key) => (layout?.folders && Object.hasOwn(layout.folders, key) ? layout.folders[key] : undefined);
+
+/** A folder's entry, or undefined. */
+const layoutEntry = (layout, path) => entryAt(layout, pathKey(path));
+
 function normalizeOrder(order) {
   if (!Array.isArray(order)) return null;
   const seen = new Set();
@@ -69,7 +77,7 @@ function writeEntry(layout, path, fields, { at, tie = '' }) {
   const stored = path === null || path === undefined ? null : validPath(path);
   if (path !== null && path !== undefined && stored === null) return current;
   const key = pathKey(stored);
-  const previous = current.folders[key];
+  const previous = entryAt(current, key);
   const candidate = normalizeEntry(key, {
     path: stored,
     order: [],
@@ -78,7 +86,7 @@ function writeEntry(layout, path, fields, { at, tie = '' }) {
     tie,
   });
   if (!candidate) return current;
-  return fromEntries(Object.entries({ ...current.folders, [key]: candidate }));
+  return fromEntries([...Object.entries(current.folders).filter(([k]) => k !== key), [key, candidate]]);
 }
 
 function setFolderOrder(layout, path, order, clock) {
@@ -87,7 +95,7 @@ function setFolderOrder(layout, path, order, clock) {
 
 /** Make sure a folder exists on its own, so it stays when it holds nothing. */
 function ensureFolder(layout, path, clock) {
-  const entry = layout?.folders?.[pathKey(path)];
+  const entry = layoutEntry(layout, path);
   if (entry && !entry.gone) return layout;
   return writeEntry(layout, path, { order: [] }, clock);
 }
@@ -113,12 +121,12 @@ function movePrefix(layout, fromPath, toPath, clock) {
     next = removeFolderEntry(next, entry.path, clock);
     if (entry.gone) continue;
     const moved = joinPath([...splitPath(to), ...splitPath(entry.path).slice(depth)]);
-    const target = next.folders[pathKey(moved)];
+    const target = layoutEntry(next, moved);
     if (target && !target.gone && target.at > entry.at) continue;
     next = writeEntry(next, moved, { order: entry.order }, clock);
   }
 
-  const oldParent = next.folders[pathKey(parentPath(from))];
+  const oldParent = layoutEntry(next, parentPath(from));
   const oldKey = folderChildKey(leafName(from));
   if (oldParent && !oldParent.gone && oldParent.order.includes(oldKey)) {
     const sameParent = pathKey(parentPath(from)) === pathKey(parentPath(to));
@@ -139,31 +147,41 @@ function newer(a, b) {
 }
 
 function mergeLayouts(local, remote, { now }) {
-  const merged = { ...normalizeLayout(local).folders };
+  const merged = new Map(Object.entries(normalizeLayout(local).folders));
   for (const [key, entry] of Object.entries(normalizeLayout(remote).folders)) {
-    merged[key] = Object.hasOwn(merged, key) ? newer(merged[key], entry) : entry;
+    merged.set(key, merged.has(key) ? newer(merged.get(key), entry) : entry);
   }
-  return fromEntries(Object.entries(merged)
+  return fromEntries([...merged]
     .filter(([, entry]) => !(entry.gone && now - entry.at > GONE_TTL_MS)));
 }
 
-/** Keep the record inside its size limit by emptying order lists: the ones
- * changed longest ago first, and the longest first among equally old ones
- * (one import). Entries stay, so no folder disappears. */
+/** Keep the record inside its size limit. Order lists are emptied first: the
+ * ones changed longest ago, and the longest among equally old ones (one
+ * import); those folders show in the default order. A record still too large
+ * (thousands of empty folders, or one received from sync) then loses removal
+ * markers, and last the oldest empty folders. `dropped` counts emptied lists. */
 function boundLayout(layout, maxBytes = LAYOUT_MAX_BYTES) {
   const size = (value) => Buffer.byteLength(JSON.stringify(value), 'utf8');
   if (size(layout) <= maxBytes) return { layout, dropped: 0 };
-  const folders = { ...normalizeLayout(layout).folders };
-  const candidates = Object.entries(folders)
-    .filter(([, entry]) => entry.order.length)
-    .sort((a, b) => a[1].at - b[1].at || b[1].order.length - a[1].order.length || (a[0] < b[0] ? -1 : 1));
+  const folders = new Map(Object.entries(normalizeLayout(layout).folders));
+  const current = () => fromEntries([...folders]);
+  const oldestFirst = (a, b) => a[1].at - b[1].at || b[1].order.length - a[1].order.length || (a[0] < b[0] ? -1 : 1);
   let dropped = 0;
-  for (const [key, entry] of candidates) {
-    if (size({ version: 1, folders }) <= maxBytes) break;
-    folders[key] = { ...entry, order: [] };
+  for (const [key, entry] of [...folders].filter(([, e]) => e.order.length).sort(oldestFirst)) {
+    if (size(current()) <= maxBytes) break;
+    folders.set(key, { ...entry, order: [] });
     dropped += 1;
   }
-  return { layout: fromEntries(Object.entries(folders)), dropped };
+  // Entries are all nearly the same size here, so remove in batches rather
+  // than re-measuring after each one.
+  const removable = [
+    ...[...folders].filter(([, e]) => e.gone).sort(oldestFirst),
+    ...[...folders].filter(([key, e]) => !e.gone && key !== '').sort(oldestFirst),
+  ];
+  while (removable.length && size(current()) > maxBytes) {
+    for (const [key] of removable.splice(0, 64)) folders.delete(key);
+  }
+  return { layout: current(), dropped };
 }
 
 function layoutsEqual(a, b) {
@@ -172,6 +190,6 @@ function layoutsEqual(a, b) {
 
 module.exports = {
   LAYOUT_MAX_BYTES, GONE_TTL_MS, EMPTY_LAYOUT,
-  normalizeLayout, setFolderOrder, ensureFolder, removeFolderEntry, movePrefix,
+  normalizeLayout, layoutEntry, setFolderOrder, ensureFolder, removeFolderEntry, movePrefix,
   mergeLayouts, boundLayout, layoutsEqual,
 };
