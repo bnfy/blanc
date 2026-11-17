@@ -35,7 +35,7 @@ function hasManager(ref) {
   try { execFileSync('git', ['-C', root, 'merge-base', '--is-ancestor', MANAGER, ref], {stdio: 'ignore'}); return true; }
   catch (error) { if (error.status === 1) return false; throw error; }
 }
-const loads = (html, file) => new RegExp(`<script src="${file.replace(/\./g, '\\.')}"`).test(html);
+const loads = (html, file) => html.includes(`<script src="${file}"`);
 
 test('a Sync bundle with the Favorites manager turns it off before Sync starts', () => {
   const text = bundle(MANAGER);
