@@ -14,6 +14,33 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Rechecks for N17, F51 and N13, and the Spaces fade flake (candidate macos-f581c659f1207624):**
+  three new tests, all passing on the Mac Studio. **N17 Invite**
+  (`native-recheck-n17.mjs`, 2 checks): `/invite` hands the mail app
+  shipping's email (no recipient, its subject, greeting, pitch and the
+  blanc.day invite link), and with no mail app puts the text on the
+  clipboard and says so. A test launch opens no mail app; a stand-in says
+  whether one would answer (`setInviteMailApp`, `inviteHandoffs`). **F51
+  What's New** (`native-recheck-f51.mjs`, 4 checks, `--blanc-test-version`):
+  nothing without a release version; after an update the pill shows with
+  the version and its changelog link; opening the link or closing the pill
+  ends it across a reload and a relaunch; the next update shows it again.
+  Not exercised: the page-found path and its one-time tab (offline).
+  **N13** (`native-recheck-n13.mjs`, 4 checks): Mute Site silences the
+  playing tab and every tab on the site, old and new, and Unmute Site
+  restores them; the Island takes the page's color, and Match site colors
+  off clears it. **Finding:** after a relaunch the site is no longer muted.
+  The code keeps muted sites in memory, as shipping does, so divergence V21
+  (approved 2026-11-05: Chromium's own sound setting, kept across a
+  relaunch) is not what is built, and shipping's scenario "Mute Site lasts
+  until Blanc quits" passes. Owner to decide which stands. **K10:** the
+  Spaces menu fade case (`F41-named-workspaces.feature:211`) failed 4 of 5
+  when run alone. A probe showed the test pressed Escape before the fork's
+  overlay had drawn the menu, so there was nothing to fade; shipping's hook
+  delivers the show before the key. `pressOverlayKey` now waits for the
+  overlay to draw the host's mode: 6 of 6, and the whole F41 file passes
+  (84 cases). The menu itself was not changed. The tracker rows move at the
+  next nightly refresh.
 - **2026-11-16 — Electron profile importer: the Start Page's settings (candidate macos-14061c5b07c620fd):**
   the import now carries the Start Page's layout, the clock's six values,
   the wallpaper choices (time of day, color, preset, fill, wash, style) and
