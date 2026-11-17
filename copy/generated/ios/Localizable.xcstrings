@@ -7411,6 +7411,132 @@
         }
       }
     },
+    "permission.prompt.loopbackNetwork": {
+      "comment": "Permission prompt for Local Network Access to this computer; <0>{host}</0> is the requesting site's host.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>%1$@</0> wants to connect to apps on this device"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>%1$@</0> möchte sich mit Apps auf diesem Gerät verbinden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>%1$@</0> quiere conectarse a apps de este dispositivo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>%1$@</0> veut se connecter à des apps sur cet appareil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>%1$@</0> vuole connettersi alle app su questo dispositivo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>%1$@</0> quer se conectar a apps neste dispositivo"
+          }
+        }
+      }
+    },
+    "permission.prompt.localNetwork": {
+      "comment": "Permission prompt for Local Network Access to other devices on the network; <0>{host}</0> is the requesting site's host.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>%1$@</0> wants to connect to devices on your local network"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>%1$@</0> möchte sich mit Geräten in deinem lokalen Netzwerk verbinden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>%1$@</0> quiere conectarse a dispositivos de tu red local"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>%1$@</0> veut se connecter à des appareils de votre réseau local"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>%1$@</0> vuole connettersi ai dispositivi della tua rete locale"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>%1$@</0> quer se conectar a dispositivos da sua rede local"
+          }
+        }
+      }
+    },
+    "permission.prompt.localNetworkAccess": {
+      "comment": "Permission prompt asking for both kinds of Local Network Access at once; <0>{host}</0> is the requesting site's host.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>%1$@</0> wants to connect to apps and devices on your local network"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>%1$@</0> möchte sich mit Apps und Geräten in deinem lokalen Netzwerk verbinden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>%1$@</0> quiere conectarse a apps y dispositivos de tu red local"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>%1$@</0> veut se connecter à des apps et des appareils de votre réseau local"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>%1$@</0> vuole connettersi alle app e ai dispositivi della tua rete locale"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<0>%1$@</0> quer se conectar a apps e dispositivos da sua rede local"
+          }
+        }
+      }
+    },
     "permission.prompt.other": {
       "comment": "Permission prompt for another permission; {permission} is Chromium's permission name.",
       "extractionState": "manual",
@@ -51639,6 +51765,90 @@
           "stringUnit": {
             "state": "translated",
             "value": "Notificações"
+          }
+        }
+      }
+    },
+    "settings.permissions.loopbackNetwork": {
+      "comment": "Settings → Privacy → Site permissions: permission name (connections to apps on this computer).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps on this device"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps auf diesem Gerät"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps de este dispositivo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps sur cet appareil"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App su questo dispositivo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps neste dispositivo"
+          }
+        }
+      }
+    },
+    "settings.permissions.localNetwork": {
+      "comment": "Settings → Privacy → Site permissions: permission name (connections to other devices on the network).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Devices on your local network"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geräte im lokalen Netzwerk"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispositivos de la red local"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appareils du réseau local"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispositivi della rete locale"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispositivos da rede local"
           }
         }
       }

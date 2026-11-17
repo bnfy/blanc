@@ -682,6 +682,18 @@
     "message": "<0>{host}</0> wants to show notifications",
     "note": "Permission prompt; <0>{host}</0> is the requesting site's host."
   },
+  "permission.prompt.loopbackNetwork": {
+    "message": "<0>{host}</0> wants to connect to apps on this device",
+    "note": "Permission prompt for Local Network Access to this computer; <0>{host}</0> is the requesting site's host."
+  },
+  "permission.prompt.localNetwork": {
+    "message": "<0>{host}</0> wants to connect to devices on your local network",
+    "note": "Permission prompt for Local Network Access to other devices on the network; <0>{host}</0> is the requesting site's host."
+  },
+  "permission.prompt.localNetworkAccess": {
+    "message": "<0>{host}</0> wants to connect to apps and devices on your local network",
+    "note": "Permission prompt asking for both kinds of Local Network Access at once; <0>{host}</0> is the requesting site's host."
+  },
   "permission.prompt.other": {
     "message": "<0>{host}</0> wants to use “{permission}”",
     "note": "Permission prompt for another permission; {permission} is Chromium's permission name."
@@ -4805,6 +4817,14 @@
   "settings.permissions.notifications": {
     "message": "Notifications",
     "note": "Settings → Privacy → Site permissions: permission name."
+  },
+  "settings.permissions.loopbackNetwork": {
+    "message": "Apps on this device",
+    "note": "Settings → Privacy → Site permissions: permission name (connections to apps on this computer)."
+  },
+  "settings.permissions.localNetwork": {
+    "message": "Devices on your local network",
+    "note": "Settings → Privacy → Site permissions: permission name (connections to other devices on the network)."
   },
   "settings.permissions.audio": {
     "message": "Microphone",

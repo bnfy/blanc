@@ -145,7 +145,17 @@ const {
   installDisplayCaptureBroker,
 } = require('./' + CAPTURE_RUNTIME.broker);
 const { createLazyDisplayCaptureBroker } = require('./display-capture-lazy');
-const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver, mediaQueryState, setHeldRequesterCheck } = require('./permissions');
+const {
+  setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver,
+  mediaQueryState, setHeldRequesterCheck, localNetworkPolicyFor, localNetworkQueryState,
+  setLocalNetworkDecisionObserver,
+} = require('./permissions');
+// Every browsing session's permission policy, plus its Local Network Access
+// gate in the request coordinator (spec 2026-11-17-local-network-access).
+function installPermissionPolicy(targetSession, options) {
+  setupPermissionPolicy(targetSession, options);
+  blockingCoordinator.setLocalNetworkPolicy(targetSession, localNetworkPolicyFor(targetSession));
+}
 const nativeMediaAccess = createNativeMediaAccessGate({
   platform: process.platform,
   systemPreferences,
@@ -15223,6 +15233,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         type: 'frame',
         filePath: path.join(__dirname, 'link-route-preload.js'),
       });
+      // Truthful permissions.query for Local Network Access (top-level web
+      // pages only); the request gate is what decides.
+      browsingSession.registerPreloadScript({
+        type: 'frame',
+        filePath: path.join(__dirname, 'local-network-preload.js'),
+      });
       // Capture instrumentation relay (spec §4). Per the §4.1 spike, session
       // preloads only reach MAIN frames on our configuration — subframe grants
       // stay unconfirmable and fail toward stuck-on, never silently-off.
@@ -15316,11 +15332,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // Also follow a live OS appearance change while the preference is "system".
   nativeTheme.on('updated', bindWindowRuntime(primaryRuntime, handleNativeThemeUpdated));
 
-  setupPermissionPolicy(ses, {
+  installPermissionPolicy(ses, {
     profileId: DEFAULT_PROFILE_ID,
     ...nativeMediaPermissionOptions,
   });
-  setupPermissionPolicy(privateSes, {
+  installPermissionPolicy(privateSes, {
     persistDecisions: false,
     profileId: DEFAULT_PROFILE_ID,
     ...nativeMediaPermissionOptions,
@@ -15579,6 +15595,31 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       });
     } else return;
     refreshCaptureProjection(surface);
+  });
+
+  // Truthful Local Network Access state for local-network-preload.js, from
+  // the stored decisions the request gate uses: the sender's own main-frame
+  // origin only, and null (fall back to the real query) otherwise.
+  ipcMain.handle('local-network:permission-query', (event, name) => {
+    const frame = event.senderFrame;
+    if (!frame || frame !== event.sender.mainFrame) return null;
+    return localNetworkQueryState(event.sender.session, frame.url, name);
+  });
+  // Live statuses: push each tab showing that origin its current states.
+  setLocalNetworkDecisionObserver(({ origin }) => {
+    const push = (wc) => {
+      if (!wc || wc.isDestroyed()) return;
+      const url = wc.getURL();
+      try { if (new URL(url).origin !== origin) return; } catch { return; }
+      const states = {};
+      for (const name of ['loopback-network', 'local-network', 'local-network-access']) {
+        const state = localNetworkQueryState(wc.session, url, name);
+        if (state) states[name] = state;
+      }
+      wc.send('local-network:permission-changed', states);
+    };
+    for (const tab of tabs.values()) push(liveContents(tab));
+    for (const { wc } of popupCaptures.values()) push(wc);
   });
 
   // Truthful mic/camera state for the main-world permissions.query shim in
@@ -16085,11 +16126,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     pagesRegistration.addSessions(targetSessions);
     installSessionPreloads(targetSessions);
     installClientHintFallback(targetSessions);
-    setupPermissionPolicy(owned.normal, {
+    installPermissionPolicy(owned.normal, {
       profileId: owned.profileId,
       ...nativeMediaPermissionOptions,
     });
-    setupPermissionPolicy(owned.private, {
+    installPermissionPolicy(owned.private, {
       persistDecisions: false,
       profileId: owned.profileId,
       ...nativeMediaPermissionOptions,

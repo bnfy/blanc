@@ -14,6 +14,7 @@
     "src/main/display-capture-helper-preload.js",
     "src/main/fill-status-preload.js",
     "src/main/link-route-preload.js",
+    "src/main/local-network-preload.js",
     "src/main/preload.js",
     "src/main/reader-preload.js",
     "src/main/scoped-capture-preload-linux.js",
@@ -253,6 +254,15 @@
       "role": "privileged implementation or service"
     },
     {
+      "file": "src/main/local-network-preload.js",
+      "sha256": "22ff277373f75f8ac3696ac70fd7d96a69e0ea5212dc08722421d34b0fda61ce",
+      "literalChannels": [
+        "local-network:permission-changed",
+        "local-network:permission-query"
+      ],
+      "role": "preload"
+    },
+    {
       "file": "src/main/local-profiles.js",
       "sha256": "d8baba8cbfb484cbc5a696c430af5ad512d37200eb2b9a8823fef0f164cbc41b",
       "literalChannels": [],
@@ -260,7 +270,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "d3540b9fd2c12ffc9c15dc8dc2147d8546bf81f45c7947967d5e48727357e853",
+      "sha256": "d2b9cf8a46b801981fa8ad14e430a3f3ab922fcb2d53a1cb62a6361b7de87fea",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -390,6 +400,8 @@
         "groups:ungroup",
         "input-event",
         "link-route:activated",
+        "local-network:permission-changed",
+        "local-network:permission-query",
         "login",
         "open-file",
         "open-url",
@@ -669,7 +681,7 @@
     },
     {
       "file": "src/main/permissions.js",
-      "sha256": "9a7ab75ac32998ab9b95d416225d202750bc722e1d42c1f0e6026fc864b74032",
+      "sha256": "79cf62dc00fc63adda9fbce046adb02a1731ed5f19906cb6501a864bf2272258",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
