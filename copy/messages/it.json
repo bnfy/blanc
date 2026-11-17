@@ -666,6 +666,18 @@
     "message": "<0>{host}</0> vuole mostrare notifiche",
     "source": "sha256:719bfda7b224a17a04561ea30b797f4a7751efe9023e82ec9a24aea1880222e7"
   },
+  "permission.prompt.loopbackNetwork": {
+    "message": "<0>{host}</0> vuole connettersi alle app su questo dispositivo",
+    "source": "sha256:0c1db9073278b6bf78d873bba5ca69e4dad3f6955a1534f113e017c2f24cca5f"
+  },
+  "permission.prompt.localNetwork": {
+    "message": "<0>{host}</0> vuole connettersi ai dispositivi della tua rete locale",
+    "source": "sha256:9f48a9a589d092ea156a2dc58b83e2e16f7a88ca414410e209bdb433cfe473d4"
+  },
+  "permission.prompt.localNetworkAccess": {
+    "message": "<0>{host}</0> vuole connettersi alle app e ai dispositivi della tua rete locale",
+    "source": "sha256:0d35eb7192121f8a0ba56878188846dc8434aa3cbb0d07e3cd6a862cb99b5023"
+  },
   "permission.prompt.other": {
     "message": "<0>{host}</0> vuole usare «{permission}»",
     "source": "sha256:d312f8081e0faac7ef3db09f5ac65f8dbcb4d51f3dabb365c3af39093b9d2d9a"
@@ -4662,6 +4674,14 @@
   "settings.permissions.notifications": {
     "message": "Notifiche",
     "source": "sha256:c4680e6dc26649d98acb935fb59000027e2f1b5015b5ba503b916599166eed57"
+  },
+  "settings.permissions.loopbackNetwork": {
+    "message": "App su questo dispositivo",
+    "source": "sha256:075cb6bb2b371c4665531bd3056c1aa6f64c6d665cc75d341681bb779183ac69"
+  },
+  "settings.permissions.localNetwork": {
+    "message": "Dispositivi della rete locale",
+    "source": "sha256:13c37de04f384a1d7f8f5f72346331085ebda8c718dc54fc0c3a57573283a762"
   },
   "settings.permissions.audio": {
     "message": "Microfono",

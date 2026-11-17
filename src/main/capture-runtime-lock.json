@@ -28,7 +28,8 @@
     "src/main/display-capture-indicator.js": "4e3b057e9f21075ed4b319541be4f0add6aca8195961d92e6118e1079111eeb4",
     "src/main/capture-state.js": "cb38bc434bc608c023935474c66acecc067e240052215b1775d26a041c0f92a1",
     "src/main/permission-decisions.js": "31d7de7e75685ea194055e9b455dd678a30fe2df549c2f7cfe151437a2eeecaf",
-    "src/main/permissions.js": "9a7ab75ac32998ab9b95d416225d202750bc722e1d42c1f0e6026fc864b74032",
+    "src/main/permissions.js": "1be194bfaa7c1db487a1be27c2906084fcf79f1a11e1c1db09539c967cf148a7",
+    "src/main/local-network-access.js": "8302345be385c44ac29a6112d2f54e546a82f7049a0a399eb5bb60ffc9fe7a77",
     "src/renderer/display-capture-helper.html": "0bdcd6a55a32ca21214c6c84858aac8197eb5b07780df447a36d3230b6356129",
     "src/main/overlay-view-lifecycle.js": "5a22d093b358c5ab1b2832b5748e0aed9fa721e4a6ff2ca3a67d0366df2627a5"
   }

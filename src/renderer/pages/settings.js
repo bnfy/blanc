@@ -1914,6 +1914,8 @@
       media: t('settings.permissions.media'),
       geolocation: t('settings.permissions.geolocation'),
       notifications: t('settings.permissions.notifications'),
+      'loopback-network': t('settings.permissions.loopbackNetwork'),
+      'local-network': t('settings.permissions.localNetwork'),
     };
     const MEDIA_LABELS = { audio: t('settings.permissions.audio'), video: t('settings.permissions.video') };
 
