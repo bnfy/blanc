@@ -2541,6 +2541,14 @@
       "version": "156.0.8078.79",
       "treeCommit": "27355bbe75d602a24c56f84bbb10adf04497f93d",
       "qualification": "debug build; launches and loads pages on the emulator; Pixel pending"
+    },
+    "windows": {
+      "id": "windows-x64-bdcf3cca0b966646",
+      "exeSha256": "c6728b1ad35768cb95c7893393f1f92399f3c58b0b115befc84b25e554bdd542",
+      "dllSha256": "bdcf3cca0b96664613558954b7d07590571d4f31369a963acf1ce19fe311f994",
+      "version": "158.0.8127.2",
+      "treeCommit": "cae9db2dde6d101de4671d5ea9590af98a08288d",
+      "qualification": "cross-compiled candidate; runtime acceptance pending"
     }
   },
   "baselines": {

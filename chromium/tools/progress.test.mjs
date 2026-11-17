@@ -99,7 +99,7 @@ test('a row without an android stage is refused', () => {
   assert.throws(() => renderProgress(t), /android stage for F1/);
 });
 
-import { windowsCandidate } from './progress.mjs';
+import { windowsCandidate, trackerText } from './progress.mjs';
 test('a Windows candidate is recorded from its packaging record, and only when its id matches its chrome.dll', () => {
   const dll = 'ab'.repeat(32), exe = 'cd'.repeat(32);
   const record = { id: 'windows-x64-abababababababab', exeSha256: exe, dllSha256: dll, version: '158.0.8127.2', treeCommit: 'f'.repeat(40), zipSha256: 'x', files: 3 };
@@ -109,4 +109,9 @@ test('a Windows candidate is recorded from its packaging record, and only when i
   assert.throws(() => windowsCandidate({ ...record, id: 'macos-abababababababab' }), /does not match/);
   for (const key of ['id', 'exeSha256', 'dllSha256', 'version', 'treeCommit']) assert.throws(() => windowsCandidate({ ...record, [key]: undefined }), new RegExp(key));
   assert.throws(() => windowsCandidate(null));
+});
+test('the tracker is written ASCII-only, byte for byte as it is kept', () => {
+  assert.equal(trackerText({ a: 'F2-1\u20134 \u2318 \ud83d\ude00', b: [1] }), '{\n  "a": "F2-1\\u20134 \\u2318 \\ud83d\\ude00",\n  "b": [\n    1\n  ]\n}\n');
+  const file = new URL('../tracker.json', import.meta.url);
+  assert.equal(trackerText(JSON.parse(fs.readFileSync(file, 'utf8'))), fs.readFileSync(file, 'utf8'));
 });
