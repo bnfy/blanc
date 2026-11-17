@@ -14,6 +14,15 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — The Start Page import no longer costs the phones a request (candidate macos-1400e3914b1a7bdf):**
+  the iPhone and iPad unit test `MobileStartPageTests.testFavoritesWidgetListsAndFollowsFavorites`
+  failed on bnfy/blanc#1586. The phones share `newtab-adapter.js`, and the
+  importer's change made every Start Page ask `importRead` before its data,
+  a request only the desktop browser answers. The page now asks only when
+  the desktop browser's `firstRun` answer carries `startPageImport`, which
+  it sets while wallpaper choices are waiting. `native-profile-import-start.mjs`
+  (3) and `-settings.mjs` (7) pass on the new build; the iPhone tests are
+  CI's to confirm.
 - **2026-11-16 — Mute Site is Chromium's sound setting (V21; candidate macos-4148a26f1387076a):**
   the recheck found Mute Site kept its sites in memory, as shipping does,
   not as approved divergence V21 says. The owner confirmed V21 on
