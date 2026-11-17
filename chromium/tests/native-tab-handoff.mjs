@@ -13,6 +13,7 @@ import {NativeFixture} from './lib/fixture.mjs';
 import {installDriver} from './lib/test-driver.mjs';
 import {assertRendering,assertNodeRuntime} from './lib/render-guard.mjs';
 import {createWorld} from './world.mjs';
+import {jsLiteral} from './lib/js-literal.mjs';
 import {makeHandoff} from './lib/handoff-fixture.mjs';
 import {nativeCall} from './lib/test-driver.mjs';
 import {createProfile} from './fork-steps/profiles.mjs';
@@ -47,7 +48,7 @@ const sheetIn=cdp=>cdp.eval(`(()=>{const frame=[...document.querySelectorAll('if
   rows:d.getElementById('list').hidden?[]:[...d.querySelectorAll('.tab-handoff-row')].map(r=>({title:r.querySelector('.title').textContent,domain:r.querySelector('.url').textContent,first:!!r.querySelector('.tab-handoff-active')})),
   html:d.body.innerHTML};})()`);
 const sheet=()=>sheetIn(f.host);
-const press=id=>w.hostEval(`(()=>{const frame=[...document.querySelectorAll('iframe')].find(f=>/pages\\/tab-handoff\\.html/.test(f.src));frame.contentDocument.getElementById(${JSON.stringify(id)}).click();return true;})()`);
+const press=id=>w.hostEval(`(()=>{const frame=[...document.querySelectorAll('iframe')].find(f=>/pages\\/tab-handoff\\.html/.test(f.src));frame.contentDocument.getElementById(${jsLiteral(id)}).click();return true;})()`);
 const tabs=async()=>(await w.snapshot()).tabs.map(t=>({id:String(t.id),url:t.url,asleep:!!t.asleep}));
 const shown=ok=>w.waitFor(sheet,s=>s&&ok(s),'the handoff sheet',10000);
 const gone=()=>w.waitFor(sheet,s=>s===null,'the handoff sheet to close',8000);

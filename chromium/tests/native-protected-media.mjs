@@ -13,6 +13,7 @@ import {NativeFixture} from './lib/fixture.mjs';
 import {installDriver} from './lib/test-driver.mjs';
 import {assertRendering,assertNodeRuntime} from './lib/render-guard.mjs';
 import {createWorld} from './world.mjs';
+import {jsLiteral} from './lib/js-literal.mjs';
 const [configFile,out]=process.argv.slice(2),config=JSON.parse(fs.readFileSync(configFile));
 assertNodeRuntime();assert.equal(fs.existsSync(out),false,'expected a new output folder');fs.mkdirSync(out,{recursive:true});
 const f=new NativeFixture(),w=createWorld(f),result={candidate:config.candidate,checks:[]};
@@ -35,7 +36,7 @@ const notice=()=>w.hostEval(`(()=>{const frame=document.getElementById('protecte
  return {visible:true,title:d.getElementById('protectedTitle').textContent,body:d.getElementById('protectedBody').textContent,
   buttons:[...d.querySelectorAll('button')].map(b=>b.textContent.trim()),belowIsland:r.top>=strip.bottom,centered:Math.abs((r.left+r.width/2)-innerWidth/2)<=2,
   focused:document.activeElement===frame};})()`);
-const press=id=>w.hostEval(`(()=>{document.getElementById('protectedNotice').contentDocument.getElementById(${JSON.stringify(id)}).click();return true;})()`);
+const press=id=>w.hostEval(`(()=>{document.getElementById('protectedNotice').contentDocument.getElementById(${jsLiteral(id)}).click();return true;})()`);
 const shown=label=>w.waitFor(notice,n=>n.visible,'the protected-video notice '+label,12000);
 const hidden=label=>w.waitFor(notice,n=>!n.visible,'no protected-video notice '+label,8000);
 const open=async url=>{const id=await w.call('openTab',url);await w.waitForState(s=>s.activeTabId===id&&s.tabs.some(t=>t.id===id&&!t.loading));return id;};

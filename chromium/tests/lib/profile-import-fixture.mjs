@@ -23,9 +23,13 @@ export function digestTree(dir) {
     for (const entry of fs.readdirSync(folder, {withFileTypes: true}).sort((a, b) => a.name < b.name ? -1 : 1)) {
       const full = path.join(folder, entry.name);
       if (entry.isDirectory()) { rows.push([path.relative(dir, full) + '/', 'dir']); walk(full); continue; }
-      const stat = fs.lstatSync(full);
-      rows.push([path.relative(dir, full), stat.size, stat.mode & 0o777, stat.mtimeMs,
-        crypto.createHash('sha256').update(fs.readFileSync(full)).digest('hex')]);
+      // One open file for both the facts and the bytes, so they describe the same file.
+      const fd = fs.openSync(full, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+      try {
+        const stat = fs.fstatSync(fd);
+        rows.push([path.relative(dir, full), stat.size, stat.mode & 0o777, stat.mtimeMs,
+          crypto.createHash('sha256').update(fs.readFileSync(fd)).digest('hex')]);
+      } finally { fs.closeSync(fd); }
     }
   };
   walk(dir);
