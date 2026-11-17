@@ -167,6 +167,18 @@ export interface BookmarksPagesAPI {
     renameFolder: (oldName: unknown, newName: unknown) => Promise<unknown>;
     /** Remove a Favorites folder, keeping its Favorites. IPC: invoke `pages:bookmarks:remove-folder`. */
     removeFolder: (name: unknown) => Promise<unknown>;
+    /** The Favorites folder tree in display order (Favorites manager). IPC: invoke `pages:bookmarks:tree`. */
+    tree: () => Promise<unknown>;
+    /** Create a Favorites folder inside another, or at the top level with null. IPC: invoke `pages:bookmarks:create-folder`. */
+    createFolder: (parentPath: unknown, name: unknown) => Promise<unknown>;
+    /** Move a Favorites folder into another, or to the top level with null. IPC: invoke `pages:bookmarks:move-folder`. */
+    moveFolder: (path: unknown, newParentPath: unknown) => Promise<unknown>;
+    /** Move Favorites into a folder path, or to the top level with null. IPC: invoke `pages:bookmarks:move`. */
+    move: (ids: unknown, path: unknown) => Promise<unknown>;
+    /** Save the order chosen for one folder's children. IPC: invoke `pages:bookmarks:reorder`. */
+    reorder: (path: unknown, orderKeys: unknown) => Promise<unknown>;
+    /** Remove several Favorites at once. IPC: invoke `pages:bookmarks:remove-many`. */
+    removeMany: (ids: unknown) => Promise<unknown>;
   };
 }
 

@@ -182,14 +182,14 @@ function reorderFolder(path, orderKeys) {
   return run((state, ctx) => data.applyReorder(state, path, orderKeys, ctx));
 }
 
-/** The folder tree in display order. Each favorite carries the key order
- * lists name it by, so pages never compute one. */
+/** The folder tree in display order. Each child carries the key order lists
+ * name it by (a favorite's also on the item), so pages never compute one. */
 function getTree() {
   const withKeys = (node) => ({
     ...node,
     children: node.children.map((child) => (child.kind === 'folder'
-      ? { kind: 'folder', folder: withKeys(child.folder) }
-      : { kind: 'favorite', item: { ...child.item, key: child.key } })),
+      ? { kind: 'folder', key: child.key, folder: withKeys(child.folder) }
+      : { kind: 'favorite', key: child.key, item: { ...child.item, key: child.key } })),
   });
   return withKeys(buildTree(ensureStore().data.items, layoutStore.getLayout()));
 }
