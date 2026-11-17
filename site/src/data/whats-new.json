@@ -18,7 +18,6 @@
             "Press `⌥⌘B`, or `Ctrl+Shift+O` on Windows and Linux.",
             "Click **New folder**, or drag a favorite onto a folder in the sidebar."
           ],
-          "note": "The Favorites menu shows the same folders, and `/save Work > Clients` saves the page into a folder inside a folder.",
           "media": {
             "kind": "image",
             "src": "/feature-captures/favorites-manager-v1.50.0.webp",
