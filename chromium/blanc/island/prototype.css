@@ -68,3 +68,10 @@ html, body { background: transparent; }
 /* While the band shows the Start Page's wallpaper (host.js paintBackdrop),
    the strip lets the host's band through instead of painting its tint. */
 :root[data-band-backdrop] #strip { background: transparent !important; transition: none; }
+
+/* Windows draws its own caption buttons over the strip's top-right corner
+   (owner decision, 2026-11-17), as the Mac draws its traffic lights: the
+   Island draws none there. Their width is Chromium's, in DIPs: three buttons
+   of 45 with 1 between (WindowFrameUtil::kWindowsCaptionButtonWidth). */
+:root[data-platform="win32"] #windowControls { display: none; }
+:root[data-platform="win32"] { --window-controls-w: 137px; }

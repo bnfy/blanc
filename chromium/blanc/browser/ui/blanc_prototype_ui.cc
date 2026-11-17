@@ -7357,6 +7357,19 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           }, weak_factory_.GetWeakPtr(), id, meta ? meta->Clone() : base::DictValue()));
       return;
     }
+    // What the OS window has outside its client area, in DIPs. Windows keeps
+    // invisible resize borders there, which a window's reported bounds
+    // include; the Island's content fills the client area inside them.
+    if (quiet_method == "windowFrameInsets" && quiet_args.empty()) {
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      auto* widget = views::Widget::GetWidgetForNativeWindow(owner->browser->GetWindow()->GetNativeWindow());
+      const gfx::Rect window = widget->GetWindowBoundsInScreen();
+      const gfx::Rect client = widget->GetClientAreaBoundsInScreen();
+      Reply(id, true, base::Value(base::DictValue()
+          .Set("left", client.x() - window.x()).Set("top", client.y() - window.y())
+          .Set("right", window.right() - client.right()).Set("bottom", window.bottom() - client.bottom())));
+      return;
+    }
     if (quiet_method == "windowButtonPosition" && quiet_args.empty()) {
 #if BUILDFLAG(IS_MAC)
       auto* owner = GetOwner(web_ui()->GetWebContents());
