@@ -1783,9 +1783,9 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
         <item quantity="other">%1$d já salvos foram ignorados.</item>
     </plurals>
     <plurals name="favorites_import_moved">
-        <item quantity="one">%1$d movido para a pasta dele.</item>
-        <item quantity="many">%1$d movidos para as pastas deles.</item>
-        <item quantity="other">%1$d movidos para as pastas deles.</item>
+        <item quantity="one">%1$d movido para sua pasta.</item>
+        <item quantity="many">%1$d movidos para suas pastas.</item>
+        <item quantity="other">%1$d movidos para suas pastas.</item>
     </plurals>
     <plurals name="favorites_import_shortened">
         <item quantity="one">%1$d colocado em uma pasta superior porque o caminho da pasta era longo demais.</item>

@@ -63,6 +63,10 @@ function parseNetscapeBookmarks(html, { now = Date.now() } = {}) {
       }
       const title = decodeEntities(m[3] || '').trim();
       const { path: folder, shortened } = current();
+      // The one flat name import stored before folders could nest: the
+      // immediate parent. bookmark-data.addImported uses it until the
+      // Favorites manager ships.
+      const flatFolder = stack.length ? stack[stack.length - 1] : null;
       out.push({
         url,
         title: title || url,
@@ -70,6 +74,7 @@ function parseNetscapeBookmarks(html, { now = Date.now() } = {}) {
         addedAt,
         folder,
         shortened,
+        flatFolder,
       });
     }
   }

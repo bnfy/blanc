@@ -459,13 +459,85 @@ test('import says when the collection is too large to keep every order', () => {
   assert.ok(r.orderDropped >= 1);
 });
 
-test('before the manager ships, import flattens to the last folder name and writes no order', () => {
+test('before the manager ships, import uses the parser\'s flat name and writes no order', () => {
   const s = state([fav('https://a.example/', 'Acme', 1, 'a')]);
   const r = addImported(s, [
-    { url: 'https://a.example/', title: 'A', folder: 'Work › Clients › Acme' },
-    { url: 'https://n.example/', title: 'N', folder: 'Work › Clients' },
+    { url: 'https://a.example/', title: 'A', folder: 'Work › Clients › Acme', flatFolder: 'Acme' },
+    { url: 'https://n.example/', title: 'N', folder: 'Work › Clients', flatFolder: 'Clients' },
   ], { ...ICTX, paths: false });
   assert.deepEqual(r.items.map((i) => i.folder), ['Acme', 'Clients']);
   assert.deepEqual([r.added, r.skipped, r.moved], [1, 1, 0]);
   assert.equal(r.layout, s.layout);
+});
+
+// --- Review findings (import) ---
+
+const { parseNetscapeBookmarks: parseHtml } = require('../../src/main/bookmark-import');
+const { parseChromiumBookmarks: parseChromium } = require('../../src/main/browser-data-import');
+
+test('before the manager ships, import stores exactly the folder names it always did', () => {
+  const long = ['Development resources', 'JavaScript frameworks', 'React state management', 'Redux Toolkit tutorials'];
+  const html = `<DL><DT><H3>Bookmarks bar</H3><DL>${long.map((n) => `<DT><H3>${n}</H3><DL>`).join('')}`
+    + `<DT><A HREF="https://deep.example/">D</A>${'</DL>'.repeat(long.length)}`
+    + '<DT><H3>News › Tech</H3><DL><DT><A HREF="https://nt.example/">N</A></DL>'
+    + '<DT><H3>   </H3><DL><DT><A HREF="https://blank.example/">B</A></DL>'
+    + '<DL><DT><A HREF="https://unnamed.example/">U</A></DL>'
+    + `<DT><H3>${'x'.repeat(101)}</H3><DL><DT><A HREF="https://over.example/">O</A></DL>`
+    + '</DL></DL>';
+  const flat = (entries) => {
+    const r = addImported(state([]), entries, { ...ICTX, paths: false });
+    assert.deepEqual([r.shortened, r.moved, r.orderDropped], [0, 0, 0]);
+    return Object.fromEntries(r.items.map((i) => [i.url, i.folder]));
+  };
+  assert.deepEqual(flat(parseHtml(html)), {
+    'https://deep.example/': 'Redux Toolkit tutorials',
+    'https://nt.example/': 'News › Tech',
+    'https://blank.example/': null,
+    'https://unnamed.example/': null,
+    'https://over.example/': null,
+  });
+  const data = { roots: { bookmark_bar: { name: 'Bookmarks bar', children: [
+    { type: 'folder', name: 'p'.repeat(60), children: [
+      { type: 'folder', name: 'q'.repeat(60), children: [{ type: 'url', name: 'Q', url: 'https://q.example/' }] }] },
+    { type: 'folder', name: 'A›B', children: [{ type: 'url', name: 'AB', url: 'https://ab.example/' }] },
+    { type: 'folder', name: 'y'.repeat(101), children: [{ type: 'url', name: 'Y', url: 'https://y.example/' }] },
+    { type: 'url', name: 'Top', url: 'https://top.example/' },
+  ] } } };
+  assert.deepEqual(flat(parseChromium(data, { t: (k) => k })), {
+    'https://q.example/': 'q'.repeat(60),
+    'https://ab.example/': 'A›B',
+    'https://y.example/': 'Bookmarks bar',
+    'https://top.example/': 'Bookmarks bar',
+  });
+  // An entry given directly (the Arc import) keeps its folder as written.
+  assert.equal(flat([{ url: 'https://x.example/', folder: 'X › Y' }])['https://x.example/'], 'X › Y');
+  // Spelling still follows an existing flat folder, whole name only.
+  const existing = state([fav('https://e.example/', 'A › B', 1), fav('https://f.example/', 'a›b', 1)]);
+  const r = addImported(existing, [{ url: 'https://g.example/', folder: 'a' }, { url: 'https://h.example/', folder: 'A›B' }], { ...ICTX, paths: false });
+  const folderOf = (url) => r.items.find((i) => i.url === url).folder;
+  assert.deepEqual([folderOf('https://g.example/'), folderOf('https://h.example/')], ['a', 'a›b']);
+});
+
+test('a large import gives up its own order, never the orders already chosen', () => {
+  let s = state([fav('https://mine.example/1', 'Mine', 1), fav('https://mine.example/2', 'Mine', 2)]);
+  const mine = ['https://mine.example/1', 'https://mine.example/2'].map(favoriteChildKey);
+  s = applyReorder(s, 'Mine', mine, { now: 1, tie: 't' });
+  const entries = [{ url: 'https://small.example/', folder: 'Small' }];
+  for (let i = 0; i < 12000; i += 1) entries.push({ url: `https://big.example/${i}`, folder: 'Big' });
+  const r = addImported(s, entries, ICTX);
+  assert.deepEqual(r.layout.folders.mine.order, mine);
+  assert.equal(r.orderDropped, 1);
+  assert.deepEqual(r.layout.folders.big?.order ?? [], []);
+  assert.equal(r.layout.folders.small.order.length, 1);
+});
+
+test('repair leaves alone a favorite changed since the manager arrived', () => {
+  const s = state([fav('https://old.example/', 'Work', 100, 'old'), fav('https://moved.example/', 'Work', 100, 'moved')]);
+  s.items[1].updatedAt = 600;   // the person moved it to top-level Work after the manager arrived at 500
+  const r = addImported(s, [
+    { url: 'https://old.example/', folder: 'Bar › Work' },
+    { url: 'https://moved.example/', folder: 'Bar › Work' },
+  ], { ...ICTX, repairBefore: 500 });
+  assert.deepEqual(r.items.map((i) => i.folder), ['Bar › Work', 'Work']);
+  assert.deepEqual([r.moved, r.skipped], [1, 1]);
 });

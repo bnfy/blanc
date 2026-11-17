@@ -169,7 +169,7 @@ test('a favorites change notifies once per operation', () => {
 test('until the manager ships, import flattens as before and writes no order', () => {
   reset();
   const counts = bookmarks.importBookmarks([
-    { url: 'https://a.example/', title: 'A', folder: 'Work › Clients › Acme' },
+    { url: 'https://a.example/', title: 'A', folder: 'Work › Clients › Acme', flatFolder: 'Acme' },
     { url: 'https://a.example/', title: 'again', folder: 'Elsewhere' },
   ]);
   assert.deepEqual(counts, { added: 1, skipped: 1, moved: 0, shortened: 0, orderDropped: 0 });
@@ -177,7 +177,9 @@ test('until the manager ships, import flattens as before and writes no order', (
   assert.equal(layout.exportForSync(), null);
 });
 
-test('with the manager live, import repairs the flattened favorite, keeps order, and emptied folders stay', (t) => {
+test('with the manager live, import repairs the flattened favorite, keeps order, and emptied folders stay', async (t) => {
+  // Repair covers favorites unchanged since the manager first ran here.
+  await new Promise((resolve) => { setTimeout(resolve, 5); });
   bookmarks.setManagerLiveForTests(true);
   t.after(() => bookmarks.setManagerLiveForTests(false));
   let changes = 0;

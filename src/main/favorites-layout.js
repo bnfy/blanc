@@ -100,6 +100,15 @@ function mergeFromSync(remote) {
   return changed;
 }
 
+/** When the Favorites manager first ran on this profile and device, set on
+ * first ask. Import repairs only favorites unchanged since then
+ * (bookmark-data.addImported). Device-local; never synced. */
+function treeSince() {
+  const d = ensureStore().data;
+  if (!validClock(d.treeSince) || d.treeSince === 0) ensureStore().update((data) => { data.treeSince = Date.now(); });
+  return ensureStore().data.treeSince;
+}
+
 /** Unit tests only: back to a profile that never changed its layout. */
 function resetForTests() {
   ensureStore().update((d) => {
@@ -109,4 +118,4 @@ function resetForTests() {
   });
 }
 
-module.exports = { getLayout, setLayout, exportForSync, mergeFromSync, onChanged, onMerged, resetForTests };
+module.exports = { getLayout, setLayout, exportForSync, mergeFromSync, onChanged, onMerged, treeSince, resetForTests };

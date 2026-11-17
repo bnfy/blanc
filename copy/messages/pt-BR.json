@@ -6360,7 +6360,7 @@
     "source": "sha256:b0687b46dbc51a7fc5d6cd797109c1d69572b402bc153f104d23383d79ad5d42"
   },
   "favorites.import.moved": {
-    "message": "{count, plural, one {# movido para a pasta dele.} many {# movidos para as pastas deles.} other {# movidos para as pastas deles.}}",
+    "message": "{count, plural, one {# movido para sua pasta.} many {# movidos para suas pastas.} other {# movidos para suas pastas.}}",
     "source": "sha256:26511ae34f7bdc1f34717e61551f648937b4d2cdbeacf48d7440b1f0c082499f"
   },
   "favorites.import.shortened": {

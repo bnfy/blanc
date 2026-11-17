@@ -7,7 +7,7 @@ const {
   createSpeller, buildTree, folderChildKey, favoriteChildKey,
 } = require('./favorites-tree');
 const {
-  EMPTY_LAYOUT, layoutEntry, setFolderOrder, setFolderOrders, boundLayout, ensureFolder, removeFolderEntry, movePrefix, layoutsEqual,
+  EMPTY_LAYOUT, LAYOUT_MAX_BYTES, layoutEntry, setFolderOrder, setFolderOrders, boundLayout, ensureFolder, removeFolderEntry, movePrefix, layoutsEqual,
 } = require('./favorites-layout-model');
 
 /** Map folderKey -> canonical spelling, chosen from the item with the oldest
@@ -109,6 +109,45 @@ function relocateFolder(state, from, to, ctx) {
   return { items: moved.changed ? moved.items : state.items, tombstones: state.tombstones ?? [], layout: nextLayout, changed: true };
 }
 
+/** Import as it worked before folders could nest, unchanged: one flat folder
+ * name per favorite (`folder`), spelled like an existing folder of that whole
+ * name. Used until the Favorites manager ships (`ctx.paths === false`). */
+function addImportedFlat({ items, tombstones }, entries, { now, makeId }) {
+  const seen = new Set(items.map((it) => it.url));
+  const canon = buildCanonMap(items); // key -> { folder }
+  const added = [];
+  let skipped = 0;
+  for (const e of entries || []) {
+    if (typeof e.url !== 'string' || seen.has(e.url)) { skipped++; continue; }
+    seen.add(e.url);
+    let folder = validFolder(e.folder);
+    if (folder != null) {
+      const key = folderKey(folder);
+      const existing = canon.get(key);
+      if (existing) folder = existing.folder;      // first-existing spelling wins
+      else canon.set(key, { folder });             // new folder: first-in-file spelling
+    }
+    added.push({
+      id: makeId(),
+      url: e.url,
+      title: typeof e.title === 'string' && e.title ? e.title : e.url,
+      favicon: validFavicon(e.favicon),
+      addedAt: Number.isFinite(e.addedAt) ? e.addedAt : now,
+      updatedAt: now,
+      folder,
+    });
+  }
+  if (added.length === 0) return { items, tombstones, added: 0, skipped, changed: false };
+  const addedUrls = new Set(added.map((it) => it.url));
+  return {
+    items: [...items, ...added].sort(oldestFirst),
+    tombstones: tombstones.filter((t) => !addedUrls.has(t.url)),
+    added: added.length,
+    skipped,
+    changed: true,
+  };
+}
+
 /** Import parsed entries. An entry's `folder` is a whole folder path, and
  * entries arrive in the source's order.
  *
@@ -121,13 +160,22 @@ function relocateFolder(state, from, to, ctx) {
  * - Each folder that gains something keeps what it had, in the order it
  *   showed, followed by what arrived, in source order.
  *
- * `ctx.paths === false` is the behavior from before the manager: the last
- * folder name only, no repair, and no order written. */
+ * The repair applies only to a favorite not changed since the manager
+ * arrived on this device (`ctx.repairBefore`), so one the person then put in
+ * a folder of that name is not moved again.
+ *
+ * `ctx.paths === false` is the behavior from before the manager
+ * (addImportedFlat): a parser's `flatFolder` when it gives one, else
+ * `folder` as written; no repair, and no order written. */
 function addImported(state, entries, ctx) {
   const { items } = state;
   const tombstones = state.tombstones ?? [];
   const layout = layoutOf(state);
-  const usePaths = ctx.paths !== false;
+  if (ctx.paths === false) {
+    const flat = (entries || []).map((e) => (e && Object.hasOwn(e, 'flatFolder') ? { ...e, folder: e.flatFolder } : e));
+    const res = addImportedFlat({ items, tombstones }, flat, ctx);
+    return { ...res, layout, moved: 0, shortened: 0, orderDropped: 0 };
+  }
   const spell = createSpeller(items);
   const byUrl = new Map(items.map((it, index) => [it.url, index]));
   const seen = new Set();
@@ -156,13 +204,13 @@ function addImported(state, entries, ctx) {
     if (typeof e.url !== 'string' || seen.has(e.url)) { skipped += 1; continue; }
     seen.add(e.url);
     const full = e.folder == null ? null : validPath(e.folder);
-    const wanted = usePaths ? full : (full === null ? null : leafName(full));
-    const folder = wanted === null ? null : spell(wanted);
+    const folder = full === null ? null : spell(full);
     const index = byUrl.get(e.url);
     if (index !== undefined) {
       const saved = next[index];
       const savedKey = pathKey(folderOf(saved));
-      const flattened = usePaths && folder !== null && savedKey !== pathKey(folder)
+      const untouched = ctx.repairBefore === undefined || (saved.updatedAt ?? saved.addedAt ?? 0) < ctx.repairBefore;
+      const flattened = untouched && folder !== null && savedKey !== pathKey(folder)
         && savedKey !== '' && savedKey === pathKey(leafName(folder));
       if (!flattened) { skipped += 1; continue; }
       next[index] = { ...saved, folder, updatedAt: ctx.now };
@@ -179,7 +227,7 @@ function addImported(state, entries, ctx) {
       });
     }
     if (e.shortened === true) shortened += 1;
-    if (usePaths) place(folder, e.url);
+    place(folder, e.url);
   }
 
   if (added.length === 0 && moved === 0) {
@@ -188,7 +236,7 @@ function addImported(state, entries, ctx) {
 
   let nextLayout = layout;
   let orderDropped = 0;
-  if (usePaths) {
+  {
     const before = new Map(); // folder key -> the child keys it showed, in order
     const walk = (node) => {
       before.set(node.key, node.children.map((child) => (child.kind === 'folder'
@@ -203,9 +251,19 @@ function addImported(state, entries, ctx) {
       const fresh = [...keys].filter((childKey) => !hadKeys.has(childKey));
       if (fresh.length) orders.push({ path, order: [...had, ...fresh] });
     }
-    const bounded = boundLayout(setFolderOrders(layout, orders, clockOf(ctx)));
-    nextLayout = bounded.layout;
-    orderDropped = bounded.dropped;
+    // The record has a size limit. An import too large for it gives up its
+    // own orders, longest first (those folders show in the default order),
+    // and never an order the person already chose.
+    const cost = ({ path, order }) => order.reduce((sum, key) => sum + Buffer.byteLength(key, 'utf8') + 3, 0)
+      + 2 * Buffer.byteLength(path ?? '', 'utf8') + 96;
+    let room = LAYOUT_MAX_BYTES - Buffer.byteLength(JSON.stringify(layout), 'utf8');
+    const kept = [];
+    for (const entry of [...orders].sort((x, y) => cost(x) - cost(y))) {
+      if (cost(entry) > room) { orderDropped += 1; continue; }
+      room -= cost(entry);
+      kept.push(entry);
+    }
+    nextLayout = boundLayout(setFolderOrders(layout, kept, clockOf(ctx))).layout;
   }
 
   const addedUrls = new Set(added.map((it) => it.url));

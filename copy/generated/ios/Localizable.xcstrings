@@ -71105,19 +71105,19 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%1$lld movido para a pasta dele."
+                  "value": "%1$lld movido para sua pasta."
                 }
               },
               "many": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%1$lld movidos para as pastas deles."
+                  "value": "%1$lld movidos para suas pastas."
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%1$lld movidos para as pastas deles."
+                  "value": "%1$lld movidos para suas pastas."
                 }
               }
             }

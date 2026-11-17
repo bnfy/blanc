@@ -87,6 +87,7 @@ function run(apply) {
   const state = { items: s.data.items, tombstones: s.data.tombstones, layout: layoutStore.getLayout() };
   const res = apply(state, {
     now: Date.now(), tie: crypto.randomUUID(), makeId: crypto.randomUUID, keepEmptied: managerLive, paths: managerLive,
+    repairBefore: managerLive ? layoutStore.treeSince() : undefined,
   });
   if (res.error) return { ok: false, error: res.error };
   if (res.changed) {
