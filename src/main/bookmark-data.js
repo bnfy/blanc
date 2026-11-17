@@ -4,7 +4,7 @@
 const { validFavicon, validFolder, folderKey } = require('./bookmark-validate');
 const {
   MAX_PATH, cleanSegment, splitPath, joinPath, validPath, pathKey, parentPath, leafName, isWithin, shownPath, storedPath,
-  createSpeller, buildTree, folderChildKey, favoriteChildKey,
+  createSpeller, buildTree, listFolderPaths, parseTypedPath, folderChildKey, favoriteChildKey,
 } = require('./favorites-tree');
 const {
   EMPTY_LAYOUT, LAYOUT_MAX_BYTES, layoutEntry, setFolderOrder, setFolderOrders, boundLayout, ensureFolder, removeFolderEntry, movePrefix, layoutsEqual,
@@ -435,9 +435,10 @@ function applySaveFavorite(state, { url, title, favicon, folder }, ctx) {
   const tombstones = state.tombstones ?? [];
   let target = null;
   if (folder != null) {
-    const valid = validPath(folder);
-    if (valid === null) return unchanged(state, { error: 'invalid' }); // reject before any add
-    target = shownPath(items, valid);
+    // `/save` passes what was typed: names separated by > or ›.
+    const resolved = resolveSavePath(items, layoutOf(state), folder);
+    if (resolved === null) return unchanged(state, { error: 'invalid' }); // reject before any add
+    target = shownPath(items, resolved);
   }
   const existing = items.find((it) => it.url === url);
   if (existing) {
@@ -465,29 +466,40 @@ function canonicalizeFolders(items) {
   });
 }
 
-/** Group favorites for the native Favorites menu: folders first (alphabetical,
- * case-insensitive), each folder's items newest-first, then ungrouped items
- * newest-first — mirroring the Favorites page. Pure: the menu builder wires
- * click handlers onto the returned bookmarks.
- *
- * Ordering is intentionally identical to `group()` in
- * src/renderer/pages/bookmarks.js (the page can't share this — different
- * runtime); keep the two in sync so the menu and page never disagree. */
-function groupFavoritesForMenu(items) {
-  const newestFirst = (a, b) => (b.addedAt ?? 0) - (a.addedAt ?? 0);
-  const byKey = new Map(); // folderKey -> { name, items }
-  const ungrouped = [];
-  for (const b of items) {
-    if (b.folder == null) { ungrouped.push(b); continue; }
-    const key = folderKey(b.folder);
-    if (!byKey.has(key)) byKey.set(key, { name: b.folder, items: [] });
-    byKey.get(key).items.push(b);
+/** The native Favorites menu in the manager's order: folders as nested
+ * submenus, favorites as items. Folders holding no favorite at any depth are
+ * left out, since the menu only opens pages. At the top level only, a
+ * separator sits between the folders and the favorites when the folders all
+ * come first, as they do in a profile nobody has reordered. */
+function favoritesMenuModel(items, layout) {
+  const project = (node) => node.children.flatMap((child) => {
+    if (child.kind === 'favorite') return [{ kind: 'favorite', item: child.item }];
+    const children = project(child.folder);
+    return children.length ? [{ kind: 'folder', name: child.folder.name, children }] : [];
+  });
+  const model = project(buildTree(items, layout));
+  const firstFavorite = model.findIndex((entry) => entry.kind === 'favorite');
+  const foldersFirst = firstFavorite > 0 && model.slice(firstFavorite).every((entry) => entry.kind === 'favorite');
+  if (foldersFirst) model.splice(firstFavorite, 0, { kind: 'separator' });
+  return model;
+}
+
+/** Which folder `/save <typed>` means. Names may be separated by > or ›.
+ * An existing full path wins; then a single name that matches exactly one
+ * folder anywhere; otherwise the typed path from the top level. null when
+ * the typed path can't be stored. */
+function resolveSavePath(items, layout, typed) {
+  const path = parseTypedPath(typed);
+  if (path === null) return null;
+  const folders = listFolderPaths(buildTree(items, layout));
+  const key = pathKey(path);
+  const exact = folders.find((folder) => pathKey(folder) === key);
+  if (exact) return exact;
+  if (splitPath(path).length === 1) {
+    const named = folders.filter((folder) => leafName(folder).toLowerCase() === key);
+    if (named.length === 1) return named[0];
   }
-  const folders = [...byKey.values()].sort((a, b) =>
-    a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
-  for (const f of folders) f.items.sort(newestFirst);
-  ungrouped.sort(newestFirst);
-  return { folders, ungrouped };
+  return path;
 }
 
 function originOf(url) {
@@ -535,5 +547,5 @@ module.exports = {
   addImported, applySaveFavorite, applyFaviconUpdate, mayWriteFavoriteFavicon,
   applySetFolder, applyRenameFolder, applyRemoveFolder, canonicalizeFolders,
   applyCreateFolder, applyMoveFolder, applyMoveFavorites, applyRemoveFavorites, applyReorder, keepEmptiedFolders,
-  groupFavoritesForMenu,
+  favoritesMenuModel, resolveSavePath,
 };
