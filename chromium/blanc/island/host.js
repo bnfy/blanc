@@ -1940,6 +1940,12 @@
   let railActivationSerial = 0;
   const implemented = {
     platform: hostPlatform,
+    // The strip's menu button and window commands (Windows and Linux; the
+    // Mac has its menu bar and traffic lights). The menu is Chromium's own.
+    openMainMenu: point => request('openMainMenu', [Math.round(Number(point?.x) || 0), Math.round(Number(point?.y) || 0)]),
+    minimizeWindow: () => request('minimizeWindow'),
+    maximizeWindow: () => request('maximizeWindow'),
+    closeWindow: () => request('closeWindow'),
     startPinMenuState: id => request('startPinMenuState', [nativeId(id)]),
     toggleStartPin: (id, expectedUrl) => request('toggleStartPin', [nativeId(id), expectedUrl]),
     toggleAdblock: async () => { const tab = snapshot?.tabs.find(t => t.id === snapshot.activeTabId); const value = await request('toggleAdblock', [tab?.committedUrl ?? '']); await refresh(); return value; },

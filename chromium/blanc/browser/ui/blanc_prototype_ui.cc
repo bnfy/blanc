@@ -303,6 +303,8 @@
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/browser/ui/views/infobars/infobar_container_view.h"
 #include "chrome/browser/ui/views/frame/toolbar_button_provider.h"
+#include "chrome/browser/ui/toolbar/app_menu_model.h"
+#include "chrome/browser/ui/views/toolbar/app_menu.h"
 #include "chrome/browser/ui/views/toolbar/app_menu_control.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_view.h"
 #include "chrome/browser/ui/views/extensions/extensions_toolbar_desktop.h"
@@ -1251,6 +1253,11 @@ class Owner : public base::SupportsUserData::Data,
     return *owners;
   }
   ~Owner() override { ForgetMiniWindow(browser); Live().erase(this); }
+  // Chromium's app menu, opened from the strip's menu button where the
+  // Island draws one (Windows and Linux; the Mac has its menu bar). The menu
+  // points into its model, so the model is declared first and outlives it.
+  std::unique_ptr<AppMenuModel> main_menu_model;
+  std::unique_ptr<AppMenu> main_menu;
   std::set<std::string> ratio_recovery_checked;
   int pending_ratio_writes = 0;
   base::WeakPtr<Owner> GetWeakPtr() { return weak_factory_.GetWeakPtr(); }
@@ -10207,6 +10214,48 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // development-build path: the other channels' bundle icon is Sunrise
     // Dark, kept for Dock testing, so Sunrise there takes its flat Light or
     // Dark image like the rest.
+    // The strip's menu button: Chromium's own app menu, opening downward
+    // from the point the strip gives (the button's bottom-left corner, in the
+    // Island view's coordinates). Built as WebUIAppMenuControl::RunMenu
+    // builds it. The reply comes when the menu closes, as shipping's does,
+    // so the button stays marked open meanwhile.
+    if (method == "openMainMenu" && args.size() == 2 && args[0].is_int() && args[1].is_int()) {
+      auto* browser_view = BrowserView::GetBrowserViewForBrowser(browser);
+      auto* island = browser_view ? browser_view->GetViewByID(kIslandViewId) : nullptr;
+      auto* toolbar = browser_view ? browser_view->toolbar() : nullptr;
+      if (!island || !toolbar) { reply(true, base::Value(false)); return; }
+      if (owner->main_menu && owner->main_menu->IsShowing()) {
+        owner->main_menu->CloseMenu();
+        reply(true, base::Value(false)); return;
+      }
+      owner->main_menu.reset();
+      owner->main_menu_model = std::make_unique<AppMenuModel>(toolbar, browser,
+          toolbar->app_menu_icon_controller(), AppMenuModel::GetAlertItemForRunningTutorial(browser));
+      owner->main_menu_model->Init();
+      owner->main_menu = std::make_unique<AppMenu>(browser, owner->main_menu_model.get(),
+          views::MenuRunner::HAS_MNEMONICS,
+          base::BindRepeating([](base::WeakPtr<Handler> self, std::string id, bool* replied) {
+            if (!self || *replied) return;
+            *replied = true;
+            self->Reply(id, true, base::Value(true));
+          }, weak_factory_.GetWeakPtr(), id, base::Owned(new bool(false))));
+      const gfx::Rect anchor(island->GetBoundsInScreen().origin() +
+          gfx::Vector2d(args[0].GetInt(), args[1].GetInt()), gfx::Size());
+      owner->main_menu->RunMenu(island->GetWidget(), anchor, ui::mojom::MenuSourceType::kMouse,
+          views::MenuAnchorPosition::kTopLeft);
+      return;
+    }
+    // The window commands the strip's own buttons and its double-click call
+    // where the Island draws window controls (browser_api.mojom, Window).
+    if ((method == "minimizeWindow" || method == "maximizeWindow" || method == "closeWindow") && args.empty()) {
+      auto* browser_view = BrowserView::GetBrowserViewForBrowser(browser);
+      auto* widget = browser_view ? browser_view->GetWidget() : nullptr;
+      if (!widget) { reply(true, base::Value(false)); return; }
+      if (method == "minimizeWindow") widget->Minimize();
+      else if (method == "maximizeWindow") widget->IsMaximized() ? widget->Restore() : widget->Maximize();
+      else chrome::ExecuteCommand(browser, IDC_CLOSE_WINDOW);
+      reply(true, base::Value(true)); return;
+    }
     if (method == "applyAppIcon" && args.size() == 2 && args[0].is_string() && args[1].is_bool()) {
 #if BUILDFLAG(IS_MAC)
       static bool replaced = false;
