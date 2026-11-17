@@ -186,11 +186,24 @@ final class MobileStartPageTests: XCTestCase {
         XCTAssertEqual(manager.services.startPage.preferences?.contains("\"sky\""), true)
         _ = try await webView.evaluateJavaScript("document.getElementById('customizePopover').hidePopover()")
 
+        // Measured against the layout's own width (clientWidth), once it has the new width.
+        // innerWidth follows the visual viewport, which iOS updates some time after the
+        // resize: on CI's iOS 26.5 it still read 390 while the page was laid out at 768.
         for width in [320, 390, 768] {
             webView.frame = CGRect(x: 0, y: 0, width: width, height: 700)
-            try await Task.sleep(nanoseconds: 200_000_000)
-            let fits = try await webView.evaluateJavaScript("document.documentElement.scrollWidth <= window.innerWidth + 1") as? Bool
-            XCTAssertEqual(fits, true, "The Start Page overflows at \(width) points")
+            for _ in 0..<50 {
+                if (try? await webView.evaluateJavaScript("document.documentElement.clientWidth") as? Int) == width { break }
+                try await Task.sleep(nanoseconds: 100_000_000)
+            }
+            let client = try await webView.evaluateJavaScript("document.documentElement.clientWidth") as? Int
+            XCTAssertEqual(client, width, "The Start Page never took \(width) points")
+            let fits = try await webView.evaluateJavaScript("document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1") as? Bool
+            let wide = try? await webView.evaluateJavaScript("""
+                JSON.stringify([...document.querySelectorAll('body *')]
+                  .filter(e => e.getBoundingClientRect().right > document.documentElement.clientWidth + 1)
+                  .slice(0, 6).map(e => (e.id || e.className || e.tagName) + ':' + Math.round(e.getBoundingClientRect().right)))
+                """) as? String
+            XCTAssertEqual(fits, true, "The Start Page overflows at \(width) points; past the edge: \(wide ?? "none")")
         }
         _ = try await webView.evaluateJavaScript("window.bowserPages.start.openIsland(''); true")
         try await Task.sleep(nanoseconds: 200_000_000)
