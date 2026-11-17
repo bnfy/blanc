@@ -1399,6 +1399,9 @@ class Owner : public base::SupportsUserData::Data,
   int rail_width = 248;
   gfx::Rect extension_bounds;
   gfx::Rect interactive_bounds;
+  // The strip's own menu button, where it draws one (Windows and Linux), in
+  // the Island view's coordinates: never part of the window's drag handle.
+  gfx::Rect menu_button_bounds;
   // The Island band's current color (host.js syncBandColor): the page's
   // sampled top edge, a theme's frame, the private band or the Start Page
   // backdrop's color. Chromium's infobars take it (InfoBarStyleFor).
@@ -11595,6 +11598,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value(true));
       return;
     }
+    if (method == "menuButtonBounds" && args.size() == 4 &&
+        std::ranges::all_of(args, [](const auto& v) { return v.is_int(); })) {
+      owner->menu_button_bounds = gfx::Rect(args[0].GetInt(), args[1].GetInt(),
+          std::max(0, args[2].GetInt()), std::max(0, args[3].GetInt()));
+      reply(true, base::Value());
+      return;
+    }
     if (method == "geometry" && (args.size() == 8 || args.size() == 10) &&
         std::ranges::all_of(args, [](const auto& v) { return v.is_int(); })) {
       if (args.size() == 10) {
@@ -14499,7 +14509,8 @@ bool IsCaption(views::View* parent, int x, int y) {
   // whole rail no-drag: its header shares the band, and a caption there
   // turned the layout toggle's click into a window drag.
   if (x < RailWidth(parent)) return false;
-  return owner && !owner->interactive_bounds.Contains(x, y - view->y());
+  return owner && !owner->interactive_bounds.Contains(x, y - view->y()) &&
+      !owner->menu_button_bounds.Contains(x, y - view->y());
 }
 
 std::optional<InfoBarStyle> InfoBarStyleFor(const views::View* infobar) {

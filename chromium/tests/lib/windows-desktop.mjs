@@ -10,6 +10,7 @@ using System; using System.Runtime.InteropServices;
 public static class BlancInput {
   [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
   [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
+  [DllImport("user32.dll")] public static extern int GetSystemMetrics(int index);
   [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
   [DllImport("user32.dll")] public static extern void keybd_event(byte vk, byte scan, uint flags, UIntPtr extra);
 }
@@ -17,7 +18,14 @@ public static class BlancInput {
 [void][BlancInput]::SetProcessDPIAware()
 foreach ($step in ($env:BLANC_INPUT | ConvertFrom-Json)) {
   switch ($step.do) {
-    'move'  { [void][BlancInput]::SetCursorPos([int]$step.x, [int]$step.y) }
+    # A real, absolute mouse movement as well as the cursor's position: a
+    # window's move or size loop follows input events, not the cursor.
+    'move'  {
+      [void][BlancInput]::SetCursorPos([int]$step.x, [int]$step.y)
+      $nx = [uint32][math]::Round([int]$step.x * 65535 / ([BlancInput]::GetSystemMetrics(0) - 1))
+      $ny = [uint32][math]::Round([int]$step.y * 65535 / ([BlancInput]::GetSystemMetrics(1) - 1))
+      [BlancInput]::mouse_event(0x8001, $nx, $ny, 0, [UIntPtr]::Zero)
+    }
     'down'  { [BlancInput]::mouse_event(0x0002, 0, 0, 0, [UIntPtr]::Zero) }
     'up'    { [BlancInput]::mouse_event(0x0004, 0, 0, 0, [UIntPtr]::Zero) }
     'key'   { [BlancInput]::keybd_event([byte]$step.vk, 0, 0, [UIntPtr]::Zero); [BlancInput]::keybd_event([byte]$step.vk, 0, 2, [UIntPtr]::Zero) }

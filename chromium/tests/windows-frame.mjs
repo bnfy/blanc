@@ -33,7 +33,16 @@ async function launched(name,extraArgs=[]){
  const fixture=new NativeFixture();fixture.extraArgs=extraArgs;
  await fixture.launch(config,path.join(scratch,name),{testHooks:true,diskAssets:false});
  await installDriver(fixture.host);
- const targetId=(await fixture.targets()).find(t=>t.url===fixture.base+'/initial').id;
+ // The launch tab carries Chromium's "unsupported command-line flag" infobar
+ // (the fixture's resolver rules), which takes height from the page. A fresh
+ // tab has none, as every suite case's does after its reset.
+ const made=await nativeCall(fixture.host,'createTab',[fixture.base+'/initial']);
+ for(const t of (await fixture.snapshot()).tabs)if(String(t.id)!==String(made.tabId))await nativeCall(fixture.host,'closeTab',[t.id]);
+ await waitFor(fixture.snapshot,s=>s.tabs.length===1&&!s.tabs[0].isLoading,'one fresh tab');
+ const pageTargets=async()=>(await fixture.targets()).filter(t=>t.type==='page'&&t.url===fixture.base+'/initial');
+ const [target]=await waitFor(pageTargets,ts=>ts.length===1,'the fresh tab as the only page');
+ const page=await fixture.connectTarget(target);
+ const targetId=target.id;
  // The window as CDP reports it, and the visible part inside Windows'
  // invisible resize borders.
  const win=async()=>{
@@ -44,8 +53,8 @@ async function launched(name,extraArgs=[]){
  };
  const strip=expression=>fixture.host.eval(`(()=>{const document=window.document.getElementById('strip').contentDocument;const window_=document.defaultView;return (${expression});})()`);
  const fills=async()=>{
-  const w=await win(),host=await fixture.host.eval('({w:innerWidth,h:innerHeight})'),page=await fixture.page.eval('innerHeight');
-  return {ok:host.w===w.width&&host.h+page===w.height,window:w,host,page};
+  const w=await win(),host=await fixture.host.eval('({w:innerWidth,h:innerHeight})'),inner=await page.eval('({w:innerWidth,h:innerHeight})');
+  return {ok:host.w===w.width&&inner.w===w.width&&host.h+inner.h===w.height,window:w,host,page:inner};
  };
  return {fixture,win,strip,fills};
 }
