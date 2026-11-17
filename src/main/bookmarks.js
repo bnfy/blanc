@@ -193,6 +193,11 @@ function getTree() {
   return withKeys(buildTree(ensureStore().data.items, layoutStore.getLayout()));
 }
 
+/** The native Favorites menu's entries, in the manager's order. */
+function getMenuModel() {
+  return data.favoritesMenuModel(ensureStore().data.items, layoutStore.getLayout());
+}
+
 function exportForSync() {
   const { items, tombstones } = ensureStore().data;
   return { items, tombstones };
@@ -264,6 +269,6 @@ function mergeFromSync(remote) {
 
 module.exports = {
   listBookmarks, isBookmarked, toggleBookmark, saveFavorite, updateFavicon, removeBookmark, removeBookmarks, importBookmarks,
-  setBookmarkFolder, moveFavorites, createFolder, renameFolder, moveFolder, removeFolder, reorderFolder, getTree,
+  setBookmarkFolder, moveFavorites, createFolder, renameFolder, moveFolder, removeFolder, reorderFolder, getTree, getMenuModel,
   exportForSync, mergeFromSync, onChanged, onMerged, setManagerLive,
 };

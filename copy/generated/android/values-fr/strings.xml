@@ -11,7 +11,7 @@
     <string name="slash_favorites_hint">Ouvrir les favoris</string>
     <string name="slash_bring_tabs_hint">Récupérer les onglets ouverts d’un autre navigateur</string>
     <string name="slash_save_hint">Enregistrer cette page dans les favoris — indiquez un dossier pour l’y classer</string>
-    <string name="slash_save_doc">Enregistre cette page dans les favoris, dans un dossier si vous en indiquez un</string>
+    <string name="slash_save_doc">Enregistre cette page dans les favoris, dans un dossier si vous en indiquez un. Mettez &gt; entre les noms de dossier pour atteindre un dossier dans un dossier, par exemple Travail &gt; Clients</string>
     <string name="slash_history_hint">Ouvrir l’historique de navigation</string>
     <string name="slash_archive_hint">Voir les onglets que Blanc a archivés pour vous</string>
     <string name="slash_downloads_hint">Ouvrir les téléchargements</string>

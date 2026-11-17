@@ -46,8 +46,8 @@
     "source": "sha256:e9916376c8ff6435790e53cb63890d84c7fb6f0841326a391a8c408000f18a62"
   },
   "slash.save.doc": {
-    "message": "Salva esta página nos favoritos, numa pasta se você informar o nome",
-    "source": "sha256:9238f1f272ff3660d8448539ce9531df770c04358a2832bb9fd98c57b4443b79"
+    "message": "Salva esta página nos favoritos, numa pasta se você informar o nome. Coloque > entre nomes de pasta para chegar a uma pasta dentro de outra, como Trabalho > Clientes",
+    "source": "sha256:1a1708b5caf18b9f26af2a7efcf6a5633c0bb30b43f04a432c62ae60bd3d8e22"
   },
   "slash.history.hint": {
     "message": "Abrir o histórico de navegação",

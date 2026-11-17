@@ -11,7 +11,7 @@
     <string name="slash_favorites_hint">Abrir favoritos</string>
     <string name="slash_bring_tabs_hint">Trazer abas abertas de outro navegador</string>
     <string name="slash_save_hint">Salvar esta página nos favoritos — digite o nome de uma pasta para arquivá-la</string>
-    <string name="slash_save_doc">Salva esta página nos favoritos, numa pasta se você informar o nome</string>
+    <string name="slash_save_doc">Salva esta página nos favoritos, numa pasta se você informar o nome. Coloque &gt; entre nomes de pasta para chegar a uma pasta dentro de outra, como Trabalho &gt; Clientes</string>
     <string name="slash_history_hint">Abrir o histórico de navegação</string>
     <string name="slash_archive_hint">Ver as abas que o Blanc arquivou para você</string>
     <string name="slash_downloads_hint">Abrir downloads</string>

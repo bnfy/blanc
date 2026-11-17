@@ -245,7 +245,7 @@ function bangsState() {
 const patron = require('./patron');
 const bookmarks = require('./bookmarks');
 const favoritesLayout = require('./favorites-layout');
-const { groupFavoritesForMenu, mayWriteFavoriteFavicon } = require('./bookmark-data');
+const { mayWriteFavoriteFavicon } = require('./bookmark-data');
 const history = require('./history');
 const archive = require('./archive');
 const { siteKey: topSiteKey } = require('./top-sites');
@@ -12480,22 +12480,17 @@ function tabMenuItems(owner = rt()) {
  * from user content — tab/favorite titles and folder names. */
 const escapeMenuLabel = (label) => (process.platform === 'darwin' ? label : label.replace(/&/g, '&&'));
 
-/** Native Favorites-menu items: folder submenus first (alphabetical), then
- * ungrouped favorites inline — mirroring the Favorites page. */
+/** Native Favorites-menu items: folders as nested submenus and favorites
+ * as items, in the order the Favorites manager shows (F63). */
 function favoritesMenuItems(owner = rt()) {
-  const label = (b) => {
-    const t = b.title || b.url;
-    return t.length > 120 ? `${t.slice(0, 119)}…` : t;
+  const cut = (text) => escapeMenuLabel(text.length > 120 ? `${text.slice(0, 119)}…` : text);
+  const toItem = (entry) => {
+    if (entry.kind === 'separator') return { type: 'separator' };
+    if (entry.kind === 'folder') return { label: cut(entry.name), submenu: entry.children.map(toItem) };
+    const { url, title } = entry.item;
+    return { label: cut(title || url), click: bindWindowRuntime(owner, () => setActiveTab(createTab(url))) };
   };
-  const open = (b) => ({ label: escapeMenuLabel(label(b)), click: bindWindowRuntime(owner, () => setActiveTab(createTab(b.url))) });
-  // Folders as submenus first (alphabetical), then ungrouped favorites inline —
-  // mirroring the Favorites page. Everything is shown; folders keep the menu
-  // navigable regardless of favorite count (no flat cap on ungrouped either).
-  const { folders, ungrouped } = groupFavoritesForMenu(bookmarks.listBookmarks());
-  const items = folders.map((f) => ({ label: escapeMenuLabel(f.name), submenu: f.items.map(open) }));
-  if (folders.length && ungrouped.length) items.push({ type: 'separator' });
-  items.push(...ungrouped.map(open));
-  return items;
+  return bookmarks.getMenuModel().map(toItem);
 }
 
 // --- Keyboard shortcuts inventory (Help → Keyboard Shortcuts page) ---
@@ -12946,7 +12941,7 @@ function buildMenuForRuntime(runtime) {
         // Only divide the favorites list from Show Favorites when there ARE
         // favorites — otherwise the two separators would collapse into one gap.
         ...(favItems.length ? [{ type: 'separator' }] : []),
-        { label: t('menu.showFavorites'), accelerator: isMac ? 'Cmd+Alt+B' : 'Ctrl+Shift+O', click: bound(() => openInternalPage('blanc://bookmarks/')) },
+        { id: 'favorites-show', label: t('menu.showFavorites'), accelerator: isMac ? 'Cmd+Alt+B' : 'Ctrl+Shift+O', click: bound(() => openInternalPage('blanc://bookmarks/')) },
         command('history'),
       ],
     },
