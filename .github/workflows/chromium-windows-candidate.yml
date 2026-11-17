@@ -38,8 +38,11 @@ jobs:
     name: candidate (windows x64)
     runs-on: windows-2025
     timeout-minutes: 240
-    # Draft releases are readable only with write access to contents. The
-    # token is given to the download step alone, never to the browser.
+    # Draft releases are readable only with write access to contents, and the
+    # build cannot pass between jobs as an artifact (artifacts of a public
+    # repository are downloadable by any signed-in user). So this one job holds
+    # the grant; the token is passed to the download step alone, and neither
+    # the browser nor the test scripts receive it.
     permissions:
       contents: write
     defaults:
@@ -79,10 +82,22 @@ jobs:
           $zip = "$env:RUNNER_TEMP\candidate\$env:ASSET"
           $actual = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
           if ($actual -ne $env:CANDIDATE_SHA256) { throw "The draft holds $actual, not the candidate asked for." }
-          Expand-Archive $zip "$env:RUNNER_TEMP\blanc"
+          # bsdtar: faster than Expand-Archive and without its 260-character limit.
+          New-Item -ItemType Directory "$env:RUNNER_TEMP\blanc" | Out-Null
+          tar -xf $zip -C "$env:RUNNER_TEMP\blanc"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not unpack the candidate.' }
+          if (-not (Test-Path "$env:RUNNER_TEMP\blanc\candidate.json")) { throw 'The zip has no candidate.json at its top level; it was not made by chromium/windows/package-candidate.mjs.' }
           "CANDIDATE_DIR=$env:RUNNER_TEMP\blanc" >> $env:GITHUB_ENV
           "RESULTS=$env:RUNNER_TEMP\results" >> $env:GITHUB_ENV
           Get-Content "$env:RUNNER_TEMP\blanc\candidate.json"
+      - name: Require the fork's Windows scripts on this ref
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($script in 'chromium/tests/windows-smoke.mjs', 'chromium/windows/run-suite.mjs') {
+            if (-not (Test-Path $script)) { throw "$script is not on $env:GITHUB_REF_NAME. Run this workflow with --ref chromium/next." }
+          }
+      # The harness loads shipping modules and their packages; nothing it uses
+      # needs an install script.
       - name: Install the harness's dependencies
         env:
           ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
@@ -91,7 +106,10 @@ jobs:
         run: node chromium/tests/windows-smoke.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\smoke"
       - name: Foundation suite
         if: inputs.suite == 'f0'
-        run: node chromium/windows/run-suite.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\f0" --slice=f0 "--only=$env:ONLY"
+        run: |
+          # An empty filter is no filter: a full run must never be recorded as a subset.
+          $subset = if ($env:ONLY) { @("--only=$env:ONLY") } else { @() }
+          node chromium/windows/run-suite.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\f0" --slice=f0 @subset
       - name: Keep the results
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
