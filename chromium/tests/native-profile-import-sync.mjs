@@ -16,6 +16,7 @@ import {assertRendering,assertNodeRuntime} from './lib/render-guard.mjs';
 import {createWorld} from './world.mjs';
 import {prepareSyncFixture} from './fork-steps/sync.mjs';
 import {makeImportSource,digestTree,electronProtect} from './lib/profile-import-fixture.mjs';
+import {inSettings} from './adapters/commands.mjs';
 const [configFile,out]=process.argv.slice(2),config=JSON.parse(fs.readFileSync(configFile));
 assertNodeRuntime();assert.equal(fs.existsSync(out),false,'expected a new output folder');fs.mkdirSync(out,{recursive:true});
 const result={candidate:config.candidate,checks:[]};
@@ -41,7 +42,7 @@ try{
  let w=await launch('refused');let source=syncing({legacyInstall:true});let before=digestTree(source.userData);
  let r=await w.native('profileImportRun',[source.userData]);
  assert.equal(r.ok,true);assert.ok(r.profiles.personal,'expected the rest of the import');
- assert.deepEqual(r.sync,{staged:true,key:'unavailable'});
+ assert.deepEqual(r.sync,{staged:true,state:'staged',key:'unavailable'});
  let staged=await w.native('profileImportSyncFiles',['BlancSyncImport']);
  assert.equal(staged.ready,true);assert.equal(staged.sync.deviceId,DEVICE);assert.equal(staged.sync.enabled,false,'expected Sync off without its key');
  assert.equal(staged.hasKey,false);assert.equal(staged.key,null);
@@ -56,7 +57,7 @@ try{
  w=await launch('kept');await w.native('setImportSafeStoragePassword',[password]);
  source=syncing();before=digestTree(source.userData);
  r=await w.native('profileImportRun',[source.userData]);
- assert.deepEqual(r.sync,{staged:true,key:'kept'});
+ assert.deepEqual(r.sync,{staged:true,state:'staged',key:'kept'});
  staged=await w.native('profileImportSyncFiles',['BlancSyncImport']);
  assert.deepEqual(staged.files,['sends.json','shared-spaces.json','sync.json','synced-closed.json','tab-icons.json','tab-sync.json']);
  assert.equal(staged.sync.deviceId,DEVICE);assert.equal(staged.sync.enabled,true);assert.equal(staged.sync.handle,'fixture');
@@ -68,20 +69,55 @@ try{
  // 3. A wrong password is the same as a refusal.
  await closed();w=await launch('wrong');await w.native('setImportSafeStoragePassword',['not-the-password']);
  source=syncing();r=await w.native('profileImportRun',[source.userData]);
- assert.deepEqual(r.sync,{staged:true,key:'unavailable'});
+ assert.deepEqual(r.sync,{staged:true,state:'staged',key:'unavailable'});
  result.checks.push('a password that does not open the key leaves Sync off');
  await closed();
 
  // 4. The next launch takes the staged stores up before Sync starts.
  w=await launch('adopt');await w.native('setImportSafeStoragePassword',[password]);
  source=syncing({personalOnly:true});r=await w.native('profileImportRun',[source.userData]);
- assert.deepEqual(r.sync,{staged:true,key:'kept'});assert.deepEqual(Object.keys(r.profiles),['personal']);
+ assert.deepEqual(r.sync,{staged:true,state:'staged',key:'kept'});assert.deepEqual(Object.keys(r.profiles),['personal']);
  await w.relaunch();await assertRendering(e=>f.host.eval(e));
  const live=await w.waitFor(()=>w.native('profileImportSyncFiles',['BlancSync']),x=>x.sync?.deviceId===DEVICE,'the imported Sync stores in place',15000);
  assert.equal(live.sync.handle,'fixture');assert.equal(live.key,key.toString('base64'),'expected the key still opening after the relaunch');
  assert.ok(live.files.includes('tab-sync.json')&&live.files.includes('sends.json'));
  assert.equal((await w.native('profileImportSyncFiles',['BlancSyncImport'])).ready,false,'expected the staging folder gone');
  result.checks.push('after a relaunch the fork\'s Sync holds the imported stores, device identity and key');
+ await closed();
+
+ // 5. Staging fails: Personal's data is in, but Sync is not marked done, Settings says so, and Try again stages it.
+ const own=JSON.parse(fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname),'../blanc/fork-strings.json'),'utf8'));
+ const text=name=>own['settings.profileImport.'+name].en;
+ const click=w=>inSettings(w,'help',async(a,d)=>{
+  const root=d.find('#blancImport').getRootNode(),button=root.getElementById('blancImportStart'),status=root.getElementById('blancImportStatus');
+  const before=status.textContent.trim();button.click();const end=Date.now()+30000;
+  while(Date.now()<end){await new Promise(r=>setTimeout(r,100));const now=status.textContent.trim();if(!button.disabled&&now!==before&&now!==a)break;}
+  return {value:{status:status.textContent.trim(),button:button.textContent.trim()}};},text('working'));
+ w=await launch('stagefail');await w.native('setImportSafeStoragePassword',[password]);
+ source=syncing({personalOnly:true});await w.native('setImportSource',[source.userData]);
+ await w.native('setImportSyncStagingFails',[true]);
+ r=await click(w);
+ assert.deepEqual(r,{status:text('syncFailed'),button:text('retry')});
+ assert.equal((await w.native('profileImportState')).profiles?.personal?.sync,'failed','expected Sync marked failed, not done');
+ assert.equal((await w.native('profileImportSyncFiles',['BlancSyncImport'])).ready,false,'expected no finished staging');
+ await w.native('setImportSyncStagingFails',[false]);
+ r=await click(w);
+ assert.deepEqual(r,{status:text('doneRestart'),button:text('start')});
+ const marker=(await w.native('profileImportState')).profiles.personal;assert.equal(marker.sync,'staged');
+ staged=await w.native('profileImportSyncFiles',['BlancSyncImport']);
+ assert.equal(staged.ready,true);assert.equal(staged.sync.deviceId,DEVICE);assert.equal(staged.key,key.toString('base64'));
+ assert.equal((await w.api('listFavorites')).length,2,'expected Personal\'s Favorites imported once, not again');
+ result.checks.push('a failed Sync staging leaves Sync marked failed, Settings says Sync couldn\'t be set up, and Try again stages it without importing the rest again');
+
+ // 6. The move at launch fails: the staged copy is kept, and the next launch takes it up.
+ await w.relaunch({afterStop:async()=>{f.flags.push('--blanc-test-sync-adopt-fail');}});await assertRendering(e=>f.host.eval(e));
+ assert.notEqual((await w.native('profileImportSyncFiles',['BlancSync'])).sync?.deviceId,DEVICE,'expected the failed move to leave Sync as it was');
+ assert.equal((await w.native('profileImportSyncFiles',['BlancSyncImport'])).ready,true,'expected the staged copy kept after a failed move');
+ await w.relaunch({afterStop:async()=>{f.flags=f.flags.filter(x=>x!=='--blanc-test-sync-adopt-fail');}});await assertRendering(e=>f.host.eval(e));
+ const adopted=await w.waitFor(()=>w.native('profileImportSyncFiles',['BlancSync']),x=>x.sync?.deviceId===DEVICE,'the imported Sync stores in place after the retry',15000);
+ assert.equal(adopted.key,key.toString('base64'));
+ assert.equal((await w.native('profileImportSyncFiles',['BlancSyncImport'])).ready,false,'expected the staging folder gone once the move was verified');
+ result.checks.push('a failed move at launch keeps the staged copy, and the next launch takes it up and only then removes it');
  result.result='pass';
 }catch(error){result.result=error.code==='BLANC_ENVIRONMENT_STOP'?'blocked-environment':'fail';result.error=String(error.stack);process.exitCode=1;}
 finally{

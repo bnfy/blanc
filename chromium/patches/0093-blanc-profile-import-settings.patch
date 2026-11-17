@@ -39,7 +39,7 @@ diff --git a/chrome/browser/resources/settings/about_page/about_page.ts b/chrome
        blancTrust_: {type: Array},
        blancTrustStatus_: {type: String},
        blancCrashDumps_: {type: Number},
-@@ -335,7 +339,67 @@
+@@ -335,7 +339,71 @@
        this.blancDiagnosticsSummary_ = this.blancText_('blancDiagnosticsReadFailed');
      }
    }
@@ -59,7 +59,7 @@ diff --git a/chrome/browser/resources/settings/about_page/about_page.ts b/chrome
 +    let retry = true;
 +    try {
 +      const result = await sendWithPromise<{ok: boolean, error?: string, imported?: number, failed?: number,
-+                                            already?: number, sync?: string,
++                                            already?: number, sync?: string, syncRetried?: boolean,
 +                                            details?: Array<{personal: boolean, name: string, failed: boolean,
 +                                                             counts?: Record<string, number>}>}>('blancProfileImport');
 +      // A row for each profile: its name, then what came across, largest
@@ -89,7 +89,11 @@ diff --git a/chrome/browser/resources/settings/about_page/about_page.ts b/chrome
 +        } as Record<string, string>)[result.error ?? ''] ?? 'blancProfileImportFailed');
 +      } else if ((result.failed ?? 0) > 0) {
 +        this.blancImportStatus_ = t('blancProfileImportPartial');
-+      } else if ((result.imported ?? 0) === 0) {
++      } else if (result.sync === 'failed') {
++        // The data came across but Sync's could not be set aside; Try again
++        // stages Sync alone.
++        this.blancImportStatus_ = t('blancProfileImportSyncFailed');
++      } else if ((result.imported ?? 0) === 0 && !result.syncRetried) {
 +        this.blancImportStatus_ = t('blancProfileImportAlready');
 +        retry = false;
 +      } else {

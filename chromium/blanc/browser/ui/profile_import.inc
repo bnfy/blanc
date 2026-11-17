@@ -782,8 +782,14 @@ std::optional<std::string> OpenElectronSyncKey(std::string protected_key) {
 
 // Writes the staging folder afresh: the stores, then `ready` last, so a
 // folder without it is never taken up.
+// A test launch can make the staging write fail (setImportSyncStagingFails).
+std::atomic<bool>& ImportSyncStagingFailsForTest() {
+  static std::atomic<bool> fails{false};
+  return fails;
+}
 bool WriteImportSyncStaging(base::FilePath dir, base::DictValue stores) {
   if (!base::DeletePathRecursively(dir) || !base::CreateDirectory(dir)) return false;
+  if (blanc::BlancTestLaunch() && ImportSyncStagingFailsForTest()) return false;
   for (auto [name, value] : stores) {
     const auto json = base::WriteJson(value);
     if (!json || !base::ImportantFileWriter::WriteFileAtomically(dir.AppendASCII(name), *json)) return false;
@@ -797,14 +803,16 @@ bool WriteImportSyncStaging(base::FilePath dir, base::DictValue stores) {
 void StageImportedSync(Profile* profile, base::DictValue stores, std::optional<std::string> protected_key,
                        base::OnceCallback<void(base::DictValue)> done) {
   auto* sync = stores.FindDict("sync.json");
-  if (!sync) { std::move(done).Run(base::DictValue().Set("staged", false).Set("key", "none")); return; }
+  // state: staged, failed (the write did not finish; Sync is retried by the
+  // next import) or none (nothing of Sync's to stage).
+  if (!sync) { std::move(done).Run(base::DictValue().Set("staged", false).Set("state", "none").Set("key", "none")); return; }
   const base::FilePath dir = profile->GetPath().AppendASCII(kImportSyncStaging);
   auto write = base::BindOnce([](base::FilePath dir, base::OnceCallback<void(base::DictValue)> done,
                                  base::DictValue stores, std::string key_state) {
     base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
         base::BindOnce(&WriteImportSyncStaging, dir, std::move(stores)),
         base::BindOnce([](base::OnceCallback<void(base::DictValue)> done, std::string key_state, bool written) {
-          std::move(done).Run(base::DictValue().Set("staged", written).Set("key", key_state));
+          std::move(done).Run(base::DictValue().Set("staged", written).Set("state", written ? "staged" : "failed").Set("key", key_state));
         }, std::move(done), std::move(key_state)));
   }, dir, std::move(done));
   if (!sync->FindBool("enabled").value_or(false) || !protected_key) {
@@ -878,6 +886,8 @@ base::DictValue ImportSummary(const base::Value& result) {
   const auto* already = dict->FindList("alreadyImported");
   const auto* sync = dict->FindDict("sync");
   const auto* key = sync ? sync->FindString("key") : nullptr;
+  const auto* sync_state = sync ? sync->FindString("state") : nullptr;
+  const bool sync_failed = sync_state && *sync_state == "failed";
   // The list a person reads: each profile by its own name with its counts,
   // and each one that could not be read. Names go to the Settings page only.
   const auto* names = dict->FindDict("names");
@@ -906,7 +916,8 @@ base::DictValue ImportSummary(const base::Value& result) {
       .Set("imported", static_cast<int>(profiles ? profiles->size() : 0))
       .Set("failed", static_cast<int>(errors ? errors->size() : 0))
       .Set("already", static_cast<int>(already ? already->size() : 0))
-      .Set("sync", key ? *key : std::string("none"));
+      .Set("sync", sync_failed ? std::string("failed") : key ? *key : std::string("none"))
+      .Set("syncRetried", dict->FindBool("syncRetried").value_or(false));
 }
 
 // One import at a time. Each profile in the plan is a job: Personal into the
@@ -946,6 +957,7 @@ class ProfileImport final {
   std::string version_;
   int windows_ = 0, tabs_ = 0;
   bool created_profile_ = false;
+  bool retry_sync_ = false;
   base::DictValue settings_synced_, settings_prefs_, install_, session_, sync_stores_, start_page_;
   std::optional<std::string> wallpaper_;
   std::optional<std::string> sync_key_;
@@ -1026,7 +1038,22 @@ void ProfileImport::Planned(bool ok, const std::string& value) {
     const auto* stores = entry ? entry->FindDict("stores") : nullptr;
     const auto* id = entry ? entry->FindString("id") : nullptr;
     if (!stores || !id) continue;
-    if (done && done->contains(key)) { result_.FindList("alreadyImported")->Append(key); continue; }
+    // Personal's Sync stores travel with the device's.
+    if (key == "personal") {
+      for (const char* name : kImportSyncProfileStores) {
+        if (const auto* store = stores->FindDict(name)) sync_stores_.Set(name, store->Clone());
+      }
+    }
+    if (done && done->contains(key)) {
+      result_.FindList("alreadyImported")->Append(key);
+      // Sync is tracked apart from the profile's data: a Personal imported
+      // before whose Sync staging failed gets Sync staged again, and nothing
+      // else of it is imported twice.
+      const auto* entry_done = done->FindDict(key);
+      const auto* sync_state = entry_done ? entry_done->FindString("sync") : nullptr;
+      if (key == "personal" && sync_state && *sync_state == "failed") retry_sync_ = true;
+      continue;
+    }
     Job job;
     job.key = key;
     job.id = *id;
@@ -1035,10 +1062,6 @@ void ProfileImport::Planned(bool ok, const std::string& value) {
     job.stores = stores->Clone();
     if (key == "personal") {
       if (const auto* synced = stores->FindDict("settings.json")) settings_synced_ = synced->Clone();
-      // Personal's Sync stores travel with the device's.
-      for (const char* name : kImportSyncProfileStores) {
-        if (const auto* store = stores->FindDict(name)) sync_stores_.Set(name, store->Clone());
-      }
     }
     if (key == "personal") jobs_.insert(jobs_.begin(), std::move(job)); else named.push_back(std::move(job));
   }
@@ -1050,6 +1073,17 @@ void ProfileImport::Planned(bool ok, const std::string& value) {
   NextProfile();
 }
 void ProfileImport::NextProfile() {
+  if (jobs_.empty() && retry_sync_) {
+    retry_sync_ = false;
+    if (personal_) {
+      result_.Set("syncRetried", true);
+      StageImportedSync(personal_.get(), std::move(sync_stores_), std::move(sync_key_),
+          base::BindOnce(&ProfileImport::SyncStaged, weak_.GetWeakPtr()));
+      sync_stores_ = base::DictValue();
+      sync_key_.reset();
+      return;
+    }
+  }
   if (jobs_.empty()) {
     // With more than one profile Chromium opens its profile picker at each
     // launch. Its own setting for that is switched off (owner, 2026-11-16),
@@ -1125,6 +1159,15 @@ void ProfileImport::Applied(std::string key, std::string id, base::WeakPtr<Profi
   NextProfile();
 }
 void ProfileImport::SyncStaged(base::DictValue staged) {
+  // Personal's marker says whether Sync came across: staged, none, or failed
+  // (the next import stages it again).
+  const auto* state = staged.FindString("state");
+  auto marker = g_browser_process->local_state()->GetDict(kProfileImportPref).Clone();
+  if (auto* personal = marker.EnsureDict("profiles")->FindDict("personal"); personal && state) {
+    personal->Set("sync", *state);
+    g_browser_process->local_state()->SetDict(kProfileImportPref, std::move(marker));
+    g_browser_process->local_state()->CommitPendingWrite();
+  }
   result_.Set("sync", std::move(staged));
   NextProfile();
 }
@@ -1135,6 +1178,7 @@ void ProfileImport::Finish(base::Value result) {
   version_.clear();
   windows_ = tabs_ = 0;
   created_profile_ = false;
+  retry_sync_ = false;
   settings_synced_ = base::DictValue(); settings_prefs_ = base::DictValue(); install_ = base::DictValue();
   session_ = base::DictValue(); settings_skipped_ = base::ListValue();
   sync_stores_ = base::DictValue(); sync_key_.reset();
