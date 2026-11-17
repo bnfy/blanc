@@ -142,11 +142,16 @@ test('Support gives its address, then three topics; Download closes with the wai
 
 test('a link to a section lands with its heading below the bars', async () => {
   for (const id of ['pricing', 'support', 'download']) {
-    const { page, context } = await openPage(`/mail#${id}`);
+    // Load the page first, then follow the link within it. Loading /mail#id
+    // directly jumps while images and fonts above the section are still
+    // settling, and on a slow runner that jump stayed about 43px too far
+    // (November 17, 2026, on #pricing and #download): the runner's timing,
+    // not the offset this test checks.
+    const { page, context } = await openPage('/mail');
     try {
-      // Images and fonts above the section can still be settling at a fixed
-      // delay, leaving the jump to the fragment briefly off on a slow runner;
-      // wait for it to land instead (it fails if it never does).
+      await page.waitForLoadState('load');
+      await page.evaluate(() => document.fonts.ready);
+      await page.goto(`${baseURL}/mail#${id}`);
       const measure = id => document.getElementById(id).getBoundingClientRect().top - document.querySelector('.mail-bar').getBoundingClientRect().bottom;
       await page.waitForFunction(id => {
         const gap = document.getElementById(id).getBoundingClientRect().top - document.querySelector('.mail-bar').getBoundingClientRect().bottom;
