@@ -207,7 +207,7 @@
     },
     {
       "file": "src/main/downloads.js",
-      "sha256": "cc2f638f21d50a0d1b00037949f125657ae62960376b53b3b993746bf1dfa074",
+      "sha256": "3a824c148ab1f761897b5090accbedba4c17e657c67ebc5a48828b632c1a569f",
       "literalChannels": [
         "updated",
         "will-download"
@@ -270,7 +270,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "f75db31f5fd22199c88fa72e8f2a1f5bd257233959ba83caefd85cfdbb24eb5c",
+      "sha256": "1ae2ddbb3f684999d06a938d3de9508b1475c0e04fa972e71438627a73576d7c",
       "literalChannels": [
         "activate",
         "bang-icons:changed",

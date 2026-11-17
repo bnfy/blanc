@@ -41731,6 +41731,90 @@
         }
       }
     },
+    "settings.general.askWhereToSave.label": {
+      "comment": "Settings → General → Browsing: label of the switch (off by default) that shows a Save As dialog for every download. When it's off, downloads go straight to the Downloads folder.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask where to save each file"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für jede Datei fragen, wo sie gespeichert wird"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preguntar dónde guardar cada archivo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander où enregistrer chaque fichier"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiedi dove salvare ogni file"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perguntar onde salvar cada arquivo"
+          }
+        }
+      }
+    },
+    "settings.general.askWhereToSave.hint": {
+      "comment": "Settings → General → Browsing: hint under Ask where to save each file. Downloads is the name of the system's Downloads folder; use the folder's name on that platform in this language.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When this is off, downloads go straight to your Downloads folder, and a file with the same name gets a number added."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn das aus ist, landen Downloads direkt in deinem Ordner „Downloads“, und eine Datei mit demselben Namen bekommt eine Nummer angehängt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si está desactivado, las descargas van directamente a tu carpeta Descargas, y un archivo con el mismo nombre recibe un número."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lorsque cette option est désactivée, les téléchargements vont directement dans votre dossier Téléchargements, et un fichier portant le même nom reçoit un numéro."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se è disattivato, i download vanno direttamente nella cartella Download e un file con lo stesso nome riceve un numero."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quando está desativado, os downloads vão direto para a sua pasta Downloads, e um arquivo com o mesmo nome recebe um número."
+          }
+        }
+      }
+    },
     "settings.general.tabSwitchOrder.recent": {
       "comment": "Settings → General → Switch tabs with Ctrl+Tab: option (most recently used first; the default).",
       "extractionState": "manual",

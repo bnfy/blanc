@@ -3803,6 +3803,14 @@
     "message": "New Tab goes to a new tab in this window that you haven't used yet, instead of opening another. New Private Tab does the same for private tabs.",
     "note": "Settings → General → Browsing: hint under Switch to an unused new tab. New Tab and New Private Tab are the File menu items of the same name."
   },
+  "settings.general.askWhereToSave.label": {
+    "message": "Ask where to save each file",
+    "note": "Settings → General → Browsing: label of the switch (off by default) that shows a Save As dialog for every download. When it's off, downloads go straight to the Downloads folder."
+  },
+  "settings.general.askWhereToSave.hint": {
+    "message": "When this is off, downloads go straight to your Downloads folder, and a file with the same name gets a number added.",
+    "note": "Settings → General → Browsing: hint under Ask where to save each file. Downloads is the name of the system's Downloads folder; use the folder's name on that platform in this language."
+  },
   "settings.general.tabSwitchOrder.recent": {
     "message": "In the order you used them",
     "note": "Settings → General → Switch tabs with Ctrl+Tab: option (most recently used first; the default)."
