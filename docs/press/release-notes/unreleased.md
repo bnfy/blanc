@@ -26,10 +26,11 @@ since then are below as they're recorded.
 
 ## Still open
 
-- **Saving downloads without asking in a packaged build** (#1591), with the
-  real Downloads folder on macOS (whether macOS asks for access to Downloads
-  the first time) and on Windows. The check so far used a dev build and a
-  temporary folder.
+- **Whether macOS asks for Downloads access the first time** Blanc saves a
+  download without asking (#1591). The packaged check on November 17, 2026
+  saw no prompt, but it ran with the same signing identity as an installed
+  Blanc that may already have had access. Saving to the real Downloads folder
+  was checked in signed packaged builds on macOS and Windows.
 - **Favorites drag and drop with a real mouse** in a packaged build on macOS,
   Windows and Linux. The checks so far drive drags with page events only.
 

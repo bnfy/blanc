@@ -207,8 +207,9 @@
     },
     {
       "file": "src/main/downloads.js",
-      "sha256": "765f307df9d93623158d0dd9d2877c0bef4267854dc167bccf3945f3969eba1a",
+      "sha256": "614d77b0716149e66b5057af6664f556679accd4a266d184cb960bb07d51a08b",
       "literalChannels": [
+        "input-event",
         "updated",
         "will-download"
       ],
@@ -1167,7 +1168,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "2a90edb5e62310785085402a74dab910adbd77f1da432f81487b84359713181e",
+      "sha256": "f098d4fceee279530b184310712ed7805577026004d67f7d797cb0bad79926eb",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

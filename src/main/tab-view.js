@@ -33,6 +33,7 @@ const { isVisiblePaneId, foregroundOpenRole } = require('./glance-focus');
 const { primeLoadingBackground } = require('./tab-loading-background');
 const { mayBuildFreshView, inertViewMayShow, inertPageUrl } = require('./document-policy');
 const { persistableUrl } = require('./session-snapshot');
+const { trackDownloadGestures } = require('./downloads');
 
 let deps = null;
 let mouseGestureSettings = null;
@@ -211,6 +212,8 @@ function wireTabView(tab, view, { owner, adopted }) {
   const id = tab.id;
   const wc = view.webContents;
   tabZoom.prepare(wc);
+  // A real click or key press here lets one download skip Save As (#1591).
+  trackDownloadGestures(wc);
   const gesture = createRecognizer();
   const heldModifiers = new Set();
   let gestureButton = null;
