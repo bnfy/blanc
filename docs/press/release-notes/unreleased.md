@@ -17,6 +17,13 @@ since then are below as they're recorded.
   and `/save` takes a path, such as `/save Work > Clients`. On the iPhone, a
   folder inside a folder shows as one folder named by its path for now.
 
+## Changed
+
+- **Downloads save straight to your Downloads folder.** Blanc no longer asks
+  where to save each file; a file with the same name as one already there gets
+  a number added. To be asked every time, turn on **Ask where to save each
+  file** in Settings → General (#1591).
+
 ## Still open
 
 - **Favorites drag and drop with a real mouse** in a packaged build on macOS,
