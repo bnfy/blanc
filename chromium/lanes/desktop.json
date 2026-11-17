@@ -101,6 +101,7 @@
     "patches/0093-blanc-profile-import-settings.patch",
     "patches/0094-blanc-windows-data-folder.patch",
     "patches/0095-blanc-windows-frame.patch",
-    "patches/0096-blanc-app-menu-anchor.patch"
+    "patches/0096-blanc-app-menu-anchor.patch",
+    "patches/0097-blanc-windows-strip-drag.patch"
   ]
 }

@@ -1258,6 +1258,9 @@ class Owner : public base::SupportsUserData::Data,
   // points into its model, so the model is declared first and outlives it.
   std::unique_ptr<AppMenuModel> main_menu_model;
   std::unique_ptr<AppMenu> main_menu;
+  // Both point at the window's toolbar and browser, so they are dropped as
+  // soon as the menu closes and before the window tears those down.
+  void DropMainMenu() { main_menu.reset(); main_menu_model.reset(); }
   std::set<std::string> ratio_recovery_checked;
   int pending_ratio_writes = 0;
   base::WeakPtr<Owner> GetWeakPtr() { return weak_factory_.GetWeakPtr(); }
@@ -10237,11 +10240,16 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       owner->main_menu_model->Init();
       owner->main_menu = std::make_unique<AppMenu>(browser, owner->main_menu_model.get(),
           views::MenuRunner::HAS_MNEMONICS,
-          base::BindRepeating([](base::WeakPtr<Handler> self, std::string id, bool* replied) {
-            if (!self || *replied) return;
+          base::BindRepeating([](base::WeakPtr<Handler> self, base::WeakPtr<Owner> owner, std::string id, bool* replied) {
+            if (*replied) return;
             *replied = true;
-            self->Reply(id, true, base::Value(true));
-          }, weak_factory_.GetWeakPtr(), id, base::Owned(new bool(false))));
+            if (self) self->Reply(id, true, base::Value(true));
+            // The menu is still on the stack here; drop it on the next turn.
+            base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
+                base::BindOnce([](base::WeakPtr<Owner> owner) {
+                  if (owner && owner->main_menu && !owner->main_menu->IsShowing()) owner->DropMainMenu();
+                }, owner));
+          }, weak_factory_.GetWeakPtr(), owner->GetWeakPtr(), id, base::Owned(new bool(false))));
       const gfx::Rect anchor(island->GetBoundsInScreen().origin() +
           gfx::Vector2d(args[0].GetInt(), args[1].GetInt()), gfx::Size());
       owner->main_menu->RunMenu(island->GetWidget(), anchor, ui::mojom::MenuSourceType::kMouse,
@@ -14544,6 +14552,8 @@ ui::ImageModel InfoBarMark() {
 void RestoreExtensions(views::View* parent) {
   auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
   if (!view) return;
+  // The window is going away: nothing of the Island's may still point at it.
+  if (auto* owner = GetOwner(view->GetWebContents())) owner->DropMainMenu();
   auto* browser_view = static_cast<BrowserView*>(parent);
   if (!browser_view->toolbar()) return;
   auto* toolbar = browser_view->toolbar();
