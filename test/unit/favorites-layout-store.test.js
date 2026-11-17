@@ -151,7 +151,7 @@ test('removing by id and moving several leave no empty folders either', () => {
   bookmarks.removeBookmark(a.id);
   assert.deepEqual(bookmarks.moveFavorites([b.id], null), { ok: true });
   assert.deepEqual(names(bookmarks.getTree()), ['https://b.example/']);
-  assert.deepEqual(bookmarks.exportForSync().tombstones.map((t) => t.url).includes('https://a.example/'), true);
+  assert.deepEqual(bookmarks.exportForSync().tombstones.map((t) => t.url), ['https://a.example/']);
 });
 
 test('a favorites change notifies once per operation', () => {
