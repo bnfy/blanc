@@ -101,6 +101,20 @@ function setFolderOrder(layout, path, order, clock) {
   return writeEntry(layout, path, { order }, clock);
 }
 
+/** Write many folders' orders at once (an import): one pass over the record
+ * where setFolderOrder would re-read it for every folder. */
+function setFolderOrders(layout, orders, { at, tie = '' }) {
+  const folders = new Map(Object.entries(normalizeLayout(layout).folders));
+  for (const { path, order } of orders) {
+    const stored = path === null || path === undefined ? null : validPath(path);
+    if (path !== null && path !== undefined && stored === null) continue;
+    const key = pathKey(stored);
+    const entry = normalizeEntry(key, { path: stored, order, at: Math.max(at, (folders.get(key)?.at ?? 0) + 1), tie });
+    if (entry) folders.set(key, entry);
+  }
+  return fromEntries([...folders]);
+}
+
 /** Make sure a folder exists on its own, so it stays when it holds nothing. */
 function ensureFolder(layout, path, clock) {
   const entry = layoutEntry(layout, path);
@@ -242,6 +256,6 @@ module.exports = {
   validClock, nextClock, normalizeTie,
   RESTORE_INTERVAL_MS, withFavoritesLayout, settingsEqualsWithLayout,
   LAYOUT_MAX_BYTES, GONE_TTL_MS, EMPTY_LAYOUT,
-  normalizeLayout, layoutEntry, setFolderOrder, ensureFolder, removeFolderEntry, movePrefix,
+  normalizeLayout, layoutEntry, setFolderOrder, setFolderOrders, ensureFolder, removeFolderEntry, movePrefix,
   mergeLayouts, boundLayout, layoutsEqual,
 };

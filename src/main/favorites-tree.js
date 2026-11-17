@@ -113,6 +113,22 @@ function spellings(items) {
   return best;
 }
 
+/** A speller for many paths in a row (an import): each call returns the path
+ * as the tree shows it, and a folder first seen in a call keeps the spelling
+ * that call gave it. */
+function createSpeller(items) {
+  const known = new Map([...spellings(items)].map(([key, { name }]) => [key, name]));
+  return (path) => {
+    const keyParts = [];
+    return joinPath(splitPath(path).map((segment) => {
+      keyParts.push(segment.toLowerCase());
+      const key = keyParts.join(SEP);
+      if (!known.has(key)) known.set(key, segment);
+      return known.get(key);
+    }));
+  };
+}
+
 /** `path` spelled the way the tree shows it; folders nobody uses yet keep
  * the spelling given. */
 function shownPath(items, path) {
@@ -207,5 +223,5 @@ module.exports = {
   SEP, MAX_PATH,
   cleanSegment, splitPath, joinPath, validPath, pathKey, parentPath, leafName, isWithin,
   fitSegments, parseTypedPath, folderChildKey, favoriteChildKey,
-  storedPath, buildTree, shownPath, listFolderPaths,
+  storedPath, buildTree, shownPath, createSpeller, listFolderPaths,
 };

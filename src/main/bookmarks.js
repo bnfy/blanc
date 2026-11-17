@@ -65,11 +65,19 @@ function toggleBookmark(url, title, favicon) {
   return true;
 }
 
-// A folder that loses its last favorite should stay (spec 2026-11-16, section
-// 1), but only once the Favorites manager can show and delete an empty
-// folder. Until that page ships, today's list can't, and a kept folder would
-// be an invisible entry that syncs. The manager's PR turns this on.
-const KEEPS_EMPTIED_FOLDERS = false;
+// Two behaviors wait for the Favorites manager page (spec 2026-11-16), because
+// a release may ship before it and today's flat list can't show either:
+//  - a folder that loses its last favorite stays (it would be an invisible
+//    entry that syncs);
+//  - import keeps whole folder paths, their order, and repairs earlier
+//    flattened imports (the list would show folders named by their path).
+// The manager's PR sets this true.
+let managerLive = false;
+
+/** Unit tests only. */
+function setManagerLiveForTests(value) {
+  managerLive = value === true;
+}
 
 /** Run one pure operation from bookmark-data over the favorites and the
  * layout record, write whichever changed, and notify once. Returns
@@ -78,7 +86,7 @@ function run(apply) {
   const s = ensureStore();
   const state = { items: s.data.items, tombstones: s.data.tombstones, layout: layoutStore.getLayout() };
   const res = apply(state, {
-    now: Date.now(), tie: crypto.randomUUID(), makeId: crypto.randomUUID, keepEmptied: KEEPS_EMPTIED_FOLDERS,
+    now: Date.now(), tie: crypto.randomUUID(), makeId: crypto.randomUUID, keepEmptied: managerLive, paths: managerLive,
   });
   if (res.error) return { ok: false, error: res.error };
   if (res.changed) {
@@ -127,15 +135,18 @@ function removeBookmarks(ids) {
   return run((state, ctx) => data.applyRemoveFavorites(state, ids, ctx));
 }
 
-/** Bulk-import parsed entries; dedupe by url, one sync-triggering write. */
+/** Bulk-import parsed entries; dedupe by url, one sync-triggering write.
+ * Returns the counts the import status line reports. */
 function importBookmarks(entries) {
-  const s = ensureStore();
-  const res = data.addImported(s.data, entries, { now: Date.now(), makeId: crypto.randomUUID });
-  if (res.changed) {
-    s.update((d) => { d.items = res.items; d.tombstones = res.tombstones; });
-    notifyChanged();
-  }
-  return { added: res.added, skipped: res.skipped };
+  let counts = { added: 0, skipped: 0, moved: 0, shortened: 0, orderDropped: 0 };
+  run((state, ctx) => {
+    const res = data.addImported(state, entries, ctx);
+    counts = {
+      added: res.added, skipped: res.skipped, moved: res.moved, shortened: res.shortened, orderDropped: res.orderDropped,
+    };
+    return res;
+  });
+  return counts;
 }
 
 function setBookmarkFolder(id, folder) {
@@ -254,5 +265,5 @@ function mergeFromSync(remote) {
 module.exports = {
   listBookmarks, isBookmarked, toggleBookmark, saveFavorite, updateFavicon, removeBookmark, removeBookmarks, importBookmarks,
   setBookmarkFolder, moveFavorites, createFolder, renameFolder, moveFolder, removeFolder, reorderFolder, getTree,
-  exportForSync, mergeFromSync, onChanged, onMerged,
+  exportForSync, mergeFromSync, onChanged, onMerged, setManagerLiveForTests,
 };

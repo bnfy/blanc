@@ -6359,6 +6359,18 @@
     "message": "{count, plural, one {# déjà enregistré ignoré.} many {# déjà enregistrés ignorés.} other {# déjà enregistrés ignorés.}}",
     "source": "sha256:b0687b46dbc51a7fc5d6cd797109c1d69572b402bc153f104d23383d79ad5d42"
   },
+  "favorites.import.moved": {
+    "message": "{count, plural, one {# déplacé dans son dossier.} many {# déplacés dans leurs dossiers.} other {# déplacés dans leurs dossiers.}}",
+    "source": "sha256:26511ae34f7bdc1f34717e61551f648937b4d2cdbeacf48d7440b1f0c082499f"
+  },
+  "favorites.import.shortened": {
+    "message": "{count, plural, one {# placé dans un dossier parent, car le chemin de son dossier était trop long.} many {# placés dans un dossier parent, car les chemins de leurs dossiers étaient trop longs.} other {# placés dans un dossier parent, car les chemins de leurs dossiers étaient trop longs.}}",
+    "source": "sha256:c312b814b12f37225d01d235054f8b3c4427f895e843a3bdaaa95913484330db"
+  },
+  "favorites.import.orderDropped": {
+    "message": "Certains dossiers sont dans l’ordre par défaut, car la collection est très volumineuse.",
+    "source": "sha256:7a467a3953790b3c9296cc69e32ffe1b2c86d20e16a34d289ae4402ca6b45ddf"
+  },
   "favorites.import.allSaved": {
     "message": "{count, plural, one {Ce favori était déjà enregistré.} many {Les # favoris étaient déjà enregistrés.} other {Les # favoris étaient déjà enregistrés.}}",
     "source": "sha256:8b6c880284a40001a5d6c372521715124ac2ef12827463bb86ca15e93dd28c32"

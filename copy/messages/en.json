@@ -6566,6 +6566,18 @@
     "message": "{count, plural, one {Skipped # already saved.} other {Skipped # already saved.}}",
     "note": "Favorites page → import: second sentence of the result; # favorites were already saved."
   },
+  "favorites.import.moved": {
+    "message": "{count, plural, one {Moved # into its folder.} other {Moved # into their folders.}}",
+    "note": "Favorites page → import: sentence of the result; # favorites saved earlier were moved into the nested folders the other browser has them in."
+  },
+  "favorites.import.shortened": {
+    "message": "{count, plural, one {Placed # in a parent folder because its folder path was too long.} other {Placed # in a parent folder because their folder paths were too long.}}",
+    "note": "Favorites page → import: sentence of the result; # favorites went into a parent folder because the full folder path is too long to save."
+  },
+  "favorites.import.orderDropped": {
+    "message": "Some folders are in the default order because the collection is very large.",
+    "note": "Favorites page → import: sentence of the result when the collection is too large to keep the chosen order of every folder."
+  },
   "favorites.import.allSaved": {
     "message": "{count, plural, one {That favorite was already saved.} other {All # favorites were already saved.}}",
     "note": "Favorites page → import: result when every one was already saved."

@@ -1782,6 +1782,17 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
         <item quantity="many">Se omitieron %1$d que ya estaban guardados.</item>
         <item quantity="other">Se omitieron %1$d que ya estaban guardados.</item>
     </plurals>
+    <plurals name="favorites_import_moved">
+        <item quantity="one">%1$d movido a su carpeta.</item>
+        <item quantity="many">%1$d movidos a sus carpetas.</item>
+        <item quantity="other">%1$d movidos a sus carpetas.</item>
+    </plurals>
+    <plurals name="favorites_import_shortened">
+        <item quantity="one">%1$d colocado en una carpeta superior porque la ruta de su carpeta era demasiado larga.</item>
+        <item quantity="many">%1$d colocados en una carpeta superior porque las rutas de sus carpetas eran demasiado largas.</item>
+        <item quantity="other">%1$d colocados en una carpeta superior porque las rutas de sus carpetas eran demasiado largas.</item>
+    </plurals>
+    <string name="favorites_import_order_dropped">Algunas carpetas están en el orden predeterminado porque la colección es muy grande.</string>
     <plurals name="favorites_import_all_saved">
         <item quantity="one">Ese favorito ya estaba guardado.</item>
         <item quantity="many">Los %1$d favoritos ya estaban guardados.</item>

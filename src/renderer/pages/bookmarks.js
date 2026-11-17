@@ -60,11 +60,19 @@
     window.location.href = 'blanc://tab-import/';
   });
 
-  // Two counts, so up to two sentences: a message holds at most one plural.
-  function importSummary(added, skipped) {
-    if (added === 0 && skipped > 0) return t('favorites.import.allSaved', { count: skipped });
-    const imported = t('favorites.import.imported', { count: added });
-    return skipped > 0 ? `${imported} ${t('favorites.import.skipped', { count: skipped })}` : imported;
+  // One sentence per count: a message holds at most one plural.
+  function importSummary({ added, skipped, moved = 0, shortened = 0, orderDropped = 0 }) {
+    const sentences = [];
+    if (added === 0 && moved === 0 && skipped > 0) {
+      sentences.push(t('favorites.import.allSaved', { count: skipped }));
+    } else {
+      if (added > 0 || moved === 0) sentences.push(t('favorites.import.imported', { count: added }));
+      if (moved > 0) sentences.push(t('favorites.import.moved', { count: moved }));
+      if (skipped > 0) sentences.push(t('favorites.import.skipped', { count: skipped }));
+    }
+    if (shortened > 0) sentences.push(t('favorites.import.shortened', { count: shortened }));
+    if (orderDropped > 0) sentences.push(t('favorites.import.orderDropped'));
+    return sentences.join(' ');
   }
 
   importBtn.addEventListener('click', async () => {
@@ -83,7 +91,7 @@
     if (res.error === 'empty') { importStatus.textContent = t('favorites.import.fileEmpty'); return; }
     if (res.error === 'unreadable') { importStatus.textContent = t('favorites.import.fileUnreadable'); return; }
     if (res.error === 'too-large') { importStatus.textContent = t('favorites.import.fileTooLarge'); return; }
-    importStatus.textContent = importSummary(res.added, res.skipped);
+    importStatus.textContent = importSummary(res);
     refresh();
   });
 
@@ -164,7 +172,7 @@
         importStatus.textContent = t('favorites.import.sourceUnreadable');
         return;
       }
-      importStatus.textContent = t('favorites.import.fromSource', { source: res.source.label, result: importSummary(res.added, res.skipped) });
+      importStatus.textContent = t('favorites.import.fromSource', { source: res.source.label, result: importSummary(res) });
       refresh();
     } catch (error) {
       showEditError(error);

@@ -4,9 +4,10 @@
 const { validFavicon, validFolder, folderKey } = require('./bookmark-validate');
 const {
   MAX_PATH, cleanSegment, splitPath, joinPath, validPath, pathKey, parentPath, leafName, isWithin, shownPath, storedPath,
+  createSpeller, buildTree, folderChildKey, favoriteChildKey,
 } = require('./favorites-tree');
 const {
-  EMPTY_LAYOUT, layoutEntry, setFolderOrder, ensureFolder, removeFolderEntry, movePrefix, layoutsEqual,
+  EMPTY_LAYOUT, layoutEntry, setFolderOrder, setFolderOrders, boundLayout, ensureFolder, removeFolderEntry, movePrefix, layoutsEqual,
 } = require('./favorites-layout-model');
 
 /** Map folderKey -> canonical spelling, chosen from the item with the oldest
@@ -28,42 +29,6 @@ function buildCanonMap(items) {
 }
 
 const oldestFirst = (a, b) => (a.addedAt ?? 0) - (b.addedAt ?? 0);
-
-function addImported({ items, tombstones }, entries, { now, makeId }) {
-  const seen = new Set(items.map((it) => it.url));
-  const canon = buildCanonMap(items); // key -> { folder }
-  const added = [];
-  let skipped = 0;
-  for (const e of entries || []) {
-    if (typeof e.url !== 'string' || seen.has(e.url)) { skipped++; continue; }
-    seen.add(e.url);
-    let folder = validFolder(e.folder);
-    if (folder != null) {
-      const key = folderKey(folder);
-      const existing = canon.get(key);
-      if (existing) folder = existing.folder;      // first-existing spelling wins
-      else canon.set(key, { folder });             // new folder: first-in-file spelling
-    }
-    added.push({
-      id: makeId(),
-      url: e.url,
-      title: typeof e.title === 'string' && e.title ? e.title : e.url,
-      favicon: validFavicon(e.favicon),
-      addedAt: Number.isFinite(e.addedAt) ? e.addedAt : now,
-      updatedAt: now,
-      folder,
-    });
-  }
-  if (added.length === 0) return { items, tombstones, added: 0, skipped, changed: false };
-  const addedUrls = new Set(added.map((it) => it.url));
-  return {
-    items: [...items, ...added].sort(oldestFirst),
-    tombstones: tombstones.filter((t) => !addedUrls.has(t.url)),
-    added: added.length,
-    skipped,
-    changed: true,
-  };
-}
 
 // --- Folders as paths (F63) ---------------------------------------------
 // Each operation takes { items, tombstones, layout } and returns the same
@@ -142,6 +107,119 @@ function relocateFolder(state, from, to, ctx) {
   const changed = moved.changed || !layoutsEqual(nextLayout, layout);
   if (!changed) return unchanged(state);
   return { items: moved.changed ? moved.items : state.items, tombstones: state.tombstones ?? [], layout: nextLayout, changed: true };
+}
+
+/** Import parsed entries. An entry's `folder` is a whole folder path, and
+ * entries arrive in the source's order.
+ *
+ * - A new address is added under its path, spelled the way an existing
+ *   folder is.
+ * - An address already saved is skipped, with one exception that repairs
+ *   imports made before folders could nest: those kept only the last folder
+ *   name, so a saved favorite still sitting in a folder of that name moves to
+ *   the full path. One the person has since moved anywhere else stays put.
+ * - Each folder that gains something keeps what it had, in the order it
+ *   showed, followed by what arrived, in source order.
+ *
+ * `ctx.paths === false` is the behavior from before the manager: the last
+ * folder name only, no repair, and no order written. */
+function addImported(state, entries, ctx) {
+  const { items } = state;
+  const tombstones = state.tombstones ?? [];
+  const layout = layoutOf(state);
+  const usePaths = ctx.paths !== false;
+  const spell = createSpeller(items);
+  const byUrl = new Map(items.map((it, index) => [it.url, index]));
+  const seen = new Set();
+  const next = items.slice();
+  const added = [];
+  const arrivals = new Map(); // folder key -> { path, keys: Set of child keys, in arrival order }
+  let skipped = 0;
+  let moved = 0;
+  let shortened = 0;
+
+  const arrive = (path, childKey) => {
+    const key = pathKey(path);
+    if (!arrivals.has(key)) arrivals.set(key, { path, keys: new Set() });
+    arrivals.get(key).keys.add(childKey);
+  };
+  // The favorite arrives in its folder, and each folder along the way in its parent.
+  const place = (path, url) => {
+    const segments = splitPath(path);
+    for (let depth = 0; depth < segments.length; depth += 1) {
+      arrive(joinPath(segments.slice(0, depth)), folderChildKey(segments[depth]));
+    }
+    arrive(path, favoriteChildKey(url));
+  };
+
+  for (const e of entries || []) {
+    if (typeof e.url !== 'string' || seen.has(e.url)) { skipped += 1; continue; }
+    seen.add(e.url);
+    const full = e.folder == null ? null : validPath(e.folder);
+    const wanted = usePaths ? full : (full === null ? null : leafName(full));
+    const folder = wanted === null ? null : spell(wanted);
+    const index = byUrl.get(e.url);
+    if (index !== undefined) {
+      const saved = next[index];
+      const savedKey = pathKey(folderOf(saved));
+      const flattened = usePaths && folder !== null && savedKey !== pathKey(folder)
+        && savedKey !== '' && savedKey === pathKey(leafName(folder));
+      if (!flattened) { skipped += 1; continue; }
+      next[index] = { ...saved, folder, updatedAt: ctx.now };
+      moved += 1;
+    } else {
+      added.push({
+        id: ctx.makeId(),
+        url: e.url,
+        title: typeof e.title === 'string' && e.title ? e.title : e.url,
+        favicon: validFavicon(e.favicon),
+        addedAt: Number.isFinite(e.addedAt) ? e.addedAt : ctx.now,
+        updatedAt: ctx.now,
+        folder,
+      });
+    }
+    if (e.shortened === true) shortened += 1;
+    if (usePaths) place(folder, e.url);
+  }
+
+  if (added.length === 0 && moved === 0) {
+    return { items, tombstones, layout, added: 0, skipped, moved: 0, shortened: 0, orderDropped: 0, changed: false };
+  }
+
+  let nextLayout = layout;
+  let orderDropped = 0;
+  if (usePaths) {
+    const before = new Map(); // folder key -> the child keys it showed, in order
+    const walk = (node) => {
+      before.set(node.key, node.children.map((child) => (child.kind === 'folder'
+        ? folderChildKey(child.folder.name) : favoriteChildKey(child.item.url))));
+      for (const child of node.children) if (child.kind === 'folder') walk(child.folder);
+    };
+    walk(buildTree(items, layout));
+    const orders = [];
+    for (const [key, { path, keys }] of arrivals) {
+      const had = before.get(key) ?? [];
+      const hadKeys = new Set(had);
+      const fresh = [...keys].filter((childKey) => !hadKeys.has(childKey));
+      if (fresh.length) orders.push({ path, order: [...had, ...fresh] });
+    }
+    const bounded = boundLayout(setFolderOrders(layout, orders, clockOf(ctx)));
+    nextLayout = bounded.layout;
+    orderDropped = bounded.dropped;
+  }
+
+  const addedUrls = new Set(added.map((it) => it.url));
+  return {
+    items: [...next, ...added].sort(oldestFirst),
+    tombstones: added.length ? tombstones.filter((t) => !addedUrls.has(t.url)) : tombstones,
+    layout: nextLayout,
+    added: added.length,
+    skipped,
+    moved,
+    shortened,
+    orderDropped,
+    changed: true,
+  };
 }
 
 function applyCreateFolder(state, parentPath, name, ctx) {
