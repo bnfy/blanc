@@ -14423,8 +14423,15 @@ bool IsCaption(views::View* parent, int x, int y) {
   // While the page covers the strip (hidden, or floating), a thin band along
   // the page pane's top is the window's only drag handle, as shipping's
   // #dragBand.
+  // Windows' top 5 rows are the window's resize border, so its band is 10px
+  // (shipping's WINDOWS_DRAG_BAND_PX); a 6px one left a single row to drag.
+#if BUILDFLAG(IS_WIN)
+  constexpr int kDragBand = 10;
+#else
+  constexpr int kDragBand = 6;
+#endif
   if (owner && (StripHiddenFor(owner) || IslandFloating(owner)) && !owner->autohide_slide)
-    return y >= 0 && y < 6 && x >= RailWidth(parent);
+    return y >= 0 && y < kDragBand && x >= RailWidth(parent);
   if (y < view->y() || y >= view->y() + (owner ? owner->strip_height : 68)) return false;
   // The vertical tabs rail is never a drag handle, as shipping marks the
   // whole rail no-drag: its header shares the band, and a caption there

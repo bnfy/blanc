@@ -98,6 +98,7 @@
     "chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc": "8554a68367f84d6badee005ce29387fd59e42b8dead196279dbfdd42ae7ba86b",
     "chrome/browser/ui/views/frame/BUILD.gn": "8d0b193d131affe0abf43fa94ec8701eca6f60bcf73bb28c5a3247743472a590",
     "chrome/browser/ui/views/frame/browser_frame_view_mac.mm": "9ab66142cb812d65c9533452df3a5c69c7ed3c437fedf850baf0ee3892ae9a35",
+    "chrome/browser/ui/views/frame/browser_frame_view_win.cc": "4c53ceb9f1926e3ca5435589f3943eea53769c39ce3b2d5849aa6f54b7109fe2",
     "chrome/browser/ui/views/frame/browser_native_widget_mac.mm": "a37767f6d690cf39f98903b6d30efe78580897f527a1e09efad1fbfc3b30d409",
     "chrome/browser/ui/views/frame/browser_view.cc": "e27bc522a6de79e11d261a314ee1069d307c26d995f131ac78800ff7f632d2c2",
     "chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc": "6f77381819ccd5d10809fe4dec000809eef565141a738b0ac487cf1229ea0f44",
