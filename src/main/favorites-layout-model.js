@@ -20,6 +20,14 @@ const MAX_CLOCK = Date.UTC(3000, 0, 1);
 const MAX_ORDER_KEYS = 20000;
 const CHILD_KEY = /^[fu]:.{1,110}$/s;
 
+// The whole value's sync clock, by settings.js's rules (validSyncTimestamp,
+// nextSyncWriteTimestamp, normalizeSyncTieBreaker). Restated here because
+// settings.js needs Electron and this record's store must load without it:
+// browser-api/build.mjs runs bookmarks.js against an in-memory store.
+const validClock = (value) => Number.isSafeInteger(value) && value >= 0 && value < MAX_CLOCK;
+const nextClock = (previous, now = Date.now()) => Math.max(now, (validClock(previous) ? previous : 0) + 1);
+const normalizeTie = (value) => (typeof value === 'string' && value.length <= MAX_TIE ? value : '');
+
 const EMPTY_LAYOUT = Object.freeze({ version: 1, folders: Object.freeze({}) });
 
 // Folder names are keys here, and a folder may be called "constructor" or
@@ -188,7 +196,51 @@ function layoutsEqual(a, b) {
   return JSON.stringify(normalizeLayout(a)) === JSON.stringify(normalizeLayout(b));
 }
 
+// --- In the settings sync payload -------------------------------------
+
+const SYNC_KEY = 'favoritesLayout';
+// How often a device puts the record back when the remote copy lacks it.
+const RESTORE_INTERVAL_MS = 10 * 60 * 1000;
+
+/** The settings payload plus the record, when it has ever changed
+ * (`exported` is favorites-layout.exportForSync()). */
+function withFavoritesLayout(payload, exported) {
+  if (!exported) return payload;
+  const out = {
+    values: { ...payload.values, [SYNC_KEY]: exported.value },
+    meta: { ...payload.meta, [SYNC_KEY]: exported.at },
+    tieBreakers: { ...payload.tieBreakers },
+  };
+  if (exported.tie) out.tieBreakers[SYNC_KEY] = exported.tie;
+  return out;
+}
+
+function withoutLayout(payload) {
+  const strip = (part) => {
+    const { [SYNC_KEY]: _dropped, ...rest } = part ?? {};
+    return rest;
+  };
+  return { values: strip(payload.values), meta: strip(payload.meta), tieBreakers: strip(payload.tieBreakers) };
+}
+
+/** Whether the remote settings blob already says everything this device
+ * would upload. A Blanc that predates the record drops it on every upload,
+ * and would trade uploads with this device for as long as both are open. So
+ * when the record being absent is the only difference, and it is the very
+ * record this device last uploaded (`lastUpload.clock`), it is put back at
+ * most once per RESTORE_INTERVAL_MS after that upload succeeded
+ * (`lastUpload.at`). A record edited since, or never uploaded, always goes.
+ * `baseEquals` is settings.syncPayloadEquals. */
+function settingsEqualsWithLayout(exported, remote, { baseEquals, lastUpload, now }) {
+  if (baseEquals(exported, remote)) return true;
+  const has = (payload) => payload?.meta?.[SYNC_KEY] !== undefined && payload?.values?.[SYNC_KEY] !== undefined;
+  if (!has(exported) || has(remote) || !baseEquals(withoutLayout(exported), remote)) return false;
+  return lastUpload.clock === exported.meta[SYNC_KEY] && now - lastUpload.at < RESTORE_INTERVAL_MS;
+}
+
 module.exports = {
+  validClock, nextClock, normalizeTie,
+  RESTORE_INTERVAL_MS, withFavoritesLayout, settingsEqualsWithLayout,
   LAYOUT_MAX_BYTES, GONE_TTL_MS, EMPTY_LAYOUT,
   normalizeLayout, layoutEntry, setFolderOrder, ensureFolder, removeFolderEntry, movePrefix,
   mergeLayouts, boundLayout, layoutsEqual,

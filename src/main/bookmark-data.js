@@ -91,6 +91,7 @@ function folderExists(items, layout, path) {
  * or removed) empty a folder, it gets its own layout entry. Renaming, moving
  * and deleting a folder empty its old path on purpose and don't call this. */
 function keepEmptiedFolders(beforeItems, afterItems, layout, ctx) {
+  if (ctx.keepEmptied === false) return layout; // bookmarks.js KEEPS_EMPTIED_FOLDERS
   const used = (items) => {
     const paths = new Map(); // folder key -> path
     for (const it of items) {
@@ -287,7 +288,7 @@ function applySaveFavorite(state, { url, title, favicon, folder }, ctx) {
   let target = null;
   if (folder != null) {
     const valid = validPath(folder);
-    if (valid === null) return unchanged(state); // reject before any add
+    if (valid === null) return unchanged(state, { error: 'invalid' }); // reject before any add
     target = shownPath(items, valid);
   }
   const existing = items.find((it) => it.url === url);
