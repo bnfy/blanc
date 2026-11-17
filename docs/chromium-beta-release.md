@@ -1322,7 +1322,7 @@ Every step is logged in `records/beta<N>-release-status.txt`. Running the
 command again resumes at the first unfinished step and never repeats one. If
 the passkey check is due, the command stops with exit 2. The owner then runs
 `owner/remote/beta-passkey-check.command`, which installs the notarized
-build, asks five questions and sends the answers, and then runs the release
+build, asks six questions and sends the answers, and then runs the release
 command again.
 
 **4. After publication (Claude).**

@@ -7,6 +7,14 @@ import {LAYOUT_WIDGETS, FAVORITES_WIDGET_LIMIT} from '../lib/start-widgets.mjs';
 const tabDom = (world, id, expression) => world.call('executeTab', id, expression);
 
 export const DIVERGENCES = new Map([
+  // V29 (owner, 2026-11-05 S2.5; 2026-11-17): the fork has no Patron
+  // activation yet, so an active supporter unlock can't be made. F17-2's point,
+  // that a retired icon is never applied, is tested without it: the next steps
+  // write the retired id and read back what the browser applied.
+  ['an active supporter unlock', {divergence: 'V29', async run() {
+    const settings = await this.snapshot();
+    assert.notEqual(settings.patronActive, true, 'the fork has no Patron activation (V29)');
+  }}],
   // V21 (owner, 2026-11-05; confirmed 2026-11-16): Mute Site is Chromium's own
   // sound setting, so the site is still muted after the relaunch, where
   // shipping's mute ends when Blanc quits. The step is used only after the
