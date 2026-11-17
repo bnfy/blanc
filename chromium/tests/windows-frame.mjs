@@ -29,8 +29,9 @@ const scratch=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-frame-'));
 const BUTTON={close:22,maximize:68,minimize:114};
 const near=(a,b,slack=2)=>Math.abs(a-b)<=slack;
 
+const fixtures=[];
 async function launched(name,extraArgs=[]){
- const fixture=new NativeFixture();fixture.extraArgs=extraArgs;
+ const fixture=new NativeFixture();fixture.extraArgs=extraArgs;fixtures.push(fixture);
  await fixture.launch(config,path.join(scratch,name),{testHooks:true,diskAssets:false});
  await installDriver(fixture.host);
  // The launch tab carries Chromium's "unsupported command-line flag" infobar
@@ -123,7 +124,6 @@ try{
  realInput(clickSteps(w.left+w.width-BUTTON.close,w.top+14));
  for(let i=0;i<100&&!fixture.exit;i++)await pause(100);
  record.checks.closeButton=fixture.exit?.code===0;record.details.closeExit=fixture.exit;
- fs.copyFileSync(path.join(scratch,'scale-100','browser.log'),path.join(out,'browser-100.log'));
  await fixture.close().catch(()=>{});
 
  // ---- at 150% ----
@@ -131,11 +131,20 @@ try{
  const scaled=await b.fills();
  record.checks.contentFillsAt150=scaled.ok;record.details.contentFillsAt150=scaled;
  desktopCapture(path.join(out,'scale-150.png'));
- fs.copyFileSync(path.join(scratch,'scale-150','browser.log'),path.join(out,'browser-150.log'));
  const exit=await b.fixture.close();
  record.checks.cleanExitAt150=exit?.code===0;
 }catch(error){failure=error;record.error=String(error.stack||error);}
-finally{fs.rmSync(scratch,{recursive:true,force:true});}
+finally{
+ // A check that stopped early leaves its browser running, and Windows will
+ // not remove a profile a process still holds: close first, and never let
+ // tidying up replace the result.
+ for(const fixture of fixtures){
+  try{await fixture.close();}catch{}
+  const log=path.join(fixture.directory??'','browser.log'),kept=path.join(out,`browser-${path.basename(fixture.directory??'none')}.log`);
+  if(fs.existsSync(log)&&!fs.existsSync(kept))fs.copyFileSync(log,kept);
+ }
+ try{fs.rmSync(scratch,{recursive:true,force:true,maxRetries:10,retryDelay:300});}catch(error){record.tidyError=String(error.message||error);}
+}
 const required=['contentFillsWindow','islandDrawsNoWindowButtons','maximizeButton','contentFillsWhenMaximized','restoreButton','minimizeButton',
  'dragByStrip','resizeByTopEdge','doubleClickMaximizes','menuButtonOpensAndCloses','closeButton','contentFillsAt150','cleanExitAt150'];
 record.pass=!failure&&required.every(name=>record.checks[name]===true);
