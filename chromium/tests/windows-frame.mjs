@@ -133,9 +133,14 @@ try{
 
  // Windows' own close button ends the browser cleanly.
  w=await win();
+ // The window must go at once; the process is given a minute, and how long
+ // it took is recorded (a page held for Recently closed can keep it a while).
  realInput(clickSteps(w.left+w.width-BUTTON.close,w.top+14));
- for(let i=0;i<100&&!fixture.exit;i++)await pause(100);
- record.checks.closeButton=fixture.exit?.code===0;record.details.closeExit=fixture.exit;
+ const pressed=Date.now();
+ const windowGone=await waitFor(()=>win().then(()=>false,()=>true),Boolean,'window closed by its button',8000).then(()=>true,()=>false);
+ for(let i=0;i<600&&!fixture.exit;i++)await pause(100);
+ record.checks.closeButton=windowGone&&fixture.exit?.code===0;
+ record.details.close={windowGone,exit:fixture.exit,exitAfterMs:fixture.exit?Date.now()-pressed:null};
  await fixture.close().catch(()=>{});
 
  // ---- at 150% ----
