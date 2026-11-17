@@ -126,6 +126,16 @@ jobs:
         env:
           ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
         run: npm ci --ignore-scripts
+      # The hosted runner's display is 1024 by 768, and Windows will not make a
+      # window larger than its screen, so cases that ask for a 1440-wide
+      # window could never pass. Ask for a larger display and report what the
+      # runner gave.
+      - name: Use a larger display
+        run: |
+          try { Set-DisplayResolution -Width 1920 -Height 1080 -Force -ErrorAction Stop } catch { "Set-DisplayResolution: $($_.Exception.Message)" }
+          Add-Type -AssemblyName System.Windows.Forms
+          $screen = [System.Windows.Forms.Screen]::PrimaryScreen
+          "Display: $($screen.Bounds.Width) x $($screen.Bounds.Height), work area $($screen.WorkingArea.Width) x $($screen.WorkingArea.Height)"
       - name: Launch check
         run: node chromium/tests/windows-smoke.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\smoke"
       # Real mouse and keyboard input against the window's own frame; it is
