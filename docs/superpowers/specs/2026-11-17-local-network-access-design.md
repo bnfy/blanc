@@ -52,6 +52,8 @@ The pure module `src/main/local-network-access.js` (no `require('electron')`) ow
 - **Main frame** (initiator origin = top-level origin): prompt, keyed on the top-level origin.
 - **Same-origin subframe**: treated as the main frame.
 - **Cross-origin subframe**: denied without a prompt. Electron's request details don't expose the frame's Permissions Policy, so Blanc can't tell whether the embedder delegated `loopback-network`/`local-network`. Prompting would ask the person about a site they can't see. Revisit if a real sign-in flow needs it (open question Q2).
+- **Opaque origin** (a sandboxed frame, a `data:` document): never prompted, since there is no origin to key a decision on. It takes its top-level page's address space, so a sandboxed preview on a `localhost` page still reaches that page's own services; a request that is still inward is refused.
+- **Redirects**: Electron runs `onBeforeRequest` again for each redirect hop with the original initiator, so a public URL that redirects to `127.0.0.1` is gated at the hop. A probe on November 17, 2026 confirmed this: the cancelled hop never reached its target.
 - **No frame** (a service worker, or a frame that has already navigated): no prompt is possible. An existing `allow` decision for the initiator's origin is honored; anything else is cancelled.
 
 **Two scopes**, matching Chromium's split and the Okta error text ("Local network access" or "Apps on device"):
@@ -83,7 +85,7 @@ The policy rejecting or throwing cancels the request (fail closed, like a provid
 ## 6. Chromium's own permission calls
 
 - **Check handler**: `loopback-network` and `local-network` answer `true` only for a stored `allow`; `local-network-access` answers `true` only when both are allowed. Any later Chromium enforcement then agrees with the gate.
-- **Request handler**: if a future Electron sends these, they go through the same prompt and store (`local-network-access` prompts with the broader local-network copy and saves both scopes). Today it never fires.
+- **Request handler**: if a future Electron sends these, a frame from another site is refused as in the gate; otherwise they go through the same prompt and store (`local-network-access` prompts with the broader local-network copy and saves both scopes). Today it never fires.
 - **`permissions.query` shim** (its own session preload, `local-network-preload.js`, main frame only; the capture preloads are hash-pinned per platform in `capture-runtime-lock.json`, so the shim does not go there): extended to `loopback-network`, `local-network` and `local-network-access`, answering `granted`/`denied`/`prompt` from stored decisions. The legacy combined name reads `granted` only if both are granted, `denied` only if both are denied, and otherwise `prompt`. `prompt` never lets a request through on its own; the gate still decides. Live `change` events fire when a decision changes, as for camera and microphone.
 - **Subframe queries** don't reach the shim and keep Chromium's answer from the check handler (undecided reads `denied`). This is the same limitation the camera shim documents.
 

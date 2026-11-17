@@ -87,7 +87,9 @@ function parse(url) {
  * Decide whether a request is gated and whose decision applies.
  *  details: { url, resourceType, initiatorOrigin } from onBeforeRequest.
  *  frame:   { frameOrigin, topOrigin } for the requesting frame, or null when
- *           the request has no live frame (a worker, a navigated frame).
+ *           the request has no live frame (a worker, a navigated frame); or a
+ *           function returning that, called only for a request that could be
+ *           gated, so the hot path never looks a frame up.
  * Returns null (not gated) or { scope, origin, mode }:
  *  'prompt'      ask the top-level site (origin) if undecided;
  *  'stored-only' no one to ask: only a stored allow for origin lets it through;
@@ -102,10 +104,16 @@ function classifyRequest(details, frame) {
   const targetSpace = addressSpaceOfHost(target.hostname);
   if (targetSpace === 'public') return null;
 
+  const frameInfo = typeof frame === 'function' ? frame() : frame;
   if (initiatorOrigin === 'null') {
-    // Opaque origin: nothing to key a decision on. A sandboxed document in
-    // any space still reads as public here, which is the safe direction.
-    return { scope: gatedScope('public', targetSpace), origin: null, mode: 'deny' };
+    // Opaque origin (a sandboxed frame, a data: document): nothing to key a
+    // decision on, so never a prompt. It takes its top-level page's address
+    // space, so a sandboxed preview on a localhost page still reaches that
+    // page's own services; with no page to go by it reads as public.
+    const top = parse(frameInfo?.topOrigin);
+    const pageSpace = top && WEB_INITIATOR_SCHEMES.has(top.protocol) ? addressSpaceOfHost(top.hostname) : 'public';
+    const opaqueScope = gatedScope(pageSpace, targetSpace);
+    return opaqueScope ? { scope: opaqueScope, origin: null, mode: 'deny' } : null;
   }
   const initiator = parse(initiatorOrigin);
   if (!initiator || !WEB_INITIATOR_SCHEMES.has(initiator.protocol)) return null;
@@ -113,8 +121,8 @@ function classifyRequest(details, frame) {
   if (!scope) return null;
 
   const origin = initiator.origin;
-  const topOrigin = frame?.topOrigin || null;
-  if (!frame || !frame.frameOrigin || !topOrigin) return { scope, origin, mode: 'stored-only' };
+  const topOrigin = frameInfo?.topOrigin || null;
+  if (!frameInfo || !frameInfo.frameOrigin || !topOrigin) return { scope, origin, mode: 'stored-only' };
   if (origin !== topOrigin) return { scope, origin: topOrigin, mode: 'deny' };
   return { scope, origin: topOrigin, mode: 'prompt' };
 }

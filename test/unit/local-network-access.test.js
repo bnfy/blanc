@@ -101,6 +101,29 @@ test('an opaque initiator (sandboxed frame) is refused without a prompt', () => 
   assert.deepEqual(classifyRequest(req({ initiatorOrigin: 'null' }), TOP), {
     scope: 'loopback-network', origin: null, mode: 'deny',
   });
+  assert.deepEqual(classifyRequest(req({ initiatorOrigin: 'null' }), null), {
+    scope: 'loopback-network', origin: null, mode: 'deny',
+  }, 'no frame: assume public');
+});
+
+test('a sandboxed frame on a local page keeps reaching that page\'s local services', () => {
+  const local = { frameOrigin: null, topOrigin: 'http://localhost:3000' };
+  assert.equal(classifyRequest(req({ initiatorOrigin: 'null', url: 'http://localhost:3000/api' }), local), null);
+  assert.deepEqual(
+    classifyRequest(req({ initiatorOrigin: 'null' }), { frameOrigin: null, topOrigin: 'http://192.168.1.5' }),
+    { scope: 'loopback-network', origin: null, mode: 'deny' },
+    'local page, loopback target: still inward',
+  );
+});
+
+test('frame details are read only for requests that could be gated', () => {
+  let reads = 0;
+  const lazy = () => { reads += 1; return TOP; };
+  assert.equal(classifyRequest(req({ url: 'https://cdn.example/x.js' }), lazy), null);
+  assert.equal(classifyRequest(req({ resourceType: 'mainFrame' }), lazy), null);
+  assert.equal(reads, 0);
+  assert.equal(classifyRequest(req(), lazy).mode, 'prompt');
+  assert.equal(reads, 1);
 });
 
 test('same-origin subframes count as the page; cross-origin ones are refused', () => {

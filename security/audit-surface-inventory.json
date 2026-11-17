@@ -681,7 +681,7 @@
     },
     {
       "file": "src/main/permissions.js",
-      "sha256": "79cf62dc00fc63adda9fbce046adb02a1731ed5f19906cb6501a864bf2272258",
+      "sha256": "1be194bfaa7c1db487a1be27c2906084fcf79f1a11e1c1db09539c967cf148a7",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },

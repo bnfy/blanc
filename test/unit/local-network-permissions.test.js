@@ -252,3 +252,21 @@ test('decision changes are announced for live permission statuses', async (t) =>
   await pending;
   assert.deepEqual(seen, [{ session, origin: OKTA }]);
 });
+
+test('a Chromium request from a cross-origin frame is refused without a prompt', async (t) => {
+  const calls = deferredPrompter(t);
+  const session = privateSession();
+  const wc = { id: 3, isDestroyed: () => false, getURL: () => `${OKTA}/signin` };
+  const answered = await new Promise((resolve) => session.request(wc, 'loopback-network', resolve, {
+    requestingUrl: 'https://ads.example/frame', isMainFrame: false,
+  }));
+  assert.equal(answered, false);
+  assert.equal(calls.length, 0);
+  const sameOrigin = new Promise((resolve) => session.request(wc, 'loopback-network', resolve, {
+    requestingUrl: `${OKTA}/frame`, isMainFrame: false,
+  }));
+  await Promise.resolve();
+  assert.equal(calls.length, 1, 'a same-origin frame asks for the top-level site');
+  calls[0].resolve(true);
+  assert.equal(await sameOrigin, true);
+});

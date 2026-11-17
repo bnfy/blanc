@@ -214,7 +214,7 @@ function localNetworkPolicyFor(session) {
   return (details) => {
     const reader = queryReaders.get(session);
     if (!reader) return null;
-    const gated = classifyRequest(details, frameInfoOf(details));
+    const gated = classifyRequest(details, () => frameInfoOf(details));
     if (!gated) return null;
     if (gated.mode === 'deny' || !gated.origin) return Promise.resolve(false);
     const webContents = details.webContents ?? null;
@@ -306,6 +306,13 @@ function setupPermissionPolicy(
       // through the same prompt and store as Blanc's own gate.
       const lnaOrigin = normalizedOrigin(details?.requestingUrl);
       if (!lnaOrigin) return callback(false);
+      // As in the gate: the decision belongs to the top-level site, and a
+      // frame from another site is refused rather than prompted.
+      let topOrigin = lnaOrigin;
+      if (details?.isMainFrame === false) {
+        try { topOrigin = normalizedOrigin(wc?.getURL?.()); } catch { topOrigin = null; }
+      }
+      if (topOrigin !== lnaOrigin) return callback(false);
       const pageSpace = addressSpaceOfHost(new URL(lnaOrigin).hostname);
       const gatedScopes = lnaScopes.filter((scope) => gatedScope(pageSpace, LNA_TARGET_SPACE[scope]));
       if (!gatedScopes.length) return callback(true);
