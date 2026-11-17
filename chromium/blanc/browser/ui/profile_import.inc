@@ -110,7 +110,7 @@ void ProfileImportRunner::Plan(std::string args, Reply reply) {
   service_ = content::ServiceProcessHost::Launch<blanc::mojom::SyncRunner>(
       content::ServiceProcessHost::Options().WithDisplayName("Blanc Profile Import").Pass());
   service_.set_disconnect_handler(base::BindOnce(&ProfileImportRunner::Fail, weak_.GetWeakPtr(), "import-ended"));
-  service_->Start(script, {}, R"({"platform":"darwin","version":"profile-import","env":{}})", host_.BindNewPipeAndPassRemote(),
+  service_->Start(script, {}, blanc::RunnerConfigJson("profile-import"), host_.BindNewPipeAndPassRemote(),
       base::BindOnce([](base::WeakPtr<ProfileImportRunner> self, std::string args, bool ready) {
         if (!self) return;
         if (!ready) { self->Fail("import-start-failed"); return; }

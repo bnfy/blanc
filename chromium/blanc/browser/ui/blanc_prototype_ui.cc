@@ -204,6 +204,7 @@
 #include "chrome/browser/shell_integration.h"
 #include "chrome/browser/sessions/tab_restore_service_factory.h"
 #include "blanc/common/held_page.h"
+#include "blanc/common/host_platform.h"
 #include "blanc/common/local_file_gate.h"
 #include "net/base/network_change_notifier.h"
 #include "chrome/browser/media/webrtc/media_capture_devices_dispatcher.h"

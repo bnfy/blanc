@@ -1,5 +1,8 @@
 'use strict';
 (() => {
+  // This build's platform under Node's name for it, as shipping's renderers
+  // read it from browserAPI.platform.
+  const hostPlatform = /Mac/.test(navigator.platform) ? 'darwin' : /Win/.test(navigator.platform) ? 'win32' : 'linux';
   let nextId = 0;
   let snapshot = null;
   let syncedClosed = [];
@@ -1936,7 +1939,7 @@
 
   let railActivationSerial = 0;
   const implemented = {
-    platform: 'darwin',
+    platform: hostPlatform,
     startPinMenuState: id => request('startPinMenuState', [nativeId(id)]),
     toggleStartPin: (id, expectedUrl) => request('toggleStartPin', [nativeId(id), expectedUrl]),
     toggleAdblock: async () => { const tab = snapshot?.tabs.find(t => t.id === snapshot.activeTabId); const value = await request('toggleAdblock', [tab?.committedUrl ?? '']); await refresh(); return value; },
@@ -3133,7 +3136,7 @@
   // clicks only inside the frame while it shows. macOS has no float views for
   // the window controls or the menu button.
   const AutoHide = window.BlancIslandAutoHide;
-  const floatPlatform = /Mac/.test(navigator.platform) ? 'darwin' : /Win/.test(navigator.platform) ? 'win32' : 'linux';
+  const floatPlatform = hostPlatform;
   const floatView = { shown: false, frame: null, frameKey: '', claimKey: '', hideTimer: null };
   function setFloatShown(shown, now = false) {
     const changed = floatView.shown !== shown;

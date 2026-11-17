@@ -83,13 +83,7 @@ base::DictValue TelemetryPayload() {
       .Set("installId", *install.FindString("id"))
       .Set("sessionId", session.session_id)
       .Set("version", BlancReleaseVersion())
-#if BUILDFLAG(IS_MAC)
-      .Set("platform", "darwin")
-#elif BUILDFLAG(IS_WIN)
-      .Set("platform", "win32")
-#else
-      .Set("platform", "linux")
-#endif
+      .Set("platform", blanc::kHostPlatform)
 #if defined(ARCH_CPU_ARM64)
       .Set("arch", "arm64")
 #else

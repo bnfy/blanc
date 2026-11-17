@@ -55,7 +55,7 @@ void HandoffRunner::Call(std::string args, Reply reply) {
   service_ = content::ServiceProcessHost::Launch<blanc::mojom::SyncRunner>(
       content::ServiceProcessHost::Options().WithDisplayName("Blanc Tab Handoff").Pass());
   service_.set_disconnect_handler(base::BindOnce(&HandoffRunner::Fail, weak_.GetWeakPtr(), "handoff-ended"));
-  service_->Start(script, {}, R"({"platform":"darwin","version":"tab-handoff","env":{}})", host_.BindNewPipeAndPassRemote(),
+  service_->Start(script, {}, blanc::RunnerConfigJson("tab-handoff"), host_.BindNewPipeAndPassRemote(),
       base::BindOnce([](base::WeakPtr<HandoffRunner> self, bool ready) {
         if (!self) return;
         if (!ready) { self->Fail("handoff-start-failed"); return; }
