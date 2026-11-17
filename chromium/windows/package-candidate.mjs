@@ -13,7 +13,7 @@ import crypto from 'node:crypto';
 import os from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { ASSET_NAME, candidateId, runtimeFiles } from './candidate.mjs';
+import { ASSET_NAME, candidateId, runtimeFiles, keepingFile } from './candidate.mjs';
 
 const sha256 = file => {
   const hash = crypto.createHash('sha256'), fd = fs.openSync(file, 'r'), chunk = Buffer.alloc(1 << 20);
@@ -35,8 +35,12 @@ function main() {
   const engine = path.join(os.homedir(), 'blanc-assets/blocker/engine.js');
   if (!pinned || sha256(engine) !== pinned) throw new Error(`${engine} is not the pinned blocker engine.`);
 
+  // `gn desc` rewrites the output's gn_logs.txt, which the build treats as an
+  // input: left newer than build.ninja, it makes the next build ask for a GN
+  // regeneration (it stopped one on 2026-11-17). Put the file back as it was.
   const gn = path.join(src, 'buildtools/linux64/gn');
-  const files = runtimeFiles(execFileSync(gn, ['desc', out, '//chrome:chrome', 'runtime_deps'], { cwd: src, encoding: 'utf8', maxBuffer: 64 << 20 }).split('\n'));
+  const files = runtimeFiles(keepingFile(path.join(out, 'gn_logs.txt'), () =>
+    execFileSync(gn, ['desc', out, '//chrome:chrome', 'runtime_deps'], { cwd: src, encoding: 'utf8', maxBuffer: 64 << 20 })).split('\n'));
   const dllSha256 = sha256(path.join(out, 'chrome.dll')), exeSha256 = sha256(path.join(out, 'chrome.exe'));
   const candidate = {
     id: candidateId(dllSha256), platform: 'windows', arch: 'x64', version: lane.version, upstream: lane.upstream,

@@ -1,6 +1,7 @@
 // What a packaged Windows candidate is: the files to take from the output
 // folder, its id, and the run config the test harness reads. Pure, so the
 // server's packaging step and the runner's unpacking step agree by test.
+import fs from 'node:fs';
 import path from 'node:path';
 
 export const ASSET_NAME = 'blanc-windows-candidate.zip';
@@ -36,4 +37,13 @@ export function runtimeConfig(directory, candidate, join = path.join) {
     dll: join(directory, 'chrome.dll'), dllSha256: candidate.dllSha256,
     blockerAssets: join(directory, 'blocker'), diskAssets: false,
   };
+}
+// Runs `work`, then restores `file` to the bytes and times it had before
+// (or removes it if it did not exist), whatever `work` did to it.
+export function keepingFile(file, work) {
+  const before = fs.existsSync(file) ? { bytes: fs.readFileSync(file), stat: fs.statSync(file) } : null;
+  try { return work(); } finally {
+    if (!before) fs.rmSync(file, { force: true });
+    else { fs.writeFileSync(file, before.bytes); fs.utimesSync(file, before.stat.atime, before.stat.mtime); }
+  }
 }

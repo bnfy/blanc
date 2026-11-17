@@ -49,3 +49,22 @@ test('the runner fetches the reference commit and every corrected step\'s commit
   assert.throws(() => pinnedCommits({}, []), /Not a full commit/);
   assert.throws(() => pinnedCommits({ shippingCommit: a }, [{ commit: 'v1.49.1' }]), /Not a full commit/);
 });
+
+import fs from 'node:fs';
+import os from 'node:os';
+import { keepingFile } from '../windows/candidate.mjs';
+test('a tool that rewrites a build input leaves it as it was', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-keep-'));
+  try {
+    const file = path.join(dir, 'gn_logs.txt'), then = new Date('2026-11-17T15:50:35Z');
+    fs.writeFileSync(file, 'first'); fs.utimesSync(file, then, then);
+    assert.equal(keepingFile(file, () => { fs.writeFileSync(file, 'rewritten'); return 'out'; }), 'out');
+    assert.equal(fs.readFileSync(file, 'utf8'), 'first');
+    assert.equal(fs.statSync(file).mtime.getTime(), then.getTime());
+    assert.throws(() => keepingFile(file, () => { fs.rmSync(file); throw new Error('boom'); }), /boom/);
+    assert.equal(fs.readFileSync(file, 'utf8'), 'first');
+    const absent = path.join(dir, 'absent.txt');
+    keepingFile(absent, () => fs.writeFileSync(absent, 'made'));
+    assert.equal(fs.existsSync(absent), false);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
