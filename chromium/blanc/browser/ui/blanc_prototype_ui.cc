@@ -5069,8 +5069,14 @@ class NewTabHandler : public content::WebUIMessageHandler,
     // shows the walkthrough, so it gets none of this.
     if (!profile->IsOffTheRecord()) {
       if (method == "firstRun" && args.empty()) {
-        Reply(id, true, base::Value(base::DictValue().Set("privacy", FirstRunPrivacy(profile))
-            .Set("onboarding", OnboardingState(profile))));
+        auto first_run = base::DictValue().Set("privacy", FirstRunPrivacy(profile))
+            .Set("onboarding", OnboardingState(profile));
+        // The importer's wallpaper choices wait for this profile's Start Page
+        // (start_page_import.inc). Said here, on a request the page already
+        // makes, so no page asks about an import that cannot exist (the
+        // phones share this page and have no importer).
+        if (PendingStartPageImport(profile)) first_run.Set("startPageImport", true);
+        Reply(id, true, base::Value(std::move(first_run)));
         return;
       }
       if (method == "onboardingSet" && args.size() == 1 && args[0].is_dict()) {

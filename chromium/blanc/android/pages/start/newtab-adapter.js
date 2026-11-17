@@ -95,6 +95,7 @@
   // The wallpaper choices the Electron profile importer left for this
   // profile's Start Page (blanc/browser/ui/start_page_import.inc). The page
   // stores them as its own, image included, then tells the browser, once.
+  // Asked for only when the browser's firstRun answer says some are waiting.
   let importTaken = null;
   const takeImport = () => importTaken ??= (async () => {
     if (isPrivatePage || !navigator.locks) return;
@@ -419,7 +420,6 @@
       openTabImport: () => request('openSheet', ['tab-import']),
       data: async () => {
         const epoch = topSitesEpoch;
-        await takeImport();
         const results = await Promise.allSettled([refreshClock({ propagateError: true }), refreshLayout({ propagateError: true }), refreshWidgets(), refreshImage().catch(() => {})]);
         const failed = results.find(result => result.status === 'rejected');
         if (failed) throw failed.reason;
@@ -440,6 +440,8 @@
         const heights = Array.isArray(week?.barHeights) && week.barHeights.length === 7 ? week.barHeights : [0, 0, 0, 0, 0, 0, 0];
         // First run: the privacy gate and the walkthrough's saved values.
         const firstRun = isPrivatePage ? null : await request('firstRun').catch(error => { console.warn(error.message); return null; });
+        // Only the desktop browser, after an import, says wallpaper choices are waiting.
+        if (firstRun?.startPageImport === true) await takeImport();
         const patron = isPrivatePage ? null : await request('patronCallout').catch(() => null);
         if (patron) patronStatus = { patronActive: patron.active === true, patronCalloutSnoozedUntil: Number(patron.snoozedUntil) || 0 };
         const launchSunrise = isPrivatePage ? false : await request('launchSunrise').catch(() => false);
