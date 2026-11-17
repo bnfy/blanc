@@ -30,6 +30,20 @@ function main() {
   const config = runtimeConfig(directory, JSON.parse(fs.readFileSync(path.join(directory, 'candidate.json'), 'utf8')));
   const configFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-suite-')), 'runtime-config.json');
   fs.writeFileSync(configFile, JSON.stringify(config, null, 2) + '\n');
+  // The runner refuses a candidate the tracker does not name. A full run keeps
+  // that rule: its tracker entry is committed first. A development subset is
+  // never a baseline, so on this throwaway checkout the tracker is pointed at
+  // the candidate under test.
+  if (extra.length) {
+    const trackerFile = path.join(path.dirname(fileURLToPath(import.meta.url)), '../tracker.json');
+    const tracker = JSON.parse(fs.readFileSync(trackerFile, 'utf8'));
+    if (tracker.currentCandidates.windows?.id !== config.candidate) {
+      tracker.currentCandidates.windows = { id: config.candidate, exeSha256: config.executableSha256, dllSha256: config.dllSha256,
+        qualification: 'development subset on a throwaway checkout; not recorded' };
+      fs.writeFileSync(trackerFile, JSON.stringify(tracker, null, 2) + '\n');
+      console.log(`run-suite: development subset; tracker pointed at ${config.candidate} for this run only.`);
+    }
+  }
   const runner = path.join(path.dirname(fileURLToPath(import.meta.url)), '../tests/runner.mjs');
   const run = spawnSync(process.execPath, [runner, configFile, path.resolve(resultsFolder), ...extra], { stdio: 'inherit' });
   if (run.error) throw run.error;
