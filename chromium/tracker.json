@@ -1817,7 +1817,7 @@
       "platformProgress": {
         "macos": {
           "stage": "implemented",
-          "basis": "The beta requirement is built (2026-11-16, patch 0091, protected_media.inc): a page asking for protected playback gets the owner's notice under the Island (\"Blanc Beta can't play this video yet\", Not now, Open in released Blanc, or Get released Blanc where the Electron app is absent), from Blink's use counter for requestMediaKeySystemAccess. native-protected-media.mjs passes 8 of 8 on macos-e1f8cb12fc0a503f. DRM playback itself is not built (D3: excepted for beta only; replacement D3 undecided). Not checked on live sites (a test launch has no outside network), and the standing waiver no-drm-handoff still stands until the owner retires it",
+          "basis": "The beta requirement is built (2026-11-16, patch 0091, protected_media.inc): a page asking for protected playback gets the owner's notice under the Island (\"Blanc Beta can't play this video yet\", Not now, Open in released Blanc, or Get released Blanc where the Electron app is absent), from Blink's use counter for requestMediaKeySystemAccess. native-protected-media.mjs passes 8 of 8 on macos-e1f8cb12fc0a503f. DRM playback itself is not built (D3: excepted for beta only; replacement D3 undecided). Not checked on live sites (a test launch has no outside network), and the owner retired the standing waiver no-drm-handoff on 2026-11-17: from beta.7 the gate passes on native-protected-media.mjs (8 of 8 on macos-1400e3914b1a7bdf, evidence/foundation/beta7/no-drm-handoff.json), with protected video still listed as not in the beta",
           "candidate": "macos-e1f8cb12fc0a503f"
         },
         "windows": {

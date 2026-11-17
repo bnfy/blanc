@@ -232,7 +232,7 @@ What neither lane's tests catch by themselves, most likely first:
    - Production Sync with a real iPhone, and pairing by QR (R2, R3).
    - The signed-beta checks that ride on each notarized build (F22, N7).
 3. **Decisions:**
-   - Retire the `no-drm-handoff` standing waiver, now that the notice is built (X2).
+   - ~~Retire the `no-drm-handoff` standing waiver~~ Done 2026-11-17: retired from beta.7; protected video stays listed as not in the beta.
    - Whether the replacement build plays protected video at all (D3 for the replacement).
    - When a build registers the `blanc-import:` link type (N20; today none does, by decision D1).
 

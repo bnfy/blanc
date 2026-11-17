@@ -14,6 +14,25 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-17 — The no-drm-handoff standing waiver is retired from beta.7 (owner: "Yes, retire it"):**
+  `release/standing.json` sets the waiver's `until` to 2.0.0-beta.7, so
+  from that beta the gate must pass. It passes as a carried check:
+  `native-protected-media.mjs` on the prototype (8 of 8 on
+  macos-1400e3914b1a7bdf, source `ded39777f`), evidence pinned at
+  `evidence/foundation/beta7/no-drm-handoff.json` on the Mac Studio, due
+  again when the notice's code changes. Protected video still does not
+  play (no Widevine), so the limitation stays listed: a new `keptLimits`
+  list keeps a retired waiver's line in the release notes and on the
+  website, whose page text therefore does not change. The release-notes
+  line now says the beta shows a notice offering the regular Blanc. Not
+  covered by the evidence: the notice on live sites and the real handoff on
+  a notarized beta (the owner's hand check). **For the next beta, seen in a
+  dry run of its gates:** desktop-sync is due (the importer changed Sync's
+  code), and webauthn (the owner's Touch ID check) and sparkle-N-to-N+1
+  show as due because `anyChange` (`chromium/upstream/**`) matches the
+  pristine files newly pinned for patches 0087 to 0093, although the
+  Chromium version did not change. Whether that glob should be narrower is
+  the owner's standing decision; nothing was changed.
 - **2026-11-17 — Close-out of the macOS remaining-work plan; tracker moved to macos-1400e3914b1a7bdf:**
   the nightly full suite 20261117-0700 passed on the merged head
   `ded39777f` (bnfy/blanc#1586): 635 of 667 pass, 1 fails

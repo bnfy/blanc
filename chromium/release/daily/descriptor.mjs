@@ -4,7 +4,7 @@
 // and beta-prep (which turns a passing night into the release work folder).
 import path from 'node:path';
 import { CERT, CHROME_VERSION, PRODUCT, ROOT_ID, SPARKLE, TEAM, UPSTREAM, check, validateRelease, validateLedger } from '../policy.mjs';
-import { betaNumber, carriedState, standingWaiver } from '../standing.mjs';
+import { betaNumber, carriedState, standingWaiver, listedLimits } from '../standing.mjs';
 import { GATES } from '../manifest.mjs';
 
 // Gates the nightly job checks on the candidate (their evidence comes from the night).
@@ -107,8 +107,9 @@ export function gateSources({ r, night, carried, base, targeted }) {
 export function releaseNotes({ changes, standing, r }) {
   check(typeof changes === 'string' && /\S/.test(changes) && !/\{\{|\}\}/.test(changes), 'the list of changes is required');
   // In the order standing.json lists them (protected video first, as in earlier betas).
-  const limits = Object.keys(standing.notes ?? {}).filter(g => r.gateWaivers?.[g]).map(g => standing.notes[g]);
-  check(limits.length === Object.keys(r.gateWaivers ?? {}).length, 'every standing waiver needs its release-notes line');
+  // Each waived gate's line, and each limitation kept after its waiver was retired.
+  check(Object.keys(r.gateWaivers ?? {}).every(g => typeof standing.notes?.[g] === 'string'), 'every standing waiver needs its release-notes line');
+  const limits = listedLimits(standing, r.gateWaivers).map(g => standing.notes[g]);
   return [
     'Blanc Beta is an early preview of Blanc built directly on Chromium. It installs as a separate app beside the regular Blanc and never replaces it.',
     '',

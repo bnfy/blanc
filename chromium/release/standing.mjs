@@ -32,6 +32,10 @@ export function validateStanding(s) {
     must(w.until === undefined || betaNumber(w.until) > betaNumber(w.since), `standing waiver until must come after since: ${gate}`);
     must(typeof w.reason === 'string' && w.reason.trim().length >= 20, `standing waiver needs the owner's reason: ${gate}`);
   }
+  // A limitation that stays in the release notes and on the website after its
+  // waiver is retired: the gate passes, and the thing is still not in the beta.
+  must(s.keptLimits === undefined || (Array.isArray(s.keptLimits) && s.keptLimits.every(g => KNOWN_GATES.includes(g)
+    && typeof s.notes?.[g] === 'string' && s.notes[g].startsWith('- '))), 'a kept limitation needs a known gate and its release-notes line');
   for (const [gate, c] of Object.entries(s.carried ?? {})) {
     must(KNOWN_GATES.includes(gate), `carried check names an unknown gate: ${gate}`);
     must(['owner', 'claude'].includes(c?.who) && typeof c.check === 'string' && c.check, `carried check needs who and what: ${gate}`);
@@ -54,6 +58,12 @@ export function standingWaiver(s, version, gate) {
   if (n < betaNumber(w.since)) return null;
   if (w.until !== undefined && n >= betaNumber(w.until)) return null;
   return w.reason;
+}
+
+// The limitations a release lists, in standing.json's order: each waived gate,
+// and each kept limitation whose gate now passes.
+export function listedLimits(s, gateWaivers = {}) {
+  return Object.keys(s?.notes ?? {}).filter(g => gateWaivers[g] || (s.keptLimits ?? []).includes(g));
 }
 
 // '*' matches within one path segment, '**' any number of segments.

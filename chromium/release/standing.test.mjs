@@ -81,3 +81,14 @@ test('KNOWN_GATES is manifest.mjs GATES', async () => {
   const { KNOWN_GATES } = await import('./standing.mjs');
   assert.deepEqual(KNOWN_GATES, GATES);
 });
+
+test('a kept limitation needs a known gate with a release-notes line, and is listed once its waiver ends', async () => {
+  const { listedLimits } = await import('./standing.mjs');
+  assert.throws(() => validateStanding({ ...standing, keptLimits: ['webauthn'] }), /kept limitation/);
+  assert.throws(() => validateStanding({ ...standing, keptLimits: ['not-a-gate'] }), /kept limitation/);
+  const kept = validateStanding({ ...standing, keptLimits: ['no-drm-handoff'] });
+  assert.deepEqual(listedLimits(kept, {}), ['no-drm-handoff']);
+  assert.deepEqual(listedLimits(kept, { 'production-sync-real-device': 'x' }), ['no-drm-handoff', 'production-sync-real-device']);
+  assert.deepEqual(listedLimits(standing, { 'no-drm-handoff': 'x' }), ['no-drm-handoff']);
+  assert.deepEqual(listedLimits(standing, {}), []);
+});
