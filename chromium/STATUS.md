@@ -12,6 +12,12 @@ the cold release build needed it. Pinned environments unchanged.
 D1 decided 2026-10-31: in-window private tabs.
 D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
+D4 decided for Windows 2026-11-17: cross-compiled on the Android lane's Linux
+server, tested on GitHub-hosted Windows runners. Approved with it: a second
+checkout there, the Visual Studio toolchain package, one cold Windows build
+and its incremental rebuilds, and one GN regeneration on the Mac Studio
+(`docs/superpowers/specs/2026-11-17-windows-fork-design.md`). Linux desktop
+hardware stays pending.
 
 ## Current work
 - **2026-11-17 — Carried checks come due on the Chromium version alone (owner: "Yes, narrow it"):**
