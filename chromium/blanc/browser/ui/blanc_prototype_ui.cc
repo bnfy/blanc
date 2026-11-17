@@ -2003,6 +2003,16 @@ std::u16string& TestClipboard() {
 bool UsesTestClipboard() {
   return base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-test");
 }
+// /invite under --blanc-test: no mail app is ever opened. A stand-in says
+// whether one would answer, and the emails it would have opened are kept.
+bool& InviteMailAppForTest() {
+  static bool present = true;
+  return present;
+}
+base::ListValue& InviteHandoffsForTest() {
+  static base::NoDestructor<base::ListValue> opened;
+  return *opened;
+}
 #endif
 void WriteClipboardText(const std::u16string& text) {
 #if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
@@ -7672,6 +7682,16 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(true));
       return;
     }
+    if (message[1].GetString() == "setInviteMailApp" && message[2].GetList().size() == 1 &&
+        message[2].GetList()[0].is_bool()) {
+      InviteMailAppForTest() = message[2].GetList()[0].GetBool();
+      Reply(id, true, base::Value(true));
+      return;
+    }
+    if (message[1].GetString() == "inviteHandoffs" && message[2].GetList().empty()) {
+      Reply(id, true, base::Value(InviteHandoffsForTest().Clone()));
+      return;
+    }
     if (message[1].GetString() == "testClipboard" && message[2].GetList().empty()) {
       Reply(id, true, base::Value(TestClipboard()));
       return;
@@ -11543,7 +11563,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       }
 #if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
       if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-test")) {
-        reply(true, base::Value("mail"));
+        if (InviteMailAppForTest()) {
+          InviteHandoffsForTest().Append(args[0].GetString());
+          reply(true, base::Value("mail"));
+        } else {
+          WriteClipboardText(base::UTF8ToUTF16(args[1].GetString()));
+          reply(true, base::Value("copied"));
+        }
         return;
       }
 #endif
