@@ -49,3 +49,15 @@ test('free memory off the Mac reads in the same form the guard parses', () => {
   // Linux counts file cache as used, so its figure would stop runs for nothing.
   assert.equal(freePercent(freeMemoryText('linux', {free: 1, total: 16})), null);
 });
+
+import {clickSteps,doubleClickSteps,dragSteps,keySteps} from './lib/windows-desktop.mjs';
+test('real-input gestures are a press and release at the point, and a drag travels in steps', () => {
+  const kinds=steps=>steps.filter(s=>s.do!=='sleep').map(s=>s.do).join(' ');
+  assert.equal(kinds(clickSteps(10.4,20.6)),'move down up');
+  assert.deepEqual(clickSteps(10.4,20.6)[0],{do:'move',x:10,y:21});
+  assert.equal(kinds(doubleClickSteps(1,2)),'move down up down up');
+  const drag=dragSteps({x:100,y:50},{x:160,y:80},3);
+  assert.equal(kinds(drag),'move down move move move up');
+  assert.deepEqual(drag.filter(s=>s.do==='move').map(s=>[s.x,s.y]),[[100,50],[120,60],[140,70],[160,80]]);
+  assert.deepEqual(keySteps(27)[0],{do:'key',vk:27});
+});

@@ -7,12 +7,12 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {execFileSync} from 'node:child_process';
 import {NativeFixture} from './lib/fixture.mjs';
 import {waitFor} from './lib/cdp.mjs';
 import {installDriver,nativeCall} from './lib/test-driver.mjs';
 import {assertRendering,assertNodeRuntime} from './lib/render-guard.mjs';
 import {hostPlatform} from './lib/platform.mjs';
+import {desktopCapture} from './lib/windows-desktop.mjs';
 import {runtimeConfig} from '../windows/candidate.mjs';
 
 const [candidateFolder,resultsFolder]=process.argv.slice(2);
@@ -26,15 +26,6 @@ const config=runtimeConfig(directory,candidate);
 const record={candidate:candidate.id,version:candidate.version,treeCommit:candidate.treeCommit,platform:hostPlatform(),host:`${os.type()} ${os.release()} ${os.arch()}`,checks:{}};
 const save=()=>fs.writeFileSync(path.join(out,'smoke.json'),JSON.stringify(record,null,2)+'\n');
 const png=async(connection,name)=>fs.writeFileSync(path.join(out,name),Buffer.from((await connection.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
-// The whole desktop, as a person would see it: proof the window itself drew,
-// which a per-document capture cannot give.
-function desktopCapture(file){
- if(process.platform!=='win32')return false;
- execFileSync('powershell.exe',['-NoProfile','-NonInteractive','-Command',
-  'Add-Type -AssemblyName System.Windows.Forms,System.Drawing; $b=[System.Windows.Forms.SystemInformation]::VirtualScreen; $i=New-Object System.Drawing.Bitmap $b.Width,$b.Height; $g=[System.Drawing.Graphics]::FromImage($i); $g.CopyFromScreen($b.Left,$b.Top,0,0,$i.Size); $i.Save($env:BLANC_CAPTURE)'],
-  {env:{...process.env,BLANC_CAPTURE:file},stdio:'ignore',timeout:30000});
- return true;
-}
 const fixture=new NativeFixture();
 const scratch=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-smoke-'));
 let failure=null;

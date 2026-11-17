@@ -128,6 +128,11 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Launch check
         run: node chromium/tests/windows-smoke.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\smoke"
+      # Real mouse and keyboard input against the window's own frame; it is
+      # skipped on a ref that does not have the check yet.
+      - name: Window frame check
+        run: |
+          if (Test-Path chromium/tests/windows-frame.mjs) { node chromium/tests/windows-frame.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\frame" } else { 'No window frame check on this ref.' }
       - name: Foundation suite
         if: inputs.suite == 'f0'
         run: |
