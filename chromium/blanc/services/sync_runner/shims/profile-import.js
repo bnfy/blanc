@@ -38,6 +38,37 @@ const DEVICE_STORES = ['session.json', 'profiles.json', 'profile-deletions.json'
 // converter (desktop_sync_settings.cc), so no rule is needed for them here.
 const SYNC_CONVERTED = ['theme', 'adblockEnabled', 'adblockExceptions', 'searchEngine', 'searchEngineTemplate', 'bangsEnabled', 'customBangs'];
 
+// The Start Page's own settings (layout, clock, wallpaper). The browser sets
+// the layout and clock preferences and hands the wallpaper choices to the
+// Start Page, which keeps them in its own storage. Following a Space's color
+// has no home in the fork's Start Page and is not carried.
+const START_PAGE_KEYS = ['newtabLayout', 'newtabDynamicWallpaper', 'newtabColorWallpaper', 'newtabWallpaperColor',
+  'newtabWallpaperFill', 'newtabClockFont', 'newtabClockWeight', 'newtabClockColor', 'newtabClockTone',
+  'newtabClockStyle', 'newtabClockHeight', 'newtabCustomWallpaper', 'newtabWallpaperWash', 'newtabWallpaperStyle'];
+function startPage(settings) {
+  const out = {};
+  const has = key => Object.prototype.hasOwnProperty.call(settings, key);
+  if (['billboard', 'ledger', 'shelf', 'tally'].includes(settings.newtabLayout)) out.layout = settings.newtabLayout;
+  const clock = {};
+  for (const key of ['newtabClockFont', 'newtabClockStyle', 'newtabClockColor']) {
+    if (has(key) && typeof settings[key] === 'string' && /^[a-z-]{1,32}$/.test(settings[key])) clock[key] = settings[key];
+  }
+  for (const key of ['newtabClockWeight', 'newtabClockTone', 'newtabClockHeight']) {
+    if (has(key) && Number.isInteger(settings[key]) && settings[key] >= 0 && settings[key] <= 1000) clock[key] = settings[key];
+  }
+  if (Object.keys(clock).length) out.clock = clock;
+  const wallpaper = {};
+  for (const [key, name] of [['newtabDynamicWallpaper', 'dynamic'], ['newtabColorWallpaper', 'color'], ['newtabCustomWallpaper', 'custom']]) {
+    if (has(key) && typeof settings[key] === 'boolean') wallpaper[name] = settings[key];
+  }
+  if (typeof settings.newtabWallpaperColor === 'string' && /^[a-z]{1,32}$/.test(settings.newtabWallpaperColor)) wallpaper.preset = settings.newtabWallpaperColor;
+  if (['soft', 'solid', 'gradient'].includes(settings.newtabWallpaperFill)) wallpaper.fill = settings.newtabWallpaperFill;
+  if (Number.isInteger(settings.newtabWallpaperWash) && settings.newtabWallpaperWash >= 0 && settings.newtabWallpaperWash <= 100) wallpaper.wash = settings.newtabWallpaperWash;
+  if (['auto', 'light', 'dark', 'spotlight'].includes(settings.newtabWallpaperStyle)) wallpaper.style = settings.newtabWallpaperStyle;
+  if (Object.keys(wallpaper).length) out.wallpaper = wallpaper;
+  return out;
+}
+
 // Device settings as fork preferences. SETTINGS_IMPORT is put in the bundle
 // by its builder from chromium/settings-keys.json: [{key, pref, type,
 // values?, min?, max?}]. A value the fork would not accept is skipped.
@@ -56,7 +87,7 @@ function settingsPrefs(settings) {
     if (fine) prefs[rule.pref] = value;
     else skipped.push({key: rule.key, reason: 'invalid-value'});
   }
-  const notCarried = Object.keys(settings).filter(key => !ruled.has(key) && !SYNC_CONVERTED.includes(key) &&
+  const notCarried = Object.keys(settings).filter(key => !ruled.has(key) && !SYNC_CONVERTED.includes(key) && !START_PAGE_KEYS.includes(key) &&
     !Object.prototype.hasOwnProperty.call(SETTINGS_LEFT_BEHIND, key)).sort();
   return {prefs, skipped, notCarried};
 }
@@ -229,5 +260,5 @@ module.exports = function plan(files) {
     }
   }
   return {ok: true, schema: SCHEMA, sourceVersion: version.sourceVersion, profiles, device, notImported, errors,
-    settingsPrefs: settingsPrefs(settings), syncProtectedKey};
+    settingsPrefs: settingsPrefs(settings), startPage: startPage(settings), syncProtectedKey};
 };

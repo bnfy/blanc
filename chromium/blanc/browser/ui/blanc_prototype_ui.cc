@@ -4501,6 +4501,7 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
 // after the Island, Chromium's manager or a late favicon load changes them,
 // and TopSites so recent sites follow history (including /clear) the same way.
 #include "blanc/browser/ui/billboard_clock_settings.inc"
+#include "blanc/browser/ui/start_page_import.inc"
 #include "blanc/browser/ui/start_page_pins.inc"
 #include "blanc/browser/ui/start_page_pin_menu.inc"
 #include "blanc/browser/ui/first_run.inc"
@@ -4788,6 +4789,27 @@ class NewTabHandler : public content::WebUIMessageHandler,
       if (args[0].GetString() == (theme_id ? *theme_id : "")) Reply(id, true, base::Value());
       else Reply(id, true, base::Value(InstalledTheme(profile, true)));
       return;
+    }
+    // The Electron profile importer's wallpaper choices, waiting for this
+    // profile's Start Page (start_page_import.inc). Never a private page.
+    if (method == "importRead" && args.empty()) {
+      auto waiting = profile->IsOffTheRecord() ? std::nullopt : PendingStartPageImport(profile);
+      if (!waiting) { Reply(id, true, base::Value()); return; }
+      const bool image = waiting->FindBool("image").value_or(false);
+      base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
+          base::BindOnce(&ReadStartPageImportImage, image ? profile->GetPath() : base::FilePath()),
+          base::BindOnce([](base::WeakPtr<NewTabHandler> self, std::string id, base::DictValue waiting, std::string image) {
+            if (!self) return;
+            const auto* wallpaper = waiting.FindDict("wallpaper");
+            auto reply = base::DictValue().Set("wallpaper", wallpaper ? wallpaper->Clone() : base::DictValue());
+            if (!image.empty()) reply.Set("image", std::move(image));
+            self->Reply(id, true, base::Value(std::move(reply)));
+          }, weak_factory_.GetWeakPtr(), id, std::move(*waiting)));
+      return;
+    }
+    if (method == "importDone" && args.empty()) {
+      if (!profile->IsOffTheRecord()) ClearStartPageImport(profile);
+      Reply(id, true, base::Value(true)); return;
     }
     if ((method == "layoutRead" && args.empty()) ||
         ((method == "layoutWrite" || method == "layoutInitialize") &&

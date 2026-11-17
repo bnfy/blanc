@@ -165,8 +165,21 @@ test('device settings become preferences only when their value is one the fork a
   assert.deepEqual(settingsPrefs.skipped.map(row => row.key).sort(), ['islandAutoHide', 'surfaceStyle', 'verticalTabsTextSize']);
   for (const name of Object.keys(settingsPrefs.prefs)) assert.ok(/^blanc\.[a-z_.]+$/.test(name) || name === 'search.suggest_enabled', name);
   // Keys with no rule are named, never guessed at; Sync's seven are the browser's to convert.
-  assert.ok(settingsPrefs.notCarried.includes('webrtcPolicy') && settingsPrefs.notCarried.includes('newtabClockFont') && settingsPrefs.notCarried.includes('linkRoutes'));
+  assert.ok(settingsPrefs.notCarried.includes('webrtcPolicy') && settingsPrefs.notCarried.includes('newtabFollowSpaceColor') && !settingsPrefs.notCarried.includes('newtabClockFont') && settingsPrefs.notCarried.includes('linkRoutes'));
   for (const key of ['theme', 'searchEngine', 'adblockEnabled', 'customBangs', 'islandSize', '_syncMeta', 'patron']) assert.ok(!settingsPrefs.notCarried.includes(key), key);
+});
+
+test('the Start Page settings are named for the browser and the page; odd values are dropped', async () => {
+  const withSettings = values => sourceFiles(f => { f['settings.json'] = JSON.stringify({...JSON.parse(f['settings.json']), ...values}); }).files;
+  const plain = (await plan(sourceFiles().files)).startPage;
+  assert.deepEqual(JSON.parse(JSON.stringify(plain)), {layout: 'billboard',
+    clock: {newtabClockFont: 'instrument', newtabClockStyle: 'solid', newtabClockColor: 'auto', newtabClockWeight: 500, newtabClockTone: 50, newtabClockHeight: 100},
+    wallpaper: {dynamic: false, color: false, custom: false, preset: 'sage', fill: 'gradient', wash: 100, style: 'auto'}});
+  const odd = (await plan(withSettings({newtabLayout: 'mahjong', newtabClockFont: 7, newtabClockWeight: 'bold', newtabWallpaperWash: 140,
+    newtabWallpaperStyle: 'neon', newtabWallpaperColor: '<b>', newtabWallpaperFill: 'plaid', newtabCustomWallpaper: 'yes'}))).startPage;
+  assert.equal(odd.layout, undefined);
+  assert.deepEqual(Object.keys(odd.clock).sort(), ['newtabClockColor', 'newtabClockHeight', 'newtabClockStyle', 'newtabClockTone']);
+  assert.deepEqual(JSON.parse(JSON.stringify(odd.wallpaper)), {dynamic: false, color: false});
 });
 
 test('the protected Sync key is passed on as it is; a plain key never is', async () => {

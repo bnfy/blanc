@@ -16,7 +16,7 @@
 //
 // Included by blanc_prototype_ui.cc inside its unnamed namespace.
 
-constexpr char kProfileImportPref[] = "blanc.profile_import";
+constexpr char kImportWallpaperKey[] = "wallpaper/current.jpg#base64";
 constexpr size_t kImportMaxStoreBytes = 32 * 1024 * 1024;
 constexpr size_t kImportMaxTotalBytes = 256 * 1024 * 1024;
 constexpr size_t kImportMaxProfiles = 64;
@@ -48,6 +48,15 @@ std::optional<base::DictValue> ReadImportSource(const base::FilePath& dir) {
     files.Set(name, std::move(text));
   };
   for (const char* name : kImportDeviceStores) take(dir.AppendASCII(name), name);
+  // The Start Page's image: bytes, so it travels beside the stores and never
+  // through the plan builder.
+  const base::FilePath image_dir = dir.AppendASCII("wallpaper"), image = image_dir.AppendASCII("current.jpg");
+  if (!base::IsLink(image_dir) && !base::IsLink(image) && base::PathExists(image) && !base::DirectoryExists(image)) {
+    std::string bytes;
+    if (base::ReadFileToStringWithMaxSize(image, &bytes, kImportMaxWallpaperBytes) && bytes.starts_with("\xFF\xD8\xFF")) {
+      files.Set(kImportWallpaperKey, base::Base64Encode(bytes));
+    }
+  }
   for (const char* name : kImportProfileStores) take(dir.AppendASCII(name), name);
   const base::FilePath profiles = dir.AppendASCII("profiles");
   if (!base::IsLink(profiles) && base::DirectoryExists(profiles)) {
@@ -624,6 +633,76 @@ base::DictValue ApplyImportedSettings(Profile* profile, const base::DictValue* s
   return base::DictValue().Set("synced", converted).Set("prefs", copied).Set("refused", std::move(refused));
 }
 
+// The Start Page's settings. The layout and the clock are preferences; the
+// wallpaper choices and image wait for the Start Page (start_page_import.inc).
+// The fork's one layout is Billboard with widgets, taken once from the old
+// layout: widgets nobody has changed are taken again from the imported one.
+base::DictValue ApplyImportedStartPage(Profile* profile, const base::DictValue& start, std::optional<std::string> image) {
+  auto* prefs = profile->GetPrefs();
+  auto* local = g_browser_process->local_state();
+  auto summary = base::DictValue().Set("layout", false).Set("clock", 0).Set("wallpaper", false).Set("image", false);
+  const auto* layout = start.FindString("layout");
+  if (layout && (*layout == "billboard" || *layout == "ledger" || *layout == "shelf" || *layout == "tally") &&
+      prefs->FindPreference("blanc.prototype.start_layout")) {
+    prefs->SetString("blanc.prototype.start_layout", *layout);
+    summary.Set("layout", true);
+    constexpr char kWidgets[] = "blanc.start.widgets";
+    if (local->FindPreference(kWidgets)) {
+      const auto& widgets = local->GetDict(kWidgets);
+      const auto* from = widgets.FindString("from");
+      const auto initial = [](const std::string& name) {
+        return base::DictValue().Set("v", 1)
+            .Set("favorites", name == "ledger" || name == "tally" || name == "shelf")
+            .Set("devices", name == "ledger").Set("shortcuts", name == "shelf").Set("from", name);
+      };
+      if (from && *from != *layout && widgets == initial(*from)) local->ClearPref(kWidgets);
+    }
+  }
+  if (const auto* clock = start.FindDict("clock"); clock && prefs->FindPreference(kBillboardClockPref)) {
+    auto update = SanitizeClockUpdate(*clock);
+    if (!update.empty()) {
+      summary.Set("clock", static_cast<int>(update.size()));
+      auto next = prefs->GetDict(kBillboardClockPref).Clone();
+      for (auto [key, value] : update) next.Set(key, value.Clone());
+      prefs->SetDict(kBillboardClockPref, std::move(next));
+    }
+  }
+  prefs->CommitPendingWrite();
+  base::DictValue wallpaper;
+  if (const auto* wanted = start.FindDict("wallpaper")) {
+    for (const char* key : {"dynamic", "color", "custom"}) {
+      if (const auto value = wanted->FindBool(key)) wallpaper.Set(key, *value);
+    }
+    for (const char* key : {"preset", "fill", "style"}) {
+      const auto* text = wanted->FindString(key);
+      if (text && !text->empty() && text->size() <= 32 && std::ranges::all_of(*text, base::IsAsciiLower<char>)) wallpaper.Set(key, *text);
+    }
+    if (const auto wash = wanted->FindInt("wash"); wash && *wash >= 0 && *wash <= 100) wallpaper.Set("wash", *wash);
+  }
+  if (wallpaper.empty()) return summary;
+  const bool with_image = wallpaper.FindBool("custom").value_or(false) && image && !image->empty();
+  summary.Set("wallpaper", true).Set("image", with_image);
+  auto pending = base::DictValue().Set("directory", profile->GetPath().BaseName().AsUTF8Unsafe())
+      .Set("wallpaper", std::move(wallpaper)).Set("image", with_image);
+  // The image is staged first, so a Start Page never reads a pending import
+  // whose image is not there yet.
+  base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
+      base::BindOnce([](base::FilePath folder, std::string bytes) {
+        base::DeletePathRecursively(folder);
+        if (bytes.empty()) return true;
+        return base::CreateDirectory(folder) && base::SetPosixFilePermissions(folder, 0700) &&
+               base::WriteFile(folder.AppendASCII(kStartPageImportImage), bytes);
+      }, profile->GetPath().AppendASCII(kStartPageImportFolder), with_image ? std::move(*image) : std::string()),
+      base::BindOnce([](base::DictValue pending, bool staged) {
+        if (!staged) pending.Set("image", false);
+        auto marker = g_browser_process->local_state()->GetDict(kProfileImportPref).Clone();
+        marker.Set("startPage", std::move(pending));
+        g_browser_process->local_state()->SetDict(kProfileImportPref, std::move(marker));
+        g_browser_process->local_state()->CommitPendingWrite();
+      }, std::move(pending)));
+  return summary;
+}
+
 // The install id travels with the person (spec section 7), so a count of
 // installs does not see a new one.
 bool ApplyImportedInstall(const base::DictValue* install) {
@@ -866,7 +945,8 @@ class ProfileImport final {
   std::string version_;
   int windows_ = 0, tabs_ = 0;
   bool created_profile_ = false;
-  base::DictValue settings_synced_, settings_prefs_, install_, session_, sync_stores_;
+  base::DictValue settings_synced_, settings_prefs_, install_, session_, sync_stores_, start_page_;
+  std::optional<std::string> wallpaper_;
   std::optional<std::string> sync_key_;
   base::ListValue settings_skipped_;
   base::DictValue result_;
@@ -893,6 +973,9 @@ void ProfileImport::Start(base::FilePath source, Profile* personal, Done done) {
 }
 void ProfileImport::SourceRead(std::optional<base::DictValue> files) {
   if (!files) { Finish(base::Value(base::DictValue().Set("ok", false).Set("error", "no-source"))); return; }
+  if (auto image = files->Extract(kImportWallpaperKey); image && image->is_string()) {
+    wallpaper_ = base::Base64Decode(image->GetString(), /*as_string=*/true);
+  }
   auto args = base::WriteJson(base::ListValue().Append(std::move(*files)));
   if (!args) { Finish(base::Value(base::DictValue().Set("ok", false).Set("error", "no-source"))); return; }
   runner_ = std::make_unique<ProfileImportRunner>();
@@ -932,6 +1015,7 @@ void ProfileImport::Planned(bool ok, const std::string& value) {
     }
   }
   if (const auto* sealed = parsed->FindString("syncProtectedKey")) sync_key_ = *sealed;
+  if (const auto* start = parsed->FindDict("startPage")) start_page_ = start->Clone();
   // Personal first, then the named profiles in the plan's order; one
   // imported before is only named.
   const auto* done = g_browser_process->local_state()->GetDict(kProfileImportPref).FindDict("profiles");
@@ -1012,6 +1096,7 @@ void ProfileImport::Applied(std::string key, std::string id, base::WeakPtr<Profi
     settings.Set("skipped", std::move(settings_skipped_));
     result_.Set("settings", std::move(settings));
     result_.Set("install", ApplyImportedInstall(&install_));
+    result_.Set("startPage", ApplyImportedStartPage(profile.get(), start_page_, std::move(wallpaper_)));
   }
   // The marker: the source's version, when each profile came across, and
   // which Chromium profile it became.

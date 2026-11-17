@@ -92,6 +92,40 @@
     const current = read().wallpaper || {};
     return save({ ...otherPreferences, wallpaper: { ...current, ...patch } }).wallpaper;
   }
+  // The wallpaper choices the Electron profile importer left for this
+  // profile's Start Page (blanc/browser/ui/start_page_import.inc). The page
+  // stores them as its own, image included, then tells the browser, once.
+  let importTaken = null;
+  const takeImport = () => importTaken ??= (async () => {
+    if (isPrivatePage || !navigator.locks) return;
+    await navigator.locks.request(imageStore, async () => {
+      const waiting = await request('importRead', [], 30000);
+      if (!waiting || typeof waiting !== 'object') return;
+      const wanted = waiting.wallpaper && typeof waiting.wallpaper === 'object' ? waiting.wallpaper : {};
+      const current = read().wallpaper || {};
+      let id = null;
+      if (wanted.custom === true && typeof waiting.image === 'string') {
+        const blob = new Blob([Uint8Array.from(atob(waiting.image), c => c.charCodeAt(0))], { type: 'image/jpeg' });
+        id = crypto.randomUUID();
+        await imageTransaction('readwrite', store => store.put(blob, id));
+        ++imageGeneration;
+        setImage(id, blob);
+      }
+      const dynamic = typeof wanted.dynamic === 'boolean' ? wanted.dynamic : read().dynamicWallpaperEnabled === true;
+      const next = { ...current, image: null,
+        source: id ? 'custom' : wanted.color === true ? 'color' : dynamic ? 'time-of-day' : 'sunrise' };
+      if (id) next.imageKey = id;
+      if (['auto', 'light', 'dark', 'spotlight'].includes(wanted.style)) next.style = wanted.style;
+      if (Number.isInteger(wanted.wash) && wanted.wash >= 0 && wanted.wash <= 100) next.wash = wanted.wash;
+      const preset = paint.normalizePreset(wanted.preset), fill = paint.normalizeFill(wanted.fill);
+      if (preset || fill) next.color = { ...current.color, ...(preset ? { preset } : {}),
+        paint: { ...current.color?.paint, ...(fill ? { fill } : {}) } };
+      save({ ...disableStoreTheme(), dynamicWallpaperEnabled: dynamic, wallpaper: next });
+      if (id && current.imageKey && current.imageKey !== id)
+        await imageTransaction('readwrite', store => store.delete(current.imageKey)).catch(() => {});
+      await request('importDone');
+    });
+  })().catch(error => console.warn('Start Page import failed', error));
   const disableStoreTheme = () => installedTheme.id
     ? { storeThemeWallpaper: { id: installedTheme.id, enabled: false } }
     : {};
@@ -385,6 +419,7 @@
       openTabImport: () => request('openSheet', ['tab-import']),
       data: async () => {
         const epoch = topSitesEpoch;
+        await takeImport();
         const results = await Promise.allSettled([refreshClock({ propagateError: true }), refreshLayout({ propagateError: true }), refreshWidgets(), refreshImage().catch(() => {})]);
         const failed = results.find(result => result.status === 'rejected');
         if (failed) throw failed.reason;
