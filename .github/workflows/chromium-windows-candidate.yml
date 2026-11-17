@@ -87,6 +87,13 @@ jobs:
           tar -xf $zip -C "$env:RUNNER_TEMP\blanc"
           if ($LASTEXITCODE -ne 0) { throw 'Could not unpack the candidate.' }
           if (-not (Test-Path "$env:RUNNER_TEMP\blanc\candidate.json")) { throw 'The zip has no candidate.json at its top level; it was not made by chromium/windows/package-candidate.mjs.' }
+          # Chromium's sandboxed processes run as app containers and must be
+          # able to read the folder the browser runs from; an installer grants
+          # this (W1). Without it the browser stops at "Sandbox cannot access
+          # executable". ALL APPLICATION PACKAGES and ALL RESTRICTED APPLICATION
+          # PACKAGES get read and execute, as Chrome's own installer gives them.
+          icacls "$env:RUNNER_TEMP\blanc" /grant '*S-1-15-2-1:(OI)(CI)(RX)' /grant '*S-1-15-2-2:(OI)(CI)(RX)' /T /Q
+          if ($LASTEXITCODE -ne 0) { throw 'Could not grant the sandbox access to the candidate folder.' }
           "CANDIDATE_DIR=$env:RUNNER_TEMP\blanc" >> $env:GITHUB_ENV
           "RESULTS=$env:RUNNER_TEMP\results" >> $env:GITHUB_ENV
           Get-Content "$env:RUNNER_TEMP\blanc\candidate.json"
