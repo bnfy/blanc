@@ -41,9 +41,16 @@ async function launched(name,extraArgs=[]){
  // The native snapshot carries the native tab ids its hooks take.
  for(const t of (await nativeCall(fixture.host,'snapshot')).tabs)if(String(t.id)!==String(made.tabId))await nativeCall(fixture.host,'closeTab',[t.id]);
  await waitFor(fixture.snapshot,s=>s.tabs.length===1&&!s.tabs[0].isLoading,'one fresh tab');
- const pageTargets=async()=>(await fixture.targets()).filter(t=>t.type==='page'&&t.url===fixture.base+'/initial');
- const [target]=await waitFor(pageTargets,ts=>ts.length===1,'the fresh tab as the only page');
- const page=await fixture.connectTarget(target);
+ // The closed tab's page stays alive for a while (Recently closed holds it),
+ // so two pages share the address: the fresh tab's is the visible one.
+ const visiblePage=async()=>{
+  for(const target of (await fixture.targets()).filter(t=>t.type==='page'&&t.url===fixture.base+'/initial')){
+   const connection=await fixture.connectTarget(target);
+   if(await connection.eval('document.visibilityState')==='visible')return {target,connection};
+  }
+  return null;
+ };
+ const {target,connection:page}=await waitFor(visiblePage,Boolean,'the fresh tab as the visible page');
  const targetId=target.id;
  // The window as CDP reports it, and the visible part inside Windows'
  // invisible resize borders.
