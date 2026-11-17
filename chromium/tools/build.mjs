@@ -193,6 +193,12 @@ function androidEnvironment(src, out) {
   };
   return { inputs, env };
 }
+// The unpacked Windows SDK is served through a case-insensitive FUSE mount
+// that a reboot removes; without it every compile fails on a missing header.
+export function windowsToolchainMounted(procMounts, src) {
+  const mount = path.join(src, 'third_party/depot_tools/win_toolchain/vs_files');
+  return procMounts.split('\n').some(line => { const [, where, type] = line.split(' '); return where === mount && type === 'fuse.ciopfs'; });
+}
 // The Windows output's pinned inputs: Chromium's own clang, the Visual Studio
 // package the tree asks for, and the package gclient actually unpacked
 // (build/win_toolchain.json, written by its hook).
@@ -247,6 +253,8 @@ function main() {
   const { lane, out: outName, target } = buildLane(options);
   if (lane === 'android') requireAndroidHost(); else requireDesktopHost(outName);
   const windows = WINDOWS_OUTPUTS.includes(outName);
+  if (windows && !windowsToolchainMounted(fs.readFileSync('/proc/mounts', 'utf8'), src))
+    throw new Error('The Windows toolchain is not mounted. Run chromium/windows/server/mount-toolchain.sh, then rerun. No build started.');
   const out = path.join(src, 'out', outName);
   const pinFile = path.join(out, '.blanc-build-environment.json');
   const lock = path.join(out, '.blanc-build-guard.lock');

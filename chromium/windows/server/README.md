@@ -63,6 +63,13 @@ node chromium/tools/build.mjs ~/chromium-desktop/src --record-environment --out=
 node chromium/tools/build.mjs ~/chromium-desktop/src --check --out=BlancWinPrototype
 ```
 
+After a reboot, run `bash chromium/windows/server/mount-toolchain.sh` before
+building. The Windows SDK is served through a case-insensitive FUSE mount
+(ciopfs) that a reboot removes, and the script also gives that process a
+build-sized open-file limit; with the default 1024 a parallel build fails with
+"Too many open files" on SDK headers (the first cold build did, 2026-11-17).
+The build guard refuses to start while the mount is missing.
+
 Node on the server is Chromium's own
 (`~/chromium-desktop/src/third_party/node/linux/node-linux-x64/bin`); it is not
 on `PATH` by default. Run long commands inside `tmux`.

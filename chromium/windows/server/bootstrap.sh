@@ -132,6 +132,10 @@ if [[ "$(cat "${SYNCED}" 2>/dev/null || true)" != "${UPSTREAM} ${package_name}" 
     bash -c 'cd "$1" && gclient sync -D --no-history --revision "src@$2"' _ "${CHECKOUT}" "${UPSTREAM}"
   step "record the synced pin" bash -c 'echo "$1" > "$2"' _ "${UPSTREAM} ${package_name}" "${SYNCED}"
 fi
+# The hook above serves the package through a ciopfs mount that inherits a
+# 1024 open-file limit, too few for a parallel build; and the mount is gone
+# after a reboot. Mount it if needed and raise its limit.
+step "mount the toolchain with a build-sized open-file limit" bash "${TREE}/chromium/windows/server/mount-toolchain.sh"
 
 # What the last run applied, so apply.py accepts its own earlier output when a
 # patch changes (and still refuses edits it doesn't recognize).
