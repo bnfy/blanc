@@ -192,3 +192,152 @@ test('applySaveFavorite: adding clears a prior tombstone for that url', () => {
   assert.equal(res.changed, true);
   assert.equal(res.tombstones.length, 0);
 });
+
+// --- Nested folders (F63) ---
+
+const {
+  applyCreateFolder, applyMoveFolder, applyMoveFavorites, applyReorder, applyRemoveFavorites, keepEmptiedFolders,
+} = require('../../src/main/bookmark-data');
+const { favoriteChildKey } = require('../../src/main/favorites-tree');
+const { EMPTY_LAYOUT } = require('../../src/main/favorites-layout-model');
+
+const CTX = { now: 9, tie: 't' };
+const fav = (url, folder, addedAt, id = url) => ({ id, url, title: url, favicon: null, folder, addedAt, updatedAt: addedAt });
+const state = (items, layout = EMPTY_LAYOUT) => ({ items, tombstones: [], layout });
+
+test('rename rewrites every descendant and stamps it', () => {
+  const s = state([fav('a', 'Work', 1), fav('b', 'Work › Clients', 1), fav('c', 'Workshop', 1)]);
+  const r = applyRenameFolder(s, 'Work', 'Jobs', CTX);
+  assert.equal(r.changed, true);
+  assert.deepEqual(r.items.map((i) => [i.folder, i.updatedAt]), [['Jobs', 9], ['Jobs › Clients', 9], ['Workshop', 1]]);
+});
+
+test('rename of a nested folder changes one segment', () => {
+  const s = state([fav('a', 'Work › Clients › Acme', 1)]);
+  assert.equal(applyRenameFolder(s, 'work › clients', 'Customers', CTX).items[0].folder, 'Work › Customers › Acme');
+});
+
+test('rename onto a sibling merges and adopts its spelling', () => {
+  const s = state([fav('a', 'Work › New', 2), fav('b', 'Work › clients', 1)]);
+  assert.equal(applyRenameFolder(s, 'Work › New', 'CLIENTS', CTX).items[0].folder, 'Work › clients');
+});
+
+test('rename unifies a prefix that was spelled two ways', () => {
+  const s = state([fav('a', 'work', 1), fav('b', 'Work › Clients', 2)]);
+  assert.deepEqual(applyRenameFolder(s, 'Work', 'Jobs', CTX).items.map((i) => i.folder), ['Jobs', 'Jobs › Clients']);
+});
+
+test('too-long rename changes nothing', () => {
+  const s = state([fav('a', `Work › ${'c'.repeat(90)}`, 1)]);
+  const r = applyRenameFolder(s, 'Work', 'Much longer name', CTX);
+  assert.equal(r.error, 'too-long');
+  assert.equal(r.changed, false);
+  assert.equal(r.items, s.items);
+  assert.equal(r.layout, s.layout);
+});
+
+test('renaming an empty folder moves its layout entry', () => {
+  const made = applyCreateFolder(state([]), null, 'Empty', CTX);
+  const r = applyRenameFolder(made, 'Empty', 'Later', CTX);
+  assert.equal(r.changed, true);
+  assert.equal(r.layout.folders.later.gone, undefined);
+  assert.equal(r.layout.folders.empty.gone, true);
+});
+
+test('a folder cannot move into itself', () => {
+  const s = state([fav('a', 'Work › Clients', 1)]);
+  assert.equal(applyMoveFolder(s, 'Work', 'Work › Clients', CTX).error, 'cycle');
+  assert.equal(applyMoveFolder(s, 'Work', 'work', CTX).error, 'cycle');
+});
+
+test('move a folder under another, and back to the top', () => {
+  const s = state([fav('a', 'Work › Clients', 1), fav('b', 'Home', 1)]);
+  const r = applyMoveFolder(s, 'Work › Clients', 'Home', CTX);
+  assert.deepEqual(r.items.map((i) => i.folder), ['Home › Clients', 'Home']);
+  assert.equal(applyMoveFolder(r, 'Home › Clients', null, CTX).items[0].folder, 'Clients');
+  assert.equal(applyMoveFolder(s, 'Work › Clients', 'Work', CTX).changed, false);
+  assert.equal(applyMoveFolder(s, 'Nope', 'Home', CTX).error, 'missing');
+});
+
+test('delete moves contents up one level', () => {
+  const s = state([fav('a', 'Work › Clients', 1), fav('b', 'Work › Clients › Acme', 1), fav('c', 'Solo', 1)]);
+  const r = applyRemoveFolder(s, 'Work › Clients', CTX);
+  assert.deepEqual(r.items.map((i) => i.folder), ['Work', 'Work › Acme', 'Solo']);
+  assert.equal(r.layout.folders['work › clients'].gone, true);
+  assert.equal(applyRemoveFolder(r, 'Solo', CTX).items[2].folder, null);
+});
+
+test('delete carries a sub-folder order with it', () => {
+  let s = state([fav('a', 'Work › Clients › Acme', 1), fav('b', 'Work › Clients › Acme', 2)]);
+  const keys = [favoriteChildKey('a'), favoriteChildKey('b')];
+  s = applyReorder(s, 'Work › Clients › Acme', keys, CTX);
+  const r = applyRemoveFolder(s, 'Work › Clients', CTX);
+  assert.deepEqual(r.layout.folders['work › acme'].order, keys);
+});
+
+test('create makes an empty folder once', () => {
+  const r = applyCreateFolder(state([]), 'Work', 'Clients', CTX);
+  assert.equal(r.changed, true);
+  assert.equal(r.path, 'Work › Clients');
+  assert.equal(r.layout.folders['work › clients'].gone, undefined);
+  const again = applyCreateFolder(r, 'work', 'CLIENTS', CTX);
+  assert.equal(again.changed, false);
+  assert.equal(again.path, 'Work › Clients');
+  assert.equal(applyCreateFolder(state([]), null, '  ', CTX).error, 'invalid');
+  assert.equal(applyCreateFolder(state([]), 'a'.repeat(95), 'bbbbbb', CTX).error, 'too-long');
+});
+
+test('moving the last favorite out keeps the folder', () => {
+  const s = state([fav('a', 'Solo', 1, 'id-a')]);
+  const r = applyMoveFavorites(s, ['id-a'], null, CTX);
+  assert.equal(r.items[0].folder, null);
+  assert.ok(r.layout.folders.solo && !r.layout.folders.solo.gone);
+});
+
+test('move several favorites, adopting the folder spelling', () => {
+  const s = state([fav('a', null, 1, 'id-a'), fav('b', 'Other', 1, 'id-b'), fav('c', 'work', 0, 'id-c')]);
+  const r = applyMoveFavorites(s, ['id-a', 'id-b', 'nope'], 'WORK', CTX);
+  assert.deepEqual(r.items.map((i) => [i.folder, i.updatedAt]), [['work', 9], ['work', 9], ['work', 0]]);
+  assert.equal(applyMoveFavorites(s, ['id-a'], 'x'.repeat(101), CTX).error, 'invalid');
+  assert.equal(applyMoveFavorites(r, ['id-c'], 'work', CTX).changed, false);
+});
+
+test('removing favorites leaves tombstones and keeps the emptied folder', () => {
+  const s = state([fav('https://a/', 'Solo', 1, 'id-a'), fav('https://b/', null, 1, 'id-b')]);
+  const r = applyRemoveFavorites(s, ['id-a'], CTX);
+  assert.deepEqual(r.items.map((i) => i.id), ['id-b']);
+  assert.deepEqual(r.tombstones, [{ url: 'https://a/', deletedAt: 9 }]);
+  assert.ok(r.layout.folders.solo && !r.layout.folders.solo.gone);
+  assert.equal(applyRemoveFavorites(s, ['nope'], CTX).changed, false);
+});
+
+test('reorder writes the whole order', () => {
+  const s = state([fav('a', 'W', 1), fav('b', 'W', 2)]);
+  const keys = [favoriteChildKey('a'), favoriteChildKey('b')];
+  const r = applyReorder(s, 'W', keys, CTX);
+  assert.deepEqual(r.layout.folders.w.order, keys);
+  assert.equal(applyReorder(r, 'w', keys, CTX).changed, false);
+  assert.equal(applyReorder(s, 'Nope', keys, CTX).error, 'missing');
+  assert.deepEqual(applyReorder(s, null, ['f:w'], CTX).layout.folders[''].order, ['f:w']);
+});
+
+test('saving into a path, and moving a saved favorite, keep emptied folders', () => {
+  const saved = applySaveFavorite(state([]), { url: 'https://a/', title: 'A', folder: 'Work › Clients' }, { ...CTX, makeId: () => 'x' });
+  assert.equal(saved.items[0].folder, 'Work › Clients');
+  const moved = applySaveFavorite(saved, { url: 'https://a/', title: 'A', folder: 'Home' }, { ...CTX, makeId: () => 'y' });
+  assert.equal(moved.items[0].folder, 'Home');
+  assert.ok(moved.layout.folders['work › clients'] && !moved.layout.folders['work › clients'].gone);
+});
+
+test('keepEmptiedFolders only adds folders that lost everything', () => {
+  const before = [fav('a', 'Work › Clients', 1), fav('b', 'Work', 1)];
+  const after = [fav('a', null, 1), fav('b', 'Work', 1)];
+  const l = keepEmptiedFolders(before, after, EMPTY_LAYOUT, CTX);
+  assert.deepEqual(Object.keys(l.folders), ['work › clients']);
+});
+
+test('flat callers without a layout still work', () => {
+  const r = applySetFolder({ items: [fav('a', null, 1, 'id-a')] }, 'id-a', 'Work', CTX);
+  assert.equal(r.items[0].folder, 'Work');
+  assert.deepEqual(r.layout, EMPTY_LAYOUT);
+});
