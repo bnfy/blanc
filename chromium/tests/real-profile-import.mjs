@@ -44,7 +44,7 @@ try{
   report.errors=(r.errors??[]).map(e=>({profile:e.profile==='personal'||e.profile==='device'?e.profile:'named',store:e.store,reason:e.reason}));
   report.leftBehind=tally(r.notImported);
   report.settings=r.settings?{synced:r.settings.synced,prefs:r.settings.prefs,refused:r.settings.refused,skipped:r.settings.skipped}:null;
-  report.install=r.install??null;report.session=r.session??null;report.sync=r.sync??null;
+  report.install=r.install??null;report.startPage=r.startPage??null;report.session=r.session??null;report.sync=r.sync??null;
   await new Promise(resolve=>setTimeout(resolve,3000));
   const windows=await w.native('profileImportWindows');
   report.readback={favorites:(await w.native('profileImportFavorites')).length,
