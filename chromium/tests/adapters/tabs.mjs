@@ -385,7 +385,22 @@ export const tabs={
  // are real CDP pointer input on the Island frames.
  pillShieldState:w=>domRead(strip(w),()=>{const el=document.getElementById('pillShield');if(!el)return null;
   return {hidden:!!el.hidden,off:el.classList.contains('shield-off'),title:el.dataset.tooltip??el.title};}),
- async clickPillShield(w){await strip(w).locator('#pillShield').click();},
+ // Every shipping step clicks the shield to open its popover. A click that
+ // opens nothing fails here with what the page knew, instead of as a bare
+ // timeout (link-routing.feature:37 failed that way once in 13 nights).
+ async clickPillShield(w){
+  const wasOpen=await overlayShown(w)&&await w.call('overlayRendererMode')==='shield';
+  await strip(w).locator('#pillShield').click();
+  if(wasOpen)return;
+  for(let i=0;i<30;i++){if(await overlayShown(w)&&await w.call('overlayRendererMode')==='shield')return;await new Promise(r=>setTimeout(r,100));}
+  const s=await w.snapshot().catch(e=>({error:String(e)}));const active=s.tabs?.find(t=>t.id===s.activeTabId);
+  const page=await domRead(strip(w),()=>{const el=document.getElementById('pillShield');
+   return {focus:document.hasFocus(),visibility:document.visibilityState,shield:el?{hidden:!!el.hidden,expanded:el.getAttribute('aria-expanded'),
+    rect:(({x,y,width,height})=>({x,y,width,height}))(el.getBoundingClientRect())}:null};}).catch(e=>({error:String(e)}));
+  const host=await w.hostEval(`({focus:document.hasFocus(),overlayHidden:document.getElementById('overlay')?.hidden??null})`).catch(e=>({error:String(e)}));
+  throw Error('the shield click opened no popover within 3 s: '+JSON.stringify({page,host,mode:await w.call('overlayRendererMode').catch(()=>null),
+   activeTabId:s.activeTabId??null,activeUrl:active?.url??null,committedUrl:active?.committedUrl??null,loading:active?.isLoading??null,shield:active?.shield??null,error:s.error}));
+ },
  async shieldPopoverState(w){
   const shown=await overlayShown(w);
   const s=await domRead(overlay(w),()=>{
