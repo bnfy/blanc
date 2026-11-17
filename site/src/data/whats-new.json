@@ -7,6 +7,45 @@
   ],
   "pages": [
     {
+      "release": "1.50",
+      "highlights": [
+        {
+          "id": "favorites-manager",
+          "tile": "Favorites",
+          "title": "Folders inside folders, in your order",
+          "body": "Favorites now opens a manager with your folders in a sidebar. Make folders inside folders, drag favorites and folders where you want them, select several at once, and search every folder. Deleting a folder keeps what was in it. One **Bring my stuff to Blanc** button imports favorites and open tabs from another browser, keeping its folders and their order.",
+          "steps": [
+            "Press `⌥⌘B`, or `Ctrl+Shift+O` on Windows and Linux.",
+            "Click **New folder**, or drag a favorite onto a folder in the sidebar."
+          ],
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/favorites-manager-v1.50.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Favorites manager open over The Met’s page for Van Gogh’s Wheat Field with Cypresses. The sidebar shows Home and Work, with Clients and Research inside Work, and the Work folder lists Clients, Research and three favorites."
+          }
+        },
+        {
+          "id": "save-downloads",
+          "tile": "Downloads",
+          "title": "Downloads go straight to your Downloads folder",
+          "body": "Blanc no longer asks where to save each file you download. It goes to your Downloads folder, and a file with the same name as one already there gets a number added. A download a page starts without your click, and **Save Image As…**, still ask.",
+          "steps": [
+            "To be asked every time, open Settings → General.",
+            "Turn on **Ask where to save each file**."
+          ],
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/save-downloads-v1.50.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Settings open to General over The Met’s page, with the Ask where to save each file switch turned off."
+          }
+        }
+      ]
+    },
+    {
       "release": "1.49",
       "highlights": [
         {
