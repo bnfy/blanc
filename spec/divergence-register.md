@@ -1056,3 +1056,30 @@ fades, and nothing fetched to draw a shortcut.
 
 **Status:** Android implemented in A5b, unreleased; iPhone implemented,
 unreleased on main.
+
+---
+
+## D40 — Nested Favorites folders show flat on phones and the fork
+**Features:** F9, F63
+
+**Why:** Nested folders (F63) were built in the shipping desktop first, with a
+sync format the other clients can adopt later (owner, November 16, 2026). A path
+is stored in the `folder` field every client already syncs, so nothing has to
+change elsewhere for nothing to be lost.
+
+- **Desktop (shipping Electron, this release onward):** the tree, a chosen order,
+  and empty folders.
+- **iPhone, Android, the desktop fork and older desktops:** each path is one flat
+  folder named by the path (`Work › Clients`). A folder edit there acts on that
+  one string: renaming `Work` renames only the favorites directly in it, so the
+  desktop then shows both the new folder and a `Work` that still holds its
+  sub-folders; deleting `Work › Clients` ungroups its favorites to the top level
+  instead of moving them up one level. The iPhone and the fork keep
+  `favoritesLayout` whole by its clock; older desktops drop it, and a newer
+  desktop restores it at most once every 10 minutes.
+
+**Parity contract that still holds:** every favorite and its full path survive
+every sync, and no client rewrites a path it didn't edit.
+
+**Status:** desktop merged, unreleased. Each other client adopts the tree in its
+own follow-up.

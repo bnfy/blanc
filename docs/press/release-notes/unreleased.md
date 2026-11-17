@@ -3,6 +3,23 @@
 v1.49.1 is the current public release ([notes](v1.49.1.md)). Changes merged
 since then are below as they're recorded.
 
+## Added
+
+- **Folders inside folders, in the order you choose.** Favorites
+  (Show Favorites, ⌥⌘B or Ctrl+Shift+O) now opens a manager with your folders
+  in a sidebar. Make folders inside folders, drag favorites and folders where
+  you want them, select several at once, and search every folder. Deleting a
+  folder keeps what was in it. Importing from another browser keeps its
+  folders as they were, and one **Bring my stuff to Blanc** button now handles
+  importing favorites and open tabs. The Favorites menu shows the same folders,
+  and `/save` takes a path, such as `/save Work > Clients`. On the iPhone, a
+  folder inside a folder shows as one folder named by its path for now.
+
+## Still open
+
+- **Favorites drag and drop with a real mouse** in a packaged build on macOS,
+  Windows and Linux. The checks so far drive drags with page events only.
+
 ## Still open from 1.49.1
 
 - **New Tab reuse** (#1505) in a packaged build on macOS, Windows and Linux,
