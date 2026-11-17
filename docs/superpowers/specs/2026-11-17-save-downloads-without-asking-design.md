@@ -49,6 +49,12 @@ asking by default. Issue #1591 asks for that, with the dialog kept as an option.
   and deleted-profile cancel run first; a retry still reuses its remembered
   path; only a new download with the switch off gets a chosen path. With the
   switch on, behavior is exactly today's.
+- **Only clicked downloads skip the dialog** (added after the branch review):
+  a download without a user gesture (`item.hasUserGesture()`) still shows
+  Save As, so a page can't write files into Downloads by itself, and
+  "Save Image As…" always asks, as its label promises. A retry keeps its
+  name reserved, and a retry from the list picks a free name if its file was
+  taken meanwhile. The downloads list shows the name actually used.
 - **Private tabs** follow the same switch. The file lands in Downloads; its row
   stays memory-only as now.
 - If the Downloads folder is missing or unwritable, fall back to the dialog
