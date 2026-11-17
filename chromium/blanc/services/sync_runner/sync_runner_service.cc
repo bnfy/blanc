@@ -163,9 +163,12 @@ void Hkdf(const Args& args) {
   }
   args.GetReturnValue().Set(Buffer(args.GetIsolate(), out));
 }
+// |aad| is additional authenticated data: empty for Sync, and the handoff's
+// id and expiry for a tab handoff (shipping's decryptTabHandoffEnvelope).
 std::optional<std::vector<uint8_t>> Gcm(bool seal, const std::vector<uint8_t>& key,
                                         const std::vector<uint8_t>& iv,
-                                        const std::vector<uint8_t>& in) {
+                                        const std::vector<uint8_t>& in,
+                                        const std::vector<uint8_t>& aad = {}) {
   bssl::ScopedEVP_AEAD_CTX ctx;
   if (key.size() != 32 || iv.size() != 12 ||
       !EVP_AEAD_CTX_init(ctx.get(), EVP_aead_aes_256_gcm(), key.data(), key.size(),
@@ -176,14 +179,16 @@ std::optional<std::vector<uint8_t>> Gcm(bool seal, const std::vector<uint8_t>& k
   size_t size = 0;
   auto run = seal ? EVP_AEAD_CTX_seal : EVP_AEAD_CTX_open;
   if (!run(ctx.get(), out.data(), &size, out.size(), iv.data(), iv.size(), in.data(), in.size(),
-           nullptr, 0)) {
+           aad.empty() ? nullptr : aad.data(), aad.size())) {
     return std::nullopt;
   }
   out.resize(size);
   return out;
 }
 void GcmRun(const Args& args, bool seal) {
-  auto out = Gcm(seal, Bytes(args[0]), Bytes(args[1]), Bytes(args[2]));
+  // A fourth argument is the additional data; Sync passes three.
+  auto out = Gcm(seal, Bytes(args[0]), Bytes(args[1]), Bytes(args[2]),
+                 args.Length() > 3 && args[3]->IsArrayBufferView() ? Bytes(args[3]) : std::vector<uint8_t>());
   if (out) args.GetReturnValue().Set(Array(args.GetIsolate(), *out));
   else args.GetReturnValue().SetNull();
 }

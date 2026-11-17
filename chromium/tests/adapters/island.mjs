@@ -193,6 +193,14 @@ export const island={
   return native({x:frame.x+menu.x-SPACES_MENU_SIDE,y:frame.y+menu.y-SPACES_MENU_PAD,width:menu.width+SPACES_MENU_SIDE*2,height:menu.height+SPACES_MENU_PAD*2});},
  sendOverlayInput:(w,input)=>frameInput(w,'overlay',input),
  async pressOverlayKey(w,key,modifiers=[]){
+  // Shipping's hook sends the key to the overlay after main's show message,
+  // so its renderer has drawn the mode before the key arrives. The fork's
+  // host shows asynchronously: wait until the overlay document has applied
+  // the host's mode, or a key pressed at once lands on an empty overlay
+  // (F41-27: Escape closed a Spaces menu that had not been drawn yet, so
+  // there was nothing to fade; 4 of 5 runs, 2026-11-16).
+  const mode=await w.call('overlayMode');
+  if(mode)await w.waitFor(()=>w.call('overlayRendererMode'),drawn=>drawn===mode,'the overlay drawn in the host\'s mode',3000);
   await overlay(w).evaluate(()=>window.focus());
   await overlay(w).keyboard.press([...modifiers,key].join('+'));return true;
  },

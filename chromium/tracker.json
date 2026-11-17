@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "qualification": "Initial platform inventory imported from approved spec; legacy macOS stages are not canonical verification.",
-  "shippingTag": "8a4e57e78",
+  "shippingTag": "v1.49.1",
   "bundleTag": "v1.46.0",
   "bundleTagNote": "The sandboxed Sync and import bundles (shared with Android) stay on v1.46.0: shipping changed neither for users through v1.48.0 (sync.js gained only an acceptance-harness helper). Move them with an Android recheck.",
-  "shippingCommit": "6479ed3a314e4fd6219b8de1598bacffa78b4d7c",
+  "shippingCommit": "673ff2eb052011b1efd14438a397a57d457de241",
   "rows": [
     {
       "id": "F1",
@@ -20,8 +20,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "43 of 43 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; 1 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -51,8 +51,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "14 of 14 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -82,8 +82,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "51 of 51 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -113,8 +113,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "5 of 6 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; private-tabs.feature:40 undefined (runner gap: no fork step adapter); manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -144,8 +144,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "14 of 14 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; 1 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -175,8 +175,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "2 of 2 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -206,8 +206,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "9 of 9 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -237,8 +237,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "1 of 1 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -268,8 +268,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "4 of 4 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -299,8 +299,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "3 of 3 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -330,8 +330,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "5 of 5 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -361,8 +361,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "10 of 10 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -392,8 +392,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "2 of 2 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -423,8 +423,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "6 of 6 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -454,8 +454,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "2 of 2 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -485,8 +485,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "10 of 10 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -516,8 +516,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-df08efed32b15890",
-          "basis": "S2 (2026-11-05): in candidate macos-df08efed32b15890; F17-1 and F17-3 pass (s2g-3); checkout only and flat Dock images by owner decision or build limits; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "2 of 3 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; supporter-and-session.feature:12 undefined (runner gap: no fork step adapter); manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -547,8 +547,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "1 of 1 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -578,8 +578,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "3 of 3 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -609,8 +609,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "4 of 4 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -639,9 +639,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "implemented",
-          "candidate": "macos-9a9442cac7df94a0",
-          "basis": "S2 (2026-11-05): in candidate macos-9a9442cac7df94a0, silent until a release channel reports a Blanc version (owner); F21-1 and F21-2 pass with a test version and a capture server (s2-tt-platform-services); a preview run sent nothing and minted no id; mahjong_play waits for Mahjong; day-one signals not exercised by a case"
+          "stage": "integrated",
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "2 of 2 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -670,8 +670,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "implemented",
+          "basis": "Beta channel only: Blanc Beta updates itself with Sparkle 2.10.1 (Apple Silicon), and the signed handoff from the public beta.5 to beta.6 passed (chromium/release/standing.json, sparkle-N-to-N+1). The in-app updater case platform-services.feature:25 is undefined (runner gap). Not started: the replacement channel, Intel, and the Electron bridge release (plan R.4–R.6)",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -701,8 +702,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "1 of 1 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -731,8 +732,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "drafted",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "18 of 18 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -761,8 +763,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "19 of 19 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; 1 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -792,8 +795,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-86a75dc4b5d45861",
-          "basis": "S2 (2026-11-05): in candidate macos-86a75dc4b5d45861; all five shipping scenarios pass (s2d-3); manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "13 of 13 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -822,8 +825,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-built-isolated",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "32 of 32 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; 2 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -853,8 +857,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "2 of 2 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -884,8 +888,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-86a75dc4b5d45861",
-          "basis": "S2 (2026-11-05): in candidate macos-86a75dc4b5d45861; Chromium profiles and UI under V18; shipping cases stay undefined; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "2 of 2 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; 1 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -915,8 +919,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-87bb16d760497fc1",
-          "basis": "S3.3 (2026-11-05): in candidate macos-87bb16d760497fc1, on by default and reachable; 38 of 69 cases pass, 4 fail, 27 undefined (s3-glance); manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "69 of 69 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; 2 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -945,8 +949,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-integrated-partial",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "25 of 25 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -976,8 +981,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-9a9442cac7df94a0",
-          "basis": "S2 (2026-11-05): in candidate macos-9a9442cac7df94a0; all eight cases pass (s2-tt-onboarding); the tour replays from Settings → About; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "9 of 9 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -1007,8 +1012,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "4 of 4 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -1067,8 +1072,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "15 of 15 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1097,9 +1103,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "implemented",
-          "candidate": "macos-1dd80a8fa99b18c2",
-          "basis": "S3.9 (2026-11-06): set-aside pages live in a hidden window per profile; on macos-1dd80a8fa99b18c2 (2026-11-07) 26 of 84 cases pass, 1 fails (F41-6, pinned tabs leave groups), 57 undefined (s3c-spaces). S3.10 (2026-11-07, macos-071c3fa883ea19ff): Move to Space for one tab and New Space… from a tab, all 11 cases pass including the 3 crash cases, once Chromium's own Restore pages? bubble was wired in and shown correctly in the fork's window. S3.11 (2026-11-07, macos-e554011ad2a2b1d2): several tabs (Codex-built, 12 reviewer-found defects fixed before merge, two of them data loss), 16 of 19 scenario rows pass, batch-close and persisted-session reads not built; Spaces overall 52 of 53 runnable cases pass; Open Link in Space and Move Group to Space not built"
+          "stage": "integrated",
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "83 of 84 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; F41-named-workspaces.feature:211 (the Spaces menu's closing fade) failed and passed on its rerun, a known intermittent; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -1128,8 +1134,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "drafted",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "33 of 33 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1189,8 +1196,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "5 of 5 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -1219,8 +1226,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "7 of 7 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; 1 excluded by approved divergence or platform; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1249,8 +1257,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-built-isolated",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "10 of 10 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1280,8 +1289,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "18 of 18 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -1310,8 +1319,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "7 of 7 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1340,8 +1350,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-integrated-partial",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "native-recheck-f49.mjs passes 4 of 4 checks on macos-bed55af2cf2cf43d (2026-11-16): Your image imports a PNG, Wash and Fade apply and are stored, and all three survive a relaunch. The fork keeps the image in IndexedDB, not shipping's current.jpg; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1370,8 +1381,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-built-isolated",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "native-recheck-f50.mjs passes 4 of 4 checks on macos-bed55af2cf2cf43d (2026-11-16): Color applies shipping's Sage gradient, Solid changes it, it survives a relaunch, and Sunrise removes it. Match each space's color is not available in the fork; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1402,7 +1414,7 @@
         "macos": {
           "stage": "implemented",
           "candidate": "macos-28492a27347b09a4",
-          "basis": "S2 (2026-11-05): in candidate macos-28492a27347b09a4, inert until a release channel reports a Blanc version; pill, changelog link and close checked with a test version"
+          "basis": "S2 (2026-11-05): in candidate macos-28492a27347b09a4, inert until a release channel reports a Blanc version; pill, changelog link and close checked with a test version. No shipping scenario maps to this row; not rechecked in the 2026-11-16 tracker refresh."
         },
         "windows": {
           "stage": "not-started",
@@ -1431,8 +1443,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "20 of 20 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1461,9 +1474,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "implemented",
-          "candidate": "macos-1935c1d14bb29c5b",
-          "basis": "S3.2 (2026-11-05): in candidate macos-1935c1d14bb29c5b; 24 of 32 cases pass (s3g-split-view); the rest wait for Spaces, Mahjong, a session read and float-view reads; manual accessibility/visual checklist pending for Verified"
+          "stage": "integrated",
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "34 of 34 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -1492,8 +1505,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-integrated-partial",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "native-recheck-f54.mjs passes 7 of 7 checks on macos-bed55af2cf2cf43d (2026-11-16): shipping's four fonts and defaults, each font's computed family and width, Sky at tone 50, and persistence across a relaunch. Height, weight and Glass not checked; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1522,8 +1536,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "drafted",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "Owner decision 2026-11-02: Chromium's native Reading Mode replaces shipping's reader, so shipping's three cases are excluded. native-recheck-f58.mjs passes 2 of 2 checks on macos-b6c8f300a889d3a1 (2026-11-16): /reader opens Reading Mode over the page pane with the article's text, the Island reports it (readerActive, new in the native snapshot), the command closes it, and a private tab does the same; seen in a screenshot. Not checked: the View menu item, Reading Mode's own controls, a page with no article; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-b6c8f300a889d3a1"
         },
         "windows": {
           "stage": "not-started",
@@ -1552,8 +1567,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "drafted",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "Built 2026-11-16 (patch 0088, tab_switch_keys_mac, shipping's tab-switcher.js in the host): native-tab-switch.mjs passes 8 of 8 checks on macos-9d3053da65b5aea9 with key events posted to the app's own queue (order by last use, nothing changes until Control up, card after 150 ms or a second Tab, tap, Esc, another key, Ctrl+W, a card click, list order); the card and the Settings row were seen on screen. Differences: a menu click on Select Next Tab stays positional (shipping makes it a tap). Not checked: hardware keys, another app coming to the front, Windows and Linux; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-9d3053da65b5aea9"
         },
         "windows": {
           "stage": "not-started",
@@ -1582,8 +1598,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "7 of 7 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1613,8 +1630,9 @@
       "canonicalState": "not-started",
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "new in shipping v1.46.0; not yet in the fork"
+          "stage": "integrated",
+          "basis": "5 of 5 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1644,8 +1662,9 @@
       "canonicalState": "not-started",
       "platformProgress": {
         "macos": {
-          "stage": "implemented",
-          "basis": "all 11 page-zoom.feature scenarios pass on macos-62c03a037c249ee0 (v148-zoom-cases-3): Chromium's own default and per-site zoom, Chrome's zoom steps (patch 0071), web-only default (patch 0070); Settings uses Chromium's Page zoom menu and Zoom levels list"
+          "stage": "integrated",
+          "basis": "11 of 11 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1674,8 +1693,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "legacy-built-isolated",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "F35-19 (Launch Sunrise) passes in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1704,8 +1724,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "drafted",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "implemented",
+          "basis": "Desktop Sync S4a–S4c: sync.feature passes 18 of 18 in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) against the local Worker. Production Sync with a real iPhone is a waived beta gate (standing.json, production-sync-real-device), so not Integrated",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1734,8 +1755,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "implemented",
+          "basis": "S4b (2026-11-09): Settings offers iPhone/add-device pairing with shipping's code, QR, expiry and cancel states. Not checked with a real iPhone on the current candidate (gate production-sync-real-device is waived)",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1794,8 +1816,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "implemented",
+          "basis": "The beta requirement is built (2026-11-16, patch 0091, protected_media.inc): a page asking for protected playback gets the owner's notice under the Island (\"Blanc Beta can't play this video yet\", Not now, Open in released Blanc, or Get released Blanc where the Electron app is absent), from Blink's use counter for requestMediaKeySystemAccess. native-protected-media.mjs passes 8 of 8 on macos-e1f8cb12fc0a503f. DRM playback itself is not built (D3: excepted for beta only; replacement D3 undecided). Not checked on live sites (a test launch has no outside network), and the standing waiver no-drm-handoff still stands until the owner retires it",
+          "candidate": "macos-e1f8cb12fc0a503f"
         },
         "windows": {
           "stage": "not-started",
@@ -1833,8 +1856,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "native-recheck-n1.mjs passes 5 of 5 checks on macos-bed55af2cf2cf43d (2026-11-16): a closed tab's entry and title, no entry for a private tab, Forget, Clear all, and reopen. The fork keeps Chromium's profile-wide TabRestoreService history where shipping keeps it per window; expiry and the cap not checked; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -1863,8 +1887,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "The capture indicator was already built: shipping's permissions-and-auth.feature:13 (microphone chip, window-wide, popover Stop, truthful permissions.query) passes in the nightly and again on macos-039ca82eb0d47756 (6 of 6 in that file). native-capture-indicator.mjs adds the camera, both glyphs together, the popover row going to its tab and Stop ending both: 5 of 5 on macos-039ca82eb0d47756 (2026-11-16), with Chromium's fake devices. Not checked: real devices, capture from an iframe or a pop-up window; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-039ca82eb0d47756"
         },
         "windows": {
           "stage": "not-started",
@@ -1893,8 +1918,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "implemented",
+          "basis": "Screen sharing is Chromium's own getDisplayMedia and picker (native, not shipping's broker). New 2026-11-16: an active share now lights the Island's sharing chip and gets shipping's popover row with Stop (displayShares from Chromium's capture indicator; stopDisplayShare). native-display-share.mjs passes 3 of 3 on macos-039ca82eb0d47756 for a tab share with the picker answered by Chromium's test switch. Not Integrated: Chromium's picker in an Island window and a window or whole-screen share were not run (they open system UI and need the macOS Screen Recording permission); the row names the kind of surface, not its title; Linux PipeWire is not built",
+          "candidate": "macos-039ca82eb0d47756"
         },
         "windows": {
           "stage": "not-started",
@@ -1955,8 +1981,8 @@
       "platformProgress": {
         "macos": {
           "stage": "integrated",
-          "candidate": "macos-41cadf1e05df1804",
-          "basis": "S1 close-out (2026-11-04): in candidate macos-41cadf1e05df1804, on by default and reachable through shipping UI; runs evidence/foundation/s18*, s1c-*; manual accessibility/visual checklist pending for Verified"
+          "candidate": "macos-bed55af2cf2cf43d",
+          "basis": "11 of 11 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified"
         },
         "windows": {
           "stage": "not-started",
@@ -2016,8 +2042,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "V19, Chromium's native passkeys: the owner's Touch ID passkey check passed on the notarized beta.5 and carries to beta.6 (chromium/release/standing.json, webauthn); the one shipping scenario is mobile-only and excluded; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -2077,8 +2104,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "8 of 8 applicable cases pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -2169,8 +2197,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "Shipping's Mahjong files are ported byte-identical and the Start Page footer opens it (V25); the Mahjong cases of newtab-layouts.feature pass in the nightly full suite 20261116-0700 (2026-11-16, fork e7b716378, shipping 8a4e57e78) on macos-bed55af2cf2cf43d. Sound cues not checked; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -2199,8 +2228,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "implemented",
+          "basis": "Mute Site is Chromium's own sound setting (V21) and Match site colors drives the page tint (STATUS, S3 decisions and Appearance settings). No shipping scenario maps here; not rechecked on the current candidate in the 2026-11-16 refresh",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -2229,8 +2259,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "native-mouse-gestures.mjs passes 13 of 13 checks on macos-1f6cbe46be1f2dfd (2026-11-16): off by default, the Settings switch and mapping, right-drag and Option-left-drag gestures through native input, and the navigation boundaries. The mapped shipping cases are phone-only and excluded; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-1f6cbe46be1f2dfd"
         },
         "windows": {
           "stage": "not-started",
@@ -2260,7 +2291,8 @@
       "platformProgress": {
         "macos": {
           "stage": "implemented",
-          "basis": "granted local HTML tabs, as shipping's official builds: tabs-and-groups.feature:292 (n15-pinned-file-2) and nine native checks (n15-local-files-smoke-4) pass on macos-dae7f4583f5966a0; the DRM-build isolated preview window and the public.html association are not built"
+          "basis": "native-local-files.mjs passes 9 of 9 checks on macos-1f6cbe46be1f2dfd (2026-11-16) and tabs-and-groups.feature:292 passes in the nightly: a local HTML file opens in a tab that holds the grant for that file. Still not built: the macOS public.html file association, and shipping's isolated preview window",
+          "candidate": "macos-1f6cbe46be1f2dfd"
         },
         "windows": {
           "stage": "not-started",
@@ -2289,8 +2321,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "Built 2026-11-16 (patch 0090, trust_receipt.inc): Settings → About shows shipping's receipt facts (build, Chromium, platform, the app's own code signature checked with codesign, the blocker bundle's digest, Sync, usage measurement, search suggestions, secure DNS, the crash ledger), a 50-event crash ledger of time, process type and reason, Export and Clear. native-trust-receipt.mjs passes 3 of 3 on macos-1f6cbe46be1f2dfd, with a real renderer crash, and the section was seen in a screenshot. Owner decision 2026-11-16: Chromium's crash dump files are kept (never uploaded; Blanc builds have no upload address), their count shows on a chrome://crashes row, and Clear deletes them (not under a test launch, which shares the folder). Differences: one blocker digest, no per-list rows or snapshot date; no release links row; Export saves through the page's download, not a save dialog. Not checked: a signed build's Verified line, Export's saved file, other languages; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-1f6cbe46be1f2dfd"
         },
         "windows": {
           "stage": "not-started",
@@ -2319,8 +2352,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "implemented",
+          "basis": "/invite is answered by the host (inviteFriend in island/host.js, shipping's invite-friend.js). The Help menu item and an on-screen check were not confirmed in the 2026-11-16 refresh",
+          "candidate": "macos-bed55af2cf2cf43d"
         },
         "windows": {
           "stage": "not-started",
@@ -2349,8 +2383,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "integrated",
+          "basis": "native-dock-menu.mjs passes 6 of 6 checks on macos-23064fbfabd20e7b (2026-11-16, patch 0089): the Dock menu leads with the front window's current tab (title and icon, cut at 75 characters, \"Private tab\" with no icon), then New Window, New Private Window and New Mini Window (patches 0013, 0067); the Dock tile has no badge; the app menu has Check for Updates… under About, and About opens in the Settings sheet (patch 0076, native-app-menu-about.mjs 3 of 3). Check for Updates… runs Blanc Beta's updater in a beta build, which was compiled but not run here; the preview build opens About. Not checked: the row with every window closed, a web page's Badging API; manual accessibility/visual checklist pending for Verified",
+          "candidate": "macos-23064fbfabd20e7b"
         },
         "windows": {
           "stage": "not-started",
@@ -2410,8 +2445,9 @@
       },
       "platformProgress": {
         "macos": {
-          "stage": "not-started",
-          "basis": "approved spec macOS inventory; awaiting candidate verification"
+          "stage": "implemented",
+          "basis": "The tab import page is built and passes under F40 (15 of 15) and F45 (7 of 7). Tab handoff built 2026-11-16 per docs/superpowers/specs/2026-11-16-fork-tab-handoff-design.md: a blanc-import: link is never loaded; shipping's tab-import-handoff.js (v1.49.1, unchanged, in a sandboxed bundle with a pinned hash) reads the link, checks and decrypts the relay's reply and cleans the list; the browser makes the one claim request, rechecks the list, shows shipping's sheet and opens the tabs quiet. native-tab-handoff.mjs passes 8 of 8 on macos-6e37801aafbe77a1 against a stand-in relay on 127.0.0.1, handoff.test.mjs 6 of 6. Not Integrated: by owner decision D1 no build registers the blanc-import: link type yet (only the replacement build will), so the path from macOS, the real extension and the real relay are unchecked, as is a link arriving before any window exists",
+          "candidate": "macos-6e37801aafbe77a1"
         },
         "windows": {
           "stage": "not-started",
@@ -2492,11 +2528,11 @@
   ],
   "currentCandidates": {
     "macos": {
-      "id": "macos-cf13e2bc70dce670",
-      "frameworkSha256": "cf13e2bc70dce67044cd9665a68b43c0cf927fe863e2529f5536ce860d58f3dd",
+      "id": "macos-bed55af2cf2cf43d",
+      "frameworkSha256": "bed55af2cf2cf43db8e7de5b862a5739bb8d0db557aee59afbf1d09a36484a2a",
       "executableSha256": "cca20d7ed00bbdecf8db310c6802fbed003b4e63c6bc3b1f71dabc9dbff2ff01",
       "version": "158.0.8127.2",
-      "qualification": "compiled candidate; runtime acceptance pending"
+      "qualification": "full suite on the Mac Studio 2026-11-16 at shipping v1.49.1: 633 of 667 cases pass, 3 fail (link-routing:37 passes alone; island-and-commands:49 and sync:120 fail again alone, see STATUS), 3 undefined, 28 excluded"
     },
     "android": {
       "id": "android-arm64-7bd35e94ef746069",
@@ -2508,7 +2544,7 @@
     }
   },
   "baselines": {
-    "macos": "scenarios/baseline-macos-343a9dfa66dcb9d3.json"
+    "macos": "scenarios/baseline-macos-bed55af2cf2cf43d.json"
   },
   "scenarioIds": [
     "spec/acceptance/F41-named-workspaces.feature:4",
@@ -2529,70 +2565,70 @@
     "spec/acceptance/F41-named-workspaces.feature:93",
     "spec/acceptance/F41-named-workspaces.feature:98",
     "spec/acceptance/F41-named-workspaces.feature:103",
-    "spec/acceptance/F41-named-workspaces.feature:109",
-    "spec/acceptance/F41-named-workspaces.feature:113",
-    "spec/acceptance/F41-named-workspaces.feature:118",
-    "spec/acceptance/F41-named-workspaces.feature:127",
-    "spec/acceptance/F41-named-workspaces.feature:134",
-    "spec/acceptance/F41-named-workspaces.feature:144",
-    "spec/acceptance/F41-named-workspaces.feature:153",
+    "spec/acceptance/F41-named-workspaces.feature:112",
+    "spec/acceptance/F41-named-workspaces.feature:117",
+    "spec/acceptance/F41-named-workspaces.feature:123",
+    "spec/acceptance/F41-named-workspaces.feature:133",
+    "spec/acceptance/F41-named-workspaces.feature:141",
+    "spec/acceptance/F41-named-workspaces.feature:152",
     "spec/acceptance/F41-named-workspaces.feature:162",
-    "spec/acceptance/F41-named-workspaces.feature:169",
-    "spec/acceptance/F41-named-workspaces.feature:175",
-    "spec/acceptance/F41-named-workspaces.feature:182",
-    "spec/acceptance/F41-named-workspaces.feature:189",
-    "spec/acceptance/F41-named-workspaces.feature:196",
-    "spec/acceptance/F41-named-workspaces.feature:204",
+    "spec/acceptance/F41-named-workspaces.feature:172",
+    "spec/acceptance/F41-named-workspaces.feature:180",
+    "spec/acceptance/F41-named-workspaces.feature:187",
+    "spec/acceptance/F41-named-workspaces.feature:195",
+    "spec/acceptance/F41-named-workspaces.feature:203",
     "spec/acceptance/F41-named-workspaces.feature:211",
-    "spec/acceptance/F41-named-workspaces.feature:218",
+    "spec/acceptance/F41-named-workspaces.feature:220",
     "spec/acceptance/F41-named-workspaces.feature:228",
-    "spec/acceptance/F41-named-workspaces.feature:237",
-    "spec/acceptance/F41-named-workspaces.feature:246",
-    "spec/acceptance/F41-named-workspaces.feature:254",
-    "spec/acceptance/F41-named-workspaces.feature:262",
-    "spec/acceptance/F41-named-workspaces.feature:270",
-    "spec/acceptance/F41-named-workspaces.feature:279",
-    "spec/acceptance/F41-named-workspaces.feature:285",
-    "spec/acceptance/F41-named-workspaces.feature:291",
-    "spec/acceptance/F41-named-workspaces.feature:300",
-    "spec/acceptance/F41-named-workspaces.feature:308",
-    "spec/acceptance/F41-named-workspaces.feature:316",
-    "spec/acceptance/F41-named-workspaces.feature:329",
-    "spec/acceptance/F41-named-workspaces.feature:341",
+    "spec/acceptance/F41-named-workspaces.feature:236",
+    "spec/acceptance/F41-named-workspaces.feature:247",
+    "spec/acceptance/F41-named-workspaces.feature:256",
+    "spec/acceptance/F41-named-workspaces.feature:265",
+    "spec/acceptance/F41-named-workspaces.feature:273",
+    "spec/acceptance/F41-named-workspaces.feature:281",
+    "spec/acceptance/F41-named-workspaces.feature:289",
+    "spec/acceptance/F41-named-workspaces.feature:299",
+    "spec/acceptance/F41-named-workspaces.feature:306",
+    "spec/acceptance/F41-named-workspaces.feature:313",
+    "spec/acceptance/F41-named-workspaces.feature:322",
+    "spec/acceptance/F41-named-workspaces.feature:330",
+    "spec/acceptance/F41-named-workspaces.feature:338",
     "spec/acceptance/F41-named-workspaces.feature:351",
-    "spec/acceptance/F41-named-workspaces.feature:359",
-    "spec/acceptance/F41-named-workspaces.feature:367",
-    "spec/acceptance/F41-named-workspaces.feature:376",
-    "spec/acceptance/F41-named-workspaces.feature:386",
-    "spec/acceptance/F41-named-workspaces.feature:396",
-    "spec/acceptance/F41-named-workspaces.feature:403",
-    "spec/acceptance/F41-named-workspaces.feature:413",
-    "spec/acceptance/F41-named-workspaces.feature:423",
-    "spec/acceptance/F41-named-workspaces.feature:431",
-    "spec/acceptance/F41-named-workspaces.feature:439",
-    "spec/acceptance/F41-named-workspaces.feature:449",
-    "spec/acceptance/F41-named-workspaces.feature:459",
-    "spec/acceptance/F41-named-workspaces.feature:472",
-    "spec/acceptance/F41-named-workspaces.feature:480",
-    "spec/acceptance/F41-named-workspaces.feature:488",
-    "spec/acceptance/F41-named-workspaces.feature:497",
-    "spec/acceptance/F41-named-workspaces.feature:507",
-    "spec/acceptance/F41-named-workspaces.feature:516",
-    "spec/acceptance/F41-named-workspaces.feature:527",
-    "spec/acceptance/F41-named-workspaces.feature:535",
-    "spec/acceptance/F41-named-workspaces.feature:541",
+    "spec/acceptance/F41-named-workspaces.feature:363",
+    "spec/acceptance/F41-named-workspaces.feature:373",
+    "spec/acceptance/F41-named-workspaces.feature:381",
+    "spec/acceptance/F41-named-workspaces.feature:389",
+    "spec/acceptance/F41-named-workspaces.feature:398",
+    "spec/acceptance/F41-named-workspaces.feature:408",
+    "spec/acceptance/F41-named-workspaces.feature:418",
+    "spec/acceptance/F41-named-workspaces.feature:425",
+    "spec/acceptance/F41-named-workspaces.feature:435",
+    "spec/acceptance/F41-named-workspaces.feature:445",
+    "spec/acceptance/F41-named-workspaces.feature:453",
+    "spec/acceptance/F41-named-workspaces.feature:461",
+    "spec/acceptance/F41-named-workspaces.feature:471",
+    "spec/acceptance/F41-named-workspaces.feature:481",
+    "spec/acceptance/F41-named-workspaces.feature:494",
+    "spec/acceptance/F41-named-workspaces.feature:502",
+    "spec/acceptance/F41-named-workspaces.feature:510",
+    "spec/acceptance/F41-named-workspaces.feature:519",
+    "spec/acceptance/F41-named-workspaces.feature:529",
+    "spec/acceptance/F41-named-workspaces.feature:538",
     "spec/acceptance/F41-named-workspaces.feature:549",
-    "spec/acceptance/F41-named-workspaces.feature:558",
-    "spec/acceptance/F41-named-workspaces.feature:566",
-    "spec/acceptance/F41-named-workspaces.feature:576",
-    "spec/acceptance/F41-named-workspaces.feature:583",
-    "spec/acceptance/F41-named-workspaces.feature:591",
-    "spec/acceptance/F41-named-workspaces.feature:602",
+    "spec/acceptance/F41-named-workspaces.feature:557",
+    "spec/acceptance/F41-named-workspaces.feature:563",
+    "spec/acceptance/F41-named-workspaces.feature:571",
+    "spec/acceptance/F41-named-workspaces.feature:580",
+    "spec/acceptance/F41-named-workspaces.feature:588",
+    "spec/acceptance/F41-named-workspaces.feature:598",
+    "spec/acceptance/F41-named-workspaces.feature:605",
     "spec/acceptance/F41-named-workspaces.feature:613",
     "spec/acceptance/F41-named-workspaces.feature:624",
-    "spec/acceptance/F41-named-workspaces.feature:633",
-    "spec/acceptance/F41-named-workspaces.feature:643",
-    "spec/acceptance/F41-named-workspaces.feature:651",
+    "spec/acceptance/F41-named-workspaces.feature:635",
+    "spec/acceptance/F41-named-workspaces.feature:646",
+    "spec/acceptance/F41-named-workspaces.feature:655",
+    "spec/acceptance/F41-named-workspaces.feature:665",
+    "spec/acceptance/F41-named-workspaces.feature:673",
     "spec/acceptance/ad-blocking.feature:12",
     "spec/acceptance/ad-blocking.feature:17",
     "spec/acceptance/ad-blocking.feature:26",
@@ -2614,6 +2650,11 @@
     "spec/acceptance/blank-tab-affordance.feature:17",
     "spec/acceptance/blank-tab-affordance.feature:24",
     "spec/acceptance/blank-tab-affordance.feature:34",
+    "spec/acceptance/blank-tab-affordance.feature:43",
+    "spec/acceptance/blank-tab-affordance.feature:50",
+    "spec/acceptance/blank-tab-affordance.feature:56",
+    "spec/acceptance/blank-tab-affordance.feature:62",
+    "spec/acceptance/blank-tab-affordance.feature:69",
     "spec/acceptance/browser-migration.feature:7",
     "spec/acceptance/browser-migration.feature:14",
     "spec/acceptance/browser-migration.feature:21",
@@ -2842,6 +2883,17 @@
     "spec/acceptance/onboarding.feature:48",
     "spec/acceptance/onboarding.feature:57",
     "spec/acceptance/onboarding.feature:64",
+    "spec/acceptance/page-zoom.feature:9",
+    "spec/acceptance/page-zoom.feature:19",
+    "spec/acceptance/page-zoom.feature:28",
+    "spec/acceptance/page-zoom.feature:41",
+    "spec/acceptance/page-zoom.feature:50",
+    "spec/acceptance/page-zoom.feature:59",
+    "spec/acceptance/page-zoom.feature:69",
+    "spec/acceptance/page-zoom.feature:78",
+    "spec/acceptance/page-zoom.feature:85",
+    "spec/acceptance/page-zoom.feature:94",
+    "spec/acceptance/page-zoom.feature:103",
     "spec/acceptance/permissions-and-auth.feature:6",
     "spec/acceptance/permissions-and-auth.feature:13",
     "spec/acceptance/permissions-and-auth.feature:21",
@@ -2881,6 +2933,7 @@
     "spec/acceptance/quiet-tabs.feature:106",
     "spec/acceptance/quiet-tabs.feature:113",
     "spec/acceptance/quiet-tabs.feature:118",
+    "spec/acceptance/quiet-tabs.feature:130",
     "spec/acceptance/reader-mode.feature:7",
     "spec/acceptance/reader-mode.feature:13",
     "spec/acceptance/reader-mode.feature:20",
@@ -2935,37 +2988,43 @@
     "spec/acceptance/site-certificate-safety.feature:35",
     "spec/acceptance/site-certificate-safety.feature:41",
     "spec/acceptance/site-certificate-safety.feature:50",
+    "spec/acceptance/site-certificate-safety.feature:62",
+    "spec/acceptance/site-certificate-safety.feature:68",
+    "spec/acceptance/site-certificate-safety.feature:73",
+    "spec/acceptance/site-certificate-safety.feature:80",
     "spec/acceptance/split-view.feature:7",
     "spec/acceptance/split-view.feature:12",
     "spec/acceptance/split-view.feature:19",
     "spec/acceptance/split-view.feature:28",
-    "spec/acceptance/split-view.feature:35",
-    "spec/acceptance/split-view.feature:42",
-    "spec/acceptance/split-view.feature:48",
-    "spec/acceptance/split-view.feature:54",
-    "spec/acceptance/split-view.feature:60",
-    "spec/acceptance/split-view.feature:69",
-    "spec/acceptance/split-view.feature:77",
-    "spec/acceptance/split-view.feature:88",
-    "spec/acceptance/split-view.feature:96",
-    "spec/acceptance/split-view.feature:110",
-    "spec/acceptance/split-view.feature:116",
-    "spec/acceptance/split-view.feature:122",
-    "spec/acceptance/split-view.feature:129",
-    "spec/acceptance/split-view.feature:135",
-    "spec/acceptance/split-view.feature:141",
-    "spec/acceptance/split-view.feature:147",
-    "spec/acceptance/split-view.feature:153",
-    "spec/acceptance/split-view.feature:159",
-    "spec/acceptance/split-view.feature:169",
-    "spec/acceptance/split-view.feature:178",
-    "spec/acceptance/split-view.feature:187",
-    "spec/acceptance/split-view.feature:194",
-    "spec/acceptance/split-view.feature:201",
-    "spec/acceptance/split-view.feature:209",
-    "spec/acceptance/split-view.feature:218",
-    "spec/acceptance/split-view.feature:227",
-    "spec/acceptance/split-view.feature:234",
+    "spec/acceptance/split-view.feature:34",
+    "spec/acceptance/split-view.feature:41",
+    "spec/acceptance/split-view.feature:47",
+    "spec/acceptance/split-view.feature:53",
+    "spec/acceptance/split-view.feature:59",
+    "spec/acceptance/split-view.feature:68",
+    "spec/acceptance/split-view.feature:76",
+    "spec/acceptance/split-view.feature:87",
+    "spec/acceptance/split-view.feature:95",
+    "spec/acceptance/split-view.feature:109",
+    "spec/acceptance/split-view.feature:115",
+    "spec/acceptance/split-view.feature:121",
+    "spec/acceptance/split-view.feature:128",
+    "spec/acceptance/split-view.feature:134",
+    "spec/acceptance/split-view.feature:140",
+    "spec/acceptance/split-view.feature:146",
+    "spec/acceptance/split-view.feature:152",
+    "spec/acceptance/split-view.feature:158",
+    "spec/acceptance/split-view.feature:168",
+    "spec/acceptance/split-view.feature:177",
+    "spec/acceptance/split-view.feature:186",
+    "spec/acceptance/split-view.feature:193",
+    "spec/acceptance/split-view.feature:200",
+    "spec/acceptance/split-view.feature:208",
+    "spec/acceptance/split-view.feature:217",
+    "spec/acceptance/split-view.feature:226",
+    "spec/acceptance/split-view.feature:233",
+    "spec/acceptance/split-view.feature:243",
+    "spec/acceptance/split-view.feature:253",
     "spec/acceptance/supporter-and-session.feature:7",
     "spec/acceptance/supporter-and-session.feature:12",
     "spec/acceptance/supporter-and-session.feature:18",
@@ -3021,6 +3080,9 @@
     "spec/acceptance/tab-drag.feature:164",
     "spec/acceptance/tab-drag.feature:170",
     "spec/acceptance/tab-drag.feature:176",
+    "spec/acceptance/tab-gestures.feature:9",
+    "spec/acceptance/tab-gestures.feature:18",
+    "spec/acceptance/tab-gestures.feature:28",
     "spec/acceptance/tab-migration.feature:7",
     "spec/acceptance/tab-migration.feature:15",
     "spec/acceptance/tab-migration.feature:26",
@@ -3101,7 +3163,8 @@
     "spec/acceptance/vertical-tabs.feature:201",
     "spec/acceptance/vertical-tabs.feature:217",
     "spec/acceptance/vertical-tabs.feature:239",
-    "spec/acceptance/vertical-tabs.feature:249"
+    "spec/acceptance/vertical-tabs.feature:249",
+    "spec/acceptance/vertical-tabs.feature:269"
   ],
   "scenarioCases": {
     "spec/acceptance/F41-named-workspaces.feature:4": [
@@ -3158,184 +3221,178 @@
     "spec/acceptance/F41-named-workspaces.feature:103": [
       "spec/acceptance/F41-named-workspaces.feature:103:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:109": [
-      "spec/acceptance/F41-named-workspaces.feature:109:plain"
+    "spec/acceptance/F41-named-workspaces.feature:112": [
+      "spec/acceptance/F41-named-workspaces.feature:112:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:113": [
-      "spec/acceptance/F41-named-workspaces.feature:113:plain"
+    "spec/acceptance/F41-named-workspaces.feature:117": [
+      "spec/acceptance/F41-named-workspaces.feature:117:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:118": [
-      "spec/acceptance/F41-named-workspaces.feature:118:plain"
+    "spec/acceptance/F41-named-workspaces.feature:123": [
+      "spec/acceptance/F41-named-workspaces.feature:123:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:127": [
-      "spec/acceptance/F41-named-workspaces.feature:127:plain"
+    "spec/acceptance/F41-named-workspaces.feature:133": [
+      "spec/acceptance/F41-named-workspaces.feature:133:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:134": [
-      "spec/acceptance/F41-named-workspaces.feature:134:plain"
+    "spec/acceptance/F41-named-workspaces.feature:141": [
+      "spec/acceptance/F41-named-workspaces.feature:141:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:144": [
-      "spec/acceptance/F41-named-workspaces.feature:144:plain"
-    ],
-    "spec/acceptance/F41-named-workspaces.feature:153": [
-      "spec/acceptance/F41-named-workspaces.feature:153:plain"
+    "spec/acceptance/F41-named-workspaces.feature:152": [
+      "spec/acceptance/F41-named-workspaces.feature:152:plain"
     ],
     "spec/acceptance/F41-named-workspaces.feature:162": [
       "spec/acceptance/F41-named-workspaces.feature:162:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:169": [
-      "spec/acceptance/F41-named-workspaces.feature:169:plain"
+    "spec/acceptance/F41-named-workspaces.feature:172": [
+      "spec/acceptance/F41-named-workspaces.feature:172:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:175": [
-      "spec/acceptance/F41-named-workspaces.feature:175:plain"
+    "spec/acceptance/F41-named-workspaces.feature:180": [
+      "spec/acceptance/F41-named-workspaces.feature:180:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:182": [
-      "spec/acceptance/F41-named-workspaces.feature:182:plain"
+    "spec/acceptance/F41-named-workspaces.feature:187": [
+      "spec/acceptance/F41-named-workspaces.feature:187:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:189": [
-      "spec/acceptance/F41-named-workspaces.feature:189:plain"
+    "spec/acceptance/F41-named-workspaces.feature:195": [
+      "spec/acceptance/F41-named-workspaces.feature:195:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:196": [
-      "spec/acceptance/F41-named-workspaces.feature:196:plain"
-    ],
-    "spec/acceptance/F41-named-workspaces.feature:204": [
-      "spec/acceptance/F41-named-workspaces.feature:204:plain"
+    "spec/acceptance/F41-named-workspaces.feature:203": [
+      "spec/acceptance/F41-named-workspaces.feature:203:plain"
     ],
     "spec/acceptance/F41-named-workspaces.feature:211": [
       "spec/acceptance/F41-named-workspaces.feature:211:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:218": [
-      "spec/acceptance/F41-named-workspaces.feature:218:plain"
+    "spec/acceptance/F41-named-workspaces.feature:220": [
+      "spec/acceptance/F41-named-workspaces.feature:220:plain"
     ],
     "spec/acceptance/F41-named-workspaces.feature:228": [
       "spec/acceptance/F41-named-workspaces.feature:228:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:237": [
-      "spec/acceptance/F41-named-workspaces.feature:237:plain"
+    "spec/acceptance/F41-named-workspaces.feature:236": [
+      "spec/acceptance/F41-named-workspaces.feature:236:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:246": [
-      "spec/acceptance/F41-named-workspaces.feature:246:plain"
+    "spec/acceptance/F41-named-workspaces.feature:247": [
+      "spec/acceptance/F41-named-workspaces.feature:247:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:254": [
-      "spec/acceptance/F41-named-workspaces.feature:254:plain"
+    "spec/acceptance/F41-named-workspaces.feature:256": [
+      "spec/acceptance/F41-named-workspaces.feature:256:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:262": [
-      "spec/acceptance/F41-named-workspaces.feature:262:plain"
+    "spec/acceptance/F41-named-workspaces.feature:265": [
+      "spec/acceptance/F41-named-workspaces.feature:265:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:270": [
-      "spec/acceptance/F41-named-workspaces.feature:270:plain"
+    "spec/acceptance/F41-named-workspaces.feature:273": [
+      "spec/acceptance/F41-named-workspaces.feature:273:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:279": [
-      "spec/acceptance/F41-named-workspaces.feature:279:plain"
+    "spec/acceptance/F41-named-workspaces.feature:281": [
+      "spec/acceptance/F41-named-workspaces.feature:281:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:285": [
-      "spec/acceptance/F41-named-workspaces.feature:285:plain"
+    "spec/acceptance/F41-named-workspaces.feature:289": [
+      "spec/acceptance/F41-named-workspaces.feature:289:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:291": [
-      "spec/acceptance/F41-named-workspaces.feature:291:plain"
+    "spec/acceptance/F41-named-workspaces.feature:299": [
+      "spec/acceptance/F41-named-workspaces.feature:299:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:300": [
-      "spec/acceptance/F41-named-workspaces.feature:300:plain"
+    "spec/acceptance/F41-named-workspaces.feature:306": [
+      "spec/acceptance/F41-named-workspaces.feature:306:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:308": [
-      "spec/acceptance/F41-named-workspaces.feature:308:plain"
+    "spec/acceptance/F41-named-workspaces.feature:313": [
+      "spec/acceptance/F41-named-workspaces.feature:313:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:316": [
-      "spec/acceptance/F41-named-workspaces.feature:316:plain"
+    "spec/acceptance/F41-named-workspaces.feature:322": [
+      "spec/acceptance/F41-named-workspaces.feature:322:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:329": [
-      "spec/acceptance/F41-named-workspaces.feature:329:plain"
+    "spec/acceptance/F41-named-workspaces.feature:330": [
+      "spec/acceptance/F41-named-workspaces.feature:330:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:341": [
-      "spec/acceptance/F41-named-workspaces.feature:341:plain"
+    "spec/acceptance/F41-named-workspaces.feature:338": [
+      "spec/acceptance/F41-named-workspaces.feature:338:plain"
     ],
     "spec/acceptance/F41-named-workspaces.feature:351": [
       "spec/acceptance/F41-named-workspaces.feature:351:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:359": [
-      "spec/acceptance/F41-named-workspaces.feature:359:plain"
+    "spec/acceptance/F41-named-workspaces.feature:363": [
+      "spec/acceptance/F41-named-workspaces.feature:363:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:367": [
-      "spec/acceptance/F41-named-workspaces.feature:367:plain"
+    "spec/acceptance/F41-named-workspaces.feature:373": [
+      "spec/acceptance/F41-named-workspaces.feature:373:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:376": [
-      "spec/acceptance/F41-named-workspaces.feature:376:plain"
+    "spec/acceptance/F41-named-workspaces.feature:381": [
+      "spec/acceptance/F41-named-workspaces.feature:381:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:386": [
-      "spec/acceptance/F41-named-workspaces.feature:386:plain"
+    "spec/acceptance/F41-named-workspaces.feature:389": [
+      "spec/acceptance/F41-named-workspaces.feature:389:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:396": [
-      "spec/acceptance/F41-named-workspaces.feature:396:plain"
+    "spec/acceptance/F41-named-workspaces.feature:398": [
+      "spec/acceptance/F41-named-workspaces.feature:398:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:403": [
-      "spec/acceptance/F41-named-workspaces.feature:403:plain"
+    "spec/acceptance/F41-named-workspaces.feature:408": [
+      "spec/acceptance/F41-named-workspaces.feature:408:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:413": [
-      "spec/acceptance/F41-named-workspaces.feature:413:plain"
+    "spec/acceptance/F41-named-workspaces.feature:418": [
+      "spec/acceptance/F41-named-workspaces.feature:418:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:423": [
-      "spec/acceptance/F41-named-workspaces.feature:423:plain"
+    "spec/acceptance/F41-named-workspaces.feature:425": [
+      "spec/acceptance/F41-named-workspaces.feature:425:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:431": [
-      "spec/acceptance/F41-named-workspaces.feature:431:plain"
+    "spec/acceptance/F41-named-workspaces.feature:435": [
+      "spec/acceptance/F41-named-workspaces.feature:435:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:439": [
-      "spec/acceptance/F41-named-workspaces.feature:439:plain"
+    "spec/acceptance/F41-named-workspaces.feature:445": [
+      "spec/acceptance/F41-named-workspaces.feature:445:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:449": [
-      "spec/acceptance/F41-named-workspaces.feature:449:plain"
+    "spec/acceptance/F41-named-workspaces.feature:453": [
+      "spec/acceptance/F41-named-workspaces.feature:453:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:459": [
-      "spec/acceptance/F41-named-workspaces.feature:459:example-468",
-      "spec/acceptance/F41-named-workspaces.feature:459:example-469"
+    "spec/acceptance/F41-named-workspaces.feature:461": [
+      "spec/acceptance/F41-named-workspaces.feature:461:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:472": [
-      "spec/acceptance/F41-named-workspaces.feature:472:plain"
+    "spec/acceptance/F41-named-workspaces.feature:471": [
+      "spec/acceptance/F41-named-workspaces.feature:471:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:480": [
-      "spec/acceptance/F41-named-workspaces.feature:480:plain"
+    "spec/acceptance/F41-named-workspaces.feature:481": [
+      "spec/acceptance/F41-named-workspaces.feature:481:example-490",
+      "spec/acceptance/F41-named-workspaces.feature:481:example-491"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:488": [
-      "spec/acceptance/F41-named-workspaces.feature:488:plain"
+    "spec/acceptance/F41-named-workspaces.feature:494": [
+      "spec/acceptance/F41-named-workspaces.feature:494:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:497": [
-      "spec/acceptance/F41-named-workspaces.feature:497:plain"
+    "spec/acceptance/F41-named-workspaces.feature:502": [
+      "spec/acceptance/F41-named-workspaces.feature:502:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:507": [
-      "spec/acceptance/F41-named-workspaces.feature:507:plain"
+    "spec/acceptance/F41-named-workspaces.feature:510": [
+      "spec/acceptance/F41-named-workspaces.feature:510:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:516": [
-      "spec/acceptance/F41-named-workspaces.feature:516:plain"
+    "spec/acceptance/F41-named-workspaces.feature:519": [
+      "spec/acceptance/F41-named-workspaces.feature:519:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:527": [
-      "spec/acceptance/F41-named-workspaces.feature:527:plain"
+    "spec/acceptance/F41-named-workspaces.feature:529": [
+      "spec/acceptance/F41-named-workspaces.feature:529:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:535": [
-      "spec/acceptance/F41-named-workspaces.feature:535:plain"
-    ],
-    "spec/acceptance/F41-named-workspaces.feature:541": [
-      "spec/acceptance/F41-named-workspaces.feature:541:plain"
+    "spec/acceptance/F41-named-workspaces.feature:538": [
+      "spec/acceptance/F41-named-workspaces.feature:538:plain"
     ],
     "spec/acceptance/F41-named-workspaces.feature:549": [
       "spec/acceptance/F41-named-workspaces.feature:549:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:558": [
-      "spec/acceptance/F41-named-workspaces.feature:558:plain"
+    "spec/acceptance/F41-named-workspaces.feature:557": [
+      "spec/acceptance/F41-named-workspaces.feature:557:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:566": [
-      "spec/acceptance/F41-named-workspaces.feature:566:example-572",
-      "spec/acceptance/F41-named-workspaces.feature:566:example-573"
+    "spec/acceptance/F41-named-workspaces.feature:563": [
+      "spec/acceptance/F41-named-workspaces.feature:563:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:576": [
-      "spec/acceptance/F41-named-workspaces.feature:576:plain"
+    "spec/acceptance/F41-named-workspaces.feature:571": [
+      "spec/acceptance/F41-named-workspaces.feature:571:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:583": [
-      "spec/acceptance/F41-named-workspaces.feature:583:plain"
+    "spec/acceptance/F41-named-workspaces.feature:580": [
+      "spec/acceptance/F41-named-workspaces.feature:580:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:591": [
-      "spec/acceptance/F41-named-workspaces.feature:591:plain"
+    "spec/acceptance/F41-named-workspaces.feature:588": [
+      "spec/acceptance/F41-named-workspaces.feature:588:example-594",
+      "spec/acceptance/F41-named-workspaces.feature:588:example-595"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:602": [
-      "spec/acceptance/F41-named-workspaces.feature:602:plain"
+    "spec/acceptance/F41-named-workspaces.feature:598": [
+      "spec/acceptance/F41-named-workspaces.feature:598:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:605": [
+      "spec/acceptance/F41-named-workspaces.feature:605:plain"
     ],
     "spec/acceptance/F41-named-workspaces.feature:613": [
       "spec/acceptance/F41-named-workspaces.feature:613:plain"
@@ -3343,14 +3400,20 @@
     "spec/acceptance/F41-named-workspaces.feature:624": [
       "spec/acceptance/F41-named-workspaces.feature:624:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:633": [
-      "spec/acceptance/F41-named-workspaces.feature:633:plain"
+    "spec/acceptance/F41-named-workspaces.feature:635": [
+      "spec/acceptance/F41-named-workspaces.feature:635:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:643": [
-      "spec/acceptance/F41-named-workspaces.feature:643:plain"
+    "spec/acceptance/F41-named-workspaces.feature:646": [
+      "spec/acceptance/F41-named-workspaces.feature:646:plain"
     ],
-    "spec/acceptance/F41-named-workspaces.feature:651": [
-      "spec/acceptance/F41-named-workspaces.feature:651:plain"
+    "spec/acceptance/F41-named-workspaces.feature:655": [
+      "spec/acceptance/F41-named-workspaces.feature:655:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:665": [
+      "spec/acceptance/F41-named-workspaces.feature:665:plain"
+    ],
+    "spec/acceptance/F41-named-workspaces.feature:673": [
+      "spec/acceptance/F41-named-workspaces.feature:673:plain"
     ],
     "spec/acceptance/ad-blocking.feature:12": [
       "spec/acceptance/ad-blocking.feature:12:plain"
@@ -3414,6 +3477,21 @@
     ],
     "spec/acceptance/blank-tab-affordance.feature:34": [
       "spec/acceptance/blank-tab-affordance.feature:34:plain"
+    ],
+    "spec/acceptance/blank-tab-affordance.feature:43": [
+      "spec/acceptance/blank-tab-affordance.feature:43:plain"
+    ],
+    "spec/acceptance/blank-tab-affordance.feature:50": [
+      "spec/acceptance/blank-tab-affordance.feature:50:plain"
+    ],
+    "spec/acceptance/blank-tab-affordance.feature:56": [
+      "spec/acceptance/blank-tab-affordance.feature:56:plain"
+    ],
+    "spec/acceptance/blank-tab-affordance.feature:62": [
+      "spec/acceptance/blank-tab-affordance.feature:62:plain"
+    ],
+    "spec/acceptance/blank-tab-affordance.feature:69": [
+      "spec/acceptance/blank-tab-affordance.feature:69:plain"
     ],
     "spec/acceptance/browser-migration.feature:7": [
       "spec/acceptance/browser-migration.feature:7:plain"
@@ -4110,6 +4188,39 @@
     "spec/acceptance/onboarding.feature:64": [
       "spec/acceptance/onboarding.feature:64:plain"
     ],
+    "spec/acceptance/page-zoom.feature:9": [
+      "spec/acceptance/page-zoom.feature:9:plain"
+    ],
+    "spec/acceptance/page-zoom.feature:19": [
+      "spec/acceptance/page-zoom.feature:19:plain"
+    ],
+    "spec/acceptance/page-zoom.feature:28": [
+      "spec/acceptance/page-zoom.feature:28:plain"
+    ],
+    "spec/acceptance/page-zoom.feature:41": [
+      "spec/acceptance/page-zoom.feature:41:plain"
+    ],
+    "spec/acceptance/page-zoom.feature:50": [
+      "spec/acceptance/page-zoom.feature:50:plain"
+    ],
+    "spec/acceptance/page-zoom.feature:59": [
+      "spec/acceptance/page-zoom.feature:59:plain"
+    ],
+    "spec/acceptance/page-zoom.feature:69": [
+      "spec/acceptance/page-zoom.feature:69:plain"
+    ],
+    "spec/acceptance/page-zoom.feature:78": [
+      "spec/acceptance/page-zoom.feature:78:plain"
+    ],
+    "spec/acceptance/page-zoom.feature:85": [
+      "spec/acceptance/page-zoom.feature:85:plain"
+    ],
+    "spec/acceptance/page-zoom.feature:94": [
+      "spec/acceptance/page-zoom.feature:94:plain"
+    ],
+    "spec/acceptance/page-zoom.feature:103": [
+      "spec/acceptance/page-zoom.feature:103:plain"
+    ],
     "spec/acceptance/permissions-and-auth.feature:6": [
       "spec/acceptance/permissions-and-auth.feature:6:plain"
     ],
@@ -4240,6 +4351,9 @@
     ],
     "spec/acceptance/quiet-tabs.feature:118": [
       "spec/acceptance/quiet-tabs.feature:118:plain"
+    ],
+    "spec/acceptance/quiet-tabs.feature:130": [
+      "spec/acceptance/quiet-tabs.feature:130:plain"
     ],
     "spec/acceptance/reader-mode.feature:7": [
       "spec/acceptance/reader-mode.feature:7:plain"
@@ -4411,6 +4525,18 @@
     "spec/acceptance/site-certificate-safety.feature:50": [
       "spec/acceptance/site-certificate-safety.feature:50:plain"
     ],
+    "spec/acceptance/site-certificate-safety.feature:62": [
+      "spec/acceptance/site-certificate-safety.feature:62:plain"
+    ],
+    "spec/acceptance/site-certificate-safety.feature:68": [
+      "spec/acceptance/site-certificate-safety.feature:68:plain"
+    ],
+    "spec/acceptance/site-certificate-safety.feature:73": [
+      "spec/acceptance/site-certificate-safety.feature:73:plain"
+    ],
+    "spec/acceptance/site-certificate-safety.feature:80": [
+      "spec/acceptance/site-certificate-safety.feature:80:plain"
+    ],
     "spec/acceptance/split-view.feature:7": [
       "spec/acceptance/split-view.feature:7:plain"
     ],
@@ -4423,87 +4549,93 @@
     "spec/acceptance/split-view.feature:28": [
       "spec/acceptance/split-view.feature:28:plain"
     ],
-    "spec/acceptance/split-view.feature:35": [
-      "spec/acceptance/split-view.feature:35:plain"
+    "spec/acceptance/split-view.feature:34": [
+      "spec/acceptance/split-view.feature:34:plain"
     ],
-    "spec/acceptance/split-view.feature:42": [
-      "spec/acceptance/split-view.feature:42:plain"
+    "spec/acceptance/split-view.feature:41": [
+      "spec/acceptance/split-view.feature:41:plain"
     ],
-    "spec/acceptance/split-view.feature:48": [
-      "spec/acceptance/split-view.feature:48:plain"
+    "spec/acceptance/split-view.feature:47": [
+      "spec/acceptance/split-view.feature:47:plain"
     ],
-    "spec/acceptance/split-view.feature:54": [
-      "spec/acceptance/split-view.feature:54:plain"
+    "spec/acceptance/split-view.feature:53": [
+      "spec/acceptance/split-view.feature:53:plain"
     ],
-    "spec/acceptance/split-view.feature:60": [
-      "spec/acceptance/split-view.feature:60:plain"
+    "spec/acceptance/split-view.feature:59": [
+      "spec/acceptance/split-view.feature:59:plain"
     ],
-    "spec/acceptance/split-view.feature:69": [
-      "spec/acceptance/split-view.feature:69:plain"
+    "spec/acceptance/split-view.feature:68": [
+      "spec/acceptance/split-view.feature:68:plain"
     ],
-    "spec/acceptance/split-view.feature:77": [
-      "spec/acceptance/split-view.feature:77:plain"
+    "spec/acceptance/split-view.feature:76": [
+      "spec/acceptance/split-view.feature:76:plain"
     ],
-    "spec/acceptance/split-view.feature:88": [
-      "spec/acceptance/split-view.feature:88:plain"
+    "spec/acceptance/split-view.feature:87": [
+      "spec/acceptance/split-view.feature:87:plain"
     ],
-    "spec/acceptance/split-view.feature:96": [
-      "spec/acceptance/split-view.feature:96:plain"
+    "spec/acceptance/split-view.feature:95": [
+      "spec/acceptance/split-view.feature:95:plain"
     ],
-    "spec/acceptance/split-view.feature:110": [
-      "spec/acceptance/split-view.feature:110:plain"
+    "spec/acceptance/split-view.feature:109": [
+      "spec/acceptance/split-view.feature:109:plain"
     ],
-    "spec/acceptance/split-view.feature:116": [
-      "spec/acceptance/split-view.feature:116:plain"
+    "spec/acceptance/split-view.feature:115": [
+      "spec/acceptance/split-view.feature:115:plain"
     ],
-    "spec/acceptance/split-view.feature:122": [
-      "spec/acceptance/split-view.feature:122:plain"
+    "spec/acceptance/split-view.feature:121": [
+      "spec/acceptance/split-view.feature:121:plain"
     ],
-    "spec/acceptance/split-view.feature:129": [
-      "spec/acceptance/split-view.feature:129:plain"
+    "spec/acceptance/split-view.feature:128": [
+      "spec/acceptance/split-view.feature:128:plain"
     ],
-    "spec/acceptance/split-view.feature:135": [
-      "spec/acceptance/split-view.feature:135:plain"
+    "spec/acceptance/split-view.feature:134": [
+      "spec/acceptance/split-view.feature:134:plain"
     ],
-    "spec/acceptance/split-view.feature:141": [
-      "spec/acceptance/split-view.feature:141:plain"
+    "spec/acceptance/split-view.feature:140": [
+      "spec/acceptance/split-view.feature:140:plain"
     ],
-    "spec/acceptance/split-view.feature:147": [
-      "spec/acceptance/split-view.feature:147:plain"
+    "spec/acceptance/split-view.feature:146": [
+      "spec/acceptance/split-view.feature:146:plain"
     ],
-    "spec/acceptance/split-view.feature:153": [
-      "spec/acceptance/split-view.feature:153:plain"
+    "spec/acceptance/split-view.feature:152": [
+      "spec/acceptance/split-view.feature:152:plain"
     ],
-    "spec/acceptance/split-view.feature:159": [
-      "spec/acceptance/split-view.feature:159:plain"
+    "spec/acceptance/split-view.feature:158": [
+      "spec/acceptance/split-view.feature:158:plain"
     ],
-    "spec/acceptance/split-view.feature:169": [
-      "spec/acceptance/split-view.feature:169:plain"
+    "spec/acceptance/split-view.feature:168": [
+      "spec/acceptance/split-view.feature:168:plain"
     ],
-    "spec/acceptance/split-view.feature:178": [
-      "spec/acceptance/split-view.feature:178:plain"
+    "spec/acceptance/split-view.feature:177": [
+      "spec/acceptance/split-view.feature:177:plain"
     ],
-    "spec/acceptance/split-view.feature:187": [
-      "spec/acceptance/split-view.feature:187:plain"
+    "spec/acceptance/split-view.feature:186": [
+      "spec/acceptance/split-view.feature:186:plain"
     ],
-    "spec/acceptance/split-view.feature:194": [
-      "spec/acceptance/split-view.feature:194:plain"
+    "spec/acceptance/split-view.feature:193": [
+      "spec/acceptance/split-view.feature:193:plain"
     ],
-    "spec/acceptance/split-view.feature:201": [
-      "spec/acceptance/split-view.feature:201:plain"
+    "spec/acceptance/split-view.feature:200": [
+      "spec/acceptance/split-view.feature:200:plain"
     ],
-    "spec/acceptance/split-view.feature:209": [
-      "spec/acceptance/split-view.feature:209:plain"
+    "spec/acceptance/split-view.feature:208": [
+      "spec/acceptance/split-view.feature:208:plain"
     ],
-    "spec/acceptance/split-view.feature:218": [
-      "spec/acceptance/split-view.feature:218:plain"
+    "spec/acceptance/split-view.feature:217": [
+      "spec/acceptance/split-view.feature:217:plain"
     ],
-    "spec/acceptance/split-view.feature:227": [
-      "spec/acceptance/split-view.feature:227:plain"
+    "spec/acceptance/split-view.feature:226": [
+      "spec/acceptance/split-view.feature:226:plain"
     ],
-    "spec/acceptance/split-view.feature:234": [
-      "spec/acceptance/split-view.feature:234:example-240",
-      "spec/acceptance/split-view.feature:234:example-241"
+    "spec/acceptance/split-view.feature:233": [
+      "spec/acceptance/split-view.feature:233:example-239",
+      "spec/acceptance/split-view.feature:233:example-240"
+    ],
+    "spec/acceptance/split-view.feature:243": [
+      "spec/acceptance/split-view.feature:243:plain"
+    ],
+    "spec/acceptance/split-view.feature:253": [
+      "spec/acceptance/split-view.feature:253:plain"
     ],
     "spec/acceptance/supporter-and-session.feature:7": [
       "spec/acceptance/supporter-and-session.feature:7:plain"
@@ -4681,6 +4813,15 @@
     ],
     "spec/acceptance/tab-drag.feature:176": [
       "spec/acceptance/tab-drag.feature:176:plain"
+    ],
+    "spec/acceptance/tab-gestures.feature:9": [
+      "spec/acceptance/tab-gestures.feature:9:plain"
+    ],
+    "spec/acceptance/tab-gestures.feature:18": [
+      "spec/acceptance/tab-gestures.feature:18:plain"
+    ],
+    "spec/acceptance/tab-gestures.feature:28": [
+      "spec/acceptance/tab-gestures.feature:28:plain"
     ],
     "spec/acceptance/tab-migration.feature:7": [
       "spec/acceptance/tab-migration.feature:7:plain"
@@ -4925,6 +5066,9 @@
     ],
     "spec/acceptance/vertical-tabs.feature:249": [
       "spec/acceptance/vertical-tabs.feature:249:plain"
+    ],
+    "spec/acceptance/vertical-tabs.feature:269": [
+      "spec/acceptance/vertical-tabs.feature:269:plain"
     ]
   },
   "currentSlice": "S4B"

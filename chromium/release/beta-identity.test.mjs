@@ -21,7 +21,7 @@ for version,build in [('1.0.0-beta.1',1),('2.0.0',1),('2.0.0-beta.0',1),('2.0.0-
  try: m['metadata'](x,version,build)
  except ValueError: pass
  else: raise AssertionError('invalid metadata accepted')
-print(json.dumps(y))`,{CFBundleVersion:'8127.2',CFBundleShortVersionString:'158.0.8127.2',CFBundleDocumentTypes:[{CFBundleTypeName:'HTML'}],CFBundleURLTypes:[{CFBundleURLSchemes:['http','https','file']},{CFBundleURLSchemes:['chromium']}],CrFrameworkVersion:'158.0.8127.2'});
+print(json.dumps(y))`,{CFBundleVersion:'8127.2',CFBundleShortVersionString:'158.0.8127.2',CFBundleDocumentTypes:[{CFBundleTypeName:'HTML'}],CFBundleURLTypes:[{CFBundleURLSchemes:['http','https','file']},{CFBundleURLSchemes:['chromium']},{CFBundleURLSchemes:['blanc-import']}],CrFrameworkVersion:'158.0.8127.2'});
   assert.equal(result.CFBundleIdentifier,'me.bnfy.blanc.beta');assert.equal(result.CrProductDirName,'Blanc Beta');
   assert.equal(result.CFBundleShortVersionString,'2.0.0-beta.3');assert.equal(result.CFBundleVersion,'7');
   assert.equal(result.CrFrameworkVersion,'158.0.8127.2');assert.equal(result.LSMinimumSystemVersion,'13.0');

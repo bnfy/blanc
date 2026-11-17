@@ -1,0 +1,109 @@
+diff --git a/chrome/browser/resources/settings/about_page/about_page.html.ts b/chrome/browser/resources/settings/about_page/about_page.html.ts
+--- a/chrome/browser/resources/settings/about_page/about_page.html.ts
++++ b/chrome/browser/resources/settings/about_page/about_page.html.ts
+@@ -109,6 +109,23 @@
+   <cr-link-row class="hr" id="blancWelcomeTour" @click="${this.onBlancWelcomeTourClick_}"
+       label="$i18n{blancWelcomeTour}" sub-label="$i18n{blancWelcomeTourHint}">
+   </cr-link-row>
++  <!-- Blanc: bring a person's data across from the released (Electron) app.
++       The browser picks that app's own folder; this page names nothing. -->
++  <div class="cr-row" id="blancImport">
++    <div class="flex cr-padded-text">
++      <div>$i18n{blancProfileImportTitle}</div>
++      <div class="secondary" id="blancImportStatus" role="status">${this.blancImportStatus_}</div>
++    </div>
++    <cr-button id="blancImportStart" ?disabled="${this.blancImportBusy_}" @click="${this.onBlancImportClick_}">
++      ${this.blancImportButton_}
++    </cr-button>
++  </div>
++  <!-- What the last import brought across, a row for each profile. -->
++  ${this.blancImportDetails_.map(row => html`
++    <div class="cr-row blanc-import-row" data-kind="${row.kind}">
++      <div class="flex cr-padded-text">${row.label}</div>
++      <div class="secondary blanc-import-value">${row.value}</div>
++    </div>`)}
+   <!-- Blanc (N16): the trust receipt, as shipping's About & Trust: facts
+        checked on this device, with no network request. -->
+   <div class="cr-row" id="blancTrust">
+diff --git a/chrome/browser/resources/settings/about_page/about_page.ts b/chrome/browser/resources/settings/about_page/about_page.ts
+--- a/chrome/browser/resources/settings/about_page/about_page.ts
++++ b/chrome/browser/resources/settings/about_page/about_page.ts
+@@ -82,6 +82,10 @@
+     return {
+       currentUpdateStatusEvent_: {type: Object},
+       betaUpdateState_: {type: Object},
++      blancImportStatus_: {type: String},
++      blancImportBusy_: {type: Boolean},
++      blancImportButton_: {type: String},
++      blancImportDetails_: {type: Array},
+       blancTrust_: {type: Array},
+       blancTrustStatus_: {type: String},
+       blancCrashDumps_: {type: Number},
+@@ -335,7 +339,67 @@
+       this.blancDiagnosticsSummary_ = this.blancText_('blancDiagnosticsReadFailed');
+     }
+   }
++
++  // Blanc: the Electron profile importer. The reply is counts and codes.
++  protected accessor blancImportStatus_: string = loadTimeData.getString('blancProfileImportHint');
++  protected accessor blancImportBusy_: boolean = false;
++  protected accessor blancImportButton_: string = loadTimeData.getString('blancProfileImportStart');
++  protected accessor blancImportDetails_: Array<{kind: string, label: string, value: string}> = [];
+ 
++  protected async onBlancImportClick_() {
++    if (this.blancImportBusy_) return;
++    const t = (name: string) => loadTimeData.getString(name);
++    this.blancImportBusy_ = true;
++    this.blancImportStatus_ = t('blancProfileImportWorking');
++    this.blancImportDetails_ = [];
++    let retry = true;
++    try {
++      const result = await sendWithPromise<{ok: boolean, error?: string, imported?: number, failed?: number,
++                                            already?: number, sync?: string,
++                                            details?: Array<{personal: boolean, name: string, failed: boolean,
++                                                             counts?: Record<string, number>}>}>('blancProfileImport');
++      // A row for each profile: its name, then what came across, largest
++      // things first; a profile that could not be read says so.
++      const counted: Array<[string, string]> = [
++        ['favorites', 'blancProfileImportFavorites'], ['history', 'blancProfileImportHistory'],
++        ['spaces', 'blancProfileImportSpaces'], ['archive', 'blancProfileImportArchived'],
++        ['pins', 'blancProfileImportPins'], ['permissions', 'blancProfileImportPermissions'],
++      ];
++      const rows = (result.details ?? []).map(detail => ({
++        kind: detail.failed ? 'failed' : 'imported',
++        label: detail.personal ? t('blancProfileImportPersonal') : detail.name,
++        value: detail.failed ? t('blancProfileImportNotRead') : counted
++            .filter(([key]) => (detail.counts?.[key] ?? 0) > 0)
++            .map(([key, label]) => `${t(label)} ${(detail.counts?.[key] ?? 0).toLocaleString()}`).join(' · '),
++      }));
++      if (rows.some(row => row.kind === 'imported')) {
++        rows.push({kind: 'left', label: t('blancProfileImportLeftBehind'), value: ''});
++      }
++      this.blancImportDetails_ = rows;
++      if (!result.ok) {
++        this.blancImportStatus_ = t(({
++          'source-running': 'blancProfileImportRunning',
++          'no-source': 'blancProfileImportNoSource',
++          'unknown-version': 'blancProfileImportNoSource',
++          'unsupported-version': 'blancProfileImportOld',
++        } as Record<string, string>)[result.error ?? ''] ?? 'blancProfileImportFailed');
++      } else if ((result.failed ?? 0) > 0) {
++        this.blancImportStatus_ = t('blancProfileImportPartial');
++      } else if ((result.imported ?? 0) === 0) {
++        this.blancImportStatus_ = t('blancProfileImportAlready');
++        retry = false;
++      } else {
++        this.blancImportStatus_ = t(result.sync === 'kept' ? 'blancProfileImportDoneRestart'
++            : result.sync === 'unavailable' ? 'blancProfileImportDoneSyncOff' : 'blancProfileImportDone');
++        retry = false;
++      }
++    } catch {
++      this.blancImportStatus_ = t('blancProfileImportFailed');
++    }
++    this.blancImportButton_ = t(retry ? 'blancProfileImportRetry' : 'blancProfileImportStart');
++    this.blancImportBusy_ = false;
++  }
++
+   protected onBlancCrashDumpsClick_() {
+     BlancOpenWindow.getInstance().openUrl('chrome://crashes');
+   }

@@ -152,7 +152,38 @@
     return rowsOf(list.map((tab) => tab.id), list).map((row) => (row.kind === 'split' ? row.tabIds[0] : row.id));
   }
 
-  const api = { sectionsOf, normalizeOrder, itemsOf, layoutItems, legacyOrder, firstTabOf, placeInGroup, paintGroup, rowsOf, numberedTabIds };
+  /** The address a blanc://error page stands in for (the page that failed,
+   * carried in its query), or null when it names none. */
+  function failedPageUrl(url) {
+    if (typeof url !== 'string' || !url.startsWith('blanc://error')) return null;
+    try {
+      const failed = new URL(url).searchParams.get('url');
+      return failed && new URL(failed).host ? failed : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /** Short label for a tab's location: the host for a web page (for a failed
+   * page, the host that failed), the page name for an internal one, empty for
+   * a blank new tab. `stripWww` drops a leading "www." for dense lists. */
+  function locationLabel(url, { stripWww = false } = {}) {
+    if (typeof url !== 'string' || !url || url.startsWith('blanc://newtab')) return '';
+    // Chromium's view-source: is a non-special scheme with no host of its own.
+    const source = url.startsWith('view-source:') ? url.slice('view-source:'.length) || null : null;
+    try {
+      const u = new URL(source ?? failedPageUrl(url) ?? url);
+      if (u.protocol === 'blanc:') return `blanc://${u.host}`;
+      return stripWww ? u.host.replace(/^www\./, '') : u.host;
+    } catch {
+      return url;
+    }
+  }
+
+  const api = {
+    sectionsOf, normalizeOrder, itemsOf, layoutItems, legacyOrder, firstTabOf, placeInGroup, paintGroup, rowsOf, numberedTabIds,
+    locationLabel,
+  };
   if (typeof module !== 'undefined') module.exports = api;
   else root.TabSections = api;
 })(typeof window !== 'undefined' ? window : globalThis);

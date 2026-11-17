@@ -1,6 +1,6 @@
 {
- "$comment": "Every shipping settings.js DEFAULTS key at the shipping tag, and where it lives in the fork (S1.7, F14). kind: blanc-pref (a Blanc preference with shipping's default), native (Chromium's own store), divergence (approved, not built), later (a named later slice or row), pending-decision, unassigned (no spec row yet). status for S1.7 keys: built (the store holds shipping's default) or to-build. Checked by tools/settings-keys.mjs.",
- "shippingTag": "8a4e57e78",
+ "$comment": "Every shipping settings.js DEFAULTS key at the shipping tag, and where it lives in the fork (S1.7, F14). kind: blanc-pref (a Blanc preference with shipping's default), native (Chromium's own store), divergence (approved, not built), later (a named later slice or row), pending-decision, unassigned (no spec row yet). status for S1.7 keys: built (the store holds shipping's default) or to-build. Checked by tools/settings-keys.mjs. import: the Electron profile importer copies this key's value into the named preference (the entry's own pref, or import.pref), after checking it against import.values or import.min/max; true means a plain copy of a boolean or number. The seven keys Sync carries are imported through Sync's own converter and need no import field.",
+ "shippingTag": "v1.49.1",
  "keys": [
   {
    "key": "searchEngine",
@@ -27,7 +27,8 @@
    "slice": "S1.7",
    "pref": "search.suggest_enabled",
    "page": "Blanc Search section (Chromium shows it only on its Google and Sync pages)",
-   "status": "built"
+   "status": "built",
+   "import": true
   },
   {
    "key": "bangsEnabled",
@@ -191,7 +192,8 @@
    "slice": "S1.7",
    "pref": "blanc.island.site_colors",
    "scope": "profile",
-   "status": "built"
+   "status": "built",
+   "import": true
   },
   {
    "key": "islandHoverOpen",
@@ -200,7 +202,8 @@
    "slice": "S1.7",
    "pref": "blanc.island.hover_open",
    "scope": "profile",
-   "status": "built"
+   "status": "built",
+   "import": true
   },
   {
    "key": "islandTabIcons",
@@ -209,13 +212,17 @@
    "slice": "S1.7",
    "pref": "blanc.island.tab_icons",
    "scope": "profile",
-   "status": "built"
+   "status": "built",
+   "import": true
   },
   {
    "key": "launchSunrise",
    "kind": "later",
    "row": "R1",
-   "slice": "S5"
+   "slice": "S5",
+   "import": {
+    "pref": "blanc.start.launch_sunrise"
+   }
   },
   {
    "key": "searchPriorityResults",
@@ -224,7 +231,8 @@
    "slice": "S1.7",
    "pref": "blanc.island.search_priority_results",
    "scope": "profile",
-   "status": "built"
+   "status": "built",
+   "import": true
   },
   {
    "key": "islandAutoHide",
@@ -233,7 +241,8 @@
    "slice": "S1.7",
    "pref": "blanc.island.auto_hide",
    "scope": "profile",
-   "status": "built"
+   "status": "built",
+   "import": true
   },
   {
    "key": "islandAutoHideStyle",
@@ -242,13 +251,26 @@
    "slice": "S1.7",
    "pref": "blanc.island.auto_hide_style",
    "scope": "profile",
-   "status": "built"
+   "status": "built",
+   "import": {
+    "values": [
+     "float",
+     "push"
+    ]
+   }
   },
   {
    "key": "tabSwitchOrder",
    "kind": "later",
    "row": "F59",
-   "slice": "S3"
+   "slice": "S3",
+   "import": {
+    "pref": "blanc.tabs.switch_order",
+    "values": [
+     "recent",
+     "list"
+    ]
+   }
   },
   {
    "key": "surfaceStyle",
@@ -258,7 +280,13 @@
    "pref": "blanc.appearance.surface_style",
    "scope": "profile",
    "status": "built",
-   "note": "No spec row; owner 2026-11-03: built in S1.7. The utility sheets' Sunrise or neutral surface"
+   "note": "No spec row; owner 2026-11-03: built in S1.7. The utility sheets' Sunrise or neutral surface",
+   "import": {
+    "values": [
+     "sunrise",
+     "neutral"
+    ]
+   }
   },
   {
    "key": "glanceFrame",
@@ -276,7 +304,10 @@
    "key": "linkRoutesInApp",
    "kind": "later",
    "row": "F60",
-   "slice": "S3"
+   "slice": "S3",
+   "import": {
+    "pref": "blanc.links.in_app"
+   }
   },
   {
    "key": "verticalTabsWidth",
@@ -288,20 +319,47 @@
    "key": "verticalTabsTextSize",
    "kind": "later",
    "row": "F28",
-   "slice": "S3"
+   "slice": "S3",
+   "import": {
+    "pref": "blanc.vertical_tabs.text_size",
+    "values": [
+     "default",
+     "large",
+     "extra-large"
+    ]
+   }
   },
   {
    "key": "tabSleep",
    "kind": "later",
    "row": "F31",
    "slice": "S3",
-   "note": "blanc.prototype.quiet_delay (local state) already holds shipping's '1h'"
+   "note": "blanc.prototype.quiet_delay (local state) already holds shipping's '1h'",
+   "import": {
+    "pref": "blanc.prototype.quiet_delay",
+    "values": [
+     "off",
+     "30m",
+     "1h",
+     "6h"
+    ]
+   }
   },
   {
    "key": "tabArchive",
    "kind": "later",
    "row": "F52",
-   "slice": "S3"
+   "slice": "S3",
+   "import": {
+    "pref": "blanc.tabs.archive",
+    "values": [
+     "off",
+     "12h",
+     "1d",
+     "7d",
+     "30d"
+    ]
+   }
   },
   {
    "key": "uiLanguage",
@@ -310,13 +368,27 @@
    "slice": "S1.7",
    "pref": "blanc.ui_language",
    "scope": "local",
-   "status": "built"
+   "status": "built",
+   "import": {
+    "values": [
+     "system",
+     "en",
+     "de",
+     "es",
+     "fr",
+     "it",
+     "pt-BR"
+    ]
+   }
   },
   {
    "key": "mouseGesturesEnabled",
    "kind": "later",
    "row": "N14",
-   "slice": "S5"
+   "slice": "S5",
+   "import": {
+    "pref": "blanc.mouse_gestures.enabled"
+   }
   },
   {
    "key": "mouseGestureMapping",
@@ -331,7 +403,16 @@
    "slice": "S2",
    "pref": "blanc.app_icon",
    "scope": "profile",
-   "status": "built"
+   "status": "built",
+   "import": {
+    "values": [
+     "sunrise",
+     "sunrise-dark",
+     "sunrise-gold",
+     "sunrise-spectrum",
+     "sunrise-amber"
+    ]
+   }
   },
   {
    "key": "presentationDefaultsResetVersion",
@@ -386,7 +467,14 @@
    "pref": "blanc.webrtc.audio_buffer",
    "scope": "profile",
    "status": "built",
-   "note": "No spec row; owner 2026-11-03: built in S1.7. Device-local as in shipping (an unsynced profile pref, so PrefWatcher refreshes open tabs); native in Blink through RendererPreferences (V15, owner 2026-11-04)"
+   "note": "No spec row; owner 2026-11-03: built in S1.7. Device-local as in shipping (an unsynced profile pref, so PrefWatcher refreshes open tabs); native in Blink through RendererPreferences (V15, owner 2026-11-04)",
+   "import": {
+    "values": [
+     "automatic",
+     "stable",
+     "resilient"
+    ]
+   }
   },
   {
    "key": "secureDns",
@@ -428,7 +516,8 @@
    "pref": "blanc.telemetry.usage_ping",
    "scope": "local",
    "status": "built",
-   "note": "The consent choice, device-wide as in shipping; the preview channel never sends (owner, 2026-11-04)"
+   "note": "The consent choice, device-wide as in shipping; the preview channel never sends (owner, 2026-11-04)",
+   "import": true
   },
   {
    "key": "onboardingVersion",
@@ -444,7 +533,8 @@
    "slice": "S2",
    "pref": "blanc.first_run.completed_at",
    "scope": "local",
-   "status": "built"
+   "status": "built",
+   "import": true
   },
   {
    "key": "migrationChecklistDismissed",
@@ -453,7 +543,8 @@
    "slice": "S2",
    "pref": "blanc.checklist.dismissed",
    "scope": "local",
-   "status": "built"
+   "status": "built",
+   "import": true
   },
   {
    "key": "syncMigrationCompleted",
@@ -507,7 +598,8 @@
    "slice": "S2",
    "pref": "blanc.checklist.default_done",
    "scope": "local",
-   "status": "built"
+   "status": "built",
+   "import": true
   },
   {
    "key": "defaultBrowserReminderShown",
@@ -594,14 +686,30 @@
    "pref": "blanc.island.size",
    "scope": "profile",
    "status": "built",
-   "note": "New in v1.46.0 (#1292): Default, Large or Extra large. Device-local as in shipping (an unsynced profile pref, like the other Island settings, so each window's Island observes it); built in S1.8 by patch 0026"
+   "note": "New in v1.46.0 (#1292): Default, Large or Extra large. Device-local as in shipping (an unsynced profile pref, like the other Island settings, so each window's Island observes it); built in S1.8 by patch 0026",
+   "import": {
+    "values": [
+     "default",
+     "large",
+     "extra-large"
+    ]
+   }
   },
   {
    "key": "miniWindowShortcut",
    "kind": "later",
    "row": "F61",
    "slice": "post-S1 (F61 Mini Window)",
-   "note": "New in v1.46.0 (#1138): off by default; the fork has no Mini Window yet"
+   "note": "New in v1.46.0 (#1138): off by default; the fork has no Mini Window yet",
+   "import": {
+    "pref": "blanc.mini_window.shortcut",
+    "values": [
+     "off",
+     "alt-cmd-n",
+     "ctrl-alt-space",
+     "ctrl-shift-space"
+    ]
+   }
   },
   {
    "key": "pageZoom",
@@ -611,7 +719,21 @@
    "pref": "blanc.page_zoom",
    "scope": "local_state",
    "status": "built",
-   "note": "New in v1.47.0 (#1401): default page zoom in percent, device-wide as in shipping (owner, 2026-11-12). Every profile's Chromium default follows it and a change in any profile's Settings becomes the device's"
+   "note": "New in v1.47.0 (#1401): default page zoom in percent, device-wide as in shipping (owner, 2026-11-12). Every profile's Chromium default follows it and a change in any profile's Settings becomes the device's",
+   "import": {
+    "min": 50,
+    "max": 200
+   }
+  },
+  {
+   "key": "reuseNewTab",
+   "kind": "blanc-pref",
+   "row": "F37",
+   "slice": "S2",
+   "pref": "blanc.tabs.reuse_new_tab",
+   "scope": "profile",
+   "status": "built",
+   "import": true
   }
  ]
 }

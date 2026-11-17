@@ -1,6 +1,6 @@
 {
-  "ref": "b28b91b316854dc43f7557720e9985ca7ccdbe87",
-  "commit": "b28b91b316854dc43f7557720e9985ca7ccdbe87",
+  "ref": "v1.49.1",
+  "commit": "673ff2eb052011b1efd14438a397a57d457de241",
   "files": [
     "index.html",
     "overlay.html",
@@ -28,7 +28,10 @@
     "pages/downloads.js",
     "pages/tab-import.html",
     "pages/tab-import-open-tabs.js",
-    "pages/tab-import-arc.js"
+    "pages/tab-import-arc.js",
+    "pages/tab-handoff.html",
+    "pages/tab-handoff.js",
+    "pages/tab-handoff.css"
   ],
   "mainFiles": [
     "island-hover-open.js",
@@ -38,6 +41,7 @@
     "glance-card.js",
     "clean-link.js",
     "invite-friend.js",
-    "site-security.js"
+    "site-security.js",
+    "tab-switcher.js"
   ]
 }

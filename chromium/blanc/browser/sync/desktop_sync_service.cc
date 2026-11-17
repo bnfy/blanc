@@ -6,6 +6,7 @@
 #include <cmath>
 #include "base/command_line.h"
 #include "base/auto_reset.h"
+#include "base/files/file_enumerator.h"
 #include "base/files/file_util.h"
 #include "base/files/important_file_writer.h"
 #include "base/functional/bind.h"
@@ -153,6 +154,32 @@ bool ValidStateRecords(const base::DictValue& state) {
   return wire && GURL(*wire).spec() == *url && at && std::isfinite(*at) && *at > 0 &&
          (local->is_none() || Favorite(&entry) == Favorite(local));
 }
+// The Electron profile importer stages Sync's stores beside the profile
+// (blanc/browser/ui/profile_import.inc). They are taken up here, before the
+// runner reads its stores, and only where this profile is not already
+// syncing; a staging folder without its `ready` file was never finished and
+// is left for the importer to rewrite.
+void AdoptImportedSyncStores(const base::FilePath& profile_dir) {
+  const base::FilePath staging = profile_dir.AppendASCII("BlancSyncImport");
+  if (!base::PathExists(staging.AppendASCII("ready"))) return;
+  const base::FilePath live = profile_dir.AppendASCII("BlancSync");
+  std::string text;
+  if (base::ReadFileToStringWithMaxSize(live.AppendASCII("sync.json"), &text, 1024 * 1024)) {
+    const auto current = base::JSONReader::ReadDict(text, base::JSON_PARSE_RFC);
+    if (current && current->FindBool("enabled").value_or(false)) {
+      base::DeletePathRecursively(staging);
+      return;
+    }
+  }
+  if (!base::CreateDirectory(live)) return;
+  base::FileEnumerator files(staging, false, base::FileEnumerator::FILES, FILE_PATH_LITERAL("*.json"));
+  for (auto path = files.Next(); !path.empty(); path = files.Next()) {
+    base::ReplaceFile(path, live.Append(path.BaseName()), nullptr);
+  }
+  base::DeletePathRecursively(staging);
+}
+std::optional<base::DictValue> ReadStateAfterImport(const base::FilePath& profile_dir, const base::FilePath& path);
+
 std::optional<base::DictValue> ReadState(const base::FilePath& path) {
   if (!base::PathExists(path)) return EmptyState();
   std::string bytes;
@@ -166,6 +193,10 @@ std::optional<base::DictValue> ReadState(const base::FilePath& path) {
   if (consent != "pending" && consent != "accepted" && consent != "declined") return std::nullopt;
   if (!ValidStateRecords(*state)) return std::nullopt;
   return state;
+}
+std::optional<base::DictValue> ReadStateAfterImport(const base::FilePath& profile_dir, const base::FilePath& path) {
+  AdoptImportedSyncStores(profile_dir);
+  return ReadState(path);
 }
 bool WriteState(const base::FilePath& path, const std::string& bytes) {
   return bytes.size() <= kMaxStateBytes && base::CreateDirectory(path.DirName()) &&
@@ -221,7 +252,7 @@ DesktopSyncService::DesktopSyncService(Profile* profile)
     if (!mapping.pref.empty() && profile->GetPrefs()->FindPreference(mapping.pref))
       pref_changes_.Add(mapping.pref, base::BindRepeating(&DesktopSyncService::Reconcile, weak_factory_.GetWeakPtr()));
   }
-  io_->PostTaskAndReplyWithResult(FROM_HERE, base::BindOnce(ReadState, state_path_),
+  io_->PostTaskAndReplyWithResult(FROM_HERE, base::BindOnce(ReadStateAfterImport, profile->GetPath(), state_path_),
       base::BindOnce(&DesktopSyncService::Loaded, weak_factory_.GetWeakPtr()));
 }
 DesktopSyncService::~DesktopSyncService() = default;

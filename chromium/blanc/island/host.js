@@ -1023,6 +1023,7 @@
         emit('onDownloadsActivity', snapshot.downloadsActivity);
       }
       // Shipping's tab records name their split; the panel draws one row from it.
+      syncProtected();
       nameExtensionTabs(snapshot.tabs);
       for (const tab of snapshot.tabs) tab.splitId = snapshot.splits?.find(split => split.tabIds.includes(tab.id))?.id ?? null;
       syncGlance();
@@ -1153,7 +1154,7 @@
         emit('onTabsUpdated', snapshot);
         emit('onSplitLayout', currentSplitLayout());
       }
-      if (opened && overlayMode === 'capture' && !snapshot.capturePopover?.rows.length)
+      if (opened && overlayMode === 'capture' && !snapshot.capturePopover?.rows.length && !snapshot.displayShares?.length)
         await close(false);
       // A newer fully processed snapshot can retire only its own older timeout.
       // Preserve any later unrelated notice and wait while any snapshot is pending.
@@ -1195,6 +1196,7 @@
   function positionShield() {
     if (overlayClosing === 'spaces') return;
     if (opened && overlayMode === 'spaces') { positionSpaces(); return; }
+    if (opened && overlayMode === 'switcher') { positionSwitcher(); return; }
     if (opened && overlayMode === 'find' && findTabId === snapshot?.glanceTabId) {
       const page = glancePayload()?.card.page;
       if (page) {
@@ -1212,7 +1214,11 @@
       }
       return;
     }
-    const trigger = strip.contentDocument?.getElementById(overlayMode === 'capture' ? 'pillCapture' : shieldTrigger === 'insecure' ? 'pillInsecure' : 'pillShield');
+    // The capture popover hangs under whichever of its two chips shows.
+    const captureChip = strip.contentDocument?.getElementById('pillCapture');
+    const trigger = overlayMode === 'capture' && captureChip?.hidden
+      ? strip.contentDocument.getElementById('pillDisplayShare')
+      : strip.contentDocument?.getElementById(overlayMode === 'capture' ? 'pillCapture' : shieldTrigger === 'insecure' ? 'pillInsecure' : 'pillShield');
     const rect = trigger?.getBoundingClientRect();
     const stripRect = strip.getBoundingClientRect();
     const width = Math.min(404, Math.max(0, innerWidth - 24));
@@ -1226,9 +1232,11 @@
 
   function reportGeometry() {
     positionShield();
+    placeProtected();
     const slot = strip.contentDocument?.getElementById('nativeExtensions');
     const panel = paneMenu ?? (extensionsOpened ? document.getElementById('extensionsPanel')
       : !opened && !sheet.page && prompts.size ? permissionFrame
+      : !opened && !sheet.page && protectedKey ? protectedFrame
       : opened ? overlay.contentDocument?.getElementById(overlayMode === 'find' ? 'findBar' : overlayMode === 'shield' ? 'shieldPop' : overlayMode === 'capture' ? 'capturePop'
         : overlayMode === 'group-menu' ? 'groupMenu' : overlayMode === 'spaces' ? 'workspaceSwitcher' : 'islandPanel')
       : strip.contentDocument?.getElementById('islandPill'));
@@ -1293,6 +1301,10 @@
       // Search priority results (S1.7) is read where the panel opens, as
       // shipping's overlay:show carries it.
       emit('onOverlayShow', { mode, prefill, pillRect, ...(purpose ? { purpose } : {}),
+        // Shipping v1.49.1's chrome-layout.js: the panel keeps 12px from each
+        // side, and on macOS 92px less the rail, so it never runs under the
+        // window buttons in a narrow window (the rail holds them otherwise).
+        panelSideClearance: Math.max(12, /Mac/.test(navigator.platform) ? 92 - effectiveRailWidth() : 0),
         searchPriorityResults: snapshot?.searchPriorityResults === true });
       reportGeometry();
       if (prefill !== undefined) {
@@ -1508,13 +1520,47 @@
   // The Island's resting height: the strip, or, while a prompt is pending,
   // the window, so the prompt can draw over the page.
   function restHeight() {
-    return request('height', prompts.size ? [10000, false] : [stripH()]);
+    return request('height', prompts.size || protectedKey ? [10000, false] : [stripH()]);
   }
   async function syncPermission() {
     if (!prompts.size) permissionFrame.hidden = true;
     if (!opened && !extensionsOpened && !sheet.page && !paneMenu) await restHeight();
     if (prompts.size) placePermission();
     reportGeometry();
+  }
+  // ---- The protected-video notice (replacement spec D3/X2; owner's design,
+  // 2026-11-16): native's snapshot names the current tab's site when its page
+  // asked for protected playback (protected_media.inc). The notice is its own
+  // document under the Island, as the permission prompt is its own at the
+  // bottom; a pending prompt, an open panel or a sheet takes its place, and
+  // it never takes focus.
+  const protectedFrame = document.getElementById('protectedNotice');
+  let protectedKey = null;
+  function placeProtected() {
+    const show = !!protectedKey && !prompts.size && !opened && !sheet.page && !extensionsOpened && !paneMenu &&
+      innerHeight >= stripH() + 150;
+    protectedFrame.hidden = !show;
+    if (!show) return;
+    // The frame holds the 380px card and room for its shadow (protected-notice.css).
+    const width = Math.min(416, Math.max(0, innerWidth - 24));
+    Object.assign(protectedFrame.style, { left: `${Math.round((innerWidth - width) / 2)}px`,
+      top: `${stripH() + 4}px`, width: `${width}px`, height: '142px' });
+  }
+  function syncProtected() {
+    const want = snapshot?.protectedMedia ?? null;
+    const key = want ? `${want.host}|${want.blancInstalled ? 1 : 0}` : null;
+    if (key === protectedKey) return;
+    protectedKey = key;
+    // Loaded afresh for each notice: the document asks protectedNoticeState
+    // which action it carries (the browser serves its pages without queries).
+    if (key) protectedFrame.src = protectedFrame.dataset.src;
+    syncPermission().catch(error => notice(error.message));
+  }
+  async function protectedNotice(action) {
+    if (action !== 'later' && action !== 'open') return false;
+    const result = await request(action === 'open' ? 'protectedMediaOpen' : 'protectedMediaDismiss');
+    await refreshNow();
+    return result;
   }
   function permissionPrompt(payload) {
     railDismiss('surface');
@@ -1546,11 +1592,12 @@
   // over the page, never as tabs. The frame claims the window as the palette
   // does, its page draws its own scrim and card, and the host answers its
   // window.bowserPages (pages/sheet-adapter.js) from Chromium's models.
-  const SHEET_PAGES = ['bookmarks', 'history', 'downloads', 'tab-import'];
+  const SHEET_PAGES = ['bookmarks', 'history', 'downloads', 'tab-import', 'tab-handoff'];
   // Settings sections a typed blanc://settings/<section> may name (the
   // browser's SettingsSheetURL accepts the same names).
   const SETTINGS_SECTIONS = new Set(['general', 'blocking', 'search', 'sync', 'appearance', 'privacy', 'security',
     'content', 'clearBrowserData', 'downloads', 'languages', 'defaultBrowser', 'help', 'profiles', 'people']);
+  let handoffKeeps = false;
   const sheet = { frame: null, page: null, contents: 0, epoch: 0, tabs: null,
     escapeArmed: false, escapeListeners: new Set() };
   const sheetCurrent = (win, page) => !!sheet.frame && sheet.frame.contentWindow === win && sheet.page === page;
@@ -1691,9 +1738,13 @@
   async function hideSheet(focus = true) {
     if (!sheet.page) return;
     const importing = sheet.page === 'tab-import';
+    // Closing the handoff sheet any way but Open discards the list (shipping's
+    // cancelPendingTabHandoff); a reload for a new state keeps it.
+    const handoff = sheet.page === 'tab-handoff' && !handoffKeeps;
     const epoch = ++sheet.epoch;
     sheet.page = null;
     if (importing) await request('importDiscard').catch(() => {});
+    if (handoff) await request('tabHandoffCancel').catch(() => {});
     sheet.tabs = null;
     sheet.escapeArmed = false;
     sheet.escapeListeners.clear();
@@ -1752,6 +1803,27 @@
         return () => sheet.escapeListeners.delete(callback);
       },
     };
+    // N20: shipping's tab-handoff page. Native keeps the list; the page gets
+    // titles and host names, and an error arrives as shipping's code, named
+    // here in shipping's words (main.js tabHandoffErrorMessage).
+    if (page === 'tab-handoff') return { surface, tabHandoff: {
+      get: async () => {
+        const data = await call('tabHandoffGet');
+        if (data?.state !== 'error') return data;
+        const t = strip.contentWindow.blancI18n.t;
+        const key = { 'invalid-expiry': 'invalidExpiry', 'too-many-tabs': 'tooManyTabs', empty: 'empty',
+          'multiple-active-tabs': 'multipleActive', 'decryption-failed': 'unverified', 'invalid-envelope': 'unverified',
+          'invalid-payload': 'unverified', unavailable: 'unavailable', offline: 'offline',
+          'service-unavailable': 'serviceUnavailable' }[data.error] ?? 'generic';
+        return { state: 'error', message: t('handoff.error.' + key, { limit: 100 }) };
+      },
+      accept: async where => {
+        const result = await call('tabHandoffAccept', [String(where)]);
+        if (result?.ok) { handoffKeeps = true; try { await hideSheet(false); } finally { handoffKeeps = false; } await refresh(); }
+        return result;
+      },
+      cancel: async () => { await hideSheet(); return { ok: true }; },
+    } };
     if (page === 'tab-import') return { surface, tabImport: {
       sources: () => call('importSources'),
       openSource: (id, options = {}) => call('importOpenSource', [String(id), options]),
@@ -1872,10 +1944,12 @@
     openCapturePopover: async () => {
       if (opened && overlayMode === 'capture') return close(false);
       await refresh();
-      if (!snapshot?.capturePopover?.rows.length) return false;
+      if (!snapshot?.capturePopover?.rows.length && !snapshot?.displayShares?.length) return false;
       await show(undefined, 'capture', 'capture');
       return true;
     },
+    // Stop in a share's popover row ends that tab's screen, window or tab share.
+    stopDisplayShare: async id => { await request('stopDisplayShare', [nativeId(id)]); await refresh(); },
     captureStop: async id => { await request('captureStop', [nativeId(id)]); await refresh(); },
     captureFocus: async id => {
       await request('switchTab', [nativeId(id)]); await close(false);
@@ -1910,6 +1984,8 @@
     setTabLayout: async value => { layout = value === 'vertical' ? 'vertical' : 'island'; await applyRail(true); return layout; },
     setVerticalTabsWidth: async width => { railWidth = Number(width) || 248; return applyRail(true); },
     previewVerticalTabsWidth: async width => { railWidth = Number(width) || 248; return applyRail(); },
+    // A click on an entry of the Ctrl+Tab card lands on it at once (F59).
+    switcherPick: async id => { tabSwitcher.choose(switchWindow, String(id)); },
     activateTabFromRail: async id => {
       railActivationSerial++; clearSelection();
       await close(false); await hideSheet(false);
@@ -3114,8 +3190,153 @@
   }
 
   const routedTokens = new Set();
+  // ---- Ctrl+Tab by most recent use (F59) ----
+  // Shipping's tab-switcher.js holds the session; native sends each Ctrl+Tab
+  // (TabSwitchCommand) and, from its key watcher, the Control release, Esc,
+  // Ctrl+W and what cancels. Nothing changes until the release, so stepping
+  // never moves focus or wakes a quiet tab.
+  const switchWindow = {};
+  let switchOrder = [];
+  let switchCardTimer = null;
+  let switchQueue = Promise.resolve();
+  const SWITCHER_CARD_DELAY_MS = 150;
+  const tabSwitcher = BlancTabSwitcher.createTabSwitcher({
+    orderFor: () => switchOrder,
+    land: (_, id) => {
+      request('switchTab', [nativeId(id)]).then(() => request('focusPage')).then(refresh)
+        .catch(error => notice(error.message));
+    },
+    isLive: (_, id) => !!snapshot?.tabs.some(tab => String(tab.id) === id),
+    onChange: () => updateSwitcherCard(),
+  });
+  const switcherPurpose = session => ({ switcher: { tabIds: [...session.order], pick: session.pick } });
+  // Shipping's switcherBounds: one row of tiles centred over the page pane,
+  // hanging just under the Island; the view's margin is the card's shadow.
+  function positionSwitcher() {
+    const stripRect = strip.getBoundingClientRect();
+    const pill = strip.contentDocument?.getElementById('islandPill')?.getBoundingClientRect();
+    const below = pill ? stripRect.y + pill.bottom : stripH();
+    const rail = effectiveRailWidth();
+    const b = BlancTabSwitcher.switcherBounds({ pageX: rail, pageWidth: innerWidth - rail,
+      windowHeight: 10000, top: below + 8 - BlancTabSwitcher.SWITCHER_SHADOW });
+    Object.assign(overlay.style, {left: b.x + 'px', top: b.y + 'px', right: 'auto', bottom: 'auto',
+      width: b.width + 'px', height: b.height + 'px'});
+    return b;
+  }
+  // The card never takes focus: the page keeps the keys, as in shipping.
+  async function showSwitcherCard(purpose) {
+    railDismiss('surface');
+    tooltip.hidden = true;
+    overlayClosing = null;
+    overlay.dataset.mode = 'switcher';
+    overlayMode = 'switcher';
+    overlayPurpose = purpose;
+    opened = true;
+    const bounds = positionSwitcher();
+    overlay.style.pointerEvents = '';
+    overlay.hidden = false;
+    emit('onIslandState', { mode: 'switcher', trigger: null, restoreTrigger: null });
+    emit('onOverlayShow', { mode: 'switcher', prefill: null, purpose,
+      searchPriorityResults: snapshot?.searchPriorityResults === true });
+    await request('height', [Math.max(stripH(), bounds.y + bounds.height), false]);
+    reportGeometry();
+  }
+  async function hideSwitcherCard() {
+    if (overlayMode !== 'switcher') return;
+    emit('onOverlayHide', {});
+    emit('onIslandState', { mode: null, trigger: null, restoreTrigger: null });
+    opened = false;
+    overlayMode = null;
+    overlayPurpose = null;
+    overlay.dataset.mode = '';
+    overlay.hidden = true;
+    for (const key of ['left', 'top', 'width', 'height', 'right', 'bottom']) overlay.style[key] = '';
+    if (!sheet.page) await restHeight();
+    reportGeometry();
+  }
+  // Drawn only over a bare page: with another Island surface open the switch
+  // works blind and lands as usual. A tap never flashes it; a second Tab
+  // shows it at once.
+  function updateSwitcherCard() {
+    const session = tabSwitcher.session(switchWindow);
+    if (!session) {
+      clearTimeout(switchCardTimer);
+      switchCardTimer = null;
+      hideSwitcherCard().catch(error => notice(error.message));
+      return;
+    }
+    if (overlayMode === 'switcher') {
+      overlayPurpose = switcherPurpose(session);
+      emit('onOverlayShow', { mode: 'switcher', prefill: null, purpose: overlayPurpose,
+        searchPriorityResults: snapshot?.searchPriorityResults === true });
+      return;
+    }
+    if (opened || sheet.page) return;
+    const showNow = () => {
+      switchCardTimer = null;
+      const current = tabSwitcher.session(switchWindow);
+      if (current && !opened && !sheet.page) showSwitcherCard(switcherPurpose(current)).catch(error => notice(error.message));
+    };
+    if (session.steps >= 2) { clearTimeout(switchCardTimer); showNow(); return; }
+    if (!switchCardTimer) switchCardTimer = setTimeout(showNow, SWITCHER_CARD_DELAY_MS);
+  }
+  async function runTabSwitch(action, direction) {
+    if (action === 'step' || action === 'tap') {
+      if (!tabSwitcher.isSwitching(switchWindow)) {
+        const recent = await request('tabActivationOrder');
+        await refresh();
+        const ids = new Map(snapshot.tabs.map(tab => [nativeId(tab.id), String(tab.id)]));
+        const history = recent.map(id => ids.get(id)).filter(id => id !== undefined).reverse();
+        switchOrder = BlancTabSwitcher.switcherOrder({ activeTabId: String(snapshot.activeTabId), history,
+          tabOrder: snapshot.tabs.map(tab => String(tab.id)),
+          splitOf: id => snapshot.tabs.find(tab => String(tab.id) === id)?.splitId ?? null });
+      }
+      tabSwitcher.step(switchWindow, direction < 0 ? -1 : 1);
+      if (action === 'tap') tabSwitcher.release(switchWindow);
+    } else if (action === 'release') tabSwitcher.release(switchWindow);
+    else if (action === 'cancel') tabSwitcher.cancel(switchWindow);
+    // A click may be on a card entry, which chooses it; anything else cancels.
+    else if (action === 'cancelSoon') setTimeout(() => tabSwitch('cancel'), 250);
+    else if (action === 'closePick') {
+      // Ctrl+W closes the picked tab, not the current one (shipping's D4).
+      const id = tabSwitcher.pick(switchWindow);
+      if (id == null || id === String(snapshot.activeTabId)) return;
+      await request('closeTab', [nativeId(id)]);
+      tabSwitcher.removed(switchWindow, id);
+      await refresh();
+    }
+  }
+  // One at a time: a release must not overtake the step still reading the order.
+  function tabSwitch(action, direction = 1) {
+    switchQueue = switchQueue.then(() => runTabSwitch(String(action), Number(direction)))
+      .catch(error => notice(error.message));
+    return switchQueue;
+  }
+
+  // N20: native shows the handoff sheet, reloads it when the handoff's state
+  // changes (the page reads it once), and hides it.
+  async function handoffSheet(action) {
+    if (action === 'hide') {
+      if (sheet.page !== 'tab-handoff') return;
+      handoffKeeps = true;
+      try { await hideSheet(false); } finally { handoffKeeps = false; }
+      return;
+    }
+    if (sheet.page === 'tab-handoff' && sheet.frame) {
+      sheet.frame.src = 'pages/tab-handoff.html';
+      sheet.frame.contentWindow.focus();
+      return;
+    }
+    await showSheet('tab-handoff');
+  }
+
   window.BlancPrototypeHost = {
     api,
+    tabSwitch,
+    handoffSheet: action => handoffSheet(String(action)).catch(error => notice(error.message)),
+    // The switch as tests read it: shipping's tabSwitchPick and tabSwitchOrder.
+    tabSwitchState: () => ({ pick: tabSwitcher.pick(switchWindow), order: tabSwitcher.session(switchWindow)?.order ?? null,
+      card: overlayMode === 'switcher' }),
     offerSpaceLink,
     routeExternalLink: async (token, id) => {
       if (routedTokens.has(token)) return;
@@ -3187,6 +3408,10 @@
     sheetBridge, sheetLink, sheetEscape,
     // Native's permission requests (permission_prompt.inc).
     permissionPrompt, permissionGone,
+    // The protected-video notice's two buttons, and its state for tests.
+    protectedNotice,
+    protectedNoticeState: () => ({ visible: !protectedFrame.hidden, host: snapshot?.protectedMedia?.host ?? null,
+      blancInstalled: snapshot?.protectedMedia?.blancInstalled === true }),
     openSheet: (name, section) => showSheet(name, section),
     closeSheet: () => hideSheet(),
     sheetState: () => ({ visible: sheet.page === 'settings' ? !settingsSheet.hidden
@@ -3290,6 +3515,9 @@
     if (!result.ok) await request('previewPageCommand', ['closeWindow']);
   }
   openPendingSpace().catch(error => notice(error.message));
+  // A handoff link that arrived before this window's host was up (N20).
+  request('tabHandoffGet').then(data => { if (data?.state && data.state !== 'empty') return handoffSheet('show'); })
+    .catch(() => {});
   // A utility page asked for before BlancPrototypeHost existed (one opened or
   // restored at launch): OpenUtilitySheet left it here and closed its tab.
   if (Array.isArray(window.blancPendingSheet)) {

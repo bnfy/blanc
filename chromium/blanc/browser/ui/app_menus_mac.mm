@@ -3,16 +3,30 @@
 
 #import <AppKit/AppKit.h>
 
+#import <Security/Security.h>
+
 #include "base/strings/sys_string_conversions.h"
 #include "blanc/browser/ui/blanc_prototype_ui.h"
 #include "blanc/common/menu_strings.h"
 #include "chrome/app/chrome_command_ids.h"
+#include "net/base/apple/url_conversions.h"
+#include "url/gurl.h"
 #include "chrome/browser/browser_process.h"
 
 @interface BlancMiniWindowMenuTarget : NSObject
 - (void)openMiniWindow:(id)sender;
+- (void)checkForUpdates:(id)sender;
+- (void)focusActiveWindow:(id)sender;
 @end
 @implementation BlancMiniWindowMenuTarget
+- (void)checkForUpdates:(id)sender {
+  [NSApp activateIgnoringOtherApps:YES];
+  blanc_prototype::CheckForUpdatesFromMenu();
+}
+- (void)focusActiveWindow:(id)sender {
+  [NSApp activateIgnoringOtherApps:YES];
+  blanc_prototype::FocusDockActiveWindow();
+}
 - (void)openMiniWindow:(id)sender {
   [NSApp activateIgnoringOtherApps:YES];
   blanc_prototype::OpenMiniWindow();
@@ -21,10 +35,46 @@
 
 namespace blanc {
 
+namespace {
+BlancMiniWindowMenuTarget* MenuTarget() {
+  static BlancMiniWindowMenuTarget* target = [[BlancMiniWindowMenuTarget alloc] init];
+  return target;
+}
+
+// Shipping's app menu: Check for Updates… directly under About.
+void InstallCheckForUpdates() {
+  NSMenu* app = [NSApp.mainMenu itemAtIndex:0].submenu;
+  if (!app || [app itemWithTag:65042]) return;
+  const NSInteger about = [app indexOfItemWithTag:IDC_ABOUT];
+  if (about == -1) return;
+  NSMenuItem* item = [[NSMenuItem alloc] initWithTitle:base::SysUTF16ToNSString(
+      menu::ForLocale(g_browser_process->GetApplicationLocale()).check_for_updates)
+      action:@selector(checkForUpdates:) keyEquivalent:@""];
+  item.target = MenuTarget(); item.tag = 65042;
+  [app insertItem:item atIndex:about + 1];
+}
+}  // namespace
+
+void AddDockActiveTab(NSMenu* menu) {
+  const auto tab = blanc_prototype::DockActiveTab();
+  if (tab.label.empty()) return;
+  NSMenuItem* item = [[NSMenuItem alloc] initWithTitle:base::SysUTF16ToNSString(tab.label)
+      action:@selector(focusActiveWindow:) keyEquivalent:@""];
+  item.target = MenuTarget(); item.tag = 65041;
+  if (!tab.icon_png.empty()) {
+    NSImage* icon = [[NSImage alloc] initWithData:[NSData dataWithBytes:tab.icon_png.data()
+                                                                 length:tab.icon_png.size()]];
+    if (icon) { icon.size = NSMakeSize(16, 16); item.image = icon; }
+  }
+  [menu addItem:item];
+  [menu addItem:[NSMenuItem separatorItem]];
+}
+
 void InstallMiniWindowMenu() {
+  InstallCheckForUpdates();
   NSMenu* file = [NSApp.mainMenu itemWithTag:IDC_FILE_MENU].submenu;
   if (!file || [file itemWithTag:65040]) return;
-  static BlancMiniWindowMenuTarget* target = [[BlancMiniWindowMenuTarget alloc] init];
+  BlancMiniWindowMenuTarget* target = MenuTarget();
   NSMenuItem* item = [[NSMenuItem alloc] initWithTitle:base::SysUTF16ToNSString(
       menu::ForLocale(g_browser_process->GetApplicationLocale()).new_mini_window)
       action:@selector(openMiniWindow:) keyEquivalent:@""];
@@ -55,6 +105,35 @@ std::u16string DockMenuItemTitle(int item_tag) {
 
 bool ClickDockMenuItem(int item_tag) {
   NSMenuItem* item = DockMenuItem(item_tag);
+  if (!item.action || !item.target) return false;
+  return [NSApp sendAction:item.action to:item.target from:item];
+}
+
+std::pair<std::string, std::string> BundleVersion() {
+  NSString* version = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+  NSString* build = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
+  return {base::SysNSStringToUTF8(version ?: @""), base::SysNSStringToUTF8(build ?: @"")};
+}
+
+std::vector<std::u16string> DockMenuItemTitles() {
+  std::vector<std::u16string> titles;
+  id<NSApplicationDelegate> delegate = NSApp.delegate;
+  if (![delegate respondsToSelector:@selector(applicationDockMenu:)]) return titles;
+  for (NSMenuItem* item in [delegate applicationDockMenu:NSApp].itemArray)
+    titles.push_back(item.separatorItem ? u"-" : base::SysNSStringToUTF16(item.title));
+  return titles;
+}
+
+bool DockMenuItemHasImage(int item_tag) {
+  return DockMenuItem(item_tag).image != nil;
+}
+
+std::u16string DockBadge() {
+  return base::SysNSStringToUTF16(NSApp.dockTile.badgeLabel ?: @"");
+}
+
+bool ClickAppMenuItem(int item_tag) {
+  NSMenuItem* item = [[NSApp.mainMenu itemAtIndex:0].submenu itemWithTag:item_tag];
   if (!item.action || !item.target) return false;
   return [NSApp sendAction:item.action to:item.target from:item];
 }
@@ -99,6 +178,45 @@ bool SetDockIconFromBundle(const std::string& name) {
   if (!image) return false;
   NSApp.applicationIconImage = image;
   return true;
+}
+
+namespace {
+NSURL* ElectronBlancApp() {
+  return [NSWorkspace.sharedWorkspace URLForApplicationWithBundleIdentifier:@"me.bnfy.bowser"];
+}
+}  // namespace
+
+std::optional<std::string> ReadElectronSafeStoragePassword() {
+  NSDictionary* query = @{
+    (__bridge id)kSecClass : (__bridge id)kSecClassGenericPassword,
+    (__bridge id)kSecAttrService : @"Blanc Safe Storage",
+    (__bridge id)kSecAttrAccount : @"Blanc",
+    (__bridge id)kSecReturnData : @YES,
+    (__bridge id)kSecMatchLimit : (__bridge id)kSecMatchLimitOne,
+  };
+  CFTypeRef found = nullptr;
+  if (SecItemCopyMatching((__bridge CFDictionaryRef)query, &found) != errSecSuccess || !found) return std::nullopt;
+  NSData* data = CFBridgingRelease(found);
+  if (!data.length || data.length > 1024) return std::nullopt;
+  return std::string(static_cast<const char*>(data.bytes), data.length);
+}
+
+bool ElectronBlancRunning() {
+  return [NSRunningApplication runningApplicationsWithBundleIdentifier:@"me.bnfy.bowser"].count > 0;
+}
+
+bool ElectronBlancInstalled() {
+  return ElectronBlancApp() != nil;
+}
+
+void OpenInElectronBlanc(const GURL& url) {
+  NSURL* app = ElectronBlancApp();
+  NSURL* page = url.SchemeIsHTTPOrHTTPS() ? net::NSURLWithGURL(url) : nil;
+  if (!app || !page) return;
+  [NSWorkspace.sharedWorkspace openURLs:@[ page ]
+                   withApplicationAtURL:app
+                          configuration:[NSWorkspaceOpenConfiguration configuration]
+                      completionHandler:nil];
 }
 
 }  // namespace blanc

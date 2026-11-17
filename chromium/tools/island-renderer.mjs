@@ -21,7 +21,7 @@ const record = path.join(root, 'blanc/island-renderer.json');
 // The utility sheet's pages (S1.5): Favorites, History and Downloads, shown
 // in a frame of the Island host over Chromium's own models.
 export const SHEET_FILES = ['sheet.js', 'row-icon.js', 'history-groups.js', 'downloads-row-model.js',
-  'bookmarks.html', 'bookmarks.js', 'history.html', 'history.js', 'downloads.html', 'downloads.js', 'tab-import.html', 'tab-import-open-tabs.js', 'tab-import-arc.js'].map(file => `pages/${file}`);
+  'bookmarks.html', 'bookmarks.js', 'history.html', 'history.js', 'downloads.html', 'downloads.js', 'tab-import.html', 'tab-import-open-tabs.js', 'tab-import-arc.js', 'tab-handoff.html', 'tab-handoff.js', 'tab-handoff.css'].map(file => `pages/${file}`);
 export const FILES = ['index.html', 'overlay.html', 'overlay.js', 'renderer.js', 'styles.css', 'tab-drag.js',
   'tab-sections.js', 'vertical-tabs.js', 'workspace-ui.js', 'glance-card-drag.js', 'hover-panel-leave.js',
   'permission.html', 'permission.js', 'pages/onboarding.js', ...SHEET_FILES];
@@ -36,7 +36,7 @@ const SHEET_BRIDGE = ['  <script src="strings.js"></script>\n', '  <script src="
 // siteInfo as shipping's tab projection does (S1.6). Each exposes its
 // exports on window under the given name.
 export const MAIN_FILES = {'island-hover-open.js': 'BlancIslandHoverOpen', 'island-proximity.js': 'BlancIslandProximity', 'island-autohide.js': 'BlancIslandAutoHide',
-  'whats-new.js': 'BlancWhatsNew', 'glance-card.js': 'BlancGlanceCard', 'clean-link.js': 'BlancCleanLink', 'invite-friend.js': 'BlancInviteFriend', 'site-security.js': 'BlancSiteSecurity'};
+  'whats-new.js': 'BlancWhatsNew', 'glance-card.js': 'BlancGlanceCard', 'clean-link.js': 'BlancCleanLink', 'invite-friend.js': 'BlancInviteFriend', 'site-security.js': 'BlancSiteSecurity', 'tab-switcher.js': 'BlancTabSwitcher'};
 // Trusted Types policy names, per hardened script.
 const HARDEN = {'overlay.js': 'overlay', 'renderer.js': 'renderer', 'vertical-tabs.js': 'vertical-tabs'};
 const PREVIEW_META = fs.readFileSync(path.join(root, 'tools/preview-build-meta.html'), 'utf8').trimEnd();
@@ -49,6 +49,7 @@ export const EDITS = {
   'pages/history.html': [SHEET_BRIDGE],
   'pages/downloads.html': [SHEET_BRIDGE],
   'pages/tab-import.html': [SHEET_BRIDGE],
+  'pages/tab-handoff.html': [SHEET_BRIDGE],
   'pages/tab-import-open-tabs.js': [["'incomplete-session', 'missing-session-marker'", "'incomplete-session', 'missing-session-marker', 'invalid-session', 'invalid-session-header', 'invalid-session-command', 'unsupported-session-version', 'unreadable', 'permission'"]],
   'pages/onboarding.js': [["    window.location.href = 'blanc://tab-import/';", "    return window.bowserPages.start.openTabImport();"]],
   'index.html': [
@@ -72,8 +73,10 @@ export const EDITS = {
   'renderer.js': [
     ["    pillSpace.hidden = spaceMarkOnIsland();", "    pillSpace.hidden = document.documentElement.hasAttribute('data-mini-window') || spaceMarkOnIsland();"],
     // An extension's page goes by the extension's name, not its 32-letter id.
-    ["function tabDomain(tab) {\n    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';\n",
-     "function tabDomain(tab) {\n    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';\n    if (tab.extensionName) return tab.extensionName;\n"],
+    // An extension's page shows the extension's name, not its 32-letter id
+    // (a blank new tab still shows nothing, as shipping's locationLabel).
+    ["    return TabSections.locationLabel(tab?.url);\n",
+     "    if (tab?.extensionName && tab.url && !tab.url.startsWith('blanc://newtab')) return tab.extensionName;\n    return TabSections.locationLabel(tab?.url);\n"],
     // The native extension menu anchors to the Favorite button.
     ["  const favoriteBtn = pillButton('heart', blancI18n.t('pill.favorite'), () => window.browserAPI.toggleBookmark());\n",
       "  const favoriteBtn = pillButton('heart', blancI18n.t('pill.favorite'), () => window.browserAPI.toggleBookmark());\n  favoriteBtn.id = 'pillHeart';\n"],
@@ -101,8 +104,8 @@ export const EDITS = {
     ['    row.innerHTML = \'<span class="ghead-name"></span><span class="ghead-n"></span>\';',
      '    for (const name of ["ghead-name", "ghead-n"]) {\n      const span = document.createElement("span");\n      span.className = name;\n      row.append(span);\n    }'],
     // An extension's page goes by the extension's name, not its 32-letter id.
-    ["function tabDomain(tab) {\n    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';\n",
-     "function tabDomain(tab) {\n    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';\n    if (tab.extensionName) return tab.extensionName;\n"],
+    ["    return TabSections.locationLabel(tab?.url, { stripWww: true });\n",
+     "    if (tab?.extensionName && tab.url && !tab.url.startsWith('blanc://newtab')) return tab.extensionName;\n    return TabSections.locationLabel(tab?.url, { stripWww: true });\n"],
     ["    if (tab.url.startsWith('blanc://newtab') || tab.url.startsWith('file://')) return '';\n",
      "    if (tab.url.startsWith('blanc://newtab') || tab.url.startsWith('file://')) return '';\n    // An extension's page shows the extension's name, not its 32-letter id.\n    if (tab.extensionName) return tab.extensionName;\n"],
     // An untouched extension name is a label, not something to search for.
