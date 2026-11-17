@@ -14,7 +14,7 @@ struct String {
   std::string_view name;
   std::u16string_view value;
 };
-inline constexpr std::array<String, 230> kStrings_en = {{
+inline constexpr std::array<String, 231> kStrings_en = {{
     {"blancProfileImportPersonal", u"Personal"},
     {"blancProfileImportFavorites", u"Favorites"},
     {"blancProfileImportHistory", u"History"},
@@ -245,8 +245,9 @@ inline constexpr std::array<String, 230> kStrings_en = {{
     {"blancProfileImportPins", u"Start Page pins"},
     {"blancProfileImportNotRead", u"Couldn't be read, so nothing from this profile was imported."},
     {"blancProfileImportLeftBehind", u"Not imported: website sign-ins, the downloads list and a few settings. You'll need to sign in to websites again."},
+    {"blancProfileImportSyncFailed", u"Your data is here, but Sync couldn't be set up. Try again to set up Sync."},
 }};
-inline constexpr std::array<String, 230> kStrings_de = {{
+inline constexpr std::array<String, 231> kStrings_de = {{
     {"blancProfileImportPersonal", u"Personal"},
     {"blancProfileImportFavorites", u"Favoriten"},
     {"blancProfileImportHistory", u"Verlauf"},
@@ -477,8 +478,9 @@ inline constexpr std::array<String, 230> kStrings_de = {{
     {"blancProfileImportPins", u"Angeheftet auf der Startseite"},
     {"blancProfileImportNotRead", u"Konnte nicht gelesen werden, daher wurde aus diesem Profil nichts importiert."},
     {"blancProfileImportLeftBehind", u"Nicht importiert: Website-Anmeldungen, die Download-Liste und einige Einstellungen. Du musst dich bei Websites erneut anmelden."},
+    {"blancProfileImportSyncFailed", u"Deine Daten sind da, aber Sync konnte nicht eingerichtet werden. Versuche es erneut, um Sync einzurichten."},
 }};
-inline constexpr std::array<String, 230> kStrings_es = {{
+inline constexpr std::array<String, 231> kStrings_es = {{
     {"blancProfileImportPersonal", u"Personal"},
     {"blancProfileImportFavorites", u"Favoritos"},
     {"blancProfileImportHistory", u"Historial"},
@@ -709,8 +711,9 @@ inline constexpr std::array<String, 230> kStrings_es = {{
     {"blancProfileImportPins", u"Fijados de la página de inicio"},
     {"blancProfileImportNotRead", u"No se pudo leer, así que no se importó nada de este perfil."},
     {"blancProfileImportLeftBehind", u"No se importaron: los inicios de sesión en sitios web, la lista de descargas y algunos ajustes. Tendrás que volver a iniciar sesión en los sitios web."},
+    {"blancProfileImportSyncFailed", u"Tus datos ya están aquí, pero no se pudo configurar Sync. Vuelve a intentarlo para configurar Sync."},
 }};
-inline constexpr std::array<String, 230> kStrings_fr = {{
+inline constexpr std::array<String, 231> kStrings_fr = {{
     {"blancProfileImportPersonal", u"Personal"},
     {"blancProfileImportFavorites", u"Favoris"},
     {"blancProfileImportHistory", u"Historique"},
@@ -941,8 +944,9 @@ inline constexpr std::array<String, 230> kStrings_fr = {{
     {"blancProfileImportPins", u"Épinglés sur la page d’accueil"},
     {"blancProfileImportNotRead", u"Lecture impossible : rien n’a été importé de ce profil."},
     {"blancProfileImportLeftBehind", u"Non importés : les connexions aux sites web, la liste des téléchargements et quelques réglages. Vous devrez vous reconnecter aux sites web."},
+    {"blancProfileImportSyncFailed", u"Vos données sont là, mais Sync n’a pas pu être configuré. Réessayez pour configurer Sync."},
 }};
-inline constexpr std::array<String, 230> kStrings_it = {{
+inline constexpr std::array<String, 231> kStrings_it = {{
     {"blancProfileImportPersonal", u"Personal"},
     {"blancProfileImportFavorites", u"Preferiti"},
     {"blancProfileImportHistory", u"Cronologia"},
@@ -1173,8 +1177,9 @@ inline constexpr std::array<String, 230> kStrings_it = {{
     {"blancProfileImportPins", u"Fissati nella pagina iniziale"},
     {"blancProfileImportNotRead", u"Non è stato possibile leggerlo, quindi da questo profilo non è stato importato nulla."},
     {"blancProfileImportLeftBehind", u"Non importati: gli accessi ai siti web, l’elenco dei download e alcune impostazioni. Dovrai accedere di nuovo ai siti web."},
+    {"blancProfileImportSyncFailed", u"I tuoi dati sono qui, ma non è stato possibile configurare Sync. Riprova per configurare Sync."},
 }};
-inline constexpr std::array<String, 230> kStrings_pt_BR = {{
+inline constexpr std::array<String, 231> kStrings_pt_BR = {{
     {"blancProfileImportPersonal", u"Personal"},
     {"blancProfileImportFavorites", u"Favoritos"},
     {"blancProfileImportHistory", u"Histórico"},
@@ -1405,6 +1410,7 @@ inline constexpr std::array<String, 230> kStrings_pt_BR = {{
     {"blancProfileImportPins", u"Fixados na página inicial"},
     {"blancProfileImportNotRead", u"Não foi possível ler, então nada deste perfil foi importado."},
     {"blancProfileImportLeftBehind", u"Não importados: logins em sites, a lista de downloads e algumas configurações. Você precisará entrar nos sites de novo."},
+    {"blancProfileImportSyncFailed", u"Seus dados estão aqui, mas não foi possível configurar o Sync. Tente de novo para configurar o Sync."},
 }};
 
 // Chromium's application locale chooses, as for the settings page around

@@ -164,3 +164,6 @@ Private copies on the Mac Studio (`~/Projects/Blanc/scratch/real-import/`), coun
 - **Mac Studio's folder** (one profile): no errors. Found: `install.json` with `createdAt: "legacy"`; fixed.
 - **MacBook Pro's folder** (Personal and four named profiles): found a `history.json` with no `siteIcons` list (two named profiles refused) and an empty Space dropped silently; both fixed (candidate macos-a094fb86f8dba413). Rerun: no errors, five profiles, source unchanged.
 
+## Sync's failure paths (2026-11-17)
+
+From a source review the owner passed on. Personal's marker in `blanc.profile_import` now records Sync's state apart from the profile's data (`staged`, `none`, `failed`); a later run stages Sync again after `failed` and imports nothing else twice; Settings names the failure and offers Try again. At launch, `AdoptImportedSyncStores` copies and compares each staged store, `sync.json` last, and removes the staged copy only when every store is in place. Tested by `native-profile-import-sync.mjs` checks 5 and 6 (candidate macos-cbb4a951532f5900).
