@@ -3719,6 +3719,14 @@
     "message": "Nova aba vai para uma nova aba desta janela que você ainda não usou, em vez de abrir outra. Nova aba privada faz o mesmo com as abas privadas.",
     "source": "sha256:99e5e05a5800398919ea3cf28d48c41a9b109fb8d2a951a5a2d10206132053a6"
   },
+  "settings.general.askWhereToSave.label": {
+    "message": "Perguntar onde salvar cada arquivo",
+    "source": "sha256:b76a33ee6f66a3a942dc934105c61bb667a1a1470c9719187037c601cd65b595"
+  },
+  "settings.general.askWhereToSave.hint": {
+    "message": "Quando está desativado, os downloads vão direto para a sua pasta Downloads, e um arquivo com o mesmo nome recebe um número.",
+    "source": "sha256:707ca337ae8ad262052b4d64e6e02f0e0e9936dd104700c11fd819b11d0465b1"
+  },
   "settings.general.tabSwitchOrder.recent": {
     "message": "Na ordem em que você as usou",
     "source": "sha256:a55a18693b898163b09b865118594e02e3ed5451128acbe81ba66b8938a956a4"

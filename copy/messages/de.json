@@ -3719,6 +3719,14 @@
     "message": "„Neuer Tab“ wechselt zu einem neuen Tab in diesem Fenster, den du noch nicht benutzt hast, statt einen weiteren zu öffnen. „Neuer privater Tab“ macht dasselbe für private Tabs.",
     "source": "sha256:99e5e05a5800398919ea3cf28d48c41a9b109fb8d2a951a5a2d10206132053a6"
   },
+  "settings.general.askWhereToSave.label": {
+    "message": "Für jede Datei fragen, wo sie gespeichert wird",
+    "source": "sha256:b76a33ee6f66a3a942dc934105c61bb667a1a1470c9719187037c601cd65b595"
+  },
+  "settings.general.askWhereToSave.hint": {
+    "message": "Wenn das aus ist, landen Downloads direkt in deinem Ordner „Downloads“, und eine Datei mit demselben Namen bekommt eine Nummer angehängt.",
+    "source": "sha256:707ca337ae8ad262052b4d64e6e02f0e0e9936dd104700c11fd819b11d0465b1"
+  },
   "settings.general.tabSwitchOrder.recent": {
     "message": "In der Reihenfolge der Nutzung",
     "source": "sha256:a55a18693b898163b09b865118594e02e3ed5451128acbe81ba66b8938a956a4"

@@ -266,6 +266,9 @@ const DEFAULTS = {
   // #1505: ⌘T switches to an unused New Tab page in the window instead of
   // opening another. Device-local, on by default.
   reuseNewTab: true,
+  // #1591: show Save As for every download. Off by default, so downloads go
+  // straight to the Downloads folder. Device-local.
+  askWhereToSave: false,
   // Palette of the internal pages; device-local, not Profile Synced.
   surfaceStyle: 'sunrise',
   // Floating Glance: the card's remembered size and place, as fractions of
@@ -570,6 +573,7 @@ function getSettings() {
   data.linkRoutes = normalizeLinkRoutes(data.linkRoutes);
   if (typeof data.linkRoutesInApp !== 'boolean') data.linkRoutesInApp = DEFAULTS.linkRoutesInApp;
   if (typeof data.reuseNewTab !== 'boolean') data.reuseNewTab = DEFAULTS.reuseNewTab;
+  if (typeof data.askWhereToSave !== 'boolean') data.askWhereToSave = DEFAULTS.askWhereToSave;
   if (typeof data.darkWebsites !== 'boolean') data.darkWebsites = DEFAULTS.darkWebsites;
   data.darkWebsitesExceptions = normalizeHostnameList(data.darkWebsitesExceptions);
   if (typeof data.newtabDynamicWallpaper !== 'boolean') data.newtabDynamicWallpaper = false;
@@ -699,6 +703,7 @@ function sanitize(partial) {
   if (typeof partial.islandTabIcons === 'boolean') clean.islandTabIcons = partial.islandTabIcons;
   if (typeof partial.linkRoutesInApp === 'boolean') clean.linkRoutesInApp = partial.linkRoutesInApp;
   if (typeof partial.reuseNewTab === 'boolean') clean.reuseNewTab = partial.reuseNewTab;
+  if (typeof partial.askWhereToSave === 'boolean') clean.askWhereToSave = partial.askWhereToSave;
   if (typeof partial.launchSunrise === 'boolean') clean.launchSunrise = partial.launchSunrise;
   if (typeof partial.searchPriorityResults === 'boolean') clean.searchPriorityResults = partial.searchPriorityResults;
   if (typeof partial.islandAutoHide === 'boolean') clean.islandAutoHide = partial.islandAutoHide;

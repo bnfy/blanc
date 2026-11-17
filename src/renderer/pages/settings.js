@@ -793,6 +793,24 @@
     document.getElementById('reuseNewTabSetting')?.remove();
   }
 
+  // #1591: show Save As for every download. Off by default.
+  if (supports('askWhereToSave')) {
+    const askWhereToSave = document.getElementById('askWhereToSave');
+    askWhereToSave.checked = settings.askWhereToSave === true;
+    askWhereToSave.addEventListener('change', async () => {
+      try {
+        const saved = await window.bowserPages.settings.set({ askWhereToSave: askWhereToSave.checked });
+        askWhereToSave.checked = saved.askWhereToSave === true;
+      } catch {
+        window.bowserPages.settings.get().then(({ settings: saved }) => {
+          askWhereToSave.checked = saved.askWhereToSave === true;
+        }, () => {});
+      }
+    });
+  } else {
+    document.getElementById('askWhereToSaveSetting')?.remove();
+  }
+
   // Mini Window (#1138): the global shortcut, from the choices this platform
   // offers (mini-window.js). Off by default; the status line says when the
   // chosen chord can't be used.

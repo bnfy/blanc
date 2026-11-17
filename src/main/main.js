@@ -208,6 +208,7 @@ const { validFavicon } = require('./bookmark-validate');
 const {
   setupDownloads,
   setDownloadRequesterCheck,
+  setDownloadSavePolicy,
   downloadsActivity,
   acknowledgeDownloads,
   discardProfileDownloads,
@@ -15673,6 +15674,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // a native event boundary main.js doesn't control — so the callback must
   // rebind the runtime itself rather than rely on setupDownloads' call site.
   setDownloadRequesterCheck((wc) => runtimeForPageWebContents(wc)?.resident !== true);
+  // #1591: unless the person asked to choose, downloads save straight to the
+  // Downloads folder under a free name.
+  setDownloadSavePolicy({
+    askWhereToSave: () => settings.getSettings().askWhereToSave === true,
+    folder: () => app.getPath('downloads'),
+  });
   setupDownloads(ses, broadcastDownloadsActivity, {
     private: false,
     profileId: DEFAULT_PROFILE_ID,

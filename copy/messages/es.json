@@ -3719,6 +3719,14 @@
     "message": "Nueva pestaña va a una pestaña nueva de esta ventana que aún no has usado, en lugar de abrir otra. Nueva pestaña privada hace lo mismo con las pestañas privadas.",
     "source": "sha256:99e5e05a5800398919ea3cf28d48c41a9b109fb8d2a951a5a2d10206132053a6"
   },
+  "settings.general.askWhereToSave.label": {
+    "message": "Preguntar dónde guardar cada archivo",
+    "source": "sha256:b76a33ee6f66a3a942dc934105c61bb667a1a1470c9719187037c601cd65b595"
+  },
+  "settings.general.askWhereToSave.hint": {
+    "message": "Si está desactivado, las descargas van directamente a tu carpeta Descargas, y un archivo con el mismo nombre recibe un número.",
+    "source": "sha256:707ca337ae8ad262052b4d64e6e02f0e0e9936dd104700c11fd819b11d0465b1"
+  },
   "settings.general.tabSwitchOrder.recent": {
     "message": "En el orden en que las usaste",
     "source": "sha256:a55a18693b898163b09b865118594e02e3ed5451128acbe81ba66b8938a956a4"

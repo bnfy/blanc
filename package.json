@@ -84,6 +84,7 @@
     "test:recovery-lifecycle": "node test/desktop/startup-recovery-lifecycle-smoke.mjs",
     "test:window-close-quit": "node test/desktop/window-close-quit-smoke.mjs",
     "test:command-line-urls": "node test/desktop/command-line-urls-smoke.mjs",
+    "test:save-downloads:desktop": "node test/desktop/save-downloads-smoke.mjs",
     "test:window-close-primary": "node test/desktop/window-close-primary-smoke.mjs",
     "test:packaged:external-links": "node test/desktop/packaged-external-links-smoke.mjs",
     "test:packaged:first-run": "node test/desktop/packaged-first-run-smoke.mjs",
@@ -166,6 +167,7 @@
     "pretest:recovery-lifecycle": "npm run runtime:check",
     "pretest:window-close-quit": "npm run runtime:check",
     "pretest:command-line-urls": "npm run runtime:check",
+    "pretest:save-downloads:desktop": "npm run runtime:check",
     "pretest:window-close-primary": "npm run runtime:check",
     "pretest:packaged:external-links": "npm run runtime:check",
     "pretest:packaged:first-run": "npm run runtime:check",
@@ -291,6 +293,7 @@
         "NSMicrophoneUsageDescription": "Blanc allows websites you approve to use your microphone.",
         "NSCameraUsageDescription": "Blanc allows websites you approve to use your camera.",
         "NSAudioCaptureUsageDescription": "Blanc lets you share this Mac’s screen and system audio with a website after you choose a source.",
+        "NSDownloadsFolderUsageDescription": "Blanc saves the files you download to your Downloads folder.",
         "CFBundleDocumentTypes": [
           {
             "CFBundleTypeRole": "Viewer",
