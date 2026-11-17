@@ -1,8 +1,10 @@
 const crypto = require('crypto');
+const fs = require('fs');
 const { shell } = require('electron');
 const { JsonStore } = require('./store');
 const { withLocalProfile, activeLocalProfileId } = require('./local-profile-context');
 const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
+const { chooseDownloadPath, downloadReservationKey } = require('./download-path');
 
 // Completed/cancelled downloads persist across launches; in-flight ones
 // live here alongside their DownloadItem so cancel/pause can reach them.
@@ -41,6 +43,36 @@ let downloadRequesterAllowed = () => true;
 // show a save dialog; already accepted downloads keep their normal lifecycle.
 function setDownloadRequesterCheck(check) {
   downloadRequesterAllowed = typeof check === 'function' ? check : () => true;
+}
+
+// Where a new download goes when Blanc saves it without asking (#1591). Main
+// supplies the setting and the folder; with no policy, or when asking is on,
+// Electron shows its Save As dialog as before.
+let savePolicy = null;
+// Paths handed to downloads still in flight, so two downloads of the same file
+// at once never get the same name. Released when each download is done.
+const reservedPaths = new Set();
+
+function setDownloadSavePolicy(policy) {
+  savePolicy = policy && typeof policy === 'object' ? policy : null;
+}
+
+function chooseSavePath(item) {
+  if (!savePolicy) return null;
+  try {
+    if (savePolicy.askWhereToSave()) return null;
+    const folder = savePolicy.folder();
+    // A missing or unwritable folder leaves the dialog, never a failed download.
+    fs.accessSync(folder, fs.constants.W_OK);
+    return chooseDownloadPath({
+      folder,
+      filename: item.getFilename(),
+      exists: fs.existsSync,
+      reserved: reservedPaths,
+    });
+  } catch {
+    return null;
+  }
 }
 
 const THROTTLE_MS = 250;
@@ -94,6 +126,13 @@ function setupDownloads(
     if (retrySavePaths.has(retryKey)) {
       item.setSavePath(retrySavePaths.get(retryKey));
       retrySavePaths.delete(retryKey);
+    } else {
+      const savePath = chooseSavePath(item);
+      if (savePath) {
+        item.setSavePath(savePath);
+        entry.reservedKey = downloadReservationKey(savePath);
+        reservedPaths.add(entry.reservedKey);
+      }
     }
 
     item.on('updated', (_e, state) => withLocalProfile(profileId, () => {
@@ -106,6 +145,7 @@ function setupDownloads(
     }));
 
     item.once('done', (_e, state) => withLocalProfile(profileId, () => {
+      if (entry.reservedKey) reservedPaths.delete(entry.reservedKey);
       record.state = state; // 'completed' | 'cancelled' | 'interrupted'
       record.canResume = false;
       record.savePath = item.getSavePath();
@@ -274,6 +314,7 @@ function downloadsActivity() {
 
 module.exports = {
   setDownloadRequesterCheck,
+  setDownloadSavePolicy,
   setupDownloads,
   listDownloads,
   activeCount,
