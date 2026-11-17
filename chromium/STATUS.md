@@ -14,6 +14,21 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-16 — Electron profile importer: the Start Page's settings (candidate macos-14061c5b07c620fd):**
+  the import now carries the Start Page's layout, the clock's six values,
+  the wallpaper choices (time of day, color, preset, fill, wash, style) and
+  the person's own image. The layout and clock are preferences the browser
+  sets; the wallpaper lives in the Start Page's own storage, so it waits
+  for the profile's next Start Page, which stores it once
+  (`start_page_import.inc`, `importRead` / `importDone`). Widgets nobody
+  has changed follow the imported layout. `native-profile-import-start.mjs`
+  has 3 checks; the other importer tests pass (11, 7, 4). Trials on both
+  real copies: no errors, sources unchanged; the Mac Studio copy, which
+  shows its own image, carried it, and the MacBook Pro copy, which does
+  not, carried none. Not carried: following a Space's color. Not seen on
+  screen by the owner. The shared Start Page adapter changed, so Android's
+  copy was regenerated; Android answers the new request as unsupported and
+  carries on.
 - **2026-11-16 — Electron profile importer: the result list (candidate macos-88c3fcc0786de627, patch 0093):**
   after an import, Settings, About lists each profile by its own name with
   what came across, names a profile that could not be read, and says what
