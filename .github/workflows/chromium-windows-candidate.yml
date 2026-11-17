@@ -63,21 +63,26 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # The harness reads shipping's own test files from Git at the pinned
-      # shipping commit. The checkout is shallow (the full history is large),
-      # so fetch that one commit; the repository is public, so no token.
-      - name: Fetch the pinned shipping commit
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $shipping = (Get-Content chromium/tracker.json -Raw | ConvertFrom-Json).shippingCommit
-          if ($shipping -notmatch '^[0-9a-f]{40}$') { throw 'chromium/tracker.json has no shippingCommit.' }
-          git fetch --quiet --depth=1 origin $shipping
-          if ($LASTEXITCODE -ne 0) { throw "Could not fetch shipping commit $shipping." }
-          git cat-file -e "${shipping}:package.json"
-          if ($LASTEXITCODE -ne 0) { throw "Shipping commit $shipping is not readable." }
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
+      # The harness reads shipping's own test files from Git at its pinned
+      # shipping commits. The checkout is shallow (the full history is large),
+      # so fetch exactly those; the repository is public, so no token.
+      - name: Fetch the pinned shipping commits
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not (Test-Path chromium/windows/pinned-commits.mjs)) { throw "chromium/windows/pinned-commits.mjs is not on $env:GITHUB_REF_NAME. Run this workflow with --ref chromium/next." }
+          $commits = @(node chromium/windows/pinned-commits.mjs)
+          if ($LASTEXITCODE -ne 0 -or -not $commits) { throw 'Could not list the pinned shipping commits.' }
+          foreach ($commit in $commits) {
+            if ($commit -notmatch '^[0-9a-f]{40}$') { throw "Not a full commit: $commit" }
+            git fetch --quiet --depth=1 origin $commit
+            if ($LASTEXITCODE -ne 0) { throw "Could not fetch shipping commit $commit." }
+            git cat-file -e "${commit}:package.json"
+            if ($LASTEXITCODE -ne 0) { throw "Shipping commit $commit is not readable." }
+          }
+          "Fetched: $($commits -join ', ')"
       - name: Download the candidate from the draft release
         env:
           GH_TOKEN: ${{ github.token }}
