@@ -367,7 +367,15 @@ which would tell a third party whenever someone opens a Blanc email. Apple
 Mail, Outlook for Mac and Thunderbird show it; Gmail and Outlook for Windows
 ignore web fonts and fall back to the system sans. Many clients also drop
 SVG and WebP, so the layout is inline-styled tables and the lockup is a PNG.
-`site/public/_headers` lets other origins load the email lockup and font.
+Blanc Mail's emails (sign-up and reset codes, password and backup-email
+notices, licence keys, mailbox deletion warnings), sent by
+`services/mail-worker/src/email.js` in bnfy/blanc-mail, use the same layout
+with the Blanc Mail lockup in place of the Blanc one
+(`site/public/press/blanc-mail-lockup-ink-480.png`, 480 × 93, drawn 220 × 43
+and linked to blanc.day/mail), so a Mail email never reads as the browser's
+(owner, November 17, 2026). Everything about the browser, the Android beta
+invitations included, keeps the Blanc lockup.
+`site/public/_headers` lets other origins load the email lockups and font.
 Blubird never appears in email: its licence covers the website only. The Worker's
 confirmation emails use it directly, and Resend templates are rendered from
 the same function, so change them together. Copy follows
