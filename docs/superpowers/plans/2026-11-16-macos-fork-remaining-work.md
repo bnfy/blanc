@@ -203,7 +203,7 @@ Each item: a failing `native-*.mjs` or scenario first, then the change, an incre
 - [x] **K9** (2026-11-16: built and tried on two real profile copies; see `2026-11-16-electron-profile-importer.md`. Left: the replacement build's automatic import on first launch, and the owner's real Keychain and Sync account check) Importer M.2 in the browser process against C4's fixtures and `expected.json`; M.3 key re-wrap (O5: Sync stays on). M.4 dropped by O3 (sign in again); O4: synced settings to Personal only.
 - [x] **K10** (2026-11-16: a test fault, not the menu. Run alone it failed 4 of 5: the key helper pressed Escape before the fork's overlay had drawn the menu, so nothing was there to fade. The helper now waits for the overlay to draw the host's mode; 6 of 6, and the whole F41 file passes, 84 cases) Spaces menu fade flake (`F41…:211`), last: it passes on rerun and blocks nothing.
 - [x] **After C3 / K13** (2026-11-16: pins, renderer, strings and inventory at v1.49.1; the seven new cases pass; F37-9 found ⌘⇧N opening a private window under Chromium 158's action dispatch, fixed) move the tracker pin, run changed cases on the then-current candidate, fix or record gaps.
-- [ ] **Close-out:** a full nightly on the final head; refresh the tracker from it as on 2026-11-16; list what remains for the owner's Verified checklist.
+- [x] **Close-out** (2026-11-17; see §7): a full nightly on the final head; refresh the tracker from it as on 2026-11-16; list what remains for the owner's Verified checklist.
 
 ## Review Focus
 
@@ -214,3 +214,35 @@ What neither lane's tests catch by themselves, most likely first:
 3. (Closed 2026-11-16: the owner moved all test runs to the Mac Studio.) Test windows stealing focus from the owner on the MacBook Pro mid-typing. If it happens once, Codex's browser runs move to off-hours or stop (O1).
 4. A staged app that no longer matches the tracker's candidate after Claude's first K-build: Codex cards keep using the staged nightly copy on purpose; Claude reruns their tests on the new candidate when landing.
 5. `expected.json` encoding a migration choice the spec leaves open. Anything D5 touches stays out.
+
+## 7. Close-out (2026-11-17)
+
+**The run.** The nightly full suite 20261117-0700 on the Mac Studio passed on the merged head `ded39777f` (shipping v1.49.1), candidate `macos-1400e3914b1a7bdf`: 635 of 667 cases pass, 1 fails and passed on its rerun (`link-routing.feature:37`), 3 are undefined (runner gaps: `platform-services.feature:25`, `private-tabs.feature:40`, `supporter-and-session.feature:12`), 28 are excluded. The tracker and its baseline (`chromium/scenarios/baseline-macos-1400e3914b1a7bdf.json`) are moved to that run, with each row's counts recomputed from it.
+
+**macOS rows (81).** 70 Integrated, 8 Implemented, 2 not started by owner decision (F38 1Password, F42 Dark websites: both from the Chrome Web Store), 1 research (X1 uBO). None is Verified: Verified needs the row's manual accessibility and visual check on top of its passing tests.
+
+**What only the owner can do**
+
+1. **The manual accessibility and visual check for the 70 Integrated rows.** Nothing replaces looking at each on screen with VoiceOver and keyboard only.
+2. **Hand checks named by rows that are built and tested without them:**
+   - The import row in Settings, its result list and the imported Start Page on screen; the real Keychain prompt and a real Sync account during an import (importer).
+   - The protected-video notice on live sites and the real handoff to the released app (X2).
+   - Chromium's share picker in an Island window, and a window or whole-screen share (N3).
+   - `/invite` opening the real mail app (N17).
+   - Production Sync with a real iPhone, and pairing by QR (R2, R3).
+   - The signed-beta checks that ride on each notarized build (F22, N7).
+3. **Decisions:**
+   - Retire the `no-drm-handoff` standing waiver, now that the notice is built (X2).
+   - Whether the replacement build plays protected video at all (D3 for the replacement).
+   - When a build registers the `blanc-import:` link type (N20; today none does, by decision D1).
+
+**What is left to build on macOS**
+
+- The automatic import on the replacement build's first launch (importer).
+- The macOS `public.html` file association and shipping's isolated preview window (N15).
+- A Help menu item for Invite a Friend, if wanted (N17).
+- The replacement channel, Intel and the Electron bridge release (F22, plan R.4 to R.6).
+- Fork step adapters for the three undefined cases.
+- What's New stays inert until a release channel reports a Blanc version (F51).
+
+**Known flake.** `link-routing.feature:37` fails now and then and passes alone and on rerun. Not diagnosed.

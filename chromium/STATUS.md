@@ -14,6 +14,19 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-17 — Close-out of the macOS remaining-work plan; tracker moved to macos-1400e3914b1a7bdf:**
+  the nightly full suite 20261117-0700 passed on the merged head
+  `ded39777f` (bnfy/blanc#1586): 635 of 667 pass, 1 fails
+  (`link-routing.feature:37`, passed on its rerun), 3 undefined (runner
+  gaps), 28 excluded. The tracker's candidate, baseline and every
+  suite-backed row's counts are from that run (F41 84 of 84 now that the
+  Spaces fade case is fixed, F37 9 of 9 with the New Tab reuse cases, F60
+  6 of 7 for the link-routing flake). N13 and N17 move to Integrated on
+  their rechecks; F51 stays Implemented, inert until a release version.
+  macOS rows: 70 Integrated, 8 Implemented, 2 not started by owner
+  decision, 1 research, none Verified. What remains for the owner, the
+  decisions and what is left to build are in §7 of
+  `docs/superpowers/plans/2026-11-16-macos-fork-remaining-work.md`.
 - **2026-11-16 — The Start Page import no longer costs the phones a request (candidate macos-1400e3914b1a7bdf):**
   the iPhone and iPad unit test `MobileStartPageTests.testFavoritesWidgetListsAndFollowsFavorites`
   failed on bnfy/blanc#1586. The phones share `newtab-adapter.js`, and the
@@ -4214,7 +4227,7 @@ on that site, and a wrong search address still fails it.
 
 | Platform | Current-candidate baseline |
 | --- | --- |
-| macOS | 633/667 executable cases pass; 3 failed; 3 undefined/not run; 28 excluded — [baseline](scenarios/baseline-macos-bed55af2cf2cf43d.json)<br>S1 rows: 259/263 pass; 1 failed; 1 undefined; 2 excluded |
+| macOS | 635/667 executable cases pass; 1 failed; 3 undefined/not run; 28 excluded — [baseline](scenarios/baseline-macos-1400e3914b1a7bdf.json)<br>S1 rows: 260/263 pass; 0 failed; 1 undefined; 2 excluded |
 | Windows | Not run (667 cases) |
 | Linux | Not run (667 cases) |
 
@@ -4229,10 +4242,10 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 | Not started / unassessed | 2 | 81 | 81 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 0 | 0 | 0 | 0 |
-| Implemented | 10 | 0 | 0 | 12 |
+| Implemented | 8 | 0 | 0 | 12 |
 | Built, isolated (legacy) | 0 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 0 | 0 | 0 | 0 |
-| Integrated | 68 | 0 | 0 | 0 |
+| Integrated | 70 | 0 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 | 0 |
@@ -4240,5 +4253,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-bed55af2cf2cf43d; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-1400e3914b1a7bdf; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->
