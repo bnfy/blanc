@@ -1850,6 +1850,20 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="favorites_manager_error_cycle">Uma pasta não pode ser movida para dentro de si mesma.</string>
     <string name="favorites_manager_error_invalid">Esse nome não pode ser usado.</string>
     <string name="favorites_manager_error_missing">Essa pasta não existe mais.</string>
+    <string name="favorites_import_menu">Trazer minhas coisas para o Blanc</string>
+    <plurals name="favorites_manager_results">
+        <item quantity="one">%1$d resultado</item>
+        <item quantity="many">%1$d resultados</item>
+        <item quantity="other">%1$d resultados</item>
+    </plurals>
+    <plurals name="favorites_manager_remove_confirm">
+        <item quantity="one">Remover %1$d item?</item>
+        <item quantity="many">Remover %1$d itens?</item>
+        <item quantity="other">Remover %1$d itens?</item>
+    </plurals>
+    <string name="favorites_manager_cancel">Cancelar</string>
+    <string name="favorites_manager_pin">Fixar</string>
+    <string name="favorites_manager_unpin">Desafixar</string>
     <string name="favorites_picker_label">Mover %1$s para uma pasta</string>
     <string name="favorites_picker_none">→ nenhuma</string>
     <string name="favorites_picker_new_folder">nova pasta…</string>
@@ -2762,4 +2776,13 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="android_licenses_chromium_fork_notices">Avisos do fork do Chromium</string>
     <string name="android_licenses_loading">Carregando aviso…</string>
     <string name="android_licenses_load_failed">Não foi possível carregar este aviso. Abra o link no título para ler o arquivo incluído.</string>
+    <string name="favorites_import_lede">Copie seus favoritos e abas abertas de outro navegador. Nada muda nele.</string>
+    <string name="favorites_import_from">De</string>
+    <string name="favorites_import_file_option">Arquivo de favoritos (HTML)…</string>
+    <string name="favorites_import_what">O que trazer</string>
+    <string name="favorites_import_what_tabs">Abas abertas</string>
+    <string name="favorites_import_go">Importar</string>
+    <string name="favorites_import_cancel">Cancelar</string>
+    <string name="favorites_manager_delete_folder_label">Excluir a pasta %1$s</string>
+    <string name="favorites_import_tabs_skipped">As abas abertas não foram trazidas.</string>
 </resources>

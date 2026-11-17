@@ -17,7 +17,11 @@ const pageIds = (value) => shortStrings(value, MAX_IDS);
 /** A folder's order, as the keys the tree gives each child. */
 const pageKeys = (value) => shortStrings(value, MAX_KEYS);
 
-/** A folder path, or null for the top level. bookmarks.js validates it. */
-const pagePath = (value) => (value === null || value === undefined ? null : String(value).slice(0, MAX_ARG));
+/** A folder path, or null for the top level. Anything but a string is
+ * refused ('' fails bookmarks.js validation), never read as the top level. */
+const pagePath = (value) => {
+  if (value === null || value === undefined) return null;
+  return typeof value === 'string' ? value.slice(0, MAX_ARG) : '';
+};
 
 module.exports = { pageIds, pageKeys, pagePath };

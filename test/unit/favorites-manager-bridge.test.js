@@ -42,6 +42,8 @@ test('handlers coerce what a page sends', () => {
   assert.equal(pageKeys(Array.from({ length: 30000 }, (_, i) => `u:${i}`)).length, 20000);
   assert.equal(pagePath(null), null);
   assert.equal(pagePath(undefined), null);
-  assert.equal(pagePath(5), '5');
+  assert.equal(pagePath(5), '');
+  assert.equal(pagePath({}), '');
+  assert.equal(pagePath(false), '');
   assert.equal(pagePath('x'.repeat(300)).length, 200);
 });

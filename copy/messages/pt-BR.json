@@ -6551,6 +6551,30 @@
     "message": "Essa pasta não existe mais.",
     "source": "sha256:da15e822ea7414bdea99ba50faf98629849cd2c7bc8e38befbdaaea0c4be91e7"
   },
+  "favorites.import.menu": {
+    "message": "Trazer minhas coisas para o Blanc",
+    "source": "sha256:7c0b597b34e0d5fc033ac5ac1476dac7ebce2209ba9000c93c7e51abcf813144"
+  },
+  "favorites.manager.results": {
+    "message": "{count, plural, one {# resultado} many {# resultados} other {# resultados}}",
+    "source": "sha256:af1fd513441f4a7b789abaa9483aaeb718cd2677c9bc2bca731345172f7b8a42"
+  },
+  "favorites.manager.removeConfirm": {
+    "message": "{count, plural, one {Remover # item?} many {Remover # itens?} other {Remover # itens?}}",
+    "source": "sha256:7a71259f4ac41a6bba212d7539b7179020d57bb057285db4983dca3a10549eb2"
+  },
+  "favorites.manager.cancel": {
+    "message": "Cancelar",
+    "source": "sha256:417d9366fed6571bb49c5677f56393a7f1ed62496af3b7e5508942d42ac8cba0"
+  },
+  "favorites.manager.pin": {
+    "message": "Fixar",
+    "source": "sha256:1d11e161f9a0b77ff9a8865e610bdd563f4ba3620e1ab35fd562d9a27b2d6e9c"
+  },
+  "favorites.manager.unpin": {
+    "message": "Desafixar",
+    "source": "sha256:f85ccf92edab1ffdf0dfbbf0fb291402b6ed6be9ff487641528a69b700d93cbf"
+  },
   "favorites.picker.label": {
     "message": "Mover {title} para uma pasta",
     "source": "sha256:4567623c67819297697fdbd71ed5219148412c3217b5185aa633a765be5cd62c"
@@ -9762,5 +9786,41 @@
   "android.licenses.loadFailed": {
     "message": "Não foi possível carregar este aviso. Abra o link no título para ler o arquivo incluído.",
     "source": "sha256:10f1e03f68d92e46522c957048d32e387885e1b7ac56bfbfcaf0b315488731c3"
+  },
+  "favorites.import.lede": {
+    "message": "Copie seus favoritos e abas abertas de outro navegador. Nada muda nele.",
+    "source": "sha256:7b27cd690be548ecaaee09172c868e1c008c44ab16b9f5cbaf756274e6feea26"
+  },
+  "favorites.import.from": {
+    "message": "De",
+    "source": "sha256:079498949d082389942f09acaea05caa852f1259197162cc9b0bb7ef2bdca4ca"
+  },
+  "favorites.import.fileOption": {
+    "message": "Arquivo de favoritos (HTML)…",
+    "source": "sha256:7b8d9a3c934ef85b6eee9fe7e6286694e1a94725ab4d26a1f6dd211ffa5645b8"
+  },
+  "favorites.import.what": {
+    "message": "O que trazer",
+    "source": "sha256:abf914f00212fcefc08da2e8b764634a8fff7c3d1ee41e403b22aca484c557fa"
+  },
+  "favorites.import.whatTabs": {
+    "message": "Abas abertas",
+    "source": "sha256:1f3a10d9d1b7c6a4da7dfb18927334194890a580bd45102018872b8836a9b0e9"
+  },
+  "favorites.import.go": {
+    "message": "Importar",
+    "source": "sha256:886f9f28a5489791fe4fdd9bffc45def05b37f68e7430321759f821910041e4b"
+  },
+  "favorites.import.cancel": {
+    "message": "Cancelar",
+    "source": "sha256:5d290921c79b35afa02449fdc247ccd75820b9ae9dd9f7e7f0df8a31ba454947"
+  },
+  "favorites.manager.deleteFolderLabel": {
+    "message": "Excluir a pasta {title}",
+    "source": "sha256:8985ef05df353e0e17eb14d0dfb0f4a502a7e6a555ef06d37ec5dc698bec68ef"
+  },
+  "favorites.import.tabsSkipped": {
+    "message": "As abas abertas não foram trazidas.",
+    "source": "sha256:2151e2cc32789e69ff84dc7e3125d6a0221be22bf0d122a82c7f3a2f6b2da94f"
   }
 }

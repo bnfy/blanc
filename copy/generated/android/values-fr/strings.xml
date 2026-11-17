@@ -1850,6 +1850,20 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="favorites_manager_error_cycle">Un dossier ne peut pas être déplacé dans lui-même.</string>
     <string name="favorites_manager_error_invalid">Ce nom ne peut pas être utilisé.</string>
     <string name="favorites_manager_error_missing">Ce dossier n’existe plus.</string>
+    <string name="favorites_import_menu">Apporter mes données dans Blanc</string>
+    <plurals name="favorites_manager_results">
+        <item quantity="one">%1$d résultat</item>
+        <item quantity="many">%1$d résultats</item>
+        <item quantity="other">%1$d résultats</item>
+    </plurals>
+    <plurals name="favorites_manager_remove_confirm">
+        <item quantity="one">Retirer %1$d élément ?</item>
+        <item quantity="many">Retirer %1$d éléments ?</item>
+        <item quantity="other">Retirer %1$d éléments ?</item>
+    </plurals>
+    <string name="favorites_manager_cancel">Annuler</string>
+    <string name="favorites_manager_pin">Épingler</string>
+    <string name="favorites_manager_unpin">Désépingler</string>
     <string name="favorites_picker_label">Déplacer %1$s vers un dossier</string>
     <string name="favorites_picker_none">→ aucun</string>
     <string name="favorites_picker_new_folder">nouveau dossier…</string>
@@ -2762,4 +2776,13 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="android_licenses_chromium_fork_notices">Mentions du fork de Chromium</string>
     <string name="android_licenses_loading">Chargement de la mention…</string>
     <string name="android_licenses_load_failed">Cette mention n’a pas pu être chargée. Ouvre le lien de son titre pour lire le fichier inclus.</string>
+    <string name="favorites_import_lede">Copiez vos favoris et onglets ouverts depuis un autre navigateur. Rien n’y change.</string>
+    <string name="favorites_import_from">Depuis</string>
+    <string name="favorites_import_file_option">Fichier de signets (HTML)…</string>
+    <string name="favorites_import_what">Quoi importer</string>
+    <string name="favorites_import_what_tabs">Onglets ouverts</string>
+    <string name="favorites_import_go">Importer</string>
+    <string name="favorites_import_cancel">Annuler</string>
+    <string name="favorites_manager_delete_folder_label">Supprimer le dossier %1$s</string>
+    <string name="favorites_import_tabs_skipped">Les onglets ouverts n’ont pas été importés.</string>
 </resources>

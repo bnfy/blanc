@@ -132,8 +132,29 @@
     return !movedFolderPaths.some((moved) => isWithinPath(folderPath, moved));
   }
 
+  function joinPath(parent, name) {
+    return parent ? `${parent}${SEP}${name}` : name;
+  }
+
+  const leafOf = (path) => segments(path).at(-1) ?? '';
+
+  /** `path` after the folder `from` became `to` (same if not inside it). */
+  function remapPath(path, from, to) {
+    if (!isWithinPath(path, from)) return path;
+    const rest = segments(path).slice(segments(from).length);
+    return [...segments(to), ...rest].join(SEP);
+  }
+
+  /** One folder's whole order after one kind's rows were rearranged.
+   * Folders are always drawn first, so they are saved first. */
+  function combineOrder(children, kind, kindOrder) {
+    const folders = children.filter((c) => c.kind === 'folder').map((c) => c.key);
+    const favorites = children.filter((c) => c.kind === 'favorite').map((c) => c.key);
+    return kind === 'folder' ? [...kindOrder, ...favorites] : [...folders, ...kindOrder];
+  }
+
   const api = {
-    SEP, findFolder, breadcrumb, listFolders, searchFavorites, selectionAfterClick,
+    SEP, findFolder, joinPath, leafOf, remapPath, combineOrder, breadcrumb, listFolders, searchFavorites, selectionAfterClick,
     orderAfterDrop, orderAfterStep, canDropInto, isWithinPath, parentOf,
   };
   if (typeof module === 'object' && module.exports) module.exports = api;

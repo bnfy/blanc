@@ -1799,6 +1799,18 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="favorites_manager_error_cycle">Ein Ordner kann nicht in sich selbst verschoben werden.</string>
     <string name="favorites_manager_error_invalid">Dieser Name kann nicht verwendet werden.</string>
     <string name="favorites_manager_error_missing">Dieser Ordner existiert nicht mehr.</string>
+    <string name="favorites_import_menu">Meine Sachen zu Blanc holen</string>
+    <plurals name="favorites_manager_results">
+        <item quantity="one">%1$d Ergebnis</item>
+        <item quantity="other">%1$d Ergebnisse</item>
+    </plurals>
+    <plurals name="favorites_manager_remove_confirm">
+        <item quantity="one">%1$d Element entfernen?</item>
+        <item quantity="other">%1$d Elemente entfernen?</item>
+    </plurals>
+    <string name="favorites_manager_cancel">Abbrechen</string>
+    <string name="favorites_manager_pin">Anheften</string>
+    <string name="favorites_manager_unpin">Lösen</string>
     <string name="favorites_picker_label">%1$s in einen Ordner verschieben</string>
     <string name="favorites_picker_none">→ keiner</string>
     <string name="favorites_picker_new_folder">neuer Ordner…</string>
@@ -2683,4 +2695,13 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="android_licenses_chromium_fork_notices">Hinweise zum Chromium-Fork</string>
     <string name="android_licenses_loading">Hinweis wird geladen…</string>
     <string name="android_licenses_load_failed">Dieser Hinweis konnte nicht geladen werden. Öffne den Link im Titel, um die mitgelieferte Datei zu lesen.</string>
+    <string name="favorites_import_lede">Kopiere deine Favoriten und offenen Tabs aus einem anderen Browser. Dort ändert sich nichts.</string>
+    <string name="favorites_import_from">Aus</string>
+    <string name="favorites_import_file_option">Lesezeichendatei (HTML)…</string>
+    <string name="favorites_import_what">Was mitkommt</string>
+    <string name="favorites_import_what_tabs">Offene Tabs</string>
+    <string name="favorites_import_go">Importieren</string>
+    <string name="favorites_import_cancel">Abbrechen</string>
+    <string name="favorites_manager_delete_folder_label">Ordner %1$s löschen</string>
+    <string name="favorites_import_tabs_skipped">Offene Tabs wurden nicht übernommen.</string>
 </resources>

@@ -28,6 +28,8 @@ async function openMigration(world) {
 }
 
 async function importProfile(world, expectedCount, statusPattern = /Imported 3 favorites/) {
+  // Each import closes the dialog; importing again opens it again.
+  if (!(await world.call('readBrowserImportDom'))?.dialogOpen) await openMigration(world);
   assert.equal(await world.call('clickBrowserImport'), true);
   await waitForValue(
     async () => ({

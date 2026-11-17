@@ -3118,7 +3118,7 @@ function install(refs) {
     async utilitySheetRowIcons() {
       const wc = getUtilitySheetWebContents();
       if (!wc) return null;
-      return wc.executeJavaScript(`[...document.querySelectorAll('.row')].map((row) => {
+      return wc.executeJavaScript(`[...document.querySelectorAll('.row, .fav-row[data-url]')].map((row) => {
         const icon = row.querySelector('.row-icon');
         return { image: !!icon?.querySelector('img'), letter: icon?.classList.contains('fallback') ? icon.textContent : '' };
       })`);
@@ -3910,23 +3910,33 @@ function install(refs) {
     readBrowserImportDom() {
       const wc = getUtilitySheetWebContents();
       if (!wc) return null;
-      return wc.executeJavaScript(`(() => ({
-        options: [...document.querySelectorAll('#browserSource option')].map((o) => ({
-          value: o.value,
-          label: o.textContent,
-        })),
-        buttonHidden: document.getElementById('browserImportBtn')?.hidden ?? true,
-        findHidden: document.getElementById('browserFindBtn')?.hidden ?? true,
-        status: document.getElementById('importStatus')?.textContent ?? '',
-      }))()`);
+      // "Bring my stuff to Blanc" is one dialog: opening it looks for
+      // browsers. buttonHidden: no detected profile can be imported yet (the
+      // dialog is closed, still looking, or found none); findHidden: the
+      // button that opens the dialog is not offered.
+      return wc.executeJavaScript(`(() => {
+        const dialog = document.getElementById('importDialog');
+        const options = [...document.querySelectorAll('#browserSource option')];
+        const profiles = options.filter((o) => !o.disabled && o.value && o.value !== 'file');
+        const go = document.getElementById('browserImportBtn');
+        return {
+          dialogOpen: dialog?.open ?? false,
+          options: options.map((o) => ({ value: o.value, label: o.textContent })),
+          buttonHidden: !(dialog?.open && profiles.length && go && !go.disabled),
+          findHidden: document.getElementById('importMenuBtn')?.closest('[hidden]') !== null,
+          status: document.getElementById('importStatus')?.textContent
+            || document.getElementById('importDialogNote')?.textContent || '',
+        };
+      })()`);
     },
     clickBrowserFind() {
       const wc = getUtilitySheetWebContents();
       if (!wc) return false;
       return wc.executeJavaScript(`(() => {
-        const button = document.getElementById('browserFindBtn');
-        if (!button || button.hidden) return false;
-        button.click();
+        // Opening "Bring my stuff to Blanc" is the ask to look (F30, D22).
+        const button = document.getElementById('importMenuBtn');
+        if (!button || button.closest('[hidden]') || button.disabled) return false;
+        if (!document.getElementById('importDialog')?.open) button.click();
         return true;
       })()`);
     },
@@ -3949,7 +3959,7 @@ function install(refs) {
       if (!wc) return false;
       return wc.executeJavaScript(`(() => {
         const button = document.getElementById('browserImportBtn');
-        if (!button || button.hidden) return false;
+        if (!button || button.disabled || !document.getElementById('importDialog')?.open) return false;
         button.click();
         return true;
       })()`);

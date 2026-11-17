@@ -73,3 +73,22 @@ test('a folder cannot drop into itself or its own descendant', () => {
   assert.equal(parentOf('Work › Clients'), 'Work');
   assert.equal(parentOf('Work'), null);
 });
+
+const { remapPath, combineOrder, joinPath, leafOf } = require('../../src/renderer/pages/favorites-manager-model');
+
+test('paths join, split and follow a renamed ancestor', () => {
+  assert.equal(joinPath(null, 'Work'), 'Work');
+  assert.equal(joinPath('Work', 'Clients'), 'Work › Clients');
+  assert.equal(leafOf('Work › Clients'), 'Clients');
+  assert.equal(remapPath('work › Clients › Acme', 'Work', 'Jobs'), 'Jobs › Clients › Acme');
+  assert.equal(remapPath('Work', 'work', 'Jobs'), 'Jobs');
+  assert.equal(remapPath('Home', 'Work', 'Jobs'), 'Home');
+});
+
+test('combineOrder keeps folders first and replaces one kind\'s order', () => {
+  const children = [
+    { kind: 'favorite', key: 'u:1' }, { kind: 'folder', key: 'f:a' }, { kind: 'favorite', key: 'u:2' }, { kind: 'folder', key: 'f:b' },
+  ];
+  assert.deepEqual(combineOrder(children, 'favorite', ['u:2', 'u:1']), ['f:a', 'f:b', 'u:2', 'u:1']);
+  assert.deepEqual(combineOrder(children, 'folder', ['f:b', 'f:a']), ['f:b', 'f:a', 'u:1', 'u:2']);
+});

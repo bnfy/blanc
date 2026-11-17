@@ -750,7 +750,10 @@ From the desktop `DEFAULTS`:
   itself user-initiated:** Blanc never reads another browser's profile
   directory until the person asks it to look, so opening the Favorites sheet or
   reaching the first-run walkthrough's import step (F36) touches nothing on its
-  own. The existing universal
+  own. On desktop the Favorites sheet's ask is opening its **Bring my stuff to
+  Blanc** dialog, which lists the profiles it finds in its From menu (owner,
+  November 16, 2026; before then a separate Look for other browsers button
+  was the ask). The existing universal
   bookmarks-HTML import remains the fallback for browsers or platforms whose
   live profile format cannot be read directly.
 - Desktop directly supports Google Chrome, Microsoft Edge, Brave, Chromium, and

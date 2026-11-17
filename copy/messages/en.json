@@ -6764,6 +6764,30 @@
     "message": "That folder no longer exists.",
     "note": "Favorites manager: the folder was changed elsewhere (another device, another window) before the edit arrived."
   },
+  "favorites.import.menu": {
+    "message": "Bring my stuff to Blanc",
+    "note": "Favorites page: the one button that opens every way to bring things over from another browser."
+  },
+  "favorites.manager.results": {
+    "message": "{count, plural, one {# result} other {# results}}",
+    "note": "Favorites manager: label above search results; # is how many."
+  },
+  "favorites.manager.removeConfirm": {
+    "message": "{count, plural, one {Remove # item?} other {Remove # items?}}",
+    "note": "Favorites manager: asks before removing several selected rows (favorites or folders); # is how many."
+  },
+  "favorites.manager.cancel": {
+    "message": "Cancel",
+    "note": "Favorites manager: keeps the selection instead of removing it."
+  },
+  "favorites.manager.pin": {
+    "message": "Pin",
+    "note": "Favorites manager: row button that pins the favorite to the Start Page."
+  },
+  "favorites.manager.unpin": {
+    "message": "Unpin",
+    "note": "Favorites manager: row button that unpins the favorite from the Start Page."
+  },
   "favorites.picker.label": {
     "message": "Move {title} to a folder",
     "note": "Favorites page → folder picker: accessible name; {title} is the page’s title."
@@ -10044,5 +10068,41 @@
   "android.licenses.loadFailed": {
     "message": "This notice could not be loaded. Open its title link to read the bundled file.",
     "note": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text."
+  },
+  "favorites.import.lede": {
+    "message": "Copy your favorites and open tabs from another browser. Nothing there changes.",
+    "note": "Favorites page → Bring my stuff to Blanc: the line under the dialog title. Opening the dialog looks for other browsers."
+  },
+  "favorites.import.from": {
+    "message": "From",
+    "note": "Favorites page → Bring my stuff to Blanc: label of the menu of browser profiles and a bookmarks file."
+  },
+  "favorites.import.fileOption": {
+    "message": "Bookmarks file (HTML)…",
+    "note": "Favorites page → Bring my stuff to Blanc: last entry of the From menu; Import then opens a file picker."
+  },
+  "favorites.import.what": {
+    "message": "What to bring",
+    "note": "Favorites page → Bring my stuff to Blanc: heading of the checkboxes for what to copy."
+  },
+  "favorites.import.whatTabs": {
+    "message": "Open tabs",
+    "note": "Favorites page → Bring my stuff to Blanc: checkbox; Import then goes on to Bring Your Tabs."
+  },
+  "favorites.import.go": {
+    "message": "Import",
+    "note": "Favorites page → Bring my stuff to Blanc: the button that copies what was chosen."
+  },
+  "favorites.import.cancel": {
+    "message": "Cancel",
+    "note": "Favorites page → Bring my stuff to Blanc: closes the dialog without copying anything."
+  },
+  "favorites.manager.deleteFolderLabel": {
+    "message": "Delete folder {title}",
+    "note": "Favorites manager: accessible name of a folder row’s × button; {title} is the folder. What was in it moves up a level."
+  },
+  "favorites.import.tabsSkipped": {
+    "message": "Open tabs weren’t brought over.",
+    "note": "Favorites page → Bring my stuff to Blanc: added after the result when Open tabs was ticked but the favorites import was cancelled or failed, so Blanc did not go on to Bring Your Tabs."
   }
 }
