@@ -23,6 +23,9 @@ export function betaNumber(version) {
 export function validateStanding(s) {
   must(s?.schema === 1, 'standing decisions schema must be 1');
   must(Array.isArray(s.anyChange) && s.anyChange.every(g => typeof g === 'string' && g), 'standing anyChange must be a list of paths');
+  must(s.chromiumVersion === undefined || (typeof s.chromiumVersion?.file === 'string' && s.chromiumVersion.file
+    && Array.isArray(s.chromiumVersion.fields) && s.chromiumVersion.fields.length > 0 && s.chromiumVersion.fields.every(f => typeof f === 'string' && f)),
+    'standing chromiumVersion needs a file and its fields');
   must(typeof s.archWaiver === 'string' && s.archWaiver.trim().length >= 20, 'standing Intel waiver needs the owner\'s reason');
   must(Array.isArray(s.whatToKnow) && s.whatToKnow.every(l => typeof l === 'string' && l.startsWith('- ')), 'standing whatToKnow must be release-notes bullets');
   for (const [gate, w] of Object.entries(s.waivers ?? {})) {
@@ -74,12 +77,27 @@ export function globMatch(glob, file) {
   return new RegExp(`^${source}$`).test(file);
 }
 
-export function carriedState(s, gate, changed) {
+// versionChanged: whether the Chromium version (standing.chromiumVersion's
+// fields) differs between the check's last pass and this release.
+export function carriedState(s, gate, changed, versionChanged = false) {
   const c = s.carried?.[gate];
   must(c, `not a carried gate: ${gate}`);
   const globs = [...c.paths, ...s.anyChange];
   const touched = changed.filter(file => globs.some(g => globMatch(g, file)));
+  if (versionChanged && s.chromiumVersion) touched.push(`Chromium version (${s.chromiumVersion.file})`);
   return { carried: touched.length === 0, touched };
+}
+
+// The Chromium version at a commit: standing.chromiumVersion's fields of its
+// file, as one string, or null where the file is absent or unreadable.
+export function chromiumVersionAt(s, commit, repo) {
+  must(/^[a-f0-9]{7,40}$/.test(commit), 'commits must be hexadecimal ids');
+  if (!s.chromiumVersion) return null;
+  try {
+    const text = execFileSync('git', ['-C', repo, 'show', `${commit}:${s.chromiumVersion.file}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    const value = JSON.parse(text);
+    return JSON.stringify(s.chromiumVersion.fields.map(f => value?.[f] ?? null));
+  } catch { return null; }
 }
 
 // Files changed between two commits (renames count as both names).

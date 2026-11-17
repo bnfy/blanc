@@ -14,6 +14,19 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-17 — Carried checks come due on the Chromium version alone (owner: "Yes, narrow it"):**
+  `release/standing.json`'s `anyChange` (`chromium/upstream/**`) also
+  matched the pristine Chromium files pinned for each new patch, so
+  patches 0087 to 0093 made every carried check due although Chromium did
+  not change. `anyChange` is now empty, and a new `chromiumVersion` rule
+  compares the `version` and `upstream` fields of
+  `chromium/lanes/desktop.json` between a check's last pass and the
+  release (`chromiumVersionAt` in `standing.mjs`, used by `beta-prep.mjs`).
+  Each check's own paths still make it due. A dry run of beta.7's gates at
+  the current head now carries all four: webauthn from beta.5,
+  sparkle-N-to-N+1 from beta.6, desktop-sync and no-drm-handoff from beta.7;
+  only production-sync-real-device stays waived. A new Chromium makes all
+  of them due again (unit test).
 - **2026-11-17 — desktop-sync rerun for beta.7 (owner: "Rerun Sync"):**
   due because the importer changed Sync's code. Both parts pass, the same
   way as beta.6's: `native-sync-organic-tabs.mjs` on the prototype

@@ -51,12 +51,13 @@ export function releaseDescriptor({ ledger, standing, build, profileSHA256 }) {
 }
 
 // Carried gates and the checks this release needs because their code changed.
-// changedSince(commit) lists files changed from that commit to the release source.
-export function carriedGates(standing, r, changedSince) {
+// changedSince(commit) lists files changed from that commit to the release source;
+// versionChangedSince(commit) says whether the Chromium version changed since.
+export function carriedGates(standing, r, changedSince, versionChangedSince = () => false) {
   const out = {};
   for (const [gate, c] of Object.entries(standing.carried ?? {})) {
     if (r.gateWaivers?.[gate]) continue;
-    const state = carriedState(standing, gate, changedSince(c.lastPass.sourceCommit));
+    const state = carriedState(standing, gate, changedSince(c.lastPass.sourceCommit), versionChangedSince(c.lastPass.sourceCommit));
     out[gate] = { ...state, who: c.who, check: c.check, lastPass: c.lastPass };
   }
   return out;
