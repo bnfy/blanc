@@ -80,3 +80,12 @@ test('Settings shows the switch with its hint', () => {
   assert.match(page, /askWhereToSave\.checked = settings\.askWhereToSave === true;/);
   assert.match(page, /window\.bowserPages\.settings\.set\(\{ askWhereToSave: askWhereToSave\.checked \}\)/);
 });
+
+test('Save Image As asks for its download', () => {
+  assert.match(read('src/main/context-menu.js'), /requestSaveDialog\(params\.srcURL\);\s*wc\.downloadURL\(params\.srcURL\)/);
+});
+
+test('macOS explains why Blanc saves into Downloads', () => {
+  const info = JSON.parse(read('package.json')).build.mac.extendInfo;
+  assert.match(info.NSDownloadsFolderUsageDescription, /Downloads folder/);
+});

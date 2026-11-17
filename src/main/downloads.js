@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const fs = require('fs');
+const path = require('path');
 const { shell } = require('electron');
 const { JsonStore } = require('./store');
 const { withLocalProfile, activeLocalProfileId } = require('./local-profile-context');
@@ -57,9 +58,32 @@ function setDownloadSavePolicy(policy) {
   savePolicy = policy && typeof policy === 'object' ? policy : null;
 }
 
+// Downloads that always show Save As, whatever the setting: "Save Image As…"
+// promises a dialog. Keyed by URL, used once, and forgotten after a minute
+// in case the download never starts.
+const SAVE_DIALOG_TTL_MS = 60_000;
+const saveDialogUrls = new Map();
+
+function requestSaveDialog(url) {
+  if (typeof url === 'string' && url) saveDialogUrls.set(url, Date.now() + SAVE_DIALOG_TTL_MS);
+}
+
+function takeSaveDialogRequest(item) {
+  const now = Date.now();
+  for (const [url, expiresAt] of saveDialogUrls) if (expiresAt < now) saveDialogUrls.delete(url);
+  const chain = typeof item.getURLChain === 'function' ? item.getURLChain() : [];
+  for (const url of [...chain, item.getURL()]) {
+    if (saveDialogUrls.delete(url)) return true;
+  }
+  return false;
+}
+
 function chooseSavePath(item) {
   if (!savePolicy) return null;
   try {
+    // A page can start a download without anyone clicking. Before #1591 the
+    // dialog stopped that; it still does, so pages can't fill Downloads alone.
+    if (typeof item.hasUserGesture !== 'function' || !item.hasUserGesture()) return null;
     if (savePolicy.askWhereToSave()) return null;
     const folder = savePolicy.folder();
     // A missing or unwritable folder leaves the dialog, never a failed download.
@@ -123,13 +147,32 @@ function setupDownloads(
     const entry = { record, item, profileId, replaced: false };
     active.set(id, entry);
     const retryKey = `${owner}\0${record.url}`;
+    const asked = takeSaveDialogRequest(item);
     if (retrySavePaths.has(retryKey)) {
-      item.setSavePath(retrySavePaths.get(retryKey));
+      const retry = retrySavePaths.get(retryKey);
       retrySavePaths.delete(retryKey);
+      entry.reservedKey = retry.key;
+      let savePath = retry.path;
+      // A row retried from the list may find its file name taken since: never
+      // overwrite it. A live retry's own partial file may still be there.
+      if (retry.fromList && fs.existsSync(savePath)) {
+        reservedPaths.delete(retry.key);
+        savePath = chooseDownloadPath({
+          folder: path.dirname(retry.path),
+          filename: path.basename(retry.path),
+          exists: fs.existsSync,
+          reserved: reservedPaths,
+        }) ?? retry.path;
+        entry.reservedKey = downloadReservationKey(savePath);
+        reservedPaths.add(entry.reservedKey);
+      }
+      item.setSavePath(savePath);
+      record.filename = path.basename(savePath);
     } else {
-      const savePath = chooseSavePath(item);
+      const savePath = asked ? null : chooseSavePath(item);
       if (savePath) {
         item.setSavePath(savePath);
+        record.filename = path.basename(savePath);
         entry.reservedKey = downloadReservationKey(savePath);
         reservedPaths.add(entry.reservedKey);
       }
@@ -232,7 +275,12 @@ function retryDownload(id) {
   const session = sessionsByOwner.get(owner);
   if (!session) return;
 
+  // The retry inherits the name its first attempt held, so nothing else can
+  // take it while the request restarts.
+  let reservedKey = null;
   if (entry) {
+    reservedKey = entry.reservedKey ?? null;
+    entry.reservedKey = null;
     entry.replaced = true;
     active.delete(id);
     entry.item.cancel();
@@ -242,7 +290,11 @@ function retryDownload(id) {
   } else {
     ensureStore().update((d) => { d.items = d.items.filter((r) => r.id !== id); });
   }
-  if (record.savePath) retrySavePaths.set(`${owner}\0${record.url}`, record.savePath);
+  if (record.savePath) {
+    reservedKey ??= downloadReservationKey(record.savePath);
+    reservedPaths.add(reservedKey);
+    retrySavePaths.set(`${owner}\0${record.url}`, { path: record.savePath, key: reservedKey, fromList: !entry });
+  }
   session.downloadURL(record.url);
   broadcast();
 }
@@ -315,6 +367,7 @@ function downloadsActivity() {
 module.exports = {
   setDownloadRequesterCheck,
   setDownloadSavePolicy,
+  requestSaveDialog,
   setupDownloads,
   listDownloads,
   activeCount,

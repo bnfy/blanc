@@ -34,14 +34,17 @@ test.after(() => {
 });
 
 class FakeItem extends EventEmitter {
-  constructor(url, filename) {
+  constructor(url, filename, { gesture = true } = {}) {
     super();
     this.url = url;
     this.filename = filename;
+    this.gesture = gesture;
     this.savePath = '';
     this.cancelled = 0;
   }
   getURL() { return this.url; }
+  getURLChain() { return [this.url]; }
+  hasUserGesture() { return this.gesture; }
   getFilename() { return this.filename; }
   getTotalBytes() { return 0; }
   getReceivedBytes() { return 0; }
@@ -69,7 +72,8 @@ test.beforeEach(() => {
   downloads.setDownloadSavePolicy({ askWhereToSave: () => false, folder: () => dir });
 });
 
-const start = (name, session = ses) => session.start(new FakeItem(`https://a.example/${name}`, name));
+const start = (name, session = ses, opts) => session.start(new FakeItem(`https://a.example/${name}`, name, opts));
+const rowFor = (item) => downloads.listDownloads().find((d) => d.url === item.url);
 
 test("without a policy no save path is set (today's dialog)", () => {
   downloads.setDownloadSavePolicy(null);
@@ -145,4 +149,54 @@ test('private downloads follow the same policy', () => {
   const item = start('seven.zip', privateSes);
   assert.equal(item.savePath, path.join(dir, 'seven.zip'));
   item.emit('done', {}, 'completed');
+});
+
+test('a download a page starts without a click still asks', () => {
+  const item = start('noclick.zip', ses, { gesture: false });
+  assert.equal(item.savePath, '');
+  item.emit('done', {}, 'cancelled');
+});
+
+test('Save Image As always asks, once', () => {
+  downloads.requestSaveDialog('https://a.example/photo.png');
+  const asked = start('photo.png');
+  assert.equal(asked.savePath, '');
+  asked.emit('done', {}, 'cancelled');
+  const next = start('photo.png');
+  assert.equal(next.savePath, path.join(dir, 'photo.png'));
+  next.emit('done', {}, 'completed');
+});
+
+test('a retry keeps its name reserved while it restarts', () => {
+  const item = start('eight.zip');
+  item.emit('updated', {}, 'interrupted');
+  downloads.retryDownload(rowFor(item).id);
+  const other = ses.start(new FakeItem('https://b.example/eight.zip', 'eight.zip'));
+  assert.equal(other.savePath, path.join(dir, 'eight (1).zip'));
+  const again = start('eight.zip');
+  assert.equal(again.savePath, path.join(dir, 'eight.zip'));
+  other.emit('done', {}, 'completed');
+  again.emit('done', {}, 'completed');
+  ses.requested.length = 0;
+});
+
+test('a retry from the list never overwrites a file now on disk', () => {
+  const item = start('nine.zip');
+  item.emit('done', {}, 'interrupted');
+  fs.writeFileSync(path.join(dir, 'nine.zip'), 'someone else');
+  downloads.retryDownload(rowFor(item).id);
+  const again = start('nine.zip');
+  assert.equal(again.savePath, path.join(dir, 'nine (1).zip'));
+  assert.equal(fs.readFileSync(path.join(dir, 'nine.zip'), 'utf8'), 'someone else');
+  again.emit('done', {}, 'completed');
+  ses.requested.length = 0;
+});
+
+test('the downloads list shows the numbered name', () => {
+  const first = ses.start(new FakeItem('https://a.example/ten-1', 'ten.zip'));
+  const second = ses.start(new FakeItem('https://a.example/ten-2', 'ten.zip'));
+  assert.equal(rowFor(first).filename, 'ten.zip');
+  assert.equal(rowFor(second).filename, 'ten (1).zip');
+  first.emit('done', {}, 'completed');
+  second.emit('done', {}, 'completed');
 });

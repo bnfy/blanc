@@ -26,6 +26,10 @@ since then are below as they're recorded.
 
 ## Still open
 
+- **Saving downloads without asking in a packaged build** (#1591), with the
+  real Downloads folder on macOS (whether macOS asks for access to Downloads
+  the first time) and on Windows. The check so far used a dev build and a
+  temporary folder.
 - **Favorites drag and drop with a real mouse** in a packaged build on macOS,
   Windows and Linux. The checks so far drive drags with page events only.
 
