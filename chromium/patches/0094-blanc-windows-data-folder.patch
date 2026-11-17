@@ -1,0 +1,49 @@
+diff --git a/chrome/install_static/BUILD.gn b/chrome/install_static/BUILD.gn
+index e01fe13..82644a9 100644
+--- a/chrome/install_static/BUILD.gn
++++ b/chrome/install_static/BUILD.gn
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//blanc/config.gni")
+ import("//build/buildflag_header.gni")
+ import("//build/config/chrome_build.gni")
+ import("//testing/test.gni")
+@@ -16,11 +17,20 @@ buildflag_header("buildflags") {
+ }
+ 
+ if (is_win) {
++  # Blanc: each channel keeps its own folder under %LOCALAPPDATA% and its own
++  # registry key, named as on the Mac (//blanc/config.gni), so a Blanc build
++  # never shares Chromium's "Chromium\User Data" or another channel's data.
++  config("blanc_product_path") {
++    defines = [ "BLANC_PRODUCT_PATH_NAME=L\"$blanc_product_dir_name\"" ]
++  }
++
+   # This file contains utility functions that only depend on kernel32.
+   # Please don't add dependencies on other system libraries.
+   static_library("install_static_util") {
+     deps = [ "//base/version_info:generate_version_info" ]
+ 
++    public_configs = [ ":blanc_product_path" ]
++
+     public_deps = [
+       ":buildflags",
+       "//base",
+diff --git a/chrome/install_static/chromium_install_modes.h b/chrome/install_static/chromium_install_modes.h
+index a6d969d..aa9fcf4 100644
+--- a/chrome/install_static/chromium_install_modes.h
++++ b/chrome/install_static/chromium_install_modes.h
+@@ -21,7 +21,10 @@ inline constexpr wchar_t kCompanyPathName[] = L"";
+ 
+ // The brand-specific product name to be included as a component of the install
+ // and user data directory paths.
+-inline constexpr wchar_t kProductPathName[] = L"Chromium";
++// Blanc: the channel's own name, from //chrome/install_static:blanc_product_path.
++// A target that reads this without depending on install_static_util fails to
++// compile rather than fall back to Chromium's folder.
++inline constexpr wchar_t kProductPathName[] = BLANC_PRODUCT_PATH_NAME;
+ 
+ // The brand-specific safe browsing client name.
+ inline constexpr char kSafeBrowsingName[] = "chromium";

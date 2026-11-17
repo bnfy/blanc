@@ -111,6 +111,8 @@
     "chrome/browser/web_applications/sampling_metrics_provider.cc": "9173ee2a4afd2f14d75949885ef36f57b27baecb4d57fe1a99d194b4657c4bff",
     "chrome/browser/webauthn/chrome_web_authentication_delegate.cc": "acfca55a1b8ef65fd8ef8d4f70a88f6867353894dc9ee7ddcbcd6d532c307226",
     "chrome/common/chrome_isolated_world_ids.h": "6b5384da3ab0cb04ff100b19b8981e8846d51d0d405acf595ccbaf048d1e219a",
+    "chrome/install_static/BUILD.gn": "39ba627e8b382188f4c6ae57114bfb2e723e6581e694437ac286bdd6e516322a",
+    "chrome/install_static/chromium_install_modes.h": "f1e173ce85627969b995e1844a9260d31aef8f4b27ccdca9ac728b60c4f23cd1",
     "chrome/renderer/BUILD.gn": "f25df03e4241f9fa16ea5d53060e124e175cff149c31e9d620237b4bb25a3da7",
     "chrome/renderer/chrome_content_renderer_client.cc": "51fceabd15f5f94cd22cd434425a4a5cedb4dc22ba7541a0da93bffeece39244",
     "chrome/utility/BUILD.gn": "8d16a9fbe5f56543fb41820795047eec0317e7996cdf74b84bd02d14ed5e6376",
