@@ -39,12 +39,12 @@ const server = http.createServer((request, response) => {
     return;
   }
   response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-  response.end('<!doctype html><title>files</title><a id="dl" href="/report.txt">report</a>');
+  response.end('<!doctype html><title>files</title><a id="dl" href="/report.txt">report</a>'
+    + '<a id="silent" href="/report.txt" download>report</a>');
 });
 await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 const origin = `http://127.0.0.1:${server.address().port}`;
 const pageUrl = `${origin}/`;
-const fileUrl = `${origin}/report.txt`;
 
 const files = () => fs.readdirSync(downloadsDir).sort();
 
@@ -82,23 +82,26 @@ try {
     [wcId, code, gesture],
   );
   const click = () => run('document.getElementById("dl").click()', true);
-  const completed = (count) => waitForValue(
-    () => files().filter((name) => fs.statSync(path.join(downloadsDir, name)).size > 0),
-    (names) => names.length >= count, `${count} finished download(s)`, 15_000,
+  // Finished means exactly these files, each holding the downloaded bytes.
+  // Chromium on Windows writes into a temporary "<id>.tmp" in the folder and
+  // renames it over the name Blanc claimed when the download ends.
+  const read = (name) => {
+    try { return fs.readFileSync(path.join(downloadsDir, name), 'utf8'); } catch { return null; }
+  };
+  const finished = (names) => waitForValue(
+    () => ({ files: files(), bodies: names.map(read) }),
+    (seen) => JSON.stringify(seen.files) === JSON.stringify(names) && seen.bodies.every((body) => body === BODY),
+    `${names.join(' and ')} to finish`, 15_000,
   );
 
   await click();
-  await completed(1);
+  await finished(['report.txt']);
   await click();
-  await completed(2);
-  assert.deepEqual(files(), ['report (1).txt', 'report.txt']);
-  for (const name of files()) {
-    assert.equal(fs.readFileSync(path.join(downloadsDir, name), 'utf8'), BODY, `${name} has the downloaded bytes`);
-  }
+  await finished(['report (1).txt', 'report.txt']);
 
   // A download the page starts by itself, with no click, still asks.
   const before = (await savePaths()).length;
-  await run(`(() => { const a = document.createElement('a'); a.href = ${JSON.stringify(fileUrl)}; a.download = ''; document.body.append(a); a.click(); })()`, false);
+  await run('document.getElementById("silent").click()', false);
   const afterSilent = await waitForValue(savePaths, (seen) => seen.length > before, 'the page-started download', 15_000);
   assert.equal(afterSilent.at(-1), '', 'a download without a click is left to Save As');
   assert.deepEqual(files(), ['report (1).txt', 'report.txt'], 'nothing new was saved');
