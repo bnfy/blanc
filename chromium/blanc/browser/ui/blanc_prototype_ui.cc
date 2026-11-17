@@ -122,6 +122,7 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <atomic>
 #include <memory>
 #include <limits>
 #include <cstdint>
@@ -7316,6 +7317,9 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (quiet_args[0].is_string()) TestImportSource() = base::FilePath(quiet_args[0].GetString());
       else TestImportSource().reset();
       Reply(id, true, base::Value(true)); return;
+    }
+    if (quiet_method == "setImportSyncStagingFails" && quiet_args.size() == 1 && quiet_args[0].is_bool()) {
+      ImportSyncStagingFailsForTest() = quiet_args[0].GetBool(); Reply(id, true, base::Value(true)); return;
     }
     if (quiet_method == "setImportElectronRunning" && quiet_args.size() == 1 && quiet_args[0].is_bool()) {
       TestImportElectronRunning() = quiet_args[0].GetBool(); Reply(id, true, base::Value(true)); return;

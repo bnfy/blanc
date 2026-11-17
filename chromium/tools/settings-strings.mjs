@@ -259,6 +259,7 @@ export const FORK_STRINGS = [
   ['blancProfileImportPins', 'settings.profileImport.pins'],
   ['blancProfileImportNotRead', 'settings.profileImport.notRead'],
   ['blancProfileImportLeftBehind', 'settings.profileImport.leftBehind'],
+  ['blancProfileImportSyncFailed', 'settings.profileImport.syncFailed'],
 ];
 const ALL = [...STRINGS, ...FORK_STRINGS];
 export function withForkStrings(rows) {

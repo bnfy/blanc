@@ -3,7 +3,9 @@
 
 #include "blanc/common/test_launch.h"
 #include <utility>
+#include <algorithm>
 #include <cmath>
+#include <vector>
 #include "base/command_line.h"
 #include "base/auto_reset.h"
 #include "base/files/file_enumerator.h"
@@ -158,7 +160,18 @@ bool ValidStateRecords(const base::DictValue& state) {
 // (blanc/browser/ui/profile_import.inc). They are taken up here, before the
 // runner reads its stores, and only where this profile is not already
 // syncing; a staging folder without its `ready` file was never finished and
-// is left for the importer to rewrite.
+// is left for the importer to rewrite. Each store is copied and checked, and
+// sync.json, the one that turns Sync on, goes last; the staged copy is
+// removed only once every store is in place, so a failed move is taken up
+// again at the next launch.
+bool AdoptImportedSyncFile(const base::FilePath& from, const base::FilePath& to) {
+  if (blanc::BlancTestLaunch() && to.BaseName().value() == FILE_PATH_LITERAL("sync.json") &&
+      base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-test-sync-adopt-fail")) return false;
+  const base::FilePath temp = to.AddExtension(FILE_PATH_LITERAL("importing"));
+  const bool moved = base::CopyFile(from, temp) && base::ReplaceFile(temp, to, nullptr) && base::ContentsEqual(from, to);
+  if (!moved) base::DeleteFile(temp);
+  return moved;
+}
 void AdoptImportedSyncStores(const base::FilePath& profile_dir) {
   const base::FilePath staging = profile_dir.AppendASCII("BlancSyncImport");
   if (!base::PathExists(staging.AppendASCII("ready"))) return;
@@ -172,9 +185,12 @@ void AdoptImportedSyncStores(const base::FilePath& profile_dir) {
     }
   }
   if (!base::CreateDirectory(live)) return;
+  std::vector<base::FilePath> stores;
   base::FileEnumerator files(staging, false, base::FileEnumerator::FILES, FILE_PATH_LITERAL("*.json"));
-  for (auto path = files.Next(); !path.empty(); path = files.Next()) {
-    base::ReplaceFile(path, live.Append(path.BaseName()), nullptr);
+  for (auto path = files.Next(); !path.empty(); path = files.Next()) stores.push_back(path);
+  std::ranges::stable_partition(stores, [](const base::FilePath& p) { return p.BaseName().value() != FILE_PATH_LITERAL("sync.json"); });
+  for (const auto& path : stores) {
+    if (!AdoptImportedSyncFile(path, live.Append(path.BaseName()))) return;
   }
   base::DeletePathRecursively(staging);
 }
