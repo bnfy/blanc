@@ -1,0 +1,149 @@
+# Packages Visual Studio and the Windows SDK for the Chromium fork's Windows
+# cross build (chromium/windows/server/README.md). Run by hand, once per
+# Chromium pin, from the fork branch:
+#   gh workflow run chromium-windows-toolchain.yml --ref chromium/next
+# It runs depot_tools' win_toolchain/package_from_installed.py on a hosted
+# Windows runner and encrypts the zip to the public key in
+# chromium/windows/toolchain-recipient.txt. The private key exists only on the
+# build server, so the package is never redistributed and this workflow needs
+# no secret. The artifact holds only the encrypted file and is kept one day.
+name: chromium-windows-toolchain
+
+on:
+  workflow_dispatch:
+    inputs:
+      sdk_version:
+        description: Windows SDK version named by build/vs_toolchain.py at the desktop pin
+        required: true
+        default: '10.0.28000.0'
+        type: string
+      depot_tools_commit:
+        description: depot_tools commit (the one the Mac build uses)
+        required: true
+        default: 382c208a9973e1a6c0867b6d8664dc6dc9116e30
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: package (Visual Studio 2026, x64)
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      SDK_VERSION: ${{ inputs.sdk_version }}
+      DEPOT_TOOLS_COMMIT: ${{ inputs.depot_tools_commit }}
+      AGE_VERSION: v1.3.2
+      AGE_SHA256: f48d8f8f9ebe903ab5027ed067652f2cc1db94bc206976430133b905dcd8e8c7
+    steps:
+      - name: Validate inputs
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:SDK_VERSION -notmatch '^10\.0\.[0-9]{5}\.0$') { throw "Not a Windows SDK version: $env:SDK_VERSION" }
+          if ($env:DEPOT_TOOLS_COMMIT -notmatch '^[0-9a-f]{40}$') { throw "Not a full commit: $env:DEPOT_TOOLS_COMMIT" }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: chromium/windows
+      - name: Read the recipient key
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $recipient = (Get-Content chromium/windows/toolchain-recipient.txt -Raw).Trim()
+          if ($recipient -notmatch '^age1[0-9a-z]{58}$') { throw 'chromium/windows/toolchain-recipient.txt does not hold one age public key.' }
+          "RECIPIENT=$recipient" >> $env:GITHUB_ENV
+      - name: Report what the image has
+        run: |
+          $kits = 'C:\Program Files (x86)\Windows Kits\10'
+          & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -prerelease -format json -property installationPath,installationVersion,displayName
+          "Installed SDKs:"; Get-ChildItem "$kits\Include" -ErrorAction SilentlyContinue | ForEach-Object Name
+          "Debuggers present: $(Test-Path "$kits\Debuggers\x64")"
+      - name: Install the Windows SDK
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $kits = 'C:\Program Files (x86)\Windows Kits\10'
+          if (Test-Path "$kits\Include\$env:SDK_VERSION\um\windows.h") { 'Already installed.'; exit 0 }
+          $build = $env:SDK_VERSION.Split('.')[2]
+          $installer = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer"
+          $vs = & "$installer\vswhere.exe" -prerelease -latest -property installationPath
+          $run = Start-Process -FilePath "$installer\setup.exe" -Wait -PassThru -ArgumentList @(
+            'modify', '--installPath', "`"$vs`"", '--add', "Microsoft.VisualStudio.Component.Windows11SDK.$build",
+            '--quiet', '--norestart')
+          "Visual Studio installer exit code: $($run.ExitCode)"
+          if ($run.ExitCode -notin 0, 3010) { throw 'The Visual Studio installer failed.' }
+          if (-not (Test-Path "$kits\Include\$env:SDK_VERSION\um\windows.h")) {
+            "Installed SDKs:"; Get-ChildItem "$kits\Include" | ForEach-Object Name
+            throw "Windows SDK $env:SDK_VERSION is still missing."
+          }
+      - name: Install the SDK's Debugging Tools
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $kits = 'C:\Program Files (x86)\Windows Kits\10'
+          if (Test-Path "$kits\Debuggers\x64\dbghelp.dll") { 'Already installed.'; exit 0 }
+          $build = $env:SDK_VERSION.Split('.')[2]
+          # The SDK's own installer, registered when Visual Studio installed
+          # it, can add the debuggers feature (depot_tools' packaging notes).
+          $bundles = Get-ItemProperty 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue |
+            Where-Object { $_.DisplayName -like 'Windows Software Development Kit*' -and $_.BundleCachePath }
+          $bundles | ForEach-Object { "$($_.DisplayName) $($_.DisplayVersion) -> $($_.BundleCachePath)" }
+          $bundle = $bundles | Where-Object { $_.DisplayVersion -like "10.0.$build.*" } | Select-Object -First 1
+          if (-not $bundle) { $bundle = $bundles | Sort-Object { [version]$_.DisplayVersion } -Descending | Select-Object -First 1 }
+          if ($bundle -and (Test-Path $bundle.BundleCachePath)) {
+            $run = Start-Process -FilePath $bundle.BundleCachePath -Wait -PassThru -ArgumentList @(
+              '/features', 'OptionId.WindowsDesktopDebuggers', '/quiet', '/norestart')
+            "SDK installer exit code: $($run.ExitCode)"
+          }
+          if (-not (Test-Path "$kits\Debuggers\x64\dbghelp.dll")) {
+            # Otherwise the debugger packages Visual Studio already downloaded.
+            $packages = Get-ChildItem 'C:\ProgramData\Microsoft\VisualStudio\Packages' -Recurse -Filter '*Debuggers And Tools*.msi' -ErrorAction SilentlyContinue
+            $packages | ForEach-Object FullName
+            foreach ($msi in $packages | Where-Object { $_.Name -match '^X(64|86) Debuggers And Tools' }) {
+              $run = Start-Process msiexec.exe -Wait -PassThru -ArgumentList @('/i', "`"$($msi.FullName)`"", '/qn', '/norestart')
+              "$($msi.Name) exit code: $($run.ExitCode)"
+            }
+          }
+          if (-not (Test-Path "$kits\Debuggers\x64\dbghelp.dll")) { throw 'The Debugging Tools are still missing.' }
+      - name: Package the toolchain
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git clone --quiet https://chromium.googlesource.com/chromium/tools/depot_tools.git "$env:RUNNER_TEMP\depot_tools"
+          git -C "$env:RUNNER_TEMP\depot_tools" checkout --quiet --detach $env:DEPOT_TOOLS_COMMIT
+          New-Item -ItemType Directory "$env:RUNNER_TEMP\package" | Out-Null
+          Set-Location "$env:RUNNER_TEMP\package"
+          $env:DEPOT_TOOLS_UPDATE = '0'
+          python "$env:RUNNER_TEMP\depot_tools\win_toolchain\package_from_installed.py" 2026 -w $env:SDK_VERSION --noarm
+          if ($LASTEXITCODE -ne 0) { throw 'package_from_installed.py failed.' }
+          $zips = @(Get-ChildItem -Filter '*.zip')
+          if ($zips.Count -ne 1 -or $zips[0].BaseName -notmatch '^[0-9a-f]{10,40}$') { throw "Expected one <hash>.zip, found: $($zips.Name -join ', ')" }
+          "PACKAGE=$($zips[0].FullName)" >> $env:GITHUB_ENV
+      - name: Encrypt it to the build server's key
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $zip = "$env:RUNNER_TEMP\age.zip"
+          Invoke-WebRequest "https://github.com/FiloSottile/age/releases/download/$env:AGE_VERSION/age-$env:AGE_VERSION-windows-amd64.zip" -OutFile $zip
+          if ((Get-FileHash $zip -Algorithm SHA256).Hash.ToLower() -ne $env:AGE_SHA256) { throw 'age download does not match its pinned SHA-256.' }
+          Expand-Archive $zip "$env:RUNNER_TEMP\age"
+          New-Item -ItemType Directory "$env:RUNNER_TEMP\upload" | Out-Null
+          $name = Split-Path $env:PACKAGE -Leaf
+          & "$env:RUNNER_TEMP\age\age\age.exe" -r $env:RECIPIENT -o "$env:RUNNER_TEMP\upload\$name.age" $env:PACKAGE
+          if ($LASTEXITCODE -ne 0) { throw 'age failed.' }
+          $sha = (Get-FileHash $env:PACKAGE -Algorithm SHA256).Hash.ToLower()
+          $size = [math]::Round((Get-Item $env:PACKAGE).Length / 1MB)
+          @(
+            '### Windows toolchain package', '',
+            "- Package: ``$name`` ($size MB), SHA-256 ``$sha``",
+            "- Visual Studio 2026, Windows SDK $env:SDK_VERSION, x64 and x86 (no Arm)",
+            "- depot_tools ``$env:DEPOT_TOOLS_COMMIT``",
+            '- The artifact is encrypted to chromium/windows/toolchain-recipient.txt.'
+          ) -join "`n" >> $env:GITHUB_STEP_SUMMARY
+      - name: Keep the encrypted package for a day
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chromium-windows-toolchain
+          path: ${{ runner.temp }}/upload/*.age
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
