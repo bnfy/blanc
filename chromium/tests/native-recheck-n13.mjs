@@ -29,15 +29,16 @@ try{
 
  // 1. A playing tab, then Mute Site: that tab and another on the same site are silenced.
  const a=await open('n13-a'),b=await open('n13-b');
- await w.call('setQuietProtection',a.id,'audible');
- await w.waitFor(()=>raw(a.url),t=>t?.audible===true,'the fixture playing sound',10000);
- assert.equal((await raw(a.url)).siteMuted,false);
- await w.call('toggleSiteMute',a.id);
+ // The sound plays in the front tab (b); a is the other tab on the site.
+ await w.call('setQuietProtection',b.id,'audible');
+ await w.waitFor(()=>raw(b.url),t=>t?.audible===true,'the fixture playing sound',10000);
+ assert.equal((await raw(b.url)).siteMuted,false);
+ await w.call('toggleSiteMute',b.id);
  const muted=await w.waitFor(async()=>[await raw(a.url),await raw(b.url)],([x,y])=>x?.siteMuted===true&&y?.siteMuted===true,'both tabs on the site muted',5000);
  result.observed={};
  const shown=(await w.snapshot()).tabs.filter(t=>[a.url,b.url].includes(t.url)).map(t=>t.muted);
  assert.deepEqual(shown,[true,true],'expected both tabs shown muted');
- assert.equal(muted[0].audible,true,'the page keeps playing; only its sound is cut');
+ assert.equal(muted[1].audible,true,'the page keeps playing; only its sound is cut');
  result.checks.push('Mute Site silences the playing tab and every other tab on that site');
 
  // 2. A new tab on the site is muted too; Unmute Site restores them all.
