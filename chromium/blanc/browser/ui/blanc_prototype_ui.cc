@@ -827,14 +827,26 @@ const tab_groups::TabGroupVisualData* GroupVisuals(TabStripModel* model,
 }
 
 // Session-only, exact-host policy owned by each regular or private profile.
-class SiteMutePolicy : public base::SupportsUserData::Data {
- public:
-  std::set<std::string> hosts;
-};
-SiteMutePolicy* SitePolicy(Profile* profile) {
-  static constexpr char key[] = "blanc-site-mutes";
-  if (!profile->GetUserData(key)) profile->SetUserData(key, std::make_unique<SiteMutePolicy>());
-  return static_cast<SiteMutePolicy*>(profile->GetUserData(key));
+// Mute Site is Chromium's own sound setting for the site (divergence V21,
+// owner 2026-11-05 and 2026-11-16), so a muted site stays muted after a
+// relaunch and shows in Chromium's site settings. A private profile reads
+// the regular profile's sites and keeps its own changes for its session.
+bool SiteSoundBlocked(Profile* profile, const GURL& url) {
+  auto* map = HostContentSettingsMapFactory::GetForProfile(profile);
+  return map && url.SchemeIsHTTPOrHTTPS() &&
+      map->GetContentSetting(url, url, ContentSettingsType::SOUND) == CONTENT_SETTING_BLOCK;
+}
+// As Chromium's own Mute site: unmuting returns the site to the default,
+// or allows it when sound is blocked by default.
+void SetSiteSoundBlocked(Profile* profile, const GURL& url, bool blocked) {
+  auto* map = HostContentSettingsMapFactory::GetForProfile(profile);
+  if (!map || !url.SchemeIsHTTPOrHTTPS()) return;
+  ContentSetting setting = CONTENT_SETTING_BLOCK;
+  if (!blocked) {
+    setting = map->GetDefaultContentSetting(ContentSettingsType::SOUND) == CONTENT_SETTING_BLOCK
+        ? CONTENT_SETTING_ALLOW : CONTENT_SETTING_DEFAULT;
+  }
+  map->SetContentSettingDefaultScope(url, url, ContentSettingsType::SOUND, setting);
 }
 std::string AudioHost(content::WebContents* contents) {
   const GURL& url = contents->GetLastCommittedURL();
@@ -856,7 +868,7 @@ class SiteMuteTab : public base::SupportsUserData::Data,
     return static_cast<SiteMuteTab*>(contents->GetUserData(key));
   }
   bool SiteMuted() const {
-    return SitePolicy(Profile::FromBrowserContext(web_contents()->GetBrowserContext()))->hosts.contains(AudioHost(web_contents()));
+    return SiteSoundBlocked(Profile::FromBrowserContext(web_contents()->GetBrowserContext()), web_contents()->GetLastCommittedURL());
   }
   void Apply(bool reset = false) {
     const auto host = AudioHost(web_contents());
@@ -12386,9 +12398,9 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (method == "toggleSiteMute" && args.size() == 1) {
       const auto host = AudioHost(tab);
       if (host.empty()) { reply(true, base::Value(false)); return; }
-      auto* policy = SitePolicy(profile);
-      const bool muted = !policy->hosts.contains(host);
-      if (muted) policy->hosts.insert(host); else policy->hosts.erase(host);
+      auto* tab_profile = Profile::FromBrowserContext(tab->GetBrowserContext());
+      const bool muted = !SiteSoundBlocked(tab_profile, tab->GetLastCommittedURL());
+      SetSiteSoundBlocked(tab_profile, tab->GetLastCommittedURL(), muted);
       GlobalBrowserCollection::GetInstance()->ForEach([&](BrowserWindowInterface* other) {
         if (other->GetProfile() != profile) return true;
         auto* other_model = other->GetTabStripModel();

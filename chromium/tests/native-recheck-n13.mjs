@@ -2,8 +2,8 @@
 // (a site muted from one tab is muted in every tab on it, old and new) and
 // src/main/page-tint-controller.js / page-tint-policy.js (the Island takes
 // the page's color; Match site colors off returns it to the theme).
-// Divergence V21 (approved 2026-11-05) says a muted site stays muted after a
-// relaunch; check 3 reports what this build does.
+// Divergence V21 (owner, 2026-11-05 and 2026-11-16): Mute Site is Chromium's
+// own sound setting, so a muted site stays muted after a relaunch.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -50,11 +50,17 @@ try{
  await w.waitFor(()=>raw(a.url),t=>t?.siteMuted===true,'the site muted again',5000);
  result.checks.push('a new tab on a muted site is muted, and Unmute Site restores every tab');
 
- // 3. After a relaunch (V21 says it stays muted; shipping's ends when Blanc quits).
+ // 3. V21: the site stays muted after a relaunch, in Chromium's own sound setting, until it is unmuted.
+ await w.relaunch();await f.host.send('Page.bringToFront');await visible();
+ await w.waitFor(()=>raw(a.url),t=>t?.siteMuted===true,'the site still muted after a relaunch',10000);
+ assert.ok((await w.snapshot()).tabs.filter(t=>[a.url,b.url,c.url].includes(t.url)).every(t=>t.muted),'expected every restored tab on the site shown muted');
+ const again=(await w.snapshot()).tabs.find(t=>t.url===a.url);
+ await w.call('toggleSiteMute',again.id);
+ await w.waitFor(()=>raw(a.url),t=>t?.siteMuted===false,'the site unmuted',5000);
  await w.relaunch();await f.host.send('Page.bringToFront');await visible();
  const after=await w.waitFor(()=>raw(a.url),Boolean,'the tab restored',10000);
- result.observed.siteMutedAfterRelaunch=after.siteMuted;
- result.checks.push('after a relaunch the site is '+(after.siteMuted?'still muted (V21)':'no longer muted (as shipping, not V21)'));
+ assert.equal(after.siteMuted,false,'expected an unmuted site to stay unmuted after a relaunch');
+ result.checks.push('a muted site stays muted after a relaunch (V21), and an unmuted one stays unmuted');
 
  // 4. The page tint: the Island reports the page's color; Match site colors off clears it, and on brings it back.
  const d=await open('n13-tint');
