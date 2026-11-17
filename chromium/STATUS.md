@@ -3646,7 +3646,7 @@ toolchain package and the cold build on 2026-11-17. Per-platform differences:
 
 | W0 gate | Result | Evidence |
 | --- | --- | --- |
-| 1. `check-patches.py` for both lanes; fork unit suite; next Mac nightly builds | Checks pass; shared C++ passes a syntax-only compile on the Mac Studio; **nightly pending** | `tools/check-patches.test.mjs` |
+| 1. `check-patches.py` for both lanes; fork unit suite; next Mac nightly builds | Checks pass; shared C++ passes a syntax-only compile on the Mac Studio; source applied there and both outputs' GN files regenerated with unchanged arguments (2026-11-17, guard dry-runs 4 and 5 actions); **nightly pending** | `tools/check-patches.test.mjs` |
 | 2. `progress.mjs --check` with a Windows candidate | Pass | Candidate identities below |
 | 3. `chrome.exe` for x64 built on the server through the guard | Pass | `~/blanc-evidence/windows/build-3.log` |
 | 4. Launches on a hosted Windows runner; Island draws; blocker ready; a page loads | Pass (Windows Server 2025, run 44137463714) | `smoke.json`, `desktop.png` in the run's artifact |
