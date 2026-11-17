@@ -147,3 +147,25 @@ test('boundLayout drops markers, then the oldest empty folders, when lists are n
   assert.equal(keys.includes(`0000${'n'.repeat(87)}`), false);
   assert.equal(keys.includes(`2999${'n'.repeat(87)}`), true);
 });
+
+test('the layout store loads without Electron, with settings.js\'s clock rules restated', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const { validClock, nextClock, normalizeTie } = require('../../src/main/favorites-layout-model');
+  // browser-api/build.mjs runs bookmarks.js against an in-memory store in a CI
+  // job that has no Electron, so nothing it loads may require settings.js.
+  for (const file of ['favorites-layout.js', 'favorites-layout-model.js', 'favorites-tree.js', 'bookmark-data.js']) {
+    const source = fs.readFileSync(path.join(__dirname, '../../src/main', file), 'utf8');
+    assert.doesNotMatch(source, /require\('(\.\/settings|electron)'\)/, file);
+  }
+  const settings = fs.readFileSync(path.join(__dirname, '../../src/main/settings.js'), 'utf8');
+  assert.match(settings, /const MAX_SYNC_TIMESTAMP = Date\.UTC\(3000, 0, 1\);/);
+  assert.match(settings, /return Number\.isSafeInteger\(value\) && value >= 0 && value < MAX_SYNC_TIMESTAMP;/);
+  assert.match(settings, /return Math\.max\(now, observed \+ 1\);/);
+  assert.match(settings, /return typeof value === 'string' && value\.length <= 128 \? value : '';/);
+  assert.equal(validClock(Date.UTC(3000, 0, 1)), false);
+  assert.equal(validClock(0), true);
+  assert.equal(nextClock(500, 100), 501);
+  assert.equal(nextClock('x', 100), 100);
+  assert.equal(normalizeTie('x'.repeat(129)), '');
+});

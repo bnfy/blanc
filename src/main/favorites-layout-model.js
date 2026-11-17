@@ -20,6 +20,14 @@ const MAX_CLOCK = Date.UTC(3000, 0, 1);
 const MAX_ORDER_KEYS = 20000;
 const CHILD_KEY = /^[fu]:.{1,110}$/s;
 
+// The whole value's sync clock, by settings.js's rules (validSyncTimestamp,
+// nextSyncWriteTimestamp, normalizeSyncTieBreaker). Restated here because
+// settings.js needs Electron and this record's store must load without it:
+// browser-api/build.mjs runs bookmarks.js against an in-memory store.
+const validClock = (value) => Number.isSafeInteger(value) && value >= 0 && value < MAX_CLOCK;
+const nextClock = (previous, now = Date.now()) => Math.max(now, (validClock(previous) ? previous : 0) + 1);
+const normalizeTie = (value) => (typeof value === 'string' && value.length <= MAX_TIE ? value : '');
+
 const EMPTY_LAYOUT = Object.freeze({ version: 1, folders: Object.freeze({}) });
 
 // Folder names are keys here, and a folder may be called "constructor" or
@@ -231,6 +239,7 @@ function settingsEqualsWithLayout(exported, remote, { baseEquals, lastUpload, no
 }
 
 module.exports = {
+  validClock, nextClock, normalizeTie,
   RESTORE_INTERVAL_MS, withFavoritesLayout, settingsEqualsWithLayout,
   LAYOUT_MAX_BYTES, GONE_TTL_MS, EMPTY_LAYOUT,
   normalizeLayout, layoutEntry, setFolderOrder, ensureFolder, removeFolderEntry, movePrefix,

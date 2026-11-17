@@ -9,8 +9,9 @@
 
 const crypto = require('node:crypto');
 const { JsonStore } = require('./store');
-const { syncClock } = require('./settings');
-const { normalizeLayout, mergeLayouts, boundLayout, layoutsEqual } = require('./favorites-layout-model');
+const {
+  normalizeLayout, mergeLayouts, boundLayout, layoutsEqual, validClock, nextClock, normalizeTie,
+} = require('./favorites-layout-model');
 
 let store = null;
 const ensureStore = () => (store ??= new JsonStore(
@@ -45,7 +46,7 @@ function setLayout(layout) {
   ensureStore().update((d) => {
     d.version = 1;
     d.layout = next;
-    d.clock = syncClock.nextSyncWriteTimestamp(d.clock);
+    d.clock = nextClock(d.clock);
     d.tie = crypto.randomUUID();
   });
   for (const fn of changeListeners) fn();
@@ -56,8 +57,8 @@ function setLayout(layout) {
  * the first change (an unstamped value tells peers nothing). */
 function exportForSync() {
   const d = ensureStore().data;
-  if (!syncClock.validSyncTimestamp(d.clock) || d.clock === 0) return null;
-  return { value: getLayout(), at: d.clock, tie: syncClock.normalizeSyncTieBreaker(d.tie) };
+  if (!validClock(d.clock) || d.clock === 0) return null;
+  return { value: getLayout(), at: d.clock, tie: normalizeTie(d.tie) };
 }
 
 /** Merge a peer's record entry by entry. The settings payload gives the
@@ -67,16 +68,16 @@ function exportForSync() {
  * two upload against each other on every pass. When the merge equals the
  * peer's value, its clock is adopted and nothing more is sent. */
 function mergeFromSync(remote) {
-  if (!remote || !syncClock.validSyncTimestamp(remote.at) || remote.at === 0) return false;
+  if (!remote || !validClock(remote.at) || remote.at === 0) return false;
   const d = ensureStore().data;
   const current = getLayout();
-  const localAt = syncClock.validSyncTimestamp(d.clock) ? d.clock : 0;
+  const localAt = validClock(d.clock) ? d.clock : 0;
   const theirs = normalizeLayout(remote.value);
   const merged = boundLayout(mergeLayouts(current, theirs, { now: Date.now() })).layout;
   const changed = !layoutsEqual(merged, current);
   const matchesRemote = layoutsEqual(merged, theirs) && remote.value && typeof remote.value === 'object';
-  const remoteTie = syncClock.normalizeSyncTieBreaker(remote.tie);
-  const localTie = syncClock.normalizeSyncTieBreaker(d.tie);
+  const remoteTie = normalizeTie(remote.tie);
+  const localTie = normalizeTie(d.tie);
   // Same value: the larger clock stands, and at equal clocks the smaller
   // tie, so two devices that agree end on one stamp and stop uploading.
   const adoptStamp = matchesRemote && (remote.at > localAt || (remote.at === localAt && remoteTie < localTie));
@@ -89,8 +90,8 @@ function mergeFromSync(remote) {
       data.tie = remoteTie;
     } else if (!matchesRemote) {
       // A peer clock at the limit can't be passed; matching it keeps ours valid.
-      const raised = syncClock.nextSyncWriteTimestamp(Math.max(localAt, remote.at));
-      data.clock = syncClock.validSyncTimestamp(raised) ? raised : Math.max(localAt, remote.at);
+      const raised = nextClock(Math.max(localAt, remote.at));
+      data.clock = validClock(raised) ? raised : Math.max(localAt, remote.at);
       data.tie = crypto.randomUUID();
     }
   });
