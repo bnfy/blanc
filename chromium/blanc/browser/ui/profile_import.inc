@@ -681,7 +681,8 @@ base::DictValue ApplyImportedStartPage(Profile* profile, const base::DictValue& 
   }
   if (wallpaper.empty()) return summary;
   const bool with_image = wallpaper.FindBool("custom").value_or(false) && image && !image->empty();
-  summary.Set("wallpaper", true).Set("image", with_image);
+  summary.Set("wallpaper", true);
+  summary.Set("image", with_image);
   auto pending = base::DictValue().Set("directory", profile->GetPath().BaseName().AsUTF8Unsafe())
       .Set("wallpaper", std::move(wallpaper)).Set("image", with_image);
   // The image is staged first, so a Start Page never reads a pending import
@@ -974,7 +975,7 @@ void ProfileImport::Start(base::FilePath source, Profile* personal, Done done) {
 void ProfileImport::SourceRead(std::optional<base::DictValue> files) {
   if (!files) { Finish(base::Value(base::DictValue().Set("ok", false).Set("error", "no-source"))); return; }
   if (auto image = files->Extract(kImportWallpaperKey); image && image->is_string()) {
-    wallpaper_ = base::Base64Decode(image->GetString(), /*as_string=*/true);
+    if (const auto bytes = base::Base64Decode(image->GetString())) wallpaper_ = std::string(bytes->begin(), bytes->end());
   }
   auto args = base::WriteJson(base::ListValue().Append(std::move(*files)));
   if (!args) { Finish(base::Value(base::DictValue().Set("ok", false).Set("error", "no-source"))); return; }
