@@ -1,30 +1,10 @@
 # Unreleased notes
 
-v1.49.1 is the current public release ([notes](v1.49.1.md)). Changes merged
-since then are below as they're recorded.
+Changes merged since v1.49.1 are included in the prepared
+[v1.50.0 release notes](v1.50.0.md). No additional release changes are
+recorded here.
 
-## Added
-
-- **Folders inside folders, in the order you choose.** Favorites
-  (Show Favorites, ⌥⌘B or Ctrl+Shift+O) now opens a manager with your folders
-  in a sidebar. Make folders inside folders, drag favorites and folders where
-  you want them, select several at once, and search every folder. Deleting a
-  folder keeps what was in it. Importing from another browser keeps folders
-  inside folders in the browser's order (empty folders aren't brought over, and
-  very long folder paths are shortened), and one **Bring my stuff to Blanc**
-  button now handles
-  importing favorites and open tabs. The Favorites menu shows the same folders,
-  and `/save` takes a path, such as `/save Work > Clients`. On the iPhone, a
-  folder inside a folder shows as one folder named by its path for now.
-
-## Changed
-
-- **Downloads save straight to your Downloads folder.** Blanc no longer asks
-  where to save each file; a file with the same name as one already there gets
-  a number added. To be asked every time, turn on **Ask where to save each
-  file** in Settings → General (#1591).
-
-## Still open
+## Still open from 1.50
 
 - **Whether macOS asks for Downloads access the first time** Blanc saves a
   download without asking (#1591). The packaged check on November 17, 2026
@@ -33,6 +13,11 @@ since then are below as they're recorded.
   was checked in signed packaged builds on macOS and Windows.
 - **Favorites drag and drop with a real mouse** in a packaged build on macOS,
   Windows and Linux. The checks so far drive drags with page events only.
+- **The Favorites menu's nested folders** by hand in a packaged build on
+  each platform.
+- **Okta Verify FastPass** (#1585) against a real enrolled Okta Verify. The
+  local-network prompt was checked against a test server on `127.0.0.1`
+  only, and a public name that resolves to a private address isn't gated.
 
 ## Still open from 1.49.1
 
