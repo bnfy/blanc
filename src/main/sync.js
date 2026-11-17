@@ -4,6 +4,8 @@ const { JsonStore } = require('./store');
 const settings = require('./settings');
 const bookmarks = require('./bookmarks');
 const startPagePins = require('./start-page-pins');
+const favoritesLayout = require('./favorites-layout');
+const { withFavoritesLayout, settingsEqualsWithLayout } = require('./favorites-layout-model');
 const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const sends = require('./sends');
@@ -120,7 +122,8 @@ const STORES = [
     // it drops the value on upload; syncPayloadEquals then sees the blob
     // lacking it and the next newer device uploads it again.
     name: 'settings',
-    export: () => withStartPagePins(settings.exportForSync()),
+    // The Favorites layout record (favoritesLayout) rides here the same way.
+    export: () => withFavoritesLayout(withStartPagePins(settings.exportForSync()), favoritesLayout.exportForSync()),
     merge: (remote) => {
       settings.mergeFromSync(remote);
       startPagePins.mergeFromSync({
@@ -128,8 +131,13 @@ const STORES = [
         at: remote?.meta?.startPagePins,
         tie: remote?.tieBreakers?.startPagePins,
       });
+      favoritesLayout.mergeFromSync({
+        value: remote?.values?.favoritesLayout,
+        at: remote?.meta?.favoritesLayout,
+        tie: remote?.tieBreakers?.favoritesLayout,
+      });
     },
-    equals: settings.syncPayloadEquals,
+    equals: settingsSyncEquals,
   },
   {
     name: 'session',
@@ -182,6 +190,18 @@ const STORES = [
   { name:'shared', optional:true, spaces:true, export:sharedSpaces.exportSidecar, merge:sharedSpaces.mergeSidecar,
     equals:sharedSpaces.equals, hasPublishableContent:payload=>Object.values(payload?.devices??{}).some(x=>x.tabs?.length) },
 ];
+
+// When a Blanc that predates the Favorites layout record dropped it, this
+// device puts it back at most once per interval (favorites-layout-model.js).
+let lastLayoutRestoreAt = 0;
+function settingsSyncEquals(exported, remote) {
+  const now = Date.now();
+  const { equal, restoring } = settingsEqualsWithLayout(exported, remote, {
+    baseEquals: settings.syncPayloadEquals, lastRestoreAt: lastLayoutRestoreAt, now,
+  });
+  if (restoring) lastLayoutRestoreAt = now;
+  return equal;
+}
 
 /** The settings payload plus the Personal profile's Start Page pins, when
  * they have ever changed. */
@@ -1508,6 +1528,9 @@ function init() {
     if (isDefaultLocalProfile()) onDefaultLocalChange();
   });
   startPagePins.onChanged(() => {
+    if (isDefaultLocalProfile()) onDefaultLocalChange();
+  });
+  favoritesLayout.onChanged(() => {
     if (isDefaultLocalProfile()) onDefaultLocalChange();
   });
   // Tab-driven publishes: fingerprint-gated upstream (tabsync.noteTabsChanged),

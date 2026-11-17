@@ -188,7 +188,51 @@ function layoutsEqual(a, b) {
   return JSON.stringify(normalizeLayout(a)) === JSON.stringify(normalizeLayout(b));
 }
 
+// --- In the settings sync payload -------------------------------------
+
+const SYNC_KEY = 'favoritesLayout';
+// How often a device puts the record back when the remote copy lacks it.
+const RESTORE_INTERVAL_MS = 10 * 60 * 1000;
+
+/** The settings payload plus the record, when it has ever changed
+ * (`exported` is favorites-layout.exportForSync()). */
+function withFavoritesLayout(payload, exported) {
+  if (!exported) return payload;
+  const out = {
+    values: { ...payload.values, [SYNC_KEY]: exported.value },
+    meta: { ...payload.meta, [SYNC_KEY]: exported.at },
+    tieBreakers: { ...payload.tieBreakers },
+  };
+  if (exported.tie) out.tieBreakers[SYNC_KEY] = exported.tie;
+  return out;
+}
+
+function withoutLayout(payload) {
+  const strip = (part) => {
+    const { [SYNC_KEY]: _dropped, ...rest } = part ?? {};
+    return rest;
+  };
+  return { values: strip(payload.values), meta: strip(payload.meta), tieBreakers: strip(payload.tieBreakers) };
+}
+
+/** Whether the remote settings blob already says everything this device
+ * would upload. A Blanc that predates the record drops it on every upload,
+ * and would trade uploads with this device for as long as both are open; so
+ * when the record being absent is the only difference, it is put back at
+ * most once per RESTORE_INTERVAL_MS. This device keeps its own copy
+ * meanwhile. `baseEquals` is settings.syncPayloadEquals. */
+function settingsEqualsWithLayout(exported, remote, { baseEquals, lastRestoreAt, now }) {
+  if (baseEquals(exported, remote)) return { equal: true, restoring: false };
+  const has = (payload) => payload?.meta?.[SYNC_KEY] !== undefined && payload?.values?.[SYNC_KEY] !== undefined;
+  if (!has(exported) || has(remote) || !baseEquals(withoutLayout(exported), remote)) {
+    return { equal: false, restoring: false };
+  }
+  const due = now - lastRestoreAt >= RESTORE_INTERVAL_MS;
+  return { equal: !due, restoring: due };
+}
+
 module.exports = {
+  RESTORE_INTERVAL_MS, withFavoritesLayout, settingsEqualsWithLayout,
   LAYOUT_MAX_BYTES, GONE_TTL_MS, EMPTY_LAYOUT,
   normalizeLayout, layoutEntry, setFolderOrder, ensureFolder, removeFolderEntry, movePrefix,
   mergeLayouts, boundLayout, layoutsEqual,
