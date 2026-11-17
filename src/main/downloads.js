@@ -78,6 +78,30 @@ function takeSaveDialogRequest(item) {
   return false;
 }
 
+// Takes a name by creating the empty file, so another app or download can't
+// take it before Chromium starts writing (Chromium writes over it). A folder
+// Blanc can't write to, including one Windows permissions block, throws here
+// and the caller shows Save As instead.
+function claimPath(p) {
+  try {
+    fs.closeSync(fs.openSync(p, 'wx'));
+    return true;
+  } catch (error) {
+    if (error.code === 'EEXIST') return false;
+    throw error;
+  }
+}
+
+// A download that never finished leaves the empty file it claimed; remove it,
+// but never a file with something in it.
+function releaseClaimedFile(p) {
+  try {
+    if (fs.statSync(p).size === 0) fs.unlinkSync(p);
+  } catch {
+    // Already gone, or not ours to remove.
+  }
+}
+
 function chooseSavePath(item) {
   if (!savePolicy) return null;
   try {
@@ -85,13 +109,12 @@ function chooseSavePath(item) {
     // dialog stopped that; it still does, so pages can't fill Downloads alone.
     if (typeof item.hasUserGesture !== 'function' || !item.hasUserGesture()) return null;
     if (savePolicy.askWhereToSave()) return null;
-    const folder = savePolicy.folder();
-    // A missing or unwritable folder leaves the dialog, never a failed download.
-    fs.accessSync(folder, fs.constants.W_OK);
+    // A missing or unwritable folder makes claimPath throw: the dialog, never
+    // a failed download.
     return chooseDownloadPath({
-      folder,
+      folder: savePolicy.folder(),
       filename: item.getFilename(),
-      exists: fs.existsSync,
+      claim: claimPath,
       reserved: reservedPaths,
     });
   } catch {
@@ -157,12 +180,19 @@ function setupDownloads(
       // overwrite it. A live retry's own partial file may still be there.
       if (retry.fromList && fs.existsSync(savePath)) {
         reservedPaths.delete(retry.key);
-        savePath = chooseDownloadPath({
-          folder: path.dirname(retry.path),
-          filename: path.basename(retry.path),
-          exists: fs.existsSync,
-          reserved: reservedPaths,
-        }) ?? retry.path;
+        let fresh = null;
+        try {
+          fresh = chooseDownloadPath({
+            folder: path.dirname(retry.path),
+            filename: path.basename(retry.path),
+            claim: claimPath,
+            reserved: reservedPaths,
+          });
+        } catch {
+          // The folder can't be written now; Chromium reports the retry's error.
+        }
+        if (fresh) entry.claimedPath = fresh;
+        savePath = fresh ?? retry.path;
         entry.reservedKey = downloadReservationKey(savePath);
         reservedPaths.add(entry.reservedKey);
       }
@@ -173,6 +203,7 @@ function setupDownloads(
       if (savePath) {
         item.setSavePath(savePath);
         record.filename = path.basename(savePath);
+        entry.claimedPath = savePath;
         entry.reservedKey = downloadReservationKey(savePath);
         reservedPaths.add(entry.reservedKey);
       }
@@ -189,6 +220,7 @@ function setupDownloads(
 
     item.once('done', (_e, state) => withLocalProfile(profileId, () => {
       if (entry.reservedKey) reservedPaths.delete(entry.reservedKey);
+      if (entry.claimedPath && state !== 'completed') releaseClaimedFile(entry.claimedPath);
       record.state = state; // 'completed' | 'cancelled' | 'interrupted'
       record.canResume = false;
       record.savePath = item.getSavePath();

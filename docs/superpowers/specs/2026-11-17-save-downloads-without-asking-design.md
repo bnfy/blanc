@@ -55,6 +55,14 @@ asking by default. Issue #1591 asks for that, with the dialog kept as an option.
   "Save Image As…" always asks, as its label promises. A retry keeps its
   name reserved, and a retry from the list picks a free name if its file was
   taken meanwhile. The downloads list shows the name actually used.
+- **The name is claimed on disk** (added with the review's minors): Blanc
+  creates the empty file before Chromium writes into it, so no other app can
+  take the name in between, and a folder Blanc can't write to (Windows
+  permissions included) shows Save As. A download that doesn't finish removes
+  its empty file, never one with data in it. Numbering stops at `(100)`, as in
+  Chrome, and then shows Save As; a name too long for `(100)` to fit in 255
+  bytes is shortened, keeping its extension. `test:save-downloads:desktop`
+  checks the real download path on Linux and Windows CI.
 - **Private tabs** follow the same switch. The file lands in Downloads; its row
   stays memory-only as now.
 - If the Downloads folder is missing or unwritable, fall back to the dialog

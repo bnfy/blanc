@@ -200,3 +200,38 @@ test('the downloads list shows the numbered name', () => {
   first.emit('done', {}, 'completed');
   second.emit('done', {}, 'completed');
 });
+
+test('the name is held on disk from the moment the download starts', () => {
+  const item = start('held.zip');
+  assert.equal(fs.existsSync(path.join(dir, 'held.zip')), true);
+  item.emit('done', {}, 'completed');
+});
+
+test('a cancelled download leaves no empty file behind', () => {
+  start('gone.zip').cancel();
+  assert.equal(fs.existsSync(path.join(dir, 'gone.zip')), false);
+});
+
+test('a finished download keeps its file, even an empty one', () => {
+  const item = start('empty.txt');
+  item.emit('done', {}, 'completed');
+  assert.equal(fs.existsSync(path.join(dir, 'empty.txt')), true);
+});
+
+test('a cancelled download never removes a file with something in it', () => {
+  const item = start('kept.zip');
+  fs.writeFileSync(path.join(dir, 'kept.zip'), 'partial bytes');
+  item.cancel();
+  assert.equal(fs.readFileSync(path.join(dir, 'kept.zip'), 'utf8'), 'partial bytes');
+});
+
+test('a folder Blanc cannot write to falls back to the dialog', { skip: process.platform === 'win32' || process.getuid?.() === 0 }, () => {
+  fs.chmodSync(dir, 0o555);
+  try {
+    const item = start('locked.zip');
+    assert.equal(item.savePath, '');
+    item.emit('done', {}, 'cancelled');
+  } finally {
+    fs.chmodSync(dir, 0o755);
+  }
+});
