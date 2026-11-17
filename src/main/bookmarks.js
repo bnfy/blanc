@@ -65,17 +65,16 @@ function toggleBookmark(url, title, favicon) {
   return true;
 }
 
-// Two behaviors wait for the Favorites manager page (spec 2026-11-16), because
-// a release may ship before it and today's flat list can't show either:
+// Two behaviors need the Favorites manager page (spec 2026-11-16) to show
+// their result, so a host whose Favorites page has no folder tree turns them
+// off with setManagerLive(false):
 //  - a folder that loses its last favorite stays (it would be an invisible
 //    entry that syncs);
 //  - import keeps whole folder paths, their order, and repairs earlier
-//    flattened imports (the list would show folders named by their path).
-// The manager's PR sets this true.
-let managerLive = false;
+//    flattened imports (a flat list would show folders named by their path).
+let managerLive = true;
 
-/** Unit tests only. */
-function setManagerLiveForTests(value) {
+function setManagerLive(value) {
   managerLive = value === true;
 }
 
@@ -182,14 +181,14 @@ function reorderFolder(path, orderKeys) {
   return run((state, ctx) => data.applyReorder(state, path, orderKeys, ctx));
 }
 
-/** The folder tree in display order. Each favorite carries the key order
- * lists name it by, so pages never compute one. */
+/** The folder tree in display order. Each child carries the key order lists
+ * name it by (a favorite's also on the item), so pages never compute one. */
 function getTree() {
   const withKeys = (node) => ({
     ...node,
     children: node.children.map((child) => (child.kind === 'folder'
-      ? { kind: 'folder', folder: withKeys(child.folder) }
-      : { kind: 'favorite', item: { ...child.item, key: child.key } })),
+      ? { kind: 'folder', key: child.key, folder: withKeys(child.folder) }
+      : { kind: 'favorite', key: child.key, item: { ...child.item, key: child.key } })),
   });
   return withKeys(buildTree(ensureStore().data.items, layoutStore.getLayout()));
 }
@@ -266,5 +265,5 @@ function mergeFromSync(remote) {
 module.exports = {
   listBookmarks, isBookmarked, toggleBookmark, saveFavorite, updateFavicon, removeBookmark, removeBookmarks, importBookmarks,
   setBookmarkFolder, moveFavorites, createFolder, renameFolder, moveFolder, removeFolder, reorderFolder, getTree,
-  exportForSync, mergeFromSync, onChanged, onMerged, setManagerLiveForTests,
+  exportForSync, mergeFromSync, onChanged, onMerged, setManagerLive,
 };

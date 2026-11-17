@@ -1816,6 +1816,54 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="favorites_row_pinned">Fixado na página inicial</string>
     <string name="favorites_row_remove">remover</string>
     <string name="favorites_row_remove_label">Remover %1$s dos Favoritos</string>
+    <string name="favorites_manager_all">Todos os favoritos</string>
+    <string name="favorites_manager_tree">Pastas</string>
+    <string name="favorites_manager_breadcrumb">Caminho da pasta</string>
+    <string name="favorites_manager_choose_folder">Pasta</string>
+    <string name="favorites_manager_search">Pesquisar favoritos</string>
+    <string name="favorites_manager_new_folder">Nova pasta</string>
+    <string name="favorites_manager_new_folder_placeholder">Nome da pasta</string>
+    <string name="favorites_manager_new_folder_inside">Nova pasta dentro</string>
+    <string name="favorites_manager_open">Abrir</string>
+    <string name="favorites_manager_rename">Renomear</string>
+    <string name="favorites_manager_move_to">Mover para…</string>
+    <string name="favorites_manager_move_up">Mover para cima</string>
+    <string name="favorites_manager_move_down">Mover para baixo</string>
+    <string name="favorites_manager_remove">Remover</string>
+    <string name="favorites_manager_delete_folder">Excluir pasta</string>
+    <string name="favorites_manager_top_level">Nível superior</string>
+    <string name="favorites_manager_more">Mais ações para %1$s</string>
+    <plurals name="favorites_manager_items">
+        <item quantity="one">%1$d favorito</item>
+        <item quantity="many">%1$d favoritos</item>
+        <item quantity="other">%1$d favoritos</item>
+    </plurals>
+    <plurals name="favorites_manager_selected">
+        <item quantity="one">%1$d selecionado</item>
+        <item quantity="many">%1$d selecionados</item>
+        <item quantity="other">%1$d selecionados</item>
+    </plurals>
+    <string name="favorites_manager_clear_selection">Limpar seleção</string>
+    <string name="favorites_manager_no_results">Nenhum favorito corresponde.</string>
+    <string name="favorites_manager_empty_folder">Esta pasta está vazia.</string>
+    <string name="favorites_manager_error_too_long">Esse caminho de pasta ficaria mais longo do que o Blanc consegue sincronizar. Use um nome mais curto ou menos níveis.</string>
+    <string name="favorites_manager_error_cycle">Uma pasta não pode ser movida para dentro de si mesma.</string>
+    <string name="favorites_manager_error_invalid">Esse nome não pode ser usado.</string>
+    <string name="favorites_manager_error_missing">Essa pasta não existe mais.</string>
+    <string name="favorites_import_menu">Trazer minhas coisas para o Blanc</string>
+    <plurals name="favorites_manager_results">
+        <item quantity="one">%1$d resultado</item>
+        <item quantity="many">%1$d resultados</item>
+        <item quantity="other">%1$d resultados</item>
+    </plurals>
+    <plurals name="favorites_manager_remove_confirm">
+        <item quantity="one">Remover %1$d item?</item>
+        <item quantity="many">Remover %1$d itens?</item>
+        <item quantity="other">Remover %1$d itens?</item>
+    </plurals>
+    <string name="favorites_manager_cancel">Cancelar</string>
+    <string name="favorites_manager_pin">Fixar</string>
+    <string name="favorites_manager_unpin">Desafixar</string>
     <string name="favorites_picker_label">Mover %1$s para uma pasta</string>
     <string name="favorites_picker_none">→ nenhuma</string>
     <string name="favorites_picker_new_folder">nova pasta…</string>
@@ -2728,4 +2776,13 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="android_licenses_chromium_fork_notices">Avisos do fork do Chromium</string>
     <string name="android_licenses_loading">Carregando aviso…</string>
     <string name="android_licenses_load_failed">Não foi possível carregar este aviso. Abra o link no título para ler o arquivo incluído.</string>
+    <string name="favorites_import_lede">Copie seus favoritos e abas abertas de outro navegador. Nada muda nele.</string>
+    <string name="favorites_import_from">De</string>
+    <string name="favorites_import_file_option">Arquivo de favoritos (HTML)…</string>
+    <string name="favorites_import_what">O que trazer</string>
+    <string name="favorites_import_what_tabs">Abas abertas</string>
+    <string name="favorites_import_go">Importar</string>
+    <string name="favorites_import_cancel">Cancelar</string>
+    <string name="favorites_manager_delete_folder_label">Excluir a pasta %1$s</string>
+    <string name="favorites_import_tabs_skipped">As abas abertas não foram trazidas.</string>
 </resources>

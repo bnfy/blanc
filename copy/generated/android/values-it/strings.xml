@@ -1816,6 +1816,54 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="favorites_row_pinned">Fissato nella pagina iniziale</string>
     <string name="favorites_row_remove">rimuovi</string>
     <string name="favorites_row_remove_label">Rimuovi %1$s dai Preferiti</string>
+    <string name="favorites_manager_all">Tutti i preferiti</string>
+    <string name="favorites_manager_tree">Cartelle</string>
+    <string name="favorites_manager_breadcrumb">Percorso della cartella</string>
+    <string name="favorites_manager_choose_folder">Cartella</string>
+    <string name="favorites_manager_search">Cerca nei preferiti</string>
+    <string name="favorites_manager_new_folder">Nuova cartella</string>
+    <string name="favorites_manager_new_folder_placeholder">Nome della cartella</string>
+    <string name="favorites_manager_new_folder_inside">Nuova cartella al suo interno</string>
+    <string name="favorites_manager_open">Apri</string>
+    <string name="favorites_manager_rename">Rinomina</string>
+    <string name="favorites_manager_move_to">Sposta in…</string>
+    <string name="favorites_manager_move_up">Sposta su</string>
+    <string name="favorites_manager_move_down">Sposta giù</string>
+    <string name="favorites_manager_remove">Rimuovi</string>
+    <string name="favorites_manager_delete_folder">Elimina cartella</string>
+    <string name="favorites_manager_top_level">Livello principale</string>
+    <string name="favorites_manager_more">Altre azioni per %1$s</string>
+    <plurals name="favorites_manager_items">
+        <item quantity="one">%1$d preferito</item>
+        <item quantity="many">%1$d preferiti</item>
+        <item quantity="other">%1$d preferiti</item>
+    </plurals>
+    <plurals name="favorites_manager_selected">
+        <item quantity="one">%1$d selezionato</item>
+        <item quantity="many">%1$d selezionati</item>
+        <item quantity="other">%1$d selezionati</item>
+    </plurals>
+    <string name="favorites_manager_clear_selection">Deseleziona</string>
+    <string name="favorites_manager_no_results">Nessun preferito corrisponde.</string>
+    <string name="favorites_manager_empty_folder">Questa cartella è vuota.</string>
+    <string name="favorites_manager_error_too_long">Questo percorso di cartella sarebbe più lungo di quanto Blanc possa sincronizzare. Usa un nome più breve o meno livelli.</string>
+    <string name="favorites_manager_error_cycle">Una cartella non può essere spostata in se stessa.</string>
+    <string name="favorites_manager_error_invalid">Questo nome non può essere usato.</string>
+    <string name="favorites_manager_error_missing">Questa cartella non esiste più.</string>
+    <string name="favorites_import_menu">Porta le mie cose su Blanc</string>
+    <plurals name="favorites_manager_results">
+        <item quantity="one">%1$d risultato</item>
+        <item quantity="many">%1$d risultati</item>
+        <item quantity="other">%1$d risultati</item>
+    </plurals>
+    <plurals name="favorites_manager_remove_confirm">
+        <item quantity="one">Rimuovere %1$d elemento?</item>
+        <item quantity="many">Rimuovere %1$d elementi?</item>
+        <item quantity="other">Rimuovere %1$d elementi?</item>
+    </plurals>
+    <string name="favorites_manager_cancel">Annulla</string>
+    <string name="favorites_manager_pin">Fissa</string>
+    <string name="favorites_manager_unpin">Sblocca</string>
     <string name="favorites_picker_label">Sposta %1$s in una cartella</string>
     <string name="favorites_picker_none">→ nessuna</string>
     <string name="favorites_picker_new_folder">nuova cartella…</string>
@@ -2728,4 +2776,13 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="android_licenses_chromium_fork_notices">Avvisi del fork di Chromium</string>
     <string name="android_licenses_loading">Caricamento dell’avviso…</string>
     <string name="android_licenses_load_failed">Impossibile caricare questo avviso. Apri il link nel titolo per leggere il file incluso.</string>
+    <string name="favorites_import_lede">Copia i preferiti e le schede aperte da un altro browser. Lì non cambia nulla.</string>
+    <string name="favorites_import_from">Da</string>
+    <string name="favorites_import_file_option">File dei segnalibri (HTML)…</string>
+    <string name="favorites_import_what">Cosa portare</string>
+    <string name="favorites_import_what_tabs">Schede aperte</string>
+    <string name="favorites_import_go">Importa</string>
+    <string name="favorites_import_cancel">Annulla</string>
+    <string name="favorites_manager_delete_folder_label">Elimina la cartella %1$s</string>
+    <string name="favorites_import_tabs_skipped">Le schede aperte non sono state portate.</string>
 </resources>

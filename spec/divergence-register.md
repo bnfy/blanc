@@ -569,7 +569,9 @@ The available source formats also differ.
 
 **Parity contract:** Both discovery and import begin only after an explicit
 user action — no platform scans for other browsers merely because a migration
-surface was rendered. Import accepts only supported web Favorites, preserves
+surface was rendered. Opening a dialog whose only purpose is bringing things
+over from another browser is such an action; rendering the page or sheet that
+offers it is not. Import accepts only supported web Favorites, preserves
 folders where the source carries them, deduplicates without replacing existing
 data, and never expands into passwords, history, cookies, or sessions without a
 separately specified choice.
@@ -578,7 +580,9 @@ separately specified choice.
 just import — require an explicit action, since profile display names commonly
 carry a person's real name or email address. Amended 2026-10-15 to read
 Chrome's `AccountBookmarks` file beside `Bookmarks`, after signed-in Chrome
-profiles were found to import nothing.
+profiles were found to import nothing. Amended 2026-11-16 (owner): on desktop, opening the Favorites
+sheet's Bring my stuff to Blanc dialog is the explicit action, as Chrome's and
+Edge's import dialogs list browsers when they open.
 
 ## D23 — Who decides when a background tab loses its renderer
 **Features:** F31 (the behaviour itself is D8)

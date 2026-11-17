@@ -179,6 +179,13 @@ if (window.location.protocol === 'blanc:') {
         setFolder: (id, folder) => invoke('pages:bookmarks:set-folder', id, folder),
         renameFolder: (oldName, newName) => invoke('pages:bookmarks:rename-folder', oldName, newName),
         removeFolder: (name) => invoke('pages:bookmarks:remove-folder', name),
+        // The Favorites manager (F63).
+        tree: () => invoke('pages:bookmarks:tree'),
+        createFolder: (parentPath, name) => invoke('pages:bookmarks:create-folder', parentPath, name),
+        moveFolder: (path, newParentPath) => invoke('pages:bookmarks:move-folder', path, newParentPath),
+        move: (ids, path) => invoke('pages:bookmarks:move', ids, path),
+        reorder: (path, orderKeys) => invoke('pages:bookmarks:reorder', path, orderKeys),
+        removeMany: (ids) => invoke('pages:bookmarks:remove-many', ids),
       },
       pins: startPins,
     };

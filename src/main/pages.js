@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
 const bookmarks = require('./bookmarks');
+const { pageIds, pageKeys, pagePath } = require('./favorites-page-args');
 const { parseNetscapeBookmarks } = require('./bookmark-import');
 const { createBrowserDataImportService } = require('./browser-data-import');
 
@@ -247,7 +248,7 @@ function setupPages(hooks = {}) {
   handle('pages:tab-handoff:cancel', 'tab-handoff', () =>
     hooks.tabHandoff?.cancel?.() ?? { ok: true });
 
-  handle('pages:bookmarks:capabilities', 'bookmarks', () => ({ editable: true }));
+  handle('pages:bookmarks:capabilities', 'bookmarks', () => ({ editable: true, tree: true }));
   handle('pages:bookmarks:list', ['bookmarks', 'newtab'], () => bookmarks.listBookmarks());
   // Start Page pins (start-page-pins.js): one device-local list that the
   // Start Page and the Favorites page read and change; main tells both when it
@@ -375,14 +376,35 @@ function setupPages(hooks = {}) {
     bookmarks.setBookmarkFolder(id, folder);
     hooks.onDataChanged?.();
   });
-  handle('pages:bookmarks:rename-folder', 'bookmarks', (oldName, newName) => {
-    bookmarks.renameFolder(oldName, newName);
-    hooks.onDataChanged?.();
+  handle('pages:bookmarks:rename-folder', 'bookmarks', (path, newName) => {
+    const result = bookmarks.renameFolder(pagePath(path), String(newName ?? '').slice(0, 200));
+    if (result?.ok) hooks.onDataChanged?.();
+    return result;
   });
   handle('pages:bookmarks:remove-folder', 'bookmarks', (name) => {
-    bookmarks.removeFolder(name);
-    hooks.onDataChanged?.();
+    const result = bookmarks.removeFolder(pagePath(name));
+    if (result?.ok) hooks.onDataChanged?.();
+    return result;
   });
+
+  // The Favorites manager (F63): the folder tree, and edits to it. Each answers
+  // { ok: true, path? } or { ok: false, error }.
+  handle('pages:bookmarks:tree', 'bookmarks', () => bookmarks.getTree());
+  // An edit that changed something refreshes the heart and the Favorites menu.
+  const edited = (result) => {
+    if (result?.ok) hooks.onDataChanged?.();
+    return result;
+  };
+  handle('pages:bookmarks:create-folder', 'bookmarks', (parentPath, name) =>
+    edited(bookmarks.createFolder(pagePath(parentPath), String(name ?? '').slice(0, 200))));
+  handle('pages:bookmarks:move-folder', 'bookmarks', (path, newParentPath) =>
+    edited(bookmarks.moveFolder(pagePath(path), pagePath(newParentPath))));
+  handle('pages:bookmarks:move', 'bookmarks', (ids, path) =>
+    edited(bookmarks.moveFavorites(pageIds(ids), pagePath(path))));
+  handle('pages:bookmarks:reorder', 'bookmarks', (path, keys) =>
+    edited(bookmarks.reorderFolder(pagePath(path), pageKeys(keys))));
+  handle('pages:bookmarks:remove-many', 'bookmarks', (ids) =>
+    edited(bookmarks.removeBookmarks(pageIds(ids))));
 
   handle('pages:history:list', 'history', (opts) => history.listHistory(opts ?? {}));
   handle('pages:history:remove', 'history', (url, visitedAt) => history.removeVisit(url, visitedAt));

@@ -1816,6 +1816,54 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="favorites_row_pinned">Fijado en la página de inicio</string>
     <string name="favorites_row_remove">quitar</string>
     <string name="favorites_row_remove_label">Quitar %1$s de Favoritos</string>
+    <string name="favorites_manager_all">Todos los favoritos</string>
+    <string name="favorites_manager_tree">Carpetas</string>
+    <string name="favorites_manager_breadcrumb">Ruta de la carpeta</string>
+    <string name="favorites_manager_choose_folder">Carpeta</string>
+    <string name="favorites_manager_search">Buscar en favoritos</string>
+    <string name="favorites_manager_new_folder">Nueva carpeta</string>
+    <string name="favorites_manager_new_folder_placeholder">Nombre de la carpeta</string>
+    <string name="favorites_manager_new_folder_inside">Nueva carpeta dentro</string>
+    <string name="favorites_manager_open">Abrir</string>
+    <string name="favorites_manager_rename">Cambiar nombre</string>
+    <string name="favorites_manager_move_to">Mover a…</string>
+    <string name="favorites_manager_move_up">Subir</string>
+    <string name="favorites_manager_move_down">Bajar</string>
+    <string name="favorites_manager_remove">Quitar</string>
+    <string name="favorites_manager_delete_folder">Eliminar carpeta</string>
+    <string name="favorites_manager_top_level">Nivel superior</string>
+    <string name="favorites_manager_more">Más acciones para %1$s</string>
+    <plurals name="favorites_manager_items">
+        <item quantity="one">%1$d favorito</item>
+        <item quantity="many">%1$d favoritos</item>
+        <item quantity="other">%1$d favoritos</item>
+    </plurals>
+    <plurals name="favorites_manager_selected">
+        <item quantity="one">%1$d seleccionado</item>
+        <item quantity="many">%1$d seleccionados</item>
+        <item quantity="other">%1$d seleccionados</item>
+    </plurals>
+    <string name="favorites_manager_clear_selection">Borrar selección</string>
+    <string name="favorites_manager_no_results">Ningún favorito coincide.</string>
+    <string name="favorites_manager_empty_folder">Esta carpeta está vacía.</string>
+    <string name="favorites_manager_error_too_long">Esa ruta de carpeta sería más larga de lo que Blanc puede sincronizar. Usa un nombre más corto o menos niveles.</string>
+    <string name="favorites_manager_error_cycle">Una carpeta no puede moverse dentro de sí misma.</string>
+    <string name="favorites_manager_error_invalid">Ese nombre no se puede usar.</string>
+    <string name="favorites_manager_error_missing">Esa carpeta ya no existe.</string>
+    <string name="favorites_import_menu">Traer mis cosas a Blanc</string>
+    <plurals name="favorites_manager_results">
+        <item quantity="one">%1$d resultado</item>
+        <item quantity="many">%1$d resultados</item>
+        <item quantity="other">%1$d resultados</item>
+    </plurals>
+    <plurals name="favorites_manager_remove_confirm">
+        <item quantity="one">¿Quitar %1$d elemento?</item>
+        <item quantity="many">¿Quitar %1$d elementos?</item>
+        <item quantity="other">¿Quitar %1$d elementos?</item>
+    </plurals>
+    <string name="favorites_manager_cancel">Cancelar</string>
+    <string name="favorites_manager_pin">Fijar</string>
+    <string name="favorites_manager_unpin">Desfijar</string>
     <string name="favorites_picker_label">Mover %1$s a una carpeta</string>
     <string name="favorites_picker_none">→ ninguna</string>
     <string name="favorites_picker_new_folder">carpeta nueva…</string>
@@ -2728,4 +2776,13 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="android_licenses_chromium_fork_notices">Avisos de la bifurcación de Chromium</string>
     <string name="android_licenses_loading">Cargando aviso…</string>
     <string name="android_licenses_load_failed">No se ha podido cargar este aviso. Abre el enlace del título para leer el archivo incluido.</string>
+    <string name="favorites_import_lede">Copia tus favoritos y pestañas abiertas de otro navegador. Allí no cambia nada.</string>
+    <string name="favorites_import_from">Desde</string>
+    <string name="favorites_import_file_option">Archivo de marcadores (HTML)…</string>
+    <string name="favorites_import_what">Qué traer</string>
+    <string name="favorites_import_what_tabs">Pestañas abiertas</string>
+    <string name="favorites_import_go">Importar</string>
+    <string name="favorites_import_cancel">Cancelar</string>
+    <string name="favorites_manager_delete_folder_label">Eliminar la carpeta %1$s</string>
+    <string name="favorites_import_tabs_skipped">No se trajeron las pestañas abiertas.</string>
 </resources>
