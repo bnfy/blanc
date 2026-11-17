@@ -1782,6 +1782,17 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
         <item quantity="many">%1$d já salvos foram ignorados.</item>
         <item quantity="other">%1$d já salvos foram ignorados.</item>
     </plurals>
+    <plurals name="favorites_import_moved">
+        <item quantity="one">%1$d movido para sua pasta.</item>
+        <item quantity="many">%1$d movidos para suas pastas.</item>
+        <item quantity="other">%1$d movidos para suas pastas.</item>
+    </plurals>
+    <plurals name="favorites_import_shortened">
+        <item quantity="one">%1$d colocado em uma pasta superior porque o caminho da pasta era longo demais.</item>
+        <item quantity="many">%1$d colocados em uma pasta superior porque os caminhos das pastas eram longos demais.</item>
+        <item quantity="other">%1$d colocados em uma pasta superior porque os caminhos das pastas eram longos demais.</item>
+    </plurals>
+    <string name="favorites_import_order_dropped">Algumas pastas estão na ordem padrão porque a coleção é muito grande.</string>
     <plurals name="favorites_import_all_saved">
         <item quantity="one">Esse favorito já estava salvo.</item>
         <item quantity="many">Todos os %1$d favoritos já estavam salvos.</item>

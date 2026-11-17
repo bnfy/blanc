@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { validFolder } = require('./bookmark-validate');
+const { fitSegments } = require('./favorites-tree');
 const {
   CHROMIUM_ROOTS,
   buildChromiumTree,
@@ -141,7 +142,13 @@ function parseChromiumBookmarks(input, {
     ['synced', t('import.folder.mobile')],
   ];
 
-  const visit = (node, folder, depth) => {
+  // Each entry keeps its whole folder path from its root down
+  // (favorites-tree.js), in the order the browser lists it. A path too long
+  // to store lands in the deepest folder that fits, flagged `shortened`.
+  // `flat` is the one name import stored before folders could nest: the
+  // nearest named ancestor. bookmark-data.addImported uses it until the
+  // Favorites manager ships.
+  const visit = (node, folders, flat, depth) => {
     if (!node || typeof node !== 'object') return;
     visited += 1;
     if (visited > maxNodes || depth > 64) throw new Error('bookmarks-too-complex');
@@ -151,20 +158,23 @@ function parseChromiumBookmarks(input, {
       const title = typeof node.name === 'string' && node.name.trim()
         ? node.name.trim()
         : node.url;
+      const { path: folder, shortened } = fitSegments(folders);
       entries.push({
         url: node.url,
         title,
         favicon: null,
         addedAt: chromiumTimestampMs(node.date_added, now),
-        folder: validFolder(folder),
+        folder,
+        shortened,
+        flatFolder: validFolder(flat),
       });
       return;
     }
 
     if (!Array.isArray(node.children)) return;
     const ownName = validFolder(node.name);
-    const childFolder = ownName ?? folder;
-    for (const child of node.children) visit(child, childFolder, depth + 1);
+    const childFolders = ownName === null ? folders : [...folders, ownName];
+    for (const child of node.children) visit(child, childFolders, ownName ?? flat, depth + 1);
   };
 
   for (const [key, fallbackName] of roots) {
@@ -172,7 +182,7 @@ function parseChromiumBookmarks(input, {
     if (!root || typeof root !== 'object') continue;
     const rootName = validFolder(root.name) ?? fallbackName;
     if (!Array.isArray(root.children)) continue;
-    for (const child of root.children) visit(child, rootName, 1);
+    for (const child of root.children) visit(child, [rootName], rootName, 1);
   }
   return entries;
 }

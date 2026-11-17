@@ -89,11 +89,15 @@ async function settle() {
   for (let i = 0; i < 20; i += 1) await new Promise((resolve) => setImmediate(resolve));
 }
 
-// Turns of the event loop until `done()`, at most `turns`. A publish that a
-// timer just started still encrypts and sends through real async work, which a
-// slow runner (Windows CI, November 11, 2026) didn't finish in settle()'s 20.
-async function settleUntil(done, turns = 5000) {
-  for (let i = 0; i < turns && !done(); i += 1) await new Promise((resolve) => setImmediate(resolve));
+// Turns of the event loop until `done()`. A publish that a timer just started
+// still encrypts and sends through real async work, which a slow runner
+// (Windows CI, November 11, 2026) didn't finish in settle()'s 20. A count of
+// turns is only a few milliseconds, and that was not enough either (Windows
+// CI, November 17, 2026), so the bound is real time. Date and performance.now
+// are mocked here; process.hrtime is not.
+async function settleUntil(done, timeoutMs = 10_000) {
+  const deadline = process.hrtime.bigint() + BigInt(timeoutMs) * 1_000_000n;
+  while (!done() && process.hrtime.bigint() < deadline) await new Promise((resolve) => setImmediate(resolve));
 }
 
 const sessionRequests = () => requests.filter(({ url }) => url.endsWith('/session'));

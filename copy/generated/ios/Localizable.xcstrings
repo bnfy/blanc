@@ -70987,6 +70987,324 @@
         }
       }
     },
+    "favorites.import.moved": {
+      "comment": "Favorites page → import: sentence of the result; # favorites saved earlier were moved into the nested folders the other browser has them in.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Moved %1$lld into its folder."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Moved %1$lld into their folders."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld in seinen Ordner verschoben."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld in ihre Ordner verschoben."
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld movido a su carpeta."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld movidos a sus carpetas."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld movidos a sus carpetas."
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld déplacé dans son dossier."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld déplacés dans leurs dossiers."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld déplacés dans leurs dossiers."
+                }
+              }
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld spostato nella sua cartella."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld spostati nelle loro cartelle."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld spostati nelle loro cartelle."
+                }
+              }
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld movido para sua pasta."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld movidos para suas pastas."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld movidos para suas pastas."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "favorites.import.shortened": {
+      "comment": "Favorites page → import: sentence of the result; # favorites went into a parent folder because the full folder path is too long to save.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Placed %1$lld in a parent folder because its folder path was too long."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Placed %1$lld in a parent folder because their folder paths were too long."
+                }
+              }
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld in einem übergeordneten Ordner abgelegt, weil der Ordnerpfad zu lang war."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld in einem übergeordneten Ordner abgelegt, weil die Ordnerpfade zu lang waren."
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld colocado en una carpeta superior porque la ruta de su carpeta era demasiado larga."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld colocados en una carpeta superior porque las rutas de sus carpetas eran demasiado largas."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld colocados en una carpeta superior porque las rutas de sus carpetas eran demasiado largas."
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld placé dans un dossier parent, car le chemin de son dossier était trop long."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld placés dans un dossier parent, car les chemins de leurs dossiers étaient trop longs."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld placés dans un dossier parent, car les chemins de leurs dossiers étaient trop longs."
+                }
+              }
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld inserito in una cartella superiore perché il percorso della cartella era troppo lungo."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld inseriti in una cartella superiore perché i percorsi delle cartelle erano troppo lunghi."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld inseriti in una cartella superiore perché i percorsi delle cartelle erano troppo lunghi."
+                }
+              }
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld colocado em uma pasta superior porque o caminho da pasta era longo demais."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld colocados em uma pasta superior porque os caminhos das pastas eram longos demais."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld colocados em uma pasta superior porque os caminhos das pastas eram longos demais."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "favorites.import.orderDropped": {
+      "comment": "Favorites page → import: sentence of the result when the collection is too large to keep the chosen order of every folder.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some folders are in the default order because the collection is very large."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einige Ordner haben die Standardreihenfolge, weil die Sammlung sehr groß ist."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Algunas carpetas están en el orden predeterminado porque la colección es muy grande."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Certains dossiers sont dans l’ordre par défaut, car la collection est très volumineuse."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alcune cartelle sono nell’ordine predefinito perché la raccolta è molto grande."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Algumas pastas estão na ordem padrão porque a coleção é muito grande."
+          }
+        }
+      }
+    },
     "favorites.import.allSaved": {
       "comment": "Favorites page → import: result when every one was already saved.",
       "extractionState": "manual",

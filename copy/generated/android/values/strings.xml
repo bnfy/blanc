@@ -1736,6 +1736,15 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
         <item quantity="one">Skipped %1$d already saved.</item>
         <item quantity="other">Skipped %1$d already saved.</item>
     </plurals>
+    <plurals name="favorites_import_moved">
+        <item quantity="one">Moved %1$d into its folder.</item>
+        <item quantity="other">Moved %1$d into their folders.</item>
+    </plurals>
+    <plurals name="favorites_import_shortened">
+        <item quantity="one">Placed %1$d in a parent folder because its folder path was too long.</item>
+        <item quantity="other">Placed %1$d in a parent folder because their folder paths were too long.</item>
+    </plurals>
+    <string name="favorites_import_order_dropped">Some folders are in the default order because the collection is very large.</string>
     <plurals name="favorites_import_all_saved">
         <item quantity="one">That favorite was already saved.</item>
         <item quantity="other">All %1$d favorites were already saved.</item>

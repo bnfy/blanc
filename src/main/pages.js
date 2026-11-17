@@ -282,9 +282,9 @@ function setupPages(hooks = {}) {
       const html = await file.readFile('utf8');
       const entries = parseNetscapeBookmarks(html);
       if (!entries.length) return { error: 'empty' };
-      const { added, skipped } = bookmarks.importBookmarks(entries);
+      const counts = bookmarks.importBookmarks(entries);
       hooks.onDataChanged?.();
-      return { added, skipped };
+      return counts;
     } catch {
       return { error: 'unreadable' };
     } finally {
@@ -295,9 +295,9 @@ function setupPages(hooks = {}) {
   handle('pages:bookmarks:import-browser', ['bookmarks', 'newtab'], async (id) => {
     const read = await browserImport.readSource(String(id ?? ''));
     if (read.error) return { error: read.error };
-    const { added, skipped } = bookmarks.importBookmarks(read.entries);
+    const counts = bookmarks.importBookmarks(read.entries);
     hooks.onDataChanged?.();
-    return { added, skipped, source: read.source };
+    return { ...counts, source: read.source };
   });
 
   // Bring Your Tabs gets a separate, exact-host surface from F30 Favorites

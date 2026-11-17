@@ -1736,6 +1736,15 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
         <item quantity="one">%1$d bereits gespeicherter Favorit übersprungen.</item>
         <item quantity="other">%1$d bereits gespeicherte Favoriten übersprungen.</item>
     </plurals>
+    <plurals name="favorites_import_moved">
+        <item quantity="one">%1$d in seinen Ordner verschoben.</item>
+        <item quantity="other">%1$d in ihre Ordner verschoben.</item>
+    </plurals>
+    <plurals name="favorites_import_shortened">
+        <item quantity="one">%1$d in einem übergeordneten Ordner abgelegt, weil der Ordnerpfad zu lang war.</item>
+        <item quantity="other">%1$d in einem übergeordneten Ordner abgelegt, weil die Ordnerpfade zu lang waren.</item>
+    </plurals>
+    <string name="favorites_import_order_dropped">Einige Ordner haben die Standardreihenfolge, weil die Sammlung sehr groß ist.</string>
     <plurals name="favorites_import_all_saved">
         <item quantity="one">Dieser Favorit war bereits gespeichert.</item>
         <item quantity="other">Alle %1$d Favoriten waren bereits gespeichert.</item>

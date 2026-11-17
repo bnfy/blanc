@@ -1782,6 +1782,17 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
         <item quantity="many">Ignorati %1$d già salvati.</item>
         <item quantity="other">Ignorati %1$d già salvati.</item>
     </plurals>
+    <plurals name="favorites_import_moved">
+        <item quantity="one">%1$d spostato nella sua cartella.</item>
+        <item quantity="many">%1$d spostati nelle loro cartelle.</item>
+        <item quantity="other">%1$d spostati nelle loro cartelle.</item>
+    </plurals>
+    <plurals name="favorites_import_shortened">
+        <item quantity="one">%1$d inserito in una cartella superiore perché il percorso della cartella era troppo lungo.</item>
+        <item quantity="many">%1$d inseriti in una cartella superiore perché i percorsi delle cartelle erano troppo lunghi.</item>
+        <item quantity="other">%1$d inseriti in una cartella superiore perché i percorsi delle cartelle erano troppo lunghi.</item>
+    </plurals>
+    <string name="favorites_import_order_dropped">Alcune cartelle sono nell’ordine predefinito perché la raccolta è molto grande.</string>
     <plurals name="favorites_import_all_saved">
         <item quantity="one">Quel preferito era già salvato.</item>
         <item quantity="many">Tutti i %1$d preferiti erano già salvati.</item>

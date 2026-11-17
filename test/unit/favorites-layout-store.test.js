@@ -163,3 +163,46 @@ test('a favorites change notifies once per operation', () => {
   bookmarks.setBookmarkFolder(bookmarks.listBookmarks()[0].id, null);
   assert.equal(changes, 2);
 });
+
+// --- Import (the manager switch) ---
+
+test('until the manager ships, import flattens as before and writes no order', () => {
+  reset();
+  const counts = bookmarks.importBookmarks([
+    { url: 'https://a.example/', title: 'A', folder: 'Work › Clients › Acme', flatFolder: 'Acme' },
+    { url: 'https://a.example/', title: 'again', folder: 'Elsewhere' },
+  ]);
+  assert.deepEqual(counts, { added: 1, skipped: 1, moved: 0, shortened: 0, orderDropped: 0 });
+  assert.deepEqual(bookmarks.listBookmarks().map((b) => b.folder), ['Acme']);
+  assert.equal(layout.exportForSync(), null);
+});
+
+test('with the manager live, import repairs the flattened favorite, keeps order, and emptied folders stay', async (t) => {
+  // Repair covers favorites unchanged since the manager first ran here.
+  await new Promise((resolve) => { setTimeout(resolve, 5); });
+  bookmarks.setManagerLiveForTests(true);
+  t.after(() => bookmarks.setManagerLiveForTests(false));
+  let changes = 0;
+  bookmarks.onChanged(() => { changes += 1; });
+  const counts = bookmarks.importBookmarks([
+    { url: 'https://z.example/', title: 'Z', folder: 'Work › Clients › Acme' },
+    { url: 'https://a.example/', title: 'A', folder: 'Work › Clients › Acme' },
+    { url: 'https://deep.example/', title: 'D', folder: 'Work', shortened: true },
+  ]);
+  assert.deepEqual(counts, { added: 2, skipped: 0, moved: 1, shortened: 1, orderDropped: 0 });
+  assert.equal(changes, 1);
+  const work = bookmarks.getTree().children[0].folder;
+  assert.deepEqual(names(work), ['[Clients]', 'https://deep.example/']);
+  assert.deepEqual(names(work.children[0].folder.children[0].folder), ['https://z.example/', 'https://a.example/']);
+  assert.ok(layout.exportForSync());
+  assert.deepEqual(bookmarks.importBookmarks([{ url: 'https://z.example/', folder: 'Work › Clients › Acme' }]),
+    { added: 0, skipped: 1, moved: 0, shortened: 0, orderDropped: 0 });
+  // Emptying a folder keeps it once the manager can show it.
+  const deep = bookmarks.listBookmarks().find((b) => b.url === 'https://deep.example/');
+  bookmarks.moveFavorites(bookmarks.listBookmarks().filter((b) => b.folder === 'Work › Clients › Acme').map((b) => b.id), null);
+  bookmarks.removeBookmark(deep.id);
+  // Work and everything under it now holds nothing, and is still there.
+  const top = bookmarks.getTree();
+  assert.deepEqual(names(top).filter((n) => n.startsWith('[')), ['[Work]']);
+  assert.deepEqual(names(top.children.find((c) => c.kind === 'folder').folder), ['[Clients]']);
+});

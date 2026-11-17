@@ -4,6 +4,7 @@
 // unescaped '>' are not supported, which real exports never emit.
 const { validFavicon } = require('./bookmark-validate');
 const { buildNetscapeTree } = require('./bookmark-tree');
+const { fitSegments } = require('./favorites-tree');
 
 function decodeEntities(s) {
   return String(s)
@@ -31,9 +32,12 @@ const TOKEN = /<\/dl\s*>|<dl\b[^>]*>|<h3\b[^>]*>([\s\S]*?)<\/h3\s*>|<a\b([^>]*)>
 
 function parseNetscapeBookmarks(html, { now = Date.now() } = {}) {
   const out = [];
-  const stack = [];              // folder path; top = current folder or null
+  // Each entry keeps its whole folder path (favorites-tree.js), in the order
+  // the file lists it. A path too long to store lands in the deepest folder
+  // that fits, flagged `shortened`.
+  const stack = [];              // one name per open <DL>; null = unnamed level
   let pending;                   // folder name awaiting its <DL>, or undefined
-  const current = () => (stack.length ? stack[stack.length - 1] : null);
+  const current = () => fitSegments(stack.filter((name) => name !== null));
 
   for (const m of String(html).matchAll(TOKEN)) {
     const tok = m[0].slice(0, 4).toLowerCase();
@@ -58,12 +62,19 @@ function parseNetscapeBookmarks(html, { now = Date.now() } = {}) {
         if (ms <= now) addedAt = ms; // reject future timestamps
       }
       const title = decodeEntities(m[3] || '').trim();
+      const { path: folder, shortened } = current();
+      // The one flat name import stored before folders could nest: the
+      // immediate parent. bookmark-data.addImported uses it until the
+      // Favorites manager ships.
+      const flatFolder = stack.length ? stack[stack.length - 1] : null;
       out.push({
         url,
         title: title || url,
         favicon: validFavicon(rawIcon),
         addedAt,
-        folder: current(),
+        folder,
+        shortened,
+        flatFolder,
       });
     }
   }

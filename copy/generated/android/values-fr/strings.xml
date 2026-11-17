@@ -1782,6 +1782,17 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
         <item quantity="many">%1$d déjà enregistrés ignorés.</item>
         <item quantity="other">%1$d déjà enregistrés ignorés.</item>
     </plurals>
+    <plurals name="favorites_import_moved">
+        <item quantity="one">%1$d déplacé dans son dossier.</item>
+        <item quantity="many">%1$d déplacés dans leurs dossiers.</item>
+        <item quantity="other">%1$d déplacés dans leurs dossiers.</item>
+    </plurals>
+    <plurals name="favorites_import_shortened">
+        <item quantity="one">%1$d placé dans un dossier parent, car le chemin de son dossier était trop long.</item>
+        <item quantity="many">%1$d placés dans un dossier parent, car les chemins de leurs dossiers étaient trop longs.</item>
+        <item quantity="other">%1$d placés dans un dossier parent, car les chemins de leurs dossiers étaient trop longs.</item>
+    </plurals>
+    <string name="favorites_import_order_dropped">Certains dossiers sont dans l’ordre par défaut, car la collection est très volumineuse.</string>
     <plurals name="favorites_import_all_saved">
         <item quantity="one">Ce favori était déjà enregistré.</item>
         <item quantity="many">Les %1$d favoris étaient déjà enregistrés.</item>
