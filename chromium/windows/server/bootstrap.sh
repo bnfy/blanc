@@ -66,9 +66,12 @@ echo "Lane pin: ${UPSTREAM}"
 shopt -s nullglob
 packages=("${TOOLCHAIN}"/*.zip)
 shopt -u nullglob
-if (( ${#packages[@]} != 1 )); then
-  (( dry_run )) || die "expected one Visual Studio package (<name>.zip) in ${TOOLCHAIN}, found ${#packages[@]}; see README.md."
-  echo "Note: no single Visual Studio package in ${TOOLCHAIN} yet; a real run stops here."
+if (( ${#packages[@]} > 1 )); then
+  die "expected one Visual Studio package (<name>.zip) in ${TOOLCHAIN}, found ${#packages[@]}; see README.md."
+elif (( ${#packages[@]} == 0 )); then
+  # The source can be fetched before the package exists; the run stops at the
+  # step that needs it.
+  echo "Note: no Visual Studio package in ${TOOLCHAIN} yet; this run stops after fetching the source."
   package_name=MISSING
 else
   package_name="$(basename "${packages[0]}" .zip)"
@@ -106,6 +109,9 @@ else
     || echo "Note: ${SRC} has local edits; apply.py below accepts only pristine or Blanc-applied files."
 fi
 
+if [[ "${package_name}" == MISSING ]] && (( ! dry_run )); then
+  die "the source is fetched; stage the Visual Studio package in ${TOOLCHAIN} (README.md) and run this again."
+fi
 step "install Linux build dependencies" sudo "${SRC}/build/install-build-deps.sh" --no-prompt
 # gclient's hook unpacks the Visual Studio package named by GYP_MSVS_HASH_<the
 # tree's toolchain hash> from the folder in DEPOT_TOOLS_WIN_TOOLCHAIN_BASE_URL
