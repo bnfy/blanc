@@ -85,6 +85,9 @@
 /press/blanc-lockup-white-480.png
   ! Cross-Origin-Resource-Policy
 
+/press/blanc-mail-lockup-ink-480.png
+  ! Cross-Origin-Resource-Policy
+
 /fonts/instrument-sans/*
   ! Cross-Origin-Resource-Policy
   Access-Control-Allow-Origin: *
