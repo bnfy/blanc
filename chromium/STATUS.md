@@ -14,6 +14,28 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-17 — Importer: Sync's failure paths (candidate macos-cbb4a951532f5900):**
+  from a source review the owner passed on. Two faults, both confirmed in
+  the code before fixing. (1) Personal was marked imported before Sync was
+  staged, and a failed staging write showed only as `staged: false`, which
+  Settings never read; a second run skipped Personal, so Sync was never
+  tried again. Personal's marker now carries Sync's own state (`staged`,
+  `none` or `failed`); a run that finds `failed` stages Sync alone and
+  imports nothing else twice; Settings says "Your data is here, but Sync
+  couldn't be set up. Try again to set up Sync." (a new fork string in six
+  languages, translations unreviewed) and offers Try again. (2) At launch
+  the staged stores were moved with failures ignored and the staging folder
+  deleted anyway. Each store is now copied, put in place and compared;
+  `sync.json`, which turns Sync on, goes last; the staged copy is removed
+  only when every store is in place, so a failed move is taken up at the
+  next launch. Test hooks: `setImportSyncStagingFails` and the switch
+  `--blanc-test-sync-adopt-fail`, both compiled out of beta and release
+  builds. `native-profile-import-sync.mjs` now has 6 checks, adding a
+  failed staging write with its retry through Settings, and a failed move
+  across two relaunches; the importer's other tests pass (11 and 7). The
+  new checks were not run against the build before the fix. A Personal
+  imported before today has no Sync state in its marker and is treated as
+  done.
 - **2026-11-17 — The no-drm-handoff standing waiver is retired from beta.7 (owner: "Yes, retire it"):**
   `release/standing.json` sets the waiver's `until` to 2.0.0-beta.7, so
   from that beta the gate must pass. It passes as a carried check:
