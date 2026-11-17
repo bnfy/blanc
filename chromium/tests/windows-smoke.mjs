@@ -1,0 +1,70 @@
+// The Windows launch check (W0 exit gate 4): an unpacked candidate starts,
+// draws the Island, starts the blocker and loads a page, on the machine it
+// runs on. It makes its own run config from the candidate's candidate.json,
+// so it needs no tracker entry and can run before the suite does.
+//
+//   node chromium/tests/windows-smoke.mjs CANDIDATE_FOLDER RESULTS_FOLDER
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {execFileSync} from 'node:child_process';
+import {NativeFixture} from './lib/fixture.mjs';
+import {waitFor} from './lib/cdp.mjs';
+import {installDriver,nativeCall} from './lib/test-driver.mjs';
+import {assertRendering,assertNodeRuntime} from './lib/render-guard.mjs';
+import {hostPlatform} from './lib/platform.mjs';
+import {runtimeConfig} from '../windows/candidate.mjs';
+
+const [candidateFolder,resultsFolder]=process.argv.slice(2);
+if(!candidateFolder||!resultsFolder)throw Error('Usage: windows-smoke.mjs CANDIDATE_FOLDER RESULTS_FOLDER');
+assertNodeRuntime();
+const directory=path.resolve(candidateFolder),out=path.resolve(resultsFolder);
+if(fs.existsSync(out))throw Error('Refusing to overwrite earlier results');
+fs.mkdirSync(out,{recursive:true});
+const candidate=JSON.parse(fs.readFileSync(path.join(directory,'candidate.json'),'utf8'));
+const config=runtimeConfig(directory,candidate);
+const record={candidate:candidate.id,version:candidate.version,treeCommit:candidate.treeCommit,platform:hostPlatform(),host:`${os.type()} ${os.release()} ${os.arch()}`,checks:{}};
+const save=()=>fs.writeFileSync(path.join(out,'smoke.json'),JSON.stringify(record,null,2)+'\n');
+const png=async(connection,name)=>fs.writeFileSync(path.join(out,name),Buffer.from((await connection.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
+// The whole desktop, as a person would see it: proof the window itself drew,
+// which a per-document capture cannot give.
+function desktopCapture(file){
+ if(process.platform!=='win32')return false;
+ execFileSync('powershell.exe',['-NoProfile','-NonInteractive','-Command',
+  'Add-Type -AssemblyName System.Windows.Forms,System.Drawing; $b=[System.Windows.Forms.SystemInformation]::VirtualScreen; $i=New-Object System.Drawing.Bitmap $b.Width,$b.Height; $g=[System.Drawing.Graphics]::FromImage($i); $g.CopyFromScreen($b.Left,$b.Top,0,0,$i.Size); $i.Save($env:BLANC_CAPTURE)'],
+  {env:{...process.env,BLANC_CAPTURE:file},stdio:'ignore',timeout:30000});
+ return true;
+}
+const fixture=new NativeFixture();
+const scratch=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-smoke-'));
+let failure=null;
+try{
+ // launch() itself waits for the Island's document, the blocker's ready
+ // state and the fixture page; each is recorded again below from the app.
+ await fixture.launch(config,path.join(scratch,'case'),{testHooks:true,diskAssets:false});
+ record.checks.launched=true;
+ const version=await fixture.browser.send('Browser.getVersion');
+ record.product=version.product;record.userAgent=version.userAgent;
+ await installDriver(fixture.host);
+ record.checks.testHooks=(await nativeCall(fixture.host,'capabilities')).testHooks===true;
+ await assertRendering(e=>fixture.host.eval(e));
+ record.checks.islandDraws=true;
+ const snapshot=await waitFor(fixture.snapshot,s=>s.blockerHealth==='ready'&&s.tabs.some(t=>t.url===fixture.base+'/initial'&&!t.isLoading),'blocker ready and page loaded');
+ record.checks.blockerReady=snapshot.blockerHealth==='ready';
+ record.checks.pageLoaded=await fixture.page.eval('document.title')==='Native test fixture';
+ record.islandPlatform=await fixture.host.eval('navigator.platform');
+ record.tabs=snapshot.tabs.map(t=>({url:t.url.replace(fixture.base,'<fixture>'),title:t.title}));
+ await png(fixture.host,'island.png');await png(fixture.page,'page.png');
+ record.checks.desktopCaptured=desktopCapture(path.join(out,'desktop.png'));
+}catch(error){failure=error;record.error=String(error.stack||error);}
+finally{
+ try{record.exit=await fixture.close();}catch(error){record.closeError=String(error.message||error);}
+ const log=path.join(scratch,'case','browser.log');
+ if(fs.existsSync(log))fs.copyFileSync(log,path.join(out,'browser.log'));
+ fs.rmSync(scratch,{recursive:true,force:true});
+}
+const required=['launched','testHooks','islandDraws','blockerReady','pageLoaded'];
+record.pass=!failure&&required.every(name=>record.checks[name]===true)&&record.exit?.code===0;
+save();
+console.log(JSON.stringify(record,null,2));
+if(!record.pass)process.exitCode=1;
