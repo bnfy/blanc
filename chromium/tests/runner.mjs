@@ -4,7 +4,7 @@ import {phase,measuredAttempt,timingSummary} from './lib/timing.mjs';
 import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
-import {execFileSync,spawn} from 'node:child_process';
+import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {NativeFixture} from './lib/fixture.mjs';
 import {waitFor} from './lib/cdp.mjs';
@@ -15,6 +15,8 @@ import {avoidRealPointer} from './lib/real-pointer.mjs';
 import {prepareSyncFixture} from './fork-steps/sync.mjs';
 import {aggregateCases} from './results.mjs';
 import {macosForkExclusions} from './macos-fork-exclusions.mjs';
+import {windowsForkExclusions} from './windows-fork-exclusions.mjs';
+import {hostPlatform,keepAwake,candidateIdentity} from './lib/platform.mjs';
 import {awaitMemory} from './lib/memory-guard.mjs';
 import {createWorld,missingAdapters} from './world.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url));
@@ -37,14 +39,18 @@ const out=path.resolve(outputDirectory);
 if(fs.existsSync(out))throw Error('Refusing to overwrite prior baseline');
 const tracker=JSON.parse(fs.readFileSync(path.join(root,'tracker.json')));
 const inventory=JSON.parse(fs.readFileSync(path.join(root,'scenarios/inventory.json')));
-if(tracker.currentCandidates.macos?.id!==config.candidate)throw Error('Candidate does not match tracker');
+// One suite, run on the platform it is on: the tracker, the baseline and
+// the exclusions are all keyed by it.
+const platform=hostPlatform();
+const forkExclusions={macos:macosForkExclusions,windows:windowsForkExclusions}[platform]??{};
+if(tracker.currentCandidates[platform]?.id!==config.candidate)throw Error('Candidate does not match tracker');
 const forkCommit=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
 const sourceMapSha256=crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'source-map.json'))).digest('hex');
 fs.mkdirSync(out,{recursive:true,mode:0o700});
 const scratch=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-fixtures-'));
 // The Island assets the cases ran against: compiled in, or a disk override.
 const islandManifestSha256=crypto.createHash('sha256').update(JSON.stringify(JSON.parse(fs.readFileSync(path.join(root,'blanc/island-assets.json'))).manifest)).digest('hex');
-const baseline={schemaVersion:1,assets:config.diskAssets===false?{source:'embedded',islandManifestSha256}:{source:'disk',folder:path.basename(config.assets)},...((only||selected)?{developmentSubset:only??{caseList:[...selected]}}:{}),platform:'macos',candidate:config.candidate,candidateIdentity:{id:config.candidate,frameworkSha256:config.frameworkSha256,executableSha256:config.executableSha256},shippingTag:inventory.shippingTag,shippingCommit:inventory.shippingCommit,forkCommit,sourceMapSha256,
+const baseline={schemaVersion:1,assets:config.diskAssets===false?{source:'embedded',islandManifestSha256}:{source:'disk',folder:path.basename(config.assets)},...((only||selected)?{developmentSubset:only??{caseList:[...selected]}}:{}),platform,candidate:config.candidate,candidateIdentity:candidateIdentity(config),shippingTag:inventory.shippingTag,shippingCommit:inventory.shippingCommit,forkCommit,sourceMapSha256,
  qualification:'full shipping declaration inventory; defined steps execute on the native candidate; undefined steps are runner gaps, not inferred product failures',scenarios:[]};
 const xmlEscape=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const cases=[];
@@ -58,7 +64,7 @@ const timingHarnessSha256=harnessHash.digest('hex');
 const writeTimings=()=>fs.writeFileSync(path.join(out,'timing.json'),JSON.stringify({candidate:config.candidate,shippingCommit:inventory.shippingCommit,timingHarnessSha256,...timingSummary(timings)},null,2)+'\n');
 // Hold the display awake for the run (released when it exits): a sleeping
 // display stops the run through the render guard.
-spawn('/usr/bin/caffeinate',['-d','-i','-w',String(process.pid)],{stdio:'ignore'}).unref();
+keepAwake();
 async function runCase(matches,steps,tags=[]){
  const entry={executed:false};
  const fixture=new NativeFixture();
@@ -131,13 +137,13 @@ async function runCase(matches,steps,tags=[]){
  return entry;
 }
 for(const scenario of inventory.scenarios){
- const record={id:scenario.id,file:scenario.file,line:scenario.line,name:scenario.name,featureRows:scenario.featureRows,shippingTag:inventory.shippingTag,shippingCommit:inventory.shippingCommit,forkCommit,candidate:config.candidate,platform:'macos',cases:[]};
+ const record={id:scenario.id,file:scenario.file,line:scenario.line,name:scenario.name,featureRows:scenario.featureRows,shippingTag:inventory.shippingTag,shippingCommit:inventory.shippingCommit,forkCommit,candidate:config.candidate,platform,cases:[]};
  for(const test of scenario.cases){
   const entry={id:test.id,name:test.name,result:'not-run',executed:false};
   if((selected&&!selected.has(test.id))||(onlyPattern&&!onlyPattern.test(test.id))){entry.result='not-run';}
   else if(scenario.desktopApplicability==='excluded'){entry.result='excluded';entry.exclusionReason=scenario.exclusionReason;}
-  else if(process.platform==='darwin'&&macosForkExclusions[test.id]){entry.result='excluded';entry.exclusionReason=macosForkExclusions[test.id];}
-  else if((scenario.tags.includes('@test-platform-linux')||scenario.tags.includes('@F45-7'))&&process.platform!=='linux'){entry.result='undefined';entry.nonApplicableReason='Linux platform behavior cannot execute on the native macOS fork; Electron platform spoofing is not a native platform test.';}
+  else if(forkExclusions[test.id]){entry.result='excluded';entry.exclusionReason=forkExclusions[test.id];}
+  else if((scenario.tags.includes('@test-platform-linux')||scenario.tags.includes('@F45-7'))&&process.platform!=='linux'){entry.result='undefined';entry.nonApplicableReason='Linux platform behavior cannot execute on the native fork off Linux; Electron platform spoofing is not a native platform test.';}
   else{
    const matches=test.steps.map(s=>s.argument?null:matchStep(s.text));
    const gaps=test.steps.map((s,i)=>{
