@@ -17,7 +17,7 @@ export function suiteArguments(options) {
   const slices = options.filter(option => option.startsWith('--slice='));
   const only = options.filter(option => option.startsWith('--only='));
   if (options.length !== slices.length + only.length || slices.length !== 1 || slices[0] !== '--slice=f0' || only.length > 1)
-    throw new Error('Use --slice=f0 and at most one --only=case-id-text.');
+    throw new Error(`Use --slice=f0 and at most one --only=case-id-text (got ${JSON.stringify(options)}).`);
   // An empty filter would mark a full run as a subset.
   if (only.length && only[0] === '--only=') throw new Error('--only needs case-id text; leave it out for a full run.');
   return only;

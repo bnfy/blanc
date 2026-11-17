@@ -115,8 +115,11 @@ jobs:
         if: inputs.suite == 'f0'
         run: |
           # An empty filter is no filter: a full run must never be recorded as a subset.
-          $subset = if ($env:ONLY) { @("--only=$env:ONLY") } else { @() }
-          node chromium/windows/run-suite.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\f0" --slice=f0 @subset
+          # One array, splatted: each element reaches node as one argument,
+          # whatever PowerShell would make of a bare --name=value.with.dots.
+          $arguments = @('chromium/windows/run-suite.mjs', $env:CANDIDATE_DIR, "$env:RESULTS\f0", '--slice=f0')
+          if ($env:ONLY) { $arguments += "--only=$env:ONLY" }
+          node @arguments
       - name: Keep the results
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
