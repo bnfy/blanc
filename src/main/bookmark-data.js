@@ -485,13 +485,19 @@ function favoritesMenuModel(items, layout) {
 }
 
 /** Which folder `/save <typed>` means. Names may be separated by > or ›.
- * An existing full path wins; then a single name that matches exactly one
+ * An existing full path wins (a folder whose own name holds > counts, typed
+ * as that name); then a single name that matches exactly one
  * folder anywhere; otherwise the typed path from the top level. null when
  * the typed path can't be stored. */
 function resolveSavePath(items, layout, typed) {
   const path = parseTypedPath(typed);
   if (path === null) return null;
   const folders = listFolderPaths(buildTree(items, layout));
+  // A flat folder saved with > in its name (import turns › into >) is still
+  // reachable by typing that name.
+  const whole = cleanSegment(typed)?.toLowerCase();
+  const flat = whole && folders.find((folder) => pathKey(folder) === whole);
+  if (flat) return flat;
   const key = pathKey(path);
   const exact = folders.find((folder) => pathKey(folder) === key);
   if (exact) return exact;

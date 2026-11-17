@@ -9,8 +9,10 @@ since then are below as they're recorded.
   (Show Favorites, ⌥⌘B or Ctrl+Shift+O) now opens a manager with your folders
   in a sidebar. Make folders inside folders, drag favorites and folders where
   you want them, select several at once, and search every folder. Deleting a
-  folder keeps what was in it. Importing from another browser keeps its
-  folders as they were, and one **Bring my stuff to Blanc** button now handles
+  folder keeps what was in it. Importing from another browser keeps folders
+  inside folders in the browser's order (empty folders aren't brought over, and
+  very long folder paths are shortened), and one **Bring my stuff to Blanc**
+  button now handles
   importing favorites and open tabs. The Favorites menu shows the same folders,
   and `/save` takes a path, such as `/save Work > Clients`. On the iPhone, a
   folder inside a folder shows as one folder named by its path for now.

@@ -428,37 +428,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save this page to favorites, into a folder if you name one"
+            "value": "Save this page to favorites, into a folder if you name one. Put > between folder names to reach a folder inside a folder, as in Work > Clients"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Diese Seite zu den Favoriten hinzufügen, in einen Ordner, wenn du einen nennst"
+            "value": "Diese Seite zu den Favoriten hinzufügen, in einen Ordner, wenn du einen nennst. Setze > zwischen Ordnernamen, um einen Ordner in einem Ordner zu erreichen, etwa Arbeit > Kunden"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Guarda esta página en favoritos, en una carpeta si indicas su nombre"
+            "value": "Guarda esta página en favoritos, en una carpeta si indicas su nombre. Pon > entre nombres de carpeta para llegar a una carpeta dentro de otra, como Trabajo > Clientes"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enregistre cette page dans les favoris, dans un dossier si vous en indiquez un"
+            "value": "Enregistre cette page dans les favoris, dans un dossier si vous en indiquez un. Mettez > entre les noms de dossier pour atteindre un dossier dans un dossier, par exemple Travail > Clients"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Salva questa pagina nei preferiti, in una cartella se ne indichi una"
+            "value": "Salva questa pagina nei preferiti, in una cartella se ne indichi una. Metti > tra i nomi delle cartelle per raggiungere una cartella dentro un'altra, come Lavoro > Clienti"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Salva esta página nos favoritos, numa pasta se você informar o nome"
+            "value": "Salva esta página nos favoritos, numa pasta se você informar o nome. Coloque > entre nomes de pasta para chegar a uma pasta dentro de outra, como Trabalho > Clientes"
           }
         }
       }

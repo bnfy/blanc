@@ -616,3 +616,9 @@ test('/save files a page into the one nested folder its name matches', () => {
   const typed = applySaveFavorite(s, { url: 'https://c/', title: 'C', folder: 'work > New' }, { ...CTX, makeId: () => 'y' });
   assert.equal(typed.items.find((i) => i.url === 'https://c/').folder, 'Work › New');
 });
+
+test('/save still reaches an existing folder whose name holds >', () => {
+  const items = [fav('a', 'Dev > Tools', 1)];
+  assert.equal(resolveSavePath(items, EMPTY_LAYOUT, 'dev > tools'), 'Dev > Tools');
+  assert.equal(resolveSavePath(items, EMPTY_LAYOUT, 'Dev > Docs'), 'Dev › Docs');
+});
