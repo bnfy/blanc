@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { betaNumber, globMatch, standingWaiver, carriedState, loadStanding, validateStanding } from './standing.mjs';
@@ -80,4 +82,32 @@ test('KNOWN_GATES is manifest.mjs GATES', async () => {
   const { GATES } = await import('./manifest.mjs');
   const { KNOWN_GATES } = await import('./standing.mjs');
   assert.deepEqual(KNOWN_GATES, GATES);
+});
+
+test('a kept limitation needs a known gate with a release-notes line, and is listed once its waiver ends', async () => {
+  const { listedLimits } = await import('./standing.mjs');
+  assert.throws(() => validateStanding({ ...standing, keptLimits: ['webauthn'] }), /kept limitation/);
+  assert.throws(() => validateStanding({ ...standing, keptLimits: ['not-a-gate'] }), /kept limitation/);
+  const kept = validateStanding({ ...standing, keptLimits: ['no-drm-handoff'] });
+  assert.deepEqual(listedLimits(kept, {}), ['no-drm-handoff']);
+  assert.deepEqual(listedLimits(kept, { 'production-sync-real-device': 'x' }), ['no-drm-handoff', 'production-sync-real-device']);
+  assert.deepEqual(listedLimits(standing, { 'no-drm-handoff': 'x' }), ['no-drm-handoff']);
+  assert.deepEqual(listedLimits(standing, {}), []);
+});
+
+test('the Chromium version, not the files pinned for a patch, makes a carried check due', async () => {
+  const { chromiumVersionAt } = await import('./standing.mjs');
+  const s = validateStanding({ ...standing, anyChange: [], chromiumVersion: { file: 'chromium/lanes/desktop.json', fields: ['version', 'upstream'] } });
+  // A pristine file pinned for a new patch: the passkey check still carries.
+  assert.deepEqual(carriedState(s, 'webauthn', ['chromium/upstream/chrome/browser/x.cc', 'chromium/upstream/manifest.json', 'chromium/lanes/desktop.json']), { carried: true, touched: [] });
+  // A new Chromium: every carried check comes due.
+  assert.deepEqual(carriedState(s, 'webauthn', [], true), { carried: false, touched: ['Chromium version (chromium/lanes/desktop.json)'] });
+  // Its own code still makes it due.
+  assert.equal(carriedState(s, 'webauthn', ['chromium/patches/0054-blanc-private-passkey-secret.patch']).carried, false);
+  assert.throws(() => validateStanding({ ...standing, chromiumVersion: { file: 'x' } }), /chromiumVersion/);
+  // Read from the repository's own history: the same version at two commits of this lane.
+  const repo = fileURLToPath(new URL('../..', import.meta.url));
+  const sha = execFileSync('git', ['-C', repo, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  const head = chromiumVersionAt(s, sha, repo);
+  assert.match(head, /^\["\d+\.\d+\.\d+\.\d+","[a-f0-9]{40}"\]$/);
 });

@@ -12,8 +12,94 @@ the cold release build needed it. Pinned environments unchanged.
 D1 decided 2026-10-31: in-window private tabs.
 D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
+D4 decided for Windows 2026-11-17: cross-compiled on the Android lane's Linux
+server, tested on GitHub-hosted Windows runners. Approved with it: a second
+checkout there, the Visual Studio toolchain package, one cold Windows build
+and its incremental rebuilds, and one GN regeneration on the Mac Studio
+(`docs/superpowers/specs/2026-11-17-windows-fork-design.md`). Linux desktop
+hardware stays pending.
 
 ## Current work
+- **2026-11-17 — Carried checks come due on the Chromium version alone (owner: "Yes, narrow it"):**
+  `release/standing.json`'s `anyChange` (`chromium/upstream/**`) also
+  matched the pristine Chromium files pinned for each new patch, so
+  patches 0087 to 0093 made every carried check due although Chromium did
+  not change. `anyChange` is now empty, and a new `chromiumVersion` rule
+  compares the `version` and `upstream` fields of
+  `chromium/lanes/desktop.json` between a check's last pass and the
+  release (`chromiumVersionAt` in `standing.mjs`, used by `beta-prep.mjs`).
+  Each check's own paths still make it due. A dry run of beta.7's gates at
+  the current head now carries all four: webauthn from beta.5,
+  sparkle-N-to-N+1 from beta.6, desktop-sync and no-drm-handoff from beta.7;
+  only production-sync-real-device stays waived. A new Chromium makes all
+  of them due again (unit test).
+- **2026-11-17 — desktop-sync rerun for beta.7 (owner: "Rerun Sync"):**
+  due because the importer changed Sync's code. Both parts pass, the same
+  way as beta.6's: `native-sync-organic-tabs.mjs` on the prototype
+  macos-cbb4a951532f5900 (6 of 6: pages reach the peer on the runner's own
+  timers, in a Space, after a relaunch and after joining again) and
+  `beta-sync.mjs` on a local-qualification beta.7 built from the same source
+  (5 of 5, every Sync request on the Mac Studio). Evidence at
+  `evidence/foundation/beta7/desktop-sync.json`, pinned in
+  `release/standing.json` as desktop-sync's last pass from `18d761d3c`. The
+  Studio's `out/BlancBeta` was switched to the local-qualification arguments
+  for that build (`records/beta7-local-qual/`) and put back to the release
+  arguments afterwards, as for beta.6. Still due for beta.7 by the
+  `anyChange` glob: webauthn (owner) and sparkle-N-to-N+1.
+- **2026-11-17 — Importer: Sync's failure paths (candidate macos-cbb4a951532f5900):**
+  from a source review the owner passed on. Two faults, both confirmed in
+  the code before fixing. (1) Personal was marked imported before Sync was
+  staged, and a failed staging write showed only as `staged: false`, which
+  Settings never read; a second run skipped Personal, so Sync was never
+  tried again. Personal's marker now carries Sync's own state (`staged`,
+  `none` or `failed`); a run that finds `failed` stages Sync alone and
+  imports nothing else twice; Settings says "Your data is here, but Sync
+  couldn't be set up. Try again to set up Sync." (a new fork string in six
+  languages, translations unreviewed) and offers Try again. (2) At launch
+  the staged stores were moved with failures ignored and the staging folder
+  deleted anyway. Each store is now copied, put in place and compared;
+  `sync.json`, which turns Sync on, goes last; the staged copy is removed
+  only when every store is in place, so a failed move is taken up at the
+  next launch. Test hooks: `setImportSyncStagingFails` and the switch
+  `--blanc-test-sync-adopt-fail`, both compiled out of beta and release
+  builds. `native-profile-import-sync.mjs` now has 6 checks, adding a
+  failed staging write with its retry through Settings, and a failed move
+  across two relaunches; the importer's other tests pass (11 and 7). The
+  new checks were not run against the build before the fix. A Personal
+  imported before today has no Sync state in its marker and is treated as
+  done.
+- **2026-11-17 — The no-drm-handoff standing waiver is retired from beta.7 (owner: "Yes, retire it"):**
+  `release/standing.json` sets the waiver's `until` to 2.0.0-beta.7, so
+  from that beta the gate must pass. It passes as a carried check:
+  `native-protected-media.mjs` on the prototype (8 of 8 on
+  macos-1400e3914b1a7bdf, source `ded39777f`), evidence pinned at
+  `evidence/foundation/beta7/no-drm-handoff.json` on the Mac Studio, due
+  again when the notice's code changes. Protected video still does not
+  play (no Widevine), so the limitation stays listed: a new `keptLimits`
+  list keeps a retired waiver's line in the release notes and on the
+  website, whose page text therefore does not change. The release-notes
+  line now says the beta shows a notice offering the regular Blanc. Not
+  covered by the evidence: the notice on live sites and the real handoff on
+  a notarized beta (the owner's hand check). **For the next beta, seen in a
+  dry run of its gates:** desktop-sync is due (the importer changed Sync's
+  code), and webauthn (the owner's Touch ID check) and sparkle-N-to-N+1
+  show as due because `anyChange` (`chromium/upstream/**`) matches the
+  pristine files newly pinned for patches 0087 to 0093, although the
+  Chromium version did not change. Whether that glob should be narrower is
+  the owner's standing decision; nothing was changed.
+- **2026-11-17 — Close-out of the macOS remaining-work plan; tracker moved to macos-1400e3914b1a7bdf:**
+  the nightly full suite 20261117-0700 passed on the merged head
+  `ded39777f` (bnfy/blanc#1586): 635 of 667 pass, 1 fails
+  (`link-routing.feature:37`, passed on its rerun), 3 undefined (runner
+  gaps), 28 excluded. The tracker's candidate, baseline and every
+  suite-backed row's counts are from that run (F41 84 of 84 now that the
+  Spaces fade case is fixed, F37 9 of 9 with the New Tab reuse cases, F60
+  6 of 7 for the link-routing flake). N13 and N17 move to Integrated on
+  their rechecks; F51 stays Implemented, inert until a release version.
+  macOS rows: 70 Integrated, 8 Implemented, 2 not started by owner
+  decision, 1 research, none Verified. What remains for the owner, the
+  decisions and what is left to build are in §7 of
+  `docs/superpowers/plans/2026-11-16-macos-fork-remaining-work.md`.
 - **2026-11-16 — The Start Page import no longer costs the phones a request (candidate macos-1400e3914b1a7bdf):**
   the iPhone and iPad unit test `MobileStartPageTests.testFavoritesWidgetListsAndFollowsFavorites`
   failed on bnfy/blanc#1586. The phones share `newtab-adapter.js`, and the
@@ -4214,7 +4300,7 @@ on that site, and a wrong search address still fails it.
 
 | Platform | Current-candidate baseline |
 | --- | --- |
-| macOS | 633/667 executable cases pass; 3 failed; 3 undefined/not run; 28 excluded — [baseline](scenarios/baseline-macos-bed55af2cf2cf43d.json)<br>S1 rows: 259/263 pass; 1 failed; 1 undefined; 2 excluded |
+| macOS | 635/667 executable cases pass; 1 failed; 3 undefined/not run; 28 excluded — [baseline](scenarios/baseline-macos-1400e3914b1a7bdf.json)<br>S1 rows: 260/263 pass; 0 failed; 1 undefined; 2 excluded |
 | Windows | Not run (667 cases) |
 | Linux | Not run (667 cases) |
 
@@ -4229,10 +4315,10 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 | Not started / unassessed | 2 | 81 | 81 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
 | Drafted | 0 | 0 | 0 | 0 |
-| Implemented | 10 | 0 | 0 | 12 |
+| Implemented | 8 | 0 | 0 | 12 |
 | Built, isolated (legacy) | 0 | 0 | 0 | 0 |
 | Integrated, partial (legacy) | 0 | 0 | 0 | 0 |
-| Integrated | 68 | 0 | 0 | 0 |
+| Integrated | 70 | 0 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 | 0 |
@@ -4240,5 +4326,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-bed55af2cf2cf43d; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-1400e3914b1a7bdf; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

@@ -22,7 +22,7 @@ import { pathToFileURL } from 'node:url';
 import { check, equal, reason, sha256, assetName, validateRelease } from '../policy.mjs';
 import { ROOT } from '../preflight.mjs';
 import { COSIGN_IDENTITY, COSIGN_ISSUER, REPO } from '../release.mjs';
-import { betaNumber } from '../standing.mjs';
+import { betaNumber, listedLimits, loadStanding } from '../standing.mjs';
 
 // Each limitation the page lists, by the gate whose waiver it stands for.
 export const LIMITATIONS = {
@@ -32,6 +32,12 @@ export const LIMITATIONS = {
 const STANDING_EVIDENCE = {
   'no-drm-handoff': "Listed under 'Not in this beta yet'. The beta ships without Widevine (enable_widevine = false); the no-drm-handoff gate is waived under the owner's standing decision of 2026-11-14 (release.json gateWaivers).",
   'production-sync-real-device': "Listed under 'Not in this beta yet'. production-sync-real-device is waived under the owner's standing decision of 2026-11-14 (release.json gateWaivers); the release notes keep the caution that Sync isn't checked end to end.",
+};
+
+// A limitation kept after its waiver was retired: its gate passes, and the
+// thing is still not in the beta.
+const PASSED_EVIDENCE = {
+  'no-drm-handoff': "Listed under 'Not in this beta yet'. The beta ships without Widevine (enable_widevine = false), so protected video does not play. The no-drm-handoff gate passes: a site that asks for protected video gets a notice offering to open it in the released Blanc (the release's acceptance.json; waiver retired by the owner, 2026-11-17).",
 };
 
 const swap = (text, from, to, what) => {
@@ -65,7 +71,7 @@ export function versionClaims(r, published) {
 
 // r: the public release.json; appcast: its appcast-arm64.xml text; dmg: {bytes, sha256};
 // published: YYYY-MM-DD; files: the current contents on main.
-export function siteFiles({ r, appcast, dmg, published, files }) {
+export function siteFiles({ r, appcast, dmg, published, files, standing = loadStanding() }) {
   validateRelease(r);
   equal(r.arches, ['arm64'], 'the site offers the Apple Silicon beta only');
   const n = betaNumber(r.version), name = assetName(r, 'arm64');
@@ -77,7 +83,8 @@ export function siteFiles({ r, appcast, dmg, published, files }) {
   equal(prev.release, before.version, 'the previous claims ledger is not the site\'s current beta');
   // The page lists exactly these limitations; a change in waivers changes its text.
   const shown = Object.entries(LIMITATIONS).filter(([, text]) => prev.claims.some(c => c.text === text)).map(([g]) => g).sort();
-  equal(Object.keys(r.gateWaivers ?? {}).sort(), shown, 'the release\'s waivers differ from the limitations the page lists; the page text changes, so this PR needs the owner');
+  const listed = listedLimits(standing, r.gateWaivers ?? {}).filter(g => LIMITATIONS[g]).sort();
+  equal(listed, shown, 'the release\'s waivers differ from the limitations the page lists; the page text changes, so this PR needs the owner');
 
   const betaJson = JSON.stringify({
     version: r.version, build: r.build, tag: r.tag, published,
@@ -105,7 +112,10 @@ export function siteFiles({ r, appcast, dmg, published, files }) {
       if (c.field) { check(fresh[c.field], `the claims ledger has an unknown field ${c.field}`); return fresh[c.field]; }
       if (legacy && c.text.startsWith(LEGACY_REQUIREMENT)) return { text: `${LEGACY_REQUIREMENT}${r.version}`, evidence: fresh.requirement.evidence };
       const gate = Object.keys(LIMITATIONS).find(g => LIMITATIONS[g] === c.text);
-      return gate ? { text: c.text, evidence: STANDING_EVIDENCE[gate] } : c;
+      if (!gate) return c;
+      const evidence = r.gateWaivers?.[gate] ? STANDING_EVIDENCE[gate] : PASSED_EVIDENCE[gate];
+      check(evidence, `no evidence text for the limitation: ${gate}`);
+      return { text: c.text, evidence };
     }),
   };
   if (legacy) check(ledger.claims.some(c => c.text === `${LEGACY_REQUIREMENT}${r.version}`), 'the claims ledger has no requirement line');

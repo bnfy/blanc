@@ -166,5 +166,13 @@
     "fr": "Non importés : les connexions aux sites web, la liste des téléchargements et quelques réglages. Vous devrez vous reconnecter aux sites web.",
     "it": "Non importati: gli accessi ai siti web, l’elenco dei download e alcune impostazioni. Dovrai accedere di nuovo ai siti web.",
     "pt-BR": "Não importados: logins em sites, a lista de downloads e algumas configurações. Você precisará entrar nos sites de novo."
+  },
+  "settings.profileImport.syncFailed": {
+    "en": "Your data is here, but Sync couldn't be set up. Try again to set up Sync.",
+    "de": "Deine Daten sind da, aber Sync konnte nicht eingerichtet werden. Versuche es erneut, um Sync einzurichten.",
+    "es": "Tus datos ya están aquí, pero no se pudo configurar Sync. Vuelve a intentarlo para configurar Sync.",
+    "fr": "Vos données sont là, mais Sync n’a pas pu être configuré. Réessayez pour configurer Sync.",
+    "it": "I tuoi dati sono qui, ma non è stato possibile configurare Sync. Riprova per configurare Sync.",
+    "pt-BR": "Seus dados estão aqui, mas não foi possível configurar o Sync. Tente de novo para configurar o Sync."
   }
 }

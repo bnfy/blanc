@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { changedInputs, plannedActions, checkPlan, planSummary, localJobs, maximumActions, selectedSdk, outputName, buildLane, requireAndroidHost, competingBuild, processListArgs } from './build.mjs';
+import { changedInputs, plannedActions, checkPlan, planSummary, localJobs, maximumActions, selectedSdk, outputName, buildLane, requireAndroidHost, competingBuild, processListArgs, WINDOWS_OUTPUTS, requireDesktopHost, windowsToolchainPins } from './build.mjs';
 
 test('cold plans larger than the former capture limit retain their final count', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-plan-test-'));
@@ -148,4 +148,32 @@ test('android lane refuses a competing build', () => {
   assert.equal(competingBuild('bash     -bash\nnode     node build.mjs --check\nvim      vim siso-notes.txt\n'), false);
   assert.deepEqual(processListArgs('linux'), ['-eo', 'comm=,args=']);
   assert.deepEqual(processListArgs('darwin'), ['-axo', 'comm=,args=']);
+});
+
+// Windows is a second build of the desktop lane, cross-compiled on the
+// x86-64 Linux server (owner decision D4, 2026-11-17).
+test('desktop lane accepts the Windows output and keeps the same target', () => {
+  assert.deepEqual(WINDOWS_OUTPUTS, ['BlancWinPrototype']);
+  assert.equal(outputName(['--out=BlancWinPrototype']), 'BlancWinPrototype');
+  assert.deepEqual(buildLane(['--out=BlancWinPrototype']), { lane: 'desktop', out: 'BlancWinPrototype', target: 'chrome' });
+  for (const options of [['--lane=android', '--out=BlancWinPrototype'], ['--out=BlancWinPrototype', '--sdk-root=/tmp'],
+    ['--out=BlancWinBeta'], ['--out=blancwinprototype']])
+    assert.throws(() => buildLane(options), undefined, options.join(' '));
+});
+test('each desktop output builds only on its own kind of machine', () => {
+  assert.doesNotThrow(() => requireDesktopHost('BlancWinPrototype', 'linux', 'x64'));
+  for (const [platform, arch] of [['darwin', 'arm64'], ['linux', 'arm64'], ['win32', 'x64']])
+    assert.throws(() => requireDesktopHost('BlancWinPrototype', platform, arch), /only on x86-64 Linux/);
+  for (const out of ['BlancPrototype', 'BlancRelease', 'BlancBeta']) {
+    assert.doesNotThrow(() => requireDesktopHost(out, 'darwin', 'arm64'));
+    assert.doesNotThrow(() => requireDesktopHost(out, 'darwin', 'x64'));
+    assert.throws(() => requireDesktopHost(out, 'linux', 'x64'), /only on macOS/);
+  }
+});
+test('the Windows toolchain pins are read from the tree, and a changed format fails closed', () => {
+  const source = "# comment TOOLCHAIN_HASH\nTOOLCHAIN_HASH = '3bfcb536c8'\nSDK_VERSION = '10.0.28000.0'\n";
+  assert.deepEqual(windowsToolchainPins(source), { toolchainHash: '3bfcb536c8', sdkVersion: '10.0.28000.0' });
+  assert.throws(() => windowsToolchainPins("TOOLCHAIN_HASH = '3bfcb536c8'\n"), /SDK_VERSION/);
+  assert.throws(() => windowsToolchainPins("SDK_VERSION = '10.0.28000.0'\n"), /TOOLCHAIN_HASH/);
+  assert.throws(() => windowsToolchainPins("TOOLCHAIN_HASH = get_hash()\nSDK_VERSION = '10.0.28000.0'\n"), /TOOLCHAIN_HASH/);
 });
