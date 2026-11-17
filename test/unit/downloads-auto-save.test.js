@@ -58,8 +58,14 @@ class FakeItem extends EventEmitter {
 class FakeSession extends EventEmitter {
   constructor() { super(); this.requested = []; }
   downloadURL(url) { this.requested.push(url); }
-  start(item) { this.emit('will-download', { preventDefault() {} }, item, null); return item; }
+  start(item, requester = page) { this.emit('will-download', { preventDefault() {} }, item, requester); return item; }
 }
+
+// The tab the downloads come from. A real click or key press on it allows one
+// download to skip Save As; tests click before each download unless they say not to.
+const page = new EventEmitter();
+downloads.trackDownloadGestures(page);
+const press = (type = 'mouseDown', target = page) => target.emit('input-event', {}, { type });
 
 const ses = new FakeSession();
 downloads.setupDownloads(ses, () => {}, { private: false });
@@ -72,7 +78,10 @@ test.beforeEach(() => {
   downloads.setDownloadSavePolicy({ askWhereToSave: () => false, folder: () => dir });
 });
 
-const start = (name, session = ses, opts) => session.start(new FakeItem(`https://a.example/${name}`, name, opts));
+const start = (name, session = ses, opts = {}) => {
+  if (opts.click !== false) press();
+  return session.start(new FakeItem(`https://a.example/${name}`, name, opts));
+};
 const rowFor = (item) => downloads.listDownloads().find((d) => d.url === item.url);
 
 test("without a policy no save path is set (today's dialog)", () => {
@@ -171,6 +180,7 @@ test('a retry keeps its name reserved while it restarts', () => {
   const item = start('eight.zip');
   item.emit('updated', {}, 'interrupted');
   downloads.retryDownload(rowFor(item).id);
+  press();
   const other = ses.start(new FakeItem('https://b.example/eight.zip', 'eight.zip'));
   assert.equal(other.savePath, path.join(dir, 'eight (1).zip'));
   const again = start('eight.zip');
@@ -193,7 +203,9 @@ test('a retry from the list never overwrites a file now on disk', () => {
 });
 
 test('the downloads list shows the numbered name', () => {
+  press();
   const first = ses.start(new FakeItem('https://a.example/ten-1', 'ten.zip'));
+  press();
   const second = ses.start(new FakeItem('https://a.example/ten-2', 'ten.zip'));
   assert.equal(rowFor(first).filename, 'ten.zip');
   assert.equal(rowFor(second).filename, 'ten (1).zip');
@@ -251,4 +263,57 @@ test('a retry from the list with no free name asks instead of overwriting', { sk
     fs.chmodSync(dir, 0o755);
     ses.requested.length = 0;
   }
+});
+
+test('one click allows one download without asking; the next one asks', () => {
+  press();
+  const first = ses.start(new FakeItem('https://a.example/burst-1', 'burst.zip'));
+  const second = ses.start(new FakeItem('https://a.example/burst-2', 'burst.zip'));
+  assert.equal(first.savePath, path.join(dir, 'burst.zip'));
+  assert.equal(second.savePath, '');
+  first.emit('done', {}, 'completed');
+  second.emit('done', {}, 'cancelled');
+});
+
+test('a key press counts like a click', () => {
+  press('rawKeyDown');
+  const item = ses.start(new FakeItem('https://a.example/key', 'key.zip'));
+  assert.equal(item.savePath, path.join(dir, 'key.zip'));
+  item.emit('done', {}, 'completed');
+});
+
+test('moving the pointer does not count', () => {
+  press('mouseMove');
+  const item = ses.start(new FakeItem('https://a.example/move', 'move.zip'));
+  assert.equal(item.savePath, '');
+  item.emit('done', {}, 'cancelled');
+});
+
+test('a click on another tab does not count', () => {
+  const other = new EventEmitter();
+  downloads.trackDownloadGestures(other);
+  press('mouseDown', other);
+  const item = ses.start(new FakeItem('https://a.example/elsewhere', 'elsewhere.zip'));
+  assert.equal(item.savePath, '');
+  item.emit('done', {}, 'cancelled');
+});
+
+test('a download from a tab Blanc does not watch asks', () => {
+  const unknown = new EventEmitter();
+  press('mouseDown', unknown);
+  const item = ses.start(new FakeItem('https://a.example/unknown', 'unknown.zip'), unknown);
+  assert.equal(item.savePath, '');
+  item.emit('done', {}, 'cancelled');
+});
+
+test('a download left to Save As does not use up the click', () => {
+  downloads.setDownloadSavePolicy({ askWhereToSave: () => true, folder: () => dir });
+  press();
+  const asked = ses.start(new FakeItem('https://a.example/kept-1', 'kept-click.zip'));
+  assert.equal(asked.savePath, '');
+  asked.emit('done', {}, 'cancelled');
+  downloads.setDownloadSavePolicy({ askWhereToSave: () => false, folder: () => dir });
+  const saved = ses.start(new FakeItem('https://a.example/kept-2', 'kept-click.zip'));
+  assert.equal(saved.savePath, path.join(dir, 'kept-click.zip'));
+  saved.emit('done', {}, 'completed');
 });

@@ -102,22 +102,42 @@ function releaseClaimedFile(p) {
   }
 }
 
-function chooseSavePath(item) {
+// One download per click, as in Chrome. Chromium counts a download as
+// user-initiated for about 5 seconds after any click on the page, so a page
+// could follow one click with any number of downloads. Each real mouse press,
+// touch or key press on a tab gives it one download that skips Save As;
+// further downloads ask. A tab Blanc doesn't watch never skips it.
+const GESTURE_INPUTS = new Set(['mouseDown', 'rawKeyDown', 'keyDown', 'touchStart', 'gestureTap']);
+const watchedForGestures = new WeakSet();
+const gestureAllowance = new WeakSet();
+
+function trackDownloadGestures(wc) {
+  if (!wc || watchedForGestures.has(wc)) return;
+  watchedForGestures.add(wc);
+  wc.on('input-event', (_event, input) => {
+    if (GESTURE_INPUTS.has(input?.type)) gestureAllowance.add(wc);
+  });
+}
+
+function chooseSavePath(item, requester) {
   if (!savePolicy) return null;
   try {
     // A page can start a download without anyone clicking. Before #1591 the
     // dialog stopped that; it still does, so pages can't fill Downloads alone.
     if (typeof item.hasUserGesture !== 'function' || !item.hasUserGesture()) return null;
+    if (!requester || !gestureAllowance.has(requester)) return null;
     if (savePolicy.askWhereToSave()) return null;
     // A missing or unwritable folder makes claimPath throw: the dialog, never
     // a failed download.
-    return chooseDownloadPath({
+    const chosen = chooseDownloadPath({
       folder: savePolicy.folder(),
       filename: item.getFilename(),
       claim: claimPath,
       reserved: reservedPaths,
       maxPathLength: maxDownloadPathLength(process.platform),
     });
+    if (chosen) gestureAllowance.delete(requester);
+    return chosen;
   } catch {
     return null;
   }
@@ -208,7 +228,7 @@ function setupDownloads(
         record.filename = path.basename(savePath);
       }
     } else {
-      const savePath = asked ? null : chooseSavePath(item);
+      const savePath = asked ? null : chooseSavePath(item, requestingWebContents);
       if (savePath) {
         item.setSavePath(savePath);
         record.filename = path.basename(savePath);
@@ -409,6 +429,7 @@ module.exports = {
   setDownloadRequesterCheck,
   setDownloadSavePolicy,
   requestSaveDialog,
+  trackDownloadGestures,
   setupDownloads,
   listDownloads,
   activeCount,

@@ -51,7 +51,10 @@ asking by default. Issue #1591 asks for that, with the dialog kept as an option.
   switch on, behavior is exactly today's.
 - **Only clicked downloads skip the dialog** (added after the branch review):
   a download without a user gesture (`item.hasUserGesture()`) still shows
-  Save As, so a page can't write files into Downloads by itself, and
+  Save As, so a page can't write files into Downloads by itself, and each
+  real click or key press on a tab lets only one download skip Save As (as
+  in Chrome; Chromium counts every download in the ~5 seconds after any
+  click as user-initiated, which the packaged check caught), and
   "Save Image As…" always asks, as its label promises. A retry keeps its
   name reserved, and a retry from the list picks a free name if its file was
   taken meanwhile. The downloads list shows the name actually used.

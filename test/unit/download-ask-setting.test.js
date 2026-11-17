@@ -96,3 +96,9 @@ test('downloads apply this platform\'s path limit wherever Blanc picks a name', 
   assert.equal(calls.length, 2);
   for (const call of calls) assert.match(call, /maxPathLength: maxDownloadPathLength\(process\.platform\)/);
 });
+
+test('every tab is watched for the click that lets one download skip Save As', () => {
+  const tabView = read('src/main/tab-view.js');
+  assert.match(tabView, /const \{ trackDownloadGestures \} = require\('\.\/downloads'\);/);
+  assert.match(tabView, /function wireTabView\([\s\S]{0,1500}trackDownloadGestures\(wc\);/);
+});
