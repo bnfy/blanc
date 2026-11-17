@@ -46,7 +46,7 @@ try{
  const before=digestTree(source.userData);
  let r=await w.native('profileImportRun',[source.userData]);
  assert.equal(r.ok,true,JSON.stringify(r));assert.deepEqual(r.errors,[]);
- assert.deepEqual(r.startPage,{layout:true,clock:2,wallpaper:true,image:true});
+ assert.deepEqual(r.startPage,{layout:true,clock:6,wallpaper:true,image:true});
  const prefs=(await w.native('profileImportPrefs',[['blanc.prototype.start_layout','blanc.prototype.billboard_clock']])).prefs;
  assert.equal(prefs['blanc.prototype.start_layout'],'ledger');
  assert.equal(prefs['blanc.prototype.billboard_clock'].newtabClockFont,'inter');assert.equal(prefs['blanc.prototype.billboard_clock'].newtabClockWeight,700);
