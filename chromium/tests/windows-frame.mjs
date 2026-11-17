@@ -101,9 +101,13 @@ try{
  w=await win();
  const grab={x:150,y:34};
  record.details.captionAtGrab=await nativeCall(fixture.host,'captionAt',[grab.x,grab.y]);
- realInput(dragSteps({x:w.left+grab.x,y:w.top+grab.y},{x:w.left+grab.x+80,y:w.top+grab.y+60}));
+ // Down and slightly left, so the window (and its close button, pressed
+ // last) stays on a small screen. Windows spends the first few pixels of
+ // travel deciding it is a drag, so the window ends a little short.
+ const by={x:-12,y:60};
+ realInput(dragSteps({x:w.left+grab.x,y:w.top+grab.y},{x:w.left+grab.x+by.x,y:w.top+grab.y+by.y}));
  let after=await win();
- record.checks.dragByStrip=near(after.left,w.left+80)&&near(after.top,w.top+60)&&after.width===w.width&&after.height===w.height;
+ record.checks.dragByStrip=near(after.left,w.left+by.x,10)&&near(after.top,w.top+by.y,10)&&after.top>w.top+30&&after.width===w.width&&after.height===w.height;
  record.details.dragByStrip={before:w,after};
  w=after;
  realInput(dragSteps({x:w.left+Math.round(w.width/2),y:w.top+1},{x:w.left+Math.round(w.width/2),y:w.top-39}));
