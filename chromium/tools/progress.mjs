@@ -86,13 +86,24 @@ export function renderProgress(tracker, loadBaseline = () => null) {
   return lines.join('\n');
 }
 
+// The tracker's record of a Windows candidate, from the record its packaging
+// step wrote (chromium/windows/package-candidate.mjs). The build server has
+// no checkout of this tracker to write to, so the record is brought here.
+export function windowsCandidate(record) {
+  for (const key of ['id', 'exeSha256', 'dllSha256', 'version', 'treeCommit']) if (typeof record?.[key] !== 'string' || !record[key]) throw Error(`Windows candidate record has no ${key}`);
+  if (!/^[0-9a-f]{64}$/.test(record.dllSha256) || !/^[0-9a-f]{64}$/.test(record.exeSha256) || record.id !== `windows-x64-${record.dllSha256.slice(0, 16)}`)
+    throw Error('Windows candidate id does not match its chrome.dll hash');
+  return { id: record.id, exeSha256: record.exeSha256, dllSha256: record.dllSha256, version: record.version, treeCommit: record.treeCommit,
+    qualification: 'cross-compiled candidate; runtime acceptance pending' };
+}
 function main() {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const trackerFile = path.join(root, 'tracker.json');
   const statusFile = path.join(root, 'STATUS.md');
   const args = process.argv.slice(2);
-  if (args.some(a => a !== '--check' && !a.startsWith('--candidate-from-output=') && !a.startsWith('--slice-boundary='))) throw Error('Unknown argument');
-  if (args.includes('--check') && args.some(a => a.startsWith('--candidate-from-output=') || a.startsWith('--slice-boundary='))) throw Error('Check cannot update candidate');
+  const updates = ['--candidate-from-output=', '--windows-candidate=', '--slice-boundary='];
+  if (args.some(a => a !== '--check' && !updates.some(u => a.startsWith(u)))) throw Error('Unknown argument');
+  if (args.includes('--check') && args.some(a => updates.some(u => a.startsWith(u)))) throw Error('Check cannot update candidate');
   const tracker = JSON.parse(fs.readFileSync(trackerFile));
   const slice = args.find(a => a.startsWith('--slice-boundary='))?.slice('--slice-boundary='.length);
   if (slice) {
@@ -110,6 +121,11 @@ function main() {
     const executableSha256 = hash(fs.readFileSync(path.join(app, 'Contents/MacOS/Blanc Prototype')));
     tracker.currentCandidates.macos = { id: `macos-${frameworkSha256.slice(0, 16)}`, frameworkSha256, executableSha256,
       version: versions[0], qualification: 'compiled candidate; runtime acceptance pending' };
+    fs.writeFileSync(trackerFile, JSON.stringify(tracker, null, 2) + '\n');
+  }
+  const windowsRecord = args.find(a => a.startsWith('--windows-candidate='))?.slice('--windows-candidate='.length);
+  if (windowsRecord) {
+    tracker.currentCandidates.windows = windowsCandidate(JSON.parse(fs.readFileSync(windowsRecord)));
     fs.writeFileSync(trackerFile, JSON.stringify(tracker, null, 2) + '\n');
   }
   const generated = renderProgress(tracker, ref => JSON.parse(fs.readFileSync(path.resolve(root, ref))));

@@ -98,3 +98,15 @@ test('a row without an android stage is refused', () => {
   const t = tracker(); delete t.rows[0].platformProgress.android;
   assert.throws(() => renderProgress(t), /android stage for F1/);
 });
+
+import { windowsCandidate } from './progress.mjs';
+test('a Windows candidate is recorded from its packaging record, and only when its id matches its chrome.dll', () => {
+  const dll = 'ab'.repeat(32), exe = 'cd'.repeat(32);
+  const record = { id: 'windows-x64-abababababababab', exeSha256: exe, dllSha256: dll, version: '158.0.8127.2', treeCommit: 'f'.repeat(40), zipSha256: 'x', files: 3 };
+  assert.deepEqual(windowsCandidate(record), { id: record.id, exeSha256: exe, dllSha256: dll, version: '158.0.8127.2', treeCommit: 'f'.repeat(40),
+    qualification: 'cross-compiled candidate; runtime acceptance pending' });
+  assert.throws(() => windowsCandidate({ ...record, id: 'windows-x64-0000000000000000' }), /does not match/);
+  assert.throws(() => windowsCandidate({ ...record, id: 'macos-abababababababab' }), /does not match/);
+  for (const key of ['id', 'exeSha256', 'dllSha256', 'version', 'treeCommit']) assert.throws(() => windowsCandidate({ ...record, [key]: undefined }), new RegExp(key));
+  assert.throws(() => windowsCandidate(null));
+});
