@@ -111,3 +111,39 @@ test('claim is never asked about a reserved name', () => {
   chooseDownloadPath({ folder, filename: 'r.pdf', claim: (p) => { claimed.push(path.basename(p)); return true; }, reserved });
   assert.deepEqual(claimed, ['r (1).pdf']);
 });
+
+const { maxDownloadPathLength } = require('../../src/main/download-path');
+
+test('only Windows limits the whole path, to MAX_PATH less its terminator', () => {
+  assert.equal(maxDownloadPathLength('win32'), 259);
+  assert.equal(maxDownloadPathLength('darwin'), Infinity);
+  assert.equal(maxDownloadPathLength('linux'), Infinity);
+});
+
+test('a path limit shortens the name so even "(100)" fits, counting the folder', () => {
+  const deep = path.join(folder, 'd'.repeat(150));
+  const options = { folder: deep, filename: `${'a'.repeat(200)}.pdf`, reserved: new Set(), maxPathLength: 259 };
+  const first = chooseDownloadPath({ ...options, exists: () => false });
+  assert.ok(first.endsWith('.pdf'));
+  assert.equal(path.dirname(first), deep);
+  const last = chooseDownloadPath({ ...options, exists: (p) => !/\(100\)/.test(p) });
+  assert.ok(last.endsWith(' (100).pdf'));
+  assert.ok(last.length <= 259, `${last.length} characters`);
+});
+
+test('the path limit counts UTF-16 units, as Windows does', () => {
+  const deep = path.join(folder, 'd'.repeat(150));
+  const options = { folder: deep, filename: `${'😀'.repeat(200)}.txt`, reserved: new Set(), maxPathLength: 259 };
+  const last = chooseDownloadPath({ ...options, exists: (p) => !/\(100\)/.test(p) });
+  assert.ok(last.length <= 259, `${last.length} UTF-16 units`);
+  assert.match(path.basename(last), /^(😀)+ \(100\)\.txt$/);
+});
+
+test('a folder too long for any name leaves it to Save As', () => {
+  const deep = path.join(folder, 'd'.repeat(260));
+  assert.equal(chooseDownloadPath({ folder: deep, filename: 'a.pdf', exists: () => false, reserved: new Set(), maxPathLength: 259 }), null);
+});
+
+test('a short name in a short folder is left alone under the limit', () => {
+  assert.equal(chooseDownloadPath({ folder, filename: 'report.pdf', exists: () => false, reserved: new Set(), maxPathLength: 259 }), at('report.pdf'));
+});

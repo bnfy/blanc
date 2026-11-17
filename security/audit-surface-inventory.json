@@ -207,7 +207,7 @@
     },
     {
       "file": "src/main/downloads.js",
-      "sha256": "20eb7e7df96916c867f93197097817e1685d643366262d6d483f32675f60810c",
+      "sha256": "765f307df9d93623158d0dd9d2877c0bef4267854dc167bccf3945f3969eba1a",
       "literalChannels": [
         "updated",
         "will-download"

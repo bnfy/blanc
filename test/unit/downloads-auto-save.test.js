@@ -235,3 +235,20 @@ test('a folder Blanc cannot write to falls back to the dialog', { skip: process.
     fs.chmodSync(dir, 0o755);
   }
 });
+
+test('a retry from the list with no free name asks instead of overwriting', { skip: process.platform === 'win32' || process.getuid?.() === 0 }, () => {
+  const item = start('eleven.zip');
+  item.emit('done', {}, 'interrupted');
+  fs.writeFileSync(path.join(dir, 'eleven.zip'), 'someone else');
+  downloads.retryDownload(rowFor(item).id);
+  fs.chmodSync(dir, 0o555);
+  try {
+    const again = start('eleven.zip');
+    assert.equal(again.savePath, '');
+    assert.equal(fs.readFileSync(path.join(dir, 'eleven.zip'), 'utf8'), 'someone else');
+    again.emit('done', {}, 'cancelled');
+  } finally {
+    fs.chmodSync(dir, 0o755);
+    ses.requested.length = 0;
+  }
+});

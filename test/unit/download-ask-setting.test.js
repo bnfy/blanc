@@ -89,3 +89,10 @@ test('macOS explains why Blanc saves into Downloads', () => {
   const info = JSON.parse(read('package.json')).build.mac.extendInfo;
   assert.match(info.NSDownloadsFolderUsageDescription, /Downloads folder/);
 });
+
+test('downloads apply this platform\'s path limit wherever Blanc picks a name', () => {
+  const source = read('src/main/downloads.js');
+  const calls = source.match(/chooseDownloadPath\(\{[\s\S]*?\}\)/g) ?? [];
+  assert.equal(calls.length, 2);
+  for (const call of calls) assert.match(call, /maxPathLength: maxDownloadPathLength\(process\.platform\)/);
+});

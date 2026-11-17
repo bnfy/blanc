@@ -5,7 +5,7 @@ const { shell } = require('electron');
 const { JsonStore } = require('./store');
 const { withLocalProfile, activeLocalProfileId } = require('./local-profile-context');
 const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
-const { chooseDownloadPath, downloadReservationKey } = require('./download-path');
+const { chooseDownloadPath, downloadReservationKey, maxDownloadPathLength } = require('./download-path');
 
 // Completed/cancelled downloads persist across launches; in-flight ones
 // live here alongside their DownloadItem so cancel/pause can reach them.
@@ -116,6 +116,7 @@ function chooseSavePath(item) {
       filename: item.getFilename(),
       claim: claimPath,
       reserved: reservedPaths,
+      maxPathLength: maxDownloadPathLength(process.platform),
     });
   } catch {
     return null;
@@ -187,17 +188,25 @@ function setupDownloads(
             filename: path.basename(retry.path),
             claim: claimPath,
             reserved: reservedPaths,
+            maxPathLength: maxDownloadPathLength(process.platform),
           });
         } catch {
-          // The folder can't be written now; Chromium reports the retry's error.
+          // The folder can't be written now: ask below rather than overwrite.
         }
-        if (fresh) entry.claimedPath = fresh;
-        savePath = fresh ?? retry.path;
-        entry.reservedKey = downloadReservationKey(savePath);
-        reservedPaths.add(entry.reservedKey);
+        entry.reservedKey = null;
+        savePath = fresh;
+        if (fresh) {
+          entry.claimedPath = fresh;
+          entry.reservedKey = downloadReservationKey(fresh);
+          reservedPaths.add(entry.reservedKey);
+        }
       }
-      item.setSavePath(savePath);
-      record.filename = path.basename(savePath);
+      // No free name for a retried file that's now taken: Save As, never an
+      // overwrite.
+      if (savePath) {
+        item.setSavePath(savePath);
+        record.filename = path.basename(savePath);
+      }
     } else {
       const savePath = asked ? null : chooseSavePath(item);
       if (savePath) {

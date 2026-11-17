@@ -16,7 +16,12 @@ const MAX_NUMBER = 100;
 // on Windows, never more than the UTF-8 byte count), so the longest candidate,
 // "name (100).ext", must fit.
 const MAX_NAME_BYTES = 255;
-const SUFFIX_BYTES = Buffer.byteLength(` (${MAX_NUMBER})`);
+const SUFFIX = ` (${MAX_NUMBER})`;
+const SUFFIX_BYTES = Buffer.byteLength(SUFFIX);
+// Windows counts a whole path, folder included, against MAX_PATH (260 UTF-16
+// units with the terminating NUL), and Electron doesn't opt into long paths.
+const WINDOWS_MAX_PATH = 259;
+const maxDownloadPathLength = (platform) => (platform === 'win32' ? WINDOWS_MAX_PATH : Infinity);
 // An "extension" longer than this is really part of the name.
 const MAX_EXT_BYTES = 32;
 
@@ -30,22 +35,32 @@ function cleanName(filename) {
   return name === '' || name === '.' || name === '..' ? 'download' : name;
 }
 
-function truncateBytes(text, maxBytes) {
+// Shortens text to fit both budgets: UTF-8 bytes (the file-name limit) and
+// UTF-16 units (how Windows counts a path), never splitting a character.
+function truncate(text, maxBytes, maxUnits) {
   let out = '';
   let bytes = 0;
   for (const ch of text) {
     const size = Buffer.byteLength(ch);
-    if (bytes + size > maxBytes) break;
+    if (bytes + size > maxBytes || out.length + ch.length > maxUnits) break;
     out += ch;
     bytes += size;
   }
   return out;
 }
 
-function fitName(base, ext) {
-  if (Buffer.byteLength(ext) > MAX_EXT_BYTES) [base, ext] = [base + ext, ''];
-  const room = MAX_NAME_BYTES - SUFFIX_BYTES - Buffer.byteLength(ext);
-  if (Buffer.byteLength(base) > room) base = truncateBytes(base, room).trimEnd() || 'download';
+// Returns [base, ext] such that "base (100)ext" fits in 255 bytes and in
+// `nameUnits` UTF-16 units, or null when not even one character fits.
+function fitName(base, ext, nameUnits) {
+  const unitsForName = nameUnits - SUFFIX.length;
+  if (Buffer.byteLength(ext) > MAX_EXT_BYTES || ext.length >= unitsForName) [base, ext] = [base + ext, ''];
+  const roomBytes = MAX_NAME_BYTES - SUFFIX_BYTES - Buffer.byteLength(ext);
+  const roomUnits = unitsForName - ext.length;
+  if (roomUnits < 1) return null;
+  if (Buffer.byteLength(base) > roomBytes || base.length > roomUnits) {
+    base = truncate(base, roomBytes, roomUnits).trimEnd();
+    if (!base) return null;
+  }
   return [base, ext];
 }
 
@@ -60,9 +75,14 @@ function splitName(name) {
 
 // `claim(p)` returns true when it took the name (for example by creating the
 // file), false when the name is taken; anything it throws reaches the caller.
-// Without `claim`, `exists(p)` decides.
-function chooseDownloadPath({ folder, filename, exists, claim, reserved }) {
-  const [base, ext] = fitName(...splitName(cleanName(filename)));
+// Without `claim`, `exists(p)` decides. `maxPathLength` caps the whole path in
+// UTF-16 units (see maxDownloadPathLength); null means no name fits.
+function chooseDownloadPath({ folder, filename, exists, claim, reserved, maxPathLength = Infinity }) {
+  // The folder plus its separator, measured the way the candidate is built.
+  const folderUnits = path.join(folder, 'x').length - 1;
+  const fitted = fitName(...splitName(cleanName(filename)), maxPathLength - folderUnits);
+  if (!fitted) return null;
+  const [base, ext] = fitted;
   const take = claim ?? ((p) => !exists(p));
   for (let n = 0; n <= MAX_NUMBER; n += 1) {
     const candidate = path.join(folder, n === 0 ? `${base}${ext}` : `${base} (${n})${ext}`);
@@ -71,4 +91,4 @@ function chooseDownloadPath({ folder, filename, exists, claim, reserved }) {
   return null;
 }
 
-module.exports = { chooseDownloadPath, downloadReservationKey };
+module.exports = { chooseDownloadPath, downloadReservationKey, maxDownloadPathLength };
