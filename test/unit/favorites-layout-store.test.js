@@ -32,7 +32,7 @@ test.after(() => {
 const names = (node) => node.children.map((c) => (c.kind === 'folder' ? `[${c.folder.name}]` : c.item.url));
 const reset = () => {
   bookmarks.removeBookmarks(bookmarks.listBookmarks().map((b) => b.id));
-  layout.setLayout(EMPTY_LAYOUT);
+  layout.resetForTests();
 };
 
 test('a never-touched profile exports nothing', () => {
@@ -78,7 +78,27 @@ test('a merge that equals the remote adopts its clock and does not rise', () => 
   assert.equal(layout.exportForSync().tie, 'them');
 });
 
+test('equal clocks settle on the smaller tie from either side', () => {
+  const mine = layout.exportForSync();                       // tie 'them'
+  layout.mergeFromSync({ value: mine.value, at: mine.at, tie: 'zzz' });
+  assert.equal(layout.exportForSync().tie, 'them');
+  layout.mergeFromSync({ value: mine.value, at: mine.at, tie: 'aaa' });
+  assert.equal(layout.exportForSync().tie, 'aaa');
+  assert.equal(layout.exportForSync().at, mine.at);
+});
+
+test('a remote clock at the limit never leaves the record without a valid clock', () => {
+  const limit = Date.UTC(3000, 0, 1) - 1;
+  const other = setFolderOrder(EMPTY_LAYOUT, 'Limit', ['u:1'], { at: 70, tie: 'x' });
+  layout.mergeFromSync({ value: other, at: limit, tie: 'x' });
+  const out = layout.exportForSync();
+  assert.ok(out, 'still exported');
+  assert.ok(out.value.folders.limit);
+  layout.resetForTests();
+});
+
 test('a remote without the value is ignored', () => {
+  layout.setLayout(setFolderOrder(EMPTY_LAYOUT, 'Home', ['u:4'], { at: 50, tie: 'me' }));
   const before = layout.exportForSync();
   assert.equal(layout.mergeFromSync({ value: undefined, at: undefined, tie: undefined }), false);
   assert.equal(layout.mergeFromSync(null), false);
@@ -86,6 +106,7 @@ test('a remote without the value is ignored', () => {
 });
 
 test('an unreadable remote value keeps ours and outranks it', () => {
+  layout.setLayout(setFolderOrder(EMPTY_LAYOUT, 'Home', ['u:3'], { at: 50, tie: 'me' }));
   const before = layout.exportForSync();
   layout.mergeFromSync({ value: 'nonsense', at: before.at + 100, tie: 'x' });
   const out = layout.exportForSync();
@@ -112,21 +133,24 @@ test('folder operations write both stores and report errors', () => {
   assert.deepEqual(bookmarks.listBookmarks().map((b) => b.folder), ['Jobs', 'Jobs']);
 });
 
-test('toggle keeps the emptied folder', () => {
+// Until the manager can show and delete an empty folder (KEEPS_EMPTIED_FOLDERS
+// in bookmarks.js), emptying a folder leaves nothing behind, as before.
+test('toggle does not keep an emptied folder until the manager ships', () => {
   reset();
   bookmarks.saveFavorite('https://a.example/', 'A', null, 'Solo');
   assert.equal(bookmarks.toggleBookmark('https://a.example/', 'A', null), false);
-  assert.deepEqual(names(bookmarks.getTree()), ['[Solo]']);
+  assert.deepEqual(names(bookmarks.getTree()), []);
+  assert.equal(layout.exportForSync(), null);
 });
 
-test('removing by id and moving several keep emptied folders too', () => {
+test('removing by id and moving several leave no empty folders either', () => {
   reset();
   bookmarks.saveFavorite('https://a.example/', 'A', null, 'One');
   bookmarks.saveFavorite('https://b.example/', 'B', null, 'Two');
   const [a, b] = bookmarks.listBookmarks();
   bookmarks.removeBookmark(a.id);
   assert.deepEqual(bookmarks.moveFavorites([b.id], null), { ok: true });
-  assert.deepEqual(names(bookmarks.getTree()), ['[One]', '[Two]', 'https://b.example/']);
+  assert.deepEqual(names(bookmarks.getTree()), ['https://b.example/']);
   assert.deepEqual(bookmarks.exportForSync().tombstones.map((t) => t.url).includes('https://a.example/'), true);
 });
 

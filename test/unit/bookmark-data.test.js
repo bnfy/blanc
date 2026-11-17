@@ -386,3 +386,13 @@ test('an undefined folder is not a move to the top level', () => {
   const s = state([fav('a', 'Work', 1, 'id-a')]);
   assert.equal(applySetFolder(s, 'id-a', undefined, CTX).changed, false);
 });
+
+test('keeping emptied folders can be switched off, and an invalid save folder is an error', () => {
+  const s = state([fav('a', 'Solo', 1, 'id-a')]);
+  const r = applyMoveFavorites(s, ['id-a'], null, { ...CTX, keepEmptied: false });
+  assert.equal(r.items[0].folder, null);
+  assert.equal(r.layout, s.layout);
+  assert.equal(applyRemoveFavorites(s, ['id-a'], { ...CTX, keepEmptied: false }).layout, s.layout);
+  const bad = applySaveFavorite(state([]), { url: 'https://a/', title: 'A', folder: '   ' }, { ...CTX, makeId: () => 'x' });
+  assert.deepEqual([bad.changed, bad.error], [false, 'invalid']);
+});

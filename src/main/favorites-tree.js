@@ -174,12 +174,12 @@ function buildTree(items, layout) {
       child.kind === 'folder' ? folderChildKey(child.folder.name) : favoriteChildKey(child.item.url),
       child,
     ]));
-    const listed = [];
+    const listed = new Set();
     for (const key of orders.get(node.key) ?? []) {
       const child = keyed.get(key);
-      if (child && !listed.includes(child)) listed.push(child);
+      if (child) listed.add(child);
     }
-    const unlisted = node.children.filter((child) => !listed.includes(child));
+    const unlisted = node.children.filter((child) => !listed.has(child));
     node.children = [
       ...unlisted.filter((child) => child.kind === 'folder').sort(byName),
       ...unlisted.filter((child) => child.kind === 'favorite').sort(newestFirst),

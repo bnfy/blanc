@@ -65,13 +65,21 @@ function toggleBookmark(url, title, favicon) {
   return true;
 }
 
+// A folder that loses its last favorite should stay (spec 2026-11-16, section
+// 1), but only once the Favorites manager can show and delete an empty
+// folder. Until that page ships, today's list can't, and a kept folder would
+// be an invisible entry that syncs. The manager's PR turns this on.
+const KEEPS_EMPTIED_FOLDERS = false;
+
 /** Run one pure operation from bookmark-data over the favorites and the
  * layout record, write whichever changed, and notify once. Returns
  * { ok: true, path? }, or { ok: false, error } when the operation refused. */
 function run(apply) {
   const s = ensureStore();
   const state = { items: s.data.items, tombstones: s.data.tombstones, layout: layoutStore.getLayout() };
-  const res = apply(state, { now: Date.now(), tie: crypto.randomUUID(), makeId: crypto.randomUUID });
+  const res = apply(state, {
+    now: Date.now(), tie: crypto.randomUUID(), makeId: crypto.randomUUID, keepEmptied: KEEPS_EMPTIED_FOLDERS,
+  });
   if (res.error) return { ok: false, error: res.error };
   if (res.changed) {
     if (res.items !== state.items || res.tombstones !== state.tombstones) {

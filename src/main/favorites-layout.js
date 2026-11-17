@@ -75,17 +75,22 @@ function mergeFromSync(remote) {
   const merged = boundLayout(mergeLayouts(current, theirs, { now: Date.now() })).layout;
   const changed = !layoutsEqual(merged, current);
   const matchesRemote = layoutsEqual(merged, theirs) && remote.value && typeof remote.value === 'object';
-  if (matchesRemote && remote.at <= localAt && !changed) return false;
+  const remoteTie = syncClock.normalizeSyncTieBreaker(remote.tie);
+  const localTie = syncClock.normalizeSyncTieBreaker(d.tie);
+  // Same value: the larger clock stands, and at equal clocks the smaller
+  // tie, so two devices that agree end on one stamp and stop uploading.
+  const adoptStamp = matchesRemote && (remote.at > localAt || (remote.at === localAt && remoteTie < localTie));
+  if (matchesRemote && !adoptStamp && !changed) return false;
   ensureStore().update((data) => {
     data.version = 1;
     data.layout = merged;
-    if (matchesRemote) {
-      if (remote.at > localAt) {
-        data.clock = remote.at;
-        data.tie = syncClock.normalizeSyncTieBreaker(remote.tie);
-      }
-    } else {
-      data.clock = syncClock.nextSyncWriteTimestamp(Math.max(localAt, remote.at));
+    if (adoptStamp) {
+      data.clock = remote.at;
+      data.tie = remoteTie;
+    } else if (!matchesRemote) {
+      // A peer clock at the limit can't be passed; matching it keeps ours valid.
+      const raised = syncClock.nextSyncWriteTimestamp(Math.max(localAt, remote.at));
+      data.clock = syncClock.validSyncTimestamp(raised) ? raised : Math.max(localAt, remote.at);
       data.tie = crypto.randomUUID();
     }
   });
@@ -94,4 +99,13 @@ function mergeFromSync(remote) {
   return changed;
 }
 
-module.exports = { getLayout, setLayout, exportForSync, mergeFromSync, onChanged, onMerged };
+/** Unit tests only: back to a profile that never changed its layout. */
+function resetForTests() {
+  ensureStore().update((d) => {
+    d.layout = normalizeLayout(null);
+    d.clock = 0;
+    d.tie = '';
+  });
+}
+
+module.exports = { getLayout, setLayout, exportForSync, mergeFromSync, onChanged, onMerged, resetForTests };

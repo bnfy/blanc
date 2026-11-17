@@ -138,6 +138,7 @@ const STORES = [
       });
     },
     equals: settingsSyncEquals,
+    stored: noteSettingsStored,
   },
   {
     name: 'session',
@@ -193,14 +194,25 @@ const STORES = [
 
 // When a Blanc that predates the Favorites layout record dropped it, this
 // device puts it back at most once per interval (favorites-layout-model.js).
-let lastLayoutRestoreAt = 0;
+// The time is taken only once an upload succeeds (noteSettingsStored), so a
+// failed or retried PUT is tried again, and it is tied to the record's clock,
+// so an edit made since is never held back.
+let lastLayoutUpload = { clock: 0, at: 0 };
+let settingsPutPending = false;
 function settingsSyncEquals(exported, remote) {
-  const now = Date.now();
-  const { equal, restoring } = settingsEqualsWithLayout(exported, remote, {
-    baseEquals: settings.syncPayloadEquals, lastRestoreAt: lastLayoutRestoreAt, now,
+  const equal = settingsEqualsWithLayout(exported, remote, {
+    baseEquals: settings.syncPayloadEquals, lastUpload: lastLayoutUpload, now: Date.now(),
   });
-  if (restoring) lastLayoutRestoreAt = now;
+  settingsPutPending = !equal;
   return equal;
+}
+
+/** The settings entry's `stored` hook: runs after a successful PUT, and also
+ * when the pass found nothing to upload (then there is nothing to note). */
+function noteSettingsStored(payload) {
+  if (!settingsPutPending) return;
+  settingsPutPending = false;
+  lastLayoutUpload = { clock: payload?.meta?.favoritesLayout ?? 0, at: Date.now() };
 }
 
 /** The settings payload plus the Personal profile's Start Page pins, when

@@ -102,34 +102,39 @@ test('a client that keeps the value whole settles', () => {
   assert.ok(layoutsEqual(third.value, kept.value));
 });
 
-test('restore is bounded to once per ten minutes', () => {
+// payloadWith stamps every value with clock 5.
+const uploaded = (clock, at) => ({ clock, at });
+
+test('restore is bounded to once per ten minutes after a successful upload of the same record', () => {
   assert.equal(RESTORE_INTERVAL_MS, 600000);
   const exported = payloadWith({ theme: 'dark', favoritesLayout: EMPTY_LAYOUT });
   const remote = payloadWith({ theme: 'dark' });
-  assert.deepEqual(
-    settingsEqualsWithLayout(exported, remote, { baseEquals, lastRestoreAt: 0, now: 1_000_000 }),
-    { equal: false, restoring: true });
-  assert.deepEqual(
-    settingsEqualsWithLayout(exported, remote, { baseEquals, lastRestoreAt: 1_000_000, now: 1_000_000 + 599_999 }),
-    { equal: true, restoring: false });
-  assert.deepEqual(
-    settingsEqualsWithLayout(exported, remote, { baseEquals, lastRestoreAt: 1_000_000, now: 1_000_000 + 600_000 }),
-    { equal: false, restoring: true });
+  const ask = (lastUpload, now) => settingsEqualsWithLayout(exported, remote, { baseEquals, lastUpload, now });
+  assert.equal(ask(uploaded(0, 0), 1_000_000), false);                         // never uploaded
+  assert.equal(ask(uploaded(5, 1_000_000), 1_000_000 + 599_999), true);        // just restored this record
+  assert.equal(ask(uploaded(5, 1_000_000), 1_000_000 + 600_000), false);       // due again
+});
+
+test('a local edit since the last upload is never held back', () => {
+  const exported = payloadWith({ theme: 'dark', favoritesLayout: EMPTY_LAYOUT });
+  const remote = payloadWith({ theme: 'dark' });
+  // The record uploaded last had clock 4; this one has clock 5.
+  assert.equal(settingsEqualsWithLayout(exported, remote, { baseEquals, lastUpload: uploaded(4, 1_000_000), now: 1_000_001 }), false);
 });
 
 test('another difference still uploads, and equal payloads do not', () => {
   const exported = payloadWith({ theme: 'dark', favoritesLayout: EMPTY_LAYOUT });
-  assert.deepEqual(
-    settingsEqualsWithLayout(exported, payloadWith({ theme: 'light' }), { baseEquals, lastRestoreAt: 9e12, now: 9e12 }),
-    { equal: false, restoring: false });
-  assert.deepEqual(
-    settingsEqualsWithLayout(exported, payloadWith({ theme: 'dark', favoritesLayout: { version: 1, folders: { x: 1 } } }),
-      { baseEquals, lastRestoreAt: 9e12, now: 9e12 }),
-    { equal: false, restoring: false });
-  assert.deepEqual(
-    settingsEqualsWithLayout(exported, exported, { baseEquals, lastRestoreAt: 0, now: 5 }),
-    { equal: true, restoring: false });
-  assert.deepEqual(
-    settingsEqualsWithLayout(payloadWith({ theme: 'dark' }), payloadWith({ theme: 'dark' }), { baseEquals, lastRestoreAt: 0, now: 5 }),
-    { equal: true, restoring: false });
+  const recent = { baseEquals, lastUpload: uploaded(5, 9e12), now: 9e12 };
+  assert.equal(settingsEqualsWithLayout(exported, payloadWith({ theme: 'light' }), recent), false);
+  assert.equal(settingsEqualsWithLayout(exported, payloadWith({ theme: 'dark', favoritesLayout: { version: 1, folders: { x: 1 } } }), recent), false);
+  assert.equal(settingsEqualsWithLayout(exported, exported, { baseEquals, lastUpload: uploaded(0, 0), now: 5 }), true);
+  assert.equal(settingsEqualsWithLayout(payloadWith({ theme: 'dark' }), payloadWith({ theme: 'dark' }), { baseEquals, lastUpload: uploaded(0, 0), now: 5 }), true);
+});
+
+test('sync.js stamps the restore time only after the upload succeeds', () => {
+  const source = fs.readFileSync(path.join(__dirname, '../../src/main/sync.js'), 'utf8');
+  const equals = source.match(/function settingsSyncEquals\(exported, remote\) \{[\s\S]*?\n\}/)[0];
+  assert.doesNotMatch(equals, /lastLayoutUpload = /);
+  assert.match(source, /stored: noteSettingsStored,/);
+  assert.match(source, /function noteSettingsStored\(payload\) \{[\s\S]*?if \(!settingsPutPending\) return;[\s\S]*?lastLayoutUpload = /);
 });
