@@ -26,7 +26,7 @@ function hostFetch(url, method, headers, body, done, tries = TRIES) {
   });
 }
 
-function peer(name, endpoint, {stores = {}, platform = 'linux', emit} = {}) {
+function peer(name, endpoint, {stores = {}, platform = 'linux', emit, source} = {}) {
   let context;
   const host = {
     platform, version: '1.0.0', testEndpoint: endpoint, deviceName: name, keyStore: true,
@@ -62,7 +62,7 @@ function peer(name, endpoint, {stores = {}, platform = 'linux', emit} = {}) {
     fetch: hostFetch,
   };
   context = vm.createContext({__host: host});
-  vm.runInContext(fs.readFileSync(BUNDLE, 'utf8'), context, {filename: 'sync-bundle.js'});
+  vm.runInContext(source ?? fs.readFileSync(BUNDLE, 'utf8'), context, {filename: 'sync-bundle.js'});
   const sync = context.__require('src/main/sync.js');
   return {
     context, stores, sync,

@@ -1,9 +1,7 @@
 {
   "schema": 1,
-  "note": "Owner's standing gate decisions for daily Blanc Betas (owner, 2026-11-14: they carry until the owner changes them). A waiver applies to betas from 'since' up to, not including, 'until'; retire one by setting 'until', never by deleting it, so earlier releases still verify. A carried gate counts only while no file matching 'paths' or 'anyChange' changed since its lastPass.sourceCommit. anyChange is the Chromium version alone (owner, 2026-11-15: the passkey check comes due only when passkey code or Chromium changes; a new patch in chromium/lanes/desktop.json no longer makes every carried check due). Evidence paths are on the Mac Studio; their digests are pinned here. Edit only on the owner's word, quoting it in the commit. docs/chromium-beta-release.md, 'Daily betas'.",
-  "anyChange": [
-    "chromium/upstream/**"
-  ],
+  "note": "Owner's standing gate decisions for daily Blanc Betas (owner, 2026-11-14: they carry until the owner changes them). A waiver applies to betas from 'since' up to, not including, 'until'; retire one by setting 'until', never by deleting it, so earlier releases still verify. A carried gate counts only while no file matching 'paths' or 'anyChange' changed since its lastPass.sourceCommit. Beside its own paths, every carried check comes due when the Chromium version changes: the 'version' and 'upstream' fields of chromium/lanes/desktop.json, compared between the check's last pass and the release (owner, 2026-11-15: only passkey code or Chromium makes the passkey check due; owner, 2026-11-17: \"Yes, narrow it\": the files under chromium/upstream/ that are pinned for a new patch no longer count, only the version). anyChange, a list of paths that make every check due, is empty. Evidence paths are on the Mac Studio; their digests are pinned here. Edit only on the owner's word, quoting it in the commit. docs/chromium-beta-release.md, 'Daily betas'. A limitation in 'keptLimits' stays in the release notes and on the website after its waiver is retired: the gate passes, and the thing is still not in the beta.",
+  "anyChange": [],
   "archWaiver": "Owner standing decision 2026-11-14: daily betas are Apple Silicon only; Intel is deferred until a separately qualified native build.",
   "whatToKnow": [
     "- **A separate app.** Blanc Beta has its own name, its own data folder and its own passkeys. Your regular Blanc, its data, settings and passkeys are left untouched.",
@@ -13,13 +11,15 @@
     "- **Touch ID passkeys** work, in ordinary and private windows."
   ],
   "notes": {
-    "no-drm-handoff": "- **Protected video** (such as Netflix or Spotify) doesn't play. Use the regular Blanc for those sites; a notice offering to open them there is coming in a later beta.",
+    "no-drm-handoff": "- **Protected video** (such as Netflix or Spotify) doesn't play. Blanc Beta shows a notice offering to open the site in the regular Blanc.",
     "production-sync-real-device": "- **Sync** is included but still being checked against the live service, so don't rely on it yet."
   },
   "waivers": {
     "no-drm-handoff": {
       "since": "2.0.0-beta.5",
-      "reason": "Owner standing waiver 2026-11-14: daily betas ship without the protected-video notice and its Electron Blanc handoff (D3/X2) until that notice is built; on a site that asks for protected video, playback fails. Make no public claim about protected video in Blanc Beta."
+      "reason": "Owner standing waiver 2026-11-14: daily betas ship without the protected-video notice and its Electron Blanc handoff (D3/X2) until that notice is built; on a site that asks for protected video, playback fails. Make no public claim about protected video in Blanc Beta.",
+      "until": "2.0.0-beta.7",
+      "retired": "Owner, 2026-11-17 (\"Yes, retire it\"): the protected-video notice with Open in released Blanc is built (patch 0091), so from beta.7 the gate must pass on its own check."
     },
     "production-sync-real-device": {
       "since": "2.0.0-beta.5",
@@ -73,11 +73,37 @@
         "chromium/patches/*sync*"
       ],
       "lastPass": {
-        "version": "2.0.0-beta.6",
-        "sourceCommit": "eab2550be341616e45543aeee34d480236d2d4e8",
-        "evidence": "evidence/foundation/beta6/desktop-sync.json",
-        "sha256": "949b7088aafb9f89693b21da63a03bfa69b09cc80f5ad4c6ada6f6e98b23ec5f"
+        "version": "2.0.0-beta.7",
+        "sourceCommit": "18d761d3cc040764ad0f7949eedcc0242d425bf1",
+        "evidence": "evidence/foundation/beta7/desktop-sync.json",
+        "sha256": "b80b15a7a40cd515cc045b36695b7525c09e6ca6ba8db5e566e978f98d33802c"
+      }
+    },
+    "no-drm-handoff": {
+      "who": "claude",
+      "check": "native-protected-media.mjs on the prototype (the notice, Not now, Open in released Blanc, Get released Blanc)",
+      "paths": [
+        "chromium/blanc/browser/ui/protected_media.inc",
+        "chromium/blanc/browser/ui/app_menus_mac.*",
+        "chromium/blanc/island/protected-notice.*",
+        "chromium/patches/*protected-media*"
+      ],
+      "lastPass": {
+        "version": "2.0.0-beta.7",
+        "sourceCommit": "ded39777f3b1322fa49eb2dde8d295577db57ff8",
+        "evidence": "evidence/foundation/beta7/no-drm-handoff.json",
+        "sha256": "0c7616d83e4bd1f67fa8768eedb1e29e9cf41df54f15f8f08607b7c19801e033"
       }
     }
+  },
+  "keptLimits": [
+    "no-drm-handoff"
+  ],
+  "chromiumVersion": {
+    "file": "chromium/lanes/desktop.json",
+    "fields": [
+      "version",
+      "upstream"
+    ]
   }
 }

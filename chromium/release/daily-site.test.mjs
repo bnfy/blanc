@@ -2,6 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { siteFiles, LIMITATIONS } from './daily/site-pr.mjs';
+import { loadStanding } from './standing.mjs';
+// The owner's decisions as they stood then: both waivers standing, nothing retired.
+const standingThen = loadStanding(new URL('./fixtures/standing-before-beta5.json', import.meta.url));
 
 // beta.3's site files on main before bnfy/blanc#1529, beta.4's after it, and beta.4's public release.json.
 const dir = new URL('./fixtures/site-beta3-to-beta4/', import.meta.url);
@@ -10,7 +13,7 @@ const files = { betaJson: read('before/blanc-beta.json'), dlJs: read('before/dl.
 // beta.4 waived both gates (production-sync-real-device through acceptance.json); a standing beta carries both in release.json.
 const r = JSON.parse(read('release.json'));
 r.gateWaivers['production-sync-real-device'] = 'Owner waiver 2026-11-14: the rebuilt beta.4 was not listed on the iPhone.';
-const input = { r, appcast: read('after/arm64.xml'), dmg: { bytes: 242737071, sha256: 'fd42bf1265db3fe3844372a34a5c7ce14e58307ca989a811186b474ec0658ed1' }, published: '2026-11-14', files };
+const input = { r, appcast: read('after/arm64.xml'), dmg: { bytes: 242737071, sha256: 'fd42bf1265db3fe3844372a34a5c7ce14e58307ca989a811186b474ec0658ed1' }, published: '2026-11-14', files, standing: standingThen };
 
 test('the generator writes beta.4\'s site files from beta.3\'s, byte for byte', () => {
   const out = siteFiles(input);
@@ -81,4 +84,19 @@ test('the record adds the ledger entry and moves lastPass only for checks that r
   assert.match(out.line, /^- 2026-11-15 2\.0\.0-beta\.5 \(build 5\).*checks run again: webauthn\.\n$/);
   assert.throws(() => recordRelease({ r: r5, state: { done: {} }, ledger, standing, published: '2026-11-15', ranChecks: [] }), /verify-public/);
   assert.throws(() => recordRelease({ r: { ...r5, build: 4, previousBuild: 3, version: '2.0.0-beta.4', tag: 'chromium-beta-2.0.0-beta.4', shortVersion: '2.0.0-beta.4' }, state, ledger, standing, published: '2026-11-15', ranChecks: [] }), /already has this build/);
+});
+
+test('a limitation kept after its waiver is retired stays on the page, with the gate passing', () => {
+  // The protected-video waiver retired (owner, 2026-11-17): the gate passes on its notice, and video still does not play.
+  const retired = { ...standingThen, keptLimits: ['no-drm-handoff'],
+    waivers: { ...standingThen.waivers, 'no-drm-handoff': { ...standingThen.waivers['no-drm-handoff'], until: '2.0.0-beta.4' } } };
+  const passing = structuredClone(r);
+  delete passing.gateWaivers['no-drm-handoff'];
+  const ledger = JSON.parse(siteFiles({ ...input, r: passing, standing: retired })['docs/website-blanc-beta-2.0.0-beta.4-claims.json']);
+  const claim = ledger.claims.find(c => c.text === LIMITATIONS['no-drm-handoff']);
+  assert.match(claim.evidence, /does not play/);
+  assert.match(claim.evidence, /gate passes/);
+  assert.doesNotMatch(claim.evidence, /is waived/);
+  // Without the kept limitation the page's text would change, which needs the owner.
+  assert.throws(() => siteFiles({ ...input, r: passing, standing: standingThen }), /needs the owner/);
 });

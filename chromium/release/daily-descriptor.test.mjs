@@ -85,3 +85,13 @@ test('release notes frame the changes and list each standing limitation', () => 
   assert.match(notes, /This is a pre-release\. The regular Blanc remains the recommended browser\.\n$/);
   assert.throws(() => releaseNotes({ changes: ' ', standing, r }), /changes is required/);
 });
+
+test('release notes keep a limitation whose waiver was retired', () => {
+  const kept = { ...standing, keptLimits: ['no-drm-handoff'] };
+  const r = releaseDescriptor({ ledger: upTo(4), standing, build: beta4, profileSHA256 });
+  delete r.gateWaivers['no-drm-handoff'];
+  const notes = releaseNotes({ changes: '**Fixed in this beta**\n\n- **A fix.** It works.', standing: kept, r });
+  assert.ok(notes.includes(standing.notes['no-drm-handoff']));
+  assert.ok(notes.includes(standing.notes['production-sync-real-device']));
+  assert.ok(!releaseNotes({ changes: '**Fixed in this beta**\n\n- **A fix.** It works.', standing, r }).includes(standing.notes['no-drm-handoff']));
+});
