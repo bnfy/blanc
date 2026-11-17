@@ -353,9 +353,19 @@ Typed into the command bar. Names + hints are the shared-copy contract below;
   any surface holds the microphone or camera, the chrome shows a capture
   indicator with per-surface stop controls (desktop draws its own chip; mobile
   defers to the OS indicator — D24).
+- Local Network Access: a website's requests to apps on this device
+  (`localhost`, loopback addresses) or to devices on the local network (private
+  and link-local addresses, and `.local`, `.home.arpa` and `.internal` names) need that site's permission, asked
+  once per site in the same prompt and revocable in Settings; private tabs keep
+  the answer in memory. Main-frame navigations aren't gated, and frames from
+  another site are refused without a prompt. `navigator.permissions.query`
+  reports the stored state, `prompt` while undecided (desktop design:
+  `docs/superpowers/specs/2026-11-17-local-network-access-design.md`).
 - **Acceptance:** A site requesting geolocation raises the Blanc permission prompt
   with the shared copy; deny persists for that origin. A site capturing the mic
-  lights the capture indicator; stopping it from the indicator ends capture.
+  lights the capture indicator; stopping it from the indicator ends capture. A
+  public site fetching `localhost` raises the prompt; Allow lets it through and
+  the query reads `granted`, Block refuses it and persists.
 
 ## F14 — Settings
 
