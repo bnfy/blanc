@@ -25,7 +25,7 @@ function pageRealm({ answer } = {}) {
       queueMicrotask(() => root.dispatchEvent(new CustomEvent('blanc:lna-state', { detail: JSON.stringify({ id, state }) })));
     });
   }
-  const install = vm.runInNewContext(`(${MAINWORLD.trim().replace(/^function /, 'function ')})`, {});
+  const install = vm.runInNewContext(`(${MAINWORLD.trim()})`, {});
   return { root, realCalls, asked, install: () => install(root) };
 }
 
