@@ -14,6 +14,10 @@
    can see. The owner's Parallels VM is for hand checks only.
 3. **Scope of the first milestone.** W0 is the fork plan's PW.1: the first build that launches on
    Windows and runs the foundation (F0) suite.
+4. **Window buttons (W1).** Windows' own caption buttons, top-right over the Island strip; the
+   Island draws none there. This differs from shipping Blanc for Windows.
+5. **Signing (W1).** Preview builds are signed now with the Bananify Creative certificate, to prove
+   the path; a signed preview stays on the unpublished draft release.
 
 ## 1. What Windows is in the fork
 
@@ -52,8 +56,9 @@ the owner's Windows VM.
 
 ## 3. Known limits
 
-- **No crash reporting in a cross build.** Chromium stubs out the assembly files a cross build
-  can't assemble, so Crashpad can't report crashes. Acceptable for W0 to W2. A public Windows
+- **Crash reporting in a cross build is unproven.** Chromium's docs say the assembly files a cross
+  build can't assemble are stubbed, so Crashpad can't report crashes; in this tree they are in fact
+  assembled, so W1 tests it and corrects this line. Until then, assume none. A public Windows
   release may need a native Windows build machine; that is a later owner decision.
 - **The pin is a preview.** The pending rebase (D6, F0.7) will need another full Windows build.
 - **No protected video.** As on the Mac beta, and Windows has no "Open in Blanc" handoff yet.
@@ -69,7 +74,7 @@ the owner's Windows VM.
 | Later | S2 to S5 per slice, the updater (R.2), a Windows beta, crash reporting | Each gets its own plan |
 
 Each milestone after W0 gets its own task-level plan when it starts, written against the tree as it
-then stands.
+then stands. W1's is [`2026-11-17-windows-fork-w1.md`](../plans/2026-11-17-windows-fork-w1.md).
 
 ## 5. Working rules
 
