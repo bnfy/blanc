@@ -165,8 +165,10 @@ bool ValidStateRecords(const base::DictValue& state) {
 // removed only once every store is in place, so a failed move is taken up
 // again at the next launch.
 bool AdoptImportedSyncFile(const base::FilePath& from, const base::FilePath& to) {
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
   if (blanc::BlancTestLaunch() && to.BaseName().value() == FILE_PATH_LITERAL("sync.json") &&
       base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-test-sync-adopt-fail")) return false;
+#endif
   const base::FilePath temp = to.AddExtension(FILE_PATH_LITERAL("importing"));
   const bool moved = base::CopyFile(from, temp) && base::ReplaceFile(temp, to, nullptr) && base::ContentsEqual(from, to);
   if (!moved) base::DeleteFile(temp);
