@@ -14,6 +14,19 @@ D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
 
 ## Current work
+- **2026-11-17 — desktop-sync rerun for beta.7 (owner: "Rerun Sync"):**
+  due because the importer changed Sync's code. Both parts pass, the same
+  way as beta.6's: `native-sync-organic-tabs.mjs` on the prototype
+  macos-cbb4a951532f5900 (6 of 6: pages reach the peer on the runner's own
+  timers, in a Space, after a relaunch and after joining again) and
+  `beta-sync.mjs` on a local-qualification beta.7 built from the same source
+  (5 of 5, every Sync request on the Mac Studio). Evidence at
+  `evidence/foundation/beta7/desktop-sync.json`, pinned in
+  `release/standing.json` as desktop-sync's last pass from `18d761d3c`. The
+  Studio's `out/BlancBeta` was switched to the local-qualification arguments
+  for that build (`records/beta7-local-qual/`) and put back to the release
+  arguments afterwards, as for beta.6. Still due for beta.7 by the
+  `anyChange` glob: webauthn (owner) and sparkle-N-to-N+1.
 - **2026-11-17 — Importer: Sync's failure paths (candidate macos-cbb4a951532f5900):**
   from a source review the owner passed on. Two faults, both confirmed in
   the code before fixing. (1) Personal was marked imported before Sync was
