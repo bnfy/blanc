@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- Blanc's launcher icon variants replace Chromium's resources of the same names (patch 0101), so
+     whatever Chromium version uses them shows Blanc's; this build doesn't, which lint calls unused. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@mipmap/layered_app_icon,@mipmap/layered_app_icon_background,@drawable/themed_app_icon" />

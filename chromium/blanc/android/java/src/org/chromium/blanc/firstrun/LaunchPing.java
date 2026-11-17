@@ -5,6 +5,7 @@ package org.chromium.blanc.firstrun;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import org.chromium.blanc.BlancRelease;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
 
@@ -22,8 +23,8 @@ import java.util.regex.Pattern;
  * Worker, which keeps the phone's counts apart from desktop's ({@code platform: "android"}). It is
  * sent only when the person saved yes to Measure usage, never twice in one process, never for a
  * launch Android made only for background sync, and never from a build without a Blanc release
- * version: today every Android build is a preview with none (A7 gives releases one), so production
- * gets nothing until then. A test launch (a debuggable build with --blanc-test-ping-host) sends only
+ * version. A preview has none, so production gets nothing from it. A test launch (a debuggable
+ * build with --blanc-test-ping-host) sends only
  * to the loopback collector it names. It carries
  * no browsing data; failures are silent and never retried.
  */
@@ -31,8 +32,8 @@ import java.util.regex.Pattern;
 public final class LaunchPing {
     public static final String ENDPOINT = "https://blanc-ping.bnfy-441.workers.dev/ping";
 
-    /** The Blanc release version a release build reports (A7); a preview has none. */
-    static final @Nullable String RELEASE_VERSION = null;
+    /** The Blanc release version a release build reports; a preview has none. */
+    static final @Nullable String RELEASE_VERSION = BlancRelease.VERSION;
 
     /** The random id for this install: in no-backup storage, so a reinstall or restore is new. */
     public static final String INSTALL_FILE = "blanc-install-id";

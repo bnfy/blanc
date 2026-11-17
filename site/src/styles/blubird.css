@@ -1,7 +1,10 @@
 /* Blubird by Rajesh Rajput, licensed for the website. The files are not in the
    repository (see site/scripts/blubird-fonts.mjs): they sit in the git-ignored
    public/fonts/blubird/ on the deploying machine. Where they are absent, as in
-   CI, every Blubird stack falls back to Inter. */
+   CI, every Blubird stack falls back to Inter. Since November 15, 2026 the
+   site uses only the Display cut: Blubird is for headings (owner direction:
+   its Text cuts read heavy in eyebrows and paragraphs), and text is set in
+   Instrument Sans, the apps' own face. */
 @font-face {
   font-family: "Blubird Display";
   src: url("/fonts/blubird/Blubird-RegularDisplay.woff2") format("woff2");
@@ -9,30 +12,10 @@
   font-style: normal;
   font-display: swap;
 }
-@font-face {
-  font-family: "Blubird Text";
-  src: url("/fonts/blubird/Blubird-RegularText.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Blubird Text";
-  src: url("/fonts/blubird/Blubird-MediumText.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Blubird Text";
-  src: url("/fonts/blubird/Blubird-SemiBoldText.woff2") format("woff2");
-  font-weight: 600 700;
-  font-style: normal;
-  font-display: swap;
-}
 :root {
-  /* Headlines, and the lockup's own face, in Blubird Display; body copy and
-     the header and footer in Blubird Text. */
+  /* Headings in Blubird Display; body copy, labels, the header and the footer
+     in Instrument Sans (--font-app in site.css; its @font-face is in
+     BaseLayout.astro). */
   --font-brand-display: "Blubird Display", var(--font-ui);
-  --font-brand-text: "Blubird Text", var(--font-ui);
+  --font-brand-text: var(--font-app);
 }

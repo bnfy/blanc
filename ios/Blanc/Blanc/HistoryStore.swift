@@ -17,6 +17,8 @@ struct HistoryEntry: Codable, Equatable {
   @ObservationIgnored private let clock: () -> Int64
   @ObservationIgnored private var saveWork: DispatchWorkItem?
   @ObservationIgnored private var backgroundObserver: Any?
+  /// Every change, for the Start Page's ranked shortcuts.
+  @ObservationIgnored var onChange: (() -> Void)?
 
   init(
     directory: URL? = nil,
@@ -98,6 +100,7 @@ struct HistoryEntry: Codable, Equatable {
   }
 
   private func scheduleSave() {
+    onChange?()
     saveWork?.cancel()
     let work = DispatchWorkItem { [weak self] in MainActor.assumeIsolated { self?.write() } }
     saveWork = work

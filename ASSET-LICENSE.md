@@ -85,6 +85,13 @@ lives with the Blanc Mail app, outside this repository):
   light and dark appearances
 - `site/public/press/blanc-mail-icon{,-dark}-1024{,-600}.webp` — media-kit
   previews
+- `assets/wordmark/blanc-mail-word-{display,small}-{ink,white}.svg` — the
+  outlined “Blanc Mail” word of the Blanc Mail lockup, drawn from Blubird by
+  Rajesh Rajput (its source and build live with the Blanc Mail app, in
+  `docs/brand/wordmark/`); copied unchanged into `site/public/lockup/`
+- `site/public/press/blanc-mail-lockup-{ink,white}{.svg,.png,-600.webp,-1200.webp}` —
+  the Blanc Mail lockup as media-kit downloads and previews, built with the
+  Blanc Mail app's `docs/brand/wordmark/source/build.py`
 
 A build that replaces these files with its own artwork is unencumbered by this
 statement. Rebuilding Blanc from source without modification reproduces them,

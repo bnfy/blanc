@@ -2,6 +2,7 @@
 
 package org.chromium.blanc.palette;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -126,6 +127,8 @@ public final class SwipeToCloseRow extends FrameLayout {
         };
     }
 
+    // The row's drag to close; its content takes taps (onInterceptTouchEvent claims only a drag).
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         return switch (event.getActionMasked()) {

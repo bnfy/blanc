@@ -2,7 +2,7 @@
 //
 // The Blanc Mail product bar on /mail and its Privacy and Terms
 // (docs/superpowers/specs/2026-10-12-mail-pages-redesign-design.md §3, §12):
-// the product's name, which leads back to /mail, and a "Join the waitlist"
+// the Blanc Mail lockup, which leads back to /mail, and a "Join the waitlist"
 // popover. /mail has been one page since October 22, 2026, so the bar lists
 // no pages; at 480px and narrower Join shortens on screen but keeps its name.
 // The bar sticks under the site header, which stays in view on every page.
@@ -45,7 +45,8 @@ test('every Mail page names the product, leads back to /mail and lists no pages'
         const nav = document.querySelector('.mail-bar nav');
         return {
           name: nav.getAttribute('aria-label'),
-          title: nav.querySelector('.mail-bar-title').textContent.trim(),
+          // The name is the lockup's outlined word, so it is the image's alt.
+          title: nav.querySelector('.mail-bar-title .mail-lockup-word').alt,
           href: nav.querySelector('.mail-bar-title').getAttribute('href'),
           links: nav.querySelectorAll('a').length,
           popovers: [...document.querySelectorAll('.mail-bar [popover]')].map(pop => pop.id),

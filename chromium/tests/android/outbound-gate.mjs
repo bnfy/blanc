@@ -20,14 +20,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {androidPackage} from './release-gate.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const SESSION_PAGES = ['https://example.com/', 'https://example.org/', 'https://example.net/',
   'https://www.iana.org/help/example-domains', 'https://duckduckgo.com/?q=blanc'];
-const PACKAGE = 'me.bnfy.blanc.dev';
 // A debuggable build reads its switches here, on emulators and on a Pixel.
 const COMMAND_LINE = '/data/local/tmp/chrome-command-line';
-const DEVICE_NETLOG = `/data/data/${PACKAGE}/cache/blanc-netlog.json`;
 
 // A host from a NetLog field: a URL, "host:port", "[v6]:port", or a socket
 // group such as "ssl/host:port" or "https://host:port <…>".
@@ -123,7 +122,9 @@ function emulatorFor(avd) {
   return serial;
 }
 
-function runSession({apk, avd, evidence, flags}) {
+function runSession({apk, avd, evidence, flags, packageName}) {
+  const PACKAGE = packageName;
+  const DEVICE_NETLOG = `/data/data/${PACKAGE}/cache/blanc-netlog.json`;
   const serial = emulatorFor(avd);
   const actions = [];
   const act = (name, ...args) => { actions.push({name, at: new Date().toISOString()}); if (args.length) adb(serial, ...args); };
@@ -151,12 +152,13 @@ function main(argv) {
   const apk = option('--apk'), avd = option('--avd'), evidence = option('--evidence'), flags = option('--chrome-flags') ?? '';
   if (/['\\\n]/.test(flags)) throw Error('--chrome-flags may not contain quotes, backslashes or newlines.');
   if (!apk || !avd || !evidence) throw Error('Usage: outbound-gate.mjs --apk <path> --avd <name> --evidence <dir>');
+  const packageName = androidPackage(option('--package'));
   fs.mkdirSync(evidence, {recursive: true});
   const read = name => JSON.parse(fs.readFileSync(path.join(here, name), 'utf8'));
-  const session = runSession({apk, avd, evidence, flags});
+  const session = runSession({apk, avd, evidence, flags, packageName});
   const {hosts, urls} = netLogHosts(readNetLog(session.netlog));
   const report = {...judge({hosts, urls, pages: SESSION_PAGES, denylist: read('outbound-denylist.json').hosts,
-    allowlist: read('outbound-allowlist.json').flows, actions: session.actions}), apk: path.resolve(apk), avd,
+    allowlist: read('outbound-allowlist.json').flows, actions: session.actions}), apk: path.resolve(apk), package: packageName, avd,
     emulator: session.serial, chromeFlags: flags, session: session.log, checkedAt: new Date().toISOString()};
   fs.writeFileSync(path.join(evidence, 'outbound-android.json'), JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify({verdict: report.verdict, problems: report.problems}, null, 2));

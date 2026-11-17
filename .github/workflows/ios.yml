@@ -19,6 +19,8 @@ on:
       - tokens/generated/Tokens.swift
       - adblock/generated/**
       - browser-api/bridges.json
+      - chromium/blanc/android/pages/start/**
+      - chromium/blanc/android/pages/whats-new.js
   pull_request:
     paths:
       - .github/workflows/ios.yml
@@ -28,6 +30,8 @@ on:
       - tokens/generated/Tokens.swift
       - adblock/generated/**
       - browser-api/bridges.json
+      - chromium/blanc/android/pages/start/**
+      - chromium/blanc/android/pages/whats-new.js
   # Nightly, so main's full suite, UI tests included, runs every day even when
   # nothing iOS merged.
   schedule:

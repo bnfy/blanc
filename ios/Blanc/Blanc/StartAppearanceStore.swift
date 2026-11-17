@@ -1,8 +1,10 @@
 import Foundation
 import Observation
-import UIKit
 
-/// Device-local Start Page appearance. Image data never leaves the app.
+/// Device-local Start Page clock, and what is left of the wallpaper choices
+/// made before the fork's Start Page. The fork's page keeps the wallpaper and
+/// photo in its own storage (`newtab-adapter.js`); this store hands the old
+/// choices over once (`forkPreferences`), then forgets the photo. Never synced.
 @Observable
 final class StartAppearanceStore {
     /// What the phone draws: the saved choices over `defaults`.
@@ -15,9 +17,10 @@ final class StartAppearanceStore {
     static let defaults: [String: Any] = ["newtabClockFont": "flex", "newtabClockHeight": 300,
                                           "newtabClockStyle": "glass", "newtabClockWeight": 450]
     private var saved: [String: Any] = [:]
+    /// The photo chosen before the fork's page, until it's carried over.
     let imageURL: URL
     private let fileURL: URL
-    private static let presets = ["sage", "sky", "iris", "rose", "clay", "sand", "slate", "graphite"]
+    static let presets = ["sage", "sky", "iris", "rose", "clay", "sand", "slate", "graphite"]
 
     init(directory: URL? = nil) {
         let root = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -30,82 +33,96 @@ final class StartAppearanceStore {
         }
     }
 
-    var payload: [String: Any] {
-        let hasImage = FileManager.default.fileExists(atPath: imageURL.path)
-        return ["settings": values, "hasImage": hasImage,
-                "image": hasImage ? "blanc://newtab/ios-wallpaper.jpg?v=\(values["imageVersion"] ?? "0")" : NSNull()]
+    // MARK: The clock
+
+    /// The fork's `clockRead` answer: every clock field, saved or default.
+    var clock: [String: Any] { values.filter { $0.key.hasPrefix("newtabClock") } }
+
+    /// The fork's `SanitizeClockUpdate` (billboard_clock_settings.inc), with
+    /// the style: the iPhone draws Glass. Unknown keys and values are dropped.
+    static func sanitizeClock(_ input: [String: Any]) -> [String: Any] {
+        var out: [String: Any] = [:]
+        let choices = ["newtabClockFont": ["instrument", "condensed", "inter", "flex"],
+                       "newtabClockColor": ["auto"] + presets, "newtabClockStyle": ["solid", "glass"]]
+        for (key, allowed) in choices {
+            if let value = input[key] as? String, allowed.contains(value) { out[key] = value }
+        }
+        for (key, range) in ["newtabClockWeight": 100...1000, "newtabClockTone": 0...100, "newtabClockHeight": 100...300] {
+            if let n = input[key] as? NSNumber, CFGetTypeID(n) != CFBooleanGetTypeID(),
+               n.doubleValue == Double(n.intValue), range.contains(n.intValue) {
+                out[key] = n.intValue
+            }
+        }
+        return out
     }
 
     @discardableResult
-    func change(_ method: String, value: Any?) throws -> [String: Any] {
-        var next = saved
-        func select(_ key: String, _ choices: [String]) {
-            if let s = value as? String, choices.contains(s) { next[key] = s }
-        }
-        switch method {
-        case "setClock":
-            if let patch = value as? [String: Any] {
-                let enums = ["font": ["instrument", "condensed", "inter", "flex"],
-                             "color": ["auto"] + Self.presets, "style": ["solid", "glass"]]
-                for (key, options) in enums {
-                    if let v = patch[key] as? String, options.contains(v) {
-                        next["newtabClock" + key.prefix(1).uppercased() + key.dropFirst()] = v
-                    }
-                }
-                for (key, range) in ["weight": 100...1000, "tone": 0...100, "height": 100...300] {
-                    if let n = patch[key] as? NSNumber, CFGetTypeID(n) != CFBooleanGetTypeID(),
-                       n.doubleValue == Double(n.intValue), range.contains(n.intValue) {
-                        next["newtabClock" + key.prefix(1).uppercased() + key.dropFirst()] = n.intValue
-                    }
-                }
-            }
-        case "setDynamicWallpaper":
-            if let v = value as? Bool { next["newtabDynamicWallpaper"] = v }
-        case "setWallpaper":
-            if let source = value as? String {
-                switch source {
-                case "custom": next["newtabCustomWallpaper"] = true
-                case "color": next["newtabColorWallpaper"] = true; next["newtabCustomWallpaper"] = false
-                case "sunrise", "time-of-day":
-                    next["newtabDynamicWallpaper"] = source == "time-of-day"
-                    next["newtabColorWallpaper"] = false; next["newtabCustomWallpaper"] = false
-                default: break
-                }
-            }
-        case "setWallpaperColor": select("newtabWallpaperColor", Self.presets)
-        case "setWallpaperFill": select("newtabWallpaperFill", ["soft", "solid", "gradient"])
-        case "setWallpaperStyle": select("newtabWallpaperStyle", ["auto", "light", "dark", "spotlight"])
-        case "setWallpaperWash":
-            if let n = value as? NSNumber, CFGetTypeID(n) != CFBooleanGetTypeID(),
-               n.doubleValue == Double(n.intValue), (0...100).contains(n.intValue) {
-                next["newtabWallpaperWash"] = n.intValue
-            }
-        case "removeWallpaper":
-            if FileManager.default.fileExists(atPath: imageURL.path) { try FileManager.default.removeItem(at: imageURL) }
-            next["newtabCustomWallpaper"] = false
-        default: break
-        }
-        try save(next)
-        return payload
+    func writeClock(_ update: [String: Any]) throws -> [String: Any] {
+        let clean = Self.sanitizeClock(update)
+        if !clean.isEmpty { try save(saved.merging(clean) { $1 }) }
+        return clock
     }
 
-    func importImage(_ image: UIImage) throws {
-        let longest = max(image.size.width, image.size.height)
-        guard longest > 0 else { throw CocoaError(.fileReadCorruptFile) }
-        let scale = min(1, 3840 / longest)
-        let size = CGSize(width: max(1, image.size.width * scale), height: max(1, image.size.height * scale))
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = 1
-        format.opaque = true
-        let normalized = UIGraphicsImageRenderer(size: size, format: format).image { _ in
-            image.draw(in: CGRect(origin: .zero, size: size))
+    // MARK: Carrying the old wallpaper over
+
+    /// Whether the old choices were handed to the fork's page.
+    var migratedToForkPage: Bool { saved["migratedToForkPage"] as? Bool == true }
+    var hasLegacyPhoto: Bool { FileManager.default.fileExists(atPath: imageURL.path) }
+    /// The address the old photo is read from once (BlancSchemeHandler checks the version).
+    var legacyPhotoVersion: String? { hasLegacyPhoto ? saved["imageVersion"] as? String ?? "0" : nil }
+
+    /// The fork adapter's `blanc.prototype.start.preferences.v1` record for the
+    /// choices saved before it: only what was chosen, so the rest stays the
+    /// fork's defaults. A photo is carried separately (the page stores it and
+    /// sets `wallpaper.imageKey`), so a custom source waits for it.
+    static func forkPreferences(from saved: [String: Any], hasPhoto: Bool) -> [String: Any] {
+        var record: [String: Any] = [:]
+        var wallpaper: [String: Any] = [:]
+        let dynamic = saved["newtabDynamicWallpaper"] as? Bool == true
+        if saved["newtabDynamicWallpaper"] is Bool { record["dynamicWallpaperEnabled"] = dynamic }
+        if saved["newtabColorWallpaper"] as? Bool == true, !(saved["newtabCustomWallpaper"] as? Bool == true && hasPhoto) {
+            wallpaper["source"] = "color"
+        } else if dynamic {
+            wallpaper["source"] = "time-of-day"
         }
-        guard let data = normalized.jpegData(compressionQuality: 0.85) else { throw CocoaError(.fileWriteUnknown) }
-        try data.write(to: imageURL, options: .atomic)
+        if let style = saved["newtabWallpaperStyle"] as? String, ["auto", "light", "dark", "spotlight"].contains(style) {
+            wallpaper["style"] = style
+        }
+        if let wash = saved["newtabWallpaperWash"] as? NSNumber, CFGetTypeID(wash) != CFBooleanGetTypeID(),
+           (0...100).contains(wash.intValue), wash.doubleValue == Double(wash.intValue) {
+            wallpaper["wash"] = wash.intValue
+        }
+        var color: [String: Any] = [:]
+        if let preset = saved["newtabWallpaperColor"] as? String, presets.contains(preset) { color["preset"] = preset }
+        if let fill = saved["newtabWallpaperFill"] as? String, ["soft", "solid", "gradient"].contains(fill) {
+            color["paint"] = ["fill": fill]
+        }
+        if !color.isEmpty { wallpaper["color"] = color }
+        if !wallpaper.isEmpty { record["wallpaper"] = wallpaper }
+        return record
+    }
+
+    /// What the first Start Page after the update carries over, or nil once done.
+    var forkMigration: [String: Any]? {
+        guard !migratedToForkPage else { return nil }
+        let photo = saved["newtabCustomWallpaper"] as? Bool == true ? legacyPhotoVersion : nil
+        var migration: [String: Any] = ["preferences": Self.forkPreferences(from: saved, hasPhoto: photo != nil)]
+        if let photo { migration["photo"] = "ios-wallpaper.jpg?v=" + (photo.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? "0") }
+        return migration
+    }
+
+    /// The page has the old choices: stamp it, and drop the old photo file,
+    /// which the page now keeps itself (or never wanted).
+    func finishForkMigration() throws {
+        guard !migratedToForkPage else { return }
         var next = saved
-        next["newtabCustomWallpaper"] = true
-        next["imageVersion"] = UUID().uuidString
+        for key in ["newtabDynamicWallpaper", "newtabColorWallpaper", "newtabCustomWallpaper", "newtabWallpaperStyle",
+                    "newtabWallpaperWash", "newtabWallpaperColor", "newtabWallpaperFill", "imageVersion"] {
+            next.removeValue(forKey: key)
+        }
+        next["migratedToForkPage"] = true
         try save(next)
+        if hasLegacyPhoto { try? FileManager.default.removeItem(at: imageURL) }
     }
 
     private func save(_ next: [String: Any]) throws {

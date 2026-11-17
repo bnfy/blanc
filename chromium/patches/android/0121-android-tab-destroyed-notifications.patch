@@ -1,0 +1,41 @@
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tab/TabWebContentsObserver.java b/chrome/android/java/src/org/chromium/chrome/browser/tab/TabWebContentsObserver.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/tab/TabWebContentsObserver.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/tab/TabWebContentsObserver.java
+@@ -429,29 +429,32 @@
+         }
+ 
+         void updateNotificationsForTab() {
+-            assumeNonNull(mLastUrl);
++            // Blanc (patch 0121): a tab that never loaded in this run has no last address, and
++            // each of these calls reads it when the tab still has a saved notification (the app
++            // was killed while a site was capturing): the app died at the next cold start.
++            GURL url = mLastUrl != null ? mLastUrl : GURL.emptyGURL();
+             MediaCaptureNotificationServiceImpl.updateMediaNotificationForTab(
+-                    ContextUtils.getApplicationContext(), mTab.getId(), null, mLastUrl);
++                    ContextUtils.getApplicationContext(), mTab.getId(), null, url);
+             BluetoothNotificationManager.updateBluetoothNotificationForTab(
+                     ContextUtils.getApplicationContext(),
+                     BluetoothNotificationService.class,
+                     mTab.getId(),
+                     null,
+-                    mLastUrl,
++                    url,
+                     mTab.isIncognito());
+             UsbNotificationManager.updateUsbNotificationForTab(
+                     ContextUtils.getApplicationContext(),
+                     UsbNotificationService.class,
+                     mTab.getId(),
+                     null,
+-                    mLastUrl,
++                    url,
+                     mTab.isIncognito());
+             SerialNotificationManager.updateSerialNotificationForTab(
+                     ContextUtils.getApplicationContext(),
+                     SerialNotificationService.class,
+                     mTab.getId(),
+                     null,
+-                    mLastUrl,
++                    url,
+                     mTab.isIncognito());
+         }
+     }

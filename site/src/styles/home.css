@@ -1,5 +1,5 @@
 /* Homepage (index.astro): the cinematic redesign of October 15, 2026.
-   Headlines are Blubird Display and copy Blubird Text (src/styles/blubird.css;
+   Headlines are Blubird Display and copy Instrument Sans (src/styles/blubird.css;
    Inter where the licensed files are absent). Light sections sit on Blanc
    White, dark ones on warm ink. The opening sunrise plays once on load; the
    rest of the motion is scroll-driven CSS that needs animation-timeline

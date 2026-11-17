@@ -126,8 +126,13 @@ std::string ReadBundle() {
   base::MemoryMappedFile::Region region;
   const int fd = base::android::OpenApkAsset("assets/blanc_blocker/engine.js", &region);
   if (fd < 0 || region.size > 16 * 1024 * 1024) return std::string();
-  // For the emulator check: a wrong bundle must fail closed. It can only make Blanc stop pages.
+  // For the emulator check: a wrong bundle must fail closed. Preview builds only: a release build
+  // never reads this switch, whatever the command-line file holds.
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
   const bool test_bad_bundle = base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-test-bad-bundle");
+#else
+  const bool test_bad_bundle = false;
+#endif
   base::File file(fd);
   script.resize(region.size);
   if (!file.ReadAndCheck(region.offset, base::as_writable_byte_span(script))) return std::string();

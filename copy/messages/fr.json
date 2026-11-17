@@ -9610,5 +9610,41 @@
     "message": "Pour protéger vos données, laissez Blanc supprimer les autorisations des sites que vous n’avez pas consultés récemment",
     "note": "Android Settings → Site settings: summary under the unused-permissions switch (replaces Chromium’s text, which names Chrome).",
     "source": "sha256:11f7585d6d6ab59263e345cb2858770fa61bbd956373179f8accfe4cf0afb3f8"
+  },
+  "android.licenses.title": {
+    "message": "Licences open source",
+    "source": "sha256:c84920ec51de86f1788fa7c241102677c3bcab126fc3f18a294fe6a05a1fa2b1"
+  },
+  "android.licenses.intro": {
+    "message": "Lis les licences et les mentions de Blanc ci-dessous. Les crédits de Chromium présentent ses propres licences et composants tiers.",
+    "source": "sha256:b73591377c8e30167aace94d5072a1c457e8803308b7b091b28bba583cb40523"
+  },
+  "android.licenses.chromiumCredits": {
+    "message": "Licences et crédits de Chromium",
+    "source": "sha256:836d9421155d5abab34e471f6c036be4b1aa3dbe5e297acd8fd3c5c1d1b6fa6c"
+  },
+  "android.licenses.license": {
+    "message": "Licence du logiciel Blanc",
+    "source": "sha256:fc087b770fad11eaa405006fbb57913b940be11d72cc346fdaa220b2ba3105dd"
+  },
+  "android.licenses.assetLicense": {
+    "message": "Noms, logos et éléments d’identité de Blanc",
+    "source": "sha256:edeff99b2051b835c2aee1afb9fd6afecdc4ac78fe3648143fafb39e831debfa"
+  },
+  "android.licenses.thirdPartyNotices": {
+    "message": "Mentions de tiers du dépôt",
+    "source": "sha256:7cb5a509d3909dc8304f5eabdf751fd9d6930e09f3bf3a62933d8f348dec118f"
+  },
+  "android.licenses.chromiumForkNotices": {
+    "message": "Mentions du fork de Chromium",
+    "source": "sha256:1c29ebb79158e30c9f7198f1be802264df59da16b0b2d18a1a864e1f2202b425"
+  },
+  "android.licenses.loading": {
+    "message": "Chargement de la mention…",
+    "source": "sha256:d0e14ec68bc4b1568a3ca46b44e90022eaae9f56d9eab2009856a32f588631bb"
+  },
+  "android.licenses.loadFailed": {
+    "message": "Cette mention n’a pas pu être chargée. Ouvre le lien de son titre pour lire le fichier inclus.",
+    "source": "sha256:10f1e03f68d92e46522c957048d32e387885e1b7ac56bfbfcaf0b315488731c3"
   }
 }

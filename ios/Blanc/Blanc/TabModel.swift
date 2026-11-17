@@ -27,6 +27,12 @@ final class TabModel: Identifiable {
     var loadProgress: Double = 0
     @ObservationIgnored private var progressObservation: NSKeyValueObservation?
     var pageTitle = ""
+    /// Whether the document on screen is the Start Page. Unlike `currentURL`,
+    /// which follows WebKit's address as soon as a load starts, it changes when
+    /// the next page commits: until then the Start Page is still what shows, and
+    /// keeps its edge-to-edge insets (`WebView.configureInsets`), or it would be
+    /// laid out again, shorter, while the tapped site loads.
+    var showsStartPage = false
     /// Never saved, synced or recorded in History; its web data lives only in
     /// memory (`TabsManager.privateDataStore`).
     let isPrivate: Bool
@@ -100,6 +106,7 @@ final class TabModel: Identifiable {
          quiet: Bool = false, load: Bool = true) {
         self.isPrivate = isPrivate
         self.currentURL = url
+        self.showsStartPage = StartPageBridge.isStartPage(url)
         self.addressText = url.absoluteString
         self.pageTitle = title
         self.configuration = configuration

@@ -17,7 +17,7 @@ const RES = path.join(chromium, 'blanc/android/island/res');
 
 // The iPhone Island's keys (ContentView.swift), shared so Android needs no new translations.
 export const ANDROID_KEYS = [
-  'ios.island.pageActions', 'ios.island.reload', 'ios.island.searchOrSwitch', 'ios.island.showAllTabs',
+  'ios.island.pageActions', 'ios.island.searchOrSwitch', 'ios.island.showAllTabs',
   'ios.island.stop', 'ios.palette.placeholder', 'ios.tabs.startPage', 'pagesNav.bookmarks', 'pagesNav.history', 'pill.private.chip',
   // #1463's Island and Sunrise menu: Back, Forward, the Start Page placeholder, Reload and Settings.
   'menu.reload', 'menu.settings', 'pill.back', 'pill.forward', 'pill.placeholder',
@@ -78,7 +78,7 @@ export const ANDROID_KEYS = [
   // Settings (A5a): the iPhone's Settings sheet keys, and Android's own.
   'pagesNav.settings', 'slash.settings.hint',
   'android.settings.islandPosition', 'android.settings.islandPosition.bottom', 'android.settings.islandPosition.top',
-  'android.settings.more', 'android.settings.openSourceLicenses', 'footer.settings', 'ios.settings.about',
+  'android.settings.more', 'android.settings.openSourceLicenses', 'ios.settings.about',
   'ios.settings.addSite', 'ios.settings.blocker', 'ios.settings.blockerHelp',
   'ios.settings.duplicateSite', 'ios.settings.exceptions', 'ios.settings.exceptionsHelp', 'ios.settings.invalidSite',
   'ios.settings.privacy', 'ios.settings.privacyPolicy', 'ios.settings.removeSite',
@@ -91,7 +91,7 @@ export const ANDROID_KEYS = [
   'settings.privacy.removesCookiesCacheAnd',
   // The iPhone's palette and Sunrise menu from #1445 and #1466.
   'ios.palette.editAddress', 'tabMenu.copyLink', 'pill.notice.linkCopied', 'contextMenu.searchFor',
-  'ios.island.pageZoom', 'menu.zoomIn', 'menu.zoomOut', 'menu.actualSize', 'ios.island.desktopSite',
+  'ios.island.pageZoom', 'ios.island.desktopSite',
   'ios.island.mobileSite',
   // The first minute (A5c): the iPhone's walkthrough and default-browser copy, Android's where the
   // iPhone's names iOS, and the Language and Measure usage rows.
@@ -110,7 +110,9 @@ export const ANDROID_PLURALS = ['sharedSpaces.waitingCount', 'newtab.groups.coun
 // docs/android/a5a-settings-spike.md R3): copy key -> Chromium's resource name. Found by the wording
 // check in tests/android/settings.mjs.
 export const CHROMIUM_OVERRIDES = {'android.settings.autoRevokeSummary': 'safety_hub_autorevocation_toggle_summary'};
-const OVERRIDES = path.join(chromium, 'blanc/android/res');
+// Their own folder: Chromium's base-module resources list only the icons from res/, and a resource
+// folder may hold only files its target lists.
+const OVERRIDES = path.join(chromium, 'blanc/android/res_chromium_strings');
 export const LOCALES = [['en', 'values'], ['de', 'values-de'], ['es', 'values-es'], ['fr', 'values-fr'],
   ['it', 'values-it'], ['pt-BR', 'values-pt-rBR']];
 

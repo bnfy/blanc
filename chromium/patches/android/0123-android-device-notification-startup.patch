@@ -1,0 +1,96 @@
+diff -ruN a/chrome/browser/bluetooth/android/java/src/org/chromium/chrome/browser/bluetooth/BluetoothNotificationManager.java b/chrome/browser/bluetooth/android/java/src/org/chromium/chrome/browser/bluetooth/BluetoothNotificationManager.java
+--- a/chrome/browser/bluetooth/android/java/src/org/chromium/chrome/browser/bluetooth/BluetoothNotificationManager.java
++++ b/chrome/browser/bluetooth/android/java/src/org/chromium/chrome/browser/bluetooth/BluetoothNotificationManager.java
+@@ -93,8 +93,8 @@
+ 
+     public void onStartCommand(@Nullable Intent intent, int flags, int startId) {
+         if (intent == null || intent.getExtras() == null) {
+-            cancelPreviousBluetoothNotifications();
+-            mDelegate.stopSelf();
++            cancelLastRunBluetoothNotifications();
++            if (mNotifications.size() == 0) mDelegate.stopSelf();
+         } else if (ACTION_BLUETOOTH_UPDATE.equals(intent.getAction())) {
+             int notificationId = intent.getIntExtra(NOTIFICATION_ID_EXTRA, Tab.INVALID_TAB_ID);
+             int bluetoothType =
+@@ -123,6 +123,33 @@
+     }
+ 
+     /**
++     * Blanc (patch 0123): the deferred startup task that clears the notifications left from the
++     * last run. A page opened at a cold start can already have one by then, so a notification this
++     * run posted stays, with its saved id; only the ones left from the last run go.
++     */
++    private void cancelLastRunBluetoothNotifications() {
++        Set<String> notificationIds =
++                mSharedPreferences.readStringSet(
++                        ChromePreferenceKeys.BLUETOOTH_NOTIFICATION_IDS, null);
++        if (notificationIds == null) return;
++        Set<String> live = new HashSet<>();
++        for (String id : notificationIds) {
++            int notificationId = Integer.parseInt(id);
++            if (doesNotificationExist(notificationId)) {
++                live.add(id);
++                continue;
++            }
++            mNotificationManager.cancel(NOTIFICATION_NAMESPACE, notificationId);
++        }
++        if (live.isEmpty()) {
++            mSharedPreferences.removeKey(ChromePreferenceKeys.BLUETOOTH_NOTIFICATION_IDS);
++        } else {
++            mSharedPreferences.writeStringSet(
++                    ChromePreferenceKeys.BLUETOOTH_NOTIFICATION_IDS, live);
++        }
++    }
++
++    /**
+      * Updates the existing notification or creates one if none exist for the provided
+      * notificationId and bluetoothType.
+      * @param notificationId Unique id of the notification.
+diff -ruN a/chrome/browser/usb/android/java/src/org/chromium/chrome/browser/usb/UsbNotificationManager.java b/chrome/browser/usb/android/java/src/org/chromium/chrome/browser/usb/UsbNotificationManager.java
+--- a/chrome/browser/usb/android/java/src/org/chromium/chrome/browser/usb/UsbNotificationManager.java
++++ b/chrome/browser/usb/android/java/src/org/chromium/chrome/browser/usb/UsbNotificationManager.java
+@@ -71,8 +71,8 @@
+ 
+     public void onStartCommand(@Nullable Intent intent, int flags, int startId) {
+         if (intent == null || intent.getExtras() == null) {
+-            cancelPreviousUsbNotifications();
+-            mDelegate.stopSelf();
++            cancelLastRunUsbNotifications();
++            if (mNotificationIds.size() == 0) mDelegate.stopSelf();
+         } else if (ACTION_USB_UPDATE.equals(intent.getAction())) {
+             int notificationId = intent.getIntExtra(NOTIFICATION_ID_EXTRA, Tab.INVALID_TAB_ID);
+             boolean isConnected = intent.getBooleanExtra(NOTIFICATION_IS_CONNECTED, false);
+@@ -98,6 +98,33 @@
+     }
+ 
+     /**
++     * Blanc (patch 0123): the deferred startup task that clears the notifications left from the
++     * last run. A page opened at a cold start can already have one by then, so a notification this
++     * run posted stays, with its saved id; only the ones left from the last run go.
++     */
++    private void cancelLastRunUsbNotifications() {
++        Set<String> notificationIds =
++                mSharedPreferences.readStringSet(
++                        ChromePreferenceKeys.USB_NOTIFICATION_IDS, null);
++        if (notificationIds == null) return;
++        Set<String> live = new HashSet<>();
++        for (String id : notificationIds) {
++            int notificationId = Integer.parseInt(id);
++            if (doesNotificationExist(notificationId)) {
++                live.add(id);
++                continue;
++            }
++            mNotificationManager.cancel(NOTIFICATION_NAMESPACE, notificationId);
++        }
++        if (live.isEmpty()) {
++            mSharedPreferences.removeKey(ChromePreferenceKeys.USB_NOTIFICATION_IDS);
++        } else {
++            mSharedPreferences.writeStringSet(
++                    ChromePreferenceKeys.USB_NOTIFICATION_IDS, live);
++        }
++    }
++
++    /**
+      * Destroy the existing notification if it exists and creates one if isConnected is true for the
+      * provided notificationId.
+      * @param notificationId Unique id of the notification.

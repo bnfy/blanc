@@ -4,6 +4,7 @@ package org.chromium.blanc.sync;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -143,7 +144,8 @@ public final class SharedSpacesSheet {
         boolean blocked = !row.isNull("reason") && !rejoin && !shared;
         String tabs = mActivity.getString(R.string.blanc_shared_spaces_tabs, String.valueOf(row.optInt("tabCount")));
         CheckBox box = new CheckBox(mActivity);
-        box.setText(name + "\n" + tabs + (shared ? "\n" + mActivity.getString(R.string.blanc_shared_spaces_shared) : ""));
+        box.setText(shared ? TextUtils.join("\n", new String[] {name, tabs, mActivity.getString(R.string.blanc_shared_spaces_shared)})
+                : TextUtils.join("\n", new String[] {name, tabs}));
         box.setChecked(shared || mChosen.containsKey(id));
         box.setEnabled(!shared && !blocked);
         box.setOnCheckedChangeListener((v, on) -> {

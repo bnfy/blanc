@@ -1,5 +1,129 @@
 [
   {
+    "tag": "v1.49.1",
+    "version": "1.49.1",
+    "name": "1.49.1",
+    "publishedAt": "2026-11-15T18:47:05.000Z",
+    "humanDate": "November 15, 2026",
+    "machineDate": "2026-11-15",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.49.1",
+    "anchor": "v1-49-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "New Tab goes to an unused new tab."
+                  },
+                  {
+                    "type": "text",
+                    "value": " When the window already has a new tab you haven't used, ⌘T (Ctrl+T on Windows and Linux) switches to it instead of opening another, and ⌘⇧N does the same for private tabs. Pinned and grouped tabs are left alone. To turn it off, use Settings → General → Browsing → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Switch to an unused new tab"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With vertical tabs on a Mac, the current Space's mark has its own row below the window's close, minimize and zoom buttons, so longer Space names fit."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On a Mac, the Sunrise Spectrum and Sunrise Amber app icons have a muted warm outline in Dark instead of a bright white one."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A page that fails to load is now named after its site in the Island and the tab list, instead of "
+                  },
+                  {
+                    "type": "code",
+                    "value": "blanc://error"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and \"Page failed to load\"."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On a Mac, the expanded Island no longer runs under the window's close, minimize and zoom buttons when the window is narrow."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The welcome walkthrough points to "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/allow-ads"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", the command that turns blocking off for a site, and shows the Island at blanc.day."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Settings names the Start Page layouts with capitals, as the Start Page does, and the Theme setting no longer names macOS and Windows on every system."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.49.0",
     "version": "1.49.0",
     "name": "1.49.0",

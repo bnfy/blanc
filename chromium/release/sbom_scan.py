@@ -54,7 +54,8 @@ def main():
             raise
     licenses.ParseDir = recording_parse_dir
     args = types.SimpleNamespace(
-        gn_target=a.target, gn_out_dir=out_dir, scan_root=src, target_os='mac',
+        gn_target=a.target, gn_out_dir=out_dir, scan_root=src,
+        target_os='android' if a.target == '//chrome/android:chrome_public_bundle' else 'mac',
         exclude_dirs=None, extra_third_party_dirs=None, extra_allowed_dirs=None,
         enable_warnings=False, shipped_only=True)
     metadatas, had_errors = licenses._DiscoverMetadatas(args)

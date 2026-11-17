@@ -2,6 +2,7 @@
 
 package org.chromium.blanc.settings.chromium;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.LocaleManager;
@@ -17,6 +18,7 @@ import android.os.LocaleList;
 import android.widget.Toast;
 
 import org.chromium.base.ContextUtils;
+import org.chromium.base.IntentUtils;
 import org.chromium.base.Log;
 import org.chromium.blanc.blocking.BlockerBridge;
 import org.chromium.blanc.firstrun.AppLanguages;
@@ -55,7 +57,6 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
 
     private final Activity mActivity;
     private final Supplier<@Nullable WindowAndroid> mWindow;
-    private final Runnable mLicenses;
     private final boolean mSyncConnected;
     private final Runnable mOnSyncClosed;
     private final SettingsStore mStore = new SettingsStore(ContextUtils.getAppSharedPreferences());
@@ -64,7 +65,7 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
             boolean syncConnected, Runnable onSyncClosed) {
         mActivity = activity;
         mWindow = window;
-        mLicenses = licenses;
+        // The callback remains in patch 0110's interface; Blanc now opens its own notices page.
         mSyncConnected = syncConnected;
         mOnSyncClosed = onSyncClosed;
     }
@@ -219,7 +220,13 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
 
     @Override
     public void openLicenses() {
-        mLicenses.run();
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("chrome://blanc/licenses.html"));
+        // chrome: is absent from the public VIEW filter. Address the app's launcher directly,
+        // with Chromium's trusted-intent token so it accepts this internal page.
+        intent.setClassName(mActivity.getPackageName(),
+                "org.chromium.chrome.browser.document.ChromeLauncherActivity");
+        IntentUtils.addTrustedIntentExtras(intent);
+        mActivity.startActivity(intent);
     }
 
     @Override
@@ -245,6 +252,12 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
 
     /** Chromium's own override, read at startup before Android 13 (ChromePreferenceKeys). */
     private static final String OVERRIDE_LANGUAGE = "Chrome.Language.ApplicationOverrideLanguage";
+
+    // commit, not apply: Blanc terminates right after, before a background write would land.
+    @SuppressLint("ApplySharedPref")
+    private static void commitLanguage(@Nullable String tag) {
+        ContextUtils.getAppSharedPreferences().edit().putString(OVERRIDE_LANGUAGE, tag).commit();
+    }
 
     /** The language Blanc was asked for, or null when it follows the phone's. */
     private @Nullable String chosenLanguage() {
@@ -314,7 +327,7 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
         if (manager != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             manager.setApplicationLocales(tag == null ? LocaleList.getEmptyLocaleList() : LocaleList.forLanguageTags(tag));
         } else {
-            ContextUtils.getAppSharedPreferences().edit().putString(OVERRIDE_LANGUAGE, tag).commit();
+            commitLanguage(tag);
         }
         ApplicationLifetime.terminate(true);
     }

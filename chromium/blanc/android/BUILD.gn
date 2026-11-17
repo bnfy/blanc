@@ -25,6 +25,13 @@ android_library("island_java") {
   deps = [ "//build/android:build_java" ]
 }
 
+# The version the launch ping reports; an unversioned preview sends no ping.
+jinja_template("blanc_release") {
+  input = "java/templates/BlancRelease.java.tmpl"
+  output = "$target_gen_dir/org/chromium/blanc/BlancRelease.java"
+  variables = [ "blanc_version=$blanc_android_version_name" ]
+}
+
 # Blanc's tab rules, ported from Blanc for iPhone (TabGroups, TabSections,
 # QuickSwitcher, SlashCommand) and checked against desktop's JavaScript
 # (A2 plan, Task 2): plain Java with no views.
@@ -42,7 +49,11 @@ android_library("settings_model_java") {
     "java/src/org/chromium/blanc/settings/SiteDataClearer.java",
     "java/src/org/chromium/blanc/settings/StartPageCustomize.java",
   ]
-  deps = [ "//build/android:build_java" ]
+  sources += get_target_outputs(":blanc_release")
+  deps = [
+    ":blanc_release",
+    "//build/android:build_java",
+  ]
 }
 
 # Blanc's step over Chromium's Settings root (A5a). //chrome/android:chrome_java depends on this
@@ -237,6 +248,23 @@ android_assets("sync_assets") {
   disable_compression = true
 }
 
+# Separate notice files let the release audit compare their hashes inside the AAB,
+# in addition to the WebUI's embedded copies (pages_resources/).
+android_assets("notices_assets") {
+  renaming_sources = [
+    "pages/notices/LICENSE.txt",
+    "pages/notices/ASSET-LICENSE.txt",
+    "pages/notices/THIRD-PARTY-NOTICES.txt",
+    "pages/notices/CHROMIUM-FORK-NOTICES.txt",
+  ]
+  renaming_destinations = [
+    "blanc/android/pages/notices/LICENSE.txt",
+    "blanc/android/pages/notices/ASSET-LICENSE.txt",
+    "blanc/android/pages/notices/THIRD-PARTY-NOTICES.txt",
+    "blanc/android/pages/notices/CHROMIUM-FORK-NOTICES.txt",
+  ]
+}
+
 # Blanc's Settings, wired to Chromium (A5a). //chrome/android:chrome_java depends on this (patch 0110).
 android_library("settings_chromium_java") {
   resources_package = "org.chromium.blanc.island"
@@ -245,6 +273,7 @@ android_library("settings_chromium_java") {
     "java/src/org/chromium/blanc/settings/chromium/ChromiumSettingsHost.java",
   ]
   deps = [
+    ":notices_assets",
     ":island_view_java",
     ":island_view_resources",
     ":settings_java",
@@ -373,6 +402,7 @@ android_resources("island_view_resources") {
     "island/res/values/blanc_sync_dimens.xml",
     "island/res/values/blanc_walkthrough_dimens.xml",
     "island/res/xml/blanc_locales_config.xml",
+    "island/res/raw/blanc_lint_keep.xml",
     "island/res/values-night/blanc_settings_colors.xml",
     "island/res/values/blanc_strings.xml",
     "island/res/values-de/blanc_strings.xml",

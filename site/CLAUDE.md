@@ -22,14 +22,17 @@ row; without scripting they wrap onto a second row). It never hides on scroll:
 the homepage's sticky scenes sit just below it. Site-wide styles are `src/styles/site.css`
 plus `revamp.css`, both imported by `BaseLayout.astro`; pages add their own
 (`home.css`, `features-bento.css`, `mail.css` …)
-(bundled + hashed). **Every page is set in Blubird** since October 15, 2026
+(bundled + hashed). **Every page's headings are Blubird Display** since October 15, 2026
 (owner direction: the fonts roll out across the whole site, not only the
-redesigned homepage): headings in Blubird Display at regular weight and 0
+redesigned homepage), at regular weight and 0
 tracking (`--site-font-display` and `--site-font-patron`); a small Display title, 24px
 and under, may open up to +0.03em (owner, October 22, 2026), never
-negative, and headlines stay at 0. Text in Blubird
-Text (the `html, body` stack and the site's own labels and controls); see
-*Blubird and the lockup* below. Mockups of the app's own UI (the Island
+negative, and headlines stay at 0. **Text is Instrument Sans** (owner
+direction, November 15, 2026: Blubird's Text cuts read heavy in eyebrows and
+paragraphs, so Blubird is for headings only): the `html, body` stack and the
+site's own labels and controls, through `--font-brand-text`, which points at
+`--font-app`. The site loads no Blubird Text cut. See *Blubird and the lockup*
+below. Mockups of the app's own UI (the Island
 figures, demo UI, coded illustrations) use the app's face, Instrument Sans at
 width 98 and +0.01em, never Blubird (owner direction, October 17, 2026); its
 `@font-face` comes from the app's own file,
@@ -70,8 +73,8 @@ rename these.
 
 **Blubird and the lockup:** the homepage, header and footer use Blubird by
 Rajesh Rajput (`src/styles/blubird.css`: `--font-brand-display` for headlines,
-set at 0 letter-spacing, and `--font-brand-text` for copy), falling back to
-Inter. Its licence forbids redistributing the font files and this repository
+set at 0 letter-spacing; copy is Instrument Sans through `--font-brand-text`),
+falling back to Inter. Its licence forbids redistributing the font files and this repository
 is public, so they are never committed: they live in the git-ignored
 `public/fonts/blubird/` on the deploying machine (`npm run site:fonts --
 /path/to/Blubird.zip`), CI and contributors see Inter, and `npm run site:deploy`

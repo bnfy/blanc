@@ -42,7 +42,6 @@ final class PagesBridgeTests: XCTestCase {
         XCTAssertEqual(value("history", "clear"), .null)
         XCTAssertEqual(value("downloads", "clearFinished"), .null)
         XCTAssertEqual(value("settings", "set"), .null)
-        XCTAssertEqual(value("start", "focusGroup"), .null)
     }
 
     func testFavoritesAreEditableOnThePhone() {
@@ -130,10 +129,13 @@ final class PagesBridgeTests: XCTestCase {
                        .object([("isDefault", .bool(false)), ("canSet", .bool(false))]))
     }
 
-    // start.data has empty groups and a zero blocked count.
-    func testStartData() {
-        XCTAssertEqual(value("start", "data"),
-                       PagesBridge.startData())
+    // The Start Page is the desktop fork's, which asks StartPageBridge over
+    // chrome.send; window.bowserPages answers none of its calls.
+    func testStartPageCallsAreNotThisBridges() {
+        if case .value = PagesBridge.response(group: "start", method: "data", appVersion: "1") {
+            XCTFail("start.data belongs to StartPageBridge")
+        }
+        XCTAssertTrue(PagesBridge.userScriptSource.contains("location.host === 'newtab') return;"))
     }
 
     /// The web Settings page's Clear button: offered on iOS, and answered only
@@ -269,10 +271,11 @@ final class PagesBridgeTests: XCTestCase {
         let before: JSONValue = .array([])
         let after: JSONValue = .array([.object([("id", .string("favorite"))])])
         XCTAssertNil(PagesBridge.favoritesRefreshScript(previous: before, current: before, host: "newtab"))
-        for host in ["settings", "history", "example.com"] {
+        // The Start Page hears of Favorites as an event (StartPageBridge), not a reload.
+        for host in ["newtab", "settings", "history", "example.com"] {
             XCTAssertNil(PagesBridge.favoritesRefreshScript(previous: before, current: after, host: host))
         }
-        for host in ["newtab", "bookmarks"] {
+        for host in ["bookmarks"] {
             let script = try XCTUnwrap(PagesBridge.favoritesRefreshScript(previous: before, current: after, host: host))
             let context = try XCTUnwrap(JSContext())
             context.evaluateScript("var reloads = 0; var window = { location: { protocol: 'blanc:', host: '\(host)', reload: function () { reloads += 1; } } };")

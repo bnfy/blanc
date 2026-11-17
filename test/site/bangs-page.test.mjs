@@ -320,7 +320,7 @@ test('every bang is set in the app\'s Instrument Sans with its chip, and the pag
       assert.doesNotMatch(style.background, /rgba\(0, 0, 0, 0\)|transparent/, `${selector} has no chip`);
     }
     for (const [selector, value] of Object.entries(await family(['#bangs-search', '#bangs-rows li em', '#bangs-count', '.bangs-card-name']))) {
-      assert.match(value, /^"Blubird Text"/, `${selector} is ${value}`);
+      assert.match(value, /^"Instrument Sans"/, `${selector} is ${value}`);
     }
   } finally { await context.close(); }
 });

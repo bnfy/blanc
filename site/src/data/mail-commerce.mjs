@@ -1,7 +1,7 @@
 // Verified in Polar production (bnfy), including archived-product duplicates,
 // on 2026-10-13. These are public identifiers, never API credentials.
-// The Nodding Off License benefit (the iPhone app's key) was created and attached to both Suite
-// products on 2026-11-07, and the Suite prices were changed to $9 and $90 in Polar the same day.
+// The Nodding Off License benefit (the iPhone app's key) was created and attached to both Bundle
+// products on 2026-11-07, and the Bundle prices were changed to $9 and $90 in Polar the same day.
 export const organizationId = '6f675077-6cb1-4965-8db8-15838e5fdb38';
 export const mailBenefitId = '93a4fbc5-b7b0-4a0b-8817-46f62814181c';
 export const noddingOffBenefitId = '972583d1-c22d-415d-bd69-494ed63c5220';
@@ -27,7 +27,7 @@ const checkoutLinks = Object.freeze({
 });
 
 export function productFor(plan) {
-  if (!Object.hasOwn(products, plan)) throw new RangeError('Unknown Mail or Suite plan');
+  if (!Object.hasOwn(products, plan)) throw new RangeError('Unknown Mail or Bundle plan');
   return products[plan];
 }
 

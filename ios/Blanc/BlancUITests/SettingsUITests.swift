@@ -66,24 +66,13 @@ final class SettingsUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Kagi"].exists)
         XCTAssertTrue(app.staticTexts["Dark"].exists)
     }
-    func testStartPageControlsAndPhotoCancellation() {
+    /// The Start Page's choices live in its Customize, as on Android: the
+    /// Settings row closes Settings and opens Customize on a Start Page.
+    func testStartPageRowOpensCustomize() {
         open(); tap("settings.startPage")
-        XCTAssertTrue(app.navigationBars["Start Page"].waitForExistence(timeout: 5))
-        capture("Native Settings — Start Page")
-        tap("settings.layout"); app.buttons["Ledger"].tap()
-        tap("settings.clock")
-        tap("settings.clockFont"); app.buttons["Roboto Flex"].tap()
-        let height = app.sliders["settings.height"]
-        XCTAssertTrue(height.exists); height.adjust(toNormalizedSliderPosition: 0.7)
-        capture("Native Settings — clock")
-        app.navigationBars.buttons.element(boundBy: 0).tap()
-        tap("settings.wallpaper")
-        tap("settings.wallpaperSource"); app.buttons["Color"].tap()
-        capture("Native Settings — wallpaper")
-        tap("settings.choosePhoto")
-        XCTAssertTrue(app.buttons["Cancel"].waitForExistence(timeout: 5))
-        app.buttons["Cancel"].tap()
-        XCTAssertTrue(app.navigationBars["Wallpaper"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.webViews.staticTexts["Widgets"].waitForExistence(timeout: 10), "Customize opened")
+        XCTAssertFalse(app.buttons["settings.done"].exists, "Settings closed")
+        capture("Start Page Customize from Settings")
     }
     func testBlockingExceptions() {
         open(); tap("settings.privacy")

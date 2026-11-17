@@ -7,6 +7,12 @@ import beta from '../data/blanc-beta.json';
 import pkg from '../../../package.json';
 
 const latest = releases[0];
+// The Blanc Beta tile's version figures; chromium/release/daily/site-pr.mjs
+// writes the same text into the beta's claims ledger.
+const betaNumber = beta.version.split('-beta.')[1];
+const chromiumMajor = beta.chromium.split('.')[0];
+const betaReleased = new Date(`${beta.published}T00:00:00Z`)
+  .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 ---
 <BaseLayout
   title={"Download Blanc Browser for macOS, Windows, and Linux"}
@@ -127,8 +133,20 @@ const latest = releases[0];
       <p class="dl-tile-label">Preview</p>
       <h2 id="beta-title">Blanc Beta</h2>
       <p>Blanc built directly on Chromium. It installs beside Blanc and never replaces it.</p>
-      <p class="dl-tile-meta">{beta.requirement} · {beta.version}</p>
-      <a class="dl-tile-button" href="/dl/beta" data-download-link data-track="download_click" data-platform="beta" data-cta-position="beta">Download Blanc Beta</a>
+      <dl class="dl-beta-versions">
+        <div>
+          <dt>Beta</dt>
+          <dd class="dl-beta-figure">{betaNumber}</dd>
+          <dd>{beta.version} · build {beta.build}</dd>
+        </div>
+        <div>
+          <dt>Chromium</dt>
+          <dd class="dl-beta-figure">{chromiumMajor}</dd>
+          <dd>{beta.chromium}</dd>
+        </div>
+      </dl>
+      <p class="dl-tile-meta">{beta.requirement}<br />Released {betaReleased}</p>
+      <a class="dl-tile-button" href="/dl/beta" data-download-link data-track="download_click" data-platform="beta" data-cta-position="beta"><PlatformLogo platform="apple" />Download Beta for Mac</a>
       <details class="dl-notyet">
         <summary>Not in this beta yet</summary>
         <ul>

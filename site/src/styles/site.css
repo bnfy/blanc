@@ -33,9 +33,10 @@
 
   /* Website presentation only. --site-bg is Blanc White, the brand cream. revamp.css
      repeats the page, surface, raised, border, muted and gold values; keep them equal. */
-  /* Since October 15, 2026 every page is set in Blubird (src/styles/blubird.css):
-     headings in Blubird Display at 0 tracking, text in Blubird Text. Product
-     replicas (Island figures, demo UI) keep Inter, the app's own face. */
+  /* Headings on every page are Blubird Display at 0 tracking (October 15,
+     2026; src/styles/blubird.css). Text is Instrument Sans (November 15, 2026),
+     through --font-brand-text. Product replicas (Island figures, demo UI)
+     keep their own faces. */
   --site-font-patron: var(--font-brand-display);
   --site-font-display: var(--font-brand-display);
   --site-bg: #F8F2E8;
@@ -1124,7 +1125,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
    24px and under, may open up to +0.03em, where the face's own spacing reads
    tight (owner, October 22, 2026); never negative, and headlines stay at 0.
    This rule sits last so it wins over the per-section size rules above; those
-   keep their sizes and line heights. Text is Blubird Text; product replicas
+   keep their sizes and line heights. Text is Instrument Sans; product replicas
    keep Inter. */
 .download-section-head h2, .release-body h2, .about-proof-row h2, .about-close h2, .feature-close h2, .feature-copy-grid h2, .truth-note h2, .ambassador-section-heading h2, .ambassador-promise h2, .ambassador-apply-intro h2, .memchart-heading h2 {
   font-family: var(--site-font-display); font-weight: 400; letter-spacing: 0; font-optical-sizing: auto;
@@ -1225,9 +1226,29 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .dl-tile--beta { border-color: transparent; background: var(--site-ink-warm); color: #F8F2E8; }
 .dl-tile--beta .dl-tile-label, .dl-tile--beta > p:not([class]), .dl-tile--beta .dl-tile-meta { color: rgb(248 242 232 / 0.66); }
 .dl-tile--beta .dl-tile-label { color: var(--site-gold-on-dark); }
-.dl-tile-button { display: inline-flex; margin-top: auto; padding: 12px 22px; border-radius: 999px; background: #F8F2E8; color: var(--site-ink-warm); font-size: 15px; font-weight: 500; text-decoration: none; transition: background 0.18s ease, transform 0.1s ease-out; }
+.dl-tile--beta .dl-tile-meta { margin-top: 18px; line-height: 1.6; }
+/* The beta's number and its Chromium as large figures, each over a caption and
+   its full version (owner, 2026-11-15). The figure leads visually; the caption
+   stays first in the markup so it reads "Beta 6". */
+.dl-beta-versions { display: flex; margin: 24px 0 0; }
+.dl-beta-versions > div { display: flex; flex-direction: column; padding: 0 24px; border-left: 1px solid rgb(248 242 232 / 0.16); }
+.dl-beta-versions > div:first-child { padding-left: 0; border-left: 0; }
+.dl-beta-versions dt { order: 2; margin-top: 10px; color: rgb(248 242 232 / 0.66); font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; }
+.dl-beta-versions dd { order: 3; margin: 4px 0 0; color: rgb(248 242 232 / 0.86); font-family: var(--font-mono); font-size: 12px; }
+.dl-beta-versions .dl-beta-figure { order: 1; margin: 0; color: #F8F2E8; font-family: var(--site-font-display); font-size: 64px; font-variant-numeric: lining-nums; line-height: 0.9; }
+.dl-beta-versions > div:first-child .dl-beta-figure { color: var(--site-gold-on-dark); }
+/* Sized by the tile, not the window: it is narrowest in the three-column row
+   just above 900px and on phones. */
+.dl-tile--beta { container-type: inline-size; }
+@container (max-width: 290px) {
+  .dl-beta-versions > div { padding: 0 16px; }
+  .dl-beta-versions dd { font-size: 11.5px; }
+  .dl-beta-versions .dl-beta-figure { font-size: 48px; }
+}
+.dl-tile-button { display: inline-flex; align-items: center; gap: 8px; margin-top: auto; padding: 12px 22px; border-radius: 999px; background: #F8F2E8; color: var(--site-ink-warm); font-size: 15px; font-weight: 500; text-decoration: none; transition: background 0.18s ease, transform 0.1s ease-out; }
 .dl-tile-button:is(:hover, :focus-visible) { background: var(--site-gold-on-dark); }
 .dl-tile-button:active { transform: scale(0.97); }
+.dl-tile-button .platform-logo { width: 15px; height: 17px; margin-top: -2px; fill: currentColor; }
 .dl-notyet { margin-top: 14px; color: rgb(248 242 232 / 0.66); font-size: 13.5px; }
 .dl-notyet summary { cursor: pointer; list-style: none; font-family: var(--font-mono); font-size: 12px; }
 .dl-notyet summary::-webkit-details-marker { display: none; }

@@ -23,11 +23,13 @@ import XCTest
         XCTAssertEqual(IslandMenu.items(for: m.activeTab, manager: m, onPad: false), [.customizeStartPage, .newPrivateTab, .settings])
     }
 
-    func testHoldingTheStartPageOpensItsSettings() {
+    func testHoldingTheStartPageOpensCustomizeThere() {
         let m = manager()
         m.activeTab!.currentURL = TabsManager.newTabURL
+        let count = m.tabs.count
         m.startPageHeld(m.activeTab!)
-        XCTAssertEqual(m.settingsDestination, .startPage)
+        XCTAssertNil(m.settingsDestination)
+        XCTAssertEqual(m.tabs.count, count, "Customize opens on the Start Page that was held")
     }
 
     func testHoldingAWebPageDoesNothing() {

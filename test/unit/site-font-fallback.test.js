@@ -30,19 +30,22 @@ test('the page head loads Blubird and no longer preloads Newsreader', () => {
   assert.doesNotMatch(layout, /newsreader/i);
 });
 
-// Since October 15, 2026 every page is set in Blubird: headings in Blubird
-// Display at 0 tracking (the face's own spacing, as on the homepage), text in
-// Blubird Text. Product replicas keep Inter, the app's face. Since October 22,
+// Since October 15, 2026 every page sets its headings in Blubird Display at 0
+// tracking (the face's own spacing, as on the homepage); since November 15,
+// 2026 its text is Instrument Sans, and the site loads no Blubird Text cut.
+// Product replicas keep Inter, the app's face. Since October 22,
 // 2026 a small Display title (24px and under) may open up to +0.03em, where
 // the face's own spacing reads tight; never negative.
-test('headings use Blubird Display at 0 tracking and text uses Blubird Text', () => {
+test('headings use Blubird Display at 0 tracking and text uses Instrument Sans', () => {
   const css = read('site/src/styles/site.css');
   assert.match(css, /--site-font-patron: var\(--font-brand-display\);/);
   assert.match(css, /--site-font-display: var\(--font-brand-display\);/);
   assert.match(css, /html, body \{[^}]*font-family: var\(--font-brand-text\);/);
   const blubird = read('site/src/styles/blubird.css');
   assert.match(blubird, /--font-brand-display: "Blubird Display", var\(--font-ui\);/);
-  assert.match(blubird, /--font-brand-text: "Blubird Text", var\(--font-ui\);/);
+  assert.match(blubird, /--font-brand-text: var\(--font-app\);/);
+  assert.doesNotMatch(blubird, /Blubird Text|Text\.woff2/);
+  assert.match(css, /--font-app: "Instrument Sans", var\(--font-ui\);/);
   const sheets = fs.readdirSync(path.join(ROOT, 'site/src/styles')).filter(name => name.endsWith('.css'));
   for (const name of sheets) {
     for (const [, body] of read(`site/src/styles/${name}`).matchAll(/\{([^{}]*)\}/g)) {
