@@ -10,7 +10,7 @@
 const crypto = require('node:crypto');
 const { JsonStore } = require('./store');
 const {
-  normalizeLayout, mergeLayouts, boundLayout, layoutsEqual, validClock, nextClock, normalizeTie,
+  normalizeLayout, dropExpired, mergeLayouts, boundLayout, layoutsEqual, validClock, nextClock, normalizeTie,
 } = require('./favorites-layout-model');
 
 let store = null;
@@ -41,7 +41,7 @@ function getLayout() {
  * whole value's clock past any seen, so it wins its next sync. Returns
  * whether anything changed. */
 function setLayout(layout) {
-  const next = boundLayout(normalizeLayout(layout)).layout;
+  const next = boundLayout(dropExpired(layout, Date.now())).layout;
   if (layoutsEqual(next, getLayout())) return false;
   ensureStore().update((d) => {
     d.version = 1;

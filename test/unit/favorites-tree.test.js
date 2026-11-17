@@ -139,3 +139,16 @@ test('listFolderPaths walks depth-first', () => {
   const tree = buildTree([fav('a', 'Work › Clients', 1), fav('b', 'Home', 2)], EMPTY);
   assert.deepEqual(listFolderPaths(tree), ['Home', 'Work', 'Work › Clients']);
 });
+
+// --- Earlier "minor" findings, fixed ---
+
+test('a favorite with an unreadable date counts as oldest for spelling, as flat folders do', () => {
+  const items = [fav('a', 'work', NaN, 'a'), fav('b', 'Work', 5, 'b')];
+  assert.equal(shownPath(items, 'WORK'), 'work');
+});
+
+test('each child carries the key order lists name it by', () => {
+  const tree = buildTree([fav('https://a.example/', 'W', 1)], EMPTY);
+  assert.equal(tree.children[0].key, 'f:w');
+  assert.equal(tree.children[0].folder.children[0].key, favoriteChildKey('https://a.example/'));
+});

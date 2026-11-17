@@ -154,9 +154,10 @@ function addImportedFlat({ items, tombstones }, entries, { now, makeId }) {
  * - A new address is added under its path, spelled the way an existing
  *   folder is.
  * - An address already saved is skipped, with one exception that repairs
- *   imports made before folders could nest: those kept only the last folder
- *   name, so a saved favorite still sitting in a folder of that name moves to
- *   the full path. One the person has since moved anywhere else stays put.
+ *   imports made before folders could nest: those kept one flat name (the
+ *   parser's `flatFolder`; the path's last folder when an entry has none), so
+ *   a saved favorite still sitting in a folder of that name moves to the
+ *   full path, and a flat folder emptied that way is removed. One the person has since moved anywhere else stays put.
  * - Each folder that gains something keeps what it had, in the order it
  *   showed, followed by what arrived, in source order.
  *
@@ -182,6 +183,7 @@ function addImported(state, entries, ctx) {
   const next = items.slice();
   const added = [];
   const arrivals = new Map(); // folder key -> { path, keys: Set of child keys, in arrival order }
+  const vacated = new Map(); // folder key -> path of each flat folder a repair took a favorite from
   let skipped = 0;
   let moved = 0;
   let shortened = 0;
@@ -210,9 +212,11 @@ function addImported(state, entries, ctx) {
       const saved = next[index];
       const savedKey = pathKey(folderOf(saved));
       const untouched = ctx.repairBefore === undefined || (saved.updatedAt ?? saved.addedAt ?? 0) < ctx.repairBefore;
+      const flatName = Object.hasOwn(e, 'flatFolder') ? storedPath(e.flatFolder) : leafName(folder);
       const flattened = untouched && folder !== null && savedKey !== pathKey(folder)
-        && savedKey !== '' && savedKey === pathKey(leafName(folder));
+        && savedKey !== '' && savedKey === pathKey(flatName);
       if (!flattened) { skipped += 1; continue; }
+      vacated.set(savedKey, folderOf(saved));
       next[index] = { ...saved, folder, updatedAt: ctx.now };
       moved += 1;
     } else {
@@ -239,8 +243,7 @@ function addImported(state, entries, ctx) {
   {
     const before = new Map(); // folder key -> the child keys it showed, in order
     const walk = (node) => {
-      before.set(node.key, node.children.map((child) => (child.kind === 'folder'
-        ? folderChildKey(child.folder.name) : favoriteChildKey(child.item.url))));
+      before.set(node.key, node.children.map((child) => child.key));
       for (const child of node.children) if (child.kind === 'folder') walk(child.folder);
     };
     walk(buildTree(items, layout));
@@ -263,7 +266,16 @@ function addImported(state, entries, ctx) {
       room -= cost(entry);
       kept.push(entry);
     }
-    nextLayout = boundLayout(setFolderOrders(layout, kept, clockOf(ctx))).layout;
+    nextLayout = setFolderOrders(layout, kept, clockOf(ctx));
+    // A flat folder the repair emptied goes, even if it had its own order.
+    for (const [key, path] of vacated) {
+      const entry = layoutEntry(nextLayout, path);
+      const inUse = next.some((it) => folderOf(it) !== null && isWithin(folderOf(it), path))
+        || added.some((it) => it.folder !== null && isWithin(it.folder, path))
+        || arrivals.has(key);
+      if (entry && !entry.gone && !inUse) nextLayout = removeFolderEntry(nextLayout, path, clockOf(ctx));
+    }
+    nextLayout = boundLayout(nextLayout).layout;
   }
 
   const addedUrls = new Set(added.map((it) => it.url));

@@ -169,3 +169,30 @@ test('the layout store loads without Electron, with settings.js\'s clock rules r
   assert.equal(nextClock('x', 100), 100);
   assert.equal(normalizeTie('x'.repeat(129)), '');
 });
+
+// --- Earlier "minor" findings, fixed ---
+
+test('renaming a folder onto a sibling keeps both orders: the sibling first, then the arrivals', () => {
+  let l = setFolderOrder(EMPTY_LAYOUT, 'B', ['u:b1', 'u:b2'], { at: 3, tie: '' });
+  l = setFolderOrder(l, 'A', ['u:a1', 'u:b2'], { at: 9, tie: '' });
+  l = movePrefix(l, 'A', 'B', { at: 20, tie: '' });
+  assert.deepEqual(l.folders.b.order, ['u:b1', 'u:b2', 'u:a1']);
+  assert.equal(l.folders.a.gone, true);
+});
+
+test('devices whose clocks disagree about a marker\'s expiry settle instead of trading uploads', () => {
+  const made = ensureFolder(EMPTY_LAYOUT, 'Empty', { at: 50, tie: '' });
+  const marked = removeFolderEntry(made, 'Empty', { at: 100, tie: '' });
+  const late = 100 + GONE_TTL_MS + 10;    // this device thinks it expired
+  const early = 100 + GONE_TTL_MS - 10;   // the other does not, yet
+  // While the peer still carries the marker, it stays, whatever this clock says.
+  assert.ok(layoutsEqual(mergeLayouts(marked, marked, { now: late }), marked));
+  assert.ok(layoutsEqual(mergeLayouts(EMPTY_LAYOUT, marked, { now: late }), marked));
+  // Once the peer has dropped it, an expired marker goes and an unexpired one stays.
+  assert.ok(layoutsEqual(mergeLayouts(marked, EMPTY_LAYOUT, { now: late }), EMPTY_LAYOUT));
+  assert.ok(layoutsEqual(mergeLayouts(marked, EMPTY_LAYOUT, { now: early }), marked));
+  // A local write is where expired markers are dropped.
+  const { dropExpired } = require('../../src/main/favorites-layout-model');
+  assert.ok(layoutsEqual(dropExpired(marked, late), EMPTY_LAYOUT));
+  assert.ok(layoutsEqual(dropExpired(marked, early), marked));
+});

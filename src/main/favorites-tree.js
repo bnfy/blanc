@@ -98,8 +98,8 @@ function spellings(items) {
   const best = new Map(); // folder key -> { name, addedAt, id }
   for (const item of items ?? []) {
     const segments = itemSegments(item);
-    const addedAt = item.addedAt ?? 0;
-    const id = item.id ?? '';
+    const addedAt = Number.isFinite(item.addedAt) ? item.addedAt : 0;
+    const id = String(item.id ?? '');
     const keyParts = [];
     for (const segment of segments) {
       keyParts.push(segment.toLowerCase());
@@ -168,14 +168,17 @@ function buildTree(items, layout) {
       if (!child) {
         child = { path: joinPath(shown), name: shown.at(-1), key, children: [] };
         nodes.set(key, child);
-        node.children.push({ kind: 'folder', folder: child });
+        node.children.push({ kind: 'folder', folder: child, key: folderChildKey(child.name) });
       }
       node = child;
     }
     return node;
   };
 
-  for (const item of items ?? []) ensure(itemSegments(item)).children.push({ kind: 'favorite', item });
+  // Each child carries the key order lists name it by, computed once.
+  for (const item of items ?? []) {
+    ensure(itemSegments(item)).children.push({ kind: 'favorite', item, key: favoriteChildKey(item.url) });
+  }
   for (const [key, entry] of liveEntries(layout)) {
     if (entry.gone || key === '') continue;
     const segments = splitPath(entry.path).map(cleanSegment);
@@ -186,10 +189,7 @@ function buildTree(items, layout) {
     .filter(([, entry]) => !entry.gone && Array.isArray(entry.order))
     .map(([key, entry]) => [key, entry.order]));
   for (const node of nodes.values()) {
-    const keyed = new Map(node.children.map((child) => [
-      child.kind === 'folder' ? folderChildKey(child.folder.name) : favoriteChildKey(child.item.url),
-      child,
-    ]));
+    const keyed = new Map(node.children.map((child) => [child.key, child]));
     const listed = new Set();
     for (const key of orders.get(node.key) ?? []) {
       const child = keyed.get(key);

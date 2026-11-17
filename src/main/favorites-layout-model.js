@@ -143,9 +143,11 @@ function movePrefix(layout, fromPath, toPath, clock) {
     next = removeFolderEntry(next, entry.path, clock);
     if (entry.gone) continue;
     const moved = joinPath([...splitPath(to), ...splitPath(entry.path).slice(depth)]);
+    // Onto a folder that already has an order (a merge): its order stands,
+    // and what arrives follows.
     const target = layoutEntry(next, moved);
-    if (target && !target.gone && target.at > entry.at) continue;
-    next = writeEntry(next, moved, { order: entry.order }, clock);
+    const order = target && !target.gone ? [...target.order, ...entry.order] : entry.order;
+    next = writeEntry(next, moved, { order }, clock);
   }
 
   const oldParent = layoutEntry(next, parentPath(from));
@@ -168,13 +170,27 @@ function newer(a, b) {
   return JSON.stringify(a) <= JSON.stringify(b) ? a : b;
 }
 
+const expired = (entry, now) => entry.gone === true && now - entry.at > GONE_TTL_MS;
+
+/** A record without the removal markers that have outlived their window.
+ * Run on a local write (favorites-layout.setLayout). */
+function dropExpired(layout, now) {
+  const current = normalizeLayout(layout);
+  return fromEntries(Object.entries(current.folders).filter(([, entry]) => !expired(entry, now)));
+}
+
+/** Merge entry by entry. An expired removal marker is dropped only when the
+ * peer no longer carries it: expiry is judged by each device's own clock, and
+ * two devices whose clocks disagree at the boundary would otherwise each undo
+ * the other and upload on every pass. */
 function mergeLayouts(local, remote, { now }) {
+  const theirs = normalizeLayout(remote).folders;
   const merged = new Map(Object.entries(normalizeLayout(local).folders));
-  for (const [key, entry] of Object.entries(normalizeLayout(remote).folders)) {
+  for (const [key, entry] of Object.entries(theirs)) {
     merged.set(key, merged.has(key) ? newer(merged.get(key), entry) : entry);
   }
-  return fromEntries([...merged]
-    .filter(([, entry]) => !(entry.gone && now - entry.at > GONE_TTL_MS)));
+  const peerCarries = (key) => Object.hasOwn(theirs, key) && theirs[key].gone === true;
+  return fromEntries([...merged].filter(([key, entry]) => !(expired(entry, now) && !peerCarries(key))));
 }
 
 /** Keep the record inside its size limit. Order lists are emptied first: the
@@ -256,6 +272,6 @@ module.exports = {
   validClock, nextClock, normalizeTie,
   RESTORE_INTERVAL_MS, withFavoritesLayout, settingsEqualsWithLayout,
   LAYOUT_MAX_BYTES, GONE_TTL_MS, EMPTY_LAYOUT,
-  normalizeLayout, layoutEntry, setFolderOrder, setFolderOrders, ensureFolder, removeFolderEntry, movePrefix,
+  normalizeLayout, dropExpired, layoutEntry, setFolderOrder, setFolderOrders, ensureFolder, removeFolderEntry, movePrefix,
   mergeLayouts, boundLayout, layoutsEqual,
 };

@@ -541,3 +541,26 @@ test('repair leaves alone a favorite changed since the manager arrived', () => {
   assert.deepEqual(r.items.map((i) => i.folder), ['Bar › Work', 'Work']);
   assert.deepEqual([r.moved, r.skipped], [1, 1]);
 });
+
+// --- Earlier "minor" findings, fixed ---
+
+test('repair finds a favorite by the flat name the old import stored, even when it is not the last folder', () => {
+  const s = state([fav('https://q.example/', 'q'.repeat(60), 1, 'q'), fav('https://nt.example/', 'News › Tech', 1, 'nt')]);
+  const r = addImported(s, [
+    { url: 'https://q.example/', folder: `Bookmarks bar › ${'p'.repeat(60)}`, shortened: true, flatFolder: 'q'.repeat(60) },
+    { url: 'https://nt.example/', folder: 'Bookmarks bar › News > Tech', flatFolder: 'News › Tech' },
+  ], ICTX);
+  assert.deepEqual(r.items.map((i) => i.folder), [`Bookmarks bar › ${'p'.repeat(60)}`, 'Bookmarks bar › News > Tech']);
+  assert.equal(r.moved, 2);
+});
+
+test('repair removes the old flat folder it emptied, even when that folder had its own order', () => {
+  let s = state([fav('https://a.example/', 'Dev', 1, 'a'), fav('https://keep.example/', 'Keep', 1, 'k')]);
+  s = applyReorder(s, 'Dev', [favoriteChildKey('https://a.example/')], { now: 1, tie: 't' });
+  s = applyReorder(s, 'Keep', [favoriteChildKey('https://keep.example/')], { now: 1, tie: 't' });
+  const r = addImported(s, [{ url: 'https://a.example/', folder: 'Bar › Dev' }], ICTX);
+  assert.equal(r.layout.folders.dev.gone, true);
+  assert.equal(r.layout.folders.keep.gone, undefined);
+  const { buildTree: tree } = require('../../src/main/favorites-tree');
+  assert.deepEqual(tree(r.items, r.layout).children.filter((c) => c.kind === 'folder').map((c) => c.folder.name).sort(), ['Bar', 'Keep']);
+});

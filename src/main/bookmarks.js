@@ -3,7 +3,7 @@ const { JsonStore } = require('./store');
 const { validFavicon, validFolder } = require('./bookmark-validate');
 const data = require('./bookmark-data');
 const layoutStore = require('./favorites-layout');
-const { buildTree, favoriteChildKey } = require('./favorites-tree');
+const { buildTree } = require('./favorites-tree');
 
 let store = null;
 const ensureStore = () => {
@@ -189,7 +189,7 @@ function getTree() {
     ...node,
     children: node.children.map((child) => (child.kind === 'folder'
       ? { kind: 'folder', folder: withKeys(child.folder) }
-      : { kind: 'favorite', item: { ...child.item, key: favoriteChildKey(child.item.url) } })),
+      : { kind: 'favorite', item: { ...child.item, key: child.key } })),
   });
   return withKeys(buildTree(ensureStore().data.items, layoutStore.getLayout()));
 }
