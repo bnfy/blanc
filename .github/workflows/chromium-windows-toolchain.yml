@@ -58,7 +58,8 @@ jobs:
       - name: Report what the image has
         run: |
           $kits = 'C:\Program Files (x86)\Windows Kits\10'
-          & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -prerelease -format json -property installationPath,installationVersion,displayName
+          & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -prerelease -format json
+          $global:LASTEXITCODE = 0
           "Installed SDKs:"; Get-ChildItem "$kits\Include" -ErrorAction SilentlyContinue | ForEach-Object Name
           "Debuggers present: $(Test-Path "$kits\Debuggers\x64")"
       - name: Install the Windows SDK
@@ -73,7 +74,14 @@ jobs:
             'modify', '--installPath', "`"$vs`"", '--add', "Microsoft.VisualStudio.Component.Windows11SDK.$build",
             '--quiet', '--norestart')
           "Visual Studio installer exit code: $($run.ExitCode)"
-          if ($run.ExitCode -notin 0, 3010) { throw 'The Visual Studio installer failed.' }
+          if (-not (Test-Path "$kits\Include\$env:SDK_VERSION\um\windows.h")) {
+            # Visual Studio may not offer this SDK as a component; Microsoft's
+            # own installer does, with every feature (the debuggers included).
+            winget install --id "Microsoft.WindowsSDK.10.0.$build" --exact --silent --disable-interactivity `
+              --accept-package-agreements --accept-source-agreements --override '/features + /quiet /norestart'
+            "winget exit code: $LASTEXITCODE"
+            $global:LASTEXITCODE = 0
+          }
           if (-not (Test-Path "$kits\Include\$env:SDK_VERSION\um\windows.h")) {
             "Installed SDKs:"; Get-ChildItem "$kits\Include" | ForEach-Object Name
             throw "Windows SDK $env:SDK_VERSION is still missing."
@@ -90,7 +98,10 @@ jobs:
             Where-Object { $_.DisplayName -like 'Windows Software Development Kit*' -and $_.BundleCachePath }
           $bundles | ForEach-Object { "$($_.DisplayName) $($_.DisplayVersion) -> $($_.BundleCachePath)" }
           $bundle = $bundles | Where-Object { $_.DisplayVersion -like "10.0.$build.*" } | Select-Object -First 1
-          if (-not $bundle) { $bundle = $bundles | Sort-Object { [version]$_.DisplayVersion } -Descending | Select-Object -First 1 }
+          if (-not $bundle) {
+            $parsed = [version]'0.0'
+            $bundle = $bundles | Sort-Object { if ([version]::TryParse([string]$_.DisplayVersion, [ref]$parsed)) { $parsed } else { [version]'0.0' } } -Descending | Select-Object -First 1
+          }
           if ($bundle -and (Test-Path $bundle.BundleCachePath)) {
             $run = Start-Process -FilePath $bundle.BundleCachePath -Wait -PassThru -ArgumentList @(
               '/features', 'OptionId.WindowsDesktopDebuggers', '/quiet', '/norestart')
@@ -105,12 +116,23 @@ jobs:
               "$($msi.Name) exit code: $($run.ExitCode)"
             }
           }
+          if (-not (Test-Path "$kits\Debuggers\x64\dbghelp.dll")) {
+            # Last, Microsoft's own SDK installer, asked for the debuggers alone.
+            winget install --id "Microsoft.WindowsSDK.10.0.$build" --exact --silent --force --disable-interactivity `
+              --accept-package-agreements --accept-source-agreements --override '/features OptionId.WindowsDesktopDebuggers /quiet /norestart'
+            "winget exit code: $LASTEXITCODE"
+            $global:LASTEXITCODE = 0
+          }
           if (-not (Test-Path "$kits\Debuggers\x64\dbghelp.dll")) { throw 'The Debugging Tools are still missing.' }
       - name: Package the toolchain
         run: |
           $ErrorActionPreference = 'Stop'
           git clone --quiet https://chromium.googlesource.com/chromium/tools/depot_tools.git "$env:RUNNER_TEMP\depot_tools"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not clone depot_tools.' }
           git -C "$env:RUNNER_TEMP\depot_tools" checkout --quiet --detach $env:DEPOT_TOOLS_COMMIT
+          if ($LASTEXITCODE -ne 0) { throw "Could not check out depot_tools $env:DEPOT_TOOLS_COMMIT." }
+          # The package must come from the pinned commit, never the default branch.
+          if ((git -C "$env:RUNNER_TEMP\depot_tools" rev-parse HEAD) -ne $env:DEPOT_TOOLS_COMMIT) { throw 'depot_tools is not at the pinned commit.' }
           New-Item -ItemType Directory "$env:RUNNER_TEMP\package" | Out-Null
           Set-Location "$env:RUNNER_TEMP\package"
           $env:DEPOT_TOOLS_UPDATE = '0'
