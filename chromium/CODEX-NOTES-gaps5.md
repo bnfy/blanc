@@ -5,8 +5,10 @@ Queue 5's authorized implementation and verification are complete; four explicit
 | Classification | Cases | Newly passing |
 | --- | ---: | ---: |
 | a: missing adapter | 31 | 31 |
-| b: missing fork capability / blocked acceptance | 49 | 45 |
-| c: inapplicable by platform or approved construction | 22 | 0 |
+| b: missing fork capability / blocked acceptance | 47 | 45 |
+| c: inapplicable by platform or approved construction | 24 | 0 |
+
+On 2026-11-17 the owner moved two `b` cases to `c` (their release gates cover them): `platform-services.feature:25:plain` and `private-tabs.feature:40:plain`.
 
 Final candidate: `macos-d502a709c87e5d11`, `q5-final-repair-2-runtime-config.json`.
 Sync gate: 22/22 on macos-5c8b4b1dd486a8a4 (`q5-mini-window-sync-1`); Sync code unchanged since.
@@ -90,7 +92,7 @@ The first classification was 40 a / 42 b / 20 c. Source and focused runs moved s
 | `navigation-and-context-menu.feature:91:plain` | a | A custom search engine gets no live suggestions and searches its own address | V12: a custom search address is added under chrome://settings → Manage search engines |
 | `navigation-and-context-menu.feature:100:plain` | a | Open link in a background tab opens it ungrouped | step definition missing |
 | `newtab-layouts.feature:126:plain` | b | Billboard continues past its initial candidate page | Completed in item 11: paged native History rankings beyond the ten-entry TopSites cache |
-| `platform-services.feature:25:plain` | b | Desktop updates through the in-app updater | ABSOLUTE OWNER HOLD: dedicated beta build and in-app updater; no work or runs. |
+| `platform-services.feature:25:plain` | c | Desktop updates through the in-app updater | Owner decision 2026-11-17: the test build has no updater; the sparkle-N-to-N+1 release gate proves on every beta that Sparkle installs the next beta and refuses a wrong key or a tampered file. |
 | `platform-services.feature:50:plain` | c | Blanc fills only a matching 1Password login after an explicit ask | Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension. |
 | `platform-services.feature:64:plain` | c | The island offers Fill only for a visible, uncontradicted login form | Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension. |
 | `platform-services.feature:76:plain` | c | Fill questions open as a dialog capsule with Cancel focused and full keyboard control | Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension. |
@@ -98,7 +100,7 @@ The first classification was 40 a / 42 b / 20 c. Source and focused runs moved s
 | `platform-services.feature:98:plain` | c | A successful fill confirms politely and gets out of the way on its own | Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension. |
 | `platform-services.feature:105:plain` | c | Switching tabs withdraws a pending fill question | Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension. |
 | `platform-services.feature:112:plain` | c | The success confirmation waits while pointed at or focused | Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension. |
-| `private-tabs.feature:40:plain` | b | Passkeys created in a private tab are ephemeral | Device-bound Touch ID ceremony requires signed/entitled build and owner interaction; Apple/signing work is outside this queue. Native metadata isolation is checked separately. |
+| `private-tabs.feature:40:plain` | c | Passkeys created in a private tab are ephemeral | Owner decision 2026-11-17: a private-window passkey needs Touch ID on a signed build; it is a question in the owner's passkey check (webauthn gate), not a simulated authenticator. |
 | `quiet-tabs.feature:28:example-45` | c | Protected background tabs stay awake and beforeunload remains functional | This outline row asserts Electron WebContents listener counts, which do not exist in Chromium; native protection rows remain applicable. |
 | `reader-mode.feature:7:plain` | c | Extract a readable article into a separate sandbox | Owner decision 2026-11-02: native Chromium Reading Mode replaces the shipping reader sandbox and appearance. |
 | `reader-mode.feature:13:plain` | c | Return to the same document and scroll position | Owner decision 2026-11-02: native Chromium Reading Mode replaces the shipping reader sandbox and appearance. |
