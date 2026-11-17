@@ -372,8 +372,9 @@ notices, licence keys, mailbox deletion warnings), sent by
 `services/mail-worker/src/email.js` in bnfy/blanc-mail, use the same layout
 with the Blanc Mail lockup in place of the Blanc one
 (`site/public/press/blanc-mail-lockup-ink-480.png`, 480 × 93, drawn 220 × 43
-and linked to blanc.day/mail), so a Mail email never reads as the browser's
-(owner, November 17, 2026). Everything about the browser, the Android beta
+and linked to blanc.day/mail) and without the browser's tagline in the
+footer, so a Mail email never reads as the browser's (owner, November 17,
+2026). Everything about the browser, the Android beta
 invitations included, keeps the Blanc lockup.
 `site/public/_headers` lets other origins load the email lockups and font.
 Blubird never appears in email: its licence covers the website only. The Worker's
