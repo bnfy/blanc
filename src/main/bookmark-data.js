@@ -2,6 +2,12 @@
 // returns new arrays and a `changed` flag; bookmarks.js writes only when
 // changed. All folder identity/canonicalization rules live here.
 const { validFavicon, validFolder, folderKey } = require('./bookmark-validate');
+const {
+  MAX_PATH, cleanSegment, splitPath, joinPath, validPath, pathKey, parentPath, leafName, isWithin, shownPath, storedPath,
+} = require('./favorites-tree');
+const {
+  EMPTY_LAYOUT, layoutEntry, setFolderOrder, ensureFolder, removeFolderEntry, movePrefix, layoutsEqual,
+} = require('./favorites-layout-model');
 
 /** Map folderKey -> canonical spelling, chosen from the item with the oldest
  * addedAt (tie: smallest id) — fully deterministic so independent devices
@@ -59,87 +65,243 @@ function addImported({ items, tombstones }, entries, { now, makeId }) {
   };
 }
 
-function applySetFolder({ items }, id, folder, { now }) {
-  const idx = items.findIndex((it) => it.id === id);
-  if (idx === -1) return { items, changed: false };
-  let target;
-  if (folder === null) {
-    target = null;
-  } else {
-    const valid = validFolder(folder);
-    if (valid === null) return { items, changed: false }; // invalid string: no-op, never ungroup
-    const existing = buildCanonMap(items).get(folderKey(valid));
-    target = existing ? existing.folder : valid;
-  }
-  if ((items[idx].folder ?? null) === (target ?? null)) return { items, changed: false };
-  const next = items.slice();
-  next[idx] = { ...items[idx], folder: target, updatedAt: now };
-  return { items: next, changed: true };
+// --- Folders as paths (F63) ---------------------------------------------
+// Each operation takes { items, tombstones, layout } and returns the same
+// three plus `changed`, and `error` when it refused. A refused operation
+// changes nothing. Callers that predate the layout record may leave it out.
+
+const layoutOf = (state) => state.layout ?? EMPTY_LAYOUT;
+const clockOf = ({ now, tie = '' }) => ({ at: now, tie });
+const unchanged = (state, extra = {}) => ({
+  items: state.items, tombstones: state.tombstones ?? [], layout: layoutOf(state), changed: false, ...extra,
+});
+
+// A favorite's folder read as a path (favorites-tree.storedPath).
+const folderOf = (it) => storedPath(it.folder);
+
+/** A folder exists while a favorite sits in or under it, or the layout
+ * record lists it (an empty folder). */
+function folderExists(items, layout, path) {
+  if (pathKey(path) === '') return true;
+  return items.some((it) => folderOf(it) !== null && isWithin(folderOf(it), path))
+    || Object.values(layout.folders).some((entry) => !entry.gone && entry.path !== null && isWithin(entry.path, path));
 }
 
-/** Save a favorite — add-only and idempotent. `folder`: null = save at / keep
- * at top level; a non-null candidate is validated (blank/over-long → reject,
- * NEVER a silent top-level save) and canonicalized to an existing folder's
- * spelling. On an already-saved url, only an explicitly named folder moves it
- * (a bare save leaves it untouched). Mirrors toggleBookmark's add path
- * (append, clear the url's tombstone) plus applySetFolder's folder resolution. */
-function applySaveFavorite({ items, tombstones }, { url, title, favicon, folder }, { now, makeId }) {
+/** A folder never disappears as a side effect: when favorites leaving (moved
+ * or removed) empty a folder, it gets its own layout entry. Renaming, moving
+ * and deleting a folder empty its old path on purpose and don't call this. */
+function keepEmptiedFolders(beforeItems, afterItems, layout, ctx) {
+  const used = (items) => {
+    const paths = new Map(); // folder key -> path
+    for (const it of items) {
+      const segments = splitPath(folderOf(it));
+      for (let depth = 1; depth <= segments.length; depth += 1) {
+        const path = joinPath(segments.slice(0, depth));
+        if (!paths.has(pathKey(path))) paths.set(pathKey(path), path);
+      }
+    }
+    return paths;
+  };
+  const after = used(afterItems);
+  let next = layout;
+  for (const [key, path] of used(beforeItems)) {
+    if (!after.has(key)) next = ensureFolder(next, shownPath(beforeItems, path), clockOf(ctx));
+  }
+  return next;
+}
+
+/** Move every favorite in or under `from` to the same place under
+ * `toSegments`, dropping `dropDepth` leading segments of its own path. */
+function rewritePrefix(items, from, toSegments, dropDepth, now) {
+  let changed = false;
+  let tooLong = false;
+  const next = items.map((it) => {
+    const stored = folderOf(it);
+    if (stored === null || !isWithin(stored, from)) return it;
+    const target = joinPath([...toSegments, ...splitPath(stored).slice(dropDepth)]);
+    if (target !== null && target.length > MAX_PATH) tooLong = true;
+    if ((it.folder ?? null) === target) return it;
+    changed = true;
+    return { ...it, folder: target, updatedAt: now };
+  });
+  return { items: next, changed, tooLong };
+}
+
+/** A folder and everything under it, to a new path. */
+function relocateFolder(state, from, to, ctx) {
+  const layout = layoutOf(state);
+  const moved = rewritePrefix(state.items, from, splitPath(to), splitPath(from).length, ctx.now);
+  // An empty folder underneath must be able to follow, or nothing moves.
+  const depth = splitPath(from).length;
+  const stranded = Object.values(layout.folders).some((entry) => !entry.gone && entry.path !== null
+    && isWithin(entry.path, from)
+    && joinPath([...splitPath(to), ...splitPath(entry.path).slice(depth)]).length > MAX_PATH);
+  if (moved.tooLong || stranded) return unchanged(state, { error: 'too-long' });
+  const nextLayout = movePrefix(layout, from, to, clockOf(ctx));
+  const changed = moved.changed || !layoutsEqual(nextLayout, layout);
+  if (!changed) return unchanged(state);
+  return { items: moved.changed ? moved.items : state.items, tombstones: state.tombstones ?? [], layout: nextLayout, changed: true };
+}
+
+function applyCreateFolder(state, parentPath, name, ctx) {
+  const layout = layoutOf(state);
+  const segment = cleanSegment(name);
+  const parent = parentPath == null ? null : validPath(parentPath);
+  if (segment === null || (parentPath != null && parent === null)) return unchanged(state, { error: 'invalid' });
+  const path = validPath(joinPath([...splitPath(shownPath(state.items, parent)), segment]));
+  if (path === null) return unchanged(state, { error: 'too-long' });
+  const shown = shownPath(state.items, path);
+  if (folderExists(state.items, layout, shown)) {
+    const entry = layoutEntry(layout, shown);
+    return unchanged(state, { path: entry && !entry.gone ? entry.path : shown });
+  }
+  return { items: state.items, tombstones: state.tombstones ?? [], layout: ensureFolder(layout, shown, clockOf(ctx)), changed: true, path: shown };
+}
+
+/** Rename one folder: the last segment of `path` becomes `newName`. A
+ * case-only rename takes the new spelling as typed; a name a sibling already
+ * has merges the two folders under the sibling's spelling. */
+function applyRenameFolder(state, path, newName, ctx) {
+  const from = storedPath(path);
+  const segment = cleanSegment(newName);
+  if (from === null || segment === null) return unchanged(state, { error: 'invalid' });
+  if (!folderExists(state.items, layoutOf(state), from)) return unchanged(state, { error: 'missing' });
+  const parent = splitPath(shownPath(state.items, parentPath(from)));
+  const typed = joinPath([...parent, segment]);
+  const to = pathKey(typed) === pathKey(from) ? typed : shownPath(state.items, typed);
+  if (to.length > MAX_PATH) return unchanged(state, { error: 'too-long' });
+  return relocateFolder(state, from, to, ctx);
+}
+
+function applyMoveFolder(state, path, newParentPath, ctx) {
+  const from = storedPath(path);
+  const parent = newParentPath == null ? null : validPath(newParentPath);
+  if (from === null || (newParentPath != null && parent === null)) return unchanged(state, { error: 'invalid' });
+  if (!folderExists(state.items, layoutOf(state), from)) return unchanged(state, { error: 'missing' });
+  if (parent !== null && isWithin(parent, from)) return unchanged(state, { error: 'cycle' });
+  const shownFrom = shownPath(state.items, from);
+  const to = shownPath(state.items, joinPath([...splitPath(shownPath(state.items, parent)), leafName(shownFrom)]));
+  if (to.length > MAX_PATH) return unchanged(state, { error: 'too-long' });
+  if (pathKey(to) === pathKey(from)) return unchanged(state);
+  return relocateFolder(state, from, to, ctx);
+}
+
+/** Delete a folder: its favorites and sub-folders move up one level (to the
+ * top level from a top-level folder, as before paths). Nothing is deleted
+ * with it. */
+function applyRemoveFolder(state, path, ctx) {
+  const from = storedPath(path);
+  if (from === null) return unchanged(state, { error: 'invalid' });
+  const layout = layoutOf(state);
+  if (!folderExists(state.items, layout, from)) return unchanged(state, { error: 'missing' });
+  const parent = splitPath(shownPath(state.items, parentPath(from)));
+  const depth = splitPath(from).length;
+  const moved = rewritePrefix(state.items, from, parent, depth, ctx.now);
+  let nextLayout = layout;
+  const subfolders = new Map(); // key -> path of each direct sub-folder
+  const note = (folder) => {
+    const segments = splitPath(folder);
+    if (segments.length > depth && isWithin(folder, from)) {
+      const sub = joinPath(segments.slice(0, depth + 1));
+      subfolders.set(pathKey(sub), sub);
+    }
+  };
+  for (const it of state.items) if (folderOf(it) !== null) note(folderOf(it));
+  for (const entry of Object.values(layout.folders)) if (!entry.gone && entry.path !== null) note(entry.path);
+  // A sub-folder with the deleted folder's own name moves onto its path and
+  // must not then be marked removed.
+  let replaced = false;
+  for (const sub of subfolders.values()) {
+    const target = joinPath([...parent, leafName(sub)]);
+    if (pathKey(target) === pathKey(from)) replaced = true;
+    nextLayout = movePrefix(nextLayout, sub, target, clockOf(ctx));
+  }
+  if (!replaced) nextLayout = removeFolderEntry(nextLayout, from, clockOf(ctx));
+  return { items: moved.changed ? moved.items : state.items, tombstones: state.tombstones ?? [], layout: nextLayout, changed: true };
+}
+
+/** Move favorites into a folder, or to the top level with null. */
+function applyMoveFavorites(state, ids, path, ctx) {
   let target = null;
-  if (folder != null) {
-    const valid = validFolder(folder);
-    if (valid === null) return { items, tombstones, changed: false }; // reject before any add
-    const existing = buildCanonMap(items).get(folderKey(valid));
-    target = existing ? existing.folder : valid;
+  if (path != null) {
+    const valid = validPath(path);
+    if (valid === null) return unchanged(state, { error: 'invalid' }); // never a silent move to the top
+    target = shownPath(state.items, valid);
   }
-  const idx = items.findIndex((it) => it.url === url);
-  if (idx !== -1) {
-    // Already saved: bare save is a no-op; a named folder moves it.
-    if (folder == null || (items[idx].folder ?? null) === target) return { items, tombstones, changed: false };
-    const next = items.slice();
-    next[idx] = { ...items[idx], folder: target, updatedAt: now };
-    return { items: next, tombstones, changed: true };
-  }
-  const item = { id: makeId(), url, title: title || url, favicon: validFavicon(favicon), addedAt: now, updatedAt: now, folder: target };
+  const wanted = new Set(ids);
+  let changed = false;
+  const next = state.items.map((it) => {
+    if (!wanted.has(it.id) || (it.folder ?? null) === target) return it;
+    changed = true;
+    return { ...it, folder: target, updatedAt: ctx.now };
+  });
+  if (!changed) return unchanged(state);
   return {
-    items: [...items, item],
-    tombstones: tombstones.filter((t) => t.url !== url), // re-favoriting clears a prior delete
+    items: next,
+    tombstones: state.tombstones ?? [],
+    layout: keepEmptiedFolders(state.items, next, layoutOf(state), ctx),
     changed: true,
   };
 }
 
-function applyRenameFolder({ items }, oldName, newName, { now }) {
-  const target0 = validFolder(newName);
-  if (target0 === null) return { items, changed: false }; // reject blank/over-long
-  const oldKey = folderKey(oldName);
-  let target;
-  if (folderKey(newName) === oldKey) {
-    target = target0; // case-only rename: use the new spelling verbatim
-  } else {
-    const existing = buildCanonMap(items).get(folderKey(target0));
-    target = existing ? existing.folder : target0; // merge-on-collision
-  }
-  let changed = false;
-  const next = items.map((it) => {
-    if (it.folder != null && folderKey(it.folder) === oldKey && it.folder !== target) {
-      changed = true;
-      return { ...it, folder: target, updatedAt: now };
-    }
-    return it;
-  });
-  return changed ? { items: next, changed: true } : { items, changed: false };
+function applySetFolder(state, id, folder, ctx) {
+  if (folder === undefined) return unchanged(state); // only an explicit null is the top level
+  return applyMoveFavorites(state, [id], folder, ctx);
 }
 
-function applyRemoveFolder({ items }, name, { now }) {
-  const key = folderKey(name);
-  let changed = false;
-  const next = items.map((it) => {
-    if (it.folder != null && folderKey(it.folder) === key) {
-      changed = true;
-      return { ...it, folder: null, updatedAt: now };
-    }
-    return it;
-  });
-  return changed ? { items: next, changed: true } : { items, changed: false };
+function applyRemoveFavorites(state, ids, ctx) {
+  const wanted = new Set(ids);
+  const removed = state.items.filter((it) => wanted.has(it.id));
+  if (!removed.length) return unchanged(state);
+  const next = state.items.filter((it) => !wanted.has(it.id));
+  return {
+    items: next,
+    tombstones: [...(state.tombstones ?? []), ...removed.map((it) => ({ url: it.url, deletedAt: ctx.now }))],
+    layout: keepEmptiedFolders(state.items, next, layoutOf(state), ctx),
+    changed: true,
+  };
+}
+
+/** Save the order a person chose for one folder's children (null: the top level). */
+function applyReorder(state, path, orderKeys, ctx) {
+  const layout = layoutOf(state);
+  const folder = path == null ? null : validPath(path);
+  if (path != null && folder === null) return unchanged(state, { error: 'invalid' });
+  if (!folderExists(state.items, layout, folder)) return unchanged(state, { error: 'missing' });
+  const shown = shownPath(state.items, folder);
+  const current = layoutEntry(layout, shown);
+  const proposed = setFolderOrder(layout, shown, orderKeys, clockOf(ctx));
+  const order = layoutEntry(proposed, shown)?.order;
+  if (!order || (current && !current.gone && JSON.stringify(current.order) === JSON.stringify(order))) return unchanged(state);
+  return { items: state.items, tombstones: state.tombstones ?? [], layout: proposed, changed: true };
+}
+
+/** Save a favorite — add-only and idempotent. `folder`: null = save at / keep
+ * at top level; a non-null candidate is a folder path, validated (blank or
+ * over-long → reject, NEVER a silent top-level save) and spelled the way an
+ * existing folder is. On an already-saved url, only an explicitly named
+ * folder moves it (a bare save leaves it untouched). */
+function applySaveFavorite(state, { url, title, favicon, folder }, ctx) {
+  const { items } = state;
+  const tombstones = state.tombstones ?? [];
+  let target = null;
+  if (folder != null) {
+    const valid = validPath(folder);
+    if (valid === null) return unchanged(state); // reject before any add
+    target = shownPath(items, valid);
+  }
+  const existing = items.find((it) => it.url === url);
+  if (existing) {
+    if (folder == null) return unchanged(state);
+    return applyMoveFavorites(state, [existing.id], target, ctx);
+  }
+  const item = { id: ctx.makeId(), url, title: title || url, favicon: validFavicon(favicon), addedAt: ctx.now, updatedAt: ctx.now, folder: target };
+  return {
+    items: [...items, item],
+    tombstones: tombstones.filter((t) => t.url !== url), // re-favoriting clears a prior delete
+    layout: layoutOf(state),
+    changed: true,
+  };
 }
 
 /** Collapse every folderKey group to one spelling. Rewrites folder spelling
@@ -223,5 +385,6 @@ function mayWriteFavoriteFavicon(tab, sanitized) {
 module.exports = {
   addImported, applySaveFavorite, applyFaviconUpdate, mayWriteFavoriteFavicon,
   applySetFolder, applyRenameFolder, applyRemoveFolder, canonicalizeFolders,
+  applyCreateFolder, applyMoveFolder, applyMoveFavorites, applyRemoveFavorites, applyReorder, keepEmptiedFolders,
   groupFavoritesForMenu,
 };
