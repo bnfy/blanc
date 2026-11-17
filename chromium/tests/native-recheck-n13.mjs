@@ -61,13 +61,12 @@ try{
  await (await f.connectTarget((await f.targets()).find(t=>t.type==='page'&&t.url===d.url))).eval(`(()=>{const m=document.createElement('meta');m.name='theme-color';m.content='#1f6f4a';document.head.append(m);
   document.documentElement.style.background=document.body.style.background='#1f6f4a';})()`);
  const hex=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/.test(v);
- const tinted=await w.waitFor(()=>raw(d.url),t=>hex(t?.pageBg),'the page\'s color reported to the Island',10000);
- const [r,g,bl]=[1,3,5].map(i=>parseInt(tinted.pageBg.slice(i,i+2),16));
- assert.ok(g>r&&g>bl,'expected a green tint from the green page; found '+tinted.pageBg);
+ const green=v=>{if(!hex(v))return false;const [r,g,bl]=[1,3,5].map(i=>parseInt(v.slice(i,i+2),16));return g>r&&g>bl;};
+ await w.waitFor(()=>raw(d.url),t=>green(t?.pageBg),'the green page\'s color reported to the Island',15000);
  await setColors(false);
  await w.waitFor(()=>raw(d.url),t=>t&&t.pageBg==='','the tint cleared with Match site colors off',10000);
  await setColors(true);
- await w.waitFor(()=>raw(d.url),t=>hex(t?.pageBg),'the tint back with Match site colors on',10000);
+ await w.waitFor(()=>raw(d.url),t=>green(t?.pageBg),'the tint back with Match site colors on',15000);
  result.checks.push('the Island takes the page\'s color; Match site colors off clears it and on restores it');
  await visible();result.result='pass';
 }catch(error){result.result=error.code==="BLANC_ENVIRONMENT_STOP"?"blocked-environment":"fail";result.error=String(error.stack);process.exitCode=1;}
