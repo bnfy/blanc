@@ -1,0 +1,27 @@
+---
+// Reserve a Blanc Mail address: its own page (owner, November 18, 2026), reached from
+// the Mail page's address section. The form (MailReserveAddress) renders only once
+// PUBLIC_TURNSTILE_SITE_KEY is set; until then the page says reservations open soon.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MailBar from '../../components/MailBar.astro';
+import MailReserveAddress from '../../components/MailReserveAddress.astro';
+import '../../styles/mail.css';
+const open = Boolean(import.meta.env.PUBLIC_TURNSTILE_SITE_KEY);
+const endings = ['blnc.day', 'blnc.page', 'blancmail.me', 'blancmail.co', 'blncmail.com'];
+---
+<BaseLayout title="Reserve your Blanc Mail address" description="Reserve the Blanc Mail address you want, like mira@blnc.day, free. It’s held for you until Blanc Mail addresses open, then for 30 days while you claim it." path="/mail/reserve" header="solid">
+  <MailBar />
+  <main id="main-content" class="mail-stage">
+    <section class="mail-reserve-page" aria-labelledby="mail-reserve-title">
+      <p class="mail-eyebrow">Blanc Mail · Your address</p>
+      <h1 id="mail-reserve-title"><span class="mail-gold-text">Reserve your address.</span></h1>
+      <p class="mail-reserve-lead">Free. The address is held for you until Blanc Mail addresses open, then for 30 days while you claim it with Blanc Mail + Address or Blanc Bundle.</p>
+      {open ? <MailReserveAddress /> : <p class="mail-reserve-lead mail-reserve-soon">Reservations open soon. <a href="/mail#address">Read about Blanc Mail addresses</a></p>}
+      <ul class="mail-reserve-facts">
+        <li>The name before the @ is held on every ending, and you choose one when you claim it: {endings.map((ending, index) => <>{index === 0 ? '' : index === endings.length - 1 ? ' or ' : ', '}<span class="mail-ending">{ending}</span></>)}.</li>
+        <li>Dots, hyphens and underscores don’t make a different name: <span class="mail-ending">mira.b</span> and <span class="mail-ending">mirab</span> are the same name, so nobody else can take a lookalike of yours.</li>
+        <li>To claim it, use the email you reserve with as your backup email when you get your address in Blanc Mail.</li>
+      </ul>
+    </section>
+  </main>
+</BaseLayout>
