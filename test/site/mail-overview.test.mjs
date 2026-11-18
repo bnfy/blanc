@@ -121,6 +121,11 @@ test('the design teasers open in the visitor’s appearance, switch in place, an
     await dark.page.keyboard.press('ArrowRight');
     assert.deepEqual((await teaserState(dark.page))[0].shown, ['light']);
     assert.match(await dark.page.locator('.mail-address .mail-section-lead').textContent(), /^A private mailbox of your own,/);
+    // The address's features, and none of the claims the owner ruled out.
+    const points = await dark.page.locator('.mail-address-points h3').allTextContents();
+    assert.deepEqual(points, ['Your name, your ending', '15 GB for your mail', 'Encrypted where it’s stored', 'Back in with a code', 'Time to renew', 'Filtered for spam']);
+    const addressText = await dark.page.locator('.mail-address').textContent();
+    assert.doesNotMatch(addressText, /can[’']t read your mail|Apple Mail|iPhone|iPad|end-to-end/i);
   } finally { await dark.context.close(); }
 
   const light = await openPage('/mail', 390, { colorScheme: 'light', viewport: { width: 390, height: 844 } });

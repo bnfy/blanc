@@ -217,10 +217,10 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 .mip-chips{display:flex;gap:.55em}
 .mip-chips span{padding:.18em .73em;border-radius:.64em;box-shadow:inset 0 0 0 1px var(--mip-hairline);color:var(--mip-ink)}
 .mip-hint{margin-left:auto;color:var(--mip-tertiary);white-space:nowrap}
-.mail-island-points{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(20px,3vw,40px);margin:56px 0 0;padding:0;list-style:none;text-align:left}
-.mail-island-points li{padding-top:20px;border-top:1px solid #e0c08447}
-.mail-island-points p{margin:0;color:var(--mail-band-muted);font-size:15.5px;line-height:1.6;letter-spacing:.025em;text-wrap:pretty}
-@media(max-width:760px){.mail-island-points{grid-template-columns:1fr}}
+.mail-island-points,.mail-points{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(20px,3vw,40px);margin:56px 0 0;padding:0;list-style:none;text-align:left}
+.mail-island-points li,.mail-points li{padding-top:20px;border-top:1px solid #e0c08447}
+.mail-island-points p,.mail-points p{margin:0;color:var(--mail-band-muted);font-size:15.5px;line-height:1.6;letter-spacing:.025em;text-wrap:pretty}
+@media(max-width:760px){.mail-island-points,.mail-points{grid-template-columns:1fr}}
 @media(max-width:520px){.mip-hint{display:none}}
 /* Rules: the dark rule editor, shown at its own 1x size (700pt captured at
    2x). Its "Preview build" caption is MailShot's and can't be left off. */

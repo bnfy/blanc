@@ -92,3 +92,27 @@ the Blanc Mail repository (bnfy/blanc-mail) at `main` (ecf582c3).
 | Type / to snooze, move to a group, label, move, archive or trash what you’ve selected … | `MailIsland.swift` (`MailIslandCommand`); `MailIslandPanel.swift` `commandTitle`: `/set-aside` and `/group` both read "Move to Group…" | — | Qualified |
 | … the Island holds Archive, Snooze, Move to Group, Labels and Trash … | `AGENTS.md`, the Island toolbar's trailing actions | — | Qualified |
 | `/set-aside` Move to Group… (Island panel figure row; its aria-label says Move to Group) | `MailIslandPanel.swift` `commandTitle`; the default Classic layout lists `/set-aside` and its footer chips stay `/snooze /set-aside /label /rule` | The figure draws the Classic panel, the default | Qualified |
+
+## What a Blanc Mail address does (owner-approved wording, November 17, 2026)
+
+Six points under the address teaser. Evidence is in the Blanc Mail repository:
+`AGENTS.md` (Hosted mailboxes), the hosted spec
+`docs/superpowers/specs/2026-11-15-blanc-day-hosted-mailboxes-design.md` and the
+Apple Mail spec `docs/superpowers/specs/2026-11-17-hosted-mail-apple-mail-design.md`,
+whose §8 and the hosted spec's §12.1 are the only protection claims the product
+may make. Owner rules kept: no "Blanc can't read your mail", nothing about Apple
+Mail or other devices. Not claimed: end-to-end encryption, which is a later step.
+
+| Wording on the page | Evidence | Limits kept in the copy | Verdict |
+| --- | --- | --- | --- |
+| Your name, your ending: Pick a name and the ending you like: blnc.day, blnc.page, blancmail.me, blancmail.co or blncmail.com. | `AGENTS.md`, Hosted mailboxes: the five domains, the user's choice, blnc.day the default | Names under three characters and reserved names are refused (hosted spec §7), not stated | Aspirational, labelled (launches with the app) |
+| 15 GB for your mail: Each address has 15 GB for your mail and its attachments. | `AGENTS.md` and hosted spec §14: 15 GB per address | — | Aspirational, labelled |
+| Encrypted where it’s stored: Messages and attachments in your mailbox are encrypted with a key made on your Mac. Blanc keeps only a copy locked with your password, which never leaves your Mac. Senders, recipients, subjects and dates aren’t encrypted, and mail is readable to the server as it arrives and as it’s sent. | Hosted spec §12.1 and Apple Mail spec §8: bodies and attachments S/MIME to the customer's certificate, made on the Mac; Blanc holds only a copy locked with a secret derived from the password, which never leaves the Mac | States the unprotected headers and the arrival and sending windows. Not stated: a weak password plus a breach of Blanc's database could expose stored mail (§12.1); mail stored before encryption is on (none: it is on before first delivery) | Qualified |
+| Back in with a code: Forget your password and a code sent to your backup email gets you back in. On a new Mac, a forgotten password means mail you’d already received can’t be opened. | Sign-up design `2026-11-16-hosted-mailbox-sign-up-design.md`; the approved "Choose your address" dialog's own words | The new-Mac limit is stated | Qualified |
+| Time to renew: If your subscription lapses, mail keeps arriving for 30 days and renewing brings everything back. Before a mailbox is deleted, we email you how to export your mail. | Hosted spec §6 (built November 16, 2026): suspended mailboxes accept mail for 30 days; renewing restores; no deletion without the warning email and export guide | Sign-in and sending pause while suspended (implied by "renewing brings everything back") | Qualified |
+| Filtered for spam: Incoming mail is checked for spam and phishing before it reaches your Inbox. | Hosted spec §7: Stalwart's built-in filter (rules, classifier, DNSBL, Pyzor, phishing checks) | No promise that every spam or phishing message is caught | Qualified |
+
+Which plans include an address (Mail Annual and Bundle, never Mail Monthly,
+per `AGENTS.md`) is not on the page yet: the site's Bundle card ($9 / $90,
+Browser Patron) differs from the November 15 pricing decision ($7.99 /
+$79.99, adding Nodding Off), which the owner has to settle first.

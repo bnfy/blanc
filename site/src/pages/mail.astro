@@ -68,6 +68,18 @@ const addressSteps = [
   { value: 'ready', label: 'Open inbox', name: 'island-arrival',
     alt: 'Design preview: a dialog with the gold Blanc Mail icon reading “mira@blnc.day. Your mailbox is ready in Blanc Mail.”, and an Open Inbox button.' },
 ];
+// What a Blanc Mail address does: only what the Mail repository's hosted
+// spec (§6, §7, §12.1) and Apple Mail spec (§8) allow, recorded in
+// docs/website-mail-claims-2026-11-17.md. Never "Blanc can't read your mail"
+// (owner), and nothing about other devices until it ships.
+const addressPoints = [
+  { title: 'Your name, your ending', text: 'Pick a name and the ending you like: blnc.day, blnc.page, blancmail.me, blancmail.co or blncmail.com.' },
+  { title: '15 GB for your mail', text: 'Each address has 15 GB for your mail and its attachments.' },
+  { title: 'Encrypted where it’s stored', text: 'Messages and attachments in your mailbox are encrypted with a key made on your Mac. Blanc keeps only a copy locked with your password, which never leaves your Mac. Senders, recipients, subjects and dates aren’t encrypted, and mail is readable to the server as it arrives and as it’s sent.' },
+  { title: 'Back in with a code', text: 'Forget your password and a code sent to your backup email gets you back in. On a new Mac, a forgotten password means mail you’d already received can’t be opened.' },
+  { title: 'Time to renew', text: 'If your subscription lapses, mail keeps arriving for 30 days and renewing brings everything back. Before a mailbox is deleted, we email you how to export your mail.' },
+  { title: 'Filtered for spam', text: 'Incoming mail is checked for spam and phishing before it reaches your Inbox.' },
+];
 // Pricing, Support and Download were their own pages until October 22, 2026;
 // their words moved here unchanged (the old URLs redirect to these sections).
 const plans = [
@@ -148,6 +160,14 @@ const support = [
         <span class="mail-segments-thumb" aria-hidden="true"></span>
       </fieldset>
       {addressSteps.map(step => <MailTeaser name={step.name} alt={step.alt} data-teaser={step.value} />)}
+      <ul class="mail-points mail-address-points">
+        {addressPoints.map(point => (
+          <li>
+            <h3>{point.title}</h3>
+            <p>{point.text}</p>
+          </li>
+        ))}
+      </ul>
     </section>
 
     <!-- The gilt that strokes every glyph on the page. -->
