@@ -28,7 +28,8 @@ const ending = 'blnc.day';
     </div>
 
     <div class="mail-reserve-step" data-step="code" hidden>
-      <label class="mail-reserve-label" for="mailReserveCode">We emailed you a 6-digit code</label>
+      <label class="mail-reserve-label" for="mailReserveCode">Check your email for a 6-digit code</label>
+      <p class="mail-reserve-hint">If this email already holds a name, we’ve emailed you which one instead.</p>
       <input class="mail-reserve-input mail-reserve-code" id="mailReserveCode" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code">
       <button class="mail-reserve-button" type="button" data-confirm>Confirm</button>
       <button class="mail-reserve-back" type="button" data-back>Use a different email or send a new code</button>
@@ -79,17 +80,23 @@ const ending = 'blnc.day';
     let token = '';
     let available = false;
 
-    // Turnstile, rendered explicitly once its script is ready.
+    // Turnstile loads only once someone starts on the form, not for every visit.
     const widget = form.querySelector<HTMLElement>('[data-turnstile]')!;
-    const script = document.createElement('script');
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-    script.async = true;
-    script.onload = () => (window as any).turnstile.render(widget, {
-      sitekey: form.dataset.sitekey,
-      callback: (t: string) => { token = t; update(); },
-      'expired-callback': () => { token = ''; update(); },
-    });
-    document.head.append(script);
+    const loadTurnstile = () => {
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      script.async = true;
+      script.onload = () => (window as any).turnstile.render(widget, {
+        sitekey: form.dataset.sitekey,
+        callback: (t: string) => { token = t; update(); },
+        'expired-callback': () => { token = ''; update(); },
+      });
+      document.head.append(script);
+    };
+    form.addEventListener('focusin', loadTurnstile, { once: true });
+
+    // Once addresses are on sale the page shows the plans straight away.
+    fetch(`${api}/status`).then((res) => res.json()).then((status) => { if (status.open === false) show('closed'); }).catch(() => {});
 
     const update = () => { reserve.disabled = !(available && token && email.value.trim()); };
 
