@@ -3653,6 +3653,24 @@ toolchain package and the cold build on 2026-11-17. Per-platform differences:
 | 5. The suite runs on Windows and its report is committed | Pass: 667 cases in 1 h 41 min (run 44139976463): 534 pass, 103 fail, 24 undefined, 6 excluded. 56 of the failures are one gap, the window frame (W1) | `reports/f0-windows.json`, `reports/s1-windows.json`, Bar A below |
 | 6. This section and `PLATFORMS.md` | Written | — |
 
+### W1 Part A: window frame, buttons and menu (2026-11-18)
+Plan `docs/superpowers/plans/2026-11-17-windows-fork-w1.md`. Candidate
+`windows-x64-ec914b7ca4b925a1` (tree `38d4ae9da`); record `reports/w1-windows.json`.
+Patches 0095 (Windows frame), 0096 (app menu anchor), 0097 (strip drag on Windows).
+
+| Part A gate | Result | Evidence |
+| --- | --- | --- |
+| 1. The 56 W0 frame cases pass; nothing that passed in W0 fails | 55 of 56 pass (vertical-tabs:74 needs animations, which the runner has off). Three W0 passes failed in this run and each is runner-variable (see the record): glance:337 fails on the W0 build too, vertical-tabs:146 and F41:435 passed on this build in other runs | Run 44207006500: 590 of 667 pass (W0 534) |
+| 2. One set of window buttons, Windows' own, working by real clicks | Pass | `windows-frame.mjs`, `restored.png`, `maximized.png` |
+| 3. Strip drag moves the window; top edge resizes; double-click maximizes | Pass | `windows-frame.mjs` |
+| 4. The menu button opens Chromium's app menu | Pass | `menu.png` |
+| 5. Holds at 150% and maximized | Pass | `scale-150.png` |
+| 6. Mac: fork suite, both lanes' patch checks, next nightly | Checks pass; shared C++ passes the Mac Studio syntax-only compile; **nightly pending** | — |
+
+Found, not caused by Part A: after any tab has been closed, closing the last
+window leaves the process running with no window (W2, `PLATFORMS.md`). Not
+checked: Snap Layouts on a real Windows 11 desktop.
+
 ## Android
 Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
 [PR #1333](https://github.com/bnfy/blanc/pull/1333)). Milestones: **A0
@@ -4337,7 +4355,7 @@ on that site, and a wrong search address still fails it.
 | Platform | Current-candidate baseline |
 | --- | --- |
 | macOS | 635/667 executable cases pass; 1 failed; 3 undefined/not run; 28 excluded — [baseline](scenarios/baseline-macos-1400e3914b1a7bdf.json)<br>S1 rows: 260/263 pass; 0 failed; 1 undefined; 2 excluded |
-| Windows | Not run for current candidate (previous baseline is stale) |
+| Windows | 590/667 executable cases pass; 48 failed; 23 undefined/not run; 6 excluded — [baseline](scenarios/baseline-windows-x64-ec914b7ca4b925a1.json)<br>S1 rows: 251/263 pass; 10 failed; 2 undefined; 0 excluded |
 | Linux | Not run (667 cases) |
 
 667 executable cases from 618 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.

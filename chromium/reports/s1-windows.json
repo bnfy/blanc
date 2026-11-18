@@ -1,13 +1,13 @@
 {
  "slice": "S1",
  "platform": "windows",
- "candidate": "windows-x64-bdcf3cca0b966646",
+ "candidate": "windows-x64-ec914b7ca4b925a1",
  "shippingCommit": "673ff2eb052011b1efd14438a397a57d457de241",
- "forkCommit": "7a6140435a0a275493d8cded427aa6be4552a853",
+ "forkCommit": "2a80b319753deb454229b9fad8942ca4f9569acb",
  "merges": [],
  "summary": {
-  "pass": 217,
-  "fail": 44,
+  "pass": 251,
+  "fail": 10,
   "undefined": 2,
   "excluded": 0
  },
@@ -48,8 +48,7 @@
     },
     {
      "id": "spec/acceptance/ad-blocking.feature:77:plain",
-     "result": "pass",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/ad-blocking.feature:83:plain",
@@ -258,8 +257,8 @@
    ]
   },
   "F3": {
-   "pass": 50,
-   "fail": 1,
+   "pass": 51,
+   "fail": 0,
    "undefined": 0,
    "excluded": 0,
    "cases": [
@@ -465,9 +464,7 @@
     },
     {
      "id": "spec/acceptance/tabs-and-groups.feature:367:plain",
-     "result": "fail",
-     "reason": "timed out waiting for a 44px Island in a 68px strip; last: {\"pill\":44,\"strip\":68,\"pageTop\":107}",
-     "retried": true
+     "result": "pass"
     }
    ]
   },
@@ -590,8 +587,8 @@
    ]
   },
   "F1": {
-   "pass": 15,
-   "fail": 28,
+   "pass": 43,
+   "fail": 0,
    "undefined": 1,
    "excluded": 0,
    "cases": [
@@ -625,9 +622,7 @@
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:61:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":640,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:73:plain",
@@ -663,123 +658,83 @@
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:131:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:140:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:149:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:156:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:166:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:173:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:180:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:190:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:200:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:211:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":661,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:222:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:234:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:241:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:251:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:258:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:267:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:276:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:286:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:295:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:312:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:320:plain",
@@ -788,45 +743,31 @@
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:339:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:348:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:359:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:372:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:383:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:394:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:403:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":661,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     }
    ]
   },
@@ -1077,8 +1018,8 @@
    ]
   },
   "F35": {
-   "pass": 18,
-   "fail": 7,
+   "pass": 23,
+   "fail": 2,
    "undefined": 0,
    "excluded": 0,
    "cases": [
@@ -1093,7 +1034,7 @@
     {
      "id": "spec/acceptance/newtab-layouts.feature:21:plain",
      "result": "fail",
-     "reason": "timed out waiting for the standalone Mahjong tab to render its active Daily layout at playable size; last: {\"url\":\"blanc://mahjong/?game=f6d12405-228f-434d-93f3-8283ed64a2e2\",\"tileCount\":100,\"freeTileCount\":8,\"timer\":\"0:00\",\"mode\":\"tray\",\"l",
+     "reason": "control rail should end inside the board frame",
      "retried": true
     },
     {
@@ -1110,8 +1051,7 @@
     },
     {
      "id": "spec/acceptance/newtab-layouts.feature:58:plain",
-     "result": "pass",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/newtab-layouts.feature:71:plain",
@@ -1135,9 +1075,7 @@
     },
     {
      "id": "spec/acceptance/newtab-layouts.feature:134:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/newtab-layouts.feature:143:plain",
@@ -1149,9 +1087,7 @@
     },
     {
      "id": "spec/acceptance/newtab-layouts.feature:161:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/newtab-layouts.feature:171:plain",
@@ -1171,9 +1107,7 @@
     },
     {
      "id": "spec/acceptance/newtab-layouts.feature:205:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/newtab-layouts.feature:212:plain",
@@ -1181,15 +1115,11 @@
     },
     {
      "id": "spec/acceptance/newtab-layouts.feature:221:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/newtab-layouts.feature:229:plain",
-     "result": "fail",
-     "reason": "Island window content does not fill its frame: {\"bounds\":{\"left\":10,\"top\":10,\"width\":1004,\"height\":700,\"windowState\":\"normal\"},\"host\":{\"w\":988,\"h\":68,\"dpr\":1},\"page\":593}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/newtab-layouts.feature:240:plain",
@@ -1211,8 +1141,7 @@
     },
     {
      "id": "spec/acceptance/permissions-and-auth.feature:13:plain",
-     "result": "pass",
-     "retried": true
+     "result": "pass"
     }
    ]
   },

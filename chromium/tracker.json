@@ -2548,12 +2548,12 @@
       "dllSha256": "ec914b7ca4b925a16f9d69b689f19ff21ab93ace80c06cedf1c723a728e036ca",
       "version": "158.0.8127.2",
       "treeCommit": "38d4ae9da94e3d2efa1ba7f3c9136fc3931bd138",
-      "qualification": "cross-compiled candidate; runtime acceptance pending"
+      "qualification": "W1 Part A (window frame, Windows caption buttons, app menu, strip drag): frame check 15 of 15 by real input (run 44207006500); full suite on a 1920x1080 runner display, 2026-11-18 (same run, fork 2a80b3197, shipping v1.49.1): 590 of 667 cases pass, 48 fail, 23 undefined, 6 excluded"
     }
   },
   "baselines": {
     "macos": "scenarios/baseline-macos-1400e3914b1a7bdf.json",
-    "windows": "scenarios/baseline-windows-x64-bdcf3cca0b966646.json"
+    "windows": "scenarios/baseline-windows-x64-ec914b7ca4b925a1.json"
   },
   "scenarioIds": [
     "spec/acceptance/F41-named-workspaces.feature:4",

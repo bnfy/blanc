@@ -1,0 +1,81 @@
+{
+ "milestone": "W1 Part A",
+ "platform": "windows",
+ "candidate": {
+  "id": "windows-x64-ec914b7ca4b925a1",
+  "exeSha256": "c6728b1ad35768cb95c7893393f1f92399f3c58b0b115befc84b25e554bdd542",
+  "dllSha256": "ec914b7ca4b925a16f9d69b689f19ff21ab93ace80c06cedf1c723a728e036ca",
+  "version": "158.0.8127.2",
+  "treeCommit": "38d4ae9da94e3d2efa1ba7f3c9136fc3931bd138",
+  "qualification": "W1 Part A (window frame, Windows caption buttons, app menu, strip drag): frame check 15 of 15 by real input (run 44207006500); full suite on a 1920x1080 runner display, 2026-11-18 (same run, fork 2a80b3197, shipping v1.49.1): 590 of 667 cases pass, 48 fail, 23 undefined, 6 excluded"
+ },
+ "changes": [
+  "patch 0095: browser_frame_view_win.cc lays out an Island window as a tabbed window (no title bar; caption buttons on their own layer, hit-tested first)",
+  "patch 0096: AppMenu::RunMenu takes an anchor position",
+  "patch 0097: browser_view.cc hands presses on the strip's drag areas to the window on Windows",
+  "openMainMenu opens Chromium's app menu at the Island's menu button; minimizeWindow, maximizeWindow, closeWindow; menuButtonBounds keeps the menu button out of the drag area",
+  "the Island draws no window buttons on win32 (prototype.css); the hidden strip's drag band is 10 px on Windows",
+  "test hook windowFrameInsets; the harness measures the window's client area on Windows (CDP bounds include 8 px invisible resize borders)",
+  "chromium/tests/windows-frame.mjs: the frame check by real input (tests/lib/windows-desktop.mjs)",
+  "the candidate workflow asks the runner for a 1920 by 1080 display"
+ ],
+ "frameCheck": {
+  "run": "chromium-windows-candidate.yml 44207006500",
+  "pass": true,
+  "checks": {
+   "contentFillsWindow": true,
+   "islandDrawsNoWindowButtons": true,
+   "maximizeButton": true,
+   "contentFillsWhenMaximized": true,
+   "restoreButton": true,
+   "minimizeButton": true,
+   "dragByStrip": true,
+   "resizeByTopEdge": true,
+   "doubleClickMaximizes": true,
+   "menuButtonOpensAndCloses": true,
+   "closeButtonClosesWindow": true,
+   "closeButtonEndsBrowser": true,
+   "closeAfterMenuEndsBrowser": true,
+   "contentFillsAt150": true,
+   "cleanExitAt150": true
+  }
+ },
+ "suite": {
+  "run": "chromium-windows-candidate.yml 44207006500",
+  "display": "1920 x 1080",
+  "baseline": "scenarios/baseline-windows-x64-ec914b7ca4b925a1.json",
+  "baselineSha256": "68b3059ba1a2f01916b07025c87f1b4b2365d0a2de1ed956fcf6cd38487c0b51",
+  "executableSummary": {
+   "pass": 590,
+   "fail": 48,
+   "undefined": 23,
+   "excluded": 6
+  },
+  "w0": {
+   "pass": 534,
+   "fail": 103,
+   "undefined": 24,
+   "excluded": 6
+  },
+  "w0FrameCases": "55 of the 56 cases that failed on the frame in W0 pass; vertical-tabs.feature:74 fails on a title-scroll animation because the runner has animations off (reducedMotion true)"
+ },
+ "runnerVariable": [
+  {
+   "case": "spec/acceptance/glance.feature:337:plain",
+   "note": "Fails on this build and, with the same test code, on the W0 build (run 44206151476), though it passed in W0's full run: runner timing, not Part A. Passes on the Mac."
+  },
+  {
+   "case": "spec/acceptance/vertical-tabs.feature:146:plain",
+   "note": "Failed here; passed on this build in the targeted rerun (run 44202963360)."
+  },
+  {
+   "case": "spec/acceptance/F41-named-workspaces.feature:435:plain",
+   "note": "Failed here after a crash and relaunch; passed on this build in run 44178769063."
+  }
+ ],
+ "openGaps": [
+  "After any tab has been closed, closing the last window leaves the browser process running with no window (over 15 s); with no closed tab it ends in about 5 s. Not diagnosed. W2.",
+  "Snap Layouts on hover over maximize not checked: a hosted runner cannot show the flyout. Hand check on a real Windows 11 desktop.",
+  "Shared C++ passed the Mac Studio's syntax-only compile; the Mac has not built or linked it yet (next nightly)."
+ ]
+}
