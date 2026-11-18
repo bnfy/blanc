@@ -1,12 +1,13 @@
 ---
 // Reserve a Blanc Mail address: its own page (owner, November 18, 2026), reached from
 // the Mail page's address section. The form (MailReserveAddress) renders only once
-// PUBLIC_TURNSTILE_SITE_KEY is set; until then the page says reservations open soon.
+// src/data/mail-reservations.json says "open"; until then the page says reservations open soon.
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import MailBar from '../../components/MailBar.astro';
 import MailReserveAddress from '../../components/MailReserveAddress.astro';
 import '../../styles/mail.css';
-const open = Boolean(import.meta.env.PUBLIC_TURNSTILE_SITE_KEY);
+import reservations from '../../data/mail-reservations.json';
+const open = reservations.open;
 const endings = ['blnc.day', 'blnc.page', 'blancmail.me', 'blancmail.co', 'blncmail.com'];
 ---
 <BaseLayout title="Reserve your Blanc Mail address" description="Reserve the Blanc Mail address you want, like mira@blnc.day, free. It’s held for you until Blanc Mail addresses open, then for 30 days while you claim it." path="/mail/reserve" header="solid">

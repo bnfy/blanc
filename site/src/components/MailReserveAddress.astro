@@ -4,10 +4,12 @@
 // Worker's /mail/api/v1/reservations/* routes on blanc.day (same origin). Steps: a name
 // with a live availability line, then an email and Cloudflare Turnstile, then the
 // 6-digit code that confirms it. It lives on /mail/reserve (owner: its own page, not
-// the Mail page). Nothing renders until PUBLIC_TURNSTILE_SITE_KEY is set,
-// so the block can't appear before the Worker can accept it. The privacy page's
+// the Mail page). Nothing renders until src/data/mail-reservations.json says "open",
+// so the block can't appear before the Worker can accept it. The widget's site key is
+// public and lives there too; its secret is the Worker's TURNSTILE_SECRET. The privacy page's
 // "Blanc Mail address reservations" section describes this contract — change them together.
-const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+import reservations from '../data/mail-reservations.json';
+const siteKey = reservations.open ? reservations.turnstileSiteKey : '';
 const apiBase = import.meta.env.PUBLIC_MAIL_API_BASE ?? '';
 const ending = 'blnc.day';
 ---
@@ -89,6 +91,8 @@ const ending = 'blnc.day';
       script.async = true;
       script.onload = () => (window as any).turnstile.render(widget, {
         sitekey: form.dataset.sitekey,
+        // The Worker accepts only tokens for this action (services/mail-worker/src/turnstile.js).
+        action: 'reserve',
         callback: (t: string) => { token = t; update(); },
         'expired-callback': () => { token = ''; update(); },
       });
