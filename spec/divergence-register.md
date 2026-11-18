@@ -1069,12 +1069,16 @@ change elsewhere for nothing to be lost.
 
 - **Desktop (shipping Electron, this release onward):** the tree, a chosen order,
   and empty folders.
-- **iPhone, Android, the desktop fork and older desktops:** each path is one flat
+- **The desktop fork (Blanc Beta, on `chromium/next` since November 18, 2026,
+  unreleased):** the tree, as Chromium's own nested bookmark folders, in a
+  Favorites tab (V30). Its order and empty folders are Chromium's and stay on
+  that Mac: it keeps `favoritesLayout` whole by its clock and doesn't apply it.
+- **iPhone, Android and older desktops:** each path is one flat
   folder named by the path (`Work › Clients`). A folder edit there acts on that
   one string: renaming `Work` renames only the favorites directly in it, so the
   desktop then shows both the new folder and a `Work` that still holds its
   sub-folders; deleting `Work › Clients` ungroups its favorites to the top level
-  instead of moving them up one level. The iPhone and the fork keep
+  instead of moving them up one level. The iPhone keeps
   `favoritesLayout` whole by its clock; older desktops drop it, and a newer
   desktop restores it at most once every 10 minutes.
 
