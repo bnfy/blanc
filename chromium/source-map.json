@@ -527,7 +527,7 @@
     "blanc/browser/ui/start_page_pin_menu.inc": "4a53e5d68f1c8556cc63dfee6e4d66b865b38f5e4f83a9685e57ba62cffc534c",
     "blanc/browser/ui/start_page_pins.inc": "0ce3d70b44e0f16dbf3f5a04f5d5d06dd6e972fdd2ea38f3e0d0032cdba3eb27",
     "blanc/browser/ui/tab_handoff.inc": "e78bf9d7996f425800e145570918a9a670e52ad19a2c3dcc739d54aae16ab185",
-    "blanc/browser/ui/tab_import.inc": "9364ac9b5fd3ff1ca3ccdaf6752105f550fa2628f4628610eafbebdd5dc75582",
+    "blanc/browser/ui/tab_import.inc": "f521ce9300d7fb68741c23bb61a3b1f17ed153d8cb398a3f2378c17b47bbcaad",
     "blanc/browser/ui/tab_import_controller.inc": "35b47f12acbdefe2386ca2b0b66904dd1b1c6efbaceeb3690566bff84930c7a9",
     "blanc/browser/ui/tab_import_runner.inc": "607da34150874254dcfe0786c7e11ffc8be965f7504cd45b55cdc4b4f37b9f8c",
     "blanc/browser/ui/tab_switch_keys_mac.h": "c42b550af8c6eab6768a3ed9fef17ec53cc5f44310d9beeadb9cdb777e0a6ae3",

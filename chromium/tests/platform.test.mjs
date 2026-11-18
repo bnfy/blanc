@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import {hostPlatform,chromeProfileRoot,processListCommand,parseProcessList,candidateIdentityFiles,candidateIdentity,freeMemoryText} from './lib/platform.mjs';
+import {hostPlatform,chromeProfileRoot,processListCommand,parseProcessList,candidateIdentityFiles,candidateIdentity,freeMemoryText,runningBrowserMarker} from './lib/platform.mjs';
 import {freePercent} from './lib/memory-guard.mjs';
 
 test('the host platform uses the tracker\'s names, and an unknown host stops', () => {
@@ -60,4 +60,30 @@ test('real-input gestures are a press and release at the point, and a drag trave
   assert.equal(kinds(drag),'move down move move move up');
   assert.deepEqual(drag.filter(s=>s.do==='move').map(s=>[s.x,s.y]),[[100,50],[120,60],[140,70],[160,80]]);
   assert.deepEqual(keySteps(27)[0],{do:'key',vk:27});
+});
+test('a running Chrome is marked as each platform\'s Chrome marks itself', () => {
+  // The Mac and Linux: a SingletonLock symlink naming the host; Windows: the
+  // lockfile Chrome holds open in its User Data folder (no symlink needed).
+  assert.deepEqual(runningBrowserMarker('darwin'), {name: 'SingletonLock', kind: 'symlink'});
+  assert.deepEqual(runningBrowserMarker('linux'), {name: 'SingletonLock', kind: 'symlink'});
+  assert.deepEqual(runningBrowserMarker('win32'), {name: 'lockfile', kind: 'file'});
+  assert.throws(() => runningBrowserMarker('freebsd'));
+});
+test('on Windows the Arc fixture is reached through Arc\'s own Store folder', async () => {
+  const {ARC_WINDOWS_FOLDER, linkArcFolder} = await import('./adapters/import.mjs');
+  const source = (await import('node:fs')).readFileSync(new URL('../blanc/browser/ui/tab_import.inc', import.meta.url), 'utf8');
+  assert.ok(source.includes(`AppendASCII("${ARC_WINDOWS_FOLDER.join('/')}/StorableSidebar.json")`), 'matches tab_import.inc ArcPath on Windows');
+  const calls = [];
+  const fsApi = {mkdirSync: p => calls.push(['mkdir', p]), existsSync: () => false, symlinkSync: (t, p, k) => calls.push(['link', t, p, k])};
+  assert.equal(linkArcFolder('/home', 'darwin', fsApi), false);
+  assert.equal(calls.length, 0);
+  assert.equal(linkArcFolder('/home', 'win32', fsApi), true);
+  assert.deepEqual(calls.at(-1), ['link', path.join('/home', 'Library', 'Application Support', 'Arc'), path.join('/home', ...ARC_WINDOWS_FOLDER), 'junction']);
+});
+test('the browser looks for the running marker the harness writes, on each platform', async () => {
+  const source = (await import('node:fs')).readFileSync(new URL('../blanc/browser/ui/tab_import.inc', import.meta.url), 'utf8');
+  const running = /#if BUILDFLAG\(IS_WIN\)\n(.*?)\n#else\n(.*?)\n#endif/s.exec(source.slice(source.indexOf('SourceRead ReadSource')));
+  assert.ok(running, 'tab_import.inc has a Windows running check');
+  assert.match(running[1], new RegExp(`AppendASCII\\("${runningBrowserMarker('win32').name}"\\)`));
+  assert.match(running[2], new RegExp(`AppendASCII\\("${runningBrowserMarker('darwin').name}"\\)`));
 });

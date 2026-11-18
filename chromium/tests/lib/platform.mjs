@@ -19,6 +19,13 @@ export function chromeProfileRoot(home,platform=process.platform){
  hostPlatform(platform);
  return path.join(home,...CHROME_ROOT[platform]);
 }
+// How a running Chrome marks its profile folder: a SingletonLock symlink on
+// the Mac and Linux, the lockfile it holds open on Windows. Must match
+// tab_import.inc's running check.
+export function runningBrowserMarker(platform=process.platform){
+ hostPlatform(platform);
+ return platform==='win32'?{name:'lockfile',kind:'file'}:{name:'SingletonLock',kind:'symlink'};
+}
 // Every process as "pid command line", one per line.
 export function processListCommand(platform=process.platform){
  if(platform==='win32')return ['powershell.exe',['-NoProfile','-NonInteractive','-Command','Get-CimInstance Win32_Process | ForEach-Object { "$($_.ProcessId) $($_.CommandLine)" }']];

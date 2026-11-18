@@ -82,8 +82,14 @@ SourceRead ReadSource(const base::FilePath& profile, bool after_quit) {
   // normal quit, and bind this entire read to it. Never fall back after quit.
   result.exact = files.front();
   result.newest = ReadStable(result.exact, kSessionLimit);
+  // A running browser marks its user data folder: on Windows with the
+  // lockfile it holds open, elsewhere with a SingletonLock symlink.
+#if BUILDFLAG(IS_WIN)
+  result.running = base::PathExists(profile.DirName().AppendASCII("lockfile"));
+#else
   const auto lock = profile.DirName().AppendASCII("SingletonLock");
   result.running = base::PathExists(lock) || base::IsLink(lock);
+#endif
   if (!after_quit && result.running && files.size() > 1) result.older = ReadStable(files[1], kSessionLimit);
   const auto after = SessionFiles(profile);
   if (after.empty() || after.front() != result.exact) {result.newest.bytes.clear(); result.newest.error = "source-saving";}
