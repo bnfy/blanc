@@ -51,7 +51,9 @@ source_set("beta_updater") {
     all_dependent_configs = [ ":sparkle_rpath" ]
   }
 }
-if (blanc_beta_channel) {
+# The Mac beta's Sparkle and bundle resources; the Windows beta updates
+# through Chromium's own updater (W3).
+if (blanc_beta_channel && is_mac) {
   assert(blanc_sparkle_stage != "" && blanc_sparkle_public_key != "" &&
          blanc_sparkle_archive_sha256 != "", "Reviewed Sparkle staging and owner public key required")
   config("sparkle_link") {

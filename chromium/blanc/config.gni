@@ -26,7 +26,8 @@ assert(target_os != "android" || blanc_channel != "release" ||
 blanc_beta_channel = blanc_channel == "beta"
 assert(!blanc_beta_local_qualification || (blanc_beta_channel && target_cpu == "arm64"))
 if (blanc_beta_channel) {
-  assert(is_mac, "Blanc Beta is macOS only")
+  assert(is_mac || (is_win && target_cpu == "x64"),
+         "Blanc Beta is built for macOS and Windows x64 (W3)")
   assert(blanc_beta_build > 0 && blanc_beta_build <= 9999)
   assert(blanc_blocker_bundle != "", "Beta builds embed the blocker bundle")
   if (blanc_beta_version == "2.0.0-beta.1") {

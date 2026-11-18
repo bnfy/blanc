@@ -25,7 +25,7 @@ EVIDENCE="${HOME}/blanc-evidence/windows"
 TOOLCHAIN="${HOME}/blanc-assets/win-toolchain"
 TREE="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 LANE="${TREE}/chromium/lanes/desktop.json"
-OUTPUTS=("BlancWinPrototype:prototype-x64.gn")
+OUTPUTS=("BlancWinPrototype:prototype-x64.gn" "BlancWinBeta:beta-x64.gn")
 
 dry_run=0
 for arg in "$@"; do

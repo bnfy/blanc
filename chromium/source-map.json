@@ -46,7 +46,7 @@
     "content/public/common/blanc_research_build.h": "blanc/content/public/common/blanc_research_build.h"
   },
   "canonicalSha256": {
-    "blanc/BUILD.gn": "9570ff05a34362c0b2335551e466c5d28873ad3eda84416b4c25c86e5a6c4053",
+    "blanc/BUILD.gn": "a54fcdadbe89bbd2a96baf642ac53fd873d2d43534c56803ca1fe0375ec5fa5f",
     "blanc/android/BUILD.gn": "c27b5f4b260d7696df0e5c7a870b5369d7cceaa8b54217dfe86f4de9c3577b06",
     "blanc/android/browser/blanc_pages_ui.cc": "d6a9d8b23cc701cf46162fc69519f438a35943f254f42322fda25734476096e8",
     "blanc/android/browser/blanc_pages_ui.h": "6969cac9a6e8b4b237a1809b8e81f04e07f75737247119f037d9614c06e01387",
@@ -553,7 +553,7 @@
     "blanc/common/product_name.h": "fb67c34f8b47476b0857baa036a4758e59d5cde84e3c1e4f690727589298d3b0",
     "blanc/common/settings_strings.h": "f04be5a145f74a2c1a79efcf8f3e3e5daf2e0c0aac19cf668844e93e870dac2f",
     "blanc/common/test_launch.h": "d6298adebe05a601ee26fb6b62e5c227cd742f42b25c7896563251396720e2dc",
-    "blanc/config.gni": "e41c923f89b27a6f4e257dd1bbe50d3f80adb7d32fa3d9913d00e2e9003f6d7f",
+    "blanc/config.gni": "28ee1b1024b04691f643e90566e19f500183e2b40b2ff49bd8c149b026f4046a",
     "blanc/content/browser/service_worker/blanc_update_identity.inc": "dd7242e1f78ce6a36b78cfedf6f3a7a3a504df28acca8acd49143e01461232e8",
     "blanc/content/public/browser/blanc_document_token.h": "7fba8c8ac526416683e43128737e4c5ce06e8228910fa4ccd952d1ac5d58de1c",
     "blanc/content/public/browser/blanc_url_loader_gate.h": "f7237607aa43df79e905a0e9fef918f196626b3c0de203c2353c79fdca010b48",
@@ -982,7 +982,7 @@
     "chrome/browser/ui/views/toolbar/app_menu.h": "0d07a15c379b96d5860d2520cef2610ec9643296b9d835dac9899c653da8be93",
     "chrome/browser/ui/webui/chrome_web_ui_configs.cc": "6f9730a44b0dd05e798f765fa2c01c99ff8ae9125cfd3f492f05adb7f12e70ab",
     "chrome/browser/ui/webui/settings/profile_info_handler.cc": "78dad17898f8a966bee7bea25b12dd134ab46c1daa948111451c992a465ecdd4",
-    "chrome/browser/ui/webui/settings/settings_ui.cc": "c30782597b21b452f169b63b8345c0d512ca6b849268be411abbdb32cf9d884a",
+    "chrome/browser/ui/webui/settings/settings_ui.cc": "2db32e821284cc8180eaac8ce0ba85db9257330a8f10e7524131ff2288cd63aa",
     "chrome/browser/ui/window_feature_controller/window_feature_controller.cc": "d72a4e4e4bfdf386821997f2fbd155e46ffe420eeefb08598dff9cf048a92874",
     "chrome/browser/web_applications/sampling_metrics_provider.cc": "9027cd7e7fe03133438375ce311fde253ec2b5d242f7041b62cad1703e22cf8f",
     "chrome/browser/webauthn/chrome_web_authentication_delegate.cc": "b164738fd7c7431e75cc2bf29122021a3d13fb3f0f6157326ea3025d13cdc756",

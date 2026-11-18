@@ -46,3 +46,26 @@ test('bootstrap keeps out of the Android lane\'s folders', () => {
 test('bootstrap never removes an output or a checkout', () => {
   assert.doesNotMatch(source, /\brm\b|gn clean|--force\b|git clean|reset --hard/);
 });
+// W3: the Windows beta. The Mac beta's reviewed values (official, not
+// Chrome-branded, no Widevine, no PGO, no symbols, the embedded blocker) for
+// Windows x64; Chromium's updater is off until W3 Part B turns it on.
+test('windows beta args are the Mac beta\'s reviewed values for Windows x64', () => {
+  const beta = parse('beta-x64.gn');
+  assert.deepEqual(Object.keys(beta).sort(), ['blanc_beta_build', 'blanc_beta_version', 'blanc_blocker_bundle', 'blanc_channel',
+    'bundle_widevine_cdm', 'chrome_pgo_phase', 'enable_updater', 'enable_widevine', 'is_chrome_branded', 'is_component_build',
+    'is_debug', 'is_official_build', 'symbol_level', 'target_cpu', 'target_os'].sort());
+  assert.deepEqual({...beta, blanc_beta_version: undefined, blanc_beta_build: undefined}, {
+    target_os: 'win', target_cpu: 'x64', is_official_build: true, is_debug: false, is_component_build: false,
+    is_chrome_branded: false, blanc_channel: 'beta', enable_widevine: false, bundle_widevine_cdm: false,
+    enable_updater: false, chrome_pgo_phase: 0, symbol_level: 0, blanc_blocker_bundle: '/home/blanc/blanc-assets/blocker',
+    blanc_beta_version: undefined, blanc_beta_build: undefined,
+  });
+  assert.match(beta.blanc_beta_version, /^2\.0\.0-beta\.[1-9]\d*$/);
+  assert.ok(Number.isInteger(beta.blanc_beta_build) && beta.blanc_beta_build > 0);
+  // No test hooks: a beta build compiles them out (blanc/config.gni).
+  assert.match(fs.readFileSync(new URL('../blanc/config.gni', import.meta.url), 'utf8'),
+    /blanc_enable_test_hooks = blanc_channel == "preview" && !is_official_build/);
+});
+test('bootstrap and the guard know the Windows beta output', () => {
+  assert.match(source, /^OUTPUTS=\("BlancWinPrototype:prototype-x64\.gn" "BlancWinBeta:beta-x64\.gn"\)$/m);
+});

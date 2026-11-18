@@ -78,7 +78,7 @@ export function maximumActions(options) {
 // Windows is a second build of the desktop lane, cross-compiled on the
 // x86-64 Linux server (chromium/windows/). It shares the lane's patches and
 // source with the Mac; only the output and the machine differ.
-export const WINDOWS_OUTPUTS = ['BlancWinPrototype'];
+export const WINDOWS_OUTPUTS = ['BlancWinPrototype', 'BlancWinBeta'];
 const MAC_OUTPUTS = ['BlancPrototype', 'BlancRelease', 'BlancBeta'];
 // The preview candidate's output, or the release channel's own (F0.3); never
 // an arbitrary path, so a typo cannot start a cold build somewhere new.
