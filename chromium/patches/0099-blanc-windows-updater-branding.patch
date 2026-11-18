@@ -1,0 +1,14 @@
+diff --git a/chrome/updater/branding.gni b/chrome/updater/branding.gni
+index 2b6f9e2..980338f 100644
+--- a/chrome/updater/branding.gni
++++ b/chrome/updater/branding.gni
+@@ -6,6 +6,9 @@ import("//build/config/chrome_build.gni")
+ 
+ if (is_chrome_branded) {
+   import("//chrome/updater/internal/branding_google.gni")
++} else if (blanc_channel == "beta" && target_os == "win") {
++  # Blanc: the Windows beta's own updater names and ids (W3).
++  import("//blanc/branding/win-beta/updater.gni")
+ } else {
+   browser_name = "Chromium"
+   browser_product_name = "Chromium"
