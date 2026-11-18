@@ -275,6 +275,10 @@ function install(refs) {
     const wc = tab?.view?.webContents;
     return wc && !wc.isDestroyed() ? wc : null;
   };
+  // A page in the showing sheet, else the Favorites page: a hidden sheet's
+  // contents can outlive it, and Favorites is never in the sheet now.
+  const sheetOrFavoritesWebContents = () => (getUtilitySheetState()?.visible
+    ? getUtilitySheetWebContents() : favoritesPageWebContents());
   const sessionPersistentOf = (t) => { try { return t.view.webContents.session.isPersistent(); } catch { return null; } };
   const titleOf = (t) => { try { return t.view.webContents.getTitle(); } catch { return ''; } };
   let focusObservation = null;
@@ -3173,7 +3177,7 @@ function install(refs) {
       }))()`);
     },
     async utilitySheetRowIcons() {
-      const wc = getUtilitySheetWebContents() ?? favoritesPageWebContents();
+      const wc = sheetOrFavoritesWebContents();
       if (!wc) return null;
       return wc.executeJavaScript(`[...document.querySelectorAll('.row, .fav-row[data-url]')].map((row) => {
         const icon = row.querySelector('.row-icon');
@@ -4145,10 +4149,17 @@ function install(refs) {
       if (ran !== true) throw new Error('window.open attempt did not execute');
     },
     async clickFirstSheetLink() {
-      const wc = getUtilitySheetWebContents() ?? favoritesPageWebContents();
+      const wc = sheetOrFavoritesWebContents();
       if (!wc) throw new Error('sheet not open');
-      const clicked = await wc.executeJavaScript(
-        `(() => { const a = document.querySelector('a[href^="https"], a[href^="http"]'); if (a) a.click(); return !!a; })()`);
+      // The Favorites page draws its rows after it loads; wait for a link.
+      const clicked = await wc.executeJavaScript(`(async () => {
+        for (let i = 0; i < 50; i += 1) {
+          const a = document.querySelector('a[href^="https"], a[href^="http"]');
+          if (a) { a.click(); return true; }
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        return false;
+      })()`);
       if (!clicked) throw new Error('no outbound link rendered in sheet');
     },
     async clickPatronCheckout() {

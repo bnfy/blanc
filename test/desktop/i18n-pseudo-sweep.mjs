@@ -469,7 +469,7 @@ const UTILITY_SURFACES = [
   {
     name: 'favorites (empty)',
     files: ['src/renderer/pages/bookmarks.html', 'src/renderer/pages/bookmarks.js', 'src/renderer/pages/favorites-manager.js', 'src/renderer/pages/row-icon.js'],
-    open: (ctx) => openSheet(ctx, 'bookmarks', () => document.querySelector('#manager .empty')),
+    open: (ctx) => openSheet(ctx, 'bookmarks', () => document.querySelector('#manager .fav-empty')),
   },
   {
     name: 'favorites (folder menu)',
