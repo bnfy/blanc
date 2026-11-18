@@ -69,7 +69,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           if ($env:CANDIDATE_SHA256 -notmatch '^[0-9a-f]{64}$') { throw 'sha256 must be 64 lowercase hex digits.' }
-          if ($env:ONLY -notmatch '^[A-Za-z0-9 _.,:@-]{0,200}$') { throw 'only holds unsupported characters.' }
+          if ($env:ONLY -notmatch '^[A-Za-z0-9 _.,:@-]{0,600}$') { throw 'only holds unsupported characters.' }
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
