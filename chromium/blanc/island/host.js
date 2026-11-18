@@ -254,6 +254,28 @@
   bandBackdrop.hidden = true;
   document.getElementById('headerBackdrop')?.append(bandBackdrop);
   const bandLayers = [0, 1, 2, 3].map(() => bandBackdrop.appendChild(document.createElement('div')));
+  // The launch Sunrise's sky (newtab-prototype.css): 2.6s after a 0.15s
+  // delay, over the band (not the page-sized, zoomed layers above).
+  const bandSunrise = document.createElement('div');
+  bandSunrise.id = 'bandSunrise';
+  bandSunrise.hidden = true;
+  document.getElementById('headerBackdrop')?.append(bandSunrise);
+  const SUNRISE_DELAY_MS = 150, SUNRISE_MS = 2600;
+  let bandSunriseAt = null;
+  function paintBandSunrise(at) {
+    if (at === bandSunriseAt) return;
+    bandSunriseAt = at;
+    const elapsed = Number.isFinite(at) ? Date.now() - at : Infinity;
+    if (elapsed >= SUNRISE_DELAY_MS + SUNRISE_MS || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      bandSunrise.hidden = true;
+      return;
+    }
+    // Start the same animation where the page's is now.
+    bandSunrise.hidden = true;
+    bandSunrise.style.animationDelay = `${(SUNRISE_DELAY_MS - elapsed) / 1000}s`;
+    void bandSunrise.offsetWidth;
+    bandSunrise.hidden = false;
+  }
   const PHOTO = /^blanc-wallpaper:([0-9a-f-]{36})$/;
   const PAGE_IMAGE = /^chrome:\/\/blanc-prototype\/pages\/[\w.-]+$/;
   let photo = { key: null, url: null, loading: null };
@@ -314,6 +336,7 @@
     document.documentElement.toggleAttribute('data-band-backdrop', shown);
     strip.contentDocument?.documentElement?.toggleAttribute('data-band-backdrop', shown);
     bandBackdrop.hidden = !shown;
+    paintBandSunrise(shown && Number.isFinite(spec.sunriseAt) ? spec.sunriseAt : null);
     if (!shown) { syncBandColor(); return; }
     const zoom = Number(spec.zoom) || 1;
     const band = Number(spec.band) || 0;

@@ -787,7 +787,11 @@
         if (style.display === 'none') continue;
         layers.push(painter(style, layer.classList.contains('is-visible') ? 1 : 0, layer.classList.contains('is-fading')));
       }
-      return { zoom: zoom(), width: innerWidth, height: innerHeight, layers: layers.slice(0, 4) };
+      const out = { zoom: zoom(), width: innerWidth, height: innerHeight, layers: layers.slice(0, 4) };
+      // The launch Sunrise's sky covers this page; the band plays it too.
+      const sunriseAt = Number(document.body.dataset.launchSunriseAt);
+      if (Number.isInteger(sunriseAt) && sunriseAt > 0) out.sunriseAt = sunriseAt;
+      return out;
     };
     async function publish(force) {
       if (busy) { again = true; forceNext ||= force; return; }
