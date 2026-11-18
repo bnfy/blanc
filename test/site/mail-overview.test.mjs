@@ -84,7 +84,7 @@ test('the features and the careful row list what Mail does, each with a gilt gly
       island: [...document.querySelectorAll('.mip-row')].map(row => row.textContent.trim()),
       islandPoints: [...document.querySelectorAll('.mail-island-points h3')].map(h => h.textContent.trim()),
     }));
-    assert.deepEqual(list.headings, ['A first look at the new design.', 'The Island, made for mail.', 'Every account, one calm inbox.', 'Rules that read like sentences', 'Careful in what it sends, generous in what it accepts.', 'Coming later: a Blanc Mail address.', 'A good home for your mail.', 'Support', 'Blanc Mail for Mac.']);
+    assert.deepEqual(list.headings, ['A new outlook on email.', 'The Island, made for mail.', 'Every account, one calm inbox.', 'Rules that read like sentences', 'Careful in what it sends, generous in what it accepts.', 'Coming later: a Blanc Mail address.', 'A good home for your mail.', 'Support', 'Blanc Mail for Mac.']);
     // The Island figure lists the app's eight commands in its own order and words.
     assert.deepEqual(list.island, ['/snoozeSnooze…', '/set-asideSet Aside', '/labelLabels', '/moveMove To…', '/archiveArchive', '/trashTrash', '/composeNew Message', '/ruleNew Rule…']);
     assert.deepEqual(list.islandPoints, ['Jump anywhere', 'Commands with a slash', 'Actions at hand']);

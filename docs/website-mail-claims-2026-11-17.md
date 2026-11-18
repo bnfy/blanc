@@ -39,7 +39,7 @@ light version, so the address set stays in dark, the stage's own appearance.
 
 | Wording on the page | Kind | Evidence | Limits kept in the copy | Verdict |
 | --- | --- | --- | --- | --- |
-| A first look at the new design. | Heading | Owner-approved design, November 17, 2026 | "First look" frames it as a preview | Aspirational, labelled |
+| A new outlook on email. | Heading | Owner-approved design, November 17, 2026; wording from the owner, November 17, 2026 | The lead below says it is a design preview | Aspirational, labelled |
 | This is where Blanc Mail’s design is heading, in dark mode and in light mode. It’s a design preview: the mail is made up, and details may change before release. | Lead | As above; the teasers' README (fictional mail) | Preview, made-up mail, may change; no date | Aspirational, labelled |
 | Appearance; Dark; Light | Control labels | — | — | Label |
 | Coming later: a Blanc Mail address. | Heading | Hosted addresses designed in the Mail repository; not available to customers | "Coming later"; no date | Aspirational, labelled |
