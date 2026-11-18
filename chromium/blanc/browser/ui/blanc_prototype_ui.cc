@@ -4122,6 +4122,10 @@ base::DictValue SpaceDisk(base::FilePath path, std::string method,
     store = std::move(*parsed);
   } else { store.Set("version", 1); store.Set("items", base::DictValue()); }
   auto* items = store.FindDict("items");
+  // TEMPORARY (W2 trace of the Arc import's lost Spaces): every store call.
+  if (blanc::BlancTestLaunch())
+    LOG(ERROR) << "BlancSpaceTrace " << method << " " << path.AsUTF8Unsafe() << " items=" << items->size()
+               << " capture=" << capture.size() << " exists=" << base::PathExists(path);
   if (items->size() > 25) return base::DictValue().Set("error", "Space limit exceeded.");
   for (const auto [key, value] : *items) {
     if (key.empty() || key.size() > 120 || !value.is_dict() || !ValidSpace(value.GetDict()))
@@ -4147,6 +4151,11 @@ base::DictValue SpaceDisk(base::FilePath path, std::string method,
     for (auto [id, value] : capture) items->Set(id, value.Clone());
     auto bytes = base::WriteJson(store);
     if (!bytes || bytes->size() > 4 * 1024 * 1024 || !base::ImportantFileWriter::WriteFileAtomically(path, *bytes)) return base::DictValue().Set("error", "write-failed");
+    if (blanc::BlancTestLaunch()) {  // TEMPORARY (W2 trace)
+      std::string after;
+      base::ReadFileToString(path, &after);
+      LOG(ERROR) << "BlancSpaceTrace importSpaces wrote items=" << items->size() << " bytes=" << bytes->size() << " readBack=" << after.size();
+    }
     return base::DictValue();
   }
   if (method == "sharedSave") {
