@@ -207,18 +207,16 @@ test('the layout enum reaches the schema and both generated mobile artifacts', (
   assert.match(kotlin, /val newtabLayout = BlancNewtabLayout\.BILLBOARD/);
 });
 
-test('Settings offers every supported start-page layout', () => {
+// V24: Billboard is the one layout; Customize on the Start Page holds its
+// choices, so Settings offers no layout (the synced value stays for older builds).
+test('Settings offers no start-page layout', () => {
   const html = withoutInterfaceKeys(fs.readFileSync(
     path.join(__dirname, '../../src/renderer/pages/settings.html'),
     'utf8'
   ));
-
+  assert.doesNotMatch(html, /id="newtabLayout"/);
   for (const layout of settingsSchema.newtabLayouts) {
-    assert.match(
-      html,
-      new RegExp(`<option value="${layout}">${layout[0].toUpperCase()}${layout.slice(1)}</option>`),
-      `missing Settings option for ${layout}`
-    );
+    assert.doesNotMatch(html, new RegExp(`<option value="${layout}">`), `no Settings option for ${layout}`);
   }
   assert.doesNotMatch(html, /<option value="mahjong">/);
 });
