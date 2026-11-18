@@ -12,6 +12,7 @@
 #include "base/functional/bind.h"
 #include "base/location.h"
 #include "base/no_destructor.h"
+#include "base/scoped_observation.h"
 #include "base/task/sequenced_task_runner.h"
 #include "ui/aura/env.h"
 #include "ui/aura/window.h"
@@ -21,7 +22,8 @@
 #include "ui/events/event_handler.h"
 #include "ui/events/event_sink.h"
 #include "ui/events/keycodes/keyboard_codes.h"
-#include "ui/views/focus/native_view_focus_manager.h"
+#include "ui/views/widget/widget.h"
+#include "ui/views/widget/widget_observer.h"
 
 namespace blanc {
 namespace {
@@ -41,7 +43,7 @@ bool IsControlKey(ui::KeyboardCode code) {
   return code == ui::VKEY_CONTROL || code == ui::VKEY_LCONTROL || code == ui::VKEY_RCONTROL;
 }
 
-class Watcher : public ui::EventHandler, public views::NativeViewFocusChangeListener {
+class Watcher : public ui::EventHandler, public views::WidgetObserver {
  public:
   static Watcher& Get() {
     static base::NoDestructor<Watcher> watcher;
@@ -53,16 +55,19 @@ class Watcher : public ui::EventHandler, public views::NativeViewFocusChangeList
     installed_ = true;
   }
   TabSwitchKey current() const { return current_; }
+  // Watches the window the Ctrl+Tab went to: its losing activation (another
+  // app or window in front) cancels the switch. Aura reports no focus change
+  // when the whole app is deactivated, so it is the widget's activation.
   void Watch() {
     EnsureInstalled();
-    if (watching_) return;
     watching_ = true;
-    views::NativeViewFocusManager::GetInstance()->AddFocusChangeListener(this);
+    if (widget_.IsObserving() || key_window_.windows().empty()) return;
+    if (auto* widget = views::Widget::GetWidgetForNativeWindow(key_window_.windows().front()))
+      widget_.Observe(widget);
   }
   void Stop() {
-    if (!watching_) return;
     watching_ = false;
-    views::NativeViewFocusManager::GetInstance()->RemoveFocusChangeListener(this);
+    widget_.Reset();
   }
 
   // ui::EventHandler:
@@ -71,6 +76,11 @@ class Watcher : public ui::EventHandler, public views::NativeViewFocusChangeList
     // itself is what counts.
     if (event->is_char()) return;
     if (event->type() == ui::EventType::kKeyPressed) {
+      // The top-level window this key went to, for Watch().
+      auto* target = static_cast<aura::Window*>(event->target());
+      const aura::WindowTracker::WindowList previous = key_window_.windows();
+      for (auto* window : previous) key_window_.Remove(window);
+      if (target && target->GetToplevelWindow()) key_window_.Add(target->GetToplevelWindow());
       current_ = event->key_code() == ui::VKEY_TAB && event->IsControlDown() && !event->IsAltDown()
                      ? TabSwitchKey::kCtrlTab
                      : TabSwitchKey::kOther;
@@ -112,17 +122,20 @@ class Watcher : public ui::EventHandler, public views::NativeViewFocusChangeList
     if (watching_ && event->type() == ui::EventType::kMousePressed) Run("cancelSoon");
   }
 
-  // views::NativeViewFocusChangeListener: another app came to the front.
-  void OnNativeFocusChanged(gfx::NativeView focused_now) override {
-    if (focused_now) return;
+  // views::WidgetObserver:
+  void OnWidgetActivationChanged(views::Widget*, bool active) override {
+    if (active || !watching_) return;
     Stop();
     Run("cancel");
   }
+  void OnWidgetDestroying(views::Widget*) override { widget_.Reset(); }
 
  private:
   void Clear() { current_ = TabSwitchKey::kNone; }
   bool installed_ = false;
   bool watching_ = false;
+  aura::WindowTracker key_window_;
+  base::ScopedObservation<views::Widget, views::WidgetObserver> widget_{this};
   TabSwitchKey current_ = TabSwitchKey::kNone;
 };
 
