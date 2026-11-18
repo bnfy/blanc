@@ -10,15 +10,16 @@ gap with the milestone that closes it. Windows design:
 | Area | Windows today | Closes in |
 | --- | --- | --- |
 | Build | Cross-compiled on x86-64 Linux; output `BlancWinPrototype` | — (by design, D4) |
-| Crash reporting | Unproven: Chromium's docs say a cross build cannot report crashes, but this tree assembles Crashpad's files | Tested in W1 Part B |
+| Crash reporting | Captured locally: Crashpad writes renderer and browser dumps into the profile's `Crashpad\\reports` (W1 Part B, run 44234145350), though Chromium's docs say a cross build cannot. Nothing is uploaded: there is no crash server | Uploading: later |
 | Window frame | No title bar: the Island's strip sits at the top of the window, laid out as a tabbed window's tab strip is (patch 0095). The strip's drag areas move the window (patch 0097); the top edge resizes; the hidden strip's drag band is 10 px (6 on the Mac) | Done (W1 Part A) |
 | Window buttons | Windows' own caption buttons, over the strip's top-right corner; the Island draws none there (owner decision, 2026-11-17). Shipping Blanc for Windows draws its own | Deliberate |
 | Main menu | The Island's menu button opens Chromium's app menu at the button (patch 0096). The Mac has its menu bar and no button. The menu's items are Chromium's, renamed to Blanc | Deliberate; the items are reviewed in W2 |
 | Quit after closing the last window | Once any tab has been closed in the session, closing the last window leaves the browser process running with no window (over 15 s; not yet timed to its end). With no closed tab it ends in about 5 s. Seen in the frame check, run 44177973332; the cause is not yet diagnosed (the page Recently closed holds is the suspect). On the Mac the app stays open after its last window, so this never showed | W2 |
 | Data folder | `%LOCALAPPDATA%\Blanc Chromium Preview\User Data` (patch 0094), never Chromium's | Done |
-| Identity | Executable `chrome.exe`, Chromium's icon, app id and registry names other than the product path | W1 Part B |
-| Sandbox access | An unpacked build needs read access granted to app containers on its folder (the candidate workflow does it); an installer grants it | W1 Part B |
-| Installer, default browser | None | W1 Part B |
+| Installer | Chromium's `mini_installer`, per user, into `%LOCALAPPDATA%\Blanc Chromium Preview\Application`; uninstall from Settings → Apps keeps the data folder | Done (W1 Part B) |
+| Default Programs | Registered as `Blanc Prototype` with its own ProgIDs, beside Electron Blanc; Chromium's installer also offers it for mailto, tel and other schemes, as Chrome does | Done (W1 Part B) |
+| Identity | Its own names, app id, publisher and the Sunrise icon (patch 0098, `windows/identity.md`); still `chrome.exe`, Chromium's document icons and Chromium's elevation and tracing service ids | Names done (W1 Part B); executable name later |
+| Sandbox access | An installed copy needs nothing; an unpacked one needs read access for app containers on its folder (the candidate workflow grants it) | Done (W1 Part B) |
 | Signing | None | W1 Part C |
 | Updater | None (Sparkle is the Mac's) | Later (R.2) |
 | Dock menu, Dock icon, traffic lights | Mac only; stubbed | Later: the Windows counterparts (taskbar, jump list) are not planned yet |

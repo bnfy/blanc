@@ -56,10 +56,11 @@ the owner's Windows VM.
 
 ## 3. Known limits
 
-- **Crash reporting in a cross build is unproven.** Chromium's docs say the assembly files a cross
-  build can't assemble are stubbed, so Crashpad can't report crashes; in this tree they are in fact
-  assembled, so W1 tests it and corrects this line. Until then, assume none. A public Windows
-  release may need a native Windows build machine; that is a later owner decision.
+- **Crash capture works in the cross build** (W1 Part B, 2026-11-18): Chromium's docs say the
+  assembly files a cross build can't assemble are stubbed, but this tree assembles them, and
+  Crashpad wrote renderer and browser dumps on a runner. There is no crash server yet. Whether a
+  public Windows release is cross-built or built on a native Windows machine is a later owner
+  decision.
 - **The pin is a preview.** The pending rebase (D6, F0.7) will need another full Windows build.
 - **No protected video.** As on the Mac beta, and Windows has no "Open in Blanc" handoff yet.
 - **Nothing public.** No Windows fork release, and no website or marketing claim about one.

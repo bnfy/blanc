@@ -31,8 +31,9 @@ source and the same Chromium pin as the Mac.
 - Never run hooks, clean an output or change `args.gn` as a routine step.
 - The server holds no signing key and no GitHub credential. A built candidate
   is copied off by the operator's Mac (`chromium/windows/ship-candidate.sh`).
-- A cross build cannot report crashes: Chromium stubs out the assembly files a
-  Linux host cannot assemble, which Crashpad needs.
+- Crash capture works in this cross build (W1 Part B): Chromium's docs say the
+  assembly Crashpad needs is stubbed, but this tree assembles it with llvm-ml.
+  Dumps are written locally; there is no crash server to upload to.
 
 ## The Visual Studio package
 

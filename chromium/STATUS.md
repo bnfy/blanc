@@ -3671,6 +3671,22 @@ Found, not caused by Part A: after any tab has been closed, closing the last
 window leaves the process running with no window (W2, `PLATFORMS.md`). Not
 checked: Snap Layouts on a real Windows 11 desktop.
 
+### W1 Part B: identity, installer, crash capture (2026-11-18)
+Candidate `windows-x64-e42f9e5a532cdf96`; record `reports/w1-windows.json` (`partB`).
+Patch 0098; names in `windows/identity.md`.
+
+| Part B gate | Result | Evidence |
+| --- | --- | --- |
+| 1. Every Windows name listed, none the Electron Blanc's or Chromium's | Pass | `windows/identity.md`, `tools/windows-identity.test.mjs` |
+| 2. `mini_installer.exe` builds on the server through the guard | Pass (239 MB, 5,683 steps in 13 min 46 s) | `~/blanc-evidence/windows/b1-1.log` |
+| 3. Installs per user beside Electron Blanc 1.49.1; launches from its install folder with no sandbox grant | Pass | run 44235371094, `install.json`, `installed-smoke` |
+| 4. Registered under its own names; Electron Blanc's entries and defaults unchanged | Pass (`Blanc Prototype.<suffix>`, ProgID `BlancPrvHTM.<suffix>`) | `install.json` |
+| 5. Uninstall removes it, keeps its data, leaves Electron Blanc working | Pass | `install.json` |
+| 6. Crash capture recorded | Captured: Crashpad writes renderer and browser dumps locally (Chromium's docs said a cross build could not) | run 44234145350, `crash.json` |
+
+Not checked: Settings → Default apps listing and choosing the preview (needs a
+real desktop session).
+
 ## Android
 Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
 [PR #1333](https://github.com/bnfy/blanc/pull/1333)). Milestones: **A0
@@ -4355,7 +4371,7 @@ on that site, and a wrong search address still fails it.
 | Platform | Current-candidate baseline |
 | --- | --- |
 | macOS | 635/667 executable cases pass; 1 failed; 3 undefined/not run; 28 excluded — [baseline](scenarios/baseline-macos-1400e3914b1a7bdf.json)<br>S1 rows: 260/263 pass; 0 failed; 1 undefined; 2 excluded |
-| Windows | 590/667 executable cases pass; 48 failed; 23 undefined/not run; 6 excluded — [baseline](scenarios/baseline-windows-x64-ec914b7ca4b925a1.json)<br>S1 rows: 251/263 pass; 10 failed; 2 undefined; 0 excluded |
+| Windows | Not run for current candidate (previous baseline is stale) |
 | Linux | Not run (667 cases) |
 
 667 executable cases from 618 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
@@ -4380,5 +4396,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-1400e3914b1a7bdf; Windows: windows-x64-ec914b7ca4b925a1; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-1400e3914b1a7bdf; Windows: windows-x64-e42f9e5a532cdf96; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

@@ -2543,12 +2543,12 @@
       "qualification": "debug build; launches and loads pages on the emulator; Pixel pending"
     },
     "windows": {
-      "id": "windows-x64-ec914b7ca4b925a1",
-      "exeSha256": "c6728b1ad35768cb95c7893393f1f92399f3c58b0b115befc84b25e554bdd542",
-      "dllSha256": "ec914b7ca4b925a16f9d69b689f19ff21ab93ace80c06cedf1c723a728e036ca",
+      "id": "windows-x64-e42f9e5a532cdf96",
+      "exeSha256": "e9ec702312de21813263f29564b312abb78e2e9284d241962a5a5c7cf463ed4a",
+      "dllSha256": "e42f9e5a532cdf96b9e1f6c382012fefc7f4510a9a34cf0c43f5b64893847bd2",
       "version": "158.0.8127.2",
-      "treeCommit": "38d4ae9da94e3d2efa1ba7f3c9136fc3931bd138",
-      "qualification": "W1 Part A (window frame, Windows caption buttons, app menu, strip drag): frame check 15 of 15 by real input (run 44207006500); full suite on a 1920x1080 runner display, 2026-11-18 (same run, fork 2a80b3197, shipping v1.49.1): 590 of 667 cases pass, 48 fail, 23 undefined, 6 excluded"
+      "treeCommit": "985d855bc784fd930554f8da3484914353438962",
+      "qualification": "cross-compiled candidate; runtime acceptance pending"
     }
   },
   "baselines": {

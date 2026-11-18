@@ -27,6 +27,11 @@ others. The release channel takes over the Electron Blanc's names at cutover
 | Active Setup GUID (system-level only) | `{FF7CE8A2-9361-41F3-B827-83DC0CB91795}` | — | `{7D2B3E1D-D096-4594-9D8F-A6667F12E0AC}` |
 | Icon | Sunrise (`blanc/branding/win/blanc.ico`, the Electron app's bytes) | Sunrise | Chromium |
 
+Observed on a runner (W1 Part B, run 44235371094): the per-user suffix is
+`.` and a base32 hash of the user's SID, as in `Blanc Prototype.XVTBKQQPX2VWUBYKQEX56KRVZI`,
+and Chromium's installer offers the preview for mailto, tel, irc, webcal and
+other schemes as well as http and https, as Chrome does.
+
 Kept as Chromium's, on purpose (open after W1):
 
 - The executable and library names, `chrome.exe` and `chrome.dll`.

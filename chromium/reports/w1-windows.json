@@ -1,5 +1,5 @@
 {
- "milestone": "W1 Part A",
+ "milestone": "W1 Parts A and B",
  "platform": "windows",
  "candidate": {
   "id": "windows-x64-ec914b7ca4b925a1",
@@ -76,6 +76,128 @@
  "openGaps": [
   "After any tab has been closed, closing the last window leaves the browser process running with no window (over 15 s); with no closed tab it ends in about 5 s. Not diagnosed. W2.",
   "Snap Layouts on hover over maximize not checked: a hosted runner cannot show the flyout. Hand check on a real Windows 11 desktop.",
-  "Shared C++ passed the Mac Studio's syntax-only compile; the Mac has not built or linked it yet (next nightly)."
- ]
+  "Shared C++ for Parts A and B passed the Mac Studio's syntax-only compile; Part A reaches the Mac with the next nightly. Part B changes only Windows files."
+ ],
+ "partB": {
+  "candidate": {
+   "id": "windows-x64-e42f9e5a532cdf96",
+   "exeSha256": "e9ec702312de21813263f29564b312abb78e2e9284d241962a5a5c7cf463ed4a",
+   "dllSha256": "e42f9e5a532cdf96b9e1f6c382012fefc7f4510a9a34cf0c43f5b64893847bd2",
+   "version": "158.0.8127.2",
+   "treeCommit": "985d855bc784fd930554f8da3484914353438962",
+   "qualification": "cross-compiled candidate; runtime acceptance pending"
+  },
+  "changes": [
+   "patch 0098: the preview's own Windows names (Blanc Prototype, BlancPrototype, BlancPrvHTM, BlancPrvPDF, blanc-prototype), its own toast activator and Active Setup ids, Bananify Creative as publisher, and the Sunrise icon in chrome.exe and chrome.dll",
+   "chromium/windows/identity.md and tools/windows-identity.test.mjs: every name against the Electron Blanc's and Chromium's",
+   "the Windows output builds Chromium's mini_installer with the browser (239 MB), packed with the candidate",
+   "chromium/tests/windows-install.mjs and windows-crash.mjs, run by the candidate workflow"
+  ],
+  "installCheck": {
+   "run": "chromium-windows-candidate.yml 44235371094",
+   "pass": true,
+   "checks": {
+    "electronInstalled": true,
+    "installed": true,
+    "uninstallEntry": true,
+    "startMenuShortcut": true,
+    "registeredAsBrowser": true,
+    "electronUntouchedByInstall": true,
+    "installedLaunches": true,
+    "uninstalled": true,
+    "dataKept": true,
+    "electronUntouched": true,
+    "electronStillStarts": true
+   },
+   "registration": {
+    "registered": [
+     [
+      "Blanc Prototype.XVTBKQQPX2VWUBYKQEX56KRVZI",
+      "Software\\Clients\\StartMenuInternet\\Blanc Prototype.XVTBKQQPX2VWUBYKQEX56KRVZI\\Capabilities"
+     ]
+    ],
+    "clients": [
+     "Blanc Prototype.XVTBKQQPX2VWUBYKQEX56KRVZI"
+    ],
+    "assoc": {
+     "http": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "https": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "irc": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "mailto": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "mms": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "news": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "nntp": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "sms": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "smsto": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "snews": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "tel": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "urn": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "webcal": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "blanc-prototype": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI"
+    }
+   },
+   "electronBefore": {
+    "exe": true,
+    "client": {
+     "http": "BlancURL",
+     "https": "BlancURL"
+    },
+    "progId": {
+     "(Default)": "\"C:\\Users\\runneradmin\\AppData\\Local\\Programs\\blanc\\Blanc.exe\" \"%1\""
+    },
+    "registered": "Software\\Clients\\StartMenuInternet\\Blanc\\Capabilities",
+    "userChoiceHttp": "MSEdgeHTM",
+    "userChoiceHttps": "MSEdgeHTM"
+   },
+   "uninstallExit": 19
+  },
+  "frameCheck": {
+   "run": "44235371094",
+   "pass": true
+  },
+  "crashCapture": {
+   "run": "chromium-windows-candidate.yml 44234145350 (same build)",
+   "capturesCrashes": true,
+   "finding": "Crashpad writes a dump for a renderer crash (Page.crash) and for a browser crash (Browser.crash), into the profile's Crashpad\\\\reports, with or without --enable-crash-reporter-for-testing. Chromium's docs/win_cross.md says a cross build cannot report crashes; in this tree the assembly files are assembled (llvm-ml). Nothing is uploaded: the build has no crash server.",
+   "runs": {
+    "default": {
+     "captured": true,
+     "dumps": {
+      "profile": [
+       {
+        "file": "reports\\65373e26-0782-4916-a4d5-0540aa91c5fe.dmp",
+        "bytes": 1441728
+       },
+       {
+        "file": "reports\\6ea71636-8745-47d3-986b-c2345ef57fc3.dmp",
+        "bytes": 2853344
+       }
+      ],
+      "defaultData": []
+     }
+    },
+    "crash-reporter-for-testing": {
+     "captured": true,
+     "dumps": {
+      "profile": [
+       {
+        "file": "reports\\3d732874-16f8-40e9-9920-14ed2951ad14.dmp",
+        "bytes": 1423712
+       },
+       {
+        "file": "reports\\437e5e4a-b503-4799-a13f-5648c12b08b3.dmp",
+        "bytes": 2879232
+       }
+      ],
+      "defaultData": []
+     }
+    }
+   }
+  },
+  "notes": [
+   "Chromium's installer registers the preview for more URL schemes than Electron Blanc does (mailto, tel, irc and others, as Chrome does). These are capabilities in Default Programs, not defaults.",
+   "Uninstall exit code 19 is Chromium's UNINSTALL_SUCCESSFUL.",
+   "Settings > Default apps listing and choosing the preview are not checked: a hosted runner has no interactive Settings session."
+  ]
+ }
 }
