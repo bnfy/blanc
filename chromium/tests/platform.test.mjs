@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import {hostPlatform,chromeProfileRoot,processListCommand,parseProcessList,candidateIdentityFiles,candidateIdentity,freeMemoryText,runningBrowserMarker,linuxTaggedScenarioRuns,readHeldFile} from './lib/platform.mjs';
+import {hostPlatform,chromeProfileRoot,processListCommand,parseProcessList,candidateIdentityFiles,candidateIdentity,freeMemoryText,runningBrowserMarker,linuxTaggedScenarioRuns,readHeldFile,initialWindowFlags} from './lib/platform.mjs';
 import {freePercent} from './lib/memory-guard.mjs';
 
 test('the host platform uses the tracker\'s names, and an unknown host stops', () => {
@@ -116,4 +116,11 @@ test('a file the browser holds open is read through a shadow copy on Windows onl
   assert.equal(String(readHeldFile('a', {platform: 'win32', read: () => Buffer.from('plain'), copyHeld: copy})), 'plain');
   const missing = () => { throw Object.assign(new Error('ENOENT'), {code: 'ENOENT'}); };
   assert.throws(() => readHeldFile('a', {platform: 'win32', read: missing, copyHeld: copy}), /ENOENT/);
+});
+test('on Windows the browser opens at shipping\'s window size', () => {
+  // Chromium's own default on the runner's 1920x1080 display is 929x1004;
+  // shipping's window, which its steps assume, is 1280x800.
+  assert.deepEqual(initialWindowFlags('win32'), ['--window-size=1280,800']);
+  assert.deepEqual(initialWindowFlags('darwin'), []);
+  assert.deepEqual(initialWindowFlags('linux'), []);
 });

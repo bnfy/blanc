@@ -183,7 +183,9 @@ export default function register(step){
    r.on('close',()=>clearInterval(timer));});
   this.downloadServer.unref();
   await new Promise(resolve=>this.downloadServer.listen(0,'127.0.0.1',resolve));
-  const dir=this.fixture.directory+'/downloads';
+  // A real folder, joined with the platform's separator (Windows refuses a
+  // download into a folder that doesn't exist, ending it at 0 B).
+  const dir=path.join(this.fixture.directory,'downloads');fs.mkdirSync(dir,{recursive:true});
   await this.fixture.browser.send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:dir,eventsEnabled:true});
   this.downloadEvents=[];
   for(const m of ['Browser.downloadWillBegin','Browser.downloadProgress'])this.fixture.browser.on(m,e=>this.downloadEvents.push({m,...e}));

@@ -49,6 +49,12 @@ export function readHeldFile(file,{platform=process.platform,read=fs.readFileSyn
  try{return read(file);}
  catch(error){if(platform!=='win32'||!['EBUSY','EPERM'].includes(error.code))throw error;return copyHeld(file);}
 }
+// The window a case starts in. Shipping's window is 1280x800 and its steps
+// assume it; the Mac's Chromium default is at least that on the Mac Studio,
+// but on the Windows runner's 1920x1080 display it is 929x1004.
+export function initialWindowFlags(platform=process.platform){
+ return platform==='win32'?['--window-size=1280,800']:[];
+}
 // Every process as "pid command line", one per line.
 export function processListCommand(platform=process.platform){
  if(platform==='win32')return ['powershell.exe',['-NoProfile','-NonInteractive','-Command','Get-CimInstance Win32_Process | ForEach-Object { "$($_.ProcessId) $($_.CommandLine)" }']];

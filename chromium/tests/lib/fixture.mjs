@@ -35,7 +35,7 @@ function fixtureCertificate(name,hosts=[name],file=name){
 const LOCAL_HOSTS=['nas.home.arpa','lab.home.arpa'];
 const TLS_HOSTS=['insecure.test','secure.test','badcert.test',...LOCAL_HOSTS];
 import {connect, waitFor, pause} from './cdp.mjs';
-import {chromeProfileRoot,listProcesses,candidateIdentityFiles} from './platform.mjs';
+import {chromeProfileRoot,listProcesses,candidateIdentityFiles,initialWindowFlags} from './platform.mjs';
 const digest = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 // Shipping's acceptance home: a Chrome with two profiles to import from.
 function browserHome(fixture){
@@ -109,6 +109,7 @@ export class NativeFixture {
       // paths the OS block must stop.
       ...(direct?['--no-proxy-server',...direct]:[`--proxy-server=http://127.0.0.1:${this.proxy.address().port}`,`--proxy-bypass-list=127.0.0.1;localhost;${TLS_HOSTS.join(';')}`,
       `--host-resolver-rules=${TLS_HOSTS.map(h=>'MAP '+h+' 127.0.0.1, ').join('')}MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1`,'--disable-quic']),...tlsFlags,
+      ...initialWindowFlags(),
       '--disable-background-networking','--no-first-run','--no-default-browser-check','--use-mock-keychain',
       ...(testHooks?['--blanc-test',`--blanc-test-browser-home=${browserHome(this)}`]:[]),...(privateMode?['--incognito']:[])];
     await this.start(this.base+'/initial');
