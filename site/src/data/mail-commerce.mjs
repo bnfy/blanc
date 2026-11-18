@@ -9,6 +9,10 @@ export const noddingOffBenefitId = '972583d1-c22d-415d-bd69-494ed63c5220';
 export const products = Object.freeze({
   'mail-monthly': Object.freeze({ id: 'b39dbdde-a607-4b94-bbba-f20c5acd6439', amount: 499, interval: 'month', benefits: Object.freeze([mailBenefitId]) }),
   'mail-annual': Object.freeze({ id: '72c489be-30a0-4dee-9a02-2a482458f17b', amount: 4999, interval: 'year', benefits: Object.freeze([mailBenefitId]) }),
+  // Blanc Mail with a hosted Blanc Mail address, annual only (created in Polar
+  // production with the owner's go-ahead, 2026-11-17). The address itself is granted by
+  // the Mail repository's Worker, not by a Polar benefit.
+  'mail-address-annual': Object.freeze({ id: '77d31f96-aa36-4012-a2d9-7a1587fbf532', amount: 6999, interval: 'year', benefits: Object.freeze([mailBenefitId]) }),
   'suite-monthly': Object.freeze({ id: 'bb3a14c5-7fab-4f64-a7b2-718aafec9966', amount: 799, interval: 'month', benefits: Object.freeze(['ed1cce8c-d87e-4d27-b9d7-d30bda2de402', mailBenefitId, noddingOffBenefitId]) }),
   'suite-annual': Object.freeze({ id: '28957184-d99d-4954-bdb6-56397a606816', amount: 7999, interval: 'year', benefits: Object.freeze(['ed1cce8c-d87e-4d27-b9d7-d30bda2de402', mailBenefitId, noddingOffBenefitId]) }),
 });
@@ -23,6 +27,7 @@ export const checkoutEnabled = false;
 const checkoutLinks = Object.freeze({
   'mail-monthly': null,
   'mail-annual': null,
+  'mail-address-annual': null,
   'suite-monthly': null,
   'suite-annual': null,
 });

@@ -7,7 +7,7 @@ import MailTeaser from '../components/MailTeaser.astro';
 import MailWaitlistForm from '../components/MailWaitlistForm.astro';
 import survey from '../data/mail-survey.json';
 import MailSurveyInvite from '../components/MailSurveyInvite.astro';
-import { checkoutHrefFor, priceFor } from '../data/mail-commerce.mjs';
+import { checkoutHrefFor, priceFor, productFor } from '../data/mail-commerce.mjs';
 import '../styles/mail.css';
 
 // The features: the October 12 overview's sentences, word for word, plus Set
@@ -80,13 +80,16 @@ const addressPoints = [
   { title: 'Time to renew', text: 'If your subscription lapses, mail keeps arriving for 30 days and renewing brings everything back. Before a mailbox is deleted, we email you how to export your mail.' },
   { title: 'Filtered for spam', text: 'Incoming mail is checked for spam and phishing before it reaches your Inbox.' },
 ];
+// What the address adds to Blanc Mail Annual, from the two Polar prices.
+const ADDRESS_ADD_ON = `$${(productFor('mail-address-annual').amount - productFor('mail-annual').amount) / 100}`;
 // Nodding Off, the iPhone app the Bundle includes, has its own site.
 const NODDING_OFF = 'https://noddingoffapp.com/';
 // Pricing, Support and Download were their own pages until October 22, 2026;
 // their words moved here unchanged (the old URLs redirect to these sections).
 const plans = [
-  { key: 'mail', name: 'Blanc Mail', features: ['Blanc Mail on macOS', 'Native app for Gmail and Proton Mail', 'A Blanc Mail address with the annual plan', '14-day local trial'] },
-  { key: 'suite', name: 'Blanc Bundle', features: ['Blanc Mail on macOS, with a Blanc Mail address', { link: 'Nodding Off', href: NODDING_OFF, text: ', bedtime stories for iPhone' }, 'Blanc Browser Patron on macOS, Windows, and Linux', 'Your Mail, Nodding Off and Browser license keys in one subscription'] },
+  { key: 'mail', name: 'Blanc Mail', periods: ['monthly', 'annual'], features: ['Blanc Mail on macOS', 'Native app for Gmail and Proton Mail', '14-day local trial'] },
+  { key: 'mail-address', name: 'Blanc Mail + Address', periods: ['annual'], note: `Blanc Mail plus your own address, ${ADDRESS_ADD_ON} more a year`, features: ['Everything in Blanc Mail', 'Your own address on blnc.day or another Blanc ending', 'A private mailbox with 15 GB'] },
+  { key: 'suite', name: 'Blanc Bundle', periods: ['monthly', 'annual'], features: ['Blanc Mail on macOS, with a Blanc Mail address', { link: 'Nodding Off', href: NODDING_OFF, text: ', bedtime stories for iPhone' }, 'Blanc Browser Patron on macOS, Windows, and Linux', 'Your Mail, Nodding Off and Browser license keys in one subscription'] },
 ];
 const support = [
   { title: 'Accounts and data', html: 'Blanc Mail connects to Gmail with Google Sign-In. Removing an account clears its local cache after any pending draft recovery is resolved. You can also revoke the app’s access from your <a href="https://myaccount.google.com/permissions">Google Account permissions</a>.' },
@@ -150,7 +153,7 @@ const support = [
          steps switch in CSS like the looks above; the first is checked. -->
     <section class="mail-address mail-teaser-set" aria-labelledby="mail-address-title">
       <h2 id="mail-address-title"><span class="mail-gold-text">A Blanc Mail address of your own.</span></h2>
-      <p class="mail-section-lead">A private mailbox of your own, with an address like <!--email_off-->mira@blnc.day<!--/email_off-->, set up from inside Blanc Mail. It launches with Blanc Mail. What’s shown is a design preview and may change.</p>
+      <p class="mail-section-lead">A private mailbox of your own, with an address like <!--email_off-->mira@blnc.day<!--/email_off-->, set up from inside Blanc Mail. Add it to Blanc Mail for {ADDRESS_ADD_ON} a year, or get it with Blanc Bundle, when Blanc Mail launches. What’s shown is a design preview and may change.</p>
       <fieldset class="mail-segments mail-segments-three">
         <legend class="sr-only">Step</legend>
         {addressSteps.map((step, index) => (
@@ -256,9 +259,11 @@ const support = [
         {plans.map(plan => (
           <li class="mail-plan">
             <h3>{plan.name}</h3>
-            <p class="mail-plan-price"><strong>{priceFor(`${plan.key}-monthly`)}</strong> / month<br />or <strong>{priceFor(`${plan.key}-annual`)}</strong> / year</p>
+            {plan.periods.length === 2
+              ? <p class="mail-plan-price"><strong>{priceFor(`${plan.key}-monthly`)}</strong> / month<br />or <strong>{priceFor(`${plan.key}-annual`)}</strong> / year</p>
+              : <p class="mail-plan-price"><strong>{priceFor(`${plan.key}-annual`)}</strong> / year<br /><span class="mail-plan-note">{plan.note}</span></p>}
             <ul>{plan.features.map(feature => <li>{typeof feature === 'string' ? feature : <><a href={feature.href}>{feature.link}</a>{feature.text}</>}</li>)}</ul>
-            {['monthly', 'annual'].map(period => {
+            {plan.periods.map(period => {
               const href = checkoutHrefFor(`${plan.key}-${period}`);
               return href ? <a href={href}>{`Choose ${plan.name} — ${period}`}</a> : null;
             })}

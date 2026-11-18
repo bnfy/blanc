@@ -120,7 +120,7 @@ test('the design teasers open in the visitor’s appearance, switch in place, an
     await dark.page.locator('.mail-look input[value="dark"]').focus();
     await dark.page.keyboard.press('ArrowRight');
     assert.deepEqual((await teaserState(dark.page))[0].shown, ['light']);
-    assert.match(await dark.page.locator('.mail-address .mail-section-lead').textContent(), /^A private mailbox of your own,/);
+    assert.match(await dark.page.locator('.mail-address .mail-section-lead').textContent(), /^A private mailbox of your own,.* Add it to Blanc Mail for \$20 a year, or get it with Blanc Bundle,/);
     // The address's features, and none of the claims the owner ruled out.
     const points = await dark.page.locator('.mail-address-points h3').allTextContents();
     assert.deepEqual(points, ['Your name, your ending', '15 GB for your mail', 'Encrypted where it’s stored', 'Back in with a code', 'Time to renew', 'Filtered for spam']);
@@ -155,15 +155,16 @@ test('Pricing says purchases are not open before any price, and recommends neith
     });
     assert.match(pricing.text, /^Purchases are not open yet\./);
     assert.ok(pricing.first, 'the status comes before the plans');
-    assert.deepEqual(pricing.plans, ['Blanc Mail', 'Blanc Bundle']);
-    assert.deepEqual(pricing.prices, ['$4.99 / month or $49.99 / year', '$7.99 / month or $79.99 / year']);
+    assert.deepEqual(pricing.plans, ['Blanc Mail', 'Blanc Mail + Address', 'Blanc Bundle']);
+    assert.deepEqual(pricing.prices, ['$4.99 / month or $49.99 / year', '$69.99 / year Blanc Mail plus your own address, $20 more a year', '$7.99 / month or $79.99 / year']);
     assert.ok(pricing.tabular, 'prices use tabular figures');
     assert.equal(pricing.badge, false);
     assert.equal(pricing.checkout, 0, 'no checkout until it opens');
     // The Bundle names Nodding Off and links to its site; both plans say where the address comes from.
     const cards = await page.evaluate(() => [...document.querySelectorAll('#pricing .mail-plan ul')].map(ul => [...ul.querySelectorAll('li')].map(li => li.textContent.trim())));
-    assert.ok(cards[0].includes('A Blanc Mail address with the annual plan'));
-    assert.ok(cards[1].includes('Nodding Off, bedtime stories for iPhone'));
+    assert.ok(!cards[0].some(line => /address/i.test(line)), 'plain Blanc Mail has no address');
+    assert.ok(cards[1].includes('Your own address on blnc.day or another Blanc ending'));
+    assert.ok(cards[2].includes('Nodding Off, bedtime stories for iPhone'));
     assert.equal(await page.locator('#pricing .mail-plan a[href="https://noddingoffapp.com/"]').textContent(), 'Nodding Off');
   } finally { await context.close(); }
 });

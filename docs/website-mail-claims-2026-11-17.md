@@ -128,9 +128,32 @@ and there were none. Blanc Mail stays $4.99 / $49.99.
 | Wording on the page | Where | Evidence | Limits kept in the copy | Verdict |
 | --- | --- | --- | --- | --- |
 | $7.99 / month or $79.99 / year | Bundle card, from `mail-commerce.mjs` | Polar production, read back after the change on November 17, 2026 | "Purchases are not open yet" stays above the cards | Verified (price in Polar) |
-| A Blanc Mail address with the annual plan | Mail card | `AGENTS.md`, Hosted mailboxes; hosted spec §14: Mail Annual includes one address, Mail Monthly never does | Annual only | Aspirational, labelled (launches with the app) |
+| ~~A Blanc Mail address with the annual plan~~ | Mail card | Removed the same day: the address became an add-on (below) | — | Removed |
 | Blanc Mail on macOS, with a Blanc Mail address | Bundle card | As above: the Bundle includes one address | — | Aspirational, labelled |
 | Nodding Off, bedtime stories for iPhone (links to https://noddingoffapp.com/) | Bundle card | Nodding Off License benefit attached to both Bundle products (Polar, read November 17); the app's own site describes it as bedtime stories for adults on iPhone | **Unlocking Nodding Off with a Bundle licence awaits App Review:** its first App Store release leaves Bundle sign-in out (Guideline 3.1.1), and it returns only in a later submission (`bnfy/nodding-off` `docs/app-review-notes.md`). The page sells nothing yet; recheck before checkout opens | Qualified (pending App Review) |
 | Your Mail, Nodding Off and Browser license keys in one subscription | Bundle card | The three License Keys benefits on both Bundle products | As above for Nodding Off | Qualified |
 | At launch, a Blanc Bundle subscription will include Blanc Mail on macOS with a Blanc Mail address, Nodding Off on iPhone, and Browser Patron benefits on Browser's supported platforms. | Closing note | As above | "At launch" | Qualified |
 | Blanc Mail is planned at $4.99 per month or $49.99 per year; the annual plan includes one Blanc Mail address. Blanc Bundle is planned at $7.99 per month or $79.99 per year and includes Mail on macOS, Nodding Off on iPhone and Browser Patron on Browser's supported platforms, each with its own license key, and one Blanc Mail address. | `/mail/terms`, Subscriptions (now "Updated November 17, 2026") | As above | Pre-release terms, effective when subscriptions open | Qualified |
+
+## The address as an add-on: three plans (November 17, 2026)
+
+The owner asked for the address to read clearly as an add-on or a Bundle
+purchase, and for the most marketable, enticing pricing. Agreed plan: Blanc
+Mail stays the app alone; a new **Blanc Mail + Address** plan is $69.99 a year
+(Blanc Mail Annual plus $20); Blanc Bundle includes the address. On the
+owner's explicit go-ahead, "Blanc Mail + Address — Annual" was created in
+Polar production on November 17 (`77d31f96-aa36-4012-a2d9-7a1587fbf532`,
+$69.99 a year, Private, the Blanc Mail License benefit only). This supersedes
+the November 15 rule that Mail Annual includes an address. **Not yet
+enforced:** the Mail repository's Worker grants an address to any valid Blanc
+Mail licence (`services/mail-worker/src/polar.js` checks only the Mail
+benefit), so limiting addresses to this plan and the Bundle is work for that
+repository before addresses go on sale.
+
+| Wording on the page | Where | Evidence | Limits kept in the copy | Verdict |
+| --- | --- | --- | --- | --- |
+| Blanc Mail + Address · $69.99 / year | Pricing card | Polar production product above | Annual only; "Purchases are not open yet" stays above the cards | Verified (price in Polar) |
+| Blanc Mail plus your own address, $20 more a year | Pricing card | Computed on the page from the two Polar amounts ($69.99 − $49.99) | — | Verified |
+| Everything in Blanc Mail · Your own address on blnc.day or another Blanc ending · A private mailbox with 15 GB | Pricing card | Mail benefit on the product; hosted endings and 15 GB per `AGENTS.md` | Launches with the app | Aspirational, labelled |
+| Add it to Blanc Mail for $20 a year, or get it with Blanc Bundle, when Blanc Mail launches. | Address section lead | As above | No date | Aspirational, labelled |
+| Blanc Mail + Address is planned at $69.99 per year and includes Mail on macOS and one Blanc Mail address. | `/mail/terms`, Subscriptions | As above | Pre-release terms | Qualified |
