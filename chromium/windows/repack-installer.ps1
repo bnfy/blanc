@@ -26,12 +26,14 @@ function Run([string]$exe, [string[]]$arguments) {
   if ($LASTEXITCODE -ne 0) { throw "$(Split-Path $exe -Leaf) failed ($LASTEXITCODE): $($arguments -join ' ')" }
 }
 foreach ($tool in $Resedit, $SevenZip, $Installer) { if (-not (Test-Path $tool)) { throw "Missing $tool" } }
+# resedit.py still names Python 2's basestring; the wrapper supplies it.
+$ReseditPy3 = Join-Path $PSScriptRoot 'resedit-py3.py'
 $resources = Join-Path $Work 'resources'
 
 if ($Phase -eq 'unpack') {
   if (Test-Path $Work) { throw "$Work exists; use a new folder." }
   New-Item -ItemType Directory $Work | Out-Null
-  Run python @($Resedit, '--extract_all', $resources, $Installer)
+  Run python @($ReseditPy3, $Resedit, '--extract_all', $resources, $Installer)
   # Exactly one B7 (the archive) and one BL (setup) resource, by Chromium's naming.
   $archive = @(Get-ChildItem "$resources\B7" -Recurse -File)
   $setup = @(Get-ChildItem "$resources\BL" -Recurse -File)
@@ -61,7 +63,7 @@ if ($Phase -eq 'unpack') {
   } finally { Pop-Location }
   Run makecab.exe @('/D', 'CompressionType=LZX', '/V1', '/L', $out, "$Work\setup.exe")
   if (-not (Test-Path "$out\setup.ex_")) { throw 'makecab wrote no setup.ex_.' }
-  Run python @($Resedit, '--update', 'B7', $layout.archive.lang, $layout.archive.name, "$out\chrome.packed.7z",
+  Run python @($ReseditPy3, $Resedit, '--update', 'B7', $layout.archive.lang, $layout.archive.name, "$out\chrome.packed.7z",
     '--update', 'BL', $layout.setup.lang, $layout.setup.name, "$out\setup.ex_", '--output_file', $Output, $Installer)
   "Packed: $Output ($([math]::Round((Get-Item $Output).Length / 1MB)) MB)"
 }
