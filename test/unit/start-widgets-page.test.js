@@ -68,6 +68,7 @@ test('an inner panel scrolls, with fades where there is more', () => {
   assert.match(cols, /min-height: 0;/);
   assert.match(css, /\.customize-cols\[data-fade-end="true"\]/);
   assert.match(body('customizeFade'), /cols\.dataset\.fadeEnd = String\(/);
+  assert.match(body('fitCustomizeBelowClock'), /requestAnimationFrame\(customizeFade\);/);
   const html = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/newtab.html'), 'utf8');
   assert.match(html, /<div id="customizeCols" class="customize-cols">/);
 });

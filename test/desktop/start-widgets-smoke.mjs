@@ -149,7 +149,7 @@ try {
       const cols = document.getElementById('customizeCols');
       return { clock, top: popover.top, bottom: popover.bottom, button: r(document.getElementById('customizeButton')).top,
         scrolls: cols.scrollHeight > cols.clientHeight, fadeEnd: cols.dataset.fadeEnd };
-    }), (value) => value.top >= value.clock, `Customize below the clock at 1280x${height}`);
+    }), (value) => value.top >= value.clock && value.fadeEnd === 'true', `Customize below the clock, scrolling, at 1280x${height}`);
     assert.ok(fit.bottom <= fit.button, `Customize ends above its button: ${JSON.stringify(fit)}`);
     assert.ok(fit.scrolls && fit.fadeEnd === 'true', `the columns scroll, with a fade: ${JSON.stringify(fit)}`);
     await page.evaluate(() => { const cols = document.getElementById('customizeCols'); cols.scrollTop = cols.scrollHeight; });

@@ -2038,7 +2038,9 @@ function fitCustomizeBelowClock() {
   const room = button.getBoundingClientRect().top - 10 - clockBottom - 16;
   // Never over the clock (owner, 2026-11-18): no floor; the columns scroll.
   popover.style.maxHeight = `${Math.max(0, Math.floor(room))}px`;
-  customizeFade();
+  // Measured once the popover is laid out at that height (it may still be
+  // opening).
+  requestAnimationFrame(customizeFade);
 }
 // A soft fade at an edge of the columns that has more beyond it.
 function customizeFade() {
