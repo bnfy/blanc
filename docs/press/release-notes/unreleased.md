@@ -12,12 +12,24 @@ since then are below as they're recorded.
   how many shortcuts show, from 1 to 12. If you used Ledger, Shelf or Tally,
   your Start Page keeps what it showed. Over your own image, the cards are
   frosted glass and the small text turns light or dark to stay readable.
+- **Your wallpaper runs behind the Island.** On the Start Page, Sunrise, a
+  color or your own photo now continues up behind the Island instead of
+  stopping at a plain band. With vertical tabs, the tab list keeps its own
+  look.
+- **Customize fits the window.** It never covers the clock, and on a
+  shorter window its options scroll.
 
 ## Still open for the next release
 
 - **The one Start Page** (from the fork's V24) by hand in a packaged build on
   macOS, Windows and Linux: dragging cards with a real mouse and finger,
   resizing them, and the light-or-dark text over a real photo.
+- **The wallpaper behind the Island** (#1622) by hand on Windows and Linux,
+  where the window buttons sit over the photo, and with a Space's color wash.
+  It was checked on macOS by hand and in the desktop checks there.
+- **Customize at the smallest windows:** with no minimum height it can get
+  too short to use at 640×480 with a tall clock (it never covers the clock,
+  by the owner's rule).
 
 ## Still open from 1.50
 
