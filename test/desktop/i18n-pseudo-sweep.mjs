@@ -385,11 +385,14 @@ const START_SURFACES = [
 ].map((surface) => ({ ...surface, files: START_FILES }));
 
 // The error page for a failed lookup (a real navigation), then the same tab
-// as a certificate interstitial with its Advanced panel open.
+// as a certificate interstitial with its Advanced panel open. Both name the
+// tab after the failed site, so the fixture's host is page data.
+const ERROR_DATA = ['blanc-sweep.invalid'];
 const ERROR_FILES = ['src/renderer/pages/error.html', 'src/renderer/pages/error.js'];
 const ERROR_SURFACES = [
   {
     name: 'error page',
+    data: ERROR_DATA,
     open: async ({ app, chrome }) => {
       await chrome.evaluate(() => window.browserAPI.createTab('https://blanc-sweep.invalid/'));
       return findPage(app, 'blanc://error/', 'error page');
@@ -397,6 +400,7 @@ const ERROR_SURFACES = [
   },
   {
     name: 'error page (certificate)',
+    data: ERROR_DATA,
     open: async ({ app }) => {
       const query = new URLSearchParams({ kind: 'certificate', url: 'https://blanc-sweep.invalid/', continue: '1',
         subject: 'blanc-sweep.invalid', issuer: 'Sweep Fixture CA', validTo: String(Date.UTC(2030, 0, 1)) });
@@ -797,7 +801,9 @@ try {
       await page.evaluate((sel) => { for (const el of document.querySelectorAll(sel)) el.dataset.i18nIgnore = ''; }, selector);
     }
     await page.waitForLoadState('domcontentloaded');
-    const offending = classifyTextEntries(await page.evaluate(`(() => {${COLLECT}})()`), { allow, allowPatterns });
+    // A surface's data: text the page echoes back from its own fixture.
+    const offending = classifyTextEntries(await page.evaluate(`(() => {${COLLECT}})()`),
+      { allow: [...allow, ...(surface.data ?? [])], allowPatterns });
     await surface.close?.(page);
     if (page.url() === 'blanc-chrome://overlay/') await page.evaluate(() => window.browserAPI.closeOverlay()).catch(() => {});
     if (offending.length) failures.push(`${surface.name}:\n    ${offending.join('\n    ')}`);
