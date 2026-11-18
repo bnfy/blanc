@@ -63,12 +63,24 @@ export function screenLocked(plistXml, user) {
 // Only the two reviewed version keys change; anything else is refused.
 // The build's own progress step (tools/progress.mjs, run by build.mjs after a
 // prototype build that produced new output) rewrites tracker.json and the
-// generated "Candidate identities" line in STATUS.md. Neither is stale
-// source; any other change is.
+// generated progress block in STATUS.md. Neither is stale source; any other
+// change is.
 export const BUILD_WRITTEN = ['chromium/tracker.json', 'chromium/STATUS.md'];
 export function onlyCandidateLine(diff) {
   const changed = diff.split('\n').filter(l => /^[-+](?![-+]{2} )/.test(l));
   return changed.length > 0 && changed.every(l => /^[-+]Candidate identities: /.test(l));
+}
+// The progress step rewrites the whole generated block, not only the
+// candidate line: a new macOS candidate also makes its Bar A row read "Not
+// run for current candidate" until the night's suite records a baseline.
+// That block is generated, never hand-written, so STATUS.md is not stale when
+// it is the same as committed outside the block. (Earlier nights passed only
+// because the build found nothing to compile and the progress step never ran;
+// the first night that compiled new shared code, 2026-11-18, stopped here.)
+const PROGRESS_BLOCK = /<!-- BEGIN GENERATED PROGRESS -->[\s\S]*?<!-- END GENERATED PROGRESS -->/;
+export function onlyGeneratedProgress(committed, current) {
+  if (!PROGRESS_BLOCK.test(committed) || !PROGRESS_BLOCK.test(current)) return false;
+  return committed.replace(PROGRESS_BLOCK, '') === current.replace(PROGRESS_BLOCK, '');
 }
 
 export function bumpBetaArgs(text, version, build) {
@@ -151,7 +163,8 @@ function night(mode) {
   // committed generated files (source map, asset hashes) are stale: the build then
   // isn't the committed source.
   const dirty = git('status', '--porcelain').stdout.split('\n').filter(Boolean).filter(l => !l.endsWith('chromium/tracker.json'))
-    .filter(l => !(l.endsWith('chromium/STATUS.md') && onlyCandidateLine(git('diff', '-U0', '--', 'chromium/STATUS.md').stdout)));
+    .filter(l => !(l.endsWith('chromium/STATUS.md') && onlyGeneratedProgress(git('show', 'HEAD:chromium/STATUS.md').stdout,
+      fs.readFileSync(path.join(ROOT, 'chromium/STATUS.md'), 'utf8'))));
   if (dirty.length) {
     fs.writeFileSync(log('stale-generated.patch'), git('diff').stdout);
     git('checkout', '--', '.');
