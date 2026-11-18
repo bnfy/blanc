@@ -59,8 +59,8 @@ versions are used.
 
 | Wording on the page | Kind | Evidence | Limits kept in the copy | Verdict |
 | --- | --- | --- | --- | --- |
-| A new outlook on email. | Heading | Owner-approved design, November 17, 2026; wording from the owner, November 17, 2026 | The lead below says it is a design preview | Aspirational, labelled |
-| This is where Blanc Mail’s design is heading, in dark mode and in light mode. It’s a design preview: the mail is made up, and details may change before release. | Lead | As above; the teasers' README (fictional mail) | Preview, made-up mail, may change; no date | Aspirational, labelled |
+| A new look for your inbox. | Heading | Owner-approved design, November 17, 2026; wording from the owner-approved messaging audit, November 17, 2026 (replaced "A new outlook on email.", which read as Microsoft Outlook) | The lead labels it a design preview | Aspirational, labelled |
+| Blanc Mail’s new design, in dark mode and light mode: one Island at the top, your mailboxes a click away, and your list and message side by side. It’s a design preview with made-up mail, and details may change. | Lead | The Island-layout teasers it introduces (level A of the window study): the Island toolbar, the mailbox chip row, and the list and reader cards side by side | Design preview; made-up mail; may change; no date. Describes the Island layout shown, which is a choice beside the default Classic layout | Aspirational, labelled |
 | Appearance; Dark; Light | Control labels | — | — | Label |
 | A Blanc Mail address of your own. | Heading | Hosted addresses designed in the Mail repository; the owner said on November 17, 2026 that the address launches when the app does | No date; the lead labels the images a design preview | Aspirational, labelled |
 | A private mailbox of your own, with an address like mira@blnc.day, set up from inside Blanc Mail. It launches with Blanc Mail. What’s shown is a design preview and may change. | Lead | Owner's offer line, word for word, first; owner, November 17, 2026: "it'll launch when the app does"; the address flow is set up inside the app in the design | Launches with the app, which is itself "Coming soon" with no date; design preview; may change; no plan, price or storage promised in the copy | Aspirational, labelled |
@@ -72,3 +72,23 @@ The offer image itself shows "Your plan includes a Blanc Mail address" and
 says what's shown may change. Recheck this ledger, and replace the teasers
 with captures from a signed build, when hosted addresses or the new look
 ship.
+
+## Messaging audit fixes (owner-approved, November 17, 2026)
+
+An audit of the page against Apple's design principles (purpose, consistency,
+specific labels) found the address missing from the first screen, a
+requirements line that contradicted it, and Set Aside wording the app no
+longer uses. The owner approved these fixes and their wording. Paths are in
+the Blanc Mail repository (bnfy/blanc-mail) at `main` (ecf582c3).
+
+| Wording on the page | Evidence | Limits kept in the copy | Verdict |
+| --- | --- | --- | --- |
+| Blanc Mail brings a careful, native experience for Gmail and Proton Mail to your Mac, and a private mailbox of your own. | November 12 Proton line, unchanged, plus the hosted address, which launches with the app (owner, November 17, 2026) | The address section below labels its images a design preview; no date | Qualified |
+| Blanc Mail is a native Gmail and Proton Mail app for macOS, with a private Blanc Mail address of your own, coming soon from the makers of Blanc Browser. | Meta description; as above | "Coming soon"; no date | Qualified |
+| plus a Google account, a Proton account with Proton Mail Bridge, or a Blanc Mail address. | Requirements line; a Blanc Mail address is a mailbox in its own right, so a visitor with only that one needs no Google or Proton account | Which plans include the address is not stated anywhere in the copy (owner to decide before the pricing cards name it) | Qualified |
+| Groups (tile title) | `AGENTS.md`, Groups in Island: "the feature is called Groups in both layouts" | — | Qualified |
+| Move conversations into a named group, like “Read on the flight”, and they leave your Inbox to wait there until you’re ready. | `AGENTS.md`, Groups: holding adds the group's label and removes `INBOX`, with the five-second Undo | Drops two lines of the October 22 tile: review dates are gone (owner, November 17, 2026; `AGENTS.md`: "Groups have no review dates any more"), and "names … stay on this Mac" no longer holds, since a group keeps its mail in a `Postel/Set Aside/<name>` Gmail label | Qualified |
+| Type a few letters to jump to a mailbox, label, conversation, group or person … | `MailIslandPanel.swift`: groups have their own jump results | — | Qualified |
+| Type / to snooze, move to a group, label, move, archive or trash what you’ve selected … | `MailIsland.swift` (`MailIslandCommand`); `MailIslandPanel.swift` `commandTitle`: `/set-aside` and `/group` both read "Move to Group…" | — | Qualified |
+| … the Island holds Archive, Snooze, Move to Group, Labels and Trash … | `AGENTS.md`, the Island toolbar's trailing actions | — | Qualified |
+| `/set-aside` Move to Group… (Island panel figure row; its aria-label says Move to Group) | `MailIslandPanel.swift` `commandTitle`; the default Classic layout lists `/set-aside` and its footer chips stay `/snooze /set-aside /label /rule` | The figure draws the Classic panel, the default | Qualified |
