@@ -46,7 +46,7 @@
     "content/public/common/blanc_research_build.h": "blanc/content/public/common/blanc_research_build.h"
   },
   "canonicalSha256": {
-    "blanc/BUILD.gn": "a54fcdadbe89bbd2a96baf642ac53fd873d2d43534c56803ca1fe0375ec5fa5f",
+    "blanc/BUILD.gn": "0e94ddd336daf0bbd905c368223c15f57a001b3679a6ce725afc9ea9f9630df3",
     "blanc/android/BUILD.gn": "c27b5f4b260d7696df0e5c7a870b5369d7cceaa8b54217dfe86f4de9c3577b06",
     "blanc/android/browser/blanc_pages_ui.cc": "d6a9d8b23cc701cf46162fc69519f438a35943f254f42322fda25734476096e8",
     "blanc/android/browser/blanc_pages_ui.h": "6969cac9a6e8b4b237a1809b8e81f04e07f75737247119f037d9614c06e01387",

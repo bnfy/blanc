@@ -29,7 +29,7 @@ if (!is_android) {
 source_set("beta_identity") {
   sources = [ "browser/mac/beta_identity.h", "browser/mac/beta_profile_guard.h" ]
   public_deps = [ ":buildflags" ]
-  if (blanc_beta_channel) {
+  if (blanc_beta_channel && is_mac) {
     sources += [ "browser/mac/beta_identity.cc" ]
     deps = [ "//base" ]
   }
@@ -38,7 +38,7 @@ source_set("beta_identity") {
 source_set("beta_updater") {
   sources = [ "browser/mac/beta_updater.h", "browser/mac/beta_update_policy.h" ]
   public_deps = [ ":buildflags" ]
-  if (blanc_beta_channel) {
+  if (blanc_beta_channel && is_mac) {
     sources += [ "browser/mac/beta_updater.mm" ]
     deps = [ "//base", ":verify_sparkle" ]
     # Chromium already enables ARC in its default compiler configuration.
