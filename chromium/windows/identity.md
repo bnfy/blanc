@@ -19,6 +19,7 @@ others. The release channel takes over the Electron Blanc's names at cutover
 | Default Programs name, `StartMenuInternet` key, `RegisteredApplications` value | `Blanc Prototype` (+ per-user suffix) | `Blanc` | `Chromium` (+ suffix) |
 | Shortcut and uninstall display name | `Blanc Prototype` | `Blanc` | `Chromium` |
 | Publisher (uninstall entry) | `Bananify Creative` | `Bananify Creative` | `The Chromium Authors` |
+| Version resources: CompanyName, ProductName (`chrome.exe`, `chrome.dll`; `setup.exe` and the installer say `… Installer`) | `Bananify Creative`, `Blanc Prototype` (`blanc/branding/win/BRANDING`, W2 A1) | `Bananify Creative`, `Blanc` | `The Chromium Authors`, `Chromium` |
 | AppUserModelID (taskbar) | `BlancPrototype` (+ per-user suffix) | `me.bnfy.bowser` | `Chromium` (+ suffix) |
 | HTML ProgID | `BlancPrvHTM` (+ suffix) | `BlancURL` | `ChromiumHTM` (+ suffix) |
 | PDF ProgID | `BlancPrvPDF` (+ suffix) | — | `ChromiumPDF` (+ suffix) |

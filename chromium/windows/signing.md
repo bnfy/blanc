@@ -65,7 +65,7 @@ too.
 
 ## Open
 
-- The file properties of `chrome.exe` and `chrome.dll` still name "The
-  Chromium Authors" as company (`chrome_version.rc.version` takes
-  `COMPANY_FULLNAME` from `BRANDING`); the signature says Bananify Creative.
-- The installer's own version resource is Chromium's.
+- Nothing for the preview: since W2 A1 the version resources of `chrome.exe`,
+  `chrome.dll`, `setup.exe` and the installer name Bananify Creative, from
+  `blanc/branding/win/BRANDING` (the Windows args' `branding_file_path`), so
+  the signature and the file properties agree.
