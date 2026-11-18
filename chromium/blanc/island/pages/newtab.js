@@ -1751,7 +1751,8 @@ function bindGrip(grip) {
     card.classList.toggle('drag-clipped', height < r.height);
     Object.assign(card.style, { position: 'fixed', left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`,
       height: `${height}px`, zIndex: '60', pointerEvents: 'none' });
-    cardDrag = { card, holder, dx: event.clientX - r.left, dy: event.clientY - r.top };
+    cardDrag = { card, holder, dx: event.clientX - r.left, dy: event.clientY - r.top,
+      from: { left: railOrder(cardRails.left), right: railOrder(cardRails.right) } };
     grip.setPointerCapture(event.pointerId);
   });
   grip.addEventListener('pointermove', (event) => {
@@ -1763,12 +1764,16 @@ function bindGrip(grip) {
   });
   const end = () => {
     if (!cardDrag) return;
-    const { card, holder } = cardDrag;
+    const { card, holder, from } = cardDrag;
     cardDrag = null;
     holder.replaceWith(card);
     card.classList.remove('dragging', 'drag-clipped');
     for (const key of ['position', 'left', 'top', 'width', 'height', 'zIndex', 'pointerEvents']) card.style[key] = '';
     document.body.classList.remove('widget-dragging');
+    // A press that put the card back where it was moves nothing: no save and
+    // no announcement.
+    const same = (a, b) => a.length === b.length && a.every((name, i) => name === b[i]);
+    if (same(from.left, railOrder(cardRails.left)) && same(from.right, railOrder(cardRails.right))) { refreshRails(); return; }
     saveCardPlace(card);
   };
   grip.addEventListener('pointerup', end);
@@ -1941,7 +1946,7 @@ function addResizeEdge(card) {
   });
   const end = (event) => {
     if (cardResize?.edge !== edge) return;
-    const { steps, samples, height } = cardResize;
+    const { steps, samples, height, startY } = cardResize;
     cardResize = null;
     snapGuide(null);
     document.body.classList.remove('widget-resizing');
@@ -1951,6 +1956,13 @@ function addResizeEdge(card) {
     const velocity = !rested && last.t > first.t ? ((last.y - first.y) / (last.t - first.t)) * 1000 : 0;
     // Where the gesture was heading (Apple's projection, deceleration .99).
     const projected = height + (velocity / 1000) * 0.99 / (1 - 0.99);
+    // A press that did not move (a click, or the first half of the
+    // double-click that fits the column) changes nothing.
+    if (samples.every((sample) => Math.abs(sample.y - startY) < 3)) {
+      delete card.dataset.resizing;
+      applyCardSizes(state.widgets?.sizes ?? {});
+      return;
+    }
     const target = event.type === 'pointercancel' ? nearestStep(steps, height) : nearestStep(steps, projected);
     springCardTo(card, target, velocity, () => {
       delete card.dataset.resizing;
@@ -1959,7 +1971,7 @@ function addResizeEdge(card) {
   };
   edge.addEventListener('pointerup', end);
   edge.addEventListener('pointercancel', end);
-  edge.addEventListener('dblclick', () => saveCardSize(card, 0));
+  edge.addEventListener('dblclick', () => { cardSpring.get(card)?.cancel(); saveCardSize(card, 0); });
   edge.addEventListener('keydown', (event) => {
     const steps = cardSteps(card);
     const now = Number(card.dataset.size) || nearestStep(steps, card.getBoundingClientRect().height);
@@ -2065,8 +2077,30 @@ function fitCustomizeBelowClock() {
     .filter((rect) => rect && rect.height > 0)
     .reduce((bottom, rect) => Math.max(bottom, rect.bottom), 0);
   const room = button.getBoundingClientRect().top - 10 - clockBottom - 16;
-  popover.style.maxHeight = `${Math.max(260, Math.floor(room))}px`;
+  // Never over the clock (owner, 2026-11-18): no floor; the columns scroll.
+  popover.style.maxHeight = `${Math.max(0, Math.floor(room))}px`;
+  // Measured once the popover is laid out at that height (it may still be
+  // opening).
+  requestAnimationFrame(customizeFade);
 }
+// A soft fade at an edge of the columns that has more beyond it.
+function customizeFade() {
+  const cols = document.getElementById('customizeCols');
+  if (!cols) return;
+  cols.dataset.fadeEnd = String(cols.scrollHeight - cols.clientHeight - cols.scrollTop > 2);
+  cols.dataset.fadeStart = String(cols.scrollTop > 2);
+}
+document.getElementById('customizeCols')?.addEventListener('scroll', customizeFade, { passive: true });
+// The clock moves when widgets, tiles or groups change above or below it, and
+// the columns grow when a wallpaper choice shows its options: fit again.
+// Fitting changes the columns' size, which this observes: wait a frame so
+// the fit never re-enters the same observation (no ResizeObserver loop).
+const customizeFitObserver = new ResizeObserver(() => requestAnimationFrame(() => {
+  if (document.getElementById('customizePopover')?.matches(':popover-open')) fitCustomizeBelowClock();
+}));
+customizeFitObserver.observe(document.getElementById('layoutBillboard'));
+customizeFitObserver.observe(document.getElementById('bbWidgets'));
+customizeFitObserver.observe(document.getElementById('customizeCols'));
 document.getElementById('customizePopover')?.addEventListener('beforetoggle', (event) => {
   if (event.newState === 'open') fitCustomizeBelowClock();
 });
@@ -2089,8 +2123,9 @@ function layoutShortcutRows() {
   let room = Infinity;
   if (width >= 1200) {
     // newtab-prototype.css: each column is clamp(240px, 20vw, 300px) wide at
-    // --start-edge from its side; a 24px gutter keeps tiles off it.
-    const edge = parseFloat(getComputedStyle(document.body).getPropertyValue('--start-edge')) || 24;
+    // --start-edge from its side; a 24px gutter keeps tiles off it. The token
+    // is a clamp(), so it is resolved by laying out a probe, not parsed.
+    const edge = resolvedStartEdge();
     const column = Math.min(300, Math.max(240, width * 0.2));
     const beside = side => document.querySelector(`.bb-rail[data-side="${side}"]`)?.dataset.empty === 'false';
     const half = Math.min(beside('left') ? width / 2 - edge - column - 24 : Infinity,
@@ -2102,6 +2137,17 @@ function layoutShortcutRows() {
   document.body.toggleAttribute('data-rails-stacked', stacked);
   const perRow = stacked ? 6 : Math.min(6, fit);
   grid.style.maxWidth = `${perRow * tile + (perRow - 1) * gap + 1}px`;
+  // The tab-group chips wrap in the same room, so none runs under a column.
+  const groups = document.getElementById('bbGroups');
+  if (groups) groups.style.maxWidth = stacked || room === Infinity ? '' : `${Math.max(0, Math.floor(room))}px`;
+}
+function resolvedStartEdge() {
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:absolute;visibility:hidden;width:var(--start-edge);height:0';
+  document.body.append(probe);
+  const edge = probe.getBoundingClientRect().width;
+  probe.remove();
+  return edge || 24;
 }
 window.addEventListener('resize', layoutShortcutRows);
 // A column filling or emptying changes the room.

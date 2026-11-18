@@ -294,8 +294,21 @@ body:not(.widget-dragging) .bb-widgets:not(:has(> .bb-rail[data-empty="false"]))
    a 1-12 stepper, the clock keeps its live sample card, and the wallpaper
    sits in a second column where there is room. The popover never covers the
    clock (its height is capped by the page script) and scrolls inside. */
-.start-customize-popover { width: max-content; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
-.customize-cols { display: grid; grid-template-columns: min(300px, calc(100vw - 64px)); gap: 0; }
+.start-customize-popover { width: max-content; overflow: hidden; }
+.start-customize-popover:popover-open { display: flex; flex-direction: column; }
+/* The columns scroll inside the popover (its border, corners and shadow stay
+   whole), with a soft fade at an edge that has more beyond it (owner,
+   2026-11-18: sized to its content, never over the clock, scrolling when it
+   needs more). */
+.customize-cols {
+  display: grid; grid-template-columns: min(300px, calc(100vw - 64px)); gap: 0;
+  flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
+}
+.customize-cols[data-fade-end="true"] { mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent); }
+.customize-cols[data-fade-start="true"] { mask-image: linear-gradient(to bottom, transparent, #000 28px); }
+.customize-cols[data-fade-start="true"][data-fade-end="true"] {
+  mask-image: linear-gradient(to bottom, transparent, #000 28px, #000 calc(100% - 28px), transparent);
+}
 .customize-col { display: flex; flex-direction: column; min-width: 0; }
 .customize-col-wallpaper { margin-top: 14px; padding-top: 14px; border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent); }
 /* A slightly shorter preview lets Color's options fit a 1280 × 800 window
