@@ -48,9 +48,20 @@ hardware stays pending.
   Mac: `favoritesLayout` is still kept whole and never applied (plan
   decision 3). The sheet's Favorites ops and bridge are gone. V30 (below)
   replaces ten v1.49.1 steps that assume the sheet. No upstream patch
-  changed. Not yet: the strip doesn't take the page's color (#1614's page
-  tint), the browser importer still keeps only each favorite's immediate
-  folder, and no build or browser run has checked it.
+  changed. Checked on the Mac Studio the same day: `gn gen` for
+  BlancPrototype and BlancBeta with unchanged arguments (served.txt is a GN
+  input), then a guarded incremental BlancPrototype build (6 steps) on
+  candidate macos-ed0ac0f28dd90c86; `native-favorites-manager.mjs` passes
+  8 of 8 (the tab from its command and a typed address, the manager drawn,
+  nested create, move, reorder, rename, a refused cycle, folder removal,
+  edit with refused addresses and the pin following, removal) and
+  `native-new-tab-reuse.mjs` 9 of 9; the V30 cases (internal-pages F16-2,
+  F16-5, F16-8, F16-10; F9-3; F35-5; browser-migration F30-1, F30-2 and
+  :28/:35) and sync.feature :38/:49, which share a replaced step, pass.
+  Not yet: the strip doesn't take the page's color (#1614's page tint), the
+  browser importer still keeps only each favorite's immediate folder, the
+  flat-folder split and Sync of a nested path weren't run against a real
+  profile or the local Worker, and the full suite hasn't run on it.
 - **2026-11-17 — Carried checks come due on the Chromium version alone (owner: "Yes, narrow it"):**
   `release/standing.json`'s `anyChange` (`chromium/upstream/**`) also
   matched the pristine Chromium files pinned for each new patch, so
