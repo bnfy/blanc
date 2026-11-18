@@ -11,7 +11,10 @@ for (const step of Object.keys(STAGE)) {
     const h = createProviderHarness(t, { stall: { [step]: 'never' } });
     const started = h.provider.initialize();
     started.catch(() => {});
-    await until(() => h.provider.status().stage === STAGE[step]);
+    // The stalled step itself, not just its stage: cssHostLoad begins before
+    // the CSS host's files are written, and disposing then left that install
+    // writing into userData during teardown (ENOTEMPTY on removal).
+    await until(() => h.reached.has(step) && h.provider.status().stage === STAGE[step]);
     await new Promise(resolve => setTimeout(resolve, 20));
     const viewsBefore = h.created.views.length;
     h.provider.dispose();
