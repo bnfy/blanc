@@ -504,7 +504,7 @@
     "blanc/browser/ui/browser_api/theme_choice.h": "828a86ba9adf378a023ac92d90ebad6b65c4c5ee9ef3d35538344454db080ab5",
     "blanc/browser/ui/chromium_settings_handler.inc": "d1b7691bd90efd39a4ba1f71ff26b8759bdc59823e39047a74630f486cef49df",
     "blanc/browser/ui/desktop_shared_spaces.inc": "718f38b4df55a9690189867f3edefff3ffffc66f426ce6d77e1941aaf6998d3a",
-    "blanc/browser/ui/favorites_page.inc": "1365f5e8ba4a0d94362d0cc3d18e3a53a4f14123cf271aaffb2f3f130cad595c",
+    "blanc/browser/ui/favorites_page.inc": "4e8152f51c66347d17ffeb26e9b8701826f378b4e6eb0656e0426fc9db5851a8",
     "blanc/browser/ui/first_run.inc": "6bfb688bf3011ed7eb89de5a69f876f998108a928d8d75fe79e574d417faa860",
     "blanc/browser/ui/island_autohide.h": "8263860867bb1a4e09d8236ad4436afe25f36492bf76391cbe19ce5f4b884f91",
     "blanc/browser/ui/island_autohide_controller.inc": "f58f2b780030b6172bf3f1d5abb8392c4668ee9bd6c938102d23ff6739648b36",

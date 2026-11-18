@@ -7,21 +7,13 @@
 class FavoritesHandler : public content::WebUIMessageHandler,
                          public bookmarks::BaseBookmarkModelObserver {
  public:
-  FavoritesHandler() = default;
+  FavoritesHandler();
   FavoritesHandler(const FavoritesHandler&) = delete;
   FavoritesHandler& operator=(const FavoritesHandler&) = delete;
-  ~FavoritesHandler() override = default;
+  ~FavoritesHandler() override;
 
-  void RegisterMessages() override {
-    web_ui()->RegisterMessageCallback("blancFavorites",
-        base::BindRepeating(&FavoritesHandler::Handle, base::Unretained(this)));
-  }
-  void OnJavascriptDisallowed() override {
-    weak_factory_.InvalidateWeakPtrs();
-    bookmark_observation_.Reset();
-    pins_observer_.RemoveAll();
-    changed_.Stop();
-  }
+  void RegisterMessages() override;
+  void OnJavascriptDisallowed() override;
 
  private:
   // The page's profile, or null when this document isn't the Favorites page
@@ -47,13 +39,10 @@ class FavoritesHandler : public content::WebUIMessageHandler,
   // shipping's pages:bookmarks:changed: any change, here or elsewhere (the
   // heart, /save, Sync, another window). Favicons arrive in bursts, so the
   // notices are coalesced.
-  void BookmarkModelChanged() override {
-    changed_.Start(FROM_HERE, base::Milliseconds(150),
-                   base::BindOnce(&FavoritesHandler::NotifyBookmarks, base::Unretained(this)));
-  }
+  void BookmarkModelChanged() override;
   void NotifyBookmarks() { Notify("bookmarks"); }
-  void BookmarkNodeFaviconChanged(const bookmarks::BookmarkNode*) override { BookmarkModelChanged(); }
-  void BookmarkModelBeingDeleted() override { bookmark_observation_.Reset(); }
+  void BookmarkNodeFaviconChanged(const bookmarks::BookmarkNode*) override;
+  void BookmarkModelBeingDeleted() override;
   void PinsChanged() { Notify("pins"); }
 
   void Handle(const base::ListValue& message) {
@@ -156,3 +145,25 @@ class FavoritesHandler : public content::WebUIMessageHandler,
   base::OneShotTimer changed_;
   base::WeakPtrFactory<FavoritesHandler> weak_factory_{this};
 };
+
+// Out of line: Chromium's style checker reads this file as a header.
+FavoritesHandler::FavoritesHandler() = default;
+FavoritesHandler::~FavoritesHandler() = default;
+void FavoritesHandler::RegisterMessages() {
+  web_ui()->RegisterMessageCallback("blancFavorites",
+      base::BindRepeating(&FavoritesHandler::Handle, base::Unretained(this)));
+}
+void FavoritesHandler::OnJavascriptDisallowed() {
+  weak_factory_.InvalidateWeakPtrs();
+  bookmark_observation_.Reset();
+  pins_observer_.RemoveAll();
+  changed_.Stop();
+}
+void FavoritesHandler::BookmarkModelChanged() {
+  changed_.Start(FROM_HERE, base::Milliseconds(150),
+                 base::BindOnce(&FavoritesHandler::NotifyBookmarks, base::Unretained(this)));
+}
+void FavoritesHandler::BookmarkNodeFaviconChanged(const bookmarks::BookmarkNode*) {
+  BookmarkModelChanged();
+}
+void FavoritesHandler::BookmarkModelBeingDeleted() { bookmark_observation_.Reset(); }

@@ -72,12 +72,18 @@ try{
  await switched(withCommand,firstPrivate,'⌘⇧N with a private Start Page open');
  result.checks.push('the New Private Tab command opens a private tab, then reuses it');
  // The other commands the fork answers itself open their sheet, never a tab.
- for(const page of ['history','downloads','bookmarks','settings']){
+ for(const page of ['history','downloads','settings']){
   s=await fresh();assert.equal(await w.native('previewPageCommand',[page]),true);
   await w.waitFor(()=>w.hostEval('window.BlancPrototypeHost.sheetState()'),state=>state?.visible&&state.url==='blanc://'+page+'/','the '+page+' sheet from its command',5000);
   assert.deepEqual((await ids()).sort(),[...s.before].sort(),page+': no tab was opened');
  }
- result.checks.push('History, Downloads, Favorites and Settings commands open their sheets');
+ result.checks.push('History, Downloads and Settings commands open their sheets');
+ // Favorites is a page in a tab of its own (V30, #1614): its command opens
+ // that tab, never a sheet, and never reuses the unused Start Page.
+ s=await fresh();assert.equal(await w.native('previewPageCommand',['bookmarks']),true);
+ const favorites=await opened(s.before,'the Favorites command');
+ await w.waitForState(x=>x.tabs.some(t=>String(t.id)===favorites&&t.url==='blanc://bookmarks/'));
+ result.checks.push('the Favorites command opens the Favorites tab');
  await visible();result.result='pass';
 }catch(error){result.result=error.code==='BLANC_ENVIRONMENT_STOP'?'blocked-environment':'fail';result.error=String(error.stack);process.exitCode=1;}
 finally{
