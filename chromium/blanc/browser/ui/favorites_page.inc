@@ -86,7 +86,8 @@ class FavoritesHandler : public content::WebUIMessageHandler,
     }
     if (method == "capabilities" && args.empty()) {
       Reply(id, true, base::Value(base::DictValue()
-          .Set("editable", CanEditFavorites(profile)).Set("tree", true).Set("import", true)));
+          .Set("editable", CanEditFavorites(profile)).Set("tree", true)
+          .Set("import", CanEditFavorites(profile))));
       return;
     }
     if (!model || !model->loaded()) {
@@ -105,6 +106,9 @@ class FavoritesHandler : public content::WebUIMessageHandler,
     if (method == "tree" && args.empty()) { Reply(id, true, base::Value(favorites_page::Tree(model))); return; }
     if (method == "list" && args.empty()) { Reply(id, true, base::Value(ListFavorites(model))); return; }
     if (method == "clearFavicon") { Reply(id, true, base::Value()); return; }
+    // Every change below, imports included, needs Favorites editing
+    // (Chromium's policy).
+    if (!CanEditFavorites(profile)) { Reply(id, false, base::Value("Favorites editing is disabled.")); return; }
     if (method == "browserSources" && args.empty()) {
       browser_import::ListSources(base::BindOnce(&FavoritesHandler::Answer, weak_factory_.GetWeakPtr(), id));
       return;
@@ -118,9 +122,6 @@ class FavoritesHandler : public content::WebUIMessageHandler,
       Reply(id, true, browser_import::ImportParsed(profile, args[0].GetList()));
       return;
     }
-
-    // Every change below needs Favorites editing (Chromium's policy).
-    if (!CanEditFavorites(profile)) { Reply(id, false, base::Value("Favorites editing is disabled.")); return; }
     base::DictValue result;
     if (method == "createFolder") result = favorites_page::CreateFolder(model, arg(0), arg(1));
     else if (method == "renameFolder") result = favorites_page::RenameFolder(model, arg(0), arg(1));
