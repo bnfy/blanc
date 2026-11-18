@@ -112,7 +112,25 @@ Mail or other devices. Not claimed: end-to-end encryption, which is a later step
 | Time to renew: If your subscription lapses, mail keeps arriving for 30 days and renewing brings everything back. Before a mailbox is deleted, we email you how to export your mail. | Hosted spec §6 (built November 16, 2026): suspended mailboxes accept mail for 30 days; renewing restores; no deletion without the warning email and export guide | Sign-in and sending pause while suspended (implied by "renewing brings everything back") | Qualified |
 | Filtered for spam: Incoming mail is checked for spam and phishing before it reaches your Inbox. | Hosted spec §7: Stalwart's built-in filter (rules, classifier, DNSBL, Pyzor, phishing checks) | No promise that every spam or phishing message is caught | Qualified |
 
-Which plans include an address (Mail Annual and Bundle, never Mail Monthly,
-per `AGENTS.md`) is not on the page yet: the site's Bundle card ($9 / $90,
-Browser Patron) differs from the November 15 pricing decision ($7.99 /
-$79.99, adding Nodding Off), which the owner has to settle first.
+Which plans include an address is settled below (Pricing, November 17).
+
+## Pricing: Bundle at $7.99 / $79.99, Nodding Off, and the address (November 17, 2026)
+
+The owner had Polar checked: Blanc Bundle was $9 / $90 with the Blanc Mail,
+Blanc Browser and Nodding Off License benefits, and no subscriptions. After an
+objective look at the plan, the owner chose the November 15 decision and asked
+for Nodding Off on the page with a link. On November 17 both Bundle products
+were changed in Polar production (dashboard, owner signed in): Monthly
+`bb3a14c5…` to $7.99 and Annual `28957184…` to $79.99. Product IDs and
+benefits are unchanged; Polar applies a price change to new customers only,
+and there were none. Blanc Mail stays $4.99 / $49.99.
+
+| Wording on the page | Where | Evidence | Limits kept in the copy | Verdict |
+| --- | --- | --- | --- | --- |
+| $7.99 / month or $79.99 / year | Bundle card, from `mail-commerce.mjs` | Polar production, read back after the change on November 17, 2026 | "Purchases are not open yet" stays above the cards | Verified (price in Polar) |
+| A Blanc Mail address with the annual plan | Mail card | `AGENTS.md`, Hosted mailboxes; hosted spec §14: Mail Annual includes one address, Mail Monthly never does | Annual only | Aspirational, labelled (launches with the app) |
+| Blanc Mail on macOS, with a Blanc Mail address | Bundle card | As above: the Bundle includes one address | — | Aspirational, labelled |
+| Nodding Off, bedtime stories for iPhone (links to https://noddingoffapp.com/) | Bundle card | Nodding Off License benefit attached to both Bundle products (Polar, read November 17); the app's own site describes it as bedtime stories for adults on iPhone | **Unlocking Nodding Off with a Bundle licence awaits App Review:** its first App Store release leaves Bundle sign-in out (Guideline 3.1.1), and it returns only in a later submission (`bnfy/nodding-off` `docs/app-review-notes.md`). The page sells nothing yet; recheck before checkout opens | Qualified (pending App Review) |
+| Your Mail, Nodding Off and Browser license keys in one subscription | Bundle card | The three License Keys benefits on both Bundle products | As above for Nodding Off | Qualified |
+| At launch, a Blanc Bundle subscription will include Blanc Mail on macOS with a Blanc Mail address, Nodding Off on iPhone, and Browser Patron benefits on Browser's supported platforms. | Closing note | As above | "At launch" | Qualified |
+| Blanc Mail is planned at $4.99 per month or $49.99 per year; the annual plan includes one Blanc Mail address. Blanc Bundle is planned at $7.99 per month or $79.99 per year and includes Mail on macOS, Nodding Off on iPhone and Browser Patron on Browser's supported platforms, each with its own license key, and one Blanc Mail address. | `/mail/terms`, Subscriptions (now "Updated November 17, 2026") | As above | Pre-release terms, effective when subscriptions open | Qualified |

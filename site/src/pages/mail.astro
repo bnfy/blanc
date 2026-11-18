@@ -80,11 +80,13 @@ const addressPoints = [
   { title: 'Time to renew', text: 'If your subscription lapses, mail keeps arriving for 30 days and renewing brings everything back. Before a mailbox is deleted, we email you how to export your mail.' },
   { title: 'Filtered for spam', text: 'Incoming mail is checked for spam and phishing before it reaches your Inbox.' },
 ];
+// Nodding Off, the iPhone app the Bundle includes, has its own site.
+const NODDING_OFF = 'https://noddingoffapp.com/';
 // Pricing, Support and Download were their own pages until October 22, 2026;
 // their words moved here unchanged (the old URLs redirect to these sections).
 const plans = [
-  { key: 'mail', name: 'Blanc Mail', features: ['Blanc Mail on macOS', 'Native app for Gmail and Proton Mail', '14-day local trial'] },
-  { key: 'suite', name: 'Blanc Bundle', features: ['Blanc Browser Patron on macOS, Windows, and Linux', 'Blanc Mail on macOS', 'Your Browser and Mail license keys in one subscription'] },
+  { key: 'mail', name: 'Blanc Mail', features: ['Blanc Mail on macOS', 'Native app for Gmail and Proton Mail', 'A Blanc Mail address with the annual plan', '14-day local trial'] },
+  { key: 'suite', name: 'Blanc Bundle', features: ['Blanc Mail on macOS, with a Blanc Mail address', { link: 'Nodding Off', href: NODDING_OFF, text: ', bedtime stories for iPhone' }, 'Blanc Browser Patron on macOS, Windows, and Linux', 'Your Mail, Nodding Off and Browser license keys in one subscription'] },
 ];
 const support = [
   { title: 'Accounts and data', html: 'Blanc Mail connects to Gmail with Google Sign-In. Removing an account clears its local cache after any pending draft recovery is resolved. You can also revoke the app’s access from your <a href="https://myaccount.google.com/permissions">Google Account permissions</a>.' },
@@ -255,7 +257,7 @@ const support = [
           <li class="mail-plan">
             <h3>{plan.name}</h3>
             <p class="mail-plan-price"><strong>{priceFor(`${plan.key}-monthly`)}</strong> / month<br />or <strong>{priceFor(`${plan.key}-annual`)}</strong> / year</p>
-            <ul>{plan.features.map(feature => <li>{feature}</li>)}</ul>
+            <ul>{plan.features.map(feature => <li>{typeof feature === 'string' ? feature : <><a href={feature.href}>{feature.link}</a>{feature.text}</>}</li>)}</ul>
             {['monthly', 'annual'].map(period => {
               const href = checkoutHrefFor(`${plan.key}-${period}`);
               return href ? <a href={href}>{`Choose ${plan.name} — ${period}`}</a> : null;
@@ -292,7 +294,7 @@ const support = [
     </section>
 
     <div class="mail-stage-notes">
-      <p>At launch, a Blanc Bundle subscription will include Browser Patron benefits on Browser's supported platforms and Mail on macOS.</p>
+      <p>At launch, a Blanc Bundle subscription will include Blanc Mail on macOS with a Blanc Mail address, <a href={NODDING_OFF}>Nodding Off</a> on iPhone, and Browser Patron benefits on Browser's supported platforms.</p>
       <p>Blanc Mail remains in development. The download and checkout will appear after its macOS release checks are complete.</p>
       <p><a href="/download">Blanc Browser</a> is available now on macOS, Windows, and Linux.</p>
       <p><a href="/mail/privacy">Privacy</a> · <a href="/mail/terms">Terms</a></p>

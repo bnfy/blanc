@@ -57,7 +57,7 @@ test('the overview says what Mail is and that it is coming, with one labelled sc
         lead: section.querySelector('.mail-soon-lead').textContent.trim(),
         envelopeHidden: section.querySelector('.mail-envelope').getAttribute('aria-hidden'),
         screenshots: [...document.querySelectorAll('img[src*="/mail/screens/"]')].map(img => [img.getAttribute('src'), img.closest('figure.mail-shot')?.querySelector('figcaption')?.textContent.trim()]),
-        browser: document.querySelector('.mail-stage-notes a').getAttribute('href'),
+        browser: document.querySelector('.mail-stage-notes a[href="/download"]')?.getAttribute('href'),
       };
     });
     assert.equal(soon.eyebrow, 'Blanc Mail · for Mac · Coming soon');
@@ -150,16 +150,21 @@ test('Pricing says purchases are not open before any price, and recommends neith
         prices: [...plans.querySelectorAll('.mail-plan-price')].map(p => p.innerText.replace(/\s+/g, ' ').trim()),
         tabular: [...plans.querySelectorAll('.mail-plan-price')].every(p => getComputedStyle(p).fontVariantNumeric.includes('tabular-nums')),
         badge: /recommended|best value|most popular/i.test(plans.textContent),
-        checkout: plans.querySelectorAll('a').length,
+        checkout: plans.querySelectorAll('a[href*="polar.sh"]').length,
       };
     });
     assert.match(pricing.text, /^Purchases are not open yet\./);
     assert.ok(pricing.first, 'the status comes before the plans');
     assert.deepEqual(pricing.plans, ['Blanc Mail', 'Blanc Bundle']);
-    assert.deepEqual(pricing.prices, ['$4.99 / month or $49.99 / year', '$9 / month or $90 / year']);
+    assert.deepEqual(pricing.prices, ['$4.99 / month or $49.99 / year', '$7.99 / month or $79.99 / year']);
     assert.ok(pricing.tabular, 'prices use tabular figures');
     assert.equal(pricing.badge, false);
     assert.equal(pricing.checkout, 0, 'no checkout until it opens');
+    // The Bundle names Nodding Off and links to its site; both plans say where the address comes from.
+    const cards = await page.evaluate(() => [...document.querySelectorAll('#pricing .mail-plan ul')].map(ul => [...ul.querySelectorAll('li')].map(li => li.textContent.trim())));
+    assert.ok(cards[0].includes('A Blanc Mail address with the annual plan'));
+    assert.ok(cards[1].includes('Nodding Off, bedtime stories for iPhone'));
+    assert.equal(await page.locator('#pricing .mail-plan a[href="https://noddingoffapp.com/"]').textContent(), 'Nodding Off');
   } finally { await context.close(); }
 });
 
@@ -179,7 +184,7 @@ test('Support gives its address, then three topics; Download closes with the wai
     assert.deepEqual(end.order, ['pricing', 'support', 'download']);
     assert.equal(end.form, 'closing-waitlist');
     assert.match(end.requirements, /^macOS 14 or later on an Apple Silicon or Intel Mac, plus a Google account, a Proton account with Proton Mail Bridge, or a Blanc Mail address\./);
-    assert.deepEqual(end.legal, ['/download', '/mail/privacy', '/mail/terms']);
+    assert.deepEqual(end.legal, ['https://noddingoffapp.com/', '/download', '/mail/privacy', '/mail/terms']);
   } finally { await context.close(); }
 });
 
