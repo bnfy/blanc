@@ -493,6 +493,82 @@
         "doc": "Save the Start Page layout."
       },
       {
+        "name": "start.setWidget",
+        "kind": "invoke",
+        "channel": "pages:start:set-widget",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "name",
+            "type": "unknown"
+          },
+          {
+            "name": "on",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Turn a Start Page widget (favorites or devices) on or off; resolves to the saved widgets, rejects a value the page cannot show."
+      },
+      {
+        "name": "start.setShortcutCount",
+        "kind": "invoke",
+        "channel": "pages:start:set-shortcut-count",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "count",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Save Billboard's shortcut count (1 to 12); resolves to the saved widgets."
+      },
+      {
+        "name": "start.setWidgetPlace",
+        "kind": "invoke",
+        "channel": "pages:start:set-widget-place",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "left",
+            "type": "unknown"
+          },
+          {
+            "name": "right",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Save the widget cards' columns; resolves to the saved widgets."
+      },
+      {
+        "name": "start.setWidgetSize",
+        "kind": "invoke",
+        "channel": "pages:start:set-widget-size",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "card",
+            "type": "unknown"
+          },
+          {
+            "name": "size",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Save a card's size (240-720, or 0 to fit its column); resolves to the saved widgets."
+      },
+      {
         "name": "start.setDynamicWallpaper",
         "kind": "invoke",
         "channel": "pages:start:set-dynamic-wallpaper",

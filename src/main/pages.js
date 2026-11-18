@@ -23,6 +23,7 @@ const RESTYLE_SCRIPT = `(() => {
   old.after(next);
 })()`;
 const history = require('./history');
+const StartWidgets = require('./start-widgets');
 const archive = require('./archive');
 const downloads = require('./downloads');
 const settings = require('./settings');
@@ -701,6 +702,22 @@ function setupPages(hooks = {}) {
     'newtab',
     (name) => hooks.startPage?.setLayout?.(String(name ?? '')),
   );
+  // The Start Page's widgets (start-widgets.js). Each write goes through the
+  // rules, is saved device-local by setNewtabWidgets() (which pushes the new
+  // status to every open Start Page) and resolves to what the page may see.
+  // A value the page cannot show rejects, so the page re-reads the saved one.
+  const saveWidgets = (next) => {
+    if (!next) throw new Error('Start Page widgets: value refused');
+    return StartWidgets.pageWidgets(settings.setNewtabWidgets(next));
+  };
+  handle('pages:start:set-widget', 'newtab', (name, on) =>
+    saveWidgets(StartWidgets.withWidget(settings.getNewtabWidgets(), name, on)));
+  handle('pages:start:set-shortcut-count', 'newtab', (count) =>
+    saveWidgets(StartWidgets.withShortcutCount(settings.getNewtabWidgets(), count)));
+  handle('pages:start:set-widget-place', 'newtab', (left, right) =>
+    saveWidgets(StartWidgets.withPlace(settings.getNewtabWidgets(), left, right)));
+  handle('pages:start:set-widget-size', 'newtab', (card, size) =>
+    saveWidgets(StartWidgets.withSize(settings.getNewtabWidgets(), card, size)));
   // A narrow footer capability: persist only this boolean and return only
   // its effective state. Never expose the settings or entitlement records.
   handle('pages:start:set-dynamic-wallpaper', 'newtab', (enabled) => {

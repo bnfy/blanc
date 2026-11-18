@@ -39,6 +39,14 @@ export interface NewtabPagesAPI {
     openSpaces: () => Promise<unknown>;
     /** Save the Start Page layout. IPC: invoke `pages:start:set-layout`. */
     setLayout: (name: unknown) => Promise<unknown>;
+    /** Turn a Start Page widget (favorites or devices) on or off; resolves to the saved widgets, rejects a value the page cannot show. IPC: invoke `pages:start:set-widget`. */
+    setWidget: (name: unknown, on: unknown) => Promise<unknown>;
+    /** Save Billboard's shortcut count (1 to 12); resolves to the saved widgets. IPC: invoke `pages:start:set-shortcut-count`. */
+    setShortcutCount: (count: unknown) => Promise<unknown>;
+    /** Save the widget cards' columns; resolves to the saved widgets. IPC: invoke `pages:start:set-widget-place`. */
+    setWidgetPlace: (left: unknown, right: unknown) => Promise<unknown>;
+    /** Save a card's size (240-720, or 0 to fit its column); resolves to the saved widgets. IPC: invoke `pages:start:set-widget-size`. */
+    setWidgetSize: (card: unknown, size: unknown) => Promise<unknown>;
     /** Turn the dynamic Start Page wallpaper on or off. IPC: invoke `pages:start:set-dynamic-wallpaper`. */
     setDynamicWallpaper: (enabled: unknown) => Promise<unknown>;
     /** Read this page's Start Page wallpaper state: source, whether an image is stored, and its address. IPC: invoke `pages:start:wallpaper`. */
