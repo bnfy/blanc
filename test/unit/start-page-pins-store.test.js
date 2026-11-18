@@ -96,6 +96,27 @@ test('pinning adds a page first, once, and stops at the cap', () => {
   assert.equal(pins.unpin('https://fill-5.test'), true);
 });
 
+test('an edited favorite takes its pin with it, in the same place', () => {
+  clear();
+  pins.pin({ url: 'https://c.test/', title: 'C' });
+  pins.pin({ url: 'https://b.test/', title: 'B' });
+  pins.pin({ url: 'https://a.test/', title: 'A' });
+  // A new name only.
+  assert.equal(pins.replacePin('https://b.test/', { url: 'https://b.test/', title: 'Bee' }), true);
+  assert.deepEqual(pins.listPins().map((pin) => pin.title), ['A', 'Bee', 'C']);
+  // A new address, in the same place.
+  assert.equal(pins.replacePin('https://b.test', { url: 'https://b2.test/', title: 'Bee' }), true);
+  assert.deepEqual(pins.listPins().map((pin) => pin.url), ['https://a.test/', 'https://b2.test/', 'https://c.test/']);
+  // Onto an address already pinned: the old pin goes, the other stays where it is.
+  assert.equal(pins.replacePin('https://a.test/', { url: 'https://c.test/', title: 'A' }), true);
+  assert.deepEqual(pins.listPins().map((pin) => pin.title), ['Bee', 'C']);
+  // Not pinned, unchanged, or not a web page: nothing written.
+  assert.equal(pins.replacePin('https://nope.test/', { url: 'https://x.test/', title: 'X' }), false);
+  assert.equal(pins.replacePin('https://c.test/', { url: 'https://c.test/', title: 'C' }), false);
+  assert.equal(pins.replacePin('https://c.test/', { url: 'javascript:alert(1)', title: 'C' }), false);
+  assert.deepEqual(pins.listPins().map((pin) => pin.title), ['Bee', 'C']);
+});
+
 test('the Personal profile writes start-page-pins.json; a named profile its own', async () => {
   clear();
   pins.pin({ url: 'https://personal.test/', title: 'Personal' });

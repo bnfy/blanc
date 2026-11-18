@@ -6,9 +6,9 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 
 | Member | Kind | Channel | Hosts | Description |
 | --- | --- | --- | --- | --- |
-| `surface.close` | invoke | `pages:surface:close` | tab-handoff, bookmarks, history, downloads, shortcuts, tab-import, settings | Close the utility sheet hosting this page. |
-| `surface.armEscape` | invoke | `pages:surface:escape-arm` | tab-handoff, bookmarks, history, downloads, shortcuts, tab-import, settings | Tell main that the next Escape belongs to an in-page consumer (an open picker) before the sheet dismisses. |
-| `surface.onEscape` | event | `pages:surface:escape` | tab-handoff, bookmarks, history, downloads, shortcuts, tab-import, settings | Escape was pressed while armed; the page closes its own consumer. |
+| `surface.close` | invoke | `pages:surface:close` | tab-handoff, history, downloads, shortcuts, tab-import, settings | Close the utility sheet hosting this page. |
+| `surface.armEscape` | invoke | `pages:surface:escape-arm` | tab-handoff, history, downloads, shortcuts, tab-import, settings | Tell main that the next Escape belongs to an in-page consumer (an open picker) before the sheet dismisses. |
+| `surface.onEscape` | event | `pages:surface:escape` | tab-handoff, history, downloads, shortcuts, tab-import, settings | Escape was pressed while armed; the page closes its own consumer. |
 | `appVersion` | invoke | `pages:app-version` | newtab | The running app version string. |
 | `pins.list` | invoke | `pages:pins:list` | newtab, bookmarks | List the profile's Start Page pins, each with a locally held icon. |
 | `pins.pin` | invoke | `pages:pins:pin` | newtab, bookmarks | Pin an http(s) page to the Start Page; refused from private start pages and past the cap. |
@@ -30,6 +30,8 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `bookmarks.move` | invoke | `pages:bookmarks:move` | bookmarks | Move Favorites into a folder path, or to the top level with null. |
 | `bookmarks.reorder` | invoke | `pages:bookmarks:reorder` | bookmarks | Save the order chosen for one folder's children. |
 | `bookmarks.removeMany` | invoke | `pages:bookmarks:remove-many` | bookmarks | Remove several Favorites at once. |
+| `bookmarks.edit` | invoke | `pages:bookmarks:edit` | bookmarks | Change one Favorite's name and address. |
+| `bookmarks.onChanged` | event | `pages:bookmarks:changed` | bookmarks | Favorites changed somewhere else; read them again. |
 | `start.data` | invoke | `pages:start:data` | newtab | Everything the Start Page renders at load: groups, top sites, blocked counts, synced devices, onboarding and the shared start status. |
 | `start.topSites` | invoke | `pages:start:top-sites` | newtab | Frequently visited sites for the Start Page. |
 | `start.focusGroup` | invoke | `pages:start:focus-group` | newtab | Focus a tab group picked on the Start Page. |
@@ -174,7 +176,7 @@ IPC the preload sends without exposing an API to the page.
 
 | Channel | Documents | Description |
 | --- | --- | --- |
-| `page-tint:changed` | https://example.com/, http://example.com/, blanc://newtab/, blanc://mahjong/ | Isolated-world invalidation for the strip's page tint: no arguments, no API exposed to the page. |
+| `page-tint:changed` | https://example.com/, http://example.com/, blanc://newtab/, blanc://mahjong/, blanc://bookmarks/ | Isolated-world invalidation for the strip's page tint: no arguments, no API exposed to the page. |
 
 # window.blancFillStatus
 

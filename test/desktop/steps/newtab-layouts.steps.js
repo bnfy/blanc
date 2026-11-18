@@ -233,8 +233,8 @@ When('I go back to the Start Page tab', async function () {
 When('I pin {string} from the Favorites page', async function (title) {
   await waitForValue(
     () => this.call('readFavoritesSheetPins'),
-    (rows) => rows?.some((row) => row.title === title && row.button === 'Pin'),
-    `${title} to offer a pin on the Favorites page`,
+    (rows) => rows?.some((row) => row.title === title && !row.pinned),
+    `${title} to show unpinned on the Favorites page`,
   );
   assert.equal(await this.call('toggleFavoritesSheetPin', title), true);
 });
@@ -247,11 +247,9 @@ Then('the Favorites page marks {string} as pinned to the Start Page', async func
   );
   const row = rows.find((candidate) => candidate.title === title);
   assert.equal(row.mark, 'Pinned to the Start Page');
-  assert.equal(row.button, 'Unpin');
-  assert.equal(row.buttonLabel, `Unpin ${title} from the Start Page`);
-  assert.equal(row.focused, true, 'focus stays on the row’s pin');
+  assert.equal(row.focused, true, 'the keyboard stays on the row whose pin changed');
   assert.ok(rows.filter((candidate) => candidate.title !== title)
-    .every((candidate) => !candidate.pinned && candidate.button === 'Pin' && candidate.mark === null));
+    .every((candidate) => !candidate.pinned && candidate.mark === null));
 });
 
 When('I pin {string} on the Start Page', async function (title) {

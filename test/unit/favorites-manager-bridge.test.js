@@ -18,10 +18,12 @@ const CALLS = {
   move: 'pages:bookmarks:move',
   reorder: 'pages:bookmarks:reorder',
   removeMany: 'pages:bookmarks:remove-many',
+  edit: 'pages:bookmarks:edit',
 };
 
-test('the Favorites sheet says it can draw the tree', () => {
-  assert.match(pages, /handle\('pages:bookmarks:capabilities', 'bookmarks', \(\) => \(\{ editable: true, tree: true \}\)\);/);
+test('the Favorites page says it can draw the tree, and a private tab offers no pins', () => {
+  assert.match(pages, /handleEvent\('pages:bookmarks:capabilities', 'bookmarks', \(event\) => \(hooks\.isPrivateSender\?\.\(event\.sender\)\s*\? \{ editable: true, tree: true, pins: false \}\s*: \{ editable: true, tree: true \}\)\);/);
+  assert.match(read('src/main/main.js'), /isPrivateSender: \(wc\) => startPageSenderIsPrivate\(wc\),/);
 });
 
 test('each manager call is bridged, handled for the Favorites sheet only, and listed', () => {
@@ -34,7 +36,12 @@ test('each manager call is bridged, handled for the Favorites sheet only, and li
 });
 
 test('handlers coerce what a page sends', () => {
-  const { pageIds, pageKeys, pagePath } = require('../../src/main/favorites-page-args');
+  const { pageIds, pageKeys, pagePath, pageEdit } = require('../../src/main/favorites-page-args');
+  assert.deepEqual(pageEdit('a', { title: 'T', url: 'u', extra: 1 }), ['a', { title: 'T', url: 'u' }]);
+  assert.deepEqual(pageEdit(5, null), ['', { title: undefined, url: undefined }]);
+  assert.deepEqual(pageEdit('a', { title: 7, url: ['x'] }), ['a', { title: undefined, url: undefined }]);
+  assert.equal(pageEdit('a', { title: 'x'.repeat(5000) })[1].title.length, 2000);
+  assert.equal(pageEdit('a', { url: 'x'.repeat(10000) })[1].url.length, 8192);
   assert.deepEqual(pageIds(['a', 7, 'b']), ['a', 'b']);
   assert.deepEqual(pageIds('a'), []);
   assert.equal(pageIds(Array.from({ length: 6000 }, (_, i) => `id${i}`)).length, 5000);

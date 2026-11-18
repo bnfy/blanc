@@ -128,14 +128,6 @@ export interface ErrorPagesAPI {
 
 /** window.bowserPages on blanc://bookmarks/ */
 export interface BookmarksPagesAPI {
-  surface: {
-    /** Close the utility sheet hosting this page. IPC: invoke `pages:surface:close`. */
-    close: () => Promise<unknown>;
-    /** Tell main that the next Escape belongs to an in-page consumer (an open picker) before the sheet dismisses. IPC: invoke `pages:surface:escape-arm`. */
-    armEscape: (armed: boolean) => Promise<unknown>;
-    /** Escape was pressed while armed; the page closes its own consumer. IPC: event `pages:surface:escape`. */
-    onEscape: (callback: () => void) => () => void;
-  };
   pins: {
     /** List the profile's Start Page pins, each with a locally held icon. IPC: invoke `pages:pins:list`. */
     list: () => Promise<unknown>;
@@ -179,6 +171,10 @@ export interface BookmarksPagesAPI {
     reorder: (path: unknown, orderKeys: unknown) => Promise<unknown>;
     /** Remove several Favorites at once. IPC: invoke `pages:bookmarks:remove-many`. */
     removeMany: (ids: unknown) => Promise<unknown>;
+    /** Change one Favorite's name and address. IPC: invoke `pages:bookmarks:edit`. */
+    edit: (id: unknown, changes: unknown) => Promise<unknown>;
+    /** Favorites changed somewhere else; read them again. IPC: event `pages:bookmarks:changed`. */
+    onChanged: (callback: () => void) => void;
   };
 }
 

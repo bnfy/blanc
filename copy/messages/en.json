@@ -6792,6 +6792,64 @@
     "message": "That folder no longer exists.",
     "note": "Favorites manager: the folder was changed elsewhere (another device, another window) before the edit arrived."
   },
+  "favorites.manager.edit": {
+    "message": "Edit…",
+    "note": "Favorites page: a favorite's menu item that opens the Edit dialog (name, address and folder).",
+    "maxLength": 16
+  },
+  "favorites.manager.editName": {
+    "message": "Name",
+    "note": "Favorites manager: label of the field holding a favorite's name while it is edited.",
+    "maxLength": 16
+  },
+  "favorites.manager.editAddress": {
+    "message": "Address",
+    "note": "Favorites manager: label of the field holding a favorite's web address while it is edited.",
+    "maxLength": 16
+  },
+  "favorites.manager.editSave": {
+    "message": "Save",
+    "note": "Favorites manager: button that saves a favorite's edited name and address.",
+    "maxLength": 12
+  },
+  "favorites.manager.editCancel": {
+    "message": "Cancel",
+    "note": "Favorites manager: button that closes a favorite's edit without saving.",
+    "maxLength": 12
+  },
+  "favorites.manager.error.exists": {
+    "message": "Another favorite already has that address.",
+    "note": "Favorites manager: an edited address is already saved as another favorite."
+  },
+  "favorites.manager.error.invalidUrl": {
+    "message": "Enter a web address, such as example.com.",
+    "note": "Favorites manager: an edited address isn't a web page (only http and https addresses can be favorites)."
+  },
+  "favorites.manager.error.favoriteMissing": {
+    "message": "That favorite no longer exists.",
+    "note": "Favorites manager: the favorite was removed elsewhere (another device, another window) before its edit arrived."
+  },
+  "favorites.manager.openNewTab": {
+    "message": "Open in new tab",
+    "note": "Favorites page: a favorite's menu item that opens it in a new tab beside the Favorites tab."
+  },
+  "favorites.manager.openAll": {
+    "message": "Open all",
+    "note": "Favorites page: selection bar button that opens every selected favorite in its own new tab."
+  },
+  "favorites.manager.editTitle": {
+    "message": "Edit favorite",
+    "note": "Favorites page: title of the dialog that changes a favorite's name, address and folder."
+  },
+  "favorites.manager.editFolder": {
+    "message": "Folder",
+    "note": "Favorites page: label of the Edit dialog's folder menu.",
+    "maxLength": 16
+  },
+  "favorites.manager.moreShort": {
+    "message": "More actions",
+    "note": "Favorites page: tooltip of the ⋮ menu button on every row."
+  },
   "favorites.import.menu": {
     "message": "Bring my stuff to Blanc",
     "note": "Favorites page: the one button that opens every way to bring things over from another browser."

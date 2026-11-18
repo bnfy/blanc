@@ -6579,6 +6579,58 @@
     "message": "Dieser Ordner existiert nicht mehr.",
     "source": "sha256:da15e822ea7414bdea99ba50faf98629849cd2c7bc8e38befbdaaea0c4be91e7"
   },
+  "favorites.manager.edit": {
+    "message": "Bearbeiten…",
+    "source": "sha256:1d26808ffd30c70244202138ef65cd5019e58668ab1ba24a8d57b475b18c276b"
+  },
+  "favorites.manager.editName": {
+    "message": "Name",
+    "source": "sha256:cb890f3ecd7abc20bfe0257411fb3086e233615d75ca010899a10ccd376e1204"
+  },
+  "favorites.manager.editAddress": {
+    "message": "Adresse",
+    "source": "sha256:1195bd9cb301fce38b8cb8ae55d44bb7ecb2cca552ebe57cfd7186af65e3419e"
+  },
+  "favorites.manager.editSave": {
+    "message": "Speichern",
+    "source": "sha256:2dad4acc077e8bb1bfc67b3e331bcca54ff89bdbc1c5fefadc5e0c51e9b4409f"
+  },
+  "favorites.manager.editCancel": {
+    "message": "Abbrechen",
+    "source": "sha256:28882c39a45a3780a82acb437e2b4611255b7a7942178730fb5ad4a19eb3de11"
+  },
+  "favorites.manager.error.exists": {
+    "message": "Diese Adresse ist bereits als anderer Favorit gespeichert.",
+    "source": "sha256:7d2deac5495888ca855b96b96e3ae490d746e6041f7b49d4bfa57537679b57ce"
+  },
+  "favorites.manager.error.invalidUrl": {
+    "message": "Gib eine Webadresse ein, zum Beispiel example.com.",
+    "source": "sha256:160c9026299f85c39b9174222be67c0ca26710a39a3bd4058918d4b7cb3daad1"
+  },
+  "favorites.manager.error.favoriteMissing": {
+    "message": "Dieser Favorit existiert nicht mehr.",
+    "source": "sha256:0c6bc341a8bf1897163deb5b95e0b853551893b0ce49bfebeb79a8b06c0e8ec8"
+  },
+  "favorites.manager.openNewTab": {
+    "message": "In neuem Tab öffnen",
+    "source": "sha256:2b7d097bbb94091a5f0ab83f4260f1a77a378fa82c40d74bce3b0784f829c18e"
+  },
+  "favorites.manager.openAll": {
+    "message": "Alle öffnen",
+    "source": "sha256:868a0b914e54b1bb9f02dceee88e517d6ef1a4e7106d5cfc6118da59c4eadb78"
+  },
+  "favorites.manager.editTitle": {
+    "message": "Favorit bearbeiten",
+    "source": "sha256:f949fb4ceb57243bb5d34b99be90d8ce0e7304c4dd0b2ce8512eec4aa9eb6250"
+  },
+  "favorites.manager.editFolder": {
+    "message": "Ordner",
+    "source": "sha256:3f41cc3856cd423a9ca0abad559f47e0847bd2a472e1d9ab70683c0b034a2600"
+  },
+  "favorites.manager.moreShort": {
+    "message": "Weitere Aktionen",
+    "source": "sha256:c70334a4344de3c08a8812ce82fcbe0a193fc5d79dd2b1e4933dda2260bed7d2"
+  },
   "favorites.import.menu": {
     "message": "Meine Sachen zu Blanc holen",
     "source": "sha256:7c0b597b34e0d5fc033ac5ac1476dac7ebce2209ba9000c93c7e51abcf813144"
