@@ -113,7 +113,7 @@ test('the design teasers open in the visitor’s appearance, switch in place, an
       assert.ok(set.captions.every(c => c === 'Design preview'), set.captions.join());
       assert.ok(set.alts, 'every alt says it is a design preview');
     }
-    assert.deepEqual((await dark.page.locator('.mail-address label').allTextContents()).map(t => t.trim()), ['1Get started', '2Pick a name', '3Open inbox']);
+    assert.deepEqual((await dark.page.locator('.mail-address label').allTextContents()).map(t => t.trim()), ['Get started', 'Pick a name', 'Open inbox']);
     await dark.page.locator('.mail-address label', { hasText: 'Open inbox' }).click();
     assert.deepEqual((await teaserState(dark.page))[1].shown, ['ready']);
     // Keyboard: the radios move with the arrow keys.
@@ -190,7 +190,7 @@ test('Support gives its address, then three topics; Download closes with the wai
 });
 
 test('a link to a section lands with its heading below the bars', async () => {
-  for (const id of ['pricing', 'support', 'download']) {
+  for (const id of ['design', 'address', 'island', 'features', 'pricing', 'support', 'download']) {
     // Load the page first, then follow the link within it. Loading /mail#id
     // directly jumps while images and fonts above the section are still
     // settling, and on a slow runner that jump stayed about 43px too far

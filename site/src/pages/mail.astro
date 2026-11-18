@@ -73,8 +73,8 @@ const addressSteps = [
 // docs/website-mail-claims-2026-11-17.md. Never "Blanc can't read your mail"
 // (owner), and nothing about other devices until it ships.
 const addressPoints = [
-  { title: 'Your name, your ending', text: 'Pick a name and the ending you like: blnc.day, blnc.page, blancmail.me, blancmail.co or blncmail.com.' },
-  { title: '15 GB for your mail', text: 'Each address has 15 GB for your mail and its attachments.' },
+  { title: 'Your name, your ending', text: 'Pick a name and the ending you like: ', endings: ['blnc.day', 'blnc.page', 'blancmail.me', 'blancmail.co', 'blncmail.com'] },
+  { badge: '15 GB', title: ' for your mail', text: 'Each address has 15 GB for your mail and its attachments.' },
   { title: 'Encrypted where it’s stored', text: 'Messages and attachments in your mailbox are encrypted with a key made on your Mac. Blanc keeps only a copy locked with your password, which never leaves your Mac. Senders, recipients, subjects and dates aren’t encrypted, and mail is readable to the server as it arrives and as it’s sent.' },
   { title: 'Back in with a code', text: 'Forget your password and a code sent to your backup email gets you back in. On a new Mac, a forgotten password means mail you’d already received can’t be opened.' },
   { title: 'Time to renew', text: 'If your subscription lapses, mail keeps arriving for 30 days and renewing brings everything back. Before a mailbox is deleted, we email you how to export your mail.' },
@@ -131,9 +131,9 @@ const support = [
          the window in CSS, so it works without scripting (dark is checked in
          the markup, as the stage is dark); the script below only preselects
          light for a visitor whose system is light. -->
-    <section class="mail-look mail-teaser-set" aria-labelledby="mail-look-title">
+    <section id="design" class="mail-look mail-teaser-set" aria-labelledby="mail-look-title">
       <h2 id="mail-look-title"><span class="mail-gold-text">A new look for your inbox.</span></h2>
-      <p class="mail-section-lead">Blanc Mail’s new design, in dark mode and light mode: one Island at the top, your mailboxes a click away, and your list and message side by side. It’s a design preview with made-up mail, and details may change.</p>
+      <p class="mail-section-lead">Blanc Mail’s design, in dark mode and light mode: one Island at the top, your mailboxes a click away, and your list and message side by side. It’s a design preview with made-up mail, and details may change.</p>
       <fieldset class="mail-segments" data-mail-look>
         <legend class="sr-only">Appearance</legend>
         {looks.map((look, index) => (
@@ -151,15 +151,15 @@ const support = [
          2026), so it follows the first look, high on the page. The copy names
          no date and the owner's offer line opens the lead word for word. The
          steps switch in CSS like the looks above; the first is checked. -->
-    <section class="mail-address mail-teaser-set" aria-labelledby="mail-address-title">
+    <section id="address" class="mail-address mail-teaser-set" aria-labelledby="mail-address-title">
       <h2 id="mail-address-title"><span class="mail-gold-text">A Blanc Mail address of your own.</span></h2>
-      <p class="mail-section-lead">A private mailbox of your own, with an address like <!--email_off-->mira@blnc.day<!--/email_off-->, set up from inside Blanc Mail. Add it to Blanc Mail for {ADDRESS_ADD_ON} a year, or get it with Blanc Bundle, when Blanc Mail launches. What’s shown is a design preview and may change.</p>
+      <p class="mail-section-lead">A private mailbox of your own, with an address like <strong class="mail-shimmer"><!--email_off-->mira@blnc.day<!--/email_off--></strong>, set up from inside Blanc Mail. Add it to Blanc Mail for {ADDRESS_ADD_ON} a year, or get it with Blanc Bundle, when Blanc Mail launches. What’s shown is a design preview and may change.</p>
       <fieldset class="mail-segments mail-segments-three">
         <legend class="sr-only">Step</legend>
         {addressSteps.map((step, index) => (
           <label>
             <input type="radio" name="mail-address-step" value={step.value} checked={index === 0} />
-            <span><b class="mail-step-number">{index + 1}</b>{step.label}</span>
+            <span>{step.label}</span>
           </label>
         ))}
         <span class="mail-segments-thumb" aria-hidden="true"></span>
@@ -168,8 +168,8 @@ const support = [
       <ul class="mail-points mail-address-points">
         {addressPoints.map(point => (
           <li>
-            <h3>{point.title}</h3>
-            <p>{point.text}</p>
+            <h3>{point.badge && <span class="mail-badge">{point.badge}</span>}{point.title}</h3>
+            <p>{point.text}{point.endings && <>{point.endings.map((ending, index) => <>{index === 0 ? '' : index === point.endings.length - 1 ? ' or ' : ', '}<span class="mail-ending">{ending}</span></>)}.</>}</p>
           </li>
         ))}
       </ul>
@@ -182,7 +182,7 @@ const support = [
          app draws it after typing "/" with a conversation selected: its
          layout, strings and order come from MailIslandPanel.swift. Recorded in
          docs/website-mail-claims-2026-10-12.md (Island). -->
-    <section class="mail-island" aria-labelledby="mail-island-title">
+    <section id="island" class="mail-island" aria-labelledby="mail-island-title">
       <h2 id="mail-island-title"><span class="mail-gold-text">The Island, made for mail.</span></h2>
       <p class="mail-island-lead">Blanc Browser’s floating Island, rebuilt for email. One capsule floats over your inbox in place of a toolbar, and ⌘L or ⌘F opens it in place to search, jump and act.</p>
       <figure class="mail-island-figure">
@@ -214,7 +214,7 @@ const support = [
       </ul>
     </section>
 
-    <section class="mail-features" aria-labelledby="mail-features-title">
+    <section id="features" class="mail-features" aria-labelledby="mail-features-title">
       <h2 id="mail-features-title"><span class="mail-gold-text">Every account, one calm inbox.</span></h2>
       <ul class="mail-feature-grid">
         {features.map(feature => (

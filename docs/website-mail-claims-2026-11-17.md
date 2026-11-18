@@ -60,11 +60,11 @@ versions are used.
 | Wording on the page | Kind | Evidence | Limits kept in the copy | Verdict |
 | --- | --- | --- | --- | --- |
 | A new look for your inbox. | Heading | Owner-approved design, November 17, 2026; wording from the owner-approved messaging audit, November 17, 2026 (replaced "A new outlook on email.", which read as Microsoft Outlook) | The lead labels it a design preview | Aspirational, labelled |
-| Blanc Mail’s new design, in dark mode and light mode: one Island at the top, your mailboxes a click away, and your list and message side by side. It’s a design preview with made-up mail, and details may change. | Lead | The Island-layout teasers it introduces (level A of the window study): the Island toolbar, the mailbox chip row, and the list and reader cards side by side | Design preview; made-up mail; may change; no date. Describes the Island layout shown, which is a choice beside the default Classic layout | Aspirational, labelled |
+| Blanc Mail’s design, in dark mode and light mode: one Island at the top, your mailboxes a click away, and your list and message side by side. It’s a design preview with made-up mail, and details may change. | Lead | The Island-layout teasers it introduces (level A of the window study): the Island toolbar, the mailbox chip row, and the list and reader cards side by side | Design preview; made-up mail; may change; no date. Describes the Island layout shown, which is a choice beside the default Classic layout | Aspirational, labelled |
 | Appearance; Dark; Light | Control labels | — | — | Label |
 | A Blanc Mail address of your own. | Heading | Hosted addresses designed in the Mail repository; the owner said on November 17, 2026 that the address launches when the app does | No date; the lead labels the images a design preview | Aspirational, labelled |
 | A private mailbox of your own, with an address like mira@blnc.day, set up from inside Blanc Mail. It launches with Blanc Mail. What’s shown is a design preview and may change. | Lead | Owner's offer line, word for word, first; owner, November 17, 2026: "it'll launch when the app does"; the address flow is set up inside the app in the design | Launches with the app, which is itself "Coming soon" with no date; design preview; may change; no plan, price or storage promised in the copy | Aspirational, labelled |
-| Step; 1 Get started; 2 Pick a name; 3 Open inbox | Control labels (owner's choice, November 17, 2026, replacing Offer, Choose, Ready) | — | — | Label |
+| Step; Get started; Pick a name; Open inbox | Control labels (owner's choice, November 17, 2026, replacing Offer, Choose, Ready; numbers removed November 18) | — | — | Label |
 | Design preview | Every teaser's caption | `MailTeaser.astro` | — | Label |
 
 The offer image itself shows "Your plan includes a Blanc Mail address" and
@@ -157,3 +157,13 @@ repository before addresses go on sale.
 | Everything in Blanc Mail · Your own address on blnc.day or another Blanc ending · A private mailbox with 15 GB | Pricing card | Mail benefit on the product; hosted endings and 15 GB per `AGENTS.md` | Launches with the app | Aspirational, labelled |
 | Add it to Blanc Mail for $20 a year, or get it with Blanc Bundle, when Blanc Mail launches. | Address section lead | As above | No date | Aspirational, labelled |
 | Blanc Mail + Address is planned at $69.99 per year and includes Mail on macOS and one Blanc Mail address. | `/mail/terms`, Subscriptions | As above | Pre-release terms | Qualified |
+
+## Section links in the Blanc Mail bar (November 18, 2026)
+
+`MailBar.astro` links to the page's notable sections: Design, Blanc email
+address, Island, Features, Pricing (labels; the second is the owner's
+wording, November 18, replacing "Address", which wasn't descriptive enough). At
+960px and narrower they sit behind a ≡ menu button named "Sections". Owner, November 18: "New look" was not used,
+because Blanc Mail is a new, unreleased product, not a redesign; for the same
+reason the first section's lead now reads "Blanc Mail’s design" (it said
+"Blanc Mail’s new design").
