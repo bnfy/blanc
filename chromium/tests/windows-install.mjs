@@ -91,7 +91,8 @@ try{
   `$f=@(${versioned.map(f=>`'${f.replace(/'/g,"''")}'`).join(',')});$f|ForEach-Object{$v=(Get-Item -LiteralPath $_).VersionInfo;[pscustomobject]@{file=$_;company=$v.CompanyName;product=$v.ProductName}}|ConvertTo-Json -Compress`],{encoding:'utf8'});
  const resources=info.status===0?[JSON.parse(info.stdout)].flat():[];
  record.details.versionResources=resources;
- record.checks.versionResources=resources.length===versioned.length&&resources.every(r=>r.company==='Bananify Creative'&&r.product===appName);
+ // The installer and setup.exe are the product's installer.
+ record.checks.versionResources=resources.length===versioned.length&&resources.every((r,i)=>r.company==='Bananify Creative'&&r.product===(i<2?appName:`${appName} Installer`));
  for(const name of ['installer','setup'])for(const f of [path.join(os.tmpdir(),`chromium_installer.log`),path.join(os.tmpdir(),`${name}.log`)])if(fs.existsSync(f))fs.copyFileSync(f,path.join(out,path.basename(f)));
 
  // 3. Registration under its own names (Chromium's ShellUtil, per user).
