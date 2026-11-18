@@ -29,6 +29,11 @@ on:
         required: false
         default: ''
         type: string
+      repack:
+        description: Also unpack and repack the installer, unsigned, and install the repacked one (W1 Part C dry run)
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -150,6 +155,7 @@ jobs:
         if: ${{ !cancelled() }}
         env:
           GH_TOKEN: ${{ github.token }}
+          REPACK: ${{ inputs.repack }}
         run: |
           $ErrorActionPreference = 'Stop'
           if (-not (Test-Path chromium/tests/windows-install.mjs) -or -not (Test-Path "$env:CANDIDATE_DIR\mini_installer.exe")) { 'No installer check for this candidate or ref.'; exit 0 }
@@ -160,7 +166,20 @@ jobs:
           $expected = (Get-Content "$shipping\SHA256SUMS" | Where-Object { $_ -match 'Blanc-Setup-1\.49\.1\.exe$' }) -split '\s+' | Select-Object -First 1
           $actual = (Get-FileHash "$shipping\Blanc-Setup-1.49.1.exe" -Algorithm SHA256).Hash.ToLower()
           if (-not $expected -or $actual -ne $expected.ToLower()) { throw "The shipping installer is $actual, not the release's $expected." }
-          node chromium/tests/windows-install.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\install" "$shipping\Blanc-Setup-1.49.1.exe"
+          if ($env:REPACK -eq 'true') {
+            # Part C's dry run: the installer taken apart and put back together
+            # unsigned must install exactly as the original does.
+            $work = "$env:RUNNER_TEMP\repack"
+            pwsh -NoProfile -File chromium/windows/repack-installer.ps1 -Phase unpack -Installer "$env:CANDIDATE_DIR\mini_installer.exe" -Work $work
+            if ($LASTEXITCODE -ne 0) { throw 'Unpacking the installer failed.' }
+            pwsh -NoProfile -File chromium/windows/repack-installer.ps1 -Phase pack -Installer "$env:CANDIDATE_DIR\mini_installer.exe" -Work $work -Output "$env:RUNNER_TEMP\mini_installer_repacked.exe"
+            if ($LASTEXITCODE -ne 0) { throw 'Packing the installer failed.' }
+            New-Item -ItemType Directory "$env:RESULTS" -Force | Out-Null
+            Copy-Item "$work\layout.json" "$env:RESULTS\repack-layout.json"
+            node chromium/tests/windows-install.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\install-repacked" "$shipping\Blanc-Setup-1.49.1.exe" "--installer=$env:RUNNER_TEMP\mini_installer_repacked.exe"
+          } else {
+            node chromium/tests/windows-install.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\install" "$shipping\Blanc-Setup-1.49.1.exe"
+          }
       - name: Crash capture
         if: ${{ !cancelled() }}
         run: |

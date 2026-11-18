@@ -2,7 +2,10 @@
 // installer puts the preview beside an installed Electron Blanc, registers it
 // under its own names, launches, and uninstalls without touching Blanc.
 //
-//   node chromium/tests/windows-install.mjs CANDIDATE_FOLDER RESULTS_FOLDER SHIPPING_INSTALLER
+//   node chromium/tests/windows-install.mjs CANDIDATE_FOLDER RESULTS_FOLDER SHIPPING_INSTALLER [--installer=PATH]
+//
+// --installer runs another installer of the same candidate (a repacked or
+// signed one) instead of the candidate's own mini_installer.exe.
 //
 // SHIPPING_INSTALLER is Electron Blanc's public Windows installer, checked by
 // the workflow against the release's SHA256SUMS. The check runs on a
@@ -14,7 +17,9 @@ import {execFileSync,spawnSync,spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {pause} from './lib/cdp.mjs';
 
-const [candidateFolder,resultsFolder,shippingInstaller]=process.argv.slice(2);
+const [candidateFolder,resultsFolder,shippingInstaller,...installOptions]=process.argv.slice(2);
+const installerOption=installOptions.find(o=>o.startsWith('--installer='))?.slice('--installer='.length)??null;
+if(installOptions.some(o=>!o.startsWith('--installer=')))throw Error('Unknown option: '+installOptions.join(' '));
 if(!candidateFolder||!resultsFolder||!shippingInstaller)throw Error('Usage: windows-install.mjs CANDIDATE_FOLDER RESULTS_FOLDER SHIPPING_INSTALLER');
 if(process.platform!=='win32')throw Error('The install check runs on Windows');
 const directory=path.resolve(candidateFolder),out=path.resolve(resultsFolder);
@@ -63,7 +68,8 @@ try{
  record.checks.electronInstalled=before.exe&&!!before.client&&!!before.progId;
 
  // 2. The preview, through Chromium's installer, per user, not launched.
- const installer=path.join(directory,'mini_installer.exe');
+ const installer=installerOption?path.resolve(installerOption):path.join(directory,'mini_installer.exe');
+ record.installer=installer;
  const run=spawnSync(installer,['--do-not-launch-chrome','--verbose-logging'],{timeout:600000});
  record.details.installerExit=run.status;
  const exe=path.join(application,'chrome.exe');
