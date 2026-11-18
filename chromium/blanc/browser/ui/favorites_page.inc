@@ -103,7 +103,7 @@ class FavoritesHandler : public content::WebUIMessageHandler,
       }
       return;
     }
-    if (method == "tree" && args.empty()) { Reply(id, true, base::Value(favorites_page::Tree(model))); return; }
+    if (method == "tree" && args.empty()) { Reply(id, true, base::Value(favorites_page::Tree(model, icons_))); return; }
     if (method == "list" && args.empty()) { Reply(id, true, base::Value(ListFavorites(model))); return; }
     if (method == "clearFavicon") { Reply(id, true, base::Value()); return; }
     // Every change below, imports included, needs Favorites editing
@@ -144,6 +144,7 @@ class FavoritesHandler : public content::WebUIMessageHandler,
       bookmark_observation_{this};
   PrefChangeRegistrar pins_observer_;
   base::OneShotTimer changed_;
+  favorites_page::FaviconCache icons_;
   base::WeakPtrFactory<FavoritesHandler> weak_factory_{this};
 };
 
@@ -159,6 +160,7 @@ void FavoritesHandler::OnJavascriptDisallowed() {
   bookmark_observation_.Reset();
   pins_observer_.RemoveAll();
   changed_.Stop();
+  icons_.Clear();
 }
 void FavoritesHandler::BookmarkModelChanged() {
   changed_.Start(FROM_HERE, base::Milliseconds(150),

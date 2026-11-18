@@ -37,7 +37,8 @@ const bookmarks::BookmarkNode* EditableFavorite(bookmarks::BookmarkModel* model,
 // Every call answers {ok: true} or {ok: false, error} with shipping's codes.
 namespace favorites_page {
 namespace fav = blanc::favorites;
-constexpr size_t kTreeFavoritesLimit = 5000;
+constexpr size_t kIdsLimit = 5000;     // favorites-page-args.js MAX_IDS
+constexpr size_t kKeysLimit = 20000;   // favorites-page-args.js MAX_KEYS
 constexpr size_t kTitleMax = 500;     // bookmark-validate.js MAX_TITLE_LENGTH
 constexpr size_t kAddressMax = 4096;  // bookmark-validate.js MAX_URL_LENGTH
 
@@ -46,23 +47,44 @@ base::DictValue Refused(const char* error) {
   return base::DictValue().Set("ok", false).Set("error", error);
 }
 
-// The permanent folders shown as fixed top-level folders, in Chromium's order.
-std::vector<const bookmarks::BookmarkNode*> FixedRoots(bookmarks::BookmarkModel* model) {
-  std::vector<const bookmarks::BookmarkNode*> roots;
-  for (const auto* node : {model->bookmark_bar_node(), model->mobile_node(),
-                           model->account_bookmark_bar_node(), model->account_other_node(),
-                           model->account_mobile_node()}) {
-    if (node && !node->children().empty() && !model->client()->IsNodeManaged(node)) roots.push_back(node);
-  }
-  return roots;
-}
-
-// A folder's name as the page shows it: its path segment, or for a fixed
-// root or an unusable title, the title as Chromium has it.
-std::u16string ShownName(const bookmarks::BookmarkNode* node) {
+// A folder's name as a path segment, or for an unusable title the title as
+// Chromium has it.
+std::u16string SegmentName(const bookmarks::BookmarkNode* node) {
   if (auto segment = fav::CleanSegment(node->GetTitle())) return *segment;
   const auto title = fav::TrimJavaScriptSpace(node->GetTitle());
-  return title.empty() ? u"—" : title;
+  return title.empty() ? u"\u2014" : title;
+}
+// The name the page shows a folder by: a permanent folder's distinct name
+// (FixedRootNames), any other folder's segment.
+std::u16string ShownName(bookmarks::BookmarkModel* model, const bookmarks::BookmarkNode* node) {
+  if (node->is_permanent_node())
+    for (const auto& [root, name] : fav::FixedRootNames(model)) if (root == node) return name;
+  return SegmentName(node);
+}
+
+// Favicon data URLs by bookmark id while the page is open, so a refresh
+// encodes only the icons that changed.
+class FaviconCache {
+ public:
+  FaviconCache();
+  ~FaviconCache();
+  base::Value Get(bookmarks::BookmarkModel* model, const bookmarks::BookmarkNode* node);
+  void Clear() { entries_.clear(); }
+
+ private:
+  std::map<int64_t, std::pair<uint32_t, std::string>> entries_;
+};
+FaviconCache::FaviconCache() = default;
+FaviconCache::~FaviconCache() = default;
+base::Value FaviconCache::Get(bookmarks::BookmarkModel* model, const bookmarks::BookmarkNode* node) {
+  const gfx::Image& image = model->GetFavicon(node);
+  const SkBitmap* bitmap = image.IsEmpty() ? nullptr : image.ToSkBitmap();
+  // 0 is never a live bitmap's generation, so it stands for "no icon".
+  const uint32_t generation = bitmap ? bitmap->getGenerationID() : 0;
+  auto found = entries_.find(node->id());
+  if (found == entries_.end() || found->second.first != generation)
+    found = entries_.insert_or_assign(node->id(), std::make_pair(generation, FaviconDataUrl(image))).first;
+  return NullableString(found->second.second);
 }
 
 // The page's folder argument: null is the top level (Other bookmarks); a
@@ -78,15 +100,15 @@ bool ReadPath(const base::Value& value, fav::FolderPath* out) {
   return true;
 }
 
-// The folder a path names, or null. A first name matches a folder in Other
-// bookmarks before a fixed root of that name.
+// The folder a path names, or null.
 const bookmarks::BookmarkNode* Resolve(bookmarks::BookmarkModel* model, const fav::FolderPath& path) {
   if (path.empty()) return model->other_node();
   const bookmarks::BookmarkNode* node = fav::FindChildFolder(model, model->other_node(), path[0]);
   if (!node) {
+    // FixedRootNames never reuses a name Other bookmarks has.
     const auto key = fav::FavoriteFolderKey(path[0]);
-    for (const auto* root : FixedRoots(model)) {
-      const auto name = fav::FavoriteFolderKey(ShownName(root));
+    for (const auto& [root, shown] : fav::FixedRootNames(model)) {
+      const auto name = fav::FavoriteFolderKey(shown);
       if (key && name && *key == *name) { node = root; break; }
     }
   }
@@ -99,7 +121,7 @@ fav::FolderPath PathOf(bookmarks::BookmarkModel* model, const bookmarks::Bookmar
   fav::FolderPath path;
   for (const auto* node = folder; node && node != model->other_node() && node != model->root_node();
        node = node->parent()) {
-    path.insert(path.begin(), ShownName(node));
+    path.insert(path.begin(), ShownName(model, node));
     if (node->is_permanent_node()) break;
   }
   return path;
@@ -121,7 +143,7 @@ size_t LongestBelow(const bookmarks::BookmarkNode* folder) {
   for (const auto& child : folder->children()) {
     if (!child->is_folder()) continue;
     longest = std::max(longest, std::char_traits<char16_t>::length(fav::kPathSeparator) +
-                                    ShownName(child.get()).size() + LongestBelow(child.get()));
+                                    SegmentName(child.get()).size() + LongestBelow(child.get()));
   }
   return longest;
 }
@@ -150,31 +172,32 @@ size_t FolderInsertIndex(const bookmarks::BookmarkNode* parent) {
 }
 
 base::DictValue FolderTree(bookmarks::BookmarkModel* model, const bookmarks::BookmarkNode* node,
-                           const fav::FolderPath& path, size_t& favorites);
+                           const fav::FolderPath& path, FaviconCache& icons);
 
 base::DictValue FolderEntry(bookmarks::BookmarkModel* model, const bookmarks::BookmarkNode* node,
-                            const fav::FolderPath& parent_path, size_t& favorites) {
-  const auto name = ShownName(node);
+                            const fav::FolderPath& parent_path, FaviconCache& icons) {
+  const auto name = ShownName(model, node);
   fav::FolderPath path = parent_path;
   path.push_back(name);
   return base::DictValue().Set("kind", "folder").Set("key", FolderKeyFor(name))
-      .Set("folder", FolderTree(model, node, path, favorites));
+      .Set("folder", FolderTree(model, node, path, icons));
 }
 
 // shipping's getTree(): {path, name, key, children} with each child
 // {kind: 'folder', key, folder} or {kind: 'favorite', key, item}.
 base::DictValue FolderTree(bookmarks::BookmarkModel* model, const bookmarks::BookmarkNode* node,
-                           const fav::FolderPath& path, size_t& favorites) {
+                           const fav::FolderPath& path, FaviconCache& icons) {
   base::ListValue children;
   for (const auto& child : node->children()) {
     if (child->is_folder()) {
       if (!model->client()->IsNodeManaged(child.get()))
-        children.Append(FolderEntry(model, child.get(), path, favorites));
-    } else if (child->is_url() && IsFavoritable(child->url()) && favorites < kTreeFavoritesLimit) {
-      ++favorites;
-      auto item = FavoriteRecord(model, child.get(), /*include_favicons=*/true);
+        children.Append(FolderEntry(model, child.get(), path, icons));
+    } else if (child->is_url() && IsFavoritable(child->url())) {
+      auto item = FavoriteRecord(model, child.get(), /*include_favicons=*/false);
+      item.Set("favicon", icons.Get(model, child.get()));
       const std::string key = FavoriteKeyFor(child.get());
-      // The folder the page shows it in, so an edit never moves it.
+      // The folder the page shows it in (as FavoriteRecord's, unless the
+      // path is too long to store), so an edit never moves it.
       item.Set("folder", path.empty() ? base::Value() : base::Value(Joined(path)));
       item.Set("key", key);
       children.Append(base::DictValue().Set("kind", "favorite").Set("key", key).Set("item", std::move(item)));
@@ -189,12 +212,12 @@ base::DictValue FolderTree(bookmarks::BookmarkModel* model, const bookmarks::Boo
       .Set("children", std::move(children));
 }
 
-base::DictValue Tree(bookmarks::BookmarkModel* model) {
+// Every favorite, with no cap: the page is the one place to manage them all.
+base::DictValue Tree(bookmarks::BookmarkModel* model, FaviconCache& icons) {
   fav::NormalizeFavoriteFolders(model);
-  size_t favorites = 0;
-  auto tree = FolderTree(model, model->other_node(), {}, favorites);
+  auto tree = FolderTree(model, model->other_node(), {}, icons);
   auto* children = tree.FindList("children");
-  for (const auto* root : FixedRoots(model)) children->Append(FolderEntry(model, root, {}, favorites));
+  for (const auto& [root, name] : fav::FixedRootNames(model)) children->Append(FolderEntry(model, root, {}, icons));
   return tree;
 }
 
@@ -256,9 +279,9 @@ base::DictValue MoveFolder(bookmarks::BookmarkModel* model, const base::Value& p
   // Account and local bookmarks are stored apart; a folder stays in its own.
   if (FavoriteStorageOtherRoot(model, parent) != FavoriteStorageOtherRoot(model, folder)) return Refused("invalid");
   fav::FolderPath to = PathOf(model, parent);
-  to.push_back(ShownName(folder));
+  to.push_back(SegmentName(folder));
   if (!Fits(to, folder)) return Refused("too-long");
-  if (const auto* same = fav::FindChildFolder(model, parent, ShownName(folder), folder)) {
+  if (const auto* same = fav::FindChildFolder(model, parent, SegmentName(folder), folder)) {
     fav::MergeFolderInto(model, folder, same, bookmarks::metrics::BookmarkEditSource::kUser);
     fav::NormalizeFavoriteFolders(model);
     return Ok();
@@ -288,7 +311,7 @@ std::vector<const bookmarks::BookmarkNode*> ReadFavorites(bookmarks::BookmarkMod
   std::vector<const bookmarks::BookmarkNode*> nodes;
   if (!ids.is_list()) return nodes;
   for (const auto& id : ids.GetList()) {
-    if (nodes.size() >= kTreeFavoritesLimit) break;
+    if (nodes.size() >= kIdsLimit) break;
     if (!id.is_string() || id.GetString().size() > 200) continue;
     const auto* node = utility_sheet::EditableFavorite(model, id.GetString());
     if (node && std::find(nodes.begin(), nodes.end(), node) == nodes.end()) nodes.push_back(node);
@@ -323,12 +346,12 @@ base::DictValue Reorder(bookmarks::BookmarkModel* model, const base::Value& path
   std::map<std::string, const bookmarks::BookmarkNode*> by_key;
   for (const auto& child : folder->children()) {
     if (model->client()->IsNodeManaged(child.get())) continue;
-    const std::string key = child->is_folder() ? FolderKeyFor(ShownName(child.get())) : FavoriteKeyFor(child.get());
+    const std::string key = child->is_folder() ? FolderKeyFor(SegmentName(child.get())) : FavoriteKeyFor(child.get());
     by_key.emplace(key, child.get());
   }
   std::vector<const bookmarks::BookmarkNode*> listed;
   for (const auto& key : keys.GetList()) {
-    if (listed.size() >= 20000) break;
+    if (listed.size() >= kKeysLimit) break;
     if (!key.is_string()) continue;
     const auto found = by_key.find(key.GetString());
     if (found != by_key.end() && std::find(listed.begin(), listed.end(), found->second) == listed.end())
