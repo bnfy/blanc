@@ -94,3 +94,35 @@ test('any other page file, or a photo without its hash, is refused', () => {
   assert.equal(stripImages(photo, { wallpaperUrl: PHOTO, wallpaperHash: null }), null);
   assert.equal(stripImages(null, {}), null);
 });
+
+// The launch Sunrise (#1179) draws a flat animated sky over the page; the
+// band plays the same sky, in step, from the time the page started it.
+test('a recent Sunrise start passes through; anything else is dropped, not refused', () => {
+  const now = 1_800_000_000_000;
+  const started = normalizeBackdrop({ ...sunrise, sunriseAt: now - 500 }, { now });
+  assert.equal(started.sunriseAt, now - 500);
+  for (const sunriseAt of [now - 20_000, now + 5_000, 'soon', 1.5, null]) {
+    const spec = normalizeBackdrop({ ...sunrise, sunriseAt }, { now });
+    assert.ok(spec, 'the spec still passes');
+    assert.equal('sunriseAt' in spec, false, String(sunriseAt));
+  }
+  assert.equal(backdropPayload('t1', started, 68).sunriseAt, now - 500);
+  assert.equal('sunriseAt' in backdropPayload('t1', sunrise, 68), false);
+  assert.equal(stripImages(started, {}).sunriseAt, now - 500);
+});
+
+test('the band plays the page\'s own Sunrise keyframes', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const read = (file) => fs.readFileSync(path.join(__dirname, '../../src/renderer', file), 'utf8');
+  const frames = (css, name) => css.match(new RegExp(`@keyframes ${name} \\{(.*)\\}\\n`))?.[1];
+  const pages = read('pages/pages.css');
+  const strip = read('styles.css');
+  assert.ok(frames(pages, 'launch-sunrise-sky'));
+  assert.equal(frames(strip, 'band-sunrise-sky'), frames(pages, 'launch-sunrise-sky'));
+  assert.equal(frames(strip, 'band-sunrise-out'), frames(pages, 'launch-sunrise-out'));
+  // The same timing: 2.6s after 0.15s, with the same curve.
+  assert.match(pages, /animation-duration: 2\.6s;\s*animation-delay: 0\.15s;\s*animation-timing-function: cubic-bezier\(0\.33, 0, 0\.2, 1\);/);
+  assert.match(strip, /\.band-sunrise \{[^}]*animation-duration: 2\.6s;[^}]*animation-timing-function: cubic-bezier\(0\.33, 0, 0\.2, 1\);/);
+  assert.match(read('renderer.js'), /const SUNRISE_DELAY_MS = 150, SUNRISE_MS = 2600;/);
+});

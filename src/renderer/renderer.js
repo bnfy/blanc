@@ -1589,10 +1589,29 @@
   const bandBackdrop = document.getElementById('bandBackdrop');
   const bandBox = bandBackdrop?.firstElementChild;
   const bandLayers = bandBox ? [...bandBox.children] : [];
+  // The launch Sunrise's sky (pages.css): 2.6s after a 0.15s delay.
+  const bandSunrise = bandBackdrop?.querySelector('.band-sunrise');
+  const SUNRISE_DELAY_MS = 150, SUNRISE_MS = 2600;
+  let bandSunriseAt = null;
+  function paintBandSunrise(at) {
+    if (!bandSunrise || at === bandSunriseAt) return;
+    bandSunriseAt = at;
+    const elapsed = Number.isFinite(at) ? Date.now() - at : Infinity;
+    if (elapsed >= SUNRISE_DELAY_MS + SUNRISE_MS || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      bandSunrise.hidden = true;
+      return;
+    }
+    // Start the same animation where the page's is now.
+    bandSunrise.hidden = true;
+    bandSunrise.style.animationDelay = `${(SUNRISE_DELAY_MS - elapsed) / 1000}s`;
+    void bandSunrise.offsetWidth;
+    bandSunrise.hidden = false;
+  }
   function paintBandBackdrop(spec) {
     const shown = !!(spec && bandBox && spec.id === activeTab()?.id && !copySurface);
     bandBackdrop?.toggleAttribute('hidden', !shown);
     stripEl.classList.toggle('band-backdrop', shown);
+    paintBandSunrise(shown ? spec.sunriseAt ?? null : null);
     if (!shown) return;
     const zoom = Number(spec.zoom) || 1;
     bandBox.style.zoom = String(zoom);

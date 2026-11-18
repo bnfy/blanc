@@ -1965,6 +1965,10 @@
         },
         "band": {
           "type": "number"
+        },
+        "sunriseAt": {
+          "type": "number",
+          "optional": true
         }
       }
     }

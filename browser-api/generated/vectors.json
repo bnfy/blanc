@@ -7403,7 +7403,8 @@
                   "fade": true
                 }
               ],
-              "band": 1
+              "band": 1,
+              "sunriseAt": 1
             }
           ],
           "callbacks": [
@@ -7424,7 +7425,8 @@
                     "fade": true
                   }
                 ],
-                "band": 1
+                "band": 1,
+                "sunriseAt": 1
               }
             ]
           ]

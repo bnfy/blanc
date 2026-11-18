@@ -1423,6 +1423,7 @@ export function payloadFixtures() {
   ] });
   add('backdropPayload(Sunrise, 68)', 'PageBackdrop | null', backdropPayload('t1', backdrop, 68));
   add('backdropPayload(standing aside)', 'PageBackdrop | null', backdropPayload('t1', backdrop, 0));
+  add('backdropPayload(launch Sunrise)', 'PageBackdrop | null', backdropPayload('t1', { ...backdrop, sunriseAt: 1800000000000 }, 68));
   cases.push(...workspaceControllerFixtures(), ...listFixtures());
   return cases;
 }
