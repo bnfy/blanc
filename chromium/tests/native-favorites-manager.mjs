@@ -67,6 +67,9 @@ try{
  t=await tree();
  assert.deepEqual(folderIn(folderIn(t,'Work'),'Clients').children.map(x=>x.item?.url),[urls[0]]);
  result.checks.push('a favorite moves into a nested folder, and its folder is the whole path');
+ // What the page looks like, for the record.
+ await new Promise(r=>setTimeout(r,800));
+ {const {data}=await page.cdp.send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(out,'favorites-page.png'),Buffer.from(data,'base64'));}
 
  // Order: the top level's favorites, reversed.
  const top=(await tree()).children;

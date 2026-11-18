@@ -373,7 +373,8 @@ export const DIVERGENCES = new Map([
     this.destroyedUtilitySheetContentsId = await this.call('utilitySheetContentsId');
     assert.ok(this.destroyedUtilitySheetContentsId, 'the open utility sheet should have webContents');
     assert.strictEqual(await this.call('destroyUtilitySheetContents'), true);
-    await this.waitFor(() => this.call('utilitySurface'), (s) => !s?.visible, 'destroyed sheet to be dismissed', 5000);
+    // The Favorites tab stays under it; only the sheet goes.
+    await this.waitFor(() => this.call('utilitySurface'), (s) => !(s?.kind === 'sheet' && s.visible), 'destroyed sheet to be dismissed', 5000);
   }}],
   ['the utility sheet uses the Sunrise palette', {divergence: 'V30', async run() {
     await historySheetShown(this);
