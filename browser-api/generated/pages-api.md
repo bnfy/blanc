@@ -40,6 +40,8 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `start.setShortcutCount` | invoke | `pages:start:set-shortcut-count` | newtab | Save Billboard's shortcut count (1 to 12); resolves to the saved widgets. |
 | `start.setWidgetPlace` | invoke | `pages:start:set-widget-place` | newtab | Save the widget cards' columns; resolves to the saved widgets. |
 | `start.setWidgetSize` | invoke | `pages:start:set-widget-size` | newtab | Save a card's size (240-720, or 0 to fit its column); resolves to the saved widgets. |
+| `start.reportBackdrop` | invoke | `pages:start:backdrop` | newtab | Report the Start Page's wallpaper layers so the Island's band can continue them; resolves to { band }, the band's height above this page (0 where it stands aside). |
+| `start.onBackdropBand` | event | `pages:start:backdrop-band` | newtab | The band above this Start Page changed (0 where it stands aside). |
 | `start.setDynamicWallpaper` | invoke | `pages:start:set-dynamic-wallpaper` | newtab | Turn the dynamic Start Page wallpaper on or off. |
 | `start.wallpaper` | invoke | `pages:start:wallpaper` | newtab | Read this page's Start Page wallpaper state: source, whether an image is stored, and its address. |
 | `start.setWallpaper` | invoke | `pages:start:set-wallpaper` | newtab | Choose the Start Page wallpaper: sunrise, time-of-day or custom. |

@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { normalizeBackdrop, backdropBand } = require('../../src/main/start-backdrop');
+const { normalizeBackdrop, backdropBand, backdropPayload } = require('../../src/main/start-backdrop');
 
 const PHOTO = 'blanc://newtab/user-wallpaper-0123456789abcdef0123456789abcdef.jpg?v=0123456789abcdef';
 const sunrise = {
@@ -68,4 +68,10 @@ test('it stands aside wherever the band does not sit above this page alone', () 
     ['autoHide', true], ['fullScreen', true], ['siteColors', false], ['pageTop', 0], ['pageTop', NaN]]) {
     assert.equal(backdropBand({ ...showing, [key]: value }), 0, key);
   }
+});
+
+test('the strip gets the spec and the band, or null', () => {
+  assert.deepEqual(backdropPayload('t1', sunrise, 68), { id: 't1', ...sunrise, band: 68 });
+  assert.equal(backdropPayload('t1', sunrise, 0), null);
+  assert.equal(backdropPayload('t1', null, 68), null);
 });

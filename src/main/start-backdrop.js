@@ -66,4 +66,12 @@ function backdropBand({ isActive, isPrivate, splitVisible, glanceOpen, autoHide,
   return Number.isFinite(pageTop) && pageTop > 0 ? pageTop : 0;
 }
 
-module.exports = { MAX_LAYERS, normalizeBackdrop, backdropBand };
+/** What the strip receives: the page's spec and the band above it, or null
+ * where the band keeps its sampled color. */
+function backdropPayload(tabId, spec, band) {
+  if (!spec || !(band > 0)) return null;
+  const { zoom, width, height, layers } = spec;
+  return { id: tabId, zoom, width, height, layers, band };
+}
+
+module.exports = { MAX_LAYERS, normalizeBackdrop, backdropBand, backdropPayload };

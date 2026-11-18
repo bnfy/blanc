@@ -226,6 +226,7 @@ const wallpaper = require('./wallpaper');
 const { effectiveSource } = require('./wallpaper-model');
 const { colorWallpaper } = require('./start-page-paint');
 const { pageWidgets } = require('./start-widgets');
+const { normalizeBackdrop, backdropBand, backdropPayload } = require('./start-backdrop');
 const { clockStyleFromSettings } = require('./start-clock-style');
 const SpaceIdentity = require('../renderer/space-identity');
 // Bangs: the pure grammar and the generated catalog the Island shares with
@@ -7279,6 +7280,9 @@ function broadcastTabs() {
   const payload = currentTabsPayload();
   stripSurfaces(rt()).send('tabs:updated', payload);
   runtime.overlayView?.webContents.send('tabs:updated', payload);
+  // A tab switch, a split, a Glance or a site-colors change can start or end
+  // the Start Page's wallpaper behind the band.
+  syncStartBackdrop(runtime);
   // A pane's site or favicon may have changed; the corner tabs repaint only
   // when their contents differ (syncSplitCornerTabs compares).
   if (runtime.splitCornerViews.size || visibleSplitOf(runtime)) syncSplitCornerTabs(splitGeometry());
@@ -7893,6 +7897,60 @@ async function samplePageTint(tab, { shouldApply = () => true } = {}) {
     }
   } catch { /* A native view can disappear during capture. */ }
   return false;
+}
+
+// The Start Page's wallpaper behind the Island's top band (start-backdrop.js;
+// owner, 2026-11-18: the band only, never the vertical tabs rail). Each Start
+// Page reports its wallpaper layers; main keeps the latest checked spec per
+// tab, decides the band for the window's active tab, and sends the strip only
+// what it may draw. The sampled top-edge color stays underneath it.
+const startBackdrops = new Map();
+
+function startBackdropBand(runtime, tab) {
+  return backdropBand({
+    isActive: runtime.activeTabId === tab.id && String(liveContents(tab)?.getURL?.() ?? tab.url ?? '').startsWith('blanc://newtab/'),
+    isPrivate: tab.private === true,
+    splitVisible: visibleSplitTabIds(runtime).length > 0,
+    glanceOpen: Boolean(runtime.glanceTabId),
+    autoHide: islandAutoHide,
+    fullScreen: runtime.window?.isFullScreen?.() === true,
+    siteColors: settings.getSettings().islandSiteColors === true,
+    pageTop: pageTopFor(runtime),
+  });
+}
+
+/** Paints (or clears) the active Start Page's wallpaper in this window's band
+ * and tells that page how far above it the band reaches. */
+function syncStartBackdrop(runtime) {
+  if (!runtime?.window || runtime.window.isDestroyed()) return;
+  const tab = tabs.get(runtime.activeTabId);
+  const entry = tab ? startBackdrops.get(tab.id) : null;
+  const band = entry ? startBackdropBand(runtime, tab) : 0;
+  const key = band ? `${tab.id}|${band}|${entry.key}` : 'none';
+  if (runtime.startBackdropSent === key) return;
+  const previous = runtime.startBackdropTabId;
+  runtime.startBackdropSent = key;
+  runtime.startBackdropTabId = band ? tab.id : null;
+  stripSurfaces(runtime).send('chrome:page-backdrop', backdropPayload(tab?.id, entry?.spec, band));
+  if (entry) liveContents(tab)?.send('pages:start:backdrop-band', band / entry.spec.zoom);
+  if (previous && previous !== tab?.id) liveContents(tabs.get(previous))?.send('pages:start:backdrop-band', 0);
+}
+
+function reportStartBackdrop(wc, raw) {
+  for (const id of startBackdrops.keys()) if (!tabs.has(id)) startBackdrops.delete(id);
+  const tab = tabs.get(tabIdByWebContentsId.get(wc.id));
+  const runtime = tab && windowRuntimes.runtimeForTab(tab.id);
+  if (!tab || !runtime) return { band: 0 };
+  // A private Start Page keeps its private theme color in the band.
+  // The page's zoom is main's to know; the strip lays the layers out at it.
+  const zoom = Math.min(5, Math.max(0.25, liveContents(tab)?.getZoomFactor?.() || 1));
+  const spec = tab.private ? null
+    : normalizeBackdrop({ ...(raw && typeof raw === 'object' ? raw : {}), zoom }, { wallpaperUrl: wallpaper.imageUrl() });
+  if (spec) startBackdrops.set(tab.id, { spec, key: JSON.stringify(spec) });
+  else startBackdrops.delete(tab.id);
+  syncStartBackdrop(runtime);
+  // The page lays its wallpaper out in its own CSS pixels.
+  return { band: spec ? startBackdropBand(runtime, tab) / spec.zoom : 0 };
 }
 
 function scheduleSampleTint(tab) {
@@ -16036,6 +16094,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         return wallpaperState(tab?.private === true, spaceColorForTab(tab));
       },
       wallpaperChanged: () => broadcastStartPageStatus(),
+      backdrop: (wc, spec) => reportStartBackdrop(wc, spec),
       migrationChecklistFor: (wc) => migrationChecklistForTab(
         startPageStatus().migrationChecklist,
         tabs.get(tabIdByWebContentsId.get(wc.id)),

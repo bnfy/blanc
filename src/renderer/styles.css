@@ -4723,3 +4723,26 @@ html[data-surface="glance"] .glance-header {
   .switcher-card { animation: none; }
   .switcher-tile { transition: none; }
 }
+
+/* ---------- The Start Page's wallpaper behind the band ----------
+   renderer.js paints the active Start Page's layers here (the page reports
+   them; main checks them, start-backdrop.js). The box is the page's size plus
+   the band, laid out from the band's top above the page (beside the vertical
+   tabs rail, which keeps its own surface), and only the band shows it. */
+#bandBackdrop {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: var(--strip-h);
+  overflow: hidden;
+  z-index: -1;
+  pointer-events: none;
+}
+:root[data-tab-layout="vertical"] #bandBackdrop { left: var(--vertical-tabs-w); }
+#bandBackdrop[hidden] { display: none; }
+.band-backdrop-box { position: absolute; left: 0; top: 0; }
+.band-backdrop-box > div { position: absolute; inset: 0; }
+.band-backdrop-box > div.fade { transition: opacity 2s ease; }
+@media (prefers-reduced-motion: reduce) { .band-backdrop-box > div.fade { transition: none; } }
+#strip.band-backdrop { background: transparent; }

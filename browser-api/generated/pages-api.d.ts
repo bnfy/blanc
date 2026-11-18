@@ -45,6 +45,10 @@ export interface NewtabPagesAPI {
     setWidgetPlace: (left: unknown, right: unknown) => Promise<unknown>;
     /** Save a card's size (240-720, or 0 to fit its column); resolves to the saved widgets. IPC: invoke `pages:start:set-widget-size`. */
     setWidgetSize: (card: unknown, size: unknown) => Promise<unknown>;
+    /** Report the Start Page's wallpaper layers so the Island's band can continue them; resolves to { band }, the band's height above this page (0 where it stands aside). IPC: invoke `pages:start:backdrop`. */
+    reportBackdrop: (spec: unknown) => Promise<unknown>;
+    /** The band above this Start Page changed (0 where it stands aside). IPC: event `pages:start:backdrop-band`. */
+    onBackdropBand: (callback: (payload: unknown) => void) => void;
     /** Turn the dynamic Start Page wallpaper on or off. IPC: invoke `pages:start:set-dynamic-wallpaper`. */
     setDynamicWallpaper: (enabled: unknown) => Promise<unknown>;
     /** Read this page's Start Page wallpaper state: source, whether an image is stored, and its address. IPC: invoke `pages:start:wallpaper`. */

@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-157 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
+158 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -151,6 +151,7 @@
 | `closeWindow` | window | send | `window:close` | `()` | all |
 | `onTabsUpdated` | tabs | event | `tabs:updated` | `(payload: TabsUpdatedPayload) => void` | all |
 | `onPageTint` | appearance | event | `chrome:page-tint` | `(payload: PageTint) => void` | all |
+| `onPageBackdrop` | appearance | event | `chrome:page-backdrop` | `(payload: PageBackdrop \| null) => void` | all |
 | `onDownloadsActivity` | downloads | event | `chrome:downloads` | `(payload: DownloadsActivity) => void` | all |
 | `acknowledgeDownloads` | downloads | send | `chrome:downloads-ack` | `()` | all |
 | `onOverlayShow` | overlay | event | `overlay:show` | `(payload: OverlayShowPayload) => void` | all |
@@ -1302,3 +1303,30 @@ A reset of the floating Glance card (glance-card-controller.js).
 | Field | Type | Notes |
 | --- | --- | --- |
 | `generation` | `number` | The generation from the last chrome:glance-layout applied. |
+
+### `BackdropLayer`
+
+One Start Page wallpaper layer's computed background (start-backdrop.js checks it).
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `color` | `string` |  |
+| `image` | `string` |  |
+| `size` | `string` |  |
+| `position` | `string` |  |
+| `repeat` | `string` |  |
+| `opacity` | `number` |  |
+| `fade` | `boolean` |  |
+
+### `PageBackdrop`
+
+The active Start Page's wallpaper for the Island's band to continue: the page's size and zoom, its layers, and the band's height above it.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `TabId` |  |
+| `zoom` | `number` |  |
+| `width` | `number` |  |
+| `height` | `number` |  |
+| `layers` | `BackdropLayer[]` |  |
+| `band` | `number` |  |

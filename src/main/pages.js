@@ -791,6 +791,11 @@ function setupPages(hooks = {}) {
     hooks.startPage?.wallpaperChanged?.();
     return wallpaperReply(event);
   });
+  // The Island's band continues this page's wallpaper (start-backdrop.js):
+  // the page reports its layers; main answers with the band above it (0
+  // where the band stands aside) and paints the strip's copy itself.
+  handleEvent('pages:start:backdrop', 'newtab', (event, spec) =>
+    hooks.startPage?.backdrop?.(event.sender, spec) ?? { band: 0 });
   handleEvent('pages:start:open-mahjong', 'newtab', (event, background) =>
     hooks.startPage?.openMahjong?.(event.sender, background === true) === true);
   handle(

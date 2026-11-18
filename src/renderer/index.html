@@ -129,6 +129,10 @@
       </div>
       <div id="windowControls" class="no-drag"></div>
       <div id="glanceStatus" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+      <!-- The active Start Page's wallpaper continued behind the band
+           (renderer.js paintBandBackdrop): its layers, laid out from the
+           band's top over the page's size, clipped to the band above it. -->
+      <div id="bandBackdrop" aria-hidden="true" hidden><div class="band-backdrop-box"><div></div><div></div><div></div><div></div></div></div>
     </div>
     <!-- Split View (F53): one header band per pane and the dividers, drawn in
          the space the page views leave free (spec D5). -->

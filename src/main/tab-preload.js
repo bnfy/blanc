@@ -103,6 +103,10 @@ if (window.location.protocol === 'blanc:') {
         setShortcutCount: (count) => invoke('pages:start:set-shortcut-count', count),
         setWidgetPlace: (left, right) => invoke('pages:start:set-widget-place', left, right),
         setWidgetSize: (card, size) => invoke('pages:start:set-widget-size', card, size),
+        reportBackdrop: (spec) => invoke('pages:start:backdrop', spec),
+        onBackdropBand: (callback) => {
+          ipcRenderer.on('pages:start:backdrop-band', (_event, band) => callback(band));
+        },
         setDynamicWallpaper: (enabled) => invoke('pages:start:set-dynamic-wallpaper', enabled),
         wallpaper: () => invoke('pages:start:wallpaper'),
         setWallpaper: (source) => invoke('pages:start:set-wallpaper', source),
