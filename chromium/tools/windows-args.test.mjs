@@ -9,11 +9,13 @@ const parse = file => Object.fromEntries(fs.readFileSync(new URL(`args/${file}`,
   .map(line => line.replace(/#.*/, '').trim()).filter(Boolean)
   .map(line => { const [key, value] = line.split(/\s*=\s*/); return [key, JSON.parse(value)]; }));
 
-// The Mac preview's arguments plus the platform, so the two previews differ
-// only by platform. A new argument here is a reviewed change.
+// The Mac preview's arguments plus the platform and the Windows version
+// resources' BRANDING file (W2 A1), so the two previews differ only by
+// platform. A new argument here is a reviewed change.
 test('windows preview args pin the platform and match the Mac preview otherwise', () => {
   assert.deepEqual(parse('prototype-x64.gn'), {
     target_os: 'win', target_cpu: 'x64', is_debug: false, is_component_build: false, symbol_level: 0,
+    branding_file_path: '//blanc/branding/win/BRANDING',
   });
 });
 
