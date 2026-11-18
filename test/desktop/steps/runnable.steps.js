@@ -638,7 +638,9 @@ When('I open the downloads page', async function () {
 
 When('I activate that favorite', async function () {
   await this.call('clickFirstSheetLink');
-  await this.waitForState((s) => /^https?:/.test(activeUrl(s)));
+  // The tab leaves Favorites; a test address that doesn't resolve shows
+  // Blanc's error page for it, which still names the address.
+  await this.waitForState((s) => !activeUrl(s).startsWith('blanc://bookmarks/'));
 });
 
 When('the utility sheet contents are destroyed', async function () {
