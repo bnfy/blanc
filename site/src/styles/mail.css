@@ -483,6 +483,9 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 @media(hover:hover){.mail-reserve-button:hover{filter:brightness(1.07)}}
 .mail-reserve-button:focus-visible{outline:2px solid #e0c084;outline-offset:2px}
 .mail-reserve-button:disabled{opacity:.5;cursor:not-allowed;filter:none;transform:none}
+.mail-reserve-back{justify-self:start;padding:4px 0;border:0;background:none;color:var(--mail-band-muted);font:inherit;font-size:14px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+@media(hover:hover){.mail-reserve-back:hover{color:var(--mail-band-text)}}
+.mail-reserve-back:focus-visible{outline:2px solid #e0c084;outline-offset:2px;border-radius:4px}
 .mail-reserve-done p,.mail-reserve [data-step=closed] p{margin:0;color:var(--mail-band-muted);font-size:15.5px;line-height:1.55}
 .mail-reserve .mail-reserve-address{color:var(--mail-band-text);font-size:clamp(24px,4vw,32px);font-weight:600;letter-spacing:-.015em;overflow-wrap:anywhere}
 .mail-reserve a{color:var(--mail-band-text)}

@@ -33,6 +33,7 @@ const ending = 'blnc.day';
       <label class="mail-reserve-label" for="mailReserveCode">We emailed you a 6-digit code</label>
       <input class="mail-reserve-input mail-reserve-code" id="mailReserveCode" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code">
       <button class="mail-reserve-button" type="button" data-confirm>Confirm</button>
+      <button class="mail-reserve-back" type="button" data-back>Use a different email or send a new code</button>
     </div>
 
     <div class="mail-reserve-step mail-reserve-done" data-step="done" hidden>
@@ -93,19 +94,21 @@ const ending = 'blnc.day';
     document.head.append(script);
 
     const update = () => { reserve.disabled = !(available && token && email.value.trim()); };
-    email.addEventListener('input', update);
 
+    // The email goes with the check, so a name this email already asked for reads as
+    // available to them (coming back after a typo or a spent code).
     let timer: number | undefined;
-    name.addEventListener('input', () => {
+    const check = () => {
       available = false; update();
       availability.textContent = '';
       window.clearTimeout(timer);
       const asked = name.value.trim().toLowerCase();
+      const from = email.value.trim();
       if (asked.length < 3) return;
       timer = window.setTimeout(async () => {
         try {
-          const res = await post('availability', { localPart: asked });
-          if (asked !== name.value.trim().toLowerCase()) return;
+          const res = await post('availability', from ? { localPart: asked, email: from } : { localPart: asked });
+          if (asked !== name.value.trim().toLowerCase() || from !== email.value.trim()) return;
           const answer = await res.json();
           available = res.ok && answer.available === true;
           availability.textContent = available ? `${asked}@${form.dataset.ending} is available` : (MESSAGES[answer.reason ?? answer.error] ?? fallback);
@@ -113,6 +116,18 @@ const ending = 'blnc.day';
           update();
         } catch { availability.textContent = ''; }
       }, 400);
+    };
+    name.addEventListener('input', check);
+    email.addEventListener('input', check);
+
+    form.querySelector('[data-back]')!.addEventListener('click', () => {
+      status.textContent = '';
+      code.value = '';
+      // The first send spent the Turnstile token; a new code needs a new one.
+      (window as any).turnstile?.reset(widget); token = '';
+      show('name');
+      email.focus();
+      check();
     });
 
     form.addEventListener('submit', async (event) => {
