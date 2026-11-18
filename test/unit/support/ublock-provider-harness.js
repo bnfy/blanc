@@ -19,10 +19,15 @@ function createProviderHarness(t, { install = realPackage.installVerifiedPackage
   const sent = [];
   const states = [];
   const releases = new Map();
+  // Steps the provider has called into. A stage name is set before that
+  // stage's own file writes, so wait for the step, not the stage, before
+  // disposing: work still running would write into userData after teardown.
+  const reached = new Set();
   let ipc; let nextId = 1; let readyNode = false;
   const never = () => new Promise(() => {});
   // Resolves when the test releases a gated step; never settles for 'never'.
   const pass = step => {
+    reached.add(step);
     if (stall[step] === 'never') return never();
     if (!gates[step]) return Promise.resolve();
     return new Promise(resolve => releases.set(step, resolve));
@@ -95,7 +100,7 @@ function createProviderHarness(t, { install = realPackage.installVerifiedPackage
   const helper = () => created.views.map(view => view.webContents)
     .filter(wc => wc.url.endsWith('/blanc-bridge.html') && !wc.destroyed).at(-1);
   return {
-    provider, userData, created, sent, background, states, stall,
+    provider, userData, created, sent, background, states, stall, reached,
     release: step => { releases.get(step)?.(); releases.delete(step); },
     requests: () => sent.filter(item => item.message.kind === 'request'),
     answer(id, value = {}) { const wc = helper(); ipc({ sender: wc, senderFrame: wc.mainFrame }, { kind: 'decision', id, value }); },
