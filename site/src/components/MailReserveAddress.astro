@@ -3,7 +3,8 @@
 // docs/superpowers/specs/2026-11-18-address-reservations-design.md). Talks to the Mail
 // Worker's /mail/api/v1/reservations/* routes on blanc.day (same origin). Steps: a name
 // with a live availability line, then an email and Cloudflare Turnstile, then the
-// 6-digit code that confirms it. Nothing renders until PUBLIC_TURNSTILE_SITE_KEY is set,
+// 6-digit code that confirms it. It lives on /mail/reserve (owner: its own page, not
+// the Mail page). Nothing renders until PUBLIC_TURNSTILE_SITE_KEY is set,
 // so the block can't appear before the Worker can accept it. The privacy page's
 // "Blanc Mail address reservations" section describes this contract — change them together.
 const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
@@ -12,9 +13,6 @@ const ending = 'blnc.day';
 ---
 {siteKey && (
   <form class="mail-reserve" method="post" data-mail-reserve data-api={apiBase} data-sitekey={siteKey} data-ending={ending} novalidate>
-    <h3 class="mail-reserve-title">Reserve yours now</h3>
-    <p class="mail-reserve-lead">Free. Your name is held until addresses open, then for 30 days while you claim it.</p>
-
     <div class="mail-reserve-step" data-step="name">
       <label class="mail-reserve-label" for="mailReserveName">Your name</label>
       <span class="mail-reserve-field">
@@ -38,11 +36,11 @@ const ending = 'blnc.day';
 
     <div class="mail-reserve-step mail-reserve-done" data-step="done" hidden>
       <p class="mail-reserve-address" data-address></p>
-      <p>is yours until Blanc Mail addresses open. We’ve emailed you how to claim it. <a href="#pricing">See the plans</a></p>
+      <p>is yours until Blanc Mail addresses open. We’ve emailed you how to claim it. <a href="/mail#pricing">See the plans</a></p>
     </div>
 
     <div class="mail-reserve-step" data-step="closed" hidden>
-      <p>Blanc Mail addresses are open: <a href="#pricing">choose a plan</a> to get yours.</p>
+      <p>Blanc Mail addresses are open: <a href="/mail#pricing">choose a plan</a> to get yours.</p>
     </div>
 
     <p class="mail-reserve-status" role="status" aria-live="polite"></p>

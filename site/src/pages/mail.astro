@@ -5,7 +5,6 @@ import MailBar from '../components/MailBar.astro';
 import MailShot from '../components/MailShot.astro';
 import MailTeaser from '../components/MailTeaser.astro';
 import MailWaitlistForm from '../components/MailWaitlistForm.astro';
-import MailReserveAddress from '../components/MailReserveAddress.astro';
 import survey from '../data/mail-survey.json';
 import MailSurveyInvite from '../components/MailSurveyInvite.astro';
 import { checkoutHrefFor, priceFor, productFor } from '../data/mail-commerce.mjs';
@@ -73,6 +72,8 @@ const addressSteps = [
 // spec (§6, §7, §12.1) and Apple Mail spec (§8) allow, recorded in
 // docs/website-mail-claims-2026-11-17.md. Never "Blanc can't read your mail"
 // (owner), and nothing about other devices until it ships.
+// The reservation form has its own page; the address section links to it once it's open.
+const reservationsOpen = Boolean(import.meta.env.PUBLIC_TURNSTILE_SITE_KEY);
 const addressPoints = [
   { title: 'Your name, your ending', text: 'Pick a name and the ending you like: ', endings: ['blnc.day', 'blnc.page', 'blancmail.me', 'blancmail.co', 'blncmail.com'] },
   { badge: '15 GB', title: ' for your mail', text: 'Each address has 15 GB for your mail and its attachments.' },
@@ -174,7 +175,7 @@ const support = [
           </li>
         ))}
       </ul>
-      <MailReserveAddress />
+      {reservationsOpen && <a class="mail-reserve-cta" href="/mail/reserve">Reserve your address</a>}
     </section>
 
     <!-- The gilt that strokes every glyph on the page. -->

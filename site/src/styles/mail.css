@@ -460,9 +460,17 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
    The reservation block at the end of the address section, on the dark band
    (Blanc Mail repo spec 2026-11-18-address-reservations-design.md). Fields
    follow the dark waitlist's look; the button is the page's one gilt action. */
-.mail-reserve{max-width:520px;margin:64px auto 0;text-align:left}
-.mail-reserve-title{margin:0;color:var(--mail-band-text);font-size:22px;font-weight:600;letter-spacing:-.01em}
-.mail-reserve-lead{margin:8px 0 24px;color:var(--mail-band-muted);font-size:15.5px;line-height:1.55}
+.mail-reserve-page{width:min(560px,100%);text-align:center}
+.mail-reserve-page h1{margin-bottom:0}
+.mail-reserve-lead{max-width:46ch;margin:20px auto 0;color:var(--mail-band-muted);font-size:17px;line-height:1.6;text-wrap:balance}
+.mail-reserve-lead a{color:#e6cf9a}
+.mail-reserve{max-width:520px;margin:40px auto 0;text-align:left}
+.mail-reserve-facts{max-width:520px;margin:48px auto 0;padding:24px 0 0;border-top:1px solid #f2ead81a;list-style:none;text-align:left;display:grid;gap:12px}
+.mail-reserve-facts li{color:var(--mail-band-muted);font-size:14.5px;line-height:1.6}
+.mail-reserve-cta{display:inline-block;margin-top:48px;padding:13px 26px;border-radius:999px;background:var(--mail-gilt);color:#1b1306;font-size:16px;font-weight:600;text-decoration:none;box-shadow:inset 0 1px 0 #fff8e2b3,inset 0 -1px 0 #7a5a2699;transition:filter 160ms ease,transform 100ms ease-out}
+.mail-reserve-cta:active{transform:scale(.97)}
+@media(hover:hover){.mail-reserve-cta:hover{filter:brightness(1.07)}}
+.mail-reserve-cta:focus-visible{outline:2px solid #e0c084;outline-offset:3px}
 .mail-reserve-step{display:grid;gap:10px}
 .mail-reserve-step[hidden]{display:none}
 .mail-reserve-label{margin-top:6px;color:var(--mail-band-text);font-size:14px;font-weight:600}
