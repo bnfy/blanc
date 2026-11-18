@@ -230,7 +230,7 @@ base::DictValue RenameFolder(bookmarks::BookmarkModel* model, const base::Value&
   to.push_back(*segment);
   if (!Fits(to, folder)) return Refused("too-long");
   if (const auto* sibling = fav::FindChildFolder(model, folder->parent(), *segment, folder)) {
-    fav::MergeFolderInto(model, folder, sibling);
+    fav::MergeFolderInto(model, folder, sibling, bookmarks::metrics::BookmarkEditSource::kUser);
     fav::NormalizeFavoriteFolders(model);
     return Ok().Set("path", Joined(PathOf(model, sibling)));
   }
@@ -259,7 +259,7 @@ base::DictValue MoveFolder(bookmarks::BookmarkModel* model, const base::Value& p
   to.push_back(ShownName(folder));
   if (!Fits(to, folder)) return Refused("too-long");
   if (const auto* same = fav::FindChildFolder(model, parent, ShownName(folder), folder)) {
-    fav::MergeFolderInto(model, folder, same);
+    fav::MergeFolderInto(model, folder, same, bookmarks::metrics::BookmarkEditSource::kUser);
     fav::NormalizeFavoriteFolders(model);
     return Ok();
   }
@@ -303,11 +303,14 @@ base::DictValue MoveFavorites(bookmarks::BookmarkModel* model, const base::Value
   if (!ReadPath(path_value, &path)) return Refused("invalid");
   const auto* target = Resolve(model, path);
   if (!target) return Refused("missing");
+  // Account and local bookmarks are stored apart: a favorite never moves
+  // between them, and the answer says when one stayed where it was.
+  bool skipped = false;
   for (const auto* node : ReadFavorites(model, ids)) {
-    if (FavoriteStorageOtherRoot(model, node) != FavoriteStorageOtherRoot(model, target)) continue;
+    if (FavoriteStorageOtherRoot(model, node) != FavoriteStorageOtherRoot(model, target)) { skipped = true; continue; }
     if (node->parent() != target) model->Move(node, target, target->children().size());
   }
-  return Ok();
+  return skipped ? Refused("invalid") : Ok();
 }
 
 // reorder(path, keys): the listed children first, in that order.

@@ -5347,13 +5347,12 @@ class NewTabHandler : public content::WebUIMessageHandler,
     if (method == "openSheet" && args.size() == 1 && args[0].is_string()) {
       auto* browser = GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(contents);
       // The Favorites link opens Favorites in this tab, as shipping's
-      // blanc://bookmarks/ link does (#1614); a private Start Page opens it
-      // in a regular window instead.
+      // blanc://bookmarks/ link does (#1614). A private Start Page never
+      // gets here (it is refused this method above).
       if (args[0].GetString() == "bookmarks" && browser &&
           browser->GetTabStripModel()->GetActiveWebContents() == contents) {
-        if (profile->IsOffTheRecord()) OpenFavoritesTab(browser);
-        else contents->GetController().LoadURL(GURL(kFavoritesPageUrl), content::Referrer(),
-                                                ui::PAGE_TRANSITION_LINK, std::string());
+        contents->GetController().LoadURL(GURL(kFavoritesPageUrl), content::Referrer(),
+                                          ui::PAGE_TRANSITION_LINK, std::string());
         Reply(id, true, base::Value(""));
         return;
       }

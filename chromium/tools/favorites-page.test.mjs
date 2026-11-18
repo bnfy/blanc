@@ -101,7 +101,11 @@ test('every call the adapter sends has a handler, and the handler answers only i
   const gate = /Profile\* PageProfile\(\) \{([\s\S]*?)\n  \}/.exec(handler)[1];
   for (const part of ['IsOffTheRecord()', 'GetPrimaryMainFrame()', 'IsFavoritesPage(frame->GetLastCommittedURL())'])
     assert.ok(gate.includes(part), part);
-  assert.match(handler, /if \(!CanEditFavorites\(profile\)\) \{ Reply\(id, false/);
+  const gateAt = handler.search(/if \(!CanEditFavorites\(profile\)\) \{ Reply\(id, false/);
+  assert.ok(gateAt > 0, 'the editing policy gate');
+  // Imports write favorites, so they sit behind the same gate.
+  for (const method of ['browserSources', 'importBrowser', 'importEntries', 'createFolder', 'edit'])
+    assert.ok(handler.indexOf(`method == "${method}"`) > gateAt, method);
   assert.match(read('blanc/browser/ui/blanc_prototype_ui.cc'),
     /constexpr char kFavoritesPageUrl\[\] = "chrome:\/\/blanc-prototype\/pages\/bookmarks\.html";/);
 });

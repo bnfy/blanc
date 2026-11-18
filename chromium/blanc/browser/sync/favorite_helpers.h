@@ -221,11 +221,14 @@ inline std::optional<std::string> FavoriteFolderPath(const bookmarks::BookmarkNo
 }
 
 // Moves every child of `from` to the end of `into`, then removes `from`.
+// `source` is kUser when a person asked for it, kOther for normalization.
 inline void MergeFolderInto(bookmarks::BookmarkModel* model, const bookmarks::BookmarkNode* from,
-                            const bookmarks::BookmarkNode* into) {
+                            const bookmarks::BookmarkNode* into,
+                            bookmarks::metrics::BookmarkEditSource source =
+                                bookmarks::metrics::BookmarkEditSource::kOther) {
   while (!from->children().empty())
     model->Move(from->children().front().get(), into, into->children().size());
-  model->Remove(from, bookmarks::metrics::BookmarkEditSource::kOther, FROM_HERE);
+  model->Remove(from, source, FROM_HERE);
 }
 
 // One editable folder that breaks the path rules, or null: a name holding
