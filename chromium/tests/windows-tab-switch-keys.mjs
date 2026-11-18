@@ -58,7 +58,11 @@ try{
  realInput([...holdKeySteps(VK.control,[VK.tab]),...frontAppSteps(),...releaseKeySteps(VK.control)]);
  await pause(400);
  const afterFront=await active();
- record.checks.anotherAppCancels=afterFront===before;record.details.anotherApp={before,after:afterFront};
+ // The Control release went to the other app, so an unchanged tab alone
+ // proves nothing: the switch itself must have ended (no pick, no card).
+ const switcher=await w.hostEval('window.BlancPrototypeHost.tabSwitchState()');
+ record.checks.anotherAppCancels=afterFront===before&&switcher.pick===null&&switcher.card===false;
+ record.details.anotherApp={before,after:afterFront,switcher};
 }catch(error){failure=error;record.error=String(error.stack||error);}
 finally{
  spawnSync('taskkill.exe',['/F','/IM','notepad.exe'],{stdio:'ignore'});
