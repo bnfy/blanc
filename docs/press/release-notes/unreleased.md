@@ -1,8 +1,7 @@
 # Unreleased notes
 
-Changes merged since v1.49.1 are included in the prepared
-[v1.50.0 release notes](v1.50.0.md). No additional release changes are
-recorded here.
+v1.50.0 is the current public release ([notes](v1.50.0.md)). Changes merged
+since then are below as they're recorded.
 
 ## Still open from 1.50
 

@@ -636,6 +636,21 @@ original reports:
   packaged build before release. With vertical tabs on a Mac, the Space mark
   sits on its own row below the window controls. Describe New Tab reuse as
   since v1.49.1.
+- **1.50.0:** Favorites opens a manager with folders inside folders (sidebar
+  tree, drag and drop, multi-select, search across folders); one **Bring my
+  stuff to Blanc** dialog imports favorites and open tabs and keeps another
+  browser's nested folders in its order; the Favorites menu nests folders and
+  `/save` takes a path. Drag and drop was driven only by page events, never
+  a real mouse, before release, and phones, older desktops and the Chromium
+  fork show a nested folder as one folder named by its path (D40). Websites
+  ask before connecting to apps on this device or devices on the local
+  network, per site, revocable in Settings → Privacy → Site permissions;
+  the gate classifies by name, so a public name that resolves to a private
+  address isn't gated, and it was never tried with a real Okta Verify, so
+  don't claim Okta FastPass works. Downloads save straight to the Downloads
+  folder (one per real click; page-started downloads and Save Image As still
+  ask), with **Ask where to save each file** in Settings → General. Describe
+  all three as since v1.50.0.
 - **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
   (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
   strip so the page fills the window. Pointing at or just above the top edge,
