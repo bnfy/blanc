@@ -79,7 +79,7 @@ class Watcher : public ui::EventHandler, public views::WidgetObserver {
       // The top-level window this key went to, for Watch().
       auto* target = static_cast<aura::Window*>(event->target());
       const aura::WindowTracker::WindowList previous = key_window_.windows();
-      for (auto* window : previous) key_window_.Remove(window);
+      for (aura::Window* window : previous) key_window_.Remove(window);
       if (target && target->GetToplevelWindow()) key_window_.Add(target->GetToplevelWindow());
       current_ = event->key_code() == ui::VKEY_TAB && event->IsControlDown() && !event->IsAltDown()
                      ? TabSwitchKey::kCtrlTab
