@@ -378,9 +378,11 @@
 #include "components/page_load_metrics/browser/page_load_tracker.h"
 #include "third_party/blink/public/common/use_counter/use_counter_feature.h"
 #include "third_party/blink/public/mojom/use_counter/metrics/web_feature.mojom.h"
+#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
+#include "blanc/browser/ui/tab_switch_keys.h"
+#endif
 #if BUILDFLAG(IS_MAC)
 #include "blanc/browser/ui/app_menus_mac.h"
-#include "blanc/browser/ui/tab_switch_keys_mac.h"
 #include "blanc/browser/ui/window_buttons_mac.h"
 #endif
 #include "ui/base/resource/resource_bundle.h"
@@ -1252,7 +1254,14 @@ class Owner : public base::SupportsUserData::Data,
     static base::NoDestructor<std::set<Owner*>> owners;
     return *owners;
   }
-  ~Owner() override { ForgetMiniWindow(browser); Live().erase(this); }
+  ~Owner() override {
+    ForgetMiniWindow(browser);
+    Live().erase(this);
+#if !BUILDFLAG(IS_MAC)
+    base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
+        FROM_HERE, base::BindOnce(&CloseHoldsIfNoOrdinaryWindow));
+#endif
+  }
   // Chromium's app menu, opened from the strip's menu button where the
   // Island draws one (Windows and Linux; the Mac has its menu bar). The menu
   // points into its model, so the model is declared first and outlives it.
@@ -7840,7 +7849,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (args.size() == 2) next.Set("mapping", args[1].GetDict().Clone());
       const bool ok = SaveGestureSettings(profile, next);Reply(id, ok, base::Value(std::move(before)));return;
     }
-#if BUILDFLAG(IS_MAC)
+#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
     // F59: one key of a Ctrl+Tab gesture, posted to this app's own event
     // queue for this window, so the real key path runs (the Select Next Tab
     // command and the Control-release watcher). Nothing leaves the process.
@@ -14311,6 +14320,35 @@ bool IsHoldWindow(BrowserWindowInterface* browser) {
   return hold && hold->IsWindow(browser);
 }
 
+// W2 A2: on Windows and Linux, closing the last ordinary window quits Blanc,
+// as shipping does there and Cmd+Q does on the Mac. Held Space pages and
+// Recently closed live in a hidden window per profile, and mini windows don't
+// count (shipping's rule), so neither may keep the browser running alone.
+// Other windows (a page's popup, DevTools) keep it running as in Chromium.
+bool ShouldCloseHolds(const std::vector<BrowserKind>& remaining) {
+  return std::ranges::none_of(remaining, [](BrowserKind kind) { return kind == BrowserKind::kOrdinary; });
+}
+
+void CloseHoldsIfNoOrdinaryWindow() {
+#if !BUILDFLAG(IS_MAC)
+  std::vector<BrowserKind> kinds;
+  std::vector<base::WeakPtr<BrowserWindowInterface>> closing;
+  GlobalBrowserCollection::GetInstance()->ForEach([&](BrowserWindowInterface* browser) {
+    if (browser->IsDeleteScheduled()) return true;
+    const BrowserKind kind = IsHoldWindow(browser) ? BrowserKind::kHold
+                           : IsMiniWindow(browser) ? BrowserKind::kMini
+                           : IsIslandWindow(browser) ? BrowserKind::kOrdinary
+                                                     : BrowserKind::kOther;
+    kinds.push_back(kind);
+    if (kind == BrowserKind::kHold || kind == BrowserKind::kMini) closing.push_back(browser->GetWeakPtr());
+    return true;
+  });
+  if (!ShouldCloseHolds(kinds)) return;
+  for (auto& browser : closing)
+    if (browser) browser->GetWindow()->Close();
+#endif
+}
+
 void AddProtectedMediaObserver(page_load_metrics::PageLoadTracker* tracker) {
   if (IsEnabled()) tracker->AddObserver(std::make_unique<ProtectedMediaObserver>());
 }
@@ -14378,7 +14416,7 @@ content::WebContents* ReuseNewTab(BrowserWindowInterface* browser, bool is_priva
 // positional step: the setting on "list", another key (Ctrl+PageDown, the ⌘
 // shortcuts), a menu click, or a window without the Island.
 bool TabSwitchCommand(BrowserWindowInterface* browser, int direction) {
-#if BUILDFLAG(IS_MAC)
+#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
   if (!IsIslandWindow(browser) ||
       browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetString(kTabSwitchOrderPref) != "recent" ||
       blanc::CurrentTabSwitchKey() != blanc::TabSwitchKey::kCtrlTab) {

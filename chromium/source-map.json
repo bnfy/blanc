@@ -471,8 +471,8 @@
     "blanc/browser/ui/app_menus_mac.mm": "0cf9a3d8567de1023502517fea0437e78dbc6c4aa9a1899ab00914f273508aae",
     "blanc/browser/ui/billboard_clock_settings.inc": "57ce0ed0160903e1b90c3d65fd5cd7cd33218d5774a3b2d8fdb448b0d49c9892",
     "blanc/browser/ui/blanc_extensions_branding.h": "17d77bbc267d13477a24bd971021f2291c505567a32383229505c13b53238a02",
-    "blanc/browser/ui/blanc_prototype_ui.cc": "9373c2c2cdd409e7da47e8d286454ba52481bcd583a895d71f500f14f7f93d54",
-    "blanc/browser/ui/blanc_prototype_ui.h": "731de3b712f5bfe785a49298b70eba1e6102987d92d575210a98e47cbc71dc72",
+    "blanc/browser/ui/blanc_prototype_ui.cc": "939ab50c51d56b6a3adf8a444bb2ad3cfbd7a5635c29643399ed6a45d67e1c60",
+    "blanc/browser/ui/blanc_prototype_ui.h": "a7bd2d96f0fb3a146a3485ed544e2011a4c16258abc046d8612c33eb196673ae",
     "blanc/browser/ui/blanc_quiet_media.h": "f7fadb778aef96b28c8fb80dda2104897789b510ad2a34abc5adf9cde8761c5f",
     "blanc/browser/ui/blanc_quiet_probe.h": "47467fe0a2004e804cda235613a0aea6b88d494b84b3608bf6af991a6aa07dfd",
     "blanc/browser/ui/blanc_quiet_schedule.h": "f5e3c6919a752eb63393cd7c1d4e54436746ce79179fb3d16fbd2df7c0c3fcc4",
@@ -530,8 +530,9 @@
     "blanc/browser/ui/tab_import.inc": "f521ce9300d7fb68741c23bb61a3b1f17ed153d8cb398a3f2378c17b47bbcaad",
     "blanc/browser/ui/tab_import_controller.inc": "35b47f12acbdefe2386ca2b0b66904dd1b1c6efbaceeb3690566bff84930c7a9",
     "blanc/browser/ui/tab_import_runner.inc": "607da34150874254dcfe0786c7e11ffc8be965f7504cd45b55cdc4b4f37b9f8c",
-    "blanc/browser/ui/tab_switch_keys_mac.h": "c42b550af8c6eab6768a3ed9fef17ec53cc5f44310d9beeadb9cdb777e0a6ae3",
-    "blanc/browser/ui/tab_switch_keys_mac.mm": "e5194a514d2d115a74aa9d2ef0bf13fb0b778ad99729b1aeef5497eff9c89497",
+    "blanc/browser/ui/tab_switch_keys.h": "d29f4a53c339968b305cefd27e2dffc16dc70d3fe33420fa464842a16a444207",
+    "blanc/browser/ui/tab_switch_keys_mac.mm": "c224532f46c89fccf72ec66cff101173c97ad6e4ea6e33c7aa0fef1929b6c5ce",
+    "blanc/browser/ui/tab_switch_keys_win.cc": "7372dc2080c54cef386dbd7ba93ae9c856c50de0cc598d6a1b230308a7c3487c",
     "blanc/browser/ui/telemetry.inc": "2009027bfeb5ea3c28966e1353c5cec5c652c474db3937e10522c12a78c5c1c2",
     "blanc/browser/ui/trust_receipt.inc": "9f3b4517ebed8cca017153990d481d9b121f5f36e632a0b1fde577aab9c703c0",
     "blanc/browser/ui/ui_language.h": "19312e351fd6cee2c7e542d28783034203f271f38a9cc80e0dcfa95b23b1d268",
@@ -856,7 +857,7 @@
     "blanc/third_party/sparkle/README.chromium": "2003e66319a8bad6aef7ad30665fdb380aaeceaf481464de186b3cc4a121800a",
     "blanc/third_party/sparkle/README.md": "417d8855bc37c6eeebedb80601968937f7fb44ba1e89200c28642654c166cd29",
     "blanc/third_party/sparkle/verify.py": "146fc2e1053deb0f3b1aad1d3719edc4d87d7b2fb6936fff717d5ea953a2312d",
-    "blanc/ui.gni": "4179bacef0d6c936e9422ddf2be9010ac68a6c7da2d0c47082eb798986481514"
+    "blanc/ui.gni": "bc451d9437733064e99ad58178a5fccc176004c76225fb724ab442d55b5e70c8"
   },
   "targetOwnership": "//blanc:ui routes to browser-boundary template target, respecting existing upstream visibility",
   "upstreamFiles": {
