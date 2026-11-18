@@ -90,10 +90,12 @@ export default function register(step){
  step('the OS prefers {string}',function(tag){this.fixture.extraArgs=['-AppleLanguages',`(${tag})`];this.osLanguageTag=tag;});
  step('German is selectable',async function(){
   // The candidate's own catalog file: from the asset directory it serves, or,
-  // with the Island compiled in (the Windows candidate), as the app serves it.
+  // with the Island compiled in (the Windows candidate), the fork tree's file
+  // the build embeds (the run records the embedded manifest's hash). The host
+  // page may not fetch it, and the catalog keeps its codes in a closure.
   const assets=this.fixture.config.assets;
-  const source=assets&&this.fixture.config.diskAssets!==false?fs.readFileSync(path.join(assets,'strings.js'),'utf8')
-   :await this.fixture.host.eval(`fetch('chrome://blanc-prototype/strings.js').then(r=>r.text())`);
+  const source=fs.readFileSync(assets&&this.fixture.config.diskAssets!==false?path.join(assets,'strings.js')
+   :new URL('../../blanc/island/strings.js',import.meta.url),'utf8');
   const codes=JSON.parse(/const codes=(\[[^\]]*\])/.exec(source)?.[1]??'[]');
   assert(codes.includes('de'),'the fork catalog should include German: '+codes);
  });

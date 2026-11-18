@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import {hostPlatform,chromeProfileRoot,processListCommand,parseProcessList,candidateIdentityFiles,candidateIdentity,freeMemoryText,runningBrowserMarker,linuxTaggedScenarioRuns} from './lib/platform.mjs';
+import {hostPlatform,chromeProfileRoot,processListCommand,parseProcessList,candidateIdentityFiles,candidateIdentity,freeMemoryText,runningBrowserMarker,linuxTaggedScenarioRuns,readHeldFile} from './lib/platform.mjs';
 import {freePercent} from './lib/memory-guard.mjs';
 
 test('the host platform uses the tracker\'s names, and an unknown host stops', () => {
@@ -105,4 +105,15 @@ test('a held key is a down step, the keys in between, and an up step', async () 
   ]);
   assert.deepEqual(holdKeySteps(0x11, [], {release: true}), [{do: 'keydown', vk: 0x11}, {do: 'sleep', ms: 80}, {do: 'keyup', vk: 0x11}, {do: 'sleep', ms: 200}]);
   assert.deepEqual(frontAppSteps(), [{do: 'front'}, {do: 'sleep', ms: 500}]);
+});
+test('a file the browser holds open is read through a shadow copy on Windows only', () => {
+  const busy = () => { throw Object.assign(new Error('EBUSY: resource busy or locked'), {code: 'EBUSY'}); };
+  const copies = [];
+  const copy = file => { copies.push(file); return Buffer.from('copied'); };
+  assert.equal(String(readHeldFile('a', {platform: 'win32', read: busy, copyHeld: copy})), 'copied');
+  assert.deepEqual(copies, ['a']);
+  assert.throws(() => readHeldFile('a', {platform: 'darwin', read: busy, copyHeld: copy}), /EBUSY/);
+  assert.equal(String(readHeldFile('a', {platform: 'win32', read: () => Buffer.from('plain'), copyHeld: copy})), 'plain');
+  const missing = () => { throw Object.assign(new Error('ENOENT'), {code: 'ENOENT'}); };
+  assert.throws(() => readHeldFile('a', {platform: 'win32', read: missing, copyHeld: copy}), /ENOENT/);
 });

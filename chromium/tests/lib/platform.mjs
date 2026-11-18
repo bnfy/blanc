@@ -1,6 +1,7 @@
 // What differs between the machines the fork's suite runs on: the owner's
 // Mac, and a hosted Windows runner (docs/superpowers/specs/2026-11-17-windows-fork-design.md).
 // Everything else in the harness is the same code on every platform.
+import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {execFileSync,spawn} from 'node:child_process';
@@ -34,6 +35,19 @@ export function linuxTaggedScenarioRuns(tags,name,platform=process.platform){
  if(tags.includes('@F45-7'))return platform==='linux';
  if(!tags.includes('@test-platform-linux'))return true;
  return platform==='linux'||(platform==='win32'&&/\bWindows\b/.test(name));
+}
+// Windows refuses to open a file another process holds without sharing it
+// (the browser's session and cache files while it runs). An administrator can
+// still copy it through a volume shadow copy, as the hosted runner is; other
+// platforms never refuse, so an error there stands.
+export function copyHeldFile(file){
+ const folder=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-held-'));const copy=path.join(folder,path.basename(file));
+ try{execFileSync('esentutl.exe',['/y',file,'/d',copy,'/vss','/o'],{stdio:'ignore',timeout:120000});return fs.readFileSync(copy);}
+ finally{fs.rmSync(folder,{recursive:true,force:true});}
+}
+export function readHeldFile(file,{platform=process.platform,read=fs.readFileSync,copyHeld=copyHeldFile}={}){
+ try{return read(file);}
+ catch(error){if(platform!=='win32'||!['EBUSY','EPERM'].includes(error.code))throw error;return copyHeld(file);}
 }
 // Every process as "pid command line", one per line.
 export function processListCommand(platform=process.platform){

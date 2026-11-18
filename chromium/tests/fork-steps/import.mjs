@@ -5,7 +5,7 @@ import {sessionBytes} from '../lib/import-fixture.mjs';
 import {importSheet} from '../adapters/import.mjs';
 import {installDriver,nativeCall} from '../lib/test-driver.mjs';
 import {jsLiteral} from '../lib/js-literal.mjs';
-import {chromeProfileRoot,runningBrowserMarker} from '../lib/platform.mjs';
+import {chromeProfileRoot,runningBrowserMarker,readHeldFile} from '../lib/platform.mjs';
 // A running Chrome, as each platform's Chrome marks its profile folder.
 const runningMarker=runningBrowserMarker();
 const markChromeRunning=root=>{const file=path.join(root,runningMarker.name);
@@ -104,7 +104,7 @@ export default register=>{
  register('no migration secret enters persistence, sync, telemetry, or logs',async function(){
   // Candidate URLs contain this unique marker and were never opened.
   const needle='import-0';const files=[];const walk=p=>{for(const e of fs.readdirSync(p,{withFileTypes:true})){const f=path.join(p,e.name);if(e.isDirectory())walk(f);else if(e.isFile()&&fs.statSync(f).size<16*1024*1024)files.push(f);}};walk(this.fixture.profile);
-  const hits=files.filter(f=>fs.readFileSync(f).includes(Buffer.from(needle)));assert.deepEqual(hits,[]);
+  const hits=files.filter(f=>readHeldFile(f).includes(Buffer.from(needle)));assert.deepEqual(hits,[]);
  });
  register('I reviewed the maximum 500 open-tab candidates',async function(){
   await reviewed(this,500);
