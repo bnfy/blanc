@@ -3684,8 +3684,9 @@ Patch 0098; names in `windows/identity.md`.
 | 5. Uninstall removes it, keeps its data, leaves Electron Blanc working | Pass | `install.json` |
 | 6. Crash capture recorded | Captured: Crashpad writes renderer and browser dumps locally (Chromium's docs said a cross build could not) | run 44234145350, `crash.json` |
 
-Not checked: Settings → Default apps listing and choosing the preview (needs a
-real desktop session).
+Full suite on this candidate: 591 of 667 pass, nothing that passed on the
+Part A build fails (run 44236176647). Not checked: Settings → Default apps
+listing and choosing the preview (needs a real desktop session).
 
 ## Android
 Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
@@ -4371,7 +4372,7 @@ on that site, and a wrong search address still fails it.
 | Platform | Current-candidate baseline |
 | --- | --- |
 | macOS | 635/667 executable cases pass; 1 failed; 3 undefined/not run; 28 excluded — [baseline](scenarios/baseline-macos-1400e3914b1a7bdf.json)<br>S1 rows: 260/263 pass; 0 failed; 1 undefined; 2 excluded |
-| Windows | Not run for current candidate (previous baseline is stale) |
+| Windows | 591/667 executable cases pass; 47 failed; 23 undefined/not run; 6 excluded — [baseline](scenarios/baseline-windows-x64-e42f9e5a532cdf96.json)<br>S1 rows: 251/263 pass; 10 failed; 2 undefined; 0 excluded |
 | Linux | Not run (667 cases) |
 
 667 executable cases from 618 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.

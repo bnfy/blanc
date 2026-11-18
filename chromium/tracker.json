@@ -2548,12 +2548,12 @@
       "dllSha256": "e42f9e5a532cdf96b9e1f6c382012fefc7f4510a9a34cf0c43f5b64893847bd2",
       "version": "158.0.8127.2",
       "treeCommit": "985d855bc784fd930554f8da3484914353438962",
-      "qualification": "cross-compiled candidate; runtime acceptance pending"
+      "qualification": "W1 Parts A and B (frame, Windows caption buttons, app menu, strip drag; own identity, Sunrise icon, Chromium installer): install check 11 of 11 (run 44235371094), frame check 15 of 15; full suite on a 1920x1080 runner display, 2026-11-18 (run 44236176647, fork 575ef3d11, shipping v1.49.1): 591 of 667 cases pass, 47 fail, 23 undefined, 6 excluded"
     }
   },
   "baselines": {
     "macos": "scenarios/baseline-macos-1400e3914b1a7bdf.json",
-    "windows": "scenarios/baseline-windows-x64-ec914b7ca4b925a1.json"
+    "windows": "scenarios/baseline-windows-x64-e42f9e5a532cdf96.json"
   },
   "scenarioIds": [
     "spec/acceptance/F41-named-workspaces.feature:4",

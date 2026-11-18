@@ -1,9 +1,9 @@
 {
  "slice": "S1",
  "platform": "windows",
- "candidate": "windows-x64-ec914b7ca4b925a1",
+ "candidate": "windows-x64-e42f9e5a532cdf96",
  "shippingCommit": "673ff2eb052011b1efd14438a397a57d457de241",
- "forkCommit": "2a80b319753deb454229b9fad8942ca4f9569acb",
+ "forkCommit": "575ef3d11aed137c2eb8c6c38fbc501148a4d0df",
  "merges": [],
  "summary": {
   "pass": 251,
@@ -48,7 +48,8 @@
     },
     {
      "id": "spec/acceptance/ad-blocking.feature:77:plain",
-     "result": "pass"
+     "result": "pass",
+     "retried": true
     },
     {
      "id": "spec/acceptance/ad-blocking.feature:83:plain",
@@ -268,7 +269,8 @@
     },
     {
      "id": "spec/acceptance/glance.feature:264:plain",
-     "result": "pass"
+     "result": "pass",
+     "retried": true
     },
     {
      "id": "spec/acceptance/glance.feature:280:plain",
@@ -1242,7 +1244,8 @@
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:11:plain",
-     "result": "pass"
+     "result": "pass",
+     "retried": true
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:19:plain",

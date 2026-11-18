@@ -198,6 +198,24 @@
    "Chromium's installer registers the preview for more URL schemes than Electron Blanc does (mailto, tel, irc and others, as Chrome does). These are capabilities in Default Programs, not defaults.",
    "Uninstall exit code 19 is Chromium's UNINSTALL_SUCCESSFUL.",
    "Settings > Default apps listing and choosing the preview are not checked: a hosted runner has no interactive Settings session."
-  ]
+  ],
+  "suite": {
+   "run": "chromium-windows-candidate.yml 44236176647",
+   "display": "1920 x 1080",
+   "baseline": "scenarios/baseline-windows-x64-e42f9e5a532cdf96.json",
+   "executableSummary": {
+    "pass": 591,
+    "fail": 47,
+    "undefined": 23,
+    "excluded": 6
+   },
+   "comparedWithPartA": "no case that passed on the Part A build fails; browser-migration.feature:35 passes now"
+  }
+ },
+ "partC": {
+  "dryRun": {
+   "run": "chromium-windows-candidate.yml 44239586219",
+   "result": "The runner unpacked mini_installer.exe (resources B7 CHROME.PACKED.7Z and BL SETUP.EX_, language 1033), packed it back with 7-Zip, makecab and Chromium's resedit.py, and the repacked, unsigned installer passed the install check 11 of 11; the installed files carry the build's hashes."
+  }
  }
 }

@@ -34,6 +34,11 @@ on:
         required: false
         default: false
         type: boolean
+      sign:
+        description: Sign the installer and every file in it with Azure Trusted Signing (waits for the fork-windows-signing environment's approval)
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -207,3 +212,147 @@ jobs:
           path: ${{ runner.temp }}/results
           if-no-files-found: warn
           retention-days: 14
+
+  # W1 Part C (chromium/windows/signing.md). A signed preview carries test
+  # hooks, so it stays on the runner and the unpublished draft release; it is
+  # never an Actions artifact. Runs only when asked, and only after the owner
+  # approves the run in the fork-windows-signing environment.
+  sign:
+    name: sign (windows x64)
+    if: ${{ inputs.sign }}
+    runs-on: windows-2025
+    timeout-minutes: 120
+    environment: fork-windows-signing
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      CANDIDATE_SHA256: ${{ inputs.sha256 }}
+      DRAFT_TAG: fork-windows-candidate
+      ASSET: blanc-windows-candidate.zip
+      SIGNED_ASSET: blanc-windows-installer-signed.exe
+      TRUSTED_SIGNING_VERSION: 0.5.8
+    steps:
+      - name: Validate inputs
+        run: |
+          if ($env:CANDIDATE_SHA256 -notmatch '^[0-9a-f]{64}$') { throw 'sha256 must be 64 lowercase hex digits.' }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Require every signing input
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_ENDPOINT: ${{ vars.AZURE_TRUSTED_SIGNING_ENDPOINT }}
+          AZURE_CODE_SIGNING_ACCOUNT: ${{ vars.AZURE_CODE_SIGNING_ACCOUNT_NAME }}
+          AZURE_CERT_PROFILE: ${{ vars.AZURE_CERTIFICATE_PROFILE_NAME }}
+          EXPECTED_PUBLISHER: ${{ vars.WINDOWS_EXPECTED_PUBLISHER }}
+        run: |
+          $missing = @('AZURE_TENANT_ID','AZURE_CLIENT_ID','AZURE_CLIENT_SECRET','AZURE_ENDPOINT','AZURE_CODE_SIGNING_ACCOUNT','AZURE_CERT_PROFILE','EXPECTED_PUBLISHER') | Where-Object { -not (Get-Item "env:$_" -ErrorAction SilentlyContinue).Value }
+          if ($missing) { throw "Signing is not configured; missing: $($missing -join ', '). Nothing was signed." }
+      - name: Download, verify and unpack the candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $draft = gh release view $env:DRAFT_TAG --repo $env:GITHUB_REPOSITORY --json isDraft --jq .isDraft
+          if ($LASTEXITCODE -ne 0 -or $draft -ne 'true') { throw "$env:DRAFT_TAG must exist and be an unpublished draft." }
+          gh release download $env:DRAFT_TAG --repo $env:GITHUB_REPOSITORY --pattern $env:ASSET --dir "$env:RUNNER_TEMP\candidate"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download the candidate.' }
+          $actual = (Get-FileHash "$env:RUNNER_TEMP\candidate\$env:ASSET" -Algorithm SHA256).Hash.ToLower()
+          if ($actual -ne $env:CANDIDATE_SHA256) { throw "The draft holds $actual, not the candidate asked for." }
+          New-Item -ItemType Directory "$env:RUNNER_TEMP\blanc" | Out-Null
+          tar -xf "$env:RUNNER_TEMP\candidate\$env:ASSET" -C "$env:RUNNER_TEMP\blanc"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not unpack the candidate.' }
+          if (-not (Test-Path "$env:RUNNER_TEMP\blanc\mini_installer.exe")) { throw 'The candidate has no mini_installer.exe.' }
+          "CANDIDATE_DIR=$env:RUNNER_TEMP\blanc" >> $env:GITHUB_ENV
+          "WORK=$env:RUNNER_TEMP\repack" >> $env:GITHUB_ENV
+          "SIGNED=$env:RUNNER_TEMP\signed" >> $env:GITHUB_ENV
+      - name: Install the tools
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $pin = "$env:RUNNER_TEMP\pywin32-requirements.txt"
+          'pywin32==312 --hash=sha256:b457f6d628a47e8a7346ce22acb7e1a46a4a78b52e1d17e1af56871bd19a93bc' | Set-Content $pin
+          python -m pip install --quiet --only-binary=:all: --require-hashes -r $pin
+          if ($LASTEXITCODE -ne 0) { throw 'Could not install pywin32.' }
+          Install-Module -Name TrustedSigning -RequiredVersion $env:TRUSTED_SIGNING_VERSION -Force -Repository PSGallery -Scope CurrentUser
+      - name: Unpack the installer
+        run: |
+          pwsh -NoProfile -File chromium/windows/repack-installer.ps1 -Phase unpack -Installer "$env:CANDIDATE_DIR\mini_installer.exe" -Work $env:WORK
+          if ($LASTEXITCODE -ne 0) { throw 'Unpacking the installer failed.' }
+      - name: Sign the files inside
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_ENDPOINT: ${{ vars.AZURE_TRUSTED_SIGNING_ENDPOINT }}
+          AZURE_CODE_SIGNING_ACCOUNT: ${{ vars.AZURE_CODE_SIGNING_ACCOUNT_NAME }}
+          AZURE_CERT_PROFILE: ${{ vars.AZURE_CERTIFICATE_PROFILE_NAME }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $files = @(Get-ChildItem "$env:WORK\Chrome-bin" -Recurse -File -Include *.exe,*.dll | ForEach-Object FullName) + "$env:WORK\setup.exe"
+          "Signing $($files.Count) files."
+          Invoke-TrustedSigning -Endpoint $env:AZURE_ENDPOINT -CodeSigningAccountName $env:AZURE_CODE_SIGNING_ACCOUNT -CertificateProfileName $env:AZURE_CERT_PROFILE `
+            -FileDigest SHA256 -TimestampRfc3161 'http://timestamp.acs.microsoft.com' -TimestampDigest SHA256 -Files ($files -join ',')
+      - name: Pack and sign the installer
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_ENDPOINT: ${{ vars.AZURE_TRUSTED_SIGNING_ENDPOINT }}
+          AZURE_CODE_SIGNING_ACCOUNT: ${{ vars.AZURE_CODE_SIGNING_ACCOUNT_NAME }}
+          AZURE_CERT_PROFILE: ${{ vars.AZURE_CERTIFICATE_PROFILE_NAME }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory $env:SIGNED | Out-Null
+          pwsh -NoProfile -File chromium/windows/repack-installer.ps1 -Phase pack -Installer "$env:CANDIDATE_DIR\mini_installer.exe" -Work $env:WORK -Output "$env:SIGNED\$env:SIGNED_ASSET"
+          if ($LASTEXITCODE -ne 0) { throw 'Packing the installer failed.' }
+          Invoke-TrustedSigning -Endpoint $env:AZURE_ENDPOINT -CodeSigningAccountName $env:AZURE_CODE_SIGNING_ACCOUNT -CertificateProfileName $env:AZURE_CERT_PROFILE `
+            -FileDigest SHA256 -TimestampRfc3161 'http://timestamp.acs.microsoft.com' -TimestampDigest SHA256 -Files "$env:SIGNED\$env:SIGNED_ASSET"
+      - name: Verify every signature
+        env:
+          EXPECTED_PUBLISHER: ${{ vars.WINDOWS_EXPECTED_PUBLISHER }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $files = @(Get-ChildItem "$env:WORK\Chrome-bin" -Recurse -File -Include *.exe,*.dll | ForEach-Object FullName) + "$env:WORK\setup.exe" + "$env:SIGNED\$env:SIGNED_ASSET"
+          $records = foreach ($file in $files) {
+            $signature = Get-AuthenticodeSignature -FilePath $file
+            if ($signature.Status -ne 'Valid') { throw "$file is not validly signed: $($signature.Status) $($signature.StatusMessage)" }
+            if ($signature.SignerCertificate.Subject -ne $env:EXPECTED_PUBLISHER) { throw "$file is signed by $($signature.SignerCertificate.Subject)" }
+            if (-not $signature.TimeStamperCertificate) { throw "$file has no timestamp." }
+            [ordered]@{ file = $file.Replace("$env:WORK\", '').Replace("$env:SIGNED\", ''); sha256 = (Get-FileHash $file -Algorithm SHA256).Hash.ToLower()
+              publisher = $signature.SignerCertificate.Subject; thumbprint = $signature.SignerCertificate.Thumbprint; timestamper = $signature.TimeStamperCertificate.Subject }
+          }
+          [ordered]@{ schemaVersion = 1; candidateZipSha256 = $env:CANDIDATE_SHA256; installer = $env:SIGNED_ASSET; files = @($records) } | ConvertTo-Json -Depth 4 | Set-Content "$env:SIGNED\windows-signature.json"
+          "Verified $(@($records).Count) signatures."
+      - name: Install check on the signed installer
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $shipping = "$env:RUNNER_TEMP\shipping"
+          gh release download v1.49.1 --repo $env:GITHUB_REPOSITORY --pattern 'Blanc-Setup-1.49.1.exe' --pattern 'SHA256SUMS' --dir $shipping
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download the shipping installer.' }
+          $expected = (Get-Content "$shipping\SHA256SUMS" | Where-Object { $_ -match 'Blanc-Setup-1\.49\.1\.exe$' }) -split '\s+' | Select-Object -First 1
+          if ((Get-FileHash "$shipping\Blanc-Setup-1.49.1.exe" -Algorithm SHA256).Hash.ToLower() -ne $expected.ToLower()) { throw 'The shipping installer does not match the release.' }
+          npm ci --ignore-scripts
+          if ($LASTEXITCODE -ne 0) { throw 'npm ci failed.' }
+          node chromium/tests/windows-install.mjs "$env:CANDIDATE_DIR" "$env:RUNNER_TEMP\results\install-signed" "$shipping\Blanc-Setup-1.49.1.exe" "--installer=$env:SIGNED\$env:SIGNED_ASSET"
+          if ($LASTEXITCODE -ne 0) { throw 'The signed installer failed the install check.' }
+          Get-Content "$env:RUNNER_TEMP\results\install-signed\install.json"
+      - name: Keep the signed installer on the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          gh release upload $env:DRAFT_TAG "$env:SIGNED\$env:SIGNED_ASSET" "$env:SIGNED\windows-signature.json" --repo $env:GITHUB_REPOSITORY --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'Could not upload the signed installer.' }
+          $sha = (Get-FileHash "$env:SIGNED\$env:SIGNED_ASSET" -Algorithm SHA256).Hash.ToLower()
+          "### Signed Windows preview installer", "", "- ``$env:SIGNED_ASSET`` SHA-256 ``$sha``, on the draft release ``$env:DRAFT_TAG`` (never published)" -join "`n" >> $env:GITHUB_STEP_SUMMARY
+
