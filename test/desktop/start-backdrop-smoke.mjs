@@ -44,7 +44,8 @@ const seam = (app) => app.evaluate(async ({ BrowserWindow, webContents }) => {
   return { mean: total / ((a.length / 4) * 3), x: bounds.x, y: bounds.y };
 });
 const strip = async (app) => {
-  const chrome = (await app.windows()).find((p) => p.url().startsWith('blanc-chrome://') && !p.url().includes('float'));
+  // The window's own strip document, not the overlay, a float view or Glance.
+  const chrome = (await app.windows()).find((p) => p.url() === 'blanc-chrome://index/');
   return chrome.evaluate(async () => {
     const backdrop = document.getElementById('bandBackdrop');
     const r = backdrop.getBoundingClientRect();
