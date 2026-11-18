@@ -12,7 +12,7 @@ const markChromeRunning=root=>{const file=path.join(root,runningMarker.name);
  if(runningMarker.kind==='symlink')fs.symlinkSync('synthetic-host-123',file);else fs.writeFileSync(file,'synthetic-host-123');};
 const chromeRunningMark=root=>{const file=path.join(root,runningMarker.name);
  return runningMarker.kind==='symlink'?fs.readlinkSync(file):fs.readFileSync(file,'utf8');};
-const page=(w,body)=>importSheet(w,`async()=>{${body}}`);
+const page=(w,body,timeout)=>importSheet(w,`async()=>{${body}}`,timeout);
 async function open(w){
  await w.call('openTabImport');
  await w.waitFor(()=>w.call('utilitySurface'),s=>s.visible&&s.ready&&s.url==='blanc://tab-import/','import sheet');
@@ -48,7 +48,9 @@ export default register=>{
  register('no tabs, groups, or Favorites have been created',async function(){assert.deepEqual(identities(await this.state()),identities(this.importBefore));assert.deepEqual(await this.call('bookmarkRecords'),this.importFavorites);});
  register('I reviewed selected open-tab candidates from multiple source windows',async function(){await reviewed(this);});
  register('I apply the tab migration',async function(){
-  this.importResult=await page(this,`return window.bowserPages.tabImport.apply(${jsLiteral(this.importProjection.sessionId)},${jsLiteral(this.importRequest)});`);
+  // Applying the 500-candidate maximum takes longer than one default
+  // evaluation on the slower Windows runner.
+  this.importResult=await page(this,`return window.bowserPages.tabImport.apply(${jsLiteral(this.importProjection.sessionId)},${jsLiteral(this.importRequest)});`,this.importRows.length>100?60000:undefined);
   if(this.importResult?.ok){await this.waitForState(s=>s.tabs.filter(t=>this.importResult.tabIds.includes(t.id)).length===this.importRows.length);}
  });
  register('imported tabs appear in source-window and source-tab order',async function(){

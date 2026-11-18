@@ -55,6 +55,16 @@ export function readHeldFile(file,{platform=process.platform,read=fs.readFileSyn
 export function initialWindowFlags(platform=process.platform){
  return platform==='win32'?['--window-size=1280,800']:[];
 }
+// The OS's preferred language for a launch, as each platform's Chromium reads
+// it: the AppleLanguages default on the Mac, --lang on Windows (interface
+// language and default page languages). Linux reads the environment, which
+// this harness doesn't fake.
+export function osLanguageFlags(tag,platform=process.platform){
+ if(!/^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$/.test(String(tag)))throw Error('Not a language tag: '+tag);
+ if(platform==='darwin')return ['-AppleLanguages',`(${tag})`];
+ if(platform==='win32')return [`--lang=${tag}`];
+ throw Error(`The OS language is not faked on ${platform}`);
+}
 // Every process as "pid command line", one per line.
 export function processListCommand(platform=process.platform){
  if(platform==='win32')return ['powershell.exe',['-NoProfile','-NonInteractive','-Command','Get-CimInstance Win32_Process | ForEach-Object { "$($_.ProcessId) $($_.CommandLine)" }']];

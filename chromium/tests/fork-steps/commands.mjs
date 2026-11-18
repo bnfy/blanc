@@ -6,6 +6,7 @@ import http from 'node:http';
 import path from 'node:path';
 import {tabPage} from '../adapters/core.mjs';
 import {inSettings} from '../adapters/commands.mjs';
+import {osLanguageFlags} from '../lib/platform.mjs';
 const overlay=w=>w.frame('overlay');
 const rows=w=>w.call('addressResultRows');
 // The Quick Switcher's own tag for a result kind, in the running language.
@@ -87,7 +88,7 @@ export default function register(step){
   const page=await tabPage(this,this.internalTabId);
   await this.waitFor(()=>palette(page),p=>p===name,'the internal page palette '+name,5000);
  });
- step('the OS prefers {string}',function(tag){this.fixture.extraArgs=['-AppleLanguages',`(${tag})`];this.osLanguageTag=tag;});
+ step('the OS prefers {string}',function(tag){this.fixture.extraArgs=osLanguageFlags(tag);this.osLanguageTag=tag;});
  step('German is selectable',async function(){
   // The candidate's own catalog file: from the asset directory it serves, or,
   // with the Island compiled in (the Windows candidate), the fork tree's file

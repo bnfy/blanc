@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import {hostPlatform,chromeProfileRoot,processListCommand,parseProcessList,candidateIdentityFiles,candidateIdentity,freeMemoryText,runningBrowserMarker,linuxTaggedScenarioRuns,readHeldFile,initialWindowFlags} from './lib/platform.mjs';
+import {hostPlatform,chromeProfileRoot,processListCommand,parseProcessList,candidateIdentityFiles,candidateIdentity,freeMemoryText,runningBrowserMarker,linuxTaggedScenarioRuns,readHeldFile,initialWindowFlags,osLanguageFlags} from './lib/platform.mjs';
 import {freePercent} from './lib/memory-guard.mjs';
 
 test('the host platform uses the tracker\'s names, and an unknown host stops', () => {
@@ -123,4 +123,12 @@ test('on Windows the browser opens at shipping\'s window size', () => {
   assert.deepEqual(initialWindowFlags('win32'), ['--window-size=1280,800']);
   assert.deepEqual(initialWindowFlags('darwin'), []);
   assert.deepEqual(initialWindowFlags('linux'), []);
+});
+test('the OS language is faked as each platform\'s Chromium reads it', () => {
+  // macOS: the AppleLanguages default; Windows: --lang, which Chromium uses for
+  // its interface language and the default page languages there.
+  assert.deepEqual(osLanguageFlags('de-DE', 'darwin'), ['-AppleLanguages', '(de-DE)']);
+  assert.deepEqual(osLanguageFlags('de-DE', 'win32'), ['--lang=de-DE']);
+  assert.throws(() => osLanguageFlags('de-DE', 'linux'), /not faked on linux/);
+  assert.throws(() => osLanguageFlags('de DE;', 'win32'), /language tag/);
 });

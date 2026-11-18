@@ -12,7 +12,7 @@ export function linkArcFolder(home,platform=process.platform,fsApi=fs){
  if(!fsApi.existsSync(windows))fsApi.symlinkSync(mac,windows,'junction');
  return true;
 }
-export const importSheet=(w,expression)=>w.hostEval(`(()=>{const window=globalThis.document.getElementById('sheet')?.contentWindow;const document=window?.document;if(!document||document.location.pathname!='/pages/tab-import.html')return null;return (${expression})();})()`);
+export const importSheet=(w,expression,timeout)=>w.hostEval(`(()=>{const window=globalThis.document.getElementById('sheet')?.contentWindow;const document=window?.document;if(!document||document.location.pathname!='/pages/tab-import.html')return null;return (${expression})();})()`,timeout);
 export const imports={
  openTabImport:w=>w.api('openPage',['tab-import']),
  arcImportPage:(w,expression)=>importSheet(w,expression),
