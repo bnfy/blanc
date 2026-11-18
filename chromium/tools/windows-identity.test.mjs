@@ -48,3 +48,18 @@ test('the Windows icon is the Electron app\'s Sunrise, byte for byte', () => {
   assert.equal(sha('../blanc/branding/win/blanc.ico'), sha('../../build/windows-icons/icon-sunrise.ico'));
   assert.equal((patch.match(/blanc\\+branding\\+win\\+blanc\.ico/g) ?? []).length, 2);
 });
+test('the Windows preview\'s BRANDING names Bananify Creative and Blanc Prototype', () => {
+  // chrome.exe, chrome.dll, setup.exe and mini_installer.exe take their
+  // version resources from the file `branding_file_path` names.
+  const branding = Object.fromEntries(read('../blanc/branding/win/BRANDING').split('\n')
+    .filter(line => line.includes('=')).map(line => [line.slice(0, line.indexOf('=')), line.slice(line.indexOf('=') + 1)]));
+  assert.equal(branding.COMPANY_FULLNAME, 'Bananify Creative');
+  assert.equal(branding.COMPANY_SHORTNAME, 'Bananify Creative');
+  assert.equal(branding.PRODUCT_FULLNAME, defines.BLANC_WIN_APP_NAME);
+  assert.equal(branding.PRODUCT_SHORTNAME, defines.BLANC_WIN_APP_NAME);
+  assert.equal(branding.PRODUCT_INSTALLER_FULLNAME, `${defines.BLANC_WIN_APP_NAME} Installer`);
+  assert.equal(branding.PRODUCT_INSTALLER_SHORTNAME, `${defines.BLANC_WIN_APP_NAME} Installer`);
+  assert.match(branding.COPYRIGHT, /Bananify Creative and The Chromium Authors/);
+  assert.ok(!Object.keys(branding).some(key => key.startsWith('MAC_')), 'a Windows-only file carries no Mac keys');
+  assert.match(read('../windows/args/prototype-x64.gn'), /^branding_file_path = "\/\/blanc\/branding\/win\/BRANDING"$/m);
+});

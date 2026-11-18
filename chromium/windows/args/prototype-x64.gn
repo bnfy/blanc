@@ -8,3 +8,7 @@ target_cpu = "x64"
 is_debug = false
 is_component_build = false
 symbol_level = 0
+# The version resources of chrome.exe, chrome.dll, setup.exe and the
+# installer name Bananify Creative and Blanc Prototype, not Chromium. A
+# Windows-only file: the Mac preview keeps Chromium's BRANDING.
+branding_file_path = "//blanc/branding/win/BRANDING"
