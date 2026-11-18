@@ -47,7 +47,28 @@ test('only a failed shortcut write re-reads the widgets', () => {
 test('Customize is capped to the room under the clock, with no floor', () => {
   const fit = body('fitCustomizeBelowClock');
   assert.doesNotMatch(fit, /Math\.max\(260/);
-  assert.match(fit, /popover\.style\.maxHeight = `\$\{Math\.max\(0, Math\.floor\(room\)\)\}px`;/);
+  assert.match(fit, /popover\.style\.maxHeight = `\$\{Math\.max\(0, Math\.floor\(roomAt\(scale\)\)\)\}px`;/);
+});
+
+// The clock gives way (owner, 2026-11-18): it scales down from its top while
+// Customize is open so Customize shows everything, never below half size, and
+// is full size again for Font & color, whose sheet shows the clock's changes.
+test('the clock scales just enough for Customize, from its top, never below half', () => {
+  const fit = body('fitCustomizeBelowClock');
+  assert.match(js, /const CUSTOMIZE_CLOCK_MIN_SCALE = 0\.5;/);
+  assert.match(fit, /const needed = cols\.scrollHeight \+ \(popover\.offsetHeight - cols\.clientHeight\);/);
+  assert.match(fit, /scale = Math\.min\(1, Math\.max\(CUSTOMIZE_CLOCK_MIN_SCALE, fits\)\);/);
+  assert.match(fit, /setCustomizeClock\(scale, clockHeight \* \(1 - scale\)\);/);
+  const css = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/pages.css'), 'utf8');
+  assert.match(css, /\.bb-clock-row \{\s*transform: translateX\(var\(--clock-optical, 0px\)\) scale\(var\(--customize-clock-scale, 1\)\);\s*transform-origin: top center;/);
+  assert.match(css, /#bbBlocked \{ transform: translateY\(var\(--customize-clock-lift, 0px\)\); \}/);
+});
+
+test('the clock grows back after Customize fades, and at once for Font & color', () => {
+  assert.match(body('returnCustomizeClock'), /customizeClockReturn = setTimeout\(\(\) => \{[\s\S]*?\}, 170\);/);
+  const sheet = body('openClockSheet');
+  assert.ok(sheet.indexOf("customize.classList.add('closing-now')") < sheet.indexOf('customize.hidePopover()'));
+  assert.ok(sheet.indexOf('returnCustomizeClock({ now: true })') < sheet.indexOf('clockPopover.showPopover()'));
 });
 
 test('Customize is fitted again whenever the page moves while it is open', () => {

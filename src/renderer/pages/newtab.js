@@ -1507,7 +1507,13 @@ for (const [slider, key] of [[clockWeight, 'weight'], [clockTone, 'tone'], [cloc
 // on the chosen font, ringed; opened with the pointer, it lands on the sheet
 // itself, so no ring shows until Tab moves into it.
 function openClockSheet(fromKeyboard) {
-  document.getElementById('customizePopover').hidePopover();
+  // Customize closes without its fade, and the clock is full size before the
+  // sheet opens beside it (fitCustomizeBelowClock).
+  const customize = document.getElementById('customizePopover');
+  customize.classList.add('closing-now');
+  customize.hidePopover();
+  returnCustomizeClock({ now: true });
+  requestAnimationFrame(() => customize.classList.remove('closing-now'));
   clockPopover.showPopover();
   if (fromKeyboard) clockFontPicks.find((button) => button.getAttribute('aria-pressed') === 'true')?.focus();
   else clockPopover.focus();
@@ -2023,21 +2029,49 @@ document.getElementById('shortcutStepper')?.addEventListener('keydown', (event) 
   event.preventDefault();
   stepShortcuts(delta);
 });
-// Customize never covers the clock, whose styling it changes: it takes at
-// most the room between the clock's bottom and its own button, and scrolls
-// inside if it needs more (owner, 2026-11-13).
+// Customize never covers the clock or the line under it (owner, 2026-11-13).
+// While it is open the clock gives way (owner, 2026-11-18): it scales down
+// from its top, and the line under it moves up with it, just enough for
+// Customize to show everything; Customize scrolls only when even the smallest
+// clock leaves too little room. The clock's own settings open in the Font &
+// color sheet, which closes Customize and shows the clock full size.
+const CUSTOMIZE_CLOCK_MIN_SCALE = 0.5;
+let customizeClockScale = 1;
+let customizeClockLift = 0;
+function setCustomizeClock(scale, lift) {
+  customizeClockScale = scale;
+  customizeClockLift = lift;
+  const root = document.documentElement;
+  root.style.setProperty('--customize-clock-scale', String(scale));
+  root.style.setProperty('--customize-clock-lift', `${-lift}px`);
+}
 function fitCustomizeBelowClock() {
   const popover = document.getElementById('customizePopover');
   const button = document.getElementById('customizeButton');
-  if (!popover || !button) return;
-  // The clock and the line under it both stay in view.
-  const clockBottom = [document.querySelector('.bb-clock-row'), document.getElementById('bbBlocked')]
-    .map((el) => el?.getBoundingClientRect())
-    .filter((rect) => rect && rect.height > 0)
-    .reduce((bottom, rect) => Math.max(bottom, rect.bottom), 0);
-  const room = button.getBoundingClientRect().top - 10 - clockBottom - 16;
+  const clockRow = document.querySelector('.bb-clock-row');
+  if (!popover || !button || !clockRow) return;
+  // Measured as laid out: the clock scales from its top (its top never
+  // moves), and the line under it is lifted by what the clock gave up.
+  const clockTop = clockRow.getBoundingClientRect().top;
+  const clockHeight = clockRow.offsetHeight;
+  const blocked = document.getElementById('bbBlocked')?.getBoundingClientRect();
+  const tail = blocked && blocked.height > 0
+    ? Math.max(0, blocked.bottom + customizeClockLift - (clockTop + clockHeight)) : 0;
+  const buttonTop = button.getBoundingClientRect().top;
+  const roomAt = (scale) => buttonTop - 10 - (clockTop + clockHeight * scale + tail) - 16;
+  let scale = 1;
+  const cols = document.getElementById('customizeCols');
+  if (popover.matches(':popover-open') && cols && clockHeight > 0) {
+    // All of Customize: its columns' content plus its own padding and border.
+    const needed = cols.scrollHeight + (popover.offsetHeight - cols.clientHeight);
+    if (needed > roomAt(1)) {
+      const fits = (buttonTop - 10 - 16 - needed - tail - clockTop) / clockHeight;
+      scale = Math.min(1, Math.max(CUSTOMIZE_CLOCK_MIN_SCALE, fits));
+    }
+  }
+  setCustomizeClock(scale, clockHeight * (1 - scale));
   // Never over the clock (owner, 2026-11-18): no floor; the columns scroll.
-  popover.style.maxHeight = `${Math.max(0, Math.floor(room))}px`;
+  popover.style.maxHeight = `${Math.max(0, Math.floor(roomAt(scale)))}px`;
   // Measured once the popover is laid out at that height (it may still be
   // opening).
   requestAnimationFrame(customizeFade);
@@ -2060,8 +2094,31 @@ const customizeFitObserver = new ResizeObserver(() => requestAnimationFrame(() =
 customizeFitObserver.observe(document.getElementById('layoutBillboard'));
 customizeFitObserver.observe(document.getElementById('bbWidgets'));
 customizeFitObserver.observe(document.getElementById('customizeCols'));
+// Closing: the clock grows back once Customize has faded (it never grows
+// under it). Opening Font & color skips the fade and the wait: the sheet
+// needs the clock at full size at once.
+let customizeClockReturn = 0;
+function returnCustomizeClock({ now = false } = {}) {
+  clearTimeout(customizeClockReturn);
+  if (customizeClockScale === 1) return;
+  if (now) {
+    document.body.classList.remove('customize-clock-easing');
+    setCustomizeClock(1, 0);
+    return;
+  }
+  customizeClockReturn = setTimeout(() => {
+    document.body.classList.add('customize-clock-easing');
+    setCustomizeClock(1, 0);
+    setTimeout(() => document.body.classList.remove('customize-clock-easing'), 260);
+  }, 170);
+}
 document.getElementById('customizePopover')?.addEventListener('beforetoggle', (event) => {
-  if (event.newState === 'open') fitCustomizeBelowClock();
+  if (event.newState === 'open') {
+    clearTimeout(customizeClockReturn);
+    fitCustomizeBelowClock();
+  } else {
+    returnCustomizeClock();
+  }
 });
 window.addEventListener('resize', () => {
   if (document.getElementById('customizePopover')?.matches(':popover-open')) fitCustomizeBelowClock();
