@@ -4728,7 +4728,9 @@ html[data-surface="glance"] .glance-header {
    renderer.js paints the active Start Page's layers here (the page reports
    them; main checks them, start-backdrop.js). The box is the page's size plus
    the band, laid out from the band's top above the page (beside the vertical
-   tabs rail, which keeps its own surface), and only the band shows it. */
+   tabs rail, which keeps its own surface), and only the band shows it. It
+   sits before #strip with no z-index: a negative one would paint it under
+   body's own background. */
 #bandBackdrop {
   position: absolute;
   top: 0;
@@ -4736,7 +4738,6 @@ html[data-surface="glance"] .glance-header {
   left: 0;
   height: var(--strip-h);
   overflow: hidden;
-  z-index: -1;
   pointer-events: none;
 }
 :root[data-tab-layout="vertical"] #bandBackdrop { left: var(--vertical-tabs-w); }
@@ -4745,4 +4746,6 @@ html[data-surface="glance"] .glance-header {
 .band-backdrop-box > div { position: absolute; inset: 0; }
 .band-backdrop-box > div.fade { transition: opacity 2s ease; }
 @media (prefers-reduced-motion: reduce) { .band-backdrop-box > div.fade { transition: none; } }
-#strip.band-backdrop { background: transparent; }
+/* Over a Space's frame wash too: the band is the page's own wallpaper. */
+:root #strip.band-backdrop,
+:root[data-space-tint] #strip.band-backdrop { background: transparent; }
