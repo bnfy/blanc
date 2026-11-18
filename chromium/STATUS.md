@@ -3767,6 +3767,25 @@ with an Authenticode signature added (`923457db2`). Open: the files' version
 resources still name The Chromium Authors as company, and the installer's
 version resource is Chromium's (plan Task C2).
 
+### W2: daily driver (2026-11-18)
+Plan `docs/superpowers/plans/2026-11-18-windows-fork-w2.md`; candidate
+`windows-x64-7edd9da4f45532ea`; record `reports/w2-windows.json`, triage
+`reports/w2-windows-triage.md`, baseline `scenarios/baseline-windows-x64-7edd9da4f45532ea.json`.
+
+| W2 gate | Result | Evidence |
+| --- | --- | --- |
+| 1. Install check 12 of 12, four files naming Bananify Creative | Pass | Run 44376359872, `install.json` |
+| 2. Quit check, four cases | Pass, 4 of 4 | `quit.json` |
+| 3. Every non-passing case triaged; nothing that passed on W1 fails | Partly: 625 of 667 pass (W1 591); every case is in the triage record, but two families have no cause yet (the Arc import's saved Spaces, an intermittent Favorites import dialog), and `F41:203` began failing with this build | `reports/w2-windows-triage.md` |
+| 4. Ctrl+Tab by most recent use on Windows | Pass: 8 of 8 posted keys; 2 of 2 real keys (the real-key check found and the fix ended a switch left open when another app came forward) | `tab-switch-keys.json` |
+| 5. Mac: fork suite, both patch checks, next nightly | Fork suite and patch checks pass; Mac Studio applied and GN regenerated for the nightly; the nightly itself is pending | Mac Studio `records/nightly` |
+| 6. STATUS, PLATFORMS, record and baseline | Written | This section |
+
+Not caused by W2: `supporter-and-session:18` fails on every platform since the
+Favorites work's V30 step for "exactly one new tab opens" also matches the
+Patron checkout. Owner items: the D1 hand checks on a real Windows desktop, and
+whether Windows' caption buttons should come and go with the floating Island.
+
 ## Android
 Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
 [PR #1333](https://github.com/bnfy/blanc/pull/1333)). Milestones: **A0

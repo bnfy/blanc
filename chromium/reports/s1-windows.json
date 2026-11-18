@@ -1,15 +1,15 @@
 {
  "slice": "S1",
  "platform": "windows",
- "candidate": "windows-x64-e42f9e5a532cdf96",
+ "candidate": "windows-x64-7edd9da4f45532ea",
  "shippingCommit": "673ff2eb052011b1efd14438a397a57d457de241",
- "forkCommit": "575ef3d11aed137c2eb8c6c38fbc501148a4d0df",
+ "forkCommit": "276fcc59e18d2cd5c6b54c6722722bec358fd645",
  "merges": [],
  "summary": {
-  "pass": 251,
-  "fail": 10,
-  "undefined": 2,
-  "excluded": 0
+  "pass": 258,
+  "fail": 1,
+  "undefined": 0,
+  "excluded": 4
  },
  "rows": {
   "F12": {
@@ -48,8 +48,7 @@
     },
     {
      "id": "spec/acceptance/ad-blocking.feature:77:plain",
-     "result": "pass",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/ad-blocking.feature:83:plain",
@@ -57,7 +56,8 @@
     },
     {
      "id": "spec/acceptance/glance.feature:273:plain",
-     "result": "pass"
+     "result": "pass",
+     "retried": true
     }
    ]
   },
@@ -106,22 +106,18 @@
    ]
   },
   "F11": {
-   "pass": 3,
-   "fail": 2,
+   "pass": 5,
+   "fail": 0,
    "undefined": 0,
    "excluded": 0,
    "cases": [
     {
      "id": "spec/acceptance/downloads.feature:7:plain",
-     "result": "fail",
-     "reason": "Timeout waiting for a downloads row in progress: {\"state\":\"interrupted\",\"progress\":null,\"meta\":\"Interrupted · 0 B\"}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/downloads.feature:13:plain",
-     "result": "fail",
-     "reason": "Timeout waiting for download completed: {\"state\":\"interrupted\",\"progress\":null,\"meta\":\"Interrupted · 0 B\"}",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/glance.feature:227:plain",
@@ -269,8 +265,7 @@
     },
     {
      "id": "spec/acceptance/glance.feature:264:plain",
-     "result": "pass",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/glance.feature:280:plain",
@@ -472,9 +467,9 @@
   },
   "F14": {
    "pass": 5,
-   "fail": 1,
+   "fail": 0,
    "undefined": 0,
-   "excluded": 0,
+   "excluded": 1,
    "cases": [
     {
      "id": "spec/acceptance/glance.feature:359:plain",
@@ -486,9 +481,8 @@
     },
     {
      "id": "spec/acceptance/settings-and-theming.feature:12:plain",
-     "result": "fail",
-     "reason": "Settings (blanc://settings/) has no #blancAppIcon control",
-     "retried": true
+     "result": "excluded",
+     "reason": ""
     },
     {
      "id": "spec/acceptance/settings-and-theming.feature:17:plain",
@@ -505,34 +499,26 @@
    ]
   },
   "F44": {
-   "pass": 1,
-   "fail": 4,
+   "pass": 5,
+   "fail": 0,
    "undefined": 0,
    "excluded": 0,
    "cases": [
     {
      "id": "spec/acceptance/interface-language.feature:10:plain",
-     "result": "fail",
-     "reason": "The \"path\" argument must be of type string. Received undefined",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/interface-language.feature:18:plain",
-     "result": "fail",
-     "reason": "The \"path\" argument must be of type string. Received undefined",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/interface-language.feature:26:plain",
-     "result": "fail",
-     "reason": "The \"path\" argument must be of type string. Received undefined",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/interface-language.feature:34:plain",
-     "result": "fail",
-     "reason": "The \"path\" argument must be of type string. Received undefined",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/interface-language.feature:43:plain",
@@ -589,10 +575,10 @@
    ]
   },
   "F1": {
-   "pass": 43,
-   "fail": 0,
-   "undefined": 1,
-   "excluded": 0,
+   "pass": 42,
+   "fail": 1,
+   "undefined": 0,
+   "excluded": 1,
    "cases": [
     {
      "id": "spec/acceptance/island-and-commands.feature:11:plain",
@@ -624,7 +610,9 @@
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:61:plain",
-     "result": "pass"
+     "result": "fail",
+     "reason": "Expected values to be strictly deep-equal:",
+     "retried": true
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:73:plain",
@@ -740,7 +728,7 @@
     },
     {
      "id": "spec/acceptance/island-and-commands.feature:320:plain",
-     "result": "undefined",
+     "result": "excluded",
      "reason": ""
     },
     {
@@ -931,9 +919,9 @@
   },
   "F5": {
    "pass": 14,
-   "fail": 1,
+   "fail": 0,
    "undefined": 0,
-   "excluded": 0,
+   "excluded": 1,
    "cases": [
     {
      "id": "spec/acceptance/navigation-and-context-menu.feature:7:plain",
@@ -989,9 +977,8 @@
     },
     {
      "id": "spec/acceptance/navigation-and-context-menu.feature:83:plain",
-     "result": "fail",
-     "reason": "Expected values to be strictly equal:",
-     "retried": true
+     "result": "excluded",
+     "reason": ""
     },
     {
      "id": "spec/acceptance/navigation-and-context-menu.feature:91:plain",
@@ -1020,8 +1007,8 @@
    ]
   },
   "F35": {
-   "pass": 23,
-   "fail": 2,
+   "pass": 25,
+   "fail": 0,
    "undefined": 0,
    "excluded": 0,
    "cases": [
@@ -1035,9 +1022,7 @@
     },
     {
      "id": "spec/acceptance/newtab-layouts.feature:21:plain",
-     "result": "fail",
-     "reason": "control rail should end inside the board frame",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/newtab-layouts.feature:35:plain",
@@ -1125,9 +1110,7 @@
     },
     {
      "id": "spec/acceptance/newtab-layouts.feature:240:plain",
-     "result": "fail",
-     "reason": "timed out waiting for the launch Sunrise to show; last: {\"present\":false,\"layoutReady\":true}",
-     "retried": true
+     "result": "pass"
     }
    ]
   },
@@ -1143,7 +1126,8 @@
     },
     {
      "id": "spec/acceptance/permissions-and-auth.feature:13:plain",
-     "result": "pass"
+     "result": "pass",
+     "retried": true
     }
    ]
   },
@@ -1186,8 +1170,8 @@
   "F4": {
    "pass": 5,
    "fail": 0,
-   "undefined": 1,
-   "excluded": 0,
+   "undefined": 0,
+   "excluded": 1,
    "cases": [
     {
      "id": "spec/acceptance/private-tabs.feature:7:plain",
@@ -1211,8 +1195,8 @@
     },
     {
      "id": "spec/acceptance/private-tabs.feature:40:plain",
-     "result": "undefined",
-     "reason": "Device-bound Touch ID ceremony requires signed/entitled build and owner interaction; Apple/signing work is outside this queue. Native metadata isolation is checked separately."
+     "result": "excluded",
+     "reason": ""
     }
    ]
   },
@@ -1244,8 +1228,7 @@
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:11:plain",
-     "result": "pass",
-     "retried": true
+     "result": "pass"
     },
     {
      "id": "spec/acceptance/site-certificate-safety.feature:19:plain",

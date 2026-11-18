@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="Blanc Chromium S1 windows" tests="263" failures="10" skipped="2">
+<testsuite name="Blanc Chromium S1 windows" tests="263" failures="1" skipped="4">
   <testcase name="spec/acceptance/ad-blocking.feature:12:plain"></testcase>
   <testcase name="spec/acceptance/ad-blocking.feature:17:plain"></testcase>
   <testcase name="spec/acceptance/ad-blocking.feature:26:plain"></testcase>
@@ -18,8 +18,8 @@
   <testcase name="spec/acceptance/blank-tab-affordance.feature:56:plain"></testcase>
   <testcase name="spec/acceptance/blank-tab-affordance.feature:62:plain"></testcase>
   <testcase name="spec/acceptance/blank-tab-affordance.feature:69:plain"></testcase>
-  <testcase name="spec/acceptance/downloads.feature:7:plain"><failure message="Timeout waiting for a downloads row in progress: {&quot;state&quot;:&quot;interrupted&quot;,&quot;progress&quot;:null,&quot;meta&quot;:&quot;Interrupted · 0 B&quot;}"/></testcase>
-  <testcase name="spec/acceptance/downloads.feature:13:plain"><failure message="Timeout waiting for download completed: {&quot;state&quot;:&quot;interrupted&quot;,&quot;progress&quot;:null,&quot;meta&quot;:&quot;Interrupted · 0 B&quot;}"/></testcase>
+  <testcase name="spec/acceptance/downloads.feature:7:plain"></testcase>
+  <testcase name="spec/acceptance/downloads.feature:13:plain"></testcase>
   <testcase name="spec/acceptance/find-favorites-history.feature:7:plain"></testcase>
   <testcase name="spec/acceptance/find-favorites-history.feature:16:plain"></testcase>
   <testcase name="spec/acceptance/find-favorites-history.feature:24:plain"></testcase>
@@ -39,10 +39,10 @@
   <testcase name="spec/acceptance/glance.feature:345:plain"></testcase>
   <testcase name="spec/acceptance/glance.feature:359:plain"></testcase>
   <testcase name="spec/acceptance/glance.feature:386:plain"></testcase>
-  <testcase name="spec/acceptance/interface-language.feature:10:plain"><failure message="The &quot;path&quot; argument must be of type string. Received undefined"/></testcase>
-  <testcase name="spec/acceptance/interface-language.feature:18:plain"><failure message="The &quot;path&quot; argument must be of type string. Received undefined"/></testcase>
-  <testcase name="spec/acceptance/interface-language.feature:26:plain"><failure message="The &quot;path&quot; argument must be of type string. Received undefined"/></testcase>
-  <testcase name="spec/acceptance/interface-language.feature:34:plain"><failure message="The &quot;path&quot; argument must be of type string. Received undefined"/></testcase>
+  <testcase name="spec/acceptance/interface-language.feature:10:plain"></testcase>
+  <testcase name="spec/acceptance/interface-language.feature:18:plain"></testcase>
+  <testcase name="spec/acceptance/interface-language.feature:26:plain"></testcase>
+  <testcase name="spec/acceptance/interface-language.feature:34:plain"></testcase>
   <testcase name="spec/acceptance/interface-language.feature:43:plain"></testcase>
   <testcase name="spec/acceptance/internal-pages.feature:7:plain"></testcase>
   <testcase name="spec/acceptance/internal-pages.feature:17:plain"></testcase>
@@ -61,7 +61,7 @@
   <testcase name="spec/acceptance/island-and-commands.feature:43:plain"></testcase>
   <testcase name="spec/acceptance/island-and-commands.feature:49:plain"></testcase>
   <testcase name="spec/acceptance/island-and-commands.feature:55:plain"></testcase>
-  <testcase name="spec/acceptance/island-and-commands.feature:61:plain"></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:61:plain"><failure message="Expected values to be strictly deep-equal:"/></testcase>
   <testcase name="spec/acceptance/island-and-commands.feature:73:plain"></testcase>
   <testcase name="spec/acceptance/island-and-commands.feature:79:plain"></testcase>
   <testcase name="spec/acceptance/island-and-commands.feature:87:plain"></testcase>
@@ -142,14 +142,14 @@
   <testcase name="spec/acceptance/navigation-and-context-menu.feature:66:plain"></testcase>
   <testcase name="spec/acceptance/navigation-and-context-menu.feature:71:plain"></testcase>
   <testcase name="spec/acceptance/navigation-and-context-menu.feature:77:plain"></testcase>
-  <testcase name="spec/acceptance/navigation-and-context-menu.feature:83:plain"><failure message="Expected values to be strictly equal:"/></testcase>
+  <testcase name="spec/acceptance/navigation-and-context-menu.feature:83:plain"><skipped message=""/></testcase>
   <testcase name="spec/acceptance/navigation-and-context-menu.feature:91:plain"></testcase>
   <testcase name="spec/acceptance/navigation-and-context-menu.feature:100:plain"></testcase>
   <testcase name="spec/acceptance/navigation-and-context-menu.feature:108:plain"></testcase>
   <testcase name="spec/acceptance/navigation-and-context-menu.feature:117:plain"></testcase>
   <testcase name="spec/acceptance/newtab-layouts.feature:8:plain"></testcase>
   <testcase name="spec/acceptance/newtab-layouts.feature:14:plain"></testcase>
-  <testcase name="spec/acceptance/newtab-layouts.feature:21:plain"><failure message="control rail should end inside the board frame"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:21:plain"></testcase>
   <testcase name="spec/acceptance/newtab-layouts.feature:35:plain"></testcase>
   <testcase name="spec/acceptance/newtab-layouts.feature:41:plain"></testcase>
   <testcase name="spec/acceptance/newtab-layouts.feature:47:plain"></testcase>
@@ -171,7 +171,7 @@
   <testcase name="spec/acceptance/newtab-layouts.feature:212:plain"></testcase>
   <testcase name="spec/acceptance/newtab-layouts.feature:221:plain"></testcase>
   <testcase name="spec/acceptance/newtab-layouts.feature:229:plain"></testcase>
-  <testcase name="spec/acceptance/newtab-layouts.feature:240:plain"><failure message="timed out waiting for the launch Sunrise to show; last: {&quot;present&quot;:false,&quot;layoutReady&quot;:true}"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:240:plain"></testcase>
   <testcase name="spec/acceptance/permissions-and-auth.feature:6:plain"></testcase>
   <testcase name="spec/acceptance/permissions-and-auth.feature:13:plain"></testcase>
   <testcase name="spec/acceptance/permissions-and-auth.feature:21:plain"></testcase>
@@ -184,9 +184,9 @@
   <testcase name="spec/acceptance/private-tabs.feature:24:plain"></testcase>
   <testcase name="spec/acceptance/private-tabs.feature:30:plain"></testcase>
   <testcase name="spec/acceptance/private-tabs.feature:35:plain"></testcase>
-  <testcase name="spec/acceptance/private-tabs.feature:40:plain"><skipped message="Device-bound Touch ID ceremony requires signed/entitled build and owner interaction; Apple/signing work is outside this queue. Native metadata isolation is checked separately."/></testcase>
+  <testcase name="spec/acceptance/private-tabs.feature:40:plain"><skipped message=""/></testcase>
   <testcase name="spec/acceptance/settings-and-theming.feature:7:plain"></testcase>
-  <testcase name="spec/acceptance/settings-and-theming.feature:12:plain"><failure message="Settings (blanc://settings/) has no #blancAppIcon control"/></testcase>
+  <testcase name="spec/acceptance/settings-and-theming.feature:12:plain"><skipped message=""/></testcase>
   <testcase name="spec/acceptance/settings-and-theming.feature:17:plain"></testcase>
   <testcase name="spec/acceptance/settings-and-theming.feature:23:plain"></testcase>
   <testcase name="spec/acceptance/settings-and-theming.feature:29:plain"></testcase>

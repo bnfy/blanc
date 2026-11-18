@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="Blanc Chromium shipping baseline" tests="667" failures="47" skipped="29">
+<testsuite name="Blanc Chromium shipping baseline" tests="667" failures="10" skipped="32">
   <testcase name="spec/acceptance/F41-named-workspaces.feature:4:plain"></testcase>
   <testcase name="spec/acceptance/F41-named-workspaces.feature:10:plain"></testcase>
   <testcase name="spec/acceptance/F41-named-workspaces.feature:16:plain"></testcase>
@@ -11,7 +11,7 @@
   <testcase name="spec/acceptance/F41-named-workspaces.feature:51:plain"></testcase>
   <testcase name="spec/acceptance/F41-named-workspaces.feature:57:plain"></testcase>
   <testcase name="spec/acceptance/F41-named-workspaces.feature:63:plain"></testcase>
-  <testcase name="spec/acceptance/F41-named-workspaces.feature:69:plain"><failure message="EBUSY: resource busy or locked, open 'C:\Users\RUNNER~1\AppData\Local\Temp\blanc-fixtures-1mOidT\case-0013\profile\Default\Sessions\Session_13439449524514604'"/></testcase>
+  <testcase name="spec/acceptance/F41-named-workspaces.feature:69:plain"></testcase>
   <testcase name="spec/acceptance/F41-named-workspaces.feature:75:plain"></testcase>
   <testcase name="spec/acceptance/F41-named-workspaces.feature:81:plain"></testcase>
   <testcase name="spec/acceptance/F41-named-workspaces.feature:87:plain"></testcase>
@@ -29,11 +29,19 @@
   <testcase name="spec/acceptance/F41-named-workspaces.feature:180:plain"></testcase>
   <testcase name="spec/acceptance/F41-named-workspaces.feature:187:plain"></testcase>
   <testcase name="spec/acceptance/F41-named-workspaces.feature:195:plain"></testcase>
-  <testcase name="spec/acceptance/F41-named-workspaces.feature:203:plain"></testcase>
+  <testcase name="spec/acceptance/F41-named-workspaces.feature:203:plain"><failure message="the menu fades where it opened: {&quot;mode&quot;:null,&quot;showing&quot;:true,&quot;hidden&quot;:true,&quot;closing&quot;:&quot;&quot;,&quot;display&quot;:&quot;flex&quot;,&quot;top&quot;:&quot;16px&quot;,&quot;left&quot;:&quot;0px&quot;,&quot;transform&quot;:&quot;matrix(0.92244, 0, 0, 0.92244, 0, -5.36582)&quot;,&quot;opacity&quot;:0}
++ actual - expected
+
+  [
+    '16px',
++   '0px'
+-   '44px'
+  ]
+"/></testcase>
   <testcase name="spec/acceptance/F41-named-workspaces.feature:211:plain"></testcase>
   <testcase name="spec/acceptance/F41-named-workspaces.feature:220:plain"></testcase>
   <testcase name="spec/acceptance/F41-named-workspaces.feature:228:plain"></testcase>
-  <testcase name="spec/acceptance/F41-named-workspaces.feature:236:plain"></testcase>
+  <testcase name="spec/acceptance/F41-named-workspaces.feature:236:plain"><failure message="Timeout waiting for .space-picker-hex to be visible"/></testcase>
   <testcase name="spec/acceptance/F41-named-workspaces.feature:247:plain"></testcase>
   <testcase name="spec/acceptance/F41-named-workspaces.feature:256:plain"></testcase>
   <testcase name="spec/acceptance/F41-named-workspaces.feature:265:plain"></testcase>
@@ -55,7 +63,7 @@
   <testcase name="spec/acceptance/F41-named-workspaces.feature:408:plain"></testcase>
   <testcase name="spec/acceptance/F41-named-workspaces.feature:418:plain"></testcase>
   <testcase name="spec/acceptance/F41-named-workspaces.feature:425:plain"></testcase>
-  <testcase name="spec/acceptance/F41-named-workspaces.feature:435:plain"><failure message="Timeout waiting for shipping state assertion: {&quot;tabs&quot;:[{&quot;id&quot;:&quot;1916626726&quot;,&quot;webContentsId&quot;:1916626726,&quot;url&quot;:&quot;blanc:\u002f\u002fnewtab\u002f&quot;,&quot;loadedUrl&quot;:&quot;blanc:\u002f\u002fnewtab\u002f&quot;,&quot;loading&quot;:false,&quot;isLoading&quot;:false,&quot;waking&quot;:false,&quot;title&quot;:&quot;New Tab&quot;,&quot;customTitle&quot;:null,&quot;favicon&quot;:&quot;data:image\u002fpng;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAHUUlEQVR4nMRXWWwcRRr+qrqn5\u002fRkfGedxOMcJKvEyW5EWC5ld8khglYG7UNgNwFBEAog8YB4BgGPPMELEgQERCAECQkSRNwR9xERCA6xg5PYluNxHDuxxx7P1d3T3fxV3TPuScaOEEjUqNWlrvr\u002f7z++\u002f68ajj958LkWHMdR6OH4nUPoELrmWmeXCdA3Jl9Vg19Jbla8athX0j2XIhjZ9F08ENjOYC+FYwdIbs69tQdzGOOmDT5o2+Z+LVz\u002fas1dl1rXd\u002fRo07LOq95Qg\u002fHNgEUrpXlAyoGx59mj0qOgpGcOD5w4\u002fb9VGzZc9EdCrexzHOy+\u002f\u002f5AclX7WwT+L0efMsg8yl8tnjikgaNkFFwILUziNmoFlJBs2m6rwcRmoXv37t1b8fzzJWlCWUIQhTFmj6fO3NO8aPnLtp426HOA0bLjbmCOAPUAbNuCEo4j9fN7EDxdsm4brEIGnCueed5exmTeHFeLyYP12oWR\u002fl0ti1e8UsZ0vXvySfmKRiM7KOy2YxNzbQIl9x3blm+hQ3jpzgmAXpapy8fzQq7JSJTnnqzUZYuKsuxINLzDjykNYE88IeKncc6SgM68yJC8LT2vhJfCJo2AB+BGD5VfZR+v7BM64OabCd0K50mB5WFW5VeV9SqtrjwSQIS877vXYOoFzwgHXkjc8HoeizXTyOP0kdcFsPdd6HD1ubplT6hwj1cxy5XwaOGCOFYJgVAdtHAdBrvfI8LFKDTEIWmYDK+ci29ibej4ISiBOpKJwSLZinFSmRsz+HoBv4TcZauZ8JrxAJgSgEkES67rQmb8FKbGBqCowUqu4eYKXA1heqwP6fMD6Ph7l5ThJM9VjdYtyQd4XPIPvwHMEmGSNc0p3Fn0fPYc9HxGAnKuYvHqzej\u002f4SAZFZRpMY2ifASAADtz9CCWdN5Cc6pfkjGK0+j9Yg8MPSd5IdBdjNl6rYqACKew0LZMBCMNaFm6Ad0fP43M5Khcb112HbG+gPP9R6EE46hvW40GejjNz536QqQYC5ddLR3NpVPo\u002fugZ1C9aT7rqpU64FVEVAX\u002fniGQuDB2PxeuWG8UiccjmGtX61OhJ9H71Cq66diea29eikBnH5OgvmJkYhpkbJcUWgvElqGtoQ8OitQjXNeLi2WNExH1YdeMuNC76K0VxmqLCbS0U4tnMTH+8ObmO8PKS+VURcDxC0aN4uY+3rMDaTQ\u002fixGcvIhRtoByfxJGDTyFcuohlK5PkaQY\u002f9g0j0NCBm3Y+jlh+IU4dOUAyDyGaaCXwKXDSJdLEZglZkwOy77kbGAq5SZjUZATB4s3L8Y9bH8XESDc+3PMIsudTxPQYdENB0VDl\u002fOLQGRx69iFMXxjENbc9RjJJrxlZMMgRqV04eAkLqyPgEoH4oiB9rgfjg9+DB6II1bUg2bkJ3Z++ifx0Fon6ehT1EvJ5A\u002fmCSXMTKpVdPj2J3q8PoKVjPU799A4KM2Myis0d16Bt5UavOWEeA7wNor0mO7ciufrfmJlMybzn00M4d7pbVoOhF6EHbBj5PB1IOuxSCYZBfUANYOzMMRSmUogtaEVL+98Qb2qXFVHMZRCgUnW75XwGyBTY+OmbQ8jlsghHE9SEYphInUDWiYCFo7AUKlOLozitwDBDyGtN9I1KjMxPU1pOnvgRiYUrMZ4eQL7nGGKxGFZ23ujTP4cBzOtWIu8GtV1h9XB\u002fN3mnQwtGqBK6UCarGKIT0omGFs58TjgYGuhDf99xhMIRNLV2QFOVSuNiqLZArQqAJfCFH8y5euNtoiHg28NvYio9QQbl4ZQM+M9xxTtmHGsWXFVVAm2XbTiRaMD1W+6QhhYLOdneBQZ8\u002fdBvALOYd3xSt8rPpKXgDVt3YGz4F3z58X7ZEel6VRWFijAZViIuNDa1YuO2u6Sf4kCayaSlsURsebgJDPj6j98AC7ZjMe9QYpzTjcFh2cwkIvEW\u002fOeOh6m1zuDwuy+hUChA04KVvAmJIqUpFolg\u002ffW3UHXk3Lono0iPeLs6xU5bxsuqMoC8oT1MLxnmMIVwhWPLfsmkIHNjLkIq2Lyp6z7KjIHP338V2eyMVBKvi2NL1y55cDFFk7UugMu8crw7Ael2TMMYprnuYVbu\u002fRIklRo9QInl4iYiD+TyMeoek9IWNRCERsfzP2\u002feiVBQQywaxcab76TjNyrX5G3TdwR7NyhH6iTdI6mRA37M2VsxWbRmzZroB2\u002fv\u002fWTJ0uS1Uxcm6FLKFFx203Q7paj5Qm5aGhWKxCn\u002fhl9vtQAxO9HcqA0PDh3Z9t+7t\u002fT09OTctPg44H3I7nlh7\u002f8ffODe19raFt5QMkuSWDUHebYg0Sj1iwNJDQZrbhNVoQZUZfTsyDek+87e3t6sl9Wa5pbvb4nvPn337sWL\u002f3KrwpV2ckFc1y6\u002fcztzaPEcIgqWLNs6S6l957qbuvbS5ykfxlyiVRuEWwsg\u002flnMCzenWYLt0\u002fToNXTPr8zZt0\u002fB9u2CqvP97bnikH9w9+9n7PbbrVrrv\u002fH\u002f3h8\u002ffgUAAP\u002f\u002fjhL9cAAAAAZJREFUAwC+ID4hfi4fBAAAAABJRU5ErkJggg==&quot;,&quot;bounds&quot;:null,&quot;groupId&quot;:null,&quot;splitId&quot;:null,&quot;pinned&quot;:false,&quot;muted&quot;:false,&quot;audioMuted&quot;:false,&quot;audioGuarded&quot;:false,&quot;audible&quot;:false,&quot;canGoBack&quot;:false,&quot;canGoForward&quot;:false,&quot;private&quot;:false,&quot;sessionKind&quot;:&quot;default&quot;,&quot;sessionPersistent&quot;:true,&quot;asleep&quot;:false},{&quot;id&quot;:&quot;1916626728&quot;,&quot;webContentsId&quot;:1916626728,&quot;url&quot;:&quot;http:\u002f\u002f127.0.0.1:57139\u002farticle&quot;,&quot;loadedUrl&quot;:&quot;http:\u002f\u002f127.0.0.1:57139\u002farticle&quot;,&quot;loading&quot;:true,&quot;isLoading&quot;:true,&quot;waking&quot;:false,&quot;title&quot;:&quot;127.0.0.1:57139\u002farticle&quot;,&quot;customTitle&quot;:null,&quot;favicon&quot;:null,&quot;bounds&quot;:{&quot;height&quot;:936,&quot;width&quot;:929,&quot;x&quot;:0,&quot;y&quot;:68},&quot;groupId&quot;:null,&quot;splitId&quot;:null,&quot;pinned&quot;:false,&quot;muted&quot;:false,&quot;audioMuted&quot;:false,&quot;audioGuarded&quot;:false,&quot;audible&quot;:false,&quot;canGoBack&quot;:false,&quot;canGoForward&quot;:false,&quot;private&quot;:false,&quot;sessionKind&quot;:&quot;default&quot;,&quot;sessionPersistent&quot;:true,&quot;asleep&quot;:false}],&quot;tabOrder&quot;:[&quot;1916626726&quot;,&quot;1916626728&quot;],&quot;clusters&quot;:[{&quot;key&quot;:&quot;run:1916626726&quot;,&quot;groupId&quot;:null,&quot;tabIds&quot;:[&quot;1916626726&quot;,&quot;1916626728&quot;]}],&quot;groups&quot;:[],&quot;splits&quot;:[],&quot;activeTabId&quot;:&quot;1916626728&quot;,&quot;glanceTabId&quot;:null,&quot;focusedPaneTabId&quot;:&quot;1916626728&quot;,&quot;overlayMode&quot;:null}"/></testcase>
+  <testcase name="spec/acceptance/F41-named-workspaces.feature:435:plain"></testcase>
   <testcase name="spec/acceptance/F41-named-workspaces.feature:445:plain"></testcase>
   <testcase name="spec/acceptance/F41-named-workspaces.feature:453:plain"></testcase>
   <testcase name="spec/acceptance/F41-named-workspaces.feature:461:plain"></testcase>
@@ -93,36 +101,30 @@
   <testcase name="spec/acceptance/ad-blocking.feature:71:plain"></testcase>
   <testcase name="spec/acceptance/ad-blocking.feature:77:plain"></testcase>
   <testcase name="spec/acceptance/ad-blocking.feature:83:plain"></testcase>
-  <testcase name="spec/acceptance/arc-spaces-import.feature:7:plain"><failure message="Expected values to be strictly deep-equal:
+  <testcase name="spec/acceptance/arc-spaces-import.feature:7:plain"></testcase>
+  <testcase name="spec/acceptance/arc-spaces-import.feature:14:plain"><failure message="Expected values to be strictly deep-equal:
 + actual - expected
 
-  [
--   'Bring Spaces from Arc',
-    'Choose file…'
-  ]
++ []
+- [
+-   'Work',
+-   'Reading'
+- ]
 "/></testcase>
-  <testcase name="spec/acceptance/arc-spaces-import.feature:14:plain"><failure message="button &quot;Bring Spaces from Arc&quot; is available
+  <testcase name="spec/acceptance/arc-spaces-import.feature:23:plain"></testcase>
+  <testcase name="spec/acceptance/arc-spaces-import.feature:31:plain"><failure message="Expected values to be strictly deep-equal:
++ actual - expected
 
-false !== true
++ []
+- [
+-   'Work',
+-   'Reading'
+- ]
 "/></testcase>
-  <testcase name="spec/acceptance/arc-spaces-import.feature:23:plain"><failure message="button &quot;Bring Spaces from Arc&quot; is available
-
-false !== true
-"/></testcase>
-  <testcase name="spec/acceptance/arc-spaces-import.feature:31:plain"><failure message="button &quot;Bring Spaces from Arc&quot; is available
-
-false !== true
-"/></testcase>
-  <testcase name="spec/acceptance/arc-spaces-import.feature:39:plain"><failure message="button &quot;Bring Spaces from Arc&quot; is available
-
-false !== true
-"/></testcase>
-  <testcase name="spec/acceptance/arc-spaces-import.feature:46:plain"><failure message="Cannot read properties of undefined (reading 'map')"/></testcase>
-  <testcase name="spec/acceptance/arc-spaces-import.feature:53:plain"><skipped message="Undefined fork step adapter"/></testcase>
-  <testcase name="spec/acceptance/arc-spaces-import.feature:60:plain"><failure message="button &quot;Bring Spaces from Arc&quot; is available
-
-false !== true
-"/></testcase>
+  <testcase name="spec/acceptance/arc-spaces-import.feature:39:plain"></testcase>
+  <testcase name="spec/acceptance/arc-spaces-import.feature:46:plain"></testcase>
+  <testcase name="spec/acceptance/arc-spaces-import.feature:53:plain"><skipped message="Linux-only import (a chosen Arc file); not applicable on Windows, which reads Arc's own folder."/></testcase>
+  <testcase name="spec/acceptance/arc-spaces-import.feature:60:plain"></testcase>
   <testcase name="spec/acceptance/blank-tab-affordance.feature:8:plain"></testcase>
   <testcase name="spec/acceptance/blank-tab-affordance.feature:17:plain"></testcase>
   <testcase name="spec/acceptance/blank-tab-affordance.feature:24:plain"></testcase>
@@ -132,13 +134,16 @@ false !== true
   <testcase name="spec/acceptance/blank-tab-affordance.feature:56:plain"></testcase>
   <testcase name="spec/acceptance/blank-tab-affordance.feature:62:plain"></testcase>
   <testcase name="spec/acceptance/blank-tab-affordance.feature:69:plain"></testcase>
-  <testcase name="spec/acceptance/browser-migration.feature:7:plain"><failure message="timed out waiting for detected browser profile to render on Favorites; last: {&quot;options&quot;:[],&quot;buttonHidden&quot;:true,&quot;findHidden&quot;:false,&quot;status&quot;:&quot;&quot;}"/></testcase>
-  <testcase name="spec/acceptance/browser-migration.feature:14:plain"><failure message="timed out waiting for detected browser profile to render on Favorites; last: {&quot;options&quot;:[],&quot;buttonHidden&quot;:true,&quot;findHidden&quot;:false,&quot;status&quot;:&quot;&quot;}"/></testcase>
+  <testcase name="spec/acceptance/browser-migration.feature:7:plain"><failure message="timed out waiting for detected browser profile to render on Favorites; last: {&quot;dialogOpen&quot;:false,&quot;options&quot;:[],&quot;buttonHidden&quot;:true,&quot;findHidden&quot;:false,&quot;status&quot;:&quot;&quot;}"/></testcase>
+  <testcase name="spec/acceptance/browser-migration.feature:14:plain"><failure message="Expected values to be strictly equal:
+
+false !== true
+"/></testcase>
   <testcase name="spec/acceptance/browser-migration.feature:21:plain"></testcase>
-  <testcase name="spec/acceptance/browser-migration.feature:28:plain"><failure message="timed out waiting for the signed-in Chrome profile to be offered; last: {&quot;options&quot;:[],&quot;buttonHidden&quot;:true,&quot;findHidden&quot;:false,&quot;status&quot;:&quot;&quot;}"/></testcase>
-  <testcase name="spec/acceptance/browser-migration.feature:35:plain"></testcase>
-  <testcase name="spec/acceptance/downloads.feature:7:plain"><failure message="Timeout waiting for a downloads row in progress: {&quot;state&quot;:&quot;interrupted&quot;,&quot;progress&quot;:null,&quot;meta&quot;:&quot;Interrupted · 0 B&quot;}"/></testcase>
-  <testcase name="spec/acceptance/downloads.feature:13:plain"><failure message="Timeout waiting for download completed: {&quot;state&quot;:&quot;interrupted&quot;,&quot;progress&quot;:null,&quot;meta&quot;:&quot;Interrupted · 0 B&quot;}"/></testcase>
+  <testcase name="spec/acceptance/browser-migration.feature:28:plain"><failure message="timed out waiting for the signed-in Chrome profile to be offered; last: {&quot;dialogOpen&quot;:false,&quot;options&quot;:[],&quot;buttonHidden&quot;:true,&quot;findHidden&quot;:false,&quot;status&quot;:&quot;&quot;}"/></testcase>
+  <testcase name="spec/acceptance/browser-migration.feature:35:plain"><failure message="timed out waiting for the signed-in Chrome profile to be offered; last: {&quot;dialogOpen&quot;:false,&quot;options&quot;:[],&quot;buttonHidden&quot;:true,&quot;findHidden&quot;:false,&quot;status&quot;:&quot;&quot;}"/></testcase>
+  <testcase name="spec/acceptance/downloads.feature:7:plain"></testcase>
+  <testcase name="spec/acceptance/downloads.feature:13:plain"></testcase>
   <testcase name="spec/acceptance/find-favorites-history.feature:7:plain"></testcase>
   <testcase name="spec/acceptance/find-favorites-history.feature:16:plain"></testcase>
   <testcase name="spec/acceptance/find-favorites-history.feature:24:plain"></testcase>
@@ -169,8 +174,8 @@ false !== true
   <testcase name="spec/acceptance/glance.feature:159:plain"></testcase>
   <testcase name="spec/acceptance/glance.feature:169:plain"></testcase>
   <testcase name="spec/acceptance/glance.feature:178:plain"></testcase>
-  <testcase name="spec/acceptance/glance.feature:187:plain"><skipped message="Undefined fork step adapter"/></testcase>
-  <testcase name="spec/acceptance/glance.feature:197:plain"><skipped message="Undefined fork step adapter"/></testcase>
+  <testcase name="spec/acceptance/glance.feature:187:plain"><skipped message="Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."/></testcase>
+  <testcase name="spec/acceptance/glance.feature:197:plain"><skipped message="Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."/></testcase>
   <testcase name="spec/acceptance/glance.feature:207:plain"></testcase>
   <testcase name="spec/acceptance/glance.feature:214:plain"></testcase>
   <testcase name="spec/acceptance/glance.feature:221:plain"></testcase>
@@ -187,7 +192,7 @@ false !== true
   <testcase name="spec/acceptance/glance.feature:312:plain"></testcase>
   <testcase name="spec/acceptance/glance.feature:319:plain"></testcase>
   <testcase name="spec/acceptance/glance.feature:328:plain"></testcase>
-  <testcase name="spec/acceptance/glance.feature:337:plain"><failure message="timed out waiting for the chosen row saying Opening; last: {&quot;sub&quot;:null,&quot;live&quot;:&quot;Opening…&quot;}"/></testcase>
+  <testcase name="spec/acceptance/glance.feature:337:plain"></testcase>
   <testcase name="spec/acceptance/glance.feature:345:plain"></testcase>
   <testcase name="spec/acceptance/glance.feature:353:plain"></testcase>
   <testcase name="spec/acceptance/glance.feature:359:plain"></testcase>
@@ -208,20 +213,17 @@ false !== true
   <testcase name="spec/acceptance/glance.feature:471:plain"></testcase>
   <testcase name="spec/acceptance/glance.feature:480:plain"></testcase>
   <testcase name="spec/acceptance/glance.feature:489:plain"></testcase>
-  <testcase name="spec/acceptance/glance.feature:498:plain"><failure message="The input did not match the regular expression /opacity 0\.14s/. Input:
-
-'none'
-"/></testcase>
+  <testcase name="spec/acceptance/glance.feature:498:plain"></testcase>
   <testcase name="spec/acceptance/glance.feature:506:example-515"></testcase>
   <testcase name="spec/acceptance/glance.feature:506:example-516"></testcase>
   <testcase name="spec/acceptance/glance.feature:519:plain"></testcase>
   <testcase name="spec/acceptance/glance.feature:526:example-534"></testcase>
   <testcase name="spec/acceptance/glance.feature:526:example-535"></testcase>
   <testcase name="spec/acceptance/glance.feature:538:plain"></testcase>
-  <testcase name="spec/acceptance/interface-language.feature:10:plain"><failure message="The &quot;path&quot; argument must be of type string. Received undefined"/></testcase>
-  <testcase name="spec/acceptance/interface-language.feature:18:plain"><failure message="The &quot;path&quot; argument must be of type string. Received undefined"/></testcase>
-  <testcase name="spec/acceptance/interface-language.feature:26:plain"><failure message="The &quot;path&quot; argument must be of type string. Received undefined"/></testcase>
-  <testcase name="spec/acceptance/interface-language.feature:34:plain"><failure message="The &quot;path&quot; argument must be of type string. Received undefined"/></testcase>
+  <testcase name="spec/acceptance/interface-language.feature:10:plain"></testcase>
+  <testcase name="spec/acceptance/interface-language.feature:18:plain"></testcase>
+  <testcase name="spec/acceptance/interface-language.feature:26:plain"></testcase>
+  <testcase name="spec/acceptance/interface-language.feature:34:plain"></testcase>
   <testcase name="spec/acceptance/interface-language.feature:43:plain"></testcase>
   <testcase name="spec/acceptance/internal-pages.feature:7:plain"></testcase>
   <testcase name="spec/acceptance/internal-pages.feature:17:plain"></testcase>
@@ -240,7 +242,17 @@ false !== true
   <testcase name="spec/acceptance/island-and-commands.feature:43:plain"></testcase>
   <testcase name="spec/acceptance/island-and-commands.feature:49:plain"></testcase>
   <testcase name="spec/acceptance/island-and-commands.feature:55:plain"></testcase>
-  <testcase name="spec/acceptance/island-and-commands.feature:61:plain"></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:61:plain"><failure message="Expected values to be strictly deep-equal:
++ actual - expected
+
+  {
++   armed: true,
+-   armed: false,
+    dwelling: false,
++   inside: false
+-   inside: true
+  }
+"/></testcase>
   <testcase name="spec/acceptance/island-and-commands.feature:73:plain"></testcase>
   <testcase name="spec/acceptance/island-and-commands.feature:79:plain"></testcase>
   <testcase name="spec/acceptance/island-and-commands.feature:87:plain"></testcase>
@@ -269,7 +281,7 @@ false !== true
   <testcase name="spec/acceptance/island-and-commands.feature:286:plain"></testcase>
   <testcase name="spec/acceptance/island-and-commands.feature:295:plain"></testcase>
   <testcase name="spec/acceptance/island-and-commands.feature:312:plain"></testcase>
-  <testcase name="spec/acceptance/island-and-commands.feature:320:plain"><skipped message="Undefined fork step adapter"/></testcase>
+  <testcase name="spec/acceptance/island-and-commands.feature:320:plain"><skipped message="Owner decision 2026-11-17 (W1): Windows' own caption buttons sit over the strip and the Island draws no window buttons on Windows, so there are no floating window controls to come and go with the pill (W2 C2)."/></testcase>
   <testcase name="spec/acceptance/island-and-commands.feature:339:plain"></testcase>
   <testcase name="spec/acceptance/island-and-commands.feature:348:plain"></testcase>
   <testcase name="spec/acceptance/island-and-commands.feature:359:plain"></testcase>
@@ -308,14 +320,14 @@ false !== true
   <testcase name="spec/acceptance/island-and-commands.feature:651:plain"></testcase>
   <testcase name="spec/acceptance/link-routing.feature:8:plain"></testcase>
   <testcase name="spec/acceptance/link-routing.feature:16:plain"></testcase>
-  <testcase name="spec/acceptance/link-routing.feature:28:plain"><failure message="{&quot;exceptionId&quot;:1,&quot;text&quot;:&quot;Uncaught&quot;,&quot;lineNumber&quot;:0,&quot;columnNumber&quot;:422,&quot;scriptId&quot;:&quot;14&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;&quot;,&quot;scriptId&quot;:&quot;14&quot;,&quot;url&quot;:&quot;&quot;,&quot;lineNumber&quot;:0,&quot;columnNumber&quot;:428},{&quot;functionName&quot;:&quot;&quot;,&quot;scriptId&quot;:&quot;14&quot;,&quot;url&quot;:&quot;&quot;,&quot;lineNumber&quot;:0,&quot;columnNumber&quot;:657}]},&quot;exception&quot;:{&quot;type&quot;:&quot;object&quot;,&quot;subtype&quot;:&quot;error&quot;,&quot;className&quot;:&quot;Error&quot;,&quot;description&quot;:&quot;Error: Native profile card missing\n    at &lt;anonymous&gt;:1:429\n    at &lt;anonymous&gt;:1:658&quot;,&quot;objectId&quot;:&quot;1349006368810676759.1.2&quot;}}"/></testcase>
+  <testcase name="spec/acceptance/link-routing.feature:28:plain"></testcase>
   <testcase name="spec/acceptance/link-routing.feature:37:plain"></testcase>
   <testcase name="spec/acceptance/link-routing.feature:50:plain"></testcase>
   <testcase name="spec/acceptance/link-routing.feature:62:plain"></testcase>
   <testcase name="spec/acceptance/link-routing.feature:79:plain"></testcase>
   <testcase name="spec/acceptance/local-profiles.feature:7:plain"></testcase>
-  <testcase name="spec/acceptance/local-profiles.feature:17:plain"><skipped message="Undefined fork step adapter"/></testcase>
-  <testcase name="spec/acceptance/local-profiles.feature:27:plain"><failure message="{&quot;exceptionId&quot;:1,&quot;text&quot;:&quot;Uncaught&quot;,&quot;lineNumber&quot;:0,&quot;columnNumber&quot;:415,&quot;scriptId&quot;:&quot;16&quot;,&quot;stackTrace&quot;:{&quot;callFrames&quot;:[{&quot;functionName&quot;:&quot;&quot;,&quot;scriptId&quot;:&quot;16&quot;,&quot;url&quot;:&quot;&quot;,&quot;lineNumber&quot;:0,&quot;columnNumber&quot;:421},{&quot;functionName&quot;:&quot;&quot;,&quot;scriptId&quot;:&quot;16&quot;,&quot;url&quot;:&quot;&quot;,&quot;lineNumber&quot;:0,&quot;columnNumber&quot;:517}]},&quot;exception&quot;:{&quot;type&quot;:&quot;object&quot;,&quot;subtype&quot;:&quot;error&quot;,&quot;className&quot;:&quot;Error&quot;,&quot;description&quot;:&quot;Error: Personal card missing\n    at &lt;anonymous&gt;:1:422\n    at &lt;anonymous&gt;:1:518&quot;,&quot;objectId&quot;:&quot;7957446937888093015.1.2&quot;}}"/></testcase>
+  <testcase name="spec/acceptance/local-profiles.feature:17:plain"><skipped message="V18 approves Chromium profile management: its native deletion dialog has Cancel/Remove, not shipping typed-name confirmation or profile-name window titles."/></testcase>
+  <testcase name="spec/acceptance/local-profiles.feature:27:plain"></testcase>
   <testcase name="spec/acceptance/mini-window.feature:10:plain"></testcase>
   <testcase name="spec/acceptance/mini-window.feature:18:plain"></testcase>
   <testcase name="spec/acceptance/mini-window.feature:24:plain"></testcase>
@@ -336,17 +348,14 @@ false !== true
   <testcase name="spec/acceptance/navigation-and-context-menu.feature:66:plain"></testcase>
   <testcase name="spec/acceptance/navigation-and-context-menu.feature:71:plain"></testcase>
   <testcase name="spec/acceptance/navigation-and-context-menu.feature:77:plain"></testcase>
-  <testcase name="spec/acceptance/navigation-and-context-menu.feature:83:plain"><failure message="Expected values to be strictly equal:
-
-'custom' !== 'google'
-"/></testcase>
+  <testcase name="spec/acceptance/navigation-and-context-menu.feature:83:plain"><skipped message="V12 explicitly uses Chromium validation; it accepts HTTP custom engine URLs, unlike this shipping-only HTTPS policy."/></testcase>
   <testcase name="spec/acceptance/navigation-and-context-menu.feature:91:plain"></testcase>
   <testcase name="spec/acceptance/navigation-and-context-menu.feature:100:plain"></testcase>
   <testcase name="spec/acceptance/navigation-and-context-menu.feature:108:plain"></testcase>
   <testcase name="spec/acceptance/navigation-and-context-menu.feature:117:plain"></testcase>
   <testcase name="spec/acceptance/newtab-layouts.feature:8:plain"></testcase>
   <testcase name="spec/acceptance/newtab-layouts.feature:14:plain"></testcase>
-  <testcase name="spec/acceptance/newtab-layouts.feature:21:plain"><failure message="control rail should end inside the board frame"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:21:plain"></testcase>
   <testcase name="spec/acceptance/newtab-layouts.feature:35:plain"></testcase>
   <testcase name="spec/acceptance/newtab-layouts.feature:41:plain"></testcase>
   <testcase name="spec/acceptance/newtab-layouts.feature:47:plain"></testcase>
@@ -368,7 +377,7 @@ false !== true
   <testcase name="spec/acceptance/newtab-layouts.feature:212:plain"></testcase>
   <testcase name="spec/acceptance/newtab-layouts.feature:221:plain"></testcase>
   <testcase name="spec/acceptance/newtab-layouts.feature:229:plain"></testcase>
-  <testcase name="spec/acceptance/newtab-layouts.feature:240:plain"><failure message="timed out waiting for the launch Sunrise to show; last: {&quot;present&quot;:false,&quot;layoutReady&quot;:true}"/></testcase>
+  <testcase name="spec/acceptance/newtab-layouts.feature:240:plain"></testcase>
   <testcase name="spec/acceptance/onboarding.feature:8:plain"></testcase>
   <testcase name="spec/acceptance/onboarding.feature:14:plain"></testcase>
   <testcase name="spec/acceptance/onboarding.feature:23:plain"></testcase>
@@ -396,23 +405,23 @@ false !== true
   <testcase name="spec/acceptance/permissions-and-auth.feature:39:plain"></testcase>
   <testcase name="spec/acceptance/platform-services.feature:7:plain"></testcase>
   <testcase name="spec/acceptance/platform-services.feature:17:plain"></testcase>
-  <testcase name="spec/acceptance/platform-services.feature:25:plain"><skipped message="Undefined fork step adapter"/></testcase>
+  <testcase name="spec/acceptance/platform-services.feature:25:plain"><skipped message="Owner decision 2026-11-17: the test build has no updater; the sparkle-N-to-N+1 release gate proves on every beta that Sparkle installs the next beta and refuses a wrong key or a tampered file."/></testcase>
   <testcase name="spec/acceptance/platform-services.feature:30:plain"><skipped message="Shipping scenario explicitly targets mobile only"/></testcase>
   <testcase name="spec/acceptance/platform-services.feature:35:plain"></testcase>
   <testcase name="spec/acceptance/platform-services.feature:42:plain"><skipped message="Shipping scenario explicitly targets mobile only"/></testcase>
-  <testcase name="spec/acceptance/platform-services.feature:50:plain"><skipped message="Undefined fork step adapter"/></testcase>
-  <testcase name="spec/acceptance/platform-services.feature:64:plain"><skipped message="Undefined fork step adapter"/></testcase>
-  <testcase name="spec/acceptance/platform-services.feature:76:plain"><skipped message="Undefined fork step adapter"/></testcase>
-  <testcase name="spec/acceptance/platform-services.feature:88:plain"><skipped message="Undefined fork step adapter"/></testcase>
-  <testcase name="spec/acceptance/platform-services.feature:98:plain"><skipped message="Undefined fork step adapter"/></testcase>
-  <testcase name="spec/acceptance/platform-services.feature:105:plain"><skipped message="Undefined fork step adapter"/></testcase>
-  <testcase name="spec/acceptance/platform-services.feature:112:plain"><skipped message="Undefined fork step adapter"/></testcase>
+  <testcase name="spec/acceptance/platform-services.feature:50:plain"><skipped message="Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."/></testcase>
+  <testcase name="spec/acceptance/platform-services.feature:64:plain"><skipped message="Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."/></testcase>
+  <testcase name="spec/acceptance/platform-services.feature:76:plain"><skipped message="Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."/></testcase>
+  <testcase name="spec/acceptance/platform-services.feature:88:plain"><skipped message="Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."/></testcase>
+  <testcase name="spec/acceptance/platform-services.feature:98:plain"><skipped message="Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."/></testcase>
+  <testcase name="spec/acceptance/platform-services.feature:105:plain"><skipped message="Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."/></testcase>
+  <testcase name="spec/acceptance/platform-services.feature:112:plain"><skipped message="Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."/></testcase>
   <testcase name="spec/acceptance/private-tabs.feature:7:plain"></testcase>
   <testcase name="spec/acceptance/private-tabs.feature:16:plain"></testcase>
   <testcase name="spec/acceptance/private-tabs.feature:24:plain"></testcase>
   <testcase name="spec/acceptance/private-tabs.feature:30:plain"></testcase>
   <testcase name="spec/acceptance/private-tabs.feature:35:plain"></testcase>
-  <testcase name="spec/acceptance/private-tabs.feature:40:plain"><skipped message="Undefined fork step adapter"/></testcase>
+  <testcase name="spec/acceptance/private-tabs.feature:40:plain"><skipped message="Owner decision 2026-11-18 (W2 plan, decision 2): passkeys on Windows are Chromium's own Windows Hello path; a private-window passkey is a question in the Windows hand check, not a simulated authenticator."/></testcase>
   <testcase name="spec/acceptance/quiet-tabs.feature:8:plain"></testcase>
   <testcase name="spec/acceptance/quiet-tabs.feature:16:plain"></testcase>
   <testcase name="spec/acceptance/quiet-tabs.feature:22:plain"></testcase>
@@ -426,7 +435,7 @@ false !== true
   <testcase name="spec/acceptance/quiet-tabs.feature:28:example-42"></testcase>
   <testcase name="spec/acceptance/quiet-tabs.feature:28:example-43"></testcase>
   <testcase name="spec/acceptance/quiet-tabs.feature:28:example-44"></testcase>
-  <testcase name="spec/acceptance/quiet-tabs.feature:28:example-45"><skipped message="Undefined fork step adapter"/></testcase>
+  <testcase name="spec/acceptance/quiet-tabs.feature:28:example-45"><skipped message="This outline row asserts Electron WebContents listener counts, which do not exist in Chromium; native protection rows remain applicable."/></testcase>
   <testcase name="spec/acceptance/quiet-tabs.feature:28:example-46"></testcase>
   <testcase name="spec/acceptance/quiet-tabs.feature:49:plain"></testcase>
   <testcase name="spec/acceptance/quiet-tabs.feature:56:plain"></testcase>
@@ -442,9 +451,9 @@ false !== true
   <testcase name="spec/acceptance/quiet-tabs.feature:113:plain"></testcase>
   <testcase name="spec/acceptance/quiet-tabs.feature:118:plain"></testcase>
   <testcase name="spec/acceptance/quiet-tabs.feature:130:plain"><skipped message="Shipping scenario explicitly targets mobile only"/></testcase>
-  <testcase name="spec/acceptance/reader-mode.feature:7:plain"><skipped message="Undefined fork step adapter"/></testcase>
-  <testcase name="spec/acceptance/reader-mode.feature:13:plain"><skipped message="Undefined fork step adapter"/></testcase>
-  <testcase name="spec/acceptance/reader-mode.feature:20:plain"><skipped message="Undefined fork step adapter"/></testcase>
+  <testcase name="spec/acceptance/reader-mode.feature:7:plain"><skipped message="Owner decision 2026-11-02: native Chromium Reading Mode replaces the shipping reader sandbox and appearance."/></testcase>
+  <testcase name="spec/acceptance/reader-mode.feature:13:plain"><skipped message="Owner decision 2026-11-02: native Chromium Reading Mode replaces the shipping reader sandbox and appearance."/></testcase>
+  <testcase name="spec/acceptance/reader-mode.feature:20:plain"><skipped message="Owner decision 2026-11-02: native Chromium Reading Mode replaces the shipping reader sandbox and appearance."/></testcase>
   <testcase name="spec/acceptance/send-to-device.feature:7:plain"></testcase>
   <testcase name="spec/acceptance/send-to-device.feature:15:plain"></testcase>
   <testcase name="spec/acceptance/send-to-device.feature:24:plain"></testcase>
@@ -454,16 +463,16 @@ false !== true
   <testcase name="spec/acceptance/send-to-device.feature:56:plain"></testcase>
   <testcase name="spec/acceptance/send-to-device.feature:63:plain"></testcase>
   <testcase name="spec/acceptance/settings-and-theming.feature:7:plain"></testcase>
-  <testcase name="spec/acceptance/settings-and-theming.feature:12:plain"><failure message="Settings (blanc://settings/) has no #blancAppIcon control"/></testcase>
+  <testcase name="spec/acceptance/settings-and-theming.feature:12:plain"><skipped message="Owner decision 2026-10-19: Windows has no app icon catalog (the taskbar icon changes only by rewriting the installer's shortcuts), so Settings shows no icon picker on Windows; excluded with the owner's approval, 2026-11-18 (W2 B4)."/></testcase>
   <testcase name="spec/acceptance/settings-and-theming.feature:17:plain"></testcase>
   <testcase name="spec/acceptance/settings-and-theming.feature:23:plain"></testcase>
   <testcase name="spec/acceptance/settings-and-theming.feature:29:plain"></testcase>
   <testcase name="spec/acceptance/settings-and-theming.feature:37:plain"></testcase>
   <testcase name="spec/acceptance/settings-and-theming.feature:42:plain"></testcase>
-  <testcase name="spec/acceptance/settings-and-theming.feature:49:plain"><skipped message="Undefined fork step adapter"/></testcase>
-  <testcase name="spec/acceptance/settings-and-theming.feature:57:plain"><skipped message="Undefined fork step adapter"/></testcase>
-  <testcase name="spec/acceptance/settings-and-theming.feature:65:plain"><skipped message="Undefined fork step adapter"/></testcase>
-  <testcase name="spec/acceptance/settings-and-theming.feature:74:plain"><skipped message="Undefined fork step adapter"/></testcase>
+  <testcase name="spec/acceptance/settings-and-theming.feature:49:plain"><skipped message="Owner decision 2026-11-02: no built-in Dark Reader; use the Web Store extension."/></testcase>
+  <testcase name="spec/acceptance/settings-and-theming.feature:57:plain"><skipped message="Owner decision 2026-11-02: no built-in Dark Reader; use the Web Store extension."/></testcase>
+  <testcase name="spec/acceptance/settings-and-theming.feature:65:plain"><skipped message="Owner decision 2026-11-02: no built-in Dark Reader; use the Web Store extension."/></testcase>
+  <testcase name="spec/acceptance/settings-and-theming.feature:74:plain"><skipped message="Owner decision 2026-11-02: no built-in Dark Reader; use the Web Store extension."/></testcase>
   <testcase name="spec/acceptance/shared-spaces.feature:4:plain"></testcase>
   <testcase name="spec/acceptance/shared-spaces.feature:11:plain"></testcase>
   <testcase name="spec/acceptance/shared-spaces.feature:17:plain"></testcase>
@@ -515,10 +524,10 @@ false !== true
   <testcase name="spec/acceptance/split-view.feature:34:plain"></testcase>
   <testcase name="spec/acceptance/split-view.feature:41:plain"></testcase>
   <testcase name="spec/acceptance/split-view.feature:47:plain"></testcase>
-  <testcase name="spec/acceptance/split-view.feature:53:plain"><failure message="the survivor fills the window: {&quot;height&quot;:936,&quot;width&quot;:929,&quot;x&quot;:0,&quot;y&quot;:68}"/></testcase>
+  <testcase name="spec/acceptance/split-view.feature:53:plain"></testcase>
   <testcase name="spec/acceptance/split-view.feature:59:plain"></testcase>
   <testcase name="spec/acceptance/split-view.feature:68:plain"></testcase>
-  <testcase name="spec/acceptance/split-view.feature:76:plain"><failure message="the unfocused tab is wider: it carries the site"/></testcase>
+  <testcase name="spec/acceptance/split-view.feature:76:plain"></testcase>
   <testcase name="spec/acceptance/split-view.feature:87:plain"></testcase>
   <testcase name="spec/acceptance/split-view.feature:95:plain"></testcase>
   <testcase name="spec/acceptance/split-view.feature:109:plain"></testcase>
@@ -542,9 +551,12 @@ false !== true
   <testcase name="spec/acceptance/split-view.feature:233:example-240"></testcase>
   <testcase name="spec/acceptance/split-view.feature:243:plain"></testcase>
   <testcase name="spec/acceptance/split-view.feature:253:plain"></testcase>
-  <testcase name="spec/acceptance/supporter-and-session.feature:7:plain"><failure message="Settings (blanc://settings/) has no #blancAppIcon control"/></testcase>
-  <testcase name="spec/acceptance/supporter-and-session.feature:12:plain"><failure message="Settings (blanc://settings/) has no #blancAppIcon control"/></testcase>
-  <testcase name="spec/acceptance/supporter-and-session.feature:18:plain"></testcase>
+  <testcase name="spec/acceptance/supporter-and-session.feature:7:plain"><skipped message="Owner decision 2026-10-19: Windows has no app icon catalog (the taskbar icon changes only by rewriting the installer's shortcuts), so Settings shows no icon picker on Windows; excluded with the owner's approval, 2026-11-18 (W2 B4)."/></testcase>
+  <testcase name="spec/acceptance/supporter-and-session.feature:12:plain"><skipped message="Owner decision 2026-10-19: Windows has no app icon catalog (the taskbar icon changes only by rewriting the installer's shortcuts), so Settings shows no icon picker on Windows; excluded with the owner's approval, 2026-11-18 (W2 B4)."/></testcase>
+  <testcase name="spec/acceptance/supporter-and-session.feature:18:plain"><failure message="no new tab
+
+2 !== 1
+"/></testcase>
   <testcase name="spec/acceptance/supporter-and-session.feature:26:plain"></testcase>
   <testcase name="spec/acceptance/sync.feature:7:plain"></testcase>
   <testcase name="spec/acceptance/sync.feature:13:plain"></testcase>
@@ -612,24 +624,21 @@ false !== true
   <testcase name="spec/acceptance/tab-gestures.feature:9:plain"><skipped message="Shipping scenario explicitly targets mobile only"/></testcase>
   <testcase name="spec/acceptance/tab-gestures.feature:18:plain"><skipped message="Shipping scenario explicitly targets mobile only"/></testcase>
   <testcase name="spec/acceptance/tab-gestures.feature:28:plain"><skipped message="Shipping scenario explicitly targets mobile only"/></testcase>
-  <testcase name="spec/acceptance/tab-migration.feature:7:plain"><failure message="{&quot;sources&quot;:[],&quot;unavailable&quot;:[]}"/></testcase>
-  <testcase name="spec/acceptance/tab-migration.feature:15:plain"><failure message="{&quot;sources&quot;:[],&quot;unavailable&quot;:[]}"/></testcase>
-  <testcase name="spec/acceptance/tab-migration.feature:26:plain"><failure message="{&quot;sources&quot;:[],&quot;unavailable&quot;:[]}"/></testcase>
-  <testcase name="spec/acceptance/tab-migration.feature:35:plain"><failure message="The expression evaluated to a falsy value:
-
-  assert.ok(s.sources.some(r=&gt;r.browserId==='chrome'))
-"/></testcase>
-  <testcase name="spec/acceptance/tab-migration.feature:43:plain"><failure message="{&quot;sources&quot;:[],&quot;unavailable&quot;:[]}"/></testcase>
-  <testcase name="spec/acceptance/tab-migration.feature:50:plain"><failure message="{&quot;sources&quot;:[],&quot;unavailable&quot;:[]}"/></testcase>
-  <testcase name="spec/acceptance/tab-migration.feature:58:plain"><failure message="Cannot read properties of undefined (reading 'id')"/></testcase>
-  <testcase name="spec/acceptance/tab-migration.feature:66:plain"><failure message="{&quot;sources&quot;:[],&quot;unavailable&quot;:[]}"/></testcase>
-  <testcase name="spec/acceptance/tab-migration.feature:74:plain"><failure message="{&quot;sources&quot;:[],&quot;unavailable&quot;:[]}"/></testcase>
-  <testcase name="spec/acceptance/tab-migration.feature:81:plain"><failure message="Cannot read properties of undefined (reading 'id')"/></testcase>
+  <testcase name="spec/acceptance/tab-migration.feature:7:plain"></testcase>
+  <testcase name="spec/acceptance/tab-migration.feature:15:plain"></testcase>
+  <testcase name="spec/acceptance/tab-migration.feature:26:plain"></testcase>
+  <testcase name="spec/acceptance/tab-migration.feature:35:plain"></testcase>
+  <testcase name="spec/acceptance/tab-migration.feature:43:plain"></testcase>
+  <testcase name="spec/acceptance/tab-migration.feature:50:plain"></testcase>
+  <testcase name="spec/acceptance/tab-migration.feature:58:plain"></testcase>
+  <testcase name="spec/acceptance/tab-migration.feature:66:plain"></testcase>
+  <testcase name="spec/acceptance/tab-migration.feature:74:plain"></testcase>
+  <testcase name="spec/acceptance/tab-migration.feature:81:plain"></testcase>
   <testcase name="spec/acceptance/tab-migration.feature:88:plain"></testcase>
-  <testcase name="spec/acceptance/tab-migration.feature:95:plain"><failure message="Cannot read properties of undefined (reading 'id')"/></testcase>
-  <testcase name="spec/acceptance/tab-migration.feature:102:plain"><failure message="{&quot;sources&quot;:[],&quot;unavailable&quot;:[]}"/></testcase>
-  <testcase name="spec/acceptance/tab-migration.feature:109:plain"><failure message="{&quot;sources&quot;:[],&quot;unavailable&quot;:[]}"/></testcase>
-  <testcase name="spec/acceptance/tab-migration.feature:116:plain"><failure message="{&quot;sources&quot;:[],&quot;unavailable&quot;:[]}"/></testcase>
+  <testcase name="spec/acceptance/tab-migration.feature:95:plain"></testcase>
+  <testcase name="spec/acceptance/tab-migration.feature:102:plain"></testcase>
+  <testcase name="spec/acceptance/tab-migration.feature:109:plain"></testcase>
+  <testcase name="spec/acceptance/tab-migration.feature:116:plain"></testcase>
   <testcase name="spec/acceptance/tabs-and-groups.feature:8:plain"></testcase>
   <testcase name="spec/acceptance/tabs-and-groups.feature:15:plain"></testcase>
   <testcase name="spec/acceptance/tabs-and-groups.feature:21:plain"></testcase>
@@ -664,7 +673,7 @@ false !== true
   <testcase name="spec/acceptance/tabs-and-groups.feature:270:plain"></testcase>
   <testcase name="spec/acceptance/tabs-and-groups.feature:278:plain"></testcase>
   <testcase name="spec/acceptance/tabs-and-groups.feature:284:plain"></testcase>
-  <testcase name="spec/acceptance/tabs-and-groups.feature:292:plain"><failure message="Timeout waiting for shipping state assertion: {&quot;tabs&quot;:[{&quot;id&quot;:&quot;690906991&quot;,&quot;webContentsId&quot;:690906991,&quot;url&quot;:&quot;blanc:\u002f\u002fnewtab\u002f&quot;,&quot;loadedUrl&quot;:&quot;blanc:\u002f\u002fnewtab\u002f&quot;,&quot;loading&quot;:false,&quot;isLoading&quot;:false,&quot;waking&quot;:false,&quot;title&quot;:&quot;New Tab&quot;,&quot;customTitle&quot;:null,&quot;favicon&quot;:&quot;data:image\u002fpng;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAHUUlEQVR4nMRXWWwcRRr+qrqn5\u002fRkfGedxOMcJKvEyW5EWC5ld8khglYG7UNgNwFBEAog8YB4BgGPPMELEgQERCAECQkSRNwR9xERCA6xg5PYluNxHDuxxx7P1d3T3fxV3TPuScaOEEjUqNWlrvr\u002f7z++\u002f68ajj958LkWHMdR6OH4nUPoELrmWmeXCdA3Jl9Vg19Jbla8athX0j2XIhjZ9F08ENjOYC+FYwdIbs69tQdzGOOmDT5o2+Z+LVz\u002fas1dl1rXd\u002fRo07LOq95Qg\u002fHNgEUrpXlAyoGx59mj0qOgpGcOD5w4\u002fb9VGzZc9EdCrexzHOy+\u002f\u002f5AclX7WwT+L0efMsg8yl8tnjikgaNkFFwILUziNmoFlJBs2m6rwcRmoXv37t1b8fzzJWlCWUIQhTFmj6fO3NO8aPnLtp426HOA0bLjbmCOAPUAbNuCEo4j9fN7EDxdsm4brEIGnCueed5exmTeHFeLyYP12oWR\u002fl0ti1e8UsZ0vXvySfmKRiM7KOy2YxNzbQIl9x3blm+hQ3jpzgmAXpapy8fzQq7JSJTnnqzUZYuKsuxINLzDjykNYE88IeKncc6SgM68yJC8LT2vhJfCJo2AB+BGD5VfZR+v7BM64OabCd0K50mB5WFW5VeV9SqtrjwSQIS877vXYOoFzwgHXkjc8HoeizXTyOP0kdcFsPdd6HD1ubplT6hwj1cxy5XwaOGCOFYJgVAdtHAdBrvfI8LFKDTEIWmYDK+ci29ibej4ISiBOpKJwSLZinFSmRsz+HoBv4TcZauZ8JrxAJgSgEkES67rQmb8FKbGBqCowUqu4eYKXA1heqwP6fMD6Ph7l5ThJM9VjdYtyQd4XPIPvwHMEmGSNc0p3Fn0fPYc9HxGAnKuYvHqzej\u002f4SAZFZRpMY2ifASAADtz9CCWdN5Cc6pfkjGK0+j9Yg8MPSd5IdBdjNl6rYqACKew0LZMBCMNaFm6Ad0fP43M5Khcb112HbG+gPP9R6EE46hvW40GejjNz536QqQYC5ddLR3NpVPo\u002fugZ1C9aT7rqpU64FVEVAX\u002fniGQuDB2PxeuWG8UiccjmGtX61OhJ9H71Cq66diea29eikBnH5OgvmJkYhpkbJcUWgvElqGtoQ8OitQjXNeLi2WNExH1YdeMuNC76K0VxmqLCbS0U4tnMTH+8ObmO8PKS+VURcDxC0aN4uY+3rMDaTQ\u002fixGcvIhRtoByfxJGDTyFcuohlK5PkaQY\u002f9g0j0NCBm3Y+jlh+IU4dOUAyDyGaaCXwKXDSJdLEZglZkwOy77kbGAq5SZjUZATB4s3L8Y9bH8XESDc+3PMIsudTxPQYdENB0VDl\u002fOLQGRx69iFMXxjENbc9RjJJrxlZMMgRqV04eAkLqyPgEoH4oiB9rgfjg9+DB6II1bUg2bkJ3Z++ifx0Fon6ehT1EvJ5A\u002fmCSXMTKpVdPj2J3q8PoKVjPU799A4KM2Myis0d16Bt5UavOWEeA7wNor0mO7ciufrfmJlMybzn00M4d7pbVoOhF6EHbBj5PB1IOuxSCYZBfUANYOzMMRSmUogtaEVL+98Qb2qXFVHMZRCgUnW75XwGyBTY+OmbQ8jlsghHE9SEYphInUDWiYCFo7AUKlOLozitwDBDyGtN9I1KjMxPU1pOnvgRiYUrMZ4eQL7nGGKxGFZ23ujTP4cBzOtWIu8GtV1h9XB\u002fN3mnQwtGqBK6UCarGKIT0omGFs58TjgYGuhDf99xhMIRNLV2QFOVSuNiqLZArQqAJfCFH8y5euNtoiHg28NvYio9QQbl4ZQM+M9xxTtmHGsWXFVVAm2XbTiRaMD1W+6QhhYLOdneBQZ8\u002fdBvALOYd3xSt8rPpKXgDVt3YGz4F3z58X7ZEel6VRWFijAZViIuNDa1YuO2u6Sf4kCayaSlsURsebgJDPj6j98AC7ZjMe9QYpzTjcFh2cwkIvEW\u002fOeOh6m1zuDwuy+hUChA04KVvAmJIqUpFolg\u002ffW3UHXk3Lono0iPeLs6xU5bxsuqMoC8oT1MLxnmMIVwhWPLfsmkIHNjLkIq2Lyp6z7KjIHP338V2eyMVBKvi2NL1y55cDFFk7UugMu8crw7Ael2TMMYprnuYVbu\u002fRIklRo9QInl4iYiD+TyMeoek9IWNRCERsfzP2\u002feiVBQQywaxcab76TjNyrX5G3TdwR7NyhH6iTdI6mRA37M2VsxWbRmzZroB2\u002fv\u002fWTJ0uS1Uxcm6FLKFFx203Q7paj5Qm5aGhWKxCn\u002fhl9vtQAxO9HcqA0PDh3Z9t+7t\u002fT09OTctPg44H3I7nlh7\u002f8ffODe19raFt5QMkuSWDUHebYg0Sj1iwNJDQZrbhNVoQZUZfTsyDek+87e3t6sl9Wa5pbvb4nvPn337sWL\u002f3KrwpV2ckFc1y6\u002fcztzaPEcIgqWLNs6S6l957qbuvbS5ykfxlyiVRuEWwsg\u002flnMCzenWYLt0\u002fToNXTPr8zZt0\u002fB9u2CqvP97bnikH9w9+9n7PbbrVrrv\u002fH\u002f3h8\u002ffgUAAP\u002f\u002fjhL9cAAAAAZJREFUAwC+ID4hfi4fBAAAAABJRU5ErkJggg==&quot;,&quot;bounds&quot;:null,&quot;groupId&quot;:null,&quot;splitId&quot;:null,&quot;pinned&quot;:false,&quot;muted&quot;:false,&quot;audioMuted&quot;:false,&quot;audioGuarded&quot;:false,&quot;audible&quot;:false,&quot;canGoBack&quot;:false,&quot;canGoForward&quot;:false,&quot;private&quot;:false,&quot;sessionKind&quot;:&quot;default&quot;,&quot;sessionPersistent&quot;:true,&quot;asleep&quot;:false},{&quot;id&quot;:&quot;690906995&quot;,&quot;webContentsId&quot;:690906995,&quot;url&quot;:&quot;file:\u002f\u002f\u002fC:\u002fUsers\u002fRUNNER~1\u002fAppData\u002fLocal\u002fTemp\u002fblanc-pinned-home-file-lZgiuG\u002fhome.html&quot;,&quot;loadedUrl&quot;:&quot;file:\u002f\u002f\u002fC:\u002fUsers\u002fRUNNER~1\u002fAppData\u002fLocal\u002fTemp\u002fblanc-pinned-home-file-lZgiuG\u002fhome.html&quot;,&quot;loading&quot;:false,&quot;isLoading&quot;:false,&quot;waking&quot;:false,&quot;title&quot;:&quot;Pinned local home&quot;,&quot;customTitle&quot;:null,&quot;favicon&quot;:null,&quot;bounds&quot;:{&quot;height&quot;:936,&quot;width&quot;:929,&quot;x&quot;:0,&quot;y&quot;:68},&quot;groupId&quot;:null,&quot;splitId&quot;:null,&quot;pinned&quot;:false,&quot;muted&quot;:false,&quot;audioMuted&quot;:false,&quot;audioGuarded&quot;:false,&quot;audible&quot;:false,&quot;canGoBack&quot;:false,&quot;canGoForward&quot;:false,&quot;private&quot;:false,&quot;sessionKind&quot;:&quot;default&quot;,&quot;sessionPersistent&quot;:true,&quot;asleep&quot;:false}],&quot;tabOrder&quot;:[&quot;690906991&quot;,&quot;690906995&quot;],&quot;clusters&quot;:[{&quot;key&quot;:&quot;run:690906991&quot;,&quot;groupId&quot;:null,&quot;tabIds&quot;:[&quot;690906991&quot;,&quot;690906995&quot;]}],&quot;groups&quot;:[],&quot;splits&quot;:[],&quot;activeTabId&quot;:&quot;690906995&quot;,&quot;glanceTabId&quot;:null,&quot;focusedPaneTabId&quot;:&quot;690906995&quot;,&quot;overlayMode&quot;:null}"/></testcase>
+  <testcase name="spec/acceptance/tabs-and-groups.feature:292:plain"></testcase>
   <testcase name="spec/acceptance/tabs-and-groups.feature:298:example-308"></testcase>
   <testcase name="spec/acceptance/tabs-and-groups.feature:298:example-309"></testcase>
   <testcase name="spec/acceptance/tabs-and-groups.feature:312:plain"></testcase>
@@ -682,23 +691,20 @@ false !== true
   <testcase name="spec/acceptance/vertical-tabs.feature:34:plain"></testcase>
   <testcase name="spec/acceptance/vertical-tabs.feature:43:plain"></testcase>
   <testcase name="spec/acceptance/vertical-tabs.feature:58:plain"></testcase>
-  <testcase name="spec/acceptance/vertical-tabs.feature:74:plain"><failure message="timed out waiting for truncated title hover animation to move toward its hidden end; last: {&quot;hovered&quot;:true,&quot;scrolling&quot;:false,&quot;reducedMotion&quot;:true,&quot;viewportWidth&quot;:167,&quot;contentWidth&quot;:520,&quot;offset&quot;:&quot;&quot;,&quot;duration&quot;:&quot;&quot;,&quot;transform&quot;:&quot;matrix(1, 0, 0, 1, 0, 0)&quot;,&quot;x&quot;:0}"/></testcase>
+  <testcase name="spec/acceptance/vertical-tabs.feature:74:plain"></testcase>
   <testcase name="spec/acceptance/vertical-tabs.feature:90:plain"></testcase>
   <testcase name="spec/acceptance/vertical-tabs.feature:99:plain"></testcase>
   <testcase name="spec/acceptance/vertical-tabs.feature:110:plain"></testcase>
   <testcase name="spec/acceptance/vertical-tabs.feature:120:plain"></testcase>
   <testcase name="spec/acceptance/vertical-tabs.feature:129:plain"></testcase>
-  <testcase name="spec/acceptance/vertical-tabs.feature:146:plain"><failure message="Expected values to be strictly equal:
-
-false !== true
-"/></testcase>
+  <testcase name="spec/acceptance/vertical-tabs.feature:146:plain"></testcase>
   <testcase name="spec/acceptance/vertical-tabs.feature:159:plain"></testcase>
   <testcase name="spec/acceptance/vertical-tabs.feature:172:plain"></testcase>
   <testcase name="spec/acceptance/vertical-tabs.feature:184:plain"></testcase>
   <testcase name="spec/acceptance/vertical-tabs.feature:194:plain"></testcase>
   <testcase name="spec/acceptance/vertical-tabs.feature:201:plain"></testcase>
   <testcase name="spec/acceptance/vertical-tabs.feature:217:plain"></testcase>
-  <testcase name="spec/acceptance/vertical-tabs.feature:239:plain"><skipped message="Undefined fork step adapter"/></testcase>
+  <testcase name="spec/acceptance/vertical-tabs.feature:239:plain"></testcase>
   <testcase name="spec/acceptance/vertical-tabs.feature:249:plain"></testcase>
   <testcase name="spec/acceptance/vertical-tabs.feature:269:plain"></testcase>
 </testsuite>
