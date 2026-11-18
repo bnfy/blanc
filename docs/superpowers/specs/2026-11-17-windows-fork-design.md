@@ -65,6 +65,16 @@ the owner's Windows VM.
 - **No protected video.** As on the Mac beta, and Windows has no "Open in Blanc" handoff yet.
 - **Nothing public.** No Windows fork release, and no website or marketing claim about one.
 
+**Owner decision, 2026-11-18:** the Windows beta updates through Chromium's own updater
+(`//chrome/updater`), not a Sparkle-like updater of our own and not manual reinstalls. Considered: a
+small in-app updater (about the same effort, less of Chromium's own), and no updater at first
+(fastest, but every tester reinstalls each beta).
+
+**Owner decisions, 2026-11-18, for the updater:** (1) update-server answers are signed (CUP) with
+Blanc's own ML-DSA-44 key built into the app, the private half a server secret, not turned off;
+(2) the update server is a Cloudflare Worker on blanc.day, like blanc-ping. Update packages are CRX3
+signed with Blanc's own publisher key (Chromium accepts only Google's by default).
+
 ## 4. The ladder
 
 | Milestone | What it delivers | Exit gate |
@@ -72,7 +82,8 @@ the owner's Windows VM.
 | **W0** First build (PW.1) | The tree compiles for Windows x64; the app launches, draws the Island, starts the blocker; the F0 suite runs on Windows | [W0 plan](../plans/2026-11-17-windows-fork-w0.md) |
 | **W1** Identity and install (PW.2) | Windows identity (install mode, data folder, executable name, icon, app id) that never collides with Electron Blanc (`BlancURL`, `StartMenuInternet\Blanc`, `%APPDATA%\Blanc`) or with Chromium; window frame, window controls and high-DPI; Default Programs registration; installer; Authenticode signing | Settings → Default apps lists it; the signed installer verifies |
 | **W2** Daily driver | The S1 suite on Windows, with real gaps fixed or recorded | S1 report for Windows committed |
-| Later | S2 to S5 per slice, the updater (R.2), a Windows beta, crash reporting | Each gets its own plan |
+| **W3** Windows beta | A public Windows beta channel without test hooks, updated through Chromium's own updater (owner decision, 2026-11-18), released like Blanc Beta | Its own plan |
+| Later | S2 to S5 per slice, crash reporting | Each gets its own plan |
 
 Each milestone after W0 gets its own task-level plan when it starts, written against the tree as it
 then stands. W1's is [`2026-11-17-windows-fork-w1.md`](../plans/2026-11-17-windows-fork-w1.md).
