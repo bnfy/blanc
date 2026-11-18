@@ -19,6 +19,8 @@ const EXPECTED = [
   ...feature('quiet-tabs', '28:example-45'),
   ...feature('private-tabs', '40:plain'),
   ...feature('arc-spaces-import', '53:plain'),
+  // W2 C2: the Island draws no window buttons on Windows (owner, W1).
+  ...feature('island-and-commands', '320:plain'),
 ];
 // A case that ran and failed on Windows may be excluded only where the
 // failure is the decided behavior itself.

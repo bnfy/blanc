@@ -16,7 +16,7 @@ import {prepareSyncFixture} from './fork-steps/sync.mjs';
 import {aggregateCases} from './results.mjs';
 import {macosForkExclusions} from './macos-fork-exclusions.mjs';
 import {windowsForkExclusions} from './windows-fork-exclusions.mjs';
-import {hostPlatform,keepAwake,candidateIdentity} from './lib/platform.mjs';
+import {hostPlatform,keepAwake,candidateIdentity,linuxTaggedScenarioRuns} from './lib/platform.mjs';
 import {awaitMemory} from './lib/memory-guard.mjs';
 import {createWorld,missingAdapters} from './world.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url));
@@ -143,7 +143,7 @@ for(const scenario of inventory.scenarios){
   if((selected&&!selected.has(test.id))||(onlyPattern&&!onlyPattern.test(test.id))){entry.result='not-run';}
   else if(scenario.desktopApplicability==='excluded'){entry.result='excluded';entry.exclusionReason=scenario.exclusionReason;}
   else if(forkExclusions[test.id]){entry.result='excluded';entry.exclusionReason=forkExclusions[test.id];}
-  else if((scenario.tags.includes('@test-platform-linux')||scenario.tags.includes('@F45-7'))&&process.platform!=='linux'){entry.result='undefined';entry.nonApplicableReason='Linux platform behavior cannot execute on the native fork off Linux; Electron platform spoofing is not a native platform test.';}
+  else if(!linuxTaggedScenarioRuns(scenario.tags,scenario.name)){entry.result='undefined';entry.nonApplicableReason='Linux platform behavior cannot execute on the native fork off Linux; Electron platform spoofing is not a native platform test.';}
   else{
    const matches=test.steps.map(s=>s.argument?null:matchStep(s.text));
    const gaps=test.steps.map((s,i)=>{

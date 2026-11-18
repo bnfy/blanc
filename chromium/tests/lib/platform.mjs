@@ -26,6 +26,15 @@ export function runningBrowserMarker(platform=process.platform){
  hostPlatform(platform);
  return platform==='win32'?{name:'lockfile',kind:'file'}:{name:'SingletonLock',kind:'symlink'};
 }
+// Shipping tags Windows-and-Linux behavior @test-platform-linux (its Electron
+// harness fakes the platform). The native fork runs such a scenario on Linux,
+// and on Windows when the scenario names Windows (W2 C2); @F45-7 is Linux's
+// own Arc import. Elsewhere it is not applicable.
+export function linuxTaggedScenarioRuns(tags,name,platform=process.platform){
+ if(tags.includes('@F45-7'))return platform==='linux';
+ if(!tags.includes('@test-platform-linux'))return true;
+ return platform==='linux'||(platform==='win32'&&/\bWindows\b/.test(name));
+}
 // Every process as "pid command line", one per line.
 export function processListCommand(platform=process.platform){
  if(platform==='win32')return ['powershell.exe',['-NoProfile','-NonInteractive','-Command','Get-CimInstance Win32_Process | ForEach-Object { "$($_.ProcessId) $($_.CommandLine)" }']];

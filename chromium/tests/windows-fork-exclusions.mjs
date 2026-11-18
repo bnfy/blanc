@@ -26,5 +26,6 @@ export const windowsForkExclusions = Object.freeze({
   "spec/acceptance/local-profiles.feature:17:plain": "V18 approves Chromium profile management: its native deletion dialog has Cancel/Remove, not shipping typed-name confirmation or profile-name window titles.",
   "spec/acceptance/quiet-tabs.feature:28:example-45": "This outline row asserts Electron WebContents listener counts, which do not exist in Chromium; native protection rows remain applicable.",
   "spec/acceptance/private-tabs.feature:40:plain": "Owner decision 2026-11-18 (W2 plan, decision 2): passkeys on Windows are Chromium's own Windows Hello path; a private-window passkey is a question in the Windows hand check, not a simulated authenticator.",
-  "spec/acceptance/arc-spaces-import.feature:53:plain": "Linux-only import (a chosen Arc file); not applicable on Windows, which reads Arc's own folder."
+  "spec/acceptance/arc-spaces-import.feature:53:plain": "Linux-only import (a chosen Arc file); not applicable on Windows, which reads Arc's own folder.",
+  "spec/acceptance/island-and-commands.feature:320:plain": "Owner decision 2026-11-17 (W1): Windows' own caption buttons sit over the strip and the Island draws no window buttons on Windows, so there are no floating window controls to come and go with the pill (W2 C2)."
 });

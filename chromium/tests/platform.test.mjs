@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import {hostPlatform,chromeProfileRoot,processListCommand,parseProcessList,candidateIdentityFiles,candidateIdentity,freeMemoryText,runningBrowserMarker} from './lib/platform.mjs';
+import {hostPlatform,chromeProfileRoot,processListCommand,parseProcessList,candidateIdentityFiles,candidateIdentity,freeMemoryText,runningBrowserMarker,linuxTaggedScenarioRuns} from './lib/platform.mjs';
 import {freePercent} from './lib/memory-guard.mjs';
 
 test('the host platform uses the tracker\'s names, and an unknown host stops', () => {
@@ -86,4 +86,13 @@ test('the browser looks for the running marker the harness writes, on each platf
   assert.ok(running, 'tab_import.inc has a Windows running check');
   assert.match(running[1], new RegExp(`AppendASCII\\("${runningBrowserMarker('win32').name}"\\)`));
   assert.match(running[2], new RegExp(`AppendASCII\\("${runningBrowserMarker('darwin').name}"\\)`));
+});
+test('a Linux-tagged scenario runs on Linux, and on Windows when it names Windows', () => {
+  const both = 'The main-menu button moves into the rail on Windows and Linux';
+  assert.equal(linuxTaggedScenarioRuns(['@test-platform-linux'], both, 'linux'), true);
+  assert.equal(linuxTaggedScenarioRuns(['@test-platform-linux'], both, 'win32'), true);
+  assert.equal(linuxTaggedScenarioRuns(['@test-platform-linux'], both, 'darwin'), false);
+  assert.equal(linuxTaggedScenarioRuns(['@test-platform-linux'], 'Linux imports a chosen file', 'win32'), false);
+  assert.equal(linuxTaggedScenarioRuns(['@F45-7'], 'Arc on Windows and Linux', 'win32'), false);
+  assert.equal(linuxTaggedScenarioRuns(['@F1'], 'anything', 'darwin'), true, 'untagged scenarios run everywhere');
 });
