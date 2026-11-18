@@ -455,3 +455,47 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 .mail-survey-invite-suggest:hover{color:var(--mail-band-text)}
 .mail-survey-invite-suggest:focus-visible{outline:2px solid var(--mail-band-gold);outline-offset:2px;border-radius:4px}
 #suggest{scroll-margin-top:calc(var(--mail-header-h) + var(--mail-bar-h) + 24px)}
+
+/* ---------- Reserve your address ----------
+   The reservation block at the end of the address section, on the dark band
+   (Blanc Mail repo spec 2026-11-18-address-reservations-design.md). Fields
+   follow the dark waitlist's look; the button is the page's one gilt action. */
+.mail-reserve{max-width:520px;margin:64px auto 0;text-align:left}
+.mail-reserve-title{margin:0;color:var(--mail-band-text);font-size:22px;font-weight:600;letter-spacing:-.01em}
+.mail-reserve-lead{margin:8px 0 24px;color:var(--mail-band-muted);font-size:15.5px;line-height:1.55}
+.mail-reserve-step{display:grid;gap:10px}
+.mail-reserve-step[hidden]{display:none}
+.mail-reserve-label{margin-top:6px;color:var(--mail-band-text);font-size:14px;font-weight:600}
+.mail-reserve-field,.mail-reserve-input{border:1px solid #f2ead826;border-radius:14px;background:#ffffff0d;box-shadow:inset 0 1px 0 #ffffff0f;transition:border-color 160ms ease,box-shadow 160ms ease}
+.mail-reserve-field{display:flex;align-items:center}
+.mail-reserve-field:focus-within,.mail-reserve-input:focus{border-color:#e0c084;box-shadow:0 0 0 3px #e0c08433}
+.mail-reserve input{width:100%;min-width:0;padding:12px 14px;border:0;background:transparent;color:var(--mail-band-text);font:inherit;font-size:16px;outline:none}
+.mail-reserve .mail-reserve-input{border:1px solid #f2ead826}
+.mail-reserve .mail-reserve-input:focus{border-color:#e0c084}
+.mail-reserve input::placeholder{color:#8f846f}
+.mail-reserve-ending{flex:none;padding-right:14px;color:#e0c084;font-weight:500}
+.mail-reserve-code{letter-spacing:.3em;font-variant-numeric:tabular-nums}
+.mail-reserve-availability{min-height:1.4em;margin:0;color:var(--mail-band-muted);font-size:14px}
+.mail-reserve-availability.is-available{color:#e0c084}
+.mail-reserve-turnstile:empty{display:none}
+.mail-reserve-button{justify-self:start;margin-top:8px;padding:11px 22px;border:0;border-radius:999px;background:var(--mail-gilt);color:#1b1306;font:inherit;font-size:15px;font-weight:600;cursor:pointer;box-shadow:inset 0 1px 0 #fff8e2b3,inset 0 -1px 0 #7a5a2699;transition:filter 160ms ease,transform 100ms ease-out}
+.mail-reserve-button:active{transform:scale(.97)}
+@media(hover:hover){.mail-reserve-button:hover{filter:brightness(1.07)}}
+.mail-reserve-button:focus-visible{outline:2px solid #e0c084;outline-offset:2px}
+.mail-reserve-button:disabled{opacity:.5;cursor:not-allowed;filter:none;transform:none}
+.mail-reserve-done p,.mail-reserve [data-step=closed] p{margin:0;color:var(--mail-band-muted);font-size:15.5px;line-height:1.55}
+.mail-reserve .mail-reserve-address{color:var(--mail-band-text);font-size:clamp(24px,4vw,32px);font-weight:600;letter-spacing:-.015em;overflow-wrap:anywhere}
+.mail-reserve a{color:var(--mail-band-text)}
+.mail-reserve-status{margin:14px 0 0;color:var(--mail-band-text);font-size:15px;font-weight:600}
+.mail-reserve-status:empty{display:none}
+.mail-reserve-note{margin:14px 0 0;color:var(--mail-band-muted);font-size:13px;line-height:1.5}
+/* The release page, a plain mail-doc page: one sentence and one button. */
+.mail-release{max-width:56ch;margin-top:40px}
+.mail-page .mail-release p{margin:0;color:#2f2a22;font-size:17px;line-height:1.7}
+.mail-release-button{margin-top:24px;padding:11px 22px;border:0;border-radius:999px;background:var(--mail-ink);color:#f7f0e5;font:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:background-color 160ms ease,transform 100ms ease-out}
+.mail-release-button:active{transform:scale(.97)}
+@media(hover:hover){.mail-release-button:hover{background:#44361e}}
+.mail-release-button:focus-visible{outline:2px solid var(--mail-gold);outline-offset:2px}
+.mail-release-button:disabled{opacity:.6;cursor:progress;transform:none}
+.mail-page .mail-release .mail-release-status{margin-top:16px;font-weight:600}
+.mail-release-status:empty{display:none}
