@@ -2038,6 +2038,9 @@ document.getElementById('shortcutStepper')?.addEventListener('keydown', (event) 
 const CUSTOMIZE_CLOCK_MIN_SCALE = 0.5;
 let customizeClockScale = 1;
 let customizeClockLift = 0;
+// Customize's full height the last time it was open: an opening Customize
+// makes room with it before its first frame, then measures itself again.
+let customizeNeeded = 0;
 function setCustomizeClock(scale, lift) {
   customizeClockScale = scale;
   customizeClockLift = lift;
@@ -2045,7 +2048,7 @@ function setCustomizeClock(scale, lift) {
   root.style.setProperty('--customize-clock-scale', String(scale));
   root.style.setProperty('--customize-clock-lift', `${-lift}px`);
 }
-function fitCustomizeBelowClock() {
+function fitCustomizeBelowClock({ opening = false } = {}) {
   const popover = document.getElementById('customizePopover');
   const button = document.getElementById('customizeButton');
   const clockRow = document.querySelector('.bb-clock-row');
@@ -2061,9 +2064,11 @@ function fitCustomizeBelowClock() {
   const roomAt = (scale) => buttonTop - 10 - (clockTop + clockHeight * scale + tail) - 16;
   let scale = 1;
   const cols = document.getElementById('customizeCols');
-  if (popover.matches(':popover-open') && cols && clockHeight > 0) {
+  const open = popover.matches(':popover-open');
+  if (open && cols) customizeNeeded = cols.scrollHeight + (popover.offsetHeight - cols.clientHeight);
+  if ((open || (opening && customizeNeeded > 0)) && clockHeight > 0) {
     // All of Customize: its columns' content plus its own padding and border.
-    const needed = cols.scrollHeight + (popover.offsetHeight - cols.clientHeight);
+    const needed = customizeNeeded;
     if (needed > roomAt(1)) {
       const fits = (buttonTop - 10 - 16 - needed - tail - clockTop) / clockHeight;
       scale = Math.min(1, Math.max(CUSTOMIZE_CLOCK_MIN_SCALE, fits));
@@ -2115,7 +2120,7 @@ function returnCustomizeClock({ now = false } = {}) {
 document.getElementById('customizePopover')?.addEventListener('beforetoggle', (event) => {
   if (event.newState === 'open') {
     clearTimeout(customizeClockReturn);
-    fitCustomizeBelowClock();
+    fitCustomizeBelowClock({ opening: true });
   } else {
     returnCustomizeClock();
   }

@@ -56,7 +56,10 @@ test('Customize is capped to the room under the clock, with no floor', () => {
 test('the clock scales just enough for Customize, from its top, never below half', () => {
   const fit = body('fitCustomizeBelowClock');
   assert.match(js, /const CUSTOMIZE_CLOCK_MIN_SCALE = 0\.5;/);
-  assert.match(fit, /const needed = cols\.scrollHeight \+ \(popover\.offsetHeight - cols\.clientHeight\);/);
+  assert.match(fit, /if \(open && cols\) customizeNeeded = cols\.scrollHeight \+ \(popover\.offsetHeight - cols\.clientHeight\);/);
+  // A later opening makes room before its first frame with the last height.
+  assert.match(fit, /if \(\(open \|\| \(opening && customizeNeeded > 0\)\) && clockHeight > 0\) \{/);
+  assert.match(js, /fitCustomizeBelowClock\(\{ opening: true \}\);/);
   assert.match(fit, /scale = Math\.min\(1, Math\.max\(CUSTOMIZE_CLOCK_MIN_SCALE, fits\)\);/);
   assert.match(fit, /setCustomizeClock\(scale, clockHeight \* \(1 - scale\)\);/);
   const css = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/pages.css'), 'utf8');
