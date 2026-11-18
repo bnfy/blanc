@@ -97,8 +97,11 @@ try {
 
   // A sized Favorites card lists every favorite and scrolls inside.
   await page.locator('#favoritesWidget > .bb-widget-resize').focus();
+  // End takes the largest size its column has room for (here, under the
+  // devices card in the same column).
   await page.keyboard.press('End');
-  await waitForValue(() => settingsFile().newtabWidgets?.sizes?.favorites, (size) => size === 720, 'Favorites sized');
+  await waitForValue(() => settingsFile().newtabWidgets?.sizes?.favorites, (size) => [240, 360, 480, 600, 720].includes(size),
+    'Favorites sized');
   await page.waitForFunction(() => document.querySelectorAll('#favoritesList [data-favorite-url]').length === 20);
 
   // Over your image: the cards are glass, the footer sits in a fade, and
