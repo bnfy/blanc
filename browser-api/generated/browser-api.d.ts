@@ -964,6 +964,7 @@ export interface PageBackdrop {
   height: number;
   layers: BackdropLayer[];
   band: number;
+  sunriseAt?: number;
 }
 
 export interface BlancBrowserAPI {

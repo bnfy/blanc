@@ -1330,3 +1330,4 @@ The active Start Page's wallpaper for the Island's band to continue: the page's 
 | `height` | `number` |  |
 | `layers` | `BackdropLayer[]` |  |
 | `band` | `number` |  |
+| `sunriseAt?` | `number` |  |

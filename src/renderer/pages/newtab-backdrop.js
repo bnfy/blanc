@@ -36,7 +36,11 @@
     }
     // Zoom is main's to know (the page's zoom factor); width and height are
     // this page's own CSS pixels.
-    return { zoom: 1, width: innerWidth, height: innerHeight, layers: layers.slice(0, 4) };
+    const out = { zoom: 1, width: innerWidth, height: innerHeight, layers: layers.slice(0, 4) };
+    // The launch Sunrise's sky covers this page; the band plays it too.
+    const sunriseAt = Number(document.body.dataset.launchSunriseAt);
+    if (Number.isInteger(sunriseAt) && sunriseAt > 0) out.sunriseAt = sunriseAt;
+    return out;
   }
   async function publish(force) {
     if (busy) { again = true; forceNext ||= force; return; }

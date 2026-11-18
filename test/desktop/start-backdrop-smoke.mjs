@@ -22,6 +22,8 @@ fs.mkdirSync(userData);
 fs.writeFileSync(path.join(userData, 'settings.json'), JSON.stringify({
   onboardingVersion: 1, presentationDefaultsResetVersion: 1,
   adblockEnabled: false, usagePing: false, searchSuggestions: false,
+  // The launch Sunrise plays on the first Start Page; the band plays its sky.
+  launchSunrise: true,
 }));
 const { ELECTRON_RUN_AS_NODE: ignored, ...env } = process.env;
 
@@ -72,6 +74,21 @@ try {
   await page.waitForLoadState('domcontentloaded');
   await waitForValue(() => app.evaluate(() => typeof globalThis.__blancCall === 'function'), Boolean, 'the test hook');
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setContentSize(1280, 800));
+
+  // The launch Sunrise: its sky plays over the band too, then goes.
+  const sunrise0 = await waitForValue(async () => {
+    const chrome = (await app.windows()).find((p) => p.url().startsWith('blanc-chrome://index'));
+    return chrome?.evaluate(() => {
+      const sky = document.querySelector('#bandBackdrop .band-sunrise');
+      return sky && !sky.hidden ? { animations: sky.getAnimations().map((a) => a.animationName).sort() } : null;
+    });
+  }, Boolean, 'the Sunrise sky over the band');
+  assert.deepEqual(sunrise0.animations, ['band-sunrise-out', 'band-sunrise-sky']);
+  await page.waitForFunction(() => !document.getElementById('launchSunrise'), null, { timeout: 10_000 });
+  await waitForValue(async () => {
+    const chrome = (await app.windows()).find((p) => p.url().startsWith('blanc-chrome://index'));
+    return chrome.evaluate(() => document.querySelector('#bandBackdrop .band-sunrise').hidden);
+  }, Boolean, 'the Sunrise sky gone from the band');
 
   // Sunrise: the band continues the page.
   await page.waitForFunction(() => document.documentElement.hasAttribute('data-island-band'));

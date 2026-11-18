@@ -693,6 +693,7 @@ struct PageBackdrop {
   double height;
   array<BackdropLayer> layers;
   double band;
+  double? sunrise_at;
 };
 // Contract group "tabs".
 interface Tabs {

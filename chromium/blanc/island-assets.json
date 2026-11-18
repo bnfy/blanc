@@ -145,7 +145,7 @@
   "manifest": {
     "adapter.js": "bd5228746dff57737a236eca7dd97e4c391ed61a17e27e33627c71008298909b",
     "address-input.js": "7d6e1c7c9294cc135379e6ad69794e120dfb58002c20ce16d548b1f7e65ad609",
-    "browser-api-codec.js": "930635e80b443b1e1d7c52d32852b5c3508028eb0198c8f6119b4729a9d7bec2",
+    "browser-api-codec.js": "1677b4cb25de24f743bb91ff3d93f7d8d08dbda3f1d0947ceb7d2d080679a228",
     "browser-api.js": "80598d001be4cdd5f48183c37c2ccfdc2fa7e05a815a6ca8ddc9989e2b7fc1f3",
     "clean-link.js": "75bbbce217394d68444fdaaa3f8fb9db2405c4704f909a1960d2485a62534860",
     "extensions.css": "52170b6a2f8aee3abfa8b677633c611aebe9c2ed8ddac791e77cbf80016dbc9a",

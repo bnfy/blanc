@@ -43,7 +43,7 @@ function normalizeLayer(layer, wallpaperUrl) {
 }
 
 /** The page's spec as the strip may draw it, or null (refused whole). */
-function normalizeBackdrop(spec, { wallpaperUrl = null } = {}) {
+function normalizeBackdrop(spec, { wallpaperUrl = null, now = Date.now() } = {}) {
   if (!spec || typeof spec !== 'object' || Array.isArray(spec)) return null;
   if (!finite(spec.zoom, 0.25, 5)) return null;
   for (const key of ['width', 'height']) {
@@ -56,7 +56,14 @@ function normalizeBackdrop(spec, { wallpaperUrl = null } = {}) {
     if (!clean) return null;
     layers.push(clean);
   }
-  return { zoom: spec.zoom, width: spec.width, height: spec.height, layers };
+  const out = { zoom: spec.zoom, width: spec.width, height: spec.height, layers };
+  // The launch Sunrise (#1179) plays its sky over the page; the band plays
+  // the same sky from when the page started it. Only a recent start counts,
+  // and anything else is dropped rather than refusing the wallpaper.
+  if (Number.isInteger(spec.sunriseAt) && spec.sunriseAt >= now - 10_000 && spec.sunriseAt <= now + 1_000) {
+    out.sunriseAt = spec.sunriseAt;
+  }
+  return out;
 }
 
 /** The band's height above this page in CSS pixels, or 0 where the band
@@ -70,8 +77,10 @@ function backdropBand({ isActive, isPrivate, splitVisible, glanceOpen, autoHide,
  * where the band keeps its sampled color. */
 function backdropPayload(tabId, spec, band) {
   if (!spec || !(band > 0)) return null;
-  const { zoom, width, height, layers } = spec;
-  return { id: tabId, zoom, width, height, layers, band };
+  const { zoom, width, height, layers, sunriseAt } = spec;
+  const payload = { id: tabId, zoom, width, height, layers, band };
+  if (sunriseAt !== undefined) payload.sunriseAt = sunriseAt;
+  return payload;
 }
 
 // The strip runs in Blanc's chrome session, which has no blanc:// handler on

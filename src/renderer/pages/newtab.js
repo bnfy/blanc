@@ -2396,11 +2396,14 @@ function playLaunchSunrise() {
     removeEventListener('keydown', end, true);
     removeEventListener('pointerdown', end, true);
     scene.remove();
+    delete document.body.dataset.launchSunriseAt;
   };
   addEventListener('keydown', end, true);
   addEventListener('pointerdown', end, true);
   scene.addEventListener('animationend', (event) => { if (event.target === scene) end(); });
   scene.hidden = false;
+  // The Island's band plays the same sky from this moment (newtab-backdrop.js).
+  document.body.dataset.launchSunriseAt = String(Date.now());
 }
 
 function applyStartData(data) {
