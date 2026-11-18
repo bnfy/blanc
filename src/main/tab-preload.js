@@ -8,7 +8,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 // The internal hosts match SUNRISE_PAGES in page-tint-policy.js, which this
 // sandboxed preload cannot require.
 if (typeof process !== 'undefined' && process.isMainFrame && (/^https?:$/.test(window.location.protocol)
-  || (window.location.protocol === 'blanc:' && ['newtab', 'mahjong'].includes(window.location.host)))) {
+  || (window.location.protocol === 'blanc:' && ['newtab', 'mahjong', 'bookmarks'].includes(window.location.host)))) {
   let pending = null;
   let lastSignal = -Infinity;
   let observing = false;

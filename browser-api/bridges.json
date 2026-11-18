@@ -24,7 +24,8 @@
           "https://example.com/",
           "http://example.com/",
           "blanc://newtab/",
-          "blanc://mahjong/"
+          "blanc://mahjong/",
+          "blanc://bookmarks/"
         ],
         "doc": "Isolated-world invalidation for the strip's page tint: no arguments, no API exposed to the page."
       }
