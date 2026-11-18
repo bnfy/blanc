@@ -72,6 +72,7 @@ test('the chart is re-checked for each Blanc feature release', async () => {
   assert.equal(releaseMinor('v1.48.0'), '1.48');
   assert.equal(releaseMinor('v1.49.0'), '1.49');
   assert.equal(releaseMinor('v1.50.0'), '1.50');
+  assert.equal(releaseMinor('v1.51.0'), '1.51');
   assert.equal(releaseMinor(releases[0].tag), releaseMinor(data.checkedAgainst),
     `a newer Blanc feature release (${releases[0].tag}) shipped: re-check /compare and bump checkedAgainst`);
 });
