@@ -169,6 +169,11 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           if (Test-Path chromium/tests/windows-quit.mjs) { node chromium/tests/windows-quit.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\quit" } else { 'No quit check on this ref.' }
+      # Ctrl+Tab by most recent use, through the app's own key events (W2 C1).
+      - name: Ctrl+Tab check
+        if: ${{ !cancelled() }}
+        run: |
+          if (Test-Path chromium/windows/run-native-check.mjs) { node chromium/windows/run-native-check.mjs "$env:CANDIDATE_DIR" native-tab-switch.mjs "$env:RESULTS\tab-switch" } else { 'No Ctrl+Tab check on this ref.' }
       # Chromium's installer beside an installed Electron Blanc (W1 Part B),
       # and whether a crash is captured. Skipped where the candidate or the
       # ref has neither.

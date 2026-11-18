@@ -120,3 +120,8 @@ test('a signed install is run against the signed bytes, after checking them', ()
   files['i/chrome.exe'] = sign(pe('exf'));
   assert.throws(() => signedRuntimeConfig(config, originals, read, sha), /signature added/);
 });
+test('a native check is named by its file, inside chromium/tests', async () => {
+  const { nativeCheckPath } = await import('../windows/run-native-check.mjs');
+  assert.equal(nativeCheckPath('/r', 'native-tab-switch.mjs'), path.join('/r', 'chromium', 'tests', 'native-tab-switch.mjs'));
+  for (const bad of ['../x.mjs', 'runner.mjs', 'native-tab-switch.js', 'native-../a.mjs']) assert.throws(() => nativeCheckPath('/r', bad));
+});
