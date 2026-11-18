@@ -98,13 +98,16 @@ try {
         await current.waitForFunction((width) => innerWidth === width, width);
         await openCustomize(current);
         const boxes = await current.evaluate(() => {
+          // Customize scrolls inside when the window is short (it never
+          // covers the clock), so bring the switch into view first.
+          document.getElementById('dynamicWallpaperToggle').scrollIntoView({ block: 'nearest' });
           const rect = (selector) => {
             const { x, y, right, bottom, width, height } = document.querySelector(selector).getBoundingClientRect();
             return { x, y, right, bottom, width, height };
           };
           return {
             footer: rect('#layoutFooter'), toggle: rect('#dynamicWallpaperToggle'),
-            layout: rect('#layoutSwitcher'), popover: rect('#customizePopover'),
+            layout: rect('#widgetSwitches'), popover: rect('#customizePopover'),
             customize: rect('#customizeButton'),
             left: rect('.footer-left'), right: rect('.footer-right'),
             viewport: { width: innerWidth, height: innerHeight },
@@ -117,9 +120,9 @@ try {
         assert.ok(boxes.popover.x >= 0 && boxes.popover.right <= boxes.viewport.width && boxes.popover.y >= 0,
           `Customize stays inside the window at ${width}px in ${layout}/${style}`);
         assert.ok(boxes.popover.bottom <= boxes.customize.y + 0.5, 'Customize opens upward from its button');
-        assert.ok(inside(boxes.layout, boxes.popover) && inside(boxes.toggle, boxes.popover),
-          'layout previews and the wallpaper switch live in the Customize popover');
-        assert.ok(boxes.layout.bottom <= boxes.toggle.y, 'the wallpaper switch sits below the layout previews');
+        assert.ok(inside(boxes.toggle, boxes.popover), 'the wallpaper switch lives in the Customize popover');
+        // Two columns from 760px (widgets left, wallpaper right); stacked below.
+        assert.ok(apart(boxes.layout, boxes.toggle), 'the widget switches and the wallpaper switch do not overlap');
         assert.ok(boxes.customize.y >= boxes.footer.y && boxes.customize.bottom <= boxes.viewport.height,
           'the Customize button sits in the footer');
         for (const other of [boxes.customize, boxes.left]) {

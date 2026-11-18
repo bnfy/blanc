@@ -805,8 +805,8 @@ When('I launch Mahjong from the start-page footer', async function () {
   assert.ok(source?.loadedUrl?.startsWith('blanc://newtab/'));
   const footer = await waitForValue(
     () => this.call('readMahjongFooterLink'),
-    (value) => value?.switcherCount === 4 && value.frameCount === 0,
-    'four layout choices and a separate Mahjong footer link',
+    (value) => value?.switcherCount === 2 && value.frameCount === 0,
+    'two widget switches and a separate Mahjong footer link',
   );
   assert.equal(footer.href, source.private ? 'blanc://mahjong/?private=1' : 'blanc://mahjong/');
   assert.equal(footer.target, '_blank');
@@ -959,9 +959,10 @@ Then('no widget setup shows the Patron upgrade or a blocked count', async functi
     assert.equal(frame.patronVisible, false, `private ${layout} hides Patron`);
     const selectors = frame.content.map((entry) => String(entry.selector));
     assert.ok(!selectors.some((s) => /tally-chart|tally-caption/.test(s)), `private ${layout} hides the Tally data column`);
-    if (layout === 'shelf') {
-      assert.equal(await this.call('readStartBlockedCard'), false, 'private Shelf hides its blocked card');
-    }
+    // One page (V24): the line under the clock is the only blocked count,
+    // and a private page's says it counts nothing.
+    const dom = await this.call('readStartWidgets');
+    assert.doesNotMatch(dom.blockedLine ?? '', /\d[\d,.\u00a0\u202f]* ads? blocked/, `private ${layout} shows no blocked count`);
   }
 });
 

@@ -39,9 +39,11 @@ try {
     args: [path.resolve('.'), `--user-data-dir=${profile}`],
     env: { ...env, BLANC_TEST: '1', BLANC_TEST_UNCAUGHT_LOG: path.join(root, 'uncaught.log') },
   });
-  for (let i = 0; i < 20; i += 1) await callTestHook(app, 'seedFavorite', [`https://fav-${i}.example/`, `Favorite ${i + 1}`]);
   const page = await waitForValue(async () => (await app.windows()).find((p) => p.url() === 'blanc://newtab/'), Boolean, 'new tab');
   await page.waitForLoadState('domcontentloaded');
+  // The test hook is installed once the first window is up.
+  await waitForValue(() => app.evaluate(() => typeof globalThis.__blancCall === 'function'), Boolean, 'the test hook');
+  for (let i = 0; i < 20; i += 1) await callTestHook(app, 'seedFavorite', [`https://fav-${i}.example/`, `Favorite ${i + 1}`]);
   await page.setViewportSize({ width: 1600, height: 960 });
   await page.reload();
   await page.waitForFunction(() => document.body.classList.contains('layout-ready'));
