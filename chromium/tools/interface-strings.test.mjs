@@ -31,3 +31,13 @@ test('the pages\' catalogs are generated, pinned and keep their status messages'
   assert.equal(french.messages['start.pins.unavailable'], 'Impossible d’actualiser les sites épinglés.');
   assert.equal(run(['en-US'], null).messages['settings.general.islandSize.label'], 'Island size');
 });
+
+// The fork's own messages are never English-only and never shadow shipping's.
+test('fork strings come in every language and never replace a shipping message', async () => {
+  const {withForkStrings, catalogs, LANGUAGES, forkStringsFile} = await import('./interface-strings.mjs');
+  const own = JSON.parse(fs.readFileSync(forkStringsFile, 'utf8'));
+  const merged = withForkStrings(catalogs());
+  for (const key of Object.keys(own)) for (const language of LANGUAGES) assert.equal(merged[language].messages[key], own[key][language]);
+  assert.throws(() => withForkStrings(catalogs(), {'protectedMedia.title': {en: 'x'}}), /has no de text/);
+  assert.throws(() => withForkStrings(catalogs(), {'drm.title': Object.fromEntries(LANGUAGES.map(l => [l, 'x']))}), /already a shipping message/);
+});

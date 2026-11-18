@@ -86,6 +86,9 @@ export const PORTS = {
   },
   // Whether a pane's contents hold focus: the host's focused tab.
   'ffe82b57714edbb86a70d42ba87b0e6582b9138abb48ee03d3b4241e44da35a0': async (fixture, state, id) => String((await nativeCall(fixture.host, 'snapshot')).focusedTabId) === String(id),
+  // test/desktop/steps/vertical-tabs.steps.js (F28-21): the traffic lights'
+  // position, Electron's getWindowButtonPosition, read from the real window.
+  '6dc6c6aa06206bc0bd0bda69b8aa21272fdc50f36b1d17ca0d065852ebdce8e4': fixture => nativeCall(fixture.host, 'windowButtonPosition'),
   // process.platform, for the platform's new-tab modifier.
   '5ab682247983acf33b7a57d5d4aec583451f33be98a23aacabdd3ae0e2485a60': async () => process.platform,
   // test/desktop/steps/http-auth.steps.js (F20), installProbe: Blanc's

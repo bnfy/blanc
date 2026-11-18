@@ -22,6 +22,7 @@ struct NavigateParams;
 namespace sessions { struct SessionWindow; }
 namespace ui { class ImageModel; }
 namespace content { class WebContents; class RenderFrameHost; }
+namespace page_load_metrics { class PageLoadTracker; }
 namespace blanc::browser_api::mojom { class BrowserApiFactory; }
 class BrowserWindowInterface;
 class MultiContentsView;
@@ -176,10 +177,16 @@ content::WebContents* NewPrivateTab(BrowserWindowInterface* browser, const GURL&
 // or the setting is off, and the caller opens a new tab as before.
 content::WebContents* ReuseNewTab(BrowserWindowInterface* browser, bool is_private,
                                   bool open_island = true);
+// F59: a Ctrl+Tab (1) or Ctrl+Shift+Tab (-1) taken as a step of the
+// most-recent-use switch; false when Chromium should step by position.
+bool TabSwitchCommand(BrowserWindowInterface* browser, int direction);
 // The Dock's New Private Window, and ⌘⇧N with no window open: a window
 // Chromium just opened becomes one private tab, as shipping's
 // openNewWindow({private: true}). False leaves it as Chromium made it.
 bool MakePrivateWindow(BrowserWindowInterface* browser);
+// The protected-video notice (protected_media.inc): watches a page load for
+// a request for protected playback. Called for each tracked page (patch 0091).
+void AddProtectedMediaObserver(page_load_metrics::PageLoadTracker* tracker);
 bool HasIsland(views::View* parent);
 int RailWidth(views::View* parent);
 int HeaderHeight(views::View* parent);
@@ -207,6 +214,20 @@ void ExtensionPopupChanged(BrowserWindowInterface* browser, bool open);
 bool HoldWindowOnClose(BrowserWindowInterface* browser);
 // The Dock icon with no window showing: show the held primary window.
 bool ReopenHeldWindow();
+// The Dock menu's current-tab row (shipping's dockActiveTabDescriptor): the
+// front Island window's current tab. |label| is its title cut to 75
+// characters, the private label for a private tab, or empty while no window
+// shows; |icon_png| is its site icon, empty for a private tab or none.
+struct DockTab {
+  std::u16string label;
+  std::string icon_png;
+};
+DockTab DockActiveTab();
+// That row chosen: the window comes forward (the held one is shown again).
+void FocusDockActiveWindow();
+// The app menu's Check for Updates…: Blanc Beta's updater checks now; a build
+// with no updater opens About, where the version is.
+void CheckForUpdatesFromMenu();
 // History, Downloads and the bookmark manager in an Island window open
 // Blanc's utility sheet ("history", "downloads" or "bookmarks"), as
 // shipping's menu items do. False leaves Chromium's own page.

@@ -6,7 +6,7 @@ const { execFileSync } = require('node:child_process');
 const { generateMessages } = require('@cucumber/gherkin');
 const { IdGenerator, SourceMediaType } = require('@cucumber/messages');
 const root = path.resolve(__dirname, '../..');
-const shipping = '8a4e57e78dfe47a72c05d17fd6040be26c3dffd3';
+const shipping = '673ff2eb052011b1efd14438a397a57d457de241';
 const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
 const spec = fs.readFileSync(path.join(root, 'docs/chromium-replacement/2026-10-30-desktop-replacement-spec.md'), 'utf8');
 const rows = [...spec.matchAll(/^\| ((?:F|R|X|N)\d+) \| (.+)$/gm)].map(m => {
@@ -60,16 +60,16 @@ for (const file of files) {
         featureRows, mappingReasons: roots.filter(id => aliases[id]).map(id => aliases[id].reason),
         desktopApplicability: mobileOnly ? 'excluded' : 'applicable',
         exclusionReason: mobileOnly ? 'Shipping scenario explicitly targets mobile only' : null,
-        result: 'not-run', shippingTag: '8a4e57e78', shippingCommit: shipping,
+        result: 'not-run', shippingTag: 'v1.49.1', shippingCommit: shipping,
         forkCommit: null, candidate: null, platform: null });
     }
   }
   walk(doc.feature.children, doc.feature.tags);
 }
-if (scenarios.length !== 612) throw Error(`Unexpected declaration count ${scenarios.length}`);
+if (scenarios.length !== 618) throw Error(`Unexpected declaration count ${scenarios.length}`);
 const unmapped = scenarios.filter(s => !s.featureRows.length);
 const output = { schemaVersion: 1, qualification: 'scenario declaration inventory only; no fork baseline run or pass credit',
-  shippingTag: '8a4e57e78', shippingCommit: shipping, declarationCount: scenarios.length,
+  shippingTag: 'v1.49.1', shippingCommit: shipping, declarationCount: scenarios.length,
   unmappedCount: unmapped.length, mappingAliases: aliases, scenarios };
 const inventoryFile = path.join(root, 'chromium/scenarios/inventory.json');
 const serialized = JSON.stringify(output, null, 2) + '\n';
@@ -87,7 +87,7 @@ if (process.argv.includes('--sync-mapping')) {
 
 if (!fs.existsSync(path.join(root, 'chromium/tracker.json'))) fs.writeFileSync(path.join(root, 'chromium/tracker.json'), JSON.stringify({ schemaVersion: 1,
   qualification: 'initial requirement inventory; canonical/platform states await verification',
-  shippingTag: '8a4e57e78', shippingCommit: shipping, rows }, null, 2) + '\n');
+  shippingTag: 'v1.49.1', shippingCommit: shipping, rows }, null, 2) + '\n');
 console.log(JSON.stringify({ declarations: scenarios.length, mapped: scenarios.length - unmapped.length,
   desktopApplicable: scenarios.filter(s => s.desktopApplicability === 'applicable').length, executableCases: scenarios.reduce((n,s) => n + s.cases.length, 0),
   rows: rows.length, forkBaselineRun: false, unmapped: unmapped.map(s => s.id) }));

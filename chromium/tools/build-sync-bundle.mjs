@@ -15,6 +15,9 @@ const SHIMS = ['crypto', 'fs', 'path', 'os', 'child_process', 'async_hooks', 'ur
 const EXTERNAL = {crypto: 'crypto', 'node:crypto': 'crypto', fs: 'fs', 'node:fs': 'fs', path: 'path', 'node:path': 'path',
   os: 'os', child_process: 'child_process', 'node:async_hooks': 'async_hooks', 'node:url': 'url', electron: 'electron'};
 
+// Shipping's Favorites manager, which the fork's flat Favorites pages can't show (see bundle()).
+export const MANAGER_OFF = "__require('src/main/bookmarks.js').setManagerLive(false);";
+
 // A value as JavaScript source, safe wherever the bundle is read.
 const literal = value => JSON.stringify(value).replace(/[<>\u2028\u2029]/g, c => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`);
 
@@ -49,6 +52,10 @@ export function bundle(tag) {
   if (!synced) throw Error('SYNCED_KEYS not found in settings.js');
   // startPagePins rides in the settings payload but isn't one of settings.js's own keys.
   const known = literal([...JSON.parse(synced[1].replace(/'/g, '"')), 'startPagePins']);
+  // The Favorites manager's two behaviors (bnfy/blanc#1590) leave results only its folder tree
+  // shows; the fork's Favorites pages are the flat list until it adopts the tree (D40), so a
+  // tag that has the switch turns them off before Sync can merge or import anything.
+  const managerOff = /\bsetManagerLive\b/.test(modules.get('src/main/bookmarks.js') ?? '') ? `${MANAGER_OFF}\n` : '';
   const shim = name => fs.readFileSync(path.join(runner, 'shims', `${name}.js`), 'utf8');
   const entries = SHIMS.map(name => `${literal(`shim:${name}`)}:[function(module,exports,require){\n${shim(name)}\n},{}]`);
   for (const id of [...modules.keys()].sort()) {
@@ -71,7 +78,7 @@ g.__require=load;})(globalThis);
 ${shim('api')}
 __keepUnknownSettings(${known});
 __require('src/main/sync.js');
-__require('shim:electron').__sealFlush();
+${managerOff}__require('shim:electron').__sealFlush();
 __require('src/main/sync.js').init();
 __listen();
 `;

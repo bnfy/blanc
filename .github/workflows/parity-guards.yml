@@ -173,8 +173,8 @@ jobs:
       - run: npm ci
       - name: Google OAuth compatibility contract
         run: xvfb-run -a npm run test:oauth:desktop
-      - name: Favorites folder picker layering and interaction regression
-        run: xvfb-run -a npm run test:favorites-picker:desktop
+      - name: Favorites manager (F63) folders, order and menus
+        run: xvfb-run -a npm run test:favorites-manager:desktop
       - name: Local-clock dynamic wallpaper regression
         run: xvfb-run -a npm run test:wallpaper:desktop
       - name: Custom Start Page wallpaper (F49)
@@ -218,6 +218,16 @@ jobs:
       - name: Several command-line URLs after -- (Windows)
         if: ${{ !cancelled() && runner.os == 'Windows' }}
         run: npm run test:command-line-urls
+      # #1591: clicked downloads save to Downloads under a free name; a
+      # page-started download and "Ask where to save each file" still ask.
+      - name: Downloads save without asking (Linux)
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        run: |
+          bash scripts/ci-enable-linux-sandbox.sh
+          xvfb-run -a npm run test:save-downloads:desktop
+      - name: Downloads save without asking (Windows)
+        if: ${{ !cancelled() && runner.os == 'Windows' }}
+        run: npm run test:save-downloads:desktop
 
   tab-handoff:
     needs: changes

@@ -1,0 +1,48 @@
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java b/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java
+@@ -113,8 +113,8 @@
+     @Override
+     public int onStartCommand(@Nullable Intent intent, int flags, int startId) {
+         if (intent == null || intent.getExtras() == null) {
+-            cancelPreviousWebRtcNotifications();
+-            getService().stopSelf();
++            cancelLastRunWebRtcNotifications();
++            if (mNotificationsType.isEmpty()) getService().stopSelf();
+         } else {
+             String action = intent.getAction();
+             int notificationId = intent.getIntExtra(NOTIFICATION_ID_EXTRA, Tab.INVALID_TAB_ID);
+@@ -180,6 +180,33 @@
+     }
+ 
+     /**
++     * Blanc (patch 0122): the deferred startup task that clears the notifications left from the
++     * last run. A page opened at a cold start can already have one by then, so a notification this
++     * run posted stays, with its saved id; only the ones left from the last run go.
++     */
++    private void cancelLastRunWebRtcNotifications() {
++        Set<String> notificationIds =
++                mSharedPreferences.readStringSet(
++                        ChromePreferenceKeys.MEDIA_WEBRTC_NOTIFICATION_IDS, null);
++        if (notificationIds == null) return;
++        Set<String> live = new HashSet<>();
++        for (String id : notificationIds) {
++            int notificationId = Integer.parseInt(id);
++            if (mNotificationsType.containsKey(notificationId)) {
++                live.add(id);
++                continue;
++            }
++            mNotificationManager.cancel(NOTIFICATION_NAMESPACE, notificationId);
++        }
++        if (live.isEmpty()) {
++            mSharedPreferences.removeKey(ChromePreferenceKeys.MEDIA_WEBRTC_NOTIFICATION_IDS);
++        } else {
++            mSharedPreferences.writeStringSet(
++                    ChromePreferenceKeys.MEDIA_WEBRTC_NOTIFICATION_IDS, live);
++        }
++    }
++
++    /**
+      * Updates the existing notification or creates one if none exist for the provided
+      * notificationId and mediaTypes.
+      *

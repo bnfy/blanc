@@ -789,6 +789,9 @@ test('the branded email layout escapes text and keeps the lockup PNG served by t
   const headers = readFileSync(SITE_HEADERS_PATH, 'utf8');
   assert.match(headers, /\/fonts\/instrument-sans\/\*\n  ! Cross-Origin-Resource-Policy\n  Access-Control-Allow-Origin: \*/, 'mail apps on other origins may load the font');
   assert.match(headers, /\/press\/blanc-lockup-ink-480\.png\n  ! Cross-Origin-Resource-Policy/, 'mail apps on other origins may load the lockup');
+  assert.match(headers, /\/press\/blanc-mail-lockup-ink-480\.png\n  ! Cross-Origin-Resource-Policy/, 'mail apps on other origins may load the Blanc Mail lockup');
+  const mailLockup = readFileSync(path.resolve(__dirname, '../../site/public/press/blanc-mail-lockup-ink-480.png'));
+  assert.deepEqual([mailLockup.readUInt32BE(16), mailLockup.readUInt32BE(20)], [480, 93], 'Blanc Mail lockup PNG is 480 × 93, drawn at 220 × 43 by Blanc Mail\'s emails');
   const published = new URL(LOCKUP_URL).pathname;
   const file = readFileSync(path.resolve(__dirname, '../../site/public', `.${published}`));
   assert.deepEqual([file.readUInt32BE(16), file.readUInt32BE(20)], [480, 142], 'lockup PNG is 480 × 142, drawn at 160 × 47');

@@ -1,0 +1,84 @@
+diff --git a/chrome/browser/extensions/api/settings_private/prefs_util.cc b/chrome/browser/extensions/api/settings_private/prefs_util.cc
+--- a/chrome/browser/extensions/api/settings_private/prefs_util.cc
++++ b/chrome/browser/extensions/api/settings_private/prefs_util.cc
+@@ -243,6 +243,7 @@
+   (*s_allowlist)["blanc.webrtc.audio_buffer"] = settings_api::PrefType::kString;
+ 
+   (*s_allowlist)["blanc.tabs.archive"] = settings_api::PrefType::kString;
++  (*s_allowlist)["blanc.tabs.switch_order"] = settings_api::PrefType::kString;
+   (*s_allowlist)["blanc.tabs.reuse_new_tab"] = settings_api::PrefType::kBoolean;
+ 
+   // Miscellaneous
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -2116,6 +2116,8 @@
+   registry->RegisterStringPref("blanc.vertical_tabs.text_size", "default");
+   // Tab Archive's first-run offer (F52 spec D5); F52 itself is S3.
+   registry->RegisterStringPref("blanc.tabs.archive", "off");
++  // F59: Ctrl+Tab by most recent use ("recent", as shipping) or by position.
++  registry->RegisterStringPref("blanc.tabs.switch_order", "recent");
+   // #1505: New Tab goes to an unused Start Page; on, as shipping's
+   // reuseNewTab.
+   registry->RegisterBooleanPref("blanc.tabs.reuse_new_tab", true);
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+@@ -157,6 +157,16 @@
+       <settings-dropdown-menu id="blancTabArchive" no-label-float
+           pref-key="blanc.tabs.archive" label="$i18n{blancTabArchive}"
+           .menuOptions="${this.blancTabArchiveOptions_}">
++      </settings-dropdown-menu>
++    </div>
++    <div class="cr-row" id="blancTabSwitchOrderRow">
++      <div class="flex cr-padded-text" aria-hidden="true">
++        <div>$i18n{blancTabSwitchOrder}</div>
++        <div class="secondary">$i18n{blancTabSwitchOrderHint}</div>
++      </div>
++      <settings-dropdown-menu id="blancTabSwitchOrder" no-label-float
++          pref-key="blanc.tabs.switch_order" label="$i18n{blancTabSwitchOrder}"
++          .menuOptions="${this.blancTabSwitchOrderOptions_}">
+       </settings-dropdown-menu>
+     </div>
+     <settings-toggle-button id="blancReuseNewTab" class="hr"
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
+@@ -156,6 +156,7 @@
+       blancIslandAutoHideStyleOptions_: {type: Array},
+       blancIslandSizeOptions_: {type: Array},
+       blancTabArchiveOptions_: {type: Array},
++      blancTabSwitchOrderOptions_: {type: Array},
+       blancGestures_: {type:Object},
+       blancGestureComposer_: {type:Boolean},
+       blancGesturePattern_: {type:String},
+@@ -310,6 +311,10 @@
+     {value: '7d', name: loadTimeData.getString('blancTabArchive7d')},
+     {value: '30d', name: loadTimeData.getString('blancTabArchive30d')},
+   ];
++  protected accessor blancTabSwitchOrderOptions_: DropdownMenuOptionList = [
++    {value: 'recent', name: loadTimeData.getString('blancTabSwitchOrderRecent')},
++    {value: 'list', name: loadTimeData.getString('blancTabSwitchOrderList')},
++  ];
+   protected accessor blancIslandSizeOptions_: DropdownMenuOptionList = [
+     {value: 'default', name: loadTimeData.getString('blancIslandSizeDefault')},
+     {value: 'large', name: loadTimeData.getString('blancIslandSizeLarge')},
+diff --git a/chrome/browser/ui/browser_commands.cc b/chrome/browser/ui/browser_commands.cc
+--- a/chrome/browser/ui/browser_commands.cc
++++ b/chrome/browser/ui/browser_commands.cc
+@@ -1564,12 +1564,15 @@
+ void SelectNextTab(BrowserWindowInterface* browser,
+                    TabStripUserGestureDetails gesture_detail) {
+   base::RecordAction(UserMetricsAction("SelectNextTab"));
++  // Blanc (F59): Ctrl+Tab steps through tabs by most recent use.
++  if (blanc_prototype::TabSwitchCommand(browser, 1)) return;
+   browser->GetTabStripModel()->SelectNextTab(gesture_detail);
+ }
+ 
+ void SelectPreviousTab(BrowserWindowInterface* browser,
+                        TabStripUserGestureDetails gesture_detail) {
+   base::RecordAction(UserMetricsAction("SelectPrevTab"));
++  if (blanc_prototype::TabSwitchCommand(browser, -1)) return;
+   browser->GetTabStripModel()->SelectPreviousTab(gesture_detail);
+ }
+ 

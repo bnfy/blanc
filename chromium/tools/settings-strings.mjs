@@ -18,6 +18,13 @@ const header = path.join(root, 'blanc/common/settings_strings.h');
 const {ref, commit} = JSON.parse(fs.readFileSync(path.join(root, 'blanc/settings-strings.json'), 'utf8'));
 // loadTimeData name, shipping message key.
 export const STRINGS = [
+  // The import's result list: shipping's own names for what came across.
+  ["blancProfileImportPersonal", "tabHandoff.personalProfile"],
+  ["blancProfileImportFavorites", "settings.sync.what.favorites"],
+  ["blancProfileImportHistory", "footer.history"],
+  ["blancProfileImportSpaces", "spaces.menuLabel"],
+  ["blancProfileImportArchived", "history.view.archived"],
+  ["blancProfileImportPermissions", "settings.privacy.sitePermissions.title"],
   ["blancGestureEmpty", "settings.gesture.empty"],
   ["blancGestureLabel", "settings.general.mouseGesturesEnabled.label"],
   ["blancGestureHint", "settings.general.mouseGesturesEnabled.hint"],
@@ -96,6 +103,52 @@ export const STRINGS = [
   ["blancLinkRouteSaveFailed", "settings.linkRoutes.saveFailed"],
   ["blancLinkRouteLoadFailed", "settings.linkRoutes.loadFailed"],
 
+  ['blancTabSwitchOrder', 'settings.general.tabSwitchOrder.label'],
+  ['blancTabSwitchOrderHint', 'settings.general.tabSwitchOrder.hint'],
+  ['blancTabSwitchOrderRecent', 'settings.general.tabSwitchOrder.recent'],
+  ['blancTabSwitchOrderList', 'settings.general.tabSwitchOrder.list'],
+  // The trust receipt and Diagnostics in About (N16).
+  ['blancTrustFacts', 'settings.trust.factsCheckedOnThis'],
+  ['blancTrustChecking', 'settings.trust.trustReceiptStatus'],
+  ['blancTrustChecked', 'settings.trust.checked'],
+  ['blancTrustFailed', 'settings.trust.failed'],
+  ['blancTrustOn', 'settings.trust.on'],
+  ['blancTrustOff', 'settings.trust.off'],
+  ['blancTrustDnsAuto', 'settings.trust.dnsAuto'],
+  ['blancTrustDnsCustom', 'settings.trust.dnsCustom'],
+  ['blancTrustSignatureVerified', 'settings.trust.signature.verified'],
+  ['blancTrustSignatureMismatch', 'settings.trust.signature.mismatch'],
+  ['blancTrustSignatureUnknownPublisher', 'settings.trust.signature.unknownPublisher'],
+  ['blancTrustSignatureUnavailable', 'settings.trust.signature.unavailable'],
+  ['blancTrustSignatureDevelopment', 'settings.trust.signature.development'],
+  ['blancTrustSignatureUnknown', 'settings.trust.signature.unknown'],
+  ['blancTrustFactBuild', 'settings.trust.fact.build'],
+  ['blancTrustFactRuntime', 'settings.trust.fact.runtime'],
+  ['blancTrustFactPlatform', 'settings.trust.fact.platform'],
+  ['blancTrustFactPublisher', 'settings.trust.fact.publisher'],
+  ['blancTrustFactBlockerDigest', 'settings.trust.fact.blockerDigest'],
+  ['blancTrustFactSync', 'settings.trust.fact.sync'],
+  ['blancTrustFactOpenTabs', 'settings.trust.fact.openTabs'],
+  ['blancTrustFactUsage', 'settings.trust.fact.usage'],
+  ['blancTrustFactSuggestions', 'settings.trust.fact.suggestions'],
+  ['blancTrustFactSecureDns', 'settings.trust.fact.secureDns'],
+  ['blancTrustFactCrashLedger', 'settings.trust.fact.crashLedger'],
+  ['blancTrustBuildPackaged', 'settings.trust.buildPackaged'],
+  ['blancTrustBuildDevelopment', 'settings.trust.buildDevelopment'],
+  ['blancTrustSyncScope', 'settings.trust.syncScope'],
+  ['blancTrustCrashLedger', 'settings.trust.crashLedger'],
+  ['blancDiagnosticsHint', 'settings.diagnostics.blancKeepsALocal'],
+  ['blancDiagnosticsChecking', 'settings.diagnostics.diagnosticsSummary'],
+  ['blancDiagnosticsExport', 'settings.diagnostics.diagnosticsExport'],
+  ['blancDiagnosticsClear', 'settings.diagnostics.diagnosticsClear'],
+  ['blancDiagnosticsNone', 'settings.diagnostics.none'],
+  ['blancDiagnosticsCount', 'settings.diagnostics.count'],
+  ['blancDiagnosticsSaved', 'settings.diagnostics.saved'],
+  ['blancDiagnosticsSaveFailed', 'settings.diagnostics.saveFailed'],
+  ['blancDiagnosticsClearConfirm', 'settings.diagnostics.clearConfirm'],
+  ['blancDiagnosticsCleared', 'settings.diagnostics.cleared'],
+  ['blancDiagnosticsClearFailed', 'settings.diagnostics.clearFailed'],
+  ['blancDiagnosticsReadFailed', 'settings.diagnostics.readFailed'],
   ['blancTabArchive', 'settings.general.tabArchive.label'],
   ['blancTabArchiveHint', 'settings.general.tabArchive.hint'],
   ['blancTabArchiveOff', 'settings.general.tabArchive.off'],
@@ -186,7 +239,38 @@ export const STRINGS = [
   ['blancLanguageRelaunch', 'settings.language.relaunch'],
 ];
 
-export function generate(rows = catalogs(STRINGS, ref)) {
+// Strings shipping has no words for (blanc/fork-strings.json), each in every
+// selectable language: loadTimeData name, fork message key.
+export const FORK_STRINGS = [
+  ['blancProfileImportTitle', 'settings.profileImport.title'],
+  ['blancProfileImportHint', 'settings.profileImport.hint'],
+  ['blancProfileImportStart', 'settings.profileImport.start'],
+  ['blancProfileImportRetry', 'settings.profileImport.retry'],
+  ['blancProfileImportWorking', 'settings.profileImport.working'],
+  ['blancProfileImportDone', 'settings.profileImport.done'],
+  ['blancProfileImportDoneRestart', 'settings.profileImport.doneRestart'],
+  ['blancProfileImportDoneSyncOff', 'settings.profileImport.doneSyncOff'],
+  ['blancProfileImportAlready', 'settings.profileImport.already'],
+  ['blancProfileImportNoSource', 'settings.profileImport.noSource'],
+  ['blancProfileImportRunning', 'settings.profileImport.running'],
+  ['blancProfileImportOld', 'settings.profileImport.old'],
+  ['blancProfileImportPartial', 'settings.profileImport.partial'],
+  ['blancProfileImportFailed', 'settings.profileImport.failed'],
+  ['blancProfileImportPins', 'settings.profileImport.pins'],
+  ['blancProfileImportNotRead', 'settings.profileImport.notRead'],
+  ['blancProfileImportLeftBehind', 'settings.profileImport.leftBehind'],
+  ['blancProfileImportSyncFailed', 'settings.profileImport.syncFailed'],
+];
+const ALL = [...STRINGS, ...FORK_STRINGS];
+export function withForkStrings(rows) {
+  const own = JSON.parse(fs.readFileSync(path.join(root, 'blanc/fork-strings.json'), 'utf8'));
+  return rows.map(({code, values}) => ({code, values: [...values, ...FORK_STRINGS.map(([, key]) => {
+    const value = own[key]?.[code];
+    if (typeof value !== 'string' || !value) throw Error(`${code}: missing fork string ${key}`);
+    return value;
+  })]}));
+}
+export function generate(rows = withForkStrings(catalogs(STRINGS, ref))) {
   const id = code => code.replace('-', '_');
   const fallback = rows.filter(({code}) => code !== 'en').map(({code}) =>
     `  if (primary == "${code.split('-')[0]}") return kStrings_${id(code)};`).join('\n');
@@ -206,8 +290,8 @@ struct String {
   std::string_view name;
   std::u16string_view value;
 };
-${rows.map(({code, values}) => `inline constexpr std::array<String, ${STRINGS.length}> kStrings_${id(code)} = {{
-${STRINGS.map(([name], i) => `    {"${name}", u${JSON.stringify(values[i])}},`).join('\n')}
+${rows.map(({code, values}) => `inline constexpr std::array<String, ${ALL.length}> kStrings_${id(code)} = {{
+${ALL.map(([name], i) => `    {"${name}", u${JSON.stringify(values[i])}},`).join('\n')}
 }};`).join('\n')}
 
 // Chromium's application locale chooses, as for the settings page around

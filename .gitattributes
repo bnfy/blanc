@@ -39,6 +39,7 @@
 /src/main/capture-state.js text eol=lf
 /src/main/permission-decisions.js text eol=lf
 /src/main/permissions.js text eol=lf
+/src/main/local-network-access.js text eol=lf
 /src/renderer/display-capture-helper.html text eol=lf
 /src/main/overlay-view-lifecycle.js text eol=lf
 ublock/upstream/** -text

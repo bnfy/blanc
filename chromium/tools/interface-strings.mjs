@@ -29,6 +29,22 @@ export function catalogs(tag = ref) {
   }
   return catalog;
 }
+// The fork's own messages (blanc/fork-strings.json): surfaces shipping
+// has no words for, each written in every language the fork offers, so none
+// of them is English-only. A key shipping carries is shipping's to define.
+export const forkStringsFile = path.join(root, 'blanc/fork-strings.json');
+export function withForkStrings(catalog, own = JSON.parse(fs.readFileSync(forkStringsFile, 'utf8'))) {
+  for (const [key, texts] of Object.entries(own)) {
+    for (const language of LANGUAGES) {
+      if (typeof texts[language] !== 'string' || !texts[language].trim()) throw Error(`fork string ${key} has no ${language} text`);
+      if (key in catalog[language].messages) throw Error(`fork string ${key} is already a shipping message`);
+      catalog[language].messages[key] = texts[language];
+    }
+    const extra = Object.keys(texts).filter(language => !LANGUAGES.includes(language));
+    if (extra.length) throw Error(`fork string ${key} names unknown languages: ${extra.join(', ')}`);
+  }
+  return catalog;
+}
 // The frozen English baseline, taken from the committed file so the catalogs
 // can move to a new release without it.
 function baseline(script) {
@@ -43,7 +59,7 @@ export function generate(tag = ref, previous = fs.readFileSync(output, 'utf8')) 
     `const preferred=Array.isArray(root.navigator?.languages)?root.navigator.languages:[root.navigator?.language];const pinned=codes.includes(root.__blancUiLanguage)?root.__blancUiLanguage:null;let chosen=pinned||'en';\n`+
     `if(!pinned)for(const value of preferred){if(typeof value!=='string'||value.length>128||!value.trim())continue;const wanted=value.replaceAll('_','-').toLowerCase();const match=codes.find(c=>c.toLowerCase()===wanted)||codes.find(c=>c===primary(wanted))||codes.find(c=>primary(c)===primary(wanted));if(match){chosen=match;break}}\n`+
     `const system=typeof root.navigator?.language==='string'&&root.navigator.language.length<=128?root.navigator.language:'';const region=/^[A-Za-z]{2,3}(?:[-_][A-Za-z]{4})?[-_]([A-Za-z]{2}|\\d{3})(?![A-Za-z0-9])/.exec(system)?.[1];const candidate=region?chosen.split('-')[0]+'-'+region.toUpperCase():chosen;let formatLocale;try{formatLocale=Intl.getCanonicalLocales(candidate)[0]||chosen}catch{formatLocale=chosen}\n`+
-    `const fallback={...${baseline(previous)},...catalog[chosen].fallback};root.blancStrings={...catalog[chosen],formatLocale,fallback};})(typeof self!=='undefined'?self:this,${JSON.stringify(catalogs(tag))});\n`;
+    `const fallback={...${baseline(previous)},...catalog[chosen].fallback};root.blancStrings={...catalog[chosen],formatLocale,fallback};})(typeof self!=='undefined'?self:this,${JSON.stringify(withForkStrings(catalogs(tag)))});\n`;
 }
 
 // The Blanc pages' catalogs (blanc/island/pages/strings.js): the same

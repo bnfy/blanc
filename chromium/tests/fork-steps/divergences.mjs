@@ -7,6 +7,14 @@ import {LAYOUT_WIDGETS, FAVORITES_WIDGET_LIMIT} from '../lib/start-widgets.mjs';
 const tabDom = (world, id, expression) => world.call('executeTab', id, expression);
 
 export const DIVERGENCES = new Map([
+  // V21 (owner, 2026-11-05; confirmed 2026-11-16): Mute Site is Chromium's own
+  // sound setting, so the site is still muted after the relaunch, where
+  // shipping's mute ends when Blanc quits. The step is used only after the
+  // relaunch (tabs-and-groups.feature "Mute Site lasts until Blanc quits").
+  ['the tab on {string} is not muted', {divergence: 'V21', async run(name) {
+    const url = this.fixtureUrl(name);
+    await this.waitForState((s) => s.tabs.find((t) => t.url === url)?.muted === true);
+  }}],
   // V22 (owner, 2026-11-05), over a split too (F53-29, 2026-11-12): the card's
   // frame and the split's corner tabs are the Island's, above the pages, and
   // the Glance page is a view between the split's pages and the Island, so

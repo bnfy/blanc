@@ -14,6 +14,7 @@
     "src/main/display-capture-helper-preload.js",
     "src/main/fill-status-preload.js",
     "src/main/link-route-preload.js",
+    "src/main/local-network-preload.js",
     "src/main/preload.js",
     "src/main/reader-preload.js",
     "src/main/scoped-capture-preload-linux.js",
@@ -63,7 +64,7 @@
     },
     {
       "file": "cloudflare/ping-worker/src/dl.js",
-      "sha256": "b6938ca37712132aea35aec5945ee4fd214280e2095a171d3ac98000345bf519",
+      "sha256": "afc04c8ac596e4cafe27c4497bb8584ab9ed829420c6f421d4358f0ad1c8ee12",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -206,8 +207,9 @@
     },
     {
       "file": "src/main/downloads.js",
-      "sha256": "cc2f638f21d50a0d1b00037949f125657ae62960376b53b3b993746bf1dfa074",
+      "sha256": "614d77b0716149e66b5057af6664f556679accd4a266d184cb960bb07d51a08b",
       "literalChannels": [
+        "input-event",
         "updated",
         "will-download"
       ],
@@ -253,6 +255,15 @@
       "role": "privileged implementation or service"
     },
     {
+      "file": "src/main/local-network-preload.js",
+      "sha256": "22ff277373f75f8ac3696ac70fd7d96a69e0ea5212dc08722421d34b0fda61ce",
+      "literalChannels": [
+        "local-network:permission-changed",
+        "local-network:permission-query"
+      ],
+      "role": "preload"
+    },
+    {
       "file": "src/main/local-profiles.js",
       "sha256": "d8baba8cbfb484cbc5a696c430af5ad512d37200eb2b9a8823fef0f164cbc41b",
       "literalChannels": [],
@@ -260,7 +271,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "d058955d4f196cdce4069a0d61f64455452388d56c7e2a26941d926024bdc000",
+      "sha256": "1ae2ddbb3f684999d06a938d3de9508b1475c0e04fa972e71438627a73576d7c",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -390,6 +401,8 @@
         "groups:ungroup",
         "input-event",
         "link-route:activated",
+        "local-network:permission-changed",
+        "local-network:permission-query",
         "login",
         "open-file",
         "open-url",
@@ -518,7 +531,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "0b3e4a1d96ff351d4b432ef607e862f6ef49a144fd582ee524743f874ad10a16",
+      "sha256": "79ebda1d655506fe2601d88e64e9c0c4ef027d3d7232f6abf70a5b389d2c3e98",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -536,13 +549,19 @@
         "pages:bookmarks:browser-sources",
         "pages:bookmarks:capabilities",
         "pages:bookmarks:clear-favicon",
+        "pages:bookmarks:create-folder",
         "pages:bookmarks:import",
         "pages:bookmarks:import-browser",
         "pages:bookmarks:list",
+        "pages:bookmarks:move",
+        "pages:bookmarks:move-folder",
         "pages:bookmarks:remove",
         "pages:bookmarks:remove-folder",
+        "pages:bookmarks:remove-many",
         "pages:bookmarks:rename-folder",
+        "pages:bookmarks:reorder",
         "pages:bookmarks:set-folder",
+        "pages:bookmarks:tree",
         "pages:clear-browsing-data",
         "pages:default-browser:get",
         "pages:default-browser:set",
@@ -663,7 +682,7 @@
     },
     {
       "file": "src/main/permissions.js",
-      "sha256": "9a7ab75ac32998ab9b95d416225d202750bc722e1d42c1f0e6026fc864b74032",
+      "sha256": "1be194bfaa7c1db487a1be27c2906084fcf79f1a11e1c1db09539c967cf148a7",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -969,7 +988,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "0a7c5974677f186c08ab657512173eb20beaf3f5571e1373ceb5aa3cb701271f",
+      "sha256": "701360021ca261490e7e31dbfef12106a25b5d1d94500ac567058927d19e6d7d",
       "literalChannels": [
         "before-quit"
       ],
@@ -983,7 +1002,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "2382ad567d5996a9c4834acbbf4be4db3a71f5ca066f6b367e8112a83b2055fa",
+      "sha256": "bc8b19ccd8ad93ae3a93510735d71ba65c0d097f7f9a8bcd78f0ad6b3940a06e",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -1001,13 +1020,19 @@
         "pages:bookmarks:browser-sources",
         "pages:bookmarks:capabilities",
         "pages:bookmarks:clear-favicon",
+        "pages:bookmarks:create-folder",
         "pages:bookmarks:import",
         "pages:bookmarks:import-browser",
         "pages:bookmarks:list",
+        "pages:bookmarks:move",
+        "pages:bookmarks:move-folder",
         "pages:bookmarks:remove",
         "pages:bookmarks:remove-folder",
+        "pages:bookmarks:remove-many",
         "pages:bookmarks:rename-folder",
+        "pages:bookmarks:reorder",
         "pages:bookmarks:set-folder",
+        "pages:bookmarks:tree",
         "pages:clear-browsing-data",
         "pages:default-browser:get",
         "pages:default-browser:set",
@@ -1143,7 +1168,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "2a90edb5e62310785085402a74dab910adbd77f1da432f81487b84359713181e",
+      "sha256": "f098d4fceee279530b184310712ed7805577026004d67f7d797cb0bad79926eb",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

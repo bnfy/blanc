@@ -22,7 +22,7 @@ import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { check, equal, reason, sha256 } from '../policy.mjs';
 import { ROOT } from '../preflight.mjs';
-import { loadStanding, changedFiles, betaNumber } from '../standing.mjs';
+import { loadStanding, changedFiles, betaNumber, chromiumVersionAt } from '../standing.mjs';
 import { releaseDescriptor, carriedGates, gateSources, releaseNotes } from './descriptor.mjs';
 
 export const BASE = process.env.BLANC_STUDIO_BASE ?? path.join(os.homedir(), 'Projects/Blanc');
@@ -86,7 +86,9 @@ function prepareClaimed(night, targeted, changesFile, marker) {
   const r = releaseDescriptor({ ledger, standing, build, profileSHA256 });
   // The evidence was made under the night's descriptor; a decision changed since needs a new night.
   equal(r, (targeted ?? night).release, 'the release differs from the one the checks ran under (standing decisions or the ledger changed); wait for the next night');
-  const carried = carriedGates(standing, r, commit => changedFiles(commit, r.sourceCommit, ROOT));
+  const releaseVersion = chromiumVersionAt(standing, r.sourceCommit, ROOT);
+  const carried = carriedGates(standing, r, commit => changedFiles(commit, r.sourceCommit, ROOT),
+    commit => chromiumVersionAt(standing, commit, ROOT) !== releaseVersion);
   checkCarriedEvidence(carried);
   const { sources, handChecks } = gateSources({ r, night, carried, base: BASE, targeted });
   const notes = releaseNotes({ changes: fs.readFileSync(changesFile, 'utf8'), standing, r });

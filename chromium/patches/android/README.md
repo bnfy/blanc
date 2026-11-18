@@ -66,6 +66,48 @@ in the lane file in its place. Numbering starts at 0101.
   on 1.0.0-beta.1 with a site's camera prompt). Run on the emulator with the
   patch: a site's camera prompt and an HTTP sign-in. JavaScript alerts and
   confirms go through the same presenter and were not run.
+- `0119-android-notification-ask.patch`: asks for notification permission in
+  context: a download starting or a site's request, through the browser window
+  even when the Downloads screen has focus. Not when a private tab opens
+  (Chromium's third caller, `IncognitoNotificationPresenceController`). 0104 removed the startup prompt and counted
+  on this, but `ContextualNotificationPermissionRequesterImpl` keeps it behind
+  a field-trial parameter that is off by default, so Blanc never asked and its
+  notifications never showed (found on 1.0.0-beta.1). The request is always
+  Android's own prompt (`NotificationPermissionController`): Chrome's
+  explainer card names Chrome and Incognito and opens on the browser window,
+  behind the Downloads screen a download brings up.
+- `0120-android-no-screen-capture.patch`: drops the screen-capture foreground
+  service: the `FOREGROUND_SERVICE_MEDIA_PROJECTION` permission and the
+  `mediaProjection|mediaPlayback` types of `MediaCaptureNotificationService`
+  in the manifest, and the matching types in
+  `MediaCaptureNotificationServiceImpl`. Websites can't share the screen in
+  Blanc (Chromium leaves `getDisplayMedia` experimental on Android), and
+  Google Play asks for a demonstration of every declared type. With
+  chrome://flags' experimental web features on, a screen share has no
+  foreground service and is not expected to work.
+- `0121-android-tab-destroyed-notifications.patch`: when a tab's page is
+  destroyed, `TabWebContentsObserver` clears the tab's capture, Bluetooth, USB
+  and serial notifications with an empty address if the tab never loaded in
+  this run. Chromium passed the missing address on, and each manager reads it
+  when the tab still has a saved notification: after Blanc was killed while a
+  site was using the microphone, the next cold start died closing that tab
+  (found on 1.0.0-beta.2).
+- `0122-android-capture-notification-startup.patch`: Chromium clears the
+  capture notifications left from the last run in a deferred startup task.
+  `MediaCaptureNotificationServiceImpl` now keeps a notification this run
+  already posted (and its saved id) and stays running while it has one. A page
+  opened at a cold start can be using the microphone before that task runs;
+  the task removed its notification and stopped the foreground service, so
+  the microphone was in use with nothing shown (found on 1.0.0-beta.2). Only
+  that startup pass keeps them: the service still cancels everything when it
+  is destroyed or unbound.
+- `0123-android-device-notification-startup.patch`: the same deferred startup
+  task clears last run's Bluetooth and USB notifications the same way.
+  `BluetoothNotificationManager` and `UsbNotificationManager` now keep a
+  notification this run already posted (and its saved id), and their services
+  stay running while they have one; their services still cancel everything
+  when destroyed or unbound. Serial has the same code, but nothing
+  calls its clearing at startup, so it is left alone.
 
 A Chromium file dropped from the lane keeps its applied edits in an existing
 checkout: restore it with `git checkout` there. A Blanc file the source drops or

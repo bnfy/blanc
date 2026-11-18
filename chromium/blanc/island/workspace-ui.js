@@ -195,10 +195,14 @@
       // A reshape still running would leave only its height transition, and
       // the menu would vanish instead of fading back into its trigger.
       popup.classList.remove('morphing');
+      const wasOpen = opened;
       opened = false; popup.hidden = true; onOpenChange(false); syncIdentity();
       if (state.kind !== 'decision' && !state.original) state = { kind: 'list' };
       undo = null;
-      (invoker?.isConnected ? invoker : trigger)?.focus();
+      // Only a menu that was showing hands focus back to its trigger. The
+      // panel closes the menu on every tab switch, and taking focus there
+      // when it was never open pulled it off the address field (#1505).
+      if (wasOpen) (invoker?.isConnected ? invoker : trigger)?.focus();
       return true;
     }
     function toList() { flushUpdate(); state = { kind: 'list' }; render(); popup.querySelector('[data-current="true"]')?.focus(); }

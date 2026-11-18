@@ -1,0 +1,47 @@
+/* The protected-video notice: a card under the Island, drawn by its own
+   transparent document like the permission prompt. Shipping's tokens. */
+html:has(> body.protected-notice-surface),
+body.protected-notice-surface { background: transparent; }
+.protected-notice-surface {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  /* Room for the card's shadow inside this document's frame. */
+  box-sizing: border-box;
+  padding: 2px 18px 26px;
+}
+#protectedNotice {
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 12px 10px 14px;
+  color: var(--text);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-popover);
+}
+#protectedTitle { font-size: 13px; font-weight: 600; }
+#protectedBody { font-size: 12px; color: var(--text-dim); }
+.protected-notice-actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 6px; }
+.protected-notice-actions button {
+  font: inherit;
+  font-size: 12px;
+  padding: 5px 10px;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  cursor: default;
+}
+.protected-notice-actions button:hover { background: var(--surface); }
+.protected-notice-actions button:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 0; }
+.protected-notice-actions .protected-notice-primary {
+  color: var(--bg);
+  background: var(--accent);
+  border-color: transparent;
+}
+.protected-notice-actions .protected-notice-primary:hover { background: color-mix(in srgb, var(--accent) 86%, var(--surface-raised)); }

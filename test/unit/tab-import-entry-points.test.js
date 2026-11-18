@@ -13,10 +13,12 @@ test('Favorites exposes an exact in-sheet Bring tabs entry point', () => {
   const html = withoutInterfaceKeys(read('src/renderer/pages/bookmarks.html'));
   const renderer = read('src/renderer/pages/bookmarks.js');
 
-  assert.match(html, /<button id="bringTabsBtn" type="button">Bring open tabs…<\/button>/);
-  assert.match(renderer, /bringTabsBtn\.addEventListener\('click'/);
-  assert.match(renderer, /window\.location\.href = 'blanc:\/\/tab-import\/'/);
-  assert.doesNotMatch(renderer, /bringTabsBtn[\s\S]{0,300}https?:\/\//,
+  // The "Open tabs" choice in the Favorites page's "Bring my stuff to Blanc"
+  // dialog goes on to Bring Your Tabs, inside the sheet.
+  assert.match(html, /<dialog id="importDialog"[^>]*>[\s\S]*<input id="importWhatTabs" type="checkbox" \/>[\s\S]*Open tabs[\s\S]*<\/dialog>/);
+  assert.match(renderer, /const bringTabs = \(\) => \{ window\.location\.href = 'blanc:\/\/tab-import\/'; \};/);
+  assert.match(renderer, /if \(ok && tabsToo\) bringTabs\(\);/);
+  assert.doesNotMatch(renderer, /bringTabs = [\s\S]{0,120}https?:\/\//,
     'the Favorites entry must stay on the allowlisted utility origin');
 });
 

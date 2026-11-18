@@ -284,6 +284,8 @@ Typed into the command bar. Names + hints are the shared-copy contract below;
   appear on the newtab ledger (F16) and the favorites page.
 - **Acceptance:** Favoriting the active page marks the heart filled and the page
   appears on newtab and the favorites list.
+- Nested folders and a chosen order are F63 (desktop); other clients show a
+  nested folder as one flat folder named by its path (D40).
 
 ## F10 — History
 
@@ -353,9 +355,19 @@ Typed into the command bar. Names + hints are the shared-copy contract below;
   any surface holds the microphone or camera, the chrome shows a capture
   indicator with per-surface stop controls (desktop draws its own chip; mobile
   defers to the OS indicator — D24).
+- Local Network Access: a website's requests to apps on this device
+  (`localhost`, loopback addresses) or to devices on the local network (private
+  and link-local addresses, and `.local`, `.home.arpa` and `.internal` names) need that site's permission, asked
+  once per site in the same prompt and revocable in Settings; private tabs keep
+  the answer in memory. Main-frame navigations aren't gated, and frames from
+  another site are refused without a prompt. `navigator.permissions.query`
+  reports the stored state, `prompt` while undecided (desktop design:
+  `docs/superpowers/specs/2026-11-17-local-network-access-design.md`).
 - **Acceptance:** A site requesting geolocation raises the Blanc permission prompt
   with the shared copy; deny persists for that origin. A site capturing the mic
-  lights the capture indicator; stopping it from the indicator ends capture.
+  lights the capture indicator; stopping it from the indicator ends capture. A
+  public site fetching `localhost` raises the prompt; Allow lets it through and
+  the query reads `granted`, Block refuses it and persists.
 
 ## F14 — Settings
 
@@ -750,7 +762,10 @@ From the desktop `DEFAULTS`:
   itself user-initiated:** Blanc never reads another browser's profile
   directory until the person asks it to look, so opening the Favorites sheet or
   reaching the first-run walkthrough's import step (F36) touches nothing on its
-  own. The existing universal
+  own. On desktop the Favorites sheet's ask is opening its **Bring my stuff to
+  Blanc** dialog, which lists the profiles it finds in its From menu (owner,
+  November 16, 2026; before then a separate Look for other browsers button
+  was the ask). The existing universal
   bookmarks-HTML import remains the fallback for browsers or platforms whose
   live profile format cannot be read directly.
 - Desktop directly supports Google Chrome, Microsoft Edge, Brave, Chromium, and
@@ -1983,3 +1998,28 @@ candidate branch (PR 1); not in a public release.
   lasts until quit. Browsing leaves no list of visited sites in Chromium's files.
 - **Mobile.** Not applicable: pages use native pinch-zoom and reflow (F23, D10).
 - **Acceptance:** `spec/acceptance/page-zoom.feature`.
+
+## F63 — Favorites manager (desktop)
+
+- **Nested folders.** A folder can hold folders. A folder's path is its names
+  joined by ` › ` and stored whole in the favorite's existing `folder` field, so
+  clients that know only flat folders keep it intact. A name never holds `›`; a
+  whole path is at most 100 characters. Folder identity ignores case.
+- **A chosen order.** The person orders folders and favorites inside any folder.
+  Order and empty folders live in a per-profile layout record that syncs inside
+  the settings payload as `favoritesLayout`. A profile nobody has reordered
+  shows folders A–Z, then favorites newest first, as before.
+- **The manager.** The Favorites sheet shows a folder tree beside the open
+  folder's contents: search across every folder, several selected at once, drag
+  and drop, and a keyboard path for every action (menus with Move to…, Move up
+  and Move down). Deleting a folder moves what was in it up one level; nothing is
+  deleted with it. A folder stays after its last favorite leaves.
+- **Other surfaces.** The Favorites menu nests folders as submenus in the same
+  order. `/save <folder>` takes a path typed with `>` or `›`: an existing full
+  path first, then a folder with that name if exactly one exists, otherwise the
+  path from the top level. Import keeps a source's full folder paths in its
+  order. The Start Page does not change.
+- **Older clients.** No favorite or folder is lost when an older desktop, the
+  iPhone or the fork syncs. Their folder edits act on one flat folder (D40).
+- **Acceptance:** `spec/acceptance/find-favorites-history.feature` (`@F63`) and
+  `npm run test:favorites-manager:desktop`.

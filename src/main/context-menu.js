@@ -2,6 +2,7 @@ const { Menu, clipboard } = require('electron');
 const settings = require('./settings');
 const { VIEW_SOURCE_PREFIX, canViewSource } = require('./view-source');
 const { linkMenuItems } = require('./glance-open-link');
+const { requestSaveDialog } = require('./downloads');
 
 /**
  * Right-click menu for tab web content. Electron ships NO default context
@@ -38,7 +39,14 @@ function attachContextMenu(wc, actions, menuGate = null) {
       push({ label: t('contextMenu.openImageInNewTab'), click: () => actions.openBackgroundTab(params.srcURL) });
       push({ label: t('contextMenu.copyImage'), click: () => wc.copyImageAt(params.x, params.y) });
       push({ label: t('contextMenu.copyImageAddress'), click: () => clipboard.writeText(params.srcURL) });
-      push({ label: t('contextMenu.saveImageAs'), click: () => wc.downloadURL(params.srcURL) });
+      push({
+        label: t('contextMenu.saveImageAs'),
+        // "Save Image As…" always asks where, even when downloads don't (#1591).
+        click: () => {
+          requestSaveDialog(params.srcURL);
+          wc.downloadURL(params.srcURL);
+        },
+      });
       sep();
     }
 

@@ -347,7 +347,7 @@ export const tabs={
  pressBrowserCommand:async(w,id,command)=>{
   if(command==='reload'){await w.api('reload',[id]);return true;}
   if(command==='back'){await w.api('goBack',[id]);return true;}
-  const native={'close-tab':'close','zoom-in':'zoomIn','zoom-out':'zoomOut','zoom-reset':'zoomReset','find':'find','new-tab':'newTab'}[command];
+  const native={'close-tab':'close','zoom-in':'zoomIn','zoom-out':'zoomOut','zoom-reset':'zoomReset','find':'find','new-tab':'newTab','new-private-tab':'newPrivateTab'}[command];
   if(!native)throw new UndefinedNativeAdapterError('Browser command needs an adapter: '+command);
   return (await w.native('previewPageCommand',[native]))!==false;},
  sleepBackgroundTabsNow:w=>{w.app.releasePages();return w.api('sleepBackgroundTabs');},

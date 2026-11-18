@@ -1,0 +1,218 @@
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -1730,6 +1730,8 @@
+   // shipping's are. The preview channel never sends.
+   registry->RegisterDoublePref("blanc.first_run.completed_at", 0);
+   registry->RegisterBooleanPref("blanc.telemetry.usage_ping", true);
++  // N16: at most 50 crash events (time, process type, reason); never a page.
++  registry->RegisterListPref("blanc.crash_ledger");
+   registry->RegisterDictionaryPref("blanc.telemetry.install");
+   registry->RegisterDictionaryPref("blanc.glance.frame");
+   // The moving-in checklist (N11), device-wide as in shipping.
+diff --git a/chrome/browser/resources/settings/about_page/about_page.html.ts b/chrome/browser/resources/settings/about_page/about_page.html.ts
+--- a/chrome/browser/resources/settings/about_page/about_page.html.ts
++++ b/chrome/browser/resources/settings/about_page/about_page.html.ts
+@@ -109,6 +109,37 @@
+   <cr-link-row class="hr" id="blancWelcomeTour" @click="${this.onBlancWelcomeTourClick_}"
+       label="$i18n{blancWelcomeTour}" sub-label="$i18n{blancWelcomeTourHint}">
+   </cr-link-row>
++  <!-- Blanc (N16): the trust receipt, as shipping's About & Trust: facts
++       checked on this device, with no network request. -->
++  <div class="cr-row" id="blancTrust">
++    <div class="flex cr-padded-text">
++      <div>$i18n{blancTrustFacts}</div>
++      <div class="secondary" id="blancTrustStatus" aria-live="polite">${this.blancTrustStatus_}</div>
++    </div>
++  </div>
++  ${this.blancTrust_.map(row => html`
++    <div class="cr-row blanc-trust-row" data-fact="${row.id}">
++      <div class="flex cr-padded-text">${row.label}</div>
++      <div class="secondary blanc-trust-value">${row.value}</div>
++    </div>`)}
++  <!-- Chromium's own crash dump files, kept on this device and never sent
++       (Blanc builds have no upload address): their count, on Chromium's page. -->
++  <cr-link-row class="hr" id="blancCrashDumps" @click="${this.onBlancCrashDumpsClick_}"
++      label="chrome://crashes" .subLabel="${String(this.blancCrashDumps_)}">
++  </cr-link-row>
++  <div class="cr-row" id="blancDiagnostics">
++    <div class="flex cr-padded-text">
++      <div>$i18n{blancDiagnosticsHint}</div>
++      <div class="secondary" id="blancDiagnosticsSummary" role="status">${this.blancDiagnosticsSummary_}</div>
++      <div class="secondary" id="blancDiagnosticsStatus" role="status">${this.blancDiagnosticsStatus_}</div>
++    </div>
++    <cr-button id="blancDiagnosticsExport" @click="${this.onBlancDiagnosticsExportClick_}">
++      $i18n{blancDiagnosticsExport}
++    </cr-button>
++    <cr-button id="blancDiagnosticsClear" @click="${this.onBlancDiagnosticsClearClick_}">
++      $i18n{blancDiagnosticsClear}
++    </cr-button>
++  </div>
+   <!-- Blanc: the preview's build details, status and support. -->
+   <cr-link-row class="hr" id="blancPreviewNotice" @click="${this.onBlancPreviewNoticeClick_}"
+       label="Version &amp; security" sub-label="Preview build details, status and how to report a problem">
+diff --git a/chrome/browser/resources/settings/about_page/about_page.ts b/chrome/browser/resources/settings/about_page/about_page.ts
+--- a/chrome/browser/resources/settings/about_page/about_page.ts
++++ b/chrome/browser/resources/settings/about_page/about_page.ts
+@@ -82,6 +82,11 @@
+     return {
+       currentUpdateStatusEvent_: {type: Object},
+       betaUpdateState_: {type: Object},
++      blancTrust_: {type: Array},
++      blancTrustStatus_: {type: String},
++      blancCrashDumps_: {type: Number},
++      blancDiagnosticsSummary_: {type: String},
++      blancDiagnosticsStatus_: {type: String},
+       isManaged_: {type: Boolean},
+       managedByIcon_: {type: String},
+ 
+@@ -152,6 +157,7 @@
+     super.connectedCallback();
+ 
+     this.aboutBrowserProxy_.pageReady();
++    void this.loadBlancTrust_();
+     void this.refreshBetaUpdater_().catch(() => { this.betaUpdateState_ = null; });
+     if (this.betaBuild_ && this.betaUpdaterTimer_ === null) {
+       this.betaUpdaterTimer_ = window.setInterval(() => {
+@@ -258,8 +264,117 @@
+   protected onBlancPatronClick_() {
+     BlancOpenWindow.getInstance().openUrl(
+         'https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf');
++  }
++
++  // Blanc (N16): the trust receipt and Diagnostics.
++  protected accessor blancTrust_: Array<{id: string, label: string, value: string}> = [];
++  protected accessor blancTrustStatus_: string = loadTimeData.getString('blancTrustChecking');
++  protected accessor blancCrashDumps_: number = 0;
++  protected accessor blancDiagnosticsSummary_: string = loadTimeData.getString('blancDiagnosticsChecking');
++  protected accessor blancDiagnosticsStatus_: string = '';
++  private blancClearArmed_: boolean = false;
++
++  // Shipping's messages carry {name} placeholders, and one plural.
++  private blancText_(name: string, values: Record<string, string|number> = {}): string {
++    let text = loadTimeData.getString(name);
++    const plural = /^\{(\w+), plural, (.*)\}$/s.exec(text);
++    if (plural) {
++      const count = Number(values[plural[1]]);
++      const forms = new Map([...plural[2].matchAll(/(\w+) \{([^{}]*)\}/g)].map(m => [m[1], m[2]]));
++      const form = new Intl.PluralRules(document.documentElement.lang || 'en').select(count);
++      text = (forms.get(form) ?? forms.get('other') ?? '').replaceAll('#', String(count));
++    }
++    for (const [key, value] of Object.entries(values)) text = text.replaceAll('{' + key + '}', String(value));
++    return text;
+   }
+ 
++  private blancDiagnosticsCount_(count: number) {
++    this.blancDiagnosticsSummary_ = count === 0 ? this.blancText_('blancDiagnosticsNone')
++        : this.blancText_('blancDiagnosticsCount', {count});
++  }
++
++  private async loadBlancTrust_() {
++    try {
++      const receipt = await blancSettings.trustReceipt();
++      // Sync's own state, as its Settings section reads it; unknown reads as off.
++      const sync = await sendWithPromise<{status: {enabled?: boolean, syncTabs?: boolean}|null}>('blancSyncState')
++          .catch(() => ({status: null}));
++      const t = (name: string, values = {}) => this.blancText_(name, values);
++      const onOff = (on: boolean) => t(on ? 'blancTrustOn' : 'blancTrustOff');
++      const app = receipt.app, signature = receipt.signature, choices = receipt.choices;
++      const publisher = ({
++        verified: () => t('blancTrustSignatureVerified', {publisher: signature.observed ?? ''}),
++        mismatch: () => t('blancTrustSignatureMismatch', {expected: signature.expected,
++          observed: signature.observed || t('blancTrustSignatureUnknownPublisher')}),
++        unavailable: () => t('blancTrustSignatureUnavailable', {expected: signature.expected}),
++        development: () => t('blancTrustSignatureDevelopment'),
++      } as Record<string, () => string>)[signature.status]?.() ?? t('blancTrustSignatureUnknown');
++      const dns = ({auto: t('blancTrustDnsAuto'), off: t('blancTrustOff'), custom: t('blancTrustDnsCustom')} as
++          Record<string, string>)[choices.secureDns] ?? choices.secureDns;
++      const syncOn = sync.status?.enabled === true;
++      this.blancTrust_ = [
++        {id: 'build', label: t('blancTrustFactBuild'), value: t(app.packaged ? 'blancTrustBuildPackaged'
++            : 'blancTrustBuildDevelopment', {version: app.version, build: app.build})},
++        {id: 'runtime', label: t('blancTrustFactRuntime'), value: 'Chromium ' + app.chromium},
++        {id: 'platform', label: t('blancTrustFactPlatform'), value: app.platform + ' · ' + app.architecture},
++        {id: 'publisher', label: t('blancTrustFactPublisher'), value: publisher},
++        {id: 'blocker', label: t('blancTrustFactBlockerDigest'), value: receipt.blocker.combinedSha256},
++        {id: 'sync', label: t('blancTrustFactSync'), value: syncOn ? t('blancTrustSyncScope') : t('blancTrustOff')},
++        {id: 'openTabs', label: t('blancTrustFactOpenTabs'), value: onOff(syncOn && sync.status?.syncTabs === true)},
++        {id: 'usage', label: t('blancTrustFactUsage'), value: onOff(choices.usageMeasurement)},
++        {id: 'suggestions', label: t('blancTrustFactSuggestions'), value: onOff(choices.searchSuggestions)},
++        {id: 'secureDns', label: t('blancTrustFactSecureDns'), value: dns},
++        {id: 'crashLedger', label: t('blancTrustFactCrashLedger'), value: t('blancTrustCrashLedger',
++            {count: choices.crashLedger.eventCount, limit: choices.crashLedger.eventLimit})},
++      ];
++      this.blancCrashDumps_ = receipt.crashDumps;
++      this.blancDiagnosticsCount_(choices.crashLedger.eventCount);
++      this.blancTrustStatus_ = t('blancTrustChecked');
++    } catch {
++      this.blancTrustStatus_ = this.blancText_('blancTrustFailed');
++      this.blancDiagnosticsSummary_ = this.blancText_('blancDiagnosticsReadFailed');
++    }
++  }
++
++  protected onBlancCrashDumpsClick_() {
++    BlancOpenWindow.getInstance().openUrl('chrome://crashes');
++  }
++
++  // The report is this build's facts and the ledger: saved as a file the
++  // usual way, with nothing of a page in it.
++  protected async onBlancDiagnosticsExportClick_() {
++    this.blancClearArmed_ = false;
++    try {
++      const report = await blancSettings.diagnosticsReport();
++      const link = document.createElement('a');
++      link.href = URL.createObjectURL(new Blob([report], {type: 'application/json'}));
++      link.download = 'blanc-diagnostics.json';
++      link.click();
++      URL.revokeObjectURL(link.href);
++      this.blancDiagnosticsStatus_ = this.blancText_('blancDiagnosticsSaved');
++    } catch {
++      this.blancDiagnosticsStatus_ = this.blancText_('blancDiagnosticsSaveFailed');
++    }
++  }
++
++  // The first click asks, in shipping's words; the second clears the ledger
++  // and Chromium's dump files.
++  protected async onBlancDiagnosticsClearClick_() {
++    if (!this.blancClearArmed_) {
++      this.blancClearArmed_ = true;
++      this.blancDiagnosticsStatus_ = this.blancText_('blancDiagnosticsClearConfirm');
++      return;
++    }
++    this.blancClearArmed_ = false;
++    try {
++      await blancSettings.diagnosticsClear();
++      this.blancDiagnosticsStatus_ = this.blancText_('blancDiagnosticsCleared');
++      await this.loadBlancTrust_();
++    } catch {
++      this.blancDiagnosticsStatus_ = this.blancText_('blancDiagnosticsClearFailed');
++    }
++  }
++
+   protected onBlancWelcomeTourClick_() {
+     blancSettings.openWelcomeTour();
+   }
+diff --git a/chrome/browser/resources/settings/blanc_settings_proxy.ts b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+--- a/chrome/browser/resources/settings/blanc_settings_proxy.ts
++++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+@@ -54,7 +54,20 @@
+ }
+ export interface BlancRouteDraft {route:BlancLinkRoute,valid:boolean,note:string,error:string;}
+ 
++export interface BlancTrustReceipt {
++  app: {version: string, build: string, chromium: string, platform: string, architecture: string, packaged: boolean};
++  signature: {status: string, expected: string, observed?: string};
++  blocker: {combinedSha256: string};
++  choices: {usageMeasurement: boolean, searchSuggestions: boolean, secureDns: string,
++            crashLedger: {eventLimit: number, eventCount: number}};
++  crashDumps: number;
++}
++
+ export const blancSettings = {
++  // N16: the trust receipt and Diagnostics in About.
++  trustReceipt: () => sendWithPromise<BlancTrustReceipt>('blancTrustReceipt'),
++  diagnosticsReport: () => sendWithPromise<string>('blancDiagnosticsReport'),
++  diagnosticsClear: () => sendWithPromise<boolean>('blancDiagnosticsClear'),
+   mouseGestures: (state: {enabled:boolean,mapping:Record<string,string>}|null=null) => sendWithPromise<{ok:boolean,state:{enabled:boolean,mapping:Record<string,string>}}>('blancMouseGestures',state?JSON.stringify(state):''),
+   miniWindow: (choice: string|null = null) => sendWithPromise<{saved:string,status:string}>('blancMiniWindowShortcut',choice??''),
+   routeState: () => sendWithPromise<BlancRouteState>('blancLinkRouteState'),

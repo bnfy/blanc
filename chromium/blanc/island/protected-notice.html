@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; font-src 'self'; img-src 'self' data:;" />
+  <script src="adapter.js"></script>
+  <script src="ui-language.js"></script>
+  <script src="strings.js"></script>
+  <script src="i18n.js"></script>
+  <title data-i18n="protectedMedia.title">Blanc Beta can't play this video yet</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="protected-notice.css" />
+</head>
+<body class="protected-notice-surface">
+  <section id="protectedNotice" class="no-drag" role="region" aria-live="polite" aria-labelledby="protectedTitle" aria-describedby="protectedBody">
+    <strong id="protectedTitle" data-i18n="protectedMedia.title">Blanc Beta can't play this video yet</strong>
+    <span id="protectedBody" data-i18n="protectedMedia.body">Protected video works in the released Blanc app.</span>
+    <div class="protected-notice-actions">
+      <button id="protectedLater" type="button" data-i18n="sharedSpaces.notNow">Not now</button>
+      <button id="protectedOpen" type="button" class="protected-notice-primary" data-i18n="protectedMedia.open">Open in released Blanc</button>
+    </div>
+  </section>
+  <script src="protected-notice.js"></script>
+</body>
+</html>

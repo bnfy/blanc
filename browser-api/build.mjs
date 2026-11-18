@@ -1173,12 +1173,12 @@ function iconFixture(size) {
   return `data:image/png;base64,${header.toString('base64')}`;
 }
 
-// history.js and bookmarks.js keep their data in a JsonStore, which needs
-// Electron. Load fresh copies of both against an in-memory store, run them,
+// history.js and bookmarks.js (with the Favorites layout store it writes
+// through) keep their data in a JsonStore, which needs Electron. Load fresh copies of both against an in-memory store, run them,
 // and leave the module cache as it was.
 function withMemoryStore(run) {
   const storePath = requireMain.resolve('./store');
-  const modules = ['./history', './bookmarks'].map((m) => requireMain.resolve(m));
+  const modules = ['./history', './bookmarks', './favorites-layout'].map((m) => requireMain.resolve(m));
   const cache = requireMain.cache;
   const saved = [storePath, ...modules].map((key) => [key, cache[key]]);
   class MemoryStore {

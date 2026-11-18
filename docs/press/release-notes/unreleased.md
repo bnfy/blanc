@@ -1,7 +1,22 @@
 # Unreleased notes
 
-v1.49.1 is the current public release ([notes](v1.49.1.md)). Changes merged
+v1.50.0 is the current public release ([notes](v1.50.0.md)). Changes merged
 since then are below as they're recorded.
+
+## Still open from 1.50
+
+- **Whether macOS asks for Downloads access the first time** Blanc saves a
+  download without asking (#1591). The packaged check on November 17, 2026
+  saw no prompt, but it ran with the same signing identity as an installed
+  Blanc that may already have had access. Saving to the real Downloads folder
+  was checked in signed packaged builds on macOS and Windows.
+- **Favorites drag and drop with a real mouse** in a packaged build on macOS,
+  Windows and Linux. The checks so far drive drags with page events only.
+- **The Favorites menu's nested folders** by hand in a packaged build on
+  each platform.
+- **Okta Verify FastPass** (#1585) against a real enrolled Okta Verify. The
+  local-network prompt was checked against a test server on `127.0.0.1`
+  only, and a public name that resolves to a private address isn't gated.
 
 ## Still open from 1.49.1
 

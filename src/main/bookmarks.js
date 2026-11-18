@@ -2,6 +2,8 @@ const crypto = require('crypto');
 const { JsonStore } = require('./store');
 const { validFavicon, validFolder } = require('./bookmark-validate');
 const data = require('./bookmark-data');
+const layoutStore = require('./favorites-layout');
+const { buildTree } = require('./favorites-tree');
 
 let store = null;
 const ensureStore = () => {
@@ -50,11 +52,8 @@ function isBookmarked(url) {
 function toggleBookmark(url, title, favicon) {
   const s = ensureStore();
   if (isBookmarked(url)) {
-    s.update((d) => {
-      d.items = d.items.filter((b) => b.url !== url);
-      d.tombstones.push({ url, deletedAt: Date.now() });
-    });
-    notifyChanged();
+    const ids = s.data.items.filter((b) => b.url === url).map((b) => b.id);
+    run((state, ctx) => data.applyRemoveFavorites(state, ids, ctx));
     return false;
   }
   s.update((d) => {
@@ -66,16 +65,45 @@ function toggleBookmark(url, title, favicon) {
   return true;
 }
 
-/** Add-only quick-save (the `/save` command). One write + one change
- * notification on change, mirroring setBookmarkFolder; a rejected/idempotent
- * call writes nothing. Folder validation/canonicalization live in the pure
- * transform. */
-function saveFavorite(url, title, favicon, folder) {
+// Two behaviors need the Favorites manager page (spec 2026-11-16) to show
+// their result, so a host whose Favorites page has no folder tree turns them
+// off with setManagerLive(false):
+//  - a folder that loses its last favorite stays (it would be an invisible
+//    entry that syncs);
+//  - import keeps whole folder paths, their order, and repairs earlier
+//    flattened imports (a flat list would show folders named by their path).
+let managerLive = true;
+
+function setManagerLive(value) {
+  managerLive = value === true;
+}
+
+/** Run one pure operation from bookmark-data over the favorites and the
+ * layout record, write whichever changed, and notify once. Returns
+ * { ok: true, path? }, or { ok: false, error } when the operation refused. */
+function run(apply) {
   const s = ensureStore();
-  const res = data.applySaveFavorite(s.data, { url, title, favicon, folder }, { now: Date.now(), makeId: crypto.randomUUID });
-  if (!res.changed) return;
-  s.update((d) => { d.items = res.items; d.tombstones = res.tombstones; });
-  notifyChanged();
+  const state = { items: s.data.items, tombstones: s.data.tombstones, layout: layoutStore.getLayout() };
+  const res = apply(state, {
+    now: Date.now(), tie: crypto.randomUUID(), makeId: crypto.randomUUID, keepEmptied: managerLive, paths: managerLive,
+    repairBefore: managerLive ? layoutStore.treeSince() : undefined,
+  });
+  if (res.error) return { ok: false, error: res.error };
+  if (res.changed) {
+    if (res.items !== state.items || res.tombstones !== state.tombstones) {
+      s.update((d) => { d.items = res.items; d.tombstones = res.tombstones; });
+    }
+    if (res.layout !== state.layout) layoutStore.setLayout(res.layout);
+    notifyChanged();
+  }
+  return res.path === undefined ? { ok: true } : { ok: true, path: res.path };
+}
+
+/** Add-only quick-save (the `/save` command). `folder` may be a folder
+ * path. A rejected or idempotent call writes nothing. Folder validation and
+ * spelling live in the pure transform. */
+function saveFavorite(url, title, favicon, folder) {
+  return run((state, ctx) => data.applySaveFavorite(state, { url, title, favicon, folder }, ctx));
 }
 
 /** Patch an existing bookmark's favicon — called as a tab's favicon
@@ -100,47 +128,74 @@ function updateFavicon(url, favicon) {
 }
 
 function removeBookmark(id) {
-  ensureStore().update((d) => {
-    const item = d.items.find((b) => b.id === id);
-    d.items = d.items.filter((b) => b.id !== id);
-    if (item) d.tombstones.push({ url: item.url, deletedAt: Date.now() });
-  });
-  notifyChanged();
+  return removeBookmarks([id]);
 }
 
-/** Bulk-import parsed entries; dedupe by url, one sync-triggering write. */
+function removeBookmarks(ids) {
+  return run((state, ctx) => data.applyRemoveFavorites(state, ids, ctx));
+}
+
+/** Bulk-import parsed entries; dedupe by url, one sync-triggering write.
+ * Returns the counts the import status line reports. */
 function importBookmarks(entries) {
-  const s = ensureStore();
-  const res = data.addImported(s.data, entries, { now: Date.now(), makeId: crypto.randomUUID });
-  if (res.changed) {
-    s.update((d) => { d.items = res.items; d.tombstones = res.tombstones; });
-    notifyChanged();
-  }
-  return { added: res.added, skipped: res.skipped };
+  let counts = { added: 0, skipped: 0, moved: 0, shortened: 0, orderDropped: 0 };
+  run((state, ctx) => {
+    const res = data.addImported(state, entries, ctx);
+    counts = {
+      added: res.added, skipped: res.skipped, moved: res.moved, shortened: res.shortened, orderDropped: res.orderDropped,
+    };
+    return res;
+  });
+  return counts;
 }
 
 function setBookmarkFolder(id, folder) {
-  const s = ensureStore();
-  const res = data.applySetFolder(s.data, id, folder, { now: Date.now() });
-  if (!res.changed) return;
-  s.update((d) => { d.items = res.items; });
-  notifyChanged();
+  return run((state, ctx) => data.applySetFolder(state, id, folder, ctx));
 }
 
-function renameFolder(oldName, newName) {
-  const s = ensureStore();
-  const res = data.applyRenameFolder(s.data, oldName, newName, { now: Date.now() });
-  if (!res.changed) return;
-  s.update((d) => { d.items = res.items; });
-  notifyChanged();
+/** Move favorites into a folder path, or to the top level with null. */
+function moveFavorites(ids, path) {
+  return run((state, ctx) => data.applyMoveFavorites(state, ids, path, ctx));
 }
 
-function removeFolder(name) {
-  const s = ensureStore();
-  const res = data.applyRemoveFolder(s.data, name, { now: Date.now() });
-  if (!res.changed) return;
-  s.update((d) => { d.items = res.items; });
-  notifyChanged();
+function createFolder(parentPath, name) {
+  return run((state, ctx) => data.applyCreateFolder(state, parentPath, name, ctx));
+}
+
+/** Rename one folder: the last name of `path` becomes `newName`. */
+function renameFolder(path, newName) {
+  return run((state, ctx) => data.applyRenameFolder(state, path, newName, ctx));
+}
+
+function moveFolder(path, newParentPath) {
+  return run((state, ctx) => data.applyMoveFolder(state, path, newParentPath, ctx));
+}
+
+/** Delete a folder; what it held moves up one level. */
+function removeFolder(path) {
+  return run((state, ctx) => data.applyRemoveFolder(state, path, ctx));
+}
+
+/** Save the order chosen for one folder's children (null: the top level). */
+function reorderFolder(path, orderKeys) {
+  return run((state, ctx) => data.applyReorder(state, path, orderKeys, ctx));
+}
+
+/** The folder tree in display order. Each child carries the key order lists
+ * name it by (a favorite's also on the item), so pages never compute one. */
+function getTree() {
+  const withKeys = (node) => ({
+    ...node,
+    children: node.children.map((child) => (child.kind === 'folder'
+      ? { kind: 'folder', key: child.key, folder: withKeys(child.folder) }
+      : { kind: 'favorite', key: child.key, item: { ...child.item, key: child.key } })),
+  });
+  return withKeys(buildTree(ensureStore().data.items, layoutStore.getLayout()));
+}
+
+/** The native Favorites menu's entries, in the manager's order. */
+function getMenuModel() {
+  return data.favoritesMenuModel(ensureStore().data.items, layoutStore.getLayout());
 }
 
 function exportForSync() {
@@ -212,4 +267,8 @@ function mergeFromSync(remote) {
   notifyMerged();
 }
 
-module.exports = { listBookmarks, isBookmarked, toggleBookmark, saveFavorite, updateFavicon, removeBookmark, importBookmarks, setBookmarkFolder, renameFolder, removeFolder, exportForSync, mergeFromSync, onChanged, onMerged };
+module.exports = {
+  listBookmarks, isBookmarked, toggleBookmark, saveFavorite, updateFavicon, removeBookmark, removeBookmarks, importBookmarks,
+  setBookmarkFolder, moveFavorites, createFolder, renameFolder, moveFolder, removeFolder, reorderFolder, getTree, getMenuModel,
+  exportForSync, mergeFromSync, onChanged, onMerged, setManagerLive,
+};

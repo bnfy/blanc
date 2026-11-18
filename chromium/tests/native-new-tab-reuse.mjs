@@ -63,6 +63,21 @@ try{
  await w.call('activateTab',s.page);await w.waitForState(x=>String(x.activeTabId)===s.page);
  await pressNewTab();await switched(withPrivate,s.blank,'⌘T with a private Start Page open');
  result.checks.push('private and regular New Tabs each reuse only their own kind');
+ // The ⌘⇧N command itself (shipping's F37-9), not the Island's request.
+ s=await fresh();assert.equal(await w.native('previewPageCommand',['newPrivateTab']),true);
+ const firstPrivate=await opened(s.before,'⌘⇧N with no private Start Page');
+ assert.equal((await w.snapshot()).tabs.find(t=>String(t.id)===firstPrivate).private,true);
+ await w.call('activateTab',s.page);await w.waitForState(x=>String(x.activeTabId)===s.page);
+ const withCommand=await ids();assert.equal(await w.native('previewPageCommand',['newPrivateTab']),true);
+ await switched(withCommand,firstPrivate,'⌘⇧N with a private Start Page open');
+ result.checks.push('the New Private Tab command opens a private tab, then reuses it');
+ // The other commands the fork answers itself open their sheet, never a tab.
+ for(const page of ['history','downloads','bookmarks','settings']){
+  s=await fresh();assert.equal(await w.native('previewPageCommand',[page]),true);
+  await w.waitFor(()=>w.hostEval('window.BlancPrototypeHost.sheetState()'),state=>state?.visible&&state.url==='blanc://'+page+'/','the '+page+' sheet from its command',5000);
+  assert.deepEqual((await ids()).sort(),[...s.before].sort(),page+': no tab was opened');
+ }
+ result.checks.push('History, Downloads, Favorites and Settings commands open their sheets');
  await visible();result.result='pass';
 }catch(error){result.result=error.code==='BLANC_ENVIRONMENT_STOP'?'blocked-environment':'fail';result.error=String(error.stack);process.exitCode=1;}
 finally{

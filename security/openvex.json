@@ -3,8 +3,8 @@
   "@id": "https://raw.githubusercontent.com/bnfy/blanc/main/security/openvex.json",
   "author": "Blanc maintainers",
   "role": "Document Creator",
-  "timestamp": "2026-10-08T19:40:41Z",
-  "version": 5,
+  "timestamp": "2026-11-17T19:30:00Z",
+  "version": 6,
   "tooling": "Manual maintainer review",
   "statements": [
     {
@@ -46,6 +46,46 @@
       "status": "not_affected",
       "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
       "impact_statement": "Reviewed by Claude on 2026-10-06 and approved by the owner: sprintf-js 1.1.3 occurs only under development-only electron-builder (via @electron/get 3.1.0, its optional global-agent 3.0.0, and roarr 2.15.4). @electron/get loads global-agent only when ELECTRON_GET_USE_PROXY is set, which no Blanc script, workflow, or configuration does, and every global-agent log call passes a constant format string, so no adversary controls the precision specifier the advisory requires. Absent from the desktop runtime graph, release payloads, the website, and the tab-import Worker and companions. Evidence and re-review conditions: docs/security-reviews/2026-10-06-sprintf-js.md."
+    },
+    {
+      "vulnerability": {
+        "@id": "https://github.com/advisories/GHSA-fc5q-39xc-vjpf",
+        "name": "GHSA-fc5q-39xc-vjpf"
+      },
+      "products": [{ "@id": "pkg:github/bnfy/blanc" }],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "picomatch is reached only by build tooling: in the desktop app through development dependencies (electron-builder, @electron/rebuild, node-gyp), never packaged; on the website through Astro's static build (output: 'static', no server adapter or functions). Every glob it evaluates comes from committed configuration and source, never from network, user or release-time input. No patched picomatch exists yet (<= 4.0.7 affected)."
+    },
+    {
+      "vulnerability": {
+        "@id": "https://github.com/advisories/GHSA-g3hv-75wg-m249",
+        "name": "GHSA-g3hv-75wg-m249"
+      },
+      "products": [{ "@id": "pkg:github/bnfy/blanc" }],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "The affected minimatch copies are reached only by development tooling (electron-builder's app-builder-lib, @electron/universal, @electron/asar and their build helpers), which match globs from committed build configuration. None is packaged, and no network, user or release-time input reaches them. Listed because the dependency policy counts every advisory of a package flagged high (here through GHSA-fc5q-39xc-vjpf)."
+    },
+    {
+      "vulnerability": {
+        "@id": "https://github.com/advisories/GHSA-mh32-jxcr-mh9f",
+        "name": "GHSA-mh32-jxcr-mh9f"
+      },
+      "products": [{ "@id": "pkg:github/bnfy/blanc" }],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "Astro runs only at build time: the website is output: 'static' with no server adapter or functions, and every dynamic tag name it renders comes from committed source. A visitor cannot supply the tag names the advisory requires. Fixed in astro 7.4.5; the site update is tracked separately."
+    },
+    {
+      "vulnerability": {
+        "@id": "https://github.com/advisories/GHSA-r3h5-4585-7x3w",
+        "name": "GHSA-r3h5-4585-7x3w"
+      },
+      "products": [{ "@id": "pkg:github/bnfy/blanc" }],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "The vulnerable image endpoint exists only when a site is served by the @astrojs/node adapter. Blanc's website is output: 'static', has no adapter (no @astrojs/node in site/package-lock.json) and serves prebuilt files from Cloudflare Pages, so no request reaches Astro's image endpoint. Fixed in astro 7.4.7; the site update is tracked separately."
     }
   ]
 }
