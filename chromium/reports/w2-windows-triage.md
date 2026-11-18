@@ -27,17 +27,21 @@ floating window buttons (W1: Windows' own caption buttons), and the three app
 icon cases (no icon catalog on Windows, owner 2026-10-19; approved 2026-11-18). The list and its
 reasons: `chromium/tests/windows-fork-exclusions.mjs`.
 
+## Fixed while diagnosing (runs 44369847666 and 44374484719, `windows-x64-7edd9da4f45532ea`)
+
+| Cases | Cause | Fix |
+| --- | --- | --- |
+| `downloads` 7, 13 | The download step joined its folder with `/` and never created it; Chrome ended the download at 0 B | `path.join` and the folder created |
+| `split-view:53`, `newtab-layouts:21` | Chromium's default window on the runner's 1920x1080 display is 929x1004; shipping's steps assume its 1280x800 window | Windows cases start at `--window-size=1280,800` |
+| `interface-language:10` | The step faked the OS language with macOS's `-AppleLanguages` | `--lang` on Windows |
+| `vertical-tabs:239` | The fork host kept no record of main-menu requests | The host keeps shipping's record |
+| `tab-migration:116` | The host gave every native call 10 s; applying 500 tabs takes longer on a slow PC, and the import was reported failed while it went on | `importApply` has no host limit, like `importArcRead` (a product fix) |
+| `tabs-and-groups:292` | The runner's `%TEMP%` is `C:\Users\RUNNER~1\...`; Node writes the file URL with `%7E`, Chromium shows `~`, and shipping compares the strings | The suite runs with a temporary folder without a short name |
+| `browser-migration:7` (and sometimes 14, 28) | The Favorites tab attaches its import button's handler after two calls to the browser; an early click did nothing | The button stays disabled until then (a declared edit in `tools/favorites-page.mjs`; a product fix) |
+
 ## Open
 
 | Case | What happens | Cause | Outcome |
 | --- | --- | --- | --- |
-| `browser-migration` 7, 14, 28, 35 | After Find, the Favorites import offers nothing and its status stays empty | Not found: an empty status with Find still showing means the page reset or the lookup never ran, not "nothing found" | Open, W2 |
-| `arc-spaces-import` 14, 31 | The Arc import creates no Spaces | Not found (the file is now read: the earlier five cases pass) | Open, W2 |
-| `downloads` 7, 13 | A download ends "Interrupted · 0 B" | Not found | Open, W2 |
-| `split-view:53` | Closing the focused pane's tab leaves the other at half width (929 of the window) | Not found; may be a Windows-only layout bug in the fork | Open, W2 |
-| `tabs-and-groups:292` | A local-file home page never loads | Not found; Windows `file:` paths in the local-file gate are the suspect | Open, W2 |
-| `newtab-layouts:21` | Mahjong's control rail ends outside the board frame | Not found | Open, W2 |
-| `interface-language:10` | "System" resolves to English, not the faked OS language | The step fakes the OS language for the app; on Windows Chromium takes it from Windows itself (to be confirmed) | Open, W2 |
-| `tab-migration:116` | The 500-candidate import exceeds the harness's CDP timeout | The runner is slower than the Mac Studio (to be confirmed by timing) | Open, W2 |
-| `vertical-tabs:239` | Undefined: "the fork host keeps no record of main-menu requests" | The fork adapter needs a native record of the main-menu request (C2) | Open, W2 |
-| `glance:337`, `vertical-tabs:146` | Fail on some runs | Runner-variable since W1 Part A (see `reports/w1-windows.json`) | Open |
+| `arc-spaces-import` 14, 31 | The Arc import says "Created 2 spaces" and the Space list shows them, but the saved Spaces file read right after lacks them (on a retry it read back empty) | A Windows-only loss or misdirection of the store write: `importSpaces`'s atomic write reports success. Not yet traced; needs native logging of the store path and its writers | Open, W2 (likely a real bug) |
+| `browser-migration` 14, 28, 35 | Intermittently, the import dialog is closed and empty when read after Find | Not found; the early-click race is fixed, so something else closes or resets the dialog on the runner | Open, W2 |

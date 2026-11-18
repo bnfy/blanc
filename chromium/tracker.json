@@ -2543,11 +2543,11 @@
       "qualification": "debug build; launches and loads pages on the emulator; Pixel pending"
     },
     "windows": {
-      "id": "windows-x64-5d4ff5898abbe899",
+      "id": "windows-x64-7edd9da4f45532ea",
       "exeSha256": "5b41adfdf93bbebbcda2c6e935ac399c2327c1b0da7a635e694b6f3a8620a995",
-      "dllSha256": "5d4ff5898abbe899a88ff4fc69eddd670c1d84e29d136c77f21dbbb5f7a1b7fb",
+      "dllSha256": "7edd9da4f45532ea68acaec879b779ee6967e527ae775a307fa8697524dc139a",
       "version": "158.0.8127.2",
-      "treeCommit": "587022593ee1740445cccff208368d18ea05d135",
+      "treeCommit": "c8db069c4a184652b1e72526d9aab375e2a56f05",
       "qualification": "cross-compiled candidate; runtime acceptance pending"
     }
   },
