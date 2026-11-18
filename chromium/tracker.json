@@ -2543,12 +2543,12 @@
       "qualification": "debug build; launches and loads pages on the emulator; Pixel pending"
     },
     "windows": {
-      "id": "windows-x64-e42f9e5a532cdf96",
-      "exeSha256": "e9ec702312de21813263f29564b312abb78e2e9284d241962a5a5c7cf463ed4a",
-      "dllSha256": "e42f9e5a532cdf96b9e1f6c382012fefc7f4510a9a34cf0c43f5b64893847bd2",
+      "id": "windows-x64-5d4ff5898abbe899",
+      "exeSha256": "5b41adfdf93bbebbcda2c6e935ac399c2327c1b0da7a635e694b6f3a8620a995",
+      "dllSha256": "5d4ff5898abbe899a88ff4fc69eddd670c1d84e29d136c77f21dbbb5f7a1b7fb",
       "version": "158.0.8127.2",
-      "treeCommit": "985d855bc784fd930554f8da3484914353438962",
-      "qualification": "W1 Parts A and B (frame, Windows caption buttons, app menu, strip drag; own identity, Sunrise icon, Chromium installer): install check 11 of 11 (run 44235371094), frame check 15 of 15; full suite on a 1920x1080 runner display, 2026-11-18 (run 44236176647, fork 575ef3d11, shipping v1.49.1): 591 of 667 cases pass, 47 fail, 23 undefined, 6 excluded"
+      "treeCommit": "587022593ee1740445cccff208368d18ea05d135",
+      "qualification": "cross-compiled candidate; runtime acceptance pending"
     }
   },
   "baselines": {
