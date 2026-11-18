@@ -7923,6 +7923,8 @@ function startBackdropBand(runtime, tab) {
  * and tells that page how far above it the band reaches. */
 function syncStartBackdrop(runtime) {
   if (!runtime?.window || runtime.window.isDestroyed()) return;
+  // Closed tabs' specs go with the next broadcast (a close broadcasts).
+  for (const id of startBackdrops.keys()) if (!tabs.has(id)) startBackdrops.delete(id);
   const tab = tabs.get(runtime.activeTabId);
   const entry = tab ? startBackdrops.get(tab.id) : null;
   // Most broadcasts are about a website tab: nothing to paint or clear.
@@ -10540,7 +10542,6 @@ function closeTab(id) {
 
   rt().tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
-  startBackdrops.delete(id);
   if (tab.private && ![...tabs.values()].some(other => other.private && other.profileId === tab.profileId)) readerMode.forgetPrivate(tab.profileId);
   if(tab.sharedTabId)captureSharedSpaceEdits(rt());
   popupChildCounts.delete(id);
