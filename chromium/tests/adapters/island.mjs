@@ -144,7 +144,7 @@ export const island={
  async mainWindowState(w){const {bounds}=await windowOf(w);return {maximized:bounds.windowState==='maximized',minimized:bounds.windowState==='minimized'};},
  async restoreMainWindow(w){const {windowId}=await windowOf(w);await w.fixture.browser.send('Browser.setWindowBounds',{windowId,bounds:{windowState:'normal'}});return true;},
  chromeButtonRects:undef('The fork strip reports no window-button geometry to the host'),
- mainMenuRequests:undef('The fork host keeps no record of main-menu requests'),
+ mainMenuRequests:w=>w.hostEval('window.BlancPrototypeHost.mainMenuRequests()'),
  // ---- strip geometry and DOM ----
  islandRect:async w=>(await islandReport(w))?.rect??null,
  islandHoverRect:async w=>(await islandReport(w))?.hoverRect??null,

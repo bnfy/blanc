@@ -1929,11 +1929,18 @@
   }
 
   let railActivationSerial = 0;
+  const mainMenuRequests = [];
   const implemented = {
     platform: hostPlatform,
     // The strip's menu button and window commands (Windows and Linux; the
     // Mac has its menu bar and traffic lights). The menu is Chromium's own.
-    openMainMenu: point => request('openMainMenu', [Math.round(Number(point?.x) || 0), Math.round(Number(point?.y) || 0)]),
+    openMainMenu: point => {
+      const at = { x: Math.round(Number(point?.x) || 0), y: Math.round(Number(point?.y) || 0) };
+      // Shipping's main-menu requests as its tests read them (the last few).
+      mainMenuRequests.push({ from: 'strip', point: at });
+      if (mainMenuRequests.length > 20) mainMenuRequests.shift();
+      return request('openMainMenu', [at.x, at.y]);
+    },
     minimizeWindow: () => request('minimizeWindow'),
     maximizeWindow: () => request('maximizeWindow'),
     closeWindow: () => request('closeWindow'),
@@ -3334,6 +3341,7 @@
   }
 
   window.BlancPrototypeHost = {
+    mainMenuRequests: () => mainMenuRequests.map(r => ({ from: r.from, point: { ...r.point } })),
     api,
     tabSwitch,
     handoffSheet: action => handoffSheet(String(action)).catch(error => notice(error.message)),
