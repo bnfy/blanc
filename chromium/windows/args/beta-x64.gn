@@ -1,6 +1,6 @@
 # Blanc Beta for Windows (x64), W3. Copied to out/BlancWinBeta/args.gn by
 # chromium/windows/server/bootstrap.sh. The Mac beta's reviewed values
-# (chromium/release/policy.mjs) for Windows x64. The version is a development
+# (chromium/release/policy.mjs) for Windows x64. The version (beta.900) is a development
 # value until the first Windows beta is released (W3 Task E1); Chromium's
 # updater stays off until W3 Part B.
 target_os = "win"
@@ -15,6 +15,6 @@ bundle_widevine_cdm = false
 enable_updater = false
 chrome_pgo_phase = 0
 symbol_level = 0
-blanc_beta_version = "2.0.0-beta.1"
-blanc_beta_build = 1
+blanc_beta_version = "2.0.0-beta.900"
+blanc_beta_build = 900
 blanc_blocker_bundle = "/home/blanc/blanc-assets/blocker"
