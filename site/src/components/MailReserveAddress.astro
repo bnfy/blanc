@@ -32,7 +32,6 @@ const ending = 'blnc.day';
 
     <div class="mail-reserve-step" data-step="code" hidden>
       <label class="mail-reserve-label" for="mailReserveCode">Check your email for a 6-digit code</label>
-      <p class="mail-reserve-hint">If this email already holds a name, we’ve emailed you which one instead.</p>
       <input class="mail-reserve-input mail-reserve-code" id="mailReserveCode" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code">
       <button class="mail-reserve-button" type="button" data-confirm>Confirm</button>
       <button class="mail-reserve-back" type="button" data-back>Use a different email or send a new code</button>
@@ -60,7 +59,7 @@ const ending = 'blnc.day';
     reserved: 'That address isn’t available.',
     format: 'Use 3 to 32 letters, numbers, dots, hyphens or underscores, without a dot at either end.',
     backup_email: 'Use an email that isn’t a Blanc Mail address.',
-    has_reservation: 'That email already holds a reservation.',
+    has_reservation: 'That email already holds a Blanc Mail address. Each email can hold one. We’ve emailed you which one, with a link to release it if you’d rather have a different one.',
     turnstile: 'We couldn’t check that you’re not a bot. Please try again.',
     code: 'That code isn’t right, or it has expired.',
     rate_limited: 'Too many tries. Try again in a minute.',
