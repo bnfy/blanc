@@ -15876,6 +15876,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         ? { ok: false, reason: 'private' }
         : startPagePins.pin(page)),
       unpin: (wc, url) => !startPageSenderIsPrivate(wc) && startPagePins.unpin(url),
+      // A favorite edited on the Favorites page: its pin follows it.
+      replace: (fromUrl, page) => startPagePins.replacePin(fromUrl, page),
     },
     onHistoryCleared: () => {
       clearSessionMeta();

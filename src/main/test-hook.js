@@ -1752,6 +1752,42 @@ function install(refs) {
       return startPagePins.listPins().length === 0;
     },
     startPagePins() { return startPagePins.listPins(); },
+    /** Edit a favorite on the Favorites page as a person does: F2 on its row,
+     * type a name and an address, Enter. False when the row or the fields
+     * never showed. */
+    async editFavoriteInSheet(title, newTitle, newUrl) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc || wc.isDestroyed()) return false;
+      return wc.executeJavaScript(`(async () => {
+        const settle = () => new Promise((resolve) => setTimeout(resolve, 50));
+        const row = [...document.querySelectorAll('.fav-row[data-url]')]
+          .find((candidate) => candidate.querySelector('.title')?.textContent === ${JSON.stringify(String(title))});
+        if (!row) return false;
+        row.focus();
+        row.dispatchEvent(new KeyboardEvent('keydown', { key: 'F2', bubbles: true }));
+        await settle();
+        const edit = document.querySelector('.fav-edit-row');
+        const name = edit?.querySelector('[data-field="title"]');
+        const address = edit?.querySelector('[data-field="url"]');
+        if (!name || !address || document.activeElement !== name) return false;
+        const type = (input, text) => { input.value = text; input.dispatchEvent(new Event('input', { bubbles: true })); };
+        type(name, ${JSON.stringify(String(newTitle))});
+        type(address, ${JSON.stringify(String(newUrl))});
+        address.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+        return true;
+      })()`);
+    },
+    /** The Favorites page's rows as drawn: name, address, and whether an edit is open. */
+    favoritesSheetRows() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc || wc.isDestroyed()) return null;
+      return wc.executeJavaScript(`(() => ({
+        editing: !!document.querySelector('.fav-edit-row'),
+        status: document.getElementById('importStatus')?.textContent ?? '',
+        rows: [...document.querySelectorAll('.fav-row[data-url]')]
+          .map((row) => ({ title: row.querySelector('.title')?.textContent, url: row.dataset.url })),
+      }))()`);
+    },
     // The Favorites page's rows and their Start Page pins.
     readFavoritesSheetPins() {
       const wc = getUtilitySheetWebContents();

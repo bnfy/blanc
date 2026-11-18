@@ -2346,6 +2346,19 @@ body.sheet .fav-name-input {
   padding: 0 10px;
   border-radius: var(--radius-sm);
 }
+/* A favorite being edited: its name and address in the row's own columns. */
+.fav-edit-fields { align-items: center; }
+body.sheet .fav-edit-input {
+  min-width: 0;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+body.sheet .fav-edit-actions { gap: 6px; }
+body.sheet .fav-edit-actions .fav-bar-button { min-height: 30px; padding: 0 12px; }
+body.sheet .fav-edit-actions .fav-edit-save,
+body.sheet .fav-edit-actions .fav-edit-save:hover { border-color: var(--accent); background: var(--accent); color: var(--bg); }
 .fav-empty {
   padding: 26px 16px;
   border: 1px dashed var(--border);
@@ -2545,6 +2558,7 @@ body.sheet .import-buttons button:active:not(:disabled) { transform: scale(0.98)
   .fav-folder-select { display: block; flex: 1 1 160px; max-width: 100%; }
   .fav-main { grid-template-columns: minmax(0, 1fr) auto; }
   .fav-main .url { display: none; }
+  .fav-edit-fields.fav-main { grid-template-columns: minmax(0, 1fr); gap: 6px; }
 }
 /* While searching, results span every folder: no folder menu. */
 .fav-pane.searching .fav-folder-select,

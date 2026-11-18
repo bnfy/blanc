@@ -6792,6 +6792,47 @@
     "message": "That folder no longer exists.",
     "note": "Favorites manager: the folder was changed elsewhere (another device, another window) before the edit arrived."
   },
+  "favorites.manager.edit": {
+    "message": "Edit",
+    "note": "Favorites manager: a favorite's menu item that opens its name and address for editing.",
+    "maxLength": 16
+  },
+  "favorites.manager.editLabel": {
+    "message": "Edit {title}",
+    "note": "Favorites manager: accessible name of the row being edited. {title} is the favorite's current name."
+  },
+  "favorites.manager.editName": {
+    "message": "Name",
+    "note": "Favorites manager: label of the field holding a favorite's name while it is edited.",
+    "maxLength": 16
+  },
+  "favorites.manager.editAddress": {
+    "message": "Address",
+    "note": "Favorites manager: label of the field holding a favorite's web address while it is edited.",
+    "maxLength": 16
+  },
+  "favorites.manager.editSave": {
+    "message": "Save",
+    "note": "Favorites manager: button that saves a favorite's edited name and address.",
+    "maxLength": 12
+  },
+  "favorites.manager.editCancel": {
+    "message": "Cancel",
+    "note": "Favorites manager: button that closes a favorite's edit without saving.",
+    "maxLength": 12
+  },
+  "favorites.manager.error.exists": {
+    "message": "Another favorite already has that address.",
+    "note": "Favorites manager: an edited address is already saved as another favorite."
+  },
+  "favorites.manager.error.invalidUrl": {
+    "message": "Enter a web address, such as example.com.",
+    "note": "Favorites manager: an edited address isn't a web page (only http and https addresses can be favorites)."
+  },
+  "favorites.manager.error.favoriteMissing": {
+    "message": "That favorite no longer exists.",
+    "note": "Favorites manager: the favorite was removed elsewhere (another device, another window) before its edit arrived."
+  },
   "favorites.import.menu": {
     "message": "Bring my stuff to Blanc",
     "note": "Favorites page: the one button that opens every way to bring things over from another browser."

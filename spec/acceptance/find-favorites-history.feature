@@ -49,6 +49,17 @@ Feature: Find in page, favorites, and history
     When I run the slash command "/save Work > Reading"
     Then "keep.example" is a favorite in "Work › Reading"
 
+  @F63-3 @F63 @F9 @desktop
+  Scenario: Editing a favorite changes its name and address, and its Start Page pin follows
+    Given the Start Page has no pins
+    And a favorite for "https://old.example/" titled "Old name" in no folder
+    And the favorites page is open in the utility sheet
+    When I pin "Old name" from the Favorites page
+    And I edit the favorite "Old name" to "New name" at "new.example/page"
+    Then the Favorites page shows "New name" at "https://new.example/page"
+    And Favorites hold "New name" at "https://new.example/page" and nothing at "https://old.example/"
+    And the Start Page pin "New name" is at "https://new.example/page"
+
   @F10-1 @F10 @all
   Scenario: A visit is recorded with the final page title
     When I visit "read.example" with title "Reader"

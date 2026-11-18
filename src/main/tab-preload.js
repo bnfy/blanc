@@ -186,6 +186,7 @@ if (window.location.protocol === 'blanc:') {
         move: (ids, path) => invoke('pages:bookmarks:move', ids, path),
         reorder: (path, orderKeys) => invoke('pages:bookmarks:reorder', path, orderKeys),
         removeMany: (ids) => invoke('pages:bookmarks:remove-many', ids),
+        edit: (id, changes) => invoke('pages:bookmarks:edit', id, changes),
       },
       pins: startPins,
     };

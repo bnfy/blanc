@@ -271,7 +271,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "1ae2ddbb3f684999d06a938d3de9508b1475c0e04fa972e71438627a73576d7c",
+      "sha256": "47e4ec0245e83ce8a75d87c737b83b2a482c21958ce9a67f8eaf55bb6bdab150",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -531,7 +531,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "79ebda1d655506fe2601d88e64e9c0c4ef027d3d7232f6abf70a5b389d2c3e98",
+      "sha256": "107ccbffbe700cbe2b16a2121cfdbdbff0e777c38a483a49174444163f7c2ba3",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -550,6 +550,7 @@
         "pages:bookmarks:capabilities",
         "pages:bookmarks:clear-favicon",
         "pages:bookmarks:create-folder",
+        "pages:bookmarks:edit",
         "pages:bookmarks:import",
         "pages:bookmarks:import-browser",
         "pages:bookmarks:list",
@@ -1002,7 +1003,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "bc8b19ccd8ad93ae3a93510735d71ba65c0d097f7f9a8bcd78f0ad6b3940a06e",
+      "sha256": "ae622ac45e10bd769c9e5150119ea648e378af5e9bda802ceec62fc37b512101",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -1021,6 +1022,7 @@
         "pages:bookmarks:capabilities",
         "pages:bookmarks:clear-favicon",
         "pages:bookmarks:create-folder",
+        "pages:bookmarks:edit",
         "pages:bookmarks:import",
         "pages:bookmarks:import-browser",
         "pages:bookmarks:list",

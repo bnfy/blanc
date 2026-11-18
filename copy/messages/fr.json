@@ -6579,6 +6579,42 @@
     "message": "Ce dossier n’existe plus.",
     "source": "sha256:da15e822ea7414bdea99ba50faf98629849cd2c7bc8e38befbdaaea0c4be91e7"
   },
+  "favorites.manager.edit": {
+    "message": "Modifier",
+    "source": "sha256:39a21bf6e428d39b83f8a0f14137ff9718c62cb3d8ff8c4f44c44cd35058576c"
+  },
+  "favorites.manager.editLabel": {
+    "message": "Modifier {title}",
+    "source": "sha256:c9b992b7142283c4524e74b412a9c114d10f98896f00f3f7c87ae80c2ea9d954"
+  },
+  "favorites.manager.editName": {
+    "message": "Nom",
+    "source": "sha256:cb890f3ecd7abc20bfe0257411fb3086e233615d75ca010899a10ccd376e1204"
+  },
+  "favorites.manager.editAddress": {
+    "message": "Adresse",
+    "source": "sha256:1195bd9cb301fce38b8cb8ae55d44bb7ecb2cca552ebe57cfd7186af65e3419e"
+  },
+  "favorites.manager.editSave": {
+    "message": "Enregistrer",
+    "source": "sha256:2dad4acc077e8bb1bfc67b3e331bcca54ff89bdbc1c5fefadc5e0c51e9b4409f"
+  },
+  "favorites.manager.editCancel": {
+    "message": "Annuler",
+    "source": "sha256:28882c39a45a3780a82acb437e2b4611255b7a7942178730fb5ad4a19eb3de11"
+  },
+  "favorites.manager.error.exists": {
+    "message": "Un autre favori a déjà cette adresse.",
+    "source": "sha256:7d2deac5495888ca855b96b96e3ae490d746e6041f7b49d4bfa57537679b57ce"
+  },
+  "favorites.manager.error.invalidUrl": {
+    "message": "Saisissez une adresse web, par exemple example.com.",
+    "source": "sha256:160c9026299f85c39b9174222be67c0ca26710a39a3bd4058918d4b7cb3daad1"
+  },
+  "favorites.manager.error.favoriteMissing": {
+    "message": "Ce favori n’existe plus.",
+    "source": "sha256:0c6bc341a8bf1897163deb5b95e0b853551893b0ce49bfebeb79a8b06c0e8ec8"
+  },
   "favorites.import.menu": {
     "message": "Apporter mes données dans Blanc",
     "source": "sha256:7c0b597b34e0d5fc033ac5ac1476dac7ebce2209ba9000c93c7e51abcf813144"

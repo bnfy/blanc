@@ -17,6 +17,12 @@
     invalid: 'favorites.manager.error.invalid',
     missing: 'favorites.manager.error.missing',
   };
+  // A favorite's edit: its own words, since 'missing' there is a favorite.
+  const EDIT_ERROR_KEYS = {
+    exists: 'favorites.manager.error.exists',
+    'invalid-url': 'favorites.manager.error.invalidUrl',
+    missing: 'favorites.manager.error.favoriteMissing',
+  };
 
   // ---------- Escape, shared by every in-sheet surface ----------
   // Main swallows Escape (it closes the sheet) unless the page arms it; then
@@ -86,6 +92,8 @@
 
   function mount({ root: host, status, t, editable, canPin, isWebPage, pins, rowIcon, showError }) {
     const api = root.bowserPages.bookmarks;
+    // A host without the edit call (an older bridge) offers no Edit.
+    const canEdit = editable && typeof api.edit === 'function';
 
     // ---------- skeleton ----------
     // Edge's layout (owner, November 16, 2026): search at the top of the
@@ -138,6 +146,7 @@
     let focusKey = null;
     let wantListFocus = false;
     let naming = null;          // { kind: 'create' | 'rename', key?, path?, name?, draft }
+    let editing = null;         // { key, id, title, url, draftTitle, draftUrl, focus, select, saving }
     let confirming = false;     // the selection bar asks before removing several
     let drag = null;
 
@@ -183,6 +192,7 @@
       anchor = null;
       focusKey = null;
       confirming = false;
+      endEditing();
     }
 
     /** A folder renamed or moved: the open folder and the open sidebar
@@ -611,6 +621,16 @@
         event.preventDefault();
         if (selected.size > 1 && selected.has(key)) askRemove();
         else removeChildren(childrenFor([key]));
+      } else if (event.key === 'F2' && editable && !searching()) {
+        // F2 renames, as in a file manager: a folder's name, a favorite's name and address.
+        const child = childByKey(key);
+        if (child?.kind === 'folder') {
+          event.preventDefault();
+          startNaming({ kind: 'rename', key: child.key, path: child.folder.path, name: child.folder.name, draft: child.folder.name });
+        } else if (child?.kind === 'favorite' && canEdit) {
+          event.preventDefault();
+          startEditing(child);
+        }
       } else if ((event.key === 'ContextMenu' || (event.key === 'F10' && event.shiftKey)) && editable) {
         event.preventDefault();
         rows[at].querySelector('.fav-more')?.click();
@@ -654,6 +674,7 @@
         const matches = Model.searchFavorites(tree, search.value);
         if (!matches.length) { list.append(emptyLine(t('favorites.manager.noResults'))); return; }
         const rows = matches.map((match) => {
+          if (editing?.key === match.item.key) return editRow();
           const row = favoriteRow({ kind: 'favorite', key: match.item.key, item: match.item }, { path: match.path });
           row.setAttribute('role', 'option');
           row.setAttribute('aria-selected', 'false');
@@ -663,7 +684,7 @@
         const at = Math.max(0, Math.min(rows.length - 1, focusedIndex));
         rows[at].tabIndex = 0;
         list.append(group(t('favorites.manager.results', { count: matches.length }), null, rows));
-        if (hadFocus && focusedIndex >= 0) rows[at].focus({ preventScroll: false, focusVisible: false });
+        if (hadFocus && focusedIndex >= 0 && !editing) rows[at].focus({ preventScroll: false, focusVisible: false });
         return;
       }
 
@@ -686,6 +707,7 @@
         folderRows.push(row);
       }
       const favoriteRows = favorites.map((child) => {
+        if (editing?.key === child.key) return editRow();
         const row = favoriteRow(child);
         wireRow(row, child);
         return row;
@@ -695,7 +717,7 @@
       if (!folderRows.length && !favoriteRows.length) {
         list.append(emptyLine(tree.children.length ? t('favorites.manager.emptyFolder') : t('favorites.empty')));
       }
-      if (hadFocus && !naming) focusRow(focusKey);
+      if (hadFocus && !naming && !editing) focusRow(focusKey);
       animateFrom(before);
     }
 
@@ -751,6 +773,7 @@
     }
 
     function startNaming(state) {
+      endEditing();
       naming = { draft: '', selectOnce: true, ...state };
       Escape.claim('naming', () => finishNaming(false));
       renderList();
@@ -783,6 +806,124 @@
       }
       // Refused (a name in use, too long): the field stays with what was typed.
       if (result && result.ok === false) startNaming({ ...state, selectOnce: true });
+    }
+
+    // ---------- editing a favorite: its name and address ----------
+    /** The row being edited: the two fields in the row's own columns, then
+     * Save and Cancel. Enter saves from either field and Escape cancels. A
+     * redraw while it is open (a sync, a pin) keeps what was typed. */
+    function editRow() {
+      const state = editing;
+      const row = el('div', 'fav-row fav-name-row fav-edit-row');
+      row.dataset.key = state.key;
+      row.setAttribute('role', 'group');
+      row.setAttribute('aria-label', t('favorites.manager.editLabel', { title: state.title }));
+      const fields = el('div', 'fav-main fav-edit-fields');
+      const field = (name, value, label) => {
+        const input = el('input', 'fav-edit-input');
+        input.type = 'text';
+        input.value = value;
+        input.placeholder = label;
+        input.setAttribute('aria-label', label);
+        input.dataset.field = name;
+        input.dataset.i18nIgnore = '';
+        input.spellcheck = name === 'title';
+        input.addEventListener('focus', () => { if (editing === state) state.focus = name; });
+        input.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter') { event.preventDefault(); finishEditing(true); }
+          else if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); finishEditing(false); }
+        });
+        return input;
+      };
+      const titleInput = field('title', state.draftTitle, t('favorites.manager.editName'));
+      titleInput.maxLength = 500;
+      titleInput.addEventListener('input', () => { state.draftTitle = titleInput.value; });
+      const urlInput = field('url', state.draftUrl, t('favorites.manager.editAddress'));
+      urlInput.maxLength = 4096;
+      urlInput.inputMode = 'url';
+      urlInput.autocapitalize = 'off';
+      urlInput.addEventListener('input', () => { state.draftUrl = urlInput.value; });
+      fields.append(titleInput, urlInput);
+
+      const actions = el('div', 'fav-actions fav-edit-actions');
+      const save = el('button', 'fav-bar-button fav-edit-save', t('favorites.manager.editSave'));
+      save.type = 'button';
+      save.addEventListener('click', () => finishEditing(true));
+      const cancel = el('button', 'fav-bar-button', t('favorites.manager.editCancel'));
+      cancel.type = 'button';
+      cancel.addEventListener('click', () => finishEditing(false));
+      actions.append(save, cancel);
+
+      row.append(checkMark(), rowIcon(state.url, state.favicon), fields, actions);
+      queueMicrotask(() => {
+        const input = state.focus === 'url' ? urlInput : titleInput;
+        if (!input.isConnected || editing !== state) return;
+        input.focus();
+        if (state.select) { input.select(); state.select = false; }
+      });
+      return row;
+    }
+
+    function startEditing(child) {
+      if (naming) { naming = null; Escape.release('naming'); }
+      const { item } = child;
+      editing = {
+        key: child.key, id: item.id, title: item.title, url: item.url, favicon: item.favicon,
+        draftTitle: item.title, draftUrl: item.url, focus: 'title', select: true, saving: false,
+      };
+      Escape.claim('editing', () => finishEditing(false));
+      say('');
+      renderList();
+    }
+
+    /** Close an edit without saving or redrawing (the open folder changed). */
+    function endEditing() {
+      if (!editing) return;
+      editing = null;
+      Escape.release('editing');
+    }
+
+    async function finishEditing(keep) {
+      const state = editing;
+      if (!state || state.saving) return;
+      if (!keep) {
+        endEditing();
+        say('');
+        focusKey = state.key;
+        wantListFocus = true;
+        renderList();
+        return;
+      }
+      state.saving = true;
+      let result;
+      try {
+        result = await api.edit(state.id, { title: state.draftTitle, url: state.draftUrl });
+      } catch (error) {
+        state.saving = false;
+        showError(error);
+        return;
+      }
+      state.saving = false;
+      if (editing !== state) return;
+      if (result?.ok) {
+        endEditing();
+        say('');
+        focusKey = result.key ?? state.key;
+        wantListFocus = true;
+        await refresh();
+        return;
+      }
+      say(t(EDIT_ERROR_KEYS[result?.error] ?? 'favorites.manager.error.invalid'));
+      if (result?.error === 'missing') {
+        endEditing();
+        await refresh();
+        return;
+      }
+      // Refused ('exists' or 'invalid-url'): the fields stay with what was
+      // typed, the address selected.
+      state.focus = 'url';
+      state.select = true;
+      renderList();
     }
 
     // ---------- drag and drop ----------
@@ -1042,6 +1183,9 @@
           render();
           startNaming({ kind: 'create' });
         } });
+      }
+      if (child.kind === 'favorite' && canEdit) {
+        items.push({ label: t('favorites.manager.edit'), run: () => startEditing(child) });
       }
       // Pin is in the menu too, for the keyboard: the row’s own Pin shows on hover.
       const pin = child.kind === 'favorite' && canPin && isWebPage(child.item.url) ? pins.state(child.item.url) : null;

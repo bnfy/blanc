@@ -423,6 +423,26 @@
         "doc": "Remove several Favorites at once."
       },
       {
+        "name": "bookmarks.edit",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:edit",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          },
+          {
+            "name": "changes",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Change one Favorite's name and address."
+      },
+      {
         "name": "start.data",
         "kind": "invoke",
         "channel": "pages:start:data",

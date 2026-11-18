@@ -30,6 +30,7 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `bookmarks.move` | invoke | `pages:bookmarks:move` | bookmarks | Move Favorites into a folder path, or to the top level with null. |
 | `bookmarks.reorder` | invoke | `pages:bookmarks:reorder` | bookmarks | Save the order chosen for one folder's children. |
 | `bookmarks.removeMany` | invoke | `pages:bookmarks:remove-many` | bookmarks | Remove several Favorites at once. |
+| `bookmarks.edit` | invoke | `pages:bookmarks:edit` | bookmarks | Change one Favorite's name and address. |
 | `start.data` | invoke | `pages:start:data` | newtab | Everything the Start Page renders at load: groups, top sites, blocked counts, synced devices, onboarding and the shared start status. |
 | `start.topSites` | invoke | `pages:start:top-sites` | newtab | Frequently visited sites for the Start Page. |
 | `start.focusGroup` | invoke | `pages:start:focus-group` | newtab | Focus a tab group picked on the Start Page. |

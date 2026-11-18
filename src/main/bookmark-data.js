@@ -1,7 +1,7 @@
 // Pure, non-mutating transforms over a { items, tombstones } snapshot. Each
 // returns new arrays and a `changed` flag; bookmarks.js writes only when
 // changed. All folder identity/canonicalization rules live here.
-const { validFavicon, validFolder, folderKey } = require('./bookmark-validate');
+const { validFavicon, validFolder, folderKey, editableTitle, editableAddress } = require('./bookmark-validate');
 const {
   MAX_PATH, cleanSegment, splitPath, joinPath, validPath, pathKey, parentPath, leafName, isWithin, shownPath, storedPath,
   createSpeller, buildTree, listFolderPaths, parseTypedPath, folderChildKey, favoriteChildKey,
@@ -411,6 +411,62 @@ function applyRemoveFavorites(state, ids, ctx) {
   };
 }
 
+/** Change one favorite's name, address or both (`title`/`url` left
+ * undefined keep theirs). A blank name becomes the address, as saving does.
+ *
+ * Sync knows a favorite by its address, so a new address is the old favorite
+ * removed (a tombstone, which other devices apply) and the new one added in
+ * the same folder, at the same place in its order, keeping its id and
+ * addedAt. Its icon stays only when the new address is on the same site.
+ * Refused: an address that isn't a web page ('invalid-url') or that another
+ * favorite already has ('exists'). `edited` says what changed, for callers
+ * that keep a copy (Start Page pins). */
+function applyEditFavorite(state, id, { title, url } = {}, ctx) {
+  const item = state.items.find((it) => it.id === id);
+  if (!item) return unchanged(state, { error: 'missing' });
+  let nextUrl = item.url;
+  if (url !== undefined && (typeof url !== 'string' || url.trim() !== item.url)) {
+    nextUrl = editableAddress(url);
+    if (nextUrl === null) return unchanged(state, { error: 'invalid-url' });
+    if (state.items.some((it) => it !== item && it.url === nextUrl)) return unchanged(state, { error: 'exists' });
+  }
+  const nextTitle = title === undefined ? item.title : (editableTitle(title) || nextUrl);
+  const key = favoriteChildKey(nextUrl);
+  const edited = { from: { url: item.url, title: item.title }, to: { url: nextUrl, title: nextTitle }, key };
+  if (nextUrl === item.url && nextTitle === item.title) return unchanged(state, { key });
+
+  if (nextUrl === item.url) {
+    return {
+      items: state.items.map((it) => (it === item ? { ...it, title: nextTitle, updatedAt: ctx.now } : it)),
+      tombstones: state.tombstones ?? [],
+      layout: layoutOf(state),
+      changed: true,
+      key,
+      edited,
+    };
+  }
+
+  const sameSite = originOf(item.url) !== null && originOf(item.url) === originOf(nextUrl);
+  const moved = { ...item, url: nextUrl, title: nextTitle, favicon: sameSite ? item.favicon : null, updatedAt: ctx.now };
+  let layout = layoutOf(state);
+  const entry = layoutEntry(layout, folderOf(item));
+  const oldKey = favoriteChildKey(item.url);
+  if (entry && !entry.gone && entry.order.includes(oldKey)) {
+    layout = setFolderOrder(layout, entry.path, entry.order.map((k) => (k === oldKey ? key : k)), clockOf(ctx));
+  }
+  return {
+    items: state.items.map((it) => (it === item ? moved : it)),
+    tombstones: [
+      ...(state.tombstones ?? []).filter((t) => t.url !== nextUrl && t.url !== item.url), // the new address isn't deleted
+      { url: item.url, deletedAt: ctx.now },
+    ],
+    layout,
+    changed: true,
+    key,
+    edited,
+  };
+}
+
 /** Save the order a person chose for one folder's children (null: the top level). */
 function applyReorder(state, path, orderKeys, ctx) {
   const layout = layoutOf(state);
@@ -552,6 +608,6 @@ function mayWriteFavoriteFavicon(tab, sanitized) {
 module.exports = {
   addImported, applySaveFavorite, applyFaviconUpdate, mayWriteFavoriteFavicon,
   applySetFolder, applyRenameFolder, applyRemoveFolder, canonicalizeFolders,
-  applyCreateFolder, applyMoveFolder, applyMoveFavorites, applyRemoveFavorites, applyReorder, keepEmptiedFolders,
+  applyCreateFolder, applyMoveFolder, applyMoveFavorites, applyRemoveFavorites, applyReorder, applyEditFavorite, keepEmptiedFolders,
   favoritesMenuModel, resolveSavePath,
 };

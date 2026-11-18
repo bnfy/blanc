@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
 const bookmarks = require('./bookmarks');
-const { pageIds, pageKeys, pagePath } = require('./favorites-page-args');
+const { pageIds, pageKeys, pagePath, pageEdit } = require('./favorites-page-args');
 const { parseNetscapeBookmarks } = require('./bookmark-import');
 const { createBrowserDataImportService } = require('./browser-data-import');
 
@@ -405,6 +405,13 @@ function setupPages(hooks = {}) {
     edited(bookmarks.reorderFolder(pagePath(path), pageKeys(keys))));
   handle('pages:bookmarks:remove-many', 'bookmarks', (ids) =>
     edited(bookmarks.removeBookmarks(pageIds(ids))));
+  // A favorite's name and address. A pinned favorite's Start Page pin
+  // follows. The page gets back only the row's new key.
+  handle('pages:bookmarks:edit', 'bookmarks', (id, changes) => {
+    const result = edited(bookmarks.editFavorite(...pageEdit(id, changes)));
+    if (result?.edited) hooks.startPins?.replace?.(result.edited.from.url, result.edited.to);
+    return result?.ok ? { ok: true, key: result.key } : result;
+  });
 
   handle('pages:history:list', 'history', (opts) => history.listHistory(opts ?? {}));
   handle('pages:history:remove', 'history', (url, visitedAt) => history.removeVisit(url, visitedAt));

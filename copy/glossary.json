@@ -167,6 +167,7 @@
   },
   "sameAsSource": {
     "de": [
+      "favorites.manager.editName",
       "about.chromium",
       "onboarding.step.import",
       "settings.language.system",

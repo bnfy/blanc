@@ -179,6 +179,8 @@ export interface BookmarksPagesAPI {
     reorder: (path: unknown, orderKeys: unknown) => Promise<unknown>;
     /** Remove several Favorites at once. IPC: invoke `pages:bookmarks:remove-many`. */
     removeMany: (ids: unknown) => Promise<unknown>;
+    /** Change one Favorite's name and address. IPC: invoke `pages:bookmarks:edit`. */
+    edit: (id: unknown, changes: unknown) => Promise<unknown>;
   };
 }
 
