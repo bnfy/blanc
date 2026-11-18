@@ -10,7 +10,6 @@
   const list = document.getElementById('list');
   const importStatus = document.getElementById('importStatus');
   const importMenuBtn = document.getElementById('importMenuBtn');
-  importMenuBtn.disabled = true;
   const importDialog = document.getElementById('importDialog');
   const importForm = document.getElementById('importForm');
   const importDialogNote = document.getElementById('importDialogNote');
