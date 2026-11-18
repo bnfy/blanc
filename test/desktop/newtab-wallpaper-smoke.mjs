@@ -65,9 +65,11 @@ try {
     await callTestHook(app, 'setAppearance', [style === 'private' ? 'dark' : style]);
     await current.emulateMedia({ reducedMotion: 'reduce', colorScheme: style === 'light' ? 'light' : 'dark' });
     assert.equal(await current.evaluate(() => matchMedia('(prefers-color-scheme: dark)').matches), style !== 'light');
+    // V24: one Start Page; each old layout's name stands for its widgets.
     for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
-      await callTestHook(app, 'setNewtabLayout', [layout]);
-      await current.waitForFunction((layout) => document.body.dataset.layout === layout, layout);
+      await callTestHook(app, 'setNewtabWidgetsLike', [layout]);
+      await current.waitForFunction((layout) => document.body.dataset.layout === 'billboard'
+        && document.getElementById('favoritesWidget').classList.contains('widget-on') === (layout !== 'billboard'), layout);
       for (const [phase, hour] of [['dawn',6],['day',12],['dusk',18],['night',23]]) {
         await current.evaluate((hour) => {
           Date.prototype.getHours = () => hour;
