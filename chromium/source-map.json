@@ -553,7 +553,7 @@
     "blanc/common/product_name.h": "fb67c34f8b47476b0857baa036a4758e59d5cde84e3c1e4f690727589298d3b0",
     "blanc/common/settings_strings.h": "f04be5a145f74a2c1a79efcf8f3e3e5daf2e0c0aac19cf668844e93e870dac2f",
     "blanc/common/test_launch.h": "d6298adebe05a601ee26fb6b62e5c227cd742f42b25c7896563251396720e2dc",
-    "blanc/config.gni": "28ee1b1024b04691f643e90566e19f500183e2b40b2ff49bd8c149b026f4046a",
+    "blanc/config.gni": "2f078164673f781d57fc0f44f049a68f7da029af5801db6651da1accbab0b005",
     "blanc/content/browser/service_worker/blanc_update_identity.inc": "dd7242e1f78ce6a36b78cfedf6f3a7a3a504df28acca8acd49143e01461232e8",
     "blanc/content/public/browser/blanc_document_token.h": "7fba8c8ac526416683e43128737e4c5ce06e8228910fa4ccd952d1ac5d58de1c",
     "blanc/content/public/browser/blanc_url_loader_gate.h": "f7237607aa43df79e905a0e9fef918f196626b3c0de203c2353c79fdca010b48",
