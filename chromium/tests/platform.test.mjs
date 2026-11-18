@@ -96,3 +96,13 @@ test('a Linux-tagged scenario runs on Linux, and on Windows when it names Window
   assert.equal(linuxTaggedScenarioRuns(['@F45-7'], 'Arc on Windows and Linux', 'win32'), false);
   assert.equal(linuxTaggedScenarioRuns(['@F1'], 'anything', 'darwin'), true, 'untagged scenarios run everywhere');
 });
+test('a held key is a down step, the keys in between, and an up step', async () => {
+  const {holdKeySteps, frontAppSteps} = await import('./lib/windows-desktop.mjs');
+  // Control (0x11) held over two Tabs (0x09).
+  assert.deepEqual(holdKeySteps(0x11, [0x09, 0x09]), [
+    {do: 'keydown', vk: 0x11}, {do: 'sleep', ms: 80},
+    {do: 'key', vk: 0x09}, {do: 'sleep', ms: 120}, {do: 'key', vk: 0x09}, {do: 'sleep', ms: 120},
+  ]);
+  assert.deepEqual(holdKeySteps(0x11, [], {release: true}), [{do: 'keydown', vk: 0x11}, {do: 'sleep', ms: 80}, {do: 'keyup', vk: 0x11}, {do: 'sleep', ms: 200}]);
+  assert.deepEqual(frontAppSteps(), [{do: 'front'}, {do: 'sleep', ms: 500}]);
+});

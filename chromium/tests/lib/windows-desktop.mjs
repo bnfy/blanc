@@ -13,6 +13,7 @@ public static class BlancInput {
   [DllImport("user32.dll")] public static extern int GetSystemMetrics(int index);
   [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
   [DllImport("user32.dll")] public static extern void keybd_event(byte vk, byte scan, uint flags, UIntPtr extra);
+  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr window);
 }
 "@
 [void][BlancInput]::SetProcessDPIAware()
@@ -29,6 +30,15 @@ foreach ($step in ($env:BLANC_INPUT | ConvertFrom-Json)) {
     'down'  { [BlancInput]::mouse_event(0x0002, 0, 0, 0, [UIntPtr]::Zero) }
     'up'    { [BlancInput]::mouse_event(0x0004, 0, 0, 0, [UIntPtr]::Zero) }
     'key'   { [BlancInput]::keybd_event([byte]$step.vk, 0, 0, [UIntPtr]::Zero); [BlancInput]::keybd_event([byte]$step.vk, 0, 2, [UIntPtr]::Zero) }
+    'keydown' { [BlancInput]::keybd_event([byte]$step.vk, 0, 0, [UIntPtr]::Zero) }
+    'keyup'   { [BlancInput]::keybd_event([byte]$step.vk, 0, 2, [UIntPtr]::Zero) }
+    # Another app in front: Notepad, brought forward by the process that just
+    # sent input (Windows lets the last input's sender change the foreground).
+    'front' {
+      $app = Start-Process notepad.exe -PassThru
+      for ($i = 0; $i -lt 50 -and $app.MainWindowHandle -eq 0; $i++) { Start-Sleep -Milliseconds 100; $app.Refresh() }
+      [void][BlancInput]::SetForegroundWindow($app.MainWindowHandle)
+    }
     'sleep' { Start-Sleep -Milliseconds ([int]$step.ms) }
   }
 }`;
@@ -44,6 +54,12 @@ export function dragSteps(from,to,count=12){
  return [...steps,sleep(150),{do:'up'},sleep(200)];
 }
 export const keySteps=vk=>[{do:'key',vk},sleep(120)];
+// A key held down over other keys (Control over Tabs), released at the end
+// only if asked; releaseKeySteps lets it go later.
+export const holdKeySteps=(vk,keys,{release=false}={})=>[{do:'keydown',vk},sleep(80),...keys.flatMap(keySteps),...(release?releaseKeySteps(vk):[])];
+export const releaseKeySteps=vk=>[{do:'keyup',vk},sleep(200)];
+// Another app comes to the front (the test closes it after).
+export const frontAppSteps=()=>[{do:'front'},sleep(500)];
 export function realInput(steps){
  if(process.platform!=='win32')throw Error('Real desktop input is for Windows');
  execFileSync('powershell.exe',['-NoProfile','-NonInteractive','-Command',INPUT],{env:{...process.env,BLANC_INPUT:JSON.stringify(steps)},stdio:'ignore',timeout:60000});

@@ -174,6 +174,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           if (Test-Path chromium/windows/run-native-check.mjs) { node chromium/windows/run-native-check.mjs "$env:CANDIDATE_DIR" native-tab-switch.mjs "$env:RESULTS\tab-switch" } else { 'No Ctrl+Tab check on this ref.' }
+      - name: Ctrl+Tab with real keys
+        if: ${{ !cancelled() }}
+        run: |
+          if (Test-Path chromium/tests/windows-tab-switch-keys.mjs) { node chromium/tests/windows-tab-switch-keys.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\tab-switch-keys" } else { 'No real-key Ctrl+Tab check on this ref.' }
       # Chromium's installer beside an installed Electron Blanc (W1 Part B),
       # and whether a crash is captured. Skipped where the candidate or the
       # ref has neither.
