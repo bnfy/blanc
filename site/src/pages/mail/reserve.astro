@@ -18,8 +18,8 @@ const endings = ['blnc.day', 'blnc.page', 'blancmail.me', 'blancmail.co', 'blncm
       <p class="mail-reserve-lead">Free. Your name is held until Blanc Mail addresses open, then for 30 days while you claim it with Blanc Mail + Address or Blanc Bundle.</p>
       {open ? <MailReserveAddress /> : <p class="mail-reserve-lead mail-reserve-soon">Reservations open soon. <a href="/mail#address">Read about Blanc Mail addresses</a></p>}
       <ul class="mail-reserve-facts">
-        <li>One name works with every ending: {endings.map((ending, index) => <>{index === 0 ? '' : index === endings.length - 1 ? ' or ' : ', '}<span class="mail-ending">{ending}</span></>)}.</li>
-        <li>Dots, hyphens and underscores don’t make a different name: <span class="mail-ending">mira.b</span> and <span class="mail-ending">mirab</span> are the same, and mail to either reaches you.</li>
+        <li>Your name is held on every ending, and you choose one when you claim it: {endings.map((ending, index) => <>{index === 0 ? '' : index === endings.length - 1 ? ' or ' : ', '}<span class="mail-ending">{ending}</span></>)}.</li>
+        <li>Dots, hyphens and underscores don’t make a different name: <span class="mail-ending">mira.b</span> and <span class="mail-ending">mirab</span> are the same name, so nobody else can take a lookalike of yours.</li>
         <li>To claim it, use the email you reserve with as your backup email when you get your address in Blanc Mail.</li>
       </ul>
     </section>
