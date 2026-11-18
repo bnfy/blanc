@@ -7925,6 +7925,8 @@ function syncStartBackdrop(runtime) {
   if (!runtime?.window || runtime.window.isDestroyed()) return;
   const tab = tabs.get(runtime.activeTabId);
   const entry = tab ? startBackdrops.get(tab.id) : null;
+  // Most broadcasts are about a website tab: nothing to paint or clear.
+  if (!entry && runtime.startBackdropSent === 'none') return;
   const band = entry ? startBackdropBand(runtime, tab) : 0;
   const key = band ? `${tab.id}|${band}|${entry.key}` : 'none';
   if (runtime.startBackdropSent === key) return;
@@ -10538,6 +10540,7 @@ function closeTab(id) {
 
   rt().tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
+  startBackdrops.delete(id);
   if (tab.private && ![...tabs.values()].some(other => other.private && other.profileId === tab.profileId)) readerMode.forgetPrivate(tab.profileId);
   if(tab.sharedTabId)captureSharedSpaceEdits(rt());
   popupChildCounts.delete(id);
@@ -13657,6 +13660,12 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive 
       syncStripHidden(runtime);
     }
   ));
+  // A strip that loads again (renderer recovery) starts without the band's
+  // wallpaper: send it whatever the active Start Page has.
+  rt().window.webContents.on('did-finish-load', bindWindowRuntime(runtime, () => {
+    runtime.startBackdropSent = null;
+    syncStartBackdrop(runtime);
+  }));
   return runtime;
 }
 

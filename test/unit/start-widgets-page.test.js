@@ -51,7 +51,7 @@ test('Customize is capped to the room under the clock, with no floor', () => {
 });
 
 test('Customize is fitted again whenever the page moves while it is open', () => {
-  assert.match(js, /const customizeFitObserver = new ResizeObserver\(\(\) => \{\s*if \(document\.getElementById\('customizePopover'\)\?\.matches\(':popover-open'\)\) fitCustomizeBelowClock\(\);/);
+  assert.match(js, /const customizeFitObserver = new ResizeObserver\(\(\) => requestAnimationFrame\(\(\) => \{\s*if \(document\.getElementById\('customizePopover'\)\?\.matches\(':popover-open'\)\) fitCustomizeBelowClock\(\);/);
   for (const target of ['layoutBillboard', 'bbWidgets', 'customizeCols']) {
     assert.match(js, new RegExp(`customizeFitObserver\\.observe\\(document\\.getElementById\\('${target}'\\)\\)`));
   }

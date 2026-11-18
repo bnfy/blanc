@@ -2052,9 +2052,11 @@ function customizeFade() {
 document.getElementById('customizeCols')?.addEventListener('scroll', customizeFade, { passive: true });
 // The clock moves when widgets, tiles or groups change above or below it, and
 // the columns grow when a wallpaper choice shows its options: fit again.
-const customizeFitObserver = new ResizeObserver(() => {
+// Fitting changes the columns' size, which this observes: wait a frame so
+// the fit never re-enters the same observation (no ResizeObserver loop).
+const customizeFitObserver = new ResizeObserver(() => requestAnimationFrame(() => {
   if (document.getElementById('customizePopover')?.matches(':popover-open')) fitCustomizeBelowClock();
-});
+}));
 customizeFitObserver.observe(document.getElementById('layoutBillboard'));
 customizeFitObserver.observe(document.getElementById('bbWidgets'));
 customizeFitObserver.observe(document.getElementById('customizeCols'));

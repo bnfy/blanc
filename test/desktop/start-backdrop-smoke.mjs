@@ -107,6 +107,12 @@ try {
   assert.equal(Math.round(vertical.left), verticalSeam.x, 'the band starts where the page does');
   await callTestHook(app, 'setTabLayout', ['island']);
 
+  // A private Start Page keeps its private theme color.
+  const privateId = await callTestHook(app, 'openTab', ['blanc://newtab/?private=1', { private: true }]);
+  await waitForValue(() => strip(app), (s) => !s.shown, 'no band backdrop on a private Start Page');
+  await callTestHook(app, 'closeTab', [privateId]);
+  await waitForValue(() => strip(app), (s) => s.shown, 'the band backdrop back after the private page');
+
   // A website tab drops it; coming back brings it back.
   const site = await callTestHook(app, 'openTab', ['https://example.test/']);
   await waitForValue(() => strip(app), (s) => !s.shown, 'no band backdrop over a website');
