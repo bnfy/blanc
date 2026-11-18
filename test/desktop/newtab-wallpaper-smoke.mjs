@@ -153,14 +153,17 @@ try {
     && !document.querySelector('.start-wallpaper-layer.is-fading'));
   await openCustomize(privatePage);
   const privateSwitch = privatePage.getByRole('button', { name: 'Change with time of day', exact: true });
-  await privateSwitch.click();
-  await privatePage.waitForFunction(() => !document.body.dataset.wallpaperPhase
+  // Each fade below is watched from before its click: on a slow runner the
+  // click's acknowledgement can arrive after the window has passed.
+  const fadingOut = privatePage.waitForFunction(() => !document.body.dataset.wallpaperPhase
     && [...document.querySelectorAll('.start-wallpaper-layer')].some((layer) => {
       const opacity = Number(getComputedStyle(layer).opacity);
       // Reverse partway through the fade. Reversing its first few frames can
       // finish before the automation receives the click acknowledgement.
       return opacity > 0.2 && opacity < 0.6;
     }));
+  await privateSwitch.click();
+  await fadingOut;
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-fading').count(), 2);
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-fading').first().evaluate((layer) =>
     getComputedStyle(layer).transitionDuration), '2s');
@@ -168,24 +171,26 @@ try {
   await inMainTurn(app, ({ powerMonitor }) => powerMonitor.emit('resume'));
   await privatePage.evaluate(() => window.bowserPages.start.data());
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-fading').count(), 2);
-  await privateSwitch.click();
-  await privatePage.waitForFunction(() => document.body.dataset.wallpaperPhase === 'day'
+  const fadingIn = privatePage.waitForFunction(() => document.body.dataset.wallpaperPhase === 'day'
     && [...document.querySelectorAll('.start-wallpaper-layer.is-visible')].some((layer) => {
       const opacity = Number(getComputedStyle(layer).opacity);
       return opacity > 0.1 && opacity < 0.95;
     }));
+  await privateSwitch.click();
+  await fadingIn;
   await privatePage.waitForFunction(() => !document.querySelector('.start-wallpaper-layer.is-fading'));
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-visible').count(), 1);
   await privateSwitch.click();
   await privatePage.waitForFunction(() => !document.body.dataset.wallpaperPhase
     && !document.querySelector('.start-wallpaper-layer.is-fading'));
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-visible').count(), 0);
-  await privateSwitch.click();
-  await privatePage.waitForFunction(() => document.body.dataset.wallpaperPhase === 'day'
+  const fadingInAgain = privatePage.waitForFunction(() => document.body.dataset.wallpaperPhase === 'day'
     && [...document.querySelectorAll('.start-wallpaper-layer.is-visible')].some((layer) => {
       const opacity = Number(getComputedStyle(layer).opacity);
       return opacity > 0.1 && opacity < 0.95;
     }));
+  await privateSwitch.click();
+  await fadingInAgain;
   await privatePage.emulateMedia({ reducedMotion: 'reduce', colorScheme: 'dark' });
   await privatePage.waitForFunction(() => !document.querySelector('.start-wallpaper-layer.is-fading'));
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-visible').evaluate((layer) =>

@@ -675,6 +675,25 @@ struct GlanceCardResize {
 struct GlanceCardReset {
   double generation;
 };
+
+struct BackdropLayer {
+  string color;
+  string image;
+  string size;
+  string position;
+  string repeat;
+  double opacity;
+  bool fade;
+};
+
+struct PageBackdrop {
+  string id;
+  double zoom;
+  double width;
+  double height;
+  array<BackdropLayer> layers;
+  double band;
+};
 // Contract group "tabs".
 interface Tabs {
   CreateTab(string? url, CreateTabOptions? opts) => (string result);
@@ -942,6 +961,7 @@ interface Appearance {
 interface AppearanceClient {
   OnThemeAppearance(string payload);
   OnPageTint(PageTint payload);
+  OnPageBackdrop(PageBackdrop? payload);
 };
 
 // Contract group "passwords".

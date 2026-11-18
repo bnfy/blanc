@@ -41,3 +41,34 @@ test('only a failed shortcut write re-reads the widgets', () => {
   assert.doesNotMatch(step, /finally/);
   assert.match(step, /catch \{[\s\S]*?refreshWidgets\(\);\s*\}/);
 });
+
+// Customize (owner, 2026-11-18): sized to its content, never over the clock
+// or the line under it at any point, and scrolling inside when it needs more.
+test('Customize is capped to the room under the clock, with no floor', () => {
+  const fit = body('fitCustomizeBelowClock');
+  assert.doesNotMatch(fit, /Math\.max\(260/);
+  assert.match(fit, /popover\.style\.maxHeight = `\$\{Math\.max\(0, Math\.floor\(room\)\)\}px`;/);
+});
+
+test('Customize is fitted again whenever the page moves while it is open', () => {
+  assert.match(js, /const customizeFitObserver = new ResizeObserver\(\(\) => requestAnimationFrame\(\(\) => \{\s*if \(document\.getElementById\('customizePopover'\)\?\.matches\(':popover-open'\)\) fitCustomizeBelowClock\(\);/);
+  for (const target of ['layoutBillboard', 'bbWidgets', 'customizeCols']) {
+    assert.match(js, new RegExp(`customizeFitObserver\\.observe\\(document\\.getElementById\\('${target}'\\)\\)`));
+  }
+});
+
+test('an inner panel scrolls, with fades where there is more', () => {
+  const css = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/pages.css'), 'utf8');
+  // Flex only while open: on the base class it would beat the browser's
+  // display: none for a closed popover.
+  assert.match(css, /\.start-customize-popover \{ width: max-content; overflow: hidden; \}/);
+  assert.match(css, /\.start-customize-popover:popover-open \{ display: flex; flex-direction: column; \}/);
+  const cols = css.match(/\.customize-cols \{([^}]*)\}/)?.[1] ?? '';
+  assert.match(cols, /overflow-y: auto;/);
+  assert.match(cols, /min-height: 0;/);
+  assert.match(css, /\.customize-cols\[data-fade-end="true"\]/);
+  assert.match(body('customizeFade'), /cols\.dataset\.fadeEnd = String\(/);
+  assert.match(body('fitCustomizeBelowClock'), /requestAnimationFrame\(customizeFade\);/);
+  const html = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/newtab.html'), 'utf8');
+  assert.match(html, /<div id="customizeCols" class="customize-cols">/);
+});

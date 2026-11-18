@@ -133,6 +133,31 @@ try {
   assert.match(look.glass, /blur\(28px\)/);
   assert.equal(look.fade, '""');
 
+  // Customize on a short window, with your image's options showing (owner,
+  // 2026-11-18): it never covers the clock or the line under it, it ends
+  // above its button, and its columns scroll to the rest.
+  for (const height of [620, 520]) {
+    await page.setViewportSize({ width: 1280, height });
+    await page.evaluate(() => {
+      const popover = document.getElementById('customizePopover');
+      if (!popover.matches(':popover-open')) document.getElementById('customizeButton').click();
+    });
+    const fit = await waitForValue(() => page.evaluate(() => {
+      const r = (el) => el.getBoundingClientRect();
+      const clock = Math.max(r(document.querySelector('.bb-clock-row')).bottom, r(document.getElementById('bbBlocked')).bottom);
+      const popover = r(document.getElementById('customizePopover'));
+      const cols = document.getElementById('customizeCols');
+      return { clock, top: popover.top, bottom: popover.bottom, button: r(document.getElementById('customizeButton')).top,
+        scrolls: cols.scrollHeight > cols.clientHeight, fadeEnd: cols.dataset.fadeEnd };
+    }), (value) => value.top >= value.clock && value.fadeEnd === 'true', `Customize below the clock, scrolling, at 1280x${height}`);
+    assert.ok(fit.bottom <= fit.button, `Customize ends above its button: ${JSON.stringify(fit)}`);
+    assert.ok(fit.scrolls && fit.fadeEnd === 'true', `the columns scroll, with a fade: ${JSON.stringify(fit)}`);
+    await page.evaluate(() => { const cols = document.getElementById('customizeCols'); cols.scrollTop = cols.scrollHeight; });
+    await page.waitForFunction(() => document.getElementById('customizeCols').dataset.fadeEnd === 'false');
+  }
+  await page.evaluate(() => document.getElementById('customizePopover').hidePopover());
+  await page.setViewportSize({ width: 1600, height: 960 });
+
   // A refused write leaves the stored choice in place.
   await assert.rejects(page.evaluate(() => window.bowserPages.start.setWidget('chart', true)));
   await assert.rejects(page.evaluate(() => window.bowserPages.start.setShortcutCount(13)));

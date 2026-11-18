@@ -582,6 +582,33 @@
         "doc": "Save a card's size (240-720, or 0 to fit its column); resolves to the saved widgets."
       },
       {
+        "name": "start.reportBackdrop",
+        "kind": "invoke",
+        "channel": "pages:start:backdrop",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "spec",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Report the Start Page's wallpaper layers so the Island's band can continue them; resolves to { band }, the band's height above this page (0 where it stands aside)."
+      },
+      {
+        "name": "start.onBackdropBand",
+        "kind": "event",
+        "channel": "pages:start:backdrop-band",
+        "hosts": [
+          "newtab"
+        ],
+        "payload": "unknown",
+        "doc": "The band above this Start Page changed (0 where it stands aside).",
+        "unsubscribe": false
+      },
+      {
         "name": "start.setDynamicWallpaper",
         "kind": "invoke",
         "channel": "pages:start:set-dynamic-wallpaper",

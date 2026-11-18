@@ -215,3 +215,33 @@ test('tooltip host serves its scriptless document and shared styles only', () =>
   assert.doesNotMatch(html, /<script/i, 'main writes the text; the document runs no script');
   assert.match(html, /default-src 'none'/);
 });
+
+// The Island's band continues the Start Page's wallpaper (start-backdrop.js):
+// only the strip document reads the Start Page's four art files, and the
+// photo only by the current image's hash.
+test('only the strip reads the Start Page art for the band', () => {
+  for (const name of ['start-page-sunrise.png', 'start-page-day.png', 'start-page-dusk.png', 'start-page-night.png']) {
+    assert.equal(chromeResourcePath(`blanc-chrome://index/start-art/${name}`), path.join(renderer, 'pages', name));
+    for (const host of ['overlay', 'float', 'glance', 'tooltip']) {
+      assert.equal(chromeResourcePath(`blanc-chrome://${host}/start-art/${name}`), null, `${host}: ${name}`);
+    }
+  }
+  assert.equal(chromeResourcePath('blanc-chrome://index/start-art/newtab.js'), null);
+  assert.equal(chromeResourcePath('blanc-chrome://index/start-art/sub/start-page-day.png'), null);
+});
+
+test('the strip reads the photo only by the current hash', async () => {
+  const { createChromeProtocolHandler } = require('../../src/main/chrome-protocol');
+  const served = [];
+  const handler = createChromeProtocolHandler({
+    net: { fetch: () => new Response('file') },
+    wallpaper: { hash: () => 'abc123', serve: () => { served.push(1); return new Response('jpeg', { status: 200 }); } },
+  });
+  assert.equal((await handler({ url: 'blanc-chrome://index/start-art/wallpaper-abc123.jpg' })).status, 200);
+  assert.equal(served.length, 1);
+  for (const url of ['blanc-chrome://index/start-art/wallpaper-ffff.jpg', 'blanc-chrome://overlay/start-art/wallpaper-abc123.jpg',
+    'blanc-chrome://index/start-art/wallpaper-abc123.jpg?x=1']) {
+    assert.equal((await handler({ url })).status, 404, url);
+  }
+  assert.equal(served.length, 1);
+});

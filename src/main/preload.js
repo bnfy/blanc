@@ -264,6 +264,11 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     ipcRenderer.on('chrome:page-tint', listener);
     return () => ipcRenderer.removeListener('chrome:page-tint', listener);
   },
+  onPageBackdrop: (callback) => {
+    const listener = (_e, payload) => callback(payload);
+    ipcRenderer.on('chrome:page-backdrop', listener);
+    return () => ipcRenderer.removeListener('chrome:page-backdrop', listener);
+  },
   onDownloadsActivity: (callback) => {
     const listener = (_e, payload) => callback(payload);
     ipcRenderer.on('chrome:downloads', listener);

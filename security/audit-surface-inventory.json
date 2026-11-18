@@ -166,7 +166,7 @@
     },
     {
       "file": "src/main/chrome-protocol.js",
-      "sha256": "9aeba19661990918a41570653752f2ddb3d6eaf13a555bb54ed12c32ae1dd277",
+      "sha256": "a91da5f48e4c15721fddf93ea81cb8799508b2e1d216accc20dcd9167e03c563",
       "literalChannels": [
         "blanc-chrome"
       ],
@@ -271,7 +271,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "f19421e747bb62dfdd27b6dc844a23879916907dd9f08f89a1959090a509897d",
+      "sha256": "0c0344908b08cfdf70da6c707abdd83ccb6d9c2b73c6558cdee7debeb2dc52e6",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -333,6 +333,7 @@
         "chrome:open-main-menu",
         "chrome:open-shield",
         "chrome:open-spaces",
+        "chrome:page-backdrop",
         "chrome:page-tint",
         "chrome:pill-notice",
         "chrome:preview-vertical-tabs-width",
@@ -422,6 +423,7 @@
         "pages:pins:changed",
         "pages:settings:appearance",
         "pages:settings:sync-pair-joined",
+        "pages:start:backdrop-band",
         "pages:start:remote-tabs",
         "pages:start:sent-items",
         "pages:start:status",
@@ -532,7 +534,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "6924a97b106edb542b2bb5a3e9cdf69e7e7212d6c8be39701ae077653da4122f",
+      "sha256": "3a226a6da649d611d7d20199423cb4331c1ca500418794c0006d99e9e9303325",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -630,6 +632,7 @@
         "pages:settings:trust-receipt",
         "pages:settings:welcome-tour",
         "pages:shortcuts:list",
+        "pages:start:backdrop",
         "pages:start:choose-wallpaper",
         "pages:start:data",
         "pages:start:dismiss-sent",
@@ -692,7 +695,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "61b13ec4e7d6da6e7fe5e5ac4642bf9904bf7e490f437d46a909b0ce86f64882",
+      "sha256": "afcb0f7d2d969c10259416e87e3b85cb5677fd184b6074edd0a6f4f124f3983c",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -742,6 +745,7 @@
         "chrome:open-main-menu",
         "chrome:open-shield",
         "chrome:open-spaces",
+        "chrome:page-backdrop",
         "chrome:page-tint",
         "chrome:pill-notice",
         "chrome:preview-vertical-tabs-width",
@@ -1006,7 +1010,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "aaa491f2c28be216569895213c2e33bc21e6f3f0acf8f3368649aba4eefccaf0",
+      "sha256": "4f9d2ffa4b55bd96529f2f71e82195b49a17f67e49c0bbbfa992bd730c43c558",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -1108,6 +1112,8 @@
         "pages:settings:trust-receipt",
         "pages:settings:welcome-tour",
         "pages:shortcuts:list",
+        "pages:start:backdrop",
+        "pages:start:backdrop-band",
         "pages:start:choose-wallpaper",
         "pages:start:data",
         "pages:start:dismiss-sent",

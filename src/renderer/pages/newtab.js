@@ -2036,8 +2036,30 @@ function fitCustomizeBelowClock() {
     .filter((rect) => rect && rect.height > 0)
     .reduce((bottom, rect) => Math.max(bottom, rect.bottom), 0);
   const room = button.getBoundingClientRect().top - 10 - clockBottom - 16;
-  popover.style.maxHeight = `${Math.max(260, Math.floor(room))}px`;
+  // Never over the clock (owner, 2026-11-18): no floor; the columns scroll.
+  popover.style.maxHeight = `${Math.max(0, Math.floor(room))}px`;
+  // Measured once the popover is laid out at that height (it may still be
+  // opening).
+  requestAnimationFrame(customizeFade);
 }
+// A soft fade at an edge of the columns that has more beyond it.
+function customizeFade() {
+  const cols = document.getElementById('customizeCols');
+  if (!cols) return;
+  cols.dataset.fadeEnd = String(cols.scrollHeight - cols.clientHeight - cols.scrollTop > 2);
+  cols.dataset.fadeStart = String(cols.scrollTop > 2);
+}
+document.getElementById('customizeCols')?.addEventListener('scroll', customizeFade, { passive: true });
+// The clock moves when widgets, tiles or groups change above or below it, and
+// the columns grow when a wallpaper choice shows its options: fit again.
+// Fitting changes the columns' size, which this observes: wait a frame so
+// the fit never re-enters the same observation (no ResizeObserver loop).
+const customizeFitObserver = new ResizeObserver(() => requestAnimationFrame(() => {
+  if (document.getElementById('customizePopover')?.matches(':popover-open')) fitCustomizeBelowClock();
+}));
+customizeFitObserver.observe(document.getElementById('layoutBillboard'));
+customizeFitObserver.observe(document.getElementById('bbWidgets'));
+customizeFitObserver.observe(document.getElementById('customizeCols'));
 document.getElementById('customizePopover')?.addEventListener('beforetoggle', (event) => {
   if (event.newState === 'open') fitCustomizeBelowClock();
 });
