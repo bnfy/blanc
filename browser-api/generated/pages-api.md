@@ -36,7 +36,10 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `start.topSites` | invoke | `pages:start:top-sites` | newtab | Frequently visited sites for the Start Page. |
 | `start.focusGroup` | invoke | `pages:start:focus-group` | newtab | Focus a tab group picked on the Start Page. |
 | `start.openSpaces` | invoke | `pages:start:open-spaces` | newtab | Open the Spaces menu from the moving-in checklist. |
-| `start.setLayout` | invoke | `pages:start:set-layout` | newtab | Save the Start Page layout. |
+| `start.setWidget` | invoke | `pages:start:set-widget` | newtab | Turn a Start Page widget (favorites or devices) on or off; resolves to the saved widgets, rejects a value the page cannot show. |
+| `start.setShortcutCount` | invoke | `pages:start:set-shortcut-count` | newtab | Save Billboard's shortcut count (1 to 12); resolves to the saved widgets. |
+| `start.setWidgetPlace` | invoke | `pages:start:set-widget-place` | newtab | Save the widget cards' columns; resolves to the saved widgets. |
+| `start.setWidgetSize` | invoke | `pages:start:set-widget-size` | newtab | Save a card's size (240-720, or 0 to fit its column); resolves to the saved widgets. |
 | `start.setDynamicWallpaper` | invoke | `pages:start:set-dynamic-wallpaper` | newtab | Turn the dynamic Start Page wallpaper on or off. |
 | `start.wallpaper` | invoke | `pages:start:wallpaper` | newtab | Read this page's Start Page wallpaper state: source, whether an image is stored, and its address. |
 | `start.setWallpaper` | invoke | `pages:start:set-wallpaper` | newtab | Choose the Start Page wallpaper: sunrise, time-of-day or custom. |
@@ -49,7 +52,6 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `start.chooseWallpaper` | invoke | `pages:start:choose-wallpaper` | newtab | Pick an image file for the Start Page wallpaper and show it. |
 | `start.removeWallpaper` | invoke | `pages:start:remove-wallpaper` | newtab | Delete the stored Start Page image and return to Sunrise. |
 | `start.openMahjong` | invoke | `pages:start:open-mahjong` | newtab | Open blanc://mahjong as an ordinary tab. |
-| `start.layoutUsed` | invoke | `pages:start:layout-used` | newtab | Record the once-per-session newtab_layout usage event (subject to telemetry consent). |
 | `start.openIsland` | invoke | `pages:start:open-island` | newtab | Type-to-open: summon the Island panel seeded with the typed character. |
 | `start.retryStartup` | invoke | `pages:start:startup-retry` | newtab | Retry a blocker startup that failed. |
 | `start.continueWithoutBlocking` | invoke | `pages:start:startup-continue` | newtab | Continue browsing after a blocker startup failure, without blocking. |

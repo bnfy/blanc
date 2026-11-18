@@ -16,8 +16,39 @@ async function openNewTab(world) {
   });
 }
 
+// V24: Billboard is the one Start Page layout. An old layout's name stands
+// for the widgets it turns into (start-widgets.js migrateFromLayout), so a
+// scenario can still draw what that layout showed.
+const LAYOUT_WIDGETS = Object.freeze({
+  ledger: { favorites: true, devices: true, shortcutCount: 6 },
+  billboard: { favorites: false, devices: false, shortcutCount: 6 },
+  shelf: { favorites: true, devices: false, shortcutCount: 12 },
+  tally: { favorites: true, devices: false, shortcutCount: 6 },
+});
+const FAVORITES_WIDGET_LIMIT = 8;
+
+async function useStartSetup(world, layout) {
+  assert.equal(await world.call('setNewtabWidgetsLike', layout), layout);
+  const want = LAYOUT_WIDGETS[layout];
+  // An open Start Page follows the status push; a new one reads it on load.
+  await waitForValue(
+    () => world.call('readStartWidgets'),
+    (dom) => !dom || (dom.widgets?.favorites === want.favorites && dom.widgets?.devices === want.devices &&
+      dom.widgets?.shortcutCount === want.shortcutCount),
+    `the Start Page to show the ${layout} widgets`,
+  );
+}
+
 Given('a profile whose start page layout is {string}', async function (layout) {
   assert.equal(await this.call('setNewtabLayout', layout), layout);
+  await useStartSetup(this, layout);
+});
+
+// What the load path does once for a profile that never stored its widgets
+// (settings.js); the rule itself is unit-tested in start-widgets.test.js.
+Given('a profile that last used the {string} start page layout', async function (layout) {
+  assert.equal(await this.call('setNewtabLayout', layout), layout);
+  await useStartSetup(this, layout);
 });
 
 Given('local history contains repeated visits for the Billboard', async function () {
@@ -55,29 +86,112 @@ Given('a new tab is open', async function () {
   await openNewTab(this);
 });
 
-When('I choose the {string} start page layout from its footer', async function (layout) {
-  assert.equal(await this.call('clickNewtabLayoutSwitcher', layout), true);
+Then('the start page shows Billboard with the {string} widgets', async function (layout) {
+  const want = LAYOUT_WIDGETS[layout];
+  assert.ok(want, `known layout ${layout}`);
+  const dom = await waitForValue(
+    () => this.call('readStartWidgets'),
+    (value) => value?.root === 'billboard' &&
+      value.switches.favorites === want.favorites && value.switches.devices === want.devices,
+    `Billboard with the ${layout} widgets`,
+  );
+  assert.deepEqual(dom.visibleRoots, ['Billboard'], 'Billboard is the one layout drawn');
+  assert.equal(dom.shown.favorites, want.favorites, 'the Favorites card shows exactly when it is on');
+  assert.equal(dom.tileLimit, want.shortcutCount);
+  assert.equal(dom.stepperValue, String(want.shortcutCount));
+  assert.equal(await this.call('newtabLayout'), layout, 'the synced layout itself is left as it was');
 });
 
-Then('the start page renders the {string} layout', async function (layout) {
-  const expectedRoot = layout.charAt(0).toUpperCase() + layout.slice(1);
+When('I turn on the {string} widget in Customize', async function (name) {
+  assert.equal(await this.call('clickStartWidgetSwitch', name), true);
+});
+
+Then('the start page shows the {string} widget', async function (name) {
   await waitForValue(
-    () => this.call('readNewtabLayoutDom'),
-    (dom) =>
-      dom?.layout === layout &&
-      dom.active === layout &&
-      dom.visible.length === 1 &&
-      dom.visible[0] === expectedRoot,
-    `start page to render the ${layout} layout exclusively`
+    () => this.call('readStartWidgets'),
+    (value) => value?.switches?.[name] === true && value.widgets?.[name] === true &&
+      (name !== 'favorites' || value.shown.favorites === true),
+    `the ${name} widget on`,
   );
 });
 
-Then('the saved start page layout is {string}', async function (layout) {
-  await waitForValue(
-    () => this.call('newtabLayout'),
-    (value) => value === layout,
-    `newtabLayout setting to persist as ${layout}`
+Then('the saved widgets have {string} on', async function (name) {
+  await waitForValue(() => this.call('newtabWidgets'), (value) => value?.[name] === true, `${name} saved on`);
+});
+
+When('I go back to the first Start Page', async function () {
+  const state = await this.state();
+  const first = state.tabs.find((tab) => tab.loadedUrl?.startsWith('blanc://newtab') && tab.id !== state.activeTabId);
+  assert.ok(first, 'a second Start Page tab');
+  await this.call('activateTab', first.id);
+  await this.waitForState((next) => next.activeTabId === first.id);
+});
+
+When('I press More shortcuts {int} times', async function (times) {
+  assert.equal(await this.call('clickShortcutStep', 'more', times), true);
+});
+
+Then('the shortcut count is {int}, saved, with focus on More shortcuts', async function (count) {
+  const dom = await waitForValue(
+    () => this.call('readStartWidgets'),
+    (value) => value?.stepperValue === String(count) && value.tileLimit === count,
+    `the stepper at ${count}`,
   );
+  assert.equal(dom.focusedId, 'shortcutMore', 'focus stays on More shortcuts at its end');
+  await waitForValue(() => this.call('newtabWidgets'), (value) => value?.shortcutCount === count, `${count} saved`);
+});
+
+Then('Customize says {string}', async function (text) {
+  await waitForValue(() => this.call('readStartWidgets'), (value) => value?.hint === text, `Customize to say ${text}`);
+});
+
+When('I press {string} on the {string} card\'s grip', async function (key, card) {
+  assert.equal(await this.call('focusStartCardGrip', card), true, `the ${card} grip takes focus`);
+  assert.equal(await this.call('pressStartPageKey', key), true);
+});
+
+Then('the {string} card is on the {string} at position {int}, announced and saved', async function (card, side, position) {
+  const dom = await waitForValue(
+    () => this.call('readStartWidgets'),
+    // Positions count the cards that show, as the announcement does (Sent
+    // keeps its slot while it has nothing waiting).
+    (value) => value?.place?.[side]?.filter((name) => value.shown[name] || name === card)[position - 1] === card &&
+      value.moveStatus.length > 0,
+    `${card} on the ${side} at ${position}`,
+  );
+  assert.match(dom.moveStatus, new RegExp(`is now on the ${side}, position ${position}\\.$`));
+  await waitForValue(() => this.call('newtabWidgets'), (value) => value?.place?.[side]?.includes(card),
+    `${card} saved on the ${side}`);
+});
+
+const overlaps = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
+
+Then('no shortcut tile, group chip or card overlaps another or the footer from 1000 to 1440 wide', async function () {
+  const original = await this.call('windowContentBounds');
+  try {
+    // 1300 and 1360: where the columns' inset is widest against the tiles.
+    for (const width of [1000, 1200, 1300, 1360, 1440]) {
+      await this.call('setWindowContentSize', width, 840);
+      const dom = await waitForValue(
+        () => this.call('readStartWidgets'),
+        (value) => value?.footer && value.tiles.length > 0 && value.shown.favorites,
+        `the Start Page at ${width}x840`,
+      );
+      const cards = Object.entries(dom.cards).filter(([, rect]) => rect);
+      for (const tile of [...dom.tiles, ...dom.chips]) {
+        for (const [name, rect] of cards) assert.ok(!overlaps(tile, rect), `${width}px: ${JSON.stringify(tile)} is under ${name}`);
+        assert.ok(!overlaps(tile, dom.footer), `${width}px: a tile or chip is under the footer`);
+      }
+      for (const [name, rect] of cards) assert.ok(!overlaps(rect, dom.footer), `${width}px: ${name} is under the footer`);
+    }
+  } finally {
+    await this.call('setWindowContentSize', original.width, original.height);
+  }
+});
+
+Then('the line under the clock gives the week\'s blocked count alone', async function () {
+  const dom = await waitForValue(() => this.call('readStartWidgets'), (value) => value?.blockedLine, 'the line under the clock');
+  assert.match(dom.blockedLine, /^[\d,.  ]+ ads? blocked this week$/);
 });
 
 Then('the Billboard lists {string} before {string}', async function (first, second) {
@@ -259,6 +373,7 @@ When('I pin {string} on the Start Page', async function (title) {
     `${title} to show unpinned on the Start Page`,
   );
   assert.equal(await this.call('toggleFavoritePin', title), true);
+  this.pinnedOnPageTitle = title;
 });
 
 When('I unpin {string} on the Start Page', async function (title) {
@@ -276,7 +391,7 @@ Then("{string} leads the Start Page's favorites, pinned", async function (title)
     (value) => value?.favorites?.[0]?.title === title && value.favorites[0].pinned,
     `${title} to lead the Start Page's favorites, pinned`,
   );
-  const limit = { ledger: 6, shelf: 8, tally: 5 }[dom.layout];
+  const limit = FAVORITES_WIDGET_LIMIT;
   assert.equal(dom.favorites.length, limit);
   assert.equal(dom.favorites.filter((favorite) => favorite.pinned).length, 1);
   assert.equal(dom.favorites[0].pinLabel, `Unpin ${title} from the Start Page`);
@@ -288,7 +403,8 @@ Then("{string} leads the Start Page's favorites, pinned", async function (title)
     ['Favorite 1', 'Favorite 2', 'Favorite 3', 'Favorite 4', 'Favorite 5', 'Favorite 6', 'Favorite 7'].slice(0, limit - 1),
   );
   this.pinnedFavoriteUrl = dom.favorites[0].url;
-  if (dom.layout === 'shelf') {
+  // A pin made on the page itself is announced and keeps focus on the pin.
+  if (this.pinnedOnPageTitle === title) {
     assert.equal(dom.status, `${title} pinned to the Start Page.`);
     assert.equal(dom.focusedPinOf, dom.favorites[0].url);
   }
@@ -313,7 +429,7 @@ Then("the Start Page's favorites are back in their saved order", async function 
   assert.deepEqual(await this.call('startPagePins'), []);
   assert.deepEqual(
     dom.favorites.map((favorite) => favorite.title),
-    ['Favorite 1', 'Favorite 2', 'Favorite 3', 'Favorite 4', 'Favorite 5'],
+    ['Favorite 1', 'Favorite 2', 'Favorite 3', 'Favorite 4', 'Favorite 5', 'Favorite 6', 'Favorite 7', 'Favorite 8'],
   );
   assert.equal(dom.status, 'Favorite 8 unpinned from the Start Page.');
 });
@@ -330,7 +446,7 @@ Then('the Billboard backfills with {string}', async function (key) {
 Then('the start page uses Instrument Sans for the Billboard clock and invitation headings', async function () {
   const usage = await waitForValue(
     () => this.call('readStartPageFontUsage'),
-    (value) => value?.page?.samples?.length === 12,
+    (value) => value?.page?.samples?.length === 11,
     'the new-tab document to expose its computed fonts',
   );
   // Instrument Sans is committed, so it must actually load.
@@ -342,7 +458,7 @@ Then('the start page uses Instrument Sans for the Billboard clock and invitation
     const expected = /^"?Instrument Sans"?,/;
     assert.match(heading.family, expected, `${heading.selector} resolved to ${heading.family}`);
   }
-  const keepInter = new Set(['.shelf-count', '.tally-count', '.tally-caption']);
+  const keepInter = new Set(['.shelf-count']);
   for (const sample of usage.page.samples) {
     const expected = keepInter.has(sample.selector) ? /^"?Inter"?,/ : /^"?Instrument Sans"?,/;
     assert.match(sample.family, expected, `${sample.selector} resolved to ${sample.family}`);
@@ -351,7 +467,7 @@ Then('the start page uses Instrument Sans for the Billboard clock and invitation
 
 Then('the start-page typography fits at desktop size boundaries', async function () {
   const originalBounds = await this.call('windowContentBounds');
-  const originalLayout = await this.call('newtabLayout');
+  const originalWidgets = await this.call('newtabWidgets');
   const layouts = ['ledger', 'billboard', 'shelf', 'tally'];
   const sizes = [
     { width: 1280, height: 800, label: 'default' },
@@ -374,10 +490,10 @@ Then('the start-page typography fits at desktop size boundaries', async function
         `${size.label} desktop content bounds`,
       );
       for (const layout of layouts) {
-        assert.equal(await this.call('setNewtabLayout', layout), layout);
+        await useStartSetup(this, layout);
         const fit = await waitForValue(
           () => this.call('readStartPageLayoutFit'),
-          (value) => value?.page?.layout === layout &&
+          (value) => value?.page?.layout === 'billboard' &&
             value.page.viewportWidth === size.width,
           `${layout} layout at the ${size.label} desktop size`,
         );
@@ -396,7 +512,7 @@ Then('the start-page typography fits at desktop size boundaries', async function
       }
     }
   } finally {
-    await this.call('setNewtabLayout', originalLayout);
+    await this.call('setNewtabWidgets', originalWidgets);
     await this.call('setWindowContentSize', originalBounds.width, originalBounds.height);
     await waitForValue(
       () => this.call('windowContentBounds'),
@@ -687,8 +803,8 @@ When('I launch Mahjong from the start-page footer', async function () {
   assert.ok(source?.loadedUrl?.startsWith('blanc://newtab/'));
   const footer = await waitForValue(
     () => this.call('readMahjongFooterLink'),
-    (value) => value?.switcherCount === 4 && value.frameCount === 0,
-    'four layout choices and a separate Mahjong footer link',
+    (value) => value?.switcherCount === 2 && value.frameCount === 0,
+    'two widget switches and a separate Mahjong footer link',
   );
   assert.equal(footer.href, source.private ? 'blanc://mahjong/?private=1' : 'blanc://mahjong/');
   assert.equal(footer.target, '_blank');
@@ -709,24 +825,23 @@ Then('the original start page remains on {string} in a separate tab', async func
   const gameId = state.activeTabId;
   await this.call('activateTab', source.id);
   const dom = await waitForValue(() => this.call('readNewtabLayoutDom'), (value) => value?.layout === layout, 'preserved start-page layout');
-  assert.equal(dom.active, layout);
+  assert.deepEqual(dom.visible, ['Billboard']);
   await this.call('activateTab', gameId);
 });
 
-Then('each of the four layout footers launches Mahjong in a new tab', async function () {
+Then('the footer launches Mahjong in a new tab with each widget setup', async function () {
   for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
-    assert.equal(await this.call('setNewtabLayout', layout), layout);
+    await useStartSetup(this, layout);
     await openNewTab(this);
     const before = await this.state();
     const sourceId = before.activeTabId;
-    const footer = await waitForValue(() => this.call('readMahjongFooterLink'), (value) => value?.layout === layout, `${layout} footer`);
-    assert.equal(footer.switcherCount, 4);
+    const footer = await waitForValue(() => this.call('readMahjongFooterLink'), (value) => value?.layout === 'billboard', `${layout} footer`);
+    assert.equal(footer.switcherCount, 2, 'Customize offers the two widget switches');
     assert.equal(footer.frameCount, 0);
     assert.equal(await this.call('clickMahjongFooterLink'), true);
     const after = await this.waitForState((state) => state.tabs.length === before.tabs.length + 1 &&
       state.tabs.find((tab) => tab.id === state.activeTabId)?.loadedUrl?.startsWith('blanc://mahjong/'));
     assert.ok(after.tabs.find((tab) => tab.id === sourceId)?.loadedUrl?.startsWith('blanc://newtab/'));
-    assert.equal(await this.call('newtabLayout'), layout);
   }
 });
 
@@ -747,9 +862,9 @@ Then('Mahjong is a private managed tab', async function () {
 
 const intersects = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
 
-Then('no start-page layout is covered by its checklist or footer at 1440x840 or 820x840', async function () {
+Then('no widget setup is covered by its checklist or footer at 1440x840 or 820x840', async function () {
   const original = await this.call('windowContentBounds');
-  const originalLayout = await this.call('newtabLayout');
+  const originalWidgets = await this.call('newtabWidgets');
   try {
     for (const size of [{ width: 1440, height: 840 }, { width: 820, height: 840 }]) {
       await this.call('setWindowContentSize', size.width, size.height);
@@ -759,10 +874,10 @@ Then('no start-page layout is covered by its checklist or footer at 1440x840 or 
         `${size.width}x${size.height} content bounds`,
       );
       for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
-        assert.equal(await this.call('setNewtabLayout', layout), layout);
+        await useStartSetup(this, layout);
         const frame = await waitForValue(
           () => this.call('readStartFrameGeometry'),
-          (value) => value?.layout === layout && value.viewportWidth === size.width && value.shell && value.content.length > 0,
+          (value) => value?.layout === 'billboard' && value.viewportWidth === size.width && value.shell && value.content.length > 0,
           `${layout} frame at ${size.width}x${size.height}`,
         );
         const context = `${layout} at ${size.width}x${size.height}`;
@@ -778,7 +893,7 @@ Then('no start-page layout is covered by its checklist or footer at 1440x840 or 
       }
     }
   } finally {
-    await this.call('setNewtabLayout', originalLayout);
+    await this.call('setNewtabWidgets', originalWidgets);
     await this.call('setWindowContentSize', original.width, original.height);
   }
 });
@@ -789,12 +904,12 @@ Given('the Patron upgrade has never been closed', async function () {
   assert.equal(await this.call('setPatronCalloutDismissedAt', 0), 0);
 });
 
-Then('every start-page layout shows the Patron upgrade on the footer\'s left', async function () {
+Then('every widget setup shows the Patron upgrade on the footer\'s left', async function () {
   for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
-    assert.equal(await this.call('setNewtabLayout', layout), layout);
+    await useStartSetup(this, layout);
     const frame = await waitForValue(
       () => this.call('readStartFrameGeometry'),
-      (value) => value?.layout === layout && value.patronVisible === true,
+      (value) => value?.layout === 'billboard' && value.patronVisible === true,
       `${layout} frame with the Patron upgrade`,
     );
     assert.equal(frame.patronInLayout, false, `${layout} carries no Patron chip of its own`);
@@ -831,20 +946,21 @@ When('{int} days pass since the Patron upgrade was closed', async function (days
   assert.equal(await this.call('setPatronCalloutDismissedAt', longAgo), longAgo);
 });
 
-Then('no start-page layout shows the Patron upgrade or a blocked count', async function () {
+Then('no widget setup shows the Patron upgrade or a blocked count', async function () {
   for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
-    assert.equal(await this.call('setNewtabLayout', layout), layout);
+    await useStartSetup(this, layout);
     const frame = await waitForValue(
       () => this.call('readStartFrameGeometry'),
-      (value) => value?.layout === layout && value.private === true,
+      (value) => value?.layout === 'billboard' && value.private === true,
       `private ${layout} frame`,
     );
     assert.equal(frame.patronVisible, false, `private ${layout} hides Patron`);
     const selectors = frame.content.map((entry) => String(entry.selector));
     assert.ok(!selectors.some((s) => /tally-chart|tally-caption/.test(s)), `private ${layout} hides the Tally data column`);
-    if (layout === 'shelf') {
-      assert.equal(await this.call('readStartBlockedCard'), false, 'private Shelf hides its blocked card');
-    }
+    // One page (V24): the line under the clock is the only blocked count,
+    // and a private page's says it counts nothing.
+    const dom = await this.call('readStartWidgets');
+    assert.doesNotMatch(dom.blockedLine ?? '', /\d[\d,.\u00a0\u202f]* ads? blocked/, `private ${layout} shows no blocked count`);
   }
 });
 
@@ -852,12 +968,12 @@ Given('a profile with no favorites', async function () {
   assert.deepEqual(await this.call('bookmarkUrls'), []);
 });
 
-Then('Ledger, Shelf and Tally each show one empty Favorites hint and Billboard shows none', async function () {
+Then('the Favorites card shows one empty Favorites hint and the plain Start Page shows none', async function () {
   for (const [layout, expected] of [['ledger', 1], ['shelf', 1], ['tally', 1], ['billboard', 0]]) {
-    assert.equal(await this.call('setNewtabLayout', layout), layout);
+    await useStartSetup(this, layout);
     const frame = await waitForValue(
       () => this.call('readStartFrameGeometry'),
-      (value) => value?.layout === layout,
+      (value) => value?.layout === 'billboard',
       `${layout} frame`,
     );
     assert.equal(frame.emptyHints, expected, `${layout} empty hints`);
@@ -868,13 +984,12 @@ When('I open Customize on the start page', async function () {
   assert.equal(await this.call('openStartCustomize'), true);
 });
 
-Then('Customize stays open with {string} pressed', async function (layout) {
+Then('Customize stays open with the {string} widget on', async function (name) {
   const state = await waitForValue(
     () => this.call('readStartCustomize'),
-    (value) => value?.open === true && value.pressed.length === 1,
-    'Customize open with one pressed layout',
+    (value) => value?.open === true && value.switchedOn.includes(name),
+    `Customize open with ${name} on`,
   );
-  assert.deepEqual(state.pressed, [layout]);
   assert.equal(state.expanded, 'true');
 });
 
@@ -1007,12 +1122,12 @@ Then('the Billboard content is centered between the window top and the footer at
   }
 });
 
-Then('every start-page footer keeps its left group on one line with Customize centred from 1000 to 1320 wide', async function () {
+Then('every widget setup keeps the footer\'s left group on one line with Customize centred from 1000 to 1320 wide', async function () {
   const original = await this.call('windowContentBounds');
-  const originalLayout = await this.call('newtabLayout');
+  const originalWidgets = await this.call('newtabWidgets');
   try {
     for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
-      assert.equal(await this.call('setNewtabLayout', layout), layout);
+      await useStartSetup(this, layout);
       for (let width = 1000; width <= 1320; width += 20) {
         await this.call('setWindowContentSize', width, 840);
         let previous = null;
@@ -1024,7 +1139,7 @@ Then('every start-page footer keeps its left group on one line with Customize ce
             previous = next;
             return stable ? next : null;
           },
-          (value) => value?.layout === layout && value.viewportWidth === width,
+          (value) => value?.layout === 'billboard' && value.viewportWidth === width,
           `${layout} footer at ${width}px`,
         );
         const context = `${layout} at ${width}px: ${JSON.stringify(foot)}`;
@@ -1036,7 +1151,7 @@ Then('every start-page footer keeps its left group on one line with Customize ce
       }
     }
   } finally {
-    await this.call('setNewtabLayout', originalLayout);
+    await this.call('setNewtabWidgets', originalWidgets);
     await this.call('setWindowContentSize', original.width, original.height);
   }
 });

@@ -168,7 +168,6 @@ const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
 const {
   sendLaunchPing,
   sendMahjongPlay,
-  sendNewtabLayoutUsed,
   sendDayOneSignal,
   installMeta,
   markDayOneSent,
@@ -226,6 +225,7 @@ const settings = require('./settings');
 const wallpaper = require('./wallpaper');
 const { effectiveSource } = require('./wallpaper-model');
 const { colorWallpaper } = require('./start-page-paint');
+const { pageWidgets } = require('./start-widgets');
 const { clockStyleFromSettings } = require('./start-clock-style');
 const SpaceIdentity = require('../renderer/space-identity');
 // Bangs: the pure grammar and the generated catalog the Island shares with
@@ -15779,6 +15779,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // Carried on every status push so a start page opened in one window
       // re-inks when the layout is changed from Settings or another window.
       layout: current.newtabLayout,
+      // The Start Page's widgets (device-local), on every push so every open
+      // Start Page follows a change made in another window at once.
+      widgets: pageWidgets(settings.getNewtabWidgets()),
       privacy: {
         required: !settings.isFirstRunComplete(),
         searchSuggestions: current.searchSuggestions,
@@ -15962,8 +15965,6 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     telemetry: {
       mahjongPlayed: (wc) =>
         maybeSendProductUsage(wc, () => sendMahjongPlay()),
-      newtabLayoutUsed: (wc, layout) =>
-        maybeSendProductUsage(wc, () => sendNewtabLayoutUsed(layout)),
     },
     // The start page's ledger sections read live tab-group state and the
     // rolling blocked counter, both owned here.
@@ -16062,7 +16063,6 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       },
       // Runs inside runInPageRuntime, so the sheet opens in the start page's own window.
       openSettingsSection: (section) => openSettingsSection(String(section ?? '')),
-      setLayout: (name) => settings.setSettings({ newtabLayout: name }),
       openMahjong: (wc, background) => {
         const source = tabs.get(tabIdByWebContentsId.get(wc.id));
         if (!source || !liveContents(source)) return false;

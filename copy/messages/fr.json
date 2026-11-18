@@ -9902,5 +9902,85 @@
   "favorites.import.tabsSkipped": {
     "message": "Les onglets ouverts n’ont pas été importés.",
     "source": "sha256:2151e2cc32789e69ff84dc7e3125d6a0221be22bf0d122a82c7f3a2f6b2da94f"
+  },
+  "start.billboard.blocked": {
+    "message": "{count, plural, one {# publicité bloquée cette semaine} many {# publicités bloquées cette semaine} other {# publicités bloquées cette semaine}}",
+    "source": "sha256:c70aedcc84ab4c77fbc6561ac03ba69ae0dc5593bd1191c7bf59828522f4553a"
+  },
+  "start.widgets.heading": {
+    "message": "Widgets",
+    "source": "sha256:037671197561fb0f945d24ad1b42784bf6d3df9bf8edfe1b9ada33bcadcdf5c0"
+  },
+  "start.widgets.unconfirmed": {
+    "message": "Impossible de confirmer la modification du widget. Réessayez.",
+    "source": "sha256:24f57689b3d85ceaef469d26fe1144c2124090c04bed1706b53831b6829d183f"
+  },
+  "start.widgets.move": {
+    "message": "Déplacer {name}",
+    "source": "sha256:37f946fe9b764bd4c6dfd8536236c3297df81a407f74de41fd7a3b137af1f814"
+  },
+  "start.widgets.movedLeft": {
+    "message": "{name} est maintenant à gauche, position {position}.",
+    "source": "sha256:b5c954756720b6c79c2d0e6bff4140efd20a2ae7e4aafc35b5bbc78c8f82f762"
+  },
+  "start.widgets.movedRight": {
+    "message": "{name} est maintenant à droite, position {position}.",
+    "source": "sha256:46d822967ee9affb835e5224ec8061207e78d207d5616ac8f0bcfbd3da09e4b4"
+  },
+  "start.widgets.resize": {
+    "message": "Redimensionner {name}",
+    "source": "sha256:3ce6b4e2171812a52ed12aeee25c2487ebce8cb057907cd53beb5118156334f2"
+  },
+  "start.widgets.size": {
+    "message": "Taille {size} sur {count}",
+    "source": "sha256:5ba08144a73ea22b8b0d819c4bbf6be0261ce33ca652ff77f461fc6897cf4bb2"
+  },
+  "start.widgets.sizeAuto": {
+    "message": "S’adapte à la colonne",
+    "source": "sha256:904c86556e961bbcc98e67b358426827bcd20547033bdad24fed4708f2864a29"
+  },
+  "start.widgets.resized": {
+    "message": "{name} est maintenant en taille {size} sur {count}.",
+    "source": "sha256:71c7bcf3a4bde554c1c5e9bb8d7543799795666e43b4a9de530d442725bdbb5b"
+  },
+  "start.widgets.resizedAuto": {
+    "message": "{name} s’adapte de nouveau à la colonne.",
+    "source": "sha256:437054b0cc21ffc5426bcf5dd94af57eabf207663cbfc5b4db8df0d995efd551"
+  },
+  "start.shortcuts.heading": {
+    "message": "Raccourcis",
+    "source": "sha256:84a0bd8484b5435c01ea16c2c7b08454a68521cce8741d6b0208a6ee90396070"
+  },
+  "start.shortcuts.fewer": {
+    "message": "Moins de raccourcis",
+    "source": "sha256:f955a7362d14860815316cf4cf8ee56af27b5c5feaa082208d693c7d97bc47f5"
+  },
+  "start.shortcuts.more": {
+    "message": "Plus de raccourcis",
+    "source": "sha256:26556310668592f2969bef46100ae88a6626b628f76733903d2aacfc89143534"
+  },
+  "start.shortcuts.count": {
+    "message": "{count} raccourcis",
+    "source": "sha256:c4dd9b2e426ae55588697815e55f3fae37cf301e3a48a3c224fe3f2957bd5e29"
+  },
+  "start.shortcuts.sofar": {
+    "message": "{count, plural, one {# site pour l’instant.} many {# sites pour l’instant.} other {# sites pour l’instant.}} D’autres apparaîtront au fil de votre navigation.",
+    "source": "sha256:eecc4751be46cf5ca2c3ce4b0b818cf1552e7d7e662e4c8c2d820dbba5d3ef44"
+  },
+  "start.devices.tabs": {
+    "message": "{count, plural, one {# onglet} many {# onglets} other {# onglets}}",
+    "source": "sha256:8fb7e1a212612f0e7035d9bdcce93276a848ea411fdf364e69c7863919ba8256"
+  },
+  "start.devices.more": {
+    "message": "{count, plural, one {# onglet de plus} many {# onglets de plus} other {# onglets de plus}}",
+    "source": "sha256:3e429c29e968ef84d00408069d849859060c18edaa7d440d1ec9f2ede07e1cf2"
+  },
+  "start.devices.fewer": {
+    "message": "Afficher moins",
+    "source": "sha256:29411acbaee4116857c1cb2237fce12622fed9ed823b566335222995cccb00cf"
+  },
+  "start.mahjong.play": {
+    "message": "Jouer à Blanc Mahjong",
+    "source": "sha256:9b62eba2e07c169ab3ee5415185da568ca0fd436fd6cc8730fe661830c6ed9d7"
   }
 }

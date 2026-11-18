@@ -1309,6 +1309,14 @@ function install(refs) {
     setNewtabDynamicWallpaper(on) { return settings.setSettings({ newtabDynamicWallpaper: !!on }).newtabDynamicWallpaper; },
     newtabLayout() { return settings.getSettings().newtabLayout; },
     setNewtabLayout(layout) { return settings.setSettings({ newtabLayout: layout }).newtabLayout; },
+    // The one Start Page (V24): an old layout's name stands for the widgets
+    // it migrates to, so a scenario can draw what that layout showed.
+    newtabWidgets() { return settings.getNewtabWidgets(); },
+    setNewtabWidgets(widgets) { return settings.setNewtabWidgets(widgets); },
+    setNewtabWidgetsLike(layout) {
+      settings.setNewtabWidgets(require('./start-widgets').migrateFromLayout(layout));
+      return layout;
+    },
     readNewtabLayoutDom() {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
@@ -1624,8 +1632,8 @@ function install(refs) {
         ]).catch(() => []);
         const selectors = [
           '.start-brand-date', '.ledger-label', '.bb-clock',
-          '.bb-blocked', '.shelf-label', '.shelf-count', '.tally-count',
-          '.tally-caption', '.ledger-footer', '.layout-switcher button',
+          '.bb-blocked', '.shelf-label', '.shelf-count', '.ledger-footer',
+          '.widget-tile', '.customize-row-label',
           '.ob-step-label', '.ob-content p'
         ];
         if (selectors.some((selector) => !document.querySelector(selector))) return null;
@@ -1839,7 +1847,7 @@ function install(refs) {
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
       return tab.view.webContents.executeJavaScript(`(() => {
         const layout = document.body.dataset.layout;
-        const list = { ledger: 'favoritesList', shelf: 'shFavorites', tally: 'tlFavorites' }[layout];
+        const list = { billboard: 'favoritesList', ledger: 'favoritesList', shelf: 'shFavorites', tally: 'tlFavorites' }[layout];
         const items = list ? [...document.getElementById(list).querySelectorAll('[data-favorite-url]')] : [];
         return {
           layout,
@@ -1865,7 +1873,7 @@ function install(refs) {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
       return tab.view.webContents.executeJavaScript(`(() => {
-        const list = { ledger: 'favoritesList', shelf: 'shFavorites', tally: 'tlFavorites' }[document.body.dataset.layout];
+        const list = { billboard: 'favoritesList', ledger: 'favoritesList', shelf: 'shFavorites', tally: 'tlFavorites' }[document.body.dataset.layout];
         const item = list && [...document.getElementById(list).querySelectorAll('[data-favorite-url]')]
           .find((candidate) => candidate.querySelector('.name')?.textContent === ${JSON.stringify(String(title))});
         const button = item?.querySelector('.fav-pin');
@@ -2425,7 +2433,89 @@ function install(refs) {
         expanded: document.getElementById('customizeButton')?.getAttribute('aria-expanded') ?? null,
         focusedId: document.activeElement?.id ?? null,
         pressed: [...document.querySelectorAll('[data-layout-pick][aria-pressed="true"]')].map((b) => b.dataset.layoutPick),
+        switchedOn: [...document.querySelectorAll('[data-widget-pick][aria-checked="true"]')].map((b) => b.dataset.widgetPick),
       }))()`);
+    },
+    // The one Start Page with widgets (V24): what it draws, where, and what
+    // Customize says. Rects are viewport CSS pixels; a hidden card has none.
+    readStartWidgets() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const rect = (el) => {
+          if (!el || el.hidden || getComputedStyle(el).display === 'none') return null;
+          const r = el.getBoundingClientRect();
+          return r.width && r.height ? { left: r.left, top: r.top, right: r.right, bottom: r.bottom } : null;
+        };
+        const card = (name) => document.querySelector('.bb-widget[data-card="' + name + '"]');
+        const rail = (side) => [...document.getElementById(side === 'left' ? 'bbRailLeft' : 'bbRailRight').children]
+          .filter((el) => el.matches('.bb-widget')).map((el) => el.dataset.card);
+        const hint = document.getElementById('shortcutsHint');
+        return {
+          root: document.body.dataset.layout ?? null,
+          visibleRoots: ['Ledger', 'Billboard', 'Shelf', 'Tally']
+            .filter((name) => getComputedStyle(document.getElementById('layout' + name)).display !== 'none'),
+          widgets: state.widgets ? { favorites: state.widgets.favorites, devices: state.widgets.devices,
+            shortcutCount: state.widgets.shortcutCount } : null,
+          switches: Object.fromEntries([...document.querySelectorAll('[data-widget-pick]')]
+            .map((b) => [b.dataset.widgetPick, b.getAttribute('aria-checked') === 'true'])),
+          shown: { favorites: !!rect(card('favorites')), devices: !!rect(card('devices')), sent: !!rect(card('sent')) },
+          cards: { favorites: rect(card('favorites')), devices: rect(card('devices')), sent: rect(card('sent')) },
+          place: { left: rail('left'), right: rail('right') },
+          tileLimit: billboardSiteCount(),
+          tiles: [...document.querySelectorAll('#bbFavorites > *')].map(rect).filter(Boolean),
+          chips: [...document.querySelectorAll('#bbGroups .group-chip')].map(rect).filter(Boolean),
+          footer: rect(document.getElementById('layoutFooter')),
+          blockedLine: document.getElementById('bbBlocked')?.textContent.trim() ?? null,
+          stepperValue: document.getElementById('shortcutCount')?.textContent.trim() ?? null,
+          focusedId: document.activeElement?.id ?? null,
+          hint: hint && !hint.hidden ? hint.textContent.trim() : null,
+          moveStatus: document.getElementById('widgetMoveStatus')?.textContent.trim() ?? '',
+          saveStatus: (() => { const el = document.getElementById('widgetSaveStatus'); return el && !el.hidden ? el.textContent.trim() : null; })(),
+        };
+      })()`);
+    },
+    clickStartWidgetSwitch(name) {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const popover = document.getElementById('customizePopover');
+        if (!popover.matches(':popover-open')) document.getElementById('customizeButton').click();
+        const button = popover.querySelector('[data-widget-pick="${String(name).replace(/[^a-z]/g, '')}"]');
+        if (!button) return false;
+        button.focus();
+        button.click();
+        return true;
+      })()`);
+    },
+    // Presses the shortcut stepper's minus or plus, focused, as a person would.
+    clickShortcutStep(direction, times = 1) {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return false;
+      const id = direction === 'fewer' ? 'shortcutFewer' : 'shortcutMore';
+      return wc.executeJavaScript(`(() => {
+        const popover = document.getElementById('customizePopover');
+        if (!popover.matches(':popover-open')) document.getElementById('customizeButton').click();
+        const button = document.getElementById('${id}');
+        if (!button) return false;
+        for (let i = 0; i < ${Math.max(1, Math.min(24, Number(times) | 0))}; i += 1) { button.focus(); button.click(); }
+        return true;
+      })()`);
+    },
+    focusStartCardGrip(card) {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return false;
+      wc.focus();
+      return wc.executeJavaScript(`(() => {
+        const grip = document.querySelector('.bb-widget[data-card="${String(card).replace(/[^a-z]/g, '')}"] > .bb-widget-grip');
+        if (!grip) return false;
+        grip.focus();
+        return document.activeElement === grip;
+      })()`);
     },
     pressStartPageKey(keyCode) {
       const tab = tabs.get(getActiveTabId());
@@ -2444,7 +2534,7 @@ function install(refs) {
         href: document.getElementById('mahjongLink')?.href ?? null,
         target: document.getElementById('mahjongLink')?.target ?? null,
         layout: document.body.dataset.layout,
-        switcherCount: document.querySelectorAll('[data-layout-pick]').length,
+        switcherCount: document.querySelectorAll('[data-widget-pick]').length,
         frameCount: document.querySelectorAll('iframe').length,
       }))()`);
     },
@@ -3753,6 +3843,8 @@ function install(refs) {
                 return {
                   title: row.querySelector('.name')?.textContent ?? '',
                   host: row.querySelector('.host')?.textContent ?? '',
+                  // Rows are grouped under each device (V24); the device is the row's own.
+                  device: row.dataset.device ?? null,
                   href: row.href,
                   tileLetter: tile ? tile.textContent : '',
                   faviconHasIcon: !!(tile && tile.classList.contains('has-icon')),

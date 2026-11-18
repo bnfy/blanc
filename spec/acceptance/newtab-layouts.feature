@@ -1,21 +1,34 @@
 @newtab-layouts @F35
-Feature: Start page layouts
-  The start page offers four layouts and a separate Mahjong footer launch.
-  The layout choice is the person's, persists
-  across restarts, and travels with their profile like the theme does.
+Feature: The Start Page and its widgets
+  The Start Page is Billboard, with optional widgets (Favorites and On your
+  other devices) placed beside or under the clock, a shortcut count, and a
+  separate Mahjong footer launch. The widget choice belongs to this device;
+  a profile that used Ledger, Shelf or Tally gets the widgets that showed
+  what that layout showed, once.
 
-  @F35-1 @all
-  Scenario: The saved layout is the one that renders
-    Given a profile whose start page layout is "shelf"
+  @F35-1 @desktop
+  Scenario Outline: Each old layout's widgets show on Billboard
+    Given a profile that last used the "<layout>" start page layout
     When I open a new tab
-    Then the start page renders the "shelf" layout
+    Then the start page shows Billboard with the "<layout>" widgets
 
-  @F35-2 @all
-  Scenario: Choosing a layout persists it
-    Given a new tab is open
-    When I choose the "tally" start page layout from its footer
-    Then the saved start page layout is "tally"
-    And the start page renders the "tally" layout
+    Examples:
+      | layout    |
+      | ledger    |
+      | shelf     |
+      | tally     |
+      | billboard |
+
+  @F35-2 @desktop
+  Scenario: Customize turns a widget on and every open Start Page follows
+    Given a profile whose start page layout is "billboard"
+    And a new tab is open
+    And a new tab is open
+    When I turn on the "favorites" widget in Customize
+    Then the start page shows the "favorites" widget
+    And the saved widgets have "favorites" on
+    When I go back to the first Start Page
+    Then the start page shows the "favorites" widget
 
   @F35-3 @all
   Scenario: Mahjong opens as a playable managed tab
@@ -32,10 +45,10 @@ Feature: Start page layouts
     And the Mahjong records sheet stays contained at the default, minimum, and zoomed desktop sizes
 
   @F35-4 @desktop
-  Scenario: Every footer launches Mahjong without changing its layout
+  Scenario: The footer launches Mahjong whatever the widgets
     Given a profile whose start page layout is "billboard"
     When I open a new tab
-    Then each of the four layout footers launches Mahjong in a new tab
+    Then the footer launches Mahjong in a new tab with each widget setup
 
   @F35-9 @desktop
   Scenario: A private footer launches a private standalone game
@@ -82,16 +95,12 @@ Feature: Start page layouts
     And the Billboard keeps no pins
 
   @F35-5 @desktop
-  Scenario: A pinned favorite leads every favorites layout
+  Scenario: A pinned favorite leads the Favorites card
     Given eight favorites fill the Start Page
     And the Start Page has no pins
     And a profile whose start page layout is "shelf"
     When I open a new tab
     And I pin "Favorite 8" on the Start Page
-    Then "Favorite 8" leads the Start Page's favorites, pinned
-    When I choose the "ledger" start page layout from its footer
-    Then "Favorite 8" leads the Start Page's favorites, pinned
-    When I choose the "tally" start page layout from its footer
     Then "Favorite 8" leads the Start Page's favorites, pinned
     And the Start Page keeps "Favorite 8" pinned
     When I unpin "Favorite 8" on the Start Page
@@ -131,7 +140,7 @@ Feature: Start page layouts
     Then the Billboard backfills with "site-48.example"
 
   @F35-6 @desktop
-  Scenario: Every start-page layout uses the approved typography roles
+  Scenario: The Start Page uses the approved typography roles with every widget setup
     Given local history contains repeated visits for the Billboard
     And eight favorites fill the Start Page
     And a profile whose start page layout is "billboard"
@@ -140,11 +149,11 @@ Feature: Start page layouts
     And the start-page typography fits at desktop size boundaries
 
   @F35-7 @desktop
-  Scenario: The moving-in checklist belongs to informational layouts only
+  Scenario: The moving-in checklist shows whatever the widgets
     Given a profile that completed first run
     And the moving-in checklist is incomplete and not hidden
     When I open a new tab
-    Then the moving-in checklist appears in all four start-page layouts
+    Then the moving-in checklist appears with every widget setup
 
   @F35-8 @desktop
   Scenario: The moving-in checklist opens from the footer's left
@@ -164,40 +173,40 @@ Feature: Start page layouts
     And local history contains repeated visits for the Billboard
     And eight favorites fill the Start Page
     When I open a new tab
-    Then no start-page layout is covered by its checklist or footer at 1440x840 or 820x840
-    And every start-page footer keeps its left group on one line with Customize centred from 1000 to 1320 wide
+    Then no widget setup is covered by its checklist or footer at 1440x840 or 820x840
+    And every widget setup keeps the footer's left group on one line with Customize centred from 1000 to 1320 wide
 
   @F35-11 @desktop
   Scenario: The Patron upgrade sits in the footer and closes for 90 days
     Given a profile that completed first run
     And the Patron upgrade has never been closed
     When I open a new tab
-    Then every start-page layout shows the Patron upgrade on the footer's left
+    Then every widget setup shows the Patron upgrade on the footer's left
     When I close the Patron upgrade
     Then the Patron upgrade stays hidden on a new tab
     When 90 days pass since the Patron upgrade was closed
     And I open a new tab
-    Then every start-page layout shows the Patron upgrade on the footer's left
+    Then every widget setup shows the Patron upgrade on the footer's left
 
   @F35-12 @desktop
   Scenario: Private start pages never offer Patron or blocked counts
     Given a private start page is open
-    Then no start-page layout shows the Patron upgrade or a blocked count
+    Then no widget setup shows the Patron upgrade or a blocked count
 
   @F35-13 @desktop
   Scenario: An empty Favorites list explains how to fill it
     Given a profile with no favorites
     When I open a new tab
-    Then Ledger, Shelf and Tally each show one empty Favorites hint and Billboard shows none
+    Then the Favorites card shows one empty Favorites hint and the plain Start Page shows none
 
   @F35-14 @desktop
-  Scenario: Customize chooses the layout and closes with Escape
-    Given a new tab is open
+  Scenario: Customize turns a widget on and closes with Escape
+    Given a profile whose start page layout is "billboard"
+    And a new tab is open
     When I open Customize on the start page
-    And I choose the "tally" start page layout from its footer
-    Then the start page renders the "tally" layout
-    And the saved start page layout is "tally"
-    And Customize stays open with "tally" pressed
+    And I turn on the "devices" widget in Customize
+    Then the saved widgets have "devices" on
+    And Customize stays open with the "devices" widget on
     When I press Escape on the start page
     Then Customize is closed and its button has focus
 
@@ -207,23 +216,29 @@ Feature: Start page layouts
     And a profile whose start page layout is "billboard"
     When I open a new tab
     Then the Billboard shows one row of single-line site names at 1440x840 and 820x840
+    And the line under the clock gives the week's blocked count alone
 
   @F35-16 @desktop
-  Scenario: Shelf fills full rows for its favorites and cards
-    Given a group "research" with 2 tabs
-    And a profile whose start page layout is "shelf"
-    When I seed 6 favorites and open a new tab
-    Then Shelf shows 3 columns with full rows of tiles and cards
-    When I seed 2 more favorites and open a new tab
-    Then Shelf shows 4 columns with full rows of tiles and cards
+  Scenario: The shortcut count steps from 1 to 12
+    Given local history contains repeated visits for the Billboard
+    And a profile whose start page layout is "billboard"
+    And a new tab is open
+    When I press More shortcuts 6 times
+    Then the shortcut count is 12, saved, with focus on More shortcuts
+    And Customize says "6 sites so far. More appear as you browse."
 
   @F35-17 @desktop
-  Scenario: Tally balances its columns and puts the data first when narrow
-    Given eight favorites fill the Start Page
-    And a profile whose start page layout is "tally"
-    When I open a new tab
-    Then Tally shows two equal, top-aligned columns centered at 1440x840
-    And Tally stacks the data above the list at 820x840
+  Scenario: A widget card moves with its grip and stays clear of the shortcuts
+    Given local history contains repeated visits for the Billboard
+    And eight favorites fill the Start Page
+    And a group "Research" with 2 tabs
+    And a group "Travel planning" with 2 tabs
+    And a group "Reading list" with 2 tabs
+    And a profile whose start page layout is "ledger"
+    And a new tab is open
+    When I press "Right" on the "favorites" card's grip
+    Then the "favorites" card is on the "right" at position 1, announced and saved
+    And no shortcut tile, group chip or card overlaps another or the footer from 1000 to 1440 wide
 
   @F35-18 @desktop
   Scenario: Billboard centers whatever it shows between the window top and the footer

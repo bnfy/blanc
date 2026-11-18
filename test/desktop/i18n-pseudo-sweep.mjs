@@ -334,10 +334,15 @@ const startPage = async (app, url = 'blanc://newtab/') => {
   await page.waitForFunction(() => document.body?.classList.contains('layout-ready'));
   return page;
 };
+// V24: one Start Page; each old layout's name stands for its widgets.
 const startLayout = (layout, { customize = false } = {}) => async ({ app }) => {
   const page = await startPage(app);
-  await page.evaluate((name) => document.querySelector(`[data-layout-pick="${name}"]`).click(), layout);
-  await page.waitForFunction((name) => document.body.dataset.layout === name, layout);
+  const widgets = { ledger: ['favorites', 'devices'], billboard: [], shelf: ['favorites'], tally: ['favorites'] }[layout];
+  await page.evaluate(async (on) => {
+    for (const name of ['favorites', 'devices']) await window.bowserPages.start.setWidget(name, on.includes(name));
+  }, widgets);
+  await page.waitForFunction((on) => document.body.dataset.layout === 'billboard'
+    && on.every((name) => document.querySelector(`[data-widget-pick="${name}"]`)?.getAttribute('aria-checked') === 'true'), widgets);
   if (customize) await page.evaluate(() => document.getElementById('customizePopover').showPopover());
   return page;
 };
@@ -357,9 +362,8 @@ const tourStep = (step) => async ({ app, chrome }) => {
 };
 const START_SURFACES = [
   { name: 'start page (billboard)', open: startLayout('billboard') },
-  { name: 'start page (ledger)', open: startLayout('ledger') },
-  { name: 'start page (shelf)', open: startLayout('shelf') },
-  { name: 'start page (tally, customize)', open: startLayout('tally', { customize: true }),
+  { name: 'start page (favorites and other devices)', open: startLayout('ledger') },
+  { name: 'start page (favorites, customize)', open: startLayout('tally', { customize: true }),
     close: (page) => page.evaluate(() => document.getElementById('customizePopover').hidePopover()) },
   // The clock's Font & color, with a color chosen so the Tone line shows too.
   { name: 'start page (billboard, clock font & color)',
