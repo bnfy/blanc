@@ -168,7 +168,12 @@ jobs:
           if (-not $expected -or $actual -ne $expected.ToLower()) { throw "The shipping installer is $actual, not the release's $expected." }
           if ($env:REPACK -eq 'true') {
             # Part C's dry run: the installer taken apart and put back together
-            # unsigned must install exactly as the original does.
+            # unsigned must install exactly as the original does. Chromium's
+            # resedit.py needs pywin32, pinned by hash.
+            $pin = "$env:RUNNER_TEMP\pywin32-requirements.txt"
+            'pywin32==312 --hash=sha256:b457f6d628a47e8a7346ce22acb7e1a46a4a78b52e1d17e1af56871bd19a93bc' | Set-Content $pin
+            python -m pip install --quiet --only-binary=:all: --require-hashes -r $pin
+            if ($LASTEXITCODE -ne 0) { throw 'Could not install pywin32.' }
             $work = "$env:RUNNER_TEMP\repack"
             pwsh -NoProfile -File chromium/windows/repack-installer.ps1 -Phase unpack -Installer "$env:CANDIDATE_DIR\mini_installer.exe" -Work $work
             if ($LASTEXITCODE -ne 0) { throw 'Unpacking the installer failed.' }
