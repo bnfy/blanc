@@ -34,6 +34,18 @@ The unsigned dry run of steps 1, 3 and 6 passed on 2026-11-18
 installed and uninstalled beside Electron Blanc 1.49.1, 11 of 11 checks, and
 the installed files carried the build's hashes.
 
+The first signed installer passed on 2026-11-18 (run 44316018075, approved
+by the owner): 13 files inside and the installer signed, 14 signatures
+verified, and the install check 11 of 11 with `--signed`, which accepts the
+installed `chrome.exe` and `chrome.dll` only when they are the candidate's own
+files with an Authenticode signature added (`signedCopyOf` in `candidate.mjs`:
+the checksum, the security directory entry and the certificate table after
+alignment padding are the only differences). Without it the harness refuses
+them, because signing changes their hashes; that is why the first signing run,
+44313102558, failed. The signed installer and `windows-signature.json` are on
+the draft release `fork-windows-candidate`; the run's Actions artifact holds no
+executable.
+
 ## Credentials and approval
 
 The signing job runs in the GitHub environment `fork-windows-signing`, which

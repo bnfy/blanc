@@ -3688,6 +3688,26 @@ Full suite on this candidate: 591 of 667 pass, nothing that passed on the
 Part A build fails (run 44236176647). Not checked: Settings → Default apps
 listing and choosing the preview (needs a real desktop session).
 
+### W1 Part C: signing (2026-11-18)
+Candidate `windows-x64-e42f9e5a532cdf96`, signed in `chromium-windows-candidate.yml`
+run 44316018075 after the owner approved it; record `reports/w1-windows.json`
+(`partC`); how it works: `windows/signing.md`.
+
+| Part C gate | Result | Evidence |
+| --- | --- | --- |
+| 1. `fork-windows-signing` environment, owner as required reviewer | Pass: created 2026-11-18 (reviewer bnfy, `chromium/next` only); both signing runs waited for the owner | Runs 44313102558, 44316018075 |
+| 2. Installer, `setup.exe` and every executable inside signed, timestamped, subject equal to `WINDOWS_EXPECTED_PUBLISHER`, in `windows-signature.json` | Pass: 13 files inside plus the installer, 14 signatures, one Bananify Creative certificate, Microsoft timestamps | `windows-signature.json` on the draft release |
+| 3. The signed installer passes Part B's install check | Pass, 11 of 11; the installed signed copy launched, drew the Island, started the blocker and loaded a page | Run 44316018075, sign job log |
+| 4. Signed files only on the draft release; no signed artifact; no credential on the server | Pass: the run's one artifact holds JSON, logs and screenshots; the installer (SHA-256 `b7efd089…`) is on `fork-windows-candidate`, a draft | Run 44316018075 |
+
+The first signing run (44313102558) signed and verified the same files but
+failed gate 3: the test harness refused to launch the installed copy because
+signing changes `chrome.exe`'s and `chrome.dll`'s hashes. With `--signed` the
+install check now accepts them only when they are the candidate's own files
+with an Authenticode signature added (`923457db2`). Open: the files' version
+resources still name The Chromium Authors as company, and the installer's
+version resource is Chromium's (plan Task C2).
+
 ## Android
 Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
 [PR #1333](https://github.com/bnfy/blanc/pull/1333)). Milestones: **A0
