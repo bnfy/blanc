@@ -239,6 +239,11 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 .mail-island-points li,.mail-points li{padding-top:20px;border-top:1px solid #e0c08447}
 .mail-island-points p,.mail-points p{margin:0;color:var(--mail-band-muted);font-size:15.5px;line-height:1.6;letter-spacing:.025em;text-wrap:pretty}
 @media(max-width:760px){.mail-island-points,.mail-points{grid-template-columns:1fr}}
+/* The address endings, in gold within their sentence. */
+.mail-ending{color:#e0c084;font-weight:500}
+/* A figure worth calling out in a point's title (15 GB): set on a rounded bar
+   of the gilt, in the dark ink the Join pill uses. */
+.mail-badge{display:inline-block;margin-right:.08em;padding:.06em .42em .1em;border-radius:999px;background:var(--mail-gilt);color:#1b1306;box-shadow:inset 0 1px 0 #fff8e2b3,inset 0 -1px 0 #7a5a2699;line-height:1.15}
 @media(max-width:520px){.mip-hint{display:none}}
 /* Rules: the dark rule editor, shown at its own 1x size (700pt captured at
    2x). Its "Preview build" caption is MailShot's and can't be left off. */

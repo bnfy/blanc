@@ -159,7 +159,8 @@ test('the ≡ menu lists the sections, and choosing one closes it and lands the 
   try {
     await page.locator('.mail-bar-sections').click();
     await waitOpen(page, 'mail-bar-menu');
-    assert.equal(await page.evaluate(() => document.activeElement?.textContent.trim()), 'Design', 'focus moves to the first section');
+    // Focus moves in the popover's toggle event, a task after it opens.
+    await page.waitForFunction(() => document.activeElement?.textContent.trim() === 'Design');
     assert.equal(await page.locator('.mail-bar-sections').getAttribute('aria-label'), 'Sections');
     await page.locator('#mail-bar-menu a[href="/mail#pricing"]').click();
     await waitOpen(page, 'mail-bar-menu', false);
