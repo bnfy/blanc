@@ -28,24 +28,30 @@ keeps teasers out of any other component. Masters are the Mail repository's
 | --- | --- | --- |
 | `island-dark` | Main window, Island layout, dark | Design preview, Island layout, dark mode, made-up mail |
 | `island-light` | Main window, Island layout, light | Design preview, Island layout, light mode, made-up mail |
-| `night-offer` | "Your plan includes a Blanc Mail address" offer | Design preview; quotes the dialog |
-| `night-address` | Choosing an address | Design preview; describes the form |
-| `night-arrival` | "mira@blnc.day — Your mailbox is ready in Blanc Mail." | Design preview; quotes the dialog |
+| `island-offer` | "Your plan includes a Blanc Mail address" offer | Design preview; quotes the dialog |
+| `island-address` | Choosing an address | Design preview; describes the form |
+| `island-arrival` | "mira@blnc.day — Your mailbox is ready in Blanc Mail." | Design preview; quotes the dialog |
 
-The two main-window teasers show the **Island** layout (owner, November 17,
-2026: "show Island view here in light/dark instead of Classic"). They come
-from the approved level A ("Refined") of the Mail repository's window study,
-`docs/superpowers/specs/assets-2026-11-17-premium-main-window-codex/index.html`,
-which draws the same made-up mail: level A, layout Island, mode dark or light,
-main window pinned to 1176 × 692 CSS px, captured in headless Chromium at 2x
-with a transparent background and a 40px margin for the shadow (2512 × 1544),
-like the address teasers. Classic is still the app's default layout, and
-Island a choice in Settings; the page's copy names no layout. The address teasers
-(`night-offer`, `night-address`, `night-arrival`) come from the onboarding
-mock's `teasers/` and still show Classic behind their dialogs.
+Every teaser shows the **Island** layout (owner, November 17, 2026: "show
+Island view here in light/dark instead of Classic", then "use Island" for the
+address teasers too). Classic is still the app's default layout and Island a
+choice in Settings; the page's copy names no layout. How they were made, in
+headless Chromium at 2x with a transparent background, each window pinned to
+1176 × 692 CSS px with a 40px margin for its shadow (2512 × 1544):
 
-The light offer and arrival teasers are not used: the address step has no
-light version, so the address set stays in dark, the stage's own appearance.
+- `island-dark`, `island-light`: the Mail repository's window study,
+  `docs/superpowers/specs/assets-2026-11-17-premium-main-window-codex/index.html`,
+  at the approved level A ("Refined"), layout Island, mode dark or light.
+- `island-offer`, `island-address`, `island-arrival`: each dialog rendered
+  alone from the onboarding mock,
+  `docs/superpowers/specs/assets-2026-11-17-blanc-address-onboarding-codex/teaser.html?theme=night&screen=offer|address|arrival`,
+  with its Classic window, veil and frame hidden; then laid over the window
+  study's dark Island window, dimmed by the onboarding mock's own veil
+  (`#0807056b`) with its traffic lights greyed as the mock's modal window
+  greys them. Both mocks draw the same made-up mail.
+
+The address teasers stay in dark, the stage's own appearance; no light
+versions are used.
 
 ## Copy
 

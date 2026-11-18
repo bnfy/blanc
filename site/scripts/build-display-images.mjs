@@ -60,7 +60,7 @@ const jobs = [
   // is a 2512px PNG from the Mail repository's design mocks resized to 2000px
   // WebP (how each was made: docs/website-mail-claims-2026-11-17.md); these
   // are its 1400px and 800px srcset copies.
-  ...['island-dark', 'island-light', 'night-offer', 'night-address', 'night-arrival'].flatMap(name => [1400, 800].map(width => ({
+  ...['island-dark', 'island-light', 'island-offer', 'island-address', 'island-arrival'].flatMap(name => [1400, 800].map(width => ({
     source: `mail/teasers/${name}.webp`,
     output: `mail/teasers/${name}-${width}.webp`,
     width,
