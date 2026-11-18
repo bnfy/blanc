@@ -16,8 +16,8 @@
   "combinedSha256": "35cfb31efe041f8203e047f9339a59995083b7c33f19ee59e562739739240d7e",
   "ghosteryResources": {
     "file": "ghostery-resources.json",
-    "packageVersion": "2.20.1",
-    "commit": "c18718adc33e82a086d996d0b0f75deb3d01745a",
+    "packageVersion": "2.20.3",
+    "commit": "6f0610bf5eec1f31c4975ce0e707cdf47023e5b5",
     "sha256": "5ce0ce483f0e5514308ccb0240960a9dd7bfeab417debeef96960dce2c95f690"
   }
 }
