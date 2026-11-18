@@ -155,12 +155,15 @@ try {
   const privateSwitch = privatePage.getByRole('button', { name: 'Change with time of day', exact: true });
   // Each fade below is watched from before its click: on a slow runner the
   // click's acknowledgement can arrive after the window has passed.
+  // The fade has begun (both layers fading, partway between 1 and 0). A
+  // window on its opacity (0.2-0.6) failed on slow Linux runners whose frames
+  // skipped past it; the steps below take long enough that the reversal still
+  // lands partway through the 2s fade.
   const fadingOut = privatePage.waitForFunction(() => !document.body.dataset.wallpaperPhase
+    && document.querySelectorAll('.start-wallpaper-layer.is-fading').length === 2
     && [...document.querySelectorAll('.start-wallpaper-layer')].some((layer) => {
       const opacity = Number(getComputedStyle(layer).opacity);
-      // Reverse partway through the fade. Reversing its first few frames can
-      // finish before the automation receives the click acknowledgement.
-      return opacity > 0.2 && opacity < 0.6;
+      return opacity > 0 && opacity < 1;
     }));
   await privateSwitch.click();
   await fadingOut;
