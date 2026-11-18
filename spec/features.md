@@ -434,8 +434,9 @@ From the desktop `DEFAULTS`:
   Favorites left the set on November 18, 2026 (owner's pick): on desktop it is
   a full page in a tab of its own, like Chrome's bookmark manager; iPhone
   already showed it as a page.
-  Outbound activations (a history entry, a favorite) open
-  real tabs and dismiss the surface. This is platform-neutral and maps to native
+  Outbound activations (a history entry) open
+  real tabs and dismiss the surface; on the Favorites page a favorite opens in
+  that tab, or in a new one from its menu. This is platform-neutral and maps to native
   sheet presentation on mobile — no divergence entry needed. Utility pages share
   one nav (Settings, Favorites, History, Downloads, in that order) and wear the
   `sunrise-*` palette (F15).

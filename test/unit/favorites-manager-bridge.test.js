@@ -21,8 +21,9 @@ const CALLS = {
   edit: 'pages:bookmarks:edit',
 };
 
-test('the Favorites sheet says it can draw the tree', () => {
-  assert.match(pages, /handle\('pages:bookmarks:capabilities', 'bookmarks', \(\) => \(\{ editable: true, tree: true \}\)\);/);
+test('the Favorites page says it can draw the tree, and a private tab offers no pins', () => {
+  assert.match(pages, /handleEvent\('pages:bookmarks:capabilities', 'bookmarks', \(event\) => \(hooks\.isPrivateSender\?\.\(event\.sender\)\s*\? \{ editable: true, tree: true, pins: false \}\s*: \{ editable: true, tree: true \}\)\);/);
+  assert.match(read('src/main/main.js'), /isPrivateSender: \(wc\) => startPageSenderIsPrivate\(wc\),/);
 });
 
 test('each manager call is bridged, handled for the Favorites sheet only, and listed', () => {

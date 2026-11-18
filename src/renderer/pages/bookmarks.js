@@ -610,6 +610,6 @@
     });
   }
   // A change made anywhere else (the heart, /save, Sync, another window).
-  window.bowserPages.bookmarks.onChanged?.(() => { refresh(); });
+  window.bowserPages.bookmarks.onChanged?.(() => { if (manager) manager.refreshFromElsewhere(); else refreshFlat(); });
   refresh();
 })();

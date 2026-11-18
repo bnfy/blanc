@@ -2683,6 +2683,7 @@ body.fav-page .fav-row:hover { background: var(--surface); }
 body.fav-page .fav-row.selected,
 body.fav-page .fav-row.selected:hover { background: var(--accent-dim); border-color: transparent; }
 body.fav-page .fav-more { color: var(--text-dim); }
+.fav-menu-hint { display: block; max-width: 240px; margin-top: 2px; color: var(--text-dim); font-size: 11.5px; font-weight: 400; white-space: normal; }
 /* The Edit dialog: name, address, folder. */
 .fav-edit-title { margin: 0 0 6px; font-family: var(--font-text); font-size: 17px; font-weight: 600; }
 .fav-edit-label { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; color: var(--text-dim); font-family: var(--font-text); font-size: 12px; font-weight: 500; }

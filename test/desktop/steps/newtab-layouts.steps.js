@@ -247,6 +247,7 @@ Then('the Favorites page marks {string} as pinned to the Start Page', async func
   );
   const row = rows.find((candidate) => candidate.title === title);
   assert.equal(row.mark, 'Pinned to the Start Page');
+  assert.equal(row.focused, true, 'the keyboard stays on the row whose pin changed');
   assert.ok(rows.filter((candidate) => candidate.title !== title)
     .every((candidate) => !candidate.pinned && candidate.mark === null));
 });

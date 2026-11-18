@@ -248,7 +248,11 @@ function setupPages(hooks = {}) {
   handle('pages:tab-handoff:cancel', 'tab-handoff', () =>
     hooks.tabHandoff?.cancel?.() ?? { ok: true });
 
-  handle('pages:bookmarks:capabilities', 'bookmarks', () => ({ editable: true, tree: true }));
+  // A private tab can show Favorites (typed, or the private Start Page's
+  // link) but never pins, so it offers no Pin.
+  handleEvent('pages:bookmarks:capabilities', 'bookmarks', (event) => (hooks.isPrivateSender?.(event.sender)
+    ? { editable: true, tree: true, pins: false }
+    : { editable: true, tree: true }));
   handle('pages:bookmarks:list', ['bookmarks', 'newtab'], () => bookmarks.listBookmarks());
   // Start Page pins (start-page-pins.js): one device-local list that the
   // Start Page and the Favorites page read and change; main tells both when it

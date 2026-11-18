@@ -42,6 +42,7 @@
         });
       }
     },
+    has(name) { return escapeClaims.some((claim) => claim.name === name); },
     release(name) {
       const at = escapeClaims.findIndex((claim) => claim.name === name);
       if (at < 0) return;
@@ -152,6 +153,7 @@
     let naming = null;          // { kind: 'create' | 'rename', key?, path?, name?, draft }
     let editing = null;         // { key, id, title, url, draftTitle, draftUrl, focus, select, saving }
     let confirming = false;     // the selection bar asks before removing several
+    let pendingRefresh = false; // a change made elsewhere, waiting (refreshFromElsewhere)
     let drag = null;
 
     const say = (text) => { status.textContent = text; };
@@ -352,7 +354,10 @@
       selectionBar.replaceChildren();
       selectionBar.hidden = !editable || selected.size < 1 || searching();
       header.classList.toggle('selecting', !selectionBar.hidden);
-      if (selectionBar.hidden) { confirming = false; Escape.release('confirm'); return; }
+      if (selectionBar.hidden) { confirming = false; Escape.release('confirm'); Escape.release('selection'); return; }
+      // Escape clears the selection and brings the search back; a menu or
+      // dialog opened over it still answers Escape first.
+      if (!Escape.has('selection')) Escape.claim('selection', clearSelection);
       const keys = [...selected];
       if (confirming && keys.length < 2) { confirming = false; Escape.release('confirm'); }
       if (confirming) {
@@ -373,7 +378,7 @@
       clear.type = 'button';
       clear.setAttribute('aria-label', t('favorites.manager.clearSelection'));
       clear.title = t('favorites.manager.clearSelection');
-      clear.addEventListener('click', () => { selected = new Set(); wantListFocus = true; renderList(); });
+      clear.addEventListener('click', clearSelection);
       selectionBar.append(clear, el('span', 'fav-selection-count', t('favorites.manager.selected', { count: keys.length })));
       selectionBar.append(el('span', 'fav-selection-spacer'));
       const pages = childrenFor(keys).filter((c) => c.kind === 'favorite');
@@ -391,6 +396,19 @@
       removeBtn.addEventListener('click', askRemove);
       selectionBar.append(moveBtn, removeBtn);
     }
+    function clearSelection() {
+      selected = new Set();
+      anchor = null;
+      wantListFocus = true;
+      renderList();
+    }
+    // A click on the page outside the rows clears the selection too.
+    document.addEventListener('click', (event) => {
+      if (!selected.size || searching() || drag) return;
+      if (!event.target.closest?.('.page')) return;
+      if (event.target.closest('.fav-row, .fav-selection, .fav-menu, dialog, .fav-tree, .fav-pane-head')) return;
+      clearSelection();
+    });
     function askRemove() {
       if (selected.size === 1) { removeChildren(childrenFor([...selected])); return; }
       confirming = true;
@@ -460,8 +478,10 @@
     /** Pin or unpin a favorite on the Start Page; the keyboard stays on its
      * row’s pin. */
     async function togglePin(child) {
+      // The keyboard stays on the row whose pin changed.
+      focusKey = child.key;
+      wantListFocus = true;
       try { await pins.toggle(child.item); await refresh(); } catch (error) { showError(error); }
-      list.querySelector(`[data-key="${CSS.escape(child.key)}"] .pin-toggle`)?.focus();
     }
 
     function folderRow(child) {
@@ -512,9 +532,13 @@
       row.setAttribute('aria-selected', String(selected.has(key)));
       row.tabIndex = key === focusKey ? 0 : -1;
       row.classList.toggle('selected', selected.has(key));
+      let pointer = 'mouse';
+      row.addEventListener('pointerdown', (event) => { pointer = event.pointerType; });
       row.addEventListener('click', (event) => {
         const range = event.shiftKey;
-        const toggle = event.metaKey || event.ctrlKey;
+        // On a touch screen there is no Cmd or Ctrl: once one row is
+        // selected, a tap adds or removes another, as on a phone.
+        const toggle = event.metaKey || event.ctrlKey || (pointer === 'touch' && selected.size > 0);
         if ((range || toggle) && event.target.closest('a')) event.preventDefault();
         if (!range && !toggle && event.target.closest('a, button')) return;
         const next = Model.selectionAfterClick(drawnKeys(), selected, key, { toggle, range, anchor });
@@ -763,6 +787,7 @@
       if (!state) return;
       naming = null;
       Escape.release('naming');
+      queueMicrotask(flushPendingRefresh);
       const name = state.draft.trim();
       if (!keep || !name || (state.kind === 'rename' && name === state.name)) {
         wantListFocus = true;
@@ -893,7 +918,21 @@
         result = await api.edit(state.id, { title: titleInput.value, url: urlInput.value });
         const key = result?.key ?? state.key;
         const folder = folderInput.value || null;
-        if (result?.ok && !samePath(folder, state.folder)) result = await api.move([state.id], folder);
+        if (result?.ok && !samePath(folder, state.folder)) {
+          // The name and address are saved; a folder that can't take it
+          // says so the way any move does.
+          const moved = await api.move([state.id], folder);
+          if (moved?.ok === false) {
+            state.saving = false;
+            saveBtn.disabled = false;
+            endEditing();
+            fail(moved);
+            focusKey = key;
+            wantListFocus = true;
+            await refresh();
+            return;
+          }
+        }
         if (result?.ok) result = { ...result, key };
       } catch (error) {
         state.saving = false;
@@ -944,6 +983,7 @@
         renderSelectionBar();
         list.classList.toggle('has-selection', selected.size > 0);
       }
+      flushPendingRefresh();
     }
     function clearMarks() {
       for (const node of host.querySelectorAll('.drop-into, .drop-before, .drop-after')) {
@@ -1088,6 +1128,7 @@
       menu = null;
       menuAnchor = null;
       Escape.release('menu');
+      flushPendingRefresh();
       // Focus first: ⋮ is hidden at rest, and only an open menu or focus in
       // its row shows it.
       if (refocus) back?.focus?.({ preventScroll: true });
@@ -1121,6 +1162,9 @@
         if (item.indent) button.style.setProperty('--indent', String(item.indent));
         if (item.ignore) button.dataset.i18nIgnore = '';
         if (item.disabled) button.disabled = true;
+        // Why an item can't be used, under its label (a disabled item shows
+        // no tooltip).
+        if (item.hint) button.append(el('span', 'fav-menu-hint', item.hint));
         button.addEventListener('click', () => { closeMenu(); item.run(); });
         menu.append(button);
       }
@@ -1202,6 +1246,7 @@
         items.push({
           label: pin.pinned ? t('favorites.manager.unpin') : t('favorites.manager.pin'),
           disabled: !pin.pinned && pin.full,
+          hint: !pin.pinned && pin.full ? t('favorites.row.pinFull', { count: pin.max }) : undefined,
           run: () => togglePin(child),
         });
       }
@@ -1299,7 +1344,20 @@
       render();
     }
 
-    return { refresh };
+    // A change made elsewhere (Sync, the heart, another window) waits while a
+    // menu is open, a row is being dragged or a name is being typed, so it
+    // never closes, drops or re-creates what the person is using.
+    function refreshFromElsewhere() {
+      if (menu || drag || naming) { pendingRefresh = true; return; }
+      refresh();
+    }
+    function flushPendingRefresh() {
+      if (!pendingRefresh || menu || drag || naming) return;
+      pendingRefresh = false;
+      refresh();
+    }
+
+    return { refresh, refreshFromElsewhere };
   }
 
   root.FavoritesManager = { mount };

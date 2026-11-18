@@ -15894,6 +15894,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     restoreArchived: (id) => restoreArchivedEntry(id),
     // Start Page pins for the Start Page and the Favorites page. A private
     // start page reads them, as it reads Favorites, but never changes them.
+    isPrivateSender: (wc) => startPageSenderIsPrivate(wc),
     startPins: {
       list: () => listStartPagePins(),
       pin: (wc, page) => (startPageSenderIsPrivate(wc)

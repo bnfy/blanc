@@ -257,6 +257,24 @@ try {
   assert.equal(await sheet.evaluate(() => document.getElementById('favTop').classList.contains('selecting')), false);
   step('a click selects and the header becomes the selection bar; removing several asks with Cancel focused');
 
+  // Escape clears a selection; on a touch screen a tap adds a row to it.
+  await sheet.click('#manager .fav-row[data-url] .fav-main .url');
+  await settle();
+  await sheet.evaluate(() => {
+    const row = document.querySelectorAll('#manager .fav-row[data-url]')[1];
+    row.dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'touch', bubbles: true }));
+    row.querySelector('.fav-main .url').click();
+  });
+  await settle();
+  assert.equal(await sheet.evaluate(() => document.querySelectorAll('#manager .fav-row.selected').length), 2);
+  await sheet.keyboard.press('Escape');
+  await settle();
+  assert.deepEqual(await sheet.evaluate(() => ({
+    selected: document.querySelectorAll('#manager .fav-row.selected').length,
+    search: getComputedStyle(document.querySelector('.fav-search-box')).display,
+  })), { selected: 0, search: 'flex' });
+  step('Escape clears a selection and brings the search back; a tap adds a row on a touch screen');
+
   // Edit… opens a dialog: a new name and address, saved with Enter.
   const editing = await sheet.evaluate(() => window.__row('E') ? 'E' : document.querySelector('#manager .fav-row[data-url] .title').textContent);
   await sheet.evaluate((title) => window.__row(title).querySelector('.fav-more').click(), editing);

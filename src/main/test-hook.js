@@ -1813,6 +1813,7 @@ function install(refs) {
           title: row.querySelector('.title')?.textContent ?? '',
           pinned: row.classList.contains('start-pinned'),
           mark: row.querySelector('.row-pin-mark')?.getAttribute('aria-label') ?? null,
+          focused: document.activeElement === row,
         }));
       })()`);
     },
