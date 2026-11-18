@@ -428,9 +428,12 @@ From the desktop `DEFAULTS`:
 
 - Pages: **newtab** (the "ledger" start page), **favorites** (`blanc://bookmarks/`),
   **history**, **downloads**, **settings**, **shortcuts**, **error**.
-- **Presentation split:** the five *utility* pages (favorites, history, downloads,
-  settings, shortcuts) present as a **transient chrome surface** — on desktop a
+- **Presentation split:** the *utility* pages (history, downloads, settings,
+  shortcuts) present as a **transient chrome surface** — on desktop a
   sheet over a scrim — **never as tabs**; `newtab` and `error` remain tab content.
+  Favorites left the set on November 18, 2026 (owner's pick): on desktop it is
+  a full page in a tab of its own, like Chrome's bookmark manager; iPhone
+  already showed it as a page.
   Outbound activations (a history entry, a favorite) open
   real tabs and dismiss the surface. This is platform-neutral and maps to native
   sheet presentation on mobile — no divergence entry needed. Utility pages share

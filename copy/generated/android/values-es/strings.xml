@@ -1857,8 +1857,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="favorites_manager_error_cycle">Una carpeta no puede moverse dentro de sí misma.</string>
     <string name="favorites_manager_error_invalid">Ese nombre no se puede usar.</string>
     <string name="favorites_manager_error_missing">Esa carpeta ya no existe.</string>
-    <string name="favorites_manager_edit">Editar</string>
-    <string name="favorites_manager_edit_label">Editar %1$s</string>
+    <string name="favorites_manager_edit">Editar…</string>
     <string name="favorites_manager_edit_name">Nombre</string>
     <string name="favorites_manager_edit_address">Dirección</string>
     <string name="favorites_manager_edit_save">Guardar</string>
@@ -1866,6 +1865,11 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="favorites_manager_error_exists">Otro favorito ya tiene esa dirección.</string>
     <string name="favorites_manager_error_invalid_url">Escribe una dirección web, como example.com.</string>
     <string name="favorites_manager_error_favorite_missing">Ese favorito ya no existe.</string>
+    <string name="favorites_manager_open_new_tab">Abrir en una pestaña nueva</string>
+    <string name="favorites_manager_open_all">Abrir todos</string>
+    <string name="favorites_manager_edit_title">Editar favorito</string>
+    <string name="favorites_manager_edit_folder">Carpeta</string>
+    <string name="favorites_manager_more_short">Más acciones</string>
     <string name="favorites_import_menu">Traer mis cosas a Blanc</string>
     <plurals name="favorites_manager_results">
         <item quantity="one">%1$d resultado</item>

@@ -601,9 +601,12 @@ Given('a favorite for {string} exists', async function (host) {
   await this.call('seedFavorite', `https://${host}/`, host);
 });
 
-Given('the favorites page is open in the utility sheet', async function () {
+// Favorites is a page in a tab of its own (owner, November 18, 2026).
+const activeUrl = (s) => s.tabs.find((t) => t.id === s.activeTabId)?.url ?? '';
+
+Given('the favorites page is open', async function () {
   await this.call('openFavoritesSheet');
-  await untilSurface(this, (s) => s.visible && s.ready, 'favorites sheet to open');
+  await waitForValue(() => this.call('favoritesPageReady'), Boolean, 'the Favorites tab to load');
   this.tabStateBefore = await this.call('state');
 });
 
@@ -611,7 +614,20 @@ When('I follow its {string} navigation link', async function (label) {
   assert.strictEqual(label, 'Favorites', 'the ledger has exactly one nav link');
   this.tabStateBefore = await this.call('state');
   await this.call('followNewtabFavoritesLink');
-  await untilSurface(this, (s) => s.visible && s.ready, 'sheet to open from ledger link');
+  await this.waitForState((s) => activeUrl(s).startsWith('blanc://bookmarks/'));
+});
+
+Then('the favorites page opens in the active tab under the blanc scheme', async function () {
+  const now = await this.call('state');
+  assert.ok(activeUrl(now).startsWith('blanc://bookmarks/'), `active tab is on ${activeUrl(now)}`);
+  assert.strictEqual(await this.call('utilitySurface').then((s) => !!s?.visible).catch(() => false), false,
+    'Favorites never opens the utility sheet');
+});
+
+Then('the Favorites tab now shows {string}', async function (host) {
+  const now = await this.waitForState((s) => activeUrl(s).includes(host));
+  assert.strictEqual(now.tabs.length, this.tabStateBefore.tabs.length, 'no new tab');
+  assert.strictEqual(now.activeTabId, this.tabStateBefore.activeTabId, 'the same tab');
 });
 
 When('I open the downloads page', async function () {
@@ -622,7 +638,7 @@ When('I open the downloads page', async function () {
 
 When('I activate that favorite', async function () {
   await this.call('clickFirstSheetLink');
-  await this.waitForState((s) => s.tabs.length === this.tabStateBefore.tabs.length + 1);
+  await this.waitForState((s) => /^https?:/.test(activeUrl(s)));
 });
 
 When('the utility sheet contents are destroyed', async function () {

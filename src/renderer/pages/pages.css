@@ -2105,7 +2105,7 @@ body.fav-manager-page #importStatus:empty { display: none; }
 .fav-title-block { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 auto; }
 .fav-crumbs { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px; min-width: 0; margin-left: -5px; }
 .fav-crumbs[hidden] { display: none; }
-body.sheet .fav-crumb {
+body.fav-page .fav-crumb {
   min-height: 0;
   padding: 1px 5px;
   border: 0;
@@ -2115,9 +2115,9 @@ body.sheet .fav-crumb {
   font-size: 12px;
   font-weight: 400;
 }
-body.sheet .fav-crumb:hover { color: var(--text); background: var(--accent-dim); }
+body.fav-page .fav-crumb:hover { color: var(--text); background: var(--accent-dim); }
 .fav-crumb-sep { color: var(--text-dim); font-size: 11px; }
-body.sheet .fav-heading {
+body.fav-page .fav-heading {
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2131,9 +2131,9 @@ body.sheet .fav-heading {
 }
 .fav-folder-select { display: none; }
 .fav-tools { display: flex; align-items: center; gap: 8px; flex: none; }
-body.sheet .fav-new-folder,
-body.sheet .fav-bar-button,
-body.sheet .import-trigger {
+body.fav-page .fav-new-folder,
+body.fav-page .fav-bar-button,
+body.fav-page .import-trigger {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -2148,15 +2148,15 @@ body.sheet .import-trigger {
   white-space: nowrap;
   transition: background-color 120ms ease, transform 100ms ease-out;
 }
-body.sheet .fav-new-folder:hover,
-body.sheet .fav-bar-button:hover,
-body.sheet .import-trigger:hover { background: var(--surface); border-color: var(--border); }
-body.sheet .fav-new-folder:active,
-body.sheet .fav-bar-button:active,
-body.sheet .import-trigger:active { transform: scale(0.98); }
+body.fav-page .fav-new-folder:hover,
+body.fav-page .fav-bar-button:hover,
+body.fav-page .import-trigger:hover { background: var(--surface); border-color: var(--border); }
+body.fav-page .fav-new-folder:active,
+body.fav-page .fav-bar-button:active,
+body.fav-page .import-trigger:active { transform: scale(0.98); }
 .fav-tool-glyph { width: 16px; height: 16px; background-color: currentColor; }
-body.sheet .fav-bar-button.danger { color: var(--danger); }
-body.sheet .fav-bar-button.danger:hover { color: var(--on-danger); background: var(--danger); border-color: var(--danger); }
+body.fav-page .fav-bar-button.danger { color: var(--danger); }
+body.fav-page .fav-bar-button.danger:hover { color: var(--on-danger); background: var(--danger); border-color: var(--danger); }
 
 /* Rows selected: a bar of what can be done to them. */
 .fav-selection {
@@ -2203,27 +2203,6 @@ body.sheet .fav-bar-button.danger:hover { color: var(--on-danger); background: v
 .fav-row.selected:hover { background: var(--accent-dim); border-color: var(--accent); }
 .fav-row:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 1px; }
 
-/* The select circle: on hover or focus, and on every row once any is
-   selected, as in Edge. */
-.fav-check {
-  flex: none;
-  box-sizing: border-box;
-  width: 18px;
-  height: 18px;
-  border: 1.5px solid var(--text-dim);
-  border-radius: 50%;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 120ms ease, background-color 120ms ease, border-color 120ms ease;
-}
-.fav-row:is(:hover, :focus-visible) .fav-check,
-.fav-list.has-selection .fav-check { opacity: 1; }
-.fav-name-row .fav-check { visibility: hidden; }
-.fav-row.selected .fav-check {
-  border-color: var(--accent);
-  background: var(--accent) no-repeat center / 11px 11px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m2.5 6.25 2.25 2.25 4.75-5'/%3E%3C/svg%3E");
-}
 .fav-row .row-icon { flex: 0 0 20px; width: 20px; height: 20px; border-radius: 5px; }
 .fav-row .row-icon img { width: 20px; height: 20px; }
 .fav-row-folder { flex: none; display: grid; place-items: center; width: 20px; height: 20px; }
@@ -2259,7 +2238,7 @@ body.sheet .fav-bar-button.danger:hover { color: var(--on-danger); background: v
 .fav-address { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
 .fav-address .url { flex: 0 1 auto; min-width: 0; }
 .fav-address .fav-path { flex: 0 0 auto; }
-body.sheet .fav-folder-open {
+body.fav-page .fav-folder-open {
   min-height: 0;
   padding: 0;
   border: 0;
@@ -2268,7 +2247,7 @@ body.sheet .fav-folder-open {
   text-align: left;
   cursor: pointer;
 }
-body.sheet .fav-folder-open:hover { text-decoration: underline; text-underline-offset: 2px; }
+body.fav-page .fav-folder-open:hover { text-decoration: underline; text-underline-offset: 2px; }
 .fav-meta {
   flex: none;
   display: flex;
@@ -2279,7 +2258,7 @@ body.sheet .fav-folder-open:hover { text-decoration: underline; text-underline-o
   font-size: 11.5px;
 }
 .fav-meta:empty { display: none; }
-body.sheet .fav-path {
+body.fav-page .fav-path {
   max-width: 200px;
   min-height: 0;
   overflow: hidden;
@@ -2292,27 +2271,9 @@ body.sheet .fav-path {
   color: var(--text-dim);
   font-size: 11.5px;
 }
-body.sheet .fav-path:hover { color: var(--text); }
+body.fav-page .fav-path:hover { color: var(--text); }
 
-/* Pin and ⋯ show on hover or focus; the × is always there. At rest they
-   take no room, so the address runs to the ×; the name and address columns
-   start where they always do. Collapsed, not display: none, so focus can
-   still return to them after a redraw (and then shows them). */
-.fav-actions { flex: none; display: flex; align-items: center; gap: 2px; }
-body.sheet .fav-row :is(.fav-row-pin, .fav-more) {
-  max-width: 0;
-  padding-inline: 0;
-  overflow: hidden;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 120ms ease;
-}
-body.sheet .fav-row:is(:hover, :focus-within) :is(.fav-row-pin, .fav-more),
-body.sheet .fav-row .fav-more[aria-expanded="true"] { max-width: 120px; opacity: 1; pointer-events: auto; }
-body.sheet .fav-row:is(:hover, :focus-within) .fav-row-pin { padding-inline: 8px; }
-body.sheet .fav-row-pin,
-body.sheet .fav-more,
-body.sheet .fav-remove {
+body.fav-page .fav-more {
   min-height: 28px;
   padding: 0 8px;
   border: 0;
@@ -2322,43 +2283,18 @@ body.sheet .fav-remove {
   font-size: 12.5px;
   font-weight: 500;
 }
-body.sheet .fav-row-pin:hover,
-body.sheet .fav-more:hover,
-body.sheet .fav-remove:hover { background: var(--border); color: var(--text); }
-body.sheet .fav-row-pin:disabled { opacity: 0.5; }
-body.sheet .fav-more,
-body.sheet .fav-remove { display: grid; place-items: center; width: 28px; padding: 0; }
-.fav-more::before { content: "\22EF"; font-size: 16px; line-height: 1; }
-.fav-remove::before {
-  content: "";
-  width: 12px;
-  height: 12px;
-  background-color: currentColor;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='m2.5 2.5 7 7m0-7-7 7'/%3E%3C/svg%3E") center / contain no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='m2.5 2.5 7 7m0-7-7 7'/%3E%3C/svg%3E") center / contain no-repeat;
-}
+body.fav-page .fav-more:hover { background: var(--border); color: var(--text); }
+body.fav-page .fav-more { display: grid; place-items: center; width: 28px; padding: 0; }
+.fav-more::before { content: "\22EE"; font-size: 16px; line-height: 1; }
 
 .fav-name-row { gap: 12px; }
-body.sheet .fav-name-input {
+body.fav-page .fav-name-input {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 30px;
   padding: 0 10px;
   border-radius: var(--radius-sm);
 }
-/* A favorite being edited: its name and address in the row's own columns. */
-.fav-edit-fields { align-items: center; }
-body.sheet .fav-edit-input {
-  min-width: 0;
-  min-height: 30px;
-  padding: 0 10px;
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-}
-body.sheet .fav-edit-actions { gap: 6px; }
-body.sheet .fav-edit-actions .fav-bar-button { min-height: 30px; padding: 0 12px; }
-body.sheet .fav-edit-actions .fav-edit-save,
-body.sheet .fav-edit-actions .fav-edit-save:hover { border-color: var(--accent); background: var(--accent); color: var(--bg); }
 .fav-empty {
   padding: 26px 16px;
   border: 1px dashed var(--border);
@@ -2402,7 +2338,7 @@ body.sheet .fav-edit-actions .fav-edit-save:hover { border-color: var(--accent);
   gap: 1px;
   animation: fav-grow-in 150ms cubic-bezier(0.2, 0.9, 0.25, 1);
 }
-body.sheet .fav-menu-item {
+body.fav-page .fav-menu-item {
   --indent: 0;
   display: block;
   width: 100%;
@@ -2419,17 +2355,17 @@ body.sheet .fav-menu-item {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-body.sheet .fav-menu-item:is(:hover, :focus-visible):not(:disabled) { background: var(--accent-dim); color: var(--text); outline: none; }
-body.sheet .fav-menu-item:disabled { color: var(--text-dim); opacity: 0.55; cursor: default; }
+body.fav-page .fav-menu-item:is(:hover, :focus-visible):not(:disabled) { background: var(--accent-dim); color: var(--text); outline: none; }
+body.fav-page .fav-menu-item:disabled { color: var(--text-dim); opacity: 0.55; cursor: default; }
 /* Out-rank the sheet's filled button.danger: a menu item stays a plain row. */
-body.sheet .fav-menu-item.danger {
+body.fav-page .fav-menu-item.danger {
   padding: 6px 10px 6px calc(10px + var(--indent) * 12px);
   border: 0;
   color: var(--danger);
   background: transparent;
   box-shadow: none;
 }
-body.sheet .fav-menu-item.danger:is(:hover, :focus-visible) { color: var(--danger); background: var(--accent-dim); }
+body.fav-page .fav-menu-item.danger:is(:hover, :focus-visible) { color: var(--danger); background: var(--accent-dim); }
 .fav-menu-sep { height: 1px; margin: 4px 8px; background: var(--border); }
 
 /* "Bring my stuff to Blanc": one button, one dialog, as in Chrome and Edge. */
@@ -2439,7 +2375,8 @@ body.sheet .fav-menu-item.danger:is(:hover, :focus-visible) { color: var(--dange
 .import-glyph-arrive::before {
   --fav-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2v8m-3.25-3.25L8 10l3.25-3.25M2.75 11.5v1.25c0 .55.45 1 1 1h8.5c.55 0 1-.45 1-1V11.5'/%3E%3C/svg%3E");
 }
-.import-dialog {
+.import-dialog,
+.fav-edit-dialog {
   box-sizing: border-box;
   width: min(420px, calc(100vw - 32px));
   max-height: calc(100vh - 32px);
@@ -2452,10 +2389,13 @@ body.sheet .fav-menu-item.danger:is(:hover, :focus-visible) { color: var(--dange
   border-radius: var(--radius-lg);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22), 0 2px 6px rgba(0, 0, 0, 0.08);
 }
-.import-dialog[open] { animation: fav-grow-in 180ms cubic-bezier(0.2, 0.9, 0.25, 1); }
-.import-dialog::backdrop { background: rgba(0, 0, 0, 0.28); animation: fav-fade-in 180ms ease; }
-.import-dialog form { display: flex; flex-direction: column; gap: 0; margin: 0; padding: 22px 22px 18px; }
-body.sheet .import-dialog h2 {
+.import-dialog[open],
+.fav-edit-dialog[open] { animation: fav-grow-in 180ms cubic-bezier(0.2, 0.9, 0.25, 1); }
+.import-dialog::backdrop,
+.fav-edit-dialog::backdrop { background: rgba(0, 0, 0, 0.28); animation: fav-fade-in 180ms ease; }
+.import-dialog form,
+.fav-edit-dialog form { display: flex; flex-direction: column; gap: 0; margin: 0; padding: 22px 22px 18px; }
+body.fav-page .import-dialog h2 {
   margin: 0 0 6px;
   color: var(--text);
   font-family: var(--font-text);
@@ -2479,7 +2419,7 @@ body.sheet .import-dialog h2 {
   font-size: 12.5px;
   font-weight: 600;
 }
-body.sheet .import-source { width: 100%; min-height: 34px; }
+body.fav-page .import-source { width: 100%; min-height: 34px; }
 .import-what {
   display: flex;
   flex-direction: column;
@@ -2498,7 +2438,8 @@ body.sheet .import-source { width: 100%; min-height: 34px; }
   cursor: pointer;
 }
 /* Native controls follow the theme, so an unticked box is not a white tile in Dark. */
-.import-dialog { color-scheme: light dark; }
+.import-dialog,
+.fav-edit-dialog { color-scheme: light dark; }
 .import-check input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
 .import-guidance,
 .import-note {
@@ -2510,7 +2451,7 @@ body.sheet .import-source { width: 100%; min-height: 34px; }
 }
 .import-note:empty, .import-guidance[hidden] { display: none; }
 .import-buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; }
-body.sheet .import-buttons button {
+body.fav-page .import-buttons button {
   min-height: 32px;
   padding: 0 16px;
   border-radius: var(--radius-md);
@@ -2518,12 +2459,12 @@ body.sheet .import-buttons button {
   font-weight: 500;
   transition: background-color 120ms ease, transform 100ms ease-out;
 }
-body.sheet #importCancelBtn { border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); }
-body.sheet #importCancelBtn:hover { background: var(--surface); }
-body.sheet .import-go { border: 0; background: var(--accent); color: var(--bg); }
-body.sheet .import-go:hover:not(:disabled) { filter: brightness(1.08); }
-body.sheet .import-go:disabled { opacity: 0.5; cursor: default; }
-body.sheet .import-buttons button:active:not(:disabled) { transform: scale(0.98); }
+body.fav-page #importCancelBtn { border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); }
+body.fav-page #importCancelBtn:hover { background: var(--surface); }
+body.fav-page .import-go { border: 0; background: var(--accent); color: var(--bg); }
+body.fav-page .import-go:hover:not(:disabled) { filter: brightness(1.08); }
+body.fav-page .import-go:disabled { opacity: 0.5; cursor: default; }
+body.fav-page .import-buttons button:active:not(:disabled) { transform: scale(0.98); }
 
 @keyframes fav-grow-in {
   from { opacity: 0; transform: scale(0.96); }
@@ -2537,15 +2478,15 @@ body.sheet .import-buttons button:active:not(:disabled) { transform: scale(0.98)
   .fav-twisty::before,
   .fav-tree-row,
   .fav-row,
-  .fav-check,
   .fav-new-folder,
   .fav-bar-button,
   .import-trigger,
   .import-buttons button { transition: none; }
   .fav-menu:popover-open,
-  .import-dialog[open] { animation: fav-fade-in 120ms ease; }
+  .import-dialog[open],
+  .fav-edit-dialog[open] { animation: fav-fade-in 120ms ease; }
   .fav-selection { animation: none; }
-  body.sheet :is(.fav-new-folder, .fav-bar-button, .import-trigger, .import-buttons button):active { transform: none; }
+  body.fav-page :is(.fav-new-folder, .fav-bar-button, .import-trigger, .import-buttons button):active { transform: none; }
 }
 /* Narrow sheets: search stays on top; a folder menu replaces the tree, and
    the address column gives way to the name. */
@@ -2558,11 +2499,202 @@ body.sheet .import-buttons button:active:not(:disabled) { transform: scale(0.98)
   .fav-folder-select { display: block; flex: 1 1 160px; max-width: 100%; }
   .fav-main { grid-template-columns: minmax(0, 1fr) auto; }
   .fav-main .url { display: none; }
-  .fav-edit-fields.fav-main { grid-template-columns: minmax(0, 1fr); gap: 6px; }
 }
 /* While searching, results span every folder: no folder menu. */
 .fav-pane.searching .fav-folder-select,
 .fav-pane.searching .fav-new-folder { visibility: hidden; }
+
+/* ---------- The Favorites page (direction C) ----------
+   Owner's pick, November 18, 2026: Favorites is a page of its own in a tab,
+   like Chrome's bookmark manager. A header with the search (it becomes the
+   selection bar while rows are selected), the folder tree on the left, one
+   plain list on the right with a menu on every row, and an Edit dialog. It
+   carries the sheets' Sunrise palette. */
+body.fav-page {
+  --bg: var(--sunrise-bg);
+  --surface: var(--sunrise-surface);
+  --surface-raised: var(--sunrise-surface-raised);
+  --border: var(--sunrise-border);
+  --text: var(--sunrise-text);
+  --text-dim: var(--sunrise-text-dim);
+  --accent: var(--sunrise-accent);
+  --accent-dim: var(--sunrise-accent-dim);
+  --radius: var(--radius-md);
+  --fav-head-h: 68px;
+  min-height: 100vh;
+  background: var(--bg);
+}
+html:has(body.fav-page) { background: var(--sunrise-bg); }
+body.fav-page .page { max-width: none; margin: 0; padding: 0 32px 48px; }
+body.fav-page .page-nav { display: none; }
+body.fav-page .fav-top {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: var(--fav-head-h);
+  margin: 0 -32px 22px;
+  padding: 0 32px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+body.fav-page .fav-top h1 {
+  flex: 0 0 auto;
+  width: 230px;
+  margin: 0;
+  font-family: var(--font-text);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+body.fav-page .fav-top .fav-tools { flex: 1 1 auto; display: flex; align-items: center; gap: 8px; min-width: 0; }
+body.fav-page .fav-top .import-actions { display: flex; }
+body.fav-page .fav-top .import-actions[hidden] { display: none; }
+.fav-search-box {
+  flex: 1 1 auto;
+  max-width: 560px;
+  margin-right: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  height: 40px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--text-dim);
+  transition: background-color 140ms ease, box-shadow 140ms ease;
+}
+.fav-search-box:focus-within { background: var(--surface-raised); box-shadow: 0 0 0 1px var(--text-dim); }
+.fav-search-glyph {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='4.75'/%3E%3Cpath d='m10.5 10.5 3.25 3.25'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='4.75'/%3E%3Cpath d='m10.5 10.5 3.25 3.25'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+body.fav-page .fav-search {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--text);
+  font-size: 13.5px;
+}
+body.fav-page .fav-search:focus { outline: none; box-shadow: none; }
+/* Rows selected: the header becomes the selection bar, as in Chrome. */
+body.fav-page .fav-top.selecting > :not(.fav-selection) { display: none; }
+body.fav-page .fav-selection {
+  flex: 1 1 auto;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 8px 0 6px;
+  border-radius: var(--radius-lg);
+}
+body.fav-page .fav-selection-count { flex: 0 0 auto; }
+.fav-selection-spacer { flex: 1 1 auto; }
+body.fav-page .fav-selection-clear {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+}
+body.fav-page .fav-selection-clear:hover { background: var(--accent-dim); }
+.fav-selection-clear::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='m2.5 2.5 7 7m0-7-7 7'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='m2.5 2.5 7 7m0-7-7 7'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+/* The tree sits below the header, sticky as the list scrolls. */
+body.fav-page .fav-manager { grid-template-columns: 230px minmax(0, 1fr); gap: 32px; }
+body.fav-page .fav-tree { top: calc(var(--fav-head-h) + 22px); max-height: calc(100vh - var(--fav-head-h) - 44px); }
+body.fav-page .fav-tree-row { min-height: 34px; border-radius: var(--radius-full); }
+/* One plain list in one raised card, rows split by hairlines. A filled row
+   (hover, selected) is an inset pill, so two never touch. */
+body.fav-page .fav-list {
+  gap: 0;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+}
+body.fav-page .fav-list:has(> .fav-empty) { padding: 0; border: 0; background: none; }
+body.fav-page .fav-group { gap: 0; }
+body.fav-page .fav-group + .fav-group { margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--border); }
+body.fav-page .fav-row {
+  min-height: 42px;
+  padding: 0 4px 0 12px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+}
+body.fav-page .fav-row + .fav-row { margin-top: 2px; }
+body.fav-page .fav-row + .fav-row::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: 12px;
+  right: 12px;
+  height: 1px;
+  background: var(--border);
+}
+body.fav-page .fav-row:is(:hover, .selected) + .fav-row::before,
+body.fav-page .fav-row:is(:hover, .selected)::before { opacity: 0; }
+body.fav-page .fav-row:hover { background: var(--surface); }
+body.fav-page .fav-row.selected,
+body.fav-page .fav-row.selected:hover { background: var(--accent-dim); border-color: transparent; }
+body.fav-page .fav-more { color: var(--text-dim); }
+/* The Edit dialog: name, address, folder. */
+.fav-edit-title { margin: 0 0 6px; font-family: var(--font-text); font-size: 17px; font-weight: 600; }
+.fav-edit-label { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; color: var(--text-dim); font-family: var(--font-text); font-size: 12px; font-weight: 500; }
+body.fav-page .fav-edit-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 36px;
+  padding: 0 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-raised);
+  color: var(--text);
+  font-family: var(--font-text);
+  font-size: 13.5px;
+  font-weight: 400;
+}
+body.fav-page .fav-edit-folder { padding-right: 28px; }
+body.fav-page .fav-edit-input:focus { outline: none; border-color: var(--text-dim); }
+body.fav-page .fav-edit-input[aria-invalid="true"] { border-color: var(--danger); }
+.fav-edit-error { margin: 0; color: var(--danger); font-size: 12px; font-weight: 400; }
+.fav-edit-error:empty { display: none; }
+.fav-edit-buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; }
+body.fav-page .fav-edit-save { border-color: var(--accent); background: var(--accent); color: var(--bg); }
+body.fav-page .fav-edit-save:hover { border-color: var(--accent); background: var(--accent); filter: brightness(1.08); }
+body.fav-page .fav-edit-save:disabled { opacity: 0.5; }
+@media (max-width: 720px) {
+  body.fav-page .page { padding-inline: 16px; }
+  body.fav-page .fav-top { flex-wrap: wrap; gap: 10px; margin-inline: -16px; padding: 12px 16px; }
+  body.fav-page .fav-top h1 { width: auto; }
+  body.fav-page .fav-top .fav-tools { flex-basis: 100%; }
+  body.fav-page .fav-manager { grid-template-columns: minmax(0, 1fr); }
+}
 
 /* ---------- Utility sheet presentation (body.sheet) ----------
    The sheet WebContentsView is transparent; the page draws the scrim

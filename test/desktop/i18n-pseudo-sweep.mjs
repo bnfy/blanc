@@ -456,8 +456,8 @@ const SETTINGS_SURFACES = [
   },
 ].map((surface) => ({ ...surface, files: SETTINGS_FILES }));
 
-// The Favorites, History, Downloads and Shortcuts sheets. Favorites shows its
-// empty state, then a favorite filed in a folder with the folder picker open.
+// The Favorites page (a tab) and the History, Downloads and Shortcuts sheets.
+// Favorites shows its empty state, then a favorite filed in a folder.
 const UTILITY_FILES = ['src/renderer/pages/sheet.js', 'src/renderer/pages/row-icon.js'];
 const openSheet = async ({ app, chrome }, name, ready) => {
   await chrome.evaluate((url) => window.browserAPI.createTab(url), `blanc://${name}/`);
@@ -468,12 +468,12 @@ const openSheet = async ({ app, chrome }, name, ready) => {
 const UTILITY_SURFACES = [
   {
     name: 'favorites (empty)',
-    files: ['src/renderer/pages/bookmarks.html', 'src/renderer/pages/bookmarks.js', 'src/renderer/pages/favorites-manager.js', ...UTILITY_FILES],
+    files: ['src/renderer/pages/bookmarks.html', 'src/renderer/pages/bookmarks.js', 'src/renderer/pages/favorites-manager.js', 'src/renderer/pages/row-icon.js'],
     open: (ctx) => openSheet(ctx, 'bookmarks', () => document.querySelector('#manager .empty')),
   },
   {
     name: 'favorites (folder menu)',
-    files: ['src/renderer/pages/bookmarks.html', 'src/renderer/pages/bookmarks.js', 'src/renderer/pages/favorites-manager.js', ...UTILITY_FILES],
+    files: ['src/renderer/pages/bookmarks.html', 'src/renderer/pages/bookmarks.js', 'src/renderer/pages/favorites-manager.js', 'src/renderer/pages/row-icon.js'],
     open: async (ctx) => {
       const id = await callTestHook(ctx.app, 'openTab', [permissionPageUrl]);
       await waitForValue(async () => (await callTestHook(ctx.app, 'state')).tabs.find((t) => t.id === id && !t.isLoading), Boolean, 'page to favorite');

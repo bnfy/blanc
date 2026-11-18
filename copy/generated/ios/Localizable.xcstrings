@@ -73778,85 +73778,43 @@
       }
     },
     "favorites.manager.edit": {
-      "comment": "Favorites manager: a favorite's menu item that opens its name and address for editing.",
+      "comment": "Favorites page: a favorite's menu item that opens the Edit dialog (name, address and folder).",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Edit"
+            "value": "Edit…"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bearbeiten"
+            "value": "Bearbeiten…"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Editar"
+            "value": "Editar…"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Modifier"
+            "value": "Modifier…"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Modifica"
+            "value": "Modifica…"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Editar"
-          }
-        }
-      }
-    },
-    "favorites.manager.editLabel": {
-      "comment": "Favorites manager: accessible name of the row being edited. {title} is the favorite's current name.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Edit %1$@"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ bearbeiten"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Editar %1$@"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Modifier %1$@"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Modifica %1$@"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Editar %1$@"
+            "value": "Editar…"
           }
         }
       }
@@ -74151,6 +74109,216 @@
           "stringUnit": {
             "state": "translated",
             "value": "Esse favorito não existe mais."
+          }
+        }
+      }
+    },
+    "favorites.manager.openNewTab": {
+      "comment": "Favorites page: a favorite's menu item that opens it in a new tab beside the Favorites tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in new tab"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In neuem Tab öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir en una pestaña nueva"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir dans un nouvel onglet"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri in una nuova scheda"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir em nova guia"
+          }
+        }
+      }
+    },
+    "favorites.manager.openAll": {
+      "comment": "Favorites page: selection bar button that opens every selected favorite in its own new tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open all"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir todos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout ouvrir"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri tutti"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir todos"
+          }
+        }
+      }
+    },
+    "favorites.manager.editTitle": {
+      "comment": "Favorites page: title of the dialog that changes a favorite's name, address and folder.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit favorite"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorit bearbeiten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editar favorito"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifier le favori"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifica preferito"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editar favorito"
+          }
+        }
+      }
+    },
+    "favorites.manager.editFolder": {
+      "comment": "Favorites page: label of the Edit dialog's folder menu.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folder"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ordner"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carpeta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dossier"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cartella"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pasta"
+          }
+        }
+      }
+    },
+    "favorites.manager.moreShort": {
+      "comment": "Favorites page: tooltip of the ⋮ menu button on every row.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More actions"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weitere Aktionen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más acciones"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autres actions"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Altre azioni"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mais ações"
           }
         }
       }

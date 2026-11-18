@@ -271,7 +271,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "47e4ec0245e83ce8a75d87c737b83b2a482c21958ce9a67f8eaf55bb6bdab150",
+      "sha256": "2a7728d17cd62946fdaa464c6a7d6bb05e1cc14cc51fd0f162ae58dff7286549",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -418,6 +418,7 @@
         "page-tint:changed",
         "page-title-updated",
         "pages:blocking:status",
+        "pages:bookmarks:changed",
         "pages:pins:changed",
         "pages:settings:appearance",
         "pages:settings:sync-pair-joined",
@@ -1003,7 +1004,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "ae622ac45e10bd769c9e5150119ea648e378af5e9bda802ceec62fc37b512101",
+      "sha256": "bdd4c4be0141db510ffdea35fa6c12af679719a519a9b69eaea17d07d5d40281",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -1020,6 +1021,7 @@
         "pages:blocking:status",
         "pages:bookmarks:browser-sources",
         "pages:bookmarks:capabilities",
+        "pages:bookmarks:changed",
         "pages:bookmarks:clear-favicon",
         "pages:bookmarks:create-folder",
         "pages:bookmarks:edit",

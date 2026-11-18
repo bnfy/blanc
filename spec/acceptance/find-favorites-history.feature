@@ -30,7 +30,7 @@ Feature: Find in page, favorites, and history
   @F9-3 @F9 @all
   Scenario: Favorites rows show each site's icon
     Given a favorite for "https://icon.example/" with a saved icon
-    And the favorites page is open in the utility sheet
+    And the favorites page is open
     Then every favorites row shows a site icon
 
   @F63-1 @F63 @F9 @desktop
@@ -53,7 +53,7 @@ Feature: Find in page, favorites, and history
   Scenario: Editing a favorite changes its name and address, and its Start Page pin follows
     Given the Start Page has no pins
     And a favorite for "https://old.example/" titled "Old name" in no folder
-    And the favorites page is open in the utility sheet
+    And the favorites page is open
     When I pin "Old name" from the Favorites page
     And I edit the favorite "Old name" to "New name" at "new.example/page"
     Then the Favorites page shows "New name" at "https://new.example/page"

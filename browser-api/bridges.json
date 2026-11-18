@@ -36,7 +36,6 @@
         "channel": "pages:surface:close",
         "hosts": [
           "tab-handoff",
-          "bookmarks",
           "history",
           "downloads",
           "shortcuts",
@@ -53,7 +52,6 @@
         "channel": "pages:surface:escape-arm",
         "hosts": [
           "tab-handoff",
-          "bookmarks",
           "history",
           "downloads",
           "shortcuts",
@@ -78,7 +76,6 @@
         "channel": "pages:surface:escape",
         "hosts": [
           "tab-handoff",
-          "bookmarks",
           "history",
           "downloads",
           "shortcuts",
@@ -441,6 +438,17 @@
         ],
         "returns": "unknown",
         "doc": "Change one Favorite's name and address."
+      },
+      {
+        "name": "bookmarks.onChanged",
+        "kind": "event",
+        "channel": "pages:bookmarks:changed",
+        "hosts": [
+          "bookmarks"
+        ],
+        "payload": null,
+        "doc": "Favorites changed somewhere else; read them again.",
+        "unsubscribe": false
       },
       {
         "name": "start.data",

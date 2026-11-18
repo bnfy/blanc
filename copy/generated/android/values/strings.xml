@@ -1806,8 +1806,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="favorites_manager_error_cycle">A folder can’t move into itself.</string>
     <string name="favorites_manager_error_invalid">That name can’t be used.</string>
     <string name="favorites_manager_error_missing">That folder no longer exists.</string>
-    <string name="favorites_manager_edit">Edit</string>
-    <string name="favorites_manager_edit_label">Edit %1$s</string>
+    <string name="favorites_manager_edit">Edit…</string>
     <string name="favorites_manager_edit_name">Name</string>
     <string name="favorites_manager_edit_address">Address</string>
     <string name="favorites_manager_edit_save">Save</string>
@@ -1815,6 +1814,11 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="favorites_manager_error_exists">Another favorite already has that address.</string>
     <string name="favorites_manager_error_invalid_url">Enter a web address, such as example.com.</string>
     <string name="favorites_manager_error_favorite_missing">That favorite no longer exists.</string>
+    <string name="favorites_manager_open_new_tab">Open in new tab</string>
+    <string name="favorites_manager_open_all">Open all</string>
+    <string name="favorites_manager_edit_title">Edit favorite</string>
+    <string name="favorites_manager_edit_folder">Folder</string>
+    <string name="favorites_manager_more_short">More actions</string>
     <string name="favorites_import_menu">Bring my stuff to Blanc</string>
     <plurals name="favorites_manager_results">
         <item quantity="one">%1$d result</item>

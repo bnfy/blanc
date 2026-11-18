@@ -1857,8 +1857,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="favorites_manager_error_cycle">Una cartella non può essere spostata in se stessa.</string>
     <string name="favorites_manager_error_invalid">Questo nome non può essere usato.</string>
     <string name="favorites_manager_error_missing">Questa cartella non esiste più.</string>
-    <string name="favorites_manager_edit">Modifica</string>
-    <string name="favorites_manager_edit_label">Modifica %1$s</string>
+    <string name="favorites_manager_edit">Modifica…</string>
     <string name="favorites_manager_edit_name">Nome</string>
     <string name="favorites_manager_edit_address">Indirizzo</string>
     <string name="favorites_manager_edit_save">Salva</string>
@@ -1866,6 +1865,11 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="favorites_manager_error_exists">Un altro preferito ha già questo indirizzo.</string>
     <string name="favorites_manager_error_invalid_url">Inserisci un indirizzo web, ad esempio example.com.</string>
     <string name="favorites_manager_error_favorite_missing">Questo preferito non esiste più.</string>
+    <string name="favorites_manager_open_new_tab">Apri in una nuova scheda</string>
+    <string name="favorites_manager_open_all">Apri tutti</string>
+    <string name="favorites_manager_edit_title">Modifica preferito</string>
+    <string name="favorites_manager_edit_folder">Cartella</string>
+    <string name="favorites_manager_more_short">Altre azioni</string>
     <string name="favorites_import_menu">Porta le mie cose su Blanc</string>
     <plurals name="favorites_manager_results">
         <item quantity="one">%1$d risultato</item>

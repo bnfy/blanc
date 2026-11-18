@@ -6580,12 +6580,8 @@
     "source": "sha256:da15e822ea7414bdea99ba50faf98629849cd2c7bc8e38befbdaaea0c4be91e7"
   },
   "favorites.manager.edit": {
-    "message": "Modifica",
-    "source": "sha256:39a21bf6e428d39b83f8a0f14137ff9718c62cb3d8ff8c4f44c44cd35058576c"
-  },
-  "favorites.manager.editLabel": {
-    "message": "Modifica {title}",
-    "source": "sha256:c9b992b7142283c4524e74b412a9c114d10f98896f00f3f7c87ae80c2ea9d954"
+    "message": "Modifica…",
+    "source": "sha256:1d26808ffd30c70244202138ef65cd5019e58668ab1ba24a8d57b475b18c276b"
   },
   "favorites.manager.editName": {
     "message": "Nome",
@@ -6614,6 +6610,26 @@
   "favorites.manager.error.favoriteMissing": {
     "message": "Questo preferito non esiste più.",
     "source": "sha256:0c6bc341a8bf1897163deb5b95e0b853551893b0ce49bfebeb79a8b06c0e8ec8"
+  },
+  "favorites.manager.openNewTab": {
+    "message": "Apri in una nuova scheda",
+    "source": "sha256:2b7d097bbb94091a5f0ab83f4260f1a77a378fa82c40d74bce3b0784f829c18e"
+  },
+  "favorites.manager.openAll": {
+    "message": "Apri tutti",
+    "source": "sha256:868a0b914e54b1bb9f02dceee88e517d6ef1a4e7106d5cfc6118da59c4eadb78"
+  },
+  "favorites.manager.editTitle": {
+    "message": "Modifica preferito",
+    "source": "sha256:f949fb4ceb57243bb5d34b99be90d8ce0e7304c4dd0b2ce8512eec4aa9eb6250"
+  },
+  "favorites.manager.editFolder": {
+    "message": "Cartella",
+    "source": "sha256:3f41cc3856cd423a9ca0abad559f47e0847bd2a472e1d9ab70683c0b034a2600"
+  },
+  "favorites.manager.moreShort": {
+    "message": "Altre azioni",
+    "source": "sha256:c70334a4344de3c08a8812ce82fcbe0a193fc5d79dd2b1e4933dda2260bed7d2"
   },
   "favorites.import.menu": {
     "message": "Porta le mie cose su Blanc",

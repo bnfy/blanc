@@ -166,8 +166,9 @@ if (window.location.protocol === 'blanc:') {
       },
     };
   } else if (host === 'bookmarks') {
+    // Favorites is a page in a tab (no sheet surface). It redraws when
+    // Favorites change anywhere else.
     api = {
-      surface,
       bookmarks: {
         capabilities: () => invoke('pages:bookmarks:capabilities'),
         list: () => invoke('pages:bookmarks:list'),
@@ -187,6 +188,9 @@ if (window.location.protocol === 'blanc:') {
         reorder: (path, orderKeys) => invoke('pages:bookmarks:reorder', path, orderKeys),
         removeMany: (ids) => invoke('pages:bookmarks:remove-many', ids),
         edit: (id, changes) => invoke('pages:bookmarks:edit', id, changes),
+        onChanged: (callback) => {
+          ipcRenderer.on('pages:bookmarks:changed', () => callback());
+        },
       },
       pins: startPins,
     };

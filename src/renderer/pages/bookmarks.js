@@ -1,4 +1,11 @@
 (async () => {
+  // On the desktop, Favorites is a page in a tab of its own (owner, November
+  // 18, 2026). The markup stays a sheet page because Blanc for iPhone
+  // restyles that one (ios-pages.css); everywhere else it turns into the
+  // full page before it draws.
+  if (document.documentElement?.dataset?.platform !== 'ios') {
+    document.body?.classList?.replace('sheet', 'fav-page');
+  }
   const { t } = blancI18n;
   const list = document.getElementById('list');
   const importStatus = document.getElementById('importStatus');
@@ -66,13 +73,9 @@
 
   // "Bring my stuff to Blanc" (owner, November 16, 2026): one dialog, as in
   // Chrome and Edge. Opening it is the explicit ask that lets Blanc look for
-  // other browsers (F30, D22); the page never looks on its own. Main keeps
-  // Escape for the sheet unless the page claims it.
-  const escapeArm = window.FavoritesEscape ?? {
-    claim: () => window.bowserPages?.surface?.armEscape?.(true),
-    release: () => window.bowserPages?.surface?.armEscape?.(false),
-  };
-  if (!window.FavoritesEscape) window.bowserPages?.surface?.onEscape?.(() => closeDialog());
+  // other browsers (F30, D22); the page never looks on its own. Escape
+  // reaches the page itself, so the dialog's own Escape closes it.
+  const escapeArm = window.FavoritesEscape ?? { claim() {}, release() {} };
   const FILE_SOURCE = 'file';
   const dialogNote = (text) => { importDialogNote.textContent = text; };
   let lookup = 0;
@@ -475,7 +478,6 @@
 
   let openMenu = null;
   let openAnchor = null;
-  const surface = window.bowserPages?.surface;
   function closeMenu() {
     if (!openMenu) return;
     openMenu?.remove();
@@ -490,7 +492,6 @@
     closeMenu();
     anchor?.focus({ preventScroll: true });
   }
-  if (!window.FavoritesEscape) surface?.onEscape?.(escapeMenu);
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && openMenu) {
       e.preventDefault();
@@ -501,6 +502,7 @@
     if (openMenu && !openMenu.contains(e.target) && !e.target.classList.contains('folder-chip')) closeMenu();
   });
   document.querySelector('.page')?.addEventListener('scroll', closeMenu, { passive: true });
+  window.addEventListener('scroll', closeMenu, { passive: true });
   window.addEventListener('resize', closeMenu);
 
   function openPicker(anchor, b, allNames) {
@@ -584,6 +586,7 @@
     const isPinned = (url) => pinnedUrls.includes(startPins.canonicalUrl(url));
     manager = window.FavoritesManager.mount({
       root: document.getElementById('manager'),
+      header: document.getElementById('favTop'),
       status: importStatus,
       t,
       editable,
@@ -606,5 +609,7 @@
       showError: showEditError,
     });
   }
+  // A change made anywhere else (the heart, /save, Sync, another window).
+  window.bowserPages.bookmarks.onChanged?.(() => { refresh(); });
   refresh();
 })();

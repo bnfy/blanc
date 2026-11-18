@@ -6,7 +6,8 @@ import { _electron } from 'playwright';
 import poll from './support/poll.js';
 import testHookCall from './support/test-hook-call.js';
 
-// F63: the Favorites manager in the real Favorites sheet. Drag and drop is
+// F63: the Favorites manager on the real Favorites page (a tab since
+// November 18, 2026). Drag and drop is
 // driven with DOM drag events (a real pointer is a hand check), every result
 // is read back after a reload so it proves the saved order, not the page's
 // own state. Replaces the flat list's folder-picker smoke (#448), whose picker
@@ -46,7 +47,7 @@ try {
   await call('openFavoritesSheet');
   const sheet = await waitForValue(
     () => Promise.resolve(app.context().pages().find((page) => page.url().startsWith('blanc://bookmarks/'))),
-    Boolean, 'Favorites sheet',
+    Boolean, 'Favorites page',
   );
   await sheet.waitForSelector('#manager .fav-tree-row');
   const install = () => sheet.evaluate(() => {
@@ -172,8 +173,8 @@ try {
   await settle();
   assert.ok((await titles()).includes('Home'), 'the rename was cancelled');
   assert.equal(await sheet.evaluate(() => document.visibilityState), 'visible');
-  assert.ok(await call('utilitySurface').then((s) => s.visible), 'Escape left the sheet open');
-  step('Escape cancels a rename without saving or closing the sheet');
+  assert.ok(await sheet.evaluate(() => location.href.startsWith('blanc://bookmarks/')), 'Escape left the page open');
+  step('Escape cancels a rename without saving or leaving the page');
 
   // Remove works on a search result that lives in another folder.
   await sheet.fill('.fav-search', 'invalid/p');
@@ -224,28 +225,26 @@ try {
   // At rest a row shows only its ×; Pin and ⋯ come with the pointer.
   await sheet.mouse.move(1, 1);
   await settle();
-  const shown = (selector) => sheet.evaluate((sel) => {
-    const node = document.querySelector(`#manager .fav-row[data-url] ${sel}`);
-    const style = getComputedStyle(node);
+  // Every row shows its ⋮ at rest; nothing waits for a hover.
+  const more = await sheet.evaluate(() => {
+    const style = getComputedStyle(document.querySelector('#manager .fav-row[data-url] .fav-more'));
     return style.visibility === 'visible' && Number(style.opacity) === 1 && style.pointerEvents !== 'none';
-  }, selector);
-  assert.deepEqual([await shown('.fav-remove'), await shown('.fav-row-pin'), await shown('.fav-more')], [true, false, false]);
-  await sheet.hover('#manager .fav-row[data-url] .fav-main .url');
-  await settle();
-  assert.deepEqual([await shown('.fav-remove'), await shown('.fav-row-pin'), await shown('.fav-more')], [true, true, true]);
-  step('a row always shows ×, and Pin and ⋯ on hover');
+  });
+  assert.equal(more, true);
+  assert.equal(await sheet.evaluate(() => document.querySelectorAll('#manager .fav-remove, #manager .fav-check, #manager .fav-row-pin').length), 0);
+  step('every row shows its ⋮ at rest, with no hover-only controls');
 
-  // The circle selects; one selected row brings the selection bar.
-  await sheet.click('#manager .fav-row[data-url] .fav-check');
+  // A click selects; the header turns into the selection bar.
+  await sheet.click('#manager .fav-row[data-url] .fav-main .url');
   await settle();
   const picked = await sheet.evaluate(() => ({
     selected: document.querySelectorAll('#manager .fav-row.selected').length,
     bar: !document.querySelector('.fav-selection').hidden,
-    circles: getComputedStyle(document.querySelectorAll('#manager .fav-row[data-url] .fav-check')[1] ?? document.querySelector('#manager .fav-check')).opacity,
+    header: document.getElementById('favTop').classList.contains('selecting'),
   }));
-  assert.deepEqual(picked, { selected: 1, bar: true, circles: '1' });
+  assert.deepEqual(picked, { selected: 1, bar: true, header: true });
   // Removing several asks first, with the keyboard on Cancel.
-  await sheet.click('#manager .fav-row[data-url]:nth-child(2) .fav-check');
+  await sheet.click('#manager .fav-row[data-url]:nth-child(2) .fav-main .url', { modifiers: ['ControlOrMeta'] });
   await settle();
   await sheet.evaluate(() => document.querySelector('#manager .fav-row.selected').focus());
   await sheet.keyboard.press('Delete');
@@ -253,16 +252,32 @@ try {
   assert.ok(await sheet.evaluate(() => document.activeElement.classList.contains('fav-confirm-cancel')), 'Cancel has the keyboard');
   await sheet.keyboard.press('Escape');
   await settle();
-  await sheet.click('.fav-selection .fav-bar-button >> text=Clear selection');
+  await sheet.click('.fav-selection-clear');
   await settle();
-  step('the circle selects a row and brings the selection bar; removing several asks with Cancel focused');
+  assert.equal(await sheet.evaluate(() => document.getElementById('favTop').classList.contains('selecting')), false);
+  step('a click selects and the header becomes the selection bar; removing several asks with Cancel focused');
 
-  // × removes at once.
+  // Edit… opens a dialog: a new name and address, saved with Enter.
+  const editing = await sheet.evaluate(() => window.__row('E') ? 'E' : document.querySelector('#manager .fav-row[data-url] .title').textContent);
+  await sheet.evaluate((title) => window.__row(title).querySelector('.fav-more').click(), editing);
+  await sheet.click('.fav-menu .fav-menu-item >> text=Edit…');
+  await sheet.waitForSelector('.fav-edit-dialog[open]');
+  await sheet.fill('.fav-edit-dialog [data-field="title"]', 'Edited name');
+  await sheet.fill('.fav-edit-dialog [data-field="url"]', 'example.invalid/edited');
+  await sheet.press('.fav-edit-dialog [data-field="url"]', 'Enter');
+  await settle();
+  const edited = (await call('bookmarkRecords')).find((r) => r.title === 'Edited name');
+  assert.equal(edited?.url, 'https://example.invalid/edited');
+  assert.equal(await sheet.evaluate(() => !!document.querySelector('.fav-edit-dialog[open]')), false);
+  step('Edit… changes a favorite\'s name and address');
+
+  // Remove in the ⋮ menu removes at once.
   const before = (await call('bookmarkRecords')).length;
-  await sheet.evaluate(() => document.querySelector('#manager .fav-row[data-url] .fav-remove').click());
+  await sheet.evaluate(() => document.querySelector('#manager .fav-row[data-url] .fav-more').click());
+  await sheet.click('.fav-menu .fav-menu-item >> text=Remove');
   await settle();
   assert.equal((await call('bookmarkRecords')).length, before - 1);
-  step('× removes the favorite');
+  step('Remove in the menu removes the favorite');
 
   // "Bring my stuff to Blanc" is one dialog. Nothing is read before it opens;
   // opening it looks, and a bookmarks file is always offered.
@@ -288,7 +303,7 @@ try {
   await sheet.keyboard.press('Escape');
   await settle();
   assert.equal(await sheet.evaluate(() => document.getElementById('importDialog').open), false);
-  assert.ok(await call('utilitySurface').then((s) => s.visible), 'Escape closed only the dialog');
+  assert.ok(await sheet.evaluate(() => location.href.startsWith('blanc://bookmarks/')), 'Escape closed only the dialog');
   step('"Bring my stuff to Blanc" opens one dialog that looks on open and closes on Escape');
 
   await sheet.setViewportSize({ width: 640, height: 720 });
@@ -297,10 +312,10 @@ try {
     search: getComputedStyle(document.querySelector('.fav-search')).display,
     tree: getComputedStyle(document.querySelector('.fav-tree-list')).display,
     select: getComputedStyle(document.querySelector('.fav-folder-select')).display,
-    sideways: document.querySelector('.page').scrollWidth > document.querySelector('.page').clientWidth,
+    sideways: document.documentElement.scrollWidth > document.documentElement.clientWidth,
   }));
   assert.deepEqual(narrow, { search: 'block', tree: 'none', select: 'block', sideways: false });
-  step('a narrow sheet keeps search and swaps the tree for a folder menu, without sideways scrolling');
+  step('a narrow window keeps search and swaps the tree for a folder menu, without sideways scrolling');
 
   console.log(`favorites-manager: ok (${passed} checks)`);
 } finally {
