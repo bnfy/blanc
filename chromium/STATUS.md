@@ -48,7 +48,9 @@ hardware stays pending.
   tree's first read. The bookmarks bar, mobile and account folders show
   under names that never repeat a top-level folder's (" 2"), in the tree
   and in every Favorites list alike; the tree has no cap, and a favicon is
-  encoded again only when it changed. Order and empty folders stay on this
+  encoded again only when it changed. After those changes the Favorites
+  check passed 8 of 8 again and the Favorites V30 cases passed on
+  macos-f575679c518bca5c. Order and empty folders stay on this
   Mac: `favoritesLayout` is still kept whole and never applied (plan
   decision 3). The sheet's Favorites ops and bridge are gone. V30 (below)
   replaces ten v1.49.1 steps that assume the sheet. No upstream patch
