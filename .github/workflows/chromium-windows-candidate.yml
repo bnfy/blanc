@@ -343,7 +343,7 @@ jobs:
           if ((Get-FileHash "$shipping\Blanc-Setup-1.49.1.exe" -Algorithm SHA256).Hash.ToLower() -ne $expected.ToLower()) { throw 'The shipping installer does not match the release.' }
           npm ci --ignore-scripts
           if ($LASTEXITCODE -ne 0) { throw 'npm ci failed.' }
-          node chromium/tests/windows-install.mjs "$env:CANDIDATE_DIR" "$env:RUNNER_TEMP\results\install-signed" "$shipping\Blanc-Setup-1.49.1.exe" "--installer=$env:SIGNED\$env:SIGNED_ASSET"
+          node chromium/tests/windows-install.mjs "$env:CANDIDATE_DIR" "$env:RUNNER_TEMP\results\install-signed" "$shipping\Blanc-Setup-1.49.1.exe" "--installer=$env:SIGNED\$env:SIGNED_ASSET" --signed
           if ($LASTEXITCODE -ne 0) { throw 'The signed installer failed the install check.' }
           Get-Content "$env:RUNNER_TEMP\results\install-signed\install.json"
       - name: Keep the signed installer on the draft release

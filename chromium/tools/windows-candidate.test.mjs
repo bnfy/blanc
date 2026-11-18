@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import { ASSET_NAME, candidateId, runtimeFiles, runtimeConfig } from '../windows/candidate.mjs';
+import crypto from 'node:crypto';
+import { ASSET_NAME, candidateId, runtimeFiles, runtimeConfig, signedCopyOf, signedRuntimeConfig } from '../windows/candidate.mjs';
 import { candidateIdentityFiles, candidateIdentity } from '../tests/lib/platform.mjs';
 
 const dll = 'ab'.repeat(32), exe = 'cd'.repeat(32);
@@ -76,4 +77,46 @@ test('an installed copy is found in the Application folder and its version folde
   assert.equal(config.dll, 'C:\\L\\Blanc Chromium Preview\\Application\\158.0.8127.2\\chrome.dll');
   assert.equal(config.blockerAssets, 'C:\\t\\blanc\\blocker');
   assert.throws(() => runtimeConfig('/t', { ...candidate, version: '158' }, path.win32.join, '/i'), /four-part version/);
+});
+
+// A minimal PE32+ image: DOS header, PE header, optional header with sixteen
+// data directories, then some body bytes.
+function pe(body = 'body') {
+  const b = Buffer.alloc(0x80 + 24 + 240 + 16);
+  b.writeUInt16LE(0x5a4d, 0); b.writeUInt32LE(0x80, 0x3c); b.writeUInt32LE(0x4550, 0x80);
+  const optional = 0x80 + 24;
+  b.writeUInt16LE(0x20b, optional); b.writeUInt32LE(0x1234, optional + 64); b.writeUInt32LE(16, optional + 108);
+  return Buffer.concat([b, Buffer.from(body)]);
+}
+function sign(unsigned, { checksum = 0x5678, padding = (8 - unsigned.length % 8) % 8, certificate = Buffer.from('certificate!') } = {}) {
+  const out = Buffer.concat([unsigned, Buffer.alloc(padding), certificate]);
+  const optional = 0x80 + 24, directory = optional + 112 + 32;
+  out.writeUInt32LE(checksum, optional + 64); out.writeUInt32LE(unsigned.length + padding, directory); out.writeUInt32LE(certificate.length, directory + 4);
+  return out;
+}
+test('a signed file is the candidate\'s file only when the signature is all that changed', () => {
+  const unsigned = pe();
+  assert.equal(signedCopyOf(unsigned, sign(unsigned)), true);
+  assert.equal(signedCopyOf(unsigned, sign(pe('bodx'))), false, 'a changed body');
+  const tampered = sign(unsigned); tampered[0x80 + 4] ^= 1;
+  assert.equal(signedCopyOf(unsigned, tampered), false, 'a changed header');
+  const paddedWithData = sign(unsigned); assert.ok(unsigned.length % 8); paddedWithData[unsigned.length] = 1;
+  assert.equal(signedCopyOf(unsigned, paddedWithData), false, 'data in the padding');
+  assert.equal(signedCopyOf(unsigned, sign(unsigned, { padding: 9 })), false, 'more than alignment padding');
+  assert.equal(signedCopyOf(unsigned, Buffer.concat([sign(unsigned), Buffer.from('x')])), false, 'bytes after the certificate');
+  assert.equal(signedCopyOf(unsigned, unsigned), false, 'no signature at all');
+  assert.throws(() => signedCopyOf(sign(unsigned), sign(sign(unsigned))), /already signed/);
+  assert.throws(() => signedCopyOf(Buffer.from('MZ not a pe file at all, just text, long enough to have a header field'), unsigned), /Not a PE/);
+});
+test('a signed install is run against the signed bytes, after checking them', () => {
+  const sha = b => crypto.createHash('sha256').update(b).digest('hex');
+  const files = { 'u/chrome.exe': pe('exe'), 'u/chrome.dll': pe('dll') };
+  files['i/chrome.exe'] = sign(files['u/chrome.exe']); files['i/1.0.0.0/chrome.dll'] = sign(files['u/chrome.dll']);
+  const config = { candidate: 'windows-x64-1', executable: 'i/chrome.exe', executableSha256: sha(files['u/chrome.exe']), dll: 'i/1.0.0.0/chrome.dll', dllSha256: sha(files['u/chrome.dll']), blockerAssets: 'u/blocker', diskAssets: false };
+  const originals = { executable: 'u/chrome.exe', dll: 'u/chrome.dll' }, read = f => files[f];
+  assert.deepEqual(signedRuntimeConfig(config, originals, read, sha),
+    { ...config, executableSha256: sha(files['i/chrome.exe']), dllSha256: sha(files['i/1.0.0.0/chrome.dll']) });
+  assert.throws(() => signedRuntimeConfig({ ...config, dllSha256: 'ef'.repeat(32) }, originals, read, sha), /not the candidate's file\./);
+  files['i/chrome.exe'] = sign(pe('exf'));
+  assert.throws(() => signedRuntimeConfig(config, originals, read, sha), /signature added/);
 });

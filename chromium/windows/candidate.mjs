@@ -42,6 +42,43 @@ export function runtimeConfig(directory, candidate, join = path.join, installed 
     blockerAssets: join(directory, 'blocker'), diskAssets: false,
   };
 }
+// Authenticode signing changes a PE file in three places: the header's
+// checksum, the security directory entry, and a certificate table appended
+// after zero padding to an 8-byte boundary. `signed` is `unsigned` with a
+// signature added, and nothing else, when those are the only differences.
+function peSecurity(buffer) {
+  if (buffer.length < 0x40 || buffer.readUInt16LE(0) !== 0x5a4d) throw new Error('Not a PE file.');
+  const pe = buffer.readUInt32LE(0x3c);
+  if (pe + 24 + 2 > buffer.length || buffer.readUInt32LE(pe) !== 0x4550) throw new Error('Not a PE file.');
+  const optional = pe + 24, magic = buffer.readUInt16LE(optional);
+  if (magic !== 0x10b && magic !== 0x20b) throw new Error('Unknown PE optional header.');
+  const plus = magic === 0x20b, directory = optional + (plus ? 112 : 96) + 4 * 8;
+  if (directory + 8 > buffer.length || buffer.readUInt32LE(optional + (plus ? 108 : 92)) < 5) throw new Error('The PE file has no security directory.');
+  return { checksum: optional + 64, directory, offset: buffer.readUInt32LE(directory), size: buffer.readUInt32LE(directory + 4) };
+}
+export function signedCopyOf(unsigned, signed) {
+  const u = peSecurity(unsigned), s = peSecurity(signed);
+  if (u.offset || u.size) throw new Error('The candidate\'s own file is already signed.');
+  if (u.checksum !== s.checksum || u.directory !== s.directory || !s.size || s.offset + s.size !== signed.length) return false;
+  const padding = s.offset - unsigned.length;
+  if (padding < 0 || padding > 7 || signed.subarray(unsigned.length, s.offset).some(byte => byte !== 0)) return false;
+  const same = (from, to) => unsigned.subarray(from, to).equals(signed.subarray(from, to));
+  return same(0, u.checksum) && same(u.checksum + 4, u.directory) && same(u.directory + 8, unsigned.length);
+}
+// The run config for a signed install: each installed file must be the
+// candidate's own (its hash matches the config) with only a signature added,
+// and the harness then checks the signed bytes. `originals` names the
+// candidate's unsigned chrome.exe and chrome.dll.
+export function signedRuntimeConfig(config, originals, read, sha256) {
+  const next = { ...config };
+  for (const [file, key, original] of [[config.executable, 'executableSha256', originals.executable], [config.dll, 'dllSha256', originals.dll]]) {
+    const before = read(original), after = read(file);
+    if (sha256(before) !== config[key]) throw new Error(`${original} is not the candidate's file.`);
+    if (!signedCopyOf(before, after)) throw new Error(`${file} is not the candidate's file with a signature added.`);
+    next[key] = sha256(after);
+  }
+  return next;
+}
 // Runs `work`, then restores `file` to the bytes and times it had before
 // (or removes it if it did not exist), whatever `work` did to it.
 export function keepingFile(file, work) {

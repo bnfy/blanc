@@ -2,10 +2,12 @@
 // installer puts the preview beside an installed Electron Blanc, registers it
 // under its own names, launches, and uninstalls without touching Blanc.
 //
-//   node chromium/tests/windows-install.mjs CANDIDATE_FOLDER RESULTS_FOLDER SHIPPING_INSTALLER [--installer=PATH]
+//   node chromium/tests/windows-install.mjs CANDIDATE_FOLDER RESULTS_FOLDER SHIPPING_INSTALLER [--installer=PATH [--signed]]
 //
 // --installer runs another installer of the same candidate (a repacked or
-// signed one) instead of the candidate's own mini_installer.exe.
+// signed one) instead of the candidate's own mini_installer.exe. --signed says
+// the installer's files are signed: the launch then accepts chrome.exe and
+// chrome.dll that differ from the candidate's only by their signature.
 //
 // SHIPPING_INSTALLER is Electron Blanc's public Windows installer, checked by
 // the workflow against the release's SHA256SUMS. The check runs on a
@@ -19,14 +21,16 @@ import {pause} from './lib/cdp.mjs';
 
 const [candidateFolder,resultsFolder,shippingInstaller,...installOptions]=process.argv.slice(2);
 const installerOption=installOptions.find(o=>o.startsWith('--installer='))?.slice('--installer='.length)??null;
-if(installOptions.some(o=>!o.startsWith('--installer=')))throw Error('Unknown option: '+installOptions.join(' '));
+const signed=installOptions.includes('--signed');
+if(installOptions.some(o=>!o.startsWith('--installer=')&&o!=='--signed'))throw Error('Unknown option: '+installOptions.join(' '));
+if(signed&&!installerOption)throw Error('--signed needs the signed installer, through --installer');
 if(!candidateFolder||!resultsFolder||!shippingInstaller)throw Error('Usage: windows-install.mjs CANDIDATE_FOLDER RESULTS_FOLDER SHIPPING_INSTALLER');
 if(process.platform!=='win32')throw Error('The install check runs on Windows');
 const directory=path.resolve(candidateFolder),out=path.resolve(resultsFolder);
 if(fs.existsSync(out))throw Error('Refusing to overwrite earlier results');
 fs.mkdirSync(out,{recursive:true});
 const candidate=JSON.parse(fs.readFileSync(path.join(directory,'candidate.json'),'utf8'));
-const record={candidate:candidate.id,checks:{},details:{}};
+const record={candidate:candidate.id,signed,checks:{},details:{}};
 const local=process.env.LOCALAPPDATA;
 const product='Blanc Chromium Preview',appName='Blanc Prototype';
 const application=path.join(local,product,'Application');
@@ -93,7 +97,7 @@ try{
  record.checks.electronUntouchedByInstall=JSON.stringify(electronState())===JSON.stringify(before);
 
  // 4. The installed copy launches, with no sandbox grant of the runner's.
- const smoke=spawnSync(process.execPath,[fileURLToPath(new URL('./windows-smoke.mjs',import.meta.url)),directory,path.join(out,'installed-smoke'),`--installed=${application}`],{encoding:'utf8',timeout:300000});
+ const smoke=spawnSync(process.execPath,[fileURLToPath(new URL('./windows-smoke.mjs',import.meta.url)),directory,path.join(out,'installed-smoke'),`--installed=${application}`,...(signed?['--signed']:[])],{encoding:'utf8',timeout:300000});
  record.details.installedSmoke=(smoke.stdout||'').slice(-1500);
  record.checks.installedLaunches=smoke.status===0;
 
@@ -118,5 +122,6 @@ const required=['electronInstalled','installed','uninstallEntry','startMenuShort
  'installedLaunches','uninstalled','dataKept','electronUntouched','electronStillStarts'];
 record.pass=!failure&&required.every(name=>record.checks[name]===true);
 fs.writeFileSync(path.join(out,'install.json'),JSON.stringify(record,null,2)+'\n');
-console.log(JSON.stringify({candidate:record.candidate,pass:record.pass,checks:record.checks,error:record.error},null,2));
+console.log(JSON.stringify({candidate:record.candidate,pass:record.pass,checks:record.checks,error:record.error,
+ installedSmoke:record.checks.installedLaunches===false?record.details.installedSmoke:undefined},null,2));
 if(!record.pass)process.exitCode=1;
