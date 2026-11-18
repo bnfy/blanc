@@ -55,8 +55,9 @@ test('the Start Page list holds every file the fork\'s page names', () => {
   for (const file of start.files.filter(f => /\.(html|js|css)$/.test(f)))
     for (const [ref] of fs.readFileSync(path.join(START_DIR, file), 'utf8').matchAll(/[\w.-]+\.(png|woff2|webp|svg|jpg|js|css)\b/g))
       if (fs.existsSync(path.join(from, ref))) named.add(ref);
-  // Named in comments or by desktop code paths Android never takes.
-  for (const unused of ['mahjong.css', 'pages-neutral.css', 'sheet.js']) named.delete(unused);
+  // Named in comments or by desktop code paths Android never takes
+  // (pages.css's Favorites manager rules name the desktop page's script).
+  for (const unused of ['mahjong.css', 'pages-neutral.css', 'sheet.js', 'favorites-manager.js']) named.delete(unused);
   assert.deepEqual([...named].filter(f => !start.files.includes(f)), []);
 });
 

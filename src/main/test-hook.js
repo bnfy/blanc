@@ -266,6 +266,19 @@ function install(refs) {
   // Regression checks for "did this page really load" must use this.
   const committedUrlOf = (t) => { try { return t.view.webContents.getURL(); } catch { return ''; } };
   const isLoadingOf = (t) => { try { return t.view.webContents.isLoadingMainFrame(); } catch { return false; } };
+  // The Favorites page is a tab (November 18, 2026): the active tab when it
+  // shows Favorites, else any Favorites tab.
+  const favoritesPageWebContents = () => {
+    const isFavorites = (t) => !!t && committedUrlOf(t).startsWith('blanc://bookmarks/');
+    const active = tabs.get(getActiveTabId());
+    const tab = isFavorites(active) ? active : [...tabs.values()].find(isFavorites);
+    const wc = tab?.view?.webContents;
+    return wc && !wc.isDestroyed() ? wc : null;
+  };
+  // A page in the showing sheet, else the Favorites page: a hidden sheet's
+  // contents can outlive it, and Favorites is never in the sheet now.
+  const sheetOrFavoritesWebContents = () => (getUtilitySheetState()?.visible
+    ? getUtilitySheetWebContents() : favoritesPageWebContents());
   const sessionPersistentOf = (t) => { try { return t.view.webContents.session.isPersistent(); } catch { return null; } };
   const titleOf = (t) => { try { return t.view.webContents.getTitle(); } catch { return ''; } };
   let focusObservation = null;
@@ -1760,10 +1773,47 @@ function install(refs) {
       return startPagePins.listPins().length === 0;
     },
     startPagePins() { return startPagePins.listPins(); },
-    // The Favorites page's rows and their Start Page pins.
+    /** Edit a favorite on the Favorites page as a person does: F2 on its row
+     * opens the Edit dialog; type a name and an address, Enter. False when
+     * the row or the dialog never showed. */
+    async editFavoriteInSheet(title, newTitle, newUrl) {
+      const wc = favoritesPageWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(async () => {
+        const settle = () => new Promise((resolve) => setTimeout(resolve, 50));
+        const row = [...document.querySelectorAll('.fav-row[data-url]')]
+          .find((candidate) => candidate.querySelector('.title')?.textContent === ${JSON.stringify(String(title))});
+        if (!row) return false;
+        row.focus();
+        row.dispatchEvent(new KeyboardEvent('keydown', { key: 'F2', bubbles: true }));
+        await settle();
+        const edit = document.querySelector('.fav-edit-dialog[open]');
+        const name = edit?.querySelector('[data-field="title"]');
+        const address = edit?.querySelector('[data-field="url"]');
+        if (!name || !address || document.activeElement !== name) return false;
+        const type = (input, text) => { input.value = text; input.dispatchEvent(new Event('input', { bubbles: true })); };
+        type(name, ${JSON.stringify(String(newTitle))});
+        type(address, ${JSON.stringify(String(newUrl))});
+        edit.querySelector('form').requestSubmit();
+        return true;
+      })()`);
+    },
+    /** The Favorites page's rows as drawn: name, address, and whether an edit is open. */
+    favoritesSheetRows() {
+      const wc = favoritesPageWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        editing: !!document.querySelector('.fav-edit-dialog[open]'),
+        status: document.getElementById('importStatus')?.textContent ?? '',
+        rows: [...document.querySelectorAll('.fav-row[data-url]')]
+          .map((row) => ({ title: row.querySelector('.title')?.textContent, url: row.dataset.url })),
+      }))()`);
+    },
+    // The Favorites page's rows and their Start Page pins. A row shows only
+    // the pin mark; Pin and Unpin are in its ⋮ menu.
     readFavoritesSheetPins() {
-      const wc = getUtilitySheetWebContents();
-      if (!wc || wc.isDestroyed()) return null;
+      const wc = favoritesPageWebContents();
+      if (!wc) return null;
       return wc.executeJavaScript(`(() => {
         if (location.host !== 'bookmarks') return null;
         return [...document.querySelectorAll('#list .row[data-url], #manager .fav-row[data-url]')].map((row) => ({
@@ -1771,22 +1821,23 @@ function install(refs) {
           title: row.querySelector('.title')?.textContent ?? '',
           pinned: row.classList.contains('start-pinned'),
           mark: row.querySelector('.row-pin-mark')?.getAttribute('aria-label') ?? null,
-          button: row.querySelector('.pin-toggle')?.textContent ?? null,
-          buttonLabel: row.querySelector('.pin-toggle')?.getAttribute('aria-label') ?? null,
-          focused: document.activeElement === row.querySelector('.pin-toggle'),
+          focused: document.activeElement === row,
         }));
       })()`);
     },
+    /** Pin or unpin a favorite from its row's ⋮ menu, as a person does. */
     toggleFavoritesSheetPin(title) {
-      const wc = getUtilitySheetWebContents();
-      if (!wc || wc.isDestroyed()) return false;
-      return wc.executeJavaScript(`(() => {
-        const row = [...document.querySelectorAll('#list .row[data-url], #manager .fav-row[data-url]')]
+      const wc = favoritesPageWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(async () => {
+        const row = [...document.querySelectorAll('#manager .fav-row[data-url]')]
           .find((candidate) => candidate.querySelector('.title')?.textContent === ${JSON.stringify(String(title))});
-        const button = row?.querySelector('.pin-toggle');
-        if (!button || button.disabled) return false;
-        button.focus();
-        button.click();
+        row?.querySelector('.fav-more')?.click();
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        const labels = [blancI18n.t('favorites.manager.pin'), blancI18n.t('favorites.manager.unpin')];
+        const item = [...document.querySelectorAll('.fav-menu-item')].find((b) => labels.includes(b.textContent));
+        if (!item || item.disabled) return false;
+        item.click();
         return true;
       })()`);
     },
@@ -3217,7 +3268,7 @@ function install(refs) {
       }))()`);
     },
     async utilitySheetRowIcons() {
-      const wc = getUtilitySheetWebContents();
+      const wc = sheetOrFavoritesWebContents();
       if (!wc) return null;
       return wc.executeJavaScript(`[...document.querySelectorAll('.row, .fav-row[data-url]')].map((row) => {
         const icon = row.querySelector('.row-icon');
@@ -3818,7 +3869,13 @@ function install(refs) {
       visit(Menu.getApplicationMenu());
       return labels;
     },
+    // Favorites is a page in a tab (November 18, 2026); the old name stays
+    // for the steps that call it.
     openFavoritesSheet() { openInternalPage('blanc://bookmarks/'); },
+    favoritesPageReady() {
+      const wc = favoritesPageWebContents();
+      return !!wc && !wc.isLoading() && wc.getURL().startsWith('blanc://bookmarks/');
+    },
     openTabImport() { openInternalPage('blanc://tab-import/'); },
     readTabImportDom,
     getTabImportSessionProjection() { return projectRootTabImportSession(); },
@@ -4011,7 +4068,7 @@ function install(refs) {
       return true;
     },
     readBrowserImportDom() {
-      const wc = getUtilitySheetWebContents();
+      const wc = favoritesPageWebContents();
       if (!wc) return null;
       // "Bring my stuff to Blanc" is one dialog: opening it looks for
       // browsers. buttonHidden: no detected profile can be imported yet (the
@@ -4033,7 +4090,7 @@ function install(refs) {
       })()`);
     },
     clickBrowserFind() {
-      const wc = getUtilitySheetWebContents();
+      const wc = favoritesPageWebContents();
       if (!wc) return false;
       return wc.executeJavaScript(`(() => {
         // Opening "Bring my stuff to Blanc" is the ask to look (F30, D22).
@@ -4046,7 +4103,7 @@ function install(refs) {
     // Chooses a detected profile by its visible label, as picking it from the
     // Favorites page's profile menu would.
     selectBrowserSource(label) {
-      const wc = getUtilitySheetWebContents();
+      const wc = favoritesPageWebContents();
       if (!wc) return false;
       return wc.executeJavaScript(`((label) => {
         const select = document.getElementById('browserSource');
@@ -4058,7 +4115,7 @@ function install(refs) {
       })(${JSON.stringify(String(label))})`);
     },
     clickBrowserImport() {
-      const wc = getUtilitySheetWebContents();
+      const wc = favoritesPageWebContents();
       if (!wc) return false;
       return wc.executeJavaScript(`(() => {
         const button = document.getElementById('browserImportBtn');
@@ -4185,10 +4242,17 @@ function install(refs) {
       if (ran !== true) throw new Error('window.open attempt did not execute');
     },
     async clickFirstSheetLink() {
-      const wc = getUtilitySheetWebContents();
+      const wc = sheetOrFavoritesWebContents();
       if (!wc) throw new Error('sheet not open');
-      const clicked = await wc.executeJavaScript(
-        `(() => { const a = document.querySelector('a[href^="https"], a[href^="http"]'); if (a) a.click(); return !!a; })()`);
+      // The Favorites page draws its rows after it loads; wait for a link.
+      const clicked = await wc.executeJavaScript(`(async () => {
+        for (let i = 0; i < 50; i += 1) {
+          const a = document.querySelector('a[href^="https"], a[href^="http"]');
+          if (a) { a.click(); return true; }
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        return false;
+      })()`);
       if (!clicked) throw new Error('no outbound link rendered in sheet');
     },
     async clickPatronCheckout() {

@@ -20,6 +20,57 @@ and its incremental rebuilds, and one GN regeneration on the Mac Studio
 hardware stays pending.
 
 ## Current work
+- **2026-11-18 — The Favorites manager (F63) in a tab of its own (owner approved the plan, `docs/superpowers/plans/2026-11-18-fork-favorites-manager.md`):**
+  Favorites is bnfy/blanc#1614's page: a tab, shown as `blanc://bookmarks/`,
+  with the F63 manager and its Edit dialog. Every way to it (⌘⌥B and the
+  menus through patch 0012's `OpenUtilitySheet`, typed `blanc://bookmarks`,
+  `openPage`, the sheets' nav links) opens or switches to that tab
+  (`OpenFavoritesTab`, a singleton tab); a private window opens it in a
+  regular window, as Chromium's bookmark manager does; the Start Page's
+  Favorites link opens it in that tab, as #1614 does. The page is shipping's
+  at its own pin, `blanc/favorites-page.json` (`3f9a3aff0`, #1614's merge),
+  written and checked by `tools/favorites-page.mjs` with two declared edits;
+  the manager's pages.css rules sit between markers in the fork's pages.css,
+  and its `favorites.*` messages come from the same pin
+  (`interface-strings.mjs`). `pages/favorites-adapter.js` is its
+  `window.bowserPages`; `FavoritesHandler` (`favorites_page.inc`) answers
+  only that page in a regular profile's tab, from `favorites_page::` in
+  `utility_sheet_ops.inc` on Chromium's bookmark model: the tree (Other
+  bookmarks, with the bar, mobile and account folders as fixed top-level
+  folders), create, rename (a sibling's name merges), move and remove
+  folders, move, reorder, remove and edit favorites (a Start Page pin
+  follows an edit), with shipping's error codes. Nested folders are
+  Chromium folders; a path is their names joined by ` › `
+  (`favorite_helpers.h`). Sync, `/save`, imports and the Start Page now read
+  and write whole paths; `NormalizeFavoriteFolders` splits a flat
+  `A › B` folder into the nested pair and merges same-named sibling
+  folders (the merge approved by the owner after the PR review), at the
+  tree's first read. The bookmarks bar, mobile and account folders show
+  under names that never repeat a top-level folder's (" 2"), in the tree
+  and in every Favorites list alike; the tree has no cap, and a favicon is
+  encoded again only when it changed. After those changes the Favorites
+  check passed 8 of 8 again and the Favorites V30 cases passed on
+  macos-f575679c518bca5c. Order and empty folders stay on this
+  Mac: `favoritesLayout` is still kept whole and never applied (plan
+  decision 3). The sheet's Favorites ops and bridge are gone. V30 (below)
+  replaces ten v1.49.1 steps that assume the sheet. No upstream patch
+  changed. Checked on the Mac Studio the same day: `gn gen` for
+  BlancPrototype and BlancBeta with unchanged arguments (served.txt is a GN
+  input), then a guarded incremental BlancPrototype build (6 steps) on
+  candidate macos-ed0ac0f28dd90c86; `native-favorites-manager.mjs` passes
+  8 of 8 (the tab from its command and a typed address, the manager drawn,
+  nested create, move, reorder, rename, a refused cycle, folder removal,
+  edit with refused addresses and the pin following, removal) and
+  `native-new-tab-reuse.mjs` 9 of 9 (after the PR review's fixes, imports
+  behind the editing policy and a move across account and local storage
+  refused, the Favorites check passed 8 of 8 again on macos-48672c9cd81512a3);
+  the V30 cases (internal-pages F16-2,
+  F16-5, F16-8, F16-10; F9-3; F35-5; browser-migration F30-1, F30-2 and
+  :28/:35) and sync.feature :38/:49, which share a replaced step, pass.
+  Not yet: the strip doesn't take the page's color (#1614's page tint), the
+  browser importer still keeps only each favorite's immediate folder, the
+  flat-folder split and Sync of a nested path weren't run against a real
+  profile or the local Worker, and the full suite hasn't run on it.
 - **2026-11-17 — Carried checks come due on the Chromium version alone (owner: "Yes, narrow it"):**
   `release/standing.json`'s `anyChange` (`chromium/upstream/**`) also
   matched the pristine Chromium files pinned for each new patch, so
@@ -3398,6 +3449,14 @@ Most failures on the previous candidate are real product gaps, clustered:
 
 ## Native-versus-port decisions (owner, 2026-10-31)
 Recorded in the spec (§4, §9) and plan:
+- V30 (owner, 2026-11-18): Favorites is bnfy/blanc#1614's page in a tab of
+  its own, with the F63 manager, ahead of the fork's v1.49.1 scenario pin.
+  `tests/fork-steps/divergences.mjs` replaces the v1.49.1 steps that put it
+  in the sheet with what #1614's rewrite of the same scenarios says
+  (internal-pages F16-2, F16-5, F16-8, F16-10; find-favorites-history F9-3;
+  newtab-layouts F35-5; browser-migration F30-1 and F30-2). A private
+  window opens Favorites in a regular window (Chromium's behavior), where
+  shipping shows it in the private window with the pins hidden.
 - D1: port shipping's in-window private tabs (deep tab/profile patch, isolated
   in `blanc/private/`). Built in S1.4. Owner, 2026-11-02: private tabs use
   Chromium's incognito profile (the window profile's primary off-the-record

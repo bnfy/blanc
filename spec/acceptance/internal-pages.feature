@@ -17,7 +17,7 @@ Feature: Internal blanc:// pages
   Scenario: Internal navigation stays within the blanc scheme
     Given the new-tab page is open
     When I follow its "Favorites" navigation link
-    Then the favorites page opens in the utility sheet under the blanc scheme
+    Then the favorites page opens in the active tab under the blanc scheme
     And no new tab is created
 
   @F16-4 @F16 @all
@@ -28,12 +28,11 @@ Feature: Internal blanc:// pages
     And the active tab and tab order are unchanged
 
   @F16-5 @F16 @all
-  Scenario: Activating a favorite from the utility sheet opens one real tab
+  Scenario: Activating a favorite on the Favorites page opens it in that tab
     Given a favorite for "kept.example" exists
-    And the favorites page is open in the utility sheet
+    And the favorites page is open
     When I activate that favorite
-    Then exactly one new tab opens on "kept.example"
-    And the utility sheet is dismissed
+    Then the Favorites tab now shows "kept.example"
 
   @F16-6 @F16 @all
   Scenario: Untrusted web content cannot summon the utility sheet
@@ -51,7 +50,7 @@ Feature: Internal blanc:// pages
 
   @F16-8 @F16 @desktop
   Scenario: A utility sheet whose native contents were destroyed is recreated on next open
-    Given the favorites page is open in the utility sheet
+    Given the history page is open in the utility sheet
     When the utility sheet contents are destroyed
     And I open the downloads page
     Then the downloads page opens in the utility sheet
@@ -70,5 +69,5 @@ Feature: Internal blanc:// pages
 
   @F16-10 @F16 @all
   Scenario: Utility pages wear the Sunrise palette
-    Given the favorites page is open in the utility sheet
+    Given the history page is open in the utility sheet
     Then the utility sheet uses the Sunrise palette

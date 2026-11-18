@@ -124,7 +124,7 @@ Feature: The Start Page and its widgets
     Given eight favorites fill the Start Page
     And the Start Page has no pins
     And a profile whose start page layout is "ledger"
-    And the favorites page is open in the utility sheet
+    And the favorites page is open
     When I pin "Favorite 8" from the Favorites page
     Then the Favorites page marks "Favorite 8" as pinned to the Start Page
     And the Start Page keeps "Favorite 8" pinned

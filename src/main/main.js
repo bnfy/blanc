@@ -6142,6 +6142,10 @@ function createUtilitySheet() {
     if (/^https?:\/\//i.test(targetUrl)) {
       const id = createTab(targetUrl);
       if (id) setActiveTab(id);
+    } else if (isFavoritesPageUrl(targetUrl)) {
+      // The sheet's Favorites link: Favorites is a page in a tab now.
+      hideUtilitySheet();
+      openInternalPage(FAVORITES_PAGE_URL);
     } else {
       handOffToOs(targetUrl);
     }
@@ -11109,6 +11113,17 @@ function cycleCluster(direction) {
   setActiveTab(target.tabIds.includes(remembered) ? remembered : target.tabIds[0]);
 }
 
+const FAVORITES_PAGE_URL = 'blanc://bookmarks/';
+/** Exactly Blanc's Favorites page (blanc://bookmarks/, any path or query). */
+function isFavoritesPageUrl(url) {
+  try {
+    const u = new URL(url);
+    return u.protocol === 'blanc:' && u.host === 'bookmarks';
+  } catch {
+    return false;
+  }
+}
+
 /** Focus an existing tab already on this internal page, or open one. */
 function openInternalPage(url) {
   if (isUtilityUrl(url)) return showUtilityPage(url);
@@ -11122,7 +11137,9 @@ function openInternalPage(url) {
     // The selected internal page is being navigated anyway. Give a quiet tab
     // the target as its first load rather than restore-then-reload.
     if (tab.asleep) wakeTab(existing, { navigateTo: url }).catch(() => {});
-    else liveContents(tab)?.reload(); // pick up fresh data
+    // Favorites hears every change (pages:bookmarks:changed), so reopening
+    // it keeps a search or an open dialog; other pages reload for fresh data.
+    else if (!isFavoritesPageUrl(url)) liveContents(tab)?.reload();
   } else {
     setActiveTab(createTab(url));
   }
@@ -11224,16 +11241,23 @@ function startPageSenderIsPrivate(wc) {
  * carries nothing, so a page only ever sees its own profile's list. */
 function notifyStartPagePinsChanged() {
   for (const tab of tabs.values()) {
-    if (!tab.url?.startsWith('blanc://newtab')) continue;
+    if (!tab.url?.startsWith('blanc://newtab') && !isFavoritesPageUrl(tab.url)) continue;
     liveContents(tab)?.send('pages:pins:changed');
-  }
-  for (const runtime of windowRuntimes.all()) {
-    if (sameUtilityPage(runtime.utilitySheetUrl, 'blanc://bookmarks/')) {
-      liveUtilitySheet(runtime)?.wc.send('pages:pins:changed');
-    }
   }
 }
 startPagePins.onChanged(() => notifyStartPagePinsChanged());
+
+/** Every open Favorites page redraws after a change made anywhere else: the
+ * heart, /save, the menu, another window's Favorites page, or Sync. The
+ * notice carries nothing; the page reads its own profile's tree. */
+function notifyFavoritesPagesChanged() {
+  for (const tab of tabs.values()) {
+    if (isFavoritesPageUrl(tab.url)) liveContents(tab)?.send('pages:bookmarks:changed');
+  }
+}
+bookmarks.onChanged(() => notifyFavoritesPagesChanged());
+bookmarks.onMerged(() => notifyFavoritesPagesChanged());
+favoritesLayout.onMerged(() => notifyFavoritesPagesChanged());
 
 /** The `/save [folder]` command: add-only favorite of the active tab, into an
  * optional folder. Same guards as toggleBookmarkForActiveTab; re-derives
@@ -15873,12 +15897,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     restoreArchived: (id) => restoreArchivedEntry(id),
     // Start Page pins for the Start Page and the Favorites page. A private
     // start page reads them, as it reads Favorites, but never changes them.
+    isPrivateSender: (wc) => startPageSenderIsPrivate(wc),
     startPins: {
       list: () => listStartPagePins(),
       pin: (wc, page) => (startPageSenderIsPrivate(wc)
         ? { ok: false, reason: 'private' }
         : startPagePins.pin(page)),
       unpin: (wc, url) => !startPageSenderIsPrivate(wc) && startPagePins.unpin(url),
+      // A favorite edited on the Favorites page: its pin follows it.
+      replace: (fromUrl, page) => startPagePins.replacePin(fromUrl, page),
     },
     onHistoryCleared: () => {
       clearSessionMeta();
@@ -15907,7 +15934,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if (!runtime) return false;
         return withWindowRuntime(runtime, () => {
           if (UTILITY_PAGES.has(host)) return liveUtilitySheet()?.wc === wc;
-          if (host !== 'newtab' && host !== 'mahjong' && host !== 'error') return false;
+          if (host !== 'newtab' && host !== 'mahjong' && host !== 'error' && host !== 'bookmarks') return false;
           const tabId = tabIdByWebContentsId.get(wc.id);
           return !!tabId && windowRuntimes.runtimeForTab(tabId) === runtime;
         });

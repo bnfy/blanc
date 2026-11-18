@@ -17,13 +17,17 @@
     invalid: 'favorites.manager.error.invalid',
     missing: 'favorites.manager.error.missing',
   };
+  // A favorite's edit: its own words, since 'missing' there is a favorite.
+  const EDIT_ERROR_KEYS = {
+    exists: 'favorites.manager.error.exists',
+    'invalid-url': 'favorites.manager.error.invalidUrl',
+    missing: 'favorites.manager.error.favoriteMissing',
+  };
 
-  // ---------- Escape, shared by every in-sheet surface ----------
-  // Main swallows Escape (it closes the sheet) unless the page arms it; then
-  // it forwards each press here. Surfaces claim it while they are open, and
-  // the newest claim answers first: a menu over a name field over a search.
+  // ---------- Escape, shared by every surface on the page ----------
+  // Surfaces claim Escape while they are open, and the newest claim answers
+  // first: a menu over a dialog over a search.
   const escapeClaims = [];
-  const surface = () => root.bowserPages?.surface;
   let escapeWired = false;
   const Escape = {
     claim(name, onEscape) {
@@ -31,22 +35,18 @@
       escapeClaims.push({ name, onEscape });
       if (!escapeWired) {
         escapeWired = true;
-        surface()?.onEscape?.(() => escapeClaims.at(-1)?.onEscape());
-        // When the key reaches the page itself (no sheet routing), the same
-        // claim answers it.
         document.addEventListener('keydown', (event) => {
           if (event.key !== 'Escape' || event.defaultPrevented || !escapeClaims.length) return;
           event.preventDefault();
           escapeClaims.at(-1).onEscape();
         });
       }
-      surface()?.armEscape?.(true);
     },
+    has(name) { return escapeClaims.some((claim) => claim.name === name); },
     release(name) {
       const at = escapeClaims.findIndex((claim) => claim.name === name);
       if (at < 0) return;
       escapeClaims.splice(at, 1);
-      if (!escapeClaims.length) surface()?.armEscape?.(false);
     },
   };
   root.FavoritesEscape = Escape;
@@ -84,22 +84,29 @@
     return node;
   }
 
-  function mount({ root: host, status, t, editable, canPin, isWebPage, pins, rowIcon, showError }) {
+  function mount({ root: host, header, status, t, editable, canPin, isWebPage, pins, rowIcon, showError }) {
     const api = root.bowserPages.bookmarks;
+    // A host without the edit call (an older bridge) offers no Edit.
+    const canEdit = editable && typeof api.edit === 'function';
 
     // ---------- skeleton ----------
-    // Edge's layout (owner, November 16, 2026): search at the top of the
-    // folder sidebar; the open folder's name as the heading, with New folder
-    // beside it; one list of single-line rows.
+    // Chrome's bookmark manager (owner, November 18, 2026; direction C): a
+    // page of its own. The header holds the search and New folder, and turns
+    // into the selection bar while rows are selected; the folder tree sits on
+    // the left; one plain list with a menu on every row on the right.
     const treeNav = el('nav', 'fav-tree');
     treeNav.setAttribute('aria-label', t('favorites.manager.tree'));
+    const searchBox = el('label', 'fav-search-box');
+    const searchGlyph = el('span', 'fav-search-glyph');
+    searchGlyph.setAttribute('aria-hidden', 'true');
     const search = el('input', 'fav-search');
     search.type = 'search';
     search.placeholder = t('favorites.manager.search');
     search.setAttribute('aria-label', t('favorites.manager.search'));
+    searchBox.append(searchGlyph, search);
     const treeList = el('div', 'fav-tree-list');
     treeList.setAttribute('role', 'tree');
-    treeNav.append(search, treeList);
+    treeNav.append(treeList);
     const pane = el('section', 'fav-pane');
     const paneHead = el('div', 'fav-pane-head');
     const titleBlock = el('div', 'fav-title-block');
@@ -117,15 +124,21 @@
     newFolderGlyph.setAttribute('aria-hidden', 'true');
     newFolderBtn.append(newFolderGlyph, el('span', '', t('favorites.manager.newFolder')));
     const tools = el('div', 'fav-tools');
-    tools.append(newFolderBtn);
-    paneHead.append(titleBlock, folderSelect, tools);
+    tools.append(searchBox, newFolderBtn);
+    paneHead.append(titleBlock, folderSelect);
     const selectionBar = el('div', 'fav-selection');
     selectionBar.hidden = true;
+    // The header keeps its title; the search, New folder and the page's own
+    // Import join it, and the selection bar takes their place while rows
+    // are selected.
+    const importActions = header.querySelector('.import-actions');
+    if (importActions) tools.append(importActions);
+    header.append(tools, selectionBar);
     const list = el('div', 'fav-list');
     list.setAttribute('role', 'listbox');
     list.setAttribute('aria-multiselectable', 'true');
     list.setAttribute('aria-label', t('pagesNav.bookmarks'));
-    pane.append(paneHead, selectionBar, list);
+    pane.append(paneHead, list);
     host.replaceChildren(treeNav, pane);
     host.hidden = false;
 
@@ -138,10 +151,14 @@
     let focusKey = null;
     let wantListFocus = false;
     let naming = null;          // { kind: 'create' | 'rename', key?, path?, name?, draft }
+    let editing = null;         // { key, id, title, url, draftTitle, draftUrl, focus, select, saving }
     let confirming = false;     // the selection bar asks before removing several
+    let pendingRefresh = false; // a change made elsewhere, waiting (refreshFromElsewhere)
     let drag = null;
 
     const say = (text) => { status.textContent = text; };
+    /** A favorite in a new tab beside this one; the Favorites tab stays. */
+    const openInNewTab = (url) => { root.open(url, '_blank', 'noopener'); };
     const fail = (result) => {
       if (result && result.ok === false) {
         say(t(ERROR_KEYS[result.error] ?? 'favorites.manager.error.invalid'));
@@ -183,6 +200,7 @@
       anchor = null;
       focusKey = null;
       confirming = false;
+      endEditing();
     }
 
     /** A folder renamed or moved: the open folder and the open sidebar
@@ -335,7 +353,11 @@
     function renderSelectionBar() {
       selectionBar.replaceChildren();
       selectionBar.hidden = !editable || selected.size < 1 || searching();
-      if (selectionBar.hidden) { confirming = false; Escape.release('confirm'); return; }
+      header.classList.toggle('selecting', !selectionBar.hidden);
+      if (selectionBar.hidden) { confirming = false; Escape.release('confirm'); Escape.release('selection'); return; }
+      // Escape clears the selection and brings the search back; a menu or
+      // dialog opened over it still answers Escape first.
+      if (!Escape.has('selection')) Escape.claim('selection', clearSelection);
       const keys = [...selected];
       if (confirming && keys.length < 2) { confirming = false; Escape.release('confirm'); }
       if (confirming) {
@@ -352,18 +374,41 @@
         return;
       }
       selectionBar.classList.remove('confirming');
-      selectionBar.append(el('span', 'fav-selection-count', t('favorites.manager.selected', { count: keys.length })));
+      const clear = el('button', 'fav-selection-clear');
+      clear.type = 'button';
+      clear.setAttribute('aria-label', t('favorites.manager.clearSelection'));
+      clear.title = t('favorites.manager.clearSelection');
+      clear.addEventListener('click', clearSelection);
+      selectionBar.append(clear, el('span', 'fav-selection-count', t('favorites.manager.selected', { count: keys.length })));
+      selectionBar.append(el('span', 'fav-selection-spacer'));
+      const pages = childrenFor(keys).filter((c) => c.kind === 'favorite');
+      if (pages.length) {
+        const openBtn = el('button', 'fav-bar-button', t('favorites.manager.openAll'));
+        openBtn.type = 'button';
+        openBtn.addEventListener('click', () => { for (const c of pages) openInNewTab(c.item.url); });
+        selectionBar.append(openBtn);
+      }
       const moveBtn = el('button', 'fav-bar-button', t('favorites.manager.moveTo'));
       moveBtn.type = 'button';
       moveBtn.addEventListener('click', () => openMoveMenu(moveBtn, childrenFor(keys), current));
       const removeBtn = el('button', 'fav-bar-button danger', t('favorites.manager.remove'));
       removeBtn.type = 'button';
       removeBtn.addEventListener('click', askRemove);
-      const clear = el('button', 'fav-bar-button', t('favorites.manager.clearSelection'));
-      clear.type = 'button';
-      clear.addEventListener('click', () => { selected = new Set(); renderList(); });
-      selectionBar.append(moveBtn, removeBtn, clear);
+      selectionBar.append(moveBtn, removeBtn);
     }
+    function clearSelection() {
+      selected = new Set();
+      anchor = null;
+      wantListFocus = true;
+      renderList();
+    }
+    // A click on the page outside the rows clears the selection too.
+    document.addEventListener('click', (event) => {
+      if (!selected.size || searching() || drag) return;
+      if (!event.target.closest?.('.page')) return;
+      if (event.target.closest('.fav-row, .fav-selection, .fav-menu, dialog, .fav-tree, .fav-pane-head')) return;
+      clearSelection();
+    });
     function askRemove() {
       if (selected.size === 1) { removeChildren(childrenFor([...selected])); return; }
       confirming = true;
@@ -424,32 +469,19 @@
       }
 
       const actions = el('div', 'fav-actions');
-      if (pin) {
-        const pinBtn = el('button', 'pin-toggle fav-row-pin', pin.pinned ? t('favorites.manager.unpin') : t('favorites.manager.pin'));
-        pinBtn.type = 'button';
-        pinBtn.tabIndex = -1;
-        pinBtn.setAttribute('aria-label', pin.pinned
-          ? t('favorites.row.unpinLabel', { title: item.title })
-          : t('favorites.row.pinLabel', { title: item.title }));
-        if (!pin.pinned && pin.full) {
-          pinBtn.disabled = true;
-          pinBtn.title = t('favorites.row.pinFull', { count: pin.max });
-        }
-        pinBtn.addEventListener('click', (event) => { event.stopPropagation(); togglePin(child); });
-        actions.append(pinBtn);
-      }
       const ownPath = path === undefined ? current : path;
-      if (editable) actions.append(moreButton(child, ownPath, path !== undefined));
-      if (editable) actions.append(removeButton(child, item.title));
-      row.append(checkMark(), rowIcon(item.url, item.favicon), main, meta, actions);
+      actions.append(moreButton(child, ownPath, path !== undefined));
+      row.append(rowIcon(item.url, item.favicon), main, meta, actions);
       return row;
     }
 
     /** Pin or unpin a favorite on the Start Page; the keyboard stays on its
      * row’s pin. */
     async function togglePin(child) {
+      // The keyboard stays on the row whose pin changed.
+      focusKey = child.key;
+      wantListFocus = true;
       try { await pins.toggle(child.item); await refresh(); } catch (error) { showError(error); }
-      list.querySelector(`[data-key="${CSS.escape(child.key)}"] .pin-toggle`)?.focus();
     }
 
     function folderRow(child) {
@@ -472,31 +504,9 @@
       });
       main.append(name, el('span', 'url', t('favorites.manager.items', { count: countIn(node) })));
       const actions = el('div', 'fav-actions');
-      if (editable) actions.append(moreButton(child, current, false), removeButton(child, node.name));
-      row.append(checkMark(), glyph, main, el('div', 'fav-meta'), actions);
+      if (editable) actions.append(moreButton(child, current, false));
+      row.append(glyph, main, el('div', 'fav-meta'), actions);
       return row;
-    }
-
-    /** The select circle. A pointer target only: the keyboard selects with
-     * Space, and the row itself carries aria-selected. */
-    function checkMark() {
-      const check = el('span', 'fav-check');
-      check.setAttribute('aria-hidden', 'true');
-      return check;
-    }
-
-    /** The × at the end of every row. A folder's × deletes only the folder:
-     * what was in it moves up a level. */
-    function removeButton(child, title) {
-      const button = el('button', 'fav-remove');
-      button.type = 'button';
-      button.tabIndex = -1;
-      button.setAttribute('aria-label', child.kind === 'folder'
-        ? t('favorites.manager.deleteFolderLabel', { title })
-        : t('favorites.row.removeLabel', { title }));
-      button.title = child.kind === 'folder' ? t('favorites.manager.deleteFolder') : t('favorites.manager.remove');
-      button.addEventListener('click', (event) => { event.stopPropagation(); removeChildren([child]); });
-      return button;
     }
 
     function moreButton(child, ownPath, inSearch) {
@@ -504,6 +514,7 @@
       button.type = 'button';
       button.tabIndex = -1;
       button.setAttribute('aria-haspopup', 'menu');
+      button.title = t('favorites.manager.moreShort');
       button.setAttribute('aria-expanded', 'false');
       button.setAttribute('aria-label', t('favorites.manager.more', {
         title: child.kind === 'folder' ? child.folder.name : child.item.title,
@@ -521,9 +532,13 @@
       row.setAttribute('aria-selected', String(selected.has(key)));
       row.tabIndex = key === focusKey ? 0 : -1;
       row.classList.toggle('selected', selected.has(key));
+      let pointer = 'mouse';
+      row.addEventListener('pointerdown', (event) => { pointer = event.pointerType; });
       row.addEventListener('click', (event) => {
         const range = event.shiftKey;
-        const toggle = event.metaKey || event.ctrlKey || Boolean(event.target.closest('.fav-check'));
+        // On a touch screen there is no Cmd or Ctrl: once one row is
+        // selected, a tap adds or removes another, as on a phone.
+        const toggle = event.metaKey || event.ctrlKey || (pointer === 'touch' && selected.size > 0);
         if ((range || toggle) && event.target.closest('a')) event.preventDefault();
         if (!range && !toggle && event.target.closest('a, button')) return;
         const next = Model.selectionAfterClick(drawnKeys(), selected, key, { toggle, range, anchor });
@@ -611,6 +626,16 @@
         event.preventDefault();
         if (selected.size > 1 && selected.has(key)) askRemove();
         else removeChildren(childrenFor([key]));
+      } else if (event.key === 'F2' && editable && !searching()) {
+        // F2 renames, as in a file manager: a folder's name, a favorite's name and address.
+        const child = childByKey(key);
+        if (child?.kind === 'folder') {
+          event.preventDefault();
+          startNaming({ kind: 'rename', key: child.key, path: child.folder.path, name: child.folder.name, draft: child.folder.name });
+        } else if (child?.kind === 'favorite' && canEdit) {
+          event.preventDefault();
+          startEditing(child, current);
+        }
       } else if ((event.key === 'ContextMenu' || (event.key === 'F10' && event.shiftKey)) && editable) {
         event.preventDefault();
         rows[at].querySelector('.fav-more')?.click();
@@ -663,7 +688,7 @@
         const at = Math.max(0, Math.min(rows.length - 1, focusedIndex));
         rows[at].tabIndex = 0;
         list.append(group(t('favorites.manager.results', { count: matches.length }), null, rows));
-        if (hadFocus && focusedIndex >= 0) rows[at].focus({ preventScroll: false, focusVisible: false });
+        if (hadFocus && focusedIndex >= 0 && !editing) rows[at].focus({ preventScroll: false, focusVisible: false });
         return;
       }
 
@@ -695,7 +720,7 @@
       if (!folderRows.length && !favoriteRows.length) {
         list.append(emptyLine(tree.children.length ? t('favorites.manager.emptyFolder') : t('favorites.empty')));
       }
-      if (hadFocus && !naming) focusRow(focusKey);
+      if (hadFocus && !naming && !editing) focusRow(focusKey);
       animateFrom(before);
     }
 
@@ -741,7 +766,7 @@
         if (!input.isConnected || !naming) return;
         queueMicrotask(() => { if (input.isConnected && document.activeElement !== input) finishNaming(true); });
       });
-      row.append(checkMark(), glyph, input);
+      row.append(glyph, input);
       queueMicrotask(() => {
         if (!input.isConnected) return;
         input.focus();
@@ -751,6 +776,7 @@
     }
 
     function startNaming(state) {
+      endEditing();
       naming = { draft: '', selectOnce: true, ...state };
       Escape.claim('naming', () => finishNaming(false));
       renderList();
@@ -761,6 +787,7 @@
       if (!state) return;
       naming = null;
       Escape.release('naming');
+      queueMicrotask(flushPendingRefresh);
       const name = state.draft.trim();
       if (!keep || !name || (state.kind === 'rename' && name === state.name)) {
         wantListFocus = true;
@@ -785,6 +812,161 @@
       if (result && result.ok === false) startNaming({ ...state, selectOnce: true });
     }
 
+    // ---------- editing a favorite: a dialog, as in Chrome ----------
+    // Name, address and folder. Enter saves from any field, Escape cancels,
+    // and a refused address keeps what was typed with the reason under it.
+    const dialog = el('dialog', 'fav-edit-dialog');
+    dialog.setAttribute('aria-labelledby', 'favEditTitle');
+    const form = el('form', 'fav-edit-form');
+    form.method = 'dialog';
+    const dialogTitle = el('h2', 'fav-edit-title', t('favorites.manager.editTitle'));
+    dialogTitle.id = 'favEditTitle';
+    const field = (labelKey, input) => {
+      const label = el('label', 'fav-edit-label');
+      label.append(el('span', '', t(labelKey)), input);
+      return label;
+    };
+    const titleInput = el('input', 'fav-edit-input');
+    titleInput.type = 'text';
+    titleInput.maxLength = 500;
+    titleInput.dataset.field = 'title';
+    const urlInput = el('input', 'fav-edit-input');
+    urlInput.type = 'text';
+    urlInput.maxLength = 4096;
+    urlInput.inputMode = 'url';
+    urlInput.autocapitalize = 'off';
+    urlInput.spellcheck = false;
+    urlInput.dataset.field = 'url';
+    const urlError = el('p', 'fav-edit-error');
+    urlError.id = 'favEditError';
+    urlError.setAttribute('role', 'alert');
+    const folderInput = el('select', 'fav-edit-input fav-edit-folder');
+    folderInput.dataset.field = 'folder';
+    const buttons = el('div', 'fav-edit-buttons');
+    const cancelBtn = el('button', 'fav-bar-button', t('favorites.manager.editCancel'));
+    cancelBtn.type = 'button';
+    cancelBtn.addEventListener('click', () => finishEditing(false));
+    const saveBtn = el('button', 'fav-bar-button fav-edit-save', t('favorites.manager.editSave'));
+    saveBtn.type = 'submit';
+    buttons.append(cancelBtn, saveBtn);
+    const urlLabel = field('favorites.manager.editAddress', urlInput);
+    urlLabel.append(urlError);
+    form.append(dialogTitle, field('favorites.manager.editName', titleInput), urlLabel,
+      field('favorites.manager.editFolder', folderInput), buttons);
+    dialog.append(form);
+    host.append(dialog);
+    form.addEventListener('submit', (event) => { event.preventDefault(); finishEditing(true); });
+    // The dialog's own Escape (and a click on its backdrop) cancel like Cancel.
+    dialog.addEventListener('cancel', (event) => { event.preventDefault(); finishEditing(false); });
+    dialog.addEventListener('click', (event) => { if (event.target === dialog) finishEditing(false); });
+    urlInput.addEventListener('input', () => {
+      urlError.textContent = '';
+      urlInput.removeAttribute('aria-invalid');
+      urlInput.removeAttribute('aria-describedby');
+    });
+
+    function startEditing(child, path = current) {
+      if (naming) { naming = null; Escape.release('naming'); }
+      closeMenu();
+      const { item } = child;
+      const folder = path ?? null;
+      editing = { key: child.key, id: item.id, folder, saving: false };
+      titleInput.value = item.title;
+      urlInput.value = item.url;
+      urlError.textContent = '';
+      urlInput.removeAttribute('aria-invalid');
+      urlInput.removeAttribute('aria-describedby');
+      folderInput.replaceChildren();
+      const top = el('option', '', t('favorites.manager.all'));
+      top.value = '';
+      folderInput.append(top);
+      for (const entry of Model.listFolders(tree)) {
+        const option = el('option', '', entry.path);
+        option.value = entry.path;
+        option.dataset.i18nIgnore = '';
+        folderInput.append(option);
+      }
+      folderInput.value = folder ?? '';
+      Escape.claim('editing', () => finishEditing(false));
+      say('');
+      dialog.showModal();
+      titleInput.focus();
+      titleInput.select();
+    }
+
+    function endEditing() {
+      if (!editing) return;
+      editing = null;
+      Escape.release('editing');
+      if (dialog.open) dialog.close();
+    }
+
+    async function finishEditing(keep) {
+      const state = editing;
+      if (!state || state.saving) return;
+      if (!keep) {
+        endEditing();
+        focusKey = state.key;
+        wantListFocus = true;
+        renderList();
+        return;
+      }
+      state.saving = true;
+      saveBtn.disabled = true;
+      let result;
+      try {
+        result = await api.edit(state.id, { title: titleInput.value, url: urlInput.value });
+        const key = result?.key ?? state.key;
+        const folder = folderInput.value || null;
+        if (result?.ok && !samePath(folder, state.folder)) {
+          // The name and address are saved; a folder that can't take it
+          // says so the way any move does.
+          const moved = await api.move([state.id], folder);
+          if (moved?.ok === false) {
+            state.saving = false;
+            saveBtn.disabled = false;
+            endEditing();
+            fail(moved);
+            focusKey = key;
+            wantListFocus = true;
+            await refresh();
+            return;
+          }
+        }
+        if (result?.ok) result = { ...result, key };
+      } catch (error) {
+        state.saving = false;
+        saveBtn.disabled = false;
+        showError(error);
+        return;
+      }
+      state.saving = false;
+      saveBtn.disabled = false;
+      if (editing !== state) return;
+      if (result?.ok) {
+        endEditing();
+        say('');
+        focusKey = result.key;
+        wantListFocus = true;
+        await refresh();
+        return;
+      }
+      if (result?.error === 'missing') {
+        endEditing();
+        say(t(EDIT_ERROR_KEYS.missing));
+        await refresh();
+        return;
+      }
+      // Refused ('exists' or 'invalid-url'): the address stays as typed,
+      // selected, with the reason under it.
+      const reason = EDIT_ERROR_KEYS[result?.error] ?? 'favorites.manager.error.invalid';
+      urlError.textContent = t(reason);
+      urlInput.setAttribute('aria-invalid', 'true');
+      urlInput.setAttribute('aria-describedby', urlError.id);
+      urlInput.focus();
+      urlInput.select();
+    }
+
     // ---------- drag and drop ----------
     const DRAG_TYPE = 'application/x-blanc-favorites';
     function startDrag(event, payload) {
@@ -801,6 +983,7 @@
         renderSelectionBar();
         list.classList.toggle('has-selection', selected.size > 0);
       }
+      flushPendingRefresh();
     }
     function clearMarks() {
       for (const node of host.querySelectorAll('.drop-into, .drop-before, .drop-after')) {
@@ -945,6 +1128,7 @@
       menu = null;
       menuAnchor = null;
       Escape.release('menu');
+      flushPendingRefresh();
       // Focus first: ⋮ is hidden at rest, and only an open menu or focus in
       // its row shows it.
       if (refocus) back?.focus?.({ preventScroll: true });
@@ -956,6 +1140,7 @@
       closeMenu();
     }, true);
     document.querySelector('.page')?.addEventListener('scroll', () => closeMenu(), { passive: true });
+    root.addEventListener('scroll', () => closeMenu(), { passive: true });
     root.addEventListener('resize', () => closeMenu());
 
     function showMenu(anchorEl, label, items) {
@@ -977,6 +1162,9 @@
         if (item.indent) button.style.setProperty('--indent', String(item.indent));
         if (item.ignore) button.dataset.i18nIgnore = '';
         if (item.disabled) button.disabled = true;
+        // Why an item can't be used, under its label (a disabled item shows
+        // no tooltip).
+        if (item.hint) button.append(el('span', 'fav-menu-hint', item.hint));
         button.addEventListener('click', () => { closeMenu(); item.run(); });
         menu.append(button);
       }
@@ -1030,6 +1218,11 @@
         return act(() => api.reorder(ownPath, Model.combineOrder(parent.children, child.kind, Model.orderAfterStep(keys, child.key, direction))));
       };
       const title = child.kind === 'folder' ? child.folder.name : child.item.title;
+      if (!editable) {
+        showMenu(anchorEl, t('favorites.manager.more', { title }),
+          [{ label: t('favorites.manager.openNewTab'), run: () => openInNewTab(child.item.url) }]);
+        return;
+      }
       const items = [];
       if (child.kind === 'folder') {
         items.push({ label: t('favorites.manager.open'), run: () => { setCurrent(child.folder.path); render(); } });
@@ -1043,12 +1236,17 @@
           startNaming({ kind: 'create' });
         } });
       }
-      // Pin is in the menu too, for the keyboard: the row’s own Pin shows on hover.
+      if (child.kind === 'favorite') {
+        items.push({ label: t('favorites.manager.openNewTab'), run: () => openInNewTab(child.item.url) });
+        if (canEdit) items.push({ label: t('favorites.manager.edit'), run: () => startEditing(child, ownPath) });
+      }
+      // Pin lives in the menu; the row shows only the pin mark.
       const pin = child.kind === 'favorite' && canPin && isWebPage(child.item.url) ? pins.state(child.item.url) : null;
       if (pin) {
         items.push({
           label: pin.pinned ? t('favorites.manager.unpin') : t('favorites.manager.pin'),
           disabled: !pin.pinned && pin.full,
+          hint: !pin.pinned && pin.full ? t('favorites.row.pinFull', { count: pin.max }) : undefined,
           run: () => togglePin(child),
         });
       }
@@ -1146,7 +1344,20 @@
       render();
     }
 
-    return { refresh };
+    // A change made elsewhere (Sync, the heart, another window) waits while a
+    // menu is open, a row is being dragged or a name is being typed, so it
+    // never closes, drops or re-creates what the person is using.
+    function refreshFromElsewhere() {
+      if (menu || drag || naming) { pendingRefresh = true; return; }
+      refresh();
+    }
+    function flushPendingRefresh() {
+      if (!pendingRefresh || menu || drag || naming) return;
+      pendingRefresh = false;
+      refresh();
+    }
+
+    return { refresh, refreshFromElsewhere };
   }
 
   root.FavoritesManager = { mount };

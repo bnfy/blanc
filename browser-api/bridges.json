@@ -24,7 +24,8 @@
           "https://example.com/",
           "http://example.com/",
           "blanc://newtab/",
-          "blanc://mahjong/"
+          "blanc://mahjong/",
+          "blanc://bookmarks/"
         ],
         "doc": "Isolated-world invalidation for the strip's page tint: no arguments, no API exposed to the page."
       }
@@ -36,7 +37,6 @@
         "channel": "pages:surface:close",
         "hosts": [
           "tab-handoff",
-          "bookmarks",
           "history",
           "downloads",
           "shortcuts",
@@ -53,7 +53,6 @@
         "channel": "pages:surface:escape-arm",
         "hosts": [
           "tab-handoff",
-          "bookmarks",
           "history",
           "downloads",
           "shortcuts",
@@ -78,7 +77,6 @@
         "channel": "pages:surface:escape",
         "hosts": [
           "tab-handoff",
-          "bookmarks",
           "history",
           "downloads",
           "shortcuts",
@@ -421,6 +419,37 @@
         ],
         "returns": "unknown",
         "doc": "Remove several Favorites at once."
+      },
+      {
+        "name": "bookmarks.edit",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:edit",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          },
+          {
+            "name": "changes",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Change one Favorite's name and address."
+      },
+      {
+        "name": "bookmarks.onChanged",
+        "kind": "event",
+        "channel": "pages:bookmarks:changed",
+        "hosts": [
+          "bookmarks"
+        ],
+        "payload": null,
+        "doc": "Favorites changed somewhere else; read them again.",
+        "unsubscribe": false
       },
       {
         "name": "start.data",

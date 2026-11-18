@@ -17,6 +17,11 @@ test('Mahjong matches its Sunrise backdrop like the Start Page', () => {
   assert.equal(shouldSamplePageTint({ url: 'blanc://mahjong/?private=1', private: true }), true);
 });
 
+test('the Favorites page, a tab of its own, matches its Sunrise backdrop', () => {
+  assert.equal(shouldSamplePageTint({ url: 'blanc://bookmarks/', private: false }), true);
+  assert.equal(shouldSamplePageTint({ url: 'blanc://bookmarks/', private: true }), true);
+});
+
 test('a private Start Page matches its wallpaper too', () => {
   assert.equal(shouldSamplePageTint({ url: 'blanc://newtab/?private=1', private: true }), true);
 });

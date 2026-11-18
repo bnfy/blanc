@@ -255,6 +255,29 @@ intended change. They end when each platform adopts the tree.
 
 ### 5. The Favorites sheet
 
+> **Superseded on November 18, 2026.** The owner disliked the result overall
+> (heavy card rows, cramped in the 900px sheet, hover-only controls, awkward
+> everyday tasks), reviewed three rendered directions and chose the third:
+> Favorites is a page of its own in a tab, like Chrome's bookmark manager.
+> The header holds the title, a search across the top, New folder and
+> import, and turns into the selection bar (×, count, Open all, Move to…,
+> Remove) while rows are selected. The folder tree sits on the left; the open
+> folder's contents are one plain list in a raised card, split by hairlines,
+> with an always-visible ⋮ menu on every row (Open in new tab, Edit…,
+> Pin/Unpin, Move to…, Move up/down, Remove) and the pin mark only; no
+> select circles, no row ×, no hover-only Pin. Edit… opens a dialog with
+> name, address and folder (a supporter's request of the same day; a new
+> address is the old favorite tombstoned and the new one added in its place,
+> and its Start Page pin follows). `blanc://bookmarks/` leaves
+> `UTILITY_PAGES`; the sheet's Favorites links, the menu, `/favorites` and
+> the ⌘L footer open or focus the tab (without reloading it), and the page
+> hears `pages:bookmarks:changed` after any change made elsewhere. The page's
+> markup stays a sheet page because Blanc for iPhone restyles that one;
+> `bookmarks.js` switches it to the full page everywhere else. The Chromium
+> fork copies this page from a pinned release and keeps it in its own sheet,
+> so moving that pin needs the fork's sheet adapter updated. The text below
+> is the November 16 design, kept as the record.
+
 The sheet keeps its current styling (`body.sheet`, the warm Sunrise surface)
 and its header actions. The list area becomes two panes.
 

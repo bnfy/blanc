@@ -1,0 +1,15 @@
+{
+  "note": "The Favorites page (F63), pinned apart from the Island renderer (owner, 2026-11-18). tools/favorites-page.mjs writes and checks it; it never trails blanc/island-renderer.json.",
+  "commit": "3f9a3aff0a74d0cc2c304d0def03116a1aeb0275",
+  "files": [
+    "bookmarks.html",
+    "bookmarks.js",
+    "favorites-manager.js",
+    "favorites-manager-model.js"
+  ],
+  "shared": [
+    "row-icon.js",
+    "start-pins.js",
+    "i18n.js"
+  ]
+}
