@@ -234,6 +234,37 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 /* The capture keeps the dialog's own rounded corners (transparent outside them),
    so the shadow follows the panel's shape. */
 .mail-rules-shot img{filter:drop-shadow(0 0 1px #f2ead840) drop-shadow(0 30px 50px #000000d9) drop-shadow(0 0 60px #c4914233)}
+/* Design teasers: the next look in dark and light, then the Blanc Mail address
+   in three steps. Each set is a segmented control over one window at a time;
+   the radios switch it in CSS (:has), and a browser without :has() keeps the
+   first window. The window art carries its own shadow on a transparent ground;
+   a pool of lamplight under it lifts it off the black stage. Its "Design
+   preview" caption is MailTeaser's and can't be left off. */
+.mail-teaser-set{width:min(1080px,100%);margin-top:clamp(96px,14vh,160px);text-align:center}
+.mail-segments{position:relative;display:inline-grid;grid-auto-columns:1fr;grid-auto-flow:column;min-width:200px;margin:36px auto 0;padding:3px;border:0;border-radius:999px;background:#f2ead80f;box-shadow:inset 0 0 0 1px #e0c08433}
+.mail-segments-three{min-width:300px}
+.mail-segments label{position:relative;z-index:1;cursor:pointer}
+.mail-segments input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.mail-segments label span{display:block;padding:7px 18px;border-radius:999px;color:var(--mail-band-muted);font-size:13.5px;font-weight:500;letter-spacing:.02em;transition:color 200ms ease}
+.mail-segments input:checked+span{color:#1b1306}
+.mail-segments input:focus-visible+span{outline:2px solid var(--mail-band-gold);outline-offset:2px}
+.mail-segments-thumb{position:absolute;top:3px;bottom:3px;left:3px;z-index:0;width:calc((100% - 6px) / 2);border-radius:999px;background:var(--mail-gilt);box-shadow:inset 0 1px 0 #fff8e2b3,inset 0 -1px 0 #7a5a2699;transition:translate 420ms var(--mail-arrive)}
+.mail-segments-three .mail-segments-thumb{width:calc((100% - 6px) / 3)}
+.mail-segments:has(label:nth-of-type(2) input:checked) .mail-segments-thumb{translate:100% 0}
+.mail-segments:has(label:nth-of-type(3) input:checked) .mail-segments-thumb{translate:200% 0}
+@media(prefers-reduced-motion:reduce){.mail-segments-thumb,.mail-segments label span{transition:none}}
+.mail-teaser{position:relative;width:min(1000px,100%);margin:28px auto 0}
+.mail-teaser::before{content:"";position:absolute;z-index:-1;inset:-6% -14% -18%;background:radial-gradient(ellipse 50% 46% at 50% 54%,#c491422e,#c4914200 70%);pointer-events:none}
+.mail-teaser img{display:block;width:100%;height:auto}
+.mail-teaser figcaption{display:inline-flex;align-items:center;gap:7px;margin-top:8px;padding:3px 10px 3px 8px;border-radius:999px;box-shadow:inset 0 0 0 1px #e0c08459;color:var(--mail-band-muted);font-size:12px;font-weight:600;letter-spacing:.03em;line-height:1.4}
+.mail-teaser figcaption::before{content:"";width:6px;height:6px;border-radius:50%;background:#e0c084}
+.mail-teaser-set .mail-teaser:not(:first-of-type){display:none}
+.mail-teaser-set:has(input[value=light]:checked) [data-teaser=dark],
+.mail-teaser-set:has(input[value=choose]:checked) [data-teaser=offer],
+.mail-teaser-set:has(input[value=ready]:checked) [data-teaser=offer]{display:none}
+.mail-teaser-set:has(input[value=light]:checked) [data-teaser=light],
+.mail-teaser-set:has(input[value=choose]:checked) [data-teaser=choose],
+.mail-teaser-set:has(input[value=ready]:checked) [data-teaser=ready]{display:block}
 /* What's coming: the features as dark cards with gilt line glyphs, then the
    four ways Mail is careful, divided by gold hairlines, then the waitlist again. */
 .mail-defs{position:absolute;width:0;height:0;overflow:hidden}

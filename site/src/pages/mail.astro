@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import BrandMark from '../components/BrandMark.astro';
 import MailBar from '../components/MailBar.astro';
 import MailShot from '../components/MailShot.astro';
+import MailTeaser from '../components/MailTeaser.astro';
 import MailWaitlistForm from '../components/MailWaitlistForm.astro';
 import survey from '../data/mail-survey.json';
 import MailSurveyInvite from '../components/MailSurveyInvite.astro';
@@ -50,6 +51,23 @@ const careful = [
   { title: 'Nothing added to your mail', text: 'Blanc Mail adds no read receipts and no open or click tracking to the mail you send.' },
   { title: 'Privacy choices', text: 'Turn off automatic remote content in Settings. An optional Private Push relay sends refresh signals without receiving mail content.' },
 ];
+// Design teasers (November 17, 2026): the next look and the Blanc Mail
+// address, approved but not shipped, so every one is a MailTeaser labelled
+// "Design preview". Recorded in docs/website-mail-claims-2026-11-17.md.
+const looks = [
+  { value: 'dark', label: 'Dark', name: 'night-inbox',
+    alt: 'Design preview of Blanc Mail in dark mode: warm charcoal panes with ivory text, the mailboxes in the sidebar, an Inbox of six conversations, and a message titled “Saturday at the bindery” open beside it. The mail is made up.' },
+  { value: 'light', label: 'Light', name: 'porcelain-inbox',
+    alt: 'Design preview of Blanc Mail in light mode: pale grey panes with dark text, the mailboxes in the sidebar, an Inbox of six conversations, and a message titled “Saturday at the bindery” open beside it. The mail is made up.' },
+];
+const addressSteps = [
+  { value: 'offer', label: 'Offer', name: 'night-offer',
+    alt: 'Design preview: a dialog over the inbox with the gold Blanc Mail icon, reading “Your plan includes a Blanc Mail address. A private mailbox of your own.”, with mailbox storage of 15 GB and the buttons Choose Your Address and Not Now.' },
+  { value: 'choose', label: 'Choose', name: 'night-address',
+    alt: 'Design preview: the “Choose your address” form, filled in with the name mira at blnc.day, the display name Mira Hall, a password entered twice and a backup email, with Cancel and Continue.' },
+  { value: 'ready', label: 'Ready', name: 'night-arrival',
+    alt: 'Design preview: a dialog with the gold Blanc Mail icon reading “mira@blnc.day. Your mailbox is ready in Blanc Mail.”, and an Open Inbox button.' },
+];
 // Pricing, Support and Download were their own pages until October 22, 2026;
 // their words moved here unchanged (the old URLs redirect to these sections).
 const plans = [
@@ -89,6 +107,26 @@ const support = [
       <p class="mail-soon-lead">Blanc Mail brings a careful, native experience for Gmail and Proton Mail to your Mac.</p>
       <MailWaitlistForm />
       {survey.open && <p class="mail-survey-link"><a href="/mail/survey">Help shape Blanc Mail: tell us what you’d want, anonymously.</a></p>}
+    </section>
+
+    <!-- A first look at the next design, in dark and light. The radios switch
+         the window in CSS, so it works without scripting (dark is checked in
+         the markup, as the stage is dark); the script below only preselects
+         light for a visitor whose system is light. -->
+    <section class="mail-look mail-teaser-set" aria-labelledby="mail-look-title">
+      <h2 id="mail-look-title"><span class="mail-gold-text">A first look at the new design.</span></h2>
+      <p class="mail-section-lead">This is where Blanc Mail’s design is heading, in dark mode and in light mode. It’s a design preview: the mail is made up, and details may change before release.</p>
+      <fieldset class="mail-segments" data-mail-look>
+        <legend class="sr-only">Appearance</legend>
+        {looks.map((look, index) => (
+          <label>
+            <input type="radio" name="mail-look" value={look.value} checked={index === 0} />
+            <span>{look.label}</span>
+          </label>
+        ))}
+        <span class="mail-segments-thumb" aria-hidden="true"></span>
+      </fieldset>
+      {looks.map(look => <MailTeaser name={look.name} alt={look.alt} data-teaser={look.value} />)}
     </section>
 
     <!-- The gilt that strokes every glyph on the page. -->
@@ -166,6 +204,25 @@ const support = [
       </ul>
     </section>
 
+    <!-- Hosted addresses are designed, not available: the copy says so, names
+         no date, and the owner's offer line is the lead word for word. The
+         steps switch in CSS like the looks above; Offer is checked. -->
+    <section class="mail-address mail-teaser-set" aria-labelledby="mail-address-title">
+      <h2 id="mail-address-title"><span class="mail-gold-text">Coming later: a Blanc Mail address.</span></h2>
+      <p class="mail-section-lead">A private mailbox of your own, with an address like <!--email_off-->mira@blnc.day<!--/email_off-->, set up from inside Blanc Mail. It isn’t available yet, and what’s shown may change before it is.</p>
+      <fieldset class="mail-segments mail-segments-three">
+        <legend class="sr-only">Step</legend>
+        {addressSteps.map((step, index) => (
+          <label>
+            <input type="radio" name="mail-address-step" value={step.value} checked={index === 0} />
+            <span>{step.label}</span>
+          </label>
+        ))}
+        <span class="mail-segments-thumb" aria-hidden="true"></span>
+      </fieldset>
+      {addressSteps.map(step => <MailTeaser name={step.name} alt={step.alt} data-teaser={step.value} />)}
+    </section>
+
     <section id="pricing" class="mail-pricing" aria-labelledby="mail-pricing-title">
       <h2 id="mail-pricing-title"><span class="mail-gold-text">A good home for your mail.</span></h2>
       <p class="mail-section-lead">Start with a 14-day local trial when Mail launches. No card is needed to begin.</p>
@@ -222,6 +279,13 @@ const support = [
   {survey.open && <MailSurveyInvite />}
 </BaseLayout>
 <script>
+  // The first look opens in the visitor's own appearance: a Mac set to light
+  // sees the light window first. Nothing is stored or sent.
+  if (matchMedia('(prefers-color-scheme: light)').matches) {
+    const light = document.querySelector<HTMLInputElement>('[data-mail-look] input[value="light"]');
+    if (light) light.checked = true;
+  }
+
   // The envelope catches the lamp: its sheen follows the pointer and it leans
   // a degree or two toward it, so the reflections move the way metal's do.
   // Only for a mouse with motion allowed; otherwise it holds its resting

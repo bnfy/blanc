@@ -84,7 +84,7 @@ test('the features and the careful row list what Mail does, each with a gilt gly
       island: [...document.querySelectorAll('.mip-row')].map(row => row.textContent.trim()),
       islandPoints: [...document.querySelectorAll('.mail-island-points h3')].map(h => h.textContent.trim()),
     }));
-    assert.deepEqual(list.headings, ['The Island, made for mail.', 'Every account, one calm inbox.', 'Rules that read like sentences', 'Careful in what it sends, generous in what it accepts.', 'A good home for your mail.', 'Support', 'Blanc Mail for Mac.']);
+    assert.deepEqual(list.headings, ['A first look at the new design.', 'The Island, made for mail.', 'Every account, one calm inbox.', 'Rules that read like sentences', 'Careful in what it sends, generous in what it accepts.', 'Coming later: a Blanc Mail address.', 'A good home for your mail.', 'Support', 'Blanc Mail for Mac.']);
     // The Island figure lists the app's eight commands in its own order and words.
     assert.deepEqual(list.island, ['/snoozeSnooze…', '/set-asideSet Aside', '/labelLabels', '/moveMove To…', '/archiveArchive', '/trashTrash', '/composeNew Message', '/ruleNew Rule…']);
     assert.deepEqual(list.islandPoints, ['Jump anywhere', 'Commands with a slash', 'Actions at hand']);
@@ -92,6 +92,43 @@ test('the features and the careful row list what Mail does, each with a gilt gly
     assert.deepEqual(list.careful, ['Safe to read', 'No accidental double sends', 'Nothing added to your mail', 'Privacy choices']);
     for (const stroke of list.glyphs) assert.match(stroke, /url\(.*#mail-gilt-stroke.*\)/);
   } finally { await context.close(); }
+});
+
+// The design teasers (docs/website-mail-claims-2026-11-17.md) show one window
+// at a time, each labelled "Design preview", switched by radios in CSS.
+const teaserState = page => page.evaluate(() => [...document.querySelectorAll('.mail-teaser-set')].map(set => ({
+  checked: set.querySelector('input:checked').value,
+  shown: [...set.querySelectorAll('.mail-teaser')].filter(f => getComputedStyle(f).display !== 'none').map(f => f.dataset.teaser),
+  captions: [...set.querySelectorAll('.mail-teaser figcaption')].map(c => c.textContent.trim()),
+  alts: [...set.querySelectorAll('.mail-teaser img')].every(img => /^Design preview/.test(img.alt)),
+})));
+
+test('the design teasers open in the visitor’s appearance, switch in place, and are labelled as previews', async () => {
+  const dark = await openPage('/mail', 1440, { colorScheme: 'dark' });
+  try {
+    const [look, address] = await teaserState(dark.page);
+    assert.deepEqual([look.checked, look.shown], ['dark', ['dark']]);
+    assert.deepEqual([address.checked, address.shown], ['offer', ['offer']]);
+    for (const set of [look, address]) {
+      assert.ok(set.captions.every(c => c === 'Design preview'), set.captions.join());
+      assert.ok(set.alts, 'every alt says it is a design preview');
+    }
+    await dark.page.locator('.mail-address label', { hasText: 'Ready' }).click();
+    assert.deepEqual((await teaserState(dark.page))[1].shown, ['ready']);
+    // Keyboard: the radios move with the arrow keys.
+    await dark.page.locator('.mail-look input[value="dark"]').focus();
+    await dark.page.keyboard.press('ArrowRight');
+    assert.deepEqual((await teaserState(dark.page))[0].shown, ['light']);
+    assert.match(await dark.page.locator('.mail-address .mail-section-lead').textContent(), /^A private mailbox of your own,/);
+  } finally { await dark.context.close(); }
+
+  const light = await openPage('/mail', 390, { colorScheme: 'light', viewport: { width: 390, height: 844 } });
+  try {
+    const [look] = await teaserState(light.page);
+    assert.deepEqual([look.checked, look.shown], ['light', ['light']]);
+    const overflow = await light.page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+    assert.ok(overflow <= 0, `the page scrolls sideways by ${overflow}px`);
+  } finally { await light.context.close(); }
 });
 
 test('Pricing says purchases are not open before any price, and recommends neither plan', async () => {

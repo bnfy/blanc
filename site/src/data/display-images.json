@@ -203,6 +203,76 @@
     "height": 585
   },
   {
+    "source": "mail/teasers/night-inbox.webp",
+    "sourceSha256": "a9e534e17643e86d3d465f4a821d35fa3a4d9d0b3f716c431ad60299124c38e2",
+    "output": "mail/teasers/night-inbox-1400.webp",
+    "width": 1400,
+    "height": 860
+  },
+  {
+    "source": "mail/teasers/night-inbox.webp",
+    "sourceSha256": "a9e534e17643e86d3d465f4a821d35fa3a4d9d0b3f716c431ad60299124c38e2",
+    "output": "mail/teasers/night-inbox-800.webp",
+    "width": 800,
+    "height": 492
+  },
+  {
+    "source": "mail/teasers/porcelain-inbox.webp",
+    "sourceSha256": "5f8e49b4df68ad72c0af846cc5edc3e3024c2786c1ab0e58c6147cbdf9b036af",
+    "output": "mail/teasers/porcelain-inbox-1400.webp",
+    "width": 1400,
+    "height": 860
+  },
+  {
+    "source": "mail/teasers/porcelain-inbox.webp",
+    "sourceSha256": "5f8e49b4df68ad72c0af846cc5edc3e3024c2786c1ab0e58c6147cbdf9b036af",
+    "output": "mail/teasers/porcelain-inbox-800.webp",
+    "width": 800,
+    "height": 492
+  },
+  {
+    "source": "mail/teasers/night-offer.webp",
+    "sourceSha256": "31e895e076cb74e3359314ebac649355382f05b780a5f625783b378f8fc22edd",
+    "output": "mail/teasers/night-offer-1400.webp",
+    "width": 1400,
+    "height": 860
+  },
+  {
+    "source": "mail/teasers/night-offer.webp",
+    "sourceSha256": "31e895e076cb74e3359314ebac649355382f05b780a5f625783b378f8fc22edd",
+    "output": "mail/teasers/night-offer-800.webp",
+    "width": 800,
+    "height": 492
+  },
+  {
+    "source": "mail/teasers/night-address.webp",
+    "sourceSha256": "68cf4be03499619dafa3591e35fe0babb6c5e67da6dc16342feed9a63e7c9eb0",
+    "output": "mail/teasers/night-address-1400.webp",
+    "width": 1400,
+    "height": 860
+  },
+  {
+    "source": "mail/teasers/night-address.webp",
+    "sourceSha256": "68cf4be03499619dafa3591e35fe0babb6c5e67da6dc16342feed9a63e7c9eb0",
+    "output": "mail/teasers/night-address-800.webp",
+    "width": 800,
+    "height": 492
+  },
+  {
+    "source": "mail/teasers/night-arrival.webp",
+    "sourceSha256": "2e18eb2071bb8a94ed52204caa3296a42f5392c186084df05042c2e53504c25e",
+    "output": "mail/teasers/night-arrival-1400.webp",
+    "width": 1400,
+    "height": 860
+  },
+  {
+    "source": "mail/teasers/night-arrival.webp",
+    "sourceSha256": "2e18eb2071bb8a94ed52204caa3296a42f5392c186084df05042c2e53504c25e",
+    "output": "mail/teasers/night-arrival-800.webp",
+    "width": 800,
+    "height": 492
+  },
+  {
     "source": "feature-captures/float-island-hidden-v1.40.0.png",
     "sourceSha256": "340bd9ae32b728bd24f469550b7c995a4f1097df0ee6123b18b1883e0cc887a6",
     "output": "revamp/float-island-hidden-v1.40.0-display.webp",
