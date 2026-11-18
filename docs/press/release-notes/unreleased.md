@@ -3,6 +3,22 @@
 v1.50.0 is the current public release ([notes](v1.50.0.md)). Changes merged
 since then are below as they're recorded.
 
+## Changed
+
+- **One Start Page, with the widgets you want.** The Start Page is now the
+  clock page, with the week's blocked count under the clock. Favorites and
+  your other devices' tabs are cards you turn on in **Customize**, then drag
+  (or move with the arrow keys) to either side of the page and resize. Choose
+  how many shortcuts show, from 1 to 12. If you used Ledger, Shelf or Tally,
+  your Start Page keeps what it showed. Over your own image, the cards are
+  frosted glass and the small text turns light or dark to stay readable.
+
+## Still open for the next release
+
+- **The one Start Page** (from the fork's V24) by hand in a packaged build on
+  macOS, Windows and Linux: dragging cards with a real mouse and finger,
+  resizing them, and the light-or-dark text over a real photo.
+
 ## Still open from 1.50
 
 - **Whether macOS asks for Downloads access the first time** Blanc saves a
