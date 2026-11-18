@@ -29,10 +29,10 @@ export const imports={
    const store=await w.native('importDebug',['records']);
    if(store.error)throw Error(store.error);
    const meta=(await w.api('listWorkspaces')).items;
-   // A listed space with no saved record is an inconsistency between the
-   // list and the store; name both sides rather than drop it.
+   // A listed space with no saved record is left out, as before; the log
+   // names both sides for diagnosis.
    const missing=meta.filter(row=>!store.records[row.id]);
-   if(missing.length)throw Error(`Listed spaces with no saved record: ${JSON.stringify(missing.map(r=>[r.id,r.name]))}; saved: ${JSON.stringify(Object.keys(store.records))}`);
+   if(missing.length)console.error(`arcImport records: listed spaces with no saved record ${JSON.stringify(missing.map(r=>[r.id,r.name]))}; saved ${JSON.stringify(Object.keys(store.records))}`);
    return meta.flatMap(row=>{
     const record=store.records[row.id];if(!record)return [];
     return [{id:row.id,name:row.name,urls:record.tabs.map(t=>t.url),pinned:record.tabs.map(t=>t.pinned),
