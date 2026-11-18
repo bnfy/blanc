@@ -48,6 +48,12 @@ const CSS_AFTER = 'body.sheet .shortcut-row:last-child { border-bottom: 0; }\n';
 const BEGIN = '/* Begin shipping\'s Favorites manager rules (tools/favorites-page.mjs). */\n';
 const END = '/* End shipping\'s Favorites manager rules. */\n';
 
+// A file's text, or null when it isn't there: one read, never a check and
+// then a read the file could change between.
+const readIfPresent = file => {
+  try { return fs.readFileSync(file, 'utf8'); } catch (error) { if (error.code === 'ENOENT') return null; throw error; }
+};
+
 const show = (ref, file) => execFileSync('git', ['show', `${ref}:src/renderer/pages/${file}`],
   {cwd: root, maxBuffer: 64 * 1024 * 1024}).toString('utf8');
 const once = (text, find, label) => {
@@ -109,16 +115,15 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     for (const [file, text] of Object.entries(files)) fs.writeFileSync(path.join(pages, file), text);
     fs.writeFileSync(cssFile, css);
     const commit = execFileSync('git', ['rev-parse', `${ref}^{commit}`], {cwd: root, encoding: 'utf8'}).trim();
-    const previous = fs.existsSync(RECORD) ? pinned() : {};
+    const record = readIfPresent(RECORD);
+    const previous = record === null ? {} : JSON.parse(record);
     fs.writeFileSync(RECORD, JSON.stringify({
       note: previous.note ?? 'The Favorites page (F63), pinned apart from the Island renderer (owner, 2026-11-18). tools/favorites-page.mjs writes and checks it; it never trails blanc/island-renderer.json.',
       commit, files: PAGE_FILES, shared: SHARED_FILES}, null, 2) + '\n');
     console.log(`Wrote the Favorites page from ${commit}`);
   } else if (args.includes('--check')) {
-    const stale = Object.entries(files).filter(([file, text]) => {
-      const current = path.join(pages, file);
-      return !fs.existsSync(current) || fs.readFileSync(current, 'utf8') !== text;
-    }).map(([file]) => `pages/${file}`);
+    const stale = Object.entries(files).filter(([file, text]) => readIfPresent(path.join(pages, file)) !== text)
+      .map(([file]) => `pages/${file}`);
     if (fs.readFileSync(cssFile, 'utf8') !== css) stale.push('pages/pages.css (Favorites manager rules)');
     if (stale.length) throw Error(`Favorites page files differ from ${ref}: ${stale.join(', ')}; run --write`);
     console.log(`Favorites page files match ${ref}`);
