@@ -2626,8 +2626,28 @@ body.fav-page .fav-selection-clear:hover { background: var(--accent-dim); }
 }
 /* The tree sits below the header, sticky as the list scrolls. */
 body.fav-page .fav-manager { grid-template-columns: 230px minmax(0, 1fr); gap: 32px; }
-body.fav-page .fav-tree { top: calc(var(--fav-head-h) + 22px); max-height: calc(100vh - var(--fav-head-h) - 44px); }
-body.fav-page .fav-tree-row { min-height: 34px; border-radius: var(--radius-full); }
+/* Two rows, as in Chrome: the open folder's head sits above the list, and
+   the tree starts level with the list's top. */
+body.fav-page .fav-manager { grid-template-rows: auto 1fr; row-gap: 0; }
+body.fav-page .fav-pane { display: contents; }
+body.fav-page .fav-pane-head { grid-column: 2; grid-row: 1; }
+body.fav-page .fav-list { grid-column: 2; grid-row: 2; min-width: 0; }
+body.fav-page .fav-tree {
+  grid-column: 1;
+  grid-row: 2;
+  top: calc(var(--fav-head-h) + 22px);
+  max-height: calc(100vh - var(--fav-head-h) - 44px);
+  margin: 0;
+  padding: 0 0 8px;
+}
+/* A sub-folder's row is indented whole, so its fill starts where its
+   content does. */
+body.fav-page .fav-tree-row {
+  min-height: 34px;
+  margin-left: calc(var(--depth) * 18px);
+  padding: 0 12px 0 8px;
+  border-radius: var(--radius-full);
+}
 /* One plain list in one raised card, rows split by hairlines. A filled row
    (hover, selected) is an inset pill, so two never touch. */
 body.fav-page .fav-list {
@@ -2694,6 +2714,8 @@ body.fav-page .fav-edit-save:disabled { opacity: 0.5; }
   body.fav-page .fav-top h1 { width: auto; }
   body.fav-page .fav-top .fav-tools { flex-basis: 100%; }
   body.fav-page .fav-manager { grid-template-columns: minmax(0, 1fr); }
+  body.fav-page .fav-tree { display: none; }
+  body.fav-page :is(.fav-pane-head, .fav-list) { grid-column: 1; }
 }
 
 /* ---------- Utility sheet presentation (body.sheet) ----------
