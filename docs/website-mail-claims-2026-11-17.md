@@ -64,7 +64,7 @@ versions are used.
 | Appearance; Dark; Light | Control labels | — | — | Label |
 | A Blanc Mail address of your own. | Heading | Hosted addresses designed in the Mail repository; the owner said on November 17, 2026 that the address launches when the app does | No date; the lead labels the images a design preview | Aspirational, labelled |
 | A private mailbox of your own, with an address like mira@blnc.day, set up from inside Blanc Mail. It launches with Blanc Mail. What’s shown is a design preview and may change. | Lead | Owner's offer line, word for word, first; owner, November 17, 2026: "it'll launch when the app does"; the address flow is set up inside the app in the design | Launches with the app, which is itself "Coming soon" with no date; design preview; may change; no plan, price or storage promised in the copy | Aspirational, labelled |
-| Step; Offer; Choose; Ready | Control labels | — | — | Label |
+| Step; 1 Get started; 2 Pick a name; 3 Open inbox | Control labels (owner's choice, November 17, 2026, replacing Offer, Choose, Ready) | — | — | Label |
 | Design preview | Every teaser's caption | `MailTeaser.astro` | — | Label |
 
 The offer image itself shows "Your plan includes a Blanc Mail address" and

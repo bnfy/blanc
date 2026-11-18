@@ -250,6 +250,9 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 .mail-segments input:focus-visible+span{outline:2px solid var(--mail-band-gold);outline-offset:2px}
 .mail-segments-thumb{position:absolute;top:3px;bottom:3px;left:3px;z-index:0;width:calc((100% - 6px) / 2);border-radius:999px;background:var(--mail-gilt);box-shadow:inset 0 1px 0 #fff8e2b3,inset 0 -1px 0 #7a5a2699;transition:translate 420ms var(--mail-arrive)}
 .mail-segments-three .mail-segments-thumb{width:calc((100% - 6px) / 3)}
+/* The address steps are numbered: the figure in the label's own colour, lighter. */
+.mail-step-number{margin-right:.4em;font-weight:500;font-variant-numeric:tabular-nums;opacity:.65}
+@media(max-width:480px){.mail-segments-three label span{padding:7px 10px;font-size:13px}}
 .mail-segments:has(label:nth-of-type(2) input:checked) .mail-segments-thumb{translate:100% 0}
 .mail-segments:has(label:nth-of-type(3) input:checked) .mail-segments-thumb{translate:200% 0}
 @media(prefers-reduced-motion:reduce){.mail-segments-thumb,.mail-segments label span{transition:none}}

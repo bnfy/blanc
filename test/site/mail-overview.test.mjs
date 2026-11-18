@@ -113,7 +113,8 @@ test('the design teasers open in the visitor’s appearance, switch in place, an
       assert.ok(set.captions.every(c => c === 'Design preview'), set.captions.join());
       assert.ok(set.alts, 'every alt says it is a design preview');
     }
-    await dark.page.locator('.mail-address label', { hasText: 'Ready' }).click();
+    assert.deepEqual(await dark.page.locator('.mail-address label').allTextContents(), ['1Get started', '2Pick a name', '3Open inbox']);
+    await dark.page.locator('.mail-address label', { hasText: 'Open inbox' }).click();
     assert.deepEqual((await teaserState(dark.page))[1].shown, ['ready']);
     // Keyboard: the radios move with the arrow keys.
     await dark.page.locator('.mail-look input[value="dark"]').focus();

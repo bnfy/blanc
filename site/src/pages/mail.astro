@@ -61,11 +61,11 @@ const looks = [
     alt: 'Design preview of Blanc Mail’s Island layout in light mode: the Island floats at the top with Search, the conversation actions and New Message; a row of mailbox chips sits below it; and the Inbox and a message titled “Saturday at the bindery” are two white cards on a pale grey window. The mail is made up.' },
 ];
 const addressSteps = [
-  { value: 'offer', label: 'Offer', name: 'island-offer',
+  { value: 'offer', label: 'Get started', name: 'island-offer',
     alt: 'Design preview: a dialog over the inbox with the gold Blanc Mail icon, reading “Your plan includes a Blanc Mail address. A private mailbox of your own.”, with mailbox storage of 15 GB and the buttons Choose Your Address and Not Now.' },
-  { value: 'choose', label: 'Choose', name: 'island-address',
+  { value: 'choose', label: 'Pick a name', name: 'island-address',
     alt: 'Design preview: the “Choose your address” form, filled in with the name mira at blnc.day, the display name Mira Hall, a password entered twice and a backup email, with Cancel and Continue.' },
-  { value: 'ready', label: 'Ready', name: 'island-arrival',
+  { value: 'ready', label: 'Open inbox', name: 'island-arrival',
     alt: 'Design preview: a dialog with the gold Blanc Mail icon reading “mira@blnc.day. Your mailbox is ready in Blanc Mail.”, and an Open Inbox button.' },
 ];
 // Pricing, Support and Download were their own pages until October 22, 2026;
@@ -133,7 +133,7 @@ const support = [
     <!-- The Blanc Mail address launches with the app (owner, November 17,
          2026), so it follows the first look, high on the page. The copy names
          no date and the owner's offer line opens the lead word for word. The
-         steps switch in CSS like the looks above; Offer is checked. -->
+         steps switch in CSS like the looks above; the first is checked. -->
     <section class="mail-address mail-teaser-set" aria-labelledby="mail-address-title">
       <h2 id="mail-address-title"><span class="mail-gold-text">A Blanc Mail address of your own.</span></h2>
       <p class="mail-section-lead">A private mailbox of your own, with an address like <!--email_off-->mira@blnc.day<!--/email_off-->, set up from inside Blanc Mail. It launches with Blanc Mail. What’s shown is a design preview and may change.</p>
@@ -142,7 +142,7 @@ const support = [
         {addressSteps.map((step, index) => (
           <label>
             <input type="radio" name="mail-address-step" value={step.value} checked={index === 0} />
-            <span>{step.label}</span>
+            <span><b class="mail-step-number">{index + 1}</b>{step.label}</span>
           </label>
         ))}
         <span class="mail-segments-thumb" aria-hidden="true"></span>
