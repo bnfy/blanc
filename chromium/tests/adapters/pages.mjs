@@ -390,21 +390,9 @@ export const pages={
    buttonHidden:!(dialog?.open&&profiles.length&&go&&!go.disabled),
    // Disabled until the page has attached its handler: not yet offered.
    findHidden:(()=>{const b=document.getElementById('importMenuBtn');return !b||b.closest('[hidden]')!==null||b.disabled;})(),
-   status:document.getElementById('importStatus')?.textContent||document.getElementById('importDialogNote')?.textContent||'',
-   // TEMPORARY (W2 Favorites trace): which document, and what closed the dialog.
-   doc:performance.timeOrigin,clicked:window.__blancFindClicked??null,closes:window.__blancDialogCloses??[],
-   visible:document.visibilityState,focus:document.hasFocus()};})()`),
+   status:document.getElementById('importStatus')?.textContent||document.getElementById('importDialogNote')?.textContent||''};})()`),
  clickBrowserFind:async w=>(await onFavorites(w,`(()=>{const button=document.getElementById('importMenuBtn');
-  if(!button||button.closest('[hidden]')||button.disabled)return false;
-  // TEMPORARY (W2 Favorites trace): record this click and every close.
-  const dialog=document.getElementById('importDialog');
-  if(dialog&&!window.__blancDialogCloses){window.__blancDialogCloses=[];const close=dialog.close.bind(dialog);
-   dialog.close=(...a)=>{window.__blancDialogCloses.push({at:performance.now()|0,stack:(new Error().stack||'').split('\n').slice(2,5).join(' | ')});return close(...a);};
-   dialog.addEventListener('cancel',()=>window.__blancDialogCloses.push({at:performance.now()|0,cancel:true}));
-   dialog.addEventListener('close',()=>window.__blancDialogCloses.push({at:performance.now()|0,closeEvent:true}));}
-  window.__blancFindClicked={at:performance.now()|0,doc:performance.timeOrigin,open:!!dialog?.open};
-  if(!dialog?.open)button.click();
-  window.__blancFindClicked.openAfter=!!dialog?.open;return true;})()`))===true,
+  if(!button||button.closest('[hidden]')||button.disabled)return false;if(!document.getElementById('importDialog')?.open)button.click();return true;})()`))===true,
  selectBrowserSource:async(w,label)=>(await onFavorites(w,`((label)=>{const select=document.getElementById('browserSource');const option=[...(select?.options??[])].find(o=>o.textContent===label&&!o.disabled);
   if(!option)return false;select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));return true;})(${jsLiteral(String(label))})`))===true,
  clickBrowserImport:async w=>(await onFavorites(w,`(()=>{const button=document.getElementById('browserImportBtn');
