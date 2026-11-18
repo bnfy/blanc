@@ -84,6 +84,14 @@ try{
  record.checks.uninstallEntry=entry?.DisplayName===appName&&entry?.Publisher==='Bananify Creative'&&/setup\.exe/i.test(entry?.UninstallString??'');
  const startMenu=path.join(process.env.APPDATA,'Microsoft','Windows','Start Menu','Programs',`${appName}.lnk`);
  record.checks.startMenuShortcut=fs.existsSync(startMenu);
+ // The version resources name Bananify Creative and the preview, in every
+ // file the installer brings and in the installer itself (W2 A1).
+ const versioned=[exe,path.join(application,candidate.version,'chrome.dll'),path.join(application,candidate.version,'Installer','setup.exe'),installer];
+ const info=spawnSync('powershell.exe',['-NoProfile','-NonInteractive','-Command',
+  `$f=@(${versioned.map(f=>`'${f.replace(/'/g,"''")}'`).join(',')});$f|ForEach-Object{$v=(Get-Item -LiteralPath $_).VersionInfo;[pscustomobject]@{file=$_;company=$v.CompanyName;product=$v.ProductName}}|ConvertTo-Json -Compress`],{encoding:'utf8'});
+ const resources=info.status===0?[JSON.parse(info.stdout)].flat():[];
+ record.details.versionResources=resources;
+ record.checks.versionResources=resources.length===versioned.length&&resources.every(r=>r.company==='Bananify Creative'&&r.product===appName);
  for(const name of ['installer','setup'])for(const f of [path.join(os.tmpdir(),`chromium_installer.log`),path.join(os.tmpdir(),`${name}.log`)])if(fs.existsSync(f))fs.copyFileSync(f,path.join(out,path.basename(f)));
 
  // 3. Registration under its own names (Chromium's ShellUtil, per user).
@@ -118,7 +126,7 @@ try{
  record.checks.electronStillStarts=electron.exitCode===null;
  killAll('Blanc.exe');
 }catch(error){failure=error;record.error=String(error.stack||error);}
-const required=['electronInstalled','installed','uninstallEntry','startMenuShortcut','registeredAsBrowser','electronUntouchedByInstall',
+const required=['electronInstalled','installed','uninstallEntry','startMenuShortcut','versionResources','registeredAsBrowser','electronUntouchedByInstall',
  'installedLaunches','uninstalled','dataKept','electronUntouched','electronStillStarts'];
 record.pass=!failure&&required.every(name=>record.checks[name]===true);
 fs.writeFileSync(path.join(out,'install.json'),JSON.stringify(record,null,2)+'\n');
