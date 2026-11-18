@@ -147,15 +147,29 @@ try {
       const clock = Math.max(r(document.querySelector('.bb-clock-row')).bottom, r(document.getElementById('bbBlocked')).bottom);
       const popover = r(document.getElementById('customizePopover'));
       const cols = document.getElementById('customizeCols');
+      const scale = Number(getComputedStyle(document.documentElement).getPropertyValue('--customize-clock-scale')) || 1;
       return { clock, top: popover.top, bottom: popover.bottom, button: r(document.getElementById('customizeButton')).top,
-        scrolls: cols.scrollHeight > cols.clientHeight, fadeEnd: cols.dataset.fadeEnd };
-    }), (value) => value.top >= value.clock && value.fadeEnd === 'true', `Customize below the clock, scrolling, at 1280x${height}`);
+        scrolls: cols.scrollHeight > cols.clientHeight + 1, fadeEnd: cols.dataset.fadeEnd, scale };
+    // Settled: the clock has given way (Customize fits) or is at its smallest.
+    }), (value) => value.top >= value.clock - 0.5 && (!value.scrolls || value.scale <= 0.5 + 1e-6),
+    `Customize below the clock, settled, at 1280x${height}`);
     assert.ok(fit.bottom <= fit.button, `Customize ends above its button: ${JSON.stringify(fit)}`);
-    assert.ok(fit.scrolls && fit.fadeEnd === 'true', `the columns scroll, with a fade: ${JSON.stringify(fit)}`);
-    await page.evaluate(() => { const cols = document.getElementById('customizeCols'); cols.scrollTop = cols.scrollHeight; });
-    await page.waitForFunction(() => document.getElementById('customizeCols').dataset.fadeEnd === 'false');
+    // The clock gives way first; Customize scrolls only once it is at half size.
+    assert.ok(!fit.scrolls || fit.scale <= 0.5 + 1e-6, `Customize shows everything unless the clock is at its smallest: ${JSON.stringify(fit)}`);
+    if (fit.scrolls) {
+      assert.equal(fit.fadeEnd, 'true');
+      await page.evaluate(() => { const cols = document.getElementById('customizeCols'); cols.scrollTop = cols.scrollHeight; });
+      await page.waitForFunction(() => document.getElementById('customizeCols').dataset.fadeEnd === 'false');
+    }
   }
-  await page.evaluate(() => document.getElementById('customizePopover').hidePopover());
+  // Font & color closes Customize and has the clock full size at once.
+  await page.evaluate(() => document.getElementById('clockStyleOpen').click());
+  const sheetClock = await page.evaluate(() => ({
+    scale: getComputedStyle(document.documentElement).getPropertyValue('--customize-clock-scale').trim(),
+    sheet: document.getElementById('clockPopover').matches(':popover-open'),
+  }));
+  assert.deepEqual(sheetClock, { scale: '1', sheet: true });
+  await page.evaluate(() => document.getElementById('clockPopover').hidePopover());
   await page.setViewportSize({ width: 1600, height: 960 });
 
   // A refused write leaves the stored choice in place.

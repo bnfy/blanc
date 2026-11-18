@@ -16,8 +16,10 @@ since then are below as they're recorded.
   color or your own photo now continues up behind the Island instead of
   stopping at a plain band. With vertical tabs, the tab list keeps its own
   look.
-- **Customize fits the window.** It never covers the clock, and on a
-  shorter window its options scroll.
+- **Customize fits the window.** It never covers the clock: while it is
+  open, a tall clock shrinks just enough to make room, and grows back when
+  you close it or open **Font & color** to style it. Only on the smallest
+  windows do Customize's options scroll.
 
 ## Still open for the next release
 
@@ -27,9 +29,9 @@ since then are below as they're recorded.
 - **The wallpaper behind the Island** (#1622) by hand on Windows and Linux,
   where the window buttons sit over the photo, and with a Space's color wash.
   It was checked on macOS by hand and in the desktop checks there.
-- **Customize at the smallest windows:** with no minimum height it can get
-  too short to use at 640×480 with a tall clock (it never covers the clock,
-  by the owner's rule).
+- **Customize at the smallest windows:** the clock gives way down to half
+  size; below that Customize scrolls, and at 640×480 with a tall clock it
+  can still get short (it never covers the clock, by the owner's rule).
 
 ## Still open from 1.50
 
