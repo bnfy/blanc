@@ -5,7 +5,19 @@ import crypto from 'node:crypto';
 
 const read = path => fs.readFileSync(new URL(path, import.meta.url), 'utf8');
 const patch = read('../patches/0098-blanc-windows-identity.patch');
-const defines = Object.fromEntries([...patch.matchAll(/^\+\s*"(BLANC_WIN_\w+)=L?\\"([^\\]*)\\"",?$/gm)].map(m => [m[1], m[2]]));
+// Each channel's Windows names, from its own block in the patch's BUILD.gn
+// hunk; the two ids (Active Setup, toast activator) apart from the names.
+const between = (start, end) => {
+  const i = patch.indexOf(start), j = i < 0 ? -1 : patch.indexOf(end, i + start.length);
+  return i < 0 || j < 0 ? '' : patch.slice(i, j);
+};
+const parse = text => Object.fromEntries([...text.matchAll(/"(BLANC_WIN_\w+)=L?\\"([^\\]*)\\""/g)]
+  .map(m => [m[1], m[2]]).filter(([key]) => !/_(GUID|CLSID)$/.test(key)));
+const ids = text => Object.fromEntries([...text.matchAll(/"(BLANC_WIN_\w+_(?:GUID|CLSID))=(?:L\\")?([^"\\]*)/g)].map(m => [m[1], m[2]]));
+const betaBlock = between('+  if (blanc_channel == "beta") {', '+  } else {');
+const previewBlock = between('+  } else {', '+  }\n');
+const defines = parse(previewBlock);
+const betaDefines = parse(betaBlock);
 const installer = read('../../build/installer.nsh');
 const pkg = JSON.parse(read('../../package.json'));
 const appId = /APP_ID\s*=\s*'([^']+)'/.exec(read('../../src/main/app-identity.js'))[1];
@@ -20,7 +32,25 @@ test('the preview channel has every Windows name it needs', () => {
   // letters, digits and dots.
   assert.ok(defines.BLANC_WIN_HTML_PROG_ID.length <= 11 && defines.BLANC_WIN_PDF_PROG_ID.length <= 11);
   assert.match(defines.BLANC_WIN_APP_ID, /^[A-Za-z0-9.]+$/);
-  assert.match(patch, /assert\(blanc_channel == "preview"/);
+  assert.match(patch, /assert\(blanc_channel == "preview" \|\| blanc_channel == "beta"/);
+});
+test('the beta channel has its own Windows names and ids, shared with no other build', () => {
+  assert.deepEqual(betaDefines, {
+    BLANC_WIN_APP_NAME: 'Blanc Beta', BLANC_WIN_APP_ID: 'BlancBeta',
+    BLANC_WIN_HTML_PROG_ID: 'BlancBetHTM', BLANC_WIN_PDF_PROG_ID: 'BlancBetPDF',
+    BLANC_WIN_URL_SCHEME: 'blanc-beta', BLANC_WIN_PUBLISHER: 'Bananify Creative',
+  });
+  assert.ok(betaDefines.BLANC_WIN_HTML_PROG_ID.length <= 11 && betaDefines.BLANC_WIN_PDF_PROG_ID.length <= 11);
+  for (const key of Object.keys(betaDefines).filter(k => k !== 'BLANC_WIN_PUBLISHER'))
+    assert.notEqual(betaDefines[key], defines[key], key);
+  // Its own Active Setup and toast activator ids, unlike the preview's and Chromium's.
+  const beta = ids(betaBlock), preview = ids(previewBlock);
+  assert.deepEqual(Object.keys(beta).sort(), ['BLANC_WIN_ACTIVE_SETUP_GUID', 'BLANC_WIN_TOAST_CLSID']);
+  assert.deepEqual(Object.keys(preview).sort(), Object.keys(beta).sort());
+  for (const key of Object.keys(beta)) assert.notEqual(beta[key], preview[key], key);
+  assert.match(beta.BLANC_WIN_ACTIVE_SETUP_GUID, /^\{[0-9A-F]{8}(-[0-9A-F]{4}){3}-[0-9A-F]{12}\}$/);
+  assert.equal(preview.BLANC_WIN_ACTIVE_SETUP_GUID, '{FF7CE8A2-9361-41F3-B827-83DC0CB91795}');
+  assert.match(preview.BLANC_WIN_TOAST_CLSID, /0x1BFC5BBC/);
 });
 test('no Windows name of the preview is the Electron Blanc\'s or Chromium\'s', () => {
   const electron = new Set([pkg.build.productName, pkg.productName, appId,

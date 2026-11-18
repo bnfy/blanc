@@ -27,38 +27,54 @@ index 40e0c27..1517cb1 100644
  
  // Start a naming scheme to keep icons in order. A leading X is used to keep
 diff --git a/chrome/install_static/BUILD.gn b/chrome/install_static/BUILD.gn
-index 82644a9..42c244f 100644
+index 82644a9..318ee31 100644
 --- a/chrome/install_static/BUILD.gn
 +++ b/chrome/install_static/BUILD.gn
-@@ -20,8 +20,22 @@ if (is_win) {
+@@ -20,8 +20,38 @@ if (is_win) {
    # Blanc: each channel keeps its own folder under %LOCALAPPDATA% and its own
    # registry key, named as on the Mac (//blanc/config.gni), so a Blanc build
    # never shares Chromium's "Chromium\User Data" or another channel's data.
-+  # Blanc: the preview channel's own Windows names, so it is registered,
-+  # listed and pinned beside Chromium and the Electron Blanc without taking
-+  # any of their names (chromium/windows/identity.md). The release and beta
-+  # channels take theirs when they are built for Windows.
-+  assert(blanc_channel == "preview",
-+         "Blanc's Windows identity is defined for the preview channel only")
-   config("blanc_product_path") {
--    defines = [ "BLANC_PRODUCT_PATH_NAME=L\"$blanc_product_dir_name\"" ]
-+    defines = [
-+      "BLANC_PRODUCT_PATH_NAME=L\"$blanc_product_dir_name\"",
++  # Blanc: each channel's own Windows names and ids, so it is registered,
++  # listed and pinned beside Chromium, the Electron Blanc and the other
++  # channel without taking any of their names (chromium/windows/identity.md).
++  # The release channel takes its own when it is built for Windows.
++  assert(blanc_channel == "preview" || blanc_channel == "beta",
++         "Blanc's Windows identity is defined for the preview and beta channels")
++  if (blanc_channel == "beta") {
++    blanc_win_defines = [
++      "BLANC_WIN_APP_NAME=L\"Blanc Beta\"",
++      "BLANC_WIN_APP_ID=L\"BlancBeta\"",
++      "BLANC_WIN_HTML_PROG_ID=L\"BlancBetHTM\"",
++      "BLANC_WIN_PDF_PROG_ID=L\"BlancBetPDF\"",
++      "BLANC_WIN_URL_SCHEME=\"blanc-beta\"",
++      "BLANC_WIN_PUBLISHER=L\"Bananify Creative\"",
++      "BLANC_WIN_ACTIVE_SETUP_GUID=L\"{0101E396-5BD3-487F-9265-8DE26B34795A}\"",
++      "BLANC_WIN_TOAST_CLSID={0xFE4C251B,0xAD54,0x4F2F,{0xB2,0xA1,0x16,0xEB,0x18,0x61,0x47,0xE7}}",
++    ]
++  } else {
++    blanc_win_defines = [
 +      "BLANC_WIN_APP_NAME=L\"Blanc Prototype\"",
 +      "BLANC_WIN_APP_ID=L\"BlancPrototype\"",
 +      "BLANC_WIN_HTML_PROG_ID=L\"BlancPrvHTM\"",
 +      "BLANC_WIN_PDF_PROG_ID=L\"BlancPrvPDF\"",
 +      "BLANC_WIN_URL_SCHEME=\"blanc-prototype\"",
 +      "BLANC_WIN_PUBLISHER=L\"Bananify Creative\"",
++      "BLANC_WIN_ACTIVE_SETUP_GUID=L\"{FF7CE8A2-9361-41F3-B827-83DC0CB91795}\"",
++      "BLANC_WIN_TOAST_CLSID={0x1BFC5BBC,0xFA48,0x49EE,{0xBD,0xC9,0xBA,0x91,0xE1,0x8C,0x4B,0x89}}",
 +    ]
++  }
+   config("blanc_product_path") {
+-    defines = [ "BLANC_PRODUCT_PATH_NAME=L\"$blanc_product_dir_name\"" ]
++    defines = [ "BLANC_PRODUCT_PATH_NAME=L\"$blanc_product_dir_name\"" ] +
++              blanc_win_defines
    }
  
    # This file contains utility functions that only depend on kernel32.
 diff --git a/chrome/install_static/chromium_install_modes.h b/chrome/install_static/chromium_install_modes.h
-index aa9fcf4..3a6b6d5 100644
+index aa9fcf4..929bba4 100644
 --- a/chrome/install_static/chromium_install_modes.h
 +++ b/chrome/install_static/chromium_install_modes.h
-@@ -57,23 +57,25 @@ inline constexpr auto kInstallModes = std::to_array<InstallConstants>({
+@@ -57,23 +57,20 @@ inline constexpr auto kInstallModes = std::to_array<InstallConstants>({
          .logo_suffix = L"",  // No logo suffix for the primary install mode.
          .app_guid =
              L"",  // Empty app_guid since no integration with Google Update.
@@ -71,6 +87,14 @@ index aa9fcf4..3a6b6d5 100644
 -        .pdf_prog_id_prefix = L"ChromiumPDF",  // PDF ProgID prefix.
 -        .pdf_prog_id_description =
 -            L"Chromium PDF Document",  // PDF ProgID description.
+-        .active_setup_guid =
+-            L"{7D2B3E1D-D096-4594-9D8F-A6667F12E0AC}",  // Active Setup
+-                                                        // GUID.
+-        .toast_activator_clsid = {0x635EFA6F,
+-                                  0x08D6,
+-                                  0x4EC9,
+-                                  {0xBD, 0x14, 0x8A, 0x0F, 0xDE, 0x97, 0x51,
+-                                   0x59}},  // Toast Activator CLSID.
 +        // Blanc: the channel's own names (//chrome/install_static:
 +        // blanc_product_path), never Chromium's or the Electron Blanc's.
 +        .base_app_name = BLANC_WIN_APP_NAME,
@@ -81,21 +105,10 @@ index aa9fcf4..3a6b6d5 100644
 +        .pdf_prog_id_prefix = BLANC_WIN_PDF_PROG_ID,
 +        .pdf_prog_id_description = BLANC_WIN_APP_NAME L" PDF Document",
 +        // Blanc: its own, so a system-level install never runs Chromium's.
-         .active_setup_guid =
--            L"{7D2B3E1D-D096-4594-9D8F-A6667F12E0AC}",  // Active Setup
-+            L"{FF7CE8A2-9361-41F3-B827-83DC0CB91795}",  // Active Setup
-                                                         // GUID.
--        .toast_activator_clsid = {0x635EFA6F,
--                                  0x08D6,
--                                  0x4EC9,
--                                  {0xBD, 0x14, 0x8A, 0x0F, 0xDE, 0x97, 0x51,
--                                   0x59}},  // Toast Activator CLSID.
++        // The channel's own (install_static/BUILD.gn).
++        .active_setup_guid = BLANC_WIN_ACTIVE_SETUP_GUID,  // Active Setup GUID.
 +        // Blanc: its own, so its notifications never activate Chromium.
-+        .toast_activator_clsid = {0x1BFC5BBC,
-+                                  0xFA48,
-+                                  0x49EE,
-+                                  {0xBD, 0xC9, 0xBA, 0x91, 0xE1, 0x8C, 0x4B,
-+                                   0x89}},  // Toast Activator CLSID.
++        .toast_activator_clsid = BLANC_WIN_TOAST_CLSID,  // Toast Activator CLSID.
          .elevator_clsid = {0xD133B120,
                             0x6DB4,
                             0x4D6B,
