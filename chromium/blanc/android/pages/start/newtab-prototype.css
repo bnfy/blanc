@@ -496,7 +496,21 @@ body:not(.widget-dragging) .bb-widgets:not(:has(> .bb-rail[data-empty="false"]))
 @media (prefers-reduced-motion: reduce) { .mahjong-pill, .mahjong-pill:has(> a:active) { transition: none; transform: none; } }
 
 /* The clock centred on its ink (newtab.js sets --clock-optical). */
-.bb-clock-row { transform: translateX(var(--clock-optical, 0px)); }
+.bb-clock-row {
+  transform: translateX(var(--clock-optical, 0px)) scale(var(--customize-clock-scale, 1));
+  transform-origin: top center;
+}
+/* While Customize is open the clock gives way (newtab.js
+   fitCustomizeBelowClock): it scales from its top and the line under it
+   moves up with it. It grows back only after Customize has gone. */
+#bbBlocked { transform: translateY(var(--customize-clock-lift, 0px)); }
+body.customize-clock-easing .bb-clock-row,
+body.customize-clock-easing #bbBlocked { transition: transform 240ms var(--start-ease); }
+.start-customize-popover.closing-now { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  body.customize-clock-easing .bb-clock-row,
+  body.customize-clock-easing #bbBlocked { transition: none; }
+}
 
 
 /* On your other devices, grouped by device (fork redesign, 2026-11-13): the
