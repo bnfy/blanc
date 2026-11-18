@@ -153,13 +153,13 @@ const support = [
          steps switch in CSS like the looks above; the first is checked. -->
     <section id="address" class="mail-address mail-teaser-set" aria-labelledby="mail-address-title">
       <h2 id="mail-address-title"><span class="mail-gold-text">A Blanc Mail address of your own.</span></h2>
-      <p class="mail-section-lead">A private mailbox of your own, with an address like <!--email_off-->mira@blnc.day<!--/email_off-->, set up from inside Blanc Mail. Add it to Blanc Mail for {ADDRESS_ADD_ON} a year, or get it with Blanc Bundle, when Blanc Mail launches. What’s shown is a design preview and may change.</p>
+      <p class="mail-section-lead">A private mailbox of your own, with an address like <strong class="mail-shimmer"><!--email_off-->mira@blnc.day<!--/email_off--></strong>, set up from inside Blanc Mail. Add it to Blanc Mail for {ADDRESS_ADD_ON} a year, or get it with Blanc Bundle, when Blanc Mail launches. What’s shown is a design preview and may change.</p>
       <fieldset class="mail-segments mail-segments-three">
         <legend class="sr-only">Step</legend>
         {addressSteps.map((step, index) => (
           <label>
             <input type="radio" name="mail-address-step" value={step.value} checked={index === 0} />
-            <span><b class="mail-step-number">{index + 1}</b>{step.label}</span>
+            <span>{step.label}</span>
           </label>
         ))}
         <span class="mail-segments-thumb" aria-hidden="true"></span>

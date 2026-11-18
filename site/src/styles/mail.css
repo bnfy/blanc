@@ -157,6 +157,11 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 .mail-stage .mail-eyebrow{margin:0;color:#cfb27a;font-size:12px;font-weight:500;letter-spacing:.24em;text-transform:uppercase}
 .mail-stage h1{margin:18px 0 0;font-family:var(--site-font-patron);font-size:clamp(44px,7vw,96px);font-weight:400;line-height:1.02;letter-spacing:0;text-wrap:balance}
 /* Gilt type: the metal's own gradient, clipped to the letters. */
+/* The example address: bold, in a gold-to-bronze gradient that drifts slowly
+   across the letters; it holds still when motion is unwanted. */
+.mail-shimmer{font-weight:700;background:linear-gradient(100deg,#b07a3c 0%,#e0c084 22%,#f6e7bd 38%,#c08a48 55%,#8c5a2b 70%,#e0c084 86%,#b07a3c 100%) 0 0/250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+@media(prefers-reduced-motion:no-preference){.mail-shimmer{animation:mail-shimmer 6s ease-in-out infinite alternate}}
+@keyframes mail-shimmer{to{background-position:100% 0}}
 .mail-gold-text{background:var(--mail-gilt);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .mail-envelope{
   position:relative;width:min(520px,84%);aspect-ratio:8/5;margin:clamp(40px,6vh,64px) 0 0;
@@ -273,8 +278,6 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 .mail-segments input:focus-visible+span{outline:2px solid var(--mail-band-gold);outline-offset:2px}
 .mail-segments-thumb{position:absolute;top:3px;bottom:3px;left:3px;z-index:0;width:calc((100% - 6px) / 2);border-radius:999px;background:var(--mail-gilt);box-shadow:inset 0 1px 0 #fff8e2b3,inset 0 -1px 0 #7a5a2699;transition:translate 420ms var(--mail-arrive)}
 .mail-segments-three .mail-segments-thumb{width:calc((100% - 6px) / 3)}
-/* The address steps are numbered: the figure in the label's own colour, lighter. */
-.mail-step-number{margin-right:.4em;font-weight:500;font-variant-numeric:tabular-nums;opacity:.65}
 @media(max-width:480px){.mail-segments-three label span{padding:7px 10px;font-size:13px}}
 .mail-segments:has(label:nth-of-type(2) input:checked) .mail-segments-thumb{translate:100% 0}
 .mail-segments:has(label:nth-of-type(3) input:checked) .mail-segments-thumb{translate:200% 0}
