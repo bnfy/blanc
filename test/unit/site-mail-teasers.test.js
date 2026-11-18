@@ -13,7 +13,7 @@ const path = require('node:path');
 
 const SITE = path.resolve(__dirname, '../../site');
 const read = (file) => fs.readFileSync(path.join(SITE, file), 'utf8');
-const TEASERS = ['night-address', 'night-arrival', 'night-inbox', 'night-offer', 'porcelain-inbox'];
+const TEASERS = ['island-dark', 'island-light', 'night-address', 'night-arrival', 'night-offer'];
 
 test('MailTeaser is the only way to show a Mail teaser, and its caption is not optional', () => {
   const teaser = read('src/components/MailTeaser.astro');
@@ -28,7 +28,7 @@ test('MailTeaser is the only way to show a Mail teaser, and its caption is not o
 
 test('every teaser the Mail page names exists, with built 1400px and 800px copies', () => {
   const page = read('src/pages/mail.astro');
-  const named = [...page.matchAll(/\bname: '((?:night|porcelain)-[a-z]+)'/g)].map((m) => m[1]);
+  const named = [...page.matchAll(/\bname: '((?:island|night)-[a-z]+)'/g)].map((m) => m[1]);
   assert.deepEqual([...new Set(named)].sort(), TEASERS);
   const manifest = JSON.parse(read('src/data/display-images.json'));
   for (const name of TEASERS) {

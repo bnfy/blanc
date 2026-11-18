@@ -203,30 +203,30 @@
     "height": 585
   },
   {
-    "source": "mail/teasers/night-inbox.webp",
-    "sourceSha256": "a9e534e17643e86d3d465f4a821d35fa3a4d9d0b3f716c431ad60299124c38e2",
-    "output": "mail/teasers/night-inbox-1400.webp",
+    "source": "mail/teasers/island-dark.webp",
+    "sourceSha256": "8227f022faf568254fdb63e22b54d3dbab37486de66f4149dd33203e7a4835f7",
+    "output": "mail/teasers/island-dark-1400.webp",
     "width": 1400,
     "height": 860
   },
   {
-    "source": "mail/teasers/night-inbox.webp",
-    "sourceSha256": "a9e534e17643e86d3d465f4a821d35fa3a4d9d0b3f716c431ad60299124c38e2",
-    "output": "mail/teasers/night-inbox-800.webp",
+    "source": "mail/teasers/island-dark.webp",
+    "sourceSha256": "8227f022faf568254fdb63e22b54d3dbab37486de66f4149dd33203e7a4835f7",
+    "output": "mail/teasers/island-dark-800.webp",
     "width": 800,
     "height": 492
   },
   {
-    "source": "mail/teasers/porcelain-inbox.webp",
-    "sourceSha256": "5f8e49b4df68ad72c0af846cc5edc3e3024c2786c1ab0e58c6147cbdf9b036af",
-    "output": "mail/teasers/porcelain-inbox-1400.webp",
+    "source": "mail/teasers/island-light.webp",
+    "sourceSha256": "03939be302b13b7922f536ee7ca50192b55ec8d2d04e40566475a1667ca0f1fe",
+    "output": "mail/teasers/island-light-1400.webp",
     "width": 1400,
     "height": 860
   },
   {
-    "source": "mail/teasers/porcelain-inbox.webp",
-    "sourceSha256": "5f8e49b4df68ad72c0af846cc5edc3e3024c2786c1ab0e58c6147cbdf9b036af",
-    "output": "mail/teasers/porcelain-inbox-800.webp",
+    "source": "mail/teasers/island-light.webp",
+    "sourceSha256": "03939be302b13b7922f536ee7ca50192b55ec8d2d04e40566475a1667ca0f1fe",
+    "output": "mail/teasers/island-light-800.webp",
     "width": 800,
     "height": 492
   },

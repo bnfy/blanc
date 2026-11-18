@@ -26,11 +26,23 @@ keeps teasers out of any other component. Masters are the Mail repository's
 
 | Image | Shows | Alt text says |
 | --- | --- | --- |
-| `night-inbox` | Main window, dark | Design preview, dark mode, made-up mail |
-| `porcelain-inbox` | Main window, light | Design preview, light mode, made-up mail |
+| `island-dark` | Main window, Island layout, dark | Design preview, Island layout, dark mode, made-up mail |
+| `island-light` | Main window, Island layout, light | Design preview, Island layout, light mode, made-up mail |
 | `night-offer` | "Your plan includes a Blanc Mail address" offer | Design preview; quotes the dialog |
 | `night-address` | Choosing an address | Design preview; describes the form |
 | `night-arrival` | "mira@blnc.day — Your mailbox is ready in Blanc Mail." | Design preview; quotes the dialog |
+
+The two main-window teasers show the **Island** layout (owner, November 17,
+2026: "show Island view here in light/dark instead of Classic"). They come
+from the approved level A ("Refined") of the Mail repository's window study,
+`docs/superpowers/specs/assets-2026-11-17-premium-main-window-codex/index.html`,
+which draws the same made-up mail: level A, layout Island, mode dark or light,
+main window pinned to 1176 × 692 CSS px, captured in headless Chromium at 2x
+with a transparent background and a 40px margin for the shadow (2512 × 1544),
+like the address teasers. Classic is still the app's default layout, and
+Island a choice in Settings; the page's copy names no layout. The address teasers
+(`night-offer`, `night-address`, `night-arrival`) come from the onboarding
+mock's `teasers/` and still show Classic behind their dialogs.
 
 The light offer and arrival teasers are not used: the address step has no
 light version, so the address set stays in dark, the stage's own appearance.

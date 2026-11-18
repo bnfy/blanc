@@ -57,10 +57,10 @@ const jobs = [
   { source: 'mail/screens/rule-editor.webp', output: 'mail/screens/rule-editor-1100.webp', width: 1100 },
   // Blanc Mail design teasers (approved November 17, 2026): mockups of the
   // next look, not captures, shown only through MailTeaser.astro. Each master
-  // is the Mail repository's 2512px PNG
-  // (docs/superpowers/specs/assets-2026-11-17-blanc-address-onboarding-codex/teasers/)
-  // resized to 2000px WebP; these are its 1400px and 800px srcset copies.
-  ...['night-inbox', 'porcelain-inbox', 'night-offer', 'night-address', 'night-arrival'].flatMap(name => [1400, 800].map(width => ({
+  // is a 2512px PNG from the Mail repository's design mocks resized to 2000px
+  // WebP (how each was made: docs/website-mail-claims-2026-11-17.md); these
+  // are its 1400px and 800px srcset copies.
+  ...['island-dark', 'island-light', 'night-offer', 'night-address', 'night-arrival'].flatMap(name => [1400, 800].map(width => ({
     source: `mail/teasers/${name}.webp`,
     output: `mail/teasers/${name}-${width}.webp`,
     width,
