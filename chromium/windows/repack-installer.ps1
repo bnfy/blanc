@@ -38,10 +38,12 @@ if ($Phase -eq 'unpack') {
   $archive = @(Get-ChildItem "$resources\B7" -Recurse -File)
   $setup = @(Get-ChildItem "$resources\BL" -Recurse -File)
   if ($archive.Count -ne 1 -or $setup.Count -ne 1) { throw "Expected one B7 and one BL resource, found $($archive.Count) and $($setup.Count)." }
+  # resedit names a numeric id "#1033" when it extracts, but takes "1033" back.
   $layout = [ordered]@{
-    archive = @{ lang = $archive[0].Directory.Name; name = $archive[0].Name }
-    setup = @{ lang = $setup[0].Directory.Name; name = $setup[0].Name }
+    archive = @{ lang = $archive[0].Directory.Name.TrimStart('#'); name = $archive[0].Name }
+    setup = @{ lang = $setup[0].Directory.Name.TrimStart('#'); name = $setup[0].Name }
   }
+  foreach ($entry in $layout.Values) { if ($entry.lang -notmatch '^\d+$') { throw "Unexpected resource language: $($entry.lang)" } }
   $layout | ConvertTo-Json | Set-Content (Join-Path $Work 'layout.json')
   Run $SevenZip @('x', '-y', "-o$Work\packed", $archive[0].FullName)
   $inner = @(Get-ChildItem "$Work\packed" -File)
