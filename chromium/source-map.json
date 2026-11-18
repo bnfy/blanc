@@ -448,6 +448,7 @@
     "blanc/branding/beta/metadata.py": "fb332d2dd432143f86c9f21c5790dfcc3a4a3f31ae7a6c431c92011e9fccc8ff",
     "blanc/branding/beta/render-dock-icons.mjs": "041fd0b74d184f22b85ffbaf2569e41fe1eabb9b1de2ad451743a33851772302",
     "blanc/branding/release/BRANDING": "70a9908532e2e6bc96606658d6cc6f69d4d17525e40a75b0c51b77165140cbcb",
+    "blanc/branding/win/BRANDING": "6ff7f40a2758766ff25908bfbbaddd59f9074277bb3824b4370c53b1e78f1542",
     "blanc/branding/win/blanc.ico": "15f2623d312b40f161ff314f998bc8da6a467d2a7bc389b292619ed77d3e42d9",
     "blanc/browser/mac/beta_identity.cc": "0275700f162b9fd880578e75208cb2531afb5087107eba966e4731f92745455d",
     "blanc/browser/mac/beta_identity.h": "00b133dd4e5590c7efb6f6288cdcd3d05d2dbffaccdf9ae2559632e7700cf315",
