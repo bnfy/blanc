@@ -388,7 +388,8 @@ export const pages={
   const profiles=options.filter(o=>!o.disabled&&o.value&&o.value!=='file');const go=document.getElementById('browserImportBtn');
   return {dialogOpen:dialog?.open??false,options:options.map(o=>({value:o.value,label:o.textContent})),
    buttonHidden:!(dialog?.open&&profiles.length&&go&&!go.disabled),
-   findHidden:document.getElementById('importMenuBtn')?.closest('[hidden]')!==null,
+   // Disabled until the page has attached its handler: not yet offered.
+   findHidden:(()=>{const b=document.getElementById('importMenuBtn');return !b||b.closest('[hidden]')!==null||b.disabled;})(),
    status:document.getElementById('importStatus')?.textContent||document.getElementById('importDialogNote')?.textContent||''};})()`),
  clickBrowserFind:async w=>(await onFavorites(w,`(()=>{const button=document.getElementById('importMenuBtn');
   if(!button||button.closest('[hidden]')||button.disabled)return false;if(!document.getElementById('importDialog')?.open)button.click();return true;})()`))===true,

@@ -37,6 +37,13 @@ export const EDITS = {
   'bookmarks.js': [
     ["const bringTabs = () => { window.location.href = 'blanc://tab-import/'; };",
      "const bringTabs = () => { window.BlancFavoritesTab.openSheet('tab-import'); };"],
+    // The import button's handler is attached only after the page's first
+    // calls to the browser, which take longer in a tab than in shipping's
+    // sheet; until then it can't be pressed, so no click is lost (W2).
+    ["  const importMenuBtn = document.getElementById('importMenuBtn');\n",
+     "  const importMenuBtn = document.getElementById('importMenuBtn');\n  importMenuBtn.disabled = true;\n"],
+    ["  importMenuBtn.addEventListener('click', () => {\n",
+     "  importMenuBtn.disabled = false;\n  importMenuBtn.addEventListener('click', () => {\n"],
   ],
 };
 

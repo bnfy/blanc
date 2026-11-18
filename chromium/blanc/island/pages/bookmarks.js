@@ -10,6 +10,7 @@
   const list = document.getElementById('list');
   const importStatus = document.getElementById('importStatus');
   const importMenuBtn = document.getElementById('importMenuBtn');
+  importMenuBtn.disabled = true;
   const importDialog = document.getElementById('importDialog');
   const importForm = document.getElementById('importForm');
   const importDialogNote = document.getElementById('importDialogNote');
@@ -93,6 +94,7 @@
   importDialog.addEventListener('click', (event) => { if (event.target === importDialog) closeDialog(); });
   importCancelBtn.addEventListener('click', closeDialog);
 
+  importMenuBtn.disabled = false;
   importMenuBtn.addEventListener('click', () => {
     if (importDialog.open) return;
     importStatus.textContent = '';
