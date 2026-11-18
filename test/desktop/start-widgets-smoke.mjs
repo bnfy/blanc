@@ -87,6 +87,9 @@ try {
   // Kept after a reload; double-click fits the column again.
   await page.reload();
   await page.waitForFunction(() => document.getElementById('remoteSection').dataset.size === '360');
+  // This profile has no synced devices, so the reloaded page draws none: draw
+  // the same three again so the card (and its edge) shows.
+  await page.evaluate((devices) => renderRemote(devices), DEVICES);
   await page.locator('#remoteSection > .bb-widget-resize').dblclick();
   await waitForValue(() => settingsFile().newtabWidgets?.sizes, (sizes) => sizes && !('devices' in sizes), 'the size removed');
 

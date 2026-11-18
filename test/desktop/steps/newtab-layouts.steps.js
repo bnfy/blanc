@@ -166,10 +166,11 @@ Then('the {string} card is on the {string} at position {int}, announced and save
 
 const overlaps = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
 
-Then('no shortcut tile or card overlaps another or the footer at 1000x840, 1200x840 and 1440x840', async function () {
+Then('no shortcut tile, group chip or card overlaps another or the footer from 1000 to 1440 wide', async function () {
   const original = await this.call('windowContentBounds');
   try {
-    for (const width of [1000, 1200, 1440]) {
+    // 1300 and 1360: where the columns' inset is widest against the tiles.
+    for (const width of [1000, 1200, 1300, 1360, 1440]) {
       await this.call('setWindowContentSize', width, 840);
       const dom = await waitForValue(
         () => this.call('readStartWidgets'),
@@ -177,9 +178,9 @@ Then('no shortcut tile or card overlaps another or the footer at 1000x840, 1200x
         `the Start Page at ${width}x840`,
       );
       const cards = Object.entries(dom.cards).filter(([, rect]) => rect);
-      for (const tile of dom.tiles) {
-        for (const [name, rect] of cards) assert.ok(!overlaps(tile, rect), `${width}px: a tile ${JSON.stringify(tile)} is under ${name}`);
-        assert.ok(!overlaps(tile, dom.footer), `${width}px: a tile is under the footer`);
+      for (const tile of [...dom.tiles, ...dom.chips]) {
+        for (const [name, rect] of cards) assert.ok(!overlaps(tile, rect), `${width}px: ${JSON.stringify(tile)} is under ${name}`);
+        assert.ok(!overlaps(tile, dom.footer), `${width}px: a tile or chip is under the footer`);
       }
       for (const [name, rect] of cards) assert.ok(!overlaps(rect, dom.footer), `${width}px: ${name} is under the footer`);
     }
@@ -374,6 +375,7 @@ When('I pin {string} on the Start Page', async function (title) {
     `${title} to show unpinned on the Start Page`,
   );
   assert.equal(await this.call('toggleFavoritePin', title), true);
+  this.pinnedOnPageTitle = title;
 });
 
 When('I unpin {string} on the Start Page', async function (title) {
@@ -403,7 +405,8 @@ Then("{string} leads the Start Page's favorites, pinned", async function (title)
     ['Favorite 1', 'Favorite 2', 'Favorite 3', 'Favorite 4', 'Favorite 5', 'Favorite 6', 'Favorite 7'].slice(0, limit - 1),
   );
   this.pinnedFavoriteUrl = dom.favorites[0].url;
-  if (dom.status) {
+  // A pin made on the page itself is announced and keeps focus on the pin.
+  if (this.pinnedOnPageTitle === title) {
     assert.equal(dom.status, `${title} pinned to the Start Page.`);
     assert.equal(dom.focusedPinOf, dom.favorites[0].url);
   }

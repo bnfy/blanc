@@ -2414,6 +2414,7 @@ function install(refs) {
           place: { left: rail('left'), right: rail('right') },
           tileLimit: billboardSiteCount(),
           tiles: [...document.querySelectorAll('#bbFavorites > *')].map(rect).filter(Boolean),
+          chips: [...document.querySelectorAll('#bbGroups .group-chip')].map(rect).filter(Boolean),
           footer: rect(document.getElementById('layoutFooter')),
           blockedLine: document.getElementById('bbBlocked')?.textContent.trim() ?? null,
           stepperValue: document.getElementById('shortcutCount')?.textContent.trim() ?? null,

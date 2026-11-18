@@ -15,6 +15,8 @@
   const contrast = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
   const images = new Map();
   function image(url) {
+    // A new photo gets a new versioned URL; keep only the last few.
+    if (!images.has(url) && images.size >= 4) images.delete(images.keys().next().value);
     if (!images.has(url)) images.set(url, new Promise(resolve => {
       const img = new Image();
       img.onload = () => resolve(img); img.onerror = () => resolve(null);

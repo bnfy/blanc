@@ -7,7 +7,7 @@ Feature: The Start Page and its widgets
   what that layout showed, once.
 
   @F35-1 @desktop
-  Scenario Outline: An old layout becomes the widgets it showed
+  Scenario Outline: Each old layout's widgets show on Billboard
     Given a profile that last used the "<layout>" start page layout
     When I open a new tab
     Then the start page shows Billboard with the "<layout>" widgets
@@ -231,11 +231,14 @@ Feature: The Start Page and its widgets
   Scenario: A widget card moves with its grip and stays clear of the shortcuts
     Given local history contains repeated visits for the Billboard
     And eight favorites fill the Start Page
+    And a group "Research" with 2 tabs
+    And a group "Travel planning" with 2 tabs
+    And a group "Reading list" with 2 tabs
     And a profile whose start page layout is "ledger"
     And a new tab is open
     When I press "Right" on the "favorites" card's grip
     Then the "favorites" card is on the "right" at position 1, announced and saved
-    And no shortcut tile or card overlaps another or the footer at 1000x840, 1200x840 and 1440x840
+    And no shortcut tile, group chip or card overlaps another or the footer from 1000 to 1440 wide
 
   @F35-18 @desktop
   Scenario: Billboard centers whatever it shows between the window top and the footer
