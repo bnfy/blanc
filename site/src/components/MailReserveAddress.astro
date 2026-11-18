@@ -14,15 +14,16 @@ const ending = 'blnc.day';
 {siteKey && (
   <form class="mail-reserve" method="post" data-mail-reserve data-api={apiBase} data-sitekey={siteKey} data-ending={ending} novalidate>
     <div class="mail-reserve-step" data-step="name">
-      <label class="mail-reserve-label" for="mailReserveName">Your name</label>
+      <label class="mail-reserve-label" for="mailReserveName">The address you want</label>
       <span class="mail-reserve-field">
         <input id="mailReserveName" name="localPart" type="text" required minlength="3" maxlength="32" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="mira" aria-describedby="mailReserveAvailability">
         <span class="mail-reserve-ending" aria-hidden="true">@{ending}</span>
       </span>
       <p class="mail-reserve-availability" id="mailReserveAvailability" role="status" aria-live="polite"></p>
 
-      <label class="mail-reserve-label" for="mailReserveEmail">Your email</label>
-      <input class="mail-reserve-input" id="mailReserveEmail" name="email" type="email" required maxlength="254" placeholder="you@example.com" autocomplete="email">
+      <label class="mail-reserve-label" for="mailReserveEmail">Your current email</label>
+      <p class="mail-reserve-hint" id="mailReserveEmailHint">We’ll send a code here to confirm it’s you. Later, use this email as your backup email to claim the address.</p>
+      <input class="mail-reserve-input" id="mailReserveEmail" name="email" type="email" required maxlength="254" placeholder="you@example.com" autocomplete="email" aria-describedby="mailReserveEmailHint">
       <div class="mail-reserve-turnstile" data-turnstile></div>
       <button class="mail-reserve-button" type="submit" disabled>Reserve</button>
     </div>
@@ -45,7 +46,7 @@ const ending = 'blnc.day';
     </div>
 
     <p class="mail-reserve-status" role="status" aria-live="polite"></p>
-    <p class="mail-reserve-note">One name per email. We’ll keep your name and email only to hold the reservation. <a href="/privacy#mail-reservations">How we handle it</a></p>
+    <p class="mail-reserve-note">One address per email. We’ll keep the address and your email only to hold the reservation. <a href="/privacy#mail-reservations">How we handle it</a></p>
     <noscript><p class="mail-reserve-note">Turn on JavaScript to reserve an address.</p></noscript>
   </form>
 )}
