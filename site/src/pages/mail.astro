@@ -129,6 +129,26 @@ const support = [
       {looks.map(look => <MailTeaser name={look.name} alt={look.alt} data-teaser={look.value} />)}
     </section>
 
+    <!-- The Blanc Mail address launches with the app (owner, November 17,
+         2026), so it follows the first look, high on the page. The copy names
+         no date and the owner's offer line opens the lead word for word. The
+         steps switch in CSS like the looks above; Offer is checked. -->
+    <section class="mail-address mail-teaser-set" aria-labelledby="mail-address-title">
+      <h2 id="mail-address-title"><span class="mail-gold-text">A Blanc Mail address of your own.</span></h2>
+      <p class="mail-section-lead">A private mailbox of your own, with an address like <!--email_off-->mira@blnc.day<!--/email_off-->, set up from inside Blanc Mail. It launches with Blanc Mail. What’s shown is a design preview and may change.</p>
+      <fieldset class="mail-segments mail-segments-three">
+        <legend class="sr-only">Step</legend>
+        {addressSteps.map((step, index) => (
+          <label>
+            <input type="radio" name="mail-address-step" value={step.value} checked={index === 0} />
+            <span>{step.label}</span>
+          </label>
+        ))}
+        <span class="mail-segments-thumb" aria-hidden="true"></span>
+      </fieldset>
+      {addressSteps.map(step => <MailTeaser name={step.name} alt={step.alt} data-teaser={step.value} />)}
+    </section>
+
     <!-- The gilt that strokes every glyph on the page. -->
     <svg class="mail-defs" aria-hidden="true" focusable="false"><linearGradient id="mail-gilt-stroke" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2="22"><stop offset="0" stop-color="#f6e7bd" /><stop offset=".45" stop-color="#e0c084" /><stop offset=".75" stop-color="#b48c4a" /><stop offset="1" stop-color="#e8cf96" /></linearGradient></svg>
 
@@ -202,25 +222,6 @@ const support = [
           </li>
         ))}
       </ul>
-    </section>
-
-    <!-- Hosted addresses are designed, not available: the copy says so, names
-         no date, and the owner's offer line is the lead word for word. The
-         steps switch in CSS like the looks above; Offer is checked. -->
-    <section class="mail-address mail-teaser-set" aria-labelledby="mail-address-title">
-      <h2 id="mail-address-title"><span class="mail-gold-text">Coming later: a Blanc Mail address.</span></h2>
-      <p class="mail-section-lead">A private mailbox of your own, with an address like <!--email_off-->mira@blnc.day<!--/email_off-->, set up from inside Blanc Mail. It isn’t available yet, and what’s shown may change before it is.</p>
-      <fieldset class="mail-segments mail-segments-three">
-        <legend class="sr-only">Step</legend>
-        {addressSteps.map((step, index) => (
-          <label>
-            <input type="radio" name="mail-address-step" value={step.value} checked={index === 0} />
-            <span>{step.label}</span>
-          </label>
-        ))}
-        <span class="mail-segments-thumb" aria-hidden="true"></span>
-      </fieldset>
-      {addressSteps.map(step => <MailTeaser name={step.name} alt={step.alt} data-teaser={step.value} />)}
     </section>
 
     <section id="pricing" class="mail-pricing" aria-labelledby="mail-pricing-title">
