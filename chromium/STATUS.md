@@ -44,7 +44,11 @@ hardware stays pending.
   (`favorite_helpers.h`). Sync, `/save`, imports and the Start Page now read
   and write whole paths; `NormalizeFavoriteFolders` splits a flat
   `A › B` folder into the nested pair and merges same-named sibling
-  folders, at the tree's first read. Order and empty folders stay on this
+  folders (the merge approved by the owner after the PR review), at the
+  tree's first read. The bookmarks bar, mobile and account folders show
+  under names that never repeat a top-level folder's (" 2"), in the tree
+  and in every Favorites list alike; the tree has no cap, and a favicon is
+  encoded again only when it changed. Order and empty folders stay on this
   Mac: `favoritesLayout` is still kept whole and never applied (plan
   decision 3). The sheet's Favorites ops and bridge are gone. V30 (below)
   replaces ten v1.49.1 steps that assume the sheet. No upstream patch

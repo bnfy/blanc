@@ -42,6 +42,10 @@ an Edit dialog. The fork still serves v1.49.1's flat list in its utility sheet
    doesn't change for other devices. A one-time pass at model load splits every
    existing flat folder whose title holds ` › ` into the nested chain, moving its
    contents in order. That pass is the only change to existing data.
+   *Amended (owner, November 18, 2026, after the PR review):* the same pass
+   also merges two folders of one name in the same parent into the first,
+   in order, because the page finds a folder by its path and one path is
+   one folder.
 3. **Order and empty folders stay on this Mac for now.** Chromium's own order is
    the manager's order, and it is kept across launches. The fork keeps
    `favoritesLayout` whole for other devices, as today, but doesn't apply or

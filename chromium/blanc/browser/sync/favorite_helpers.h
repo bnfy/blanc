@@ -4,9 +4,11 @@
 
 #include <cstddef>
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 #include "base/location.h"
+#include "base/strings/string_number_conversions.h"
 #include "base/strings/utf_string_conversions.h"
 #include "chrome/browser/profiles/profile.h"
 #include "components/bookmarks/browser/bookmark_client.h"
@@ -234,8 +236,10 @@ inline void MergeFolderInto(bookmarks::BookmarkModel* model, const bookmarks::Bo
 // One editable folder that breaks the path rules, or null: a name holding
 // the separator's character (a path stored flat by Sync, an import or an
 // earlier fork), or a name another folder before it in the same parent has.
+// One pass over the tree, each parent's names kept in a set.
 inline const bookmarks::BookmarkNode* FolderToNormalize(bookmarks::BookmarkModel* model,
                                                         const bookmarks::BookmarkNode* parent) {
+  std::set<std::u16string> names;
   for (const auto& child : parent->children()) {
     if (!child->is_folder() || model->client()->IsNodeManaged(child.get())) continue;
     if (child->GetTitle().find(u'\u203a') != std::u16string::npos) {
@@ -243,10 +247,10 @@ inline const bookmarks::BookmarkNode* FolderToNormalize(bookmarks::BookmarkModel
       // A path too long to store stays as it is; Sync leaves its favorites.
       if (stored && !stored->empty()) return child.get();
     }
-    // Only the later of two same-named folders moves.
+    // The later of two same-named folders moves into the first.
     const auto segment = FolderSegment(child.get());
-    const auto* first = segment ? FindChildFolder(model, parent, *segment) : nullptr;
-    if (first && first != child.get()) return child.get();
+    const auto key = segment ? FavoriteFolderKey(*segment) : std::nullopt;
+    if (key && !names.insert(*key).second) return child.get();
     if (const auto* inner = FolderToNormalize(model, child.get())) return inner;
   }
   return nullptr;
@@ -290,6 +294,57 @@ inline int NormalizeFavoriteFolders(bookmarks::BookmarkModel* model) {
     ++changed;
   }
   return changed;
+}
+
+// The permanent folders besides Other bookmarks that hold anything (the
+// bookmarks bar, mobile and account folders), each with the name the
+// Favorites page and the Start Page show it by: Chromium's title, made
+// distinct from Other bookmarks' own folders and from each other (" 2",
+// " 3"), because the page finds a folder by its name.
+inline std::vector<std::pair<const bookmarks::BookmarkNode*, std::u16string>> FixedRootNames(
+    bookmarks::BookmarkModel* model) {
+  std::vector<std::pair<const bookmarks::BookmarkNode*, std::u16string>> roots;
+  std::set<std::u16string> taken;
+  for (const auto& child : model->other_node()->children()) {
+    const auto segment = child->is_folder() ? FolderSegment(child.get()) : std::nullopt;
+    if (const auto key = segment ? FavoriteFolderKey(*segment) : std::nullopt) taken.insert(*key);
+  }
+  for (const bookmarks::BookmarkNode* node :
+       {static_cast<const bookmarks::BookmarkNode*>(model->bookmark_bar_node()),
+        static_cast<const bookmarks::BookmarkNode*>(model->mobile_node()),
+        static_cast<const bookmarks::BookmarkNode*>(model->account_bookmark_bar_node()),
+        static_cast<const bookmarks::BookmarkNode*>(model->account_other_node()),
+        static_cast<const bookmarks::BookmarkNode*>(model->account_mobile_node())}) {
+    if (!node || node->children().empty() || model->client()->IsNodeManaged(node)) continue;
+    const std::u16string base = CleanSegment(node->GetTitle()).value_or(u"Bookmarks");
+    std::u16string name = base;
+    for (int n = 2; ; ++n) {
+      const auto key = FavoriteFolderKey(name);
+      if (key && taken.insert(*key).second) break;
+      name = base + u" " + base::NumberToString16(n);
+    }
+    roots.emplace_back(node, name);
+  }
+  return roots;
+}
+
+// A favorite's folder as the pages show it: its path below Other bookmarks,
+// or, under another permanent folder, that folder's name (FixedRootNames)
+// and the path below it. "" at the top of Other bookmarks; nullopt when it
+// can't be written as a path shipping accepts.
+inline std::optional<std::string> ShownFavoriteFolder(bookmarks::BookmarkModel* model,
+                                                      const bookmarks::BookmarkNode* node) {
+  const auto relative = FavoriteFolderPath(node);
+  const auto* root = PermanentRootOf(node->parent());
+  if (!relative || !root || root == model->other_node()) return relative;
+  for (const auto& [fixed, name] : FixedRootNames(model)) {
+    if (fixed != root) continue;
+    const std::u16string joined = relative->empty() ? name
+        : name + std::u16string(kPathSeparator) + base::UTF8ToUTF16(*relative);
+    if (joined.size() > kFolderMaxLength) return std::nullopt;
+    return base::UTF16ToUTF8(joined);
+  }
+  return relative;
 }
 
 inline bool CanEditFavorites(Profile* profile) {

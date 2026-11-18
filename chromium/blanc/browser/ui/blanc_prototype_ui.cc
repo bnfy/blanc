@@ -639,16 +639,18 @@ base::Value NullableString(const std::string& value) {
 }
 
 // One FavoriteItem (browser-api/contract.json). `folder` is the whole path
-// below the favorite's permanent folder (F63, `Work › Reading`); nodes
-// directly under a permanent node are ungrouped. A path too long to store
-// shows the immediate folder's name, as before.
+// as the Favorites page shows it (F63, `Work › Reading`): below Other
+// bookmarks, or under the bookmarks bar's or another permanent folder's
+// name (blanc::favorites::ShownFavoriteFolder). A favorite at the top of
+// Other bookmarks has none; a path too long to store shows the immediate
+// folder's name.
 // GetFavicon() returns the cached image and schedules a load when there is
 // none yet; BookmarkNodeFaviconChanged then refreshes open start pages.
 base::DictValue FavoriteRecord(bookmarks::BookmarkModel* model,
                                const bookmarks::BookmarkNode* node, bool include_favicons) {
   const auto* parent = node->parent();
-  const bool in_folder = parent && !parent->is_permanent_node();
-  const auto path = blanc::favorites::FavoriteFolderPath(node);
+  const bool in_folder = parent && parent != model->other_node();
+  const auto path = blanc::favorites::ShownFavoriteFolder(model, node);
   const std::u16string title = node->GetTitle();
   return base::DictValue()
       .Set("id", base::NumberToString(node->id()))
@@ -659,6 +661,7 @@ base::DictValue FavoriteRecord(bookmarks::BookmarkModel* model,
       .Set("addedAt", node->date_added().InMillisecondsFSinceUnixEpoch())
       .Set("folder", !in_folder ? base::Value()
                      : path && !path->empty() ? base::Value(*path)
+                     : parent->is_permanent_node() ? base::Value()
                      : base::Value(base::UTF16ToUTF8(parent->GetTitle())));
 }
 
