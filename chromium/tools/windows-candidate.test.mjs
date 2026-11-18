@@ -68,3 +68,12 @@ test('a tool that rewrites a build input leaves it as it was', () => {
     assert.equal(fs.existsSync(absent), false);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+test('an installed copy is found in the Application folder and its version folder', () => {
+  const candidate = { id: candidateId(dll), exeSha256: exe, dllSha256: dll, version: '158.0.8127.2' };
+  const config = runtimeConfig('C:\\t\\blanc', candidate, path.win32.join, 'C:\\L\\Blanc Chromium Preview\\Application');
+  assert.equal(config.executable, 'C:\\L\\Blanc Chromium Preview\\Application\\chrome.exe');
+  assert.equal(config.dll, 'C:\\L\\Blanc Chromium Preview\\Application\\158.0.8127.2\\chrome.dll');
+  assert.equal(config.blockerAssets, 'C:\\t\\blanc\\blocker');
+  assert.throws(() => runtimeConfig('/t', { ...candidate, version: '158' }, path.win32.join, '/i'), /four-part version/);
+});

@@ -3,7 +3,9 @@
 // runs on. It makes its own run config from the candidate's candidate.json,
 // so it needs no tracker entry and can run before the suite does.
 //
-//   node chromium/tests/windows-smoke.mjs CANDIDATE_FOLDER RESULTS_FOLDER
+//   node chromium/tests/windows-smoke.mjs CANDIDATE_FOLDER RESULTS_FOLDER [--installed=APPLICATION_FOLDER]
+// With --installed it launches the installed copy (W1 Part B), which needs no
+// sandbox grant of its own: the installer gives it.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -15,15 +17,17 @@ import {hostPlatform} from './lib/platform.mjs';
 import {desktopCapture} from './lib/windows-desktop.mjs';
 import {runtimeConfig} from '../windows/candidate.mjs';
 
-const [candidateFolder,resultsFolder]=process.argv.slice(2);
+const [candidateFolder,resultsFolder,...smokeOptions]=process.argv.slice(2);
+const installed=smokeOptions.find(o=>o.startsWith('--installed='))?.slice('--installed='.length)??null;
+if(smokeOptions.some(o=>!o.startsWith('--installed=')))throw Error('Unknown option: '+smokeOptions.join(' '));
 if(!candidateFolder||!resultsFolder)throw Error('Usage: windows-smoke.mjs CANDIDATE_FOLDER RESULTS_FOLDER');
 assertNodeRuntime();
 const directory=path.resolve(candidateFolder),out=path.resolve(resultsFolder);
 if(fs.existsSync(out))throw Error('Refusing to overwrite earlier results');
 fs.mkdirSync(out,{recursive:true});
 const candidate=JSON.parse(fs.readFileSync(path.join(directory,'candidate.json'),'utf8'));
-const config=runtimeConfig(directory,candidate);
-const record={candidate:candidate.id,version:candidate.version,treeCommit:candidate.treeCommit,platform:hostPlatform(),host:`${os.type()} ${os.release()} ${os.arch()}`,checks:{}};
+const config=runtimeConfig(directory,candidate,path.join,installed&&path.resolve(installed));
+const record={installed:installed??null,candidate:candidate.id,version:candidate.version,treeCommit:candidate.treeCommit,platform:hostPlatform(),host:`${os.type()} ${os.release()} ${os.arch()}`,checks:{}};
 const save=()=>fs.writeFileSync(path.join(out,'smoke.json'),JSON.stringify(record,null,2)+'\n');
 const png=async(connection,name)=>fs.writeFileSync(path.join(out,name),Buffer.from((await connection.send('Page.captureScreenshot',{format:'png'})).data,'base64'));
 const fixture=new NativeFixture();

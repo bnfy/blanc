@@ -28,13 +28,17 @@ export function runtimeFiles(lines) {
 }
 // The harness's run config for an unpacked candidate (tests/lib/fixture.mjs).
 // Island assets are compiled in; the blocker engine travels in the zip.
-export function runtimeConfig(directory, candidate, join = path.join) {
+// `installed` points at an installed copy instead of the unpacked one: the
+// Application folder's chrome.exe and its version folder's chrome.dll, which
+// the installer copies unchanged, so the same hashes identify them.
+export function runtimeConfig(directory, candidate, join = path.join, installed = null) {
   for (const key of ['id', 'exeSha256', 'dllSha256']) if (typeof candidate[key] !== 'string') throw new Error(`candidate.json has no ${key}.`);
   if (candidate.id !== candidateId(candidate.dllSha256)) throw new Error('candidate.json id does not match its chrome.dll hash.');
+  if (installed && (typeof candidate.version !== 'string' || !/^\d+(\.\d+){3}$/.test(candidate.version))) throw new Error('candidate.json has no four-part version.');
   return {
     candidate: candidate.id,
-    executable: join(directory, 'chrome.exe'), executableSha256: candidate.exeSha256,
-    dll: join(directory, 'chrome.dll'), dllSha256: candidate.dllSha256,
+    executable: join(installed ?? directory, 'chrome.exe'), executableSha256: candidate.exeSha256,
+    dll: installed ? join(installed, candidate.version, 'chrome.dll') : join(directory, 'chrome.dll'), dllSha256: candidate.dllSha256,
     blockerAssets: join(directory, 'blocker'), diskAssets: false,
   };
 }

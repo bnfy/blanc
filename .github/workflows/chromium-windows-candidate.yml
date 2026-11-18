@@ -143,6 +143,28 @@ jobs:
       - name: Window frame check
         run: |
           if (Test-Path chromium/tests/windows-frame.mjs) { node chromium/tests/windows-frame.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\frame" } else { 'No window frame check on this ref.' }
+      # Chromium's installer beside an installed Electron Blanc (W1 Part B),
+      # and whether a crash is captured. Skipped where the candidate or the
+      # ref has neither.
+      - name: Install check
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not (Test-Path chromium/tests/windows-install.mjs) -or -not (Test-Path "$env:CANDIDATE_DIR\mini_installer.exe")) { 'No installer check for this candidate or ref.'; exit 0 }
+          $shipping = "$env:RUNNER_TEMP\shipping"
+          New-Item -ItemType Directory $shipping | Out-Null
+          gh release download v1.49.1 --repo $env:GITHUB_REPOSITORY --pattern 'Blanc-Setup-1.49.1.exe' --pattern 'SHA256SUMS' --dir $shipping
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download the shipping installer.' }
+          $expected = (Get-Content "$shipping\SHA256SUMS" | Where-Object { $_ -match 'Blanc-Setup-1\.49\.1\.exe$' }) -split '\s+' | Select-Object -First 1
+          $actual = (Get-FileHash "$shipping\Blanc-Setup-1.49.1.exe" -Algorithm SHA256).Hash.ToLower()
+          if (-not $expected -or $actual -ne $expected.ToLower()) { throw "The shipping installer is $actual, not the release's $expected." }
+          node chromium/tests/windows-install.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\install" "$shipping\Blanc-Setup-1.49.1.exe"
+      - name: Crash capture
+        if: ${{ !cancelled() }}
+        run: |
+          if (Test-Path chromium/tests/windows-crash.mjs) { node chromium/tests/windows-crash.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\crash" } else { 'No crash check on this ref.' }
       # The suite runs even when the frame check failed: each is evidence.
       - name: Foundation suite
         if: ${{ !cancelled() && inputs.suite == 'f0' }}

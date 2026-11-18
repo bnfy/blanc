@@ -62,6 +62,10 @@ function main() {
       if (entry.isFile()) link(path.join(entry.parentPath, entry.name), path.join(stage, path.relative(out, path.join(entry.parentPath, entry.name))));
   };
   for (const file of files) add(file.replace(/\/$/, ''));
+  // Chromium's installer, built with the browser (W1 Part B), and the files
+  // its signing step repacks from (Part C).
+  for (const file of ['mini_installer.exe', 'setup.exe']) if (fs.existsSync(path.join(out, file))) add(file);
+  if (fs.existsSync(path.join(out, 'signing'))) add('signing');
   fs.copyFileSync(engine, path.join(stage, 'blocker/engine.js'));
   fs.writeFileSync(path.join(stage, 'candidate.json'), JSON.stringify(candidate, null, 2) + '\n');
   execFileSync('zip', ['-q', '-r', '-1', zip, '.'], { cwd: stage, stdio: 'inherit' });
