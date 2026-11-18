@@ -152,10 +152,10 @@ test('android lane refuses a competing build', () => {
 
 // Windows is a second build of the desktop lane, cross-compiled on the
 // x86-64 Linux server (owner decision D4, 2026-11-17).
-test('desktop lane accepts the Windows output and keeps the same target', () => {
+test('desktop lane accepts the Windows output: the browser, and Chromium\'s installer with it', () => {
   assert.deepEqual(WINDOWS_OUTPUTS, ['BlancWinPrototype']);
   assert.equal(outputName(['--out=BlancWinPrototype']), 'BlancWinPrototype');
-  assert.deepEqual(buildLane(['--out=BlancWinPrototype']), { lane: 'desktop', out: 'BlancWinPrototype', target: 'chrome' });
+  assert.deepEqual(buildLane(['--out=BlancWinPrototype']), { lane: 'desktop', out: 'BlancWinPrototype', target: 'chrome', extraTargets: ['mini_installer'] });
   for (const options of [['--lane=android', '--out=BlancWinPrototype'], ['--out=BlancWinPrototype', '--sdk-root=/tmp'],
     ['--out=BlancWinBeta'], ['--out=blancwinprototype']])
     assert.throws(() => buildLane(options), undefined, options.join(' '));

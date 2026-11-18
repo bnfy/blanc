@@ -102,7 +102,10 @@ export function buildLane(options) {
     const out = outputName(options);
     if (WINDOWS_OUTPUTS.includes(out) && options.some(option => option.startsWith('--sdk-root=')))
       throw new Error('--sdk-root is a macOS option; the Windows output has none.');
-    return { lane, out, target: 'chrome' };
+    // The Windows output also builds Chromium's installer (W1 Part B), which
+    // packs the browser it builds: one named extra target, nothing chosen on
+    // the command line.
+    return WINDOWS_OUTPUTS.includes(out) ? { lane, out, target: 'chrome', extraTargets: ['mini_installer'] } : { lane, out, target: 'chrome' };
   }
   if (options.some(option => option.startsWith('--sdk-root='))) throw new Error('--sdk-root is a macOS option; the Android lane has none.');
   const values = options.filter(option => option.startsWith('--out='));
@@ -250,7 +253,8 @@ function main() {
   if (modes.length > 1) throw new Error('Choose one mode.');
   const mode = modes[0] || '--check';
   const src = fs.realpathSync(source);
-  const { lane, out: outName, target } = buildLane(options);
+  const { lane, out: outName, target, extraTargets = [] } = buildLane(options);
+  const targets = [target, ...extraTargets];
   if (lane === 'android') requireAndroidHost(); else requireDesktopHost(outName);
   const windows = WINDOWS_OUTPUTS.includes(outName);
   if (windows && !windowsToolchainMounted(fs.readFileSync('/proc/mounts', 'utf8'), src))
@@ -282,7 +286,7 @@ function main() {
     const planFd = fs.openSync(planFile, 'w');
     let result;
     try {
-      result = spawnSync(siso, [...args, '-n', target], {
+      result = spawnSync(siso, [...args, '-n', ...targets], {
         cwd: src, env, stdio: ['ignore', planFd, planFd],
       });
     } finally {
@@ -301,8 +305,8 @@ function main() {
     }
     if (!actions) return;
     const build = process.platform === 'darwin'
-      ? spawnSync('/usr/bin/caffeinate', ['-i', siso, ...args, target], { cwd: src, env, stdio: 'inherit' })
-      : spawnSync(siso, [...args, target], { cwd: src, env, stdio: 'inherit' });
+      ? spawnSync('/usr/bin/caffeinate', ['-i', siso, ...args, ...targets], { cwd: src, env, stdio: 'inherit' })
+      : spawnSync(siso, [...args, ...targets], { cwd: src, env, stdio: 'inherit' });
     if (build.error) throw build.error;
     if (build.status !== 0) throw new Error(`Build did not complete successfully (${build.status ?? build.signal}). Cached work was preserved.`);
     fs.writeFileSync(path.join(out, '.blanc-last-successful-build.json'), JSON.stringify({ inputs, completedAt: new Date().toISOString() }, null, 2) + '\n');

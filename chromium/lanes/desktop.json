@@ -5,7 +5,7 @@
   "upstream": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
   "upstreamDir": "upstream",
   "sourceMap": "source-map.json",
-  "fileCount": 180,
+  "fileCount": 183,
   "patches": [
     "patches/baseline/0001-foundation-baseline.patch",
     "patches/0002-canonical-layout.patch",
@@ -102,6 +102,7 @@
     "patches/0094-blanc-windows-data-folder.patch",
     "patches/0095-blanc-windows-frame.patch",
     "patches/0096-blanc-app-menu-anchor.patch",
-    "patches/0097-blanc-windows-strip-drag.patch"
+    "patches/0097-blanc-windows-strip-drag.patch",
+    "patches/0098-blanc-windows-identity.patch"
   ]
 }
