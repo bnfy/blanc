@@ -55,7 +55,10 @@ hardware stays pending.
   8 of 8 (the tab from its command and a typed address, the manager drawn,
   nested create, move, reorder, rename, a refused cycle, folder removal,
   edit with refused addresses and the pin following, removal) and
-  `native-new-tab-reuse.mjs` 9 of 9; the V30 cases (internal-pages F16-2,
+  `native-new-tab-reuse.mjs` 9 of 9 (after the PR review's fixes, imports
+  behind the editing policy and a move across account and local storage
+  refused, the Favorites check passed 8 of 8 again on macos-48672c9cd81512a3);
+  the V30 cases (internal-pages F16-2,
   F16-5, F16-8, F16-10; F9-3; F35-5; browser-migration F30-1, F30-2 and
   :28/:35) and sync.feature :38/:49, which share a replaced step, pass.
   Not yet: the strip doesn't take the page's color (#1614's page tint), the
