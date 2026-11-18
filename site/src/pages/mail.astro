@@ -6,6 +6,7 @@ import MailShot from '../components/MailShot.astro';
 import MailTeaser from '../components/MailTeaser.astro';
 import MailWaitlistForm from '../components/MailWaitlistForm.astro';
 import survey from '../data/mail-survey.json';
+import reservations from '../data/mail-reservations.json';
 import MailSurveyInvite from '../components/MailSurveyInvite.astro';
 import { checkoutHrefFor, priceFor, productFor } from '../data/mail-commerce.mjs';
 import '../styles/mail.css';
@@ -73,7 +74,7 @@ const addressSteps = [
 // docs/website-mail-claims-2026-11-17.md. Never "Blanc can't read your mail"
 // (owner), and nothing about other devices until it ships.
 // The reservation form has its own page; the address section links to it once it's open.
-const reservationsOpen = Boolean(import.meta.env.PUBLIC_TURNSTILE_SITE_KEY);
+const reservationsOpen = reservations.open;
 const addressPoints = [
   { title: 'Your name, your ending', text: 'Pick a name and the ending you like: ', endings: ['blnc.day', 'blnc.page', 'blancmail.me', 'blancmail.co', 'blncmail.com'] },
   { badge: '15 GB', title: ' for your mail', text: 'Each address has 15 GB for your mail and its attachments.' },
