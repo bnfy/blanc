@@ -146,6 +146,16 @@ jobs:
           Add-Type -AssemblyName System.Windows.Forms
           $screen = [System.Windows.Forms.Screen]::PrimaryScreen
           "Display: $($screen.Bounds.Width) x $($screen.Bounds.Height), work area $($screen.WorkingArea.Width) x $($screen.WorkingArea.Height)"
+      # A hosted runner has Windows' animations off, which Chromium reads as
+      # reduced motion; people's desktops have them on (W2 B2).
+      - name: Turn Windows animations on
+        run: |
+          Add-Type -Namespace Blanc -Name Spi -MemberDefinition '[DllImport("user32.dll")] public static extern bool SystemParametersInfo(uint action, uint param, IntPtr value, uint flags); [DllImport("user32.dll", EntryPoint="SystemParametersInfo")] public static extern bool Get(uint action, uint param, ref bool value, uint flags);'
+          # SPI_SETCLIENTAREAANIMATION, saved and broadcast.
+          if (-not [Blanc.Spi]::SystemParametersInfo(0x1043, 0, [IntPtr]1, 3)) { throw 'Could not turn client-area animations on.' }
+          $on = $false; [void][Blanc.Spi]::Get(0x1042, 0, [ref]$on, 0)
+          "Client-area animations: $on"
+          if (-not $on) { throw 'Client-area animations are still off.' }
       - name: Launch check
         run: node chromium/tests/windows-smoke.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\smoke"
       # Real mouse and keyboard input against the window's own frame; it is
