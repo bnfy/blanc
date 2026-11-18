@@ -2792,4 +2792,40 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="favorites_import_cancel">Cancelar</string>
     <string name="favorites_manager_delete_folder_label">Eliminar la carpeta %1$s</string>
     <string name="favorites_import_tabs_skipped">No se trajeron las pestañas abiertas.</string>
+    <plurals name="start_billboard_blocked">
+        <item quantity="one">%1$d anuncio bloqueado esta semana</item>
+        <item quantity="many">%1$d anuncios bloqueados esta semana</item>
+        <item quantity="other">%1$d anuncios bloqueados esta semana</item>
+    </plurals>
+    <string name="start_widgets_heading">Widgets</string>
+    <string name="start_widgets_unconfirmed">No se pudo confirmar el cambio del widget. Inténtalo de nuevo.</string>
+    <string name="start_widgets_move">Mover %1$s</string>
+    <string name="start_widgets_moved_left">%1$s está ahora a la izquierda, posición %2$s.</string>
+    <string name="start_widgets_moved_right">%1$s está ahora a la derecha, posición %2$s.</string>
+    <string name="start_widgets_resize">Cambiar el tamaño de %1$s</string>
+    <string name="start_widgets_size">Tamaño %1$s de %2$s</string>
+    <string name="start_widgets_size_auto">Se ajusta a la columna</string>
+    <string name="start_widgets_resized">%1$s tiene ahora el tamaño %2$s de %3$s.</string>
+    <string name="start_widgets_resized_auto">%1$s vuelve a ajustarse a la columna.</string>
+    <string name="start_shortcuts_heading">Accesos directos</string>
+    <string name="start_shortcuts_fewer">Menos accesos directos</string>
+    <string name="start_shortcuts_more">Más accesos directos</string>
+    <string name="start_shortcuts_count">%1$s accesos directos</string>
+    <plurals name="start_shortcuts_sofar">
+        <item quantity="one">%1$d sitio por ahora. Aparecerán más mientras navegas.</item>
+        <item quantity="many">%1$d sitios por ahora. Aparecerán más mientras navegas.</item>
+        <item quantity="other">%1$d sitios por ahora. Aparecerán más mientras navegas.</item>
+    </plurals>
+    <plurals name="start_devices_tabs">
+        <item quantity="one">%1$d pestaña</item>
+        <item quantity="many">%1$d pestañas</item>
+        <item quantity="other">%1$d pestañas</item>
+    </plurals>
+    <plurals name="start_devices_more">
+        <item quantity="one">%1$d pestaña más</item>
+        <item quantity="many">%1$d pestañas más</item>
+        <item quantity="other">%1$d pestañas más</item>
+    </plurals>
+    <string name="start_devices_fewer">Mostrar menos</string>
+    <string name="start_mahjong_play">Jugar a Blanc Mahjong</string>
 </resources>

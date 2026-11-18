@@ -10132,5 +10132,85 @@
   "favorites.import.tabsSkipped": {
     "message": "Open tabs weren’t brought over.",
     "note": "Favorites page → Bring my stuff to Blanc: added after the result when Open tabs was ticked but the favorites import was cancelled or failed, so Blanc did not go on to Bring Your Tabs."
+  },
+  "start.billboard.blocked": {
+    "message": "{count, plural, one {# ad blocked this week} other {# ads blocked this week}}",
+    "note": "Start Page: the line under the clock, the count alone; lowercase by design."
+  },
+  "start.widgets.heading": {
+    "message": "Widgets",
+    "note": "Start Page → Customize: heading over the widget switches."
+  },
+  "start.widgets.unconfirmed": {
+    "message": "Could not confirm the widget change. Try again.",
+    "note": "Start Page → Customize: shown when a widget change could not be saved."
+  },
+  "start.widgets.move": {
+    "message": "Move {name}",
+    "note": "Start Page: accessible name of a widget card's grip; {name} is the card's title."
+  },
+  "start.widgets.movedLeft": {
+    "message": "{name} is now on the left, position {position}.",
+    "note": "Start Page: announced after a card moves into the left column; {position} counts from 1."
+  },
+  "start.widgets.movedRight": {
+    "message": "{name} is now on the right, position {position}.",
+    "note": "Start Page: announced after a card moves into the right column; {position} counts from 1."
+  },
+  "start.widgets.resize": {
+    "message": "Resize {name}",
+    "note": "Start Page: accessible name of a card's resize edge."
+  },
+  "start.widgets.size": {
+    "message": "Size {size} of {count}",
+    "note": "Start Page: value of a card's resize edge, one of the fixed sizes."
+  },
+  "start.widgets.sizeAuto": {
+    "message": "Fits the column",
+    "note": "Start Page: value of a card's resize edge when it has no fixed size."
+  },
+  "start.widgets.resized": {
+    "message": "{name} is now size {size} of {count}.",
+    "note": "Start Page: announced after a card takes a fixed size."
+  },
+  "start.widgets.resizedAuto": {
+    "message": "{name} fits its column again.",
+    "note": "Start Page: announced after a card goes back to fitting its column."
+  },
+  "start.shortcuts.heading": {
+    "message": "Shortcuts",
+    "note": "Start Page → Customize: heading over the shortcut count stepper."
+  },
+  "start.shortcuts.fewer": {
+    "message": "Fewer shortcuts",
+    "note": "Start Page → Customize: the stepper's minus button."
+  },
+  "start.shortcuts.more": {
+    "message": "More shortcuts",
+    "note": "Start Page → Customize: the stepper's plus button."
+  },
+  "start.shortcuts.count": {
+    "message": "{count} shortcuts",
+    "note": "Start Page → Customize: the stepper's value, read aloud."
+  },
+  "start.shortcuts.sofar": {
+    "message": "{count, plural, one {# site so far.} other {# sites so far.}} More appear as you browse.",
+    "note": "Start Page → Customize: shown when Blanc knows fewer sites than the chosen count."
+  },
+  "start.devices.tabs": {
+    "message": "{count, plural, one {# tab} other {# tabs}}",
+    "note": "Start Page → On your other devices: a device's tab count beside its name."
+  },
+  "start.devices.more": {
+    "message": "{count, plural, one {# more tab} other {# more tabs}}",
+    "note": "Start Page → On your other devices: button showing a device's remaining tabs."
+  },
+  "start.devices.fewer": {
+    "message": "Show fewer",
+    "note": "Start Page → On your other devices: button folding a device's list back to three."
+  },
+  "start.mahjong.play": {
+    "message": "Play Blanc Mahjong",
+    "note": "Start Page footer: the link that opens Blanc Mahjong."
   }
 }

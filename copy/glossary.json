@@ -244,7 +244,8 @@
       "settings.sync.devices.platform.linux",
       "settings.sync.devices.platform.ios",
       "settings.general.miniWindow.shortcut.altCmdN",
-      "ios.settings.islandPosition"
+      "ios.settings.islandPosition",
+      "start.widgets.heading"
     ],
     "es": [
       "about.chromium",
@@ -301,7 +302,8 @@
       "settings.sync.devices.platform.win32",
       "settings.sync.devices.platform.linux",
       "settings.sync.devices.platform.ios",
-      "settings.general.miniWindow.shortcut.altCmdN"
+      "settings.general.miniWindow.shortcut.altCmdN",
+      "start.widgets.heading"
     ],
     "fr": [
       "about.chromium",
@@ -368,7 +370,8 @@
       "settings.sync.devices.platform.linux",
       "settings.sync.devices.platform.ios",
       "settings.general.miniWindow.shortcut.altCmdN",
-      "ios.settings.islandPosition"
+      "ios.settings.islandPosition",
+      "start.widgets.heading"
     ],
     "pt-BR": [
       "about.chromium",
@@ -424,7 +427,8 @@
       "settings.sync.devices.platform.win32",
       "settings.sync.devices.platform.linux",
       "settings.sync.devices.platform.ios",
-      "settings.general.miniWindow.shortcut.altCmdN"
+      "settings.general.miniWindow.shortcut.altCmdN",
+      "start.widgets.heading"
     ],
     "it": [
       "about.chromium",

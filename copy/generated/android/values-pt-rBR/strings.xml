@@ -2792,4 +2792,40 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="favorites_import_cancel">Cancelar</string>
     <string name="favorites_manager_delete_folder_label">Excluir a pasta %1$s</string>
     <string name="favorites_import_tabs_skipped">As abas abertas não foram trazidas.</string>
+    <plurals name="start_billboard_blocked">
+        <item quantity="one">%1$d anúncio bloqueado esta semana</item>
+        <item quantity="many">%1$d anúncios bloqueados esta semana</item>
+        <item quantity="other">%1$d anúncios bloqueados esta semana</item>
+    </plurals>
+    <string name="start_widgets_heading">Widgets</string>
+    <string name="start_widgets_unconfirmed">Não foi possível confirmar a mudança do widget. Tente novamente.</string>
+    <string name="start_widgets_move">Mover %1$s</string>
+    <string name="start_widgets_moved_left">%1$s agora está à esquerda, posição %2$s.</string>
+    <string name="start_widgets_moved_right">%1$s agora está à direita, posição %2$s.</string>
+    <string name="start_widgets_resize">Redimensionar %1$s</string>
+    <string name="start_widgets_size">Tamanho %1$s de %2$s</string>
+    <string name="start_widgets_size_auto">Ajusta-se à coluna</string>
+    <string name="start_widgets_resized">%1$s agora tem o tamanho %2$s de %3$s.</string>
+    <string name="start_widgets_resized_auto">%1$s volta a se ajustar à coluna.</string>
+    <string name="start_shortcuts_heading">Atalhos</string>
+    <string name="start_shortcuts_fewer">Menos atalhos</string>
+    <string name="start_shortcuts_more">Mais atalhos</string>
+    <string name="start_shortcuts_count">%1$s atalhos</string>
+    <plurals name="start_shortcuts_sofar">
+        <item quantity="one">%1$d site até agora. Outros aparecem conforme você navega.</item>
+        <item quantity="many">%1$d sites até agora. Outros aparecem conforme você navega.</item>
+        <item quantity="other">%1$d sites até agora. Outros aparecem conforme você navega.</item>
+    </plurals>
+    <plurals name="start_devices_tabs">
+        <item quantity="one">%1$d aba</item>
+        <item quantity="many">%1$d abas</item>
+        <item quantity="other">%1$d abas</item>
+    </plurals>
+    <plurals name="start_devices_more">
+        <item quantity="one">mais %1$d aba</item>
+        <item quantity="many">mais %1$d abas</item>
+        <item quantity="other">mais %1$d abas</item>
+    </plurals>
+    <string name="start_devices_fewer">Mostrar menos</string>
+    <string name="start_mahjong_play">Jogar Blanc Mahjong</string>
 </resources>
