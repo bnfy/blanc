@@ -33,7 +33,6 @@
  },
  "triage": "reports/w2-windows-triage.md",
  "openInFinalRun": {
-  "browser-migration:7, :14, :28, :35": "intermittently the import dialog is closed and empty after Find; the early-click race is fixed, another cause remains",
   "supporter-and-session:18": "not Windows: the Favorites work's V30 step 'exactly one new tab opens on {string}' asserts no new tab and also catches the Patron checkout scenario",
   "F41-named-workspaces:203": "the Spaces menu fades at left 0 px instead of 44 px; began failing with the final build (1280x800 window or the merged Favorites work); compare with the Mac nightly",
   "F41-named-workspaces:236, island-and-commands:61": "intermittent: both pass on a rerun (run 44393930687)"
@@ -44,6 +43,7 @@
   "gate 5: the Mac nightly with W2 applied"
  ],
  "fixedAfterFinalRun": {
-  "arc-spaces-import:14, :31": "Fixed: a call evaluated its arguments right to left on Windows, so the Spaces store got an empty copy of the records; copied before the call (tools/argument-order.test.mjs guards it); all Arc cases pass on windows-x64-e2c2d280450eaece (run 44400649685)"
+  "arc-spaces-import:14, :31": "Fixed: a call evaluated its arguments right to left on Windows, so the Spaces store got an empty copy of the records; copied before the call (tools/argument-order.test.mjs guards it); all Arc cases pass on windows-x64-e2c2d280450eaece (run 44400649685)",
+  "browser-migration:7, :14, :28, :35": "Fixed: the import button worked only after the page script attached its handler; it now starts disabled in the markup; all five pass twice with no retries on windows-x64-68bafd811443051b (run 44406317334 and a repeat)"
  }
 }

@@ -38,13 +38,12 @@ reasons: `chromium/tests/windows-fork-exclusions.mjs`.
 | `tab-migration:116` | The host gave every native call 10 s; applying 500 tabs takes longer on a slow PC, and the import was reported failed while it went on | `importApply` has no host limit, like `importArcRead` (a product fix) |
 | `tabs-and-groups:292` | The runner's `%TEMP%` is `C:\Users\RUNNER~1\...`; Node writes the file URL with `%7E`, Chromium shows `~`, and shipping compares the strings | The suite runs with a temporary folder without a short name |
 | `arc-spaces-import` 14, 31 | The Arc import said "Created 2 spaces" but saved none (a real bug, Windows only) | One call copied the records for the store and moved them into the reply; Windows' toolchain evaluates arguments right to left, so the store got an empty copy, wrote nothing and reported success (store trace, run 44397453040) | The records are copied before the call; `tools/argument-order.test.mjs` guards the shape across the fork; all Arc cases pass (run 44400649685) |
-| `browser-migration:7` (and sometimes 14, 28) | The Favorites tab attaches its import button's handler after two calls to the browser; an early click did nothing | The button stays disabled until then (a declared edit in `tools/favorites-page.mjs`; a product fix) |
+| `browser-migration` 7, 14, 28, 35 | The Favorites import button exists in the markup before the page's script attaches its handler (after two calls to the browser); a click in that gap did nothing (trace, run 44403868270: same document, nothing closed the dialog, the click ~230 ms into the page opened nothing) | The button starts disabled in the markup and is enabled as the handler is attached (declared edits in `tools/favorites-page.mjs`; a product fix); all five pass twice in a row, no retries (runs 44406317334 and its repeat) |
 
 ## Open
 
 | Case | What happens | Cause | Outcome |
 | --- | --- | --- | --- |
-| `browser-migration` 14, 28, 35 | Intermittently, the import dialog is closed and empty when read after Find | Not found; the early-click race is fixed, so something else closes or resets the dialog on the runner | Open, W2 |
 | `F41-named-workspaces:203` | The Spaces menu fades at left 0 px instead of 44 px | Not found; it began failing with the final build (`windows-x64-7edd9da4f45532ea`), which has both the 1280x800 window and the merged Favorites work; the next Mac nightly tells which | Open, W2 |
 | `supporter-and-session:18` | "No new tab" when Become a Patron opens its checkout | Not Windows: the Favorites work's V30 step for "exactly one new tab opens on {string}" asserts that no new tab opens, and the Patron scenario uses the same step | Open, for the Favorites work |
 | `F41-named-workspaces:236`, `island-and-commands:61` | Failed in the final run | Intermittent: both pass on a rerun (run 44393930687) | Open, runner-variable |
