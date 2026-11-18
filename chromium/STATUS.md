@@ -3646,7 +3646,7 @@ toolchain package and the cold build on 2026-11-17. Per-platform differences:
 
 | W0 gate | Result | Evidence |
 | --- | --- | --- |
-| 1. `check-patches.py` for both lanes; fork unit suite; next Mac nightly builds | Checks pass; shared C++ passes a syntax-only compile on the Mac Studio; source applied there and both outputs' GN files regenerated with unchanged arguments (2026-11-17, guard dry-runs 4 and 5 actions); **nightly pending** | `tools/check-patches.test.mjs` |
+| 1. `check-patches.py` for both lanes; fork unit suite; next Mac nightly builds | Pass: the Mac nightly rerun 20261118-1221 at `bedce9a5f` built and passed 637 of 667 (0 fail, 0 undefined, 30 excluded). The 07:00 night had built it but stopped before its suite on a nightly-tooling gap, fixed in `bedce9a5f` | `records/nightly/20261118-1221` on the Mac Studio |
 | 2. `progress.mjs --check` with a Windows candidate | Pass | Candidate identities below |
 | 3. `chrome.exe` for x64 built on the server through the guard | Pass | `~/blanc-evidence/windows/build-3.log` |
 | 4. Launches on a hosted Windows runner; Island draws; blocker ready; a page loads | Pass (Windows Server 2025, run 44137463714) | `smoke.json`, `desktop.png` in the run's artifact |
@@ -3665,7 +3665,7 @@ Patches 0095 (Windows frame), 0096 (app menu anchor), 0097 (strip drag on Window
 | 3. Strip drag moves the window; top edge resizes; double-click maximizes | Pass | `windows-frame.mjs` |
 | 4. The menu button opens Chromium's app menu | Pass | `menu.png` |
 | 5. Holds at 150% and maximized | Pass | `scale-150.png` |
-| 6. Mac: fork suite, both lanes' patch checks, next nightly | Checks pass; shared C++ passes the Mac Studio syntax-only compile; **nightly pending** | — |
+| 6. Mac: fork suite, both lanes' patch checks, next nightly | Pass: nightly 20261118-1221 at `bedce9a5f` (Part A), 637 of 667, none failing | Mac Studio `records/nightly/20261118-1221` |
 
 Found, not caused by Part A: after any tab has been closed, closing the last
 window leaves the process running with no window (W2, `PLATFORMS.md`). Not
