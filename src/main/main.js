@@ -168,7 +168,6 @@ const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
 const {
   sendLaunchPing,
   sendMahjongPlay,
-  sendNewtabLayoutUsed,
   sendDayOneSignal,
   installMeta,
   markDayOneSent,
@@ -15939,8 +15938,6 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     telemetry: {
       mahjongPlayed: (wc) =>
         maybeSendProductUsage(wc, () => sendMahjongPlay()),
-      newtabLayoutUsed: (wc, layout) =>
-        maybeSendProductUsage(wc, () => sendNewtabLayoutUsed(layout)),
     },
     // The start page's ledger sections read live tab-group state and the
     // rolling blocked counter, both owned here.
@@ -16039,7 +16036,6 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       },
       // Runs inside runInPageRuntime, so the sheet opens in the start page's own window.
       openSettingsSection: (section) => openSettingsSection(String(section ?? '')),
-      setLayout: (name) => settings.setSettings({ newtabLayout: name }),
       openMahjong: (wc, background) => {
         const source = tabs.get(tabIdByWebContentsId.get(wc.id));
         if (!source || !liveContents(source)) return false;

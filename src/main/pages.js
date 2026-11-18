@@ -695,13 +695,6 @@ function setupPages(hooks = {}) {
       event.sender,
       options && typeof options === 'object' ? options : {},
     ) ?? []);
-  // The footer layout switcher. The value is enum-validated by setSettings,
-  // so an unknown name is a no-op rather than an error.
-  handle(
-    'pages:start:set-layout',
-    'newtab',
-    (name) => hooks.startPage?.setLayout?.(String(name ?? '')),
-  );
   // The Start Page's widgets (start-widgets.js). Each write goes through the
   // rules, is saved device-local by setNewtabWidgets() (which pushes the new
   // status to every open Start Page) and resolves to what the page may see.
@@ -789,10 +782,6 @@ function setupPages(hooks = {}) {
   });
   handleEvent('pages:start:open-mahjong', 'newtab', (event, background) =>
     hooks.startPage?.openMahjong?.(event.sender, background === true) === true);
-  handleEvent('pages:start:layout-used', 'newtab', (event, name) => {
-    if (!settings.NEWTAB_LAYOUTS.includes(name)) return false;
-    return hooks.telemetry?.newtabLayoutUsed?.(event.sender, name) === true;
-  });
   handle(
     'pages:start:focus-group',
     'newtab',

@@ -15,12 +15,13 @@ const main = source('src/main/main.js');
 const newtab = source('src/renderer/pages/newtab.js');
 const onboarding = source('src/renderer/pages/onboarding.js');
 
-test('the internal-page bridge exposes only the two bounded usage events', () => {
-  assert.match(preload, /layoutUsed: \(name\) => invoke\('pages:start:layout-used', name\)/);
+// V24 (2026-11-18): the Start Page has one layout, so it no longer reports
+// newtab_layout; the Worker still accepts the event from older builds.
+test('the internal-page bridge exposes only the one bounded usage event', () => {
+  assert.doesNotMatch(preload, /layoutUsed|pages:start:layout-used/);
+  assert.doesNotMatch(pages, /pages:start:layout-used/);
   assert.doesNotMatch(preload, /mahjongPlayed: \(\) => invoke\('pages:mahjong:played'\)/);
   assert.match(preload, /mahjong: \{ played: \(\) => invoke\('pages:mahjong:played'\) \}/);
-  assert.match(pages, /handleEvent\('pages:start:layout-used', 'newtab'/);
-  assert.match(pages, /settings\.NEWTAB_LAYOUTS\.includes\(name\)/);
   assert.match(pages, /handleEvent\('pages:mahjong:played', \['mahjong'\]/);
 });
 
@@ -30,18 +31,13 @@ test('main applies saved consent and private-tab policy at the trusted boundary'
   assert.match(main, /usagePing: current\.usagePing/);
   assert.match(main, /privateTab: tab\.private/);
   assert.match(main, /mahjongPlayed: \(wc\)[\s\S]*sendMahjongPlay\(\)/);
-  assert.match(main, /newtabLayoutUsed: \(wc, layout\)[\s\S]*sendNewtabLayoutUsed\(layout\)/);
+  assert.doesNotMatch(main, /newtabLayoutUsed|sendNewtabLayoutUsed/);
 });
 
-test('a rendered layout is reported, including the first post-consent render', () => {
-  assert.match(
-    newtab,
-    /function applyLayout\(name\) \{\s*if \(!\['ledger', 'billboard', 'shelf', 'tally'\]\.includes\(name\)\) name = 'billboard';\s*state\.layout = name;\s*document\.body\.dataset\.layout = name;\s*presentPendingMigrationChecklistCompletion\(\);\s*window\.bowserPages\?\.start\?\.layoutUsed\?\.\(name\)/,
-  );
+test('the Start Page reports no layout', () => {
+  assert.doesNotMatch(newtab, /layoutUsed/);
+  assert.doesNotMatch(onboarding, /layoutUsed/);
   assert.doesNotMatch(newtab, /mahjongFrame|blanc:mahjong-played/);
-  const privacySaved = onboarding.indexOf('if (!(await persistPrivacy()))');
-  const layoutUsed = onboarding.indexOf('window.bowserPages.start.layoutUsed(document.body.dataset.layout)');
-  assert.ok(privacySaved !== -1 && layoutUsed > privacySaved);
 });
 
 const tabView = source('src/main/tab-view.js');

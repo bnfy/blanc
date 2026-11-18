@@ -37,8 +37,6 @@ export interface NewtabPagesAPI {
     focusGroup: (id: unknown) => Promise<unknown>;
     /** Open the Spaces menu from the moving-in checklist. IPC: invoke `pages:start:open-spaces`. */
     openSpaces: () => Promise<unknown>;
-    /** Save the Start Page layout. IPC: invoke `pages:start:set-layout`. */
-    setLayout: (name: unknown) => Promise<unknown>;
     /** Turn a Start Page widget (favorites or devices) on or off; resolves to the saved widgets, rejects a value the page cannot show. IPC: invoke `pages:start:set-widget`. */
     setWidget: (name: unknown, on: unknown) => Promise<unknown>;
     /** Save Billboard's shortcut count (1 to 12); resolves to the saved widgets. IPC: invoke `pages:start:set-shortcut-count`. */
@@ -71,8 +69,6 @@ export interface NewtabPagesAPI {
     removeWallpaper: () => Promise<unknown>;
     /** Open blanc://mahjong as an ordinary tab. IPC: invoke `pages:start:open-mahjong`. */
     openMahjong: (background?: boolean) => Promise<unknown>;
-    /** Record the once-per-session newtab_layout usage event (subject to telemetry consent). IPC: invoke `pages:start:layout-used`. */
-    layoutUsed: (name: unknown) => Promise<unknown>;
     /** Type-to-open: summon the Island panel seeded with the typed character. IPC: invoke `pages:start:open-island`. */
     openIsland: (char: unknown) => Promise<unknown>;
     /** Retry a blocker startup that failed. IPC: invoke `pages:start:startup-retry`. */

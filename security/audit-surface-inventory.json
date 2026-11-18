@@ -271,7 +271,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "aa76a7097f01290f1b7b556e4014ef4581d69d2dce7395a2a5dc2a174b44fbea",
+      "sha256": "3ede2e00768a2f580724be75b4384968dab2a7be50db74d35370508f48f81073",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -531,7 +531,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "b2b39464f83d43d1df57af9841c442d669c67fada2c277429d17de1ec210cbfe",
+      "sha256": "af37e95db87e9e3f6429d16e85b6ff16667626b865b89a9d24d428d888424d67",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -632,7 +632,6 @@
         "pages:start:data",
         "pages:start:dismiss-sent",
         "pages:start:focus-group",
-        "pages:start:layout-used",
         "pages:start:migration-checklist-dismiss",
         "pages:start:onboarding-set",
         "pages:start:open-island",
@@ -646,7 +645,6 @@
         "pages:start:remove-wallpaper",
         "pages:start:set-clock",
         "pages:start:set-dynamic-wallpaper",
-        "pages:start:set-layout",
         "pages:start:set-shortcut-count",
         "pages:start:set-wallpaper",
         "pages:start:set-wallpaper-color",
@@ -1006,7 +1004,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "8880fc70ceddc26cf3a7f868f8b65cfca62a84dbcb9dddc6da32aa70793ed7d8",
+      "sha256": "6af28a2eff7cfe814ee065cbf9c292f77880af1addfa07e68651fa3382d93ff6",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -1110,7 +1108,6 @@
         "pages:start:data",
         "pages:start:dismiss-sent",
         "pages:start:focus-group",
-        "pages:start:layout-used",
         "pages:start:migration-checklist-dismiss",
         "pages:start:onboarding-set",
         "pages:start:open-island",
@@ -1126,7 +1123,6 @@
         "pages:start:sent-items",
         "pages:start:set-clock",
         "pages:start:set-dynamic-wallpaper",
-        "pages:start:set-layout",
         "pages:start:set-shortcut-count",
         "pages:start:set-wallpaper",
         "pages:start:set-wallpaper-color",

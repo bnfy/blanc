@@ -57,8 +57,10 @@ test('the start-page layout defaults to billboard, validates its enum, and syncs
   const newtabHtml = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/newtab.html'), 'utf8');
   const newtabScript = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/newtab.js'), 'utf8');
   assert.match(newtabHtml, /<body class="ledger-body" data-layout="billboard">/);
+  // V24: the page always draws Billboard, whatever the synced layout says;
+  // the stored layout only decides a profile's widgets once (settings.js).
   assert.match(newtabScript, /layout:\s*'billboard'/);
-  assert.match(newtabScript, /layout:\s*data\.layout \?\? 'billboard'/);
+  assert.match(newtabScript, /function applyLayout\(name\) \{\n  name = 'billboard';/);
   assert.doesNotMatch(newtabHtml, /<body[^>]*data-layout="mahjong"/);
 
   assert.equal(settings.setSettings({ newtabLayout: 'billboard' }).newtabLayout, 'billboard');
@@ -253,7 +255,9 @@ test('each start page has a separate Mahjong link and no iframe', () => {
   const preload = fs.readFileSync(path.join(__dirname, '../../src/main/tab-preload.js'), 'utf8');
   const pages = fs.readFileSync(path.join(__dirname, '../../src/main/pages.js'), 'utf8');
   const main = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
-  assert.equal((html.match(/data-layout-pick=/g) || []).length, 4);
+  assert.equal((html.match(/data-layout-pick=/g) || []).length, 0, 'no layout picker (V24)');
+  assert.equal((html.match(/data-widget-pick=/g) || []).length, 2, 'Customize offers the two widget switches');
+  assert.match(html, /id="mahjongLink" href="blanc:\/\/mahjong\/" target="_blank" data-i18n="start\.mahjong\.play">Play Blanc Mahjong</);
   assert.match(html, /id="mahjongLink" href="blanc:\/\/mahjong\/" target="_blank"/);
   assert.match(script, /'blanc:\/\/mahjong\/\?private=1'/);
   assert.match(script, /start\.openMahjong\(event\.metaKey \|\| event\.ctrlKey\)/);
