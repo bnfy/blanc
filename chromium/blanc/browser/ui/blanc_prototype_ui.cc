@@ -4964,6 +4964,13 @@ class NewTabHandler : public content::WebUIMessageHandler,
         if (copies.size() == layers->size()) {
           spec = base::DictValue().Set("zoom", *zoom).Set("width", *width)
               .Set("height", *height).Set("layers", std::move(copies));
+          // The launch Sunrise plays its sky over the page; the band plays
+          // the same sky from when the page started it. Only a recent whole
+          // millisecond start counts; anything else is dropped, never
+          // refusing the wallpaper.
+          const double now = base::Time::Now().InMillisecondsFSinceUnixEpoch();
+          const auto sunrise_at = number(in.Find("sunriseAt"), now - 10000, now + 1000);
+          if (sunrise_at && *sunrise_at == std::floor(*sunrise_at)) spec->Set("sunriseAt", *sunrise_at);
         }
       }
       int band = 0, rail = 0;
