@@ -45,8 +45,8 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 /* ---------- Product bar (MailBar.astro) ----------
    Sticky under the site header: smoked black glass with a gold hairline along
    its foot, the same materials as the Overview's stage, so the gold reads as
-   the one accent on every Mail page. /mail is one page, so the bar holds only
-   the product's name and Join, the gold pill. */
+   the one accent on every Mail page. /mail is one page, so the bar holds the
+   product's name, links to its notable sections, and Join, the gold pill. */
 .mail-bar{position:sticky;top:var(--mail-header-h);z-index:29;background:rgba(9,7,4,.95);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%)}
 .mail-bar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,#d9b46b00,#d9b46ba6 22%,#f3dda4 50%,#d9b46ba6 78%,#d9b46b00);box-shadow:0 0 14px #e0c08466;pointer-events:none}
 .mail-bar-inner{display:flex;align-items:center;gap:16px;max-width:1120px;height:var(--mail-bar-h);margin:0 auto;padding:0 24px}
@@ -65,6 +65,24 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
   .mail-bar-join:hover{filter:brightness(1.07)}
 }
 .mail-bar :is(a,button):focus-visible{outline:2px solid var(--mail-band-gold);outline-offset:1px}
+/* Section links: quiet text, the section in view lifted to full ink on a faint
+   pill. At 960px and narrower they move into the ≡ menu (MailBar.astro), a
+   popover in the waitlist's smoked glass, so none is ever cut off. */
+.mail-bar-links{display:flex;align-items:center;gap:2px;min-width:0;margin:0 0 0 14px;padding:0;list-style:none}
+.mail-bar-links a,.mail-bar-menu-links a{display:block;border-radius:999px;color:var(--mail-band-muted);font-size:13.5px;font-weight:500;letter-spacing:.01em;white-space:nowrap;text-decoration:none;transition:color 160ms ease,background-color 160ms ease}
+.mail-bar-links a{padding:6px 11px}
+.mail-bar-links a[aria-current],.mail-bar-menu-links a[aria-current]{background:#f2ead814;color:var(--mail-band-text)}
+@media(hover:hover){.mail-bar-links a:hover,.mail-bar-menu-links a:hover{background:#f2ead80f;color:var(--mail-band-text)}}
+.mail-bar-sections{display:none;flex:none;align-items:center;justify-content:center;width:36px;height:36px;margin-left:auto;padding:0;border:0;border-radius:999px;background:transparent;color:var(--mail-band-text);cursor:pointer;transition:background-color 160ms ease,transform 100ms ease-out}
+.mail-bar-sections svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round}
+.mail-bar-sections:active{transform:scale(.94)}
+@media(hover:hover){.mail-bar-sections:hover{background:#f2ead80f}}
+.mail-bar:has(#mail-bar-menu:popover-open) .mail-bar-sections{background:#f2ead814}
+.mail-bar-menu-links{display:grid;gap:2px;min-width:200px;margin:0;padding:8px;list-style:none}
+.mail-bar-menu-links a{padding:11px 14px;border-radius:12px;color:var(--mail-band-text);font-size:16px}
+.mail-bar-menu-links a:focus-visible{outline:2px solid var(--mail-band-gold);outline-offset:-2px}
+@media(max-width:960px){.mail-bar-links{display:none}.mail-bar-sections{display:flex}.mail-bar-join{margin-left:0}}
+@media(prefers-reduced-motion:reduce){.mail-bar-links a,.mail-bar-menu-links a,.mail-bar-sections{transition:none}}
 
 /* The waitlist popover grows out of its button and leave along the same path, in the
    bar's smoked glass. */

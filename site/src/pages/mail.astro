@@ -131,9 +131,9 @@ const support = [
          the window in CSS, so it works without scripting (dark is checked in
          the markup, as the stage is dark); the script below only preselects
          light for a visitor whose system is light. -->
-    <section class="mail-look mail-teaser-set" aria-labelledby="mail-look-title">
+    <section id="design" class="mail-look mail-teaser-set" aria-labelledby="mail-look-title">
       <h2 id="mail-look-title"><span class="mail-gold-text">A new look for your inbox.</span></h2>
-      <p class="mail-section-lead">Blanc Mail’s new design, in dark mode and light mode: one Island at the top, your mailboxes a click away, and your list and message side by side. It’s a design preview with made-up mail, and details may change.</p>
+      <p class="mail-section-lead">Blanc Mail’s design, in dark mode and light mode: one Island at the top, your mailboxes a click away, and your list and message side by side. It’s a design preview with made-up mail, and details may change.</p>
       <fieldset class="mail-segments" data-mail-look>
         <legend class="sr-only">Appearance</legend>
         {looks.map((look, index) => (
@@ -151,7 +151,7 @@ const support = [
          2026), so it follows the first look, high on the page. The copy names
          no date and the owner's offer line opens the lead word for word. The
          steps switch in CSS like the looks above; the first is checked. -->
-    <section class="mail-address mail-teaser-set" aria-labelledby="mail-address-title">
+    <section id="address" class="mail-address mail-teaser-set" aria-labelledby="mail-address-title">
       <h2 id="mail-address-title"><span class="mail-gold-text">A Blanc Mail address of your own.</span></h2>
       <p class="mail-section-lead">A private mailbox of your own, with an address like <!--email_off-->mira@blnc.day<!--/email_off-->, set up from inside Blanc Mail. Add it to Blanc Mail for {ADDRESS_ADD_ON} a year, or get it with Blanc Bundle, when Blanc Mail launches. What’s shown is a design preview and may change.</p>
       <fieldset class="mail-segments mail-segments-three">
@@ -182,7 +182,7 @@ const support = [
          app draws it after typing "/" with a conversation selected: its
          layout, strings and order come from MailIslandPanel.swift. Recorded in
          docs/website-mail-claims-2026-10-12.md (Island). -->
-    <section class="mail-island" aria-labelledby="mail-island-title">
+    <section id="island" class="mail-island" aria-labelledby="mail-island-title">
       <h2 id="mail-island-title"><span class="mail-gold-text">The Island, made for mail.</span></h2>
       <p class="mail-island-lead">Blanc Browser’s floating Island, rebuilt for email. One capsule floats over your inbox in place of a toolbar, and ⌘L or ⌘F opens it in place to search, jump and act.</p>
       <figure class="mail-island-figure">
@@ -214,7 +214,7 @@ const support = [
       </ul>
     </section>
 
-    <section class="mail-features" aria-labelledby="mail-features-title">
+    <section id="features" class="mail-features" aria-labelledby="mail-features-title">
       <h2 id="mail-features-title"><span class="mail-gold-text">Every account, one calm inbox.</span></h2>
       <ul class="mail-feature-grid">
         {features.map(feature => (

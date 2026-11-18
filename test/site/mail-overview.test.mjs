@@ -190,7 +190,7 @@ test('Support gives its address, then three topics; Download closes with the wai
 });
 
 test('a link to a section lands with its heading below the bars', async () => {
-  for (const id of ['pricing', 'support', 'download']) {
+  for (const id of ['design', 'address', 'island', 'features', 'pricing', 'support', 'download']) {
     // Load the page first, then follow the link within it. Loading /mail#id
     // directly jumps while images and fonts above the section are still
     // settling, and on a slow runner that jump stayed about 43px too far

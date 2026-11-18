@@ -2,9 +2,11 @@
 //
 // The Blanc Mail product bar on /mail and its Privacy and Terms
 // (docs/superpowers/specs/2026-10-12-mail-pages-redesign-design.md §3, §12):
-// the Blanc Mail lockup, which leads back to /mail, and a "Join the waitlist"
-// popover. /mail has been one page since October 22, 2026, so the bar lists
-// no pages; at 480px and narrower Join shortens on screen but keeps its name.
+// the Blanc Mail lockup, which leads back to /mail, links to the page's
+// notable sections (November 18, 2026; behind a ≡ menu at 960px and
+// narrower), and a "Join the waitlist" popover. /mail has been one page since
+// October 22, 2026, so the bar lists sections, not pages; at 480px and
+// narrower Join shortens on screen but keeps its name.
 // The bar sticks under the site header, which stays in view on every page.
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
@@ -36,7 +38,7 @@ const scrollDown = async page => {
   await page.waitForFunction(() => scrollY > 1000);
 };
 
-test('every Mail page names the product, leads back to /mail and lists no pages', async () => {
+test('every Mail page names the product, leads back to /mail and links to its sections', async () => {
   const { page, context } = await openPage('/mail');
   try {
     for (const path of pages) {
@@ -48,11 +50,13 @@ test('every Mail page names the product, leads back to /mail and lists no pages'
           // The name is the lockup's outlined word, so it is the image's alt.
           title: nav.querySelector('.mail-bar-title .mail-lockup-word').alt,
           href: nav.querySelector('.mail-bar-title').getAttribute('href'),
-          links: nav.querySelectorAll('a').length,
+          sections: [...nav.querySelectorAll('.mail-bar-links a')].map(a => a.getAttribute('href')),
+          labels: [...nav.querySelectorAll('.mail-bar-links a')].map(a => a.textContent.trim()),
+          menu: [...document.querySelectorAll('#mail-bar-menu a')].map(a => a.getAttribute('href')),
           popovers: [...document.querySelectorAll('.mail-bar [popover]')].map(pop => pop.id),
         };
       });
-      assert.deepEqual(bar, { name: 'Blanc Mail', title: 'Blanc Mail', href: '/mail', links: 1, popovers: ['mail-bar-waitlist'] }, path);
+      assert.deepEqual(bar, { name: 'Blanc Mail', title: 'Blanc Mail', href: '/mail', sections: ['/mail#design', '/mail#address', '/mail#island', '/mail#features', '/mail#pricing'], labels: ['Design', 'Blanc email address', 'Island', 'Features', 'Pricing'], menu: ['/mail#design', '/mail#address', '/mail#island', '/mail#features', '/mail#pricing'], popovers: ['mail-bar-menu', 'mail-bar-waitlist'] }, path);
     }
   } finally { await context.close(); }
 });
@@ -121,6 +125,66 @@ test('at 320px the bar fits whichever font draws it', async () => {
   }
 });
 
+test('wide screens show the section links in the bar; at 960px and narrower they are behind ≡', async () => {
+  for (const font of [null, 'Verdana, "DejaVu Sans", sans-serif']) {
+    for (const width of [1440, 961, 960, 390, 320]) {
+      const { page, context } = await openPage('/mail', width);
+      try {
+        if (font) await page.addStyleTag({ content: `.mail-bar { font-family: ${font} !important; }` });
+        const bar = await page.evaluate(() => {
+          const inner = document.querySelector('.mail-bar-inner');
+          const end = inner.getBoundingClientRect().right - parseFloat(getComputedStyle(inner).paddingRight);
+          const links = document.querySelector('.mail-bar-links');
+          return {
+            inline: getComputedStyle(links).display !== 'none',
+            menu: getComputedStyle(document.querySelector('.mail-bar-sections')).display !== 'none',
+            linksBeforeJoin: links.getBoundingClientRect().right <= document.querySelector('.mail-bar-join').getBoundingClientRect().left,
+            joinInside: document.querySelector('.mail-bar-join').getBoundingClientRect().right <= end + 0.5,
+            height: document.querySelector('.mail-bar').offsetHeight,
+          };
+        });
+        const state = `${width}px${font ? ' in a wide stand-in font' : ''}`;
+        assert.equal(bar.inline, width > 960, `${state}: links in the bar`);
+        assert.equal(bar.menu, width <= 960, `${state}: the ≡ menu`);
+        if (bar.inline) assert.ok(bar.linksBeforeJoin, `${state}: the links end before Join`);
+        assert.ok(bar.joinInside, `${state}: Join stays inside the bar`);
+        assert.equal(bar.height, 52, `${state}: the bar keeps one row`);
+      } finally { await context.close(); }
+    }
+  }
+});
+
+test('the ≡ menu lists the sections, and choosing one closes it and lands the heading under the bars', async () => {
+  const { page, context } = await openPage('/mail', 390);
+  try {
+    await page.locator('.mail-bar-sections').click();
+    await waitOpen(page, 'mail-bar-menu');
+    assert.equal(await page.evaluate(() => document.activeElement?.textContent.trim()), 'Design', 'focus moves to the first section');
+    assert.equal(await page.locator('.mail-bar-sections').getAttribute('aria-label'), 'Sections');
+    await page.locator('#mail-bar-menu a[href="/mail#pricing"]').click();
+    await waitOpen(page, 'mail-bar-menu', false);
+    await page.waitForFunction(() => {
+      const gap = document.getElementById('pricing').getBoundingClientRect().top - document.querySelector('.mail-bar').getBoundingClientRect().bottom;
+      return gap >= 0 && gap <= 60;
+    });
+  } finally { await context.close(); }
+});
+
+test('the link for the section in view is marked as the current location', async () => {
+  const { page, context } = await openPage('/mail');
+  try {
+    const current = () => page.evaluate(() => [...document.querySelectorAll('.mail-bar-links a[aria-current="location"]')].map(a => a.getAttribute('href')));
+    assert.deepEqual(await current(), [], 'none at the top of the page');
+    for (const id of ['design', 'address', 'island', 'features', 'pricing']) {
+      await page.evaluate(id => document.getElementById(id).scrollIntoView(), id);
+      await page.waitForFunction(id => document.querySelector(`.mail-bar-links a[href="/mail#${id}"]`).getAttribute('aria-current') === 'location', id);
+      assert.deepEqual(await current(), [`/mail#${id}`], id);
+    }
+    await page.evaluate(() => document.getElementById('support').scrollIntoView());
+    await page.waitForFunction(() => !document.querySelector('.mail-bar-links a[aria-current]'));
+  } finally { await context.close(); }
+});
+
 test('the bar stays directly under the site header while the page scrolls', async () => {
   const { page, context } = await openPage('/mail/privacy', 1440, { reducedMotion: 'no-preference' });
   try {
@@ -185,7 +249,7 @@ test('Join pressed after scrolling still opens under the button', async () => {
 });
 
 test('focusing a bar control from the keyboard leaves the page where it is', async () => {
-  for (const [width, control] of [[1440, '.mail-bar-join'], [390, '.mail-bar-join']]) {
+  for (const [width, control] of [[1440, '.mail-bar-join'], [1440, '.mail-bar-links a >> nth=0'], [390, '.mail-bar-join'], [390, '.mail-bar-sections']]) {
     const { page, context } = await openPage('/mail/privacy', width, { reducedMotion: 'no-preference' });
     try {
       await scrollDown(page);
