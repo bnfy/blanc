@@ -74,4 +74,30 @@ function backdropPayload(tabId, spec, band) {
   return { id: tabId, zoom, width, height, layers, band };
 }
 
-module.exports = { MAX_LAYERS, normalizeBackdrop, backdropBand, backdropPayload };
+// The strip runs in Blanc's chrome session, which has no blanc:// handler on
+// purpose (chrome-protocol.js). It reads the band's images from its own
+// scheme: the Start Page's bundled art and the current photo, nothing else.
+const START_ART = Object.freeze(['start-page-sunrise.png', 'start-page-day.png', 'start-page-dusk.png', 'start-page-night.png']);
+const CHROME_ART = 'blanc-chrome://index/start-art/';
+
+/** The spec with its images at the strip's own addresses, or null when an
+ * image has none (a page file that isn't art, a photo without its hash). */
+function stripImages(spec, { wallpaperUrl = null, wallpaperHash = null } = {}) {
+  if (!spec) return null;
+  const photo = typeof wallpaperHash === 'string' && /^[0-9a-f]{1,64}$/.test(wallpaperHash)
+    ? `${CHROME_ART}wallpaper-${wallpaperHash}.jpg` : null;
+  let refused = false;
+  const layers = spec.layers.map((layer) => ({
+    ...layer,
+    image: layer.image.replace(/url\("([^"]*)"\)/g, (whole, href) => {
+      if (href === wallpaperUrl && photo) return `url("${photo}")`;
+      const name = href.startsWith('blanc://newtab/') ? href.slice('blanc://newtab/'.length) : null;
+      if (name && START_ART.includes(name)) return `url("${CHROME_ART}${name}")`;
+      refused = true;
+      return whole;
+    }),
+  }));
+  return refused ? null : { ...spec, layers };
+}
+
+module.exports = { MAX_LAYERS, START_ART, normalizeBackdrop, backdropBand, backdropPayload, stripImages };

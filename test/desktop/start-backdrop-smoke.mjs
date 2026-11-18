@@ -43,10 +43,21 @@ const seam = (app) => app.evaluate(async ({ BrowserWindow, webContents }) => {
 });
 const strip = async (app) => {
   const chrome = (await app.windows()).find((p) => p.url().startsWith('blanc-chrome://') && !p.url().includes('float'));
-  return chrome.evaluate(() => {
+  return chrome.evaluate(async () => {
     const backdrop = document.getElementById('bandBackdrop');
     const r = backdrop.getBoundingClientRect();
-    return { shown: !backdrop.hidden, left: r.left, transparent: getComputedStyle(document.getElementById('strip')).backgroundColor };
+    // Every image the band draws loads in this document (the strip runs in
+    // the chrome session, which has no blanc:// handler).
+    const urls = [...backdrop.querySelectorAll('.band-backdrop-box > div')]
+      .flatMap((layer) => [...getComputedStyle(layer).backgroundImage.matchAll(/url\("([^"]+)"\)/g)].map((m) => m[1]));
+    const loads = await Promise.all(urls.map((url) => new Promise((resolve) => {
+      const image = new Image();
+      image.onload = () => resolve(image.naturalWidth > 0);
+      image.onerror = () => resolve(false);
+      image.src = url;
+    })));
+    return { shown: !backdrop.hidden, left: r.left, urls, loaded: urls.length > 0 && loads.every(Boolean),
+      transparent: getComputedStyle(document.getElementById('strip')).backgroundColor };
   });
 };
 
@@ -64,7 +75,7 @@ try {
 
   // Sunrise: the band continues the page.
   await page.waitForFunction(() => document.documentElement.hasAttribute('data-island-band'));
-  await waitForValue(() => strip(app), (s) => s.shown, 'the band backdrop on Sunrise');
+  await waitForValue(() => strip(app), (s) => s.shown && s.loaded, 'the band backdrop on Sunrise, its art loaded');
   const sunrise = await waitForValue(() => seam(app), (s) => s.mean < 6, 'no seam on Sunrise');
   console.log('sunrise seam', sunrise.mean.toFixed(2));
 
@@ -84,6 +95,8 @@ try {
   await callTestHook(app, 'chooseWallpaperFile', [photo]);
   await page.evaluate(() => window.bowserPages.start.chooseWallpaper());
   await page.waitForFunction(() => document.body.dataset.wallpaperPhase === 'custom');
+  await waitForValue(() => strip(app), (s) => s.shown && s.loaded && s.urls.some((url) => /\/start-art\/wallpaper-[0-9a-f]{16}\.jpg$/.test(url)),
+    'the band backdrop over the photo, the photo loaded');
   const overPhoto = await waitForValue(() => seam(app), (s) => s.mean < 6, 'no seam over the photo');
   console.log('photo seam', overPhoto.mean.toFixed(2));
 

@@ -166,7 +166,7 @@
     },
     {
       "file": "src/main/chrome-protocol.js",
-      "sha256": "9aeba19661990918a41570653752f2ddb3d6eaf13a555bb54ed12c32ae1dd277",
+      "sha256": "a91da5f48e4c15721fddf93ea81cb8799508b2e1d216accc20dcd9167e03c563",
       "literalChannels": [
         "blanc-chrome"
       ],
@@ -271,7 +271,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "51d5c844c1836ff0d3d8ef383d014fca319e579bab161e385331c482f0f84f22",
+      "sha256": "32d2e236f58764fbc31336720cf59280d11158ce379ab1612e8dfad67ab61ff2",
       "literalChannels": [
         "activate",
         "bang-icons:changed",

@@ -75,3 +75,22 @@ test('the strip gets the spec and the band, or null', () => {
   assert.equal(backdropPayload('t1', sunrise, 0), null);
   assert.equal(backdropPayload('t1', null, 68), null);
 });
+
+// The strip runs in Blanc's chrome session, which has no blanc:// handler on
+// purpose; it reads the band's images from its own scheme instead.
+const { stripImages, START_ART } = require('../../src/main/start-backdrop');
+test('the strip reads the art and the photo from its own scheme', () => {
+  const hash = '0123456789abcdef';
+  const out = stripImages(photo, { wallpaperUrl: PHOTO, wallpaperHash: hash });
+  assert.match(out.layers[1].image, /url\("blanc-chrome:\/\/index\/start-art\/wallpaper-0123456789abcdef\.jpg"\)$/);
+  assert.doesNotMatch(JSON.stringify(out), /blanc:\/\/newtab/);
+  const art = stripImages(sunrise, { wallpaperUrl: null, wallpaperHash: null });
+  assert.equal(art.layers[1].image, 'url("blanc-chrome://index/start-art/start-page-day.png")');
+  assert.deepEqual(START_ART, ['start-page-sunrise.png', 'start-page-day.png', 'start-page-dusk.png', 'start-page-night.png']);
+});
+test('any other page file, or a photo without its hash, is refused', () => {
+  const withImage = (image) => ({ ...sunrise, layers: [{ ...sunrise.layers[1], image }] });
+  assert.equal(stripImages(withImage('url("blanc://newtab/newtab.js")'), { wallpaperUrl: PHOTO, wallpaperHash: 'ab' }), null);
+  assert.equal(stripImages(photo, { wallpaperUrl: PHOTO, wallpaperHash: null }), null);
+  assert.equal(stripImages(null, {}), null);
+});

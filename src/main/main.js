@@ -226,7 +226,7 @@ const wallpaper = require('./wallpaper');
 const { effectiveSource } = require('./wallpaper-model');
 const { colorWallpaper } = require('./start-page-paint');
 const { pageWidgets } = require('./start-widgets');
-const { normalizeBackdrop, backdropBand, backdropPayload } = require('./start-backdrop');
+const { normalizeBackdrop, backdropBand, backdropPayload, stripImages } = require('./start-backdrop');
 const { clockStyleFromSettings } = require('./start-clock-style');
 const SpaceIdentity = require('../renderer/space-identity');
 // Bangs: the pure grammar and the generated catalog the Island shares with
@@ -7944,8 +7944,12 @@ function reportStartBackdrop(wc, raw) {
   // A private Start Page keeps its private theme color in the band.
   // The page's zoom is main's to know; the strip lays the layers out at it.
   const zoom = Math.min(5, Math.max(0.25, liveContents(tab)?.getZoomFactor?.() || 1));
-  const spec = tab.private ? null
-    : normalizeBackdrop({ ...(raw && typeof raw === 'object' ? raw : {}), zoom }, { wallpaperUrl: wallpaper.imageUrl() });
+  const wallpaperUrl = wallpaper.imageUrl();
+  // The strip reads the images from its own scheme (chrome-protocol.js).
+  const spec = tab.private ? null : stripImages(
+    normalizeBackdrop({ ...(raw && typeof raw === 'object' ? raw : {}), zoom }, { wallpaperUrl }),
+    { wallpaperUrl, wallpaperHash: wallpaper.current()?.hash ?? null },
+  );
   if (spec) startBackdrops.set(tab.id, { spec, key: JSON.stringify(spec) });
   else startBackdrops.delete(tab.id);
   syncStartBackdrop(runtime);
@@ -15206,7 +15210,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const developmentBrandMarkPath = developmentPreviewPath('BLANC_DEV_BRAND_MARK_PREVIEW');
   const developmentDockIconPath = developmentPreviewPath('BLANC_DEV_DOCK_ICON_PREVIEW');
   const developmentDarkDockIconPath = developmentPreviewPath('BLANC_DEV_DOCK_ICON_DARK_PREVIEW');
-  setupChromeProtocol({ session: chromeSes, net, developmentBrandMarkPath, stringsScript: () => mainI18n.stringsScript() });
+  setupChromeProtocol({
+    session: chromeSes, net, developmentBrandMarkPath, stringsScript: () => mainI18n.stringsScript(),
+    // The band behind the Island draws the Start Page's photo (start-backdrop.js).
+    wallpaper: { hash: () => wallpaper.current()?.hash ?? null, serve: () => wallpaper.serve() },
+  });
   // Acceptance runs are isolated, unpackaged fixtures. Complete first-run
   // locally so existing suggestion/navigation scenarios exercise their
   // intended feature instead of the onboarding card; telemetry is disabled.
