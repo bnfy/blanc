@@ -67,4 +67,6 @@ test('the Start Page loads the ink sampler, which reads only its four kinds of s
   assert.match(ink, /const TARGETS = '\.start-brand-date, #bbBlocked, \.bb-fav \.label, \.bb-groups \.group-chip';/);
   assert.match(ink, /if \(!document\.body\.dataset\.wallpaperStyle \|\| !url\) \{ for \(const el of targets\) delete el\.dataset\.ink; return; \}/);
   assert.match(ink, /window\.blancStartInk = \{update, explain\};/);
+  // The whole file parses (an earlier copy lost its closing line).
+  assert.doesNotThrow(() => new Function(ink));
 });
