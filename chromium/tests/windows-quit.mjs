@@ -56,9 +56,12 @@ async function runCase(name,setup){
  await fixture.launch(config,path.join(scratch,name),{testHooks:true,diskAssets:false});
  await installDriver(fixture.host);
  await setup(fixture);
- // The ordinary window: the host's own target's window.
- const hostTarget=(await fixture.targets()).find(t=>t.url.startsWith('chrome://blanc-prototype/host.html'));
- const {bounds}=await fixture.browser.send('Browser.getWindowForTarget',{targetId:hostTarget.id});
+ // The ordinary window, found through a marked page opened in it last (the
+ // Island's host page is not a window of its own to CDP).
+ const marker=fixture.base+'/initial?quit-check';
+ await nativeCall(fixture.host,'createTab',[marker]);
+ const markerTarget=await waitFor(async()=>(await fixture.targets()).find(t=>t.type==='page'&&t.url===marker),Boolean,'the marked page');
+ const {bounds}=await fixture.browser.send('Browser.getWindowForTarget',{targetId:markerTarget.id});
  const i=await nativeCall(fixture.host,'windowFrameInsets');
  realInput(clickSteps(bounds.left+bounds.width-i.right-CLOSE_FROM_RIGHT,bounds.top+i.top+14));
  const pressed=Date.now();
