@@ -10,6 +10,8 @@ export const NEWTAB=/^chrome:\/\/(newtab\/|new-tab-page\/|blanc-prototype\/pages
 // Fork utility pages shown as tabs: Chromium's managers and Settings, when
 // opened other than through the Island, whose sheet shows them otherwise.
 export const UTILITY=/^chrome:\/\/(bookmarks|history|downloads|settings)\//;
+// Favorites is a page in a tab of its own (F63, #1614; owner 2026-11-18).
+export const FAVORITES=/^chrome:\/\/blanc-prototype\/pages\/bookmarks\.html$/;
 // Shipping internal URLs as page-initiated navigations would name the fork's
 // equivalents (the inverse of shippingPageUrl), so attacks reach real pages.
 export function forkInternalUrl(url){
@@ -73,8 +75,24 @@ async function historyItems(w){
 // The utility sheet is a frame of the Island host (host.js showSheet); its
 // document answers shipping's sheet reads.
 const sheetState=w=>w.hostEval('window.BlancPrototypeHost.sheetState()');
-const onSheet=(w,expression)=>w.hostEval(`(()=>{const document=window.document.getElementById('sheet')?.contentDocument;
- if(!document||document.location.href==='about:blank')return null;const location=document.location;return (${expression});})()`);
+// The active tab's Favorites page document, or null.
+async function favoritesPage(w){
+ const tab=await activeTab(w);if(!tab||!FAVORITES.test(tab.committedUrl||''))return null;
+ return tabPage(w,tab.id);
+}
+// Shipping's reads of a utility page: the sheet's document when the sheet
+// shows one, else the Favorites tab's when it is the active tab.
+const onSheet=async(w,expression)=>{
+ const shown=await w.hostEval(`(async()=>{const document=window.document.getElementById('sheet')?.contentDocument;
+ if(!document||document.location.href==='about:blank')return {shown:false};const location=document.location;return {shown:true,value:await (${expression})};})()`);
+ if(shown?.shown)return shown.value;
+ return onFavorites(w,expression);
+};
+// The Favorites tab's document only (shipping's favoritesPageWebContents).
+const onFavorites=async(w,expression)=>{
+ const page=await favoritesPage(w);if(!page)return null;
+ return page.evalExpression(`(async()=>{const location=document.location;return await (${expression});})()`);
+};
 const noState=(hook,what)=>()=>{throw new UndefinedNativeAdapterError(`${hook}: the fork stores no ${what}`);};
 const toggleIn=(list,cls,attr)=>key=>`(()=>{const item=[...document.querySelectorAll(${jsLiteral(list)})].find(c=>${attr}===${jsLiteral(String(key))});
  const button=item?.querySelector(${jsLiteral(cls)});if(!button)return false;button.focus();button.click();return true;})()`;
@@ -359,13 +377,21 @@ export const pages={
   try{if(!(await page.evalExpression(reset)))return null;const light=await capture('light',true);const dark=await capture('dark',false);return {light,dark};}
   finally{await page.cdp.send('Emulation.setEmulatedMedia',{features:[]});await page.cdp.send('Emulation.setFocusEmulationEnabled',{enabled:false});}
  },
- // The Favorites sheet's import controls (F30).
- readBrowserImportDom:w=>onSheet(w,`({options:[...document.querySelectorAll('#browserSource option')].map(o=>({value:o.value,label:o.textContent})),
-  buttonHidden:document.getElementById('browserImportBtn')?.hidden??true,findHidden:document.getElementById('browserFindBtn')?.hidden??true,status:document.getElementById('importStatus')?.textContent??''})`),
- clickBrowserFind:w=>onSheet(w,`(()=>{const button=document.getElementById('browserFindBtn');if(!button||button.hidden)return false;button.click();return true;})()`),
- selectBrowserSource:(w,label)=>onSheet(w,`((label)=>{const select=document.getElementById('browserSource');const option=[...(select?.options??[])].find(o=>o.textContent===label&&!o.disabled);
-  if(!option)return false;select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));return true;})(${jsLiteral(String(label))})`),
- clickBrowserImport:w=>onSheet(w,`(()=>{const button=document.getElementById('browserImportBtn');if(!button||button.hidden)return false;button.click();return true;})()`),
+ // The Favorites page's import controls (F30): #1614's one "Bring my stuff
+ // to Blanc" dialog, read and driven as shipping's test hook does.
+ readBrowserImportDom:w=>onFavorites(w,`(()=>{const dialog=document.getElementById('importDialog');
+  const options=[...document.querySelectorAll('#browserSource option')];
+  const profiles=options.filter(o=>!o.disabled&&o.value&&o.value!=='file');const go=document.getElementById('browserImportBtn');
+  return {dialogOpen:dialog?.open??false,options:options.map(o=>({value:o.value,label:o.textContent})),
+   buttonHidden:!(dialog?.open&&profiles.length&&go&&!go.disabled),
+   findHidden:document.getElementById('importMenuBtn')?.closest('[hidden]')!==null,
+   status:document.getElementById('importStatus')?.textContent||document.getElementById('importDialogNote')?.textContent||''};})()`),
+ clickBrowserFind:async w=>(await onFavorites(w,`(()=>{const button=document.getElementById('importMenuBtn');
+  if(!button||button.closest('[hidden]')||button.disabled)return false;if(!document.getElementById('importDialog')?.open)button.click();return true;})()`))===true,
+ selectBrowserSource:async(w,label)=>(await onFavorites(w,`((label)=>{const select=document.getElementById('browserSource');const option=[...(select?.options??[])].find(o=>o.textContent===label&&!o.disabled);
+  if(!option)return false;select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));return true;})(${jsLiteral(String(label))})`))===true,
+ clickBrowserImport:async w=>(await onFavorites(w,`(()=>{const button=document.getElementById('browserImportBtn');
+  if(!button||button.disabled||!document.getElementById('importDialog')?.open)return false;button.click();return true;})()`))===true,
  migrationChecklistSettings:w=>w.native('checklistProgress',[]),
  async setMigrationChecklistProgress(w,...args){await w.native('checklistProgress',args);return true;},
  // Shipping's reset; the fork keeps only the default-browser task's state.
@@ -377,7 +403,9 @@ export const pages={
  patronCalloutDismissedAt:w=>w.native('patronCalloutDismissedAt',[]),
  setLaunchSunrise:(w,enabled)=>w.native('setLaunchSunrise',[Boolean(enabled)]),
  // ---- utility pages: the facade's openPage is the production command ----
+ // Favorites opens or switches to its own tab (F63, #1614).
  openFavoritesSheet:w=>w.api('openPage',['bookmarks']),
+ favoritesPageReady:async w=>{const tab=await activeTab(w);return !!tab&&FAVORITES.test(tab.committedUrl||'')&&!tab.isLoading;},
  openHistorySheet:w=>w.api('openPage',['history']),
  openDownloads:w=>w.api('openPage',['downloads']),
  // Where a utility page shows: the sheet when it is open, else the active
@@ -396,17 +424,20 @@ export const pages={
   const sheet=await sheetState(w);
   if(sheet.visible)return {visible:true,ready:sheet.ready,url:sheet.url,kind:'sheet'};
   const tab=await activeTab(w);const url=tab?.committedUrl||tab?.url||'';
+  if(FAVORITES.test(url))return {visible:true,ready:!tab.isLoading,url:'blanc://bookmarks/',kind:'tab'};
   if(!UTILITY.test(url))return {visible:false,ready:false,url:null,kind:null};
   const {shippingPageUrl}=await import('../lib/page-shim.mjs');
   return {visible:true,ready:!tab.isLoading,url:shippingPageUrl(url),kind:'tab'};
  },
  async closeUtilitySurface(w){await w.hostEval('window.BlancPrototypeHost.closeSheet()');return true;},
  // Shipping's test-hook reads of the sheet's document, over the same DOM.
- utilitySheetRowIcons:w=>onSheet(w,`[...document.querySelectorAll('.row')].map(row=>{const icon=row.querySelector('.row-icon');
+ utilitySheetRowIcons:w=>onSheet(w,`[...document.querySelectorAll('.row, .fav-row[data-url]')].map(row=>{const icon=row.querySelector('.row-icon');
   return {image:!!icon?.querySelector('img'),letter:icon?.classList.contains('fallback')?icon.textContent:''};})`),
  historyDayHeadings:w=>onSheet(w,`[...document.querySelectorAll('.day-heading')].map(h=>h.textContent)`),
  async clickFirstSheetLink(w){
-  const clicked=await onSheet(w,`(()=>{const a=document.querySelector('a[href^="https"], a[href^="http"]');if(a)a.click();return !!a;})()`);
+  // The Favorites page draws its rows after it loads; wait for a link.
+  const clicked=await onSheet(w,`(async()=>{for(let i=0;i<50;i+=1){const a=document.querySelector('a[href^="https"], a[href^="http"]');
+   if(a){a.click();return true;}await new Promise(r=>setTimeout(r,100));}return false;})()`);
   if(clicked===null)throw Error('sheet not open');
   if(!clicked)throw Error('no outbound link rendered in sheet');
  },
@@ -415,13 +446,16 @@ export const pages={
  utilitySheetPalette:w=>onSheet(w,`({text:getComputedStyle(document.body).color,
   card:getComputedStyle(document.querySelector('.page')).backgroundColor,
   currentNav:getComputedStyle(document.querySelector('.page-nav a.current')).color})`),
- readFavoritesSheetPins:w=>onSheet(w,`location.pathname!=='/pages/bookmarks.html'?null:[...document.querySelectorAll('#list .row[data-url]')].map(row=>({
+ // The Favorites page's pins (#1614): the manager's rows, and a pin changed
+ // from a row's ⋮ menu as a person does.
+ readFavoritesSheetPins:w=>onFavorites(w,`[...document.querySelectorAll('#list .row[data-url], #manager .fav-row[data-url]')].map(row=>({
   url:row.dataset.url,title:row.querySelector('.title')?.textContent??'',pinned:row.classList.contains('start-pinned'),
-  mark:row.querySelector('.row-pin-mark')?.getAttribute('aria-label')??null,button:row.querySelector('.pin-toggle')?.textContent??null,
-  buttonLabel:row.querySelector('.pin-toggle')?.getAttribute('aria-label')??null,focused:document.activeElement===row.querySelector('.pin-toggle')}))`),
- toggleFavoritesSheetPin:async(w,title)=>(await onSheet(w,`(()=>{const row=[...document.querySelectorAll('#list .row[data-url]')]
-  .find(c=>c.querySelector('.title')?.textContent===${jsLiteral(String(title))});const button=row?.querySelector('.pin-toggle');
-  if(!button||button.disabled)return false;button.focus();button.click();return true;})()`))===true,
+  mark:row.querySelector('.row-pin-mark')?.getAttribute('aria-label')??null,focused:document.activeElement===row}))`),
+ toggleFavoritesSheetPin:async(w,title)=>(await onFavorites(w,`(async()=>{const row=[...document.querySelectorAll('#manager .fav-row[data-url]')]
+  .find(c=>c.querySelector('.title')?.textContent===${jsLiteral(String(title))});row?.querySelector('.fav-more')?.click();
+  await new Promise(r=>setTimeout(r,50));const labels=[blancI18n.t('favorites.manager.pin'),blancI18n.t('favorites.manager.unpin')];
+  const item=[...document.querySelectorAll('.fav-menu-item')].find(b=>labels.includes(b.textContent));if(!item||item.disabled)return false;
+  item.click();return true;})()`))===true,
  // The Ledger's Favorites heading link, clicked as a person would.
  async followNewtabFavoritesLink(w){
   const page=await startPage(w);if(!page)throw Error('newtab ledger is not the active tab');

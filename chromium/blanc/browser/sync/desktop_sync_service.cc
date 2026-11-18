@@ -86,10 +86,11 @@ std::optional<sync_merge::Favorite> Favorite(const base::Value* value) {
   const auto* title = value->GetDict().FindString("title");
   const auto* folder = value->GetDict().FindString("folder");
   if (!title) return std::nullopt;
+  // A folder is a path (F63); two spellings of one path are one folder.
   std::string folder_key;
   if (folder && !folder->empty()) {
-    const auto name = favorites::ValidFolderName(*folder);
-    const auto key = name ? favorites::FavoriteFolderKey(*name) : std::nullopt;
+    const auto path = favorites::StoredFolderPath(*folder);
+    const auto key = path ? favorites::FavoriteFolderKey(favorites::JoinPath(*path)) : std::nullopt;
     if (key) folder_key = base::UTF16ToUTF8(*key);
     else folder_key = *folder;
   }
@@ -106,7 +107,7 @@ bool ValidStoredFavorite(const base::Value& value) {
   if (!value.is_dict() || !value.GetDict().FindString("title")) return false;
   const auto* folder = value.GetDict().Find("folder");
   return folder && (folder->is_none() || (folder->is_string() &&
-      favorites::ValidFolderName(folder->GetString()).has_value()));
+      favorites::StoredFolderPath(folder->GetString()).has_value()));
 }
 bool ValidStoredUrl(const std::string& url) {
   const GURL address(url);
@@ -231,12 +232,15 @@ bool RunnerFileMatches(const base::FilePath& path, const base::DictValue& expect
     if (!Equal(actual->Find(key), &value)) return false;
   return true;
 }
-void Collect(const bookmarks::BookmarkNode* parent, base::DictValue& rows) {
+// Every web favorite under `parent`, its `folder` the whole path below Other
+// bookmarks (F63). One whose path can't be stored is listed and blocked.
+void Collect(const bookmarks::BookmarkNode* parent, base::DictValue& rows, std::set<std::string>* blocked) {
   for (const auto& child : parent->children()) {
-    if (child->is_folder()) Collect(child.get(), rows);
+    if (child->is_folder()) Collect(child.get(), rows, blocked);
     else if (child->url().SchemeIsHTTPOrHTTPS()) {
-      const std::string folder = parent->is_permanent_node() ? "" : base::UTF16ToUTF8(parent->GetTitle());
-      rows.Set(child->url().spec(), Record(base::UTF16ToUTF8(child->GetTitle()), folder));
+      const auto folder = favorites::FavoriteFolderPath(child.get());
+      rows.Set(child->url().spec(), Record(base::UTF16ToUTF8(child->GetTitle()), folder.value_or("")));
+      if (!folder) blocked->insert(child->url().spec());
     }
   }
 }
@@ -536,12 +540,12 @@ void DesktopSyncService::Status(bool ok, const std::string& json) {
 base::DictValue DesktopSyncService::LocalFavorites(std::set<std::string>* blocked) const {
   base::DictValue rows;
   if (!bookmarks_ || !bookmarks_->loaded()) return rows;
-  Collect(bookmarks_->other_node(), rows);
+  Collect(bookmarks_->other_node(), rows, blocked);
   for (auto [url, value] : rows) {
     const auto nodes = bookmarks_->GetNodesByURL(GURL(url));
     const auto* folder = value.GetDict().FindString("folder");
     if (nodes.size() != 1 || bookmarks_->client()->IsNodeManaged(nodes.front().get()) ||
-        (folder && !favorites::ValidFolderName(*folder))) blocked->insert(url);
+        (folder && !favorites::StoredFolderPath(*folder))) blocked->insert(url);
   }
   return rows;
 }
@@ -567,9 +571,9 @@ bool DesktopSyncService::ApplyFavorite(const std::string& url, const base::Value
   const bookmarks::BookmarkNode* parent = bookmarks_->other_node();
   const auto* folder = desired.GetDict().FindString("folder");
   if (folder && !folder->empty()) {
-    const auto name = favorites::ValidFolderName(*folder);
-    if (!name) return false;
-    parent = favorites::FindOrCreateFolder(bookmarks_, *name, parent);
+    const auto path = favorites::StoredFolderPath(*folder);
+    if (!path) return false;
+    parent = favorites::FindOrCreateFolderPath(bookmarks_, parent, *path);
   }
   if (!parent) return false;
   const auto title = base::UTF8ToUTF16(entry->title);
@@ -599,7 +603,7 @@ void DesktopSyncService::PlanFavorites(bool ok, const std::string& json) {
     if (theirs.contains(key)) blocked.insert(key);  // two runner URLs canonicalize alike
     const auto* title = item.GetDict().FindString("title");
     const auto* folder = item.GetDict().FindString("folder");
-    if (folder && !folder->empty() && !favorites::ValidFolderName(*folder)) { blocked.insert(key); continue; }
+    if (folder && !folder->empty() && !favorites::StoredFolderPath(*folder)) { blocked.insert(key); continue; }
     theirs.Set(key, Record(title && !title->empty() ? *title : key, folder ? *folder : ""));
     raw.Set(key, item.Clone());
     if (!local.contains(key) && !bookmarks_->GetNodesByURL(address).empty()) blocked.insert(key);

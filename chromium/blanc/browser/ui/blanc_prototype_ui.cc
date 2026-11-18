@@ -635,14 +635,17 @@ base::Value NullableString(const std::string& value) {
   return value.empty() ? base::Value() : base::Value(value);
 }
 
-// One FavoriteItem (browser-api/contract.json). `folder` is the immediate
-// user folder's title; nodes directly under a permanent node are ungrouped.
+// One FavoriteItem (browser-api/contract.json). `folder` is the whole path
+// below the favorite's permanent folder (F63, `Work › Reading`); nodes
+// directly under a permanent node are ungrouped. A path too long to store
+// shows the immediate folder's name, as before.
 // GetFavicon() returns the cached image and schedules a load when there is
 // none yet; BookmarkNodeFaviconChanged then refreshes open start pages.
 base::DictValue FavoriteRecord(bookmarks::BookmarkModel* model,
                                const bookmarks::BookmarkNode* node, bool include_favicons) {
   const auto* parent = node->parent();
   const bool in_folder = parent && !parent->is_permanent_node();
+  const auto path = blanc::favorites::FavoriteFolderPath(node);
   const std::u16string title = node->GetTitle();
   return base::DictValue()
       .Set("id", base::NumberToString(node->id()))
@@ -651,8 +654,9 @@ base::DictValue FavoriteRecord(bookmarks::BookmarkModel* model,
       .Set("favicon", include_favicons ? NullableString(FaviconDataUrl(model->GetFavicon(node)))
                                        : base::Value())
       .Set("addedAt", node->date_added().InMillisecondsFSinceUnixEpoch())
-      .Set("folder", in_folder ? base::Value(base::UTF16ToUTF8(parent->GetTitle()))
-                               : base::Value());
+      .Set("folder", !in_folder ? base::Value()
+                     : path && !path->empty() ? base::Value(*path)
+                     : base::Value(base::UTF16ToUTF8(parent->GetTitle())));
 }
 
 void CollectFavorites(bookmarks::BookmarkModel* model,
@@ -682,6 +686,7 @@ using blanc::favorites::ValidFolderName;
 using blanc::favorites::FavoriteFolderKey;
 using blanc::favorites::FindOrCreateFolder;
 using blanc::favorites::CanEditFavorites;
+using blanc::favorites::PermanentRootOf;
 
 // Keep a moved Favorite in its original Chromium storage. Account and local
 // bookmark trees are persisted independently; moving between them is not a
@@ -722,42 +727,45 @@ std::optional<bool> ToggleFavorite(bookmarks::BookmarkModel* model, const GURL& 
 
 // `/save [folder]`, mirroring Electron's applySaveFavorite(): add-only; an
 // already saved page is a no-op for a bare save and moves for a named folder;
-// an invalid folder name writes nothing.
+// an invalid folder writes nothing. The folder is a path as typed (F63's
+// parseTypedPath: names separated by > or ›), created as needed.
 std::optional<bool> SaveFavorite(bookmarks::BookmarkModel* model, const GURL& url,
                                  const std::u16string& title, const std::string& folder) {
-  const bool wants_folder = !folder.empty();
-  std::optional<std::u16string> name;
-  if (wants_folder) {
-    name = ValidFolderName(folder);
-    if (!name) return model->IsBookmarked(url);
+  std::optional<blanc::favorites::FolderPath> path;
+  if (!folder.empty()) {
+    std::u16string typed = base::UTF8ToUTF16(folder);
+    std::u16string joined;
+    for (const char16_t c : typed) {
+      if (c == u'>' || c == u'\u203a') joined += blanc::favorites::kPathSeparator;
+      else joined += c;
+    }
+    path = blanc::favorites::ValidFolderPath(base::UTF16ToUTF8(joined));
+    if (!path) return model->IsBookmarked(url);
   }
   if (model->IsBookmarked(url)) {
     // A bare save is add-only and needs no choice among existing matches.
-    if (!name) return true;
+    if (!path) return true;
     // A named move must identify one editable node before creating a folder
     // or moving anything. Chromium allows duplicates across storage roots.
     const auto matches = model->GetNodesByURL(url);
     if (matches.size() != 1) return std::nullopt;
     const auto* node = model->GetMostRecentlyAddedUserNodeForURL(url);
     if (!node || node != matches.front().get()) return std::nullopt;
-    if (name) {
-      const auto* current = node->parent();
-      const auto existing_name = current && !current->is_permanent_node()
-          ? ValidFolderName(base::UTF16ToUTF8(current->GetTitle())) : std::nullopt;
-      if (existing_name) {
-        const auto existing_key = FavoriteFolderKey(*existing_name);
-        const auto requested_key = FavoriteFolderKey(*name);
-        if (!existing_key || !requested_key) return std::nullopt;
-        if (*existing_key == *requested_key) return true;
-      }
-      const auto* target = FindOrCreateFolder(model, *name, FavoriteStorageOtherRoot(model, node));
-      if (!target) return std::nullopt;
-      if (node->parent() != target)
-        model->Move(node, target, target->children().size());
-    }
+    const auto* root = FavoriteStorageOtherRoot(model, node);
+    const auto current = blanc::favorites::FavoriteFolderPath(node);
+    const auto current_key = current ? FavoriteFolderKey(base::UTF8ToUTF16(*current)) : std::nullopt;
+    const auto requested_key = FavoriteFolderKey(blanc::favorites::JoinPath(*path));
+    if (!requested_key) return std::nullopt;
+    if (node->parent() && PermanentRootOf(node->parent()) == root && current_key && *current_key == *requested_key)
+      return true;
+    const auto* target = blanc::favorites::FindOrCreateFolderPath(model, root, *path);
+    if (!target) return std::nullopt;
+    if (node->parent() != target)
+      model->Move(node, target, target->children().size());
     return true;
   }
-  const auto* parent = name ? FindOrCreateFolder(model, *name, FavoriteStorageOtherRoot(model, nullptr))
+  const auto* parent = path ? blanc::favorites::FindOrCreateFolderPath(
+                                  model, FavoriteStorageOtherRoot(model, nullptr), *path)
                             : model->other_node();
   if (!parent) return std::nullopt;
   model->AddNewURL(parent, parent->children().size(),
@@ -1165,8 +1173,35 @@ void InitializeMiniShortcut();
 void ForgetMiniWindow(BrowserWindowInterface* browser);
 void MiniWindowFocusChanged(BrowserWindowInterface* browser);
 
+// Favorites is a page in a tab of its own (F63; owner, November 18, 2026),
+// shown in the Island as shipping's blanc://bookmarks/.
+constexpr char kFavoritesPageUrl[] = "chrome://blanc-prototype/pages/bookmarks.html";
+bool IsFavoritesPage(const GURL& url) { return url == GURL(kFavoritesPageUrl); }
+// Opens Favorites, or switches to the tab already showing it (shipping's
+// openInternalPage). A private window opens it in a regular window of its
+// profile, as Chromium's bookmark manager does. The navigation runs after
+// the current task, so a caller inside a navigation never re-enters it.
+bool OpenFavoritesTab(BrowserWindowInterface* browser) {
+  if (!browser || !browser->GetProfile()) return false;
+  Profile* profile = browser->GetProfile();
+  if (profile->IsOffTheRecord() && !profile->IsIncognitoProfile()) return false;
+  base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE, base::BindOnce(
+      [](base::WeakPtr<BrowserWindowInterface> window, base::WeakPtr<Profile> original) {
+        if (!window || !original) return;
+        const GURL url(kFavoritesPageUrl);
+        NavigateParams params = window->GetProfile()->IsOffTheRecord()
+            ? NavigateParams(original.get(), url, ui::PAGE_TRANSITION_AUTO_BOOKMARK)
+            : NavigateParams(window.get(), url, ui::PAGE_TRANSITION_AUTO_BOOKMARK);
+        params.disposition = WindowOpenDisposition::kSingletonTab;
+        params.window_action = NavigateParams::WindowAction::kShowWindow;
+        Navigate(&params);
+      }, browser->GetWeakPtr(), profile->GetOriginalProfile()->GetWeakPtr()));
+  return true;
+}
+
 // Which sheet page (and section) a chrome:// address is, if any: shipping's
-// utility pages (isUtilityUrl) never open as tabs.
+// utility pages (isUtilityUrl) never open as tabs. chrome://bookmarks opens
+// the Favorites tab instead (OpenUtilitySheet).
 std::optional<std::pair<std::string, std::string>> UtilityPageFor(const GURL& url) {
   if (!url.SchemeIs(content::kChromeUIScheme)) return std::nullopt;
   const std::string host(url.host());
@@ -4352,7 +4387,9 @@ base::DictValue Snapshot(BrowserWindowInterface* browser, Owner* owner) {
                     .Set("id", tab_id)
                     .Set("url", contents->GetVisibleURL() == GURL("chrome://newtab/") ||
                                   IsRegularStartPage(contents->GetLastCommittedURL())
-                              ? "blanc://newtab/" : contents->GetVisibleURL().spec())
+                              ? "blanc://newtab/"
+                              : IsFavoritesPage(contents->GetVisibleURL()) ? "blanc://bookmarks/"
+                              : contents->GetVisibleURL().spec())
                     .Set("committedUrl", committed.spec())
                     .Set("viewBounds", IslandRelativeBounds(browser, contents))
                     .Set("searchDocumentId", base::NumberToString(contents->GetPrimaryMainFrame()->GetNavigationId()))
@@ -5295,6 +5332,17 @@ class NewTabHandler : public content::WebUIMessageHandler,
     // blanc://bookmarks/ link does, when this Start Page is the active tab.
     if (method == "openSheet" && args.size() == 1 && args[0].is_string()) {
       auto* browser = GlobalBrowserCollection::GetInstance()->FindBrowserWithTab(contents);
+      // The Favorites link opens Favorites in this tab, as shipping's
+      // blanc://bookmarks/ link does (#1614); a private Start Page opens it
+      // in a regular window instead.
+      if (args[0].GetString() == "bookmarks" && browser &&
+          browser->GetTabStripModel()->GetActiveWebContents() == contents) {
+        if (profile->IsOffTheRecord()) OpenFavoritesTab(browser);
+        else contents->GetController().LoadURL(GURL(kFavoritesPageUrl), content::Referrer(),
+                                                ui::PAGE_TRANSITION_LINK, std::string());
+        Reply(id, true, base::Value(""));
+        return;
+      }
       const bool opened = browser &&
           browser->GetTabStripModel()->GetActiveWebContents() == contents &&
           OpenUtilitySheet(browser, args[0].GetString());
@@ -6090,6 +6138,7 @@ constexpr char kLinkRouteActivation[] = "blanc.link-route.activation";
 #include "blanc/browser/ui/profile_import.inc"
 #include "blanc/browser/ui/chromium_settings_handler.inc"
 #include "blanc/browser/ui/utility_sheet_ops.inc"
+#include "blanc/browser/ui/favorites_page.inc"
 
 // A bounded, sequence-confined navigation outcome reducer. It intentionally
 // distinguishes a committed document from every inconclusive outcome.
@@ -11114,42 +11163,18 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value(ListFavorites(LoadedBookmarkModel(profile))));
       return;
     }
+    // Favorites is a page in a tab of its own (F63, owner 2026-11-18): the
+    // host's blanc://bookmarks and openPage('bookmarks') open or switch to it.
+    if (method == "openFavorites" && args.empty()) {
+      reply(true, base::Value(OpenFavoritesTab(GetOwner(web_ui()->GetWebContents())->browser.get())));
+      return;
+    }
     // ---- The utility sheet's pages (S1.5): host.js's sheetBridge answers
     // shipping's window.bowserPages through these. A private window has no
-    // Favorites, history or pins of its own to show or edit.
+    // history of its own to show. Favorites left the sheet for a tab
+    // (FavoritesHandler).
     if (method.starts_with("sheet")) {
       if (profile->IsOffTheRecord()) { reply(false, base::Value("Open this page from a regular window.")); return; }
-      auto* prefs = profile->GetPrefs();
-      if (method == "sheetPins" && args.empty()) {
-        if (!prefs->FindPreference(kStartPagePinsPref)) { reply(false, base::Value("Start Page pins unavailable")); return; }
-        reply(true, base::Value(utility_sheet::Pins(prefs)));
-        return;
-      }
-      if ((method == "sheetPin" && args.size() == 2 && args[0].is_string() && args[1].is_string()) ||
-          (method == "sheetUnpin" && args.size() == 1 && args[0].is_string())) {
-        if (!prefs->FindPreference(kStartPagePinsPref)) { reply(false, base::Value("Start Page pins unavailable")); return; }
-        reply(true, ChangeStartPin(prefs, method == "sheetPin", args[0].GetString(),
-                                   method == "sheetPin" ? args[1].GetString() : std::string()));
-        return;
-      }
-      if (method == "sheetFavoriteRemove" || method == "sheetFavoriteFolder" ||
-          method == "sheetFolderRename" || method == "sheetFolderRemove") {
-        auto* favorites = LoadedBookmarkModel(profile);
-        if (!favorites || !CanEditFavorites(profile)) { reply(false, base::Value("Favorites editing is disabled.")); return; }
-        std::optional<std::string> error = "Unexpected Favorites request.";
-        const bool strings = std::all_of(args.begin(), args.end(), [](const base::Value& v) { return v.is_string(); });
-        if (strings && method == "sheetFavoriteRemove" && args.size() == 1)
-          error = utility_sheet::RemoveFavorite(favorites, args[0].GetString());
-        else if (strings && method == "sheetFavoriteFolder" && args.size() == 2)
-          error = utility_sheet::SetFolder(favorites, args[0].GetString(), args[1].GetString());
-        else if (strings && method == "sheetFolderRename" && args.size() == 2)
-          error = utility_sheet::RenameFolder(favorites, args[0].GetString(), args[1].GetString());
-        else if (strings && method == "sheetFolderRemove" && args.size() == 1)
-          error = utility_sheet::RemoveFolder(favorites, args[0].GetString());
-        if (error) reply(false, base::Value(*error));
-        else reply(true, base::Value(true));
-        return;
-      }
       auto* history = HistoryServiceFactory::GetForProfile(profile, ServiceAccessType::EXPLICIT_ACCESS);
       // Every visit, newest first, as shipping's history list (5,000 at most);
       // host.js matches the search text as shipping's listHistory does.
@@ -11171,24 +11196,6 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         history->ExpireHistoryBetween({url}, /*restrict_app_id=*/std::nullopt, at, at + base::Milliseconds(1),
             /*user_initiated=*/true, base::BindOnce(&Handler::HistoryCleared, weak_factory_.GetWeakPtr(), id),
             &tracker_);
-        return;
-      }
-      // The Favorites sheet's imports (F30).
-      if (method == "sheetBrowserSources" && args.empty()) {
-        browser_import::ListSources(base::BindOnce([](base::WeakPtr<Handler> self, std::string id, base::Value value) {
-          if (self) self->Reply(id, true, std::move(value));
-        }, weak_factory_.GetWeakPtr(), id));
-        return;
-      }
-      if (method == "sheetImportBrowser" && args.size() == 1 && args[0].is_string()) {
-        browser_import::ImportSource(profile->GetWeakPtr(), args[0].GetString(),
-            base::BindOnce([](base::WeakPtr<Handler> self, std::string id, base::Value value) {
-              if (self) self->Reply(id, true, std::move(value));
-            }, weak_factory_.GetWeakPtr(), id));
-        return;
-      }
-      if (method == "sheetImportEntries" && args.size() == 1 && args[0].is_list()) {
-        reply(true, browser_import::ImportParsed(profile, args[0].GetList()));
         return;
       }
       if (method == "sheetDownloads" && args.empty()) {
@@ -13925,6 +13932,7 @@ UI::UI(content::WebUI* web_ui) : ui::MojoWebUIController(web_ui, /*enable_chrome
           root, Profile::FromWebUI(web_ui)->GetWeakPtr()));
   web_ui->AddMessageHandler(std::make_unique<Handler>());
   web_ui->AddMessageHandler(std::make_unique<NewTabHandler>());
+  web_ui->AddMessageHandler(std::make_unique<FavoritesHandler>());
 }
 
 ToolbarButtonProvider* ToolbarProvider(BrowserWindowInterface* browser,
@@ -14106,6 +14114,8 @@ bool OpenUtilitySheet(BrowserWindowInterface* browser, std::string_view page, st
   // The Start Page's Patron invitation opens Settings at its checkout row.
   // About and the Patron invitation open Settings at its About section.
   const bool patron = page == "patron" || page == "about";
+  // Favorites left the sheet for a tab of its own (F63).
+  if (page == "bookmarks") return IsIslandWindow(browser) && OpenFavoritesTab(browser);
   if (page != "history" && page != "downloads" && page != "bookmarks" && page != "settings" && page != "tab-import" && !patron) return false;
   // A private window keeps Chromium's pages; the sheet shows regular data.
   // Settings, like Chromium's, is the regular profile's in either window.
