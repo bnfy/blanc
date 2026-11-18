@@ -3792,6 +3792,8 @@ function install(refs) {
                 return {
                   title: row.querySelector('.name')?.textContent ?? '',
                   host: row.querySelector('.host')?.textContent ?? '',
+                  // Rows are grouped under each device (V24); the device is the row's own.
+                  device: row.dataset.device ?? null,
                   href: row.href,
                   tileLetter: tile ? tile.textContent : '',
                   faviconHasIcon: !!(tile && tile.classList.contains('has-icon')),

@@ -160,7 +160,7 @@ When('I clear the command bar and press Enter', async function () {
 
 Then('the start page lists {string} from {string}', async function (title, device) {
   await waitForValue(() => this.call('remoteStartPageRows'),
-    (rows) => rows.some((row) => row.title === title && row.host.endsWith(` · ${device}`)),
+    (rows) => rows.some((row) => row.title === title && row.device === device),
     `${title} from ${device} on the start page`);
 });
 
