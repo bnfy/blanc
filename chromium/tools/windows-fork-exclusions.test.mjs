@@ -21,10 +21,15 @@ const EXPECTED = [
   ...feature('arc-spaces-import', '53:plain'),
   // W2 C2: the Island draws no window buttons on Windows (owner, W1).
   ...feature('island-and-commands', '320:plain'),
+  // W2 B4: Windows has no app icon catalog (owner, 2026-10-19; approved as
+  // exclusions 2026-11-18).
+  ...feature('settings-and-theming', '12:plain'),
+  ...feature('supporter-and-session', '7:plain', '12:plain'),
 ];
 // A case that ran and failed on Windows may be excluded only where the
 // failure is the decided behavior itself.
-const EXECUTED_BY_DECISION = new Set(feature('navigation-and-context-menu', '83:plain'));
+const EXECUTED_BY_DECISION = new Set([...feature('navigation-and-context-menu', '83:plain'),
+  ...feature('settings-and-theming', '12:plain'), ...feature('supporter-and-session', '7:plain', '12:plain')]);
 
 test('Windows excludes exactly the owner\'s product decisions and the Linux-only case', () => {
   assert.deepEqual(Object.keys(windowsForkExclusions).sort(), [...EXPECTED].sort());
