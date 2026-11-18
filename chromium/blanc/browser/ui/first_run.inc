@@ -479,9 +479,10 @@ base::DictValue Import(bookmarks::BookmarkModel* model, const std::vector<Entry>
       continue;
     }
     const bookmarks::BookmarkNode* parent = root;
+    // A folder is a path (F63): `Work › Reading` lands in Reading inside Work.
     if (entry.folder) {
-      if (const auto name = ValidFolderName(*entry.folder)) {
-        if (const auto* folder = FindOrCreateFolder(model, *name, root)) parent = folder;
+      if (const auto path = blanc::favorites::StoredFolderPath(*entry.folder); path && !path->empty()) {
+        if (const auto* folder = blanc::favorites::FindOrCreateFolderPath(model, root, *path)) parent = folder;
       }
     }
     model->AddURL(parent, parent->children().size(), base::UTF8ToUTF16(entry.title), url, nullptr,

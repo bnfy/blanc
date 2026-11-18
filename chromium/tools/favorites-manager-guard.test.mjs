@@ -1,9 +1,10 @@
 // Shipping's Favorites manager (F63, bnfy/blanc#1590 at b76337fcd) draws nested folders as a
-// tree. The fork's Favorites pages are still the flat list (D40 in spec/divergence-register.md),
-// so until the fork adopts the tree every pin that reaches past #1590 must keep the fork flat:
+// tree. The desktop fork's Favorites page is the manager's, in a tab of its own (V30, #1614);
+// Android's is still the flat list (D40 in spec/divergence-register.md). So:
 //  - the Sync bundle turns the manager's two behaviors off (bookmarks.setManagerLive(false)),
-//    so emptied folders and import's full paths never make entries a flat page can't show;
-//  - a sheet page that loads the manager's scripts gets them served (SHEET_FILES, pages.json);
+//    because the bundle also serves Android's flat page and the desktop keeps order in
+//    Chromium's bookmark model, not in the bundle's layout;
+//  - a page that loads the manager's scripts gets them served (served.txt, pages.json);
 //  - a host reports `tree: true` exactly when its Favorites page is the manager's.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -13,7 +14,7 @@ import path from 'node:path';
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
 import {bundle, MANAGER_OFF} from './build-sync-bundle.mjs';
-import {SHEET_FILES} from './island-renderer.mjs';
+import {served} from './assets.mjs';
 
 const require = createRequire(import.meta.url);
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -76,7 +77,7 @@ test('a fork Favorites page that loads the manager\'s scripts has them served', 
   const android = read('blanc/android/pages/bookmarks.html');
   const androidFiles = JSON.parse(read('blanc/android/pages.json')).files;
   for (const file of MANAGER_FILES) {
-    assert.equal(SHEET_FILES.includes(`pages/${file}`), loads(island, file), `desktop sheet: ${file}`);
+    assert.equal(served().includes(`pages/${file}`), loads(island, file), `desktop page: ${file}`);
     assert.equal(androidFiles.includes(file), loads(android, file), `Android: ${file}`);
   }
 });
@@ -86,10 +87,10 @@ test('a fork host reports the tree exactly when its Favorites page is the manage
   const desktopPage = read('blanc/island/pages/bookmarks.js');
   const androidPage = read('blanc/android/pages/bookmarks.js');
   for (const page of [desktopPage, androidPage]) assert.match(page, /bowserPages\.bookmarks\.capabilities\(\)/);
-  // The desktop sheet's bridge (island/host.js) and Android's native page handler.
-  const desktop = /if \(page === 'bookmarks'\)[\s\S]*?capabilities: async \(\) => \(\{([^}]*)\}\)/.exec(read('blanc/island/host.js'));
+  // The desktop tab's handler (favorites_page.inc) and Android's native page handler.
+  const desktop = /method == "capabilities"[\s\S]*?base::DictValue\(\)([\s\S]*?)\)\);/.exec(read('blanc/browser/ui/favorites_page.inc'));
   const android = /method == "bookmarks\.capabilities"\)([^;]*);/.exec(read('blanc/android/browser/blanc_pages_ui.cc'));
   assert.ok(desktop && android, 'both answers found');
-  assert.equal(/\btree\s*:\s*true\b/.test(desktop[1]), manager(desktopPage), `desktop: ${desktop[1]}`);
+  assert.equal(/\.Set\("tree", true\)/.test(desktop[1]), manager(desktopPage), `desktop: ${desktop[1]}`);
   assert.equal(/"tree", true/.test(android[1]), manager(androidPage), `Android: ${android[1]}`);
 });

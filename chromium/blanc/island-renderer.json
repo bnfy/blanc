@@ -20,8 +20,6 @@
     "pages/row-icon.js",
     "pages/history-groups.js",
     "pages/downloads-row-model.js",
-    "pages/bookmarks.html",
-    "pages/bookmarks.js",
     "pages/history.html",
     "pages/history.js",
     "pages/downloads.html",
