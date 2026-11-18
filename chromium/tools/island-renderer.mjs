@@ -18,10 +18,11 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const island = path.join(root, 'blanc/island');
 const record = path.join(root, 'blanc/island-renderer.json');
 
-// The utility sheet's pages (S1.5): Favorites, History and Downloads, shown
-// in a frame of the Island host over Chromium's own models.
+// The utility sheet's pages (S1.5): History and Downloads, shown in a frame
+// of the Island host over Chromium's own models. Favorites is a page in a tab
+// of its own with a pin of its own (tools/favorites-page.mjs).
 export const SHEET_FILES = ['sheet.js', 'row-icon.js', 'history-groups.js', 'downloads-row-model.js',
-  'bookmarks.html', 'bookmarks.js', 'history.html', 'history.js', 'downloads.html', 'downloads.js', 'tab-import.html', 'tab-import-open-tabs.js', 'tab-import-arc.js', 'tab-handoff.html', 'tab-handoff.js', 'tab-handoff.css'].map(file => `pages/${file}`);
+  'history.html', 'history.js', 'downloads.html', 'downloads.js', 'tab-import.html', 'tab-import-open-tabs.js', 'tab-import-arc.js', 'tab-handoff.html', 'tab-handoff.js', 'tab-handoff.css'].map(file => `pages/${file}`);
 export const FILES = ['index.html', 'overlay.html', 'overlay.js', 'renderer.js', 'styles.css', 'tab-drag.js',
   'tab-sections.js', 'vertical-tabs.js', 'workspace-ui.js', 'glance-card-drag.js', 'hover-panel-leave.js',
   'permission.html', 'permission.js', 'pages/onboarding.js', ...SHEET_FILES];
@@ -45,7 +46,6 @@ const PREVIEW_META = fs.readFileSync(path.join(root, 'tools/preview-build-meta.h
 export const EDITS = {
   // The sheet's window.bowserPages answers from the Island host
   // (pages/sheet-adapter.js), not from Electron's tab preload.
-  'pages/bookmarks.html': [SHEET_BRIDGE],
   'pages/history.html': [SHEET_BRIDGE],
   'pages/downloads.html': [SHEET_BRIDGE],
   'pages/tab-import.html': [SHEET_BRIDGE],

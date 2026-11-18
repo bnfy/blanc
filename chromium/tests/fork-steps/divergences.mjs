@@ -5,6 +5,15 @@ import assert from 'node:assert/strict';
 import {LAYOUT_WIDGETS, FAVORITES_WIDGET_LIMIT} from '../lib/start-widgets.mjs';
 
 const tabDom = (world, id, expression) => world.call('executeTab', id, expression);
+// The active tab's shipping address (V30).
+const activeUrl = (state) => state.tabs.find((tab) => tab.id === state.activeTabId)?.url ?? '';
+// History in the utility sheet, as #1614's sheet scenarios open it (V30).
+async function historySheetShown(world) {
+  const surface = await world.call('utilitySurface');
+  if (surface?.kind === 'sheet' && surface.visible) return;
+  await world.call('openHistorySheet');
+  await world.waitFor(() => world.call('utilitySurface'), (s) => s?.kind === 'sheet' && s.visible && s.ready, 'history sheet to open', 5000);
+}
 
 export const DIVERGENCES = new Map([
   // V29 (owner, 2026-11-05 S2.5; 2026-11-17): the fork has no Patron
@@ -328,5 +337,82 @@ export const DIVERGENCES = new Map([
   ['I close the Patron upgrade', {divergence: 'V25', async run() {
     const frame = await this.call('readStartFrameGeometry');
     assert.equal(frame.patronVisible, false, 'there is no Patron pill to close on the Start Page');
+  }}],
+  // V30 (owner, 2026-11-18): Favorites is #1614's page in a tab of its own,
+  // with the F63 manager, ahead of the fork's v1.49.1 scenario pin. These
+  // steps say what #1614's rewrite of the same scenarios says (the Favorites
+  // page opens in a tab, a favorite opens in that tab, the sheet scenarios
+  // use History); every other step stays shipping's v1.49.1.
+  ['the favorites page is open in the utility sheet', {divergence: 'V30', async run() {
+    await this.call('openFavoritesSheet');
+    await this.waitFor(() => this.call('favoritesPageReady'), Boolean, 'the Favorites tab to load', 10000);
+    this.tabStateBefore = await this.call('state');
+  }}],
+  ['I follow its {string} navigation link', {divergence: 'V30', async run(label) {
+    assert.strictEqual(label, 'Favorites', 'the ledger has exactly one nav link');
+    this.tabStateBefore = await this.call('state');
+    await this.call('followNewtabFavoritesLink');
+    await this.waitForState((s) => activeUrl(s).startsWith('blanc://bookmarks/'), {timeout: 10000});
+  }}],
+  ['the {word} page opens in the utility sheet under the blanc scheme', {divergence: 'V30', async run(name) {
+    if (name === 'favorites') {
+      const now = await this.call('state');
+      assert.ok(activeUrl(now).startsWith('blanc://bookmarks/'), `active tab is on ${activeUrl(now)}`);
+      const surface = await this.call('utilitySurface');
+      assert.strictEqual(surface?.kind === 'sheet' && surface.visible, false, 'Favorites never opens the utility sheet');
+      return;
+    }
+    const surface = await this.waitFor(() => this.call('utilitySurface'), (s) => s?.visible && s.ready, `${name} sheet`, 5000);
+    assert.ok(surface.url.startsWith(`blanc://${name}/`), `the sheet should show blanc://${name}/: ${surface.url}`);
+  }}],
+  ['I activate that favorite', {divergence: 'V30', async run() {
+    await this.call('clickFirstSheetLink');
+    await this.waitForState((s) => !activeUrl(s).startsWith('blanc://bookmarks/'), {timeout: 10000});
+  }}],
+  ['exactly one new tab opens on {string}', {divergence: 'V30', async run(host) {
+    // #1614: "the Favorites tab now shows" the favorite; no new tab.
+    const now = await this.waitForState((s) => activeUrl(s).includes(host), {timeout: 10000});
+    assert.strictEqual(now.tabs.length, this.tabStateBefore.tabs.length, 'no new tab');
+    assert.strictEqual(now.activeTabId, this.tabStateBefore.activeTabId, 'the same tab');
+  }}],
+  ['the utility sheet contents are destroyed', {divergence: 'V30', async run() {
+    // #1614 runs this scenario over History, the sheet Favorites left.
+    await historySheetShown(this);
+    this.destroyedUtilitySheetContentsId = await this.call('utilitySheetContentsId');
+    assert.ok(this.destroyedUtilitySheetContentsId, 'the open utility sheet should have webContents');
+    assert.strictEqual(await this.call('destroyUtilitySheetContents'), true);
+    // The Favorites tab stays under it; only the sheet goes.
+    await this.waitFor(() => this.call('utilitySurface'), (s) => !(s?.kind === 'sheet' && s.visible), 'destroyed sheet to be dismissed', 5000);
+  }}],
+  ['the utility sheet uses the Sunrise palette', {divergence: 'V30', async run() {
+    await historySheetShown(this);
+    const palette = await this.waitFor(() => this.call('utilitySheetPalette'), Boolean, 'sheet palette', 5000);
+    assert.deepStrictEqual(palette, {text: 'rgb(18, 16, 11)', card: 'rgb(248, 242, 232)', currentNav: 'rgb(18, 16, 11)'});
+  }}],
+  ['I pin {string} from the Favorites page', {divergence: 'V30', async run(title) {
+    await this.waitFor(() => this.call('readFavoritesSheetPins'),
+      (rows) => rows?.some((row) => row.title === title && !row.pinned), `${title} to show unpinned on the Favorites page`, 5000);
+    assert.equal(await this.call('toggleFavoritesSheetPin', title), true);
+  }}],
+  ['the Favorites page marks {string} as pinned to the Start Page', {divergence: 'V30', async run(title) {
+    const rows = await this.waitFor(() => this.call('readFavoritesSheetPins'),
+      (value) => value?.some((row) => row.title === title && row.pinned), `the Favorites page to mark ${title} as pinned`, 5000);
+    const row = rows.find((candidate) => candidate.title === title);
+    assert.equal(row.mark, 'Pinned to the Start Page');
+    assert.equal(row.focused, true, 'the keyboard stays on the row whose pin changed');
+    assert.ok(rows.filter((candidate) => candidate.title !== title).every((candidate) => !candidate.pinned && candidate.mark === null));
+  }}],
+  ['/^I import Favorites from that browser profile(?: again)?$/', {divergence: 'V30', async run() {
+    // #1614's one import dialog closes after each import; importing again
+    // opens it again, as shipping's step does since #1590.
+    const before = (await this.call('bookmarkRecords')).length;
+    if (!(await this.call('readBrowserImportDom'))?.dialogOpen) {
+      assert.equal(await this.call('clickBrowserFind'), true);
+      await this.waitFor(() => this.call('readBrowserImportDom'), (dom) => dom?.buttonHidden === false, 'the import dialog to offer the profile', 10000);
+    }
+    assert.equal(await this.call('clickBrowserImport'), true);
+    const pattern = before ? /already saved/ : /Imported 3 favorites/;
+    await this.waitFor(async () => ({dom: await this.call('readBrowserImportDom'), records: await this.call('bookmarkRecords')}),
+      (value) => value.records.length === (before || 3) && pattern.test(value.dom?.status ?? ''), 'browser Favorites import to settle', 15000);
   }}],
 ]);

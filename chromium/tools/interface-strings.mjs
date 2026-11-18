@@ -67,21 +67,35 @@ export function generate(tag = ref, previous = fs.readFileSync(output, 'utf8')) 
 // follow Settings' interface language too, with the fork's own page status
 // messages (kept from the committed file) over each language's messages.
 export const pagesOutput = path.join(root, 'blanc/island/pages/strings.js');
+// The Favorites page has a pin of its own (tools/favorites-page.mjs), ahead
+// of the renderer's release; its messages (favorites.*) come from that pin.
+const favoritesRecord = path.join(root, 'blanc/favorites-page.json');
+export const favoritesPin = () => fs.existsSync(favoritesRecord)
+  ? JSON.parse(fs.readFileSync(favoritesRecord, 'utf8')).commit : null;
+export function withFavoritesPage(catalog, pin = favoritesPin()) {
+  if (!pin) return catalog;
+  const page = catalogs(pin);
+  for (const language of LANGUAGES)
+    for (const [key, text] of Object.entries(page[language].messages))
+      if (key.startsWith('favorites.')) catalog[language].messages[key] = text;
+  return catalog;
+}
 function statusMessages(script) {
   const match = /\nconst status=(\{\n.*?\n\});\n/s.exec(script);
   if (!match) throw Error('pages/strings.js status messages not found');
   return match[1];
 }
-export function generatePages(tag = ref, previous = fs.readFileSync(pagesOutput, 'utf8')) {
+export function generatePages(tag = ref, previous = fs.readFileSync(pagesOutput, 'utf8'), pin = favoritesPin()) {
   const languages = JSON.stringify(LANGUAGES);
-  return `// Published Blanc ${tag} interface catalogs for Blanc's pages, with the fork's page status messages.\n(function(root,catalog){'use strict';\n`+
+  const favorites = pin ? `, the Favorites page's messages from ${pin}` : '';
+  return `// Published Blanc ${tag} interface catalogs for Blanc's pages${favorites}, with the fork's page status messages.\n(function(root,catalog){'use strict';\n`+
     `const codes=${languages},primary=x=>x.toLowerCase().split('-')[0];\n`+
     `const preferred=Array.isArray(root.navigator?.languages)?root.navigator.languages:[root.navigator?.language];const pinned=codes.includes(root.__blancUiLanguage)?root.__blancUiLanguage:null;let chosen=pinned||'en';\n`+
     `if(!pinned)for(const value of preferred){if(typeof value!=='string'||value.length>128||!value.trim())continue;const wanted=value.replaceAll('_','-').toLowerCase();const match=codes.find(c=>c.toLowerCase()===wanted)||codes.find(c=>c===primary(wanted))||codes.find(c=>primary(c)===primary(wanted));if(match){chosen=match;break}}\n`+
     `const system=typeof root.navigator?.language==='string'&&root.navigator.language.length<=128?root.navigator.language:'';const region=/^[A-Za-z]{2,3}(?:[-_][A-Za-z]{4})?[-_]([A-Za-z]{2}|\\d{3})(?![A-Za-z0-9])/.exec(system)?.[1];const candidate=region?chosen.split('-')[0]+'-'+region.toUpperCase():chosen;let formatLocale;try{formatLocale=Intl.getCanonicalLocales(candidate)[0]||chosen}catch{formatLocale=chosen}\n`+
     `const status=${statusMessages(previous)};\n`+
     `root.blancStrings={...catalog[chosen],formatLocale,messages:{...catalog[chosen].messages,...status[chosen]}};\n`+
-    `})(typeof self!=='undefined'?self:this,${JSON.stringify(catalogs(tag))});\n`;
+    `})(typeof self!=='undefined'?self:this,${JSON.stringify(withFavoritesPage(catalogs(tag), pin))});\n`;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

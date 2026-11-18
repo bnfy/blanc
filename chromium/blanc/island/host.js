@@ -1605,7 +1605,13 @@
   // over the page, never as tabs. The frame claims the window as the palette
   // does, its page draws its own scrim and card, and the host answers its
   // window.bowserPages (pages/sheet-adapter.js) from Chromium's models.
-  const SHEET_PAGES = ['bookmarks', 'history', 'downloads', 'tab-import', 'tab-handoff'];
+  // Favorites left the sheet for a page in a tab of its own (F63; owner,
+  // November 18, 2026): every way to it below opens or switches to that tab.
+  const SHEET_PAGES = ['history', 'downloads', 'tab-import', 'tab-handoff'];
+  async function openFavorites() {
+    if (sheet.page) await hideSheet(false);
+    await request('openFavorites');
+  }
   // Settings sections a typed blanc://settings/<section> may name (the
   // browser's SettingsSheetURL accepts the same names).
   const SETTINGS_SECTIONS = new Set(['general', 'blocking', 'search', 'sync', 'appearance', 'privacy', 'security',
@@ -1714,6 +1720,7 @@
   }
   async function showSheet(name, section) {
     railDismiss('surface');
+    if (name === 'bookmarks') return openFavorites();
     if (name === 'settings') return showSettingsSheet(section);
     if (!SHEET_PAGES.includes(name)) throw new Error(`No utility sheet page named ${name}.`);
     // Re-invoking the shown page closes it; while it loads, a repeat is the
@@ -1783,6 +1790,7 @@
     if (!sheet.frame || sheet.frame.contentWindow !== win || !sheet.page) return;
     let url;
     try { url = new URL(href); } catch { return; }
+    if (url.protocol === 'blanc:' && url.hostname === 'bookmarks') return openFavorites();
     if (url.protocol === 'blanc:' && SHEET_PAGES.includes(url.hostname)) {
       if (url.hostname === sheet.page) { sheet.frame.contentWindow.location.reload(); return; }
       return showSheet(url.hostname);
@@ -1806,7 +1814,6 @@
   function sheetBridge(win, page) {
     const call = (method, args = []) => sheetCurrent(win, page) ? request(method, args)
       : Promise.reject(new Error('This page is no longer shown.'));
-    const unavailable = async () => { throw new Error('Importing Favorites is not available yet.'); };
     const surface = {
       close: async () => { if (sheetCurrent(win, page)) await hideSheet(); },
       armEscape: async (armed) => { if (sheetCurrent(win, page)) sheet.escapeArmed = !!armed; },
@@ -1858,32 +1865,6 @@
       },
       arcCancel: id => call('importArcCancel', [String(id)]),
     }};
-    if (page === 'bookmarks') return { surface,
-      bookmarks: {
-        capabilities: async () => ({ editable: true, import: true }),
-        list: () => call('listFavorites'),
-        remove: (id) => call('sheetFavoriteRemove', [String(id)]),
-        clearFavicon: async () => {},
-        // Favorites import (F30). The file is chosen and parsed here; native
-        // merges it, as it does a detected browser's Favorites.
-        import: async () => {
-          const picked = await window.BlancBookmarkFile.pick();
-          return picked.entries ? call('sheetImportEntries', [picked.entries]) : picked;
-        },
-        browserSources: () => call('sheetBrowserSources'),
-        importBrowser: (id) => call('sheetImportBrowser', [String(id ?? '')]),
-        setFolder: (id, folder) => call('sheetFavoriteFolder', [String(id), typeof folder === 'string' ? folder : '']),
-        renameFolder: (oldName, newName) => call('sheetFolderRename', [String(oldName), String(newName)]),
-        removeFolder: (name) => call('sheetFolderRemove', [String(name)]),
-      },
-      pins: {
-        list: () => call('sheetPins'),
-        pin: (url, title) => call('sheetPin', [String(url), typeof title === 'string' ? title : '']),
-        unpin: (url) => call('sheetUnpin', [String(url)]),
-        // The page redraws after its own pin changes; others reach it on reopen.
-        onChanged: () => () => {},
-      },
-    };
     if (page === 'history') return { surface,
       history: {
         // Shipping's listHistory({query, limit}): substring matches on the
@@ -2044,12 +2025,14 @@
       if (bang) return bang;
       // Shipping's utility pages by their blanc:// names (isUtilityUrl) open
       // in the sheet, never in the tab: blanc://settings[/section],
-      // blanc://downloads, blanc://bookmarks (Favorites), blanc://history.
+      // blanc://downloads, blanc://history. blanc://bookmarks (Favorites)
+      // opens or switches to its own tab.
       const utility = /^blanc:\/\/(settings|downloads|bookmarks|favorites|history)(?:\/([a-z-]*))?\/?$/i.exec(String(value).trim());
       if (utility) {
         const page = utility[1].toLowerCase() === 'favorites' ? 'bookmarks' : utility[1].toLowerCase();
         const section = page === 'settings' && SETTINGS_SECTIONS.has(utility[2] ?? '') ? utility[2] : undefined;
-        await showSheet(page, section);
+        if (page === 'bookmarks') await openFavorites();
+        else await showSheet(page, section);
         return { status: 'sheet' };
       }
       // A shared Mahjong deal (blanc://mahjong/?deal=...) opens the game.
@@ -2081,8 +2064,9 @@
       // Settings opens in the sheet (S1.7): Chromium's chrome://settings,
       // at the section asked for (shipping's Settings and Shield's Blocking).
       if (name === 'settings') return showSheet('settings', section);
-      // Electron names Favorites `bookmarks` internally. Utility pages open
-      // in the sheet; Extensions is Chromium's own page.
+      // Electron names Favorites `bookmarks` internally; it opens in its
+      // own tab. Utility pages open in the sheet; Extensions is Chromium's.
+      if (name === 'bookmarks') return openFavorites();
       if (SHEET_PAGES.includes(name)) return showSheet(name, section);
       if (name !== 'extensions') throw new Error('Use Chromium’s native controls for this page in the prototype.');
       await request('createTab', ['chrome://extensions/']);
