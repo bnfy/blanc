@@ -95,7 +95,7 @@
    // Blanc desktop Sync (S4a): English fallback through the same loadTimeData
    // mechanism as the other Blanc Settings controls. Shipping keys and new
    // consent copy are recorded in CODEX-NOTES-s4a-sync-ui.md.
-+  html_source->AddBoolean("blancBetaUpdater", BUILDFLAG(IS_MAC) && blanc_prototype::IsBetaBuild());
++  html_source->AddBoolean("blancBetaUpdater", blanc_prototype::IsBetaBuild() && BUILDFLAG(IS_MAC));
    html_source->AddString("blancVerticalTabsTextSize", u"Vertical tab text size");
    html_source->AddString("blancVerticalTabsTextSizeHint", u"Make tab titles and group names easier to read in the vertical tab rail.");
    html_source->AddString("blancSyncStartWithPassphrase", u"Start with a name and passphrase");
