@@ -1,27 +1,10 @@
 # Unreleased notes
 
-v1.50.0 is the current public release ([notes](v1.50.0.md)). Changes merged
-since then are below as they're recorded.
+Changes merged since v1.50.0 are included in the prepared
+[v1.51.0 release notes](v1.51.0.md). No additional release changes are
+recorded here.
 
-## Changed
-
-- **One Start Page, with the widgets you want.** The Start Page is now the
-  clock page, with the week's blocked count under the clock. Favorites and
-  your other devices' tabs are cards you turn on in **Customize**, then drag
-  (or move with the arrow keys) to either side of the page and resize. Choose
-  how many shortcuts show, from 1 to 12. If you used Ledger, Shelf or Tally,
-  your Start Page keeps what it showed. Over your own image, the cards are
-  frosted glass and the small text turns light or dark to stay readable.
-- **Your wallpaper runs behind the Island.** On the Start Page, Sunrise, a
-  color or your own photo now continues up behind the Island instead of
-  stopping at a plain band. With vertical tabs, the tab list keeps its own
-  look.
-- **Customize fits the window.** It never covers the clock: while it is
-  open, a tall clock shrinks just enough to make room, and grows back when
-  you close it or open **Font & color** to style it. Only on the smallest
-  windows do Customize's options scroll.
-
-## Still open for the next release
+## Still open from 1.51
 
 - **The one Start Page** (from the fork's V24) by hand in a packaged build on
   macOS, Windows and Linux: dragging cards with a real mouse and finger,
@@ -32,6 +15,9 @@ since then are below as they're recorded.
 - **Customize at the smallest windows:** the clock gives way down to half
   size; below that Customize scrolls, and at 640×480 with a tall clock it
   can still get short (it never covers the clock, by the owner's rule).
+- **The Favorites page** (#1614) by hand in a packaged build on macOS,
+  Windows and Linux: Edit… with a real address change, the ⋮ menu, and
+  dragging with a real mouse.
 
 ## Still open from 1.50
 
