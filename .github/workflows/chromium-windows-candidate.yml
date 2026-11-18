@@ -226,6 +226,11 @@ jobs:
           # An empty filter is no filter: a full run must never be recorded as a subset.
           # One array, splatted: each element reaches node as one argument,
           # whatever PowerShell would make of a bare --name=value.with.dots.
+          # A temporary folder with no 8.3 short name in its path: the runner's
+          # %TEMP% is C:\Users\RUNNER~1\..., and a file URL Node writes for it
+          # (%7E) never equals the one Chromium shows (~).
+          $env:TEMP = "$env:RUNNER_TEMP\blanc-tmp"; $env:TMP = $env:TEMP
+          New-Item -ItemType Directory -Force -Path $env:TEMP | Out-Null
           $arguments = @('chromium/windows/run-suite.mjs', $env:CANDIDATE_DIR, "$env:RESULTS\f0", '--slice=f0')
           if ($env:ONLY) { $arguments += "--only=$env:ONLY" }
           node @arguments

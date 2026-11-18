@@ -182,7 +182,9 @@
   function request(method, args = []) {
     return new Promise((resolve, reject) => {
       const id = String(++nextId);
-      const timeout = ['extensionContextMenu', 'closeSplit', 'closeTab', 'spaceOpenNewWindow', 'importArcRead', 'openMainMenu'].includes(method) ? null : setTimeout(() => {
+      // An import of the 500-tab maximum can outlast ten seconds on a slow PC;
+      // the native side always replies when it ends.
+      const timeout = ['extensionContextMenu', 'closeSplit', 'closeTab', 'spaceOpenNewWindow', 'importArcRead', 'importApply', 'openMainMenu'].includes(method) ? null : setTimeout(() => {
         pending.delete(id);
         const error = new Error(`Native bridge timed out: ${method}`);
         if (method === 'snapshot') error[snapshotTimeoutMarker] = true;
