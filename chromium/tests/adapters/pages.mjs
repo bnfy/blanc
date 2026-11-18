@@ -399,7 +399,7 @@ export const pages={
   // TEMPORARY (W2 Favorites trace): record this click and every close.
   const dialog=document.getElementById('importDialog');
   if(dialog&&!window.__blancDialogCloses){window.__blancDialogCloses=[];const close=dialog.close.bind(dialog);
-   dialog.close=(...a)=>{window.__blancDialogCloses.push({at:performance.now()|0,stack:(new Error().stack||'').split('\n').slice(2,5).join(' | ')});return close(...a);};
+   dialog.close=(...a)=>{window.__blancDialogCloses.push({at:performance.now()|0,stack:(new Error().stack||'').split(String.fromCharCode(10)).slice(2,5).join(' | ')});return close(...a);};
    dialog.addEventListener('cancel',()=>window.__blancDialogCloses.push({at:performance.now()|0,cancel:true}));
    dialog.addEventListener('close',()=>window.__blancDialogCloses.push({at:performance.now()|0,closeEvent:true}));}
   window.__blancFindClicked={at:performance.now()|0,doc:performance.timeOrigin,open:!!dialog?.open};
