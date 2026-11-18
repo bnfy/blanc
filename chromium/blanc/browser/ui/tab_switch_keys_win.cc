@@ -21,7 +21,7 @@
 #include "ui/events/event_handler.h"
 #include "ui/events/event_sink.h"
 #include "ui/events/keycodes/keyboard_codes.h"
-#include "ui/views/widget/widget_focus_manager.h"
+#include "ui/views/focus/native_view_focus_manager.h"
 
 namespace blanc {
 namespace {
@@ -41,7 +41,7 @@ bool IsControlKey(ui::KeyboardCode code) {
   return code == ui::VKEY_CONTROL || code == ui::VKEY_LCONTROL || code == ui::VKEY_RCONTROL;
 }
 
-class Watcher : public ui::EventHandler, public views::WidgetFocusChangeListener {
+class Watcher : public ui::EventHandler, public views::NativeViewFocusChangeListener {
  public:
   static Watcher& Get() {
     static base::NoDestructor<Watcher> watcher;
@@ -57,12 +57,12 @@ class Watcher : public ui::EventHandler, public views::WidgetFocusChangeListener
     EnsureInstalled();
     if (watching_) return;
     watching_ = true;
-    views::WidgetFocusManager::GetInstance()->AddFocusChangeListener(this);
+    views::NativeViewFocusManager::GetInstance()->AddFocusChangeListener(this);
   }
   void Stop() {
     if (!watching_) return;
     watching_ = false;
-    views::WidgetFocusManager::GetInstance()->RemoveFocusChangeListener(this);
+    views::NativeViewFocusManager::GetInstance()->RemoveFocusChangeListener(this);
   }
 
   // ui::EventHandler:
@@ -112,7 +112,7 @@ class Watcher : public ui::EventHandler, public views::WidgetFocusChangeListener
     if (watching_ && event->type() == ui::EventType::kMousePressed) Run("cancelSoon");
   }
 
-  // views::WidgetFocusChangeListener: another app came to the front.
+  // views::NativeViewFocusChangeListener: another app came to the front.
   void OnNativeFocusChanged(gfx::NativeView focused_now) override {
     if (focused_now) return;
     Stop();
