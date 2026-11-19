@@ -67,7 +67,25 @@ async function servePackage(request, env, release, digest) {
   return new Response(body, {status: 200, headers: {...headers, 'content-length': String(meta.size)}});
 }
 
-export function makeWorker({publicSpkiHex, release, now = () => Date.now()}) {
+// The beta's logo for the install window (chrome/updater/app/app_install_win.cc
+// fetches app_logo_url + `{escaped app id}{_light|_dark|}.bmp`); the legacy
+// name gets the light logo.
+const ICON = /^\/update\/icons\/(.+?)(_light|_dark)?\.bmp$/;
+function serveIcon(request, release, icons, match) {
+  if (request.method !== 'GET' && request.method !== 'HEAD') return plain(405, 'GET or HEAD only');
+  let id;
+  try { id = decodeURIComponent(match[1]).toLowerCase(); } catch { return plain(404, 'not found'); }
+  const bytes = icons?.[match[2] === '_dark' ? 'dark' : 'light'];
+  if (id !== String(release.appId).toLowerCase() || !bytes) return plain(404, 'not found');
+  return new Response(request.method === 'HEAD' ? null : bytes, {status: 200, headers: {
+    'content-type': 'image/bmp', 'content-length': String(bytes.byteLength), 'cache-control': 'public, max-age=86400'}});
+}
+const fromBase64 = text => Uint8Array.from(atob(text), c => c.charCodeAt(0));
+
+export function makeWorker({publicSpkiHex, release, icons: iconInput = null, now = () => Date.now()}) {
+  // Icons come as bytes (the deployed Worker's bundled files) or base64 (tests).
+  const icons = iconInput && Object.fromEntries(Object.entries(iconInput)
+    .map(([k, v]) => [k, typeof v === 'string' ? fromBase64(v) : new Uint8Array(v)]));
   let signing = null;
   async function signingKey(seedBase64) {
     if (!signing) signing = (async () => {
@@ -83,6 +101,8 @@ export function makeWorker({publicSpkiHex, release, now = () => Date.now()}) {
     const url = new URL(request.url);
     const pkg = PACKAGE.exec(url.pathname);
     if (pkg) return servePackage(request, env, release, pkg[1]);
+    const icon = ICON.exec(url.pathname);
+    if (icon) return serveIcon(request, release, icons, icon);
     if (url.pathname !== PATH) return plain(404, 'not found');
     if (request.method !== 'POST') return plain(405, 'POST only');
     const cup2key = url.searchParams.get('cup2key') ?? '', cup2hreq = url.searchParams.get('cup2hreq') ?? '';

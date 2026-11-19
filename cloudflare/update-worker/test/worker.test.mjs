@@ -173,11 +173,13 @@ test('the deployed Worker uses the committed key, the beta\'s app id and the upd
   const toml = fs.readFileSync(path.join(workerRoot, 'wrangler.toml'), 'utf8');
   assert.match(toml, /^compatibility_flags = \["webcrypto_modern_algorithms"\]$/m);
   assert.match(toml, /^compatibility_date = "2026-10-01"$/m);
-  // The one production route: the address compiled into the updater (updater.gni).
+  // The production routes: the addresses compiled into the updater (updater.gni):
+  // the update check and the install window's logo (app_logo_url).
   const routes = [...toml.matchAll(/pattern = "([^"]+)", zone_name = "([^"]+)"/g)].map(m => [m[1], m[2]]);
-  assert.deepEqual(routes, [['blanc.day/update/win/*', 'blanc.day']]);
+  assert.deepEqual(routes, [['blanc.day/update/win/*', 'blanc.day'], ['blanc.day/update/icons/*', 'blanc.day']]);
   assert.match(toml, /\[\[r2_buckets\]\]\nbinding = "PACKAGES"\nbucket_name = "blanc-windows-updates"/);
   assert.equal(/^update_check_url = "([^"]+)"/m.exec(gni)[1], 'https://blanc.day/update/win/v4');
+  assert.equal(/^app_logo_url = "([^"]+)"/m.exec(gni)[1], 'https://blanc.day/update/icons/');
 });
 test('the smoke check passes a correctly signing Worker and fails a wrong key', {skip: !haveOpenSSL && 'needs OpenSSL 3.5+'}, async t => {
   const {smokeCheck} = await import('../scripts/smoke.mjs');
@@ -211,5 +213,20 @@ test('only the current release\'s package is served, whole or in ranges', {skip:
   assert.equal((await worker.fetch(`/update/win/pkg/${digest}.crx3`, {method: 'POST'})).status, 405);
   const none = await harness({publicSpkiHex: spkiHex, release: {appId: BROWSER, version: null}}); t.after(() => none.close());
   assert.equal((await none.getWorker().fetch(`/update/win/pkg/${digest}.crx3`)).status, 404, 'no release, no package');
+});
+test('the beta\'s logo is served for the install window, light, dark and legacy', {skip: !haveOpenSSL && 'needs OpenSSL 3.5+'}, async t => {
+  // chrome/updater/app/app_install_win.cc asks AppLogoURL + `{escaped app id}{_light|_dark|}.bmp?lang=…`.
+  const light = fs.readFileSync(path.join(workerRoot, 'assets/logo_light.bmp')), dark = fs.readFileSync(path.join(workerRoot, 'assets/logo_dark.bmp'));
+  const server = await harness({publicSpkiHex: spkiHex, release: RELEASE, icons: {light: light.toString('base64'), dark: dark.toString('base64')}});
+  t.after(() => server.close());
+  const worker = server.getWorker();
+  const get = async p => { const r = await worker.fetch(p); return {status: r.status, type: r.headers.get('content-type'), bytes: Buffer.from(await r.arrayBuffer())}; };
+  const id = '%7b459fd3cf-456c-4a06-8b37-2084cf64ddce%7d';
+  const l = await get(`/update/icons/${id}_light.bmp?lang=en`);
+  assert.equal(l.status, 200); assert.equal(l.type, 'image/bmp'); assert.ok(l.bytes.equals(light));
+  assert.ok((await get(`/update/icons/${id.toUpperCase().replace('%7B', '%7B')}_dark.bmp?lang=en`)).bytes.equals(dark), 'escapes in either case');
+  assert.ok((await get(`/update/icons/${id}.bmp`)).bytes.equals(light), 'the legacy name gets the light logo');
+  assert.equal((await get('/update/icons/%7b00000000-0000-0000-0000-000000000000%7d_light.bmp')).status, 404, 'another app');
+  assert.equal((await get(`/update/icons/${id}_light.png`)).status, 404);
 });
 test.after(() => fs.rmSync(work, {recursive: true, force: true}));
