@@ -18,3 +18,9 @@ test('a package not signed by the committed publisher key, or malformed, is refu
   assert.throws(() => releaseData({...record, sha256: 'xyz'}), /sha256/);
   assert.throws(() => releaseData({...record, version: '158.0.8127'}), /version/);
 });
+test('the release gate offers the package from the staging server itself', () => {
+  assert.equal(releaseData(record, {origin: 'https://blanc-update-staging.bnfy-441.workers.dev'}).url,
+    `https://blanc-update-staging.bnfy-441.workers.dev/update/win/pkg/${'ab'.repeat(32)}.crx3`);
+  for (const origin of ['http://blanc-update-staging.bnfy-441.workers.dev', 'https://example.com', 'https://x.workers.dev/path'])
+    assert.throws(() => releaseData(record, {origin}), /origin/);
+});
