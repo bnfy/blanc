@@ -226,6 +226,14 @@ jobs:
           } else {
             node chromium/tests/windows-install.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\install" "$shipping\Blanc-Setup-1.49.1.exe"
           }
+      - name: Updater check
+        # W3 Task B2: the beta registers with Blanc's updater, never Google
+        # Update, and the updater takes it into its records.
+        if: ${{ !cancelled() && env.CANDIDATE_CHANNEL == 'beta' }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not (Test-Path chromium/tests/windows-updater.mjs) -or -not (Test-Path "$env:CANDIDATE_DIR\UpdaterSetup.exe")) { 'No updater check for this candidate or ref.'; exit 0 }
+          node chromium/tests/windows-updater.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\updater"
       - name: Crash capture
         if: ${{ !cancelled() && env.CANDIDATE_CHANNEL != 'beta' }}
         run: |
