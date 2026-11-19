@@ -14,3 +14,9 @@ preview_urls = false
 routes = [
   { pattern = "blanc.day/update/win/*", zone_name = "blanc.day" },
 ]
+
+# Update packages (CRX3), served at /update/win/pkg/<sha256>.crx3 only while
+# release.json names them (owner, 2026-11-19: R2 through this Worker).
+[[r2_buckets]]
+binding = "PACKAGES"
+bucket_name = "blanc-windows-updates"

@@ -43,6 +43,30 @@ export function answerFor(app, release) {
   }]}};
 }
 
+// The current release's package, from the PACKAGES bucket, by its SHA-256:
+// GET (whole or one byte range) and HEAD. Nothing else is served, so a package
+// no release names can't be fetched here.
+const PACKAGE = /^\/update\/win\/pkg\/([0-9a-f]{64})\.crx3$/;
+async function servePackage(request, env, release, digest) {
+  if (request.method !== 'GET' && request.method !== 'HEAD') return plain(405, 'GET or HEAD only');
+  if (!release.version || release.sha256 !== digest) return plain(404, 'not found');
+  const key = `${digest}.crx3`;
+  const meta = await env.PACKAGES.head(key);
+  if (!meta) return plain(404, 'not found');
+  const headers = {'content-type': 'application/x-chrome-extension', 'accept-ranges': 'bytes', etag: meta.httpEtag,
+    'cache-control': 'public, max-age=31536000, immutable'};
+  const range = /^bytes=(\d+)-(\d*)$/.exec(request.headers.get('range') ?? '');
+  if (range) {
+    const start = Number(range[1]), end = range[2] === '' ? meta.size - 1 : Math.min(Number(range[2]), meta.size - 1);
+    if (start > end || start >= meta.size) return new Response(null, {status: 416, headers: {'content-range': `bytes */${meta.size}`}});
+    const length = end - start + 1;
+    const body = request.method === 'HEAD' ? null : (await env.PACKAGES.get(key, {range: {offset: start, length}})).body;
+    return new Response(body, {status: 206, headers: {...headers, 'content-length': String(length), 'content-range': `bytes ${start}-${end}/${meta.size}`}});
+  }
+  const body = request.method === 'HEAD' ? null : (await env.PACKAGES.get(key)).body;
+  return new Response(body, {status: 200, headers: {...headers, 'content-length': String(meta.size)}});
+}
+
 export function makeWorker({publicSpkiHex, release, now = () => Date.now()}) {
   let signing = null;
   async function signingKey(seedBase64) {
@@ -57,6 +81,8 @@ export function makeWorker({publicSpkiHex, release, now = () => Date.now()}) {
   }
   return {async fetch(request, env) {
     const url = new URL(request.url);
+    const pkg = PACKAGE.exec(url.pathname);
+    if (pkg) return servePackage(request, env, release, pkg[1]);
     if (url.pathname !== PATH) return plain(404, 'not found');
     if (request.method !== 'POST') return plain(405, 'POST only');
     const cup2key = url.searchParams.get('cup2key') ?? '', cup2hreq = url.searchParams.get('cup2hreq') ?? '';

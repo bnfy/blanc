@@ -40,9 +40,15 @@ function verifies(message, signature) {
 }
 async function harness(options) {
   const root = fs.mkdtempSync(path.join(work, 'root-'));
+  // The fixture adds a test-only upload route; the real Worker has none.
   fs.writeFileSync(path.join(root, 'fixture.js'), `import {makeWorker} from ${JSON.stringify(path.join(workerRoot, 'src/worker.js'))};
-export default makeWorker(${JSON.stringify(options)});\n`);
-  fs.writeFileSync(path.join(root, 'wrangler.toml'), `name = "update-test"\nmain = "fixture.js"\ncompatibility_date = "2026-10-01"\ncompatibility_flags = ["webcrypto_modern_algorithms"]\n`);
+const worker = makeWorker(${JSON.stringify(options)});
+export default {async fetch(request, env, ctx) {
+  const url = new URL(request.url);
+  if (url.pathname.startsWith('/__put/')) { await env.PACKAGES.put(url.pathname.slice(7), await request.arrayBuffer()); return new Response('ok'); }
+  return worker.fetch(request, env, ctx);
+}};\n`);
+  fs.writeFileSync(path.join(root, 'wrangler.toml'), `name = "update-test"\nmain = "fixture.js"\ncompatibility_date = "2026-10-01"\ncompatibility_flags = ["webcrypto_modern_algorithms"]\n[[r2_buckets]]\nbinding = "PACKAGES"\nbucket_name = "test-packages"\n`);
   fs.writeFileSync(path.join(root, '.dev.vars'), `CUP_SEED=${seed.toString('base64')}\n`);
   const {createTestHarness} = await import(path.join(workerRoot, 'node_modules/wrangler/wrangler-dist/cli.js'));
   const server = createTestHarness({root, workers: [{configPath: './wrangler.toml'}]});
@@ -156,6 +162,7 @@ test('the deployed Worker uses the committed key, the beta\'s app id and the upd
   // The one production route: the address compiled into the updater (updater.gni).
   const routes = [...toml.matchAll(/pattern = "([^"]+)", zone_name = "([^"]+)"/g)].map(m => [m[1], m[2]]);
   assert.deepEqual(routes, [['blanc.day/update/win/*', 'blanc.day']]);
+  assert.match(toml, /\[\[r2_buckets\]\]\nbinding = "PACKAGES"\nbucket_name = "blanc-windows-updates"/);
   assert.equal(/^update_check_url = "([^"]+)"/m.exec(gni)[1], 'https://blanc.day/update/win/v4');
 });
 test('the smoke check passes a correctly signing Worker and fails a wrong key', {skip: !haveOpenSSL && 'needs OpenSSL 3.5+'}, async t => {
@@ -167,5 +174,28 @@ test('the smoke check passes a correctly signing Worker and fails a wrong key', 
   assert.deepEqual(good, {status: 200, requestHashEchoed: true, signatureVerifies: true, safePrefix: true, updatecheck: 'ok', nextversion: RELEASE.version});
   const committed = path.join(repo, 'chromium/windows/keys/cup-public.der');
   assert.equal((await smokeCheck('https://staging.invalid', committed, {fetchImpl})).signatureVerifies, false, 'another key fails');
+});
+test('only the current release\'s package is served, whole or in ranges', {skip: !haveOpenSSL && 'needs OpenSSL 3.5+'}, async t => {
+  const pkg = crypto.randomBytes(4096), digest = sha(pkg).toString('hex');
+  const stale = crypto.randomBytes(100), staleDigest = sha(stale).toString('hex');
+  const server = await harness({publicSpkiHex: spkiHex, release: {...RELEASE, sha256: digest, size: pkg.length}}); t.after(() => server.close());
+  const worker = server.getWorker();
+  await worker.fetch(`/__put/${digest}.crx3`, {method: 'PUT', body: pkg});
+  await worker.fetch(`/__put/${staleDigest}.crx3`, {method: 'PUT', body: stale});
+  const whole = await worker.fetch(`/update/win/pkg/${digest}.crx3`);
+  assert.equal(whole.status, 200);
+  assert.equal(whole.headers.get('content-length'), String(pkg.length));
+  assert.ok(Buffer.from(await whole.arrayBuffer()).equals(pkg));
+  const part = await worker.fetch(`/update/win/pkg/${digest}.crx3`, {headers: {range: 'bytes=100-199'}});
+  assert.equal(part.status, 206);
+  assert.equal(part.headers.get('content-range'), `bytes 100-199/${pkg.length}`);
+  assert.ok(Buffer.from(await part.arrayBuffer()).equals(pkg.subarray(100, 200)));
+  const head = await worker.fetch(`/update/win/pkg/${digest}.crx3`, {method: 'HEAD'});
+  assert.equal(head.status, 200); assert.equal(head.headers.get('content-length'), String(pkg.length));
+  assert.equal((await worker.fetch(`/update/win/pkg/${staleDigest}.crx3`)).status, 404, 'a package no release names');
+  assert.equal((await worker.fetch(`/update/win/pkg/${digest}.zip`)).status, 404);
+  assert.equal((await worker.fetch(`/update/win/pkg/${digest}.crx3`, {method: 'POST'})).status, 405);
+  const none = await harness({publicSpkiHex: spkiHex, release: {appId: BROWSER, version: null}}); t.after(() => none.close());
+  assert.equal((await none.getWorker().fetch(`/update/win/pkg/${digest}.crx3`)).status, 404, 'no release, no package');
 });
 test.after(() => fs.rmSync(work, {recursive: true, force: true}));
