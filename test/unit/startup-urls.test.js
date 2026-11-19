@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
   externalUrlActivationPlan,
+  localHtmlPathsFromArgv,
   webUrlsFromArgv,
 } = require('../../src/main/startup-urls');
 
@@ -52,4 +53,38 @@ test('multi-URL handoff loads every tab but activates only the final one', () =>
     { url: 'https://only.test/', activate: true },
   ]);
   assert.deepEqual(externalUrlActivationPlan(null), []);
+});
+
+// #1630: a file Windows hands Blanc arrives as a path on the command line.
+const win = (argv) => localHtmlPathsFromArgv(argv, { platform: 'win32' });
+
+test('Windows command line yields absolute HTML paths only', () => {
+  assert.deepEqual(win([
+    'C:\\Program Files\\Blanc\\Blanc.exe',
+    '--user-data-dir=C:\\x.html',
+    'C:\\Users\\k\\Report.html',
+    'D:\\a.XHTML',
+    'C:\\Users\\KEVIN~1\\REPORT~1.HTM',
+    '\\\\server\\share\\page.htm',
+    'relative.html',
+    'C:\\Users\\k\\notes.pdf',
+    'https://example.com/a.html',
+    'C:\\bad\0.html',
+  ]), [
+    'C:\\Users\\k\\Report.html',
+    'D:\\a.XHTML',
+    'C:\\Users\\KEVIN~1\\REPORT~1.HTM',
+    '\\\\server\\share\\page.htm',
+  ]);
+});
+
+test('Windows paths after the -- separator count', () => {
+  assert.deepEqual(win(['Blanc.exe', '--', 'C:\\a.html']), ['C:\\a.html']);
+});
+
+test('local HTML paths are read from the command line on Windows only', () => {
+  assert.deepEqual(localHtmlPathsFromArgv(['/Users/k/a.html'], { platform: 'darwin' }), []);
+  assert.deepEqual(localHtmlPathsFromArgv(['/home/k/a.html'], { platform: 'linux' }), []);
+  assert.deepEqual(win(null), []);
+  assert.deepEqual(win([42, {}]), []);
 });
