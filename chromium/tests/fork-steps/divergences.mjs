@@ -368,8 +368,17 @@ export const DIVERGENCES = new Map([
   ['I activate that favorite', {divergence: 'V30', async run() {
     await this.call('clickFirstSheetLink');
     await this.waitForState((s) => !activeUrl(s).startsWith('blanc://bookmarks/'), {timeout: 10000});
+    this.favoriteOpenedInPlace = true;
   }}],
   ['exactly one new tab opens on {string}', {divergence: 'V30', async run(host) {
+    // Every other use (Become a Patron) keeps shipping's v1.49.1 step.
+    if (!this.favoriteOpenedInPlace) {
+      const now = await this.call('state');
+      assert.strictEqual(now.tabs.length, this.tabStateBefore.tabs.length + 1);
+      assert.ok(now.tabs.some((t) => t.url.includes(host)),
+        `a tab should be on ${host}: ${JSON.stringify(now.tabs.map((t) => t.url))}`);
+      return;
+    }
     // #1614: "the Favorites tab now shows" the favorite; no new tab.
     const now = await this.waitForState((s) => activeUrl(s).includes(host), {timeout: 10000});
     assert.strictEqual(now.tabs.length, this.tabStateBefore.tabs.length, 'no new tab');
