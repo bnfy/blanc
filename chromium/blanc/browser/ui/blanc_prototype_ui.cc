@@ -10628,6 +10628,10 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (method == "spaceCreateInProfile" && args.size() == 4 &&
         std::ranges::all_of(args, [](const base::Value& value) { return value.is_string(); }) &&
         args[0].GetString().size() <= 255) {
+      // A name is at most 60 characters: refuse a long one before converting it.
+      if (args[1].GetString().size() > 4096) {
+        reply(true, base::Value(SpaceElsewhereError("invalid-name"))); return;
+      }
       CreateSpaceInProfile(browser, args[0].GetString(), args[1].GetString(), args[2].GetString(),
           args[3].GetString(), SpaceElsewhereReply(id));
       return;

@@ -272,12 +272,13 @@ BrowserWindowInterface* NewSpaceWindow(Profile* profile, PendingSpaceOpen pendin
   return created;
 }
 
-// Brings forward the ordinary window of `profile` showing Space `space`.
+// Brings forward the ordinary window of `profile` showing Space `space`; a
+// hold window never counts, as OtherProfilesPayload's openElsewhere skips it.
 bool FocusSpaceWindow(Profile* profile, const std::string& space) {
   for (auto* owner : Owner::Live()) {
     auto* browser = owner->browser.get();
     if (!browser || browser->GetProfile() != profile || !IsIslandWindow(browser) || IsMiniWindow(browser) ||
-        browser->IsDeleteScheduled() || owner->space_name != space) continue;
+        IsHoldWindow(browser) || browser->IsDeleteScheduled() || owner->space_name != space) continue;
     auto* window = browser->GetWindow();
     if (window->IsMinimized()) window->Restore();
     window->Activate();

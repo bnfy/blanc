@@ -96,16 +96,22 @@ try{
  assert.deepEqual(await personalState(),before,'Personal\'s tabs and Space unchanged');
  result.checks.push('open from a closed profile: one Work window shows Listed; Personal unchanged');
 
- // double open: two requests while Work has no window open one window, and
- // both answer ok.
+ // double open: two requests while Work has no window and isn't loaded join
+ // one load (SpacesElsewhere in spaces_across_profiles.inc), open one window,
+ // and both answer ok. A relaunch with only Personal's window unloads Work.
  await w.call('closeWindowRuntime',workWindows[0].id);
  await w.waitFor(()=>runtimesOf(workDir),rs=>rs.length===0,'Work window closed');
+ w.profileHosts=new Map();await w.relaunch();
+ assert.equal((await nativeCall(f.host,'profileInfo')).directory,'Default');
+ const unloaded=await probe();
+ assert.equal(unloaded.loaded.includes(workDir),false,`Work not loaded before the double open: ${JSON.stringify(unloaded.loaded)}`);
+ assert.deepEqual(await runtimesOf(workDir),[],'Work has no window before the double open');
  const pair=await personalApi(`(o=>Promise.all([0,1].map(()=>window.BlancPrototypeHost.api.openWorkspace(${jsLiteral(listedId)},o))))({profileId:${jsLiteral(workDir)}})`);
  assert.deepEqual(pair.map(r=>r.ok),[true,true],JSON.stringify(pair));
  workWindows=await w.waitFor(()=>runtimesOf(workDir),rs=>rs.length>=1&&rs.every(r=>r.workspaceId===listedId),'Work window on Listed again');
  await new Promise(done=>setTimeout(done,1000));
  assert.equal((await runtimesOf(workDir)).length,1,'exactly one new Work window');
- result.checks.push('double open: both requests answer ok and one Work window opens');
+ result.checks.push('double open: with Work unloaded, both requests answer ok and one Work window opens');
 
  // deleted meanwhile: Listed deleted in Work, then the open answers not-found
  // and adds no Work window.
