@@ -332,6 +332,8 @@ jobs:
       DRAFT_TAG: fork-windows-candidate
       ASSET: blanc-windows-candidate.zip
       SIGNED_ASSET: blanc-windows-installer-signed.exe
+      ONLINE_ASSET: Blanc-Beta-Setup.exe
+      UPDATE_EXPECT: ${{ inputs.update_expect }}
       TRUSTED_SIGNING_VERSION: 0.5.8
     steps:
       - name: Validate inputs
@@ -373,6 +375,11 @@ jobs:
           "CANDIDATE_DIR=$env:RUNNER_TEMP\blanc" >> $env:GITHUB_ENV
           "WORK=$env:RUNNER_TEMP\repack" >> $env:GITHUB_ENV
           "SIGNED=$env:RUNNER_TEMP\signed" >> $env:GITHUB_ENV
+          # A beta candidate also carries the online installer's setup and the tag tool (W3 E1).
+          if (Test-Path "$env:RUNNER_TEMP\blanc\UpdaterSetup.exe") {
+            if (-not (Test-Path "$env:RUNNER_TEMP\blanc\tag.exe")) { throw 'A beta candidate needs tag.exe.' }
+            "UPDATER_WORK=$env:RUNNER_TEMP\repack-updater" >> $env:GITHUB_ENV
+          }
       - name: Install the tools
         run: |
           $ErrorActionPreference = 'Stop'
@@ -385,6 +392,11 @@ jobs:
         run: |
           pwsh -NoProfile -File chromium/windows/repack-installer.ps1 -Phase unpack -Installer "$env:CANDIDATE_DIR\mini_installer.exe" -Work $env:WORK
           if ($LASTEXITCODE -ne 0) { throw 'Unpacking the installer failed.' }
+      - name: Unpack the online installer's setup
+        if: ${{ env.UPDATER_WORK != '' }}
+        run: |
+          pwsh -NoProfile -File chromium/windows/repack-updater-setup.ps1 -Phase unpack -Setup "$env:CANDIDATE_DIR\UpdaterSetup.exe" -Work $env:UPDATER_WORK
+          if ($LASTEXITCODE -ne 0) { throw 'Unpacking the updater setup failed.' }
       - name: Sign the files inside
         env:
           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
@@ -396,6 +408,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $files = @(Get-ChildItem "$env:WORK\Chrome-bin" -Recurse -File -Include *.exe,*.dll | ForEach-Object FullName) + "$env:WORK\setup.exe"
+          if ($env:UPDATER_WORK) { $files += "$env:UPDATER_WORK\bin\updater.exe" }
           "Signing $($files.Count) files."
           Invoke-TrustedSigning -Endpoint $env:AZURE_ENDPOINT -CodeSigningAccountName $env:AZURE_CODE_SIGNING_ACCOUNT -CertificateProfileName $env:AZURE_CERT_PROFILE `
             -FileDigest SHA256 -TimestampRfc3161 'http://timestamp.acs.microsoft.com' -TimestampDigest SHA256 -Files ($files -join ',')
@@ -414,23 +427,48 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Packing the installer failed.' }
           Invoke-TrustedSigning -Endpoint $env:AZURE_ENDPOINT -CodeSigningAccountName $env:AZURE_CODE_SIGNING_ACCOUNT -CertificateProfileName $env:AZURE_CERT_PROFILE `
             -FileDigest SHA256 -TimestampRfc3161 'http://timestamp.acs.microsoft.com' -TimestampDigest SHA256 -Files "$env:SIGNED\$env:SIGNED_ASSET"
+      - name: Pack, sign and tag the online installer
+        if: ${{ env.UPDATER_WORK != '' }}
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_ENDPOINT: ${{ vars.AZURE_TRUSTED_SIGNING_ENDPOINT }}
+          AZURE_CODE_SIGNING_ACCOUNT: ${{ vars.AZURE_CODE_SIGNING_ACCOUNT_NAME }}
+          AZURE_CERT_PROFILE: ${{ vars.AZURE_CERTIFICATE_PROFILE_NAME }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          pwsh -NoProfile -File chromium/windows/repack-updater-setup.ps1 -Phase pack -Setup "$env:CANDIDATE_DIR\UpdaterSetup.exe" -Work $env:UPDATER_WORK -Output "$env:SIGNED\UpdaterSetup-signed.exe"
+          if ($LASTEXITCODE -ne 0) { throw 'Packing the updater setup failed.' }
+          Invoke-TrustedSigning -Endpoint $env:AZURE_ENDPOINT -CodeSigningAccountName $env:AZURE_CODE_SIGNING_ACCOUNT -CertificateProfileName $env:AZURE_CERT_PROFILE `
+            -FileDigest SHA256 -TimestampRfc3161 'http://timestamp.acs.microsoft.com' -TimestampDigest SHA256 -Files "$env:SIGNED\UpdaterSetup-signed.exe"
+          # The tag goes in the signature's unsigned part, after signing (chrome/updater/tag.cc).
+          $tag = node --input-type=module -e "import fs from 'node:fs'; import {installTag, updaterNames} from './chromium/windows/updater-check.mjs'; console.log(installTag(updaterNames(fs.readFileSync('chromium/blanc/branding/win-beta/updater.gni', 'utf8'))))"
+          & "$env:CANDIDATE_DIR\tag.exe" "--set-tag=$tag" "--out=$env:SIGNED\$env:ONLINE_ASSET" "$env:SIGNED\UpdaterSetup-signed.exe"
+          if ($LASTEXITCODE -ne 0) { throw 'Tagging the online installer failed.' }
+          $read = (& "$env:CANDIDATE_DIR\tag.exe" --get-tag "$env:SIGNED\$env:ONLINE_ASSET" | Out-String).Trim()
+          if ($read -ne $tag) { throw "The online installer's tag reads back as '$read', not '$tag'." }
+          "Tagged $env:ONLINE_ASSET with $tag"
       - name: Verify every signature
         env:
           EXPECTED_PUBLISHER: ${{ vars.WINDOWS_EXPECTED_PUBLISHER }}
         run: |
           $ErrorActionPreference = 'Stop'
           $files = @(Get-ChildItem "$env:WORK\Chrome-bin" -Recurse -File -Include *.exe,*.dll | ForEach-Object FullName) + "$env:WORK\setup.exe" + "$env:SIGNED\$env:SIGNED_ASSET"
+          if ($env:UPDATER_WORK) { $files += "$env:UPDATER_WORK\bin\updater.exe", "$env:SIGNED\UpdaterSetup-signed.exe", "$env:SIGNED\$env:ONLINE_ASSET" }
           $records = foreach ($file in $files) {
             $signature = Get-AuthenticodeSignature -FilePath $file
             if ($signature.Status -ne 'Valid') { throw "$file is not validly signed: $($signature.Status) $($signature.StatusMessage)" }
             if ($signature.SignerCertificate.Subject -ne $env:EXPECTED_PUBLISHER) { throw "$file is signed by $($signature.SignerCertificate.Subject)" }
             if (-not $signature.TimeStamperCertificate) { throw "$file has no timestamp." }
-            [ordered]@{ file = $file.Replace("$env:WORK\", '').Replace("$env:SIGNED\", ''); sha256 = (Get-FileHash $file -Algorithm SHA256).Hash.ToLower()
+            [ordered]@{ file = $file.Replace("$env:WORK\", '').Replace("$env:SIGNED\", '').Replace("$env:UPDATER_WORK\", 'updater\'); sha256 = (Get-FileHash $file -Algorithm SHA256).Hash.ToLower()
               publisher = $signature.SignerCertificate.Subject; thumbprint = $signature.SignerCertificate.Thumbprint; timestamper = $signature.TimeStamperCertificate.Subject }
           }
           [ordered]@{ schemaVersion = 1; candidateZipSha256 = $env:CANDIDATE_SHA256; installer = $env:SIGNED_ASSET; files = @($records) } | ConvertTo-Json -Depth 4 | Set-Content "$env:SIGNED\windows-signature.json"
           "Verified $(@($records).Count) signatures."
       - name: Install check on the signed installer
+        # Not with an online check: that one needs a runner without the beta.
+        if: ${{ inputs.update_expect == '' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -445,12 +483,34 @@ jobs:
           node chromium/tests/windows-install.mjs "$env:CANDIDATE_DIR" "$env:RUNNER_TEMP\results\install-signed" "$shipping\Blanc-Setup-1.49.1.exe" "--installer=$env:SIGNED\$env:SIGNED_ASSET" --signed
           if ($LASTEXITCODE -ne 0) { throw 'The signed installer failed the install check.' }
           Get-Content "$env:RUNNER_TEMP\results\install-signed\install.json"
+      - name: Online install check on the signed online installer
+        # W3 Task E1: the signed, tagged setup alone, reading its own tag,
+        # installs the beta the update server offers (update_expect=online:V).
+        if: ${{ env.UPDATER_WORK != '' && startsWith(inputs.update_expect, 'online:') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $shipping = "$env:RUNNER_TEMP\shipping"
+          gh release download v1.49.1 --repo $env:GITHUB_REPOSITORY --pattern 'Blanc-Setup-1.49.1.exe' --pattern 'SHA256SUMS' --dir $shipping
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download the shipping installer.' }
+          $expected = (Get-Content "$shipping\SHA256SUMS" | Where-Object { $_ -match 'Blanc-Setup-1\.49\.1\.exe$' }) -split '\s+' | Select-Object -First 1
+          if ((Get-FileHash "$shipping\Blanc-Setup-1.49.1.exe" -Algorithm SHA256).Hash.ToLower() -ne $expected.ToLower()) { throw 'The shipping installer does not match the release.' }
+          npm ci --ignore-scripts
+          if ($LASTEXITCODE -ne 0) { throw 'npm ci failed.' }
+          $version = $env:UPDATE_EXPECT.Substring(7)
+          if ($version -notmatch '^\d+\.\d+\.\d+\.\d+$') { throw 'update_expect must be online:<version>.' }
+          node chromium/tests/windows-update-proof.mjs "$env:CANDIDATE_DIR" "$env:RUNNER_TEMP\results\online-signed" "$env:RUNNER_TEMP\shipping\Blanc-Setup-1.49.1.exe" "--online=$version" "--setup=$env:SIGNED\$env:ONLINE_ASSET" --tagged
+          if ($LASTEXITCODE -ne 0) { throw 'The signed online installer failed the online install check.' }
+          Get-Content "$env:RUNNER_TEMP\results\online-signed\update-proof.json"
       - name: Keep the signed installer on the draft release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
-          gh release upload $env:DRAFT_TAG "$env:SIGNED\$env:SIGNED_ASSET" "$env:SIGNED\windows-signature.json" --repo $env:GITHUB_REPOSITORY --clobber
+          $assets = @("$env:SIGNED\$env:SIGNED_ASSET", "$env:SIGNED\windows-signature.json")
+          if ($env:UPDATER_WORK) { $assets += "$env:SIGNED\$env:ONLINE_ASSET" }
+          gh release upload $env:DRAFT_TAG @assets --repo $env:GITHUB_REPOSITORY --clobber
           if ($LASTEXITCODE -ne 0) { throw 'Could not upload the signed installer.' }
           $sha = (Get-FileHash "$env:SIGNED\$env:SIGNED_ASSET" -Algorithm SHA256).Hash.ToLower()
           "### Signed Windows preview installer", "", "- ``$env:SIGNED_ASSET`` SHA-256 ``$sha``, on the draft release ``$env:DRAFT_TAG`` (never published)" -join "`n" >> $env:GITHUB_STEP_SUMMARY
