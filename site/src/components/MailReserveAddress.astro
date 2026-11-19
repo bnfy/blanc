@@ -2,8 +2,10 @@
 // Reserve a Blanc Mail address (Blanc Mail repo spec
 // docs/superpowers/specs/2026-11-18-address-reservations-design.md). Talks to the Mail
 // Worker's /mail/api/v1/reservations/* routes on blanc.day (same origin). Steps: a name
-// with a live availability line, then an email and Cloudflare Turnstile, then the
-// 6-digit code that confirms it. It lives on /mail/reserve (owner: its own page, not
+// with a live availability line, then an email and Cloudflare Turnstile, then a step that
+// says to check the inbox and takes the 6-digit code that confirms it. Every email gets that
+// same step, so the page never says whether an email already holds an address: one that does
+// is emailed which one instead of a code. It lives on /mail/reserve (owner: its own page, not
 // the Mail page). Nothing renders until src/data/mail-reservations.json says "open",
 // so the block can't appear before the Worker can accept it. The widget's site key is
 // public and lives there too; its secret is the Worker's TURNSTILE_SECRET. The privacy page's
@@ -24,15 +26,16 @@ const ending = 'blnc.day';
       <p class="mail-reserve-availability" id="mailReserveAvailability" role="status" aria-live="polite"></p>
 
       <label class="mail-reserve-label" for="mailReserveEmail">Your current email</label>
-      <p class="mail-reserve-hint" id="mailReserveEmailHint">We’ll send a code here to confirm it’s you. Later, use this email as your backup email to claim the address.</p>
+      <p class="mail-reserve-hint" id="mailReserveEmailHint">We’ll email you here to confirm it’s you. Later, use this email as your backup email to claim the address.</p>
       <input class="mail-reserve-input" id="mailReserveEmail" name="email" type="email" required maxlength="254" placeholder="you@example.com" autocomplete="email" aria-describedby="mailReserveEmailHint">
       <div class="mail-reserve-turnstile" data-turnstile></div>
       <button class="mail-reserve-button" type="submit" disabled>Reserve</button>
     </div>
 
     <div class="mail-reserve-step" data-step="code" hidden>
-      <label class="mail-reserve-label" for="mailReserveCode">Check your email for a 6-digit code</label>
-      <input class="mail-reserve-input mail-reserve-code" id="mailReserveCode" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code">
+      <p class="mail-reserve-label" id="mailReserveSent">Check your inbox for next steps.</p>
+      <label class="mail-reserve-hint" for="mailReserveCode">If the email has a 6-digit code, enter it here to finish reserving.</label>
+      <input class="mail-reserve-input mail-reserve-code" id="mailReserveCode" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" aria-describedby="mailReserveSent">
       <button class="mail-reserve-button" type="button" data-confirm>Confirm</button>
       <button class="mail-reserve-back" type="button" data-back>Use a different email or send a new code</button>
     </div>
@@ -59,6 +62,8 @@ const ending = 'blnc.day';
     reserved: 'That address isn’t available.',
     format: 'Use 3 to 32 letters, numbers, dots, hyphens or underscores, without a dot at either end.',
     backup_email: 'Use an email that isn’t a Blanc Mail address.',
+    // The Worker stopped answering this once it began treating every email alike (it
+    // emails the holder instead). Kept only until that Worker is live; then delete it.
     has_reservation: 'That email already holds a Blanc Mail address. Each email can hold one. We’ve emailed you which one, with a link to release it if you’d rather have a different one.',
     turnstile: 'We couldn’t check that you’re not a bot. Please try again.',
     code: 'That code isn’t right, or it has expired.',
