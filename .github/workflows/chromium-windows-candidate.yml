@@ -296,8 +296,9 @@ jobs:
           $expected = (Get-Content "$shipping\SHA256SUMS" | Where-Object { $_ -match 'Blanc-Setup-1\.49\.1\.exe$' }) -split '\s+' | Select-Object -First 1
           if ((Get-FileHash "$shipping\Blanc-Setup-1.49.1.exe" -Algorithm SHA256).Hash.ToLower() -ne $expected.ToLower()) { throw 'The shipping installer does not match the release.' }
           $mode = if ($env:UPDATE_EXPECT -eq 'refused') { '--expect-refused' } elseif ($env:UPDATE_EXPECT -like 'online:*') { "--online=$($env:UPDATE_EXPECT.Substring(7))" } else { "--expect=$env:UPDATE_EXPECT" }
-          $extra = @(); if ($env:REPACKED_SETUP -and $mode -like '--online=*') { $extra += "--setup=$env:REPACKED_SETUP" }
+          $extra = @()
           if ($env:UPDATE_STAGING) { $extra += "--staging=$env:UPDATE_STAGING" }
+          elseif ($env:REPACKED_SETUP -and $mode -like '--online=*') { $extra += "--setup=$env:REPACKED_SETUP" }
           node chromium/tests/windows-update-proof.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\update-proof" "$shipping\Blanc-Setup-1.49.1.exe" $mode @extra
       - name: Crash capture
         if: ${{ !cancelled() && env.CANDIDATE_CHANNEL != 'beta' }}

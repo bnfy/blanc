@@ -28,6 +28,7 @@ const tagged = extra.includes('--tagged');
 const staging = extra.find(o => o.startsWith('--staging='))?.slice('--staging='.length) ?? null;
 if (staging && !/^https:\/\/[a-z0-9.-]+\.workers\.dev$/.test(staging)) throw Error(`--staging must be a workers.dev address: ${staging}`);
 if (extra.some(o => !o.startsWith('--setup=') && o !== '--tagged' && !o.startsWith('--staging='))) throw Error(`Unknown option: ${extra.join(' ')}`);
+if (staging && setupOption) throw Error('--staging installs with the test setup, which reads overrides.json; --setup does not apply.');
 const defaultSetup = staging ? 'UpdaterSetup_test.exe' : 'UpdaterSetup.exe';
 const expect = mode?.startsWith('--expect=') ? mode.slice('--expect='.length) : null;
 const online = mode?.startsWith('--online=') ? mode.slice('--online='.length) : null;
