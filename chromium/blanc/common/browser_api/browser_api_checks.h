@@ -186,7 +186,8 @@ inline bool IsValidWorkspaceErrorCode(std::string_view value) {
          value == "saved-not-opened" ||
          value == "storage-failed" ||
          value == "unsaved-scratch" ||
-         value == "saved-not-moved";
+         value == "saved-not-moved" ||
+         value == "profile-unavailable";
 }
 
 inline bool IsValidWorkspaceProtectionReason(std::string_view value) {
