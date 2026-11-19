@@ -679,3 +679,86 @@ Feature: Named workspace preservation and recovery
     And this window is saved as the space "One"
     And I open the group menu for "Research" in the island
     Then the group menu has "Move Group to Space"
+
+  @F41-83 @F41 @F33 @desktop
+  Scenario: One profile needs no profile headings or choice
+    Given Personal is my only profile and has a Space named "Home"
+    And the tabs are in the side list
+    When I open the Spaces menu from the space mark
+    Then the menu shows "Home" without a profile heading
+    When I choose New Space in the Spaces menu
+    Then the New Space editor has no Profile choice
+
+  @F41-84 @F41 @F33 @desktop
+  Scenario: The Spaces menu puts this window's profile first
+    Given Personal is my only profile and has a Space named "Home"
+    And a Work profile with a saved Space named "Sprint" that no window shows
+    And the tabs are in the side list
+    When I open the Spaces menu from the space mark
+    Then the Spaces menu lists "Home" under "Personal" before "Sprint" under "Work"
+
+  @F41-85 @F41 @F33 @desktop
+  Scenario: A Work Space that is open nowhere opens in a new Work window
+    Given a Work profile with a saved Space named "Sprint" that no window shows
+    And this window is showing a web page
+    When I choose "Sprint" under "Work" in the Spaces menu
+    Then a new Work window shows "Sprint"
+    And this Personal window still shows its web page, with no prompt shown
+
+  @F41-86 @F41 @F33 @desktop
+  Scenario: A Work Space already on screen brings its window forward
+    Given a Work window showing the Space "Sprint"
+    When I choose "Sprint" under "Work" in the Spaces menu
+    Then the existing Work window showing "Sprint" comes forward
+
+  @F41-87 @F41 @F33 @desktop
+  Scenario: A set-aside Work Space opens with its page as it was
+    Given a Work Space named "Sprint" set aside with an unfinished draft
+    When I choose "Sprint" under "Work" in the Spaces menu
+    Then a new Work window shows "Sprint"
+    And the draft in "Sprint" is still on the page
+
+  @F41-88 @F41 @F33 @desktop
+  Scenario: A Space created in another profile starts empty
+    Given a Work profile with a window
+    And this window is showing a web page
+    And the tabs are in the side list
+    When I open the Spaces menu from the space mark
+    And I choose New Space in the Spaces menu
+    And I choose the "Work" profile in the editor
+    Then the editor selects Empty and disables This window
+    When I create the Space "Sprint" from the editor
+    Then a new Work window shows "Sprint"
+    And "Sprint" is empty and appears in Work's Spaces list
+
+  @F41-89 @F41 @F33 @desktop
+  Scenario: The Spaces menu only opens Spaces from another profile
+    Given a Work window showing the Space "Sprint"
+    And another Work Space named "Planning"
+    And the tabs are in the side list
+    When I open the Spaces menu from the space mark
+    Then "Sprint" under "Work" offers no way to edit, delete, or reorder it
+
+  @F41-90 @F41 @F33 @desktop
+  Scenario: The Quick Switcher can open a Space from another profile
+    Given a Work profile with a saved Space named "Sprint" that no window shows
+    When I search for "Sprint" in the Quick Switcher
+    Then I see "Sprint" labeled "Space · Work"
+    When I choose that Quick Switcher result
+    Then a new Work window shows "Sprint"
+
+  @F41-91 @F41 @F33 @desktop
+  Scenario: A profile being deleted disappears from the Spaces menu
+    Given a Work profile with a saved Space named "Sprint" that no window shows
+    And the tabs are in the side list
+    When I open the Spaces menu from the space mark
+    Then I see "Sprint" under "Work"
+    When deletion of the Work profile is underway and I reopen the menu
+    Then the Spaces menu no longer shows "Work" or "Sprint"
+
+  @F41-92 @F41 @F33 @desktop @F57
+  Scenario: A Work window lists Personal's shared Spaces without sync marks
+    Given a Shared Spaces fixture with the Work Space shared
+    And a Work profile with a window
+    When I open the Spaces menu in the Work window
+    Then I see "Work" under "Personal" without the sync marks

@@ -5,6 +5,10 @@ since then are below as they're recorded.
 
 ## Added
 
+- **Spaces across profiles.** With more than one profile, the Spaces menu
+  lists every profile's Spaces. Choose one to open it in a window of its
+  profile, with its own sign-ins. You can also create a Space in another
+  profile.
 - **Open local HTML files on Windows.** Choosing Blanc under **Open with** for
   an `.html` file now opens it, as on a Mac, instead of opening Blanc with
   nothing in it (#1630). The file shows in a separate, static preview window:

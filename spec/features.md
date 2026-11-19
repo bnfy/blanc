@@ -892,6 +892,9 @@ From the desktop `DEFAULTS`:
   incomplete cleanup retries during the run and at the next launch.
 - Local profiles rely on the desktop multi-window/session model and are N/A on
   the phone ports (D25).
+- The Spaces menu and Quick Switcher can open a Space in a window of its own
+  profile. The New Space editor can create an empty Space in another profile
+  (F41).
 - **Acceptance:** the scenarios in
   [`acceptance/local-profiles.feature`](./acceptance/local-profiles.feature)
   exercise Settings creation, per-profile Favorites, normal/private partition
@@ -1345,6 +1348,13 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   chosen Spaces through end-to-end-encrypted Profile Sync (F57); private tabs,
   internal pages, local files and document-policy-restricted pages never enter
   the encrypted records.
+  - On Electron desktop, the Spaces menu groups Spaces by profile, with the
+    current window's profile first. Choosing another profile's Space brings
+    its window forward or opens a new window of that profile, preserving all
+    open tabs. The New Space editor can create an empty Space in another
+    profile, and the Quick Switcher can find and open its Spaces. Editing,
+    ordering, moving tabs, and Shared Spaces sync marks stay within their
+    own profile. The cross-profile controls are N/A on phones (D25).
 - If a shared tab navigates to an internal page, local file, or another
   unshareable page, its shared record stays at the last shareable HTTP(S) page.
   Other devices keep showing that page. Only actually closing the tab publishes
@@ -1353,9 +1363,10 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   [`acceptance/F41-named-workspaces.feature`](./acceptance/F41-named-workspaces.feature)
   (`@workspace`, bound in `test/desktop/steps/named-workspaces.steps.js`,
   `test/desktop/steps/workspace-lifecycle.steps.js`,
-  `test/desktop/steps/spaces-redesign.steps.js` and
-  `test/desktop/steps/move-to-space.steps.js` and
-  `test/desktop/steps/group-space.steps.js`);
+  `test/desktop/steps/spaces-redesign.steps.js`,
+  `test/desktop/steps/move-to-space.steps.js`,
+  `test/desktop/steps/group-space.steps.js`, and
+  `test/desktop/steps/spaces-across-profiles.steps.js`);
   `test/unit/workspace*.test.js`, `test/unit/space*.test.js`.
 
 - **Open Link in Space:** the page link menu offers other spaces and New Space… for normal web links. A space shown in another window loads a background tab there; a set-aside space receives a quiet tab; a closed space receives only a saved record. Deferred writes are checked before adding a tab. New Space fixes its start to “With this link” and saves without loading. Private tabs and non-web links do not offer it. Failures open the existing Spaces error surface; success is announced to screen readers. F41-51–57 cover destinations, restart, write failures and quiet-tab rollback.
