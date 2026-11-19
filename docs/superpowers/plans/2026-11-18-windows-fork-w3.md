@@ -97,12 +97,12 @@ Chromium's own updater talking to Blanc's update server.
 **Files:** a patch to `chrome/updater/branding.gni` importing `//blanc/branding/win-beta/updater.gni`
 for the beta channel; that file; `chromium/tools/windows-updater-branding.test.mjs`.
 
-- [ ] **Failing test:** every value `branding_google.gni` sets has a Blanc value: updater name
+- [x] **Failing test:** every value `branding_google.gni` sets has a Blanc value: updater name
       `Blanc Updater`, company `Bananify Creative`, short names, fresh random `updater_appid`,
       `browser_appid`, `qualification_appid`, every COM class and interface GUID, mutex and service
       prefixes, `update_check_url = "https://blanc.day/update/win/v4"`, and `crx_pkhash` = the
       publisher key's hash (Task B3). None equals Chromium's or Google's values (read from the pin).
-- [ ] Write the file and the patch; GUIDs generated once and committed.
+- [x] Write the file and the patch; GUIDs generated once and committed.
 
 ### Task B2: updater integration in a Blanc build
 
@@ -110,10 +110,10 @@ for the beta channel; that file; `chromium/tools/windows-updater-branding.test.m
 `blanc_channel == "beta" && is_win`); fixes for whatever Google-only code that turns on; install
 modes' channel strategy `FIXED` to `beta`.
 
-- [ ] Turn it on for the beta and build; fix each compile or link failure at its cause, keeping
+- [x] Turn it on for the beta and build; fix each compile or link failure at its cause, keeping
       Google-specific services (metrics upload, Google Update policy) off.
-- [ ] Build `//chrome/updater:updater` and its setup program for the beta output.
-- [ ] **Check:** the beta installer writes the app's `Clients\{browser_appid}` version under the
+- [x] Build `//chrome/updater:updater` and its setup program for the beta output.
+- [x] **Check:** the beta installer writes the app's `Clients\{browser_appid}` version under the
       updater's company key, and `updater.exe --install` then `--wake` finds the app registered.
 
 ### Task B3: Blanc's keys in the app
