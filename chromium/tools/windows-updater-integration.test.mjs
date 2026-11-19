@@ -46,6 +46,12 @@ test('the beta\'s install mode is pinned to the beta channel, with its app id', 
   assert.match(modes, /ChannelStrategy::FIXED/);
   assert.match(patch, /^ {9}\.channel_strategy = ChannelStrategy::UNSUPPORTED,$/m, 'the preview keeps no channel');
 });
+test('the beta\'s setup.exe carries the channel override its integration calls', () => {
+  const gn = added('chrome/installer/setup/BUILD.gn');
+  assert.match(gn, /^\+import\("\/\/blanc\/config\.gni"\)$/m);
+  assert.equal((gn.match(/^\+    if \(is_chrome_branded \|\| blanc_channel == "beta"\) \{$/gm) ?? []).length, 2,
+    'the source and its unit test');
+});
 test('the About page checks through the updater on the Windows beta', () => {
   assert.match(added('chrome/browser/ui/webui/help/BUILD.gn'), /^\+    if \(is_chrome_branded \|\| blanc_channel == "beta"\) \{$/m);
 });

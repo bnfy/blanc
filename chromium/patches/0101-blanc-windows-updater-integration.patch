@@ -121,3 +121,35 @@ index bdd057b..9444de2 100644
  }
  #else
  std::wstring GetUnregisteredKeyPathForProduct() {
+diff --git a/chrome/installer/setup/BUILD.gn b/chrome/installer/setup/BUILD.gn
+index e7e695f..c65aeb6 100644
+--- a/chrome/installer/setup/BUILD.gn
++++ b/chrome/installer/setup/BUILD.gn
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//blanc/config.gni")
+ import("//build/buildflag_header.gni")
+ import("//build/config/chrome_build.gni")
+ import("//chrome/process_version_rc_template.gni")
+@@ -143,7 +144,9 @@ if (is_win) {
+       deps += [ "//services/webnn/public/cpp:win" ]
+     }
+ 
+-    if (is_chrome_branded) {
++    # Blanc: the Windows beta integrates with Blanc's updater, whose channel
++    # selection this work item serves (install_worker.cc).
++    if (is_chrome_branded || blanc_channel == "beta") {
+       sources += [
+         "channel_override_work_item.cc",
+         "channel_override_work_item.h",
+@@ -216,7 +219,7 @@ if (is_win) {
+ 
+     libs = [ "netapi32.lib" ]
+ 
+-    if (is_chrome_branded) {
++    if (is_chrome_branded || blanc_channel == "beta") {
+       sources += [ "channel_override_work_item_unittest.cc" ]
+     }
+ 

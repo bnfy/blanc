@@ -121,6 +121,7 @@
     "chrome/install_static/chromium_install_modes.h": "f1e173ce85627969b995e1844a9260d31aef8f4b27ccdca9ac728b60c4f23cd1",
     "chrome/install_static/install_modes.cc": "b49174b3e2f3d96cb3989a80748ebb7359caea1170501abc1ac1d65a7b076e4a",
     "chrome/installer/mini_installer/chrome.release": "06da138e8192bf6ccf4e589ff943792acaaeac0a04ee14beaa27f540beef6eae",
+    "chrome/installer/setup/BUILD.gn": "ed98b0ab7fb852c206626bd638364e3b9a844ab0e3809177d708134449315e29",
     "chrome/installer/util/install_util.cc": "b72e2513711ee72bcedc746cf3ec5c38ae4c39c3064b285eadb27d3c2723d722",
     "chrome/renderer/BUILD.gn": "f25df03e4241f9fa16ea5d53060e124e175cff149c31e9d620237b4bb25a3da7",
     "chrome/renderer/chrome_content_renderer_client.cc": "51fceabd15f5f94cd22cd434425a4a5cedb4dc22ba7541a0da93bffeece39244",
