@@ -945,6 +945,28 @@ export interface GlanceCardReset {
   generation: number;
 }
 
+/** One Start Page wallpaper layer's computed background (start-backdrop.js checks it). */
+export interface BackdropLayer {
+  color: string;
+  image: string;
+  size: string;
+  position: string;
+  repeat: string;
+  opacity: number;
+  fade: boolean;
+}
+
+/** The active Start Page's wallpaper for the Island's band to continue: the page's size and zoom, its layers, and the band's height above it. */
+export interface PageBackdrop {
+  id: TabId;
+  zoom: number;
+  width: number;
+  height: number;
+  layers: BackdropLayer[];
+  band: number;
+  sunriseAt?: number;
+}
+
 export interface BlancBrowserAPI {
   /**
    * The host OS as Electron's sandboxed process reports it.
@@ -1675,6 +1697,11 @@ export interface BlancBrowserAPI {
    * IPC: event `chrome:page-tint`.
    */
   onPageTint(callback: (payload: PageTint) => void): () => void;
+  /**
+   * The active Start Page's wallpaper for the band, or null where the band keeps its sampled color.
+   * IPC: event `chrome:page-backdrop`.
+   */
+  onPageBackdrop(callback: (payload: PageBackdrop | null) => void): () => void;
   /**
    * Download activity for the strip indicator.
    * IPC: event `chrome:downloads`.

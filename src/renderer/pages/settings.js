@@ -203,7 +203,6 @@
 
   // --- Core: theme / search engine / adblock (always supported) ---
   const theme = document.getElementById('theme');
-  const newtabLayout = document.getElementById('newtabLayout');
   const showWelcomeTour = document.getElementById('showWelcomeTour');
   const searchEngine = document.getElementById('searchEngine');
   const searchSuggestions = document.getElementById('searchSuggestions');
@@ -291,7 +290,6 @@
     searchEngine.append(opt);
   }
   theme.value = settings.theme ?? 'system';
-  newtabLayout.value = settings.newtabLayout ?? 'billboard';
   searchSuggestions.checked = settings.searchSuggestions ?? false;
   adblockEnabled.checked = settings.adblockEnabled;
 
@@ -326,8 +324,6 @@
       window.bowserPages.settings.get().then(({ settings: saved }) => showSurfaceStyle(saved.surfaceStyle), () => {});
     }
   });
-  newtabLayout.addEventListener('change', () =>
-    window.bowserPages.settings.set({ newtabLayout: newtabLayout.value }));
   if (supports('launchSunrise')) {
     const launchSunrise = document.getElementById('launchSunrise');
     launchSunrise.checked = settings.launchSunrise === true;

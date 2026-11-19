@@ -57,12 +57,12 @@ test('the overview says what Mail is and that it is coming, with one labelled sc
         lead: section.querySelector('.mail-soon-lead').textContent.trim(),
         envelopeHidden: section.querySelector('.mail-envelope').getAttribute('aria-hidden'),
         screenshots: [...document.querySelectorAll('img[src*="/mail/screens/"]')].map(img => [img.getAttribute('src'), img.closest('figure.mail-shot')?.querySelector('figcaption')?.textContent.trim()]),
-        browser: document.querySelector('.mail-stage-notes a').getAttribute('href'),
+        browser: document.querySelector('.mail-stage-notes a[href="/download"]')?.getAttribute('href'),
       };
     });
     assert.equal(soon.eyebrow, 'Blanc Mail · for Mac · Coming soon');
     assert.equal(soon.title, 'A little less inbox.');
-    assert.equal(soon.lead, 'Blanc Mail brings a careful, native experience for Gmail and Proton Mail to your Mac.');
+    assert.equal(soon.lead, 'Blanc Mail brings a careful, native experience for Gmail and Proton Mail to your Mac, and a private mailbox of your own.');
     assert.equal(soon.envelopeHidden, 'true', 'the envelope is decoration');
     assert.deepEqual(soon.screenshots, [['/mail/screens/rule-editor.webp', 'Preview build']]);
     assert.equal(soon.browser, '/download');
@@ -84,14 +84,57 @@ test('the features and the careful row list what Mail does, each with a gilt gly
       island: [...document.querySelectorAll('.mip-row')].map(row => row.textContent.trim()),
       islandPoints: [...document.querySelectorAll('.mail-island-points h3')].map(h => h.textContent.trim()),
     }));
-    assert.deepEqual(list.headings, ['The Island, made for mail.', 'Every account, one calm inbox.', 'Rules that read like sentences', 'Careful in what it sends, generous in what it accepts.', 'A good home for your mail.', 'Support', 'Blanc Mail for Mac.']);
+    assert.deepEqual(list.headings, ['A new look for your inbox.', 'A Blanc Mail address of your own.', 'The Island, made for mail.', 'Every account, one calm inbox.', 'Rules that read like sentences', 'Careful in what it sends, generous in what it accepts.', 'A good home for your mail.', 'Support', 'Blanc Mail for Mac.']);
     // The Island figure lists the app's eight commands in its own order and words.
-    assert.deepEqual(list.island, ['/snoozeSnooze…', '/set-asideSet Aside', '/labelLabels', '/moveMove To…', '/archiveArchive', '/trashTrash', '/composeNew Message', '/ruleNew Rule…']);
+    assert.deepEqual(list.island, ['/snoozeSnooze…', '/set-asideMove to Group…', '/labelLabels', '/moveMove To…', '/archiveArchive', '/trashTrash', '/composeNew Message', '/ruleNew Rule…']);
     assert.deepEqual(list.islandPoints, ['Jump anywhere', 'Commands with a slash', 'Actions at hand']);
-    assert.deepEqual(list.features, ['Every account together', 'Set Aside', 'A native window', 'Gmail and Proton Mail', 'A moment to change your mind', 'Later, on your terms', 'Ghost Mode', 'Replies you type often', 'Drafts that keep up']);
+    assert.deepEqual(list.features, ['Every account together', 'Groups', 'A native window', 'Gmail and Proton Mail', 'A moment to change your mind', 'Later, on your terms', 'Ghost Mode', 'Replies you type often', 'Drafts that keep up']);
     assert.deepEqual(list.careful, ['Safe to read', 'No accidental double sends', 'Nothing added to your mail', 'Privacy choices']);
     for (const stroke of list.glyphs) assert.match(stroke, /url\(.*#mail-gilt-stroke.*\)/);
   } finally { await context.close(); }
+});
+
+// The design teasers (docs/website-mail-claims-2026-11-17.md) show one window
+// at a time, each labelled "Design preview", switched by radios in CSS.
+const teaserState = page => page.evaluate(() => [...document.querySelectorAll('.mail-teaser-set')].map(set => ({
+  checked: set.querySelector('input:checked').value,
+  shown: [...set.querySelectorAll('.mail-teaser')].filter(f => getComputedStyle(f).display !== 'none').map(f => f.dataset.teaser),
+  captions: [...set.querySelectorAll('.mail-teaser figcaption')].map(c => c.textContent.trim()),
+  alts: [...set.querySelectorAll('.mail-teaser img')].every(img => /^Design preview/.test(img.alt)),
+})));
+
+test('the design teasers open in the visitor’s appearance, switch in place, and are labelled as previews', async () => {
+  const dark = await openPage('/mail', 1440, { colorScheme: 'dark' });
+  try {
+    const [look, address] = await teaserState(dark.page);
+    assert.deepEqual([look.checked, look.shown], ['dark', ['dark']]);
+    assert.deepEqual([address.checked, address.shown], ['offer', ['offer']]);
+    for (const set of [look, address]) {
+      assert.ok(set.captions.every(c => c === 'Design preview'), set.captions.join());
+      assert.ok(set.alts, 'every alt says it is a design preview');
+    }
+    assert.deepEqual((await dark.page.locator('.mail-address label').allTextContents()).map(t => t.trim()), ['Get started', 'Pick a name', 'Open inbox']);
+    await dark.page.locator('.mail-address label', { hasText: 'Open inbox' }).click();
+    assert.deepEqual((await teaserState(dark.page))[1].shown, ['ready']);
+    // Keyboard: the radios move with the arrow keys.
+    await dark.page.locator('.mail-look input[value="dark"]').focus();
+    await dark.page.keyboard.press('ArrowRight');
+    assert.deepEqual((await teaserState(dark.page))[0].shown, ['light']);
+    assert.match(await dark.page.locator('.mail-address .mail-section-lead').textContent(), /^A private mailbox of your own,.* Add it to Blanc Mail for \$20 a year, or get it with Blanc Bundle,/);
+    // The address's features, and none of the claims the owner ruled out.
+    const points = await dark.page.locator('.mail-address-points h3').allTextContents();
+    assert.deepEqual(points, ['Your name, your ending', '15 GB for your mail', 'Encrypted where it’s stored', 'Back in with a code', 'Time to renew', 'Filtered for spam']);
+    const addressText = await dark.page.locator('.mail-address').textContent();
+    assert.doesNotMatch(addressText, /can[’']t read your mail|Apple Mail|iPhone|iPad|end-to-end/i);
+  } finally { await dark.context.close(); }
+
+  const light = await openPage('/mail', 390, { colorScheme: 'light', viewport: { width: 390, height: 844 } });
+  try {
+    const [look] = await teaserState(light.page);
+    assert.deepEqual([look.checked, look.shown], ['light', ['light']]);
+    const overflow = await light.page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+    assert.ok(overflow <= 0, `the page scrolls sideways by ${overflow}px`);
+  } finally { await light.context.close(); }
 });
 
 test('Pricing says purchases are not open before any price, and recommends neither plan', async () => {
@@ -107,16 +150,22 @@ test('Pricing says purchases are not open before any price, and recommends neith
         prices: [...plans.querySelectorAll('.mail-plan-price')].map(p => p.innerText.replace(/\s+/g, ' ').trim()),
         tabular: [...plans.querySelectorAll('.mail-plan-price')].every(p => getComputedStyle(p).fontVariantNumeric.includes('tabular-nums')),
         badge: /recommended|best value|most popular/i.test(plans.textContent),
-        checkout: plans.querySelectorAll('a').length,
+        checkout: plans.querySelectorAll('a[href*="polar.sh"]').length,
       };
     });
     assert.match(pricing.text, /^Purchases are not open yet\./);
     assert.ok(pricing.first, 'the status comes before the plans');
-    assert.deepEqual(pricing.plans, ['Blanc Mail', 'Blanc Bundle']);
-    assert.deepEqual(pricing.prices, ['$4.99 / month or $49.99 / year', '$9 / month or $90 / year']);
+    assert.deepEqual(pricing.plans, ['Blanc Mail', 'Blanc Mail + Address', 'Blanc Bundle']);
+    assert.deepEqual(pricing.prices, ['$4.99 / month or $49.99 / year', '$69.99 / year Blanc Mail plus your own address, $20 more a year', '$7.99 / month or $79.99 / year']);
     assert.ok(pricing.tabular, 'prices use tabular figures');
     assert.equal(pricing.badge, false);
     assert.equal(pricing.checkout, 0, 'no checkout until it opens');
+    // The Bundle names Nodding Off and links to its site; both plans say where the address comes from.
+    const cards = await page.evaluate(() => [...document.querySelectorAll('#pricing .mail-plan ul')].map(ul => [...ul.querySelectorAll('li')].map(li => li.textContent.trim())));
+    assert.ok(!cards[0].some(line => /address/i.test(line)), 'plain Blanc Mail has no address');
+    assert.ok(cards[1].includes('Your own address on blnc.day or another Blanc ending'));
+    assert.ok(cards[2].includes('Nodding Off, bedtime stories for iPhone'));
+    assert.equal(await page.locator('#pricing .mail-plan a[href="https://noddingoffapp.com/"]').textContent(), 'Nodding Off');
   } finally { await context.close(); }
 });
 
@@ -135,13 +184,13 @@ test('Support gives its address, then three topics; Download closes with the wai
     assert.deepEqual(end.topics, ['Accounts and data', 'Uninstalling', 'Updates and licensing']);
     assert.deepEqual(end.order, ['pricing', 'support', 'download']);
     assert.equal(end.form, 'closing-waitlist');
-    assert.match(end.requirements, /^macOS 14 or later on an Apple Silicon or Intel Mac, plus a Google account, or a Proton account with Proton Mail Bridge\./);
-    assert.deepEqual(end.legal, ['/download', '/mail/privacy', '/mail/terms']);
+    assert.match(end.requirements, /^macOS 14 or later on an Apple Silicon or Intel Mac, plus a Google account, a Proton account with Proton Mail Bridge, or a Blanc Mail address\./);
+    assert.deepEqual(end.legal, ['https://noddingoffapp.com/', '/download', '/mail/privacy', '/mail/terms']);
   } finally { await context.close(); }
 });
 
 test('a link to a section lands with its heading below the bars', async () => {
-  for (const id of ['pricing', 'support', 'download']) {
+  for (const id of ['design', 'address', 'island', 'features', 'pricing', 'support', 'download']) {
     // Load the page first, then follow the link within it. Loading /mail#id
     // directly jumps while images and fonts above the section are still
     // settling, and on a slow runner that jump stayed about 43px too far

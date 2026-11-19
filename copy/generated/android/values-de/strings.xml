@@ -1806,6 +1806,19 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="favorites_manager_error_cycle">Ein Ordner kann nicht in sich selbst verschoben werden.</string>
     <string name="favorites_manager_error_invalid">Dieser Name kann nicht verwendet werden.</string>
     <string name="favorites_manager_error_missing">Dieser Ordner existiert nicht mehr.</string>
+    <string name="favorites_manager_edit">Bearbeiten…</string>
+    <string name="favorites_manager_edit_name">Name</string>
+    <string name="favorites_manager_edit_address">Adresse</string>
+    <string name="favorites_manager_edit_save">Speichern</string>
+    <string name="favorites_manager_edit_cancel">Abbrechen</string>
+    <string name="favorites_manager_error_exists">Diese Adresse ist bereits als anderer Favorit gespeichert.</string>
+    <string name="favorites_manager_error_invalid_url">Gib eine Webadresse ein, zum Beispiel example.com.</string>
+    <string name="favorites_manager_error_favorite_missing">Dieser Favorit existiert nicht mehr.</string>
+    <string name="favorites_manager_open_new_tab">In neuem Tab öffnen</string>
+    <string name="favorites_manager_open_all">Alle öffnen</string>
+    <string name="favorites_manager_edit_title">Favorit bearbeiten</string>
+    <string name="favorites_manager_edit_folder">Ordner</string>
+    <string name="favorites_manager_more_short">Weitere Aktionen</string>
     <string name="favorites_import_menu">Meine Sachen zu Blanc holen</string>
     <plurals name="favorites_manager_results">
         <item quantity="one">%1$d Ergebnis</item>
@@ -2711,4 +2724,36 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="favorites_import_cancel">Abbrechen</string>
     <string name="favorites_manager_delete_folder_label">Ordner %1$s löschen</string>
     <string name="favorites_import_tabs_skipped">Offene Tabs wurden nicht übernommen.</string>
+    <plurals name="start_billboard_blocked">
+        <item quantity="one">%1$d Anzeige diese Woche blockiert</item>
+        <item quantity="other">%1$d Anzeigen diese Woche blockiert</item>
+    </plurals>
+    <string name="start_widgets_heading">Widgets</string>
+    <string name="start_widgets_unconfirmed">Die Widget-Änderung konnte nicht bestätigt werden. Versuche es erneut.</string>
+    <string name="start_widgets_move">%1$s verschieben</string>
+    <string name="start_widgets_moved_left">%1$s ist jetzt links, Position %2$s.</string>
+    <string name="start_widgets_moved_right">%1$s ist jetzt rechts, Position %2$s.</string>
+    <string name="start_widgets_resize">Größe von %1$s ändern</string>
+    <string name="start_widgets_size">Größe %1$s von %2$s</string>
+    <string name="start_widgets_size_auto">Passt sich der Spalte an</string>
+    <string name="start_widgets_resized">%1$s hat jetzt Größe %2$s von %3$s.</string>
+    <string name="start_widgets_resized_auto">%1$s passt sich wieder der Spalte an.</string>
+    <string name="start_shortcuts_heading">Verknüpfungen</string>
+    <string name="start_shortcuts_fewer">Weniger Verknüpfungen</string>
+    <string name="start_shortcuts_more">Mehr Verknüpfungen</string>
+    <string name="start_shortcuts_count">%1$s Verknüpfungen</string>
+    <plurals name="start_shortcuts_sofar">
+        <item quantity="one">Bisher %1$d Website. Weitere erscheinen beim Surfen.</item>
+        <item quantity="other">Bisher %1$d Websites. Weitere erscheinen beim Surfen.</item>
+    </plurals>
+    <plurals name="start_devices_tabs">
+        <item quantity="one">%1$d Tab</item>
+        <item quantity="other">%1$d Tabs</item>
+    </plurals>
+    <plurals name="start_devices_more">
+        <item quantity="one">%1$d weiterer Tab</item>
+        <item quantity="other">%1$d weitere Tabs</item>
+    </plurals>
+    <string name="start_devices_fewer">Weniger anzeigen</string>
+    <string name="start_mahjong_play">Blanc Mahjong spielen</string>
 </resources>

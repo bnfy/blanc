@@ -17,12 +17,12 @@
       <a href="blanc://history/" data-i18n="pagesNav.history">History</a>
       <a href="blanc://downloads/" data-i18n="pagesNav.downloads">Downloads</a>
     </nav>
-    <div class="page-head">
+    <header class="page-head fav-top" id="favTop">
       <h1 data-i18n="pagesNav.bookmarks">Favorites</h1>
       <div class="import-actions">
         <button id="importMenuBtn" type="button" class="import-trigger" aria-haspopup="dialog" aria-controls="importDialog"><span class="import-glyph import-glyph-arrive" aria-hidden="true"></span><span data-i18n="favorites.import.menu">Bring my stuff to Blanc</span></button>
       </div>
-    </div>
+    </header>
     <p id="readOnlyNote" class="section-hint" data-i18n="favorites.readOnlyNote" hidden>Favorites sync from your computer. Edit them there for now.</p>
     <p id="importStatus" class="section-hint" role="status"></p>
     <div id="manager" class="fav-manager" hidden></div>
@@ -47,7 +47,6 @@
       </form>
     </dialog>
   </div>
-  <script src="sheet.js"></script>
   <script src="row-icon.js"></script>
   <script src="start-pins.js"></script>
   <script src="favorites-manager-model.js"></script>

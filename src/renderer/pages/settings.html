@@ -207,19 +207,6 @@
 
           <div class="settings-card settings-card--mixed">
             <h3 class="card-title" data-i18n="settings.general.cards.startPage">Start Page</h3>
-            <div class="setting">
-              <div class="label">
-                <span data-i18n="settings.general.newtabLayout.label">New tab layout</span>
-                <span class="hint" data-i18n="settings.general.newtabLayout.hint">How the new tab page arranges itself; switchable from its footer too</span>
-              </div>
-              <select id="newtabLayout" aria-label="New tab layout" data-i18n-aria-label="settings.general.newtabLayout.label">
-                <option value="ledger" data-i18n="settings.general.newtabLayout.ledger">Ledger</option>
-                <option value="billboard" data-i18n="settings.general.newtabLayout.billboard">Billboard</option>
-                <option value="shelf" data-i18n="settings.general.newtabLayout.shelf">Shelf</option>
-                <option value="tally" data-i18n="settings.general.newtabLayout.tally">Tally</option>
-              </select>
-            </div>
-
             <div class="setting" id="dynamicWallpaperSetting">
               <div class="label">
                 <span data-i18n="settings.general.newtabDynamicWallpaper.label">Time-of-day wallpaper</span>
@@ -583,7 +570,7 @@
           <div id="syncActive" hidden>
             <div class="settings-card sync-hero">
               <div class="sync-hero-main">
-                <span class="sync-avatar" id="syncAvatar" aria-hidden="true"></span>
+                <span class="sync-avatar" id="syncAvatar" aria-hidden="true" data-i18n-ignore=""></span>
                 <div class="sync-hero-text">
                   <span class="page-sr-only" data-i18n="settings.sync.syncName">Sync name</span>
                   <strong class="sync-hero-name" id="syncStatusHandle" data-i18n-ignore=""></strong>

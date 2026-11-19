@@ -5,7 +5,7 @@
   "sha256": "b2873ed6ff04941eadfa5617ec309d7579d5889a8a3de681634e9deaebb07f9c",
   "engine": {
     "package": "@ghostery/adblocker-electron",
-    "packageVersion": "2.20.1",
+    "packageVersion": "2.20.3",
     "formatVersion": 899
   },
   "filters": {
@@ -24,9 +24,9 @@
   },
   "resources": {
     "file": "ghostery-resources.json",
-    "packageVersion": "2.20.1",
-    "upstreamCommit": "c18718adc33e82a086d996d0b0f75deb3d01745a",
+    "packageVersion": "2.20.3",
+    "upstreamCommit": "6f0610bf5eec1f31c4975ce0e707cdf47023e5b5",
     "sha256": "5ce0ce483f0e5514308ccb0240960a9dd7bfeab417debeef96960dce2c95f690",
-    "source": "https://github.com/ghostery/adblocker/tree/c18718adc33e82a086d996d0b0f75deb3d01745a/packages/adblocker/assets/ublock-origin"
+    "source": "https://github.com/ghostery/adblocker/tree/6f0610bf5eec1f31c4975ce0e707cdf47023e5b5/packages/adblocker/assets/ublock-origin"
   }
 }

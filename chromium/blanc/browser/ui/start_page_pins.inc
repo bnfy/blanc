@@ -68,3 +68,31 @@ base::Value ChangeStartPin(PrefService* prefs, bool pin, const std::string& url,
   }
   return pin ? base::Value(base::DictValue().Set("ok", true)) : base::Value(found);
 }
+
+// start-page-pins.js replacePin(): a favorite edited on the Favorites page
+// takes its pin along. The pin keeps its place; if the new address is
+// already pinned, the old pin goes. Returns whether anything changed.
+bool ReplaceStartPin(PrefService* prefs, const std::string& from_url, const std::string& to_url,
+                     const std::string& title) {
+  auto from = SanitizeStartPin(base::Value(base::DictValue().Set("url", from_url)));
+  auto next = SanitizeStartPin(base::Value(base::DictValue().Set("url", to_url).Set("title", title)));
+  if (!from || !next) return false;
+  const auto pins = SanitizeStartPins(prefs->GetList(kStartPagePinsPref));
+  std::optional<size_t> at;
+  bool taken = false;
+  for (size_t i = 0; i < pins.size(); ++i) {
+    const auto& url = *pins[i].GetDict().FindString("url");
+    if (url == *from->FindString("url")) at = i;
+    else if (url == *next->FindString("url")) taken = true;
+  }
+  if (!at) return false;
+  base::ListValue replaced;
+  for (size_t i = 0; i < pins.size(); ++i) {
+    if (i != *at) replaced.Append(pins[i].Clone());
+    else if (!taken) replaced.Append(next->Clone());
+  }
+  if (replaced == pins) return false;
+  prefs->SetList(kStartPagePinsPref, std::move(replaced));
+  prefs->CommitPendingWrite();
+  return true;
+}

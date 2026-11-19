@@ -147,7 +147,15 @@ test('a title that changes every 10 s still publishes within the ceiling', async
     // Let the last armed publish fire: a timer dropped by reset() would leave
     // its pending-since mark behind for the next test's clock.
     mock.timers.tick(60 * SECOND);
-    await settle();
+    // Then nothing may still hold a mocked timer when reset() drops them:
+    // Node's mock clearTimeout of a timer from before a reset removes
+    // whichever new timer sits at its old place in the queue. A save still
+    // pending or in flight here clears its timer during the next test, which
+    // took that test's session publish timer with it (Windows CI and a busy
+    // Mac, November 18, 2026). So the publish finishes, and every store writes
+    // now and waits out its writes, while this test's timers are still live.
+    await settleUntil(() => { const { waiting, running } = sync.sharedStatus(); return !waiting && !running; });
+    await jsonStores.settle();
     mock.timers.reset();
   }
 });

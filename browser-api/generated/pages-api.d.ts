@@ -37,8 +37,18 @@ export interface NewtabPagesAPI {
     focusGroup: (id: unknown) => Promise<unknown>;
     /** Open the Spaces menu from the moving-in checklist. IPC: invoke `pages:start:open-spaces`. */
     openSpaces: () => Promise<unknown>;
-    /** Save the Start Page layout. IPC: invoke `pages:start:set-layout`. */
-    setLayout: (name: unknown) => Promise<unknown>;
+    /** Turn a Start Page widget (favorites or devices) on or off; resolves to the saved widgets, rejects a value the page cannot show. IPC: invoke `pages:start:set-widget`. */
+    setWidget: (name: unknown, on: unknown) => Promise<unknown>;
+    /** Save Billboard's shortcut count (1 to 12); resolves to the saved widgets. IPC: invoke `pages:start:set-shortcut-count`. */
+    setShortcutCount: (count: unknown) => Promise<unknown>;
+    /** Save the widget cards' columns; resolves to the saved widgets. IPC: invoke `pages:start:set-widget-place`. */
+    setWidgetPlace: (left: unknown, right: unknown) => Promise<unknown>;
+    /** Save a card's size (240-720, or 0 to fit its column); resolves to the saved widgets. IPC: invoke `pages:start:set-widget-size`. */
+    setWidgetSize: (card: unknown, size: unknown) => Promise<unknown>;
+    /** Report the Start Page's wallpaper layers so the Island's band can continue them; resolves to { band }, the band's height above this page (0 where it stands aside). IPC: invoke `pages:start:backdrop`. */
+    reportBackdrop: (spec: unknown) => Promise<unknown>;
+    /** The band above this Start Page changed (0 where it stands aside). IPC: event `pages:start:backdrop-band`. */
+    onBackdropBand: (callback: (payload: unknown) => void) => void;
     /** Turn the dynamic Start Page wallpaper on or off. IPC: invoke `pages:start:set-dynamic-wallpaper`. */
     setDynamicWallpaper: (enabled: unknown) => Promise<unknown>;
     /** Read this page's Start Page wallpaper state: source, whether an image is stored, and its address. IPC: invoke `pages:start:wallpaper`. */
@@ -63,8 +73,6 @@ export interface NewtabPagesAPI {
     removeWallpaper: () => Promise<unknown>;
     /** Open blanc://mahjong as an ordinary tab. IPC: invoke `pages:start:open-mahjong`. */
     openMahjong: (background?: boolean) => Promise<unknown>;
-    /** Record the once-per-session newtab_layout usage event (subject to telemetry consent). IPC: invoke `pages:start:layout-used`. */
-    layoutUsed: (name: unknown) => Promise<unknown>;
     /** Type-to-open: summon the Island panel seeded with the typed character. IPC: invoke `pages:start:open-island`. */
     openIsland: (char: unknown) => Promise<unknown>;
     /** Retry a blocker startup that failed. IPC: invoke `pages:start:startup-retry`. */
@@ -128,14 +136,6 @@ export interface ErrorPagesAPI {
 
 /** window.bowserPages on blanc://bookmarks/ */
 export interface BookmarksPagesAPI {
-  surface: {
-    /** Close the utility sheet hosting this page. IPC: invoke `pages:surface:close`. */
-    close: () => Promise<unknown>;
-    /** Tell main that the next Escape belongs to an in-page consumer (an open picker) before the sheet dismisses. IPC: invoke `pages:surface:escape-arm`. */
-    armEscape: (armed: boolean) => Promise<unknown>;
-    /** Escape was pressed while armed; the page closes its own consumer. IPC: event `pages:surface:escape`. */
-    onEscape: (callback: () => void) => () => void;
-  };
   pins: {
     /** List the profile's Start Page pins, each with a locally held icon. IPC: invoke `pages:pins:list`. */
     list: () => Promise<unknown>;
@@ -179,6 +179,10 @@ export interface BookmarksPagesAPI {
     reorder: (path: unknown, orderKeys: unknown) => Promise<unknown>;
     /** Remove several Favorites at once. IPC: invoke `pages:bookmarks:remove-many`. */
     removeMany: (ids: unknown) => Promise<unknown>;
+    /** Change one Favorite's name and address. IPC: invoke `pages:bookmarks:edit`. */
+    edit: (id: unknown, changes: unknown) => Promise<unknown>;
+    /** Favorites changed somewhere else; read them again. IPC: event `pages:bookmarks:changed`. */
+    onChanged: (callback: () => void) => void;
   };
 }
 

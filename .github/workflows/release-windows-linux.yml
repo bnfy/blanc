@@ -447,6 +447,8 @@ jobs:
           $env:BLANC_PACKAGED_EXECUTABLE = (Resolve-Path dist/win-unpacked/Blanc.exe).Path
           node test/desktop/ecs-production-smoke.mjs
           if ($LASTEXITCODE -ne 0) { throw 'ECS isolation smoke failed' }
+          node test/desktop/ecs-local-html-smoke.cjs dist/win-unpacked output/ecs-production/local-html-windows.json
+          if ($LASTEXITCODE -ne 0) { throw 'Windows local HTML preview smoke failed' }
           node test/desktop/ecs-production-drm-smoke.mjs
           if ($LASTEXITCODE -ne 0) { throw 'ECS protected playback failed' }
 

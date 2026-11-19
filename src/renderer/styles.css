@@ -4723,3 +4723,43 @@ html[data-surface="glance"] .glance-header {
   .switcher-card { animation: none; }
   .switcher-tile { transition: none; }
 }
+
+/* ---------- The Start Page's wallpaper behind the band ----------
+   renderer.js paints the active Start Page's layers here (the page reports
+   them; main checks them, start-backdrop.js). The box is the page's size plus
+   the band, laid out from the band's top above the page (beside the vertical
+   tabs rail, which keeps its own surface), and only the band shows it. It
+   sits before #strip with no z-index: a negative one would paint it under
+   body's own background. */
+#bandBackdrop {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: var(--strip-h);
+  overflow: hidden;
+  pointer-events: none;
+}
+:root[data-tab-layout="vertical"] #bandBackdrop { left: var(--vertical-tabs-w); }
+#bandBackdrop[hidden] { display: none; }
+.band-backdrop-box { position: absolute; left: 0; top: 0; }
+.band-backdrop-box > div { position: absolute; inset: 0; }
+.band-backdrop-box > div.fade { transition: opacity 2s ease; }
+@media (prefers-reduced-motion: reduce) { .band-backdrop-box > div.fade { transition: none; } }
+/* Over a Space's frame wash too: the band is the page's own wallpaper. */
+:root #strip.band-backdrop,
+:root[data-space-tint] #strip.band-backdrop { background: transparent; }
+/* The launch Sunrise's sky over the band, in step with the page's
+   (pages.css .launch-sunrise-sky and .launch-sunrise; the same keyframes, so
+   keep them equal). renderer.js sets the delay from when the page began. */
+.band-sunrise {
+  position: absolute;
+  inset: 0;
+  animation-name: band-sunrise-sky, band-sunrise-out;
+  animation-duration: 2.6s;
+  animation-timing-function: cubic-bezier(0.33, 0, 0.2, 1);
+  animation-fill-mode: both;
+}
+.band-sunrise[hidden] { display: none; }
+@keyframes band-sunrise-sky { 0% { background-color: rgb(11 10 9 / 0); } 10%, 20% { background-color: #0b0a09; } 48% { background-color: #3a2a17; } 76% { background-color: #a9814f; } 100% { background-color: rgb(248 242 232 / 0); } }
+@keyframes band-sunrise-out { 0%, 96% { opacity: 1; } 100% { opacity: 0; } }

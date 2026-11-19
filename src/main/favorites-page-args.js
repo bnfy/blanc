@@ -24,4 +24,16 @@ const pagePath = (value) => {
   return typeof value === 'string' ? value.slice(0, MAX_ARG) : '';
 };
 
-module.exports = { pageIds, pageKeys, pagePath };
+/** One favorite's edit: its id, and the name and address typed. A field that
+ * isn't a string is left out (kept as it is), and each is cut to a size
+ * bookmark-validate then checks properly. */
+const pageEdit = (id, changes) => {
+  const fields = changes && typeof changes === 'object' ? changes : {};
+  const text = (value, max) => (typeof value === 'string' ? value.slice(0, max) : undefined);
+  return [
+    typeof id === 'string' ? id.slice(0, MAX_ARG) : '',
+    { title: text(fields.title, 2000), url: text(fields.url, 8192) },
+  ];
+};
+
+module.exports = { pageIds, pageKeys, pagePath, pageEdit };

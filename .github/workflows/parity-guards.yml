@@ -181,6 +181,10 @@ jobs:
         run: xvfb-run -a npm run test:custom-wallpaper:desktop
       - name: Billboard clock Font & color (F54)
         run: xvfb-run -a npm run test:billboard-clock:desktop
+      - name: Start Page widget cards (F35, V24)
+        run: xvfb-run -a npm run test:start-widgets:desktop
+      - name: Start Page wallpaper behind the Island's band
+        run: xvfb-run -a npm run test:start-backdrop:desktop
 
   modified-link-clicks:
     needs: changes

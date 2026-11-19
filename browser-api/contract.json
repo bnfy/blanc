@@ -1918,6 +1918,59 @@
           "doc": "The generation from the last chrome:glance-layout applied."
         }
       }
+    },
+    "BackdropLayer": {
+      "doc": "One Start Page wallpaper layer's computed background (start-backdrop.js checks it).",
+      "fields": {
+        "color": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string"
+        },
+        "position": {
+          "type": "string"
+        },
+        "repeat": {
+          "type": "string"
+        },
+        "opacity": {
+          "type": "number"
+        },
+        "fade": {
+          "type": "boolean"
+        }
+      }
+    },
+    "PageBackdrop": {
+      "doc": "The active Start Page's wallpaper for the Island's band to continue: the page's size and zoom, its layers, and the band's height above it.",
+      "fields": {
+        "id": {
+          "type": "TabId"
+        },
+        "zoom": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "layers": {
+          "type": "BackdropLayer[]"
+        },
+        "band": {
+          "type": "number"
+        },
+        "sunriseAt": {
+          "type": "number",
+          "optional": true
+        }
+      }
     }
   },
   "members": [
@@ -3821,6 +3874,15 @@
       "channel": "chrome:page-tint",
       "payload": "PageTint",
       "doc": "The active page's tint changed."
+    },
+    {
+      "name": "onPageBackdrop",
+      "group": "appearance",
+      "kind": "event",
+      "channel": "chrome:page-backdrop",
+      "payload": "PageBackdrop | null",
+      "doc": "The active Start Page's wallpaper for the band, or null where the band keeps its sampled color.",
+      "payloadCheck": "fixtures"
     },
     {
       "name": "onDownloadsActivity",

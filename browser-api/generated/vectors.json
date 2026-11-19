@@ -7352,6 +7352,97 @@
         }
       ]
     },
+    "onPageBackdrop": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:page-backdrop",
+      "deliveries": [
+        {
+          "emit": [
+            {
+              "id": "tab-id-1",
+              "zoom": 1,
+              "width": 1,
+              "height": 1,
+              "layers": [],
+              "band": 1
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "id": "tab-id-1",
+                "zoom": 1,
+                "width": 1,
+                "height": 1,
+                "layers": [],
+                "band": 1
+              }
+            ]
+          ]
+        },
+        {
+          "emit": [
+            {
+              "id": "tab-id-1",
+              "zoom": 1,
+              "width": 1,
+              "height": 1,
+              "layers": [
+                {
+                  "color": "backdrop-layer-1",
+                  "image": "backdrop-layer-1",
+                  "size": "backdrop-layer-1",
+                  "position": "backdrop-layer-1",
+                  "repeat": "backdrop-layer-1",
+                  "opacity": 1,
+                  "fade": true
+                }
+              ],
+              "band": 1,
+              "sunriseAt": 1
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "id": "tab-id-1",
+                "zoom": 1,
+                "width": 1,
+                "height": 1,
+                "layers": [
+                  {
+                    "color": "backdrop-layer-1",
+                    "image": "backdrop-layer-1",
+                    "size": "backdrop-layer-1",
+                    "position": "backdrop-layer-1",
+                    "repeat": "backdrop-layer-1",
+                    "opacity": 1,
+                    "fade": true
+                  }
+                ],
+                "band": 1,
+                "sunriseAt": 1
+              }
+            ]
+          ]
+        },
+        {
+          "emit": [
+            null
+          ],
+          "callbacks": [
+            [
+              null
+            ]
+          ]
+        }
+      ]
+    },
     "onDownloadsActivity": {
       "kind": "event",
       "platforms": [

@@ -108,16 +108,19 @@ test('Ledger, Shelf and Tally explain an empty Favorites list; Billboard does no
   assert.match(frameCss(), /\.start-empty-hint \{/);
 });
 
-test('the footer offers one Customize popover with four layout previews and the wallpaper switch', () => {
+test('the footer offers one Customize popover with widget switches, a shortcut stepper and the wallpaper switch', () => {
   const html = withoutInterfaceKeys(read('src/renderer/pages/newtab.html'));
   const js = read('src/renderer/pages/newtab.js');
   assert.match(html, /<button id="customizeButton" class="start-customize" type="button" popovertarget="customizePopover" aria-expanded="false">Customize<\/button>/);
   const popover = html.match(/<div id="customizePopover" class="start-customize-popover" popover role="dialog" aria-label="Customize start page">([\s\S]*?)<\/div>\s*<\/span>/)?.[1] ?? '';
   assert.deepEqual(
-    [...popover.matchAll(/data-layout-pick="(\w+)"/g)].map((m) => m[1]),
-    ['ledger', 'billboard', 'shelf', 'tally'],
-    'the four layouts keep their order',
+    [...popover.matchAll(/data-widget-pick="(\w+)"/g)].map((m) => m[1]),
+    ['favorites', 'devices'],
+    'the two widget switches (V24) in place of the layouts',
   );
+  assert.match(popover, /role="switch" aria-checked="false" data-widget-pick="favorites"/);
+  assert.match(popover, /id="shortcutStepper"[\s\S]*?id="shortcutFewer"[\s\S]*?<output id="shortcutCount"[\s\S]*?id="shortcutMore"/);
+  assert.doesNotMatch(popover, /data-layout-pick/);
   assert.match(popover, /id="dynamicWallpaperToggle"/);
   assert.doesNotMatch(html, /layout-switcher-label/);
   assert.match(js, /customizePopover\.addEventListener\('toggle', \(event\) => \{\s*customizeButton\.setAttribute\('aria-expanded', String\(event\.newState === 'open'\)\);/);
@@ -130,7 +133,7 @@ test('the footer offers one Customize popover with four layout previews and the 
 test('labels are sentence case without tracking, and the date keeps locale case', () => {
   const html = withoutInterfaceKeys(read('src/renderer/pages/newtab.html'));
   const js = read('src/renderer/pages/newtab.js');
-  for (const label of ['Favorites', 'Pick up where you left off', 'On your other devices', 'Blocked this week', 'Blocked']) {
+  for (const label of ['Favorites', 'Pick up where you left off', 'On your other devices', 'Blocked']) {
     assert.match(html, new RegExp(`>${label}<`), `label "${label}"`);
   }
   assert.doesNotMatch(html, />(favorites|pick up where you left off|on your other devices|blocked this week|blocked)</);
@@ -179,10 +182,16 @@ test('motion grows surfaces from their source and respects reduced motion', () =
   assert.doesNotMatch(css, /cubic-bezier\([^)]*1\.[0-9]/, 'no overshooting curves');
 });
 
-test('Ledger is a centered spread: Favorites left, groups and devices right', () => {
+test('the widget cards live in Billboard, in two columns', () => {
   const html = withoutInterfaceKeys(read('src/renderer/pages/newtab.html'));
+  const billboard = html.match(/<main class="billboard" id="layoutBillboard">([\s\S]*?)<\/main>/)[1];
+  assert.match(billboard, /<div id="bbWidgets" class="bb-widgets">(?:\s*<!--[\s\S]*?-->)?\s*<div id="bbRailLeft" class="bb-rail" data-side="left"><\/div>\s*<div id="bbRailRight" class="bb-rail" data-side="right"><\/div>/);
+  for (const [id, card] of [['sentSection', 'sent'], ['favoritesWidget', 'favorites'], ['remoteSection', 'devices']]) {
+    assert.match(billboard, new RegExp(`<section id="${id}" class="ledger-section bb-widget"[^>]*data-card="${card}"`));
+  }
   const ledger = html.match(/<main class="ledger" id="layoutLedger">([\s\S]*?)<\/main>/)[1];
-  assert.match(ledger, /<div class="ledger-spread">\s*<div class="ledger-col ledger-col-primary">[\s\S]*?id="favoritesList"[\s\S]*?<\/div>\s*<div class="ledger-col ledger-col-secondary">[\s\S]*?id="groupsSection"[\s\S]*?id="remoteSection"[\s\S]*?<\/div>\s*<\/div>/);
+  assert.doesNotMatch(ledger, /id="favoritesList"|id="remoteSection"|id="sentSection"/);
+  assert.match(read('src/renderer/pages/pages.css'), /@media \(min-width: 1200px\) \{\s*\.bb-widgets \{ display: contents; \}/);
   const css = frameCss();
   assert.match(css, /body\[data-layout="ledger"\] \.ledger \{[^}]*max-width: 904px;[^}]*margin-inline: auto;/s);
   assert.match(css, /\.ledger-spread \{[^}]*grid-template-columns: minmax\(0, 1fr\) minmax\(0, 1fr\);[^}]*column-gap: 64px;/s);
@@ -190,9 +199,12 @@ test('Ledger is a centered spread: Favorites left, groups and devices right', ()
   assert.match(css, /\.group-row \.cluster \{[^}]*flex: 0 0 46px;/s, 'group names line up');
 });
 
-test('Billboard keeps its recent sites on one row', () => {
+test('Billboard wraps its recent sites into centered rows', () => {
   const css = frameCss();
-  assert.match(css, /\.bb-favs \{[^}]*flex-wrap: nowrap;/s);
+  // The shortcut count reaches 12, so the row wraps (V24); newtab.js decides
+  // how many fit beside the widget columns, at most six a row.
+  assert.match(read('src/renderer/pages/pages.css'), /#bbFavorites \{ flex-wrap: wrap; justify-content: center; \}/);
+  assert.match(read('src/renderer/pages/newtab.js'), /function layoutShortcutRows\(/);
   assert.match(css, /@media \(max-width: 640px\) \{\s*\.bb-site:nth-child\(n \+ 5\) \{ display: none; \}/);
 });
 

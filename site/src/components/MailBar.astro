@@ -1,12 +1,27 @@
 ---
 // The Blanc Mail product bar, on /mail and its Privacy and Terms: the
-// Blanc Mail lockup, which leads back to the one Mail page, and the waitlist,
+// Blanc Mail lockup, which leads back to the one Mail page, links to the
+// page's notable sections (owner, November 18, 2026), and the waitlist,
 // sticky under the site header
 // (docs/superpowers/specs/2026-10-12-mail-pages-redesign-design.md §3).
-// The waitlist uses the Popover API, so light dismiss, Escape and returning
-// focus to the button come from the browser.
+// The links point at /mail#…, so they work from Privacy and Terms too; on
+// /mail the one for the section in view is marked as the current location.
+// Wide screens show the links in the bar; at 960px and narrower they move
+// into a menu behind the ≡ button (owner: "a hamburger menu or … their own
+// row"), so none is cut off. The menu and the waitlist use the Popover API,
+// so light dismiss, Escape and returning focus to the button come from the
+// browser.
 import MailIcon from './MailIcon.astro';
 import MailWaitlistForm from './MailWaitlistForm.astro';
+
+// In page order. Each id is a section of mail.astro.
+const sections = [
+  ['design', 'Design'],
+  ['address', 'Blanc email address'],
+  ['island', 'Island'],
+  ['features', 'Features'],
+  ['pricing', 'Pricing'],
+];
 ---
 <div class="mail-bar" data-mail-bar>
   <nav class="mail-bar-inner" aria-label="Blanc Mail">
@@ -14,8 +29,19 @@ import MailWaitlistForm from './MailWaitlistForm.astro';
          gold icon beside the outlined Blubird word, in its Text cut. -->
     <a class="mail-bar-title" href="/mail"><span class="mail-lockup"><MailIcon decorative /><img
       class="mail-lockup-word" src="/lockup/blanc-mail-word-small-white.svg" width="4531" height="762" alt="Blanc Mail" /></span></a>
+    <ul class="mail-bar-links">
+      {sections.map(([id, label]) => <li><a href={`/mail#${id}`} data-mail-section={id}>{label}</a></li>)}
+    </ul>
+    <button class="mail-bar-sections" type="button" popovertarget="mail-bar-menu" aria-label="Sections">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+    </button>
     <button class="mail-bar-join" type="button" popovertarget="mail-bar-waitlist">Join<span class="mail-bar-join-tail"> the waitlist</span></button>
   </nav>
+  <div class="mail-bar-pop mail-bar-menu" id="mail-bar-menu" popover data-align="end">
+    <ul class="mail-bar-menu-links" aria-label="Sections">
+      {sections.map(([id, label]) => <li><a href={`/mail#${id}`} data-mail-section={id}>{label}</a></li>)}
+    </ul>
+  </div>
   <div class="mail-bar-pop mail-bar-waitlist" id="mail-bar-waitlist" popover data-align="end">
     <MailWaitlistForm id="bar-waitlist" />
   </div>
@@ -29,8 +55,44 @@ import MailWaitlistForm from './MailWaitlistForm.astro';
   syncHeader();
   if (header) new ResizeObserver(syncHeader).observe(header);
 
-  // The popover opens from its button: anchored below it, aligned to the
-  // button's end edge, and growing out of that corner.
+  // On /mail, mark the links for the section in view: the last one whose top
+  // has passed under the bars. Past Pricing (Support, Download) none is.
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-mail-section]')];
+  const ids = [...new Set(links.map(link => link.dataset.mailSection ?? ''))];
+  const targets = ids.map(id => document.getElementById(id));
+  const end = document.getElementById('support');
+  const bar = document.querySelector<HTMLElement>('[data-mail-bar]');
+  if (targets.every(Boolean) && bar) {
+    let frame = 0;
+    let shown: string | null | undefined;
+    const mark = () => {
+      frame = 0;
+      const line = bar.getBoundingClientRect().bottom + 40;
+      let current: string | null = null;
+      targets.forEach((target, index) => { if (target!.getBoundingClientRect().top <= line) current = ids[index]; });
+      if (end && end.getBoundingClientRect().top <= line) current = null;
+      if (current === shown) return;
+      shown = current;
+      links.forEach((link) => {
+        if (link.dataset.mailSection === current) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
+      });
+    };
+    const queue = () => { if (!frame) frame = requestAnimationFrame(mark); };
+    addEventListener('scroll', queue, { passive: true });
+    addEventListener('resize', queue);
+    mark();
+  }
+
+  // Choosing a section in the menu closes it, so the page shows where it went.
+  const menu = document.getElementById('mail-bar-menu');
+  menu?.addEventListener('click', (event) => {
+    if ((event.target as Element).closest('a')) menu.hidePopover();
+  });
+
+  // The popovers open from their buttons: anchored below them, aligned to the
+  // button's end edge, and growing out of that corner. Opening one moves focus
+  // into it: the waitlist's email field, or the menu's first section.
   document.querySelectorAll<HTMLElement>('.mail-bar-pop').forEach((pop) => {
     const invoker = document.querySelector<HTMLElement>(`[popovertarget="${pop.id}"]`);
     pop.addEventListener('beforetoggle', (event) => {
@@ -40,7 +102,7 @@ import MailWaitlistForm from './MailWaitlistForm.astro';
       pop.style.setProperty('--pop-end', `${Math.max(12, root.clientWidth - rect.right)}px`);
     });
     pop.addEventListener('toggle', (event) => {
-      if ((event as ToggleEvent).newState === 'open') pop.querySelector<HTMLInputElement>('input[type=email]')?.focus();
+      if ((event as ToggleEvent).newState === 'open') pop.querySelector<HTMLElement>('input[type=email], a')?.focus();
     });
   });
 </script>

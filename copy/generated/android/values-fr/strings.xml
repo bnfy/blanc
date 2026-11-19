@@ -1857,6 +1857,19 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="favorites_manager_error_cycle">Un dossier ne peut pas être déplacé dans lui-même.</string>
     <string name="favorites_manager_error_invalid">Ce nom ne peut pas être utilisé.</string>
     <string name="favorites_manager_error_missing">Ce dossier n’existe plus.</string>
+    <string name="favorites_manager_edit">Modifier…</string>
+    <string name="favorites_manager_edit_name">Nom</string>
+    <string name="favorites_manager_edit_address">Adresse</string>
+    <string name="favorites_manager_edit_save">Enregistrer</string>
+    <string name="favorites_manager_edit_cancel">Annuler</string>
+    <string name="favorites_manager_error_exists">Un autre favori a déjà cette adresse.</string>
+    <string name="favorites_manager_error_invalid_url">Saisissez une adresse web, par exemple example.com.</string>
+    <string name="favorites_manager_error_favorite_missing">Ce favori n’existe plus.</string>
+    <string name="favorites_manager_open_new_tab">Ouvrir dans un nouvel onglet</string>
+    <string name="favorites_manager_open_all">Tout ouvrir</string>
+    <string name="favorites_manager_edit_title">Modifier le favori</string>
+    <string name="favorites_manager_edit_folder">Dossier</string>
+    <string name="favorites_manager_more_short">Autres actions</string>
     <string name="favorites_import_menu">Apporter mes données dans Blanc</string>
     <plurals name="favorites_manager_results">
         <item quantity="one">%1$d résultat</item>
@@ -2792,4 +2805,40 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="favorites_import_cancel">Annuler</string>
     <string name="favorites_manager_delete_folder_label">Supprimer le dossier %1$s</string>
     <string name="favorites_import_tabs_skipped">Les onglets ouverts n’ont pas été importés.</string>
+    <plurals name="start_billboard_blocked">
+        <item quantity="one">%1$d publicité bloquée cette semaine</item>
+        <item quantity="many">%1$d publicités bloquées cette semaine</item>
+        <item quantity="other">%1$d publicités bloquées cette semaine</item>
+    </plurals>
+    <string name="start_widgets_heading">Widgets</string>
+    <string name="start_widgets_unconfirmed">Impossible de confirmer la modification du widget. Réessayez.</string>
+    <string name="start_widgets_move">Déplacer %1$s</string>
+    <string name="start_widgets_moved_left">%1$s est maintenant à gauche, position %2$s.</string>
+    <string name="start_widgets_moved_right">%1$s est maintenant à droite, position %2$s.</string>
+    <string name="start_widgets_resize">Redimensionner %1$s</string>
+    <string name="start_widgets_size">Taille %1$s sur %2$s</string>
+    <string name="start_widgets_size_auto">S’adapte à la colonne</string>
+    <string name="start_widgets_resized">%1$s est maintenant en taille %2$s sur %3$s.</string>
+    <string name="start_widgets_resized_auto">%1$s s’adapte de nouveau à la colonne.</string>
+    <string name="start_shortcuts_heading">Raccourcis</string>
+    <string name="start_shortcuts_fewer">Moins de raccourcis</string>
+    <string name="start_shortcuts_more">Plus de raccourcis</string>
+    <string name="start_shortcuts_count">%1$s raccourcis</string>
+    <plurals name="start_shortcuts_sofar">
+        <item quantity="one">%1$d site pour l’instant. D’autres apparaîtront au fil de votre navigation.</item>
+        <item quantity="many">%1$d sites pour l’instant. D’autres apparaîtront au fil de votre navigation.</item>
+        <item quantity="other">%1$d sites pour l’instant. D’autres apparaîtront au fil de votre navigation.</item>
+    </plurals>
+    <plurals name="start_devices_tabs">
+        <item quantity="one">%1$d onglet</item>
+        <item quantity="many">%1$d onglets</item>
+        <item quantity="other">%1$d onglets</item>
+    </plurals>
+    <plurals name="start_devices_more">
+        <item quantity="one">%1$d onglet de plus</item>
+        <item quantity="many">%1$d onglets de plus</item>
+        <item quantity="other">%1$d onglets de plus</item>
+    </plurals>
+    <string name="start_devices_fewer">Afficher moins</string>
+    <string name="start_mahjong_play">Jouer à Blanc Mahjong</string>
 </resources>
