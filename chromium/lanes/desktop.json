@@ -110,6 +110,7 @@
     "patches/0102-blanc-windows-update-keys.patch",
     "patches/0103-blanc-windows-beta-version.patch",
     "patches/0104-blanc-skip-chromium-welcome.patch",
-    "patches/0105-blanc-windows-updater-art.patch"
+    "patches/0105-blanc-windows-updater-art.patch",
+    "patches/0106-blanc-spaces-mirror.patch"
   ]
 }

@@ -55,6 +55,7 @@
 #include "blanc/common/browser_api/browser_api_factory_base.h"
 #include "services/network/public/mojom/web_sandbox_flags.mojom.h"
 #include "blanc/browser/ui/blanc_tab_name_rules.h"
+#include "blanc/browser/ui/spaces_across_profiles.h"
 #include "blanc/browser/ui/blanc_quiet_probe.h"
 #include "blanc/browser/ui/blanc_quiet_strings.h"
 #include "blanc/browser/ui/blanc_quiet_media.h"
@@ -201,6 +202,9 @@
 #include "chrome/browser/profiles/profile_manager.h"
 #include "chrome/browser/profiles/profile_attributes_entry.h"
 #include "chrome/browser/profiles/profile_attributes_storage.h"
+#include "chrome/browser/profiles/nuke_profile_directory_utils.h"
+#include "chrome/browser/profiles/profile_manager_observer.h"
+#include "chrome/browser/profiles/profile_observer.h"
 #include "chrome/browser/shell_integration.h"
 #include "chrome/browser/sessions/tab_restore_service_factory.h"
 #include "blanc/common/held_page.h"
@@ -405,6 +409,8 @@ void IslandBackdrop(content::WebContents* tab, const base::DictValue* spec, int*
 namespace {
 base::Value SiteLinkRoute(BrowserWindowInterface* browser, content::WebContents* page);
 void ObserveLinkRouteProfiles();
+// Spaces across profiles: the Local State mirror (spaces_across_profiles.inc).
+void StartSpacesMirror();
 constexpr char kSpacesMetaPref[] = "blanc.spaces.meta";
 // The remembered Glance card: device-wide, never synced (F34).
 constexpr char kGlanceFramePref[] = "blanc.glance.frame";
@@ -1336,6 +1342,7 @@ class Owner : public base::SupportsUserData::Data,
   explicit Owner(BrowserWindowInterface* value) : browser(value) {
     blanc::SetUiNavigationGate(&AddUtilityPageGate);
     ObserveLinkRouteProfiles();
+    StartSpacesMirror();
     InitializeMiniShortcut();
 #if BUILDFLAG(IS_MAC)
     blanc::InstallMiniWindowMenu();
@@ -6046,6 +6053,7 @@ BrowserWindowInterface* RouteWindow(Profile* profile = nullptr, const std::strin
   return found;
 }
 #include "blanc/browser/ui/mini_window_controller.inc"
+#include "blanc/browser/ui/spaces_across_profiles.inc"
 
 BrowserWindowInterface* EnsureRouteWindow() {
   if (auto* browser = RouteWindow()) return browser;
@@ -7468,6 +7476,29 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(base::DictValue()
           .Set("directory", profile->GetPath().BaseName().AsUTF8Unsafe())
           .Set("name", entry ? base::UTF16ToUTF8(entry->GetLocalProfileName()) : std::string()))); return;
+    }
+    // Spaces across profiles: the Local State mirror and the regular profiles
+    // loaded now, so a check can tell a listed profile from a loaded one.
+    if (quiet_method == "spacesMirrorProbe" && quiet_args.empty()) {
+      base::ListValue loaded;
+      for (auto* profile : g_browser_process->profile_manager()->GetLoadedProfiles())
+        if (profile->IsRegularProfile()) loaded.Append(profile->GetPath().BaseName().AsUTF8Unsafe());
+      Reply(id, true, base::Value(base::DictValue()
+          .Set("mirror", g_browser_process->local_state()->GetDict(kSpacesMirrorPref).Clone())
+          .Set("loaded", std::move(loaded)))); return;
+    }
+    // Marks a profile's directory for deletion (or cancels it) the way
+    // Chromium does before removing it, without removing it.
+    if (quiet_method == "profileDeletionMarkTest" && quiet_args.size() == 2 && quiet_args[0].is_string() &&
+        quiet_args[1].is_bool()) {
+      ProfileAttributesEntry* found = nullptr;
+      for (auto* entry : g_browser_process->profile_manager()->GetProfileAttributesStorage().GetAllProfilesAttributes())
+        if (entry->GetPath().BaseName().AsUTF8Unsafe() == quiet_args[0].GetString()) found = entry;
+      if (!found) { reject("Unknown profile directory"); return; }
+      if (quiet_args[1].GetBool()) MarkProfileDirectoryForDeletion(found->GetPath());
+      else CancelProfileDeletion(found->GetPath());
+      NotifySpacesMenus(nullptr);
+      Reply(id, true, base::Value(true)); return;
     }
     if (quiet_method == "contextSpaceLink" && quiet_args.size() == 4 && quiet_args[0].is_int() && quiet_args[1].is_string() && quiet_args[2].is_string() && quiet_args[3].is_string()) {
       auto* owner = GetOwner(web_ui()->GetWebContents()); auto* model = owner->browser->GetTabStripModel();

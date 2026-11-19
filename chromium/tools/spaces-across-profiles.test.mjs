@@ -63,15 +63,17 @@ int main() {
 `;
 
 // Compiled once, on first use, and removed when the tests finish.
-let harnessDir = null;
+// The directory is recorded before compiling, so `after` removes it even when
+// the compile fails.
+let harnessDir = null, harnessBinary = null;
 function harness() {
-  if (!harnessDir) {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-spaces-'));
-    fs.writeFileSync(path.join(dir, 'main.cc'), HARNESS);
-    execFileSync('c++', ['-std=c++20', '-Wall', '-Werror', '-I', root, path.join(dir, 'main.cc'), '-o', path.join(dir, 'h')]);
-    harnessDir = dir;
+  if (!harnessBinary) {
+    harnessDir ??= fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-spaces-'));
+    fs.writeFileSync(path.join(harnessDir, 'main.cc'), HARNESS);
+    execFileSync('c++', ['-std=c++20', '-Wall', '-Werror', '-I', root, path.join(harnessDir, 'main.cc'), '-o', path.join(harnessDir, 'h')]);
+    harnessBinary = path.join(harnessDir, 'h');
   }
-  return path.join(harnessDir, 'h');
+  return harnessBinary;
 }
 after(() => { if (harnessDir) fs.rmSync(harnessDir, {recursive: true, force: true}); });
 
