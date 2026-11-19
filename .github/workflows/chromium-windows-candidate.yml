@@ -29,6 +29,11 @@ on:
         required: false
         default: ''
         type: string
+      update_expect:
+        description: "W3 D2 update proof for a beta candidate: the version blanc.day's update server should move it to, or 'refused'"
+        required: false
+        default: ''
+        type: string
       repack:
         description: Also unpack and repack the installer, unsigned, and install the repacked one (W1 Part C dry run)
         required: false
@@ -234,6 +239,24 @@ jobs:
           $ErrorActionPreference = 'Stop'
           if (-not (Test-Path chromium/tests/windows-updater.mjs) -or -not (Test-Path "$env:CANDIDATE_DIR\UpdaterSetup.exe")) { 'No updater check for this candidate or ref.'; exit 0 }
           node chromium/tests/windows-updater.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\updater"
+      - name: Update proof
+        # W3 Task D2: beta N, with Blanc's updater, asks blanc.day's update
+        # server and must move to the offered version, or refuse a bad package.
+        if: ${{ !cancelled() && env.CANDIDATE_CHANNEL == 'beta' && inputs.update_expect != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPDATE_EXPECT: ${{ inputs.update_expect }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:UPDATE_EXPECT -notmatch '^(refused|\d+\.\d+\.\d+\.\d+)$') { throw "update_expect must be a version or 'refused'." }
+          $shipping = "$env:RUNNER_TEMP\shipping-proof"
+          New-Item -ItemType Directory $shipping | Out-Null
+          gh release download v1.49.1 --repo $env:GITHUB_REPOSITORY --pattern 'Blanc-Setup-1.49.1.exe' --pattern 'SHA256SUMS' --dir $shipping
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download the shipping installer.' }
+          $expected = (Get-Content "$shipping\SHA256SUMS" | Where-Object { $_ -match 'Blanc-Setup-1\.49\.1\.exe$' }) -split '\s+' | Select-Object -First 1
+          if ((Get-FileHash "$shipping\Blanc-Setup-1.49.1.exe" -Algorithm SHA256).Hash.ToLower() -ne $expected.ToLower()) { throw 'The shipping installer does not match the release.' }
+          $mode = if ($env:UPDATE_EXPECT -eq 'refused') { '--expect-refused' } else { "--expect=$env:UPDATE_EXPECT" }
+          node chromium/tests/windows-update-proof.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\update-proof" "$shipping\Blanc-Setup-1.49.1.exe" $mode
       - name: Crash capture
         if: ${{ !cancelled() && env.CANDIDATE_CHANNEL != 'beta' }}
         run: |
