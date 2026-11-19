@@ -40,3 +40,11 @@ test('patch 0103 overrides PATCH wherever version.py reads chrome/VERSION', () =
   for (const file of ['chrome/version.gni', 'build/util/process_version.gni'])
     assert.match(added(file), /import\("\/\/blanc\/config\.gni"\)/, file);
 });
+test('the installer archive takes the same version (Chromium\'s script reads chrome/VERSION itself)', () => {
+  const script = added('chrome/tools/build/win/create_installer_archive.py');
+  assert.match(script, /--chrome_version_patch/);
+  assert.match(script, /if version_patch:\n\+        patch = version_patch/);
+  const gn = added('chrome/installer/mini_installer/BUILD.gn');
+  assert.match(gn, /if \(blanc_win_version_patch != ""\) \{\n\+    args \+= \[ "--chrome_version_patch=\$blanc_win_version_patch" \]/);
+  assert.match(gn, /import\("\/\/blanc\/config\.gni"\)/);
+});
