@@ -83,3 +83,14 @@ test('creating, renaming or deleting a profile refreshes every Spaces menu', () 
   assert.match(main, /remove: \(\.\.\.args\) => afterProfileChange\(deleteNamedLocalProfile\(\.\.\.args\)\),/);
   assert.match(fn('afterProfileChange'), /broadcastWorkspacesUpdated\(\)/);
 });
+
+// Found on the Mac Studio (F41-86): bringing another window forward and then
+// closing this window's menu the usual way handed focus back to this page.
+test('a Space opened in another window closes this menu without taking focus back', () => {
+  const open = handler('chrome:workspaces-open');
+  const create = handler('chrome:workspaces-create-blank');
+  for (const source of [open, create]) assert.match(source, /settleElsewhere\(/);
+  const settle = fn('settleElsewhere');
+  assert.match(settle, /result\?\.ok && result\.windowId && result\.windowId !== String\(rt\(\)\.id\)/);
+  assert.match(settle, /hideOverlay\(\{ refocusContent: false \}\)/);
+});

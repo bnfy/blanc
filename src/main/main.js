@@ -2046,6 +2046,14 @@ function afterProfileChange(result) {
   return result;
 }
 
+/** A Spaces action that brought ANOTHER window forward: close this window's
+ * menu now, without handing focus back to its page. Left to the menu's own
+ * close (or the overlay's blur), the refocus made this window key again and
+ * the other window fell behind (found by F41-86 on the Mac Studio). */
+function settleElsewhere(result) {
+  if (result?.ok && result.windowId && result.windowId !== String(rt().id)) hideOverlay({ refocusContent: false });
+}
+
 /** The other profile a Spaces call names, or null for this window's own
  * profile (today's path, unchanged). */
 function otherProfileTarget(opts) {
@@ -12408,6 +12416,7 @@ function registerIpcHandlers() {
     const otherProfile = otherProfileTarget(opts);
     if (otherProfile) {
       const { result: opened } = openSpaceInProfile({ profileId: otherProfile, spaceId: id });
+      settleElsewhere(opened);
       return opened.ok ? { ...opened, ...workspacesProjection() } : opened;
     }
     const result = switchWindowToWorkspace(rt(), id, { decision: typeof opts?.decision === 'string' ? opts.decision : null, newWindow: opts?.newWindow === true });
@@ -12416,6 +12425,7 @@ function registerIpcHandlers() {
     // {ok:false, action:'focus', windowId} report when the bound window
     // couldn't be recreated — none of these carry a workspace record.
     if (!result.ok) return result;
+    settleElsewhere(result);
     broadcastWorkspacesUpdated();
     return { ...result, ...workspacesProjection() };
   });
@@ -12427,6 +12437,7 @@ function registerIpcHandlers() {
         color: typeof opts?.color === 'string' ? opts.color : undefined,
         symbol: typeof opts?.symbol === 'string' ? opts.symbol : undefined,
       });
+      settleElsewhere(made);
       return made.ok || made.workspaceId ? { ...made, ...workspacesProjection() } : made;
     }
     const result = createBlankWorkspaceAndSwitch(rt(), name, {
@@ -12442,6 +12453,7 @@ function registerIpcHandlers() {
       }
       return result;
     }
+    settleElsewhere(result);
     broadcastWorkspacesUpdated();
     noteSpaceCreated();
     return { ...result, ...workspacesProjection() };
