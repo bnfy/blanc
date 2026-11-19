@@ -24,3 +24,9 @@ test('registered apps are read from the updater\'s prefs, ids in lower case', ()
   assert.deepEqual(registeredApps('{}'), []);
   assert.deepEqual(registeredApps('not json'), []);
 });
+test('the online installer\'s tag names the beta, per user', async () => {
+  const {installTag} = await import('../windows/updater-check.mjs');
+  const names = updaterNames(gni);
+  assert.equal(installTag(names), `appguid=${names.browserAppId}&appname=Blanc%20Beta&needsadmin=no`);
+  assert.doesNotMatch(installTag(names), /[ "]/, 'one command-line argument, no quoting needed');
+});

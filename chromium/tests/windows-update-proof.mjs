@@ -4,20 +4,23 @@
 // update server's release.json names. With --expect=VERSION the beta must
 // become that version (installed, registered, launching); with
 // --expect-refused the package on offer must be refused and N keep working.
-// Either way Electron Blanc is untouched.
+// With --online=VERSION (Task E1) only Blanc's updater setup runs, tagged for
+// the beta as the online installer is, and it must install that version from
+// blanc.day by itself. Either way Electron Blanc is untouched.
 //
-//   node chromium/tests/windows-update-proof.mjs CANDIDATE_N RESULTS SHIPPING_INSTALLER (--expect=V | --expect-refused)
+//   node chromium/tests/windows-update-proof.mjs CANDIDATE_N RESULTS SHIPPING_INSTALLER (--expect=V | --expect-refused | --online=V)
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {spawn, spawnSync, execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {updaterNames, clientsKey, updaterFolder} from '../windows/updater-check.mjs';
+import {updaterNames, clientsKey, updaterFolder, installTag} from '../windows/updater-check.mjs';
 
 const [candidateFolder, resultsFolder, shippingInstaller, mode] = process.argv.slice(2);
 const expect = mode?.startsWith('--expect=') ? mode.slice('--expect='.length) : null;
-if (!candidateFolder || !resultsFolder || !shippingInstaller || !(expect || mode === '--expect-refused'))
-  throw Error('Usage: windows-update-proof.mjs CANDIDATE_N RESULTS SHIPPING_INSTALLER (--expect=V | --expect-refused)');
+const online = mode?.startsWith('--online=') ? mode.slice('--online='.length) : null;
+if (!candidateFolder || !resultsFolder || !shippingInstaller || !(expect || online || mode === '--expect-refused'))
+  throw Error('Usage: windows-update-proof.mjs CANDIDATE_N RESULTS SHIPPING_INSTALLER (--expect=V | --expect-refused | --online=V)');
 if (process.platform !== 'win32') throw Error('The update proof runs on Windows');
 const directory = path.resolve(candidateFolder), out = path.resolve(resultsFolder);
 if (fs.existsSync(out)) throw Error('Refusing to overwrite earlier results');
@@ -28,7 +31,7 @@ const names = updaterNames(fs.readFileSync(path.join(path.dirname(fileURLToPath(
 const local = process.env.LOCALAPPDATA, folder = updaterFolder(local, names);
 const application = path.join(local, 'Blanc Beta', 'Application');
 const electronExe = path.join(local, 'Programs', 'Blanc', 'Blanc.exe');
-const record = {candidate: candidate.id, from: candidate.version, mode: expect ? `expect ${expect}` : 'expect refused', checks: {}, details: {}};
+const record = {candidate: candidate.id, from: candidate.version, mode: online ? `online ${online}` : expect ? `expect ${expect}` : 'expect refused', checks: {}, details: {}};
 const pause = ms => new Promise(r => setTimeout(r, ms));
 const regValues = key => {
   const r = spawnSync('reg.exe', ['query', key], {encoding: 'utf8'});
@@ -70,6 +73,21 @@ try {
   const runKey = 'HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run';
   record.details.runKeyExisted = spawnSync('reg.exe', ['query', runKey], {stdio: 'ignore'}).status === 0;
   spawnSync('reg.exe', ['add', runKey, '/f'], {stdio: 'ignore'});
+  if (online) {
+    // The online installer: the updater's setup, tagged for the beta, alone.
+    const tag = installTag(names);
+    record.details.tag = tag;
+    const setup = spawnSync(path.join(directory, 'UpdaterSetup.exe'), [`--install=${tag}`, '--silent', '--enable-logging'], {timeout: 900000});
+    record.details.installed = {setupExit: setup.status, pv: pv()};
+    record.checks.updaterInstalled = setup.status === 0 && !!updaterExe();
+    for (const deadline = Date.now() + 10 * 60000; Date.now() < deadline && pv() !== online;) await pause(5000);
+    record.checks.versionIsExpected = pv() === online;
+    record.checks.installedFolderPresent = fs.existsSync(path.join(application, online, 'chrome.dll'));
+    record.details.launch = await launches(online);
+    record.checks.launches = record.details.launch.running === true;
+    record.checks.electronUntouched = JSON.stringify(electronState()) === JSON.stringify(electronBefore);
+    throw {online: true};
+  }
   const setup = spawnSync(path.join(directory, 'UpdaterSetup.exe'), ['--install', '--silent', '--enable-logging'], {timeout: 300000});
   const install = spawnSync(path.join(directory, 'mini_installer.exe'), ['--do-not-launch-chrome', '--verbose-logging'], {timeout: 600000});
   record.details.installed = {setupExit: setup.status, installerExit: install.status, pv: pv()};
@@ -94,7 +112,7 @@ try {
   if (expect) record.checks.updatedFolderPresent = fs.existsSync(path.join(application, expect, 'chrome.dll'));
   else record.checks.refusalLogged = /verif|signature|kErrorRequiredProofMissing|CRX_VERIFIER|crx/i.test(log) && /error|fail/i.test(log);
   record.checks.electronUntouched = JSON.stringify(electronState()) === JSON.stringify(electronBefore);
-} catch (error) { failure = error; record.error = String(error.stack || error); }
+} catch (error) { if (!error?.online) { failure = error; record.error = String(error.stack || error); } }
 finally {
   const log = path.join(folder, 'updater.log');
   if (fs.existsSync(log) && !fs.existsSync(path.join(out, 'updater.log'))) fs.copyFileSync(log, path.join(out, 'updater.log'));

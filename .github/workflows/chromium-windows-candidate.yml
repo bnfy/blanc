@@ -30,7 +30,7 @@ on:
         default: ''
         type: string
       update_expect:
-        description: "W3 D2 update proof for a beta candidate: the version blanc.day's update server should move it to, or 'refused'"
+        description: "W3 update proof for a beta candidate: the version blanc.day's update server should move it to, 'refused', or 'online:<version>' (the online installer)"
         required: false
         default: ''
         type: string
@@ -249,14 +249,14 @@ jobs:
           UPDATE_EXPECT: ${{ inputs.update_expect }}
         run: |
           $ErrorActionPreference = 'Stop'
-          if ($env:UPDATE_EXPECT -notmatch '^(refused|\d+\.\d+\.\d+\.\d+)$') { throw "update_expect must be a version or 'refused'." }
+          if ($env:UPDATE_EXPECT -notmatch '^(refused|(online:)?\d+\.\d+\.\d+\.\d+)$') { throw "update_expect must be a version, 'refused' or 'online:<version>'." }
           $shipping = "$env:RUNNER_TEMP\shipping-proof"
           New-Item -ItemType Directory $shipping | Out-Null
           gh release download v1.49.1 --repo $env:GITHUB_REPOSITORY --pattern 'Blanc-Setup-1.49.1.exe' --pattern 'SHA256SUMS' --dir $shipping
           if ($LASTEXITCODE -ne 0) { throw 'Could not download the shipping installer.' }
           $expected = (Get-Content "$shipping\SHA256SUMS" | Where-Object { $_ -match 'Blanc-Setup-1\.49\.1\.exe$' }) -split '\s+' | Select-Object -First 1
           if ((Get-FileHash "$shipping\Blanc-Setup-1.49.1.exe" -Algorithm SHA256).Hash.ToLower() -ne $expected.ToLower()) { throw 'The shipping installer does not match the release.' }
-          $mode = if ($env:UPDATE_EXPECT -eq 'refused') { '--expect-refused' } else { "--expect=$env:UPDATE_EXPECT" }
+          $mode = if ($env:UPDATE_EXPECT -eq 'refused') { '--expect-refused' } elseif ($env:UPDATE_EXPECT -like 'online:*') { "--online=$($env:UPDATE_EXPECT.Substring(7))" } else { "--expect=$env:UPDATE_EXPECT" }
           node chromium/tests/windows-update-proof.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\update-proof" "$shipping\Blanc-Setup-1.49.1.exe" $mode
       - name: Crash capture
         if: ${{ !cancelled() && env.CANDIDATE_CHANNEL != 'beta' }}
