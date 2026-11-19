@@ -14,16 +14,24 @@ import reservations from '../data/mail-reservations.json';
 import { priceFor } from '../data/mail-commerce.mjs';
 const siteKey = reservations.open ? reservations.turnstileSiteKey : '';
 const apiBase = import.meta.env.PUBLIC_MAIL_API_BASE ?? '';
-const ending = 'blnc.day';
+interface Props {
+  endings: readonly [string, ...string[]];
+}
+const { endings } = Astro.props;
+const ending = endings[0];
 ---
 {siteKey && (
   <form class="mail-reserve" method="post" data-mail-reserve data-api={apiBase} data-sitekey={siteKey} data-ending={ending} novalidate>
     <div class="mail-reserve-step" data-step="name">
       <label class="mail-reserve-label" for="mailReserveName">The address you want</label>
       <span class="mail-reserve-field">
-        <input id="mailReserveName" name="localPart" type="text" required minlength="3" maxlength="32" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="mira" aria-describedby="mailReserveAvailability">
+        <input id="mailReserveName" name="localPart" type="text" required minlength="3" maxlength="32" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="mira" aria-describedby="mailReserveEndings mailReserveAvailability">
         <span class="mail-reserve-ending" aria-hidden="true">@{ending}</span>
       </span>
+      <p class="mail-reserve-hint" id="mailReserveEndings">
+        <strong>Choose from five endings when you claim your address.</strong>
+        We hold your name on {endings.join(', ')}.
+      </p>
       <p class="mail-reserve-availability" id="mailReserveAvailability" role="status" aria-live="polite"></p>
 
       <label class="mail-reserve-label" for="mailReserveEmail">Your current email</label>
