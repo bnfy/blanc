@@ -64,7 +64,7 @@ try {
   await pause(3000); spawnSync('taskkill.exe', ['/F', '/T', '/IM', 'Blanc.exe'], {stdio: 'ignore'});
   const electronBefore = electronState();
 
-  const setup = spawnSync(path.join(directory, 'UpdaterSetup.exe'), ['--install', '--enable-logging'], {timeout: 300000});
+  const setup = spawnSync(path.join(directory, 'UpdaterSetup.exe'), ['--install', '--silent', '--enable-logging'], {timeout: 300000});
   const install = spawnSync(path.join(directory, 'mini_installer.exe'), ['--do-not-launch-chrome', '--verbose-logging'], {timeout: 600000});
   record.details.installed = {setupExit: setup.status, installerExit: install.status, pv: pv()};
   record.checks.startsAtN = setup.status === 0 && install.status === 0 && pv() === candidate.version;
@@ -72,6 +72,7 @@ try {
   // Wake the updater: it registers the beta, asks blanc.day, and installs any
   // offered package in the background. Wait for its verdict.
   const exe = updaterExe();
+  if (!exe) throw new Error(`Blanc's updater did not install (UpdaterSetup exit ${setup.status})`);
   spawnSync(exe, ['--wake', '--enable-logging'], {timeout: 300000});
   const target = expect ?? candidate.version;
   const deadline = Date.now() + (expect ? 15 : 5) * 60000;
@@ -89,6 +90,8 @@ try {
   record.checks.electronUntouched = JSON.stringify(electronState()) === JSON.stringify(electronBefore);
 } catch (error) { failure = error; record.error = String(error.stack || error); }
 finally {
+  const log = path.join(folder, 'updater.log');
+  if (fs.existsSync(log) && !fs.existsSync(path.join(out, 'updater.log'))) fs.copyFileSync(log, path.join(out, 'updater.log'));
   const exe = updaterExe();
   if (exe) spawnSync(exe, ['--uninstall'], {timeout: 300000});
 }

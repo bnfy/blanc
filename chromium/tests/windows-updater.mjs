@@ -42,7 +42,7 @@ const tail = (file, pattern, n = 30) => fs.existsSync(file)
 let failure = null;
 try {
   // 1. The updater, per user (no --system), from its setup program.
-  const setup = spawnSync(path.join(directory, 'UpdaterSetup.exe'), ['--install', '--enable-logging'], {timeout: 300000});
+  const setup = spawnSync(path.join(directory, 'UpdaterSetup.exe'), ['--install', '--silent', '--enable-logging'], {timeout: 300000});
   record.details.setupExit = setup.status;
   const exe = updaterExe();
   record.details.updater = exe;
