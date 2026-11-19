@@ -104,7 +104,10 @@ export function buildLane(options) {
       throw new Error('--sdk-root is a macOS option; the Windows output has none.');
     // The Windows output also builds Chromium's installer (W1 Part B), which
     // packs the browser it builds: one named extra target, nothing chosen on
-    // the command line.
+    // the command line. The beta also builds Blanc's updater and its setup
+    // program, UpdaterSetup.exe (W3 Task B2).
+    if (out === 'BlancWinBeta')
+      return { lane, out, target: 'chrome', extraTargets: ['mini_installer', 'chrome/updater/win/installer:installer'] };
     return WINDOWS_OUTPUTS.includes(out) ? { lane, out, target: 'chrome', extraTargets: ['mini_installer'] } : { lane, out, target: 'chrome' };
   }
   if (options.some(option => option.startsWith('--sdk-root='))) throw new Error('--sdk-root is a macOS option; the Android lane has none.');
