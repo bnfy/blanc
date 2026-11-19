@@ -3538,7 +3538,10 @@
   // A Space opened in a new window: this window exists to show it. Capture
   // waits for its first tab, and a failure leaves no blank window behind.
   async function openPendingSpace() {
-    const id = await request('spacePendingOpen');
+    const pending = await request('spacePendingOpen');
+    // {kind: 'open', id}; a create in another profile ({kind: 'create'}) is
+    // handled from Task 5 of the Spaces-across-profiles plan.
+    const id = pending?.kind === 'open' ? pending.id : null;
     if (!id) return;
     for (let i = 0; i < 100; i++) {
       await refresh();
