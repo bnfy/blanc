@@ -98,6 +98,11 @@
         "symbol": {
           "type": "string",
           "optional": true
+        },
+        "profileId": {
+          "type": "string",
+          "doc": "Another local profile whose Space this is (spec 2026-11-19-spaces-across-profiles): opens or creates it in a window of that profile. Omitted, or this window’s own profile, keeps today’s path.",
+          "optional": true
         }
       }
     },
@@ -1068,6 +1073,16 @@
         "recoveryNotice": {
           "type": "boolean | null",
           "optional": true
+        },
+        "otherProfiles": {
+          "type": "OtherProfileSpaces[] | undefined",
+          "doc": "Every other live profile, only with two or more live profiles.",
+          "optional": true
+        },
+        "profileName": {
+          "type": "string | undefined",
+          "doc": "This window’s profile name, beside otherProfiles.",
+          "optional": true
         }
       }
     },
@@ -1203,7 +1218,7 @@
       }
     },
     "WorkspaceErrorCode": {
-      "ts": "'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-color' | 'invalid-symbol' | 'invalid-index' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch' | 'saved-not-moved'",
+      "ts": "'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-color' | 'invalid-symbol' | 'invalid-index' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch' | 'saved-not-moved' | 'profile-unavailable'",
       "doc": "Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js."
     },
     "WorkspaceProtectionReason": {
@@ -1314,6 +1329,16 @@
         },
         "recoveryNotice": {
           "type": "boolean | null",
+          "optional": true
+        },
+        "otherProfiles": {
+          "type": "OtherProfileSpaces[] | undefined",
+          "doc": "Every other live profile, only with two or more live profiles.",
+          "optional": true
+        },
+        "profileName": {
+          "type": "string | undefined",
+          "doc": "This window’s profile name, beside otherProfiles.",
           "optional": true
         }
       }
@@ -1969,6 +1994,51 @@
         "sunriseAt": {
           "type": "number",
           "optional": true
+        }
+      }
+    },
+    "OtherProfileSpace": {
+      "doc": "Another profile’s Space, limited to the fields allowed to cross profiles (spaces-across-profiles.js).",
+      "fields": {
+        "id": {
+          "type": "WorkspaceId"
+        },
+        "name": {
+          "type": "string"
+        },
+        "color": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "tabCount": {
+          "type": "number"
+        },
+        "openElsewhere": {
+          "type": "boolean",
+          "doc": "A window of that profile shows it."
+        }
+      }
+    },
+    "OtherProfileSpaces": {
+      "doc": "One other live local profile and its Spaces.",
+      "fields": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "type": "WorkspaceSaveStatus"
+        },
+        "full": {
+          "type": "boolean",
+          "doc": "The profile holds the most Spaces it can."
+        },
+        "items": {
+          "type": "OtherProfileSpace[]"
         }
       }
     }

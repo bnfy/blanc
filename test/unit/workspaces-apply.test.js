@@ -39,7 +39,7 @@ test('workspaceCapture zips shared record ids through the same private-tab filte
 test('the Space projection carries admission status only in the Personal profile',()=>{
   const source=slice('function workspacesProjection() {','\n/** Freshness:');
   const runtime={profileId:'default',workspaceId:'ws',tabOrder:[]},sharedId='a'.repeat(32);
-  let offered=true;const context={isSharedSpacesOffered:()=>offered,require:()=>require('../../src/main/shared-spaces-surfaces'),sharedSpaceState:{snapshot:()=>({recoveryNoticeSeen:false})},rt:()=>runtime,DEFAULT_PROFILE_ID:'default',spaceTint:'mark',tabs:new Map(),workspaceOwner:()=>null,
+  let offered=true;const context={isSharedSpacesOffered:()=>offered,require:()=>require('../../src/main/shared-spaces-surfaces'),sharedSpaceState:{snapshot:()=>({recoveryNoticeSeen:false})},rt:()=>runtime,DEFAULT_PROFILE_ID:'default',spaceTint:'mark',tabs:new Map(),workspaceOwner:()=>null,otherProfileSpaces:()=>[],localProfiles:{listLocalProfiles:()=>[]},linkRouteLiveness:{isLiveProfile:()=>true},
     namedWorkspaces:{status:()=> 'ready',deleted:()=>[],list:()=>[{id:'ws',sharedId,name:'Work',revision:0,urls:['https://example.test/'],color:'#426c4c',symbol:'briefcase'}]},
     sync:{sharedContext:()=>({}),sharedStatus:()=>({enabled:true,available:true,spaces:26,spaceLimit:25,canAdd:false}),spaceStatus:id=>({reason:'tabs',unsyncedTabIds:[id]})}};
   vm.runInNewContext(source+'\nthis.project=workspacesProjection;',context);
@@ -51,7 +51,7 @@ test('a busy request window alone shows neither the busy line nor a waiting mark
   const source=slice('function workspacesProjection() {','\n/** Freshness:');
   const runtime={profileId:'default',workspaceId:'ws',tabOrder:[]},sharedId='a'.repeat(32);
   let queue={waiting:8,running:1,backoff:false,consecutiveRateLimits:0},pending=false;
-  const context={isSharedSpacesOffered:()=>true,require:()=>require('../../src/main/shared-spaces-surfaces'),sharedSpaceState:{snapshot:()=>({recoveryNoticeSeen:false})},rt:()=>runtime,DEFAULT_PROFILE_ID:'default',spaceTint:'mark',tabs:new Map(),workspaceOwner:()=>null,
+  const context={isSharedSpacesOffered:()=>true,require:()=>require('../../src/main/shared-spaces-surfaces'),sharedSpaceState:{snapshot:()=>({recoveryNoticeSeen:false})},rt:()=>runtime,DEFAULT_PROFILE_ID:'default',spaceTint:'mark',tabs:new Map(),workspaceOwner:()=>null,otherProfileSpaces:()=>[],localProfiles:{listLocalProfiles:()=>[]},linkRouteLiveness:{isLiveProfile:()=>true},
     namedWorkspaces:{status:()=> 'ready',deleted:()=>[],list:()=>[{id:'ws',sharedId,sharedLink:'active',name:'Work',revision:0,urls:['https://example.test/'],color:'#426c4c',symbol:'briefcase'}]},
     sync:{sharedContext:()=>({}),sharedStatus:()=>({enabled:true,available:true,spaces:1,spaceLimit:25,canAdd:true,...queue}),spaceStatus:()=>({unsyncedTabIds:[],reason:null,pending})}};
   vm.runInNewContext(source+'\nthis.project=workspacesProjection;',context);
