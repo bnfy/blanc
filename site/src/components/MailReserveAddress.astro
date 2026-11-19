@@ -11,6 +11,7 @@
 // public and lives there too; its secret is the Worker's TURNSTILE_SECRET. The privacy page's
 // "Blanc Mail address reservations" section describes this contract — change them together.
 import reservations from '../data/mail-reservations.json';
+import { priceFor } from '../data/mail-commerce.mjs';
 const siteKey = reservations.open ? reservations.turnstileSiteKey : '';
 const apiBase = import.meta.env.PUBLIC_MAIL_API_BASE ?? '';
 const ending = 'blnc.day';
@@ -29,7 +30,14 @@ const ending = 'blnc.day';
       <p class="mail-reserve-hint" id="mailReserveEmailHint">We’ll email you here to confirm it’s you. Later, use this email as your backup email to claim the address.</p>
       <input class="mail-reserve-input" id="mailReserveEmail" name="email" type="email" required maxlength="254" placeholder="you@example.com" autocomplete="email" aria-describedby="mailReserveEmailHint">
       <div class="mail-reserve-turnstile" data-turnstile></div>
-      <button class="mail-reserve-button" type="submit" disabled>Reserve</button>
+      <div class="mail-reserve-action">
+        <p class="mail-reserve-pricing" id="mailReservePricing">
+          <strong>Free to reserve.</strong> Claiming your address when Blanc Mail addresses open requires a paid plan.
+          <a href="/mail#pricing">Planned pricing</a> is {priceFor('mail-address-annual')}/year for Blanc Mail + Address
+          or {priceFor('suite-monthly')}/month or {priceFor('suite-annual')}/year for Blanc Bundle.
+        </p>
+        <button class="mail-reserve-button" type="submit" aria-describedby="mailReservePricing" disabled>Reserve</button>
+      </div>
     </div>
 
     <div class="mail-reserve-step" data-step="code" hidden>
