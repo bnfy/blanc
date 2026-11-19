@@ -181,6 +181,21 @@ update server, which D2 proved. Release stages live beside the Mac's, in
 confirmation before the irreversible ones), reusing the Sigstore and manifest
 habits; Sparkle and notarization stay Mac-only.
 
+Online installer (owner, 2026-11-19): the download is Blanc's `UpdaterSetup.exe`
+tagged `appguid={459fd3cf-…}&appname=Blanc%20Beta&needsadmin=false`
+(`chrome/updater/tag.cc` accepts true/false/prefers). Proven unsigned on
+2026-11-19 (run 44564720867, `--install=<tag>`): the setup alone installed the
+updater, which fetched, verified and installed the beta from blanc.day.
+
+- [x] The tagged install path works (unsigned, tag on the command line).
+- [ ] Signing: `UpdaterSetup.exe` holds the updater in an embedded
+      `updater.packed.7z` (`chrome/updater/win/installer`), as `mini_installer`
+      holds the browser; a repack step like `repack-installer.ps1` signs the
+      updater's files inside, then the setup itself.
+- [ ] Tagging after signing with Chromium's `//chrome/updater/tools:tag`
+      (built for the beta and carried in the candidate); the install check runs
+      the signed, tagged file with no command-line tag.
+
 Stages (draft): preflight (candidate from the release commit, version
 158.0.8127.<build>, keys committed) → sign (the candidate workflow's
 Azure Trusted Signing job, owner-approved, now also updater.exe and
