@@ -78,7 +78,8 @@ opened with as a command-line path, so `localHtmlPathsFromArgv`
 at a cold start and on `second-instance`, to the same `openLocalHtmlFiles` the
 `open-file` event uses; on ECS builds that is the static preview window. The NSIS
 installer offers Blanc under Open with for those extensions (`BlancHTML`,
-`OpenWithProgids`, `Capabilities\FileAssociations`) and never sets a default.
+`OpenWithProgids`) and never sets a default; it declares no
+`Capabilities\FileAssociations`, which Windows 11's Set default would apply.
 Other command-line paths, macOS and Linux command lines, and typed `file:` URLs
 stay rejected. Design: `docs/superpowers/specs/2026-11-19-windows-local-html-design.md`.
 

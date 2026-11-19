@@ -58,11 +58,10 @@ Assert-Equal $capabilities "$clientRelative\Capabilities" 'RegisteredApplication
 $associations = Get-ItemProperty "$clientKey\Capabilities\URLAssociations"
 Assert-Equal $associations.http $ProgId 'HTTP association'
 Assert-Equal $associations.https $ProgId 'HTTPS association'
-# Local HTML files: offered under Open with and in Default apps, never made
-# the default (the installer writes no UserChoice).
-$fileAssociations = Get-ItemProperty "$clientKey\Capabilities\FileAssociations"
-foreach ($extension in $htmlExtensions) {
-  Assert-Equal $fileAssociations.$extension $HtmlProgId "$extension file association"
+# Local HTML files: offered under Open with only. Declaring them under
+# Capabilities would let Windows 11's Set default make Blanc their default.
+if (Test-Path "$clientKey\Capabilities\FileAssociations") {
+  throw 'installer registered local-file associations under Capabilities'
 }
 $openWith = @(Get-OpenWithEntries)
 Assert-Equal $openWith.Count $htmlExtensions.Count 'OpenWithProgids entries'

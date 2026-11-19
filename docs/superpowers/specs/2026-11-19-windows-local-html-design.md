@@ -68,6 +68,13 @@ the omission goes away.
   `path.win32.isAbsolute` (drive or UNC), and ends in one of
   `HTML_EXTENSIONS` from `local-html-files.js`, case-insensitive. Arguments
   after a `--` separator count the same. Every other platform returns `[]`.
+  Amended after review: only drive-letter (`C:\`, `C:/`) and UNC paths
+  count, and a command line that carries any URL or scheme yields no files,
+  since Explorer never sends both and an unescaped URL could append a path.
+- **Lifetime.** Amended after review: on Windows and Linux, preview windows
+  close with the last browser window, as mini windows do, so a preview can't
+  keep Blanc running with no browser window. The preview's own extension
+  check now accepts `.xht`, which it had rejected.
   Existence, regular-file and size checks stay where they are: in
   `localHtmlUrlFromPath` (dev builds) and `snapshotLocalHtml` (ECS builds).
 - **Wiring in `main.js`.** The cold-start handoff (after session restore) and
@@ -79,11 +86,12 @@ the omission goes away.
   `Software\Classes\BlancHTML` (name "Blanc HTML Document", the app icon,
   `shell\open\command` = `"<exe>" "%1"`), a value `BlancHTML` under
   `Software\Classes\<ext>\OpenWithProgids` for each of `.htm`, `.html`,
-  `.xht`, `.xhtm`, `.xhtml`, and the same five under
-  `${BLANC_CLIENT_KEY}\Capabilities\FileAssociations`. All in
-  `SHELL_CONTEXT`, before the existing `SHChangeNotify`. `customUnInstall`
-  deletes the ProgId key and each `OpenWithProgids` value (the
-  `FileAssociations` go with the client key it already deletes). The
+  `.xht`, `.xhtm`, `.xhtml`. All in `SHELL_CONTEXT`, before the existing
+  `SHChangeNotify`. `customUnInstall` deletes the ProgId key and each
+  `OpenWithProgids` value. Amended after review: no
+  `Capabilities\FileAssociations`, because Windows 11's Set default button
+  gives a browser every type it declares there, which would make the static
+  preview the default for local pages. The
   default-browser status code reads only the http/https `UserChoice` and is
   unaffected.
 - **Electron's argument guard.** Electron refuses to start when anything

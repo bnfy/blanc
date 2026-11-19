@@ -210,6 +210,7 @@ async function run(appPath, output) {
               new Promise(resolve => second.once('exit', resolve)),
               delay(30000).then(() => { second.kill(); throw Error('Second launch did not hand the file over and quit'); }),
             ]);
+            assert.equal(evidence.secondLaunchExit, 0, 'second launch hands the file over and exits cleanly');
           }
           const localTarget = await waitFor(async () => {
             if (child.exitCode !== null) throw Error(`Candidate exited: ${logs.slice(-1500)}`);

@@ -10,8 +10,10 @@ since then are below as they're recorded.
   nothing in it (#1630). The file shows in a separate, static preview window:
   scripts, network requests and other files on the disk (such as a page's own
   stylesheets and images) are blocked, so some pages look plainer than they do
-  in other browsers. Blanc is added to the Open with list for HTML files; it
-  doesn't become their default.
+  in other browsers, and files over 8 MB don't open. Blanc is added to the
+  Open with list for HTML files, and making Blanc your default browser
+  doesn't make it the default for them. A preview closes with Blanc's last
+  window.
 
 ## Fixed
 
@@ -23,8 +25,10 @@ since then are below as they're recorded.
 ## Still open for the next release
 
 - **Opening local HTML files on Windows** (#1630) by hand from Explorer's
-  Open with in an installed build. CI checks the installer's registration and
-  a packaged Blanc opening a file at launch and while running.
+  Open with in an installed build. CI checked the installer's registration
+  and its removal on a real Windows runner. The packaged check that opens a
+  file at launch and while Blanc runs is in the Windows release job but
+  hasn't run yet: it needs an ECS build, which this branch can't sign.
 - **Closing a real Proxmox console window** (#1477) in a packaged build. The
   fix was checked in the acceptance suite with a page that asks before it's
   left, not against Proxmox itself.

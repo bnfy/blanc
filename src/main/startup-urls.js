@@ -3,6 +3,11 @@
 const path = require('node:path');
 const { HTML_EXTENSIONS } = require('./local-html-files');
 
+// A scheme of two or more characters, so a drive letter (`C:`) is not one.
+const URL_LIKE = /^[a-z][a-z0-9+.-]+:/i;
+// A drive-letter path (`C:\` or `C:/`) or a UNC path; never drive-relative.
+const WINDOWS_ABSOLUTE = /^(?:[a-z]:[\\/]|\\\\)/i;
+
 /**
  * Default-browser and second-instance handoff accepts web URLs only.
  * Electron's file: implementation gives local documents broader filesystem
@@ -32,10 +37,13 @@ function webUrlsFromArgv(argv) {
  * platforms read none. path.win32 keeps the rules the same on every test host. */
 function localHtmlPathsFromArgv(argv, { platform = process.platform } = {}) {
   if (platform !== 'win32' || !Array.isArray(argv)) return [];
+  // Explorer never sends a URL and a file together. A launcher that passes a
+  // URL unescaped could append `-- \\host\share\a.html`, so any URL (or
+  // other scheme) on the line means no files are read from it.
+  if (argv.some((arg) => typeof arg === 'string' && URL_LIKE.test(arg))) return [];
   return argv.filter((arg) => typeof arg === 'string'
-    && !arg.startsWith('-')
     && !arg.includes('\0')
-    && path.win32.isAbsolute(arg)
+    && WINDOWS_ABSOLUTE.test(arg)
     && HTML_EXTENSIONS.has(path.win32.extname(arg).toLowerCase()));
 }
 

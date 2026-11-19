@@ -75,12 +75,16 @@ Var pid
 # and the http/https choosers) when it is registered under the Default
 # Programs contract: a RegisteredApplications pointer to a Capabilities key
 # that claims the http/https URL associations through a ProgId, plus a
-# StartMenuInternet client entry. Local HTML files (#1630) are offered as a
-# choice only: the BlancHTML ProgId, an OpenWithProgids entry per extension
-# (Explorer's Open with list) and Capabilities\FileAssociations (Default
-# apps). Blanc reads such a path from the command line and shows the file in
-# its static preview window; nothing here makes Blanc any file's default.
-# The extensions match HTML_EXTENSIONS in src/main/local-html-files.js.
+# StartMenuInternet client entry. Local HTML files (#1630) are offered in
+# Explorer's Open with list only: the BlancHTML ProgId and an OpenWithProgids
+# entry per extension (matching HTML_EXTENSIONS in local-html-files.js).
+# Blanc reads such a path from the command line and shows the file in its
+# static preview window. There is deliberately no Capabilities
+# FileAssociations: Windows 11's Set default button gives a browser every
+# type it declares there, which would send everyone who makes Blanc their
+# browser to the static preview for every local page. The OpenWithProgids
+# keys stay on uninstall (only Blanc's value goes): NSIS's /ifempty checks
+# subkeys, not values, and would delete other apps' entries.
 # Electron's
 # setAsDefaultProtocolClient only writes a bare protocol handler, which
 # Windows 10+ ignores for http, so without these keys Blanc never appears in
@@ -121,11 +125,6 @@ Var pid
   WriteRegStr SHELL_CONTEXT "Software\Classes\.xht\OpenWithProgids" "${BLANC_HTML_PROGID}" ""
   WriteRegStr SHELL_CONTEXT "Software\Classes\.xhtm\OpenWithProgids" "${BLANC_HTML_PROGID}" ""
   WriteRegStr SHELL_CONTEXT "Software\Classes\.xhtml\OpenWithProgids" "${BLANC_HTML_PROGID}" ""
-  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\FileAssociations" ".htm" "${BLANC_HTML_PROGID}"
-  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\FileAssociations" ".html" "${BLANC_HTML_PROGID}"
-  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\FileAssociations" ".xht" "${BLANC_HTML_PROGID}"
-  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\FileAssociations" ".xhtm" "${BLANC_HTML_PROGID}"
-  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\FileAssociations" ".xhtml" "${BLANC_HTML_PROGID}"
 
   WriteRegStr SHELL_CONTEXT "Software\RegisteredApplications" "${PRODUCT_NAME}" "${BLANC_CLIENT_KEY}\Capabilities"
   # Registration happens after electron-builder creates its shortcuts, so its

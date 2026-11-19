@@ -3,7 +3,7 @@
 const path = require('node:path');
 const { createDrmRuntime } = require('./drm-runtime');
 const { startCandidateDrm, isWidevineComponentError } = require('./drm-startup');
-const { openIsolatedLocalHtml } = require('./local-html-preview');
+const { openIsolatedLocalHtml, closeAllLocalHtmlPreviews } = require('./local-html-preview');
 const { clearStartupPreloadEnvironment, cleanRelaunchEnvironment } = require('./drm-relaunch');
 
 // Selected by immutable package metadata, never a renderer message or an
@@ -79,6 +79,9 @@ function createDrmSupport({ app, session, BrowserWindow, components, metadata,
     async openLocalFiles(paths) {
       await ready;
       for (const file of paths || []) await openIsolatedLocalHtml({ BrowserWindow, session, title: app.getName() }, file);
+    },
+    closeLocalFiles() {
+      closeAllLocalHtmlPreviews();
     },
   };
 }

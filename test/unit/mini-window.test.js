@@ -143,3 +143,10 @@ test('the shortcut is registered only while chosen, and Settings says when it ca
   assert.match(main, /\{ label: t\('menu\.newMiniWindow'\), click: bound\(\(\) => openMiniWindow\(\)\) \},/);
   assert.match(main, /newMiniWindow: \(\) => openMiniWindow\(\),/);
 });
+
+test('preview windows close with the last Windows or Linux window (#1630)', () => {
+  const main = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../src/main/main.js'), 'utf8');
+  assert.match(main, /if \(dockReopenLifecycle\.closeSessionEffect\(\) === 'quit'\) drmSupport\.closeLocalFiles\?\.\(\);/);
+  const drm = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../src/main/drm-support.js'), 'utf8');
+  assert.match(drm, /closeLocalFiles\(\) \{\s*closeAllLocalHtmlPreviews\(\);/);
+});

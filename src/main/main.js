@@ -13605,6 +13605,9 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive 
     // The last ordinary Windows or Linux window quits Blanc: mini windows go
     // with it (they are never saved), so window-all-closed still quits.
     if (dockReopenLifecycle.closeSessionEffect() === 'quit') closeMiniWindows();
+    // Local HTML previews go too, or one would keep Blanc running with no
+    // browser window to come back to (#1630).
+    if (dockReopenLifecycle.closeSessionEffect() === 'quit') drmSupport.closeLocalFiles?.();
     if (clearPersistedWindowState) {
       runtime.closing = true;
       // The close event durably checkpointed before native teardown.

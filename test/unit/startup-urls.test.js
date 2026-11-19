@@ -68,7 +68,6 @@ test('Windows command line yields absolute HTML paths only', () => {
     '\\\\server\\share\\page.htm',
     'relative.html',
     'C:\\Users\\k\\notes.pdf',
-    'https://example.com/a.html',
     'C:\\bad\0.html',
   ]), [
     'C:\\Users\\k\\Report.html',
@@ -87,4 +86,15 @@ test('local HTML paths are read from the command line on Windows only', () => {
   assert.deepEqual(localHtmlPathsFromArgv(['/home/k/a.html'], { platform: 'linux' }), []);
   assert.deepEqual(win(null), []);
   assert.deepEqual(win([42, {}]), []);
+});
+
+// Review of #1630: a launcher that passes a URL unescaped could append
+// `-- \\host\share\a.html`; Explorer never sends a URL and a file together.
+test('a command line that carries a URL yields no file paths', () => {
+  assert.deepEqual(win(['Blanc.exe', 'https://example.com/', '--', '\\\\evil\\share\\a.html']), []);
+  assert.deepEqual(win(['Blanc.exe', 'blanc-import:x', 'C:\\a.html']), []);
+});
+
+test('only drive-letter and UNC paths count, not drive-relative ones', () => {
+  assert.deepEqual(win(['\\a.html', '/a.html', 'C:a.html', 'C:/Users/k/a.html']), ['C:/Users/k/a.html']);
 });

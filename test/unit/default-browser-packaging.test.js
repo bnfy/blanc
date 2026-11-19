@@ -63,7 +63,6 @@ test('Windows installer registers Blanc as a browser under the Default Programs 
     'WriteRegStr SHELL_CONTEXT "Software\\Classes\\${BLANC_HTML_PROGID}\\shell\\open\\command" "" \'"$INSTDIR\\${APP_EXECUTABLE_FILENAME}" "%1"\'',
     ...[...HTML_EXTENSIONS].flatMap((ext) => [
       `WriteRegStr SHELL_CONTEXT "Software\\Classes\\${ext}\\OpenWithProgids" "\${BLANC_HTML_PROGID}" ""`,
-      `WriteRegStr SHELL_CONTEXT "\${BLANC_CLIENT_KEY}\\Capabilities\\FileAssociations" "${ext}" "\${BLANC_HTML_PROGID}"`,
     ]),
   ];
   const flush = install.indexOf('shell32::SHChangeNotify');
@@ -77,6 +76,10 @@ test('Windows installer registers Blanc as a browser under the Default Programs 
     assert.ok(uninstall.includes(line), `uninstaller removes: ${line}`);
   }
   assert.doesNotMatch(install, /UserChoice/, 'never sets a default');
+  // Windows 11's Set default button gives a browser every type it declares
+  // in Capabilities; declaring .htm/.html there would route local pages to
+  // the static preview for anyone who makes Blanc their browser.
+  assert.doesNotMatch(install, /FileAssociations/);
 
   const registration = install.indexOf('Software\\RegisteredApplications');
   const refresh = install.indexOf('shell32::SHChangeNotify');
@@ -149,7 +152,7 @@ test('native Windows validation installs, inspects, and uninstalls the candidate
   assert.match(windowsInstallGate, /GetValue\(\$ProductName, \$null\)/);
   assert.match(windowsInstallGate, /uninstaller left one or more browser registration entries behind/);
   assert.match(windowsInstallGate, /\$htmlExtensions = @\('\.htm', '\.html', '\.xht', '\.xhtm', '\.xhtml'\)/);
-  assert.match(windowsInstallGate, /Capabilities\\FileAssociations/);
+  assert.match(windowsInstallGate, /installer registered local-file associations under Capabilities/);
   assert.match(windowsInstallGate, /OpenWithProgids/);
 });
 
