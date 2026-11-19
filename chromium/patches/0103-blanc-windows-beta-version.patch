@@ -1,0 +1,52 @@
+diff --git a/build/util/process_version.gni b/build/util/process_version.gni
+index 3489bba..a554d28 100644
+--- a/build/util/process_version.gni
++++ b/build/util/process_version.gni
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//blanc/config.gni")
+ import("//build/util/lastchange.gni")
+ 
+ # Runs the version processing script over the given template file to produce
+@@ -97,6 +98,13 @@ template("process_version") {
+       }
+     }
+ 
++    # Blanc: a Windows beta's version PATCH is its build number, wherever
++    # chrome/VERSION is read (//blanc/config.gni blanc_win_version_patch).
++    if (blanc_win_version_patch != "" && defined(invoker.sources) &&
++        filter_include(invoker.sources, [ "//chrome/VERSION" ]) != []) {
++      args += [ "-e", "PATCH=$blanc_win_version_patch" ]
++    }
++
+     if (defined(invoker.executable) && invoker.executable) {
+       args += [ "-x" ]
+     }
+diff --git a/chrome/version.gni b/chrome/version.gni
+index c95eb59..06c8516 100644
+--- a/chrome/version.gni
++++ b/chrome/version.gni
+@@ -15,6 +15,8 @@
+ # These values should only be used if you REALLY need to depend on them at
+ # build-time, for example, in the computation of output file names.
+ 
++import("//blanc/config.gni")
++
+ # Give version.py a pattern that will expand to a GN scope consisting of
+ # all values we need at once.
+ _version_dictionary_template = "full = \"@MAJOR@.@MINOR@.@BUILD@.@PATCH@\" " +
+@@ -26,6 +28,12 @@ chrome_version_file = "//chrome/VERSION"
+ 
+ _script_arguments = []
+ 
++# Blanc: a Windows beta's version PATCH is its build number
++# (//blanc/config.gni blanc_win_version_patch).
++if (blanc_win_version_patch != "") {
++  _script_arguments += [ "-e", "PATCH=$blanc_win_version_patch" ]
++}
++
+ if (is_mac) {
+   _version_dictionary_template += "patch_hi = @PATCH_HI@ patch_lo = @PATCH_LO@ "
+ 

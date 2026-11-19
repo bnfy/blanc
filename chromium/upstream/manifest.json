@@ -2,6 +2,7 @@
   "upstream": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
   "files": {
     "build/config/chrome_build.gni": "09a98267376b69f27d8ec983c9a070ffb52c80660e39b68fd9c1853a3e38314d",
+    "build/util/process_version.gni": "3a6100ccadcda2a05722b748d669ab77cb8d6268bdfcc2957d622d66bf48a69f",
     "chrome/BUILD.gn": "b6974ae3ce56e4ca1e096f79478b92a8271ddd4dff389354c88fa4a681cc5cb1",
     "chrome/android/java/src/org/chromium/chrome/browser/common/ChromeIsolatedWorldIds.java": "fac8c3f2c9c3603068452fb14892e5f2df510375441a95cede80d118c9a4d12b",
     "chrome/app/BUILD.gn": "12ddef3ae21af91fe48621d7c61fd146c3fa652cef110c34a17529066e22a355",
@@ -132,6 +133,7 @@
     "chrome/updater/external_constants_default.cc": "7175ab0a986ec84e5a8b1f9f4d9d44d2ff5f25cb0378da1e039e9c338e84ca2f",
     "chrome/utility/BUILD.gn": "8d16a9fbe5f56543fb41820795047eec0317e7996cdf74b84bd02d14ed5e6376",
     "chrome/utility/services.cc": "88474681c5ef4eafac24643af9927aa009e659eebde739d84b50587c6b3e5662",
+    "chrome/version.gni": "0b2313fd49995228b60eb7524343f6eb182328006ee5b73cfebe21e5894757b1",
     "components/content_settings/core/browser/website_settings_registry.cc": "17715bfd3889557540b351cb26f4c152e28facd5bac2dda0bc3d7666ad25f09b",
     "components/os_crypt/common/BUILD.gn": "6ba956c1524c48915c46c99ff6ea2378794e83602ee5e859a1d8123299e4336e",
     "components/os_crypt/common/keychain_password_mac.mm": "dcf606d11c33974f57370e491b408232646f8ea8a55e2b5c513abf0dbc7a2214",

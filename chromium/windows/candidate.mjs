@@ -38,6 +38,16 @@ const CHANNEL_NAMES = {
   preview: { product: 'Blanc Chromium Preview', appName: 'Blanc Prototype', progId: 'BlancPrvHTM', testHooks: true },
   beta: { product: 'Blanc Beta', appName: 'Blanc Beta', progId: 'BlancBetHTM', testHooks: false },
 };
+// The Windows version a candidate installs as (W3 Task D1): a beta's PATCH is
+// its build number (patch 0103), so each beta is newer than the last for
+// Blanc's updater; other channels keep Chromium's. Each part is 16-bit in the
+// Windows version resource.
+export function windowsVersion(chromiumVersion, channel, betaBuild) {
+  if (channel !== 'beta') return chromiumVersion;
+  if (!Number.isInteger(betaBuild) || betaBuild < 1) throw new Error('A beta needs its build number');
+  if (betaBuild > 65535) throw new Error('A Windows version part is 16-bit');
+  return chromiumVersion.split('.').slice(0, 3).concat(String(betaBuild)).join('.');
+}
 export function channelNames(channel) {
   if (!Object.hasOwn(CHANNEL_NAMES, channel)) throw new Error(`Not a Windows channel: ${channel}`);
   return { ...CHANNEL_NAMES[channel] };

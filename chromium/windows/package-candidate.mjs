@@ -13,7 +13,7 @@ import crypto from 'node:crypto';
 import os from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { ASSET_NAME, candidateId, runtimeFiles, keepingFile, channelOfOutput } from './candidate.mjs';
+import { ASSET_NAME, candidateId, runtimeFiles, keepingFile, channelOfOutput, windowsVersion } from './candidate.mjs';
 
 const sha256 = file => {
   const hash = crypto.createHash('sha256'), fd = fs.openSync(file, 'r'), chunk = Buffer.alloc(1 << 20);
@@ -45,8 +45,12 @@ function main() {
   const files = runtimeFiles(keepingFile(path.join(out, 'gn_logs.txt'), () =>
     execFileSync(gn, ['desc', out, '//chrome:chrome', 'runtime_deps'], { cwd: src, encoding: 'utf8', maxBuffer: 64 << 20 })).split('\n'));
   const dllSha256 = sha256(path.join(out, 'chrome.dll')), exeSha256 = sha256(path.join(out, 'chrome.exe'));
+  // A beta installs as its own version (patch 0103); the build must have made it.
+  const betaBuild = Number(/^blanc_beta_build = (\d+)$/m.exec(fs.readFileSync(path.join(out, 'args.gn'), 'utf8'))?.[1]);
+  const version = windowsVersion(lane.version, channel, channel === 'beta' ? betaBuild : undefined);
+  if (!fs.existsSync(path.join(out, `${version}.manifest`))) throw new Error(`The build in ${outName} is not version ${version}.`);
   const candidate = {
-    id: candidateId(dllSha256), platform: 'windows', arch: 'x64', version: lane.version, upstream: lane.upstream,
+    id: candidateId(dllSha256), platform: 'windows', arch: 'x64', version, chromiumVersion: lane.version, upstream: lane.upstream,
     exeSha256, dllSha256, argsSha256: built.inputs.argsSha256, builtAt: built.completedAt,
     treeCommit: execFileSync('git', ['-C', tree, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
     channel,

@@ -35,6 +35,12 @@ if (blanc_beta_channel) {
     assert(target_cpu == "arm64", "Owner-approved beta 1 Intel waiver")
   }
 }
+# A Windows beta's version PATCH is its build number (patch 0103,
+# chromium/tools/windows-version.test.mjs); everything else keeps Chromium's.
+blanc_win_version_patch = ""
+if (blanc_channel == "beta" && target_os == "win") {
+  blanc_win_version_patch = "$blanc_beta_build"
+}
 blanc_enable_test_hooks = blanc_channel == "preview" && !is_official_build
 # Serving Island assets from a disk folder is a preview development override.
 blanc_disk_assets = blanc_channel == "preview" && !is_official_build
