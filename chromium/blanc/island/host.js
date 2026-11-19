@@ -35,6 +35,10 @@
   // When the open surface appeared, and whether its native context menu is up.
   let overlayShownAt = 0;
   let overlayMenuOpen = false;
+  // A Space came forward in another window (settleElsewhere): closing this
+  // Island must not hand focus back to this window's page, or that window
+  // falls behind again (#1642). The next open clears it.
+  let focusLeftWindow = false;
   // What the open surface was shown for (shipping's overlayPurpose).
   let overlayPurpose = null;
   // The side list's group menu names its group as it closes, so that
@@ -184,7 +188,9 @@
       const id = String(++nextId);
       // An import of the 500-tab maximum can outlast ten seconds on a slow PC;
       // the native side always replies when it ends.
-      const timeout = ['extensionContextMenu', 'closeSplit', 'closeTab', 'spaceOpenNewWindow', 'importArcRead', 'importApply', 'openMainMenu'].includes(method) ? null : setTimeout(() => {
+      // Another profile's Space waits on that profile loading and its window
+      // answering (inOtherProfile gives up after 30 seconds).
+      const timeout = ['extensionContextMenu', 'closeSplit', 'closeTab', 'spaceOpenNewWindow', 'spaceOpenInProfile', 'spaceCreateInProfile', 'importArcRead', 'importApply', 'openMainMenu'].includes(method) ? null : setTimeout(() => {
         pending.delete(id);
         const error = new Error(`Native bridge timed out: ${method}`);
         if (method === 'snapshot') error[snapshotTimeoutMarker] = true;
@@ -416,8 +422,23 @@
     return { meta: { order: [], items: {}, deleted: [], ...meta }, elsewhere: new Set(elsewhere), held: new Set(held) };
   };
   const savedTabCount = () => snapshot?.tabs.filter(tab => !tab.private).length ?? 0;
-  const spaceProjection = ({ meta, elsewhere, held }) => ({
+  // Spaces across profiles (#1642): the browser lists the other local
+  // profiles' Spaces (id, name, color, symbol and tab count only) and this
+  // window's profile id and name; {} with fewer than two profiles, in a mini
+  // window, or when it can't say.
+  let ownProfileId = null;
+  async function spacesAcrossProfiles() {
+    if (snapshot?.miniWindow) return {};
+    let across;
+    try { across = await request('spaceOtherProfiles'); } catch { return {}; }
+    if (!across || typeof across !== 'object') return {};
+    if (typeof across.profileId === 'string') ownProfileId = across.profileId;
+    return across;
+  }
+  const spaceProjection = ({ meta, elsewhere, held }, across = {}) => ({
     status: 'saved', tint: 'mark', recoveryNotice: null, windowTabCount: savedTabCount(),
+    otherProfiles: Array.isArray(across.others) && across.others.length ? across.others : undefined,
+    profileName: typeof across.profileName === 'string' ? across.profileName : undefined,
     deleted: meta.deleted.map(id => ({ id, ...meta.items[id] })),
     items: meta.order.filter(id => meta.items[id]).map(id => ({
       id, ...meta.items[id], active: snapshot?.spaceName === id, openElsewhere: elsewhere.has(id),
@@ -425,7 +446,37 @@
       ...(snapshot?.spaceName === id && { tabCount: savedTabCount() }),
       resident: held.has(id), revision: 0 })),
   });
-  const spacesPayload = async () => spaceProjection(await spaceList());
+  const spacesPayload = async () => {
+    const list = await spaceList();
+    return spaceProjection(list, await spacesAcrossProfiles());
+  };
+  // The other profile a Spaces call names, or null for this window's own
+  // profile (today's path, unchanged).
+  function otherProfileTarget(options) {
+    const profileId = typeof options?.profileId === 'string' ? options.profileId : null;
+    return profileId && profileId !== ownProfileId ? profileId : null;
+  }
+  // A call into another profile: a cold profile loads more slowly than a new
+  // window of this one (openSpaceElsewhere's 20 seconds), so it gets 30.
+  async function inOtherProfile(method, args) {
+    let timer;
+    const gaveUp = new Promise((_, refuse) => { timer = setTimeout(() => refuse(new Error('The other profile did not open the Space.')), 30000); });
+    try {
+      const result = await Promise.race([request(method, args), gaveUp]);
+      return result && typeof result === 'object' ? result : { ok: false, error: 'activation-failed' };
+    } catch (e) {
+      return { ok: false, error: 'activation-failed', detail: e.message };
+    } finally { clearTimeout(timer); }
+  }
+  // A Space that came forward in another window (another profile's, or this
+  // profile's Show window) closes this Island without handing focus back to
+  // this window's page, so that window stays in front (#1642's fix).
+  async function settleElsewhere(result) {
+    if (!result?.ok || result.action !== 'focus') return;
+    focusLeftWindow = true;
+    if (opened || overlayMode) await close(false);
+  }
+  const withSpaces = async result => ({ ...result, ...(await spacesPayload()) });
   async function announceSpaces() {
     try { emit('onWorkspacesUpdated', await spacesPayload()); } catch { /* private windows keep no Spaces */ }
   }
@@ -480,6 +531,14 @@
     return spaceResult({ workspaceId: id, action: 'swap' });
   }
   async function openSpace(id, options = {}) {
+    // Another profile's Space opens (or comes forward) in a window of that
+    // profile; this window's tabs and Space stay as they are.
+    const target = otherProfileTarget(options);
+    if (target) {
+      const result = await inOtherProfile('spaceOpenInProfile', [target, id]);
+      await settleElsewhere(result);
+      return result.ok ? withSpaces(result) : result;
+    }
     const list = await spaceList();
     if (!list.meta.items[id] || list.meta.deleted.includes(id)) return { ok: false, error: 'not-found' };
     await refresh();
@@ -487,7 +546,9 @@
     // Already showing in another window: go there.
     if (list.elsewhere.has(id)) {
       await request('spaceFocus', [id]);
-      return spaceResult({ workspaceId: id, action: 'focus' });
+      const shown = { ok: true, workspaceId: id, action: 'focus' };
+      await settleElsewhere(shown);
+      return spaceResult(shown);
     }
     if (options.newWindow) return openSpaceElsewhere(id);
     const guard = await switchGuard(id, options);
@@ -521,23 +582,46 @@
     try { await Promise.race([request('spaceOpenNewWindow', [id]), gaveUp]); } catch (e) {
       return { ok: false, error: 'activation-failed', detail: e.message };
     }
-    return spaceResult({ workspaceId: id, action: 'focus' });
+    const shown = { ok: true, workspaceId: id, action: 'focus' };
+    await settleElsewhere(shown);
+    return spaceResult(shown);
   }
   async function createBlankSpace(rawName, options = {}) {
+    // Another profile's new Space is made by a window of that profile
+    // (openPendingSpace there); this window stays as it is.
+    const target = otherProfileTarget(options);
+    if (target) {
+      const name = spaceName(rawName);
+      if (!name) return { ok: false, error: 'invalid-name' };
+      const items = (await spacesAcrossProfiles()).others?.find(profile => profile.id === target)?.items ?? [];
+      const theirs = { meta: { order: items.map(item => item.id), items: Object.fromEntries(items.map(item => [item.id, item])) } };
+      const { color, symbol } = spaceIdentity(theirs, options);
+      const made = await inOtherProfile('spaceCreateInProfile', [target, name, color, symbol]);
+      await settleElsewhere(made);
+      return made.ok || made.workspaceId ? withSpaces(made) : made;
+    }
+    return createSpaceHere(rawName, options, { guard: !options.newWindow, newWindow: !!options.newWindow, options });
+  }
+  // A new empty Space in this window's profile: the name check and the limit,
+  // the stored blank Space, its meta (so Personal's Spaces sync picks it up),
+  // then the switch to it (or a new window for it). `guard` asks this window's
+  // switch guard first; a window made for the Space (openPendingSpace) holds
+  // only the new tab it was made with and skips it.
+  async function createSpaceHere(rawName, identity, { guard = false, newWindow = false, options = {} } = {}) {
     const list = await spaceList();
     const checked = checkSpaceName(list, rawName);
     if (checked.error) return { ok: false, error: checked.error };
     if (list.meta.order.length >= SPACE_LIMIT) return { ok: false, error: 'limit' };
-    if (!options.newWindow) {
-      const guard = await switchGuard(`new:${checked.name}`, options);
-      if (guard) return guard;
+    if (guard) {
+      const asked = await switchGuard(`new:${checked.name}`, options);
+      if (asked) return asked;
     }
     const id = crypto.randomUUID();
     try { await request('spaceCreateBlank', [id]); } catch (e) { return { ok: false, error: 'storage-failed', detail: e.message }; }
-    list.meta.items[id] = { name: checked.name, ...spaceIdentity(list, options), tabCount: 1 };
+    list.meta.items[id] = { name: checked.name, ...spaceIdentity(list, identity), tabCount: 1 };
     list.meta.order.push(id);
     await request('spaceMetaSave', [list.meta]);
-    const opened = options.newWindow ? await openSpaceElsewhere(id) : await swapToSpace(id);
+    const opened = newWindow ? await openSpaceElsewhere(id) : await swapToSpace(id);
     // The saved Space stays findable, so a retry can't fail as a duplicate.
     return opened.ok ? { ...opened, workspaceId: id } : { ok: false, error: 'saved-not-opened', cause: opened.error, detail: opened.detail, workspaceId: id };
   }
@@ -1298,6 +1382,7 @@
   }
 
   async function show(prefill, mode = 'panel', trigger = null, purpose = undefined) {
+    focusLeftWindow = false;
     railDismiss('surface');
     overlayDragging = false;
     if (mode === 'panel' || mode === 'palette') request('syncSurface', ['refreshSession', []]).catch(() => {});
@@ -1383,6 +1468,7 @@
   }
 
   async function openFindBar() {
+    focusLeftWindow = false;
     await hideSheet(false);
     invalidateFindShow();
     overlayClosing = null;
@@ -1419,6 +1505,8 @@
   }
 
   async function close(focus = true, restoreTrigger = null) {
+    // The window a Space came forward in keeps the focus (settleElsewhere).
+    if (focusLeftWindow) focus = false;
     overlayDragging = false;
     invalidateFindShow();
     const epoch = findShowEpoch;
@@ -1475,6 +1563,7 @@
     request, close, refreshGeometry: reportGeometry, back: () => show(),
   });
   async function showExtensions() {
+    focusLeftWindow = false;
     railDismiss('surface');
     await hideSheet(false);
     invalidateFindShow();
@@ -3539,18 +3628,26 @@
   // waits for its first tab, and a failure leaves no blank window behind.
   async function openPendingSpace() {
     const pending = await request('spacePendingOpen');
-    // {kind: 'open', id}; a create in another profile ({kind: 'create'}) is
-    // handled from Task 5 of the Spaces-across-profiles plan.
-    const id = pending?.kind === 'open' ? pending.id : null;
-    if (!id) return;
+    // {kind: 'open', id}, or {kind: 'create', name, color, symbol} for a new
+    // Space asked for from another profile's window.
+    const openId = pending?.kind === 'open' && typeof pending.id === 'string' && pending.id;
+    const create = pending?.kind === 'create' && typeof pending.name === 'string';
+    if (!openId && !create) return;
     for (let i = 0; i < 100; i++) {
       await refresh();
       if (snapshot?.tabs.length && !snapshot.tabs.some(tab => tab.isLoading)) break;
       await new Promise(done => setTimeout(done, 50));
     }
     let result;
-    try { result = await swapToSpace(id); } catch (e) { result = { ok: false, detail: e.message }; }
-    await request('spacePendingDone', [!!result.ok, result.detail ?? result.error ?? '']);
+    try {
+      // This window holds only the new tab it was made with: no switch guard.
+      result = openId ? await swapToSpace(openId)
+        : await createSpaceHere(pending.name, { color: pending.color, symbol: pending.symbol });
+    } catch (e) { result = { ok: false, detail: e.message }; }
+    const extra = {};
+    if (!result.ok && typeof result.error === 'string') extra.error = result.error;
+    if (create && typeof result.workspaceId === 'string') extra.workspaceId = result.workspaceId;
+    await request('spacePendingDone', [!!result.ok, result.detail ?? result.error ?? '', extra]);
     if (!result.ok) await request('previewPageCommand', ['closeWindow']);
   }
   openPendingSpace().catch(error => notice(error.message));

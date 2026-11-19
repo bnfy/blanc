@@ -154,7 +154,7 @@
     "glance-card.js": "3dede7f39231795ee861571c3cd053fb097425f195741eebbab72474a2cdb659",
     "host.css": "f5a94580dc940fbe33e192573d3a2a4cfad99a8175748320806187a5a084b9a4",
     "host.html": "418d5a347e4c6e9130173696e0c20a529a7a889d5330653a2d65b16d4ab2bb62",
-    "host.js": "bb6e815a08eecb92b4dcaf804c6af250148aa7d9f820508e3dd1126d6d39edd9",
+    "host.js": "db1f335d2fc2226cfa223be969e7f647a0fbbb3d73959a84a27736faf6bf4b31",
     "hover-panel-leave.js": "b1dec3e1bfc4f53932e651d6345fdea1199b07cdfea6c0926928377b28b7eb1a",
     "i18n.js": "5749b9e67f1876fdd535f6f47908d8a3982ee7c5868b2e23dc50085a1ab27793",
     "icons/chevron-left.svg": "83b0681aa38bf55e9d52a1e4b4cced624abe1fe7678ecafda133a574f1161d93",
@@ -171,7 +171,7 @@
     "mac-icon/BlancDK.icns": "d34201f7710f10d7943193f4afb3bda378acba1b96381468245f553d7234a8c1",
     "mac-icon/manifest.json": "aa11c5ed7b187827d1a312aef495cf3fb8755d48e83b7bfe5b351d36c9f3b56c",
     "overlay.html": "d6d70510bbe4e61f23ee4eedb0197e6189b0ee9f9bef8ceb3c871348d9d266bb",
-    "overlay.js": "2a7114ad23b22cfc712eb3be4b5fde71fff742ed87596ce0cb4a23188cc9fc93",
+    "overlay.js": "63b8815a3e6a7fe890911cd5c56f11cf8cd799a459569611f8ff98eaecd69281",
     "pages/bangs-catalog.js": "8129954e3909f0c0bc6a738d5f9b3164965c2822c7aeb344dcf87814f16e756e",
     "pages/bangs.js": "72c301416757bd8d587203865c1c13e33e1dfaa6776fc00bf7123bfbb1d2ebc0",
     "pages/billboard-clock-adapter.js": "b9660858aa66a2bd05df4cce185777e98d8466e80fe904d99d45a80f48192bdf",
@@ -326,7 +326,7 @@
     "pages/start-page-sunrise.png": "4757c6450f317f4380ec416065c70e314d3046ca53eccb877fd51d0412216451",
     "pages/start-pins.js": "639ce632ade63206bb9f98143ce72d812d8adcc33491e4095bd96e7e2bb0fe0c",
     "pages/start-site-name.js": "6524d6586a8991999ee01855d51d2e185936548db045e33bec03e3a99363868a",
-    "pages/strings.js": "f4ea66bc39957490af901b742e41fe646d2526868c9d663861bb0c1931827059",
+    "pages/strings.js": "553c466f63d854731bf6a785a125f4dd11fc35ced8d472fad9f40a5438327327",
     "pages/sunrise-favicon-mark.png": "ee5ab81f089be18c5fe2c6d261c1e4132a507a05225a0f4948d8a2158c37e353",
     "pages/sunrise-mark.png": "cccdd5335d743552eff18ea7e63284005bf99246854acf64e0a241b2c3fbb3c3",
     "pages/tab-handoff.css": "f35b0fdd0fd3c9c2e1053ef7edec2e63de68507e408e0da86f16422d612081a8",
@@ -351,8 +351,8 @@
     "site-security.js": "883c8afba15289bee82c0f588c0979f28f669b9210a7b3d73a0256b8c9e1d653",
     "space-identity.js": "eb08327c21b1f26ede0709942b5f37067f9e8e925616ef5dda804c845b5c9e3d",
     "space-picker.js": "e3a3b5a0c963c82b532078551a0b191c7ae243cea20d749af6e230f4de96ea26",
-    "strings.js": "c3f7621ef765480dac7811421ebe3c8852ca3c762bf54d9d26aa74af1102308c",
-    "styles.css": "fb5507edbbc78fd98bf97ed8f9f707afa3daf4e699402ed6a84f0bb41461b484",
+    "strings.js": "4a2947c282a30cd3c628be3502def28b5b6ba5773fee9f1f7262a20766dd62a0",
+    "styles.css": "e441e85060d0a91f8dfb08096f96989219ca20f148e9dd2d8f9392ba015c51c5",
     "sunrise-hero-mark.png": "ff24ef691d8b9523d6696ebfa833614ba29855cbad4e86cf37c44b5ec3c866aa",
     "tab-drag.js": "dc7c9e93ba6f442c3ae76f56a99201afd0a6c483491e29d4f0be2ad71667d8f6",
     "tab-sections.js": "25e85166cf7f38ef6ed60cb6b4cc95d5e18e34ccf17aeb2865439c1ecefb71c6",
@@ -360,6 +360,6 @@
     "tab-switcher.js": "91d26cdeaa6d2924c5cd82556266f30e6d92bfe1899b39e455f1ba6912e6bba0",
     "vertical-tabs.js": "af3147c6263a9879afd661636ef011457e2f3db668b0c1ae8a86add83c91784a",
     "whats-new.js": "ed48700b7808264312543422d8576320dfcd95ed3497aa1f20e0e5cd89a5e339",
-    "workspace-ui.js": "85d11a56fe3426359067d5e0bcc830d8e71cb24b17d818f7f96f834cd5df3d7a"
+    "workspace-ui.js": "fd1f31d799a1759ce0196ea47be03bf4edca4890c9da78f9293a5a131ed881e9"
   }
 }
