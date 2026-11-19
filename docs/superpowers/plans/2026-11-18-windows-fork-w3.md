@@ -133,15 +133,16 @@ publisher key hash instead of Google's proof); `chromium/windows/update-keys.md`
 
 **Files:** `cloudflare/update-worker/` (Worker, `wrangler.toml`, tests).
 
-- [ ] **Failing tests** with recorded requests from the updater (captured in Task D1's first run):
+- [x] **Failing tests** with recorded requests from the updater (captured in Task D1's first run):
       an update check for an older version answers with the current beta's package URL, size and
       SHA-256; the current version answers `noupdate`; an unknown app id, a malformed body and a
       lower requested version are refused; every answer carries a valid CUP signature over the
       request and response, checked with the public key.
-- [ ] Implement the protocol (JSON, version 4, as `update_client`'s parser at the pin expects) and
+- [x] Implement the protocol (JSON, version 4, as `update_client`'s parser at the pin expects) and
       ML-DSA-44 signing (a vetted library, pinned by hash); the current beta comes from one data file
       the release tooling writes, like `site/public/updates/chromium-beta/arm64.xml` for the Mac.
-- [ ] Deploy to a staging route first; production after Part D's proof.
+- [x] Deploy to a staging route first (2026-11-19, `blanc-update.bnfy-441.workers.dev`; signed check verified).
+- [ ] Production route on blanc.day (owner decision; see D2).
 
 ## Part D: releasing and proving an update
 
