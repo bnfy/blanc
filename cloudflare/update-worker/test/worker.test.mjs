@@ -155,4 +155,14 @@ test('the deployed Worker uses the committed key, the beta\'s app id and staging
   assert.match(toml, /^compatibility_date = "2026-10-01"$/m);
   assert.doesNotMatch(toml, /^\s*(routes|route)\s*=/m, 'no production route until Part D\'s proof');
 });
+test('the smoke check passes a correctly signing Worker and fails a wrong key', {skip: !haveOpenSSL && 'needs OpenSSL 3.5+'}, async t => {
+  const {smokeCheck} = await import('../scripts/smoke.mjs');
+  const server = await harness({publicSpkiHex: spkiHex, release: RELEASE}); t.after(() => server.close());
+  const worker = server.getWorker();
+  const fetchImpl = (url, init) => worker.fetch(new URL(url).pathname + new URL(url).search, init);
+  const good = await smokeCheck('https://staging.invalid', path.join(work, 'spki.der'), {fetchImpl});
+  assert.deepEqual(good, {status: 200, requestHashEchoed: true, signatureVerifies: true, safePrefix: true, updatecheck: 'ok', nextversion: RELEASE.version});
+  const committed = path.join(repo, 'chromium/windows/keys/cup-public.der');
+  assert.equal((await smokeCheck('https://staging.invalid', committed, {fetchImpl})).signatureVerifies, false, 'another key fails');
+});
 test.after(() => fs.rmSync(work, {recursive: true, force: true}));

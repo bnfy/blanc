@@ -123,3 +123,31 @@ test('patch 0102 gives the updater Blanc\'s keys and leaves the browser\'s alone
   assert.match(constants, /std::string_view\(CRX_PKHASH\)\.empty\(\)/);
   assert.match(constants, /VerifierFormat::CRX3;/);
 });
+
+// C1: the owner's staging command, with stand-ins for 1Password and wrangler.
+test('the staging command installs exactly the seed of the committed key, and nothing else', {skip: !usable && 'needs Homebrew OpenSSL 3 on a Mac'}, () => {
+  const staging = fileURLToPath(new URL('../windows/owner/update-worker-staging.command', import.meta.url));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-staging-test-'));
+  const pem = path.join(dir, 'key.pem'), pub = path.join(dir, 'pub.der'), other = path.join(dir, 'other.der');
+  spawnSync(openssl, ['genpkey', '-algorithm', 'ML-DSA-44', '-out', pem]);
+  spawnSync(openssl, ['pkey', '-in', pem, '-pubout', '-outform', 'DER', '-out', pub]);
+  spawnSync(openssl, ['genpkey', '-algorithm', 'ML-DSA-44', '-out', path.join(dir, 'other.pem')]);
+  spawnSync(openssl, ['pkey', '-in', path.join(dir, 'other.pem'), '-pubout', '-outform', 'DER', '-out', other]);
+  const seed = spawnSync(openssl, ['pkey', '-in', pem, '-provparam', 'ml-dsa.output_formats=seed-only', '-outform', 'DER']).stdout.subarray(-32);
+  const op = path.join(dir, 'op'), wrangler = path.join(dir, 'wrangler'), calls = path.join(dir, 'calls'), secret = path.join(dir, 'secret');
+  fs.writeFileSync(op, `#!/bin/bash\n[ "$OP_BIOMETRIC_UNLOCK_ENABLED" = true ] || exit 1\ncase "$1 $2" in\n "vault get") exit 0;;\n "document get") [ "$3" = "Blanc Windows Beta CUP Key" ] && cp '${pem}' "\${9}";;\n *) exit 2;;\nesac\n`, {mode: 0o755});
+  fs.writeFileSync(wrangler, `#!/bin/bash\necho "$*" >> '${calls}'\ncase "$1" in\n deploy) echo "Deployed https://blanc-update.test.workers.dev";;\n secret) cat > '${secret}';;\nesac\n`, {mode: 0o755});
+  const env = {...process.env, BLANC_OP: op, BLANC_WRANGLER: wrangler, BLANC_SKIP_SMOKE: '1'};
+  const run = spawnSync('bash', [staging], {env: {...env, BLANC_CUP_PUBLIC: pub}, encoding: 'utf8'});
+  assert.equal(run.status, 0, run.stdout + run.stderr);
+  assert.deepEqual(fs.readFileSync(calls, 'utf8').trim().split('\n'), ['deploy', 'secret put CUP_SEED']);
+  assert.equal(fs.readFileSync(secret, 'utf8'), seed.toString('base64'));
+  assert.ok(!(run.stdout + run.stderr).includes(seed.toString('base64')), 'the seed is never printed');
+  assert.match(run.stdout, /https:\/\/blanc-update\.test\.workers\.dev/);
+  fs.rmSync(calls); fs.rmSync(secret);
+  const wrong = spawnSync('bash', [staging], {env: {...env, BLANC_CUP_PUBLIC: other}, encoding: 'utf8'});
+  assert.notEqual(wrong.status, 0);
+  assert.match(wrong.stdout, /NOT the committed public key/);
+  assert.ok(!fs.existsSync(calls), 'nothing is deployed with the wrong key');
+  fs.rmSync(dir, {recursive: true, force: true});
+});
