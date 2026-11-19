@@ -57,6 +57,8 @@ async function launches(version) {
 
 let failure = null;
 try {
+  // A clean runner: no beta and no Blanc updater before this proof.
+  record.checks.cleanStart = !fs.existsSync(application) && !fs.existsSync(folder) && regValues(clientsKey(names)) === null;
   execFileSync(path.resolve(shippingInstaller), ['/S'], {stdio: 'ignore', timeout: 300000});
   for (let t = 0; t < 60 && !fs.existsSync(electronExe); t++) await pause(1000);
   await pause(3000); spawnSync('taskkill.exe', ['/F', '/T', '/IM', 'Blanc.exe'], {stdio: 'ignore'});

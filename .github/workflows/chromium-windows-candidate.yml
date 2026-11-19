@@ -198,7 +198,8 @@ jobs:
       # and whether a crash is captured. Skipped where the candidate or the
       # ref has neither.
       - name: Install check
-        if: ${{ !cancelled() }}
+        # Not in an update proof: the live update server would move the beta.
+        if: ${{ !cancelled() && inputs.update_expect == '' }}
         env:
           GH_TOKEN: ${{ github.token }}
           REPACK: ${{ inputs.repack }}
@@ -234,7 +235,7 @@ jobs:
       - name: Updater check
         # W3 Task B2: the beta registers with Blanc's updater, never Google
         # Update, and the updater takes it into its records.
-        if: ${{ !cancelled() && env.CANDIDATE_CHANNEL == 'beta' }}
+        if: ${{ !cancelled() && env.CANDIDATE_CHANNEL == 'beta' && inputs.update_expect == '' }}
         run: |
           $ErrorActionPreference = 'Stop'
           if (-not (Test-Path chromium/tests/windows-updater.mjs) -or -not (Test-Path "$env:CANDIDATE_DIR\UpdaterSetup.exe")) { 'No updater check for this candidate or ref.'; exit 0 }

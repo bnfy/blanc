@@ -86,14 +86,17 @@ export function makeWorker({publicSpkiHex, release, now = () => Date.now()}) {
     if (url.pathname !== PATH) return plain(404, 'not found');
     if (request.method !== 'POST') return plain(405, 'POST only');
     const cup2key = url.searchParams.get('cup2key') ?? '', cup2hreq = url.searchParams.get('cup2hreq') ?? '';
+    // update_client signs update checks (CUP) but sends event pings unsigned;
+    // a request without CUP parameters may only be a ping.
+    const signed = cup2key !== '' || cup2hreq !== '';
     const [keyId, nonce] = [cup2key.slice(0, cup2key.indexOf(':')), cup2key.slice(cup2key.indexOf(':') + 1)];
-    if (cup2key.indexOf(':') < 0 || keyId !== CUP_KEY_ID || !NONCE.test(nonce) || !/^[0-9a-f]{64}$/.test(cup2hreq))
+    if (signed && (cup2key.indexOf(':') < 0 || keyId !== CUP_KEY_ID || !NONCE.test(nonce) || !/^[0-9a-f]{64}$/.test(cup2hreq)))
       return plain(400, 'missing or unknown CUP parameters');
     if (Number(request.headers.get('content-length') ?? 0) > MAX_BODY) return plain(413, 'too large');
     const body = new Uint8Array(await request.arrayBuffer());
     if (body.length > MAX_BODY) return plain(413, 'too large');
     const requestHash = await sha256(body);
-    if (hex(requestHash) !== cup2hreq) return plain(400, 'cup2hreq does not match the body');
+    if (signed && hex(requestHash) !== cup2hreq) return plain(400, 'cup2hreq does not match the body');
     let apps;
     try {
       const parsed = JSON.parse(new TextDecoder().decode(body))?.request;
@@ -104,14 +107,19 @@ export function makeWorker({publicSpkiHex, release, now = () => Date.now()}) {
         return app;
       });
     } catch { return plain(400, 'not a protocol 4.0 request'); }
+    const elapsedDays = Math.floor((now() - Date.UTC(2007, 0, 1)) / 86400000);
+    if (!signed) {
+      if (apps.some(app => app.updatecheck)) return plain(400, 'missing or unknown CUP parameters');
+      return new Response(")]}'\n" + JSON.stringify({response: {protocol: '4.0', daystart: {elapsed_days: elapsedDays},
+        apps: apps.map(app => answerFor(app, release))}}), {status: 200, headers: {'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store'}});
+    }
     const key = await signingKey(env.CUP_SEED);
     if (!key) return plain(500, 'the signing key is not the committed key');
-    const elapsedDays = Math.floor((now() - Date.UTC(2007, 0, 1)) / 86400000);
     const text = ")]}'\n" + JSON.stringify({response: {protocol: '4.0', daystart: {elapsed_days: elapsedDays},
       apps: apps.map(app => answerFor(app, release))}});
     const responseBytes = encoder.encode(text);
-    const signed = new Uint8Array([...requestHash, ...(await sha256(responseBytes)), ...encoder.encode(cup2key)]);
-    const signature = await crypto.subtle.sign({name: 'ML-DSA-44'}, key, await sha256(signed));
+    const signedBytes = new Uint8Array([...requestHash, ...(await sha256(responseBytes)), ...encoder.encode(cup2key)]);
+    const signature = await crypto.subtle.sign({name: 'ML-DSA-44'}, key, await sha256(signedBytes));
     return new Response(responseBytes, {status: 200, headers: {
       'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store',
       'x-cup-server-proof': `${hex(signature)}:${hex(requestHash)}`,

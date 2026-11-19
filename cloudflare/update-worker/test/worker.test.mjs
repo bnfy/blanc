@@ -138,8 +138,22 @@ test('malformed requests are refused before anything is signed', {skip: !haveOpe
   const bigRes = await worker.fetch('/update/win/v4' + big.query, {method: 'POST', body: big.body});
   assert.equal(bigRes.status, 413);
   assert.equal((await worker.fetch('/update/win/v4' + request(apps).query)).status, 405);
-  assert.equal((await worker.fetch('/update/win/v4', {method: 'POST', body: '{}'})).status, 400, 'no CUP parameters');
+  assert.equal((await worker.fetch('/update/win/v4', {method: 'POST', body: '{}'})).status, 400, 'no CUP parameters and not a ping');
   assert.equal((await worker.fetch('/elsewhere', {method: 'POST', body: '{}'})).status, 404);
+});
+test('an unsigned ping (events only) is acknowledged; an unsigned update check is refused', {skip: !haveOpenSSL && 'needs OpenSSL 3.5+'}, async t => {
+  // update_client sends event pings without CUP (use_signing=false).
+  const server = await harness({publicSpkiHex: spkiHex, release: RELEASE}); t.after(() => server.close());
+  const worker = server.getWorker();
+  const ping = JSON.stringify({request: {protocol: '4.0', apps: [{appid: UPDATER, version: '158.0.8127.900', events: [{eventtype: 2, eventresult: 1}]}]}});
+  const ok = await worker.fetch('/update/win/v4', {method: 'POST', body: ping});
+  assert.equal(ok.status, 200);
+  assert.equal(ok.headers.get('x-cup-server-proof'), null, 'nothing is signed without CUP parameters');
+  assert.deepEqual(parse(await ok.text()).apps, [{appid: UPDATER, status: 'ok'}]);
+  const check = JSON.stringify({request: {protocol: '4.0', apps: [{appid: BROWSER, version: '158.0.8127.900', updatecheck: {}}]}});
+  const refused = await worker.fetch('/update/win/v4', {method: 'POST', body: check});
+  assert.equal(refused.status, 400);
+  assert.equal((await worker.fetch('/update/win/v4', {method: 'POST', body: '{'})).status, 400);
 });
 test('a secret that is not the committed key signs nothing', {skip: !haveOpenSSL && 'needs OpenSSL 3.5+'}, async t => {
   const other = Buffer.from(spkiHex, 'hex'); other[other.length - 1] ^= 1;

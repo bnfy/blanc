@@ -71,8 +71,12 @@ try {
 } catch (error) { failure = error; record.error = String(error.stack || error); }
 finally {
   // Best effort: leave the runner as it was.
-  const installed = path.join(local, 'Blanc Beta', 'Application', candidate.version, 'Installer', 'setup.exe');
-  if (fs.existsSync(installed)) spawnSync(installed, ['--uninstall', '--force-uninstall'], {timeout: 300000});
+  // Whatever version is installed now (the updater may have moved it).
+  const application = path.join(local, 'Blanc Beta', 'Application');
+  for (const version of fs.existsSync(application) ? fs.readdirSync(application).filter(n => /^\d/.test(n)) : []) {
+    const installed = path.join(application, version, 'Installer', 'setup.exe');
+    if (fs.existsSync(installed)) spawnSync(installed, ['--uninstall', '--force-uninstall'], {timeout: 300000});
+  }
   const exe = updaterExe();
   if (exe) spawnSync(exe, ['--uninstall'], {timeout: 300000});
 }
