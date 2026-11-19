@@ -56,15 +56,15 @@ test('the logo and error art sit on the window\'s own flat color (the window dra
   }
 });
 
-// Patch 0104: the Windows beta's updater resources name Blanc's art; every
+// Patch 0105: the Windows beta's updater resources name Blanc's art; every
 // other build keeps Chromium's.
-test('patch 0104 points the Windows beta\'s installer and updater at the Sunrise art', () => {
-  const patch = fs.readFileSync(file('patches/0104-blanc-windows-updater-art.patch'), 'utf8');
+test('patch 0105 points the Windows beta\'s installer and updater at the Sunrise art', () => {
+  const patch = fs.readFileSync(file('patches/0105-blanc-windows-updater-art.patch'), 'utf8');
   const lane = JSON.parse(fs.readFileSync(file('lanes/desktop.json'), 'utf8')).patches.map(p => p.split('/').pop());
-  assert.equal(lane.indexOf('0104-blanc-windows-updater-art.patch'), lane.indexOf('0103-blanc-windows-beta-version.patch') + 1);
+  assert.equal(lane.indexOf('0105-blanc-windows-updater-art.patch'), lane.indexOf('0104-blanc-skip-chromium-welcome.patch') + 1);
   const added = name => {
     const start = patch.indexOf(`+++ b/${name}\n`);
-    assert.ok(start >= 0, `0104 patches ${name}`);
+    assert.ok(start >= 0, `0105 patches ${name}`);
     const end = patch.indexOf('\n--- ', start);
     return patch.slice(start, end < 0 ? undefined : end).split('\n').filter(l => l.startsWith('+') && !l.startsWith('+++')).join('\n');
   };
