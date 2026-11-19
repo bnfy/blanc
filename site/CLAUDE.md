@@ -66,7 +66,9 @@ Newsreader is no longer loaded by any page; its condensed build
 (`scripts/build-condensed-newsreader.py`, `src/fonts/`) is unused and can be
 removed. These files are NOT under the root `tokens/` substrate guard.
 `src/scripts/site.js` (release-link resolution + region-dependent website measurement with an opt-out, all pages
-except legal) is Astro-processed. Anything needing a **stable URL** — favicons,
+except legal) is Astro-processed. The Privacy choices panel never opens by itself (owner, November 19, 2026):
+it opens only from a footer or note button, so where a choice is required, or the location is unknown,
+measurement stays off until the visitor turns it on there. Anything needing a **stable URL** — favicons,
 `og-image.png`, `logo.png`, `feature-*.png` (OG images), `robots.txt`,
 `shots/**` (the Island figures' page captures) — lives in `public/`; never hash or
 rename these.
