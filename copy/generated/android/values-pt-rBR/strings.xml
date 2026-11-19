@@ -314,6 +314,19 @@
     <string name="ws_decision_close_and_switch">Fechar abas e trocar</string>
     <string name="ws_row_current">Space atual</string>
     <string name="ws_row_show_window">Mostrar janela</string>
+    <plurals name="ws_row_title_profile">
+        <item quantity="one">%2$s · %3$s · %4$s · %1$d aba</item>
+        <item quantity="many">%2$s · %3$s · %4$s · %1$d abas</item>
+        <item quantity="other">%2$s · %3$s · %4$s · %1$d abas</item>
+    </plurals>
+    <string name="ws_row_title_profile_shown">%1$s · %2$s · %3$s</string>
+    <string name="ws_editor_profile_disabled">%1$s (não aceita mais Spaces)</string>
+    <string name="ws_row_open_in_profile">Abre em uma janela de %1$s</string>
+    <string name="ws_profile_unreadable">Não foi possível ler os Spaces deste perfil.</string>
+    <string name="ws_editor_profile">Perfil</string>
+    <string name="ws_editor_help_other_profile">As abas ficam no próprio perfil, então um Space em %1$s começa vazio.</string>
+    <string name="ws_switcher_profile_label">Space · %1$s</string>
+    <string name="ws_error_profile_unavailable">Esse perfil não está mais disponível.</string>
     <string name="ws_row_retained">Mantido na memória</string>
     <string name="ws_row_open">Abrir Space</string>
     <plurals name="ws_row_title">

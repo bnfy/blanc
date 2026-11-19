@@ -444,6 +444,7 @@ const namedWorkspaces = require('./workspaces');
 const { readArcSidebarFile, readDetectedArcSidebar, detectArcSidebar } = require('./arc-import-source');
 const { createArcImportService } = require('./arc-import');
 const { createWorkspaceController } = require('./workspace-controller');
+const { otherProfileSpaces } = require('./spaces-across-profiles');
 const { transferSession, roomPlan, releaseOverCap, undoRebindTarget } = require('./workspace-residency');
 const { scratchSwitchGuardResult, MAX_WORKSPACES } = require('./workspaces-model');
 
@@ -1991,29 +1992,73 @@ function routedExternalRuntime(destination, preferred, { background = false } = 
   return resolveRoutedRuntime(destination, preferred, {
     runtimes: windowRuntimes.all().filter(isLiveBrowserRuntime),
     focusOrder: (runtime) => runtimeFocusSerials.get(runtime) ?? 0,
-    openSpace: (target) => openSpaceForRoutedLink(target, { background }),
+    openSpace: (target) => openSpaceInProfile(target, { background }).runtime ?? null,
     openProfileWindow: (profileId) => newRoutedProfileRuntime(profileId, { background }),
   });
 }
 
-// `background`: a link routed from a middle-click or Cmd/Ctrl-click (#1199)
-// shows a window it has to open without focusing it.
-function openSpaceForRoutedLink({ profileId, spaceId }, { background = false } = {}) {
+/** Open a Space of `profileId` without touching any window's tabs: bring
+ * forward the window of that profile showing it, or open it in a new window
+ * of that profile. Link routing and the Spaces menu share this one path
+ * (spec 2026-11-19-spaces-across-profiles §5.1). Returns the controller's
+ * result and, on success, the live window of that profile.
+ * `background`: a link routed from a middle-click or Cmd/Ctrl-click (#1199)
+ * shows a window it has to open without focusing it. */
+function openSpaceInProfile({ profileId, spaceId }, { background = false } = {}) {
+  if (!linkRouteLiveness.isLiveProfile(profileId)) return { result: { ok: false, error: 'profile-unavailable' }, runtime: null };
   // The controller needs only a profile and a lock id from its caller when
   // opening elsewhere; no window of this profile need exist yet.
-  const caller = { id: `link-route-${++linkRouteSpaceSerial}`, profileId };
+  const caller = { id: `space-open-${++linkRouteSpaceSerial}`, profileId };
   let result;
   try {
     result = withLocalProfile(profileId, () => workspaceController.open(caller, spaceId, { newWindow: true }));
   } catch {
-    return null;
+    return { result: { ok: false, error: 'activation-failed' }, runtime: null };
   }
-  if (!result?.ok) return null;
+  if (!result?.ok) return { result: result ?? { ok: false, error: 'activation-failed' }, runtime: null };
   broadcastWorkspacesUpdated();
   const target = windowRuntimes.all().find((runtime) => String(runtime.id) === result.windowId);
-  if (!target) return null;
+  if (!target) return { result, runtime: null };
   createMainWindow(target, { inactive: background });
-  return isLiveBrowserRuntime(target) && target.profileId === profileId ? target : null;
+  return { result, runtime: isLiveBrowserRuntime(target) && target.profileId === profileId ? target : null };
+}
+
+/** Create an empty Space in `profileId` and open it in a new window of that
+ * profile. Tabs never change profile, so it always starts empty (spec §4.4). */
+function createSpaceInProfile(profileId, name, { color, symbol } = {}) {
+  if (!linkRouteLiveness.isLiveProfile(profileId)) return { ok: false, error: 'profile-unavailable' };
+  const caller = { id: `space-create-${++linkRouteSpaceSerial}`, profileId };
+  let result;
+  try {
+    result = withLocalProfile(profileId, () => workspaceController.create(caller, name, { newWindow: true, color, symbol }));
+  } catch {
+    return { ok: false, error: 'activation-failed' };
+  }
+  if (result?.ok || result?.workspaceId) broadcastWorkspacesUpdated();
+  if (result?.ok) noteSpaceCreated(profileId);
+  return result ?? { ok: false, error: 'activation-failed' };
+}
+
+/** Every Spaces menu lists other profiles by name: refresh them once a
+ * profile is created, renamed or deleted. Returns `result` unchanged. */
+function afterProfileChange(result) {
+  Promise.resolve(result).then(() => broadcastWorkspacesUpdated()).catch(() => {});
+  return result;
+}
+
+/** A Spaces action that brought ANOTHER window forward: close this window's
+ * menu now, without handing focus back to its page. Left to the menu's own
+ * close (or the overlay's blur), the refocus made this window key again and
+ * the other window fell behind (found by F41-86 on the Mac Studio). */
+function settleElsewhere(result) {
+  if (result?.ok && result.windowId && result.windowId !== String(rt().id)) hideOverlay({ refocusContent: false });
+}
+
+/** The other profile a Spaces call names, or null for this window's own
+ * profile (today's path, unchanged). */
+function otherProfileTarget(opts) {
+  const profileId = typeof opts?.profileId === 'string' ? opts.profileId : null;
+  return profileId && profileId !== rt().profileId ? profileId : null;
 }
 
 // A new window of the profile holding just the routed link: no Start Page
@@ -11560,8 +11605,8 @@ function chromeOn(channel, handler) {
 }
 
 /** "Make your first space" is done once a space exists in Personal. */
-function noteSpaceCreated() {
-  if (rt().profileId === DEFAULT_PROFILE_ID && !settings.getSettings().spaceMigrationCompleted) {
+function noteSpaceCreated(profileId = rt().profileId) {
+  if (profileId === DEFAULT_PROFILE_ID && !settings.getSettings().spaceMigrationCompleted) {
     settings.setSettings({ spaceMigrationCompleted: true });
   }
 }
@@ -11573,6 +11618,19 @@ const spaceTint = !app.isPackaged && ['island', 'frame'].includes(process.env.BL
 // Workspace IPC contains presentation metadata only. Ownership is derived
 // within the requesting profile; page snapshots, URLs and views stay in main.
 function workspacesProjection() {
+  // Every other live profile's Spaces, limited to the fields the module
+  // allows to cross profiles (spec 2026-11-19-spaces-across-profiles §5.2).
+  const otherProfiles = otherProfileSpaces({
+    profiles: localProfiles.listLocalProfiles(),
+    currentProfileId: rt().profileId,
+    isLive: linkRouteLiveness.isLiveProfile,
+    readProfile: (id) => withLocalProfile(id, () => ({
+      status: namedWorkspaces.status(), spaces: namedWorkspaces.list(),
+      shownIds: new Set(windowRuntimes.all()
+        .filter((runtime) => runtime.profileId === id && isLiveBrowserRuntime(runtime) && runtime.workspaceId)
+        .map((runtime) => runtime.workspaceId)),
+    })),
+  });
   const shared=isSharedSpacesOffered()&&rt().profileId===DEFAULT_PROFILE_ID?sync.sharedStatus():null;
   return {
     status: namedWorkspaces.status(),
@@ -11595,6 +11653,10 @@ function workspacesProjection() {
     // "This window · N tabs" in the new-space editor: what save-as would keep.
     windowTabCount: rt().tabOrder.filter((tabId) => tabs.get(tabId) && !tabs.get(tabId).private).length,
     tint: spaceTint,
+    // Only with two or more live profiles; undefined keeps one profile's
+    // payload exactly as before.
+    otherProfiles: otherProfiles.length ? otherProfiles : undefined,
+    profileName: otherProfiles.length ? localProfiles.getLocalProfile(rt().profileId)?.name ?? '' : undefined,
   };
 }
 
@@ -11604,8 +11666,12 @@ function workspacesProjection() {
  * separately INSIDE each runtime's own scope (forEachWindowRuntime rebinds
  * both the window runtime and the local-profile context per iteration) —
  * a workspace list, and which row is active, is per-profile and per-window,
- * so one shared payload would leak one profile's workspace names into
- * another's window or mislabel which row is bound. Sent to both the chrome
+ * so one shared payload would show the wrong profile's full records or
+ * mislabel which row is bound. Other profiles' Spaces do cross into each
+ * window (spec 2026-11-19-spaces-across-profiles §5.2), but only as
+ * `otherProfiles`, limited by spaces-across-profiles.js to each Space's id,
+ * name, colour, symbol, tab count and whether a window shows it: never its
+ * pages, titles or sync state. Sent to both the chrome
  * window and the overlay — the two surfaces this preload is exposed to that
  * can plausibly render the list — mirroring how chrome:island-proximity
  * targets the window's webContents and chrome:remote-tabs-updated targets
@@ -12343,16 +12409,37 @@ function registerIpcHandlers() {
     return { ok: true, workspaceId: result.workspace.id, ...workspacesProjection() };
   });
   chromeHandle('chrome:workspaces-open', (_e, id, opts) => {
+    // A mini window (#1138) holds no Space and reaches no other profile's.
+    if (rt().mini) return { ok: false, error: 'busy' };
+    // Another profile's Space opens in a window of that profile; this window
+    // and its tabs are never touched (spec 2026-11-19 D1).
+    const otherProfile = otherProfileTarget(opts);
+    if (otherProfile) {
+      const { result: opened } = openSpaceInProfile({ profileId: otherProfile, spaceId: id });
+      settleElsewhere(opened);
+      return opened.ok ? { ...opened, ...workspacesProjection() } : opened;
+    }
     const result = switchWindowToWorkspace(rt(), id, { decision: typeof opts?.decision === 'string' ? opts.decision : null, newWindow: opts?.newWindow === true });
     // {ok:false, error:'not-found'}, the scratch guard's
     // {ok:false, error:'unsaved-scratch', tabCount}, or the honest
     // {ok:false, action:'focus', windowId} report when the bound window
     // couldn't be recreated — none of these carry a workspace record.
     if (!result.ok) return result;
+    settleElsewhere(result);
     broadcastWorkspacesUpdated();
     return { ...result, ...workspacesProjection() };
   });
   chromeHandle('chrome:workspaces-create-blank', (_e, name, opts) => {
+    if (rt().mini) return { ok: false, error: 'busy' };
+    const otherProfile = otherProfileTarget(opts);
+    if (otherProfile) {
+      const made = createSpaceInProfile(otherProfile, name, {
+        color: typeof opts?.color === 'string' ? opts.color : undefined,
+        symbol: typeof opts?.symbol === 'string' ? opts.symbol : undefined,
+      });
+      settleElsewhere(made);
+      return made.ok || made.workspaceId ? { ...made, ...workspacesProjection() } : made;
+    }
     const result = createBlankWorkspaceAndSwitch(rt(), name, {
       decision: typeof opts?.decision === 'string' ? opts.decision : null,
       newWindow: opts?.newWindow === true,
@@ -12366,6 +12453,7 @@ function registerIpcHandlers() {
       }
       return result;
     }
+    settleElsewhere(result);
     broadcastWorkspacesUpdated();
     noteSpaceCreated();
     return { ...result, ...workspacesProjection() };
@@ -16207,10 +16295,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         profiles: localProfiles.listLocalProfiles()
           .filter((profile) => !profileDeletions.hasPendingProfileDeletion(profile.id)),
       }),
-      create: createNamedLocalProfileWindow,
+      create: (...args) => afterProfileChange(createNamedLocalProfileWindow(...args)),
       open: openExistingProfileWindow,
-      rename: renameNamedLocalProfile,
-      remove: deleteNamedLocalProfile,
+      rename: (...args) => afterProfileChange(renameNamedLocalProfile(...args)),
+      remove: (...args) => afterProfileChange(deleteNamedLocalProfile(...args)),
     },
     linkRoutes: { targets: linkRouteTargets },
     // listShortcuts() reads only the live Electron application menu — no

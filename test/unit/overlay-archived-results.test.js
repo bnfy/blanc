@@ -30,7 +30,7 @@ function sandbox({ archived = [], history = [], remote = [], privateActive = fal
     remoteDevices: remote,
     historyEntries: history,
     archivedEntries: archived,
-    wsWorkspaces: [],
+    wsWorkspaces: [], wsOtherProfiles: [],
     matchableText: (title, url) => `${title ?? ''} ${url ?? ''}`,
     stripUrl: (url) => url,
     tabDomain: (tab) => tab.url,
