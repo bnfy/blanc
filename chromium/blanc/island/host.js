@@ -1624,7 +1624,12 @@
     win.addEventListener('blur', dismissOnFocusLoss);
     // Focus coming back is the native menu closing.
     win.addEventListener('focus', () => { overlayMenuOpen = false; });
-    win.document.addEventListener('contextmenu', () => { overlayMenuOpen = true; }, true);
+    win.document.addEventListener('contextmenu', event => {
+      // Another profile's Space row offers nothing to edit, delete or
+      // reorder (#1642): no menu at all, not even Chromium's page menu.
+      if (event.target?.closest?.('.ws-row-elsewhere')) { event.preventDefault(); return; }
+      overlayMenuOpen = true;
+    }, true);
     for (const type of ['pointerdown', 'keydown']) {
       win.document.addEventListener(type, event => {
         if (type === 'pointerdown' && event.button === 2) return;

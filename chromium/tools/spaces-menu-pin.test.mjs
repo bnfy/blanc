@@ -104,6 +104,8 @@ test('host routing: another profile goes to the browser before any switch guard'
   assert.match(body('close'), /focusLeftWindow/);
   assert.match(body('show'), /focusLeftWindow = false/);
   assert.match(body('settleElsewhere'), /focusLeftWindow = true/);
+  // Another profile's row has no right-click menu, Chromium's included.
+  assert.match(host, /closest\?\.\('\.ws-row-elsewhere'\)\) \{ event\.preventDefault\(\); return; \}/);
   assert.match(body('refreshNow'), /lastWindowActive === false && snapshot\.windowActive === true\) focusLeftWindow = false/);
   // Same-profile Show window settles only when native brought one forward.
   assert.match(body('openSpace'), /const focused = await request\('spaceFocus', \[id\]\)/);

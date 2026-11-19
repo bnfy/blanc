@@ -4,7 +4,8 @@
 // another profile's window lists it without loading it, and opens or creates
 // a Space in it through Chromium's profile loading. Runs each scenario's steps
 // by the fork's means until the shipping runner's inventory moves past #1642.
-// Written in Task 3, grown in Task 4, first run after Task 6's build.
+// The F41-83 to F41-92 checks drive the Spaces menu and Quick Switcher in
+// the Island documents of Personal's (and, for F41-92, Work's) window.
 //   node chromium/tests/native-spaces-across-profiles.mjs CONFIG OUT
 import fs from 'node:fs';
 import os from 'node:os';
@@ -16,6 +17,8 @@ import {assertRendering,assertNodeRuntime} from './lib/render-guard.mjs';
 import {createWorld} from './world.mjs';
 import {createProfile,picker,profileHosts} from './fork-steps/profiles.mjs';
 import {jsLiteral} from './lib/js-literal.mjs';
+import {Page} from './lib/page-shim.mjs';
+import {pause} from './lib/cdp.mjs';
 const [configFile,out]=process.argv.slice(2),config=JSON.parse(fs.readFileSync(configFile));
 assertNodeRuntime();assert.equal(fs.existsSync(out),false);fs.mkdirSync(out,{recursive:true});
 const f=new NativeFixture(),w=createWorld(f),result={candidate:config.candidate,checks:[],pending:[]};
@@ -31,9 +34,95 @@ const personalApi=call=>f.host.eval(`window.BlancPrototypeHost.api.${call}`);
 const runtimesOf=async dir=>(await w.call('windowRuntimes')).filter(r=>r.profileId===dir);
 const others=()=>nativeCall(f.host,'spaceOtherProfiles');
 async function personalState(){const s=await nativeCall(f.host,'snapshot');return {tabs:s.tabs.map(t=>[String(t.id),t.url]),space:s.spaceName||null};}
+// ---- The Spaces menu as a person reaches it (F41-83 to F41-92) ----
+// Any window's Island documents, by its host connection: the strip holds the
+// side list's space mark, the overlay the Spaces menu and the Quick Switcher.
+const islandFrame=(cdp,frame)=>new Page({cdp,url:frame==='overlay'?'blanc-chrome://overlay/':'blanc-chrome://index/',frame,host:cdp});
+const drawnMode=cdp=>cdp.eval(`(()=>{const f=document.querySelector('#overlay');return !f||f.hidden?null:f.contentDocument?.body?.dataset.mode||null})()`);
+const active=async cdp=>(await nativeCall(cdp,'snapshot')).windowActive===true;
+// Chromium's own bring-to-front for the window's active tab (as the
+// focusWindowRuntime adapter does): an open Island closes in a window that
+// isn't in front, as shipping's overlay blur does.
+async function bringForward(cdp){
+ const s=await nativeCall(cdp,'snapshot'),targetId=(await nativeCall(cdp,'tabTargets'))[String(s.activeTabId)];
+ const page=await f.connectTarget((await f.targets()).find(t=>t.id===targetId));
+ try{await page.send('Page.bringToFront');}finally{page.close();}
+ await w.waitFor(()=>active(cdp),Boolean,'window in front');
+}
+async function closeIsland(cdp){
+ if(!await drawnMode(cdp))return;
+ await cdp.eval('window.BlancPrototypeHost.api.closeOverlay()');
+ await w.waitFor(()=>drawnMode(cdp),m=>m==null,'the Island closed');
+}
+// The tabs in the side list, where the space mark is (the Island shows none).
+async function sideList(cdp){
+ if((await nativeCall(cdp,'snapshot')).tabLayout!=='vertical')await cdp.eval("window.BlancPrototypeHost.api.setTabLayout('vertical')");
+ await w.waitFor(()=>islandFrame(cdp,'strip').evaluate(()=>document.documentElement.dataset.tabLayout),v=>v==='vertical','tabs in the side list');
+}
+async function openSpacesMenu(cdp){
+ await sideList(cdp);await bringForward(cdp);await closeIsland(cdp);
+ await islandFrame(cdp,'strip').locator('#pillSpace').click();
+ await w.waitFor(()=>drawnMode(cdp),m=>m==='spaces','Spaces menu drawn');
+ const menu=islandFrame(cdp,'overlay');await menu.locator('#workspaceSwitcher').waitFor({state:'visible'});
+ return menu;
+}
+// The menu's list in order: its headings, and each row with the heading above it.
+async function menuList(menu){
+ const items=await menu.locator('#workspaceSwitcher .ws-profile-heading, #workspaceSwitcher .ws-row').evaluateAll(els=>els.map(e=>e.matches('.ws-profile-heading')
+  ?{heading:e.textContent}:{name:e.querySelector('.ws-row-name')?.textContent??'',profileId:e.dataset.profileId??null,id:e.dataset.workspaceId,
+   count:e.querySelector('.ws-row-count')?.textContent??'',buttons:e.querySelectorAll('button').length,more:!!e.querySelector('.ws-row-more')}));
+ let heading=null;const rows=[],headings=[];
+ for(const item of items)if('heading' in item){heading=item.heading;headings.push(heading);}else rows.push({...item,under:heading});
+ return {headings,rows};
+}
+function rowUnder(list,name,profile){
+ const found=list.rows.filter(r=>r.name===name&&r.under===profile);
+ assert.equal(found.length,1,`${name} under ${profile}: ${JSON.stringify(list)}`);return found[0];
+}
+const rowButton=(menu,row)=>menu.locator(`#workspaceSwitcher .ws-row[data-workspace-id=${JSON.stringify(row.id)}]${row.profileId?`[data-profile-id=${JSON.stringify(row.profileId)}]`:':not([data-profile-id])'} .ws-row-main`);
+// A page in a window of any profile, by that window's host.
+async function openPage(cdp,url,{privateTab=false}={}){
+ const before=new Set((await nativeCall(cdp,'snapshot')).tabs.map(t=>String(t.id)));
+ await cdp.eval(`window.BlancPrototypeHost.api.createTab(${jsLiteral(url)},{private:${privateTab}})`);
+ const s=await w.waitFor(()=>nativeCall(cdp,'snapshot'),s=>s.tabs.some(t=>!before.has(String(t.id))&&t.url===url&&!t.isLoading),'page loaded');
+ return String(s.tabs.find(t=>!before.has(String(t.id))&&t.url===url).id);
+}
+async function pageEval(cdp,tabId,source){
+ const targetId=(await nativeCall(cdp,'tabTargets'))[String(tabId)];
+ const page=await f.connectTarget((await f.targets()).find(t=>t.id===targetId));
+ try{return await page.eval(source);}finally{page.close();}
+}
+// Chromium's Close Window, run by that window's Island; its reply can be lost
+// as the window goes, so the window leaving is the result.
+async function closeWindow(h){
+ const reply=await nativeCall(h.cdp,'previewPageCommand',['closeWindow'],null,5000).catch(e=>/closed|timed out/i.test(e.message)?'gone':Promise.reject(e));
+ assert.notEqual(reply,false,'the window agreed to close');
+ await w.waitFor(async()=>!(await f.targets()).some(t=>t.id===h.targetId),Boolean,'window closed');
+}
+// A profile's windows, by host: {directory, name, cdp, targetId, snap}.
+async function windowsOf(directory){
+ const out=[];for(const h of await profileHosts(w))if(h.directory===directory)out.push({...h,snap:await nativeCall(h.cdp,'snapshot')});
+ return out;
+}
 try{
  await f.launch(config,path.join(parent,'fixture'),{testHooks:true,diskAssets:false});
  await installDriver(f.host);await visible();await w.reset();
+
+ // F41-83: One profile needs no profile headings or choice.
+ assert.deepEqual((await profileHosts(w)).map(h=>h.directory),['Default'],'Personal is the only profile');
+ const home=await personalApi("saveWorkspaceAs('Home')");assert.equal(home.ok,true,JSON.stringify(home));
+ {
+  const menu=await openSpacesMenu(f.host),list=await menuList(menu);
+  assert.deepEqual(list.headings,[],'no profile heading');
+  assert.deepEqual(list.rows.map(r=>r.name),['Home']);
+  await menu.locator('[data-focus-key="new"]').click();
+  await menu.locator('.ws-editor').waitFor({state:'visible'});
+  assert.equal(await menu.locator('.ws-editor #workspaceProfile').count(),0,'the New Space editor has no Profile choice');
+  await menu.locator('.ws-editor [data-focus-key="cancel"]').click();
+  await menu.locator('.ws-editor').waitFor({state:'detached'});
+  await closeIsland(f.host);
+ }
+ result.checks.push('F41-83: one profile: no profile heading, and New Space has no Profile choice');
 
  // mirror written: a Space saved in Work appears under Work's directory alone.
  const work=await createProfile(w,'Work'),workDir=work.directory;
@@ -85,6 +174,9 @@ try{
  assert.deepEqual(heading.others.find(o=>o.id===workDir).items.map(i=>i.name),['Listed']);
  await w.waitFor(()=>personalApi('listWorkspaces()'),p=>p.otherProfiles?.some(o=>o.id===workDir&&o.name==='Studio'),'renamed heading');
  result.checks.push('rename reaches the heading: Personal\'s Spaces menu heads Work\'s Spaces as Studio');
+ // Back to Work for the scenarios below.
+ await evaluate(renamePick,`const cards=[...find('profile-picker-main-view').shadowRoot.querySelectorAll('profile-card')];const card=cards.find(c=>c.profileState.localProfileName==='Studio');if(!card)throw Error('Studio card missing');const input=find('#nameInput',card.shadowRoot);input.value='Work';input.dispatchEvent(new Event('change',{bubbles:true}));return true;`);
+ await w.waitFor(others,p=>p.others?.some(o=>o.id===workDir&&o.name==='Work'),'Work named Work again');
 
  // open from a closed profile: Work has Listed and no window; opening it from
  // Personal loads Work and opens one Work window on Listed. Personal is untouched.
@@ -148,6 +240,213 @@ try{
  assert.equal(twice.ok,false);assert.equal(twice.error,'duplicate-name',JSON.stringify(twice));
  assert.equal((await runtimesOf(workDir)).length,windowsBefore+1,'no window for the duplicate');
  result.checks.push('create: Planning opens in a new Work window with one tab and is mirrored; "planning" again is duplicate-name');
+
+ // ---- F41-84 to F41-92 through the menu itself ----
+ // Work starts over with one window and no Spaces; Personal keeps Home.
+ const page=name=>w.fixtureUrl('spaces-across-'+name);
+ const newWindows=(before,now)=>now.filter(x=>!before.some(b=>b.targetId===x.targetId));
+ const showing=async id=>(await windowsOf(workDir)).find(x=>x.snap.spaceName===id);
+ {
+  const wins=await windowsOf(workDir);assert.ok(wins.length>=1,'Work has a window');
+  for(const item of (await hostApi(wins[0],'listWorkspaces()')).items)
+   assert.equal((await hostApi(wins[0],`removeWorkspace(${jsLiteral(item.id)})`)).ok,true);
+  for(const extra of wins.slice(1))await closeWindow(extra);
+  assert.deepEqual((await hostApi(wins[0],'listWorkspaces()')).items,[]);
+ }
+
+ // F41-88: A Space created in another profile starts empty.
+ const personalTab=await openPage(f.host,page('personal'));
+ let sprintSpace;
+ {
+  const menu=await openSpacesMenu(f.host);
+  await menu.locator('[data-focus-key="new"]').click();
+  await menu.locator('.ws-editor').waitFor({state:'visible'});
+  const picker=menu.locator('.ws-editor #workspaceProfile');
+  assert.equal(await picker.evaluate(e=>e.selectedOptions[0]?.textContent),'Personal');
+  await picker.selectOption(workDir);
+  await w.waitFor(()=>menu.locator('.ws-editor [data-focus-key="start:empty"]').getAttribute('aria-checked'),v=>v==='true','Empty chosen');
+  assert.equal(await menu.locator('.ws-editor [data-focus-key="start:window"]').evaluate(e=>e.disabled),true,'This window is disabled');
+  const before=await windowsOf(workDir),personalBefore=await personalState();
+  await menu.locator('#workspaceName').fill('Sprint');
+  await w.waitFor(()=>menu.locator('.ws-editor [data-focus-key="create"]').evaluate(e=>!e.disabled),Boolean,'Create enabled');
+  await menu.locator('.ws-editor [data-focus-key="create"]').click();
+  const now=await w.waitFor(()=>windowsOf(workDir),ws=>newWindows(before,ws).some(x=>x.snap.spaceName),'a new Work window on Sprint');
+  const fresh=newWindows(before,now);assert.equal(fresh.length,1,'one new Work window');
+  const listed=await hostApi(fresh[0],'listWorkspaces()'),sprint=listed.items.find(i=>i.name==='Sprint');
+  assert.ok(sprint?.active,JSON.stringify(listed.items));sprintSpace=sprint.id;
+  assert.equal(fresh[0].snap.spaceName,sprintSpace);
+  assert.equal(fresh[0].snap.tabs.length,1,'Sprint starts with one new tab');
+  assert.match(fresh[0].snap.tabs[0].url,/newtab/);
+  await w.waitFor(()=>drawnMode(f.host),m=>m==null,'Personal\'s menu closed');
+  assert.deepEqual(await personalState(),personalBefore,'Personal unchanged');
+ }
+ result.checks.push('F41-88: Work in the editor picks Empty and disables This window; Sprint opens in a new Work window with one new tab and is in Work\'s list');
+
+ for(const x of await windowsOf(workDir))await closeWindow(x);
+
+ // F41-84: The Spaces menu puts this window's profile first.
+ {
+  const list=await menuList(await openSpacesMenu(f.host));
+  assert.deepEqual(list.headings,['Personal','Work']);
+  const homeRow=rowUnder(list,'Home','Personal'),sprintRow=rowUnder(list,'Sprint','Work');
+  assert.ok(list.rows.indexOf(homeRow)<list.rows.indexOf(sprintRow),'Home before Sprint');
+  await closeIsland(f.host);
+ }
+ result.checks.push('F41-84: headings Personal then Work; Home under Personal before Sprint under Work');
+
+ // F41-91: A profile being deleted disappears from the Spaces menu.
+ {
+  rowUnder(await menuList(await openSpacesMenu(f.host)),'Sprint','Work');
+  await closeIsland(f.host);
+  assert.equal(await nativeCall(f.host,'profileDeletionMarkTest',[workDir,true]),true);
+  try{
+   const menu=await openSpacesMenu(f.host);
+   const list=await w.waitFor(()=>menuList(menu),l=>!l.headings.includes('Work'),'Work gone from the menu');
+   assert.deepEqual(list.headings,[],'Personal alone: no headings');
+   assert.equal(list.rows.some(r=>r.name==='Sprint'),false,'no Sprint');
+   await closeIsland(f.host);
+  }finally{assert.equal(await nativeCall(f.host,'profileDeletionMarkTest',[workDir,false]),true);}
+  await w.waitFor(others,p=>p.others?.some(o=>o.id===workDir),'Work listed again');
+ }
+ result.checks.push('F41-91: while Work is marked for deletion the reopened menu shows neither Work nor Sprint');
+
+ // F41-85: A Work Space that is open nowhere opens in a new Work window.
+ {
+  await bringForward(f.host);
+  const personalBefore=await nativeCall(f.host,'snapshot');
+  assert.equal(String(personalBefore.activeTabId),personalTab,'Personal shows its web page');
+  const before=await windowsOf(workDir);assert.deepEqual(before,[]);
+  const menu=await openSpacesMenu(f.host);
+  await rowButton(menu,rowUnder(await menuList(menu),'Sprint','Work')).click();
+  const now=await w.waitFor(()=>windowsOf(workDir),ws=>ws.some(x=>x.snap.spaceName===sprintSpace),'a new Work window on Sprint');
+  assert.equal(now.length,1,'one new Work window');
+  await w.waitFor(()=>drawnMode(f.host),m=>m==null,'Personal\'s menu closed, with no prompt');
+  const after=await nativeCall(f.host,'snapshot');
+  assert.deepEqual(after.tabs.map(t=>[String(t.id),t.url]),personalBefore.tabs.map(t=>[String(t.id),t.url]));
+  assert.equal(String(after.activeTabId),personalTab);assert.equal(after.spaceName,personalBefore.spaceName);
+  for(const x of now)await closeWindow(x);
+ }
+ result.checks.push('F41-85: Sprint under Work opens one new Work window; Personal\'s tabs, page and Space unchanged, no prompt');
+
+ // Review Focus 4: with a private tab active, the open still lands in
+ // Work's normal profile.
+ {
+  const privateTab=await openPage(f.host,page('private'),{privateTab:true});
+  const s=await nativeCall(f.host,'snapshot');
+  assert.equal(String(s.activeTabId),privateTab);assert.equal(s.tabs.find(t=>String(t.id)===privateTab).private,true);
+  const menu=await openSpacesMenu(f.host);
+  await rowButton(menu,rowUnder(await menuList(menu),'Sprint','Work')).click();
+  const now=await w.waitFor(()=>windowsOf(workDir),ws=>ws.some(x=>x.snap.spaceName===sprintSpace),'a Work window on Sprint');
+  assert.equal(now.length,1,'one Work window');
+  assert.equal(now[0].directory,workDir);
+  assert.ok(now[0].snap.tabs.length>0&&now[0].snap.tabs.every(t=>!t.private),'a normal Work window, not a private one');
+  await w.waitFor(()=>drawnMode(f.host),m=>m==null,'Personal\'s menu closed');
+  assert.equal(String((await nativeCall(f.host,'snapshot')).activeTabId),privateTab,'Personal\'s private tab stays');
+  for(const x of now)await closeWindow(x);
+  await nativeCall(f.host,'closeTab',[s.tabs.find(t=>String(t.id)===privateTab).id]);
+ }
+ result.checks.push('Review Focus 4: with a private tab active in Personal, Sprint opens in a normal Work window');
+
+ // F41-90: The Quick Switcher can open a Space from another profile.
+ {
+  await sideList(f.host);await bringForward(f.host);await closeIsland(f.host);
+  await f.host.eval('window.BlancPrototypeHost.api.openIsland()');
+  await w.waitFor(()=>drawnMode(f.host),m=>m==='panel','the panel drawn');
+  const overlay=islandFrame(f.host,'overlay');
+  await overlay.locator('#addressInput').fill('Sprint');
+  const found=overlay.locator('.island-row:has(.row-space-tile)',{hasText:'Space · Work'});
+  await found.waitFor({state:'visible'});
+  assert.equal(await found.count(),1);assert.match(await found.textContent(),/Sprint/);
+  await found.click();
+  const now=await w.waitFor(()=>windowsOf(workDir),ws=>ws.some(x=>x.snap.spaceName===sprintSpace),'a Work window on Sprint');
+  assert.equal(now.length,1,'one new Work window');
+ }
+ result.checks.push('F41-90: the Quick Switcher shows Sprint as "Space · Work" and opens it in a new Work window');
+
+ // F41-86: A Work Space already on screen brings its window forward.
+ {
+  const shown=await showing(sprintSpace);
+  await bringForward(f.host);
+  assert.equal(await active(shown.cdp),false,'the Work window is behind Personal');
+  const hostsBefore=(await profileHosts(w)).map(h=>h.targetId).sort();
+  const menu=await openSpacesMenu(f.host),row=rowUnder(await menuList(menu),'Sprint','Work');
+  assert.equal(row.count,'Show window');
+  await rowButton(menu,row).click();
+  await w.waitFor(()=>drawnMode(f.host),m=>m==null,'Personal\'s menu closed');
+  await w.waitFor(()=>active(shown.cdp),Boolean,'the Work window in front');
+  await pause(1000);
+  assert.equal(await active(shown.cdp),true,'still in front 1 s after the menu closed');
+  assert.equal(await active(f.host),false,'Personal stays behind');
+  assert.deepEqual((await profileHosts(w)).map(h=>h.targetId).sort(),hostsBefore,'no window added');
+  assert.equal((await nativeCall(shown.cdp,'snapshot')).spaceName,sprintSpace);
+ }
+ result.checks.push('F41-86: choosing Sprint (Show window) brings the Work window forward, still in front 1 s after the menu closed; no window added');
+
+ // F41-89: The Spaces menu only opens Spaces from another profile.
+ {
+  const shown=await showing(sprintSpace);
+  const made=await hostApi(shown,"createBlankWorkspace('Planning',{newWindow:true})");assert.equal(made.ok,true,JSON.stringify(made));
+  await w.waitFor(()=>showing(made.workspaceId),Boolean,'a Work window on Planning');
+  const menu=await openSpacesMenu(f.host);
+  let list=await w.waitFor(()=>menuList(menu),l=>l.rows.some(r=>r.name==='Planning'&&r.under==='Work'),'Planning listed');
+  const workRows=l=>l.rows.filter(r=>r.under==='Work').map(r=>r.name);
+  assert.deepEqual(workRows(list),['Sprint','Planning']);
+  const row=rowUnder(list,'Sprint','Work'),open=rowButton(menu,row);
+  assert.equal(row.more,false,'no edit button');assert.equal(row.buttons,1,'only its open button');
+  assert.ok((await open.getAttribute('aria-label')).startsWith('Sprint · Work · Show window'));
+  // No context menu, Chromium's page menu included: the right-click is refused.
+  assert.equal(await open.evaluate(e=>!e.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true,composed:true,button:2}))),true,'the right-click is refused');
+  await open.click({button:'right'});await pause(300);
+  assert.equal(await drawnMode(f.host),'spaces','the menu stays as it was');
+  assert.equal(await menu.locator('.ws-editor, .ws-decision').count(),0,'nothing to edit or delete');
+  // No reordering by keyboard or by dragging.
+  await open.press('Alt+ArrowDown');
+  const start=await open.boundingBox(),end=await rowButton(menu,rowUnder(list,'Planning','Work')).boundingBox();
+  await menu.mouse.move(start.x+start.width/2,start.y+start.height/2);await menu.mouse.down();
+  try{
+   await menu.mouse.move(end.x+end.width/2,end.y+end.height/2,{steps:4});
+   assert.equal(await menu.locator('#workspaceSwitcher .ws-row.dragging').count(),0,'the row does not drag');
+  }finally{await menu.mouse.up();}
+  list=await menuList(menu);
+  assert.deepEqual(workRows(list),['Sprint','Planning']);
+  assert.deepEqual((await hostApi(shown,'listWorkspaces()')).items.map(i=>i.name),['Sprint','Planning'],'Work\'s order unchanged');
+  await closeIsland(f.host);
+  await closeWindow(await showing(made.workspaceId));
+ }
+ result.checks.push('F41-89: Sprint under Work has no edit button, refuses a right-click and does not reorder by keyboard or drag');
+
+ // F41-92: A Work window lists Personal's Spaces without sync marks.
+ {
+  const shown=await showing(sprintSpace);
+  const menu=await openSpacesMenu(shown.cdp),list=await menuList(menu);
+  assert.deepEqual(list.headings,['Work','Personal']);
+  rowUnder(list,'Home','Personal');
+  assert.equal(await menu.locator('#workspaceSwitcher .ws-sync-mark').count(),0,'no sync mark');
+  assert.equal(await menu.locator('#workspaceSwitcher .ws-sync-status').count(),0,'no sync status');
+  await closeIsland(shown.cdp);
+ }
+ result.checks.push('F41-92: a Work window lists Home under Personal with no sync marks');
+
+ // F41-87: A set-aside Work Space opens with its page as it was.
+ {
+  const shown=await showing(sprintSpace),draftUrl=page('draft'),text='Work draft still in progress';
+  const draftTab=await openPage(shown.cdp,draftUrl);
+  assert.equal(await pageEval(shown.cdp,draftTab,`(()=>{const field=document.createElement('textarea');field.id='draft';field.value=${jsLiteral(text)};document.body.append(field);return field.value;})()`),text);
+  const identity=await pageEval(shown.cdp,draftTab,'window.__blancPageIdentity??=crypto.randomUUID()');
+  // Set aside: that Work window switches to another Space.
+  const later=await hostApi(shown,"createBlankWorkspace('Later')");assert.equal(later.ok,true,JSON.stringify(later));
+  await w.waitFor(()=>hostApi(shown,'listWorkspaces()'),l=>{const i=l.items.find(x=>x.id===sprintSpace);return i?.resident===true&&!i.active;},'Sprint set aside');
+  const before=await windowsOf(workDir);
+  const menu=await openSpacesMenu(f.host);
+  await rowButton(menu,rowUnder(await menuList(menu),'Sprint','Work')).click();
+  const now=await w.waitFor(()=>windowsOf(workDir),ws=>newWindows(before,ws).some(x=>x.snap.spaceName===sprintSpace),'a new Work window on Sprint');
+  const fresh=newWindows(before,now);assert.equal(fresh.length,1,'one new Work window');
+  const s=await w.waitFor(()=>nativeCall(fresh[0].cdp,'snapshot'),s=>s.tabs.some(t=>t.url===draftUrl),'the draft\'s tab in the new window');
+  const id=String(s.tabs.find(t=>t.url===draftUrl).id);
+  assert.equal(await pageEval(fresh[0].cdp,id,'window.__blancPageIdentity'),identity,'the same page, not reloaded');
+  assert.equal(await pageEval(fresh[0].cdp,id,"document.querySelector('#draft').value"),text,'the draft is still in the field');
+ }
+ result.checks.push('F41-87: Sprint set aside with a draft opens in a new Work window with the same page and the draft still in the field');
  await visible();
  result.result='pass';
 }catch(error){result.result=error.code==='BLANC_ENVIRONMENT_STOP'?'blocked-environment':'fail';result.error=String(error.stack);process.exitCode=1;}
