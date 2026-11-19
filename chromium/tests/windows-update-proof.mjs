@@ -72,6 +72,7 @@ async function launches(version) {
 }
 
 let failure = null;
+let relay = null;
 try {
   // A clean runner: no beta and no Blanc updater before this proof.
   record.checks.cleanStart = !fs.existsSync(application) && !fs.existsSync(folder) && regValues(clientsKey(names)) === null;
@@ -87,11 +88,20 @@ try {
   record.details.runKeyExisted = spawnSync('reg.exe', ['query', runKey], {stdio: 'ignore'}).status === 0;
   spawnSync('reg.exe', ['add', runKey, '/f'], {stdio: 'ignore'});
   if (staging) {
-    // chrome/updater/external_constants_override.cc: the folder above the
-    // updater's install folder.
+    // The test updater accepts only a localhost update address
+    // (external_constants_override.cc CheckURL), so a local relay carries its
+    // update checks to the staging server unchanged (tests/lib/update-relay.mjs).
+    const portFile = path.join(os.tmpdir(), `blanc-update-relay-${process.pid}.port`);
+    fs.rmSync(portFile, {force: true});
+    relay = spawn(process.execPath, [fileURLToPath(new URL('./lib/update-relay.mjs', import.meta.url)), staging, portFile], {stdio: 'ignore'});
+    for (let t = 0; t < 30 && !fs.existsSync(portFile); t++) await pause(500);
+    if (!fs.existsSync(portFile)) throw Error('The update relay did not start.');
+    const relayUrl = `http://127.0.0.1:${fs.readFileSync(portFile, 'utf8').trim()}`;
+    // overrides.json sits in the folder above the updater's install folder.
     fs.mkdirSync(path.dirname(folder), {recursive: true});
-    fs.writeFileSync(path.join(path.dirname(folder), 'overrides.json'), JSON.stringify({url: [`${staging}/update/win/v4`]}));
+    fs.writeFileSync(path.join(path.dirname(folder), 'overrides.json'), JSON.stringify({url: [`${relayUrl}/update/win/v4`]}));
     record.details.staging = staging;
+    record.details.relay = relayUrl;
   }
   if (online) {
     // The online installer: the updater's setup, tagged for the beta, alone.
@@ -136,6 +146,7 @@ try {
   record.checks.electronUntouched = JSON.stringify(electronState()) === JSON.stringify(electronBefore);
 } catch (error) { if (!error?.online) { failure = error; record.error = String(error.stack || error); } }
 finally {
+  relay?.kill();
   const log = path.join(folder, 'updater.log');
   if (fs.existsSync(log) && !fs.existsSync(path.join(out, 'updater.log'))) fs.copyFileSync(log, path.join(out, 'updater.log'));
   const exe = updaterExe();
