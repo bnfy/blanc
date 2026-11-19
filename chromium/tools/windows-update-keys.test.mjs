@@ -151,3 +151,28 @@ test('the staging command installs exactly the seed of the committed key, and no
   assert.ok(!fs.existsSync(calls), 'nothing is deployed with the wrong key');
   fs.rmSync(dir, {recursive: true, force: true});
 });
+
+// D1: the owner's package-signing command, with a stand-in for 1Password.
+test('the signing command packages the waiting installer with the committed key and keeps no key', {skip: !usable && 'needs Homebrew OpenSSL 3 on a Mac'}, () => {
+  const sign = fileURLToPath(new URL('../windows/owner/update-package-sign.command', import.meta.url));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-sign-test-'));
+  const {publicKey, privateKey} = crypto.generateKeyPairSync('rsa', {modulusLength: 2048});
+  const pem = path.join(dir, 'crx.pem'), pub = path.join(dir, 'crx-public.der'), packages = path.join(dir, 'packages');
+  fs.writeFileSync(pem, privateKey.export({type: 'pkcs8', format: 'pem'}));
+  fs.writeFileSync(pub, publicKey.export({type: 'spki', format: 'der'}));
+  for (const v of ['158.0.8127.900', '158.0.8127.901']) {
+    fs.mkdirSync(path.join(packages, v), {recursive: true});
+    fs.writeFileSync(path.join(packages, v, 'mini_installer.exe'), Buffer.concat([Buffer.from('MZ'), crypto.randomBytes(512)]));
+  }
+  fs.writeFileSync(path.join(packages, '158.0.8127.900', 'blanc-beta-158.0.8127.900.crx3'), 'already signed');
+  const op = path.join(dir, 'op');
+  fs.writeFileSync(op, `#!/bin/bash\n[ "$OP_BIOMETRIC_UNLOCK_ENABLED" = true ] || exit 1\ncase "$1 $2" in\n "vault get") exit 0;;\n "document get") [ "$3" = "Blanc Windows Beta CRX Publisher Key" ] && cp '${pem}' "\${9}";;\n *) exit 2;;\nesac\n`, {mode: 0o755});
+  const run = spawnSync('bash', [sign], {env: {...process.env, BLANC_OP: op, BLANC_PACKAGES: packages, BLANC_CRX_PUBLIC: pub}, encoding: 'utf8'});
+  assert.equal(run.status, 0, run.stdout + run.stderr);
+  assert.match(run.stdout, /blanc-beta-158\.0\.8127\.901\.crx3: \d+ bytes, sha256 [0-9a-f]{64}/);
+  const record = JSON.parse(fs.readFileSync(path.join(packages, '158.0.8127.901', 'package.json'), 'utf8'));
+  assert.equal(record.publisherKeySha256, crypto.createHash('sha256').update(fs.readFileSync(pub)).digest('hex'));
+  assert.doesNotMatch(run.stdout + run.stderr, /PRIVATE KEY/);
+  assert.deepEqual(fs.readdirSync('/private/tmp').filter(n => n.startsWith('blanc-package-sign.')), [], 'no key folder is left');
+  fs.rmSync(dir, {recursive: true, force: true});
+});
