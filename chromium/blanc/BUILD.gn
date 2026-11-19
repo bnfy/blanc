@@ -135,3 +135,13 @@ if (blanc_beta_channel && is_mac) {
                     ":beta_blocker_engine", ":beta_dock_icons" ]
   }
 }
+
+# The Windows beta's embedded blocker engine, beside chrome.dll in the version
+# folder, where Chromium's installer packs it (patch 0100); the browser checks
+# its pinned hash as on the Mac (W3).
+if (blanc_beta_channel && is_win) {
+  copy("beta_blocker_engine_win") {
+    sources = [ "$blanc_blocker_bundle/engine.js" ]
+    outputs = [ "$root_out_dir/blanc_blocker/engine.js" ]
+  }
+}

@@ -328,6 +328,9 @@ source_set(target_name) {
   }
   if (is_win) {
     sources += [ "//blanc/browser/ui/tab_switch_keys.h", "//blanc/browser/ui/tab_switch_keys_win.cc" ]
+    if (blanc_beta_channel) {
+      deps += [ "//blanc:beta_blocker_engine_win" ]
+    }
     deps += [
       "//chrome/browser/taskbar",
       "//chrome/browser/win:jumplist",

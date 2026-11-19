@@ -46,7 +46,7 @@
     "content/public/common/blanc_research_build.h": "blanc/content/public/common/blanc_research_build.h"
   },
   "canonicalSha256": {
-    "blanc/BUILD.gn": "0e94ddd336daf0bbd905c368223c15f57a001b3679a6ce725afc9ea9f9630df3",
+    "blanc/BUILD.gn": "9a7f08087b059006d644f5c6b924a21ae1ffa6ec977c182cf73dba76d7e96ca9",
     "blanc/android/BUILD.gn": "c27b5f4b260d7696df0e5c7a870b5369d7cceaa8b54217dfe86f4de9c3577b06",
     "blanc/android/browser/blanc_pages_ui.cc": "d6a9d8b23cc701cf46162fc69519f438a35943f254f42322fda25734476096e8",
     "blanc/android/browser/blanc_pages_ui.h": "6969cac9a6e8b4b237a1809b8e81f04e07f75737247119f037d9614c06e01387",
@@ -795,7 +795,7 @@
     "blanc/services/blocker/BUILD.gn": "8502c832907b174bcdc7c8c1f707197cf7d100e2b4f108d8a607d44c0605f41c",
     "blanc/services/blocker/blocker.mojom": "624133c73c4dfe715ce6f069a91fc942a6b4c4b108db6e70f8c2be63fed3aab7",
     "blanc/services/blocker/blocker_available.h": "4e6d9385a2ecfc10d810858d575129fa1732e9e10f2d87d3f8507385a674e83e",
-    "blanc/services/blocker/blocker_proxy.cc": "3c2dfc75845958cb7770ec058d80494aa7f6a099db09594dfd3306a115e9f6c1",
+    "blanc/services/blocker/blocker_proxy.cc": "cd79bd78ea2452bc9532b984f972f9c3f14d977d9cc76ba1a360e3f9cb77ee81",
     "blanc/services/blocker/blocker_proxy.h": "df60be0489e451a9fb5475fd1a879da562f7451bd5192c33812138ac344f970c",
     "blanc/services/blocker/blocker_service.cc": "d705c44fe67bba649cd54fe9af716e351b56c225e53ddd242f802a94c0a00daf",
     "blanc/services/blocker/blocker_service.h": "bf0e9c8a96989ee5e0623e6efbc67309223e439df7cc4f2a3670dc733c891d98",
@@ -863,7 +863,7 @@
     "blanc/third_party/sparkle/README.chromium": "2003e66319a8bad6aef7ad30665fdb380aaeceaf481464de186b3cc4a121800a",
     "blanc/third_party/sparkle/README.md": "417d8855bc37c6eeebedb80601968937f7fb44ba1e89200c28642654c166cd29",
     "blanc/third_party/sparkle/verify.py": "146fc2e1053deb0f3b1aad1d3719edc4d87d7b2fb6936fff717d5ea953a2312d",
-    "blanc/ui.gni": "bc451d9437733064e99ad58178a5fccc176004c76225fb724ab442d55b5e70c8"
+    "blanc/ui.gni": "a6a70cc3f5a97120338a40524eaeb3841740025628c5ca9bdd1d8bc6c8283d28"
   },
   "targetOwnership": "//blanc:ui routes to browser-boundary template target, respecting existing upstream visibility",
   "upstreamFiles": {
@@ -990,6 +990,7 @@
     "chrome/common/chrome_isolated_world_ids.h": "072b9ced507ac197d9ac158f1a1f9bf4be28179fbe401f7b3675322d12001fdb",
     "chrome/install_static/BUILD.gn": "cdeec822271041761d45c3cde25bf899e49a149b4ff831e0c7820bad385025b3",
     "chrome/install_static/chromium_install_modes.h": "cc3626340136d7ffd16b562898ec94ff023119f7d960ed2c520dde79994884e9",
+    "chrome/installer/mini_installer/chrome.release": "01d138e5df18ac4ff8a243857a5eb5fe2e16b1c32d818f3fc305263071890c5a",
     "chrome/installer/util/install_util.cc": "be08d2752a1c73ee7647ed688335c744b91b0aa770812c4e83d299effcbdd722",
     "chrome/renderer/BUILD.gn": "93bb08535e69baba8b4788f49b04a699cfef12bd988e904046adb0a3b312d559",
     "chrome/renderer/chrome_content_renderer_client.cc": "94415a4156327e1acd07bcd4aee9eb8cf9754d8d681b50971945307b2eccec77",
