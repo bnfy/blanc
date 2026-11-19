@@ -314,6 +314,17 @@
     <string name="ws_decision_close_and_switch">Fermer les onglets et changer</string>
     <string name="ws_row_current">Space actuel</string>
     <string name="ws_row_show_window">Afficher fenêtre</string>
+    <plurals name="ws_row_title_profile">
+        <item quantity="one">%2$s · %3$s · %4$s · %1$d onglet</item>
+        <item quantity="many">%2$s · %3$s · %4$s · %1$d onglets</item>
+        <item quantity="other">%2$s · %3$s · %4$s · %1$d onglets</item>
+    </plurals>
+    <string name="ws_row_open_in_profile">S’ouvre dans une fenêtre de %1$s</string>
+    <string name="ws_profile_unreadable">Impossible de lire les Spaces de ce profil.</string>
+    <string name="ws_editor_profile">Profil</string>
+    <string name="ws_editor_help_other_profile">Les onglets restent dans leur propre profil : un Space dans %1$s commence donc vide.</string>
+    <string name="ws_switcher_profile_label">Space · %1$s</string>
+    <string name="ws_error_profile_unavailable">Ce profil n’est plus disponible.</string>
     <string name="ws_row_retained">Conservé en mémoire</string>
     <string name="ws_row_open">Ouvrir le Space</string>
     <plurals name="ws_row_title">

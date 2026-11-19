@@ -305,6 +305,16 @@
     <string name="ws_decision_close_and_switch">Tabs schließen und wechseln</string>
     <string name="ws_row_current">Aktueller Space</string>
     <string name="ws_row_show_window">Fenster zeigen</string>
+    <plurals name="ws_row_title_profile">
+        <item quantity="one">%2$s · %3$s · %4$s · %1$d Tab</item>
+        <item quantity="other">%2$s · %3$s · %4$s · %1$d Tabs</item>
+    </plurals>
+    <string name="ws_row_open_in_profile">Öffnet in einem Fenster von %1$s</string>
+    <string name="ws_profile_unreadable">Die Spaces dieses Profils konnten nicht gelesen werden.</string>
+    <string name="ws_editor_profile">Profil</string>
+    <string name="ws_editor_help_other_profile">Tabs bleiben in ihrem eigenen Profil, deshalb beginnt ein Space in %1$s leer.</string>
+    <string name="ws_switcher_profile_label">Space · %1$s</string>
+    <string name="ws_error_profile_unavailable">Dieses Profil ist nicht mehr verfügbar.</string>
     <string name="ws_row_retained">Im Speicher gehalten</string>
     <string name="ws_row_open">Space öffnen</string>
     <plurals name="ws_row_title">

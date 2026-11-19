@@ -51,7 +51,10 @@
     'busy': t('ws.error.busy'),
     'activation-failed': t('ws.error.activationFailed'),
     'saved-not-opened': t('ws.error.savedNotOpened'),
+    'profile-unavailable': t('ws.error.profileUnavailable'),
   };
+  // A profile whose saved Spaces can't be read (spaces-across-profiles.js).
+  const UNREADABLE = ['read-failed', 'future-format', 'repair-failed'];
   const SVG = 'http://www.w3.org/2000/svg';
   // Interface glyphs on Lucide's 24×24 grid, drawn like the symbols.
   const GLYPHS = {
@@ -266,7 +269,7 @@
           return ok;
         };
         return Promise.resolve().then(() => api.updateWorkspace(id, patch)).then((result) => {
-          if (result?.items) data = { ...data, ...result };
+          if (result?.items) data = { ...data, otherProfiles: undefined, profileName: undefined, ...result };
           return result?.ok ? done(true) : done(false, errors[result?.error] || t('ws.error.generic'));
         }, () => done(false, errors['storage-failed']));
       });
@@ -314,7 +317,7 @@
       try { result = await operation(); } catch { result = { ok: false, error: 'storage-failed' }; }
       if (stamp !== generation) return;
       state.pending = false;
-      if (result?.items) data = { ...data, ...result };
+      if (result?.items) data = { ...data, otherProfiles: undefined, profileName: undefined, ...result };
       if (!result?.ok) {
         if (['saved-not-opened', 'saved-not-moved'].includes(result?.error)) {
           // Creation already committed. Leave the user on the list containing
@@ -340,7 +343,10 @@
       if (key && opened) [...popup.querySelectorAll('button')].find((b) => b.dataset.focusKey === key && !b.disabled)?.focus();
     }
     function openAction(action, options = {}) {
-      run(() => action.kind === 'open' ? api.openWorkspace(action.id, options) : api.createBlankWorkspace(action.name, { ...options, ...action.identity }), () => {
+      // Another profile's Space opens (or is created) in a window of that
+      // profile (spec 2026-11-19-spaces-across-profiles §4.3).
+      const where = action.profileId ? { ...options, profileId: action.profileId } : options;
+      run(() => action.kind === 'open' ? api.openWorkspace(action.id, where) : api.createBlankWorkspace(action.name, { ...where, ...action.identity }), () => {
         state = { kind: 'list' }; close({ force: true }); api.closeOverlay();
       }, action);
     }
@@ -408,6 +414,21 @@
       row.append(main, more);
       return row;
     }
+    /** Another profile's Space: it only opens, in a window of its profile.
+     * Editing, reordering and deleting stay in that profile's own windows
+     * (spec 2026-11-19-spaces-across-profiles §4.2). */
+    function otherProfileRow(workspace, profile) {
+      const row = el('div', 'workspace-row ws-row ws-row-elsewhere'); row.dataset.workspaceId = workspace.id; row.dataset.profileId = profile.id;
+      const main = button('', `open:${profile.id}:${workspace.id}`, () => {
+        openAction({ kind: 'open', id: workspace.id, name: workspace.name, profileId: profile.id });
+      }, 'ws-row-main');
+      const context = workspace.openElsewhere ? t('ws.row.showWindow') : t('ws.row.openInProfile', { profile: profile.name });
+      main.title = t('ws.row.titleProfile', { name: workspace.name, profile: profile.name, context, count: workspace.tabCount });
+      main.setAttribute('aria-label', main.title);
+      main.append(tile(workspace), dataEl('span', 'ws-row-name', workspace.name), el('span', 'ws-row-count', workspace.openElsewhere ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
+      row.append(main);
+      return row;
+    }
     // Drag to reorder: the row follows the pointer 1:1 from where it was
     // grabbed; past a small threshold it commits to dragging. It captures the
     // pointer only then: a captured pointer retargets the click to the row, so
@@ -459,8 +480,18 @@
       const nodes = [];
       if(data.sharedSync){nodes.push(el('p','ws-sync-status',t('sharedSpaces.count',data.sharedSync)));if(data.sharedSync.busy)nodes.push(el('p','ws-sync-status',t('sharedSpaces.busy')));else if(data.sharedSync.slowed)nodes.push(el('p','ws-sync-status',t('sharedSpaces.slowed')));}
       if(data.recoveryNotice){nodes.push(el('p','ws-sync-status',t('sharedSpaces.recoveryNote')));nodes.push(button(t('sharedSpaces.cancel'),'dismiss-recovery',()=>run(()=>api.updateWorkspace('',{ackRecovery:true}),()=>{})));}
+      // Other profiles with something to show: Spaces, or a file that can't be read.
+      const others = (data.otherProfiles ?? []).filter((profile) => profile.items?.length || UNREADABLE.includes(profile.status));
+      // Headings only when two groups show; one profile looks exactly as before.
+      const heading = (name) => nodes.push(dataEl('p', 'ws-profile-heading', name));
+      if (others.length) heading(data.profileName ?? '');
       if (!data.items.length) nodes.push(el('p', 'ws-empty', t('ws.list.emptyHint')));
       data.items.forEach((workspace, index) => nodes.push(spaceRow(workspace, index)));
+      for (const profile of others) {
+        heading(profile.name);
+        if (UNREADABLE.includes(profile.status)) nodes.push(el('p', 'ws-empty', t('ws.profile.unreadable')));
+        else for (const workspace of profile.items) nodes.push(otherProfileRow(workspace, profile));
+      }
       if (undo && data.deleted?.some((d) => d.id === undo.id)) {
         const row = el('div', 'ws-undo');
         row.append(dataEl('span', 'ws-undo-text', t('ws.undo.deleted', { name: undo.name })),
@@ -468,7 +499,7 @@
         nodes.push(row);
       }
       // F45: anyone starting from nothing can bring Spaces over from Arc.
-      if (!data.items.length) {
+      if (!data.items.length && !others.length) {
         const arc = button(t('ws.list.importArc'), 'import-arc', () => { close({ force: true }); api.openPage('tab-import'); });
         arc.prepend(glyph('import')); nodes.push(arc);
       }

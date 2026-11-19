@@ -1151,6 +1151,34 @@
     "note": "Workspace row: the space is open in another window; choosing it brings that window forward. Also part of the row tooltip.",
     "maxLength": 16
   },
+  "ws.row.titleProfile": {
+    "message": "{count, plural, one {{name} · {profile} · {context} · # tab} other {{name} · {profile} · {context} · # tabs}}",
+    "note": "Tooltip and accessible name of another profile's Space row in the Spaces menu; {name} is the Space, {profile} its profile's name, {context} what choosing it does (ws.row.openInProfile or ws.row.showWindow)."
+  },
+  "ws.row.openInProfile": {
+    "message": "Opens in a {profile} window",
+    "note": "Part of another profile's Space row tooltip: choosing it opens the Space in a window of that profile; {profile} is the profile's name."
+  },
+  "ws.profile.unreadable": {
+    "message": "Couldn’t read this profile’s Spaces.",
+    "note": "Spaces menu: shown under another profile's name when its saved Spaces file can't be read."
+  },
+  "ws.editor.profile": {
+    "message": "Profile",
+    "note": "New Space editor: label of the choice of which local profile the new Space belongs to (shown only with two or more profiles)."
+  },
+  "ws.editor.helpOtherProfile": {
+    "message": "Tabs stay in their own profile, so a Space in {profile} starts empty.",
+    "note": "New Space editor help when another profile is chosen; {profile} is that profile's name."
+  },
+  "ws.switcher.profileLabel": {
+    "message": "Space · {profile}",
+    "note": "Quick Switcher result label for a Space in another profile; {profile} is the profile's name."
+  },
+  "ws.error.profileUnavailable": {
+    "message": "That profile is no longer available.",
+    "note": "Spaces menu error when the other profile chosen was deleted or is being deleted."
+  },
   "ws.row.retained": {
     "message": "Retained in memory",
     "note": "Part of a space row’s tooltip: the space is kept loaded in the background."

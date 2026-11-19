@@ -1114,6 +1114,34 @@
     "message": "Fenster zeigen",
     "source": "sha256:208c2f0a5d1d6eb31e30e1c31757da4026fe58b6be33579bfab3fc64b1982173"
   },
+  "ws.row.titleProfile": {
+    "message": "{count, plural, one {{name} · {profile} · {context} · # Tab} other {{name} · {profile} · {context} · # Tabs}}",
+    "source": "sha256:95985a274895d0e9ea45b61903cae855286fcaaa1d1518dc281cf4a16dffbd06"
+  },
+  "ws.row.openInProfile": {
+    "message": "Öffnet in einem Fenster von {profile}",
+    "source": "sha256:21a3870cc53fceb80f459ceb9a092d1e8d3eb69171b885f002d4c03eafc2a3fb"
+  },
+  "ws.profile.unreadable": {
+    "message": "Die Spaces dieses Profils konnten nicht gelesen werden.",
+    "source": "sha256:127d38b05e88927d4300d822df58f3fff722a4279be4b8f07fc0ad34ecc48f05"
+  },
+  "ws.editor.profile": {
+    "message": "Profil",
+    "source": "sha256:ae784b5ee9733a1787d411caa78539c26aacc83ff2ee315ee5bbf2f992a3fa53"
+  },
+  "ws.editor.helpOtherProfile": {
+    "message": "Tabs bleiben in ihrem eigenen Profil, deshalb beginnt ein Space in {profile} leer.",
+    "source": "sha256:9b2c0fb142313f2a2ca9f4596e46a9ae27cafee04b3ce99d779474bb6db92df5"
+  },
+  "ws.switcher.profileLabel": {
+    "message": "Space · {profile}",
+    "source": "sha256:10fa668010a07248bc9a034cc1ed6f13f21ba69326b706138360313e2910fb67"
+  },
+  "ws.error.profileUnavailable": {
+    "message": "Dieses Profil ist nicht mehr verfügbar.",
+    "source": "sha256:89d8ccff126fea81e5bd1008aaefa65d61fafd2abfe330dbfb09cfc21e71679d"
+  },
   "ws.row.retained": {
     "message": "Im Speicher gehalten",
     "source": "sha256:603b3590ff078631bbbf2448a3d11ba9b1633f690f68364e91f9f374e4e8e0da"

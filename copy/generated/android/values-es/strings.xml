@@ -314,6 +314,17 @@
     <string name="ws_decision_close_and_switch">Cerrar pestañas y cambiar</string>
     <string name="ws_row_current">Space actual</string>
     <string name="ws_row_show_window">Mostrar ventana</string>
+    <plurals name="ws_row_title_profile">
+        <item quantity="one">%2$s · %3$s · %4$s · %1$d pestaña</item>
+        <item quantity="many">%2$s · %3$s · %4$s · %1$d pestañas</item>
+        <item quantity="other">%2$s · %3$s · %4$s · %1$d pestañas</item>
+    </plurals>
+    <string name="ws_row_open_in_profile">Se abre en una ventana de %1$s</string>
+    <string name="ws_profile_unreadable">No se pudieron leer los Spaces de este perfil.</string>
+    <string name="ws_editor_profile">Perfil</string>
+    <string name="ws_editor_help_other_profile">Las pestañas se quedan en su propio perfil, así que un Space en %1$s empieza vacío.</string>
+    <string name="ws_switcher_profile_label">Space · %1$s</string>
+    <string name="ws_error_profile_unavailable">Ese perfil ya no está disponible.</string>
     <string name="ws_row_retained">Retenido en memoria</string>
     <string name="ws_row_open">Abrir Space</string>
     <plurals name="ws_row_title">

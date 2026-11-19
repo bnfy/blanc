@@ -314,6 +314,17 @@
     <string name="ws_decision_close_and_switch">Chiudi le schede e cambia</string>
     <string name="ws_row_current">Space attuale</string>
     <string name="ws_row_show_window">Mostra finestra</string>
+    <plurals name="ws_row_title_profile">
+        <item quantity="one">%2$s · %3$s · %4$s · %1$d scheda</item>
+        <item quantity="many">%2$s · %3$s · %4$s · %1$d schede</item>
+        <item quantity="other">%2$s · %3$s · %4$s · %1$d schede</item>
+    </plurals>
+    <string name="ws_row_open_in_profile">Si apre in una finestra di %1$s</string>
+    <string name="ws_profile_unreadable">Impossibile leggere gli Spaces di questo profilo.</string>
+    <string name="ws_editor_profile">Profilo</string>
+    <string name="ws_editor_help_other_profile">Le schede restano nel proprio profilo, quindi uno Space in %1$s parte vuoto.</string>
+    <string name="ws_switcher_profile_label">Space · %1$s</string>
+    <string name="ws_error_profile_unavailable">Questo profilo non è più disponibile.</string>
     <string name="ws_row_retained">Mantenuto in memoria</string>
     <string name="ws_row_open">Apri lo Space</string>
     <plurals name="ws_row_title">
