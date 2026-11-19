@@ -35,7 +35,10 @@ const ending = endings[0];
       <p class="mail-reserve-availability" id="mailReserveAvailability" role="status" aria-live="polite"></p>
 
       <label class="mail-reserve-label" for="mailReserveEmail">Your current email</label>
-      <p class="mail-reserve-hint" id="mailReserveEmailHint">We’ll email you here to confirm it’s you. Later, use this email as your backup email to claim the address.</p>
+      <p class="mail-reserve-hint" id="mailReserveEmailHint">
+        We’ll email you here to confirm it’s you. Later, use this email as your backup email to claim the address.<br />
+        <strong>You’ll need access to this inbox</strong> to receive the verification code when you claim your address.
+      </p>
       <input class="mail-reserve-input" id="mailReserveEmail" name="email" type="email" required maxlength="254" placeholder="you@example.com" autocomplete="email" aria-describedby="mailReserveEmailHint">
       <div class="mail-reserve-turnstile" data-turnstile></div>
       <div class="mail-reserve-action">
