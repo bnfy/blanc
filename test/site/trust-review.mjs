@@ -37,11 +37,15 @@ try {
       const regionResponse = page.waitForResponse(r=>r.url().endsWith('/measurement-region'));
       await page.goto(`${origin}/download?oppref=discardable-fixture`);
       await regionResponse;
-      if(!state.storageBlocked) await page.waitForFunction(()=>typeof window.gtag==='function' || document.querySelector('#consent')?.hidden === false || localStorage.getItem('measurement-consent-v2') === 'denied');
+      // Google loads by default outside consent-required regions and after a saved
+      // grant; everywhere else it stays off. The panel never opens by itself.
+      const expectGoogle=state.choice!=='denied'&&!state.storageBlocked&&(!state.optInRequired||state.choice==='granted');
+      if(expectGoogle) await page.waitForFunction(()=>typeof window.gtag==='function');
+      else await page.waitForLoadState('networkidle');
       await page.locator('[data-consent-open]').first().waitFor();
-      assert.equal(await page.locator('#consent').isVisible(),!!state.optInRequired && !state.choice && !state.storageBlocked);
+      assert.equal(await page.locator('#consent').isVisible(),false);
       const google=()=>requests.filter(u=>new URL(u).hostname==='www.googletagmanager.com');
-      assert.equal(google().length,state.choice!=='denied'&&!state.storageBlocked&&(!state.optInRequired||state.choice==='granted')?1:0);
+      assert.equal(google().length,expectGoogle?1:0);
       assert.ok(requests.some(u=>new URL(u).hostname==='static.cloudflareinsights.com'));
       assert.match(await page.locator('[data-download-link]').first().getAttribute('href'),/^\/dl\//);
       if(state.storageBlocked)return;
