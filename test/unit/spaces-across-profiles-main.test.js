@@ -70,3 +70,16 @@ test('the projection adds other profiles only through the allowlisting module', 
   assert.match(projection, /otherProfiles: otherProfiles\.length \? otherProfiles : undefined,/);
   assert.match(projection, /profileName: otherProfiles\.length \? /);
 });
+
+// Review fixes (2026-11-19).
+test('a Space created in another profile credits that profile, not the calling window', () => {
+  assert.match(fn('createSpaceInProfile'), /noteSpaceCreated\(profileId\)/);
+  assert.match(fn('noteSpaceCreated'), /function noteSpaceCreated\(profileId = rt\(\)\.profileId\)/);
+});
+
+test('creating, renaming or deleting a profile refreshes every Spaces menu', () => {
+  assert.match(main, /create: \(\.\.\.args\) => afterProfileChange\(createNamedLocalProfileWindow\(\.\.\.args\)\),/);
+  assert.match(main, /rename: \(\.\.\.args\) => afterProfileChange\(renameNamedLocalProfile\(\.\.\.args\)\),/);
+  assert.match(main, /remove: \(\.\.\.args\) => afterProfileChange\(deleteNamedLocalProfile\(\.\.\.args\)\),/);
+  assert.match(fn('afterProfileChange'), /broadcastWorkspacesUpdated\(\)/);
+});

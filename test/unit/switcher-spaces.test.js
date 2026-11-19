@@ -83,3 +83,9 @@ test('picking it opens in its profile, under its own key', () => {
   pickResult(sprint);
   assert.deepEqual(plain(calls), [['switch', 'w1', 'w']]);
 });
+
+test('a Space in another profile is never folded into one of this profile\'s', () => {
+  const { switcherResults } = sandbox(SPACES, [{ id: 'w', name: 'Work', items: [{ id: 'b', name: 'Reading', tabCount: 1 }] }]);
+  const reading = switcherResults('reading').filter((r) => r.kind === 'space');
+  assert.equal(reading.length, 2);
+});

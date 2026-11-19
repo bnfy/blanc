@@ -2008,7 +2008,7 @@ function openSpaceInProfile({ profileId, spaceId }, { background = false } = {})
   if (!linkRouteLiveness.isLiveProfile(profileId)) return { result: { ok: false, error: 'profile-unavailable' }, runtime: null };
   // The controller needs only a profile and a lock id from its caller when
   // opening elsewhere; no window of this profile need exist yet.
-  const caller = { id: `link-route-${++linkRouteSpaceSerial}`, profileId };
+  const caller = { id: `space-open-${++linkRouteSpaceSerial}`, profileId };
   let result;
   try {
     result = withLocalProfile(profileId, () => workspaceController.open(caller, spaceId, { newWindow: true }));
@@ -2035,8 +2035,15 @@ function createSpaceInProfile(profileId, name, { color, symbol } = {}) {
     return { ok: false, error: 'activation-failed' };
   }
   if (result?.ok || result?.workspaceId) broadcastWorkspacesUpdated();
-  if (result?.ok) noteSpaceCreated();
+  if (result?.ok) noteSpaceCreated(profileId);
   return result ?? { ok: false, error: 'activation-failed' };
+}
+
+/** Every Spaces menu lists other profiles by name: refresh them once a
+ * profile is created, renamed or deleted. Returns `result` unchanged. */
+function afterProfileChange(result) {
+  Promise.resolve(result).then(() => broadcastWorkspacesUpdated()).catch(() => {});
+  return result;
 }
 
 /** The other profile a Spaces call names, or null for this window's own
@@ -11590,8 +11597,8 @@ function chromeOn(channel, handler) {
 }
 
 /** "Make your first space" is done once a space exists in Personal. */
-function noteSpaceCreated() {
-  if (rt().profileId === DEFAULT_PROFILE_ID && !settings.getSettings().spaceMigrationCompleted) {
+function noteSpaceCreated(profileId = rt().profileId) {
+  if (profileId === DEFAULT_PROFILE_ID && !settings.getSettings().spaceMigrationCompleted) {
     settings.setSettings({ spaceMigrationCompleted: true });
   }
 }
@@ -16276,10 +16283,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         profiles: localProfiles.listLocalProfiles()
           .filter((profile) => !profileDeletions.hasPendingProfileDeletion(profile.id)),
       }),
-      create: createNamedLocalProfileWindow,
+      create: (...args) => afterProfileChange(createNamedLocalProfileWindow(...args)),
       open: openExistingProfileWindow,
-      rename: renameNamedLocalProfile,
-      remove: deleteNamedLocalProfile,
+      rename: (...args) => afterProfileChange(renameNamedLocalProfile(...args)),
+      remove: (...args) => afterProfileChange(deleteNamedLocalProfile(...args)),
     },
     linkRoutes: { targets: linkRouteTargets },
     // listShortcuts() reads only the live Electron application menu — no

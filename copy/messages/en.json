@@ -1155,6 +1155,14 @@
     "message": "{count, plural, one {{name} · {profile} · {context} · # tab} other {{name} · {profile} · {context} · # tabs}}",
     "note": "Tooltip and accessible name of another profile's Space row in the Spaces menu; {name} is the Space, {profile} its profile's name, {context} what choosing it does (ws.row.openInProfile or ws.row.showWindow)."
   },
+  "ws.row.titleProfileShown": {
+    "message": "{name} · {profile} · {context}",
+    "note": "Tooltip and accessible name of another profile's Space row when a window of that profile already shows it; {context} is ws.row.showWindow."
+  },
+  "ws.editor.profileDisabled": {
+    "message": "{profile} (can’t add Spaces)",
+    "note": "New Space editor: a profile in the Profile choice that can't take a new Space (it's full or its Spaces can't be read); the reason is in its tooltip."
+  },
   "ws.row.openInProfile": {
     "message": "Opens in a {profile} window",
     "note": "Part of another profile's Space row tooltip: choosing it opens the Space in a window of that profile; {profile} is the profile's name."

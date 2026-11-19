@@ -12637,6 +12637,90 @@
         }
       }
     },
+    "ws.row.titleProfileShown": {
+      "comment": "Tooltip and accessible name of another profile's Space row when a window of that profile already shows it; {context} is ws.row.showWindow.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@ · %3$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@ · %3$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@ · %3$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@ · %3$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@ · %3$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@ · %3$@"
+          }
+        }
+      }
+    },
+    "ws.editor.profileDisabled": {
+      "comment": "New Space editor: a profile in the Profile choice that can't take a new Space (it's full or its Spaces can't be read); the reason is in its tooltip.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (can’t add Spaces)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (keine weiteren Spaces möglich)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (no admite más Spaces)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (impossible d’ajouter des Spaces)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (impossibile aggiungere Spaces)"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (não aceita mais Spaces)"
+          }
+        }
+      }
+    },
     "ws.row.openInProfile": {
       "comment": "Part of another profile's Space row tooltip: choosing it opens the Space in a window of that profile; {profile} is the profile's name.",
       "extractionState": "manual",

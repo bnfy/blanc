@@ -309,6 +309,8 @@
         <item quantity="one">%2$s · %3$s · %4$s · %1$d tab</item>
         <item quantity="other">%2$s · %3$s · %4$s · %1$d tabs</item>
     </plurals>
+    <string name="ws_row_title_profile_shown">%1$s · %2$s · %3$s</string>
+    <string name="ws_editor_profile_disabled">%1$s (can’t add Spaces)</string>
     <string name="ws_row_open_in_profile">Opens in a %1$s window</string>
     <string name="ws_profile_unreadable">Couldn’t read this profile’s Spaces.</string>
     <string name="ws_editor_profile">Profile</string>

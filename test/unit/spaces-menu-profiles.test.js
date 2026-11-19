@@ -64,7 +64,7 @@ test("another profile's row tooltip names the profile", () => {
   assert.equal(sprint.title, 'Sprint · Work · Opens in a Work window · 5 tabs');
   assert.equal(sprint.attrs['aria-label'], sprint.title);
   const hiring = rowNamed(h, 'Hiring').children[0];
-  assert.equal(hiring.title, 'Hiring · Work · Show window · 2 tabs');
+  assert.equal(hiring.title, 'Hiring · Work · Show window', 'spec §7: no count beside Show window');
   assert.equal(hiring.children[2].textContent, 'Show window');
 });
 
@@ -110,4 +110,29 @@ test('a refused open keeps the menu open on the list with the error', async () =
   assert.equal(h.ui.state.kind, 'list');
   assert.match(h.text(), /That profile is no longer available\./);
   assert.ok(!h.calls.some(([kind]) => kind === 'close-overlay'));
+});
+
+// Review fixes (2026-11-19).
+test("hover and focus keep another profile's count, which has no ••• to make room for", () => {
+  const css = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../src/renderer/styles.css'), 'utf8');
+  const rule = css.match(/([^{}]*\.ws-row-count[^{}]*)\{\s*visibility:\s*hidden;?\s*\}/)?.[1];
+  assert.ok(rule, 'the hide-on-hover rule');
+  for (const selector of rule.split(',').map((s) => s.trim()).filter((s) => s.endsWith('.ws-row-count'))) {
+    assert.match(selector, /\.ws-row:not\(\.ws-row-elsewhere\)/, selector);
+  }
+});
+
+test('a Space shown in another profile\'s window says Show window without a count', () => {
+  const h = harness({}, payload()); h.ui.open();
+  assert.equal(rowNamed(h, 'Hiring').children[0].title, 'Hiring · Work · Show window');
+});
+
+test('a refused open in a profile that went away refreshes the list', async () => {
+  const h = harness({
+    openWorkspace: async () => ({ ok: false, error: 'profile-unavailable' }),
+    listWorkspaces: async () => ({ items: TWO, deleted: [], status: 'saved' }),
+  }, payload()); h.ui.open();
+  rowNamed(h, 'Sprint').children[0].click(); await settle(); await settle();
+  assert.equal(rowNamed(h, 'Sprint'), undefined, 'Work is gone');
+  assert.match(h.text(), /That profile is no longer available\./);
 });

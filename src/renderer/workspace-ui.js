@@ -337,6 +337,15 @@
         } else if (['unsaved-scratch', 'protected-pages'].includes(result?.error) && action) {
           state = { kind: 'decision', action, result, error: '' }; open();
         } else {
+          // The other profile went away (deleted meanwhile): forget it in the
+          // editor and fetch the current list, so a retry can't fail the same way.
+          if (result?.error === 'profile-unavailable') {
+            if (state.kind === 'new' && state.draft) state.draft.profileId = null;
+            Promise.resolve(api.listWorkspaces?.()).then((fresh) => {
+              if (!fresh?.items || stamp !== generation) return;
+              data = { ...data, otherProfiles: undefined, profileName: undefined, ...fresh }; render();
+            }).catch(() => {});
+          }
           state.error = state.kind === 'recovery' && result?.error === 'duplicate-name' ? t('ws.error.recoveryDuplicate') : errors[result?.error] || t('ws.error.generic');
           render();
           const input = popup.querySelector('input');
@@ -430,7 +439,9 @@
         openAction({ kind: 'open', id: workspace.id, name: workspace.name, profileId: profile.id });
       }, 'ws-row-main');
       const context = workspace.openElsewhere ? t('ws.row.showWindow') : t('ws.row.openInProfile', { profile: profile.name });
-      main.title = t('ws.row.titleProfile', { name: workspace.name, profile: profile.name, context, count: workspace.tabCount });
+      main.title = workspace.openElsewhere
+        ? t('ws.row.titleProfileShown', { name: workspace.name, profile: profile.name, context })
+        : t('ws.row.titleProfile', { name: workspace.name, profile: profile.name, context, count: workspace.tabCount });
       main.setAttribute('aria-label', main.title);
       main.append(tile(workspace), dataEl('span', 'ws-row-name', workspace.name), el('span', 'ws-row-count', workspace.openElsewhere ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
       row.append(main);
@@ -629,7 +640,11 @@
           const picker = el('select', 'ws-select'); picker.id = 'workspaceProfile';
           picker.setAttribute('aria-label', t('ws.editor.profile'));
           for (const profile of [{ id: '', name: data.profileName ?? '', full: false }, ...data.otherProfiles]) {
-            const option = dataEl('option', null, profile.name); option.value = profile.id; option.disabled = !!profile.full;
+            // A full profile, or one whose Spaces can't be read, can't take a
+            // new Space; its tooltip says why.
+            const reason = profile.full ? errors.limit : UNREADABLE.includes(profile.status) ? t('ws.profile.unreadable') : '';
+            const option = dataEl('option', null, reason ? t('ws.editor.profileDisabled', { profile: profile.name }) : profile.name);
+            option.value = profile.id; option.disabled = !!reason; if (reason) option.title = reason;
             picker.append(option);
           }
           picker.value = state.draft.profileId ?? ''; picker.disabled = !!state.pending;

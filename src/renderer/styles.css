@@ -4182,7 +4182,8 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
   cursor: pointer;
 }
 .ws-row:hover .ws-row-more, .ws-row:focus-within .ws-row-more { opacity: 1; }
-.ws-row:hover .ws-row-count, .ws-row:focus-within .ws-row-count,
+/* Another profile's row has no ••• to make room for, so it keeps its count. */
+.ws-row:not(.ws-row-elsewhere):hover .ws-row-count, .ws-row:not(.ws-row-elsewhere):focus-within .ws-row-count,
 .ws-row:hover .ws-row-main.on::after, .ws-row:focus-within .ws-row-main.on::after { visibility: hidden; }
 .ws-row-more:hover, .ws-row-more:focus-visible { background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--text); outline: none; }
 .ws-row.dragging { z-index: 2; transform: translateY(var(--drag-y, 0)); transition: none; background: var(--surface-raised); box-shadow: 0 8px 24px -10px color-mix(in srgb, var(--text) 35%, transparent); }

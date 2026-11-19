@@ -1118,6 +1118,14 @@
     "message": "{count, plural, one {{name} · {profile} · {context} · # pestaña} many {{name} · {profile} · {context} · # pestañas} other {{name} · {profile} · {context} · # pestañas}}",
     "source": "sha256:95985a274895d0e9ea45b61903cae855286fcaaa1d1518dc281cf4a16dffbd06"
   },
+  "ws.row.titleProfileShown": {
+    "message": "{name} · {profile} · {context}",
+    "source": "sha256:5f12d89df15ab0b7d2e5c06edd7da7d4a2c34f44ab70877e85e46c14270ade64"
+  },
+  "ws.editor.profileDisabled": {
+    "message": "{profile} (no admite más Spaces)",
+    "source": "sha256:142fafc05dee7633512b4a915b50f612c88f99232afabbc03aa2d7094c464882"
+  },
   "ws.row.openInProfile": {
     "message": "Se abre en una ventana de {profile}",
     "source": "sha256:21a3870cc53fceb80f459ceb9a092d1e8d3eb69171b885f002d4c03eafc2a3fb"

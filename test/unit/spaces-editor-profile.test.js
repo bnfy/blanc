@@ -96,3 +96,26 @@ test('a result without other profiles drops their rows', async () => {
   h.ui.open();
   assert.equal(h.byKey('open:w:w1'), undefined, 'Work was deleted meanwhile');
 });
+
+// Review fixes (2026-11-19).
+test('a full or unreadable profile is disabled with its reason', () => {
+  const h = harness({}, payload({ otherProfiles: [{ ...WORK, full: true }, { id: 's', name: 'Studio', status: 'future-format', full: false, items: [] }] }));
+  h.ui.begin('new');
+  const [, work, studio] = select(h).children;
+  assert.deepEqual([work.disabled, work.textContent, work.title], [true, 'Work (can’t add Spaces)', t('ws.error.limit', { limit: '25' })]);
+  assert.deepEqual([studio.disabled, studio.textContent, studio.title], [true, 'Studio (can’t add Spaces)', t('ws.profile.unreadable')]);
+});
+
+test('a create refused because the profile went away resets the Profile choice', async () => {
+  const h = harness({
+    createBlankWorkspace: async () => ({ ok: false, error: 'profile-unavailable' }),
+    listWorkspaces: async () => ({ items: PERSONAL, deleted: [], status: 'saved' }),
+  }, { ...payload(), items: [{ ...PERSONAL[0], active: false }] });
+  h.ui.begin('new'); choose(h, 'w'); typeName(h, 'Hiring');
+  h.doc.getElementById('workspaceEditor').emit('submit');
+  await settle(); await settle();
+  assert.equal(h.ui.state.draft.profileId, null);
+  assert.equal(h.popup.querySelector('#workspaceProfile'), null, 'with Work gone there is no Profile choice');
+  assert.equal(h.byKey('start:window').disabled, false);
+  assert.match(h.text(), /That profile is no longer available\./);
+});

@@ -319,6 +319,8 @@
         <item quantity="many">%2$s · %3$s · %4$s · %1$d onglets</item>
         <item quantity="other">%2$s · %3$s · %4$s · %1$d onglets</item>
     </plurals>
+    <string name="ws_row_title_profile_shown">%1$s · %2$s · %3$s</string>
+    <string name="ws_editor_profile_disabled">%1$s (impossible d’ajouter des Spaces)</string>
     <string name="ws_row_open_in_profile">S’ouvre dans une fenêtre de %1$s</string>
     <string name="ws_profile_unreadable">Impossible de lire les Spaces de ce profil.</string>
     <string name="ws_editor_profile">Profil</string>
