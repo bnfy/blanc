@@ -183,16 +183,34 @@ async function run(appPath, output) {
       for (let round = 0; round < 2; round++) {
         const port = 55821;
         const { ELECTRON_RUN_AS_NODE: ignored, ...env } = process.env; void ignored;
-        if (production && process.platform !== 'darwin') throw Error('Production file-open is currently a macOS LaunchServices boundary; use ecs-production-smoke.mjs for web file-access checks');
+        if (production && !['darwin', 'win32'].includes(process.platform)) throw Error('Production file-open covers macOS LaunchServices and the Windows command line only; use ecs-production-smoke.mjs for web file-access checks');
         const args = [`--user-data-dir=${profile}`, `--remote-debugging-port=${port}`, '--remote-debugging-address=127.0.0.1'];
-        const child = spawn(production ? '/usr/bin/open' : executable, production ? ['-n', '-W', '-a', app, html, '--args', ...args] : args, {
-          env: { ...env, ...launchEnv, ...profileEnv(profile), BLANC_DRM_DIAGNOSTIC_PROFILE: profile, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1', BLANC_ECS_LOCAL_HTML: html,
-            ...(production ? { BLANC_UPDATE_CHANNEL: 'ecs-qualification-disabled' } : {}) }, stdio: ['ignore', 'pipe', 'pipe'],
-        });
+        const childEnv = { ...env, ...launchEnv, ...profileEnv(profile), BLANC_DRM_DIAGNOSTIC_PROFILE: profile, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1', BLANC_ECS_LOCAL_HTML: html,
+          ...(production ? { BLANC_UPDATE_CHANNEL: 'ecs-qualification-disabled' } : {}) };
+        // Windows hands a file over as a command-line path (#1630): round 0
+        // opens it at a cold launch, round 1 from a second launch into a
+        // running Blanc, which must pass it on and quit.
+        const windows = production && process.platform === 'win32';
+        const handoff = windows && round === 1;
+        const [command, commandArgs] = !production ? [executable, args]
+          : windows ? [executable, handoff ? args : [...args, html]]
+            : ['/usr/bin/open', ['-n', '-W', '-a', app, html, '--args', ...args]];
+        const child = spawn(command, commandArgs, { env: childEnv, stdio: ['ignore', 'pipe', 'pipe'] });
         const exited = new Promise(resolve => child.once('exit', resolve));
         let logs = ''; child.stdout.on('data', b => { logs += b; }); child.stderr.on('data', b => { logs += b; });
         const sockets = [];
         try {
+          if (handoff) {
+            await waitFor(async () => {
+              if (child.exitCode !== null) throw Error(`Candidate exited: ${logs.slice(-1500)}`);
+              try { return (await targets(port)).some(t => t.type === 'page'); } catch { return false; }
+            }, 'running Blanc');
+            const second = spawn(executable, [`--user-data-dir=${profile}`, html], { env: childEnv, stdio: 'ignore' });
+            evidence.secondLaunchExit = await Promise.race([
+              new Promise(resolve => second.once('exit', resolve)),
+              delay(30000).then(() => { second.kill(); throw Error('Second launch did not hand the file over and quit'); }),
+            ]);
+          }
           const localTarget = await waitFor(async () => {
             if (child.exitCode !== null) throw Error(`Candidate exited: ${logs.slice(-1500)}`);
             try { return (await targets(port)).find(t => t.url.startsWith('blanc-local-preview:')); } catch { return null; }
@@ -201,7 +219,7 @@ async function run(appPath, output) {
           await page.send('DOM.enable');
           await waitFor(async () => (await inspectStatic(page)).visibleDocument, 'static document');
           await delay(1600);
-          const report = await inspectStatic(page); evidence.reports.push({ phase: round ? 'restart' : 'initial', ...report });
+          const report = await inspectStatic(page); evidence.reports.push({ phase: handoff ? 'second-launch' : round ? 'restart' : 'initial', ...report });
           assert.ok(report.visibleDocument && report.scriptMutationAbsent && report.rtcCanaryPresent);
           assert.ok(report.workerCanaryPresent && !report.readableFileFrame);
           if (!round) {
