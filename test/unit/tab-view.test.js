@@ -486,3 +486,40 @@ test('certificate-error never answers while Electron is still emitting the event
   assert.equal(helper.replace(/setImmediate\(\(\) => callback\(true\)\);/, '').includes('callback('), false);
   for (const handler of [tab, popup]) assert.equal(handler.includes('callback('), false);
 });
+
+// #1477: a page that objects to being left (Proxmox's console while connected)
+// gets the same Leave or Stay question in a pop-up window as in a tab.
+// Unanswered, Electron keeps the pop-up open and its close button does nothing.
+function loadAnswerUnloadObjection(choice) {
+  const source = viewSource.match(/function answerUnloadObjection\(event, parent\) \{[\s\S]*?\n\}/)?.[0];
+  assert.ok(source, 'answerUnloadObjection not found in tab-view.js — update this test with it');
+  const asked = [];
+  const sandbox = {
+    deps: { t: key => key },
+    dialog: { showMessageBoxSync: (parent, options) => { asked.push({ parent, options }); return choice; } },
+  };
+  vm.runInNewContext(`${source}\nthis.__answer = answerUnloadObjection;`, sandbox);
+  return { answer: sandbox.__answer, asked };
+}
+
+test('Leave lets an objecting page unload and Stay keeps it, asking over the given window', () => {
+  for (const [choice, leaves] of [[0, true], [1, false]]) {
+    const { answer, asked } = loadAnswerUnloadObjection(choice);
+    const parent = { id: 7 };
+    let prevented = false;
+    answer({ preventDefault() { prevented = true; } }, parent);
+    assert.equal(prevented, leaves);
+    assert.equal(asked.length, 1);
+    assert.equal(asked[0].parent, parent);
+    assert.deepEqual([...asked[0].options.buttons], ['tabView.leave.leave', 'tabView.leave.stay']);
+    assert.equal(asked[0].options.cancelId, 1);
+  }
+});
+
+test('tabs and pop-up windows both answer will-prevent-unload with the one question', () => {
+  const popup = viewSource.slice(viewSource.indexOf("targetWc.on('did-create-window'"),
+    viewSource.indexOf('applyWindowOpenPolicy(wc);'));
+  assert.match(popup, /childWc\.on\('will-prevent-unload', \(event\) => \{\s*answerUnloadObjection\(event, childWindow\.isDestroyed\(\) \? undefined : childWindow\);/);
+  assert.match(wireSource, /wc\.on\('will-prevent-unload', boundToTab\(\(event\) => \{[\s\S]*?answerUnloadObjection\(event, /);
+  assert.equal((viewSource.match(/showMessageBoxSync\(/g) ?? []).length, 1, 'the Leave or Stay question lives in answerUnloadObjection alone');
+});
