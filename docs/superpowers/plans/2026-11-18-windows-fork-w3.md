@@ -171,6 +171,25 @@ workflow's sign job (signs the updater and its setup program too).
 
 ### Task E1: the first Windows beta
 
+Facts (2026-11-19): the browser only reports the updater's health
+(`chrome/browser/updater/check_updater_health_task.cc`); it never installs a
+missing updater, so what people download must install Blanc's updater. The
+updater can install an app from a tagged `UpdaterSetup.exe`
+(`chrome/updater/tag.h`: appguid, appname, needsadmin) and fetch it from the
+update server, which D2 proved. Release stages live beside the Mac's, in
+`chromium/release/windows-release.mjs` (owner-run, resumable, typed
+confirmation before the irreversible ones), reusing the Sigstore and manifest
+habits; Sparkle and notarization stay Mac-only.
+
+Stages (draft): preflight (candidate from the release commit, version
+158.0.8127.<build>, keys committed) → sign (the candidate workflow's
+Azure Trusted Signing job, owner-approved, now also updater.exe and
+UpdaterSetup.exe) → package (owner signs the CRX) → upload (R2, not yet
+offered) → proof gate (the D2 proof from the previous version to this one) →
+manifest and Sigstore → draft (GitHub pre-release) → publish (release.json
+names the version, Worker deployed, release published) → verify-public (hosted
+smoke of the downloaded installer).
+
 - [ ] Owner hand checks on a real Windows desktop (W2's D1 plus: install from the download, an
       update arriving, About showing it).
 - [ ] Release through `release.mjs`'s Windows stages, owner-run; a hosted smoke of the published
