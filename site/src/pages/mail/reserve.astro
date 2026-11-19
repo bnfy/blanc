@@ -17,6 +17,7 @@ const endings = ['blnc.day', 'blnc.page', 'blancmail.me', 'blancmail.co', 'blncm
       <p class="mail-eyebrow">Blanc Mail · Your address</p>
       <h1 id="mail-reserve-title"><span class="mail-gold-text">Reserve your address.</span></h1>
       <p class="mail-reserve-lead">Free. The address is held for you until Blanc Mail addresses open, then for 30 days while you claim it with Blanc Mail + Address or Blanc Bundle.</p>
+      <p class="mail-reserve-lead">A Blanc address is optional. Blanc Mail for Mac will work with your existing Gmail accounts and with Proton Mail through Proton Mail Bridge.</p>
       {open ? <MailReserveAddress /> : <p class="mail-reserve-lead mail-reserve-soon">Reservations open soon. <a href="/mail#address">Read about Blanc Mail addresses</a></p>}
       <ul class="mail-reserve-facts">
         <li>The name before the @ is held on every ending, and you choose one when you claim it: {endings.map((ending, index) => <>{index === 0 ? '' : index === endings.length - 1 ? ' or ' : ', '}<span class="mail-ending">{ending}</span></>)}.</li>
