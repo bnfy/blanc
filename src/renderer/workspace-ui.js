@@ -823,7 +823,7 @@
         else if (kind === 'delete') { open(); removeNow(workspace); }
       },
       toggle() { opened ? close() : open(); },
-      switchTo(workspace) { openAction({ kind: 'open', id: workspace.id, name: workspace.name }); },
+      switchTo(workspace) { openAction({ kind: 'open', id: workspace.id, name: workspace.name, ...(workspace.profileId ? { profileId: workspace.profileId } : {}) }); },
       command(name) { const existing = data.items.find((w) => w.name.toLowerCase() === name.toLowerCase()); if (existing) this.switchTo(existing); else beginNew({ name }); },
       get opened() { return opened; }, get editing() { return state.kind !== 'list'; },
       reset() { if (!state.pending) { api.cancelWorkspaceAction?.(); flushUpdate(); state = { kind: 'list' }; close({ force: true }); } },

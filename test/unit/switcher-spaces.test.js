@@ -19,14 +19,14 @@ const lift = (name) => {
 // Values built inside the sandbox come from another realm; compare their shape.
 const plain = (value) => JSON.parse(JSON.stringify(value));
 
-function sandbox(workspaces) {
+function sandbox(workspaces, otherProfiles = []) {
   const calls = [];
   const context = {
     state: { groups: [{ id: 'g1', name: 'research' }], tabs: [{ id: 't1', title: 'Research notes', url: 'https://notes.test/', groupId: 'g1' }], activeTabId: 't1' },
-    favorites: [], remoteDevices: [], historyEntries: [], archivedEntries: [], wsWorkspaces: workspaces,
+    favorites: [], remoteDevices: [], historyEntries: [], archivedEntries: [], wsWorkspaces: workspaces, wsOtherProfiles: otherProfiles,
     matchableText: (title, url) => `${title ?? ''} ${url ?? ''}`, stripUrl: (url) => url, tabDomain: (tab) => tab.url,
-    blancI18n: { t: (key, params) => (params?.count !== undefined ? `${params.count} tabs` : key) },
-    workspaceUI: { switchTo: (w) => calls.push(['switch', w.id]) },
+    blancI18n: { t: (key, params) => (params?.count !== undefined ? `${params.count} tabs` : params?.profile !== undefined ? `${key}:${params.profile}` : key) },
+    workspaceUI: { switchTo: (w) => calls.push(w.profileId ? ['switch', w.id, w.profileId] : ['switch', w.id]) },
     window: { browserAPI: { closeOverlay: () => calls.push(['close']), focusGroup: (id) => calls.push(['group', id]), switchTab: (id) => calls.push(['tab', id]) } },
   };
   vm.runInNewContext(['matchScore', 'switcherResults', 'resultKey', 'pickResult'].map(lift).join('\n')
@@ -56,4 +56,30 @@ test('each space result has its own key, and picking it switches without closing
   assert.deepEqual(plain(spaces.map(resultKey)), ['space:b', 'space:c']);
   pickResult(spaces[0]);
   assert.deepEqual(plain(calls), [['switch', 'b']], 'the Spaces menu decides when the overlay closes');
+});
+
+// Spaces across profiles (spec 2026-11-19 §4.5): ⌘L finds Spaces in other
+// profiles and opens them in a window of their profile.
+const WORK = [{ id: 'w', name: 'Work', items: [{ id: 'w1', name: 'Sprint', tabCount: 5, color: '#376694', symbol: 'code', openElsewhere: false },
+  { id: 'w2', name: 'Reading', tabCount: 1, color: '#426c4c', symbol: 'book', openElsewhere: false }] }];
+
+test("another profile's Space matches with its profile named", () => {
+  const { switcherResults } = sandbox(SPACES, WORK);
+  const spaces = switcherResults('spr').filter((r) => r.kind === 'space');
+  assert.deepEqual(plain(spaces.map((r) => [r.workspace.id, r.workspace.profileId, r.sub])), [['w1', 'w', 'ws.switcher.profileLabel:Work']]);
+});
+
+test("this profile's Spaces rank above another profile's of equal match", () => {
+  const { switcherResults } = sandbox(SPACES, WORK);
+  const reading = switcherResults('reading').filter((r) => r.kind === 'space');
+  assert.deepEqual(plain(reading.map((r) => r.workspace.profileId ?? 'here')), ['here', 'w']);
+  assert.ok(reading[0].score > reading[1].score);
+});
+
+test('picking it opens in its profile, under its own key', () => {
+  const { switcherResults, resultKey, pickResult, calls } = sandbox(SPACES, WORK);
+  const [sprint] = switcherResults('spr').filter((r) => r.kind === 'space');
+  assert.equal(resultKey(sprint), 'space:w:w1');
+  pickResult(sprint);
+  assert.deepEqual(plain(calls), [['switch', 'w1', 'w']]);
 });

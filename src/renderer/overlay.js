@@ -246,6 +246,9 @@
   // a pull-once list would keep showing a stale "active" row after a switch
   // that happened elsewhere (another window, or this window's own command).
   let wsWorkspaces = [];
+  // Other local profiles' Spaces (spec 2026-11-19-spaces-across-profiles):
+  // id, name, colour, symbol and tab count only.
+  let wsOtherProfiles = [];
   let workspaceSwitcherOpen = false;
   let pendingPostImportWorkspacePrompt = false;
   // The theme space colours are drawn for: the private chrome is its own surface.
@@ -1236,6 +1239,7 @@
 
   function commitWorkspacesPayload(payload) {
     wsWorkspaces = Array.isArray(payload?.items) ? payload.items : [];
+    wsOtherProfiles = Array.isArray(payload?.otherProfiles) ? payload.otherProfiles : [];
     workspaceUI.apply({ ...payload, items: wsWorkspaces });
   }
   function applyWorkspacesPayload(payload) {
@@ -1872,6 +1876,14 @@
       const s = matchScore(query, w.name);
       if (s) results.push({ kind: 'space', title: w.name, sub: blancI18n.t('result.groupCount', { count: w.tabCount }), workspace: w, score: s + 0.3 });
     }
+    // Other profiles' Spaces open in a window of their profile; they rank
+    // just below this profile's.
+    for (const profile of wsOtherProfiles) {
+      for (const w of profile.items ?? []) {
+        const s = matchScore(query, w.name);
+        if (s) results.push({ kind: 'space', title: w.name, sub: blancI18n.t('ws.switcher.profileLabel', { profile: profile.name }), workspace: { ...w, profileId: profile.id, profileName: profile.name }, score: s + 0.2 });
+      }
+    }
     // Group names rank above their member tabs — "wor" jumps to the whole
     // work cluster, not one tab in it.
     for (const g of state.groups) {
@@ -1996,7 +2008,7 @@
   function resultKey(result) {
     if (!result) return '';
     if (result.kind === 'group') return `group:${result.group.id}`;
-    if (result.kind === 'space') return `space:${result.workspace.id}`;
+    if (result.kind === 'space') return result.workspace.profileId ? `space:${result.workspace.profileId}:${result.workspace.id}` : `space:${result.workspace.id}`;
     if (result.kind === 'tab') return `tab:${result.tab.id}`;
     if (result.kind === 'search') return `search:${result.query.toLowerCase()}`;
     if (result.kind === 'bang') return `bang:${result.code}:${result.query}`;
