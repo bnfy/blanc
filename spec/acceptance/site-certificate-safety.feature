@@ -82,3 +82,16 @@ Feature: Certificate safety
     When the local address starts presenting a different certificate
     And the local page opens a console in a pop-up window
     Then the pop-up window's page is refused
+
+  # #1477: Proxmox's console asks before it is left while it is connected. A
+  # pop-up window must answer that with the same Leave or Stay question as a
+  # tab; unanswered, its close button does nothing.
+  @desktop @F39-12
+  Scenario: A pop-up window whose page asks before it is left still closes
+    Given I continued past the warning on a local page that opens a WebSocket
+    When the local page opens a console in a pop-up window
+    And the pop-up window's page asks before it is left
+    And I close the pop-up window and choose Stay
+    Then the pop-up window stays open
+    When I close the pop-up window and choose Leave
+    Then the pop-up window closes

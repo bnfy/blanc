@@ -323,7 +323,78 @@ Then("the pop-up window's page is refused", async function () {
   assert.equal(result.value, 'undefined', 'the pop-up window loaded a page its tab never accepted');
 });
 
-After({ tags: '@F39-10 or @F39-11' }, async function () {
+// F39-12 (#1477): the page objects to unloading only after the person has
+// used it (sticky activation), as a connected Proxmox console does.
+When("the pop-up window's page asks before it is left", async function () {
+  const result = await popupContents((wc) => wc.executeJavaScript(
+    "window.onbeforeunload = (e) => { e.preventDefault(); e.returnValue = ''; return ''; }; true", true));
+  assert.equal(result.value, true);
+});
+
+// The Leave or Stay question is a native, modal dialog no test can click, so
+// the step answers it in the main process and counts how often it was asked.
+async function closePopupAnswering(choice) {
+  return ctx.app.evaluate(({ BrowserWindow, dialog }, { path, answer }) => {
+    globalThis.__popupLeaveQuestion ??= { asked: 0, original: dialog.showMessageBoxSync };
+    const probe = globalThis.__popupLeaveQuestion;
+    dialog.showMessageBoxSync = (...args) => {
+      const parent = args[0] instanceof BrowserWindow ? args[0] : null;
+      probe.asked += 1;
+      probe.parentUrl = parent && !parent.isDestroyed() ? parent.webContents.getURL() : null;
+      return answer === 'Leave' ? 0 : 1;
+    };
+    const win = BrowserWindow.getAllWindows().find((w) => !w.isDestroyed() &&
+      w.webContents.getURL().includes(path));
+    if (!win) return false;
+    win.close();
+    return true;
+  }, { path: POPUP_PATH, answer: choice });
+}
+
+async function popupLeaveQuestion() {
+  return ctx.app.evaluate(() => {
+    const probe = globalThis.__popupLeaveQuestion;
+    return probe ? { asked: probe.asked, parentUrl: probe.parentUrl } : { asked: 0 };
+  });
+}
+
+When(/^I close the pop-up window and choose (Leave|Stay)$/, async function (choice) {
+  this.popupLeaveAskedBefore = (await popupLeaveQuestion()).asked;
+  assert.equal(await closePopupAnswering(choice), true, 'no pop-up window to close');
+});
+
+Then('the pop-up window stays open', async function () {
+  const deadline = Date.now() + 5_000;
+  let question;
+  do {
+    question = await popupLeaveQuestion();
+    if (question.asked > this.popupLeaveAskedBefore) break;
+    await new Promise((r) => setTimeout(r, 100));
+  } while (Date.now() < deadline);
+  assert.equal(question.asked, this.popupLeaveAskedBefore + 1, 'closing the pop-up never asked whether to leave');
+  assert.match(question.parentUrl ?? '', new RegExp(POPUP_PATH), 'the question did not belong to the pop-up window');
+  await new Promise((r) => setTimeout(r, 500));
+  assert.equal((await popupContents(() => true)).found, true, 'the pop-up window closed after Stay');
+});
+
+Then('the pop-up window closes', async function () {
+  const deadline = Date.now() + 5_000;
+  while ((await popupContents(() => true)).found) {
+    if (Date.now() > deadline) throw new Error('the pop-up window is still open after Leave');
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  assert.equal((await popupLeaveQuestion()).asked, this.popupLeaveAskedBefore + 1);
+});
+
+After({ tags: '@F39-12' }, async function () {
+  await ctx.app?.evaluate(({ dialog }) => {
+    const probe = globalThis.__popupLeaveQuestion;
+    if (probe) dialog.showMessageBoxSync = probe.original;
+    delete globalThis.__popupLeaveQuestion;
+  }).catch(() => {});
+});
+
+After({ tags: '@F39-10 or @F39-11 or @F39-12' }, async function () {
   await ctx.app?.evaluate(({ BrowserWindow }, path) => {
     for (const w of BrowserWindow.getAllWindows()) {
       if (!w.isDestroyed() && w.webContents.getURL().includes(path)) w.destroy();
