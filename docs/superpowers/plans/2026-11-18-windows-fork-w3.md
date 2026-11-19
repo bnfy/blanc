@@ -152,15 +152,20 @@ publisher key hash instead of Google's proof); `chromium/windows/update-keys.md`
 installer with the publisher key, the update data file, checksums, Sigstore), the candidate
 workflow's sign job (signs the updater and its setup program too).
 
-- [ ] **Failing tests** for the packaging: a CRX3 the updater's verifier accepts with Blanc's key
+- [x] **Failing tests** for the packaging: a CRX3 the updater's verifier accepts with Blanc's key
       hash and refuses with any other; the data file names the exact package digest.
 
 ### Task D2: the N-to-N+1 proof
 
-- [ ] On a runner: install beta N with the updater, point it at the staging Worker serving N+1,
+- [x] On a runner: install beta N with the updater, point it at the staging Worker serving N+1,
       `--wake`, and check the installed version becomes N+1 after a restart; Electron Blanc
       untouched. Also: a package with the wrong key and a tampered package are refused and N keeps
       running. This becomes a release gate, like the Mac's `sparkle-N-to-N+1`.
+      **Passed 2026-11-19** (from 158.0.8127.900 to .901 through blanc.day): run 44555492612 updated
+      .900 to .901 with the owner-signed package; run 44556972300 refused a package signed by another
+      key (verifier ERROR_REQUIRED_PROOF_MISSING); run 44558579476 refused the genuine package with
+      one byte changed (ERROR_SIGNATURE_VERIFICATION_FAILED). Each time Electron Blanc was untouched
+      and the beta launched. Wiring it into `release.mjs` as a gate belongs to Task E1.
 
 ## Part E: going public
 
