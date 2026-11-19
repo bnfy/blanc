@@ -25,9 +25,10 @@ echo
 "$OPENSSL" list -signature-algorithms 2>/dev/null | grep -q 'ML-DSA-44' || { echo "$OPENSSL can't make ML-DSA-44 keys. Stopping."; exit 1; }
 mkdir -p "$OUT"
 if [ -e "$OUT/cup-public.der" ] || [ -e "$OUT/crx-public.der" ]; then echo "$OUT already has public keys. Stopping, so no key is replaced."; exit 1; fi
-echo "1. Sign in to 1Password (Touch ID)."
-[ "$OP" = op ] && OP_BIOMETRIC_UNLOCK_ENABLED=true op signin --account "$OPACCT"
-"$OP" whoami --account "$OPACCT" >/dev/null 2>&1 || { echo "1Password didn't sign in. Stopping."; exit 1; }
+echo "1. Open 1Password's Dev vault (Touch ID)."
+# `op whoami` reports "not signed in" under the desktop app's integration even
+# when every vault call works, so the check is opening the vault itself.
+OP_BIOMETRIC_UNLOCK_ENABLED=true "$OP" vault get Dev --account "$OPACCT" >/dev/null 2>&1 || { echo "1Password's Dev vault didn't open. Stopping."; exit 1; }
 for title in "$CUP_TITLE" "$CRX_TITLE"; do
   if "$OP" item get "$title" --vault Dev --account "$OPACCT" >/dev/null 2>&1; then
     echo "1Password already has '$title'. Stopping, so no key is replaced."; exit 1

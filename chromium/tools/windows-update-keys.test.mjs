@@ -20,7 +20,7 @@ function fakeOp(dir) {
   fs.writeFileSync(op, `#!/bin/bash
 set -e; V='${vault}'
 case "$1 $2" in
-  "whoami "*) exit 0;;
+  "vault get") [ "$3" = Dev ] && exit 0 || exit 1;;
   "item get") [ -e "$V/$3" ] && exit 0 || exit 1;;
   "document create") cp "$3" "$V/$7";;
   "document get") cp "$V/$3" "\${9}";;
