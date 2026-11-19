@@ -394,7 +394,7 @@ const {
 const { showAboutPanel } = require('./about-panel');
 const { inviteFriend } = require('./invite-friend');
 const { xdgOpen } = require('./xdg-open');
-const { webUrlsFromArgv } = require('./startup-urls');
+const { localHtmlPathsFromArgv, webUrlsFromArgv } = require('./startup-urls');
 const { bringExternalWindowToFront, externalWindowRuntime } = require('./window-activation');
 const { createExternalUrlHandoff } = require('./external-url-handoff');
 const {
@@ -1580,9 +1580,13 @@ if (!ownsInstanceLock) {
   app.on('second-instance', (_e, commandLine) => {
     const runtime = resolveExternalRuntime();
     withWindowRuntime(runtime, () => {
+      const files = localHtmlPathsFromArgv(commandLine);
       openExternalUrls(urlsFromArgv(commandLine));
+      openLocalHtmlFiles(files);
       for (const url of tabImportUrlsFromArgv(commandLine)) queueTabHandoff(url);
-      if (!urlsFromArgv(commandLine).length && rt().window && !rt().window.isDestroyed()) {
+      // A handed-over file opens its own preview window; raising the browser
+      // window then would bury it.
+      if (!urlsFromArgv(commandLine).length && !files.length && rt().window && !rt().window.isDestroyed()) {
         bringExternalWindowToFront(app, rt().window);
       }
     });
@@ -1887,9 +1891,11 @@ function maybeSendProductUsage(wc, report) {
   return report();
 }
 
-// Command-line/default-browser URL handoff remains web-only. Local HTML has a
-// separate macOS open-file trust boundary below; typed file: URLs, argv paths,
-// web-page file links, popups, and arbitrary file types all stay rejected.
+// Command-line/default-browser URL handoff remains web-only. Local HTML files
+// arrive separately: through macOS's open-file event below, and on Windows as
+// absolute HTML paths on the command line (localHtmlPathsFromArgv, #1630), both
+// into openLocalHtmlFiles. Typed file: URLs, other argv paths, web-page file
+// links, popups, and arbitrary file types all stay rejected.
 const urlsFromArgv = webUrlsFromArgv;
 
 function resolveExternalRuntime(preferred = focusedRuntime) {
@@ -2056,6 +2062,9 @@ function openExternalUrls(urls) {
 
 function openLocalHtmlFiles(paths) {
   if (paths?.length) launchHandedUrls = true;
+  // Every Windows launch asks with whatever the command line held; an empty
+  // list must not wait on (or log for) the ECS preview runtime.
+  if (!paths?.length) return;
   if (drmSupport.enabled) {
     void drmSupport.openLocalFiles(paths).catch(() => console.warn('Local HTML preview could not open'));
     return;
@@ -13596,6 +13605,9 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive 
     // The last ordinary Windows or Linux window quits Blanc: mini windows go
     // with it (they are never saved), so window-all-closed still quits.
     if (dockReopenLifecycle.closeSessionEffect() === 'quit') closeMiniWindows();
+    // Local HTML previews go too, or one would keep Blanc running with no
+    // browser window to come back to (#1630).
+    if (dockReopenLifecycle.closeSessionEffect() === 'quit') drmSupport.closeLocalFiles?.();
     if (clearPersistedWindowState) {
       runtime.closing = true;
       // The close event durably checkpointed before native teardown.
@@ -17530,6 +17542,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // Cold-start URL handoff waits until the blocker decision and session
     // restore are both complete.
     openExternalUrls(urlsFromArgv(process.argv.slice(1)));
+    openLocalHtmlFiles(localHtmlPathsFromArgv(process.argv.slice(1)));
     pendingTabHandoffUrls.push(...tabImportUrlsFromArgv(process.argv.slice(1)));
     externalUrlsFlushable = true;
     withWindowRuntime(focusedRuntime, flushExternalUrls);
