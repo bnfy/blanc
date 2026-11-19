@@ -19,9 +19,10 @@ function fakeOp(dir) {
   const op = path.join(dir, 'op');
   fs.writeFileSync(op, `#!/bin/bash
 set -e; V='${vault}'
+[ "$OP_BIOMETRIC_UNLOCK_ENABLED" = true ] || { echo 'not signed in' >&2; exit 1; }
 case "$1 $2" in
   "vault get") [ "$3" = Dev ] && exit 0 || exit 1;;
-  "item get") [ -e "$V/$3" ] && exit 0 || exit 1;;
+  "item list") python3 -c 'import json,os,sys; print(json.dumps([{"title": n} for n in os.listdir(sys.argv[1])]))' "$V";;
   "document create") cp "$3" "$V/$7";;
   "document get") cp "$V/$3" "\${9}";;
   *) echo "fake op: $*" >&2; exit 2;;

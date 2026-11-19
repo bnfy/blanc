@@ -15,6 +15,8 @@ umask 077
 OPENSSL=/opt/homebrew/opt/openssl@3/bin/openssl
 OUT="${BLANC_KEYS_OUT:-$HOME/Projects/Blanc/records/windows-update-keys}"
 OP="${BLANC_OP:-op}"
+# Every op call goes through the 1Password app (Touch ID), not just the first.
+export OP_BIOMETRIC_UNLOCK_ENABLED=true
 OPACCT=my.1password.com
 CUP_TITLE='Blanc Windows Beta CUP Key'
 CRX_TITLE='Blanc Windows Beta CRX Publisher Key'
@@ -28,9 +30,12 @@ if [ -e "$OUT/cup-public.der" ] || [ -e "$OUT/crx-public.der" ]; then echo "$OUT
 echo "1. Open 1Password's Dev vault (Touch ID)."
 # `op whoami` reports "not signed in" under the desktop app's integration even
 # when every vault call works, so the check is opening the vault itself.
-OP_BIOMETRIC_UNLOCK_ENABLED=true "$OP" vault get Dev --account "$OPACCT" >/dev/null 2>&1 || { echo "1Password's Dev vault didn't open. Stopping."; exit 1; }
+"$OP" vault get Dev --account "$OPACCT" >/dev/null 2>&1 || { echo "1Password's Dev vault didn't open. Stopping."; exit 1; }
+# Read the vault's item titles: an error here stops the ceremony instead of
+# reading as "no such key".
+"$OP" item list --vault Dev --account "$OPACCT" --format json > "$WORK/items.json" || { echo "Couldn't list the Dev vault. Stopping."; exit 1; }
 for title in "$CUP_TITLE" "$CRX_TITLE"; do
-  if "$OP" item get "$title" --vault Dev --account "$OPACCT" >/dev/null 2>&1; then
+  if python3 -c 'import json,sys; sys.exit(0 if sys.argv[2] in [i.get("title") for i in json.load(open(sys.argv[1]))] else 1)' "$WORK/items.json" "$title"; then
     echo "1Password already has '$title'. Stopping, so no key is replaced."; exit 1
   fi
 done
