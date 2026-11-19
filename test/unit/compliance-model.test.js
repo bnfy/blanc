@@ -55,7 +55,7 @@ test('runtime SBOM covers npm closure, Electron, fonts, and blocker provenance',
     'asset:easylist-data',
     'asset:easyprivacy-data',
     'asset:ghostery-resources',
-    'pkg:npm/%40ghostery/adblocker-electron@2.20.1',
+    'pkg:npm/%40ghostery/adblocker-electron@2.20.3',
   ]);
 });
 

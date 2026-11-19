@@ -305,6 +305,18 @@
     <string name="ws_decision_close_and_switch">Close tabs and switch</string>
     <string name="ws_row_current">Current space</string>
     <string name="ws_row_show_window">Show window</string>
+    <plurals name="ws_row_title_profile">
+        <item quantity="one">%2$s · %3$s · %4$s · %1$d tab</item>
+        <item quantity="other">%2$s · %3$s · %4$s · %1$d tabs</item>
+    </plurals>
+    <string name="ws_row_title_profile_shown">%1$s · %2$s · %3$s</string>
+    <string name="ws_editor_profile_disabled">%1$s (can’t add Spaces)</string>
+    <string name="ws_row_open_in_profile">Opens in a %1$s window</string>
+    <string name="ws_profile_unreadable">Couldn’t read this profile’s Spaces.</string>
+    <string name="ws_editor_profile">Profile</string>
+    <string name="ws_editor_help_other_profile">Tabs stay in their own profile, so a Space in %1$s starts empty.</string>
+    <string name="ws_switcher_profile_label">Space · %1$s</string>
+    <string name="ws_error_profile_unavailable">That profile is no longer available.</string>
     <string name="ws_row_retained">Retained in memory</string>
     <string name="ws_row_open">Open space</string>
     <plurals name="ws_row_title">
@@ -1028,6 +1040,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_tab_switch_order_hint">Hold Ctrl and press Tab to go back through the tabs you used last, then let go of Ctrl to switch. Esc stays where you are.</string>
     <string name="settings_general_reuse_new_tab_label">Switch to an unused new tab</string>
     <string name="settings_general_reuse_new_tab_hint">New Tab goes to a new tab in this window that you haven\'t used yet, instead of opening another. New Private Tab does the same for private tabs.</string>
+    <string name="settings_general_ask_where_to_save_label">Ask where to save each file</string>
+    <string name="settings_general_ask_where_to_save_hint">When this is off, downloads go straight to your Downloads folder, and a file with the same name gets a number added.</string>
     <string name="settings_general_tab_switch_order_recent">In the order you used them</string>
     <string name="settings_general_tab_switch_order_list">In the order of the tab list</string>
     <string name="settings_general_tab_archive_label">Archive inactive tabs</string>
@@ -1804,6 +1818,19 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="favorites_manager_error_cycle">A folder can’t move into itself.</string>
     <string name="favorites_manager_error_invalid">That name can’t be used.</string>
     <string name="favorites_manager_error_missing">That folder no longer exists.</string>
+    <string name="favorites_manager_edit">Edit…</string>
+    <string name="favorites_manager_edit_name">Name</string>
+    <string name="favorites_manager_edit_address">Address</string>
+    <string name="favorites_manager_edit_save">Save</string>
+    <string name="favorites_manager_edit_cancel">Cancel</string>
+    <string name="favorites_manager_error_exists">Another favorite already has that address.</string>
+    <string name="favorites_manager_error_invalid_url">Enter a web address, such as example.com.</string>
+    <string name="favorites_manager_error_favorite_missing">That favorite no longer exists.</string>
+    <string name="favorites_manager_open_new_tab">Open in new tab</string>
+    <string name="favorites_manager_open_all">Open all</string>
+    <string name="favorites_manager_edit_title">Edit favorite</string>
+    <string name="favorites_manager_edit_folder">Folder</string>
+    <string name="favorites_manager_more_short">More actions</string>
     <string name="favorites_import_menu">Bring my stuff to Blanc</string>
     <plurals name="favorites_manager_results">
         <item quantity="one">%1$d result</item>
@@ -2709,4 +2736,36 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="favorites_import_cancel">Cancel</string>
     <string name="favorites_manager_delete_folder_label">Delete folder %1$s</string>
     <string name="favorites_import_tabs_skipped">Open tabs weren’t brought over.</string>
+    <plurals name="start_billboard_blocked">
+        <item quantity="one">%1$d ad blocked this week</item>
+        <item quantity="other">%1$d ads blocked this week</item>
+    </plurals>
+    <string name="start_widgets_heading">Widgets</string>
+    <string name="start_widgets_unconfirmed">Could not confirm the widget change. Try again.</string>
+    <string name="start_widgets_move">Move %1$s</string>
+    <string name="start_widgets_moved_left">%1$s is now on the left, position %2$s.</string>
+    <string name="start_widgets_moved_right">%1$s is now on the right, position %2$s.</string>
+    <string name="start_widgets_resize">Resize %1$s</string>
+    <string name="start_widgets_size">Size %1$s of %2$s</string>
+    <string name="start_widgets_size_auto">Fits the column</string>
+    <string name="start_widgets_resized">%1$s is now size %2$s of %3$s.</string>
+    <string name="start_widgets_resized_auto">%1$s fits its column again.</string>
+    <string name="start_shortcuts_heading">Shortcuts</string>
+    <string name="start_shortcuts_fewer">Fewer shortcuts</string>
+    <string name="start_shortcuts_more">More shortcuts</string>
+    <string name="start_shortcuts_count">%1$s shortcuts</string>
+    <plurals name="start_shortcuts_sofar">
+        <item quantity="one">%1$d site so far. More appear as you browse.</item>
+        <item quantity="other">%1$d sites so far. More appear as you browse.</item>
+    </plurals>
+    <plurals name="start_devices_tabs">
+        <item quantity="one">%1$d tab</item>
+        <item quantity="other">%1$d tabs</item>
+    </plurals>
+    <plurals name="start_devices_more">
+        <item quantity="one">%1$d more tab</item>
+        <item quantity="other">%1$d more tabs</item>
+    </plurals>
+    <string name="start_devices_fewer">Show fewer</string>
+    <string name="start_mahjong_play">Play Blanc Mahjong</string>
 </resources>

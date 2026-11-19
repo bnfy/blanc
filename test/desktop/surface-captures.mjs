@@ -133,8 +133,9 @@ try {
     const id = globalThis.__blanc.utilitySheetContentsId();
     return id ? webContents.fromId(id).executeJavaScript(code) : null;
   }, script);
+  // Favorites is a tab since November 18, 2026; Settings opens the sheet.
   const viaSheet = async (url) => {
-    await call('openFavoritesSheet');
+    await call('openSettings');
     await sleep(900);
     await inSheet(`location.href = ${JSON.stringify(url)}; 0`);
   };

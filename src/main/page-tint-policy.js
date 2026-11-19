@@ -1,11 +1,12 @@
 'use strict';
 
 // Website tabs use their rendered top edge as the Island strip's faux header.
-// The Start Page and Mahjong are the internal surfaces that participate too:
-// their Sunrise backdrop is the page itself, rather than utility chrome such
-// as Settings or History. Private tabs match only those Sunrise backdrops;
+// The Start Page, Mahjong and the Favorites page (a tab of its own since
+// November 18, 2026) are the internal surfaces that participate too: their
+// Sunrise backdrop is the page itself, rather than utility chrome such as
+// Settings or History. Private tabs match only those Sunrise backdrops;
 // private websites keep the private theme's own header.
-const SUNRISE_PAGES = new Set(['newtab', 'mahjong']);
+const SUNRISE_PAGES = new Set(['newtab', 'mahjong', 'bookmarks']);
 
 function shouldSamplePageTint(tab) {
   if (!tab || typeof tab.url !== 'string') return false;

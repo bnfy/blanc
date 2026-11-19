@@ -21,7 +21,9 @@ test('Billboard top sites stay local and private-safe; hiding stays in the page,
   assert.match(main, /return history\.listTopSites\(options\)\.map/);
   assert.match(main, /history\.cacheSiteIcon\(tab\.url, sanitized\)/);
   assert.match(renderer, /const sites = isPrivate \? \[\] : visibleBillboardSites\(\);/);
-  assert.match(renderer, /startPins\.billboardSites\(state\.pins, state\.topSites, hiddenTopSites, 6\)/);
+  // The shortcut count (1-12, Customize's stepper) bounds the row (V24).
+  assert.match(renderer, /startPins\.billboardSites\(state\.pins, state\.topSites, hiddenTopSites, billboardSiteCount\(\)\)/);
+  assert.match(renderer, /const billboardSiteCount = \(\) => state\.widgets\?\.shortcutCount \?\?/);
   assert.match(renderer, /start\.topSites\(\{[\s\S]*?offset,[\s\S]*?limit: TOP_SITES_PAGE_SIZE/);
   assert.match(renderer, /localStorage\.setItem\(TOP_SITES_HIDDEN_KEY/);
   assert.match(renderer, /key\.length > 0 && key\.length <= 255/);

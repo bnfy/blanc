@@ -1,6 +1,6 @@
 // F63: the nested Favorites menu and `/save` with a folder path.
 const assert = require('node:assert');
-const { Given, Then } = require('@cucumber/cucumber');
+const { Given, When, Then } = require('@cucumber/cucumber');
 const { waitForValue } = require('./../support/poll');
 
 Given('a favorite for {string} titled {string} in {string}', async function (url, title, folder) {
@@ -45,4 +45,30 @@ Then('{string} is a favorite in {string}', async function (name, folder) {
     `${name} to be a favorite in ${folder}`,
   );
   assert.strictEqual(record.folder, folder);
+});
+
+// F63-3: a favorite's name and address, edited on the Favorites page.
+When('I edit the favorite {string} to {string} at {string}', async function (title, newTitle, newUrl) {
+  await waitForValue(() => this.call('favoritesSheetRows'), (view) => view?.rows.some((row) => row.title === title),
+    `${title} to show on the Favorites page`);
+  assert.strictEqual(await this.call('editFavoriteInSheet', title, newTitle, newUrl), true);
+});
+
+Then('the Favorites page shows {string} at {string}', async function (title, url) {
+  const view = await waitForValue(() => this.call('favoritesSheetRows'),
+    (value) => value?.rows.some((row) => row.title === title && row.url === url) && !value.editing,
+    `the Favorites page to show ${title} at ${url}`);
+  assert.strictEqual(view.status, '');
+});
+
+Then('Favorites hold {string} at {string} and nothing at {string}', async function (title, url, oldUrl) {
+  const records = await waitForValue(() => this.call('bookmarkRecords'),
+    (list) => list.some((r) => r.url === url), `${url} to be a favorite`);
+  assert.deepStrictEqual(records.filter((r) => r.url === url || r.url === oldUrl), [{ url, title, folder: null }]);
+});
+
+Then('the Start Page pin {string} is at {string}', async function (title, url) {
+  const pins = await waitForValue(() => this.call('startPagePins'),
+    (list) => list?.some((pin) => pin.url === url), `the pin to follow to ${url}`);
+  assert.deepStrictEqual(pins, [{ url, title }]);
 });

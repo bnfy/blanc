@@ -1,0 +1,46 @@
+---
+// Releases a Blanc Mail address reservation from the link in its emails (Blanc
+// Mail repo spec 2026-11-18-address-reservations-design.md). Opening the page
+// does nothing: mail scanners open links, so the token is posted only when the
+// person presses Release.
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import MailBar from '../../../components/MailBar.astro';
+import '../../../styles/mail.css';
+const apiBase = import.meta.env.PUBLIC_MAIL_API_BASE ?? '';
+---
+<BaseLayout title="Release your Blanc Mail address" description="Release a Blanc Mail address name you reserved, so anyone can reserve it again." path="/mail/reserve/release" header="legal" analytics={false} social="none" robots="noindex,nofollow">
+  <MailBar />
+  <main id="main-content" class="mail-page mail-doc">
+    <header class="mail-page-head">
+      <p class="mail-eyebrow">Blanc Mail · Reservation</p><h1>Release your address.</h1>
+    </header>
+    <form class="mail-release" data-mail-release data-api={apiBase}>
+      <p data-state="ask">This gives your reserved name back, so anyone can take it. You can reserve another name afterwards.</p>
+      <p data-state="missing" hidden>This link is incomplete. Open the release link from your reservation email again.</p>
+      <p data-state="done" hidden>Released. The name is free for anyone to reserve.</p>
+      <button class="mail-release-button" type="submit" disabled>Release</button>
+      <p class="mail-release-status" role="status" aria-live="polite"></p>
+    </form>
+  </main>
+</BaseLayout>
+<script>
+  document.querySelectorAll<HTMLFormElement>('form[data-mail-release]').forEach((form) => {
+    const token = new URLSearchParams(location.search).get('t') ?? '';
+    const button = form.querySelector('button')!;
+    const status = form.querySelector('.mail-release-status')!;
+    const show = (state: string) => form.querySelectorAll<HTMLElement>('[data-state]').forEach((el) => { el.hidden = el.dataset.state !== state; });
+    if (!token) { show('missing'); button.hidden = true; return; }
+    button.disabled = false;
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      status.textContent = '';
+      button.disabled = true;
+      try {
+        const res = await fetch(`${form.dataset.api}/mail/api/v1/reservations/release`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) });
+        if (res.ok) { show('done'); button.hidden = true; return; }
+        status.textContent = res.status === 403 ? 'This link doesn’t match a reservation that’s still held.' : 'We couldn’t release it just now. Please try again later.';
+      } catch { status.textContent = 'We couldn’t release it just now. Please try again later.'; }
+      button.disabled = false;
+    });
+  });
+</script>

@@ -181,6 +181,10 @@ jobs:
         run: xvfb-run -a npm run test:custom-wallpaper:desktop
       - name: Billboard clock Font & color (F54)
         run: xvfb-run -a npm run test:billboard-clock:desktop
+      - name: Start Page widget cards (F35, V24)
+        run: xvfb-run -a npm run test:start-widgets:desktop
+      - name: Start Page wallpaper behind the Island's band
+        run: xvfb-run -a npm run test:start-backdrop:desktop
 
   modified-link-clicks:
     needs: changes
@@ -218,6 +222,16 @@ jobs:
       - name: Several command-line URLs after -- (Windows)
         if: ${{ !cancelled() && runner.os == 'Windows' }}
         run: npm run test:command-line-urls
+      # #1591: clicked downloads save to Downloads under a free name; a
+      # page-started download and "Ask where to save each file" still ask.
+      - name: Downloads save without asking (Linux)
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        run: |
+          bash scripts/ci-enable-linux-sandbox.sh
+          xvfb-run -a npm run test:save-downloads:desktop
+      - name: Downloads save without asking (Windows)
+        if: ${{ !cancelled() && runner.os == 'Windows' }}
+        run: npm run test:save-downloads:desktop
 
   tab-handoff:
     needs: changes

@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
 const bookmarks = require('./bookmarks');
-const { pageIds, pageKeys, pagePath } = require('./favorites-page-args');
+const { pageIds, pageKeys, pagePath, pageEdit } = require('./favorites-page-args');
 const { parseNetscapeBookmarks } = require('./bookmark-import');
 const { createBrowserDataImportService } = require('./browser-data-import');
 
@@ -23,6 +23,7 @@ const RESTYLE_SCRIPT = `(() => {
   old.after(next);
 })()`;
 const history = require('./history');
+const StartWidgets = require('./start-widgets');
 const archive = require('./archive');
 const downloads = require('./downloads');
 const settings = require('./settings');
@@ -248,7 +249,11 @@ function setupPages(hooks = {}) {
   handle('pages:tab-handoff:cancel', 'tab-handoff', () =>
     hooks.tabHandoff?.cancel?.() ?? { ok: true });
 
-  handle('pages:bookmarks:capabilities', 'bookmarks', () => ({ editable: true, tree: true }));
+  // A private tab can show Favorites (typed, or the private Start Page's
+  // link) but never pins, so it offers no Pin.
+  handleEvent('pages:bookmarks:capabilities', 'bookmarks', (event) => (hooks.isPrivateSender?.(event.sender)
+    ? { editable: true, tree: true, pins: false }
+    : { editable: true, tree: true }));
   handle('pages:bookmarks:list', ['bookmarks', 'newtab'], () => bookmarks.listBookmarks());
   // Start Page pins (start-page-pins.js): one device-local list that the
   // Start Page and the Favorites page read and change; main tells both when it
@@ -405,6 +410,13 @@ function setupPages(hooks = {}) {
     edited(bookmarks.reorderFolder(pagePath(path), pageKeys(keys))));
   handle('pages:bookmarks:remove-many', 'bookmarks', (ids) =>
     edited(bookmarks.removeBookmarks(pageIds(ids))));
+  // A favorite's name and address. A pinned favorite's Start Page pin
+  // follows. The page gets back only the row's new key.
+  handle('pages:bookmarks:edit', 'bookmarks', (id, changes) => {
+    const result = edited(bookmarks.editFavorite(...pageEdit(id, changes)));
+    if (result?.edited) hooks.startPins?.replace?.(result.edited.from.url, result.edited.to);
+    return result?.ok ? { ok: true, key: result.key } : result;
+  });
 
   handle('pages:history:list', 'history', (opts) => history.listHistory(opts ?? {}));
   handle('pages:history:remove', 'history', (url, visitedAt) => history.removeVisit(url, visitedAt));
@@ -694,13 +706,22 @@ function setupPages(hooks = {}) {
       event.sender,
       options && typeof options === 'object' ? options : {},
     ) ?? []);
-  // The footer layout switcher. The value is enum-validated by setSettings,
-  // so an unknown name is a no-op rather than an error.
-  handle(
-    'pages:start:set-layout',
-    'newtab',
-    (name) => hooks.startPage?.setLayout?.(String(name ?? '')),
-  );
+  // The Start Page's widgets (start-widgets.js). Each write goes through the
+  // rules, is saved device-local by setNewtabWidgets() (which pushes the new
+  // status to every open Start Page) and resolves to what the page may see.
+  // A value the page cannot show rejects, so the page re-reads the saved one.
+  const saveWidgets = (next) => {
+    if (!next) throw new Error('Start Page widgets: value refused');
+    return StartWidgets.pageWidgets(settings.setNewtabWidgets(next));
+  };
+  handle('pages:start:set-widget', 'newtab', (name, on) =>
+    saveWidgets(StartWidgets.withWidget(settings.getNewtabWidgets(), name, on)));
+  handle('pages:start:set-shortcut-count', 'newtab', (count) =>
+    saveWidgets(StartWidgets.withShortcutCount(settings.getNewtabWidgets(), count)));
+  handle('pages:start:set-widget-place', 'newtab', (left, right) =>
+    saveWidgets(StartWidgets.withPlace(settings.getNewtabWidgets(), left, right)));
+  handle('pages:start:set-widget-size', 'newtab', (card, size) =>
+    saveWidgets(StartWidgets.withSize(settings.getNewtabWidgets(), card, size)));
   // A narrow footer capability: persist only this boolean and return only
   // its effective state. Never expose the settings or entitlement records.
   handle('pages:start:set-dynamic-wallpaper', 'newtab', (enabled) => {
@@ -770,12 +791,13 @@ function setupPages(hooks = {}) {
     hooks.startPage?.wallpaperChanged?.();
     return wallpaperReply(event);
   });
+  // The Island's band continues this page's wallpaper (start-backdrop.js):
+  // the page reports its layers; main answers with the band above it (0
+  // where the band stands aside) and paints the strip's copy itself.
+  handleEvent('pages:start:backdrop', 'newtab', (event, spec) =>
+    hooks.startPage?.backdrop?.(event.sender, spec) ?? { band: 0 });
   handleEvent('pages:start:open-mahjong', 'newtab', (event, background) =>
     hooks.startPage?.openMahjong?.(event.sender, background === true) === true);
-  handleEvent('pages:start:layout-used', 'newtab', (event, name) => {
-    if (!settings.NEWTAB_LAYOUTS.includes(name)) return false;
-    return hooks.telemetry?.newtabLayoutUsed?.(event.sender, name) === true;
-  });
   handle(
     'pages:start:focus-group',
     'newtab',

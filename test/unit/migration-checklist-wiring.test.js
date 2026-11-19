@@ -52,7 +52,7 @@ test('the space task is introduced once at startup and completes on the first sp
   const main = read('src/main/main.js');
   const intro = main.search(/const spaceTaskPatch = spaceTaskIntroduction\(settings\.getSettings\(\), \{\s*hasSpaces: withLocalProfile\(DEFAULT_PROFILE_ID, \(\) => namedWorkspaces\.list\(\)\.length > 0\),\s*\}\);/);
   assert.ok(intro > 0 && intro < main.indexOf('settings.onSettingsChanged((s) => {'), 'before the settings fan-out, told whether Personal already has a space');
-  assert.match(main, /function noteSpaceCreated\(\) \{[\s\S]{0,200}spaceMigrationCompleted: true/);
+  assert.match(main, /function noteSpaceCreated\(profileId = rt\(\)\.profileId\) \{[\s\S]{0,200}spaceMigrationCompleted: true/);
   assert.ok((main.match(/noteSpaceCreated\(\);/g) ?? []).length >= 3, 'save-as, create-blank and the Arc import each complete it');
 });
 

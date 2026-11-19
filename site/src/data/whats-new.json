@@ -7,6 +7,86 @@
   ],
   "pages": [
     {
+      "release": "1.51",
+      "highlights": [
+        {
+          "id": "start-widgets",
+          "tile": "Start Page",
+          "title": "Widgets on one Start Page",
+          "body": "The Start Page is now one page: the clock, with the week’s blocked count under it. Favorites and your other devices’ tabs are cards you turn on in Customize, drag to either side and resize. Over your own image the cards turn to frosted glass, and the image runs up behind the Island.",
+          "steps": [
+            "Open a new tab with `⌘T`, or `Ctrl+T` on Windows and Linux.",
+            "Click Customize and turn on Favorites or On your other devices."
+          ],
+          "note": "If you used Ledger, Shelf or Tally, your Start Page keeps what it showed.",
+          "learnMore": "/features/start-page",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/start-widgets-v1.51.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Start Page over Van Gogh’s Wheat Field with Cypresses, the painting running up behind the Island. A frosted Favorites card on the left lists nine favorites, and the clock reads 4:14 above 328 ads blocked this week and six shortcuts."
+          }
+        },
+        {
+          "id": "favorites-page",
+          "tile": "Favorites",
+          "title": "Favorites gets a page of its own",
+          "body": "Favorites now opens as a full page in a tab, with your folders on the left. Every favorite has a `⋮` menu to open, pin, move or remove it, and Edit… changes its name, address and folder. A pinned favorite stays pinned.",
+          "steps": [
+            "Press `⌥⌘B`, or `Ctrl+Shift+O` on Windows and Linux.",
+            "Click `⋮` beside a favorite, then Edit…"
+          ],
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/favorites-page-v1.51.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Favorites page in a tab with the Work folder open, listing Clients, GitHub, Figma and Linear, and the Edit favorite dialog open on Linear with its name, address and folder."
+          }
+        }
+      ]
+    },
+    {
+      "release": "1.50",
+      "highlights": [
+        {
+          "id": "favorites-manager",
+          "tile": "Favorites",
+          "title": "Folders inside folders, in your order",
+          "body": "Favorites now opens a manager with your folders in a sidebar. Make folders inside folders, drag favorites and folders where you want them, select several at once, and search every folder. Deleting a folder keeps what was in it. One Bring my stuff to Blanc button imports favorites and open tabs from another browser, keeping its folders and their order.",
+          "steps": [
+            "Press `⌥⌘B`, or `Ctrl+Shift+O` on Windows and Linux.",
+            "Click New folder, or drag a favorite onto a folder in the sidebar."
+          ],
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/favorites-manager-v1.50.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Favorites manager open over The Met’s page for Van Gogh’s Wheat Field with Cypresses. The sidebar shows Home and Work, with Clients and Research inside Work, and the Work folder lists Clients, Research and three favorites."
+          }
+        },
+        {
+          "id": "save-downloads",
+          "tile": "Downloads",
+          "title": "Downloads go straight to your Downloads folder",
+          "body": "Blanc no longer asks where to save each file you download. It goes to your Downloads folder, and a file with the same name as one already there gets a number added. A download a page starts without your click, and Save Image As…, still ask.",
+          "steps": [
+            "To be asked every time, open Settings → General.",
+            "Turn on Ask where to save each file."
+          ],
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/save-downloads-v1.50.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Settings open to General over The Met’s page, with the Ask where to save each file switch turned off."
+          }
+        }
+      ]
+    },
+    {
       "release": "1.49",
       "highlights": [
         {

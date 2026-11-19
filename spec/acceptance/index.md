@@ -314,6 +314,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F61-5 | Closing a mini window's last tab closes the window | — | ✅ | ➖ | ➖ |
 | F63-1 | The Favorites menu shows nested folders as submenus | D40 | ✅ | ⬜ | ⬜ |
 | F63-2 | /save files the page into a nested folder by its name or by a path | D40 | ✅ | ⬜ | ⬜ |
+| F63-3 | Editing a favorite changes its name and address, and its Start Page pin follows | D40 | ✅ | ⬜ | ⬜ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance

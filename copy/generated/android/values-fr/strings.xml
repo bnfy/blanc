@@ -314,6 +314,19 @@
     <string name="ws_decision_close_and_switch">Fermer les onglets et changer</string>
     <string name="ws_row_current">Space actuel</string>
     <string name="ws_row_show_window">Afficher fenêtre</string>
+    <plurals name="ws_row_title_profile">
+        <item quantity="one">%2$s · %3$s · %4$s · %1$d onglet</item>
+        <item quantity="many">%2$s · %3$s · %4$s · %1$d onglets</item>
+        <item quantity="other">%2$s · %3$s · %4$s · %1$d onglets</item>
+    </plurals>
+    <string name="ws_row_title_profile_shown">%1$s · %2$s · %3$s</string>
+    <string name="ws_editor_profile_disabled">%1$s (impossible d’ajouter des Spaces)</string>
+    <string name="ws_row_open_in_profile">S’ouvre dans une fenêtre de %1$s</string>
+    <string name="ws_profile_unreadable">Impossible de lire les Spaces de ce profil.</string>
+    <string name="ws_editor_profile">Profil</string>
+    <string name="ws_editor_help_other_profile">Les onglets restent dans leur propre profil : un Space dans %1$s commence donc vide.</string>
+    <string name="ws_switcher_profile_label">Space · %1$s</string>
+    <string name="ws_error_profile_unavailable">Ce profil n’est plus disponible.</string>
     <string name="ws_row_retained">Conservé en mémoire</string>
     <string name="ws_row_open">Ouvrir le Space</string>
     <plurals name="ws_row_title">
@@ -1058,6 +1071,8 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_tab_switch_order_hint">Maintenez Ctrl et appuyez sur Tab pour revenir aux onglets utilisés en dernier, puis relâchez Ctrl pour changer. Échap vous laisse où vous êtes.</string>
     <string name="settings_general_reuse_new_tab_label">Aller à un nouvel onglet inutilisé</string>
     <string name="settings_general_reuse_new_tab_hint">Nouvel onglet va à un nouvel onglet de cette fenêtre que vous n’avez pas encore utilisé, au lieu d’en ouvrir un autre. Nouvel onglet privé fait de même pour les onglets privés.</string>
+    <string name="settings_general_ask_where_to_save_label">Demander où enregistrer chaque fichier</string>
+    <string name="settings_general_ask_where_to_save_hint">Lorsque cette option est désactivée, les téléchargements vont directement dans votre dossier Téléchargements, et un fichier portant le même nom reçoit un numéro.</string>
     <string name="settings_general_tab_switch_order_recent">Dans l’ordre où vous les avez utilisés</string>
     <string name="settings_general_tab_switch_order_list">Dans l’ordre de la liste des onglets</string>
     <string name="settings_general_tab_archive_label">Archiver les onglets inactifs</string>
@@ -1855,6 +1870,19 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="favorites_manager_error_cycle">Un dossier ne peut pas être déplacé dans lui-même.</string>
     <string name="favorites_manager_error_invalid">Ce nom ne peut pas être utilisé.</string>
     <string name="favorites_manager_error_missing">Ce dossier n’existe plus.</string>
+    <string name="favorites_manager_edit">Modifier…</string>
+    <string name="favorites_manager_edit_name">Nom</string>
+    <string name="favorites_manager_edit_address">Adresse</string>
+    <string name="favorites_manager_edit_save">Enregistrer</string>
+    <string name="favorites_manager_edit_cancel">Annuler</string>
+    <string name="favorites_manager_error_exists">Un autre favori a déjà cette adresse.</string>
+    <string name="favorites_manager_error_invalid_url">Saisissez une adresse web, par exemple example.com.</string>
+    <string name="favorites_manager_error_favorite_missing">Ce favori n’existe plus.</string>
+    <string name="favorites_manager_open_new_tab">Ouvrir dans un nouvel onglet</string>
+    <string name="favorites_manager_open_all">Tout ouvrir</string>
+    <string name="favorites_manager_edit_title">Modifier le favori</string>
+    <string name="favorites_manager_edit_folder">Dossier</string>
+    <string name="favorites_manager_more_short">Autres actions</string>
     <string name="favorites_import_menu">Apporter mes données dans Blanc</string>
     <plurals name="favorites_manager_results">
         <item quantity="one">%1$d résultat</item>
@@ -2790,4 +2818,40 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="favorites_import_cancel">Annuler</string>
     <string name="favorites_manager_delete_folder_label">Supprimer le dossier %1$s</string>
     <string name="favorites_import_tabs_skipped">Les onglets ouverts n’ont pas été importés.</string>
+    <plurals name="start_billboard_blocked">
+        <item quantity="one">%1$d publicité bloquée cette semaine</item>
+        <item quantity="many">%1$d publicités bloquées cette semaine</item>
+        <item quantity="other">%1$d publicités bloquées cette semaine</item>
+    </plurals>
+    <string name="start_widgets_heading">Widgets</string>
+    <string name="start_widgets_unconfirmed">Impossible de confirmer la modification du widget. Réessayez.</string>
+    <string name="start_widgets_move">Déplacer %1$s</string>
+    <string name="start_widgets_moved_left">%1$s est maintenant à gauche, position %2$s.</string>
+    <string name="start_widgets_moved_right">%1$s est maintenant à droite, position %2$s.</string>
+    <string name="start_widgets_resize">Redimensionner %1$s</string>
+    <string name="start_widgets_size">Taille %1$s sur %2$s</string>
+    <string name="start_widgets_size_auto">S’adapte à la colonne</string>
+    <string name="start_widgets_resized">%1$s est maintenant en taille %2$s sur %3$s.</string>
+    <string name="start_widgets_resized_auto">%1$s s’adapte de nouveau à la colonne.</string>
+    <string name="start_shortcuts_heading">Raccourcis</string>
+    <string name="start_shortcuts_fewer">Moins de raccourcis</string>
+    <string name="start_shortcuts_more">Plus de raccourcis</string>
+    <string name="start_shortcuts_count">%1$s raccourcis</string>
+    <plurals name="start_shortcuts_sofar">
+        <item quantity="one">%1$d site pour l’instant. D’autres apparaîtront au fil de votre navigation.</item>
+        <item quantity="many">%1$d sites pour l’instant. D’autres apparaîtront au fil de votre navigation.</item>
+        <item quantity="other">%1$d sites pour l’instant. D’autres apparaîtront au fil de votre navigation.</item>
+    </plurals>
+    <plurals name="start_devices_tabs">
+        <item quantity="one">%1$d onglet</item>
+        <item quantity="many">%1$d onglets</item>
+        <item quantity="other">%1$d onglets</item>
+    </plurals>
+    <plurals name="start_devices_more">
+        <item quantity="one">%1$d onglet de plus</item>
+        <item quantity="many">%1$d onglets de plus</item>
+        <item quantity="other">%1$d onglets de plus</item>
+    </plurals>
+    <string name="start_devices_fewer">Afficher moins</string>
+    <string name="start_mahjong_play">Jouer à Blanc Mahjong</string>
 </resources>

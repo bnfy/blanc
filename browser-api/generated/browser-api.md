@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-157 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
+158 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -151,6 +151,7 @@
 | `closeWindow` | window | send | `window:close` | `()` | all |
 | `onTabsUpdated` | tabs | event | `tabs:updated` | `(payload: TabsUpdatedPayload) => void` | all |
 | `onPageTint` | appearance | event | `chrome:page-tint` | `(payload: PageTint) => void` | all |
+| `onPageBackdrop` | appearance | event | `chrome:page-backdrop` | `(payload: PageBackdrop \| null) => void` | all |
 | `onDownloadsActivity` | downloads | event | `chrome:downloads` | `(payload: DownloadsActivity) => void` | all |
 | `acknowledgeDownloads` | downloads | send | `chrome:downloads-ack` | `()` | all |
 | `onOverlayShow` | overlay | event | `overlay:show` | `(payload: OverlayShowPayload) => void` | all |
@@ -269,6 +270,7 @@ Options for opening or creating a workspace; creation also takes a colour and sy
 | `newWindow?` | `boolean` | Open in a new window instead of this one. |
 | `color?` | `string` |  |
 | `symbol?` | `string` |  |
+| `profileId?` | `string` | Another local profile whose Space this is (spec 2026-11-19-spaces-across-profiles): opens or creates it in a window of that profile. Omitted, or this window’s own profile, keeps today’s path. |
 
 ### `Point`
 
@@ -784,6 +786,8 @@ Named Workspaces projection, from workspacesProjection() in main.js.
 | `tint` | `SpaceTint` |  |
 | `sharedSync?` | `SharedSpaceLibraryStatus \| undefined` |  |
 | `recoveryNotice?` | `boolean \| null` |  |
+| `otherProfiles?` | `OtherProfileSpaces[] \| undefined` | Every other live profile, only with two or more live profiles. |
+| `profileName?` | `string \| undefined` | This window’s profile name, beside otherProfiles. |
 
 ### `ThemeAppearance`
 
@@ -889,7 +893,7 @@ Find-in-page counts for the active tab, sent from tab-view.js.
 
 Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js.
 
-`'activation-failed' \| 'busy' \| 'duplicate-name' \| 'future-format' \| 'invalid-name' \| 'invalid-color' \| 'invalid-symbol' \| 'invalid-index' \| 'invalid-record' \| 'limit' \| 'not-found' \| 'protected-pages' \| 'read-failed' \| 'repair-failed' \| 'saved-not-opened' \| 'storage-failed' \| 'unsaved-scratch' \| 'saved-not-moved'`
+`'activation-failed' \| 'busy' \| 'duplicate-name' \| 'future-format' \| 'invalid-name' \| 'invalid-color' \| 'invalid-symbol' \| 'invalid-index' \| 'invalid-record' \| 'limit' \| 'not-found' \| 'protected-pages' \| 'read-failed' \| 'repair-failed' \| 'saved-not-opened' \| 'storage-failed' \| 'unsaved-scratch' \| 'saved-not-moved' \| 'profile-unavailable'`
 
 ### `WorkspaceProtectionReason`
 
@@ -938,6 +942,8 @@ Result of every Named Workspace action. Successes carry the refreshed workspace 
 | `tint?` | `SpaceTint` |  |
 | `sharedSync?` | `SharedSpaceLibraryStatus \| undefined` |  |
 | `recoveryNotice?` | `boolean \| null` |  |
+| `otherProfiles?` | `OtherProfileSpaces[] \| undefined` | Every other live profile, only with two or more live profiles. |
+| `profileName?` | `string \| undefined` | This window’s profile name, beside otherProfiles. |
 
 ### `SearchEngineId`
 
@@ -1302,3 +1308,56 @@ A reset of the floating Glance card (glance-card-controller.js).
 | Field | Type | Notes |
 | --- | --- | --- |
 | `generation` | `number` | The generation from the last chrome:glance-layout applied. |
+
+### `BackdropLayer`
+
+One Start Page wallpaper layer's computed background (start-backdrop.js checks it).
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `color` | `string` |  |
+| `image` | `string` |  |
+| `size` | `string` |  |
+| `position` | `string` |  |
+| `repeat` | `string` |  |
+| `opacity` | `number` |  |
+| `fade` | `boolean` |  |
+
+### `PageBackdrop`
+
+The active Start Page's wallpaper for the Island's band to continue: the page's size and zoom, its layers, and the band's height above it.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `TabId` |  |
+| `zoom` | `number` |  |
+| `width` | `number` |  |
+| `height` | `number` |  |
+| `layers` | `BackdropLayer[]` |  |
+| `band` | `number` |  |
+| `sunriseAt?` | `number` |  |
+
+### `OtherProfileSpace`
+
+Another profile’s Space, limited to the fields allowed to cross profiles (spaces-across-profiles.js).
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `WorkspaceId` |  |
+| `name` | `string` |  |
+| `color` | `string` |  |
+| `symbol` | `string` |  |
+| `tabCount` | `number` |  |
+| `openElsewhere` | `boolean` | A window of that profile shows it. |
+
+### `OtherProfileSpaces`
+
+One other live local profile and its Spaces.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `string` |  |
+| `name` | `string` |  |
+| `status` | `WorkspaceSaveStatus` |  |
+| `full` | `boolean` | The profile holds the most Spaces it can. |
+| `items` | `OtherProfileSpace[]` |  |

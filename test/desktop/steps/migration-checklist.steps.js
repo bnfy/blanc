@@ -116,13 +116,14 @@ Then('the moving-in checklist remains hidden', async function () {
   );
 });
 
-Then('the moving-in checklist appears in all four start-page layouts', async function () {
+// V24: one Start Page; each old layout's name stands for its widgets.
+Then('the moving-in checklist appears with every widget setup', async function () {
   for (const layout of ['ledger', 'billboard', 'shelf', 'tally']) {
-    assert.equal(await this.call('clickNewtabLayoutSwitcher', layout), true);
+    assert.equal(await this.call('setNewtabWidgetsLike', layout), layout);
     await waitForValue(
       () => this.call('readMigrationChecklistDom'),
-      (dom) => dom?.layout === layout && dom.visible === true,
-      `the moving-in checklist in ${layout}`,
+      (dom) => dom?.layout === 'billboard' && dom.visible === true,
+      `the moving-in checklist with the ${layout} widgets`,
     );
   }
 });

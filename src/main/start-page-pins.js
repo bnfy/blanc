@@ -111,6 +111,24 @@ function unpin(url) {
   return true;
 }
 
+/** A pinned favorite whose name or address changed: its pin follows, in the
+ * same place. Changes nothing when `fromUrl` isn't pinned; when the new
+ * address is pinned already, the old pin just goes. Returns whether it wrote. */
+function replacePin(fromUrl, value) {
+  const from = sanitizePin({ url: fromUrl });
+  const next = sanitizePin(value);
+  if (!from || !next) return false;
+  const pins = pinsOf();
+  const at = pins.findIndex((existing) => existing.url === from.url);
+  if (at < 0) return false;
+  const replaced = pins.some((existing, index) => index !== at && existing.url === next.url)
+    ? pins.filter((_, index) => index !== at)
+    : pins.map((existing, index) => (index === at ? next : existing));
+  if (JSON.stringify(replaced) === JSON.stringify(pins)) return false;
+  write(replaced);
+  return true;
+}
+
 /** A local change: stamp a clock past any seen, so it wins its next sync. */
 function write(pins) {
   ensureStore().update((d) => {
@@ -169,6 +187,7 @@ module.exports = {
   isFull,
   pin,
   unpin,
+  replacePin,
   flushPins,
   onChanged,
   pinState,

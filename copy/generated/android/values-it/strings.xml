@@ -314,6 +314,19 @@
     <string name="ws_decision_close_and_switch">Chiudi le schede e cambia</string>
     <string name="ws_row_current">Space attuale</string>
     <string name="ws_row_show_window">Mostra finestra</string>
+    <plurals name="ws_row_title_profile">
+        <item quantity="one">%2$s · %3$s · %4$s · %1$d scheda</item>
+        <item quantity="many">%2$s · %3$s · %4$s · %1$d schede</item>
+        <item quantity="other">%2$s · %3$s · %4$s · %1$d schede</item>
+    </plurals>
+    <string name="ws_row_title_profile_shown">%1$s · %2$s · %3$s</string>
+    <string name="ws_editor_profile_disabled">%1$s (impossibile aggiungere Spaces)</string>
+    <string name="ws_row_open_in_profile">Si apre in una finestra di %1$s</string>
+    <string name="ws_profile_unreadable">Impossibile leggere gli Spaces di questo profilo.</string>
+    <string name="ws_editor_profile">Profilo</string>
+    <string name="ws_editor_help_other_profile">Le schede restano nel proprio profilo, quindi uno Space in %1$s parte vuoto.</string>
+    <string name="ws_switcher_profile_label">Space · %1$s</string>
+    <string name="ws_error_profile_unavailable">Questo profilo non è più disponibile.</string>
     <string name="ws_row_retained">Mantenuto in memoria</string>
     <string name="ws_row_open">Apri lo Space</string>
     <plurals name="ws_row_title">
@@ -1058,6 +1071,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_tab_switch_order_hint">Tieni premuto Ctrl e premi Tab per tornare alle schede usate più di recente, poi rilascia Ctrl per passarci. Esc ti lascia dove sei.</string>
     <string name="settings_general_reuse_new_tab_label">Passa a una nuova scheda non usata</string>
     <string name="settings_general_reuse_new_tab_hint">Nuova scheda passa a una nuova scheda di questa finestra che non hai ancora usato, invece di aprirne un’altra. Nuova scheda privata fa lo stesso con le schede private.</string>
+    <string name="settings_general_ask_where_to_save_label">Chiedi dove salvare ogni file</string>
+    <string name="settings_general_ask_where_to_save_hint">Se è disattivato, i download vanno direttamente nella cartella Download e un file con lo stesso nome riceve un numero.</string>
     <string name="settings_general_tab_switch_order_recent">Nell’ordine in cui le hai usate</string>
     <string name="settings_general_tab_switch_order_list">Nell’ordine dell’elenco delle schede</string>
     <string name="settings_general_tab_archive_label">Archivia le schede inattive</string>
@@ -1855,6 +1870,19 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="favorites_manager_error_cycle">Una cartella non può essere spostata in se stessa.</string>
     <string name="favorites_manager_error_invalid">Questo nome non può essere usato.</string>
     <string name="favorites_manager_error_missing">Questa cartella non esiste più.</string>
+    <string name="favorites_manager_edit">Modifica…</string>
+    <string name="favorites_manager_edit_name">Nome</string>
+    <string name="favorites_manager_edit_address">Indirizzo</string>
+    <string name="favorites_manager_edit_save">Salva</string>
+    <string name="favorites_manager_edit_cancel">Annulla</string>
+    <string name="favorites_manager_error_exists">Un altro preferito ha già questo indirizzo.</string>
+    <string name="favorites_manager_error_invalid_url">Inserisci un indirizzo web, ad esempio example.com.</string>
+    <string name="favorites_manager_error_favorite_missing">Questo preferito non esiste più.</string>
+    <string name="favorites_manager_open_new_tab">Apri in una nuova scheda</string>
+    <string name="favorites_manager_open_all">Apri tutti</string>
+    <string name="favorites_manager_edit_title">Modifica preferito</string>
+    <string name="favorites_manager_edit_folder">Cartella</string>
+    <string name="favorites_manager_more_short">Altre azioni</string>
     <string name="favorites_import_menu">Porta le mie cose su Blanc</string>
     <plurals name="favorites_manager_results">
         <item quantity="one">%1$d risultato</item>
@@ -2790,4 +2818,40 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="favorites_import_cancel">Annulla</string>
     <string name="favorites_manager_delete_folder_label">Elimina la cartella %1$s</string>
     <string name="favorites_import_tabs_skipped">Le schede aperte non sono state portate.</string>
+    <plurals name="start_billboard_blocked">
+        <item quantity="one">%1$d annuncio bloccato questa settimana</item>
+        <item quantity="many">%1$d annunci bloccati questa settimana</item>
+        <item quantity="other">%1$d annunci bloccati questa settimana</item>
+    </plurals>
+    <string name="start_widgets_heading">Widget</string>
+    <string name="start_widgets_unconfirmed">Impossibile confermare la modifica del widget. Riprova.</string>
+    <string name="start_widgets_move">Sposta %1$s</string>
+    <string name="start_widgets_moved_left">%1$s ora è a sinistra, posizione %2$s.</string>
+    <string name="start_widgets_moved_right">%1$s ora è a destra, posizione %2$s.</string>
+    <string name="start_widgets_resize">Ridimensiona %1$s</string>
+    <string name="start_widgets_size">Dimensione %1$s di %2$s</string>
+    <string name="start_widgets_size_auto">Si adatta alla colonna</string>
+    <string name="start_widgets_resized">%1$s ora ha la dimensione %2$s di %3$s.</string>
+    <string name="start_widgets_resized_auto">%1$s si adatta di nuovo alla colonna.</string>
+    <string name="start_shortcuts_heading">Scorciatoie</string>
+    <string name="start_shortcuts_fewer">Meno scorciatoie</string>
+    <string name="start_shortcuts_more">Più scorciatoie</string>
+    <string name="start_shortcuts_count">%1$s scorciatoie</string>
+    <plurals name="start_shortcuts_sofar">
+        <item quantity="one">%1$d sito finora. Altri compariranno mentre navighi.</item>
+        <item quantity="many">%1$d siti finora. Altri compariranno mentre navighi.</item>
+        <item quantity="other">%1$d siti finora. Altri compariranno mentre navighi.</item>
+    </plurals>
+    <plurals name="start_devices_tabs">
+        <item quantity="one">%1$d scheda</item>
+        <item quantity="many">%1$d schede</item>
+        <item quantity="other">%1$d schede</item>
+    </plurals>
+    <plurals name="start_devices_more">
+        <item quantity="one">%1$d altra scheda</item>
+        <item quantity="many">%1$d altre schede</item>
+        <item quantity="other">%1$d altre schede</item>
+    </plurals>
+    <string name="start_devices_fewer">Mostra meno</string>
+    <string name="start_mahjong_play">Gioca a Blanc Mahjong</string>
 </resources>

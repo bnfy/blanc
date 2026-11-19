@@ -30,6 +30,8 @@ const ALLOWED = [
   // 2026 ("we need to cool it with all the eyebrow usage").
   'pages/mail.astro → Blanc Mail · for Mac · Coming soon',
   'pages/mail/privacy.astro → Blanc Mail · Pre-release policy',
+  'pages/mail/reserve.astro → Blanc Mail · Your address',
+  'pages/mail/reserve/release.astro → Blanc Mail · Reservation',
   'pages/mail/terms.astro → Blanc Mail · Pre-release terms',
   'pages/roadmap.astro → Feature Roadmap',
   'pages/support.astro → Blanc Support',
