@@ -565,7 +565,7 @@ Before({ tags: '@F37-5 or @F37-6 or @F37-7 or @F37-9' }, async function () {
 
 // F39 local-certificate scenarios share one fixture server and one exception
 // store: start each from certificate A and no remembered choices.
-Before({ tags: '@F39-2 or @F39-3 or @F39-4 or @F39-5 or @F39-6 or @F39-7 or @F39-9 or @F39-10 or @F39-11' }, async function () {
+Before({ tags: '@F39-2 or @F39-3 or @F39-4 or @F39-5 or @F39-6 or @F39-7 or @F39-9 or @F39-10 or @F39-11 or @F39-12' }, async function () {
   ctx.localFixtures.handle.setCertificate(ctx.localFixtures.certA);
   await callTestHook(ctx.app, 'resetCertificateExceptionsForTest');
 });

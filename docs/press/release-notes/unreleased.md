@@ -3,6 +3,19 @@
 v1.51.0 is the current public release ([notes](v1.51.0.md)). Changes merged
 since then are below as they're recorded.
 
+## Fixed
+
+- **Pop-up windows close when their page asks first.** A page in a separate
+  pop-up window, such as Proxmox's console while it's connected, can ask
+  before you leave it. Blanc now asks **Leave** or **Stay**, as it does in a
+  tab; before, the window's close button did nothing (#1477).
+
+## Still open for the next release
+
+- **Closing a real Proxmox console window** (#1477) in a packaged build. The
+  fix was checked in the acceptance suite with a page that asks before it's
+  left, not against Proxmox itself.
+
 ## Still open from 1.51
 
 - **The one Start Page** (from the fork's V24) by hand in a packaged build on
