@@ -67,8 +67,9 @@ test('no Windows name of the preview is the Electron Blanc\'s or Chromium\'s', (
 });
 test('the identity table names the same values as the patch', () => {
   const table = read('../windows/identity.md');
-  for (const value of Object.values(defines)) assert.ok(table.includes('`' + value + '`'), value);
-  for (const id of ['1BFC5BBC-FA48-49EE-BDC9-BA91E18C4B89', 'FF7CE8A2-9361-41F3-B827-83DC0CB91795']) {
+  for (const value of [...Object.values(defines), ...Object.values(betaDefines)]) assert.ok(table.includes('`' + value + '`'), value);
+  for (const id of ['1BFC5BBC-FA48-49EE-BDC9-BA91E18C4B89', 'FF7CE8A2-9361-41F3-B827-83DC0CB91795',
+    'FE4C251B-AD54-4F2F-B2A1-16EB186147E7', '0101E396-5BD3-487F-9265-8DE26B34795A']) {
     assert.ok(table.includes(id), id);
     assert.ok(patch.toUpperCase().includes(id.split('-')[0]), id);
   }
