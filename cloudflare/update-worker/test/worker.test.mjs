@@ -142,7 +142,7 @@ test('a secret that is not the committed key signs nothing', {skip: !haveOpenSSL
   assert.equal(r.res.status, 500);
   assert.equal(r.res.headers.get('x-cup-server-proof'), null);
 });
-test('the deployed Worker uses the committed key, the beta\'s app id and staging only', () => {
+test('the deployed Worker uses the committed key, the beta\'s app id and the updater\'s address only', () => {
   const key = fs.readFileSync(path.join(repo, 'chromium/windows/keys/cup-public.der')).toString('hex');
   assert.match(fs.readFileSync(path.join(workerRoot, 'src/cup-public-key.js'), 'utf8'), new RegExp(`"${key}"`));
   const gni = fs.readFileSync(path.join(repo, 'chromium/blanc/branding/win-beta/updater.gni'), 'utf8');
@@ -153,7 +153,10 @@ test('the deployed Worker uses the committed key, the beta\'s app id and staging
   const toml = fs.readFileSync(path.join(workerRoot, 'wrangler.toml'), 'utf8');
   assert.match(toml, /^compatibility_flags = \["webcrypto_modern_algorithms"\]$/m);
   assert.match(toml, /^compatibility_date = "2026-10-01"$/m);
-  assert.doesNotMatch(toml, /^\s*(routes|route)\s*=/m, 'no production route until Part D\'s proof');
+  // The one production route: the address compiled into the updater (updater.gni).
+  const routes = [...toml.matchAll(/pattern = "([^"]+)", zone_name = "([^"]+)"/g)].map(m => [m[1], m[2]]);
+  assert.deepEqual(routes, [['blanc.day/update/win/*', 'blanc.day']]);
+  assert.equal(/^update_check_url = "([^"]+)"/m.exec(gni)[1], 'https://blanc.day/update/win/v4');
 });
 test('the smoke check passes a correctly signing Worker and fails a wrong key', {skip: !haveOpenSSL && 'needs OpenSSL 3.5+'}, async t => {
   const {smokeCheck} = await import('../scripts/smoke.mjs');

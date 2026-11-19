@@ -142,7 +142,7 @@ publisher key hash instead of Google's proof); `chromium/windows/update-keys.md`
       ML-DSA-44 signing (a vetted library, pinned by hash); the current beta comes from one data file
       the release tooling writes, like `site/public/updates/chromium-beta/arm64.xml` for the Mac.
 - [x] Deploy to a staging route first (2026-11-19, `blanc-update.bnfy-441.workers.dev`; signed check verified).
-- [ ] Production route on blanc.day (owner decision; see D2).
+- [x] Production route `blanc.day/update/win/*` (owner, 2026-11-19: before Part D's proof, since the shipped updater's address is compiled in; version `8d6be924`; offers nothing until `release.json` names a version).
 
 ## Part D: releasing and proving an update
 

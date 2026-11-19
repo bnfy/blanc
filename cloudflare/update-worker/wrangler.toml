@@ -3,8 +3,14 @@ main = "src/index.js"
 # ML-DSA-44 in Web Crypto (Workers changelog, 2026-10-01).
 compatibility_date = "2026-10-01"
 compatibility_flags = ["webcrypto_modern_algorithms"]
-# Staging only: workers.dev, no blanc.day route until W3 Part D's proof and
-# the owner's approval. The signing seed is the secret CUP_SEED (set by the
-# owner from 1Password; never in this repository).
+# blanc.day/update/win/* only (owner, 2026-11-19: routed before W3 Part D's
+# proof, because the shipped updater's address is compiled in; it offers
+# nothing until release.json names a version). The site's /updates/ is not
+# this path. workers.dev stays on as the staging address. The signing seed is
+# the secret CUP_SEED (set by the owner from 1Password; never in this
+# repository).
 workers_dev = true
 preview_urls = false
+routes = [
+  { pattern = "blanc.day/update/win/*", zone_name = "blanc.day" },
+]
