@@ -97,7 +97,16 @@ export function makeWorker({publicSpkiHex, release, icons: iconInput = null, now
     })();
     return signing;
   }
+  // A staging deploy names its own release (RELEASE_JSON, set at deploy);
+  // production offers the bundled release.json.
+  let staged = null;
+  const offerFor = env => {
+    if (!env?.RELEASE_JSON) return release;
+    if (!staged || staged.text !== env.RELEASE_JSON) staged = {text: env.RELEASE_JSON, value: JSON.parse(env.RELEASE_JSON)};
+    return staged.value;
+  };
   return {async fetch(request, env) {
+    const release = offerFor(env);
     const url = new URL(request.url);
     const pkg = PACKAGE.exec(url.pathname);
     if (pkg) return servePackage(request, env, release, pkg[1]);

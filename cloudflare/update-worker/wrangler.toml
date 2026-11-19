@@ -26,3 +26,18 @@ globs = ["**/*.bmp"]
 [[r2_buckets]]
 binding = "PACKAGES"
 bucket_name = "blanc-windows-updates"
+
+# The release gate's staging server (W3 Task E1; owner, 2026-11-19: staging
+# gate): the same code and keys, its own workers.dev address and no blanc.day
+# route. It offers the release its deploy names in RELEASE_JSON
+# (`wrangler deploy --env staging --var RELEASE_JSON:…`); its signing seed is
+# its own copy of CUP_SEED, set by the owner.
+[env.staging]
+name = "blanc-update-staging"
+workers_dev = true
+preview_urls = false
+routes = []
+
+[[env.staging.r2_buckets]]
+binding = "PACKAGES"
+bucket_name = "blanc-windows-updates"

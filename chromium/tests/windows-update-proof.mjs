@@ -22,7 +22,13 @@ const [candidateFolder, resultsFolder, shippingInstaller, mode, ...extra] = proc
 // it must read its own (the signed, tagged online installer).
 const setupOption = extra.find(o => o.startsWith('--setup='))?.slice('--setup='.length) ?? null;
 const tagged = extra.includes('--tagged');
-if (extra.some(o => !o.startsWith('--setup=') && o !== '--tagged')) throw Error(`Unknown option: ${extra.join(' ')}`);
+// The release's staging gate (W3 Task E1): Chromium's test setup, whose updater
+// reads overrides.json, pointed at the staging update server instead of
+// blanc.day. Same keys, same packages; only the address differs.
+const staging = extra.find(o => o.startsWith('--staging='))?.slice('--staging='.length) ?? null;
+if (staging && !/^https:\/\/[a-z0-9.-]+\.workers\.dev$/.test(staging)) throw Error(`--staging must be a workers.dev address: ${staging}`);
+if (extra.some(o => !o.startsWith('--setup=') && o !== '--tagged' && !o.startsWith('--staging='))) throw Error(`Unknown option: ${extra.join(' ')}`);
+const defaultSetup = staging ? 'UpdaterSetup_test.exe' : 'UpdaterSetup.exe';
 const expect = mode?.startsWith('--expect=') ? mode.slice('--expect='.length) : null;
 const online = mode?.startsWith('--online=') ? mode.slice('--online='.length) : null;
 if (!candidateFolder || !resultsFolder || !shippingInstaller || !(expect || online || mode === '--expect-refused'))
@@ -79,10 +85,17 @@ try {
   const runKey = 'HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run';
   record.details.runKeyExisted = spawnSync('reg.exe', ['query', runKey], {stdio: 'ignore'}).status === 0;
   spawnSync('reg.exe', ['add', runKey, '/f'], {stdio: 'ignore'});
+  if (staging) {
+    // chrome/updater/external_constants_override.cc: the folder above the
+    // updater's install folder.
+    fs.mkdirSync(path.dirname(folder), {recursive: true});
+    fs.writeFileSync(path.join(path.dirname(folder), 'overrides.json'), JSON.stringify({url: [`${staging}/update/win/v4`]}));
+    record.details.staging = staging;
+  }
   if (online) {
     // The online installer: the updater's setup, tagged for the beta, alone.
     const tag = installTag(names);
-    const setupFile = setupOption ? path.resolve(setupOption) : path.join(directory, 'UpdaterSetup.exe');
+    const setupFile = setupOption ? path.resolve(setupOption) : path.join(directory, defaultSetup);
     record.details.tag = tagged ? 'read from the file' : tag;
     record.details.setupFile = path.basename(setupFile);
     const setup = spawnSync(setupFile, [...(tagged ? [] : [`--install=${tag}`]), '--silent', '--enable-logging'], {timeout: 900000});
@@ -96,7 +109,7 @@ try {
     record.checks.electronUntouched = JSON.stringify(electronState()) === JSON.stringify(electronBefore);
     throw {online: true};
   }
-  const setup = spawnSync(path.join(directory, 'UpdaterSetup.exe'), ['--install', '--silent', '--enable-logging'], {timeout: 300000});
+  const setup = spawnSync(setupOption ? path.resolve(setupOption) : path.join(directory, defaultSetup), ['--install', '--silent', '--enable-logging'], {timeout: 300000});
   const install = spawnSync(path.join(directory, 'mini_installer.exe'), ['--do-not-launch-chrome', '--verbose-logging'], {timeout: 600000});
   record.details.installed = {setupExit: setup.status, installerExit: install.status, pv: pv()};
   record.checks.startsAtN = setup.status === 0 && install.status === 0 && pv() === candidate.version;

@@ -34,6 +34,11 @@ on:
         required: false
         default: ''
         type: string
+      update_staging:
+        description: "W3 E1 release gate: a workers.dev staging update server; the proof then uses Chromium's test setup pointed at it instead of blanc.day"
+        required: false
+        default: ''
+        type: string
       repack:
         description: Also unpack and repack the installer, unsigned, and install the repacked one (W1 Part C dry run)
         required: false
@@ -273,6 +278,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           UPDATE_EXPECT: ${{ inputs.update_expect }}
+          UPDATE_STAGING: ${{ inputs.update_staging }}
         run: |
           $ErrorActionPreference = 'Stop'
           if ($env:UPDATE_EXPECT -notmatch '^(refused|(online:|capture:|capture-dark:)?\d+\.\d+\.\d+\.\d+)$') { throw "update_expect must be a version, 'refused', 'online:<version>' or 'capture[-dark]:<version>'." }
@@ -291,6 +297,7 @@ jobs:
           if ((Get-FileHash "$shipping\Blanc-Setup-1.49.1.exe" -Algorithm SHA256).Hash.ToLower() -ne $expected.ToLower()) { throw 'The shipping installer does not match the release.' }
           $mode = if ($env:UPDATE_EXPECT -eq 'refused') { '--expect-refused' } elseif ($env:UPDATE_EXPECT -like 'online:*') { "--online=$($env:UPDATE_EXPECT.Substring(7))" } else { "--expect=$env:UPDATE_EXPECT" }
           $extra = @(); if ($env:REPACKED_SETUP -and $mode -like '--online=*') { $extra += "--setup=$env:REPACKED_SETUP" }
+          if ($env:UPDATE_STAGING) { $extra += "--staging=$env:UPDATE_STAGING" }
           node chromium/tests/windows-update-proof.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\update-proof" "$shipping\Blanc-Setup-1.49.1.exe" $mode @extra
       - name: Crash capture
         if: ${{ !cancelled() && env.CANDIDATE_CHANNEL != 'beta' }}

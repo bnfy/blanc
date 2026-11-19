@@ -77,7 +77,9 @@ function main() {
   // The beta also carries Blanc's updater setup program (W3 Task B2) and
   // Chromium's tag tool, which tags the signed setup as the online installer.
   if (channel === 'beta') {
-    for (const file of ['UpdaterSetup.exe', 'tag.exe']) {
+    // UpdaterSetup_test.exe (test constants, reads overrides.json) is for the
+    // release's staging gate on a runner; it is never published.
+    for (const file of ['UpdaterSetup.exe', 'tag.exe', 'UpdaterSetup_test.exe']) {
       if (!fs.existsSync(path.join(out, file))) throw new Error(`A beta candidate needs ${file}; build the beta through the guard.`);
       add(file);
     }

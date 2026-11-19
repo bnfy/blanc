@@ -159,9 +159,12 @@ test('desktop lane accepts the Windows output: the browser, and Chromium\'s inst
   assert.deepEqual(buildLane(['--out=BlancWinPrototype']),
     { lane: 'desktop', out: 'BlancWinPrototype', target: 'chrome', extraTargets: ['mini_installer'] });
   // The beta also builds Blanc's updater, its setup program (W3 Task B2) and
-  // Chromium's tag tool, which tags the signed setup as the online installer (E1).
+  // Chromium's tag tool, which tags the signed setup as the online installer, and
+  // the test setup (UpdaterSetup_test.exe, which reads overrides.json) for the
+  // release's staging gate (E1).
   assert.deepEqual(buildLane(['--out=BlancWinBeta']), { lane: 'desktop', out: 'BlancWinBeta', target: 'chrome',
-    extraTargets: ['mini_installer', 'chrome/updater/win/installer:installer', 'chrome/updater/tools:tag'] });
+    extraTargets: ['mini_installer', 'chrome/updater/win/installer:installer', 'chrome/updater/tools:tag',
+      'chrome/updater/win/installer:installer_test'] });
   for (const options of [['--lane=android', '--out=BlancWinPrototype'], ['--out=BlancWinPrototype', '--sdk-root=/tmp'],
     ['--out=BlancWinRelease'], ['--out=blancwinprototype']])
     assert.throws(() => buildLane(options), undefined, options.join(' '));

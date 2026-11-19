@@ -38,7 +38,7 @@ function verifies(message, signature) {
   return spawnSync(OPENSSL, ['pkeyutl', '-verify', '-pubin', '-keyform', 'DER', '-inkey', path.join(work, 'spki.der'),
     '-rawin', '-in', path.join(work, 'msg.bin'), '-sigfile', path.join(work, 'sig.bin')]).status === 0;
 }
-async function harness(options) {
+async function harness(options, vars = {}) {
   const root = fs.mkdtempSync(path.join(work, 'root-'));
   // The fixture adds a test-only upload route; the real Worker has none.
   fs.writeFileSync(path.join(root, 'fixture.js'), `import {makeWorker} from ${JSON.stringify(path.join(workerRoot, 'src/worker.js'))};
@@ -49,7 +49,8 @@ export default {async fetch(request, env, ctx) {
   return worker.fetch(request, env, ctx);
 }};\n`);
   fs.writeFileSync(path.join(root, 'wrangler.toml'), `name = "update-test"\nmain = "fixture.js"\ncompatibility_date = "2026-10-01"\ncompatibility_flags = ["webcrypto_modern_algorithms"]\n[[r2_buckets]]\nbinding = "PACKAGES"\nbucket_name = "test-packages"\n`);
-  fs.writeFileSync(path.join(root, '.dev.vars'), `CUP_SEED=${seed.toString('base64')}\n`);
+  fs.writeFileSync(path.join(root, '.dev.vars'), `CUP_SEED=${seed.toString('base64')}\n` +
+    Object.entries(vars).map(([k, v]) => `${k}='${v}'\n`).join(''));
   const {createTestHarness} = await import(path.join(workerRoot, 'node_modules/wrangler/wrangler-dist/cli.js'));
   const server = createTestHarness({root, workers: [{configPath: './wrangler.toml'}]});
   await server.listen();
@@ -228,5 +229,22 @@ test('the beta\'s logo is served for the install window, light, dark and legacy'
   assert.ok((await get(`/update/icons/${id}.bmp`)).bytes.equals(light), 'the legacy name gets the light logo');
   assert.equal((await get('/update/icons/%7b00000000-0000-0000-0000-000000000000%7d_light.bmp')).status, 404, 'another app');
   assert.equal((await get(`/update/icons/${id}_light.png`)).status, 404);
+});
+test('the staging server offers the release its deploy names (RELEASE_JSON), not the bundled one', {skip: !haveOpenSSL && 'needs OpenSSL 3.5+'}, async t => {
+  const staged = {...RELEASE, version: '158.0.8127.950'};
+  const server = await harness({publicSpkiHex: spkiHex, release: {appId: BROWSER, version: null}}, {RELEASE_JSON: JSON.stringify(staged)});
+  t.after(() => server.close());
+  const r = await check(server.getWorker(), [{appid: BROWSER, version: '158.0.8127.901', updatecheck: {}}]);
+  assert.ok(proofOk(r));
+  assert.equal(parse(r.text).apps[0].updatecheck.nextversion, '158.0.8127.950');
+});
+test('the staging server is its own Worker with no blanc.day route', () => {
+  const toml = fs.readFileSync(path.join(workerRoot, 'wrangler.toml'), 'utf8');
+  const staging = toml.slice(toml.indexOf('[env.staging]'));
+  assert.ok(toml.includes('[env.staging]'));
+  assert.match(staging, /^name = "blanc-update-staging"$/m);
+  assert.match(staging, /^routes = \[\]$/m);
+  assert.match(staging, /^workers_dev = true$/m);
+  assert.match(staging, /\[\[env\.staging\.r2_buckets\]\]\nbinding = "PACKAGES"\nbucket_name = "blanc-windows-updates"/);
 });
 test.after(() => fs.rmSync(work, {recursive: true, force: true}));

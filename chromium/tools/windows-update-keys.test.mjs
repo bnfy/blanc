@@ -176,3 +176,20 @@ test('the signing command packages the waiting installer with the committed key 
   assert.deepEqual(fs.readdirSync('/private/tmp').filter(n => n.startsWith('blanc-package-sign.')), [], 'no key folder is left');
   fs.rmSync(dir, {recursive: true, force: true});
 });
+
+// E1 staging gate: the same command deploys and keys the staging server.
+test('the gate command deploys and keys the staging server only', {skip: !usable && 'needs Homebrew OpenSSL 3 on a Mac'}, () => {
+  const gate = fileURLToPath(new URL('../windows/owner/update-worker-gate.command', import.meta.url));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-gate-test-'));
+  const pem = path.join(dir, 'key.pem'), pub = path.join(dir, 'pub.der');
+  spawnSync(openssl, ['genpkey', '-algorithm', 'ML-DSA-44', '-out', pem]);
+  spawnSync(openssl, ['pkey', '-in', pem, '-pubout', '-outform', 'DER', '-out', pub]);
+  const op = path.join(dir, 'op'), wrangler = path.join(dir, 'wrangler'), calls = path.join(dir, 'calls');
+  fs.writeFileSync(op, `#!/bin/bash\n[ "$OP_BIOMETRIC_UNLOCK_ENABLED" = true ] || exit 1\ncase "$1 $2" in\n "vault get") exit 0;;\n "document get") cp '${pem}' "\${9}";;\n *) exit 2;;\nesac\n`, {mode: 0o755});
+  fs.writeFileSync(wrangler, `#!/bin/bash\necho "$*" >> '${calls}'\ncase "$1" in\n deploy) echo "Deployed https://blanc-update-staging.test.workers.dev";;\n secret) cat > /dev/null;;\nesac\n`, {mode: 0o755});
+  const run = spawnSync('bash', [gate], {env: {...process.env, BLANC_OP: op, BLANC_WRANGLER: wrangler, BLANC_SKIP_SMOKE: '1', BLANC_CUP_PUBLIC: pub}, encoding: 'utf8'});
+  assert.equal(run.status, 0, run.stdout + run.stderr);
+  assert.deepEqual(fs.readFileSync(calls, 'utf8').trim().split('\n'), ['deploy --env staging', 'secret put CUP_SEED --env staging']);
+  assert.match(run.stdout, /staging update server \(release gate\) is https:\/\/blanc-update-staging\.test\.workers\.dev/);
+  fs.rmSync(dir, {recursive: true, force: true});
+});
