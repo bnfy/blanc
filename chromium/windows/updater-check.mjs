@@ -27,6 +27,7 @@ export function registeredApps(prefsText) {
 }
 
 // The tag of Blanc Beta's online installer (chrome/updater/tag.h): the beta's
-// app id and name, installed per user. The signed UpdaterSetup.exe carries it
+// app id and name, installed per user (needsadmin: true, false or prefers,
+// as chrome/updater/tag.cc parses it). The signed UpdaterSetup.exe carries it
 // in its certificate table; `UpdaterSetup.exe --install=<tag>` takes the same.
-export const installTag = names => `appguid=${names.browserAppId}&appname=Blanc%20Beta&needsadmin=no`;
+export const installTag = names => `appguid=${names.browserAppId}&appname=Blanc%20Beta&needsadmin=false`;
