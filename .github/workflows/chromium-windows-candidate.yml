@@ -275,7 +275,14 @@ jobs:
           UPDATE_EXPECT: ${{ inputs.update_expect }}
         run: |
           $ErrorActionPreference = 'Stop'
-          if ($env:UPDATE_EXPECT -notmatch '^(refused|(online:)?\d+\.\d+\.\d+\.\d+)$') { throw "update_expect must be a version, 'refused' or 'online:<version>'." }
+          if ($env:UPDATE_EXPECT -notmatch '^(refused|(online:|capture:|capture-dark:)?\d+\.\d+\.\d+\.\d+)$') { throw "update_expect must be a version, 'refused', 'online:<version>' or 'capture[-dark]:<version>'." }
+          if ($env:UPDATE_EXPECT -like 'capture*') {
+            # W3 E1 branding: what a person sees running the online installer.
+            $extra = @(); if ($env:UPDATE_EXPECT -like 'capture-dark:*') { $extra += '--dark' }
+            if ($env:REPACKED_SETUP) { $extra += "--setup=$env:REPACKED_SETUP" }
+            node chromium/tests/windows-installer-capture.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\installer-capture" @extra
+            exit $LASTEXITCODE
+          }
           $shipping = "$env:RUNNER_TEMP\shipping-proof"
           New-Item -ItemType Directory $shipping | Out-Null
           gh release download v1.49.1 --repo $env:GITHUB_REPOSITORY --pattern 'Blanc-Setup-1.49.1.exe' --pattern 'SHA256SUMS' --dir $shipping
