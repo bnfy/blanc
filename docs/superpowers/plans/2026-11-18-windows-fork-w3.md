@@ -202,6 +202,22 @@ updater, which fetched, verified and installed the beta from blanc.day.
       setup alone installed .901 from blanc.day. The signing environment accepts
       only `chromium/next`.
 
+Staging gate (owner, 2026-11-19, "A, staging gate"): before blanc.day offers a
+release, the same signed package is offered by `blanc-update-staging`
+(workers.dev, same CUP key and R2 bucket; `wrangler deploy --env staging --var
+RELEASE_JSON:…`, release data from `windows-release-data.mjs --origin=`) and a
+runner installs it with Chromium's test setup (`UpdaterSetup_test.exe`, built
+with the beta). The test updater crashes on any non-localhost overrides.json
+address (`external_constants_override.cc` CheckURL), so a runner-local relay
+(`tests/lib/update-relay.mjs`) carries only update checks to staging, unchanged.
+
+- [x] Staging gate. **Passed 2026-11-19** (run 44609184611, candidate
+      `windows-x64-893ba1a4a1a8a164`): the test setup alone installed the
+      updater, staging's signed answer offered .901, the package came from
+      staging (never blanc.day), verified with Blanc's key, installed, launched;
+      Electron untouched. First run 44605519052 failed on CheckURL (fixed by the
+      relay). Staging reset to offer nothing (Worker a362c1ee).
+
 Stages (draft): preflight (candidate from the release commit, version
 158.0.8127.<build>, keys committed) → sign (the candidate workflow's
 Azure Trusted Signing job, owner-approved, now also updater.exe and
