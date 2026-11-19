@@ -77,17 +77,17 @@ Chromium's own updater talking to Blanc's update server.
 `chromium/blanc/branding/win-beta/BRANDING`, `chromium/windows/args/beta-x64.gn`,
 `chromium/windows/identity.md`, `chromium/tools/windows-identity.test.mjs`.
 
-- [ ] **Failing test:** the beta channel's names: app name `Blanc Beta`, app id `BlancBeta`, ProgIDs of
+- [x] **Failing test:** the beta channel's names: app name `Blanc Beta`, app id `BlancBeta`, ProgIDs of
       at most 11 characters (`BlancBetHTM`, `BlancBetPDF`), URL scheme `blanc-beta`, data folder
       `%LOCALAPPDATA%\Blanc Beta`, publisher `Bananify Creative`, and none equal to the preview's,
       Electron Blanc's or Chromium's; the beta args set `blanc_channel = "beta"`, the Windows beta
       BRANDING file, and no test hooks.
-- [ ] Implement the names, the args file (`target_os="win"`, `is_official_build` as the Mac beta's
+- [x] Implement the names, the args file (`target_os="win"`, `is_official_build` as the Mac beta's
       args, `blanc_beta_version`, `blanc_beta_build`, the blocker bundle) and new toast and Active
       Setup GUIDs for the beta.
-- [ ] Bootstrap and the guard learn a second Windows output, `BlancWinBeta`; review the cold-build
+- [x] Bootstrap and the guard learn a second Windows output, `BlancWinBeta`; review the cold-build
       plan before `--allow-large-build`.
-- [ ] Build; the install check passes on the beta installer (names from the beta row), and
+- [x] Build; the install check passes on the beta installer (names from the beta row), and
       `hooks-evidence.mjs`'s check finds no test hook in the beta's binaries.
 
 ## Part B: Chromium's updater, branded and wired
