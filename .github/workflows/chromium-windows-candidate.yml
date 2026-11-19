@@ -260,7 +260,8 @@ jobs:
           pwsh -NoProfile -File chromium/windows/repack-updater-setup.ps1 -Phase pack -Setup "$env:CANDIDATE_DIR\UpdaterSetup.exe" -Work $work -Output "$env:RUNNER_TEMP\UpdaterSetup-repacked.exe"
           if ($LASTEXITCODE -ne 0) { throw 'Packing the updater setup failed.' }
           $again = "$env:RUNNER_TEMP\repack-updater-check"
-          pwsh -NoProfile -File chromium/windows/repack-updater-setup.ps1 -Phase unpack -Setup "$env:RUNNER_TEMP\UpdaterSetup-repacked.exe" -Work $again
+          pwsh -NoProfile -File chromium/windows/repack-updater-setup.ps1 -Phase unpack -Setup "$env:RUNNER_TEMP\UpdaterSetup-repacked.exe" -Work $again -Resedit "$env:CANDIDATE_DIR\signing\mini_installer\resedit.py"
+          if ($LASTEXITCODE -ne 0) { throw 'Unpacking the repacked setup failed.' }
           $after = Get-ChildItem "$again\bin" -File | ForEach-Object { "$($_.Name) $((Get-FileHash $_.FullName -Algorithm SHA256).Hash)" }
           if (Compare-Object $before $after) { throw 'The repacked setup does not carry the same files.' }
           "Repacked setup carries the same $(@($before).Count) files."
