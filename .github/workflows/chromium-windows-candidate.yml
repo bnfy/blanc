@@ -140,6 +140,15 @@ jobs:
       # window larger than its screen, so cases that ask for a 1440-wide
       # window could never pass. Ask for a larger display and report what the
       # runner gave.
+      # Only the preview has test hooks; a beta (W3) gets the checks that need
+      # none: the install check, with its own launch and blocker checks.
+      - name: Read the candidate's channel
+        run: |
+          $channel = (Get-Content "$env:CANDIDATE_DIR\candidate.json" -Raw | ConvertFrom-Json).channel
+          if (-not $channel) { $channel = 'preview' }
+          if ($channel -notin @('preview', 'beta')) { throw "Unknown candidate channel: $channel" }
+          "CANDIDATE_CHANNEL=$channel" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "Channel: $channel"
       - name: Use a larger display
         run: |
           try { Set-DisplayResolution -Width 1920 -Height 1080 -Force -ErrorAction Stop } catch { "Set-DisplayResolution: $($_.Exception.Message)" }
@@ -157,25 +166,27 @@ jobs:
           "Client-area animations: $on"
           if (-not $on) { throw 'Client-area animations are still off.' }
       - name: Launch check
+        if: ${{ env.CANDIDATE_CHANNEL != 'beta' }}
         run: node chromium/tests/windows-smoke.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\smoke"
       # Real mouse and keyboard input against the window's own frame; it is
       # skipped on a ref that does not have the check yet.
       - name: Window frame check
+        if: ${{ env.CANDIDATE_CHANNEL != 'beta' }}
         run: |
           if (Test-Path chromium/tests/windows-frame.mjs) { node chromium/tests/windows-frame.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\frame" } else { 'No window frame check on this ref.' }
       # Closing the last window ends the browser, whatever the session held
       # (W2 A2).
       - name: Quit check
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && env.CANDIDATE_CHANNEL != 'beta' }}
         run: |
           if (Test-Path chromium/tests/windows-quit.mjs) { node chromium/tests/windows-quit.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\quit" } else { 'No quit check on this ref.' }
       # Ctrl+Tab by most recent use, through the app's own key events (W2 C1).
       - name: Ctrl+Tab check
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && env.CANDIDATE_CHANNEL != 'beta' }}
         run: |
           if (Test-Path chromium/windows/run-native-check.mjs) { node chromium/windows/run-native-check.mjs "$env:CANDIDATE_DIR" native-tab-switch.mjs "$env:RESULTS\tab-switch" } else { 'No Ctrl+Tab check on this ref.' }
       - name: Ctrl+Tab with real keys
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && env.CANDIDATE_CHANNEL != 'beta' }}
         run: |
           if (Test-Path chromium/tests/windows-tab-switch-keys.mjs) { node chromium/tests/windows-tab-switch-keys.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\tab-switch-keys" } else { 'No real-key Ctrl+Tab check on this ref.' }
       # Chromium's installer beside an installed Electron Blanc (W1 Part B),
@@ -216,12 +227,12 @@ jobs:
             node chromium/tests/windows-install.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\install" "$shipping\Blanc-Setup-1.49.1.exe"
           }
       - name: Crash capture
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && env.CANDIDATE_CHANNEL != 'beta' }}
         run: |
           if (Test-Path chromium/tests/windows-crash.mjs) { node chromium/tests/windows-crash.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\crash" } else { 'No crash check on this ref.' }
       # The suite runs even when the frame check failed: each is evidence.
       - name: Foundation suite
-        if: ${{ !cancelled() && inputs.suite == 'f0' }}
+        if: ${{ !cancelled() && inputs.suite == 'f0' && env.CANDIDATE_CHANNEL != 'beta' }}
         run: |
           # An empty filter is no filter: a full run must never be recorded as a subset.
           # One array, splatted: each element reaches node as one argument,

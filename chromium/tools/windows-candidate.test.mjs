@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { ASSET_NAME, candidateId, runtimeFiles, runtimeConfig, signedCopyOf, signedRuntimeConfig } from '../windows/candidate.mjs';
+import { ASSET_NAME, candidateId, runtimeFiles, runtimeConfig, signedCopyOf, signedRuntimeConfig, channelOfOutput, channelNames } from '../windows/candidate.mjs';
 import { candidateIdentityFiles, candidateIdentity } from '../tests/lib/platform.mjs';
 
 const dll = 'ab'.repeat(32), exe = 'cd'.repeat(32);
@@ -124,4 +124,12 @@ test('a native check is named by its file, inside chromium/tests', async () => {
   const { nativeCheckPath } = await import('../windows/run-native-check.mjs');
   assert.equal(nativeCheckPath('/r', 'native-tab-switch.mjs'), path.join('/r', 'chromium', 'tests', 'native-tab-switch.mjs'));
   for (const bad of ['../x.mjs', 'runner.mjs', 'native-tab-switch.js', 'native-../a.mjs']) assert.throws(() => nativeCheckPath('/r', bad));
+});
+test('each Windows output is a channel with its own installed names (W3)', () => {
+  assert.equal(channelOfOutput('BlancWinPrototype'), 'preview');
+  assert.equal(channelOfOutput('BlancWinBeta'), 'beta');
+  assert.throws(() => channelOfOutput('BlancPrototype'));
+  assert.deepEqual(channelNames('preview'), { product: 'Blanc Chromium Preview', appName: 'Blanc Prototype', progId: 'BlancPrvHTM', testHooks: true });
+  assert.deepEqual(channelNames('beta'), { product: 'Blanc Beta', appName: 'Blanc Beta', progId: 'BlancBetHTM', testHooks: false });
+  assert.throws(() => channelNames('release'));
 });

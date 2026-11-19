@@ -13,7 +13,7 @@ import crypto from 'node:crypto';
 import os from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { ASSET_NAME, candidateId, runtimeFiles, keepingFile } from './candidate.mjs';
+import { ASSET_NAME, candidateId, runtimeFiles, keepingFile, channelOfOutput } from './candidate.mjs';
 
 const sha256 = file => {
   const hash = crypto.createHash('sha256'), fd = fs.openSync(file, 'r'), chunk = Buffer.alloc(1 << 20);
@@ -21,11 +21,14 @@ const sha256 = file => {
   return hash.digest('hex');
 };
 function main() {
-  const [source, destination] = process.argv.slice(2);
-  if (!source || !destination) throw new Error('Usage: package-candidate.mjs CHROMIUM_SRC OUTPUT_FOLDER');
+  const [source, destination, ...options] = process.argv.slice(2);
+  if (!source || !destination) throw new Error('Usage: package-candidate.mjs CHROMIUM_SRC OUTPUT_FOLDER [--out=BlancWinBeta]');
+  const outName = options.find(o => o.startsWith('--out='))?.slice('--out='.length) ?? 'BlancWinPrototype';
+  if (options.some(o => !o.startsWith('--out='))) throw new Error('Unknown option: ' + options.join(' '));
+  const channel = channelOfOutput(outName);
   if (process.platform !== 'linux' || process.arch !== 'x64') throw new Error('Packaging runs on the x86-64 Linux build server.');
   const tree = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-  const src = fs.realpathSync(source), out = path.join(src, 'out/BlancWinPrototype');
+  const src = fs.realpathSync(source), out = path.join(src, 'out', outName);
   if (fs.existsSync(path.join(out, '.blanc-build-guard.lock'))) throw new Error('A build is running in this output; package after it finishes.');
   const built = JSON.parse(fs.readFileSync(path.join(out, '.blanc-last-successful-build.json'), 'utf8'));
   const lane = JSON.parse(fs.readFileSync(path.join(tree, 'lanes/desktop.json'), 'utf8'));
@@ -46,7 +49,9 @@ function main() {
     id: candidateId(dllSha256), platform: 'windows', arch: 'x64', version: lane.version, upstream: lane.upstream,
     exeSha256, dllSha256, argsSha256: built.inputs.argsSha256, builtAt: built.completedAt,
     treeCommit: execFileSync('git', ['-C', tree, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
-    qualification: 'cross-compiled preview with test hooks; never distributable',
+    channel,
+    qualification: channel === 'preview' ? 'cross-compiled preview with test hooks; never distributable'
+      : 'cross-compiled beta without test hooks; unsigned, not yet released',
   };
   // Stage with hard links (same disk), so the zip's layout is exact and the
   // output folder is only read.

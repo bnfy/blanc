@@ -26,6 +26,22 @@ export function runtimeFiles(lines) {
   if (!files.includes('chrome.exe') || !files.includes('chrome.dll')) throw new Error('The runtime list has no chrome.exe and chrome.dll; this is not a Windows browser output.');
   return [...new Set(files)].sort();
 }
+// Each Windows output is a channel (W3), and each channel installs under its
+// own names (patch 0098; chromium/windows/identity.md). Only the preview has
+// test hooks compiled in.
+const CHANNEL_OF_OUTPUT = { BlancWinPrototype: 'preview', BlancWinBeta: 'beta' };
+export function channelOfOutput(out) {
+  if (!Object.hasOwn(CHANNEL_OF_OUTPUT, out)) throw new Error(`Not a Windows output: ${out}`);
+  return CHANNEL_OF_OUTPUT[out];
+}
+const CHANNEL_NAMES = {
+  preview: { product: 'Blanc Chromium Preview', appName: 'Blanc Prototype', progId: 'BlancPrvHTM', testHooks: true },
+  beta: { product: 'Blanc Beta', appName: 'Blanc Beta', progId: 'BlancBetHTM', testHooks: false },
+};
+export function channelNames(channel) {
+  if (!Object.hasOwn(CHANNEL_NAMES, channel)) throw new Error(`Not a Windows channel: ${channel}`);
+  return { ...CHANNEL_NAMES[channel] };
+}
 // The harness's run config for an unpacked candidate (tests/lib/fixture.mjs).
 // Island assets are compiled in; the blocker engine travels in the zip.
 // `installed` points at an installed copy instead of the unpacked one: the

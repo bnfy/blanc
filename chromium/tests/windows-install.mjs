@@ -18,6 +18,8 @@ import path from 'node:path';
 import {execFileSync,spawnSync,spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {pause} from './lib/cdp.mjs';
+import crypto from 'node:crypto';
+import {channelNames} from '../windows/candidate.mjs';
 
 const [candidateFolder,resultsFolder,shippingInstaller,...installOptions]=process.argv.slice(2);
 const installerOption=installOptions.find(o=>o.startsWith('--installer='))?.slice('--installer='.length)??null;
@@ -32,7 +34,9 @@ fs.mkdirSync(out,{recursive:true});
 const candidate=JSON.parse(fs.readFileSync(path.join(directory,'candidate.json'),'utf8'));
 const record={candidate:candidate.id,signed,checks:{},details:{}};
 const local=process.env.LOCALAPPDATA;
-const product='Blanc Chromium Preview',appName='Blanc Prototype';
+// The candidate's channel names what it installs as (W3: preview or beta).
+const channel=candidate.channel??'preview',names=channelNames(channel);
+const product=names.product,appName=names.appName;
 const application=path.join(local,product,'Application');
 const userData=path.join(local,product,'User Data');
 const electronExe=path.join(local,'Programs','Blanc','Blanc.exe');
@@ -58,6 +62,19 @@ function electronState(){
   userChoiceHttp:regValues(`${HKCU}\\Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\http\\UserChoice`)?.ProgId??null,
   userChoiceHttps:regValues(`${HKCU}\\Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\https\\UserChoice`)?.ProgId??null,
  };
+}
+// A build without test hooks, started as a person would with a throwaway
+// profile: it must still be running after 15 s with a window of its own.
+async function launchWithoutHooks(executable){
+ const profileDir=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-beta-launch-'));
+ const child=spawn(executable,[`--user-data-dir=${profileDir}`,'--no-first-run','--no-default-browser-check','data:text/html,<title>Blanc beta check</title>'],{detached:true,stdio:'ignore'});
+ await pause(15000);
+ const running=child.exitCode===null;
+ const title=running?spawnSync('powershell.exe',['-NoProfile','-NonInteractive','-Command',
+  `(Get-Process -Name chrome -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle } | Select-Object -First 1).MainWindowTitle`],{encoding:'utf8'}).stdout.trim():'';
+ spawnSync('taskkill.exe',['/F','/T','/PID',String(child.pid)],{stdio:'ignore'});
+ await pause(2000);
+ return {running,window:title,exitCode:child.exitCode};
 }
 const killAll=image=>spawnSync('taskkill.exe',['/F','/T','/IM',image],{stdio:'ignore'});
 async function waitUntil(test,ms){for(let t=0;t<ms;t+=500){if(test())return true;await pause(500);}return test();}
@@ -101,14 +118,26 @@ try{
  const clients=regSubkeys(`${HKCU}\\Software\\Clients\\StartMenuInternet`).filter(k=>k.startsWith(appName));
  const assoc=clients.length?regValues(`${HKCU}\\Software\\Clients\\StartMenuInternet\\${clients[0]}\\Capabilities\\URLAssociations`):null;
  record.details.registration={registered:ours.map(k=>[k,registered[k]]),clients,assoc};
- record.checks.registeredAsBrowser=ours.length===1&&clients.length===1&&/^BlancPrvHTM/.test(assoc?.http??'')&&assoc?.https===assoc?.http&&
+ record.checks.registeredAsBrowser=ours.length===1&&clients.length===1&&assoc?.http?.startsWith(names.progId)&&assoc?.https===assoc?.http&&
   !!regValues(`${HKCU}\\Software\\Classes\\${assoc.http}\\shell\\open\\command`);
  record.checks.electronUntouchedByInstall=JSON.stringify(electronState())===JSON.stringify(before);
 
- // 4. The installed copy launches, with no sandbox grant of the runner's.
+ // 4. The installed copy launches, with no sandbox grant of the runner's: the
+ // preview through its test hooks (windows-smoke.mjs). A beta has none, so it
+ // must stay running with a window of its own, and its embedded blocker engine
+ // must be the pinned one.
+ if(names.testHooks){
  const smoke=spawnSync(process.execPath,[fileURLToPath(new URL('./windows-smoke.mjs',import.meta.url)),directory,path.join(out,'installed-smoke'),`--installed=${application}`,...(signed?['--signed']:[])],{encoding:'utf8',timeout:300000});
  record.details.installedSmoke=(smoke.stdout||'').slice(-1500);
  record.checks.installedLaunches=smoke.status===0;
+ }else{
+  const launched=await launchWithoutHooks(exe);
+  record.details.installedLaunch=launched;
+  record.checks.installedLaunches=launched.running&&!!launched.window;
+  const engine=path.join(application,candidate.version,'blanc_blocker','engine.js');
+  const pinned=/kBlancBlockerBundleSha256\[\] = "([0-9a-f]{64})"/.exec(fs.readFileSync(new URL('../blanc/services/blocker/bundle_hash.h',import.meta.url),'utf8'))?.[1];
+  record.checks.blockerEmbedded=!!pinned&&fs.existsSync(engine)&&crypto.createHash('sha256').update(fs.readFileSync(engine)).digest('hex')===pinned;
+ }
 
  // 5. Uninstall, keeping the data folder; Electron Blanc still starts.
  fs.mkdirSync(userData,{recursive:true});fs.writeFileSync(path.join(userData,'keep.txt'),'kept');
@@ -128,7 +157,7 @@ try{
  killAll('Blanc.exe');
 }catch(error){failure=error;record.error=String(error.stack||error);}
 const required=['electronInstalled','installed','uninstallEntry','startMenuShortcut','versionResources','registeredAsBrowser','electronUntouchedByInstall',
- 'installedLaunches','uninstalled','dataKept','electronUntouched','electronStillStarts'];
+ 'installedLaunches','uninstalled','dataKept','electronUntouched','electronStillStarts',...(names.testHooks?[]:['blockerEmbedded'])];
 record.pass=!failure&&required.every(name=>record.checks[name]===true);
 fs.writeFileSync(path.join(out,'install.json'),JSON.stringify(record,null,2)+'\n');
 console.log(JSON.stringify({candidate:record.candidate,pass:record.pass,checks:record.checks,error:record.error,
