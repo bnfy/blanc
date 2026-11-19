@@ -227,10 +227,16 @@
       state = { kind: 'edit', id: workspace.id, draft: { name: workspace.name, color: workspace.color, symbol: workspace.symbol, ...kept }, error: '', touched: false, picker: false };
       open();
     }
+    /** The Spaces of the profile a new Space goes to: this window's, or the
+     * one chosen in the editor's Profile row. Names are unique per profile. */
+    function draftProfileItems() {
+      const chosen = state.kind === 'new' && state.draft?.profileId;
+      return chosen ? (data.otherProfiles ?? []).find((p) => p.id === chosen)?.items ?? [] : data.items;
+    }
     function nameProblem(name, exceptId = null) {
       const clean = String(name ?? '').trim().replace(/\s+/g, ' ');
       if (!clean) return 'invalid-name';
-      if (data.items.some((w) => w.id !== exceptId && w.name.toLowerCase() === clean.toLowerCase())) return 'duplicate-name';
+      if (draftProfileItems().some((w) => w.id !== exceptId && w.name.toLowerCase() === clean.toLowerCase())) return 'duplicate-name';
       return null;
     }
     // Edits apply live: a patch waits briefly so typing and dragging write once.
@@ -368,6 +374,7 @@
         });
         return;
       }
+      if (state.draft.profileId && !state.fixedStart) { openAction({ kind: 'create', name, identity, profileId: state.draft.profileId }); return; }
       if (state.start === 'empty' && !state.fixedStart) { openAction({ kind: 'create', name, identity }); return; }
       const original = state.original;
       run(() => api.saveWorkspaceAs(name, identity), () => {
@@ -602,11 +609,41 @@
       }
       if (isNew && !state.fixedStart) {
         const seg = el('div', 'ws-segmented'); seg.setAttribute('role', 'radiogroup'); seg.setAttribute('aria-label', t('ws.editor.startWith'));
+        const otherProfile = () => (data.otherProfiles ?? []).find((p) => p.id === state.draft.profileId) ?? null;
+        const syncStart = () => {
+          for (const o of seg.querySelectorAll('button')) {
+            o.setAttribute('aria-checked', String(o.dataset.focusKey === `start:${state.start}`));
+            // Tabs stay in their own profile: another profile starts empty.
+            if (o.dataset.focusKey === 'start:window') o.disabled = !!state.pending || !!otherProfile();
+          }
+        };
         for (const [value, text] of [['window', t('ws.editor.thisWindow', { count: data.windowTabCount ?? 0 })], ['empty', t('ws.editor.empty')]]) {
-          const opt = button(text, `start:${value}`, () => { state.start = value; for (const o of seg.querySelectorAll('button')) o.setAttribute('aria-checked', String(o === opt)); }, 'ws-segment');
-          opt.setAttribute('role', 'radio'); opt.setAttribute('aria-checked', String(state.start === value)); seg.append(opt);
+          const opt = button(text, `start:${value}`, () => { state.start = value; syncStart(); }, 'ws-segment');
+          opt.setAttribute('role', 'radio'); seg.append(opt);
         }
-        form.append(el('p', 'ws-label', t('ws.editor.startWith')), seg, el('p', 'ws-help', t('ws.editor.help')));
+        const helpLine = el('p', 'ws-help');
+        const syncHelp = () => { const other = otherProfile(); helpLine.textContent = other ? t('ws.editor.helpOtherProfile', { profile: other.name }) : t('ws.editor.help'); };
+        // With two or more profiles, which one the new Space belongs to
+        // (spec 2026-11-19-spaces-across-profiles §4.4).
+        if (data.otherProfiles?.length) {
+          const picker = el('select', 'ws-select'); picker.id = 'workspaceProfile';
+          picker.setAttribute('aria-label', t('ws.editor.profile'));
+          for (const profile of [{ id: '', name: data.profileName ?? '', full: false }, ...data.otherProfiles]) {
+            const option = dataEl('option', null, profile.name); option.value = profile.id; option.disabled = !!profile.full;
+            picker.append(option);
+          }
+          picker.value = state.draft.profileId ?? ''; picker.disabled = !!state.pending;
+          picker.addEventListener('change', () => {
+            state.draft.profileId = picker.value || null;
+            if (otherProfile()) state.start = 'empty';
+            syncStart(); syncHelp();
+            const problem = state.touched ? nameProblem(state.draft.name) : null;
+            state.error = problem ? errors[problem] : ''; renderEditorError();
+          });
+          form.append(el('p', 'ws-label', t('ws.editor.profile')), picker);
+        }
+        syncStart(); syncHelp();
+        form.append(el('p', 'ws-label', t('ws.editor.startWith')), seg, helpLine);
       }
       const actions = el('div', 'ws-editor-actions');
       if (isNew) {
@@ -755,7 +792,7 @@
     }
     popup.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); cancel(); return; }
-      if (event.target.tagName === 'INPUT' || event.target.closest?.('.space-picker')) return;
+      if (['INPUT', 'SELECT'].includes(event.target.tagName) || event.target.closest?.('.space-picker')) return;
       const keys = ['ArrowDown', 'ArrowUp', 'Home', 'End']; if (!keys.includes(event.key) || event.altKey) return;
       const buttons = [...popup.querySelectorAll('button')].filter((b) => !b.disabled && !b.hidden && b.getClientRects().length);
       const at = buttons.indexOf(doc.activeElement);

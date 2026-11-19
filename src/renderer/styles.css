@@ -4232,6 +4232,9 @@ body:is([data-mode="spaces"], [data-closing="spaces"]) #workspaceSwitcher.ws-swi
 .ws-name { flex: 1; min-width: 0; height: 36px; padding: 0 11px; border: 1px solid transparent; border-radius: var(--radius-md); background: var(--surface); color: var(--text); font: 14px/1 var(--font-text); }
 .ws-name::placeholder { color: var(--text-dim); }
 .ws-name:focus { outline: none; background: var(--surface-raised); border-color: var(--border); }
+/* The New Space editor's Profile choice (two or more profiles), drawn like the name field. */
+.ws-select { width: 100%; height: 34px; padding: 0 10px; border: 1px solid transparent; border-radius: var(--radius-md); background: var(--surface); color: var(--text); font: 13px/1 var(--font-text); }
+.ws-select:focus { outline: none; background: var(--surface-raised); border-color: var(--border); }
 .ws-name[aria-invalid="true"] { border-color: var(--danger); }
 .ws-editor-status { display: flex; align-items: center; gap: 8px; min-height: 16px; margin: 4px 2px 0 50px; }
 .ws-editor-status .ws-error { flex: 1; min-width: 0; margin: 0; color: var(--danger); font: 12px/1.35 var(--font-text); }
