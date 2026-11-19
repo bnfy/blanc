@@ -1,0 +1,123 @@
+diff --git a/chrome/browser/ui/webui/help/BUILD.gn b/chrome/browser/ui/webui/help/BUILD.gn
+index 45aa604..4494e12 100644
+--- a/chrome/browser/ui/webui/help/BUILD.gn
++++ b/chrome/browser/ui/webui/help/BUILD.gn
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//blanc/config.gni")
+ import("//chrome/common/features.gni")
+ 
+ source_set("help") {
+@@ -53,7 +54,8 @@ source_set("help") {
+   }
+ 
+   if (is_win) {
+-    if (is_chrome_branded) {
++    # Blanc: the Windows beta checks for updates through Blanc's updater.
++    if (is_chrome_branded || blanc_channel == "beta") {
+       sources = [ "version_updater_win.cc" ]
+       deps += [
+         "//chrome/app:generated_resources_grit",
+diff --git a/chrome/install_static/BUILD.gn b/chrome/install_static/BUILD.gn
+index 318ee31..9513dab 100644
+--- a/chrome/install_static/BUILD.gn
++++ b/chrome/install_static/BUILD.gn
+@@ -9,7 +9,9 @@ import("//testing/test.gni")
+ 
+ buildflag_header("buildflags") {
+   header = "buildflags.h"
+-  if (is_chrome_branded && is_win) {
++  # Blanc: the Windows beta integrates with Blanc's own updater (Chromium's
++  # //chrome/updater, branded by //blanc/branding/win-beta/updater.gni).
++  if ((is_chrome_branded || blanc_channel == "beta") && is_win) {
+     flags = [ "USE_GOOGLE_UPDATE_INTEGRATION=true" ]
+   } else {
+     flags = [ "USE_GOOGLE_UPDATE_INTEGRATION=false" ]
+@@ -37,6 +39,14 @@ if (is_win) {
+       "BLANC_WIN_ACTIVE_SETUP_GUID=L\"{0101E396-5BD3-487F-9265-8DE26B34795A}\"",
+       "BLANC_WIN_TOAST_CLSID={0xFE4C251B,0xAD54,0x4F2F,{0xB2,0xA1,0x16,0xEB,0x18,0x61,0x47,0xE7}}",
+     ]
++
++    # Blanc: registered with Blanc's updater under its company key
++    # (Software\<company>\Update\...) as its browser app id.
++    import("//blanc/branding/win-beta/updater.gni")
++    blanc_win_defines += [
++      "BLANC_WIN_APP_GUID=L\"$browser_appid\"",
++      "BLANC_WIN_COMPANY_SHORTNAME=L\"$updater_company_short_name\"",
++    ]
+   } else {
+     blanc_win_defines = [
+       "BLANC_WIN_APP_NAME=L\"Blanc Prototype\"",
+diff --git a/chrome/install_static/chromium_install_modes.h b/chrome/install_static/chromium_install_modes.h
+index 929bba4..61d155d 100644
+--- a/chrome/install_static/chromium_install_modes.h
++++ b/chrome/install_static/chromium_install_modes.h
+@@ -55,8 +55,13 @@ inline constexpr auto kInstallModes = std::to_array<InstallConstants>({
+         .install_suffix =
+             L"",  // Empty install_suffix for the primary install mode.
+         .logo_suffix = L"",  // No logo suffix for the primary install mode.
++#if BUILDFLAG(USE_GOOGLE_UPDATE_INTEGRATION)
++        // Blanc: the Windows beta's app id with Blanc's updater.
++        .app_guid = BLANC_WIN_APP_GUID,
++#else
+         .app_guid =
+             L"",  // Empty app_guid since no integration with Google Update.
++#endif
+         // Blanc: the channel's own names (//chrome/install_static:
+         // blanc_product_path), never Chromium's or the Electron Blanc's.
+         .base_app_name = BLANC_WIN_APP_NAME,
+@@ -95,9 +100,15 @@ inline constexpr auto kInstallModes = std::to_array<InstallConstants>({
+                                  0x00}},  // ISystemTraceSessionChromium IID and
+                                           // TypeLib
+         .old_tracing_service_iids = kOldTracingServiceIids,
++#if BUILDFLAG(USE_GOOGLE_UPDATE_INTEGRATION)
++        // Blanc: the Windows beta follows the beta channel and no other.
++        .default_channel_name = L"beta",
++        .channel_strategy = ChannelStrategy::FIXED,
++#else
+         .default_channel_name =
+             L"",  // Empty default channel name since no update integration.
+         .channel_strategy = ChannelStrategy::UNSUPPORTED,
++#endif
+         .supports_system_level = true,  // Supports system-level installs.
+         .supports_set_as_default_browser =
+             true,  // Supports in-product set as default browser UX.
+diff --git a/chrome/install_static/install_modes.cc b/chrome/install_static/install_modes.cc
+index bdd057b..9444de2 100644
+--- a/chrome/install_static/install_modes.cc
++++ b/chrome/install_static/install_modes.cc
+@@ -11,18 +11,27 @@ namespace install_static {
+ namespace {
+ 
+ #if BUILDFLAG(USE_GOOGLE_UPDATE_INTEGRATION)
++// Blanc: the keys of Blanc's updater, Software\<company>\Update\ (its
++// UPDATER_KEY), never Google Update's.
++std::wstring UpdaterKeyPath(const wchar_t* subkey, const wchar_t* app_guid) {
++  return std::wstring(L"Software\\")
++      .append(BLANC_WIN_COMPANY_SHORTNAME)
++      .append(L"\\Update\\")
++      .append(subkey)
++      .append(L"\\")
++      .append(app_guid);
++}
++
+ std::wstring GetClientsKeyPathForApp(const wchar_t* app_guid) {
+-  return std::wstring(L"Software\\Google\\Update\\Clients\\").append(app_guid);
++  return UpdaterKeyPath(L"Clients", app_guid);
+ }
+ 
+ std::wstring GetClientStateKeyPathForApp(const wchar_t* app_guid) {
+-  return std::wstring(L"Software\\Google\\Update\\ClientState\\")
+-      .append(app_guid);
++  return UpdaterKeyPath(L"ClientState", app_guid);
+ }
+ 
+ std::wstring GetClientStateMediumKeyPathForApp(const wchar_t* app_guid) {
+-  return std::wstring(L"Software\\Google\\Update\\ClientStateMedium\\")
+-      .append(app_guid);
++  return UpdaterKeyPath(L"ClientStateMedium", app_guid);
+ }
+ #else
+ std::wstring GetUnregisteredKeyPathForProduct() {

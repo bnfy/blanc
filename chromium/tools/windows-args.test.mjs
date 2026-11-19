@@ -48,7 +48,7 @@ test('bootstrap never removes an output or a checkout', () => {
 });
 // W3: the Windows beta. The Mac beta's reviewed values (official, not
 // Chrome-branded, no Widevine, no PGO, no symbols, the embedded blocker) for
-// Windows x64; Chromium's updater is off until W3 Part B turns it on.
+// Windows x64, with Chromium's updater on (W3 Task B2; the Mac beta keeps Sparkle).
 test('windows beta args are the Mac beta\'s reviewed values for Windows x64', () => {
   const beta = parse('beta-x64.gn');
   assert.deepEqual(Object.keys(beta).sort(), ['blanc_beta_build', 'blanc_beta_version', 'blanc_blocker_bundle', 'blanc_channel',
@@ -57,7 +57,7 @@ test('windows beta args are the Mac beta\'s reviewed values for Windows x64', ()
   assert.deepEqual({...beta, blanc_beta_version: undefined, blanc_beta_build: undefined}, {
     target_os: 'win', target_cpu: 'x64', is_official_build: true, is_debug: false, is_component_build: false,
     is_chrome_branded: false, blanc_channel: 'beta', enable_widevine: false, bundle_widevine_cdm: false,
-    enable_updater: false, chrome_pgo_phase: 0, symbol_level: 0, blanc_blocker_bundle: '/home/blanc/blanc-assets/blocker',
+    enable_updater: true, chrome_pgo_phase: 0, symbol_level: 0, blanc_blocker_bundle: '/home/blanc/blanc-assets/blocker',
     blanc_beta_version: undefined, blanc_beta_build: undefined,
   });
   assert.match(beta.blanc_beta_version, /^2\.0\.0-beta\.[1-9]\d*$/);
