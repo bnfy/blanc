@@ -789,7 +789,7 @@ function wireTabView(tab, view, { owner, adopted }) {
         // connected). Unanswered, Electron keeps the window open and its
         // close button does nothing (#1477), so it asks like a tab does.
         childWc.on('will-prevent-unload', (event) => {
-          answerUnloadObjection(event, childWindow.isDestroyed() ? undefined : childWindow);
+          answerUnloadObjection(event, childWindow);
         });
         windowRuntimes.registerAuxiliaryContent(getOwner(), childWcId);
         // Alongside — not via — auxiliaryOwner: popup capture state must

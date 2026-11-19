@@ -519,7 +519,7 @@ test('Leave lets an objecting page unload and Stay keeps it, asking over the giv
 test('tabs and pop-up windows both answer will-prevent-unload with the one question', () => {
   const popup = viewSource.slice(viewSource.indexOf("targetWc.on('did-create-window'"),
     viewSource.indexOf('applyWindowOpenPolicy(wc);'));
-  assert.match(popup, /childWc\.on\('will-prevent-unload', \(event\) => \{\s*answerUnloadObjection\(event, childWindow\.isDestroyed\(\) \? undefined : childWindow\);/);
+  assert.match(popup, /childWc\.on\('will-prevent-unload', \(event\) => \{\s*answerUnloadObjection\(event, childWindow\);/);
   assert.match(wireSource, /wc\.on\('will-prevent-unload', boundToTab\(\(event\) => \{[\s\S]*?answerUnloadObjection\(event, /);
   assert.equal((viewSource.match(/showMessageBoxSync\(/g) ?? []).length, 1, 'the Leave or Stay question lives in answerUnloadObjection alone');
 });

@@ -331,26 +331,6 @@ When("the pop-up window's page asks before it is left", async function () {
   assert.equal(result.value, true);
 });
 
-// The Leave or Stay question is a native, modal dialog no test can click, so
-// the step answers it in the main process and counts how often it was asked.
-async function closePopupAnswering(choice) {
-  return ctx.app.evaluate(({ BrowserWindow, dialog }, { path, answer }) => {
-    globalThis.__popupLeaveQuestion ??= { asked: 0, original: dialog.showMessageBoxSync };
-    const probe = globalThis.__popupLeaveQuestion;
-    dialog.showMessageBoxSync = (...args) => {
-      const parent = args[0] instanceof BrowserWindow ? args[0] : null;
-      probe.asked += 1;
-      probe.parentUrl = parent && !parent.isDestroyed() ? parent.webContents.getURL() : null;
-      return answer === 'Leave' ? 0 : 1;
-    };
-    const win = BrowserWindow.getAllWindows().find((w) => !w.isDestroyed() &&
-      w.webContents.getURL().includes(path));
-    if (!win) return false;
-    win.close();
-    return true;
-  }, { path: POPUP_PATH, answer: choice });
-}
-
 async function popupLeaveQuestion() {
   return ctx.app.evaluate(() => {
     const probe = globalThis.__popupLeaveQuestion;
@@ -358,9 +338,24 @@ async function popupLeaveQuestion() {
   });
 }
 
+// The Leave or Stay question is a native, modal dialog no test can click, so
+// the step answers it in the main process and counts how often it was asked.
 When(/^I close the pop-up window and choose (Leave|Stay)$/, async function (choice) {
   this.popupLeaveAskedBefore = (await popupLeaveQuestion()).asked;
-  assert.equal(await closePopupAnswering(choice), true, 'no pop-up window to close');
+  const closed = await ctx.app.evaluate(({ BrowserWindow, dialog }, { path, answer }) => {
+    globalThis.__popupLeaveQuestion ??= { asked: 0, original: dialog.showMessageBoxSync };
+    const probe = globalThis.__popupLeaveQuestion;
+    dialog.showMessageBoxSync = (parent) => {
+      probe.asked += 1;
+      probe.parentUrl = parent instanceof BrowserWindow ? parent.webContents.getURL() : null;
+      return answer === 'Leave' ? 0 : 1;
+    };
+    const win = BrowserWindow.getAllWindows().find((w) => !w.isDestroyed() &&
+      w.webContents.getURL().includes(path));
+    win?.close();
+    return Boolean(win);
+  }, { path: POPUP_PATH, answer: choice });
+  assert.equal(closed, true, 'no pop-up window to close');
 });
 
 Then('the pop-up window stays open', async function () {
