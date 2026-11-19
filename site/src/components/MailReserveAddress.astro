@@ -28,27 +28,15 @@ const ending = endings[0];
         <input id="mailReserveName" name="localPart" type="text" required minlength="3" maxlength="32" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="mira" aria-describedby="mailReserveEndings mailReserveAvailability">
         <span class="mail-reserve-ending" aria-hidden="true">@{ending}</span>
       </span>
-      <p class="mail-reserve-hint" id="mailReserveEndings">
-        <strong>Choose from five endings when you claim your address.</strong>
-        We hold your name on {endings.join(', ')}.
-      </p>
+      <p class="mail-reserve-hint" id="mailReserveEndings">Reserving holds this name on all five endings: {endings.map((e, i) => <>{i === 0 ? '' : i === endings.length - 1 ? ' and ' : ', '}<span class="mail-ending">{e}</span></>)}. You’ll choose one when you claim it.</p>
       <p class="mail-reserve-availability" id="mailReserveAvailability" role="status" aria-live="polite"></p>
 
       <label class="mail-reserve-label" for="mailReserveEmail">Your current email</label>
-      <p class="mail-reserve-hint" id="mailReserveEmailHint">
-        We’ll email you here to confirm it’s you. Later, use this email as your backup email to claim the address.<br />
-        <strong>You’ll need access to this inbox</strong> to receive the verification code when you claim your address.
-      </p>
+      <p class="mail-reserve-hint" id="mailReserveEmailHint">We’ll send a code here to confirm it’s you. You’ll need this inbox again to claim your address.</p>
       <input class="mail-reserve-input" id="mailReserveEmail" name="email" type="email" required maxlength="254" placeholder="you@example.com" autocomplete="email" aria-describedby="mailReserveEmailHint">
       <div class="mail-reserve-turnstile" data-turnstile></div>
-      <div class="mail-reserve-action">
-        <p class="mail-reserve-pricing" id="mailReservePricing">
-          <strong>Free to reserve.</strong> Claiming your address when Blanc Mail addresses open requires a paid plan.
-          <a href="/mail#pricing">Planned pricing</a> is {priceFor('mail-address-annual')}/year for Blanc Mail + Address
-          or {priceFor('suite-monthly')}/month or {priceFor('suite-annual')}/year for Blanc Bundle.
-        </p>
-        <button class="mail-reserve-button" type="submit" aria-describedby="mailReservePricing" disabled>Reserve</button>
-      </div>
+      <button class="mail-reserve-button" type="submit" aria-describedby="mailReservePricing" disabled>Reserve</button>
+      <p class="mail-reserve-hint mail-reserve-pricing" id="mailReservePricing"><strong>Free to reserve.</strong> Claiming requires <span class="mail-reserve-plan">Blanc Mail + Address at {priceFor('mail-address-annual')}/year</span> or <span class="mail-reserve-plan">Blanc Bundle at {priceFor('suite-monthly')}/month</span>. <a href="/mail#pricing">Compare plans</a></p>
     </div>
 
     <div class="mail-reserve-step" data-step="code" hidden>
