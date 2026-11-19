@@ -15,10 +15,9 @@ const blanc = values(read('../blanc/branding/win-beta/updater.gni'));
 const patch = read('../patches/0099-blanc-windows-updater-branding.patch');
 
 // Values Blanc keeps on purpose: the strings resource and the branding flag
-// (Blanc is not Chrome-branded).
-// crx_pkhash stays empty (as Chromium's) only until W3 Task B3 sets Blanc's
-// publisher key hash; B3's test requires it.
-const SAME = new Set(['grdfile_name', 'extra_args_is_chrome_branded', 'crx_pkhash']);
+// (Blanc is not Chrome-branded). crx_pkhash is Blanc's publisher key hash
+// (W3 Task B3, tools/windows-update-keys.test.mjs).
+const SAME = new Set(['grdfile_name', 'extra_args_is_chrome_branded']);
 
 test('Blanc\'s updater branding sets every value Chromium\'s does', () => {
   assert.ok(Object.keys(chromium).length >= 80, 'the upstream fallback branding was read');

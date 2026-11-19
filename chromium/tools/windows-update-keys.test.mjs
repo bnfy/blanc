@@ -52,3 +52,74 @@ test('the key ceremony keeps only public halves and stores verified private keys
   assert.match(again.stdout, /no key is replaced/);
   fs.rmSync(dir, {recursive: true, force: true});
 });
+
+// The committed public keys (B3): recorded in update-keys.md, built into the
+// updater exactly (cup_public_key.h, updater.gni's crx_pkhash), and never a
+// private key anywhere in chromium/.
+import crypto from 'node:crypto';
+import {cupHeader, crxPkHash} from './update-keys.mjs';
+const repoFile = rel => fileURLToPath(new URL(`../${rel}`, import.meta.url));
+const der = name => fs.readFileSync(repoFile(`windows/keys/${name}-public.der`));
+const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+
+test('the committed public keys are the ones update-keys.md records', () => {
+  const doc = fs.readFileSync(repoFile('windows/update-keys.md'), 'utf8');
+  for (const name of ['cup', 'crx']) assert.ok(doc.includes(sha(der(name))), `${name}-public.der's SHA-256 in update-keys.md`);
+  // ML-DSA-44 SubjectPublicKeyInfo (RFC 9881): its OID 2.16.840.1.101.3.4.3.17
+  // and a 1312-byte key, read from the DER (not every Node knows ML-DSA yet).
+  const cup = der('cup');
+  assert.equal(cup.subarray(0, 4).toString('hex'), '30820532');
+  assert.equal(cup.subarray(4, 17).toString('hex'), '300b0609608648016503040311');
+  assert.equal(cup.subarray(17, 22).toString('hex'), '0382052100');
+  assert.equal(cup.length - 22, 1312);
+  const crx = crypto.createPublicKey({key: der('crx'), format: 'der', type: 'spki'});
+  assert.equal(crx.asymmetricKeyType, 'rsa');
+  assert.equal(crx.asymmetricKeyDetails.modulusLength, 4096);
+});
+test('the updater carries exactly those keys', () => {
+  assert.equal(fs.readFileSync(repoFile('blanc/branding/win-beta/cup_public_key.h'), 'utf8'), cupHeader(der('cup'), 1));
+  assert.equal(crxPkHash(der('crx')), crypto.createHash('sha256').update(der('crx')).digest('base64'));
+  assert.match(fs.readFileSync(repoFile('blanc/branding/win-beta/updater.gni'), 'utf8'),
+    new RegExp(`^crx_pkhash = "${crxPkHash(der('crx')).replace(/[+/=]/g, c => '\\' + c)}"$`, 'm'));
+});
+test('no private key is anywhere under chromium/', () => {
+  const found = [];
+  const walk = dir => {
+    for (const entry of fs.readdirSync(dir, {withFileTypes: true})) {
+      const full = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) { if (entry.name !== 'node_modules') walk(full); continue; }
+      const text = fs.readFileSync(full).toString('latin1');
+      if (/-----BEGIN [A-Z ]*PRIVATE KEY-----/.test(text) && !full.endsWith('windows-update-keys.test.mjs')) found.push(full);
+    }
+  };
+  walk(repoFile('').replace(/\/$/, ''));
+  assert.deepEqual(found, []);
+});
+
+// Patch 0102: Blanc's updater checks update answers with Blanc's CUP key and
+// update packages with Blanc's publisher key; everything else keeps Chromium's.
+test('patch 0102 gives the updater Blanc\'s keys and leaves the browser\'s alone', () => {
+  const patch = fs.readFileSync(repoFile('patches/0102-blanc-windows-update-keys.patch'), 'utf8');
+  const lane = JSON.parse(fs.readFileSync(repoFile('lanes/desktop.json'), 'utf8')).patches.map(p => p.split('/').pop());
+  assert.equal(lane.indexOf('0102-blanc-windows-update-keys.patch'), lane.indexOf('0101-blanc-windows-updater-integration.patch') + 1);
+  const added = file => {
+    const start = patch.indexOf(`+++ b/${file}\n`);
+    assert.ok(start >= 0, `0102 patches ${file}`);
+    const end = patch.indexOf('\n--- ', start);
+    return patch.slice(start, end < 0 ? undefined : end).split('\n').filter(l => l.startsWith('+') && !l.startsWith('+++')).join('\n');
+  };
+  // update_client: an embedder may name its own CUP key; none by default.
+  assert.match(added('components/update_client/configurator.h'), /virtual std::optional<CupKey> GetCupKey\(\) const;/);
+  assert.match(added('components/update_client/update_client.cc'), /std::optional<CupKey> Configurator::GetCupKey\(\) const \{\n\+  return std::nullopt;/);
+  assert.match(added('components/update_client/request_sender.cc'), /if \(cup_key\)/);
+  for (const file of ['components/update_client/update_checker.cc', 'components/update_client/ping_manager.cc'])
+    assert.match(added(file), /config_->GetCupKey\(\)/, file);
+  // The updater names Blanc's key, only when built for the Windows beta.
+  assert.match(added('chrome/updater/configurator.cc'), /#include "blanc\/branding\/win-beta\/cup_public_key\.h"/);
+  assert.match(added('chrome/updater/configurator.cc'), /blanc_updater::kCupKeyVersion/);
+  assert.match(added('chrome/updater/BUILD.gn'), /if \(blanc_channel == "beta"\) \{\n\+      defines \+= \[ "BLANC_UPDATER_KEYS" \]/);
+  // Packages: Blanc's publisher key alone once crx_pkhash is set, never no key.
+  const constants = added('chrome/updater/external_constants_default.cc');
+  assert.match(constants, /std::string_view\(CRX_PKHASH\)\.empty\(\)/);
+  assert.match(constants, /VerifierFormat::CRX3;/);
+});
