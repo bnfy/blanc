@@ -122,9 +122,9 @@ modes' channel strategy `FIXED` to `beta`.
 ML-DSA-44 public key, beta channel only) and to the updater's verifier format (CRX3 with Blanc's
 publisher key hash instead of Google's proof); `chromium/windows/update-keys.md`.
 
-- [ ] The owner generates both key pairs on the MacBook Pro (commands given; private halves into
+- [x] The owner generates both key pairs on the MacBook Pro (commands given; private halves into
       1Password and the Worker's secret); only the public halves are committed.
-- [ ] **Failing test then pass:** the committed public keys match the hashes recorded in
+- [x] **Failing test then pass:** the committed public keys match the hashes recorded in
       `update-keys.md`, and no private key material is anywhere in the repo.
 
 ## Part C: the update server
