@@ -188,13 +188,19 @@ tagged `appguid={459fd3cf-…}&appname=Blanc%20Beta&needsadmin=false`
 updater, which fetched, verified and installed the beta from blanc.day.
 
 - [x] The tagged install path works (unsigned, tag on the command line).
-- [ ] Signing: `UpdaterSetup.exe` holds the updater in an embedded
+- [x] Signing: `UpdaterSetup.exe` holds the updater in an embedded
       `updater.packed.7z` (`chrome/updater/win/installer`), as `mini_installer`
       holds the browser; a repack step like `repack-installer.ps1` signs the
       updater's files inside, then the setup itself.
-- [ ] Tagging after signing with Chromium's `//chrome/updater/tools:tag`
+- [x] Tagging after signing with Chromium's `//chrome/updater/tools:tag`
       (built for the beta and carried in the candidate); the install check runs
       the signed, tagged file with no command-line tag.
+      **Passed 2026-11-19:** unsigned repack dry run 44570152607; signed run
+      44571648134 (owner-approved from `chromium/next`): 14 files signed incl.
+      `updater.exe`, setup signed and tagged as `Blanc-Beta-Setup.exe` (tag read
+      back), 17 signatures verified (Bananify Creative), and the signed, tagged
+      setup alone installed .901 from blanc.day. The signing environment accepts
+      only `chromium/next`.
 
 Stages (draft): preflight (candidate from the release commit, version
 158.0.8127.<build>, keys committed) → sign (the candidate workflow's
