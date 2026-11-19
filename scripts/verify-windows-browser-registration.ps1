@@ -2,7 +2,8 @@ param(
   [Parameter(Mandatory = $true)][string]$Installer,
   [string]$ProductName = 'Blanc',
   [Parameter(Mandatory = $true)][string]$Version,
-  [string]$ProgId = 'BlancURL'
+  [string]$ProgId = 'BlancURL',
+  [string]$HtmlProgId = 'BlancHTML'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -18,6 +19,16 @@ $clientRelative = "Software\Clients\StartMenuInternet\$ProductName"
 $clientKey = "HKCU:\$clientRelative"
 $registeredApplications = 'HKCU:\Software\RegisteredApplications'
 $progIdKey = "HKCU:\Software\Classes\$ProgId"
+$htmlProgIdKey = "HKCU:\Software\Classes\$HtmlProgId"
+# Matches HTML_EXTENSIONS in src/main/local-html-files.js (#1630).
+$htmlExtensions = @('.htm', '.html', '.xht', '.xhtm', '.xhtml')
+
+function Get-OpenWithEntries {
+  $htmlExtensions | Where-Object {
+    $key = Get-Item "HKCU:\Software\Classes\$_\OpenWithProgids" -ErrorAction SilentlyContinue
+    $key -and ($key.GetValueNames() -contains $HtmlProgId)
+  }
+}
 $uninstallRoot = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall'
 
 function Get-UninstallEntry {
@@ -47,8 +58,17 @@ Assert-Equal $capabilities "$clientRelative\Capabilities" 'RegisteredApplication
 $associations = Get-ItemProperty "$clientKey\Capabilities\URLAssociations"
 Assert-Equal $associations.http $ProgId 'HTTP association'
 Assert-Equal $associations.https $ProgId 'HTTPS association'
-if (Test-Path "$clientKey\Capabilities\FileAssociations") {
-  throw 'installer registered unsupported local-file associations'
+# Local HTML files: offered under Open with and in Default apps, never made
+# the default (the installer writes no UserChoice).
+$fileAssociations = Get-ItemProperty "$clientKey\Capabilities\FileAssociations"
+foreach ($extension in $htmlExtensions) {
+  Assert-Equal $fileAssociations.$extension $HtmlProgId "$extension file association"
+}
+$openWith = @(Get-OpenWithEntries)
+Assert-Equal $openWith.Count $htmlExtensions.Count 'OpenWithProgids entries'
+$htmlCommand = (Get-Item "$htmlProgIdKey\shell\open\command").GetValue('')
+if ($htmlCommand -notmatch [regex]::Escape("$ProductName.exe") -or $htmlCommand -notmatch '"%1"') {
+  throw "HTML open command is invalid: $htmlCommand"
 }
 
 $urlProtocol = (Get-Item $progIdKey).GetValue('URL Protocol')
@@ -77,7 +97,8 @@ do {
   } else {
     $null
   }
-  $registrationRemains = (Test-Path $clientKey) -or (Test-Path $progIdKey) -or ($null -ne $pointer)
+  $registrationRemains = (Test-Path $clientKey) -or (Test-Path $progIdKey) -or (Test-Path $htmlProgIdKey) `
+    -or ($null -ne $pointer) -or (@(Get-OpenWithEntries).Count -gt 0)
   if (-not $registrationRemains) { break }
   Start-Sleep -Seconds 1
 } while ((Get-Date) -lt $deadline)

@@ -75,9 +75,13 @@ Var pid
 # and the http/https choosers) when it is registered under the Default
 # Programs contract: a RegisteredApplications pointer to a Capabilities key
 # that claims the http/https URL associations through a ProgId, plus a
-# StartMenuInternet client entry. No .htm/.html file associations: Blanc's
-# argv handling accepts only http(s) URLs, so claiming files would silently
-# drop them. Electron's
+# StartMenuInternet client entry. Local HTML files (#1630) are offered as a
+# choice only: the BlancHTML ProgId, an OpenWithProgids entry per extension
+# (Explorer's Open with list) and Capabilities\FileAssociations (Default
+# apps). Blanc reads such a path from the command line and shows the file in
+# its static preview window; nothing here makes Blanc any file's default.
+# The extensions match HTML_EXTENSIONS in src/main/local-html-files.js.
+# Electron's
 # setAsDefaultProtocolClient only writes a bare protocol handler, which
 # Windows 10+ ignores for http, so without these keys Blanc never appears in
 # the chooser at all. SHELL_CONTEXT follows the per-user/per-machine install
@@ -85,6 +89,7 @@ Var pid
 # installer and the uninstaller.
 !define BLANC_CLIENT_KEY "Software\Clients\StartMenuInternet\${PRODUCT_NAME}"
 !define BLANC_URL_PROGID "BlancURL"
+!define BLANC_HTML_PROGID "BlancHTML"
 
 !macro customInstall
   WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_URL_PROGID}" "" "Blanc URL"
@@ -107,6 +112,21 @@ Var pid
   WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\URLAssociations" "https" "${BLANC_URL_PROGID}"
   WriteRegDWORD SHELL_CONTEXT "${BLANC_CLIENT_KEY}\InstallInfo" "IconsVisible" 1
 
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_HTML_PROGID}" "" "Blanc HTML Document"
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_HTML_PROGID}" "FriendlyTypeName" "Blanc HTML Document"
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_HTML_PROGID}\DefaultIcon" "" "$INSTDIR\${APP_EXECUTABLE_FILENAME},0"
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_HTML_PROGID}\shell\open\command" "" '"$INSTDIR\${APP_EXECUTABLE_FILENAME}" "%1"'
+  WriteRegStr SHELL_CONTEXT "Software\Classes\.htm\OpenWithProgids" "${BLANC_HTML_PROGID}" ""
+  WriteRegStr SHELL_CONTEXT "Software\Classes\.html\OpenWithProgids" "${BLANC_HTML_PROGID}" ""
+  WriteRegStr SHELL_CONTEXT "Software\Classes\.xht\OpenWithProgids" "${BLANC_HTML_PROGID}" ""
+  WriteRegStr SHELL_CONTEXT "Software\Classes\.xhtm\OpenWithProgids" "${BLANC_HTML_PROGID}" ""
+  WriteRegStr SHELL_CONTEXT "Software\Classes\.xhtml\OpenWithProgids" "${BLANC_HTML_PROGID}" ""
+  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\FileAssociations" ".htm" "${BLANC_HTML_PROGID}"
+  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\FileAssociations" ".html" "${BLANC_HTML_PROGID}"
+  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\FileAssociations" ".xht" "${BLANC_HTML_PROGID}"
+  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\FileAssociations" ".xhtm" "${BLANC_HTML_PROGID}"
+  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\FileAssociations" ".xhtml" "${BLANC_HTML_PROGID}"
+
   WriteRegStr SHELL_CONTEXT "Software\RegisteredApplications" "${PRODUCT_NAME}" "${BLANC_CLIENT_KEY}\Capabilities"
   # Registration happens after electron-builder creates its shortcuts, so its
   # earlier shell refresh cannot publish these new associations. Flush the
@@ -119,4 +139,10 @@ Var pid
   DeleteRegValue SHELL_CONTEXT "Software\RegisteredApplications" "${PRODUCT_NAME}"
   DeleteRegKey SHELL_CONTEXT "${BLANC_CLIENT_KEY}"
   DeleteRegKey SHELL_CONTEXT "Software\Classes\${BLANC_URL_PROGID}"
+  DeleteRegKey SHELL_CONTEXT "Software\Classes\${BLANC_HTML_PROGID}"
+  DeleteRegValue SHELL_CONTEXT "Software\Classes\.htm\OpenWithProgids" "${BLANC_HTML_PROGID}"
+  DeleteRegValue SHELL_CONTEXT "Software\Classes\.html\OpenWithProgids" "${BLANC_HTML_PROGID}"
+  DeleteRegValue SHELL_CONTEXT "Software\Classes\.xht\OpenWithProgids" "${BLANC_HTML_PROGID}"
+  DeleteRegValue SHELL_CONTEXT "Software\Classes\.xhtm\OpenWithProgids" "${BLANC_HTML_PROGID}"
+  DeleteRegValue SHELL_CONTEXT "Software\Classes\.xhtml\OpenWithProgids" "${BLANC_HTML_PROGID}"
 !macroend

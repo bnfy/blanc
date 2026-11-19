@@ -3,6 +3,16 @@
 v1.51.0 is the current public release ([notes](v1.51.0.md)). Changes merged
 since then are below as they're recorded.
 
+## Added
+
+- **Open local HTML files on Windows.** Choosing Blanc under **Open with** for
+  an `.html` file now opens it, as on a Mac, instead of opening Blanc with
+  nothing in it (#1630). The file shows in a separate, static preview window:
+  scripts, network requests and other files on the disk (such as a page's own
+  stylesheets and images) are blocked, so some pages look plainer than they do
+  in other browsers. Blanc is added to the Open with list for HTML files; it
+  doesn't become their default.
+
 ## Fixed
 
 - **Pop-up windows close when their page asks first.** A page in a separate
@@ -12,6 +22,9 @@ since then are below as they're recorded.
 
 ## Still open for the next release
 
+- **Opening local HTML files on Windows** (#1630) by hand from Explorer's
+  Open with in an installed build. CI checks the installer's registration and
+  a packaged Blanc opening a file at launch and while running.
 - **Closing a real Proxmox console window** (#1477) in a packaged build. The
   fix was checked in the acceptance suite with a page that asks before it's
   left, not against Proxmox itself.

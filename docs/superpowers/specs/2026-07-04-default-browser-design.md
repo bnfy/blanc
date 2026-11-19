@@ -72,6 +72,16 @@ accepts it only if the same canonical HTML file still exists. A missing file or
 unmarked `file:` URL is dropped, and the rollback mirror and Sync never carry
 the grant.
 
+**Amended (2026-11-19, #1630): Windows.** Windows hands a file to the app it is
+opened with as a command-line path, so `localHtmlPathsFromArgv`
+(`src/main/startup-urls.js`) passes absolute paths ending in an HTML extension,
+at a cold start and on `second-instance`, to the same `openLocalHtmlFiles` the
+`open-file` event uses; on ECS builds that is the static preview window. The NSIS
+installer offers Blanc under Open with for those extensions (`BlancHTML`,
+`OpenWithProgids`, `Capabilities\FileAssociations`) and never sets a default.
+Other command-line paths, macOS and Linux command lines, and typed `file:` URLs
+stay rejected. Design: `docs/superpowers/specs/2026-11-19-windows-local-html-design.md`.
+
 ## Settings UI
 
 Row below "App icon": label "Default browser", hint "Open web links from other apps in

@@ -15,6 +15,7 @@ const {
   WINDOWS_URL_PROGID, USER_CHOICE_KEY, parseUserChoiceProgId, isWindowsDefaultBrowser,
 } = require('../../src/main/windows-default-browser');
 const { verifyLinuxDesktopEntry } = require('../../scripts/verify-linux-desktop-entry');
+const { HTML_EXTENSIONS } = require('../../src/main/local-html-files');
 
 // Windows only lists an app under Settings > Default apps (and in the
 // http/https chooser) when the Default Programs contract is registered:
@@ -53,9 +54,29 @@ test('Windows installer registers Blanc as a browser under the Default Programs 
     assert.ok(uninstall.includes(line), `uninstaller removes: ${line}`);
   }
 
-  // Blanc's argv handling accepts only http(s) URLs (startup-urls.js), so the
-  // installer must not invite Windows to hand it local .html files.
-  assert.doesNotMatch(install, /FileAssociations/);
+  // #1630: Blanc is offered under Open with for local HTML files, which it
+  // reads from the command line (localHtmlPathsFromArgv) and shows in the
+  // static preview. It is a choice only: the installer never sets a default.
+  assert.ok(installer.includes('!define BLANC_HTML_PROGID "BlancHTML"'));
+  const htmlLines = [
+    'WriteRegStr SHELL_CONTEXT "Software\\Classes\\${BLANC_HTML_PROGID}" "" "Blanc HTML Document"',
+    'WriteRegStr SHELL_CONTEXT "Software\\Classes\\${BLANC_HTML_PROGID}\\shell\\open\\command" "" \'"$INSTDIR\\${APP_EXECUTABLE_FILENAME}" "%1"\'',
+    ...[...HTML_EXTENSIONS].flatMap((ext) => [
+      `WriteRegStr SHELL_CONTEXT "Software\\Classes\\${ext}\\OpenWithProgids" "\${BLANC_HTML_PROGID}" ""`,
+      `WriteRegStr SHELL_CONTEXT "\${BLANC_CLIENT_KEY}\\Capabilities\\FileAssociations" "${ext}" "\${BLANC_HTML_PROGID}"`,
+    ]),
+  ];
+  const flush = install.indexOf('shell32::SHChangeNotify');
+  for (const line of htmlLines) {
+    assert.ok(install.includes(line), `installer writes: ${line}`);
+    assert.ok(install.indexOf(line) < flush, `written before the association flush: ${line}`);
+  }
+  assert.ok(uninstall.includes('DeleteRegKey SHELL_CONTEXT "Software\\Classes\\${BLANC_HTML_PROGID}"'));
+  for (const ext of HTML_EXTENSIONS) {
+    const line = `DeleteRegValue SHELL_CONTEXT "Software\\Classes\\${ext}\\OpenWithProgids" "\${BLANC_HTML_PROGID}"`;
+    assert.ok(uninstall.includes(line), `uninstaller removes: ${line}`);
+  }
+  assert.doesNotMatch(install, /UserChoice/, 'never sets a default');
 
   const registration = install.indexOf('Software\\RegisteredApplications');
   const refresh = install.indexOf('shell32::SHChangeNotify');
@@ -127,6 +148,9 @@ test('native Windows validation installs, inspects, and uninstalls the candidate
   assert.match(windowsInstallGate, /QuietUninstallString/);
   assert.match(windowsInstallGate, /GetValue\(\$ProductName, \$null\)/);
   assert.match(windowsInstallGate, /uninstaller left one or more browser registration entries behind/);
+  assert.match(windowsInstallGate, /\$htmlExtensions = @\('\.htm', '\.html', '\.xht', '\.xhtm', '\.xhtml'\)/);
+  assert.match(windowsInstallGate, /Capabilities\\FileAssociations/);
+  assert.match(windowsInstallGate, /OpenWithProgids/);
 });
 
 test('packaged Linux desktop entry verifier requires browser URL handlers', (t) => {
