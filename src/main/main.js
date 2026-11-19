@@ -15335,6 +15335,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         type: 'frame',
         filePath: path.join(__dirname, 'local-network-preload.js'),
       });
+      // Windows only: keeps a page's quiet (conditional) passkey request from
+      // opening Windows' passkey dialog on every visit.
+      browsingSession.registerPreloadScript({
+        type: 'frame',
+        filePath: path.join(__dirname, 'passkey-preload.js'),
+      });
       // Capture instrumentation relay (spec §4). Per the §4.1 spike, session
       // preloads only reach MAIN frames on our configuration — subframe grants
       // stay unconfirmable and fail toward stuck-on, never silently-off.

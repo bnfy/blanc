@@ -9,9 +9,18 @@ since then are below as they're recorded.
   pop-up window, such as Proxmox's console while it's connected, can ask
   before you leave it. Blanc now asks **Leave** or **Stay**, as it does in a
   tab; before, the window's close button did nothing (#1477).
+- **No passkey prompt on page load on Windows.** Many sign-in pages quietly
+  ask the browser for passkeys as they load. On Windows that opened Windows'
+  **Sign in with a passkey** dialog on every visit, even with no passkey
+  saved. Blanc now tells those pages it can't list passkeys, so they show
+  their own passkey button; choosing it still opens the dialog.
 
 ## Still open for the next release
 
+- **The Windows passkey fix** in a packaged build and on a PC with Windows
+  Hello set up. It was checked in the Windows VM (no Windows Hello) with a
+  source build and a local test page, not a real site. A sign-in form inside
+  an iframe can still open the dialog.
 - **Closing a real Proxmox console window** (#1477) in a packaged build. The
   fix was checked in the acceptance suite with a page that asks before it's
   left, not against Proxmox itself.

@@ -15,6 +15,7 @@
     "src/main/fill-status-preload.js",
     "src/main/link-route-preload.js",
     "src/main/local-network-preload.js",
+    "src/main/passkey-preload.js",
     "src/main/preload.js",
     "src/main/reader-preload.js",
     "src/main/scoped-capture-preload-linux.js",
@@ -271,7 +272,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "0c0344908b08cfdf70da6c707abdd83ccb6d9c2b73c6558cdee7debeb2dc52e6",
+      "sha256": "dfc4a72bdc3e1adc430cdf5c43e7fa7e720294d7df67aa9f27b760596dc7911d",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -686,6 +687,12 @@
         "pages:zoom:remove"
       ],
       "role": "privileged implementation or service"
+    },
+    {
+      "file": "src/main/passkey-preload.js",
+      "sha256": "0e6fdd87774772bf818c09757921eff2468f15ac0f17b650c3715b43e6c1b0df",
+      "literalChannels": [],
+      "role": "preload"
     },
     {
       "file": "src/main/permissions.js",
