@@ -74,10 +74,13 @@ function main() {
   // Chromium's installer, built with the browser (W1 Part B), and the files
   // its signing step repacks from (Part C).
   for (const file of ['mini_installer.exe', 'setup.exe']) if (fs.existsSync(path.join(out, file))) add(file);
-  // The beta also carries Blanc's updater setup program (W3 Task B2).
+  // The beta also carries Blanc's updater setup program (W3 Task B2) and
+  // Chromium's tag tool, which tags the signed setup as the online installer.
   if (channel === 'beta') {
-    if (!fs.existsSync(path.join(out, 'UpdaterSetup.exe'))) throw new Error('A beta candidate needs UpdaterSetup.exe; build the beta through the guard.');
-    add('UpdaterSetup.exe');
+    for (const file of ['UpdaterSetup.exe', 'tag.exe']) {
+      if (!fs.existsSync(path.join(out, file))) throw new Error(`A beta candidate needs ${file}; build the beta through the guard.`);
+      add(file);
+    }
   }
   if (fs.existsSync(path.join(out, 'signing'))) add('signing');
   fs.copyFileSync(engine, path.join(stage, 'blocker/engine.js'));

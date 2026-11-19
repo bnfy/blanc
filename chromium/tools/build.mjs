@@ -105,9 +105,10 @@ export function buildLane(options) {
     // The Windows output also builds Chromium's installer (W1 Part B), which
     // packs the browser it builds: one named extra target, nothing chosen on
     // the command line. The beta also builds Blanc's updater and its setup
-    // program, UpdaterSetup.exe (W3 Task B2).
+    // program, UpdaterSetup.exe (W3 Task B2), and Chromium's tag tool, which
+    // tags the signed setup as the online installer (W3 Task E1).
     if (out === 'BlancWinBeta')
-      return { lane, out, target: 'chrome', extraTargets: ['mini_installer', 'chrome/updater/win/installer:installer'] };
+      return { lane, out, target: 'chrome', extraTargets: ['mini_installer', 'chrome/updater/win/installer:installer', 'chrome/updater/tools:tag'] };
     return WINDOWS_OUTPUTS.includes(out) ? { lane, out, target: 'chrome', extraTargets: ['mini_installer'] } : { lane, out, target: 'chrome' };
   }
   if (options.some(option => option.startsWith('--sdk-root='))) throw new Error('--sdk-root is a macOS option; the Android lane has none.');

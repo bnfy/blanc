@@ -240,6 +240,31 @@ jobs:
           $ErrorActionPreference = 'Stop'
           if (-not (Test-Path chromium/tests/windows-updater.mjs) -or -not (Test-Path "$env:CANDIDATE_DIR\UpdaterSetup.exe")) { 'No updater check for this candidate or ref.'; exit 0 }
           node chromium/tests/windows-updater.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\updater"
+      - name: Repack the updater setup (unsigned dry run)
+        # W3 Task E1: the online installer's files come out and go back in
+        # unchanged, as the signing job will do with them signed.
+        if: ${{ !cancelled() && env.CANDIDATE_CHANNEL == 'beta' && inputs.repack }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not (Test-Path chromium/windows/repack-updater-setup.ps1)) { 'No updater setup repack on this ref.'; exit 0 }
+          $pin = "$env:RUNNER_TEMP\pywin32-requirements.txt"
+          if (-not (Test-Path $pin)) {
+            'pywin32==312 --hash=sha256:b457f6d628a47e8a7346ce22acb7e1a46a4a78b52e1d17e1af56871bd19a93bc' | Set-Content $pin
+            python -m pip install --quiet --only-binary=:all: --require-hashes -r $pin
+            if ($LASTEXITCODE -ne 0) { throw 'Could not install pywin32.' }
+          }
+          $work = "$env:RUNNER_TEMP\repack-updater"
+          pwsh -NoProfile -File chromium/windows/repack-updater-setup.ps1 -Phase unpack -Setup "$env:CANDIDATE_DIR\UpdaterSetup.exe" -Work $work
+          if ($LASTEXITCODE -ne 0) { throw 'Unpacking the updater setup failed.' }
+          $before = Get-ChildItem "$work\bin" -File | ForEach-Object { "$($_.Name) $((Get-FileHash $_.FullName -Algorithm SHA256).Hash)" }
+          pwsh -NoProfile -File chromium/windows/repack-updater-setup.ps1 -Phase pack -Setup "$env:CANDIDATE_DIR\UpdaterSetup.exe" -Work $work -Output "$env:RUNNER_TEMP\UpdaterSetup-repacked.exe"
+          if ($LASTEXITCODE -ne 0) { throw 'Packing the updater setup failed.' }
+          $again = "$env:RUNNER_TEMP\repack-updater-check"
+          pwsh -NoProfile -File chromium/windows/repack-updater-setup.ps1 -Phase unpack -Setup "$env:RUNNER_TEMP\UpdaterSetup-repacked.exe" -Work $again
+          $after = Get-ChildItem "$again\bin" -File | ForEach-Object { "$($_.Name) $((Get-FileHash $_.FullName -Algorithm SHA256).Hash)" }
+          if (Compare-Object $before $after) { throw 'The repacked setup does not carry the same files.' }
+          "Repacked setup carries the same $(@($before).Count) files."
+          "REPACKED_SETUP=$env:RUNNER_TEMP\UpdaterSetup-repacked.exe" >> $env:GITHUB_ENV
       - name: Update proof
         # W3 Task D2: beta N, with Blanc's updater, asks blanc.day's update
         # server and must move to the offered version, or refuse a bad package.
@@ -257,7 +282,8 @@ jobs:
           $expected = (Get-Content "$shipping\SHA256SUMS" | Where-Object { $_ -match 'Blanc-Setup-1\.49\.1\.exe$' }) -split '\s+' | Select-Object -First 1
           if ((Get-FileHash "$shipping\Blanc-Setup-1.49.1.exe" -Algorithm SHA256).Hash.ToLower() -ne $expected.ToLower()) { throw 'The shipping installer does not match the release.' }
           $mode = if ($env:UPDATE_EXPECT -eq 'refused') { '--expect-refused' } elseif ($env:UPDATE_EXPECT -like 'online:*') { "--online=$($env:UPDATE_EXPECT.Substring(7))" } else { "--expect=$env:UPDATE_EXPECT" }
-          node chromium/tests/windows-update-proof.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\update-proof" "$shipping\Blanc-Setup-1.49.1.exe" $mode
+          $extra = @(); if ($env:REPACKED_SETUP -and $mode -like '--online=*') { $extra += "--setup=$env:REPACKED_SETUP" }
+          node chromium/tests/windows-update-proof.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\update-proof" "$shipping\Blanc-Setup-1.49.1.exe" $mode @extra
       - name: Crash capture
         if: ${{ !cancelled() && env.CANDIDATE_CHANNEL != 'beta' }}
         run: |

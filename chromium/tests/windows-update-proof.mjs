@@ -16,7 +16,13 @@ import {spawn, spawnSync, execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {updaterNames, clientsKey, updaterFolder, installTag} from '../windows/updater-check.mjs';
 
-const [candidateFolder, resultsFolder, shippingInstaller, mode] = process.argv.slice(2);
+const [candidateFolder, resultsFolder, shippingInstaller, mode, ...extra] = process.argv.slice(2);
+// Online mode only: --setup=PATH runs that setup (a repacked or signed one)
+// instead of the candidate's; --tagged gives it no tag on the command line, so
+// it must read its own (the signed, tagged online installer).
+const setupOption = extra.find(o => o.startsWith('--setup='))?.slice('--setup='.length) ?? null;
+const tagged = extra.includes('--tagged');
+if (extra.some(o => !o.startsWith('--setup=') && o !== '--tagged')) throw Error(`Unknown option: ${extra.join(' ')}`);
 const expect = mode?.startsWith('--expect=') ? mode.slice('--expect='.length) : null;
 const online = mode?.startsWith('--online=') ? mode.slice('--online='.length) : null;
 if (!candidateFolder || !resultsFolder || !shippingInstaller || !(expect || online || mode === '--expect-refused'))
@@ -76,8 +82,10 @@ try {
   if (online) {
     // The online installer: the updater's setup, tagged for the beta, alone.
     const tag = installTag(names);
-    record.details.tag = tag;
-    const setup = spawnSync(path.join(directory, 'UpdaterSetup.exe'), [`--install=${tag}`, '--silent', '--enable-logging'], {timeout: 900000});
+    const setupFile = setupOption ? path.resolve(setupOption) : path.join(directory, 'UpdaterSetup.exe');
+    record.details.tag = tagged ? 'read from the file' : tag;
+    record.details.setupFile = path.basename(setupFile);
+    const setup = spawnSync(setupFile, [...(tagged ? [] : [`--install=${tag}`]), '--silent', '--enable-logging'], {timeout: 900000});
     record.details.installed = {setupExit: setup.status, pv: pv()};
     record.checks.updaterInstalled = setup.status === 0 && !!updaterExe();
     for (const deadline = Date.now() + 10 * 60000; Date.now() < deadline && pv() !== online;) await pause(5000);
