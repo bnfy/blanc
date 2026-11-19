@@ -137,7 +137,10 @@ async function run(appPath, output) {
   const app = await fs.realpath(appPath);
   if (process.platform === 'darwin') execFileSync('codesign', ['--verify', '--deep', '--strict', app]);
   const { full, production, executable, fuseExecutable, asar, launchEnv, profileEnv = () => ({}) } = candidatePaths(app);
-  const previewModule = extractFile(asar, production ? 'src/main/local-html-preview.js' : full ? 'src/main/ecs-local-html.cjs' : 'ecs-local-html.cjs').toString();
+  // @electron/asar splits archive paths on path.sep, so a '/'-joined name
+  // is not found on Windows.
+  const previewModule = extractFile(asar, production ? path.join('src', 'main', 'local-html-preview.js')
+    : full ? path.join('src', 'main', 'ecs-local-html.cjs') : 'ecs-local-html.cjs').toString();
   assert.match(previewModule, /javascript:\s*false/);
   assert.match(previewModule, /script-src 'none'/);
   assert.ok(!previewModule.includes('sandbox allow-scripts'));
