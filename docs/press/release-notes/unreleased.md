@@ -72,9 +72,6 @@ since then are below as they're recorded.
   Windows and Linux. The checks so far drive drags with page events only.
 - **The Favorites menu's nested folders** by hand in a packaged build on
   each platform.
-- **Okta Verify FastPass** (#1585) against a real enrolled Okta Verify. The
-  local-network prompt was checked against a test server on `127.0.0.1`
-  only, and a public name that resolves to a private address isn't gated.
 
 ## Still open from 1.49.1
 
