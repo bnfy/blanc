@@ -1,7 +1,7 @@
 // Spaces across profiles: the fork's pure rules (blanc/browser/ui/
 // spaces_across_profiles.h, compiled here with the system C++ compiler) must
 // agree with shipping's own module at the commit the menu pins.
-import test from 'node:test';
+import test, {after} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -30,7 +30,8 @@ const HARNESS = `#include <iostream>
 namespace s = blanc::spaces_across_profiles;
 // Lines: "P id name live", "C current", "M profile id name color symbol tabs",
 // "S profile id" (shown), "R id name color symbol tabs" (mirror rows, with
-// "O id" lines for order, "I" items, "D" deleted), "run" or "rows".
+// "O id" lines for order, "I key name color symbol tabs [own id]" items, "D"
+// deleted), "run" or "rows".
 // Fields are tab separated; empty fields are written as "-".
 static std::string F(const std::string& v) { return v == "-" ? "" : v; }
 static std::vector<std::string> Split(const std::string& line) {
@@ -48,7 +49,7 @@ int main() {
     else if (f[0] == "M") mirrors[F(f[1])].push_back({F(f[2]), F(f[3]), F(f[4]), F(f[5]), std::stoi(f[6])});
     else if (f[0] == "S") shown[F(f[1])].insert(F(f[2]));
     else if (f[0] == "O") order.push_back(F(f[1]));
-    else if (f[0] == "I") items[F(f[1])] = {F(f[1]), F(f[2]), F(f[3]), F(f[4]), std::stoi(f[5])};
+    else if (f[0] == "I") items[F(f[1])] = {F(f.size() > 6 ? f[6] : f[1]), F(f[2]), F(f[3]), F(f[4]), std::stoi(f[5])};
     else if (f[0] == "D") deleted.insert(F(f[1]));
   }
   if (!order.empty()) {
@@ -61,15 +62,21 @@ int main() {
 }
 `;
 
-function run(lines) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-spaces-'));
-  try {
+// Compiled once, on first use, and removed when the tests finish.
+let harnessDir = null;
+function harness() {
+  if (!harnessDir) {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-spaces-'));
     fs.writeFileSync(path.join(dir, 'main.cc'), HARNESS);
     execFileSync('c++', ['-std=c++20', '-Wall', '-Werror', '-I', root, path.join(dir, 'main.cc'), '-o', path.join(dir, 'h')]);
-    return JSON.parse(execFileSync(path.join(dir, 'h'), {input: lines.map(l => l.join('\t')).join('\n') + '\n', encoding: 'utf8'}));
-  } finally {
-    fs.rmSync(dir, {recursive: true, force: true});
+    harnessDir = dir;
   }
+  return path.join(harnessDir, 'h');
+}
+after(() => { if (harnessDir) fs.rmSync(harnessDir, {recursive: true, force: true}); });
+
+function run(lines) {
+  return JSON.parse(execFileSync(harness(), {input: lines.map(l => l.join('\t')).join('\n') + '\n', encoding: 'utf8'}));
 }
 
 const space = (n, extra = {}) => ({id: `s${n}`, name: `Space ${n}`, color: '#aabbcc', symbol: 'star', tabCount: n % 7, ...extra});
@@ -140,21 +147,24 @@ test('a damaged mirror loses its bad rows and keeps at most 25', () => {
   add('noname', '-', '#aabbcc', 'star', 1);
   add('long', 'x'.repeat(61), '#aabbcc', 'star', 1);
   add('red', 'Red', 'red', 'star', 1);
+  add('dup', 'Duplicate', '#aabbcc', 'star', 2);
+  order.push(['O', 'dup']);
+  order.push(['O', 'missing']);
   add('neg', 'Negative', '#aabbcc', 'Not A Symbol', -3);
   add('gone', 'Gone', '#aabbcc', 'star', 1);
   for (let i = 0; i < 40; i++) add(`ok${i}`, `Ok ${i}`, '#aabbcc', 'star', i);
-  order.push(['O', 'ok0']);
-  order.push(['O', 'missing']);
   const out = run([...rows, ...order, ['D', 'gone']]);
   const items = out[0].items;
   assert.equal(items.length, 25);
   const ids = items.map(i => i.id);
   assert.equal(new Set(ids).size, ids.length);
+  assert.equal(ids.filter(id => id === 'dup').length, 1);
   for (const bad of ['__scratch__', 'bad<id', 'noname', 'long', 'gone', 'missing']) assert.ok(!ids.includes(bad), bad);
   assert.deepEqual(items.find(i => i.id === 'red'), {id: 'red', name: 'Red', color: '', symbol: 'star', tabCount: 1, openElsewhere: false});
   const neg = items.find(i => i.id === 'neg');
   assert.equal(neg.tabCount, 0);
   assert.equal(neg.symbol, '');
+  assert.deepEqual(run([['I', 'keyed', 'Keyed', '-', '-', '1', 'other'], ['O', 'keyed']])[0].items.map(i => i.id), ['keyed']);
   assert.equal(run([['I', 'big', 'Big', '-', '-', '999999'], ['O', 'big']])[0].items[0].tabCount, 10000);
   assert.equal(run([['I', 'sixty', 'é'.repeat(60), '-', '-', '1'], ['O', 'sixty']])[0].items.length, 1);
 });

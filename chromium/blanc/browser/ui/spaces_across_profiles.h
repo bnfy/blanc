@@ -7,6 +7,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace blanc::spaces_across_profiles {
@@ -44,7 +45,7 @@ namespace internal {
 
 inline bool InClass(char c, bool upper, bool lower, bool digit, const char* extra) {
   return (upper && c >= 'A' && c <= 'Z') || (lower && c >= 'a' && c <= 'z') ||
-         (digit && c >= '0' && c <= '9') || std::string(extra).find(c) != std::string::npos;
+         (digit && c >= '0' && c <= '9') || std::string_view(extra).find(c) != std::string_view::npos;
 }
 
 // ^[A-Za-z0-9_-]{1,120}$
@@ -109,8 +110,9 @@ inline std::vector<Space> MirrorRows(const std::vector<std::string>& order,
     auto it = items.find(id);
     if (it == items.end()) continue;
     Space row = it->second;
+    row.id = id;  // The id checked above is the one that crosses.
     size_t points = internal::CodePoints(row.name);
-    if (!internal::ValidId(id) || !internal::ValidId(row.id) || points == 0 || points > 60) continue;
+    if (!internal::ValidId(id) || points == 0 || points > 60) continue;
     if (!internal::ValidColor(row.color)) row.color.clear();
     if (!internal::ValidSymbol(row.symbol)) row.symbol.clear();
     row.tab_count = std::clamp(row.tab_count, 0, 10000);
