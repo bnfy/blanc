@@ -10636,11 +10636,10 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           args[3].GetString(), SpaceElsewhereReply(id));
       return;
     }
+    // Answers whether a window showing the Space came forward, so the
+    // caller's Island leaves the focus with it only when one did.
     if (method == "spaceFocus" && args.size() == 1 && args[0].is_string()) {
-      for (auto* other : Owner::Live())
-        if (other->browser->GetProfile() == profile && other->space_name == args[0].GetString())
-          other->browser->GetWindow()->Activate();
-      reply(true, base::Value(true)); return;
+      reply(true, base::Value(FocusSpaceWindow(profile, args[0].GetString()))); return;
     }
     const bool space_named = args.size() >= 1 && args[0].is_string() && !args[0].GetString().empty() &&
         args[0].GetString().size() <= 120;

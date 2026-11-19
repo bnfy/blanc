@@ -37,8 +37,10 @@
   let overlayMenuOpen = false;
   // A Space came forward in another window (settleElsewhere): closing this
   // Island must not hand focus back to this window's page, or that window
-  // falls behind again (#1642). The next open clears it.
+  // falls behind again (#1642). The next open clears it, and so does this
+  // window coming forward again (refreshNow).
   let focusLeftWindow = false;
+  let lastWindowActive = null;
   // What the open surface was shown for (shipping's overlayPurpose).
   let overlayPurpose = null;
   // The side list's group menu names its group as it closes, so that
@@ -458,6 +460,8 @@
   }
   // A call into another profile: a cold profile loads more slowly than a new
   // window of this one (openSpaceElsewhere's 20 seconds), so it gets 30.
+  // After the give-up the request isn't cancelled: a late native answer can
+  // still open the window, though this caller already reported a failure.
   async function inOtherProfile(method, args) {
     let timer;
     const gaveUp = new Promise((_, refuse) => { timer = setTimeout(() => refuse(new Error('The other profile did not open the Space.')), 30000); });
@@ -545,9 +549,11 @@
     if (snapshot.spaceName === id) return spaceResult({ workspaceId: id, action: 'noop' });
     // Already showing in another window: go there.
     if (list.elsewhere.has(id)) {
-      await request('spaceFocus', [id]);
+      // Native answers whether a window came forward; only then does this
+      // Island leave the focus with it (shipping keys on the window id).
+      const focused = await request('spaceFocus', [id]);
       const shown = { ok: true, workspaceId: id, action: 'focus' };
-      await settleElsewhere(shown);
+      if (focused === true) await settleElsewhere(shown);
       return spaceResult(shown);
     }
     if (options.newWindow) return openSpaceElsewhere(id);
@@ -1127,6 +1133,10 @@
     const attempt = ++snapshotRefreshAttempt;
     try {
       snapshot = await request('snapshot');
+      // Back in front after a Space came forward elsewhere: closing the
+      // Island hands focus to this window's page again.
+      if (lastWindowActive === false && snapshot.windowActive === true) focusLeftWindow = false;
+      lastWindowActive = snapshot.windowActive;
       if (snapshot.miniWindow && !miniSearchOpened) {
         miniSearchOpened = true;
         setTimeout(() => window.BlancPrototypeHost.open(true), 50);

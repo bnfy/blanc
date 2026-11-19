@@ -104,6 +104,10 @@ test('host routing: another profile goes to the browser before any switch guard'
   assert.match(body('close'), /focusLeftWindow/);
   assert.match(body('show'), /focusLeftWindow = false/);
   assert.match(body('settleElsewhere'), /focusLeftWindow = true/);
+  assert.match(body('refreshNow'), /lastWindowActive === false && snapshot\.windowActive === true\) focusLeftWindow = false/);
+  // Same-profile Show window settles only when native brought one forward.
+  assert.match(body('openSpace'), /const focused = await request\('spaceFocus', \[id\]\)/);
+  assert.match(body('openSpace'), /if \(focused === true\) await settleElsewhere\(shown\)/);
   // A create in another profile is answered by its window.
   assert.match(body('openPendingSpace'), /kind === 'create'/);
   assert.match(body('openPendingSpace'), /createSpaceHere\(/);
