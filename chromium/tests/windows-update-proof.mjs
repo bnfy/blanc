@@ -64,6 +64,12 @@ try {
   await pause(3000); spawnSync('taskkill.exe', ['/F', '/T', '/IM', 'Blanc.exe'], {stdio: 'ignore'});
   const electronBefore = electronState();
 
+  // A Windows profile normally has HKCU\\...\\CurrentVersion\\Run, which the
+  // updater's setup writes its startup entry into; a fresh runner profile
+  // may not, and setup then rolls back (error 75044). Record it and create it.
+  const runKey = 'HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run';
+  record.details.runKeyExisted = spawnSync('reg.exe', ['query', runKey], {stdio: 'ignore'}).status === 0;
+  spawnSync('reg.exe', ['add', runKey, '/f'], {stdio: 'ignore'});
   const setup = spawnSync(path.join(directory, 'UpdaterSetup.exe'), ['--install', '--silent', '--enable-logging'], {timeout: 300000});
   const install = spawnSync(path.join(directory, 'mini_installer.exe'), ['--do-not-launch-chrome', '--verbose-logging'], {timeout: 600000});
   record.details.installed = {setupExit: setup.status, installerExit: install.status, pv: pv()};
