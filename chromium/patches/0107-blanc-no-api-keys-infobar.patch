@@ -1,0 +1,25 @@
+diff --git a/chrome/browser/ui/startup/infobar_utils.cc b/chrome/browser/ui/startup/infobar_utils.cc
+index 94d977b..3e9b618 100644
+--- a/chrome/browser/ui/startup/infobar_utils.cc
++++ b/chrome/browser/ui/startup/infobar_utils.cc
+@@ -4,6 +4,8 @@
+ 
+ #include "chrome/browser/ui/startup/infobar_utils.h"
+ 
++#include "blanc/common/island_mode.h"
++
+ #include <memory>
+ #include <utility>
+ 
+@@ -253,7 +255,10 @@
+   infobars::ContentInfoBarManager* infobar_manager =
+       infobars::ContentInfoBarManager::FromWebContents(web_contents);
+ 
+-  if (!google_apis::HasAPIKeyConfigured()) {
++  // Blanc: Blanc ships without Google API keys on purpose (no Google
++  // services), so Chromium's "Google API keys are missing" bar would show on
++  // the first window of every launch, most visibly after an update relaunch.
++  if (!blanc::IslandMode() && !google_apis::HasAPIKeyConfigured()) {
+     if (infobars::IsInfoBarMigrated(
+             infobars::InfoBarDelegate::GOOGLE_API_KEYS_INFOBAR_DELEGATE)) {
+       if (auto* manager =

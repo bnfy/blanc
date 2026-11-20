@@ -87,6 +87,10 @@ menu and editor in `src/renderer/workspace-ui.js`.
 
 ### Divergences from Electron Blanc, for the owner
 
+*Renumbered November 19, 2026:* `chromium/next` recorded its own V32 the same
+day (e41e713fa), so the proposed V32 and V33 below are recorded as **V33** and
+**V34**; V31 keeps its number.
+
 - **V31 (proposed): a profile's Spaces are listed once it has been opened in a
   build with the mirror.** Until then its mirror is empty and it shows no Spaces
   (it still appears in the editor's Profile choice). Every profile that has

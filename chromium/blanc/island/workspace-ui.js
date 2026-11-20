@@ -51,7 +51,10 @@
     'busy': t('ws.error.busy'),
     'activation-failed': t('ws.error.activationFailed'),
     'saved-not-opened': t('ws.error.savedNotOpened'),
+    'profile-unavailable': t('ws.error.profileUnavailable'),
   };
+  // A profile whose saved Spaces can't be read (spaces-across-profiles.js).
+  const UNREADABLE = ['read-failed', 'future-format', 'repair-failed'];
   const SVG = 'http://www.w3.org/2000/svg';
   // Interface glyphs on Lucide's 24×24 grid, drawn like the symbols.
   const GLYPHS = {
@@ -208,12 +211,14 @@
     function toList() { flushUpdate(); state = { kind: 'list' }; render(); popup.querySelector('[data-current="true"]')?.focus(); }
 
     // ---- editing state ----
-    /** New: { kind, draft, start, original? } · Edit: { kind, id, draft }. */
-    function beginNew({ name = '', start = null, original = null, tabId = null, tabTitle = '' } = {}) {
+    /** New: { kind, draft, start, original? } · Edit: { kind, id, draft }.
+     * `thisProfile` leaves out the Profile choice: `/space <name>` stays within
+     * this window's profile (spec 2026-11-19-spaces-across-profiles §4.5). */
+    function beginNew({ name = '', start = null, original = null, tabId = null, tabTitle = '', thisProfile = false } = {}) {
       if (state.pending) return;
       generation += 1;
       const identity = Identity.defaultsFor(data.items);
-      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original || ['tab', 'tabs', 'link'].includes(start), tabId, tabTitle, original, error: '', touched: false, picker: false };
+      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original || ['tab', 'tabs', 'link'].includes(start), thisProfile, tabId, tabTitle, original, error: '', touched: false, picker: false };
       open();
     }
     function beginEdit(workspace) {
@@ -224,10 +229,16 @@
       state = { kind: 'edit', id: workspace.id, draft: { name: workspace.name, color: workspace.color, symbol: workspace.symbol, ...kept }, error: '', touched: false, picker: false };
       open();
     }
+    /** The Spaces of the profile a new Space goes to: this window's, or the
+     * one chosen in the editor's Profile row. Names are unique per profile. */
+    function draftProfileItems() {
+      const chosen = state.kind === 'new' && state.draft?.profileId;
+      return chosen ? (data.otherProfiles ?? []).find((p) => p.id === chosen)?.items ?? [] : data.items;
+    }
     function nameProblem(name, exceptId = null) {
       const clean = String(name ?? '').trim().replace(/\s+/g, ' ');
       if (!clean) return 'invalid-name';
-      if (data.items.some((w) => w.id !== exceptId && w.name.toLowerCase() === clean.toLowerCase())) return 'duplicate-name';
+      if (draftProfileItems().some((w) => w.id !== exceptId && w.name.toLowerCase() === clean.toLowerCase())) return 'duplicate-name';
       return null;
     }
     // Edits apply live: a patch waits briefly so typing and dragging write once.
@@ -266,7 +277,7 @@
           return ok;
         };
         return Promise.resolve().then(() => api.updateWorkspace(id, patch)).then((result) => {
-          if (result?.items) data = { ...data, ...result };
+          if (result?.items) data = { ...data, otherProfiles: undefined, profileName: undefined, ...result };
           return result?.ok ? done(true) : done(false, errors[result?.error] || t('ws.error.generic'));
         }, () => done(false, errors['storage-failed']));
       });
@@ -314,7 +325,7 @@
       try { result = await operation(); } catch { result = { ok: false, error: 'storage-failed' }; }
       if (stamp !== generation) return;
       state.pending = false;
-      if (result?.items) data = { ...data, ...result };
+      if (result?.items) data = { ...data, otherProfiles: undefined, profileName: undefined, ...result };
       if (!result?.ok) {
         if (['saved-not-opened', 'saved-not-moved'].includes(result?.error)) {
           // Creation already committed. Leave the user on the list containing
@@ -328,8 +339,19 @@
         } else if (['unsaved-scratch', 'protected-pages'].includes(result?.error) && action) {
           state = { kind: 'decision', action, result, error: '' }; open();
         } else {
+          // The other profile went away (deleted meanwhile): forget it in the
+          // editor and fetch the current list, so a retry can't fail the same way.
+          if (result?.error === 'profile-unavailable') {
+            if (state.kind === 'new' && state.draft) state.draft.profileId = null;
+            Promise.resolve(api.listWorkspaces?.()).then((fresh) => {
+              if (!fresh?.items || stamp !== generation) return;
+              data = { ...data, otherProfiles: undefined, profileName: undefined, ...fresh }; render();
+            }).catch(() => {});
+          }
           state.error = state.kind === 'recovery' && result?.error === 'duplicate-name' ? t('ws.error.recoveryDuplicate') : errors[result?.error] || t('ws.error.generic');
-          render();
+          // An open started with the menu closed (the Quick Switcher) shows
+          // its error in the Spaces list, which opens for it.
+          if (!opened) open(); else render();
           const input = popup.querySelector('input');
           if (input) { input.focus(); if (state.editSelection) input.setSelectionRange(...state.editSelection); }
         }
@@ -340,7 +362,10 @@
       if (key && opened) [...popup.querySelectorAll('button')].find((b) => b.dataset.focusKey === key && !b.disabled)?.focus();
     }
     function openAction(action, options = {}) {
-      run(() => action.kind === 'open' ? api.openWorkspace(action.id, options) : api.createBlankWorkspace(action.name, { ...options, ...action.identity }), () => {
+      // Another profile's Space opens (or is created) in a window of that
+      // profile (spec 2026-11-19-spaces-across-profiles §4.3).
+      const where = action.profileId ? { ...options, profileId: action.profileId } : options;
+      run(() => action.kind === 'open' ? api.openWorkspace(action.id, where) : api.createBlankWorkspace(action.name, { ...where, ...action.identity }), () => {
         state = { kind: 'list' }; close({ force: true }); api.closeOverlay();
       }, action);
     }
@@ -362,6 +387,7 @@
         });
         return;
       }
+      if (state.draft.profileId && !state.fixedStart) { openAction({ kind: 'create', name, identity, profileId: state.draft.profileId }); return; }
       if (state.start === 'empty' && !state.fixedStart) { openAction({ kind: 'create', name, identity }); return; }
       const original = state.original;
       run(() => api.saveWorkspaceAs(name, identity), () => {
@@ -406,6 +432,23 @@
       more.setAttribute('aria-label', t('ws.row.edit', { name: workspace.name }));
       more.append(glyph('more'));
       row.append(main, more);
+      return row;
+    }
+    /** Another profile's Space: it only opens, in a window of its profile.
+     * Editing, reordering and deleting stay in that profile's own windows
+     * (spec 2026-11-19-spaces-across-profiles §4.2). */
+    function otherProfileRow(workspace, profile) {
+      const row = el('div', 'workspace-row ws-row ws-row-elsewhere'); row.dataset.workspaceId = workspace.id; row.dataset.profileId = profile.id;
+      const main = button('', `open:${profile.id}:${workspace.id}`, () => {
+        openAction({ kind: 'open', id: workspace.id, name: workspace.name, profileId: profile.id });
+      }, 'ws-row-main');
+      const context = workspace.openElsewhere ? t('ws.row.showWindow') : t('ws.row.openInProfile', { profile: profile.name });
+      main.title = workspace.openElsewhere
+        ? t('ws.row.titleProfileShown', { name: workspace.name, profile: profile.name, context })
+        : t('ws.row.titleProfile', { name: workspace.name, profile: profile.name, context, count: workspace.tabCount });
+      main.setAttribute('aria-label', main.title);
+      main.append(tile(workspace), dataEl('span', 'ws-row-name', workspace.name), el('span', 'ws-row-count', workspace.openElsewhere ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
+      row.append(main);
       return row;
     }
     // Drag to reorder: the row follows the pointer 1:1 from where it was
@@ -459,8 +502,18 @@
       const nodes = [];
       if(data.sharedSync){nodes.push(el('p','ws-sync-status',t('sharedSpaces.count',data.sharedSync)));if(data.sharedSync.busy)nodes.push(el('p','ws-sync-status',t('sharedSpaces.busy')));else if(data.sharedSync.slowed)nodes.push(el('p','ws-sync-status',t('sharedSpaces.slowed')));}
       if(data.recoveryNotice){nodes.push(el('p','ws-sync-status',t('sharedSpaces.recoveryNote')));nodes.push(button(t('sharedSpaces.cancel'),'dismiss-recovery',()=>run(()=>api.updateWorkspace('',{ackRecovery:true}),()=>{})));}
+      // Other profiles with something to show: Spaces, or a file that can't be read.
+      const others = (data.otherProfiles ?? []).filter((profile) => profile.items?.length || UNREADABLE.includes(profile.status));
+      // Headings only when two groups show; one profile looks exactly as before.
+      const heading = (name) => nodes.push(dataEl('p', 'ws-profile-heading', name));
+      if (others.length) heading(data.profileName ?? '');
       if (!data.items.length) nodes.push(el('p', 'ws-empty', t('ws.list.emptyHint')));
       data.items.forEach((workspace, index) => nodes.push(spaceRow(workspace, index)));
+      for (const profile of others) {
+        heading(profile.name);
+        if (UNREADABLE.includes(profile.status)) nodes.push(el('p', 'ws-empty', t('ws.profile.unreadable')));
+        else for (const workspace of profile.items) nodes.push(otherProfileRow(workspace, profile));
+      }
       if (undo && data.deleted?.some((d) => d.id === undo.id)) {
         const row = el('div', 'ws-undo');
         row.append(dataEl('span', 'ws-undo-text', t('ws.undo.deleted', { name: undo.name })),
@@ -468,7 +521,7 @@
         nodes.push(row);
       }
       // F45: anyone starting from nothing can bring Spaces over from Arc.
-      if (!data.items.length) {
+      if (!data.items.length && !others.length) {
         const arc = button(t('ws.list.importArc'), 'import-arc', () => { close({ force: true }); api.openPage('tab-import'); });
         arc.prepend(glyph('import')); nodes.push(arc);
       }
@@ -571,11 +624,45 @@
       }
       if (isNew && !state.fixedStart) {
         const seg = el('div', 'ws-segmented'); seg.setAttribute('role', 'radiogroup'); seg.setAttribute('aria-label', t('ws.editor.startWith'));
+        const otherProfile = () => (data.otherProfiles ?? []).find((p) => p.id === state.draft.profileId) ?? null;
+        const syncStart = () => {
+          for (const o of seg.querySelectorAll('button')) {
+            o.setAttribute('aria-checked', String(o.dataset.focusKey === `start:${state.start}`));
+            // Tabs stay in their own profile: another profile starts empty.
+            if (o.dataset.focusKey === 'start:window') o.disabled = !!state.pending || !!otherProfile();
+          }
+        };
         for (const [value, text] of [['window', t('ws.editor.thisWindow', { count: data.windowTabCount ?? 0 })], ['empty', t('ws.editor.empty')]]) {
-          const opt = button(text, `start:${value}`, () => { state.start = value; for (const o of seg.querySelectorAll('button')) o.setAttribute('aria-checked', String(o === opt)); }, 'ws-segment');
-          opt.setAttribute('role', 'radio'); opt.setAttribute('aria-checked', String(state.start === value)); seg.append(opt);
+          const opt = button(text, `start:${value}`, () => { state.start = value; syncStart(); }, 'ws-segment');
+          opt.setAttribute('role', 'radio'); seg.append(opt);
         }
-        form.append(el('p', 'ws-label', t('ws.editor.startWith')), seg, el('p', 'ws-help', t('ws.editor.help')));
+        const helpLine = el('p', 'ws-help');
+        const syncHelp = () => { const other = otherProfile(); helpLine.textContent = other ? t('ws.editor.helpOtherProfile', { profile: other.name }) : t('ws.editor.help'); };
+        // With two or more profiles, which one the new Space belongs to
+        // (spec 2026-11-19-spaces-across-profiles §4.4).
+        if (data.otherProfiles?.length && !state.thisProfile) {
+          const picker = el('select', 'ws-select'); picker.id = 'workspaceProfile';
+          picker.setAttribute('aria-label', t('ws.editor.profile'));
+          for (const profile of [{ id: '', name: data.profileName ?? '', full: false }, ...data.otherProfiles]) {
+            // A full profile, or one whose Spaces can't be read, can't take a
+            // new Space; its tooltip says why.
+            const reason = profile.full ? errors.limit : UNREADABLE.includes(profile.status) ? t('ws.profile.unreadable') : '';
+            const option = dataEl('option', null, reason ? t('ws.editor.profileDisabled', { profile: profile.name }) : profile.name);
+            option.value = profile.id; option.disabled = !!reason; if (reason) option.title = reason;
+            picker.append(option);
+          }
+          picker.value = state.draft.profileId ?? ''; picker.disabled = !!state.pending;
+          picker.addEventListener('change', () => {
+            state.draft.profileId = picker.value || null;
+            if (otherProfile()) state.start = 'empty';
+            syncStart(); syncHelp();
+            const problem = state.touched ? nameProblem(state.draft.name) : null;
+            state.error = problem ? errors[problem] : ''; renderEditorError();
+          });
+          form.append(el('p', 'ws-label', t('ws.editor.profile')), picker);
+        }
+        syncStart(); syncHelp();
+        form.append(el('p', 'ws-label', t('ws.editor.startWith')), seg, helpLine);
       }
       const actions = el('div', 'ws-editor-actions');
       if (isNew) {
@@ -724,7 +811,7 @@
     }
     popup.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); cancel(); return; }
-      if (event.target.tagName === 'INPUT' || event.target.closest?.('.space-picker')) return;
+      if (['INPUT', 'SELECT'].includes(event.target.tagName) || event.target.closest?.('.space-picker')) return;
       const keys = ['ArrowDown', 'ArrowUp', 'Home', 'End']; if (!keys.includes(event.key) || event.altKey) return;
       const buttons = [...popup.querySelectorAll('button')].filter((b) => !b.disabled && !b.hidden && b.getClientRects().length);
       const at = buttons.indexOf(doc.activeElement);
@@ -755,8 +842,8 @@
         else if (kind === 'delete') { open(); removeNow(workspace); }
       },
       toggle() { opened ? close() : open(); },
-      switchTo(workspace) { openAction({ kind: 'open', id: workspace.id, name: workspace.name }); },
-      command(name) { const existing = data.items.find((w) => w.name.toLowerCase() === name.toLowerCase()); if (existing) this.switchTo(existing); else beginNew({ name }); },
+      switchTo(workspace) { openAction({ kind: 'open', id: workspace.id, name: workspace.name, ...(workspace.profileId ? { profileId: workspace.profileId } : {}) }); },
+      command(name) { const existing = data.items.find((w) => w.name.toLowerCase() === name.toLowerCase()); if (existing) this.switchTo(existing); else beginNew({ name, thisProfile: true }); },
       get opened() { return opened; }, get editing() { return state.kind !== 'list'; },
       reset() { if (!state.pending) { api.cancelWorkspaceAction?.(); flushUpdate(); state = { kind: 'list' }; close({ force: true }); } },
       get state() { return state; },

@@ -227,6 +227,44 @@ manifest and Sigstore → draft (GitHub pre-release) → publish (release.json
 names the version, Worker deployed, release published) → verify-public (hosted
 smoke of the downloaded installer).
 
+Windows release tool (owner, 2026-11-19: "Own pre-release"). A Windows beta is
+its own GitHub pre-release, never latest, tag `chromium-beta-windows-<version>`
+(version `158.0.8127.<build>`, the number people see), with its own ledger
+(`chromium/release/windows-ledger.json`); Mac and Windows never wait on each
+other. `chromium/release/windows-release.mjs status|<stage> WORK`, owner-run in
+a foreground Terminal on the MacBook Pro, state in WORK/state.json bound to
+WORK/windows-release.json (schema 1: version, build, previousBuild, tag,
+sourceCommit on `chromium/next`, candidate id and zip SHA-256). Stages:
+
+1. `preflight`: the record is valid, the build is above the ledger's last, the
+   candidate is on the `fork-windows-candidate` draft with that SHA-256, the
+   tag and any release with it are absent.
+2. `sign`: dispatches the candidate workflow from `chromium/next` with
+   `sign=true` (the owner approves `fork-windows-signing` in GitHub), waits,
+   downloads the signed installer, `Blanc-Beta-Setup.exe` and
+   `windows-signature.json` at once (the draft's copies are replaced by the
+   next signing run), and checks the record names this candidate.
+3. `package`: the owner signs the signed `mini_installer.exe` into the CRX with
+   `update-package-sign.command`; the stage checks it with the committed key.
+4. `upload`: the CRX to R2 by its SHA-256 (not offered yet).
+5. `staging-gate`: staging offers this version from itself, a runner installs it
+   with the test setup through the relay and must end at this version, then
+   staging offers nothing again.
+6. `manifest`: assets `Blanc-Beta-Setup-<version>.exe`, `windows-signature.json`,
+   `update-package.json`, `windows-release.json`, `NOTICES.txt`, plus
+   `RELEASE-MANIFEST.json` and `SHA256SUMS`.
+7. `draft` (point of no return; typed confirmation): tag, draft pre-release,
+   assets read back.
+8. `sigstore`: as on the Mac (Safari, pinned identity).
+9. `publish` (typed confirmation): production's Worker is deployed offering this
+   version first (so a fresh download can install), then the release is
+   published; the latest release must still be Electron's.
+10. `verify-public`: logged-out download, manifest, checksums and Sigstore;
+    blanc.day's signed offer names this version; a runner installs from the
+    public `Blanc-Beta-Setup-<version>.exe` alone.
+
+Afterwards (records PR): the ledger entry and production's `release.json`.
+
 - [ ] Owner hand checks on a real Windows desktop (W2's D1 plus: install from the download, an
       update arriving, About showing it).
 - [ ] Release through `release.mjs`'s Windows stages, owner-run; a hosted smoke of the published
