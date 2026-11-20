@@ -47,7 +47,7 @@ test('every Mail page names the product, leads back to /mail and links to its se
         const nav = document.querySelector('.mail-bar nav');
         return {
           name: nav.getAttribute('aria-label'),
-          // The link names both the visible “Inbox” label and the product.
+          // The bar displays “Mail” and names the full product to assistive technology.
           title: nav.querySelector('.mail-bar-title .mail-lockup-word').alt,
           word: nav.querySelector('.mail-lockup-word').getAttribute('src'),
           href: nav.querySelector('.mail-bar-title').getAttribute('href'),
@@ -58,7 +58,7 @@ test('every Mail page names the product, leads back to /mail and links to its se
         };
       });
       const sections = ['/mail#pricing', '/mail#address', '/mail#features', '/mail#support'];
-      assert.deepEqual(bar, { name: 'Blanc Mail', title: 'Inbox — Blanc Mail', word: '/lockup/inbox-word-small-white.svg', href: '/mail', sections, labels: ['Plans', 'Blanc addresses', 'App features', 'FAQ'], menu: sections, popovers: ['mail-bar-menu', 'mail-bar-waitlist'] }, path);
+      assert.deepEqual(bar, { name: 'Blanc Mail', title: 'Blanc Mail', word: '/lockup/mail-word-small-white.svg', href: '/mail', sections, labels: ['Plans', 'Blanc addresses', 'App features', 'FAQ'], menu: sections, popovers: ['mail-bar-menu', 'mail-bar-waitlist'] }, path);
     }
   } finally { await context.close(); }
 });
