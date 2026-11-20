@@ -1,0 +1,97 @@
+{
+  "release": "2.0.0-beta.9",
+  "tag": "chromium-beta-2.0.0-beta.9",
+  "sourceCommit": "ca0c9e802b5983e3625356c0ad8bb6018cfa15c5",
+  "publicRelease": "2026-11-20",
+  "releaseUrl": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.9",
+  "releaseEvidence": "The release's own acceptance.json (every gate passed or waived under the owner's standing decisions) and docs/chromium-beta-release.md on chromium/next.",
+  "ownerDecisions": {
+    "approvedOn": "2026-11-14",
+    "decisions": [
+      "Show Blanc Beta on /download as the first of the page's tiles, in dark ink, right under the download (owner, 2026-11-14, with the page's reimagining); never a platform choice, so the regular Blanc stays the download.",
+      "The Download button goes to /dl/beta on the blanc-ping Worker, counted like the other /dl/* routes.",
+      "The section names both waived gates as limitations, matching the approved release notes.",
+      "Beta.3 (owner, 2026-11-14): the tile, its text and both limitations stay as for beta.2; only the release it names changes. Its release notes keep the caution that Sync isn't checked end to end.",
+      "Beta.4 (owner, 2026-11-14): the tile, its text and both limitations stay as for beta.3; only the release it names changes. Its release notes keep the caution that Sync isn't checked end to end.",
+      "Beta.5 (standing decision, owner 2026-11-14): the tile, its text and both limitations stay as for beta.4; only the release it names changes. Its release notes keep the caution that Sync isn't checked end to end.",
+      "Beta.6 (standing decision, owner 2026-11-14): the tile, its text and both limitations stay as for beta.5; only the release it names changes. Its release notes keep the caution that Sync isn't checked end to end.",
+      "Version figures (owner, 2026-11-15): the tile shows the beta's number and the Chromium major version as large figures, with the full version and build, the full Chromium version and the release day beside them; the requirement line no longer carries the version. Every version line is written from the release by chromium/release/daily/site-pr.mjs. The button reads Download Beta for Mac with the Apple logo, so it is clear the beta is Mac-only.",
+      "Beta.7 (standing decision, owner 2026-11-14): the tile, its text and both limitations stay as for beta.6; only the release it names changes. Its release notes keep the caution that Sync isn't checked end to end.",
+      "Beta.8 (standing decision, owner 2026-11-14): the tile, its text and both limitations stay as for beta.7; only the release it names changes. Its release notes keep the caution that Sync isn't checked end to end.",
+      "Beta.9 (standing decision, owner 2026-11-14): the tile, its text and both limitations stay as for beta.8; only the release it names changes. Its release notes keep the caution that Sync isn't checked end to end."
+    ]
+  },
+  "page": "site/src/pages/download.astro#beta",
+  "claims": [
+    {
+      "text": "Preview",
+      "kind": "label"
+    },
+    {
+      "text": "Blanc Beta",
+      "kind": "label"
+    },
+    {
+      "text": "Blanc built directly on Chromium.",
+      "evidence": "The release is built from the fork's Chromium 158 tree (release.json chromiumVersion 158.0.8127.2); the approved release notes say the same."
+    },
+    {
+      "text": "It installs beside Blanc and never replaces it.",
+      "evidence": "Own bundle id me.bnfy.blanc.beta and Blanc Beta data folder (release.json); profile-coexistence gate passed on the notarized app; the owner's webauthn checks confirmed the Electron app and its passkeys were untouched."
+    },
+    {
+      "text": "Beta 9",
+      "field": "beta-number",
+      "evidence": "release.json version 2.0.0-beta.9: beta 9 of Blanc Beta 2.0.0."
+    },
+    {
+      "text": "2.0.0-beta.9 · build 9",
+      "field": "beta-version",
+      "evidence": "release.json version 2.0.0-beta.9 and build 9, the appcast's sparkle:version."
+    },
+    {
+      "text": "Chromium 158",
+      "field": "chromium-major",
+      "evidence": "release.json chromiumVersion 158.0.8127.2, the fork's Chromium tree (chrome/VERSION unchanged from upstream)."
+    },
+    {
+      "text": "158.0.8127.2",
+      "field": "chromium-version",
+      "evidence": "release.json chromiumVersion 158.0.8127.2; the release's SBOM names the same Chromium."
+    },
+    {
+      "text": "Apple Silicon Macs · macOS 13 or later",
+      "field": "requirement",
+      "evidence": "release.json arches [arm64] under the owner's standing Intel waiver, minimumSystemVersion 13.0 (2.0.0-beta.9)."
+    },
+    {
+      "text": "Released November 20, 2026",
+      "field": "released",
+      "evidence": "The GitHub pre-release chromium-beta-2.0.0-beta.9 was published on 2026-11-20 (UTC)."
+    },
+    {
+      "text": "Download Beta for Mac",
+      "evidence": "The only build is for Apple Silicon Macs (release.json arches [arm64]); the button names the platform beside the Apple logo (owner, 2026-11-15)."
+    },
+    {
+      "text": "Not in this beta yet",
+      "kind": "label"
+    },
+    {
+      "text": "Protected video, such as Netflix or Spotify.",
+      "evidence": "Listed under 'Not in this beta yet'. The beta ships without Widevine (enable_widevine = false), so protected video does not play. The no-drm-handoff gate passes: a site that asks for protected video gets a notice offering to open it in the released Blanc (the release's acceptance.json; waiver retired by the owner, 2026-11-17)."
+    },
+    {
+      "text": "Sync checked against the live Sync service.",
+      "evidence": "Listed under 'Not in this beta yet'. production-sync-real-device is waived under the owner's standing decision of 2026-11-14 (release.json gateWaivers); the release notes keep the caution that Sync isn't checked end to end."
+    },
+    {
+      "text": "Intel Macs, Windows and Linux.",
+      "evidence": "Listed under 'Not in this beta yet'. The release ships arm64 only; no fork build exists for Windows or Linux."
+    },
+    {
+      "text": "Release notes",
+      "kind": "label"
+    }
+  ]
+}
