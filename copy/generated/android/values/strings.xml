@@ -188,6 +188,16 @@
     <string name="fill_surface_title">Fill status</string>
     <string name="fill_dismiss">Dismiss</string>
     <string name="dialog_ok">OK</string>
+    <string name="local_html_refused_message">Blanc couldn’t open “%1$s”</string>
+    <plurals name="local_html_refused_message_many">
+        <item quantity="one">Blanc couldn’t open %1$d file</item>
+        <item quantity="other">Blanc couldn’t open %1$d files</item>
+    </plurals>
+    <string name="local_html_refused_line">%1$s: %2$s</string>
+    <string name="local_html_refused_too_large">The file is larger than 8 MB. Blanc opens local pages up to 8 MB.</string>
+    <string name="local_html_refused_not_html">This file isn’t an HTML page.</string>
+    <string name="local_html_refused_changed">The file changed while Blanc was reading it. Open it again.</string>
+    <string name="local_html_refused_unreadable">Blanc couldn’t read the file. Check that it still exists and that you can open it.</string>
     <string name="fill_setup_enable_title">Set up 1Password</string>
     <string name="fill_setup_enable_body">Turn on “Fill logins from 1Password” in Settings. Blanc only reads a matching login when you ask.</string>
     <string name="fill_setup_enable_primary_label">Open Settings</string>
