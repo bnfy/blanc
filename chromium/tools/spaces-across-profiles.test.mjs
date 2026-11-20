@@ -36,7 +36,8 @@ namespace s = blanc::spaces_across_profiles;
 static std::string F(const std::string& v) { return v == "-" ? "" : v; }
 static std::vector<std::string> Split(const std::string& line) {
   std::vector<std::string> out; std::string cur; std::istringstream in(line);
-  while (std::getline(in, cur, '\\t')) out.push_back(cur); return out; }
+  while (std::getline(in, cur, '\\t')) { out.push_back(cur); }
+  return out; }
 int main() {
   std::vector<s::Profile> profiles; std::string current;
   std::map<std::string, std::vector<s::Space>> mirrors; std::map<std::string, std::set<std::string>> shown;
