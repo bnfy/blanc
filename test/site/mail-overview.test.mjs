@@ -76,6 +76,36 @@ test('the hero shows both ways to use Mail with equal actions before the preview
   }
 });
 
+test('the envelope holds still under reduced motion, and otherwise leans toward the pointer', async () => {
+  // Whether the envelope is rotated at all: the perspective alone leaves the
+  // matrix's rotation terms at zero.
+  const leaning = page => page.evaluate(() => {
+    const { m13, m23, m31, m32 } = new DOMMatrix(getComputedStyle(document.querySelector('.mail-envelope')).transform);
+    return [m13, m23, m31, m32].some(v => Math.abs(v) > 1e-4);
+  });
+
+  const reduced = await openPage('/mail');
+  try {
+    await reduced.page.mouse.move(40, 200);
+    await reduced.page.waitForTimeout(400);
+    assert.equal(await leaning(reduced.page), false, 'no lean');
+    assert.equal(await reduced.page.evaluate(() => document.querySelector('.envelope-stage').getAnimations({ subtree: true }).length), 0, 'nothing animates');
+  } finally { await reduced.context.close(); }
+
+  const full = await openPage('/mail', 1440, { reducedMotion: 'no-preference' });
+  try {
+    await full.page.mouse.move(40, 200);
+    await full.page.waitForFunction(() => getComputedStyle(document.querySelector('.mail-envelope')).getPropertyValue('--mx').trim() !== '0.5');
+    await full.page.waitForTimeout(1000);
+    assert.equal(await leaning(full.page), true, 'it leans');
+    await full.page.mouse.move(720, 450);
+    await full.page.mouse.move(-1, 450);
+    await full.page.evaluate(() => document.documentElement.dispatchEvent(new PointerEvent('pointerleave')));
+    await full.page.waitForTimeout(1100);
+    assert.equal(await leaning(full.page), false, 'and settles when the pointer leaves');
+  } finally { await full.context.close(); }
+});
+
 test('the hero waitlist opens by keyboard and reuses the email confirmation flow', async () => {
   const { page, context } = await openPage('/mail');
   try {

@@ -94,16 +94,16 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 .mail-bar-waitlist{width:min(440px,calc(100vw - 24px));padding:22px 22px 20px}
 .mail-bar-waitlist .mail-waitlist{max-width:none;margin:0}
 /* The waitlist on dark glass, with a smoked field and a gold button. */
-.mail-bar-waitlist .mail-waitlist-controls{border-color:#f2ead826;background:#ffffff0d;box-shadow:inset 0 1px 0 #ffffff0f}
-.mail-bar-waitlist .mail-waitlist-controls:focus-within{border-color:#e0c084;box-shadow:0 0 0 3px #e0c08433}
-.mail-bar-waitlist .mail-waitlist input[type=email]{color:var(--mail-band-text)}
-.mail-bar-waitlist .mail-waitlist input[type=email]::placeholder{color:#8f846f}
-.mail-bar-waitlist .mail-waitlist button{background:var(--mail-gilt);color:#1b1306;box-shadow:inset 0 1px 0 #fff8e2b3,inset 0 -1px 0 #7a5a2699}
-@media(hover:hover){.mail-bar-waitlist .mail-waitlist button:hover{background:var(--mail-gilt);filter:brightness(1.07)}}
-.mail-bar-waitlist .mail-waitlist button:focus-visible{outline-color:#e0c084}
-.mail-bar-waitlist .mail-waitlist .mail-waitlist-note{color:var(--mail-band-muted)}
-.mail-bar-waitlist .mail-waitlist-note a{color:var(--mail-band-text)}
-.mail-bar-waitlist .mail-waitlist .mail-waitlist-status{color:var(--mail-band-text)}
+:is(.mail-bar-waitlist, .mail-overview) .mail-waitlist-controls{border-color:#f2ead826;background:#ffffff0d;box-shadow:inset 0 1px 0 #ffffff0f}
+:is(.mail-bar-waitlist, .mail-overview) .mail-waitlist-controls:focus-within{border-color:#e0c084;box-shadow:0 0 0 3px #e0c08433}
+:is(.mail-bar-waitlist, .mail-overview) .mail-waitlist input[type=email]{color:var(--mail-band-text)}
+:is(.mail-bar-waitlist, .mail-overview) .mail-waitlist input[type=email]::placeholder{color:#8f846f}
+:is(.mail-bar-waitlist, .mail-overview) .mail-waitlist button{background:var(--mail-gilt);color:#1b1306;box-shadow:inset 0 1px 0 #fff8e2b3,inset 0 -1px 0 #7a5a2699}
+@media(hover:hover){:is(.mail-bar-waitlist, .mail-overview) .mail-waitlist button:hover{background:var(--mail-gilt);filter:brightness(1.07)}}
+:is(.mail-bar-waitlist, .mail-overview) .mail-waitlist button:focus-visible{outline-color:#e0c084}
+:is(.mail-bar-waitlist, .mail-overview) .mail-waitlist .mail-waitlist-note{color:var(--mail-band-muted)}
+:is(.mail-bar-waitlist, .mail-overview) .mail-waitlist-note a{color:var(--mail-band-text)}
+:is(.mail-bar-waitlist, .mail-overview) .mail-waitlist .mail-waitlist-status{color:var(--mail-band-text)}
 
 @media(max-width:480px){
   .mail-bar-inner{gap:6px;padding:0 16px}

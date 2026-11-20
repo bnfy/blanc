@@ -14,8 +14,6 @@
 import MailIcon from './MailIcon.astro';
 import MailWaitlistForm from './MailWaitlistForm.astro';
 
-const { overview = false } = Astro.props;
-
 // In page order. Each id is a section of mail.astro.
 const sections = [
   ['design', 'App preview'],
@@ -25,12 +23,12 @@ const sections = [
   ['support', 'FAQ'],
 ];
 ---
-<div class:list={['mail-bar', { 'mail-bar-overview': overview }]} data-mail-bar>
+<div class="mail-bar" data-mail-bar>
   <nav class="mail-bar-inner" aria-label="Blanc Mail">
     <!-- The Blanc Mail lockup (docs/brand-usage.md, "Blanc Mail lockup"): the
          gold icon beside the outlined Blubird word, in its Text cut. -->
     <a class="mail-bar-title" href="/mail"><span class="mail-lockup"><MailIcon decorative /><img
-      class="mail-lockup-word" src={overview ? '/lockup/blanc-mail-word-small-ink.svg' : '/lockup/blanc-mail-word-small-white.svg'} width="4531" height="762" alt="Blanc Mail" /></span></a>
+      class="mail-lockup-word" src="/lockup/blanc-mail-word-small-white.svg" width="4531" height="762" alt="Blanc Mail" /></span></a>
     <ul class="mail-bar-links">
       {sections.map(([id, label]) => <li><a href={`/mail#${id}`} data-mail-section={id}>{label}</a></li>)}
     </ul>

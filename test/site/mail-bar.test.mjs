@@ -302,7 +302,7 @@ test('reduced transparency makes the bar solid',
         const bar = getComputedStyle(document.querySelector('.mail-bar'));
         return { background: bar.backgroundColor, blur: bar.backdropFilter };
       });
-      assert.equal(style.background, 'rgb(255, 255, 255)');
+      assert.equal(style.background, 'rgb(9, 7, 4)');
       assert.equal(style.blur, 'none');
     } finally { await context.close(); }
   });
