@@ -27,11 +27,10 @@ async function openPage(path = '/', width = 1440) {
   return { page, context };
 }
 
-test('reservations are open, so the banner has something to promote', () => {
-  assert.equal(reservations.open, true, 'these checks need mail-reservations.json to say open');
-});
+// Once reservations close the banner is gone, and these checks skip rather than fail.
+const skip = reservations.open ? false : 'reservations are closed (mail-reservations.json), so there is no banner';
 
-test('the banner leads the site pages, and stays off the Mail, legal and What\'s New pages', async () => {
+test('the banner leads the site pages, and stays off the Mail, legal and What\'s New pages', { skip }, async () => {
   const { page, context } = await openPage();
   try {
     for (const path of ['/', '/features', '/download', '/patron']) {
@@ -50,7 +49,7 @@ test('the banner leads the site pages, and stays off the Mail, legal and What\'s
   } finally { await context.close(); }
 });
 
-test('the banner scrolls away while the header stays at the top', async () => {
+test('the banner scrolls away while the header stays at the top', { skip }, async () => {
   for (const path of ['/', '/features']) {
     const { page, context } = await openPage(path);
     try {
@@ -66,7 +65,7 @@ test('the banner scrolls away while the header stays at the top', async () => {
   }
 });
 
-test('phones keep the ask and the button on one 40px line, with nothing overflowing', async () => {
+test('phones keep the ask and the button on one 40px line, with nothing overflowing', { skip }, async () => {
   for (const width of [320, 375, 640, 641, 1440]) {
     const { page, context } = await openPage('/', width);
     try {
@@ -90,7 +89,7 @@ test('phones keep the ask and the button on one 40px line, with nothing overflow
   }
 });
 
-test('clicking the banner opens the reserve form', async () => {
+test('clicking the banner opens the reserve form', { skip }, async () => {
   const { page, context } = await openPage('/features', 390);
   try {
     await page.locator('.mail-reserve-banner').click();

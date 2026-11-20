@@ -11,7 +11,7 @@ import reservations from '../data/mail-reservations.json';
 
 const ending = reservations.endings[0];
 ---
-{reservations.open && (
+{reservations.open && ending && (
   <a class="mail-reserve-banner" href="/mail/reserve" data-track="feature_cta_click" data-feature="blanc-mail" data-cta-position="header-banner">
     <span class="mail-reserve-banner-inner">
       <MailIcon class="mail-reserve-banner-icon" decorative />
@@ -19,7 +19,7 @@ const ending = reservations.endings[0];
         <span class="mail-reserve-banner-lead">Blanc Mail addresses are coming.</span>
         <span class="mail-reserve-banner-ask">Reserve yours on <span class="mail-reserve-banner-ending">@{ending}</span><span class="mail-reserve-banner-free">, free</span>.</span>
       </span>
-      <span class="mail-reserve-banner-action">Reserve<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8h9M9 4.5 12.5 8 9 11.5" /></svg></span>
+      <span class="mail-reserve-banner-action" aria-hidden="true">Reserve<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8h9M9 4.5 12.5 8 9 11.5" /></svg></span>
     </span>
   </a>
 )}
@@ -27,7 +27,6 @@ const ending = reservations.endings[0];
 <style>
   .mail-reserve-banner {
     position: relative;
-    z-index: 31;
     display: block;
     background: radial-gradient(ellipse 50% 160% at 50% 0%, #e0c0841c, #e0c08400 70%), #0a0907;
     color: #f2f2f0;
