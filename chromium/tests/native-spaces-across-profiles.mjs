@@ -223,7 +223,7 @@ try{
  const unloaded=await probe();
  assert.equal(unloaded.loaded.includes(workDir),false,`Work not loaded before the double open: ${JSON.stringify(unloaded.loaded)}`);
  assert.deepEqual(await runtimesOf(workDir),[],'Work has no window before the double open');
- const pair=await personalApi(`(o=>Promise.all([0,1].map(()=>window.BlancPrototypeHost.api.openWorkspace(${jsLiteral(listedId)},o))))({profileId:${jsLiteral(workDir)}})`);
+ const pair=await f.host.eval(`(o=>Promise.all([0,1].map(()=>window.BlancPrototypeHost.api.openWorkspace(${jsLiteral(listedId)},o))))({profileId:${jsLiteral(workDir)}})`);
  assert.deepEqual(pair.map(r=>r.ok),[true,true],JSON.stringify(pair));
  workWindows=await w.waitFor(()=>runtimesOf(workDir),rs=>rs.length>=1&&rs.every(r=>r.workspaceId===listedId),'Work window on Listed again');
  await new Promise(done=>setTimeout(done,1000));
