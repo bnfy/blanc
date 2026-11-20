@@ -165,6 +165,10 @@ try {
       const opacity = Number(getComputedStyle(layer).opacity);
       return opacity > 0 && opacity < 0.8;
     }));
+  // Settle the wait's outcome now: the timeline setup below awaits the page,
+  // and a timeout during that await was an unhandled rejection that ended the
+  // run before the timeline could be reported (#1655, 2026-11-20).
+  const fadeResult = fadingOut.then(() => null, (error) => error);
   // A timeline of the fade, reported if the wait fails: which classes the
   // layers took and when, and any visibility, focus or motion change.
   await privatePage.evaluate(() => {
@@ -189,7 +193,6 @@ try {
     matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (event) => note(`reduced-motion ${event.matches}`));
     note(`start visible=${document.body.dataset.wallpaperVisible} hidden=${document.hidden} pressed=${document.getElementById('dynamicWallpaperToggle').getAttribute('aria-pressed')} focused=${document.activeElement?.id}`);
   });
-  const fadeResult = fadingOut.then(() => null, (error) => error);
   let fadeError = null;
   try {
     await privateSwitch.click({ timeout: 20_000 });
