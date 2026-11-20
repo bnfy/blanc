@@ -16,8 +16,8 @@ let browser;
 before(async () => { browser = await (process.env.BLANC_SITE_BROWSER === 'webkit' ? webkit : chromium).launch(); });
 after(async () => { await browser?.close(); });
 
-async function openPage(path = '/', width = 1440) {
-  const context = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: 'reduce' });
+async function openPage(path = '/', width = 1440, height = 900) {
+  const context = await browser.newContext({ viewport: { width, height }, reducedMotion: 'reduce' });
   const page = await context.newPage();
   // No analytics or other remote requests leave these tests.
   await page.route('**/*', route => new URL(route.request().url()).origin === new URL(baseURL).origin ? route.continue() : route.abort());
@@ -80,7 +80,8 @@ test('phones keep the ask and the button on one 40px line, with nothing overflow
           overflow: document.documentElement.scrollWidth > innerWidth,
         };
       });
-      assert.equal(state.height, 40, `${width}px: 40px tall`);
+      // One line is 40px; allow for subpixel rounding, not a second line.
+      assert.ok(Math.abs(state.height - 40) < 1, `${width}px: one 40px line (${state.height})`);
       assert.equal(state.lead, width > 640, `${width}px: lead text`);
       assert.equal(state.ask, true, `${width}px: the ask stays`);
       assert.equal(state.action, true, `${width}px: Reserve stays`);
@@ -94,5 +95,16 @@ test('clicking the banner opens the reserve form', { skip }, async () => {
   try {
     await page.locator('.mail-reserve-banner').click();
     await page.waitForURL(url => new URL(url).pathname === '/mail/reserve');
+  } finally { await context.close(); }
+});
+
+test('the open phone menu fits under the banner before the page scrolls', { skip }, async () => {
+  // A phone on its side: short enough that the menu, with Browser open, scrolls.
+  const { page, context } = await openPage('/features', 844, 390);
+  try {
+    await page.locator('.site-menu-toggle').click();
+    await page.locator('[data-browser-trigger]').click();
+    const bottom = await page.evaluate(() => document.querySelector('.site-nav-links').getBoundingClientRect().bottom);
+    assert.ok(bottom <= 390 + 0.5, `menu ends inside the window (${bottom})`);
   } finally { await context.close(); }
 });

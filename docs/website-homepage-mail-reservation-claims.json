@@ -1,14 +1,15 @@
 {
-  "scope": "Website-only band on the homepage advertising Blanc Mail address reservations, shown while site/src/data/mail-reservations.json says open; not a claim about a desktop release.",
+  "scope": "Website-only Blanc Mail address reservation copy shown while site/src/data/mail-reservations.json says open: the homepage band, and the banner above the site header on every page but the Mail, legal and What's New pages (the homepage included). Not a claim about a desktop release.",
   "verified": "2026-11-19",
   "websiteSourceSha": "78506300c",
   "evidence": [
     "site/src/data/mail-reservations.json",
     "site/src/pages/mail/reserve.astro",
     "site/src/components/MailReserveAddress.astro",
-    "docs/website-mail-claims-2026-11-17.md"
+    "docs/website-mail-claims-2026-11-17.md",
+    "site/src/components/MailReserveBanner.astro"
   ],
-  "qualification": "Reserving is free and holds the name on every ending listed in mail-reservations.json (inbox.day, blnc.day and blancmail.me since November 19, 2026) until Blanc Mail addresses open, as the reserve page says; claiming one later needs a paid plan, which the reserve page states beside its button. The band renders only while reservations are open.",
+  "qualification": "Reserving is free and holds the name on every ending listed in mail-reservations.json (inbox.day, blnc.day and blancmail.me since November 19, 2026) until Blanc Mail addresses open, as the reserve page says; claiming one later needs a paid plan, which the reserve page states beside its button. The band and the banner render only while reservations are open; the banner names the first ending in mail-reservations.json.",
   "claims": [
     {
       "id": "home-mail-reserve-001",
@@ -22,6 +23,20 @@
       "source": "site/src/pages/index.astro",
       "exactWording": "Free to reserve. We’ll hold your name on every ending until Blanc Mail addresses open.",
       "subject": "Blanc Mail address reservations",
+      "verdict": "verified"
+    },
+    {
+      "id": "home-mail-reserve-003",
+      "source": "site/src/components/MailReserveBanner.astro",
+      "exactWording": "Blanc Mail addresses are coming.",
+      "subject": "Blanc Mail address reservations (the banner above the site header)",
+      "verdict": "verified"
+    },
+    {
+      "id": "home-mail-reserve-004",
+      "source": "site/src/components/MailReserveBanner.astro",
+      "exactWording": "Reserve yours on @inbox.day, free.",
+      "subject": "Blanc Mail address reservations (the banner above the site header)",
       "verdict": "verified"
     }
   ]

@@ -5,8 +5,9 @@
 // keep their places. The whole strip is one link to /mail/reserve. It wears
 // the home band's ink and gilt (home.css, .mail-promo) so the two read as one.
 // Header.astro leaves it off the legal pages, the What's New pages and the
-// Mail pages, which already lead to the reserve form.
-import MailIcon from './MailIcon.astro';
+// Mail pages, which already lead to the reserve form. The icon is a 96px copy
+// of /blanc-mail-icon.webp (2 KB against the full file's 58 KB), since the
+// banner loads on nearly every page.
 import reservations from '../data/mail-reservations.json';
 
 const ending = reservations.endings[0];
@@ -14,7 +15,7 @@ const ending = reservations.endings[0];
 {reservations.open && ending && (
   <a class="mail-reserve-banner" href="/mail/reserve" data-track="feature_cta_click" data-feature="blanc-mail" data-cta-position="header-banner">
     <span class="mail-reserve-banner-inner">
-      <MailIcon class="mail-reserve-banner-icon" decorative />
+      <img class="mail-reserve-banner-icon" src="/blanc-mail-icon-96.webp" width="96" height="96" alt="" />
       <span class="mail-reserve-banner-text">
         <span class="mail-reserve-banner-lead">Blanc Mail addresses are coming.</span>
         <span class="mail-reserve-banner-ask">Reserve yours on <span class="mail-reserve-banner-ending">@{ending}</span><span class="mail-reserve-banner-free">, free</span>.</span>
@@ -25,6 +26,10 @@ const ending = reservations.endings[0];
 )}
 
 <style>
+  /* The open phone menu (revamp.css) leaves room for the banner above the bar. */
+  :global(:root:has(.mail-reserve-banner)) {
+    --site-banner-h: 40px;
+  }
   .mail-reserve-banner {
     position: relative;
     display: block;
@@ -53,16 +58,11 @@ const ending = reservations.endings[0];
     justify-content: center;
     gap: 12px;
   }
-  .mail-reserve-banner :global(.mail-reserve-banner-icon) {
+  .mail-reserve-banner-icon {
     display: block;
     flex: none;
     width: 22px;
     height: 22px;
-  }
-  .mail-reserve-banner :global(.mail-reserve-banner-icon img) {
-    display: block;
-    width: 100%;
-    height: 100%;
   }
   .mail-reserve-banner-text {
     min-width: 0;
@@ -138,7 +138,7 @@ const ending = reservations.endings[0];
   }
   /* The narrowest phones also drop the icon, so the ask stays on one line. */
   @media (max-width: 360px) {
-    .mail-reserve-banner :global(.mail-reserve-banner-icon) {
+    .mail-reserve-banner-icon {
       display: none;
     }
   }
