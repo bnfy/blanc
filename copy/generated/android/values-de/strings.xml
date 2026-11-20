@@ -188,6 +188,16 @@
     <string name="fill_surface_title">Ausfüllstatus</string>
     <string name="fill_dismiss">Schließen</string>
     <string name="dialog_ok">OK</string>
+    <string name="local_html_refused_message">Blanc konnte „%1$s“ nicht öffnen</string>
+    <plurals name="local_html_refused_message_many">
+        <item quantity="one">Blanc konnte %1$d Datei nicht öffnen</item>
+        <item quantity="other">Blanc konnte %1$d Dateien nicht öffnen</item>
+    </plurals>
+    <string name="local_html_refused_line">%1$s: %2$s</string>
+    <string name="local_html_refused_too_large">Die Datei ist größer als 8 MB. Blanc öffnet lokale Seiten bis 8 MB.</string>
+    <string name="local_html_refused_not_html">Diese Datei ist keine HTML-Seite.</string>
+    <string name="local_html_refused_changed">Die Datei hat sich geändert, während Blanc sie gelesen hat. Öffne sie erneut.</string>
+    <string name="local_html_refused_unreadable">Blanc konnte die Datei nicht lesen. Prüfe, ob sie noch existiert und ob du sie öffnen darfst.</string>
     <string name="fill_setup_enable_title">1Password einrichten</string>
     <string name="fill_setup_enable_body">Aktiviere „Logins aus 1Password ausfüllen“ in den Einstellungen. Blanc liest Logins nur auf Anfrage.</string>
     <string name="fill_setup_enable_primary_label">Einstellungen</string>

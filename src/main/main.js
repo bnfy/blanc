@@ -403,6 +403,7 @@ const {
 } = require('./link-routes');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const { isSupportedLocalHtmlUrl, restorableLocalHtmlUrl } = require('./local-html-files');
+const { localHtmlRefusalMessage, refusalReason } = require('./local-html-refusal');
 const { localFileTabPlan, keepsLocalFile, isInertRecord, recordTitle } = require('./inert-local-file');
 const { createTabImportSessionStore, SESSION_TTL_MS } = require('./tab-import-session');
 const {
@@ -2111,10 +2112,34 @@ function openLocalHtmlFiles(paths) {
   // list must not wait on (or log for) the ECS preview runtime.
   if (!paths?.length) return;
   if (drmSupport.enabled) {
-    void drmSupport.openLocalFiles(paths).catch(() => console.warn('Local HTML preview could not open'));
+    void drmSupport.openLocalFiles(paths).then(showLocalHtmlRefusals)
+      .catch(() => console.warn('Local HTML preview could not open'));
     return;
   }
   externalUrlHandoff.openLocalFiles(paths);
+}
+
+// A refused file must say why: on Windows a second launch carrying a file
+// deliberately doesn't raise Blanc, so without this nothing at all happens.
+// Finder sends one open-file event per selected file, so refusals arriving
+// together share one message.
+let pendingLocalHtmlRefusals = null;
+function showLocalHtmlRefusals(refused) {
+  if (!refused?.length) return;
+  console.warn('Local HTML preview refused', refused.map(({ error }) => refusalReason(error)).join(', '));
+  if (pendingLocalHtmlRefusals) { pendingLocalHtmlRefusals.push(...refused); return; }
+  pendingLocalHtmlRefusals = [...refused];
+  setTimeout(() => {
+    const batch = pendingLocalHtmlRefusals;
+    pendingLocalHtmlRefusals = null;
+    try {
+      const options = { type: 'warning', ...localHtmlRefusalMessage(mainI18n.t, batch),
+        buttons: [mainI18n.t('dialog.ok')], noLink: true };
+      const win = BrowserWindow.getFocusedWindow();
+      (win && !win.isDestroyed() ? dialog.showMessageBox(win, options) : dialog.showMessageBox(options))
+        .catch(() => {});
+    } catch (error) { console.warn('Local HTML refusal message failed:', error.message); }
+  }, 300);
 }
 
 // Shared across windows: only one pending external-app confirmation at a time.

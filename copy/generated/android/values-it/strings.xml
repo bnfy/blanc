@@ -193,6 +193,17 @@
     <string name="fill_surface_title">Stato della compilazione</string>
     <string name="fill_dismiss">Ignora</string>
     <string name="dialog_ok">OK</string>
+    <string name="local_html_refused_message">Blanc non è riuscito ad aprire «%1$s»</string>
+    <plurals name="local_html_refused_message_many">
+        <item quantity="one">Blanc non è riuscito ad aprire %1$d file</item>
+        <item quantity="many">Blanc non è riuscito ad aprire %1$d file</item>
+        <item quantity="other">Blanc non è riuscito ad aprire %1$d file</item>
+    </plurals>
+    <string name="local_html_refused_line">%1$s: %2$s</string>
+    <string name="local_html_refused_too_large">Il file supera gli 8 MB. Blanc apre pagine locali fino a 8 MB.</string>
+    <string name="local_html_refused_not_html">Questo file non è una pagina HTML.</string>
+    <string name="local_html_refused_changed">Il file è cambiato mentre Blanc lo leggeva. Aprilo di nuovo.</string>
+    <string name="local_html_refused_unreadable">Blanc non è riuscito a leggere il file. Controlla che esista ancora e di poterlo aprire.</string>
     <string name="fill_setup_enable_title">Configura 1Password</string>
     <string name="fill_setup_enable_body">Attiva «Compila gli accessi da 1Password» in Impostazioni. Blanc legge solo su tua richiesta.</string>
     <string name="fill_setup_enable_primary_label">Impostazioni</string>

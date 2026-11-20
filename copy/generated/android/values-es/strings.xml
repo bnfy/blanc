@@ -193,6 +193,17 @@
     <string name="fill_surface_title">Estado del rellenado</string>
     <string name="fill_dismiss">Descartar</string>
     <string name="dialog_ok">OK</string>
+    <string name="local_html_refused_message">Blanc no pudo abrir «%1$s»</string>
+    <plurals name="local_html_refused_message_many">
+        <item quantity="one">Blanc no pudo abrir %1$d archivo</item>
+        <item quantity="many">Blanc no pudo abrir %1$d archivos</item>
+        <item quantity="other">Blanc no pudo abrir %1$d archivos</item>
+    </plurals>
+    <string name="local_html_refused_line">%1$s: %2$s</string>
+    <string name="local_html_refused_too_large">El archivo supera los 8 MB. Blanc abre páginas locales de hasta 8 MB.</string>
+    <string name="local_html_refused_not_html">Este archivo no es una página HTML.</string>
+    <string name="local_html_refused_changed">El archivo cambió mientras Blanc lo leía. Vuelve a abrirlo.</string>
+    <string name="local_html_refused_unreadable">Blanc no pudo leer el archivo. Comprueba que sigue existiendo y que tienes permiso para abrirlo.</string>
     <string name="fill_setup_enable_title">Configura 1Password</string>
     <string name="fill_setup_enable_body">Activa «Rellenar inicios de sesión desde 1Password» en Configuración. Blanc solo lee si lo pides.</string>
     <string name="fill_setup_enable_primary_label">Configuración</string>

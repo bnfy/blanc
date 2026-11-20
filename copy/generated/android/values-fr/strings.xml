@@ -193,6 +193,17 @@
     <string name="fill_surface_title">État du remplissage</string>
     <string name="fill_dismiss">Ignorer</string>
     <string name="dialog_ok">OK</string>
+    <string name="local_html_refused_message">Blanc n’a pas pu ouvrir « %1$s »</string>
+    <plurals name="local_html_refused_message_many">
+        <item quantity="one">Blanc n’a pas pu ouvrir %1$d fichier</item>
+        <item quantity="many">Blanc n’a pas pu ouvrir %1$d fichiers</item>
+        <item quantity="other">Blanc n’a pas pu ouvrir %1$d fichiers</item>
+    </plurals>
+    <string name="local_html_refused_line">%1$s : %2$s</string>
+    <string name="local_html_refused_too_large">Le fichier dépasse 8 Mo. Blanc ouvre les pages locales jusqu’à 8 Mo.</string>
+    <string name="local_html_refused_not_html">Ce fichier n’est pas une page HTML.</string>
+    <string name="local_html_refused_changed">Le fichier a changé pendant que Blanc le lisait. Ouvrez-le à nouveau.</string>
+    <string name="local_html_refused_unreadable">Blanc n’a pas pu lire le fichier. Vérifiez qu’il existe toujours et que vous pouvez l’ouvrir.</string>
     <string name="fill_setup_enable_title">Configurer 1Password</string>
     <string name="fill_setup_enable_body">Activez « Remplir les identifiants depuis 1Password » (Réglages). Blanc ne lit que sur demande.</string>
     <string name="fill_setup_enable_primary_label">Réglages</string>
