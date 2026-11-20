@@ -367,7 +367,8 @@ main .section-kicker {
     flex-direction: column;
     align-items: stretch;
     gap: 0;
-    max-height: calc(100vh - var(--site-header-h));
+    /* --site-banner-h: the reservation banner above the bar, while it shows. */
+    max-height: calc(100vh - var(--site-header-h) - var(--site-banner-h, 0px));
     overflow-y: auto;
     padding: 4px 22px 18px;
     background: #fff;

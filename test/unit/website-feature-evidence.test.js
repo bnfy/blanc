@@ -370,6 +370,21 @@ test('every sentence on the homepage is recorded in a claims ledger or named as 
   }
 });
 
+// The reservation banner shows on the homepage too, from the header, so the
+// homepage scan above never reads it: its sentences are checked here.
+test('every sentence in the Blanc Mail reservation banner is recorded in its ledger', () => {
+  const file = 'site/src/components/MailReserveBanner.astro';
+  const recorded = JSON.parse(read('docs/website-homepage-mail-reservation-claims.json')).claims
+    .filter(claim => claim.source === file).map(claim => claim.exactWording);
+  const ending = JSON.parse(read('site/src/data/mail-reservations.json')).endings[0];
+  const link = read(file).match(/<a class="mail-reserve-banner"[\s\S]*?<\/a>/)[0]
+    .replace(/<span[^>]*aria-hidden="true"[^>]*>[\s\S]*?<\/span>/g, '')
+    .replaceAll('{ending}', ending);
+  const sentences = normalize(link).split(/(?<=[.?!])\s+(?=[A-Z“])/);
+  assert.deepEqual(sentences, ['Blanc Mail addresses are coming.', `Reserve yours on @${ending}, free.`]);
+  for (const sentence of sentences) assert.ok(recorded.includes(sentence), `banner sentence is not recorded: “${sentence}”`);
+});
+
 test('feature guide pages show only ledger-recorded captures or same-size WebP companions of them', async () => {
   const ledgers = fs.readdirSync(path.join(root, 'docs')).filter(name => /^website-.*captures?-.*\.json$/.test(name));
   const recorded = new Set(ledgers.flatMap(name =>

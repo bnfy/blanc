@@ -155,7 +155,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 40px 22px 72px;
+  /* The header overlays the top of the sunrise, so the sun starts below it. */
+  padding: calc(var(--site-header-h) + 28px) 22px 72px;
   text-align: center;
 }
 .sun-sky {
@@ -2228,7 +2229,7 @@ details[open] .faq-sign::after {
   .sun-stage {
     --w: min(34vmin, 300px);
     overflow: hidden;
-    padding-top: 28px;
+    padding-top: calc(var(--site-header-h) + 20px);
     padding-bottom: 72px;
   }
   .sun-sky,
