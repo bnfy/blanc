@@ -28,9 +28,10 @@ const [configFile,out]=process.argv.slice(2),config=JSON.parse(fs.readFileSync(c
 assertNodeRuntime();assert.equal(fs.existsSync(out),false);fs.mkdirSync(out,{recursive:true});
 // The checks build on each other; pending lists those not yet passed, so a
 // failure part way shows what never ran.
+// The two deletion checks run last: they really delete a throwaway profile.
 const CHECKS=['F41-83','mirror written','mirror follows edits','listing does not load','rename reaches the heading',
- 'open from a closed profile','double open','deleted meanwhile','marked for deletion','create',
- 'F41-88','F41-84','F41-91','F41-85','Review Focus 4','F41-90','F41-86','F41-89','F41-87','F41-92'];
+ 'open from a closed profile','double open','deleted meanwhile','create',
+ 'F41-88','F41-84','F41-85','Review Focus 4','F41-90','F41-86','F41-89','F41-87','F41-92','F41-91','marked for deletion'];
 const f=new NativeFixture(),w=createWorld(f),result={candidate:config.candidate,checks:[]};
 const passed=checkLedger(result,CHECKS);
 let worker;
@@ -239,17 +240,6 @@ try{
  assert.equal((await runtimesOf(workDir)).length,1,'no Work window added');
  passed('deleted meanwhile: not-found, and no Work window added');
 
- // marked for deletion: Work leaves the list and can't be opened; the mark is
- // cancelled afterwards.
- const kept2=await hostApi(await workHost(),"saveWorkspaceAs('Kept')");assert.equal(kept2.ok,true,JSON.stringify(kept2));
- assert.equal(await nativeCall(f.host,'profileDeletionMarkTest',[workDir,true]),true);
- try{
-  const refused=await personalApi(`openWorkspace(${jsLiteral(kept2.workspaceId)},{profileId:${jsLiteral(workDir)}})`);
-  assert.equal(refused.ok,false);assert.equal(refused.error,'profile-unavailable',JSON.stringify(refused));
-  assert.equal(((await others()).others??[]).some(o=>o.id===workDir),false,'Work not listed while marked');
- }finally{assert.equal(await nativeCall(f.host,'profileDeletionMarkTest',[workDir,false]),true);}
- await w.waitFor(others,p=>p.others?.some(o=>o.id===workDir),'Work listed again');
- passed('marked for deletion: profile-unavailable and Work unlisted until the mark is cancelled');
 
  // create: Planning made in Work from Personal, in a new Work window with one
  // new tab, and mirrored; a second create of "planning" is a duplicate.
@@ -326,21 +316,6 @@ try{
  }
  passed('F41-84: headings Personal then Work; Home under Personal before Sprint under Work');
 
- // F41-91: A profile being deleted disappears from the Spaces menu.
- {
-  rowUnder(await menuList(await openSpacesMenu(f.host)),'Sprint','Work');
-  await closeIsland(f.host);
-  assert.equal(await nativeCall(f.host,'profileDeletionMarkTest',[workDir,true]),true);
-  try{
-   const menu=await openSpacesMenu(f.host);
-   const list=await w.waitFor(()=>menuList(menu),l=>!l.headings.includes('Work'),'Work gone from the menu');
-   assert.deepEqual(list.headings,[],'Personal alone: no headings');
-   assert.equal(list.rows.some(r=>r.name==='Sprint'),false,'no Sprint');
-   await closeIsland(f.host);
-  }finally{assert.equal(await nativeCall(f.host,'profileDeletionMarkTest',[workDir,false]),true);}
-  await w.waitFor(others,p=>p.others?.some(o=>o.id===workDir),'Work listed again');
- }
- passed('F41-91: while Work is marked for deletion the reopened menu shows neither Work nor Sprint');
 
  // F41-85: A Work Space that is open nowhere opens in a new Work window.
  {
@@ -509,6 +484,29 @@ try{
   assert.deepEqual(Object.keys(item??{}).sort(),['color','id','name','openElsewhere','symbol','tabCount'],'only the allowlisted fields cross');
  }
  passed('F41-92: with Home shared through the local Worker, a Work window lists it under Personal with no sync mark or sync state');
+ // F41-91 and marked for deletion: a profile being deleted. Chromium's own
+ // deletion (DeleteProfileHelper, as the picker's Remove does) of a throwaway
+ // profile, Leaving, with one Space; Work and Personal are untouched.
+ {
+  const leaving=await createProfile(w,'Leaving'),leavingDir=leaving.directory;
+  const farewell=await hostApi(leaving,"saveWorkspaceAs('Farewell')");assert.equal(farewell.ok,true,JSON.stringify(farewell));
+  await w.waitFor(others,p=>p.others?.some(o=>o.id===leavingDir&&o.items.some(i=>i.id===farewell.workspaceId)),'Leaving listed with Farewell');
+  await bringForward(f.host);
+  rowUnder(await menuList(await openSpacesMenu(f.host)),'Farewell','Leaving');
+  await closeIsland(f.host);
+  assert.equal(await nativeCall(f.host,'profileDeleteTest',[leavingDir]),true);
+  const menu=await openSpacesMenu(f.host);
+  const list=await w.waitFor(()=>menuList(menu),l=>!l.headings.includes('Leaving'),'Leaving gone from the menu');
+  assert.equal(list.rows.some(r=>r.name==='Farewell'),false,'no Farewell');
+  rowUnder(list,'Sprint','Work');
+  await closeIsland(f.host);
+  passed('F41-91: once Leaving is being deleted the reopened menu shows neither Leaving nor Farewell, and Work stays');
+  const refused=await personalApi(`openWorkspace(${jsLiteral(farewell.workspaceId)},{profileId:${jsLiteral(leavingDir)}})`);
+  assert.equal(refused.ok,false);assert.equal(refused.error,'profile-unavailable',JSON.stringify(refused));
+  assert.equal(((await others()).others??[]).some(o=>o.id===leavingDir),false,'Leaving not listed');
+  assert.deepEqual(await runtimesOf(leavingDir),[],'no Leaving window');
+  passed('marked for deletion: opening a Space of a profile being deleted answers profile-unavailable, and it is unlisted');
+ }
  await visible();
  assert.deepEqual(result.pending,[],'every check ran');
  result.result='pass';

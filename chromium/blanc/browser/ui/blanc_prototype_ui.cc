@@ -202,7 +202,9 @@
 #include "chrome/browser/profiles/profile_manager.h"
 #include "chrome/browser/profiles/profile_attributes_entry.h"
 #include "chrome/browser/profiles/profile_attributes_storage.h"
+#include "chrome/browser/profiles/delete_profile_helper.h"
 #include "chrome/browser/profiles/nuke_profile_directory_utils.h"
+#include "chrome/browser/profiles/profile_metrics.h"
 #include "chrome/browser/profiles/profile_manager_observer.h"
 #include "chrome/browser/profiles/profile_observer.h"
 #include "chrome/browser/profiles/profile_window.h"
@@ -7507,14 +7509,16 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     // Marks a profile's directory for deletion (or cancels it) the way
     // Chromium does before removing it, without removing it.
-    if (quiet_method == "profileDeletionMarkTest" && quiet_args.size() == 2 && quiet_args[0].is_string() &&
-        quiet_args[1].is_bool()) {
+    // F41-91: Chromium's own deletion of a test profile, as the picker's
+    // Remove does. It can't be undone, so the check uses a throwaway profile.
+    if (quiet_method == "profileDeleteTest" && quiet_args.size() == 1 && quiet_args[0].is_string() &&
+        quiet_args[0].GetString() != "Default") {
       ProfileAttributesEntry* found = nullptr;
       for (auto* entry : g_browser_process->profile_manager()->GetProfileAttributesStorage().GetAllProfilesAttributes())
         if (entry->GetPath().BaseName().AsUTF8Unsafe() == quiet_args[0].GetString()) found = entry;
       if (!found) { reject("Unknown profile directory"); return; }
-      if (quiet_args[1].GetBool()) MarkProfileDirectoryForDeletion(found->GetPath());
-      else CancelProfileDeletion(found->GetPath());
+      g_browser_process->profile_manager()->GetDeleteProfileHelper().MaybeScheduleProfileForDeletion(
+          found->GetPath(), base::DoNothing(), ProfileMetrics::DELETE_PROFILE_SETTINGS);
       NotifySpacesMenus(nullptr);
       Reply(id, true, base::Value(true)); return;
     }
