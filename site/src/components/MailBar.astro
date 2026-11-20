@@ -24,9 +24,9 @@ const sections = [
 ---
 <div class="mail-bar" data-mail-bar>
   <nav class="mail-bar-inner" aria-label="Blanc Mail">
-    <!-- The product bar uses the short form of the Blubird Text lockup. -->
+    <!-- The product bar pairs the Mail icon with “Inbox” in Blubird SemiBold Text. -->
     <a class="mail-bar-title" href="/mail"><span class="mail-lockup"><MailIcon decorative /><img
-      class="mail-lockup-word" src="/lockup/mail-word-small-white.svg" width="1817" height="763" alt="Blanc Mail" /></span></a>
+      class="mail-lockup-word" src="/lockup/inbox-word-small-white.svg" width="2513" height="763" alt="Inbox — Blanc Mail" /></span></a>
     <ul class="mail-bar-links">
       {sections.map(([id, label]) => <li><a href={`/mail#${id}`} data-mail-section={id}>{label}</a></li>)}
     </ul>
