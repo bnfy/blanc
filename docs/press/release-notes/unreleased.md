@@ -34,10 +34,11 @@ since then are below as they're recorded.
 ## Still open for the next release
 
 - **Opening local HTML files on Windows** (#1630) by hand from Explorer's
-  Open with in an installed build. CI checked the installer's registration
-  and its removal on a real Windows runner. The packaged check that opens a
-  file at launch and while Blanc runs is in the Windows release job but
-  hasn't passed on an ECS build yet.
+  Open with in an installed build, including Settings' Set default button.
+  CI checked the rest on a signed ECS package on a Windows runner (run
+  44658492309): the installer's registration and its removal, and a file
+  opening in the static preview at launch and when handed to a running
+  Blanc.
 - **The Windows passkey fix** in a packaged build and on a PC with Windows
   Hello set up. It was checked in the Windows VM (no Windows Hello) with a
   source build and a local test page, not a real site. A sign-in form inside
