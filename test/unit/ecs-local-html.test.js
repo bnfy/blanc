@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
-const { snapshotLocalHtml, registerLocalHtmlScheme, SCHEME, MAX_BYTES } = require('../../scripts/ecs-local-html.cjs');
+const { snapshotLocalHtml, registerLocalHtmlScheme, SCHEME, MAX_BYTES, REFUSALS } = require('../../scripts/ecs-local-html.cjs');
 const { EventEmitter } = require('node:events');
 const { HTML_EXTENSIONS } = require('../../src/main/local-html-files');
 
@@ -94,14 +94,42 @@ test('small previews allocate to file size and recycle cleaned session handlers'
   assert.ok(sizes.every(size => size < 1024), 'small documents do not allocate 8 MiB');
 }));
 
-test('selection rejects relative paths, directories, non-HTML and oversized files', async () => fixture(async ({ dir }) => {
-  await assert.rejects(snapshotLocalHtml('relative.html'));
+// Each refusal carries a reason code (not English) so main can say why in
+// the person's language (#1634 follow-up).
+test('selection rejects relative paths, directories, non-HTML and oversized files with a reason', async () => fixture(async ({ dir, file }) => {
+  const refused = reason => error => error.localHtmlRefusal === reason && REFUSALS.includes(reason);
+  await assert.rejects(snapshotLocalHtml('relative.html'), refused('unreadable'));
+  await assert.rejects(snapshotLocalHtml(null), refused('unreadable'));
   const text = path.join(dir, 'private.txt'); await fs.writeFile(text, 'private');
-  await assert.rejects(snapshotLocalHtml(text));
+  await assert.rejects(snapshotLocalHtml(text), refused('not-html'));
+  // A link named .html that points at another kind of file is judged by its target.
+  const disguised = path.join(dir, 'disguised.html'); await fs.symlink(text, disguised);
+  await assert.rejects(snapshotLocalHtml(disguised), refused('not-html'));
   const directory = path.join(dir, 'directory.html'); await fs.mkdir(directory);
-  await assert.rejects(snapshotLocalHtml(directory));
+  await assert.rejects(snapshotLocalHtml(directory), refused('unreadable'));
+  await assert.rejects(snapshotLocalHtml(path.join(dir, 'missing.html')), refused('unreadable'));
   const huge = path.join(dir, 'huge.html'); await fs.writeFile(huge, Buffer.alloc(MAX_BYTES + 1));
-  await assert.rejects(snapshotLocalHtml(huge));
+  await assert.rejects(snapshotLocalHtml(huge), refused('too-large'));
+  const exact = path.join(dir, 'exact.html'); await fs.writeFile(exact, Buffer.alloc(MAX_BYTES));
+  (await snapshotLocalHtml(exact)).dispose();
+  if (process.platform !== 'win32' && process.getuid?.() !== 0) {
+    await fs.chmod(file, 0o000);
+    await assert.rejects(snapshotLocalHtml(file), refused('unreadable'));
+    await fs.chmod(file, 0o600);
+  }
+}));
+
+test('a file that grows while it is read is refused as changed', async () => fixture(async ({ file }) => {
+  const real = fs.open;
+  fs.open = async (...args) => {
+    const handle = await real(...args);
+    const stat = handle.stat.bind(handle);
+    // Report the size before the growth, as a writer racing the read would.
+    handle.stat = async () => Object.assign(await stat(), { size: 4 });
+    return handle;
+  };
+  try { await assert.rejects(snapshotLocalHtml(file), error => error.localHtmlRefusal === 'changed'); }
+  finally { fs.open = real; }
 }));
 
 // Review of #1630: every extension Blanc registers for must open.

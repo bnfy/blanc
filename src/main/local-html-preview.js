@@ -26,22 +26,33 @@ const CSP = [
   "script-src 'none'", "style-src 'unsafe-inline'", 'sandbox',
 ].join('; ');
 
+// Why a file was refused, for main to pick the person's message (#1634
+// follow-up). The English text stays for logs and the candidate tools.
+const REFUSALS = Object.freeze(['not-html', 'too-large', 'changed', 'unreadable']);
+function refuse(reason, message) {
+  return Object.assign(new Error(message), { localHtmlRefusal: reason });
+}
+const readable = pending => pending.catch(error => {
+  throw refuse('unreadable', `HTML could not be read (${error.code || 'error'})`);
+});
+
 function registerLocalHtmlScheme(protocol) {
   protocol.registerSchemesAsPrivileged([LOCAL_HTML_SCHEME]);
 }
 
 async function snapshotLocalHtml(filePath) {
-  if (typeof filePath !== 'string' || !path.isAbsolute(filePath)) throw Error('Select an absolute HTML file');
-  const canonical = await fs.realpath(filePath);
+  if (typeof filePath !== 'string' || !path.isAbsolute(filePath)) throw refuse('unreadable', 'Select an absolute HTML file');
+  const canonical = await readable(fs.realpath(filePath));
   // Kept inline (this file is copied standalone into ECS candidates); the same
   // five extensions as HTML_EXTENSIONS in local-html-files.js: .htm, .html,
   // .xht, .xhtm, .xhtml.
-  if (!/\.(?:html?|xht(?:ml?)?)$/i.test(canonical)) throw Error('Select an HTML document');
-  const handle = await fs.open(canonical, constants.O_RDONLY | constants.O_NOFOLLOW);
+  if (!/\.(?:html?|xht(?:ml?)?)$/i.test(canonical)) throw refuse('not-html', 'Select an HTML document');
+  const handle = await readable(fs.open(canonical, constants.O_RDONLY | constants.O_NOFOLLOW));
   let bytes;
   try {
     const stat = await handle.stat();
-    if (!stat.isFile() || stat.size > MAX_BYTES) throw Error('HTML must be a regular file no larger than 8 MiB');
+    if (!stat.isFile()) throw refuse('unreadable', 'HTML must be a regular file');
+    if (stat.size > MAX_BYTES) throw refuse('too-large', 'HTML must be no larger than 8 MiB');
     // Bound the read as well as stat: a concurrently growing file cannot turn
     // this document capability into an unbounded allocation.
     const buffer = Buffer.alloc(Math.min(stat.size + 1, MAX_BYTES + 1));
@@ -51,7 +62,7 @@ async function snapshotLocalHtml(filePath) {
       if (!read.bytesRead) break;
       length += read.bytesRead;
     }
-    if (length > stat.size) throw Error('HTML changed while being read; select it again');
+    if (length > stat.size) throw refuse('changed', 'HTML changed while being read; select it again');
     bytes = Buffer.from(buffer.subarray(0, length));
   } finally { await handle.close(); }
   const url = `${SCHEME}://${randomUUID()}/index.html`;
@@ -131,4 +142,4 @@ function closeAllLocalHtmlPreviews() {
   }
 }
 
-module.exports = { SCHEME, MAX_BYTES, CSP, LOCAL_HTML_SCHEME, registerLocalHtmlScheme, snapshotLocalHtml, openIsolatedLocalHtml, closeAllLocalHtmlPreviews };
+module.exports = { SCHEME, MAX_BYTES, REFUSALS, CSP, LOCAL_HTML_SCHEME, registerLocalHtmlScheme, snapshotLocalHtml, openIsolatedLocalHtml, closeAllLocalHtmlPreviews };

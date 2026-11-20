@@ -30,6 +30,8 @@ since then are below as they're recorded.
   **Sign in with a passkey** dialog on every visit, even with no passkey
   saved. Blanc now tells those pages it can't list passkeys, so they show
   their own passkey button; choosing it still opens the dialog.
+- **A local HTML file Blanc can't show now says why.** Before, a file over
+  8 MB, or one Blanc couldn't read, opened nothing at all on macOS and Windows.
 
 ## Still open for the next release
 
@@ -43,6 +45,9 @@ since then are below as they're recorded.
   Hello set up. It was checked in the Windows VM (no Windows Hello) with a
   source build and a local test page, not a real site. A sign-in form inside
   an iframe can still open the dialog.
+- **The message for a refused local HTML file** in a packaged build on macOS
+  and Windows. Unit tests cover the reasons and the text; nobody has seen the
+  dialog on screen yet.
 - **Closing a real Proxmox console window** (#1477) in a packaged build. The
   fix was checked in the acceptance suite with a page that asks before it's
   left, not against Proxmox itself.
