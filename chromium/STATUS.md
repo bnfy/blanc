@@ -20,6 +20,63 @@ and its incremental rebuilds, and one GN regeneration on the Mac Studio
 hardware stays pending.
 
 ## Current work
+- **2026-11-19 — Spaces across profiles (spec `docs/superpowers/specs/2026-11-19-spaces-across-profiles-design.md` §6, plan `docs/superpowers/plans/2026-11-19-fork-spaces-across-profiles.md`; the owner said "go" after the plan merged in #1643), candidate macos-3123e237c7299510:**
+  With two or more Chromium profiles, the Spaces menu and the Quick Switcher
+  list every profile's Spaces under their names, open another profile's
+  Space in a window of that profile, and create a Space in another profile
+  (empty start only), as shipping does since bnfy/blanc#1642.
+  - **Listing:** each loaded profile copies its Space list into the Local
+    State dictionary `blanc.spaces.profiles` (patch 0106, one registration
+    in `browser_prefs.cc`), keyed by profile directory: id, name, color,
+    symbol and tab count only, through the pure rules in
+    `blanc/browser/ui/spaces_across_profiles.h`, checked against shipping's
+    `src/main/spaces-across-profiles.js` by
+    `tools/spaces-across-profiles.test.mjs`. `SpacesMirror`
+    (`spaces_across_profiles.inc`) writes it on every change of
+    `blanc.spaces.meta` and refreshes every window's menu when a profile is
+    added, renamed, hidden, needs sign-in, or is deleted. Listing never
+    loads a profile.
+  - **Opening and creating:** `spaceOtherProfiles`, `spaceOpenInProfile` and
+    `spaceCreateInProfile` load the profile with `profiles::LoadProfileAsync`
+    and open a new window of it without session restore; that window's own
+    Island host opens or creates the Space in its profile. A Space already
+    on screen brings its window forward (restored if minimized). Duplicate
+    requests join one load. A mini window answers `busy`.
+  - **The menu:** #1642's `workspace-ui.js` and `overlay.js` and its nine
+    strings come from their own pin, `blanc/spaces-menu.json` (#1642's
+    merge, 79f0f2b65), ahead of the renderer's v1.49.1;
+    #1642's three `styles.css` rules are anchored edits
+    (`tools/island-renderer.mjs`, `tools/spaces-menu-pin.test.mjs`). The host
+    carries #1642's focus fix: a window brought forward stays in front when
+    the menu closes. Another profile's row has no context menu.
+  - **Evidence on the Mac Studio:** `tests/native-spaces-across-profiles.mjs`
+    passes 20 of 20 (F41-83 to F41-92 through the real menu, editor and Quick
+    Switcher; a private tab active in Personal still opening a normal Work
+    window; the mirror written, following edits and read with Work unloaded;
+    a rename reaching the heading; open from an unloaded profile; a double
+    open joining one window; a deleted Space answering not-found; create;
+    Chromium's deletion of a throwaway profile taking it off the menu). The
+    shipping runner's F41 slice passes 84 of 84 and local-profiles 2 pass, 1
+    excluded, as in the last nightly. Fork unit suite and `check-patches.py`
+    pass (105 patches; 213 upstream files, unchanged by this work).
+  - **Not checked:** Windows (the cross build compiles the same code; no
+    check ran there); a real mouse and finger on the menu; the menu at the
+    smallest window with many Spaces; a site signed in only in Work (spec
+    §9's hand check). F41-92 can only show that no sync state crosses
+    profiles, because the fork's menu draws no Shared Spaces marks in any
+    window. F41-83 to F41-92 are not in the shipping runner's inventory
+    until it moves past #1642.
+  - **Proposed divergences, for the owner:** V31 (a profile's Spaces are
+    listed once it has been opened in a build with the Local State copy),
+    V33 (other profiles in Chromium's profile-picker order) and V34 (no
+    "Couldn't read this profile's Spaces." line), in the replacement spec's
+    table. The plan's V32 and V33 became V33 and V34 because `chromium/next`
+    recorded its own V32 the same day.
+  - **Incident:** the first BlancPrototype rebuild for this work (20:23)
+    replaced the app beta.8's outbound check was relaunching, which stopped
+    the beta.8 release at that check; nothing was published, and the check
+    passed on rerun against its own copy. Rule: never rebuild
+    `out/BlancPrototype` while a release's checks run.
 - **2026-11-18 — The Favorites manager (F63) in a tab of its own (owner approved the plan, `docs/superpowers/plans/2026-11-18-fork-favorites-manager.md`):**
   Favorites is bnfy/blanc#1614's page: a tab, shown as `blanc://bookmarks/`,
   with the F63 manager and its Edit dialog. Every way to it (⌘⌥B and the
