@@ -1,7 +1,7 @@
 # Spaces across profiles
 
 **Date:** 2026-11-19
-**Status:** the owner settled the design questions in §2 and approved it on November 19, 2026. The Electron build is implemented on `feat/spaces-across-profiles` (plan `docs/superpowers/plans/2026-11-19-spaces-across-profiles.md`), not yet released. The fork's part (§6) is implemented on `chromium/next` per `docs/superpowers/plans/2026-11-19-fork-spaces-across-profiles.md` (November 19, 2026): on candidate macos-3123e237c7299510 the native check passes 20 of 20, F41-83 to F41-92 included, with V31, V33 and V34 proposed as divergences.
+**Status:** the owner settled the design questions in §2 and approved it on November 19, 2026. The Electron build is implemented on `feat/spaces-across-profiles` (plan `docs/superpowers/plans/2026-11-19-spaces-across-profiles.md`), not yet released. The fork's part (§6) is implemented on `chromium/next` per `docs/superpowers/plans/2026-11-19-fork-spaces-across-profiles.md` (November 19, 2026): on candidate macos-8614a3a373fe16f9 the native check passes 20 of 20, F41-83 to F41-92 included, with V31, V33 and V34 proposed as divergences.
 **Builds on:** Blanc Spaces (F41; `workspaces.js`, `workspaces-model.js`, `workspace-controller.js`, `src/renderer/workspace-ui.js`; redesign spec `2026-10-13-blanc-spaces-redesign-design.md`), local profiles (F33; `local-profile-model.js`, `local-profiles.js`, `window-runtime-registry.js`), link routing (F60; `link-routes.js`, spec `2026-10-26-link-routing-design.md`), and the Arc Spaces import (F45; spec `2026-10-11-arc-spaces-import-design.md`).
 
 ## 1. Why

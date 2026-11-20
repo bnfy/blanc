@@ -20,7 +20,7 @@ and its incremental rebuilds, and one GN regeneration on the Mac Studio
 hardware stays pending.
 
 ## Current work
-- **2026-11-19 — Spaces across profiles (spec `docs/superpowers/specs/2026-11-19-spaces-across-profiles-design.md` §6, plan `docs/superpowers/plans/2026-11-19-fork-spaces-across-profiles.md`; the owner said "go" after the plan merged in #1643), candidate macos-3123e237c7299510:**
+- **2026-11-19 — Spaces across profiles (spec `docs/superpowers/specs/2026-11-19-spaces-across-profiles-design.md` §6, plan `docs/superpowers/plans/2026-11-19-fork-spaces-across-profiles.md`; the owner said "go" after the plan merged in #1643), candidate macos-8614a3a373fe16f9:**
   With two or more Chromium profiles, the Spaces menu and the Quick Switcher
   list every profile's Spaces under their names, open another profile's
   Space in a window of that profile, and create a Space in another profile
@@ -59,6 +59,15 @@ hardware stays pending.
     shipping runner's F41 slice passes 84 of 84 and local-profiles 2 pass, 1
     excluded, as in the last nightly. Fork unit suite and `check-patches.py`
     pass (105 patches; 213 upstream files, unchanged by this work).
+  - **Review:** each task was reviewed as it landed, and Codex reviewed the
+    whole branch. Its five findings in this branch's code are fixed: two
+    creates at once no longer drop a Space, the window made for a Space
+    comes forward only once the Space is in it, a pending open rechecks the
+    list, stale Local State entries are dropped at start, and the listing
+    check lists through the menu. Its other two are in shipping's
+    `workspace-ui.js` (#1642), which the fork takes as it is: a failed
+    Quick Switcher open shows no error, and `/space <name>`'s editor offers
+    the Profile choice. They belong in a shipping fix, then the pin.
   - **Not checked:** Windows (the cross build compiles the same code; no
     check ran there); a real mouse and finger on the menu; the menu at the
     smallest window with many Spaces; a site signed in only in Work (spec
