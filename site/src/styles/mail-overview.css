@@ -164,38 +164,38 @@
 .mail-overview figcaption { font-weight: 600; }
 .overview-section { margin-top: var(--section-gap); }
 .offer-hero + .overview-section { margin-top: 0; }
-.section-intro { margin: 12px 0 26px; }
-.offer-plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+.pricing-section { text-align: center; }
+.section-intro { margin: 14px 0 0; }
+.offer-plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 40px auto 0; padding: 0; list-style: none; text-align: left; }
 .offer-plan {
   display: grid;
-  grid-row: span 4;
+  grid-row: span 3;
   grid-template-rows: subgrid;
-  gap: 14px;
-  align-content: start;
-  padding: clamp(18px, 2vw, 28px);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: linear-gradient(152deg, #252017, #13110e 52%, #100f0c);
-  box-shadow: inset 0 1px 0 #f9d99b19;
+  row-gap: 0;
+  padding: 30px 28px 32px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #15110b, #0b0906);
+  box-shadow: inset 0 0 0 1px #f2ead81a, inset 0 1px 0 #fff3d614;
 }
-.plan-heading { display: grid; justify-items: start; align-content: start; gap: 16px; }
-.plan-mark {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border: 1px solid #d4b47b66;
+.offer-plan h3 { margin-bottom: 8px; font-size: 24px; line-height: 1.2; letter-spacing: .02em; }
+.offer-prices { margin: 6px 0 22px; color: var(--body); font-size: 15.5px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+.offer-prices p { margin: 0; }
+.offer-prices strong { font: 400 44px/1.1 var(--site-font-display); }
+.offer-prices p + p strong { font-size: 24px; }
+.plan-benefits { display: grid; gap: 10px; margin: 0; padding: 20px 0 0; border-top: 1px solid #e0c08433; list-style: none; }
+.plan-benefits li { position: relative; padding-inline-start: 22px; font-size: 15.5px; line-height: 1.5; }
+.plan-benefits li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 2px;
+  top: .6em;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: radial-gradient(ellipse at top left, #d4b47b18, transparent 85%);
-  color: #e3c78e;
-  font: 500 22px/1 var(--font-app);
+  background: var(--mail-gilt);
 }
-.plan-mark :is(.bento-icon, svg) { display: block; width: 19px; height: 19px; }
-.plan-mark svg { fill: none; stroke: currentColor; stroke-width: 1.45; stroke-linecap: round; stroke-linejoin: round; }
-.offer-plan p { margin: 0; color: var(--body); line-height: 1.55; }
-.offer-prices { padding-block: 13px; border-block: 1px solid var(--line); font-variant-numeric: tabular-nums; }
-.offer-prices strong { color: #f0d8a5; font-size: clamp(27px, 2.5vw, 36px); font-weight: 500; }
-.offer-plan .plan-detail, .offer-prices p + p { font-size: 14px; }
+.offer-plan a { color: #e6cf9a; }
+.plan-checkout { display: block; margin-top: 20px; }
 .faq-spread, .signup-spread {
   display: grid;
   grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
@@ -242,9 +242,12 @@
 .mail-questions p { margin: 0 0 18px; color: var(--body); line-height: 1.6; }
 .signup-spread .mail-waitlist { width: 100%; margin: 0; }
 .mail-overview .mail-legal { font-size: 14px; }
+@media (max-width: 900px) {
+  .offer-plans { grid-template-columns: minmax(0, 1fr); max-width: 520px; }
+  .offer-plan { grid-row: auto; grid-template-rows: none; }
+}
 @media (max-width: 760px) {
-  .offer-plans, .faq-spread, .signup-spread { grid-template-columns: minmax(0, 1fr); }
-  .offer-plan { grid-row: auto; grid-template-rows: auto; }
+  .faq-spread, .signup-spread { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 600px) {
   .address-features { grid-template-columns: 1fr; }
@@ -305,6 +308,8 @@
   .mail-envelope { transition: none; }
 }
 @media (forced-colors: active) {
+  .offer-plan { outline: 1px solid CanvasText; }
+  .plan-benefits li::before { background: CanvasText; }
   .mail-overview :is(.mail-gold-text, .mail-shimmer) { color: CanvasText; background: none; }
   .mail-overview .offer-action, .mail-segments input:checked + span { border: 1px solid ButtonText; }
 }
