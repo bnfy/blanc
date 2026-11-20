@@ -14,11 +14,11 @@ import '../styles/mail.css';
 import '../styles/mail-overview.css';
 
 const addressSteps = [
-  { value: 'offer', label: 'Get started', name: 'island-offer',
-    alt: 'Design preview: a dialog over the inbox with the gold Blanc Mail icon, reading “Your plan includes a Blanc Mail address. A private mailbox of your own.”, with mailbox storage of 15 GB and the buttons Choose Your Address and Not Now.' },
-  { value: 'choose', label: 'Pick a name', name: 'island-address',
+  { value: 'offer', label: 'Get started', name: 'address-offer',
+    alt: 'Design preview: a dialog with the gold Blanc Mail icon, reading “Your plan includes a Blanc Mail address. A private mailbox of your own.”, with mailbox storage of 15 GB and the buttons Choose Your Address and Not Now.' },
+  { value: 'choose', label: 'Pick a name', name: 'address-choose',
     alt: 'Design preview: the “Choose your address” form, filled in with the name mira at blnc.day, the display name Mira Hall, a password entered twice and a backup email, with Cancel and Continue.' },
-  { value: 'ready', label: 'Open inbox', name: 'island-arrival',
+  { value: 'ready', label: 'Open inbox', name: 'address-ready',
     alt: 'Design preview: a dialog with the gold Blanc Mail icon reading “mira@blnc.day. Your mailbox is ready in Blanc Mail.”, and an Open Inbox button.' },
 ];
 const islandCommands = [
@@ -94,12 +94,6 @@ const support = [
       {survey.open && <p class="mail-survey-link"><a href="/mail/survey">Help shape Blanc Mail: tell us what you’d want, anonymously.</a></p>}
     </section>
 
-    <section id="design" class="overview-preview" aria-labelledby="preview-title">
-      <h2 id="preview-title">Inside Blanc Mail</h2>
-      <MailShot name="classic-dark" width={2200} height={1352} alt="Blanc Mail in Classic dark mode. A mailbox sidebar and conversation list sit beside a sample Northlight Journal email, “Last light over the valley,” with three landscape photographs." />
-      <p class="preview-note">Classic layout in dark mode, with fictional mail.</p>
-    </section>
-
     <section id="pricing" class="overview-section" aria-labelledby="plans-title">
       <h2 id="plans-title"><span class="mail-gold-text">Compare plans</span></h2>
       <p class="section-intro">Planned pricing at launch. Purchases are not open yet.</p>
@@ -132,7 +126,7 @@ const support = [
     </section>
 
     <section id="island" class="overview-section feature-spread" aria-labelledby="search-title">
-      <div class="feature-copy">
+      <div id="design" class="feature-copy">
         <h2 id="search-title">Search across your accounts.</h2>
         <p>Press <kbd>⌘L</kbd> to open the Island. Find a person, mailbox or conversation across the accounts you’re viewing, or type a slash to act on a message.</p>
         <h3>Set a conversation aside</h3>
@@ -169,22 +163,48 @@ const support = [
 
     </section>
 
-    <section id="address" class="overview-section address-spread mail-teaser-set" aria-labelledby="address-title">
-      <div class="feature-copy">
+    <section id="address" class="overview-section address-section" aria-labelledby="address-title">
+      <div class="address-intro">
         <h2 id="address-title"><span class="mail-gold-text">A private mailbox of your own.</span></h2>
-        <p>Choose an address like <strong class="mail-shimmer"><!--email_off-->{exampleAddress}<!--/email_off--></strong> when addresses open. One address and 15 GB of storage come with Blanc Mail + Address and Blanc Bundle.</p>
-        <ul class="address-endings" aria-label="Available address endings">{endings.map(ending => <li>@{ending}</li>)}</ul>
-        {reservationsOpen && <a class="offer-action" href="/mail/reserve">Reserve your address</a>}
+        <p>Choose an address like <strong class="mail-shimmer"><!--email_off-->{exampleAddress}<!--/email_off--></strong> when addresses open. A mailbox comes with Blanc Mail + Address and Blanc Bundle.</p>
       </div>
-      <div class="address-preview">
+      <ul id="address-features" class="address-features" aria-label="Blanc mailbox features">
+        <li>
+          <h3>Your name, your ending</h3>
+          <p>Choose a name at {endings.map((ending, index) => <>{index === 0 ? '' : index === endings.length - 1 ? ' or ' : ', '}<strong>{ending}</strong></>)}.</p>
+        </li>
+        <li>
+          <h3><span class="storage-badge">15 GB</span> for your mail</h3>
+          <p>Each address includes 15 GB of storage for messages and attachments.</p>
+        </li>
+        <li>
+          <h3>Encrypted where it’s stored</h3>
+          <p>Your Mac creates the key that encrypts stored messages and attachments. Blanc keeps a copy of the key locked with your password, which stays on your Mac. Senders, recipients, subjects and dates stay visible. The server can read mail as it arrives and as it’s sent.</p>
+        </li>
+        <li>
+          <h3>Back in with a code</h3>
+          <p>If you forget your password, a code sent to your backup email gets you back in. On a new Mac, a forgotten password means you can’t open mail you received before recovery.</p>
+        </li>
+        <li>
+          <h3>Time to renew</h3>
+          <p>If your subscription lapses, your mailbox keeps receiving mail for 30 days. Renew to regain access. Before deleting a mailbox, Blanc emails you instructions for exporting your mail.</p>
+        </li>
+        <li>
+          <h3>Filtered for spam</h3>
+          <p>Incoming mail is checked for spam and phishing before it reaches your Inbox.</p>
+        </li>
+      </ul>
+      {reservationsOpen && <a class="offer-action" href="/mail/reserve">Reserve your address</a>}
+      <details class="address-preview mail-teaser-set">
+        <summary>Preview address setup</summary>
         <fieldset class="mail-segments">
           <legend class="sr-only">Address setup preview</legend>
           {addressSteps.map((step, index) => (
             <label><input type="radio" name="mail-address-step" value={step.value} checked={index === 0} /><span>{step.label}</span></label>
           ))}
         </fieldset>
-        {addressSteps.map(step => <MailTeaser name={step.name} alt={step.alt} data-teaser={step.value} sizes="(max-width: 760px) 100vw, 620px" />)}
-      </div>
+        {addressSteps.map(step => <MailTeaser name={step.name} alt={step.alt} data-teaser={step.value} />)}
+      </details>
     </section>
 
     <section id="support" class="overview-section faq-spread" aria-labelledby="faq-title">

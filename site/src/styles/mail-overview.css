@@ -172,14 +172,6 @@
 .mail-overview .offer-jump { color: var(--accent); text-decoration: none; display: inline-flex; gap: 8px; align-items: center; min-height: 44px; margin-top: 10px; font-size: 15px; }
 .mail-overview .offer-jump:hover { text-decoration: underline; }
 .offer-jump span { color: var(--accent); }
-.overview-preview {
-  padding: clamp(20px, 3vw, 38px);
-  border: 1px solid var(--line);
-  border-radius: 22px;
-  background: radial-gradient(ellipse at 50% 73%, #392e20, #191610 57%, #100f0c 100%);
-  text-align: center;
-}
-.overview-preview h2 { text-align: left; font-size: clamp(26px, 3vw, 40px); }
 .mail-segments {
   display: inline-flex;
   padding: 3px;
@@ -194,10 +186,10 @@
 .mail-segments input:checked + span { background: var(--mail-gilt); color: #201708; }
 .mail-overview :is(.mail-teaser, .mail-shot) { margin: 16px 0 0; text-align: center; }
 .mail-overview :is(.mail-teaser, .mail-shot) img { display: block; width: 100%; height: auto; }
-.mail-overview figcaption, .preview-note { color: var(--body); font-size: 13px; line-height: 1.5; }
+.mail-overview figcaption { color: var(--body); font-size: 13px; line-height: 1.5; }
 .mail-overview figcaption { font-weight: 600; }
-.preview-note { margin: 2px 0 0; }
 .overview-section { margin-top: var(--section-gap); }
+.offer-hero + .overview-section { margin-top: 0; }
 .section-intro { margin: 12px 0 26px; }
 .offer-plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
 .offer-plan {
@@ -230,7 +222,7 @@
 .offer-prices { padding-block: 13px; border-block: 1px solid var(--line); font-variant-numeric: tabular-nums; }
 .offer-prices strong { color: #f0d8a5; font-size: clamp(27px, 2.5vw, 36px); font-weight: 500; }
 .offer-plan .plan-detail, .offer-prices p + p { font-size: 14px; }
-.feature-spread, .address-spread, .faq-spread, .signup-spread {
+.feature-spread, .faq-spread, .signup-spread {
   display: grid;
   grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
   align-items: center;
@@ -246,8 +238,34 @@
 .rules-spread .feature-copy { order: 1; }
 .mail-overview .mail-shot { margin: 0; }
 .mail-shot figcaption { margin-top: 8px; }
-.address-endings { display: flex; flex-wrap: wrap; gap: 6px 15px; margin: 18px 0 22px; padding: 0; list-style: none; color: var(--accent); font-weight: 600; }
-.address-preview { min-width: 0; text-align: center; }
+.address-section {
+  padding-top: clamp(40px, 5vw, 72px);
+  border-top: 1px solid var(--line);
+  text-align: center;
+}
+.address-intro { max-width: 780px; margin-inline: auto; }
+.address-intro p { max-width: 54ch; margin: 16px auto 0; color: var(--body); font-size: clamp(18px, 2vw, 24px); line-height: 1.5; text-wrap: pretty; }
+.address-features {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(24px, 3.2vw, 40px);
+  margin: clamp(32px, 5vw, 64px) 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+.address-features li { padding-top: 19px; border-top: 1px solid var(--line); }
+.address-features h3 { font-size: clamp(23px, 2.1vw, 28px); line-height: 1.18; }
+.address-features p { margin: 10px 0 0; color: var(--body); font-size: 16px; line-height: 1.6; text-wrap: pretty; }
+.address-features strong { color: var(--accent); font-weight: 600; }
+.storage-badge { display: inline-block; padding: .04em .42em .1em; border-radius: 99px; color: #201708; background: var(--mail-gilt); box-shadow: inset 0 1px 0 #fff4d9bf, inset 0 -1px 0 #8e713f; line-height: 1.12; }
+.address-section > .offer-action { margin-top: clamp(32px, 4vw, 50px); }
+.address-preview { width: min(100%, 512px); margin: 16px auto 0; }
+.address-preview summary { width: fit-content; margin-inline: auto; padding: 9px 4px; color: var(--accent); cursor: pointer; }
+.address-preview[open] summary { margin-bottom: 12px; }
+@media (min-width: 601px) and (max-width: 900px) {
+  .address-features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 .faq-spread, .signup-spread { align-items: start; }
 .mail-questions summary:hover { color: var(--accent); }
 .mail-questions details { border-bottom: 1px solid var(--line); }
@@ -259,12 +277,13 @@
 .signup-spread .mail-waitlist { width: 100%; margin: 0; }
 .mail-overview .mail-legal { font-size: 14px; }
 @media (max-width: 760px) {
-  .offer-plans, .feature-spread, .address-spread, .faq-spread, .signup-spread { grid-template-columns: minmax(0, 1fr); }
+  .offer-plans, .feature-spread, .faq-spread, .signup-spread { grid-template-columns: minmax(0, 1fr); }
   .offer-plan { grid-row: auto; grid-template-rows: auto; }
   .rules-spread .feature-copy { order: 0; }
   .mip-hint { display: none; }
 }
 @media (max-width: 600px) {
+  .address-features { grid-template-columns: 1fr; }
   .offer-hero { padding: 27px 0 16px; }
   .offer-opening { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); grid-template-areas: "status status" "title art" "intro intro"; column-gap: 8px; }
   .offer-hero .mail-eyebrow { font-size: 10px; letter-spacing: .16em; }
@@ -275,7 +294,6 @@
   .offer-path { padding: 17px 18px; }
   .offer-path + .offer-path { border-inline-start: 0; border-top: 1px solid var(--line); }
   .offer-path > p { margin: 6px 0 11px; }
-  .overview-preview { padding: 17px 12px; border-radius: 14px; }
   .mail-segments span { padding: 7px 10px; }
   .mail-overview .mail-waitlist input[type=email] { flex: none; min-height: 44px; }
 }

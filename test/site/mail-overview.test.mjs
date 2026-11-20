@@ -41,7 +41,7 @@ async function openBarWaitlist(page) {
   await page.waitForFunction(() => document.activeElement?.id === 'bar-waitlistEmail');
 }
 
-test('the hero shows both ways to use Mail with equal actions before the preview', async () => {
+test('the hero shows both ways to use Mail with equal actions before pricing', async () => {
   for (const width of [390, 1440]) {
     const { page, context } = await openPage('/mail', width, { viewport: { width, height: 844 } });
     try {
@@ -61,9 +61,9 @@ test('the hero shows both ways to use Mail with equal actions before the preview
       assert.ok(reserve.bottom <= 844);
       if (width === 390) assert.ok(reserve.top > wait.bottom);
       else assert.equal(wait.top, reserve.top);
-      assert.ok((await page.locator('#design').boundingBox()).y >= reserve.bottom);
+      assert.ok((await page.locator('#pricing').boundingBox()).y >= reserve.bottom);
       assert.equal(await page.locator('.offer-jump').getAttribute('href'), '#pricing');
-      assert.equal(await page.locator('#design + section').getAttribute('id'), 'pricing');
+      assert.equal(await page.locator('.offer-hero + section').getAttribute('id'), 'pricing');
       if (open) {
         await address.click();
         assert.equal(new URL(page.url()).pathname, '/mail/reserve');
@@ -150,19 +150,22 @@ test('the hero waitlist opens by keyboard and reuses the email confirmation flow
   } finally { await context.close(); }
 });
 
-test('the app preview shows one Classic dark screenshot on desktop and mobile', async () => {
-  for (const [width, colorScheme] of [[1440, 'dark'], [390, 'light']]) {
-    const { page, context } = await openPage('/mail', width, { colorScheme });
+test('mailbox features and the reservation action are visible before opening a design preview', async () => {
+  for (const [width, columns] of [[390, 1], [768, 2], [1440, 3]]) {
+    const { page, context } = await openPage('/mail', width);
     try {
-      const preview = page.locator('#design');
-      assert.equal(await preview.locator('img').count(), 1);
-      assert.equal(await preview.getByRole('radio').count(), 0);
-      const img = preview.getByRole('img', { name: /Classic dark mode/ });
-      await img.scrollIntoViewIfNeeded();
-      await img.evaluate(el => el.decode());
-      assert.match(await img.evaluate(el => el.currentSrc), /\/classic-dark(?:-1100)?\.webp$/);
-      assert.equal(await preview.locator('figcaption').innerText(), 'Preview build');
-      assert.match(await preview.innerText(), /fictional mail/);
+      const features = page.getByRole('list', { name: 'Blanc mailbox features' });
+      assert.deepEqual(await features.locator('h3').allTextContents(), [
+        'Your name, your ending', '15 GB for your mail', 'Encrypted where it’s stored',
+        'Back in with a code', 'Time to renew', 'Filtered for spam',
+      ]);
+      assert.equal(await features.evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length), columns);
+      const { endings, open } = JSON.parse(readFileSync(new URL('../../site/src/data/mail-reservations.json', import.meta.url)));
+      assert.deepEqual(await features.locator('strong').allTextContents(), endings);
+      assert.equal(await page.locator('#address-features + a[href="/mail/reserve"]').count(), open ? 1 : 0);
+      assert.equal(await page.locator('.address-preview').getAttribute('open'), null);
+      assert.equal(await page.locator('main .mail-shot img').count(), 1);
+      assert.match(await page.locator('.mail-shot img').getAttribute('src'), /rule-editor/);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     } finally { await context.close(); }
   }
@@ -172,6 +175,7 @@ test('the address setup previews stay labelled and switch by mouse or keyboard',
   const { page, context } = await openPage('/mail');
   try {
     const address = page.locator('#address');
+    await address.locator('summary').click();
     const visibleStep = address.locator('.mail-teaser:visible');
     assert.equal(await visibleStep.getAttribute('data-teaser'), 'offer');
     assert.deepEqual((await address.locator('label').allTextContents()).map(t => t.trim()), ['Get started', 'Pick a name', 'Open inbox']);
