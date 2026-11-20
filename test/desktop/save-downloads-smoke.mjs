@@ -120,7 +120,10 @@ try {
   await run('document.getElementById("silent").click()', false);
   const afterSilent = await waitForValue(savePaths, (seen) => seen.length > before, 'the page-started download', 15_000);
   assert.equal(afterSilent.at(-1), '', 'a download without a click is left to Save As');
-  assert.deepEqual(files(), ['report (1).txt', 'report.txt'], 'nothing new was saved');
+  // Nothing new was saved. Wait for the folder rather than reading it at once:
+  // on Windows Chromium's "<id>.tmp" for the cancelled download can outlive
+  // the Save As answer by a moment.
+  await finished(['report (1).txt', 'report.txt']);
 
   // One click elsewhere on the page, then the page starts two downloads: the
   // first may skip Save As, the second asks.
@@ -140,7 +143,9 @@ try {
   await click();
   const afterAsk = await waitForValue(savePaths, (seen) => seen.length > beforeAsk, 'the asked download', 15_000);
   assert.equal(afterAsk.at(-1), '', 'with the switch on, Blanc leaves the download to Save As');
-  assert.deepEqual(files(), ['report (1).txt', 'report (2).txt', 'report.txt']);
+  // As above: the cancelled download's "<id>.tmp" can still be there for a
+  // moment (#1660's Windows run caught one).
+  await finished(['report (1).txt', 'report (2).txt', 'report.txt']);
 
   const exited = new Promise((resolve) => app.process().once('exit', resolve));
   await app.evaluate(({ app: electronApp }) => electronApp.quit());
