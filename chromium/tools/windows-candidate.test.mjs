@@ -60,8 +60,12 @@ test('a tool that rewrites a build input leaves it as it was', () => {
     const file = path.join(dir, 'gn_logs.txt'), then = new Date('2026-11-17T15:50:35Z');
     fs.writeFileSync(file, 'first'); fs.utimesSync(file, then, then);
     assert.equal(keepingFile(file, () => { fs.writeFileSync(file, 'rewritten'); return 'out'; }), 'out');
-    assert.equal(fs.readFileSync(file, 'utf8'), 'first');
-    assert.equal(fs.statSync(file).mtime.getTime(), then.getTime());
+    // Contents and time from one open file, so nothing can change between them.
+    const fd = fs.openSync(file, 'r');
+    try {
+      assert.equal(fs.readFileSync(fd, 'utf8'), 'first');
+      assert.equal(fs.fstatSync(fd).mtime.getTime(), then.getTime());
+    } finally { fs.closeSync(fd); }
     assert.throws(() => keepingFile(file, () => { fs.rmSync(file); throw new Error('boom'); }), /boom/);
     assert.equal(fs.readFileSync(file, 'utf8'), 'first');
     const absent = path.join(dir, 'absent.txt');
