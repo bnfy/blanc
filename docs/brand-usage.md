@@ -339,10 +339,11 @@ the icon is 1.15× the l height, centred on the B, with a 0.3× B-height gap.
 later (190 units in the Display cut, 240 in the Text cut). The word never
 appears without the icon, and it is never recoloured, re-spaced or stacked.
 
-- On the site it is the Mail product bar's title (`MailBar.astro`): the Text
-  cut in white, `site/public/lockup/blanc-mail-word-small-white.svg`, beside
-  the gold icon (`/blanc-mail-icon.webp`), placed by `.mail-lockup` in
-  `mail.css`.
+- The website product bar alone uses the short form. `MailBar.astro` pairs
+  the gold app icon with “Mail” in white, using the original `mail-text.d`
+  outline in `site/public/lockup/mail-word-small-white.svg`. It uses the
+  same icon size, alignment and spacing as the full Text lockup. The link’s
+  accessible name is “Blanc Mail”.
 - The media kit offers it in ink and white, as SVG, a 3000px PNG and WebP
   previews (`site/public/press/blanc-mail-lockup-*`).
 - Its word outlines live in `assets/wordmark/blanc-mail-word-*`, which
