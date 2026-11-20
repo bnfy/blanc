@@ -184,7 +184,7 @@ test('the app grid shows mail tools and privacy protections at each breakpoint',
       const grid = section.getByRole('list');
       assert.deepEqual(await grid.getByRole('heading', { level: 3 }).allTextContents(), [
         'Every account together', 'Groups', 'Read with scripts blocked',
-        'Gmail and Proton Mail', 'Send without tracking', 'Later, on your terms',
+        'Gmail and Proton Mail', 'Blanc adds no tracking', 'Later, on your terms',
         'Ghost Mode', 'Share photos without geotags', 'Drafts that keep up',
       ]);
       assert.equal(await grid.locator('.mail-feature-badge svg').count(), 9);
