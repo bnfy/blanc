@@ -340,10 +340,10 @@ later (190 units in the Display cut, 240 in the Text cut). The word never
 appears without the icon, and it is never recoloured, re-spaced or stacked.
 
 - The website product bar alone uses the short form. `MailBar.astro` pairs
-  the gold app icon with “Mail” in white, using the original `mail-text.d`
-  outline in `site/public/lockup/mail-word-small-white.svg`. It uses the
-  same icon size, alignment and spacing as the full Text lockup. The link’s
-  accessible name is “Blanc Mail”.
+  the gold app icon with “Mail” in white Blubird Medium Text, outlined in
+  `site/public/lockup/mail-word-small-white.svg`. The lettering is 19px
+  tall with a 9px gap beside the icon. The icon uses the full Text lockup’s
+  size and alignment. The link’s accessible name is “Blanc Mail”.
 - The media kit offers it in ink and white, as SVG, a 3000px PNG and WebP
   previews (`site/public/press/blanc-mail-lockup-*`).
 - Its word outlines live in `assets/wordmark/blanc-mail-word-*`, which
