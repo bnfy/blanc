@@ -176,16 +176,16 @@ test('mailbox features and the reservation action are visible before opening a d
   }
 });
 
-test('the app feature section shows the original nine cards at each breakpoint', async () => {
+test('the app grid shows mail tools and privacy protections at each breakpoint', async () => {
   for (const [width, columns] of [[390, 1], [768, 2], [1440, 3]]) {
     const { page, context } = await openPage('/mail#features', width);
     try {
       const section = page.getByRole('region', { name: 'Every account, one calm inbox.' });
       const grid = section.getByRole('list');
       assert.deepEqual(await grid.getByRole('heading', { level: 3 }).allTextContents(), [
-        'Every account together', 'Groups', 'A native window',
-        'Gmail and Proton Mail', 'A moment to change your mind', 'Later, on your terms',
-        'Ghost Mode', 'Replies you type often', 'Drafts that keep up',
+        'Every account together', 'Groups', 'Read with scripts blocked',
+        'Gmail and Proton Mail', 'Send without tracking', 'Later, on your terms',
+        'Ghost Mode', 'Share photos without geotags', 'Drafts that keep up',
       ]);
       assert.equal(await grid.locator('.mail-feature-badge svg').count(), 9);
       assert.equal(await grid.evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length), columns);
