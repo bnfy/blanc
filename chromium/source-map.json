@@ -532,7 +532,7 @@
     "blanc/browser/ui/permission_prompt.inc": "113d0806e5e9bf52be9cb0570fe45e88f05945cb8baf5f65c0e76d2947a9dbfa",
     "blanc/browser/ui/profile_import.inc": "a95e2f97266ac80f7bf83dcb9a1cf08050a2e9c2b6c5dbfe773b092ab4360306",
     "blanc/browser/ui/protected_media.inc": "f3dfe2c204a2cb148115d682b3a1f8a4a58bb23729cc35bdf7d740ccc1156499",
-    "blanc/browser/ui/spaces_across_profiles.h": "83a099c9e9c1dee17d1d9730abac3279b68a43453feae4bbc0801b8907fe5b4c",
+    "blanc/browser/ui/spaces_across_profiles.h": "0ab47e9e8eacc8477a13a6a4573c4cc21c9dc3e72aa716b99f1ef09caeed9613",
     "blanc/browser/ui/spaces_across_profiles.inc": "42c19dfa5d040dac0a408df42ef393b876ece4fb534652115de5e9959c1521c5",
     "blanc/browser/ui/start_page_import.inc": "c977e0b822a71577f858586bf6778121c855b0fb36102cbbf23dcb305f31eda2",
     "blanc/browser/ui/start_page_pin_menu.inc": "4a53e5d68f1c8556cc63dfee6e4d66b865b38f5e4f83a9685e57ba62cffc534c",

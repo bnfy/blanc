@@ -76,7 +76,7 @@ inline size_t CodePoints(const std::string& s) {
 }
 
 inline std::string Quote(const std::string& s) {
-  static const char* hex = "0123456789abcdef";
+  constexpr std::string_view hex = "0123456789abcdef";
   std::string out = "\"";
   for (unsigned char c : s) {
     switch (c) {
