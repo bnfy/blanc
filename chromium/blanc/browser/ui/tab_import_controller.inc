@@ -332,8 +332,12 @@ void TabImporter::ApplyArc(std::string session, Reply reply, base::Value plan) {
     records.Set(base::Uuid::GenerateRandomV4().AsLowercaseString(), std::move(record)); names.Append(*name);
   }
   auto* profile = browser_->GetProfile();
+  // Copied before the call: its arguments may be evaluated in any order, and
+  // on Windows the reply's std::move(records) ran first, so the store got an
+  // empty copy and the Arc import saved no Spaces (W2).
+  auto capture = records.Clone();
   SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
-      base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"), "importSpaces", "", records.Clone()),
+      base::BindOnce(&SpaceDisk, profile->GetPath().AppendASCII("BlancPrototypeSpaces.json"), "importSpaces", "", std::move(capture)),
       base::BindOnce([](base::WeakPtr<TabImporter> self, base::WeakPtr<Profile> profile, std::string session,
           Reply reply, base::DictValue records, base::ListValue names, base::ListValue favorites, int empty, int dropped, base::DictValue result) {
         if (result.contains("error")) {std::move(reply).Run(base::Value(std::move(result))); return;}

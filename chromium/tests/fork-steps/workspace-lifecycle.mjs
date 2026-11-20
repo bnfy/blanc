@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import {nativeNavigationHistory} from '../lib/main-ports.mjs';
+import {readHeldFile} from '../lib/platform.mjs';
 // Preserve shipping's live-document, POST count and disk non-disclosure
 // assertions against Chromium's actual session and Spaces stores.
 export const WORKSPACE_LIFECYCLE_STEPS=new Map([
@@ -22,7 +23,7 @@ export const WORKSPACE_LIFECYCLE_STEPS=new Map([
   const files=[spaces,...fs.readdirSync(sessions).map(name=>path.join(sessions,name))];
   assert.ok(files.length>1,'native session commands must exist');
   for(const file of files){
-   const bytes=fs.readFileSync(file);
+   const bytes=readHeldFile(file);
    for(const sentinel of ['workspace-post-sentinel','workspace-response-sentinel','workspace-unsaved-sentinel','workspace-storage-sentinel']){
     for(const encoding of ['utf8','utf16le'])assert.equal(bytes.includes(Buffer.from(sentinel,encoding)),false,`${path.basename(file)} must not persist ${sentinel}`);
    }

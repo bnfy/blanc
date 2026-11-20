@@ -31,12 +31,20 @@ export const EDITS = {
      '  <script src="favorites-adapter.js"></script>\n  <script src="../ui-language.js"></script>\n  <script src="strings.js"></script>\n'],
     // The bookmarks-file picker the adapter's import uses.
     ['  <script src="row-icon.js"></script>\n', '  <script src="bookmark-file.js"></script>\n  <script src="row-icon.js"></script>\n'],
+    // The import button exists before the page's script has run and attached
+    // its handler (after two calls to the browser); a click before then did
+    // nothing (W2, run 44403868270). It starts disabled; bookmarks.js enables it.
+    ['<button id="importMenuBtn" type="button" ', '<button id="importMenuBtn" type="button" disabled '],
   ],
   // "Open tabs" opens the tab import in the Island's sheet; a blanc://
   // address never loads in a tab here.
   'bookmarks.js': [
     ["const bringTabs = () => { window.location.href = 'blanc://tab-import/'; };",
      "const bringTabs = () => { window.BlancFavoritesTab.openSheet('tab-import'); };"],
+    // The import button is disabled in the markup until its handler is
+    // attached (W2); this is where it starts to work.
+    ["  importMenuBtn.addEventListener('click', () => {\n",
+     "  importMenuBtn.disabled = false;\n  importMenuBtn.addEventListener('click', () => {\n"],
   ],
 };
 

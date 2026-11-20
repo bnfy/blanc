@@ -101,6 +101,23 @@
         "no-drm-handoff"
       ],
       "note": "Daily Blanc Beta, published 2026-11-15 as a GitHub pre-release (not latest) through the one release command. Signed with the pinned Developer ID, notarized and stapled; Sigstore-signed checksums; logged-out public verification passed. Waivers under the owner's standing decisions: production-sync-real-device, no-drm-handoff."
+    },
+    {
+      "build": 7,
+      "version": "2.0.0-beta.7",
+      "tag": "chromium-beta-2.0.0-beta.7",
+      "date": "2026-11-17",
+      "arches": [
+        "arm64"
+      ],
+      "archWaiver": "Owner standing decision 2026-11-14: daily betas are Apple Silicon only; Intel is deferred until a separately qualified native build.",
+      "sourceCommit": "a0419d04ebeb5ed3e4d17461d91147446af24cb7",
+      "candidate": "macos-13a7ebf9834e65e0",
+      "dmgSHA256": "e0f48c024ad83980311b42aa4b2546c9a0568d637886f8ca2c99380804b870ff",
+      "gateWaivers": [
+        "production-sync-real-device"
+      ],
+      "note": "Daily Blanc Beta, published 2026-11-17 as a GitHub pre-release (not latest) through the one release command. Signed with the pinned Developer ID, notarized and stapled; Sigstore-signed checksums; logged-out public verification passed. Waivers under the owner's standing decisions: production-sync-real-device."
     }
   ]
 }

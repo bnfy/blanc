@@ -3,7 +3,8 @@
 // and the Island host paints the band's slice of the same layers, so the seam
 // between them disappears: Sunrise's own wallpaper and your photo (which the
 // host reads from the Start Page's storage). Match site colors off returns the
-// band to its theme color and the page to its own crop.
+// band to its theme color and the page to its own crop. With the launch
+// Sunrise on, the band plays the page's sky in step until the scene ends.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -101,6 +102,27 @@ try{
  await setColors(true);
  await w.waitFor(()=>geometry(page),([p,h])=>p.flag&&h.shown,'the band continues the page again',10000);
  result.checks.push('Match site colors off returns the band to its theme color and the page to its own crop; on brings the continuation back');
+
+ // The launch Sunrise (shipping #1624): its sky covers the page, and the
+ // band plays the same sky in step instead of keeping the wallpaper, then
+ // goes when the page's scene ends.
+ await w.native('setLaunchSunrise',[true]);
+ const sunrisePage=await newStartPage();
+ // Each side's time into the sky, at one wall-clock moment.
+ const skyAt=(cdp,selector)=>cdp.eval(`(()=>{const el=document.querySelector(${jsLiteral(selector)});if(!el||el.closest('[hidden]'))return null;
+  const sky=el.getAnimations().find(a=>a.animationName===${jsLiteral(selector==='#bandSunrise'?'band-sunrise-sky':'launch-sunrise-sky')});if(!sky)return null;
+  const t=sky.effect.getComputedTiming();return {names:el.getAnimations().map(a=>a.animationName).sort(),into:t.localTime-sky.effect.getTiming().delay,at:Date.now()};})()`);
+ const [pageSky,hostSky]=await w.waitFor(async()=>[await skyAt(sunrisePage,'.launch-sunrise-sky'),await skyAt(f.host,'#bandSunrise')],
+  ([p,h])=>p&&h&&p.into>0&&h.into>0&&p.into<2000,'the Sunrise sky over the page and the band',10000);
+ result.sunriseSky={page:pageSky,host:hostSky};
+ assert.deepEqual(hostSky.names,['band-sunrise-out','band-sunrise-sky'],'the band plays the sky and its fade');
+ const drift=Math.abs((pageSky.into+(hostSky.at-pageSky.at))-hostSky.into);
+ assert.ok(drift<250,`the band's sky is in step with the page's (${Math.round(drift)} ms apart)`);
+ await w.waitFor(()=>sunrisePage.eval(`!document.getElementById('launchSunrise')&&!('launchSunriseAt' in document.body.dataset)`),Boolean,'the page\'s Sunrise ended',10000);
+ await w.waitFor(()=>f.host.eval(`document.getElementById('bandSunrise').hidden`),Boolean,'the Sunrise sky gone from the band',5000);
+ [p,h]=await w.waitFor(()=>geometry(sunrisePage),([p,h])=>p.flag&&h.shown,'the band continues the page after the Sunrise',10000);
+ await w.native('setLaunchSunrise',[false]);
+ result.checks.push('the launch Sunrise: the band plays the page\'s sky in step, then shows the wallpaper again when the scene ends');
  await assertRendering(e=>f.host.eval(e));result.result='pass';
 }catch(error){result.result=error.code==='BLANC_ENVIRONMENT_STOP'?'blocked-environment':'fail';result.error=String(error.stack);process.exitCode=1;}
 finally{

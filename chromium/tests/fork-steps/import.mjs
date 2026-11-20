@@ -5,7 +5,14 @@ import {sessionBytes} from '../lib/import-fixture.mjs';
 import {importSheet} from '../adapters/import.mjs';
 import {installDriver,nativeCall} from '../lib/test-driver.mjs';
 import {jsLiteral} from '../lib/js-literal.mjs';
-const page=(w,body)=>importSheet(w,`async()=>{${body}}`);
+import {chromeProfileRoot,runningBrowserMarker,readHeldFile} from '../lib/platform.mjs';
+// A running Chrome, as each platform's Chrome marks its profile folder.
+const runningMarker=runningBrowserMarker();
+const markChromeRunning=root=>{const file=path.join(root,runningMarker.name);
+ if(runningMarker.kind==='symlink')fs.symlinkSync('synthetic-host-123',file);else fs.writeFileSync(file,'synthetic-host-123');};
+const chromeRunningMark=root=>{const file=path.join(root,runningMarker.name);
+ return runningMarker.kind==='symlink'?fs.readlinkSync(file):fs.readFileSync(file,'utf8');};
+const page=(w,body,timeout)=>importSheet(w,`async()=>{${body}}`,timeout);
 async function open(w){
  await w.call('openTabImport');
  await w.waitFor(()=>w.call('utilitySurface'),s=>s.visible&&s.ready&&s.url==='blanc://tab-import/','import sheet');
@@ -14,7 +21,7 @@ function seed(w,count=6){
  w.importRows=Array.from({length:count},(_,i)=>({url:w.fixtureUrl('import-'+(i===1?0:i)),title:'Imported '+i,
   window:i<Math.ceil(count/2)?1:2,pinned:i===0||i===4,...(i<2?{group:'Research'}:i===2?{group:'Solo'}:i===3?{group:''}:{})}));
  w.importRows[w.importRows.length-1].url=w.importRows[w.importRows.length-1].url.replace('http:','https:');
- w.importRoot=path.join(w.fixture.browserHome,'Library/Application Support/Google/Chrome');
+ w.importRoot=chromeProfileRoot(w.fixture.browserHome);
  w.importSource=path.join(w.importRoot,'Default');fs.mkdirSync(path.join(w.importSource,'Sessions'),{recursive:true});
  fs.writeFileSync(path.join(w.importSource,'Sessions/Session_100'),sessionBytes(w.importRows));
  w.importBytes=sessionBytes(w.importRows);
@@ -41,7 +48,9 @@ export default register=>{
  register('no tabs, groups, or Favorites have been created',async function(){assert.deepEqual(identities(await this.state()),identities(this.importBefore));assert.deepEqual(await this.call('bookmarkRecords'),this.importFavorites);});
  register('I reviewed selected open-tab candidates from multiple source windows',async function(){await reviewed(this);});
  register('I apply the tab migration',async function(){
-  this.importResult=await page(this,`return window.bowserPages.tabImport.apply(${jsLiteral(this.importProjection.sessionId)},${jsLiteral(this.importRequest)});`);
+  // Applying the 500-candidate maximum takes longer than one default
+  // evaluation on the slower Windows runner.
+  this.importResult=await page(this,`return window.bowserPages.tabImport.apply(${jsLiteral(this.importProjection.sessionId)},${jsLiteral(this.importRequest)});`,this.importRows.length>100?60000:undefined);
   if(this.importResult?.ok){await this.waitForState(s=>s.tabs.filter(t=>this.importResult.tabIds.includes(t.id)).length===this.importRows.length);}
  });
  register('imported tabs appear in source-window and source-tab order',async function(){
@@ -97,7 +106,7 @@ export default register=>{
  register('no migration secret enters persistence, sync, telemetry, or logs',async function(){
   // Candidate URLs contain this unique marker and were never opened.
   const needle='import-0';const files=[];const walk=p=>{for(const e of fs.readdirSync(p,{withFileTypes:true})){const f=path.join(p,e.name);if(e.isDirectory())walk(f);else if(e.isFile()&&fs.statSync(f).size<16*1024*1024)files.push(f);}};walk(this.fixture.profile);
-  const hits=files.filter(f=>fs.readFileSync(f).includes(Buffer.from(needle)));assert.deepEqual(hits,[]);
+  const hits=files.filter(f=>readHeldFile(f).includes(Buffer.from(needle)));assert.deepEqual(hits,[]);
  });
  register('I reviewed the maximum 500 open-tab candidates',async function(){
   await reviewed(this,500);
@@ -107,7 +116,7 @@ export default register=>{
  register('the other imported tabs remain quiet and viewless',async function(){const s=await this.snapshot();for(const t of s.tabs.filter(t=>this.importResult.tabIds.slice(1).includes(String(t.id)))){assert.equal(t.asleep,true);assert.equal(t.rendererLive,false);}});
  register('the newest source session cannot be read while its browser is running',async function(){
   seed(this);await before(this);fs.writeFileSync(path.join(this.importSource,'Sessions/Session_200'),'incomplete snapshot');
-  fs.symlinkSync('synthetic-host-123',path.join(this.importRoot,'SingletonLock'));await open(this);
+  markChromeRunning(this.importRoot);await open(this);
  });
  register('Blanc can parse an older saved restorable session as preflight evidence',async function(){
   const sources=await this.native('importSources');this.importSourceId=sources.sources.find(s=>s.browserId==='chrome').id;
@@ -118,7 +127,7 @@ export default register=>{
  });
  register('Blanc may ask me to quit the source browser normally',async function(){assert.match(await page(this,`return document.getElementById('tabImportSourceRecovery').textContent;`),/Quit Google Chrome/);});
  register('Blanc says tabs remain saved and restorable without promising automatic reopening',async function(){const text=await page(this,`return document.getElementById('tabImportSourceRecovery').textContent;`);assert.match(text,/saved/);assert.match(text,/restor/i);assert.doesNotMatch(text,/will (?:automatically )?reopen/i);});
- register('Blanc never force-quits or modifies that browser',function(){assert.equal(fs.readFileSync(path.join(this.importSource,'Sessions/Session_200'),'utf8'),'incomplete snapshot');assert.deepEqual(fs.readFileSync(path.join(this.importSource,'Sessions/Session_100')),this.importBytes);assert.equal(fs.readlinkSync(path.join(this.importRoot,'SingletonLock')),'synthetic-host-123');});
+ register('Blanc never force-quits or modifies that browser',function(){assert.equal(fs.readFileSync(path.join(this.importSource,'Sessions/Session_200'),'utf8'),'incomplete snapshot');assert.deepEqual(fs.readFileSync(path.join(this.importSource,'Sessions/Session_100')),this.importBytes);assert.equal(chromeRunningMark(this.importRoot),'synthetic-host-123');});
  register('the destination already has a Named Group named {string}',async function(name){await this.call('openTab',this.fixtureUrl('existing-work'));await this.call('groupActiveByName',name);});
  register('I renamed a reviewed migration group to {string}',async function(name){await reviewed(this);this.importRequest.groups=[{name,candidateIds:this.importProjection.candidates.slice(0,2).map(c=>c.candidateId)}];this.importRequest.ungroupedCandidateIds=this.importProjection.candidates.slice(2).map(c=>c.candidateId);});
  register('those imported tabs join the existing {string} group',async function(name){const s=await this.state(),g=s.groups.find(g=>g.name===name);assert.ok(g);const original=this.importBefore.groups.find(g=>g.name===name);assert.equal(g.id,original.id);for(const id of this.importResult.tabIds.slice(0,2))assert.equal(s.tabs.find(t=>t.id===id).groupId,g.id);});
@@ -140,7 +149,7 @@ export default register=>{
  register('the apply is rejected',function(){assert.equal(this.importOwnershipChecked,true);});
  register('no tabs, groups, Favorites, or workspaces are changed',async function(){assert.deepEqual(identities(await this.state()),identities(this.importBefore));assert.deepEqual(await this.call('bookmarkRecords'),this.importFavorites);assert.equal((await this.call('workspaceAction','list')).items.length,0);});
  register('Blanc asked me to quit the source browser after a successful preflight',async function(){
-  seed(this);await before(this);fs.writeFileSync(path.join(this.importSource,'Sessions/Session_200'),'malformed');fs.symlinkSync('synthetic-host-123',path.join(this.importRoot,'SingletonLock'));await open(this);
+  seed(this);await before(this);fs.writeFileSync(path.join(this.importSource,'Sessions/Session_200'),'malformed');markChromeRunning(this.importRoot);await open(this);
   const sources=await this.native('importSources');this.importSourceId=sources.sources.find(s=>s.browserId==='chrome').id;
   const r=await this.native('importOpenSource',[this.importSourceId,{}]);assert.equal(r.recoverable,true);
  });

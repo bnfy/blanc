@@ -37,7 +37,9 @@ export function createWorld(fixture){
   async api(method,args=[]){
    return fixture.host.eval(`window.BlancPrototypeHost.api[${jsLiteral(method)}](...${jsLiteral(args)})`);
   },
-  hostEval(expression){return fixture.host.eval(expression);},
+  // The browser's DevTools target list (V32 reads a chrome frame's refusal page).
+  debugTargets(){return fixture.targets();},
+  hostEval(expression,timeout){return timeout?fixture.host.eval(expression,undefined,timeout):fixture.host.eval(expression);},
   frame(name){return app.windows().find(p=>p.frame===name);},
   async call(method,...args){
    const adapter=adapters[method];

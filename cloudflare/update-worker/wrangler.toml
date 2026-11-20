@@ -1,0 +1,43 @@
+name = "blanc-update"
+main = "src/index.js"
+# ML-DSA-44 in Web Crypto (Workers changelog, 2026-10-01).
+compatibility_date = "2026-10-01"
+compatibility_flags = ["webcrypto_modern_algorithms"]
+# blanc.day/update/win/* only (owner, 2026-11-19: routed before W3 Part D's
+# proof, because the shipped updater's address is compiled in; it offers
+# nothing until release.json names a version). The site's /updates/ is not
+# this path. workers.dev stays on as the staging address. The signing seed is
+# the secret CUP_SEED (set by the owner from 1Password; never in this
+# repository).
+workers_dev = true
+preview_urls = false
+routes = [
+  { pattern = "blanc.day/update/win/*", zone_name = "blanc.day" },
+  { pattern = "blanc.day/update/icons/*", zone_name = "blanc.day" },
+]
+
+# The install window's logo (assets/*.bmp, from chromium/tools/windows-updater-art.sh).
+[[rules]]
+type = "Data"
+globs = ["**/*.bmp"]
+
+# Update packages (CRX3), served at /update/win/pkg/<sha256>.crx3 only while
+# release.json names them (owner, 2026-11-19: R2 through this Worker).
+[[r2_buckets]]
+binding = "PACKAGES"
+bucket_name = "blanc-windows-updates"
+
+# The release gate's staging server (W3 Task E1; owner, 2026-11-19: staging
+# gate): the same code and keys, its own workers.dev address and no blanc.day
+# route. It offers the release its deploy names in RELEASE_JSON
+# (`wrangler deploy --env staging --var RELEASE_JSON:…`); its signing seed is
+# its own copy of CUP_SEED, set by the owner.
+[env.staging]
+name = "blanc-update-staging"
+workers_dev = true
+preview_urls = false
+routes = []
+
+[[env.staging.r2_buckets]]
+binding = "PACKAGES"
+bucket_name = "blanc-windows-updates"

@@ -169,6 +169,14 @@ bool IsBetaBuild();
 bool IsIslandWindow(const BrowserWindowInterface* browser);
 // The never-shown window a profile's set-aside Space pages live in (F41).
 bool IsHoldWindow(BrowserWindowInterface* browser);
+// What a window is to the quit rule (W2 A2): an ordinary Island window, a
+// mini window, a profile's hidden hold window, or anything else.
+enum class BrowserKind { kOrdinary, kMini, kHold, kOther };
+// True when no ordinary window remains, so holds and mini windows close.
+bool ShouldCloseHolds(const std::vector<BrowserKind>& remaining);
+// After an Island window goes: closes the hold windows and mini windows
+// when no ordinary window remains. Does nothing on the Mac.
+void CloseHoldsIfNoOrdinaryWindow();
 // Shipping's private tab (owner decision D1): |url| (the private Start Page
 // when empty) in a new private tab of |browser|, an ordinary window.
 content::WebContents* NewPrivateTab(BrowserWindowInterface* browser, const GURL& url);

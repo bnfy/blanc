@@ -1,5 +1,8 @@
 'use strict';
 (() => {
+  // This build's platform under Node's name for it, as shipping's renderers
+  // read it from browserAPI.platform.
+  const hostPlatform = /Mac/.test(navigator.platform) ? 'darwin' : /Win/.test(navigator.platform) ? 'win32' : 'linux';
   let nextId = 0;
   let snapshot = null;
   let syncedClosed = [];
@@ -46,6 +49,8 @@
   let refreshQueue = Promise.resolve();
   let extensionsOpened = false;
   let geometry = "";
+  // No menu button until the strip reports one (the Mac never does).
+  let menuButtonGeometry = '[0,0,0,0]';
   // Rail hover previews (set up with the rail hooks below; null until then).
   let railHover = null;
   let blockerRecoveryShown = false;
@@ -177,7 +182,9 @@
   function request(method, args = []) {
     return new Promise((resolve, reject) => {
       const id = String(++nextId);
-      const timeout = ['extensionContextMenu', 'closeSplit', 'closeTab', 'spaceOpenNewWindow', 'importArcRead'].includes(method) ? null : setTimeout(() => {
+      // An import of the 500-tab maximum can outlast ten seconds on a slow PC;
+      // the native side always replies when it ends.
+      const timeout = ['extensionContextMenu', 'closeSplit', 'closeTab', 'spaceOpenNewWindow', 'importArcRead', 'importApply', 'openMainMenu'].includes(method) ? null : setTimeout(() => {
         pending.delete(id);
         const error = new Error(`Native bridge timed out: ${method}`);
         if (method === 'snapshot') error[snapshotTimeoutMarker] = true;
@@ -247,6 +254,28 @@
   bandBackdrop.hidden = true;
   document.getElementById('headerBackdrop')?.append(bandBackdrop);
   const bandLayers = [0, 1, 2, 3].map(() => bandBackdrop.appendChild(document.createElement('div')));
+  // The launch Sunrise's sky (newtab-prototype.css): 2.6s after a 0.15s
+  // delay, over the band (not the page-sized, zoomed layers above).
+  const bandSunrise = document.createElement('div');
+  bandSunrise.id = 'bandSunrise';
+  bandSunrise.hidden = true;
+  document.getElementById('headerBackdrop')?.append(bandSunrise);
+  const SUNRISE_DELAY_MS = 150, SUNRISE_MS = 2600;
+  let bandSunriseAt = null;
+  function paintBandSunrise(at) {
+    if (at === bandSunriseAt) return;
+    bandSunriseAt = at;
+    const elapsed = Number.isFinite(at) ? Date.now() - at : Infinity;
+    if (elapsed >= SUNRISE_DELAY_MS + SUNRISE_MS || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      bandSunrise.hidden = true;
+      return;
+    }
+    // Start the same animation where the page's is now.
+    bandSunrise.hidden = true;
+    bandSunrise.style.animationDelay = `${(SUNRISE_DELAY_MS - elapsed) / 1000}s`;
+    void bandSunrise.offsetWidth;
+    bandSunrise.hidden = false;
+  }
   const PHOTO = /^blanc-wallpaper:([0-9a-f-]{36})$/;
   const PAGE_IMAGE = /^chrome:\/\/blanc-prototype\/pages\/[\w.-]+$/;
   let photo = { key: null, url: null, loading: null };
@@ -307,6 +336,7 @@
     document.documentElement.toggleAttribute('data-band-backdrop', shown);
     strip.contentDocument?.documentElement?.toggleAttribute('data-band-backdrop', shown);
     bandBackdrop.hidden = !shown;
+    paintBandSunrise(shown && Number.isFinite(spec.sunriseAt) ? spec.sunriseAt : null);
     if (!shown) { syncBandColor(); return; }
     const zoom = Number(spec.zoom) || 1;
     const band = Number(spec.band) || 0;
@@ -1253,6 +1283,14 @@
     const offsetX = opened && overlayMode !== 'palette' ? overlayRect.x : 0;
     const values = [a.x, a.y, a.width, a.height, b.x + offsetX, b.y + offsetY, b.width, b.height, ...splitCornerWidths].map(Math.round);
     const next = JSON.stringify(values);
+    // Where the strip draws its menu button (Windows and Linux): a press
+    // there is the button's, not the start of a window drag.
+    const menu = pillRect?.menuButtonRect;
+    const menuNext = JSON.stringify(menu ? [menu.x, menu.y, menu.width, menu.height].map(Math.round) : [0, 0, 0, 0]);
+    if (menuNext !== menuButtonGeometry) {
+      menuButtonGeometry = menuNext;
+      request('menuButtonBounds', JSON.parse(menuNext)).catch(error => notice(error.message));
+    }
     if (next !== geometry) {
       geometry = next;
       request('geometry', values).catch(error => notice(error.message));
@@ -1916,8 +1954,21 @@
   }
 
   let railActivationSerial = 0;
+  const mainMenuRequests = [];
   const implemented = {
-    platform: 'darwin',
+    platform: hostPlatform,
+    // The strip's menu button and window commands (Windows and Linux; the
+    // Mac has its menu bar and traffic lights). The menu is Chromium's own.
+    openMainMenu: point => {
+      const at = { x: Math.round(Number(point?.x) || 0), y: Math.round(Number(point?.y) || 0) };
+      // Shipping's main-menu requests as its tests read them (the last few).
+      mainMenuRequests.push({ from: 'strip', point: at });
+      if (mainMenuRequests.length > 20) mainMenuRequests.shift();
+      return request('openMainMenu', [at.x, at.y]);
+    },
+    minimizeWindow: () => request('minimizeWindow'),
+    maximizeWindow: () => request('maximizeWindow'),
+    closeWindow: () => request('closeWindow'),
     startPinMenuState: id => request('startPinMenuState', [nativeId(id)]),
     toggleStartPin: (id, expectedUrl) => request('toggleStartPin', [nativeId(id), expectedUrl]),
     toggleAdblock: async () => { const tab = snapshot?.tabs.find(t => t.id === snapshot.activeTabId); const value = await request('toggleAdblock', [tab?.committedUrl ?? '']); await refresh(); return value; },
@@ -3117,7 +3168,7 @@
   // clicks only inside the frame while it shows. macOS has no float views for
   // the window controls or the menu button.
   const AutoHide = window.BlancIslandAutoHide;
-  const floatPlatform = /Mac/.test(navigator.platform) ? 'darwin' : /Win/.test(navigator.platform) ? 'win32' : 'linux';
+  const floatPlatform = hostPlatform;
   const floatView = { shown: false, frame: null, frameKey: '', claimKey: '', hideTimer: null };
   function setFloatShown(shown, now = false) {
     const changed = floatView.shown !== shown;
@@ -3315,6 +3366,7 @@
   }
 
   window.BlancPrototypeHost = {
+    mainMenuRequests: () => mainMenuRequests.map(r => ({ from: r.from, point: { ...r.point } })),
     api,
     tabSwitch,
     handoffSheet: action => handoffSheet(String(action)).catch(error => notice(error.message)),

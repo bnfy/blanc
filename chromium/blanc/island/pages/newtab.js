@@ -1316,7 +1316,7 @@ async function drawClockArt() {
   if (globalThis.blancNativeClock?.render) {
     dropClockArt();
     const rect = clockElement.getBoundingClientRect();
-    const rendered = await globalThis.blancNativeClock?.render(glass && !document.getElementById('customizePopover').matches(':popover-open') ? {
+    const rendered = await globalThis.blancNativeClock?.render(glass && customizeClockAtRest() && !document.getElementById('customizePopover').matches(':popover-open') ? {
       text: clockElement.textContent, font: clockState.font,
       x: rect.x, y: rect.y, width: rect.width, height: rect.height,
       size: parseFloat(computed.fontSize), spacing: parseFloat(computed.letterSpacing) || 0,
@@ -1553,7 +1553,13 @@ for (const [slider, key] of [[clockWeight, 'weight'], [clockTone, 'tone'], [cloc
 // on the chosen font, ringed; opened with the pointer, it lands on the sheet
 // itself, so no ring shows until Tab moves into it.
 function openClockSheet(fromKeyboard) {
-  document.getElementById('customizePopover').hidePopover();
+  // Customize closes without its fade, and the clock is full size before the
+  // sheet opens beside it (fitCustomizeBelowClock).
+  const customize = document.getElementById('customizePopover');
+  customize.classList.add('closing-now');
+  customize.hidePopover();
+  returnCustomizeClock({ now: true });
+  requestAnimationFrame(() => customize.classList.remove('closing-now'));
   clockPopover.showPopover();
   if (fromKeyboard) clockFontPicks.find((button) => button.getAttribute('aria-pressed') === 'true')?.focus();
   else clockPopover.focus();
@@ -1751,7 +1757,8 @@ function bindGrip(grip) {
     card.classList.toggle('drag-clipped', height < r.height);
     Object.assign(card.style, { position: 'fixed', left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`,
       height: `${height}px`, zIndex: '60', pointerEvents: 'none' });
-    cardDrag = { card, holder, dx: event.clientX - r.left, dy: event.clientY - r.top };
+    cardDrag = { card, holder, dx: event.clientX - r.left, dy: event.clientY - r.top,
+      from: { left: railOrder(cardRails.left), right: railOrder(cardRails.right) } };
     grip.setPointerCapture(event.pointerId);
   });
   grip.addEventListener('pointermove', (event) => {
@@ -1763,12 +1770,16 @@ function bindGrip(grip) {
   });
   const end = () => {
     if (!cardDrag) return;
-    const { card, holder } = cardDrag;
+    const { card, holder, from } = cardDrag;
     cardDrag = null;
     holder.replaceWith(card);
     card.classList.remove('dragging', 'drag-clipped');
     for (const key of ['position', 'left', 'top', 'width', 'height', 'zIndex', 'pointerEvents']) card.style[key] = '';
     document.body.classList.remove('widget-dragging');
+    // A press that put the card back where it was moves nothing: no save and
+    // no announcement.
+    const same = (a, b) => a.length === b.length && a.every((name, i) => name === b[i]);
+    if (same(from.left, railOrder(cardRails.left)) && same(from.right, railOrder(cardRails.right))) { refreshRails(); return; }
     saveCardPlace(card);
   };
   grip.addEventListener('pointerup', end);
@@ -1941,7 +1952,7 @@ function addResizeEdge(card) {
   });
   const end = (event) => {
     if (cardResize?.edge !== edge) return;
-    const { steps, samples, height } = cardResize;
+    const { steps, samples, height, startY } = cardResize;
     cardResize = null;
     snapGuide(null);
     document.body.classList.remove('widget-resizing');
@@ -1951,6 +1962,13 @@ function addResizeEdge(card) {
     const velocity = !rested && last.t > first.t ? ((last.y - first.y) / (last.t - first.t)) * 1000 : 0;
     // Where the gesture was heading (Apple's projection, deceleration .99).
     const projected = height + (velocity / 1000) * 0.99 / (1 - 0.99);
+    // A press that did not move (a click, or the first half of the
+    // double-click that fits the column) changes nothing.
+    if (samples.every((sample) => Math.abs(sample.y - startY) < 3)) {
+      delete card.dataset.resizing;
+      applyCardSizes(state.widgets?.sizes ?? {});
+      return;
+    }
     const target = event.type === 'pointercancel' ? nearestStep(steps, height) : nearestStep(steps, projected);
     springCardTo(card, target, velocity, () => {
       delete card.dataset.resizing;
@@ -1959,7 +1977,7 @@ function addResizeEdge(card) {
   };
   edge.addEventListener('pointerup', end);
   edge.addEventListener('pointercancel', end);
-  edge.addEventListener('dblclick', () => saveCardSize(card, 0));
+  edge.addEventListener('dblclick', () => { cardSpring.get(card)?.cancel(); saveCardSize(card, 0); });
   edge.addEventListener('keydown', (event) => {
     const steps = cardSteps(card);
     const now = Number(card.dataset.size) || nearestStep(steps, card.getBoundingClientRect().height);
@@ -2052,23 +2070,112 @@ document.getElementById('shortcutStepper')?.addEventListener('keydown', (event) 
   event.preventDefault();
   stepShortcuts(delta);
 });
-// Customize never covers the clock, whose styling it changes: it takes at
-// most the room between the clock's bottom and its own button, and scrolls
-// inside if it needs more (owner, 2026-11-13).
-function fitCustomizeBelowClock() {
+// Customize never covers the clock or the line under it (owner, 2026-11-13).
+// While it is open the clock gives way (owner, 2026-11-18): it scales down
+// from its top, and the line under it moves up with it, just enough for
+// Customize to show everything; Customize scrolls only when even the smallest
+// clock leaves too little room. The clock's own settings open in the Font &
+// color sheet, which closes Customize and shows the clock full size.
+const CUSTOMIZE_CLOCK_MIN_SCALE = 0.5;
+let customizeClockScale = 1;
+let customizeClockLift = 0;
+// Customize's full height the last time it was open: an opening Customize
+// makes room with it before its first frame, then measures itself again.
+let customizeNeeded = 0;
+function setCustomizeClock(scale, lift) {
+  const changed = scale !== customizeClockScale;
+  customizeClockScale = scale;
+  customizeClockLift = lift;
+  const root = document.documentElement;
+  root.style.setProperty('--customize-clock-scale', String(scale));
+  root.style.setProperty('--customize-clock-lift', `${-lift}px`);
+  // The iPhone's glass clock is placed from the clock's box on screen, so it
+  // is put away while the clock is smaller and drawn again once it is back
+  // at full size (after the ease, when it eases back).
+  if (changed && !document.body.classList.contains('customize-clock-easing')) scheduleClockArt();
+}
+function customizeClockAtRest() {
+  return customizeClockScale === 1 && !document.body.classList.contains('customize-clock-easing');
+}
+function fitCustomizeBelowClock({ opening = false } = {}) {
   const popover = document.getElementById('customizePopover');
   const button = document.getElementById('customizeButton');
-  if (!popover || !button) return;
-  // The clock and the line under it both stay in view.
-  const clockBottom = [document.querySelector('.bb-clock-row'), document.getElementById('bbBlocked')]
-    .map((el) => el?.getBoundingClientRect())
-    .filter((rect) => rect && rect.height > 0)
-    .reduce((bottom, rect) => Math.max(bottom, rect.bottom), 0);
-  const room = button.getBoundingClientRect().top - 10 - clockBottom - 16;
-  popover.style.maxHeight = `${Math.max(260, Math.floor(room))}px`;
+  const clockRow = document.querySelector('.bb-clock-row');
+  if (!popover || !button || !clockRow) return;
+  // Measured as laid out: the clock scales from its top (its top never
+  // moves), and the line under it is lifted by what the clock gave up.
+  const clockTop = clockRow.getBoundingClientRect().top;
+  const clockHeight = clockRow.offsetHeight;
+  const blocked = document.getElementById('bbBlocked')?.getBoundingClientRect();
+  const tail = blocked && blocked.height > 0
+    ? Math.max(0, blocked.bottom + customizeClockLift - (clockTop + clockHeight)) : 0;
+  const buttonTop = button.getBoundingClientRect().top;
+  const roomAt = (scale) => buttonTop - 10 - (clockTop + clockHeight * scale + tail) - 16;
+  let scale = 1;
+  const cols = document.getElementById('customizeCols');
+  const open = popover.matches(':popover-open');
+  if (open && cols) customizeNeeded = cols.scrollHeight + (popover.offsetHeight - cols.clientHeight);
+  if ((open || (opening && customizeNeeded > 0)) && clockHeight > 0) {
+    // All of Customize: its columns' content plus its own padding and border.
+    const needed = customizeNeeded;
+    if (needed > roomAt(1)) {
+      const fits = (buttonTop - 10 - 16 - needed - tail - clockTop) / clockHeight;
+      scale = Math.min(1, Math.max(CUSTOMIZE_CLOCK_MIN_SCALE, fits));
+    }
+  }
+  setCustomizeClock(scale, clockHeight * (1 - scale));
+  // Never over the clock (owner, 2026-11-18): no floor; the columns scroll.
+  popover.style.maxHeight = `${Math.max(0, Math.floor(roomAt(scale)))}px`;
+  // Measured once the popover is laid out at that height (it may still be
+  // opening).
+  requestAnimationFrame(customizeFade);
+}
+// A soft fade at an edge of the columns that has more beyond it.
+function customizeFade() {
+  const cols = document.getElementById('customizeCols');
+  if (!cols) return;
+  cols.dataset.fadeEnd = String(cols.scrollHeight - cols.clientHeight - cols.scrollTop > 2);
+  cols.dataset.fadeStart = String(cols.scrollTop > 2);
+}
+document.getElementById('customizeCols')?.addEventListener('scroll', customizeFade, { passive: true });
+// The clock moves when widgets, tiles or groups change above or below it, and
+// the columns grow when a wallpaper choice shows its options: fit again.
+// Fitting changes the columns' size, which this observes: wait a frame so
+// the fit never re-enters the same observation (no ResizeObserver loop).
+const customizeFitObserver = new ResizeObserver(() => requestAnimationFrame(() => {
+  if (document.getElementById('customizePopover')?.matches(':popover-open')) fitCustomizeBelowClock();
+}));
+customizeFitObserver.observe(document.getElementById('layoutBillboard'));
+customizeFitObserver.observe(document.getElementById('bbWidgets'));
+customizeFitObserver.observe(document.getElementById('customizeCols'));
+// Closing: the clock grows back once Customize has faded (it never grows
+// under it). Opening Font & color skips the fade and the wait: the sheet
+// needs the clock at full size at once.
+let customizeClockReturn = 0;
+function returnCustomizeClock({ now = false } = {}) {
+  clearTimeout(customizeClockReturn);
+  if (customizeClockScale === 1) return;
+  if (now) {
+    document.body.classList.remove('customize-clock-easing');
+    setCustomizeClock(1, 0);
+    return;
+  }
+  customizeClockReturn = setTimeout(() => {
+    document.body.classList.add('customize-clock-easing');
+    setCustomizeClock(1, 0);
+    setTimeout(() => {
+      document.body.classList.remove('customize-clock-easing');
+      scheduleClockArt();
+    }, 260);
+  }, 170);
 }
 document.getElementById('customizePopover')?.addEventListener('beforetoggle', (event) => {
-  if (event.newState === 'open') fitCustomizeBelowClock();
+  if (event.newState === 'open') {
+    clearTimeout(customizeClockReturn);
+    fitCustomizeBelowClock({ opening: true });
+  } else {
+    returnCustomizeClock();
+  }
 });
 window.addEventListener('resize', () => {
   if (document.getElementById('customizePopover')?.matches(':popover-open')) fitCustomizeBelowClock();
@@ -2089,8 +2196,9 @@ function layoutShortcutRows() {
   let room = Infinity;
   if (width >= 1200) {
     // newtab-prototype.css: each column is clamp(240px, 20vw, 300px) wide at
-    // --start-edge from its side; a 24px gutter keeps tiles off it.
-    const edge = parseFloat(getComputedStyle(document.body).getPropertyValue('--start-edge')) || 24;
+    // --start-edge from its side; a 24px gutter keeps tiles off it. The token
+    // is a clamp(), so it is resolved by laying out a probe, not parsed.
+    const edge = resolvedStartEdge();
     const column = Math.min(300, Math.max(240, width * 0.2));
     const beside = side => document.querySelector(`.bb-rail[data-side="${side}"]`)?.dataset.empty === 'false';
     const half = Math.min(beside('left') ? width / 2 - edge - column - 24 : Infinity,
@@ -2102,6 +2210,17 @@ function layoutShortcutRows() {
   document.body.toggleAttribute('data-rails-stacked', stacked);
   const perRow = stacked ? 6 : Math.min(6, fit);
   grid.style.maxWidth = `${perRow * tile + (perRow - 1) * gap + 1}px`;
+  // The tab-group chips wrap in the same room, so none runs under a column.
+  const groups = document.getElementById('bbGroups');
+  if (groups) groups.style.maxWidth = stacked || room === Infinity ? '' : `${Math.max(0, Math.floor(room))}px`;
+}
+function resolvedStartEdge() {
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:absolute;visibility:hidden;width:var(--start-edge);height:0';
+  document.body.append(probe);
+  const edge = probe.getBoundingClientRect().width;
+  probe.remove();
+  return edge || 24;
 }
 window.addEventListener('resize', layoutShortcutRows);
 // A column filling or emptying changes the room.
@@ -2395,11 +2514,14 @@ function playLaunchSunrise() {
     removeEventListener('keydown', end, true);
     removeEventListener('pointerdown', end, true);
     scene.remove();
+    delete document.body.dataset.launchSunriseAt;
   };
   addEventListener('keydown', end, true);
   addEventListener('pointerdown', end, true);
   scene.addEventListener('animationend', (event) => { if (event.target === scene) end(); });
   scene.hidden = false;
+  // The Island's band plays the same sky from this moment (newtab-adapter.js).
+  document.body.dataset.launchSunriseAt = String(Date.now());
 }
 
 function applyStartData(data) {

@@ -124,6 +124,36 @@ jobs:
             $global:LASTEXITCODE = 0
           }
           if (-not (Test-Path "$kits\Debuggers\x64\dbghelp.dll")) { throw 'The Debugging Tools are still missing.' }
+      # package_from_installed.py insists on exactly one compiler toolset and
+      # one matching runtime, and the hosted image carries several. Keep the
+      # one Visual Studio marks as its default (when it is complete), else the
+      # newest complete one, and set the others aside on this throwaway runner.
+      - name: Keep one compiler toolset
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $installer = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer"
+          $vs = & "$installer\vswhere.exe" -prerelease -latest -property installationPath
+          $aside = New-Item -ItemType Directory "$env:RUNNER_TEMP\set-aside"
+          function Keep-One($root, $defaultFile, $complete) {
+            $all = @(Get-ChildItem $root -Directory | Where-Object { $_.Name -match '^14\.\d+\.\d+$' })
+            "$root holds: $($all.Name -join ', ')"
+            $usable = @($all | Where-Object { & $complete $_.FullName } | Sort-Object { [version]$_.Name } -Descending)
+            if (-not $usable) { throw "No complete toolset under $root." }
+            $default = if (Test-Path $defaultFile) { (Get-Content $defaultFile -Raw).Trim() } else { '' }
+            $keep = $usable | Where-Object { $_.Name -eq $default } | Select-Object -First 1
+            if (-not $keep) { $keep = $usable[0] }
+            foreach ($other in $all | Where-Object { $_.FullName -ne $keep.FullName }) {
+              Move-Item $other.FullName (Join-Path $aside "$(Split-Path $root -Leaf)-$($other.Name)-$([guid]::NewGuid().ToString('N').Substring(0, 6))")
+            }
+            "Kept $($keep.Name) (Visual Studio's default: $default)."
+            return $keep.Name
+          }
+          $tools = Keep-One "$vs\VC\Tools\MSVC" "$vs\VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt" {
+            param($dir) (Test-Path "$dir\bin\Hostx64\x64\cl.exe") -and (Test-Path "$dir\lib\x64") -and (Test-Path "$dir\lib\x86") -and (Test-Path "$dir\atlmfc\lib\x64") -and (Test-Path "$dir\crt") }
+          $redist = Keep-One "$vs\VC\Redist\MSVC" "$vs\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt" {
+            param($dir) (@(Get-ChildItem "$dir\x64" -Directory -Filter 'Microsoft.VC*.CRT' -ErrorAction SilentlyContinue).Count -eq 1) -and (@(Get-ChildItem "$dir\x86" -Directory -Filter 'Microsoft.VC*.CRT' -ErrorAction SilentlyContinue).Count -eq 1) -and (Test-Path "$dir\debug_nonredist\x64") }
+          "TOOLSET=$(@($tools)[-1])" >> $env:GITHUB_ENV
+          "REDIST=$(@($redist)[-1])" >> $env:GITHUB_ENV
       - name: Package the toolchain
         run: |
           $ErrorActionPreference = 'Stop'
@@ -157,7 +187,7 @@ jobs:
           @(
             '### Windows toolchain package', '',
             "- Package: ``$name`` ($size MB), SHA-256 ``$sha``",
-            "- Visual Studio 2026, Windows SDK $env:SDK_VERSION, x64 and x86 (no Arm)",
+            "- Visual Studio 2026, compiler toolset $env:TOOLSET, runtime $env:REDIST, Windows SDK $env:SDK_VERSION, x64 and x86 (no Arm)",
             "- depot_tools ``$env:DEPOT_TOOLS_COMMIT``",
             '- The artifact is encrypted to chromium/windows/toolchain-recipient.txt.'
           ) -join "`n" >> $env:GITHUB_STEP_SUMMARY

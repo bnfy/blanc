@@ -5,7 +5,7 @@
 # says so. The same file for every beta: the Mac Studio knows which release is
 # prepared. Installs the notarized app from that release's DMG into
 # Applications (replacing this Mac's Blanc Beta; its data folder stays), asks
-# five yes/no questions and sends only the answers to the Mac Studio. Then run
+# six yes/no questions and sends only the answers to the Mac Studio. Then run
 # beta-release.command again to finish the release.
 set -uo pipefail
 STUDIO=(ssh -i "$HOME/.ssh/id_ed25519_macmini" -o IdentitiesOnly=yes anthonyjloria@Mac-Studio.local)
@@ -46,9 +46,13 @@ echo "   Quit Blanc Beta (Cmd-Q), open it again from Applications, go back to we
 ask "3. Click Authenticate again with Touch ID. Did it still work?"; P3=$REPLY_OK
 echo "   Open a private window (Shift-Cmd-N) and go to webauthn.io there."
 ask "4. Register a different username with Touch ID in the private window. Did it work?"; P4=$REPLY_OK
-ask "5. Is your regular Blanc still fine (opens normally, your tabs and passkeys untouched)?"; P5=$REPLY_OK
+# Owner, 2026-11-17: the private-window passkey case (private-tabs.feature F4-6)
+# is checked here, not in the suite.
+echo "   Quit Blanc Beta (Cmd-Q), open it again, open a private window (Shift-Cmd-N) and go to webauthn.io."
+ask "5. Type the username you registered in the private window and click Authenticate. Is that passkey gone (no passkey offered for it)?"; P6=$REPLY_OK
+ask "6. Is your regular Blanc still fine (opens normally, your tabs and passkeys untouched)?"; P5=$REPLY_OK
 STATUS=pass
-for r in "$P1" "$P2" "$P3" "$P4" "$P5"; do [ "$r" = pass ] || STATUS=fail; done
+for r in "$P1" "$P2" "$P3" "$P4" "$P5" "$P6"; do [ "$r" = pass ] || STATUS=fail; done
 cat > "$LOCAL/webauthn.json" <<JSON
 {
   "schema": 1,
@@ -61,6 +65,7 @@ cat > "$LOCAL/webauthn.json" <<JSON
     {"name": "signs in with that passkey", "result": "$P2"},
     {"name": "the passkey still works after quitting and reopening", "result": "$P3"},
     {"name": "a private window registers a passkey with Touch ID", "result": "$P4"},
+    {"name": "after a relaunch the private window's passkey is no longer offered", "result": "$P6"},
     {"name": "the Electron Blanc app and its passkeys are untouched", "result": "$P5"}
   ],
   "status": "$STATUS"

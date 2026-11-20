@@ -1,0 +1,27 @@
+diff --git a/chrome/browser/ui/startup/first_run_service.cc b/chrome/browser/ui/startup/first_run_service.cc
+index f48c1d5..1ea9207 100644
+--- a/chrome/browser/ui/startup/first_run_service.cc
++++ b/chrome/browser/ui/startup/first_run_service.cc
+@@ -4,6 +4,8 @@
+ 
+ #include "chrome/browser/ui/startup/first_run_service.h"
+ 
++#include "blanc/common/island_mode.h"
++
+ #include <memory>
+ #include <utility>
+ 
+@@ -296,6 +298,13 @@ FirstRunServiceFactory::BuildServiceInstanceForBrowserContext(
+ // Helpers ---------------------------------------------------------------------
+ 
+ bool ShouldOpenFirstRun(Profile* profile) {
++  // Blanc: Blanc's own first run (the Island tour, blanc/browser/ui/
++  // first_run.inc) replaces Chromium's welcome (chrome://intro) in every
++  // channel, so FirstRunServiceFactory never builds the service. The first-run
++  // sentinel, import and initial prefs are untouched.
++  if (blanc::IslandMode()) {
++    return false;
++  }
+   return IsFirstRunEligibleProcess() && IsFirstRunEligibleProfile(profile) &&
+          !IsFirstRunMarkedFinishedInPrefs();
+ }
