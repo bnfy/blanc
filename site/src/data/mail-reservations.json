@@ -1,4 +1,9 @@
 {
   "open": true,
-  "turnstileSiteKey": "0x4AAAAAAGHdrHOwpfFfY7bA"
+  "turnstileSiteKey": "0x4AAAAAAGHdrHOwpfFfY7bA",
+  "endings": [
+    "inbox.day",
+    "blnc.day",
+    "blancmail.me"
+  ]
 }

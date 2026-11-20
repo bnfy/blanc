@@ -65,7 +65,7 @@
     },
     {
       "file": "cloudflare/ping-worker/src/dl.js",
-      "sha256": "afc04c8ac596e4cafe27c4497bb8584ab9ed829420c6f421d4358f0ad1c8ee12",
+      "sha256": "39df5fe5d5f34aafd179a32a472d2aa0e1ab70c4182369dd068cf47a7eece5e9",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },

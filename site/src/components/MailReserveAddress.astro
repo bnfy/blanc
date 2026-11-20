@@ -11,25 +11,33 @@
 // public and lives there too; its secret is the Worker's TURNSTILE_SECRET. The privacy page's
 // "Blanc Mail address reservations" section describes this contract — change them together.
 import reservations from '../data/mail-reservations.json';
+import { priceFor } from '../data/mail-commerce.mjs';
+import '../styles/gold-ring.css';
 const siteKey = reservations.open ? reservations.turnstileSiteKey : '';
 const apiBase = import.meta.env.PUBLIC_MAIL_API_BASE ?? '';
-const ending = 'blnc.day';
+interface Props {
+  endings: readonly string[];
+}
+const { endings } = Astro.props;
+const ending = endings[0];
 ---
 {siteKey && (
-  <form class="mail-reserve" method="post" data-mail-reserve data-api={apiBase} data-sitekey={siteKey} data-ending={ending} novalidate>
+  <form class="mail-reserve gold-ring" method="post" data-mail-reserve data-api={apiBase} data-sitekey={siteKey} data-ending={ending} novalidate>
     <div class="mail-reserve-step" data-step="name">
       <label class="mail-reserve-label" for="mailReserveName">The address you want</label>
       <span class="mail-reserve-field">
-        <input id="mailReserveName" name="localPart" type="text" required minlength="3" maxlength="32" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="mira" aria-describedby="mailReserveAvailability">
+        <input id="mailReserveName" name="localPart" type="text" required minlength="3" maxlength="32" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="mira" aria-describedby="mailReserveEndings mailReserveAvailability">
         <span class="mail-reserve-ending" aria-hidden="true">@{ending}</span>
       </span>
+      <p class="mail-reserve-hint" id="mailReserveEndings">Reserving holds this name on every ending: {endings.map((e, i) => <>{i === 0 ? '' : i === endings.length - 1 ? ' and ' : ', '}<span class="mail-ending">{e}</span></>)}. You’ll choose one when you claim it.</p>
       <p class="mail-reserve-availability" id="mailReserveAvailability" role="status" aria-live="polite"></p>
 
       <label class="mail-reserve-label" for="mailReserveEmail">Your current email</label>
-      <p class="mail-reserve-hint" id="mailReserveEmailHint">We’ll email you here to confirm it’s you. Later, use this email as your backup email to claim the address.</p>
+      <p class="mail-reserve-hint" id="mailReserveEmailHint">We’ll email you here to confirm it’s you. You’ll need this inbox again to claim your address.</p>
       <input class="mail-reserve-input" id="mailReserveEmail" name="email" type="email" required maxlength="254" placeholder="you@example.com" autocomplete="email" aria-describedby="mailReserveEmailHint">
       <div class="mail-reserve-turnstile" data-turnstile></div>
-      <button class="mail-reserve-button" type="submit" disabled>Reserve</button>
+      <button class="mail-reserve-button" type="submit" aria-describedby="mailReservePricing" disabled>Reserve</button>
+      <p class="mail-reserve-hint mail-reserve-pricing" id="mailReservePricing"><strong>Free to reserve.</strong> Claiming requires <span class="mail-reserve-plan">Blanc Mail + Address at {priceFor('mail-address-annual')}/year</span> or <span class="mail-reserve-plan">Blanc Bundle at {priceFor('suite-monthly')}/month</span>. <a href="/mail#pricing">Compare plans</a></p>
     </div>
 
     <div class="mail-reserve-step" data-step="code" hidden>
@@ -95,8 +103,12 @@ const ending = 'blnc.day';
         sitekey: form.dataset.sitekey,
         // The Worker accepts only tokens for this action (services/mail-worker/src/turnstile.js).
         action: 'reserve',
+        // Shown only if a challenge needs the visitor, so the form never jumps on focus.
+        appearance: 'interaction-only',
         callback: (t: string) => { token = t; update(); },
         'expired-callback': () => { token = ''; update(); },
+        // Interaction-only hides Turnstile's own error state, so say why Reserve stays off.
+        'error-callback': () => { token = ''; update(); status.textContent = 'Couldn’t check that you’re a person. Reload the page and try again.'; },
       });
       document.head.append(script);
     };

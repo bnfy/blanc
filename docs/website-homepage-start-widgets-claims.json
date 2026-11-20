@@ -1,0 +1,36 @@
+{
+  "scope": "The homepage's Start Page tool card, rewritten once public v1.51.0 replaced the four Start Page layouts (Ledger, Billboard, Shelf, Tally) with one Start Page and widget cards. Retires v138-021 and v138-022.",
+  "verified": "2026-11-19",
+  "publicRelease": "v1.51.0",
+  "sourceSha": "2c3d17db9b8573f4047e8732aaf8f0972ef9e724",
+  "evidence": [
+    "docs/press/release-notes/v1.51.0.md",
+    "site/src/data/whats-new.json",
+    "site/public/feature-captures/start-widgets-v1.51.0.webp",
+    "docs/website-v1.38-claims.json"
+  ],
+  "qualification": "v1.51.0's release notes: the Start Page is one page with the clock; Favorites and other devices' tabs are cards turned on in Customize, dragged to either side and resized. Time-of-day, your own image and color wallpapers, and the private-tab rule for your own image, are v1.38.0 claims (website-v1.38-claims.json) that v1.51.0 kept.",
+  "claims": [
+    {
+      "id": "home-start-widgets-001",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Start Page widgets and wallpaper",
+      "subject": "Blanc",
+      "verdict": "verified"
+    },
+    {
+      "id": "home-start-widgets-002",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "One Start Page with the clock at its center. Turn on Favorites and your other devices’ tabs as cards in Customize, then drag them to either side and resize them.",
+      "subject": "Blanc",
+      "verdict": "verified"
+    },
+    {
+      "id": "home-start-widgets-003",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Set the wallpaper to the time of day, your own image or a color.",
+      "subject": "Blanc",
+      "verdict": "verified"
+    }
+  ]
+}

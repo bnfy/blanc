@@ -19,7 +19,11 @@ the small lockup and the direct links fed by `src/data/navigation.mjs` and kept
 in step by `test/unit/site-navigation.test.js`. At 920px and narrower the links
 fold behind a Menu button (an inline script, so phones never flash the full
 row; without scripting they wrap onto a second row). It never hides on scroll:
-the homepage's sticky scenes sit just below it. Site-wide styles are `src/styles/site.css`
+the homepage's sticky scenes sit just below it. While `src/data/mail-reservations.json`
+says `open`, `components/MailReserveBanner.astro` puts a slim dark strip above
+the bar, one link to `/mail/reserve` naming the default ending, which scrolls
+away while the bar stays put; Header.astro leaves it off the Mail, legal and
+What's New pages (`test/site/mail-reserve-banner.test.mjs`). Site-wide styles are `src/styles/site.css`
 plus `revamp.css`, both imported by `BaseLayout.astro`; pages add their own
 (`home.css`, `features-bento.css`, `mail.css` …)
 (bundled + hashed). **Every page's headings are Blubird Display** since October 15, 2026
@@ -66,7 +70,9 @@ Newsreader is no longer loaded by any page; its condensed build
 (`scripts/build-condensed-newsreader.py`, `src/fonts/`) is unused and can be
 removed. These files are NOT under the root `tokens/` substrate guard.
 `src/scripts/site.js` (release-link resolution + region-dependent website measurement with an opt-out, all pages
-except legal) is Astro-processed. Anything needing a **stable URL** — favicons,
+except legal) is Astro-processed. The Privacy choices panel never opens by itself (owner, November 19, 2026):
+it opens only from a footer or note button, so where a choice is required, or the location is unknown,
+measurement stays off until the visitor turns it on there. Anything needing a **stable URL** — favicons,
 `og-image.png`, `logo.png`, `feature-*.png` (OG images), `robots.txt`,
 `shots/**` (the Island figures' page captures) — lives in `public/`; never hash or
 rename these.

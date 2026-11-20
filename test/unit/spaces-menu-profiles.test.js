@@ -136,3 +136,23 @@ test('a refused open in a profile that went away refreshes the list', async () =
   assert.equal(rowNamed(h, 'Sprint'), undefined, 'Work is gone');
   assert.match(h.text(), /That profile is no longer available\./);
 });
+
+// Codex review of the fork port (2026-11-19): the Quick Switcher opens a Space
+// with the menu closed, so a refused open must open the menu to say why.
+test('a refused open from the Quick Switcher opens the Spaces list with the error', async () => {
+  for (const error of ['profile-unavailable', 'not-found', 'activation-failed']) {
+    const h = harness({
+      openWorkspace: async () => ({ ok: false, error }),
+      listWorkspaces: async () => ({ items: TWO, deleted: [], status: 'saved', profileName: 'Personal', otherProfiles: [WORK] }),
+    }, payload());
+    assert.equal(h.ui.opened, false);
+    h.ui.switchTo({ ...WORK.items[0], profileId: 'w' }); await settle(); await settle();
+    assert.equal(h.ui.opened, true, error);
+    assert.equal(h.ui.state.kind, 'list', error);
+    assert.equal(h.popup.hidden, false, error);
+    const shown = h.list.children.find((n) => n.className === 'ws-error');
+    assert.equal(shown?.textContent, t(`ws.error.${{ 'profile-unavailable': 'profileUnavailable', 'not-found': 'notFound', 'activation-failed': 'activationFailed' }[error]}`), error);
+    assert.equal(shown.attrs.role, 'alert');
+    assert.ok(!h.calls.some(([kind]) => kind === 'close-overlay'), error);
+  }
+});

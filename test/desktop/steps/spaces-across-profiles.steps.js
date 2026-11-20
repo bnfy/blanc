@@ -354,7 +354,56 @@ Then('the Spaces menu no longer shows {string} or {string}', async function (pro
   assert.equal(await spaceRow(menu, name).count(), 0);
 });
 
-After({ tags: '@F41-91' }, async function () {
+When('deletion of the Work profile is underway and I choose that Quick Switcher result', async function () {
+  assert.equal(await markWorkDeletion(this.work.profile.id, true), true);
+  this.workDeletionMarked = true;
+  await rememberWindows(this);
+  await this.switcherResult.click();
+});
+
+// The Quick Switcher opens a Space with the Spaces menu closed; a refused open
+// opens the menu on its list to say why, and the panel stays (Codex review of
+// the fork port, 2026-11-19).
+Then('the Spaces menu opens with {string}', async function (message) {
+  const menu = await visibleMenu(this.quickSwitcher);
+  const alert = menu.locator('.ws-error[role="alert"]');
+  await alert.waitFor({ state: 'visible' });
+  assert.equal(await alert.textContent(), message);
+  assert.equal(await this.quickSwitcher.evaluate(() => document.body.dataset.mode), 'panel');
+});
+
+Then('no Work window opened', async function () {
+  const after = (await runtimes(this)).filter((runtime) => runtime.attached);
+  assert.deepEqual(after.map((runtime) => runtime.id).sort(), this.windowsBeforeAction.map((runtime) => runtime.id).sort());
+});
+
+// Spec §4.5: `/space <name>` stays within this window's profile. Typed into
+// the Personal window's own panel, since another profile's window is open.
+// Enter would also submit the editor it opens (the hint promises "type a new
+// name to save this window"); clicking the command row leaves the editor up.
+When('I type {string} in this Personal window and click the {string} command', async function (text, command) {
+  await focusPersonal(this);
+  await openOverlaySurface(this, 'openPanel', 'panel');
+  const page = await personalOverlay();
+  await page.fill('#addressInput', text);
+  await clickWhenSettled(page.locator('.island-row').filter({ has: page.locator('.row-cmd', { hasText: command }) }).first(), `${command} command row`);
+});
+
+Then('the Spaces menu opens the New Space editor named {string}', async function (name) {
+  const menu = await personalMenu();
+  this.spaceEditor = menu.locator('.ws-editor');
+  await this.spaceEditor.waitFor({ state: 'visible' });
+  assert.equal(await this.spaceEditor.locator('#workspaceName').inputValue(), name);
+});
+
+Then('{string} is saved in Personal and not in Work', async function (name) {
+  await waitForValue(() => this.call('workspaceActionInWindow', PRIMARY, 'list'),
+    (list) => list.items?.some((item) => item.name === name), `${name} saved in Personal`);
+  const work = await this.call('workspaceActionInWindow', this.work.runtimeId, 'list');
+  assert.ok(!work.items.some((item) => item.name === name), `${name} not in Work: ${JSON.stringify(work.items.map((item) => item.name))}`);
+});
+
+After({ tags: '@F41-91 or @F41-93' }, async function () {
   if (this.workDeletionMarked) await markWorkDeletion(this.work.profile.id, false);
 });
 
