@@ -10683,6 +10683,9 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           if (const auto* space = extra.FindString("workspaceId");
               space && base::Uuid::ParseLowercase(*space).is_valid()) answer.Set("workspaceId", *space);
         }
+        // The window made for the Space comes forward now that it shows it
+        // (NewSpaceWindow staged it without focus); on failure it closes.
+        if (args[0].GetBool()) browser->GetWindow()->Activate();
         if (done) std::move(done).Run(std::move(answer));
       }
       reply(true, base::Value(true)); return;

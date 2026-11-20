@@ -128,6 +128,19 @@ void SpacesMirror::Start() {
   started_ = true;
   manager_.Observe(manager);
   storage_.Observe(&manager->GetProfileAttributesStorage());
+  // A profile removed before this observer started (from the startup
+  // picker, say) leaves no OnProfileWasRemoved: drop its entry now.
+  if (auto* local = g_browser_process->local_state()) {
+    std::set<std::string> registered;
+    for (auto* entry : manager->GetProfileAttributesStorage().GetAllProfilesAttributes())
+      registered.insert(entry->GetPath().BaseName().AsUTF8Unsafe());
+    auto mirror = local->GetDict(kSpacesMirrorPref).Clone();
+    std::vector<std::string> stale;
+    for (const auto [directory, entry] : mirror)
+      if (!registered.contains(directory)) stale.push_back(directory);
+    for (const auto& directory : stale) mirror.Remove(directory);
+    if (!stale.empty()) local->SetDict(kSpacesMirrorPref, std::move(mirror));
+  }
   for (auto* profile : manager->GetLoadedProfiles()) OnProfileAdded(profile);
 }
 
@@ -258,7 +271,9 @@ bool IsSpaceErrorCode(const std::string& code) {
 
 // A new ordinary window of `profile` holding one new tab, without restoring
 // the profile's last session; its Island opens or creates the Space and
-// answers through `pending.done`. Null when no window can open.
+// answers through `pending.done`. It is shown without focus, so the asking
+// window's menu stays open for an error, and comes forward only once the
+// Space is in it (spacePendingDone). Null when no window can open.
 BrowserWindowInterface* NewSpaceWindow(Profile* profile, PendingSpaceOpen pending) {
   if (profile->IsOffTheRecord() ||
       GetBrowserWindowCreationStatusForProfile(*profile) != BrowserWindowInterface::CreationStatus::kOk) return nullptr;
@@ -268,7 +283,7 @@ BrowserWindowInterface* NewSpaceWindow(Profile* profile, PendingSpaceOpen pendin
   if (!created) return nullptr;
   chrome::AddAndReturnTabAt(created, GURL("chrome://newtab/"), -1, true);
   PendingSpaceOpens()[created->GetSessionID().id()] = std::move(pending);
-  created->GetWindow()->Show();
+  created->GetWindow()->ShowInactive();
   return created;
 }
 

@@ -635,9 +635,14 @@
     }
     const id = crypto.randomUUID();
     try { await request('spaceCreateBlank', [id]); } catch (e) { return { ok: false, error: 'storage-failed', detail: e.message }; }
-    list.meta.items[id] = { name: checked.name, ...spaceIdentity(list, identity), tabCount: 1 };
-    list.meta.order.push(id);
-    await request('spaceMetaSave', [list.meta]);
+    // Read again: another window may have saved a Space meanwhile, and
+    // writing the list read before the await would drop it.
+    const fresh = await spaceList();
+    if (fresh.meta.order.some(other => fresh.meta.items[other]?.name.toLocaleLowerCase() === checked.name.toLocaleLowerCase()))
+      return { ok: false, error: 'duplicate-name' };
+    fresh.meta.items[id] = { name: checked.name, ...spaceIdentity(fresh, identity), tabCount: 1 };
+    fresh.meta.order.push(id);
+    await request('spaceMetaSave', [fresh.meta]);
     const opened = newWindow ? await openSpaceElsewhere(id) : await swapToSpace(id);
     // The saved Space stays findable, so a retry can't fail as a duplicate.
     return opened.ok ? { ...opened, workspaceId: id } : { ok: false, error: 'saved-not-opened', cause: opened.error, detail: opened.detail, workspaceId: id };
@@ -3666,8 +3671,12 @@
     }
     let result;
     try {
+      // The Space may have been deleted since it was asked for; its record
+      // stays on disk for Undo, so check the list, not the record.
+      const listed = openId ? await spaceList() : null;
+      const gone = openId && (!listed.meta.items[openId] || listed.meta.deleted.includes(openId));
       // This window holds only the new tab it was made with: no switch guard.
-      result = openId ? await swapToSpace(openId)
+      result = gone ? { ok: false, error: 'not-found' } : openId ? await swapToSpace(openId)
         : await createSpaceHere(pending.name, { color: pending.color, symbol: pending.symbol });
     } catch (e) { result = { ok: false, detail: e.message }; }
     const extra = {};

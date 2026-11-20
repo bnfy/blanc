@@ -178,6 +178,10 @@ try{
  const after=await probe();
  assert.equal(after.loaded.includes(workDir),false,`Work not loaded: ${JSON.stringify(after.loaded)}`);
  assert.deepEqual(rows(after.mirror[workDir]).map(r=>r.name),['Listed']);
+ // List through the menu's own path, then check Work is still unloaded.
+ const listed=await others();
+ assert.deepEqual(listed.others.find(o=>o.id===workDir)?.items.map(i=>i.name),['Listed'],'Personal lists Work\'s Space');
+ assert.equal((await probe()).loaded.includes(workDir),false,'listing did not load Work');
  passed('listing does not load: Work stays unloaded and its mirror still lists its Space');
 
  // rename reaches the heading: renaming Work in the picker renames its group
