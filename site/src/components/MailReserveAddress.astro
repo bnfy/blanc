@@ -107,6 +107,8 @@ const ending = endings[0];
         appearance: 'interaction-only',
         callback: (t: string) => { token = t; update(); },
         'expired-callback': () => { token = ''; update(); },
+        // Interaction-only hides Turnstile's own error state, so say why Reserve stays off.
+        'error-callback': () => { token = ''; update(); status.textContent = 'Couldn’t check that you’re a person. Reload the page and try again.'; },
       });
       document.head.append(script);
     };

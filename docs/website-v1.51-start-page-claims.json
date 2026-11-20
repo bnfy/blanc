@@ -279,7 +279,7 @@
     {
       "id": "v151-start-026",
       "source": "site/src/pages/features.astro",
-      "exactWording": "Your widgets and shortcuts stay on this device, and your shortcuts come from your history here.",
+      "exactWording": "Your widgets and how many shortcuts show stay on this device; the shortcuts come from your history here.",
       "subject": "Blanc",
       "evidenceGroups": [
         "onePage"

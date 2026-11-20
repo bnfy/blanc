@@ -15,12 +15,22 @@ export function initMailPromo(root, { view = window } = {}) {
     if (index !== current) endings[current].classList.replace("is-current", "is-leaving");
     current = index;
     endings[current].classList.add("is-current");
-    box.style.setProperty("--ending-width", `${endings[current].offsetWidth}px`);
+    measure();
   };
+  const measure = () => box.style.setProperty("--ending-width", `${endings[current].offsetWidth}px`);
   show(0);
+  // The width changes once the web font arrives and when the window resizes.
+  view.document.fonts?.ready.then(measure);
+  view.addEventListener("resize", measure);
   if (!view.matchMedia("(prefers-reduced-motion: no-preference)").matches) return () => {};
-  const timer = view.setInterval(() => {
-    if (!view.document.hidden) show((current + 1) % endings.length);
-  }, 2500);
-  return () => view.clearInterval(timer);
+  // Steps only while the band is on screen and the tab is visible.
+  let timer = 0;
+  const observer = new view.IntersectionObserver(([entry]) => {
+    view.clearInterval(timer);
+    if (entry.isIntersecting) timer = view.setInterval(() => {
+      if (!view.document.hidden) show((current + 1) % endings.length);
+    }, 2500);
+  });
+  observer.observe(root);
+  return () => { view.clearInterval(timer); observer.disconnect(); };
 }
