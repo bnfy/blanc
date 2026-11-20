@@ -1,0 +1,16 @@
+{
+  "release": "v1.51.0",
+  "sourceSha": "2c3d17db9b8573f4047e8732aaf8f0972ef9e724",
+  "scope": "The one Start Page with a widget card, shown on the homepage's Start Page card, the Start Page guide and the Features page's Start Page pop-up.",
+  "provenance": "Added with What's New 1.51 (#1627, commit 2c3d17db9): a dev run of the 1.51.0 release source on the Mac Studio, composited from the window's own views. Not taken from the public DMG; v1.51.0's Start Page code is the tagged source.",
+  "captures": [
+    {
+      "file": "site/public/feature-captures/start-widgets-v1.51.0.webp",
+      "sha256": "888a3e4c05105660046c65ac11aaf6c62ec80f65708024f467fe32c6b1ff117a",
+      "width": 1440,
+      "height": 900,
+      "state": "Start Page over your own image (Van Gogh, Wheat Field with Cypresses, The Met, public domain), the Favorites card on the left, six shortcuts.",
+      "verdict": "verified"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "scope": "Website-only band on the homepage advertising Blanc Mail address reservations, shown while site/src/data/mail-reservations.json says open; not a claim about a desktop release.",
+  "verified": "2026-11-19",
+  "websiteSourceSha": "78506300c",
+  "evidence": [
+    "site/src/data/mail-reservations.json",
+    "site/src/pages/mail/reserve.astro",
+    "site/src/components/MailReserveAddress.astro",
+    "docs/website-mail-claims-2026-11-17.md"
+  ],
+  "qualification": "Reserving is free and holds the name on the five endings listed in mail-reservations.json until Blanc Mail addresses open, as the reserve page says; claiming one later needs a paid plan, which the reserve page states beside its button. The band renders only while reservations are open.",
+  "claims": [
+    {
+      "id": "home-mail-reserve-001",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Reserve your Blanc Mail address.",
+      "subject": "Blanc Mail address reservations",
+      "verdict": "verified"
+    },
+    {
+      "id": "home-mail-reserve-002",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Free to reserve. We’ll hold your name on all five endings until Blanc Mail addresses open.",
+      "subject": "Blanc Mail address reservations",
+      "verdict": "verified"
+    }
+  ]
+}
