@@ -13,7 +13,9 @@ const path = require('node:path');
 
 const SITE = path.resolve(__dirname, '../../site');
 const read = (file) => fs.readFileSync(path.join(SITE, file), 'utf8');
-const mailPages = ['src/pages/mail.astro', ...fs.readdirSync(path.join(SITE, 'src/pages/mail')).map((f) => `src/pages/mail/${f}`)];
+// Recursive, .astro only: /mail/reserve/release lives in a folder of its own.
+const mailPages = ['src/pages/mail.astro', ...fs.readdirSync(path.join(SITE, 'src/pages/mail'), { recursive: true })
+  .filter((f) => f.endsWith('.astro')).map((f) => `src/pages/mail/${f.split(path.sep).join('/')}`)];
 const SHOTS = ['rule-editor'];
 
 test('MailShot is the only way to show a Mail screenshot, and its caption is not optional', () => {

@@ -1572,6 +1572,9 @@
     state = payload;
     applyIslandSize(state.islandSize);
     render();
+    // A tab switch hides the last Start Page's wallpaper at once; main sends
+    // the new active tab's (or null) right after.
+    paintBandBackdrop(bandBackdropSpec);
   });
   window.browserAPI.onPageTint(({ id, color }) => {
     const tab = activeTab();
@@ -1579,6 +1582,58 @@
     if (!tab || tab.id !== id || !/^#[0-9a-f]{6}$/i.test(color)) return;
     tab.pageBg = color;
     applyStripTint(tab);
+  });
+  // The active Start Page's wallpaper behind the band (main decides when; it
+  // sends null where the band keeps its sampled color). Only the active tab's
+  // spec paints; the strip under it stays transparent while it shows.
+  const bandBackdrop = document.getElementById('bandBackdrop');
+  const bandBox = bandBackdrop?.firstElementChild;
+  const bandLayers = bandBox ? [...bandBox.children] : [];
+  // The launch Sunrise's sky (pages.css): 2.6s after a 0.15s delay.
+  const bandSunrise = bandBackdrop?.querySelector('.band-sunrise');
+  const SUNRISE_DELAY_MS = 150, SUNRISE_MS = 2600;
+  let bandSunriseAt = null;
+  function paintBandSunrise(at) {
+    if (!bandSunrise || at === bandSunriseAt) return;
+    bandSunriseAt = at;
+    const elapsed = Number.isFinite(at) ? Date.now() - at : Infinity;
+    if (elapsed >= SUNRISE_DELAY_MS + SUNRISE_MS || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      bandSunrise.hidden = true;
+      return;
+    }
+    // Start the same animation where the page's is now.
+    bandSunrise.hidden = true;
+    bandSunrise.style.animationDelay = `${(SUNRISE_DELAY_MS - elapsed) / 1000}s`;
+    void bandSunrise.offsetWidth;
+    bandSunrise.hidden = false;
+  }
+  function paintBandBackdrop(spec) {
+    const shown = !!(spec && bandBox && spec.id === activeTab()?.id && !copySurface);
+    bandBackdrop?.toggleAttribute('hidden', !shown);
+    stripEl.classList.toggle('band-backdrop', shown);
+    paintBandSunrise(shown ? spec.sunriseAt ?? null : null);
+    if (!shown) return;
+    const zoom = Number(spec.zoom) || 1;
+    bandBox.style.zoom = String(zoom);
+    bandBox.style.width = `${Number(spec.width) || 0}px`;
+    bandBox.style.height = `${(Number(spec.height) || 0) + (Number(spec.band) || 0) / zoom}px`;
+    bandLayers.forEach((element, index) => {
+      const layer = spec.layers?.[index];
+      element.hidden = !layer;
+      if (!layer) return;
+      element.classList.toggle('fade', layer.fade === true);
+      element.style.backgroundColor = layer.color;
+      element.style.backgroundImage = layer.image;
+      element.style.backgroundSize = layer.size;
+      element.style.backgroundPosition = layer.position;
+      element.style.backgroundRepeat = layer.repeat;
+      element.style.opacity = String(layer.opacity);
+    });
+  }
+  let bandBackdropSpec = null;
+  window.browserAPI.onPageBackdrop((spec) => {
+    bandBackdropSpec = spec ?? null;
+    paintBandBackdrop(bandBackdropSpec);
   });
   window.browserAPI.onGlanceLayout((layout) => {
     // A newer card (closed, reopened or changed) ends a drag begun on the old one.

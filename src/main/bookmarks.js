@@ -96,7 +96,9 @@ function run(apply) {
     if (res.layout !== state.layout) layoutStore.setLayout(res.layout);
     notifyChanged();
   }
-  return res.path === undefined ? { ok: true } : { ok: true, path: res.path };
+  const out = { ok: true };
+  for (const field of ['path', 'key', 'edited']) if (res[field] !== undefined) out[field] = res[field];
+  return out;
 }
 
 /** Add-only quick-save (the `/save` command). `folder` may be a folder
@@ -174,6 +176,12 @@ function moveFolder(path, newParentPath) {
 /** Delete a folder; what it held moves up one level. */
 function removeFolder(path) {
   return run((state, ctx) => data.applyRemoveFolder(state, path, ctx));
+}
+
+/** Change one favorite's name and/or address. Answers { ok, key, edited? }
+ * or { ok: false, error }. */
+function editFavorite(id, changes) {
+  return run((state, ctx) => data.applyEditFavorite(state, id, changes, ctx));
 }
 
 /** Save the order chosen for one folder's children (null: the top level). */
@@ -269,6 +277,6 @@ function mergeFromSync(remote) {
 
 module.exports = {
   listBookmarks, isBookmarked, toggleBookmark, saveFavorite, updateFavicon, removeBookmark, removeBookmarks, importBookmarks,
-  setBookmarkFolder, moveFavorites, createFolder, renameFolder, moveFolder, removeFolder, reorderFolder, getTree, getMenuModel,
+  setBookmarkFolder, moveFavorites, createFolder, renameFolder, moveFolder, removeFolder, reorderFolder, editFavorite, getTree, getMenuModel,
   exportForSync, mergeFromSync, onChanged, onMerged, setManagerLive,
 };

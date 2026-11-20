@@ -6,6 +6,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { snapshotLocalHtml, registerLocalHtmlScheme, SCHEME, MAX_BYTES } = require('../../scripts/ecs-local-html.cjs');
 const { EventEmitter } = require('node:events');
+const { HTML_EXTENSIONS } = require('../../src/main/local-html-files');
 
 async function fixture(run) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'ecs-local-unit-'));
@@ -101,4 +102,40 @@ test('selection rejects relative paths, directories, non-HTML and oversized file
   await assert.rejects(snapshotLocalHtml(directory));
   const huge = path.join(dir, 'huge.html'); await fs.writeFile(huge, Buffer.alloc(MAX_BYTES + 1));
   await assert.rejects(snapshotLocalHtml(huge));
+}));
+
+// Review of #1630: every extension Blanc registers for must open.
+test('preview accepts every HTML extension Blanc registers for', async () => fixture(async ({ dir }) => {
+  for (const ext of HTML_EXTENSIONS) {
+    const file = path.join(dir, `page${ext.toUpperCase()}`);
+    await fs.writeFile(file, '<p>ok</p>');
+    const doc = await snapshotLocalHtml(file);
+    doc.dispose();
+  }
+}));
+
+// Review of #1630: on Windows and Linux a preview must not keep Blanc
+// running after its last browser window closes.
+test('closeAllLocalHtmlPreviews closes every open preview window', async () => fixture(async ({ file }) => {
+  const { openIsolatedLocalHtml, closeAllLocalHtmlPreviews } = require('../../scripts/ecs-local-html.cjs');
+  const ses = new EventEmitter();
+  Object.assign(ses, {
+    protocol: { handle() {}, unhandle() {} }, webRequest: { onBeforeRequest() {} },
+    setPermissionRequestHandler() {}, setPermissionCheckHandler() {},
+    clearStorageData: async () => {}, clearCache: async () => {}, closeAllConnections: async () => {},
+  });
+  let closes = 0;
+  class Window extends EventEmitter {
+    constructor() { super(); this.webContents = new EventEmitter(); this.webContents.setWindowOpenHandler = () => {}; this.gone = false; }
+    async loadURL() {}
+    isDestroyed() { return this.gone; }
+    close() { closes++; this.gone = true; this.emit('closed'); }
+  }
+  const session = { fromPartition: () => ses };
+  await openIsolatedLocalHtml({ BrowserWindow: Window, session }, file);
+  await openIsolatedLocalHtml({ BrowserWindow: Window, session }, file);
+  closeAllLocalHtmlPreviews();
+  assert.equal(closes, 2);
+  closeAllLocalHtmlPreviews();
+  assert.equal(closes, 2, 'a closed preview is forgotten');
 }));

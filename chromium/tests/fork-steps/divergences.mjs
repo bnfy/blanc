@@ -424,4 +424,12 @@ export const DIVERGENCES = new Map([
     await this.waitFor(async () => ({dom: await this.call('readBrowserImportDom'), records: await this.call('bookmarkRecords')}),
       (value) => value.records.length === (before || 3) && pattern.test(value.dom?.status ?? ''), 'browser Favorites import to settle', 15000);
   }}],
+  ['browser chrome remains on its trusted local document', {divergence: 'V32', async run() {
+    // Chromium refuses a chrome frame's website load itself and leaves its
+    // blank refusal page; shipping keeps the document. Either way no web
+    // content loads, which is F16-3's point.
+    const frame = await this.call('chromeFrameContent');
+    assert.ok(frame.kind === 'own' || frame.kind === 'refused', `the strip holds neither Blanc's page nor Chromium's refusal page: ${JSON.stringify(frame)}`);
+    if (frame.kind === 'refused') assert.equal(frame.text, '', 'the refusal page shows no content');
+  }}],
 ]);

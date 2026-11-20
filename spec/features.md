@@ -428,11 +428,15 @@ From the desktop `DEFAULTS`:
 
 - Pages: **newtab** (the "ledger" start page), **favorites** (`blanc://bookmarks/`),
   **history**, **downloads**, **settings**, **shortcuts**, **error**.
-- **Presentation split:** the five *utility* pages (favorites, history, downloads,
-  settings, shortcuts) present as a **transient chrome surface** — on desktop a
+- **Presentation split:** the *utility* pages (history, downloads, settings,
+  shortcuts) present as a **transient chrome surface** — on desktop a
   sheet over a scrim — **never as tabs**; `newtab` and `error` remain tab content.
-  Outbound activations (a history entry, a favorite) open
-  real tabs and dismiss the surface. This is platform-neutral and maps to native
+  Favorites left the set on November 18, 2026 (owner's pick): on desktop it is
+  a full page in a tab of its own, like Chrome's bookmark manager; iPhone
+  already showed it as a page.
+  Outbound activations (a history entry) open
+  real tabs and dismiss the surface; on the Favorites page a favorite opens in
+  that tab, or in a new one from its menu. This is platform-neutral and maps to native
   sheet presentation on mobile — no divergence entry needed. Utility pages share
   one nav (Settings, Favorites, History, Downloads, in that order) and wear the
   `sunrise-*` palette (F15).
@@ -888,6 +892,9 @@ From the desktop `DEFAULTS`:
   incomplete cleanup retries during the run and at the next launch.
 - Local profiles rely on the desktop multi-window/session model and are N/A on
   the phone ports (D25).
+- The Spaces menu and Quick Switcher can open a Space in a window of its own
+  profile. The New Space editor can create an empty Space in another profile
+  (F41).
 - **Acceptance:** the scenarios in
   [`acceptance/local-profiles.feature`](./acceptance/local-profiles.feature)
   exercise Settings creation, per-profile Favorites, normal/private partition
@@ -975,20 +982,41 @@ From the desktop `DEFAULTS`:
   Back, Reload and menu address it, that picker rows read like the panel's,
   and that `/glance` and **Open Link in Glance** reach the picker and the card.
 
-## F35 — Start page layouts
+## F35 — Start page and its widgets
 
-- The start page offers four layouts: **ledger** (the original column),
-  **billboard** (a live clock over locally ranked frequent-site tiles), **shelf** (a favorites grid
-  whose column count follows the favorites so every row is full, with the
-  group and blocked-count cards filling one row of the same grid), **tally**
-  (favorites and groups beside a week-of-blocking bar chart, as two balanced
-  columns that stack data-first on narrow windows). Ledger, shelf, and tally draw the Favorites feed. Billboard instead
-  derives up to six hostname-level sites from the active local profile's
+- The Start Page is **Billboard**: a live clock, the week's blocked count on
+  the line under it ("121 ads blocked this week", the count alone), the
+  person's tab groups, and locally ranked frequent-site tiles. The earlier
+  Ledger, Shelf and Tally layouts are retired (desktop, after v1.50.0; from the fork's
+  V24 and V26 of 2026-11-13); what they showed comes back as optional
+  **widgets**, cards switched on in Customize: **Favorites** (up to eight in
+  columns, or every favorite in a sized card) and **On your other devices**
+  (tabs grouped under each device, three a device then "N more tabs").
+  **Sent to this device** is an inbox card that shows whenever something
+  waits. On a window 1200 px or wider the cards sit in a column on each side
+  of the page, clear of the header and footer; narrower, the two columns sit
+  side by side under the clock, and they also go there when fewer than three
+  shortcut tiles would fit beside them. Each card has a grip: drag it, or use
+  its arrow keys (Up/Down within a column, Left/Right across, announced).
+  Favorites and other devices resize by their bottom edge onto 240, 360, 480,
+  600 or 720 px. Customize sets the **shortcut count** with a − / + stepper
+  from 1 to 12 (default 6); Billboard draws the sites it has, in centered rows
+  of at most six, and Customize says "N sites so far. More appear as you
+  browse." when it has fewer. Over the person's own image or a Color fill the
+  cards are glass, small text over the image takes whichever ink stands out
+  more against the image behind it, and the footer sits in a fade; tray and
+  footer inks keep 4.5:1 over pure black and pure white. The widget choice
+  (`newtabWidgets`) is device-local, never synced; a profile that never stored
+  one gets it once from its synced `newtabLayout`: Ledger → Favorites and
+  other devices, Tally → Favorites, Shelf → Favorites and twelve shortcuts,
+  Billboard → none. `newtabLayout` itself stays stored and synced for older
+  builds. Billboard
+  derives up to the shortcut count of hostname-level sites from the active local profile's
   on-device history, ranked by visit count with recency as the tie-breaker. A
   short site name labels each tile: the bounded local title's first segment
   when it is 20 characters or fewer, otherwise the domain's first label. The
-  full title stays the tile's tooltip and accessible name. The row never
-  wraps; the narrowest windows show the first four sites. A bounded
+  full title stays the tile's tooltip and accessible name. The tiles wrap into
+  centered rows of at most six, fewer where widget columns sit beside them. A bounded
   profile-local cache reuses sanitized 32 px favicon pixels captured during
   normal visits;
   rendering the row never starts a favicon request. A
@@ -996,20 +1024,19 @@ From the desktop `DEFAULTS`:
   profile's `blanc://newtab` localStorage; it does not delete history, sync,
   emit telemetry, or contact a favicon service. Clearing history also clears
   its cached Billboard artwork. Private Billboard tabs receive
-  no history-derived sites. All four re-ink under the light, dark, and
+  no history-derived sites. The page re-inks under the light, dark, and
   private themes.
-- **Start Page pins.** Up to eight pages can be pinned to the front of every
-  layout, from four places: a Billboard tile's pin (on the corner opposite its
+- **Start Page pins.** Up to eight pages can be pinned to the front of the
+  shortcuts and the Favorites card, from four places: a Billboard tile's pin (on the corner opposite its
   ×, which pins the page the tile opens, the site's page visited last, under
   its title), a
-  favorite's pin on Ledger, Shelf or Tally (at the end of a row, in a Shelf
-  card's corner), the Favorites page's **pin**/**unpin** row action, and the
+  favorite's pin in the Favorites card (at the end of a row), the Favorites page's **pin**/**unpin** row action, and the
   tab right-click menu's **Pin to Start Page**/**Unpin from Start Page** (web
   pages in non-private tabs only, like **Save to Favorites**, and unavailable
-  for a new pin once all eight are taken). Every layout draws the pins first,
-  newest first, so a fresh pin always shows, as far as it has room (Billboard and Ledger
-  six, Shelf eight, Tally five); Billboard follows them with the ranked sites
-  whose site isn't already pinned and Ledger, Shelf and Tally with the
+  for a new pin once all eight are taken). Billboard and the Favorites card draw the pins first,
+  newest first, so a fresh pin always shows, as far as each has room (the
+  shortcut count; eight in the Favorites card); Billboard follows them with the ranked sites
+  whose site isn't already pinned and the Favorites card with the
   Favorites that aren't pinned, in Favorites order. A pin's button stays on
   show, filled; a pinned Billboard tile can be unpinned but not hidden. The
   Favorites page marks a pinned favorite beside its date. A pin is an http(s)
@@ -1024,7 +1051,7 @@ From the desktop `DEFAULTS`:
   Start Page and the Favorites page reach it (`pages:pins:*`), and open
   copies of both redraw when it changes. Private start pages draw the pins
   but never change them.
-- All four start-page layouts use **Inter** for text that previously used the
+- The Start Page uses **Inter** for text that previously used the
   shared JetBrains Mono role, including the shared footer and onboarding. This
   override is local to the new-tab and standalone Mahjong documents; other
   internal pages and browser chrome retain their existing typography. The one
@@ -1032,17 +1059,14 @@ From the desktop `DEFAULTS`:
   badge letters are game artwork and keep the bundled JetBrains Mono (at its
   ExtraBold weight), while the game's meters, sheets, and dock labels use
   Inter. Desktop
-  acceptance exercises every layout at the default and minimum supported
+  acceptance exercises the page, with each widget setup, at the default and minimum supported
   sizes and on both sides of its responsive breakpoints, with realistic long
   Billboard titles, and rejects horizontal overflow, unreachable text, or
   unintended clipping.
-- The choice is a synced setting (`newtabLayout`, default `billboard`), changeable
-  instantly from the start page's footer Customize popover and from Settings; a
-  change made anywhere reaches every open start page. It travels with the
-  profile the way the theme does.
-- Every layout footer has a separate Mahjong link, beside the Customize
+- A widget change made in Customize reaches every open Start Page at once.
+- The footer has a separate **Play Blanc Mahjong** link, beside the Customize
   button. It opens `blanc://mahjong/` in a new managed tab and leaves the
-  start page and selected layout intact. Private tabs open
+  Start Page intact. Private tabs open
   `blanc://mahjong/?private=1` in the private session. Direct game URLs remain
   valid. A stored `newtabLayout: mahjong` migrates once to Billboard with a
   fresh Sync clock; later Mahjong values from old clients are rejected. Saved
@@ -1053,19 +1077,15 @@ From the desktop `DEFAULTS`:
   on by default and persists only in the Mahjong page's `localStorage`; private
   tabs keep that preference ephemeral with the rest of their page storage.
 - When F21 is enabled, the first real free-tile move in an app session reports
-  the fixed `mahjong_play` metric, and every layout that actually renders reports
-  its fixed `newtab_layout` value once that session. No game state is reported,
-  and private tabs report neither metric.
-- The tally chart tells the truth: every bar — today's included — is
-  normalized to the busiest day, colour alone marks today, and a week that
-  blocked nothing draws no bars. Its data is the blocker's per-day counts,
-  tracked locally alongside the existing weekly total.
-- No layout may ever scroll horizontally, at any window width; narrow windows
-  compact insets, wrap rows, and stack the tally columns rather than overflow.
+  the fixed `mahjong_play` metric. Desktop after v1.50.0 stops reporting `newtab_layout`
+  (there is no layout left to choose); the Worker still accepts it from older
+  builds. No game state is reported, and private tabs report nothing.
+- The Start Page may never scroll horizontally, at any window width; narrow
+  windows compact insets, wrap rows, and stack the widget columns rather than overflow.
   At supported browser zoom levels, Mahjong's standalone controls and board
   remain reachable through vertical scrolling.
   Empty feeds remove their section — row, label, and card — except
-  Favorites: ledger, shelf, and tally show "Favorite a page with ♥ to pin it
+  Favorites: the Favorites card shows "Favorite a page with ♥ to pin it
   here" when there are none. Billboard, which shows recent sites, shows no
   hint. Private start pages show no Patron pill and no blocked counts.
 - **Play the Sunrise when Blanc opens** (desktop, Settings → Appearance; off
@@ -1084,10 +1104,10 @@ From the desktop `DEFAULTS`:
   sites) vertically between the window top and the footer; on a short window
   it stops just below the brand row rather than sliding under it.
 - Non-Patron, non-private start pages show one "Become a Blanc Patron" pill
-  at the end of the footer's left group, on every layout. The × at its end
+  at the end of the footer's left group, whatever the widgets. The × at its end
   hides it on that device for 90 days, after which it returns.
 - After first run, Personal non-private start pages show one moving-in
-  checklist on ledger, billboard, shelf, and tally: a "Finish setup" pill in
+  checklist, whatever the widgets: a "Finish setup" pill in
   the footer's left group, after the version, whose popover opens upward with
   the full list and its 0/2 progress. Customize stays alone in the centre. Living in the footer, it never covers content, at
   any window size. It tracks the device-local, once-completed states of Sync
@@ -1096,10 +1116,12 @@ From the desktop `DEFAULTS`:
   opening the popover on its own. The standalone game omits it.
 - **Acceptance:**
   [`acceptance/newtab-layouts.feature`](./acceptance/newtab-layouts.feature)
-  renders the saved layout on a new tab, persists a footer switch, verifies
+  turns each old layout into its widgets, shares a widget switch across open
+  Start Pages, steps the shortcut count, moves a card by keyboard clear of the
+  shortcuts and footer, verifies
   Billboard's local frequency ranking, dismissal and pinning, pins from a
-  favorite tile, the tab menu and the Favorites page leading the favorites
-  layouts, and confirms that each
+  favorite tile, the tab menu and the Favorites page leading the
+  Favorites card, and confirms that the
   footer opens a standalone, playable 144-tile Mahjong deal.
 
 ## F36 — First-run onboarding
@@ -1326,6 +1348,13 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   chosen Spaces through end-to-end-encrypted Profile Sync (F57); private tabs,
   internal pages, local files and document-policy-restricted pages never enter
   the encrypted records.
+  - On Electron desktop, the Spaces menu groups Spaces by profile, with the
+    current window's profile first. Choosing another profile's Space brings
+    its window forward or opens a new window of that profile, preserving all
+    open tabs. The New Space editor can create an empty Space in another
+    profile, and the Quick Switcher can find and open its Spaces. Editing,
+    ordering, moving tabs, and Shared Spaces sync marks stay within their
+    own profile. The cross-profile controls are N/A on phones (D25).
 - If a shared tab navigates to an internal page, local file, or another
   unshareable page, its shared record stays at the last shareable HTTP(S) page.
   Other devices keep showing that page. Only actually closing the tab publishes
@@ -1334,9 +1363,10 @@ existing certificate-safety scenario; historical PR evidence retains its old IDs
   [`acceptance/F41-named-workspaces.feature`](./acceptance/F41-named-workspaces.feature)
   (`@workspace`, bound in `test/desktop/steps/named-workspaces.steps.js`,
   `test/desktop/steps/workspace-lifecycle.steps.js`,
-  `test/desktop/steps/spaces-redesign.steps.js` and
-  `test/desktop/steps/move-to-space.steps.js` and
-  `test/desktop/steps/group-space.steps.js`);
+  `test/desktop/steps/spaces-redesign.steps.js`,
+  `test/desktop/steps/move-to-space.steps.js`,
+  `test/desktop/steps/group-space.steps.js`, and
+  `test/desktop/steps/spaces-across-profiles.steps.js`);
   `test/unit/workspace*.test.js`, `test/unit/space*.test.js`.
 
 - **Open Link in Space:** the page link menu offers other spaces and New Space… for normal web links. A space shown in another window loads a background tab there; a set-aside space receives a quiet tab; a closed space receives only a saved record. Deferred writes are checked before adding a tab. New Space fixes its start to “With this link” and saves without loading. Private tabs and non-web links do not offer it. Failures open the existing Spaces error surface; success is announced to screen readers. F41-51–57 cover destinations, restart, write failures and quiet-tab rollback.
@@ -1763,7 +1793,7 @@ dismiss it; nothing opens by itself
   is taken back.
 - **Receiving.** At most 20 pages per sender, each kept 7 days. Desktop shows
   them first in the ⌘L Other devices drawer (whose button then counts them)
-  and above Other devices on the Ledger start page; the phone at the top of
+  and above Other devices on the Start Page; the phone at the top of
   the palette. Opening one opens a new ordinary tab; opening or dismissing it
   hides it on that device only.
 - **Sync.** A new optional store, `sends`, end-to-end encrypted like the

@@ -1114,6 +1114,42 @@
     "message": "Mostra finestra",
     "source": "sha256:208c2f0a5d1d6eb31e30e1c31757da4026fe58b6be33579bfab3fc64b1982173"
   },
+  "ws.row.titleProfile": {
+    "message": "{count, plural, one {{name} · {profile} · {context} · # scheda} many {{name} · {profile} · {context} · # schede} other {{name} · {profile} · {context} · # schede}}",
+    "source": "sha256:95985a274895d0e9ea45b61903cae855286fcaaa1d1518dc281cf4a16dffbd06"
+  },
+  "ws.row.titleProfileShown": {
+    "message": "{name} · {profile} · {context}",
+    "source": "sha256:5f12d89df15ab0b7d2e5c06edd7da7d4a2c34f44ab70877e85e46c14270ade64"
+  },
+  "ws.editor.profileDisabled": {
+    "message": "{profile} (impossibile aggiungere Spaces)",
+    "source": "sha256:142fafc05dee7633512b4a915b50f612c88f99232afabbc03aa2d7094c464882"
+  },
+  "ws.row.openInProfile": {
+    "message": "Si apre in una finestra di {profile}",
+    "source": "sha256:21a3870cc53fceb80f459ceb9a092d1e8d3eb69171b885f002d4c03eafc2a3fb"
+  },
+  "ws.profile.unreadable": {
+    "message": "Impossibile leggere gli Spaces di questo profilo.",
+    "source": "sha256:127d38b05e88927d4300d822df58f3fff722a4279be4b8f07fc0ad34ecc48f05"
+  },
+  "ws.editor.profile": {
+    "message": "Profilo",
+    "source": "sha256:ae784b5ee9733a1787d411caa78539c26aacc83ff2ee315ee5bbf2f992a3fa53"
+  },
+  "ws.editor.helpOtherProfile": {
+    "message": "Le schede restano nel proprio profilo, quindi uno Space in {profile} parte vuoto.",
+    "source": "sha256:9b2c0fb142313f2a2ca9f4596e46a9ae27cafee04b3ce99d779474bb6db92df5"
+  },
+  "ws.switcher.profileLabel": {
+    "message": "Space · {profile}",
+    "source": "sha256:10fa668010a07248bc9a034cc1ed6f13f21ba69326b706138360313e2910fb67"
+  },
+  "ws.error.profileUnavailable": {
+    "message": "Questo profilo non è più disponibile.",
+    "source": "sha256:89d8ccff126fea81e5bd1008aaefa65d61fafd2abfe330dbfb09cfc21e71679d"
+  },
   "ws.row.retained": {
     "message": "Mantenuto in memoria",
     "source": "sha256:603b3590ff078631bbbf2448a3d11ba9b1633f690f68364e91f9f374e4e8e0da"
@@ -3718,6 +3754,14 @@
   "settings.general.reuseNewTab.hint": {
     "message": "Nuova scheda passa a una nuova scheda di questa finestra che non hai ancora usato, invece di aprirne un’altra. Nuova scheda privata fa lo stesso con le schede private.",
     "source": "sha256:99e5e05a5800398919ea3cf28d48c41a9b109fb8d2a951a5a2d10206132053a6"
+  },
+  "settings.general.askWhereToSave.label": {
+    "message": "Chiedi dove salvare ogni file",
+    "source": "sha256:b76a33ee6f66a3a942dc934105c61bb667a1a1470c9719187037c601cd65b595"
+  },
+  "settings.general.askWhereToSave.hint": {
+    "message": "Se è disattivato, i download vanno direttamente nella cartella Download e un file con lo stesso nome riceve un numero.",
+    "source": "sha256:707ca337ae8ad262052b4d64e6e02f0e0e9936dd104700c11fd819b11d0465b1"
   },
   "settings.general.tabSwitchOrder.recent": {
     "message": "Nell’ordine in cui le hai usate",
@@ -6570,6 +6614,58 @@
   "favorites.manager.error.missing": {
     "message": "Questa cartella non esiste più.",
     "source": "sha256:da15e822ea7414bdea99ba50faf98629849cd2c7bc8e38befbdaaea0c4be91e7"
+  },
+  "favorites.manager.edit": {
+    "message": "Modifica…",
+    "source": "sha256:1d26808ffd30c70244202138ef65cd5019e58668ab1ba24a8d57b475b18c276b"
+  },
+  "favorites.manager.editName": {
+    "message": "Nome",
+    "source": "sha256:cb890f3ecd7abc20bfe0257411fb3086e233615d75ca010899a10ccd376e1204"
+  },
+  "favorites.manager.editAddress": {
+    "message": "Indirizzo",
+    "source": "sha256:1195bd9cb301fce38b8cb8ae55d44bb7ecb2cca552ebe57cfd7186af65e3419e"
+  },
+  "favorites.manager.editSave": {
+    "message": "Salva",
+    "source": "sha256:2dad4acc077e8bb1bfc67b3e331bcca54ff89bdbc1c5fefadc5e0c51e9b4409f"
+  },
+  "favorites.manager.editCancel": {
+    "message": "Annulla",
+    "source": "sha256:28882c39a45a3780a82acb437e2b4611255b7a7942178730fb5ad4a19eb3de11"
+  },
+  "favorites.manager.error.exists": {
+    "message": "Un altro preferito ha già questo indirizzo.",
+    "source": "sha256:7d2deac5495888ca855b96b96e3ae490d746e6041f7b49d4bfa57537679b57ce"
+  },
+  "favorites.manager.error.invalidUrl": {
+    "message": "Inserisci un indirizzo web, ad esempio example.com.",
+    "source": "sha256:160c9026299f85c39b9174222be67c0ca26710a39a3bd4058918d4b7cb3daad1"
+  },
+  "favorites.manager.error.favoriteMissing": {
+    "message": "Questo preferito non esiste più.",
+    "source": "sha256:0c6bc341a8bf1897163deb5b95e0b853551893b0ce49bfebeb79a8b06c0e8ec8"
+  },
+  "favorites.manager.openNewTab": {
+    "message": "Apri in una nuova scheda",
+    "source": "sha256:2b7d097bbb94091a5f0ab83f4260f1a77a378fa82c40d74bce3b0784f829c18e"
+  },
+  "favorites.manager.openAll": {
+    "message": "Apri tutti",
+    "source": "sha256:868a0b914e54b1bb9f02dceee88e517d6ef1a4e7106d5cfc6118da59c4eadb78"
+  },
+  "favorites.manager.editTitle": {
+    "message": "Modifica preferito",
+    "source": "sha256:f949fb4ceb57243bb5d34b99be90d8ce0e7304c4dd0b2ce8512eec4aa9eb6250"
+  },
+  "favorites.manager.editFolder": {
+    "message": "Cartella",
+    "source": "sha256:3f41cc3856cd423a9ca0abad559f47e0847bd2a472e1d9ab70683c0b034a2600"
+  },
+  "favorites.manager.moreShort": {
+    "message": "Altre azioni",
+    "source": "sha256:c70334a4344de3c08a8812ce82fcbe0a193fc5d79dd2b1e4933dda2260bed7d2"
   },
   "favorites.import.menu": {
     "message": "Porta le mie cose su Blanc",
@@ -9842,5 +9938,85 @@
   "favorites.import.tabsSkipped": {
     "message": "Le schede aperte non sono state portate.",
     "source": "sha256:2151e2cc32789e69ff84dc7e3125d6a0221be22bf0d122a82c7f3a2f6b2da94f"
+  },
+  "start.billboard.blocked": {
+    "message": "{count, plural, one {# annuncio bloccato questa settimana} many {# annunci bloccati questa settimana} other {# annunci bloccati questa settimana}}",
+    "source": "sha256:c70aedcc84ab4c77fbc6561ac03ba69ae0dc5593bd1191c7bf59828522f4553a"
+  },
+  "start.widgets.heading": {
+    "message": "Widget",
+    "source": "sha256:037671197561fb0f945d24ad1b42784bf6d3df9bf8edfe1b9ada33bcadcdf5c0"
+  },
+  "start.widgets.unconfirmed": {
+    "message": "Impossibile confermare la modifica del widget. Riprova.",
+    "source": "sha256:24f57689b3d85ceaef469d26fe1144c2124090c04bed1706b53831b6829d183f"
+  },
+  "start.widgets.move": {
+    "message": "Sposta {name}",
+    "source": "sha256:37f946fe9b764bd4c6dfd8536236c3297df81a407f74de41fd7a3b137af1f814"
+  },
+  "start.widgets.movedLeft": {
+    "message": "{name} ora è a sinistra, posizione {position}.",
+    "source": "sha256:b5c954756720b6c79c2d0e6bff4140efd20a2ae7e4aafc35b5bbc78c8f82f762"
+  },
+  "start.widgets.movedRight": {
+    "message": "{name} ora è a destra, posizione {position}.",
+    "source": "sha256:46d822967ee9affb835e5224ec8061207e78d207d5616ac8f0bcfbd3da09e4b4"
+  },
+  "start.widgets.resize": {
+    "message": "Ridimensiona {name}",
+    "source": "sha256:3ce6b4e2171812a52ed12aeee25c2487ebce8cb057907cd53beb5118156334f2"
+  },
+  "start.widgets.size": {
+    "message": "Dimensione {size} di {count}",
+    "source": "sha256:5ba08144a73ea22b8b0d819c4bbf6be0261ce33ca652ff77f461fc6897cf4bb2"
+  },
+  "start.widgets.sizeAuto": {
+    "message": "Si adatta alla colonna",
+    "source": "sha256:904c86556e961bbcc98e67b358426827bcd20547033bdad24fed4708f2864a29"
+  },
+  "start.widgets.resized": {
+    "message": "{name} ora ha la dimensione {size} di {count}.",
+    "source": "sha256:71c7bcf3a4bde554c1c5e9bb8d7543799795666e43b4a9de530d442725bdbb5b"
+  },
+  "start.widgets.resizedAuto": {
+    "message": "{name} si adatta di nuovo alla colonna.",
+    "source": "sha256:437054b0cc21ffc5426bcf5dd94af57eabf207663cbfc5b4db8df0d995efd551"
+  },
+  "start.shortcuts.heading": {
+    "message": "Scorciatoie",
+    "source": "sha256:84a0bd8484b5435c01ea16c2c7b08454a68521cce8741d6b0208a6ee90396070"
+  },
+  "start.shortcuts.fewer": {
+    "message": "Meno scorciatoie",
+    "source": "sha256:f955a7362d14860815316cf4cf8ee56af27b5c5feaa082208d693c7d97bc47f5"
+  },
+  "start.shortcuts.more": {
+    "message": "Più scorciatoie",
+    "source": "sha256:26556310668592f2969bef46100ae88a6626b628f76733903d2aacfc89143534"
+  },
+  "start.shortcuts.count": {
+    "message": "{count} scorciatoie",
+    "source": "sha256:c4dd9b2e426ae55588697815e55f3fae37cf301e3a48a3c224fe3f2957bd5e29"
+  },
+  "start.shortcuts.sofar": {
+    "message": "{count, plural, one {# sito finora.} many {# siti finora.} other {# siti finora.}} Altri compariranno mentre navighi.",
+    "source": "sha256:eecc4751be46cf5ca2c3ce4b0b818cf1552e7d7e662e4c8c2d820dbba5d3ef44"
+  },
+  "start.devices.tabs": {
+    "message": "{count, plural, one {# scheda} many {# schede} other {# schede}}",
+    "source": "sha256:8fb7e1a212612f0e7035d9bdcce93276a848ea411fdf364e69c7863919ba8256"
+  },
+  "start.devices.more": {
+    "message": "{count, plural, one {# altra scheda} many {# altre schede} other {# altre schede}}",
+    "source": "sha256:3e429c29e968ef84d00408069d849859060c18edaa7d440d1ec9f2ede07e1cf2"
+  },
+  "start.devices.fewer": {
+    "message": "Mostra meno",
+    "source": "sha256:29411acbaee4116857c1cb2237fce12622fed9ed823b566335222995cccb00cf"
+  },
+  "start.mahjong.play": {
+    "message": "Gioca a Blanc Mahjong",
+    "source": "sha256:9b62eba2e07c169ab3ee5415185da568ca0fd436fd6cc8730fe661830c6ed9d7"
   }
 }

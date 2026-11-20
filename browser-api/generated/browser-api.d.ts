@@ -60,6 +60,8 @@ export interface OpenWorkspaceOptions {
   newWindow?: boolean;
   color?: string;
   symbol?: string;
+  /** Another local profile whose Space this is (spec 2026-11-19-spaces-across-profiles): opens or creates it in a window of that profile. Omitted, or this window’s own profile, keeps today’s path. */
+  profileId?: string;
 }
 
 /** A point in window coordinates. */
@@ -504,6 +506,10 @@ export interface WorkspacesPayload {
   tint: SpaceTint;
   sharedSync?: SharedSpaceLibraryStatus | undefined;
   recoveryNotice?: boolean | null;
+  /** Every other live profile, only with two or more live profiles. */
+  otherProfiles?: OtherProfileSpaces[] | undefined;
+  /** This window’s profile name, beside otherProfiles. */
+  profileName?: string | undefined;
 }
 
 /** The chrome's effective appearance; pending while a system theme is still resolving. */
@@ -581,7 +587,7 @@ export interface FindResult {
 }
 
 /** Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js. */
-export type WorkspaceErrorCode = 'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-color' | 'invalid-symbol' | 'invalid-index' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch' | 'saved-not-moved';
+export type WorkspaceErrorCode = 'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-color' | 'invalid-symbol' | 'invalid-index' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch' | 'saved-not-moved' | 'profile-unavailable';
 
 /** Why a window may not switch workspaces right now, from workspaceProtection() in main.js. */
 export type WorkspaceProtectionReason = 'permission-or-transition' | 'active-page';
@@ -627,6 +633,10 @@ export interface WorkspaceActionResult {
   tint?: SpaceTint;
   sharedSync?: SharedSpaceLibraryStatus | undefined;
   recoveryNotice?: boolean | null;
+  /** Every other live profile, only with two or more live profiles. */
+  otherProfiles?: OtherProfileSpaces[] | undefined;
+  /** This window’s profile name, beside otherProfiles. */
+  profileName?: string | undefined;
 }
 
 /** A search engine id. Must match the searchEngines ids in settings-schema/schema.json. */
@@ -943,6 +953,49 @@ export interface GlanceCardResize {
 export interface GlanceCardReset {
   /** The generation from the last chrome:glance-layout applied. */
   generation: number;
+}
+
+/** One Start Page wallpaper layer's computed background (start-backdrop.js checks it). */
+export interface BackdropLayer {
+  color: string;
+  image: string;
+  size: string;
+  position: string;
+  repeat: string;
+  opacity: number;
+  fade: boolean;
+}
+
+/** The active Start Page's wallpaper for the Island's band to continue: the page's size and zoom, its layers, and the band's height above it. */
+export interface PageBackdrop {
+  id: TabId;
+  zoom: number;
+  width: number;
+  height: number;
+  layers: BackdropLayer[];
+  band: number;
+  sunriseAt?: number;
+}
+
+/** Another profile’s Space, limited to the fields allowed to cross profiles (spaces-across-profiles.js). */
+export interface OtherProfileSpace {
+  id: WorkspaceId;
+  name: string;
+  color: string;
+  symbol: string;
+  tabCount: number;
+  /** A window of that profile shows it. */
+  openElsewhere: boolean;
+}
+
+/** One other live local profile and its Spaces. */
+export interface OtherProfileSpaces {
+  id: string;
+  name: string;
+  status: WorkspaceSaveStatus;
+  /** The profile holds the most Spaces it can. */
+  full: boolean;
+  items: OtherProfileSpace[];
 }
 
 export interface BlancBrowserAPI {
@@ -1675,6 +1728,11 @@ export interface BlancBrowserAPI {
    * IPC: event `chrome:page-tint`.
    */
   onPageTint(callback: (payload: PageTint) => void): () => void;
+  /**
+   * The active Start Page's wallpaper for the band, or null where the band keeps its sampled color.
+   * IPC: event `chrome:page-backdrop`.
+   */
+  onPageBackdrop(callback: (payload: PageBackdrop | null) => void): () => void;
   /**
    * Download activity for the strip indicator.
    * IPC: event `chrome:downloads`.

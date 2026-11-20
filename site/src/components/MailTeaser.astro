@@ -1,0 +1,32 @@
+---
+// A Blanc Mail design teaser: a mockup of a design the owner approved
+// (November 17, 2026) but that has not shipped, drawn as a Mac window with its
+// shadow on a transparent ground. It is not a screenshot of a build, so it is
+// labelled "Design preview" rather than MailShot's "Preview build", and this
+// component is the only way the Mail pages show one, so the label can't be
+// left off. The mail in every teaser is made up.
+// Files: /mail/teasers/<name>.webp (2000px, from the Mail repository's 2512px
+// PNG) and its 1400px and 800px copies, built by
+// site/scripts/build-display-images.mjs.
+interface Props {
+  name: string;
+  alt: string;
+  class?: string;
+  sizes?: string;
+  [key: `data-${string}`]: string;
+}
+const { name, alt, class: className = '', sizes = '(max-width: 1048px) 100vw, 1000px', ...rest } = Astro.props;
+---
+<figure class={`mail-teaser ${className}`} {...rest}>
+  <img
+    src={`/mail/teasers/${name}-1400.webp`}
+    srcset={`/mail/teasers/${name}-800.webp 800w, /mail/teasers/${name}-1400.webp 1400w, /mail/teasers/${name}.webp 2000w`}
+    sizes={sizes}
+    alt={alt}
+    width={2000}
+    height={1229}
+    loading="lazy"
+    decoding="async"
+  />
+  <figcaption>Design preview</figcaption>
+</figure>

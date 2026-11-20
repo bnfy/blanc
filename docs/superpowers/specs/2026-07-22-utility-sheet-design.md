@@ -29,7 +29,8 @@ transience); side panel (cramped for Settings/History); hiding utility tabs
 from the list (zombie state).
 
 Utility set: `blanc://bookmarks/`, `history`, `downloads`, `settings`,
-`shortcuts`. **Not** included (remain ordinary tab content): `newtab`,
+`shortcuts`. (Superseded for Favorites on November 18, 2026: the owner chose a
+full Favorites page in a tab of its own; see the Favorites manager spec, §5.) **Not** included (remain ordinary tab content): `newtab`,
 `error`, `auth`.
 
 ## 3. The surface

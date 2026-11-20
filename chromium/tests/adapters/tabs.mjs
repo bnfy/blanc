@@ -457,7 +457,23 @@ export const tabs={
  forgetCertificateExceptionOnly:async(w,id)=>(await w.api('forgetCertificateExceptionInTab',[String(id),false]))===true,
  setCertificateExceptionCap:(w,n)=>w.native('setCertificateExceptionCap',[Number(n)]),
  // Shipping's chrome document is blanc-chrome://index/, the fork's strip.
- attemptChromeNavigation:(w,url)=>strip(w).evalExpression(`location.href=${jsLiteral(String(url))}`),
+ // The check reads the frame right after this, so let a load settle first:
+ // an immediate read passed or failed by timing (V32, 2026-11-19).
+ async attemptChromeNavigation(w,url){await strip(w).evalExpression(`location.href=${jsLiteral(String(url))}`);await new Promise(r=>setTimeout(r,2000));},
+ // V32: what the strip frame holds after a refused load. Blanc's own page
+ // reads directly; Chromium's refusal page is cross-origin, so it is read
+ // through its own DevTools target.
+ async chromeFrameContent(w){
+  const own=await w.hostEval(`(()=>{try{return document.getElementById('strip').contentWindow.location.href}catch{return null}})()`);
+  if(own)return {kind:own==='chrome://blanc-prototype/index.html'?'own':'other',href:own};
+  const frames=(await w.debugTargets()).filter(t=>t.type==='iframe');
+  if(frames.length!==1)return {kind:'unknown',frames:frames.map(t=>t.url)};
+  const {connect}=await import('../lib/cdp.mjs');const page=await connect(frames[0]);
+  try{
+   const read=await page.eval(`({href:location.href,origin:location.origin,text:(document.body?.innerText??'').trim()})`);
+   return {kind:read.href==='chrome-error://chromewebdata/'&&read.origin==='null'?'refused':'other',...read};
+  }finally{page.close?.();}
+ },
  async chromeUrl(w){
   const [host,src]=await w.hostEval(`[location.href,document.getElementById('strip').contentWindow.location.href]`);
   return host===HOST&&src==='chrome://blanc-prototype/index.html'?'blanc-chrome://index/':src;

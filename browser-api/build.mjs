@@ -1416,6 +1416,14 @@ export function payloadFixtures() {
     }
   }
   add('splitLayoutPayload(null)', 'SplitLayout | null', splitLayoutPayload('split-1', null, [], 0));
+  const { normalizeBackdrop, backdropPayload } = requireMain('./start-backdrop');
+  const backdrop = normalizeBackdrop({ zoom: 1, width: 1280, height: 732, layers: [
+    { color: 'rgb(250, 247, 242)', image: 'none', size: 'auto', position: '0% 0%', repeat: 'repeat', opacity: 1, fade: false },
+    { color: 'rgba(0, 0, 0, 0)', image: 'url("blanc://newtab/start-page-day.png")', size: 'cover', position: '50% 50%', repeat: 'no-repeat', opacity: 1, fade: true },
+  ] });
+  add('backdropPayload(Sunrise, 68)', 'PageBackdrop | null', backdropPayload('t1', backdrop, 68));
+  add('backdropPayload(standing aside)', 'PageBackdrop | null', backdropPayload('t1', backdrop, 0));
+  add('backdropPayload(launch Sunrise)', 'PageBackdrop | null', backdropPayload('t1', { ...backdrop, sunriseAt: 1800000000000 }, 68));
   cases.push(...workspaceControllerFixtures(), ...listFixtures());
   return cases;
 }

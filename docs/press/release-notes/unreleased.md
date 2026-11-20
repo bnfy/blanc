@@ -1,26 +1,77 @@
 # Unreleased notes
 
-v1.49.1 is the current public release ([notes](v1.49.1.md)). Changes merged
+v1.51.0 is the current public release ([notes](v1.51.0.md)). Changes merged
 since then are below as they're recorded.
 
 ## Added
 
-- **Folders inside folders, in the order you choose.** Favorites
-  (Show Favorites, ⌥⌘B or Ctrl+Shift+O) now opens a manager with your folders
-  in a sidebar. Make folders inside folders, drag favorites and folders where
-  you want them, select several at once, and search every folder. Deleting a
-  folder keeps what was in it. Importing from another browser keeps folders
-  inside folders in the browser's order (empty folders aren't brought over, and
-  very long folder paths are shortened), and one **Bring my stuff to Blanc**
-  button now handles
-  importing favorites and open tabs. The Favorites menu shows the same folders,
-  and `/save` takes a path, such as `/save Work > Clients`. On the iPhone, a
-  folder inside a folder shows as one folder named by its path for now.
+- **Spaces across profiles.** With more than one profile, the Spaces menu
+  lists every profile's Spaces. Choose one to open it in a window of its
+  profile, with its own sign-ins. You can also create a Space in another
+  profile.
+- **Open local HTML files on Windows.** Choosing Blanc under **Open with** for
+  an `.html` file now opens it, as on a Mac, instead of opening Blanc with
+  nothing in it (#1630). The file shows in a separate, static preview window:
+  scripts, network requests and other files on the disk (such as a page's own
+  stylesheets and images) are blocked, so some pages look plainer than they do
+  in other browsers, and files over 8 MB don't open. Blanc is added to the
+  Open with list for HTML files, and making Blanc your default browser
+  doesn't make it the default for them. A preview closes with Blanc's last
+  window.
 
-## Still open
+## Fixed
 
+- **Pop-up windows close when their page asks first.** A page in a separate
+  pop-up window, such as Proxmox's console while it's connected, can ask
+  before you leave it. Blanc now asks **Leave** or **Stay**, as it does in a
+  tab; before, the window's close button did nothing (#1477).
+- **No passkey prompt on page load on Windows.** Many sign-in pages quietly
+  ask the browser for passkeys as they load. On Windows that opened Windows'
+  **Sign in with a passkey** dialog on every visit, even with no passkey
+  saved. Blanc now tells those pages it can't list passkeys, so they show
+  their own passkey button; choosing it still opens the dialog.
+
+## Still open for the next release
+
+- **Opening local HTML files on Windows** (#1630) by hand from Explorer's
+  Open with in an installed build. CI checked the installer's registration
+  and its removal on a real Windows runner. The packaged check that opens a
+  file at launch and while Blanc runs is in the Windows release job but
+  hasn't passed on an ECS build yet.
+- **The Windows passkey fix** in a packaged build and on a PC with Windows
+  Hello set up. It was checked in the Windows VM (no Windows Hello) with a
+  source build and a local test page, not a real site. A sign-in form inside
+  an iframe can still open the dialog.
+- **Closing a real Proxmox console window** (#1477) in a packaged build. The
+  fix was checked in the acceptance suite with a page that asks before it's
+  left, not against Proxmox itself.
+
+## Still open from 1.51
+
+- **The one Start Page** (from the fork's V24) by hand in a packaged build on
+  macOS, Windows and Linux: dragging cards with a real mouse and finger,
+  resizing them, and the light-or-dark text over a real photo.
+- **The wallpaper behind the Island** (#1622) by hand on Windows and Linux,
+  where the window buttons sit over the photo, and with a Space's color wash.
+  It was checked on macOS by hand and in the desktop checks there.
+- **Customize at the smallest windows:** the clock gives way down to half
+  size; below that Customize scrolls, and at 640×480 with a tall clock it
+  can still get short (it never covers the clock, by the owner's rule).
+- **The Favorites page** (#1614) by hand in a packaged build on macOS,
+  Windows and Linux: Edit… with a real address change, the ⋮ menu, and
+  dragging with a real mouse.
+
+## Still open from 1.50
+
+- **Whether macOS asks for Downloads access the first time** Blanc saves a
+  download without asking (#1591). The packaged check on November 17, 2026
+  saw no prompt, but it ran with the same signing identity as an installed
+  Blanc that may already have had access. Saving to the real Downloads folder
+  was checked in signed packaged builds on macOS and Windows.
 - **Favorites drag and drop with a real mouse** in a packaged build on macOS,
   Windows and Linux. The checks so far drive drags with page events only.
+- **The Favorites menu's nested folders** by hand in a packaged build on
+  each platform.
 
 ## Still open from 1.49.1
 

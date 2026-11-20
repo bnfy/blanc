@@ -314,6 +314,19 @@
     <string name="ws_decision_close_and_switch">Cerrar pestañas y cambiar</string>
     <string name="ws_row_current">Space actual</string>
     <string name="ws_row_show_window">Mostrar ventana</string>
+    <plurals name="ws_row_title_profile">
+        <item quantity="one">%2$s · %3$s · %4$s · %1$d pestaña</item>
+        <item quantity="many">%2$s · %3$s · %4$s · %1$d pestañas</item>
+        <item quantity="other">%2$s · %3$s · %4$s · %1$d pestañas</item>
+    </plurals>
+    <string name="ws_row_title_profile_shown">%1$s · %2$s · %3$s</string>
+    <string name="ws_editor_profile_disabled">%1$s (no admite más Spaces)</string>
+    <string name="ws_row_open_in_profile">Se abre en una ventana de %1$s</string>
+    <string name="ws_profile_unreadable">No se pudieron leer los Spaces de este perfil.</string>
+    <string name="ws_editor_profile">Perfil</string>
+    <string name="ws_editor_help_other_profile">Las pestañas se quedan en su propio perfil, así que un Space en %1$s empieza vacío.</string>
+    <string name="ws_switcher_profile_label">Space · %1$s</string>
+    <string name="ws_error_profile_unavailable">Ese perfil ya no está disponible.</string>
     <string name="ws_row_retained">Retenido en memoria</string>
     <string name="ws_row_open">Abrir Space</string>
     <plurals name="ws_row_title">
@@ -1058,6 +1071,8 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="settings_general_tab_switch_order_hint">Mantén pulsado Ctrl y pulsa Tab para volver por las pestañas que usaste por última vez; suelta Ctrl para cambiar. Esc te deja donde estás.</string>
     <string name="settings_general_reuse_new_tab_label">Ir a una pestaña nueva sin usar</string>
     <string name="settings_general_reuse_new_tab_hint">Nueva pestaña va a una pestaña nueva de esta ventana que aún no has usado, en lugar de abrir otra. Nueva pestaña privada hace lo mismo con las pestañas privadas.</string>
+    <string name="settings_general_ask_where_to_save_label">Preguntar dónde guardar cada archivo</string>
+    <string name="settings_general_ask_where_to_save_hint">Si está desactivado, las descargas van directamente a tu carpeta Descargas, y un archivo con el mismo nombre recibe un número.</string>
     <string name="settings_general_tab_switch_order_recent">En el orden en que las usaste</string>
     <string name="settings_general_tab_switch_order_list">En el orden de la lista de pestañas</string>
     <string name="settings_general_tab_archive_label">Archivar las pestañas inactivas</string>
@@ -1855,6 +1870,19 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="favorites_manager_error_cycle">Una carpeta no puede moverse dentro de sí misma.</string>
     <string name="favorites_manager_error_invalid">Ese nombre no se puede usar.</string>
     <string name="favorites_manager_error_missing">Esa carpeta ya no existe.</string>
+    <string name="favorites_manager_edit">Editar…</string>
+    <string name="favorites_manager_edit_name">Nombre</string>
+    <string name="favorites_manager_edit_address">Dirección</string>
+    <string name="favorites_manager_edit_save">Guardar</string>
+    <string name="favorites_manager_edit_cancel">Cancelar</string>
+    <string name="favorites_manager_error_exists">Otro favorito ya tiene esa dirección.</string>
+    <string name="favorites_manager_error_invalid_url">Escribe una dirección web, como example.com.</string>
+    <string name="favorites_manager_error_favorite_missing">Ese favorito ya no existe.</string>
+    <string name="favorites_manager_open_new_tab">Abrir en una pestaña nueva</string>
+    <string name="favorites_manager_open_all">Abrir todos</string>
+    <string name="favorites_manager_edit_title">Editar favorito</string>
+    <string name="favorites_manager_edit_folder">Carpeta</string>
+    <string name="favorites_manager_more_short">Más acciones</string>
     <string name="favorites_import_menu">Traer mis cosas a Blanc</string>
     <plurals name="favorites_manager_results">
         <item quantity="one">%1$d resultado</item>
@@ -2790,4 +2818,40 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="favorites_import_cancel">Cancelar</string>
     <string name="favorites_manager_delete_folder_label">Eliminar la carpeta %1$s</string>
     <string name="favorites_import_tabs_skipped">No se trajeron las pestañas abiertas.</string>
+    <plurals name="start_billboard_blocked">
+        <item quantity="one">%1$d anuncio bloqueado esta semana</item>
+        <item quantity="many">%1$d anuncios bloqueados esta semana</item>
+        <item quantity="other">%1$d anuncios bloqueados esta semana</item>
+    </plurals>
+    <string name="start_widgets_heading">Widgets</string>
+    <string name="start_widgets_unconfirmed">No se pudo confirmar el cambio del widget. Inténtalo de nuevo.</string>
+    <string name="start_widgets_move">Mover %1$s</string>
+    <string name="start_widgets_moved_left">%1$s está ahora a la izquierda, posición %2$s.</string>
+    <string name="start_widgets_moved_right">%1$s está ahora a la derecha, posición %2$s.</string>
+    <string name="start_widgets_resize">Cambiar el tamaño de %1$s</string>
+    <string name="start_widgets_size">Tamaño %1$s de %2$s</string>
+    <string name="start_widgets_size_auto">Se ajusta a la columna</string>
+    <string name="start_widgets_resized">%1$s tiene ahora el tamaño %2$s de %3$s.</string>
+    <string name="start_widgets_resized_auto">%1$s vuelve a ajustarse a la columna.</string>
+    <string name="start_shortcuts_heading">Accesos directos</string>
+    <string name="start_shortcuts_fewer">Menos accesos directos</string>
+    <string name="start_shortcuts_more">Más accesos directos</string>
+    <string name="start_shortcuts_count">%1$s accesos directos</string>
+    <plurals name="start_shortcuts_sofar">
+        <item quantity="one">%1$d sitio por ahora. Aparecerán más mientras navegas.</item>
+        <item quantity="many">%1$d sitios por ahora. Aparecerán más mientras navegas.</item>
+        <item quantity="other">%1$d sitios por ahora. Aparecerán más mientras navegas.</item>
+    </plurals>
+    <plurals name="start_devices_tabs">
+        <item quantity="one">%1$d pestaña</item>
+        <item quantity="many">%1$d pestañas</item>
+        <item quantity="other">%1$d pestañas</item>
+    </plurals>
+    <plurals name="start_devices_more">
+        <item quantity="one">%1$d pestaña más</item>
+        <item quantity="many">%1$d pestañas más</item>
+        <item quantity="other">%1$d pestañas más</item>
+    </plurals>
+    <string name="start_devices_fewer">Mostrar menos</string>
+    <string name="start_mahjong_play">Jugar a Blanc Mahjong</string>
 </resources>

@@ -334,10 +334,15 @@ const startPage = async (app, url = 'blanc://newtab/') => {
   await page.waitForFunction(() => document.body?.classList.contains('layout-ready'));
   return page;
 };
+// V24: one Start Page; each old layout's name stands for its widgets.
 const startLayout = (layout, { customize = false } = {}) => async ({ app }) => {
   const page = await startPage(app);
-  await page.evaluate((name) => document.querySelector(`[data-layout-pick="${name}"]`).click(), layout);
-  await page.waitForFunction((name) => document.body.dataset.layout === name, layout);
+  const widgets = { ledger: ['favorites', 'devices'], billboard: [], shelf: ['favorites'], tally: ['favorites'] }[layout];
+  await page.evaluate(async (on) => {
+    for (const name of ['favorites', 'devices']) await window.bowserPages.start.setWidget(name, on.includes(name));
+  }, widgets);
+  await page.waitForFunction((on) => document.body.dataset.layout === 'billboard'
+    && on.every((name) => document.querySelector(`[data-widget-pick="${name}"]`)?.getAttribute('aria-checked') === 'true'), widgets);
   if (customize) await page.evaluate(() => document.getElementById('customizePopover').showPopover());
   return page;
 };
@@ -357,9 +362,8 @@ const tourStep = (step) => async ({ app, chrome }) => {
 };
 const START_SURFACES = [
   { name: 'start page (billboard)', open: startLayout('billboard') },
-  { name: 'start page (ledger)', open: startLayout('ledger') },
-  { name: 'start page (shelf)', open: startLayout('shelf') },
-  { name: 'start page (tally, customize)', open: startLayout('tally', { customize: true }),
+  { name: 'start page (favorites and other devices)', open: startLayout('ledger') },
+  { name: 'start page (favorites, customize)', open: startLayout('tally', { customize: true }),
     close: (page) => page.evaluate(() => document.getElementById('customizePopover').hidePopover()) },
   // The clock's Font & color, with a color chosen so the Tone line shows too.
   { name: 'start page (billboard, clock font & color)',
@@ -385,11 +389,14 @@ const START_SURFACES = [
 ].map((surface) => ({ ...surface, files: START_FILES }));
 
 // The error page for a failed lookup (a real navigation), then the same tab
-// as a certificate interstitial with its Advanced panel open.
+// as a certificate interstitial with its Advanced panel open. Both name the
+// tab after the failed site, so the fixture's host is page data.
+const ERROR_DATA = ['blanc-sweep.invalid'];
 const ERROR_FILES = ['src/renderer/pages/error.html', 'src/renderer/pages/error.js'];
 const ERROR_SURFACES = [
   {
     name: 'error page',
+    data: ERROR_DATA,
     open: async ({ app, chrome }) => {
       await chrome.evaluate(() => window.browserAPI.createTab('https://blanc-sweep.invalid/'));
       return findPage(app, 'blanc://error/', 'error page');
@@ -397,6 +404,7 @@ const ERROR_SURFACES = [
   },
   {
     name: 'error page (certificate)',
+    data: ERROR_DATA,
     open: async ({ app }) => {
       const query = new URLSearchParams({ kind: 'certificate', url: 'https://blanc-sweep.invalid/', continue: '1',
         subject: 'blanc-sweep.invalid', issuer: 'Sweep Fixture CA', validTo: String(Date.UTC(2030, 0, 1)) });
@@ -456,8 +464,8 @@ const SETTINGS_SURFACES = [
   },
 ].map((surface) => ({ ...surface, files: SETTINGS_FILES }));
 
-// The Favorites, History, Downloads and Shortcuts sheets. Favorites shows its
-// empty state, then a favorite filed in a folder with the folder picker open.
+// The Favorites page (a tab) and the History, Downloads and Shortcuts sheets.
+// Favorites shows its empty state, then a favorite filed in a folder.
 const UTILITY_FILES = ['src/renderer/pages/sheet.js', 'src/renderer/pages/row-icon.js'];
 const openSheet = async ({ app, chrome }, name, ready) => {
   await chrome.evaluate((url) => window.browserAPI.createTab(url), `blanc://${name}/`);
@@ -468,12 +476,12 @@ const openSheet = async ({ app, chrome }, name, ready) => {
 const UTILITY_SURFACES = [
   {
     name: 'favorites (empty)',
-    files: ['src/renderer/pages/bookmarks.html', 'src/renderer/pages/bookmarks.js', 'src/renderer/pages/favorites-manager.js', ...UTILITY_FILES],
-    open: (ctx) => openSheet(ctx, 'bookmarks', () => document.querySelector('#manager .empty')),
+    files: ['src/renderer/pages/bookmarks.html', 'src/renderer/pages/bookmarks.js', 'src/renderer/pages/favorites-manager.js', 'src/renderer/pages/row-icon.js'],
+    open: (ctx) => openSheet(ctx, 'bookmarks', () => document.querySelector('#manager .fav-empty')),
   },
   {
     name: 'favorites (folder menu)',
-    files: ['src/renderer/pages/bookmarks.html', 'src/renderer/pages/bookmarks.js', 'src/renderer/pages/favorites-manager.js', ...UTILITY_FILES],
+    files: ['src/renderer/pages/bookmarks.html', 'src/renderer/pages/bookmarks.js', 'src/renderer/pages/favorites-manager.js', 'src/renderer/pages/row-icon.js'],
     open: async (ctx) => {
       const id = await callTestHook(ctx.app, 'openTab', [permissionPageUrl]);
       await waitForValue(async () => (await callTestHook(ctx.app, 'state')).tabs.find((t) => t.id === id && !t.isLoading), Boolean, 'page to favorite');
@@ -797,7 +805,9 @@ try {
       await page.evaluate((sel) => { for (const el of document.querySelectorAll(sel)) el.dataset.i18nIgnore = ''; }, selector);
     }
     await page.waitForLoadState('domcontentloaded');
-    const offending = classifyTextEntries(await page.evaluate(`(() => {${COLLECT}})()`), { allow, allowPatterns });
+    // A surface's data: text the page echoes back from its own fixture.
+    const offending = classifyTextEntries(await page.evaluate(`(() => {${COLLECT}})()`),
+      { allow: [...allow, ...(surface.data ?? [])], allowPatterns });
     await surface.close?.(page);
     if (page.url() === 'blanc-chrome://overlay/') await page.evaluate(() => window.browserAPI.closeOverlay()).catch(() => {});
     if (offending.length) failures.push(`${surface.name}:\n    ${offending.join('\n    ')}`);

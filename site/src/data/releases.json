@@ -1,5 +1,253 @@
 [
   {
+    "tag": "v1.51.0",
+    "version": "1.51.0",
+    "name": "1.51.0",
+    "publishedAt": "2026-11-18T22:47:13.000Z",
+    "humanDate": "November 18, 2026",
+    "machineDate": "2026-11-18",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.51.0",
+    "anchor": "v1-51-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Favorites gets a page of its own, and you can edit a favorite."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Favorites (Show Favorites, ⌥⌘B or Ctrl+Shift+O, or "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/favorites"
+                  },
+                  {
+                    "type": "text",
+                    "value": ") now opens as a full page in a tab, with your folders on the left and the open folder's favorites in one list. Every favorite has a ⋮ menu: open it in a new tab, edit it, pin it to the Start Page, move it, or remove it. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Edit…"
+                  },
+                  {
+                    "type": "text",
+                    "value": " changes a favorite's name, address and folder; a pinned favorite stays pinned. Select several to open, move or remove them together. Dragging, search and the keyboard work as before."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Widgets on your Start Page."
+                  },
+                  {
+                    "type": "text",
+                    "value": " The Start Page is now one page: the clock, with the week's blocked count under it. Favorites and your other devices' tabs are cards you turn on in "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Customize"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", then drag (or move with the arrow keys) to either side of the page and resize. Choose how many shortcuts show, from 1 to 12. If you used Ledger, Shelf or Tally, your Start Page keeps what it showed. Over your own image, the cards are frosted glass and the small text turns light or dark to stay readable."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Your wallpaper runs behind the Island."
+                  },
+                  {
+                    "type": "text",
+                    "value": " On the Start Page, Sunrise, a color or your own photo now continues up behind the Island instead of stopping at a plain band, and the launch Sunrise plays there too. With vertical tabs, the tab list keeps its own look."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Customize fits the window."
+                  },
+                  {
+                    "type": "text",
+                    "value": " It never covers the clock: while it is open, a tall clock shrinks just enough to make room, and grows back when you close it or open "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Font & color"
+                  },
+                  {
+                    "type": "text",
+                    "value": " to style it. Only on the smallest windows do Customize's options scroll."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.50.0",
+    "version": "1.50.0",
+    "name": "1.50.0",
+    "publishedAt": "2026-11-18T01:49:40.000Z",
+    "humanDate": "November 17, 2026",
+    "machineDate": "2026-11-17",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.50.0",
+    "anchor": "v1-50-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Folders inside folders, in the order you choose."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Favorites (Show Favorites, ⌥⌘B or Ctrl+Shift+O) now opens a manager with your folders in a sidebar. Make folders inside folders, drag favorites and folders where you want them, select several at once, and search every folder. Deleting a folder keeps what was in it. Importing from another browser keeps folders inside folders in the browser's order (empty folders aren't brought over, and very long folder paths are shortened), and one "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Bring my stuff to Blanc"
+                  },
+                  {
+                    "type": "text",
+                    "value": " button now handles importing favorites and open tabs. The Favorites menu shows the same folders, and "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/save"
+                  },
+                  {
+                    "type": "text",
+                    "value": " takes a path, such as "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/save Work > Clients"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". On the iPhone, a folder inside a folder shows as one folder named by its path for now."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Websites ask before reaching your device or local network."
+                  },
+                  {
+                    "type": "text",
+                    "value": " The first time a website tries to connect to an app on this device or to a device on your local network, such as a router or printer, Blanc asks. Your answer is remembered for that site and listed in Settings → Privacy → Site permissions, where you can remove it. Private tabs forget it when Blanc quits."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Downloads save straight to your Downloads folder."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Blanc no longer asks where to save each file you download; a file with the same name as one already there gets a number added. Downloads a page starts without your click, and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Save Image As…"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", still ask. To be asked every time, turn on "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Ask where to save each file"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Settings → General (#1591)."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Websites that check for permission before talking to an app on your computer now get Blanc's prompt instead of being told no without one. This is what Okta Verify FastPass sign-in needs (#1585); it hasn't yet been tried with a real Okta Verify."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.49.1",
     "version": "1.49.1",
     "name": "1.49.1",
