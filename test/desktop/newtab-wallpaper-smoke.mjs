@@ -153,11 +153,6 @@ try {
     && !document.querySelector('.start-wallpaper-layer.is-fading'));
   await openCustomize(privatePage);
   const privateSwitch = privatePage.getByRole('button', { name: 'Change with time of day', exact: true });
-  // Pressed from the keyboard, not clicked: Customize re-fits and scrolls
-  // inside itself whenever the page's columns change size (#1622), so on a
-  // slow runner a click aimed at the switch could land after the popover
-  // moved, miss it, and close Customize, leaving the fade waits to time out.
-  // The switch's pointer clicks are covered in the layout loop above.
   // Each fade below is watched from before its click: on a slow runner the
   // click's acknowledgement can arrive after the window has passed.
   // Partway through the fade: at least a fifth of the way out and still
@@ -170,8 +165,28 @@ try {
       const opacity = Number(getComputedStyle(layer).opacity);
       return opacity > 0 && opacity < 0.8;
     }));
-  await privateSwitch.press('Space');
-  await fadingOut;
+  // A timeline of the fade, reported if the wait fails: which classes the
+  // layers took and when, and any visibility, focus or motion change.
+  await privatePage.evaluate(() => {
+    const t0 = performance.now();
+    const log = window.__fadeLog = [];
+    const note = (what) => log.push(`${Math.round(performance.now() - t0)}ms ${what}`);
+    const layers = [...document.querySelectorAll('.start-wallpaper-layer')];
+    new MutationObserver(() => note(`layers ${layers.map((layer) => `[${layer.className.replace('start-wallpaper-layer', '').trim()} ${getComputedStyle(layer).opacity}]`).join(' ')} phase=${document.body.dataset.wallpaperPhase ?? '-'}`))
+      .observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class', 'data-wallpaper-phase'] });
+    for (const type of ['visibilitychange', 'focus', 'blur', 'pageshow']) addEventListener(type, () => note(`${type} hidden=${document.hidden}`), true);
+    matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (event) => note(`reduced-motion ${event.matches}`));
+    note(`start visible=${document.body.dataset.wallpaperVisible} hidden=${document.hidden} pressed=${document.getElementById('dynamicWallpaperToggle').getAttribute('aria-pressed')} focused=${document.activeElement?.id}`);
+  });
+  await privateSwitch.click();
+  try {
+    await fadingOut;
+  } catch (error) {
+    const state = await privatePage.evaluate(() => [...window.__fadeLog,
+      `end visible=${document.body.dataset.wallpaperVisible} hidden=${document.hidden} pressed=${document.getElementById('dynamicWallpaperToggle').getAttribute('aria-pressed')} popover=${document.getElementById('customizePopover').matches(':popover-open')}`]);
+    error.message += `\nFade timeline:\n${state.join('\n')}`;
+    throw error;
+  }
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-fading').count(), 2);
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-fading').first().evaluate((layer) =>
     getComputedStyle(layer).transitionDuration), '2s');
@@ -184,11 +199,11 @@ try {
       const opacity = Number(getComputedStyle(layer).opacity);
       return opacity > 0.1 && opacity < 0.95;
     }));
-  await privateSwitch.press('Space');
+  await privateSwitch.click();
   await fadingIn;
   await privatePage.waitForFunction(() => !document.querySelector('.start-wallpaper-layer.is-fading'));
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-visible').count(), 1);
-  await privateSwitch.press('Space');
+  await privateSwitch.click();
   await privatePage.waitForFunction(() => !document.body.dataset.wallpaperPhase
     && !document.querySelector('.start-wallpaper-layer.is-fading'));
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-visible').count(), 0);
@@ -197,7 +212,7 @@ try {
       const opacity = Number(getComputedStyle(layer).opacity);
       return opacity > 0.1 && opacity < 0.95;
     }));
-  await privateSwitch.press('Space');
+  await privateSwitch.click();
   await fadingInAgain;
   await privatePage.emulateMedia({ reducedMotion: 'reduce', colorScheme: 'dark' });
   await privatePage.waitForFunction(() => !document.querySelector('.start-wallpaper-layer.is-fading'));
