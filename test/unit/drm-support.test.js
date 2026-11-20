@@ -104,6 +104,7 @@ test('ECS local files open one by one and report each refusal', async () => {
     class BrowserWindow extends EventEmitter {
       constructor(options) { super(); opened.push(options.title); this.webContents = new EventEmitter(); this.webContents.setWindowOpenHandler = () => {}; }
       async loadURL() {}
+      removeMenu() {}
     }
     const support = createDrmSupport({ ...f, BrowserWindow });
     f.ready();
