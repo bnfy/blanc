@@ -118,6 +118,23 @@
         "production-sync-real-device"
       ],
       "note": "Daily Blanc Beta, published 2026-11-17 as a GitHub pre-release (not latest) through the one release command. Signed with the pinned Developer ID, notarized and stapled; Sigstore-signed checksums; logged-out public verification passed. Waivers under the owner's standing decisions: production-sync-real-device."
+    },
+    {
+      "build": 8,
+      "version": "2.0.0-beta.8",
+      "tag": "chromium-beta-2.0.0-beta.8",
+      "date": "2026-11-20",
+      "arches": [
+        "arm64"
+      ],
+      "archWaiver": "Owner standing decision 2026-11-14: daily betas are Apple Silicon only; Intel is deferred until a separately qualified native build.",
+      "sourceCommit": "e41e713fa63716a52ba182203f15acf4d85238b7",
+      "candidate": "macos-935addb507628d06",
+      "dmgSHA256": "90dc075749132bdb86617d69089d4668af4769270891594c70fd3f7d41bbf059",
+      "gateWaivers": [
+        "production-sync-real-device"
+      ],
+      "note": "Daily Blanc Beta, published 2026-11-20 as a GitHub pre-release (not latest) through the one release command. Signed with the pinned Developer ID, notarized and stapled; Sigstore-signed checksums; logged-out public verification passed. Waivers under the owner's standing decisions: production-sync-real-device."
     }
   ]
 }

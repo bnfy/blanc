@@ -55,6 +55,7 @@
 #include "blanc/common/browser_api/browser_api_factory_base.h"
 #include "services/network/public/mojom/web_sandbox_flags.mojom.h"
 #include "blanc/browser/ui/blanc_tab_name_rules.h"
+#include "blanc/browser/ui/spaces_across_profiles.h"
 #include "blanc/browser/ui/blanc_quiet_probe.h"
 #include "blanc/browser/ui/blanc_quiet_strings.h"
 #include "blanc/browser/ui/blanc_quiet_media.h"
@@ -201,6 +202,12 @@
 #include "chrome/browser/profiles/profile_manager.h"
 #include "chrome/browser/profiles/profile_attributes_entry.h"
 #include "chrome/browser/profiles/profile_attributes_storage.h"
+#include "chrome/browser/profiles/delete_profile_helper.h"
+#include "chrome/browser/profiles/nuke_profile_directory_utils.h"
+#include "chrome/browser/profiles/profile_metrics.h"
+#include "chrome/browser/profiles/profile_manager_observer.h"
+#include "chrome/browser/profiles/profile_observer.h"
+#include "chrome/browser/profiles/profile_window.h"
 #include "chrome/browser/shell_integration.h"
 #include "chrome/browser/sessions/tab_restore_service_factory.h"
 #include "blanc/common/held_page.h"
@@ -405,6 +412,8 @@ void IslandBackdrop(content::WebContents* tab, const base::DictValue* spec, int*
 namespace {
 base::Value SiteLinkRoute(BrowserWindowInterface* browser, content::WebContents* page);
 void ObserveLinkRouteProfiles();
+// Spaces across profiles: the Local State mirror (spaces_across_profiles.inc).
+void StartSpacesMirror();
 constexpr char kSpacesMetaPref[] = "blanc.spaces.meta";
 // The remembered Glance card: device-wide, never synced (F34).
 constexpr char kGlanceFramePref[] = "blanc.glance.frame";
@@ -1179,6 +1188,9 @@ ClosedSessionRepair* SessionRepair(Profile* profile) {
 
 void InitializeMiniShortcut();
 void ForgetMiniWindow(BrowserWindowInterface* browser);
+// A window that closes before its Island answered spacePendingOpen tells
+// the window that asked (below PendingSpaceOpens).
+void AbandonPendingSpaceOpen(int session_id);
 void MiniWindowFocusChanged(BrowserWindowInterface* browser);
 
 // Favorites is a page in a tab of its own (F63; owner, November 18, 2026),
@@ -1294,6 +1306,7 @@ class Owner : public base::SupportsUserData::Data,
   }
   ~Owner() override {
     ForgetMiniWindow(browser);
+    AbandonPendingSpaceOpen(session_id);
     Live().erase(this);
 #if !BUILDFLAG(IS_MAC)
     base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
@@ -1333,9 +1346,12 @@ class Owner : public base::SupportsUserData::Data,
   std::string space_error;
   std::string space_transaction;
   std::optional<base::DictValue> space_expected;
-  explicit Owner(BrowserWindowInterface* value) : browser(value) {
+  // The window's session id, kept for ~Owner, when the window is going.
+  int session_id = 0;
+  explicit Owner(BrowserWindowInterface* value) : session_id(value->GetSessionID().id()), browser(value) {
     blanc::SetUiNavigationGate(&AddUtilityPageGate);
     ObserveLinkRouteProfiles();
+    StartSpacesMirror();
     InitializeMiniShortcut();
 #if BUILDFLAG(IS_MAC)
     blanc::InstallMiniWindowMenu();
@@ -2735,15 +2751,26 @@ class SpaceHold : public base::SupportsUserData::Data, public TabStripModelObser
   std::map<int, HeldClosedTab> closed_;
   base::WeakPtrFactory<SpaceHold> weak_{this};
 };
-// Spaces waiting for their new window's Island, by window session id: the
-// Space, and how to tell the window that asked.
+// Spaces waiting for their new window's Island, by window session id: an
+// `open` of Space `id`, or a `create` of a Space `name` with its `color` and
+// `symbol` (in another profile, spaces_across_profiles.inc), and how to tell
+// the window that asked: {ok, detail, error?, workspaceId?}.
 struct PendingSpaceOpen {
-  std::string name;
-  base::OnceCallback<void(bool, std::string)> done;
+  std::string kind, id, name, color, symbol;
+  base::OnceCallback<void(base::DictValue)> done;
 };
 std::map<int, PendingSpaceOpen>& PendingSpaceOpens() {
   static base::NoDestructor<std::map<int, PendingSpaceOpen>> pending;
   return *pending;
+}
+void AbandonPendingSpaceOpen(int session_id) {
+  const auto found = PendingSpaceOpens().find(session_id);
+  if (found == PendingSpaceOpens().end()) return;
+  auto done = std::move(found->second.done);
+  PendingSpaceOpens().erase(found);
+  // Not from inside the window's teardown.
+  if (done) base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE, base::BindOnce(std::move(done),
+      base::DictValue().Set("ok", false).Set("detail", "The new window closed before it opened the Space.")));
 }
 std::string& LastRoomPass() { static base::NoDestructor<std::string> outcome; return *outcome; }
 // What makes a set-aside page worth more than the room it takes: it can't come
@@ -6046,6 +6073,7 @@ BrowserWindowInterface* RouteWindow(Profile* profile = nullptr, const std::strin
   return found;
 }
 #include "blanc/browser/ui/mini_window_controller.inc"
+#include "blanc/browser/ui/spaces_across_profiles.inc"
 
 BrowserWindowInterface* EnsureRouteWindow() {
   if (auto* browser = RouteWindow()) return browser;
@@ -7468,6 +7496,31 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(base::DictValue()
           .Set("directory", profile->GetPath().BaseName().AsUTF8Unsafe())
           .Set("name", entry ? base::UTF16ToUTF8(entry->GetLocalProfileName()) : std::string()))); return;
+    }
+    // Spaces across profiles: the Local State mirror and the regular profiles
+    // loaded now, so a check can tell a listed profile from a loaded one.
+    if (quiet_method == "spacesMirrorProbe" && quiet_args.empty()) {
+      base::ListValue loaded;
+      for (auto* profile : g_browser_process->profile_manager()->GetLoadedProfiles())
+        if (profile->IsRegularProfile()) loaded.Append(profile->GetPath().BaseName().AsUTF8Unsafe());
+      Reply(id, true, base::Value(base::DictValue()
+          .Set("mirror", g_browser_process->local_state()->GetDict(kSpacesMirrorPref).Clone())
+          .Set("loaded", std::move(loaded)))); return;
+    }
+    // Marks a profile's directory for deletion (or cancels it) the way
+    // Chromium does before removing it, without removing it.
+    // F41-91: Chromium's own deletion of a test profile, as the picker's
+    // Remove does. It can't be undone, so the check uses a throwaway profile.
+    if (quiet_method == "profileDeleteTest" && quiet_args.size() == 1 && quiet_args[0].is_string() &&
+        quiet_args[0].GetString() != "Default") {
+      ProfileAttributesEntry* found = nullptr;
+      for (auto* entry : g_browser_process->profile_manager()->GetProfileAttributesStorage().GetAllProfilesAttributes())
+        if (entry->GetPath().BaseName().AsUTF8Unsafe() == quiet_args[0].GetString()) found = entry;
+      if (!found) { reject("Unknown profile directory"); return; }
+      g_browser_process->profile_manager()->GetDeleteProfileHelper().MaybeScheduleProfileForDeletion(
+          found->GetPath(), base::DoNothing(), ProfileMetrics::DELETE_PROFILE_SETTINGS);
+      NotifySpacesMenus(nullptr);
+      Reply(id, true, base::Value(true)); return;
     }
     if (quiet_method == "contextSpaceLink" && quiet_args.size() == 4 && quiet_args[0].is_int() && quiet_args[1].is_string() && quiet_args[2].is_string() && quiet_args[3].is_string()) {
       auto* owner = GetOwner(web_ui()->GetWebContents()); auto* model = owner->browser->GetTabStripModel();
@@ -9118,8 +9171,17 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     NoteSpaceTabCount(owner->browser->GetProfile(), owner->space_name, capture.FindList("tabs")->size());
     owner->space_saved = std::move(capture);
   }
-  void SpaceOpenedElsewhere(std::string id, bool ok, std::string detail) {
-    Reply(id, ok, ok ? base::Value(true) : base::Value(std::move(detail)));
+  void SpaceOpenedElsewhere(std::string id, base::DictValue answer) {
+    const bool ok = answer.FindBool("ok").value_or(false);
+    const auto* detail = answer.FindString("detail");
+    Reply(id, ok, ok ? base::Value(true) : base::Value(detail ? *detail : std::string()));
+  }
+  // Another profile's Space opened or created (spaces_across_profiles.inc):
+  // the menu's {ok, action, error, workspaceId}.
+  base::OnceCallback<void(base::DictValue)> SpaceElsewhereReply(std::string id) {
+    return base::BindOnce([](base::WeakPtr<Handler> self, std::string id, base::DictValue result) {
+      if (self) self->Reply(id, true, base::Value(std::move(result)));
+    }, weak_factory_.GetWeakPtr(), std::move(id));
   }
   void SwitchCommitted(base::DictValue result) {
     auto* owner = GetOwner(web_ui()->GetWebContents());
@@ -10558,36 +10620,73 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       }
       reply(true, base::Value(true)); return;
     }
+    // Spaces across profiles (spaces_across_profiles.inc): the menu's other
+    // profiles, and opening or creating a Space in one of them.
+    if (method == "spaceOtherProfiles" && args.empty()) {
+      reply(true, base::Value(OtherProfilesPayload(browser))); return;
+    }
+    if (method == "spaceOpenInProfile" && args.size() == 2 && args[0].is_string() && args[1].is_string() &&
+        args[0].GetString().size() <= 255 && !args[1].GetString().empty() && args[1].GetString().size() <= 120) {
+      OpenSpaceInProfile(browser, args[0].GetString(), args[1].GetString(), SpaceElsewhereReply(id)); return;
+    }
+    if (method == "spaceCreateInProfile" && args.size() == 4 &&
+        std::ranges::all_of(args, [](const base::Value& value) { return value.is_string(); }) &&
+        args[0].GetString().size() <= 255) {
+      // A name is at most 60 characters: refuse a long one before converting it.
+      if (args[1].GetString().size() > 4096) {
+        reply(true, base::Value(SpaceElsewhereError("invalid-name"))); return;
+      }
+      CreateSpaceInProfile(browser, args[0].GetString(), args[1].GetString(), args[2].GetString(),
+          args[3].GetString(), SpaceElsewhereReply(id));
+      return;
+    }
+    // Answers whether a window showing the Space came forward, so the
+    // caller's Island leaves the focus with it only when one did.
     if (method == "spaceFocus" && args.size() == 1 && args[0].is_string()) {
-      for (auto* other : Owner::Live())
-        if (other->browser->GetProfile() == profile && other->space_name == args[0].GetString())
-          other->browser->GetWindow()->Activate();
-      reply(true, base::Value(true)); return;
+      reply(true, base::Value(FocusSpaceWindow(profile, args[0].GetString()))); return;
     }
     const bool space_named = args.size() >= 1 && args[0].is_string() && !args[0].GetString().empty() &&
         args[0].GetString().size() <= 120;
     if (method == "spaceOpenNewWindow" && args.size() == 1 && space_named) {
-      if (profile->IsOffTheRecord() ||
-          GetBrowserWindowCreationStatusForProfile(*profile) != BrowserWindowInterface::CreationStatus::kOk) {
-        reply(false, base::Value("A new window can't open now.")); return;
-      }
-      auto* created = CreateBrowserWindow(BrowserWindowCreateParams(profile, true));
-      chrome::AddAndReturnTabAt(created, GURL("chrome://newtab/"), -1, true);
-      PendingSpaceOpens()[created->GetSessionID().id()] = {args[0].GetString(),
-          base::BindOnce(&Handler::SpaceOpenedElsewhere, weak_factory_.GetWeakPtr(), id)};
-      created->GetWindow()->Show();
+      PendingSpaceOpen pending;
+      pending.kind = "open";
+      pending.id = args[0].GetString();
+      pending.done = base::BindOnce(&Handler::SpaceOpenedElsewhere, weak_factory_.GetWeakPtr(), id);
+      if (!NewSpaceWindow(profile, std::move(pending))) reply(false, base::Value("A new window can't open now."));
       return;
     }
+    // Asked once by every new window's Island: "" or the Space it exists for,
+    // {kind: 'open', id} or {kind: 'create', name, color, symbol}.
     if (method == "spacePendingOpen" && args.empty()) {
       const auto found = PendingSpaceOpens().find(browser->GetSessionID().id());
-      reply(true, base::Value(found == PendingSpaceOpens().end() ? std::string() : found->second.name)); return;
+      if (found == PendingSpaceOpens().end()) {reply(true, base::Value(std::string())); return;}
+      const auto& pending = found->second;
+      reply(true, base::Value(pending.kind == "open"
+          ? base::DictValue().Set("kind", pending.kind).Set("id", pending.id)
+          : base::DictValue().Set("kind", pending.kind).Set("name", pending.name)
+                .Set("color", pending.color).Set("symbol", pending.symbol)));
+      return;
     }
-    if (method == "spacePendingDone" && args.size() == 2 && args[0].is_bool() && args[1].is_string()) {
+    // [ok, detail, extra?: {error?, workspaceId?}]: an error that isn't one of
+    // the Spaces codes, or a workspaceId that isn't a lowercase UUID, is dropped.
+    if (method == "spacePendingDone" && args.size() >= 2 && args.size() <= 3 && args[0].is_bool() &&
+        args[1].is_string() && (args.size() == 2 || args[2].is_dict() || args[2].is_none())) {
       const auto found = PendingSpaceOpens().find(browser->GetSessionID().id());
       if (found != PendingSpaceOpens().end()) {
         auto done = std::move(found->second.done);
         PendingSpaceOpens().erase(found);
-        std::move(done).Run(args[0].GetBool(), args[1].GetString());
+        auto answer = base::DictValue().Set("ok", args[0].GetBool()).Set("detail", args[1].GetString());
+        if (args.size() == 3 && args[2].is_dict()) {
+          const auto& extra = args[2].GetDict();
+          if (const auto* error = extra.FindString("error"); error && IsSpaceErrorCode(*error))
+            answer.Set("error", *error);
+          if (const auto* space = extra.FindString("workspaceId");
+              space && base::Uuid::ParseLowercase(*space).is_valid()) answer.Set("workspaceId", *space);
+        }
+        // The window made for the Space comes forward now that it shows it
+        // (NewSpaceWindow staged it without focus); on failure it closes.
+        if (args[0].GetBool()) browser->GetWindow()->Activate();
+        if (done) std::move(done).Run(std::move(answer));
       }
       reply(true, base::Value(true)); return;
     }
