@@ -214,6 +214,10 @@ try{
  // loads them at the next launch, so let Work unload first (it does once its
  // last window has closed).
  await w.waitFor(probe,p=>!p.loaded.includes(workDir),'Work unloaded after its last window closed',20000);
+ // Chromium also loads its last-used profile at launch, and Work's window was
+ // the last one active: bring Personal's forward so Personal is last used.
+ await bringForward(f.host);
+ await w.waitFor(()=>active(f.host),Boolean,'Personal in front before the relaunch');
  w.profileHosts=new Map();await w.relaunch();
  assert.equal((await nativeCall(f.host,'profileInfo')).directory,'Default');
  const unloaded=await probe();
