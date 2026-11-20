@@ -210,6 +210,10 @@ try{
  // and both answer ok. A relaunch with only Personal's window unloads Work.
  await w.call('closeWindowRuntime',workWindows[0].id);
  await w.waitFor(()=>runtimesOf(workDir),rs=>rs.length===0,'Work window closed');
+ // Chromium records the profiles still loaded at quit as last active and
+ // loads them at the next launch, so let Work unload first (it does once its
+ // last window has closed).
+ await w.waitFor(probe,p=>!p.loaded.includes(workDir),'Work unloaded after its last window closed',20000);
  w.profileHosts=new Map();await w.relaunch();
  assert.equal((await nativeCall(f.host,'profileInfo')).directory,'Default');
  const unloaded=await probe();
