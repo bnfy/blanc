@@ -169,9 +169,26 @@ test('mailbox features and the reservation action are visible before opening a d
       assert.equal(await page.locator('#address-features + a[href="/mail/reserve"]').count(), open ? 1 : 0);
       assert.equal(await page.locator('.address-preview').getAttribute('open'), null);
       assert.equal(await page.locator('#pricing + section').getAttribute('id'), 'address');
-      assert.equal(await page.locator('main .mail-shot, #design, #island, #features').count(), 0);
+      assert.equal(await page.locator('main .mail-shot, #design, #island').count(), 0);
       assert.equal(await page.getByRole('heading', { name: 'Inside Blanc Mail' }).count(), 0);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    } finally { await context.close(); }
+  }
+});
+
+test('the app feature section shows the original nine cards at each breakpoint', async () => {
+  for (const [width, columns] of [[390, 1], [768, 2], [1440, 3]]) {
+    const { page, context } = await openPage('/mail#features', width);
+    try {
+      const section = page.getByRole('region', { name: 'Every account, one calm inbox.' });
+      const grid = section.getByRole('list');
+      assert.deepEqual(await grid.getByRole('heading', { level: 3 }).allTextContents(), [
+        'Every account together', 'Groups', 'A native window',
+        'Gmail and Proton Mail', 'A moment to change your mind', 'Later, on your terms',
+        'Ghost Mode', 'Replies you type often', 'Drafts that keep up',
+      ]);
+      assert.equal(await grid.locator('.mail-feature-badge svg').count(), 9);
+      assert.equal(await grid.evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length), columns);
     } finally { await context.close(); }
   }
 });
@@ -239,7 +256,7 @@ test('FAQ disclosures explain reservations, privacy and billing and are keyboard
 });
 
 test('a link to a section lands with its heading below the bars', async () => {
-  for (const id of ['pricing', 'address', 'support', 'download']) {
+  for (const id of ['pricing', 'address', 'features', 'support', 'download']) {
     // Load the page first, then follow the link within it. Loading /mail#id
     // directly jumps while images and fonts above the section are still
     // settling, and on a slow runner that jump stayed about 43px too far

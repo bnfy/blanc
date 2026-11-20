@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import BrandMark from '../components/BrandMark.astro';
 import BentoIcon from '../components/bento/BentoIcon.astro';
+import MailAppFeatures from '../components/MailAppFeatures.astro';
 import MailBar from '../components/MailBar.astro';
 import MailTeaser from '../components/MailTeaser.astro';
 import MailWaitlistForm from '../components/MailWaitlistForm.astro';
@@ -162,6 +163,8 @@ const support = [
         {addressSteps.map(step => <MailTeaser name={step.name} alt={step.alt} data-teaser={step.value} />)}
       </details>
     </section>
+
+    <MailAppFeatures />
 
     <section id="support" class="overview-section faq-spread" aria-labelledby="faq-title">
       <div>
