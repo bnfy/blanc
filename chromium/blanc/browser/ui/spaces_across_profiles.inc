@@ -199,7 +199,7 @@ ProfileAttributesEntry* LiveSpaceProfile(const std::string& id) {
 }
 
 // spaceOtherProfiles: {} in a mini window or with fewer than two live
-// profiles, else {profileId, profileName, others}. V32: this window's profile,
+// profiles, else {profileId, profileName, others}. V33: this window's profile,
 // then Personal, then the rest in the profile picker's order. The rows come
 // from the mirror, so listing never loads a profile; openElsewhere from the
 // Space each ordinary window shows.
