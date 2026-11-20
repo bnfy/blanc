@@ -974,6 +974,7 @@
     "chrome/browser/ui/omnibox/omnibox_next_features.cc": "66c41d1303dc45f18ed307f1b15f3c620a08f9b0c0219ec2fe1e9d5683ba74af",
     "chrome/browser/ui/prefs/pref_watcher.cc": "52fd453a0024b0b325b1fa36533dc668873e32140aa909cac51fe2288320ad60",
     "chrome/browser/ui/startup/first_run_service.cc": "bfadb77aa4f07fa1ae52a6bf30c99145a2591003174ffadba9b63d8c24d68222",
+    "chrome/browser/ui/startup/infobar_utils.cc": "1ed867b8e82bbb819995ad6ec767ce238c9cd8fe4d029b2e410e684548c39f4b",
     "chrome/browser/ui/startup/startup_browser_creator.cc": "db77b65f21cd9798dbd28d689dbafc81e0a247e9f2e07c42b8b29f106ed0fd02",
     "chrome/browser/ui/startup/startup_browser_creator_impl.cc": "59c2c417bc9a939752138bfe0887abfa83abd86ceb6232bf6c8e8d46133ddbc4",
     "chrome/browser/ui/sync/tab_contents_synced_tab_delegate.cc": "ccbfb1346be0294c4d2f76fd3072026012497dd6e27a3a2562854750e4c141d0",

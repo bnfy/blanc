@@ -73,7 +73,7 @@ test('patch 0105 points the Windows beta\'s installer and updater at the Sunrise
   for (const [id, path] of [['IDI_APP', 'blanc/branding/win/blanc.ico'], ['IDB_ERROR_ILLUSTRATION', 'blanc/branding/win-beta/updater/error.bmp'],
     ['IDB_ERROR_ILLUSTRATION_DARK', 'blanc/branding/win-beta/updater/error_dark.bmp'], ['IDB_BACKGROUND_LIGHT', 'blanc/branding/win-beta/updater/background_light.bmp'],
     ['IDB_BACKGROUND_DARK', 'blanc/branding/win-beta/updater/background_dark.bmp']])
-    assert.match(ui, new RegExp(`^\\+${id}\\s+(ICON|BITMAP)\\s+"${path.replace(/\//g, '\\/').replace(/\./g, '\\.')}"$`, 'm'), id);
+    assert.match(ui, new RegExp(`^\\+${id}\\s+(ICON|BITMAP)\\s+"${path.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}"$`, 'm'), id);
   const setup = added('chrome/updater/win/installer/installer.rc');
   assert.match(setup, /IDI_MINI_INSTALLER\s+ICON\s+"blanc\/branding\/win\/blanc\.ico"/);
   assert.match(setup, /IDB_LOGO\s+BITMAP\s+"blanc\/branding\/win-beta\/updater\/splash\.bmp"/);
