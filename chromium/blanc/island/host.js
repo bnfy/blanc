@@ -563,6 +563,9 @@
       if (!list.meta.items[id] || list.meta.deleted.includes(id)) return { ok: false, error: 'not-found' };
       await refresh();
       if (snapshot.spaceName === id) return spaceResult({ workspaceId: id, action: 'noop' });
+      // Another window still holds it (a hold or closing window): opening it
+      // here too would show one Space twice.
+      if (list.elsewhere.has(id)) return { ok: false, error: 'activation-failed' };
     }
     if (options.newWindow) return openSpaceElsewhere(id);
     const guard = await switchGuard(id, options);

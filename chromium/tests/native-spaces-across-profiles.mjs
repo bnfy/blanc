@@ -19,6 +19,7 @@ import {createProfile,picker,profileHosts} from './fork-steps/profiles.mjs';
 import {jsLiteral} from './lib/js-literal.mjs';
 import {Page} from './lib/page-shim.mjs';
 import {pause} from './lib/cdp.mjs';
+import {checkLedger} from './lib/check-ledger.mjs';
 import {createRequire} from 'node:module';
 import {freeRequestRoom} from './lib/sync-fixture.mjs';
 const require=createRequire(import.meta.url);
@@ -30,11 +31,8 @@ assertNodeRuntime();assert.equal(fs.existsSync(out),false);fs.mkdirSync(out,{rec
 const CHECKS=['F41-83','mirror written','mirror follows edits','listing does not load','rename reaches the heading',
  'open from a closed profile','double open','deleted meanwhile','marked for deletion','create',
  'F41-88','F41-84','F41-91','F41-85','Review Focus 4','F41-90','F41-86','F41-89','F41-87','F41-92'];
-const f=new NativeFixture(),w=createWorld(f),result={candidate:config.candidate,checks:[],pending:[...CHECKS]};
-function passed(text){
- const id=CHECKS.find(c=>text.startsWith(c+':'));assert.ok(id,'unknown check '+text);
- passed(text);result.pending=result.pending.filter(p=>p!==id);
-}
+const f=new NativeFixture(),w=createWorld(f),result={candidate:config.candidate,checks:[]};
+const passed=checkLedger(result,CHECKS);
 let worker;
 const parent=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-spaces-across-profiles-'));
 const visible=()=>assertRendering(e=>f.host.eval(e));

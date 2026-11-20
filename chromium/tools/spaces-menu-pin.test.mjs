@@ -113,6 +113,8 @@ test('host routing: another profile goes to the browser before any switch guard'
   // When none came forward, the list is read again and the usual open goes on.
   const afterFocus = body('openSpace').split("request('spaceFocus', [id])")[1];
   assert.match(afterFocus, /list = await spaceList\(\);[\s\S]*switchGuard\(id, options\)/);
+  // ...unless another window still holds it after the re-read.
+  assert.match(afterFocus, /list = await spaceList\(\);[\s\S]*if \(list\.elsewhere\.has\(id\)\) return \{ ok: false, error: 'activation-failed' \};[\s\S]*switchGuard\(id, options\)/);
   // A create in another profile is answered by its window.
   assert.match(body('openPendingSpace'), /kind === 'create'/);
   assert.match(body('openPendingSpace'), /createSpaceHere\(/);
