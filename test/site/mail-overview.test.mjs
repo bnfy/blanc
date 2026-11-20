@@ -232,6 +232,22 @@ test('visitors can compare the three launch plans and their billing periods with
   } finally { await context.close(); }
 });
 
+test('pricing cards share a row from 640px and stack on narrow phones', async () => {
+  const { page, context } = await openPage('/mail#pricing');
+  try {
+    for (const width of [320, 390, 639, 640, 768, 884, 901, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      const cards = await page.locator('.offer-plan').evaluateAll(elements => elements.map(card => {
+        const { top, left, right } = card.getBoundingClientRect();
+        return { top, left, right, fits: card.scrollWidth <= card.clientWidth };
+      }));
+      assert.equal(cards.length, 3);
+      assert.ok(cards.every(card => card.fits && card.left >= 0 && card.right <= width), `content fits at ${width}px`);
+      assert.equal(new Set(cards.map(card => card.top)).size, width < 640 ? 3 : 1, `rows at ${width}px`);
+    }
+  } finally { await context.close(); }
+});
+
 test('FAQ disclosures explain reservations, privacy and billing and are keyboard operable', async () => {
   const { page, context } = await openPage('/mail');
   try {

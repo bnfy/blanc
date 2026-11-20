@@ -242,7 +242,14 @@
 .mail-questions p { margin: 0 0 18px; color: var(--body); line-height: 1.6; }
 .signup-spread .mail-waitlist { width: 100%; margin: 0; }
 .mail-overview .mail-legal { font-size: 14px; }
-@media (max-width: 900px) {
+@media (640px <= width <= 900px) {
+  .offer-plans { gap: 10px; }
+  .offer-plan { padding: 24px 2.25vw; }
+  .offer-plan h3 { font-size: 22px; }
+  .offer-prices strong { font-size: min(5.625vw, 44px); }
+  .plan-benefits li { padding-inline-start: 16px; }
+}
+@media (width < 640px) {
   .offer-plans { grid-template-columns: minmax(0, 1fr); max-width: 520px; }
   .offer-plan { grid-row: auto; grid-template-rows: none; }
 }
