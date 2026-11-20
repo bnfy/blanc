@@ -12,16 +12,17 @@
 // "Blanc Mail address reservations" section describes this contract — change them together.
 import reservations from '../data/mail-reservations.json';
 import { priceFor } from '../data/mail-commerce.mjs';
+import '../styles/gold-ring.css';
 const siteKey = reservations.open ? reservations.turnstileSiteKey : '';
 const apiBase = import.meta.env.PUBLIC_MAIL_API_BASE ?? '';
 interface Props {
-  endings: readonly [string, ...string[]];
+  endings: readonly string[];
 }
 const { endings } = Astro.props;
 const ending = endings[0];
 ---
 {siteKey && (
-  <form class="mail-reserve" method="post" data-mail-reserve data-api={apiBase} data-sitekey={siteKey} data-ending={ending} novalidate>
+  <form class="mail-reserve gold-ring" method="post" data-mail-reserve data-api={apiBase} data-sitekey={siteKey} data-ending={ending} novalidate>
     <div class="mail-reserve-step" data-step="name">
       <label class="mail-reserve-label" for="mailReserveName">The address you want</label>
       <span class="mail-reserve-field">
@@ -102,6 +103,8 @@ const ending = endings[0];
         sitekey: form.dataset.sitekey,
         // The Worker accepts only tokens for this action (services/mail-worker/src/turnstile.js).
         action: 'reserve',
+        // Shown only if a challenge needs the visitor, so the form never jumps on focus.
+        appearance: 'interaction-only',
         callback: (t: string) => { token = t; update(); },
         'expired-callback': () => { token = ''; update(); },
       });

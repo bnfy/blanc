@@ -1,0 +1,340 @@
+{
+  "scope": "Start Page feature page and the Features page's Start Page tile, rewritten once public v1.51.0 replaced the four Start Page layouts with one Start Page and widget cards.",
+  "publicRelease": "v1.51.0",
+  "sourceSha": "2c3d17db9b8573f4047e8732aaf8f0972ef9e724",
+  "releaseEvidence": "docs/press/release-notes/v1.51.0.md",
+  "verified": "2026-11-19",
+  "evidenceGroups": {
+    "onePage": {
+      "qualification": "At v1.51.0 newtab.js applyLayout always uses one page ('Billboard is the one layout. What Ledger, Shelf and Tally showed comes back as optional widgets'). Customize has Widgets switches for Favorites and On your other devices (newtab.html), cards dragged by their grip to either rail or moved with arrow keys, resized from the bottom edge to fixed heights and reset by double-click (newtab.js, src/main/start-widgets.js), and a Shortcuts stepper from 1 to 12 (default 6). A Sent to this device card shows whenever something is waiting. Migration keeps what Ledger, Shelf or Tally showed (LAYOUT_WIDGETS in start-widgets.js). Widgets, their places and sizes and the shortcut count are device-local (settings.js newtabWidgets, never in SYNCED_KEYS); wallpaper color and clock keys sync. Shortcuts rank local history, private tabs neither feed nor show them, hidden tiles stay in page storage, and icons come from local caches with no new request (pages.js, main.js, top-sites.js). Nothing calls sendNewtabLayoutUsed at v1.51.0; mahjong_play is the Start Page's only usage event. newtab-backdrop.js continues the wallpaper behind the Island.",
+      "evidence": [
+        "docs/press/release-notes/v1.51.0.md",
+        "src/renderer/pages/newtab.js",
+        "src/renderer/pages/newtab.html",
+        "src/main/start-widgets.js",
+        "src/main/settings.js",
+        "src/main/telemetry.js",
+        "src/renderer/pages/newtab-backdrop.js"
+      ]
+    },
+    "mahjongSets": {
+      "qualification": "v1.49.0's release notes and What's New 1.49: three tile sets, Porcelain, Carved and Inlay, moving to the next set after every three boards cleared in a row. The v1.51.0 source keeps the three sets (src/renderer/pages/mahjong-exact-{porcelain,carved,inlay}-*.png).",
+      "evidence": [
+        "docs/press/release-notes/v1.49.0.md",
+        "src/renderer/pages/mahjong.js"
+      ]
+    }
+  },
+  "claims": [
+    {
+      "id": "v151-start-001",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Make your Start Page your own.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-002",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "A clock, your regular sites and the widgets you choose, over a time-of-day scene, your own image or a color. The footer also opens Mahjong in its own tab and leaves your Start Page in place.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-003",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Widgets, where you want them.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-004",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Turn on the widgets you want",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-005",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Open Customize on the Start Page and, under Widgets, turn on Favorites or On your other devices. Each one is a card beside the clock.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-006",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Move them and size them",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-007",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Drag a card by its grip to either side of the page, or move it with the arrow keys. Drag its bottom edge to make it taller or shorter; double-click the edge to return it to its automatic size.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-008",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Choose how many shortcuts",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-009",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Shortcuts in Customize shows from 1 to 12 of your regular sites under the clock.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-010",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Tabs sent to you",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-011",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "When another of your devices sends you a tab, it waits on a Sent to this device card.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-012",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Coming from another layout",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-013",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "If you used Ledger, Shelf or Tally, your Start Page keeps what it showed.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-014",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Up behind the Island",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-015",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Sunrise, a color or your own image continues up behind the Island.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-016",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Right-click the clock, or open Customize and choose Clock. Pick Instrument Sans, Instrument Sans Condensed, Inter or Roboto Flex, then set its weight and, with Instrument Sans or Roboto Flex, how tall it stands.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-017",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Built from your own visits",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-018",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Your shortcuts are ranked from ordinary browsing history on this device. Their site icons come from locally cached artwork; drawing the row makes no new request to those sites or a favicon service.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-019",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Hide a tile without erasing a visit",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-020",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Hide a site from your shortcuts when you do not want it there. That choice stays local and does not delete its history. Private tabs neither contribute to nor receive the history-derived row.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-021",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Mahjong games, records, and streaks are not cloud-synced. Your shortcuts’ ranking, cached artwork, and hidden tiles also stay local, and so do your widgets, where they sit, their sizes and your shortcut count. If you enable usage measurement, Blanc can count the first real Mahjong move per app session, without game state or browsing data; private-tab feature activity is excluded.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-022",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Your Start Page color and clock choices can sync through Personal’s optional Sync, while your own image stays on this device.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-023",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Widgets on one Start Page",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-024",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Make the Start Page yours.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-025",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "One Start Page with the clock at its center. Turn on Favorites and your other devices’ tabs as cards in Customize, then drag them to either side and resize them.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-026",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Your widgets and shortcuts stay on this device, and your shortcuts come from your history here.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "onePage"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-027",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Three tile sets",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "mahjongSets"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-028",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Tiles come in Porcelain, Carved and Inlay. Clear three boards in a row and your next deal moves to the next set.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "mahjongSets"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "v151-start-029",
+      "source": "site/src/pages/features/start-page.astro",
+      "exactWording": "Standalone Mahjong — Turtle / Burst",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "mahjongSets"
+      ],
+      "verdict": "verified"
+    }
+  ],
+  "retiredWording": [
+    "A different starting point, whenever you want.",
+    "A large clock, your weekly blocked-request total, frequently visited sites, and your named groups. Billboard is the default; change layouts from the start-page footer or Settings → General.",
+    "A simple list of Favorites and named groups. When you opt into sharing tabs, Ledger also shows tabs from your other devices.",
+    "Favorites as tiles, with named groups and a weekly blocking total underneath.",
+    "Favorites and groups beside a day-by-day chart of blocked requests this week.",
+    "Billboard ranks ordinary browsing history on this device. Its site icons come from locally cached artwork; drawing the row makes no new request to those sites or a favicon service.",
+    "Remove a site from Billboard when you do not want it there. That choice stays local and does not delete its history. Private tabs neither contribute to nor receive the history-derived row.",
+    "Mahjong games, records, and streaks are not cloud-synced. Billboard’s ranking, cached artwork, and hidden tiles also stay local. Your choice among the four start-page layouts can sync through Personal’s optional Sync. If you enable usage measurement, Blanc can count fixed layout names and the first real Mahjong move per app session, without game state or browsing data; private-tab feature activity is excluded.",
+    "Four Start Page layouts",
+    "Choose your Start Page layout.",
+    "Pick Ledger, Billboard, Shelf or Tally for new tabs. Billboard brings your frequent sites from local history, and Tally puts a big clock front and centre.",
+    "Your layout choice can follow you through Sync; history stays on this device.",
+    "Your Start Page color choices can sync through Personal’s optional Sync too, while your own image stays on this device.",
+    "Four layouts for your regular sites and groups, over a time-of-day scene, your own image or a color.",
+    "Every footer also opens Mahjong in its own tab and leaves your Start Page in place.",
+    "Choose your Start Page layout, wallpaper and clock.",
+    "Right-click the Billboard clock, or open Customize and choose Clock. Pick Instrument Sans, Instrument Sans Condensed, Inter or Roboto Flex, then set its weight and, with Instrument Sans or Roboto Flex, how tall it stands.",
+    "Standalone Mahjong — Daily Pyramid / Burst"
+  ]
+}

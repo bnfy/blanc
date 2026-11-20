@@ -260,6 +260,8 @@ test('homepage navigation is not an installer conversion and respects measuremen
     ['home-close', 'download_page_click', undefined],
     ['home-spaces', 'download_page_click', undefined],
     ['home-spaces-detail', 'feature_cta_click', 'named-workspaces'],
+    ['home-mail-reserve', 'feature_cta_click', 'blanc-mail'],
+    ['home-mail-detail', 'feature_cta_click', 'blanc-mail'],
     ['home-patron', 'feature_cta_click', 'named-workspaces'],
     ['home-patron-close', 'supporter_click', 'patron'],
   ]) {

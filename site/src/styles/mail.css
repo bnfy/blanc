@@ -465,15 +465,29 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 .mail-reserve-lead{max-width:46ch;margin:20px auto 0;color:var(--mail-band-muted);font-size:17px;line-height:1.6;text-wrap:balance}
 .mail-reserve-lead a{color:#e6cf9a}
 .mail-reserve-aside{max-width:44ch;margin:12px auto 0;color:var(--mail-band-muted);font-size:14.5px;line-height:1.55;text-wrap:balance;opacity:.85}
-/* The form sits in a card whose gold hairline border slowly turns a brighter highlight around it (owner, Nov 19, 2026). */
-@property --mail-reserve-turn{syntax:"<angle>";inherits:false;initial-value:0deg}
-@keyframes mail-reserve-turn{to{--mail-reserve-turn:360deg}}
-.mail-reserve{position:relative;box-sizing:border-box;max-width:584px;margin:40px auto 0;padding:32px;border-radius:24px;background:linear-gradient(180deg,#e0c0840d,#e0c08403 60%),#0a0907;box-shadow:0 24px 60px -30px #e0c08433;text-align:left;isolation:isolate}
-.mail-reserve::before{content:"";position:absolute;inset:0;z-index:-1;padding:1px;border-radius:inherit;background:conic-gradient(from var(--mail-reserve-turn),#e0c0842e 0deg,#f6e7bd 40deg,#b48c4a 80deg,#e0c0842e 140deg,#e0c0842e 220deg,#d9bb7d 270deg,#e0c0842e 320deg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:mail-reserve-turn 14s linear infinite;pointer-events:none}
+/* The form sits in a card framed by the turning gold ring (gold-ring.css). */
+.mail-reserve{box-sizing:border-box;max-width:584px;margin:40px auto 0;padding:32px;border-radius:24px;background:linear-gradient(180deg,#e0c0840d,#e0c08403 60%),#0a0907;box-shadow:0 24px 60px -30px #e0c08433;text-align:left}
 @media(max-width:560px){.mail-reserve{padding:24px 20px;border-radius:20px}}
-@media(prefers-reduced-motion:reduce){.mail-reserve::before{animation:none}}
 .mail-reserve-facts{max-width:520px;margin:48px auto 0;padding:24px 0 0;border-top:1px solid #f2ead81a;list-style:none;text-align:left;display:grid;gap:12px}
 .mail-reserve-facts li{color:var(--mail-band-muted);font-size:14.5px;line-height:1.6}
+/* While reservations are open the page is two columns on wide screens, the
+   introduction on the left and the form on the right, so Reserve sits on the
+   first screen of a laptop; narrower, it stacks in reading order with a
+   smaller headline (owner, November 19, 2026). The facts follow the form in
+   the markup and join the introduction's column on wide screens. */
+@media(max-width:999px){
+  .mail-reserve-page.is-open h1{font-size:clamp(36px,9vw,56px)}
+  .mail-reserve-page.is-open .mail-reserve-aside{margin-top:8px}
+  .mail-reserve-page.is-open .mail-reserve{margin-top:28px}
+}
+@media(min-width:1000px){
+  .mail-reserve-page.is-open{display:grid;grid-template:"intro form" auto "facts form" 1fr/minmax(0,1fr) minmax(0,560px);column-gap:64px;align-items:start;width:min(1080px,100%);text-align:left}
+  .mail-reserve-page.is-open .mail-reserve-intro{grid-area:intro}
+  .mail-reserve-page.is-open h1{font-size:clamp(48px,5vw,72px)}
+  .mail-reserve-page.is-open :is(.mail-reserve-lead,.mail-reserve-aside){margin-left:0;margin-right:0}
+  .mail-reserve-page.is-open .mail-reserve{grid-area:form;max-width:none;margin:0}
+  .mail-reserve-page.is-open .mail-reserve-facts{grid-area:facts;max-width:none;margin:40px 0 0}
+}
 .mail-reserve-cta{display:inline-block;margin-top:48px;padding:13px 26px;border-radius:999px;background:var(--mail-gilt);color:#1b1306;font-size:16px;font-weight:600;text-decoration:none;box-shadow:inset 0 1px 0 #fff8e2b3,inset 0 -1px 0 #7a5a2699;transition:filter 160ms ease,transform 100ms ease-out}
 .mail-reserve-cta:active{transform:scale(.97)}
 @media(hover:hover){.mail-reserve-cta:hover{filter:brightness(1.07)}}
@@ -493,6 +507,8 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 .mail-reserve-availability{min-height:1.4em;margin:0;color:var(--mail-band-muted);font-size:14px}
 .mail-reserve-availability.is-available{color:#e0c084}
 .mail-reserve-turnstile:empty{display:none}
+/* Turnstile stays invisible unless it needs the visitor. Once it loads, Reserve gives back the extra grid gap, so loading it never moves the button. */
+.mail-reserve-turnstile:not(:empty)+.mail-reserve-button{margin-top:4px}
 .mail-reserve-hint{margin:-4px 0 0;color:var(--mail-band-muted);font-size:13.5px;line-height:1.5}
 .mail-reserve-hint strong{color:var(--mail-band-text);font-weight:600}
 .mail-reserve-pricing{margin-top:8px;line-height:1.6}

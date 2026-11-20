@@ -1,0 +1,10 @@
+/* The turning gold ring: a card's 1px gold border whose brighter highlight goes
+   round once every 14 seconds, and holds still when motion is unwanted. It
+   frames the reserve form (MailReserveAddress.astro) and the home page's Blanc
+   Mail band (owner, November 19, 2026). The card sets its own background and
+   radius; the ring follows the radius. */
+@property --gold-ring-turn{syntax:"<angle>";inherits:false;initial-value:0deg}
+@keyframes gold-ring-turn{to{--gold-ring-turn:360deg}}
+.gold-ring{position:relative;isolation:isolate}
+.gold-ring::before{content:"";position:absolute;inset:0;z-index:-1;padding:1px;border-radius:inherit;background:conic-gradient(from var(--gold-ring-turn),#e0c0842e 0deg,#f6e7bd 40deg,#b48c4a 80deg,#e0c0842e 140deg,#e0c0842e 220deg,#d9bb7d 270deg,#e0c0842e 320deg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:gold-ring-turn 14s linear infinite;pointer-events:none}
+@media(prefers-reduced-motion:reduce){.gold-ring::before{animation:none}}
