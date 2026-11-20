@@ -25,7 +25,7 @@ const LANGUAGES = ['en', 'de', 'es', 'fr', 'it', 'pt-BR'];
 test('pin: #1642\'s menu files come from their own commit, the rest from the renderer release', () => {
   assert.ok(fs.existsSync(menuFile), 'blanc/spaces-menu.json records the Spaces menu pin');
   const record = menu();
-  assert.equal(record.commit, '79f0f2b658e2c453ded60d56cc3aeb394521c654');
+  assert.equal(record.commit, 'f91530b22eff409b0e5cd72acdc0c01206777dd3');
   assert.deepEqual(record.files, ['workspace-ui.js', 'overlay.js']);
   assert.deepEqual(record.messages, ['ws.row.titleProfile', 'ws.row.titleProfileShown', 'ws.row.openInProfile',
     'ws.profile.unreadable', 'ws.editor.profile', 'ws.editor.profileDisabled', 'ws.editor.helpOtherProfile',

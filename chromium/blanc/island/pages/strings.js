@@ -1,4 +1,4 @@
-// Published Blanc v1.49.1 interface catalogs for Blanc's pages, the Favorites page's messages from 3f9a3aff0a74d0cc2c304d0def03116a1aeb0275, the Spaces menu's messages from 79f0f2b658e2c453ded60d56cc3aeb394521c654, with the fork's page status messages.
+// Published Blanc v1.49.1 interface catalogs for Blanc's pages, the Favorites page's messages from 3f9a3aff0a74d0cc2c304d0def03116a1aeb0275, the Spaces menu's messages from f91530b22eff409b0e5cd72acdc0c01206777dd3, with the fork's page status messages.
 (function(root,catalog){'use strict';
 const codes=["en","de","es","fr","it","pt-BR"],primary=x=>x.toLowerCase().split('-')[0];
 const preferred=Array.isArray(root.navigator?.languages)?root.navigator.languages:[root.navigator?.language];const pinned=codes.includes(root.__blancUiLanguage)?root.__blancUiLanguage:null;let chosen=pinned||'en';

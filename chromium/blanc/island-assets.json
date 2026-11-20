@@ -326,7 +326,7 @@
     "pages/start-page-sunrise.png": "4757c6450f317f4380ec416065c70e314d3046ca53eccb877fd51d0412216451",
     "pages/start-pins.js": "639ce632ade63206bb9f98143ce72d812d8adcc33491e4095bd96e7e2bb0fe0c",
     "pages/start-site-name.js": "6524d6586a8991999ee01855d51d2e185936548db045e33bec03e3a99363868a",
-    "pages/strings.js": "553c466f63d854731bf6a785a125f4dd11fc35ced8d472fad9f40a5438327327",
+    "pages/strings.js": "155d392003b7e95d0bacea3682163188e0086294338031f8e0c7a95d0d2b9c53",
     "pages/sunrise-favicon-mark.png": "ee5ab81f089be18c5fe2c6d261c1e4132a507a05225a0f4948d8a2158c37e353",
     "pages/sunrise-mark.png": "cccdd5335d743552eff18ea7e63284005bf99246854acf64e0a241b2c3fbb3c3",
     "pages/tab-handoff.css": "f35b0fdd0fd3c9c2e1053ef7edec2e63de68507e408e0da86f16422d612081a8",
@@ -351,7 +351,7 @@
     "site-security.js": "883c8afba15289bee82c0f588c0979f28f669b9210a7b3d73a0256b8c9e1d653",
     "space-identity.js": "eb08327c21b1f26ede0709942b5f37067f9e8e925616ef5dda804c845b5c9e3d",
     "space-picker.js": "e3a3b5a0c963c82b532078551a0b191c7ae243cea20d749af6e230f4de96ea26",
-    "strings.js": "4a2947c282a30cd3c628be3502def28b5b6ba5773fee9f1f7262a20766dd62a0",
+    "strings.js": "8478ab5b28f367aa212237b042d6bd365d3dac7b429e1b4b40df33641049029a",
     "styles.css": "e441e85060d0a91f8dfb08096f96989219ca20f148e9dd2d8f9392ba015c51c5",
     "sunrise-hero-mark.png": "ff24ef691d8b9523d6696ebfa833614ba29855cbad4e86cf37c44b5ec3c866aa",
     "tab-drag.js": "dc7c9e93ba6f442c3ae76f56a99201afd0a6c483491e29d4f0be2ad71667d8f6",
@@ -360,6 +360,6 @@
     "tab-switcher.js": "91d26cdeaa6d2924c5cd82556266f30e6d92bfe1899b39e455f1ba6912e6bba0",
     "vertical-tabs.js": "af3147c6263a9879afd661636ef011457e2f3db668b0c1ae8a86add83c91784a",
     "whats-new.js": "ed48700b7808264312543422d8576320dfcd95ed3497aa1f20e0e5cd89a5e339",
-    "workspace-ui.js": "fd1f31d799a1759ce0196ea47be03bf4edca4890c9da78f9293a5a131ed881e9"
+    "workspace-ui.js": "c9d9386055c394f867637f5705d31ac1bae13073016fc9dad7010d4a1cb6ed86"
   }
 }

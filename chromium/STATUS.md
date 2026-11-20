@@ -43,8 +43,10 @@ hardware stays pending.
     on screen brings its window forward (restored if minimized). Duplicate
     requests join one load. A mini window answers `busy`.
   - **The menu:** #1642's `workspace-ui.js` and `overlay.js` and its nine
-    strings come from their own pin, `blanc/spaces-menu.json` (#1642's
-    merge, 79f0f2b65), ahead of the renderer's v1.49.1;
+    strings come from their own pin, `blanc/spaces-menu.json` (#1658's
+    merge, f91530b22, which carries #1642 and fixes a refused Quick
+    Switcher open showing nothing and `/space <name>` offering the Profile
+    choice), ahead of the renderer's v1.49.1;
     #1642's three `styles.css` rules are anchored edits
     (`tools/island-renderer.mjs`, `tools/spaces-menu-pin.test.mjs`). The host
     carries #1642's focus fix: a window brought forward stays in front when
