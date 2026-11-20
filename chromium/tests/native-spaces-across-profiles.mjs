@@ -44,7 +44,9 @@ const hostApi=(host,call)=>host.cdp.eval(`window.BlancPrototypeHost.api.${call}`
 const rows=entry=>(entry?.order??[]).map(id=>({id,...entry.items[id]}));
 const personalApi=call=>f.host.eval(`window.BlancPrototypeHost.api.${call}`);
 const runtimesOf=async dir=>(await w.call('windowRuntimes')).filter(r=>r.profileId===dir);
-const others=()=>nativeCall(f.host,'spaceOtherProfiles');
+// spaceOtherProfiles is the Island host's own request, not a test operation,
+// so read it as the menu does: through Personal's listWorkspaces().
+const others=async()=>{const p=await personalApi('listWorkspaces()');return {profileName:p.profileName,others:p.otherProfiles??[]};};
 async function personalState(){const s=await nativeCall(f.host,'snapshot');return {tabs:s.tabs.map(t=>[String(t.id),t.url]),space:s.spaceName||null};}
 // ---- The Spaces menu as a person reaches it (F41-83 to F41-92) ----
 // Any window's Island documents, by its host connection: the strip holds the
@@ -185,7 +187,7 @@ try{
  await evaluate(renamePick,card+`const input=find('#nameInput',card.shadowRoot);input.value='Studio';input.dispatchEvent(new Event('change',{bubbles:true}));return true;`);
  assert.deepEqual(rows((await probe()).mirror[workDir]).map(r=>r.name),['Listed'],'the mirror is keyed by directory, not name');
  const heading=await w.waitFor(others,p=>p.others?.some(o=>o.id===workDir&&o.name==='Studio'),'renamed heading (native)');
- assert.equal(heading.profileId,'default');assert.equal(heading.profileName,'Personal');
+ assert.equal(heading.profileName,'Personal');
  assert.deepEqual(heading.others.find(o=>o.id===workDir).items.map(i=>i.name),['Listed']);
  await w.waitFor(()=>personalApi('listWorkspaces()'),p=>p.otherProfiles?.some(o=>o.id===workDir&&o.name==='Studio'),'renamed heading');
  passed('rename reaches the heading: Personal\'s Spaces menu heads Work\'s Spaces as Studio');
