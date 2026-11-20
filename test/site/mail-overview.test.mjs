@@ -156,9 +156,13 @@ test('mailbox features and the reservation action are visible before opening a d
     try {
       const features = page.getByRole('list', { name: 'Blanc mailbox features' });
       assert.deepEqual(await features.locator('h3').allTextContents(), [
-        'Your name, your ending', '15 GB for your mail', 'Encrypted where it’s stored',
-        'Back in with a code', 'Time to renew', 'Filtered for spam',
+        'Encrypted mailbox storage', 'Your password stays on your Mac', 'Choose when images load',
+        'Your name, your ending', '15 GB for your mail', 'Spam and phishing checks',
       ]);
+      const featureCopy = await features.innerText();
+      assert.match(featureCopy, /can read mail when it receives or sends it/);
+      assert.match(featureCopy, /[Ss]enders, recipients, subjects and dates remain visible/);
+      assert.match(featureCopy, /load automatically by default/);
       assert.equal(await features.evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length), columns);
       const { endings, open } = JSON.parse(readFileSync(new URL('../../site/src/data/mail-reservations.json', import.meta.url)));
       assert.deepEqual(await features.locator('strong').allTextContents(), endings);

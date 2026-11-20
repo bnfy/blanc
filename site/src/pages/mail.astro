@@ -126,6 +126,18 @@ const support = [
       </div>
       <ul id="address-features" class="address-features" aria-label="Blanc mailbox features">
         <li>
+          <h3>Encrypted mailbox storage</h3>
+          <p>Your Mac creates the key that protects stored message bodies and attachments. Blanc’s server can read mail when it receives or sends it. Senders, recipients, subjects and dates remain visible.</p>
+        </li>
+        <li>
+          <h3>Your password stays on your Mac</h3>
+          <p>When you sign in to your Blanc mailbox, the Mac app uses your password to unlock your mail key. It sends Blanc a separate sign-in credential.</p>
+        </li>
+        <li>
+          <h3>Choose when images load</h3>
+          <p>Remote images can reveal your IP address and when you opened an email. They load automatically by default. Turn that off in Settings › Privacy to choose which messages can load them.</p>
+        </li>
+        <li>
           <h3>Your name, your ending</h3>
           <p>Choose a name at {endings.map((ending, index) => <>{index === 0 ? '' : index === endings.length - 1 ? ' or ' : ', '}<strong>{ending}</strong></>)}.</p>
         </li>
@@ -134,20 +146,8 @@ const support = [
           <p>Each address includes 15 GB of storage for messages and attachments.</p>
         </li>
         <li>
-          <h3>Encrypted where it’s stored</h3>
-          <p>Your Mac creates the key that encrypts stored messages and attachments. Blanc keeps a copy of the key locked with your password, which stays on your Mac. Senders, recipients, subjects and dates stay visible. The server can read mail as it arrives and as it’s sent.</p>
-        </li>
-        <li>
-          <h3>Back in with a code</h3>
-          <p>If you forget your password, a code sent to your backup email gets you back in. On a new Mac, a forgotten password means you can’t open mail you received before recovery.</p>
-        </li>
-        <li>
-          <h3>Time to renew</h3>
-          <p>If your subscription lapses, your mailbox keeps receiving mail for 30 days. Renew to regain access. Before deleting a mailbox, Blanc emails you instructions for exporting your mail.</p>
-        </li>
-        <li>
-          <h3>Filtered for spam</h3>
-          <p>Incoming mail is checked for spam and phishing before it reaches your Inbox.</p>
+          <h3>Spam and phishing checks</h3>
+          <p>Blanc checks incoming mail for spam and phishing before it reaches your inbox.</p>
         </li>
       </ul>
       {reservationsOpen && <a class="offer-action" href="/mail/reserve">Reserve your address</a>}
