@@ -175,13 +175,30 @@ try {
     new MutationObserver(() => note(`layers ${layers.map((layer) => `[${layer.className.replace('start-wallpaper-layer', '').trim()} ${getComputedStyle(layer).opacity}]`).join(' ')} phase=${document.body.dataset.wallpaperPhase ?? '-'}`))
       .observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class', 'data-wallpaper-phase'] });
     for (const type of ['visibilitychange', 'focus', 'blur', 'pageshow']) addEventListener(type, () => note(`${type} hidden=${document.hidden}`), true);
+    for (const popover of document.querySelectorAll('[popover]')) popover.addEventListener('toggle', (event) => note(`popover #${popover.id} ${event.newState}`));
+    // Where the switch is on each frame it moves (a click waits for it to hold still).
+    let last = '', moves = 0;
+    const sample = () => {
+      const box = document.getElementById('dynamicWallpaperToggle').getBoundingClientRect();
+      const now = `${Math.round(box.x)},${Math.round(box.y)} ${Math.round(box.width)}x${Math.round(box.height)}`;
+      if (now !== last && moves++ < 40) note(`switch at ${now}`);
+      last = now;
+      if (performance.now() - t0 < 35_000) requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
     matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (event) => note(`reduced-motion ${event.matches}`));
     note(`start visible=${document.body.dataset.wallpaperVisible} hidden=${document.hidden} pressed=${document.getElementById('dynamicWallpaperToggle').getAttribute('aria-pressed')} focused=${document.activeElement?.id}`);
   });
-  await privateSwitch.click();
+  const fadeResult = fadingOut.then(() => null, (error) => error);
+  let fadeError = null;
   try {
-    await fadingOut;
+    await privateSwitch.click({ timeout: 20_000 });
   } catch (error) {
+    fadeError = error;
+  }
+  fadeError ??= await fadeResult;
+  if (fadeError) {
+    const error = fadeError;
     const state = await privatePage.evaluate(() => [...window.__fadeLog,
       `end visible=${document.body.dataset.wallpaperVisible} hidden=${document.hidden} pressed=${document.getElementById('dynamicWallpaperToggle').getAttribute('aria-pressed')} popover=${document.getElementById('customizePopover').matches(':popover-open')}`]);
     error.message += `\nFade timeline:\n${state.join('\n')}`;
