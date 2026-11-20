@@ -543,7 +543,7 @@
       await settleElsewhere(result);
       return result.ok ? withSpaces(result) : result;
     }
-    const list = await spaceList();
+    let list = await spaceList();
     if (!list.meta.items[id] || list.meta.deleted.includes(id)) return { ok: false, error: 'not-found' };
     await refresh();
     if (snapshot.spaceName === id) return spaceResult({ workspaceId: id, action: 'noop' });
@@ -552,9 +552,17 @@
       // Native answers whether a window came forward; only then does this
       // Island leave the focus with it (shipping keys on the window id).
       const focused = await request('spaceFocus', [id]);
-      const shown = { ok: true, workspaceId: id, action: 'focus' };
-      if (focused === true) await settleElsewhere(shown);
-      return spaceResult(shown);
+      if (focused === true) {
+        const shown = { ok: true, workspaceId: id, action: 'focus' };
+        await settleElsewhere(shown);
+        return spaceResult(shown);
+      }
+      // No window came forward (the one showing it just closed): read the
+      // list again and open it the usual way.
+      list = await spaceList();
+      if (!list.meta.items[id] || list.meta.deleted.includes(id)) return { ok: false, error: 'not-found' };
+      await refresh();
+      if (snapshot.spaceName === id) return spaceResult({ workspaceId: id, action: 'noop' });
     }
     if (options.newWindow) return openSpaceElsewhere(id);
     const guard = await switchGuard(id, options);

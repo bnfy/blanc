@@ -19,9 +19,23 @@ import {createProfile,picker,profileHosts} from './fork-steps/profiles.mjs';
 import {jsLiteral} from './lib/js-literal.mjs';
 import {Page} from './lib/page-shim.mjs';
 import {pause} from './lib/cdp.mjs';
+import {createRequire} from 'node:module';
+import {freeRequestRoom} from './lib/sync-fixture.mjs';
+const require=createRequire(import.meta.url);
+const {createSyncFixture}=require('../../test/desktop/support/sync-fixture.js');
 const [configFile,out]=process.argv.slice(2),config=JSON.parse(fs.readFileSync(configFile));
 assertNodeRuntime();assert.equal(fs.existsSync(out),false);fs.mkdirSync(out,{recursive:true});
-const f=new NativeFixture(),w=createWorld(f),result={candidate:config.candidate,checks:[],pending:[]};
+// The checks build on each other; pending lists those not yet passed, so a
+// failure part way shows what never ran.
+const CHECKS=['F41-83','mirror written','mirror follows edits','listing does not load','rename reaches the heading',
+ 'open from a closed profile','double open','deleted meanwhile','marked for deletion','create',
+ 'F41-88','F41-84','F41-91','F41-85','Review Focus 4','F41-90','F41-86','F41-89','F41-87','F41-92'];
+const f=new NativeFixture(),w=createWorld(f),result={candidate:config.candidate,checks:[],pending:[...CHECKS]};
+function passed(text){
+ const id=CHECKS.find(c=>text.startsWith(c+':'));assert.ok(id,'unknown check '+text);
+ passed(text);result.pending=result.pending.filter(p=>p!==id);
+}
+let worker;
 const parent=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-spaces-across-profiles-'));
 const visible=()=>assertRendering(e=>f.host.eval(e));
 const deep=`const find=(selector,root=document)=>{const own=root.querySelector(selector);if(own)return own;for(const el of root.querySelectorAll('*'))if(el.shadowRoot){const found=find(selector,el.shadowRoot);if(found)return found;}return null;};`;
@@ -105,6 +119,9 @@ async function windowsOf(directory){
  return out;
 }
 try{
+ // F41-92 shares a Personal Space through the local Worker; no production endpoint.
+ worker=await createSyncFixture();assert.equal(new URL(worker.url).hostname,'127.0.0.1');
+ w.syncServer=worker;f.extraArgs=[`--blanc-sync-endpoint=${worker.url}`];
  await f.launch(config,path.join(parent,'fixture'),{testHooks:true,diskAssets:false});
  await installDriver(f.host);await visible();await w.reset();
 
@@ -122,7 +139,7 @@ try{
   await menu.locator('.ws-editor').waitFor({state:'detached'});
   await closeIsland(f.host);
  }
- result.checks.push('F41-83: one profile: no profile heading, and New Space has no Profile choice');
+ passed('F41-83: one profile: no profile heading, and New Space has no Profile choice');
 
  // mirror written: a Space saved in Work appears under Work's directory alone.
  const work=await createProfile(w,'Work'),workDir=work.directory;
@@ -136,14 +153,14 @@ try{
  assert.equal(rows(mirror.Default).some(r=>r.id===sprintId),false,'Work\'s Space is not in Personal\'s mirror');
  for(const [directory,entry] of Object.entries(mirror))
   if(directory!==workDir)assert.equal(JSON.stringify(entry).includes('Sprint'),false,`no Work data under ${directory}`);
- result.checks.push('mirror written: one Sprint row under Work, with exactly name, color, symbol and tabCount');
+ passed('mirror written: one Sprint row under Work, with exactly name, color, symbol and tabCount');
 
  // mirror follows edits: a rename updates the row, a delete takes it out of order.
  assert.equal((await hostApi(work,`updateWorkspace(${jsLiteral(sprintId)},{name:'Sprint 2'})`)).ok,true);
  await w.waitFor(probe,p=>rows(p.mirror[workDir]).some(r=>r.id===sprintId&&r.name==='Sprint 2'),'renamed row mirrored');
  assert.equal((await hostApi(work,`removeWorkspace(${jsLiteral(sprintId)})`)).ok,true);
  await w.waitFor(probe,p=>!p.mirror[workDir]?.order?.includes(sprintId),'deleted row leaves the mirror');
- result.checks.push('mirror follows edits: rename updates the row, delete removes it from order');
+ passed('mirror follows edits: rename updates the row, delete removes it from order');
 
  // listing does not load: Work's Space stays listed after a relaunch that
  // opens only Personal's window.
@@ -160,7 +177,7 @@ try{
  const after=await probe();
  assert.equal(after.loaded.includes(workDir),false,`Work not loaded: ${JSON.stringify(after.loaded)}`);
  assert.deepEqual(rows(after.mirror[workDir]).map(r=>r.name),['Listed']);
- result.checks.push('listing does not load: Work stays unloaded and its mirror still lists its Space');
+ passed('listing does not load: Work stays unloaded and its mirror still lists its Space');
 
  // rename reaches the heading: renaming Work in the picker renames its group
  // in Personal's Spaces menu (spaceOtherProfiles), while the mirror, keyed
@@ -173,7 +190,7 @@ try{
  assert.equal(heading.profileId,'default');assert.equal(heading.profileName,'Personal');
  assert.deepEqual(heading.others.find(o=>o.id===workDir).items.map(i=>i.name),['Listed']);
  await w.waitFor(()=>personalApi('listWorkspaces()'),p=>p.otherProfiles?.some(o=>o.id===workDir&&o.name==='Studio'),'renamed heading');
- result.checks.push('rename reaches the heading: Personal\'s Spaces menu heads Work\'s Spaces as Studio');
+ passed('rename reaches the heading: Personal\'s Spaces menu heads Work\'s Spaces as Studio');
  // Back to Work for the scenarios below.
  await evaluate(renamePick,`const cards=[...find('profile-picker-main-view').shadowRoot.querySelectorAll('profile-card')];const card=cards.find(c=>c.profileState.localProfileName==='Studio');if(!card)throw Error('Studio card missing');const input=find('#nameInput',card.shadowRoot);input.value='Work';input.dispatchEvent(new Event('change',{bubbles:true}));return true;`);
  await w.waitFor(others,p=>p.others?.some(o=>o.id===workDir&&o.name==='Work'),'Work named Work again');
@@ -186,7 +203,7 @@ try{
  assert.equal(opened.ok,true,JSON.stringify(opened));
  let workWindows=await w.waitFor(()=>runtimesOf(workDir),rs=>rs.length===1&&rs[0].workspaceId===listedId,'Work window on Listed');
  assert.deepEqual(await personalState(),before,'Personal\'s tabs and Space unchanged');
- result.checks.push('open from a closed profile: one Work window shows Listed; Personal unchanged');
+ passed('open from a closed profile: one Work window shows Listed; Personal unchanged');
 
  // double open: two requests while Work has no window and isn't loaded join
  // one load (SpacesElsewhere in spaces_across_profiles.inc), open one window,
@@ -203,7 +220,7 @@ try{
  workWindows=await w.waitFor(()=>runtimesOf(workDir),rs=>rs.length>=1&&rs.every(r=>r.workspaceId===listedId),'Work window on Listed again');
  await new Promise(done=>setTimeout(done,1000));
  assert.equal((await runtimesOf(workDir)).length,1,'exactly one new Work window');
- result.checks.push('double open: with Work unloaded, both requests answer ok and one Work window opens');
+ passed('double open: with Work unloaded, both requests answer ok and one Work window opens');
 
  // deleted meanwhile: Listed deleted in Work, then the open answers not-found
  // and adds no Work window.
@@ -212,7 +229,7 @@ try{
  const gone=await personalApi(`openWorkspace(${jsLiteral(listedId)},{profileId:${jsLiteral(workDir)}})`);
  assert.equal(gone.ok,false);assert.equal(gone.error,'not-found',JSON.stringify(gone));
  assert.equal((await runtimesOf(workDir)).length,1,'no Work window added');
- result.checks.push('deleted meanwhile: not-found, and no Work window added');
+ passed('deleted meanwhile: not-found, and no Work window added');
 
  // marked for deletion: Work leaves the list and can't be opened; the mark is
  // cancelled afterwards.
@@ -224,7 +241,7 @@ try{
   assert.equal(((await others()).others??[]).some(o=>o.id===workDir),false,'Work not listed while marked');
  }finally{assert.equal(await nativeCall(f.host,'profileDeletionMarkTest',[workDir,false]),true);}
  await w.waitFor(others,p=>p.others?.some(o=>o.id===workDir),'Work listed again');
- result.checks.push('marked for deletion: profile-unavailable and Work unlisted until the mark is cancelled');
+ passed('marked for deletion: profile-unavailable and Work unlisted until the mark is cancelled');
 
  // create: Planning made in Work from Personal, in a new Work window with one
  // new tab, and mirrored; a second create of "planning" is a duplicate.
@@ -239,7 +256,7 @@ try{
  const twice=await personalApi(`createBlankWorkspace('planning',${identity})`);
  assert.equal(twice.ok,false);assert.equal(twice.error,'duplicate-name',JSON.stringify(twice));
  assert.equal((await runtimesOf(workDir)).length,windowsBefore+1,'no window for the duplicate');
- result.checks.push('create: Planning opens in a new Work window with one tab and is mirrored; "planning" again is duplicate-name');
+ passed('create: Planning opens in a new Work window with one tab and is mirrored; "planning" again is duplicate-name');
 
  // ---- F41-84 to F41-92 through the menu itself ----
  // Work starts over with one window and no Spaces; Personal keeps Home.
@@ -263,9 +280,16 @@ try{
   await menu.locator('.ws-editor').waitFor({state:'visible'});
   const picker=menu.locator('.ws-editor #workspaceProfile');
   assert.equal(await picker.evaluate(e=>e.selectedOptions[0]?.textContent),'Personal');
+  // This window first, so choosing Work has something to change.
+  const thisWindow=menu.locator('.ws-editor [data-focus-key="start:window"]');
+  await thisWindow.click();
+  assert.equal(await thisWindow.getAttribute('aria-checked'),'true','This window chosen');
+  assert.equal(await thisWindow.evaluate(e=>e.disabled),false,'This window is enabled for Personal');
+  assert.equal(await menu.locator('.ws-editor [data-focus-key="start:empty"]').getAttribute('aria-checked'),'false');
   await picker.selectOption(workDir);
   await w.waitFor(()=>menu.locator('.ws-editor [data-focus-key="start:empty"]').getAttribute('aria-checked'),v=>v==='true','Empty chosen');
-  assert.equal(await menu.locator('.ws-editor [data-focus-key="start:window"]').evaluate(e=>e.disabled),true,'This window is disabled');
+  assert.equal(await thisWindow.evaluate(e=>e.disabled),true,'This window is disabled');
+  assert.equal(await thisWindow.getAttribute('aria-checked'),'false','This window no longer chosen');
   const before=await windowsOf(workDir),personalBefore=await personalState();
   await menu.locator('#workspaceName').fill('Sprint');
   await w.waitFor(()=>menu.locator('.ws-editor [data-focus-key="create"]').evaluate(e=>!e.disabled),Boolean,'Create enabled');
@@ -280,7 +304,7 @@ try{
   await w.waitFor(()=>drawnMode(f.host),m=>m==null,'Personal\'s menu closed');
   assert.deepEqual(await personalState(),personalBefore,'Personal unchanged');
  }
- result.checks.push('F41-88: Work in the editor picks Empty and disables This window; Sprint opens in a new Work window with one new tab and is in Work\'s list');
+ passed('F41-88: Work in the editor picks Empty and disables This window; Sprint opens in a new Work window with one new tab and is in Work\'s list');
 
  for(const x of await windowsOf(workDir))await closeWindow(x);
 
@@ -292,7 +316,7 @@ try{
   assert.ok(list.rows.indexOf(homeRow)<list.rows.indexOf(sprintRow),'Home before Sprint');
   await closeIsland(f.host);
  }
- result.checks.push('F41-84: headings Personal then Work; Home under Personal before Sprint under Work');
+ passed('F41-84: headings Personal then Work; Home under Personal before Sprint under Work');
 
  // F41-91: A profile being deleted disappears from the Spaces menu.
  {
@@ -308,7 +332,7 @@ try{
   }finally{assert.equal(await nativeCall(f.host,'profileDeletionMarkTest',[workDir,false]),true);}
   await w.waitFor(others,p=>p.others?.some(o=>o.id===workDir),'Work listed again');
  }
- result.checks.push('F41-91: while Work is marked for deletion the reopened menu shows neither Work nor Sprint');
+ passed('F41-91: while Work is marked for deletion the reopened menu shows neither Work nor Sprint');
 
  // F41-85: A Work Space that is open nowhere opens in a new Work window.
  {
@@ -320,13 +344,14 @@ try{
   await rowButton(menu,rowUnder(await menuList(menu),'Sprint','Work')).click();
   const now=await w.waitFor(()=>windowsOf(workDir),ws=>ws.some(x=>x.snap.spaceName===sprintSpace),'a new Work window on Sprint');
   assert.equal(now.length,1,'one new Work window');
+  assert.equal(await menu.locator('.ws-decision').count(),0,'no prompt in the menu');
   await w.waitFor(()=>drawnMode(f.host),m=>m==null,'Personal\'s menu closed, with no prompt');
   const after=await nativeCall(f.host,'snapshot');
   assert.deepEqual(after.tabs.map(t=>[String(t.id),t.url]),personalBefore.tabs.map(t=>[String(t.id),t.url]));
   assert.equal(String(after.activeTabId),personalTab);assert.equal(after.spaceName,personalBefore.spaceName);
   for(const x of now)await closeWindow(x);
  }
- result.checks.push('F41-85: Sprint under Work opens one new Work window; Personal\'s tabs, page and Space unchanged, no prompt');
+ passed('F41-85: Sprint under Work opens one new Work window; Personal\'s tabs, page and Space unchanged, no prompt');
 
  // Review Focus 4: with a private tab active, the open still lands in
  // Work's normal profile.
@@ -345,7 +370,7 @@ try{
   for(const x of now)await closeWindow(x);
   await nativeCall(f.host,'closeTab',[s.tabs.find(t=>String(t.id)===privateTab).id]);
  }
- result.checks.push('Review Focus 4: with a private tab active in Personal, Sprint opens in a normal Work window');
+ passed('Review Focus 4: with a private tab active in Personal, Sprint opens in a normal Work window');
 
  // F41-90: The Quick Switcher can open a Space from another profile.
  {
@@ -357,11 +382,12 @@ try{
   const found=overlay.locator('.island-row:has(.row-space-tile)',{hasText:'Space · Work'});
   await found.waitFor({state:'visible'});
   assert.equal(await found.count(),1);assert.match(await found.textContent(),/Sprint/);
+  const before=await windowsOf(workDir);
   await found.click();
-  const now=await w.waitFor(()=>windowsOf(workDir),ws=>ws.some(x=>x.snap.spaceName===sprintSpace),'a Work window on Sprint');
-  assert.equal(now.length,1,'one new Work window');
+  const now=await w.waitFor(()=>windowsOf(workDir),ws=>newWindows(before,ws).some(x=>x.snap.spaceName===sprintSpace),'a new Work window on Sprint');
+  assert.equal(newWindows(before,now).length,1,'one new Work window');
  }
- result.checks.push('F41-90: the Quick Switcher shows Sprint as "Space · Work" and opens it in a new Work window');
+ passed('F41-90: the Quick Switcher shows Sprint as "Space · Work" and opens it in a new Work window');
 
  // F41-86: A Work Space already on screen brings its window forward.
  {
@@ -380,7 +406,7 @@ try{
   assert.deepEqual((await profileHosts(w)).map(h=>h.targetId).sort(),hostsBefore,'no window added');
   assert.equal((await nativeCall(shown.cdp,'snapshot')).spaceName,sprintSpace);
  }
- result.checks.push('F41-86: choosing Sprint (Show window) brings the Work window forward, still in front 1 s after the menu closed; no window added');
+ passed('F41-86: choosing Sprint (Show window) brings the Work window forward, still in front 1 s after the menu closed; no window added');
 
  // F41-89: The Spaces menu only opens Spaces from another profile.
  {
@@ -395,6 +421,9 @@ try{
   assert.equal(row.more,false,'no edit button');assert.equal(row.buttons,1,'only its open button');
   assert.ok((await open.getAttribute('aria-label')).startsWith('Sprint · Work · Show window'));
   // No context menu, Chromium's page menu included: the right-click is refused.
+  // Control: this profile's own row (Home) is not refused by the same event.
+  const contextRefused=e=>!e.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true,composed:true,button:2}));
+  assert.equal(await rowButton(menu,rowUnder(list,'Home','Personal')).evaluate(contextRefused),false,'control: Home\'s row is not refused');
   assert.equal(await open.evaluate(e=>!e.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true,composed:true,button:2}))),true,'the right-click is refused');
   await open.click({button:'right'});await pause(300);
   assert.equal(await drawnMode(f.host),'spaces','the menu stays as it was');
@@ -413,19 +442,7 @@ try{
   await closeIsland(f.host);
   await closeWindow(await showing(made.workspaceId));
  }
- result.checks.push('F41-89: Sprint under Work has no edit button, refuses a right-click and does not reorder by keyboard or drag');
-
- // F41-92: A Work window lists Personal's Spaces without sync marks.
- {
-  const shown=await showing(sprintSpace);
-  const menu=await openSpacesMenu(shown.cdp),list=await menuList(menu);
-  assert.deepEqual(list.headings,['Work','Personal']);
-  rowUnder(list,'Home','Personal');
-  assert.equal(await menu.locator('#workspaceSwitcher .ws-sync-mark').count(),0,'no sync mark');
-  assert.equal(await menu.locator('#workspaceSwitcher .ws-sync-status').count(),0,'no sync status');
-  await closeIsland(shown.cdp);
- }
- result.checks.push('F41-92: a Work window lists Home under Personal with no sync marks');
+ passed('F41-89: Sprint under Work has no edit button, refuses a right-click and does not reorder by keyboard or drag');
 
  // F41-87: A set-aside Work Space opens with its page as it was.
  {
@@ -446,12 +463,51 @@ try{
   assert.equal(await pageEval(fresh[0].cdp,id,'window.__blancPageIdentity'),identity,'the same page, not reloaded');
   assert.equal(await pageEval(fresh[0].cdp,id,"document.querySelector('#draft').value"),text,'the draft is still in the field');
  }
- result.checks.push('F41-87: Sprint set aside with a draft opens in a new Work window with the same page and the draft still in the field');
+ passed('F41-87: Sprint set aside with a draft opens in a new Work window with the same page and the draft still in the field');
+ // F41-92: A Work window lists Personal's shared Spaces without sync marks.
+ // Shared Spaces fixture: Personal turns Sync on with the local Worker and
+ // shares Home (shipping's shared-spaces steps, by the same native calls).
+ {
+  const handle='Spaces across profiles',passphrase='correct horse battery staple across profiles';
+  const raw=(method,args=[])=>nativeCall(f.host,'desktopSyncCall',[method,args],null,180000);
+  // A pass runs with the Worker's request window freed, as shared-spaces.mjs does.
+  const pass=async(method,args=[])=>{let done=false;const run=raw(method,args).finally(()=>{done=true;});
+   (async()=>{while(!done){try{freeRequestRoom(worker);await raw('sync.resetRequestWindowForTest');}catch{}await pause(100);}})();
+   return run;};
+  const spaces=()=>raw('desktop.spaces.snapshotForTest');
+  assert.equal((await pass('sync.enable',[{handle,passphrase}])).ok,true,'Sync on in Personal');
+  const homeRow=(await w.waitFor(spaces,s=>s.rows?.some(r=>r.name==='Home'),'Home in the Shared Spaces inventory')).rows.find(r=>r.name==='Home');
+  assert.equal((await raw('desktop.spaces.apply',[{enabled:true,selections:[{id:homeRow.id,mode:'copy'}]}])).ok,true,'Home shared');
+  freeRequestRoom(worker);await raw('sync.resetRequestWindowForTest');await pass('sync.syncNow');
+  // Positive control: Home really is shared. (The fork's menu draws no sync
+  // mark in any window, Personal's own included: host.js never sets
+  // sharedSync. Plan "Already true, unchanged here".)
+  const shared=await w.waitFor(spaces,s=>s.shared?.enabled&&s.rows.find(r=>r.name==='Home')?.sharedLink==='active'&&Object.keys(s.shared.blobs??{}).length===1,'Home shared through the Worker');
+  assert.equal(shared.rows.find(r=>r.name==='Home').id,homeRow.id);
+  const own=await openSpacesMenu(f.host);
+  assert.equal(await own.locator('#workspaceSwitcher .ws-sync-mark').count(),0,'the fork draws no sync mark, even in Personal');
+  await closeIsland(f.host);
+  // The Work window: Home under Personal, with no mark, and no sync state in
+  // what crossed profiles (only the allowlisted fields).
+  const shown=await showing(sprintSpace);assert.ok(shown,'the Work window showing Sprint');
+  const menu=await openSpacesMenu(shown.cdp),list=await menuList(menu);
+  assert.deepEqual(list.headings,['Work','Personal']);
+  rowUnder(list,'Home','Personal');
+  assert.equal(await menu.locator('#workspaceSwitcher .ws-sync-mark').count(),0,'no sync mark');
+  assert.equal(await menu.locator('#workspaceSwitcher .ws-sync-status').count(),0,'no sync status');
+  await closeIsland(shown.cdp);
+  const personal=(await hostApi(shown,'listWorkspaces()')).otherProfiles?.find(p=>p.id==='default');
+  const item=personal?.items.find(i=>i.id===homeRow.id);
+  assert.deepEqual(Object.keys(item??{}).sort(),['color','id','name','openElsewhere','symbol','tabCount'],'only the allowlisted fields cross');
+ }
+ passed('F41-92: with Home shared through the local Worker, a Work window lists it under Personal with no sync mark or sync state');
  await visible();
+ assert.deepEqual(result.pending,[],'every check ran');
  result.result='pass';
 }catch(error){result.result=error.code==='BLANC_ENVIRONMENT_STOP'?'blocked-environment':'fail';result.error=String(error.stack);process.exitCode=1;}
 finally{
  const exit=await f.close();if(exit?.code!==0){result.exit=exit;result.result='fail';process.exitCode=1;}
  if(f.directory&&fs.existsSync(path.join(f.directory,'browser.log')))fs.copyFileSync(path.join(f.directory,'browser.log'),path.join(out,'browser.log'));
+ await worker?.close?.();
  fs.rmSync(parent,{recursive:true,force:true});fs.writeFileSync(path.join(out,'result.json'),JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result));
 }
