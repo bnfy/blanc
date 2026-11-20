@@ -2121,13 +2121,25 @@ function openLocalHtmlFiles(paths) {
 
 // A refused file must say why: on Windows a second launch carrying a file
 // deliberately doesn't raise Blanc, so without this nothing at all happens.
+// Finder sends one open-file event per selected file, so refusals arriving
+// together share one message.
+let pendingLocalHtmlRefusals = null;
 function showLocalHtmlRefusals(refused) {
-  const text = localHtmlRefusalMessage(mainI18n.t, refused);
-  if (!text) return;
+  if (!refused?.length) return;
   console.warn('Local HTML preview refused', refused.map(({ error }) => refusalReason(error)).join(', '));
-  const options = { type: 'warning', ...text, buttons: [mainI18n.t('dialog.ok')], noLink: true };
-  const win = BrowserWindow.getFocusedWindow();
-  (win && !win.isDestroyed() ? dialog.showMessageBox(win, options) : dialog.showMessageBox(options)).catch(() => {});
+  if (pendingLocalHtmlRefusals) { pendingLocalHtmlRefusals.push(...refused); return; }
+  pendingLocalHtmlRefusals = [...refused];
+  setTimeout(() => {
+    const batch = pendingLocalHtmlRefusals;
+    pendingLocalHtmlRefusals = null;
+    try {
+      const options = { type: 'warning', ...localHtmlRefusalMessage(mainI18n.t, batch),
+        buttons: [mainI18n.t('dialog.ok')], noLink: true };
+      const win = BrowserWindow.getFocusedWindow();
+      (win && !win.isDestroyed() ? dialog.showMessageBox(win, options) : dialog.showMessageBox(options))
+        .catch(() => {});
+    } catch (error) { console.warn('Local HTML refusal message failed:', error.message); }
+  }, 300);
 }
 
 // Shared across windows: only one pending external-app confirmation at a time.

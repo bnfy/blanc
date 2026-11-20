@@ -68,3 +68,11 @@ test('the message follows the interface language', () => {
     assert.equal(many.detail.split('\n').length, 2, locale);
   }
 });
+
+// Without this wiring the refusal is silent again (#1630's symptom).
+test('main shows the refusals the ECS preview returns', () => {
+  const fs = require('node:fs');
+  const source = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
+  assert.ok(source.includes('drmSupport.openLocalFiles(paths).then(showLocalHtmlRefusals)'));
+  assert.match(source, /function showLocalHtmlRefusals\(refused\) \{[\s\S]*?localHtmlRefusalMessage\(mainI18n\.t, batch\)[\s\S]*?dialog\.showMessageBox/);
+});
