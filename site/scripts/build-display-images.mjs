@@ -51,6 +51,8 @@ const jobs = [
     output: `feature-captures/${name}-v1.35.0.webp`,
   })),
   { source: 'feature-captures/mahjong-v1.21.0.png', output: 'feature-captures/mahjong-v1.21.0.webp' },
+  // The Classic inbox captured from the signed demo build at 2200px.
+  { source: 'mail/screens/classic-dark.webp', output: 'mail/screens/classic-dark-1100.webp', width: 1100 },
   // The Blanc Mail rule editor, dark, from the Mail repository's
   // capture-public-shots.sh (scene rule-editor, bnfy/blanc-mail#147): a 1100px
   // copy for MailShot's srcset; the 1400px capture stays as taken.

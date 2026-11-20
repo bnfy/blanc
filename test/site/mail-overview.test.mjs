@@ -150,44 +150,42 @@ test('the hero waitlist opens by keyboard and reuses the email confirmation flow
   } finally { await context.close(); }
 });
 
-// The design teasers (docs/website-mail-claims-2026-11-17.md) show one window
-// at a time, each labelled "Design preview", switched by radios in CSS.
-const teaserState = page => page.evaluate(() => [...document.querySelectorAll('.mail-teaser-set')].map(set => ({
-  checked: set.querySelector('input:checked').value,
-  shown: [...set.querySelectorAll('.mail-teaser')].filter(f => getComputedStyle(f).display !== 'none').map(f => f.dataset.teaser),
-  captions: [...set.querySelectorAll('.mail-teaser figcaption')].map(c => c.textContent.trim()),
-  alts: [...set.querySelectorAll('.mail-teaser img')].every(img => /^Design preview/.test(img.alt)),
-})));
+test('the app preview shows one Classic dark screenshot on desktop and mobile', async () => {
+  for (const [width, colorScheme] of [[1440, 'dark'], [390, 'light']]) {
+    const { page, context } = await openPage('/mail', width, { colorScheme });
+    try {
+      const preview = page.locator('#design');
+      assert.equal(await preview.locator('img').count(), 1);
+      assert.equal(await preview.getByRole('radio').count(), 0);
+      const img = preview.getByRole('img', { name: /Classic dark mode/ });
+      await img.scrollIntoViewIfNeeded();
+      await img.evaluate(el => el.decode());
+      assert.match(await img.evaluate(el => el.currentSrc), /\/classic-dark(?:-1100)?\.webp$/);
+      assert.equal(await preview.locator('figcaption').innerText(), 'Preview build');
+      assert.match(await preview.innerText(), /fictional mail/);
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    } finally { await context.close(); }
+  }
+});
 
-test('the design teasers open in the visitor’s appearance, switch in place, and are labelled as previews', async () => {
-  const dark = await openPage('/mail', 1440, { colorScheme: 'dark' });
+test('the address setup previews stay labelled and switch by mouse or keyboard', async () => {
+  const { page, context } = await openPage('/mail');
   try {
-    const [look, address] = await teaserState(dark.page);
-    assert.deepEqual([look.checked, look.shown], ['dark', ['dark']]);
-    assert.deepEqual([address.checked, address.shown], ['offer', ['offer']]);
-    for (const set of [look, address]) {
-      assert.ok(set.captions.every(c => c === 'Design preview'), set.captions.join());
-      assert.ok(set.alts, 'every alt says it is a design preview');
-    }
-    assert.deepEqual((await dark.page.locator('#address label').allTextContents()).map(t => t.trim()), ['Get started', 'Pick a name', 'Open inbox']);
-    await dark.page.locator('#address label', { hasText: 'Open inbox' }).click();
-    assert.deepEqual((await teaserState(dark.page))[1].shown, ['ready']);
-    // Keyboard: the radios move with the arrow keys.
-    await dark.page.locator('[data-mail-look] input[value="dark"]').focus();
-    await dark.page.keyboard.press('ArrowRight');
-    assert.deepEqual((await teaserState(dark.page))[0].shown, ['light']);
-    const addressText = await dark.page.locator('#address').innerText();
+    const address = page.locator('#address');
+    const visibleStep = address.locator('.mail-teaser:visible');
+    assert.equal(await visibleStep.getAttribute('data-teaser'), 'offer');
+    assert.deepEqual((await address.locator('label').allTextContents()).map(t => t.trim()), ['Get started', 'Pick a name', 'Open inbox']);
+    for (const caption of await address.locator('figcaption').allTextContents()) assert.equal(caption.trim(), 'Design preview');
+    assert.equal(await address.locator('img[alt^="Design preview"]').count(), 3);
+    const pickName = address.getByLabel('Pick a name');
+    await pickName.check();
+    assert.equal(await visibleStep.getAttribute('data-teaser'), 'choose');
+    await pickName.press('ArrowRight');
+    assert.equal(await visibleStep.getAttribute('data-teaser'), 'ready');
+    const addressText = await address.innerText();
     assert.match(addressText, /15 GB of storage/);
     assert.doesNotMatch(addressText, /can[’']t read your mail|Apple Mail|iPhone|iPad|end-to-end/i);
-  } finally { await dark.context.close(); }
-
-  const light = await openPage('/mail', 390, { colorScheme: 'light', viewport: { width: 390, height: 844 } });
-  try {
-    const [look] = await teaserState(light.page);
-    assert.deepEqual([look.checked, look.shown], ['light', ['light']]);
-    const overflow = await light.page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
-    assert.ok(overflow <= 0, `the page scrolls sideways by ${overflow}px`);
-  } finally { await light.context.close(); }
+  } finally { await context.close(); }
 });
 
 test('visitors can compare the three launch plans and their billing periods without opening checkout', async () => {

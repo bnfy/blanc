@@ -13,7 +13,7 @@ const path = require('node:path');
 
 const SITE = path.resolve(__dirname, '../../site');
 const read = (file) => fs.readFileSync(path.join(SITE, file), 'utf8');
-const TEASERS = ['island-address', 'island-arrival', 'island-dark', 'island-light', 'island-offer'];
+const TEASERS = ['island-address', 'island-arrival', 'island-offer'];
 
 test('MailTeaser is the only way to show a Mail teaser, and its caption is not optional', () => {
   const teaser = read('src/components/MailTeaser.astro');

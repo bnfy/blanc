@@ -25,10 +25,8 @@
 .mip-hint{margin-left:auto;color:var(--mip-tertiary);white-space:nowrap}
 
 .mail-teaser-set .mail-teaser:not(:first-of-type){display:none}
-.mail-teaser-set:has(input[value=light]:checked) [data-teaser=dark],
 .mail-teaser-set:has(input[value=choose]:checked) [data-teaser=offer],
 .mail-teaser-set:has(input[value=ready]:checked) [data-teaser=offer]{display:none}
-.mail-teaser-set:has(input[value=light]:checked) [data-teaser=light],
 .mail-teaser-set:has(input[value=choose]:checked) [data-teaser=choose],
 .mail-teaser-set:has(input[value=ready]:checked) [data-teaser=ready]{display:block}
 
@@ -181,8 +179,7 @@
   background: radial-gradient(ellipse at 50% 73%, #392e20, #191610 57%, #100f0c 100%);
   text-align: center;
 }
-.preview-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; text-align: left; }
-.preview-heading h2 { font-size: clamp(26px, 3vw, 40px); }
+.overview-preview h2 { text-align: left; font-size: clamp(26px, 3vw, 40px); }
 .mail-segments {
   display: inline-flex;
   padding: 3px;

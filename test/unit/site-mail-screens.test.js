@@ -16,7 +16,7 @@ const read = (file) => fs.readFileSync(path.join(SITE, file), 'utf8');
 // Recursive, .astro only: /mail/reserve/release lives in a folder of its own.
 const mailPages = ['src/pages/mail.astro', ...fs.readdirSync(path.join(SITE, 'src/pages/mail'), { recursive: true })
   .filter((f) => f.endsWith('.astro')).map((f) => `src/pages/mail/${f.split(path.sep).join('/')}`)];
-const SHOTS = ['rule-editor'];
+const SHOTS = ['classic-dark', 'rule-editor'];
 
 test('MailShot is the only way to show a Mail screenshot, and its caption is not optional', () => {
   const shot = read('src/components/MailShot.astro');

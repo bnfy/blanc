@@ -13,12 +13,6 @@ import { checkoutHrefFor, priceFor, productFor } from '../data/mail-commerce.mjs
 import '../styles/mail.css';
 import '../styles/mail-overview.css';
 
-const looks = [
-  { value: 'dark', label: 'Dark', name: 'island-dark',
-    alt: 'Design preview of Blanc Mail’s Island layout in dark mode: the Island floats at the top with Search, the conversation actions and New Message; a row of mailbox chips sits below it; and the Inbox and a message titled “Saturday at the bindery” are two warm charcoal cards with ivory text. The mail is made up.' },
-  { value: 'light', label: 'Light', name: 'island-light',
-    alt: 'Design preview of Blanc Mail’s Island layout in light mode: the Island floats at the top with Search, the conversation actions and New Message; a row of mailbox chips sits below it; and the Inbox and a message titled “Saturday at the bindery” are two white cards on a pale grey window. The mail is made up.' },
-];
 const addressSteps = [
   { value: 'offer', label: 'Get started', name: 'island-offer',
     alt: 'Design preview: a dialog over the inbox with the gold Blanc Mail icon, reading “Your plan includes a Blanc Mail address. A private mailbox of your own.”, with mailbox storage of 15 GB and the buttons Choose Your Address and Not Now.' },
@@ -100,18 +94,10 @@ const support = [
       {survey.open && <p class="mail-survey-link"><a href="/mail/survey">Help shape Blanc Mail: tell us what you’d want, anonymously.</a></p>}
     </section>
 
-    <section id="design" class="overview-preview mail-teaser-set" aria-labelledby="preview-title">
-      <div class="preview-heading">
-        <h2 id="preview-title">Inside Blanc Mail</h2>
-        <fieldset class="mail-segments" data-mail-look>
-          <legend class="sr-only">Appearance</legend>
-          {looks.map((look, index) => (
-            <label><input type="radio" name="mail-look" value={look.value} checked={index === 0} /><span>{look.label}</span></label>
-          ))}
-        </fieldset>
-      </div>
-      {looks.map(look => <MailTeaser name={look.name} alt={look.alt} data-teaser={look.value} />)}
-      <p class="preview-note">The Island layout, shown with fictional mail.</p>
+    <section id="design" class="overview-preview" aria-labelledby="preview-title">
+      <h2 id="preview-title">Inside Blanc Mail</h2>
+      <MailShot name="classic-dark" width={2200} height={1352} alt="Blanc Mail in Classic dark mode. A mailbox sidebar and conversation list sit beside a sample Northlight Journal email, “Last light over the valley,” with three landscape photographs." />
+      <p class="preview-note">Classic layout in dark mode, with fictional mail.</p>
     </section>
 
     <section id="pricing" class="overview-section" aria-labelledby="plans-title">
@@ -224,11 +210,6 @@ const support = [
   {survey.open && <MailSurveyInvite />}
 </BaseLayout>
 <script>
-  if (matchMedia('(prefers-color-scheme: light)').matches) {
-    const light = document.querySelector<HTMLInputElement>('[data-mail-look] input[value="light"]');
-    if (light) light.checked = true;
-  }
-
   // The envelope catches the lamp: its sheen follows the pointer and it leans
   // a degree or two toward it, so the reflections move the way metal's do.
   // Only for a mouse with motion allowed; otherwise it holds its resting

@@ -196,6 +196,13 @@
     "height": 900
   },
   {
+    "source": "mail/screens/classic-dark.webp",
+    "sourceSha256": "94792d6a4c5eb2bafd93de81859c805fabfd4a850fbce23328feb1d86f558d98",
+    "output": "mail/screens/classic-dark-1100.webp",
+    "width": 1100,
+    "height": 676
+  },
+  {
     "source": "mail/screens/rule-editor.webp",
     "sourceSha256": "e189b25fac0acf528fc224326bf825744a0feef15772253d11891c4d587358a9",
     "output": "mail/screens/rule-editor-1100.webp",
