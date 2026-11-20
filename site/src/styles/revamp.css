@@ -113,6 +113,21 @@ main .section-kicker {
   background: #fff;
   font-family: var(--font-brand-text);
 }
+/* The homepage's bar overlays the sunrise, clear until the page scrolls (set
+   by Header.astro's script; the open phone menu is always solid). */
+.site-header.revamp-header[data-overlay] {
+  margin-bottom: calc(-1 * var(--site-header-h));
+  background: transparent;
+  transition: background-color 240ms ease;
+}
+.site-header.revamp-header[data-overlay]:is([data-scrolled], [data-menu="open"]) {
+  background: #fff;
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-header.revamp-header[data-overlay] {
+    transition: none;
+  }
+}
 .site-header .revamp-nav {
   max-width: 1040px;
   height: var(--site-header-h);
@@ -308,29 +323,6 @@ main .section-kicker {
   color: #1b1a18;
   font-size: 14px;
   cursor: pointer;
-}
-/* Scroll progress on the homepage: a gold hairline along the bar's edge. */
-.site-progress {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  height: 2px;
-  background: var(--site-gold);
-  transform: scaleX(0);
-  transform-origin: 0 50%;
-}
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: scroll()) {
-    .site-progress {
-      animation: site-progress linear both;
-      animation-timeline: scroll(root);
-    }
-  }
-}
-@keyframes site-progress {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
 }
 /* Mail pages name the Browser download, shortened where the longer label
    would crowd the bar. */

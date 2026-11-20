@@ -1,0 +1,20 @@
+{
+  "release": "v1.49.0",
+  "sourceSha": "ac3d6d96018827222c885858282b8c8290668dd0",
+  "scope": "Mahjong after the v1.49.0 refresh, on the Start Page guide and the Features page (the Mahjong tile and pop-up), in place of the v1.38.0 and v1.41.0 captures of the old design.",
+  "provenance": "Added with What's New 1.49 (#1493, commit ac3d6d960): 1440x900 from a dev run of main 680743cdf in a fresh profile, the Mahjong page's viewport set to 1440x900 over CDP and converted to sRGB. The Turtle board in Burst mode after three pairs, the Burst rack beside the board, light mode, Porcelain set.",
+  "captures": [
+    {
+      "file": "site/public/feature-captures/mahjong-refresh-v1.49.0.png",
+      "sha256": "e600a7749b88286802e4f825858a2a08346bddcc5dca2356b1aece37a67115d6",
+      "width": 1440,
+      "height": 900,
+      "webp": {
+        "file": "site/public/feature-captures/mahjong-refresh-v1.49.0.webp",
+        "sha256": "f1ebaf60024cdc4cf1a99c783ff924e550d427ba14c944c05c7d53aab0e043bd"
+      },
+      "state": "Turtle board, Burst mode, Burst rack beside the board, Porcelain set, light mode.",
+      "verdict": "verified"
+    }
+  ]
+}

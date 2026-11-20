@@ -1,4 +1,11 @@
 {
   "open": true,
-  "turnstileSiteKey": "0x4AAAAAAGHdrHOwpfFfY7bA"
+  "turnstileSiteKey": "0x4AAAAAAGHdrHOwpfFfY7bA",
+  "endings": [
+    "blnc.day",
+    "blnc.page",
+    "blancmail.me",
+    "blancmail.co",
+    "blncmail.com"
+  ]
 }

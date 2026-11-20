@@ -14,7 +14,7 @@ const hrefFor = (href) =>
 ---
 
 <a class="skip-link" href="#main-content">Skip to content</a>
-<header class="site-header revamp-header">
+<header class="site-header revamp-header" data-home-overlay={onHome ? "" : undefined}>
   <nav class="site-nav revamp-nav" aria-label="Primary navigation">
     <a class="site-brand" href="/" aria-label="Blanc Browser home"
       ><span class="site-lockup site-lockup--small" aria-hidden="true"
@@ -123,10 +123,26 @@ const hrefFor = (href) =>
     >
     </>)}
   </nav>
-  {onHome && <div class="site-progress" aria-hidden="true" />}
 </header>
 {!minimal && <SiteSearch />}
 <script is:inline>
+  // On the homepage the bar starts clear over the sunrise and turns solid once
+  // the page scrolls (owner, November 19, 2026). Set here, before first paint,
+  // so without scripting the bar simply stays solid.
+  (() => {
+    const header = document.querySelector(".revamp-header[data-home-overlay]");
+    if (!header) return;
+    header.dataset.overlay = "";
+    let queued = false;
+    const update = () => {
+      queued = false;
+      header.toggleAttribute("data-scrolled", scrollY > 8);
+    };
+    update();
+    addEventListener("scroll", () => {
+      if (!queued) { queued = true; requestAnimationFrame(update); }
+    }, { passive: true });
+  })();
   // Runs right after the bar, before first paint, so a phone never flashes the
   // full link row. Without scripting the links wrap onto a second row instead.
   (() => {

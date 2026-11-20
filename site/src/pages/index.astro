@@ -6,8 +6,10 @@ import HorizonShield from "../components/HorizonShield.astro";
 import SpacesDemo from "../components/SpacesDemo.astro";
 import FloatingIslandWindow from "../components/FloatingIslandWindow.astro";
 import "../styles/home.css";
+import "../styles/gold-ring.css";
 import pkg from "../../../package.json";
 import ios from "../data/ios-availability.json";
+import mailReservations from "../data/mail-reservations.json";
 import chromiumMark from "../assets/summary-icons/chromium.svg?raw";
 import electronMark from "../assets/summary-icons/electron.svg?raw";
 const structuredData = {
@@ -209,7 +211,7 @@ const faqs = [
           <div
             class="device-screen"
             role="img"
-            aria-label="Blanc’s Billboard Start Page with the time-of-day wallpaper, from dawn to night, on a MacBook"
+            aria-label="Blanc’s Start Page with the time-of-day wallpaper, from dawn to night, on a MacBook"
           >
             <img
               src="/feature-captures/home-wallpaper-dawn-v1.38.0.webp"
@@ -303,6 +305,22 @@ const faqs = [
       </div>
     </section>
 
+    {mailReservations.open && (
+      <section class="mail-promo dark-deep" id="blanc-mail" aria-labelledby="mail-promo-title">
+        <div class="wrap">
+          <div class="mail-promo-card gold-ring rise">
+            <h2 id="mail-promo-title">Reserve your Blanc Mail address.</h2>
+            <p class="mail-promo-address"><!--email_off--><span aria-hidden="true">mira@<span class="mail-promo-endings">{mailReservations.endings.map((ending, index) => <span class:list={{ "is-current": index === 0 }}>{ending}</span>)}</span></span><span class="sr-only">For example, mira@{mailReservations.endings[0]}</span><!--/email_off--></p>
+            <p class="lead mail-promo-lead">Free to reserve. We’ll hold your name on all five endings until Blanc Mail addresses open.</p>
+            <div class="actions centered">
+              <a class="planned-action mail-promo-action" href="/mail/reserve" data-track="feature_cta_click" data-feature="blanc-mail" data-cta-position="home-mail-reserve">Reserve your address</a><a
+                class="more-link" href="/mail" data-track="feature_cta_click" data-feature="blanc-mail" data-cta-position="home-mail-detail">About Blanc Mail <span aria-hidden="true">›</span></a>
+            </div>
+          </div>
+        </div>
+      </section>
+    )}
+
     <section class="spaces" id="spaces" aria-labelledby="spaces-title">
       <div class="wrap spaces-layout">
         <div class="spaces-copy drift">
@@ -378,30 +396,13 @@ const faqs = [
             </div>
           </article>
           <article class="tool-card tool-card-wide rise">
-            <div class="tool-media"><img class="zoom" id="layout-image" src="/feature-captures/billboard-v1.38.0.webp" width="1440" height="900" loading="lazy" alt="Blanc’s Billboard Start Page" /></div>
+            <div class="tool-media"><img class="zoom" src="/feature-captures/start-widgets-v1.51.0.webp" width="1440" height="900" loading="lazy" alt="Blanc’s Start Page over Van Gogh’s Wheat Field with Cypresses, with a frosted Favorites card beside the clock" /></div>
             <div class="tool-copy">
-              <h3>Start Page layouts and wallpaper</h3>
-              <p>Choose Ledger, Billboard, Shelf or Tally, and set the wallpaper to the time of day, your own image or a color.</p>
+              <h3>Start Page widgets and wallpaper</h3>
+              <p>One Start Page with the clock at its center. Turn on Favorites and your other devices’ tabs as cards in Customize, then drag them to either side and resize them.</p>
+              <p>Set the wallpaper to the time of day, your own image or a color.</p>
               <p class="tool-limit">Your own image stays on this device and never shows in private tabs.</p>
-              <div class="segmented layout-switch" role="group" aria-label="Choose a Start Page layout or your own image" data-layouts hidden>
-                {
-                  ["Ledger", "Billboard", "Shelf", "Tally"].map((name) => (
-                    <button
-                      type="button"
-                      aria-pressed={String(name === "Billboard")}
-                      data-layout-src={`/feature-captures/${name.toLowerCase()}-v1.38.0.webp`}
-                      data-layout-alt={`Blanc’s ${name} Start Page`}
-                    >{name}</button>
-                  ))
-                }
-                <button
-                  type="button"
-                  aria-pressed="false"
-                  data-layout-src="/feature-captures/billboard-image-v1.38.0.webp"
-                  data-layout-alt="Blanc’s Billboard Start Page over your own image, Van Gogh’s Wheat Field with Cypresses"
-                >Your image</button>
-              </div>
-              <a class="more-link" href="/features/start-page">Start Page layouts and wallpaper <span aria-hidden="true">›</span></a>
+              <a class="more-link" href="/features/start-page">Start Page widgets and wallpaper <span aria-hidden="true">›</span></a>
             </div>
           </article>
           <article class="tool-card rise">
