@@ -1,13 +1,14 @@
 // Copyright 2026 Bananify Creative. MIT; see the Blanc repository LICENSE.
-#ifndef BLANC_BROWSER_UI_TAB_SWITCH_KEYS_MAC_H_
-#define BLANC_BROWSER_UI_TAB_SWITCH_KEYS_MAC_H_
+#ifndef BLANC_BROWSER_UI_TAB_SWITCH_KEYS_H_
+#define BLANC_BROWSER_UI_TAB_SWITCH_KEYS_H_
 
 #include <string>
 
 #include "base/functional/callback.h"
 #include "ui/gfx/native_ui_types.h"
 
-// Ctrl+Tab by most recent use (F59), the keys' half. Shipping's main process
+// Ctrl+Tab by most recent use (F59), the keys' half: tab_switch_keys_mac.mm
+// on the Mac, tab_switch_keys_win.cc on Windows (W2 C1). Shipping's main process
 // sees every key; here the Tab presses arrive as Chromium's Select Next Tab
 // command, and this watches the rest of the gesture.
 namespace blanc {
@@ -20,7 +21,8 @@ TabSwitchKey CurrentTabSwitchKey();
 
 // From a Ctrl+Tab until Control comes up or Blanc stops being the active app,
 // |send| gets "release" (Control up), "closePick" (Ctrl+W, swallowed),
-// "cancel" (Esc, swallowed; any other key; another app in front) or
+// "cancel" (Esc, swallowed; any other key; another app in front; on Windows
+// Blanc's window losing activation) or
 // "cancelSoon" (a click, which a card entry may still claim). Calling it
 // again while watching only replaces |send|.
 void WatchTabSwitchKeys(base::RepeatingCallback<void(const std::string&)> send);
@@ -32,4 +34,4 @@ bool PostTabSwitchKeyForTesting(gfx::NativeWindow window, const std::string& key
 
 }  // namespace blanc
 
-#endif  // BLANC_BROWSER_UI_TAB_SWITCH_KEYS_MAC_H_
+#endif  // BLANC_BROWSER_UI_TAB_SWITCH_KEYS_H_

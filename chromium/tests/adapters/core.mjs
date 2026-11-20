@@ -54,7 +54,8 @@ export const core={
    const before=new Set((await w.snapshot()).tabs.map(t=>t.id)),file=String(url);
    if(await w.native('testOpenLocalFile',[file])!==true)throw Error('The native open-file path did not take the local file');
    const opened=s=>s.tabs.find(t=>!before.has(t.id)&&t.url===file&&!t.loading);
-   return (await w.waitForState(s=>Boolean(opened(s)))).tabs.find(t=>!before.has(t.id)&&t.url===file).id;
+   const state=await w.waitForState(s=>Boolean(opened(s))).catch(error=>{throw Error(`The local file did not open as ${file}: ${error.message}`);});
+   return state.tabs.find(t=>!before.has(t.id)&&t.url===file).id;
   }
   if(opts&&Object.keys(opts).some(k=>k!=='private'))throw new UndefinedNativeAdapterError('Tab creation options need an adapter: '+Object.keys(opts));
   // A private tab opens in this window on the private profile (D1). Its

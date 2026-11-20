@@ -1272,6 +1272,11 @@ Otherwise it moves `~/Projects/Blanc/repo` to `chromium/next`'s tip and:
    the night passed.
 
 `nightly.mjs --plan` says what it would do and changes nothing.
+To run a night outside 02:00, start the agent, never `nightly.mjs` over SSH:
+`launchctl kickstart gui/$(id -u)/me.bnfy.blanc.beta-nightly` from an SSH
+session on the Mac Studio. Over plain SSH the login keychain is out of reach,
+Chromium then keeps cookies in memory only, and the blocker check's ordinary
+window fails ("it did not run in a ordinary window"), as on 2026-11-17.
 `nightly.mjs --targeted` runs the targeted rerun on the checkout as it is
 (Claude moves it to the release commit first). `daily/scenario-areas.json`
 maps changed files to features. Anything shared or unmapped, a build file, a
@@ -1322,7 +1327,7 @@ Every step is logged in `records/beta<N>-release-status.txt`. Running the
 command again resumes at the first unfinished step and never repeats one. If
 the passkey check is due, the command stops with exit 2. The owner then runs
 `owner/remote/beta-passkey-check.command`, which installs the notarized
-build, asks five questions and sends the answers, and then runs the release
+build, asks six questions and sends the answers, and then runs the release
 command again.
 
 **4. After publication (Claude).**

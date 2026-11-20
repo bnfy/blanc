@@ -67,6 +67,39 @@ try{
  assert.equal(d.favorites,true);
  result.checks.push('another open Start Page follows the change at once');
 
+ // The clock gives way (shipping #1625): with a clock row too tall for
+ // Customize to fit under it, opening Customize scales the clock down from
+ // its top and lifts the week's line with it, just enough for Customize to
+ // show everything (it scrolls only at half size); nothing overlaps. Font &
+ // color closes Customize and has the clock full size at once, and a plain
+ // close grows it back after Customize has faded. The tall row is set through
+ // the CSSOM: the page's CSP refuses an added <style>.
+ const giveWay=await b.eval(`(async()=>{const row=document.querySelector('.bb-clock-row');row.style.setProperty('padding-bottom','45vh','important');
+  const frames=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));await frames();
+  const scale=()=>getComputedStyle(document.documentElement).getPropertyValue('--customize-clock-scale').trim()||'1';
+  const r=e=>e.getBoundingClientRect(),p=document.getElementById('customizePopover'),cols=document.getElementById('customizeCols');
+  const read=()=>({clock:Math.max(r(document.querySelector('.bb-clock-row')).bottom,r(document.getElementById('bbBlocked')).bottom),
+   blockedTop:r(document.getElementById('bbBlocked')).top,clockBottom:r(document.querySelector('.bb-clock-row')).bottom,
+   top:r(p).top,bottom:r(p).bottom,button:r(document.getElementById('customizeButton')).top,scrolls:cols.scrollHeight>cols.clientHeight+1,scale:Number(scale())});
+  document.getElementById('customizeButton').click();let open;
+  for(let i=0;i<60;i++){await frames();open=read();if(open.top>=open.clock-0.5&&(!open.scrolls||open.scale<=0.5+1e-6)&&open.scale<1)break;}
+  document.getElementById('clockStyleOpen').click();
+  const sheet={scale:scale(),sheet:document.getElementById('clockPopover').matches(':popover-open'),customize:p.matches(':popover-open')};
+  document.getElementById('clockPopover').hidePopover();
+  document.getElementById('customizeButton').click();for(let i=0;i<30&&scale()==='1';i++)await frames();const again=scale();
+  p.hidePopover();const closing=scale();await new Promise(r=>setTimeout(r,700));const closed=scale();
+  row.style.removeProperty('padding-bottom');await frames();return {open,sheet,again,closing,closed};})()`);
+ result.giveWay=giveWay;
+ assert.ok(giveWay.open.scale<1&&giveWay.open.scale>=0.5,`the clock gives way, never below half: ${JSON.stringify(giveWay.open)}`);
+ assert.ok(giveWay.open.top>=giveWay.open.clock-0.5,`Customize never covers the clock or its line: ${JSON.stringify(giveWay.open)}`);
+ assert.ok(giveWay.open.blockedTop>=giveWay.open.clockBottom-1,`the week's line moves up with the clock, under it: ${JSON.stringify(giveWay.open)}`);
+ assert.ok(giveWay.open.bottom<=giveWay.open.button,`Customize ends above its button: ${JSON.stringify(giveWay.open)}`);
+ assert.ok(!giveWay.open.scrolls||giveWay.open.scale<=0.5+1e-6,`Customize shows everything unless the clock is at half size: ${JSON.stringify(giveWay.open)}`);
+ assert.deepEqual(giveWay.sheet,{scale:'1',sheet:true,customize:false},'Font & color closes Customize and shows the clock full size at once');
+ assert.notEqual(giveWay.again,'1','opened again, the clock gives way again');
+ assert.notEqual(giveWay.closing,'1','the clock waits for Customize to fade');assert.equal(giveWay.closed,'1','then grows back');
+ result.checks.push('with a tall clock, Customize opens with the clock scaled from its top and the line lifted, nothing covered; Font & color shows it full size at once, and a close grows it back after the fade');
+
  // Placement: Favorites and other devices on the left, Sent on the right by
  // default; the grip's arrow keys and a real drag move a card, every open
  // Start Page follows, and the choice is kept.

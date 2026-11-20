@@ -93,6 +93,7 @@
   importDialog.addEventListener('click', (event) => { if (event.target === importDialog) closeDialog(); });
   importCancelBtn.addEventListener('click', closeDialog);
 
+  importMenuBtn.disabled = false;
   importMenuBtn.addEventListener('click', () => {
     if (importDialog.open) return;
     importStatus.textContent = '';

@@ -315,6 +315,10 @@ export const pages={
  appIcon:async w=>(await w.snapshot()).appIcon,
  setAppIcon:(w,id)=>inSettings(w,'appearance',async(a,d)=>{const select=d.find('#blancAppIcon')?.shadowRoot?.querySelector('select');
   if(!select)return {missing:'#blancAppIcon'};if([...select.options].some(o=>o.value===a)){select.value=a;select.dispatchEvent(new Event('change',{bubbles:true}));await new Promise(r=>setTimeout(r,300));}
+  // An id Settings doesn't offer (a retired icon, F17-2) can't be picked; it is
+  // written to the setting directly, as a stale or synced value would arrive,
+  // so the browser's own check (NormalizeAppIcon) decides what is applied.
+  else{await new Promise((resolve,reject)=>chrome.settingsPrivate.setPref('blanc.app_icon',a,'',ok=>ok?resolve():reject(Error('Preference rejected'))));await new Promise(r=>setTimeout(r,300));}
   return {value:select.value};},String(id)),
  clickPatronCheckout:w=>inSettings(w,'help',(a,d)=>{const row=d.find('#patronCheckout');if(!row)return {missing:'#patronCheckout'};
   // After the reply: the click closes the sheet this page lives in.
@@ -384,7 +388,8 @@ export const pages={
   const profiles=options.filter(o=>!o.disabled&&o.value&&o.value!=='file');const go=document.getElementById('browserImportBtn');
   return {dialogOpen:dialog?.open??false,options:options.map(o=>({value:o.value,label:o.textContent})),
    buttonHidden:!(dialog?.open&&profiles.length&&go&&!go.disabled),
-   findHidden:document.getElementById('importMenuBtn')?.closest('[hidden]')!==null,
+   // Disabled until the page has attached its handler: not yet offered.
+   findHidden:(()=>{const b=document.getElementById('importMenuBtn');return !b||b.closest('[hidden]')!==null||b.disabled;})(),
    status:document.getElementById('importStatus')?.textContent||document.getElementById('importDialogNote')?.textContent||''};})()`),
  clickBrowserFind:async w=>(await onFavorites(w,`(()=>{const button=document.getElementById('importMenuBtn');
   if(!button||button.closest('[hidden]')||button.disabled)return false;if(!document.getElementById('importDialog')?.open)button.click();return true;})()`))===true,

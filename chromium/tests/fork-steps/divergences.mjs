@@ -16,6 +16,14 @@ async function historySheetShown(world) {
 }
 
 export const DIVERGENCES = new Map([
+  // V29 (owner, 2026-11-05 S2.5; 2026-11-17): the fork has no Patron
+  // activation yet, so an active supporter unlock can't be made. F17-2's point,
+  // that a retired icon is never applied, is tested without it: the next steps
+  // write the retired id and read back what the browser applied.
+  ['an active supporter unlock', {divergence: 'V29', async run() {
+    const settings = await this.snapshot();
+    assert.notEqual(settings.patronActive, true, 'the fork has no Patron activation (V29)');
+  }}],
   // V21 (owner, 2026-11-05; confirmed 2026-11-16): Mute Site is Chromium's own
   // sound setting, so the site is still muted after the relaunch, where
   // shipping's mute ends when Blanc quits. The step is used only after the
@@ -360,8 +368,17 @@ export const DIVERGENCES = new Map([
   ['I activate that favorite', {divergence: 'V30', async run() {
     await this.call('clickFirstSheetLink');
     await this.waitForState((s) => !activeUrl(s).startsWith('blanc://bookmarks/'), {timeout: 10000});
+    this.favoriteOpenedInPlace = true;
   }}],
   ['exactly one new tab opens on {string}', {divergence: 'V30', async run(host) {
+    // Every other use (Become a Patron) keeps shipping's v1.49.1 step.
+    if (!this.favoriteOpenedInPlace) {
+      const now = await this.call('state');
+      assert.strictEqual(now.tabs.length, this.tabStateBefore.tabs.length + 1);
+      assert.ok(now.tabs.some((t) => t.url.includes(host)),
+        `a tab should be on ${host}: ${JSON.stringify(now.tabs.map((t) => t.url))}`);
+      return;
+    }
     // #1614: "the Favorites tab now shows" the favorite; no new tab.
     const now = await this.waitForState((s) => activeUrl(s).includes(host), {timeout: 10000});
     assert.strictEqual(now.tabs.length, this.tabStateBefore.tabs.length, 'no new tab');
@@ -406,5 +423,13 @@ export const DIVERGENCES = new Map([
     const pattern = before ? /already saved/ : /Imported 3 favorites/;
     await this.waitFor(async () => ({dom: await this.call('readBrowserImportDom'), records: await this.call('bookmarkRecords')}),
       (value) => value.records.length === (before || 3) && pattern.test(value.dom?.status ?? ''), 'browser Favorites import to settle', 15000);
+  }}],
+  ['browser chrome remains on its trusted local document', {divergence: 'V32', async run() {
+    // Chromium refuses a chrome frame's website load itself and leaves its
+    // blank refusal page; shipping keeps the document. Either way no web
+    // content loads, which is F16-3's point.
+    const frame = await this.call('chromeFrameContent');
+    assert.ok(frame.kind === 'own' || frame.kind === 'refused', `the strip holds neither Blanc's page nor Chromium's refusal page: ${JSON.stringify(frame)}`);
+    if (frame.kind === 'refused') assert.equal(frame.text, '', 'the refusal page shows no content');
   }}],
 ]);

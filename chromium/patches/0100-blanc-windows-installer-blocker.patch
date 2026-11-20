@@ -1,0 +1,15 @@
+diff --git a/chrome/installer/mini_installer/chrome.release b/chrome/installer/mini_installer/chrome.release
+index 33e8546..e8eeb57 100644
+--- a/chrome/installer/mini_installer/chrome.release
++++ b/chrome/installer/mini_installer/chrome.release
+@@ -43,6 +43,10 @@ v8_context_snapshot.bin: %(VersionDir)s\
+ #
+ Extensions\*.*: %(VersionDir)s\Extensions\
+ locales\*.pak: %(VersionDir)s\Locales
++#
++# Blanc: the beta's embedded blocker engine (W3); a preview has none and
++# takes it at run time.
++blanc_blocker\*.js: %(VersionDir)s\blanc_blocker\
+ 
+ #
+ # VisualElements sub-dir.

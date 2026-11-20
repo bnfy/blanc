@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { changedInputs, plannedActions, checkPlan, planSummary, localJobs, maximumActions, selectedSdk, outputName, buildLane, requireAndroidHost, competingBuild, processListArgs, WINDOWS_OUTPUTS, requireDesktopHost, windowsToolchainPins } from './build.mjs';
+import { changedInputs, plannedActions, checkPlan, planSummary, localJobs, maximumActions, selectedSdk, outputName, buildLane, requireAndroidHost, competingBuild, processListArgs, WINDOWS_OUTPUTS, requireDesktopHost, windowsToolchainPins, windowsToolchainMounted } from './build.mjs';
 
 test('cold plans larger than the former capture limit retain their final count', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-plan-test-'));
@@ -152,12 +152,21 @@ test('android lane refuses a competing build', () => {
 
 // Windows is a second build of the desktop lane, cross-compiled on the
 // x86-64 Linux server (owner decision D4, 2026-11-17).
-test('desktop lane accepts the Windows output and keeps the same target', () => {
-  assert.deepEqual(WINDOWS_OUTPUTS, ['BlancWinPrototype']);
+test('desktop lane accepts the Windows output: the browser, and Chromium\'s installer with it', () => {
+  // W3 adds the Windows beta beside the preview.
+  assert.deepEqual(WINDOWS_OUTPUTS, ['BlancWinPrototype', 'BlancWinBeta']);
   assert.equal(outputName(['--out=BlancWinPrototype']), 'BlancWinPrototype');
-  assert.deepEqual(buildLane(['--out=BlancWinPrototype']), { lane: 'desktop', out: 'BlancWinPrototype', target: 'chrome' });
+  assert.deepEqual(buildLane(['--out=BlancWinPrototype']),
+    { lane: 'desktop', out: 'BlancWinPrototype', target: 'chrome', extraTargets: ['mini_installer'] });
+  // The beta also builds Blanc's updater, its setup program (W3 Task B2) and
+  // Chromium's tag tool, which tags the signed setup as the online installer, and
+  // the test setup (UpdaterSetup_test.exe, which reads overrides.json) for the
+  // release's staging gate (E1).
+  assert.deepEqual(buildLane(['--out=BlancWinBeta']), { lane: 'desktop', out: 'BlancWinBeta', target: 'chrome',
+    extraTargets: ['mini_installer', 'chrome/updater/win/installer:installer', 'chrome/updater/tools:tag',
+      'chrome/updater/win/installer:installer_test'] });
   for (const options of [['--lane=android', '--out=BlancWinPrototype'], ['--out=BlancWinPrototype', '--sdk-root=/tmp'],
-    ['--out=BlancWinBeta'], ['--out=blancwinprototype']])
+    ['--out=BlancWinRelease'], ['--out=blancwinprototype']])
     assert.throws(() => buildLane(options), undefined, options.join(' '));
 });
 test('each desktop output builds only on its own kind of machine', () => {
@@ -176,4 +185,12 @@ test('the Windows toolchain pins are read from the tree, and a changed format fa
   assert.throws(() => windowsToolchainPins("TOOLCHAIN_HASH = '3bfcb536c8'\n"), /SDK_VERSION/);
   assert.throws(() => windowsToolchainPins("SDK_VERSION = '10.0.28000.0'\n"), /TOOLCHAIN_HASH/);
   assert.throws(() => windowsToolchainPins("TOOLCHAIN_HASH = get_hash()\nSDK_VERSION = '10.0.28000.0'\n"), /TOOLCHAIN_HASH/);
+});
+test('the Windows build needs its case-insensitive toolchain mount', () => {
+  const src = '/home/b/chromium-desktop/src', mount = `${src}/third_party/depot_tools/win_toolchain/vs_files`;
+  const mounts = `/dev/md2 / ext4 rw 0 0\nciopfs ${mount} fuse.ciopfs rw,nosuid,nodev,relatime,user_id=1000,group_id=1000 0 0\n`;
+  assert.equal(windowsToolchainMounted(mounts, src), true);
+  assert.equal(windowsToolchainMounted('/dev/md2 / ext4 rw 0 0\n', src), false);
+  assert.equal(windowsToolchainMounted(mounts, '/home/b/other/src'), false);
+  assert.equal(windowsToolchainMounted(`/dev/md2 ${mount} ext4 rw 0 0\n`, src), false);
 });
