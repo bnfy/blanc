@@ -340,7 +340,7 @@ later (190 units in the Display cut, 240 in the Text cut). The word never
 appears without the icon, and it is never recoloured, re-spaced or stacked.
 
 - The website product bar alone uses the short form. `MailBar.astro` pairs
-  the gold app icon with “Mail” in white Blubird SemiBold Text, outlined in
+  the gold app icon with “Mail” in white Blubird Bold Text, outlined in
   `site/public/lockup/mail-word-small-white.svg`. The lettering is 19px
   tall with a 9px gap beside the icon. The icon uses the full Text lockup’s
   size and alignment. The link’s accessible name is “Blanc Mail”.
