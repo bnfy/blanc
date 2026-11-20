@@ -1,5 +1,9 @@
 # Substack editorial lane — privacy, power, and browser incentives
 
+> **Superseded October 13, 2026** by [`substack/README.md`](substack/README.md),
+> which widens the publication from the browser to all of Blanc. The essay
+> ideas below carry over to its queue; the v1.10.0 claim ledger does not.
+
 Status: **strategy and draft queue only**. This document does not authorize a
 Substack Note, article, reply, subscription, restack, like, or profile change.
 Every public action still requires an action-time approval and a fresh claim
