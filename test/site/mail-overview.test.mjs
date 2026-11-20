@@ -163,7 +163,7 @@ test('Pricing says purchases are not open before any price, and recommends neith
     // The Bundle names Nodding Off and links to its site; both plans say where the address comes from.
     const cards = await page.evaluate(() => [...document.querySelectorAll('#pricing .mail-plan ul')].map(ul => [...ul.querySelectorAll('li')].map(li => li.textContent.trim())));
     assert.ok(!cards[0].some(line => /address/i.test(line)), 'plain Blanc Mail has no address');
-    assert.ok(cards[1].includes('Your own address on blnc.day or another Blanc ending'));
+    assert.ok(cards[1].includes('Your own address on inbox.day or another Blanc ending'));
     assert.ok(cards[2].includes('Nodding Off, bedtime stories for iPhone'));
     assert.equal(await page.locator('#pricing .mail-plan a[href="https://noddingoffapp.com/"]').textContent(), 'Nodding Off');
   } finally { await context.close(); }

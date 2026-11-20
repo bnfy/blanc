@@ -29,7 +29,7 @@ const ending = endings[0];
         <input id="mailReserveName" name="localPart" type="text" required minlength="3" maxlength="32" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="mira" aria-describedby="mailReserveEndings mailReserveAvailability">
         <span class="mail-reserve-ending" aria-hidden="true">@{ending}</span>
       </span>
-      <p class="mail-reserve-hint" id="mailReserveEndings">Reserving holds this name on all five endings: {endings.map((e, i) => <>{i === 0 ? '' : i === endings.length - 1 ? ' and ' : ', '}<span class="mail-ending">{e}</span></>)}. You’ll choose one when you claim it.</p>
+      <p class="mail-reserve-hint" id="mailReserveEndings">Reserving holds this name on every ending: {endings.map((e, i) => <>{i === 0 ? '' : i === endings.length - 1 ? ' and ' : ', '}<span class="mail-ending">{e}</span></>)}. You’ll choose one when you claim it.</p>
       <p class="mail-reserve-availability" id="mailReserveAvailability" role="status" aria-live="polite"></p>
 
       <label class="mail-reserve-label" for="mailReserveEmail">Your current email</label>

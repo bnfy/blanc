@@ -10,7 +10,7 @@ import reservations from '../../data/mail-reservations.json';
 const open = reservations.open;
 const endings = reservations.endings;
 ---
-<BaseLayout title="Reserve your Blanc Mail address" description="Reserve the Blanc Mail address you want, like mira@blnc.day, free. It’s held for you until Blanc Mail addresses open, then for 30 days while you claim it." path="/mail/reserve" header="solid">
+<BaseLayout title="Reserve your Blanc Mail address" description="Reserve the Blanc Mail address you want, like mira@inbox.day, free. It’s held for you until Blanc Mail addresses open, then for 30 days while you claim it." path="/mail/reserve" header="solid">
   <MailBar />
   <main id="main-content" class="mail-stage">
     <section class:list={['mail-reserve-page', { 'is-open': open }]} aria-labelledby="mail-reserve-title">

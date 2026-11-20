@@ -1864,7 +1864,7 @@ details[open] .faq-sign::after {
 /* Blanc Mail address reservations: a dark band between the Island and Blanc
    Spaces while reservations are open (src/data/mail-reservations.json). The
    card wears the reserve form's turning gold ring (gold-ring.css) and the
-   example address cycles through the five endings, so the band and
+   example address cycles through the endings, so the band and
    /mail/reserve read as one (owner, November 19, 2026). Mail's gilt is copied
    here because mail.css restyles the site header and can't load on this page. */
 .home-cinema .mail-promo {

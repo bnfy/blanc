@@ -76,7 +76,7 @@ const addressSteps = [
 // The reservation form has its own page; the address section links to it once it's open.
 const reservationsOpen = reservations.open;
 const addressPoints = [
-  { title: 'Your name, your ending', text: 'Pick a name and the ending you like: ', endings: ['blnc.day', 'blnc.page', 'blancmail.me', 'blancmail.co', 'blncmail.com'] },
+  { title: 'Your name, your ending', text: 'Pick a name and the ending you like: ', endings: reservations.endings },
   { badge: '15 GB', title: ' for your mail', text: 'Each address has 15 GB for your mail and its attachments.' },
   { title: 'Encrypted where it’s stored', text: 'Messages and attachments in your mailbox are encrypted with a key made on your Mac. Blanc keeps only a copy locked with your password, which never leaves your Mac. Senders, recipients, subjects and dates aren’t encrypted, and mail is readable to the server as it arrives and as it’s sent.' },
   { title: 'Back in with a code', text: 'Forget your password and a code sent to your backup email gets you back in. On a new Mac, a forgotten password means mail you’d already received can’t be opened.' },
@@ -91,7 +91,7 @@ const NODDING_OFF = 'https://noddingoffapp.com/';
 // their words moved here unchanged (the old URLs redirect to these sections).
 const plans = [
   { key: 'mail', name: 'Blanc Mail', periods: ['monthly', 'annual'], features: ['Blanc Mail on macOS', 'Native app for Gmail and Proton Mail', '14-day local trial'] },
-  { key: 'mail-address', name: 'Blanc Mail + Address', periods: ['annual'], note: `Blanc Mail plus your own address, ${ADDRESS_ADD_ON} more a year`, features: ['Everything in Blanc Mail', 'Your own address on blnc.day or another Blanc ending', 'A private mailbox with 15 GB'] },
+  { key: 'mail-address', name: 'Blanc Mail + Address', periods: ['annual'], note: `Blanc Mail plus your own address, ${ADDRESS_ADD_ON} more a year`, features: ['Everything in Blanc Mail', 'Your own address on inbox.day or another Blanc ending', 'A private mailbox with 15 GB'] },
   { key: 'suite', name: 'Blanc Bundle', periods: ['monthly', 'annual'], features: ['Blanc Mail on macOS, with a Blanc Mail address', { link: 'Nodding Off', href: NODDING_OFF, text: ', bedtime stories for iPhone' }, 'Blanc Browser Patron on macOS, Windows, and Linux', 'Your Mail, Nodding Off and Browser license keys in one subscription'] },
 ];
 const support = [
@@ -156,7 +156,7 @@ const support = [
          steps switch in CSS like the looks above; the first is checked. -->
     <section id="address" class="mail-address mail-teaser-set" aria-labelledby="mail-address-title">
       <h2 id="mail-address-title"><span class="mail-gold-text">A Blanc Mail address of your own.</span></h2>
-      <p class="mail-section-lead">A private mailbox of your own, with an address like <strong class="mail-shimmer"><!--email_off-->mira@blnc.day<!--/email_off--></strong>, set up from inside Blanc Mail. Add it to Blanc Mail for {ADDRESS_ADD_ON} a year, or get it with Blanc Bundle, when Blanc Mail launches. What’s shown is a design preview and may change.</p>
+      <p class="mail-section-lead">A private mailbox of your own, with an address like <strong class="mail-shimmer"><!--email_off-->mira@inbox.day<!--/email_off--></strong>, set up from inside Blanc Mail. Add it to Blanc Mail for {ADDRESS_ADD_ON} a year, or get it with Blanc Bundle, when Blanc Mail launches. What’s shown is a design preview and may change.</p>
       <fieldset class="mail-segments mail-segments-three">
         <legend class="sr-only">Step</legend>
         {addressSteps.map((step, index) => (
