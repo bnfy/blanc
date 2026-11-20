@@ -1,4 +1,4 @@
-// The homepage's Blanc Mail band: the example address steps through the five
+// The homepage's Blanc Mail band: the example address steps through the
 // endings, one every 2.5 seconds. The endings' box takes the width of the one
 // showing, so the whole address stays centred and glides as the ending
 // changes length (home.css animates --ending-width). Without this script, or
