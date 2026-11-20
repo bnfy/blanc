@@ -3,7 +3,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import BrandMark from '../components/BrandMark.astro';
 import BentoIcon from '../components/bento/BentoIcon.astro';
 import MailBar from '../components/MailBar.astro';
-import MailShot from '../components/MailShot.astro';
 import MailTeaser from '../components/MailTeaser.astro';
 import MailWaitlistForm from '../components/MailWaitlistForm.astro';
 import survey from '../data/mail-survey.json';
@@ -21,11 +20,6 @@ const addressSteps = [
   { value: 'ready', label: 'Open inbox', name: 'address-ready',
     alt: 'Design preview: a dialog with the gold Blanc Mail icon reading “mira@blnc.day. Your mailbox is ready in Blanc Mail.”, and an Open Inbox button.' },
 ];
-const islandCommands = [
-  ['snooze', 'Snooze…'], ['set-aside', 'Move to Group…'], ['label', 'Labels'], ['move', 'Move To…'],
-  ['archive', 'Archive'], ['trash', 'Trash'], ['compose', 'New Message'], ['rule', 'New Rule…'],
-];
-
 const { open: reservationsOpen, endings } = reservations;
 const exampleAddress = `mira@${endings[0]}`;
 const addressPremium = (productFor('mail-address-annual').amount - productFor('mail-annual').amount) / 100;
@@ -123,44 +117,6 @@ const support = [
           </li>
         ))}
       </ul>
-    </section>
-
-    <section id="island" class="overview-section feature-spread" aria-labelledby="search-title">
-      <div id="design" class="feature-copy">
-        <h2 id="search-title">Search across your accounts.</h2>
-        <p>Press <kbd>⌘L</kbd> to open the Island. Find a person, mailbox or conversation across the accounts you’re viewing, or type a slash to act on a message.</p>
-        <h3>Set a conversation aside</h3>
-        <p>Move it to a Group like “Read on the flight.” It leaves your Inbox and waits in the Group until you’re ready.</p>
-      </div>
-      <figure class="mail-island-figure">
-        <div class="mail-island-panel" role="img" aria-label="The Island open in Blanc Mail, listing its slash commands: Snooze, Move to Group, Labels, Move To, Archive, Trash, New Message and New Rule.">
-          <div class="mip-field" aria-hidden="true">
-            <svg class="mip-chevron" viewBox="0 0 24 24"><path d="m6 6 6 6-6 6M12 6l6 6-6 6" /></svg>
-            <span class="mip-input">/<i class="mip-caret"></i></span>
-            <svg class="mip-clear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="m9 9 6 6M15 9l-6 6" /></svg>
-          </div>
-          <div class="mip-results" aria-hidden="true">
-            <p class="mip-header">commands</p>
-            {islandCommands.map(([keyword, title], index) => (
-              <p class:list={['mip-row', { 'is-highlighted': index === 0 }]}><b>/{keyword}</b>{title}</p>
-            ))}
-          </div>
-          <div class="mip-footer" aria-hidden="true">
-            <span class="mip-chips">{['snooze', 'set-aside', 'label', 'rule'].map(k => <span>/{k}</span>)}</span>
-            <span class="mip-hint">↑↓ to move, ↵ to open, ⇧↵ to search all mail</span>
-          </div>
-        </div>
-      </figure>
-
-    </section>
-
-    <section id="features" class="overview-section feature-spread rules-spread" aria-labelledby="rules-title">
-      <div class="feature-copy">
-        <h2 id="rules-title">Sort Gmail as it arrives.</h2>
-        <p>Build a rule from a sentence. For example, send mail from your trail club to a Trips label. Gmail runs the rule even when Blanc Mail is closed.</p>
-      </div>
-      <MailShot name="rule-editor" class="mail-rules-shot" sizes="(max-width: 760px) 100vw, 700px" width={1400} height={744} alt="Editing a rule in the preview build, in the dark appearance: “When a message is from trailclub.example, label it Trips”, with its Gmail search, the one conversation it already matches, and Save Rule." />
-
     </section>
 
     <section id="address" class="overview-section address-section" aria-labelledby="address-title">

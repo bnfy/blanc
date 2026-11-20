@@ -164,8 +164,9 @@ test('mailbox features and the reservation action are visible before opening a d
       assert.deepEqual(await features.locator('strong').allTextContents(), endings);
       assert.equal(await page.locator('#address-features + a[href="/mail/reserve"]').count(), open ? 1 : 0);
       assert.equal(await page.locator('.address-preview').getAttribute('open'), null);
-      assert.equal(await page.locator('main .mail-shot img').count(), 1);
-      assert.match(await page.locator('.mail-shot img').getAttribute('src'), /rule-editor/);
+      assert.equal(await page.locator('#pricing + section').getAttribute('id'), 'address');
+      assert.equal(await page.locator('main .mail-shot, #design, #island, #features').count(), 0);
+      assert.equal(await page.getByRole('heading', { name: 'Inside Blanc Mail' }).count(), 0);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     } finally { await context.close(); }
   }
@@ -234,7 +235,7 @@ test('FAQ disclosures explain reservations, privacy and billing and are keyboard
 });
 
 test('a link to a section lands with its heading below the bars', async () => {
-  for (const id of ['design', 'address', 'island', 'features', 'pricing', 'support', 'download']) {
+  for (const id of ['pricing', 'address', 'support', 'download']) {
     // Load the page first, then follow the link within it. Loading /mail#id
     // directly jumps while images and fonts above the section are still
     // settling, and on a slow runner that jump stayed about 43px too far

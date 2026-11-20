@@ -56,7 +56,7 @@ test('every Mail page names the product, leads back to /mail and links to its se
           popovers: [...document.querySelectorAll('.mail-bar [popover]')].map(pop => pop.id),
         };
       });
-      assert.deepEqual(bar, { name: 'Blanc Mail', title: 'Blanc Mail', href: '/mail', sections: ['/mail#pricing', '/mail#island', '/mail#address', '/mail#support'], labels: ['Plans', 'Inside the app', 'Blanc addresses', 'FAQ'], menu: ['/mail#pricing', '/mail#island', '/mail#address', '/mail#support'], popovers: ['mail-bar-menu', 'mail-bar-waitlist'] }, path);
+      assert.deepEqual(bar, { name: 'Blanc Mail', title: 'Blanc Mail', href: '/mail', sections: ['/mail#pricing', '/mail#address', '/mail#support'], labels: ['Plans', 'Blanc addresses', 'FAQ'], menu: ['/mail#pricing', '/mail#address', '/mail#support'], popovers: ['mail-bar-menu', 'mail-bar-waitlist'] }, path);
     }
   } finally { await context.close(); }
 });
@@ -176,7 +176,7 @@ test('the link for the section in view is marked as the current location', async
   try {
     const current = () => page.evaluate(() => [...document.querySelectorAll('.mail-bar-links a[aria-current="location"]')].map(a => a.getAttribute('href')));
     assert.deepEqual(await current(), [], 'none at the top of the page');
-    for (const id of ['pricing', 'island', 'address', 'support']) {
+    for (const id of ['pricing', 'address', 'support']) {
       await page.evaluate(id => document.getElementById(id).scrollIntoView(), id);
       await page.waitForFunction(id => document.querySelector(`.mail-bar-links a[href="/mail#${id}"]`).getAttribute('aria-current') === 'location', id);
       assert.deepEqual(await current(), [`/mail#${id}`], id);
