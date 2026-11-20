@@ -79,6 +79,7 @@ test('small previews allocate to file size and recycle cleaned session handlers'
   class Window extends EventEmitter {
     constructor() { super(); this.webContents = new EventEmitter(); this.webContents.setWindowOpenHandler = () => {}; }
     async loadURL() {}
+    removeMenu() {}
     destroy() { this.emit('closed'); }
   }
   const session = { fromPartition: () => { created++; return ses; } };
@@ -156,12 +157,16 @@ test('closeAllLocalHtmlPreviews closes every open preview window', async () => f
   class Window extends EventEmitter {
     constructor() { super(); this.webContents = new EventEmitter(); this.webContents.setWindowOpenHandler = () => {}; this.gone = false; }
     async loadURL() {}
+    removeMenu() { this.menuRemoved = true; }
     isDestroyed() { return this.gone; }
     close() { closes++; this.gone = true; this.emit('closed'); }
   }
   const session = { fromPartition: () => ses };
+  const first = await openIsolatedLocalHtml({ BrowserWindow: Window, session }, file);
   await openIsolatedLocalHtml({ BrowserWindow: Window, session }, file);
-  await openIsolatedLocalHtml({ BrowserWindow: Window, session }, file);
+  // On Windows and Linux every window shows the app menu unless it removes
+  // it, and its shortcuts (Ctrl+W, Ctrl+T) would act on the browser window.
+  assert.equal(first.menuRemoved, true, 'the preview carries no app menu');
   closeAllLocalHtmlPreviews();
   assert.equal(closes, 2);
   closeAllLocalHtmlPreviews();

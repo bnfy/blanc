@@ -102,6 +102,10 @@ async function openIsolatedLocalHtml({ BrowserWindow, session, title = 'Static l
   const win = new BrowserWindow({ width: 1000, height: 750, title,
     webPreferences: { session: isolatedSession, sandbox: true, contextIsolation: true,
       javascript: false, nodeIntegration: false, webSecurity: true, webviewTag: false, allowRunningInsecureContent: false } });
+  // On Windows and Linux a window shows the app menu unless it removes it, and
+  // that menu's shortcuts (Ctrl+W, Ctrl+T) would act on the browser window
+  // behind this static preview. No effect on macOS, whose menu is global.
+  win.removeMenu();
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   win.webContents.on('will-attach-webview', event => event.preventDefault());
   const navigation = (event, target) => {
