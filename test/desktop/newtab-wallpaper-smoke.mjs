@@ -153,6 +153,11 @@ try {
     && !document.querySelector('.start-wallpaper-layer.is-fading'));
   await openCustomize(privatePage);
   const privateSwitch = privatePage.getByRole('button', { name: 'Change with time of day', exact: true });
+  // Pressed from the keyboard, not clicked: Customize re-fits and scrolls
+  // inside itself whenever the page's columns change size (#1622), so on a
+  // slow runner a click aimed at the switch could land after the popover
+  // moved, miss it, and close Customize, leaving the fade waits to time out.
+  // The switch's pointer clicks are covered in the layout loop above.
   // Each fade below is watched from before its click: on a slow runner the
   // click's acknowledgement can arrive after the window has passed.
   // Partway through the fade: at least a fifth of the way out and still
@@ -165,7 +170,7 @@ try {
       const opacity = Number(getComputedStyle(layer).opacity);
       return opacity > 0 && opacity < 0.8;
     }));
-  await privateSwitch.click();
+  await privateSwitch.press('Space');
   await fadingOut;
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-fading').count(), 2);
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-fading').first().evaluate((layer) =>
@@ -179,11 +184,11 @@ try {
       const opacity = Number(getComputedStyle(layer).opacity);
       return opacity > 0.1 && opacity < 0.95;
     }));
-  await privateSwitch.click();
+  await privateSwitch.press('Space');
   await fadingIn;
   await privatePage.waitForFunction(() => !document.querySelector('.start-wallpaper-layer.is-fading'));
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-visible').count(), 1);
-  await privateSwitch.click();
+  await privateSwitch.press('Space');
   await privatePage.waitForFunction(() => !document.body.dataset.wallpaperPhase
     && !document.querySelector('.start-wallpaper-layer.is-fading'));
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-visible').count(), 0);
@@ -192,7 +197,7 @@ try {
       const opacity = Number(getComputedStyle(layer).opacity);
       return opacity > 0.1 && opacity < 0.95;
     }));
-  await privateSwitch.click();
+  await privateSwitch.press('Space');
   await fadingInAgain;
   await privatePage.emulateMedia({ reducedMotion: 'reduce', colorScheme: 'dark' });
   await privatePage.waitForFunction(() => !document.querySelector('.start-wallpaper-layer.is-fading'));
