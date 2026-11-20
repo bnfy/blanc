@@ -211,12 +211,14 @@
     function toList() { flushUpdate(); state = { kind: 'list' }; render(); popup.querySelector('[data-current="true"]')?.focus(); }
 
     // ---- editing state ----
-    /** New: { kind, draft, start, original? } · Edit: { kind, id, draft }. */
-    function beginNew({ name = '', start = null, original = null, tabId = null, tabTitle = '' } = {}) {
+    /** New: { kind, draft, start, original? } · Edit: { kind, id, draft }.
+     * `thisProfile` leaves out the Profile choice: `/space <name>` stays within
+     * this window's profile (spec 2026-11-19-spaces-across-profiles §4.5). */
+    function beginNew({ name = '', start = null, original = null, tabId = null, tabTitle = '', thisProfile = false } = {}) {
       if (state.pending) return;
       generation += 1;
       const identity = Identity.defaultsFor(data.items);
-      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original || ['tab', 'tabs', 'link'].includes(start), tabId, tabTitle, original, error: '', touched: false, picker: false };
+      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original || ['tab', 'tabs', 'link'].includes(start), thisProfile, tabId, tabTitle, original, error: '', touched: false, picker: false };
       open();
     }
     function beginEdit(workspace) {
@@ -347,7 +349,9 @@
             }).catch(() => {});
           }
           state.error = state.kind === 'recovery' && result?.error === 'duplicate-name' ? t('ws.error.recoveryDuplicate') : errors[result?.error] || t('ws.error.generic');
-          render();
+          // An open started with the menu closed (the Quick Switcher) shows
+          // its error in the Spaces list, which opens for it.
+          if (!opened) open(); else render();
           const input = popup.querySelector('input');
           if (input) { input.focus(); if (state.editSelection) input.setSelectionRange(...state.editSelection); }
         }
@@ -636,7 +640,7 @@
         const syncHelp = () => { const other = otherProfile(); helpLine.textContent = other ? t('ws.editor.helpOtherProfile', { profile: other.name }) : t('ws.editor.help'); };
         // With two or more profiles, which one the new Space belongs to
         // (spec 2026-11-19-spaces-across-profiles §4.4).
-        if (data.otherProfiles?.length) {
+        if (data.otherProfiles?.length && !state.thisProfile) {
           const picker = el('select', 'ws-select'); picker.id = 'workspaceProfile';
           picker.setAttribute('aria-label', t('ws.editor.profile'));
           for (const profile of [{ id: '', name: data.profileName ?? '', full: false }, ...data.otherProfiles]) {
@@ -839,7 +843,7 @@
       },
       toggle() { opened ? close() : open(); },
       switchTo(workspace) { openAction({ kind: 'open', id: workspace.id, name: workspace.name, ...(workspace.profileId ? { profileId: workspace.profileId } : {}) }); },
-      command(name) { const existing = data.items.find((w) => w.name.toLowerCase() === name.toLowerCase()); if (existing) this.switchTo(existing); else beginNew({ name }); },
+      command(name) { const existing = data.items.find((w) => w.name.toLowerCase() === name.toLowerCase()); if (existing) this.switchTo(existing); else beginNew({ name, thisProfile: true }); },
       get opened() { return opened; }, get editing() { return state.kind !== 'list'; },
       reset() { if (!state.pending) { api.cancelWorkspaceAction?.(); flushUpdate(); state = { kind: 'list' }; close({ force: true }); } },
       get state() { return state; },
