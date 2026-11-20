@@ -56,7 +56,7 @@ test('every Mail page names the product, leads back to /mail and links to its se
           popovers: [...document.querySelectorAll('.mail-bar [popover]')].map(pop => pop.id),
         };
       });
-      assert.deepEqual(bar, { name: 'Blanc Mail', title: 'Blanc Mail', href: '/mail', sections: ['/mail#design', '/mail#address', '/mail#island', '/mail#features', '/mail#pricing'], labels: ['Design', 'Blanc email address', 'Island', 'Features', 'Pricing'], menu: ['/mail#design', '/mail#address', '/mail#island', '/mail#features', '/mail#pricing'], popovers: ['mail-bar-menu', 'mail-bar-waitlist'] }, path);
+      assert.deepEqual(bar, { name: 'Blanc Mail', title: 'Blanc Mail', href: '/mail', sections: ['/mail#design', '/mail#pricing', '/mail#island', '/mail#address', '/mail#support'], labels: ['App preview', 'Plans', 'Inside the app', 'Blanc addresses', 'FAQ'], menu: ['/mail#design', '/mail#pricing', '/mail#island', '/mail#address', '/mail#support'], popovers: ['mail-bar-menu', 'mail-bar-waitlist'] }, path);
     }
   } finally { await context.close(); }
 });
@@ -160,7 +160,7 @@ test('the ≡ menu lists the sections, and choosing one closes it and lands the 
     await page.locator('.mail-bar-sections').click();
     await waitOpen(page, 'mail-bar-menu');
     // Focus moves in the popover's toggle event, a task after it opens.
-    await page.waitForFunction(() => document.activeElement?.textContent.trim() === 'Design');
+    await page.waitForFunction(() => document.activeElement?.textContent.trim() === 'App preview');
     assert.equal(await page.locator('.mail-bar-sections').getAttribute('aria-label'), 'Sections');
     await page.locator('#mail-bar-menu a[href="/mail#pricing"]').click();
     await waitOpen(page, 'mail-bar-menu', false);
@@ -176,12 +176,12 @@ test('the link for the section in view is marked as the current location', async
   try {
     const current = () => page.evaluate(() => [...document.querySelectorAll('.mail-bar-links a[aria-current="location"]')].map(a => a.getAttribute('href')));
     assert.deepEqual(await current(), [], 'none at the top of the page');
-    for (const id of ['design', 'address', 'island', 'features', 'pricing']) {
+    for (const id of ['design', 'pricing', 'island', 'address', 'support']) {
       await page.evaluate(id => document.getElementById(id).scrollIntoView(), id);
       await page.waitForFunction(id => document.querySelector(`.mail-bar-links a[href="/mail#${id}"]`).getAttribute('aria-current') === 'location', id);
       assert.deepEqual(await current(), [`/mail#${id}`], id);
     }
-    await page.evaluate(() => document.getElementById('support').scrollIntoView());
+    await page.evaluate(() => document.getElementById('download').scrollIntoView());
     await page.waitForFunction(() => !document.querySelector('.mail-bar-links a[aria-current]'));
   } finally { await context.close(); }
 });
@@ -302,7 +302,7 @@ test('reduced transparency makes the bar solid',
         const bar = getComputedStyle(document.querySelector('.mail-bar'));
         return { background: bar.backgroundColor, blur: bar.backdropFilter };
       });
-      assert.equal(style.background, 'rgb(9, 7, 4)');
+      assert.equal(style.background, 'rgb(255, 255, 255)');
       assert.equal(style.blur, 'none');
     } finally { await context.close(); }
   });

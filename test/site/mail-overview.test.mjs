@@ -1,10 +1,5 @@
 // BLANC_SITE_URL=http://127.0.0.1:4322 node --test test/site/mail-overview.test.mjs
 //
-// The Blanc Mail overview (/mail) until launch: one gold envelope on a dark
-// stage (docs/superpowers/specs/2026-10-21-mail-gold-envelope-design.md).
-// It says what Mail is and that it is coming, lists the features from the
-// claims ledger, takes a waitlist address at the top and the end, holds still
-// when motion is unwanted, and otherwise leans toward the pointer.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { after, before, test } from 'node:test';
@@ -46,51 +41,52 @@ async function openBarWaitlist(page) {
   await page.waitForFunction(() => document.activeElement?.id === 'bar-waitlistEmail');
 }
 
-test('the overview says what Mail is and that it is coming, with one labelled screenshot', async () => {
-  const { page, context } = await openPage('/mail');
-  try {
-    const soon = await page.evaluate(() => {
-      const section = document.querySelector('.mail-soon');
-      return {
-        eyebrow: section.querySelector('.mail-eyebrow').textContent.trim(),
-        title: section.querySelector('h1').textContent.trim(),
-        lead: section.querySelector('.mail-soon-lead').textContent.trim(),
-        envelopeHidden: section.querySelector('.mail-envelope').getAttribute('aria-hidden'),
-        screenshots: [...document.querySelectorAll('img[src*="/mail/screens/"]')].map(img => [img.getAttribute('src'), img.closest('figure.mail-shot')?.querySelector('figcaption')?.textContent.trim()]),
-        browser: document.querySelector('.mail-stage-notes a[href="/download"]')?.getAttribute('href'),
-      };
-    });
-    assert.equal(soon.eyebrow, 'Blanc Mail · for Mac · Coming soon');
-    assert.equal(soon.title, 'A little less inbox.');
-    assert.equal(soon.lead, 'Blanc Mail brings a careful, native experience for Gmail and Proton Mail to your Mac, and a private mailbox of your own.');
-    assert.equal(soon.envelopeHidden, 'true', 'the envelope is decoration');
-    assert.deepEqual(soon.screenshots, [['/mail/screens/rule-editor.webp', 'Preview build']]);
-    assert.equal(soon.browser, '/download');
-    // The label is hidden on screen but still names the field.
-    assert.equal(await page.locator('#waitlist').getByRole('textbox', { name: 'Get an email when Blanc Mail is ready' }).count(), 1);
-    assert.equal(await page.locator('#waitlistEmail').getAttribute('aria-describedby'), 'waitlistNote');
-    assert.equal(await page.locator('#waitlistNote').isVisible(), true);
-  } finally { await context.close(); }
+test('the hero shows both ways to use Mail with equal actions before the preview', async () => {
+  for (const width of [390, 1440]) {
+    const { page, context } = await openPage('/mail', width, { viewport: { width, height: 844 } });
+    try {
+      assert.equal(await page.locator('h1').innerText(), 'A little less inbox.');
+      assert.match(await page.locator('.mail-eyebrow').innerText(), /coming soon/i);
+      const paths = page.locator('.offer-path');
+      assert.deepEqual(await paths.locator('h2').allTextContents(), ['Keep your email address', 'Get a Blanc address']);
+      assert.match(await paths.first().innerText(), /Proton Mail Bridge/);
+      const open = JSON.parse(readFileSync(new URL('../../site/src/data/mail-reservations.json', import.meta.url))).open;
+      const address = paths.last().getByRole('link');
+      assert.equal(await address.getAttribute('href'), open ? '/mail/reserve' : '#address');
+      assert.equal(await address.innerText(), open ? 'Reserve your address' : 'Explore Blanc addresses');
+      assert.equal(/for free/i.test(await paths.last().innerText()), open);
+      const [wait, reserve] = await paths.locator('.offer-action').evaluateAll(actions => actions.map(action => action.getBoundingClientRect().toJSON()));
+      assert.equal(wait.height, reserve.height);
+      assert.equal(wait.width, reserve.width);
+      assert.ok(reserve.bottom <= 844);
+      if (width === 390) assert.ok(reserve.top > wait.bottom);
+      else assert.equal(wait.top, reserve.top);
+      assert.ok((await page.locator('#design').boundingBox()).y >= reserve.bottom);
+      assert.equal(await page.locator('.offer-jump').getAttribute('href'), '#pricing');
+      assert.equal(await page.locator('#design + section').getAttribute('id'), 'pricing');
+      if (open) {
+        await address.click();
+        assert.equal(new URL(page.url()).pathname, '/mail/reserve');
+      } else {
+        await address.click();
+        assert.equal(new URL(page.url()).hash, '#address');
+        assert.equal(await page.locator('main a[href="/mail/reserve"]').count(), 0);
+      }
+    } finally { await context.close(); }
+  }
 });
 
-test('the features and the careful row list what Mail does, each with a gilt glyph', async () => {
+test('the hero waitlist opens by keyboard and reuses the email confirmation flow', async () => {
   const { page, context } = await openPage('/mail');
   try {
-    const list = await page.evaluate(() => ({
-      features: [...document.querySelectorAll('.mail-feature h3')].map(h => h.textContent.trim()),
-      glyphs: [...document.querySelectorAll('.mail-feature-badge svg')].map(svg => getComputedStyle(svg).stroke),
-      careful: [...document.querySelectorAll('.mail-careful .mail-careful-row h3')].map(h => h.textContent.trim()),
-      headings: [...document.querySelectorAll('.mail-stage h2')].map(h => h.textContent.trim()),
-      island: [...document.querySelectorAll('.mip-row')].map(row => row.textContent.trim()),
-      islandPoints: [...document.querySelectorAll('.mail-island-points h3')].map(h => h.textContent.trim()),
-    }));
-    assert.deepEqual(list.headings, ['A new look for your inbox.', 'A Blanc Mail address of your own.', 'The Island, made for mail.', 'Every account, one calm inbox.', 'Rules that read like sentences', 'Careful in what it sends, generous in what it accepts.', 'A good home for your mail.', 'Support', 'Blanc Mail for Mac.']);
-    // The Island figure lists the app's eight commands in its own order and words.
-    assert.deepEqual(list.island, ['/snoozeSnooze…', '/set-asideMove to Group…', '/labelLabels', '/moveMove To…', '/archiveArchive', '/trashTrash', '/composeNew Message', '/ruleNew Rule…']);
-    assert.deepEqual(list.islandPoints, ['Jump anywhere', 'Commands with a slash', 'Actions at hand']);
-    assert.deepEqual(list.features, ['Every account together', 'Groups', 'A native window', 'Gmail and Proton Mail', 'A moment to change your mind', 'Later, on your terms', 'Ghost Mode', 'Replies you type often', 'Drafts that keep up']);
-    assert.deepEqual(list.careful, ['Safe to read', 'No accidental double sends', 'Nothing added to your mail', 'Privacy choices']);
-    for (const stroke of list.glyphs) assert.match(stroke, /url\(.*#mail-gilt-stroke.*\)/);
+    await answerWaitlist(page, 200);
+    await page.locator('.offer-signup summary').focus();
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Tab');
+    assert.equal(await page.evaluate(() => document.activeElement.id), 'waitlistEmail');
+    await page.keyboard.type('reader@example.com');
+    await page.keyboard.press('Enter');
+    await page.locator('#waitlist .mail-waitlist-status', { hasText: 'Check your inbox to confirm your place.' }).waitFor();
   } finally { await context.close(); }
 });
 
@@ -113,18 +109,15 @@ test('the design teasers open in the visitor’s appearance, switch in place, an
       assert.ok(set.captions.every(c => c === 'Design preview'), set.captions.join());
       assert.ok(set.alts, 'every alt says it is a design preview');
     }
-    assert.deepEqual((await dark.page.locator('.mail-address label').allTextContents()).map(t => t.trim()), ['Get started', 'Pick a name', 'Open inbox']);
-    await dark.page.locator('.mail-address label', { hasText: 'Open inbox' }).click();
+    assert.deepEqual((await dark.page.locator('#address label').allTextContents()).map(t => t.trim()), ['Get started', 'Pick a name', 'Open inbox']);
+    await dark.page.locator('#address label', { hasText: 'Open inbox' }).click();
     assert.deepEqual((await teaserState(dark.page))[1].shown, ['ready']);
     // Keyboard: the radios move with the arrow keys.
-    await dark.page.locator('.mail-look input[value="dark"]').focus();
+    await dark.page.locator('[data-mail-look] input[value="dark"]').focus();
     await dark.page.keyboard.press('ArrowRight');
     assert.deepEqual((await teaserState(dark.page))[0].shown, ['light']);
-    assert.match(await dark.page.locator('.mail-address .mail-section-lead').textContent(), /^A private mailbox of your own,.* Add it to Blanc Mail for \$20 a year, or get it with Blanc Bundle,/);
-    // The address's features, and none of the claims the owner ruled out.
-    const points = await dark.page.locator('.mail-address-points h3').allTextContents();
-    assert.deepEqual(points, ['Your name, your ending', '15 GB for your mail', 'Encrypted where it’s stored', 'Back in with a code', 'Time to renew', 'Filtered for spam']);
-    const addressText = await dark.page.locator('.mail-address').textContent();
+    const addressText = await dark.page.locator('#address').innerText();
+    assert.match(addressText, /15 GB of storage/);
     assert.doesNotMatch(addressText, /can[’']t read your mail|Apple Mail|iPhone|iPad|end-to-end/i);
   } finally { await dark.context.close(); }
 
@@ -137,55 +130,44 @@ test('the design teasers open in the visitor’s appearance, switch in place, an
   } finally { await light.context.close(); }
 });
 
-test('Pricing says purchases are not open before any price, and recommends neither plan', async () => {
+test('visitors can compare the three launch plans and their billing periods without opening checkout', async () => {
   const { page, context } = await openPage('/mail');
   try {
-    const pricing = await page.evaluate(() => {
-      const status = document.querySelector('#pricing .mail-pricing-status');
-      const plans = document.querySelector('#pricing .mail-plans');
-      return {
-        text: status.textContent.trim(),
-        first: Boolean(status.compareDocumentPosition(plans) & Node.DOCUMENT_POSITION_FOLLOWING),
-        plans: [...plans.querySelectorAll('.mail-plan h3')].map(h => h.textContent.trim()),
-        prices: [...plans.querySelectorAll('.mail-plan-price')].map(p => p.innerText.replace(/\s+/g, ' ').trim()),
-        tabular: [...plans.querySelectorAll('.mail-plan-price')].every(p => getComputedStyle(p).fontVariantNumeric.includes('tabular-nums')),
-        badge: /recommended|best value|most popular/i.test(plans.textContent),
-        checkout: plans.querySelectorAll('a[href*="polar.sh"]').length,
-      };
-    });
-    assert.match(pricing.text, /^Purchases are not open yet\./);
-    assert.ok(pricing.first, 'the status comes before the plans');
-    assert.deepEqual(pricing.plans, ['Blanc Mail', 'Blanc Mail + Address', 'Blanc Bundle']);
-    assert.deepEqual(pricing.prices, ['$4.99 / month or $49.99 / year', '$69.99 / year Blanc Mail plus your own address, $20 more a year', '$7.99 / month or $79.99 / year']);
-    assert.ok(pricing.tabular, 'prices use tabular figures');
-    assert.equal(pricing.badge, false);
-    assert.equal(pricing.checkout, 0, 'no checkout until it opens');
-    // The Bundle names Nodding Off and links to its site; both plans say where the address comes from.
-    const cards = await page.evaluate(() => [...document.querySelectorAll('#pricing .mail-plan ul')].map(ul => [...ul.querySelectorAll('li')].map(li => li.textContent.trim())));
-    assert.ok(!cards[0].some(line => /address/i.test(line)), 'plain Blanc Mail has no address');
-    assert.ok(cards[1].includes('Your own address on inbox.day or another Blanc ending'));
-    assert.ok(cards[2].includes('Nodding Off, bedtime stories for iPhone'));
-    assert.equal(await page.locator('#pricing .mail-plan a[href="https://noddingoffapp.com/"]').textContent(), 'Nodding Off');
+    assert.match(await page.locator('#pricing .section-intro').innerText(), /Planned pricing at launch.*Purchases are not open/);
+    const plans = page.locator('.offer-plan');
+    assert.deepEqual(await plans.locator('h3').allTextContents(), ['Blanc Mail', 'Blanc Mail + Address', 'Blanc Bundle']);
+    assert.deepEqual(await plans.locator('.offer-prices p').allTextContents(), [
+      '$49.99 / year', 'or $4.99 / month', '$69.99 / year', 'Annual billing only', '$79.99 / year', 'or $7.99 / month',
+    ]);
+    assert.match(await plans.first().innerText(), /existing email accounts/);
+    assert.match(await plans.nth(1).innerText(), /15 GB/);
+    assert.match(await plans.last().innerText(), /Nodding Off/);
+    assert.equal(await plans.getByRole('link', { name: 'Nodding Off' }).getAttribute('href'), 'https://noddingoffapp.com/');
+    assert.equal(await page.locator('main a[href*="polar.sh"]').count(), 0);
+    assert.doesNotMatch(await plans.allInnerTexts().then(lines => lines.join(' ')), /recommended|most popular/i);
   } finally { await context.close(); }
 });
 
-test('Support gives its address, then three topics; Download closes with the waitlist and requirements', async () => {
+test('FAQ disclosures explain reservations, privacy and billing and are keyboard operable', async () => {
   const { page, context } = await openPage('/mail');
   try {
-    const end = await page.evaluate(() => ({
-      address: document.querySelector('#support .mail-section-lead a[href^="mailto:"]').getAttribute('href'),
-      topics: [...document.querySelectorAll('#support .mail-support-row h3')].map(h => h.textContent.trim()),
-      order: [...document.querySelectorAll('.mail-stage > section[id]')].map(section => section.id).slice(-3),
-      form: document.querySelector('#download form[data-mail-waitlist]')?.id,
-      requirements: document.querySelector('#download .mail-requirements').textContent.trim(),
-      legal: [...document.querySelectorAll('.mail-stage-notes a')].map(a => a.getAttribute('href')),
-    }));
-    assert.equal(end.address, 'mailto:support@blanc.day');
-    assert.deepEqual(end.topics, ['Accounts and data', 'Uninstalling', 'Updates and licensing']);
-    assert.deepEqual(end.order, ['pricing', 'support', 'download']);
-    assert.equal(end.form, 'closing-waitlist');
-    assert.match(end.requirements, /^macOS 14 or later on an Apple Silicon or Intel Mac, plus a Google account, a Proton account with Proton Mail Bridge, or a Blanc Mail address\./);
-    assert.deepEqual(end.legal, ['https://noddingoffapp.com/', '/download', '/mail/privacy', '/mail/terms']);
+    const questions = page.locator('#support details');
+    for (const [title, answer] of [
+      ['What does reserving a name get me?', /30 days after addresses open/],
+      ['What is encrypted in a Blanc mailbox?', /subjects and dates remain visible/],
+      ['What if I forget my mailbox password?', /cannot open mail you received before recovery/],
+      ['What happens if my subscription ends?', /read, search and export/],
+      ['I’m a Browser Patron.', /existing Browser key keeps working/],
+    ]) {
+      const question = questions.filter({ has: page.locator('summary', { hasText: title }) });
+      await question.locator('summary').focus();
+      await page.keyboard.press('Enter');
+      assert.ok(await question.locator('p').isVisible());
+      assert.match(await question.locator('p').innerText(), answer);
+    }
+    assert.equal(await page.locator('#support a[href^="mailto:"]').first().getAttribute('href'), 'mailto:support@blanc.day');
+    assert.match(await page.locator('#download').innerText(), /macOS 14 or later on an Apple Silicon or Intel Mac/);
+    assert.equal(await page.locator('#download form').getAttribute('id'), 'closing-waitlist');
   } finally { await context.close(); }
 });
 
@@ -212,42 +194,13 @@ test('a link to a section lands with its heading below the bars', async () => {
   }
 });
 
-test('the envelope holds still under reduced motion, and otherwise leans toward the pointer', async () => {
-  // Whether the envelope is rotated at all: the perspective alone leaves the
-  // matrix's rotation terms at zero.
-  const leaning = page => page.evaluate(() => {
-    const { m13, m23, m31, m32 } = new DOMMatrix(getComputedStyle(document.querySelector('.mail-envelope')).transform);
-    return [m13, m23, m31, m32].some(v => Math.abs(v) > 1e-4);
-  });
-
-  const reduced = await openPage('/mail');
-  try {
-    await reduced.page.mouse.move(40, 200);
-    await reduced.page.waitForTimeout(400);
-    assert.equal(await leaning(reduced.page), false, 'no lean');
-    assert.equal(await reduced.page.evaluate(() => document.querySelector('.mail-soon').getAnimations({ subtree: true }).length), 0, 'nothing animates');
-  } finally { await reduced.context.close(); }
-
-  const full = await openPage('/mail', 1440, { reducedMotion: 'no-preference' });
-  try {
-    await full.page.mouse.move(40, 200);
-    await full.page.waitForFunction(() => getComputedStyle(document.querySelector('.mail-envelope')).getPropertyValue('--mx').trim() !== '0.5');
-    await full.page.waitForTimeout(1000);
-    assert.equal(await leaning(full.page), true, 'it leans');
-    await full.page.mouse.move(720, 450);
-    await full.page.mouse.move(-1, 450);
-    await full.page.evaluate(() => document.documentElement.dispatchEvent(new PointerEvent('pointerleave')));
-    await full.page.waitForTimeout(1100);
-    assert.equal(await leaning(full.page), false, 'and settles when the pointer leaves');
-  } finally { await full.context.close(); }
-});
-
 test('on a phone the waitlist stacks with a full-height field', async () => {
   const { page, context } = await openPage('/mail', 390, { viewport: { width: 390, height: 844 } });
   try {
+    await page.locator('.offer-signup summary').click();
     const m = await page.evaluate(() => {
       const box = selector => document.querySelector(selector).getBoundingClientRect();
-      return { field: box('#waitlistEmail').height, button: box('#waitlist button[type=submit]'), fieldBottom: box('#waitlistEmail').bottom };
+      return { field: box('#waitlistEmail').height, button: box('#waitlist button[type=submit]').toJSON(), fieldBottom: box('#waitlistEmail').bottom };
     });
     assert.ok(m.field >= 40, `the field is ${m.field}px tall`);
     assert.ok(m.button.top >= m.fieldBottom, 'the button sits below the field');

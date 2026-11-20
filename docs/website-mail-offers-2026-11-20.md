@@ -1,0 +1,13 @@
+# Blanc Mail overview claims, November 20, 2026
+
+The overview presents two paths into the upcoming Mac app. The following wording applies to the preview. The November 12 and November 17 claims records contain the underlying provider and mailbox evidence.
+
+| Wording or offer | Source and qualification |
+| --- | --- |
+| “A mail app for Mac. Bring your Gmail or Proton Mail account, or add a Blanc address of your own.” | Qualified preview. Mac app and provider evidence in the November 12 record. A Blanc address is optional and belongs to either address-bearing plan. |
+| “Connect Gmail directly, or use your Proton Mail account through Proton Mail Bridge on your Mac.” | Qualified preview. Google Sign-In and ProtonMailKit in the November 12 record. Proton requires Bridge on the Mac. |
+| “Reserve a name like mira@inbox.day for free.” | Current reservation offer, shown only while reservations are open. The displayed ending comes from the site's reservation settings. Confirming holds the name across the endings until 30 days after addresses open. Claiming it requires an eligible plan and the same backup email. See the Mail repo's November 18 address-reservations design and November 19 default-ending decision. |
+| “The 15 GB mailbox comes with a paid plan at launch.” | Planned offer. Blanc Mail + Address and Blanc Bundle include one address and 15 GB. Plain Mail is the app alone. The November 18 owner decision in the Mail repo and the website commerce catalog establish the inclusions, the annual-only address plan and each price. The overview reads both periods and the annual price difference from that catalog. |
+| Find mail across accounts, move conversations to a Group, and sort Gmail with a rule while Blanc Mail is closed. | Qualified preview. Island and Rules evidence in the October 12 record, Group naming and semantics in the November 17 record. The rule example adds a Gmail label. The Island and address designs use made-up mail and retain their Design preview labels. The signed rule-editor capture retains its Preview build label. |
+| App trial, cancellation, Browser Patron upgrades and Bundle inclusions | Existing pricing and license qualifications from the October 12 record and subsequent commerce decisions. The 14-day local trial is for the app. The Mail worker's hosted mailbox spec documents the separate 30-day receipt window and export notice. |
+| Encryption and account recovery | Qualified preview, only for a Blanc mailbox. The November 17 record documents encryption of stored bodies and attachments, visible metadata, server access at delivery and send time, and the limits of backup-email recovery on a new Mac. |
