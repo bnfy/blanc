@@ -76,6 +76,36 @@ test('the hero shows both ways to use Mail with equal actions before the preview
   }
 });
 
+test('the example address shimmers in the hero and address section and stays gold under reduced motion', async () => {
+  const { page, context } = await openPage('/mail');
+  try {
+    const { endings } = JSON.parse(readFileSync(new URL('../../site/src/data/mail-reservations.json', import.meta.url)));
+    for (const section of ['.offer-paths', '#address']) {
+      const address = page.locator(section).getByText(`mira@${endings[0]}`, { exact: true });
+      assert.ok(await address.isVisible());
+      const { backgroundClip, backgroundImage, animationName } = await address.evaluate(el => {
+        const { backgroundClip, backgroundImage, animationName } = getComputedStyle(el);
+        return { backgroundClip, backgroundImage, animationName };
+      });
+      assert.equal(backgroundClip, 'text');
+      assert.match(backgroundImage, /linear-gradient/);
+      assert.equal(animationName, 'none');
+    }
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    for (const address of await page.locator('.mail-shimmer').all()) {
+      assert.ok(await address.evaluate(el => {
+        const [shimmer] = el.getAnimations();
+        if (!shimmer) return false;
+        shimmer.pause();
+        shimmer.currentTime = 0;
+        const start = getComputedStyle(el).backgroundPosition;
+        shimmer.currentTime = shimmer.effect.getTiming().duration;
+        return getComputedStyle(el).backgroundPosition !== start;
+      }), 'the gold highlight travels across the address');
+    }
+  } finally { await context.close(); }
+});
+
 test('the envelope holds still under reduced motion, and otherwise leans toward the pointer', async () => {
   // Whether the envelope is rotated at all: the perspective alone leaves the
   // matrix's rotation terms at zero.

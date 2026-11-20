@@ -92,7 +92,7 @@ const support = [
         </div>
         <div class="offer-path">
           <h2>Get a Blanc address</h2>
-          <p>{reservationsOpen ? 'Reserve a name like ' : 'Choose an address like '}<strong><!--email_off-->{exampleAddress}<!--/email_off--></strong>{reservationsOpen ? ' for free. ' : '. '}The 15 GB mailbox comes with a paid plan at launch.</p>
+          <p>{reservationsOpen ? 'Reserve a name like ' : 'Choose an address like '}<strong class="mail-shimmer"><!--email_off-->{exampleAddress}<!--/email_off--></strong>{reservationsOpen ? ' for free. ' : '. '}The 15 GB mailbox comes with a paid plan at launch.</p>
           <a class="offer-action" href={reservationsOpen ? '/mail/reserve' : '#address'}>{reservationsOpen ? 'Reserve your address' : 'Explore Blanc addresses'}</a>
         </div>
       </div>
@@ -186,7 +186,7 @@ const support = [
     <section id="address" class="overview-section address-spread mail-teaser-set" aria-labelledby="address-title">
       <div class="feature-copy">
         <h2 id="address-title"><span class="mail-gold-text">A private mailbox of your own.</span></h2>
-        <p>Choose a name and an ending when addresses open. One address and 15 GB of storage come with Blanc Mail + Address and Blanc Bundle.</p>
+        <p>Choose an address like <strong class="mail-shimmer"><!--email_off-->{exampleAddress}<!--/email_off--></strong> when addresses open. One address and 15 GB of storage come with Blanc Mail + Address and Blanc Bundle.</p>
         <ul class="address-endings" aria-label="Available address endings">{endings.map(ending => <li>@{ending}</li>)}</ul>
         {reservationsOpen && <a class="offer-action" href="/mail/reserve">Reserve your address</a>}
       </div>

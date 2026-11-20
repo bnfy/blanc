@@ -135,7 +135,19 @@
   text-wrap: pretty;
 }
 .offer-path > p { max-width: 44ch; margin: 10px 0 19px; font-size: 16px; }
-.offer-path strong { color: #ecd39e; font-weight: 600; }
+.mail-shimmer {
+  font-weight: 700;
+  background: linear-gradient(100deg, #b07a3c 0%, #e0c084 22%, #f6e7bd 38%, #c08a48 55%, #8c5a2b 70%, #e0c084 86%, #b07a3c 100%) 0 0 / 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+@media (prefers-reduced-motion: no-preference) and (forced-colors: none) {
+  .mail-shimmer { animation: mail-shimmer 6s ease-in-out infinite alternate; }
+}
+@keyframes mail-shimmer { to { background-position: 100% 0; } }
 .offer-path > :last-child { margin-top: auto; }
 .mail-overview .offer-action {
   box-sizing: border-box;
@@ -314,6 +326,6 @@
   .mail-envelope { transition: none; }
 }
 @media (forced-colors: active) {
-  .mail-overview .mail-gold-text { color: CanvasText; background: none; }
+  .mail-overview :is(.mail-gold-text, .mail-shimmer) { color: CanvasText; background: none; }
   .mail-overview .offer-action, .mail-segments input:checked + span { border: 1px solid ButtonText; }
 }
