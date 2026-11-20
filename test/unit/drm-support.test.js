@@ -84,3 +84,35 @@ test('only ECS Linux relaunch removes old mount paths and preserves profile iden
   assert.equal(env.PATH, '/usr/bin');
   assert.equal(env.BLANC_ECS_FULL_PROFILE, '/fixture/profile');
 });
+// #1634 follow-up: one refused file never stops the rest, and main learns
+// which were refused and why.
+test('ECS local files open one by one and report each refusal', async () => {
+  const fs = require('node:fs/promises');
+  const os = require('node:os');
+  const path = require('node:path');
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'drm-local-'));
+  try {
+    const good = path.join(dir, 'good.html');
+    await fs.writeFile(good, '<p>ok</p>');
+    const f = fixture();
+    f.app.getName = () => 'Blanc';
+    const ses = new EventEmitter();
+    Object.assign(ses, { protocol: { handle() {}, unhandle() {} }, webRequest: { onBeforeRequest() {} },
+      setPermissionRequestHandler() {}, setPermissionCheckHandler() {} });
+    f.session.fromPartition = () => ses;
+    const opened = [];
+    class BrowserWindow extends EventEmitter {
+      constructor(options) { super(); opened.push(options.title); this.webContents = new EventEmitter(); this.webContents.setWindowOpenHandler = () => {}; }
+      async loadURL() {}
+      removeMenu() {}
+    }
+    const support = createDrmSupport({ ...f, BrowserWindow });
+    f.ready();
+    const missing = path.join(dir, 'missing.html');
+    const refused = await support.openLocalFiles(['relative.html', good, missing]);
+    assert.deepEqual(opened, ['Blanc'], 'the good file still opens after a refusal');
+    assert.deepEqual(refused.map(({ file }) => file), ['relative.html', missing]);
+    assert.deepEqual(refused.map(({ error }) => error.localHtmlRefusal), ['unreadable', 'unreadable']);
+    assert.deepEqual(await support.openLocalFiles([good]), []);
+  } finally { await fs.rm(dir, { recursive: true, force: true }); }
+});
