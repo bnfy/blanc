@@ -762,3 +762,21 @@ Feature: Named workspace preservation and recovery
     And a Work profile with a window
     When I open the Spaces menu in the Work window
     Then I see "Work" under "Personal" without the sync marks
+
+  @F41-93 @F41 @F33 @desktop
+  Scenario: The Quick Switcher says why another profile's Space didn't open
+    Given a Work profile with a saved Space named "Sprint" that no window shows
+    When I search for "Sprint" in the Quick Switcher
+    Then I see "Sprint" labeled "Space · Work"
+    When deletion of the Work profile is underway and I choose that Quick Switcher result
+    Then the Spaces menu opens with "That profile is no longer available."
+    And no Work window opened
+
+  @F41-94 @F41 @F33 @desktop
+  Scenario: /space with a new name stays in this window's profile
+    Given a Work profile with a window
+    When I type "/space Sprint" in this Personal window and click the "/space" command
+    Then the Spaces menu opens the New Space editor named "Sprint"
+    And the New Space editor has no Profile choice
+    When I create the Space "Sprint" from the editor
+    Then "Sprint" is saved in Personal and not in Work

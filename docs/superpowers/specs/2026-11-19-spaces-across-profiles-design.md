@@ -108,8 +108,8 @@ In every case the menu closes, and nothing in the window you came from changes. 
 
 - **Move to Space ▸ / Move Group to Space ▸** list only the window's own profile, as today. Moving a page into another profile would sign it out.
 - **Sending a link to a Space** (`space-open-link.js`) stays within this profile. Sending a link into another profile is link routing's job (F60).
-- **`/space <name>`** still switches to or creates a Space in this window's profile only. A name typed in another profile shouldn't create a Space in this one by accident, so typing the exact name of another profile's Space does nothing different from today. *(My call.)*
-- **The Quick Switcher** (⌘L, typing) does match other profiles' Space names. A result shows the Space's tile, its name and "Space · Work", ranks below this profile's Spaces, and opens as in §4.3. *(My call: this is the fastest way to reach a work Space, and it's read-only.)*
+- **`/space <name>`** still switches to or creates a Space in this window's profile only. A name typed in another profile shouldn't create a Space in this one by accident, so typing the exact name of another profile's Space does nothing different from today. *(My call.)* Its New Space editor has no Profile row (fixed November 19, 2026, after a review found `/space <name>` offering it).
+- **The Quick Switcher** (⌘L, typing) does match other profiles' Space names. A result shows the Space's tile, its name and "Space · Work", ranks below this profile's Spaces, and opens as in §4.3. *(My call: this is the fastest way to reach a work Space, and it's read-only.)* When that open is refused (the profile is going away, the Space is gone, or it can't open), the Spaces menu opens on its list with the reason, since the Quick Switcher opened it with the menu closed.
 
 ### 4.6 Private tabs, Mini windows, Shared Spaces
 
@@ -194,6 +194,8 @@ Marketing must not say a Space "has its own profile" or that a window switches p
   - **F41-90** The Quick Switcher finds a Work Space from a Personal window and opens it in Work.
   - **F41-91** A profile being deleted disappears from the menu.
   - **F41-92** A Work window shows Personal's shared Spaces without sync marks.
+  - **F41-93** A Quick Switcher open refused because Work is being deleted opens the Spaces menu with the reason, and no window opens.
+  - **F41-94** `/space <name>` with a new name opens the New Space editor without the Profile row.
 - **`spec/divergence-register.md`:** if the fork ships heading avatars or anything else from Chromium's profiles, add a D-number for it then. D25 already covers the phones.
 - **`spec/parity-matrix.md`:** F41's desktop row notes cross-profile Spaces; iPhone and Android are N/A (D25).
 
