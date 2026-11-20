@@ -61,13 +61,11 @@ test('a tool that rewrites a build input leaves it as it was', () => {
     fs.writeFileSync(file, 'first'); fs.utimesSync(file, then, then);
     assert.equal(keepingFile(file, () => { fs.writeFileSync(file, 'rewritten'); return 'out'; }), 'out');
     // Contents and time from one open file, so nothing can change between them.
-    const fd = fs.openSync(file, 'r');
-    try {
-      assert.equal(fs.readFileSync(fd, 'utf8'), 'first');
-      assert.equal(fs.fstatSync(fd).mtime.getTime(), then.getTime());
-    } finally { fs.closeSync(fd); }
+    const opened = () => { const fd = fs.openSync(file, 'r');
+      try { return {text: fs.readFileSync(fd, 'utf8'), mtime: fs.fstatSync(fd).mtime.getTime()}; } finally { fs.closeSync(fd); } };
+    assert.deepEqual(opened(), {text: 'first', mtime: then.getTime()});
     assert.throws(() => keepingFile(file, () => { fs.rmSync(file); throw new Error('boom'); }), /boom/);
-    assert.equal(fs.readFileSync(file, 'utf8'), 'first');
+    assert.equal(opened().text, 'first');
     const absent = path.join(dir, 'absent.txt');
     keepingFile(absent, () => fs.writeFileSync(absent, 'made'));
     assert.equal(fs.existsSync(absent), false);
