@@ -21,6 +21,7 @@ on:
           - install
           - quit
           - keys
+          - suite
           - repo-metadata
       arch:
         description: Linux candidate architecture (one tarball SHA-256 per dispatch)
@@ -153,6 +154,11 @@ jobs:
           if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
           sudo apt-get update
           sudo apt-get install -y xvfb weston
+          if [[ $SUITE == f0 ]]; then
+            sudo apt-get install -y xdotool x11-utils locales
+            sudo localedef -i de_DE -f UTF-8 de_DE.UTF-8
+            sudo localedef -i en_US -f UTF-8 en_US.UTF-8
+          fi
       - &dependencies
         name: Install the harness's dependencies
         id: dependencies
@@ -471,7 +477,7 @@ jobs:
           sudo apt-get install -y xvfb xauth openbox xdotool x11-utils "$QUIT_DEB"
           jq --arg dir '/opt/bnfy/blanc-prototype' --arg exe "$QUIT_INSTALLED_SHA256" '
             {candidate:.id, executable:($dir + "/chrome"), executableSha256:$exe,
-             singleBinary:true, diskAssets:false, blockerAssets:($dir + "/blanc_blocker")}
+             singleBinary:true, diskAssets:false}
           ' "$CANDIDATE_DIR/candidate.json" > "$RUNNER_TEMP/keys-config.json"
       - *dependencies
       - name: Posted and real Ctrl+Tab gestures on X11
@@ -496,6 +502,82 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: chromium-linux-keys-${{ inputs.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/results
+          if-no-files-found: warn
+          retention-days: 14
+
+  suite:
+    if: ${{ inputs.check == 'suite' }}
+    name: suite (linux ${{ inputs.arch }})
+    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    timeout-minutes: 350
+    permissions:
+      contents: write
+    env: *candidate-env
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - *validate
+      - *checkout
+      - *node
+      - *pins
+      - *assets
+      - *download
+      - *unpack
+      - *identify-package
+      - *download-approval
+      - *verify-package
+      - name: Install the verified package and Linux suite dependencies
+        run: |
+          if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth openbox xdotool x11-utils dbus-x11 locales "$QUIT_DEB"
+          sudo localedef -i de_DE -f UTF-8 de_DE.UTF-8
+          sudo localedef -i en_US -f UTF-8 en_US.UTF-8
+          locale -a | grep -ix de_DE.utf8
+          locale -a | grep -ix en_US.utf8
+      - *dependencies
+      - name: Run the shipping inventory and compare Island layout at 2x
+        env:
+          LANG: en_US.UTF-8
+        run: |
+          # Both runs have a 1920x1080 DIP desktop. Only the pixel density changes.
+          run_suite() {
+            local screen=$1
+            shift
+            xvfb-run -a --server-args="-screen 0 ${screen}x24" dbus-run-session -- bash -s -- "$@" <<'X11'
+          set -euo pipefail
+          unset WAYLAND_DISPLAY
+          export GDK_BACKEND=x11
+          # Disable the WM's iconify animation. The suite exercises CSS motion.
+          echo '<openbox_config xmlns="http://openbox.org/3.4/rc"><theme><animateIconify>no</animateIconify></theme><keyboard/></openbox_config>' > "$RUNNER_TEMP/suite-wm.xml"
+          openbox --sm-disable --config-file "$RUNNER_TEMP/suite-wm.xml" >& "$RUNNER_TEMP/suite-openbox.log" &
+          wm=$!
+          trap 'kill "$wm" 2>/dev/null || true; wait "$wm" 2>/dev/null || true' EXIT
+          timeout 15s bash -c 'until xprop -root _NET_SUPPORTING_WM_CHECK | grep -q "window id"; do sleep 0.1; done'
+          node chromium/linux/run-suite.mjs "$CANDIDATE_DIR" "$@" --slice=f0 "--installed-sha256=$QUIT_INSTALLED_SHA256"
+          X11
+          }
+          if [[ -n $ONLY ]]; then
+            run_suite 1920x1080 "$RESULTS/subset-$ARCH" "--only=$ONLY"
+          else
+            run_suite 1920x1080 "$RESULTS/full-$ARCH"
+            run_suite 3840x2160 "$RESULTS/layout-2x-$ARCH" --scale=2 --only=island-and-commands,vertical-tabs,F41-named-workspaces,glance
+            node --input-type=module <<'COMPARE'
+          import fs from 'node:fs';
+          import {compareLayoutRuns} from './chromium/linux/run-suite.mjs';
+          const {RESULTS,ARCH} = process.env;
+          const baseline = dir => JSON.parse(fs.readFileSync(RESULTS+'/'+dir+'-'+ARCH+'/baseline.json'));
+          const diff = compareLayoutRuns(baseline('full'),baseline('layout-2x'));
+          fs.writeFileSync(RESULTS+'/layout-differences-'+ARCH+'.json',JSON.stringify(diff,null,2)+'\n');
+          COMPARE
+          fi
+      - name: Keep architecture and scale evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chromium-linux-suite-${{ inputs.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/results
           if-no-files-found: warn
           retention-days: 14

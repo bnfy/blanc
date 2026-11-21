@@ -15,7 +15,6 @@ import { assertNodeRuntime } from './lib/render-guard.mjs';
 import { installDriver, nativeCall } from './lib/test-driver.mjs';
 
 const EXIT_MS = 10_000;
-const INSTALLED = '/opt/bnfy/blanc-prototype/chrome';
 const run = (tool, args) => execFileSync(tool, args, { encoding: 'utf8', timeout: 5000 }).trim();
 const x11 = (...args) => run('xdotool', args.map(String));
 
@@ -119,17 +118,7 @@ export async function observeExit(read, deadline) {
   }
 }
 
-// The L0 fixture always supplies a loose blocker directory. Installed cases
-// keep its isolated profile and network, and use the package's embedded engine.
 export class QuitFixture extends NativeFixture {
-  start(...args) {
-    if (this.config.executable === INSTALLED) {
-      this.flags = this.flags.filter(flag => !flag.startsWith('--blanc-blocker-assets='));
-      this.flags.push('--blanc-blocker-assets=' + path.join(path.dirname(INSTALLED), 'blanc_blocker'));
-    }
-    return super.start(...args);
-  }
-
   reapHelpers() {
     this.reapedPids = super.reapHelpers();
     if (this.reapedPids.length) throw new Error('Fixture cleanup reaped surviving PIDs ' + this.reapedPids.join(', '));
@@ -328,10 +317,9 @@ async function main([folder, resultDir, mode, ...extra]) {
   assert.equal(fs.readFileSync('/proc/sys/kernel/apparmor_restrict_unprivileged_userns', 'utf8').trim(), '1');
   const candidate = JSON.parse(fs.readFileSync(path.join(folder, 'candidate.json'), 'utf8'));
   assert.equal(candidate.arch, process.arch);
-  const config = runtimeConfig(path.resolve(folder), candidate);
   // The installer ships chrome.stripped. Bind the actual executable to the
   // member of the verified .deb, which can differ from the loose chrome.
-  if (installedHash) Object.assign(config, { executable: INSTALLED, executableSha256: installedHash });
+  const config = runtimeConfig(path.resolve(folder), candidate, installedHash);
   const out = path.resolve(resultDir);
   fs.mkdirSync(out, { recursive: true });
   const report = path.join(out, 'quit-' + process.arch + '.json');

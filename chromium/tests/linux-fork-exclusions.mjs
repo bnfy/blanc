@@ -1,5 +1,10 @@
 // Product decisions shared with the Windows suite, with Linux's own update proof.
 export const linuxForkExclusions = Object.freeze({
+  "spec/acceptance/private-tabs.feature:40:plain": "Linux L2 decision 4: a private-tab device-bound passkey uses a security key or phone. Chromium has no Linux platform authenticator.",
+  "spec/acceptance/settings-and-theming.feature:12:plain": "Linux L2 decision 5: resolving a stored app icon in Settings requires the macOS icon catalog.",
+  "spec/acceptance/supporter-and-session.feature:7:plain": "Linux L2 decision 5: choosing Sunrise-Dark requires the macOS app icon catalog.",
+  "spec/acceptance/supporter-and-session.feature:12:plain": "Linux L2 decision 5: the Patron Ember icon selection requires the macOS app icon catalog.",
+  "spec/acceptance/island-and-commands.feature:320:plain": "Linux L2 decision 6: Chromium draws native caption buttons. L1 tests their layout and operation. The Island has no floating window-controls view.",
   "spec/acceptance/glance.feature:187:plain": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension.",
   "spec/acceptance/glance.feature:197:plain": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension.",
   "spec/acceptance/platform-services.feature:50:plain": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension.",

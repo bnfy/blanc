@@ -27,5 +27,19 @@ test('Linux excludes exactly the shared decisions and gives its own updater reas
   const expected = Object.fromEntries(shared.map(id => [id, windowsForkExclusions[id]]));
   expected['spec/acceptance/platform-services.feature:25:plain'] =
     "The test build has no updater; Linux betas update through apt and dnf from Blanc's repository (spec owner decision 2), proven at L3.";
+  const decisions = [
+    [4, 'private-tabs', 40, /security key.*phone/i],
+    [5, 'settings-and-theming', 12, /stored.*icon/i],
+    [5, 'supporter-and-session', 7, /sunrise-dark/i],
+    [5, 'supporter-and-session', 12, /patron.*ember/i],
+    [6, 'island-and-commands', 320, /caption buttons/i],
+  ];
+  for (const [number, file, line, subject] of decisions) {
+    const [id] = feature(file, line);
+    const reason = linuxForkExclusions[id] ?? '';
+    assert.match(reason, new RegExp('Linux L2 decision ' + number));
+    assert.match(reason, subject);
+    expected[id] = reason;
+  }
   assert.deepEqual(linuxForkExclusions, expected);
 });

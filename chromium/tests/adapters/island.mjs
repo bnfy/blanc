@@ -55,7 +55,7 @@ const NO_INSETS={left:0,top:0,right:0,bottom:0};
 async function windowOf(w){
  const page=await activePage(w);
  const {windowId,bounds}=await w.fixture.browser.send('Browser.getWindowForTarget',{targetId:page.targetId});
- const insets=process.platform==='win32'?await w.native('windowFrameInsets'):NO_INSETS;
+ const insets=['win32','linux'].includes(process.platform)?await w.native('windowFrameInsets'):NO_INSETS;
  return {windowId,insets,bounds:{...bounds,left:bounds.left+insets.left,top:bounds.top+insets.top,
   width:bounds.width-insets.left-insets.right,height:bounds.height-insets.top-insets.bottom}};
 }
@@ -110,6 +110,12 @@ async function islandReport(w){
 }
 // Shipping sets these through its Settings page; drive the fork's Settings
 // page the same way. A missing control is the product's own gap.
+export function linuxButtonRects(buttons,menuButtonRect) {
+ if (!buttons.length) return {windowControlsRect:null,menuButtonRect};
+ const x = Math.min(...buttons.map(b=>b.x)), y = Math.min(...buttons.map(b=>b.y));
+ const right = Math.max(...buttons.map(b=>b.x+b.width)), bottom = Math.max(...buttons.map(b=>b.y+b.height));
+ return {windowControlsRect:{x,y,width:right-x,height:bottom-y},menuButtonRect};
+}
 export const island={
  tabLayout:async w=>{
   const layout=(await w.snapshot()).tabLayout;
@@ -143,7 +149,11 @@ export const island={
  },
  async mainWindowState(w){const {bounds}=await windowOf(w);return {maximized:bounds.windowState==='maximized',minimized:bounds.windowState==='minimized'};},
  async restoreMainWindow(w){const {windowId}=await windowOf(w);await w.fixture.browser.send('Browser.setWindowBounds',{windowId,bounds:{windowState:'normal'}});return true;},
- chromeButtonRects:undef('The fork strip reports no window-button geometry to the host'),
+ chromeButtonRects:process.platform==='linux'?async w=>{
+  const buttons=await w.hostEval('window.BlancPrototypeHost.windowButtons().buttons');
+  const menu=await strip(w).locator('#mainMenuButton').boundingBox();
+  return linuxButtonRects(buttons,menu);
+ }:undef('The fork strip reports no window-button geometry to the host'),
  mainMenuRequests:w=>w.hostEval('window.BlancPrototypeHost.mainMenuRequests()'),
  // ---- strip geometry and DOM ----
  islandRect:async w=>(await islandReport(w))?.rect??null,

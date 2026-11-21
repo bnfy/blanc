@@ -7,13 +7,14 @@ const reason=c=>String(c.error||c.missingSteps?.map(m=>m.hooks?`${m.reason}: ${m
 export function sliceReport(baseline,slice){
  const rows=slices[slice];
  const report={slice,platform:baseline.platform,candidate:baseline.candidate,shippingCommit:baseline.shippingCommit,forkCommit:baseline.forkCommit,
-  merges:baseline.merges||[],summary:{pass:0,fail:0,undefined:0,excluded:0},rows:{}};
+  ...(baseline.arch?{arch:baseline.arch}:{}),merges:baseline.merges||[],summary:{pass:0,fail:0,undefined:0,excluded:0},rows:{}};
  const cases=[];
  for(const s of baseline.scenarios){
   const mapped=s.featureRows.filter(r=>rows.includes(r));if(!mapped.length)continue;
   for(const c of s.cases){
    const result=c.result==='not-run'?'undefined':c.result;report.summary[result]++;
-   const entry={id:c.id,result,...(result==='pass'?{}:{reason:reason(c)}),...(c.retried?{retried:true}:{})};cases.push(entry);
+   const exclusionReason=result==='excluded'?(c.exclusionReason||s.exclusionReason):undefined;
+   const entry={id:c.id,result,...(result==='pass'?{}:{reason:exclusionReason||reason(c)}),...(exclusionReason?{exclusionReason}:{}),...(c.retried?{retried:true}:{})};cases.push(entry);
    for(const r of mapped)(report.rows[r]??={pass:0,fail:0,undefined:0,excluded:0,cases:[]}),report.rows[r][result]++,report.rows[r].cases.push(entry);
   }
  }

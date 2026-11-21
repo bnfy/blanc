@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import fs, { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import YAML from 'yaml';
 import { NativeFixture } from './lib/fixture.mjs';
+import { runtimeConfig } from '../linux/candidate.mjs';
 import { BrowserProcesses, closePoint, observeExit, processTable, QuitFixture } from './linux-quit.mjs';
 
 const workflow = YAML.parse(readFileSync(new URL('../../.github/workflows/chromium-linux-candidate.yml', import.meta.url), 'utf8'));
@@ -16,18 +17,36 @@ function scratch(t) {
   return dir;
 }
 
-test('installed preview launches with exactly its packaged blocker and the normal readiness wait', async t => {
-  const fixture = new QuitFixture();
-  const blocker = '--blanc-blocker-assets=';
-  fixture.config = { executable: '/opt/bnfy/blanc-prototype/chrome' };
-  fixture.flags = ['--blanc-test', blocker + '/unpacked/blocker'];
-  t.mock.method(NativeFixture.prototype, 'start', function (url, { waitBlocker = true } = {}) {
-    assert.equal(url, 'http://localhost/initial');
-    assert.equal(waitBlocker, true);
-    assert.deepEqual(this.flags.filter(flag => flag.startsWith(blocker)), [blocker + '/opt/bnfy/blanc-prototype/blanc_blocker']);
-    assert.ok(this.flags.includes('--blanc-test'));
+test('installed quit and keys use the default blocker, while the unpacked candidate supplies its bundle', async t => {
+  const tmp = scratch(t);
+  const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+  const archiveHash = sha('archive'), installedHash = sha('installed');
+  const candidate = {id:'linux-x64-' + archiveHash.slice(0,16), exeSha256:archiveHash};
+  const loose = runtimeConfig(tmp, candidate);
+  const installed = runtimeConfig(tmp, candidate, installedHash);
+  assert.equal(installed.executable, '/opt/bnfy/blanc-prototype/chrome');
+  assert.equal(installed.archiveExecutableSha256, loose.executableSha256);
+  writeFileSync(loose.executable, 'archive');
+  t.mock.method(fs, 'readFileSync', (file,...args) =>
+    file === installed.executable ? Buffer.from('installed') : readFileSync(file,...args));
+  const platform = Object.getOwnPropertyDescriptor(process, 'platform');
+  Object.defineProperty(process, 'platform', {...platform,value:'linux'});
+  t.after(() => Object.defineProperty(process, 'platform', platform));
+  const captured = Error('captured browser launch');
+  t.mock.method(NativeFixture.prototype, 'start', function (url, {waitBlocker=true}={}) {
+    assert.equal(waitBlocker,true);
+    throw captured;
   });
-  await fixture.start('http://localhost/initial');
+  for (const config of [installed, loose]) {
+    const fixture = new QuitFixture();
+    fixture.reapHelpers = () => []; // start() stops before spawning.
+    try {
+      await assert.rejects(fixture.launch(config, path.join(tmp,config.executableSha256), {diskAssets:false}), error => error === captured);
+      const flags = fixture.flags.filter(flag => flag.startsWith('--blanc-blocker-assets'));
+      assert.deepEqual(flags, config === installed ? [] : ['--blanc-blocker-assets=' + path.join(tmp,'blocker')]);
+    } finally { await fixture.close(); }
+  }
+  assert.doesNotMatch(workflow.jobs.keys.steps.map(step => step.run).join('\n'), /blockerAssets|blanc-blocker-assets/);
 });
 
 const table = (...rows) => rows.map(([pid, parent, start]) => ({ pid, parent, start }));

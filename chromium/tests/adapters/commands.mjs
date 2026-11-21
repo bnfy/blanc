@@ -169,6 +169,9 @@ const readSwitch=(w,section,id)=>inSettings(w,section,(a,d)=>{const el=d.find('#
  return el?{value:el.checked}:{missing:'#'+a.id};},{id});
 // Shipping's engine ids by the names Chromium's Change dialog shows.
 const ENGINES={duckduckgo:'DuckDuckGo',google:'Google',bing:'Microsoft Bing',brave:'Brave',kagi:'Kagi'};
+export function missingEngineTemplate(engine,platform=process.platform) {
+ return platform==='linux' && engine==='brave' ? SEARCH.find(([id])=>id===engine)[1]+'%s' : null;
+}
 const engineOf=name=>Object.keys(ENGINES).find(id=>ENGINES[id]===name)??(name?'custom':'');
 // V12: add the engine through Chromium's own dialog and select its own
 // Make default action. Validation stays in the native settings handler.
@@ -263,6 +266,8 @@ export const commands={
   // V12 (owner, 2026-11-04): an engine the Change dialog doesn't list (Kagi)
   // is added under Manage search engines, which shipping's step doesn't do.
   // An unknown engine (shipping's invalid-engine case) is simply refused.
+  if(!r.offered&&engineOf(r.value)!==engine&&missingEngineTemplate(engine))
+   return addNativeEngine(w,ENGINES[engine],missingEngineTemplate(engine));
   if(ENGINES[engine]&&!r.offered&&engineOf(r.value)!==engine)throw new UndefinedNativeAdapterError(`V12: ${ENGINES[engine]??engine} is added under chrome://settings → Manage search engines`);
   return engineOf(r.value);}),
  searchEngine:w=>inSettings(w,'search',(a,d)=>({value:d.find('.search-engine-name')?.textContent.trim()??''})).then(engineOf),

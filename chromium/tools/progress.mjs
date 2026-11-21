@@ -2,12 +2,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { candidateId as linuxCandidateId } from '../linux/candidate.mjs';
+import { byArchitecture, candidateId as linuxCandidateId } from '../linux/candidate.mjs';
 
 const desktopPlatforms = [['macos', 'macOS'], ['windows', 'Windows'], ['linux', 'Linux']];
 // Android is the companion lane: it has its own Bar B column, and Bar A counts
 // desktop's shipping cases, which Android doesn't run.
 const platforms = [...desktopPlatforms, ['android', 'Android']];
+const linuxArches = ['x64', 'arm64'];
+const baselinePlatforms = desktopPlatforms.flatMap(([platform, label]) => platform === 'linux'
+  ? linuxArches.map(arch => [platform, `${label} ${arch}`, arch]) : [[platform, label]]);
 const stages = [
   ['not-started', 'Not started / unassessed'], ['research', 'Research only'],
   ['drafted', 'Drafted'], ['implemented', 'Implemented'],
@@ -18,13 +21,33 @@ const stages = [
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
 
 export function renderProgress(tracker, loadBaseline = () => null) {
+  const linux = byArchitecture(tracker.currentCandidates?.linux);
+  const refs = tracker.baselines ?? {};
+  const linuxBaselines = typeof refs.linux === 'string' ? {x64:refs.linux} : refs.linux ?? {};
+  const linuxReceiptRows = [];
   if (new Set(tracker.rows.map(r => r.id)).size !== tracker.rows.length) throw Error('Duplicate requirement rows');
   const counts = Object.fromEntries(platforms.map(([p]) => [p, Object.fromEntries(stages.map(([s]) => [s, 0]))]));
   for (const row of tracker.rows) for (const [p] of platforms) {
     let stage = row.platformProgress?.[p]?.stage;
     if (!(stage in counts[p])) throw Error(`Missing/unknown ${p} stage for ${row.id}`);
-    if (['verified', 'release-ready'].includes(stage)) {
-      const evidence = row.platformVerification?.[p];
+    const verified = ['verified', 'release-ready'].includes(stage);
+    const evidence = row.platformVerification?.[p];
+    if (p === 'linux' && (evidence || verified)) {
+      // Older trackers stored one receipt with its architecture in the candidate ID.
+      const legacyArch = /^linux-(x64|arm64)-/.exec(evidence?.candidate)?.[1] ?? 'x64';
+      const receipts = evidence?.candidate ? {[legacyArch]:evidence} : evidence ?? {};
+      const hasReceipts = linuxArches.some(arch => receipts[arch]);
+      if (verified && !hasReceipts) throw Error(`Missing verification for ${row.id}/linux`);
+      const cells = linuxArches.map(arch => {
+        const receipt = receipts[arch];
+        if (receipt && (!receipt.candidate || !receipt.shippingCommit)) throw Error(`Missing verification for ${row.id}/linux/${arch}`);
+        const current = receipt && receipt.candidate === linux[arch]?.id &&
+          (receipt.arch ?? arch) === arch && receipt.shippingCommit === tracker.shippingCommit;
+        if (verified && !current) stage = 'needs-recheck';
+        return receipt ? `${receipt.candidate} (${current ? 'current' : 'stale'})` : 'Missing';
+      });
+      if (hasReceipts) linuxReceiptRows.push(`| ${row.id} | ${cells.join(' | ')} |`);
+    } else if (verified) {
       if (!evidence || typeof evidence !== 'object' || !evidence.candidate || !evidence.shippingCommit) throw Error(`Missing verification for ${row.id}/${p}`);
       if (evidence.candidate !== tracker.currentCandidates?.[p]?.id || evidence.shippingCommit !== tracker.shippingCommit) stage = 'needs-recheck';
     }
@@ -32,14 +55,16 @@ export function renderProgress(tracker, loadBaseline = () => null) {
   }
   const caseTotal = Object.values(tracker.scenarioCases || {}).reduce((n, cases) => n + cases.length, 0);
   const lines = ['### Bar A — executable shipping cases on the fork', '', '| Platform | Current-candidate baseline |', '| --- | --- |'];
-  for (const [p, name] of desktopPlatforms) {
-    const candidate = tracker.currentCandidates?.[p];
-    const ref = tracker.baselines?.[p];
+  for (const [p, name, arch] of baselinePlatforms) {
+    const ref = arch ? linuxBaselines[arch] : refs[p];
     const baseline = ref ? loadBaseline(ref) : null;
+    const candidate = arch ? linux[arch] : tracker.currentCandidates?.[p];
     let status = `Not run (${caseTotal} cases)`;
     if (baseline) {
       const executableSha256 = p === 'linux' ? candidate?.exeSha256 : candidate?.executableSha256;
-      if (baseline.candidate !== candidate?.id || baseline.platform !== p || baseline.shippingCommit !== tracker.shippingCommit || (candidate?.frameworkSha256 && baseline.candidateIdentity?.frameworkSha256 !== candidate.frameworkSha256) || (executableSha256 && baseline.candidateIdentity?.executableSha256 !== executableSha256)) {
+      const baselineExecutable = (p === 'linux' && baseline.archiveExecutableSha256) || baseline.candidateIdentity?.executableSha256;
+      const wrongArch = arch && (baseline.arch ?? 'x64') !== arch;
+      if (!candidate || wrongArch || baseline.candidate !== candidate.id || baseline.platform !== p || baseline.shippingCommit !== tracker.shippingCommit || (candidate.frameworkSha256 && baseline.candidateIdentity?.frameworkSha256 !== candidate.frameworkSha256) || (executableSha256 && baselineExecutable !== executableSha256)) {
         status = 'Not run for current candidate (previous baseline is stale)';
       } else {
         if (baseline.developmentSubset) throw Error('A development subset run is not a baseline');
@@ -82,9 +107,11 @@ export function renderProgress(tracker, loadBaseline = () => null) {
     '', "Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acceptance/` (A2, A3): 32 (F2–F8, F12, F18, and the phone-only F31-11 and F56-1–3), run on the build server's emulator by `run.sh`; desktop cases don't apply to it.",
     '', '### Bar B — requirement rows by platform', '', `| State | ${platforms.map(([, name]) => name).join(' | ')} |`, `| --- |${platforms.map(() => ' ---: |').join('')}`);
   for (const [stage, label] of stages) lines.push(`| ${label} | ${platforms.map(([p]) => counts[p][stage]).join(' | ')} |`);
-  lines.push(`| Total | ${platforms.map(() => tracker.rows.length).join(' | ')} |`, '',
+  lines.push(`| Total | ${platforms.map(() => tracker.rows.length).join(' | ')} |`);
+  if (linuxReceiptRows.length) lines.push('', '| Requirement | Linux x64 receipt | Linux arm64 receipt |', '| --- | --- | --- |', ...linuxReceiptRows);
+  lines.push('',
     'Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.', '',
-    'Candidate identities: ' + platforms.map(([p, label]) => `${label}: ${tracker.currentCandidates?.[p]?.id || 'none'}`).join('; ') + '.');
+    'Candidate identities: ' + platforms.map(([p, label]) => `${label}: ${(p === 'linux' ? linuxArches.map(arch => linux[arch]?.id).filter(Boolean).join(', ') : tracker.currentCandidates?.[p]?.id) || 'none'}`).join('; ') + '.');
   return lines.join('\n');
 }
 
@@ -145,7 +172,8 @@ function main() {
   }
   const linuxRecord = args.find(a => a.startsWith('--linux-candidate='))?.slice('--linux-candidate='.length);
   if (linuxRecord) {
-    tracker.currentCandidates.linux = linuxCandidate(JSON.parse(fs.readFileSync(linuxRecord)));
+    const candidate = linuxCandidate(JSON.parse(fs.readFileSync(linuxRecord)));
+    tracker.currentCandidates.linux = {...byArchitecture(tracker.currentCandidates.linux), [candidate.arch]:candidate};
     fs.writeFileSync(trackerFile, trackerText(tracker));
   }
   const generated = renderProgress(tracker, ref => JSON.parse(fs.readFileSync(path.resolve(root, ref))));
