@@ -38,3 +38,11 @@ and 8 (uninstall) passed, scripted inside the MacBook Pro's VM; details in
 window by eye, Snap Layouts (3), Default apps (4), the Windows Hello passkey (5)
 and a brand-new Windows user (7). blanc.day must offer a build while the
 installer runs, so tell Claude before starting.
+
+Later the same day, on the public .902 the owner installed: checks 2 (Start
+menu and taskbar), 3 (Snap Layouts flyout and snapping; a person's click on a
+layout not seen) and 4 (Default apps, Set default, a link from another app)
+passed, scripted in the VM. Check 1 by eye found the installer's taskbar icon
+drawing two suns, fixed in patch 0105 for the next beta. Still for the owner:
+check 5 (Windows Hello) and check 7 (a brand-new Windows user). Details in
+`chromium/STATUS.md`.
