@@ -27,6 +27,9 @@
   }
   let serialized = '';
   let pillRect = null;
+  let windowButtons = null;  // Linux frame bounds in DIPs.
+  let islandZoom = 1;
+  const islandDip = cssPixels => Math.round(cssPixels * islandZoom);
   let opened = false;
   let miniSearchOpened = false;
   let overlayMode = null;
@@ -1370,8 +1373,17 @@
     emit('onShieldAnchor', {x: Math.max(32, Math.min(width - 32, center - x)), connected: !!rect});
   }
 
+  function panelSideClearance() {
+    const rail = effectiveRailWidth();
+    if (windowButtons)
+      return 12 + Math.max(0, windowButtons.leading / islandZoom - rail, windowButtons.trailing / islandZoom);
+    return Math.max(12, hostPlatform === 'darwin' ? 92 - rail : 0);
+  }
+
   function reportGeometry() {
     positionShield();
+    if (windowButtons && opened && (overlayMode === 'panel' || overlayMode === 'palette'))
+      overlay.contentDocument?.documentElement?.style.setProperty('--panel-side-clear', panelSideClearance() + 'px');
     placeProtected();
     const slot = strip.contentDocument?.getElementById('nativeExtensions');
     const panel = paneMenu ?? (extensionsOpened ? document.getElementById('extensionsPanel')
@@ -1391,12 +1403,13 @@
     const overlayRect = opened ? overlay.getBoundingClientRect() : {x: 0, y: 0};
     const offsetY = opened && overlayMode !== 'palette' ? overlayRect.y : 0;
     const offsetX = opened && overlayMode !== 'palette' ? overlayRect.x : 0;
-    const values = [a.x, a.y, a.width, a.height, b.x + offsetX, b.y + offsetY, b.width, b.height, ...splitCornerWidths].map(Math.round);
+    const values = [a.x, a.y, a.width, a.height, b.x + offsetX, b.y + offsetY, b.width, b.height].map(islandDip);
+    values.push(...splitCornerWidths);
     const next = JSON.stringify(values);
     // Where the strip draws its menu button (Windows and Linux): a press
     // there is the button's, not the start of a window drag.
     const menu = pillRect?.menuButtonRect;
-    const menuNext = JSON.stringify(menu ? [menu.x, menu.y, menu.width, menu.height].map(Math.round) : [0, 0, 0, 0]);
+    const menuNext = JSON.stringify(menu ? [menu.x, menu.y, menu.width, menu.height].map(islandDip) : [0, 0, 0, 0]);
     if (menuNext !== menuButtonGeometry) {
       menuButtonGeometry = menuNext;
       request('menuButtonBounds', JSON.parse(menuNext)).catch(error => notice(error.message));
@@ -1450,10 +1463,7 @@
       // Search priority results (S1.7) is read where the panel opens, as
       // shipping's overlay:show carries it.
       emit('onOverlayShow', { mode, prefill, pillRect, ...(purpose ? { purpose } : {}),
-        // Shipping v1.49.1's chrome-layout.js: the panel keeps 12px from each
-        // side, and on macOS 92px less the rail, so it never runs under the
-        // window buttons in a narrow window (the rail holds them otherwise).
-        panelSideClearance: Math.max(12, /Mac/.test(navigator.platform) ? 92 - effectiveRailWidth() : 0),
+        panelSideClearance: panelSideClearance(),
         searchPriorityResults: snapshot?.searchPriorityResults === true });
       reportGeometry();
       if (prefill !== undefined) {
@@ -2080,7 +2090,7 @@
     // The strip's menu button and window commands (Windows and Linux; the
     // Mac has its menu bar and traffic lights). The menu is Chromium's own.
     openMainMenu: point => {
-      const at = { x: Math.round(Number(point?.x) || 0), y: Math.round(Number(point?.y) || 0) };
+      const at = { x: islandDip(Number(point?.x) || 0), y: islandDip(Number(point?.y) || 0) };
       // Shipping's main-menu requests as its tests read them (the last few).
       mainMenuRequests.push({ from: 'strip', point: at });
       if (mainMenuRequests.length > 20) mainMenuRequests.shift();
@@ -3235,7 +3245,30 @@
     hookHover(overlay.contentDocument, overlay);
     if (hover.state.dwelling && !hoverEligible()) hoverStepWith({ type: 'ineligible' });
   }
-  window.blancPrototypeEvent = (kind) => {
+  function forwardWindowButtons(frame) {
+    if (windowButtons) frame.contentWindow?.dispatchEvent(
+      new CustomEvent('blanc-window-buttons', { detail: { ...windowButtons, zoom: islandZoom } }));
+  }
+  function refreshWindowButtons() {
+    if (!windowButtons) return;
+    // Blink's CSS pixel ratio includes WebUI zoom. The compositor scale does not.
+    islandZoom = devicePixelRatio / windowButtons.deviceScaleFactor;
+    forwardWindowButtons(strip);
+    forwardWindowButtons(floatPill);
+    reportGeometry();
+    syncFloat();
+  }
+  function watchIslandZoom() {
+    matchMedia(`(resolution: ${devicePixelRatio}dppx)`).addEventListener('change', () => {
+      refreshWindowButtons();
+      watchIslandZoom();
+    }, { once: true });
+  }
+  window.blancPrototypeEvent = (kind, payload) => {
+    if (kind === 'windowButtons' && hostPlatform === 'linux') {
+      windowButtons = payload;
+      refreshWindowButtons();
+    }
     if (kind === 'settings') refresh().then(settleHover, settleHover);
     // Native revealed or hid the Island (island_autohide_controller.inc).
     if (kind === 'autohide') refresh().catch(() => {});
@@ -3309,7 +3342,9 @@
   }
   function claimFloat() {
     const frame = floatPill.dataset.wanted === 'true' && floatView.frame;
-    const args = frame ? [floatView.shown, frame.x, frame.y, frame.width, frame.height] : [false, 0, 0, 0, 0];
+    const args = frame
+      ? [floatView.shown, islandDip(frame.x), islandDip(frame.y), islandDip(frame.width), islandDip(frame.height)]
+      : [false, 0, 0, 0, 0];
     const key = JSON.stringify(args);
     if (key === floatView.claimKey) return;
     floatView.claimKey = key;
@@ -3486,6 +3521,7 @@
   }
 
   window.BlancPrototypeHost = {
+    ...(hostPlatform === 'linux' && { windowButtons: () => windowButtons }),
     mainMenuRequests: () => mainMenuRequests.map(r => ({ from: r.from, point: { ...r.point } })),
     api,
     tabSwitch,
@@ -3601,6 +3637,12 @@
   // The strip and overlay adapters read parent.BlancPrototypeHost as they
   // load, so the frames start only once it exists. A src in the markup let a
   // fast relaunch load the overlay first and leave its bridge undefined.
+  if (hostPlatform === 'linux') {
+    watchIslandZoom();
+    for (const frame of [strip, floatPill])
+      frame.addEventListener('load', () => forwardWindowButtons(frame));
+    request('observeWindowButtons').catch(error => notice(error.message));
+  }
   strip.src = strip.dataset.src;
   floatPill.src = floatPill.dataset.src;
   glanceCardFrame.src = glanceCardFrame.dataset.src;

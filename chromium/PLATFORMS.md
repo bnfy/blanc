@@ -31,4 +31,35 @@ gap with the milestone that closes it. Windows design:
 
 ## Linux
 
-Nothing built.
+### Caption buttons
+
+At Chromium 158.0.8127.2 an Island is a normal browser window. X11 and
+Wayland both use CreateBrowserFrameViewLinux. With the system theme and a
+toolkit NavButtonProvider it constructs BrowserFrameViewLinuxNative and
+BrowserFrameViewLayoutLinuxNative. Otherwise it constructs BrowserFrameViewLinux
+and BrowserFrameViewLayoutLinux. Both use OpaqueBrowserFrameView's buttons.
+SettingsProviderGtk reads GtkSettings' gtk-decoration-layout on startup and
+on notify (including outside GNOME). GtkUi sets WindowButtonOrderProvider's
+leading/trailing vectors and notifies the LinuxUi observers. The frame's
+OnWindowButtonOrderingChange copies the order into the layout and relays out
+the root. OpaqueBrowserFrameViewLayout::LayoutWindowControls places the
+visible buttons, substituting Restore when maximized. The native variant
+uses toolkit button images, margins and spacing. CalculateClientAreaBounds
+uses NonClientTopHeight, which includes title/icon height when a title is
+shown and otherwise retains the frame's top border and extra top thickness.
+InitWindowCaptionButton gives each button its own transparent layer, and
+FrameView::GetChildrenInZOrder places the client behind the frame children.
+The Island supplies the hidden tab strip's preferred height for button sizing
+and keeps the resize inset above the client.
+
+BrowserNativeWidgetAuraLinux::UseCustomFrame forces client decorations when
+Ozone has no server decoration support. Otherwise it honors the normal
+window's custom-frame preference. WaylandToplevelWindow requests kClientSide
+for a custom frame and kServerSide for a native frame, and ShouldUseNativeFrame
+requires the xdg decoration manager. Wayland therefore permits the overlay.
+On X11 the upstream default depends on the window manager. The Island defaults
+to a custom frame. Selecting "Use system title bar and borders" on a supporting
+desktop places the system title bar above the strip, and GetShowWindowTitleBar
+suppresses Chromium's controls.
+
+The X11 input and Wayland layout checks require a built candidate.

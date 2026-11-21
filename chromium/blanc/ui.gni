@@ -326,6 +326,12 @@ source_set(target_name) {
       "//components/remote_cocoa/browser",
     ]
   }
+  if (is_linux) {
+    sources += [
+      "//blanc/browser/ui/window_buttons_linux.cc",
+      "//blanc/browser/ui/window_buttons_linux.h",
+    ]
+  }
   if (is_win) {
     sources += [ "//blanc/browser/ui/tab_switch_keys.h", "//blanc/browser/ui/tab_switch_keys_win.cc" ]
     if (blanc_beta_channel) {

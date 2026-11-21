@@ -232,6 +232,11 @@ are folded in below.
 
 ### Task 3: Chromium's caption buttons over the strip
 
+Patch 0113 adds 9 hunks across 3 upstream files. The two Linux frame-view files are new to
+the lane, and earlier patches already touch `browser_view.cc`. Including 0113, the desktop lane
+in this worktree has 111 patches touching 227 distinct upstream files (464 file diffs, 846 hunks).
+Of the 227 files, 221 have pinned pristine inputs and 6 are created by patches.
+
 **Files:**
 - Create: patch `0113-blanc-linux-frame.patch` (the Linux frame view and layout files, traced in Step 1)
 - Create: `chromium/blanc/browser/ui/window_buttons_linux.{h,cc}`, added under `is_linux` where
@@ -247,7 +252,9 @@ are folded in below.
 
 **Interfaces:**
 - Produces: a fork-local message `windowButtons` with `{leading: number, trailing: number, buttons:
-  [{kind: 'minimize'|'maximize'|'close', x, y, width, height}]}` in DIPs (empty side = 0), sent by
+  [{kind: 'minimize'|'maximize'|'close', x, y, width, height}], deviceScaleFactor: number}`.
+  The bounds are in DIPs (empty side = 0). The compositor scale lets the host convert them to CSS
+  pixels at the current WebUI zoom for the strip, floating pill and expanded panel. The message is sent by
   `blanc_prototype_ui.cc` over the WebUI channel it already uses for fork-only messages, on window
   creation, maximize/restore, scale change and a GTK settings change. `host.js` forwards it into the
   strip iframe, where `renderer.js` sets `--window-controls-leading-w` and `--window-controls-w` on the
