@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="blanc_platform_autofill">Autocompletar con tu gestor de contraseñas</string>
+    <string name="blanc_platform_autofill_summary">Usa las contraseñas y llaves de acceso de Bitwarden, Proton Pass, 1Password y otros gestores que elijas en Android. El Gestor de contraseñas de Google no puede autocompletar en Blanc.</string>
+    <string name="blanc_choose_password_manager">Elegir gestor de contraseñas</string>
+    <string name="blanc_autofill_restart">Reinicia Blanc para aplicar el cambio</string>
+</resources>

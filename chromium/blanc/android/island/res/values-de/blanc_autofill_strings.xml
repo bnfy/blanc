@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="blanc_platform_autofill">Automatisch mit deinem Passwortmanager ausfüllen</string>
+    <string name="blanc_platform_autofill_summary">Nutzt Passwörter und Passkeys aus Bitwarden, Proton Pass, 1Password und anderen Passwortmanagern, die du in Android auswählst. Der Google Passwortmanager kann in Blanc nichts ausfüllen.</string>
+    <string name="blanc_choose_password_manager">Passwortmanager auswählen</string>
+    <string name="blanc_autofill_restart">Starte Blanc neu, um die Änderung zu übernehmen</string>
+</resources>

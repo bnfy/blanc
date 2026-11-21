@@ -15,6 +15,7 @@ import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
 import android.os.LocaleList;
+import android.provider.Settings;
 import android.widget.Toast;
 
 import org.chromium.base.ContextUtils;
@@ -39,11 +40,14 @@ import org.chromium.chrome.browser.browsing_data.BrowsingDataBridge;
 import org.chromium.chrome.browser.browsing_data.BrowsingDataType;
 import org.chromium.chrome.browser.browsing_data.TimePeriod;
 import org.chromium.chrome.browser.lifetime.ApplicationLifetime;
+import org.chromium.chrome.browser.preferences.Pref;
 import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.chrome.browser.profiles.ProfileManager;
 import org.chromium.chrome.browser.search_engines.TemplateUrlServiceFactory;
+import org.chromium.components.prefs.PrefService;
 import org.chromium.components.search_engines.TemplateUrl;
 import org.chromium.components.search_engines.TemplateUrlService;
+import org.chromium.components.user_prefs.UserPrefs;
 import org.chromium.ui.base.WindowAndroid;
 
 import java.util.ArrayList;
@@ -238,6 +242,33 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
     @Override
     public void openDefaultBrowser() {
         DefaultBrowser.request(mActivity, DefaultBrowser.roles(mActivity), ContextUtils.getAppSharedPreferences());
+    }
+
+    @Override
+    public boolean platformAutofillEnabled() {
+        return UserPrefs.get(ProfileManager.getLastUsedRegularProfile())
+                .getBoolean(Pref.AUTOFILL_USING_PLATFORM_AUTOFILL);
+    }
+
+    @Override
+    public void setPlatformAutofillEnabled(boolean on) {
+        PrefService prefs = UserPrefs.get(ProfileManager.getLastUsedRegularProfile());
+        prefs.setBoolean(Pref.AUTOFILL_USING_PLATFORM_AUTOFILL, on);
+        // A matching remembered service takes precedence over the boolean at startup.
+        if (!on) {
+            prefs.setString(Pref.AUTOFILL_THIRD_PARTY_PACKAGE_USED_FOR_PLATFORM_AUTOFILL, "");
+        }
+    }
+
+    @Override
+    public void openPasswordManagerPicker() {
+        Intent picker = new Intent(Settings.ACTION_REQUEST_SET_AUTOFILL_SERVICE,
+                Uri.fromParts("package", mActivity.getPackageName(), null));
+        try {
+            mActivity.startActivity(picker);
+        } catch (ActivityNotFoundException e) {
+            mActivity.startActivity(new Intent(Settings.ACTION_SETTINGS));
+        }
     }
 
     @Override

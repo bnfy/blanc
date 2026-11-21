@@ -50,6 +50,7 @@ public class BlancSettingsScreenTest {
     private String mPosition = "bottom";
     private boolean mBlocker = true;
     private Boolean mDefault = false;
+    private boolean mAutofill = true;
     private boolean mUsage;
 
     private final BlancSettingsScreen.Host mHost = new BlancSettingsScreen.Host() {
@@ -74,6 +75,9 @@ public class BlancSettingsScreenTest {
         @Override public void openStartPage() { mCalls.add("start page"); }
         @Override public Boolean defaultBrowser() { return mDefault; }
         @Override public void openDefaultBrowser() { mCalls.add("default browser"); }
+        @Override public boolean platformAutofillEnabled() { return mAutofill; }
+        @Override public void setPlatformAutofillEnabled(boolean on) { mAutofill = on; }
+        @Override public void openPasswordManagerPicker() { mCalls.add("password manager"); }
         @Override public boolean usagePing() { return mUsage; }
         @Override public void setUsagePing(boolean on) { mUsage = on; mCalls.add("usage " + on); }
         @Override public String languageSummary() { return "System (English)"; }
@@ -117,6 +121,7 @@ public class BlancSettingsScreenTest {
         BlancSettingsScreen.apply(mScreen, mHost);
         assertEquals(List.of("blanc_header",
                 "blanc_browsing_section", "blanc_search_engine", "blanc_default_browser",
+                "blanc_platform_autofill", "blanc_choose_password_manager",
                 "blanc_appearance_section", "blanc_theme", "blanc_island_position", "blanc_start_page",
                 "blanc_privacy_section", "blanc_blocker", "blanc_allowed_sites", "blanc_clear_site_data",
                 "blanc_measure_usage",
@@ -232,13 +237,14 @@ public class BlancSettingsScreenTest {
     @Test
     public void allowedSitesAndClearSiteDataAndTheAboutRowsRunTheirActions() {
         BlancSettingsScreen.apply(mScreen, mHost);
+        row("blanc_choose_password_manager").performClick();
         row("blanc_allowed_sites").performClick();
         row("blanc_clear_site_data").performClick();
         row("blanc_website").performClick();
         row("blanc_privacy_policy").performClick();
         row("blanc_support").performClick();
         row("blanc_licenses").performClick();
-        assertEquals(List.of("allowed", "clear", "url https://blanc.day", "url https://blanc.day/privacy",
+        assertEquals(List.of("password manager", "allowed", "clear", "url https://blanc.day", "url https://blanc.day/privacy",
                 "url mailto:support@blanc.day", "licenses"), mCalls);
     }
 
@@ -264,7 +270,7 @@ public class BlancSettingsScreenTest {
     public void blancRowsNeverWriteToSharedPreferences() {
         BlancSettingsScreen.apply(mScreen, mHost);
         for (String key : List.of("blanc_search_engine", "blanc_theme", "blanc_island_position", "blanc_blocker",
-                     "blanc_measure_usage")) {
+                     "blanc_measure_usage", "blanc_platform_autofill")) {
             assertFalse(key, row(key).isPersistent());
         }
     }

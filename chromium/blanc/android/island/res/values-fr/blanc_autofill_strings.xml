@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="blanc_platform_autofill">Remplissage automatique avec votre gestionnaire de mots de passe</string>
+    <string name="blanc_platform_autofill_summary">Utilise les mots de passe et les clés d’accès de Bitwarden, Proton Pass, 1Password et des autres gestionnaires que vous choisissez dans Android. Le Gestionnaire de mots de passe de Google ne peut pas remplir les formulaires dans Blanc.</string>
+    <string name="blanc_choose_password_manager">Choisir un gestionnaire de mots de passe</string>
+    <string name="blanc_autofill_restart">Redémarrez Blanc pour appliquer la modification</string>
+</resources>

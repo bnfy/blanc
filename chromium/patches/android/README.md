@@ -108,6 +108,11 @@ in the lane file in its place. Numbering starts at 0101.
   stay running while they have one; their services still cancel everything
   when destroyed or unbound. Serial has the same code, but nothing
   calls its clearing at startup, so it is left alone.
+- `0125-android-autofill-platform.patch` turns on Android autofill by default.
+  If Google Password Manager is selected or no service is available, Blanc
+  keeps the switch where the person left it. Someone who chooses Bitwarden
+  later can use it the next time Blanc starts. Turning the switch off in
+  Blanc Settings saves that choice.
 
 A Chromium file dropped from the lane keeps its applied edits in an existing
 checkout: restore it with `git checkout` there. A Blanc file the source drops or

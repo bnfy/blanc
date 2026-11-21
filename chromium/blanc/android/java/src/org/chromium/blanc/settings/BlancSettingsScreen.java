@@ -3,6 +3,7 @@
 package org.chromium.blanc.settings;
 
 import android.content.Context;
+import android.widget.Toast;
 
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
@@ -74,6 +75,12 @@ public final class BlancSettingsScreen {
 
         /** Android's browser-role request, or its Default apps screen (DefaultBrowser). */
         void openDefaultBrowser();
+
+        boolean platformAutofillEnabled();
+
+        void setPlatformAutofillEnabled(boolean on);
+
+        void openPasswordManagerPicker();
 
         /** The saved Measure usage choice; unsaved reads off, since nothing is sent then. */
         boolean usagePing();
@@ -170,6 +177,7 @@ public final class BlancSettingsScreen {
                 row = new ListPreference(context);
                 break;
             case "blanc_blocker":
+            case "blanc_platform_autofill":
             case "blanc_measure_usage":
                 row = new SwitchPreferenceCompat(context);
                 break;
@@ -233,6 +241,20 @@ public final class BlancSettingsScreen {
                 row.setSummary(isDefault == null ? null
                                 : isDefault ? host.appName()
                                             : context.getString(R.string.blanc_ios_default_browser_not_blanc));
+                break;
+            case "blanc_platform_autofill":
+                SwitchPreferenceCompat autofill = (SwitchPreferenceCompat) row;
+                autofill.setTitle(R.string.blanc_platform_autofill);
+                autofill.setSummary(R.string.blanc_platform_autofill_summary);
+                autofill.setChecked(host.platformAutofillEnabled());
+                autofill.setOnPreferenceChangeListener((p, value) -> {
+                    host.setPlatformAutofillEnabled((Boolean) value);
+                    Toast.makeText(context, R.string.blanc_autofill_restart, Toast.LENGTH_SHORT).show();
+                    return true;
+                });
+                break;
+            case "blanc_choose_password_manager":
+                action(row, R.string.blanc_choose_password_manager, 0, host::openPasswordManagerPicker);
                 break;
             case "blanc_measure_usage":
                 SwitchPreferenceCompat usage = (SwitchPreferenceCompat) row;

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="blanc_platform_autofill">Compilazione automatica con il tuo gestore di password</string>
+    <string name="blanc_platform_autofill_summary">Usa le password e le passkey di Bitwarden, Proton Pass, 1Password e degli altri gestori che scegli in Android. Il Gestore delle password di Google non può compilare i moduli in Blanc.</string>
+    <string name="blanc_choose_password_manager">Scegli il gestore di password</string>
+    <string name="blanc_autofill_restart">Riavvia Blanc per applicare la modifica</string>
+</resources>
