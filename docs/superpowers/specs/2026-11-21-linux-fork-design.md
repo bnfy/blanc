@@ -1,7 +1,7 @@
 # The Chromium fork on Linux: design
 
 **Date:** 2026-11-21
-**Status:** Draft for the owner's review. Nothing in it is built yet.
+**Status:** Draft for the owner's review, with the owner's decisions of 2026-11-21. Nothing in it is built yet.
 **Background:** the fork plan's Linux tasks PL.1, PL.2 and R.3 and decision D4
 ([replacement plan](../../chromium-replacement/2026-10-30-desktop-replacement-plan.md) §5, §9), and the
 [Windows design](2026-11-17-windows-fork-design.md), which went from first build (W0) to a public beta
@@ -20,8 +20,15 @@
    draws none there. This matches the Windows fork and differs from shipping Blanc for Linux, which draws
    its own.
 
-**Waiting for the owner:** D4 for Linux (§2), how the beta gets hand-checked on a real desktop (§6), and
-the scoped approval for L0 (§5).
+4. **D4 for Linux.** Linux builds natively on the server already rented for the Android lane, in the
+   same desktop checkout as Windows. Approved with it: one cold Linux x64 build and its incremental
+   rebuilds, one small PR to `main` for the Linux candidate workflow, and a hooks run only if L0 finds a
+   Linux build needs one.
+5. **Hand checks through an arm64 build.** The owner's only Linux machine is an Ubuntu 26.04 arm64 VM, so
+   from L1 the beta is also built for Linux on Arm (arm64), cross-compiled on the same server, and the
+   owner checks it by eye in that VM. Linux on Arm users get it too. Rejected: a recorded waiver with
+   hosted checks only (nothing seen on a real desktop before going public), and renting an x64 desktop
+   VM (new spend).
 
 **Reviews:** a builder check and a Codex review (2026-11-21) found the gaps folded in below. Chromium
 facts marked *(checked at the pin)* were read in the server's tree (`~/chromium-desktop/src`,
@@ -40,7 +47,10 @@ unchanged:
   unchanged arguments before the nightly beta.
 - Each per-platform difference gets one line in `chromium/PLATFORMS.md`'s Linux section.
 
-Architecture: **x64** only. Linux on Arm is out of scope.
+Architectures: **x64** from L0, and **arm64** from L1 (owner decision 5). arm64 is cross-compiled on the
+x64 server (Chromium supports this with its Debian arm64 sysroot, which the checkout doesn't have yet:
+fetching it is the arm64 build's one setup step, approved with that build's plan) and run on GitHub's
+hosted `ubuntu-24.04-arm` runners and the owner's VM.
 
 Target systems for the beta (my call; the owner may change it): **Ubuntu 24.04 LTS and newer, Debian
 12 and newer, and the current Fedora release**. Public copy names only the systems and desktop sessions
@@ -50,18 +60,18 @@ are not claimed.
 
 ## 2. Where it builds and runs
 
-**D4 for Linux (proposed, needs the owner's yes):** build natively on the Linux server already rented
-for the Android lane (`blanc-android-build`, x86-64 Ubuntu 24.04, 20 cores, 64 GB, 905 GB disk), and test
-on GitHub-hosted Linux runners. No new machine and no new cost. Unlike Windows, nothing is
-cross-compiled and no toolchain package is needed: the host is the target.
+**D4 for Linux (owner decision 4):** build natively on the Linux server already rented for the Android
+lane (`blanc-android-build`, x86-64 Ubuntu 24.04, 20 cores, 64 GB, 905 GB disk), and test on
+GitHub-hosted Linux runners. No new machine and no new cost. Unlike Windows, x64 is not cross-compiled
+and no toolchain package is needed: the host is the target. (arm64 is cross-compiled, above.)
 
 | Step | Machine | Notes |
 | --- | --- | --- |
 | Compile | `blanc-android-build` | The existing desktop checkout `~/chromium-desktop/src`. Its `.gclient` says `target_os = ['win']` with no `target_os_only`, so the host's own Linux dependencies are already there, and `build/linux/debian_bullseye_amd64-sysroot` is present *(checked at the pin)*. L0 first confirms whether a Linux build needs anything more; only if it does is a hooks run requested, with the guard's plans for both Windows outputs compared before and after. Outputs `out/BlancLinuxPrototype` and later `out/BlancLinuxBeta`, beside `BlancWinPrototype` and `BlancWinBeta`. Built only through `chromium/tools/build.mjs`, which already refuses a second `siso ninja` on the machine, so Linux, Windows and Android builds take turns. |
 | Packages | `blanc-android-build` | Chromium's installer targets (`//chrome/installer/linux`) build the `.deb` and `.rpm` from the output. The server holds no signing key. |
 | Transfer | This Mac | Copies the candidate off the server and uploads it to one reused **draft** release, `fork-linux-candidate`, as Windows does with `fork-windows-candidate`. The server holds no GitHub credential. |
-| Run and test | GitHub-hosted `ubuntu-24.04` runner | `chromium-linux-candidate.yml`, manual only, checks the asset's SHA-256 and runs the launch check under X11 (`xvfb`) and Wayland (a headless compositor), the suite, and the install checks: on the runner itself for Ubuntu, and in Debian and Fedora containers on the runner. |
-| Hand checks | See §6 | The owner's only Linux machine is an Ubuntu arm64 VM, which can't run an x64 build. |
+| Run and test | GitHub-hosted `ubuntu-24.04` runner (x64) and `ubuntu-24.04-arm` (arm64) | `chromium-linux-candidate.yml`, manual only, checks the asset's SHA-256 and runs the launch check under X11 (`xvfb`) and Wayland (a headless compositor), the suite, and the install checks: on the runner itself for Ubuntu, and in Debian and Fedora containers on the runner. |
+| Hand checks | The owner's Ubuntu 26.04 arm64 VM (Parallels on the Mac) | From L1, on the arm64 build (owner decision 5). Checks what hosted runners can't see: the dock icon and grouping, GNOME's button layout, the keyring prompt, Settings' default browser, screen sharing and the relaunch prompt after an update. KDE and x64 desktops stay unchecked by eye, and public copy says so. |
 
 Why reuse the checkout rather than make a third (my call): it saves a ~46 GB download (the disk has
 624 GB free), and every platform builds the same source at the same pin anyway. The cost is that Linux
@@ -184,9 +194,9 @@ a bad beta is withdrawn by publishing a fixed one with a higher number.
 | Milestone | What it delivers | Exit gate |
 | --- | --- | --- |
 | **L0** First build (PL.1) | The guard learns the Linux outputs; the tree compiles for Linux x64 on the server through it; the app launches on a hosted runner under X11 and Wayland, draws the Island, starts the blocker and loads a page, sandboxed; the full suite runs on Linux | A Linux candidate in the tracker; `reports/f0-linux.json` committed; the Mac nightly and the Windows build unaffected |
-| **L1** Identity, frame and packages (PL.2) | Chromium's caption buttons over the strip; the preview's Linux identity; `.deb` and `.rpm` from Chromium's installer with Google's repository and keys patched out; the blocker bundle installed; install, launch and uninstall on Ubuntu 24.04, Debian 12 and Fedora beside shipping Blanc's AppImage, with existing Electron and Chromium profiles, keyring entries and default browser left untouched; default-browser registration; the owner's OpenPGP key made and its public half committed | The frame check passes by real input on X11 and Wayland, buttons left, right and split; the install check passes on all three systems with Ubuntu's restriction on; no built file names Google's repository; the packages verify against the committed key |
+| **L1** Identity, frame and packages (PL.2) | The arm64 build (sysroot, cross-compile, hosted arm64 runner); Chromium's caption buttons over the strip; the preview's Linux identity; `.deb` and `.rpm` from Chromium's installer with Google's repository and keys patched out; the blocker bundle installed; install, launch and uninstall on Ubuntu 24.04, Debian 12 and Fedora beside shipping Blanc's AppImage, with existing Electron and Chromium profiles, keyring entries and default browser left untouched; default-browser registration; the owner's OpenPGP key made and its public half committed | The frame check passes by real input on X11 and Wayland, buttons left, right and split; the install check passes on all three systems with Ubuntu's restriction on; no built file names Google's repository; the packages verify against the committed key; both architectures pass; the owner's first look at the arm64 build in the VM is recorded |
 | **L2** Daily driver | The S1 suite on Linux, with real gaps fixed or recorded; Ctrl+Tab by most recent use with real keys (`xdotool`, as shipping's CI does); quit behavior | S1 report for Linux committed, every non-passing case triaged |
-| **L3** Linux beta | The `blanc-beta` channel without test hooks; the staging and production repositories on `pkg.blanc.day`; the release stages (`chromium/release/linux-release.mjs`, owner-run, resumable, typed confirmation before the irreversible ones, on the Windows tool's model); an N-to-N+1 update proof through apt and through dnf from the staging repository; the first public Linux beta; then the Download page tile and its claims ledger in a website PR, with the owner's approval of the copy | Verify-public passes: a logged-out download, checksums and Sigstore, and fresh Ubuntu, Debian and Fedora containers installing the public packages and seeing the repository |
+| **L3** Linux beta | The `blanc-beta` channel without test hooks; the staging and production repositories on `pkg.blanc.day`; the release stages (`chromium/release/linux-release.mjs`, owner-run, resumable, typed confirmation before the irreversible ones, on the Windows tool's model); an N-to-N+1 update proof through apt and through dnf from the staging repository; the first public Linux beta; then the Download page tile and its claims ledger in a website PR, with the owner's approval of the copy | Verify-public passes: a logged-out download, checksums and Sigstore, and fresh Ubuntu, Debian and Fedora containers installing the public packages and seeing the repository, on x64 and arm64; the owner's hand checks in the VM pass |
 
 Each milestone gets its own task-level plan when it starts, written against the tree as it then
 stands, as for Windows.
@@ -199,12 +209,10 @@ and a GN regeneration on the Mac Studio if L0 touches a build file.
 
 ## 6. Known limits
 
-- **Hand checks on a real desktop (open, the owner's call).** The owner has no x64 Linux desktop: the
-  only Linux machine is the Ubuntu 26.04 arm64 VM in Parallels. Without a real desktop nothing checks by
-  eye the dock grouping, GNOME's and KDE's own button layouts, the keyring prompt, Settings' default
-  browser, PipeWire screen sharing or the relaunch prompt after an update. The choices: a recorded
-  waiver with the hosted checks only (as the October 2026 Linux waiver did); an arm64 Linux build as well,
-  so the owner's VM can run it (§7 would change); or a rented x64 desktop VM (new spend).
+- **Hand checks see one desktop.** The owner's arm64 VM runs GNOME on Ubuntu 26.04 (Wayland). x64 on a
+  real display, KDE and Fedora are covered only by hosted checks.
+- **Two builds per beta.** Each Linux beta builds x64 and arm64 on the same server, which also builds
+  Windows and Android one at a time, so a Linux release takes longer to prepare.
 - **Screen sharing on Wayland** goes through the desktop portal and PipeWire; the hosted runners can't
   show a portal's picker, so it is a hand check.
 
@@ -219,7 +227,7 @@ and a GN regeneration on the Mac Studio if L0 touches a build file.
 
 ## 7. Not in scope
 
-Linux on Arm; Flatpak, Snap and AppImage builds of the fork; an updater of our own; distributions other
+Flatpak, Snap and AppImage builds of the fork; an updater of our own; distributions other
 than those in §1 as tested targets; crash upload; enterprise policies; any change to shipping Electron
 Blanc for Linux or its AppImage updates.
 
