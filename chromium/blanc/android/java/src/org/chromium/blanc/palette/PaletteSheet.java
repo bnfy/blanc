@@ -293,13 +293,13 @@ public final class PaletteSheet extends Dialog {
         LinearLayout actions = new LinearLayout(activity);
         actions.setGravity(Gravity.CENTER_VERTICAL);
         actions.setPadding(dp(8), dp(6), dp(12), dp(6));
+        // The Island's own Back, so both go back the same way. Looked up once: release lint
+        // reads a second lookup of the same id as a copy-and-paste slip (CutPasteId).
+        View islandBack = mActivity.findViewById(R.id.blanc_island_back);
         mBack = button(R.drawable.blanc_island_chevron_left, R.string.blanc_pill_back, v -> {
-            // The Island's own Back, so both go back the same way.
-            View back = mActivity.findViewById(R.id.blanc_island_back);
-            if (back != null && back.isEnabled()) back.performClick();
+            if (islandBack != null && islandBack.isEnabled()) islandBack.performClick();
             dismiss();
         });
-        View islandBack = mActivity.findViewById(R.id.blanc_island_back);
         boolean canGoBack = islandBack != null && islandBack.isEnabled();
         mBack.setEnabled(canGoBack);
         mBack.setAlpha(canGoBack ? 1f : 0.35f);
