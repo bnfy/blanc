@@ -3910,6 +3910,10 @@ checks (44930438550) and the installer capture with the taskbar-icon check
 (44930451086). Its one change is About's update check and Windows facts (0111).
 blanc.day offers 158.0.8127.904 (a signed update check from .903 answers
 `nextversion` 158.0.8127.904).
+#1685 moved blanc.day's Windows tile and `/dl/beta-win` to it (Pages 1400c80c,
+Production at 9b1ea06). The owner announced the Windows beta for testing on
+r/blancbrowser (owner-approved text, release flair):
+https://www.reddit.com/r/blancbrowser/comments/1y2451g/blanc_beta_is_now_on_windows_try_the/
 
 **Second Windows beta public (2026-11-21):** Blanc Beta 158.0.8127.903, GitHub
 pre-release `chromium-beta-windows-158.0.8127.903` at `96315b04c` (never latest;
