@@ -108,6 +108,26 @@ in the lane file in its place. Numbering starts at 0101.
   stay running while they have one; their services still cancel everything
   when destroyed or unbound. Serial has the same code, but nothing
   calls its clearing at startup, so it is left alone.
+- `0124-android-context-menu.patch` removes Lens, search by image and Ask
+  Gemini from the page, link and image menus, and Add to reading list from the
+  link menu (Blanc for Android has no reading list). Only a forced sign-in
+  blocks the usual actions, so they also work when another app opens a Custom
+  Tab before Blanc's walkthrough. Patch 0102 skips Chromium's first run. A
+  non-private tab can open a link in its existing group. Both normal and Thin
+  WebView link menus offer Open in private tab only when the tab is supported
+  and opens in the same window. Custom Tabs omit the private handoff because
+  Blanc closes every private tab on a cold start, including one just requested.
+  One guard covers all browser handoffs. It hides a web app's **Open in Blanc**
+  and a Custom Tab's **Open in new tab in Blanc** when private tabs use a
+  separate window, because opening a regular tab could create a second Blanc
+  window. When another browser is the default, the Custom Tab can still offer
+  that browser for eligible links. It omits the action for `data:` links
+  because Chromium would send them back to Blanc. All menu modes omit window
+  actions because Blanc's Spaces controller is shared across the process.
+  The remaining private tab and Open in Blanc titles use Blanc's string
+  resources and fall back to English. Regional Chromium overlays still supply
+  the Safety Hub summary where Android prefers a regional translation.
+
 - `0125-android-autofill-platform.patch` keeps the person's choice in Blanc's
   Android profile pref, `blanc.autofill.platform_requested`. It defaults to on
   for new and existing profiles. Android's app preferences link opens the same

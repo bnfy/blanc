@@ -10364,5 +10364,15 @@
   "start.mahjong.play": {
     "message": "Play Blanc Mahjong",
     "note": "Start Page footer: the link that opens Blanc Mahjong."
+  },
+  "android.contextMenu.privateTab": {
+    "message": "Open in private tab",
+    "note": "Blanc for Android: Long-press a link to open it in a private tab.",
+    "androidOnly": true
+  },
+  "android.contextMenu.newBlancTab": {
+    "message": "Open in new tab in Blanc",
+    "note": "Blanc for Android: Open a link from a Custom Tab in a new tab in the full Blanc browser.",
+    "androidOnly": true
   }
 }
