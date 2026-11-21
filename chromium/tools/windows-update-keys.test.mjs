@@ -24,18 +24,33 @@ case "$1 $2" in
   "vault get") [ "$3" = Dev ] && exit 0 || exit 1;;
   "item list") python3 -c 'import json,os,sys; print(json.dumps([{"title": n} for n in os.listdir(sys.argv[1])]))' "$V";;
   "document create") cp "$3" "$V/$7";;
-  "document get") cp "$V/$3" "\${9}";;
+  "document get") echo "\${9}" >> '${dir}/key-paths'; cp "$V/$3" "\${9}";;
   *) echo "fake op: $*" >&2; exit 2;;
 esac
 `, {mode: 0o755});
   return {op, vault};
 }
 
+// The scripts make their working folder under BLANC_WORK_TMP: a private folder
+// per run, so another suite running on the same machine never shows up in it.
+// It must be empty afterwards, and every key the stand-in for 1Password wrote
+// must have been inside it (so the script really used it) and gone.
+function privateTmp(dir) {
+  const root = path.join(dir, 'tmp'); fs.mkdirSync(root);
+  return root;
+}
+function assertNothingLeft(root, keyPaths, message) {
+  assert.deepEqual(fs.readdirSync(root), [], message);
+  const paths = fs.readFileSync(keyPaths, 'utf8').trim().split('\n');
+  assert.ok(paths.length > 0 && paths.every(p => p.startsWith(root + '/')), `keys were written under ${root}: ${paths.join(', ')}`);
+  for (const p of paths) assert.ok(!fs.existsSync(p), `${p} is gone`);
+}
+
 test('the key ceremony keeps only public halves and stores verified private keys', {skip: !usable && 'needs Homebrew OpenSSL 3 on a Mac'}, () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-keys-test-'));
   const {op, vault} = fakeOp(dir), out = path.join(dir, 'out');
-  const before = fs.readdirSync('/private/tmp').filter(n => n.startsWith('blanc-win-keys.'));
-  const run = spawnSync('bash', [script], {env: {...process.env, BLANC_OP: op, BLANC_KEYS_OUT: out}, encoding: 'utf8'});
+  const tmp = privateTmp(dir);
+  const run = spawnSync('bash', [script], {env: {...process.env, BLANC_OP: op, BLANC_KEYS_OUT: out, BLANC_WORK_TMP: tmp}, encoding: 'utf8'});
   assert.equal(run.status, 0, run.stdout + run.stderr);
   assert.deepEqual(fs.readdirSync(out).sort(), ['crx-public.der', 'cup-public.der']);
   assert.deepEqual(fs.readdirSync(vault).sort(), ['Blanc Windows Beta CRX Publisher Key', 'Blanc Windows Beta CUP Key']);
@@ -45,9 +60,8 @@ test('the key ceremony keeps only public halves and stores verified private keys
   assert.match(text('crx-public.der'), /Public-Key: \(4096 bit\)/);
   assert.doesNotMatch(run.stdout + run.stderr, /PRIVATE|BEGIN/);
   assert.match(run.stdout, /cup-public\.der sha256 [0-9a-f]{64}/);
-  const after = fs.readdirSync('/private/tmp').filter(n => n.startsWith('blanc-win-keys.'));
-  assert.deepEqual(after, before, 'no working folder is left');
-  const again = spawnSync('bash', [script], {env: {...process.env, BLANC_OP: op, BLANC_KEYS_OUT: out}, encoding: 'utf8'});
+  assertNothingLeft(tmp, path.join(dir, 'key-paths'), 'no working folder is left');
+  const again = spawnSync('bash', [script], {env: {...process.env, BLANC_OP: op, BLANC_KEYS_OUT: out, BLANC_WORK_TMP: tmp}, encoding: 'utf8'});
   assert.notEqual(again.status, 0);
   assert.match(again.stdout, /no key is replaced/);
   fs.rmSync(dir, {recursive: true, force: true});
@@ -137,7 +151,8 @@ test('the staging command installs exactly the seed of the committed key, and no
   const op = path.join(dir, 'op'), wrangler = path.join(dir, 'wrangler'), calls = path.join(dir, 'calls'), secret = path.join(dir, 'secret');
   fs.writeFileSync(op, `#!/bin/bash\n[ "$OP_BIOMETRIC_UNLOCK_ENABLED" = true ] || exit 1\ncase "$1 $2" in\n "vault get") exit 0;;\n "document get") [ "$3" = "Blanc Windows Beta CUP Key" ] && cp '${pem}' "\${9}";;\n *) exit 2;;\nesac\n`, {mode: 0o755});
   fs.writeFileSync(wrangler, `#!/bin/bash\necho "$*" >> '${calls}'\ncase "$1" in\n deploy) echo "Deployed https://blanc-update.test.workers.dev";;\n secret) cat > '${secret}';;\nesac\n`, {mode: 0o755});
-  const env = {...process.env, BLANC_OP: op, BLANC_WRANGLER: wrangler, BLANC_SKIP_SMOKE: '1'};
+  const tmp = privateTmp(dir);
+  const env = {...process.env, BLANC_OP: op, BLANC_WRANGLER: wrangler, BLANC_SKIP_SMOKE: '1', BLANC_WORK_TMP: tmp};
   const run = spawnSync('bash', [staging], {env: {...env, BLANC_CUP_PUBLIC: pub}, encoding: 'utf8'});
   assert.equal(run.status, 0, run.stdout + run.stderr);
   assert.deepEqual(fs.readFileSync(calls, 'utf8').trim().split('\n'), ['deploy', 'secret put CUP_SEED']);
@@ -149,6 +164,7 @@ test('the staging command installs exactly the seed of the committed key, and no
   assert.notEqual(wrong.status, 0);
   assert.match(wrong.stdout, /NOT the committed public key/);
   assert.ok(!fs.existsSync(calls), 'nothing is deployed with the wrong key');
+  assert.deepEqual(fs.readdirSync(tmp), [], 'no working folder is left');
   fs.rmSync(dir, {recursive: true, force: true});
 });
 
@@ -166,14 +182,15 @@ test('the signing command packages the waiting installer with the committed key 
   }
   fs.writeFileSync(path.join(packages, '158.0.8127.900', 'blanc-beta-158.0.8127.900.crx3'), 'already signed');
   const op = path.join(dir, 'op');
-  fs.writeFileSync(op, `#!/bin/bash\n[ "$OP_BIOMETRIC_UNLOCK_ENABLED" = true ] || exit 1\ncase "$1 $2" in\n "vault get") exit 0;;\n "document get") [ "$3" = "Blanc Windows Beta CRX Publisher Key" ] && cp '${pem}' "\${9}";;\n *) exit 2;;\nesac\n`, {mode: 0o755});
-  const run = spawnSync('bash', [sign], {env: {...process.env, BLANC_OP: op, BLANC_PACKAGES: packages, BLANC_CRX_PUBLIC: pub}, encoding: 'utf8'});
+  fs.writeFileSync(op, `#!/bin/bash\n[ "$OP_BIOMETRIC_UNLOCK_ENABLED" = true ] || exit 1\ncase "$1 $2" in\n "vault get") exit 0;;\n "document get") [ "$3" = "Blanc Windows Beta CRX Publisher Key" ] && echo "\${9}" >> '${dir}/key-paths' && cp '${pem}' "\${9}";;\n *) exit 2;;\nesac\n`, {mode: 0o755});
+  const tmp = privateTmp(dir);
+  const run = spawnSync('bash', [sign], {env: {...process.env, BLANC_OP: op, BLANC_PACKAGES: packages, BLANC_CRX_PUBLIC: pub, BLANC_WORK_TMP: tmp}, encoding: 'utf8'});
   assert.equal(run.status, 0, run.stdout + run.stderr);
   assert.match(run.stdout, /blanc-beta-158\.0\.8127\.901\.crx3: \d+ bytes, sha256 [0-9a-f]{64}/);
   const record = JSON.parse(fs.readFileSync(path.join(packages, '158.0.8127.901', 'package.json'), 'utf8'));
   assert.equal(record.publisherKeySha256, crypto.createHash('sha256').update(fs.readFileSync(pub)).digest('hex'));
   assert.doesNotMatch(run.stdout + run.stderr, /PRIVATE KEY/);
-  assert.deepEqual(fs.readdirSync('/private/tmp').filter(n => n.startsWith('blanc-package-sign.')), [], 'no key folder is left');
+  assertNothingLeft(tmp, path.join(dir, 'key-paths'), 'no key folder is left');
   fs.rmSync(dir, {recursive: true, force: true});
 });
 
@@ -187,8 +204,10 @@ test('the gate command deploys and keys the staging server only', {skip: !usable
   const op = path.join(dir, 'op'), wrangler = path.join(dir, 'wrangler'), calls = path.join(dir, 'calls');
   fs.writeFileSync(op, `#!/bin/bash\n[ "$OP_BIOMETRIC_UNLOCK_ENABLED" = true ] || exit 1\ncase "$1 $2" in\n "vault get") exit 0;;\n "document get") cp '${pem}' "\${9}";;\n *) exit 2;;\nesac\n`, {mode: 0o755});
   fs.writeFileSync(wrangler, `#!/bin/bash\necho "$*" >> '${calls}'\ncase "$1" in\n deploy) echo "Deployed https://blanc-update-staging.test.workers.dev";;\n secret) cat > /dev/null;;\nesac\n`, {mode: 0o755});
-  const run = spawnSync('bash', [gate], {env: {...process.env, BLANC_OP: op, BLANC_WRANGLER: wrangler, BLANC_SKIP_SMOKE: '1', BLANC_CUP_PUBLIC: pub}, encoding: 'utf8'});
+  const tmp = privateTmp(dir);
+  const run = spawnSync('bash', [gate], {env: {...process.env, BLANC_OP: op, BLANC_WRANGLER: wrangler, BLANC_SKIP_SMOKE: '1', BLANC_CUP_PUBLIC: pub, BLANC_WORK_TMP: tmp}, encoding: 'utf8'});
   assert.equal(run.status, 0, run.stdout + run.stderr);
+  assert.deepEqual(fs.readdirSync(tmp), [], 'no working folder is left');
   assert.deepEqual(fs.readFileSync(calls, 'utf8').trim().split('\n'), ['deploy --env staging', 'secret put CUP_SEED --env staging']);
   assert.match(run.stdout, /staging update server \(release gate\) is https:\/\/blanc-update-staging\.test\.workers\.dev/);
   fs.rmSync(dir, {recursive: true, force: true});
