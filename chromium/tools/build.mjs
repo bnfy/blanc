@@ -79,7 +79,7 @@ export function maximumActions(options) {
 // x86-64 Linux server (chromium/windows/). It shares the lane's patches and
 // source with the Mac; only the output and the machine differ.
 export const WINDOWS_OUTPUTS = ['BlancWinPrototype', 'BlancWinBeta'];
-export const LINUX_OUTPUTS = ['BlancLinuxPrototype'];
+export const LINUX_OUTPUTS = ['BlancLinuxPrototype', 'BlancLinuxArm64Prototype'];
 const MAC_OUTPUTS = ['BlancPrototype', 'BlancRelease', 'BlancBeta'];
 // The preview candidate's output, or the release channel's own (F0.3); never
 // an arbitrary path, so a typo cannot start a cold build somewhere new.
@@ -256,15 +256,25 @@ export function sysrootHash(entries) {
   if (markers.length !== 1) throw new Error('Expected exactly one sysroot hash marker. Review the installed sysroot.');
   return markers[0].slice(1);
 }
-function linuxEnvironment(src, out) {
+export function linuxEnvironment(src, out) {
   const clang = path.join(src, 'third_party/llvm-build/Release+Asserts');
+  const linux = path.join(src, 'build/linux');
   const inputs = {
     host: `${process.platform} ${process.arch}`,
     clangRevision: fs.readFileSync(path.join(clang, 'cr_build_revision'), 'utf8').trim(),
     clangVersion: run(path.join(clang, 'bin/clang'), ['--version']),
-    sysrootHash: sysrootHash(fs.readdirSync(path.join(src, 'build/linux/debian_bullseye_amd64-sysroot'))),
+    sysrootHash: sysrootHash(fs.readdirSync(path.join(linux, 'debian_bullseye_amd64-sysroot'))),
     argsSha256: digest(fs.readFileSync(path.join(out, 'args.gn'))),
   };
+  if (path.basename(out) === 'BlancLinuxArm64Prototype') {
+    // install-sysroot.py writes the verified tarball URL verbatim to .stamp.
+    const manifest = JSON.parse(fs.readFileSync(path.join(linux, 'sysroot_scripts/sysroots.json'), 'utf8'));
+    const { SysrootDir, Sha256Sum, URL } = manifest.bullseye_arm64;
+    const stamp = path.join(linux, SysrootDir, '.stamp');
+    if (!/^[0-9a-f]{64}$/.test(Sha256Sum) || fs.readFileSync(stamp, 'utf8') !== `${URL}/${Sha256Sum}`)
+      throw new Error(`Arm64 sysroot .stamp differs from sysroots.json: ${stamp}. Review the installed sysroot.`);
+    inputs.arm64SysrootHash = Sha256Sum;
+  }
   return { inputs, env: { ...process.env, DEPOT_TOOLS_UPDATE: '0' } };
 }
 function environment(src, out, sdkRoot = null) {
@@ -340,7 +350,8 @@ function main() {
       // A declared baseline, never a claim that the build passed. Recording is
       // separate from compilation and cannot bypass the large-plan guard.
       fs.writeFileSync(pinFile, JSON.stringify(inputs, null, 2) + '\n');
-      const summary = linux ? `Linux sysroot ${inputs.sysrootHash}` : inputs.xcode ?? inputs.jdk ?? `Visual Studio package ${inputs.toolchainHash}, Windows SDK ${inputs.sdkVersion}`;
+      let summary = linux ? `Linux sysroot ${inputs.sysrootHash}` : inputs.xcode ?? inputs.jdk ?? `Visual Studio package ${inputs.toolchainHash}, Windows SDK ${inputs.sdkVersion}`;
+      if (inputs.arm64SysrootHash) summary += `\nLinux arm64 sysroot ${inputs.arm64SysrootHash}`;
       console.log(`Recorded build environment: ${pinFile}\n${summary}\nNo build started.`);
       return;
     }

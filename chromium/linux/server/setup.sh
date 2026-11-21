@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # Applies the desktop lane's Blanc source and generates the Linux preview
 # output in the server's existing desktop checkout (the one the Windows build
-# uses), under the shared checkout lock (Linux L0, Task 2):
+# uses), under the shared checkout lock:
 #
 #   bash chromium/linux/server/setup.sh --dry-run                 # print the plan, change nothing
 #   bash chromium/linux/server/setup.sh --windows-release-idle    # run it
+#   bash chromium/linux/server/setup.sh --windows-release-idle --install-arm64-sysroot
+#   bash chromium/linux/server/setup.sh --windows-release-idle --out=BlancLinuxArm64Prototype
 #
 # It never syncs, runs hooks or installs packages. It records both Windows
 # outputs' build plans before and after, so a change to what Windows would
@@ -18,22 +20,36 @@ APPLIED="${CHECKOUT}/.blanc-applied-source-map.json"
 NODE="${SRC}/third_party/node/linux/node-linux-x64/bin/node"
 TREE="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 LANE="${TREE}/chromium/lanes/desktop.json"
-ARGS="${TREE}/chromium/linux/args/prototype-x64.gn"
-OUT="${SRC}/out/BlancLinuxPrototype"
 EVIDENCE="${HOME}/blanc-evidence/linux"
 WINDOWS_OUTPUTS=(BlancWinPrototype BlancWinBeta)
 
+die() { echo "setup: $*" >&2; exit 1; }
 dry_run=0
 windows_release_idle=0
+install_arm64_sysroot=0
+out_name=
 for arg in "$@"; do
   case "${arg}" in
     --dry-run) dry_run=1 ;;
     --windows-release-idle) windows_release_idle=1 ;;
-    *) echo "Usage: setup.sh [--dry-run] [--windows-release-idle]" >&2; exit 2 ;;
+    --install-arm64-sysroot) install_arm64_sysroot=1 ;;
+    --out=BlancLinuxPrototype|--out=BlancLinuxArm64Prototype)
+      [[ -z "${out_name}" ]] || die "choose only one --out."
+      out_name="${arg#--out=}" ;;
+    *) echo "Usage: setup.sh [--dry-run] [--windows-release-idle] [--out=BlancLinuxPrototype|BlancLinuxArm64Prototype] [--install-arm64-sysroot]" >&2; exit 2 ;;
   esac
 done
+if (( install_arm64_sysroot )); then
+  out_name="${out_name:-BlancLinuxArm64Prototype}"
+  [[ "${out_name}" == BlancLinuxArm64Prototype ]] || die "--install-arm64-sysroot requires the arm64 output."
+fi
+out_name="${out_name:-BlancLinuxPrototype}"
+ARGS="${TREE}/chromium/linux/args/prototype-x64.gn"
+if [[ "${out_name}" == BlancLinuxArm64Prototype ]]; then
+  ARGS="${TREE}/chromium/linux/args/prototype-arm64.gn"
+fi
+OUT="${SRC}/out/${out_name}"
 
-die() { echo "setup: $*" >&2; exit 1; }
 in_dir() { local dir="$1"; shift; (cd "${dir}" && "$@"); }
 step() {
   local what="$1"; shift
@@ -100,6 +116,11 @@ snapshot_windows before
   trap 'step "release the desktop checkout lock" rmdir "${LOCK}"' EXIT
   trap 'exit 1' HUP INT TERM
   require_idle_build
+  if (( install_arm64_sysroot )); then
+    step "install the pinned arm64 sysroot" python3 "${SRC}/build/linux/sysroot_scripts/install-sysroot.py" --arch=arm64
+  elif [[ "${out_name}" == BlancLinuxArm64Prototype && ! -s "${SRC}/build/linux/debian_bullseye_arm64-sysroot/.stamp" ]]; then
+    die "arm64 sysroot .stamp missing or empty; use --install-arm64-sysroot."
+  fi
   previous=()
   [[ -f "${APPLIED}" ]] && previous=(--previous-map "${APPLIED}")
   step "check the lane's Blanc source" python3 "${TREE}/chromium/tools/apply.py" --lane desktop --src "${SRC}" "${previous[@]}"
@@ -109,10 +130,10 @@ snapshot_windows before
   if [[ -f "${OUT}/args.gn" ]]; then
     cmp -s "${ARGS}" "${OUT}/args.gn" || die "${OUT}/args.gn differs from ${ARGS}; review it by hand (nothing was overwritten)."
   else
-    step "create BlancLinuxPrototype" mkdir -p "${OUT}"
-    step "write BlancLinuxPrototype/args.gn" cp "${ARGS}" "${OUT}/args.gn"
+    step "create ${out_name}" mkdir -p "${OUT}"
+    step "write ${out_name}/args.gn" cp "${ARGS}" "${OUT}/args.gn"
   fi
-  step "generate BlancLinuxPrototype" in_dir "${SRC}" gn gen out/BlancLinuxPrototype
+  step "generate ${out_name}" in_dir "${SRC}" gn gen "out/${out_name}"
 )
 
 snapshot_windows after

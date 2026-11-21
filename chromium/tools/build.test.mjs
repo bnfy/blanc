@@ -6,7 +6,7 @@ import path from 'node:path';
 import * as guard from './build.mjs';
 const { changedInputs, plannedActions, checkPlan, planSummary, localJobs, maximumActions, selectedSdk, outputName, buildLane,
   requireAndroidHost, competingBuild, processListArgs, WINDOWS_OUTPUTS, requireDesktopHost, windowsToolchainPins, windowsToolchainMounted,
-  LINUX_OUTPUTS, checkoutLockPath, acquireCheckoutLock, sysrootHash } = guard;
+  LINUX_OUTPUTS, checkoutLockPath, acquireCheckoutLock, sysrootHash, linuxEnvironment } = guard;
 
 test('cold plans larger than the former capture limit retain their final count', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-plan-test-'));
@@ -198,18 +198,29 @@ test('the Windows build needs its case-insensitive toolchain mount', () => {
   assert.equal(windowsToolchainMounted(`/dev/md2 ${mount} ext4 rw 0 0\n`, src), false);
 });
 
-test('Linux preview builds chrome, chrome_sandbox and both prototype packages', () => {
-  const options = ['--out=BlancLinuxPrototype'];
-  assert.equal(outputName(options), 'BlancLinuxPrototype');
-  assert.deepEqual(LINUX_OUTPUTS, ['BlancLinuxPrototype']);
-  assert.deepEqual(buildLane(options, true), { lane: 'desktop', out: 'BlancLinuxPrototype', target: 'chrome', extraTargets: ['chrome_sandbox', 'chrome/installer/linux:prototype'] });
-  assert.throws(() => buildLane([...options, '--sdk-root=/tmp']), /macOS option/);
+test('both Linux previews build chrome, chrome_sandbox and patch 0115’s prototype package group', () => {
+  assert.deepEqual(LINUX_OUTPUTS, ['BlancLinuxPrototype', 'BlancLinuxArm64Prototype']);
+  for (const out of LINUX_OUTPUTS) {
+    const options = ['--out=' + out];
+    assert.equal(outputName(options), out);
+    assert.deepEqual(buildLane(options, true), { lane: 'desktop', out, target: 'chrome', extraTargets: ['chrome_sandbox', 'chrome/installer/linux:prototype'] });
+    assert.throws(() => buildLane([...options, '--sdk-root=/tmp']), /macOS option/);
+    assert.throws(() => buildLane([...options, '--lane=android']));
+  }
 });
 test('Linux preview requires x86-64 Linux', () => {
-  assert.throws(() => requireDesktopHost('BlancLinuxPrototype', 'darwin', 'arm64'), /x86-64 Linux/);
-  assert.throws(() => requireDesktopHost('BlancLinuxPrototype', 'linux', 'arm64'), /x86-64 Linux/);
-  assert.doesNotThrow(() => requireDesktopHost('BlancLinuxPrototype', 'linux', 'x64'));
+  for (const out of LINUX_OUTPUTS) {
+    assert.throws(() => requireDesktopHost(out, 'darwin', 'arm64'), /x86-64 Linux/);
+    assert.throws(() => requireDesktopHost(out, 'linux', 'arm64'), /x86-64 Linux/);
+    assert.doesNotThrow(() => requireDesktopHost(out, 'linux', 'x64'));
+  }
   assert.throws(() => requireDesktopHost('BlancPrototype', 'linux', 'x64'), /only on macOS/);
+});
+test('arm64 preview arguments differ from x64 only in target_cpu', () => {
+  const args = cpu => fs.readFileSync(new URL('../linux/args/prototype-' + cpu + '.gn', import.meta.url), 'utf8')
+    .split('\n').filter(line => line.trim() && !line.trim().startsWith('#')).join('\n');
+  assert.match(args('arm64'), /^target_cpu = "arm64"$/m);
+  assert.equal(args('arm64'), args('x64').replace('target_cpu = "x64"', 'target_cpu = "arm64"'));
 });
 test('setup and builds contend for one checkout lock', () => {
   assert.equal(checkoutLockPath('/h/chromium-desktop/src'), '/h/chromium-desktop/.blanc-checkout.lock');
@@ -236,12 +247,55 @@ test('sysroot requires exactly one bare hash marker', () => {
   assert.throws(() => sysrootHash(['.' + hash, '.' + '1'.repeat(64)]));
 });
 
+test('the arm64 environment requires both the host hash and the pinned installer URL stamp', t => {
+  const src = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-linux-env-'));
+  t.after(() => fs.rmSync(src, { recursive: true, force: true }));
+  const clang = path.join(src, 'third_party/llvm-build/Release+Asserts');
+  const linux = path.join(src, 'build/linux');
+  const host = path.join(linux, 'debian_bullseye_amd64-sysroot');
+  const arm = path.join(linux, 'debian_bullseye_arm64-sysroot');
+  const scripts = path.join(linux, 'sysroot_scripts');
+  const x64 = path.join(src, 'out/BlancLinuxPrototype');
+  const arm64 = path.join(src, 'out/BlancLinuxArm64Prototype');
+  for (const dir of [path.join(clang, 'bin'), host, scripts, x64, arm64]) fs.mkdirSync(dir, { recursive: true });
+  fs.symlinkSync(process.execPath, path.join(clang, 'bin/clang')); // Supplies --version.
+  fs.writeFileSync(path.join(clang, 'cr_build_revision'), 'test');
+  for (const out of [x64, arm64]) fs.writeFileSync(path.join(out, 'args.gn'), '');
+  const hostHash = 'a'.repeat(64), armHash = 'b'.repeat(64);
+  const hostMarker = path.join(host, '.' + hostHash);
+  fs.writeFileSync(hostMarker, '');
+  const original = linuxEnvironment(src, x64).inputs;
+  assert.equal(original.sysrootHash, hostHash);
+  assert.equal(Object.hasOwn(original, 'arm64SysrootHash'), false);
+
+  const prefix = 'https://commondatastorage.googleapis.com/chrome-linux-sysroot';
+  const entry = { SysrootDir: path.basename(arm), URL: prefix, Sha256Sum: armHash };
+  fs.writeFileSync(path.join(scripts, 'sysroots.json'), JSON.stringify({ bullseye_arm64: entry }));
+  fs.mkdirSync(arm);
+  fs.writeFileSync(path.join(arm, '.' + armHash), ''); // The standalone installer requires .stamp.
+  assert.throws(() => linuxEnvironment(src, arm64), /\.stamp/);
+  const stamp = path.join(arm, '.stamp');
+  for (const value of [armHash, prefix + '/' + hostHash, 'https://other.invalid/' + armHash]) {
+    fs.writeFileSync(stamp, value);
+    assert.throws(() => linuxEnvironment(src, arm64), /\.stamp/);
+  }
+  fs.writeFileSync(stamp, prefix + '/' + armHash);
+  const current = linuxEnvironment(src, arm64).inputs;
+  assert.equal(current.sysrootHash, hostHash);
+  assert.equal(current.arm64SysrootHash, armHash);
+  assert.deepEqual(linuxEnvironment(src, x64).inputs, original);
+  fs.unlinkSync(hostMarker);
+  assert.throws(() => linuxEnvironment(src, arm64), /sysroot hash marker/);
+});
+
 test('the guard can plan and build the unpackaged Linux browser before the owner key lands', () => {
   for (const mode of ['--check', '--build']) {
-    const options = ['--out=BlancLinuxPrototype', mode];
-    assert.deepEqual(buildLane(options, false).extraTargets, ['chrome_sandbox']);
-    assert.deepEqual(buildLane([...options, '--linux-packages'], false).extraTargets,
-      ['chrome_sandbox', 'chrome/installer/linux:prototype']);
+    for (const out of LINUX_OUTPUTS) {
+      const options = ['--out=' + out, mode];
+      assert.deepEqual(buildLane(options, false).extraTargets, ['chrome_sandbox']);
+      assert.deepEqual(buildLane([...options, '--linux-packages'], false).extraTargets,
+        ['chrome_sandbox', 'chrome/installer/linux:prototype']);
+    }
     assert.throws(() => buildLane([mode, '--linux-packages']), /Linux/);
   }
 });
