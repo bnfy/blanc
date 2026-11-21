@@ -9,6 +9,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 import xml.etree.ElementTree as ET
 
@@ -32,12 +33,20 @@ def require(condition, message):
         raise ValueError(message)
 
 
-def sha(file):
+def stream_sha(stream):
     digest = hashlib.sha256()
-    with file.open('rb') as stream:
-        for block in iter(lambda: stream.read(1024 * 1024), b''):
-            digest.update(block)
+    for block in iter(lambda: stream.read(1024 * 1024), b''):
+        digest.update(block)
     return digest.hexdigest()
+
+
+def sha(file):
+    with file.open('rb') as stream:
+        return stream_sha(stream)
+
+
+def package_record(file):
+    return {'file': file.name, 'sha256': sha(file)}
 
 
 def read_index(file):
@@ -119,8 +128,65 @@ def write_approval(directory):
     files = package_files(directory)
     write_json(directory / 'approved-packages.json', {
         'schema': 1, 'releaseVersion': validate_matrix({p.name for p in files}),
-        'packages': [{'file': p.name, 'sha256': sha(p), 'size': p.stat().st_size} for p in files],
+        'packages': [{**package_record(p), 'size': p.stat().st_size} for p in files],
     })
+
+
+def unpack_candidate(arch, tar_sha, archive, directory):
+    require(arch in ('x64', 'arm64'), 'unknown Linux architecture')
+    require(HASH.fullmatch(tar_sha) and sha(archive) == tar_sha, 'candidate tarball SHA-256 mismatch')
+    directory.mkdir()
+    manifest = None
+    executable_sha = None
+    packages = {}
+    # The runtime can be large. Read the tar sequentially and copy only the two
+    # regular package files into a fresh directory, never extracting archive paths.
+    with tarfile.open(archive, 'r|gz') as tar:
+        for entry in tar:
+            name = entry.name.removeprefix('./')
+            if name == '.' or entry.isdir():
+                continue
+            if name == 'candidate.json':
+                require(entry.isfile() and manifest is None and entry.size <= 65536, 'invalid candidate.json')
+                manifest = json.load(tar.extractfile(entry))
+            elif name == 'chrome/chrome':
+                require(entry.isfile() and executable_sha is None, 'invalid chrome executable')
+                executable_sha = stream_sha(tar.extractfile(entry))
+            elif name.startswith('packages/'):
+                match = re.fullmatch(r'packages/(blanc-prototype[-_][\w.-]+\.(deb|rpm))', name, re.ASCII)
+                require(entry.isfile() and match and match[2] not in packages, f'unexpected package: {name}')
+                file = directory / match[1]
+                with file.open('xb') as out:
+                    shutil.copyfileobj(tar.extractfile(entry), out)
+                packages[match[2]] = package_record(file)
+
+    require(manifest, 'missing candidate.json')
+    if not packages and not manifest.get('packages'):
+        raise ValueError('Runtime-only candidate has no DEB or RPM. Build installers after the owner commits '
+                         'chromium/linux/keys/blanc-repository.asc.')
+    require(manifest['platform'] == 'linux' and manifest['channel'] == 'preview'
+            and manifest['arch'] == arch, 'expected the selected Linux preview')
+    require(executable_sha and manifest['exeSha256'] == executable_sha
+            and manifest['id'] == f'linux-{arch}-{executable_sha[:16]}', 'candidate executable hash mismatch')
+    version = manifest['version']
+    require(re.fullmatch(VERSION, version), 'invalid candidate version')
+    deb_arch, rpm_arch = ('amd64', 'x86_64') if arch == 'x64' else ('arm64', 'aarch64')
+    require(set(packages) == {'deb', 'rpm'} and
+            packages['deb']['file'] == f'blanc-prototype_{version}-1_{deb_arch}.deb' and
+            packages['rpm']['file'] == f'blanc-prototype-{version}-1.{rpm_arch}.rpm',
+            'expected both packages for the candidate version and architecture')
+    require(sorted(manifest['packages'], key=lambda row: row['file']) ==
+            sorted(packages.values(), key=lambda row: row['file']), 'candidate package hashes differ')
+    write_json(directory / 'unsigned-candidate.json', {
+        'candidate': manifest['id'], 'tarSha256': tar_sha, 'arch': arch, **packages,
+    })
+
+
+def approve_candidate(directory):
+    record = json.loads((directory / 'unsigned-candidate.json').read_bytes())
+    require(package_record(directory / record['deb']['file']) == record['deb'], 'DEB changed during signing')
+    record['rpm'] = package_record(directory / record['rpm']['file'])
+    write_json(directory / f"signed-candidate-{record['arch']}.json", record)
 
 
 def check_package(file, rows, digest, size):
@@ -361,7 +427,9 @@ def seal(tree):
 if __name__ == '__main__':
     command, *args = sys.argv[1:]
     paths = [Path(arg).absolute() for arg in args]
-    if command == 'copy-packages':
+    if command == 'unpack-candidate':
+        unpack_candidate(args[0], args[1], *paths[2:])
+    elif command == 'copy-packages':
         paths[1].mkdir()
         for package in package_files(paths[0]):
             shutil.copyfile(package, paths[1] / package.name)
@@ -369,6 +437,6 @@ if __name__ == '__main__':
         for name in approved(paths[0])[1]:
             print(name)
     else:
-        {'approve': write_approval, 'build': build, 'check': check_indices,
+        {'approve': write_approval, 'approve-candidate': approve_candidate, 'build': build, 'check': check_indices,
          'verify-rpm': verify_rpm, 'seal': seal, 'finish': finish_directory}[command](*paths)
 

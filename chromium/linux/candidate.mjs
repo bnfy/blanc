@@ -1,12 +1,20 @@
 import path from 'node:path';
 
-export const ASSET_NAME = 'blanc-linux-candidate.tar.gz';
+function checkArch(arch) {
+  if (arch !== 'x64' && arch !== 'arm64') throw new Error('Linux candidate architecture must be x64 or arm64.');
+}
 
-export function candidateId(exeSha256) {
+export function ASSET_NAME(arch) {
+  checkArch(arch);
+  return `blanc-linux-${arch}-candidate.tar.gz`;
+}
+
+export function candidateId(exeSha256, arch = 'x64') {
+  checkArch(arch);
   if (typeof exeSha256 !== 'string' || !/^[0-9a-f]{64}$/.test(exeSha256)) {
     throw new Error('chrome SHA-256 must be 64 lowercase hex digits.');
   }
-  return `linux-x64-${exeSha256.slice(0, 16)}`;
+  return `linux-${arch}-${exeSha256.slice(0, 16)}`;
 }
 
 // GN reports runtime_deps relative to the build output, including directories.
@@ -27,15 +35,17 @@ export function runtimeFiles(lines) {
 }
 
 export function runtimeConfig(directory, candidate) {
-  if (candidate?.id !== candidateId(candidate?.exeSha256)) {
+  if (candidate?.id !== candidateId(candidate?.exeSha256, candidate?.arch)) {
     throw new Error('candidate.json id does not match its chrome hash.');
   }
+  // L0 tarballs have no packages and put the executable at the archive root.
+  const runtime = Object.hasOwn(candidate, 'packages') ? path.join(directory, 'chrome') : directory;
   return {
     candidate: candidate.id,
-    executable: path.join(directory, 'chrome'),
+    executable: path.join(runtime, 'chrome'),
     executableSha256: candidate.exeSha256,
     singleBinary: true,
-    blockerAssets: path.join(directory, 'blocker'),
+    blockerAssets: path.join(runtime, 'blocker'),
     diskAssets: false,
   };
 }

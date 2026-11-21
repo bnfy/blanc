@@ -107,8 +107,8 @@ export function linuxCandidate(record) {
   for (const key of ['id', 'exeSha256', 'version', 'treeCommit']) {
     if (typeof record?.[key] !== 'string' || !record[key]) throw Error(`Linux candidate record has no ${key}`);
   }
-  if (record.id !== linuxCandidateId(record.exeSha256)) throw Error('Linux candidate id does not match its chrome hash');
-  return { id: record.id, exeSha256: record.exeSha256, version: record.version, treeCommit: record.treeCommit,
+  if (record.id !== linuxCandidateId(record.exeSha256, record.arch)) throw Error('Linux candidate id does not match its chrome hash');
+  return { id: record.id, arch: record.arch ?? 'x64', exeSha256: record.exeSha256, version: record.version, treeCommit: record.treeCommit,
     qualification: 'compiled candidate; runtime acceptance pending' };
 }
 function main() {

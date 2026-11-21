@@ -4,12 +4,11 @@
 #
 #   bash chromium/linux/ship-candidate.sh blanc@SERVER ~/blanc-evidence/linux/candidate-1 [~/.ssh/key]
 #
-# The tarball becomes the one asset of a reused, unpublished draft release,
+# Each architecture has its own tarball on a reused, unpublished draft release,
 # which only repository collaborators can read. It is never published. Prints
 # the command that runs it on a hosted Linux runner.
 set -euo pipefail
 DRAFT_TAG=fork-linux-candidate
-ASSET=blanc-linux-candidate.tar.gz
 REPO=bnfy/blanc
 
 [[ $# -ge 2 && $# -le 3 ]] || { echo "Usage: ship-candidate.sh USER@SERVER REMOTE_FOLDER [SSH_KEY]" >&2; exit 2; }
@@ -20,11 +19,22 @@ die() { echo "ship-candidate: $*" >&2; exit 1; }
 
 work="$(mktemp -d)"; trap 'rm -rf "${work}"' EXIT
 scp -q "${ssh_opts[@]}" -- "${server}:${remote}/package.json" "${work}/package.json"
-expected="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tarSha256"])' "${work}/package.json")"
-candidate="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["id"])' "${work}/package.json")"
-[[ "${expected}" =~ ^[0-9a-f]{64}$ && "${candidate}" =~ ^linux-x64-[0-9a-f]{16}$ ]] || die "unexpected package record."
-scp -q "${ssh_opts[@]}" -- "${server}:${remote}/${ASSET}" "${work}/${ASSET}"
-actual="$(shasum -a 256 "${work}/${ASSET}" | cut -d' ' -f1)"
+here=$(cd "$(dirname "$0")" && pwd -P)
+fields=$(node --input-type=module - "$here/candidate.mjs" "$work/package.json" <<'JS'
+import fs from 'node:fs';
+import {pathToFileURL} from 'node:url';
+const [module, file] = process.argv.slice(2);
+const {ASSET_NAME, candidateId} = await import(pathToFileURL(module));
+const record = JSON.parse(fs.readFileSync(file));
+const {id, arch = 'x64', exeSha256, tarSha256} = record;
+if (id !== candidateId(exeSha256, arch) || !/^[0-9a-f]{64}$/.test(tarSha256)) throw Error('Unexpected package record');
+const legacy = arch === 'x64' && !Object.hasOwn(record, 'packages');
+console.log(arch, id, tarSha256, legacy ? 'blanc-linux-candidate.tar.gz' : ASSET_NAME(arch), record.packages?.length === 2);
+JS
+)
+read -r arch candidate expected asset packaged <<< "$fields"
+scp -q "${ssh_opts[@]}" -- "${server}:${remote}/${asset}" "${work}/${asset}"
+actual="$(shasum -a 256 "${work}/${asset}" | cut -d' ' -f1)"
 [[ "${actual}" == "${expected}" ]] || die "tarball SHA-256 mismatch: expected ${expected}, got ${actual}."
 
 state="$(gh release view "${DRAFT_TAG}" --repo "${REPO}" --json isDraft --jq .isDraft 2>/dev/null || echo missing)"
@@ -34,6 +44,12 @@ case "${state}" in
              --notes "Carries the Linux preview build to chromium-linux-candidate.yml. Keep this release in draft." ;;
   *) die "${DRAFT_TAG} is published; refusing upload." ;;
 esac
-gh release upload "${DRAFT_TAG}" "${work}/${ASSET}" --repo "${REPO}" --clobber
+source "$here/owner/repository-common.sh"
+with_candidate_lock "$DRAFT_TAG" "$REPO" "$arch" gh release upload "$DRAFT_TAG" "$work/$asset" --repo "$REPO" --clobber
 echo "Uploaded ${candidate} (${actual})."
-echo "Run it: gh workflow run chromium-linux-candidate.yml --repo ${REPO} --ref chromium/next -f sha256=${actual}"
+echo "Run it: gh workflow run chromium-linux-candidate.yml --repo ${REPO} --ref chromium/next -f arch=${arch} -f sha256=${actual}"
+if [[ $packaged == true ]]; then
+  echo "Sign it: chromium/linux/owner/sign-candidate.command ${arch} ${actual}"
+else
+  echo "Runtime-only candidate. Signing and install checks need both DEB and RPM from a build with the owner's committed repository key."
+fi
