@@ -5,7 +5,8 @@
     <!-- The Island address's TalkBack action that opens the tab grid. -->
     <item name="blanc_island_show_all_tabs_action" type="id" />
     <item name="blanc_island_menu_actions" type="id" />
-    <item name="blanc_palette_edit_address_action" type="id" />
+    <!-- The search row address pill's TalkBack action that copies the link. -->
+    <item name="blanc_palette_copy_link_action" type="id" />
     <!-- A palette row's TalkBack action that closes its tab (SwipeToCloseRow). -->
     <item name="blanc_palette_close_action" type="id" />
 </resources>

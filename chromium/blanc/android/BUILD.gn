@@ -367,7 +367,6 @@ android_resources("island_view_resources") {
     "island/res/drawable/blanc_palette_close.xml",
     "island/res/drawable/blanc_palette_cloud.xml",
     "island/res/drawable/blanc_palette_command.xml",
-    "island/res/drawable/blanc_palette_copy.xml",
     "island/res/drawable/blanc_palette_globe.xml",
     "island/res/drawable/blanc_palette_history.xml",
     "island/res/drawable/blanc_palette_link.xml",

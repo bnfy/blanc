@@ -15,6 +15,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.InsetDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
@@ -173,7 +174,8 @@ public final class PaletteSheet extends Dialog {
     private final EditText mField;
     private final ImageButton mClear;
     private final ImageButton mCollapse;
-    private final ImageButton mCopy;
+    private final TextView mUrlPill;
+    private final String mPlaceholder;
     private final LinearLayout mList;
     private final ImageButton mBack;
     private final View mNewTab;
@@ -235,61 +237,44 @@ public final class PaletteSheet extends Dialog {
 
         LinearLayout addressRow = new LinearLayout(activity);
         addressRow.setGravity(Gravity.CENTER_VERTICAL);
-        // Its icons line up with the list's (#1472): the glass over the rows' icons, the caret over
-        // the rows' trailing buttons.
-        addressRow.setPadding(dp(22), dp(8), dp(12), dp(8));
-        ImageView search = icon(R.drawable.blanc_palette_search, secondary());
-        addressRow.addView(search, new LinearLayout.LayoutParams(dp(24), dp(24)));
+        // No search glass (owner, 2026-11-21): the row's room goes to the page's address and what's
+        // typed. It starts in line with the list's headings (the field's 2 of padding makes 22); the
+        // caret sits over the rows' trailing buttons.
+        addressRow.setPadding(dp(20), dp(8), dp(12), dp(8));
+        mPlaceholder = activity.getString(R.string.blanc_ios_palette_placeholder);
+        mUrlPill = buildUrlPill();
         mField = new EditText(activity);
         mField.setSingleLine(true);
         mField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
         // Never the keyboard's full-screen editor, which would hide the list in landscape.
         mField.setImeOptions(EditorInfo.IME_ACTION_GO | EditorInfo.IME_FLAG_NO_EXTRACT_UI
                 | EditorInfo.IME_FLAG_NO_FULLSCREEN);
-        mField.setHint(R.string.blanc_ios_palette_placeholder);
+        mField.setHint(mPlaceholder);
         mField.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
         mField.setTextColor(mStyle.text);
         mField.setHintTextColor(secondary());
         mField.setBackground(null);
-        mField.setPadding(dp(8), 0, dp(8), 0);
+        mField.setPadding(dp(2), 0, dp(8), 0);
         mField.setOnEditorActionListener((v, action, event) -> {
             if ((action & EditorInfo.IME_MASK_ACTION) != EditorInfo.IME_ACTION_GO) return false;
             go();
             return true;
         });
-        addressRow.addView(mField, new LinearLayout.LayoutParams(0, dp(44), 1));
-        // Copy Link while the field is empty (#1682): it used to be a row of its own above the tabs.
-        mCopy = button(R.drawable.blanc_palette_copy, R.string.blanc_tab_menu_copy_link, v -> copyLink());
-        mCopy.setImageTintList(ColorStateList.valueOf(secondary()));
-        mCopy.setOnLongClickListener(v -> {
-            PopupMenu menu = new PopupMenu(mActivity, v);
-            menu.getMenu().add(R.string.blanc_tab_menu_copy_link).setOnMenuItemClickListener(item -> {
-                copyLink();
-                return true;
-            });
-            menu.getMenu().add(R.string.blanc_ios_palette_edit_address).setOnMenuItemClickListener(item -> {
-                editAddress();
-                return true;
-            });
-            menu.show();
-            return true;
-        });
-        mCopy.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+        // The address takes the room it needs; the field keeps enough beside it for its cursor.
+        LinearLayout entry = new LinearLayout(activity) {
             @Override
-            public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
-                super.onInitializeAccessibilityNodeInfo(host, info);
-                info.addAction(new AccessibilityNodeInfo.AccessibilityAction(
-                        R.id.blanc_palette_edit_address_action, mActivity.getString(R.string.blanc_ios_palette_edit_address)));
+            protected void onMeasure(int widthSpec, int heightSpec) {
+                int max = Math.max(0, MeasureSpec.getSize(widthSpec) - dp(10));
+                if (mUrlPill.getMaxWidth() != max) mUrlPill.setMaxWidth(max);
+                super.onMeasure(widthSpec, heightSpec);
             }
-
-            @Override
-            public boolean performAccessibilityAction(View host, int action, @Nullable Bundle args) {
-                if (action != R.id.blanc_palette_edit_address_action) return super.performAccessibilityAction(host, action, args);
-                editAddress();
-                return true;
-            }
-        });
-        addressRow.addView(mCopy, new LinearLayout.LayoutParams(dp(44), dp(44)));
+        };
+        entry.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams pill = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(44));
+        pill.setMarginStart(dp(2));
+        entry.addView(mUrlPill, pill);
+        entry.addView(mField, new LinearLayout.LayoutParams(0, dp(44), 1));
+        addressRow.addView(entry, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         mClear = button(R.drawable.blanc_palette_close, R.string.blanc_ios_palette_clear, v -> mField.setText(""));
         addressRow.addView(mClear, new LinearLayout.LayoutParams(dp(44), dp(44)));
         mCollapse = button(mAtTop ? R.drawable.blanc_find_chevron_up : R.drawable.blanc_palette_chevron_down,
@@ -503,8 +488,8 @@ public final class PaletteSheet extends Dialog {
         return mBack;
     }
 
-    public View copyButton() {
-        return mCopy;
+    public TextView urlPill() {
+        return mUrlPill;
     }
 
     /** Whether the sheet hangs from the top, where the Island is. */
@@ -561,7 +546,14 @@ public final class PaletteSheet extends Dialog {
         mRows.clear();
         boolean empty = mField.getText().length() == 0;
         mClear.setVisibility(empty ? View.GONE : View.VISIBLE);
-        mCopy.setVisibility(empty && currentAddress() != null ? View.VISIBLE : View.GONE);
+        // The address shows while nothing's typed; the placeholder steps aside for it.
+        String address = empty ? currentAddress() : null;
+        mUrlPill.setVisibility(address != null ? View.VISIBLE : View.GONE);
+        if (address != null) {
+            mUrlPill.setText(address);
+            mUrlPill.setContentDescription(address);
+        }
+        mField.setHint(address != null ? null : mPlaceholder);
         switch (mode()) {
             case TABS -> renderTabs();
             case SLASH -> renderCommands();
@@ -977,7 +969,7 @@ public final class PaletteSheet extends Dialog {
         view.setLayoutParams(lp);
     }
 
-    /** The current page's whole address, for Copy Link and Edit Address; only for web pages. */
+    /** The current page's whole address, for the search row's pill; only for web pages. */
     private @Nullable String currentAddress() {
         String active = mTabs.activeId();
         for (TabStore.Entry tab : mTabs.entries(mTabs.privateSelected())) {
@@ -994,6 +986,60 @@ public final class PaletteSheet extends Dialog {
         if (clipboard != null) clipboard.setPrimaryClip(ClipData.newPlainText(address, address));
         mCallbacks.notice(mActivity.getString(R.string.blanc_pill_notice_link_copied));
         dismiss();
+    }
+
+    /**
+     * The page's whole address as a pill at the start of the search row while nothing's typed
+     * (owner, 2026-11-21). A long one shows its start and fades out at the end rather than an
+     * ellipsis. A tap puts it in the field to edit; holding it offers Copy Link; typing a new search
+     * sets it aside. It replaced the copy button, which had replaced a row above the tabs (#1682).
+     * 44 tall to tap, its capsule 30.
+     */
+    private TextView buildUrlPill() {
+        TextView view = new TextView(mActivity);
+        view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        view.setTextColor(secondary());
+        view.setSingleLine(true);
+        view.setEllipsize(null);
+        view.setHorizontalFadingEdgeEnabled(true);
+        view.setFadingEdgeLength(dp(28));
+        // An address reads left to right in every language, and fades at its right end.
+        view.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
+        view.setTextDirection(View.TEXT_DIRECTION_LTR);
+        view.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+        view.setPadding(dp(10), 0, dp(10), 0);
+        GradientDrawable capsule = new GradientDrawable();
+        capsule.setCornerRadius(dp(15));
+        capsule.setColor((mStyle.text & 0x00FFFFFF) | 0x0F000000);
+        view.setBackground(new InsetDrawable(capsule, 0, dp(7), 0, dp(7)));
+        view.setOnClickListener(v -> editAddress());
+        view.setOnLongClickListener(v -> {
+            PopupMenu menu = new PopupMenu(mActivity, v);
+            menu.getMenu().add(R.string.blanc_tab_menu_copy_link).setOnMenuItemClickListener(item -> {
+                copyLink();
+                return true;
+            });
+            menu.show();
+            return true;
+        });
+        view.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override
+            public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.addAction(new AccessibilityNodeInfo.AccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK,
+                        mActivity.getString(R.string.blanc_ios_palette_edit_address)));
+                info.addAction(new AccessibilityNodeInfo.AccessibilityAction(
+                        R.id.blanc_palette_copy_link_action, mActivity.getString(R.string.blanc_tab_menu_copy_link)));
+            }
+
+            @Override
+            public boolean performAccessibilityAction(View host, int action, @Nullable Bundle args) {
+                if (action != R.id.blanc_palette_copy_link_action) return super.performAccessibilityAction(host, action, args);
+                copyLink();
+                return true;
+            }
+        });
+        return view;
     }
 
     /** Puts the page's whole address in the field to edit. */

@@ -4,6 +4,8 @@ package org.chromium.blanc.tabs;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
@@ -12,6 +14,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.view.View;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.EditorInfo;
+import android.widget.TextView;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -401,40 +404,51 @@ public class PaletteSheetTest {
         assertEquals("Sent to Mac.", PaletteSheet.sendResult(Robolectric.buildActivity(Activity.class).get(), "sent", "Mac"));
     }
 
-    // #1682: no address row above the tabs; Copy Link is a button in the search row while it's
-    // empty, and TalkBack (or a long press) offers Edit address, which puts the address in the field.
+    // #1682 and the owner on 2026-11-21: no search glass and no copy button; the search row starts
+    // with the page's whole address as a pill while it's empty. A long one fades at its end rather
+    // than an ellipsis. A tap puts it in the field to edit; TalkBack (or a long press) offers Copy
+    // Link; typing sets it aside and clearing the field brings it back.
     @Test
-    public void theSearchRowCopiesTheLinkAndOffersEditAddress() {
+    public void theSearchRowStartsWithTheAddressPill() {
         PaletteSheet sheet = show();
         assertEquals(PaletteSheet.RowKind.HEADING, sheet.rows().get(0).kind);
-        View copy = sheet.copyButton();
-        assertEquals(View.VISIBLE, copy.getVisibility());
-        assertEquals("Copy Link", copy.getContentDescription().toString());
+        TextView pill = sheet.urlPill();
+        assertEquals(View.VISIBLE, pill.getVisibility());
+        assertEquals("https://example.com/", pill.getText().toString());
+        assertNull("a long address fades, not an ellipsis", pill.getEllipsize());
+        assertTrue(pill.isHorizontalFadingEdgeEnabled());
+        assertNull("the placeholder steps aside for the address", sheet.field().getHint());
         type(sheet, "b");
-        assertEquals("typing makes room for the text", View.GONE, copy.getVisibility());
+        assertEquals("typing sets the address aside", View.GONE, pill.getVisibility());
+        assertNotNull(sheet.field().getHint());
         type(sheet, "");
-        assertEquals(View.VISIBLE, copy.getVisibility());
-        int edit = -1;
-        for (AccessibilityNodeInfo.AccessibilityAction a : copy.createAccessibilityNodeInfo().getActionList()) {
-            if ("Edit address".contentEquals(String.valueOf(a.getLabel()))) edit = a.getId();
+        assertEquals(View.VISIBLE, pill.getVisibility());
+        String edit = null;
+        int copy = -1;
+        for (AccessibilityNodeInfo.AccessibilityAction a : pill.createAccessibilityNodeInfo().getActionList()) {
+            if (a.getId() == AccessibilityNodeInfo.ACTION_CLICK) edit = String.valueOf(a.getLabel());
+            if ("Copy Link".contentEquals(String.valueOf(a.getLabel()))) copy = a.getId();
         }
-        assertTrue("no Edit address action", edit != -1);
-        assertTrue(copy.performAccessibilityAction(edit, null));
-        assertEquals("https://example.com/", sheet.field().getText().toString());
+        assertEquals("Edit address", edit);
+        assertTrue("no Copy Link action", copy != -1);
+        assertTrue(pill.performClick());
+        assertEquals("a tap edits the address in place", "https://example.com/", sheet.field().getText().toString());
+        assertEquals(View.GONE, pill.getVisibility());
         assertTrue(sheet.isShowing());
         PaletteSheet again = show();
-        again.copyButton().performClick();
+        assertTrue(again.urlPill().performAccessibilityAction(copy, null));
         ClipboardManager clipboard = mActivity.getSystemService(ClipboardManager.class);
         assertEquals("https://example.com/", clipboard.getPrimaryClip().getItemAt(0).getText().toString());
         assertFalse(again.isShowing());
     }
 
     @Test
-    public void blancsOwnPagesHaveNoCopyButton() {
+    public void blancsOwnPagesHaveNoAddressPill() {
         mStore.select(mStore.create("chrome://blanc/newtab.html", false, null, -1));
         PaletteSheet sheet = show();
         assertEquals(PaletteSheet.RowKind.HEADING, sheet.rows().get(0).kind);
-        assertEquals(View.GONE, sheet.copyButton().getVisibility());
+        assertEquals(View.GONE, sheet.urlPill().getVisibility());
+        assertNotNull(sheet.field().getHint());
     }
 
     // #1682: the actions run along the Island's edge: Back (dimmed with nowhere to go) and New tab

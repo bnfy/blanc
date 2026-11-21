@@ -331,8 +331,11 @@ mobile is a single full-screen surface with system insets.
   open Island is still a dialog (Android has no SwiftUI panel): it grows from
   the Island's own rectangle, hangs from the top when the Island is at the top,
   hugs its rows up to 520 dp, puts search and the actions (Back, New Tab,
-  Spaces, Favorites, History, Settings) on the Island's side with Copy Link in
-  the search row, and closes on a drag toward the Island. Site icons are kept
+  Spaces, Favorites, History, Settings as a gear) on the Island's side, and
+  closes on a drag toward the Island. The search row has no search glass and
+  starts with the page's whole address as a pill while nothing's typed: a long
+  one fades at its end, a tap puts it in the field to edit, and holding it
+  offers Copy Link. Site icons are kept
   in memory per tab from Chromium's favicon updates, not in a site-icon store.
 - **Desktop workspace-local state:** reopen-closed history belongs to the native
   window that closed the tab (F2), and Glance can expose a second tab inside
