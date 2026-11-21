@@ -41,3 +41,17 @@ test('the Windows pin bar names the channel', () => {
   assert.match(pin, /u"Pin \$1"/);
   assert.match(pin, /install_static::GetBaseAppName\(\)/);
 });
+
+// Windows, 2026-11-21: the band color reached the native side after the bars
+// were themed, and Widget::ThemeChanged() didn't reach them again (a VM
+// diagnostic build logged the color arriving with two bars showing, and no
+// second style pass). The bandColor handler restyles each bar directly.
+test('a band color arriving restyles each bar directly, not through the widget', () => {
+  const ui = fs.readFileSync(file('blanc/browser/ui/blanc_prototype_ui.cc'), 'utf8');
+  const start = ui.indexOf('if (method == "bandColor"');
+  assert.ok(start >= 0, 'the bandColor handler');
+  const handler = ui.slice(start, ui.indexOf('\n    }\n', start));
+  assert.match(handler, /views::AsViewClass<InfoBarView>\(child\)/);
+  assert.match(handler, /infobar->OnThemeChanged\(\)/);
+  assert.doesNotMatch(handler, /GetWidget\(\)->ThemeChanged\(\)/);
+});
