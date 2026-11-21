@@ -21,8 +21,10 @@ final class DuoUITests: XCTestCase {
     let back = app.buttons["pill.back"], forward = app.buttons["pill.forward"]
     XCTAssertTrue(back.waitForExistence(timeout: 5))
     XCTAssertFalse(forward.exists, "nowhere to go forward yet")
+    // Stop stands in New tab's place while the first page loads, which on
+    // a slow runner can take a while.
     let plus = app.buttons["New tab"]
-    XCTAssertTrue(plus.waitForExistence(timeout: 10))
+    XCTAssertTrue(plus.waitForExistence(timeout: 30), "New tab, once the page has loaded")
     XCTAssertLessThanOrEqual(back.frame.maxX, site.frame.minX)
     XCTAssertGreaterThan(plus.frame.midX, site.frame.maxX)
     XCTAssertFalse(app.buttons["Reload page"].exists)
@@ -46,8 +48,9 @@ final class DuoUITests: XCTestCase {
   func testThePaletteGrowsFromTheIsland() throws {
     let app = try launch()
     let site = app.buttons["pill.palette"]
+    // Stop stands in New tab's place while the first page loads.
     let plus = app.buttons["New tab"]
-    XCTAssertTrue(plus.waitForExistence(timeout: 10))
+    XCTAssertTrue(plus.waitForExistence(timeout: 30), "New tab, once the page has loaded")
     let restingWidth = plus.frame.maxX - app.buttons["pill.back"].frame.minX
     site.tap()
 
