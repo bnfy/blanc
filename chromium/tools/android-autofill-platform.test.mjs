@@ -6,11 +6,19 @@ import {patchedChromiumFile} from './android-patched-file.mjs';
 const registration = patchedChromiumFile('components/autofill/core/common/autofill_prefs.cc');
 const header = patchedChromiumFile('components/autofill/core/common/autofill_prefs.h');
 const provider = patchedChromiumFile('chrome/browser/ui/autofill/autofill_client_provider.cc');
+const providerTests = patchedChromiumFile('chrome/browser/ui/autofill/autofill_client_provider_unittest.cc');
 const launcher = patchedChromiumFile('chrome/android/java/src/org/chromium/chrome/browser/AutofillOptionsLauncher.java');
+const launcherTests = patchedChromiumFile('chrome/android/javatests/src/org/chromium/chrome/browser/AutofillOptionsLauncherTest.java');
 const utils = patchedChromiumFile('chrome/browser/autofill/android/java/src/org/chromium/chrome/browser/autofill/AutofillClientProviderUtils.java');
 const settings = new URL('../blanc/android/java/src/org/chromium/blanc/settings/', import.meta.url);
 const host = readFileSync(new URL('chromium/ChromiumSettingsHost.java', settings), 'utf8');
 const screen = readFileSync(new URL('BlancSettingsScreen.java', settings), 'utf8');
+
+function nativeTestBody(name) {
+  const body = providerTests.match(new RegExp(`TEST_F\\(\\w+,\\s*${name}\\) \\{([\\s\\S]*?)\\n\\}`))?.[1];
+  assert.ok(body, `missing native provider test ${name}`);
+  return body;
+}
 
 test("Chromium's active autofill pref defaults to false", () => {
   assert.match(registration, /RegisterBooleanPref\(kAutofillUsingPlatformAutofill, false\);/);
@@ -27,10 +35,25 @@ test("Android's app preferences link opens Blanc's Settings root", () => {
   assert.doesNotMatch(launcher, /AutofillOptionsFragment|AutofillOptionsReferrer/);
 });
 
-test("Cold-start Custom Tabs check the profile's saved request before choosing a renderer", () => {
-  const profileCheck = utils.match(/boolean isPlatformAutofillEnabledForProfile\(Profile profile\) \{([\s\S]*?)\n    \}/)?.[1];
-  assert.ok(profileCheck);
-  assert.match(profileCheck, /PrefService prefs = UserPrefs\.get\(profile\);\s*return getAutofillAvailabilityForRequest\(\s*prefs, prefs\.getBoolean\("blanc\.autofill\.platform_requested"\)\)\s*== AndroidAutofillAvailabilityStatus\.AVAILABLE;/);
+test("Custom Tabs use the autofill provider selected for their profile", () => {
+  assert.match(utils, /isPlatformAutofillEnabledForProfile\(Profile profile\) \{\s*return AutofillClientProviderUtilsJni\.get\(\)\.usesPlatformAutofill\(profile\);\s*\}/);
+  assert.match(utils, /@NativeMethods\s*interface Natives \{\s*boolean usesPlatformAutofill\(@JniType\("Profile\*"\) Profile profile\);/);
+  assert.match(provider, /JNI_AutofillClientProviderUtils_UsesPlatformAutofill\(\s*JNIEnv\*\s*\w*,\s*Profile\* profile\) \{\s*return AutofillClientProviderFactory::GetForProfile\(profile\)\s*\.uses_platform_autofill\(\);/);
+});
+
+test("The launcher test checks the Settings host and root fragment contract", () => {
+  assert.match(launcherTests, /SettingsInTab\.shouldOpenSettingsInTab\(\)\s*\? ChromeLauncherActivity\.class\s*: SettingsActivity\.class/);
+  assert.match(launcherTests, /hasComponent\(expectedActivityClass\.getName\(\)\),\s*not\(hasExtra\(is\(SettingsIntentUtil\.EXTRA_SHOW_FRAGMENT\),\s*notNullValue\(\)\)\)/);
+  assert.doesNotMatch(launcherTests, /AutofillOptionsFragment/);
+});
+
+test("Both disabled-pref tests set the request and check the resulting active pref", () => {
+  for (const name of ['UsesBuiltInAutofillForDisabledPref', 'CreateChromeClientForDisabledPref']) {
+    const body = nativeTestBody(name);
+    assert.match(body, /SetBoolean\(prefs::kAutofillPlatformRequested, false\);[\s\S]*?EXPECT_FALSE\(provider\(\)\.uses_platform_autofill\(\)\);[\s\S]*?EXPECT_FALSE\(prefs\(\)\.GetBoolean\(prefs::kAutofillUsingPlatformAutofill\)\);/);
+    assert.doesNotMatch(body, /SetBoolean\(prefs::kAutofillUsingPlatformAutofill, false\)/);
+  }
+  assert.match(nativeTestBody('CreateChromeClientForDisabledPref'), /SetBoolean\(prefs::kAutofillPlatformRequested, true\);\s*EXPECT_FALSE\(provider\(\)\.uses_platform_autofill\(\)\);/);
 });
 
 test('The native provider checks the saved request against service availability and policy', () => {
@@ -44,12 +67,24 @@ test('The native provider checks the saved request against service availability 
   assert.match(utils.slice(request, remembered), /return requested\s*\? AndroidAutofillAvailabilityStatus\.AVAILABLE\s*: AndroidAutofillAvailabilityStatus\.SETTING_TURNED_OFF;/);
 });
 
-test('The reset metric reads the previous active client before the provider writes the result', () => {
-  assert.match(provider, /prefs\.GetBoolean\(prefs::kAutofillUsingPlatformAutofill\) &&\s*!uses_platform_autofill/);
+test('The reset metric counts loss of a requested service and excludes an opt-out', () => {
+  assert.match(provider, /will_reset_pref =\s*prefs\.GetBoolean\(prefs::kAutofillPlatformRequested\) &&\s*prefs\.GetBoolean\(prefs::kAutofillUsingPlatformAutofill\) &&\s*!uses_platform_autofill;/);
   const record = provider.indexOf('RecordWhetherAndroidPrefResets(*prefs, uses_platform_autofill_);');
   assert.ok(record >= 0);
   assert.doesNotMatch(provider.slice(0, record), /SetBoolean\(prefs::kAutofillUsingPlatformAutofill/);
   assert.doesNotMatch(utils, /setBoolean\(Pref\.AUTOFILL_USING_PLATFORM_AUTOFILL/);
+});
+
+test('Native histogram tests cover opt-out and service loss from a previously active client', () => {
+  const optOut = nativeTestBody('CreateChromeClientForDisabledPref');
+  const serviceLoss = nativeTestBody('RecordsResetWhenRequestedServiceIsLost');
+  for (const body of [optOut, serviceLoss]) {
+    assert.match(body, /SetBoolean\(prefs::kAutofillUsingPlatformAutofill, true\);[\s\S]*?EXPECT_FALSE\(provider\(\)\.uses_platform_autofill\(\)\);/);
+  }
+  assert.match(optOut, /SetBoolean\(prefs::kAutofillPlatformRequested, false\);[\s\S]*?ExpectUniqueSample\(kResetPrefMetric, false, 1\);/);
+  assert.match(serviceLoss, /SetAutofillAvailabilityForTesting\(\s*AndroidAutofillAvailabilityStatus::kUnknownAndroidAutofillService\);/);
+  assert.match(serviceLoss, /EXPECT_TRUE\(prefs\(\)\.GetBoolean\(prefs::kAutofillPlatformRequested\)\);/);
+  assert.match(serviceLoss, /ExpectUniqueSample\(kResetPrefMetric, true, 1\);/);
 });
 
 test('The provider always writes the selected client back to the active pref', () => {

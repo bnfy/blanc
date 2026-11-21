@@ -25,7 +25,31 @@ diff --git a/components/autofill/core/common/autofill_prefs.h b/components/autof
 diff --git a/chrome/browser/ui/autofill/autofill_client_provider.cc b/chrome/browser/ui/autofill/autofill_client_provider.cc
 --- a/chrome/browser/ui/autofill/autofill_client_provider.cc
 +++ b/chrome/browser/ui/autofill/autofill_client_provider.cc
-@@ -51,8 +51,9 @@
+@@ -14,6 +14,8 @@
+ #if BUILDFLAG(IS_ANDROID)
+ #include "base/android/jni_android.h"
+ #include "chrome/browser/autofill/android/android_autofill_availability_status.h"
++#include "chrome/browser/profiles/profile.h"
++#include "chrome/browser/ui/autofill/autofill_client_provider_factory.h"
+ #include "components/android_autofill/browser/android_autofill_client.h"
+ #include "components/prefs/android/pref_service_android.h"
+ 
+@@ -30,11 +32,12 @@
+                                 availability);
+ }
+ 
+-// Counts how often the Chrome pref is reset because an platform autofill
+-// isn't allowed or doesn't fulfill all preconditions.
++// Count a reset when platform autofill was active and is still requested,
++// but the provider can no longer use it.
+ void RecordWhetherAndroidPrefResets(PrefService& prefs,
+                                     bool uses_platform_autofill) {
+   const bool will_reset_pref =
++      prefs.GetBoolean(prefs::kAutofillPlatformRequested) &&
+       prefs.GetBoolean(prefs::kAutofillUsingPlatformAutofill) &&
+       !uses_platform_autofill;
+   base::UmaHistogramBoolean("Autofill.ResetAutofillPrefToChrome",
+@@ -51,8 +54,9 @@
  AndroidAutofillAvailabilityStatus GetAndroidAutofillAvailabilityStatus(
      PrefService& prefs) {
    return static_cast<AndroidAutofillAvailabilityStatus>(
@@ -37,6 +61,22 @@ diff --git a/chrome/browser/ui/autofill/autofill_client_provider.cc b/chrome/bro
  }
  #endif  // BUILDFLAG(IS_ANDROID)
  
+@@ -69,6 +73,15 @@
+ 
+ }  // namespace
+ 
++#if BUILDFLAG(IS_ANDROID)
++static jboolean JNI_AutofillClientProviderUtils_UsesPlatformAutofill(
++    JNIEnv* env,
++    Profile* profile) {
++  return AutofillClientProviderFactory::GetForProfile(profile)
++      .uses_platform_autofill();
++}
++#endif  // BUILDFLAG(IS_ANDROID)
++
+ AutofillClientProvider::AutofillClientProvider(PrefService* prefs)
+     : uses_platform_autofill_(
+           UsesVirtualViewStructureForAutofill(CHECK_DEREF(prefs))) {
 diff --git a/chrome/android/java/src/org/chromium/chrome/browser/AutofillOptionsLauncher.java b/chrome/android/java/src/org/chromium/chrome/browser/AutofillOptionsLauncher.java
 --- a/chrome/android/java/src/org/chromium/chrome/browser/AutofillOptionsLauncher.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/AutofillOptionsLauncher.java
@@ -75,18 +115,42 @@ diff --git a/chrome/android/java/src/org/chromium/chrome/browser/AutofillOptions
 diff --git a/chrome/browser/autofill/android/java/src/org/chromium/chrome/browser/autofill/AutofillClientProviderUtils.java b/chrome/browser/autofill/android/java/src/org/chromium/chrome/browser/autofill/AutofillClientProviderUtils.java
 --- a/chrome/browser/autofill/android/java/src/org/chromium/chrome/browser/autofill/AutofillClientProviderUtils.java
 +++ b/chrome/browser/autofill/android/java/src/org/chromium/chrome/browser/autofill/AutofillClientProviderUtils.java
-@@ -68,7 +68,9 @@
-      * @return true if platform Autofill is enabled for the profile.
-      */
-     public static boolean isPlatformAutofillEnabledForProfile(Profile profile) {
--        return getAndroidAutofillFrameworkAvailability(UserPrefs.get(profile))
-+        PrefService prefs = UserPrefs.get(profile);
-+        return getAutofillAvailabilityForRequest(
-+                        prefs, prefs.getBoolean("blanc.autofill.platform_requested"))
-                 == AndroidAutofillAvailabilityStatus.AVAILABLE;
+@@ -13,6 +13,7 @@
+ import org.jni_zero.CalledByNative;
+ import org.jni_zero.JNINamespace;
+ import org.jni_zero.JniType;
++import org.jni_zero.NativeMethods;
+ 
+ import org.chromium.base.ContextUtils;
+ import org.chromium.base.ResettersForTesting;
+@@ -24,7 +25,6 @@
+ import org.chromium.chrome.browser.profiles.Profile;
+ import org.chromium.components.autofill.AutofillManagerWrapper;
+ import org.chromium.components.prefs.PrefService;
+-import org.chromium.components.user_prefs.UserPrefs;
+ 
+ /** Helper functions for using Android Autofill in Chrome. */
+ @NullMarked
+@@ -60,16 +60,9 @@
+         ResettersForTesting.register(() -> sAndroidAutofillServicePackageNameForTesting = null);
      }
  
-@@ -84,6 +86,17 @@
+-    /**
+-     * Checks whether Android platform Autofill (third-party Autofill mode) is available and enabled
+-     * for the given profile.
+-     *
+-     * @param profile A {@link Profile} which keeps the pref enabling this feature.
+-     * @return true if platform Autofill is enabled for the profile.
+-     */
++    /** Returns the mode selected by the profile's provider, creating it on first use. */
+     public static boolean isPlatformAutofillEnabledForProfile(Profile profile) {
+-        return getAndroidAutofillFrameworkAvailability(UserPrefs.get(profile))
+-                == AndroidAutofillAvailabilityStatus.AVAILABLE;
++        return AutofillClientProviderUtilsJni.get().usesPlatformAutofill(profile);
+     }
+ 
+     /**
+@@ -84,6 +77,17 @@
      @CalledByNative
      public static int getAndroidAutofillFrameworkAvailability(
              @JniType("PrefService*") PrefService prefs) {
@@ -104,15 +168,120 @@ diff --git a/chrome/browser/autofill/android/java/src/org/chromium/chrome/browse
          if (sAndroidAutofillFrameworkAvailabilityForTesting != null) {
              return sAndroidAutofillFrameworkAvailabilityForTesting;
          }
-@@ -104,6 +117,11 @@
-         }
+@@ -105,6 +109,11 @@
          if (AWG_PACKAGE_NAME.equals(autofillServicePackage)) {
              return AndroidAutofillAvailabilityStatus.ANDROID_AUTOFILL_SERVICE_IS_GOOGLE;
-+        }
+         }
 +        if (requested != null) {
 +            return requested
 +                    ? AndroidAutofillAvailabilityStatus.AVAILABLE
 +                    : AndroidAutofillAvailabilityStatus.SETTING_TURNED_OFF;
-         }
++        }
          // If the user explicitly chose the current Autofill Service before, use it again. The
          // browser may default to built-in Autofill while the preferred provider is unavailable.
+         String storedPackage =
+@@ -181,4 +190,9 @@
+     }
+ 
+     private AutofillClientProviderUtils() {}
++
++    @NativeMethods
++    interface Natives {
++        boolean usesPlatformAutofill(@JniType("Profile*") Profile profile);
++    }
+ }
+diff --git a/chrome/android/javatests/src/org/chromium/chrome/browser/AutofillOptionsLauncherTest.java b/chrome/android/javatests/src/org/chromium/chrome/browser/AutofillOptionsLauncherTest.java
+--- a/chrome/android/javatests/src/org/chromium/chrome/browser/AutofillOptionsLauncherTest.java
++++ b/chrome/android/javatests/src/org/chromium/chrome/browser/AutofillOptionsLauncherTest.java
+@@ -9,6 +9,9 @@
+ import static androidx.test.espresso.intent.matcher.IntentMatchers.hasExtra;
+ 
+ import static org.hamcrest.Matchers.allOf;
++import static org.hamcrest.Matchers.is;
++import static org.hamcrest.Matchers.not;
++import static org.hamcrest.Matchers.notNullValue;
+ 
+ import android.content.Intent;
+ 
+@@ -24,7 +27,6 @@
+ 
+ import org.chromium.base.test.util.CommandLineFlags;
+ import org.chromium.base.test.util.DoNotBatch;
+-import org.chromium.chrome.browser.autofill.settings.options.AutofillOptionsFragment;
+ import org.chromium.chrome.browser.document.ChromeLauncherActivity;
+ import org.chromium.chrome.browser.flags.ChromeSwitches;
+ import org.chromium.chrome.browser.settings.SettingsActivity;
+@@ -50,7 +52,7 @@
+ 
+     @Test
+     @MediumTest
+-    public void testLauncherStartsAutofillOptionsFragment() {
++    public void testLauncherOpensBlancSettingsRoot() {
+         launchActivity();
+         Class<?> expectedActivityClass =
+                 SettingsInTab.shouldOpenSettingsInTab()
+@@ -59,9 +61,7 @@
+         intended(
+                 allOf(
+                         hasComponent(expectedActivityClass.getName()),
+-                        hasExtra(
+-                                SettingsIntentUtil.EXTRA_SHOW_FRAGMENT,
+-                                AutofillOptionsFragment.class.getName())));
++                        not(hasExtra(is(SettingsIntentUtil.EXTRA_SHOW_FRAGMENT), notNullValue()))));
+     }
+ 
+     public void launchActivity() {
+diff --git a/chrome/browser/ui/autofill/autofill_client_provider_unittest.cc b/chrome/browser/ui/autofill/autofill_client_provider_unittest.cc
+--- a/chrome/browser/ui/autofill/autofill_client_provider_unittest.cc
++++ b/chrome/browser/ui/autofill/autofill_client_provider_unittest.cc
+@@ -106,10 +106,12 @@
+ 
+ TEST_F(AutofillClientProviderBaseTest, UsesBuiltInAutofillForDisabledPref) {
+ #if BUILDFLAG(IS_ANDROID)
+-  // Independent of platform or feature, a disabled pref means Chrome fills.
+-  prefs().SetBoolean(prefs::kAutofillUsingPlatformAutofill, false);
++  prefs().SetBoolean(prefs::kAutofillPlatformRequested, false);
+ #endif  // BUILDFLAG(IS_ANDROID)
+   EXPECT_FALSE(provider().uses_platform_autofill());
++#if BUILDFLAG(IS_ANDROID)
++  EXPECT_FALSE(prefs().GetBoolean(prefs::kAutofillUsingPlatformAutofill));
++#endif  // BUILDFLAG(IS_ANDROID)
+ }
+ 
+ #if BUILDFLAG(IS_ANDROID)
+@@ -134,15 +136,30 @@
+ 
+ TEST_F(AutofillClientProviderTest, CreateChromeClientForDisabledPref) {
+   base::HistogramTester histogram_tester;
+-  prefs().SetBoolean(prefs::kAutofillUsingPlatformAutofill, false);
++  // The previous session used platform autofill and the user opted out.
++  prefs().SetBoolean(prefs::kAutofillUsingPlatformAutofill, true);
++  prefs().SetBoolean(prefs::kAutofillPlatformRequested, false);
+   EXPECT_FALSE(provider().uses_platform_autofill());
++  EXPECT_FALSE(prefs().GetBoolean(prefs::kAutofillUsingPlatformAutofill));
++  histogram_tester.ExpectUniqueSample(kResetPrefMetric, false, 1);
+ 
+-  // A changing pref doesn't change the clients for new tabs:
+-  prefs().SetBoolean(prefs::kAutofillUsingPlatformAutofill, true);
++  // Turning the switch back on takes effect at the next startup.
++  prefs().SetBoolean(prefs::kAutofillPlatformRequested, true);
+   EXPECT_FALSE(provider().uses_platform_autofill());
++  EXPECT_FALSE(prefs().GetBoolean(prefs::kAutofillUsingPlatformAutofill));
++}
+ 
+-  // The pref is used as is and not reset.
+-  histogram_tester.ExpectUniqueSample(kResetPrefMetric, false, 1);
++TEST_F(AutofillClientProviderTest, RecordsResetWhenRequestedServiceIsLost) {
++  base::HistogramTester histogram_tester;
++  prefs().SetBoolean(prefs::kAutofillUsingPlatformAutofill, true);
++  prefs().SetBoolean(prefs::kAutofillPlatformRequested, true);
++  SetAutofillAvailabilityForTesting(
++      AndroidAutofillAvailabilityStatus::kUnknownAndroidAutofillService);
++
++  EXPECT_FALSE(provider().uses_platform_autofill());
++  EXPECT_FALSE(prefs().GetBoolean(prefs::kAutofillUsingPlatformAutofill));
++  EXPECT_TRUE(prefs().GetBoolean(prefs::kAutofillPlatformRequested));
++  histogram_tester.ExpectUniqueSample(kResetPrefMetric, true, 1);
+ }
+ 
+ TEST_F(AutofillClientProviderTest, CreateChromeClientIfPolicyPrefIsDisabled) {
