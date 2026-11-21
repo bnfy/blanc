@@ -47,7 +47,11 @@ async function snapshotLocalHtml(filePath) {
   // five extensions as HTML_EXTENSIONS in local-html-files.js: .htm, .html,
   // .xht, .xhtm, .xhtml.
   if (!/\.(?:html?|xht(?:ml?)?)$/i.test(canonical)) throw refuse('not-html', 'Select an HTML document');
-  const handle = await readable(fs.open(canonical, constants.O_RDONLY | constants.O_NOFOLLOW));
+  // O_NONBLOCK: opening a FIFO named *.html would otherwise wait forever for a
+  // writer, holding a libuv thread; it returns at once and is refused as not
+  // a regular file below. Reads of a regular file are unaffected. Windows
+  // has no such flag (constants.O_NONBLOCK is undefined there).
+  const handle = await readable(fs.open(canonical, constants.O_RDONLY | constants.O_NOFOLLOW | (constants.O_NONBLOCK || 0)));
   let bytes;
   try {
     const stat = await handle.stat();

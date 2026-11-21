@@ -1895,9 +1895,9 @@ function maybeSendProductUsage(wc, report) {
 }
 
 // Command-line/default-browser URL handoff remains web-only. Local HTML files
-// arrive separately: through macOS's open-file event below, and on Windows as
-// absolute HTML paths on the command line (localHtmlPathsFromArgv, #1630), both
-// into openLocalHtmlFiles. Typed file: URLs, other argv paths, web-page file
+// arrive separately: through macOS's open-file event below, and on Windows and
+// Linux as absolute HTML paths (or, on Linux, file: URIs) on the command line
+// (localHtmlPathsFromArgv, #1630), all into openLocalHtmlFiles. Typed file: URLs, other argv paths, web-page file
 // links, popups, and arbitrary file types all stay rejected.
 const urlsFromArgv = webUrlsFromArgv;
 
@@ -2109,7 +2109,7 @@ function openExternalUrls(urls) {
 
 function openLocalHtmlFiles(paths) {
   if (paths?.length) launchHandedUrls = true;
-  // Every Windows launch asks with whatever the command line held; an empty
+  // Every Windows and Linux launch asks with whatever the command line held; an empty
   // list must not wait on (or log for) the ECS preview runtime.
   if (!paths?.length) return;
   if (drmSupport.enabled) {
@@ -2120,7 +2120,7 @@ function openLocalHtmlFiles(paths) {
   externalUrlHandoff.openLocalFiles(paths);
 }
 
-// A refused file must say why: on Windows a second launch carrying a file
+// A refused file must say why: on Windows and Linux a second launch carrying a file
 // deliberately doesn't raise Blanc, so without this nothing at all happens.
 // Finder sends one open-file event per selected file, so refusals arriving
 // together share one message.

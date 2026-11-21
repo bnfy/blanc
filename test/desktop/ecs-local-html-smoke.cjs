@@ -186,17 +186,20 @@ async function run(appPath, output) {
       for (let round = 0; round < 2; round++) {
         const port = 55821;
         const { ELECTRON_RUN_AS_NODE: ignored, ...env } = process.env; void ignored;
-        if (production && !['darwin', 'win32'].includes(process.platform)) throw Error('Production file-open covers macOS LaunchServices and the Windows command line only; use ecs-production-smoke.mjs for web file-access checks');
+        if (production && !['darwin', 'win32', 'linux'].includes(process.platform)) throw Error('Production file-open covers macOS LaunchServices and the Windows and Linux command lines only; use ecs-production-smoke.mjs for web file-access checks');
         const args = [`--user-data-dir=${profile}`, `--remote-debugging-port=${port}`, '--remote-debugging-address=127.0.0.1'];
         const childEnv = { ...env, ...launchEnv, ...profileEnv(profile), BLANC_DRM_DIAGNOSTIC_PROFILE: profile, BLANC_ECS_FULL_PROFILE: profile, BLANC_ECS_FULL_SMOKE: '1', BLANC_ECS_LOCAL_HTML: html,
           ...(production ? { BLANC_UPDATE_CHANNEL: 'ecs-qualification-disabled' } : {}) };
-        // Windows hands a file over as a command-line path (#1630): round 0
-        // opens it at a cold launch, round 1 from a second launch into a
-        // running Blanc, which must pass it on and quit.
-        const windows = production && process.platform === 'win32';
-        const handoff = windows && round === 1;
+        // Windows and Linux hand a file over on the command line (#1630):
+        // round 0 opens it at a cold launch, round 1 from a second launch into
+        // a running Blanc, which must pass it on and quit. A file manager
+        // hands over a plain path for %U, as the second launch does; the cold
+        // launch on Linux passes a file: URI, which other launchers send.
+        const commandLine = production && ['win32', 'linux'].includes(process.platform);
+        const handoff = commandLine && round === 1;
+        const coldFile = process.platform === 'linux' ? pathToFileURL(html).href : html;
         const [command, commandArgs] = !production ? [executable, args]
-          : windows ? [executable, handoff ? args : [...args, html]]
+          : commandLine ? [executable, handoff ? args : [...args, coldFile]]
             : ['/usr/bin/open', ['-n', '-W', '-a', app, html, '--args', ...args]];
         const child = spawn(command, commandArgs, { env: childEnv, stdio: ['ignore', 'pipe', 'pipe'] });
         const exited = new Promise(resolve => child.once('exit', resolve));
