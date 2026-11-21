@@ -320,7 +320,7 @@ jobs:
           VERIFICATION_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags origin "$VERIFICATION_SHA"
-          for smoke in packaged-media-smoke.mjs packaged-tab-handoff-protocol-smoke.mjs packaged-browser-compatibility-smoke.mjs packaged-workspace-recovery-smoke.mjs support/workspace-fixtures.js; do
+          for smoke in packaged-media-smoke.mjs packaged-tab-handoff-protocol-smoke.mjs packaged-browser-compatibility-smoke.mjs packaged-workspace-recovery-smoke.mjs support/workspace-fixtures.js ecs-local-html-smoke.cjs ecs-candidate-paths.cjs; do
             git show "$VERIFICATION_SHA:test/desktop/$smoke" > "test/desktop/$smoke"
           done
 
@@ -930,7 +930,7 @@ jobs:
           VERIFICATION_SHA: ${{ github.sha }}
         run: |
           git fetch --no-tags origin "$VERIFICATION_SHA"
-          for smoke in packaged-media-smoke.mjs packaged-tab-handoff-protocol-smoke.mjs packaged-tab-view-drawing-smoke.mjs support/fixtures-server.js packaged-browser-compatibility-smoke.mjs packaged-workspace-recovery-smoke.mjs support/workspace-fixtures.js; do
+          for smoke in packaged-media-smoke.mjs packaged-tab-handoff-protocol-smoke.mjs packaged-tab-view-drawing-smoke.mjs support/fixtures-server.js packaged-browser-compatibility-smoke.mjs packaged-workspace-recovery-smoke.mjs support/workspace-fixtures.js ecs-local-html-smoke.cjs ecs-candidate-paths.cjs; do
             git show "$VERIFICATION_SHA:test/desktop/$smoke" > "test/desktop/$smoke"
           done
 
@@ -1005,6 +1005,7 @@ jobs:
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
           export BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage"
           dbus-run-session -- xvfb-run -a node test/desktop/ecs-production-smoke.mjs
+          dbus-run-session -- xvfb-run -a node test/desktop/ecs-local-html-smoke.cjs dist/linux-unpacked output/ecs-production/local-html-linux.json
           dbus-run-session -- xvfb-run -a node test/desktop/ecs-production-drm-smoke.mjs
 
       - name: Preserve public ECS acceptance evidence

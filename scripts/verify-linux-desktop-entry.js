@@ -28,6 +28,10 @@ function verifyLinuxDesktopEntry(file) {
     assert.doesNotMatch(line, UNSAFE_EXEC_SWITCH,
       'desktop entry Exec must not disable Chromium sandboxing');
   }
+  // Links and local HTML files (#1630) reach Blanc only through Exec's field
+  // code: without %U a file manager's Open With launches Blanc with nothing.
+  assert.match(desktopEntry, /^Exec=.*\s%U(?:\s|$)/m,
+    'desktop entry Exec must pass URLs and files with %U');
   const categories = listValue(desktopEntry, 'Categories');
   const mimeTypes = listValue(desktopEntry, 'MimeType');
 

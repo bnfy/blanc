@@ -3,7 +3,20 @@
 v1.52.0 is the current public release ([notes](v1.52.0.md)). Changes merged
 since then are below as they're recorded.
 
+## Fixed
+
+- **Open local HTML files on Linux.** Choosing Blanc under a file manager's
+  **Open With** for an `.html` file now opens it in the static preview
+  window, as on Windows and the Mac. Before, Blanc only came to the front
+  with nothing opened (#1630).
+
 ## Still open from 1.52
+
+- **Opening local HTML files on Linux** (#1630) by hand from a file manager's
+  Open With (GNOME Files and Dolphin) with the AppImage, at launch and while
+  Blanc is running. CI opens a file in the static preview from the packaged
+  AppImage's command line, as a `file:///` URI at launch and as a path handed
+  to a running Blanc.
 
 - **Download peek with Auto-hide on**, by hand in a packaged build on macOS
   and Windows: a real click on a download link shows the hidden Island in both
