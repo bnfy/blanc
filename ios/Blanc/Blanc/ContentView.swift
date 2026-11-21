@@ -986,6 +986,11 @@ struct ContentView: View {
         }
         return IslandMenu.items(for: tab, manager: manager).compactMap { item -> UIMenuElement? in
             switch item {
+            case .closePrivateTab:
+                guard let tab else { return nil }
+                return UIMenu(options: .displayInline, children: [
+                    action("ios.island.closePrivateTab", "xmark.circle") { manager.closeTab(tab.id) },
+                ])
             case .customizeStartPage:
                 return action("newtab.customize.button", "slider.horizontal.3") { manager.customizeStartPage() }
             case .blocking(let on):
@@ -1044,6 +1049,8 @@ struct ContentView: View {
                               })
             case .closeGlance:
                 return action("menu.closeGlance", "xmark.rectangle") { manager.closeGlance() }
+            case .newTab:
+                return action("tab.new", "plus") { manager.createTab() }
             case .newPrivateTab:
                 return UIMenu(options: .displayInline, children: [
                     action("menu.newPrivateTab", "eye.slash") { manager.createTab(isPrivate: true) },
