@@ -1,40 +1,14 @@
 # Unreleased notes
 
-v1.51.0 is the current public release ([notes](v1.51.0.md)). Changes merged
+v1.52.0 is the current public release ([notes](v1.52.0.md)). Changes merged
 since then are below as they're recorded.
 
-## Added
+## Still open from 1.52
 
-- **Spaces across profiles.** With more than one profile, the Spaces menu
-  lists every profile's Spaces. Choose one to open it in a window of its
-  profile, with its own sign-ins. You can also create a Space in another
-  profile.
-- **Open local HTML files on Windows.** Choosing Blanc under **Open with** for
-  an `.html` file now opens it, as on a Mac, instead of opening Blanc with
-  nothing in it (#1630). The file shows in a separate, static preview window:
-  scripts, network requests and other files on the disk (such as a page's own
-  stylesheets and images) are blocked, so some pages look plainer than they do
-  in other browsers, and files over 8 MB don't open. Blanc is added to the
-  Open with list for HTML files, and making Blanc your default browser
-  doesn't make it the default for them. A preview closes with Blanc's last
-  window.
-
-## Fixed
-
-- **Pop-up windows close when their page asks first.** A page in a separate
-  pop-up window, such as Proxmox's console while it's connected, can ask
-  before you leave it. Blanc now asks **Leave** or **Stay**, as it does in a
-  tab; before, the window's close button did nothing (#1477).
-- **No passkey prompt on page load on Windows.** Many sign-in pages quietly
-  ask the browser for passkeys as they load. On Windows that opened Windows'
-  **Sign in with a passkey** dialog on every visit, even with no passkey
-  saved. Blanc now tells those pages it can't list passkeys, so they show
-  their own passkey button; choosing it still opens the dialog.
-- **A local HTML file Blanc can't show now says why.** Before, a file over
-  8 MB, or one Blanc couldn't read, opened nothing at all on macOS and Windows.
-
-## Still open for the next release
-
+- **Download peek with Auto-hide on**, by hand in a packaged build on macOS
+  and Windows: a real click on a download link shows the hidden Island in both
+  the float and push styles. CI checks it with real downloads on Linux and
+  Windows; nobody has watched it on screen yet.
 - **Opening local HTML files on Windows** (#1630) by hand from Explorer's
   Open with in an installed build, including Settings' Set default button.
   CI checked the rest on a signed ECS package on a Windows runner (run

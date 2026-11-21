@@ -72,7 +72,8 @@ base::Value ChangeStartPin(PrefService* prefs, bool pin, const std::string& url,
 // start-page-pins.js replacePin(): a favorite edited on the Favorites page
 // takes its pin along. The pin keeps its place; if the new address is
 // already pinned, the old pin goes. Returns whether anything changed.
-bool ReplaceStartPin(PrefService* prefs, const std::string& from_url, const std::string& to_url,
+// Only the desktop Favorites page calls it; Android compiles this file too.
+[[maybe_unused]] bool ReplaceStartPin(PrefService* prefs, const std::string& from_url, const std::string& to_url,
                      const std::string& title) {
   auto from = SanitizeStartPin(base::Value(base::DictValue().Set("url", from_url)));
   auto next = SanitizeStartPin(base::Value(base::DictValue().Set("url", to_url).Set("title", title)));
