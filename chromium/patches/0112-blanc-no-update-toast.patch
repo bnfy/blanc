@@ -1,0 +1,22 @@
+diff --git a/chrome/browser/ui/ui_features.cc b/chrome/browser/ui/ui_features.cc
+index a287e97..932edf2 100644
+--- a/chrome/browser/ui/ui_features.cc
++++ b/chrome/browser/ui/ui_features.cc
+@@ -387,7 +387,16 @@ BASE_FEATURE(kTabsFromOtherDevicesSidePanel, base::FEATURE_DISABLED_BY_DEFAULT);
+ BASE_FEATURE(kTabsFromOtherDevicesSidePanelPinnedByDefault,
+              base::FEATURE_DISABLED_BY_DEFAULT);
+ 
+-BASE_FEATURE(kNonMilestoneUpdateToast, base::FEATURE_ENABLED_BY_DEFAULT);
++// Blanc (owner, 2026-11-21): off. After an update it showed Chromium's own
++// toast, with Chromium's product icon and the fixed text "Chrome was updated".
++// About shows the version and whether it is up to date.
++BASE_FEATURE(kNonMilestoneUpdateToast,
++#if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
++             base::FEATURE_DISABLED_BY_DEFAULT
++#else
++             base::FEATURE_ENABLED_BY_DEFAULT
++#endif
++);
+ 
+ #if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX)
+ BASE_FEATURE(kRespectShouldTriggerSessionRestoreOnDesktop,

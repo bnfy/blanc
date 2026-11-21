@@ -984,7 +984,7 @@
     "chrome/browser/ui/startup/startup_browser_creator.cc": "db77b65f21cd9798dbd28d689dbafc81e0a247e9f2e07c42b8b29f106ed0fd02",
     "chrome/browser/ui/startup/startup_browser_creator_impl.cc": "59c2c417bc9a939752138bfe0887abfa83abd86ceb6232bf6c8e8d46133ddbc4",
     "chrome/browser/ui/sync/tab_contents_synced_tab_delegate.cc": "ccbfb1346be0294c4d2f76fd3072026012497dd6e27a3a2562854750e4c141d0",
-    "chrome/browser/ui/ui_features.cc": "89d89c371db8d6d70e124309ed6269094fcace5e3b4a6b9c29730ddf1fb8ae32",
+    "chrome/browser/ui/ui_features.cc": "36dcd678183046abe7d122447a519e284c1a4c4a1656787ac4df3e15beff7280",
     "chrome/browser/ui/unload_controller.cc": "a60a463227c86a333f7a9ea90c91a5e71c4b15b2575f054b6147437bce8ee375",
     "chrome/browser/ui/views/extensions/extensions_toolbar_button.cc": "050efeb3b942fda825d0968906f849f1ccd374a555ac6fb9ca474cf8f023de51",
     "chrome/browser/ui/views/extensions/extensions_toolbar_button.h": "6bfa41a9432e2337abbc7297586a5a9d0ce956bf3fbe03d6d0acb6d81ce3b4a0",
