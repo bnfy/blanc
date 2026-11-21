@@ -915,7 +915,7 @@
     "chrome/browser/renderer_context_menu/render_view_context_menu.h": "895d7659c09dc9b8ef80b72c20ecac668da4e4d0c903bd05c1982986d4ab39ec",
     "chrome/browser/renderer_preferences_util.cc": "3ed41eaa7c6101a1d067495890a622806b5ad1791482b00316bfc5bd87f2a028",
     "chrome/browser/resource_coordinator/tab_lifecycle_unit.cc": "d9cbf95b64c5802cf637ff0191501cbcfb71cf34399a72e82bc71f50d184a22a",
-    "chrome/browser/resources/default_browser/default_browser_modal/app.css": "7291c083de4299eef5972c118fc88a182a3e0f1662f3259de0b4feb58d8bca36",
+    "chrome/browser/resources/default_browser/default_browser_modal/app.css": "0acac45e0a53eb34616f2a5256bf8046f726bcffc3a3bd2fdc518747e337efab",
     "chrome/browser/resources/default_browser/default_browser_modal/header_background.svg": "c59be991d01399aa0fdda8a7cf7be6231cfbd18acd2b1291712c61d1b445d0f7",
     "chrome/browser/resources/default_browser/default_browser_modal/header_background_dark.svg": "2fdf1ff7c4f37392c003f89142f08baf74599c6c61aebf6ac2001d836cbdd5fa",
     "chrome/browser/resources/default_browser/default_browser_modal/settings_illustration.svg": "0425e05ec402b6f642d919befdcd446382cb23415e1755b9c5f18eafbec48e56",
