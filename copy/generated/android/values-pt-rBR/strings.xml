@@ -2733,9 +2733,10 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="ios_settings_island">Island</string>
     <string name="ios_settings_privacy_sync">Privacidade e sincronização</string>
     <string name="ios_island_stop">Parar de carregar</string>
+    <string name="ios_island_close_private_tab">Fechar aba privada</string>
     <string name="ios_island_page_actions">Ações da página</string>
     <string name="ios_island_collapse">Recolher a Island</string>
-    <string name="ios_palette_placeholder">Pesquise, digite um endereço ou um /comando</string>
+    <string name="ios_palette_placeholder">Pesquise, digite uma URL ou / para comandos</string>
     <string name="ios_palette_clear">Limpar a pesquisa</string>
     <string name="ios_palette_no_command">Nenhum comando corresponde</string>
     <string name="ios_palette_no_matches">Nenhum resultado. Toque em Retorno para abrir como endereço ou pesquisa.</string>

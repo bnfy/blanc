@@ -9869,6 +9869,10 @@
     "message": "Stop loading",
     "note": "iOS Island: accessible name of the reload button while a page loads."
   },
+  "ios.island.closePrivateTab": {
+    "message": "Close Private Tab",
+    "note": "iOS Island page menu: first item on a private tab; closes it and leaves private browsing"
+  },
   "ios.island.pageActions": {
     "message": "Page actions",
     "note": "iOS Island: accessible name of the leading mark that opens the page menu."
@@ -9878,7 +9882,7 @@
     "note": "iOS palette: accessible name of the button that closes the palette back into the Island."
   },
   "ios.palette.placeholder": {
-    "message": "Search, enter address, or / command",
+    "message": "Search, enter URL or / for commands",
     "note": "iOS palette: placeholder of the address field."
   },
   "ios.palette.clear": {

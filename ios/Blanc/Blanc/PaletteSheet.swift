@@ -11,9 +11,11 @@ struct PaletteSheet: View {
     }
 
     let manager: TabsManager
-    /// A bottom sheet on iPhone; at regular width, a panel growing up from
-    /// the Island in its place (Duo-1).
+    /// A panel growing from the Island in its place; a bottom sheet only at
+    /// compact height (an iPhone in landscape).
     var placement: IslandLayout.Palette = .sheet
+    /// The panel puts its search and actions on the Island's side.
+    var islandAtTop = false
     @Environment(\.colorScheme) private var colorScheme
     private var style: BrowserStyle { BrowserStyle(scheme: colorScheme) }
     /// Kept by the manager, so the sheet and the panel share it (Duo-1).
@@ -43,6 +45,11 @@ struct PaletteSheet: View {
     /// What the search provider suggests for the typed text (F5), and the
     /// request that is fetching it.
     @State private var suggestions: [String] = []
+    /// How tall the list's rows are. The panel hugs them, up to the room it
+    /// has, so a few tabs don't leave a gap above the search field; nil until
+    /// the list has laid out once.
+    @State private var listContentHeight: CGFloat?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var suggestionTask: Task<Void, Never>?
 
     private enum Mode {
@@ -62,13 +69,18 @@ struct PaletteSheet: View {
                 addressRow
                 divider
                 list
-                footer
+                divider
+                actionsRow
+            case .panel where islandAtTop:
+                actionsRow
+                addressRow
+                divider
+                panelList
             case .panel:
-                // The address row sits where the Island was; the rest grows up.
-                list
-                footer
+                panelList
                 divider
                 addressRow
+                actionsRow
             }
         }
         .font(BrowserStyle.font(15))
@@ -113,15 +125,31 @@ struct PaletteSheet: View {
         }
     }
 
+    /// The list at its rows' height (the panel's own cap still applies), easing
+    /// to a new height as the results change.
+    private var panelList: some View {
+        list
+            .frame(maxHeight: listContentHeight ?? .infinity)
+            .animation(reduceMotion ? nil : .snappy(duration: 0.25), value: listContentHeight)
+    }
+
     private var styledList: some View {
         listContent
             .listStyle(.plain)
             .environment(\.defaultMinListRowHeight, 44)
             .environment(\.defaultMinListHeaderHeight, 0)
-            .contentMargins(.top, 0, for: .scrollContent)
+            // Room between the panel's rounded edge and the first heading (or
+            // the last row) where the list meets it; none beside the search row.
+            .contentMargins(.top, placement == .panel && !islandAtTop ? 12 : 0, for: .scrollContent)
+            .contentMargins(.bottom, placement == .panel && islandAtTop ? 12 : 0, for: .scrollContent)
             .listSectionSpacing(8)
             .scrollContentBackground(.hidden)
             .scrollDismissesKeyboard(.interactively)
+            .onScrollGeometryChange(for: CGFloat.self) { geometry in
+                geometry.contentSize.height + geometry.contentInsets.top + geometry.contentInsets.bottom
+            } action: { _, height in
+                if height > 0 { listContentHeight = height.rounded(.up) }
+            }
     }
 
     /// Closes the palette, whichever way it is shown: the sheet follows the
@@ -129,12 +157,14 @@ struct PaletteSheet: View {
     private func close() { manager.isPalettePresented = false }
 
     private var addressRow: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 17, weight: .regular))
-                .foregroundStyle(style.secondary)
-                .frame(width: 24)
-            TextField(SyncCopy.text("ios.palette.placeholder"), text: Binding(get: { input }, set: { input = $0 }))
+        // No search glass (owner, 2026-11-21): the row's room goes to the
+        // page's address and what's typed.
+        HStack(spacing: showsUrlPill ? 2 : 8) {
+            urlPill
+            // While the page's address shows as a pill, the placeholder steps
+            // aside for it.
+            TextField(showsUrlPill ? "" : SyncCopy.text("ios.palette.placeholder"),
+                      text: Binding(get: { input }, set: { input = $0 }))
                 .font(BrowserStyle.font(17))
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
@@ -155,6 +185,9 @@ struct PaletteSheet: View {
                     }
                     return openKeyRow() ? .handled : .ignored
                 }
+                // Beside the address pill the field needs only room for its
+                // cursor; the pill gets the rest of the row.
+                .frame(minWidth: showsUrlPill ? 6 : 24, maxWidth: .infinity)
                 .accessibilityIdentifier("island.address")
             if !input.isEmpty {
                 Button { input = "" } label: {
@@ -164,51 +197,116 @@ struct PaletteSheet: View {
                 .accessibilityLabel(SyncCopy.text("ios.palette.clear"))
             }
             Button { close() } label: {
-                Image(systemName: "chevron.down")
+                Image(systemName: islandAtTop ? "chevron.up" : "chevron.down")
                     .font(.system(size: 14, weight: .medium))
                     .frame(width: 44, height: 44)
             }
             .accessibilityLabel(SyncCopy.text("ios.island.collapse"))
         }
-        // Its icons line up with the list's: the search glass over the rows'
-        // icons, the collapse caret over Copy Link and Settings.
+        // It starts in line with the list's headings; the collapse caret sits
+        // over the rows' trailing buttons and Settings.
         .padding(.leading, 22)
         .padding(.trailing, 12)
         .padding(.vertical, 8)
+        .contentShape(Rectangle())
+        .simultaneousGesture(panelDrag, isEnabled: placement == .panel)
     }
 
-    private var footer: some View {
-        VStack(spacing: 0) {
-            Rectangle().fill(style.border).frame(height: 0.5)
-            HStack(spacing: 2) {
-                Button {
-                    manager.createTab()
-                    close()
-                } label: {
-                    Label(SyncCopy.text("tab.new"), systemImage: "plus")
-                        .font(BrowserStyle.font(13, semibold: true))
-                        .padding(.horizontal, 14)
-                        .frame(height: 36)
-                        .foregroundStyle(style.raised)
-                        .background(style.text, in: Capsule())
-                        .frame(minHeight: 44)
-                }
-                Spacer(minLength: 4)
-                SpacesButton(manager: manager, style: style)
-                if manager.activeTab?.readerAvailable == true || manager.activeTab?.reader != nil {
-                    Button { close(); manager.toggleReaderMode() } label: {
-                        Image(systemName: "doc.text").frame(width: 44, height: 44)
-                    }
-                    .accessibilityLabel(ReaderCopy.text(manager.activeTab?.reader != nil ? "reader.exit" : "reader.enter"))
-                    .accessibilityIdentifier("palette.reader")
-                }
-                pageShortcut(SyncCopy.text("pagesNav.bookmarks"), icon: "bookmark", page: "bookmarks")
-                pageShortcut(SyncCopy.text("pagesNav.history"), icon: "clock.arrow.circlepath", page: "history")
-                pageShortcut(SyncCopy.text("pagesNav.settings"), icon: "slider.horizontal.3", page: "settings")
+    /// The search row starts with the page's address while nothing's typed.
+    private var showsUrlPill: Bool { input.isEmpty && currentAddress != nil }
+
+    /// The current page's whole address, for a web page.
+    private var currentAddress: String? {
+        guard let url = manager.activeTab?.currentURL,
+              ["http", "https"].contains(url.scheme?.lowercased() ?? "") else { return nil }
+        return url.absoluteString
+    }
+
+    /// The page's whole address as a pill at the start of the search row while
+    /// it's empty (owner, 2026-11-21), fading at its end when long. A tap puts
+    /// it in the field to edit; holding it offers Copy Link; typing a new
+    /// search sets it aside. It replaced the row above the tabs and then the
+    /// copy button.
+    @ViewBuilder private var urlPill: some View {
+        if input.isEmpty, let tab = manager.activeTab, let address = currentAddress {
+            Button {
+                input = address
+                inputFocused = true
+            } label: {
+                FadingAddress(address: address, color: style.secondary)
+                    .padding(.horizontal, 10)
+                    .frame(height: 30)
+                    .background(style.text.opacity(0.06), in: Capsule())
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
+                    .pointerHighlight(cornerRadius: 15)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
+            .contextMenu {
+                Button(SyncCopy.text("tabMenu.copyLink"), systemImage: "doc.on.doc") {
+                    manager.copyLink(tab)
+                    close()
+                }
+            }
+            .accessibilityLabel(SyncCopy.text("ios.palette.editAddress"))
+            .accessibilityValue(address)
+            .accessibilityAction(named: SyncCopy.text("tabMenu.copyLink")) {
+                manager.copyLink(tab)
+                close()
+            }
+            .accessibilityIdentifier("palette.urlPill")
+            // It takes the room it needs first; the field keeps enough for the cursor.
+            .layoutPriority(1)
         }
+    }
+
+    private var panelDrag: some Gesture {
+        DragGesture(minimumDistance: 12, coordinateSpace: .global).onEnded { drag in
+            if PalettePanelDrag.closes(translation: drag.translation.height,
+                                       predicted: drag.predictedEndTranslation.height, islandAtTop: islandAtTop) {
+                close()
+            }
+        }
+    }
+
+    private var actionsRow: some View {
+        let tab = manager.activeTab
+        return HStack(spacing: 0) {
+            Button {
+                tab?.goBack()
+                close()
+            } label: {
+                Image(systemName: "chevron.left").frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .disabled(tab?.canGoBack != true)
+            .opacity(tab?.canGoBack == true ? 1 : 0.35)
+            .accessibilityLabel(SyncCopy.text("pill.back"))
+            Button {
+                manager.createTab()
+                close()
+            } label: {
+                Image(systemName: "plus").frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .accessibilityLabel(SyncCopy.text("tab.new"))
+            Spacer(minLength: 0)
+            SpacesButton(manager: manager, style: style)
+            if manager.activeTab?.readerAvailable == true || manager.activeTab?.reader != nil {
+                Button { close(); manager.toggleReaderMode() } label: {
+                    Image(systemName: "doc.text").frame(width: 44, height: 44)
+                }
+                .accessibilityLabel(ReaderCopy.text(manager.activeTab?.reader != nil ? "reader.exit" : "reader.enter"))
+                .accessibilityIdentifier("palette.reader")
+            }
+            pageShortcut(SyncCopy.text("pagesNav.bookmarks"), icon: "bookmark", page: "bookmarks")
+            pageShortcut(SyncCopy.text("pagesNav.history"), icon: "clock.arrow.circlepath", page: "history")
+            // A gear, which reads as Settings even this small (owner, 2026-11-21).
+            pageShortcut(SyncCopy.text("pagesNav.settings"), icon: "gearshape", page: "settings")
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .contentShape(Rectangle())
+        .simultaneousGesture(panelDrag, isEnabled: placement == .panel)
     }
 
     private func pageShortcut(_ label: String, icon: String, page: String) -> some View {
@@ -277,6 +375,9 @@ struct PaletteSheet: View {
             .padding(.bottom, bottom ? 2 : 0)
     }
 
+    /// A section's heading, starting in line with the search glass (22 pt in),
+    /// whatever margin the list would give a header: in the panel that margin
+    /// left it almost at the panel's edge.
     private func groupHeading(_ title: String, count: Int? = nil) -> some View {
         HStack(spacing: 6) {
             Text(title).font(BrowserStyle.font(11, semibold: true))
@@ -286,6 +387,9 @@ struct PaletteSheet: View {
         .foregroundStyle(style.secondary)
         .textCase(nil)
         .padding(.top, 8)
+        // Its own room above the first row, which otherwise sat right under it.
+        .padding(.bottom, 6)
+        .listRowInsets(EdgeInsets(top: 0, leading: 22, bottom: 0, trailing: 22))
     }
 
     /// The row under the arrow keys, drawn apart from the current tab's.
@@ -328,51 +432,9 @@ struct PaletteSheet: View {
         return formatter
     }
 
-    /// The current page's whole address, which the Island shows only the site
-    /// of: a tap puts it in the field to edit, and the button copies it.
-    @ViewBuilder private var currentAddress: some View {
-        if let tab = manager.activeTab, ["http", "https"].contains(tab.currentURL.scheme?.lowercased() ?? "") {
-            let address = tab.currentURL.absoluteString
-            HStack(spacing: 0) {
-                Button {
-                    input = address
-                    inputFocused = true
-                } label: {
-                    HStack(spacing: 10) {
-                        Image(systemName: "link").font(.system(size: 14)).foregroundStyle(style.secondary).frame(width: 24)
-                        Text(address).font(BrowserStyle.font(13)).foregroundStyle(style.secondary)
-                            .lineLimit(1).truncationMode(.middle)
-                        Spacer(minLength: 4)
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                    .contentShape(Rectangle())
-                    .pointerHighlight()
-                }
-                .accessibilityLabel(SyncCopy.text("ios.palette.editAddress"))
-                .accessibilityValue(address)
-                .accessibilityIdentifier("palette.address")
-                Button {
-                    manager.copyLink(tab)
-                    close()
-                } label: {
-                    Image(systemName: "doc.on.doc").font(.system(size: 13)).foregroundStyle(style.secondary)
-                        .frame(width: 44, height: 44)
-                        .pointerHighlight()
-                }
-                .accessibilityLabel(SyncCopy.text("tabMenu.copyLink"))
-                .accessibilityIdentifier("palette.copyLink")
-            }
-            .padding(.leading, 10)
-            .listRowSeparator(.hidden)
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12))
-        }
-    }
-
     private var tabList: some View {
         let keyIndex = Dictionary(uniqueKeysWithValues: tabRows.enumerated().map { ($1.id, $0) })
         return List {
-            currentAddress
             Section {
                 ForEach(manager.displaySections, id: \.id) { section in
                     if let group = section.group {
@@ -755,5 +817,40 @@ struct PaletteSheet: View {
         manager.activeTab?.addressText = trimmed
         manager.submitActiveTabAddress()
         close()
+    }
+}
+
+/// The address whole when it fits; when it's longer than the room, its start
+/// shows and its end fades out, rather than an ellipsis cutting it (owner,
+/// 2026-11-21). Its size comes from an ordinary one-line label (its own width,
+/// at most the room it's given), so the full address drawn over it never
+/// widens the row; the fade shows only when the address is cut.
+private struct FadingAddress: View {
+    let address: String
+    let color: Color
+    @State private var fullWidth: CGFloat = 0
+    @State private var shownWidth: CGFloat = 0
+
+    private var label: Text { Text(address).font(BrowserStyle.font(14)) }
+
+    var body: some View {
+        label.lineLimit(1)
+            .hidden()
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { shownWidth = $0 }
+            .overlay(alignment: .leading) {
+                label.lineLimit(1).fixedSize()
+                    .foregroundStyle(color)
+                    .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { fullWidth = $0 }
+            }
+            .clipped()
+            .mask {
+                HStack(spacing: 0) {
+                    Color.black
+                    if fullWidth > shownWidth + 0.5 {
+                        LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing)
+                            .frame(width: 28)
+                    }
+                }
+            }
     }
 }

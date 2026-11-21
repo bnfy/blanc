@@ -20,7 +20,7 @@ const cinemaLedger = JSON.parse(read('docs/website-cinematic-homepage-claims-v1.
 const v140Ledger = JSON.parse(read('docs/website-v1.40-claims.json'));
 const v145Ledger = JSON.parse(read('docs/website-v1.45-claims.json'));
 const arcWelcomeLedger = JSON.parse(read('docs/website-arc-welcome-claims.json'));
-const compareLedger = JSON.parse(read('docs/website-compare-claims-v1.51.0.json'));
+const compareLedger = JSON.parse(read('docs/website-compare-claims-v1.52.0.json'));
 const iphoneLedger = JSON.parse(read('docs/website-iphone-1.0-claims.json'));
 const spacesButtonLedger = JSON.parse(read('docs/website-spaces-button-claims.json'));
 const ipadLedger = JSON.parse(read('docs/website-ipad-1.0.3-claims.json'));
@@ -99,9 +99,9 @@ test('search landing pages are fully covered by the exact-wording ledger and lin
   }
 });
 
-test('the compare chart resolves to public v1.51.0 and every other-browser answer to a page it links', () => {
+test('the compare chart resolves to public v1.52.0 and every other-browser answer to a page it links', () => {
   const record = compareLedger;
-  assert.equal(record.publicRelease, 'v1.51.0');
+  assert.equal(record.publicRelease, 'v1.52.0');
   assert.equal(execFileSync('git', ['rev-parse', `${record.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), record.sourceSha);
   assert.ok(read(record.releaseEvidence).includes(record.sourceSha));
   for (const group of Object.values(record.evidenceGroups)) {
@@ -884,6 +884,7 @@ test('public product captures match their reviewed dimensions, hashes, and sourc
     ['docs/website-captures-v1.40.0.json', 'v1.40.0', '17ed22052bc0e1d0c0ce3920cbcb85c4792d306e', 1],
     ['docs/website-captures-float-island-v1.40.0.json', 'v1.40.0', '17ed22052bc0e1d0c0ce3920cbcb85c4792d306e', 2],
     ['docs/website-captures-v1.41.0.json', 'v1.41.0', '9298b0916987ea9628bb2bee014717e85cd11628', 35],
+    ['docs/website-captures-spaces-v1.51.0.json', 'v1.51.0', '2c3d17db9b8573f4047e8732aaf8f0972ef9e724', 2],
   ];
   for (const [file, release, sourceSha, expectedCount] of manifests) {
     const manifest = JSON.parse(read(file));

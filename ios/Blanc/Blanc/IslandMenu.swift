@@ -2,6 +2,7 @@ import Foundation
 
 /// One entry in the Sunrise mark's menu on the Island.
 enum IslandMenuItem: Equatable {
+    case closePrivateTab
     /// On the Start Page: its layout, wallpaper and clock in Settings.
     case customizeStartPage
     /// Blanc Blocker's switch for the current site.
@@ -29,6 +30,7 @@ enum IslandMenuItem: Equatable {
     /// open tabs; Close Glance while a card is open.
     case glance
     case closeGlance
+    case newTab
     case newPrivateTab
     /// Blanc's Settings, always last.
     case settings
@@ -40,7 +42,7 @@ enum IslandMenuItem: Equatable {
 enum IslandMenu {
     @MainActor static func items(for tab: TabModel?, manager: TabsManager,
                                  onPad: Bool = ThisDevice.isPad) -> [IslandMenuItem] {
-        var items: [IslandMenuItem] = []
+        var items: [IslandMenuItem] = tab?.isPrivate == true ? [.closePrivateTab] : []
         if let tab, tab.currentURL.scheme == "blanc", tab.currentURL.host == "newtab" {
             items.append(.customizeStartPage)
         }
@@ -56,6 +58,7 @@ enum IslandMenu {
         }
         if manager.glanceTab != nil { items.append(.closeGlance) }
         else if manager.canOpenGlance, !manager.glanceCandidates.isEmpty { items.append(.glance) }
+        if tab?.isLoading == true { items.append(.newTab) }
         items.append(contentsOf: [.newPrivateTab, .settings])
         return items
     }

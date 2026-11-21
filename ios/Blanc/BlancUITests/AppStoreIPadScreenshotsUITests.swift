@@ -170,7 +170,9 @@ final class AppStoreIPadScreenshotsUITests: XCTestCase {
     let item = app.buttons["New Private Tab"]
     XCTAssertTrue(item.waitForExistence(timeout: 5))
     item.tap()
-    XCTAssertTrue(app.buttons["pill.private"].waitForExistence(timeout: 10))
+    let privateTab = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "Private tab"),
+                                               object: app.buttons["island.menu"])
+    XCTAssertEqual(XCTWaiter().wait(for: [privateTab], timeout: 10), .completed)
     run("https://noddingoffapp.com")
     waitForSite("noddingoffapp.com")
     sleep(8)

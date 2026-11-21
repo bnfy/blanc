@@ -43,12 +43,21 @@ import XCTest
         XCTAssertEqual(SettingsDestination.resolve(URL(string: "blanc://settings/#start-page")!), .startPage)
     }
 
+    func testAPrivateTabLeadsWithClosePrivateTab() {
+        let m = manager()
+        let url = URL(string: "https://example.com/")!
+        m.activeTab!.currentURL = url
+        XCTAssertFalse(IslandMenu.items(for: m.activeTab, manager: m).contains(.closePrivateTab))
+        let id = m.createTab(url: url, isPrivate: true)
+        XCTAssertEqual(IslandMenu.items(for: m.tabs.first { $0.id == id }, manager: m).first, .closePrivateTab)
+    }
+
     func testPrivatePageIsNeverAFavorite() {
         let m = manager()
         let id = m.createTab(url: URL(string: "https://secret.example/")!, isPrivate: true)
         let tab = m.tabs.first { $0.id == id }
         XCTAssertEqual(IslandMenu.items(for: tab, manager: m, onPad: false),
-                       [.blocking(on: true), .reload, .share, .copyLink, .find, .pageZoom, .desktopSite(on: false),
+                       [.closePrivateTab, .blocking(on: true), .reload, .share, .copyLink, .find, .pageZoom, .desktopSite(on: false),
                         .newPrivateTab, .settings])
     }
 

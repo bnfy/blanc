@@ -6,32 +6,35 @@ import XCTest
 final class IslandLayoutTests: XCTestCase {
     func testCompactIsTheIPhoneLayout() {
         let layout = IslandLayout(.compact, .regular)
-        XCTAssertEqual(layout.palette, .sheet)
+        XCTAssertEqual(layout.palette, .panel)
     }
 
-    func testTheIPhoneIslandHasBackForwardAndNewTabButNoReload() {
-        let buttons = IslandLayout(.compact, .regular).buttons(backForward: true, isLoading: false)
-        XCTAssertEqual(buttons, .init(history: .afterAddress, reload: false))
+    func testBackLeadsAndForwardOnlyWhenThereIsSomewhereToGo() {
+        let phone = IslandLayout(.compact, .regular)
+        XCTAssertEqual(phone.buttons(backForward: true, canGoForward: false, isLoading: false),
+                       .init(leading: .back, forward: false, trailing: .newTab))
+        XCTAssertEqual(phone.buttons(backForward: true, canGoForward: true, isLoading: false),
+                       .init(leading: .back, forward: true, trailing: .newTab))
     }
 
-    func testStopStillShowsWhileAPageLoads() {
-        let buttons = IslandLayout(.compact, .regular).buttons(backForward: true, isLoading: true)
-        XCTAssertEqual(buttons, .init(history: .afterAddress, reload: true))
+    func testStopTakesNewTabsSlotWhileLoading() {
+        let buttons = IslandLayout(.compact, .regular).buttons(backForward: true, canGoForward: false, isLoading: true)
+        XCTAssertEqual(buttons.trailing, .stop)
     }
 
-    func testWithBackAndForwardOffReloadTakesTheirPlace() {
-        let layout = IslandLayout(.compact, .regular)
-        XCTAssertEqual(layout.buttons(backForward: false, isLoading: false), .init(history: .hidden, reload: true))
-        XCTAssertEqual(layout.buttons(backForward: false, isLoading: true), .init(history: .hidden, reload: true))
+    func testWithBackAndForwardOffReloadLeads() {
+        let buttons = IslandLayout(.compact, .regular).buttons(backForward: false, canGoForward: true, isLoading: false)
+        XCTAssertEqual(buttons, .init(leading: .reload, forward: false, trailing: .newTab))
     }
 
-    /// The iPad and the Duo's inner display have the iPhone's Island.
     func testTheUnfoldedIslandHasTheIPhonesButtons() {
         let unfolded = IslandLayout(.regular, .regular), phone = IslandLayout(.compact, .regular)
         for backForward in [true, false] {
-            for isLoading in [true, false] {
-                XCTAssertEqual(unfolded.buttons(backForward: backForward, isLoading: isLoading),
-                               phone.buttons(backForward: backForward, isLoading: isLoading))
+            for canGoForward in [true, false] {
+                for isLoading in [true, false] {
+                    XCTAssertEqual(unfolded.buttons(backForward: backForward, canGoForward: canGoForward, isLoading: isLoading),
+                                   phone.buttons(backForward: backForward, canGoForward: canGoForward, isLoading: isLoading))
+                }
             }
         }
     }
@@ -41,10 +44,12 @@ final class IslandLayoutTests: XCTestCase {
         XCTAssertEqual(IslandLayout(.regular, nil), IslandLayout(.compact, .regular))
     }
 
-    /// A Plus or Pro Max iPhone in landscape is regular width but compact
-    /// height: still an iPhone.
-    func testALargeIPhoneInLandscapeIsTheIPhoneLayout() {
-        XCTAssertEqual(IslandLayout(.regular, .compact), IslandLayout(.compact, .regular))
+    func testLandscapeKeepsTheSheet() {
+        for width in [UserInterfaceSizeClass.regular, .compact] {
+            let layout = IslandLayout(width, .compact)
+            XCTAssertEqual(layout.palette, .sheet)
+            XCTAssertFalse(layout.showsSplitView)
+        }
     }
 
     func testRegularIsTheUnfoldedLayout() {
