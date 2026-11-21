@@ -230,6 +230,10 @@ are folded in below.
 - [ ] **Step 5: Run** the test, the fork unit suite and `python3 chromium/tools/check-patches.py` for
   both lanes; expected PASS. Commit `Fork Linux: the preview's own names, data folder and keyring (L1)`.
 
+**Task 2 patch budget.** On the L0 baseline, 0112 changes 12 upstream files in 23 hunks.
+Eleven new pristine inputs bring the desktop lane to 230 inputs and 236 verified postimages.
+The browser and provider call paths are recorded in [Linux identity](../../../chromium/linux/identity.md).
+
 ### Task 3: Chromium's caption buttons over the strip
 
 **Files:**

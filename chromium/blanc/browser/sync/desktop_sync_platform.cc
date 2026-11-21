@@ -15,6 +15,11 @@
 #include "content/public/browser/storage_partition.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
 
+#if BUILDFLAG(IS_LINUX)
+#include "chrome/browser/browser_process.h"
+#include "components/os_crypt/async/browser/os_crypt_async.h"
+#endif
+
 namespace blanc {
 DesktopSyncPlatform::DesktopSyncPlatform(
     Profile* profile, std::string device_name,
@@ -41,6 +46,11 @@ std::string DesktopSyncPlatform::ConfigJson() {
   config.Set("version", std::string(version_info::GetVersionNumber()));
   config.Set("deviceName", device_name_);
   config.Set("keyStore", true);
+#if BUILDFLAG(IS_LINUX)
+  // DesktopSyncService obtained our Encryptor from this instance on the UI sequence.
+  const auto* crypt = g_browser_process->os_crypt_async();
+  config.Set("storageBackend", crypt ? crypt->GetLinuxStorageBackend() : "basic_text");
+#endif
 #if BUILDFLAG(BLANC_BETA_LOCAL_QUALIFICATION) || BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
   const auto test = Endpoint();
   if (test != kSyncEndpoint) {

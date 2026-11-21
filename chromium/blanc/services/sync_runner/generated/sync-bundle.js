@@ -274,7 +274,8 @@ const flushers = [];
 module.exports = {
   app: {isPackaged: !host.testEndpoint, getPath: () => '/sync', getVersion: () => host.version, on(e, f) { if (e === 'before-quit') quitHandlers.push(f); }, whenReady: async () => {}},
   net: {fetch},
-  safeStorage: {isEncryptionAvailable: () => !!host.keyStore, getSelectedStorageBackend: () => 'android_keystore',
+  safeStorage: {isEncryptionAvailable: () => !!host.keyStore,
+    getSelectedStorageBackend: () => host.platform === 'linux' ? (host.storageBackend ?? 'basic_text') : 'android_keystore',
     encryptString: s => { const r = host.protect(Buffer.from(s)); if (!r) throw new Error('keystore'); return Buffer.from(r); },
     decryptString: b => { const r = host.unprotect(b); if (!r) throw new Error('keystore'); return Buffer.from(r).toString(); }},
   dialog: {showMessageBox: async () => ({response: 0})},

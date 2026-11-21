@@ -12,6 +12,14 @@ buildflag_header("buildflags") {
     "BLANC_BETA_CHANNEL=$blanc_beta_channel",
     "BLANC_BETA_LOCAL_QUALIFICATION=$blanc_beta_local_qualification",
   ]
+  if (is_linux) {
+    flags += [
+      "BLANC_LINUX_PACKAGE=\"$blanc_linux_package\"",
+      "BLANC_LINUX_KEYRING_LABEL=\"$blanc_linux_keyring_label\"",
+      "BLANC_LINUX_KEY_NAME=\"$blanc_linux_keyring_label Safe Storage\"",
+      "BLANC_LINUX_KWALLET_FOLDER=\"$blanc_linux_keyring_label Keys\"",
+    ]
+  }
 }
 
 # Desktop's views UI. The Android lane loads this file too (its blocker and sync use
