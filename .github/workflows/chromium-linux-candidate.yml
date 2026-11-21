@@ -207,17 +207,28 @@ jobs:
         if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         env:
           WAYLAND_DISPLAY: wayland-blanc
+          BLANC_WAYLAND_DISPLAY_2X: wayland-blanc-2x
         run: |
           export XDG_RUNTIME_DIR="$RUNNER_TEMP/frame-weston"
           mkdir -m 700 "$XDG_RUNTIME_DIR"
-          # --debug allows weston-screenshooter to read this private, headless output.
-          weston --no-config --backend=headless --use-pixman --width=2800 --height=1600 --debug \
-            --socket="$WAYLAND_DISPLAY" --idle-time=0 --log="$RESULTS/frame-weston.log" &
-          compositor=$!
-          trap 'kill "$compositor" 2>/dev/null || true; wait "$compositor" 2>/dev/null || true' EXIT
-          timeout 15s bash <<'WAIT_FOR_SOCKET'
-          until [[ -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]]; do sleep 0.1; done
-          WAIT_FOR_SOCKET
+          compositors=()
+          trap 'kill "${compositors[@]}" 2>/dev/null || true; wait || true' EXIT
+          start_weston() {
+            local scale=$1 socket=$2 log=$3
+            # Headless width and height are logical units. Keep both framebuffers
+            # at 2800x1600 and let Chromium pick up the actual wl_output scale.
+            weston --no-config --backend=headless --use-pixman --debug --scale="$scale" \
+              --width="$((2800 / scale))" --height="$((1600 / scale))" \
+              --socket="$socket" --idle-time=0 --log="$RESULTS/$log" &
+            compositors+=("$!")
+          }
+          start_weston 1 "$WAYLAND_DISPLAY" frame-weston.log
+          start_weston 2 "$BLANC_WAYLAND_DISPLAY_2X" frame-weston-2x.log
+          timeout 15s bash <<'WAIT_FOR_SOCKETS'
+          for socket in "$WAYLAND_DISPLAY" "$BLANC_WAYLAND_DISPLAY_2X"; do
+            until [[ -S "$XDG_RUNTIME_DIR/$socket" ]]; do sleep 0.1; done
+          done
+          WAIT_FOR_SOCKETS
           node chromium/tests/linux-frame.mjs --display=wayland "$CANDIDATE_DIR" "$RESULTS"
       - name: Keep the frame evidence
         if: always()
