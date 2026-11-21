@@ -79,6 +79,9 @@ export const ANDROID_KEYS = [
   'pagesNav.settings', 'slash.settings.hint',
   'android.settings.islandPosition', 'android.settings.islandPosition.bottom', 'android.settings.islandPosition.top',
   'android.settings.more', 'android.settings.openSourceLicenses', 'ios.settings.about',
+  'android.settings.autofill.title', 'android.settings.autofill.summary',
+  'android.settings.autofill.managed', 'android.settings.autofill.choose',
+  'android.settings.autofill.chooseSummary', 'android.settings.autofill.restart',
   'ios.settings.addSite', 'ios.settings.blocker', 'ios.settings.blockerHelp',
   'ios.settings.duplicateSite', 'ios.settings.exceptions', 'ios.settings.exceptionsHelp', 'ios.settings.invalidSite',
   'ios.settings.privacy', 'ios.settings.privacyPolicy', 'ios.settings.removeSite',
@@ -102,19 +105,21 @@ export const ANDROID_KEYS = [
   'ios.defaultBrowser.row', 'ios.defaultBrowser.notBlanc', 'android.welcome.shareTitle',
   'android.welcome.measureUsageHelp', 'android.defaultBrowser.body', 'android.defaultBrowser.open',
   'settings.language.label', 'settings.language.system',
+  // Long-press menu labels use Blanc's default English on untranslated phones.
+  'android.contextMenu.privateTab', 'android.contextMenu.newBlancTab', 'mini.openInBlanc',
 ];
 // ICU plurals, as Android <plurals>: the Island's tab count for TalkBack.
 export const ANDROID_PLURALS = ['sharedSpaces.waitingCount', 'newtab.groups.count', 'shield.count.blocked', 'tabGroups.tucked', 'tabsMenu.header',
   'ws.list.recentlyDeleted'];
-// Chromium's own strings that name Chrome, replaced by a resource overlay so no screen says it (A5a,
-// docs/android/a5a-settings-spike.md R3): copy key -> Chromium's resource name. Found by the wording
-// check in tests/android/settings.mjs.
-export const CHROMIUM_OVERRIDES = {'android.settings.autoRevokeSummary': 'safety_hub_autorevocation_toggle_summary'};
 // Their own folder: Chromium's base-module resources list only the icons from res/, and a resource
 // folder may hold only files its target lists.
 const OVERRIDES = path.join(chromium, 'blanc/android/res_chromium_strings');
 export const LOCALES = [['en', 'values'], ['de', 'values-de'], ['es', 'values-es'], ['fr', 'values-fr'],
   ['it', 'values-it'], ['pt-BR', 'values-pt-rBR']];
+// Android prefers these regional Chromium translations over a base-language override.
+const OVERRIDE_LOCALES = [...LOCALES,
+  ['en', 'values-en-rGB'], ['es', 'values-es-rUS'], ['fr', 'values-fr-rCA'], ['pt-BR', 'values-pt-rPT'],
+];
 
 export const resourceName = key =>
   'blanc_' + key.replace(/([a-z0-9])([A-Z])/g, '$1_$2').replace(/\./g, '_').toLowerCase();
@@ -144,6 +149,11 @@ export function androidPlural(message, name) {
 }
 
 const read = locale => JSON.parse(fs.readFileSync(path.join(repo, 'copy/messages', `${locale}.json`), 'utf8'));
+
+// Chromium chooses the Safety Hub summary by its upstream resource ID.
+export const CHROMIUM_OVERRIDES = {
+  'android.settings.autoRevokeSummary': 'safety_hub_autorevocation_toggle_summary',
+};
 
 export function render(locale) {
   const english = read('en'), own = read(locale);
@@ -183,7 +193,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     fs.mkdirSync(path.dirname(file), {recursive: true});
     fs.writeFileSync(file, next);
   }
-  for (const [locale, dir] of LOCALES) {
+  for (const [locale, dir] of OVERRIDE_LOCALES) {
     const file = path.join(OVERRIDES, dir, 'blanc_chromium_strings.xml');
     const next = renderOverrides(locale);
     if (readIfPresent(file) === next) continue;

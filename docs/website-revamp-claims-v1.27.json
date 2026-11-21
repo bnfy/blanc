@@ -13047,6 +13047,16 @@
         ]
       },
       {
+        "source": "site/src/pages/features/workspaces.astro",
+        "reason": "November 21, 2026 records for public v1.49.0, the first release that ships #1450 (no Space mark on the resting Island) and #1454 (the command panel's Spaces button shows the current space's tile). The sentence that put the current space at the start of the Island now names the Spaces button. The new wording is recorded in docs/website-spaces-button-claims.json.",
+        "replacements": [
+          {
+            "before": "<p>Give each space a colour and a symbol. The current space shows at the start of the Island; click it to switch, edit, reorder or delete a space, with Undo.</p>",
+            "after": "<p>Give each space a color and a symbol. The Spaces button in the command panel shows the current space; click it to switch, edit, reorder or delete a space, with Undo.</p>"
+          }
+        ]
+      },
+      {
         "source": "site/src/pages/features.astro",
         "reason": "November 19, 2026 records for public v1.51.0, which replaced the four Start Page layouts (Ledger, Billboard, Shelf, Tally) with one Start Page and widget cards (Favorites, On your other devices) turned on in Customize, moved and resized, with 1 to 12 shortcuts; Mahjong is shown as refreshed in v1.49.0, with its three tile sets. Layout wording is retired; Start Page layout usage is no longer measured. The new wording is recorded in docs/website-v1.51-start-page-claims.json.",
         "replacements": [

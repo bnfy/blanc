@@ -22,6 +22,7 @@ const v145Ledger = JSON.parse(read('docs/website-v1.45-claims.json'));
 const arcWelcomeLedger = JSON.parse(read('docs/website-arc-welcome-claims.json'));
 const compareLedger = JSON.parse(read('docs/website-compare-claims-v1.51.0.json'));
 const iphoneLedger = JSON.parse(read('docs/website-iphone-1.0-claims.json'));
+const spacesButtonLedger = JSON.parse(read('docs/website-spaces-button-claims.json'));
 const ipadLedger = JSON.parse(read('docs/website-ipad-1.0.3-claims.json'));
 const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
 // Compare source text only; consume incomplete tags and decode entities once.
@@ -70,7 +71,7 @@ test('the v1.15 claim ledger remains paired with its immutable release evidence'
 test('new guide benefit and qualification paragraphs remain covered by the exact-wording ledger', () => {
   for (const slug of ['start-page', 'glance', 'workspaces', 'profiles', 'reopen-closed-tabs', '1password']) {
     const file = `site/src/components/guides/${slug}.astro`;
-    const claims = new Set([...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v140Ledger.claims, ...v145Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording));
+    const claims = new Set([...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v140Ledger.claims, ...v145Ledger.claims, ...spacesButtonLedger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording));
     for (const match of read(file).matchAll(/<(h[123]|p|figcaption)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
       const wording = normalize(match[2]);
       if (wording.length > 20) assert.ok(claims.has(wording), `${slug}: unrecorded wording: ${wording}`);
@@ -711,6 +712,34 @@ test('v1.45.0 Shared Spaces and Sync copy resolves to verified public v1.45.0 ev
   assert.match(notes, /\*\*Connect your iPhone\.\*\*/);
 });
 
+// The Spaces button (#1450, #1454): the resting Island carries no Space mark,
+// and the command panel's Spaces button shows the current space. Both first
+// shipped in public v1.49.0 (November 13, 2026); v1.48.0 has neither.
+test('the Spaces button copy resolves to the public release that ships #1450 and #1454', () => {
+  const record = spacesButtonLedger;
+  assert.equal(record.publicRelease, 'v1.49.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${record.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), record.sourceSha);
+  for (const commit of Object.keys(record.requiredCommits)) {
+    execFileSync('git', ['merge-base', '--is-ancestor', commit, record.publicRelease], { cwd: root });
+  }
+  assert.ok(read(record.releaseEvidence).includes(record.sourceSha));
+  const retired = new Map(record.supersededClaims.map(claim => [claim.id, claim]));
+  for (const claim of record.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    assert.equal(retired.get(claim.replaces)?.source, claim.source, `${claim.id}: records the wording it replaces`);
+    for (const key of claim.evidenceGroups) {
+      const group = record.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${record.publicRelease}:${evidence}`], { cwd: root });
+    }
+  }
+  for (const file of new Set(record.claims.map(claim => claim.source))) {
+    const text = normalize(read(file));
+    for (const retiredWording of record.prohibitedClaims) assert.ok(!text.includes(retiredWording), `${file}: still says “${retiredWording}”`);
+  }
+});
+
 // Blanc for iPhone and iPad 1.0.3, the first App Store version that runs on
 // iPad (#1479, #1480). The wording and its evidence are checked now; the copy
 // is held until App Review approves 1.0.3. While approvedOn and publicRelease
@@ -855,6 +884,7 @@ test('public product captures match their reviewed dimensions, hashes, and sourc
     ['docs/website-captures-v1.40.0.json', 'v1.40.0', '17ed22052bc0e1d0c0ce3920cbcb85c4792d306e', 1],
     ['docs/website-captures-float-island-v1.40.0.json', 'v1.40.0', '17ed22052bc0e1d0c0ce3920cbcb85c4792d306e', 2],
     ['docs/website-captures-v1.41.0.json', 'v1.41.0', '9298b0916987ea9628bb2bee014717e85cd11628', 35],
+    ['docs/website-captures-spaces-v1.51.0.json', 'v1.51.0', '2c3d17db9b8573f4047e8732aaf8f0972ef9e724', 2],
   ];
   for (const [file, release, sourceSha, expectedCount] of manifests) {
     const manifest = JSON.parse(read(file));

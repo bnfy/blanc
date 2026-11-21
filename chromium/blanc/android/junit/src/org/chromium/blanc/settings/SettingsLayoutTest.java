@@ -39,7 +39,8 @@ public class SettingsLayoutTest {
     @Test
     public void eachSectionHoldsTheRowsTheDesignNames() {
         assertEquals(List.of("blanc_header"), section("blanc_header_section", RELEASE).rows);
-        assertEquals(List.of("blanc_search_engine", "blanc_default_browser"), section("blanc_browsing_section", RELEASE).rows);
+        assertEquals(List.of("blanc_search_engine", "blanc_default_browser", "blanc_platform_autofill",
+                "blanc_choose_password_manager"), section("blanc_browsing_section", RELEASE).rows);
         assertEquals(List.of("blanc_theme", "blanc_island_position", "blanc_start_page"),
                 section("blanc_appearance_section", RELEASE).rows);
         assertEquals(List.of("blanc_blocker", "blanc_allowed_sites", "blanc_clear_site_data", "blanc_measure_usage"),
