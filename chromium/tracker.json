@@ -2549,6 +2549,13 @@
       "version": "158.0.8127.2",
       "treeCommit": "c8db069c4a184652b1e72526d9aab375e2a56f05",
       "qualification": "cross-compiled candidate; runtime acceptance pending"
+    },
+    "linux": {
+      "id": "linux-x64-2fcae33ab6ecf405",
+      "exeSha256": "2fcae33ab6ecf4059a262c4db98bf126f20b8d068f2696a52d0e3880b77250c7",
+      "version": "158.0.8127.2",
+      "treeCommit": "d827f59a02658f96f8d086114635a50f1cfc2658",
+      "qualification": "compiled candidate; runtime acceptance pending"
     }
   },
   "baselines": {
