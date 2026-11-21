@@ -3,6 +3,7 @@
 package org.chromium.blanc.settings;
 
 import android.content.Context;
+import android.widget.Toast;
 
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
@@ -74,6 +75,14 @@ public final class BlancSettingsScreen {
 
         /** Android's browser-role request, or its Default apps screen (DefaultBrowser). */
         void openDefaultBrowser();
+
+        boolean platformAutofillAllowed();
+
+        boolean platformAutofillRequested();
+
+        void setPlatformAutofillRequested(boolean on);
+
+        void openPasswordManagerPicker();
 
         /** The saved Measure usage choice; unsaved reads off, since nothing is sent then. */
         boolean usagePing();
@@ -170,6 +179,7 @@ public final class BlancSettingsScreen {
                 row = new ListPreference(context);
                 break;
             case "blanc_blocker":
+            case "blanc_platform_autofill":
             case "blanc_measure_usage":
                 row = new SwitchPreferenceCompat(context);
                 break;
@@ -233,6 +243,32 @@ public final class BlancSettingsScreen {
                 row.setSummary(isDefault == null ? null
                                 : isDefault ? host.appName()
                                             : context.getString(R.string.blanc_ios_default_browser_not_blanc));
+                break;
+            case "blanc_platform_autofill":
+                SwitchPreferenceCompat autofill = (SwitchPreferenceCompat) row;
+                boolean allowed = host.platformAutofillAllowed();
+                autofill.setTitle(R.string.blanc_android_settings_autofill_title);
+                autofill.setSummary(allowed ? R.string.blanc_android_settings_autofill_summary
+                                           : R.string.blanc_android_settings_autofill_managed);
+                autofill.setEnabled(allowed);
+                autofill.setChecked(allowed && host.platformAutofillRequested());
+                autofill.setOnPreferenceChangeListener((p, value) -> {
+                    if (!host.platformAutofillAllowed()) return false;
+                    host.setPlatformAutofillRequested((Boolean) value);
+                    Toast.makeText(context, R.string.blanc_android_settings_autofill_restart,
+                            Toast.LENGTH_SHORT).show();
+                    return true;
+                });
+                break;
+            case "blanc_choose_password_manager":
+                boolean pickerAllowed = host.platformAutofillAllowed();
+                row.setEnabled(pickerAllowed);
+                action(row, R.string.blanc_android_settings_autofill_choose,
+                        pickerAllowed ? R.string.blanc_android_settings_autofill_choose_summary
+                                      : R.string.blanc_android_settings_autofill_managed,
+                        () -> {
+                            if (host.platformAutofillAllowed()) host.openPasswordManagerPicker();
+                        });
                 break;
             case "blanc_measure_usage":
                 SwitchPreferenceCompat usage = (SwitchPreferenceCompat) row;

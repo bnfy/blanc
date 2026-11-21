@@ -233,6 +233,12 @@
     <string name="blanc_android_settings_more">Mehr</string>
     <string name="blanc_android_settings_open_source_licenses">Open-Source-Lizenzen</string>
     <string name="blanc_ios_settings_about">Über Blanc</string>
+    <string name="blanc_android_settings_autofill_title">Passwörter ausfüllen</string>
+    <string name="blanc_android_settings_autofill_summary">Der Passwortmanager, den du in Android auswählst (etwa Bitwarden, Proton Pass oder 1Password), kann in Blanc Passwörter eintragen und andere Formulare ausfüllen, sofern er sie unterstützt. Der Google Passwortmanager füllt in Blanc keine Formulare aus.</string>
+    <string name="blanc_android_settings_autofill_managed">Deine Organisation verwaltet diese Einstellung.</string>
+    <string name="blanc_android_settings_autofill_choose">Passwortmanager auswählen</string>
+    <string name="blanc_android_settings_autofill_choose_summary">Wird beim nächsten Start von Blanc wirksam.</string>
+    <string name="blanc_android_settings_autofill_restart">Starte Blanc neu, um die Änderung zu übernehmen</string>
     <string name="blanc_ios_settings_add_site">Website hinzufügen</string>
     <string name="blanc_ios_settings_blocker">Blanc Blocker</string>
     <string name="blanc_ios_settings_blocker_help">Blockiere Werbung und Tracker auf Websites. Wenn du dies ausschaltest, wird der Schutz für alle Tabs deaktiviert und Webseiten werden neu geladen.</string>

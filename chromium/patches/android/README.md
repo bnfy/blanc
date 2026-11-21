@@ -128,6 +128,19 @@ in the lane file in its place. Numbering starts at 0101.
   resources and fall back to English. Regional Chromium overlays still supply
   the Safety Hub summary where Android prefers a regional translation.
 
+- `0125-android-autofill-platform.patch` keeps the person's choice in Blanc's
+  Android profile pref, `blanc.autofill.platform_requested`. It defaults to on
+  for new and existing profiles. Android's app preferences link opens the same
+  Blanc Settings switch. This switch and Chromium's autofill confirmation both
+  save the request and clear the remembered package on opt-out. When policy
+  blocks third-party password managers, Blanc disables the switch and the
+  password manager picker. Custom Tabs ask the profile's native provider which
+  mode to use. On first use the provider checks the saved request, service and
+  policy, then writes its selection to Chromium's active pref. Later switch
+  changes take effect on restart. If the service becomes unavailable or policy
+  blocks it, the provider keeps the request and records a reset only when
+  platform autofill was previously active and is still requested.
+
 A Chromium file dropped from the lane keeps its applied edits in an existing
 checkout: restore it with `git checkout` there. A Blanc file the source drops or
 moves is removed by `apply.py`, when its bytes are what the previous map placed.
