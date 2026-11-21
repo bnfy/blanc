@@ -16,7 +16,6 @@ const read = (file) => fs.readFileSync(path.join(SITE, file), 'utf8');
 // Recursive, .astro only: /mail/reserve/release lives in a folder of its own.
 const mailPages = ['src/pages/mail.astro', ...fs.readdirSync(path.join(SITE, 'src/pages/mail'), { recursive: true })
   .filter((f) => f.endsWith('.astro')).map((f) => `src/pages/mail/${f.split(path.sep).join('/')}`)];
-const SHOTS = ['rule-editor'];
 
 test('MailShot is the only way to show a Mail screenshot, and its caption is not optional', () => {
   const shot = read('src/components/MailShot.astro');
@@ -29,15 +28,8 @@ test('MailShot is the only way to show a Mail screenshot, and its caption is not
   }
 });
 
-test('every screenshot the Mail pages name exists, with a built 1100px copy', () => {
-  const named = new Set(mailPages.flatMap((file) => [...read(file).matchAll(/<MailShot\b[^>]*\bname="([^"]+)"/g)].map((m) => m[1])));
-  assert.deepEqual([...named].sort(), SHOTS);
-  const manifest = JSON.parse(read('src/data/display-images.json'));
-  for (const name of SHOTS) {
-    assert.ok(fs.existsSync(path.join(SITE, 'public/mail/screens', `${name}.webp`)), `${name}.webp`);
-    const copy = manifest.find((entry) => entry.output === `mail/screens/${name}-1100.webp`);
-    assert.ok(copy, `${name}: add it to site/scripts/build-display-images.mjs`);
-    assert.equal(copy.source, `mail/screens/${name}.webp`);
-    assert.equal(copy.width, 1100);
+test('the Mail pages do not present native app screenshots while the layout is evolving', () => {
+  for (const file of mailPages) {
+    assert.doesNotMatch(read(file), /<MailShot\b/, file);
   }
 });
