@@ -1,0 +1,138 @@
+# Runs a Linux build of the Chromium fork on a hosted Ubuntu 24.04 runner
+# (Linux L0, docs/superpowers/plans/2026-11-21-linux-fork-l0.md). The build
+# travels as the one asset of the unpublished draft release fork-linux-candidate
+# (chromium/linux/ship-candidate.sh). Manual only; run with --ref chromium/next
+# and the SHA-256 the packager printed. Ubuntu's restriction on unprivileged
+# user namespaces stays on: the smoke check fails if it isn't.
+name: chromium-linux-candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha256:
+        description: SHA-256 of the packaged Linux candidate tarball
+        required: true
+        type: string
+      suite:
+        description: Suite to run after the two display checks
+        required: true
+        type: choice
+        default: none
+        options:
+          - none
+          - f0
+      only:
+        description: Optional case-id text for a development subset of f0
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  candidate:
+    name: candidate (linux x64)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    # Reading the unpublished draft requires write access. Only the download
+    # step receives GH_TOKEN, and only the test results become an artifact.
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+    env:
+      CANDIDATE_SHA256: ${{ inputs.sha256 }}
+      SUITE: ${{ inputs.suite }}
+      ONLY: ${{ inputs.only }}
+      DRAFT_TAG: fork-linux-candidate
+    steps:
+      - name: Validate inputs
+        env:
+          LC_ALL: C
+        run: |
+          only_pattern='^[A-Za-z0-9 _.,:@-]{0,600}$'
+          [[ $CANDIDATE_SHA256 =~ ^[0-9a-f]{64}$ ]] || { echo 'sha256 must be 64 lowercase hex digits.' >&2; exit 1; }
+          [[ $SUITE == none || $SUITE == f0 ]] || { echo 'suite must be none or f0.' >&2; exit 1; }
+          [[ $ONLY =~ $only_pattern ]] || { echo 'only holds unsupported characters or exceeds 600 characters.' >&2; exit 1; }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Fetch the pinned shipping commits
+        run: |
+          commits=$(node chromium/windows/pinned-commits.mjs)
+          while IFS= read -r commit; do
+            [[ $commit =~ ^[0-9a-f]{40}$ ]] || { echo 'Expected a full shipping commit.' >&2; exit 1; }
+            git fetch --quiet --depth=1 origin "$commit"
+            git cat-file -e "$commit:package.json"
+          done <<< "$commits"
+          node --input-type=module -e "import { ASSET_NAME } from './chromium/linux/candidate.mjs'; console.log('ASSET=' + ASSET_NAME)" >> "$GITHUB_ENV"
+      - name: Download the candidate from the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          draft=$(gh release view "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)
+          [[ $draft == true ]] || { echo "$DRAFT_TAG must be an unpublished draft." >&2; exit 1; }
+          mkdir "$RUNNER_TEMP/candidate"
+          gh release download "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$ASSET" --dir "$RUNNER_TEMP/candidate"
+      - name: Verify and unpack the candidate
+        run: |
+          archive="$RUNNER_TEMP/candidate/$ASSET"
+          printf '%s  %s\n' "$CANDIDATE_SHA256" "$archive" | sha256sum --check --strict
+          mkdir "$RUNNER_TEMP/blanc" "$RUNNER_TEMP/results"
+          tar --extract --gzip --no-same-owner --file "$archive" --directory "$RUNNER_TEMP/blanc"
+          test -f "$RUNNER_TEMP/blanc/candidate.json"
+          echo "CANDIDATE_DIR=$RUNNER_TEMP/blanc" >> "$GITHUB_ENV"
+          echo "RESULTS=$RUNNER_TEMP/results" >> "$GITHUB_ENV"
+      - name: Set up the candidate's sandbox helper
+        run: |
+          helper="$CANDIDATE_DIR/chrome-sandbox"
+          [[ -f $helper && ! -L $helper ]]
+          sudo chown root:root "$helper"
+          sudo chmod 4755 "$helper"
+      - name: Install Xvfb and Weston
+        run: |
+          # Leave the runners' default mirror first, as every workflow does
+          # (scripts/ci-apt-mirror.sh; test/unit/ci-apt-mirror.test.js).
+          bash scripts/ci-apt-mirror.sh
+          sudo apt-get update
+          sudo apt-get install -y xvfb weston
+      - name: Install the harness's dependencies
+        id: dependencies
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+        run: npm ci --ignore-scripts
+      - name: X11 launch check
+        run: xvfb-run -a node chromium/tests/linux-smoke.mjs --display=x11 "$CANDIDATE_DIR" "$RESULTS"
+      - name: Wayland launch check
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        env:
+          WAYLAND_DISPLAY: wayland-blanc
+        run: |
+          export XDG_RUNTIME_DIR="$RUNNER_TEMP/weston-runtime"
+          mkdir -m 700 "$XDG_RUNTIME_DIR"
+          weston --backend=headless --socket="$WAYLAND_DISPLAY" --idle-time=0 --log="$RESULTS/weston.log" &
+          weston_pid=$!
+          trap 'kill "$weston_pid" 2>/dev/null || true; wait "$weston_pid" 2>/dev/null || true' EXIT
+          timeout 10s bash <<'WAIT_FOR_SOCKET'
+          until [[ -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]]; do sleep 0.1; done
+          WAIT_FOR_SOCKET
+          node chromium/tests/linux-smoke.mjs --display=wayland "$CANDIDATE_DIR" "$RESULTS"
+      - name: Foundation suite
+        if: ${{ inputs.suite == 'f0' }}
+        run: |
+          args=(chromium/linux/run-suite.mjs "$CANDIDATE_DIR" "$RESULTS/f0" --slice=f0)
+          if [[ -n $ONLY ]]; then args+=("--only=$ONLY"); fi
+          xvfb-run -a --server-args='-screen 0 1920x1080x24' node "${args[@]}"
+      - name: Keep the results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chromium-linux-candidate-${{ github.run_id }}
+          path: ${{ runner.temp }}/results
+          if-no-files-found: warn
+          retention-days: 14
