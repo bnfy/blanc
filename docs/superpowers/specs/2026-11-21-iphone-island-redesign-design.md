@@ -148,3 +148,9 @@ Each PR updates D11 in `spec/divergence-register.md` for what it ships. The impl
 - **iOS 18 simulator:** the solid fallback.
 - **iPad / Duo unfolded:** the shared panel.
 - **Owner hand-check on the iPhone Air** before Android work starts.
+
+## After #1682 (owner, 2026-11-21)
+
+- **The search row** has no search glass. On a web page it starts with the page's whole address as a pill while nothing's typed: a long address shows its start and fades at its end rather than an ellipsis. A tap puts it in the field to edit; holding it offers Copy Link; typing sets it aside. It replaces the copy button. The placeholder is "Search, enter URL or / for commands".
+- **Settings** in the action row is a gear.
+- **Version 1.1** carries the redesign and the pill.

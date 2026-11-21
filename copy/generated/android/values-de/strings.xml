@@ -2653,7 +2653,7 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="ios_island_close_private_tab">Privaten Tab schließen</string>
     <string name="ios_island_page_actions">Seitenaktionen</string>
     <string name="ios_island_collapse">Island einklappen</string>
-    <string name="ios_palette_placeholder">Suchen, Adresse oder /Befehl eingeben</string>
+    <string name="ios_palette_placeholder">Suchen, URL eingeben oder / für Befehle</string>
     <string name="ios_palette_clear">Suche löschen</string>
     <string name="ios_palette_no_command">Kein passender Befehl</string>
     <string name="ios_palette_no_matches">Keine Treffer. Drücke die Eingabetaste, um es als Adresse oder Suche zu öffnen.</string>

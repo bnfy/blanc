@@ -9586,8 +9586,8 @@
     "source": "sha256:ab5674348d6cbc0f0e6397f7be9b29a93ebebdff3030e6407f5bb74b573a381b"
   },
   "ios.palette.placeholder": {
-    "message": "Busca, escribe una dirección o un /comando",
-    "source": "sha256:e0ba598be2d25b91629b28568d437a2bf5cfc137f9adda1e32015dc3c6ad766c"
+    "message": "Busca, escribe una URL o / para comandos",
+    "source": "sha256:fc9b9cf5467ef76a900cd05905a523e7bf5f9a05bd0814e586f19c0ba9ee00fe"
   },
   "ios.palette.clear": {
     "message": "Borrar la búsqueda",
