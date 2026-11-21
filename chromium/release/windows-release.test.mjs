@@ -310,3 +310,13 @@ test('verify-public runs the published setup alone on a clean runner, after chec
   files[setupName(release)] = Buffer.from('MZ swapped');
   await assert.rejects(runStage('verify-public', workFolder(state.done), world(answers)), /differs|signed one/);
 });
+
+test('a failed deploy keeps what the command said in a private log in the work folder', async () => {
+  const work = workFolder({...done(STAGES.slice(0, STAGES.indexOf('publish'))), package: {at: 'test', sha256: 'd'.repeat(64), size: 12, run: 'mini_installer.exe'}});
+  const io = world([['wrangler deploy', {status: 1, stdout: 'deploying', stderr: 'Authentication error [code: 10000]'}]]);
+  await assert.rejects(runStage('publish', work, io), /production update server.*WORK\/logs\/deploy-production\.log/);
+  const log = path.join(work, 'logs', 'deploy-production.log');
+  assert.match(fs.readFileSync(log, 'utf8'), /Authentication error \[code: 10000\]/);
+  assert.equal(fs.statSync(log).mode & 0o077, 0);
+  assert.ok(!io.calls.some(c => c.includes('release edit')), 'nothing is published after a failed deploy');
+});

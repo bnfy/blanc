@@ -17,7 +17,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {CHROME_VERSION, check, equal, reason, sha256} from './policy.mjs';
+import {CHROME_VERSION, ReleaseCheckError, check, equal, reason, sha256} from './policy.mjs';
 import {ROOT} from './preflight.mjs';
 import {REPO, COSIGN_IDENTITY, COSIGN_ISSUER, COSIGN_REDIRECT, confirmAbsent, realIO as macIO} from './release.mjs';
 import {releaseData} from './windows-release-data.mjs';
@@ -135,14 +135,24 @@ async function workflowRun(io, inputs, message) {
   return {run, success: view.conclusion === 'success'};
 }
 
+// A Cloudflare command (op run masks the token in what it prints). If it fails,
+// what it said goes to WORK/logs/NAME.log, owner-only, never to the Terminal.
+function logged(io, work, name, args, message, options) {
+  const result = io.exec('op', args, options);
+  if (result.status === 0) return result.stdout;
+  const dir = path.join(work, 'logs');
+  fs.mkdirSync(dir, {recursive: true, mode: 0o700});
+  fs.appendFileSync(path.join(dir, `${name}.log`), `${new Date().toISOString()} exit ${result.status}\n${result.stdout}\n${result.stderr}\n`, {mode: 0o600});
+  throw new ReleaseCheckError(`${message} (what it said: WORK/logs/${name}.log)`);
+}
 // The update Worker, deployed from this checkout only when its folder is clean.
-function deployWorker(io, {staging, offer = null}) {
+function deployWorker(io, work, {staging, offer = null}) {
   const dirty = io.exec('/usr/bin/git', ['-C', ROOT, 'status', '--porcelain', '--', 'cloudflare/update-worker']);
   check(dirty.status === 0 && !dirty.stdout.trim(), 'the update Worker has uncommitted changes');
   const args = ['run', '--env-file=.env.1password', '--', 'npx', 'wrangler', 'deploy'];
   if (staging) args.push('--env', 'staging');
   if (offer) args.push('--var', `RELEASE_JSON:${JSON.stringify(offer)}`);
-  must(io, 'op', args, `could not deploy the ${staging ? 'staging' : 'production'} update server`, {cwd: WORKER});
+  logged(io, work, `deploy-${staging ? 'staging' : 'production'}`, args, `could not deploy the ${staging ? 'staging' : 'production'} update server`, {cwd: WORKER});
 }
 async function offers(io, base, version) {
   for (let tries = 0; tries < 6; tries++) {
@@ -237,19 +247,19 @@ export const RUN = {
     const args = ['run', '--env-file=.env.1password', '--', 'npx', 'wrangler', 'r2', 'object', 'put', `blanc-windows-updates/${pkg.sha256}.crx3`,
       '--file', file, '--remote', '--content-type', 'application/x-chrome-extension'];
     // R2 sometimes answers a large put with an internal error (10001); one retry.
-    if (io.exec('op', args, {cwd: WORKER}).status !== 0) must(io, 'op', args, 'could not upload the package to R2', {cwd: WORKER});
+    if (io.exec('op', args, {cwd: WORKER}).status !== 0) logged(io, ctx.work, 'upload', args, 'could not upload the package to R2', {cwd: WORKER});
     return {key: `${pkg.sha256}.crx3`};
   },
   async 'staging-gate'(ctx, io) {
     candidateOnDraft(io, ctx.r);
-    deployWorker(io, {staging: true, offer: offerFor(ctx, STAGING)});
+    deployWorker(io, ctx.work, {staging: true, offer: offerFor(ctx, STAGING)});
     try {
       check(await offers(io, STAGING, ctx.r.version), 'staging does not offer this release');
       const {run, passed} = await proveOnline(io, ctx, {update_staging: STAGING}, 'Staging gate', proof => proof.details?.staging === STAGING);
       check(passed, 'the staging gate did not pass');
       return {run};
     } finally {
-      deployWorker(io, {staging: true});
+      deployWorker(io, ctx.work, {staging: true});
     }
   },
   async manifest(ctx, io) {
@@ -304,7 +314,7 @@ export const RUN = {
     const r = ctx.r;
     check(await io.confirm(`publish ${r.tag}`), 'not confirmed; the draft stays private and blanc.day offers nothing new');
     // blanc.day offers the release first, so the setup anyone downloads can install it.
-    deployWorker(io, {staging: false, offer: offerFor(ctx, PRODUCTION)});
+    deployWorker(io, ctx.work, {staging: false, offer: offerFor(ctx, PRODUCTION)});
     check(await offers(io, PRODUCTION, r.version), 'blanc.day does not offer this release; the draft stays private');
     must(io, 'gh', ['release', 'edit', r.tag, '--repo', REPO, '--draft=false', '--prerelease', '--latest=false'], 'could not publish the draft');
     const view = JSON.parse(must(io, 'gh', ['api', `repos/${REPO}/releases/tags/${r.tag}`], 'GitHub did not show the release'));
