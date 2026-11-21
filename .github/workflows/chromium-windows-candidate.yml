@@ -288,10 +288,28 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           if ($env:UPDATE_EXPECT -notmatch '^(refused|(online:|capture:|capture-dark:)?\d+\.\d+\.\d+\.\d+)$') { throw "update_expect must be a version, 'refused', 'online:<version>' or 'capture[-dark]:<version>'." }
+          # The published online installer, exactly as anyone downloads it:
+          # checked against its release checksums and Bananify's signature.
+          function Get-PublicSetup([string]$version) {
+            $public = "$env:RUNNER_TEMP\public-release"
+            $setup = "Blanc-Beta-Setup-$version.exe"
+            gh release download $env:PUBLIC_TAG --repo $env:GITHUB_REPOSITORY --pattern $setup --pattern SHA256SUMS --dir $public | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw 'Could not download the public setup.' }
+            $want = (Get-Content "$public\SHA256SUMS" | Where-Object { $_ -match "  $([regex]::Escape($setup))$" }) -split '\s+' | Select-Object -First 1
+            if (-not $want -or (Get-FileHash "$public\$setup" -Algorithm SHA256).Hash.ToLower() -ne $want) { throw 'The public setup does not match its release checksums.' }
+            $sig = Get-AuthenticodeSignature "$public\$setup"
+            if ($sig.Status -ne 'Valid' -or $sig.SignerCertificate.Subject -notmatch '^CN=Bananify Creative,') { throw "The public setup is not validly signed by Bananify Creative ($($sig.Status))." }
+            return "$public\$setup"
+          }
           if ($env:UPDATE_EXPECT -like 'capture*') {
-            # W3 E1 branding: what a person sees running the online installer.
+            # W3 E1 branding: what a person sees running the online installer,
+            # and its taskbar icon (the plain Sunrise, owner 2026-11-21).
             $extra = @(); if ($env:UPDATE_EXPECT -like 'capture-dark:*') { $extra += '--dark' }
-            if ($env:REPACKED_SETUP) { $extra += "--setup=$env:REPACKED_SETUP" }
+            if ($env:PUBLIC_TAG) {
+              if ($env:PUBLIC_TAG -notmatch '^chromium-beta-windows-(\d+\.\d+\.\d+\.\d+)$') { throw 'public_tag must be chromium-beta-windows-<version>.' }
+              $extra += "--setup=$(Get-PublicSetup $Matches[1])", '--tagged'
+            }
+            elseif ($env:REPACKED_SETUP) { $extra += "--setup=$env:REPACKED_SETUP" }
             node chromium/tests/windows-installer-capture.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\installer-capture" @extra
             exit $LASTEXITCODE
           }
@@ -304,17 +322,8 @@ jobs:
           $mode = if ($env:UPDATE_EXPECT -eq 'refused') { '--expect-refused' } elseif ($env:UPDATE_EXPECT -like 'online:*') { "--online=$($env:UPDATE_EXPECT.Substring(7))" } else { "--expect=$env:UPDATE_EXPECT" }
           $extra = @()
           if ($env:PUBLIC_TAG) {
-            # The published online installer, exactly as anyone downloads it.
             if ($env:PUBLIC_TAG -notmatch '^chromium-beta-windows-(\d+\.\d+\.\d+\.\d+)$' -or $mode -ne "--online=$($Matches[1])") { throw 'public_tag must be chromium-beta-windows-<version> with update_expect=online:<version>.' }
-            $public = "$env:RUNNER_TEMP\public-release"
-            $setup = "Blanc-Beta-Setup-$($Matches[1]).exe"
-            gh release download $env:PUBLIC_TAG --repo $env:GITHUB_REPOSITORY --pattern $setup --pattern SHA256SUMS --dir $public
-            if ($LASTEXITCODE -ne 0) { throw 'Could not download the public setup.' }
-            $want = (Get-Content "$public\SHA256SUMS" | Where-Object { $_ -match "  $([regex]::Escape($setup))$" }) -split '\s+' | Select-Object -First 1
-            if (-not $want -or (Get-FileHash "$public\$setup" -Algorithm SHA256).Hash.ToLower() -ne $want) { throw 'The public setup does not match its release checksums.' }
-            $sig = Get-AuthenticodeSignature "$public\$setup"
-            if ($sig.Status -ne 'Valid' -or $sig.SignerCertificate.Subject -notmatch '^CN=Bananify Creative,') { throw "The public setup is not validly signed by Bananify Creative ($($sig.Status))." }
-            $extra += "--setup=$public\$setup", '--tagged'
+            $extra += "--setup=$(Get-PublicSetup $Matches[1])", '--tagged'
           }
           elseif ($env:UPDATE_STAGING) { $extra += "--staging=$env:UPDATE_STAGING" }
           elseif ($env:REPACKED_SETUP -and $mode -like '--online=*') { $extra += "--setup=$env:REPACKED_SETUP" }

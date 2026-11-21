@@ -1019,6 +1019,7 @@
     "chrome/updater/external_constants_default.cc": "da26ed854b9154a62844976ca497f20d008a76d3b75459dedf5f1cc08d131bb7",
     "chrome/updater/win/installer/BUILD.gn": "5a8101480f23641469f022fc49fa272894199b33249703bb68f8e8e034765ae9",
     "chrome/updater/win/installer/installer.rc": "00d49e96302449e65441014f43196dedf9124033354a22c11c9b40d2d57c7e02",
+    "chrome/updater/win/ui/progress_wnd.cc": "d1b046a51e8d75e36788fad7de07d9b6c99bfe1913be8ca3cc9b9ad7955eab6c",
     "chrome/updater/win/ui/resources/BUILD.gn": "5c71ce299550b3cac573a3ca63830429c36941e75d12fc056e42eb3aa6f83ff2",
     "chrome/updater/win/ui/resources/resources_en.rc": "45dbf49394ff6cc5e9306451c0af758e33783e7ce28dfd31b6c01c2c89e1c5f4",
     "chrome/utility/BUILD.gn": "4051ba6a547594573328f3507062d62557d4a660def908f2e2352e096059845b",

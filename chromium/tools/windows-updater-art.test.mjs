@@ -83,3 +83,23 @@ test('patch 0105 points the Windows beta\'s installer and updater at the Sunrise
     assert.match(added(name), /BLANC_UPDATER_BRANDING/, name);
   }
 });
+
+// Patch 0105, owner 2026-11-21 ("plain Sunrise"): Chromium badges the install
+// window's taskbar icon with IDI_INSTALLER_BADGE, an alias of IDI_APP, which
+// 0105 makes the Sunrise; the downloaded logo plus that badge drew two suns.
+// Blanc's install window keeps the plain IDI_APP Sunrise instead.
+test('patch 0105 keeps the install window\'s taskbar icon the plain Sunrise', () => {
+  const patch = fs.readFileSync(file('patches/0105-blanc-windows-updater-art.patch'), 'utf8');
+  const start = patch.indexOf('+++ b/chrome/updater/win/ui/progress_wnd.cc\n');
+  assert.ok(start >= 0, '0105 patches progress_wnd.cc');
+  const end = patch.indexOf('\ndiff --git ', start);
+  const hunk = patch.slice(start, end < 0 ? undefined : end);
+  const added = hunk.split('\n').filter(l => l.startsWith('+') && !l.startsWith('+++')).map(l => l.slice(1).trim());
+  assert.ok(added.includes('#if defined(BLANC_UPDATER_BRANDING)'), 'only for the Windows beta');
+  assert.ok(added.some(l => /^UpdateWindowIcon\(\/\*big_bitmap=\*\/nullptr, \/\*small_bitmap=\*\/nullptr,$/.test(l)), 'no logo bitmaps: IDI_APP, unbadged');
+  // Chromium's badged call stays for every other build.
+  assert.match(hunk, /^[ +] {2}UpdateWindowIcon\(big_logo, small_logo, effective_dpi, IDI_INSTALLER_BADGE\);$/m);
+  assert.doesNotMatch(hunk, /^- {2}UpdateWindowIcon\(big_logo/m);
+  const manifest = JSON.parse(fs.readFileSync(file('upstream/manifest.json'), 'utf8'));
+  assert.ok(manifest.files['chrome/updater/win/ui/progress_wnd.cc'], 'the pristine file is pinned');
+});
