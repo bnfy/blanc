@@ -15,15 +15,12 @@ enum IslandPosition: String, CaseIterable {
 struct IslandLayout: Equatable {
     enum Palette { case sheet, panel }
 
-    /// Where Back and Forward sit on the Island, if anywhere.
-    enum History: Equatable { case hidden, afterAddress }
-
-    /// The Island's buttons around the address. New Tab is always on it, and
-    /// the address always leads.
     struct Buttons: Equatable {
-        let history: History
-        /// Reload, which is Stop while a page loads.
-        let reload: Bool
+        enum Leading: Equatable { case back, reload }
+        enum Trailing: Equatable { case newTab, stop }
+        let leading: Leading
+        let forward: Bool
+        let trailing: Trailing
     }
 
     /// A bottom sheet, or a panel growing up from the Island in its place.
@@ -38,14 +35,8 @@ struct IslandLayout: Equatable {
         showsSplitView = unfolded
     }
 
-    /// Every Island, iPhone or iPad, has Back, Forward and New Tab after the
-    /// address, but not Reload as well (owner, 2026-11-12: the iPad Island
-    /// matches the iPhone's): pull to refresh and the Sunrise menu
-    /// reload a page, and Stop still shows while a page loads, since nothing
-    /// else can stop one. With the Back and Forward setting off, Reload takes
-    /// their place.
-    func buttons(backForward: Bool, isLoading: Bool) -> Buttons {
-        if backForward { return Buttons(history: .afterAddress, reload: isLoading) }
-        return Buttons(history: .hidden, reload: true)
+    func buttons(backForward: Bool, canGoForward: Bool, isLoading: Bool) -> Buttons {
+        Buttons(leading: backForward ? .back : .reload, forward: backForward && canGoForward,
+                trailing: isLoading ? .stop : .newTab)
     }
 }

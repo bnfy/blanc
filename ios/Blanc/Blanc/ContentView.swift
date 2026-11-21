@@ -820,6 +820,7 @@ struct ContentView: View {
 
     private var islandButtons: IslandLayout.Buttons {
         layout.buttons(backForward: manager.settingsStore.islandBackForward,
+                       canGoForward: manager.activeTab?.canGoForward == true,
                        isLoading: manager.activeTab?.isLoading == true)
     }
 
@@ -880,9 +881,9 @@ struct ContentView: View {
                 }
 
 
-                if buttons.reload { reloadButton }
+                if buttons.leading == .reload || buttons.trailing == .stop { reloadButton }
 
-                if buttons.history == .afterAddress { historyButtons }
+                if buttons.leading == .back { historyButtons }
 
                 Rectangle().fill(islandDivider).frame(width: 1, height: 18)
                 Button { manager.createTab() } label: {

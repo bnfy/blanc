@@ -9,29 +9,32 @@ final class IslandLayoutTests: XCTestCase {
         XCTAssertEqual(layout.palette, .sheet)
     }
 
-    func testTheIPhoneIslandHasBackForwardAndNewTabButNoReload() {
-        let buttons = IslandLayout(.compact, .regular).buttons(backForward: true, isLoading: false)
-        XCTAssertEqual(buttons, .init(history: .afterAddress, reload: false))
+    func testBackLeadsAndForwardOnlyWhenThereIsSomewhereToGo() {
+        let phone = IslandLayout(.compact, .regular)
+        XCTAssertEqual(phone.buttons(backForward: true, canGoForward: false, isLoading: false),
+                       .init(leading: .back, forward: false, trailing: .newTab))
+        XCTAssertEqual(phone.buttons(backForward: true, canGoForward: true, isLoading: false),
+                       .init(leading: .back, forward: true, trailing: .newTab))
     }
 
-    func testStopStillShowsWhileAPageLoads() {
-        let buttons = IslandLayout(.compact, .regular).buttons(backForward: true, isLoading: true)
-        XCTAssertEqual(buttons, .init(history: .afterAddress, reload: true))
+    func testStopTakesNewTabsSlotWhileLoading() {
+        let buttons = IslandLayout(.compact, .regular).buttons(backForward: true, canGoForward: false, isLoading: true)
+        XCTAssertEqual(buttons.trailing, .stop)
     }
 
-    func testWithBackAndForwardOffReloadTakesTheirPlace() {
-        let layout = IslandLayout(.compact, .regular)
-        XCTAssertEqual(layout.buttons(backForward: false, isLoading: false), .init(history: .hidden, reload: true))
-        XCTAssertEqual(layout.buttons(backForward: false, isLoading: true), .init(history: .hidden, reload: true))
+    func testWithBackAndForwardOffReloadLeads() {
+        let buttons = IslandLayout(.compact, .regular).buttons(backForward: false, canGoForward: true, isLoading: false)
+        XCTAssertEqual(buttons, .init(leading: .reload, forward: false, trailing: .newTab))
     }
 
-    /// The iPad and the Duo's inner display have the iPhone's Island.
     func testTheUnfoldedIslandHasTheIPhonesButtons() {
         let unfolded = IslandLayout(.regular, .regular), phone = IslandLayout(.compact, .regular)
         for backForward in [true, false] {
-            for isLoading in [true, false] {
-                XCTAssertEqual(unfolded.buttons(backForward: backForward, isLoading: isLoading),
-                               phone.buttons(backForward: backForward, isLoading: isLoading))
+            for canGoForward in [true, false] {
+                for isLoading in [true, false] {
+                    XCTAssertEqual(unfolded.buttons(backForward: backForward, canGoForward: canGoForward, isLoading: isLoading),
+                                   phone.buttons(backForward: backForward, canGoForward: canGoForward, isLoading: isLoading))
+                }
             }
         }
     }
