@@ -556,7 +556,7 @@
     "blanc/browser/ui/trust_receipt.inc": "acda9c8d4db332744fe8ee74e63801b78bf3672acddf10389368756dabcc2dab",
     "blanc/browser/ui/ui_language.h": "19312e351fd6cee2c7e542d28783034203f271f38a9cc80e0dcfa95b23b1d268",
     "blanc/browser/ui/utility_sheet_ops.inc": "22a6e5299cb1348494f73b249de8a4c034f9b819854a4161dc9b4993116b53e2",
-    "blanc/browser/ui/window_buttons_linux.cc": "aa63a4e9d933a74f9292458a65de75dbe2e241b17a1f987fc6f4b00d15d250fb",
+    "blanc/browser/ui/window_buttons_linux.cc": "c8a22fb2c7a076c15dacb6eeb0277d32a9e301694f2088c5c60b08061e8d0ad1",
     "blanc/browser/ui/window_buttons_linux.h": "ccd89dc918bc0a3f1e6ff2cb5729cb1f1b9b4357158d625a3c83644fb5713bf3",
     "blanc/browser/ui/window_buttons_mac.h": "073e606387de6a16a99d002eb9b9867558a54c6df7f082c586127e8a53decc3a",
     "blanc/browser/ui/window_buttons_mac.mm": "e5533712ddb87f48bef192ed875df4a70dab4898173f978d06b45a77e5233944",
