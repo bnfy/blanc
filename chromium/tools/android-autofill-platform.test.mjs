@@ -27,8 +27,13 @@ test("Android's app preferences link opens Blanc's Settings root", () => {
   assert.doesNotMatch(launcher, /AutofillOptionsFragment|AutofillOptionsReferrer/);
 });
 
-test('Settings and startup check the new request against the same service and policy', () => {
-  assert.match(host, /prefs\.setBoolean\(Pref\.AUTOFILL_USING_PLATFORM_AUTOFILL,\s*on && AutofillClientProviderUtils\.getAutofillAvailabilityForRequest\(prefs, on\)\s*== AndroidAutofillAvailabilityStatus\.AVAILABLE\);/);
+test("Cold-start Custom Tabs check the profile's saved request before choosing a renderer", () => {
+  const profileCheck = utils.match(/boolean isPlatformAutofillEnabledForProfile\(Profile profile\) \{([\s\S]*?)\n    \}/)?.[1];
+  assert.ok(profileCheck);
+  assert.match(profileCheck, /PrefService prefs = UserPrefs\.get\(profile\);\s*return getAutofillAvailabilityForRequest\(\s*prefs, prefs\.getBoolean\("blanc\.autofill\.platform_requested"\)\)\s*== AndroidAutofillAvailabilityStatus\.AVAILABLE;/);
+});
+
+test('The native provider checks the saved request against service availability and policy', () => {
   assert.match(provider, /Java_AutofillClientProviderUtils_getAutofillAvailabilityForRequest\(\s*base::android::AttachCurrentThread\(\), &prefs,\s*prefs\.GetBoolean\(prefs::kAutofillPlatformRequested\)\)/);
   assert.match(utils, /getAutofillAvailabilityForRequest\([^{]+boolean requested\) \{\s*return getAutofillAvailability\(prefs, requested\);/);
   assert.match(utils, /getAndroidAutofillFrameworkAvailability\([^{]+\) \{\s*return getAutofillAvailability\(prefs, (?:\/\*[^*]*\*\/ )?null\);/);
@@ -66,11 +71,12 @@ test('Browsing lists the autofill switch and password manager picker after Defau
   ]);
 });
 
-test("Settings reads and writes the person's autofill request", () => {
+test("Settings saves the person's request and leaves the active client alone until restart", () => {
   assert.match(host, /PLATFORM_AUTOFILL_REQUESTED\s*=\s*"blanc\.autofill\.platform_requested";/);
   assert.match(host, /\.getBoolean\(PLATFORM_AUTOFILL_REQUESTED\)/);
   assert.match(host, /prefs\.setBoolean\(PLATFORM_AUTOFILL_REQUESTED, on\);/);
   assert.match(host, /if \(!on\) \{\s+prefs\.setString\(Pref\.AUTOFILL_THIRD_PARTY_PACKAGE_USED_FOR_PLATFORM_AUTOFILL, ""\);/);
+  assert.doesNotMatch(host, /setBoolean\(\s*Pref\.AUTOFILL_USING_PLATFORM_AUTOFILL\b/);
 });
 
 test('Settings shows autofill off and disabled when policy blocks it', () => {

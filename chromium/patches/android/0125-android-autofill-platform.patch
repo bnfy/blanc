@@ -75,7 +75,18 @@ diff --git a/chrome/android/java/src/org/chromium/chrome/browser/AutofillOptions
 diff --git a/chrome/browser/autofill/android/java/src/org/chromium/chrome/browser/autofill/AutofillClientProviderUtils.java b/chrome/browser/autofill/android/java/src/org/chromium/chrome/browser/autofill/AutofillClientProviderUtils.java
 --- a/chrome/browser/autofill/android/java/src/org/chromium/chrome/browser/autofill/AutofillClientProviderUtils.java
 +++ b/chrome/browser/autofill/android/java/src/org/chromium/chrome/browser/autofill/AutofillClientProviderUtils.java
-@@ -84,6 +84,17 @@
+@@ -68,7 +68,9 @@
+      * @return true if platform Autofill is enabled for the profile.
+      */
+     public static boolean isPlatformAutofillEnabledForProfile(Profile profile) {
+-        return getAndroidAutofillFrameworkAvailability(UserPrefs.get(profile))
++        PrefService prefs = UserPrefs.get(profile);
++        return getAutofillAvailabilityForRequest(
++                        prefs, prefs.getBoolean("blanc.autofill.platform_requested"))
+                 == AndroidAutofillAvailabilityStatus.AVAILABLE;
+     }
+ 
+@@ -84,6 +86,17 @@
      @CalledByNative
      public static int getAndroidAutofillFrameworkAvailability(
              @JniType("PrefService*") PrefService prefs) {
@@ -93,7 +104,7 @@ diff --git a/chrome/browser/autofill/android/java/src/org/chromium/chrome/browse
          if (sAndroidAutofillFrameworkAvailabilityForTesting != null) {
              return sAndroidAutofillFrameworkAvailabilityForTesting;
          }
-@@ -104,6 +115,11 @@
+@@ -104,6 +117,11 @@
          }
          if (AWG_PACKAGE_NAME.equals(autofillServicePackage)) {
              return AndroidAutofillAvailabilityStatus.ANDROID_AUTOFILL_SERVICE_IS_GOOGLE;
