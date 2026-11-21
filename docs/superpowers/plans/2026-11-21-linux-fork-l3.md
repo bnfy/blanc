@@ -119,12 +119,19 @@ finding questions decision 4, which waits on the owner.
   carries `Acquire-By-Hash: yes` with `by-hash/` copies. The previous two generations and every pool
   file they name are kept. One publisher at a time: the upload takes a lock object and refuses if
   another is held.
-- **Build numbers:** one sequence with Windows, reserved before building in
-  `chromium/release/build-reservations.json` on `chromium/next`: an entry `{build, sourceCommit,
-  platform, purpose}` is committed and pushed, and a rejected push means someone else reserved first,
-  so re-read and pick again. A number maps to one source commit forever; a platform may reuse a number
-  the other reserved only for the same commit. A failed public beta is replaced by a higher number,
-  never by the same one.
+- **Build numbers** (agreed with the Windows Beta session, 2026-11-21): one desktop sequence for Windows
+  and Linux, kept in `chromium/release/build-reservations.json` on `chromium/next`, keyed by sequence
+  (`{"schema": 1, "sequences": {"desktop-158": [{build, platforms, purpose}]}}`, seeded with Windows'
+  902, 903 and 904). The Mac beta's own `2.0.0-beta.N` sequence stays out of it. **The reservation commit
+  is the release's source commit:** one commit adds the entry and bumps the build in each named
+  platform's committed beta args (`chromium/windows/args/beta-x64.gn`,
+  `chromium/linux/args/beta-{x64,arm64}.gn`), and is pushed; a rejected push means someone reserved
+  first, so re-read, pick again and recommit. A reservation may name both platforms (both args bumped
+  in that one commit), so one number can be the same browser on both, as spec §3 wants. A release's
+  `sourceCommit` must be the commit that introduced its build's entry, naming its platform. Every new
+  number exceeds every reserved or ledger build on every platform; gaps are fine (Chromium's updater
+  and apt and dnf compare versions only). `previousBuild` stays the platform's own last released build.
+  Reserve once per release, not per candidate. A failed public beta is replaced by a higher number.
 - **Irreversible writes are journaled:** before tagging, creating a release, switching production's
   generation or publishing, the tool writes its intent to `WORK/journal.json`; on resume it reconciles
   the remote state (tag SHA, release assets' hashes, production's `current.json`) against the journal
@@ -179,17 +186,15 @@ finding questions decision 4, which waits on the owner.
   packages `blanc-beta`; a beta candidate's asset name carries channel, arch and build,
   `blanc-linux-beta-<arch>-<build>-candidate.tar.gz`, so `B-1` and `B` never overwrite each other),
   `chromium/tools/windows-version.test.mjs` (admit a Linux beta)
-- Create: `chromium/linux/args/set-build.mjs` (rewrites only `blanc_beta_build` and
-  `blanc_beta_version` in an output's `args.gn`, after checking the build is reserved for the checkout's
-  commit)
 
 - [ ] **Step 1: Failing test** `linux-beta-config.test.mjs`: both args files parse, carry
   `is_official_build = true`, `blanc_channel = "beta"`, `enable_widevine = false`, the same
   `blanc_beta_build` and the matching `target_cpu`; `config.gni`'s beta assertion admits linux x64 and
   arm64 and still refuses linux x86; the patch's added line names `is_linux` and `blanc_channel ==
   "beta"` and nothing else changes for Mac or Windows; test hooks are off (`blanc_enable_test_hooks`
-  false for the beta channel, unchanged); `set-build.mjs` changes nothing else in `args.gn` and refuses
-  an unreserved build; beta asset names differ for `B-1` and `B`; `windows-version.test.mjs` admits a
+  false for the beta channel, unchanged); `setup.sh` copies the committed beta args for the checkout's
+  commit and refuses a build number with no reservation for `linux` introduced by that commit; beta
+  asset names differ for `B-1` and `B`; `windows-version.test.mjs` admits a
   Linux beta and still refuses a Mac.
 - [ ] **Step 2: Run**; expected FAIL. **Step 3: Check the pin** (after Task 1's patch, on the server): the
   generated Ninja alias for `//chrome/installer/linux:beta`, the package file names it writes, the
@@ -314,9 +319,11 @@ finding questions decision 4, which waits on the owner.
   `chromium/linux/owner/linux-release.command`
 - Create: `chromium/release/build-reservations.json` (seeded with every Windows ledger build) and
   `chromium/release/reserve-build.mjs` (reserve, look up, release an unused reservation)
-- Modify: `chromium/release/windows-release.mjs` to reserve through `reserve-build.mjs` instead of
-  reading only its own ledger. The Windows Beta session owns that tool: agree the change with it, and
-  land it between Windows releases.
+- Modify: `chromium/release/windows-release.mjs` and its tests (`windows-release*.test.mjs`): keep
+  `previousBuild === ` the Windows ledger's last build; replace "build > the Windows ledger's last" with
+  "build > every reserved or ledger build on every platform, other than its own reservation" and "a
+  reservation naming `windows` was introduced by `sourceCommit`". The Windows Beta session owns that
+  tool: bring it the change to agree, and land it between Windows releases.
 - Create: `chromium/tests/linux-beta-smoke.mjs` (an installed beta: test hooks absent, a control
   request loads, a request on the blocker's pinned list is blocked, renderers sandboxed)
 
@@ -327,22 +334,27 @@ finding questions decision 4, which waits on the owner.
   (`158.0.8127.<build>`), `build`, `previousBuild`, `tag` (`chromium-beta-linux-<version>`),
   `prerelease: true`, `makeLatest: false`, `sourceCommit` (40 hex, on `chromium/next`), `candidates`
   `{x64: {id, tarSha256}, arm64?: {id, tarSha256}}`.
-- Produces: `reserveBuild({build?, sourceCommit, platform, purpose}) -> {build}` and
-  `checkReserved(build, sourceCommit) -> void` in `reserve-build.mjs`: reserving commits an entry to
-  `build-reservations.json` and pushes `chromium/next`; a rejected push re-reads and retries with the
-  next free number; a number already reserved for the same commit is returned as is.
+- Produces in `reserve-build.mjs`: `reserveBuild({platforms: ('windows'|'linux')[], purpose:
+  'release'|'proof'}) -> {build, commit}` (one commit adding the entry and bumping each named platform's
+  beta args, pushed to `chromium/next`; on a rejected push, re-read, renumber, recommit, retry) and
+  `checkReserved({build, platform, sourceCommit}) -> void` (throws unless `sourceCommit` introduced an
+  entry for `build` naming `platform`).
 
 - [ ] **Step 1: Failing tests** in `linux-release.test.mjs` and `reserve-build.test.mjs` on the model of
   `windows-release.test.mjs`: record validation (each field above); reservations (two concurrent
-  reservers against a bare test repository get different numbers; same-commit reuse returns the
-  number; another commit can't take it; a failed public beta's replacement gets a higher number);
+  reservers against a bare test repository get different numbers; the reservation commit changes only
+  the file and the named platforms' args; a both-platform reservation passes `checkReserved` for each;
+  a release whose `sourceCommit` isn't the reservation commit fails; a Mac beta number never enters the
+  file; a failed public beta's replacement gets a higher number; Windows keeps `previousBuild` from its
+  own ledger);
   stage order and resumption; typed confirmation for `draft` and `publish`; interruption after each
   irreversible write (tag created, release created, assets uploaded, generation switched, release
   published) resumes by reconciling the journal with the remote state and never repeats or skips a
   write.
 - [ ] **Step 2: Run**; FAIL. **Step 3: Implement the stages:**
-  1. `preflight`: record valid; `checkReserved` for `build` and `previousBuild` (both reserved before
-     building); tag and release absent; key fingerprint in `repository.md` matches the committed key.
+  1. `preflight`: record valid; `checkReserved` for `build` (and for the proof build `B-1`, recorded as
+     `proofBuild`); `previousBuild` is Linux's last released build (none for the first beta, whose
+     proof starts from `proofBuild`); tag and release absent; key fingerprint in `repository.md` matches the committed key.
   2. `build-check`: each candidate (both builds, both arches) on the `fork-linux-candidate` draft with
      its SHA-256, built from `sourceCommit` with the beta args, `scanPackage` clean against the
      committed key's fingerprint, package headers and `--product-version` equal the build's version,
@@ -410,10 +422,12 @@ finding questions decision 4, which waits on the owner.
 
 ### Task 8: The first public Linux beta
 
-- [ ] **Step 1: Builds (decision 1):** reserve `B-1` and `B`; with no Windows release in progress,
-  `setup.sh` then guarded cold builds of `BlancLinuxBeta` and `BlancLinuxArm64Beta` for `B-1` (time the
-  first and tell the owner the measured length), then `set-build.mjs` and incremental builds for `B`
-  (only version-stamped files change; stop if the plan says otherwise). Package and ship each.
+- [ ] **Step 1: Builds (decision 1):** reserve `B-1` (`purpose: 'proof'`) then `B` (two consecutive
+  reservation commits; `B`'s differs from `B-1`'s only in the file and the Linux args); with no Windows
+  release in progress, `setup.sh` at `B-1`'s commit, then guarded cold builds of `BlancLinuxBeta` and
+  `BlancLinuxArm64Beta` (time the first and tell the owner the measured length); then `setup.sh` at
+  `B`'s commit and incremental builds (only version-stamped files change; stop if the plan says
+  otherwise). Package and ship each.
 - [ ] **Step 2: Release stages through `hand-check`** with `linux-release.command` (owner, foreground
   Terminal). At `hand-check`, the owner's VM check, recorded in `chromium/linux/hand-checks-l3.md`:
   install `B-1` from its verified `.deb`; disable the production source and add staging's;
