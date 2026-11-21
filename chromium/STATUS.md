@@ -3900,6 +3900,17 @@ Publisher Verified locally — Bananify Creative; no import row. Seen too: typin
 `chrome://settings/help` in the Island's address field searches it instead of
 opening it.
 
+**No update toast (2026-11-21, after .904; ships with the next Windows beta):**
+updating .903 to .904 showed Chromium's non-milestone update toast, a dark
+inverse-surface toast with Chromium's product icon and the fixed text "Chrome
+was updated" (`IDS_NON_MILESTONE_UPDATE_TOAST_BODY`, not product-named). It runs
+when the saved `toast.non_milestone_update_toast_version` is the same major
+version and lower; the Mac beta never sees it because its Chromium version stays
+158.0.8127.2. Owner: turn it off. Patch 0112 makes `kNonMilestoneUpdateToast`
+disabled by default in Blanc builds. Seen in the owner's VM with a fresh profile
+whose Local State says .903: the signed .904 showed the toast; with `chrome.dll`
+`213bab3c…` placed over it, no toast in two captures 4 s apart.
+
 **Third Windows beta public (2026-11-21):** Blanc Beta 158.0.8127.904, GitHub
 pre-release `chromium-beta-windows-158.0.8127.904` at `7721085b0` (never latest;
 v1.51.0 stayed latest), published 17:54 UTC through `windows-release.mjs`, all ten
