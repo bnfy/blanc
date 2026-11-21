@@ -24,6 +24,8 @@ test('the menu offers open, preview, copy, share and download without image sear
   const menu = populator.match(/public List<ModelList> buildContextMenu\(\) \{([\s\S]*?)\n    \}/)[1];
   const itemNames = Array.from(menu.matchAll(/\bItem\.([A-Z_]+)/g), match => match[1]);
   assert.deepEqual(itemNames.filter(name => /GOOGLE|LENS|GEMINI|^SEARCH_BY_IMAGE$/.test(name)), []);
+  // Blanc for Android has no reading list to open what this would save.
+  assert.ok(!itemNames.includes('READ_LATER'), 'no "Add to reading list"');
 
   const normalLink = menu.match(/if \(mMode == ContextMenuMode\.NORMAL\) \{([\s\S]*?)\} else if/)[1];
   assert.match(normalLink, /openInNewTabItem\s*=\s*createManagedListItem\(Item\.OPEN_IN_NEW_TAB,/);
