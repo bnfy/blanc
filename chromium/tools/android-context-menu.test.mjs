@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 import {patchedChromiumFile} from './android-patched-file.mjs';
-import {LOCALES, resourceName} from './android-strings.mjs';
+import {androidText, LOCALES, resourceName} from './android-strings.mjs';
 
 const read = file => fs.readFileSync(new URL(file, import.meta.url), 'utf8');
 const populator = patchedChromiumFile(
@@ -38,10 +38,10 @@ test('only tabs already in a non-private group offer to open a link in that grou
   assert.equal(itemNames.filter(name => name === 'OPEN_IN_NEW_TAB_IN_GROUP').length, 2);
 });
 
-test('normal and Thin WebView link menus offer private tabs even when Chromium prefers private windows', () => {
+test('normal and Thin WebView link menus offer private tabs only when they stay in the same window', () => {
   const modes = menu.match(/if \(mMode == ContextMenuMode\.NORMAL\) \{([\s\S]*?)\} else if \(mMode == ContextMenuMode\.THIN_WEB_VIEW\) \{([\s\S]*?)\n                \}/);
   const privateTab = 'linkGroup.add(createListItem(Item.OPEN_IN_INCOGNITO_TAB));';
-  const supported = '!mItemDelegate.isIncognito()&&mItemDelegate.isIncognitoSupported()';
+  const supported = '!mItemDelegate.isIncognito()&&mItemDelegate.isIncognitoSupported()&&!shouldOpenIncognitoAsWindow()';
   for (const [body, condition] of [
     [modes[1], supported],
     [modes[2], supported + '&&mItemDelegate.supportsOpenInNewIncognitoTab()'],
@@ -99,7 +99,7 @@ test('menu labels come from the six Blanc catalogs and default to English for ot
     for (const [, key] of labels) {
       const title = catalog[key].message;
       assert.doesNotMatch(title, /Chrome|Chromium|Incognito/i);
-      assert.ok(xml.includes(`<string name="${resourceName(key)}">${title}</string>`), `${directory} needs ${key}`);
+      assert.ok(xml.includes(`<string name="${resourceName(key)}">${androidText(title, [])}</string>`), `${directory} needs ${key}`);
     }
   }
 });

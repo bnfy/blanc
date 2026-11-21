@@ -113,9 +113,10 @@ in the lane file in its place. Numbering starts at 0101.
   link menu (Blanc for Android has no reading list). Only a forced sign-in
   blocks the usual actions, so they also work when another app opens a Custom
   Tab before Blanc's walkthrough. Patch 0102 skips Chromium's first run. A
-  non-private tab can open a link in its existing group or in a supported
-  private tab, even when Chromium prefers private windows. All menu modes omit
-  window actions because Blanc's Spaces controller is shared across the process.
+  non-private tab can open a link in its existing group. Both normal and Thin
+  WebView link menus offer Open in private tab only when the tab is supported
+  and opens in the same window. All menu modes omit window actions because
+  Blanc's Spaces controller is shared across the process.
   The four private tab and Open in Blanc titles use Blanc's string resources
   and fall back to English. Regional Chromium overlays still supply the Safety
   Hub summary where Android prefers a regional translation.

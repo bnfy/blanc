@@ -54,15 +54,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
 diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuPopulator.java b/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuPopulator.java
 --- a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuPopulator.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuPopulator.java
-@@ -9,7 +9,6 @@
- import static org.chromium.chrome.browser.contextmenu.ContextMenuItemWithIconButtonProperties.END_BUTTON_CONTENT_DESC;
- import static org.chromium.chrome.browser.contextmenu.ContextMenuItemWithIconButtonProperties.END_BUTTON_IMAGE;
- import static org.chromium.chrome.browser.contextmenu.ContextMenuItemWithIconButtonProperties.END_BUTTON_MENU_ID;
--import static org.chromium.chrome.browser.incognito.IncognitoUtils.shouldOpenIncognitoAsWindow;
- import static org.chromium.ui.listmenu.ListMenuItemProperties.ENABLED;
- import static org.chromium.ui.listmenu.ListMenuItemProperties.MENU_ITEM_ID;
- import static org.chromium.ui.listmenu.ListMenuItemProperties.TEXT_APPEARANCE_ID;
-@@ -46,14 +45,12 @@
+@@ -46,14 +46,12 @@
  import org.chromium.build.annotations.NullMarked;
  import org.chromium.build.annotations.Nullable;
  import org.chromium.chrome.R;
@@ -77,7 +69,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
  import org.chromium.chrome.browser.flags.ChromeFeatureList;
  import org.chromium.chrome.browser.glic.GlicContextMenuUtils;
  import org.chromium.chrome.browser.glic.GlicKeyedService.GlicInvocationSource;
-@@ -64,9 +61,6 @@
+@@ -64,9 +62,6 @@
  import org.chromium.chrome.browser.lens.LensIdentityUtils;
  import org.chromium.chrome.browser.lens.LensIntentParams;
  import org.chromium.chrome.browser.lens.LensMetrics;
@@ -87,7 +79,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
  import org.chromium.chrome.browser.preferences.ChromePreferenceKeys;
  import org.chromium.chrome.browser.preferences.ChromeSharedPreferences;
  import org.chromium.chrome.browser.profiles.Profile;
-@@ -130,8 +124,6 @@
+@@ -130,8 +125,6 @@
              1512; // Random id to avoid possible collisions.
      private static final int MAX_CUSTOM_MENU_ITEMS = 4;
      private static final String TAG = "CCMenuPopulator";
@@ -96,7 +88,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
      private static final String UMA_CONTEXTUAL_CUSTOM_ACTION_TYPE_DISPLAYED =
              "CustomTabs.ContextMenu.DisplayedContextualCustomActionType";
      private static final String UMA_CONTEXTUAL_CUSTOM_ACTION_TYPE_SELECTED =
-@@ -461,8 +453,8 @@
+@@ -461,8 +454,8 @@
      }
  
      private boolean areMandatoryFlowsCompleted(Profile profile) {
@@ -107,7 +99,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
      }
  
      @VisibleForTesting
-@@ -547,12 +539,6 @@
+@@ -547,12 +540,6 @@
              }
              groupedItems.add(pageNavigationGroup);
  
@@ -120,7 +112,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
              if (mMode != ContextMenuMode.THIN_WEB_VIEW) {
                  ModelList pageGroup = new ModelList();
                  pageGroup.add(
-@@ -570,16 +556,6 @@
+@@ -570,16 +557,6 @@
                  if (enableShareFromContextMenu()) {
                      pageGroup.add(createShareListItem(Item.SHARE_PAGE, Item.DIRECT_SHARE_LINK));
                  }
@@ -137,7 +129,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
                  boolean isChromeOrNativePage =
                          UrlUtilities.isChromeScheme(mParams.getPageUrl())
                                  || (getTab() != null && getTab().isNativePage());
-@@ -622,54 +598,37 @@
+@@ -622,36 +599,32 @@
              if (areMandatoryFlowsCompleted(getProfile())
                      && !isEmptyUrl(mParams.getUrl())
                      && UrlUtilities.isAcceptedScheme(mParams.getUrl())) {
@@ -154,15 +146,14 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
 -                            createManagedListItem(Item.OPEN_IN_NEW_TAB_IN_GROUP, isIncognitoForced);
                      linkGroup.add(openInNewTabItem);
 -                    linkGroup.add(openInNewTabInGroupItem);
--                    if (!mItemDelegate.isIncognito()
--                            && mItemDelegate.isIncognitoSupported()
--                            && !shouldOpenIncognitoAsWindow()) {
 +                    if (canOpenInExistingGroup) {
 +                        linkGroup.add(
 +                                createManagedListItem(
 +                                        Item.OPEN_IN_NEW_TAB_IN_GROUP, isIncognitoForced));
 +                    }
-+                    if (!mItemDelegate.isIncognito() && mItemDelegate.isIncognitoSupported()) {
+                     if (!mItemDelegate.isIncognito()
+                             && mItemDelegate.isIncognitoSupported()
+                             && !shouldOpenIncognitoAsWindow()) {
                          linkGroup.add(createListItem(Item.OPEN_IN_INCOGNITO_TAB));
                      }
 -                    if (MultiWindowUtils.isLinkNavigationToNewWindowSupported()) {
@@ -187,11 +178,11 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
                          linkGroup.add(createListItem(Item.OPEN_IN_NEW_TAB_IN_GROUP));
                      }
                      if (!mItemDelegate.isIncognito()
-                             && mItemDelegate.isIncognitoSupported()
--                            && !shouldOpenIncognitoAsWindow()
+@@ -659,16 +632,6 @@
+                             && !shouldOpenIncognitoAsWindow()
                              && mItemDelegate.supportsOpenInNewIncognitoTab()) {
                          linkGroup.add(createListItem(Item.OPEN_IN_INCOGNITO_TAB));
-                     }
+-                    }
 -                    if (MultiWindowUtils.isLinkNavigationToNewWindowSupported()
 -                            && mItemDelegate.supportsOpenInNewWindow()) {
 -                        linkGroup.add(createListItem(Item.OPEN_IN_NEW_WINDOW));
@@ -201,11 +192,10 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
 -                            && MultiWindowUtils.isLinkNavigationToIncognitoWindowSupported()
 -                            && mItemDelegate.supportsOpenInIncognitoWindow()) {
 -                        linkGroup.add(createListItem(Item.OPEN_IN_INCOGNITO_WINDOW));
--                    }
+                     }
                  }
                  if (mParams.getOpenedFromInterestFor()) {
-                     // This is a context menu for a link with `interestfor`. Add a context menu
-@@ -693,9 +652,6 @@
+@@ -693,9 +656,6 @@
                          linkGroup.add(createListItem(Item.OPEN_IN_EPHEMERAL_TAB));
                      }
                  }
@@ -215,7 +205,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
              }
              if (!MailTo.isMailTo(mParams.getLinkUrl().getSpec())
                      && !UrlUtilities.isTelScheme(mParams.getLinkUrl())) {
-@@ -733,12 +689,6 @@
+@@ -733,12 +693,6 @@
                                  ContextualCustomActionType.COUNT);
                      }
                  }
@@ -228,7 +218,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
                  if (enableShareFromContextMenu()) {
                      linkGroup.add(createShareListItem(Item.SHARE_LINK, Item.DIRECT_SHARE_LINK));
                  }
-@@ -817,46 +767,10 @@
+@@ -817,46 +771,10 @@
                  }
              }
  
@@ -275,7 +265,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
              groupedItems.add(imageGroup);
          }
  
-@@ -1811,11 +1725,6 @@
+@@ -1811,11 +1729,6 @@
          return title;
      }
  
@@ -287,7 +277,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
      /**
       * Record a boolean UKM if the lens feature is enabled.
       *
-@@ -1837,21 +1746,6 @@
+@@ -1837,21 +1750,6 @@
              return mItemDelegate.supportsSaveImage();
          }
          return true;
