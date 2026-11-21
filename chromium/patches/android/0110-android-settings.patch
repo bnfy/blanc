@@ -11,17 +11,21 @@ diff -ruN a/chrome/android/BUILD.gn b/chrome/android/BUILD.gn
        "//blanc/android:sync_java",
        "//blanc/android:tabs_java",
        "//blanc/android:tabs_ui_java",
-@@ -1835,6 +1838,13 @@
+@@ -1835,6 +1838,17 @@
        "//blanc/android/res/mipmap-xxxhdpi/layered_app_icon.png",
        "//blanc/android/res/mipmap-xxxhdpi/layered_app_icon_background.png",
        "//blanc/android/res/values/channel_constants.xml",
 +      # Blanc (patch 0110): Chromium strings that name Chrome, replaced.
 +      "//blanc/android/res_chromium_strings/values/blanc_chromium_strings.xml",
 +      "//blanc/android/res_chromium_strings/values-de/blanc_chromium_strings.xml",
++      "//blanc/android/res_chromium_strings/values-en-rGB/blanc_chromium_strings.xml",
 +      "//blanc/android/res_chromium_strings/values-es/blanc_chromium_strings.xml",
++      "//blanc/android/res_chromium_strings/values-es-rUS/blanc_chromium_strings.xml",
 +      "//blanc/android/res_chromium_strings/values-fr/blanc_chromium_strings.xml",
++      "//blanc/android/res_chromium_strings/values-fr-rCA/blanc_chromium_strings.xml",
 +      "//blanc/android/res_chromium_strings/values-it/blanc_chromium_strings.xml",
 +      "//blanc/android/res_chromium_strings/values-pt-rBR/blanc_chromium_strings.xml",
++      "//blanc/android/res_chromium_strings/values-pt-rPT/blanc_chromium_strings.xml",
      ]
  
      # Dep needed to ensure override works properly.

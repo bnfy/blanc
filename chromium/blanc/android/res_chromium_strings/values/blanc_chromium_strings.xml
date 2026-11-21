@@ -4,8 +4,6 @@
     <string name="safety_hub_autorevocation_toggle_summary">To protect your data, let Blanc remove permissions from sites that you haven’t visited recently</string>
     <string name="menu_open_in_chrome">Open in Blanc</string>
     <string name="contextmenu_open_in_incognito_tab">Open in private tab</string>
-    <string name="contextmenu_open_in_incognito_window">Open in private window</string>
     <string name="contextmenu_open_in_new_chrome_tab">Open in new tab in Blanc</string>
     <string name="contextmenu_open_in_chrome_incognito_tab">Open in private tab in Blanc</string>
-    <string name="contextmenu_open_in_chrome_window">Open in new window in Blanc</string>
 </resources>

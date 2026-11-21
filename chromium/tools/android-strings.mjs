@@ -111,6 +111,10 @@ export const ANDROID_PLURALS = ['sharedSpaces.waitingCount', 'newtab.groups.coun
 const OVERRIDES = path.join(chromium, 'blanc/android/res_chromium_strings');
 export const LOCALES = [['en', 'values'], ['de', 'values-de'], ['es', 'values-es'], ['fr', 'values-fr'],
   ['it', 'values-it'], ['pt-BR', 'values-pt-rBR']];
+// Android prefers these regional Chromium translations over a base-language override.
+const OVERRIDE_LOCALES = [...LOCALES,
+  ['en', 'values-en-rGB'], ['es', 'values-es-rUS'], ['fr', 'values-fr-rCA'], ['pt-BR', 'values-pt-rPT'],
+];
 
 export const resourceName = key =>
   'blanc_' + key.replace(/([a-z0-9])([A-Z])/g, '$1_$2').replace(/\./g, '_').toLowerCase();
@@ -188,7 +192,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     fs.mkdirSync(path.dirname(file), {recursive: true});
     fs.writeFileSync(file, next);
   }
-  for (const [locale, dir] of LOCALES) {
+  for (const [locale, dir] of OVERRIDE_LOCALES) {
     const file = path.join(OVERRIDES, dir, 'blanc_chromium_strings.xml');
     const next = renderOverrides(locale);
     if (readIfPresent(file) === next) continue;

@@ -110,10 +110,13 @@ in the lane file in its place. Numbering starts at 0101.
   calls its clearing at startup, so it is left alone.
 - `0124-android-context-menu.patch` removes Lens, search by image and Ask
   Gemini from the page, link and image menus, and Add to reading list from the
-  link menu (Blanc for Android has no reading list). Blanc's `FirstMinute.start`
-  sets Chromium's first-run flag on new and existing installs so links, images
-  and videos get their regular actions. The Android string overlay supplies
-  the private tab, private window and Open in Blanc labels.
+  link menu (Blanc for Android has no reading list). Only a forced sign-in
+  blocks the usual actions, so they also work when another app opens a Custom
+  Tab before Blanc's walkthrough. Patch 0102 skips Chromium's first run. Only
+  normal tabs can open a link in a group. All menu modes omit window actions
+  because Blanc's Spaces controller is shared across the process. The Android
+  overlay supplies the private tab and Open in Blanc labels, including in
+  Chromium's regional resource folders for Blanc's supported languages.
 
 A Chromium file dropped from the lane keeps its applied edits in an existing
 checkout: restore it with `git checkout` there. A Blanc file the source drops or

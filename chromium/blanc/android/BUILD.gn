@@ -459,7 +459,6 @@ android_library("island_view_java") {
     ":tabs_java",
     "//base:base_java",
     "//build/android:build_java",
-    "//chrome/browser/first_run/android:java",
     "//third_party/jni_zero:jni_zero_java",
   ]
 }

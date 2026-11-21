@@ -1,7 +1,7 @@
 diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuPopulator.java b/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuPopulator.java
 --- a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuPopulator.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuPopulator.java
-@@ -46,7 +46,6 @@
+@@ -46,14 +46,12 @@
  import org.chromium.build.annotations.NullMarked;
  import org.chromium.build.annotations.Nullable;
  import org.chromium.chrome.R;
@@ -9,16 +9,24 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
  import org.chromium.chrome.browser.contextmenu.ChromeContextMenuItem.Item;
  import org.chromium.chrome.browser.contextmenu.ContextMenuCoordinator.ContextMenuItemType;
  import org.chromium.chrome.browser.devtools.DevToolsWindowAndroid;
-@@ -64,8 +63,6 @@
+ import org.chromium.chrome.browser.download.DownloadUtils;
+ import org.chromium.chrome.browser.enterprise.util.DataProtectionBridge;
+ import org.chromium.chrome.browser.ephemeraltab.EphemeralTabCoordinator;
+-import org.chromium.chrome.browser.firstrun.FirstRunStatus;
+ import org.chromium.chrome.browser.flags.ChromeFeatureList;
+ import org.chromium.chrome.browser.glic.GlicContextMenuUtils;
+ import org.chromium.chrome.browser.glic.GlicKeyedService.GlicInvocationSource;
+@@ -64,9 +62,6 @@
  import org.chromium.chrome.browser.lens.LensIdentityUtils;
  import org.chromium.chrome.browser.lens.LensIntentParams;
  import org.chromium.chrome.browser.lens.LensMetrics;
 -import org.chromium.chrome.browser.lens.LensSupportStatusHelper;
 -import org.chromium.chrome.browser.locale.LocaleManager;
- import org.chromium.chrome.browser.multiwindow.MultiWindowUtils;
+-import org.chromium.chrome.browser.multiwindow.MultiWindowUtils;
  import org.chromium.chrome.browser.preferences.ChromePreferenceKeys;
  import org.chromium.chrome.browser.preferences.ChromeSharedPreferences;
-@@ -130,8 +127,6 @@
+ import org.chromium.chrome.browser.profiles.Profile;
+@@ -130,8 +125,6 @@
              1512; // Random id to avoid possible collisions.
      private static final int MAX_CUSTOM_MENU_ITEMS = 4;
      private static final String TAG = "CCMenuPopulator";
@@ -27,7 +35,18 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
      private static final String UMA_CONTEXTUAL_CUSTOM_ACTION_TYPE_DISPLAYED =
              "CustomTabs.ContextMenu.DisplayedContextualCustomActionType";
      private static final String UMA_CONTEXTUAL_CUSTOM_ACTION_TYPE_SELECTED =
-@@ -547,12 +542,6 @@
+@@ -461,8 +454,8 @@
+     }
+ 
+     private boolean areMandatoryFlowsCompleted(Profile profile) {
+-        return FirstRunStatus.getFirstRunFlowComplete()
+-                && !ForcedSigninStatusProvider.getForProfile(profile).isForcedSigninShowing();
++        // Blanc skips Chromium's first run, including when another app launches a Custom Tab.
++        return !ForcedSigninStatusProvider.getForProfile(profile).isForcedSigninShowing();
+     }
+ 
+     @VisibleForTesting
+@@ -547,12 +540,6 @@
              }
              groupedItems.add(pageNavigationGroup);
  
@@ -40,7 +59,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
              if (mMode != ContextMenuMode.THIN_WEB_VIEW) {
                  ModelList pageGroup = new ModelList();
                  pageGroup.add(
-@@ -570,16 +559,6 @@
+@@ -570,16 +557,6 @@
                  if (enableShareFromContextMenu()) {
                      pageGroup.add(createShareListItem(Item.SHARE_PAGE, Item.DIRECT_SHARE_LINK));
                  }
@@ -57,7 +76,64 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
                  boolean isChromeOrNativePage =
                          UrlUtilities.isChromeScheme(mParams.getPageUrl())
                                  || (getTab() != null && getTab().isNativePage());
-@@ -693,9 +672,6 @@
+@@ -626,32 +603,23 @@
+                     boolean isIncognitoForced = IncognitoUtils.isIncognitoModeForced(getProfile());
+                     ListItem openInNewTabItem =
+                             createManagedListItem(Item.OPEN_IN_NEW_TAB, isIncognitoForced);
+-                    ListItem openInNewTabInGroupItem =
+-                            createManagedListItem(Item.OPEN_IN_NEW_TAB_IN_GROUP, isIncognitoForced);
+                     linkGroup.add(openInNewTabItem);
+-                    linkGroup.add(openInNewTabInGroupItem);
++                    if (!mItemDelegate.isIncognito()) {
++                        linkGroup.add(
++                                createManagedListItem(
++                                        Item.OPEN_IN_NEW_TAB_IN_GROUP, isIncognitoForced));
++                    }
+                     if (!mItemDelegate.isIncognito()
+                             && mItemDelegate.isIncognitoSupported()
+                             && !shouldOpenIncognitoAsWindow()) {
+                         linkGroup.add(createListItem(Item.OPEN_IN_INCOGNITO_TAB));
+                     }
+-                    if (MultiWindowUtils.isLinkNavigationToNewWindowSupported()) {
+-                        ListItem openInNewWindowItem =
+-                                createManagedListItem(Item.OPEN_IN_NEW_WINDOW, isIncognitoForced);
+-                        linkGroup.add(openInNewWindowItem);
+-                    } else if (mItemDelegate.isOpenInOtherWindowSupported()) {
+-                        linkGroup.add(createListItem(Item.OPEN_IN_OTHER_WINDOW));
+-                    }
+-                    if (!mItemDelegate.isIncognito()
+-                            && mItemDelegate.isIncognitoSupported()
+-                            && MultiWindowUtils.isLinkNavigationToIncognitoWindowSupported()) {
+-                        linkGroup.add(createListItem(Item.OPEN_IN_INCOGNITO_WINDOW));
+-                    }
+                 } else if (mMode == ContextMenuMode.THIN_WEB_VIEW) {
+                     if (mItemDelegate.supportsOpenInNewTab()) {
+                         linkGroup.add(createListItem(Item.OPEN_IN_NEW_TAB));
+                     }
+-                    if (mItemDelegate.supportsOpenInNewTabInGroup()) {
++                    if (!mItemDelegate.isIncognito()
++                            && mItemDelegate.supportsOpenInNewTabInGroup()) {
+                         linkGroup.add(createListItem(Item.OPEN_IN_NEW_TAB_IN_GROUP));
+                     }
+                     if (!mItemDelegate.isIncognito()
+@@ -660,16 +628,6 @@
+                             && mItemDelegate.supportsOpenInNewIncognitoTab()) {
+                         linkGroup.add(createListItem(Item.OPEN_IN_INCOGNITO_TAB));
+                     }
+-                    if (MultiWindowUtils.isLinkNavigationToNewWindowSupported()
+-                            && mItemDelegate.supportsOpenInNewWindow()) {
+-                        linkGroup.add(createListItem(Item.OPEN_IN_NEW_WINDOW));
+-                    }
+-                    if (!mItemDelegate.isIncognito()
+-                            && mItemDelegate.isIncognitoSupported()
+-                            && MultiWindowUtils.isLinkNavigationToIncognitoWindowSupported()
+-                            && mItemDelegate.supportsOpenInIncognitoWindow()) {
+-                        linkGroup.add(createListItem(Item.OPEN_IN_INCOGNITO_WINDOW));
+-                    }
+                 }
+                 if (mParams.getOpenedFromInterestFor()) {
+                     // This is a context menu for a link with `interestfor`. Add a context menu
+@@ -693,9 +651,6 @@
                          linkGroup.add(createListItem(Item.OPEN_IN_EPHEMERAL_TAB));
                      }
                  }
@@ -67,7 +143,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
              }
              if (!MailTo.isMailTo(mParams.getLinkUrl().getSpec())
                      && !UrlUtilities.isTelScheme(mParams.getLinkUrl())) {
-@@ -733,12 +709,6 @@
+@@ -733,12 +688,6 @@
                                  ContextualCustomActionType.COUNT);
                      }
                  }
@@ -80,7 +156,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
                  if (enableShareFromContextMenu()) {
                      linkGroup.add(createShareListItem(Item.SHARE_LINK, Item.DIRECT_SHARE_LINK));
                  }
-@@ -814,47 +784,11 @@
+@@ -814,38 +763,6 @@
                              UMA_CONTEXTUAL_CUSTOM_ACTION_TYPE_DISPLAYED,
                              ContextualCustomActionType.IMAGE,
                              ContextualCustomActionType.COUNT);
@@ -119,16 +195,18 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
                  }
              }
  
-             if (enableShareFromContextMenu()) {
+@@ -853,10 +770,6 @@
                  imageGroup.add(createShareListItem(Item.SHARE_IMAGE, Item.DIRECT_SHARE_IMAGE));
--            }
--
--            if (shouldShowAskGeminiForImage()) {
--                imageGroup.add(createListItem(Item.ASK_GEMINI_IMAGE));
              }
  
+-            if (shouldShowAskGeminiForImage()) {
+-                imageGroup.add(createListItem(Item.ASK_GEMINI_IMAGE));
+-            }
+-
              groupedItems.add(imageGroup);
-@@ -1809,11 +1743,6 @@
+         }
+ 
+@@ -1809,11 +1722,6 @@
              title = URLUtil.guessFileName(mParams.getSrcUrl().getSpec(), null, null);
          }
          return title;
@@ -140,12 +218,10 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
      }
  
      /**
-@@ -1837,21 +1766,6 @@
-             return mItemDelegate.supportsSaveImage();
-         }
+@@ -1839,21 +1747,6 @@
          return true;
--    }
--
+     }
+ 
 -    /**
 -     * Check if the search by image is supported.
 -     *
@@ -159,6 +235,8 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
 -                && templateUrlServiceInstance.isSearchByImageAvailable()
 -                && templateUrlServiceInstance.getDefaultSearchEngineTemplateUrl() != null
 -                && !LocaleManager.getInstance().needToCheckForSearchEnginePromo();
-     }
- 
+-    }
+-
      /** Returns the profile of the current tab via the item delegate. */
+     private Profile getProfile() {
+         return Profile.fromWebContents(mItemDelegate.getWebContents());

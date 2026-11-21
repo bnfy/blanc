@@ -24,7 +24,6 @@ import org.chromium.blanc.sync.SyncBridge;
 import org.chromium.blanc.sync.SyncSheet;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
-import org.chromium.chrome.browser.firstrun.FirstRunStatus;
 
 import java.io.File;
 import java.util.Random;
@@ -59,11 +58,6 @@ public final class FirstMinute {
     private FirstMinute() {}
 
     public static void start(Activity activity, PairScanner.Permissions permissions) {
-        // Blanc skips Chromium's first-run screens. Older installs can have finished our
-        // walkthrough with Chromium's flag still unset, leaving the context menu copy-only.
-        if (!FirstRunStatus.getFirstRunFlowComplete()) {
-            FirstRunStatus.setFirstRunFlowComplete(true);
-        }
         sendLaunchPing(activity);
         ApplicationStatus.registerStateListenerForActivity((a, state) -> {
             if (state == ActivityState.RESUMED) {

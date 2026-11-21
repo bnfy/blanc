@@ -7,22 +7,39 @@ import {LOCALES} from './android-strings.mjs';
 const read = file => fs.readFileSync(new URL(file, import.meta.url), 'utf8');
 const populator = patchedChromiumFile(
   'chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuPopulator.java');
+const menu = populator.match(/public List<ModelList> buildContextMenu\(\) \{([\s\S]*?)\n    \}/)[1];
+const itemNames = Array.from(menu.matchAll(/\bItem\.([A-Z_]+)/g), match => match[1]);
+const overrideXml = directory =>
+  read(`../blanc/android/res_chromium_strings/${directory}/blanc_chromium_strings.xml`);
 
-test('FirstMinute opens the first-run gate for new and returning installs', () => {
+test('only forced sign-in gates the menu on a fresh install', () => {
+  const gate = populator.match(/private boolean areMandatoryFlowsCompleted\(Profile profile\) \{([\s\S]*?)\n    \}/)[1];
+  assert.equal(gate.replace(/\/\/[^\n]*/g, '').trim(),
+    'return !ForcedSigninStatusProvider.getForProfile(profile).isForcedSigninShowing();');
   const firstMinute = read('../blanc/android/java/src/org/chromium/blanc/firstrun/FirstMinute.java');
-  const start = firstMinute.match(/public static void start\([^)]*\) \{([\s\S]*?)\n    \}/)?.[1];
-  // On the launch path itself, including when the walkthrough was completed in an older build.
-  assert.match(start.replace(/\/\/[^\n]*/g, '').trimStart(),
-    /^if \(!FirstRunStatus\.getFirstRunFlowComplete\(\)\) \{\s*FirstRunStatus\.setFirstRunFlowComplete\(true\);\s*\}/);
-  assert.match(firstMinute, /import org\.chromium\.chrome\.browser\.firstrun\.FirstRunStatus;/);
+  assert.doesNotMatch(firstMinute, /FirstRunStatus|setFirstRunFlowComplete/);
   const target = read('../blanc/android/BUILD.gn').match(/android_library\("island_view_java"\) \{[\s\S]*?\n\}/)[0];
-  assert.match(target, /"java\/src\/org\/chromium\/blanc\/firstrun\/FirstMinute\.java"/);
-  assert.match(target, /"\/\/chrome\/browser\/first_run\/android:java"/);
+  assert.doesNotMatch(target, /"\/\/chrome\/browser\/first_run\/android:java"/);
+});
+
+test('private tabs cannot offer opening a link in a group', () => {
+  // Both insertions must be guarded, including the delegated Thin WebView menu.
+  const compact = menu.replace(/\s+/g, '');
+  for (const [condition, item] of [
+    ['!mItemDelegate.isIncognito()', 'createManagedListItem(Item.OPEN_IN_NEW_TAB_IN_GROUP,isIncognitoForced)'],
+    ['!mItemDelegate.isIncognito()&&mItemDelegate.supportsOpenInNewTabInGroup()', 'createListItem(Item.OPEN_IN_NEW_TAB_IN_GROUP)'],
+  ]) {
+    assert.ok(compact.includes(`if(${condition}){linkGroup.add(${item});}`), `group action requires ${condition}`);
+  }
+  assert.equal(itemNames.filter(name => name === 'OPEN_IN_NEW_TAB_IN_GROUP').length, 2);
+});
+
+test('no menu mode offers a window action', () => {
+  assert.deepEqual(itemNames.filter(name =>
+    ['OPEN_IN_NEW_WINDOW', 'OPEN_IN_OTHER_WINDOW', 'OPEN_IN_INCOGNITO_WINDOW'].includes(name)), []);
 });
 
 test('the menu offers open, preview, copy, share and download without image search, Lens or Gemini', () => {
-  const menu = populator.match(/public List<ModelList> buildContextMenu\(\) \{([\s\S]*?)\n    \}/)[1];
-  const itemNames = Array.from(menu.matchAll(/\bItem\.([A-Z_]+)/g), match => match[1]);
   assert.deepEqual(itemNames.filter(name => /GOOGLE|LENS|GEMINI|^SEARCH_BY_IMAGE$/.test(name)), []);
   // Blanc for Android has no reading list to open what this would save.
   assert.ok(!itemNames.includes('READ_LATER'), 'no "Add to reading list"');
@@ -44,17 +61,15 @@ test('the menu offers open, preview, copy, share and download without image sear
   }
 });
 
-test('tab, window and external open actions use Blanc’s labels in all six languages', () => {
+test('tab and external open actions use Blanc’s labels in all six languages', () => {
   const labels = {
     contextmenu_open_in_incognito_tab: 'Open in private tab',
-    contextmenu_open_in_incognito_window: 'Open in private window',
     contextmenu_open_in_new_chrome_tab: 'Open in new tab in Blanc',
     contextmenu_open_in_chrome_incognito_tab: 'Open in private tab in Blanc',
-    contextmenu_open_in_chrome_window: 'Open in new window in Blanc',
     menu_open_in_chrome: 'Open in Blanc',
   };
   for (const [locale, directory] of LOCALES) {
-    const xml = read(`../blanc/android/res_chromium_strings/${directory}/blanc_chromium_strings.xml`);
+    const xml = overrideXml(directory);
     for (const [id, english] of Object.entries(labels)) {
       const title = xml.match(new RegExp(`<string name="${id}">([^<]+)</string>`))?.[1];
       assert.ok(title, `${locale} needs ${id}`);
@@ -62,4 +77,16 @@ test('tab, window and external open actions use Blanc’s labels in all six lang
       if (locale === 'en') assert.equal(title, english);
     }
   }
+});
+
+test('regional Chromium overrides match the base language for every string', () => {
+  for (const [regional, base] of [
+    ['values-en-rGB', 'values'], ['values-es-rUS', 'values-es'],
+    ['values-fr-rCA', 'values-fr'], ['values-pt-rPT', 'values-pt-rBR'],
+  ]) {
+    const xml = overrideXml(base);
+    assert.match(xml, /<string name="safety_hub_autorevocation_toggle_summary">/);
+    assert.equal(overrideXml(regional), xml, regional);
+  }
+  assert.ok(!fs.existsSync(new URL('../blanc/android/res_chromium_strings/values-en-rXA', import.meta.url)));
 });
