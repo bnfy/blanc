@@ -54,6 +54,11 @@ function main(argv) {
   adb('shell', 'pm', 'clear', PACKAGE);
   adb('shell', 'monkey', '-p', PACKAGE, '-c', 'android.intent.category.LAUNCHER', '1');
   sleep(7);
+  // A fresh install opens with the first-run card over the Island: go through it without pairing.
+  for (const text of ['Browse without pairing', 'Continue', 'Not now']) {
+    const b = nodeBounds(dump(), {text});
+    if (b) { adb('shell', 'input', 'tap', String(Math.round((b.left + b.right) / 2)), String(Math.round((b.top + b.bottom) / 2))); sleep(1.5); }
+  }
   adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', PAGE, '-p', PACKAGE);
   sleep(6);
   const before = count();
