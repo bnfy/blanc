@@ -11,9 +11,9 @@ struct PaletteSheet: View {
     }
 
     let manager: TabsManager
-    /// A bottom sheet on iPhone; at regular width, a panel growing up from
-    /// the Island in its place (Duo-1).
+    /// Compact height leaves room only for the sheet.
     var placement: IslandLayout.Palette = .sheet
+    var islandAtTop = false
     @Environment(\.colorScheme) private var colorScheme
     private var style: BrowserStyle { BrowserStyle(scheme: colorScheme) }
     /// Kept by the manager, so the sheet and the panel share it (Duo-1).
@@ -62,13 +62,17 @@ struct PaletteSheet: View {
                 addressRow
                 divider
                 list
-                footer
-            case .panel:
-                // The address row sits where the Island was; the rest grows up.
+                actionsRow
+            case .panel where islandAtTop:
+                actionsRow
+                addressRow
+                divider
                 list
-                footer
+            case .panel:
+                list
                 divider
                 addressRow
+                actionsRow
             }
         }
         .font(BrowserStyle.font(15))
@@ -164,7 +168,7 @@ struct PaletteSheet: View {
                 .accessibilityLabel(SyncCopy.text("ios.palette.clear"))
             }
             Button { close() } label: {
-                Image(systemName: "chevron.down")
+                Image(systemName: islandAtTop ? "chevron.up" : "chevron.down")
                     .font(.system(size: 14, weight: .medium))
                     .frame(width: 44, height: 44)
             }
@@ -175,40 +179,57 @@ struct PaletteSheet: View {
         .padding(.leading, 22)
         .padding(.trailing, 12)
         .padding(.vertical, 8)
+        .contentShape(Rectangle())
+        .simultaneousGesture(panelDrag, isEnabled: placement == .panel)
     }
 
-    private var footer: some View {
-        VStack(spacing: 0) {
-            Rectangle().fill(style.border).frame(height: 0.5)
-            HStack(spacing: 2) {
-                Button {
-                    manager.createTab()
-                    close()
-                } label: {
-                    Label(SyncCopy.text("tab.new"), systemImage: "plus")
-                        .font(BrowserStyle.font(13, semibold: true))
-                        .padding(.horizontal, 14)
-                        .frame(height: 36)
-                        .foregroundStyle(style.raised)
-                        .background(style.text, in: Capsule())
-                        .frame(minHeight: 44)
-                }
-                Spacer(minLength: 4)
-                SpacesButton(manager: manager, style: style)
-                if manager.activeTab?.readerAvailable == true || manager.activeTab?.reader != nil {
-                    Button { close(); manager.toggleReaderMode() } label: {
-                        Image(systemName: "doc.text").frame(width: 44, height: 44)
-                    }
-                    .accessibilityLabel(ReaderCopy.text(manager.activeTab?.reader != nil ? "reader.exit" : "reader.enter"))
-                    .accessibilityIdentifier("palette.reader")
-                }
-                pageShortcut(SyncCopy.text("pagesNav.bookmarks"), icon: "bookmark", page: "bookmarks")
-                pageShortcut(SyncCopy.text("pagesNav.history"), icon: "clock.arrow.circlepath", page: "history")
-                pageShortcut(SyncCopy.text("pagesNav.settings"), icon: "slider.horizontal.3", page: "settings")
+    private var panelDrag: some Gesture {
+        DragGesture(minimumDistance: 12, coordinateSpace: .global).onEnded { drag in
+            if PalettePanelDrag.closes(translation: drag.translation.height,
+                                       predicted: drag.predictedEndTranslation.height, islandAtTop: islandAtTop) {
+                close()
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
         }
+    }
+
+    private var actionsRow: some View {
+        let tab = manager.activeTab
+        return HStack(spacing: 0) {
+            Button {
+                tab?.goBack()
+                close()
+            } label: {
+                Image(systemName: "chevron.left").frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .disabled(tab?.canGoBack != true)
+            .opacity(tab?.canGoBack == true ? 1 : 0.35)
+            .accessibilityLabel(SyncCopy.text("pill.back"))
+            Button {
+                manager.createTab()
+                close()
+            } label: {
+                Image(systemName: "plus").frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .accessibilityLabel(SyncCopy.text("tab.new"))
+            Spacer(minLength: 0)
+            SpacesButton(manager: manager, style: style)
+            if manager.activeTab?.readerAvailable == true || manager.activeTab?.reader != nil {
+                Button { close(); manager.toggleReaderMode() } label: {
+                    Image(systemName: "doc.text").frame(width: 44, height: 44)
+                }
+                .accessibilityLabel(ReaderCopy.text(manager.activeTab?.reader != nil ? "reader.exit" : "reader.enter"))
+                .accessibilityIdentifier("palette.reader")
+            }
+            pageShortcut(SyncCopy.text("pagesNav.bookmarks"), icon: "bookmark", page: "bookmarks")
+            pageShortcut(SyncCopy.text("pagesNav.history"), icon: "clock.arrow.circlepath", page: "history")
+            pageShortcut(SyncCopy.text("pagesNav.settings"), icon: "slider.horizontal.3", page: "settings")
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .contentShape(Rectangle())
+        .simultaneousGesture(panelDrag, isEnabled: placement == .panel)
     }
 
     private func pageShortcut(_ label: String, icon: String, page: String) -> some View {
