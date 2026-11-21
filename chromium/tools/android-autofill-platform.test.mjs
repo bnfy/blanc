@@ -97,7 +97,9 @@ test('Native histogram tests cover opt-out and service loss from a previously ac
 });
 
 test('The provider always writes the selected client back to the active pref', () => {
-  assert.match(provider, /RecordWhetherAndroidPrefResets\(\*prefs, uses_platform_autofill_\);\s*(?:\/\/[^\n]*\s*)*prefs->SetBoolean\(prefs::kAutofillUsingPlatformAutofill,\s*uses_platform_autofill_\);\s*if \(uses_platform_autofill_\)/);
+  // Line comments are dropped first, so the pattern needs no repeated optional group.
+  const code = provider.replace(/\/\/[^\n]*/g, '');
+  assert.match(code, /RecordWhetherAndroidPrefResets\(\*prefs, uses_platform_autofill_\);\s*prefs->SetBoolean\(prefs::kAutofillUsingPlatformAutofill,\s*uses_platform_autofill_\);\s*if \(uses_platform_autofill_\)/);
 });
 
 test('The one-time autofill migration is gone', () => {
