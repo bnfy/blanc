@@ -48,6 +48,23 @@ test('palette rows keep their kind, title and subtitle in order', () => {
   ]);
 });
 
+test('palette rows are read from the list, above the field (Island at the bottom) or below it (at the top)', () => {
+  const text = (t, y) => `<node text="${t}" class="android.widget.TextView" bounds="[192,${y}][990,${y + 40}]" />`;
+  const rows = text('research', 220) + text('2 tabs', 270) + text('news.example', 360) + text('news.example', 410);
+  const scroll = top => `<node class="android.widget.ScrollView" bounds="[60,${top}][1020,${top + 400}]" />`;
+  const field = y => `<node class="android.widget.EditText" text="res" bounds="[84,${y}][756,${y + 130}]" />`;
+  const actions = y => `<node text="" content-desc="Back" bounds="[48,${y}][180,${y + 130}]" />`;
+  const expected = [
+    {kind: 'group', title: 'research', subtitle: '2 tabs'},
+    {kind: 'tab', title: 'news.example', subtitle: 'news.example'},
+  ];
+  // At the bottom: list, field, actions, in that order.
+  assert.deepEqual(paletteRows(scroll(200) + rows + field(640) + actions(780)), expected);
+  // At the top: actions, field, list. The rows shift down with the list.
+  const shifted = rows.replace(/\[192,(\d+)\]\[990,(\d+)\]/g, (_, a, b) => `[192,${+a + 400}][990,${+b + 400}]`);
+  assert.deepEqual(paletteRows(actions(0) + field(140) + scroll(600) + shifted), expected);
+});
+
 test('fixture names become hosts under .example and pages title themselves by host and path', () => {
   assert.equal(fixtureUrl('a.example'), 'https://a.example/');
   assert.equal(fixtureUrl('plain'), 'https://plain.example/');
