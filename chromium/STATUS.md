@@ -3884,6 +3884,22 @@ owner):
 | Seen in dark mode, 2026-11-21 | Chromium's other default-browser prompt, the infobar "Pin Blanc to your taskbar to get to it quickly anytime", still shows Chromium's logo and a blue **Pin Blanc** button, and says Blanc rather than Blanc Beta. The rebranded dialog itself was not seen in dark (the prompt schedule showed the infobar, and `chrome://` addresses from the command line are refused) |
 | Island bars on Windows (fixed 2026-11-21) | Every Chromium bar on Windows kept Chromium's slate, logo and blue button: the Island's band color reached the native side after the bars themed, and `Widget::ThemeChanged()` didn't reach them again (two diagnostic builds in the owner's VM logged it). The bandColor handler now restyles each bar directly; patch 0085 also swaps dark mode's `kChromeProductIcon` for the Sunrise and gives a bar's prominent button the Sunrise accent, kept at 3:1 against the bar; on Windows the pin bar says "Pin Blanc Beta to your taskbar…" (0098). Seen in the VM on `chrome.dll` `e473448a…` with the unsupported-flag bar, dark (ink band, cream text) and light (Sunrise cream); the rebranded default-browser dialog seen in dark. Not seen yet: the pin bar itself on the new build (Chromium's prompt schedule decides when it shows). A multi-agent review with skeptics found two real issues (button contrast, weak tests), both fixed |
 
+**About on Windows (2026-11-21, after .903; ships with the next Windows beta):**
+Settings → About on the Windows beta shows Chromium's own update status
+(`version_updater_win` talks to Blanc's updater, W3) with a **Check for
+Updates…** button that runs the check again (patch 0111; Google's help link
+stays hidden), and shows the Electron import row only on the Mac, where the
+importer can read that app's data. The trust receipt names the platform it
+runs on, gives the Windows build number and checks `chrome.exe`'s Authenticode
+publisher against Bananify Creative with cached revocation data only
+(`trust_receipt.inc`). Seen in the owner's VM over a debugging port, on
+`chrome.dll` `b18ff9e1…` placed over the signed public .903: "Blanc is up to
+date"; pressing the button showed "Checking for updates" (button disabled) and
+then up to date again; Build 158.0.8127.903 (903), Platform Windows · x86_64,
+Publisher Verified locally — Bananify Creative; no import row. Seen too: typing
+`chrome://settings/help` in the Island's address field searches it instead of
+opening it.
+
 **Second Windows beta public (2026-11-21):** Blanc Beta 158.0.8127.903, GitHub
 pre-release `chromium-beta-windows-158.0.8127.903` at `96315b04c` (never latest;
 v1.51.0 stayed latest), published 16:30 UTC through `windows-release.mjs`, all ten
