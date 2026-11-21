@@ -1,0 +1,79 @@
+{
+  "publicRelease": "v1.49.0",
+  "sourceSha": "ac3d6d96018827222c885858282b8c8290668dd0",
+  "releaseEvidence": "docs/release-incidents/2026-11-13-v1.49.0.md",
+  "requiredCommits": {
+    "64dbf2d256f751c9914e91f8c940943b9b9b93a3": "Keep the Space mark off the resting Island (#1450)",
+    "b9e9d78573ab8c1806a75e9683b063b0369c0711": "Show the current Space's tile on the ⌘L footer's Spaces button (#1454)"
+  },
+  "pending": "Prepared on November 11, 2026 and held until a public release shipped #1450 and #1454. Resolved November 21, 2026: v1.49.0 (published 18:21 UTC on November 13, 2026 from ac3d6d96018827222c885858282b8c8290668dd0) is the first public tag containing both (v1.48.0 contains neither), and its release notes say the closed Island no longer leads with the current Space's mark and the ⌘L footer's Spaces button shows the current Space's symbol on its color. The wording was rechecked against v1.49.0 and is unchanged in public v1.51.0. Still open: the two /features/workspaces captures, workspaces-v1.36.0 and workspaces-edit-v1.36.0 (also used on /arc-alternative), show the Spaces menu below the old Space mark; scripts/capture-installed-spaces.mjs opens the menu from that mark, so retaking them needs the script moved to the Spaces button first.",
+  "scope": "Site copy for the Spaces button: since #1450 the resting Island carries no Space mark, and since #1454 the command panel's footer Spaces button shows the current space's tile. /features/workspaces and its Support guide say where the current space shows; the homepage Spaces demo (SpacesDemo.astro) draws that tile.",
+  "prohibitedClaims": [
+    "The current space shows at the start of the Island"
+  ],
+  "evidenceGroups": {
+    "spacesButton": {
+      "evidence": [
+        "src/renderer/index.html",
+        "src/renderer/renderer.js",
+        "src/renderer/overlay.html",
+        "src/renderer/overlay.js",
+        "src/renderer/workspace-ui.js",
+        "src/renderer/styles.css",
+        "copy/messages/en.json",
+        "spec/acceptance/F41-named-workspaces.feature",
+        "test/desktop/steps/spaces-redesign.steps.js",
+        "test/unit/spaces-menu.test.js"
+      ],
+      "qualification": "In a space, the resting Island shows no Space mark; the command panel's footer Spaces button (overlay.html #footerWorkspace) draws the current space's tile, its symbol on its color, in place of the planet, with the space's name in its tooltip (workspace-ui.js syncIdentity, ws.trigger.current). Clicking it opens the Spaces menu to switch, edit, reorder or delete a space, with Undo. Verified at v1.49.0 (overlay.html #footerWorkspace; workspace-ui.js syncIdentity; renderer.js hides #pillSpace on the horizontal Island, spaceMarkOnIsland; en.json ws.trigger.current \"Space · {name}\") and unchanged at v1.51.0. With vertical tabs the side list still shows the mark at its top, which the claim doesn't contradict."
+    }
+  },
+  "claims": [
+    {
+      "id": "spaces-button-01",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Give each space a color and a symbol. The Spaces button in the command panel shows the current space; click it to switch, edit, reorder or delete a space, with Undo.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "spacesButton"
+      ],
+      "verdict": "verified",
+      "replaces": "site-133-workspaces-05"
+    },
+    {
+      "id": "spaces-button-02",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "Give each space a color and a symbol. The Spaces button in the command panel shows the current space; click it to switch, edit, reorder or delete a space, with Undo.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "spacesButton"
+      ],
+      "verdict": "verified",
+      "replaces": "site-133-guide-workspaces-03"
+    }
+  ],
+  "supersededClaims": [
+    {
+      "id": "site-133-workspaces-05",
+      "source": "site/src/pages/features/workspaces.astro",
+      "exactWording": "Give each space a colour and a symbol. The current space shows at the start of the Island; click it to switch, edit, reorder or delete a space, with Undo.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "spacesRedesign"
+      ],
+      "verdict": "verified",
+      "reason": "#1450 took the Space mark off the resting Island; the space now shows on the command panel's Spaces button (#1454)."
+    },
+    {
+      "id": "site-133-guide-workspaces-03",
+      "source": "site/src/components/guides/workspaces.astro",
+      "exactWording": "Give each space a colour and a symbol. The current space shows at the start of the Island; click it to switch, edit, reorder or delete a space, with Undo.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "spacesRedesign"
+      ],
+      "verdict": "verified",
+      "reason": "#1450 took the Space mark off the resting Island; the space now shows on the command panel's Spaces button (#1454)."
+    }
+  ]
+}
