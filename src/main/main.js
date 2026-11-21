@@ -207,6 +207,7 @@ const { validFavicon } = require('./bookmark-validate');
 const {
   setupDownloads,
   setDownloadRequesterCheck,
+  setDownloadActivityObserver,
   setDownloadSavePolicy,
   downloadsActivity,
   acknowledgeDownloads,
@@ -3898,6 +3899,7 @@ function islandAutoHidePinned(runtime = rt()) {
     // focused window or a pointer to keep it there.
     popupOpen: ublockPopups.has(runtime.id) || (acceptanceTestMode && runtime.testHoldIsland === true),
     introducing: !!runtime.islandAutoHideIntroTimer,
+    peeking: !!runtime.islandDownloadPeek,
   });
 }
 
@@ -4556,6 +4558,38 @@ function endIslandAutoHideIntro(runtime) {
   if (runtime.islandAutoHideIntroGeneration === runtime.tooltipGeneration) hidePillTooltip(runtime);
 }
 
+function endIslandDownloadPeek(runtime) {
+  if (!runtime.islandDownloadPeek) return;
+  clearTimeout(runtime.islandDownloadPeek.timer);
+  runtime.islandDownloadPeek = null;
+}
+
+/** A download that starts in a window whose Island is auto-hidden shows the
+ * Island for a moment, so its downloads button is seen filling; one that
+ * finishes meanwhile keeps it up for the check. The peek pins the Island like
+ * the intro tip; when it ends, the usual hide check lets it go once the
+ * pointer isn't holding it. Policy: downloadPeekStep in island-autohide.js. */
+function peekIslandForDownload(event, requester) {
+  if (!islandAutoHide || !requester || requester.isDestroyed()) return;
+  const runtime = runtimeForPageWebContents(requester);
+  const window = runtime?.window;
+  if (!window || window.isDestroyed() || !window.isVisible() || window.isMinimized()) return;
+  const current = runtime.islandDownloadPeek;
+  const next = islandAutoHideModule.downloadPeekStep(current, event, {
+    autoHide: islandAutoHide,
+    // Showing for any reason (pointer, ⌘L, a popover, the intro tip).
+    revealed: withWindowRuntime(runtime, () => !islandStripHidden(runtime)),
+    now: Date.now(),
+  });
+  if (!next || (current && next.until === current.until)) return;
+  if (current) clearTimeout(current.timer);
+  runtime.islandDownloadPeek = {
+    ...next,
+    timer: setTimeout(() => { runtime.islandDownloadPeek = null; }, Math.max(0, next.until - Date.now())),
+  };
+  if (!current) withWindowRuntime(runtime, () => revealIsland(runtime));
+}
+
 /** Turning the setting on would otherwise make the Island vanish with no
  * word on how to get it back. In the window where it was turned on, keep the
  * strip up for a few seconds with a tip under the pill. The tip reuses the
@@ -4610,6 +4644,7 @@ function applyIslandAutoHide(next) {
   for (const runtime of windowRuntimes.all()) {
     clearIslandAutoHideTimer(runtime);
     endIslandAutoHideIntro(runtime);
+    endIslandDownloadPeek(runtime);
     stopIslandRevealWatch(runtime);
     stopIslandSlide(runtime);
     // The window showing the intro keeps its strip up from the start, so its
@@ -13677,6 +13712,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive 
     clearIslandAutoHideTimer(runtime);
     clearMiniWindowIdle(runtime);
     endIslandAutoHideIntro(runtime);
+    endIslandDownloadPeek(runtime);
     stopIslandRevealWatch(runtime);
     stopIslandSlide(runtime);
     runtime.islandRevealed = false;
@@ -15905,6 +15941,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // a native event boundary main.js doesn't control — so the callback must
   // rebind the runtime itself rather than rely on setupDownloads' call site.
   setDownloadRequesterCheck((wc) => runtimeForPageWebContents(wc)?.resident !== true);
+  setDownloadActivityObserver(peekIslandForDownload);
   // #1591: unless the person asked to choose, downloads save straight to the
   // Downloads folder under a free name.
   setDownloadSavePolicy({
@@ -16774,6 +16811,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         style: islandAutoHideStyle,
         revealed: rt().islandRevealed === true,
         introducing: !!rt().islandAutoHideIntroTimer,
+        downloadPeek: !!rt().islandDownloadPeek,
         sliding: !!rt().islandSlide,
         reducedMotion: prefersReducedMotion(),
         introTipShown: !!rt().islandAutoHideIntroTimer && rt().tooltipViewAttached === true

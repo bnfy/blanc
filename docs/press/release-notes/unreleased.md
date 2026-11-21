@@ -32,9 +32,19 @@ since then are below as they're recorded.
   their own passkey button; choosing it still opens the dialog.
 - **A local HTML file Blanc can't show now says why.** Before, a file over
   8 MB, or one Blanc couldn't read, opened nothing at all on macOS and Windows.
+- **Downloads show with Auto-hide on.** A download saved without asking
+  gave no sign while the Island was auto-hidden, so a download link seemed to
+  do nothing. Now the Island shows for a few seconds when a download starts,
+  with its downloads button filling, and stays up for the check if the file
+  finishes meanwhile. Nothing changes with Auto-hide off or when the Island is
+  already showing.
 
 ## Still open for the next release
 
+- **Download peek with Auto-hide on**, by hand in a packaged build on macOS
+  and Windows: a real click on a download link shows the hidden Island in both
+  the float and push styles. CI checks it with real downloads on Linux and
+  Windows; nobody has watched it on screen yet.
 - **Opening local HTML files on Windows** (#1630) by hand from Explorer's
   Open with in an installed build, including Settings' Set default button.
   CI checked the rest on a signed ECS package on a Windows runner (run

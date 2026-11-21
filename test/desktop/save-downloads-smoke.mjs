@@ -135,6 +135,51 @@ try {
   assert.equal(burst[beforeBurst + 1], '', 'the second download after one click asks');
   await finished(['report (1).txt', 'report (2).txt', 'report.txt']);
 
+  // With Auto-hide on, the Island's downloads button was the only sign of a
+  // saved download and nobody saw it. A download now shows the hidden Island
+  // for a moment, floating or pushing the page, and changes nothing while the
+  // Island already shows. The hide check samples a cursor parked mid-page.
+  const islandState = () => callTestHook(app, 'islandAutoHideState');
+  const bounds = await callTestHook(app, 'windowContentBounds');
+  assert.equal(await callTestHook(app, 'setTestCursorPoint', [{ x: bounds.x + 400, y: bounds.y + 400 }]), true);
+  const hiddenAgain = (label) => waitForValue(islandState,
+    (state) => state?.stripHidden === true && !state.downloadPeek && !state.introducing && !state.sliding,
+    label, 15_000);
+  let saved = ['report (1).txt', 'report (2).txt', 'report.txt'];
+  const peekFor = async (style, name) => {
+    assert.equal(await callTestHook(app, 'setIslandAutoHideStyle', [style]), style);
+    await hiddenAgain(`the ${style} Island to hide`);
+    await click();
+    const peek = await waitForValue(islandState, (state) => state?.downloadPeek === true,
+      `the ${style} Island to show for the download`, 10_000);
+    assert.equal(peek.stripHidden, false, `the ${style} Island shows`);
+    if (style === 'float') {
+      const pill = await callTestHook(app, 'floatViewState', ['pill']);
+      assert.equal(pill?.shown, true, 'the floating pill is on screen');
+    }
+    saved = [...saved, name].sort();
+    await finished(saved);
+    await hiddenAgain(`the ${style} Island to hide after its peek`);
+  };
+  assert.equal(await callTestHook(app, 'setIslandAutoHide', [true]), true);
+  await peekFor('float', 'report (3).txt');
+  await peekFor('push', 'report (4).txt');
+
+  // Already showing: no peek of its own.
+  assert.equal(await callTestHook(app, 'holdIslandInWindow', ['primary', true]), true);
+  await click();
+  saved = [...saved, 'report (5).txt'].sort();
+  await finished(saved);
+  assert.equal((await islandState()).downloadPeek, false, 'a showing Island takes no peek');
+  assert.equal(await callTestHook(app, 'holdIslandInWindow', ['primary', false]), true);
+
+  // Auto-hide off: the Island is always there, and nothing changes.
+  assert.equal(await callTestHook(app, 'setIslandAutoHide', [false]), false);
+  await click();
+  saved = [...saved, 'report (6).txt'].sort();
+  await finished(saved);
+  assert.equal((await islandState()).downloadPeek, false, 'no peek with auto-hide off');
+
   // With "Ask where to save each file" on, a clicked download asks too.
   await app.evaluate(({}, settingsPath) => {
     process.mainModule.require(settingsPath).setSettings({ askWhereToSave: true });
@@ -145,7 +190,7 @@ try {
   assert.equal(afterAsk.at(-1), '', 'with the switch on, Blanc leaves the download to Save As');
   // As above: the cancelled download's "<id>.tmp" can still be there for a
   // moment (#1660's Windows run caught one).
-  await finished(['report (1).txt', 'report (2).txt', 'report.txt']);
+  await finished(saved);
 
   const exited = new Promise((resolve) => app.process().once('exit', resolve));
   await app.evaluate(({ app: electronApp }) => electronApp.quit());
@@ -154,6 +199,7 @@ try {
   console.log('ok   clicked downloads save to Downloads as report.txt and report (1).txt');
   console.log('ok   a page-started download and the switch both leave it to Save As');
   console.log('ok   one click lets only one download skip Save As');
+  console.log('ok   a download shows the auto-hidden Island (float and push), and nothing else changes');
 } finally {
   if (app) await app.close().catch(() => {});
   server.closeAllConnections();
