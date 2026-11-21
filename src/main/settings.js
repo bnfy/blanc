@@ -23,6 +23,7 @@ const { migrateSupporter, downgradeMirror, isRecordActive } = require('./patron-
 const { DEFAULT_MAPPING, mappingOrDefault, validMapping } = require('./mouse-gestures');
 const { normalizeDeviceNames, setDeviceNameEntry, mergeDeviceNames, deviceNamesEqual } = require('./device-names');
 const { normalizeLinkRoutes, validateLinkRoutes } = require('./link-routes');
+const { normalizeWidgets, migrateFromLayout } = require('./start-widgets');
 const {
   isValidSearchTemplate,
   searchUrlFromTemplate,
@@ -263,6 +264,12 @@ const DEFAULTS = {
   // the tab list's order ('list'). Device-local: a habit of the keyboard in
   // front of you. Only Linux offers 'recent' so far (tab-switcher.js).
   tabSwitchOrder: 'recent',
+  // #1505: ⌘T switches to an unused New Tab page in the window instead of
+  // opening another. Device-local, on by default.
+  reuseNewTab: true,
+  // #1591: show Save As for every download. Off by default, so downloads go
+  // straight to the Downloads folder. Device-local.
+  askWhereToSave: false,
   // Palette of the internal pages; device-local, not Profile Synced.
   surfaceStyle: 'sunrise',
   // Floating Glance: the card's remembered size and place, as fractions of
@@ -273,6 +280,12 @@ const DEFAULTS = {
   // profile/Space (link-routes.js). Device-local like the profile and Space
   // ids it names, never in SYNCED_KEYS, written ONLY by setLinkRoutes().
   linkRoutes: [],
+  // The Start Page's widgets (start-widgets.js): which cards show, where,
+  // their sizes and the shortcut count. Device-local, never in SYNCED_KEYS,
+  // written ONLY by setNewtabWidgets(). null until the load path fills it
+  // once from the synced newtabLayout (Ledger, Shelf and Tally were retired
+  // for one Billboard page with widgets).
+  newtabWidgets: null,
   // Also route links opened in a new tab from a page inside Blanc (#1199).
   // Off by default; device-local like linkRoutes.
   linkRoutesInApp: false,
@@ -510,6 +523,12 @@ function ensureStore() {
         data._syncTieBreakers.newtabLayout = crypto.randomUUID();
       });
     }
+    // The one Start Page (spec 2026-11-18-start-page-widgets-…): a profile
+    // that has never stored its widgets gets the ones its old layout showed,
+    // once. newtabLayout itself stays as it is, synced, for older builds.
+    if (!store.data.newtabWidgets || typeof store.data.newtabWidgets !== 'object') {
+      store.updateAndFlush((data) => { data.newtabWidgets = migrateFromLayout(data.newtabLayout); });
+    }
     // A legacy settings.json carrying only `supporter` gains the equivalent
     // `patron` record on next launch. Mutates the persisted store directly
     // (not a getSettings() copy) so the migration survives every future
@@ -565,7 +584,10 @@ function getSettings() {
   if (!SURFACE_STYLES.includes(data.surfaceStyle)) data.surfaceStyle = DEFAULTS.surfaceStyle;
   if (!isGlanceFrame(data.glanceFrame)) data.glanceFrame = null;
   data.linkRoutes = normalizeLinkRoutes(data.linkRoutes);
+  data.newtabWidgets = normalizeWidgets(data.newtabWidgets);
   if (typeof data.linkRoutesInApp !== 'boolean') data.linkRoutesInApp = DEFAULTS.linkRoutesInApp;
+  if (typeof data.reuseNewTab !== 'boolean') data.reuseNewTab = DEFAULTS.reuseNewTab;
+  if (typeof data.askWhereToSave !== 'boolean') data.askWhereToSave = DEFAULTS.askWhereToSave;
   if (typeof data.darkWebsites !== 'boolean') data.darkWebsites = DEFAULTS.darkWebsites;
   data.darkWebsitesExceptions = normalizeHostnameList(data.darkWebsitesExceptions);
   if (typeof data.newtabDynamicWallpaper !== 'boolean') data.newtabDynamicWallpaper = false;
@@ -694,6 +716,8 @@ function sanitize(partial) {
   if (typeof partial.islandHoverOpen === 'boolean') clean.islandHoverOpen = partial.islandHoverOpen;
   if (typeof partial.islandTabIcons === 'boolean') clean.islandTabIcons = partial.islandTabIcons;
   if (typeof partial.linkRoutesInApp === 'boolean') clean.linkRoutesInApp = partial.linkRoutesInApp;
+  if (typeof partial.reuseNewTab === 'boolean') clean.reuseNewTab = partial.reuseNewTab;
+  if (typeof partial.askWhereToSave === 'boolean') clean.askWhereToSave = partial.askWhereToSave;
   if (typeof partial.launchSunrise === 'boolean') clean.launchSunrise = partial.launchSunrise;
   if (typeof partial.searchPriorityResults === 'boolean') clean.searchPriorityResults = partial.searchPriorityResults;
   if (typeof partial.islandAutoHide === 'boolean') clean.islandAutoHide = partial.islandAutoHide;
@@ -925,6 +949,20 @@ function setLinkRoutes(routes) {
   ensureStore().update((data) => { data.linkRoutes = result.routes; });
   for (const fn of listeners) fn(getSettings());
   return { ok: true, routes: structuredClone(result.routes) };
+}
+
+/** The Start Page's widgets, cleaned (start-widgets.js). */
+function getNewtabWidgets() {
+  return normalizeWidgets(ensureStore().data.newtabWidgets);
+}
+
+/** The widgets' private write path; setSettings()'s whitelist has no
+ * newtabWidgets. Stores the cleaned value and returns it. */
+function setNewtabWidgets(widgets) {
+  const next = normalizeWidgets(widgets);
+  ensureStore().update((data) => { data.newtabWidgets = next; });
+  for (const fn of listeners) fn(getSettings());
+  return normalizeWidgets(next);
 }
 
 function isDynamicWallpaperEnabled() {
@@ -1161,6 +1199,8 @@ module.exports = {
   setUiLanguage,
   setGlanceFrame,
   setLinkRoutes,
+  getNewtabWidgets,
+  setNewtabWidgets,
   isPatronActive,
   isDynamicWallpaperEnabled,
   setPatron,

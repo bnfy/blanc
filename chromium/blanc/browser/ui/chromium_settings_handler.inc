@@ -19,6 +19,71 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler,
   void OnJavascriptDisallowed() override;
 
  private:
+  // The Electron profile importer (profile_import.inc), from Settings. The
+  // released app's own folder is the source: the page sends no path. The
+  // reply is counts and codes only.
+  void HandleProfileImport(const base::ListValue& args) {
+    if (!Begin(args, 0)) return;
+    auto* personal = g_browser_process->profile_manager()->GetProfileByPath(
+        g_browser_process->profile_manager()->user_data_dir().AppendASCII("Default"));
+    if (!personal) {
+      ResolveJavascriptCallback(args[0], base::Value(base::DictValue().Set("ok", false).Set("error", "failed")));
+      return;
+    }
+    base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()}, base::BindOnce(&FindImportSource),
+        base::BindOnce([](base::WeakPtr<ChromiumSettingsHandler> self, base::WeakPtr<Profile> personal,
+                          base::Value callback, ImportSourceState source) {
+          if (!self || !self->IsJavascriptAllowed()) return;
+          const auto fail = [&](const char* error) {
+            self->ResolveJavascriptCallback(callback, base::Value(base::DictValue().Set("ok", false).Set("error", error)));
+          };
+          if (!personal) { fail("failed"); return; }
+          if (source.running) { fail("source-running"); return; }
+          if (source.path.empty()) { fail("no-source"); return; }
+          ProfileImport::Get()->Start(source.path, personal.get(),
+              base::BindOnce([](base::WeakPtr<ChromiumSettingsHandler> self, base::Value callback, base::Value result) {
+                if (self && self->IsJavascriptAllowed()) {
+                  self->ResolveJavascriptCallback(callback, base::Value(ImportSummary(result)));
+                }
+              }, self, std::move(callback)));
+        }, weak_factory_.GetWeakPtr(), personal->GetWeakPtr(), args[0].Clone()));
+  }
+  // N16: the trust receipt. The signature and the dump count are read off
+  // the UI thread; nothing here touches the network.
+  void HandleTrustReceipt(const base::ListValue& args) {
+    if (!Begin(args, 0)) return;
+    base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
+        base::BindOnce([] { return base::DictValue().Set("signature", InspectSignature()).Set("dumps", CrashDumpCount()); }),
+        base::BindOnce([](base::WeakPtr<ChromiumSettingsHandler> self, base::Value callback, base::DictValue slow) {
+          if (!self || !self->IsJavascriptAllowed()) return;
+          auto receipt = TrustReceiptFacts(self->profile_);
+          receipt.Set("signature", slow.Find("signature")->Clone());
+          receipt.Set("crashDumps", slow.FindInt("dumps").value_or(0));
+          self->ResolveJavascriptCallback(callback, base::Value(std::move(receipt)));
+        }, weak_factory_.GetWeakPtr(), args[0].Clone()));
+  }
+  // Clear crash history: Blanc's ledger and Chromium's dump files.
+  void HandleDiagnosticsClear(const base::ListValue& args) {
+    if (!Begin(args, 0)) return;
+    CrashLedger::Clear();
+    // Chromium keeps dumps in the app's default data folder whatever
+    // --user-data-dir says, so a test launch shares that folder with the real
+    // build on the same Mac: under test only the ledger is cleared.
+    const bool delete_dumps = !blanc::BlancTestLaunch();
+    base::ThreadPool::PostTaskAndReply(FROM_HERE, {base::MayBlock()},
+        base::BindOnce([](bool dumps) {
+          if (dumps) crash_reporter::ClearReportsBetween(base::Time(), base::Time::Max());
+        }, delete_dumps),
+        base::BindOnce([](base::WeakPtr<ChromiumSettingsHandler> self, base::Value callback) {
+          if (self && self->IsJavascriptAllowed()) self->ResolveJavascriptCallback(callback, base::Value(true));
+        }, weak_factory_.GetWeakPtr(), args[0].Clone()));
+  }
+  // Export diagnostics…: the report is built here and saved by the page
+  // through its own download, so no file dialog of Blanc's is involved.
+  void HandleDiagnosticsReport(const base::ListValue& args) {
+    if (!Begin(args, 0)) return;
+    ResolveJavascriptCallback(args[0], base::Value(DiagnosticsReport(profile_)));
+  }
   void HandleMouseGestures(const base::ListValue& args) {
     if (!Begin(args, 1)) return;
     const auto raw = args[1].GetString();bool ok = true;
@@ -511,6 +576,10 @@ void ChromiumSettingsHandler::RegisterMessages() {
   bind("blancSyncCall", &ChromiumSettingsHandler::HandleSyncCall);
   bind("blancSyncConfirmFirstUpload", &ChromiumSettingsHandler::HandleSyncConfirm);
   bind("blancSettingsGet", &ChromiumSettingsHandler::HandleGet);
+  bind("blancProfileImport", &ChromiumSettingsHandler::HandleProfileImport);
+  bind("blancTrustReceipt", &ChromiumSettingsHandler::HandleTrustReceipt);
+  bind("blancDiagnosticsClear", &ChromiumSettingsHandler::HandleDiagnosticsClear);
+  bind("blancDiagnosticsReport", &ChromiumSettingsHandler::HandleDiagnosticsReport);
   bind("blancMouseGestures", &ChromiumSettingsHandler::HandleMouseGestures);
   bind("blancMiniWindowShortcut", &ChromiumSettingsHandler::HandleMiniWindowShortcut);
   bind("blancLinkRouteState", &ChromiumSettingsHandler::HandleLinkRouteState);

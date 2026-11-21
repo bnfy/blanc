@@ -1,0 +1,116 @@
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/app/notifications/ContextualNotificationPermissionRequesterImpl.java b/chrome/android/java/src/org/chromium/chrome/browser/app/notifications/ContextualNotificationPermissionRequesterImpl.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/app/notifications/ContextualNotificationPermissionRequesterImpl.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/app/notifications/ContextualNotificationPermissionRequesterImpl.java
+@@ -12,7 +12,6 @@
+ import org.chromium.build.annotations.NullMarked;
+ import org.chromium.build.annotations.Nullable;
+ import org.chromium.chrome.browser.ChromeTabbedActivity;
+-import org.chromium.chrome.browser.flags.ChromeFeatureList;
+ import org.chromium.chrome.browser.notifications.permissions.NotificationPermissionController;
+ import org.chromium.ui.permissions.ContextualNotificationPermissionRequester;
+ 
+@@ -23,9 +22,6 @@
+ @NullMarked
+ public class ContextualNotificationPermissionRequesterImpl
+         extends ContextualNotificationPermissionRequester {
+-    private static final String FIELD_TRIAL_ENABLE_CONTEXTUAL_PERMISSION_REQUESTS =
+-            "enable_contextual_permission_requests";
+-
+     private static class LazyHolder {
+         static final ContextualNotificationPermissionRequesterImpl INSTANCE =
+                 new ContextualNotificationPermissionRequesterImpl();
+@@ -38,12 +34,9 @@
+ 
+     @Override
+     public void requestPermissionIfNeeded() {
+-        boolean isContextualPermissionRequestEnabled =
+-                ChromeFeatureList.getFieldTrialParamByFeatureAsBoolean(
+-                        ChromeFeatureList.NOTIFICATION_PERMISSION_VARIANT,
+-                        FIELD_TRIAL_ENABLE_CONTEXTUAL_PERMISSION_REQUESTS,
+-                        false);
+-        if (!isContextualPermissionRequestEnabled) return;
++        // Blanc (patch 0119): always ask in context. Blanc has no notification prompt at startup
++        // (patch 0104), and Chrome keeps this request behind a field-trial parameter that is off
++        // by default, so nothing ever asked.
+         NotificationPermissionController permissionController =
+                 getNotificationPermissionController();
+         if (permissionController == null) return;
+@@ -60,7 +53,18 @@
+ 
+     private @Nullable NotificationPermissionController getNotificationPermissionController() {
+         Activity activity = ApplicationStatus.getLastTrackedFocusedActivity();
+-        if (!(activity instanceof ChromeTabbedActivity)) return null;
++        if (!(activity instanceof ChromeTabbedActivity)) {
++            // Blanc (patch 0119): a download opens the Downloads screen, its own activity; ask
++            // through the browser window behind it.
++            activity = null;
++            for (Activity running : ApplicationStatus.getRunningActivities()) {
++                if (running instanceof ChromeTabbedActivity) {
++                    activity = running;
++                    break;
++                }
++            }
++            if (activity == null) return null;
++        }
+ 
+         // TODO(shaktisahu): Maybe split out the contextual permission logic out of
+         // NotificationPermissionController entirely to serve non-chrome activities.
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/incognito/IncognitoNotificationPresenceController.java b/chrome/android/java/src/org/chromium/chrome/browser/incognito/IncognitoNotificationPresenceController.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/incognito/IncognitoNotificationPresenceController.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/incognito/IncognitoNotificationPresenceController.java
+@@ -8,7 +8,6 @@
+ import org.chromium.chrome.browser.tabmodel.IncognitoTabHostUtils;
+ import org.chromium.chrome.browser.tabmodel.IncognitoTabModelObserver;
+ import org.chromium.chrome.browser.tabmodel.TabModelSelector;
+-import org.chromium.ui.permissions.ContextualNotificationPermissionRequester;
+ 
+ /**
+  * Controls the presence incognito notification through {@link IncognitoNotificationManager}.
+@@ -33,9 +32,8 @@
+     @Override
+     public void wasFirstTabCreated() {
+         IncognitoNotificationManager.showIncognitoNotification();
+-        ContextualNotificationPermissionRequester requester =
+-                ContextualNotificationPermissionRequester.getInstance();
+-        if (requester != null) requester.requestPermissionIfNeeded();
++        // Blanc (patch 0119): a private tab doesn't ask for notification permission; a download
++        // or a site's request does.
+     }
+ 
+     @Override
+diff -ruN a/chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java b/chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java
+--- a/chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java
++++ b/chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java
+@@ -260,14 +260,10 @@
+             return PermissionRequestMode.DO_NOT_REQUEST;
+         }
+ 
+-        // Decide whether to show the rationale or just the system prompt.
+-        boolean meetsAndroidRationaleAPI =
+-                mAndroidPermissionDelegate.shouldShowRequestPermissionRationale(
+-                        Manifest.permission.POST_NOTIFICATIONS);
+-        boolean shouldShowRationale = shouldAlwaysShowRationaleFirst() || meetsAndroidRationaleAPI;
+-        return shouldShowRationale
+-                ? PermissionRequestMode.REQUEST_PERMISSION_WITH_RATIONALE
+-                : PermissionRequestMode.REQUEST_ANDROID_PERMISSION;
++        // Blanc (patch 0119): always Android's own prompt. Chrome's explainer card names Chrome
++        // and Incognito, and it opens on the browser window, behind the Downloads screen that a
++        // download brings up.
++        return PermissionRequestMode.REQUEST_ANDROID_PERMISSION;
+     }
+ 
+     /**
+@@ -432,13 +428,6 @@
+         return TimeUnit.DAYS.toMillis(delayDays);
+     }
+ 
+-    private static boolean shouldAlwaysShowRationaleFirst() {
+-        return ChromeFeatureList.getFieldTrialParamByFeatureAsBoolean(
+-                ChromeFeatureList.NOTIFICATION_PERMISSION_VARIANT,
+-                FIELD_TRIAL_ALWAYS_SHOW_RATIONALE_BEFORE_REQUESTING_PERMISSION,
+-                true);
+-    }
+-
+     private boolean wasPermissionRequestShown() {
+         boolean wasAndroidPermissionShown =
+                 PermissionPrefs.getAndroidNotificationPermissionRequestTimestamp() != 0;

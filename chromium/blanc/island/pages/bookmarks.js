@@ -1,13 +1,24 @@
 (async () => {
+  // On the desktop, Favorites is a page in a tab of its own (owner, November
+  // 18, 2026). The markup stays a sheet page because Blanc for iPhone
+  // restyles that one (ios-pages.css); everywhere else it turns into the
+  // full page before it draws.
+  if (document.documentElement?.dataset?.platform !== 'ios') {
+    document.body?.classList?.replace('sheet', 'fav-page');
+  }
   const { t } = blancI18n;
   const list = document.getElementById('list');
-  const bringTabsBtn = document.getElementById('bringTabsBtn');
-  const importBtn = document.getElementById('importBtn');
   const importStatus = document.getElementById('importStatus');
-  const browserSourceWrap = document.getElementById('browserSourceWrap');
+  const importMenuBtn = document.getElementById('importMenuBtn');
+  const importDialog = document.getElementById('importDialog');
+  const importForm = document.getElementById('importForm');
+  const importDialogNote = document.getElementById('importDialogNote');
+  const importCancelBtn = document.getElementById('importCancelBtn');
+  const importWhatFavorites = document.getElementById('importWhatFavorites');
+  const importWhatTabs = document.getElementById('importWhatTabs');
   const browserSource = document.getElementById('browserSource');
   const browserImportBtn = document.getElementById('browserImportBtn');
-  const browserFindBtn = document.getElementById('browserFindBtn');
+  const browserImportGuidance = document.getElementById('browserImportGuidance');
 
   // iOS edits Favorites but has no import and no Start Page pins; desktop
   // leaves both flags out.
@@ -20,6 +31,7 @@
   const showEditError = (error) => {
     importStatus.textContent = error?.message || t('favorites.editOnComputer');
   };
+
 
   // Start Page pins (start-page-pins.js in main): a favorite can be pinned to
   // the front of every Start Page layout from here. Main says how many fit and
@@ -53,133 +65,197 @@
   // The same test the Start Page uses: any http(s) URL, in any letter case.
   const isWebPage = (url) => startPins.siteKey(url) !== null;
 
+  // The Favorites manager (F63, favorites-manager.js) when the host can draw
+  // the folder tree; otherwise this page keeps its flat list (the Chromium
+  // fork and Android serve this page through bridges without the tree).
+  let manager = null;
+  const refresh = () => (manager ? manager.refresh() : refreshFlat());
+
+  // "Bring my stuff to Blanc" (owner, November 16, 2026): one dialog, as in
+  // Chrome and Edge. Opening it is the explicit ask that lets Blanc look for
+  // other browsers (F30, D22); the page never looks on its own. Escape
+  // reaches the page itself, so the dialog's own Escape closes it.
+  const escapeArm = window.FavoritesEscape ?? { claim() {}, release() {} };
+  const FILE_SOURCE = 'file';
+  const dialogNote = (text) => { importDialogNote.textContent = text; };
+  let lookup = 0;
+  let busy = false;
+
+  function closeDialog() {
+    if (importDialog.open) importDialog.close();
+  }
+  importDialog.addEventListener('close', () => {
+    lookup += 1; // a lookup still running no longer fills the menu
+    escapeArm.release('import');
+    importMenuBtn.focus({ preventScroll: true, focusVisible: false });
+  });
+  // A click on the backdrop closes it, as a click outside a sheet does.
+  importDialog.addEventListener('click', (event) => { if (event.target === importDialog) closeDialog(); });
+  importCancelBtn.addEventListener('click', closeDialog);
+
+  importMenuBtn.disabled = false;
+  importMenuBtn.addEventListener('click', () => {
+    if (importDialog.open) return;
+    importStatus.textContent = '';
+    dialogNote('');
+    importWhatFavorites.checked = true;
+    importWhatTabs.checked = false;
+    importDialog.showModal();
+    escapeArm.claim('import', closeDialog);
+    findBrowsers();
+  });
+
+  function updateImportButton() {
+    const source = browserSource.value;
+    const favorites = importWhatFavorites.checked && Boolean(source);
+    browserImportBtn.disabled = busy || (!favorites && !importWhatTabs.checked);
+    // Open tabs are found on Bring Your Tabs, whatever From says.
+    browserSource.disabled = busy || !importWhatFavorites.checked;
+  }
+  browserSource.addEventListener('change', updateImportButton);
+  importWhatFavorites.addEventListener('change', updateImportButton);
+  importWhatTabs.addEventListener('change', updateImportButton);
+
+  // The menu: every profile found, those that need permission (greyed), and
+  // a bookmarks file, which is always there.
+  function fillSources({ sources = [], unavailable = [] } = {}) {
+    browserSource.replaceChildren();
+    for (const source of sources) {
+      const option = new Option(source.label, source.id);
+      option.dataset.i18nIgnore = ''; // a browser profile's name
+      browserSource.append(option);
+    }
+    for (const entry of unavailable) {
+      const option = new Option(t('favorites.import.permissionNeeded', { source: entry.label }), '');
+      option.disabled = true;
+      browserSource.append(option);
+    }
+    browserSource.append(new Option(t('favorites.import.fileOption'), FILE_SOURCE));
+    browserSource.value = sources[0]?.id ?? FILE_SOURCE;
+    browserImportGuidance.textContent = [...new Set(unavailable.map((entry) => entry.guidance).filter(Boolean))].join(' ');
+    browserImportGuidance.hidden = !unavailable.length;
+    return sources.length > 0;
+  }
+
+  async function findBrowsers() {
+    const mine = ++lookup;
+    busy = true;
+    browserSource.replaceChildren(new Option(t('favorites.import.looking'), ''));
+    browserImportGuidance.hidden = true;
+    updateImportButton();
+    let failed = false;
+    let result = null;
+    try {
+      result = await window.bowserPages.bookmarks.browserSources();
+    } catch {
+      // A failed lookup must say so rather than leave an empty menu.
+      failed = true;
+    }
+    if (mine !== lookup) return;
+    const found = fillSources(result ?? {});
+    dialogNote(failed ? t('favorites.import.checkFailed') : found ? '' : t('favorites.import.noneFound'));
+    busy = false;
+    updateImportButton();
+    const at = document.activeElement;
+    if (!at || at === document.body || at === importDialog || at === browserSource) browserSource.focus({ focusVisible: false });
+  }
+
   // This stays inside the existing utility sheet. Main's will-navigate guard
   // permits only allowlisted blanc:// utility pages and updates the sheet's
   // owned URL before this document is replaced.
-  bringTabsBtn.addEventListener('click', () => {
-    window.location.href = 'blanc://tab-import/';
-  });
+  const bringTabs = () => { window.BlancFavoritesTab.openSheet('tab-import'); };
 
-  // Two counts, so up to two sentences: a message holds at most one plural.
-  function importSummary(added, skipped) {
-    if (added === 0 && skipped > 0) return t('favorites.import.allSaved', { count: skipped });
-    const imported = t('favorites.import.imported', { count: added });
-    return skipped > 0 ? `${imported} ${t('favorites.import.skipped', { count: skipped })}` : imported;
+  // One sentence per count: a message holds at most one plural.
+  function importSummary({ added, skipped, moved = 0, shortened = 0, orderDropped = 0 }) {
+    const sentences = [];
+    if (added === 0 && moved === 0 && skipped > 0) {
+      sentences.push(t('favorites.import.allSaved', { count: skipped }));
+    } else {
+      if (added > 0 || moved === 0) sentences.push(t('favorites.import.imported', { count: added }));
+      if (moved > 0) sentences.push(t('favorites.import.moved', { count: moved }));
+      if (skipped > 0) sentences.push(t('favorites.import.skipped', { count: skipped }));
+    }
+    if (shortened > 0) sentences.push(t('favorites.import.shortened', { count: shortened }));
+    if (orderDropped > 0) sentences.push(t('favorites.import.orderDropped'));
+    return sentences.join(' ');
   }
 
-  importBtn.addEventListener('click', async () => {
-    importBtn.disabled = true;
+  /** A bookmarks file: Blanc's own file picker. Resolves to whether the
+   * favorites arrived (a cancelled picker is not a failure to report). */
+  async function importFile() {
     importStatus.textContent = t('favorites.import.choosing');
     let res;
     try {
       res = await window.bowserPages.bookmarks.import();
     } catch (error) {
       showEditError(error);
-      return;
-    } finally {
-      importBtn.disabled = false;
+      return false;
     }
-    if (res.cancelled) { importStatus.textContent = ''; return; }
-    if (res.error === 'empty') { importStatus.textContent = t('favorites.import.fileEmpty'); return; }
-    if (res.error === 'unreadable') { importStatus.textContent = t('favorites.import.fileUnreadable'); return; }
-    if (res.error === 'too-large') { importStatus.textContent = t('favorites.import.fileTooLarge'); return; }
-    importStatus.textContent = importSummary(res.added, res.skipped);
+    if (res.cancelled) { importStatus.textContent = ''; return false; }
+    if (res.error === 'empty') { importStatus.textContent = t('favorites.import.fileEmpty'); return false; }
+    if (res.error === 'unreadable') { importStatus.textContent = t('favorites.import.fileUnreadable'); return false; }
+    if (res.error === 'too-large') { importStatus.textContent = t('favorites.import.fileTooLarge'); return false; }
+    importStatus.textContent = importSummary(res);
     refresh();
-  });
-
-  // Discovery reads other browsers' profile directories, so it never runs on
-  // its own — only when the person explicitly asks Blanc to look.
-  async function loadBrowserSources() {
-    const result = await window.bowserPages.bookmarks.browserSources();
-    const sources = result?.sources ?? [];
-    const unavailable = result?.unavailable ?? [];
-    browserSource.replaceChildren();
-    for (const source of sources) {
-      const option = document.createElement('option');
-      option.value = source.id;
-      option.textContent = source.label;
-      option.dataset.i18nIgnore = ''; // a browser profile's name
-      browserSource.append(option);
-    }
-    for (const entry of unavailable) {
-      const option = document.createElement('option');
-      option.disabled = true;
-      option.textContent = t('favorites.import.permissionNeeded', { source: entry.label });
-      browserSource.append(option);
-    }
-    const browserGuidance = document.getElementById('browserImportGuidance');
-    if (browserGuidance) {
-      if (unavailable.length) {
-        browserGuidance.textContent = unavailable[0].guidance ?? '';
-        browserGuidance.hidden = false;
-      } else {
-        browserGuidance.textContent = '';
-        browserGuidance.hidden = true;
-      }
-    }
-    const hasSelectable = sources.length > 0;
-    const hasBlocked = unavailable.length > 0;
-    browserSourceWrap.hidden = !hasSelectable && !hasBlocked;
-    browserImportBtn.hidden = !hasSelectable;
-    browserFindBtn.hidden = hasSelectable || hasBlocked;
-    return hasSelectable;
+    return true;
   }
 
-  browserFindBtn.addEventListener('click', async () => {
-    browserFindBtn.disabled = true;
-    importStatus.textContent = t('favorites.import.looking');
-    try {
-      const found = await loadBrowserSources();
-      importStatus.textContent = found ? '' : t('favorites.import.noneFound');
-    } catch {
-      // A failed lookup must say so rather than leaving a button that
-      // silently does nothing.
-      importStatus.textContent = t('favorites.import.checkFailed');
-    } finally {
-      browserFindBtn.disabled = false;
-    }
-  });
-
-  browserImportBtn.addEventListener('click', async () => {
-    if (!browserSource.value) return;
-    browserImportBtn.disabled = true;
-    browserSource.disabled = true;
+  async function importProfile(id) {
     importStatus.textContent = t('favorites.import.importing');
     try {
-      const res = await window.bowserPages.bookmarks.importBrowser(browserSource.value);
-      if (res.error === 'source-unavailable') {
-        importStatus.textContent = t('favorites.import.sourceGone');
-        await loadBrowserSources();
-        return;
-      }
-      if (res.error === 'empty') {
-        importStatus.textContent = t('favorites.import.sourceEmpty');
-        return;
-      }
-      if (res.error === 'too-large') {
-        importStatus.textContent = t('favorites.import.sourceTooLarge');
-        return;
-      }
-      if (res.error) {
-        importStatus.textContent = t('favorites.import.sourceUnreadable');
-        return;
-      }
-      importStatus.textContent = t('favorites.import.fromSource', { source: res.source.label, result: importSummary(res.added, res.skipped) });
+      const res = await window.bowserPages.bookmarks.importBrowser(id);
+      if (res.error === 'source-unavailable') { importStatus.textContent = t('favorites.import.sourceGone'); return false; }
+      if (res.error === 'empty') { importStatus.textContent = t('favorites.import.sourceEmpty'); return false; }
+      if (res.error === 'too-large') { importStatus.textContent = t('favorites.import.sourceTooLarge'); return false; }
+      if (res.error) { importStatus.textContent = t('favorites.import.sourceUnreadable'); return false; }
+      importStatus.textContent = t('favorites.import.fromSource', { source: res.source.label, result: importSummary(res) });
       refresh();
+      return true;
     } catch (error) {
       showEditError(error);
+      return false;
+    }
+  }
+
+  // Import: the dialog closes and the result is said on the page, under the
+  // heading, where the new favorites appear. Open tabs come after the
+  // favorites, on Bring Your Tabs, which finds them in the other browser.
+  importForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (browserImportBtn.disabled) return;
+    const source = browserSource.value;
+    const favorites = importWhatFavorites.checked && Boolean(source);
+    const tabsToo = importWhatTabs.checked;
+    closeDialog();
+    if (!favorites) { if (tabsToo) bringTabs(); return; }
+    busy = true;
+    importMenuBtn.disabled = true;
+    let ok;
+    try {
+      ok = source === FILE_SOURCE ? await importFile() : await importProfile(source);
     } finally {
-      browserImportBtn.disabled = false;
-      browserSource.disabled = false;
+      busy = false;
+      importMenuBtn.disabled = false;
+      // The button was disabled when the dialog closed, so focus fell to
+      // the page; give it back.
+      if (!document.activeElement || document.activeElement === document.body) {
+        importMenuBtn.focus({ preventScroll: true, focusVisible: false });
+      }
+    }
+    if (ok && tabsToo) bringTabs();
+    // Asked for tabs too, but the favorites didn't arrive: say the tabs
+    // weren't brought either, rather than leaving that half unanswered.
+    else if (tabsToo) {
+      importStatus.textContent = [importStatus.textContent, t('favorites.import.tabsSkipped')].filter(Boolean).join(' ');
     }
   });
 
   const folderKey = (name) => (typeof name === 'string' ? name.trim().toLowerCase() : '');
   const byDateDesc = (a, b) => (b.addedAt ?? 0) - (a.addedAt ?? 0);
 
-  // Ordering (folders alpha, items newest-first, ungrouped last) is mirrored by
-  // groupFavoritesForMenu in src/main/bookmark-data.js for the native menu —
-  // keep the two in sync.
+  // The flat list, for hosts without the tree (the fork): folders A–Z, items
+  // newest first, ungrouped last. The native menu follows the tree instead
+  // (favoritesMenuModel in src/main/bookmark-data.js).
   function group(items) {
     const byKey = new Map();       // key -> { name, items }
     const ungrouped = [];
@@ -196,7 +272,7 @@
     return { folders, ungrouped, names: folders.map((f) => f.name) };
   }
 
-  async function refresh() {
+  async function refreshFlat() {
     const [items] = await Promise.all([window.bowserPages.bookmarks.list(), loadPins()]);
     closeMenu();
     list.replaceChildren();
@@ -403,14 +479,13 @@
 
   let openMenu = null;
   let openAnchor = null;
-  const surface = window.bowserPages?.surface;
   function closeMenu() {
     if (!openMenu) return;
     openMenu?.remove();
     openAnchor?.setAttribute('aria-expanded', 'false');
     openMenu = null;
     openAnchor = null;
-    surface?.armEscape?.(false);
+    escapeArm.release('picker');
   }
   function escapeMenu() {
     if (!openMenu) return;
@@ -418,7 +493,6 @@
     closeMenu();
     anchor?.focus({ preventScroll: true });
   }
-  surface?.onEscape?.(escapeMenu);
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && openMenu) {
       e.preventDefault();
@@ -429,6 +503,7 @@
     if (openMenu && !openMenu.contains(e.target) && !e.target.classList.contains('folder-chip')) closeMenu();
   });
   document.querySelector('.page')?.addEventListener('scroll', closeMenu, { passive: true });
+  window.addEventListener('scroll', closeMenu, { passive: true });
   window.addEventListener('resize', closeMenu);
 
   function openPicker(anchor, b, allNames) {
@@ -500,11 +575,42 @@
     menu.style.maxHeight = `${Math.min(320, openUp ? above : below)}px`;
     menu.style.left = `${Math.max(pad, Math.min(rect.left, window.innerWidth - menu.offsetWidth - pad))}px`;
     menu.style.top = `${openUp ? rect.top - menu.offsetHeight - gap : rect.bottom + gap}px`;
-    surface?.armEscape?.(true);
+    escapeArm.claim('picker', escapeMenu);
     // Focusing the new-folder field used to scroll the entire sheet to the
     // end of an unbounded picker. Its footer now stays visible in place.
     nameInput.focus({ preventScroll: true });
   }
 
+  if (capabilities.tree === true && window.FavoritesManager) {
+    list.hidden = true;
+    document.body.classList.add('fav-manager-page');
+    const isPinned = (url) => pinnedUrls.includes(startPins.canonicalUrl(url));
+    manager = window.FavoritesManager.mount({
+      root: document.getElementById('manager'),
+      header: document.getElementById('favTop'),
+      status: importStatus,
+      t,
+      editable,
+      canPin,
+      isWebPage,
+      pins: {
+        state: (url) => ({ pinned: isPinned(url), full: pinsMax > 0 && pinnedUrls.length >= pinsMax, max: pinsMax }),
+        async toggle(item) {
+          ownPinChange = true;
+          try {
+            if (isPinned(item.url)) await window.bowserPages.pins.unpin(item.url);
+            else await window.bowserPages.pins.pin(item.url, item.title);
+          } finally {
+            ownPinChange = false;
+          }
+        },
+        reload: loadPins,
+      },
+      rowIcon: (url, favicon) => window.blancRowIcon.rowIcon(document, url, favicon),
+      showError: showEditError,
+    });
+  }
+  // A change made anywhere else (the heart, /save, Sync, another window).
+  window.bowserPages.bookmarks.onChanged?.(() => { if (manager) manager.refreshFromElsewhere(); else refreshFlat(); });
   refresh();
 })();

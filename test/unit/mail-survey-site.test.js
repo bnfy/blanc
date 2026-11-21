@@ -111,14 +111,10 @@ test('the privacy page describes the survey contract', () => {
   assert.match(privacy, /<li>[^<]*Blanc Mail survey[^<]*deleted when that decision is made[^<]*<\/li>/);
 });
 
-// Owner-approved Proton wording, 2026-11-12 (spec "Announcing Proton").
+// Keep provider compatibility explicit in the launch copy and its claims record.
 const PROTON_LINES = [
-  'Gmail and Proton Mail',
-  'Connect a Google account directly, or a Proton account through Proton Mail Bridge on your Mac. Mail is stored locally for reading and draft recovery.',
-  'Blanc Mail is a native Gmail and Proton Mail app for macOS, coming soon from the makers of Blanc Browser.',
-  'Blanc Mail brings a careful, native experience for Gmail and Proton Mail to your Mac.',
-  'Native app for Gmail and Proton Mail',
-  'plus a Google account, or a Proton account with Proton Mail Bridge.',
+  'A mail app for Mac. Bring your Gmail or Proton Mail account, or add a Blanc address of your own.',
+  'Connect Gmail directly, or use your Proton Mail account through Proton Mail Bridge on your Mac.',
 ];
 const SURVEY_LINK = 'Help shape Blanc Mail: tell us what you’d want, anonymously.';
 const WAITLIST_INVITE = 'While you’re here, you can tell us what you’d want in Blanc Mail.';
@@ -142,7 +138,8 @@ test('joining the waitlist offers the survey without tracking', () => {
 });
 
 test('every new Mail page sentence has a ledger row', () => {
-  const ledger = read('docs/website-mail-claims-2026-11-12.md');
+  // Lines reworded later are recorded in the later ledger.
+  const ledger = read('docs/website-mail-claims-2026-11-12.md') + read('docs/website-mail-claims-2026-11-17.md') + read('docs/website-mail-offers-2026-11-20.md');
   for (const line of [...PROTON_LINES, SURVEY_LINK, WAITLIST_INVITE]) assert.ok(ledger.includes(line), line);
   assert.ok(ledger.includes('What would you want?'));
   assert.ok(ledger.includes('This survey has closed. Thank you to everyone who answered.'));

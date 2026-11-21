@@ -32,6 +32,18 @@ test('switch names count only as whole C strings in Mach-O files', () => {
   clean.done(); dirty.done();
 });
 
+test('the Windows scan reads only PE files (MZ), each test switch as a whole C string', () => {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-hp-win-'));
+  const pe = text => Buffer.concat([Buffer.from('MZ'), Buffer.from(`\0${text}\0`)]);
+  fs.mkdirSync(path.join(base, '158.0.8127.2'));
+  fs.writeFileSync(path.join(base, 'chrome.exe'), pe('nothing'));
+  fs.writeFileSync(path.join(base, '158.0.8127.2', 'chrome.dll'), pe('blanc-test-platform'));
+  fs.writeFileSync(path.join(base, 'resources.pak'), '\0blanc-test\0');
+  const result = hooks.windowsStaticScan(base);
+  assert.equal(result.binaries, 2);
+  assert.deepEqual(result.found, [{file: path.join('158.0.8127.2', 'chrome.dll'), name: 'blanc-test-platform'}]);
+  fs.rmSync(base, {recursive: true, force: true});
+});
 test('hooks evidence fails on a switch in a binary or one that takes effect', async () => {
   const quiet = async ({home, args}) => { args(1); return {requests: ['localhost:1 /'], quitOnItsOwn: false}; };
   const a = fakeApp();

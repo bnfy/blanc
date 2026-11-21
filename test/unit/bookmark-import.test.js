@@ -12,14 +12,14 @@ const PUBLIC_FOLDER_KEYS = [
   'childFolderIds', 'folderId', 'httpCount', 'name', 'pathLabels', 'subtreeHttpCount',
 ];
 
-test('chrome: immediate-parent folders, entity decode, icon, non-http dropped', () => {
+test('chrome: full folder paths, entity decode, icon, non-http dropped', () => {
   const entries = parseNetscapeBookmarks(fixture('chrome-bookmarks.html'), { now: FIXED_NOW });
   const m = byUrl(entries);
   assert.equal(m.get('https://example.com/').folder, 'Bookmarks bar');
   assert.equal(m.get('https://example.com/').favicon, null, 'unverified imported icon bytes are dropped');
   assert.equal(m.get('https://example.com/').addedAt, 1700000000 * 1000);
   // immediate parent is News, not the joined path
-  assert.equal(m.get('https://news.example.com/tech?q=a&b=1').folder, 'News');
+  assert.equal(m.get('https://news.example.com/tech?q=a&b=1').folder, 'Bookmarks bar › News');
   assert.equal(m.get('https://news.example.com/tech?q=a&b=1').title, 'Tech & Science');
   assert.equal(m.get('https://plain.example.org/').folder, 'Other bookmarks');
   // javascript: bookmarklet is dropped
@@ -64,4 +64,30 @@ test('parseNetscapeBookmarkTree exposes folder counts without changing flat pars
   assert.equal(subtree.candidates.length, 1);
   const flatAfter = parseNetscapeBookmarks(html, { now: FIXED_NOW });
   assert.deepEqual(flatAfter, flatBefore);
+});
+
+// --- Full folder paths (F63) ---
+
+test('HTML import keeps the whole path, in source order', () => {
+  const html = '<DL><DT><H3>Work</H3><DL><DT><H3>Clients</H3><DL><DT><A HREF="https://a.example/">A</A></DL>'
+    + '<DT><A HREF="https://b.example/">B</A></DL><DT><A HREF="https://c.example/">C</A></DL>';
+  assert.deepEqual(parseNetscapeBookmarks(html).map((e) => [e.url, e.folder, e.shortened]), [
+    ['https://a.example/', 'Work › Clients', false],
+    ['https://b.example/', 'Work', false],
+    ['https://c.example/', null, false],
+  ]);
+});
+
+test('HTML import: an over-long path lands in the deepest ancestor that fits', () => {
+  const name = (c) => c.repeat(45);
+  const html = `<DL><DT><H3>${name('a')}</H3><DL><DT><H3>${name('b')}</H3><DL><DT><H3>${name('c')}</H3><DL>`
+    + '<DT><A HREF="https://deep.example/">D</A></DL></DL></DL></DL>';
+  const [entry] = parseNetscapeBookmarks(html);
+  assert.equal(entry.folder, `${name('a')} › ${name('b')}`);
+  assert.equal(entry.shortened, true);
+});
+
+test('HTML import: a › in a folder name becomes >, and an unnamed folder adds no level', () => {
+  const html = '<DL><DT><H3>A › B</H3><DL><DT><H3>   </H3><DL><DT><A HREF="https://x.example/">X</A></DL></DL></DL>';
+  assert.equal(parseNetscapeBookmarks(html)[0].folder, 'A > B');
 });

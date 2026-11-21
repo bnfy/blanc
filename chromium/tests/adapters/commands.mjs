@@ -270,6 +270,8 @@ export const commands={
  // search engines and made the default there.
  setCustomSearchEngine:(w,template)=>addNativeEngine(w,'Queue 5 custom search',String(template)),
  setSearchSuggestions:(w,on)=>setSwitch(w,'search','blancSearchSuggestions',on),
+ // #1505: Settings → Appearance → Switch to an unused new tab.
+ setReuseNewTab:(w,on)=>setSwitch(w,'appearance','blancReuseNewTab',on),
  searchSuggestions:w=>readSwitch(w,'search','blancSearchSuggestions'),
  setAppearance:(w,theme)=>inSettings(w,'appearance',async(a,d)=>{const select=d.find('#colorSchemeModeSelect');
   if(!select)return {missing:'#colorSchemeModeSelect'};

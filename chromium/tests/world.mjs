@@ -37,7 +37,9 @@ export function createWorld(fixture){
   async api(method,args=[]){
    return fixture.host.eval(`window.BlancPrototypeHost.api[${jsLiteral(method)}](...${jsLiteral(args)})`);
   },
-  hostEval(expression){return fixture.host.eval(expression);},
+  // The browser's DevTools target list (V32 reads a chrome frame's refusal page).
+  debugTargets(){return fixture.targets();},
+  hostEval(expression,timeout){return timeout?fixture.host.eval(expression,undefined,timeout):fixture.host.eval(expression);},
   frame(name){return app.windows().find(p=>p.frame===name);},
   async call(method,...args){
    const adapter=adapters[method];
@@ -49,6 +51,10 @@ export function createWorld(fixture){
   // Shipping's reset leaves one loose new tab, no closed entries and no
   // open surface; reach the same state through production paths.
   async reset(){
+   // New Tab reuse (#1505) is off between scenarios: the shipping steps the
+   // suite runs (shipping-core.cjs's reference) predate it and expect /new and
+   // the rail's New Tab to open a tab. native-new-tab-reuse.mjs turns it on.
+   await this.native('setReuseNewTab',[false]);
    const keep=String((await this.native('createTab',['chrome://newtab/'])).tabId);
    for(const t of (await this.snapshot()).tabs)if(String(t.id)!==keep)await this.native('closeTab',[t.id]);
    await this.api('clearClosedEntries');

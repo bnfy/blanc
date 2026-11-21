@@ -1,0 +1,14 @@
+# Blanc's desktop fork for Windows, preview channel (x64). Copied to
+# out/BlancWinPrototype/args.gn by chromium/windows/server/bootstrap.sh.
+# Cross-compiled on x86-64 Linux (Chromium's docs/win_cross.md). The other
+# arguments match the Mac's out/BlancPrototype, so the two previews differ
+# only by platform.
+target_os = "win"
+target_cpu = "x64"
+is_debug = false
+is_component_build = false
+symbol_level = 0
+# The version resources of chrome.exe, chrome.dll, setup.exe and the
+# installer name Bananify Creative and Blanc Prototype, not Chromium. A
+# Windows-only file: the Mac preview keeps Chromium's BRANDING.
+branding_file_path = "//blanc/branding/win/BRANDING"

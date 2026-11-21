@@ -240,3 +240,30 @@ test('sprintf-js VEX remains limited to the reviewed, proxy-free build tooling',
       `${path.relative(ROOT, file)}: enabling global-agent requires VEX re-review`);
   }
 });
+
+test('picomatch, minimatch and Astro VEX stay limited to development tooling and the static site build', () => {
+  const statement = readJson('security/openvex.json').statements.find(
+    (entry) => entry.vulnerability.name === 'GHSA-fc5q-39xc-vjpf' && entry.status === 'not_affected'
+  );
+  if (!statement) return; // Without the exception, the ordinary audit owns this finding.
+
+  // Desktop: every picomatch copy is development-only, so none is packaged.
+  const desktop = Object.entries(readJson('package-lock.json').packages)
+    .filter(([key]) => key.endsWith('node_modules/picomatch'));
+  assert.ok(desktop.length > 0, 'desktop: re-review the dependency chain');
+  for (const [key, entry] of desktop) assert.equal(entry.dev, true, `${key}: picomatch must stay development-only`);
+
+  // Website: Astro runs it only while building static pages; no server output.
+  const config = fs.readFileSync(path.join(ROOT, 'site/astro.config.mjs'), 'utf8');
+  assert.match(config, /output:\s*'static'/, 'site: a server output needs reachability review');
+  assert.doesNotMatch(config, /adapter\s*:/, 'site: a server adapter needs reachability review');
+  assert.equal(fs.existsSync(path.join(ROOT, 'site/functions')), false, 'site: Pages functions need reachability review');
+  // The Astro image-endpoint advisory needs the Node adapter.
+  const site = readJson('site/package-lock.json').packages;
+  assert.equal(Object.keys(site).some((key) => key.endsWith('node_modules/@astrojs/node')), false,
+    'site: @astrojs/node needs reachability review (GHSA-r3h5-4585-7x3w)');
+  // The minimatch copies stay development-only.
+  for (const [key, entry] of Object.entries(readJson('package-lock.json').packages)) {
+    if (key.endsWith('node_modules/minimatch')) assert.equal(entry.dev, true, `${key}: minimatch must stay development-only`);
+  }
+});

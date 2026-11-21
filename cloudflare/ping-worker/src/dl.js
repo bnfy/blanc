@@ -1,19 +1,26 @@
 // Pure logic for the website's /dl/* counted download redirect.
 // No Workers APIs here — unit-tested by test/unit/ping-worker-dl.test.js.
 
-// The four site download targets. Mirrors site/src/scripts/site.js pickAsset:
-// a Mac UA can't reveal arm64 vs x64, so there is deliberately no '/dl/mac' —
-// generic Mac CTAs go to /download where both artifacts are explicit.
-export const DL_TARGETS = new Set(['mac-arm64', 'mac-x64', 'win', 'linux', 'beta']);
+// The site's download targets. The release-asset ones mirror site/src/scripts/site.js
+// pickAsset: a Mac UA can't reveal arm64 vs x64, so there is deliberately no '/dl/mac' —
+// generic Mac CTAs go to /download where both artifacts are explicit. The two
+// betas are fixed redirects (fixedDownload).
+export const DL_TARGETS = new Set(['mac-arm64', 'mac-x64', 'win', 'linux', 'beta', 'beta-win']);
 
 // Blanc Beta, the Chromium preview (owner, 2026-11-14): /dl/beta is counted like
 // the others but always answers with the current beta's DMG, never the latest
 // (stable) release. Update with site/src/data/blanc-beta.json for each beta;
 // test/unit/site-blanc-beta.test.js keeps the two equal.
-export const BETA_DOWNLOAD = 'https://github.com/bnfy/blanc/releases/download/chromium-beta-2.0.0-beta.4/Blanc-Beta-2.0.0-beta.4-mac-arm64.dmg';
+export const BETA_DOWNLOAD = 'https://github.com/bnfy/blanc/releases/download/chromium-beta-2.0.0-beta.9/Blanc-Beta-2.0.0-beta.9-mac-arm64.dmg';
+
+// Blanc Beta for Windows (owner, 2026-11-21): /dl/beta-win answers with its
+// public online installer. Update with site/src/data/blanc-beta-windows.json;
+// test/unit/site-blanc-beta-windows.test.js keeps the two equal.
+export const BETA_WINDOWS_DOWNLOAD = 'https://github.com/bnfy/blanc/releases/download/chromium-beta-windows-158.0.8127.902/Blanc-Beta-Setup-158.0.8127.902.exe';
 
 export function fixedDownload(target) {
-  return target === 'beta' ? BETA_DOWNLOAD : null;
+  if (target === 'beta') return BETA_DOWNLOAD;
+  return target === 'beta-win' ? BETA_WINDOWS_DOWNLOAD : null;
 }
 
 // Public Ads Manager data-source identifier. The API credential stays in the

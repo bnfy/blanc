@@ -22,7 +22,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Drag to reorder | `tab-drag.feature` | F3, F28 |
 | Private tabs | `private-tabs.feature` | F4 |
 | Navigation & context menu | `navigation-and-context-menu.feature` | F5, F19 |
-| Find / favorites / history | `find-favorites-history.feature` | F8, F9, F10 |
+| Find / favorites / history | `find-favorites-history.feature` | F8, F9, F10, F63 (D40) |
 | Downloads | `downloads.feature` | F11 |
 | Ad/tracker blocking | `ad-blocking.feature` | F12 |
 | Settings & theming | `settings-and-theming.feature` | F14, F15, F42 |
@@ -312,6 +312,9 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F61-3 | A link from another app never opens in a mini window | — | ✅ | ➖ | ➖ |
 | F61-4 | The mini window shortcut is off until chosen | — | ✅ | ➖ | ➖ |
 | F61-5 | Closing a mini window's last tab closes the window | — | ✅ | ➖ | ➖ |
+| F63-1 | The Favorites menu shows nested folders as submenus | D40 | ✅ | ⬜ | ⬜ |
+| F63-2 | /save files the page into a nested folder by its name or by a path | D40 | ✅ | ⬜ | ⬜ |
+| F63-3 | Editing a favorite changes its name and address, and its Start Page pin follows | D40 | ✅ | ⬜ | ⬜ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance

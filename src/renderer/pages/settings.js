@@ -203,7 +203,6 @@
 
   // --- Core: theme / search engine / adblock (always supported) ---
   const theme = document.getElementById('theme');
-  const newtabLayout = document.getElementById('newtabLayout');
   const showWelcomeTour = document.getElementById('showWelcomeTour');
   const searchEngine = document.getElementById('searchEngine');
   const searchSuggestions = document.getElementById('searchSuggestions');
@@ -291,7 +290,6 @@
     searchEngine.append(opt);
   }
   theme.value = settings.theme ?? 'system';
-  newtabLayout.value = settings.newtabLayout ?? 'billboard';
   searchSuggestions.checked = settings.searchSuggestions ?? false;
   adblockEnabled.checked = settings.adblockEnabled;
 
@@ -326,8 +324,6 @@
       window.bowserPages.settings.get().then(({ settings: saved }) => showSurfaceStyle(saved.surfaceStyle), () => {});
     }
   });
-  newtabLayout.addEventListener('change', () =>
-    window.bowserPages.settings.set({ newtabLayout: newtabLayout.value }));
   if (supports('launchSunrise')) {
     const launchSunrise = document.getElementById('launchSunrise');
     launchSunrise.checked = settings.launchSunrise === true;
@@ -773,6 +769,42 @@
     });
   } else {
     document.getElementById('tabSwitchOrderSetting')?.remove();
+  }
+
+  // #1505: New Tab goes to an unused new tab in the window. On by default.
+  if (supports('reuseNewTab')) {
+    const reuseNewTab = document.getElementById('reuseNewTab');
+    reuseNewTab.checked = settings.reuseNewTab !== false;
+    reuseNewTab.addEventListener('change', async () => {
+      try {
+        const saved = await window.bowserPages.settings.set({ reuseNewTab: reuseNewTab.checked });
+        reuseNewTab.checked = saved.reuseNewTab !== false;
+      } catch {
+        window.bowserPages.settings.get().then(({ settings: saved }) => {
+          reuseNewTab.checked = saved.reuseNewTab !== false;
+        }, () => {});
+      }
+    });
+  } else {
+    document.getElementById('reuseNewTabSetting')?.remove();
+  }
+
+  // #1591: show Save As for every download. Off by default.
+  if (supports('askWhereToSave')) {
+    const askWhereToSave = document.getElementById('askWhereToSave');
+    askWhereToSave.checked = settings.askWhereToSave === true;
+    askWhereToSave.addEventListener('change', async () => {
+      try {
+        const saved = await window.bowserPages.settings.set({ askWhereToSave: askWhereToSave.checked });
+        askWhereToSave.checked = saved.askWhereToSave === true;
+      } catch {
+        window.bowserPages.settings.get().then(({ settings: saved }) => {
+          askWhereToSave.checked = saved.askWhereToSave === true;
+        }, () => {});
+      }
+    });
+  } else {
+    document.getElementById('askWhereToSaveSetting')?.remove();
   }
 
   // Mini Window (#1138): the global shortcut, from the choices this platform
@@ -1896,6 +1928,8 @@
       media: t('settings.permissions.media'),
       geolocation: t('settings.permissions.geolocation'),
       notifications: t('settings.permissions.notifications'),
+      'loopback-network': t('settings.permissions.loopbackNetwork'),
+      'local-network': t('settings.permissions.localNetwork'),
     };
     const MEDIA_LABELS = { audio: t('settings.permissions.audio'), video: t('settings.permissions.video') };
 

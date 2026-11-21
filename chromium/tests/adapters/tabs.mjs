@@ -347,7 +347,7 @@ export const tabs={
  pressBrowserCommand:async(w,id,command)=>{
   if(command==='reload'){await w.api('reload',[id]);return true;}
   if(command==='back'){await w.api('goBack',[id]);return true;}
-  const native={'close-tab':'close','zoom-in':'zoomIn','zoom-out':'zoomOut','zoom-reset':'zoomReset','find':'find','new-tab':'newTab'}[command];
+  const native={'close-tab':'close','zoom-in':'zoomIn','zoom-out':'zoomOut','zoom-reset':'zoomReset','find':'find','new-tab':'newTab','new-private-tab':'newPrivateTab'}[command];
   if(!native)throw new UndefinedNativeAdapterError('Browser command needs an adapter: '+command);
   return (await w.native('previewPageCommand',[native]))!==false;},
  sleepBackgroundTabsNow:w=>{w.app.releasePages();return w.api('sleepBackgroundTabs');},
@@ -385,7 +385,22 @@ export const tabs={
  // are real CDP pointer input on the Island frames.
  pillShieldState:w=>domRead(strip(w),()=>{const el=document.getElementById('pillShield');if(!el)return null;
   return {hidden:!!el.hidden,off:el.classList.contains('shield-off'),title:el.dataset.tooltip??el.title};}),
- async clickPillShield(w){await strip(w).locator('#pillShield').click();},
+ // Every shipping step clicks the shield to open its popover. A click that
+ // opens nothing fails here with what the page knew, instead of as a bare
+ // timeout (link-routing.feature:37 failed that way once in 13 nights).
+ async clickPillShield(w){
+  const wasOpen=await overlayShown(w)&&await w.call('overlayRendererMode')==='shield';
+  await strip(w).locator('#pillShield').click();
+  if(wasOpen)return;
+  for(let i=0;i<30;i++){if(await overlayShown(w)&&await w.call('overlayRendererMode')==='shield')return;await new Promise(r=>setTimeout(r,100));}
+  const s=await w.snapshot().catch(e=>({error:String(e)}));const active=s.tabs?.find(t=>t.id===s.activeTabId);
+  const page=await domRead(strip(w),()=>{const el=document.getElementById('pillShield');
+   return {focus:document.hasFocus(),visibility:document.visibilityState,shield:el?{hidden:!!el.hidden,expanded:el.getAttribute('aria-expanded'),
+    rect:(({x,y,width,height})=>({x,y,width,height}))(el.getBoundingClientRect())}:null};}).catch(e=>({error:String(e)}));
+  const host=await w.hostEval(`({focus:document.hasFocus(),overlayHidden:document.getElementById('overlay')?.hidden??null})`).catch(e=>({error:String(e)}));
+  throw Error('the shield click opened no popover within 3 s: '+JSON.stringify({page,host,mode:await w.call('overlayRendererMode').catch(()=>null),
+   activeTabId:s.activeTabId??null,activeUrl:active?.url??null,committedUrl:active?.committedUrl??null,loading:active?.isLoading??null,shield:active?.shield??null,error:s.error}));
+ },
  async shieldPopoverState(w){
   const shown=await overlayShown(w);
   const s=await domRead(overlay(w),()=>{
@@ -442,7 +457,23 @@ export const tabs={
  forgetCertificateExceptionOnly:async(w,id)=>(await w.api('forgetCertificateExceptionInTab',[String(id),false]))===true,
  setCertificateExceptionCap:(w,n)=>w.native('setCertificateExceptionCap',[Number(n)]),
  // Shipping's chrome document is blanc-chrome://index/, the fork's strip.
- attemptChromeNavigation:(w,url)=>strip(w).evalExpression(`location.href=${jsLiteral(String(url))}`),
+ // The check reads the frame right after this, so let a load settle first:
+ // an immediate read passed or failed by timing (V32, 2026-11-19).
+ async attemptChromeNavigation(w,url){await strip(w).evalExpression(`location.href=${jsLiteral(String(url))}`);await new Promise(r=>setTimeout(r,2000));},
+ // V32: what the strip frame holds after a refused load. Blanc's own page
+ // reads directly; Chromium's refusal page is cross-origin, so it is read
+ // through its own DevTools target.
+ async chromeFrameContent(w){
+  const own=await w.hostEval(`(()=>{try{return document.getElementById('strip').contentWindow.location.href}catch{return null}})()`);
+  if(own)return {kind:own==='chrome://blanc-prototype/index.html'?'own':'other',href:own};
+  const frames=(await w.debugTargets()).filter(t=>t.type==='iframe');
+  if(frames.length!==1)return {kind:'unknown',frames:frames.map(t=>t.url)};
+  const {connect}=await import('../lib/cdp.mjs');const page=await connect(frames[0]);
+  try{
+   const read=await page.eval(`({href:location.href,origin:location.origin,text:(document.body?.innerText??'').trim()})`);
+   return {kind:read.href==='chrome-error://chromewebdata/'&&read.origin==='null'?'refused':'other',...read};
+  }finally{page.close?.();}
+ },
  async chromeUrl(w){
   const [host,src]=await w.hostEval(`[location.href,document.getElementById('strip').contentWindow.location.href]`);
   return host===HOST&&src==='chrome://blanc-prototype/index.html'?'blanc-chrome://index/':src;

@@ -3,7 +3,7 @@
 const path = require('node:path');
 const { createDrmRuntime } = require('./drm-runtime');
 const { startCandidateDrm, isWidevineComponentError } = require('./drm-startup');
-const { openIsolatedLocalHtml } = require('./local-html-preview');
+const { openIsolatedLocalHtml, closeAllLocalHtmlPreviews } = require('./local-html-preview');
 const { clearStartupPreloadEnvironment, cleanRelaunchEnvironment } = require('./drm-relaunch');
 
 // Selected by immutable package metadata, never a renderer message or an
@@ -76,9 +76,19 @@ function createDrmSupport({ app, session, BrowserWindow, components, metadata,
       for (const key of Object.keys(env)) if (!Object.hasOwn(clean, key)) delete env[key];
       Object.assign(env, clean);
     },
+    /** Opens each file on its own; resolves with the ones it refused, as
+     * `{ file, error }`, so main can say why (one refusal never stops the rest). */
     async openLocalFiles(paths) {
       await ready;
-      for (const file of paths || []) await openIsolatedLocalHtml({ BrowserWindow, session, title: app.getName() }, file);
+      const refused = [];
+      for (const file of paths || []) {
+        try { await openIsolatedLocalHtml({ BrowserWindow, session, title: app.getName() }, file); }
+        catch (error) { refused.push({ file, error }); }
+      }
+      return refused;
+    },
+    closeLocalFiles() {
+      closeAllLocalHtmlPreviews();
     },
   };
 }

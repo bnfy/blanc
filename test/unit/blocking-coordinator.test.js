@@ -108,3 +108,39 @@ test('private and other non-persistent sessions are never traced; an unknown ses
     assert.deepEqual(records, []);
   }
 });
+
+test('the local-network policy runs after the veto and startup gate and before the provider', async () => {
+  const f = fixture(); const order = [];
+  f.coordinator.setVeto((d) => { order.push('veto'); return d.url.includes('veto'); });
+  f.coordinator.setGate(f.session, (d) => { order.push('gate'); return d.url.includes('gate'); });
+  f.coordinator.setLocalNetworkPolicy(f.session, (d) => {
+    order.push('lna');
+    if (d.url.includes('public')) return null;
+    return Promise.resolve(d.url.includes('allow'));
+  });
+  f.coordinator.setProvider(f.session, { decide: () => { order.push('provider'); return {}; } });
+
+  assert.deepEqual(await f.request('onBeforeRequest', { resourceType: 'xhr', url: 'http://localhost/veto' }), { cancel: true });
+  assert.deepEqual(order.splice(0), ['veto']);
+  assert.deepEqual(await f.request('onBeforeRequest', { resourceType: 'xhr', url: 'http://localhost/gate' }), { cancel: true });
+  assert.deepEqual(order.splice(0), ['veto', 'gate']);
+  assert.deepEqual(await f.request('onBeforeRequest', { resourceType: 'xhr', url: 'http://localhost/deny' }), { cancel: true });
+  assert.deepEqual(order.splice(0), ['veto', 'gate', 'lna'], 'a refusal never reaches the provider');
+  assert.deepEqual(await f.request('onBeforeRequest', { resourceType: 'xhr', url: 'http://localhost/allow' }), {});
+  assert.deepEqual(order.splice(0), ['veto', 'gate', 'lna', 'provider']);
+  assert.deepEqual(await f.request('onBeforeRequest', { resourceType: 'xhr', url: 'https://public.example/' }), {});
+  assert.deepEqual(order.splice(0), ['veto', 'gate', 'lna', 'provider']);
+  // Only onBeforeRequest is gated.
+  await f.request('onBeforeSendHeaders', { url: 'http://localhost/deny', requestHeaders: {} });
+  assert.deepEqual(order.splice(0), ['provider']);
+});
+
+test('a failing local-network policy cancels; removing it restores the plain path', async () => {
+  const f = fixture();
+  f.coordinator.setLocalNetworkPolicy(f.session, () => Promise.reject(new Error('lost')));
+  assert.deepEqual(await f.request('onBeforeRequest', { resourceType: 'xhr', url: 'http://localhost/' }), { cancel: true });
+  f.coordinator.setLocalNetworkPolicy(f.session, () => { throw new Error('sync'); });
+  assert.deepEqual(await f.request('onBeforeRequest', { resourceType: 'xhr', url: 'http://localhost/' }), { cancel: true });
+  f.coordinator.setLocalNetworkPolicy(f.session, null);
+  assert.deepEqual(await f.request('onBeforeRequest', { resourceType: 'xhr', url: 'http://localhost/' }), {});
+});

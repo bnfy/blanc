@@ -596,14 +596,8 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
   /** Short label for a tab's location: host for web pages, page name for
    * internal ones, empty for a blank new tab. */
   function tabDomain(tab) {
-    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';
-    if (tab.extensionName) return tab.extensionName;
-    try {
-      const u = new URL(viewSourceTarget(tab.url) ?? tab.url);
-      return u.protocol === 'blanc:' ? `blanc://${u.host}` : u.host;
-    } catch {
-      return tab.url;
-    }
+    if (tab?.extensionName && tab.url && !tab.url.startsWith('blanc://newtab')) return tab.extensionName;
+    return TabSections.locationLabel(tab?.url);
   }
 
 
@@ -1135,9 +1129,10 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
   // The menu lines up with the mark but hangs from the Island's bottom edge,
-  // so it never covers the Island (spec D18). In the vertical tabs rail's first
-  // row (vertical-tabs.js placeSpaceMark) it hangs from whichever is lower, the
-  // mark or the Island, so it covers neither. With the mark hidden (it is
+  // so it never covers the Island (spec D18). In the vertical tabs rail's header
+  // (vertical-tabs.js placeSpaceMark; on macOS its second row, under the traffic
+  // lights) it hangs from whichever is lower, the mark or the Island, so it
+  // covers neither. With the mark hidden (it is
   // never shown on the Island) the menu lines up with the Island instead.
   function spacesAnchor() {
     const anchor = pillSpace.hidden ? islandPill : pillSpace;

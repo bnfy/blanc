@@ -1,0 +1,46 @@
+diff --git a/chrome/browser/extensions/api/extension_action/extension_action_api.cc b/chrome/browser/extensions/api/extension_action/extension_action_api.cc
+index 6a06fde..4420f45 100644
+--- a/chrome/browser/extensions/api/extension_action/extension_action_api.cc
++++ b/chrome/browser/extensions/api/extension_action/extension_action_api.cc
+@@ -4,6 +4,8 @@
+ 
+ #include "chrome/browser/extensions/api/extension_action/extension_action_api.h"
+ 
++#include "blanc/browser/ui/blanc_prototype_ui.h"
++
+ #include <stddef.h>
+ 
+ #include <algorithm>
+@@ -145,9 +147,12 @@ bool OpenPopupInBrowser(BrowserWindowInterface& browser,
+   // exists, so the check below is sufficient.
+   // On other platforms, ExtensionsContainer is always constructed except for
+   // guest sessions, so we need more detailed checks.
+-  if (!WindowFeatureController::From(&browser)->SupportsWindowFeature(
+-          WindowFeatureController::WindowFeature::kFeatureToolbar) ||
+-      !BrowserWindow::FromBrowser(&browser)->IsToolbarVisible()) {
++  // Blanc: an Island window hides Chromium's toolbar but keeps its extensions
++  // container in the Island, where the popup anchors.
++  if (!blanc_prototype::CanOpenExtensionPopup(&browser) &&
++      (!WindowFeatureController::From(&browser)->SupportsWindowFeature(
++           WindowFeatureController::WindowFeature::kFeatureToolbar) ||
++       !BrowserWindow::FromBrowser(&browser)->IsToolbarVisible())) {
+     *error = "Browser window has no toolbar.";
+     return false;
+   }
+diff --git a/chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc b/chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc
+index 620de69..3ee58a3 100644
+--- a/chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc
++++ b/chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc
+@@ -634,6 +634,12 @@ void ExtensionsToolbarDesktop::SetPopupOwner(
+   } else {
+     UpdateContainerVisibilityAfterAnimation();
+   }
++
++  // Blanc: the popup anchors on the Island's Extensions button; an Auto-hide
++  // Island stays down while it is open.
++  if (blanc_prototype::IsIslandWindow(browser_)) {
++    blanc_prototype::ExtensionPopupChanged(browser_, popup_owner_ != nullptr);
++  }
+ }
+ 
+ void ExtensionsToolbarDesktop::PopOutAction(

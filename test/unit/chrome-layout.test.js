@@ -237,3 +237,21 @@ test('the page top and the Island anchor can differ (floating Island)', () => {
   assert.equal(shown.findBounds.y, 68);
   assert.equal(shown.islandBounds.height, 68);
 });
+
+// ─── The ⌘L panel keeps clear of the macOS window buttons ────────────────────
+test('on macOS the panel leaves the window buttons their corner', () => {
+  const narrow = calculateChromeLayout({ width: 640, height: 480, chromeHeight: CHROME_HEIGHT, platform: 'darwin' });
+  // The same 92px a side the resting Island keeps (styles.css #islandPill).
+  assert.equal(narrow.panelSideClearance, 92);
+  const wide = calculateChromeLayout({ width: 1280, height: 800, chromeHeight: CHROME_HEIGHT, platform: 'darwin' });
+  assert.equal(wide.panelSideClearance, 92, 'the clearance is a limit; a wide window never reaches it');
+});
+
+test('the panel keeps only its usual margin where no window buttons sit beside it', () => {
+  const rail = calculateChromeLayout({ width: 900, height: 600, chromeHeight: CHROME_HEIGHT, platform: 'darwin', tabLayout: 'vertical' });
+  assert.equal(rail.panelSideClearance, 12, 'the vertical rail holds the window buttons');
+  for (const platform of ['win32', 'linux']) {
+    const layout = calculateChromeLayout({ width: 640, height: 480, chromeHeight: CHROME_HEIGHT, platform });
+    assert.equal(layout.panelSideClearance, 12, platform);
+  }
+});

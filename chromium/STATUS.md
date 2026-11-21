@@ -12,8 +12,1147 @@ the cold release build needed it. Pinned environments unchanged.
 D1 decided 2026-10-31: in-window private tabs.
 D7, F0.7, cold builds, new machines, D2/D4–D6/D8/V2 and replacement D3
 remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff required.
+D4 decided for Windows 2026-11-17: cross-compiled on the Android lane's Linux
+server, tested on GitHub-hosted Windows runners. Approved with it: a second
+checkout there, the Visual Studio toolchain package, one cold Windows build
+and its incremental rebuilds, and one GN regeneration on the Mac Studio
+(`docs/superpowers/specs/2026-11-17-windows-fork-design.md`). Linux desktop
+hardware stays pending.
 
 ## Current work
+- **2026-11-19 — Spaces across profiles (spec `docs/superpowers/specs/2026-11-19-spaces-across-profiles-design.md` §6, plan `docs/superpowers/plans/2026-11-19-fork-spaces-across-profiles.md`; the owner said "go" after the plan merged in #1643), candidate macos-8614a3a373fe16f9:**
+  With two or more Chromium profiles, the Spaces menu and the Quick Switcher
+  list every profile's Spaces under their names, open another profile's
+  Space in a window of that profile, and create a Space in another profile
+  (empty start only), as shipping does since bnfy/blanc#1642.
+  - **Listing:** each loaded profile copies its Space list into the Local
+    State dictionary `blanc.spaces.profiles` (patch 0106, one registration
+    in `browser_prefs.cc`), keyed by profile directory: id, name, color,
+    symbol and tab count only, through the pure rules in
+    `blanc/browser/ui/spaces_across_profiles.h`, checked against shipping's
+    `src/main/spaces-across-profiles.js` by
+    `tools/spaces-across-profiles.test.mjs`. `SpacesMirror`
+    (`spaces_across_profiles.inc`) writes it on every change of
+    `blanc.spaces.meta` and refreshes every window's menu when a profile is
+    added, renamed, hidden, needs sign-in, or is deleted. Listing never
+    loads a profile.
+  - **Opening and creating:** `spaceOtherProfiles`, `spaceOpenInProfile` and
+    `spaceCreateInProfile` load the profile with `profiles::LoadProfileAsync`
+    and open a new window of it without session restore; that window's own
+    Island host opens or creates the Space in its profile. A Space already
+    on screen brings its window forward (restored if minimized). Duplicate
+    requests join one load. A mini window answers `busy`.
+  - **The menu:** #1642's `workspace-ui.js` and `overlay.js` and its nine
+    strings come from their own pin, `blanc/spaces-menu.json` (#1658's
+    merge, f91530b22, which carries #1642 and fixes a refused Quick
+    Switcher open showing nothing and `/space <name>` offering the Profile
+    choice), ahead of the renderer's v1.49.1;
+    #1642's three `styles.css` rules are anchored edits
+    (`tools/island-renderer.mjs`, `tools/spaces-menu-pin.test.mjs`). The host
+    carries #1642's focus fix: a window brought forward stays in front when
+    the menu closes. Another profile's row has no context menu.
+  - **Evidence on the Mac Studio:** `tests/native-spaces-across-profiles.mjs`
+    passes 20 of 20 (F41-83 to F41-92 through the real menu, editor and Quick
+    Switcher; a private tab active in Personal still opening a normal Work
+    window; the mirror written, following edits and read with Work unloaded;
+    a rename reaching the heading; open from an unloaded profile; a double
+    open joining one window; a deleted Space answering not-found; create;
+    Chromium's deletion of a throwaway profile taking it off the menu). The
+    shipping runner's F41 slice passes 84 of 84 and local-profiles 2 pass, 1
+    excluded, as in the last nightly. Fork unit suite and `check-patches.py`
+    pass (105 patches; 213 upstream files, unchanged by this work).
+  - **Review:** each task was reviewed as it landed, and Codex reviewed the
+    whole branch. Its five findings in this branch's code are fixed: two
+    creates at once no longer drop a Space, the window made for a Space
+    comes forward only once the Space is in it, a pending open rechecks the
+    list, stale Local State entries are dropped at start, and the listing
+    check lists through the menu. Its other two are in shipping's
+    `workspace-ui.js` (#1642), which the fork takes as it is: a failed
+    Quick Switcher open shows no error, and `/space <name>`'s editor offers
+    the Profile choice. They belong in a shipping fix, then the pin.
+  - **Not checked:** Windows (the cross build compiles the same code; no
+    check ran there); a real mouse and finger on the menu; the menu at the
+    smallest window with many Spaces; a site signed in only in Work (spec
+    §9's hand check). F41-92 can only show that no sync state crosses
+    profiles, because the fork's menu draws no Shared Spaces marks in any
+    window. F41-83 to F41-92 are not in the shipping runner's inventory
+    until it moves past #1642.
+  - **Proposed divergences, for the owner:** V31 (a profile's Spaces are
+    listed once it has been opened in a build with the Local State copy),
+    V33 (other profiles in Chromium's profile-picker order) and V34 (no
+    "Couldn't read this profile's Spaces." line), in the replacement spec's
+    table. The plan's V32 and V33 became V33 and V34 because `chromium/next`
+    recorded its own V32 the same day.
+  - **Incident:** the first BlancPrototype rebuild for this work (20:23)
+    replaced the app beta.8's outbound check was relaunching, which stopped
+    the beta.8 release at that check; nothing was published, and the check
+    passed on rerun against its own copy. Rule: never rebuild
+    `out/BlancPrototype` while a release's checks run.
+- **2026-11-18 — The Favorites manager (F63) in a tab of its own (owner approved the plan, `docs/superpowers/plans/2026-11-18-fork-favorites-manager.md`):**
+  Favorites is bnfy/blanc#1614's page: a tab, shown as `blanc://bookmarks/`,
+  with the F63 manager and its Edit dialog. Every way to it (⌘⌥B and the
+  menus through patch 0012's `OpenUtilitySheet`, typed `blanc://bookmarks`,
+  `openPage`, the sheets' nav links) opens or switches to that tab
+  (`OpenFavoritesTab`, a singleton tab); a private window opens it in a
+  regular window, as Chromium's bookmark manager does; the Start Page's
+  Favorites link opens it in that tab, as #1614 does. The page is shipping's
+  at its own pin, `blanc/favorites-page.json` (`3f9a3aff0`, #1614's merge),
+  written and checked by `tools/favorites-page.mjs` with two declared edits;
+  the manager's pages.css rules sit between markers in the fork's pages.css,
+  and its `favorites.*` messages come from the same pin
+  (`interface-strings.mjs`). `pages/favorites-adapter.js` is its
+  `window.bowserPages`; `FavoritesHandler` (`favorites_page.inc`) answers
+  only that page in a regular profile's tab, from `favorites_page::` in
+  `utility_sheet_ops.inc` on Chromium's bookmark model: the tree (Other
+  bookmarks, with the bar, mobile and account folders as fixed top-level
+  folders), create, rename (a sibling's name merges), move and remove
+  folders, move, reorder, remove and edit favorites (a Start Page pin
+  follows an edit), with shipping's error codes. Nested folders are
+  Chromium folders; a path is their names joined by ` › `
+  (`favorite_helpers.h`). Sync, `/save`, imports and the Start Page now read
+  and write whole paths; `NormalizeFavoriteFolders` splits a flat
+  `A › B` folder into the nested pair and merges same-named sibling
+  folders (the merge approved by the owner after the PR review), at the
+  tree's first read. The bookmarks bar, mobile and account folders show
+  under names that never repeat a top-level folder's (" 2"), in the tree
+  and in every Favorites list alike; the tree has no cap, and a favicon is
+  encoded again only when it changed. After those changes the Favorites
+  check passed 8 of 8 again and the Favorites V30 cases passed on
+  macos-f575679c518bca5c. Order and empty folders stay on this
+  Mac: `favoritesLayout` is still kept whole and never applied (plan
+  decision 3). The sheet's Favorites ops and bridge are gone. V30 (below)
+  replaces ten v1.49.1 steps that assume the sheet. No upstream patch
+  changed. Checked on the Mac Studio the same day: `gn gen` for
+  BlancPrototype and BlancBeta with unchanged arguments (served.txt is a GN
+  input), then a guarded incremental BlancPrototype build (6 steps) on
+  candidate macos-ed0ac0f28dd90c86; `native-favorites-manager.mjs` passes
+  8 of 8 (the tab from its command and a typed address, the manager drawn,
+  nested create, move, reorder, rename, a refused cycle, folder removal,
+  edit with refused addresses and the pin following, removal) and
+  `native-new-tab-reuse.mjs` 9 of 9 (after the PR review's fixes, imports
+  behind the editing policy and a move across account and local storage
+  refused, the Favorites check passed 8 of 8 again on macos-48672c9cd81512a3);
+  the V30 cases (internal-pages F16-2,
+  F16-5, F16-8, F16-10; F9-3; F35-5; browser-migration F30-1, F30-2 and
+  :28/:35) and sync.feature :38/:49, which share a replaced step, pass.
+  Not yet: the strip doesn't take the page's color (#1614's page tint), the
+  browser importer still keeps only each favorite's immediate folder, the
+  flat-folder split and Sync of a nested path weren't run against a real
+  profile or the local Worker, and the full suite hasn't run on it.
+- **2026-11-17 — Carried checks come due on the Chromium version alone (owner: "Yes, narrow it"):**
+  `release/standing.json`'s `anyChange` (`chromium/upstream/**`) also
+  matched the pristine Chromium files pinned for each new patch, so
+  patches 0087 to 0093 made every carried check due although Chromium did
+  not change. `anyChange` is now empty, and a new `chromiumVersion` rule
+  compares the `version` and `upstream` fields of
+  `chromium/lanes/desktop.json` between a check's last pass and the
+  release (`chromiumVersionAt` in `standing.mjs`, used by `beta-prep.mjs`).
+  Each check's own paths still make it due. A dry run of beta.7's gates at
+  the current head now carries all four: webauthn from beta.5,
+  sparkle-N-to-N+1 from beta.6, desktop-sync and no-drm-handoff from beta.7;
+  only production-sync-real-device stays waived. A new Chromium makes all
+  of them due again (unit test).
+- **2026-11-17 — desktop-sync rerun for beta.7 (owner: "Rerun Sync"):**
+  due because the importer changed Sync's code. Both parts pass, the same
+  way as beta.6's: `native-sync-organic-tabs.mjs` on the prototype
+  macos-cbb4a951532f5900 (6 of 6: pages reach the peer on the runner's own
+  timers, in a Space, after a relaunch and after joining again) and
+  `beta-sync.mjs` on a local-qualification beta.7 built from the same source
+  (5 of 5, every Sync request on the Mac Studio). Evidence at
+  `evidence/foundation/beta7/desktop-sync.json`, pinned in
+  `release/standing.json` as desktop-sync's last pass from `18d761d3c`. The
+  Studio's `out/BlancBeta` was switched to the local-qualification arguments
+  for that build (`records/beta7-local-qual/`) and put back to the release
+  arguments afterwards, as for beta.6. Still due for beta.7 by the
+  `anyChange` glob: webauthn (owner) and sparkle-N-to-N+1.
+- **2026-11-17 — Importer: Sync's failure paths (candidate macos-cbb4a951532f5900):**
+  from a source review the owner passed on. Two faults, both confirmed in
+  the code before fixing. (1) Personal was marked imported before Sync was
+  staged, and a failed staging write showed only as `staged: false`, which
+  Settings never read; a second run skipped Personal, so Sync was never
+  tried again. Personal's marker now carries Sync's own state (`staged`,
+  `none` or `failed`); a run that finds `failed` stages Sync alone and
+  imports nothing else twice; Settings says "Your data is here, but Sync
+  couldn't be set up. Try again to set up Sync." (a new fork string in six
+  languages, translations unreviewed) and offers Try again. (2) At launch
+  the staged stores were moved with failures ignored and the staging folder
+  deleted anyway. Each store is now copied, put in place and compared;
+  `sync.json`, which turns Sync on, goes last; the staged copy is removed
+  only when every store is in place, so a failed move is taken up at the
+  next launch. Test hooks: `setImportSyncStagingFails` and the switch
+  `--blanc-test-sync-adopt-fail`, both compiled out of beta and release
+  builds. `native-profile-import-sync.mjs` now has 6 checks, adding a
+  failed staging write with its retry through Settings, and a failed move
+  across two relaunches; the importer's other tests pass (11 and 7). The
+  new checks were not run against the build before the fix. A Personal
+  imported before today has no Sync state in its marker and is treated as
+  done.
+- **2026-11-17 — The no-drm-handoff standing waiver is retired from beta.7 (owner: "Yes, retire it"):**
+  `release/standing.json` sets the waiver's `until` to 2.0.0-beta.7, so
+  from that beta the gate must pass. It passes as a carried check:
+  `native-protected-media.mjs` on the prototype (8 of 8 on
+  macos-1400e3914b1a7bdf, source `ded39777f`), evidence pinned at
+  `evidence/foundation/beta7/no-drm-handoff.json` on the Mac Studio, due
+  again when the notice's code changes. Protected video still does not
+  play (no Widevine), so the limitation stays listed: a new `keptLimits`
+  list keeps a retired waiver's line in the release notes and on the
+  website, whose page text therefore does not change. The release-notes
+  line now says the beta shows a notice offering the regular Blanc. Not
+  covered by the evidence: the notice on live sites and the real handoff on
+  a notarized beta (the owner's hand check). **For the next beta, seen in a
+  dry run of its gates:** desktop-sync is due (the importer changed Sync's
+  code), and webauthn (the owner's Touch ID check) and sparkle-N-to-N+1
+  show as due because `anyChange` (`chromium/upstream/**`) matches the
+  pristine files newly pinned for patches 0087 to 0093, although the
+  Chromium version did not change. Whether that glob should be narrower is
+  the owner's standing decision; nothing was changed.
+- **2026-11-17 — Close-out of the macOS remaining-work plan; tracker moved to macos-1400e3914b1a7bdf:**
+  the nightly full suite 20261117-0700 passed on the merged head
+  `ded39777f` (bnfy/blanc#1586): 635 of 667 pass, 1 fails
+  (`link-routing.feature:37`, passed on its rerun), 3 undefined (runner
+  gaps), 28 excluded. The tracker's candidate, baseline and every
+  suite-backed row's counts are from that run (F41 84 of 84 now that the
+  Spaces fade case is fixed, F37 9 of 9 with the New Tab reuse cases, F60
+  6 of 7 for the link-routing flake). N13 and N17 move to Integrated on
+  their rechecks; F51 stays Implemented, inert until a release version.
+  macOS rows: 70 Integrated, 8 Implemented, 2 not started by owner
+  decision, 1 research, none Verified. What remains for the owner, the
+  decisions and what is left to build are in §7 of
+  `docs/superpowers/plans/2026-11-16-macos-fork-remaining-work.md`.
+- **2026-11-16 — The Start Page import no longer costs the phones a request (candidate macos-1400e3914b1a7bdf):**
+  the iPhone and iPad unit test `MobileStartPageTests.testFavoritesWidgetListsAndFollowsFavorites`
+  failed on bnfy/blanc#1586. The phones share `newtab-adapter.js`, and the
+  importer's change made every Start Page ask `importRead` before its data,
+  a request only the desktop browser answers. The page now asks only when
+  the desktop browser's `firstRun` answer carries `startPageImport`, which
+  it sets while wallpaper choices are waiting. `native-profile-import-start.mjs`
+  (3) and `-settings.mjs` (7) pass on the new build; the iPhone tests are
+  CI's to confirm.
+- **2026-11-16 — Mute Site is Chromium's sound setting (V21; candidate macos-4148a26f1387076a):**
+  the recheck found Mute Site kept its sites in memory, as shipping does,
+  not as approved divergence V21 says. The owner confirmed V21 on
+  2026-11-16. Mute Site now writes Chromium's own sound setting for the
+  site, as Chromium's own Mute site does, so a muted site stays muted
+  after a relaunch until it is unmuted and shows in Chromium's site
+  settings. A private profile reads the regular profile's sites and keeps
+  its own changes for its session (Chromium's map; not tested here). The
+  per-tab mute, the unmute of one tab on a muted site and the background
+  guard are unchanged. Difference from before: the setting is per origin
+  (scheme, host and port), where the in-memory set was per host.
+  `native-recheck-n13.mjs` passes 4 checks, now asserting muted after a
+  relaunch and unmuted after an unmute and a relaunch. Shipping's step
+  "the tab on {string} is not muted", used only after the relaunch in
+  "Mute Site lasts until Blanc quits", is rebound to V21 in
+  `fork-steps/divergences.mjs`; that scenario and the Glance mute cases
+  pass. The rest of the suite was not re-run. GN was regenerated with
+  unchanged arguments after the merge with `main` (an Android-only
+  argument in `config.gni`).
+- **2026-11-16 — Rechecks for N17, F51 and N13, and the Spaces fade flake (candidate macos-f581c659f1207624):**
+  three new tests, all passing on the Mac Studio. **N17 Invite**
+  (`native-recheck-n17.mjs`, 2 checks): `/invite` hands the mail app
+  shipping's email (no recipient, its subject, greeting, pitch and the
+  blanc.day invite link), and with no mail app puts the text on the
+  clipboard and says so. A test launch opens no mail app; a stand-in says
+  whether one would answer (`setInviteMailApp`, `inviteHandoffs`). **F51
+  What's New** (`native-recheck-f51.mjs`, 4 checks, `--blanc-test-version`):
+  nothing without a release version; after an update the pill shows with
+  the version and its changelog link; opening the link or closing the pill
+  ends it across a reload and a relaunch; the next update shows it again.
+  Not exercised: the page-found path and its one-time tab (offline).
+  **N13** (`native-recheck-n13.mjs`, 4 checks): Mute Site silences the
+  playing tab and every tab on the site, old and new, and Unmute Site
+  restores them; the Island takes the page's color, and Match site colors
+  off clears it. **Finding:** after a relaunch the site is no longer muted.
+  The code keeps muted sites in memory, as shipping does, so divergence V21
+  (approved 2026-11-05: Chromium's own sound setting, kept across a
+  relaunch) is not what is built, and shipping's scenario "Mute Site lasts
+  until Blanc quits" passes. Owner to decide which stands. **K10:** the
+  Spaces menu fade case (`F41-named-workspaces.feature:211`) failed 4 of 5
+  when run alone. A probe showed the test pressed Escape before the fork's
+  overlay had drawn the menu, so there was nothing to fade; shipping's hook
+  delivers the show before the key. `pressOverlayKey` now waits for the
+  overlay to draw the host's mode: 6 of 6, and the whole F41 file passes
+  (84 cases). The menu itself was not changed. The tracker rows move at the
+  next nightly refresh.
+- **2026-11-16 — Electron profile importer: the Start Page's settings (candidate macos-14061c5b07c620fd):**
+  the import now carries the Start Page's layout, the clock's six values,
+  the wallpaper choices (time of day, color, preset, fill, wash, style) and
+  the person's own image. The layout and clock are preferences the browser
+  sets; the wallpaper lives in the Start Page's own storage, so it waits
+  for the profile's next Start Page, which stores it once
+  (`start_page_import.inc`, `importRead` / `importDone`). Widgets nobody
+  has changed follow the imported layout. `native-profile-import-start.mjs`
+  has 3 checks; the other importer tests pass (11, 7, 4). Trials on both
+  real copies: no errors, sources unchanged; the Mac Studio copy, which
+  shows its own image, carried it, and the MacBook Pro copy, which does
+  not, carried none. Not carried: following a Space's color. Not seen on
+  screen by the owner. The shared Start Page adapter changed, so Android's
+  copy was regenerated; Android answers the new request as unsupported and
+  carries on.
+- **2026-11-16 — Electron profile importer: the result list (candidate macos-88c3fcc0786de627, patch 0093):**
+  after an import, Settings, About lists each profile by its own name with
+  what came across, names a profile that could not be read, and says what
+  is never imported (website sign-ins, the downloads list, a few settings).
+  The labels are shipping's own strings; three new lines are fork strings
+  in six languages, translations unreviewed. Profile names reach the
+  Settings page only; test hooks and the real-data tool still get counts
+  and codes. `native-profile-import-settings.mjs` has 7 checks. The trial
+  on the MacBook Pro profile copy was repeated on this build: no errors,
+  five profiles, source unchanged. Not seen on screen by the owner.
+- **2026-11-16 — Electron profile importer: second trial on real data (candidate macos-a094fb86f8dba413):**
+  the data files of the MacBook Pro's Blanc folder (v1.49.1, 30 stores,
+  Personal and four named profiles) were copied to the Mac Studio's
+  `~/Projects/Blanc/scratch/real-import/` and imported from the copy into a
+  throwaway test profile, counts only. **Two real faults found and fixed:**
+  a `history.json` written before Blanc kept site icons has no `siteIcons`
+  list, so two named profiles were refused whole (`invalid-shape`); the list
+  is now optional, and still refused if present and not a list. And a Space
+  with no saved tabs was dropped without a word; it is now kept by name,
+  color and symbol with one new tab, since the fork has no Space without a
+  tab (an empty saved window is still nothing to open). Tests for both in
+  `profile-import.test.mjs` and `native-profile-import.mjs`. Result after
+  the fixes: no errors; Personal 25 Favorites, 4,996 visits, 232 site
+  icons, 21 permissions, 1 pin, 10 archived tabs, 1 Space, one saved window
+  of 24 tabs in 3 groups with 23 left unloaded; four Chromium profiles
+  created (1, 22, 41 and 3 visits; one with 2 Spaces); 26 settings copied
+  and 7 converted; the copy's stores hash the same before and after. The
+  history read-back reports 3,581 added for Personal's 4,996 visits;
+  Chromium's count takes an address once a day, which is the likely
+  reason, not checked visit by visit. Still not tried: the real Keychain
+  prompt and a real Sync account (the owner's check).
+- **2026-11-16 — Electron profile importer: first trial on real data (candidate macos-911d46dcfc30de03):**
+  the Mac Studio's own Blanc folder (v1.49.1, 17 stores, one profile) was
+  copied to `~/Projects/Blanc/scratch/real-import/` (a private APFS copy,
+  which is also the backup; the original was not touched and Blanc there
+  was not quit) and imported from the copy into a throwaway test profile
+  with `tests/real-profile-import.mjs`, which prints counts, store names
+  and reason codes only. Result: no errors in 0.3 s; 45 Favorites, 436
+  visits, 43 site icons, 3 pins, 2 permissions, 26 settings copied and 7
+  converted, one saved window of 10 tabs with 9 left unloaded; no
+  `workspaces.json`, `archive.json` or `profiles.json` in that folder, which
+  the importer treats as absent; the copy's stores hash the same before and
+  after. Sync was staged with its key `unavailable`, as a test launch reads
+  no Keychain item. **A real bug found and fixed:** an install older than
+  shipping's first-day signals has the word "legacy" for its date, not a
+  number, so the install id was refused; it is now kept, with the date 0
+  (a new check in `native-profile-import-sync.mjs`). The synthetic fixture
+  has only the number form. Not tried: a profile with named profiles and
+  Spaces (the MacBook Pro's has four profiles), and the real Keychain
+  prompt.
+- **2026-11-16 — Electron profile importer, task 8: the Settings command and the profile picker (candidate macos-91f427ea33bb6e2a; patch 0093):**
+  Settings, About has a row, "Bring your data from the released Blanc app",
+  with **Import**. The page sends no path: the browser takes the released
+  app's own folder (`~/Library/Application Support/Blanc`), refuses while
+  that app is running (`NSRunningApplication` for `me.bnfy.bowser`), runs
+  the importer and replies with counts and codes, which the page turns into
+  one line (your data is here; Sync picks up after a restart; sign in to
+  Sync again; already imported; no data found; quit the released app;
+  update it to 1.40; some data left out; didn't finish) and **Try again**
+  where that helps. A test launch reads neither the real folder nor the
+  real app's state. After an import that created a profile the importer
+  switches off Chromium's own `profile.show_picker_on_startup` (owner
+  decision), so the next launch opens Blanc's windows. The fourteen new
+  strings are in `blanc/fork-strings.json` in six languages, which
+  `settings-strings.mjs` now also reads (`FORK_STRINGS`); the translations
+  were written here and not reviewed by native speakers.
+  Evidence on the Mac Studio: `native-profile-import-settings.mjs` 6 of 6
+  (the row; no source; the released app running; the import; a second run;
+  no profile picker and a Blanc window after a relaunch with two profiles);
+  `native-profile-import.mjs` 11, `native-profile-import-sync.mjs` 4 and
+  `native-trust-receipt.mjs` 3 still pass.
+  **Not done:** the row was not looked at on screen; a detailed list of what
+  came across and what did not; the replacement build's automatic import on
+  first launch; the Start Page's own settings and wallpaper; a real profile
+  and the real Keychain prompt (the owner's check, after a backup); the
+  beta's profile gate (`release/profile-evidence.mjs`) checks that a launch
+  creates or changes nothing in the released app's folders, which stays true
+  because the importer only reads them, and only on the person's command;
+  no gate yet runs the importer itself or covers its Keychain read.
+- **2026-11-16 — Owner decisions for the importer's last task:** (P1) Blanc
+  Beta's Settings gets an import command now, and the replacement build
+  also imports automatically on first launch. (P3) After an import that
+  created a profile, the importer turns off Chromium's own "show the profile
+  picker at startup" setting, so Blanc reopens its windows as the Electron
+  app did. Importer plan, task 8.
+- **2026-11-16 — Electron profile importer, task 7: Sync's stores and key (candidate macos-22d3967de015b079):**
+  the plan passes Electron's protected Sync key on as it is (a legacy plain
+  key never). The browser opens it with the password of Electron's Keychain
+  item (`Blanc Safe Storage`, read with `SecItemCopyMatching` and nothing
+  else; OSCrypt v10: PBKDF2-HMAC-SHA1, AES-128-CBC), checks it is a 32-byte
+  key and protects it again with the fork's own Encryptor. Sync's stores
+  (`sync.json`, `tab-sync.json`, `tab-icons.json`, `sends.json` and
+  Personal's `shared-spaces.json`, `synced-closed.json`) are staged in
+  `<Default>/BlancSyncImport/`, `ready` written last, and
+  `AdoptImportedSyncStores` (desktop_sync_service.cc) moves them into
+  `BlancSync/` at the next launch before the runner reads its stores, unless
+  that profile is already syncing. Where the key cannot be opened (the
+  Keychain read refused, a wrong password, no protected key) the stores are
+  staged with Sync off and the device identity kept. A test launch never
+  reads the real Keychain item.
+  Evidence on the Mac Studio: `native-profile-import-sync.mjs` 4 of 4
+  (refused: the rest imports and Sync is off; kept: the same key under the
+  fork's protection, the stores staged with the same device id; a wrong
+  password is a refusal; after a relaunch the live Sync folder holds the
+  imported stores, device id and key and the staging folder is gone);
+  `native-profile-import.mjs` and `native-tab-handoff.mjs` still pass;
+  `profile-import.test.mjs` 11 of 11.
+  **Found:** once the import has created a second profile, Chromium opens
+  its profile picker at the next launch instead of the saved windows
+  (owner decision P3 in the importer plan).
+  **Not done:** the real-account check and the real Keychain prompt (the
+  owner's, after a backup); Sync actually resuming against the production
+  service; Windows and Linux key formats.
+- **2026-11-16 — Electron profile importer, task 6: site permissions; the downloads list left behind (candidate macos-a458cc792c40c1c5):**
+  each profile's saved answers for microphone, camera, location and
+  notifications are written to Chromium's content settings
+  (`SetContentSettingDefaultScope`, origin for both sides). An old
+  `origin|media` answer covered both devices: a deny is kept for both, an
+  allow is asked again, as shipping reads it. Only http and https origins,
+  only allow and deny. **Owner decision:** the downloads list is not
+  imported (files stay on disk; Chromium's own list is used); the answer key
+  and the plan builder name it as left behind. Evidence on the Mac Studio:
+  `native-profile-import.mjs` 11 of 11 (the four answers read back; old
+  broad deny and allow; an unknown answer and an invalid origin ignored);
+  `permissions-and-auth` scenarios still pass; `profile-import.test.mjs` 10,
+  `importer-fixtures.test.mjs` 15.
+- **2026-11-16 — Electron profile importer, task 5: named profiles (candidate macos-2b57f628562ead96):**
+  the importer works through the plan's profiles in turn: Personal into the
+  first profile, then each named profile into an ordinary Chromium profile
+  created with `ProfileManager::CreateMultiProfileAsync` (the Blanc name,
+  Chromium's placeholder avatar). A profile's data is converted in full
+  before its profile is created, the apply waits for the new profile's
+  Favorites to load, and its saved windows open in it. The marker records
+  each profile's `directory`. Nothing Blanc-specific is kept beyond that
+  (owner direction, 2026-11-16).
+  Evidence on the Mac Studio: `native-profile-import.mjs` 10 of 10: a
+  damaged Personal store fails Personal only while the named profile still
+  imports; the named profile has its own Favorites, 5,000 visits, pin,
+  archived tab, Space and window; the profile being deleted is not created;
+  Personal's Favorites stay its own; nothing is created twice.
+  **Divergences from Electron Blanc, recorded for the owner, not built:**
+  (1) *Settings scope:* Electron's device-wide settings (Island size,
+  auto-hide, quiet delay and the rest) land in Personal only; a named
+  profile starts on Chromium's per-profile defaults. (2) *Deleting a
+  profile* is Chromium's own confirmation, with no typed-name check and no
+  crash-resumable deletion. (3) *Avatar and color:* imported profiles get
+  Chromium's placeholder avatar; Blanc profiles had none. (4) *Profile ids:*
+  Electron's opaque ids exist only in the import marker, so link routes,
+  which name a profile by id, are still not carried. (5) *The picker:*
+  whether Chromium shows its profile picker at launch once several profiles
+  exist was not checked. (6) A second import after the marker is lost would
+  create a second profile of the same name.
+- **2026-11-16 — Owner direction on profiles:** use Chromium's own profile
+  feature to the fullest before building custom support to match the
+  Electron build. The importer's named profiles become ordinary Chromium
+  profiles (standard creation, Chromium's per-profile settings, Chromium's
+  picker, rename and delete); differences from Electron are recorded as
+  divergences, not coded around. Importer plan, task 5.
+- **2026-11-16 — Electron profile importer, task 4: the open session (candidate macos-beb93342b0ee850e):**
+  each of the first profile's saved windows (`session.json` v2, at most ten)
+  opens as a window of its own: tabs restored unloaded with their titles,
+  pins with their home address, groups with name, color and folded state,
+  two-pane splits with their ratio and focus, and the saved current tab
+  loaded. `ConvertImportedWindow` is shared with the Space conversion and
+  keeps each kept tab's place in the saved columns. **Found on the way:** the
+  first tab added to a window is always shown and loaded, whichever it is,
+  so the current tab is added first and the others placed around it (the
+  handoff and tab-import batches never met this because they make their
+  first tab current). Evidence on the Mac Studio:
+  `native-profile-import.mjs` 9 of 9 (the saved window with its pin, group,
+  color, split and current tab; the tab behind the split unloaded with its
+  saved title; no window from another profile; none opened twice), two
+  probes with other window shapes (current tab last; no split), and
+  `arc-spaces-import` and `native-tab-handoff` still passing.
+  **Not done:** windows of named profiles (task 5); splits inside a saved
+  Space; a tab's custom name; three-pane and grid splits (the fork has
+  two-pane splits only); placing a window where it was.
+- **2026-11-16 — Electron profile importer, task 3: settings and the install id (candidate macos-2fde2b7b2c1ae676):**
+  `chromium/settings-keys.json` is at v1.49.1 (85 keys, `reuseNewTab`
+  added) and marks each importable key with an `import` field (its
+  preference, and the values or range it may take). The bundle builder turns
+  those into the plan builder's rules with each preference's registered type;
+  the plan carries `settingsPrefs` `{prefs, skipped, notCarried}`. In the
+  browser the seven keys Sync carries go through Sync's own converter
+  (`ApplyDesktopSyncSettings`), and the rest are written only into a `blanc.`
+  preference (or `search.suggest_enabled`) registered with the same type, in
+  the profile's store or Local State. A value the fork would refuse is
+  skipped and named. The install id and its dates replace the fork's own in
+  Local State. Settings land in the first profile only for now.
+  Evidence: `native-profile-import.mjs` 8 of 8 on the Mac Studio (Island
+  size, hover-open, quiet delay, page zoom, Ctrl+Tab order, usage
+  measurement, first-run time, theme, Bangs, blocking exceptions and the
+  install id read back; an invalid surface style skipped);
+  `profile-import.test.mjs` 10 of 10.
+  **Not carried yet:** the Start Page's own settings (they live in the page's
+  storage), link routes (they name profile ids), the mouse gesture mapping,
+  the WebRTC policy, secure DNS, recent Bangs and the checklist markers.
+- **2026-11-16 — Electron profile importer, task 2: the runner, the marker and the Personal profile's data (candidate macos-0998ddd2080544a0; patch 0092):**
+  `profile_import.inc`. *Reading:* the browser reads the folder's known
+  stores only (regular files, never through a link, 32 MiB each and 256 MiB
+  in all, profile folders by id pattern, at most 64) and never writes there.
+  *Planning:* `ProfileImportRunner` starts the sandboxed service with the
+  pinned profile-import bundle (hash checked, 60-second limit, every host
+  call refused). *Applying:* a profile's stores are all converted first
+  (`PrepareImport`); then Spaces are written (the one write that can refuse),
+  then Favorites (`browser_import::Import`), history (`AddPage` with each
+  visit's own time, then titles), site icons, Start Page pins and the Tab
+  Archive. *Marker:* Local State `blanc.profile_import`
+  `{sourceVersion, profiles: {personal: {importedAt}}}`; a second run reports
+  `alreadyImported` and writes nothing. Only the first (`Default`) profile is
+  imported so far; reached only through the test hook `profileImportRun`.
+  Evidence on the Mac Studio: `native-profile-import.mjs` 7 of 7 (failed on
+  the build before): a damaged store leaves the profile untouched; a
+  non-Blanc folder and a v1.39 source are refused; Favorites in order with
+  their folder; 5,000 visits with their own times; the pin; the archived
+  tab; the Space with its name, color, symbol and tab; the source folder
+  byte for byte unchanged; nothing imported twice. Also
+  `arc-spaces-import` 7 of 7, `find-favorites-history` 7 of 7,
+  `native-tab-handoff` 9, `native-protected-media` 8.
+  **Not done or not checked:** splits inside a Space; site icons on screen;
+  a real profile (only the synthetic fixture was imported); the service's
+  size limit for a very large real history or icon store.
+- **2026-11-16 — Electron profile importer, task 1: the plan builder (plan `docs/superpowers/plans/2026-11-16-electron-profile-importer.md`):**
+  `shims/profile-import.js`, built into `generated/profile-import-bundle.js`
+  (pinned hash in `profile_import_bundle_hash.h`) by
+  `tools/build-profile-import-bundle.mjs`, turns the text of an Electron data
+  folder's stores into one plan: each listed profile's stores in shipping's
+  shapes, the device's stores, what is left behind with reasons, and which
+  profile failed. It has no prelude and makes no host call. Rules from the
+  answer key: tombstones dropped, 5,000 visits, only promptable permission
+  kinds, private downloads never, a half-finished profile deletion finished
+  by not importing it, folders read only for profiles the registry lists,
+  the Sync keys never in a plan. A damaged store fails its own profile only;
+  a source older than v1.40.0, or with no readable settings, is refused
+  whole. The source version is read from `settings.lastRunVersion`, which a
+  real profile that never recorded one would fail: to check against real data
+  in task 2. The answer key now carries the owner's answers (synced settings
+  to Personal only; every Sync field but the keys), so `undecided` is empty.
+  `profile-import.test.mjs` 9 of 9, `importer-fixtures.test.mjs` 15 of 15.
+  Not built into the browser yet: no build was needed or run.
+- **2026-11-16 — The protected-video notice (X2 beta requirement, plan K8; patch 0091; candidate macos-e1f8cb12fc0a503f):**
+  a page asking for protected playback gets a card under the Island: "Blanc
+  Beta can't play this video yet" / "Protected video works in the released
+  Blanc app." with **Not now** and **Open in released Blanc** (owner's
+  design and wording, 2026-11-16; the first wording, "This video needs
+  Blanc", was dropped because a person in the beta already thinks of it as
+  Blanc). Where the Electron app is absent the action is **Get released
+  Blanc**, which opens blanc.day/download in a tab.
+  *Signal:* Blink's own use counter for `requestMediaKeySystemAccess`
+  (`kEncryptedMediaSecureOrigin`), read by a page-load observer
+  (`protected_media.inc`; patch 0091 registers it in
+  `page_load_metrics_initialize.cc`), so no renderer change. It does not
+  name the key system: a page asking only for Clear Key, which the beta can
+  play, is noticed too. *Behavior:* the notice belongs to the page that
+  asked (a new page load clears it) and shows only while its tab is current;
+  an open Island panel, a sheet or a permission prompt takes its place; it
+  never takes focus; Not now and the handoff put it away for that site until
+  Blanc quits. *Handoff:* the page's address goes to the app with bundle id
+  `me.bnfy.bowser` through NSWorkspace; only http and https; a private tab's
+  address is handed off too (owner, 2026-11-16: keep it; the released app
+  opens it as an ordinary tab). A test launch records the handoff and starts
+  nothing. *Strings:* shipping has no words for this, so the fork has its
+  first own catalog, `blanc/fork-strings.json`, merged into the Island's
+  `strings.js` by `interface-strings.mjs`; every key must carry all six
+  languages and may not shadow a shipping key (unit-tested). The five
+  translations were written here and not reviewed by native speakers.
+  *The browser serves its pages without queries* unless one is allowlisted,
+  so the notice's document asks the host which action it carries.
+  Evidence on the Mac Studio: `native-protected-media.mjs` 8 of 8 (failed on
+  the build before); `permissions-and-auth` 6 of 6, `island-and-commands` 67
+  of 67, `native-tab-handoff` 9, `native-new-tab-reuse` 8,
+  `native-capture-indicator` 5. Screenshots:
+  `docs/chromium-replacement/images/protected-video-notice-{light,dark}.png`.
+  **Not done:** no check on live sites (a test launch blocks outside
+  network), so whether sites such as YouTube ask for protected playback on
+  ordinary videos is unknown; the real handoff to an installed Electron
+  Blanc was not exercised; the standing waiver `no-drm-handoff` stays until
+  the owner retires it; Windows and Linux have no handoff.
+- **2026-11-16 — Owner decisions for the protected-video notice and the importer:**
+  (1) the notice is a capsule under the Island, like the permission prompt:
+  "This video needs Blanc" / "Blanc Beta can't play protected video yet." /
+  **Not now**, **Open in Blanc**; it goes when the person leaves the site.
+  (2) Site sign-ins are not migrated: people sign in again. (3) The synced
+  settings of Electron's one device-wide `settings.json` go to Personal only.
+  (4) Sync stays on across the move: device identity kept, the key
+  re-protected (one Keychain prompt). Recorded in the plan, section 2d.
+- **2026-11-16 — Shipping target moved to v1.49.1 (plan K13), and Chromium 158's action dispatch (candidate macos-bed55af2cf2cf43d):**
+  the pins, the generated Island renderer, the interface, menu and Settings
+  strings, the asset copies and the Android strings copy are at v1.49.1
+  (`673ff2eb`); the inventory is 618 declarations, 667 cases. The host sends
+  `panelSideClearance` with the panel, as shipping's main does. New at
+  v1.49.1 and now bound: F37-5..9 (New Tab reuse; the runner turns reuse on
+  for the cases shipping's `support/hooks.js` does), F37-9's New Private Tab
+  command, and F28-21 (the rail's Space mark clear of the traffic lights,
+  read from the real window through the `windowButtonPosition` hook).
+  **Found by F37-9:** Chromium 158 runs browser commands through its actions
+  (`features::ShouldUseActionsForBrowserCommands`, on by default), so the
+  menu and keyboard never reach `HandleCommandWithDisposition`, where patches
+  0011, 0012, 0019, 0076 and 0086 answer ⌘⇧N and the sheet commands. ⌘⇧N
+  therefore opened a separate private window, not a private tab (shown with
+  logging in a test build; no real key was pressed, and Blanc Beta
+  2.0.0-beta.5, on the same Chromium, was not checked). Fixed without a new
+  upstream hunk: `ExecuteIslandCommand` answers New Private Tab, History,
+  Downloads, Favorites, Settings and About from `ExecuteForFocusedGlance`,
+  the one call every command still passes (patch 0074). Whether the sheet
+  commands were broken before is not known. The switch edits in those five
+  patches are now dead code, to remove at the next patch consolidation.
+  Evidence on the Mac Studio: `blank-tab-affordance.feature` 9 of 9,
+  `vertical-tabs.feature` 20 of 20 (1 excluded),
+  `native-new-tab-reuse.mjs` 8 checks (the command opens a private tab, then
+  reuses it; four sheet commands open their sheets), and
+  `native-tab-switch`, `-dock-menu`, `-tab-handoff`, `-trust-receipt`,
+  `-capture-indicator` and `-window-size-relaunch` pass.
+  **Full suite on this candidate (Mac Studio, 2026-11-16):** 633 of 667
+  cases pass, 3 fail, 3 undefined, 28 excluded (the 07:00 nightly at
+  v1.49.0: 629 of 661, 1 fail). `link-routing.feature:37` passes alone.
+  Two fail again alone and are **open**: (1) `sync.feature:120` (F27-12,
+  the Other devices drawer in a 640 by 480 window at 125%): the tab list is
+  52px, under the two rows asked for. Measured: v1.49.1's
+  `panelSideClearance` (92px a side on macOS, same number as shipping's
+  `chrome-layout.js`) makes the panel 328px wide, the footer wraps to three
+  rows (105px) and the list loses the room. Whether shipping passes this
+  case on a Mac at v1.49.1 was not established (its scenario would not
+  launch from the Studio's node_modules). (2)
+  `island-and-commands.feature:49` (F1-6, motion inside the Island opens
+  it): the hover state never reports inside. It passed in the nightly; its
+  neighbor `:61` was already pointer-dependent. Not diagnosed.
+  **F27-12 fixed (candidate macos-7aef7a5dc6e2a13c):** shipping passes the
+  case on the Mac Studio at v1.49.1 with the same 328px panel and three-row
+  footer, but its panel starts 12px from the top; the fork's started at 48px.
+  `prototype.css` still carried the fork's own narrow-window rule (below
+  800px wide, drop the panel 48px to clear the window buttons), which
+  shipping's side clearance now replaces. The rule is removed, so the panel
+  sits where shipping's does. `sync.feature` 18 of 18 and
+  `island-and-commands.feature` 66 of 67 on that build; the tracker's
+  baseline stays the full run on macos-bed55af2cf2cf43d until the next
+  nightly. **F1-6 was the test bench, not the fork:** the Mac Studio's
+  real pointer was resting inside the test window, over the page. When the
+  panel opens, Chromium re-reads the real pointer, the host sees it leave
+  the Island (a trusted mouseleave at the real pointer's coordinates, logged
+  in a probe) and the hover-opened panel closes, as it should for a person.
+  This is the cause of the pointer-dependent hover flakes. The runner now
+  moves the test window clear of the real pointer before `@island-hover`
+  cases (`tests/lib/real-pointer.mjs`; the pointer is read, never moved) and
+  records what it found on the case. `island-and-commands.feature` 67 of 67.
+  **Tab handoff names the window's profile (candidate
+  macos-b318dc8cdfcc630e):** the sheet said Personal for every profile; the
+  projection now carries the profile's name (empty for the first profile
+  under its default name, which the page calls Personal).
+  `native-tab-handoff.mjs` 9 checks; the new one failed on the build before.
+  **Test runs moved to the Mac Studio (owner, 2026-11-16):** no fork test
+  window opens on the MacBook Pro. Staging is `~/Projects/Blanc/scratch/tests`
+  (`repo`, a worktree apart from the pinned release checkout; `app`, a copy
+  of the build; `config.json`); windows launched over SSH draw there.
+- **2026-11-16 — Tab handoff (N20; candidate macos-6e37801aafbe77a1; design `docs/superpowers/specs/2026-11-16-fork-tab-handoff-design.md`, approved by the owner with D1–D3):**
+  the Bring Your Tabs extension's `blanc-import://tabs?v=1&id=…&key=…` link.
+  `OpenExternalLink` hands such a link to `TabHandoff` (`tab_handoff.inc`)
+  and it is never a navigation, a tab or a history entry. A short-lived
+  sandboxed service (`HandoffRunner`, host refusing every call) runs
+  shipping's `tab-import-handoff.js` at v1.49.1 unchanged
+  (`tools/build-handoff-bundle.mjs` → `generated/handoff-bundle.js`, SHA-256
+  pinned in `handoff_bundle_hash.h`): it reads the link and returns only the
+  claim address; the browser checks that address is the relay's claim path
+  and makes the one request itself (`POST`, no credentials, cache or
+  referrer, redirects an error, 10 seconds, shipping's size cap); the
+  service then validates the envelope, decrypts it with the link's key and
+  the id and expiry as additional data, checks the 10-minute lifetime and
+  cleans the list; the browser checks the cleaned list again (web addresses
+  only, at most 100, exactly one active) and keeps it in memory. Shipping's
+  `tab-handoff` sheet shows the count, source browser, titles and host names
+  (never an address); Open in this window or in a new window opens the tabs
+  quiet, all or none, with the source's active tab in front; Cancel, Esc or
+  closing the sheet discards the list. The service's AES-GCM helper takes an
+  optional fourth argument for additional data; Sync still passes three,
+  and the Sync and import bundles are byte-identical to before
+  (`--check`). The handoff bundle has its own crypto shim for that reason.
+  **Differences from the design and from shipping:** the browser makes the
+  claim request directly, not through the service's host `Fetch` (same
+  limits; the host refuses every call); shipping's "waiting" state is gone,
+  because a cancelled claim is destroyed at once here; the sheet names the
+  profile "Personal" for every profile; shipping's official-builds-only
+  check is not ported (every build from this tree may use the relay).
+  **D1:** no build registers `blanc-import:`. `release/verify.mjs` already
+  refuses a beta whose link types are anything but its own four, and
+  `branding/beta/metadata.py` now strips `blanc-import` too (test). Checked:
+  `tools/handoff.test.mjs` 6 of 6 in bare V8 (the bundle is the pin's
+  module; a link gives only its claim address; cleaning; each error code;
+  the 100-tab ceiling; nothing else can be dispatched);
+  `tests/native-tab-handoff.mjs` 8 of 8, twice, against a stand-in relay on
+  127.0.0.1 with real AES-256-GCM envelopes (the sheet's contents and one
+  bare claim; a second link not claimed; Open here; a used link; Cancel;
+  ten failures each showing shipping's message; a malformed link; a new
+  window). Regression on the same build: `sync.feature` 18 of 18 and
+  `tab-migration.feature` 15 of 15. Not checked: a link from macOS, the
+  real extension and relay, a link arriving with no window open.
+- **2026-11-16 — N14 and N15 rerun; what N20 still lacks (candidate macos-1f6cbe46be1f2dfd):**
+  `tests/native-mouse-gestures.mjs` passes 13 of 13 (N14 Integrated) and
+  `tests/native-local-files.mjs` 9 of 9 (N15 stays Implemented: no
+  `public.html` association or isolated preview window). **N20** is half
+  there: the tab import page works (F40, F45), but tab handoff, the path the
+  Bring Your Tabs extension uses, is not started: no `blanc-import:` scheme
+  in the app, nothing takes a `blanc-import://tabs` link, and none of
+  shipping's `tab-import-handoff.js` (claim from the relay at
+  `tabs.blancbrowser.com`, AES-GCM decryption with the key from the link,
+  a 10-minute lifetime, at most 100 web tabs) or its `tab-handoff` page is
+  in the fork. It adds a URL scheme other apps can call and an outbound
+  request, so it needs its own short design before code.
+- **2026-11-16 — Trust receipt and Diagnostics in Settings → About (N16; patch 0090, candidate macos-1f6cbe46be1f2dfd):**
+  shipping's About & Trust and Diagnostics, in Chromium's About page. The
+  receipt lists, from this device and with no network request: the build
+  (the bundle's version and build number; "development" unless a beta
+  build), Chromium's version, platform, the publisher (the app's own
+  signature read with `codesign`: verified against team XYGUCY4498, a
+  mismatch, unavailable, or a development build), the embedded blocker
+  bundle's SHA-256, Sync and open-tab sharing, usage measurement, search
+  suggestions, secure DNS and the crash ledger. The ledger is Blanc's own
+  (`blanc.crash_ledger` in Local State, at most 50 events of time, process
+  type and reason; renderer and child-process crashes), with Export
+  diagnostics… and Clear crash history, which asks on the first click in
+  shipping's words. All text is shipping's, through `settings-strings.mjs`
+  (41 strings), including its one plural.
+  **V28, crash dump files (owner, 2026-11-16):** Chromium writes a dump
+  file per crash under the app's default data folder (`Crashpad/`); a dump
+  is a slice of memory and can hold page addresses, which shipping's ledger
+  never does. Blanc builds have no upload address
+  (`crash_reporter_client.cc` sets one only for Google Chrome), so nothing
+  is sent. The owner chose to keep the dumps for debugging the beta, say so,
+  and have Clear delete them: About shows their count on a `chrome://crashes`
+  row (an address, so no new untranslated copy) that opens Chromium's page.
+  `tests/native-trust-receipt.mjs` passes 3 of 3 (the facts for this build,
+  a real renderer crash recorded with nothing of the page in the report,
+  Clear asking first). **Incident:** Chromium keeps that dump folder in the
+  default data folder whatever `--user-data-dir` says, so the test's first
+  passing run shared the real preview build's folder on the MacBook Pro
+  (`~/Library/Application Support/Blanc Chromium Preview/Crashpad`) and its
+  Clear emptied it: six dump files, most or all from this session's own
+  test crashes, gone. Blanc Beta's folder was not touched. Clear now leaves
+  dump files alone under a test launch (`BlancTestLaunch()`), and the test
+  asserts that; each run still adds its one test crash's dump there.
+  Not checked: the Verified line on a signed build, Export's saved file,
+  dump deletion on purpose (seen only in that accident), other languages.
+- **2026-11-16 — Capture indicator checked; a screen share lights the Island (N2, N3; candidate macos-039ca82eb0d47756):**
+  **N2** was listed as not started but is built: shipping's
+  `permissions-and-auth.feature:13` has passed all along (it maps to F13).
+  `tests/native-capture-indicator.mjs` adds what that case leaves out (the
+  camera, both glyphs, the popover row going to its tab, Stop ending both):
+  5 of 5. **N3**: sharing is Chromium's own `getDisplayMedia`, and a tab
+  share worked, but the Island never showed it: the native snapshot always
+  sent an empty `displayShares` and `prototype.css` hid the chip. Now each
+  tab that shares a tab, a window or a screen is reported as shipping's
+  share row (Chromium's capture indicator knows the kind of surface, not
+  its name), the sharing chip shows window-wide, the capture popover opens
+  for a share alone and hangs under whichever chip shows, and its row's Stop
+  ends the share (`stopDisplayShare`, the display-media kind only).
+  `tests/native-display-share.mjs` passes 3 of 3, three runs. The first
+  version of Stop also asked Chromium to stop the managed all-screens kind,
+  which it CHECKs against; the test caught the crash before it was
+  committed. Both tests run with `--use-fake-device-for-media-stream`; the
+  share's source is chosen by `--auto-select-tab-capture-source-by-title`,
+  so no picker opens and no screen is captured. **Incident:** the first run
+  of the capture test lacked the fake-device flag, so the page's
+  `getUserMedia({video:true})` reached for the MacBook Pro's real camera.
+  No stream started (the call never resolved and the test timed out), but
+  macOS may have shown its camera prompt for Blanc Prototype for a few
+  seconds. The test now sets the flag before launch and says why. Not
+  checked: Chromium's picker in an Island window, a window or screen share,
+  real devices. N3 stays Implemented for that reason.
+- **2026-11-16 — Dock menu's current-tab row and Check for Updates… (N18; patch 0089, candidate macos-23064fbfabd20e7b):**
+  the tracker had N18 as not started, but the Dock menu's New Window, New
+  Private Window and New Mini Window (patches 0013, 0067) and About in the
+  Settings sheet (0076) were already in. Two pieces were missing and are
+  now built as shipping's: the Dock menu leads with the front window's
+  current tab (`dock-menu.js`, `dockActiveTabDescriptor`: its icon and
+  title cut at 75 characters, "Private tab" with no icon for a private tab,
+  nothing while no window shows) and a separator, and choosing it brings
+  that window forward; and the application menu has Check for Updates…
+  directly under About. In Blanc Beta that item runs Sparkle's check; a
+  build with no updater opens About. `AppController`'s Dock menu calls
+  `blanc::AddDockActiveTab` (patch 0089, two lines); the rest is in
+  `app_menus_mac.mm`. `tests/native-dock-menu.mjs` passes 6 of 6;
+  `native-app-menu-about.mjs` 3 of 3, `native-mini-windows.mjs` 4 of 4 and
+  `native-tab-switch.mjs` 8 of 8 still pass. The Dock tile carries no badge
+  (shipping only ever clears one). Not checked: the beta's Check for
+  Updates… itself (compiled, not run), the row with every window closed, a
+  page calling the Badging API. Built incrementally (35 steps, then 6).
+- **2026-11-16 — Reading Mode is observable and checked (F58, candidate macos-b6c8f300a889d3a1):**
+  `/reader` already ran Chromium's Reading Mode (owner, 2026-11-02), but
+  nothing told the Island it was open, so shipping's exit button never
+  showed and no test could see it. The native tab snapshot now carries
+  `readerActive` for the tab in front
+  (`ReadAnythingEntryPointController::IsUIShowing`). In Chromium 158 Reading
+  Mode is a full reading view over the page pane, not a side panel.
+  `tests/native-recheck-f58.mjs` passes 2 of 2, twice: the command opens it
+  at the page pane's size with the article's heading and body text, the
+  Island reports it, the command closes it, and a private tab does the same.
+  A screenshot shows the view with its own controls. Not checked: the View
+  menu item, Reading Mode's controls, a page with no article. Built
+  incrementally (6 steps).
+- **2026-11-16 — Ctrl+Tab by most recent use (F59; patch 0088, candidate macos-9d3053da65b5aea9):**
+  the fork had none of it (`tabSwitchOrder` was a later key). Now, as
+  shipping: Settings → Appearance → Switch tabs with Ctrl+Tab (pref
+  `blanc.tabs.switch_order`, `recent` by default or `list`, shipping's
+  strings); holding Control and pressing Tab steps back through the window's
+  tabs by last use, Shift+Tab forward; nothing changes until Control comes
+  up, so stepping never moves focus or wakes a quiet tab; the card shows
+  after 150 ms or at the second Tab, only over a bare page, and never takes
+  focus; Esc or any other key cancels; Ctrl+W closes the pick; a click on a
+  card tile lands on it. How: patch 0088 lets `chrome::SelectNextTab` and
+  `SelectPreviousTab` ask `blanc_prototype::TabSwitchCommand` first, which
+  takes the step only when the event being handled is Ctrl+Tab
+  (`tab_switch_keys_mac.mm` reads `NSApp.currentEvent`), so Ctrl+PageDown and
+  the ⌘ shortcuts stay positional. The host runs shipping's
+  `tab-switcher.js` unchanged (generated like `island-proximity.js`) over
+  Chromium's own last-active time per tab (`tabActivationOrder`), and a
+  local event monitor that lives from the first Ctrl+Tab until Control
+  comes up sends the release, Esc, Ctrl+W, other keys, clicks and the app
+  losing focus. The card is shipping's overlay `switcher` mode, placed by
+  shipping's `switcherBounds`; the host asks for room without focus
+  (`height`, false). Checked on the MacBook Pro against the Mac Studio's
+  build (GN regenerated with unchanged arguments for the new source file;
+  40 steps, then 7): `tests/native-tab-switch.mjs` passes 8 of 8, three
+  runs, posting real NSEvents to the app's own queue (`postTabSwitchKey`),
+  so the command path and the watcher both run; a screenshot shows the card
+  (five tiles by last use, the pick outlined, its title and host) and
+  Settings shows the row with both choices. Differences from shipping: a
+  menu click on Select Next Tab stays positional (shipping treats it as a
+  tap). Not checked: hardware keys from a keyboard, another app coming to
+  the front mid-switch, a split as one entry, a private window, Windows and
+  Linux (the hook returns false there). Ships in the next beta. Regression
+  on the same build: `tabs-and-groups.feature` 47 of 47 and
+  `island-and-commands.feature` 71 of 72 run, the one failure being
+  `:61` (hover-open under a resting pointer), which fails as often on the
+  unchanged nightly build on this Mac (2 of 4 against 4 of 6 passes,
+  interleaved): it depends on where the real pointer rests.
+- **2026-11-16 — A restored window keeps its size (patch 0087, candidate macos-ef1d86d7ab21bc63):**
+  the open bug behind `vertical-tabs.feature:58` (a window reopening at an
+  earlier size) is found and fixed. Cause, from an instrumented build: the
+  session file's bounds were right and the window was created with them, and
+  about 40 ms later Chromium replayed AppKit's archived window state onto it
+  (`-restoreStateWithCoder:` in `native_widget_ns_window_bridge.mm`, which
+  Chromium uses to return a window to its Space). That archive includes the
+  frame and is written half a second after a change, so it often held an
+  older one. On a build that logged the frame either side of the replay
+  (macos-914063c2e1c2a1ac), it changed the frame in 11 of 16 relaunches: to
+  640 by 480 twice and to the first launch's 1200 by 841 nine times. The
+  scenario only caught the narrow case, so the bug was far more common than
+  its 1-in-10 failures suggested: most relaunches soon after a resize got a
+  wrong size. Patch 0087 keeps the frame the window was created with across
+  the replay (skipped for a full-screen window), so the Space still comes
+  from the archive and the size and position from the session. Checked on
+  the MacBook Pro against builds copied from the Mac Studio (incremental, 7
+  to 10 steps each; diagnostics removed, and the tree's file matches
+  `source-map.json`): `vertical-tabs.feature:58` passes 16 of 16 on the
+  logging build and 10 of 10 on the final one (before: 2 of 6, 9 of 10 and
+  3 of 4 on the unpatched build); new `tests/native-window-size-relaunch.mjs`
+  passes 3 of 3 checks and `native-mini-windows.mjs` 4 of 4. That new test
+  is a regression check only: it also passed without the patch. Not checked:
+  a window restored into full screen, a window on a second display or
+  another Space, and the beta build. Ships in the next beta. Upstream
+  Chromium has the same behavior.
+- **2026-11-16 — Importer fixtures and answer key (plan M.1; Codex card C4, c2274c41d):**
+  `node chromium/tools/importer-fixtures.mjs --out <new dir>` writes a
+  synthetic Electron `userData` (Personal, one named profile and one pending
+  deletion; 32 files in shipping v1.49.1's formats, invented data only) and
+  `expected.json`, what a correct importer carries over after each rule of
+  spec §7: Favorites tombstones dropped, 5,001 visits bounded to 5,000, a
+  `clipboard-read` permission dropped, the pending profile removed. Two runs
+  are byte-identical; its 15 unit tests pass, and the copied constants are
+  compared with `git show v1.49.1`. No Sync or Patron secret, no site
+  storage. The answer key leaves two questions open, for the owner before
+  M.2: which Chromium profiles receive the synced keys of the one
+  device-wide `settings.json` (and where `_syncMeta` and the tie-breakers
+  go), and which non-secret `sync.json` fields migrate when the key is
+  re-wrapped separately. The importer itself (M.2–M.4) is not started.
+- **2026-11-16 — N1 rechecked; F59 and F58 need native work first (Codex card C2b, 71d6ca969):**
+  `tests/native-recheck-n1.mjs` passes 5 of 5 on the staged
+  macos-4f9e9bb648216395 (entry and title, nothing for a private tab, Forget,
+  Clear all, reopen), and fails when its expected entry count is made wrong;
+  N1 is Integrated. Codex reported the other two as blocked and wrote no
+  test for them, and both hold up: **F59** Ctrl+Tab recent order is not
+  built (`settings-keys.json` has `tabSwitchOrder` as `later`; nothing
+  native reads it), and **F58** has no way to observe Reading Mode open
+  (the native snapshot never fills `readerActive`). Both are Claude-lane
+  items now. Difference noted: Recently closed is profile-wide here
+  (Chromium's TabRestoreService), per window in shipping.
+- **2026-11-16 — Remaining-work plan started; F49, F50 and F54 rechecked:**
+  the split with Codex is `docs/superpowers/plans/2026-11-16-macos-fork-remaining-work.md`.
+  Codex works sandboxed in `~/Projects/Blanc-Codex/repo` (branch
+  `codex/fork-lane`) and writes tests it cannot run; Claude runs them on a
+  staged copy of the nightly's Prototype (`~/Projects/Blanc-Codex/app`,
+  candidate macos-4f9e9bb648216395) and audits before merging. Card C2a
+  (ee26ec3d5): `tests/native-recheck-f49.mjs`, `-f50.mjs` and `-f54.mjs`
+  pass on the staged app (4, 4 and 7 checks), their expected values match
+  shipping at 8a4e57e78, and a wrong expected color fails the clock test. The
+  three rows are Integrated. Found on the way: the fork's Match each space's
+  color control is unavailable, and the fork stores an imported wallpaper in
+  IndexedDB where shipping writes `current.jpg`.
+- **2026-11-16 — Tracker refreshed from the first full nightly (candidate macos-4f9e9bb648216395):**
+  `tracker.json` still described early November: it listed the vertical rail,
+  Sync, passkeys and 21 other rows as not started, and its shipping commit and
+  scenario list were v1.46.0's. It now takes the nightly full suite
+  20261116-0700 on the Mac Studio (fork e7b716378, shipping 8a4e57e78) as the
+  macOS baseline, committed as
+  `scenarios/baseline-macos-4f9e9bb648216395.json`: 629 of 661 cases pass, 1
+  fails (`F41-named-workspaces.feature:211`, the Spaces menu's closing fade,
+  which passed on its rerun; the baseline keeps the failure), 3 are undefined
+  (runner gaps: `platform-services.feature:25` the in-app updater,
+  `private-tabs.feature:40` private-tab passkeys,
+  `supporter-and-session.feature:12` Patron) and 28 are excluded. Every row
+  with passing shipping cases is Integrated on that candidate with its
+  counts; rows with no scenario moved only on recorded evidence (the beta's
+  gates in `release/standing.json`, a native test, or host code) and say so,
+  and the rest are marked "not rechecked". macOS Bar B: 58 Integrated, 9
+  Implemented, 14 below that, 0 Verified (the manual accessibility and visual
+  checklist has not been run for any row). Not Integrated on macOS:
+  - Not started: X2 protected-video notice and handoff; N2 capture indicator;
+    N3 screen-sharing picker; N16 trust receipt and diagnostics export; N18
+    Dock menu, badge and Check for updates; N20 tab import and handoff pages;
+    F38 and F42 (owner: Web Store extensions instead); X1 uBO (research).
+  - Implemented, not proven end to end: F22 updates (beta channel only; no
+    replacement channel, Intel build or Electron bridge), R2 and R3 Sync
+    with a real iPhone, N1 Recently closed's Forget and Clear all, N13 site
+    mute and page tint, N14 mouse gestures, N15 local HTML, N17 Invite, F51
+    What's New.
+  - Not rechecked (legacy or drafted stage kept): F49 and F50 wallpaper, F54
+    clock Font & color, F58 Reader, F59 Ctrl+Tab recent order.
+  Also outside the rows: the Electron profile importer (plan M.1–M.4) has no
+  code, and the shipping target is still v1.48.0-36 while shipping is v1.49.1.
+- **2026-11-15 — Settings asked for at launch opens instead of vanishing:**
+  since the utility pages moved into the sheet (0814560c8, November 13), a
+  tab that loads Settings, History, Downloads or Favorites closes and the
+  sheet shows the page. In the first half second after launch,
+  `OpenUtilitySheet` ran before host.js had defined `BlancPrototypeHost`, so
+  its call did nothing while it still reported success and the gate closed
+  the tab: the page never appeared. The release check `beta-sync.mjs`, which
+  opens `chrome://settings/sync` as soon as the debugging port answers, failed
+  on the beta.5 candidate three times in a row (beta.1's build kept the tab).
+  The call now leaves the request in `window.blancPendingSheet` until host.js
+  is up, and host.js opens it then. `beta-sync.mjs` also now opens Settings
+  again after it opens the page it shares, because a new tab dismisses the
+  sheet (as in shipping); it was written when Settings was a tab. On the
+  local-qualification beta.5 with the fix it passed 3 of 3. Ships in the
+  next beta.
+- **2026-11-14 — Hover previews in the vertical tab rail (patch 0084 plus
+  host and native code, owner-approved layout A; design
+  `docs/superpowers/specs/2026-11-14-rail-hover-previews-design.md`, plan
+  `docs/superpowers/plans/2026-11-14-rail-hover-previews.md`):** with vertical
+  tabs, resting 500ms on a rail row shows a card beside the rail with the
+  tab's title, host and Chromium's thumbnail; resting on a collapsed group's
+  header shows a list card of its tabs, whose rows show the picture card
+  beside it (clicking one opens the group and switches to the tab). Once a
+  card is up the next row swaps it at once, and so do arrow/Home/End focus
+  moves; a click, scroll, key (in the rail or the page), blur, resize, tab
+  switch, any surface, a Glance or a changed card closes it. Private tabs
+  never get a picture; a quiet tab shows only what Chromium kept and is
+  never subscribed to (that would load a restored tab); the current tab and
+  visible split panes show none. No Settings switch yet (owner: no
+  English-only label; it follows when shipping has the copy). Chromium 158
+  leaves `kTabHoverCardImages` off on macOS (Google turns it on through the
+  `TabHoverCardImagesMacArm` field trial, which Blanc doesn't receive), so
+  no tab had a ThumbnailTabHelper; owner, 2026-11-14: patch 0084 turns it on
+  in Blanc builds (cost: a small in-memory JPEG per backgrounded tab).
+  Pure rules in `island/rail-hover.js`, cards in `island/rail-hover-card.js`,
+  the host section in `island/host.js`; native `tabThumbnail`,
+  `watchThumbnail`/`unwatchThumbnail`, `hoverCardBounds` and
+  `railCardsShown` in `blanc_prototype_ui.cc`; rail rows drop their system
+  tooltip through two declared `vertical-tabs.js` edits. Patch totals: 83
+  desktop patches touching 166 files (340 file diffs, 713 hunks). Checked:
+  the fork unit suite (498 pass, 0 fail, 12 skipped), patch reconstruction
+  (both lanes), the Island renderer and asset checks, and a syntax-only
+  compile of `blanc_prototype_ui.cc` with out/BlancBeta's flags on the Mac
+  Studio (read only). Built incrementally into out/BlancPrototype (GN
+  regenerated with its unchanged October 16 arguments, since served.txt and
+  blanc/BUILD.gn changed; plans of 6 and 1 steps). On screen, on the MacBook
+  Pro against a copied build: `tests/native-rail-hover.mjs` passes 10 of 10
+  on candidate macos-b2d742a39a1021c2 (Chromium's picture on a background
+  tab's card, instant swap, closing on leaving the rail and on a key in the
+  page, no picture for the current tab or a private one, Dark, a collapsed
+  group's list card with a row's picture beside it, a row click opening the
+  group, a split row's two panes). The first on-screen run (macos-9a6ff1dd…)
+  found a split card titled with the row's fallback icon letters and a
+  private card saying "private" for the chip's "Private"; both fixed in
+  c1a1c3d6d. Then (owner, after trying the build): pictures ahead of time.
+  With vertical tabs each background tab gets one picture once it finishes
+  loading (`warmThumbnail`, two at a time, never private, quiet, Blanc pages
+  or what's on screen), so a never-shown tab's first card no longer shows
+  its icon for about a second first; 748e0992d, 11 of 11 on screen on
+  candidate macos-a2155191264ea1f7. Then the two deferred gaps: another app
+  coming to the front (⌘-Tab with the page focused) and a site permission
+  prompt now close a card (a background window may still show cards, as
+  macOS lets it take hover). 2f08fe889: `tests/native-rail-hover.mjs` passes
+  14 of 14 on candidate macos-80a0b0baafd9ca87, including a quiet tab's card
+  showing the picture Chromium kept without waking the tab. The last
+  deferred item (a watched tab going quiet under its card) can't happen:
+  Chromium doesn't quiet a tab while its thumbnail is being drawn, so the tab
+  under a card stays awake and goes quiet once the card closes; a tab that
+  does turn quiet changes its card, which closes and ends the watch. Pinned
+  by a unit test and on screen: 15 of 15 on candidate macos-80a0b0baafd9ca87
+  (one earlier run timed out opening a card at that step, likely the real
+  mouse on the test window; the rerun passed).
+- **V27 — rail rows carry no native tooltip while hover previews are on (2026-11-14, owner, the rail hover previews design; fork only):**
+  the design (commit 8d57ddb46, layout A, owner-approved) keeps each rail
+  row's `title` attribute out so the system tooltip and the hover card never
+  show together; the card shows the whole title instead. The first nightly
+  (20261115-0102) failed vertical-tabs.feature:74 (F28-17) on shipping's last
+  step, which reads the row's `title`. That step now runs as a V27
+  replacement: under reduced motion the title stays still, the row's
+  accessible name is the whole title, there is no native tooltip, and the
+  hover card shows the whole title.
+- **2026-11-14 — The vertical tabs rail's layout toggle clicks again (owner's report):**
+  On macOS the rail's header shares the title-bar band, and `IsCaption`
+  treated every point of that band outside the Island pill as the window's
+  caption, so a click on the toggle ("Turn vertical tabs off") started a
+  window drag instead. The rail is now never a drag handle, as shipping marks
+  the whole rail `no-drag`; the strip beside it still drags the window.
+  Checked on the Mac Studio with `chromium/tests/rail-toggle-caption.mjs`:
+  with the fix the toggle's point is not a caption, the strip beside the rail
+  is, and clicking the toggle turns vertical tabs off; the same check on the
+  build without the fix (2f08fe889) failed at the toggle. The screen there
+  was locked, so the run skipped the drawing guard (hit-testing and layout
+  need no frames). Ships in the next beta.
+- **2026-11-14 — The Dock icon follows Dark again (owner's report on beta.4):**
+  Beta.4 (published from 57e3109dd, with patch 0082) handed the Dock the
+  named Icon Composer stacks directly. AppKit draws a stack given to
+  `NSApp.applicationIconImage` once, in Light, and never redraws it: a
+  rasterized stack is byte-identical under Aqua and Dark Aqua (measured). So
+  in Dark, Sunrise, Spectrum and Amber stayed Light. Shipping never did
+  this: Electron 45's `nativeImage.createFromNamedImage` reads a name
+  without an NS prefix as an SF Symbol, finds none and returns an empty
+  image, so shipping always fell back to a Light or Dark image, reapplied on
+  each appearance change, with only the bundle icon live. The beta now does
+  the same with Icon Composer's own renders:
+  `blanc/branding/beta/render-dock-icons.mjs` exports each non-bundle stack's
+  Default and Dark renditions with ictool (macOS platform), at shipping's
+  Dock geometry (an 824 px tile in a 1024 canvas), into
+  `branding/beta/dock/`, which `//blanc:beta_dock_icons` copies into the
+  app's `Resources/dock`; `blanc::SetDockIconFromBundle` loads the one for
+  the current appearance, and host.js already asks again when it changes.
+  Sunrise Gold (the bundle icon) stays live, and Clear and Tinted still put
+  the bundle icon back. `icon-manifest.json` pins the renders. Checked: the
+  fork unit suite (466 pass), patch reconstruction, and a syntax-only
+  compile of both changed files with out/BlancBeta's flags. Not yet built or
+  seen in the Dock; it ships in beta.5. Also: installing the published
+  beta.4 over an earlier beta.4 candidate on the MacBook Pro left 22
+  LaunchServices registrations of `me.bnfy.blanc.beta` (Trash, scratch
+  folders, mounted images); all but `/Applications/Blanc Beta.app` were
+  unregistered.
+- **2026-11-14 — The red button keeps the main window's tabs (patch 0083
+  here, 0082 on beta.4's branch; candidate macos-f390619940f08515, owner's report on beta.4):** shipping's
+  macOS Dock close (`windowCloseSessionEffect` → `'dock'`, `dock-reopen.js`)
+  was never ported: in the fork the red button closed the window and every
+  tab, so the beta shared no tabs and dropped off the owner's phones. Now a
+  person's close of the primary Island window (the first ordinary window of a
+  launch) hides it with its tabs live, in the session and in Sync
+  (`HoldWindowOnClose`, from `BrowserView::OnWindowCloseRequested`; never
+  while quitting, while Chromium already closes it, on a forced close or with
+  no tabs), and the Dock icon with no window showing brings it back
+  (`ReopenHeldWindow`, from `applicationShouldHandleReopen`). Other windows
+  close as before. Checked by hand on the MacBook Pro with the real red
+  button: same window and same live page back from the Dock, a second window
+  closes normally, quitting while held exits and restores the tab; mini
+  windows and profile removal tests pass. Also: the published device name is
+  the Mac's computer name ("MacBook Pro") as shipping's device-name.js picks
+  it, not Chromium's local host name ("MacBook-Pro");
+  `tests/native-sync-organic-tabs.mjs` (Sync with no pass asked of the Mac:
+  new pages, a saved Space, a relaunch, joining again) passes and its peer
+  sees "MacBook Pro".
+- **2026-11-14 — Blanc Beta's icon: Sunrise Gold by default, and Sunrise follows Light and Dark (patch 0082, owner's report):**
+  The beta's bundle icon was the prototype's Sunrise Dark (kept for Dock
+  testing), so the default Sunrise stayed dark in Light mode. Owner decision:
+  Sunrise Gold is the beta's default icon for now. `blanc/branding/beta/`
+  now holds Sunrise Gold compiled by actool 27.2 from shipping's colorway
+  (Light, Dark and Tinted stacks under the same `BlancDK` name, plus the
+  `app.icns` fallback; `icon-manifest.json` records the inputs), and patch
+  0082 points chrome/BUILD.gn's `chrome_app_icon` and `chrome_asset_catalog`
+  at it in beta builds only. `blanc.app_icon` defaults to `sunrise-gold` in
+  beta (`kDefaultAppIcon`, applied by NormalizeAppIcon with
+  SetDefaultPrefValue, so a saved choice is kept), and that choice leaves the
+  Dock on the bundle icon. Preview builds keep their Sunrise Dark bundle
+  icon, and Sunrise there takes shipping's flat Light or Dark image instead.
+  Then (owner, the same day, after comparing renders): the beta's Dock shows
+  the Icon Composer versions, not the flat images. Its Assets.car now carries
+  all five colorways as named stacks (Icon, SunriseDark, BlancDK for Gold,
+  SunriseSpectrum, SunriseAmber), and `blanc::SetDockIconNamed` loads one by
+  name on macOS 26 and later, as shipping's packaged builds do; Clear and
+  Tinted put the app's own icon back, and the flat images stay the fallback
+  on older macOS. Spectrum's and Amber's stacks carry the muted warm Dark
+  rim from bnfy/blanc#1528 (merged as a54d27a75; `icon-manifest.json` pins
+  that commit). The fork's flat fallback images (`island/pages/`) still carry
+  the white Dark rim until the Island's shipping pin moves past it. Not handled: a change of Icon & widget
+  style while Blanc runs is picked up at the next icon or appearance change
+  (shipping rechecks every 10 s). Checked: the fork unit suite (466 pass), patch
+  reconstruction, and a syntax-only compile with out/BlancBeta's flags. Not
+  yet built or seen on screen: that waits for beta.4 to publish (the Mac
+  Studio tree stays untouched until then), and it ships in beta.5.
+- **2026-11-14 — Extensions can open their own popup (patch 0081, candidate
+  macos-cf13e2bc70dce670, owner's report):** 1Password's in-page "Unlock
+  1Password" did nothing in Blanc Beta. It calls chrome.action.openPopup, and
+  Chromium refuses that with "Browser window has no toolbar." (confirmed on
+  beta.3) because the baseline makes IsToolbarVisible false in Island windows.
+  OpenPopupInBrowser now lets an Island window through unless a page is
+  fullscreen (`CanOpenExtensionPopup`); IsToolbarVisible itself is unchanged.
+  The popup anchors on the Island's Extensions button, so SetPopupOwner tells
+  the Island (`ExtensionPopupChanged`): with Auto-hide on it comes down and
+  stays while the popup is open, and an open popup follows the button's
+  slide. `tests/native-extension-open-popup.mjs` passes on the MacBook Pro
+  (Auto-hide off, float and push; popup at the same spot in all three);
+  macOS window full screen opens it too. Not run: a page-fullscreen refusal
+  (Chromium denied requestFullscreen in the fixture), Windows/Linux, the
+  vertical tab layout, a real 1Password account.
+- **2026-11-14 — Beta.4 full suite (prototype candidate macos-402d768b8c8f6e43, source 75f85e960):**
+  run on the owner's MacBook Pro (the Mac Studio's screen was locked) from a
+  clean checkout: 577 pass, 4 fail, 4 undefined, 27 excluded (636 executed),
+  against beta.2's 578 / 3 / 4. Failures: `vertical-tabs.feature:58` (known
+  intermittent); `island-and-commands.feature:61` (new, the swell's: Blink
+  repeats a document's last pointer position as a move whenever what lies
+  under it changes, and the swell waking under a resting pointer made that
+  stale repeat re-arm a disarmed hover-open; the host now ignores a move that
+  does not move, as shipping's main sees only real input; passes on
+  candidate macos-fc405801653febe3); `F41-named-workspaces.feature:203` and
+  `:211` (new since beta.2: the Spaces menu closes without its fade when
+  Escape follows the click at once; it fades correctly when driven by hand,
+  and fails the same on both candidates. Not the swell's: on the MacBook Pro
+  it fails the same on a build without the swell's class watcher and on a
+  prototype built from beta.3's own source c3a3bc898 (candidate
+  macos-225a6eebdcb1a6fb: :203 failed twice, :211 passed only on its retry),
+  while beta.2's full run on the Mac Studio passed both. It is the machine:
+  on the Mac Studio, three runs of the two cases on beta.4's own source
+  e47bf1bcf (candidate macos-cf13e2bc70dce670, records/spaces-fade-studio{,-2,-3})
+  passed both every time, :203 on its first attempt each time and :211 on
+  its first attempt in two runs and on its retry in one ("the menu is still
+  drawn after the overlay closes"). So :211 is slightly flaky on the Studio
+  too, and the MacBook Pro fails both). `island-and-commands.feature:348`/`:372` passed this time.
+- **2026-11-14 — Island approach swell, for beta.4 (candidate macos-78921cb9b998cb49):**
+  the owner noticed the resting Island ignores an approaching cursor. Shipping's
+  resting Island has five pointer behaviors; four were already in the fork's
+  code (dots bloom into site icons, button hover states, tooltips, opt-in
+  hover-open). The fifth, the approach swell (the pill rises 2px and grows 2%
+  within 250px, settled 80px out; shipping's `island-proximity.js`), was off:
+  `prototype.css` forced `transform: none` because the native extension
+  buttons could not follow it, and nothing sent the cursor's distance. Now the
+  host runs shipping's module (generated `island-proximity.js`), native
+  forwards page moves within 260px of the Island at most once a frame
+  (`island_proximity.h`, `island_proximity_controller.inc`), and the
+  extension buttons take the slot's measured swell as a native transform
+  (owner's choice over keeping the pill flat with extensions). Running it on
+  the build found that a swell set without a page move (the Island's own
+  moves, a sampled cursor when a panel closes) could stay on if the next page
+  move landed beyond reach; the host now arms native (`armIslandPointer`) so
+  that move is sent wherever it lands. Built on the Mac Studio after beta.3
+  was published (Blanc Prototype, incremental: 26 then 8 and 8 steps; GN
+  regenerated with unchanged arguments for `served.txt`). Checks ran on the
+  MacBook Pro (the Studio's screen was locked) against the copied build:
+  `tests/native-island-swell.mjs` 3 of 3 runs, 7 checks each (from the page,
+  partial partway out, extension buttons 1.02× and about 2px, rest on leaving,
+  over the band and leaving far down, asleep with the panel open and woken on
+  close, still under Reduce motion); `tests/native-island-hover.mjs` 3 of 3,
+  4 checks each (dot bloom, button hover, tooltip, hover-open). One difference
+  found: a strip button's tooltip sits 8px higher than shipping's (top at
+  44px against 52px) because the host clamps it inside its 68px view, over
+  the pill's bottom edge; shipping's floats onto the page. The owner saw
+  both side by side and chose to leave it as it is (2026-11-14). Not covered: the
+  swell sleeping while the window is in the background. Unit suite: 464 of
+  475 pass, 11 Sync page tests skipped without Chromium's TypeScript.
 - **2026-11-10 — Beta identity patch (preview candidate macos-77c0cea3ecc01285):**
   dedicated gated Blanc Beta identity, profile guards, version metadata and
   release policy implemented. Preview incremental build passes; pure native
@@ -972,8 +2111,11 @@ remain pending. D3 beta-only no-DRM exception accepted; EME notice/handoff requi
   MacBook Pro over SSH (`chromium/release/owner/remote/`). 11 gates passed,
   2 waived (no-drm-handoff, production-sync-real-device: the real-iPhone pass
   found the Sync faults in item 5a below). The website shipped it (#1518);
-  blanc.day's feed equals the release appcast. Still owed: the hosted smoke
-  check and the first signed beta.2 → beta.3 handoff.
+  blanc.day's feed equals the release appcast. Its hosted smoke
+  check passed all six checks (run 43573427182 on `main`), and the first
+  signed Sparkle handoff passed: the public beta.2, reinstalled on the
+  MacBook Pro, updated itself to beta.3 from inside the app (About shows
+  2.0.0-beta.3; the installed code hash matches the release).
 - **Beta.2 production build (owner, 2026-11-14):** `out/BlancBeta` switched to
   production (2.0.0-beta.2, build 2, the production key, local qualification
   off) and rebuilt through the guard with the owner-approved
@@ -2375,6 +3517,14 @@ Most failures on the previous candidate are real product gaps, clustered:
 
 ## Native-versus-port decisions (owner, 2026-10-31)
 Recorded in the spec (§4, §9) and plan:
+- V30 (owner, 2026-11-18): Favorites is bnfy/blanc#1614's page in a tab of
+  its own, with the F63 manager, ahead of the fork's v1.49.1 scenario pin.
+  `tests/fork-steps/divergences.mjs` replaces the v1.49.1 steps that put it
+  in the sheet with what #1614's rewrite of the same scenarios says
+  (internal-pages F16-2, F16-5, F16-8, F16-10; find-favorites-history F9-3;
+  newtab-layouts F35-5; browser-migration F30-1 and F30-2). A private
+  window opens Favorites in a regular window (Chromium's behavior), where
+  shipping shows it in the private window with the pins hidden.
 - D1: port shipping's in-window private tabs (deep tab/profile patch, isolated
   in `blanc/private/`). Built in S1.4. Owner, 2026-11-02: private tabs use
   Chromium's incognito profile (the window profile's primary off-the-record
@@ -2466,11 +3616,27 @@ machine has them.
    `docs/chromium-replacement/2026-10-30-desktop-replacement-spec.md`).
    Nothing exists yet; ask the owner about wording and design first, with
    buttons.
-2. **Vertical tabs after a relaunch**: the rail can reopen at its
-   narrow-window cap (248 px) instead of the saved width (360 px).
-   Intermittent: `vertical-tabs.feature:58` failed 2 of 4 runs on 2026-11-14.
-   The saved preference is kept; the rendered width is computed before the
-   restored window bounds apply.
+2. **The window can reopen at an earlier size after a relaunch** (seen as
+   `vertical-tabs.feature:58`, still open for beta.4; investigated
+   2026-11-14 on the MacBook Pro, candidate macos-fc405801653febe3). The rail
+   is not at fault: its saved 360 px survives every relaunch, and it follows
+   the window. The window itself comes back at one of the sizes it had during
+   the run: 1200×841 (Chromium's default for a fresh window), 640×480 (the
+   scenario's narrow step) or 1000×700 (the size at quit, correct). At 640
+   wide the rail caps at 248 px, so the case fails on about 1 attempt in 3.
+   Ruled out as the source of the old size, from copies taken after each
+   quit: the newest plain session file (always 1000×700; Chromium reads the
+   newest file with a valid marker), the encrypted session copy (relaunching
+   with `--disable-features=EncryptSessionStorage` changes nothing),
+   `browser.window_placement` in Preferences (always 1000×700), macOS saved
+   window state (none for `day.blanc.prototype`), and the fork's own Spaces
+   and session code (it saves no window bounds). Restore reuses an existing
+   window when one is visible (`ShouldRestoreToExistingBrowser`, which skips
+   the saved bounds), and the startup log says "No browser window found for
+   startup" before the fork's deferred restore (patch 0057, shared session
+   plan), so the next step is a Blanc Prototype build that logs which code
+   creates the first window and with what bounds. A harness change would hide
+   a real bug: users can get an old window size back after quitting.
 3. **Production Sync with a real iPhone** (gate
    `production-sync-real-device`, waived for beta.2). The beta joins the
    iPhone's existing Sync through Add this device with a code, with the code
@@ -2483,10 +3649,28 @@ machine has them.
    `site/public/updates/chromium-beta/arm64.xml` together.
 
 5a. **Desktop Sync faults found by beta.3's real-iPhone pass** (2026-11-14,
-   gate waived for beta.3): the beta publishes itself with no open tabs, so
-   other devices don't list it; and joining with a code shows no "what will
-   sync" step. Compare the join with shipping before changing it. Both are
-   due in beta.4.
+   gate waived for beta.3), fixed on `chromium/next` for beta.4. Build check
+   (2026-11-14, `75f85e960`): `out/BlancBeta` rebuilt through the guard (GN
+   regenerated with unchanged arguments for the new keep-alive dependency;
+   24 steps). The same script on a throwaway profile with a mock keychain,
+   on the MacBook Pro: open Sync settings, close every window, open a new one.
+   The published beta.3 then reports Sync unavailable; the rebuilt beta stays
+   available. The Connected-to note's text is in the build; a real join was
+   not repeated.
+   - **Closing every window broke Sync until a relaunch.** On macOS Chromium
+     unloads a profile when its last window closes and loads a new Profile for
+     the next window; the Sync service stays bound to the first, so Settings
+     said "Sync is available only in the default profile" and open tabs
+     stopped publishing. Reproduced on a throwaway beta.3 profile. The service
+     now holds a `kBackgroundMode` keep-alive on its profile while Blanc runs.
+     Known edge: deleting the default profile may now wait until Blanc quits.
+   - **No open tabs.** With windows open the beta publishes its tabs (checked
+     live on the owner's beta.3). At the owner's join only Blanc's own pages
+     were open, so it published none, and after windows closed it stopped
+     publishing (the bug above).
+   - **No word after joining.** Shipping says "Connected to “{name}”. Pulling
+     your favorites and settings now." after a join with a code and has no
+     "what will sync" step; patch 0080 shows the same note.
 
 **Other follow-ups**
 5. **Sync screen** (both apps): Turn on Sync, Connect your iPhone and Add
@@ -2503,6 +3687,19 @@ machine has them.
 7. **1Password re-locks every ~20 seconds on the Mac Studio** (its security
    options are greyed out). The beta.2 workarounds are in
    `chromium/release/owner/`; fixing it would let `op run` work again.
+
+**For beta.4**
+8. **Island approach swell**: built and checked on Blanc Prototype
+   (candidate macos-78921cb9b998cb49, see Current work). Still owed in the
+   beta.4 candidate: the full suite, and a look at the swell in a background
+   window. The strip tooltip's 8px offset stays (owner, 2026-11-14).
+
+**For beta.5**
+9. **The Dock icon in Light and Dark** (Current work, "The Dock icon follows
+   Dark again"): patch 0082 shipped in beta.4 but its named stacks stayed
+   Light in Dark. Build out/BlancBeta with the Icon Composer images, then
+   check the Dock in Light and Dark with each of the five icons selected,
+   switching appearance while Blanc runs, and in a Tinted icon style.
 
 **What lives only on the Mac Studio**
 - The release work folder `~/Projects/Blanc/records/beta2-work`: signed
@@ -2546,6 +3743,116 @@ Chromium 156 checkout (`~/Projects/BlancChromium`), the 157 recovery tree
 `workspaces/Chromium158-combined-copy-20261029` tree and the Oct 28–29
 evidence folders; older notes that name them are historical. Kept: the 158
 checkout and cache, the 157 fallback, signing, backups, profiles, toolchains.
+
+## Windows
+Design `docs/superpowers/specs/2026-11-17-windows-fork-design.md`, plan
+`docs/superpowers/plans/2026-11-17-windows-fork-w0.md`. Milestone **W0 First
+build** (the fork plan's PW.1). Owner decided D4 and approved the checkout, the
+toolchain package and the cold build on 2026-11-17. Per-platform differences:
+`PLATFORMS.md`.
+
+- **Lane:** the desktop lane, unchanged pin (158.0.8127.2, chromium
+  `681cd621e82e606d7536eae8ea2576afb3c7d65c`). One Windows patch so far:
+  `patches/0094` (each channel's own data folder and registry key).
+- **Server:** the Android lane's Linux server, cross-compiling for Windows x64
+  (Chromium's `docs/win_cross.md`). Checkout `~/chromium-desktop/src` (46 GB
+  with dependencies), output `out/BlancWinPrototype`, its own depot_tools,
+  evidence in `~/blanc-evidence/windows/`. Layout: `windows/server/README.md`.
+- **Toolchain:** Visual Studio 2026 (compiler toolset 14.51.36231) and Windows
+  SDK 10.0.28000.0, package `b4f603a344` (tree hash `3bfcb536c8`), made by
+  `chromium-windows-toolchain.yml` run 44110078328 and encrypted to a key only
+  the server holds.
+- **Candidate:** `windows-x64-bdcf3cca0b966646` (tree `cae9db2dd`), `chrome.dll`
+  SHA-256 `bdcf3cca0b96664613558954b7d07590571d4f31369a963acf1ce19fe311f994`,
+  zip 352 MB, on the unpublished draft release `fork-windows-candidate`.
+- **Cold build:** 89,220 steps planned. The first attempt stopped after 11 min
+  on "Too many open files" (the ciopfs mount's 1024 limit, now raised by
+  `mount-toolchain.sh`); the second ran 1 h 13 min and stopped on four compile
+  errors in Blanc's own source (file paths and POSIX permissions); the third
+  finished the last 1,392 steps in 3 min 25 s.
+
+| W0 gate | Result | Evidence |
+| --- | --- | --- |
+| 1. `check-patches.py` for both lanes; fork unit suite; next Mac nightly builds | Pass: the Mac nightly rerun 20261118-1221 at `bedce9a5f` built and passed 637 of 667 (0 fail, 0 undefined, 30 excluded). The 07:00 night had built it but stopped before its suite on a nightly-tooling gap, fixed in `bedce9a5f` | `records/nightly/20261118-1221` on the Mac Studio |
+| 2. `progress.mjs --check` with a Windows candidate | Pass | Candidate identities below |
+| 3. `chrome.exe` for x64 built on the server through the guard | Pass | `~/blanc-evidence/windows/build-3.log` |
+| 4. Launches on a hosted Windows runner; Island draws; blocker ready; a page loads | Pass (Windows Server 2025, run 44137463714) | `smoke.json`, `desktop.png` in the run's artifact |
+| 5. The suite runs on Windows and its report is committed | Pass: 667 cases in 1 h 41 min (run 44139976463): 534 pass, 103 fail, 24 undefined, 6 excluded. 56 of the failures are one gap, the window frame (W1) | `reports/f0-windows.json`, `reports/s1-windows.json`, Bar A below |
+| 6. This section and `PLATFORMS.md` | Written | — |
+
+### W1 Part A: window frame, buttons and menu (2026-11-18)
+Plan `docs/superpowers/plans/2026-11-17-windows-fork-w1.md`. Candidate
+`windows-x64-ec914b7ca4b925a1` (tree `38d4ae9da`); record `reports/w1-windows.json`.
+Patches 0095 (Windows frame), 0096 (app menu anchor), 0097 (strip drag on Windows).
+
+| Part A gate | Result | Evidence |
+| --- | --- | --- |
+| 1. The 56 W0 frame cases pass; nothing that passed in W0 fails | 55 of 56 pass (vertical-tabs:74 needs animations, which the runner has off). Three W0 passes failed in this run and each is runner-variable (see the record): glance:337 fails on the W0 build too, vertical-tabs:146 and F41:435 passed on this build in other runs | Run 44207006500: 590 of 667 pass (W0 534) |
+| 2. One set of window buttons, Windows' own, working by real clicks | Pass | `windows-frame.mjs`, `restored.png`, `maximized.png` |
+| 3. Strip drag moves the window; top edge resizes; double-click maximizes | Pass | `windows-frame.mjs` |
+| 4. The menu button opens Chromium's app menu | Pass | `menu.png` |
+| 5. Holds at 150% and maximized | Pass | `scale-150.png` |
+| 6. Mac: fork suite, both lanes' patch checks, next nightly | Pass: nightly 20261118-1221 at `bedce9a5f` (Part A), 637 of 667, none failing | Mac Studio `records/nightly/20261118-1221` |
+
+Found, not caused by Part A: after any tab has been closed, closing the last
+window leaves the process running with no window (W2, `PLATFORMS.md`). Not
+checked: Snap Layouts on a real Windows 11 desktop.
+
+### W1 Part B: identity, installer, crash capture (2026-11-18)
+Candidate `windows-x64-e42f9e5a532cdf96`; record `reports/w1-windows.json` (`partB`).
+Patch 0098; names in `windows/identity.md`.
+
+| Part B gate | Result | Evidence |
+| --- | --- | --- |
+| 1. Every Windows name listed, none the Electron Blanc's or Chromium's | Pass | `windows/identity.md`, `tools/windows-identity.test.mjs` |
+| 2. `mini_installer.exe` builds on the server through the guard | Pass (239 MB, 5,683 steps in 13 min 46 s) | `~/blanc-evidence/windows/b1-1.log` |
+| 3. Installs per user beside Electron Blanc 1.49.1; launches from its install folder with no sandbox grant | Pass | run 44235371094, `install.json`, `installed-smoke` |
+| 4. Registered under its own names; Electron Blanc's entries and defaults unchanged | Pass (`Blanc Prototype.<suffix>`, ProgID `BlancPrvHTM.<suffix>`) | `install.json` |
+| 5. Uninstall removes it, keeps its data, leaves Electron Blanc working | Pass | `install.json` |
+| 6. Crash capture recorded | Captured: Crashpad writes renderer and browser dumps locally (Chromium's docs said a cross build could not) | run 44234145350, `crash.json` |
+
+Full suite on this candidate: 591 of 667 pass, nothing that passed on the
+Part A build fails (run 44236176647). Not checked: Settings → Default apps
+listing and choosing the preview (needs a real desktop session).
+
+### W1 Part C: signing (2026-11-18)
+Candidate `windows-x64-e42f9e5a532cdf96`, signed in `chromium-windows-candidate.yml`
+run 44316018075 after the owner approved it; record `reports/w1-windows.json`
+(`partC`); how it works: `windows/signing.md`.
+
+| Part C gate | Result | Evidence |
+| --- | --- | --- |
+| 1. `fork-windows-signing` environment, owner as required reviewer | Pass: created 2026-11-18 (reviewer bnfy, `chromium/next` only); both signing runs waited for the owner | Runs 44313102558, 44316018075 |
+| 2. Installer, `setup.exe` and every executable inside signed, timestamped, subject equal to `WINDOWS_EXPECTED_PUBLISHER`, in `windows-signature.json` | Pass: 13 files inside plus the installer, 14 signatures, one Bananify Creative certificate, Microsoft timestamps | `windows-signature.json` on the draft release |
+| 3. The signed installer passes Part B's install check | Pass, 11 of 11; the installed signed copy launched, drew the Island, started the blocker and loaded a page | Run 44316018075, sign job log |
+| 4. Signed files only on the draft release; no signed artifact; no credential on the server | Pass: the run's one artifact holds JSON, logs and screenshots; the installer (SHA-256 `b7efd089…`) is on `fork-windows-candidate`, a draft | Run 44316018075 |
+
+The first signing run (44313102558) signed and verified the same files but
+failed gate 3: the test harness refused to launch the installed copy because
+signing changes `chrome.exe`'s and `chrome.dll`'s hashes. With `--signed` the
+install check now accepts them only when they are the candidate's own files
+with an Authenticode signature added (`923457db2`). Open: the files' version
+resources still name The Chromium Authors as company, and the installer's
+version resource is Chromium's (plan Task C2).
+
+### W2: daily driver (2026-11-18)
+Plan `docs/superpowers/plans/2026-11-18-windows-fork-w2.md`; candidate
+`windows-x64-7edd9da4f45532ea`; record `reports/w2-windows.json`, triage
+`reports/w2-windows-triage.md`, baseline `scenarios/baseline-windows-x64-7edd9da4f45532ea.json`.
+
+| W2 gate | Result | Evidence |
+| --- | --- | --- |
+| 1. Install check 12 of 12, four files naming Bananify Creative | Pass | Run 44376359872, `install.json` |
+| 2. Quit check, four cases | Pass, 4 of 4 | `quit.json` |
+| 3. Every non-passing case triaged; nothing that passed on W1 fails | Partly: 625 of 667 pass (W1 591); every case is in the triage record, and `F41:203` began failing with this build. Fixed after this run: the Arc import's lost Spaces (a real Windows bug, argument order; all Arc cases pass in run 44400649685) and the Favorites import (its button worked only once the page script ran; all five cases pass twice in run 44406317334 and a repeat) | `reports/w2-windows-triage.md` |
+| 4. Ctrl+Tab by most recent use on Windows | Pass: 8 of 8 posted keys; 2 of 2 real keys (the real-key check found and the fix ended a switch left open when another app came forward) | `tab-switch-keys.json` |
+| 5. Mac: fork suite, both patch checks, next nightly | Fork suite and patch checks pass; Mac Studio applied and GN regenerated for the nightly; the nightly itself is pending | Mac Studio `records/nightly` |
+| 6. STATUS, PLATFORMS, record and baseline | Written | This section |
+
+Not caused by W2: `supporter-and-session:18` fails on every platform since the
+Favorites work's V30 step for "exactly one new tab opens" also matches the
+Patron checkout. Owner items: the D1 hand checks on a real Windows desktop, and
+whether Windows' caption buttons should come and go with the floating Island.
 
 ## Android
 Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
@@ -2863,8 +4170,9 @@ Chromium's Site settings, Notifications and Downloads. Ways in: `/settings`, the
 `blanc://settings` with `#sync` and `#privacy`. One Chrome-worded string (auto-revoke summary) is overridden in
 all six languages; Accessibility is left out of More because its page names Chrome.
 
-- **Not built (A5c):** the default-browser row, Language, Measure usage and onboarding. The Start Page's
-  widgets, clock and wallpaper came with A5b (below): Settings has a Start Page row that opens its Customize.
+- **Since built:** the default-browser row, Language, Measure usage and the walkthrough came with A5c
+  (below). The Start Page's widgets, clock and wallpaper came with A5b (below): Settings has a Start Page row
+  that opens its Customize.
 - **Known gaps:** Chromium's own default search engine follows Blanc's choice only after Settings has been
   opened (a startup sync is a follow-up); Settings asks the sync runner for its status on every update; the
   Open-source licenses row opens Chromium's legal page, which the wording scan doesn't cover.
@@ -2875,10 +4183,14 @@ all six languages; Accessibility is left out of More because its page names Chro
 | Patch reconstruction, android and desktop lanes | Pass | `patches-*.log` |
 | Robolectric | 676 pass | `robolectric.log` |
 | Runner and tool tests (`node --test chromium/tools/*.test.mjs`, on the Mac) | 216 pass | local |
-| A4 gate (A1 to A3, sync, Spaces, Shared Spaces, shield race) | Pass | `a4/` |
+| A4 gate (A1 to A3, sync, Spaces, Shared Spaces, shield race) | Pass | `a4/` (overwritten, below) |
 | APK (x86_64, emulator) | `b57a4ca6…` | `apk.sha256` |
 | APK (arm64, for the Pixel) | `fed28dc1…` (`out/AndroidDebug/apks/ChromePublic.apk`), installed on the owner's Pixel 10 Pro | — |
 | Owner hands-on, Pixel and desktop (Sync through Settings) | Pass, November 11, 2026: Settings opened from `/settings` with every section; the Sync row opened the Sync sheet; the owner paired with their desktop and the desktop's Spaces arrived. Three bugs found (below). | owner |
+
+A later run on November 11 (APK `0042c649…`) wrote over `~/blanc-evidence/android/a5a-gate/`, so its A4 logs
+are that run's, not this gate's: it failed tabs, one Sync case (a lost Keystore key) and all six Shared Spaces
+cases ("Timed out waiting for the switch"). Shared Spaces passed 6 of 6 again in the A5c gate.
 
 The first full run failed twice: the A3 check "quick endings stop pages, and Retry recovers" slept a fixed six
 seconds and looked once for its notice (it passed alone; it now waits up to 30 s), and the tools tests need iOS
@@ -2948,8 +4260,8 @@ the iPhone's stylesheet centers the clock's box in the page, which on Android st
 low on a Pixel 10 Pro), so the adapter measures the figures from the clock's font and the stylesheet moves the
 clock by the difference. The pinned page copies moved from v1.46.0 to v1.47.1, which brings the iPhone's larger
 phone clock (30vw, capped at 120px). `pages-phone.mjs` checks the fresh install's clock and that its figures
-center on the screen. Not wired yet: the Start Page's layout for the Island along the top
-(`mobileIslandPosition`, which v1.47.1's phone script reads). Since A5b the Start Page is the desktop fork's, and
+center on the screen. The layout for the Island along the top is in the next section's Start Page (see "The
+Island along the top"). Since A5b the Start Page is the desktop fork's, and
 the clock rules above moved with it (next section).
 
 ### A5b The fork's Start Page
@@ -3014,7 +4326,7 @@ Android works (and how the iPhone will), and its choices stay on the phone, as t
   shipping's frosted band, tinted from the page's background (a Color's base for Solid and Gradient) so the
   labels read on any wallpaper. The first emulator run showed white labels lost on a cream fade over a blue
   Color wallpaper; this replaced it.
-- **Not yet:** the Island along the top on the Start Page, and a Settings row that opens Customize while several Blanc windows are open opens
+- **Not yet:** a Settings row that opens Customize while several Blanc windows are open opens
   it in each. The fork's all-language catalog (about 1 MB) loads with every Start Page.
 
 | A5b gate | Result | Evidence (`~/blanc-evidence/android/a5b/`) |
@@ -3056,6 +4368,142 @@ preferences. Each change is now written at once (`CommitPendingWrite`, as the fo
 Blanc for the home screen before stopping it, as a person would. The setters had worked all along (checked by
 hand over DevTools); the check now also fails if saving itself fails.
 
+### A7 Release pipeline and rebase drill
+
+Plan: `docs/superpowers/plans/2026-11-15-android-a7-release.md`. The tooling is written and tested; the
+server and Play steps below wait for the owner's approvals.
+
+- **Release build:** `android/args/release-{arm64,x64}.gn` (official, PGO off, release package
+  `me.bnfy.blanc`, `blanc_channel = "release"` so no test hooks, lint on). The release version reaches the
+  launch ping through `BlancRelease.VERSION`. `android/server/release-build.sh <tag> --previous-map <commit>` builds only a clean,
+  tagged commit whose ledger entry matches (`android/release/ledger.json`, codes from 1, names
+  `1.0.0-beta.N`) and writes a build record. It also refuses a Chromium checkout that isn't at the pinned
+  upstream or that has changes Blanc doesn't apply, and regenerates GN when a release's arguments change.
+- **Gates:** `tests/android/release-gate.sh` runs the outbound (privacy) gate, then the acceptance smoke
+  set, on the x64 release APK, from a clean runner tree. The exclusions list
+  (`release-gate-exclusions.json`) is empty; a scenario that needs a preview hook would have to be listed
+  there with that hook and run by hand on the same commit's debug build. Blanc's C++ never reads a test
+  switch outside a test-hook guard (`tools/test-hook-guards.test.mjs`).
+- **On the owner's Mac:** `android/release/release.mjs` (fetch, verify, sign, attest, upload) checks the
+  bundle against the record, signs it with the upload key from 1Password, writes checksums, an SBOM and a
+  Sigstore bundle, and uploads a draft release to the internal track only after a typed confirmation;
+  the owner rolls the draft out in Play Console (`docs/android/release.md`).
+- **About:** Settings → About → Open-source licenses opens Blanc's own notices page, which links to
+  `chrome://credits`.
+- **Play and Google Cloud** were set up on November 15, 2026 (`docs/android/play-console.md`): the app,
+  the upload key, the API service account and the closed-test tester list. Play's automatic protection is
+  off.
+- **Rebase drill:** `tools/refresh-upstream.py` moves the lane's pin to a new checkout;
+  `docs/android/rebase.md` is the procedure and `android/rebase-ledger.json` its record.
+
+| A7 gate | Result |
+| --- | --- |
+| Tool and runner tests (`node --test chromium/tools/*.test.mjs chromium/tests/*.test.mjs chromium/release/*.test.mjs`) | Pass on the Mac, November 15 |
+| Release GN args exist at 156.0.8078.79 (`gn args --list`) | Pending (server) |
+| First official release build, wall time | Pending (server, owner approval) |
+| Release gate on the release APK | Pending (server) |
+| Signed bundle verified, SBOM and Sigstore verified | Pending (owner's Mac) |
+| Download size for the Pixel 10 Pro (K3) | Pending |
+| `1.0.0-beta.1` (code 1) on the internal track installs over Play on the Pixel | Pending (owner) |
+| Anything Play's review raises (K5) | Pending |
+| Rebase drill: time and cost in the ledger (K4) | Pending (server, owner approval) |
+
+The security clock (design §8.3) applies from the first production release: a stable security release
+within 7 days, an exploited-in-the-wild fix within 72 hours, every miss recorded here with its reason.
+
+### The Island along the top on the Start Page
+
+Settings → Island position offers Top, as on the iPhone, and the Start Page now makes room for it there:
+the header moves below the Island and the footer, Customize, the clock's settings and the long press's menu
+drop to the bottom edge it left. Each of those moves by the Island's height, the iPhone's own rule
+(`ios-start-page.css`'s top block), through two variables in `android-start.css`
+(`--android-island-above` and `--android-island-below`), so the two layouts can't drift apart.
+
+- **Where the page learns it:** `android-start.js` asks (`blancAndroidIsland`), and `blanc_pages_ui.cc`
+  answers from the setting itself, read through `IslandPositionBridge.java`
+  (`browser/island_position_bridge.cc`, built in the Island's linked bridge target so no new patch is
+  needed). The setting stays only in the app's preferences.
+- **No jump on open:** the page keeps the last answer in its own storage and lays out for it before the
+  answer comes. A Start Page opened just after the Island moved while none was open still starts from
+  the old side for a moment; private Start Pages have no stored answer and start from the bottom.
+- **Moving the Island** reloads every open Start Page in that window, as the iPhone does
+  (`IslandCoordinator.reloadStartPages`).
+- **On the emulator:** `start-island-top.mjs` moves the Island in Settings as a person would and judges
+  the layout from what's on screen (UI Automator bounds of the Island, the date and Customize): the bottom
+  layout, the move to Top with the open Start Page reloaded, a relaunch, Customize opened with the Island
+  on top, and the move back. 5 of 5 on November 14, 2026 (APK `0add18ce…`, the build server's second
+  emulator), and the A5c gate runs it. Not yet seen on the Pixel.
+
+### A5c The first minute and the rest of Settings
+
+The A5 row's onboarding and Settings, split in two PRs (owner, November 14, 2026): this one is the
+walkthrough and the Settings rows; the launch ping, its native sender and the Worker change adding
+`android` come next.
+
+- **The walkthrough** is Blanc for iPhone's (`WalkthroughFlow.swift`, `WalkthroughSheet.swift`): a card over
+  the bottom of the Start Page on a fresh install, at the iPhone's sizes. Welcome leads with Pair with your
+  Blanc, which opens the Sync screen `/sync` opens (Back returns to Welcome); a join shows What arrived (open
+  tabs per device, Favorites, settings, Spaces, counted once the first pass is in), then Share back (Share
+  open tabs and the Spaces switch), then Your privacy (Measure usage), then the default-browser offer. A
+  phone already paired starts at Share back. Back or the card's × closes it from any step, and it's seen
+  once per version (`blanc.walkthrough_completed_version`, device-local). Android's privacy step has
+  Measure usage only: Android has no search suggestions yet, so the iPhone's walkthrough version 2 is
+  Android's 1 (`WalkthroughFlow.java`). Patch 0114 starts it once the Island exists; background sync
+  launches build no Island, so they never show it.
+- **Measure usage** is saved only when the privacy step was on screen: Continue saves the switch, and
+  closing on that step saves what it shows. A card closed earlier saves nothing, so nothing will be sent
+  and Settings → Privacy reads off until the person chooses. This diverges from the iPhone, which saves
+  the switch's default when Welcome is swiped away (D38).
+- **Default browser** asks with Android's browser-role dialog, at most twice (Android stops showing it to
+  someone who turned it down twice), then opens Android's Default apps screen, as it does once Blanc is
+  the default. The walkthrough skips the offer when Blanc already is (D4).
+- **Language** (under More, as the Settings design places it) offers System and the six languages by their
+  endonyms (`AppLanguages.java`, desktop's `i18n-locales.json`). A choice is Android's per-app language
+  (`LocaleManager`, or Chromium's own override before Android 13), and Blanc restarts into it at once,
+  because Chromium loads its pages' language when it starts and otherwise kills itself on a locale change.
+  Patch 0114 names the six as the app's `localeConfig`, so Android's own App languages screen offers the
+  same six. A choice made there closes Blanc, which is Chromium's own behavior (seen on the emulator); that the
+  next launch then opens in it wasn't checked.
+- **Settings rows:** Default browser (Browsing; summary Blanc or Not Blanc), Measure usage (Privacy), Language
+  (More) and Show the welcome again (About).
+- **Strings:** the iPhone's walkthrough and default-browser copy in all six languages, with four Android
+  wordings where the iPhone's names iOS (`android.welcome.shareTitle`, `android.welcome.measureUsageHelp`,
+  `android.defaultBrowser.body`, `android.defaultBrowser.open`).
+- **Emulator checks skip the card** while `/data/local/tmp/blanc-walkthrough-off` exists, which only a debug
+  build reads (`FirstMinute.SKIP_FILE`); every gate script creates it, and `walkthrough.mjs` removes it and
+  puts it back.
+- **The launch ping** (F21, its own PR) is the iPhone's, in desktop's shape with `platform: "android"`: once
+  per process the person opened, when Measure usage is saved on at launch or as soon as it's saved on. Nothing
+  leaves before that, and no install id exists until the first send (`LaunchPing.java`). A build with no Blanc
+  release version sends nowhere; a debuggable build started with `--blanc-test-ping-host` sends only to that
+  loopback collector. The request goes through Chromium's network stack (`launch_ping_bridge.cc`, linked by
+  patch 0115), so the outbound gate's NetLog sees it; `launch-ping.mjs` checks both ways on the emulator.
+  The ping Worker counts Android under `android:`, apart from desktop and the iPhone, with no GA mirror,
+  first-day signals or events, and an `android` block in `/stats`. The owner approved deploying it on
+  November 14, 2026, ahead of this PR (version `7955faed…`).
+- **Not yet:** pairing in under a minute and the walkthrough on the Pixel wait for the owner.
+
+| A5c gate (November 14, 2026) | Result | Evidence (`~/blanc-evidence/android/a5c-split/`) |
+| --- | --- | --- |
+| Walkthrough | Pass, 12 of 12 | `lane1/walkthrough/` |
+| Launch ping (its PR) | Pass, 5 of 5 | `lane1/launch-ping/` |
+| Blanc's pages on a phone | Pass, 41 of 41 | `lane1/pages-phone/` |
+| Start Page shortcuts, and the ways into the Start Page | Pass, 10 of 10 and 2 of 2 | `lane1/start-*` |
+| A5a: Settings, patch reconstruction (both lanes), Robolectric | Pass: 22 of 22, passed, 904 tests | `lane1/a5a/` |
+| A4: Sync, Spaces, Shared Spaces | Pass: 17, 15, 6 of 6 | `lane2/a5a/a4/` |
+| A4: shield race | 1 miss in the gate run (the page didn't come back from the back-forward cache), then 3 runs of 2 loads and a 40-load run with none; cause not found | `lane1/a5a/a4/shield-race.log`, `fix-reruns/shield*.log` |
+| A3 blocking | 13 of 14 in the run; the Start Page case passes with #1535 | `lane2/a5a/a4/a3/`, `fix-reruns/blocking2.log` |
+| A2: tabs, palette, tab grid, find, session restore, Quiet Tabs, tab store | Pass | `lane1/a5a/a4/a3/a2/` |
+| A2 acceptance | 23 of 32 in the run; 32 of 32 with #1535 | `lane1/a5a/a4/a3/a2/acceptance/`, `fix-reruns/acceptance/` |
+| A1 (JUnit, insets at three sizes, menu, pages, outbound) | Pass | `lane1/a5a/a4/a3/a2/a1/` |
+| APK (x86_64, emulator) | `b55c9a2d…` | `lane*/apk.sha256` |
+
+The gate ran across both of the build server's emulators (each lane has its own steps), on one build of A5c
+with its launch ping and the Start Page's top Island merged in. The nine acceptance scenarios and the blocking
+case failed on main as well: the A5b Start Page (#1506) shows the week's blocked count, not an On/Off state,
+and both still read the On/Off field it dropped. #1535 changed the tests; the reruns above are from that change
+on the same APK. Shared Spaces passed 6 of 6 with #1531, after failing on November 11 (A5a, above).
+
 ### Shield count across a page's commit
 
 The count is fixed in the blocker code desktop shares. A page's first request can
@@ -3089,11 +4537,11 @@ on that site, and a wrong search address still fails it.
 
 | Platform | Current-candidate baseline |
 | --- | --- |
-| macOS | Not run for current candidate (previous baseline is stale) |
-| Windows | Not run (640 cases) |
-| Linux | Not run (640 cases) |
+| macOS | 635/667 executable cases pass; 1 failed; 3 undefined/not run; 28 excluded — [baseline](scenarios/baseline-macos-1400e3914b1a7bdf.json)<br>S1 rows: 260/263 pass; 0 failed; 1 undefined; 2 excluded |
+| Windows | Not run for current candidate (previous baseline is stale) |
+| Linux | Not run (667 cases) |
 
-640 executable cases from 591 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
+667 executable cases from 618 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
 
 Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acceptance/` (A2, A3): 32 (F2–F8, F12, F18, and the phone-only F31-11 and F56-1–3), run on the build server's emulator by `run.sh`; desktop cases don't apply to it.
 
@@ -3101,13 +4549,13 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 | State | macOS | Windows | Linux | Android |
 | --- | ---: | ---: | ---: | ---: |
-| Not started / unassessed | 24 | 81 | 81 | 69 |
+| Not started / unassessed | 2 | 81 | 81 | 69 |
 | Research only | 1 | 0 | 0 | 0 |
-| Drafted | 5 | 0 | 0 | 0 |
-| Implemented | 6 | 0 | 0 | 12 |
-| Built, isolated (legacy) | 4 | 0 | 0 | 0 |
-| Integrated, partial (legacy) | 3 | 0 | 0 | 0 |
-| Integrated | 38 | 0 | 0 | 0 |
+| Drafted | 0 | 0 | 0 | 0 |
+| Implemented | 8 | 0 | 0 | 12 |
+| Built, isolated (legacy) | 0 | 0 | 0 | 0 |
+| Integrated, partial (legacy) | 0 | 0 | 0 | 0 |
+| Integrated | 70 | 0 | 0 | 0 |
 | Verification needs recheck | 0 | 0 | 0 | 0 |
 | Verified | 0 | 0 | 0 | 0 |
 | Release-ready | 0 | 0 | 0 | 0 |
@@ -3115,5 +4563,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-c38dc309aaefdebe; Windows: none; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-1400e3914b1a7bdf; Windows: windows-x64-7edd9da4f45532ea; Linux: none; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

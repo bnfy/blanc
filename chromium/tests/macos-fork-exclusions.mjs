@@ -22,5 +22,7 @@ export const macosForkExclusions = Object.freeze({
   "spec/acceptance/settings-and-theming.feature:57:plain": "Owner decision 2026-11-02: no built-in Dark Reader; use the Web Store extension.",
   "spec/acceptance/settings-and-theming.feature:65:plain": "Owner decision 2026-11-02: no built-in Dark Reader; use the Web Store extension.",
   "spec/acceptance/settings-and-theming.feature:74:plain": "Owner decision 2026-11-02: no built-in Dark Reader; use the Web Store extension.",
-  "spec/acceptance/vertical-tabs.feature:239:plain": "Windows/Linux-only UI or Linux import; not applicable on macOS."
+  "spec/acceptance/vertical-tabs.feature:239:plain": "Windows/Linux-only UI or Linux import; not applicable on macOS.",
+  "spec/acceptance/platform-services.feature:25:plain": "Owner decision 2026-11-17: the test build has no updater; the sparkle-N-to-N+1 release gate proves on every beta that Sparkle installs the next beta and refuses a wrong key or a tampered file.",
+  "spec/acceptance/private-tabs.feature:40:plain": "Owner decision 2026-11-17: a private-window passkey needs Touch ID on a signed build; it is a question in the owner's passkey check (webauthn gate), not a simulated authenticator."
 });

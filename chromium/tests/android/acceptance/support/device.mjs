@@ -10,19 +10,31 @@ import {gridSwipe, nodeBounds} from '../../island-menu.mjs';
 import {matching, paletteField} from '../../palette.mjs';
 import {findCount} from '../../find.mjs';
 import {renderers} from '../../quiet-tabs.mjs';
-import {gridState, paletteRows, rawPixel} from './parse.mjs';
+import {devtoolsSocket, gridState, paletteRows, rawPixel, withPref} from './parse.mjs';
+import {hostPort} from '../../support/host-ports.mjs';
+import {androidPackage} from '../../release-gate.mjs';
 
-export const PACKAGE = 'me.bnfy.blanc.dev';
+export const PACKAGE = androidPackage();
 const PREFS = `shared_prefs/${PACKAGE}_preferences.xml`;
+// SettingsStore.WALKTHROUGH_KEY: the walkthrough version someone finished.
+const WALKTHROUGH_KEY = 'blanc.walkthrough_completed_version';
+// The fixture server's port on the device, which the switches below map the fixture hosts to, and on
+// this server (support/host-ports.mjs: each emulator's runs have their own), joined by adb reverse.
 const FIXTURE_PORT = 8765;
+const FIXTURE_HOST_PORT = hostPort(FIXTURE_PORT);
 let requestLog = null;
-const DEVTOOLS_PORT = 9333;
+const DEVTOOLS_PORT = hostPort(9333);
 const COMMAND_LINE = '/data/local/tmp/chrome-command-line';
 
 export const sleep = seconds => execFileSync('sleep', [String(seconds)]);
 export const adb = (...args) => execFileSync('adb', args, {encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe']});
 const center = b => [Math.round((b.left + b.right) / 2), Math.round((b.top + b.bottom) / 2)];
 const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// One connection per DevTools request: a kept-alive one outlives `adb forward` being pointed at
+// another app's socket and would go on answering for the old app. Timed out, because a frozen app
+// accepts a connection and never answers.
+const devtoolsRequest = ms => ({headers: {connection: 'close'}, signal: AbortSignal.timeout(ms)});
 
 let commandLineDir = null;
 
@@ -48,8 +60,8 @@ export function startFixtures() {
   adb('wait-for-device');
   // Shared with the server's thread: this thread reads it even while the server is busy.
   requestLog = new SharedArrayBuffer(1024 * 1024);
-  const worker = new Worker(new URL('./fixture-server.mjs', import.meta.url), {workerData: {dir, port: FIXTURE_PORT, requestLog}});
-  adb('reverse', `tcp:${FIXTURE_PORT}`, `tcp:${FIXTURE_PORT}`);
+  const worker = new Worker(new URL('./fixture-server.mjs', import.meta.url), {workerData: {dir, port: FIXTURE_HOST_PORT, requestLog}});
+  adb('reverse', `tcp:${FIXTURE_PORT}`, `tcp:${FIXTURE_HOST_PORT}`);
   commandLineDir = dir;
   setSwitches();
   return () => {
@@ -130,12 +142,37 @@ export class Device {
     adb('shell', 'am', 'force-stop', PACKAGE);
     adb('shell', 'pm', 'clear', PACKAGE);
     await this.launch();
+    // A release build shows the welcome card on every fresh start (only debug builds skip it, while
+    // FirstMinute.SKIP_FILE exists), and it would cover every scenario. The card has its own checks
+    // (tests/android/walkthrough.mjs); here it is marked done, as for someone who finished it, which
+    // relaunches Blanc.
+    if (PACKAGE === 'me.bnfy.blanc') {
+      // Android writes the preferences file a moment after the first page shows.
+      await this.waitFor(() => adb('shell', 'ls', `/data/data/${PACKAGE}/shared_prefs/`).includes(`${PACKAGE}_preferences.xml`),
+        'Blanc to write its preferences', 20);
+      await this.setPref(`<int name="${WALKTHROUGH_KEY}" value="2147483647" />`, WALKTHROUGH_KEY);
+    }
   }
 
   async launch() {
     adb('shell', 'monkey', '-p', PACKAGE, '-c', 'android.intent.category.LAUNCHER', '1');
-    adb('forward', `tcp:${DEVTOOLS_PORT}`, 'localabstract:chrome_devtools_remote');
-    await this.waitFor(async () => (await this.visibleUrl()) !== null, 'Blanc to show a page', 30);
+    // The socket appears once Blanc starts, named by its process id when another Chromium app (the
+    // debug build on the gate's emulator) holds the plain name, so it is found again on each try and
+    // trusted only when it answers for this package.
+    await this.waitFor(async () => {
+      let pid = '';
+      try { pid = adb('shell', 'pidof', PACKAGE).trim().split(/\s+/)[0]; } catch {} // not running yet
+      adb('forward', `tcp:${DEVTOOLS_PORT}`, `localabstract:${devtoolsSocket(pid, adb('shell', 'cat', '/proc/net/unix'))}`);
+      return await this.devtoolsPackage() === PACKAGE && (await this.visibleUrl()) !== null;
+    }, 'Blanc to show a page', 30);
+  }
+
+  async devtoolsPackage() {
+    try {
+      return (await (await fetch(`http://localhost:${DEVTOOLS_PORT}/json/version`, devtoolsRequest(2000))).json())['Android-Package'];
+    } catch {
+      return null;
+    }
   }
 
   async relaunch() {
@@ -145,11 +182,19 @@ export class Device {
     sleep(3);
   }
 
-  // Sets a debug-only preference before a launch (the app must have run once to have the file).
+  // Edits an existing preference before launch. Release needs the rooted emulator; this
+  // does not enable preferences the production app ignores (for example quiet-delay).
   async setPref(xmlEntry, name) {
     adb('shell', 'am', 'force-stop', PACKAGE);
-    const prefs = adb('shell', 'run-as', PACKAGE, 'cat', PREFS).replace(new RegExp(`\\s*<[a-z]+ name="${escape(name)}"[^>]*?(/>|>[^<]*</[a-z]+>)`), '');
-    adb('shell', `run-as ${PACKAGE} sh -c 'cat > ${PREFS}' <<'EOF'\n${prefs.replace('</map>', `    ${xmlEntry}\n</map>`)}\nEOF`);
+    const release = PACKAGE === 'me.bnfy.blanc';
+    if (release && adb('shell', 'id', '-u').trim() !== '0') throw Error('Release preferences require rooted emulator adbd');
+    const prefPath = release ? `/data/data/${PACKAGE}/${PREFS}` : PREFS;
+    const prefix = release ? [] : ['run-as', PACKAGE];
+    const prefs = withPref(adb('shell', ...prefix, 'cat', prefPath), xmlEntry, name);
+    // Write in place so the app's existing ownership and SELinux context remain intact.
+    adb('shell', `${release ? '' : `run-as ${PACKAGE} `}sh -c 'cat > ${prefPath}' <<'EOF'\n${prefs}\nEOF`);
+    // Read back: a lost edit would otherwise surface later as an unrelated failure.
+    if (!adb('shell', ...prefix, 'cat', prefPath).includes(xmlEntry)) throw Error(`The preference ${name} was not written to ${prefPath}`);
     await this.launch();
   }
 
@@ -162,7 +207,7 @@ export class Device {
 
   async targets() {
     try {
-      return (await (await fetch(`http://localhost:${DEVTOOLS_PORT}/json`)).json()).filter(t => t.type === 'page');
+      return (await (await fetch(`http://localhost:${DEVTOOLS_PORT}/json`, devtoolsRequest(5000))).json()).filter(t => t.type === 'page');
     } catch {
       return [];
     }
@@ -191,7 +236,7 @@ export class Device {
     await this.waitFor(async () => (last = await this.visibleUrl()) === url, () => `the page to be ${url} (it is ${last})`, seconds);
   }
 
-  renderers() { return renderers(adb('shell', 'ps', '-A')); }
+  renderers() { return renderers(adb('shell', 'ps', '-A'), PACKAGE); }
 
   // Ends Blanc's sandboxed processes, the blocker's among them, as Android does under pressure.
   // Needs root (see startFixtures). A kill that fails must fail the check: a check that ends
@@ -286,6 +331,29 @@ export class Device {
   menu(entry) {
     this.tap({id: 'blanc_island_menu'});
     this.tap({text: entry});
+  }
+
+  // Whether Settings' Blanc Blocker switch is on, from the switch after its title. Swipes only once
+  // Settings is in front, and goes Back only if it opened, so the page underneath is never touched.
+  async blockerSwitchOn() {
+    const inSettings = () => adb('shell', 'dumpsys', 'activity', 'activities')
+        .split('\n').some(l => /ResumedActivity/.test(l) && l.includes('.settings.SettingsActivity'));
+    this.menu('Settings');
+    await this.waitFor(async () => inSettings(), 'Settings to open');
+    try {
+      const {width, height} = this.screenSize();
+      for (let i = 0; i < 10; i++) {
+        const nodes = this.dump().match(/<node [^>]*>/g) ?? [];
+        const title = nodes.findIndex(n => n.includes('text="Blanc Blocker"'));
+        const widget = title < 0 ? null : nodes.slice(title + 1, title + 8).find(n => n.includes('class="android.widget.Switch"'));
+        const state = widget && /checked="(true|false)"/.exec(widget);
+        if (state) return state[1] === 'true';
+        this.swipe(width / 2, height * 0.75, width / 2, height * 0.3, 300, 0.8);
+      }
+      throw Error('Settings shows no Blanc Blocker switch');
+    } finally {
+      this.back();
+    }
   }
 
   findCount() { return findCount(this.dump()); }

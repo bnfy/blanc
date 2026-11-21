@@ -1,0 +1,271 @@
+{
+ "milestone": "W1 Parts A, B and C",
+ "platform": "windows",
+ "candidate": {
+  "id": "windows-x64-ec914b7ca4b925a1",
+  "exeSha256": "c6728b1ad35768cb95c7893393f1f92399f3c58b0b115befc84b25e554bdd542",
+  "dllSha256": "ec914b7ca4b925a16f9d69b689f19ff21ab93ace80c06cedf1c723a728e036ca",
+  "version": "158.0.8127.2",
+  "treeCommit": "38d4ae9da94e3d2efa1ba7f3c9136fc3931bd138",
+  "qualification": "W1 Part A (window frame, Windows caption buttons, app menu, strip drag): frame check 15 of 15 by real input (run 44207006500); full suite on a 1920x1080 runner display, 2026-11-18 (same run, fork 2a80b3197, shipping v1.49.1): 590 of 667 cases pass, 48 fail, 23 undefined, 6 excluded"
+ },
+ "changes": [
+  "patch 0095: browser_frame_view_win.cc lays out an Island window as a tabbed window (no title bar; caption buttons on their own layer, hit-tested first)",
+  "patch 0096: AppMenu::RunMenu takes an anchor position",
+  "patch 0097: browser_view.cc hands presses on the strip's drag areas to the window on Windows",
+  "openMainMenu opens Chromium's app menu at the Island's menu button; minimizeWindow, maximizeWindow, closeWindow; menuButtonBounds keeps the menu button out of the drag area",
+  "the Island draws no window buttons on win32 (prototype.css); the hidden strip's drag band is 10 px on Windows",
+  "test hook windowFrameInsets; the harness measures the window's client area on Windows (CDP bounds include 8 px invisible resize borders)",
+  "chromium/tests/windows-frame.mjs: the frame check by real input (tests/lib/windows-desktop.mjs)",
+  "the candidate workflow asks the runner for a 1920 by 1080 display"
+ ],
+ "frameCheck": {
+  "run": "chromium-windows-candidate.yml 44207006500",
+  "pass": true,
+  "checks": {
+   "contentFillsWindow": true,
+   "islandDrawsNoWindowButtons": true,
+   "maximizeButton": true,
+   "contentFillsWhenMaximized": true,
+   "restoreButton": true,
+   "minimizeButton": true,
+   "dragByStrip": true,
+   "resizeByTopEdge": true,
+   "doubleClickMaximizes": true,
+   "menuButtonOpensAndCloses": true,
+   "closeButtonClosesWindow": true,
+   "closeButtonEndsBrowser": true,
+   "closeAfterMenuEndsBrowser": true,
+   "contentFillsAt150": true,
+   "cleanExitAt150": true
+  }
+ },
+ "suite": {
+  "run": "chromium-windows-candidate.yml 44207006500",
+  "display": "1920 x 1080",
+  "baseline": "scenarios/baseline-windows-x64-ec914b7ca4b925a1.json",
+  "baselineSha256": "68b3059ba1a2f01916b07025c87f1b4b2365d0a2de1ed956fcf6cd38487c0b51",
+  "executableSummary": {
+   "pass": 590,
+   "fail": 48,
+   "undefined": 23,
+   "excluded": 6
+  },
+  "w0": {
+   "pass": 534,
+   "fail": 103,
+   "undefined": 24,
+   "excluded": 6
+  },
+  "w0FrameCases": "55 of the 56 cases that failed on the frame in W0 pass; vertical-tabs.feature:74 fails on a title-scroll animation because the runner has animations off (reducedMotion true)"
+ },
+ "runnerVariable": [
+  {
+   "case": "spec/acceptance/glance.feature:337:plain",
+   "note": "Fails on this build and, with the same test code, on the W0 build (run 44206151476), though it passed in W0's full run: runner timing, not Part A. Passes on the Mac."
+  },
+  {
+   "case": "spec/acceptance/vertical-tabs.feature:146:plain",
+   "note": "Failed here; passed on this build in the targeted rerun (run 44202963360)."
+  },
+  {
+   "case": "spec/acceptance/F41-named-workspaces.feature:435:plain",
+   "note": "Failed here after a crash and relaunch; passed on this build in run 44178769063."
+  }
+ ],
+ "openGaps": [
+  "After any tab has been closed, closing the last window leaves the browser process running with no window (over 15 s); with no closed tab it ends in about 5 s. Not diagnosed. W2.",
+  "Snap Layouts on hover over maximize not checked: a hosted runner cannot show the flyout. Hand check on a real Windows 11 desktop.",
+  "Shared C++ for Parts A and B passed the Mac Studio's syntax-only compile; Part A reaches the Mac with the next nightly. Part B changes only Windows files."
+ ],
+ "partB": {
+  "candidate": {
+   "id": "windows-x64-e42f9e5a532cdf96",
+   "exeSha256": "e9ec702312de21813263f29564b312abb78e2e9284d241962a5a5c7cf463ed4a",
+   "dllSha256": "e42f9e5a532cdf96b9e1f6c382012fefc7f4510a9a34cf0c43f5b64893847bd2",
+   "version": "158.0.8127.2",
+   "treeCommit": "985d855bc784fd930554f8da3484914353438962",
+   "qualification": "cross-compiled candidate; runtime acceptance pending"
+  },
+  "changes": [
+   "patch 0098: the preview's own Windows names (Blanc Prototype, BlancPrototype, BlancPrvHTM, BlancPrvPDF, blanc-prototype), its own toast activator and Active Setup ids, Bananify Creative as publisher, and the Sunrise icon in chrome.exe and chrome.dll",
+   "chromium/windows/identity.md and tools/windows-identity.test.mjs: every name against the Electron Blanc's and Chromium's",
+   "the Windows output builds Chromium's mini_installer with the browser (239 MB), packed with the candidate",
+   "chromium/tests/windows-install.mjs and windows-crash.mjs, run by the candidate workflow"
+  ],
+  "installCheck": {
+   "run": "chromium-windows-candidate.yml 44235371094",
+   "pass": true,
+   "checks": {
+    "electronInstalled": true,
+    "installed": true,
+    "uninstallEntry": true,
+    "startMenuShortcut": true,
+    "registeredAsBrowser": true,
+    "electronUntouchedByInstall": true,
+    "installedLaunches": true,
+    "uninstalled": true,
+    "dataKept": true,
+    "electronUntouched": true,
+    "electronStillStarts": true
+   },
+   "registration": {
+    "registered": [
+     [
+      "Blanc Prototype.XVTBKQQPX2VWUBYKQEX56KRVZI",
+      "Software\\Clients\\StartMenuInternet\\Blanc Prototype.XVTBKQQPX2VWUBYKQEX56KRVZI\\Capabilities"
+     ]
+    ],
+    "clients": [
+     "Blanc Prototype.XVTBKQQPX2VWUBYKQEX56KRVZI"
+    ],
+    "assoc": {
+     "http": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "https": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "irc": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "mailto": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "mms": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "news": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "nntp": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "sms": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "smsto": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "snews": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "tel": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "urn": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "webcal": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI",
+     "blanc-prototype": "BlancPrvHTM.XVTBKQQPX2VWUBYKQEX56KRVZI"
+    }
+   },
+   "electronBefore": {
+    "exe": true,
+    "client": {
+     "http": "BlancURL",
+     "https": "BlancURL"
+    },
+    "progId": {
+     "(Default)": "\"C:\\Users\\runneradmin\\AppData\\Local\\Programs\\blanc\\Blanc.exe\" \"%1\""
+    },
+    "registered": "Software\\Clients\\StartMenuInternet\\Blanc\\Capabilities",
+    "userChoiceHttp": "MSEdgeHTM",
+    "userChoiceHttps": "MSEdgeHTM"
+   },
+   "uninstallExit": 19
+  },
+  "frameCheck": {
+   "run": "44235371094",
+   "pass": true
+  },
+  "crashCapture": {
+   "run": "chromium-windows-candidate.yml 44234145350 (same build)",
+   "capturesCrashes": true,
+   "finding": "Crashpad writes a dump for a renderer crash (Page.crash) and for a browser crash (Browser.crash), into the profile's Crashpad\\\\reports, with or without --enable-crash-reporter-for-testing. Chromium's docs/win_cross.md says a cross build cannot report crashes; in this tree the assembly files are assembled (llvm-ml). Nothing is uploaded: the build has no crash server.",
+   "runs": {
+    "default": {
+     "captured": true,
+     "dumps": {
+      "profile": [
+       {
+        "file": "reports\\65373e26-0782-4916-a4d5-0540aa91c5fe.dmp",
+        "bytes": 1441728
+       },
+       {
+        "file": "reports\\6ea71636-8745-47d3-986b-c2345ef57fc3.dmp",
+        "bytes": 2853344
+       }
+      ],
+      "defaultData": []
+     }
+    },
+    "crash-reporter-for-testing": {
+     "captured": true,
+     "dumps": {
+      "profile": [
+       {
+        "file": "reports\\3d732874-16f8-40e9-9920-14ed2951ad14.dmp",
+        "bytes": 1423712
+       },
+       {
+        "file": "reports\\437e5e4a-b503-4799-a13f-5648c12b08b3.dmp",
+        "bytes": 2879232
+       }
+      ],
+      "defaultData": []
+     }
+    }
+   }
+  },
+  "notes": [
+   "Chromium's installer registers the preview for more URL schemes than Electron Blanc does (mailto, tel, irc and others, as Chrome does). These are capabilities in Default Programs, not defaults.",
+   "Uninstall exit code 19 is Chromium's UNINSTALL_SUCCESSFUL.",
+   "Settings > Default apps listing and choosing the preview are not checked: a hosted runner has no interactive Settings session."
+  ],
+  "suite": {
+   "run": "chromium-windows-candidate.yml 44236176647",
+   "display": "1920 x 1080",
+   "baseline": "scenarios/baseline-windows-x64-e42f9e5a532cdf96.json",
+   "executableSummary": {
+    "pass": 591,
+    "fail": 47,
+    "undefined": 23,
+    "excluded": 6
+   },
+   "comparedWithPartA": "no case that passed on the Part A build fails; browser-migration.feature:35 passes now"
+  }
+ },
+ "partC": {
+  "date": "2026-11-18",
+  "candidate": "windows-x64-e42f9e5a532cdf96",
+  "candidateZipSha256": "9d36b02f70227d8322f667ce6974269c8f69439dff904a654b732f82796a04d1",
+  "run": "chromium-windows-candidate.yml 44316018075 (chromium/next 923457db2), approved by the owner in the fork-windows-signing environment",
+  "signed": {
+   "files": 13,
+   "list": [
+    "chrome.exe",
+    "chrome.dll",
+    "chrome_elf.dll",
+    "chrome_proxy.exe",
+    "chrome_pwa_launcher.exe",
+    "chrome_wer.dll",
+    "d3dcompiler_47.dll",
+    "dxcompiler.dll",
+    "eventlog_provider.dll",
+    "notification_helper.exe",
+    "vk_swiftshader.dll",
+    "vulkan-1.dll",
+    "setup.exe"
+   ],
+   "installer": "blanc-windows-installer-signed.exe"
+  },
+  "signatures": {
+   "verified": 14,
+   "publisher": "CN=Bananify Creative, O=Bananify Creative, L=North Chili, S=New York, C=US",
+   "thumbprint": "4509FB3ACE3EBE7EC7F99B36CE3880ADB53745D0",
+   "timestamper": "Microsoft Public RSA Time Stamping Authority",
+   "record": "windows-signature.json on the draft release"
+  },
+  "installer": {
+   "sha256": "b7efd0892d23fde7b82c640e7c4923e33b83e9860d44c051ba71478e14ea11c6",
+   "bytes": 197701928,
+   "where": "unpublished draft release fork-windows-candidate only"
+  },
+  "installCheck": {
+   "pass": true,
+   "checks": 11,
+   "of": 11,
+   "signedSha256": {
+    "executable": "700d0c5a6a396c4d2c5e4ad5b9c477202171c2dbfe09f4906ca82e9d846c7669",
+    "dll": "85f0598420c385852e16f1d032fe66f3cbda5f54937ff0873aa45052ac399e9c"
+   },
+   "note": "With --signed, the launch accepts chrome.exe and chrome.dll only when they are the candidate's own files with an Authenticode signature added (signedCopyOf in windows/candidate.mjs). The first signing run, 44313102558, signed and verified the same files but failed this check because the harness compared the signed files with the unsigned hashes."
+  },
+  "artifacts": "The run's one Actions artifact holds the candidate job's JSON, logs and screenshots; no executable.",
+  "dryRun": {
+   "run": "chromium-windows-candidate.yml 44239586219",
+   "result": "The runner unpacked mini_installer.exe (resources B7 CHROME.PACKED.7Z and BL SETUP.EX_, language 1033), packed it back with 7-Zip, makecab and Chromium's resedit.py, and the repacked, unsigned installer passed the install check 11 of 11; the installed files carry the build's hashes."
+  },
+  "open": [
+   "The file properties of chrome.exe and chrome.dll still name The Chromium Authors as company; the signature says Bananify Creative (plan Task C2, last item).",
+   "The installer's version resource is Chromium's."
+  ]
+ }
+}

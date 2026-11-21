@@ -230,7 +230,7 @@
         <!-- Two columns where there is room (the popover stays below the clock,
              whose styling it changes): widgets, shortcuts and the clock, then
              the wallpaper. -->
-        <div class="customize-cols">
+        <div id="customizeCols" class="customize-cols">
         <div class="customize-col">
         <!-- The optional widgets (V24, fork only) in place of the layouts. -->
         <div id="customizeWidgetsLabel" class="customize-label" data-i18n="start.widgets.heading">Widgets</div>
@@ -390,7 +390,7 @@
   <div id="onboardDialog" class="ob-dialog" role="dialog" aria-modal="true" aria-labelledby="obActiveTitle" aria-describedby="obStepLabel" hidden>
     <div class="ob-head">
       <span id="obStepLabel" class="ob-step-label" aria-live="polite"></span>
-      <button id="obSkip" class="ob-skip" type="button" data-i18n="onboarding.skip">skip setup</button>
+      <button id="obSkip" class="ob-skip" type="button" data-i18n="onboarding.skip">Skip setup</button>
     </div>
     <div id="obContent" class="ob-content">
       <section data-step="0">
@@ -425,12 +425,12 @@
         <button id="obBringTabs" class="ob-btn-secondary ob-handoff" type="button" hidden data-i18n="onboarding.import.bringTabs">Bring your open tabs…</button>
       </section>
       <section data-step="2" hidden>
-        <h1 data-i18n="onboarding.island.title">Meet the island</h1>
+        <h1 data-i18n="onboarding.island.title">Meet the Island</h1>
         <p data-i18n="onboarding.island.body">Tabs, search and navigation, all in one place.</p>
         <figure class="ob-tab-discovery" aria-labelledby="obTabDiscoveryCaption">
           <picture class="ob-island-example" aria-hidden="true">
             <source media="(prefers-color-scheme: dark)" srcset="onboarding-island-dark.png" />
-            <img class="ob-quiet-island" src="onboarding-island-light.png" width="984" height="136" alt="" />
+            <img class="ob-quiet-island" src="onboarding-island-light.png" width="876" height="136" alt="" />
           </picture>
           <figcaption id="obTabDiscoveryCaption" class="page-sr-only" data-i18n="onboarding.island.caption">Quiet Island with Back and Forward, three tab dots, the site's favicon and address, New Tab, blocker shield, Reload, Favorite and Close.</figcaption>
         </figure>
@@ -449,7 +449,7 @@
           <span class="ob-dots-out"><span></span><span></span><span></span></span>
         </div>
         <h1 data-i18n="onboarding.blocking.title">Block ads &amp; trackers</h1>
-        <p data-i18n="onboarding.blocking.body">Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /off-leash.</p>
+        <p data-i18n="onboarding.blocking.body">Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /allow-ads.</p>
         <div class="ob-control-row">
           <span data-i18n="onboarding.blocking.toggle">Block ads &amp; trackers</span>
           <button id="obAdblock" class="ob-toggle" type="button" role="switch" aria-checked="true" aria-label="Block ads and trackers" data-i18n-aria-label="onboarding.blocking.toggleLabel"><span class="ob-knob"></span></button>
@@ -475,11 +475,11 @@
         <div class="ob-theme-row">
           <button id="obThemeLight" class="ob-theme-card" type="button" aria-pressed="false">
             <span class="ob-theme-preview ob-theme-preview-light"><span></span></span>
-            <span class="ob-theme-caption"><span data-i18n="onboarding.theme.light">light</span><span class="ob-theme-mark"></span></span>
+            <span class="ob-theme-caption"><span data-i18n="onboarding.theme.light">Light</span><span class="ob-theme-mark"></span></span>
           </button>
           <button id="obThemeDark" class="ob-theme-card" type="button" aria-pressed="false">
             <span class="ob-theme-preview ob-theme-preview-dark"><span></span></span>
-            <span class="ob-theme-caption"><span data-i18n="onboarding.theme.dark">dark</span><span class="ob-theme-mark"></span></span>
+            <span class="ob-theme-caption"><span data-i18n="onboarding.theme.dark">Dark</span><span class="ob-theme-mark"></span></span>
           </button>
         </div>
       </section>

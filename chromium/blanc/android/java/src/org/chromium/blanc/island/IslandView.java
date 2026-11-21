@@ -2,6 +2,7 @@
 
 package org.chromium.blanc.island;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
@@ -129,8 +130,6 @@ public class IslandView extends FrameLayout {
         mNewTab = findViewById(R.id.blanc_island_new_tab);
         mDividerStart = findViewById(R.id.blanc_island_divider_start);
         mDividerEnd = findViewById(R.id.blanc_island_divider_end);
-        mMenu.setContentDescription(res.getString(R.string.blanc_ios_island_page_actions));
-        mNewTab.setContentDescription(res.getString(R.string.blanc_tab_new));
         mPrivate.setContentDescription(res.getString(R.string.blanc_pill_private_title));
         // Sighted people swipe from the Island into the page for the tab grid; TalkBack gets the same
         // as an action on the address, where the iPhone has it.
@@ -299,6 +298,8 @@ public class IslandView extends FrameLayout {
         }
     }
 
+    // Only the swipe is handled here; a tap falls through to super, which performs the click.
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (!mSwiping && !mIntoPage) return super.onTouchEvent(event);

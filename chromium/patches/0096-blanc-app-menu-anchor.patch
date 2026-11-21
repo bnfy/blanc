@@ -1,0 +1,46 @@
+diff --git a/chrome/browser/ui/views/toolbar/app_menu.cc b/chrome/browser/ui/views/toolbar/app_menu.cc
+index 335290d..14dcf02 100644
+--- a/chrome/browser/ui/views/toolbar/app_menu.cc
++++ b/chrome/browser/ui/views/toolbar/app_menu.cc
+@@ -1120,13 +1120,14 @@ void AppMenu::RunMenu(views::MenuButtonController* host,
+ 
+ void AppMenu::RunMenu(views::Widget* parent,
+                       const gfx::Rect& anchor_screen_bounds,
+-                      ui::mojom::MenuSourceType source_type) {
++                      ui::mojom::MenuSourceType source_type,
++                      views::MenuAnchorPosition anchor_position) {
+   base::RecordAction(UserMetricsAction("ShowAppMenu"));
+   UMA_HISTOGRAM_ENUMERATION("WrenchMenu.MenuAction", MENU_ACTION_MENU_OPENED,
+                             LIMIT_MENU_ACTION);
+ 
+   menu_runner_->RunMenuAt(parent, nullptr, anchor_screen_bounds,
+-                          views::MenuAnchorPosition::kTopRight, source_type,
++                          anchor_position, source_type,
+                           /*native_view_for_gestures=*/gfx::NativeView(),
+                           /*corners=*/std::nullopt,
+                           "Chrome.AppMenu.MenuHostInitToNextFramePresented");
+diff --git a/chrome/browser/ui/views/toolbar/app_menu.h b/chrome/browser/ui/views/toolbar/app_menu.h
+index 95858d0..4dbd7f5 100644
+--- a/chrome/browser/ui/views/toolbar/app_menu.h
++++ b/chrome/browser/ui/views/toolbar/app_menu.h
+@@ -22,6 +22,7 @@
+ #include "ui/base/models/menu_model.h"
+ #include "ui/base/mojom/menu_source_type.mojom.h"
+ #include "ui/views/controls/menu/menu_delegate.h"
++#include "ui/views/controls/menu/menu_types.h"
+ 
+ class AppMenuBookmarkDelegate;
+ class BrowserWindowInterface;
+@@ -58,7 +59,11 @@ class AppMenu final : public views::MenuDelegate,
+   void RunMenu(
+       views::Widget* parent,
+       const gfx::Rect& anchor_screen_bounds,
+-      ui::mojom::MenuSourceType source_type = ui::mojom::MenuSourceType::kNone);
++      ui::mojom::MenuSourceType source_type = ui::mojom::MenuSourceType::kNone,
++      // Blanc: the Island's menu button sits at the window's leading edge,
++      // so its menu opens from the button's left instead of its right.
++      views::MenuAnchorPosition anchor_position =
++          views::MenuAnchorPosition::kTopRight);
+ 
+   // Closes the menu if it is open, otherwise does nothing.
+   void CloseMenu();

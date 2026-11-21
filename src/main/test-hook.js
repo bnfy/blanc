@@ -13,6 +13,7 @@ const sync = require('./sync');
 const history = require('./history');
 const archive = require('./archive');
 const bookmarks = require('./bookmarks');
+const favoritesLayout = require('./favorites-layout');
 const startPagePins = require('./start-page-pins');
 const path = require('node:path');
 const fs = require('node:fs');
@@ -265,6 +266,19 @@ function install(refs) {
   // Regression checks for "did this page really load" must use this.
   const committedUrlOf = (t) => { try { return t.view.webContents.getURL(); } catch { return ''; } };
   const isLoadingOf = (t) => { try { return t.view.webContents.isLoadingMainFrame(); } catch { return false; } };
+  // The Favorites page is a tab (November 18, 2026): the active tab when it
+  // shows Favorites, else any Favorites tab.
+  const favoritesPageWebContents = () => {
+    const isFavorites = (t) => !!t && committedUrlOf(t).startsWith('blanc://bookmarks/');
+    const active = tabs.get(getActiveTabId());
+    const tab = isFavorites(active) ? active : [...tabs.values()].find(isFavorites);
+    const wc = tab?.view?.webContents;
+    return wc && !wc.isDestroyed() ? wc : null;
+  };
+  // A page in the showing sheet, else the Favorites page: a hidden sheet's
+  // contents can outlive it, and Favorites is never in the sheet now.
+  const sheetOrFavoritesWebContents = () => (getUtilitySheetState()?.visible
+    ? getUtilitySheetWebContents() : favoritesPageWebContents());
   const sessionPersistentOf = (t) => { try { return t.view.webContents.session.isPersistent(); } catch { return null; } };
   const titleOf = (t) => { try { return t.view.webContents.getTitle(); } catch { return ''; } };
   let focusObservation = null;
@@ -983,6 +997,7 @@ function install(refs) {
         reload: ['R', ['control']], 'hard-reload': ['R', ['control', 'shift']],
         'close-tab': ['W', ['control']], find: ['F', ['control']],
         back: ['Left', ['alt']], forward: ['Right', ['alt']], 'new-tab': ['T', ['control']],
+        'new-private-tab': ['N', ['control', 'shift']],
       };
       if (!keys[commandId]) throw new Error(`no key for ${commandId}`);
       const [keyCode, modifiers] = keys[commandId];
@@ -1130,6 +1145,17 @@ function install(refs) {
     bookmarkRecords() {
       return bookmarks.listBookmarks().map(({ url, title, folder }) => ({ url, title, folder }));
     },
+    saveFavoriteTo(url, title, folder) { return bookmarks.saveFavorite(url, title, null, folder); },
+    /** The native Favorites menu as labels, '—' for a separator and
+     * { label: [...] } for a submenu; null until the menu is built. */
+    favoritesMenuOutline() {
+      const show = Menu.getApplicationMenu()?.getMenuItemById('favorites-show');
+      const outline = (menu) => (menu?.items ?? []).map((item) => {
+        if (item.type === 'separator') return '—';
+        return item.submenu ? { [item.label]: outline(item.submenu) } : item.label;
+      });
+      return show ? outline(show.menu) : null;
+    },
 
     // ---- history store ----
     seedHistory() { history.addVisit('http://seed.local/', 'Seed'); },
@@ -1212,6 +1238,7 @@ function install(refs) {
       return saved;
     },
     setTabSwitchOrder(order) { settings.setSettings({ tabSwitchOrder: order }); return settings.getSettings().tabSwitchOrder; },
+    setReuseNewTab(on) { settings.setSettings({ reuseNewTab: !!on }); return settings.getSettings().reuseNewTab; },
     async probeOnePasswordUtilityProcess() {
       const result = await probeOnePasswordPackage();
       return {
@@ -1282,6 +1309,14 @@ function install(refs) {
     setNewtabDynamicWallpaper(on) { return settings.setSettings({ newtabDynamicWallpaper: !!on }).newtabDynamicWallpaper; },
     newtabLayout() { return settings.getSettings().newtabLayout; },
     setNewtabLayout(layout) { return settings.setSettings({ newtabLayout: layout }).newtabLayout; },
+    // The one Start Page (V24): an old layout's name stands for the widgets
+    // it migrates to, so a scenario can draw what that layout showed.
+    newtabWidgets() { return settings.getNewtabWidgets(); },
+    setNewtabWidgets(widgets) { return settings.setNewtabWidgets(widgets); },
+    setNewtabWidgetsLike(layout) {
+      settings.setNewtabWidgets(require('./start-widgets').migrateFromLayout(layout));
+      return layout;
+    },
     readNewtabLayoutDom() {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
@@ -1597,8 +1632,8 @@ function install(refs) {
         ]).catch(() => []);
         const selectors = [
           '.start-brand-date', '.ledger-label', '.bb-clock',
-          '.bb-blocked', '.shelf-label', '.shelf-count', '.tally-count',
-          '.tally-caption', '.ledger-footer', '.layout-switcher button',
+          '.bb-blocked', '.shelf-label', '.shelf-count', '.ledger-footer',
+          '.widget-tile', '.customize-row-label',
           '.ob-step-label', '.ob-content p'
         ];
         if (selectors.some((selector) => !document.querySelector(selector))) return null;
@@ -1738,33 +1773,71 @@ function install(refs) {
       return startPagePins.listPins().length === 0;
     },
     startPagePins() { return startPagePins.listPins(); },
-    // The Favorites page's rows and their Start Page pins.
+    /** Edit a favorite on the Favorites page as a person does: F2 on its row
+     * opens the Edit dialog; type a name and an address, Enter. False when
+     * the row or the dialog never showed. */
+    async editFavoriteInSheet(title, newTitle, newUrl) {
+      const wc = favoritesPageWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(async () => {
+        const settle = () => new Promise((resolve) => setTimeout(resolve, 50));
+        const row = [...document.querySelectorAll('.fav-row[data-url]')]
+          .find((candidate) => candidate.querySelector('.title')?.textContent === ${JSON.stringify(String(title))});
+        if (!row) return false;
+        row.focus();
+        row.dispatchEvent(new KeyboardEvent('keydown', { key: 'F2', bubbles: true }));
+        await settle();
+        const edit = document.querySelector('.fav-edit-dialog[open]');
+        const name = edit?.querySelector('[data-field="title"]');
+        const address = edit?.querySelector('[data-field="url"]');
+        if (!name || !address || document.activeElement !== name) return false;
+        const type = (input, text) => { input.value = text; input.dispatchEvent(new Event('input', { bubbles: true })); };
+        type(name, ${JSON.stringify(String(newTitle))});
+        type(address, ${JSON.stringify(String(newUrl))});
+        edit.querySelector('form').requestSubmit();
+        return true;
+      })()`);
+    },
+    /** The Favorites page's rows as drawn: name, address, and whether an edit is open. */
+    favoritesSheetRows() {
+      const wc = favoritesPageWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        editing: !!document.querySelector('.fav-edit-dialog[open]'),
+        status: document.getElementById('importStatus')?.textContent ?? '',
+        rows: [...document.querySelectorAll('.fav-row[data-url]')]
+          .map((row) => ({ title: row.querySelector('.title')?.textContent, url: row.dataset.url })),
+      }))()`);
+    },
+    // The Favorites page's rows and their Start Page pins. A row shows only
+    // the pin mark; Pin and Unpin are in its ⋮ menu.
     readFavoritesSheetPins() {
-      const wc = getUtilitySheetWebContents();
-      if (!wc || wc.isDestroyed()) return null;
+      const wc = favoritesPageWebContents();
+      if (!wc) return null;
       return wc.executeJavaScript(`(() => {
         if (location.host !== 'bookmarks') return null;
-        return [...document.querySelectorAll('#list .row[data-url]')].map((row) => ({
+        return [...document.querySelectorAll('#list .row[data-url], #manager .fav-row[data-url]')].map((row) => ({
           url: row.dataset.url,
           title: row.querySelector('.title')?.textContent ?? '',
           pinned: row.classList.contains('start-pinned'),
           mark: row.querySelector('.row-pin-mark')?.getAttribute('aria-label') ?? null,
-          button: row.querySelector('.pin-toggle')?.textContent ?? null,
-          buttonLabel: row.querySelector('.pin-toggle')?.getAttribute('aria-label') ?? null,
-          focused: document.activeElement === row.querySelector('.pin-toggle'),
+          focused: document.activeElement === row,
         }));
       })()`);
     },
+    /** Pin or unpin a favorite from its row's ⋮ menu, as a person does. */
     toggleFavoritesSheetPin(title) {
-      const wc = getUtilitySheetWebContents();
-      if (!wc || wc.isDestroyed()) return false;
-      return wc.executeJavaScript(`(() => {
-        const row = [...document.querySelectorAll('#list .row[data-url]')]
+      const wc = favoritesPageWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(async () => {
+        const row = [...document.querySelectorAll('#manager .fav-row[data-url]')]
           .find((candidate) => candidate.querySelector('.title')?.textContent === ${JSON.stringify(String(title))});
-        const button = row?.querySelector('.pin-toggle');
-        if (!button || button.disabled) return false;
-        button.focus();
-        button.click();
+        row?.querySelector('.fav-more')?.click();
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        const labels = [blancI18n.t('favorites.manager.pin'), blancI18n.t('favorites.manager.unpin')];
+        const item = [...document.querySelectorAll('.fav-menu-item')].find((b) => labels.includes(b.textContent));
+        if (!item || item.disabled) return false;
+        item.click();
         return true;
       })()`);
     },
@@ -1774,7 +1847,7 @@ function install(refs) {
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
       return tab.view.webContents.executeJavaScript(`(() => {
         const layout = document.body.dataset.layout;
-        const list = { ledger: 'favoritesList', shelf: 'shFavorites', tally: 'tlFavorites' }[layout];
+        const list = { billboard: 'favoritesList', ledger: 'favoritesList', shelf: 'shFavorites', tally: 'tlFavorites' }[layout];
         const items = list ? [...document.getElementById(list).querySelectorAll('[data-favorite-url]')] : [];
         return {
           layout,
@@ -1800,7 +1873,7 @@ function install(refs) {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
       return tab.view.webContents.executeJavaScript(`(() => {
-        const list = { ledger: 'favoritesList', shelf: 'shFavorites', tally: 'tlFavorites' }[document.body.dataset.layout];
+        const list = { billboard: 'favoritesList', ledger: 'favoritesList', shelf: 'shFavorites', tally: 'tlFavorites' }[document.body.dataset.layout];
         const item = list && [...document.getElementById(list).querySelectorAll('[data-favorite-url]')]
           .find((candidate) => candidate.querySelector('.name')?.textContent === ${JSON.stringify(String(title))});
         const button = item?.querySelector('.fav-pin');
@@ -2360,7 +2433,89 @@ function install(refs) {
         expanded: document.getElementById('customizeButton')?.getAttribute('aria-expanded') ?? null,
         focusedId: document.activeElement?.id ?? null,
         pressed: [...document.querySelectorAll('[data-layout-pick][aria-pressed="true"]')].map((b) => b.dataset.layoutPick),
+        switchedOn: [...document.querySelectorAll('[data-widget-pick][aria-checked="true"]')].map((b) => b.dataset.widgetPick),
       }))()`);
+    },
+    // The one Start Page with widgets (V24): what it draws, where, and what
+    // Customize says. Rects are viewport CSS pixels; a hidden card has none.
+    readStartWidgets() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const rect = (el) => {
+          if (!el || el.hidden || getComputedStyle(el).display === 'none') return null;
+          const r = el.getBoundingClientRect();
+          return r.width && r.height ? { left: r.left, top: r.top, right: r.right, bottom: r.bottom } : null;
+        };
+        const card = (name) => document.querySelector('.bb-widget[data-card="' + name + '"]');
+        const rail = (side) => [...document.getElementById(side === 'left' ? 'bbRailLeft' : 'bbRailRight').children]
+          .filter((el) => el.matches('.bb-widget')).map((el) => el.dataset.card);
+        const hint = document.getElementById('shortcutsHint');
+        return {
+          root: document.body.dataset.layout ?? null,
+          visibleRoots: ['Ledger', 'Billboard', 'Shelf', 'Tally']
+            .filter((name) => getComputedStyle(document.getElementById('layout' + name)).display !== 'none'),
+          widgets: state.widgets ? { favorites: state.widgets.favorites, devices: state.widgets.devices,
+            shortcutCount: state.widgets.shortcutCount } : null,
+          switches: Object.fromEntries([...document.querySelectorAll('[data-widget-pick]')]
+            .map((b) => [b.dataset.widgetPick, b.getAttribute('aria-checked') === 'true'])),
+          shown: { favorites: !!rect(card('favorites')), devices: !!rect(card('devices')), sent: !!rect(card('sent')) },
+          cards: { favorites: rect(card('favorites')), devices: rect(card('devices')), sent: rect(card('sent')) },
+          place: { left: rail('left'), right: rail('right') },
+          tileLimit: billboardSiteCount(),
+          tiles: [...document.querySelectorAll('#bbFavorites > *')].map(rect).filter(Boolean),
+          chips: [...document.querySelectorAll('#bbGroups .group-chip')].map(rect).filter(Boolean),
+          footer: rect(document.getElementById('layoutFooter')),
+          blockedLine: document.getElementById('bbBlocked')?.textContent.trim() ?? null,
+          stepperValue: document.getElementById('shortcutCount')?.textContent.trim() ?? null,
+          focusedId: document.activeElement?.id ?? null,
+          hint: hint && !hint.hidden ? hint.textContent.trim() : null,
+          moveStatus: document.getElementById('widgetMoveStatus')?.textContent.trim() ?? '',
+          saveStatus: (() => { const el = document.getElementById('widgetSaveStatus'); return el && !el.hidden ? el.textContent.trim() : null; })(),
+        };
+      })()`);
+    },
+    clickStartWidgetSwitch(name) {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const popover = document.getElementById('customizePopover');
+        if (!popover.matches(':popover-open')) document.getElementById('customizeButton').click();
+        const button = popover.querySelector('[data-widget-pick="${String(name).replace(/[^a-z]/g, '')}"]');
+        if (!button) return false;
+        button.focus();
+        button.click();
+        return true;
+      })()`);
+    },
+    // Presses the shortcut stepper's minus or plus, focused, as a person would.
+    clickShortcutStep(direction, times = 1) {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return false;
+      const id = direction === 'fewer' ? 'shortcutFewer' : 'shortcutMore';
+      return wc.executeJavaScript(`(() => {
+        const popover = document.getElementById('customizePopover');
+        if (!popover.matches(':popover-open')) document.getElementById('customizeButton').click();
+        const button = document.getElementById('${id}');
+        if (!button) return false;
+        for (let i = 0; i < ${Math.max(1, Math.min(24, Number(times) | 0))}; i += 1) { button.focus(); button.click(); }
+        return true;
+      })()`);
+    },
+    focusStartCardGrip(card) {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab && urlOf(tab).startsWith('blanc://newtab') ? liveContents(tab) : null;
+      if (!wc) return false;
+      wc.focus();
+      return wc.executeJavaScript(`(() => {
+        const grip = document.querySelector('.bb-widget[data-card="${String(card).replace(/[^a-z]/g, '')}"] > .bb-widget-grip');
+        if (!grip) return false;
+        grip.focus();
+        return document.activeElement === grip;
+      })()`);
     },
     pressStartPageKey(keyCode) {
       const tab = tabs.get(getActiveTabId());
@@ -2379,7 +2534,7 @@ function install(refs) {
         href: document.getElementById('mahjongLink')?.href ?? null,
         target: document.getElementById('mahjongLink')?.target ?? null,
         layout: document.body.dataset.layout,
-        switcherCount: document.querySelectorAll('[data-layout-pick]').length,
+        switcherCount: document.querySelectorAll('[data-widget-pick]').length,
         frameCount: document.querySelectorAll('iframe').length,
       }))()`);
     },
@@ -3113,9 +3268,9 @@ function install(refs) {
       }))()`);
     },
     async utilitySheetRowIcons() {
-      const wc = getUtilitySheetWebContents();
+      const wc = sheetOrFavoritesWebContents();
       if (!wc) return null;
-      return wc.executeJavaScript(`[...document.querySelectorAll('.row')].map((row) => {
+      return wc.executeJavaScript(`[...document.querySelectorAll('.row, .fav-row[data-url]')].map((row) => {
         const icon = row.querySelector('.row-icon');
         return { image: !!icon?.querySelector('img'), letter: icon?.classList.contains('fallback') ? icon.textContent : '' };
       })`);
@@ -3688,6 +3843,8 @@ function install(refs) {
                 return {
                   title: row.querySelector('.name')?.textContent ?? '',
                   host: row.querySelector('.host')?.textContent ?? '',
+                  // Rows are grouped under each device (V24); the device is the row's own.
+                  device: row.dataset.device ?? null,
                   href: row.href,
                   tileLetter: tile ? tile.textContent : '',
                   faviconHasIcon: !!(tile && tile.classList.contains('has-icon')),
@@ -3712,7 +3869,13 @@ function install(refs) {
       visit(Menu.getApplicationMenu());
       return labels;
     },
+    // Favorites is a page in a tab (November 18, 2026); the old name stays
+    // for the steps that call it.
     openFavoritesSheet() { openInternalPage('blanc://bookmarks/'); },
+    favoritesPageReady() {
+      const wc = favoritesPageWebContents();
+      return !!wc && !wc.isLoading() && wc.getURL().startsWith('blanc://bookmarks/');
+    },
     openTabImport() { openInternalPage('blanc://tab-import/'); },
     readTabImportDom,
     getTabImportSessionProjection() { return projectRootTabImportSession(); },
@@ -3905,32 +4068,42 @@ function install(refs) {
       return true;
     },
     readBrowserImportDom() {
-      const wc = getUtilitySheetWebContents();
+      const wc = favoritesPageWebContents();
       if (!wc) return null;
-      return wc.executeJavaScript(`(() => ({
-        options: [...document.querySelectorAll('#browserSource option')].map((o) => ({
-          value: o.value,
-          label: o.textContent,
-        })),
-        buttonHidden: document.getElementById('browserImportBtn')?.hidden ?? true,
-        findHidden: document.getElementById('browserFindBtn')?.hidden ?? true,
-        status: document.getElementById('importStatus')?.textContent ?? '',
-      }))()`);
+      // "Bring my stuff to Blanc" is one dialog: opening it looks for
+      // browsers. buttonHidden: no detected profile can be imported yet (the
+      // dialog is closed, still looking, or found none); findHidden: the
+      // button that opens the dialog is not offered.
+      return wc.executeJavaScript(`(() => {
+        const dialog = document.getElementById('importDialog');
+        const options = [...document.querySelectorAll('#browserSource option')];
+        const profiles = options.filter((o) => !o.disabled && o.value && o.value !== 'file');
+        const go = document.getElementById('browserImportBtn');
+        return {
+          dialogOpen: dialog?.open ?? false,
+          options: options.map((o) => ({ value: o.value, label: o.textContent })),
+          buttonHidden: !(dialog?.open && profiles.length && go && !go.disabled),
+          findHidden: document.getElementById('importMenuBtn')?.closest('[hidden]') !== null,
+          status: document.getElementById('importStatus')?.textContent
+            || document.getElementById('importDialogNote')?.textContent || '',
+        };
+      })()`);
     },
     clickBrowserFind() {
-      const wc = getUtilitySheetWebContents();
+      const wc = favoritesPageWebContents();
       if (!wc) return false;
       return wc.executeJavaScript(`(() => {
-        const button = document.getElementById('browserFindBtn');
-        if (!button || button.hidden) return false;
-        button.click();
+        // Opening "Bring my stuff to Blanc" is the ask to look (F30, D22).
+        const button = document.getElementById('importMenuBtn');
+        if (!button || button.closest('[hidden]') || button.disabled) return false;
+        if (!document.getElementById('importDialog')?.open) button.click();
         return true;
       })()`);
     },
     // Chooses a detected profile by its visible label, as picking it from the
     // Favorites page's profile menu would.
     selectBrowserSource(label) {
-      const wc = getUtilitySheetWebContents();
+      const wc = favoritesPageWebContents();
       if (!wc) return false;
       return wc.executeJavaScript(`((label) => {
         const select = document.getElementById('browserSource');
@@ -3942,11 +4115,11 @@ function install(refs) {
       })(${JSON.stringify(String(label))})`);
     },
     clickBrowserImport() {
-      const wc = getUtilitySheetWebContents();
+      const wc = favoritesPageWebContents();
       if (!wc) return false;
       return wc.executeJavaScript(`(() => {
         const button = document.getElementById('browserImportBtn');
-        if (!button || button.hidden) return false;
+        if (!button || button.disabled || !document.getElementById('importDialog')?.open) return false;
         button.click();
         return true;
       })()`);
@@ -4069,10 +4242,17 @@ function install(refs) {
       if (ran !== true) throw new Error('window.open attempt did not execute');
     },
     async clickFirstSheetLink() {
-      const wc = getUtilitySheetWebContents();
+      const wc = sheetOrFavoritesWebContents();
       if (!wc) throw new Error('sheet not open');
-      const clicked = await wc.executeJavaScript(
-        `(() => { const a = document.querySelector('a[href^="https"], a[href^="http"]'); if (a) a.click(); return !!a; })()`);
+      // The Favorites page draws its rows after it loads; wait for a link.
+      const clicked = await wc.executeJavaScript(`(async () => {
+        for (let i = 0; i < 50; i += 1) {
+          const a = document.querySelector('a[href^="https"], a[href^="http"]');
+          if (a) { a.click(); return true; }
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        return false;
+      })()`);
       if (!clicked) throw new Error('no outbound link rendered in sheet');
     },
     async clickPatronCheckout() {
@@ -4277,6 +4457,8 @@ function install(refs) {
       setArchiveGraceUntil(0);
       refs.setFirstRunPendingForTest(false);
       for (const b of bookmarks.listBookmarks()) bookmarks.removeBookmark(b.id);
+      // Folders the removals emptied, and any order a scenario chose.
+      favoritesLayout.resetForTests();
       settings.setSettings({
         searchEngine: 'duckduckgo',
         searchEngineTemplate: '',
@@ -4302,6 +4484,11 @@ function install(refs) {
         islandTabIcons: false,
         launchSunrise: false,
         linkRoutesInApp: false,
+        // Off between scenarios (#1505): each reset leaves one unused New Tab
+        // page, which reuse would hand back to /new, ⌘T and the rail's New Tab
+        // in scenarios that expect a new tab (F7-2, F28-8). The reuse scenarios
+        // turn it on in their Before hook (support/hooks.js).
+        reuseNewTab: false,
         islandAutoHide: false,
         islandAutoHideStyle: 'float',
         surfaceStyle: 'sunrise',

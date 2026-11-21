@@ -21,6 +21,7 @@ installed-theme.js
 invite-friend.js
 island-autohide.js
 island-hover-open.js
+island-proximity.js
 overlay.html
 overlay.js
 pages/bangs-catalog.js
@@ -36,6 +37,9 @@ pages/close.svg
 pages/downloads-row-model.js
 pages/downloads.html
 pages/downloads.js
+pages/favorites-adapter.js
+pages/favorites-manager-model.js
+pages/favorites-manager.js
 pages/history-groups.js
 pages/history.html
 pages/history.js
@@ -177,6 +181,9 @@ pages/start-site-name.js
 pages/strings.js
 pages/sunrise-favicon-mark.png
 pages/sunrise-mark.png
+pages/tab-handoff.css
+pages/tab-handoff.html
+pages/tab-handoff.js
 pages/tab-import-arc.js
 pages/tab-import-open-tabs.js
 pages/tab-import.html
@@ -184,7 +191,12 @@ pages/type-to-open.js
 panel-left.svg
 permission.html
 permission.js
+protected-notice.css
+protected-notice.html
+protected-notice.js
 prototype.css
+rail-hover-card.js
+rail-hover.js
 renderer.js
 selection-tab-sections.js
 shield-model.js
@@ -197,6 +209,7 @@ sunrise-hero-mark.png
 tab-drag.js
 tab-sections.js
 tab-selection.js
+tab-switcher.js
 vertical-tabs.js
 whats-new.js
 workspace-ui.js

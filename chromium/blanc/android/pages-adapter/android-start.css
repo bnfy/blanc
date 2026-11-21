@@ -4,26 +4,35 @@
    and the widgets follow it down the page, which scrolls when the widgets need the room. The footer
    (Mahjong, Customize) floats above the Island, and Customize and the clock's settings open as
    sheets over the bottom of the screen. Android's clock is solid only (#1504), so its Glass or
-   Solid choice isn't offered. */
+   Solid choice isn't offered. With the Island along the top (Settings → Island position), the header
+   moves below it and the footer and sheets drop to the bottom edge it left, as on the iPhone. */
 html[data-platform="android"] {
   -webkit-text-size-adjust: 100%;
   --android-island: 68px;
   --android-footer: 64px;
+  /* The Island's room above the page and below it: the Island's height on its side, nothing on the
+     other (android-start.js marks the side). */
+  --android-island-above: 0px;
+  --android-island-below: var(--android-island);
   /* The middle of the clock's box: the page's middle, moved so its figures center on the screen
      (android-start.js measures --android-clock-nudge). */
   --android-clock-top: calc(50dvh + var(--android-clock-nudge, 0px));
+}
+html[data-platform="android"][data-island="top"] {
+  --android-island-above: var(--android-island);
+  --android-island-below: 0px;
 }
 html[data-platform="android"] .ledger-body {
   position: relative;
   min-width: 0;
   min-height: 100dvh;
   height: auto;
-  padding: 0 0 calc(var(--android-island) + var(--android-footer) + 24px + env(safe-area-inset-bottom, 0px));
+  padding: 0 0 calc(var(--android-island-below) + var(--android-footer) + 24px + env(safe-area-inset-bottom, 0px));
   --start-edge: 16px;
   --start-gutter: 16px;
 }
 html[data-platform="android"] .start-header {
-  padding: calc(20px + env(safe-area-inset-top, 0px)) 24px 0;
+  padding: calc(20px + var(--android-island-above) + env(safe-area-inset-top, 0px)) 24px 0;
   justify-content: center;
 }
 html[data-platform="android"] .start-brand { gap: 12px; justify-content: center; }
@@ -92,7 +101,7 @@ html[data-platform="android"] .fav { min-height: 48px; }
 html[data-platform="android"] .ledger-footer,
 html[data-platform="android"] body:not([data-layout="ledger"]) .ledger-footer {
   position: fixed;
-  inset: auto 0 calc(var(--android-island) + env(safe-area-inset-bottom, 0px));
+  inset: auto 0 calc(var(--android-island-below) + env(safe-area-inset-bottom, 0px));
   z-index: 3;
   min-height: var(--android-footer);
   margin: 0;
@@ -104,10 +113,10 @@ html[data-platform="android"] body:not([data-layout="ledger"]) .ledger-footer {
   align-items: center;
 }
 /* Shipping's frosted band behind the footer (pages.css's .ledger-footer::before, in the wallpaper's
-   own tint, shown while something scrolls under it), carried down behind the Island. The fork's
+   own tint, shown while something scrolls under it), carried down behind an Island below it. The fork's
    photo fade (::after) stays off: it assumes a footer at the window's bottom edge. */
 html[data-platform="android"] .ledger-footer::before {
-  inset: -28px 0 calc(-1 * (var(--android-island) + env(safe-area-inset-bottom, 0px))) 0;
+  inset: -28px 0 calc(-1 * (var(--android-island-below) + env(safe-area-inset-bottom, 0px))) 0;
   /* The page's own background, which the wallpaper rules switch to suit the ink (your photo's
      Light or Dark, a Color's), so the footer's labels always read. Shipping's tint stays Sunrise's. */
   background: color-mix(in srgb, var(--bg) 72%, transparent);
@@ -144,7 +153,7 @@ html[data-platform="android"] :is(.bb-site, .fav-item) { -webkit-touch-callout: 
 /* The long press's menu: a sheet over the bottom of the screen, above the Island, like Customize. */
 html[data-platform="android"] .android-shortcut-menu:popover-open {
   position: fixed;
-  inset: auto 12px calc(var(--android-island) + 8px + env(safe-area-inset-bottom, 0px));
+  inset: auto 12px calc(var(--android-island-below) + 8px + env(safe-area-inset-bottom, 0px));
   margin: 0 auto;
   width: calc(100vw - 24px);
   max-width: 480px;
@@ -202,7 +211,7 @@ html[data-platform="android"] #customizePopover:popover-open {
   position: fixed;
   position-anchor: auto;
   position-area: none;
-  inset: auto 12px calc(var(--android-island) + 8px + env(safe-area-inset-bottom, 0px)) !important;
+  inset: auto 12px calc(var(--android-island-below) + 8px + env(safe-area-inset-bottom, 0px)) !important;
   margin: 0 auto;
   width: calc(100vw - 24px) !important;
   max-width: 480px;
@@ -225,7 +234,7 @@ html[data-platform="android"] body:has(#clockPopover:popover-open) :is(.start-he
   .bb-favs, .bb-groups, .bb-widgets) { visibility: hidden; }
 html[data-platform="android"] body:has(#clockPopover:popover-open) .bb-clock-row {
   position: fixed;
-  inset: calc(12px + env(safe-area-inset-top, 0px)) 16px auto;
+  inset: calc(12px + var(--android-island-above) + env(safe-area-inset-top, 0px)) 16px auto;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -233,19 +242,20 @@ html[data-platform="android"] body:has(#clockPopover:popover-open) .bb-clock-row
   transform: none;
 }
 html[data-platform="android"] body {
-  --android-clock-panel-top: max(40dvh, calc(28px + env(safe-area-inset-top, 0px) + var(--android-clock-height, 100px)));
+  --android-clock-panel-top: max(40dvh, calc(28px + var(--android-island-above) + env(safe-area-inset-top, 0px)
+    + var(--android-clock-height, 100px)));
 }
 html[data-platform="android"] #clockPopover:popover-open {
   position: fixed;
   position-anchor: auto;
   position-area: none;
   position-try-fallbacks: none;
-  inset: auto 12px calc(var(--android-island) + 8px + env(safe-area-inset-bottom, 0px)) !important;
+  inset: auto 12px calc(var(--android-island-below) + 8px + env(safe-area-inset-bottom, 0px)) !important;
   margin: 0 auto;
   width: calc(100vw - 24px) !important;
   max-width: 480px;
   height: auto !important;
-  max-height: calc(100dvh - var(--android-clock-panel-top) - var(--android-island) - 8px - env(safe-area-inset-bottom, 0px)) !important;
+  max-height: calc(100dvh - var(--android-clock-panel-top) - var(--android-island-below) - 8px - env(safe-area-inset-bottom, 0px)) !important;
   overflow-y: auto;
   box-sizing: border-box;
   padding: 12px 16px;

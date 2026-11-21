@@ -1,0 +1,552 @@
+# Runs a Windows build of the Chromium fork on a hosted Windows runner
+# (docs/superpowers/specs/2026-11-17-windows-fork-design.md). The build is
+# cross-compiled on the Linux build server and reaches GitHub as the asset of
+# one reused, unpublished draft release, which only repository collaborators
+# can read (chromium/windows/ship-candidate.sh). Run by hand from the fork
+# branch, with the SHA-256 the packaging step printed:
+#   gh workflow run chromium-windows-candidate.yml --ref chromium/next -f sha256=<sha256>
+# The scripts it runs come from the ref it is dispatched on. A preview build
+# is never a release: nothing here publishes, signs or distributes it.
+name: chromium-windows-candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha256:
+        description: SHA-256 of the candidate zip, as printed when it was packaged
+        required: true
+        type: string
+      suite:
+        description: What to run after the launch check
+        required: true
+        default: smoke
+        type: choice
+        options:
+          - smoke
+          - f0
+      only:
+        description: Optional case-id text, to run a development subset of the suite
+        required: false
+        default: ''
+        type: string
+      update_expect:
+        description: "W3 update proof for a beta candidate: the version blanc.day's update server should move it to, 'refused', or 'online:<version>' (the online installer)"
+        required: false
+        default: ''
+        type: string
+      public_tag:
+        description: "W3 E1 verify-public: a published chromium-beta-windows-<version> tag; the online proof then runs that release's public setup alone (with update_expect=online:<version>)"
+        required: false
+        default: ''
+        type: string
+      update_staging:
+        description: "W3 E1 release gate: a workers.dev staging update server; the proof then uses Chromium's test setup pointed at it instead of blanc.day"
+        required: false
+        default: ''
+        type: string
+      repack:
+        description: Also unpack and repack the installer, unsigned, and install the repacked one (W1 Part C dry run)
+        required: false
+        default: false
+        type: boolean
+      sign:
+        description: Sign the installer and every file in it with Azure Trusted Signing (waits for the fork-windows-signing environment's approval)
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  candidate:
+    name: candidate (windows x64)
+    runs-on: windows-2025
+    timeout-minutes: 240
+    # Draft releases are readable only with write access to contents, and the
+    # build cannot pass between jobs as an artifact (artifacts of a public
+    # repository are downloadable by any signed-in user). So this one job holds
+    # the grant; the token is passed to the download step alone, and neither
+    # the browser nor the test scripts receive it.
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      CANDIDATE_SHA256: ${{ inputs.sha256 }}
+      SUITE: ${{ inputs.suite }}
+      ONLY: ${{ inputs.only }}
+      DRAFT_TAG: fork-windows-candidate
+      ASSET: blanc-windows-candidate.zip
+    steps:
+      - name: Validate inputs
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:CANDIDATE_SHA256 -notmatch '^[0-9a-f]{64}$') { throw 'sha256 must be 64 lowercase hex digits.' }
+          if ($env:ONLY -notmatch '^[A-Za-z0-9 _.,:@-]{0,600}$') { throw 'only holds unsupported characters.' }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      # The harness reads shipping's own test files from Git at its pinned
+      # shipping commits. The checkout is shallow (the full history is large),
+      # so fetch exactly those; the repository is public, so no token.
+      - name: Fetch the pinned shipping commits
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not (Test-Path chromium/windows/pinned-commits.mjs)) { throw "chromium/windows/pinned-commits.mjs is not on $env:GITHUB_REF_NAME. Run this workflow with --ref chromium/next." }
+          $commits = @(node chromium/windows/pinned-commits.mjs)
+          if ($LASTEXITCODE -ne 0 -or -not $commits) { throw 'Could not list the pinned shipping commits.' }
+          foreach ($commit in $commits) {
+            if ($commit -notmatch '^[0-9a-f]{40}$') { throw "Not a full commit: $commit" }
+            git fetch --quiet --depth=1 origin $commit
+            if ($LASTEXITCODE -ne 0) { throw "Could not fetch shipping commit $commit." }
+            git cat-file -e "${commit}:package.json"
+            if ($LASTEXITCODE -ne 0) { throw "Shipping commit $commit is not readable." }
+          }
+          "Fetched: $($commits -join ', ')"
+      - name: Download the candidate from the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory "$env:RUNNER_TEMP\candidate" | Out-Null
+          $draft = gh release view $env:DRAFT_TAG --repo $env:GITHUB_REPOSITORY --json isDraft --jq .isDraft
+          if ($LASTEXITCODE -ne 0 -or $draft -ne 'true') { throw "$env:DRAFT_TAG must exist and be an unpublished draft." }
+          gh release download $env:DRAFT_TAG --repo $env:GITHUB_REPOSITORY --pattern $env:ASSET --dir "$env:RUNNER_TEMP\candidate"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download the candidate.' }
+      - name: Verify and unpack it
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $zip = "$env:RUNNER_TEMP\candidate\$env:ASSET"
+          $actual = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
+          if ($actual -ne $env:CANDIDATE_SHA256) { throw "The draft holds $actual, not the candidate asked for." }
+          # bsdtar: faster than Expand-Archive and without its 260-character limit.
+          New-Item -ItemType Directory "$env:RUNNER_TEMP\blanc" | Out-Null
+          tar -xf $zip -C "$env:RUNNER_TEMP\blanc"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not unpack the candidate.' }
+          if (-not (Test-Path "$env:RUNNER_TEMP\blanc\candidate.json")) { throw 'The zip has no candidate.json at its top level; it was not made by chromium/windows/package-candidate.mjs.' }
+          # Chromium's sandboxed processes run as app containers and must be
+          # able to read the folder the browser runs from; an installer grants
+          # this (W1). Without it the browser stops at "Sandbox cannot access
+          # executable". ALL APPLICATION PACKAGES and ALL RESTRICTED APPLICATION
+          # PACKAGES get read and execute, as Chrome's own installer gives them.
+          icacls "$env:RUNNER_TEMP\blanc" /grant '*S-1-15-2-1:(OI)(CI)(RX)' /grant '*S-1-15-2-2:(OI)(CI)(RX)' /T /Q
+          if ($LASTEXITCODE -ne 0) { throw 'Could not grant the sandbox access to the candidate folder.' }
+          "CANDIDATE_DIR=$env:RUNNER_TEMP\blanc" >> $env:GITHUB_ENV
+          "RESULTS=$env:RUNNER_TEMP\results" >> $env:GITHUB_ENV
+          Get-Content "$env:RUNNER_TEMP\blanc\candidate.json"
+      - name: Require the fork's Windows scripts on this ref
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($script in 'chromium/tests/windows-smoke.mjs', 'chromium/windows/run-suite.mjs') {
+            if (-not (Test-Path $script)) { throw "$script is not on $env:GITHUB_REF_NAME. Run this workflow with --ref chromium/next." }
+          }
+      # The harness loads shipping modules and their packages; nothing it uses
+      # needs an install script.
+      - name: Install the harness's dependencies
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+        run: npm ci --ignore-scripts
+      # The hosted runner's display is 1024 by 768, and Windows will not make a
+      # window larger than its screen, so cases that ask for a 1440-wide
+      # window could never pass. Ask for a larger display and report what the
+      # runner gave.
+      # Only the preview has test hooks; a beta (W3) gets the checks that need
+      # none: the install check, with its own launch and blocker checks.
+      - name: Read the candidate's channel
+        run: |
+          $channel = (Get-Content "$env:CANDIDATE_DIR\candidate.json" -Raw | ConvertFrom-Json).channel
+          if (-not $channel) { $channel = 'preview' }
+          if ($channel -notin @('preview', 'beta')) { throw "Unknown candidate channel: $channel" }
+          "CANDIDATE_CHANNEL=$channel" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "Channel: $channel"
+      - name: Use a larger display
+        run: |
+          try { Set-DisplayResolution -Width 1920 -Height 1080 -Force -ErrorAction Stop } catch { "Set-DisplayResolution: $($_.Exception.Message)" }
+          Add-Type -AssemblyName System.Windows.Forms
+          $screen = [System.Windows.Forms.Screen]::PrimaryScreen
+          "Display: $($screen.Bounds.Width) x $($screen.Bounds.Height), work area $($screen.WorkingArea.Width) x $($screen.WorkingArea.Height)"
+      # A hosted runner has Windows' animations off, which Chromium reads as
+      # reduced motion; people's desktops have them on (W2 B2).
+      - name: Turn Windows animations on
+        run: |
+          Add-Type -Namespace Blanc -Name Spi -MemberDefinition '[DllImport("user32.dll")] public static extern bool SystemParametersInfo(uint action, uint param, IntPtr value, uint flags); [DllImport("user32.dll", EntryPoint="SystemParametersInfo")] public static extern bool Get(uint action, uint param, ref bool value, uint flags);'
+          # SPI_SETCLIENTAREAANIMATION, saved and broadcast.
+          if (-not [Blanc.Spi]::SystemParametersInfo(0x1043, 0, [IntPtr]1, 3)) { throw 'Could not turn client-area animations on.' }
+          $on = $false; [void][Blanc.Spi]::Get(0x1042, 0, [ref]$on, 0)
+          "Client-area animations: $on"
+          if (-not $on) { throw 'Client-area animations are still off.' }
+      - name: Launch check
+        if: ${{ env.CANDIDATE_CHANNEL != 'beta' }}
+        run: node chromium/tests/windows-smoke.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\smoke"
+      # Real mouse and keyboard input against the window's own frame; it is
+      # skipped on a ref that does not have the check yet.
+      - name: Window frame check
+        if: ${{ env.CANDIDATE_CHANNEL != 'beta' }}
+        run: |
+          if (Test-Path chromium/tests/windows-frame.mjs) { node chromium/tests/windows-frame.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\frame" } else { 'No window frame check on this ref.' }
+      # Closing the last window ends the browser, whatever the session held
+      # (W2 A2).
+      - name: Quit check
+        if: ${{ !cancelled() && env.CANDIDATE_CHANNEL != 'beta' }}
+        run: |
+          if (Test-Path chromium/tests/windows-quit.mjs) { node chromium/tests/windows-quit.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\quit" } else { 'No quit check on this ref.' }
+      # Ctrl+Tab by most recent use, through the app's own key events (W2 C1).
+      - name: Ctrl+Tab check
+        if: ${{ !cancelled() && env.CANDIDATE_CHANNEL != 'beta' }}
+        run: |
+          if (Test-Path chromium/windows/run-native-check.mjs) { node chromium/windows/run-native-check.mjs "$env:CANDIDATE_DIR" native-tab-switch.mjs "$env:RESULTS\tab-switch" } else { 'No Ctrl+Tab check on this ref.' }
+      - name: Ctrl+Tab with real keys
+        if: ${{ !cancelled() && env.CANDIDATE_CHANNEL != 'beta' }}
+        run: |
+          if (Test-Path chromium/tests/windows-tab-switch-keys.mjs) { node chromium/tests/windows-tab-switch-keys.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\tab-switch-keys" } else { 'No real-key Ctrl+Tab check on this ref.' }
+      # Chromium's installer beside an installed Electron Blanc (W1 Part B),
+      # and whether a crash is captured. Skipped where the candidate or the
+      # ref has neither.
+      - name: Install check
+        # Not in an update proof: the live update server would move the beta.
+        if: ${{ !cancelled() && inputs.update_expect == '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPACK: ${{ inputs.repack }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not (Test-Path chromium/tests/windows-install.mjs) -or -not (Test-Path "$env:CANDIDATE_DIR\mini_installer.exe")) { 'No installer check for this candidate or ref.'; exit 0 }
+          $shipping = "$env:RUNNER_TEMP\shipping"
+          New-Item -ItemType Directory $shipping | Out-Null
+          gh release download v1.49.1 --repo $env:GITHUB_REPOSITORY --pattern 'Blanc-Setup-1.49.1.exe' --pattern 'SHA256SUMS' --dir $shipping
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download the shipping installer.' }
+          $expected = (Get-Content "$shipping\SHA256SUMS" | Where-Object { $_ -match 'Blanc-Setup-1\.49\.1\.exe$' }) -split '\s+' | Select-Object -First 1
+          $actual = (Get-FileHash "$shipping\Blanc-Setup-1.49.1.exe" -Algorithm SHA256).Hash.ToLower()
+          if (-not $expected -or $actual -ne $expected.ToLower()) { throw "The shipping installer is $actual, not the release's $expected." }
+          if ($env:REPACK -eq 'true') {
+            # Part C's dry run: the installer taken apart and put back together
+            # unsigned must install exactly as the original does. Chromium's
+            # resedit.py needs pywin32, pinned by hash.
+            $pin = "$env:RUNNER_TEMP\pywin32-requirements.txt"
+            'pywin32==312 --hash=sha256:b457f6d628a47e8a7346ce22acb7e1a46a4a78b52e1d17e1af56871bd19a93bc' | Set-Content $pin
+            python -m pip install --quiet --only-binary=:all: --require-hashes -r $pin
+            if ($LASTEXITCODE -ne 0) { throw 'Could not install pywin32.' }
+            $work = "$env:RUNNER_TEMP\repack"
+            pwsh -NoProfile -File chromium/windows/repack-installer.ps1 -Phase unpack -Installer "$env:CANDIDATE_DIR\mini_installer.exe" -Work $work
+            if ($LASTEXITCODE -ne 0) { throw 'Unpacking the installer failed.' }
+            pwsh -NoProfile -File chromium/windows/repack-installer.ps1 -Phase pack -Installer "$env:CANDIDATE_DIR\mini_installer.exe" -Work $work -Output "$env:RUNNER_TEMP\mini_installer_repacked.exe"
+            if ($LASTEXITCODE -ne 0) { throw 'Packing the installer failed.' }
+            New-Item -ItemType Directory "$env:RESULTS" -Force | Out-Null
+            Copy-Item "$work\layout.json" "$env:RESULTS\repack-layout.json"
+            node chromium/tests/windows-install.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\install-repacked" "$shipping\Blanc-Setup-1.49.1.exe" "--installer=$env:RUNNER_TEMP\mini_installer_repacked.exe"
+          } else {
+            node chromium/tests/windows-install.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\install" "$shipping\Blanc-Setup-1.49.1.exe"
+          }
+      - name: Updater check
+        # W3 Task B2: the beta registers with Blanc's updater, never Google
+        # Update, and the updater takes it into its records.
+        if: ${{ !cancelled() && env.CANDIDATE_CHANNEL == 'beta' && inputs.update_expect == '' }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not (Test-Path chromium/tests/windows-updater.mjs) -or -not (Test-Path "$env:CANDIDATE_DIR\UpdaterSetup.exe")) { 'No updater check for this candidate or ref.'; exit 0 }
+          node chromium/tests/windows-updater.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\updater"
+      - name: Repack the updater setup (unsigned dry run)
+        # W3 Task E1: the online installer's files come out and go back in
+        # unchanged, as the signing job will do with them signed.
+        if: ${{ !cancelled() && env.CANDIDATE_CHANNEL == 'beta' && inputs.repack }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not (Test-Path chromium/windows/repack-updater-setup.ps1)) { 'No updater setup repack on this ref.'; exit 0 }
+          $pin = "$env:RUNNER_TEMP\pywin32-requirements.txt"
+          if (-not (Test-Path $pin)) {
+            'pywin32==312 --hash=sha256:b457f6d628a47e8a7346ce22acb7e1a46a4a78b52e1d17e1af56871bd19a93bc' | Set-Content $pin
+            python -m pip install --quiet --only-binary=:all: --require-hashes -r $pin
+            if ($LASTEXITCODE -ne 0) { throw 'Could not install pywin32.' }
+          }
+          $work = "$env:RUNNER_TEMP\repack-updater"
+          pwsh -NoProfile -File chromium/windows/repack-updater-setup.ps1 -Phase unpack -Setup "$env:CANDIDATE_DIR\UpdaterSetup.exe" -Work $work
+          if ($LASTEXITCODE -ne 0) { throw 'Unpacking the updater setup failed.' }
+          $before = Get-ChildItem "$work\bin" -File | ForEach-Object { "$($_.Name) $((Get-FileHash $_.FullName -Algorithm SHA256).Hash)" }
+          pwsh -NoProfile -File chromium/windows/repack-updater-setup.ps1 -Phase pack -Setup "$env:CANDIDATE_DIR\UpdaterSetup.exe" -Work $work -Output "$env:RUNNER_TEMP\UpdaterSetup-repacked.exe"
+          if ($LASTEXITCODE -ne 0) { throw 'Packing the updater setup failed.' }
+          $again = "$env:RUNNER_TEMP\repack-updater-check"
+          pwsh -NoProfile -File chromium/windows/repack-updater-setup.ps1 -Phase unpack -Setup "$env:RUNNER_TEMP\UpdaterSetup-repacked.exe" -Work $again -Resedit "$env:CANDIDATE_DIR\signing\mini_installer\resedit.py"
+          if ($LASTEXITCODE -ne 0) { throw 'Unpacking the repacked setup failed.' }
+          $after = Get-ChildItem "$again\bin" -File | ForEach-Object { "$($_.Name) $((Get-FileHash $_.FullName -Algorithm SHA256).Hash)" }
+          if (Compare-Object $before $after) { throw 'The repacked setup does not carry the same files.' }
+          "Repacked setup carries the same $(@($before).Count) files."
+          "REPACKED_SETUP=$env:RUNNER_TEMP\UpdaterSetup-repacked.exe" >> $env:GITHUB_ENV
+      - name: Update proof
+        # W3 Task D2: beta N, with Blanc's updater, asks blanc.day's update
+        # server and must move to the offered version, or refuse a bad package.
+        if: ${{ !cancelled() && env.CANDIDATE_CHANNEL == 'beta' && inputs.update_expect != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPDATE_EXPECT: ${{ inputs.update_expect }}
+          UPDATE_STAGING: ${{ inputs.update_staging }}
+          PUBLIC_TAG: ${{ inputs.public_tag }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:UPDATE_EXPECT -notmatch '^(refused|(online:|capture:|capture-dark:)?\d+\.\d+\.\d+\.\d+)$') { throw "update_expect must be a version, 'refused', 'online:<version>' or 'capture[-dark]:<version>'." }
+          if ($env:UPDATE_EXPECT -like 'capture*') {
+            # W3 E1 branding: what a person sees running the online installer.
+            $extra = @(); if ($env:UPDATE_EXPECT -like 'capture-dark:*') { $extra += '--dark' }
+            if ($env:REPACKED_SETUP) { $extra += "--setup=$env:REPACKED_SETUP" }
+            node chromium/tests/windows-installer-capture.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\installer-capture" @extra
+            exit $LASTEXITCODE
+          }
+          $shipping = "$env:RUNNER_TEMP\shipping-proof"
+          New-Item -ItemType Directory $shipping | Out-Null
+          gh release download v1.49.1 --repo $env:GITHUB_REPOSITORY --pattern 'Blanc-Setup-1.49.1.exe' --pattern 'SHA256SUMS' --dir $shipping
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download the shipping installer.' }
+          $expected = (Get-Content "$shipping\SHA256SUMS" | Where-Object { $_ -match 'Blanc-Setup-1\.49\.1\.exe$' }) -split '\s+' | Select-Object -First 1
+          if ((Get-FileHash "$shipping\Blanc-Setup-1.49.1.exe" -Algorithm SHA256).Hash.ToLower() -ne $expected.ToLower()) { throw 'The shipping installer does not match the release.' }
+          $mode = if ($env:UPDATE_EXPECT -eq 'refused') { '--expect-refused' } elseif ($env:UPDATE_EXPECT -like 'online:*') { "--online=$($env:UPDATE_EXPECT.Substring(7))" } else { "--expect=$env:UPDATE_EXPECT" }
+          $extra = @()
+          if ($env:PUBLIC_TAG) {
+            # The published online installer, exactly as anyone downloads it.
+            if ($env:PUBLIC_TAG -notmatch '^chromium-beta-windows-(\d+\.\d+\.\d+\.\d+)$' -or $mode -ne "--online=$($Matches[1])") { throw 'public_tag must be chromium-beta-windows-<version> with update_expect=online:<version>.' }
+            $public = "$env:RUNNER_TEMP\public-release"
+            $setup = "Blanc-Beta-Setup-$($Matches[1]).exe"
+            gh release download $env:PUBLIC_TAG --repo $env:GITHUB_REPOSITORY --pattern $setup --pattern SHA256SUMS --dir $public
+            if ($LASTEXITCODE -ne 0) { throw 'Could not download the public setup.' }
+            $want = (Get-Content "$public\SHA256SUMS" | Where-Object { $_ -match "  $([regex]::Escape($setup))$" }) -split '\s+' | Select-Object -First 1
+            if (-not $want -or (Get-FileHash "$public\$setup" -Algorithm SHA256).Hash.ToLower() -ne $want) { throw 'The public setup does not match its release checksums.' }
+            $sig = Get-AuthenticodeSignature "$public\$setup"
+            if ($sig.Status -ne 'Valid' -or $sig.SignerCertificate.Subject -notmatch '^CN=Bananify Creative,') { throw "The public setup is not validly signed by Bananify Creative ($($sig.Status))." }
+            $extra += "--setup=$public\$setup", '--tagged'
+          }
+          elseif ($env:UPDATE_STAGING) { $extra += "--staging=$env:UPDATE_STAGING" }
+          elseif ($env:REPACKED_SETUP -and $mode -like '--online=*') { $extra += "--setup=$env:REPACKED_SETUP" }
+          node chromium/tests/windows-update-proof.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\update-proof" "$shipping\Blanc-Setup-1.49.1.exe" $mode @extra
+      - name: Crash capture
+        if: ${{ !cancelled() && env.CANDIDATE_CHANNEL != 'beta' }}
+        run: |
+          if (Test-Path chromium/tests/windows-crash.mjs) { node chromium/tests/windows-crash.mjs "$env:CANDIDATE_DIR" "$env:RESULTS\crash" } else { 'No crash check on this ref.' }
+      # The suite runs even when the frame check failed: each is evidence.
+      - name: Foundation suite
+        if: ${{ !cancelled() && inputs.suite == 'f0' && env.CANDIDATE_CHANNEL != 'beta' }}
+        run: |
+          # An empty filter is no filter: a full run must never be recorded as a subset.
+          # One array, splatted: each element reaches node as one argument,
+          # whatever PowerShell would make of a bare --name=value.with.dots.
+          # A temporary folder with no 8.3 short name in its path: the runner's
+          # %TEMP% is C:\Users\RUNNER~1\..., and a file URL Node writes for it
+          # (%7E) never equals the one Chromium shows (~).
+          $env:TEMP = "$env:RUNNER_TEMP\blanc-tmp"; $env:TMP = $env:TEMP
+          New-Item -ItemType Directory -Force -Path $env:TEMP | Out-Null
+          $arguments = @('chromium/windows/run-suite.mjs', $env:CANDIDATE_DIR, "$env:RESULTS\f0", '--slice=f0')
+          if ($env:ONLY) { $arguments += "--only=$env:ONLY" }
+          node @arguments
+      - name: Keep the results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chromium-windows-candidate-${{ github.run_id }}
+          path: ${{ runner.temp }}/results
+          if-no-files-found: warn
+          retention-days: 14
+
+  # W1 Part C (chromium/windows/signing.md). A signed preview carries test
+  # hooks, so it stays on the runner and the unpublished draft release; it is
+  # never an Actions artifact. Runs only when asked, and only after the owner
+  # approves the run in the fork-windows-signing environment.
+  sign:
+    name: sign (windows x64)
+    if: ${{ inputs.sign }}
+    runs-on: windows-2025
+    timeout-minutes: 120
+    environment: fork-windows-signing
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      CANDIDATE_SHA256: ${{ inputs.sha256 }}
+      DRAFT_TAG: fork-windows-candidate
+      ASSET: blanc-windows-candidate.zip
+      SIGNED_ASSET: blanc-windows-installer-signed.exe
+      ONLINE_ASSET: Blanc-Beta-Setup.exe
+      UPDATE_EXPECT: ${{ inputs.update_expect }}
+      TRUSTED_SIGNING_VERSION: 0.5.8
+    steps:
+      - name: Validate inputs
+        run: |
+          if ($env:CANDIDATE_SHA256 -notmatch '^[0-9a-f]{64}$') { throw 'sha256 must be 64 lowercase hex digits.' }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Require every signing input
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_ENDPOINT: ${{ vars.AZURE_TRUSTED_SIGNING_ENDPOINT }}
+          AZURE_CODE_SIGNING_ACCOUNT: ${{ vars.AZURE_CODE_SIGNING_ACCOUNT_NAME }}
+          AZURE_CERT_PROFILE: ${{ vars.AZURE_CERTIFICATE_PROFILE_NAME }}
+          EXPECTED_PUBLISHER: ${{ vars.WINDOWS_EXPECTED_PUBLISHER }}
+        run: |
+          $missing = @('AZURE_TENANT_ID','AZURE_CLIENT_ID','AZURE_CLIENT_SECRET','AZURE_ENDPOINT','AZURE_CODE_SIGNING_ACCOUNT','AZURE_CERT_PROFILE','EXPECTED_PUBLISHER') | Where-Object { -not (Get-Item "env:$_" -ErrorAction SilentlyContinue).Value }
+          if ($missing) { throw "Signing is not configured; missing: $($missing -join ', '). Nothing was signed." }
+      - name: Download, verify and unpack the candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $draft = gh release view $env:DRAFT_TAG --repo $env:GITHUB_REPOSITORY --json isDraft --jq .isDraft
+          if ($LASTEXITCODE -ne 0 -or $draft -ne 'true') { throw "$env:DRAFT_TAG must exist and be an unpublished draft." }
+          gh release download $env:DRAFT_TAG --repo $env:GITHUB_REPOSITORY --pattern $env:ASSET --dir "$env:RUNNER_TEMP\candidate"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download the candidate.' }
+          $actual = (Get-FileHash "$env:RUNNER_TEMP\candidate\$env:ASSET" -Algorithm SHA256).Hash.ToLower()
+          if ($actual -ne $env:CANDIDATE_SHA256) { throw "The draft holds $actual, not the candidate asked for." }
+          New-Item -ItemType Directory "$env:RUNNER_TEMP\blanc" | Out-Null
+          tar -xf "$env:RUNNER_TEMP\candidate\$env:ASSET" -C "$env:RUNNER_TEMP\blanc"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not unpack the candidate.' }
+          if (-not (Test-Path "$env:RUNNER_TEMP\blanc\mini_installer.exe")) { throw 'The candidate has no mini_installer.exe.' }
+          "CANDIDATE_DIR=$env:RUNNER_TEMP\blanc" >> $env:GITHUB_ENV
+          "WORK=$env:RUNNER_TEMP\repack" >> $env:GITHUB_ENV
+          "SIGNED=$env:RUNNER_TEMP\signed" >> $env:GITHUB_ENV
+          # A beta candidate also carries the online installer's setup and the tag tool (W3 E1).
+          if (Test-Path "$env:RUNNER_TEMP\blanc\UpdaterSetup.exe") {
+            if (-not (Test-Path "$env:RUNNER_TEMP\blanc\tag.exe")) { throw 'A beta candidate needs tag.exe.' }
+            "UPDATER_WORK=$env:RUNNER_TEMP\repack-updater" >> $env:GITHUB_ENV
+          }
+      - name: Install the tools
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $pin = "$env:RUNNER_TEMP\pywin32-requirements.txt"
+          'pywin32==312 --hash=sha256:b457f6d628a47e8a7346ce22acb7e1a46a4a78b52e1d17e1af56871bd19a93bc' | Set-Content $pin
+          python -m pip install --quiet --only-binary=:all: --require-hashes -r $pin
+          if ($LASTEXITCODE -ne 0) { throw 'Could not install pywin32.' }
+          Install-Module -Name TrustedSigning -RequiredVersion $env:TRUSTED_SIGNING_VERSION -Force -Repository PSGallery -Scope CurrentUser
+      - name: Unpack the installer
+        run: |
+          pwsh -NoProfile -File chromium/windows/repack-installer.ps1 -Phase unpack -Installer "$env:CANDIDATE_DIR\mini_installer.exe" -Work $env:WORK
+          if ($LASTEXITCODE -ne 0) { throw 'Unpacking the installer failed.' }
+      - name: Unpack the online installer's setup
+        if: ${{ env.UPDATER_WORK != '' }}
+        run: |
+          pwsh -NoProfile -File chromium/windows/repack-updater-setup.ps1 -Phase unpack -Setup "$env:CANDIDATE_DIR\UpdaterSetup.exe" -Work $env:UPDATER_WORK
+          if ($LASTEXITCODE -ne 0) { throw 'Unpacking the updater setup failed.' }
+      - name: Sign the files inside
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_ENDPOINT: ${{ vars.AZURE_TRUSTED_SIGNING_ENDPOINT }}
+          AZURE_CODE_SIGNING_ACCOUNT: ${{ vars.AZURE_CODE_SIGNING_ACCOUNT_NAME }}
+          AZURE_CERT_PROFILE: ${{ vars.AZURE_CERTIFICATE_PROFILE_NAME }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $files = @(Get-ChildItem "$env:WORK\Chrome-bin" -Recurse -File -Include *.exe,*.dll | ForEach-Object FullName) + "$env:WORK\setup.exe"
+          if ($env:UPDATER_WORK) { $files += "$env:UPDATER_WORK\bin\updater.exe" }
+          "Signing $($files.Count) files."
+          Invoke-TrustedSigning -Endpoint $env:AZURE_ENDPOINT -CodeSigningAccountName $env:AZURE_CODE_SIGNING_ACCOUNT -CertificateProfileName $env:AZURE_CERT_PROFILE `
+            -FileDigest SHA256 -TimestampRfc3161 'http://timestamp.acs.microsoft.com' -TimestampDigest SHA256 -Files ($files -join ',')
+      - name: Pack and sign the installer
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_ENDPOINT: ${{ vars.AZURE_TRUSTED_SIGNING_ENDPOINT }}
+          AZURE_CODE_SIGNING_ACCOUNT: ${{ vars.AZURE_CODE_SIGNING_ACCOUNT_NAME }}
+          AZURE_CERT_PROFILE: ${{ vars.AZURE_CERTIFICATE_PROFILE_NAME }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory $env:SIGNED | Out-Null
+          pwsh -NoProfile -File chromium/windows/repack-installer.ps1 -Phase pack -Installer "$env:CANDIDATE_DIR\mini_installer.exe" -Work $env:WORK -Output "$env:SIGNED\$env:SIGNED_ASSET"
+          if ($LASTEXITCODE -ne 0) { throw 'Packing the installer failed.' }
+          Invoke-TrustedSigning -Endpoint $env:AZURE_ENDPOINT -CodeSigningAccountName $env:AZURE_CODE_SIGNING_ACCOUNT -CertificateProfileName $env:AZURE_CERT_PROFILE `
+            -FileDigest SHA256 -TimestampRfc3161 'http://timestamp.acs.microsoft.com' -TimestampDigest SHA256 -Files "$env:SIGNED\$env:SIGNED_ASSET"
+      - name: Pack, sign and tag the online installer
+        if: ${{ env.UPDATER_WORK != '' }}
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_ENDPOINT: ${{ vars.AZURE_TRUSTED_SIGNING_ENDPOINT }}
+          AZURE_CODE_SIGNING_ACCOUNT: ${{ vars.AZURE_CODE_SIGNING_ACCOUNT_NAME }}
+          AZURE_CERT_PROFILE: ${{ vars.AZURE_CERTIFICATE_PROFILE_NAME }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          pwsh -NoProfile -File chromium/windows/repack-updater-setup.ps1 -Phase pack -Setup "$env:CANDIDATE_DIR\UpdaterSetup.exe" -Work $env:UPDATER_WORK -Output "$env:SIGNED\UpdaterSetup-signed.exe"
+          if ($LASTEXITCODE -ne 0) { throw 'Packing the updater setup failed.' }
+          Invoke-TrustedSigning -Endpoint $env:AZURE_ENDPOINT -CodeSigningAccountName $env:AZURE_CODE_SIGNING_ACCOUNT -CertificateProfileName $env:AZURE_CERT_PROFILE `
+            -FileDigest SHA256 -TimestampRfc3161 'http://timestamp.acs.microsoft.com' -TimestampDigest SHA256 -Files "$env:SIGNED\UpdaterSetup-signed.exe"
+          # The tag goes in the signature's unsigned part, after signing (chrome/updater/tag.cc).
+          $tag = node --input-type=module -e "import fs from 'node:fs'; import {installTag, updaterNames} from './chromium/windows/updater-check.mjs'; console.log(installTag(updaterNames(fs.readFileSync('chromium/blanc/branding/win-beta/updater.gni', 'utf8'))))"
+          & "$env:CANDIDATE_DIR\tag.exe" "--set-tag=$tag" "--out=$env:SIGNED\$env:ONLINE_ASSET" "$env:SIGNED\UpdaterSetup-signed.exe"
+          if ($LASTEXITCODE -ne 0) { throw 'Tagging the online installer failed.' }
+          $read = (& "$env:CANDIDATE_DIR\tag.exe" --get-tag "$env:SIGNED\$env:ONLINE_ASSET" | Out-String).Trim()
+          if ($read -ne $tag) { throw "The online installer's tag reads back as '$read', not '$tag'." }
+          "Tagged $env:ONLINE_ASSET with $tag"
+      - name: Verify every signature
+        env:
+          EXPECTED_PUBLISHER: ${{ vars.WINDOWS_EXPECTED_PUBLISHER }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $files = @(Get-ChildItem "$env:WORK\Chrome-bin" -Recurse -File -Include *.exe,*.dll | ForEach-Object FullName) + "$env:WORK\setup.exe" + "$env:SIGNED\$env:SIGNED_ASSET"
+          if ($env:UPDATER_WORK) { $files += "$env:UPDATER_WORK\bin\updater.exe", "$env:SIGNED\UpdaterSetup-signed.exe", "$env:SIGNED\$env:ONLINE_ASSET" }
+          $records = foreach ($file in $files) {
+            $signature = Get-AuthenticodeSignature -FilePath $file
+            if ($signature.Status -ne 'Valid') { throw "$file is not validly signed: $($signature.Status) $($signature.StatusMessage)" }
+            if ($signature.SignerCertificate.Subject -ne $env:EXPECTED_PUBLISHER) { throw "$file is signed by $($signature.SignerCertificate.Subject)" }
+            if (-not $signature.TimeStamperCertificate) { throw "$file has no timestamp." }
+            [ordered]@{ file = $file.Replace("$env:WORK\", '').Replace("$env:SIGNED\", '').Replace("$env:UPDATER_WORK\", 'updater\'); sha256 = (Get-FileHash $file -Algorithm SHA256).Hash.ToLower()
+              publisher = $signature.SignerCertificate.Subject; thumbprint = $signature.SignerCertificate.Thumbprint; timestamper = $signature.TimeStamperCertificate.Subject }
+          }
+          [ordered]@{ schemaVersion = 1; candidateZipSha256 = $env:CANDIDATE_SHA256; installer = $env:SIGNED_ASSET; files = @($records) } | ConvertTo-Json -Depth 4 | Set-Content "$env:SIGNED\windows-signature.json"
+          "Verified $(@($records).Count) signatures."
+      - name: Install check on the signed installer
+        # Not with an online check: that one needs a runner without the beta.
+        if: ${{ inputs.update_expect == '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $shipping = "$env:RUNNER_TEMP\shipping"
+          gh release download v1.49.1 --repo $env:GITHUB_REPOSITORY --pattern 'Blanc-Setup-1.49.1.exe' --pattern 'SHA256SUMS' --dir $shipping
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download the shipping installer.' }
+          $expected = (Get-Content "$shipping\SHA256SUMS" | Where-Object { $_ -match 'Blanc-Setup-1\.49\.1\.exe$' }) -split '\s+' | Select-Object -First 1
+          if ((Get-FileHash "$shipping\Blanc-Setup-1.49.1.exe" -Algorithm SHA256).Hash.ToLower() -ne $expected.ToLower()) { throw 'The shipping installer does not match the release.' }
+          npm ci --ignore-scripts
+          if ($LASTEXITCODE -ne 0) { throw 'npm ci failed.' }
+          node chromium/tests/windows-install.mjs "$env:CANDIDATE_DIR" "$env:RUNNER_TEMP\results\install-signed" "$shipping\Blanc-Setup-1.49.1.exe" "--installer=$env:SIGNED\$env:SIGNED_ASSET" --signed
+          if ($LASTEXITCODE -ne 0) { throw 'The signed installer failed the install check.' }
+          Get-Content "$env:RUNNER_TEMP\results\install-signed\install.json"
+      - name: Online install check on the signed online installer
+        # W3 Task E1: the signed, tagged setup alone, reading its own tag,
+        # installs the beta the update server offers (update_expect=online:V).
+        if: ${{ env.UPDATER_WORK != '' && startsWith(inputs.update_expect, 'online:') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $shipping = "$env:RUNNER_TEMP\shipping"
+          gh release download v1.49.1 --repo $env:GITHUB_REPOSITORY --pattern 'Blanc-Setup-1.49.1.exe' --pattern 'SHA256SUMS' --dir $shipping
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download the shipping installer.' }
+          $expected = (Get-Content "$shipping\SHA256SUMS" | Where-Object { $_ -match 'Blanc-Setup-1\.49\.1\.exe$' }) -split '\s+' | Select-Object -First 1
+          if ((Get-FileHash "$shipping\Blanc-Setup-1.49.1.exe" -Algorithm SHA256).Hash.ToLower() -ne $expected.ToLower()) { throw 'The shipping installer does not match the release.' }
+          npm ci --ignore-scripts
+          if ($LASTEXITCODE -ne 0) { throw 'npm ci failed.' }
+          $version = $env:UPDATE_EXPECT.Substring(7)
+          if ($version -notmatch '^\d+\.\d+\.\d+\.\d+$') { throw 'update_expect must be online:<version>.' }
+          node chromium/tests/windows-update-proof.mjs "$env:CANDIDATE_DIR" "$env:RUNNER_TEMP\results\online-signed" "$env:RUNNER_TEMP\shipping\Blanc-Setup-1.49.1.exe" "--online=$version" "--setup=$env:SIGNED\$env:ONLINE_ASSET" --tagged
+          if ($LASTEXITCODE -ne 0) { throw 'The signed online installer failed the online install check.' }
+          Get-Content "$env:RUNNER_TEMP\results\online-signed\update-proof.json"
+      - name: Keep the signed installer on the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $assets = @("$env:SIGNED\$env:SIGNED_ASSET", "$env:SIGNED\windows-signature.json")
+          if ($env:UPDATER_WORK) { $assets += "$env:SIGNED\$env:ONLINE_ASSET" }
+          gh release upload $env:DRAFT_TAG @assets --repo $env:GITHUB_REPOSITORY --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'Could not upload the signed installer.' }
+          $sha = (Get-FileHash "$env:SIGNED\$env:SIGNED_ASSET" -Algorithm SHA256).Hash.ToLower()
+          "### Signed Windows preview installer", "", "- ``$env:SIGNED_ASSET`` SHA-256 ``$sha``, on the draft release ``$env:DRAFT_TAG`` (never published)" -join "`n" >> $env:GITHUB_STEP_SUMMARY
+

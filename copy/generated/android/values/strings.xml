@@ -11,7 +11,7 @@
     <string name="slash_favorites_hint">Open favorites</string>
     <string name="slash_bring_tabs_hint">Bring open tabs from another browser</string>
     <string name="slash_save_hint">Save this page to favorites — name a folder to file it</string>
-    <string name="slash_save_doc">Save this page to favorites, into a folder if you name one</string>
+    <string name="slash_save_doc">Save this page to favorites, into a folder if you name one. Put &gt; between folder names to reach a folder inside a folder, as in Work &gt; Clients</string>
     <string name="slash_history_hint">Open browsing history</string>
     <string name="slash_archive_hint">See tabs Blanc archived for you</string>
     <string name="slash_downloads_hint">Open downloads</string>
@@ -181,10 +181,23 @@
     <string name="permission_prompt_microphone">&lt;0&gt;%1$s&lt;/0&gt; wants to use your microphone</string>
     <string name="permission_prompt_geolocation">&lt;0&gt;%1$s&lt;/0&gt; wants to know your location</string>
     <string name="permission_prompt_notifications">&lt;0&gt;%1$s&lt;/0&gt; wants to show notifications</string>
+    <string name="permission_prompt_loopback_network">&lt;0&gt;%1$s&lt;/0&gt; wants to connect to apps on this device</string>
+    <string name="permission_prompt_local_network">&lt;0&gt;%1$s&lt;/0&gt; wants to connect to devices on your local network</string>
+    <string name="permission_prompt_local_network_access">&lt;0&gt;%1$s&lt;/0&gt; wants to connect to apps and devices on your local network</string>
     <string name="permission_prompt_other">&lt;0&gt;%1$s&lt;/0&gt; wants to use “%2$s”</string>
     <string name="fill_surface_title">Fill status</string>
     <string name="fill_dismiss">Dismiss</string>
     <string name="dialog_ok">OK</string>
+    <string name="local_html_refused_message">Blanc couldn’t open “%1$s”</string>
+    <plurals name="local_html_refused_message_many">
+        <item quantity="one">Blanc couldn’t open %1$d file</item>
+        <item quantity="other">Blanc couldn’t open %1$d files</item>
+    </plurals>
+    <string name="local_html_refused_line">%1$s: %2$s</string>
+    <string name="local_html_refused_too_large">The file is larger than 8 MB. Blanc opens local pages up to 8 MB.</string>
+    <string name="local_html_refused_not_html">This file isn’t an HTML page.</string>
+    <string name="local_html_refused_changed">The file changed while Blanc was reading it. Open it again.</string>
+    <string name="local_html_refused_unreadable">Blanc couldn’t read the file. Check that it still exists and that you can open it.</string>
     <string name="fill_setup_enable_title">Set up 1Password</string>
     <string name="fill_setup_enable_body">Turn on “Fill logins from 1Password” in Settings. Blanc only reads a matching login when you ask.</string>
     <string name="fill_setup_enable_primary_label">Open Settings</string>
@@ -302,6 +315,18 @@
     <string name="ws_decision_close_and_switch">Close tabs and switch</string>
     <string name="ws_row_current">Current space</string>
     <string name="ws_row_show_window">Show window</string>
+    <plurals name="ws_row_title_profile">
+        <item quantity="one">%2$s · %3$s · %4$s · %1$d tab</item>
+        <item quantity="other">%2$s · %3$s · %4$s · %1$d tabs</item>
+    </plurals>
+    <string name="ws_row_title_profile_shown">%1$s · %2$s · %3$s</string>
+    <string name="ws_editor_profile_disabled">%1$s (can’t add Spaces)</string>
+    <string name="ws_row_open_in_profile">Opens in a %1$s window</string>
+    <string name="ws_profile_unreadable">Couldn’t read this profile’s Spaces.</string>
+    <string name="ws_editor_profile">Profile</string>
+    <string name="ws_editor_help_other_profile">Tabs stay in their own profile, so a Space in %1$s starts empty.</string>
+    <string name="ws_switcher_profile_label">Space · %1$s</string>
+    <string name="ws_error_profile_unavailable">That profile is no longer available.</string>
     <string name="ws_row_retained">Retained in memory</string>
     <string name="ws_row_open">Open space</string>
     <plurals name="ws_row_title">
@@ -969,7 +994,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_cards_search">Search</string>
     <string name="settings_general_cards_browsing">Browsing</string>
     <string name="settings_general_theme_label">Theme</string>
-    <string name="settings_general_theme_hint">System follows your macOS/Windows theme</string>
+    <string name="settings_general_theme_hint">System follows your computer\'s light or dark mode</string>
     <string name="settings_general_theme_system">System</string>
     <string name="settings_general_theme_light">Light</string>
     <string name="settings_general_theme_dark">Dark</string>
@@ -1000,10 +1025,10 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_dark_exception_add">Add</string>
     <string name="settings_general_newtab_layout_label">New tab layout</string>
     <string name="settings_general_newtab_layout_hint">How the new tab page arranges itself; switchable from its footer too</string>
-    <string name="settings_general_newtab_layout_ledger">ledger</string>
-    <string name="settings_general_newtab_layout_billboard">billboard</string>
-    <string name="settings_general_newtab_layout_shelf">shelf</string>
-    <string name="settings_general_newtab_layout_tally">tally</string>
+    <string name="settings_general_newtab_layout_ledger">Ledger</string>
+    <string name="settings_general_newtab_layout_billboard">Billboard</string>
+    <string name="settings_general_newtab_layout_shelf">Shelf</string>
+    <string name="settings_general_newtab_layout_tally">Tally</string>
     <string name="settings_general_newtab_dynamic_wallpaper_label">Time-of-day wallpaper</string>
     <string name="settings_general_newtab_dynamic_wallpaper_hint">Wallpaper follows this machine’s local time.</string>
     <string name="settings_general_newtab_custom_wallpaper_label">Start Page image</string>
@@ -1023,6 +1048,10 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="switcher_opened">Switch tabs, %1$s, %2$s of %3$s</string>
     <string name="switcher_step">%1$s, %2$s of %3$s</string>
     <string name="settings_general_tab_switch_order_hint">Hold Ctrl and press Tab to go back through the tabs you used last, then let go of Ctrl to switch. Esc stays where you are.</string>
+    <string name="settings_general_reuse_new_tab_label">Switch to an unused new tab</string>
+    <string name="settings_general_reuse_new_tab_hint">New Tab goes to a new tab in this window that you haven\'t used yet, instead of opening another. New Private Tab does the same for private tabs.</string>
+    <string name="settings_general_ask_where_to_save_label">Ask where to save each file</string>
+    <string name="settings_general_ask_where_to_save_hint">When this is off, downloads go straight to your Downloads folder, and a file with the same name gets a number added.</string>
     <string name="settings_general_tab_switch_order_recent">In the order you used them</string>
     <string name="settings_general_tab_switch_order_list">In the order of the tab list</string>
     <string name="settings_general_tab_archive_label">Archive inactive tabs</string>
@@ -1262,6 +1291,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_permissions_media">Camera/microphone</string>
     <string name="settings_permissions_geolocation">Location</string>
     <string name="settings_permissions_notifications">Notifications</string>
+    <string name="settings_permissions_loopback_network">Apps on this device</string>
+    <string name="settings_permissions_local_network">Devices on your local network</string>
     <string name="settings_permissions_audio">Microphone</string>
     <string name="settings_permissions_video">Camera</string>
     <string name="settings_permissions_allowed">%1$s — Allowed</string>
@@ -1620,14 +1651,14 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="newtab_pin_done">%1$s pinned to the Start Page.</string>
     <string name="newtab_unpin_done">%1$s unpinned from the Start Page.</string>
     <string name="newtab_pin_full">The Start Page holds %1$s pins. Unpin one first.</string>
-    <string name="onboarding_skip">skip setup</string>
+    <string name="onboarding_skip">Skip setup</string>
     <string name="onboarding_step_label">%1$s / %2$s — %3$s</string>
-    <string name="onboarding_step_default">default browser</string>
-    <string name="onboarding_step_import">import</string>
-    <string name="onboarding_step_island">the island</string>
-    <string name="onboarding_step_blocking">ad blocking</string>
-    <string name="onboarding_step_privacy">privacy</string>
-    <string name="onboarding_step_theme">theme</string>
+    <string name="onboarding_step_default">Default browser</string>
+    <string name="onboarding_step_import">Import</string>
+    <string name="onboarding_step_island">The Island</string>
+    <string name="onboarding_step_blocking">Ad blocking</string>
+    <string name="onboarding_step_privacy">Privacy</string>
+    <string name="onboarding_step_theme">Theme</string>
     <string name="onboarding_default_title">Make Blanc your default</string>
     <string name="onboarding_default_body">Links from other apps open here. You can change this anytime in Settings.</string>
     <string name="onboarding_default_set">Set as default</string>
@@ -1661,7 +1692,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
         <item quantity="one">That favorite was already saved.</item>
         <item quantity="other">All %1$d favorites were already saved.</item>
     </plurals>
-    <string name="onboarding_island_title">Meet the island</string>
+    <string name="onboarding_island_title">Meet the Island</string>
     <string name="onboarding_island_body">Tabs, search and navigation, all in one place.</string>
     <string name="onboarding_island_caption">Quiet Island with Back and Forward, three tab dots, the site\'s favicon and address, New Tab, blocker shield, Reload, Favorite and Close.</string>
     <string name="onboarding_island_hint">&lt;0&gt;%1$s&lt;/0&gt; to open it.</string>
@@ -1670,7 +1701,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="onboarding_island_archive">Archive tabs after 7 days&lt;0&gt;Loose tabs you haven\'t opened in 7 days close into your Archive for 30 days. Pinned tabs and groups stay.&lt;/0&gt;</string>
     <string name="onboarding_island_archive_label">Archive tabs after 7 days</string>
     <string name="onboarding_blocking_title">Block ads &amp; trackers</string>
-    <string name="onboarding_blocking_body">Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /off-leash.</string>
+    <string name="onboarding_blocking_body">Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /allow-ads.</string>
     <string name="onboarding_blocking_toggle">Block ads &amp; trackers</string>
     <string name="onboarding_blocking_toggle_label">Block ads and trackers</string>
     <string name="onboarding_privacy_title">Choose what Blanc may send</string>
@@ -1683,8 +1714,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="onboarding_privacy_save_failed">Could not save these choices. Check disk access and try again.</string>
     <string name="onboarding_theme_title">Pick your ink</string>
     <string name="onboarding_theme_body">Paper by day, ink by night. Change anytime with /theme.</string>
-    <string name="onboarding_theme_light">light</string>
-    <string name="onboarding_theme_dark">dark</string>
+    <string name="onboarding_theme_light">Light</string>
+    <string name="onboarding_theme_dark">Dark</string>
     <string name="onboarding_back">Back</string>
     <string name="onboarding_continue">Continue</string>
     <string name="onboarding_finish">Start browsing</string>
@@ -1734,6 +1765,15 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
         <item quantity="one">Skipped %1$d already saved.</item>
         <item quantity="other">Skipped %1$d already saved.</item>
     </plurals>
+    <plurals name="favorites_import_moved">
+        <item quantity="one">Moved %1$d into its folder.</item>
+        <item quantity="other">Moved %1$d into their folders.</item>
+    </plurals>
+    <plurals name="favorites_import_shortened">
+        <item quantity="one">Placed %1$d in a parent folder because its folder path was too long.</item>
+        <item quantity="other">Placed %1$d in a parent folder because their folder paths were too long.</item>
+    </plurals>
+    <string name="favorites_import_order_dropped">Some folders are in the default order because the collection is very large.</string>
     <plurals name="favorites_import_all_saved">
         <item quantity="one">That favorite was already saved.</item>
         <item quantity="other">All %1$d favorites were already saved.</item>
@@ -1756,6 +1796,63 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="favorites_row_pinned">Pinned to the Start Page</string>
     <string name="favorites_row_remove">remove</string>
     <string name="favorites_row_remove_label">Remove %1$s from Favorites</string>
+    <string name="favorites_manager_all">All favorites</string>
+    <string name="favorites_manager_tree">Folders</string>
+    <string name="favorites_manager_breadcrumb">Folder path</string>
+    <string name="favorites_manager_choose_folder">Folder</string>
+    <string name="favorites_manager_search">Search favorites</string>
+    <string name="favorites_manager_new_folder">New folder</string>
+    <string name="favorites_manager_new_folder_placeholder">Folder name</string>
+    <string name="favorites_manager_new_folder_inside">New folder inside</string>
+    <string name="favorites_manager_open">Open</string>
+    <string name="favorites_manager_rename">Rename</string>
+    <string name="favorites_manager_move_to">Move to…</string>
+    <string name="favorites_manager_move_up">Move up</string>
+    <string name="favorites_manager_move_down">Move down</string>
+    <string name="favorites_manager_remove">Remove</string>
+    <string name="favorites_manager_delete_folder">Delete folder</string>
+    <string name="favorites_manager_top_level">Top level</string>
+    <string name="favorites_manager_more">More actions for %1$s</string>
+    <plurals name="favorites_manager_items">
+        <item quantity="one">%1$d favorite</item>
+        <item quantity="other">%1$d favorites</item>
+    </plurals>
+    <plurals name="favorites_manager_selected">
+        <item quantity="one">%1$d selected</item>
+        <item quantity="other">%1$d selected</item>
+    </plurals>
+    <string name="favorites_manager_clear_selection">Clear selection</string>
+    <string name="favorites_manager_no_results">No favorites match.</string>
+    <string name="favorites_manager_empty_folder">This folder is empty.</string>
+    <string name="favorites_manager_error_too_long">That folder path would be longer than Blanc can sync. Use a shorter name or fewer levels.</string>
+    <string name="favorites_manager_error_cycle">A folder can’t move into itself.</string>
+    <string name="favorites_manager_error_invalid">That name can’t be used.</string>
+    <string name="favorites_manager_error_missing">That folder no longer exists.</string>
+    <string name="favorites_manager_edit">Edit…</string>
+    <string name="favorites_manager_edit_name">Name</string>
+    <string name="favorites_manager_edit_address">Address</string>
+    <string name="favorites_manager_edit_save">Save</string>
+    <string name="favorites_manager_edit_cancel">Cancel</string>
+    <string name="favorites_manager_error_exists">Another favorite already has that address.</string>
+    <string name="favorites_manager_error_invalid_url">Enter a web address, such as example.com.</string>
+    <string name="favorites_manager_error_favorite_missing">That favorite no longer exists.</string>
+    <string name="favorites_manager_open_new_tab">Open in new tab</string>
+    <string name="favorites_manager_open_all">Open all</string>
+    <string name="favorites_manager_edit_title">Edit favorite</string>
+    <string name="favorites_manager_edit_folder">Folder</string>
+    <string name="favorites_manager_more_short">More actions</string>
+    <string name="favorites_import_menu">Bring my stuff to Blanc</string>
+    <plurals name="favorites_manager_results">
+        <item quantity="one">%1$d result</item>
+        <item quantity="other">%1$d results</item>
+    </plurals>
+    <plurals name="favorites_manager_remove_confirm">
+        <item quantity="one">Remove %1$d item?</item>
+        <item quantity="other">Remove %1$d items?</item>
+    </plurals>
+    <string name="favorites_manager_cancel">Cancel</string>
+    <string name="favorites_manager_pin">Pin</string>
+    <string name="favorites_manager_unpin">Unpin</string>
     <string name="favorites_picker_label">Move %1$s to a folder</string>
     <string name="favorites_picker_none">→ none</string>
     <string name="favorites_picker_new_folder">new folder…</string>
@@ -2626,5 +2723,59 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="android_settings_island_position_top">Top</string>
     <string name="android_settings_island_position_bottom">Bottom</string>
     <string name="android_settings_open_source_licenses">Open-source licenses</string>
+    <string name="android_welcome_share_title">Share from this phone</string>
+    <string name="android_welcome_measure_usage_help">Each time you open Blanc, it sends one anonymous count: a random ID for this install, the app version and the Android version. Never what you browse. See blanc.day/privacy.</string>
+    <string name="android_default_browser_body">Make Blanc your default browser so links from other apps open here.</string>
+    <string name="android_default_browser_open">Set as default</string>
     <string name="android_settings_auto_revoke_summary">To protect your data, let Blanc remove permissions from sites that you haven’t visited recently</string>
+    <string name="android_licenses_title">Open-source licenses</string>
+    <string name="android_licenses_intro">Read Blanc\'s licenses and notices below. Chromium\'s credits list its own licenses and third-party components.</string>
+    <string name="android_licenses_chromium_credits">Chromium licenses and credits</string>
+    <string name="android_licenses_license">Blanc software license</string>
+    <string name="android_licenses_asset_license">Blanc names, logos and identity assets</string>
+    <string name="android_licenses_third_party_notices">Repository third-party notices</string>
+    <string name="android_licenses_chromium_fork_notices">Chromium fork notices</string>
+    <string name="android_licenses_loading">Loading notice…</string>
+    <string name="android_licenses_load_failed">This notice could not be loaded. Open its title link to read the bundled file.</string>
+    <string name="favorites_import_lede">Copy your favorites and open tabs from another browser. Nothing there changes.</string>
+    <string name="favorites_import_from">From</string>
+    <string name="favorites_import_file_option">Bookmarks file (HTML)…</string>
+    <string name="favorites_import_what">What to bring</string>
+    <string name="favorites_import_what_tabs">Open tabs</string>
+    <string name="favorites_import_go">Import</string>
+    <string name="favorites_import_cancel">Cancel</string>
+    <string name="favorites_manager_delete_folder_label">Delete folder %1$s</string>
+    <string name="favorites_import_tabs_skipped">Open tabs weren’t brought over.</string>
+    <plurals name="start_billboard_blocked">
+        <item quantity="one">%1$d ad blocked this week</item>
+        <item quantity="other">%1$d ads blocked this week</item>
+    </plurals>
+    <string name="start_widgets_heading">Widgets</string>
+    <string name="start_widgets_unconfirmed">Could not confirm the widget change. Try again.</string>
+    <string name="start_widgets_move">Move %1$s</string>
+    <string name="start_widgets_moved_left">%1$s is now on the left, position %2$s.</string>
+    <string name="start_widgets_moved_right">%1$s is now on the right, position %2$s.</string>
+    <string name="start_widgets_resize">Resize %1$s</string>
+    <string name="start_widgets_size">Size %1$s of %2$s</string>
+    <string name="start_widgets_size_auto">Fits the column</string>
+    <string name="start_widgets_resized">%1$s is now size %2$s of %3$s.</string>
+    <string name="start_widgets_resized_auto">%1$s fits its column again.</string>
+    <string name="start_shortcuts_heading">Shortcuts</string>
+    <string name="start_shortcuts_fewer">Fewer shortcuts</string>
+    <string name="start_shortcuts_more">More shortcuts</string>
+    <string name="start_shortcuts_count">%1$s shortcuts</string>
+    <plurals name="start_shortcuts_sofar">
+        <item quantity="one">%1$d site so far. More appear as you browse.</item>
+        <item quantity="other">%1$d sites so far. More appear as you browse.</item>
+    </plurals>
+    <plurals name="start_devices_tabs">
+        <item quantity="one">%1$d tab</item>
+        <item quantity="other">%1$d tabs</item>
+    </plurals>
+    <plurals name="start_devices_more">
+        <item quantity="one">%1$d more tab</item>
+        <item quantity="other">%1$d more tabs</item>
+    </plurals>
+    <string name="start_devices_fewer">Show fewer</string>
+    <string name="start_mahjong_play">Play Blanc Mahjong</string>
 </resources>

@@ -30,6 +30,7 @@ union FillLoginSuccessOrFillLoginFailureOrBool {
 };
 struct CreateTabOptions {
   bool? is_private;
+  bool? focus_address;
 };
 
 struct TabMoveTarget {
@@ -42,6 +43,7 @@ struct OpenWorkspaceOptions {
   bool? new_window;
   string? color;
   string? symbol;
+  string? profile_id;
 };
 
 struct Point {
@@ -389,6 +391,8 @@ struct WorkspacesPayload {
   string tint;
   SharedSpaceLibraryStatus? shared_sync;
   bool? recovery_notice;
+  array<OtherProfileSpaces>? other_profiles;
+  string? profile_name;
 };
 
 struct DarkSiteResult {
@@ -415,6 +419,7 @@ struct OverlayShowPayload {
   string purpose;
   Rect? pill_rect;
   bool search_priority_results;
+  double? panel_side_clearance;
 };
 
 struct OverlayHidePayload {
@@ -458,6 +463,8 @@ struct WorkspaceActionResult {
   string? tint;
   SharedSpaceLibraryStatus? shared_sync;
   bool? recovery_notice;
+  array<OtherProfileSpaces>? other_profiles;
+  string? profile_name;
 };
 
 struct HistoryEntry {
@@ -672,6 +679,43 @@ struct GlanceCardResize {
 
 struct GlanceCardReset {
   double generation;
+};
+
+struct BackdropLayer {
+  string color;
+  string image;
+  string size;
+  string position;
+  string repeat;
+  double opacity;
+  bool fade;
+};
+
+struct PageBackdrop {
+  string id;
+  double zoom;
+  double width;
+  double height;
+  array<BackdropLayer> layers;
+  double band;
+  double? sunrise_at;
+};
+
+struct OtherProfileSpace {
+  string id;
+  string name;
+  string color;
+  string symbol;
+  double tab_count;
+  bool open_elsewhere;
+};
+
+struct OtherProfileSpaces {
+  string id;
+  string name;
+  string status;
+  bool full;
+  array<OtherProfileSpace> items;
 };
 // Contract group "tabs".
 interface Tabs {
@@ -940,6 +984,7 @@ interface Appearance {
 interface AppearanceClient {
   OnThemeAppearance(string payload);
   OnPageTint(PageTint payload);
+  OnPageBackdrop(PageBackdrop? payload);
 };
 
 // Contract group "passwords".

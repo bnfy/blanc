@@ -145,7 +145,17 @@ const {
   installDisplayCaptureBroker,
 } = require('./' + CAPTURE_RUNTIME.broker);
 const { createLazyDisplayCaptureBroker } = require('./display-capture-lazy');
-const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver, mediaQueryState, setHeldRequesterCheck } = require('./permissions');
+const {
+  setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver,
+  mediaQueryState, setHeldRequesterCheck, localNetworkPolicyFor, localNetworkQueryState,
+  setLocalNetworkDecisionObserver,
+} = require('./permissions');
+// Every browsing session's permission policy, plus its Local Network Access
+// gate in the request coordinator (spec 2026-11-17-local-network-access).
+function installPermissionPolicy(targetSession, options) {
+  setupPermissionPolicy(targetSession, options);
+  blockingCoordinator.setLocalNetworkPolicy(targetSession, localNetworkPolicyFor(targetSession));
+}
 const nativeMediaAccess = createNativeMediaAccessGate({
   platform: process.platform,
   systemPreferences,
@@ -158,7 +168,6 @@ const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
 const {
   sendLaunchPing,
   sendMahjongPlay,
-  sendNewtabLayoutUsed,
   sendDayOneSignal,
   installMeta,
   markDayOneSent,
@@ -198,6 +207,8 @@ const { validFavicon } = require('./bookmark-validate');
 const {
   setupDownloads,
   setDownloadRequesterCheck,
+  setDownloadActivityObserver,
+  setDownloadSavePolicy,
   downloadsActivity,
   acknowledgeDownloads,
   discardProfileDownloads,
@@ -215,6 +226,8 @@ const settings = require('./settings');
 const wallpaper = require('./wallpaper');
 const { effectiveSource } = require('./wallpaper-model');
 const { colorWallpaper } = require('./start-page-paint');
+const { pageWidgets } = require('./start-widgets');
+const { normalizeBackdrop, backdropBand, backdropPayload, stripImages } = require('./start-backdrop');
 const { clockStyleFromSettings } = require('./start-clock-style');
 const SpaceIdentity = require('../renderer/space-identity');
 // Bangs: the pure grammar and the generated catalog the Island shares with
@@ -234,7 +247,8 @@ function bangsState() {
 }
 const patron = require('./patron');
 const bookmarks = require('./bookmarks');
-const { groupFavoritesForMenu, mayWriteFavoriteFavicon } = require('./bookmark-data');
+const favoritesLayout = require('./favorites-layout');
+const { mayWriteFavoriteFavicon } = require('./bookmark-data');
 const history = require('./history');
 const archive = require('./archive');
 const { siteKey: topSiteKey } = require('./top-sites');
@@ -303,6 +317,7 @@ const {
   MAX_SLEEP_SNAPSHOTS,
 } = require('./tab-sleep');
 const { TAB_ARCHIVE_DELAY_MS, ARCHIVE_GRACE_MS, archiveCandidates, buildArchiveEntry } = require('./tab-archive');
+const { findReusableNewTab, NEW_TAB_URL, PRIVATE_NEW_TAB_URL } = require('./new-tab-reuse');
 const adblockStats = require('./adblock-stats');
 const {
   createCaptureRecord, applyGrant, applySettlement, applyFrameReport,
@@ -380,7 +395,7 @@ const {
 const { showAboutPanel } = require('./about-panel');
 const { inviteFriend } = require('./invite-friend');
 const { xdgOpen } = require('./xdg-open');
-const { webUrlsFromArgv } = require('./startup-urls');
+const { localHtmlPathsFromArgv, webUrlsFromArgv } = require('./startup-urls');
 const { bringExternalWindowToFront, externalWindowRuntime } = require('./window-activation');
 const { createExternalUrlHandoff } = require('./external-url-handoff');
 const {
@@ -389,6 +404,7 @@ const {
 } = require('./link-routes');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const { isSupportedLocalHtmlUrl, restorableLocalHtmlUrl } = require('./local-html-files');
+const { localHtmlRefusalMessage, refusalReason } = require('./local-html-refusal');
 const { localFileTabPlan, keepsLocalFile, isInertRecord, recordTitle } = require('./inert-local-file');
 const { createTabImportSessionStore, SESSION_TTL_MS } = require('./tab-import-session');
 const {
@@ -430,6 +446,7 @@ const namedWorkspaces = require('./workspaces');
 const { readArcSidebarFile, readDetectedArcSidebar, detectArcSidebar } = require('./arc-import-source');
 const { createArcImportService } = require('./arc-import');
 const { createWorkspaceController } = require('./workspace-controller');
+const { otherProfileSpaces } = require('./spaces-across-profiles');
 const { transferSession, roomPlan, releaseOverCap, undoRebindTarget } = require('./workspace-residency');
 const { scratchSwitchGuardResult, MAX_WORKSPACES } = require('./workspaces-model');
 
@@ -447,10 +464,7 @@ const onePasswordBroker = ONE_PASSWORD_AVAILABLE
   ? createOnePasswordClient({ utilityProcess, deviceSupported: ONE_PASSWORD_DEVICE_SUPPORTED })
   : null;
 
-const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
-// The query flag tells the newtab page to show private copy + theme.
-const PRIVATE_NEW_TAB_URL = 'blanc://newtab/?private=1';
 const certificateObserver = createCertificateObserver();
 // Session-only "continue anyway" choices for local certificate failures
 // (certificate spec §4.1). Eviction closes the session's pooled connections
@@ -1569,9 +1583,13 @@ if (!ownsInstanceLock) {
   app.on('second-instance', (_e, commandLine) => {
     const runtime = resolveExternalRuntime();
     withWindowRuntime(runtime, () => {
+      const files = localHtmlPathsFromArgv(commandLine);
       openExternalUrls(urlsFromArgv(commandLine));
+      openLocalHtmlFiles(files);
       for (const url of tabImportUrlsFromArgv(commandLine)) queueTabHandoff(url);
-      if (!urlsFromArgv(commandLine).length && rt().window && !rt().window.isDestroyed()) {
+      // A handed-over file opens its own preview window; raising the browser
+      // window then would bury it.
+      if (!urlsFromArgv(commandLine).length && !files.length && rt().window && !rt().window.isDestroyed()) {
         bringExternalWindowToFront(app, rt().window);
       }
     });
@@ -1876,9 +1894,11 @@ function maybeSendProductUsage(wc, report) {
   return report();
 }
 
-// Command-line/default-browser URL handoff remains web-only. Local HTML has a
-// separate macOS open-file trust boundary below; typed file: URLs, argv paths,
-// web-page file links, popups, and arbitrary file types all stay rejected.
+// Command-line/default-browser URL handoff remains web-only. Local HTML files
+// arrive separately: through macOS's open-file event below, and on Windows as
+// absolute HTML paths on the command line (localHtmlPathsFromArgv, #1630), both
+// into openLocalHtmlFiles. Typed file: URLs, other argv paths, web-page file
+// links, popups, and arbitrary file types all stay rejected.
 const urlsFromArgv = webUrlsFromArgv;
 
 function resolveExternalRuntime(preferred = focusedRuntime) {
@@ -1974,29 +1994,73 @@ function routedExternalRuntime(destination, preferred, { background = false } = 
   return resolveRoutedRuntime(destination, preferred, {
     runtimes: windowRuntimes.all().filter(isLiveBrowserRuntime),
     focusOrder: (runtime) => runtimeFocusSerials.get(runtime) ?? 0,
-    openSpace: (target) => openSpaceForRoutedLink(target, { background }),
+    openSpace: (target) => openSpaceInProfile(target, { background }).runtime ?? null,
     openProfileWindow: (profileId) => newRoutedProfileRuntime(profileId, { background }),
   });
 }
 
-// `background`: a link routed from a middle-click or Cmd/Ctrl-click (#1199)
-// shows a window it has to open without focusing it.
-function openSpaceForRoutedLink({ profileId, spaceId }, { background = false } = {}) {
+/** Open a Space of `profileId` without touching any window's tabs: bring
+ * forward the window of that profile showing it, or open it in a new window
+ * of that profile. Link routing and the Spaces menu share this one path
+ * (spec 2026-11-19-spaces-across-profiles §5.1). Returns the controller's
+ * result and, on success, the live window of that profile.
+ * `background`: a link routed from a middle-click or Cmd/Ctrl-click (#1199)
+ * shows a window it has to open without focusing it. */
+function openSpaceInProfile({ profileId, spaceId }, { background = false } = {}) {
+  if (!linkRouteLiveness.isLiveProfile(profileId)) return { result: { ok: false, error: 'profile-unavailable' }, runtime: null };
   // The controller needs only a profile and a lock id from its caller when
   // opening elsewhere; no window of this profile need exist yet.
-  const caller = { id: `link-route-${++linkRouteSpaceSerial}`, profileId };
+  const caller = { id: `space-open-${++linkRouteSpaceSerial}`, profileId };
   let result;
   try {
     result = withLocalProfile(profileId, () => workspaceController.open(caller, spaceId, { newWindow: true }));
   } catch {
-    return null;
+    return { result: { ok: false, error: 'activation-failed' }, runtime: null };
   }
-  if (!result?.ok) return null;
+  if (!result?.ok) return { result: result ?? { ok: false, error: 'activation-failed' }, runtime: null };
   broadcastWorkspacesUpdated();
   const target = windowRuntimes.all().find((runtime) => String(runtime.id) === result.windowId);
-  if (!target) return null;
+  if (!target) return { result, runtime: null };
   createMainWindow(target, { inactive: background });
-  return isLiveBrowserRuntime(target) && target.profileId === profileId ? target : null;
+  return { result, runtime: isLiveBrowserRuntime(target) && target.profileId === profileId ? target : null };
+}
+
+/** Create an empty Space in `profileId` and open it in a new window of that
+ * profile. Tabs never change profile, so it always starts empty (spec §4.4). */
+function createSpaceInProfile(profileId, name, { color, symbol } = {}) {
+  if (!linkRouteLiveness.isLiveProfile(profileId)) return { ok: false, error: 'profile-unavailable' };
+  const caller = { id: `space-create-${++linkRouteSpaceSerial}`, profileId };
+  let result;
+  try {
+    result = withLocalProfile(profileId, () => workspaceController.create(caller, name, { newWindow: true, color, symbol }));
+  } catch {
+    return { ok: false, error: 'activation-failed' };
+  }
+  if (result?.ok || result?.workspaceId) broadcastWorkspacesUpdated();
+  if (result?.ok) noteSpaceCreated(profileId);
+  return result ?? { ok: false, error: 'activation-failed' };
+}
+
+/** Every Spaces menu lists other profiles by name: refresh them once a
+ * profile is created, renamed or deleted. Returns `result` unchanged. */
+function afterProfileChange(result) {
+  Promise.resolve(result).then(() => broadcastWorkspacesUpdated()).catch(() => {});
+  return result;
+}
+
+/** A Spaces action that brought ANOTHER window forward: close this window's
+ * menu now, without handing focus back to its page. Left to the menu's own
+ * close (or the overlay's blur), the refocus made this window key again and
+ * the other window fell behind (found by F41-86 on the Mac Studio). */
+function settleElsewhere(result) {
+  if (result?.ok && result.windowId && result.windowId !== String(rt().id)) hideOverlay({ refocusContent: false });
+}
+
+/** The other profile a Spaces call names, or null for this window's own
+ * profile (today's path, unchanged). */
+function otherProfileTarget(opts) {
+  const profileId = typeof opts?.profileId === 'string' ? opts.profileId : null;
+  return profileId && profileId !== rt().profileId ? profileId : null;
 }
 
 // A new window of the profile holding just the routed link: no Start Page
@@ -2045,11 +2109,38 @@ function openExternalUrls(urls) {
 
 function openLocalHtmlFiles(paths) {
   if (paths?.length) launchHandedUrls = true;
+  // Every Windows launch asks with whatever the command line held; an empty
+  // list must not wait on (or log for) the ECS preview runtime.
+  if (!paths?.length) return;
   if (drmSupport.enabled) {
-    void drmSupport.openLocalFiles(paths).catch(() => console.warn('Local HTML preview could not open'));
+    void drmSupport.openLocalFiles(paths).then(showLocalHtmlRefusals)
+      .catch(() => console.warn('Local HTML preview could not open'));
     return;
   }
   externalUrlHandoff.openLocalFiles(paths);
+}
+
+// A refused file must say why: on Windows a second launch carrying a file
+// deliberately doesn't raise Blanc, so without this nothing at all happens.
+// Finder sends one open-file event per selected file, so refusals arriving
+// together share one message.
+let pendingLocalHtmlRefusals = null;
+function showLocalHtmlRefusals(refused) {
+  if (!refused?.length) return;
+  console.warn('Local HTML preview refused', refused.map(({ error }) => refusalReason(error)).join(', '));
+  if (pendingLocalHtmlRefusals) { pendingLocalHtmlRefusals.push(...refused); return; }
+  pendingLocalHtmlRefusals = [...refused];
+  setTimeout(() => {
+    const batch = pendingLocalHtmlRefusals;
+    pendingLocalHtmlRefusals = null;
+    try {
+      const options = { type: 'warning', ...localHtmlRefusalMessage(mainI18n.t, batch),
+        buttons: [mainI18n.t('dialog.ok')], noLink: true };
+      const win = BrowserWindow.getFocusedWindow();
+      (win && !win.isDestroyed() ? dialog.showMessageBox(win, options) : dialog.showMessageBox(options))
+        .catch(() => {});
+    } catch (error) { console.warn('Local HTML refusal message failed:', error.message); }
+  }, 300);
 }
 
 // Shared across windows: only one pending external-app confirmation at a time.
@@ -3808,6 +3899,7 @@ function islandAutoHidePinned(runtime = rt()) {
     // focused window or a pointer to keep it there.
     popupOpen: ublockPopups.has(runtime.id) || (acceptanceTestMode && runtime.testHoldIsland === true),
     introducing: !!runtime.islandAutoHideIntroTimer,
+    peeking: !!runtime.islandDownloadPeek,
   });
 }
 
@@ -4466,6 +4558,41 @@ function endIslandAutoHideIntro(runtime) {
   if (runtime.islandAutoHideIntroGeneration === runtime.tooltipGeneration) hidePillTooltip(runtime);
 }
 
+function endIslandDownloadPeek(runtime) {
+  if (!runtime.islandDownloadPeek) return;
+  clearTimeout(runtime.islandDownloadPeek.timer);
+  runtime.islandDownloadPeek = null;
+}
+
+/** A download that starts in a window whose Island is auto-hidden shows the
+ * Island for a moment, so its downloads button is seen filling; one that
+ * finishes meanwhile keeps it up for the check. The peek pins the Island like
+ * the intro tip; when it ends, the usual hide check lets it go once the
+ * pointer isn't holding it. Policy: downloadPeekStep in island-autohide.js.
+ * Returns the window's runtime on 'started', which downloads.js hands back
+ * with 'completed' (the requesting tab may be closed by then). */
+function peekIslandForDownload(event, requester, startedIn = null) {
+  const runtime = startedIn ?? (requester && !requester.isDestroyed() ? runtimeForPageWebContents(requester) : null);
+  if (!islandAutoHide || !runtime) return runtime;
+  const window = runtime.window;
+  if (!window || window.isDestroyed() || !window.isVisible() || window.isMinimized()) return runtime;
+  const current = runtime.islandDownloadPeek;
+  const next = islandAutoHideModule.downloadPeekStep(current, event, {
+    autoHide: islandAutoHide,
+    // Showing for any reason (pointer, ⌘L, a popover, the intro tip).
+    revealed: withWindowRuntime(runtime, () => !islandStripHidden(runtime)),
+    now: Date.now(),
+  });
+  if (!next || (current && next.until === current.until)) return runtime;
+  if (current) clearTimeout(current.timer);
+  runtime.islandDownloadPeek = {
+    ...next,
+    timer: setTimeout(() => { runtime.islandDownloadPeek = null; }, Math.max(0, next.until - Date.now())),
+  };
+  if (!current) withWindowRuntime(runtime, () => revealIsland(runtime));
+  return runtime;
+}
+
 /** Turning the setting on would otherwise make the Island vanish with no
  * word on how to get it back. In the window where it was turned on, keep the
  * strip up for a few seconds with a tip under the pill. The tip reuses the
@@ -4520,6 +4647,7 @@ function applyIslandAutoHide(next) {
   for (const runtime of windowRuntimes.all()) {
     clearIslandAutoHideTimer(runtime);
     endIslandAutoHideIntro(runtime);
+    endIslandDownloadPeek(runtime);
     stopIslandRevealWatch(runtime);
     stopIslandSlide(runtime);
     // The window showing the intro keeps its strip up from the start, so its
@@ -5606,6 +5734,7 @@ function createOverlay() {
         prefill: rt().overlayPrefill,
         purpose: rt().overlayPurpose,
         searchPriorityResults: settings.getSettings().searchPriorityResults === true,
+        panelSideClearance: currentChromeLayout().panelSideClearance,
       });
       syncShieldAnchor();
       rt().overlayView.webContents.focus();
@@ -5815,6 +5944,9 @@ function showOverlay(mode, { prefill, purpose } = {}) {
     // Read on every show: the setting changes only in the Settings sheet,
     // which the overlay never shares the screen with.
     searchPriorityResults: settings.getSettings().searchPriorityResults === true,
+    // The margin the centered panel keeps from each side of this view, wide
+    // enough on macOS to leave the window buttons their corner.
+    panelSideClearance: currentChromeLayout().panelSideClearance,
     // Where the resting pill is, in the overlay's OWN coordinates, so the
     // panel can start life at the pill's size and grow out of it. The two live
     // in different views, so this hand-off is the only way the overlay can
@@ -6128,6 +6260,10 @@ function createUtilitySheet() {
     if (/^https?:\/\//i.test(targetUrl)) {
       const id = createTab(targetUrl);
       if (id) setActiveTab(id);
+    } else if (isFavoritesPageUrl(targetUrl)) {
+      // The sheet's Favorites link: Favorites is a page in a tab now.
+      hideUtilitySheet();
+      openInternalPage(FAVORITES_PAGE_URL);
     } else {
       handOffToOs(targetUrl);
     }
@@ -7261,6 +7397,9 @@ function broadcastTabs() {
   const payload = currentTabsPayload();
   stripSurfaces(rt()).send('tabs:updated', payload);
   runtime.overlayView?.webContents.send('tabs:updated', payload);
+  // A tab switch, a split, a Glance or a site-colors change can start or end
+  // the Start Page's wallpaper behind the band.
+  syncStartBackdrop(runtime);
   // A pane's site or favicon may have changed; the corner tabs repaint only
   // when their contents differ (syncSplitCornerTabs compares).
   if (runtime.splitCornerViews.size || visibleSplitOf(runtime)) syncSplitCornerTabs(splitGeometry());
@@ -7644,8 +7783,8 @@ function installMacTabSwitchKeys(webContents, getRuntime) {
 
 const executeBrowserCommand = createBrowserCommandExecutor({
   'new-window': runtime => openNewWindow({ profileId: runtime.profileId }),
-  'new-tab': () => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true }),
-  'new-private-tab': () => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true }),
+  'new-tab': () => openOrReuseNewTab(),
+  'new-private-tab': () => openOrReuseNewTab({ private: true }),
   'close-tab': (runtime, sender) => {
     if (tabSwitcher.isSwitching(runtime)) return closeSwitcherPick(runtime);
     const tab = browserCommandTab(runtime, sender);
@@ -7875,6 +8014,68 @@ async function samplePageTint(tab, { shouldApply = () => true } = {}) {
     }
   } catch { /* A native view can disappear during capture. */ }
   return false;
+}
+
+// The Start Page's wallpaper behind the Island's top band (start-backdrop.js;
+// owner, 2026-11-18: the band only, never the vertical tabs rail). Each Start
+// Page reports its wallpaper layers; main keeps the latest checked spec per
+// tab, decides the band for the window's active tab, and sends the strip only
+// what it may draw. The sampled top-edge color stays underneath it.
+const startBackdrops = new Map();
+
+function startBackdropBand(runtime, tab) {
+  return backdropBand({
+    isActive: runtime.activeTabId === tab.id && String(liveContents(tab)?.getURL?.() ?? tab.url ?? '').startsWith('blanc://newtab/'),
+    isPrivate: tab.private === true,
+    splitVisible: visibleSplitTabIds(runtime).length > 0,
+    glanceOpen: Boolean(runtime.glanceTabId),
+    autoHide: islandAutoHide,
+    fullScreen: runtime.window?.isFullScreen?.() === true,
+    siteColors: settings.getSettings().islandSiteColors === true,
+    pageTop: pageTopFor(runtime),
+  });
+}
+
+/** Paints (or clears) the active Start Page's wallpaper in this window's band
+ * and tells that page how far above it the band reaches. */
+function syncStartBackdrop(runtime) {
+  if (!runtime?.window || runtime.window.isDestroyed()) return;
+  // Closed tabs' specs go with the next broadcast (a close broadcasts).
+  for (const id of startBackdrops.keys()) if (!tabs.has(id)) startBackdrops.delete(id);
+  const tab = tabs.get(runtime.activeTabId);
+  const entry = tab ? startBackdrops.get(tab.id) : null;
+  // Most broadcasts are about a website tab: nothing to paint or clear.
+  if (!entry && runtime.startBackdropSent === 'none') return;
+  const band = entry ? startBackdropBand(runtime, tab) : 0;
+  const key = band ? `${tab.id}|${band}|${entry.key}` : 'none';
+  if (runtime.startBackdropSent === key) return;
+  const previous = runtime.startBackdropTabId;
+  runtime.startBackdropSent = key;
+  runtime.startBackdropTabId = band ? tab.id : null;
+  stripSurfaces(runtime).send('chrome:page-backdrop', backdropPayload(tab?.id, entry?.spec, band));
+  if (entry) liveContents(tab)?.send('pages:start:backdrop-band', band / entry.spec.zoom);
+  if (previous && previous !== tab?.id) liveContents(tabs.get(previous))?.send('pages:start:backdrop-band', 0);
+}
+
+function reportStartBackdrop(wc, raw) {
+  for (const id of startBackdrops.keys()) if (!tabs.has(id)) startBackdrops.delete(id);
+  const tab = tabs.get(tabIdByWebContentsId.get(wc.id));
+  const runtime = tab && windowRuntimes.runtimeForTab(tab.id);
+  if (!tab || !runtime) return { band: 0 };
+  // A private Start Page keeps its private theme color in the band.
+  // The page's zoom is main's to know; the strip lays the layers out at it.
+  const zoom = Math.min(5, Math.max(0.25, liveContents(tab)?.getZoomFactor?.() || 1));
+  const wallpaperUrl = wallpaper.imageUrl();
+  // The strip reads the images from its own scheme (chrome-protocol.js).
+  const spec = tab.private ? null : stripImages(
+    normalizeBackdrop({ ...(raw && typeof raw === 'object' ? raw : {}), zoom }, { wallpaperUrl }),
+    { wallpaperUrl, wallpaperHash: wallpaper.current()?.hash ?? null },
+  );
+  if (spec) startBackdrops.set(tab.id, { spec, key: JSON.stringify(spec) });
+  else startBackdrops.delete(tab.id);
+  syncStartBackdrop(runtime);
+  // The page lays its wallpaper out in its own CSS pixels.
+  return { band: spec ? startBackdropBand(runtime, tab) / spec.zoom : 0 };
 }
 
 function scheduleSampleTint(tab) {
@@ -10611,6 +10812,45 @@ function closeTabsBeside(keepId, direction) {
   scheduleMenuRebuild();
 }
 
+// #1505: a plain new-tab request (⌘T, ⌘⇧N, the Island's New Tab buttons,
+// /new, /private) switches to an unused New Tab page already in this window,
+// which is also the current Space, instead of stacking another. Only Blanc's
+// own page counts, so a custom home page always opens fresh; New Tab in
+// Group, New Tab Below and the floor tabs never come here. A plain new tab
+// opens ungrouped (see CLAUDE.md → Tab groups).
+function openOrReuseNewTab({ private: isPrivate = false, focusAddress = true } = {}) {
+  const runtime = rt();
+  const url = isPrivate ? PRIVATE_NEW_TAB_URL : newTabUrl();
+  const reuse = settings.getSettings().reuseNewTab && (isPrivate || url === NEW_TAB_URL);
+  const id = (reuse && findReusableNewTab({
+    tabOrder: runtime.tabOrder,
+    tabs,
+    activeTabId: runtime.activeTabId,
+    glanceTabId: runtime.glanceTabId,
+    private: isPrivate,
+    isUsed: newTabPageUsed,
+  })) || createTab(url, { private: isPrivate });
+  // Re-selecting the active tab is a no-op in setActiveTab, so the address
+  // field is summoned directly when ⌘T lands on the tab already showing.
+  if (id && id === runtime.activeTabId) {
+    if (focusAddress) focusAddressBar();
+    return id;
+  }
+  setActiveTab(id, { focusContent: !focusAddress, focusAddress });
+  return id;
+}
+
+// Whether a tab showing the New Tab page has been used: it has history in
+// either direction (it went somewhere, even if it came back), or a
+// navigation away from the page is under way. A quiet tab has no contents,
+// so its snapshot answers instead.
+function newTabPageUsed(tab) {
+  const contents = liveContents(tab);
+  if (!contents) return (sleepSnapshots.get(tab.id)?.entries?.length ?? 0) > 1;
+  const current = contents.getURL();
+  return contents.navigationHistory.length() > 1 || (!!current && current !== tab.url);
+}
+
 /** New Tab Below (tab menu additions spec §2): a new tab directly under
  * `tabId`, inside its group if it has one. Under a pin it opens as the first
  * tab after the pins (the group's for a grouped pin). A private tab makes a
@@ -11056,6 +11296,17 @@ function cycleCluster(direction) {
   setActiveTab(target.tabIds.includes(remembered) ? remembered : target.tabIds[0]);
 }
 
+const FAVORITES_PAGE_URL = 'blanc://bookmarks/';
+/** Exactly Blanc's Favorites page (blanc://bookmarks/, any path or query). */
+function isFavoritesPageUrl(url) {
+  try {
+    const u = new URL(url);
+    return u.protocol === 'blanc:' && u.host === 'bookmarks';
+  } catch {
+    return false;
+  }
+}
+
 /** Focus an existing tab already on this internal page, or open one. */
 function openInternalPage(url) {
   if (isUtilityUrl(url)) return showUtilityPage(url);
@@ -11069,7 +11320,9 @@ function openInternalPage(url) {
     // The selected internal page is being navigated anyway. Give a quiet tab
     // the target as its first load rather than restore-then-reload.
     if (tab.asleep) wakeTab(existing, { navigateTo: url }).catch(() => {});
-    else liveContents(tab)?.reload(); // pick up fresh data
+    // Favorites hears every change (pages:bookmarks:changed), so reopening
+    // it keeps a search or an open dialog; other pages reload for fresh data.
+    else if (!isFavoritesPageUrl(url)) liveContents(tab)?.reload();
   } else {
     setActiveTab(createTab(url));
   }
@@ -11171,16 +11424,23 @@ function startPageSenderIsPrivate(wc) {
  * carries nothing, so a page only ever sees its own profile's list. */
 function notifyStartPagePinsChanged() {
   for (const tab of tabs.values()) {
-    if (!tab.url?.startsWith('blanc://newtab')) continue;
+    if (!tab.url?.startsWith('blanc://newtab') && !isFavoritesPageUrl(tab.url)) continue;
     liveContents(tab)?.send('pages:pins:changed');
-  }
-  for (const runtime of windowRuntimes.all()) {
-    if (sameUtilityPage(runtime.utilitySheetUrl, 'blanc://bookmarks/')) {
-      liveUtilitySheet(runtime)?.wc.send('pages:pins:changed');
-    }
   }
 }
 startPagePins.onChanged(() => notifyStartPagePinsChanged());
+
+/** Every open Favorites page redraws after a change made anywhere else: the
+ * heart, /save, the menu, another window's Favorites page, or Sync. The
+ * notice carries nothing; the page reads its own profile's tree. */
+function notifyFavoritesPagesChanged() {
+  for (const tab of tabs.values()) {
+    if (isFavoritesPageUrl(tab.url)) liveContents(tab)?.send('pages:bookmarks:changed');
+  }
+}
+bookmarks.onChanged(() => notifyFavoritesPagesChanged());
+bookmarks.onMerged(() => notifyFavoritesPagesChanged());
+favoritesLayout.onMerged(() => notifyFavoritesPagesChanged());
 
 /** The `/save [folder]` command: add-only favorite of the active tab, into an
  * optional folder. Same guards as toggleBookmarkForActiveTab; re-derives
@@ -11408,8 +11668,8 @@ function chromeOn(channel, handler) {
 }
 
 /** "Make your first space" is done once a space exists in Personal. */
-function noteSpaceCreated() {
-  if (rt().profileId === DEFAULT_PROFILE_ID && !settings.getSettings().spaceMigrationCompleted) {
+function noteSpaceCreated(profileId = rt().profileId) {
+  if (profileId === DEFAULT_PROFILE_ID && !settings.getSettings().spaceMigrationCompleted) {
     settings.setSettings({ spaceMigrationCompleted: true });
   }
 }
@@ -11421,6 +11681,19 @@ const spaceTint = !app.isPackaged && ['island', 'frame'].includes(process.env.BL
 // Workspace IPC contains presentation metadata only. Ownership is derived
 // within the requesting profile; page snapshots, URLs and views stay in main.
 function workspacesProjection() {
+  // Every other live profile's Spaces, limited to the fields the module
+  // allows to cross profiles (spec 2026-11-19-spaces-across-profiles §5.2).
+  const otherProfiles = otherProfileSpaces({
+    profiles: localProfiles.listLocalProfiles(),
+    currentProfileId: rt().profileId,
+    isLive: linkRouteLiveness.isLiveProfile,
+    readProfile: (id) => withLocalProfile(id, () => ({
+      status: namedWorkspaces.status(), spaces: namedWorkspaces.list(),
+      shownIds: new Set(windowRuntimes.all()
+        .filter((runtime) => runtime.profileId === id && isLiveBrowserRuntime(runtime) && runtime.workspaceId)
+        .map((runtime) => runtime.workspaceId)),
+    })),
+  });
   const shared=isSharedSpacesOffered()&&rt().profileId===DEFAULT_PROFILE_ID?sync.sharedStatus():null;
   return {
     status: namedWorkspaces.status(),
@@ -11443,6 +11716,10 @@ function workspacesProjection() {
     // "This window · N tabs" in the new-space editor: what save-as would keep.
     windowTabCount: rt().tabOrder.filter((tabId) => tabs.get(tabId) && !tabs.get(tabId).private).length,
     tint: spaceTint,
+    // Only with two or more live profiles; undefined keeps one profile's
+    // payload exactly as before.
+    otherProfiles: otherProfiles.length ? otherProfiles : undefined,
+    profileName: otherProfiles.length ? localProfiles.getLocalProfile(rt().profileId)?.name ?? '' : undefined,
   };
 }
 
@@ -11452,8 +11729,12 @@ function workspacesProjection() {
  * separately INSIDE each runtime's own scope (forEachWindowRuntime rebinds
  * both the window runtime and the local-profile context per iteration) —
  * a workspace list, and which row is active, is per-profile and per-window,
- * so one shared payload would leak one profile's workspace names into
- * another's window or mislabel which row is bound. Sent to both the chrome
+ * so one shared payload would show the wrong profile's full records or
+ * mislabel which row is bound. Other profiles' Spaces do cross into each
+ * window (spec 2026-11-19-spaces-across-profiles §5.2), but only as
+ * `otherProfiles`, limited by spaces-across-profiles.js to each Space's id,
+ * name, colour, symbol, tab count and whether a window shows it: never its
+ * pages, titles or sync state. Sent to both the chrome
  * window and the overlay — the two surfaces this preload is exposed to that
  * can plausibly render the list — mirroring how chrome:island-proximity
  * targets the window's webContents and chrome:remote-tabs-updated targets
@@ -11725,21 +12006,17 @@ function registerIpcHandlers() {
   darkWebsites.install();
   chromeHandle('tabs:create', (_e, url, opts) => {
     const isPrivate = !!opts?.private;
-    // A plain new tab is deliberately ungrouped — createTab defaults groupId
-    // to null and we intentionally don't pass one. Link children
-    // (window.open, context menu) open ungrouped too (see CLAUDE.md → Tab
-    // groups); only explicit grouping moves a tab into a group.
-    const id = createTab(url || (isPrivate ? PRIVATE_NEW_TAB_URL : newTabUrl()), {
-      private: isPrivate,
-    });
     // A blank "New Tab" (no explicit url) is normally a launchpad — keep OS
-    // focus on the chrome so the address bar can take it. A url means the
-    // caller has somewhere specific to go, so focus the page content. The
-    // island footer's New-tab/Private buttons opt out with focusAddress:false:
-    // they close the panel and land the user directly on the fresh tab rather
-    // than re-summoning the launchpad.
-    const blank = !url;
-    const focusAddress = opts?.focusAddress ?? blank;
+    // focus on the chrome so the address bar can take it. The island
+    // footer's New-tab/Private buttons opt out with focusAddress:false: they
+    // close the panel and land the user directly on the tab rather than
+    // re-summoning the launchpad.
+    if (!url) return openOrReuseNewTab({ private: isPrivate, focusAddress: opts?.focusAddress ?? true });
+    // A url means the caller has somewhere specific to go, so focus the page
+    // content. Like a plain new tab it opens ungrouped (see CLAUDE.md → Tab
+    // groups); only explicit grouping moves a tab into a group.
+    const id = createTab(url, { private: isPrivate });
+    const focusAddress = opts?.focusAddress ?? false;
     setActiveTab(id, { focusContent: !focusAddress, focusAddress });
     return id;
   });
@@ -12195,16 +12472,37 @@ function registerIpcHandlers() {
     return { ok: true, workspaceId: result.workspace.id, ...workspacesProjection() };
   });
   chromeHandle('chrome:workspaces-open', (_e, id, opts) => {
+    // A mini window (#1138) holds no Space and reaches no other profile's.
+    if (rt().mini) return { ok: false, error: 'busy' };
+    // Another profile's Space opens in a window of that profile; this window
+    // and its tabs are never touched (spec 2026-11-19 D1).
+    const otherProfile = otherProfileTarget(opts);
+    if (otherProfile) {
+      const { result: opened } = openSpaceInProfile({ profileId: otherProfile, spaceId: id });
+      settleElsewhere(opened);
+      return opened.ok ? { ...opened, ...workspacesProjection() } : opened;
+    }
     const result = switchWindowToWorkspace(rt(), id, { decision: typeof opts?.decision === 'string' ? opts.decision : null, newWindow: opts?.newWindow === true });
     // {ok:false, error:'not-found'}, the scratch guard's
     // {ok:false, error:'unsaved-scratch', tabCount}, or the honest
     // {ok:false, action:'focus', windowId} report when the bound window
     // couldn't be recreated — none of these carry a workspace record.
     if (!result.ok) return result;
+    settleElsewhere(result);
     broadcastWorkspacesUpdated();
     return { ...result, ...workspacesProjection() };
   });
   chromeHandle('chrome:workspaces-create-blank', (_e, name, opts) => {
+    if (rt().mini) return { ok: false, error: 'busy' };
+    const otherProfile = otherProfileTarget(opts);
+    if (otherProfile) {
+      const made = createSpaceInProfile(otherProfile, name, {
+        color: typeof opts?.color === 'string' ? opts.color : undefined,
+        symbol: typeof opts?.symbol === 'string' ? opts.symbol : undefined,
+      });
+      settleElsewhere(made);
+      return made.ok || made.workspaceId ? { ...made, ...workspacesProjection() } : made;
+    }
     const result = createBlankWorkspaceAndSwitch(rt(), name, {
       decision: typeof opts?.decision === 'string' ? opts.decision : null,
       newWindow: opts?.newWindow === true,
@@ -12218,6 +12516,7 @@ function registerIpcHandlers() {
       }
       return result;
     }
+    settleElsewhere(result);
     broadcastWorkspacesUpdated();
     noteSpaceCreated();
     return { ...result, ...workspacesProjection() };
@@ -12432,22 +12731,17 @@ function tabMenuItems(owner = rt()) {
  * from user content — tab/favorite titles and folder names. */
 const escapeMenuLabel = (label) => (process.platform === 'darwin' ? label : label.replace(/&/g, '&&'));
 
-/** Native Favorites-menu items: folder submenus first (alphabetical), then
- * ungrouped favorites inline — mirroring the Favorites page. */
+/** Native Favorites-menu items: folders as nested submenus and favorites
+ * as items, in the order the Favorites manager shows (F63). */
 function favoritesMenuItems(owner = rt()) {
-  const label = (b) => {
-    const t = b.title || b.url;
-    return t.length > 120 ? `${t.slice(0, 119)}…` : t;
+  const cut = (text) => escapeMenuLabel(text.length > 120 ? `${text.slice(0, 119)}…` : text);
+  const toItem = (entry) => {
+    if (entry.kind === 'separator') return { type: 'separator' };
+    if (entry.kind === 'folder') return { label: cut(entry.name), submenu: entry.children.map(toItem) };
+    const { url, title } = entry.item;
+    return { label: cut(title || url), click: bindWindowRuntime(owner, () => setActiveTab(createTab(url))) };
   };
-  const open = (b) => ({ label: escapeMenuLabel(label(b)), click: bindWindowRuntime(owner, () => setActiveTab(createTab(b.url))) });
-  // Folders as submenus first (alphabetical), then ungrouped favorites inline —
-  // mirroring the Favorites page. Everything is shown; folders keep the menu
-  // navigable regardless of favorite count (no flat cap on ungrouped either).
-  const { folders, ungrouped } = groupFavoritesForMenu(bookmarks.listBookmarks());
-  const items = folders.map((f) => ({ label: escapeMenuLabel(f.name), submenu: f.items.map(open) }));
-  if (folders.length && ungrouped.length) items.push({ type: 'separator' });
-  items.push(...ungrouped.map(open));
-  return items;
+  return bookmarks.getMenuModel().map(toItem);
 }
 
 // --- Keyboard shortcuts inventory (Help → Keyboard Shortcuts page) ---
@@ -12898,7 +13192,7 @@ function buildMenuForRuntime(runtime) {
         // Only divide the favorites list from Show Favorites when there ARE
         // favorites — otherwise the two separators would collapse into one gap.
         ...(favItems.length ? [{ type: 'separator' }] : []),
-        { label: t('menu.showFavorites'), accelerator: isMac ? 'Cmd+Alt+B' : 'Ctrl+Shift+O', click: bound(() => openInternalPage('blanc://bookmarks/')) },
+        { id: 'favorites-show', label: t('menu.showFavorites'), accelerator: isMac ? 'Cmd+Alt+B' : 'Ctrl+Shift+O', click: bound(() => openInternalPage('blanc://bookmarks/')) },
         command('history'),
       ],
     },
@@ -13224,8 +13518,8 @@ function menuContextActions(owner) {
     removeFromSplit: b((id) => removeTabFromSplit(id)),
     closeSplit: b((id) => { const split = splitForTab(rt().splits, id); if (split) closeSplit(split.id); }),
     quiet: b((id) => sleepTabNow(id)),
-    newTab: b(() => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true })),
-    newPrivateTab: b(() => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true })),
+    newTab: b(() => openOrReuseNewTab()),
+    newPrivateTab: b(() => openOrReuseNewTab({ private: true })),
     closeOthers: b((id) => closeOtherTabsInWindow(id)),
     closeBeside: b((id, direction) => closeTabsBeside(id, direction)),
     newTabBelow: b((id) => newTabBelow(id)),
@@ -13421,6 +13715,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive 
     clearIslandAutoHideTimer(runtime);
     clearMiniWindowIdle(runtime);
     endIslandAutoHideIntro(runtime);
+    endIslandDownloadPeek(runtime);
     stopIslandRevealWatch(runtime);
     stopIslandSlide(runtime);
     runtime.islandRevealed = false;
@@ -13462,6 +13757,9 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive 
     // The last ordinary Windows or Linux window quits Blanc: mini windows go
     // with it (they are never saved), so window-all-closed still quits.
     if (dockReopenLifecycle.closeSessionEffect() === 'quit') closeMiniWindows();
+    // Local HTML previews go too, or one would keep Blanc running with no
+    // browser window to come back to (#1630).
+    if (dockReopenLifecycle.closeSessionEffect() === 'quit') drmSupport.closeLocalFiles?.();
     if (clearPersistedWindowState) {
       runtime.closing = true;
       // The close event durably checkpointed before native teardown.
@@ -13527,6 +13825,12 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false, inactive 
       syncStripHidden(runtime);
     }
   ));
+  // A strip that loads again (renderer recovery) starts without the band's
+  // wallpaper: send it whatever the active Start Page has.
+  rt().window.webContents.on('did-finish-load', bindWindowRuntime(runtime, () => {
+    runtime.startBackdropSent = null;
+    syncStartBackdrop(runtime);
+  }));
   return runtime;
 }
 
@@ -15080,7 +15384,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const developmentBrandMarkPath = developmentPreviewPath('BLANC_DEV_BRAND_MARK_PREVIEW');
   const developmentDockIconPath = developmentPreviewPath('BLANC_DEV_DOCK_ICON_PREVIEW');
   const developmentDarkDockIconPath = developmentPreviewPath('BLANC_DEV_DOCK_ICON_DARK_PREVIEW');
-  setupChromeProtocol({ session: chromeSes, net, developmentBrandMarkPath, stringsScript: () => mainI18n.stringsScript() });
+  setupChromeProtocol({
+    session: chromeSes, net, developmentBrandMarkPath, stringsScript: () => mainI18n.stringsScript(),
+    // The band behind the Island draws the Start Page's photo (start-backdrop.js).
+    wallpaper: { hash: () => wallpaper.current()?.hash ?? null, serve: () => wallpaper.serve() },
+  });
   // Acceptance runs are isolated, unpackaged fixtures. Complete first-run
   // locally so existing suggestion/navigation scenarios exercise their
   // intended feature instead of the onboarding card; telemetry is disabled.
@@ -15185,6 +15493,18 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         type: 'frame',
         filePath: path.join(__dirname, 'link-route-preload.js'),
       });
+      // Truthful permissions.query for Local Network Access (top-level web
+      // pages only); the request gate is what decides.
+      browsingSession.registerPreloadScript({
+        type: 'frame',
+        filePath: path.join(__dirname, 'local-network-preload.js'),
+      });
+      // Windows only: keeps a page's quiet (conditional) passkey request from
+      // opening Windows' passkey dialog on every visit.
+      browsingSession.registerPreloadScript({
+        type: 'frame',
+        filePath: path.join(__dirname, 'passkey-preload.js'),
+      });
       // Capture instrumentation relay (spec §4). Per the §4.1 spike, session
       // preloads only reach MAIN frames on our configuration — subframe grants
       // stay unconfirmable and fail toward stuck-on, never silently-off.
@@ -15278,11 +15598,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // Also follow a live OS appearance change while the preference is "system".
   nativeTheme.on('updated', bindWindowRuntime(primaryRuntime, handleNativeThemeUpdated));
 
-  setupPermissionPolicy(ses, {
+  installPermissionPolicy(ses, {
     profileId: DEFAULT_PROFILE_ID,
     ...nativeMediaPermissionOptions,
   });
-  setupPermissionPolicy(privateSes, {
+  installPermissionPolicy(privateSes, {
     persistDecisions: false,
     profileId: DEFAULT_PROFILE_ID,
     ...nativeMediaPermissionOptions,
@@ -15543,6 +15863,31 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     refreshCaptureProjection(surface);
   });
 
+  // Truthful Local Network Access state for local-network-preload.js, from
+  // the stored decisions the request gate uses: the sender's own main-frame
+  // origin only, and null (fall back to the real query) otherwise.
+  ipcMain.handle('local-network:permission-query', (event, name) => {
+    const frame = event.senderFrame;
+    if (!frame || frame !== event.sender.mainFrame) return null;
+    return localNetworkQueryState(event.sender.session, frame.url, name);
+  });
+  // Live statuses: push each tab showing that origin its current states.
+  setLocalNetworkDecisionObserver(({ origin }) => {
+    const push = (wc) => {
+      if (!wc || wc.isDestroyed()) return;
+      const url = wc.getURL();
+      try { if (new URL(url).origin !== origin) return; } catch { return; }
+      const states = {};
+      for (const name of ['loopback-network', 'local-network', 'local-network-access']) {
+        const state = localNetworkQueryState(wc.session, url, name);
+        if (state) states[name] = state;
+      }
+      wc.send('local-network:permission-changed', states);
+    };
+    for (const tab of tabs.values()) push(liveContents(tab));
+    for (const { wc } of popupCaptures.values()) push(wc);
+  });
+
   // Truthful mic/camera state for the main-world permissions.query shim in
   // capture-preload.js. Read-only display truth: it consults the same stored
   // decisions the request handler uses and can never grant, prompt, or
@@ -15599,6 +15944,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // a native event boundary main.js doesn't control — so the callback must
   // rebind the runtime itself rather than rely on setupDownloads' call site.
   setDownloadRequesterCheck((wc) => runtimeForPageWebContents(wc)?.resident !== true);
+  setDownloadActivityObserver(peekIslandForDownload);
+  // #1591: unless the person asked to choose, downloads save straight to the
+  // Downloads folder under a free name.
+  setDownloadSavePolicy({
+    askWhereToSave: () => settings.getSettings().askWhereToSave === true,
+    folder: () => app.getPath('downloads'),
+  });
   setupDownloads(ses, broadcastDownloadsActivity, {
     private: false,
     profileId: DEFAULT_PROFILE_ID,
@@ -15674,6 +16026,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // Carried on every status push so a start page opened in one window
       // re-inks when the layout is changed from Settings or another window.
       layout: current.newtabLayout,
+      // The Start Page's widgets (device-local), on every push so every open
+      // Start Page follows a change made in another window at once.
+      widgets: pageWidgets(settings.getNewtabWidgets()),
       privacy: {
         required: !settings.isFirstRunComplete(),
         searchSuggestions: current.searchSuggestions,
@@ -15789,12 +16144,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     restoreArchived: (id) => restoreArchivedEntry(id),
     // Start Page pins for the Start Page and the Favorites page. A private
     // start page reads them, as it reads Favorites, but never changes them.
+    isPrivateSender: (wc) => startPageSenderIsPrivate(wc),
     startPins: {
       list: () => listStartPagePins(),
       pin: (wc, page) => (startPageSenderIsPrivate(wc)
         ? { ok: false, reason: 'private' }
         : startPagePins.pin(page)),
       unpin: (wc, url) => !startPageSenderIsPrivate(wc) && startPagePins.unpin(url),
+      // A favorite edited on the Favorites page: its pin follows it.
+      replace: (fromUrl, page) => startPagePins.replacePin(fromUrl, page),
     },
     onHistoryCleared: () => {
       clearSessionMeta();
@@ -15823,7 +16181,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if (!runtime) return false;
         return withWindowRuntime(runtime, () => {
           if (UTILITY_PAGES.has(host)) return liveUtilitySheet()?.wc === wc;
-          if (host !== 'newtab' && host !== 'mahjong' && host !== 'error') return false;
+          if (host !== 'newtab' && host !== 'mahjong' && host !== 'error' && host !== 'bookmarks') return false;
           const tabId = tabIdByWebContentsId.get(wc.id);
           return !!tabId && windowRuntimes.runtimeForTab(tabId) === runtime;
         });
@@ -15854,8 +16212,6 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     telemetry: {
       mahjongPlayed: (wc) =>
         maybeSendProductUsage(wc, () => sendMahjongPlay()),
-      newtabLayoutUsed: (wc, layout) =>
-        maybeSendProductUsage(wc, () => sendNewtabLayoutUsed(layout)),
     },
     // The start page's ledger sections read live tab-group state and the
     // rolling blocked counter, both owned here.
@@ -15927,6 +16283,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         return wallpaperState(tab?.private === true, spaceColorForTab(tab));
       },
       wallpaperChanged: () => broadcastStartPageStatus(),
+      backdrop: (wc, spec) => reportStartBackdrop(wc, spec),
       migrationChecklistFor: (wc) => migrationChecklistForTab(
         startPageStatus().migrationChecklist,
         tabs.get(tabIdByWebContentsId.get(wc.id)),
@@ -15954,7 +16311,6 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       },
       // Runs inside runInPageRuntime, so the sheet opens in the start page's own window.
       openSettingsSection: (section) => openSettingsSection(String(section ?? '')),
-      setLayout: (name) => settings.setSettings({ newtabLayout: name }),
       openMahjong: (wc, background) => {
         const source = tabs.get(tabIdByWebContentsId.get(wc.id));
         if (!source || !liveContents(source)) return false;
@@ -16004,10 +16360,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         profiles: localProfiles.listLocalProfiles()
           .filter((profile) => !profileDeletions.hasPendingProfileDeletion(profile.id)),
       }),
-      create: createNamedLocalProfileWindow,
+      create: (...args) => afterProfileChange(createNamedLocalProfileWindow(...args)),
       open: openExistingProfileWindow,
-      rename: renameNamedLocalProfile,
-      remove: deleteNamedLocalProfile,
+      rename: (...args) => afterProfileChange(renameNamedLocalProfile(...args)),
+      remove: (...args) => afterProfileChange(deleteNamedLocalProfile(...args)),
     },
     linkRoutes: { targets: linkRouteTargets },
     // listShortcuts() reads only the live Electron application menu — no
@@ -16047,11 +16403,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     pagesRegistration.addSessions(targetSessions);
     installSessionPreloads(targetSessions);
     installClientHintFallback(targetSessions);
-    setupPermissionPolicy(owned.normal, {
+    installPermissionPolicy(owned.normal, {
       profileId: owned.profileId,
       ...nativeMediaPermissionOptions,
     });
-    setupPermissionPolicy(owned.private, {
+    installPermissionPolicy(owned.private, {
       persistDecisions: false,
       profileId: owned.profileId,
       ...nativeMediaPermissionOptions,
@@ -16458,6 +16814,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         style: islandAutoHideStyle,
         revealed: rt().islandRevealed === true,
         introducing: !!rt().islandAutoHideIntroTimer,
+        downloadPeek: !!rt().islandDownloadPeek,
         sliding: !!rt().islandSlide,
         reducedMotion: prefersReducedMotion(),
         introTipShown: !!rt().islandAutoHideIntroTimer && rt().tooltipViewAttached === true
@@ -16959,6 +17316,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // pill's favorite state; open internal pages still pull on their next load,
     // as with any cross-surface bookmark change.
     bookmarks.onMerged(refreshBookmarkFlags);
+    // A pulled folder order changes the Favorites menu too.
+    favoritesLayout.onMerged(refreshBookmarkFlags);
   };
 
   // Website sign-in belongs to the website. Never turn an HTTP basic/digest
@@ -17337,6 +17696,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // Cold-start URL handoff waits until the blocker decision and session
     // restore are both complete.
     openExternalUrls(urlsFromArgv(process.argv.slice(1)));
+    openLocalHtmlFiles(localHtmlPathsFromArgv(process.argv.slice(1)));
     pendingTabHandoffUrls.push(...tabImportUrlsFromArgv(process.argv.slice(1)));
     externalUrlsFlushable = true;
     withWindowRuntime(focusedRuntime, flushExternalUrls);

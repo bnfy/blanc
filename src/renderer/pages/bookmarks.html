@@ -17,26 +17,40 @@
       <a href="blanc://history/" data-i18n="pagesNav.history">History</a>
       <a href="blanc://downloads/" data-i18n="pagesNav.downloads">Downloads</a>
     </nav>
-    <div class="page-head">
+    <header class="page-head fav-top" id="favTop">
       <h1 data-i18n="pagesNav.bookmarks">Favorites</h1>
       <div class="import-actions">
-        <button id="bringTabsBtn" type="button" data-i18n="favorites.bringTabs">Bring open tabs…</button>
-        <button id="browserFindBtn" type="button" data-i18n="favorites.import.look">Look for other browsers</button>
-        <span id="browserSourceWrap" hidden>
-          <select id="browserSource" aria-label="Browser profile" data-i18n-aria-label="favorites.import.source"></select>
-        </span>
-        <button id="browserImportBtn" type="button" hidden data-i18n="favorites.import.fromBrowser">Import from browser</button>
-        <button id="importBtn" type="button" data-i18n="favorites.import.html">Import HTML…</button>
+        <button id="importMenuBtn" type="button" class="import-trigger" aria-haspopup="dialog" aria-controls="importDialog"><span class="import-glyph import-glyph-arrive" aria-hidden="true"></span><span data-i18n="favorites.import.menu">Bring my stuff to Blanc</span></button>
       </div>
-    </div>
-    <p id="browserImportGuidance" class="section-hint import-guidance" hidden></p>
+    </header>
     <p id="readOnlyNote" class="section-hint" data-i18n="favorites.readOnlyNote" hidden>Favorites sync from your computer. Edit them there for now.</p>
     <p id="importStatus" class="section-hint" role="status"></p>
+    <div id="manager" class="fav-manager" hidden></div>
     <div id="list" class="row-list"></div>
+    <dialog id="importDialog" class="import-dialog" aria-labelledby="importDialogTitle" aria-describedby="importDialogLede">
+      <form id="importForm" method="dialog">
+        <h2 id="importDialogTitle" data-i18n="favorites.import.menu">Bring my stuff to Blanc</h2>
+        <p id="importDialogLede" class="import-lede" data-i18n="favorites.import.lede">Copy your favorites and open tabs from another browser. Nothing there changes.</p>
+        <label class="import-field" for="browserSource"><span data-i18n="favorites.import.from">From</span></label>
+        <select id="browserSource" class="import-source"></select>
+        <p id="browserImportGuidance" class="import-guidance" hidden></p>
+        <fieldset class="import-what">
+          <legend data-i18n="favorites.import.what">What to bring</legend>
+          <label class="import-check"><input id="importWhatFavorites" type="checkbox" checked /><span data-i18n="pagesNav.bookmarks">Favorites</span></label>
+          <label class="import-check"><input id="importWhatTabs" type="checkbox" /><span data-i18n="favorites.import.whatTabs">Open tabs</span></label>
+        </fieldset>
+        <p id="importDialogNote" class="import-note" role="status"></p>
+        <div class="import-buttons">
+          <button id="importCancelBtn" type="button" value="cancel" data-i18n="favorites.import.cancel">Cancel</button>
+          <button id="browserImportBtn" type="submit" class="import-go" data-i18n="favorites.import.go">Import</button>
+        </div>
+      </form>
+    </dialog>
   </div>
-  <script src="sheet.js"></script>
   <script src="row-icon.js"></script>
   <script src="start-pins.js"></script>
+  <script src="favorites-manager-model.js"></script>
+  <script src="favorites-manager.js"></script>
   <script src="bookmarks.js"></script>
 </body>
 </html>

@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {gridState, paletteRows, fixtureUrl, pageTitle, rawPixel} from '../tests/android/acceptance/support/parse.mjs';
+import {devtoolsSocket, withPref, gridState, paletteRows, fixtureUrl, pageTitle, rawPixel} from '../tests/android/acceptance/support/parse.mjs';
 import {RUNNABLE} from '../tests/android/acceptance/cucumber.mjs';
 import {boundsAfter} from '../tests/android/tab-store.mjs';
 import {fixturePage} from '../tests/android/acceptance/support/fixture-server.mjs';
@@ -84,4 +84,31 @@ test('every runnable id names a scenario in spec/acceptance', () => {
     .map(f => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n');
   for (const id of RUNNABLE) assert.match(text, new RegExp(`${id}(\\s|$)`), id);
   assert.equal(new Set(RUNNABLE).size, RUNNABLE.length);
+});
+
+// Chromium names its DevTools socket chrome_devtools_remote, or chrome_devtools_remote_<pid> when
+// another Chromium app holds that name: on the gate's emulator the debug app often does.
+test('the DevTools socket is the app\'s own, by its process id when the plain name is taken', () => {
+  const unix = ['Num RefCount Protocol Flags Type St Inode Path',
+    '0000: 00000002 00000000 00010000 0001 01 810976 @chrome_devtools_remote',
+    '0000: 00000002 00000000 00010000 0001 01 873387 @chrome_devtools_remote_11772'].join('\n');
+  assert.equal(devtoolsSocket('11772', unix), 'chrome_devtools_remote_11772');
+  assert.equal(devtoolsSocket('11772', unix.replaceAll('\n', '\r\n')), 'chrome_devtools_remote_11772');
+  assert.equal(devtoolsSocket('500', unix), 'chrome_devtools_remote');
+  assert.equal(devtoolsSocket('', unix), 'chrome_devtools_remote');
+  assert.equal(devtoolsSocket('1177', unix), 'chrome_devtools_remote', 'a pid that only prefixes another never matches');
+});
+
+// setPref edits the app's preferences file. Android writes a file with no entries as <map />, which
+// a fresh app can still have when the edit runs: the entry must land there too, or the edit is lost.
+test('a preference entry replaces an old one of that name, and lands in an empty <map />', () => {
+  const entry = '<int name="blanc.x" value="2" />';
+  const full = "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n<map>\n    <int name=\"blanc.x\" value=\"1\" />\n    <boolean name=\"other\" value=\"true\" />\n</map>\n";
+  const out = withPref(full, entry, 'blanc.x');
+  assert.equal(out.match(/name="blanc\.x"/g).length, 1);
+  assert.match(out, /<int name="blanc\.x" value="2" \/>\n<\/map>/);
+  assert.match(out, /name="other"/);
+  const empty = "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n<map />\n";
+  assert.match(withPref(empty, entry, 'blanc.x'), /<map>\n    <int name="blanc\.x" value="2" \/>\n<\/map>/);
+  assert.throws(() => withPref('', entry, 'blanc.x'), /preferences file/);
 });

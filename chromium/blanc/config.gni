@@ -1,6 +1,8 @@
 # Preview hooks are opt-in at runtime and absent from release/official builds.
 declare_args() {
   blanc_channel = "preview"
+  # Android's release version is independent of desktop's; previews have none.
+  blanc_android_version_name = ""
   blanc_beta_version = "2.0.0-beta.1"
   blanc_beta_build = 1
   # Explicit local-only updater/Sync qualification; never a distributable build.
@@ -16,15 +18,28 @@ declare_args() {
   blanc_blocker_bundle = ""
 }
 assert(blanc_channel == "preview" || blanc_channel == "release" || blanc_channel == "beta")
+assert(blanc_android_version_name == "" || target_os == "android",
+       "A Blanc Android version is only valid for Android builds")
+assert(target_os != "android" || blanc_channel != "release" ||
+           blanc_android_version_name != "",
+       "Android release builds need blanc_android_version_name")
 blanc_beta_channel = blanc_channel == "beta"
 assert(!blanc_beta_local_qualification || (blanc_beta_channel && target_cpu == "arm64"))
 if (blanc_beta_channel) {
-  assert(is_mac, "Blanc Beta is macOS only")
+  # target_os, not is_mac/is_win: GN also reads this in the host toolchain.
+  assert(target_os == "mac" || (target_os == "win" && target_cpu == "x64"),
+         "Blanc Beta is built for macOS and Windows x64 (W3)")
   assert(blanc_beta_build > 0 && blanc_beta_build <= 9999)
   assert(blanc_blocker_bundle != "", "Beta builds embed the blocker bundle")
   if (blanc_beta_version == "2.0.0-beta.1") {
     assert(target_cpu == "arm64", "Owner-approved beta 1 Intel waiver")
   }
+}
+# A Windows beta's version PATCH is its build number (patch 0103,
+# chromium/tools/windows-version.test.mjs); everything else keeps Chromium's.
+blanc_win_version_patch = ""
+if (blanc_channel == "beta" && target_os == "win") {
+  blanc_win_version_patch = "$blanc_beta_build"
 }
 blanc_enable_test_hooks = blanc_channel == "preview" && !is_official_build
 # Serving Island assets from a disk folder is a preview development override.

@@ -49,6 +49,13 @@ const SHARED_ASSETS = new Set([
   // strip and the start page share one copy so they cannot disagree.
   '/pages/type-to-open.js',
 ]);
+// The Start Page's bundled wallpaper art, for the band behind the Island
+// (start-backdrop.js START_ART): the four files and nothing else from pages/.
+const START_ART_ASSETS = ['start-page-sunrise.png', 'start-page-day.png', 'start-page-dusk.png', 'start-page-night.png']
+  .map((name) => [`/start-art/${name}`, `pages/${name}`]);
+// The current photo, by its hash: wallpaper.js serves it (no query strings
+// pass this scheme, so the hash is in the name).
+const START_PHOTO = /^\/start-art\/wallpaper-([0-9a-f]{1,64})\.jpg$/;
 const STRIP_ASSETS = new Map([
   ['/', 'index.html'],
   ['/renderer.js', 'renderer.js'],
@@ -66,7 +73,9 @@ const STRIP_ASSETS = new Map([
   ['/space-identity.js', 'space-identity.js'],
 ]);
 const HOST_ASSETS = new Map([
-  ['index', STRIP_ASSETS],
+  // Only the window's own strip paints the Start Page's wallpaper behind
+  // the band (start-backdrop.js), so only it reads the Start Page art.
+  ['index', new Map([...STRIP_ASSETS, ...START_ART_ASSETS])],
   ['float', STRIP_ASSETS],
   ['glance', STRIP_ASSETS],
   ['overlay', new Map([
@@ -149,8 +158,23 @@ function chromeResourcePath(rawUrl, platform = process.platform) {
 const englishStringsScript = () =>
   stringsScriptFor({ source: fs.readFileSync(ENGLISH_STRINGS_PATH, 'utf8'), formatLocale: 'en', strict: false });
 
-function createChromeProtocolHandler({ net, developmentBrandMarkPath = null, stringsScript = englishStringsScript }) {
+function photoRequest(rawUrl) {
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.protocol !== `${CHROME_SCHEME}:` || parsed.hostname !== 'index' || parsed.username || parsed.password
+      || parsed.port || parsed.search || parsed.hash) return null;
+    return START_PHOTO.exec(parsed.pathname)?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function createChromeProtocolHandler({ net, developmentBrandMarkPath = null, stringsScript = englishStringsScript, wallpaper = null }) {
   return (request) => {
+    const photoHash = photoRequest(request.url);
+    if (photoHash) {
+      return photoHash === wallpaper?.hash?.() ? wallpaper.serve() : new Response('Not found', { status: 404 });
+    }
     const defaultPath = chromeResourcePath(request.url);
     if (!defaultPath) return new Response('Not found', { status: 404 });
     if (defaultPath === STRINGS_VIRTUAL_PATH) {
@@ -165,11 +189,12 @@ function createChromeProtocolHandler({ net, developmentBrandMarkPath = null, str
   };
 }
 
-function setupChromeProtocol({ session, net, developmentBrandMarkPath = null, stringsScript }) {
+function setupChromeProtocol({ session, net, developmentBrandMarkPath = null, stringsScript, wallpaper = null }) {
   session.protocol.handle(CHROME_SCHEME, createChromeProtocolHandler({
     net,
     developmentBrandMarkPath,
     stringsScript,
+    wallpaper,
   }));
 }
 

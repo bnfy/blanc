@@ -19,9 +19,17 @@ const section = () => {
   assert.ok(start > 0, 'the Download page has the Blanc Beta tile');
   return page.slice(start, page.indexOf('</article>', start));
 };
+const releaseDay = new Date(`${beta.published}T00:00:00Z`)
+  .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+// The tile's version figures, as download.astro's frontmatter derives them.
+const expressions = {
+  'beta.requirement': beta.requirement, 'beta.version': beta.version, 'beta.build': String(beta.build),
+  'beta.chromium': beta.chromium, betaNumber: beta.version.split('-beta.')[1],
+  chromiumMajor: beta.chromium.split('.')[0], betaReleased: releaseDay,
+};
 const plain = (text) => text
   .replace(/<!--[\s\S]*?-->/g, ' ')
-  .replace(/\{beta\.requirement\}/g, beta.requirement).replace(/\{beta\.version\}/g, beta.version)
+  .replace(/\{([\w.]+)\}/g, (whole, name) => (name in expressions ? expressions[name] : whole))
   .replace(/<[^>]+>/g, ' ').replace(/[’‘]/g, "'").replace(/↗/g, ' ').replace(/\s+/g, ' ').trim();
 
 test('the data, ledger and feed name the same published beta', () => {
@@ -33,6 +41,8 @@ test('the data, ledger and feed name the same published beta', () => {
   assert.match(beta.dmg.sha256, /^[a-f0-9]{64}$/);
   assert.ok(feed.includes(`<sparkle:shortVersionString>${beta.version}</sparkle:shortVersionString>`));
   assert.ok(feed.includes(`<sparkle:version>${beta.build}</sparkle:version>`));
+  assert.match(beta.chromium, /^\d+\.\d+\.\d+\.\d+$/);
+  assert.equal(beta.published, ledger.publicRelease);
   assert.ok(feed.includes(`<enclosure url="${beta.dmg.url}" length="${beta.dmg.bytes}"`), 'the feed points at the published DMG');
   assert.ok(feed.includes('<link>https://blanc.day/updates/chromium-beta/arm64.xml</link>'));
   assert.equal((feed.match(/<item>/g) || []).length, 1, 'one canonical item');
@@ -61,6 +71,7 @@ test('every sentence in the section is in the claims ledger, and nothing else is
     rest = rest.replace(claim.text, ' ');
   }
   assert.equal(rest.replace(/\s+/g, ''), '', `unrecorded text on the page: ${rest.trim()}`);
+  assert.doesNotMatch(text, /\{/, 'every expression in the tile is substituted');
   assert.match(section(), /href="\/dl\/beta"/);
 });
 

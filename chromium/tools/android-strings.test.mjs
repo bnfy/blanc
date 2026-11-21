@@ -29,7 +29,7 @@ test('placeholders become positional and text is escaped for Android', () => {
 
 test('the Android folders follow Android\'s locale names', () => {
   assert.deepEqual(LOCALES.map(([, dir]) => dir), ['values', 'values-de', 'values-es', 'values-fr', 'values-it', 'values-pt-rBR']);
-  assert.match(render('en'), /<string name="blanc_ios_island_reload">Reload page<\/string>/);
+  assert.match(render('en'), /<string name="blanc_ios_island_page_actions">Page actions<\/string>/);
 });
 
 test('the committed files are current', () => {

@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "builds": [
+    {
+      "versionCode": 1,
+      "versionName": "1.0.0-beta.1",
+      "tag": "android-v1.0.0-beta.1-1",
+      "commit": "a87a4e68a3023525edaf12f0c6fb342533d88a80",
+      "state": "uploaded",
+      "date": "2026-11-16T03:12:43.509Z",
+      "note": "Verified local Android handoff; release/device evidence pending."
+    },
+    {
+      "versionCode": 2,
+      "versionName": "1.0.0-beta.2",
+      "tag": "android-v1.0.0-beta.2-2",
+      "commit": "c7a49b161b7a517871522592597a4a32d7d3d368",
+      "state": "uploaded",
+      "date": "2026-11-16T16:33:12.775Z",
+      "note": "Verified local Android handoff; release/device evidence pending."
+    },
+    {
+      "versionCode": 3,
+      "versionName": "1.0.0-beta.3",
+      "tag": "android-v1.0.0-beta.3-3",
+      "commit": "80d84da3c1593e7cd56c07355dd549444f628764",
+      "state": "uploaded",
+      "date": "2026-11-16T18:53:30.041Z",
+      "note": "Verified local Android handoff; release/device evidence pending."
+    }
+  ]
+}

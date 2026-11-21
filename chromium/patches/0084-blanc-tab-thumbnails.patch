@@ -1,0 +1,18 @@
+diff --git a/chrome/browser/ui/ui_features.cc b/chrome/browser/ui/ui_features.cc
+index f92a70a..a287e97 100644
+--- a/chrome/browser/ui/ui_features.cc
++++ b/chrome/browser/ui/ui_features.cc
+@@ -300,8 +300,12 @@ BASE_FEATURE(kNewTabButtonContextMenu, base::FEATURE_ENABLED_BY_DEFAULT);
+ 
+ // Enables preview images in tab-hover cards.
+ // https://crbug.com/41439486
++// Blanc (owner, 2026-11-14): on everywhere. The vertical tab rail's hover
++// previews read these thumbnails, and without the feature no tab gets a
++// ThumbnailTabHelper. Google turns it on for Apple Silicon Macs through the
++// TabHoverCardImagesMacArm field trial, which Blanc doesn't receive.
+ BASE_FEATURE(kTabHoverCardImages,
+-#if BUILDFLAG(IS_MAC)
++#if BUILDFLAG(IS_MAC) && !__has_include("blanc/browser/ui/blanc_prototype_ui.h")
+              base::FEATURE_DISABLED_BY_DEFAULT
+ #else
+              base::FEATURE_ENABLED_BY_DEFAULT

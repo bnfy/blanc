@@ -5,6 +5,8 @@
 // The Start Page is the desktop fork's (A5b): pages.json's `start` files are
 // copied, byte for byte, from that folder of this tree into pages/start/, and
 // its `alongside` files into pages/ beside them.
+// Android-owned files in `local` are retained and bundled without changing
+// those pins; tools/android-notices.mjs checks the generated notices and text.
 // It also writes the adapter from its template and browser-api/bridges.json.
 //   node chromium/tools/android-pages.mjs [--check]
 import fs from 'node:fs';
@@ -59,7 +61,8 @@ export function wanted() {
   return out;
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+// Real paths: on macOS a temp or symlinked path (/var → /private/var) would otherwise never match.
+if (process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) {
   const check = process.argv.includes('--check');
   const problems = [];
   fs.mkdirSync(START_DIR, {recursive: true});
@@ -72,12 +75,25 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     if (check) problems.push(`${path.relative(PAGES_DIR, target)} differs from ${from}`);
     else fs.writeFileSync(target, want);
   }
-  for (const dir of [PAGES_DIR, START_DIR]) {
-    for (const extra of fs.readdirSync(dir)) {
+  for (const file of pinned().local || []) {
+    if (typeof file !== 'string' || file.split('/').some(part => !/^[\w.-]+$/.test(part) || part === '.' || part === '..'))
+      throw new Error(`Invalid local page path: ${file}`);
+    const target = path.join(PAGES_DIR, file);
+    targets.add(target);
+    if (!readIfPresent(target)) problems.push(`${file} is missing`);
+  }
+  const directories = new Set([PAGES_DIR, START_DIR]);
+  for (const target of targets) {
+    for (let dir = path.dirname(target); dir !== PAGES_DIR; dir = path.dirname(dir)) directories.add(dir);
+  }
+  for (const dir of directories) {
+    let entries;
+    try { entries = fs.readdirSync(dir); } catch (error) { if (error.code === 'ENOENT') continue; throw error; }
+    for (const extra of entries) {
       const target = path.join(dir, extra);
-      if (targets.has(target) || target === START_DIR) continue;
+      if (targets.has(target) || directories.has(target)) continue;
       if (check) problems.push(`${path.relative(PAGES_DIR, target)} is not listed`);
-      else fs.rmSync(target);
+      else fs.rmSync(target, {recursive: true});
     }
   }
   const adapter = adapterSource();

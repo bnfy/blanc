@@ -228,11 +228,10 @@ struct ContentView: View {
         .onChange(of: pairLink.wrappedValue?.id, initial: true) {
             guard let request = pairLink.wrappedValue else { return }
             pairLink.wrappedValue = nil
-            let covered = showTabGrid || manager.isPalettePresented || manager.isWallpaperPickerPresented
+            let covered = showTabGrid || manager.isPalettePresented
                 || manager.settingsDestination != nil || manager.spaceEditor != nil
             closeTabGrid()
             manager.isPalettePresented = false
-            manager.isWallpaperPickerPresented = false
             manager.settingsDestination = nil
             manager.spaceEditor = nil
             Task {
@@ -252,18 +251,6 @@ struct ContentView: View {
         .sheet(isPresented: paletteSheetPresented,
                onDismiss: { if !manager.isPalettePresented { paletteClosed() } }) {
             PaletteSheet(manager: manager)
-        }
-        .sheet(isPresented: Binding(get: { manager.isWallpaperPickerPresented }, set: { manager.isWallpaperPickerPresented = $0 }), onDismiss: {
-            let completion = manager.wallpaperSelectionCompletion
-            manager.wallpaperSelectionCompletion = nil
-            completion?(nil)
-        }) {
-            WallpaperPicker { image in
-                let completion = manager.wallpaperSelectionCompletion
-                manager.wallpaperSelectionCompletion = nil
-                manager.isWallpaperPickerPresented = false
-                completion?(image)
-            }
         }
     }
 
@@ -999,7 +986,7 @@ struct ContentView: View {
         return IslandMenu.items(for: tab, manager: manager).compactMap { item -> UIMenuElement? in
             switch item {
             case .customizeStartPage:
-                return action("newtab.customize.button", "slider.horizontal.3") { manager.showSettings(.startPage) }
+                return action("newtab.customize.button", "slider.horizontal.3") { manager.customizeStartPage() }
             case .blocking(let on):
                 guard let tab else { return nil }
                 return action("shield.adBlocking", "shield", state: on ? .on : .off) { manager.setSiteProtection(tab, on: !on) }

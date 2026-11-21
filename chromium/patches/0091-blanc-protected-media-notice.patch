@@ -1,0 +1,22 @@
+diff --git a/chrome/browser/page_load_metrics/page_load_metrics_initialize.cc b/chrome/browser/page_load_metrics/page_load_metrics_initialize.cc
+--- a/chrome/browser/page_load_metrics/page_load_metrics_initialize.cc
++++ b/chrome/browser/page_load_metrics/page_load_metrics_initialize.cc
+@@ -9,6 +9,7 @@
+ #include <utility>
+ 
+ #include "base/functional/bind.h"
++#include "blanc/browser/ui/blanc_prototype_ui.h"
+ #include "build/build_config.h"
+ #include "build/buildflag.h"
+ #include "chrome/browser/after_startup_task_utils.h"
+@@ -172,6 +173,10 @@
+ void PageLoadMetricsEmbedder::RegisterObservers(
+     page_load_metrics::PageLoadTracker* tracker,
+     content::NavigationHandle* navigation_handle) {
++  // Blanc: a page asking for protected playback gets the notice under the
++  // Island (blanc/browser/ui/protected_media.inc).
++  blanc_prototype::AddProtectedMediaObserver(tracker);
++
+   // Page-specific observers.
+   //
+   // Other observers don't get installed because they measure things that

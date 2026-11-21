@@ -560,6 +560,23 @@ public final class IslandCoordinator {
         mShownTucked = false;
         applyInsets();
         refresh();
+        reloadStartPages();
+    }
+
+    /**
+     * Open Start Pages reload, so they make room for the Island where it now sits (android-start.js
+     * asks again), as on the iPhone. A tab not loaded yet asks when it loads.
+     */
+    private void reloadStartPages() {
+        for (TabModel model : mSelector.getModels()) {
+            for (int i = 0; i < model.getCount(); i++) {
+                Tab tab = model.getTabAt(i);
+                if (tab != null && tab.getWebContents() != null
+                        && StartPageCustomize.onTab(tab.getUrl().getSpec()) != null) {
+                    tab.reload();
+                }
+            }
+        }
     }
 
     private static IslandPosition position() {

@@ -1,0 +1,20 @@
+diff --git a/chrome/browser/app_controller_mac.mm b/chrome/browser/app_controller_mac.mm
+--- a/chrome/browser/app_controller_mac.mm
++++ b/chrome/browser/app_controller_mac.mm
+@@ -156,6 +156,7 @@
+ #include "ui/menus/cocoa/menu_controller.h"
+ #include "ui/native_theme/native_theme.h"
+ #include "url/gurl.h"
++#include "blanc/browser/ui/app_menus_mac.h"
+ #include "blanc/browser/ui/blanc_prototype_ui.h"
+ #include "blanc/common/island_mode.h"
+ #include "blanc/common/menu_strings.h"
+@@ -2203,6 +2204,8 @@
+ 
+ - (NSMenu*)applicationDockMenu:(NSApplication*)sender {
+   NSMenu* dockMenu = [[NSMenu alloc] initWithTitle:@""];
++  // Blanc (N18): the front window's current tab leads the Dock menu.
++  if (blanc::IslandMode()) blanc::AddDockActiveTab(dockMenu);
+ 
+   BOOL profilesAdded = [_profileMenuController insertItemsIntoMenu:dockMenu
+                                                           atOffset:0

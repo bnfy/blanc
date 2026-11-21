@@ -54,7 +54,7 @@ function shimFor(host) {
 const lookup = (api, name) => name.split('.').reduce((obj, key) => obj?.[key], api);
 
 test('the iOS shim exposes every member the contract grants a host, and no others', () => {
-  for (const host of ['newtab', 'settings', 'history', 'bookmarks', 'downloads', 'error', 'shortcuts', 'mahjong']) {
+  for (const host of ['settings', 'history', 'bookmarks', 'downloads', 'error', 'shortcuts', 'mahjong']) {
     const { api } = shimFor(host);
     for (const member of BRIDGES.bowserPages.members) {
       const fn = lookup(api, member.name);
@@ -64,18 +64,26 @@ test('the iOS shim exposes every member the contract grants a host, and no other
   }
 });
 
+// The Start Page is the desktop fork's page, which asks native code over its
+// own channel (ios/Blanc/Blanc/StartPageBridge.swift, as Android's
+// blanc_pages_ui.cc answers it); its adapter builds window.bowserPages itself.
+test('the iOS shim leaves the Start Page to the fork page\'s adapter', () => {
+  assert.equal(shimFor('newtab').api, undefined);
+});
+
 test('the iOS shim posts invokes with positional args and delivers events', async () => {
-  const { api, window, posted } = shimFor('newtab');
-  const pending = api.start.focusGroup('g1');
-  assert.deepEqual(JSON.parse(JSON.stringify(posted)), [{ id: 1, group: 'start', method: 'focusGroup', args: ['g1'] }]);
+  const { api, window, posted } = shimFor('history');
+  const pending = api.history.remove('https://example.com/', 5);
+  assert.deepEqual(JSON.parse(JSON.stringify(posted)), [{ id: 1, group: 'history', method: 'remove', args: ['https://example.com/', 5] }]);
   window.__blancResolve(1, true, null);
   assert.equal(await pending, null);
 
+  const settings = shimFor('settings');
   const seen = [];
-  const off = api.start.onVisibility((v) => seen.push(v));
-  window.__blancEmit('start.onVisibility', true);
+  const off = settings.api.settings.onAppearance((v) => seen.push(v));
+  settings.window.__blancEmit('settings.onAppearance', true);
   off();
-  window.__blancEmit('start.onVisibility', false);
+  settings.window.__blancEmit('settings.onAppearance', false);
   assert.deepEqual(seen, [true]);
 });
 

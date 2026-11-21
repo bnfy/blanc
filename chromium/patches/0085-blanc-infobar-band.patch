@@ -1,0 +1,64 @@
+diff --git a/chrome/browser/ui/views/infobars/infobar_view.cc b/chrome/browser/ui/views/infobars/infobar_view.cc
+index 587a396..16965b6 100644
+--- a/chrome/browser/ui/views/infobars/infobar_view.cc
++++ b/chrome/browser/ui/views/infobars/infobar_view.cc
+@@ -43,6 +43,12 @@
+ #include "ui/views/view_class_properties.h"
+ #include "ui/views/widget/widget.h"
+ 
++#if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
++#include "base/strings/string_util.h"
++#include "blanc/browser/ui/blanc_prototype_ui.h"
++#include "ui/views/view_utils.h"
++#endif
++
+ template <typename T>
+ void InfoBarView::AssignLabelDetails(T* view) const {
+   view->SizeToPreferredSize();
+@@ -292,6 +298,46 @@ void InfoBarView::OnThemeChanged() {
+   if (icon_) {
+     icon_->SetImage(delegate()->GetIcon());
+   }
++#if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
++  // Blanc (owner, 2026-11-14): in an Island window the bar is part of the
++  // Island's band. It takes the band's current color, with ink and a link
++  // color that read on it, the container's gaps take it too, and Blanc's
++  // Sunrise mark stands in for Chromium's logo.
++  if (const auto style = blanc_prototype::InfoBarStyleFor(this)) {
++    delegate()->set_dark_mode(color_utils::IsDark(style->background));
++    SetBackground(views::CreateSolidBackground(style->background));
++    if (parent()) parent()->SetBackground(views::CreateSolidBackground(style->background));
++    std::vector<views::View*> pending(children().begin(), children().end());
++    while (!pending.empty()) {
++      views::View* view = pending.back();
++      pending.pop_back();
++      if (auto* link = views::AsViewClass<views::Link>(view)) {
++        link->SetBackgroundColor(style->background);
++        link->SetEnabledColor(style->link);
++      } else if (auto* label = views::AsViewClass<views::Label>(view)) {
++        label->SetBackgroundColor(style->background);
++        label->SetEnabledColor(style->foreground);
++      } else if (auto* styled = views::AsViewClass<views::StyledLabel>(view)) {
++        styled->SetDisplayedOnBackgroundColor(style->background);
++      }
++      pending.insert(pending.end(), view->children().begin(), view->children().end());
++    }
++    if (close_button_) {
++      views::SetImageFromVectorIconWithColor(
++          close_button_,
++          features::IsRoundedIconsEnabled() ? vector_icons::kCloseIcon
++                                            : vector_icons::kCloseChromeRefreshOldIcon,
++          {style->foreground, style->foreground, kColorInfoBarButtonIconHovered});
++    }
++    const char* icon_name = delegate()->GetVectorIcon().name;
++    if (icon_ && icon_name &&
++        (base::EndsWith(icon_name, "kProductRefreshIcon") ||
++         base::EndsWith(icon_name, "kProductChromeRefreshOldIcon"))) {
++      const ui::ImageModel mark = blanc_prototype::InfoBarMark();
++      if (!mark.IsEmpty()) icon_->SetImage(mark);
++    }
++  }
++#endif
+ }
+ 
+ void InfoBarView::OnWillChangeFocus(View* focused_before, View* focused_now) {

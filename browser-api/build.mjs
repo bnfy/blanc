@@ -1173,12 +1173,12 @@ function iconFixture(size) {
   return `data:image/png;base64,${header.toString('base64')}`;
 }
 
-// history.js and bookmarks.js keep their data in a JsonStore, which needs
-// Electron. Load fresh copies of both against an in-memory store, run them,
+// history.js and bookmarks.js (with the Favorites layout store it writes
+// through) keep their data in a JsonStore, which needs Electron. Load fresh copies of both against an in-memory store, run them,
 // and leave the module cache as it was.
 function withMemoryStore(run) {
   const storePath = requireMain.resolve('./store');
-  const modules = ['./history', './bookmarks'].map((m) => requireMain.resolve(m));
+  const modules = ['./history', './bookmarks', './favorites-layout'].map((m) => requireMain.resolve(m));
   const cache = requireMain.cache;
   const saved = [storePath, ...modules].map((key) => [key, cache[key]]);
   class MemoryStore {
@@ -1416,6 +1416,14 @@ export function payloadFixtures() {
     }
   }
   add('splitLayoutPayload(null)', 'SplitLayout | null', splitLayoutPayload('split-1', null, [], 0));
+  const { normalizeBackdrop, backdropPayload } = requireMain('./start-backdrop');
+  const backdrop = normalizeBackdrop({ zoom: 1, width: 1280, height: 732, layers: [
+    { color: 'rgb(250, 247, 242)', image: 'none', size: 'auto', position: '0% 0%', repeat: 'repeat', opacity: 1, fade: false },
+    { color: 'rgba(0, 0, 0, 0)', image: 'url("blanc://newtab/start-page-day.png")', size: 'cover', position: '50% 50%', repeat: 'no-repeat', opacity: 1, fade: true },
+  ] });
+  add('backdropPayload(Sunrise, 68)', 'PageBackdrop | null', backdropPayload('t1', backdrop, 68));
+  add('backdropPayload(standing aside)', 'PageBackdrop | null', backdropPayload('t1', backdrop, 0));
+  add('backdropPayload(launch Sunrise)', 'PageBackdrop | null', backdropPayload('t1', { ...backdrop, sunriseAt: 1800000000000 }, 68));
   cases.push(...workspaceControllerFixtures(), ...listFixtures());
   return cases;
 }

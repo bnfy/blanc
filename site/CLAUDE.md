@@ -19,17 +19,24 @@ the small lockup and the direct links fed by `src/data/navigation.mjs` and kept
 in step by `test/unit/site-navigation.test.js`. At 920px and narrower the links
 fold behind a Menu button (an inline script, so phones never flash the full
 row; without scripting they wrap onto a second row). It never hides on scroll:
-the homepage's sticky scenes sit just below it. Site-wide styles are `src/styles/site.css`
+the homepage's sticky scenes sit just below it. While `src/data/mail-reservations.json`
+says `open`, `components/MailReserveBanner.astro` puts a slim dark strip above
+the bar, one link to `/mail/reserve` naming the default ending, which scrolls
+away while the bar stays put; Header.astro leaves it off the Mail, legal and
+What's New pages (`test/site/mail-reserve-banner.test.mjs`). Site-wide styles are `src/styles/site.css`
 plus `revamp.css`, both imported by `BaseLayout.astro`; pages add their own
 (`home.css`, `features-bento.css`, `mail.css` …)
-(bundled + hashed). **Every page is set in Blubird** since October 15, 2026
+(bundled + hashed). **Every page's headings are Blubird Display** since October 15, 2026
 (owner direction: the fonts roll out across the whole site, not only the
-redesigned homepage): headings in Blubird Display at regular weight and 0
+redesigned homepage), at regular weight and 0
 tracking (`--site-font-display` and `--site-font-patron`); a small Display title, 24px
 and under, may open up to +0.03em (owner, October 22, 2026), never
-negative, and headlines stay at 0. Text in Blubird
-Text (the `html, body` stack and the site's own labels and controls); see
-*Blubird and the lockup* below. Mockups of the app's own UI (the Island
+negative, and headlines stay at 0. **Text is Instrument Sans** (owner
+direction, November 15, 2026: Blubird's Text cuts read heavy in eyebrows and
+paragraphs, so Blubird is for headings only): the `html, body` stack and the
+site's own labels and controls, through `--font-brand-text`, which points at
+`--font-app`. The site loads no Blubird Text cut. See *Blubird and the lockup*
+below. Mockups of the app's own UI (the Island
 figures, demo UI, coded illustrations) use the app's face, Instrument Sans at
 width 98 and +0.01em, never Blubird (owner direction, October 17, 2026); its
 `@font-face` comes from the app's own file,
@@ -63,15 +70,17 @@ Newsreader is no longer loaded by any page; its condensed build
 (`scripts/build-condensed-newsreader.py`, `src/fonts/`) is unused and can be
 removed. These files are NOT under the root `tokens/` substrate guard.
 `src/scripts/site.js` (release-link resolution + region-dependent website measurement with an opt-out, all pages
-except legal) is Astro-processed. Anything needing a **stable URL** — favicons,
+except legal) is Astro-processed. The Privacy choices panel never opens by itself (owner, November 19, 2026):
+it opens only from a footer or note button, so where a choice is required, or the location is unknown,
+measurement stays off until the visitor turns it on there. Anything needing a **stable URL** — favicons,
 `og-image.png`, `logo.png`, `feature-*.png` (OG images), `robots.txt`,
 `shots/**` (the Island figures' page captures) — lives in `public/`; never hash or
 rename these.
 
 **Blubird and the lockup:** the homepage, header and footer use Blubird by
 Rajesh Rajput (`src/styles/blubird.css`: `--font-brand-display` for headlines,
-set at 0 letter-spacing, and `--font-brand-text` for copy), falling back to
-Inter. Its licence forbids redistributing the font files and this repository
+set at 0 letter-spacing; copy is Instrument Sans through `--font-brand-text`),
+falling back to Inter. Its licence forbids redistributing the font files and this repository
 is public, so they are never committed: they live in the git-ignored
 `public/fonts/blubird/` on the deploying machine (`npm run site:fonts --
 /path/to/Blubird.zip`), CI and contributors see Inter, and `npm run site:deploy`
@@ -299,13 +308,17 @@ changelog refresh is also when a shipped command comes off it.
 asked for far fewer words. One button for the visitor's system sits under a
 Mac / Windows / Linux / iPhone segmented control (radios that switch the
 panels in CSS, so it works without scripting; `src/scripts/download-switcher.js`
-only preselects the system). Below come three tiles (Blanc Beta first, in dark
-ink; iPhone and iPad; Homebrew) and one line of facts. Keep every `/dl/*`
+only preselects the system). Below come four tiles, two by two (the Mac Blanc
+Beta first and Blanc Beta for Windows beside it, both in dark ink, added
+November 21, 2026; then iPhone and iPad, and Homebrew) and one line of facts. Keep every `/dl/*`
 link, the `#download-options` anchor the rest of the site links to, the
 measurement disclosure before the tiles, the phone note and the iCloud
 Keychain limitation. Every piece of text is recorded in
-`docs/website-download-redesign-2026-11-14-claims.json` (the beta tile in
-`docs/website-blanc-beta-<version>-claims.json`), and
+`docs/website-download-redesign-2026-11-14-claims.json` (the beta tiles in
+`docs/website-blanc-beta-<version>-claims.json` and
+`docs/website-blanc-beta-windows-<version>-claims.json`; `/dl/beta-win` and
+`site/src/data/blanc-beta-windows.json` are updated by hand for each Windows
+beta, and `test/unit/site-blanc-beta-windows.test.js` keeps them equal), and
 `test/unit/site-download-page.test.js` fails on any unrecorded text; large
 headings carry no full stop.
 

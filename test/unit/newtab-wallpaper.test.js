@@ -123,3 +123,37 @@ test('the first custom paint does not fade in', async () => {
   f.controller.setSource({ source: 'custom', image: 'blanc://newtab/a.jpg' }); await tick();
   assert.equal(f.frames.at(-1).animate, false);
 });
+
+// A layer's fade can stall: on Linux CI the fade-in transition stayed
+// "running" at currentTime 0 with frames being drawn, so the shown layer sat
+// at opacity 0. Removing is-fading doesn't end it (transition-property falls
+// back to `all`), so settling must finish whatever is still running.
+test('settling a fade finishes any transition still running on the layers', async () => {
+  const { mount } = require('../../src/renderer/pages/newtab-wallpaper');
+  const timers = [];
+  const element = () => {
+    const classes = new Set();
+    const el = { dataset: {}, style: { setProperty() {} }, animations: [], offsetWidth: 0,
+      setAttribute() {}, getAnimations: () => el.animations.filter((a) => !a.finished),
+      classList: { add: (...c) => c.forEach((x) => classes.add(x)), remove: (...c) => c.forEach((x) => classes.delete(x)),
+        toggle: (c, on) => (on ? classes.add(c) : classes.delete(c)), contains: (c) => classes.has(c) } };
+    return el;
+  };
+  const created = [];
+  const body = { dataset: {}, prepend() {} };
+  const doc = { body, hidden: false, addEventListener() {}, createElement: () => { const el = element(); created.push(el); return el; } };
+  const win = { matchMedia: () => ({ matches: false, addEventListener() {} }), addEventListener() {},
+    setTimeout: (fn) => { timers.push(fn); return timers.length; }, clearTimeout() {},
+    Image: class { set src(_) { setImmediate(() => this.onload()); } } };
+  const wallpaper = mount(doc, win);
+  wallpaper.setVisible(true);
+  wallpaper.setEnabled(true); await tick(); await tick();
+  wallpaper.setEnabled(false); wallpaper.setEnabled(true); await tick(); await tick();
+  const shown = created.find((el) => el.classList.contains('is-visible'));
+  assert.ok(shown && shown.classList.contains('is-fading'), 'the second paint fades in');
+  const stalled = { finished: false, finish() { this.finished = true; } };
+  shown.animations.push(stalled);
+  timers.at(-1)(); // the 2s settle
+  assert.equal(shown.classList.contains('is-fading'), false);
+  assert.equal(stalled.finished, true, 'the stalled fade is finished, so the layer lands at its target');
+});

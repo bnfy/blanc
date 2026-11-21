@@ -38,6 +38,13 @@ int main() { std::string v; std::wstring_convert<std::codecvt_utf8_utf16<char16_
 });
 
 test('the address menu has shipping\'s English labels', () => {
-  const en = catalogs(LABELS.filter(([field]) => !field.startsWith('new_'))).find(({code}) => code === 'en').values;
+  const APP = ['check_for_updates', 'private_tab', 'untitled_tab', 'loading_tab'];
+  const en = catalogs(LABELS.filter(([field]) => !field.startsWith('new_') && !APP.includes(field))).find(({code}) => code === 'en').values;
   assert.deepEqual(en, ['Undo', 'Redo', 'Cut', 'Copy', 'Copy Clean Link', 'Paste', 'Paste and Go', 'Delete', 'Select All']);
+});
+
+test('the update check and the Dock row have shipping\'s English labels', () => {
+  const fields = ['check_for_updates', 'private_tab', 'untitled_tab', 'loading_tab'];
+  const en = catalogs(fields.map(field => LABELS.find(([name]) => name === field))).find(({code}) => code === 'en').values;
+  assert.deepEqual(en, ['Check for Updates\u2026', 'Private tab', 'New Tab', 'Loading\u2026']);
 });

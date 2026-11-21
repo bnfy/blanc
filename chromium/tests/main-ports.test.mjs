@@ -8,11 +8,11 @@ import {fileURLToPath} from 'node:url';
 import {PORTS, shippingEvaluations, sourceKey} from './lib/main-ports.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SHIPPING = '8a4e57e78dfe47a72c05d17fd6040be26c3dffd3';
+const SHIPPING = '673ff2eb052011b1efd14438a397a57d457de241';
 const steps = file => execFileSync('git', ['show', `${SHIPPING}:test/desktop/steps/${file}`], {cwd: root, encoding: 'utf8'});
 
 test('every port answers a shipping evaluation', () => {
-  const shipped = new Set(['mini-window.steps.js', 'link-routing.steps.js', 'http-auth.steps.js', 'glance.steps.js', 'named-workspaces.steps.js', 'workspace-lifecycle.steps.js', 'site-certificate-safety.steps.js'].flatMap(file => shippingEvaluations(steps(file))).map(sourceKey));
+  const shipped = new Set(['mini-window.steps.js', 'link-routing.steps.js', 'http-auth.steps.js', 'glance.steps.js', 'named-workspaces.steps.js', 'workspace-lifecycle.steps.js', 'site-certificate-safety.steps.js', 'vertical-tabs.steps.js'].flatMap(file => shippingEvaluations(steps(file))).map(sourceKey));
   for (const key of Object.keys(PORTS)) assert.ok(shipped.has(key), key);
 });
 

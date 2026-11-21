@@ -10,8 +10,12 @@
 #if !BUILDFLAG(IS_ANDROID)
 #include "chrome/browser/profiles/nuke_profile_directory_utils.h"
 #endif
-#if BUILDFLAG(BLANC_BETA_CHANNEL)
+#if BUILDFLAG(BLANC_BETA_CHANNEL) && BUILDFLAG(IS_MAC)
 #include "base/apple/bundle_locations.h"
+#endif
+#if BUILDFLAG(BLANC_BETA_CHANNEL) && BUILDFLAG(IS_WIN)
+#include "base/base_paths.h"
+#include "base/path_service.h"
 #endif
 #if BUILDFLAG(IS_ANDROID)
 #include "base/android/apk_assets.h"
@@ -126,8 +130,13 @@ std::string ReadBundle() {
   base::MemoryMappedFile::Region region;
   const int fd = base::android::OpenApkAsset("assets/blanc_blocker/engine.js", &region);
   if (fd < 0 || region.size > 16 * 1024 * 1024) return std::string();
-  // For the emulator check: a wrong bundle must fail closed. It can only make Blanc stop pages.
+  // For the emulator check: a wrong bundle must fail closed. Preview builds only: a release build
+  // never reads this switch, whatever the command-line file holds.
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
   const bool test_bad_bundle = base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-test-bad-bundle");
+#else
+  const bool test_bad_bundle = false;
+#endif
   base::File file(fd);
   script.resize(region.size);
   if (!file.ReadAndCheck(region.offset, base::as_writable_byte_span(script))) return std::string();
@@ -139,9 +148,18 @@ std::string ReadBundle() {
     path = command_line->GetSwitchValuePath("blanc-blocker-assets").AppendASCII("engine.js");
   } else {
 #if BUILDFLAG(BLANC_BETA_CHANNEL)
+#if BUILDFLAG(IS_MAC)
     // Embedded by //blanc:beta_blocker_engine; this runs in the browser process.
     path = base::apple::OuterBundlePath().Append("Contents").Append("Resources")
                .Append("blanc_blocker").AppendASCII("engine.js");
+#elif BUILDFLAG(IS_WIN)
+    // Copied by //blanc:beta_blocker_engine_win and installed beside chrome.dll
+    // in the version folder (chrome.release, patch 0100).
+    if (!base::PathService::Get(base::DIR_MODULE, &path)) return std::string();
+    path = path.AppendASCII("blanc_blocker").AppendASCII("engine.js");
+#else
+    return std::string();
+#endif
 #else
     return std::string();
 #endif

@@ -72,12 +72,18 @@ try {
   await waitFor(() => fetch(`http://127.0.0.1:${port}/json/version`).then(r => r.ok, () => false), Boolean, 'remote debugging port', 30000);
   const list = () => fetch(`http://127.0.0.1:${port}/json/list`).then(r => r.json());
 
-  await step('Settings → Sync opens in the beta', async () => {
+  // Settings opens in the utility sheet, which a new tab dismisses (as in
+  // shipping), so the check opens it again after it opens a page.
+  let settingsId = null;
+  const openSettings = async () => {
     await fetch(`http://127.0.0.1:${port}/json/new?${encodeURIComponent('chrome://settings/sync')}`, {method: 'PUT'});
-    const tab = await waitFor(async () => (await list()).find(t => t.url.startsWith('chrome://settings')), Boolean, 'Settings page', 20000);
+    const tab = await waitFor(async () => (await list()).find(t => t.url.startsWith('chrome://settings') && t.id !== settingsId), Boolean, 'Settings page', 20000);
+    settingsId = tab.id;
     settings = await connect(tab);
     await waitFor(() => settings.eval(`!!(${FIND})('settings-blanc-sync-page[blanc-ready]')`), Boolean, 'Sync page ready', 30000);
-  });
+  };
+
+  await step('Settings → Sync opens in the beta', openSettings);
   await step('turn on Sync with the embedded runner against the local Worker', async () => {
     assert.equal(await settings.eval(click('syncTurnOn')), true, 'Turn on Sync button');
     await waitFor(() => settings.eval(visible('syncOn')), Boolean, 'Sync on', 90000);
@@ -100,6 +106,9 @@ try {
     servers.push(shared);
     const pageUrl = `http://localhost:${shared.address().port}/shared`;
     await fetch(`http://127.0.0.1:${port}/json/new?${encodeURIComponent(pageUrl)}`, {method: 'PUT'});
+    await waitFor(async () => !(await list()).some(t => t.id === settingsId), Boolean, 'the new tab dismisses the Settings sheet', 20000);
+    try { settings.close(); } catch {}
+    await openSettings();
     // Settings' own "share open tabs" switch, as a person turns it on.
     const on = await settings.eval(`(() => { const e = ${page('syncTabsShare')}; if (!e || e.disabled) return null; if (!e.checked) e.click(); return true; })()`);
     assert.equal(on, true, 'share open tabs switch');

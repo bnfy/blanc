@@ -1,4 +1,7 @@
 {
+  "1.51.0": ["Favorites in a tab, with editing", "Widgets on the Start Page", "Wallpaper behind the Island"],
+  "1.50.0": ["Folders inside folders in Favorites", "Ask before reaching the local network", "Downloads without asking"],
+  "1.49.1": ["Switch to an unused new tab"],
   "1.49.0": ["Refreshed Mahjong", "Mahjong tile sets"],
   "1.48.0": ["Glance over a split"],
   "1.47.0": ["Default page zoom"],

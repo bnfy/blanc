@@ -73,3 +73,22 @@ export function rawPixel(raw, x, y) {
   const offset = raw.length - width * height * 4 + (y * width + x) * 4;
   return [raw[offset], raw[offset + 1], raw[offset + 2]];
 }
+
+// The DevTools socket of the app whose main process is `pid`, from /proc/net/unix: Chromium names
+// it chrome_devtools_remote, or chrome_devtools_remote_<pid> when another Chromium app (the debug
+// build, say) already holds that name.
+export function devtoolsSocket(pid, unixTable) {
+  const own = `chrome_devtools_remote_${pid}`;
+  return pid && new RegExp(`@${own}$`, 'm').test(unixTable) ? own : 'chrome_devtools_remote';
+}
+
+// A SharedPreferences file with `entry` (one XML element named `name`) in place of any old one.
+// Android writes a file with no entries as <map />. Anything that isn't a preferences file is an
+// error, never a silent no-op: a lost edit shows up later as an unrelated failure.
+export function withPref(xml, entry, name) {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const rest = xml.replace(new RegExp(`\\s*<[a-z]+ name="${escaped}"[^>]*?(/>|>[^<]*</[a-z]+>)`), '')
+    .replace(/<map\s*\/>/, '<map>\n</map>');
+  if (!rest.includes('</map>')) throw Error(`Not a preferences file: ${xml.slice(0, 80)}`);
+  return rest.replace('</map>', `    ${entry}\n</map>`);
+}

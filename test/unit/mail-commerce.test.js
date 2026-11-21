@@ -1,11 +1,12 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 
-test('Mail and Suite checkout selects one production plan and stays closed', async () => {
+test('Mail and Bundle checkout selects one production plan and stays closed', async () => {
   const commerce = await import('../../site/src/data/mail-commerce.mjs');
   const expected = {
     'mail-monthly': 'b39dbdde-a607-4b94-bbba-f20c5acd6439',
     'mail-annual': '72c489be-30a0-4dee-9a02-2a482458f17b',
+    'mail-address-annual': '77d31f96-aa36-4012-a2d9-7a1587fbf532',
     'suite-monthly': 'bb3a14c5-7fab-4f64-a7b2-718aafec9966',
     'suite-annual': '28957184-d99d-4954-bdb6-56397a606816',
   };
@@ -27,7 +28,12 @@ test('Mail and Suite checkout selects one production plan and stays closed', asy
   assert.deepEqual(commerce.productFor('suite-annual').benefits, [
     'ed1cce8c-d87e-4d27-b9d7-d30bda2de402', commerce.mailBenefitId, commerce.noddingOffBenefitId,
   ]);
-  // Nodding Off is only in Suite, never in a Mail-only plan.
+  // Nodding Off is only in Bundle, never in a Mail-only plan.
   assert.ok(!commerce.productFor('mail-monthly').benefits.includes(commerce.noddingOffBenefitId));
   assert.ok(!commerce.productFor('mail-annual').benefits.includes(commerce.noddingOffBenefitId));
+  assert.deepEqual(commerce.productFor('mail-address-annual').benefits, [commerce.mailBenefitId]);
+  // The address adds $20 a year to Blanc Mail Annual; the page says so from these amounts.
+  assert.equal(commerce.productFor('mail-address-annual').amount - commerce.productFor('mail-annual').amount, 2000);
+  assert.equal(commerce.priceFor('suite-monthly'), '$7.99');
+  assert.equal(commerce.priceFor('suite-annual'), '$79.99');
 });

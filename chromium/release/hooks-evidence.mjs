@@ -60,6 +60,28 @@ export function staticScan(app) {
   return {binaries: files.length, found};
 }
 
+// The Windows beta (W3): every PE file (MZ) in an installed or packaged
+// folder, scanned for the same switch names.
+export function windowsStaticScan(folder) {
+  const files = [], found = [];
+  const walk = dir => {
+    for (const entry of fs.readdirSync(dir, {withFileTypes: true})) {
+      const full = path.join(dir, entry.name);
+      if (entry.isSymbolicLink()) continue;
+      if (entry.isDirectory()) { walk(full); continue; }
+      const fd = fs.openSync(full, 'r'), head = Buffer.alloc(2);
+      fs.readSync(fd, head, 0, 2, 0); fs.closeSync(fd);
+      if (head.toString('latin1') === 'MZ') files.push(full);
+    }
+  };
+  walk(folder);
+  for (const file of files) {
+    const bytes = fs.readFileSync(file);
+    for (const name of TEST_SWITCHES) if (hasCString(bytes, name)) found.push({file: path.relative(folder, file), name});
+  }
+  return {binaries: files.length, found};
+}
+
 // A disk-assets folder whose every Island page reports to the collector.
 export function diskAssets(dir, port) {
   for (const page of ['host.html', 'overlay.html', 'index.html', 'pages/newtab.html']) {

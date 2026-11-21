@@ -15,6 +15,8 @@ const LOCAL_HTML_SCHEME = Object.freeze({ scheme: SCHEME, privileges: Object.fre
 // Electron caches partition sessions. Reuse cleaned sessions, not one permanent
 // session per document; live previews still have separate session boundaries.
 const idleSessions = [];
+// Open preview windows, so they can close with Blanc's last browser window.
+const openPreviews = new Set();
 const CSP = [
   "default-src 'none'", "base-uri 'none'", "object-src 'none'",
   "frame-src 'none'", "frame-ancestors 'none'", "worker-src 'none'",
@@ -24,19 +26,33 @@ const CSP = [
   "script-src 'none'", "style-src 'unsafe-inline'", 'sandbox',
 ].join('; ');
 
+// Why a file was refused, for main to pick the person's message (#1634
+// follow-up). The English text stays for logs and the candidate tools.
+const REFUSALS = Object.freeze(['not-html', 'too-large', 'changed', 'unreadable']);
+function refuse(reason, message) {
+  return Object.assign(new Error(message), { localHtmlRefusal: reason });
+}
+const readable = pending => pending.catch(error => {
+  throw refuse('unreadable', `HTML could not be read (${error.code || 'error'})`);
+});
+
 function registerLocalHtmlScheme(protocol) {
   protocol.registerSchemesAsPrivileged([LOCAL_HTML_SCHEME]);
 }
 
 async function snapshotLocalHtml(filePath) {
-  if (typeof filePath !== 'string' || !path.isAbsolute(filePath)) throw Error('Select an absolute HTML file');
-  const canonical = await fs.realpath(filePath);
-  if (!/\.(?:html?|xhtml?|xhtm)$/i.test(canonical)) throw Error('Select an HTML document');
-  const handle = await fs.open(canonical, constants.O_RDONLY | constants.O_NOFOLLOW);
+  if (typeof filePath !== 'string' || !path.isAbsolute(filePath)) throw refuse('unreadable', 'Select an absolute HTML file');
+  const canonical = await readable(fs.realpath(filePath));
+  // Kept inline (this file is copied standalone into ECS candidates); the same
+  // five extensions as HTML_EXTENSIONS in local-html-files.js: .htm, .html,
+  // .xht, .xhtm, .xhtml.
+  if (!/\.(?:html?|xht(?:ml?)?)$/i.test(canonical)) throw refuse('not-html', 'Select an HTML document');
+  const handle = await readable(fs.open(canonical, constants.O_RDONLY | constants.O_NOFOLLOW));
   let bytes;
   try {
     const stat = await handle.stat();
-    if (!stat.isFile() || stat.size > MAX_BYTES) throw Error('HTML must be a regular file no larger than 8 MiB');
+    if (!stat.isFile()) throw refuse('unreadable', 'HTML must be a regular file');
+    if (stat.size > MAX_BYTES) throw refuse('too-large', 'HTML must be no larger than 8 MiB');
     // Bound the read as well as stat: a concurrently growing file cannot turn
     // this document capability into an unbounded allocation.
     const buffer = Buffer.alloc(Math.min(stat.size + 1, MAX_BYTES + 1));
@@ -46,7 +62,7 @@ async function snapshotLocalHtml(filePath) {
       if (!read.bytesRead) break;
       length += read.bytesRead;
     }
-    if (length > stat.size) throw Error('HTML changed while being read; select it again');
+    if (length > stat.size) throw refuse('changed', 'HTML changed while being read; select it again');
     bytes = Buffer.from(buffer.subarray(0, length));
   } finally { await handle.close(); }
   const url = `${SCHEME}://${randomUUID()}/index.html`;
@@ -86,6 +102,10 @@ async function openIsolatedLocalHtml({ BrowserWindow, session, title = 'Static l
   const win = new BrowserWindow({ width: 1000, height: 750, title,
     webPreferences: { session: isolatedSession, sandbox: true, contextIsolation: true,
       javascript: false, nodeIntegration: false, webSecurity: true, webviewTag: false, allowRunningInsecureContent: false } });
+  // On Windows and Linux a window shows the app menu unless it removes it, and
+  // that menu's shortcuts (Ctrl+W, Ctrl+T) would act on the browser window
+  // behind this static preview. No effect on macOS, whose menu is global.
+  win.removeMenu();
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   win.webContents.on('will-attach-webview', event => event.preventDefault());
   const navigation = (event, target) => {
@@ -109,10 +129,21 @@ async function openIsolatedLocalHtml({ BrowserWindow, session, title = 'Static l
     await isolatedSession.closeAllConnections();
     idleSessions.push(isolatedSession);
   };
-  win.once('closed', () => { clean().catch(error => console.error('Local preview cleanup failed:', error.message)); });
+  openPreviews.add(win);
+  win.once('closed', () => { openPreviews.delete(win); clean().catch(error => console.error('Local preview cleanup failed:', error.message)); });
   try { await win.loadURL(document.url); }
   catch (error) { win.destroy(); throw error; }
   return win;
 }
 
-module.exports = { SCHEME, MAX_BYTES, CSP, LOCAL_HTML_SCHEME, registerLocalHtmlScheme, snapshotLocalHtml, openIsolatedLocalHtml };
+/** On Windows and Linux, Blanc quits only once every window is gone: close
+ * the previews with the last browser window so one can't keep Blanc running
+ * with no browser window (#1630). */
+function closeAllLocalHtmlPreviews() {
+  for (const win of [...openPreviews]) {
+    openPreviews.delete(win);
+    if (!win.isDestroyed()) win.close();
+  }
+}
+
+module.exports = { SCHEME, MAX_BYTES, REFUSALS, CSP, LOCAL_HTML_SCHEME, registerLocalHtmlScheme, snapshotLocalHtml, openIsolatedLocalHtml, closeAllLocalHtmlPreviews };

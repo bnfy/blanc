@@ -109,7 +109,7 @@ export default function register(step){
   const pick=await picker(this);
   await evaluate(pick,`const ask=find('#askOnStartup');if(ask.checked)ask.click();return true;`);
   await this.waitFor(()=>evaluate(pick,`return find('#askOnStartup').checked;`),v=>v===false,'profile picker disabled on startup');
-  await evaluate(pick,`const main=find('profile-picker-main-view');const card=[...main.shadowRoot.querySelectorAll('profile-card')].find(c=>c.profileState.profilePath.endsWith('/Default'));if(!card)throw Error('Personal card missing');find('#profileCardButton',card.shadowRoot).click();return true;`);
+  await evaluate(pick,`const main=find('profile-picker-main-view');const card=[...main.shadowRoot.querySelectorAll('profile-card')].find(c=>/[\\\\/]Default$/.test(c.profileState.profilePath));if(!card)throw Error('Personal card missing');find('#profileCardButton',card.shadowRoot).click();return true;`);
  });
  step('I relaunch Blanc with local profiles',async function(){this.profileHosts=new Map();await this.relaunch({afterStop:async()=>{const root=this.fixture.profile;const local=JSON.parse(fs.readFileSync(path.join(root,'Local State')));assert.deepEqual([...local.profile.last_active_profiles].sort(),this.profileRestore.map(p=>p.directory).sort(),'both persistent profiles saved for startup');}});});
  step('Personal and Work restore with their original profile identities',async function(){
@@ -155,7 +155,7 @@ export async function verifyNativeProfileRemoval(w){
 // press Remove. The shipping routing case does not assert a typed challenge.
 export async function removeProfile(w,directory){
  const pick=await picker(w);
- const prefix=`const cards=[...find('profile-picker-main-view').shadowRoot.querySelectorAll('profile-card')];const card=cards.find(c=>c.profileState.profilePath.endsWith('/'+${jsLiteral(directory)}));if(!card)throw Error('Native profile card missing');`;
+ const prefix=`const cards=[...find('profile-picker-main-view').shadowRoot.querySelectorAll('profile-card')];const card=cards.find(c=>[\'/\',\'\\\\\'].some(separator=>c.profileState.profilePath.endsWith(separator+${jsLiteral(directory)})));if(!card)throw Error('Native profile card missing');`;
  await evaluate(pick,prefix+`const menu=find('profile-card-menu',card.shadowRoot);find('#moreActionsButton',menu.shadowRoot).click();find('#actionMenu',menu.shadowRoot).querySelectorAll('button')[1].click();return true;`);
  await w.waitFor(()=>evaluate(pick,prefix+`return find('#removeConfirmationDialog',card.shadowRoot).open;`),Boolean,'native profile remove confirmation');
  await evaluate(pick,prefix+`find('#removeConfirmationButton',card.shadowRoot).click();return true;`);

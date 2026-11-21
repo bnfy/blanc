@@ -47,9 +47,17 @@ async function activePage(w){
  if(visible.length!==1)throw new UndefinedNativeAdapterError('Active tab document is not uniquely addressable: '+tab.url);
  return visible[0];
 }
+// The window as its content sees it. CDP reports the whole OS window, which on
+// Windows includes invisible resize borders around the client area; the
+// native hook says how wide they are (zero when maximized). The Mac's window
+// has none, and is not asked.
+const NO_INSETS={left:0,top:0,right:0,bottom:0};
 async function windowOf(w){
  const page=await activePage(w);
- return w.fixture.browser.send('Browser.getWindowForTarget',{targetId:page.targetId});
+ const {windowId,bounds}=await w.fixture.browser.send('Browser.getWindowForTarget',{targetId:page.targetId});
+ const insets=process.platform==='win32'?await w.native('windowFrameInsets'):NO_INSETS;
+ return {windowId,insets,bounds:{...bounds,left:bounds.left+insets.left,top:bounds.top+insets.top,
+  width:bounds.width-insets.left-insets.right,height:bounds.height-insets.top-insets.bottom}};
 }
 const strip=w=>w.frame('strip');const overlay=w=>w.frame('overlay');
 // macOS floats only the pill (shipping's floatViewsWanted): no window
@@ -129,12 +137,14 @@ export const island={
  async setWindowContentSize(w,width,height){
   const {windowId}=await windowOf(w);
   await w.fixture.browser.send('Browser.setWindowBounds',{windowId,bounds:{windowState:'normal'}});
-  await w.fixture.browser.send('Browser.setWindowBounds',{windowId,bounds:{width:Number(width),height:Number(height)}});
+  // The restored window's borders, read after it is restored.
+  const {insets}=await windowOf(w);
+  await w.fixture.browser.send('Browser.setWindowBounds',{windowId,bounds:{width:Number(width)+insets.left+insets.right,height:Number(height)+insets.top+insets.bottom}});
  },
  async mainWindowState(w){const {bounds}=await windowOf(w);return {maximized:bounds.windowState==='maximized',minimized:bounds.windowState==='minimized'};},
  async restoreMainWindow(w){const {windowId}=await windowOf(w);await w.fixture.browser.send('Browser.setWindowBounds',{windowId,bounds:{windowState:'normal'}});return true;},
  chromeButtonRects:undef('The fork strip reports no window-button geometry to the host'),
- mainMenuRequests:undef('The fork host keeps no record of main-menu requests'),
+ mainMenuRequests:w=>w.hostEval('window.BlancPrototypeHost.mainMenuRequests()'),
  // ---- strip geometry and DOM ----
  islandRect:async w=>(await islandReport(w))?.rect??null,
  islandHoverRect:async w=>(await islandReport(w))?.hoverRect??null,
@@ -193,6 +203,14 @@ export const island={
   return native({x:frame.x+menu.x-SPACES_MENU_SIDE,y:frame.y+menu.y-SPACES_MENU_PAD,width:menu.width+SPACES_MENU_SIDE*2,height:menu.height+SPACES_MENU_PAD*2});},
  sendOverlayInput:(w,input)=>frameInput(w,'overlay',input),
  async pressOverlayKey(w,key,modifiers=[]){
+  // Shipping's hook sends the key to the overlay after main's show message,
+  // so its renderer has drawn the mode before the key arrives. The fork's
+  // host shows asynchronously: wait until the overlay document has applied
+  // the host's mode, or a key pressed at once lands on an empty overlay
+  // (F41-27: Escape closed a Spaces menu that had not been drawn yet, so
+  // there was nothing to fade; 4 of 5 runs, 2026-11-16).
+  const mode=await w.call('overlayMode');
+  if(mode)await w.waitFor(()=>w.call('overlayRendererMode'),drawn=>drawn===mode,'the overlay drawn in the host\'s mode',3000);
   await overlay(w).evaluate(()=>window.focus());
   await overlay(w).keyboard.press([...modifiers,key].join('+'));return true;
  },

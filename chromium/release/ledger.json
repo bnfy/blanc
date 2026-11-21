@@ -47,6 +47,94 @@
         "production-sync-real-device"
       ],
       "note": "Second public Blanc Beta, published 2026-11-14 as a GitHub pre-release (not latest). Fixes beta.2's Sync lockout (Settings could say \"Could not check sync\" until a relaunch) and turns Safe Browsing off by default. Every release stage ran from the owner's MacBook Pro over SSH to the Mac Studio. Signed with the pinned Developer ID, notarized and stapled; Sigstore-signed checksums; logged-out public verification passed. Owner waivers: the protected-video notice (due beta.4) and the real-iPhone Sync pass (the beta published no open tabs and said nothing after a join; fixed for beta.4)."
+    },
+    {
+      "build": 4,
+      "version": "2.0.0-beta.4",
+      "tag": "chromium-beta-2.0.0-beta.4",
+      "date": "2026-11-14",
+      "arches": [
+        "arm64"
+      ],
+      "archWaiver": "Owner approved 2026-11-14: beta.4 is Apple Silicon only again; Intel deferred until a separately qualified native build.",
+      "sourceCommit": "57e3109dd3c166fe1ea76caf0cc1a3b93aa54585",
+      "candidate": "macos-e8eb804f1ebb87a8",
+      "dmgSHA256": "fd42bf1265db3fe3844372a34a5c7ce14e58307ca989a811186b474ec0658ed1",
+      "gateWaivers": [
+        "no-drm-handoff",
+        "production-sync-real-device"
+      ],
+      "note": "Third public Blanc Beta, published 2026-11-14 at 19:02 UTC as a GitHub pre-release (not latest). Fixes 1Password's Unlock button (extension popups open under the Island), keeps the main window's tabs on the red button as shipping Blanc does, keeps Sync publishing open pages and names the Mac as shipping Blanc does; adds the Sunrise Gold icon, the Island's pointer response and the vertical tabs' Space row. An earlier notarized build from e47bf1bcf was superseded before publication and never published. Owner waivers: the protected-video notice (moves to beta.5) and the real-iPhone Sync pass (the iPhone listed the first beta.4 build with its pages but not the rebuilt one after the red button; cause unknown). Hosted smoke passed (run 43631733437); the signed handoff beta.3 to beta.4 passed."
+    },
+    {
+      "build": 5,
+      "version": "2.0.0-beta.5",
+      "tag": "chromium-beta-2.0.0-beta.5",
+      "date": "2026-11-15",
+      "arches": [
+        "arm64"
+      ],
+      "archWaiver": "Owner standing decision 2026-11-14: daily betas are Apple Silicon only; Intel is deferred until a separately qualified native build.",
+      "sourceCommit": "a1604c40965a4cf2feeb93655698d516ae30638d",
+      "candidate": "macos-353a2eb6140259ee",
+      "dmgSHA256": "756f38c843393b2fa23db5707d286e6292cbc3c0056ced5e2c99dd1f52c337f8",
+      "gateWaivers": [
+        "production-sync-real-device",
+        "no-drm-handoff"
+      ],
+      "note": "Daily Blanc Beta, published 2026-11-15 as a GitHub pre-release (not latest) through the one release command. Signed with the pinned Developer ID, notarized and stapled; Sigstore-signed checksums; logged-out public verification passed. Waivers under the owner's standing decisions: production-sync-real-device, no-drm-handoff."
+    },
+    {
+      "build": 6,
+      "version": "2.0.0-beta.6",
+      "tag": "chromium-beta-2.0.0-beta.6",
+      "date": "2026-11-15",
+      "arches": [
+        "arm64"
+      ],
+      "archWaiver": "Owner standing decision 2026-11-14: daily betas are Apple Silicon only; Intel is deferred until a separately qualified native build.",
+      "sourceCommit": "eab2550be341616e45543aeee34d480236d2d4e8",
+      "candidate": "macos-8503cce0774a79bb",
+      "dmgSHA256": "7134a1e4506d4bcd4de96a014faa797acfc34d5b8baeffda603b6017f7e8ce85",
+      "gateWaivers": [
+        "production-sync-real-device",
+        "no-drm-handoff"
+      ],
+      "note": "Daily Blanc Beta, published 2026-11-15 as a GitHub pre-release (not latest) through the one release command. Signed with the pinned Developer ID, notarized and stapled; Sigstore-signed checksums; logged-out public verification passed. Waivers under the owner's standing decisions: production-sync-real-device, no-drm-handoff."
+    },
+    {
+      "build": 7,
+      "version": "2.0.0-beta.7",
+      "tag": "chromium-beta-2.0.0-beta.7",
+      "date": "2026-11-17",
+      "arches": [
+        "arm64"
+      ],
+      "archWaiver": "Owner standing decision 2026-11-14: daily betas are Apple Silicon only; Intel is deferred until a separately qualified native build.",
+      "sourceCommit": "a0419d04ebeb5ed3e4d17461d91147446af24cb7",
+      "candidate": "macos-13a7ebf9834e65e0",
+      "dmgSHA256": "e0f48c024ad83980311b42aa4b2546c9a0568d637886f8ca2c99380804b870ff",
+      "gateWaivers": [
+        "production-sync-real-device"
+      ],
+      "note": "Daily Blanc Beta, published 2026-11-17 as a GitHub pre-release (not latest) through the one release command. Signed with the pinned Developer ID, notarized and stapled; Sigstore-signed checksums; logged-out public verification passed. Waivers under the owner's standing decisions: production-sync-real-device."
+    },
+    {
+      "build": 8,
+      "version": "2.0.0-beta.8",
+      "tag": "chromium-beta-2.0.0-beta.8",
+      "date": "2026-11-20",
+      "arches": [
+        "arm64"
+      ],
+      "archWaiver": "Owner standing decision 2026-11-14: daily betas are Apple Silicon only; Intel is deferred until a separately qualified native build.",
+      "sourceCommit": "e41e713fa63716a52ba182203f15acf4d85238b7",
+      "candidate": "macos-935addb507628d06",
+      "dmgSHA256": "90dc075749132bdb86617d69089d4668af4769270891594c70fd3f7d41bbf059",
+      "gateWaivers": [
+        "production-sync-real-device"
+      ],
+      "note": "Daily Blanc Beta, published 2026-11-20 as a GitHub pre-release (not latest) through the one release command. Signed with the pinned Developer ID, notarized and stapled; Sigstore-signed checksums; logged-out public verification passed. Waivers under the owner's standing decisions: production-sync-real-device."
     }
   ]
 }

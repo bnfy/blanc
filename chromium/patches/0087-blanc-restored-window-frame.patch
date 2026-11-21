@@ -1,0 +1,21 @@
+diff --git a/components/remote_cocoa/app_shim/native_widget_ns_window_bridge.mm b/components/remote_cocoa/app_shim/native_widget_ns_window_bridge.mm
+--- a/components/remote_cocoa/app_shim/native_widget_ns_window_bridge.mm
++++ b/components/remote_cocoa/app_shim/native_widget_ns_window_bridge.mm
+@@ -977,7 +977,17 @@
+       }];
+     }
+ 
++    // Blanc: AppKit's archive is written half a second after a change
++    // (-saveRestorableStateAfterDelay), so quitting sooner than that after a
++    // resize leaves an older frame in it. The session's own bounds, which this
++    // window was created with, are current: keep them, and take only the
++    // rest (the Space) from the archive.
++    const NSRect blanc_session_frame = window_.frame;
+     [window_ restoreStateWithCoder:decoder];
++    if ((window_.styleMask & NSWindowStyleMaskFullScreen) == 0 &&
++        !NSEqualRects(window_.frame, blanc_session_frame)) {
++      [window_ setFrame:blanc_session_frame display:NO];
++    }
+ 
+     pending_restoration_data_.reset();
+ 

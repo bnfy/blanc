@@ -29,7 +29,7 @@ if (!is_android) {
 source_set("beta_identity") {
   sources = [ "browser/mac/beta_identity.h", "browser/mac/beta_profile_guard.h" ]
   public_deps = [ ":buildflags" ]
-  if (blanc_beta_channel) {
+  if (blanc_beta_channel && is_mac) {
     sources += [ "browser/mac/beta_identity.cc" ]
     deps = [ "//base" ]
   }
@@ -38,7 +38,7 @@ source_set("beta_identity") {
 source_set("beta_updater") {
   sources = [ "browser/mac/beta_updater.h", "browser/mac/beta_update_policy.h" ]
   public_deps = [ ":buildflags" ]
-  if (blanc_beta_channel) {
+  if (blanc_beta_channel && is_mac) {
     sources += [ "browser/mac/beta_updater.mm" ]
     deps = [ "//base", ":verify_sparkle" ]
     # Chromium already enables ARC in its default compiler configuration.
@@ -51,7 +51,9 @@ source_set("beta_updater") {
     all_dependent_configs = [ ":sparkle_rpath" ]
   }
 }
-if (blanc_beta_channel) {
+# The Mac beta's Sparkle and bundle resources; the Windows beta updates
+# through Chromium's own updater (W3).
+if (blanc_beta_channel && is_mac) {
   assert(blanc_sparkle_stage != "" && blanc_sparkle_public_key != "" &&
          blanc_sparkle_archive_sha256 != "", "Reviewed Sparkle staging and owner public key required")
   config("sparkle_link") {
@@ -117,10 +119,29 @@ if (blanc_beta_channel) {
     outputs = [ "{{bundle_resources_dir}}/blanc_blocker/{{source_file_part}}" ]
     public_deps = [ ":verify_blocker_bundle" ]
   }
+  # The Dock's Light and Dark images of every colorway, the bundle icon's
+  # (BlancDK) included (branding/beta/render-dock-icons.mjs explains why).
+  bundle_data("beta_dock_icons") {
+    sources = []
+    foreach(name, [ "Icon", "SunriseDark", "BlancDK", "SunriseSpectrum", "SunriseAmber" ]) {
+      sources += [ "branding/beta/dock/$name-light.png", "branding/beta/dock/$name-dark.png" ]
+    }
+    outputs = [ "{{bundle_resources_dir}}/dock/{{source_file_part}}" ]
+  }
   group("sparkle_bundle") {
     public_deps = [ ":sparkle_framework_bundle", ":sparkle_license_bundle",
                     ":beta_notices", ":beta_chromium_license",
                     ":beta_chromium_credits", ":beta_sparkle_notice",
-                    ":beta_blocker_engine" ]
+                    ":beta_blocker_engine", ":beta_dock_icons" ]
+  }
+}
+
+# The Windows beta's embedded blocker engine, beside chrome.dll in the version
+# folder, where Chromium's installer packs it (patch 0100); the browser checks
+# its pinned hash as on the Mac (W3).
+if (blanc_beta_channel && is_win) {
+  copy("beta_blocker_engine_win") {
+    sources = [ "$blanc_blocker_bundle/engine.js" ]
+    outputs = [ "$root_out_dir/blanc_blocker/engine.js" ]
   }
 }

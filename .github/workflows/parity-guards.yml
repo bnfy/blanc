@@ -37,6 +37,10 @@ jobs:
     # The unit suite, lint and drift guards in `substrate` always run: unit tests
     # also guard the website's claims ledgers and read site/ and docs/ files.
     runs-on: ubuntu-latest
+    # actions: read lets the classifier check the previous head's run.
+    permissions:
+      contents: read
+      actions: read
     outputs:
       app: ${{ steps.classify.outputs.app }}
     steps:
@@ -49,13 +53,14 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           EVENT_ACTION: ${{ github.event.action }}
-          BEFORE: ${{ github.event.before }}
           AFTER: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ github.head_ref }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           app=true
           if [ "$(sh scripts/ci-fork-only-push.sh)" = true ]; then
-            # Only the Chromium fork changed since this PR's last run, which
-            # ran these jobs (scripts/ci-fork-only-push.sh).
+            # Only the Chromium fork changed since a head of this PR that
+            # these jobs passed on (scripts/ci-fork-only-push.sh).
             app=false
             echo "Fork-only push." >> "$GITHUB_STEP_SUMMARY"
           elif [ "$GITHUB_EVENT_NAME" = pull_request ] && git rev-parse --verify -q HEAD^2 >/dev/null; then
@@ -168,14 +173,18 @@ jobs:
       - run: npm ci
       - name: Google OAuth compatibility contract
         run: xvfb-run -a npm run test:oauth:desktop
-      - name: Favorites folder picker layering and interaction regression
-        run: xvfb-run -a npm run test:favorites-picker:desktop
+      - name: Favorites manager (F63) folders, order and menus
+        run: xvfb-run -a npm run test:favorites-manager:desktop
       - name: Local-clock dynamic wallpaper regression
         run: xvfb-run -a npm run test:wallpaper:desktop
       - name: Custom Start Page wallpaper (F49)
         run: xvfb-run -a npm run test:custom-wallpaper:desktop
       - name: Billboard clock Font & color (F54)
         run: xvfb-run -a npm run test:billboard-clock:desktop
+      - name: Start Page widget cards (F35, V24)
+        run: xvfb-run -a npm run test:start-widgets:desktop
+      - name: Start Page wallpaper behind the Island's band
+        run: xvfb-run -a npm run test:start-backdrop:desktop
 
   modified-link-clicks:
     needs: changes
@@ -213,6 +222,16 @@ jobs:
       - name: Several command-line URLs after -- (Windows)
         if: ${{ !cancelled() && runner.os == 'Windows' }}
         run: npm run test:command-line-urls
+      # #1591: clicked downloads save to Downloads under a free name; a
+      # page-started download and "Ask where to save each file" still ask.
+      - name: Downloads save without asking (Linux)
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        run: |
+          bash scripts/ci-enable-linux-sandbox.sh
+          xvfb-run -a npm run test:save-downloads:desktop
+      - name: Downloads save without asking (Windows)
+        if: ${{ !cancelled() && runner.os == 'Windows' }}
+        run: npm run test:save-downloads:desktop
 
   tab-handoff:
     needs: changes

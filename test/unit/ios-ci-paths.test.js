@@ -30,7 +30,8 @@ function listed(event) {
 function externalInputs() {
   const inputs = new Set();
   // Project references climb out of ios/Blanc with ../../.
-  for (const m of project.matchAll(/path = \.\.\/\.\.\/([^;]+);/g)) {
+  // Xcode quotes a path with characters such as "-".
+  for (const m of project.matchAll(/path = "?\.\.\/\.\.\/([^;"]+)"?;/g)) {
     const ref = m[1].replace(/^"|"$/g, '');
     const kind = project.slice(project.lastIndexOf('{', m.index), m.index);
     inputs.add(/lastKnownFileType = folder/.test(kind) ? `${ref}/**` : ref);

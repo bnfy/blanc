@@ -3,9 +3,12 @@
 
 #include "blanc/common/test_launch.h"
 #include <utility>
+#include <algorithm>
 #include <cmath>
+#include <vector>
 #include "base/command_line.h"
 #include "base/auto_reset.h"
+#include "base/files/file_enumerator.h"
 #include "base/files/file_util.h"
 #include "base/files/important_file_writer.h"
 #include "base/functional/bind.h"
@@ -25,6 +28,7 @@
 #include "blanc/browser/sync/runner_wait.h"
 #include "chrome/browser/bookmarks/bookmark_model_factory.h"
 #include "chrome/browser/browser_process.h"
+#include "chrome/browser/profiles/keep_alive/profile_keep_alive_types.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/profiles/profile_manager.h"
 #include "components/bookmarks/browser/bookmark_model.h"
@@ -35,10 +39,32 @@
 #include "components/sync_device_info/local_device_info_util.h"
 #include "content/public/browser/browser_thread.h"
 #include "url/gurl.h"
+#include "build/build_config.h"
+#if BUILDFLAG(IS_MAC)
+#include <SystemConfiguration/SystemConfiguration.h>
+#include "base/apple/scoped_cftyperef.h"
+#include "base/strings/sys_string_conversions.h"
+#endif
 
 namespace blanc {
 namespace {
 constexpr size_t kMaxStateBytes = 32 * 1024 * 1024;
+// The name this device publishes to its synced peers, as shipping's
+// device-name.js picks it: a Mac goes by its computer name (System Settings,
+// General, About; "MacBook Pro"), not Chromium's local host name
+// ("MacBook-Pro"), at most 80 characters. Blocking: read on the thread pool.
+std::string PublishedDeviceName() {
+#if BUILDFLAG(IS_MAC)
+  base::apple::ScopedCFTypeRef<CFStringRef> computer(
+      SCDynamicStoreCopyComputerName(nullptr, nullptr));
+  if (computer) {
+    std::u16string name;
+    base::TrimWhitespace(base::SysCFStringRefToUTF16(computer.get()), base::TRIM_ALL, &name);
+    if (!name.empty()) return base::UTF16ToUTF8(name.substr(0, 80));
+  }
+#endif
+  return syncer::GetPersonalizableDeviceNameBlocking();
+}
 base::DictValue EmptyState() {
   return base::DictValue().Set("version", 1).Set("account", "")
       .Set("consent", "pending").Set("seen", base::DictValue())
@@ -60,10 +86,11 @@ std::optional<sync_merge::Favorite> Favorite(const base::Value* value) {
   const auto* title = value->GetDict().FindString("title");
   const auto* folder = value->GetDict().FindString("folder");
   if (!title) return std::nullopt;
+  // A folder is a path (F63); two spellings of one path are one folder.
   std::string folder_key;
   if (folder && !folder->empty()) {
-    const auto name = favorites::ValidFolderName(*folder);
-    const auto key = name ? favorites::FavoriteFolderKey(*name) : std::nullopt;
+    const auto path = favorites::StoredFolderPath(*folder);
+    const auto key = path ? favorites::FavoriteFolderKey(favorites::JoinPath(*path)) : std::nullopt;
     if (key) folder_key = base::UTF16ToUTF8(*key);
     else folder_key = *folder;
   }
@@ -80,7 +107,7 @@ bool ValidStoredFavorite(const base::Value& value) {
   if (!value.is_dict() || !value.GetDict().FindString("title")) return false;
   const auto* folder = value.GetDict().Find("folder");
   return folder && (folder->is_none() || (folder->is_string() &&
-      favorites::ValidFolderName(folder->GetString()).has_value()));
+      favorites::StoredFolderPath(folder->GetString()).has_value()));
 }
 bool ValidStoredUrl(const std::string& url) {
   const GURL address(url);
@@ -130,6 +157,48 @@ bool ValidStateRecords(const base::DictValue& state) {
   return wire && GURL(*wire).spec() == *url && at && std::isfinite(*at) && *at > 0 &&
          (local->is_none() || Favorite(&entry) == Favorite(local));
 }
+// The Electron profile importer stages Sync's stores beside the profile
+// (blanc/browser/ui/profile_import.inc). They are taken up here, before the
+// runner reads its stores, and only where this profile is not already
+// syncing; a staging folder without its `ready` file was never finished and
+// is left for the importer to rewrite. Each store is copied and checked, and
+// sync.json, the one that turns Sync on, goes last; the staged copy is
+// removed only once every store is in place, so a failed move is taken up
+// again at the next launch.
+bool AdoptImportedSyncFile(const base::FilePath& from, const base::FilePath& to) {
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+  if (blanc::BlancTestLaunch() && to.BaseName().value() == FILE_PATH_LITERAL("sync.json") &&
+      base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-test-sync-adopt-fail")) return false;
+#endif
+  const base::FilePath temp = to.AddExtension(FILE_PATH_LITERAL("importing"));
+  const bool moved = base::CopyFile(from, temp) && base::ReplaceFile(temp, to, nullptr) && base::ContentsEqual(from, to);
+  if (!moved) base::DeleteFile(temp);
+  return moved;
+}
+void AdoptImportedSyncStores(const base::FilePath& profile_dir) {
+  const base::FilePath staging = profile_dir.AppendASCII("BlancSyncImport");
+  if (!base::PathExists(staging.AppendASCII("ready"))) return;
+  const base::FilePath live = profile_dir.AppendASCII("BlancSync");
+  std::string text;
+  if (base::ReadFileToStringWithMaxSize(live.AppendASCII("sync.json"), &text, 1024 * 1024)) {
+    const auto current = base::JSONReader::ReadDict(text, base::JSON_PARSE_RFC);
+    if (current && current->FindBool("enabled").value_or(false)) {
+      base::DeletePathRecursively(staging);
+      return;
+    }
+  }
+  if (!base::CreateDirectory(live)) return;
+  std::vector<base::FilePath> stores;
+  base::FileEnumerator files(staging, false, base::FileEnumerator::FILES, FILE_PATH_LITERAL("*.json"));
+  for (auto path = files.Next(); !path.empty(); path = files.Next()) stores.push_back(path);
+  std::ranges::stable_partition(stores, [](const base::FilePath& p) { return p.BaseName().value() != FILE_PATH_LITERAL("sync.json"); });
+  for (const auto& path : stores) {
+    if (!AdoptImportedSyncFile(path, live.Append(path.BaseName()))) return;
+  }
+  base::DeletePathRecursively(staging);
+}
+std::optional<base::DictValue> ReadStateAfterImport(const base::FilePath& profile_dir, const base::FilePath& path);
+
 std::optional<base::DictValue> ReadState(const base::FilePath& path) {
   if (!base::PathExists(path)) return EmptyState();
   std::string bytes;
@@ -143,6 +212,10 @@ std::optional<base::DictValue> ReadState(const base::FilePath& path) {
   if (consent != "pending" && consent != "accepted" && consent != "declined") return std::nullopt;
   if (!ValidStateRecords(*state)) return std::nullopt;
   return state;
+}
+std::optional<base::DictValue> ReadStateAfterImport(const base::FilePath& profile_dir, const base::FilePath& path) {
+  AdoptImportedSyncStores(profile_dir);
+  return ReadState(path);
 }
 bool WriteState(const base::FilePath& path, const std::string& bytes) {
   return bytes.size() <= kMaxStateBytes && base::CreateDirectory(path.DirName()) &&
@@ -159,12 +232,15 @@ bool RunnerFileMatches(const base::FilePath& path, const base::DictValue& expect
     if (!Equal(actual->Find(key), &value)) return false;
   return true;
 }
-void Collect(const bookmarks::BookmarkNode* parent, base::DictValue& rows) {
+// Every web favorite under `parent`, its `folder` the whole path below Other
+// bookmarks (F63). One whose path can't be stored is listed and blocked.
+void Collect(const bookmarks::BookmarkNode* parent, base::DictValue& rows, std::set<std::string>* blocked) {
   for (const auto& child : parent->children()) {
-    if (child->is_folder()) Collect(child.get(), rows);
+    if (child->is_folder()) Collect(child.get(), rows, blocked);
     else if (child->url().SchemeIsHTTPOrHTTPS()) {
-      const std::string folder = parent->is_permanent_node() ? "" : base::UTF16ToUTF8(parent->GetTitle());
-      rows.Set(child->url().spec(), Record(base::UTF16ToUTF8(child->GetTitle()), folder));
+      const auto folder = favorites::FavoriteFolderPath(child.get());
+      rows.Set(child->url().spec(), Record(base::UTF16ToUTF8(child->GetTitle()), folder.value_or("")));
+      if (!folder) blocked->insert(child->url().spec());
     }
   }
 }
@@ -186,6 +262,8 @@ DesktopSyncService::DesktopSyncService(Profile* profile)
       state_path_(profile->GetPath().AppendASCII("BlancSyncDesktop").AppendASCII("state.json")),
       io_(base::ThreadPool::CreateSequencedTaskRunner({base::MayBlock(), base::TaskShutdownBehavior::BLOCK_SHUTDOWN})) {
   profile_observation_.Observe(profile);
+  profile_keep_alive_ = std::make_unique<ScopedProfileKeepAlive>(
+      profile, ProfileKeepAliveOrigin::kBackgroundMode);
   bookmarks_ = BookmarkModelFactory::GetForBrowserContext(profile);
   if (bookmarks_) {
     bookmark_observation_.Observe(bookmarks_);
@@ -196,7 +274,7 @@ DesktopSyncService::DesktopSyncService(Profile* profile)
     if (!mapping.pref.empty() && profile->GetPrefs()->FindPreference(mapping.pref))
       pref_changes_.Add(mapping.pref, base::BindRepeating(&DesktopSyncService::Reconcile, weak_factory_.GetWeakPtr()));
   }
-  io_->PostTaskAndReplyWithResult(FROM_HERE, base::BindOnce(ReadState, state_path_),
+  io_->PostTaskAndReplyWithResult(FROM_HERE, base::BindOnce(ReadStateAfterImport, profile->GetPath(), state_path_),
       base::BindOnce(&DesktopSyncService::Loaded, weak_factory_.GetWeakPtr()));
 }
 DesktopSyncService::~DesktopSyncService() = default;
@@ -205,7 +283,7 @@ void DesktopSyncService::Loaded(std::optional<base::DictValue> state) {
   state_ = std::move(*state);
   for (auto [url, value] : *state_.FindDict("incoming")) recovered_incoming_.insert(url);
   base::ThreadPool::PostTaskAndReplyWithResult(FROM_HERE, {base::MayBlock()},
-      base::BindOnce(&syncer::GetPersonalizableDeviceNameBlocking),
+      base::BindOnce(&PublishedDeviceName),
       base::BindOnce([](base::WeakPtr<DesktopSyncService> self, std::string name) {
         if (!self) return;
         if (!g_browser_process->os_crypt_async()) { self->Fail("keychain-unavailable"); return; }
@@ -462,12 +540,12 @@ void DesktopSyncService::Status(bool ok, const std::string& json) {
 base::DictValue DesktopSyncService::LocalFavorites(std::set<std::string>* blocked) const {
   base::DictValue rows;
   if (!bookmarks_ || !bookmarks_->loaded()) return rows;
-  Collect(bookmarks_->other_node(), rows);
+  Collect(bookmarks_->other_node(), rows, blocked);
   for (auto [url, value] : rows) {
     const auto nodes = bookmarks_->GetNodesByURL(GURL(url));
     const auto* folder = value.GetDict().FindString("folder");
     if (nodes.size() != 1 || bookmarks_->client()->IsNodeManaged(nodes.front().get()) ||
-        (folder && !favorites::ValidFolderName(*folder))) blocked->insert(url);
+        (folder && !favorites::StoredFolderPath(*folder))) blocked->insert(url);
   }
   return rows;
 }
@@ -493,9 +571,9 @@ bool DesktopSyncService::ApplyFavorite(const std::string& url, const base::Value
   const bookmarks::BookmarkNode* parent = bookmarks_->other_node();
   const auto* folder = desired.GetDict().FindString("folder");
   if (folder && !folder->empty()) {
-    const auto name = favorites::ValidFolderName(*folder);
-    if (!name) return false;
-    parent = favorites::FindOrCreateFolder(bookmarks_, *name, parent);
+    const auto path = favorites::StoredFolderPath(*folder);
+    if (!path) return false;
+    parent = favorites::FindOrCreateFolderPath(bookmarks_, parent, *path);
   }
   if (!parent) return false;
   const auto title = base::UTF8ToUTF16(entry->title);
@@ -525,7 +603,7 @@ void DesktopSyncService::PlanFavorites(bool ok, const std::string& json) {
     if (theirs.contains(key)) blocked.insert(key);  // two runner URLs canonicalize alike
     const auto* title = item.GetDict().FindString("title");
     const auto* folder = item.GetDict().FindString("folder");
-    if (folder && !folder->empty() && !favorites::ValidFolderName(*folder)) { blocked.insert(key); continue; }
+    if (folder && !folder->empty() && !favorites::StoredFolderPath(*folder)) { blocked.insert(key); continue; }
     theirs.Set(key, Record(title && !title->empty() ? *title : key, folder ? *folder : ""));
     raw.Set(key, item.Clone());
     if (!local.contains(key) && !bookmarks_->GetNodesByURL(address).empty()) blocked.insert(key);
@@ -936,6 +1014,7 @@ void DesktopSyncService::BookmarkModelBeingDeleted() {
 void DesktopSyncService::OnProfileWillBeDestroyed(Profile*) {
   profile_observation_.Reset(); bookmark_observation_.Reset();
   pref_changes_.RemoveAll(); timer_.Stop(); lane_probe_.Stop();
+  profile_keep_alive_.reset();
   profile_ = nullptr; bookmarks_ = nullptr;
   weak_factory_.InvalidateWeakPtrs();
   if (active_reply_ && *active_reply_) std::move(*active_reply_).Run(false, "profile-closed");

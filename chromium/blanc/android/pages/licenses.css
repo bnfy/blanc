@@ -1,0 +1,10 @@
+/* Copyright 2026 Bananify Creative. MIT; see LICENSE. */
+.page section { margin-top: 28px; }
+.page h2 { font-size: 17px; line-height: 1.4; }
+.page pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--font-text);
+  font-size: 14px;
+  line-height: 1.6;
+}

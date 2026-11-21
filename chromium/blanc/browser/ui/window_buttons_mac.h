@@ -2,6 +2,7 @@
 #ifndef BLANC_BROWSER_UI_WINDOW_BUTTONS_MAC_H_
 #define BLANC_BROWSER_UI_WINDOW_BUTTONS_MAC_H_
 
+#include "ui/gfx/geometry/point.h"
 #include "ui/gfx/native_ui_types.h"
 
 namespace blanc {
@@ -11,6 +12,9 @@ namespace blanc {
 // shipping's auto-hide Island.
 void SetWindowButtonsVisible(gfx::NativeWindow window, bool visible);
 bool WindowButtonsVisible(gfx::NativeWindow window);
+// The close button's top-left corner, measured from the window's top-left
+// (what Electron's getWindowButtonPosition reports), for the test hook.
+gfx::Point WindowButtonPosition(gfx::NativeWindow window);
 // Keeps a window out of the Window menu and the Dock's list.
 void KeepWindowOutOfMenus(gfx::NativeWindow window);
 

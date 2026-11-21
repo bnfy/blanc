@@ -8,7 +8,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 // The internal hosts match SUNRISE_PAGES in page-tint-policy.js, which this
 // sandboxed preload cannot require.
 if (typeof process !== 'undefined' && process.isMainFrame && (/^https?:$/.test(window.location.protocol)
-  || (window.location.protocol === 'blanc:' && ['newtab', 'mahjong'].includes(window.location.host)))) {
+  || (window.location.protocol === 'blanc:' && ['newtab', 'mahjong', 'bookmarks'].includes(window.location.host)))) {
   let pending = null;
   let lastSignal = -Infinity;
   let observing = false;
@@ -99,7 +99,14 @@ if (window.location.protocol === 'blanc:') {
         topSites: (options) => invoke('pages:start:top-sites', options),
         focusGroup: (id) => invoke('pages:start:focus-group', id),
         openSpaces: () => invoke('pages:start:open-spaces'),
-        setLayout: (name) => invoke('pages:start:set-layout', name),
+        setWidget: (name, on) => invoke('pages:start:set-widget', name, on),
+        setShortcutCount: (count) => invoke('pages:start:set-shortcut-count', count),
+        setWidgetPlace: (left, right) => invoke('pages:start:set-widget-place', left, right),
+        setWidgetSize: (card, size) => invoke('pages:start:set-widget-size', card, size),
+        reportBackdrop: (spec) => invoke('pages:start:backdrop', spec),
+        onBackdropBand: (callback) => {
+          ipcRenderer.on('pages:start:backdrop-band', (_event, band) => callback(band));
+        },
         setDynamicWallpaper: (enabled) => invoke('pages:start:set-dynamic-wallpaper', enabled),
         wallpaper: () => invoke('pages:start:wallpaper'),
         setWallpaper: (source) => invoke('pages:start:set-wallpaper', source),
@@ -112,7 +119,6 @@ if (window.location.protocol === 'blanc:') {
         chooseWallpaper: () => invoke('pages:start:choose-wallpaper'),
         removeWallpaper: () => invoke('pages:start:remove-wallpaper'),
         openMahjong: (background = false) => invoke('pages:start:open-mahjong', !!background),
-        layoutUsed: (name) => invoke('pages:start:layout-used', name),
         openIsland: (char) => invoke('pages:start:open-island', char),
         retryStartup: () => invoke('pages:start:startup-retry'),
         continueWithoutBlocking: () => invoke('pages:start:startup-continue'),
@@ -166,8 +172,9 @@ if (window.location.protocol === 'blanc:') {
       },
     };
   } else if (host === 'bookmarks') {
+    // Favorites is a page in a tab (no sheet surface). It redraws when
+    // Favorites change anywhere else.
     api = {
-      surface,
       bookmarks: {
         capabilities: () => invoke('pages:bookmarks:capabilities'),
         list: () => invoke('pages:bookmarks:list'),
@@ -179,6 +186,17 @@ if (window.location.protocol === 'blanc:') {
         setFolder: (id, folder) => invoke('pages:bookmarks:set-folder', id, folder),
         renameFolder: (oldName, newName) => invoke('pages:bookmarks:rename-folder', oldName, newName),
         removeFolder: (name) => invoke('pages:bookmarks:remove-folder', name),
+        // The Favorites manager (F63).
+        tree: () => invoke('pages:bookmarks:tree'),
+        createFolder: (parentPath, name) => invoke('pages:bookmarks:create-folder', parentPath, name),
+        moveFolder: (path, newParentPath) => invoke('pages:bookmarks:move-folder', path, newParentPath),
+        move: (ids, path) => invoke('pages:bookmarks:move', ids, path),
+        reorder: (path, orderKeys) => invoke('pages:bookmarks:reorder', path, orderKeys),
+        removeMany: (ids) => invoke('pages:bookmarks:remove-many', ids),
+        edit: (id, changes) => invoke('pages:bookmarks:edit', id, changes),
+        onChanged: (callback) => {
+          ipcRenderer.on('pages:bookmarks:changed', () => callback());
+        },
       },
       pins: startPins,
     };

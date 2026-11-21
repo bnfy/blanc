@@ -1,0 +1,75 @@
+diff --git a/chrome/browser/extensions/api/settings_private/prefs_util.cc b/chrome/browser/extensions/api/settings_private/prefs_util.cc
+index 97e6dde..216015c 100644
+--- a/chrome/browser/extensions/api/settings_private/prefs_util.cc
++++ b/chrome/browser/extensions/api/settings_private/prefs_util.cc
+@@ -243,6 +243,7 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
+   (*s_allowlist)["blanc.webrtc.audio_buffer"] = settings_api::PrefType::kString;
+ 
+   (*s_allowlist)["blanc.tabs.archive"] = settings_api::PrefType::kString;
++  (*s_allowlist)["blanc.tabs.reuse_new_tab"] = settings_api::PrefType::kBoolean;
+ 
+   // Miscellaneous
+   (*s_allowlist)[::embedder_support::kAlternateErrorPagesEnabled] =
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+index d67b80a..4cfe47e 100644
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -2116,6 +2116,9 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
+   registry->RegisterStringPref("blanc.vertical_tabs.text_size", "default");
+   // Tab Archive's first-run offer (F52 spec D5); F52 itself is S3.
+   registry->RegisterStringPref("blanc.tabs.archive", "off");
++  // #1505: New Tab goes to an unused Start Page; on, as shipping's
++  // reuseNewTab.
++  registry->RegisterBooleanPref("blanc.tabs.reuse_new_tab", true);
+   registry->RegisterListPref("blanc.tabs.archive_entries");
+   registry->RegisterDictionaryPref("blanc.tabs.archive_notice");
+   registry->RegisterDictionaryPref("blanc.spaces.meta");
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+index ac4ff88..9baec4d 100644
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+@@ -159,6 +159,11 @@ export function getHtml(this: SettingsAppearancePageElement) {
+           .menuOptions="${this.blancTabArchiveOptions_}">
+       </settings-dropdown-menu>
+     </div>
++    <settings-toggle-button id="blancReuseNewTab" class="hr"
++        pref-key="blanc.tabs.reuse_new_tab"
++        label="$i18n{blancReuseNewTab}"
++        sub-label="$i18n{blancReuseNewTabHint}">
++    </settings-toggle-button>
+     <settings-toggle-button id="blancIslandHoverOpen" class="hr"
+         pref-key="blanc.island.hover_open"
+         label="$i18n{blancIslandHoverOpen}"
+diff --git a/chrome/browser/ui/browser_command_controller.cc b/chrome/browser/ui/browser_command_controller.cc
+index 63e8ede..3587ba7 100644
+--- a/chrome/browser/ui/browser_command_controller.cc
++++ b/chrome/browser/ui/browser_command_controller.cc
+@@ -782,7 +782,10 @@ void BrowserCommandController::HandleCommandWithDisposition(
+       // Blanc (owner, 2026-11-02): ⌘⇧N opens a private tab in this window,
+       // as shipping's does, instead of an incognito window.
+       if (blanc_prototype::IsIslandWindow(browser_) && !profile()->IsOffTheRecord()) {
+-        blanc_prototype::NewPrivateTab(browser_, GURL());
++        // An unused private Start Page in the window is used first (#1505).
++        if (!blanc_prototype::ReuseNewTab(browser_, /*is_private=*/true)) {
++          blanc_prototype::NewPrivateTab(browser_, GURL());
++        }
+         break;
+       }
+       NewIncognitoWindow(profile());
+diff --git a/chrome/browser/ui/browser_commands.cc b/chrome/browser/ui/browser_commands.cc
+index 86032f1..2ac0c68 100644
+--- a/chrome/browser/ui/browser_commands.cc
++++ b/chrome/browser/ui/browser_commands.cc
+@@ -1397,6 +1397,12 @@ content::WebContents& NewTab(BrowserWindowInterface* browser,
+ 
+   if (WindowFeatureController::From(browser)->SupportsWindowFeature(
+           WindowFeatureController::WindowFeature::kFeatureTabStrip)) {
++    // Blanc (#1505): ⌘T goes to an unused Start Page when the window has one.
++    if (context == NewTabTypes::kNewTabCommand && blanc_prototype::IsEnabled()) {
++      if (auto* reused = blanc_prototype::ReuseNewTab(browser, /*is_private=*/false)) {
++        return *reused;
++      }
++    }
+     auto* contents = AddAndReturnTabAt(browser, GURL(), -1, /*foreground=*/true,
+                                        std::nullopt, /*pinned=*/false, window_action);
+     if (context == NewTabTypes::kNewTabCommand && blanc_prototype::IsEnabled())

@@ -2,7 +2,7 @@
 // tools/android-pages.mjs copies exactly the files listed in
 // blanc/android/pages.json from its pinned shipping commit, and the desktop
 // fork's Start Page from this tree (A5b), and --check fails on any difference
-// or any file that isn't listed.
+// or any file that isn't listed. Android-owned local pages have their own list.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -29,17 +29,20 @@ test('the pin is the current public release, v1.47.1', () => {
   assert.equal(pinned().commit, 'cfd3daa03ad50e6d0d77c402599d94e771d937be');
 });
 
-test('the lists are flat and sorted, like shipping\'s pages folder', () => {
-  const {files, start} = pinned();
+test('the pinned lists are flat and sorted, and local paths are sorted', () => {
+  const {files, start, local} = pinned();
   for (const list of [files, start.files]) {
     assert.deepEqual([...list].sort(), list);
     for (const f of list) assert.match(f, /^[\w.-]+$/, f);
   }
+  assert.deepEqual([...local].sort(), local);
+  for (const file of local) assert.match(file, /^[\w.-]+(?:\/[\w.-]+)?$/, file);
 });
 
 test('nothing outside the lists sits in the folders', () => {
-  const {files, start} = pinned();
-  assert.deepEqual(fs.readdirSync(PAGES_DIR).sort(), [...files, ...start.alongside.map(a => a.file), 'start'].sort());
+  const {files, start, local} = pinned();
+  assert.deepEqual(fs.readdirSync(PAGES_DIR).sort(), [...new Set([...files, ...local.map(f => f.split('/')[0]), ...start.alongside.map(a => a.file), 'start'])].sort());
+  assert.deepEqual(fs.readdirSync(path.join(PAGES_DIR, 'notices')).sort(), local.filter(f => f.startsWith('notices/')).map(f => f.slice(8)).sort());
   assert.deepEqual(fs.readdirSync(START_DIR).sort(), start.files);
 });
 
@@ -52,8 +55,9 @@ test('the Start Page list holds every file the fork\'s page names', () => {
   for (const file of start.files.filter(f => /\.(html|js|css)$/.test(f)))
     for (const [ref] of fs.readFileSync(path.join(START_DIR, file), 'utf8').matchAll(/[\w.-]+\.(png|woff2|webp|svg|jpg|js|css)\b/g))
       if (fs.existsSync(path.join(from, ref))) named.add(ref);
-  // Named in comments or by desktop code paths Android never takes.
-  for (const unused of ['mahjong.css', 'pages-neutral.css', 'sheet.js']) named.delete(unused);
+  // Named in comments or by desktop code paths Android never takes
+  // (pages.css's Favorites manager rules name the desktop page's script).
+  for (const unused of ['mahjong.css', 'pages-neutral.css', 'sheet.js', 'favorites-manager.js']) named.delete(unused);
   assert.deepEqual([...named].filter(f => !start.files.includes(f)), []);
 });
 

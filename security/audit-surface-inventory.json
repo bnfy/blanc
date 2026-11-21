@@ -14,6 +14,8 @@
     "src/main/display-capture-helper-preload.js",
     "src/main/fill-status-preload.js",
     "src/main/link-route-preload.js",
+    "src/main/local-network-preload.js",
+    "src/main/passkey-preload.js",
     "src/main/preload.js",
     "src/main/reader-preload.js",
     "src/main/scoped-capture-preload-linux.js",
@@ -63,7 +65,7 @@
     },
     {
       "file": "cloudflare/ping-worker/src/dl.js",
-      "sha256": "96ee8955191a50b3d553426ceb14efd2bec3a78e6d149a1825bf4f1da51c8b3d",
+      "sha256": "858ed3b69305e7d64500f360cc4e926f8ee664c28c3048176c606892497c5f6f",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -75,7 +77,7 @@
     },
     {
       "file": "cloudflare/ping-worker/src/index.js",
-      "sha256": "c5df725a1b69357de20dd19c7b9bd9a3aed3d48cf14dcf305f88fd44c9c727c5",
+      "sha256": "39e2c34f63b0970eb1977fb844f6ee3b7bc172e372ce5147c76103c47473842a",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -165,7 +167,7 @@
     },
     {
       "file": "src/main/chrome-protocol.js",
-      "sha256": "9aeba19661990918a41570653752f2ddb3d6eaf13a555bb54ed12c32ae1dd277",
+      "sha256": "a91da5f48e4c15721fddf93ea81cb8799508b2e1d216accc20dcd9167e03c563",
       "literalChannels": [
         "blanc-chrome"
       ],
@@ -206,8 +208,9 @@
     },
     {
       "file": "src/main/downloads.js",
-      "sha256": "cc2f638f21d50a0d1b00037949f125657ae62960376b53b3b993746bf1dfa074",
+      "sha256": "d2c94537d8db49739396e41f5857bd5f655d0ab765c4b25f0b146253e78c5375",
       "literalChannels": [
+        "input-event",
         "updated",
         "will-download"
       ],
@@ -253,6 +256,15 @@
       "role": "privileged implementation or service"
     },
     {
+      "file": "src/main/local-network-preload.js",
+      "sha256": "22ff277373f75f8ac3696ac70fd7d96a69e0ea5212dc08722421d34b0fda61ce",
+      "literalChannels": [
+        "local-network:permission-changed",
+        "local-network:permission-query"
+      ],
+      "role": "preload"
+    },
+    {
       "file": "src/main/local-profiles.js",
       "sha256": "d8baba8cbfb484cbc5a696c430af5ad512d37200eb2b9a8823fef0f164cbc41b",
       "literalChannels": [],
@@ -260,7 +272,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "952e4071620ae75d92c1bf1dcda28c7369eea73522ed41fa31d2b78fd565c800",
+      "sha256": "be27316b4e6d7f11b2be626fbdb0de1b1d89114702f14672b23cec2fa39d53c8",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -322,6 +334,7 @@
         "chrome:open-main-menu",
         "chrome:open-shield",
         "chrome:open-spaces",
+        "chrome:page-backdrop",
         "chrome:page-tint",
         "chrome:pill-notice",
         "chrome:preview-vertical-tabs-width",
@@ -390,6 +403,8 @@
         "groups:ungroup",
         "input-event",
         "link-route:activated",
+        "local-network:permission-changed",
+        "local-network:permission-query",
         "login",
         "open-file",
         "open-url",
@@ -405,9 +420,11 @@
         "page-tint:changed",
         "page-title-updated",
         "pages:blocking:status",
+        "pages:bookmarks:changed",
         "pages:pins:changed",
         "pages:settings:appearance",
         "pages:settings:sync-pair-joined",
+        "pages:start:backdrop-band",
         "pages:start:remote-tabs",
         "pages:start:sent-items",
         "pages:start:status",
@@ -506,7 +523,7 @@
     },
     {
       "file": "src/main/page-tint-policy.js",
-      "sha256": "b3287b2472ab57b642a3a20fd0c3e7b91ff4c78edaadf24df82d359ca88f3235",
+      "sha256": "71f4f5ac9281e572f9f9ea83a2be4e4f3c106368007ce52d03eb3a576da4a3d2",
       "literalChannels": [],
       "role": "foreground/main-frame eligibility policy"
     },
@@ -518,7 +535,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "0b3e4a1d96ff351d4b432ef607e862f6ef49a144fd582ee524743f874ad10a16",
+      "sha256": "3a226a6da649d611d7d20199423cb4331c1ca500418794c0006d99e9e9303325",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -536,13 +553,20 @@
         "pages:bookmarks:browser-sources",
         "pages:bookmarks:capabilities",
         "pages:bookmarks:clear-favicon",
+        "pages:bookmarks:create-folder",
+        "pages:bookmarks:edit",
         "pages:bookmarks:import",
         "pages:bookmarks:import-browser",
         "pages:bookmarks:list",
+        "pages:bookmarks:move",
+        "pages:bookmarks:move-folder",
         "pages:bookmarks:remove",
         "pages:bookmarks:remove-folder",
+        "pages:bookmarks:remove-many",
         "pages:bookmarks:rename-folder",
+        "pages:bookmarks:reorder",
         "pages:bookmarks:set-folder",
+        "pages:bookmarks:tree",
         "pages:clear-browsing-data",
         "pages:default-browser:get",
         "pages:default-browser:set",
@@ -609,11 +633,11 @@
         "pages:settings:trust-receipt",
         "pages:settings:welcome-tour",
         "pages:shortcuts:list",
+        "pages:start:backdrop",
         "pages:start:choose-wallpaper",
         "pages:start:data",
         "pages:start:dismiss-sent",
         "pages:start:focus-group",
-        "pages:start:layout-used",
         "pages:start:migration-checklist-dismiss",
         "pages:start:onboarding-set",
         "pages:start:open-island",
@@ -627,13 +651,16 @@
         "pages:start:remove-wallpaper",
         "pages:start:set-clock",
         "pages:start:set-dynamic-wallpaper",
-        "pages:start:set-layout",
+        "pages:start:set-shortcut-count",
         "pages:start:set-wallpaper",
         "pages:start:set-wallpaper-color",
         "pages:start:set-wallpaper-fill",
         "pages:start:set-wallpaper-follow-space",
         "pages:start:set-wallpaper-style",
         "pages:start:set-wallpaper-wash",
+        "pages:start:set-widget",
+        "pages:start:set-widget-place",
+        "pages:start:set-widget-size",
         "pages:start:shared-question",
         "pages:start:shared-question-answer",
         "pages:start:startup-continue",
@@ -662,14 +689,20 @@
       "role": "privileged implementation or service"
     },
     {
+      "file": "src/main/passkey-preload.js",
+      "sha256": "0e6fdd87774772bf818c09757921eff2468f15ac0f17b650c3715b43e6c1b0df",
+      "literalChannels": [],
+      "role": "preload"
+    },
+    {
       "file": "src/main/permissions.js",
-      "sha256": "9a7ab75ac32998ab9b95d416225d202750bc722e1d42c1f0e6026fc864b74032",
+      "sha256": "1be194bfaa7c1db487a1be27c2906084fcf79f1a11e1c1db09539c967cf148a7",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "61b13ec4e7d6da6e7fe5e5ac4642bf9904bf7e490f437d46a909b0ce86f64882",
+      "sha256": "afcb0f7d2d969c10259416e87e3b85cb5677fd184b6074edd0a6f4f124f3983c",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -719,6 +752,7 @@
         "chrome:open-main-menu",
         "chrome:open-shield",
         "chrome:open-spaces",
+        "chrome:page-backdrop",
         "chrome:page-tint",
         "chrome:pill-notice",
         "chrome:preview-vertical-tabs-width",
@@ -969,7 +1003,7 @@
     },
     {
       "file": "src/main/sync.js",
-      "sha256": "0a7c5974677f186c08ab657512173eb20beaf3f5571e1373ceb5aa3cb701271f",
+      "sha256": "701360021ca261490e7e31dbfef12106a25b5d1d94500ac567058927d19e6d7d",
       "literalChannels": [
         "before-quit"
       ],
@@ -983,7 +1017,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "2382ad567d5996a9c4834acbbf4be4db3a71f5ca066f6b367e8112a83b2055fa",
+      "sha256": "4f9d2ffa4b55bd96529f2f71e82195b49a17f67e49c0bbbfa992bd730c43c558",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -1000,14 +1034,22 @@
         "pages:blocking:status",
         "pages:bookmarks:browser-sources",
         "pages:bookmarks:capabilities",
+        "pages:bookmarks:changed",
         "pages:bookmarks:clear-favicon",
+        "pages:bookmarks:create-folder",
+        "pages:bookmarks:edit",
         "pages:bookmarks:import",
         "pages:bookmarks:import-browser",
         "pages:bookmarks:list",
+        "pages:bookmarks:move",
+        "pages:bookmarks:move-folder",
         "pages:bookmarks:remove",
         "pages:bookmarks:remove-folder",
+        "pages:bookmarks:remove-many",
         "pages:bookmarks:rename-folder",
+        "pages:bookmarks:reorder",
         "pages:bookmarks:set-folder",
+        "pages:bookmarks:tree",
         "pages:clear-browsing-data",
         "pages:default-browser:get",
         "pages:default-browser:set",
@@ -1077,11 +1119,12 @@
         "pages:settings:trust-receipt",
         "pages:settings:welcome-tour",
         "pages:shortcuts:list",
+        "pages:start:backdrop",
+        "pages:start:backdrop-band",
         "pages:start:choose-wallpaper",
         "pages:start:data",
         "pages:start:dismiss-sent",
         "pages:start:focus-group",
-        "pages:start:layout-used",
         "pages:start:migration-checklist-dismiss",
         "pages:start:onboarding-set",
         "pages:start:open-island",
@@ -1097,13 +1140,16 @@
         "pages:start:sent-items",
         "pages:start:set-clock",
         "pages:start:set-dynamic-wallpaper",
-        "pages:start:set-layout",
+        "pages:start:set-shortcut-count",
         "pages:start:set-wallpaper",
         "pages:start:set-wallpaper-color",
         "pages:start:set-wallpaper-fill",
         "pages:start:set-wallpaper-follow-space",
         "pages:start:set-wallpaper-style",
         "pages:start:set-wallpaper-wash",
+        "pages:start:set-widget",
+        "pages:start:set-widget-place",
+        "pages:start:set-widget-size",
         "pages:start:shared-question",
         "pages:start:shared-question-answer",
         "pages:start:startup-continue",
@@ -1143,7 +1189,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "2a90edb5e62310785085402a74dab910adbd77f1da432f81487b84359713181e",
+      "sha256": "e09b2ccf5ac8693b98a86120c8fc6bed6866b746c9fbcac04f3c0d5cea62d32b",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

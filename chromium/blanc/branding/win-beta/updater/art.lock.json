@@ -1,0 +1,12 @@
+{
+  "source": "05e3efe13611d1067d19a48e051cfff7b6fd7bf68aaabd947e0012df2d65e24d",
+  "files": {
+    "blanc/branding/win-beta/updater/background_light.bmp": "680453674209c8c02be8e316985292c35c710445d494805e10cf0fc881b711ae",
+    "blanc/branding/win-beta/updater/background_dark.bmp": "99f1e729162a42ca5e0f5a6bf0b77589d4a635b0f7f3e3c7424e434128568a6b",
+    "blanc/branding/win-beta/updater/error.bmp": "6fcd01e934dc93a0ffadf30af29f595b2ec078bf2ac62384d369e95f6ac1c778",
+    "blanc/branding/win-beta/updater/error_dark.bmp": "564f684c35b33c2f32466e1bdb7dcfce846abcf0003b139e2afaef78c4ff5fe8",
+    "blanc/branding/win-beta/updater/splash.bmp": "ac01e8bbcd254d2efcdfe2843aa8d2b58f475fc2e54878717e9b2877d4e6fc99",
+    "../cloudflare/update-worker/assets/logo_light.bmp": "1f090e7968ad713f40f1ad8ec8f7440c64834a7fd2fd24351f0fd5fa969e513d",
+    "../cloudflare/update-worker/assets/logo_dark.bmp": "73cb1222f128cfff2a3f9ce3b23918a0f3ee0504aadf3b4eddf3bd81a33c0da2"
+  }
+}

@@ -4,6 +4,8 @@
 
 #include "base/functional/callback.h"
 #include "base/values.h"
+#include <optional>
+#include "third_party/skia/include/core/SkColor.h"
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -18,7 +20,9 @@
 class GURL;
 struct NavigateParams;
 namespace sessions { struct SessionWindow; }
+namespace ui { class ImageModel; }
 namespace content { class WebContents; class RenderFrameHost; }
+namespace page_load_metrics { class PageLoadTracker; }
 namespace blanc::browser_api::mojom { class BrowserApiFactory; }
 class BrowserWindowInterface;
 class MultiContentsView;
@@ -165,19 +169,73 @@ bool IsBetaBuild();
 bool IsIslandWindow(const BrowserWindowInterface* browser);
 // The never-shown window a profile's set-aside Space pages live in (F41).
 bool IsHoldWindow(BrowserWindowInterface* browser);
+// What a window is to the quit rule (W2 A2): an ordinary Island window, a
+// mini window, a profile's hidden hold window, or anything else.
+enum class BrowserKind { kOrdinary, kMini, kHold, kOther };
+// True when no ordinary window remains, so holds and mini windows close.
+bool ShouldCloseHolds(const std::vector<BrowserKind>& remaining);
+// After an Island window goes: closes the hold windows and mini windows
+// when no ordinary window remains. Does nothing on the Mac.
+void CloseHoldsIfNoOrdinaryWindow();
 // Shipping's private tab (owner decision D1): |url| (the private Start Page
 // when empty) in a new private tab of |browser|, an ordinary window.
 content::WebContents* NewPrivateTab(BrowserWindowInterface* browser, const GURL& url);
+// #1505: switches |browser| to an unused Start Page of that kind (private or
+// not), opening the Island on it when |open_island|; null when there is none
+// or the setting is off, and the caller opens a new tab as before.
+content::WebContents* ReuseNewTab(BrowserWindowInterface* browser, bool is_private,
+                                  bool open_island = true);
+// F59: a Ctrl+Tab (1) or Ctrl+Shift+Tab (-1) taken as a step of the
+// most-recent-use switch; false when Chromium should step by position.
+bool TabSwitchCommand(BrowserWindowInterface* browser, int direction);
 // The Dock's New Private Window, and ⌘⇧N with no window open: a window
 // Chromium just opened becomes one private tab, as shipping's
 // openNewWindow({private: true}). False leaves it as Chromium made it.
 bool MakePrivateWindow(BrowserWindowInterface* browser);
+// The protected-video notice (protected_media.inc): watches a page load for
+// a request for protected playback. Called for each tracked page (patch 0091).
+void AddProtectedMediaObserver(page_load_metrics::PageLoadTracker* tracker);
 bool HasIsland(views::View* parent);
 int RailWidth(views::View* parent);
 int HeaderHeight(views::View* parent);
 bool IsCaption(views::View* parent, int x, int y);
 void RestoreExtensions(views::View* parent);
+// Chromium's infobars in an Island window are part of the Island's band
+// (owner, 2026-11-14): its current color, with ink and a link color that read
+// on it. nullopt outside Island windows, where Chromium's own colors stay.
+struct InfoBarStyle { SkColor background; SkColor foreground; SkColor link; };
+std::optional<InfoBarStyle> InfoBarStyleFor(const views::View* infobar);
+// Blanc's Sunrise mark, for the infobars that show Chromium's logo.
+ui::ImageModel InfoBarMark();
 bool OpenExtensions(BrowserWindowInterface* browser);
+// Whether an extension may open its action popup in |browser| on its own
+// (chrome.action.openPopup): an Island window, unless a page is fullscreen.
+// The Island hides Chromium's toolbar but keeps its extensions container,
+// where the popup anchors.
+bool CanOpenExtensionPopup(BrowserWindowInterface* browser);
+// Chromium's extensions container in |browser| started or stopped showing
+// an action popup. With Auto-hide on, the Island comes down and stays while
+// the popup is open, as shipping's open popups hold it.
+void ExtensionPopupChanged(BrowserWindowInterface* browser, bool open);
+// Shipping's macOS Dock close: a person's close of the primary Island window
+// hides it and keeps its tabs (true); anything else closes as usual (false).
+bool HoldWindowOnClose(BrowserWindowInterface* browser);
+// The Dock icon with no window showing: show the held primary window.
+bool ReopenHeldWindow();
+// The Dock menu's current-tab row (shipping's dockActiveTabDescriptor): the
+// front Island window's current tab. |label| is its title cut to 75
+// characters, the private label for a private tab, or empty while no window
+// shows; |icon_png| is its site icon, empty for a private tab or none.
+struct DockTab {
+  std::u16string label;
+  std::string icon_png;
+};
+DockTab DockActiveTab();
+// That row chosen: the window comes forward (the held one is shown again).
+void FocusDockActiveWindow();
+// The app menu's Check for Updates…: Blanc Beta's updater checks now; a build
+// with no updater opens About, where the version is.
+void CheckForUpdatesFromMenu();
 // History, Downloads and the bookmark manager in an Island window open
 // Blanc's utility sheet ("history", "downloads" or "bookmarks"), as
 // shipping's menu items do. False leaves Chromium's own page.

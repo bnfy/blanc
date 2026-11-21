@@ -4,6 +4,8 @@ const { JsonStore } = require('./store');
 const settings = require('./settings');
 const bookmarks = require('./bookmarks');
 const startPagePins = require('./start-page-pins');
+const favoritesLayout = require('./favorites-layout');
+const { withFavoritesLayout, settingsEqualsWithLayout } = require('./favorites-layout-model');
 const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const sends = require('./sends');
@@ -120,7 +122,8 @@ const STORES = [
     // it drops the value on upload; syncPayloadEquals then sees the blob
     // lacking it and the next newer device uploads it again.
     name: 'settings',
-    export: () => withStartPagePins(settings.exportForSync()),
+    // The Favorites layout record (favoritesLayout) rides here the same way.
+    export: () => withFavoritesLayout(withStartPagePins(settings.exportForSync()), favoritesLayout.exportForSync()),
     merge: (remote) => {
       settings.mergeFromSync(remote);
       startPagePins.mergeFromSync({
@@ -128,8 +131,14 @@ const STORES = [
         at: remote?.meta?.startPagePins,
         tie: remote?.tieBreakers?.startPagePins,
       });
+      favoritesLayout.mergeFromSync({
+        value: remote?.values?.favoritesLayout,
+        at: remote?.meta?.favoritesLayout,
+        tie: remote?.tieBreakers?.favoritesLayout,
+      });
     },
-    equals: settings.syncPayloadEquals,
+    equals: settingsSyncEquals,
+    stored: noteSettingsStored,
   },
   {
     name: 'session',
@@ -182,6 +191,29 @@ const STORES = [
   { name:'shared', optional:true, spaces:true, export:sharedSpaces.exportSidecar, merge:sharedSpaces.mergeSidecar,
     equals:sharedSpaces.equals, hasPublishableContent:payload=>Object.values(payload?.devices??{}).some(x=>x.tabs?.length) },
 ];
+
+// When a Blanc that predates the Favorites layout record dropped it, this
+// device puts it back at most once per interval (favorites-layout-model.js).
+// The time is taken only once an upload succeeds (noteSettingsStored), so a
+// failed or retried PUT is tried again, and it is tied to the record's clock,
+// so an edit made since is never held back.
+let lastLayoutUpload = { clock: 0, at: 0 };
+let settingsPutPending = false;
+function settingsSyncEquals(exported, remote) {
+  const equal = settingsEqualsWithLayout(exported, remote, {
+    baseEquals: settings.syncPayloadEquals, lastUpload: lastLayoutUpload, now: Date.now(),
+  });
+  settingsPutPending = !equal;
+  return equal;
+}
+
+/** The settings entry's `stored` hook: runs after a successful PUT, and also
+ * when the pass found nothing to upload (then there is nothing to note). */
+function noteSettingsStored(payload) {
+  if (!settingsPutPending) return;
+  settingsPutPending = false;
+  lastLayoutUpload = { clock: payload?.meta?.favoritesLayout ?? 0, at: Date.now() };
+}
 
 /** The settings payload plus the Personal profile's Start Page pins, when
  * they have ever changed. */
@@ -1508,6 +1540,9 @@ function init() {
     if (isDefaultLocalProfile()) onDefaultLocalChange();
   });
   startPagePins.onChanged(() => {
+    if (isDefaultLocalProfile()) onDefaultLocalChange();
+  });
+  favoritesLayout.onChanged(() => {
     if (isDefaultLocalProfile()) onDefaultLocalChange();
   });
   // Tab-driven publishes: fingerprint-gated upstream (tabsync.noteTabsChanged),

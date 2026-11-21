@@ -41,7 +41,7 @@
     "note": "Slash command hint shown in the ⌘L palette for /save."
   },
   "slash.save.doc": {
-    "message": "Save this page to favorites, into a folder if you name one",
+    "message": "Save this page to favorites, into a folder if you name one. Put > between folder names to reach a folder inside a folder, as in Work > Clients",
     "note": "Reference description of /save [folder] on blanc://shortcuts and in Help → Slash Commands."
   },
   "slash.history.hint": {
@@ -682,6 +682,18 @@
     "message": "<0>{host}</0> wants to show notifications",
     "note": "Permission prompt; <0>{host}</0> is the requesting site's host."
   },
+  "permission.prompt.loopbackNetwork": {
+    "message": "<0>{host}</0> wants to connect to apps on this device",
+    "note": "Permission prompt for Local Network Access to this computer; <0>{host}</0> is the requesting site's host."
+  },
+  "permission.prompt.localNetwork": {
+    "message": "<0>{host}</0> wants to connect to devices on your local network",
+    "note": "Permission prompt for Local Network Access to other devices on the network; <0>{host}</0> is the requesting site's host."
+  },
+  "permission.prompt.localNetworkAccess": {
+    "message": "<0>{host}</0> wants to connect to apps and devices on your local network",
+    "note": "Permission prompt asking for both kinds of Local Network Access at once; <0>{host}</0> is the requesting site's host."
+  },
   "permission.prompt.other": {
     "message": "<0>{host}</0> wants to use “{permission}”",
     "note": "Permission prompt for another permission; {permission} is Chromium's permission name."
@@ -698,6 +710,34 @@
     "message": "OK",
     "note": "Single button of an informational native dialog.",
     "maxLength": 6
+  },
+  "localHtml.refused.message": {
+    "message": "Blanc couldn’t open “{name}”",
+    "note": "Native dialog title when a local HTML file handed to Blanc (Finder, Open with) can’t be shown; {name} is the file name."
+  },
+  "localHtml.refused.messageMany": {
+    "message": "{count, plural, one {Blanc couldn’t open # file} other {Blanc couldn’t open # files}}",
+    "note": "Native dialog title when several local HTML files handed to Blanc can’t be shown; {count} is how many."
+  },
+  "localHtml.refused.line": {
+    "message": "{name}: {reason}",
+    "note": "One line per refused file in that dialog; {name} is the file name, {reason} one of the localHtml.refused reasons."
+  },
+  "localHtml.refused.tooLarge": {
+    "message": "The file is larger than 8 MB. Blanc opens local pages up to 8 MB.",
+    "note": "Why a local HTML file wasn’t shown: over the 8 MB limit of Blanc’s local page preview."
+  },
+  "localHtml.refused.notHtml": {
+    "message": "This file isn’t an HTML page.",
+    "note": "Why a local HTML file wasn’t shown: it turned out not to be an HTML file (for example, a shortcut to another kind of file)."
+  },
+  "localHtml.refused.changed": {
+    "message": "The file changed while Blanc was reading it. Open it again.",
+    "note": "Why a local HTML file wasn’t shown: it changed while Blanc read it."
+  },
+  "localHtml.refused.unreadable": {
+    "message": "Blanc couldn’t read the file. Check that it still exists and that you can open it.",
+    "note": "Why a local HTML file wasn’t shown: it is missing, unreadable or not an ordinary file."
   },
   "fill.setupEnable.title": {
     "message": "Set up 1Password",
@@ -1138,6 +1178,42 @@
     "message": "Show window",
     "note": "Workspace row: the space is open in another window; choosing it brings that window forward. Also part of the row tooltip.",
     "maxLength": 16
+  },
+  "ws.row.titleProfile": {
+    "message": "{count, plural, one {{name} · {profile} · {context} · # tab} other {{name} · {profile} · {context} · # tabs}}",
+    "note": "Tooltip and accessible name of another profile's Space row in the Spaces menu; {name} is the Space, {profile} its profile's name, {context} what choosing it does (ws.row.openInProfile or ws.row.showWindow)."
+  },
+  "ws.row.titleProfileShown": {
+    "message": "{name} · {profile} · {context}",
+    "note": "Tooltip and accessible name of another profile's Space row when a window of that profile already shows it; {context} is ws.row.showWindow."
+  },
+  "ws.editor.profileDisabled": {
+    "message": "{profile} (can’t add Spaces)",
+    "note": "New Space editor: a profile in the Profile choice that can't take a new Space (it's full or its Spaces can't be read); the reason is in its tooltip."
+  },
+  "ws.row.openInProfile": {
+    "message": "Opens in a {profile} window",
+    "note": "Part of another profile's Space row tooltip: choosing it opens the Space in a window of that profile; {profile} is the profile's name."
+  },
+  "ws.profile.unreadable": {
+    "message": "Couldn’t read this profile’s Spaces.",
+    "note": "Spaces menu: shown under another profile's name when its saved Spaces file can't be read."
+  },
+  "ws.editor.profile": {
+    "message": "Profile",
+    "note": "New Space editor: label of the choice of which local profile the new Space belongs to (shown only with two or more profiles)."
+  },
+  "ws.editor.helpOtherProfile": {
+    "message": "Tabs stay in their own profile, so a Space in {profile} starts empty.",
+    "note": "New Space editor help when another profile is chosen; {profile} is that profile's name."
+  },
+  "ws.switcher.profileLabel": {
+    "message": "Space · {profile}",
+    "note": "Quick Switcher result label for a Space in another profile; {profile} is the profile's name."
+  },
+  "ws.error.profileUnavailable": {
+    "message": "That profile is no longer available.",
+    "note": "Spaces menu error when the other profile chosen was deleted or is being deleted."
   },
   "ws.row.retained": {
     "message": "Retained in memory",
@@ -3552,7 +3628,7 @@
     "note": "Settings → General: setting name."
   },
   "settings.general.theme.hint": {
-    "message": "System follows your macOS/Windows theme",
+    "message": "System follows your computer's light or dark mode",
     "note": "Settings → General: explanation under a setting."
   },
   "settings.general.theme.system": {
@@ -3682,22 +3758,22 @@
     "note": "Settings → General: explanation under a setting."
   },
   "settings.general.newtabLayout.ledger": {
-    "message": "ledger",
+    "message": "Ledger",
     "note": "Settings → General: start-page layout name (also shown on the start page).",
     "maxLength": 12
   },
   "settings.general.newtabLayout.billboard": {
-    "message": "billboard",
+    "message": "Billboard",
     "note": "Settings → General: start-page layout name (also shown on the start page).",
     "maxLength": 13
   },
   "settings.general.newtabLayout.shelf": {
-    "message": "shelf",
+    "message": "Shelf",
     "note": "Settings → General: start-page layout name (also shown on the start page).",
     "maxLength": 12
   },
   "settings.general.newtabLayout.tally": {
-    "message": "tally",
+    "message": "Tally",
     "note": "Settings → General: start-page layout name (also shown on the start page).",
     "maxLength": 12
   },
@@ -3782,6 +3858,22 @@
   "settings.general.tabSwitchOrder.hint": {
     "message": "Hold Ctrl and press Tab to go back through the tabs you used last, then let go of Ctrl to switch. Esc stays where you are.",
     "note": "Settings → General: explanation under a setting."
+  },
+  "settings.general.reuseNewTab.label": {
+    "message": "Switch to an unused new tab",
+    "note": "Settings → General → Browsing: label of the switch (on by default) that makes New Tab and New Private Tab go to a new tab in the current window that hasn't been used yet (still on the start page, never navigated) instead of opening another one."
+  },
+  "settings.general.reuseNewTab.hint": {
+    "message": "New Tab goes to a new tab in this window that you haven't used yet, instead of opening another. New Private Tab does the same for private tabs.",
+    "note": "Settings → General → Browsing: hint under Switch to an unused new tab. New Tab and New Private Tab are the File menu items of the same name."
+  },
+  "settings.general.askWhereToSave.label": {
+    "message": "Ask where to save each file",
+    "note": "Settings → General → Browsing: label of the switch (off by default) that shows a Save As dialog for every download. When it's off, downloads go straight to the Downloads folder."
+  },
+  "settings.general.askWhereToSave.hint": {
+    "message": "When this is off, downloads go straight to your Downloads folder, and a file with the same name gets a number added.",
+    "note": "Settings → General → Browsing: hint under Ask where to save each file. Downloads is the name of the system's Downloads folder; use the folder's name on that platform in this language."
   },
   "settings.general.tabSwitchOrder.recent": {
     "message": "In the order you used them",
@@ -4797,6 +4889,14 @@
   "settings.permissions.notifications": {
     "message": "Notifications",
     "note": "Settings → Privacy → Site permissions: permission name."
+  },
+  "settings.permissions.loopbackNetwork": {
+    "message": "Apps on this device",
+    "note": "Settings → Privacy → Site permissions: permission name (connections to apps on this computer)."
+  },
+  "settings.permissions.localNetwork": {
+    "message": "Devices on your local network",
+    "note": "Settings → Privacy → Site permissions: permission name (connections to other devices on the network)."
   },
   "settings.permissions.audio": {
     "message": "Microphone",
@@ -6156,8 +6256,8 @@
     "note": "Start page: announced when pinning is refused because every pin is taken; {count} is the most pins it holds."
   },
   "onboarding.skip": {
-    "message": "skip setup",
-    "note": "Onboarding dialog: button that skips the remaining steps, lowercase by design.",
+    "message": "Skip setup",
+    "note": "Onboarding dialog: button that skips the remaining steps.",
     "maxLength": 16
   },
   "onboarding.stepLabel": {
@@ -6165,28 +6265,28 @@
     "note": "Onboarding dialog: progress above the step, e.g. “2 / 6 — import”; {name} is the step name."
   },
   "onboarding.step.default": {
-    "message": "default browser",
-    "note": "Onboarding dialog: name of step 1, lowercase by design."
+    "message": "Default browser",
+    "note": "Onboarding dialog: name of step 1."
   },
   "onboarding.step.import": {
-    "message": "import",
-    "note": "Onboarding dialog: name of step 2, lowercase by design."
+    "message": "Import",
+    "note": "Onboarding dialog: name of step 2."
   },
   "onboarding.step.island": {
-    "message": "the island",
-    "note": "Onboarding dialog: name of step 3 (the Island), lowercase by design."
+    "message": "The Island",
+    "note": "Onboarding dialog: name of step 3 (the Island)."
   },
   "onboarding.step.blocking": {
-    "message": "ad blocking",
-    "note": "Onboarding dialog: name of step 4, lowercase by design."
+    "message": "Ad blocking",
+    "note": "Onboarding dialog: name of step 4."
   },
   "onboarding.step.privacy": {
-    "message": "privacy",
-    "note": "Onboarding dialog: name of step 5, lowercase by design."
+    "message": "Privacy",
+    "note": "Onboarding dialog: name of step 5."
   },
   "onboarding.step.theme": {
-    "message": "theme",
-    "note": "Onboarding dialog: name of step 6, lowercase by design."
+    "message": "Theme",
+    "note": "Onboarding dialog: name of step 6."
   },
   "onboarding.default.title": {
     "message": "Make Blanc your default",
@@ -6277,7 +6377,7 @@
     "note": "Onboarding → step 2 (import): result when every one was already saved."
   },
   "onboarding.island.title": {
-    "message": "Meet the island",
+    "message": "Meet the Island",
     "note": "Onboarding dialog → step 3: heading; the island is the Island command bar."
   },
   "onboarding.island.body": {
@@ -6313,8 +6413,8 @@
     "note": "Onboarding dialog → step 4: heading."
   },
   "onboarding.blocking.body": {
-    "message": "Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /off-leash.",
-    "note": "Onboarding dialog → step 4: explanation; /off-leash is a command."
+    "message": "Blocks known ads and trackers using bundled rules. It cannot stop every tracker. Turn it off per-site with /allow-ads.",
+    "note": "Onboarding dialog → step 4: explanation; /allow-ads is a command."
   },
   "onboarding.blocking.toggle": {
     "message": "Block ads & trackers",
@@ -6365,12 +6465,12 @@
     "note": "Onboarding dialog → step 6: explanation; /theme is a command."
   },
   "onboarding.theme.light": {
-    "message": "light",
-    "note": "Onboarding dialog → step 6: theme choice, lowercase by design."
+    "message": "Light",
+    "note": "Onboarding dialog → step 6: theme choice."
   },
   "onboarding.theme.dark": {
-    "message": "dark",
-    "note": "Onboarding dialog → step 6: theme choice, lowercase by design."
+    "message": "Dark",
+    "note": "Onboarding dialog → step 6: theme choice."
   },
   "onboarding.back": {
     "message": "Back",
@@ -6558,6 +6658,18 @@
     "message": "{count, plural, one {Skipped # already saved.} other {Skipped # already saved.}}",
     "note": "Favorites page → import: second sentence of the result; # favorites were already saved."
   },
+  "favorites.import.moved": {
+    "message": "{count, plural, one {Moved # into its folder.} other {Moved # into their folders.}}",
+    "note": "Favorites page → import: sentence of the result; # favorites saved earlier were moved into the nested folders the other browser has them in."
+  },
+  "favorites.import.shortened": {
+    "message": "{count, plural, one {Placed # in a parent folder because its folder path was too long.} other {Placed # in a parent folder because their folder paths were too long.}}",
+    "note": "Favorites page → import: sentence of the result; # favorites went into a parent folder because the full folder path is too long to save."
+  },
+  "favorites.import.orderDropped": {
+    "message": "Some folders are in the default order because the collection is very large.",
+    "note": "Favorites page → import: sentence of the result when the collection is too large to keep the chosen order of every folder."
+  },
   "favorites.import.allSaved": {
     "message": "{count, plural, one {That favorite was already saved.} other {All # favorites were already saved.}}",
     "note": "Favorites page → import: result when every one was already saved."
@@ -6639,6 +6751,192 @@
   "favorites.row.removeLabel": {
     "message": "Remove {title} from Favorites",
     "note": "Favorites page: accessible name of the remove button; {title} is the page’s title."
+  },
+  "favorites.manager.all": {
+    "message": "All favorites",
+    "note": "Favorites manager: the top of the folder tree and of the breadcrumb."
+  },
+  "favorites.manager.tree": {
+    "message": "Folders",
+    "note": "Favorites manager: accessible name of the folder tree."
+  },
+  "favorites.manager.breadcrumb": {
+    "message": "Folder path",
+    "note": "Favorites manager: accessible name of the breadcrumb above the list."
+  },
+  "favorites.manager.chooseFolder": {
+    "message": "Folder",
+    "note": "Favorites manager: accessible name of the folder menu shown instead of the tree in a narrow window."
+  },
+  "favorites.manager.search": {
+    "message": "Search favorites",
+    "note": "Favorites manager: placeholder and accessible name of the search field."
+  },
+  "favorites.manager.newFolder": {
+    "message": "New folder",
+    "note": "Favorites manager: button that adds a folder in the folder that is open."
+  },
+  "favorites.manager.newFolderPlaceholder": {
+    "message": "Folder name",
+    "note": "Favorites manager: placeholder of the name field for a new folder."
+  },
+  "favorites.manager.newFolderInside": {
+    "message": "New folder inside",
+    "note": "Favorites manager: folder menu item."
+  },
+  "favorites.manager.open": {
+    "message": "Open",
+    "note": "Favorites manager: folder menu item that opens the folder."
+  },
+  "favorites.manager.rename": {
+    "message": "Rename",
+    "note": "Favorites manager: folder menu item."
+  },
+  "favorites.manager.moveTo": {
+    "message": "Move to…",
+    "note": "Favorites manager: menu item that lists folders to move into."
+  },
+  "favorites.manager.moveUp": {
+    "message": "Move up",
+    "note": "Favorites manager: menu item that moves a row one place up."
+  },
+  "favorites.manager.moveDown": {
+    "message": "Move down",
+    "note": "Favorites manager: menu item that moves a row one place down."
+  },
+  "favorites.manager.remove": {
+    "message": "Remove",
+    "note": "Favorites manager: menu item and selection button that remove favorites."
+  },
+  "favorites.manager.deleteFolder": {
+    "message": "Delete folder",
+    "note": "Favorites manager: folder menu item. Its favorites move up one level; none are deleted."
+  },
+  "favorites.manager.topLevel": {
+    "message": "Top level",
+    "note": "Favorites manager: first entry of Move to…, outside every folder."
+  },
+  "favorites.manager.more": {
+    "message": "More actions for {title}",
+    "note": "Favorites manager: accessible name of a row’s ⋮ button; {title} is the favorite or folder."
+  },
+  "favorites.manager.items": {
+    "message": "{count, plural, one {# favorite} other {# favorites}}",
+    "note": "Favorites manager: count on a folder row; # favorites are in it and its sub-folders."
+  },
+  "favorites.manager.selected": {
+    "message": "{count, plural, one {# selected} other {# selected}}",
+    "note": "Favorites manager: how many rows are selected."
+  },
+  "favorites.manager.clearSelection": {
+    "message": "Clear selection",
+    "note": "Favorites manager: button that clears the selection."
+  },
+  "favorites.manager.noResults": {
+    "message": "No favorites match.",
+    "note": "Favorites manager: search found nothing."
+  },
+  "favorites.manager.emptyFolder": {
+    "message": "This folder is empty.",
+    "note": "Favorites manager: the open folder has nothing in it."
+  },
+  "favorites.manager.error.tooLong": {
+    "message": "That folder path would be longer than Blanc can sync. Use a shorter name or fewer levels.",
+    "note": "Favorites manager: a rename or move was refused because a folder path would be over 100 characters, the most Sync carries."
+  },
+  "favorites.manager.error.cycle": {
+    "message": "A folder can’t move into itself.",
+    "note": "Favorites manager: a folder was dropped into itself or one of its folders."
+  },
+  "favorites.manager.error.invalid": {
+    "message": "That name can’t be used.",
+    "note": "Favorites manager: a folder name was blank or over 100 characters."
+  },
+  "favorites.manager.error.missing": {
+    "message": "That folder no longer exists.",
+    "note": "Favorites manager: the folder was changed elsewhere (another device, another window) before the edit arrived."
+  },
+  "favorites.manager.edit": {
+    "message": "Edit…",
+    "note": "Favorites page: a favorite's menu item that opens the Edit dialog (name, address and folder).",
+    "maxLength": 16
+  },
+  "favorites.manager.editName": {
+    "message": "Name",
+    "note": "Favorites manager: label of the field holding a favorite's name while it is edited.",
+    "maxLength": 16
+  },
+  "favorites.manager.editAddress": {
+    "message": "Address",
+    "note": "Favorites manager: label of the field holding a favorite's web address while it is edited.",
+    "maxLength": 16
+  },
+  "favorites.manager.editSave": {
+    "message": "Save",
+    "note": "Favorites manager: button that saves a favorite's edited name and address.",
+    "maxLength": 12
+  },
+  "favorites.manager.editCancel": {
+    "message": "Cancel",
+    "note": "Favorites manager: button that closes a favorite's edit without saving.",
+    "maxLength": 12
+  },
+  "favorites.manager.error.exists": {
+    "message": "Another favorite already has that address.",
+    "note": "Favorites manager: an edited address is already saved as another favorite."
+  },
+  "favorites.manager.error.invalidUrl": {
+    "message": "Enter a web address, such as example.com.",
+    "note": "Favorites manager: an edited address isn't a web page (only http and https addresses can be favorites)."
+  },
+  "favorites.manager.error.favoriteMissing": {
+    "message": "That favorite no longer exists.",
+    "note": "Favorites manager: the favorite was removed elsewhere (another device, another window) before its edit arrived."
+  },
+  "favorites.manager.openNewTab": {
+    "message": "Open in new tab",
+    "note": "Favorites page: a favorite's menu item that opens it in a new tab beside the Favorites tab."
+  },
+  "favorites.manager.openAll": {
+    "message": "Open all",
+    "note": "Favorites page: selection bar button that opens every selected favorite in its own new tab."
+  },
+  "favorites.manager.editTitle": {
+    "message": "Edit favorite",
+    "note": "Favorites page: title of the dialog that changes a favorite's name, address and folder."
+  },
+  "favorites.manager.editFolder": {
+    "message": "Folder",
+    "note": "Favorites page: label of the Edit dialog's folder menu.",
+    "maxLength": 16
+  },
+  "favorites.manager.moreShort": {
+    "message": "More actions",
+    "note": "Favorites page: tooltip of the ⋮ menu button on every row."
+  },
+  "favorites.import.menu": {
+    "message": "Bring my stuff to Blanc",
+    "note": "Favorites page: the one button that opens every way to bring things over from another browser."
+  },
+  "favorites.manager.results": {
+    "message": "{count, plural, one {# result} other {# results}}",
+    "note": "Favorites manager: label above search results; # is how many."
+  },
+  "favorites.manager.removeConfirm": {
+    "message": "{count, plural, one {Remove # item?} other {Remove # items?}}",
+    "note": "Favorites manager: asks before removing several selected rows (favorites or folders); # is how many."
+  },
+  "favorites.manager.cancel": {
+    "message": "Cancel",
+    "note": "Favorites manager: keeps the selection instead of removing it."
+  },
+  "favorites.manager.pin": {
+    "message": "Pin",
+    "note": "Favorites manager: row button that pins the favorite to the Start Page."
+  },
+  "favorites.manager.unpin": {
+    "message": "Unpin",
+    "note": "Favorites manager: row button that unpins the favorite from the Start Page."
   },
   "favorites.picker.label": {
     "message": "Move {title} to a folder",
@@ -9865,8 +10163,176 @@
     "message": "Open-source licenses",
     "note": "Android Settings → About: row opening the list of open-source licenses."
   },
+  "android.welcome.shareTitle": {
+    "message": "Share from this phone",
+    "note": "Blanc for Android walkthrough: the iPhone string ios.welcome.shareTitle with \"this phone\"."
+  },
+  "android.welcome.measureUsageHelp": {
+    "message": "Each time you open Blanc, it sends one anonymous count: a random ID for this install, the app version and the Android version. Never what you browse. See blanc.day/privacy.",
+    "note": "Blanc for Android: under the Measure usage switch in the walkthrough and Settings; ios.welcome.measureUsageHelp with the Android version. Says exactly what the launch ping carries."
+  },
+  "android.defaultBrowser.body": {
+    "message": "Make Blanc your default browser so links from other apps open here.",
+    "note": "Blanc for Android walkthrough: the default-browser step, ios.defaultBrowser.body without iPhone app names."
+  },
+  "android.defaultBrowser.open": {
+    "message": "Set as default",
+    "note": "Blanc for Android walkthrough: the button that asks Android to make Blanc the default browser (Android shows its own confirmation)."
+  },
   "android.settings.autoRevokeSummary": {
     "message": "To protect your data, let Blanc remove permissions from sites that you haven’t visited recently",
     "note": "Android Settings → Site settings: summary under the unused-permissions switch (replaces Chromium’s text, which names Chrome)."
+  },
+  "android.licenses.title": {
+    "message": "Open-source licenses",
+    "note": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text."
+  },
+  "android.licenses.intro": {
+    "message": "Read Blanc's licenses and notices below. Chromium's credits list its own licenses and third-party components.",
+    "note": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text."
+  },
+  "android.licenses.chromiumCredits": {
+    "message": "Chromium licenses and credits",
+    "note": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text."
+  },
+  "android.licenses.license": {
+    "message": "Blanc software license",
+    "note": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text."
+  },
+  "android.licenses.assetLicense": {
+    "message": "Blanc names, logos and identity assets",
+    "note": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text."
+  },
+  "android.licenses.thirdPartyNotices": {
+    "message": "Repository third-party notices",
+    "note": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text."
+  },
+  "android.licenses.chromiumForkNotices": {
+    "message": "Chromium fork notices",
+    "note": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text."
+  },
+  "android.licenses.loading": {
+    "message": "Loading notice…",
+    "note": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text."
+  },
+  "android.licenses.loadFailed": {
+    "message": "This notice could not be loaded. Open its title link to read the bundled file.",
+    "note": "Android Settings → About → Open-source licenses. Legal documents remain verbatim; this key is page interface text."
+  },
+  "favorites.import.lede": {
+    "message": "Copy your favorites and open tabs from another browser. Nothing there changes.",
+    "note": "Favorites page → Bring my stuff to Blanc: the line under the dialog title. Opening the dialog looks for other browsers."
+  },
+  "favorites.import.from": {
+    "message": "From",
+    "note": "Favorites page → Bring my stuff to Blanc: label of the menu of browser profiles and a bookmarks file."
+  },
+  "favorites.import.fileOption": {
+    "message": "Bookmarks file (HTML)…",
+    "note": "Favorites page → Bring my stuff to Blanc: last entry of the From menu; Import then opens a file picker."
+  },
+  "favorites.import.what": {
+    "message": "What to bring",
+    "note": "Favorites page → Bring my stuff to Blanc: heading of the checkboxes for what to copy."
+  },
+  "favorites.import.whatTabs": {
+    "message": "Open tabs",
+    "note": "Favorites page → Bring my stuff to Blanc: checkbox; Import then goes on to Bring Your Tabs."
+  },
+  "favorites.import.go": {
+    "message": "Import",
+    "note": "Favorites page → Bring my stuff to Blanc: the button that copies what was chosen."
+  },
+  "favorites.import.cancel": {
+    "message": "Cancel",
+    "note": "Favorites page → Bring my stuff to Blanc: closes the dialog without copying anything."
+  },
+  "favorites.manager.deleteFolderLabel": {
+    "message": "Delete folder {title}",
+    "note": "Favorites manager: accessible name of a folder row’s × button; {title} is the folder. What was in it moves up a level."
+  },
+  "favorites.import.tabsSkipped": {
+    "message": "Open tabs weren’t brought over.",
+    "note": "Favorites page → Bring my stuff to Blanc: added after the result when Open tabs was ticked but the favorites import was cancelled or failed, so Blanc did not go on to Bring Your Tabs."
+  },
+  "start.billboard.blocked": {
+    "message": "{count, plural, one {# ad blocked this week} other {# ads blocked this week}}",
+    "note": "Start Page: the line under the clock, the count alone; lowercase by design."
+  },
+  "start.widgets.heading": {
+    "message": "Widgets",
+    "note": "Start Page → Customize: heading over the widget switches."
+  },
+  "start.widgets.unconfirmed": {
+    "message": "Could not confirm the widget change. Try again.",
+    "note": "Start Page → Customize: shown when a widget change could not be saved."
+  },
+  "start.widgets.move": {
+    "message": "Move {name}",
+    "note": "Start Page: accessible name of a widget card's grip; {name} is the card's title."
+  },
+  "start.widgets.movedLeft": {
+    "message": "{name} is now on the left, position {position}.",
+    "note": "Start Page: announced after a card moves into the left column; {position} counts from 1."
+  },
+  "start.widgets.movedRight": {
+    "message": "{name} is now on the right, position {position}.",
+    "note": "Start Page: announced after a card moves into the right column; {position} counts from 1."
+  },
+  "start.widgets.resize": {
+    "message": "Resize {name}",
+    "note": "Start Page: accessible name of a card's resize edge."
+  },
+  "start.widgets.size": {
+    "message": "Size {size} of {count}",
+    "note": "Start Page: value of a card's resize edge, one of the fixed sizes."
+  },
+  "start.widgets.sizeAuto": {
+    "message": "Fits the column",
+    "note": "Start Page: value of a card's resize edge when it has no fixed size."
+  },
+  "start.widgets.resized": {
+    "message": "{name} is now size {size} of {count}.",
+    "note": "Start Page: announced after a card takes a fixed size."
+  },
+  "start.widgets.resizedAuto": {
+    "message": "{name} fits its column again.",
+    "note": "Start Page: announced after a card goes back to fitting its column."
+  },
+  "start.shortcuts.heading": {
+    "message": "Shortcuts",
+    "note": "Start Page → Customize: heading over the shortcut count stepper."
+  },
+  "start.shortcuts.fewer": {
+    "message": "Fewer shortcuts",
+    "note": "Start Page → Customize: the stepper's minus button."
+  },
+  "start.shortcuts.more": {
+    "message": "More shortcuts",
+    "note": "Start Page → Customize: the stepper's plus button."
+  },
+  "start.shortcuts.count": {
+    "message": "{count} shortcuts",
+    "note": "Start Page → Customize: the stepper's value, read aloud."
+  },
+  "start.shortcuts.sofar": {
+    "message": "{count, plural, one {# site so far.} other {# sites so far.}} More appear as you browse.",
+    "note": "Start Page → Customize: shown when Blanc knows fewer sites than the chosen count."
+  },
+  "start.devices.tabs": {
+    "message": "{count, plural, one {# tab} other {# tabs}}",
+    "note": "Start Page → On your other devices: a device's tab count beside its name."
+  },
+  "start.devices.more": {
+    "message": "{count, plural, one {# more tab} other {# more tabs}}",
+    "note": "Start Page → On your other devices: button showing a device's remaining tabs."
+  },
+  "start.devices.fewer": {
+    "message": "Show fewer",
+    "note": "Start Page → On your other devices: button folding a device's list back to three."
+  },
+  "start.mahjong.play": {
+    "message": "Play Blanc Mahjong",
+    "note": "Start Page footer: the link that opens Blanc Mahjong."
   }
 }

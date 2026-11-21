@@ -16,18 +16,21 @@ const header = path.join(root, 'blanc/common/menu_strings.h');
 const {ref, commit} = JSON.parse(fs.readFileSync(path.join(root, 'blanc/island-renderer.json'), 'utf8'));
 // Struct field, shipping message key.
 export const LABELS = [['new_mini_window', 'menu.newMiniWindow'], ['new_private_tab', 'menu.newPrivateTab'], ['new_private_window', 'menu.newPrivateWindow'],
+  // The app menu's update check and the Dock menu's current-tab row (N18).
+  ['check_for_updates', 'menu.checkForUpdates'], ['private_tab', 'tab.privateLabel'], ['untitled_tab', 'tab.untitled'], ['loading_tab', 'tab.loading'],
   // The Island address input's menu (F19), shipping's address-menu-model.js.
   ['undo', 'menu.undo'], ['redo', 'menu.redo'], ['cut', 'menu.cut'], ['copy', 'menu.copy'],
   ['copy_clean_link', 'menu.copyCleanLink'], ['paste', 'menu.paste'],
   ['paste_and_go', 'addressMenu.pasteAndGo'], ['delete_text', 'menu.delete'], ['select_all', 'menu.selectAll']];
 
-const show = file => execFileSync('git', ['show', `${ref}:${file}`], {cwd: root, encoding: 'utf8'});
+const show = (file, at = ref) => execFileSync('git', ['show', `${at}:${file}`], {cwd: root, encoding: 'utf8'});
 
-export function catalogs(labels = LABELS) {
-  const locales = JSON.parse(show('src/main/i18n-locales.json')).filter(l => l.status === 'selectable');
+// `at` is the shipping commit to read; settings-strings.mjs passes its own pin.
+export function catalogs(labels = LABELS, at = ref) {
+  const locales = JSON.parse(show('src/main/i18n-locales.json', at)).filter(l => l.status === 'selectable');
   return locales.map(({code}) => {
     const context = {module: {exports: {}}};
-    vm.runInNewContext(show(`src/renderer/pages/strings.${code}.js`), context);
+    vm.runInNewContext(show(`src/renderer/pages/strings.${code}.js`, at), context);
     const values = labels.map(([, key]) => {
       const value = context.module.exports.messages?.[key];
       if (typeof value !== 'string' || !value) throw Error(`${code}: missing ${key}`);
