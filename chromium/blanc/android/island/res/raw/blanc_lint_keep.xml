@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
 <!-- Blanc's launcher icon variants replace Chromium's resources of the same names (patch 0101), so
-     whatever Chromium version uses them shows Blanc's; this build doesn't, which lint calls unused. -->
+     whatever Chromium version uses them shows Blanc's; this build doesn't, which lint calls unused.
+     The two context-menu strings are Chromium's own: patch 0124 gives those items Blanc's labels, so
+     Chromium's "Chrome" wording is no longer used, and release lint would call it unused. -->
 <resources xmlns:tools="http://schemas.android.com/tools"
-    tools:keep="@mipmap/layered_app_icon,@mipmap/layered_app_icon_background,@drawable/themed_app_icon" />
+    tools:keep="@mipmap/layered_app_icon,@mipmap/layered_app_icon_background,@drawable/themed_app_icon,@string/contextmenu_open_in_new_chrome_tab,@string/contextmenu_open_in_chrome_window" />

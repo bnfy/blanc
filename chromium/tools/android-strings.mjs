@@ -21,7 +21,7 @@ export const ANDROID_KEYS = [
   'ios.island.stop', 'ios.island.closePrivateTab', 'tab.privateLabel', 'ios.palette.placeholder', 'ios.tabs.startPage', 'pagesNav.bookmarks', 'pagesNav.history', 'pill.private.chip',
   // #1463's Island and Sunrise menu: Back, Forward, the Start Page placeholder, Reload and Settings.
   'menu.reload', 'menu.settings', 'pill.back', 'pill.forward', 'pill.placeholder',
-  'pill.private.title', 'tab.new',
+  'tab.new',
   // The Sunrise menu (A1 Task 7), with the iPhone's labels.
   'menu.newPrivateTab', 'share.picker.share', 'tabMenu.removeFavorite', 'tabMenu.saveFavorite',
   // A2's slash commands (SlashCommands.available()), the iPhone's hints.
