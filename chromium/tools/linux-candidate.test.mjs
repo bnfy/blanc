@@ -184,7 +184,7 @@ test('hosted candidate checks name the missing arm64 archive even if x64 is avai
   f.command('gh', `[[ $1 == release && $2 == view ]]
 echo '{"isDraft":true,"assets":[{"name":"blanc-linux-candidate.tar.gz"}]}'`);
   const res = spawnSync('bash', ['-eu', '-c', download], {encoding: 'utf8', env: {...process.env,
-    ARCH: 'arm64', ASSET: ASSET_NAME('arm64'), CANDIDATE_SHA256: exeSha256,
+    GITHUB_JOB: 'candidate', ARCH: 'arm64', ASSET: ASSET_NAME('arm64'), CANDIDATE_SHA256: exeSha256,
     RUNNER_TEMP: f.dir, DRAFT_TAG: 'fixture', GITHUB_REPOSITORY: 'fixture'}});
   assert.notEqual(res.status, 0);
   assert.match(res.stderr, /missing.*blanc-linux-arm64-candidate\.tar\.gz/i);

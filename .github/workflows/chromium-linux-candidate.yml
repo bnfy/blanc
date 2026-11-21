@@ -19,6 +19,7 @@ on:
           - smoke
           - frame
           - install
+          - quit
           - repo-metadata
       arch:
         description: Linux candidate architecture (one tarball SHA-256 per dispatch)
@@ -109,8 +110,8 @@ jobs:
           mkdir "$RUNNER_TEMP/candidate"
           # Old x64 evidence still names the L0 asset. Always check the downloaded
           # bytes, including when GitHub has no digest on file for a legacy asset.
-          archives=$(jq -c --arg name "$ASSET" --arg arch "$ARCH" '
-            [.assets[] | select(.name == $name or ($arch == "x64" and .name == "blanc-linux-candidate.tar.gz"))]' <<< "$draft")
+          archives=$(jq -c --arg name "$ASSET" --arg arch "$ARCH" --arg job "$GITHUB_JOB" '
+            [.assets[] | select(.name == $name or ($job != "quit" and $arch == "x64" and .name == "blanc-linux-candidate.tar.gz"))]' <<< "$draft")
           [[ $archives != '[]' ]] || { echo "Missing $ARCH candidate archive $ASSET on $DRAFT_TAG." >&2; exit 1; }
           names=$(jq -r --arg digest "sha256:$CANDIDATE_SHA256" '
             .[] | select((.digest // "") == "" or .digest == $digest) | .name' <<< "$archives")
@@ -348,6 +349,101 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: chromium-linux-install-${{ matrix.system }}-${{ matrix.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/results
+          if-no-files-found: warn
+          retention-days: 14
+
+  quit:
+    if: ${{ inputs.check == 'quit' }}
+    name: quit (linux ${{ inputs.arch }})
+    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    timeout-minutes: 40
+    permissions:
+      contents: write
+    env: *candidate-env
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - *validate
+      - *checkout
+      - *node
+      - *pins
+      - *download
+      - *unpack
+      - name: Identify the runner's candidate
+        run: |
+          arch=$(node -p process.arch)
+          jq -e --arg arch "$arch" '.platform == "linux" and .arch == $arch' "$CANDIDATE_DIR/candidate.json" || {
+            echo "$ASSET must contain a linux $arch candidate." >&2; exit 1;
+          }
+          shopt -s nullglob
+          packages=("$CANDIDATE_DIR"/packages/*.deb)
+          [[ ${#packages[@]} == 1 && -f ${packages[0]} && ! -L ${packages[0]} ]] || {
+            echo "Quit requires one .deb in $ASSET under packages/. Building packages requires the owner's committed repository key." >&2; exit 1;
+          }
+          deb=${packages[0]}
+          name=${deb##*/}
+          [[ $name =~ ^blanc-prototype_[0-9a-zA-Z.+~-]+_(amd64|arm64)\.deb$ ]] || {
+            echo 'Expected a blanc-prototype Debian package filename.' >&2; exit 1;
+          }
+          [[ -s chromium/linux/keys/blanc-repository.asc ]] || {
+            echo "Missing chromium/linux/keys/blanc-repository.asc. Quit needs the owner's committed public key to verify the package." >&2; exit 1;
+          }
+          echo "QUIT_DEB=$deb" >> "$GITHUB_ENV"
+          echo "APPROVAL=signed-candidate-$arch.json" >> "$GITHUB_ENV"
+      - name: Download the package approval from the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --dir "$RUNNER_TEMP/candidate" \
+            --pattern "$APPROVAL" --pattern "$APPROVAL.asc" || {
+              echo "Quit requires $APPROVAL and $APPROVAL.asc from $DRAFT_TAG." >&2; exit 1;
+            }
+          for file in "$APPROVAL" "$APPROVAL.asc"; do
+            [[ -s $RUNNER_TEMP/candidate/$file ]] || { echo "Missing $file from $DRAFT_TAG." >&2; exit 1; }
+          done
+      - name: Verify the approval and the Debian package
+        run: |
+          approval="$RUNNER_TEMP/candidate/$APPROVAL"
+          keyring="$RUNNER_TEMP/blanc.gpg"
+          gpg --batch --dearmor --output "$keyring" chromium/linux/keys/blanc-repository.asc
+          gpgv --keyring "$keyring" "$approval.asc" "$approval"
+          deb=$QUIT_DEB
+          name=${deb##*/}
+          id=$(jq -er '.id' "$CANDIDATE_DIR/candidate.json")
+          hash=$(jq -er --arg id "$id" --arg tar "$CANDIDATE_SHA256" --arg arch "$(node -p process.arch)" --arg file "$name" '
+            select(.candidate == $id and .tarSha256 == $tar and .arch == $arch) |
+            .deb | select(.file == $file or .file == ("packages/" + $file)) | .sha256 | select(test("^[0-9a-f]{64}$"))' "$approval")
+          printf '%s  %s\n' "$hash" "$deb" | sha256sum --check --strict
+          [[ $(dpkg-deb -f "$deb" Package) == blanc-prototype && $(dpkg-deb -f "$deb" Architecture) == "$(dpkg --print-architecture)" ]]
+          # Hash the stripped executable directly from the authenticated .deb.
+          installed=$(dpkg-deb --fsys-tarfile "$deb" | tar -xO ./opt/bnfy/blanc-prototype/chrome | sha256sum)
+          echo "QUIT_INSTALLED_SHA256=${installed%% *}" >> "$GITHUB_ENV"
+      - name: Install Openbox, X11 input, accessibility and the verified package
+        run: |
+          bash scripts/ci-apt-mirror.sh
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth openbox xdotool x11-utils dbus-daemon at-spi2-core python3-gi gir1.2-atspi-2.0 "$QUIT_DEB"
+      - *dependencies
+      - name: Close the last ordinary window under X11
+        env:
+          ACCESSIBILITY_ENABLED: '1'
+          LANG: en_US.UTF-8
+        run: |
+          xvfb-run -a --server-args='-screen 0 1920x1080x24' dbus-run-session -- bash <<'X11'
+          set -euo pipefail
+          openbox --sm-disable > "$RESULTS/openbox.log" 2>&1 &
+          wm=$!
+          trap 'kill "$wm" 2>/dev/null || true; wait "$wm" 2>/dev/null || true' EXIT
+          timeout 15s bash -c 'until xprop -root _NET_SUPPORTING_WM_CHECK | grep -q "window id"; do sleep 0.1; done'
+          node chromium/tests/linux-quit.mjs "$CANDIDATE_DIR" "$RESULTS" "--installed-sha256=$QUIT_INSTALLED_SHA256"
+          X11
+      - name: Keep the quit evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chromium-linux-quit-${{ inputs.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/results
           if-no-files-found: warn
           retention-days: 14
