@@ -109,7 +109,7 @@ GitHub Actions, `xvfb`, `weston`.
   without the dot; throws unless exactly one).
 - Consumes: existing `outputName`, `requireDesktopHost`, `WINDOWS_OUTPUTS`.
 
-- [ ] **Step 1: Write the failing tests** in `build.test.mjs`:
+- [x] **Step 1: Write the failing tests** in `build.test.mjs`:
   `outputName(['--out=BlancLinuxPrototype'])` returns it; `buildLane` returns the object above;
   `--sdk-root=` with the Linux output throws `/macOS option/`;
   `requireDesktopHost('BlancLinuxPrototype', 'darwin', 'arm64')` throws `/x86-64 Linux/` and
@@ -118,8 +118,8 @@ GitHub Actions, `xvfb`, `weston`.
   in a temporary folder, a first `acquireCheckoutLock` succeeds, a second throws `/locked/`, and after
   the first's release a third succeeds; `sysrootHash` picks `f851…` (64 hex) from the four real marker
   names listed above and throws for zero or two.
-- [ ] **Step 2: Run** `node --test chromium/tools/build.test.mjs`; expect the new tests to FAIL.
-- [ ] **Step 3: Implement** in `build.mjs`: `LINUX_OUTPUTS` joins the names `outputName` accepts and the
+- [x] **Step 2: Run** `node --test chromium/tools/build.test.mjs`; expect the new tests to FAIL.
+- [x] **Step 3: Implement** in `build.mjs`: `LINUX_OUTPUTS` joins the names `outputName` accepts and the
   usage line; `requireDesktopHost` treats Linux outputs like Windows ones (x86-64 Linux only);
   `buildLane` adds `chrome_sandbox` (the setuid helper the candidate launches with); a
   `linuxEnvironment(src, out)` records `host`, `clangRevision`, `clangVersion`, `sysrootHash` (from
@@ -129,8 +129,8 @@ GitHub Actions, `xvfb`, `weston`.
   build in the same `finally` that removes the output lock; on `--record-environment` the Linux summary
   line is
   `Linux sysroot <hash>`. No Linux candidate is auto-recorded (as for Windows).
-- [ ] **Step 4: Run** the test file; expect PASS. Run the whole fork unit suite; expect PASS.
-- [ ] **Step 5: Commit** `Fork: the build guard learns the Linux output and the checkout lock (L0)`.
+- [x] **Step 4: Run** the test file; expect PASS. Run the whole fork unit suite; expect PASS.
+- [x] **Step 5: Commit** `Fork: the build guard learns the Linux output and the checkout lock (L0)`.
 
 ### Task 2: Linux arguments and the server setup script
 
@@ -146,10 +146,10 @@ GitHub Actions, `xvfb`, `weston`.
 - Produces: `out/BlancLinuxPrototype` generated from `chromium/linux/args/prototype-x64.gn`; evidence in
   `~/blanc-evidence/linux/`.
 
-- [ ] **Step 1:** `prototype-x64.gn`: `target_os = "linux"`, `target_cpu = "x64"`, `is_debug = false`,
+- [x] **Step 1:** `prototype-x64.gn`: `target_os = "linux"`, `target_cpu = "x64"`, `is_debug = false`,
   `is_component_build = false`, `symbol_level = 0`, with a header comment in the style of
   `chromium/windows/args/prototype-x64.gn`.
-- [ ] **Step 2:** `setup.sh [--dry-run]`, modeled on the Windows `bootstrap.sh` but never syncing:
+- [x] **Step 2:** `setup.sh [--dry-run]`, modeled on the Windows `bootstrap.sh` but never syncing:
   refuse anything but x86-64 Linux and root (it runs as `blanc`); refuse a real run without
   `--windows-release-idle`; require the first field of `~/chromium-desktop/.blanc-synced` to equal the
   lane's upstream (else stop: "run the Windows bootstrap first"); require the amd64 sysroot folder
@@ -162,8 +162,8 @@ GitHub Actions, `xvfb`, `weston`.
   `bootstrap.sh` does; create `out/BlancLinuxPrototype/args.gn` (refuse a differing one) and `gn gen`;
   release the lock. After it, run the Windows `--check`s again into `...-after-<output>.log` and print
   the targets that differ between before and after. `--dry-run` prints each step and changes nothing.
-- [ ] **Step 3:** `bootstrap.sh` takes and releases the same lock around its apply and `gn gen` steps.
-- [ ] **Step 4:** `README.md`: layout (shared checkout, the Linux output, evidence folder), the lock,
+- [x] **Step 3:** `bootstrap.sh` takes and releases the same lock around its apply and `gn gen` steps.
+- [x] **Step 4:** `README.md`: layout (shared checkout, the Linux output, evidence folder), the lock,
   the rule "no Linux setup or build while a Windows build runs or a Windows candidate is being
   prepared", how to rebuild.
 - [ ] **Step 5:** A contention check: with the lock held by a `mkdir` in one shell, `setup.sh`, the
@@ -172,7 +172,7 @@ GitHub Actions, `xvfb`, `weston`.
   `shellcheck` both scripts if installed; run `bash chromium/linux/server/setup.sh
   --dry-run` on the server from `~/blanc-desktop` at this branch; expect the plan printed and nothing
   changed (`git -C ~/chromium-desktop/src status --porcelain` identical before and after).
-- [ ] **Step 6: Commit** `Fork: Linux arguments and the server setup script (L0)`.
+- [x] **Step 6: Commit** `Fork: Linux arguments and the server setup script (L0)`.
 
 ### Task 3: First build and compile fixes
 
@@ -180,16 +180,16 @@ GitHub Actions, `xvfb`, `weston`.
 - Modify: files under `chromium/blanc/` as compile errors require; a new patch only if an upstream file
   must change (then import its pristine copy first, per the facts above)
 
-- [ ] **Step 1:** On the server (after the Windows-release check): `setup.sh --windows-release-idle`
+- [x] **Step 1:** On the server (after the Windows-release check): `setup.sh --windows-release-idle`
   (real run), then `node chromium/tools/build.mjs ~/chromium-desktop/src --record-environment
   --out=BlancLinuxPrototype`, `--check`, and the approved cold build `--build --allow-large-build
   --out=BlancLinuxPrototype` in a tmux session, logged to `~/blanc-evidence/linux/cold-build-1.log`.
-- [ ] **Step 2:** For each compile error: fix in `chromium/blanc/` behind `BUILDFLAG(IS_LINUX)` /
+- [x] **Step 2:** For each compile error: fix in `chromium/blanc/` behind `BUILDFLAG(IS_LINUX)` /
   `is_linux` where the fix is Linux-only, or a small patch (with its upstream file imported); rerun
   `setup.sh` and the guard (`--build`), next log number. If the error is a missing dependency that only
   `gclient` hooks would fetch, stop and report to the owner with the log line.
-- [ ] **Step 3:** Run the fork unit suite and `check-patches.py` for both lanes; expect PASS.
-- [ ] **Step 4:** Commit `Fork: the first Linux build compiles (L0)` (the fixes; the logs stay on the
+- [x] **Step 3:** Run the fork unit suite and `check-patches.py` for both lanes; expect PASS.
+- [x] **Step 4:** Commit `Fork: the first Linux build compiles (L0)` (the fixes; the logs stay on the
   server). If nothing needed fixing, no commit; note the build facts for Task 6.
 
 ### Task 4: Package the candidate and get it to GitHub
@@ -214,23 +214,23 @@ GitHub Actions, `xvfb`, `weston`.
 - Produces (`progress.mjs`): `linuxCandidate(record)` and `--linux-candidate=<package.json>` writing
   `tracker.currentCandidates.linux`.
 
-- [ ] **Step 1: Write the failing tests:** `candidateId` of a 64-hex hash; refuses `'abc'`;
+- [x] **Step 1: Write the failing tests:** `candidateId` of a 64-hex hash; refuses `'abc'`;
   `runtimeConfig` refuses an id that doesn't match `exeSha256`; `candidateIdentityFiles({candidate,
   executable, executableSha256, singleBinary: true})` returns one pair and still throws for a config with
   neither `singleBinary` nor a library; `linuxCandidate` refuses a `windows-x64-…` id and an id not
   derived from `exeSha256`.
-- [ ] **Step 2: Run** them; expect FAIL.
-- [ ] **Step 3: Implement** the three modules. `package-candidate.mjs` follows
+- [x] **Step 2: Run** them; expect FAIL.
+- [x] **Step 3: Implement** the three modules. `package-candidate.mjs` follows
   `chromium/windows/package-candidate.mjs` (same lock, pin, blocker-hash and `gn_logs.txt` rules) with:
   the output `BlancLinuxPrototype`; `chrome_sandbox` copied as `chrome-sandbox`; a tarball
   (`tar -czf`, so file modes survive) instead of a zip; `candidate.json` with `platform: 'linux'`,
   `arch: 'x64'`, `exeSha256`, `qualification: 'preview with test hooks; never distributable'`.
   `ship-candidate.sh` follows the Windows one with `DRAFT_TAG=fork-linux-candidate`, the id pattern
   `^linux-x64-[0-9a-f]{16}$`, and prints the `chromium-linux-candidate.yml` run command.
-- [ ] **Step 4: Run** the tests and the fork unit suite; expect PASS.
-- [ ] **Step 5:** Package on the server into a new folder `~/blanc-evidence/linux/candidate-<n>`; ship it
+- [x] **Step 4: Run** the tests and the fork unit suite; expect PASS.
+- [x] **Step 5:** Package on the server into a new folder `~/blanc-evidence/linux/candidate-<n>`; ship it
   from this Mac; record it with `progress.mjs --linux-candidate=…`; `progress.mjs --check` passes.
-- [ ] **Step 6: Commit** `Fork: Linux candidate packaging and identity (L0)`.
+- [x] **Step 6: Commit** `Fork: Linux candidate packaging and identity (L0)`.
 
 ### Task 5: The hosted Linux run: workflow, smoke check, exclusions
 
@@ -247,15 +247,15 @@ GitHub Actions, `xvfb`, `weston`.
   Windows); job artifact with `smoke-x11.json`, `smoke-wayland.json`, screenshots and, for a suite run,
   the runner's results.
 
-- [ ] **Step 1: Write the failing tests:** `linux-fork-exclusions.test.mjs` asserts every key is an
+- [x] **Step 1: Write the failing tests:** `linux-fork-exclusions.test.mjs` asserts every key is an
   existing case id and every reason is non-empty, and that it contains exactly the Windows exclusions
   whose reasons hold on every platform (the 1Password, Reading Mode, Dark Reader, updater, V12, V18 and
   quiet-tabs rows, with their reasons copied, except the updater row, whose reason becomes "The test
   build has no updater; Linux betas update through apt and dnf from Blanc's repository (spec owner
   decision 2), proven at L3."), not the Windows-only ones (caption buttons, icon catalog, Windows Hello,
   the Arc row). `run-suite.test.mjs` mirrors the Windows `suiteArguments` tests.
-- [ ] **Step 2: Run** them; expect FAIL.
-- [ ] **Step 3: Implement.** `linux-smoke.mjs --display=x11|wayland CANDIDATE_DIR RESULTS_DIR`, built on
+- [x] **Step 2: Run** them; expect FAIL.
+- [x] **Step 3: Implement.** `linux-smoke.mjs --display=x11|wayland CANDIDATE_DIR RESULTS_DIR`, built on
   `chromium/tests/windows-smoke.mjs` (its `NativeFixture` launch, `assertRendering`, blocker-ready and
   page-loaded checks and screenshots), adding: the run is an ordinary user's (`process.getuid() !== 0`);
   `/proc/sys/kernel/apparmor_restrict_unprivileged_userns` reads `1`; at least one renderer process
@@ -273,26 +273,32 @@ GitHub Actions, `xvfb`, `weston`.
   harness's dependencies" step does; run the smoke under `xvfb-run -a` and under Wayland; when `suite` is `f0`, run
   `linux/run-suite.mjs` under `xvfb-run -a` at 1920×1080; upload the artifact. Every action
   SHA-pinned, as in the Windows workflow.
-- [ ] **Step 4: Run** the tests and the fork unit suite; expect PASS. `actionlint` the workflow if
+- [x] **Step 4: Run** the tests and the fork unit suite; expect PASS. `actionlint` the workflow if
   available.
-- [ ] **Step 5:** PR the workflow alone to `main` (approved; GitHub dispatches only default-branch
+- [x] **Step 5:** PR the workflow alone to `main` (approved; GitHub dispatches only default-branch
   workflows) and merge when checks pass. Merge Tasks 1–5 into `chromium/next` and push (verified fork
   work goes there without asking), so the scripts the workflow loads exist on that ref. Then
   `gh workflow run chromium-linux-candidate.yml --repo bnfy/blanc --ref chromium/next -f
   sha256=<Task 4's zip SHA-256> -f suite=none`; both smokes pass.
-- [ ] **Step 6: Commit** `Fork: hosted Linux candidate run and smoke check (L0)`.
+- [x] **Step 6: Commit** `Fork: hosted Linux candidate run and smoke check (L0)`.
 
 ### Task 6: Full suite, records, close
+
+The [L0 gate table and suite triage](../../../chromium/STATUS.md#linux) record
+the first x64 build. It compiled without errors, so Task 3 required no fix
+or separate commit. Task 2's four server contention checks and dry-run
+comparison lack a recorded result. The Mac nightly and both Windows plan
+comparisons in Step 3 below remain open.
 
 **Files:**
 - Create: `chromium/reports/f0-linux.json`, `chromium/scenarios/baseline-<candidate>.json`
 - Modify: `chromium/STATUS.md` (a `## Linux` section with the L0 gate table), `chromium/PLATFORMS.md`
   (the `## Linux` section), `chromium/tracker.json`
 
-- [ ] **Step 1:** Make sure the tracker entry from Task 4 is pushed to `chromium/next` (the runner
+- [x] **Step 1:** Make sure the tracker entry from Task 4 is pushed to `chromium/next` (the runner
   refuses a candidate the tracker doesn't name), then run the workflow with `-f sha256=… -f suite=f0`;
   commit the report and baseline as W0 did; list failures by cause (expected: window buttons, L1).
-- [ ] **Step 2:** STATUS `## Linux`: server, output, candidate, cold-build facts, gate table below with
+- [x] **Step 2:** STATUS `## Linux`: server, output, candidate, cold-build facts, gate table below with
   run ids. PLATFORMS `## Linux`: one line per difference found (build, data folder, window buttons
   pending L1, packaging pending L1, updater by apt/dnf, sandbox).
 - [ ] **Step 3:** Mac and Windows unaffected: `check-patches.py` for both lanes; the fork unit suite;
@@ -300,7 +306,7 @@ GitHub Actions, `xvfb`, `weston`.
   changed, regenerate both Windows outputs on the server and the Mac Studio's prototype and beta outputs
   with unchanged arguments (when no release or build is running), compare their plans the same way, and
   confirm the next nightly built from a source commit that includes this work.
-- [ ] **Step 4: Commit** `Fork: Linux L0 recorded` (report, baseline, tracker, STATUS, PLATFORMS).
+- [x] **Step 4: Commit** `Fork: Linux L0 recorded` (report, baseline, tracker, STATUS, PLATFORMS).
 - [ ] **Step 5:** Merge into `chromium/next` and push.
 
 ## Exit gate (all must hold)

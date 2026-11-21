@@ -2555,12 +2555,13 @@
       "exeSha256": "2fcae33ab6ecf4059a262c4db98bf126f20b8d068f2696a52d0e3880b77250c7",
       "version": "158.0.8127.2",
       "treeCommit": "d827f59a02658f96f8d086114635a50f1cfc2658",
-      "qualification": "compiled candidate; runtime acceptance pending"
+      "qualification": "x64 preview with test hooks; sandboxed X11 and Wayland launch checks passed (run 44942354424); full suite 2026-11-21 (run 44942589970, fork 83571b839, shipping v1.49.1): 615 of 667 cases pass, 21 fail, 5 undefined, 26 excluded"
     }
   },
   "baselines": {
     "macos": "scenarios/baseline-macos-1400e3914b1a7bdf.json",
-    "windows": "scenarios/baseline-windows-x64-e42f9e5a532cdf96.json"
+    "windows": "scenarios/baseline-windows-x64-e42f9e5a532cdf96.json",
+    "linux": "scenarios/baseline-linux-x64-2fcae33ab6ecf405.json"
   },
   "scenarioIds": [
     "spec/acceptance/F41-named-workspaces.feature:4",

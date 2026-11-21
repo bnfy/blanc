@@ -3949,6 +3949,47 @@ blanc.day offers 158.0.8127.902 (`cloudflare/update-worker/src/release.json`);
 ledger `chromium/release/windows-ledger.json`. Not done before release: the five
 hands-on checks above, and no website page or download link yet.
 
+## Linux
+
+**L0 first build (PL.1), 2026-11-21.** The desktop lane built Chromium
+158.0.8127.2 for native x64 on `blanc-android-build`, in the Windows build's
+checkout at `~/chromium-desktop/src`. The guarded cold build of
+`out/BlancLinuxPrototype` took 1 h 10 min 51 s for 57,829 steps, with no
+compile errors. [L0 plan](../docs/superpowers/plans/2026-11-21-linux-fork-l0.md)
+
+Candidate `linux-x64-2fcae33ab6ecf405` came from `chromium/next` at
+`d827f59a0`. The preview tarball on the `fork-linux-candidate` draft had
+SHA-256 `b04f264edd4a5d037911a52dc0de79b92cf16c32c46d2154cf43212780147a96`.
+The full suite ran from `83571b839` against the pinned v1.49.1 shipping cases.
+
+| L0 gate | Result | Evidence |
+| --- | --- | --- |
+| 1. Both patch checks, fork unit suite, next Mac nightly and both Windows build plans | Open. Desktop and Android patch checks passed. The fork unit suite had 1,118 passes, 28 skips and zero failures. Evidence is pending for a Mac nightly containing L0 and the before/after plans for `BlancWinPrototype` and `BlancWinBeta` | Local commands in the [F0 report](reports/f0-linux.json). Linux setup saves the Windows plans under `~/blanc-evidence/linux/plans/` |
+| 2. Generated progress agrees with the Linux candidate | Passed locally. Bar A counts 667 cases against the recorded executable hash | `node chromium/tools/progress.mjs --check`, [baseline](scenarios/baseline-linux-x64-2fcae33ab6ecf405.json) |
+| 3. Guarded server build of Linux x64 `chrome` | Passed on the first build with the existing amd64 sysroot. L0 setup ran no hooks | `chromium/tools/build.mjs`, [candidate record at 83571b839](https://github.com/bnfy/blanc/commit/83571b839855a5c3a2189e0299883270593afdf2) |
+| 4. Ordinary-user launch, sandbox, Island, blocker and page on X11 and Wayland | Passed on hosted Ubuntu 24.04 as UID 1001 with `kernel.apparmor_restrict_unprivileged_userns=1`. All six renderers per display had seccomp mode 2 and a PID namespace distinct from the browser's. The Island drew, the blocker became ready, the fixture page loaded and both browsers exited 0 | [Launch run 44942354424](https://github.com/bnfy/blanc/actions/runs/44942354424), `smoke-x11.json` and `smoke-wayland.json` |
+| 5. Full Linux suite recorded, with failures grouped by cause | Passed. On X11, 615 passed, 21 failed, 5 were undefined and 26 were excluded across 667 cases from 618 declarations | [Suite run 44942589970](https://github.com/bnfy/blanc/actions/runs/44942589970), [F0 report](reports/f0-linux.json), [JUnit](reports/f0-linux-junit.xml) |
+| 6. Linux status and platform differences recorded | Written for the L0 candidate | [Linux platform differences](PLATFORMS.md#linux) |
+
+L2 Task 2 takes up the 21 failures and five undefined cases. References give
+the feature and declaration line in `spec/acceptance/`, plus the example line
+for outlines. [L2 triage plan](../docs/superpowers/plans/2026-11-21-linux-fork-l2.md#task-2-every-failing-suite-case-fixed-or-recorded)
+
+| L2 triage group | Failed | Undefined | L0 cases and first observed errors |
+| --- | ---: | ---: | --- |
+| Arc import adapter and discovery | 7 | 1 | `arc-spaces-import:7,14,23,31,39,46,60` expected Arc discovery or preview data on Linux, which offers a copied-file chooser. At `:53` the adapter explicitly rejected the Linux platform before exercising that chooser |
+| Owner decision 5, no Linux app icon catalog | 3 | 0 | `settings-and-theming:12`, `supporter-and-session:7,12` looked for the app-icon control in Settings |
+| Owner decision 4, passkeys | 0 | 1 | `private-tabs:40` called the Touch ID ceremony. Chromium on Linux uses a security key or phone for device-bound passkeys |
+| Owner decision 6, floating Island controls | 0 | 1 | `island-and-commands:320` requested floating button geometry. L1 checks Chromium's own caption buttons |
+| Interface-language harness | 5 | 0 | `interface-language:10,18,26,34,43` all stopped because the harness cannot set the simulated OS language on Linux |
+| Single cases for diagnosis | 6 | 2 | `F41-named-workspaces:236` timed out on the hex picker. `glance:506/example-516` saved x = 0 instead of −25. `newtab-layouts:21` put the Mahjong rail outside the board. `split-view:53` left the surviving pane short of full width. `sync:162,181` timed out waiting for a protected window. `navigation-and-context-menu:12/example-22,32` were undefined at the V12 Brave search-engine step |
+
+**Later candidate, L1 evidence.** `linux-x64-64f8e6871c8fb16f` from
+`9f9a0be93` (patches 0113–0115) passed both launch checks and the window-button
+checks, 8 of 8 each on X11 and Wayland. The L0 baseline above belongs to the
+first candidate. [Launch run 44948948374](https://github.com/bnfy/blanc/actions/runs/44948948374),
+[window-button run 44950261755](https://github.com/bnfy/blanc/actions/runs/44950261755)
+
 ## Android
 Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
 [PR #1333](https://github.com/bnfy/blanc/pull/1333)). Milestones: **A0
@@ -4634,7 +4675,7 @@ on that site, and a wrong search address still fails it.
 | --- | --- |
 | macOS | 635/667 executable cases pass; 1 failed; 3 undefined/not run; 28 excluded — [baseline](scenarios/baseline-macos-1400e3914b1a7bdf.json)<br>S1 rows: 260/263 pass; 0 failed; 1 undefined; 2 excluded |
 | Windows | Not run for current candidate (previous baseline is stale) |
-| Linux | Not run (667 cases) |
+| Linux | 615/667 executable cases pass; 21 failed; 5 undefined/not run; 26 excluded — [baseline](scenarios/baseline-linux-x64-2fcae33ab6ecf405.json)<br>S1 rows: 251/263 pass; 7 failed; 4 undefined; 1 excluded |
 
 667 executable cases from 618 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
 

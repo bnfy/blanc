@@ -31,6 +31,15 @@ gap with the milestone that closes it. Windows design:
 
 ## Linux
 
+| Area | Linux x64 at L0 (2026-11-21) | Milestone |
+| --- | --- | --- |
+| Build | Native x64 on `blanc-android-build`, in the shared desktop checkout at `~/chromium-desktop/src/out/BlancLinuxPrototype` | L0 |
+| Sandbox | The unpacked candidate uses the root-owned, mode-4755 `chrome-sandbox` helper. With Ubuntu's unprivileged user namespace restriction set to 1, all six renderers on each display had seccomp mode 2 and a PID namespace distinct from the browser's. [X11 and Wayland launch checks](https://github.com/bnfy/blanc/actions/runs/44942354424) | L0 unpacked launch. Installed-package sandbox checks belong to L1 |
+| Window frame and buttons | The first build retained Chromium's Linux frame above the Island strip, and the Island drew its own window controls | L1 places Chromium's caption buttons over the strip in the desktop's button order |
+| Data folder | The smoke and suite supplied a temporary `--user-data-dir`. The L0 source still used Chromium's default (`~/.config/chromium` in a default environment). A bare launch was untested | L1 gives the preview its own folder, `~/.config/blanc-prototype` |
+| Platform name | `linux` to the Island, the Sync runner, Sync and telemetry (`blanc/island/host.js`, `blanc/common/host_platform.h`) | L0 |
+| Packaging and updates | L0 used an unpacked preview from the draft candidate tarball | L1 builds `.deb` and `.rpm` packages. L3 proves updates through apt and dnf |
+
 ### Caption buttons
 
 At Chromium 158.0.8127.2 an Island is a normal browser window. X11 and
@@ -62,7 +71,9 @@ to a custom frame. Selecting "Use system title bar and borders" on a supporting
 desktop places the system title bar above the strip, and GetShowWindowTitleBar
 suppresses Chromium's controls.
 
-The X11 input and Wayland layout checks require a built candidate.
+The later candidate `linux-x64-64f8e6871c8fb16f` passed all eight
+hosted checks under X11 (input) and all eight
+under Wayland (layout). [Window-button run 44950261755](https://github.com/bnfy/blanc/actions/runs/44950261755)
 
 ### Crash reporting
 
