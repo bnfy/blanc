@@ -1,0 +1,17 @@
+diff --git a/google_apis/default_api_keys-inc.cc b/google_apis/default_api_keys-inc.cc
+index 613f4cf..18ec73e 100644
+--- a/google_apis/default_api_keys-inc.cc
++++ b/google_apis/default_api_keys-inc.cc
+@@ -138,7 +138,11 @@ constexpr ::google_apis::DefaultApiKeys GetDefaultApiKeysFromDefinedValues() {
+       // BUILDFLAG(SUPPORT_EXTERNAL_GOOGLE_API_KEY).
+       .allow_unset_values =
+           !BUILDFLAG(GOOGLE_CHROME_BRANDING) || BUILDFLAG(IS_FUCHSIA),
+-      .allow_override_via_environment = !BUILDFLAG(GOOGLE_CHROME_BRANDING),
++      // Blanc: never take Google API keys or OAuth client IDs from the
++      // environment. Blanc ships without them on purpose, and a key left in
++      // someone's shell (GOOGLE_API_KEY for another tool, say) would turn on
++      // Google-backed services with it that Blanc's outbound check never sees.
++      .allow_override_via_environment = false,
+ #if defined(USE_OFFICIAL_GOOGLE_API_KEYS)
+       .is_using_google_chrome_keys = true,
+ #else
