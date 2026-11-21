@@ -7,7 +7,7 @@
     <string name="blanc_ios_island_stop">Interrompi il caricamento</string>
     <string name="blanc_ios_island_close_private_tab">Chiudi scheda privata</string>
     <string name="blanc_tab_private_label">Scheda privata</string>
-    <string name="blanc_ios_palette_placeholder">Cerca, inserisci un indirizzo o un /comando</string>
+    <string name="blanc_ios_palette_placeholder">Cerca, inserisci un URL o / per i comandi</string>
     <string name="blanc_ios_tabs_start_page">Pagina iniziale</string>
     <string name="blanc_pages_nav_bookmarks">Preferiti</string>
     <string name="blanc_pages_nav_history">Cronologia</string>

@@ -7,7 +7,7 @@
     <string name="blanc_ios_island_stop">Laden stoppen</string>
     <string name="blanc_ios_island_close_private_tab">Privaten Tab schließen</string>
     <string name="blanc_tab_private_label">Privater Tab</string>
-    <string name="blanc_ios_palette_placeholder">Suchen, Adresse oder /Befehl eingeben</string>
+    <string name="blanc_ios_palette_placeholder">Suchen, URL eingeben oder / für Befehle</string>
     <string name="blanc_ios_tabs_start_page">Startseite</string>
     <string name="blanc_pages_nav_bookmarks">Favoriten</string>
     <string name="blanc_pages_nav_history">Verlauf</string>
