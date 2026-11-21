@@ -3854,6 +3854,30 @@ Favorites work's V30 step for "exactly one new tab opens" also matches the
 Patron checkout. Owner items: the D1 hand checks on a real Windows desktop, and
 whether Windows' caption buttons should come and go with the floating Island.
 
+### W3: Blanc's updater and the online installer (in progress, 2026-11-21)
+Plan `docs/superpowers/plans/2026-11-18-windows-fork-w3.md`. Runner proofs:
+N to N+1 through blanc.day (run 44555492612), a wrong-key package refused
+(44556972300) and a tampered one refused (44558579476), the signed, tagged
+online installer installing from blanc.day (44571648134), its Sunrise window
+(44601648672, 44601672625) and the staging gate (44609184611). Release stages:
+`chromium/release/windows-release.mjs` (not yet run for a release).
+
+Hand checks, 2026-11-21, on the owner's Windows 11 VM (Parallels on the
+MacBook Pro; Windows on Arm running the x64 beta under emulation), scripted
+inside the VM with `prlctl exec`, candidate `windows-x64-a9f301d5f9c2f316`
+(158.0.8127.902, signed in run 44883002621, package `6b5a497d…` signed by the
+owner):
+
+| Check | Result |
+| --- | --- |
+| The signed online installer alone installs the beta from blanc.day | Pass: signature Valid, Bananify Creative; setup exit 0; 158.0.8127.901 registered; Start menu entry **Blanc Beta** |
+| An update arriving (blanc.day switched to .902, updater woken) | Pass: 158.0.8127.902 registered, only the .902 folder left, `chrome.exe` names Bananify Creative and Blanc Beta |
+| A fresh profile's first page | Pass: `chrome://newtab/` (Blanc's Start Page); no Chromium welcome page |
+| Uninstall (the entry's own command) | Pass: exit 19 (success), program folder and Start menu entry gone, updater removed, Electron Blanc 1.51.0 untouched. Kept, as Chromium does: the beta's `User Data` folder (here only Crashpad) and an empty `Bananify` folder |
+| The installer window by eye, Snap Layouts, Settings → Default apps, a passkey through Windows Hello, a brand-new Windows user | Not done yet: they need the owner at the VM (the window's art was checked in runner captures) |
+
+blanc.day and the staging server offer nothing again (Worker `8b84fe41`).
+
 ## Android
 Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
 [PR #1333](https://github.com/bnfy/blanc/pull/1333)). Milestones: **A0

@@ -28,3 +28,13 @@ Setup (Claude does this first):
 For each, a pass or fail is enough; a screenshot (Win+Shift+S) helps for a
 fail. Claude reads versions and logs in the VM itself (read-only) and resets
 blanc.day to offer nothing afterward.
+
+## Results, 2026-11-21
+
+Checks 1 (install, by script rather than by eye), 2 (Start menu entry), 6
+(update arriving), 7's welcome-page half (on a fresh profile in the same user)
+and 8 (uninstall) passed, scripted inside the MacBook Pro's VM; details in
+`chromium/STATUS.md`'s W3 section. Still for the owner at the VM: the installer
+window by eye, Snap Layouts (3), Default apps (4), the Windows Hello passkey (5)
+and a brand-new Windows user (7). blanc.day must offer a build while the
+installer runs, so tell Claude before starting.
