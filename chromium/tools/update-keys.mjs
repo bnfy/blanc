@@ -50,7 +50,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const gniPath = file('blanc/branding/win-beta/updater.gni'), gni = fs.readFileSync(gniPath, 'utf8');
   const nextGni = gni.replace(/^crx_pkhash = "[^"]*"$/m, `crx_pkhash = "${crxPkHash(fs.readFileSync(file('windows/keys/crx-public.der')))}"`);
   const headerPath = file('blanc/branding/win-beta/cup_public_key.h');
-  const current = fs.existsSync(headerPath) ? fs.readFileSync(headerPath, 'utf8') : '';
+  // One read: a missing header reads as empty (no check-then-read race).
+  let current = '';
+  try { current = fs.readFileSync(headerPath, 'utf8'); } catch (error) { if (error.code !== 'ENOENT') throw error; }
   if (mode === '--write') { fs.writeFileSync(headerPath, header); fs.writeFileSync(gniPath, nextGni); console.log('written'); }
   else if (current !== header || nextGni !== gni) { console.error('update keys are stale; run --write'); process.exit(1); }
   else console.log('current');

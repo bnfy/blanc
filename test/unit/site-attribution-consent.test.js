@@ -93,16 +93,27 @@ function page(choice, { unavailable = false, writeFails = false, optInRequired =
   };
 }
 
-test('consent-required regions wait for a choice before Google or OpenAI measurement', () => {
+test('consent-required regions stay off, without a popup, until the visitor turns measurement on', () => {
   const p = page(undefined, { optInRequired: true });
   assert.equal(p.googleScripts().length, 0);
-  assert.equal(p.banner.hidden, false);
+  assert.equal(p.banner.hidden, true);
   p.click();
   assert.equal(new URL(p.links[0].href).searchParams.has('oppref'), false);
+  p.openChoice();
+  assert.equal(p.banner.hidden, false);
   p.allow();
   p.click();
   assert.equal(p.googleScripts().length, 1);
   assert.equal(new URL(p.links[0].href).searchParams.get('oppref'), 'offline-fixture');
+});
+
+test('the panel never opens by itself, whatever the region or saved choice', () => {
+  for (const optInRequired of [false, true]) {
+    for (const choice of [undefined, 'denied', 'granted']) {
+      assert.equal(page(choice, { optInRequired }).banner.hidden, true, `${optInRequired} / ${choice}`);
+    }
+    assert.equal(page(undefined, { optInRequired, unavailable: true }).banner.hidden, true, `${optInRequired} / storage unavailable`);
+  }
 });
 
 test('the hero names the platform only when it downloads directly', () => {
@@ -249,6 +260,8 @@ test('homepage navigation is not an installer conversion and respects measuremen
     ['home-close', 'download_page_click', undefined],
     ['home-spaces', 'download_page_click', undefined],
     ['home-spaces-detail', 'feature_cta_click', 'named-workspaces'],
+    ['home-mail-reserve', 'feature_cta_click', 'blanc-mail'],
+    ['home-mail-detail', 'feature_cta_click', 'blanc-mail'],
     ['home-patron', 'feature_cta_click', 'named-workspaces'],
     ['home-patron-close', 'supporter_click', 'patron'],
   ]) {

@@ -711,6 +711,34 @@
     "note": "Single button of an informational native dialog.",
     "maxLength": 6
   },
+  "localHtml.refused.message": {
+    "message": "Blanc couldn’t open “{name}”",
+    "note": "Native dialog title when a local HTML file handed to Blanc (Finder, Open with) can’t be shown; {name} is the file name."
+  },
+  "localHtml.refused.messageMany": {
+    "message": "{count, plural, one {Blanc couldn’t open # file} other {Blanc couldn’t open # files}}",
+    "note": "Native dialog title when several local HTML files handed to Blanc can’t be shown; {count} is how many."
+  },
+  "localHtml.refused.line": {
+    "message": "{name}: {reason}",
+    "note": "One line per refused file in that dialog; {name} is the file name, {reason} one of the localHtml.refused reasons."
+  },
+  "localHtml.refused.tooLarge": {
+    "message": "The file is larger than 8 MB. Blanc opens local pages up to 8 MB.",
+    "note": "Why a local HTML file wasn’t shown: over the 8 MB limit of Blanc’s local page preview."
+  },
+  "localHtml.refused.notHtml": {
+    "message": "This file isn’t an HTML page.",
+    "note": "Why a local HTML file wasn’t shown: it turned out not to be an HTML file (for example, a shortcut to another kind of file)."
+  },
+  "localHtml.refused.changed": {
+    "message": "The file changed while Blanc was reading it. Open it again.",
+    "note": "Why a local HTML file wasn’t shown: it changed while Blanc read it."
+  },
+  "localHtml.refused.unreadable": {
+    "message": "Blanc couldn’t read the file. Check that it still exists and that you can open it.",
+    "note": "Why a local HTML file wasn’t shown: it is missing, unreadable or not an ordinary file."
+  },
   "fill.setupEnable.title": {
     "message": "Set up 1Password",
     "note": "Fill capsule title when 1Password fill is turned off in Settings."

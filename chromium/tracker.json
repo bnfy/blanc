@@ -1105,7 +1105,7 @@
         "macos": {
           "stage": "integrated",
           "candidate": "macos-1400e3914b1a7bdf",
-          "basis": "84 of 84 applicable cases pass in the nightly full suite 20261117-0700 (2026-11-17, fork ded39777f, shipping 673ff2eb0) on macos-1400e3914b1a7bdf; manual accessibility/visual checklist pending for Verified"
+          "basis": "84 of 84 applicable cases pass in the nightly full suite 20261117-0700 (2026-11-17, fork ded39777f, shipping 673ff2eb0) on macos-1400e3914b1a7bdf; manual accessibility/visual checklist pending for Verified. Spaces across profiles (2026-11-19): the native check tests/native-spaces-across-profiles.mjs passes 20 of 20 (F41-83 to F41-92 through the real menu, plus the mirror, open, create and deletion checks), and the F41 slice still passes 84 of 84, on macos-8614a3a373fe16f9"
         },
         "windows": {
           "stage": "not-started",

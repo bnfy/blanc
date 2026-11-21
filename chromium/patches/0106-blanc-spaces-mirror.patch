@@ -1,0 +1,14 @@
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -1756,6 +1756,10 @@
+   // shortcuts are switched on here. Empty until first read, when the
+   // profile's old layout choice decides them.
+   registry->RegisterDictionaryPref("blanc.start.widgets");
++  // Spaces across profiles (F41-83 to F41-92): each profile's Space list,
++  // mirrored by directory so other profiles' windows list it without
++  // loading it (blanc/browser/ui/spaces_across_profiles.inc).
++  registry->RegisterDictionaryPref("blanc.spaces.profiles");
+ #endif
+   // Call outs to individual subsystems that register Local State (browser-wide)
+   // prefs en masse. See RegisterProfilePrefs for per-profile prefs. Please

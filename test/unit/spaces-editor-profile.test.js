@@ -119,3 +119,34 @@ test('a create refused because the profile went away resets the Profile choice',
   assert.equal(h.byKey('start:window').disabled, false);
   assert.match(h.text(), /That profile is no longer available\./);
 });
+
+// Codex review of the fork port (2026-11-19): `/space <name>` stays within
+// this window's profile (spec §4.5), so its editor has no Profile choice.
+test('/space <name> for a new name opens the editor without the Profile row', () => {
+  const h = harness({}, payload()); h.ui.command('Hiring');
+  assert.equal(h.ui.state.kind, 'new');
+  assert.equal(h.doc.getElementById('workspaceName').value, 'Hiring');
+  assert.equal(select(h), undefined);
+  assert.equal(h.ui.state.draft.profileId, undefined);
+});
+
+test('/space <name> creates in this profile even when the name exists elsewhere', async () => {
+  const calls = [];
+  const h = harness({
+    createBlankWorkspace: async (...args) => { calls.push(['blank', ...args]); return { ok: true }; },
+    saveWorkspaceAs: async (...args) => { calls.push(['save-as', ...args]); return { ok: true }; },
+  }, payload());
+  h.ui.command('Sprint');
+  assert.equal(h.ui.state.kind, 'new', 'Sprint is Work\'s, so /space offers a new one here');
+  assert.equal(h.byKey('create').disabled, false);
+  h.doc.getElementById('workspaceEditor').emit('submit');
+  await settle();
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0][2]?.profileId, undefined, 'never another profile');
+});
+
+test('New Space from the menu still offers the Profile row after /space', () => {
+  const h = harness({}, payload()); h.ui.command('Hiring');
+  h.ui.reset(); h.ui.begin('new');
+  assert.equal(select(h)?.tagName, 'SELECT');
+});

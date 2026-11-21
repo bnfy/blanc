@@ -694,6 +694,34 @@
     "message": "OK",
     "source": "sha256:b1a3b3dd5f319182d36007c1a2ecd2497c9a99577155a3cf0700456338e2bc8f"
   },
+  "localHtml.refused.message": {
+    "message": "Blanc n’a pas pu ouvrir « {name} »",
+    "source": "sha256:9c82790b195c01d18c68ab3f53abbedbf63ece5cafda60c605b4bca21c5b72c2"
+  },
+  "localHtml.refused.messageMany": {
+    "message": "{count, plural, one {Blanc n’a pas pu ouvrir # fichier} many {Blanc n’a pas pu ouvrir # fichiers} other {Blanc n’a pas pu ouvrir # fichiers}}",
+    "source": "sha256:8299a0dc48995e2b17cfbac1bce45fab3275a492385799d3fe3bf12891f62933"
+  },
+  "localHtml.refused.line": {
+    "message": "{name} : {reason}",
+    "source": "sha256:bf12f677d7cca2f724c984888885847294196ed17a9073a37fe6521142a37734"
+  },
+  "localHtml.refused.tooLarge": {
+    "message": "Le fichier dépasse 8 Mo. Blanc ouvre les pages locales jusqu’à 8 Mo.",
+    "source": "sha256:b5c6e53c25a3a506b55b89dc2445cd3bdb320130e8f524bfb457d8f205bf45f1"
+  },
+  "localHtml.refused.notHtml": {
+    "message": "Ce fichier n’est pas une page HTML.",
+    "source": "sha256:7fe7e9bd6850056a59129d57978be2cf935c79821b8b23d0490a2efacf3e6897"
+  },
+  "localHtml.refused.changed": {
+    "message": "Le fichier a changé pendant que Blanc le lisait. Ouvrez-le à nouveau.",
+    "source": "sha256:ea2d3a26ee8bf314bec4e98eee617e755bbf2e0d113281c0f491791c218502a7"
+  },
+  "localHtml.refused.unreadable": {
+    "message": "Blanc n’a pas pu lire le fichier. Vérifiez qu’il existe toujours et que vous pouvez l’ouvrir.",
+    "source": "sha256:d19e7bf51c17b01c4e5d6a50c5b3e128a62d4a5647327cd0a6f2db9f522662e8"
+  },
   "fill.setupEnable.title": {
     "message": "Configurer 1Password",
     "source": "sha256:75c6f5733bc9fa69bbad65b8b961247889275d3c9fca22f13e12c17ba6ce9df7"

@@ -15,15 +15,14 @@ test('the homepage keeps the live demos in the redesign, each working without th
   assert.match(spaces, /<div class="spaces-demo">\s*<SpacesDemo \/>/);
   assert.doesNotMatch(spaces, /<img/);
   // Tools: Glance and the gestures in compact cards; the Start Page card shows
-  // Billboard until the script reveals the four layouts.
+  // the one Start Page with its widgets (v1.51.0).
   const tools = home.slice(home.indexOf('id="tools"'), home.indexOf('id="compare"'));
   assert.match(tools, /<GlanceDemo compact \/>/);
   assert.match(tools, /<article class="tool-card tool-card-wide rise">\s*<div class="tool-media tool-demo"><GestureDemo compact \/>/);
-  assert.match(tools, /id="layout-image" src="\/feature-captures\/billboard-[^"]+\.webp"/);
-  assert.match(tools, /data-layouts hidden>/);
-  assert.match(tools, /\["Ledger", "Billboard", "Shelf", "Tally"\]/);
+  assert.match(tools, /src="\/feature-captures\/start-widgets-v1\.51\.0\.webp"/);
+  assert.doesNotMatch(tools, /Ledger|Billboard|Shelf|Tally|data-layouts/);
   const script = read('site/src/scripts/home.js');
-  for (const call of ['initHorizonShield', 'initGlanceDemo', 'initGestureDemo', 'initLayouts(']) assert.ok(script.includes(call), call);
+  for (const call of ['initHorizonShield', 'initGlanceDemo', 'initGestureDemo']) assert.ok(script.includes(call), call);
   // The compact demos drop their own headings, tool switch and Replay.
   const glance = read('site/src/components/GlanceDemo.astro');
   assert.match(glance, /\{!compact && <h3 id="glance-title">/);
