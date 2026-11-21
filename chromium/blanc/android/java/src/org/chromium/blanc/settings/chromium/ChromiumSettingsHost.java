@@ -58,7 +58,6 @@ import java.util.function.Supplier;
 @NullMarked
 final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
     private static final String TAG = "BlancSettings";
-    private static final String PLATFORM_AUTOFILL_REQUESTED = "blanc.autofill.platform_requested";
 
     private final Activity mActivity;
     private final Supplier<@Nullable WindowAndroid> mWindow;
@@ -253,7 +252,8 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
 
     @Override
     public boolean platformAutofillRequested() {
-        return UserPrefs.get(ProfileManager.getLastUsedRegularProfile()).getBoolean(PLATFORM_AUTOFILL_REQUESTED);
+        return UserPrefs.get(ProfileManager.getLastUsedRegularProfile())
+                .getBoolean(Pref.AUTOFILL_PLATFORM_REQUESTED);
     }
 
     @Override
@@ -262,7 +262,7 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
     }
 
     static void setPlatformAutofillRequested(PrefService prefs, boolean on) {
-        prefs.setBoolean(PLATFORM_AUTOFILL_REQUESTED, on);
+        prefs.setBoolean(Pref.AUTOFILL_PLATFORM_REQUESTED, on);
         if (!on) {
             prefs.setString(Pref.AUTOFILL_THIRD_PARTY_PACKAGE_USED_FOR_PLATFORM_AUTOFILL, "");
         }

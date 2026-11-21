@@ -261,8 +261,14 @@ public final class BlancSettingsScreen {
                 });
                 break;
             case "blanc_choose_password_manager":
+                boolean pickerAllowed = host.platformAutofillAllowed();
+                row.setEnabled(pickerAllowed);
                 action(row, R.string.blanc_android_settings_autofill_choose,
-                        R.string.blanc_android_settings_autofill_choose_summary, host::openPasswordManagerPicker);
+                        pickerAllowed ? R.string.blanc_android_settings_autofill_choose_summary
+                                      : R.string.blanc_android_settings_autofill_managed,
+                        () -> {
+                            if (host.platformAutofillAllowed()) host.openPasswordManagerPicker();
+                        });
                 break;
             case "blanc_measure_usage":
                 SwitchPreferenceCompat usage = (SwitchPreferenceCompat) row;

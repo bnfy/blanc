@@ -10,8 +10,10 @@ const providerTests = patchedChromiumFile('chrome/browser/ui/autofill/autofill_c
 const launcher = patchedChromiumFile('chrome/android/java/src/org/chromium/chrome/browser/AutofillOptionsLauncher.java');
 const launcherTests = patchedChromiumFile('chrome/android/javatests/src/org/chromium/chrome/browser/AutofillOptionsLauncherTest.java');
 const utils = patchedChromiumFile('chrome/browser/autofill/android/java/src/org/chromium/chrome/browser/autofill/AutofillClientProviderUtils.java');
+const mediator = patchedChromiumFile('chrome/browser/autofill/android/java/src/org/chromium/chrome/browser/autofill/settings/options/AutofillOptionsMediator.java');
 const settings = new URL('../blanc/android/java/src/org/chromium/blanc/settings/', import.meta.url);
 const host = readFileSync(new URL('chromium/ChromiumSettingsHost.java', settings), 'utf8');
+const hostTests = readFileSync(new URL('../blanc/android/junit/src/org/chromium/blanc/settings/chromium/ChromiumSettingsHostTest.java', import.meta.url), 'utf8');
 const screen = readFileSync(new URL('BlancSettingsScreen.java', settings), 'utf8');
 
 function nativeTestBody(name) {
@@ -35,8 +37,15 @@ test("Android's app preferences link opens Blanc's Settings root", () => {
   assert.doesNotMatch(launcher, /AutofillOptionsFragment|AutofillOptionsReferrer/);
 });
 
-test("Custom Tabs use the autofill provider selected for their profile", () => {
-  assert.match(utils, /isPlatformAutofillEnabledForProfile\(Profile profile\) \{\s*return AutofillClientProviderUtilsJni\.get\(\)\.usesPlatformAutofill\(profile\);\s*\}/);
+test("Confirming Chromium’s autofill setting saves the request and forgets the package on opt-out", () => {
+  const confirm = mediator.match(/private void onConfirmWithRestart\(\) \{([\s\S]*?)\n    \}/)[1];
+  assert.match(confirm, /prefs\(\)\.setBoolean\(Pref\.AUTOFILL_PLATFORM_REQUESTED, requested\);[\s\S]*?updatePackageUsedForAutofill\(prefs\(\), requested\);[\s\S]*?mRestartRunnable\.run\(\);/);
+  assert.match(confirm, /boolean requested = mModel\.get\(THIRD_PARTY_AUTOFILL_ENABLED\);/);
+  assert.match(utils, /if \(currentlyUsesPlatformAutofill\) \{\s*saveThirdPartyPackageUsedForAutofill\(prefs, currentlyUsesPlatformAutofill\);\s*\} else \{\s*prefs\.setString\(Pref\.AUTOFILL_THIRD_PARTY_PACKAGE_USED_FOR_PLATFORM_AUTOFILL, ""\);/);
+});
+
+test("Custom Tabs honor the test override before asking their profile's native provider", () => {
+  assert.match(utils, /isPlatformAutofillEnabledForProfile\(Profile profile\) \{\s*if \(sAndroidAutofillFrameworkAvailabilityForTesting != null\) \{\s*return sAndroidAutofillFrameworkAvailabilityForTesting\s*== AndroidAutofillAvailabilityStatus\.AVAILABLE;\s*\}\s*return AutofillClientProviderUtilsJni\.get\(\)\.usesPlatformAutofill\(profile\);\s*\}/);
   assert.match(utils, /@NativeMethods\s*interface Natives \{\s*boolean usesPlatformAutofill\(@JniType\("Profile\*"\) Profile profile\);/);
   assert.match(provider, /JNI_AutofillClientProviderUtils_UsesPlatformAutofill\(\s*JNIEnv\*\s*\w*,\s*Profile\* profile\) \{\s*return AutofillClientProviderFactory::GetForProfile\(profile\)\s*\.uses_platform_autofill\(\);/);
 });
@@ -106,18 +115,26 @@ test('Browsing lists the autofill switch and password manager picker after Defau
   ]);
 });
 
-test("Settings saves the person's request and leaves the active client alone until restart", () => {
-  assert.match(host, /PLATFORM_AUTOFILL_REQUESTED\s*=\s*"blanc\.autofill\.platform_requested";/);
-  assert.match(host, /\.getBoolean\(PLATFORM_AUTOFILL_REQUESTED\)/);
-  assert.match(host, /prefs\.setBoolean\(PLATFORM_AUTOFILL_REQUESTED, on\);/);
+test("Settings and its tests use the generated request pref and leave the active client alone until restart", () => {
+  assert.match(host, /\.getBoolean\(Pref\.AUTOFILL_PLATFORM_REQUESTED\)/);
+  assert.match(host, /prefs\.setBoolean\(Pref\.AUTOFILL_PLATFORM_REQUESTED, on\);/);
   assert.match(host, /if \(!on\) \{\s+prefs\.setString\(Pref\.AUTOFILL_THIRD_PARTY_PACKAGE_USED_FOR_PLATFORM_AUTOFILL, ""\);/);
   assert.doesNotMatch(host, /setBoolean\(\s*Pref\.AUTOFILL_USING_PLATFORM_AUTOFILL\b/);
+  assert.match(hostTests, /verify\(mPrefs\)\.setBoolean\(Pref\.AUTOFILL_PLATFORM_REQUESTED, true\);/);
+  assert.match(hostTests, /verify\(mPrefs\)\.setBoolean\(Pref\.AUTOFILL_PLATFORM_REQUESTED, false\);/);
+  for (const source of [host, hostTests]) assert.doesNotMatch(source, /"blanc\.autofill\.platform_requested"/);
 });
 
-test('Settings shows autofill off and disabled when policy blocks it', () => {
+test('Policy disables both autofill rows and shows the managed note on each', () => {
   assert.match(host, /boolean platformAutofillAllowed\(\) \{\s*return UserPrefs\.get\(ProfileManager\.getLastUsedRegularProfile\(\)\)\s*\.getBoolean\(Pref\.AUTOFILL_THIRD_PARTY_PASSWORD_MANAGERS_ALLOWED\);/);
   assert.match(screen, /boolean allowed = host\.platformAutofillAllowed\(\);/);
   assert.match(screen, /autofill\.setEnabled\(allowed\);/);
   assert.match(screen, /autofill\.setChecked\(allowed && host\.platformAutofillRequested\(\)\);/);
   assert.match(screen, /if \(!host\.platformAutofillAllowed\(\)\) return false;\s*host\.setPlatformAutofillRequested\(/);
+  assert.match(screen, /autofill\.setSummary\(allowed \? R\.string\.blanc_android_settings_autofill_summary\s*: R\.string\.blanc_android_settings_autofill_managed\);/);
+  const picker = screen.match(/case "blanc_choose_password_manager":([\s\S]*?)break;/)[1];
+  assert.match(picker, /boolean pickerAllowed = host\.platformAutofillAllowed\(\);/);
+  assert.match(picker, /row\.setEnabled\(pickerAllowed\);/);
+  assert.match(picker, /pickerAllowed \? R\.string\.blanc_android_settings_autofill_choose_summary\s*: R\.string\.blanc_android_settings_autofill_managed/);
+  assert.match(picker, /if \(host\.platformAutofillAllowed\(\)\) host\.openPasswordManagerPicker\(\);/);
 });

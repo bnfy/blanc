@@ -131,7 +131,7 @@ diff --git a/chrome/browser/autofill/android/java/src/org/chromium/chrome/browse
  
  /** Helper functions for using Android Autofill in Chrome. */
  @NullMarked
-@@ -60,16 +60,9 @@
+@@ -60,16 +60,13 @@
          ResettersForTesting.register(() -> sAndroidAutofillServicePackageNameForTesting = null);
      }
  
@@ -146,11 +146,15 @@ diff --git a/chrome/browser/autofill/android/java/src/org/chromium/chrome/browse
      public static boolean isPlatformAutofillEnabledForProfile(Profile profile) {
 -        return getAndroidAutofillFrameworkAvailability(UserPrefs.get(profile))
 -                == AndroidAutofillAvailabilityStatus.AVAILABLE;
++        if (sAndroidAutofillFrameworkAvailabilityForTesting != null) {
++            return sAndroidAutofillFrameworkAvailabilityForTesting
++                    == AndroidAutofillAvailabilityStatus.AVAILABLE;
++        }
 +        return AutofillClientProviderUtilsJni.get().usesPlatformAutofill(profile);
      }
  
      /**
-@@ -84,6 +77,17 @@
+@@ -84,6 +81,17 @@
      @CalledByNative
      public static int getAndroidAutofillFrameworkAvailability(
              @JniType("PrefService*") PrefService prefs) {
@@ -168,7 +172,7 @@ diff --git a/chrome/browser/autofill/android/java/src/org/chromium/chrome/browse
          if (sAndroidAutofillFrameworkAvailabilityForTesting != null) {
              return sAndroidAutofillFrameworkAvailabilityForTesting;
          }
-@@ -105,6 +109,11 @@
+@@ -105,6 +113,11 @@
          if (AWG_PACKAGE_NAME.equals(autofillServicePackage)) {
              return AndroidAutofillAvailabilityStatus.ANDROID_AUTOFILL_SERVICE_IS_GOOGLE;
          }
@@ -180,7 +184,7 @@ diff --git a/chrome/browser/autofill/android/java/src/org/chromium/chrome/browse
          // If the user explicitly chose the current Autofill Service before, use it again. The
          // browser may default to built-in Autofill while the preferred provider is unavailable.
          String storedPackage =
-@@ -181,4 +190,9 @@
+@@ -181,4 +194,9 @@
      }
  
      private AutofillClientProviderUtils() {}
@@ -190,6 +194,28 @@ diff --git a/chrome/browser/autofill/android/java/src/org/chromium/chrome/browse
 +        boolean usesPlatformAutofill(@JniType("Profile*") Profile profile);
 +    }
  }
+diff --git a/chrome/browser/autofill/android/java/src/org/chromium/chrome/browser/autofill/settings/options/AutofillOptionsMediator.java b/chrome/browser/autofill/android/java/src/org/chromium/chrome/browser/autofill/settings/options/AutofillOptionsMediator.java
+--- a/chrome/browser/autofill/android/java/src/org/chromium/chrome/browser/autofill/settings/options/AutofillOptionsMediator.java
++++ b/chrome/browser/autofill/android/java/src/org/chromium/chrome/browser/autofill/settings/options/AutofillOptionsMediator.java
+@@ -372,13 +372,11 @@
+     }
+ 
+     private void onConfirmWithRestart() {
+-        prefs().setBoolean(
+-                        Pref.AUTOFILL_USING_PLATFORM_AUTOFILL,
+-                        mModel.get(THIRD_PARTY_AUTOFILL_ENABLED));
+-        AutofillClientProviderUtils.updatePackageUsedForAutofill(
+-                prefs(), mModel.get(THIRD_PARTY_AUTOFILL_ENABLED));
+-        RecordHistogram.recordBooleanHistogram(
+-                HISTOGRAM_USE_THIRD_PARTY_FILLING, mModel.get(THIRD_PARTY_AUTOFILL_ENABLED));
++        boolean requested = mModel.get(THIRD_PARTY_AUTOFILL_ENABLED);
++        prefs().setBoolean(Pref.AUTOFILL_PLATFORM_REQUESTED, requested);
++        prefs().setBoolean(Pref.AUTOFILL_USING_PLATFORM_AUTOFILL, requested);
++        AutofillClientProviderUtils.updatePackageUsedForAutofill(prefs(), requested);
++        RecordHistogram.recordBooleanHistogram(HISTOGRAM_USE_THIRD_PARTY_FILLING, requested);
+         mRestartRunnable.run();
+     }
+ 
 diff --git a/chrome/android/javatests/src/org/chromium/chrome/browser/AutofillOptionsLauncherTest.java b/chrome/android/javatests/src/org/chromium/chrome/browser/AutofillOptionsLauncherTest.java
 --- a/chrome/android/javatests/src/org/chromium/chrome/browser/AutofillOptionsLauncherTest.java
 +++ b/chrome/android/javatests/src/org/chromium/chrome/browser/AutofillOptionsLauncherTest.java

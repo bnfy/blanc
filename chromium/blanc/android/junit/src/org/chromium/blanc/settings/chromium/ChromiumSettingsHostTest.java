@@ -18,19 +18,18 @@ import org.chromium.components.prefs.PrefService;
 @Config(manifest = Config.NONE)
 public class ChromiumSettingsHostTest {
     private final PrefService mPrefs = mock(PrefService.class);
-    private static final String REQUEST = "blanc.autofill.platform_requested";
 
     @Test
     public void turningOnOnlySavesTheRequest() {
         ChromiumSettingsHost.setPlatformAutofillRequested(mPrefs, true);
-        verify(mPrefs).setBoolean(REQUEST, true);
+        verify(mPrefs).setBoolean(Pref.AUTOFILL_PLATFORM_REQUESTED, true);
         verifyNoMoreInteractions(mPrefs);
     }
 
     @Test
     public void turningOffSavesTheRequestAndForgetsThePackage() {
         ChromiumSettingsHost.setPlatformAutofillRequested(mPrefs, false);
-        verify(mPrefs).setBoolean(REQUEST, false);
+        verify(mPrefs).setBoolean(Pref.AUTOFILL_PLATFORM_REQUESTED, false);
         verify(mPrefs).setString(Pref.AUTOFILL_THIRD_PARTY_PACKAGE_USED_FOR_PLATFORM_AUTOFILL, "");
         verifyNoMoreInteractions(mPrefs);
     }

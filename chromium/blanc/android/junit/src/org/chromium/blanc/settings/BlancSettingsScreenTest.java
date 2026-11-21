@@ -251,23 +251,33 @@ public class BlancSettingsScreenTest {
     }
 
     @Test
-    public void policyDisablesAutofillAndPreservesTheRequestWhenLifted() {
+    public void policyDisablesBothAutofillRowsAndPreservesTheRequestWhenLifted() {
         BlancSettingsScreen.apply(mScreen, mHost);
         SwitchPreferenceCompat autofill = (SwitchPreferenceCompat) row("blanc_platform_autofill");
+        Preference picker = row("blanc_choose_password_manager");
         CharSequence summary = autofill.getSummary();
+        CharSequence pickerSummary = picker.getSummary();
         mAutofillAllowed = false;
         // Policy can change after the row is drawn and before the person taps it.
         assertFalse(autofill.callChangeListener(false));
+        picker.performClick();
+        assertTrue(mCalls.isEmpty());
         BlancSettingsScreen.apply(mScreen, mHost);
         assertFalse(autofill.isEnabled());
+        assertFalse(picker.isEnabled());
         assertFalse(autofill.isChecked());
         assertEquals("Your organization manages this setting.", autofill.getSummary().toString());
+        assertEquals(autofill.getSummary(), picker.getSummary());
         assertTrue(mAutofillRequested);
         mAutofillAllowed = true;
         BlancSettingsScreen.apply(mScreen, mHost);
         assertTrue(autofill.isEnabled());
         assertTrue(autofill.isChecked());
         assertEquals(summary, autofill.getSummary());
+        assertTrue(picker.isEnabled());
+        assertEquals(pickerSummary, picker.getSummary());
+        picker.performClick();
+        assertEquals(List.of("password manager"), mCalls);
     }
 
     @Test
