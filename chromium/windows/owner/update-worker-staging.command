@@ -6,7 +6,7 @@
 # check. Nothing secret is printed or left on disk.
 # With BLANC_WORKER_ENV=staging (update-worker-gate.command) it deploys and keys
 # the release gate's staging server, blanc-update-staging, instead.
-# (BLANC_OP, BLANC_WRANGLER, BLANC_CUP_PUBLIC and BLANC_SKIP_SMOKE are for tests.)
+# (BLANC_OP, BLANC_WRANGLER, BLANC_CUP_PUBLIC, BLANC_SKIP_SMOKE and BLANC_WORK_TMP are for tests.)
 set -euo pipefail
 umask 077
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -20,7 +20,7 @@ export OP_BIOMETRIC_UNLOCK_ENABLED=true
 ENV_ARGS=()
 LABEL="update server on staging"
 if [ "${BLANC_WORKER_ENV:-}" = staging ]; then ENV_ARGS=(--env staging); LABEL="staging update server (release gate)"; fi
-WORK=$(mktemp -d /private/tmp/blanc-update-staging.XXXXXX)
+WORK=$(mktemp -d "${BLANC_WORK_TMP:-/private/tmp}/blanc-update-staging.XXXXXX")
 trap 'code=$?; rm -rf "$WORK"; if [ $code -ne 0 ]; then echo; echo "STOPPED. Nothing secret was left on disk. Tell Claude."; fi' EXIT
 cd "$WORKER"
 [ -d node_modules ] || npm ci --ignore-scripts --no-audit --no-fund >/dev/null
