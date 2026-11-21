@@ -302,6 +302,9 @@ struct ContentView: View {
             .clearOfWindowControls(islandAtTop)
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { islandHeight = $0 }
             .environment(\.colorScheme, islandScheme)
+            // Dark glass alone reads mid-gray over a light page; a private
+            // tab's Island is plainly dark.
+            .environment(\.islandGlassTint, isPrivate ? BrowserStyle.privateGlassTint : nil)
             .animation(.easeInOut(duration: 0.25), value: islandScheme)
     }
 
