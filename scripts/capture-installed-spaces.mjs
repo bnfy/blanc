@@ -45,10 +45,10 @@ const spaces = [
   ['capture-painting', 'Painting class', '#6757a3', 'cap', 5, [
     ['https://www.metmuseum.org/art/collection/search/436535', 'Wheat Field with Cypresses'],
     ['https://www.metmuseum.org/art/collection/search/45434', 'The Met'],
-    ['https://en.wikipedia.org/wiki/Impasto', 'Impasto - Wikipedia'],
+    ['https://www.metmuseum.org/art/collection/search/436528', 'Irises - The Met'],
   ]],
   ['capture-lisbon', 'Lisbon trip', '#974f2a', 'plane', 90, [
-    ['https://en.wikipedia.org/wiki/Lisbon', 'Lisbon - Wikipedia'], ['https://www.nytimes.com/section/travel', 'Travel'],
+    ['https://www.visitlisboa.com/en', 'Visit Lisboa'], ['https://www.nytimes.com/section/travel', 'Travel'],
   ]],
 ];
 const workspaces = spaces.map(([id, name, color, symbol, minutesAgo, tabs]) => ({
@@ -67,6 +67,10 @@ writeJson('settings', {
   theme: 'light',
   tabSleep: 'off',
   presentationDefaultsResetVersion: 1,
+  // Already on this version, its What's New page already shown: no extra tab.
+  lastRunVersion: expectedVersion,
+  whatsNewPageVersion: expectedVersion,
+  whatsNewTabRelease: expectedVersion.split('.').slice(0, 2).join('.'),
 });
 writeJson('workspaces', { version: 2, workspaces, deleted: [] });
 // The window restores bound to Painting class, with the same tabs the space holds.
@@ -152,22 +156,31 @@ try {
   // button with a real click. The button shows Painting class's tile and
   // names it. Window activation can swallow the first click, so click again
   // until the menu reports open (each window has its own overlay document).
+  // The panel closes when its window loses focus (a window capture can do
+  // that), so the editor step reopens it the same way.
   await chrome.bringToFront();
   await settle(400);
-  await chrome.evaluate(() => window.browserAPI.openIsland());
-  const panelOpen = async (page) => /overlay/.test(page.url())
-    && await page.evaluate(() => document.body.dataset.mode === 'panel');
-  const overlay = await findPage(panelOpen, 'the command panel did not open');
-  await settle(500);
-  const button = overlay.locator('#footerWorkspace');
-  assert.equal(await button.getAttribute('aria-label'), 'Space · Painting class', 'the Spaces button must name the current space');
-  assert.equal(await button.locator('.ws-trigger-tile').count(), 1, 'the Spaces button must show the current space\'s tile');
+  const isOverlay = (page) => /overlay/.test(page.url());
+  const overlay = await findPage(async (page) => isOverlay(page) && await page.evaluate(() => typeof window.browserAPI?.closeOverlay === 'function'), 'the overlay document did not appear');
+  const panelOpen = () => overlay.evaluate(() => document.body.dataset.mode === 'panel');
   const spacesOpen = () => overlay.evaluate(() => document.body.dataset.mode === 'panel' && !document.getElementById('workspaceSwitcher').hidden);
-  for (let attempt = 0; attempt < 5 && !await spacesOpen(); attempt += 1) {
-    await button.click();
-    await settle(700);
+  const button = overlay.locator('#footerWorkspace');
+  async function openSpacesMenu() {
+    if (await spacesOpen()) return;
+    if (!await panelOpen()) {
+      await chrome.evaluate(() => window.browserAPI.openIsland());
+      await poll(panelOpen, Boolean, 'the command panel did not open');
+      await settle(500);
+    }
+    assert.equal(await button.getAttribute('aria-label'), 'Space · Painting class', 'the Spaces button must name the current space');
+    assert.equal(await button.locator('.ws-trigger-tile').count(), 1, 'the Spaces button must show the current space\'s tile');
+    for (let attempt = 0; attempt < 5 && !await spacesOpen(); attempt += 1) {
+      await button.click();
+      await settle(700);
+    }
+    assert.ok(await spacesOpen(), 'Spaces menu did not open from the Spaces button');
   }
-  assert.ok(await spacesOpen(), 'Spaces menu did not open from the Spaces button');
+  await openSpacesMenu();
   const rows = await poll(() => overlay.locator('#workspaceSwitcherList .ws-row-name').allInnerTexts(), (names) => names.length === spaces.length, 'spaces not listed');
   assert.deepEqual(rows, spaces.map(([, name]) => name));
   // Opening the menu focuses its current row. A plain click on the menu's own
@@ -188,6 +201,7 @@ try {
   // when its row's ••• button (shown on hover) is clicked. Focus lands in the
   // name field; a click on the editor's title moves it off without changing
   // anything, so no caret or focus ring is captured.
+  await openSpacesMenu();
   const row = overlay.locator('#workspaceSwitcherList .ws-row', { hasText: 'Painting class' });
   await row.hover();
   await row.locator('.ws-row-more').click();
