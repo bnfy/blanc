@@ -1,9 +1,10 @@
 // Pure logic for the website's /dl/* counted download redirect.
 // No Workers APIs here — unit-tested by test/unit/ping-worker-dl.test.js.
 
-// The site's download targets. Mirrors site/src/scripts/site.js pickAsset:
-// a Mac UA can't reveal arm64 vs x64, so there is deliberately no '/dl/mac' —
-// generic Mac CTAs go to /download where both artifacts are explicit.
+// The site's download targets. The release-asset ones mirror site/src/scripts/site.js
+// pickAsset: a Mac UA can't reveal arm64 vs x64, so there is deliberately no '/dl/mac' —
+// generic Mac CTAs go to /download where both artifacts are explicit. The two
+// betas are fixed redirects (fixedDownload).
 export const DL_TARGETS = new Set(['mac-arm64', 'mac-x64', 'win', 'linux', 'beta', 'beta-win']);
 
 // Blanc Beta, the Chromium preview (owner, 2026-11-14): /dl/beta is counted like

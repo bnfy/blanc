@@ -21,7 +21,7 @@
     { "text": "It installs beside Blanc and never replaces it.", "evidence": "Its own install folder (Blanc Beta), app id and Start menu entry; the runner checks (staging gate 44887435753, verify-public 44889077445) and the 2026-11-21 VM check record Electron Blanc's executable and uninstall entry unchanged through install, update and uninstall." },
     { "text": "Build 902", "evidence": "windows-release.json build 902; the version's last number." },
     { "text": "158.0.8127.902", "evidence": "windows-release.json version 158.0.8127.902, the version the installed beta and blanc.day's update server report." },
-    { "text": "Chromium 158", "evidence": "The fork's pinned Chromium 158.0.8127.2 (chrome/VERSION unchanged from upstream apart from the beta's last number)." },
+    { "text": "Chromium 158", "evidence": "The fork's pinned Chromium 158.0.8127.2; chrome/VERSION is unchanged from upstream, and the Windows beta's version replaces only its last number at build time (patch 0103)." },
     { "text": "158.0.8127.2", "evidence": "The fork's Chromium pin 158.0.8127.2 (chromium/lanes/desktop.json); the beta replaces only its last number with its build." },
     { "text": "x64 Windows PCs · tested on Windows 11", "evidence": "The release is windows-x64 (windows-release.json platform); its runner checks ran on Windows Server 2025 and the hand checks on Windows 11, matching the approved release notes (\"Made for x64 Windows PCs and tested on Windows 11\")." },
     { "text": "Released November 21, 2026", "evidence": "The GitHub pre-release chromium-beta-windows-158.0.8127.902 was published on 2026-11-21 at 09:19 UTC." },
