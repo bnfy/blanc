@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 import UIKit
 import WebKit
 
@@ -8,7 +9,7 @@ import WebKit
 /// its declared icon is fetched once, without cookies, and kept as a small PNG
 /// data URL per site (`www.` folded) in `site-icons.json`. Device-local, never
 /// synced, bounded, and cleared with History.
-@MainActor
+@MainActor @Observable
 final class SiteIcons {
     static let maxSites = 300
     /// A site's icon is fetched again after this long.
@@ -19,11 +20,12 @@ final class SiteIcons {
 
     private struct Entry: Codable { var icon: String; var at: Double }
     private var entries: [String: Entry] = [:]
-    private let fileURL: URL
-    private var inFlight = Set<String>()
-    private let session: URLSession
+    @ObservationIgnored private var images: [String: UIImage] = [:]
+    @ObservationIgnored private let fileURL: URL
+    @ObservationIgnored private var inFlight = Set<String>()
+    @ObservationIgnored private let session: URLSession
     /// A new icon arrived (the Start Page draws it).
-    var onChange: (() -> Void)?
+    @ObservationIgnored var onChange: (() -> Void)?
 
     init(directory: URL? = nil) {
         let root = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -53,7 +55,18 @@ final class SiteIcons {
         Self.key(URL(string: url)).flatMap { entries[$0]?.icon }.flatMap { $0.isEmpty ? nil : $0 }
     }
 
+    func image(for url: URL) -> UIImage? {
+        guard let key = Self.key(url), let icon = entries[key]?.icon, !icon.isEmpty else { return nil }
+        if let image = images[key] { return image }
+        guard let comma = icon.firstIndex(of: ","),
+              let data = Data(base64Encoded: String(icon[icon.index(after: comma)...])),
+              let image = UIImage(data: data) else { return nil }
+        images[key] = image
+        return image
+    }
+
     func clear() {
+        images.removeAll()
         entries = [:]
         try? FileManager.default.removeItem(at: fileURL)
         onChange?()
@@ -85,7 +98,7 @@ final class SiteIcons {
     }
 
     /// A downloaded image as the stored PNG data URL, or nil if it isn't one UIKit can draw.
-    nonisolated static func dataURL(from data: Data) -> String? {
+    nonisolated static func dataURL(from data: Data, side: CGFloat = side) -> String? {
         guard data.count <= maxBytes, let image = UIImage(data: data), image.size.width >= 8, image.size.height >= 8 else { return nil }
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
@@ -138,7 +151,7 @@ final class SiteIcons {
     }
 
     /// Sites asked for this launch, found or not.
-    private var tried = Set<String>()
+    @ObservationIgnored private var tried = Set<String>()
     /// A site that answered with no icon is asked again after a day.
     static let missRefreshAfter: TimeInterval = 24 * 60 * 60
 
@@ -182,14 +195,17 @@ final class SiteIcons {
 
     private func storeMiss(_ key: String) {
         guard entries[key]?.icon.isEmpty != false else { return }
+        images.removeValue(forKey: key)
         entries[key] = Entry(icon: "", at: Date().timeIntervalSince1970)
         save()
     }
 
     private func store(_ icon: String, for key: String) {
+        images.removeValue(forKey: key)
         entries[key] = Entry(icon: icon, at: Date().timeIntervalSince1970)
         if entries.count > Self.maxSites {
             for old in entries.sorted(by: { $0.value.at < $1.value.at }).prefix(entries.count - Self.maxSites) {
+                images.removeValue(forKey: old.key)
                 entries.removeValue(forKey: old.key)
             }
         }
