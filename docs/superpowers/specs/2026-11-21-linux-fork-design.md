@@ -20,8 +20,12 @@
    draws none there. This matches the Windows fork and differs from shipping Blanc for Linux, which draws
    its own.
 
-**Waiting for the owner:** D4 for Linux (below, §2) and the scoped approval for L0's checkout change and
-cold build (§5).
+**Waiting for the owner:** D4 for Linux (§2), how the beta gets hand-checked on a real desktop (§6), and
+the scoped approval for L0 (§5).
+
+**Reviews:** a builder check and a Codex review (2026-11-21) found the gaps folded in below. Chromium
+facts marked *(checked at the pin)* were read in the server's tree (`~/chromium-desktop/src`,
+158.0.8127.2) on 2026-11-21.
 
 ## 1. What Linux is in the fork
 
@@ -38,9 +42,11 @@ unchanged:
 
 Architecture: **x64** only. Linux on Arm is out of scope.
 
-Supported systems for the beta (my call; the owner may change it): **Ubuntu 24.04 LTS and newer, Debian
-12 and newer, and the current Fedora release**, under both **X11 and Wayland**, on GNOME and KDE Plasma.
-Other distributions may work and are not tested.
+Target systems for the beta (my call; the owner may change it): **Ubuntu 24.04 LTS and newer, Debian
+12 and newer, and the current Fedora release**. Public copy names only the systems and desktop sessions
+a gate actually ran on: current Fedora and Ubuntu 26.04 have no GNOME X11 session, and the hosted
+runners give headless compositors and containers, not real desktops. Other distributions may work and
+are not claimed.
 
 ## 2. Where it builds and runs
 
@@ -51,33 +57,50 @@ cross-compiled and no toolchain package is needed: the host is the target.
 
 | Step | Machine | Notes |
 | --- | --- | --- |
-| Compile | `blanc-android-build` | The existing desktop checkout `~/chromium-desktop/src`, with `linux` added to `.gclient`'s `target_os` so the Linux sysroot is fetched (one hooks run, owner-approved). Outputs `out/BlancLinuxPrototype` and later `out/BlancLinuxBeta`, beside `BlancWinPrototype` and `BlancWinBeta`. Built only through `chromium/tools/build.mjs`, which already refuses a second `siso ninja` on the machine, so Linux, Windows and Android builds take turns. |
+| Compile | `blanc-android-build` | The existing desktop checkout `~/chromium-desktop/src`. Its `.gclient` says `target_os = ['win']` with no `target_os_only`, so the host's own Linux dependencies are already there, and `build/linux/debian_bullseye_amd64-sysroot` is present *(checked at the pin)*. L0 first confirms whether a Linux build needs anything more; only if it does is a hooks run requested, with the guard's plans for both Windows outputs compared before and after. Outputs `out/BlancLinuxPrototype` and later `out/BlancLinuxBeta`, beside `BlancWinPrototype` and `BlancWinBeta`. Built only through `chromium/tools/build.mjs`, which already refuses a second `siso ninja` on the machine, so Linux, Windows and Android builds take turns. |
 | Packages | `blanc-android-build` | Chromium's installer targets (`//chrome/installer/linux`) build the `.deb` and `.rpm` from the output. The server holds no signing key. |
 | Transfer | This Mac | Copies the candidate off the server and uploads it to one reused **draft** release, `fork-linux-candidate`, as Windows does with `fork-windows-candidate`. The server holds no GitHub credential. |
 | Run and test | GitHub-hosted `ubuntu-24.04` runner | `chromium-linux-candidate.yml`, manual only, checks the asset's SHA-256 and runs the launch check under X11 (`xvfb`) and Wayland (a headless compositor), the suite, and the install checks: on the runner itself for Ubuntu, and in Debian and Fedora containers on the runner. |
-| Hand checks | The owner's Linux VM | When it starts. Not a gate. |
+| Hand checks | See §6 | The owner's only Linux machine is an Ubuntu arm64 VM, which can't run an x64 build. |
 
-Why reuse the checkout rather than make a third (my call): it saves a ~46 GB download, and every
-platform builds the same source at the same pin anyway. The cost is that a hooks run touches the
-checkout the Windows beta builds from. The plan records the checkout's state before and after, and
-checks that the Windows output still plans the same small build.
+Why reuse the checkout rather than make a third (my call): it saves a ~46 GB download (the disk has
+624 GB free), and every platform builds the same source at the same pin anyway. The cost is that Linux
+work shares a checkout with the Windows beta. Rules for that: no Linux apply, hooks run or build while a
+Windows release is between its `preflight` and `publish` stages; the guard learns the Linux outputs
+(`chromium/tools/build.mjs` accepts only Mac and Windows names today) and holds the machine across
+apply and build, not just one output; and after any shared build-file change both Windows outputs and
+the Mac Studio's prototype and beta outputs are checked to plan only the expected small rebuild.
 
 ## 3. How people get it and how it updates
 
 This is how Google Chrome ships on Linux, and Chromium's source already does most of it.
 
-1. **Download.** The GitHub pre-release carries `blanc-beta_<version>_amd64.deb` and
-   `blanc-beta-<version>.x86_64.rpm`, and blanc.day's Download page links to them once the owner approves
-   the copy (as for Windows).
-2. **Installing the package sets up the repository.** Chromium's installer carries the script Chrome
-   uses to add Google's repository and key when its package is installed (`chrome/installer/linux/common/`,
-   the repository-setup cron job and post-install step). The fork rebrands it to Blanc's repository and
-   Blanc's key. The builder confirms what the pinned tree's script does before relying on it. People who
-   would rather add the repository by hand get two commands on the Download page.
-3. **Updates.** Every later beta is published to the repository. apt (Ubuntu, Debian) and dnf (Fedora)
-   install it with the system's other updates. The running browser notices its files changed on disk
-   and asks to relaunch (Chromium's `UpgradeDetector`); the builder confirms this works for a
-   non-Chrome-branded build and that nothing points people at Google.
+1. **Download.** The GitHub pre-release carries the `.deb` and `.rpm` with `SHA256SUMS` signed through
+   Sigstore, as every Blanc release is; blanc.day's Download page links to them once the owner approves
+   the copy (as for Windows). The first package is trusted the way Chrome's is: an HTTPS download from
+   Blanc's own release, with checksums and Sigstore for anyone who verifies.
+2. **Installing the package sets up the repository.** *(checked at the pin)* Chromium's packages do this
+   the way Chrome's do: the `.deb` installs a daily cron job (`common/repo.cron`) that writes an apt
+   source with `Signed-By` and the signing key, the `.rpm` installs `common/rpmrepo.cron` for dnf, and
+   there is also a separate repository package (`deb_repo_package`, `chromium-browser-repo` when not
+   Chrome-branded). **But the repository address is hard-coded to Google's**
+   (`common/installer.py` `_compute_deb_repoconfig` and `_compute_rpm_repoconfig`: `dl.google.com`), and
+   `debian/repo_signing_keys.gpg` holds Google's keys. Unpatched, a Blanc package would point people's
+   systems at Google's repository. The fork patches both to Blanc's address and key, and a check fails
+   any built package, maintainer script or cron file that names Google's repository or carries
+   Google's key. The builder records, for both package types, what each script writes, when, how to
+   opt out, and what uninstall removes. People who would rather add the repository by hand get the
+   commands on the Download page.
+3. **Updates.** Every later beta is published to the repository. The system's package manager then
+   offers it with the system's other updates: on Ubuntu, Software Updater lists it, but unattended
+   upgrades skip third-party repositories unless the person allows them, so it is "offered", not
+   "installed automatically". The running browser should then notice its files changed and ask to
+   relaunch: Chromium's `UpgradeDetector` does this, **but its notifications are built only into
+   Chrome-branded builds** (`enable_update_notifications = is_chrome_branded` in
+   `chrome/browser/buildflags.gni`, *checked at the pin*), and patch 0037 hides About's update status.
+   The fork turns update notifications on for the Linux beta (`get_installed_version_linux.cc` reads the
+   new version), keeps every link and request away from Google, and shows the relaunch through the
+   Island. L3 proves it: N running, the package manager installs N+1, the Island's relaunch opens N+1.
 4. **Uninstall** through the system's package manager removes the browser and leaves the person's data
    folder, as Chrome does.
 
@@ -90,20 +113,35 @@ the number, within R2's free storage where possible).
 
 **The signing key.** A new OpenPGP key that the owner creates and holds like the Windows CRX publisher
 key and the Sparkle key: in 1Password (Dev), never on the build server and never in GitHub. The public
-half is committed. It signs the repository's metadata and each `.rpm`. Each signing run happens on the
-owner's Mac, with the owner's approval, as in `update-package-sign.command`.
+half is committed. It signs the repository's metadata (apt `InRelease`, dnf `repomd.xml`) and each
+`.rpm`, and the dnf configuration checks both (`gpgcheck` and `repo_gpgcheck`). Each signing run happens
+on the owner's Mac, with the owner's approval, as in `update-package-sign.command`. Releases move the
+exact package files that passed staging to production, then publish production's metadata. As for
+Windows (W3), a package signed with the wrong key and a tampered package must both be refused.
+
+**The repository is permanent** (my call, from the builder check): `pkg.blanc.day` and this key are the
+home of the fork's Linux packages for good, not only the beta, because once installed they live in
+every tester's sources list and the cron job keeps restoring them. So the key is long-lived with a
+written rotation plan (`chromium/linux/repository.md`), and the layout leaves room for a later stable
+`blanc` package beside `blanc-beta`, as Chrome's repository holds its channels.
 
 **Versions.** `158.0.8127.<build>`, the Windows beta's scheme, with its own ledger
-(`chromium/release/linux-ledger.json`) and its own counter starting at 901 (my call). apt and dnf never
-install a lower version, so a bad beta is withdrawn by publishing a fixed one with a higher number.
+(`chromium/release/linux-ledger.json`). Linux and Windows draw build numbers from **one shared
+sequence** (my call, from the builder check): a number names one source commit whatever the platform,
+so `.903` on Linux and `.903` on Windows are the same browser, and neither platform waits for the other
+to release. The browser's and the packages' versions must match (today `config.gni` stamps the build
+number only on Windows). Neither apt nor dnf installs a lower version on its own (dnf can if asked), so
+a bad beta is withdrawn by publishing a fixed one with a higher number.
 
 ## 4. What changes in the browser on Linux
 
 - **Window frame and buttons** (owner decision 3). The Island's strip sits at the top of the window,
   laid out as a tabbed window's tab strip is, like patch 0095 for Windows. Chromium's own Linux caption
-  buttons sit over the strip. Chromium already places them where the desktop asks (the GTK decoration
-  layout, which can put them on the left or show only Close, as GNOME does by default), so the Island
-  leaves room on whichever side has them. The strip's drag areas move the window; double-click
+  buttons sit over the strip, where Chromium puts them from the desktop's settings (GTK's decoration
+  layout, read in `ui/gtk/settings_provider_gtk.cc`), which can put buttons on either side, split
+  them, or show only Close. The Island leaves room on whichever side has them. The builder traces
+  `BrowserFrameViewLinux`, the button-order provider and Ozone's server-side-decoration handling at the
+  pin first, and the gates test buttons on the left, the right and split. The strip's drag areas move the window; double-click
   maximizes; the window edges resize. This must hold under X11 and Wayland, at 100% and 200% scale.
   Chromium's "Use system title bar and borders" setting stays available and off by default; with it on,
   the system's title bar shows above the strip (a `PLATFORMS.md` line, not a gap).
@@ -114,15 +152,28 @@ install a lower version, so a bad beta is withdrawn by publishing a fixed one wi
   package `blanc-beta` (preview builds `blanc-prototype`), install folder `/opt/bnfy/blanc-beta`,
   launcher `/usr/bin/blanc-beta`, desktop file `blanc-beta.desktop`, a window class and Wayland app id
   that match it (so the dock groups its windows under the Sunrise icon), data folder
-  `~/.config/blanc-beta`, and its own keyring entry for the password store (not "Chromium Safe
-  Storage"). Shipping Blanc's AppImage uses `~/.config/Blanc` and its own desktop file; both apps install
+  `~/.config/blanc-beta`, and its own entry in the system keyring for the password store. A different
+  label alone doesn't isolate it: the builder reads how
+  `components/os_crypt/async/browser/freedesktop_secret_key_provider.{h,cc}` looks the secret up (its
+  lookup attributes and KWallet folder) and gives the beta its own; the gates check that saved passwords
+  survive a relaunch, that a missing keyring is handled, and that Electron Blanc's and Chromium's entries
+  are untouched. (The fork's Sync shim also reports `android_keystore` as its storage backend on every
+  platform, `blanc/services/sync_runner/shims/electron.js`; Linux gets its true backend.) Shipping Blanc's AppImage uses `~/.config/Blanc` and its own desktop file; both apps install
   side by side and neither touches the other's files or defaults.
 - **Default browser.** Chromium's own path (`xdg-settings` with the package's desktop file). The
   desktop file advertises `Network;WebBrowser` and the http and https handlers.
 - **Sandbox.** The browser's sandbox stays on everywhere, as Blanc's trademark policy requires of any
-  package. On Ubuntu 24.04, which restricts the kernel feature Chromium's sandbox prefers, the package
-  installs what the pinned tree's installer provides for that case (the setuid sandbox helper, or an
-  AppArmor profile; the builder confirms which). Never `--no-sandbox`.
+  package. On Ubuntu 24.04, which restricts unprivileged user namespaces, Chromium's package installs
+  an AppArmor profile for its own executable that allows them (`common/apparmor.template`, loaded by
+  `common/postinst.include` when AppArmor 4 is present; *checked at the pin*); the beta's profile names
+  its own install path. The gate runs on a stock Ubuntu 24.04 with the restriction **on**, launched as an
+  ordinary user from the installed path, and records that renderers are sandboxed (namespaces and
+  seccomp). Shipping Blanc's CI turns that restriction off (`scripts/ci-enable-linux-sandbox.sh`); the
+  fork's package checks must not. An unpacked L0 candidate launches with Chromium's setuid helper set
+  up on the runner, never `--no-sandbox`.
+- **Blocker.** The beta embeds the pinned blocker bundle as on the Mac and Windows; today
+  `blanc/services/blocker/blocker_proxy.cc` finds no bundle on a Linux beta, so L1 installs it beside the
+  executable and L3 proves blocking from each installed package with no override.
 - **Quit after the last window** behaves as on Windows (W2): closing the last ordinary window quits.
 - **Screen sharing** under Wayland goes through PipeWire (Chromium's own), as the fork plan's PL.2 asks.
 - **Platform name** `linux` to the Island, sync and telemetry is already in
@@ -132,8 +183,8 @@ install a lower version, so a bad beta is withdrawn by publishing a fixed one wi
 
 | Milestone | What it delivers | Exit gate |
 | --- | --- | --- |
-| **L0** First build (PL.1) | The tree compiles for Linux x64 on the server through the guard; the app launches on a hosted runner under X11 and Wayland, draws the Island, starts the blocker and loads a page; the full suite runs on Linux | A Linux candidate in the tracker; `reports/f0-linux.json` committed; the Mac nightly and the Windows build unaffected |
-| **L1** Identity, frame and packages (PL.2) | Chromium's caption buttons over the strip; the preview's Linux identity; `.deb` and `.rpm` from Chromium's installer; install, launch and uninstall on Ubuntu 24.04, Debian 12 and Fedora beside shipping Blanc's AppImage, sandbox on; default-browser registration; the owner's OpenPGP key made and its public half committed | The frame check passes by real input on X11 and Wayland; the install check passes on all three systems; the packages verify against the committed key |
+| **L0** First build (PL.1) | The guard learns the Linux outputs; the tree compiles for Linux x64 on the server through it; the app launches on a hosted runner under X11 and Wayland, draws the Island, starts the blocker and loads a page, sandboxed; the full suite runs on Linux | A Linux candidate in the tracker; `reports/f0-linux.json` committed; the Mac nightly and the Windows build unaffected |
+| **L1** Identity, frame and packages (PL.2) | Chromium's caption buttons over the strip; the preview's Linux identity; `.deb` and `.rpm` from Chromium's installer with Google's repository and keys patched out; the blocker bundle installed; install, launch and uninstall on Ubuntu 24.04, Debian 12 and Fedora beside shipping Blanc's AppImage, with existing Electron and Chromium profiles, keyring entries and default browser left untouched; default-browser registration; the owner's OpenPGP key made and its public half committed | The frame check passes by real input on X11 and Wayland, buttons left, right and split; the install check passes on all three systems with Ubuntu's restriction on; no built file names Google's repository; the packages verify against the committed key |
 | **L2** Daily driver | The S1 suite on Linux, with real gaps fixed or recorded; Ctrl+Tab by most recent use with real keys (`xdotool`, as shipping's CI does); quit behavior | S1 report for Linux committed, every non-passing case triaged |
 | **L3** Linux beta | The `blanc-beta` channel without test hooks; the staging and production repositories on `pkg.blanc.day`; the release stages (`chromium/release/linux-release.mjs`, owner-run, resumable, typed confirmation before the irreversible ones, on the Windows tool's model); an N-to-N+1 update proof through apt and through dnf from the staging repository; the first public Linux beta; then the Download page tile and its claims ledger in a website PR, with the owner's approval of the copy | Verify-public passes: a logged-out download, checksums and Sigstore, and fresh Ubuntu, Debian and Fedora containers installing the public packages and seeing the repository |
 
@@ -147,6 +198,15 @@ stands, as for Windows.
 and a GN regeneration on the Mac Studio if L0 touches a build file.
 
 ## 6. Known limits
+
+- **Hand checks on a real desktop (open, the owner's call).** The owner has no x64 Linux desktop: the
+  only Linux machine is the Ubuntu 26.04 arm64 VM in Parallels. Without a real desktop nothing checks by
+  eye the dock grouping, GNOME's and KDE's own button layouts, the keyring prompt, Settings' default
+  browser, PipeWire screen sharing or the relaunch prompt after an update. The choices: a recorded
+  waiver with the hosted checks only (as the October 2026 Linux waiver did); an arm64 Linux build as well,
+  so the owner's VM can run it (§7 would change); or a rented x64 desktop VM (new spend).
+- **Screen sharing on Wayland** goes through the desktop portal and PipeWire; the hosted runners can't
+  show a portal's picker, so it is a hand check.
 
 - **No protected video**, as on the Mac and Windows betas, and no "Open in Blanc" handoff on Linux yet.
 - **No crash upload.** Crashpad writes dumps locally (to be confirmed in L1, as Windows did); there is
