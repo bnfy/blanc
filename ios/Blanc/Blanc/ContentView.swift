@@ -410,13 +410,16 @@ struct ContentView: View {
                 .accessibilityHidden(true)
             PaletteSheet(manager: manager, placement: .panel, islandAtTop: islandAtTop)
                 .environment(\.colorScheme, islandScheme)
-                .frame(maxWidth: 600, maxHeight: 520)
+                .frame(maxWidth: 600)
+                // The shape goes on the panel itself, which hugs its rows,
+                // not on the 520 pt room it may grow into.
                 .clipShape(shape)
                 .overlay(shape.strokeBorder(islandStyle.border.opacity(0.7), lineWidth: 0.5))
                 .shadow(color: .black.opacity(islandScheme == .dark ? 0.25 : 0.10), radius: 10, y: 4)
                 .islandGeometry(in: islandSpace, isSource: isPalettePanelOpen, reduceMotion: reduceMotion)
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("palette.panel")
+                .frame(maxHeight: 520, alignment: islandAtTop ? .top : .bottom)
                 .padding(.horizontal, 16)
                 // Leave a tap target on the page even when the keyboard is up.
                 .padding(.top, islandAtTop ? 10 : 44)

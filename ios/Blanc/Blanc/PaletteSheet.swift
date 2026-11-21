@@ -45,6 +45,11 @@ struct PaletteSheet: View {
     /// What the search provider suggests for the typed text (F5), and the
     /// request that is fetching it.
     @State private var suggestions: [String] = []
+    /// How tall the list's rows are. The panel hugs them, up to the room it
+    /// has, so a few tabs don't leave a gap above the search field; nil until
+    /// the list has laid out once.
+    @State private var listContentHeight: CGFloat?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var suggestionTask: Task<Void, Never>?
 
     private enum Mode {
@@ -70,9 +75,9 @@ struct PaletteSheet: View {
                 actionsRow
                 addressRow
                 divider
-                list
+                panelList
             case .panel:
-                list
+                panelList
                 divider
                 addressRow
                 actionsRow
@@ -120,6 +125,14 @@ struct PaletteSheet: View {
         }
     }
 
+    /// The list at its rows' height (the panel's own cap still applies), easing
+    /// to a new height as the results change.
+    private var panelList: some View {
+        list
+            .frame(maxHeight: listContentHeight ?? .infinity)
+            .animation(reduceMotion ? nil : .snappy(duration: 0.25), value: listContentHeight)
+    }
+
     private var styledList: some View {
         listContent
             .listStyle(.plain)
@@ -129,6 +142,11 @@ struct PaletteSheet: View {
             .listSectionSpacing(8)
             .scrollContentBackground(.hidden)
             .scrollDismissesKeyboard(.interactively)
+            .onScrollGeometryChange(for: CGFloat.self) { geometry in
+                geometry.contentSize.height + geometry.contentInsets.top + geometry.contentInsets.bottom
+            } action: { _, height in
+                if height > 0 { listContentHeight = height.rounded(.up) }
+            }
     }
 
     /// Closes the palette, whichever way it is shown: the sheet follows the

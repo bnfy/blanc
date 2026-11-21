@@ -12,7 +12,9 @@ final class IslandPanelUITests: XCTestCase {
         continueAfterFailure = false
         try XCTSkipUnless(UIDevice.current.userInterfaceIdiom == .phone, "iPhone portrait and landscape")
         XCUIDevice.shared.orientation = .portrait
-        app.launchArguments = ["-BlancUITestTwoTabs"]
+        // Default settings: nothing from this simulator's own sync or Island
+        // setup changes what the panel holds or where it sits.
+        app.launchArguments = ["-BlancUITestTwoTabs", "-BlancUITestSettings", "-BlancUITestSettingsReset"]
         app.launch()
         XCTAssertTrue(site.waitForExistence(timeout: 15))
         try XCTSkipUnless(app.windows.firstMatch.frame.width < 600, "the phone layout")
@@ -30,6 +32,20 @@ final class IslandPanelUITests: XCTestCase {
         XCTAssertEqual(XCTWaiter.wait(for: [focus], timeout: 5), .completed)
         let keyboard = app.keyboards.firstMatch
         XCTAssertTrue(keyboard.waitForExistence(timeout: 5))
+        XCTAssertLessThanOrEqual(field.frame.maxY, keyboard.frame.minY)
+    }
+
+    /// Two tabs make a short panel: it hugs its rows instead of keeping its
+    /// full height with a gap above the search field.
+    func testThePanelHugsAShortList() {
+        openPanel()
+        let keyboard = app.keyboards.firstMatch
+        XCTAssertTrue(keyboard.waitForExistence(timeout: 5))
+        sleep(1)
+        let rows = app.buttons.matching(identifier: "palette.tab")
+        XCTAssertEqual(rows.count, 2)
+        let lastRow = rows.element(boundBy: 1).frame
+        XCTAssertLessThan(field.frame.minY - lastRow.maxY, 80, "no gap between the rows and search: \(lastRow) \(field.frame)")
         XCTAssertLessThanOrEqual(field.frame.maxY, keyboard.frame.minY)
     }
 
