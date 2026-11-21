@@ -9870,8 +9870,8 @@
     "source": "sha256:de81fec134e9003c5f6758bbe9d1bc03eeeb2610a8ca0f960a732333a07669a6"
   },
   "android.settings.autofill.summary": {
-    "message": "Permite que o gerenciador de senhas escolhido no Android, como Bitwarden, Proton Pass ou 1Password, preencha senhas, endereços e outros formulários no Blanc. O Gerenciador de senhas do Google não preenche formulários no Blanc.",
-    "source": "sha256:31b53716492dd9f65d7ef4ea1437593fd4d21f0ac3cada8d8fcf8f6b7378e281"
+    "message": "Permite que o gerenciador de senhas escolhido no Android, como Bitwarden, Proton Pass ou 1Password, preencha senhas no Blanc e outros formulários compatíveis com ele. O Gerenciador de senhas do Google não preenche formulários no Blanc.",
+    "source": "sha256:d9659b94ad570ed82c70aa4f3b974a638554d68de10687b1d6cc5f4508ee848c"
   },
   "android.settings.autofill.managed": {
     "message": "Sua organização gerencia essa configuração.",

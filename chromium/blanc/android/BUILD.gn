@@ -282,6 +282,7 @@ android_library("settings_chromium_java") {
     ":tabs_ui_java",
     "//base:base_java",
     "//build/android:build_java",
+    "//chrome/browser/autofill/android:java",
     "//chrome/browser/browsing_data/android:java",
     "//chrome/browser/lifetime/android:java",
     "//chrome/browser/preferences:java",
@@ -562,6 +563,7 @@ robolectric_binary("blanc_android_junit_tests") {
     "junit/src/org/chromium/blanc/settings/SettingsStoreTest.java",
     "junit/src/org/chromium/blanc/settings/StartPageCustomizeTest.java",
     "junit/src/org/chromium/blanc/settings/SettingsLayoutTest.java",
+    "junit/src/org/chromium/blanc/settings/chromium/ChromiumSettingsHostTest.java",
     "junit/src/org/chromium/blanc/tabs/SlashCommandsTest.java",
     "junit/src/org/chromium/blanc/tabs/TabGridTest.java",
     "junit/src/org/chromium/blanc/tabs/TabSectionsFixtures.java",
@@ -570,6 +572,7 @@ robolectric_binary("blanc_android_junit_tests") {
   deps = [
     ":island_java",
     ":island_view_java",
+    ":settings_chromium_java",
     ":settings_java",
     ":settings_model_java",
     ":sync_java",
@@ -578,7 +581,11 @@ robolectric_binary("blanc_android_junit_tests") {
     "//base:base_java_test_support",
     "//base:base_junit_test_support",
     "//base:callback_java",
+    "//chrome/browser/autofill/android:java",
+    "//chrome/browser/preferences:pref_service_java",
+    "//components/prefs/android:java",
     "//third_party/androidx:androidx_preference_preference_java",
     "//third_party/junit",
+    "//third_party/mockito:mockito_java",
   ]
 }

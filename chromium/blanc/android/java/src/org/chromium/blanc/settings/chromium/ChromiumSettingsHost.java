@@ -36,6 +36,8 @@ import org.chromium.blanc.sync.PairScanner;
 import org.chromium.blanc.sync.SyncSheet;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
+import org.chromium.chrome.browser.autofill.AndroidAutofillAvailabilityStatus;
+import org.chromium.chrome.browser.autofill.AutofillClientProviderUtils;
 import org.chromium.chrome.browser.browsing_data.BrowsingDataBridge;
 import org.chromium.chrome.browser.browsing_data.BrowsingDataType;
 import org.chromium.chrome.browser.browsing_data.TimePeriod;
@@ -258,9 +260,16 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
 
     @Override
     public void setPlatformAutofillRequested(boolean on) {
-        PrefService prefs = UserPrefs.get(ProfileManager.getLastUsedRegularProfile());
+        setPlatformAutofillRequested(UserPrefs.get(ProfileManager.getLastUsedRegularProfile()), on);
+    }
+
+    static void setPlatformAutofillRequested(PrefService prefs, boolean on) {
         prefs.setBoolean(PLATFORM_AUTOFILL_REQUESTED, on);
-        // A matching remembered service takes precedence over the boolean at startup.
+        // A Custom Tab can warm its renderer before the provider runs on the next launch.
+        prefs.setBoolean(Pref.AUTOFILL_USING_PLATFORM_AUTOFILL,
+                on && AutofillClientProviderUtils.getAutofillAvailabilityForRequest(prefs, on)
+                        == AndroidAutofillAvailabilityStatus.AVAILABLE);
+        // Chromium's other autofill queries also consult the remembered service.
         if (!on) {
             prefs.setString(Pref.AUTOFILL_THIRD_PARTY_PACKAGE_USED_FOR_PLATFORM_AUTOFILL, "");
         }

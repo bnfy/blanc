@@ -10165,7 +10165,7 @@
     "androidOnly": true
   },
   "android.settings.autofill.summary": {
-    "message": "Lets the password manager you choose in Android, like Bitwarden, Proton Pass or 1Password, fill passwords, addresses and other forms in Blanc. Google Password Manager doesn't fill in Blanc.",
+    "message": "Lets the password manager you choose in Android, like Bitwarden, Proton Pass or 1Password, fill passwords in Blanc, and other forms where it supports them. Google Password Manager doesn't fill in Blanc.",
     "note": "Text under the autofill switch explaining which Android password managers work in Blanc.",
     "androidOnly": true
   },

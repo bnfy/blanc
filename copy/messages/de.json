@@ -9870,8 +9870,8 @@
     "source": "sha256:de81fec134e9003c5f6758bbe9d1bc03eeeb2610a8ca0f960a732333a07669a6"
   },
   "android.settings.autofill.summary": {
-    "message": "Der Passwortmanager, den du in Android auswählst (etwa Bitwarden, Proton Pass oder 1Password), kann in Blanc Passwörter und Adressen eintragen und andere Formulare ausfüllen. Der Google Passwortmanager füllt in Blanc keine Formulare aus.",
-    "source": "sha256:31b53716492dd9f65d7ef4ea1437593fd4d21f0ac3cada8d8fcf8f6b7378e281"
+    "message": "Der Passwortmanager, den du in Android auswählst (etwa Bitwarden, Proton Pass oder 1Password), kann in Blanc Passwörter eintragen und andere Formulare ausfüllen, sofern er sie unterstützt. Der Google Passwortmanager füllt in Blanc keine Formulare aus.",
+    "source": "sha256:d9659b94ad570ed82c70aa4f3b974a638554d68de10687b1d6cc5f4508ee848c"
   },
   "android.settings.autofill.managed": {
     "message": "Deine Organisation verwaltet diese Einstellung.",

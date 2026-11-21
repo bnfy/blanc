@@ -110,10 +110,12 @@ in the lane file in its place. Numbering starts at 0101.
   calls its clearing at startup, so it is left alone.
 - `0125-android-autofill-platform.patch` keeps the person's choice in Blanc's
   Android profile pref, `blanc.autofill.platform_requested`. It defaults to on
-  for new and existing profiles. At startup the provider copies that choice to
-  Chromium's pref before checking the service and policy. It then writes the
-  result back to Chromium's pref so the browser and renderer agree on the
-  active client. The choice survives an unavailable service or a policy block.
+  for new and existing profiles. Android's app preferences link opens the same
+  Blanc Settings switch. The switch and the startup provider check the request
+  against the device's autofill service and policy, then write the result to
+  Chromium's active pref. A Custom Tab can read that result before the provider
+  starts. At startup Chromium records resets against the previous active client.
+  The choice survives an unavailable service or a policy block.
 
 A Chromium file dropped from the lane keeps its applied edits in an existing
 checkout: restore it with `git checkout` there. A Blanc file the source drops or

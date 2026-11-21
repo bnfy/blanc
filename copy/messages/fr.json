@@ -9870,8 +9870,8 @@
     "source": "sha256:de81fec134e9003c5f6758bbe9d1bc03eeeb2610a8ca0f960a732333a07669a6"
   },
   "android.settings.autofill.summary": {
-    "message": "Le gestionnaire de mots de passe que vous choisissez dans Android, comme Bitwarden, Proton Pass ou 1Password, peut saisir vos mots de passe et vos adresses et remplir d’autres formulaires dans Blanc. Le Gestionnaire de mots de passe de Google ne remplit pas les formulaires dans Blanc.",
-    "source": "sha256:31b53716492dd9f65d7ef4ea1437593fd4d21f0ac3cada8d8fcf8f6b7378e281"
+    "message": "Le gestionnaire de mots de passe que vous choisissez dans Android, comme Bitwarden, Proton Pass ou 1Password, peut saisir vos mots de passe dans Blanc et remplir les autres formulaires qu’il prend en charge. Le Gestionnaire de mots de passe de Google ne remplit pas les formulaires dans Blanc.",
+    "source": "sha256:d9659b94ad570ed82c70aa4f3b974a638554d68de10687b1d6cc5f4508ee848c"
   },
   "android.settings.autofill.managed": {
     "message": "Votre organisation gère ce paramètre.",
