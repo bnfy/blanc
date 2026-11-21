@@ -96,6 +96,7 @@
     "chrome/browser/ui/omnibox/omnibox_everywhere/omnibox_everywhere_controller.cc": "a066e11b2f090a7cfbdf656af8cf2a46cb8f93222ecf827124a7516cd5dade61",
     "chrome/browser/ui/omnibox/omnibox_next_features.cc": "4960eaf0a39d601cff3a20344eadd55308652893e8ce6568f545cd05f65e7f6c",
     "chrome/browser/ui/prefs/pref_watcher.cc": "5cd43b0b1f97a5844936bada91e2f2e347b43419cf08f9dc04ccc7fcc1ceba03",
+    "chrome/browser/ui/startup/default_browser_prompt/pin_infobar/pin_infobar_controller.cc": "e44933d9b186daf626564437effc3b6677af6171c0c43dea9cdcd36a603f54b0",
     "chrome/browser/ui/startup/first_run_service.cc": "09cba3f73ef0820ba1eb3bcbc683225d0c95649e1259eb2e66940aeeec9ce857",
     "chrome/browser/ui/startup/infobar_utils.cc": "bc4f762352f3de80d2e58714d03546e40dc7a2c7040834eab4c2e69e34bc33e6",
     "chrome/browser/ui/startup/startup_browser_creator.cc": "90a94bfdd710e052061fe70831279e999cbc5aed5f7d6fd82004e660093d8ad7",

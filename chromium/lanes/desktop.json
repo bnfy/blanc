@@ -5,7 +5,7 @@
   "upstream": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
   "upstreamDir": "upstream",
   "sourceMap": "source-map.json",
-  "fileCount": 218,
+  "fileCount": 219,
   "patches": [
     "patches/baseline/0001-foundation-baseline.patch",
     "patches/0002-canonical-layout.patch",
@@ -115,6 +115,7 @@
     "patches/0107-blanc-no-api-keys-infobar.patch",
     "patches/0108-blanc-no-environment-api-keys.patch",
     "patches/0109-blanc-default-browser-dialog.patch",
-    "patches/0110-blanc-restore-pages-button.patch"
+    "patches/0110-blanc-restore-pages-button.patch",
+    "patches/0111-blanc-windows-about-updates.patch"
   ]
 }

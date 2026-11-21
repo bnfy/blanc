@@ -309,6 +309,7 @@
 #include "chrome/browser/ui/toolbar/toolbar_actions_model.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/browser/ui/views/infobars/infobar_container_view.h"
+#include "chrome/browser/ui/views/infobars/infobar_view.h"
 #include "chrome/browser/ui/views/frame/toolbar_button_provider.h"
 #include "chrome/browser/ui/toolbar/app_menu_model.h"
 #include "chrome/browser/ui/views/toolbar/app_menu.h"
@@ -391,6 +392,17 @@
 #if BUILDFLAG(IS_MAC)
 #include "blanc/browser/ui/app_menus_mac.h"
 #include "blanc/browser/ui/window_buttons_mac.h"
+#endif
+#if BUILDFLAG(IS_WIN)
+// Settings → About's trust receipt reads chrome.exe's Authenticode publisher.
+#include <windows.h>
+#include <softpub.h>
+#include <wincrypt.h>
+#include <wintrust.h>
+#pragma comment(lib, "crypt32.lib")
+#pragma comment(lib, "wintrust.lib")
+#include "base/path_service.h"
+#include "base/strings/utf_string_conversions.h"
 #endif
 #include "ui/base/resource/resource_bundle.h"
 #include "ui/views/controls/webview/webview.h"
@@ -11723,10 +11735,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       const bool changed = owner->band_color != color;
       owner->band_color = color;
       // Restyle the infobars showing now; new ones read the color as they theme.
+      // Each bar directly: on Windows the color arrives after the bars theme,
+      // and Widget::ThemeChanged() didn't reach them again (2026-11-21).
       auto* browser_view = BrowserView::GetBrowserViewForBrowser(owner->browser);
       if (changed && browser_view && browser_view->infobar_container() &&
-          !browser_view->infobar_container()->children().empty() && browser_view->GetWidget())
-        browser_view->GetWidget()->ThemeChanged();
+          browser_view->GetWidget()) {
+        for (views::View* child : browser_view->infobar_container()->children()) {
+          if (auto* infobar = views::AsViewClass<InfoBarView>(child)) infobar->OnThemeChanged();
+        }
+      }
       reply(true, base::Value(true));
       return;
     }
