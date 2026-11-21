@@ -82,6 +82,8 @@ function main(argv) {
   adb('shell', 'pm', 'clear', PACKAGE);
   adb('shell', 'monkey', '-p', PACKAGE, '-c', 'android.intent.category.LAUNCHER', '1');
   sleep(7);
+  // A fresh install opens with the first-run card over the Island: go through it without pairing.
+  for (const label of ['Browse without pairing', 'Continue', 'Not now']) tap({text: label});
   for (const page of PAGES) { adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', page, '-p', PACKAGE); sleep(5); }
 
   for (const [size, density] of SCREENS) {
@@ -138,11 +140,16 @@ function main(argv) {
     const edited = dump();
     shot('palette-edit-address');
     if (fieldText(edited) !== long) longProblems.push(`a tap does not put the address in the field (${fieldText(edited)})`);
-    adb('shell', 'input', 'keyevent', 'KEYCODE_BACK'); sleep(1);
-    adb('shell', 'input', 'keyevent', 'KEYCODE_BACK'); sleep(1);
-    openPalette(); sleep(1.5);
+    // Clearing the field brings the address back.
+    const clear = matching(edited, /^Clear search$/, 'content-desc');
+    if (clear) { adb('shell', 'input', 'tap', ...center(clear)); sleep(1); }
     const again = matching(dump(), /^https:\/\/www\.iana\.org\/domains\/reserved\?/, 'content-desc');
-    if (again) { adb('shell', 'input', 'swipe', ...center(again), ...center(again), '900'); sleep(1.5); }
+    if (!again) longProblems.push('clearing the field does not bring the address back');
+    // A held finger, not a zero-length swipe, which the emulator can deliver as a tap.
+    if (again) {
+      adb('shell', 'input', 'motionevent', 'DOWN', ...center(again)); sleep(1.2);
+      adb('shell', 'input', 'motionevent', 'UP', ...center(again)); sleep(1.2);
+    }
     const menu = dump();
     shot('palette-copy-link');
     const item = nodeBounds(menu, {text: 'Copy Link'});
@@ -150,6 +157,8 @@ function main(argv) {
     else { adb('shell', 'input', 'tap', ...center(item)); sleep(1.5); if (paletteField(dump())) longProblems.push('Copy Link leaves the palette open'); }
   }
   check('a long address as a pill', longProblems);
+  // The "Link copied" notice stands in the Island's place for a moment.
+  for (let i = 0; i < 8 && !nodeBounds(dump(), {id: 'blanc_island_domain'}); i++) sleep(1);
 
   openPalette();
   const row = matching(dump(), /, www\.iana\.org$/, 'content-desc');
