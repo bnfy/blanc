@@ -545,15 +545,21 @@ struct PaletteSheet: View {
     private var slashList: some View {
         let matches = slashMatches
         return List {
+            // Its own margins, as the other lists have: the system's default
+            // put the icons against the panel's edge on a wide screen (the
+            // unfolded iPhone Duo); on a phone it looks as before.
             if matches.isEmpty {
                 Text(SyncCopy.text("ios.palette.noCommand"))
                     .foregroundStyle(style.secondary)
+                    .listRowInsets(EdgeInsets(top: 15, leading: 20, bottom: 15, trailing: 20))
             } else {
                 ForEach(Array(matches.enumerated()), id: \.element.id) { index, cmd in
                     Button { run(cmd) } label: {
                         row(icon: "command", title: cmd.command, subtitle: cmd.hint)
                     }
                     .overlay { keyHighlight(index).allowsHitTesting(false) }
+                    .listRowInsets(EdgeInsets(top: 15, leading: 20, bottom: 15, trailing: 20))
+                    .alignmentGuide(.listRowSeparatorTrailing) { $0[.trailing] }
                 }
             }
         }
