@@ -2,11 +2,13 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 import {patchedChromiumFile} from './android-patched-file.mjs';
-import {LOCALES} from './android-strings.mjs';
+import {LOCALES, resourceName} from './android-strings.mjs';
 
 const read = file => fs.readFileSync(new URL(file, import.meta.url), 'utf8');
 const populator = patchedChromiumFile(
   'chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuPopulator.java');
+const menuItem = patchedChromiumFile(
+  'chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuItem.java');
 const menu = populator.match(/public List<ModelList> buildContextMenu\(\) \{([\s\S]*?)\n    \}/)[1];
 const itemNames = Array.from(menu.matchAll(/\bItem\.([A-Z_]+)/g), match => match[1]);
 const overrideXml = directory =>
@@ -22,16 +24,30 @@ test('only forced sign-in gates the menu on a fresh install', () => {
   assert.doesNotMatch(target, /"\/\/chrome\/browser\/first_run\/android:java"/);
 });
 
-test('private tabs cannot offer opening a link in a group', () => {
-  // Both insertions must be guarded, including the delegated Thin WebView menu.
+test('only tabs already in a non-private group offer to open a link in that group', () => {
   const compact = menu.replace(/\s+/g, '');
+  assert.ok(compact.includes('TabsourceTab=getTab();booleancanOpenInExistingGroup='
+    + '!mItemDelegate.isIncognito()&&sourceTab!=null&&sourceTab.getTabGroupId()!=null;'),
+  'the source tab must exist, be non-private and already have a group ID');
   for (const [condition, item] of [
-    ['!mItemDelegate.isIncognito()', 'createManagedListItem(Item.OPEN_IN_NEW_TAB_IN_GROUP,isIncognitoForced)'],
-    ['!mItemDelegate.isIncognito()&&mItemDelegate.supportsOpenInNewTabInGroup()', 'createListItem(Item.OPEN_IN_NEW_TAB_IN_GROUP)'],
+    ['canOpenInExistingGroup', 'createManagedListItem(Item.OPEN_IN_NEW_TAB_IN_GROUP,isIncognitoForced)'],
+    ['canOpenInExistingGroup&&mItemDelegate.supportsOpenInNewTabInGroup()', 'createListItem(Item.OPEN_IN_NEW_TAB_IN_GROUP)'],
   ]) {
     assert.ok(compact.includes(`if(${condition}){linkGroup.add(${item});}`), `group action requires ${condition}`);
   }
   assert.equal(itemNames.filter(name => name === 'OPEN_IN_NEW_TAB_IN_GROUP').length, 2);
+});
+
+test('normal and Thin WebView link menus offer private tabs even when Chromium prefers private windows', () => {
+  const modes = menu.match(/if \(mMode == ContextMenuMode\.NORMAL\) \{([\s\S]*?)\} else if \(mMode == ContextMenuMode\.THIN_WEB_VIEW\) \{([\s\S]*?)\n                \}/);
+  const privateTab = 'linkGroup.add(createListItem(Item.OPEN_IN_INCOGNITO_TAB));';
+  const supported = '!mItemDelegate.isIncognito()&&mItemDelegate.isIncognitoSupported()';
+  for (const [body, condition] of [
+    [modes[1], supported],
+    [modes[2], supported + '&&mItemDelegate.supportsOpenInNewIncognitoTab()'],
+  ]) {
+    assert.ok(body.replace(/\s+/g, '').includes(`if(${condition}){${privateTab}}`), condition);
+  }
 });
 
 test('no menu mode offers a window action', () => {
@@ -61,21 +77,37 @@ test('the menu offers open, preview, copy, share and download without image sear
   }
 });
 
-test('tab and external open actions use Blanc’s labels in all six languages', () => {
-  const labels = {
-    contextmenu_open_in_incognito_tab: 'Open in private tab',
-    contextmenu_open_in_new_chrome_tab: 'Open in new tab in Blanc',
-    contextmenu_open_in_chrome_incognito_tab: 'Open in private tab in Blanc',
-    menu_open_in_chrome: 'Open in Blanc',
-  };
+const labels = [
+  ['OPEN_IN_INCOGNITO_TAB', 'android.contextMenu.privateTab'],
+  ['OPEN_IN_NEW_CHROME_TAB', 'android.contextMenu.newBlancTab'],
+  ['OPEN_IN_CHROME_INCOGNITO_TAB', 'android.contextMenu.privateBlancTab'],
+  ['OPEN_IN_CHROME', 'mini.openInBlanc'],
+];
+
+test('tab and external open actions always use Blanc resource IDs, including when Chromium prefers windows', () => {
+  const titles = menuItem.match(/int\[\] STRING_IDS = \{([\s\S]*?)\};/)[1];
+  for (const [item, key] of labels) {
+    assert.ok(titles.includes(`org.chromium.blanc.island.R.string.${resourceName(key)}, // Item.${item}:`), item);
+    assert.ok(!menuItem.includes(`case Item.${item}:`), `${item} must use its mapped title`);
+  }
+});
+
+test('menu labels come from the six Blanc catalogs and default to English for other languages', () => {
   for (const [locale, directory] of LOCALES) {
-    const xml = overrideXml(directory);
-    for (const [id, english] of Object.entries(labels)) {
-      const title = xml.match(new RegExp(`<string name="${id}">([^<]+)</string>`))?.[1];
-      assert.ok(title, `${locale} needs ${id}`);
+    const xml = read(`../blanc/android/island/res/${directory}/blanc_strings.xml`);
+    const catalog = JSON.parse(read(`../../copy/messages/${locale}.json`));
+    for (const [, key] of labels) {
+      const title = catalog[key].message;
       assert.doesNotMatch(title, /Chrome|Chromium|Incognito/i);
-      if (locale === 'en') assert.equal(title, english);
+      assert.ok(xml.includes(`<string name="${resourceName(key)}">${title}</string>`), `${directory} needs ${key}`);
     }
+  }
+});
+
+test('the Chromium overlay only supplies the Safety Hub summary', () => {
+  for (const [, directory] of LOCALES) {
+    assert.deepEqual(Array.from(overrideXml(directory).matchAll(/<string name="([^"]+)"/g), match => match[1]),
+      ['safety_hub_autorevocation_toggle_summary'], directory);
   }
 });
 

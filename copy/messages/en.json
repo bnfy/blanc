@@ -10338,16 +10338,16 @@
   "android.contextMenu.privateTab": {
     "message": "Open in private tab",
     "note": "Blanc for Android: Long-press a link to open it in a private tab.",
-    "chromiumAndroidResource": "contextmenu_open_in_incognito_tab"
+    "androidOnly": true
   },
   "android.contextMenu.newBlancTab": {
     "message": "Open in new tab in Blanc",
     "note": "Blanc for Android: Open a link from a Custom Tab in a new tab in the full Blanc browser.",
-    "chromiumAndroidResource": "contextmenu_open_in_new_chrome_tab"
+    "androidOnly": true
   },
   "android.contextMenu.privateBlancTab": {
     "message": "Open in private tab in Blanc",
     "note": "Blanc for Android: Open a link from a Custom Tab in a private tab in the full Blanc browser.",
-    "chromiumAndroidResource": "contextmenu_open_in_chrome_incognito_tab"
+    "androidOnly": true
   }
 }

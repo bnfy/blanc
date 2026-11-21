@@ -31,10 +31,12 @@ const runtimeFile = (data) =>
   + "(function (root, data) { if (typeof module !== 'undefined' && module && module.exports) module.exports = data; else root.blancStrings = data; })"
   + `(typeof self !== 'undefined' ? self : this, ${JSON.stringify(data)});\n`;
 
+// Android-only entries are packaged by chromium/tools/android-strings.mjs.
+const sharedCatalog = (en) => Object.fromEntries(Object.entries(en).filter(([, entry]) => !entry.androidOnly));
+
 export function generate(root) {
   const { en: source, translations, registry } = loadCatalog(root);
-  // android-strings.mjs emits Chromium-only resource overrides directly into the Android APK.
-  const en = Object.fromEntries(Object.entries(source).filter(([, entry]) => !entry.chromiumAndroidResource));
+  const en = sharedCatalog(source);
   const files = {};
   const pseudoTr = Object.fromEntries(entryKeys(en).map((k) => [k, { message: pseudoLocalize(en[k].message), source: 'pseudo' }]));
   const locales = [
@@ -156,11 +158,12 @@ export function runCheck(root) {
     names.set(name, key);
   }
   failures.push(...slashDrift(root, loaded));
+  const en = sharedCatalog(loaded.en);
   for (const [rel, { state, allow = [] }] of Object.entries(loaded.scope.files ?? {})) {
     const p = path.join(root, rel);
     if (!fs.existsSync(p)) { failures.push(`i18n-scope: ${rel} is missing — update copy/i18n-scope.json`); continue; }
     if (state !== 'guarded') continue;
-    const { problems } = scanFile(rel, fs.readFileSync(p, 'utf8'), { en: loaded.en, allow });
+    const { problems } = scanFile(rel, fs.readFileSync(p, 'utf8'), { en, allow });
     failures.push(...problems.map((problem) => `${rel}: ${problem}`));
   }
   return { failures, warnings };

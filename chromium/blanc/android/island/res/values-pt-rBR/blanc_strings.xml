@@ -293,6 +293,10 @@
     <string name="blanc_android_default_browser_open">Definir como padrão</string>
     <string name="blanc_settings_language_label">Idioma</string>
     <string name="blanc_settings_language_system">Sistema (%1$s)</string>
+    <string name="blanc_android_context_menu_private_tab">Abrir em uma aba privada</string>
+    <string name="blanc_android_context_menu_new_blanc_tab">Abrir em uma nova aba do Blanc</string>
+    <string name="blanc_android_context_menu_private_blanc_tab">Abrir em uma aba privada do Blanc</string>
+    <string name="blanc_mini_open_in_blanc">Abrir no Blanc</string>
     <plurals name="blanc_shared_spaces_waiting_count">
         <item quantity="one">%d Space compartilhado está esperando</item>
         <item quantity="many">%d Spaces compartilhados estão esperando</item>

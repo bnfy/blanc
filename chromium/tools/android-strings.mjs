@@ -102,6 +102,9 @@ export const ANDROID_KEYS = [
   'ios.defaultBrowser.row', 'ios.defaultBrowser.notBlanc', 'android.welcome.shareTitle',
   'android.welcome.measureUsageHelp', 'android.defaultBrowser.body', 'android.defaultBrowser.open',
   'settings.language.label', 'settings.language.system',
+  // Long-press menu labels use Blanc's default English on untranslated phones.
+  'android.contextMenu.privateTab', 'android.contextMenu.newBlancTab', 'android.contextMenu.privateBlancTab',
+  'mini.openInBlanc',
 ];
 // ICU plurals, as Android <plurals>: the Island's tab count for TalkBack.
 export const ANDROID_PLURALS = ['sharedSpaces.waitingCount', 'newtab.groups.count', 'shield.count.blocked', 'tabGroups.tucked', 'tabsMenu.header',
@@ -145,13 +148,9 @@ export function androidPlural(message, name) {
 
 const read = locale => JSON.parse(fs.readFileSync(path.join(repo, 'copy/messages', `${locale}.json`), 'utf8'));
 
-// Shared Blanc labels and copy written specifically for a Chromium Android resource.
+// Chromium chooses the Safety Hub summary by its upstream resource ID.
 export const CHROMIUM_OVERRIDES = {
   'android.settings.autoRevokeSummary': 'safety_hub_autorevocation_toggle_summary',
-  'mini.openInBlanc': 'menu_open_in_chrome',
-  ...Object.fromEntries(Object.entries(read('en'))
-    .filter(([, entry]) => entry.chromiumAndroidResource)
-    .map(([key, entry]) => [key, entry.chromiumAndroidResource])),
 };
 
 export function render(locale) {
