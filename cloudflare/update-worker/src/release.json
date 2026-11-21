@@ -1,4 +1,9 @@
 {
   "appId": "{459fd3cf-456c-4a06-8b37-2084cf64ddce}",
-  "version": null
+  "version": "158.0.8127.902",
+  "url": "https://blanc.day/update/win/pkg/d2571c7e8ff1da2824f2dfbbc12ef2a75bab9adf936e398a2a850a946a15a7ef.crx3",
+  "size": 170189311,
+  "sha256": "d2571c7e8ff1da2824f2dfbbc12ef2a75bab9adf936e398a2a850a946a15a7ef",
+  "run": "mini_installer.exe",
+  "arguments": "--do-not-launch-chrome --verbose-logging"
 }

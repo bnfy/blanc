@@ -3876,7 +3876,16 @@ owner):
 | Uninstall (the entry's own command) | Pass: exit 19 (success), program folder and Start menu entry gone, updater removed, Electron Blanc 1.51.0 untouched. Kept, as Chromium does: the beta's `User Data` folder (here only Crashpad) and an empty `Bananify` folder |
 | The installer window by eye, Snap Layouts, Settings → Default apps, a passkey through Windows Hello, a brand-new Windows user | Not done yet: they need the owner at the VM (the window's art was checked in runner captures) |
 
-blanc.day and the staging server offer nothing again (Worker `8b84fe41`).
+**First Windows beta public (2026-11-21):** Blanc Beta 158.0.8127.902, GitHub
+pre-release `chromium-beta-windows-158.0.8127.902` at `f64ed2ed9` (never latest;
+v1.51.0 stayed latest), published 09:19 UTC through `windows-release.mjs`, all ten
+stages: signing run 44885396573 (owner-approved), owner-signed package `d2571c7e…`,
+staging gate 44887435753, Sigstore-signed `SHA256SUMS`, and verify-public: a
+logged-out download of every file, checksums and Sigstore, blanc.day's signed offer
+of .902, and the public setup alone installing .902 on a clean runner (44889077445).
+blanc.day offers 158.0.8127.902 (`cloudflare/update-worker/src/release.json`);
+ledger `chromium/release/windows-ledger.json`. Not done before release: the five
+hands-on checks above, and no website page or download link yet.
 
 ## Android
 Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
