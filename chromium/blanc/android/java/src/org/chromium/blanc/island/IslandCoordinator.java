@@ -4,6 +4,7 @@ package org.chromium.blanc.island;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.view.Gravity;
@@ -31,6 +32,7 @@ import org.chromium.chrome.browser.tab.TabSelectionType;
 import org.chromium.chrome.browser.tabmodel.TabModel;
 import org.chromium.chrome.browser.tabmodel.TabModelSelector;
 import org.chromium.chrome.browser.tabmodel.TabModelSelectorTabModelObserver;
+import org.chromium.chrome.browser.tabmodel.TabModelSelectorTabObserver;
 import org.chromium.components.url_formatter.SchemeDisplay;
 import org.chromium.components.url_formatter.UrlFormatter;
 import org.chromium.content_public.browser.GestureListenerManager;
@@ -40,6 +42,9 @@ import org.chromium.content_public.browser.RenderCoordinates;
 import org.chromium.content_public.browser.WebContents;
 import org.chromium.ui.insets.InsetObserver;
 import org.chromium.url.GURL;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Puts Blanc for iPhone's Island over the page and keeps it in step with the browser: the active
@@ -94,6 +99,24 @@ public final class IslandCoordinator {
     private final SharedPreferences.OnSharedPreferenceChangeListener mPositionChanged =
             (prefs, key) -> onPositionChanged(key);
     private final TabModelSelectorTabModelObserver mCountObserver;
+
+    /**
+     * Each tab's site icon as Chromium last reported it, with the site it was for, so the page menu
+     * shows it (#1682). In memory only, never for a site the tab has since left.
+     */
+    private final Map<Integer, SiteIcon> mIcons = new HashMap<>();
+
+    private final TabModelSelectorTabObserver mIconObserver;
+
+    private static final class SiteIcon {
+        final String host;
+        final Bitmap icon;
+
+        SiteIcon(String host, Bitmap icon) {
+            this.host = host;
+            this.icon = icon;
+        }
+    }
     private final InsetObserver.WindowInsetObserver mInsetObserver =
             new InsetObserver.WindowInsetObserver() {
                 @Override
@@ -232,6 +255,22 @@ public final class IslandCoordinator {
         mDensity = activity.getResources().getDisplayMetrics().density;
         mView = new IslandView(activity);
         mView.menuButton().setOnClickListener(mCallbacks::onMenu);
+        // The page menu's New tab (while Stop holds its place) and Close Private Tab (#1682).
+        mView.menuButton()
+                .setTag(
+                        R.id.blanc_island_menu_actions,
+                        new IslandMenuPopup.IslandActions() {
+                            @Override
+                            public void newTab() {
+                                mCallbacks.onNewTab();
+                            }
+
+                            @Override
+                            public void closePrivateTab() {
+                                Tab tab = mTab;
+                                if (tab != null && tab.isIncognito()) mCallbacks.onClosePrivateTab(tab);
+                            }
+                        });
         mView.domainView().setOnClickListener(v -> mCallbacks.onAddress());
         mView.setSwipeListener(
                 new IslandView.SwipeListener() {
@@ -252,13 +291,7 @@ public final class IslandCoordinator {
                     }
                 });
         mView.newTabButton().setOnClickListener(v -> mCallbacks.onNewTab());
-        mView.privateChip()
-                .setOnClickListener(
-                        v -> {
-                            Tab tab = mTab;
-                            if (tab != null && tab.isIncognito()) mCallbacks.onClosePrivateTab(tab);
-                        });
-        // #1463: Stop while a page loads, then Back and Forward; Reload is in the Sunrise menu.
+        // #1682: Stop in New tab's place while a page loads; Reload is in the page menu.
         mView.stopButton()
                 .setOnClickListener(
                         v -> {
@@ -295,6 +328,24 @@ public final class IslandCoordinator {
                     @Override
                     public void tabRemoved(Tab tab) {
                         refresh();
+                    }
+                };
+        mIconObserver =
+                new TabModelSelectorTabObserver(selector) {
+                    @Override
+                    public void onFaviconUpdated(Tab tab, @Nullable Bitmap icon, @Nullable GURL iconUrl) {
+                        String host = tab.getUrl().getHost();
+                        if (icon == null || host.isEmpty()) {
+                            mIcons.remove(tab.getId());
+                        } else {
+                            mIcons.put(tab.getId(), new SiteIcon(host, icon));
+                        }
+                        if (tab == mTab) refresh();
+                    }
+
+                    @Override
+                    public void onDestroyed(Tab tab) {
+                        mIcons.remove(tab.getId());
                     }
                 };
         if (mInsets != null) mInsets.addObserver(mInsetObserver);
@@ -334,6 +385,8 @@ public final class IslandCoordinator {
         mTopColor.destroy();
         mActiveTab.removeObserver(mTabChanged);
         mCountObserver.destroy();
+        mIconObserver.destroy();
+        mIcons.clear();
         if (mInsets != null) mInsets.removeObserver(mInsetObserver);
         ViewGroup parent = (ViewGroup) mView.getParent();
         if (parent != null) parent.removeView(mView);
@@ -442,6 +495,8 @@ public final class IslandCoordinator {
         mView.setLoadProgress(state.loading, tab == null ? 0 : tab.getProgress());
         state.privateTab = tab != null && tab.isIncognito();
         state.startPage = onStartPage();
+        state.blancPage = onBlancPage(tab);
+        state.favicon = icon(tab);
         state.canGoBack = tab != null && tab.canGoBack();
         state.canGoForward = tab != null && tab.canGoForward();
         state.tabCount = mSelector.getTotalTabCount();
@@ -490,6 +545,23 @@ public final class IslandCoordinator {
         }
         mSelector.openNewTab(new LoadUrlParams(StartPageCustomize.START_PAGE + StartPageCustomize.FRAGMENT),
                 TabLaunchType.FROM_CHROME_UI, null, false);
+    }
+
+    /** One of Blanc's own pages, which the page menu marks with the Sunrise. */
+    private static boolean onBlancPage(@Nullable Tab tab) {
+        if (tab == null) return true;
+        GURL url = tab.getUrl();
+        String scheme = url.getScheme();
+        return "chrome-native".equals(scheme)
+                || "blanc".equals(scheme)
+                || ("chrome".equals(scheme) && "blanc".equals(url.getHost()));
+    }
+
+    /** The tab's site icon, while it's still on the site the icon came from. */
+    private @Nullable Bitmap icon(@Nullable Tab tab) {
+        if (tab == null) return null;
+        SiteIcon icon = mIcons.get(tab.getId());
+        return icon != null && icon.host.equals(tab.getUrl().getHost()) ? icon.icon : null;
     }
 
     private boolean onStartPage() {
@@ -542,7 +614,7 @@ public final class IslandCoordinator {
 
     private void setButtonsEnabled(boolean enabled) {
         View[] buttons = {
-            mView.menuButton(), mView.domainView(), mView.privateChip(),
+            mView.menuButton(), mView.domainView(),
             mView.stopButton(), mView.backButton(), mView.forwardButton(), mView.newTabButton()
         };
         for (View button : buttons) button.setEnabled(enabled);

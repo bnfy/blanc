@@ -2,6 +2,8 @@
 
 package org.chromium.blanc.palette;
 
+import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.ClipData;
@@ -13,7 +15,9 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.InsetDrawable;
 import android.os.Build;
+import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -21,17 +25,21 @@ import android.text.TextWatcher;
 import android.text.format.DateUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowManager;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.animation.DecelerateInterpolator;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -39,6 +47,7 @@ import org.json.JSONObject;
 
 import org.chromium.base.ContextUtils;
 import org.chromium.blanc.address.AddressInput;
+import org.chromium.blanc.island.IslandPosition;
 import org.chromium.blanc.island.IslandStyle;
 import org.chromium.blanc.island.R;
 import org.chromium.blanc.settings.SearchEngines;
@@ -126,8 +135,6 @@ public final class PaletteSheet extends Dialog {
         COMMAND,
         RESULT,
         EMPTY,
-        /** The current page's whole address, first at rest (#1445). */
-        ADDRESS,
         /** Search for "…" with the chosen engine (#1445). */
         SEARCH
     }
@@ -154,7 +161,10 @@ public final class PaletteSheet extends Dialog {
     }
 
     private static final String PAGES = "chrome://blanc/";
-    private static final int RESTING_HEIGHT_DP = 420;
+    /** The open Island's tallest, as the iPhone's panel (#1682); it hugs fewer rows. */
+    private static final int MAX_HEIGHT_DP = 520;
+    /** How long the Island takes to grow into the sheet. */
+    private static final long GROW_MS = 250;
 
     private final Activity mActivity;
     private final BlancTabs mTabs;
@@ -164,7 +174,10 @@ public final class PaletteSheet extends Dialog {
     private final EditText mField;
     private final ImageButton mClear;
     private final ImageButton mCollapse;
+    private final TextView mUrlPill;
+    private final String mPlaceholder;
     private final LinearLayout mList;
+    private final ImageButton mBack;
     private final View mNewTab;
     private final ImageButton mFavorites;
     private final ImageButton mHistory;
@@ -172,6 +185,10 @@ public final class PaletteSheet extends Dialog {
     private final ImageButton mSpace;
     private final List<Row> mRows = new ArrayList<>();
     private final SwipeToCloseRow.Group mSwipes = new SwipeToCloseRow.Group();
+    /** The Island is at the top: the sheet hangs from there, its search and actions on top. */
+    private final boolean mAtTop;
+    private final LinearLayout mRoot;
+    private final PanelDrag.Tracker mDrag;
 
     private PaletteSheet(Activity activity, BlancTabs tabs, Callbacks callbacks) {
         super(activity);
@@ -184,7 +201,33 @@ public final class PaletteSheet extends Dialog {
                 == Configuration.UI_MODE_NIGHT_YES;
         mStyle = IslandStyle.forTab(tabs.privateSelected(), dark);
 
-        LinearLayout root = new LinearLayout(activity);
+        mAtTop = IslandPosition.fromSetting(
+                        ContextUtils.getAppSharedPreferences().getString(SettingsStore.POSITION_KEY, null))
+                == IslandPosition.TOP;
+        // The open Island (#1682): as tall as its rows, at most MAX_HEIGHT_DP or the room it has, and
+        // the list gives up height first, so the field and the actions stay on screen.
+        mRoot = new LinearLayout(activity) {
+            @Override
+            protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+                int cap = dp(MAX_HEIGHT_DP) + getPaddingTop() + getPaddingBottom();
+                int size = MeasureSpec.getSize(heightMeasureSpec);
+                int limit = MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.UNSPECIFIED ? cap : Math.min(size, cap);
+                super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(limit, MeasureSpec.AT_MOST));
+            }
+
+            // A drag from the search or action row back toward the Island closes the sheet.
+            @Override
+            public boolean onInterceptTouchEvent(MotionEvent event) {
+                return mDrag.intercept(event) || super.onInterceptTouchEvent(event);
+            }
+
+            @SuppressLint("ClickableViewAccessibility")
+            @Override
+            public boolean onTouchEvent(MotionEvent event) {
+                return mDrag.touch(event) || super.onTouchEvent(event);
+            }
+        };
+        LinearLayout root = mRoot;
         root.setOrientation(LinearLayout.VERTICAL);
         GradientDrawable background = new GradientDrawable();
         background.setColor(mStyle.raised);
@@ -194,80 +237,111 @@ public final class PaletteSheet extends Dialog {
 
         LinearLayout addressRow = new LinearLayout(activity);
         addressRow.setGravity(Gravity.CENTER_VERTICAL);
-        // Its icons line up with the list's (#1472): the glass over the rows' icons, the caret over
-        // Copy Link and Settings.
-        addressRow.setPadding(dp(22), dp(8), dp(12), dp(8));
-        ImageView search = icon(R.drawable.blanc_palette_search, secondary());
-        addressRow.addView(search, new LinearLayout.LayoutParams(dp(24), dp(24)));
+        // No search glass (owner, 2026-11-21): the row's room goes to the page's address and what's
+        // typed. It starts in line with the list's headings (the field's 2 of padding makes 22); the
+        // caret sits over the rows' trailing buttons.
+        addressRow.setPadding(dp(20), dp(8), dp(12), dp(8));
+        mPlaceholder = activity.getString(R.string.blanc_ios_palette_placeholder);
+        mUrlPill = buildUrlPill();
         mField = new EditText(activity);
         mField.setSingleLine(true);
         mField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
         // Never the keyboard's full-screen editor, which would hide the list in landscape.
         mField.setImeOptions(EditorInfo.IME_ACTION_GO | EditorInfo.IME_FLAG_NO_EXTRACT_UI
                 | EditorInfo.IME_FLAG_NO_FULLSCREEN);
-        mField.setHint(R.string.blanc_ios_palette_placeholder);
+        mField.setHint(mPlaceholder);
         mField.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
         mField.setTextColor(mStyle.text);
         mField.setHintTextColor(secondary());
         mField.setBackground(null);
-        mField.setPadding(dp(8), 0, dp(8), 0);
+        mField.setPadding(dp(2), 0, dp(8), 0);
         mField.setOnEditorActionListener((v, action, event) -> {
             if ((action & EditorInfo.IME_MASK_ACTION) != EditorInfo.IME_ACTION_GO) return false;
             go();
             return true;
         });
-        addressRow.addView(mField, new LinearLayout.LayoutParams(0, dp(44), 1));
+        // The address takes the room it needs; the field keeps enough beside it for its cursor.
+        LinearLayout entry = new LinearLayout(activity) {
+            @Override
+            protected void onMeasure(int widthSpec, int heightSpec) {
+                int max = Math.max(0, MeasureSpec.getSize(widthSpec) - dp(10));
+                if (mUrlPill.getMaxWidth() != max) mUrlPill.setMaxWidth(max);
+                super.onMeasure(widthSpec, heightSpec);
+            }
+        };
+        entry.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams pill = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(44));
+        pill.setMarginStart(dp(2));
+        entry.addView(mUrlPill, pill);
+        entry.addView(mField, new LinearLayout.LayoutParams(0, dp(44), 1));
+        addressRow.addView(entry, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         mClear = button(R.drawable.blanc_palette_close, R.string.blanc_ios_palette_clear, v -> mField.setText(""));
         addressRow.addView(mClear, new LinearLayout.LayoutParams(dp(44), dp(44)));
-        mCollapse = button(R.drawable.blanc_palette_chevron_down, R.string.blanc_ios_island_collapse, v -> dismiss());
+        mCollapse = button(mAtTop ? R.drawable.blanc_find_chevron_up : R.drawable.blanc_palette_chevron_down,
+                R.string.blanc_ios_island_collapse, v -> dismiss());
         addressRow.addView(mCollapse, new LinearLayout.LayoutParams(dp(44), dp(44)));
-        root.addView(addressRow);
-        root.addView(hairline(dp(12)));
 
         ScrollView scroll = new ScrollView(activity);
         mList = new LinearLayout(activity);
         mList.setOrientation(LinearLayout.VERTICAL);
-        mList.setPadding(0, dp(4), 0, dp(4));
+        // Room where the list meets the sheet's rounded edge; none beside the search row.
+        mList.setPadding(0, mAtTop ? dp(4) : dp(12), 0, mAtTop ? dp(12) : dp(4));
         scroll.addView(mList);
-        root.addView(scroll, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
 
-        root.addView(hairline(0));
-        LinearLayout footer = new LinearLayout(activity);
-        footer.setGravity(Gravity.CENTER_VERTICAL);
-        footer.setPadding(dp(12), dp(6), dp(12), dp(6));
-        TextView newTab = new TextView(activity);
-        newTab.setText(R.string.blanc_tab_new);
-        newTab.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
-        newTab.setTypeface(Typeface.DEFAULT_BOLD);
-        newTab.setTextColor(mStyle.raised);
-        newTab.setGravity(Gravity.CENTER);
-        newTab.setPadding(dp(14), 0, dp(14), 0);
-        GradientDrawable capsule = new GradientDrawable();
-        capsule.setColor(mStyle.text);
-        capsule.setCornerRadius(dp(18));
-        newTab.setBackground(capsule);
-        newTab.setOnClickListener(v -> {
+        // The actions along the Island's edge (#1682): Back and New tab, then the Space's mark,
+        // Favorites, History and Settings.
+        LinearLayout actions = new LinearLayout(activity);
+        actions.setGravity(Gravity.CENTER_VERTICAL);
+        actions.setPadding(dp(8), dp(6), dp(12), dp(6));
+        mBack = button(R.drawable.blanc_island_chevron_left, R.string.blanc_pill_back, v -> {
+            // The Island's own Back, so both go back the same way.
+            View back = mActivity.findViewById(R.id.blanc_island_back);
+            if (back != null && back.isEnabled()) back.performClick();
+            dismiss();
+        });
+        View islandBack = mActivity.findViewById(R.id.blanc_island_back);
+        boolean canGoBack = islandBack != null && islandBack.isEnabled();
+        mBack.setEnabled(canGoBack);
+        mBack.setAlpha(canGoBack ? 1f : 0.35f);
+        actions.addView(mBack, new LinearLayout.LayoutParams(dp(44), dp(44)));
+        ImageButton newTab = button(R.drawable.blanc_island_plus, R.string.blanc_tab_new, v -> {
             mTabs.newTab();
             dismiss();
         });
         mNewTab = newTab;
-        footer.addView(newTab, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(36)));
-        footer.addView(new View(activity), new LinearLayout.LayoutParams(0, 1, 1));
+        actions.addView(newTab, new LinearLayout.LayoutParams(dp(44), dp(44)));
+        actions.addView(new View(activity), new LinearLayout.LayoutParams(0, 1, 1));
         // The current Space's mark. The closed Island has no room for it, so it lives here.
         mSpace = button(R.drawable.blanc_spaces_glyph, R.string.blanc_spaces_menu_label, v -> {});
-        footer.addView(mSpace, new LinearLayout.LayoutParams(dp(44), dp(44)));
+        actions.addView(mSpace, new LinearLayout.LayoutParams(dp(44), dp(44)));
         mFavorites = button(R.drawable.blanc_palette_bookmark, R.string.blanc_pages_nav_bookmarks,
                 v -> openTab(PAGES + "bookmarks.html"));
-        footer.addView(mFavorites, new LinearLayout.LayoutParams(dp(44), dp(44)));
+        actions.addView(mFavorites, new LinearLayout.LayoutParams(dp(44), dp(44)));
         mHistory = button(R.drawable.blanc_palette_history, R.string.blanc_pages_nav_history,
                 v -> openTab(PAGES + "history.html"));
-        footer.addView(mHistory, new LinearLayout.LayoutParams(dp(44), dp(44)));
+        actions.addView(mHistory, new LinearLayout.LayoutParams(dp(44), dp(44)));
         mSettings = button(R.drawable.blanc_palette_settings, R.string.blanc_pages_nav_settings, v -> {
             dismiss();
             mCallbacks.settings(SettingsDestination.ROOT);
         });
-        footer.addView(mSettings, new LinearLayout.LayoutParams(dp(44), dp(44)));
-        root.addView(footer);
+        actions.addView(mSettings, new LinearLayout.LayoutParams(dp(44), dp(44)));
+
+        // The search field sits where the Island was, at the sheet's edge on the Island's side, with
+        // the actions along that edge and the list on the far side (#1682).
+        LinearLayout.LayoutParams listLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+        if (mAtTop) {
+            root.addView(actions);
+            root.addView(addressRow);
+            root.addView(hairline(dp(12)));
+            root.addView(scroll, listLp);
+        } else {
+            root.addView(scroll, listLp);
+            root.addView(hairline(dp(12)));
+            root.addView(addressRow);
+            root.addView(actions);
+        }
+        mDrag = new PanelDrag.Tracker(mDensity, mAtTop, () -> dismiss(), addressRow, actions);
 
         mField.addTextChangedListener(new TextWatcher() {
             @Override
@@ -282,22 +356,11 @@ public final class PaletteSheet extends Dialog {
             }
         });
 
-        // The window fills the screen; the sheet floats at its bottom (SheetPlacement), at most
-        // RESTING_HEIGHT_DP tall plus the room it keeps for a gesture bar, and its list gives up
-        // height first, so the field and the footer stay above the keyboard on any screen. A tap
-        // above the sheet closes it.
-        int resting = dp(RESTING_HEIGHT_DP);
-        FrameLayout frame = new FrameLayout(activity) {
-            @Override
-            protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-                FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) root.getLayoutParams();
-                int height = Math.min(resting + root.getPaddingBottom(),
-                        MeasureSpec.getSize(heightMeasureSpec) - lp.bottomMargin - getPaddingTop());
-                if (lp.height != height) lp.height = height;
-                super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-            }
-        };
-        frame.addView(root, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, resting, Gravity.BOTTOM));
+        // The window fills the screen; the sheet floats at the Island's edge (SheetPlacement). A tap
+        // outside it closes it.
+        FrameLayout frame = new FrameLayout(activity);
+        frame.addView(root, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT, mAtTop ? Gravity.TOP : Gravity.BOTTOM));
         frame.setOnClickListener(v -> dismiss());
         // Edge to edge, the window isn't resized for the keyboard or the navigation bar, so the
         // sheet places itself clear of them.
@@ -325,7 +388,7 @@ public final class PaletteSheet extends Dialog {
                 attributes.setFitInsetsTypes(0);
                 window.setAttributes(attributes);
             }
-            window.setGravity(Gravity.BOTTOM);
+            window.setGravity(mAtTop ? Gravity.TOP : Gravity.BOTTOM);
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
             window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
                     | WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
@@ -352,9 +415,17 @@ public final class PaletteSheet extends Dialog {
             android.view.RoundedCorner corner = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_BOTTOM_LEFT);
             if (corner != null) screenCorner = corner.getRadius() / mDensity;
         }
-        SheetPlacement p = SheetPlacement.of(navigation / mDensity, tappable / mDensity, keyboard / mDensity, screenCorner);
+        SheetPlacement p = mAtTop
+                ? SheetPlacement.atTop()
+                : SheetPlacement.of(navigation / mDensity, tappable / mDensity, keyboard / mDensity, screenCorner);
         FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) root.getLayoutParams();
-        lp.setMargins(dp(p.side), 0, dp(p.side), dp(p.bottom));
+        if (mAtTop) {
+            // Hung from the top, it stays clear of the keyboard by giving up the list's height.
+            int bottom = Math.max(keyboard, navigation) + dp(SheetPlacement.INSET);
+            lp.setMargins(dp(p.side), dp(p.top), dp(p.side), bottom);
+        } else {
+            lp.setMargins(dp(p.side), 0, dp(p.side), dp(p.bottom));
+        }
         root.setLayoutParams(lp);
         root.setPadding(0, 0, 0, dp(p.padding));
         background.setCornerRadius(p.corner * mDensity);
@@ -364,7 +435,37 @@ public final class PaletteSheet extends Dialog {
         PaletteSheet sheet = new PaletteSheet(activity, tabs, callbacks);
         sheet.show();
         sheet.mField.requestFocus();
+        sheet.growFromIsland();
         return sheet;
+    }
+
+    /**
+     * The Island grows into the sheet (#1682): the sheet starts on the Island's own rectangle and
+     * eases out to its place. With animations off it simply appears.
+     */
+    private void growFromIsland() {
+        View pill = mActivity.findViewById(R.id.blanc_island_pill);
+        if (pill == null || !ValueAnimator.areAnimatorsEnabled()) return;
+        mRoot.setAlpha(0f);
+        mRoot.post(() -> {
+            int[] from = new int[2];
+            int[] to = new int[2];
+            pill.getLocationOnScreen(from);
+            mRoot.getLocationOnScreen(to);
+            if (mRoot.getWidth() == 0 || mRoot.getHeight() == 0 || pill.getWidth() == 0) {
+                mRoot.setAlpha(1f);
+                return;
+            }
+            mRoot.setPivotX(0);
+            mRoot.setPivotY(0);
+            mRoot.setTranslationX(from[0] - to[0]);
+            mRoot.setTranslationY(from[1] - to[1]);
+            mRoot.setScaleX((float) pill.getWidth() / mRoot.getWidth());
+            mRoot.setScaleY((float) pill.getHeight() / mRoot.getHeight());
+            mRoot.setAlpha(0.6f);
+            mRoot.animate().translationX(0).translationY(0).scaleX(1).scaleY(1).alpha(1)
+                    .setDuration(GROW_MS).setInterpolator(new DecelerateInterpolator()).start();
+        });
     }
 
     public EditText field() {
@@ -381,6 +482,19 @@ public final class PaletteSheet extends Dialog {
 
     public View newTabButton() {
         return mNewTab;
+    }
+
+    public View backButton() {
+        return mBack;
+    }
+
+    public TextView urlPill() {
+        return mUrlPill;
+    }
+
+    /** Whether the sheet hangs from the top, where the Island is. */
+    public boolean atTop() {
+        return mAtTop;
     }
 
     public View favoritesButton() {
@@ -430,7 +544,16 @@ public final class PaletteSheet extends Dialog {
     private void render() {
         mList.removeAllViews();
         mRows.clear();
-        mClear.setVisibility(mField.getText().length() == 0 ? View.GONE : View.VISIBLE);
+        boolean empty = mField.getText().length() == 0;
+        mClear.setVisibility(empty ? View.GONE : View.VISIBLE);
+        // The address shows while nothing's typed; the placeholder steps aside for it.
+        String address = empty ? currentAddress() : null;
+        mUrlPill.setVisibility(address != null ? View.VISIBLE : View.GONE);
+        if (address != null) {
+            mUrlPill.setText(address);
+            mUrlPill.setContentDescription(address);
+        }
+        mField.setHint(address != null ? null : mPlaceholder);
         switch (mode()) {
             case TABS -> renderTabs();
             case SLASH -> renderCommands();
@@ -444,7 +567,6 @@ public final class PaletteSheet extends Dialog {
         for (TabStore.Entry tab : normal) byId.put(tab.id, tab);
         Map<String, TabStore.Group> groups = new HashMap<>();
         for (TabStore.Group group : mTabs.groups()) groups.put(group.id, group);
-        currentAddress();
         heading(mActivity.getString(R.string.blanc_ios_tabs_open_tabs), normal.size());
         for (TabSections.Section section : mTabs.displaySections()) {
             TabStore.Group group = section.groupId == null ? null : groups.get(section.groupId);
@@ -558,7 +680,7 @@ public final class PaletteSheet extends Dialog {
         heading.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         heading.setTypeface(Typeface.DEFAULT_BOLD);
         heading.setTextColor(secondary());
-        heading.setPadding(dp(22), dp(8), dp(22), dp(4));
+        heading.setPadding(dp(22), dp(8), dp(22), dp(6));
         mList.addView(heading);
         for (OtherDevices.Device device : devices) {
             boolean open = mOpenDevices.contains(device.name);
@@ -724,7 +846,8 @@ public final class PaletteSheet extends Dialog {
         view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         view.setTypeface(Typeface.DEFAULT_BOLD);
         view.setTextColor(secondary());
-        view.setPadding(dp(22), dp(8), dp(22), dp(4));
+        // 22 in, as the search glass, with its own room above the first row (#1682).
+        view.setPadding(dp(22), dp(8), dp(22), dp(6));
         mList.addView(view);
         mRows.add(new Row(RowKind.HEADING, title, String.valueOf(count), false, view, null));
     }
@@ -846,44 +969,86 @@ public final class PaletteSheet extends Dialog {
         view.setLayoutParams(lp);
     }
 
-    /**
-     * The current page's whole address, which the Island shows only the site of (#1445): a tap
-     * puts it in the field to edit, and the button copies it. Only for web pages.
-     */
-    private void currentAddress() {
+    /** The current page's whole address, for the search row's pill; only for web pages. */
+    private @Nullable String currentAddress() {
         String active = mTabs.activeId();
-        TabStore.Entry current = null;
-        for (TabStore.Entry tab : mTabs.entries(mTabs.privateSelected())) if (tab.id.equals(active)) current = tab;
-        if (current == null || !(current.url.startsWith("https://") || current.url.startsWith("http://"))) return;
-        String address = current.url;
-        LinearLayout line = new LinearLayout(mActivity);
-        line.setGravity(Gravity.CENTER_VERTICAL);
-        line.setMinimumHeight(dp(44));
-        line.setPadding(dp(10), 0, 0, 0);
-        line.addView(icon(R.drawable.blanc_palette_link, secondary()), new LinearLayout.LayoutParams(dp(24), dp(24)));
-        TextView text = text(address, 13, secondary());
-        text.setEllipsize(TextUtils.TruncateAt.MIDDLE);
-        text.setPadding(dp(10), 0, dp(4), 0);
-        line.addView(text, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        line.setContentDescription(mActivity.getString(R.string.blanc_ios_palette_edit_address) + ", " + address);
-        line.setOnClickListener(v -> {
-            mField.setText(address);
-            mField.setSelection(address.length());
-            mField.requestFocus();
+        for (TabStore.Entry tab : mTabs.entries(mTabs.privateSelected())) {
+            if (tab.id.equals(active) && (tab.url.startsWith("https://") || tab.url.startsWith("http://"))) return tab.url;
+        }
+        return null;
+    }
+
+    /** Copies the page's whole address, which the Island shows only the site of, and closes. */
+    private void copyLink() {
+        String address = currentAddress();
+        if (address == null) return;
+        ClipboardManager clipboard = mActivity.getSystemService(ClipboardManager.class);
+        if (clipboard != null) clipboard.setPrimaryClip(ClipData.newPlainText(address, address));
+        mCallbacks.notice(mActivity.getString(R.string.blanc_pill_notice_link_copied));
+        dismiss();
+    }
+
+    /**
+     * The page's whole address as a pill at the start of the search row while nothing's typed
+     * (owner, 2026-11-21). A long one shows its start and fades out at the end rather than an
+     * ellipsis. A tap puts it in the field to edit; holding it offers Copy Link; typing a new search
+     * sets it aside. It replaced the copy button, which had replaced a row above the tabs (#1682).
+     * 44 tall to tap, its capsule 30.
+     */
+    private TextView buildUrlPill() {
+        TextView view = new TextView(mActivity);
+        view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        view.setTextColor(secondary());
+        view.setSingleLine(true);
+        view.setEllipsize(null);
+        view.setHorizontalFadingEdgeEnabled(true);
+        view.setFadingEdgeLength(dp(28));
+        // An address reads left to right in every language, and fades at its right end.
+        view.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
+        view.setTextDirection(View.TEXT_DIRECTION_LTR);
+        view.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+        view.setPadding(dp(10), 0, dp(10), 0);
+        GradientDrawable capsule = new GradientDrawable();
+        capsule.setCornerRadius(dp(15));
+        capsule.setColor((mStyle.text & 0x00FFFFFF) | 0x0F000000);
+        view.setBackground(new InsetDrawable(capsule, 0, dp(7), 0, dp(7)));
+        view.setOnClickListener(v -> editAddress());
+        view.setOnLongClickListener(v -> {
+            PopupMenu menu = new PopupMenu(mActivity, v);
+            menu.getMenu().add(R.string.blanc_tab_menu_copy_link).setOnMenuItemClickListener(item -> {
+                copyLink();
+                return true;
+            });
+            menu.show();
+            return true;
         });
-        ImageButton copy = button(R.drawable.blanc_palette_copy, R.string.blanc_tab_menu_copy_link, v -> {
-            ClipboardManager clipboard = mActivity.getSystemService(ClipboardManager.class);
-            if (clipboard != null) clipboard.setPrimaryClip(ClipData.newPlainText(address, address));
-            mCallbacks.notice(mActivity.getString(R.string.blanc_pill_notice_link_copied));
-            dismiss();
+        view.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override
+            public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.addAction(new AccessibilityNodeInfo.AccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK,
+                        mActivity.getString(R.string.blanc_ios_palette_edit_address)));
+                info.addAction(new AccessibilityNodeInfo.AccessibilityAction(
+                        R.id.blanc_palette_copy_link_action, mActivity.getString(R.string.blanc_tab_menu_copy_link)));
+            }
+
+            @Override
+            public boolean performAccessibilityAction(View host, int action, @Nullable Bundle args) {
+                if (action != R.id.blanc_palette_copy_link_action) return super.performAccessibilityAction(host, action, args);
+                copyLink();
+                return true;
+            }
         });
-        copy.setImageTintList(ColorStateList.valueOf(secondary()));
-        line.addView(copy, new LinearLayout.LayoutParams(dp(44), dp(44)));
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT);
-        lp.setMargins(dp(12), 0, dp(12), 0);
-        mList.addView(line, lp);
-        mRows.add(new Row(RowKind.ADDRESS, address, "", false, line, copy));
+        return view;
+    }
+
+    /** Puts the page's whole address in the field to edit. */
+    private void editAddress() {
+        String address = currentAddress();
+        if (address == null) return;
+        mField.setText(address);
+        mField.setSelection(address.length());
+        mField.requestFocus();
     }
 
     private void empty(int message) {
