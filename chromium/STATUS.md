@@ -4675,7 +4675,7 @@ on that site, and a wrong search address still fails it.
 | --- | --- |
 | macOS | 635/667 executable cases pass; 1 failed; 3 undefined/not run; 28 excluded — [baseline](scenarios/baseline-macos-1400e3914b1a7bdf.json)<br>S1 rows: 260/263 pass; 0 failed; 1 undefined; 2 excluded |
 | Windows | Not run for current candidate (previous baseline is stale) |
-| Linux | 615/667 executable cases pass; 21 failed; 5 undefined/not run; 26 excluded — [baseline](scenarios/baseline-linux-x64-2fcae33ab6ecf405.json)<br>S1 rows: 251/263 pass; 7 failed; 4 undefined; 1 excluded |
+| Linux | Not run for current candidate (previous baseline is stale) |
 
 667 executable cases from 618 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
 
@@ -4699,5 +4699,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-1400e3914b1a7bdf; Windows: windows-x64-7edd9da4f45532ea; Linux: linux-x64-2fcae33ab6ecf405; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-1400e3914b1a7bdf; Windows: windows-x64-7edd9da4f45532ea; Linux: linux-x64-64f8e6871c8fb16f; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

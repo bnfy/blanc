@@ -2551,11 +2551,12 @@
       "qualification": "cross-compiled candidate; runtime acceptance pending"
     },
     "linux": {
-      "id": "linux-x64-2fcae33ab6ecf405",
-      "exeSha256": "2fcae33ab6ecf4059a262c4db98bf126f20b8d068f2696a52d0e3880b77250c7",
+      "id": "linux-x64-64f8e6871c8fb16f",
+      "arch": "x64",
+      "exeSha256": "64f8e6871c8fb16fa385d85531fd607a0d9dbe49703c1b394c3933e7ed856b33",
       "version": "158.0.8127.2",
-      "treeCommit": "d827f59a02658f96f8d086114635a50f1cfc2658",
-      "qualification": "x64 preview with test hooks; sandboxed X11 and Wayland launch checks passed (run 44942354424); full suite 2026-11-21 (run 44942589970, fork 83571b839, shipping v1.49.1): 615 of 667 cases pass, 21 fail, 5 undefined, 26 excluded"
+      "treeCommit": "9f9a0be93c5ab2cfbf5f4051be906a2e49044c07",
+      "qualification": "compiled candidate; runtime acceptance pending"
     }
   },
   "baselines": {
