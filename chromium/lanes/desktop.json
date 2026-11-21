@@ -115,6 +115,7 @@
     "patches/0107-blanc-no-api-keys-infobar.patch",
     "patches/0108-blanc-no-environment-api-keys.patch",
     "patches/0109-blanc-default-browser-dialog.patch",
-    "patches/0110-blanc-restore-pages-button.patch"
+    "patches/0110-blanc-restore-pages-button.patch",
+    "patches/0111-blanc-windows-about-updates.patch"
   ]
 }

@@ -393,6 +393,17 @@
 #include "blanc/browser/ui/app_menus_mac.h"
 #include "blanc/browser/ui/window_buttons_mac.h"
 #endif
+#if BUILDFLAG(IS_WIN)
+// Settings → About's trust receipt reads chrome.exe's Authenticode publisher.
+#include <windows.h>
+#include <softpub.h>
+#include <wincrypt.h>
+#include <wintrust.h>
+#pragma comment(lib, "crypt32.lib")
+#pragma comment(lib, "wintrust.lib")
+#include "base/path_service.h"
+#include "base/strings/utf_string_conversions.h"
+#endif
 #include "ui/base/resource/resource_bundle.h"
 #include "ui/views/controls/webview/webview.h"
 #include "url/gurl.h"
