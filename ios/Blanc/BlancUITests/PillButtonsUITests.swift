@@ -1,6 +1,6 @@
 import XCTest
 
-/// The pill's icon buttons answer taps on every supported iOS (on iOS 26 a
+/// The Island's icon buttons answer taps on every supported iOS (on iOS 26 a
 /// bare 20 pt symbol didn't register at all).
 final class PillButtonsUITests: XCTestCase {
   func testPlusOpensANewTab() {
@@ -18,8 +18,7 @@ final class PillButtonsUITests: XCTestCase {
     XCTAssertEqual(XCTWaiter().wait(for: [startPage], timeout: 5), .completed, "+ opened a new tab")
   }
 
-  /// Back, Forward and New Tab after the address on every iPhone Island;
-  /// Reload lives in the Sunrise menu and pull to refresh.
+  /// Back stays put even on a new tab.
   func testTheIslandHasBackForwardAndNewTab() {
     continueAfterFailure = false
     let app = XCUIApplication()
@@ -29,13 +28,11 @@ final class PillButtonsUITests: XCTestCase {
     XCTAssertTrue(pill.waitForExistence(timeout: 15))
     let back = app.buttons["pill.back"], forward = app.buttons["pill.forward"], plus = app.buttons["New tab"]
     XCTAssertTrue(back.waitForExistence(timeout: 5))
-    XCTAssertTrue(forward.exists)
+    XCTAssertFalse(forward.exists)
     XCTAssertTrue(plus.exists)
     XCTAssertFalse(back.isEnabled, "a new tab has nowhere to go back to")
-    // The address, then Back, Forward and New Tab at the far end.
-    XCTAssertGreaterThan(back.frame.midX, pill.frame.maxX)
-    XCTAssertGreaterThan(forward.frame.midX, back.frame.midX)
-    XCTAssertGreaterThan(plus.frame.midX, forward.frame.midX)
+    XCTAssertLessThanOrEqual(back.frame.maxX, pill.frame.minX)
+    XCTAssertGreaterThan(plus.frame.midX, pill.frame.maxX)
     XCTAssertFalse(app.buttons["pill.tabs"].exists, "the Island has no tab count")
     XCTAssertFalse(app.buttons["Reload page"].exists)
 
@@ -49,6 +46,7 @@ final class PillButtonsUITests: XCTestCase {
     row.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5)).tap()
     app.buttons["settings.done"].tap()
     XCTAssertTrue(app.buttons["Reload page"].waitForExistence(timeout: 5))
+    XCTAssertLessThanOrEqual(app.buttons["Reload page"].frame.maxX, pill.frame.minX)
     XCTAssertFalse(back.exists)
     XCTAssertFalse(forward.exists)
     XCTAssertTrue(plus.exists)

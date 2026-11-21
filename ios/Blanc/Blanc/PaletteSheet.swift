@@ -11,9 +11,11 @@ struct PaletteSheet: View {
     }
 
     let manager: TabsManager
-    /// A bottom sheet on iPhone; at regular width, a panel growing up from
-    /// the Island in its place (Duo-1).
+    /// A panel growing from the Island in its place; a bottom sheet only at
+    /// compact height (an iPhone in landscape).
     var placement: IslandLayout.Palette = .sheet
+    /// The panel puts its search and actions on the Island's side.
+    var islandAtTop = false
     @Environment(\.colorScheme) private var colorScheme
     private var style: BrowserStyle { BrowserStyle(scheme: colorScheme) }
     /// Kept by the manager, so the sheet and the panel share it (Duo-1).
@@ -43,6 +45,11 @@ struct PaletteSheet: View {
     /// What the search provider suggests for the typed text (F5), and the
     /// request that is fetching it.
     @State private var suggestions: [String] = []
+    /// How tall the list's rows are. The panel hugs them, up to the room it
+    /// has, so a few tabs don't leave a gap above the search field; nil until
+    /// the list has laid out once.
+    @State private var listContentHeight: CGFloat?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var suggestionTask: Task<Void, Never>?
 
     private enum Mode {
@@ -62,13 +69,18 @@ struct PaletteSheet: View {
                 addressRow
                 divider
                 list
-                footer
+                divider
+                actionsRow
+            case .panel where islandAtTop:
+                actionsRow
+                addressRow
+                divider
+                panelList
             case .panel:
-                // The address row sits where the Island was; the rest grows up.
-                list
-                footer
+                panelList
                 divider
                 addressRow
+                actionsRow
             }
         }
         .font(BrowserStyle.font(15))
@@ -113,15 +125,31 @@ struct PaletteSheet: View {
         }
     }
 
+    /// The list at its rows' height (the panel's own cap still applies), easing
+    /// to a new height as the results change.
+    private var panelList: some View {
+        list
+            .frame(maxHeight: listContentHeight ?? .infinity)
+            .animation(reduceMotion ? nil : .snappy(duration: 0.25), value: listContentHeight)
+    }
+
     private var styledList: some View {
         listContent
             .listStyle(.plain)
             .environment(\.defaultMinListRowHeight, 44)
             .environment(\.defaultMinListHeaderHeight, 0)
-            .contentMargins(.top, 0, for: .scrollContent)
+            // Room between the panel's rounded edge and the first heading (or
+            // the last row) where the list meets it; none beside the search row.
+            .contentMargins(.top, placement == .panel && !islandAtTop ? 12 : 0, for: .scrollContent)
+            .contentMargins(.bottom, placement == .panel && islandAtTop ? 12 : 0, for: .scrollContent)
             .listSectionSpacing(8)
             .scrollContentBackground(.hidden)
             .scrollDismissesKeyboard(.interactively)
+            .onScrollGeometryChange(for: CGFloat.self) { geometry in
+                geometry.contentSize.height + geometry.contentInsets.top + geometry.contentInsets.bottom
+            } action: { _, height in
+                if height > 0 { listContentHeight = height.rounded(.up) }
+            }
     }
 
     /// Closes the palette, whichever way it is shown: the sheet follows the
@@ -156,6 +184,7 @@ struct PaletteSheet: View {
                     return openKeyRow() ? .handled : .ignored
                 }
                 .accessibilityIdentifier("island.address")
+            if input.isEmpty { copyLinkButton }
             if !input.isEmpty {
                 Button { input = "" } label: {
                     Image(systemName: "xmark.circle.fill").foregroundStyle(style.secondary)
@@ -164,7 +193,7 @@ struct PaletteSheet: View {
                 .accessibilityLabel(SyncCopy.text("ios.palette.clear"))
             }
             Button { close() } label: {
-                Image(systemName: "chevron.down")
+                Image(systemName: islandAtTop ? "chevron.up" : "chevron.down")
                     .font(.system(size: 14, weight: .medium))
                     .frame(width: 44, height: 44)
             }
@@ -175,40 +204,89 @@ struct PaletteSheet: View {
         .padding(.leading, 22)
         .padding(.trailing, 12)
         .padding(.vertical, 8)
+        .contentShape(Rectangle())
+        .simultaneousGesture(panelDrag, isEnabled: placement == .panel)
     }
 
-    private var footer: some View {
-        VStack(spacing: 0) {
-            Rectangle().fill(style.border).frame(height: 0.5)
-            HStack(spacing: 2) {
-                Button {
-                    manager.createTab()
-                    close()
-                } label: {
-                    Label(SyncCopy.text("tab.new"), systemImage: "plus")
-                        .font(BrowserStyle.font(13, semibold: true))
-                        .padding(.horizontal, 14)
-                        .frame(height: 36)
-                        .foregroundStyle(style.raised)
-                        .background(style.text, in: Capsule())
-                        .frame(minHeight: 44)
-                }
-                Spacer(minLength: 4)
-                SpacesButton(manager: manager, style: style)
-                if manager.activeTab?.readerAvailable == true || manager.activeTab?.reader != nil {
-                    Button { close(); manager.toggleReaderMode() } label: {
-                        Image(systemName: "doc.text").frame(width: 44, height: 44)
-                    }
-                    .accessibilityLabel(ReaderCopy.text(manager.activeTab?.reader != nil ? "reader.exit" : "reader.enter"))
-                    .accessibilityIdentifier("palette.reader")
-                }
-                pageShortcut(SyncCopy.text("pagesNav.bookmarks"), icon: "bookmark", page: "bookmarks")
-                pageShortcut(SyncCopy.text("pagesNav.history"), icon: "clock.arrow.circlepath", page: "history")
-                pageShortcut(SyncCopy.text("pagesNav.settings"), icon: "slider.horizontal.3", page: "settings")
+    /// The current page's link, in the search row while it's empty: a tap
+    /// copies it, and holding it offers Edit Address, which puts the whole
+    /// address in the field. It used to be a row of its own above the tabs.
+    @ViewBuilder private var copyLinkButton: some View {
+        if let tab = manager.activeTab, ["http", "https"].contains(tab.currentURL.scheme?.lowercased() ?? "") {
+            let editAddress = {
+                input = tab.currentURL.absoluteString
+                inputFocused = true
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
+            Button {
+                manager.copyLink(tab)
+                close()
+            } label: {
+                Image(systemName: "doc.on.doc").font(.system(size: 14))
+                    .foregroundStyle(style.secondary)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+                    .pointerHighlight()
+            }
+            .contextMenu {
+                Button(SyncCopy.text("tabMenu.copyLink"), systemImage: "doc.on.doc") {
+                    manager.copyLink(tab)
+                    close()
+                }
+                Button(SyncCopy.text("ios.palette.editAddress"), systemImage: "pencil", action: editAddress)
+            }
+            .accessibilityLabel(SyncCopy.text("tabMenu.copyLink"))
+            .accessibilityAction(named: SyncCopy.text("ios.palette.editAddress"), editAddress)
+            .accessibilityIdentifier("palette.copyLink")
         }
+    }
+
+    private var panelDrag: some Gesture {
+        DragGesture(minimumDistance: 12, coordinateSpace: .global).onEnded { drag in
+            if PalettePanelDrag.closes(translation: drag.translation.height,
+                                       predicted: drag.predictedEndTranslation.height, islandAtTop: islandAtTop) {
+                close()
+            }
+        }
+    }
+
+    private var actionsRow: some View {
+        let tab = manager.activeTab
+        return HStack(spacing: 0) {
+            Button {
+                tab?.goBack()
+                close()
+            } label: {
+                Image(systemName: "chevron.left").frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .disabled(tab?.canGoBack != true)
+            .opacity(tab?.canGoBack == true ? 1 : 0.35)
+            .accessibilityLabel(SyncCopy.text("pill.back"))
+            Button {
+                manager.createTab()
+                close()
+            } label: {
+                Image(systemName: "plus").frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .accessibilityLabel(SyncCopy.text("tab.new"))
+            Spacer(minLength: 0)
+            SpacesButton(manager: manager, style: style)
+            if manager.activeTab?.readerAvailable == true || manager.activeTab?.reader != nil {
+                Button { close(); manager.toggleReaderMode() } label: {
+                    Image(systemName: "doc.text").frame(width: 44, height: 44)
+                }
+                .accessibilityLabel(ReaderCopy.text(manager.activeTab?.reader != nil ? "reader.exit" : "reader.enter"))
+                .accessibilityIdentifier("palette.reader")
+            }
+            pageShortcut(SyncCopy.text("pagesNav.bookmarks"), icon: "bookmark", page: "bookmarks")
+            pageShortcut(SyncCopy.text("pagesNav.history"), icon: "clock.arrow.circlepath", page: "history")
+            pageShortcut(SyncCopy.text("pagesNav.settings"), icon: "slider.horizontal.3", page: "settings")
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .contentShape(Rectangle())
+        .simultaneousGesture(panelDrag, isEnabled: placement == .panel)
     }
 
     private func pageShortcut(_ label: String, icon: String, page: String) -> some View {
@@ -277,6 +355,9 @@ struct PaletteSheet: View {
             .padding(.bottom, bottom ? 2 : 0)
     }
 
+    /// A section's heading, starting in line with the search glass (22 pt in),
+    /// whatever margin the list would give a header: in the panel that margin
+    /// left it almost at the panel's edge.
     private func groupHeading(_ title: String, count: Int? = nil) -> some View {
         HStack(spacing: 6) {
             Text(title).font(BrowserStyle.font(11, semibold: true))
@@ -286,6 +367,9 @@ struct PaletteSheet: View {
         .foregroundStyle(style.secondary)
         .textCase(nil)
         .padding(.top, 8)
+        // Its own room above the first row, which otherwise sat right under it.
+        .padding(.bottom, 6)
+        .listRowInsets(EdgeInsets(top: 0, leading: 22, bottom: 0, trailing: 22))
     }
 
     /// The row under the arrow keys, drawn apart from the current tab's.
@@ -328,51 +412,9 @@ struct PaletteSheet: View {
         return formatter
     }
 
-    /// The current page's whole address, which the Island shows only the site
-    /// of: a tap puts it in the field to edit, and the button copies it.
-    @ViewBuilder private var currentAddress: some View {
-        if let tab = manager.activeTab, ["http", "https"].contains(tab.currentURL.scheme?.lowercased() ?? "") {
-            let address = tab.currentURL.absoluteString
-            HStack(spacing: 0) {
-                Button {
-                    input = address
-                    inputFocused = true
-                } label: {
-                    HStack(spacing: 10) {
-                        Image(systemName: "link").font(.system(size: 14)).foregroundStyle(style.secondary).frame(width: 24)
-                        Text(address).font(BrowserStyle.font(13)).foregroundStyle(style.secondary)
-                            .lineLimit(1).truncationMode(.middle)
-                        Spacer(minLength: 4)
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                    .contentShape(Rectangle())
-                    .pointerHighlight()
-                }
-                .accessibilityLabel(SyncCopy.text("ios.palette.editAddress"))
-                .accessibilityValue(address)
-                .accessibilityIdentifier("palette.address")
-                Button {
-                    manager.copyLink(tab)
-                    close()
-                } label: {
-                    Image(systemName: "doc.on.doc").font(.system(size: 13)).foregroundStyle(style.secondary)
-                        .frame(width: 44, height: 44)
-                        .pointerHighlight()
-                }
-                .accessibilityLabel(SyncCopy.text("tabMenu.copyLink"))
-                .accessibilityIdentifier("palette.copyLink")
-            }
-            .padding(.leading, 10)
-            .listRowSeparator(.hidden)
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12))
-        }
-    }
-
     private var tabList: some View {
         let keyIndex = Dictionary(uniqueKeysWithValues: tabRows.enumerated().map { ($1.id, $0) })
         return List {
-            currentAddress
             Section {
                 ForEach(manager.displaySections, id: \.id) { section in
                     if let group = section.group {

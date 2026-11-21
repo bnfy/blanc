@@ -9573,6 +9573,10 @@
     "message": "Interrompi il caricamento",
     "source": "sha256:7afd60900cf4554c372a6974840bee623d3a7ad10fa18559cd951051493b6ba8"
   },
+  "ios.island.closePrivateTab": {
+    "message": "Chiudi scheda privata",
+    "source": "sha256:70725014f209df31a338d0133337aa4c726cd266766537da8e08786bfad6b054"
+  },
   "ios.island.pageActions": {
     "message": "Azioni della pagina",
     "source": "sha256:0b926606bca19deecf9e0d633786f8643b649905978b53d66a1453980a9215f7"

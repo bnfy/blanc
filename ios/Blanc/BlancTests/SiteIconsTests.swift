@@ -49,6 +49,29 @@ final class SiteIconsTests: XCTestCase {
                        "https://example.com/t.png?x=1&y=2")
     }
 
+    func testImageDecodesTheKeptIconForTheSite() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        let png = UIGraphicsImageRenderer(size: CGSize(width: 16, height: 16), format: format).pngData { context in
+            UIColor.orange.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 16, height: 16))
+        }
+        let icon = try XCTUnwrap(SiteIcons.dataURL(from: png, side: 16))
+        let saved = ["example.com": ["icon": icon, "at": 0] as [String: Any]]
+        try JSONSerialization.data(withJSONObject: saved).write(to: directory.appendingPathComponent("site-icons.json"))
+        let store = SiteIcons(directory: directory)
+        let url = URL(string: "https://www.example.com/a")!
+        let image = try XCTUnwrap(store.image(for: url))
+        XCTAssertEqual(image.size.width * image.scale, 16)
+        XCTAssertTrue(image === store.image(for: url))
+        XCTAssertNil(store.image(for: URL(string: "https://other.example/")!))
+        store.clear()
+        XCTAssertNil(store.image(for: url))
+    }
+
     func testEmptyStoreHasNoIcons() {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: dir) }

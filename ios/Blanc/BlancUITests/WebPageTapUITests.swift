@@ -9,7 +9,9 @@ final class WebPageTapUITests: XCTestCase {
     let app = XCUIApplication()
     app.launchArguments = ["-BlancUITestPrivate"]
     app.launch()
-    XCTAssertTrue(app.buttons["pill.private"].waitForExistence(timeout: 15))
+    let menu = app.buttons["island.menu"]
+    XCTAssertTrue(menu.waitForExistence(timeout: 15))
+    XCTAssertEqual(menu.value as? String, "Private tab")
     XCTAssertTrue(app.webViews.firstMatch.waitForExistence(timeout: 10))
     app.webViews.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.4)).tap()
     sleep(1)
@@ -17,6 +19,6 @@ final class WebPageTapUITests: XCTestCase {
     app.webViews.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.4)).press(forDuration: 1.0)
     sleep(1)
     XCTAssertEqual(app.state, .runningForeground, "Blanc survives a hold on the page")
-    XCTAssertTrue(app.buttons["pill.private"].exists)
+    XCTAssertEqual(menu.value as? String, "Private tab", "the private tab is still current")
   }
 }
