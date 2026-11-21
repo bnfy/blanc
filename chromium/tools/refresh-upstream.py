@@ -69,7 +69,9 @@ def patched_hashes():
             result = subprocess.run(['git', 'apply', str(root / patch)], cwd=work, capture_output=True, text=True)
             if result.returncode != 0:
                 return None, patch, result.stderr.strip()
-        return {name: sha((work / name).read_bytes()) for name in manifest['files']}, None, None
+        # apply.py installs files from this map, including files created by a patch.
+        names = sorted(p.relative_to(work).as_posix() for p in work.rglob('*') if p.is_file())
+        return {name: sha((work / name).read_bytes()) for name in names}, None, None
 
 
 if not args.patched_only:

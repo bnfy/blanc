@@ -230,16 +230,16 @@ are folded in below.
 - [ ] **Step 5: Run** the test, the fork unit suite and `python3 chromium/tools/check-patches.py` for
   both lanes; expected PASS. Commit `Fork Linux: the preview's own names, data folder and keyring (L1)`.
 
-**Task 2 patch budget.** Patch 0113 changes 12 upstream files in 23 hunks.
-Eleven new pristine inputs bring the desktop lane to 230 inputs and 236 verified postimages.
+**Task 2 patch budget.** Patch 0113 touches 15 files in 28 hunks, including the new Linux-only `key_provider.cc`.
+Thirteen new pristine inputs bring the desktop lane through 0113 to 232 inputs and 239 verified postimages.
 The browser and provider call paths are recorded in [Linux identity](../../../chromium/linux/identity.md).
 
 ### Task 3: Chromium's caption buttons over the strip
 
 Patch 0114 adds 9 hunks across 3 upstream files. The two Linux frame-view files are new to
 the lane, and earlier patches already touch `browser_view.cc`. Including 0114, the desktop lane
-in this worktree has 113 patches touching 238 distinct upstream files (477 file diffs, 870 hunks).
-Of the 238 files, 232 have pinned pristine inputs and 6 are created by patches.
+in this worktree has 113 patches touching 241 distinct upstream files (480 file diffs, 875 hunks).
+Of the 241 files, 234 have pinned pristine inputs and 7 are created by patches.
 
 **Files:**
 - Create: patch `0114-blanc-linux-frame.patch` (the Linux frame view and layout files, traced in Step 1)
@@ -301,7 +301,7 @@ Of the 238 files, 232 have pinned pristine inputs and 6 are created by patches.
 
 ### Task 4: Packages from Chromium's installer, pointed at Blanc
 
-Patch 0115 touches 17 upstream files in 43 hunks. The desktop queue through 0115 touches 255 distinct upstream files in 913 hunks.
+Patch 0115 touches 17 upstream files in 43 hunks. The desktop queue through 0115 touches 258 distinct upstream files in 918 hunks.
 
 **Files:**
 - Create: patch `0115-blanc-linux-installer.patch` touching `chrome/installer/linux/BUILD.gn` (a
