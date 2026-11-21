@@ -393,6 +393,13 @@
 #include "blanc/browser/ui/app_menus_mac.h"
 #include "blanc/browser/ui/window_buttons_mac.h"
 #endif
+#if BUILDFLAG(IS_LINUX)
+#include "blanc/browser/ui/window_buttons_linux.h"
+#include "ui/compositor/compositor.h"
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+#include "ui/views/controls/menu/submenu_view.h"
+#endif
+#endif
 #if BUILDFLAG(IS_WIN)
 // Settings → About's trust receipt reads chrome.exe's Authenticode publisher.
 #include <windows.h>
@@ -1328,6 +1335,9 @@ class Owner : public base::SupportsUserData::Data,
   // Chromium's app menu, opened from the strip's menu button where the
   // Island draws one (Windows and Linux; the Mac has its menu bar). The menu
   // points into its model, so the model is declared first and outlives it.
+#if BUILDFLAG(IS_LINUX)
+  base::RepeatingClosure window_buttons_changed;
+#endif
   std::unique_ptr<AppMenuModel> main_menu_model;
   std::unique_ptr<AppMenu> main_menu;
   // Both point at the window's toolbar and browser, so they are dropped as
@@ -6423,6 +6433,26 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (auto* owner = GetOwner(web_ui()->GetWebContents())) ApplyAutoHide(owner);
     OnIslandSettingChanged();
   }
+#if BUILDFLAG(IS_LINUX)
+  std::optional<base::DictValue> last_window_buttons_;
+  bool last_frame_maximized_ = false;
+  void SendWindowButtons() {
+    if (!IsJavascriptAllowed() || !IsIslandHost()) return;
+    auto* owner = GetOwner(web_ui()->GetWebContents());
+    if (!owner->view || !owner->view->GetWidget()) return;
+    auto* widget = owner->view->GetWidget();
+    auto* compositor = widget->GetCompositor();
+    const float scale = compositor ? compositor->device_scale_factor() : 1.f;
+    const bool maximized = widget->IsMaximized();
+    auto data = blanc::LinuxWindowButtons::Measure(*owner->view).ToValue();
+    data.Set("deviceScaleFactor", scale);
+    if (last_frame_maximized_ == maximized && last_window_buttons_ == data) return;
+    last_frame_maximized_ = maximized;
+    last_window_buttons_ = data.Clone();
+    web_ui()->CallJavascriptFunctionUnsafe("blancPrototypeEvent",
+        base::Value("windowButtons"), base::Value(std::move(data)));
+  }
+#endif
   void OnIslandSettingChanged() {
     NormalizeAppIcon(Profile::FromWebUI(web_ui()));
     if (IsJavascriptAllowed())
@@ -7477,6 +7507,27 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           }, weak_factory_.GetWeakPtr(), id, meta ? meta->Clone() : base::DictValue()));
       return;
     }
+#if BUILDFLAG(IS_LINUX)
+    // Read-only coordinates for real X11 input. The native menu's bounds
+    // independently confirm where the menu actually opened.
+    if (quiet_method == "linuxFrameGeometry" && quiet_args.empty()) {
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      if (!owner->view || !owner->view->parent()) { reject("Island unavailable"); return; }
+      const auto rect = [](const views::View* view) {
+        const auto b = view->GetBoundsInScreen();
+        return base::DictValue().Set("x", b.x()).Set("y", b.y())
+            .Set("width", b.width()).Set("height", b.height());
+      };
+      auto geometry = base::DictValue().Set("strip", rect(owner->view))
+          .Set("client", rect(owner->view->parent()));
+      if (owner->main_menu && owner->main_menu->IsShowing()) {
+        auto* submenu = owner->main_menu->root_menu_item()->GetSubmenu();
+        if (submenu && submenu->IsDrawn()) geometry.Set("menu", rect(submenu));
+      }
+      Reply(id, true, base::Value(std::move(geometry)));
+      return;
+    }
+#endif
     // What the OS window has outside its client area, in DIPs. Windows keeps
     // invisible resize borders there, which a window's reported bounds
     // include; the Island's content fills the client area inside them.
@@ -10255,6 +10306,16 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     auto* profile = browser->GetProfile();
     const std::string& method = message[1].GetString();
     const base::ListValue& args = message[2].GetList();
+#if BUILDFLAG(IS_LINUX)
+    if (method == "observeWindowButtons" && args.empty()) {
+      owner->window_buttons_changed = base::BindRepeating(
+          &Handler::SendWindowButtons, weak_factory_.GetWeakPtr());
+      last_window_buttons_.reset();
+      SendWindowButtons();
+      reply(true, base::Value());
+      return;
+    }
+#endif
 #if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
     if (method == "sessionWindows" && args.empty()) {
       auto* service = SessionServiceFactory::GetForProfile(profile);
@@ -14669,10 +14730,27 @@ void IslandBackdrop(content::WebContents* tab, const base::DictValue* spec, int*
           sessions::SessionTabHelper::IdForTab(tab).id(), json.c_str())), base::NullCallback());
 }
 
+#if BUILDFLAG(IS_LINUX)
+void LinuxWindowButtonsChanged(views::View* parent) {
+  auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
+  auto* owner = view ? GetOwner(view->GetWebContents()) : nullptr;
+  if (owner && owner->window_buttons_changed) owner->window_buttons_changed.Run();
+}
+
+int LinuxWindowButtonAt(views::View* parent, int x, int y) {
+  return blanc::LinuxWindowButtons::Measure(*parent).HitTest(gfx::Point(x, y));
+}
+#endif
+
 bool IsCaption(views::View* parent, int x, int y) {
   auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
   if (!view || !view->GetVisible()) return false;
   auto* owner = GetOwner(view->GetWebContents());
+#if BUILDFLAG(IS_LINUX)
+  const auto controls = blanc::LinuxWindowButtons::Measure(*parent);
+  if (controls.leading.Contains(gfx::Point(x, y)) ||
+      controls.trailing.Contains(gfx::Point(x, y))) return false;
+#endif
   // While the page covers the strip (hidden, or floating), a thin band along
   // the page pane's top is the window's only drag handle, as shipping's
   // #dragBand.
@@ -14935,6 +15013,9 @@ void LayoutIsland(views::View* parent, int top) {
                            : owner ? std::max({owner->height, HeaderHeight(parent),
                                                IslandFloating(owner) ? owner->float_frame.bottom() : 0})
                            : 68, available));
+#if BUILDFLAG(IS_LINUX)
+  LinuxWindowButtonsChanged(parent);
+#endif
   if (!owner) return;
   auto* browser_view = static_cast<BrowserView*>(parent);
   if (!browser_view->toolbar()) return;

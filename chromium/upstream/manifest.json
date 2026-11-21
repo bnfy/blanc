@@ -110,6 +110,8 @@
     "chrome/browser/ui/views/extensions/extensions_toolbar_button.h": "90805713fc5cd10448a03569df34bb7bc6f2342922a490ce968d5acad278ce93",
     "chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc": "8554a68367f84d6badee005ce29387fd59e42b8dead196279dbfdd42ae7ba86b",
     "chrome/browser/ui/views/frame/BUILD.gn": "8d0b193d131affe0abf43fa94ec8701eca6f60bcf73bb28c5a3247743472a590",
+    "chrome/browser/ui/views/frame/browser_frame_view_linux.cc": "0e901bfee41e76527651775ea16dd2fb956980d51321b4ca09c929e291d5ecbd",
+    "chrome/browser/ui/views/frame/browser_frame_view_linux.h": "a41d127413d1dbca60a2dd452327135a3251b7130af0be97dffdddd6cf7fb2a7",
     "chrome/browser/ui/views/frame/browser_frame_view_mac.mm": "9ab66142cb812d65c9533452df3a5c69c7ed3c437fedf850baf0ee3892ae9a35",
     "chrome/browser/ui/views/frame/browser_frame_view_win.cc": "4c53ceb9f1926e3ca5435589f3943eea53769c39ce3b2d5849aa6f54b7109fe2",
     "chrome/browser/ui/views/frame/browser_native_widget_mac.mm": "a37767f6d690cf39f98903b6d30efe78580897f527a1e09efad1fbfc3b30d409",

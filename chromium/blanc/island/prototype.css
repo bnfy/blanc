@@ -75,3 +75,19 @@ html, body { background: transparent; }
    of 45 with 1 between (WindowFrameUtil::kWindowsCaptionButtonWidth). */
 :root[data-platform="win32"] #windowControls { display: none; }
 :root[data-platform="win32"] { --window-controls-w: 137px; }
+
+/* GTK allows either cluster, including a single Close button. Keep the pill
+   centered within the page pane, including when the left rail owns the menu. */
+:root[data-platform="linux"] #windowControls { display: none; }
+:root[data-platform="linux"] {
+  --window-controls-leading-w: 0px;
+  --window-controls-w: 0px;
+  --linux-leading-clearance: calc(var(--window-controls-leading-w) + 50px);
+  --pill-window-clearance: calc(2 * max(var(--linux-leading-clearance), var(--window-controls-w) + 8px));
+}
+:root[data-platform="linux"][data-tab-layout="vertical"] {
+  --linux-leading-clearance: max(8px, calc(var(--window-controls-leading-w) + 8px - var(--vertical-tabs-w)));
+}
+:root[data-platform="linux"] .vertical-tabs-toolbar {
+  padding-top: calc(8px + var(--window-controls-leading-h, 0px));
+}
