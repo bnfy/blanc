@@ -9873,14 +9873,6 @@
     "message": "Close Private Tab",
     "note": "iOS Island page menu: first item on a private tab; closes it and leaves private browsing"
   },
-  "ios.island.tabPosition": {
-    "message": "Tab {position} of {count}",
-    "note": "iOS Island: VoiceOver name of the tab dots when the tab isn't in a group"
-  },
-  "ios.island.tabPositionInGroup": {
-    "message": "Tab {position} of {count}, {group}",
-    "note": "iOS Island: VoiceOver name of the tab dots; {group} is the tab group's name"
-  },
   "ios.island.pageActions": {
     "message": "Page actions",
     "note": "iOS Island: accessible name of the leading mark that opens the page menu."

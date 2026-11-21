@@ -2734,8 +2734,6 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="ios_settings_privacy_sync">Privacy e sincronizzazione</string>
     <string name="ios_island_stop">Interrompi il caricamento</string>
     <string name="ios_island_close_private_tab">Chiudi scheda privata</string>
-    <string name="ios_island_tab_position">Scheda %1$s di %2$s</string>
-    <string name="ios_island_tab_position_in_group">Scheda %1$s di %2$s, %3$s</string>
     <string name="ios_island_page_actions">Azioni della pagina</string>
     <string name="ios_island_collapse">Comprimi l’Island</string>
     <string name="ios_palette_placeholder">Cerca, inserisci un indirizzo o un /comando</string>

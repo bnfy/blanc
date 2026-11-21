@@ -2651,8 +2651,6 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ios_settings_privacy_sync">Privacy &amp; Sync</string>
     <string name="ios_island_stop">Stop loading</string>
     <string name="ios_island_close_private_tab">Close Private Tab</string>
-    <string name="ios_island_tab_position">Tab %1$s of %2$s</string>
-    <string name="ios_island_tab_position_in_group">Tab %1$s of %2$s, %3$s</string>
     <string name="ios_island_page_actions">Page actions</string>
     <string name="ios_island_collapse">Collapse Island</string>
     <string name="ios_palette_placeholder">Search, enter address, or / command</string>

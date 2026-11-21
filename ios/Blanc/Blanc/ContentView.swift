@@ -851,48 +851,43 @@ struct ContentView: View {
     static let islandHeight: CGFloat = 44
     static let islandCornerRadius: CGFloat = 17
 
-    /// Back (or Reload), Forward when there's somewhere to go, the current
-    /// group's tab dots, the page menu, the site, and New Tab (Stop while a page
-    /// loads). No dividers, and only as wide as what it holds.
+    /// Back (or Reload), Forward when there's somewhere to go, the page menu,
+    /// the site, and New Tab (Stop while a page loads). No dividers, no tab
+    /// dots (owner, 2026-11-21: not useful on a phone, where the swipe moves
+    /// the page itself), and only as wide as what it holds.
     private var addressPill: some View {
         let buttons = islandButtons
         let tab = manager.activeTab
-        let row = tab.flatMap { IslandDots.row(manager.tabs.map(IslandDots.Tab.init), activeId: $0.id) }
         let shape = RoundedRectangle(cornerRadius: Self.islandCornerRadius, style: .continuous)
         return HStack(spacing: 0) {
             if buttons.leading == .back { backButton } else { reloadButton }
             if buttons.forward {
                 forwardButton.transition(reduceMotion ? .opacity : .move(edge: .leading).combined(with: .opacity))
             }
-            if let row {
-                paletteTapRegion {
-                    IslandDotsView(row: row, ink: islandStyle.text, isLoading: tab?.isLoading == true,
-                                   swipeProgress: dotSwipeProgress(row),
-                                   reduceMotion: reduceMotion)
-                        .frame(minWidth: 44, minHeight: Self.islandHeight)
-                }
-                .accessibilityLabel(dotLabel(row))
-                .accessibilityIdentifier("island.dots")
-                .id((row.groupId ?? "") + (row.dots.first?.id.uuidString ?? ""))
-                .transition(.opacity)
-            }
             islandMark
-            paletteTapRegion {
-                // The Start Page has no site to show, so it invites a search,
-                // dimmed like a placeholder. VoiceOver still hears "Start Page".
-                // The site in SemiBold, as Safari draws its address, so it holds
-                // up over busy pages; the placeholder stays regular.
-                Text(onStartPage ? SyncCopy.text("pill.placeholder") : displayDomain)
-                    .font(BrowserStyle.font(15, semibold: !onStartPage))
-                    .tracking(0.15)
-                    .lineLimit(1)
-                    .truncationMode(onStartPage ? .tail : .middle)
-                    .opacity(onStartPage ? 0.55 : 1)
-                    .frame(minWidth: 44, minHeight: Self.islandHeight)
-            }
-            .accessibilityLabel(SyncCopy.text("ios.island.searchOrSwitch", ["domain": displayDomain]))
-            .accessibilityValue(SyncCopy.plural("tabsMenu.header", count: manager.tabs.count))
-            .accessibilityIdentifier("pill.palette")
+            // The Start Page has no site to show, so it invites a search,
+            // dimmed like a placeholder. VoiceOver still hears "Start Page".
+            // The site in SemiBold, as Safari draws its address, so it holds
+            // up over busy pages; the placeholder stays regular.
+            Text(onStartPage ? SyncCopy.text("pill.placeholder") : displayDomain)
+                .font(BrowserStyle.font(15, semibold: !onStartPage))
+                .tracking(0.15)
+                .lineLimit(1)
+                .truncationMode(onStartPage ? .tail : .middle)
+                .opacity(onStartPage ? 0.55 : 1)
+                .padding(.trailing, 4)
+                .frame(minWidth: 44, minHeight: Self.islandHeight)
+                .pointerHighlight()
+                .contentShape(Rectangle())
+                // A tap rather than a Button: a Button also fires when a sideways
+                // swipe on the Island lifts inside it, a tap fails once the finger moves.
+                .onTapGesture { manager.isPalettePresented = true }
+                .accessibilityElement(children: .ignore)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityAction { manager.isPalettePresented = true }
+                .accessibilityLabel(SyncCopy.text("ios.island.searchOrSwitch", ["domain": displayDomain]))
+                .accessibilityValue(SyncCopy.plural("tabsMenu.header", count: manager.tabs.count))
+                .accessibilityIdentifier("pill.palette")
 
             ZStack {
                 if buttons.trailing == .stop {
@@ -931,38 +926,6 @@ struct ContentView: View {
         .tabDrop(into: manager)
         .animation(reduceMotion ? nil : Self.swipeSpring, value: displayDomain)
         .animation(reduceMotion ? nil : Self.swipeSpring, value: buttons.forward)
-        .animation(.easeOut(duration: 0.2), value: row?.dots.first?.id)
-    }
-
-    /// A tap rather than a Button: a Button also fires when a sideways swipe
-    /// on the Island lifts inside it, a tap fails once the finger moves.
-    private func paletteTapRegion<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-        content()
-            .pointerHighlight()
-            .contentShape(Rectangle())
-            .onTapGesture { manager.isPalettePresented = true }
-            .accessibilityElement(children: .ignore)
-            .accessibilityAddTraits(.isButton)
-            .accessibilityAction { manager.isPalettePresented = true }
-    }
-
-    /// How far the current dot leans toward its neighbor during a sideways
-    /// swipe; none when the tab the swipe goes to isn't in this row (another
-    /// group, or past the window), where the dots change over instead.
-    private func dotSwipeProgress(_ row: IslandDots.Row) -> CGFloat {
-        guard swipeOffset != 0, let id = manager.activeTab?.id,
-              let next = manager.neighbor(of: id, offset: swipeOffset < 0 ? 1 : -1),
-              row.dots.contains(where: { $0.id == next.id }) else { return 0 }
-        return min(max(-swipeOffset / max(pageWidth, 1), -1), 1)
-    }
-
-    private func dotLabel(_ row: IslandDots.Row) -> String {
-        var params = ["position": String(row.position), "count": String(row.count)]
-        if let group = manager.groups.first(where: { $0.id == row.groupId }) {
-            params["group"] = group.name
-            return SyncCopy.text("ios.island.tabPositionInGroup", params)
-        }
-        return SyncCopy.text("ios.island.tabPosition", params)
     }
 
     private var reloadButton: some View {

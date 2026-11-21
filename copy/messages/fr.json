@@ -9577,14 +9577,6 @@
     "message": "Fermer l’onglet privé",
     "source": "sha256:70725014f209df31a338d0133337aa4c726cd266766537da8e08786bfad6b054"
   },
-  "ios.island.tabPosition": {
-    "message": "Onglet {position} sur {count}",
-    "source": "sha256:524d51e234cdb6fbf2dd5eb882deb5f7cfe5f8e469dc32932192c889ada755da"
-  },
-  "ios.island.tabPositionInGroup": {
-    "message": "Onglet {position} sur {count}, {group}",
-    "source": "sha256:a9e36265d05f72b5ee010eae11f4cece01a51f1d4c83bbc90094b0d84d0faa37"
-  },
   "ios.island.pageActions": {
     "message": "Actions de la page",
     "source": "sha256:0b926606bca19deecf9e0d633786f8643b649905978b53d66a1453980a9215f7"

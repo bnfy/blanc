@@ -49,10 +49,6 @@ final class IslandPanelUITests: XCTestCase {
         XCTAssertLessThanOrEqual(field.frame.maxY, keyboard.frame.minY)
     }
 
-    func testTappingTheDotsOpensThePanel() {
-        app.buttons["island.dots"].tap()
-        XCTAssertTrue(panel.waitForExistence(timeout: 5))
-    }
 
     func testTappingOutsideCloses() {
         openPanel()

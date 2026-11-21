@@ -12,13 +12,13 @@ The owner flagged all four problems offered:
 - **Row feels busy:** two dividers, five items, and a gold mark beside gray icons.
 - **Typing sheet:** tapping opens a plain sheet instead of the Island opening up.
 
-The owner wants it to feel like **desktop Blanc's Island**: sized to its contents, with tab dots, opening in place. They picked **Direction A (one Island)** and **tab dots for the current group** (2026-11-21).
+The owner wants it to feel like **desktop Blanc's Island**: sized to its contents, with tab dots, opening in place. They picked **Direction A (one Island)** and **tab dots for the current group** (2026-11-21). After seeing the built Island the same day, the owner dropped the dots: they aren't useful on a phone, where the sideways swipe moves the page itself. This document describes the Island without them; the plan beside it still records the dots as first built.
 
 Blanc for Android copies the iPhone Island value for value (`chromium/patches/android/0104-android-island.patch`, `chromium/blanc/android/island/res/`), so Android follows this design afterwards.
 
 ## Approaches considered
 
-- **A: one Island sized to fit (chosen).** Back, tab dots, favicon and site, and New Tab sit in one object. It is closest to the Mac Island and behaves the same on iOS 18–26 and Android. Trade-off: a long domain makes it wide again.
+- **A: one Island sized to fit (chosen).** Back, favicon and site, and New Tab sit in one object (tab dots were in it too, until the owner dropped them). It is closest to the Mac Island and behaves the same on iOS 18–26 and Android. Trade-off: a long domain makes it wide again.
 - **B: Island plus two round buttons.** Dots and site in the middle; Back and New Tab as separate round glass buttons that merge into the panel when it opens. Calmest middle and the biggest thumb targets, but more separate pieces on screen. Its showpiece, the glass merge, exists only on iOS 26: iOS 18–25 and Android would just fade. Not chosen.
 - **Domain only (dropped before presenting).** It would hide Back, which the owner put on the Island on Nov 11, and break the "minimal doesn't mean hidden" rule.
 
@@ -34,7 +34,7 @@ Blanc for Android copies the iPhone Island value for value (`chromium/patches/an
 
 **Anti-goals:**
 - Hiding Back.
-- New vocabulary on the Island beyond the dots: no group names, tab counts or Space marks (the owner removed the tab count in #1372 and the Space mark in #1450).
+- New vocabulary on the Island: no tab dots, group names, tab counts or Space marks (the owner removed the tab count in #1372 and the Space mark in #1450).
 - Tap targets under 44 pt.
 - A fixed-width, static bar: the Island must spring as its contents change.
 - Thick focus rings or left-edge accents.
@@ -43,7 +43,7 @@ Blanc for Android copies the iPhone Island value for value (`chromium/patches/an
 
 ### Resting Island
 
-`[‹] [● ● ◉ ●] [favicon] nytimes.com [+]`, centered.
+`[‹] [favicon] nytimes.com [+]`, centered.
 
 - **Shape:**
   - 44 pt tall.
@@ -53,12 +53,6 @@ Blanc for Android copies the iPhone Island value for value (`chromium/patches/an
 - **No dividers.** All glyphs use the Island's ink, semibold 15 pt as today.
 - **Back:** always present, 44×44, dimmed when there is nowhere to go, so the left edge never jumps.
 - **Forward:** present only while there is somewhere to go. It slides in after Back with a spring.
-- **Tab dots:** the active tab's section, meaning its group, or the run of ungrouped tabs around it, as desktop's `TabSections` defines.
-  - 6 pt dots with 8 pt gaps; the active dot in full ink, the others in faint ink.
-  - Up to 6 dots, then a dim "+N" at 11 pt.
-  - The dots are not tap targets. Tapping them opens the Island, like the domain.
-  - During a sideways swipe the active dot follows the page. When the swipe crosses into another section, the dots crossfade to that section.
-  - A private tab's dot is drawn as an outline, per tab, as on the Mac (`.island-dot.private`), so a run of ungrouped tabs can mix filled and hollow dots.
 - **Favicon:** 16 pt with 4 pt corners and a 36×44 hit area. Tapping it opens the page menu, as the Sunrise mark does today; Safari keeps its page menu in the same spot. On the Start Page the slot shows the gold Sunrise, and with no favicon a neutral globe.
 - **Domain:** today's text, from #1472: Instrument Sans 15 SemiBold, `www.` removed, Blanc page names. The Start Page shows "Search or type a URL" dimmed.
 - **New Tab:** 44×44.
@@ -66,11 +60,11 @@ Blanc for Android copies the iPhone Island value for value (`chromium/patches/an
   - iOS 26: `.glassEffect(.regular, in: RoundedRectangle(cornerRadius: 17))`.
   - iOS 18–25: today's solid fill, hairline and shadow, on the new shape.
   - Light/dark still follows the page's `underPageBackgroundColor`.
-- **Loading:** the 2 pt progress line stays, clipped to the new shape. The active dot pulses, as on the Mac. **Stop takes New Tab's slot** while the page loads, crossfading, so the width never changes. New Tab returns when the load ends. Meanwhile it stays available in the panel and the menu (owner, 2026-11-21).
+- **Loading:** the 2 pt progress line stays, clipped to the new shape. **Stop takes New Tab's slot** while the page loads, crossfading, so the width never changes. New Tab returns when the load ends. Meanwhile it stays available in the panel and the menu (owner, 2026-11-21).
 
 ### Opening in place (replaces the iPhone sheet)
 
-- **Tapping the domain or the dots grows the Island into the panel and carries it up above the keyboard in one motion,** with the search field focused (owner, 2026-11-21). The keyboard comes up at once, as today and as on the Mac's ⌘L.
+- **Tapping the site grows the Island into the panel and carries it up above the keyboard in one motion,** with the search field focused (owner, 2026-11-21). The keyboard comes up at once, as today and as on the Mac's ⌘L.
   - The grow runs alongside the keyboard's own animation, using its frame notifications. The panel's bottom edge travels from the Island's spot to just above the keyboard.
   - It widens to the screen width minus 32 pt (600 pt cap), with the same corner shape scaled to 22 pt, as the iPad panel today.
 - **The panel's light/dark matches the Island's,** so it never flips color as it grows: it follows the page, and private tabs are always dark. **Its face is solid** (`style.raised`), not glass, so the list stays readable over busy pages. On iOS 26 the glass Island grows while its glass gives way to that solid face.
@@ -89,11 +83,10 @@ Blanc for Android copies the iPhone Island value for value (`chromium/patches/an
 
 - **Top position:** mirrored. The panel grows downward with search on top.
 - **Tuck on scroll:** as today, but measured from the new height.
-- **Start Page:** Sunrise, the dimmed placeholder, dots and New Tab. Lower `--ios-island` in `StartPage/ios-start.css` to match the new height.
+- **Start Page:** Sunrise, the dimmed placeholder and New Tab. Lower `--ios-island` in `StartPage/ios-start.css` to match the new height.
 - **Websites' insets:** the fixed inset and `obscuredContentInsets` (`WebView.swift`) follow the new height.
 - **Settings → Island:** unchanged. With Back and Forward turned off, Reload takes Back's place, as today.
 - **VoiceOver:**
-  - The dots are one element: "Tab 3 of 4, Research".
   - The favicon is "Page menu".
   - The domain keeps "Search or switch tabs, {domain}".
   - New strings go in every language (`test/unit/ios-native-strings.test.js`).
@@ -101,7 +94,7 @@ Blanc for Android copies the iPhone Island value for value (`chromium/patches/an
 ### Decided by the owner (2026-11-21)
 
 - Direction A, one Island sized to fit.
-- Tab dots for the current group.
+- Tab dots for the current group, then none (dropped after seeing them built).
 - The Island rises with the keyboard, search ready.
 - **Private tabs:** the Island is always dark, and the "Private" chip comes off the row. **Close Private Tab** is the first item in the page menu, so leaving takes two taps instead of one.
 - Stop takes New Tab's slot while loading.
@@ -110,9 +103,8 @@ Blanc for Android copies the iPhone Island value for value (`chromium/patches/an
 
 1. **No dimming behind the open panel,** matching the iPad panel and the Mac's in-place panel. A tap outside closes it.
 2. **The panel is solid and follows the Island's light/dark** (see Opening in place).
-3. **Private tabs' dots are outlined per tab,** as on the Mac.
-4. **iPhone landscape keeps the sheet.**
-5. **Android follows in its own change** in the Android lane, once the iPhone version has been checked on a device.
+3. **iPhone landscape keeps the sheet.**
+4. **Android follows in its own change** in the Android lane, once the iPhone version has been checked on a device.
 
 ### Left to the builder
 
@@ -120,14 +112,13 @@ Blanc for Android copies the iPhone Island value for value (`chromium/patches/an
 - The "+N" rule at the cap.
 - The favicon fallback glyph.
 - Drag-to-close distances.
-- How the dot section is computed from `TabsManager.tabs` (swipe order is the flat `tabs` array, `TabsManager.neighbor(of:offset:)`).
 - Test identifiers.
 
 ## How it gets built
 
 Each PR updates D11 in `spec/divergence-register.md` for what it ships. The implementation plan sits beside this file in `docs/superpowers/plans/`. Expected PRs:
 
-- **PR 1: the resting Island.** Shape, width that fits the contents, dots, a favicon menu button replacing the Sunrise mark on web pages, Forward that comes and goes, private and loading states, Start Page and inset heights, strings.
+- **PR 1: the resting Island.** Shape, width that fits the contents, a favicon menu button replacing the Sunrise mark on web pages, Forward that comes and goes, private and loading states, Start Page and inset heights, strings.
 - **PR 2: opening in place on iPhone.** The panel replaces the sheet, with search at the Island's edge, keyboard avoidance and the grow transition. The iPad panel adopts the same layout.
 - **Later: the Android lane mirror.**
 
@@ -138,16 +129,15 @@ Each PR updates D11 in `spec/divergence-register.md` for what it ships. The impl
 - `IslandMarkButton.swift`: becomes the favicon/Sunrise menu button.
 - `IslandMenu.swift`: Close Private Tab moves first.
 - `PaletteSheet.swift`: the search row on the Island's side.
-- `TabsManager.swift` / `TabModel.swift`: the dot section.
 - `BrowserStyle.swift`, `WebView.swift`, `StartPage/ios-start.css`, `SettingsSheet.swift`.
 
 **Tests:** existing iOS XCTest and UI tests.
 
 ## Verification
 
-- **Unit tests:** the dot section, Forward visibility, and the panel placement in `IslandLayout`.
+- **Unit tests:** Forward visibility, and the panel placement in `IslandLayout`.
 - **UI tests:**
-  - Open from the domain and from the dots.
+  - Open from the site.
   - The search field is focused and sits at the panel's Island-side edge, above the keyboard.
   - Landscape opens the sheet.
   - Stop takes New Tab's slot during a load.
