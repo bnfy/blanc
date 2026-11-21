@@ -113,10 +113,17 @@ index aa9fcf4..929bba4 100644
                             0x6DB4,
                             0x4D6B,
 diff --git a/chrome/installer/util/install_util.cc b/chrome/installer/util/install_util.cc
-index c9b812b..55f85f3 100644
+index c9b812b..4e45a2a 100644
 --- a/chrome/installer/util/install_util.cc
 +++ b/chrome/installer/util/install_util.cc
-@@ -576,14 +576,14 @@ std::wstring InstallUtil::GetAppDescription() {
+@@ -571,19 +571,20 @@ std::wstring InstallUtil::GetDisplayName() {
+ 
+ // static
+ std::wstring InstallUtil::GetAppDescription() {
+-  return installer::GetLocalizedString(IDS_SHORTCUT_TOOLTIP_BASE);
++  // Blanc: the shortcut's tooltip, in Blanc's words rather than Chromium's.
++  return L"Browse the web";
+ }
  
  // static
  std::wstring InstallUtil::GetPublisherName() {
@@ -132,6 +139,16 @@ index c9b812b..55f85f3 100644
 -  return installer::GetLocalizedString(IDS_PRODUCT_NAME_BASE);
 +  // Blanc: the channel's own name, as Default Programs lists it.
 +  return install_static::GetBaseAppName();
+ }
+ 
+ // static
+@@ -595,7 +596,8 @@ std::wstring InstallUtil::GetChromeAppsShortcutDirName() {
+ 
+ // static
+ std::wstring InstallUtil::GetLongAppDescription() {
+-  return installer::GetLocalizedString(IDS_PRODUCT_DESCRIPTION_BASE);
++  // Blanc: the description Default Programs registers, rather than Chromium's.
++  return L"A minimal web browser with ad and tracker blocking built in";
  }
  
  // static

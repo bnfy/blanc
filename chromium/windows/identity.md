@@ -29,6 +29,7 @@ later decision.
 | Toast activator CLSID | `{1BFC5BBC-FA48-49EE-BDC9-BA91E18C4B89}` | `{FE4C251B-AD54-4F2F-B2A1-16EB186147E7}` | — | `{635EFA6F-08D6-4EC9-BD14-8A0FDE975159}` |
 | Active Setup GUID (system-level only) | `{FF7CE8A2-9361-41F3-B827-83DC0CB91795}` | `{0101E396-5BD3-487F-9265-8DE26B34795A}` | — | `{7D2B3E1D-D096-4594-9D8F-A6667F12E0AC}` |
 | Icon | Sunrise (`blanc/branding/win/blanc.ico`, the Electron app's bytes) | Sunrise (the same file) | Sunrise | Chromium |
+| Shortcut tooltip; registered description (`Capabilities\ApplicationDescription`) | "Browse the web"; "A minimal web browser with ad and tracker blocking built in" (`install_util.cc`, owner 2026-11-21) | the same | — | "Access the Internet"; Chromium's product description |
 | Test hooks | compiled in (`--blanc-test`) | compiled out (`hooks-evidence.mjs` `windowsStaticScan`) | — | — |
 
 Observed on a runner (W1 Part B, run 44235371094): the per-user suffix is
