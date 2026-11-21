@@ -67,7 +67,7 @@ function linuxLines(source) {
 function applyIdentityPatch(t) {
   const stage = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-linux-identity-'));
   t.after(() => fs.rmSync(stage, {recursive: true, force: true}));
-  const files = [...read(patch).matchAll(/^\+\+\+ b\/(.+)$/gm)].map(match => match[1]);
+  const files = [...read(patch).matchAll(/^--- a\/(.+)$/gm)].map(match => match[1]);
   for (const file of files) {
     const dest = path.join(stage, file);
     fs.mkdirSync(path.dirname(dest), {recursive: true});
@@ -81,6 +81,11 @@ test('0113 scopes added C++ to Linux and wires profile, desktop, class and keyri
   const diff = read(patch);
   assert.ok(JSON.parse(read('lanes/desktop.json')).patches.includes(patch));
   const stage = applyIdentityPatch(t);
+  const source = file => fs.readFileSync(path.join(stage, file), 'utf8');
+  const providers = 'components/os_crypt/async/browser/';
+  const build = source(providers + 'BUILD.gn');
+  assert.match(build, /source_set\("key_provider_interface"\) \{\s*sources = \[ "key_provider.h" \]\s*if \(is_linux\) \{\s*sources \+= \[ "key_provider.cc" \]\s*\}/);
+  assert.equal(build.match(/"key_provider\.cc"/g)?.length, 1);
   let file, guards, line;
   for (const row of diff.split('\n')) {
     if (row.startsWith('+++ b/')) {
@@ -91,12 +96,11 @@ test('0113 scopes added C++ to Linux and wires profile, desktop, class and keyri
     } else if (row.startsWith('+') || row.startsWith(' ')) {
       if (row.startsWith('+') && /\.(cc|h)$/.test(file) && row.slice(1).trim() &&
           !/^\+#(?:if|else|elif|endif)/.test(row) && !row.startsWith('+#include "build/build_config.h"')) {
-        assert.ok(guards[line], file + ' outside Linux: ' + row);
+        assert.ok(file === providers + 'key_provider.cc' || guards[line], file + ' outside Linux: ' + row);
       }
       line++;
     }
   }
-  const source = file => fs.readFileSync(path.join(stage, file), 'utf8');
   assert.match(source('chrome/common/chrome_paths_linux.cc'), /config_dir.Append\(BUILDFLAG\(BLANC_LINUX_PACKAGE\)\)/);
   assert.match(source('chrome/common/channel_info_posix.cc'), /GetVar\("CHROME_DESKTOP"\)[\s\S]*?return name.value\(\);[\s\S]*?BLANC_LINUX_PACKAGE[^;]*"\.desktop"/);
   assert.match(source('chrome/browser/shell_integration_linux.cc'), /GetProgramClassClass\([^}]+kWmClass[^}]+desktop_base_name == BUILDFLAG\(BLANC_LINUX_PACKAGE\)\) \{\s*return desktop_base_name;/);
@@ -105,7 +109,12 @@ test('0113 scopes added C++ to Linux and wires profile, desktop, class and keyri
   assert.match(fdo, /kKeyName\[\] = BUILDFLAG\(BLANC_LINUX_KEY_NAME\)/);
   assert.match(fdo, /kKWalletFolder\[\] = BUILDFLAG\(BLANC_LINUX_KWALLET_FOLDER\)/);
   assert.match(read('blanc/browser/sync/desktop_sync_platform.cc'), /config.Set\("storageBackend",/);
-  assert.match(fdo, /kwallet_proxy_ \? "kwallet" : "gnome_libsecret"/);
+  for (const file of ['key_provider', 'freedesktop_secret_key_provider', 'secret_portal_key_provider', 'os_crypt_async']) {
+    assert.match(source(providers + file + '.h'), /GetLinuxStorageBackend\(\) const(?: override)?;/);
+  }
+  assert.match(source(providers + 'freedesktop_secret_key_provider.cc'), /kwallet_proxy_ \? "kwallet" : "gnome_libsecret"/);
+  assert.match(source(providers + 'secret_portal_key_provider.cc'), /GetLinuxStorageBackend\(\) const \{\s*return "xdg_secret_portal";/);
+  assert.match(source(providers + 'key_provider.cc'), /GetLinuxStorageBackend\(\) const \{\s*return "basic_text";/);
   assert.match(source('chrome/browser/browser_process_impl.cc'), /password_store, BUILDFLAG\(BLANC_LINUX_KEYRING_LABEL\), nullptr/);
   const selection = source('components/os_crypt/async/browser/os_crypt_async.cc');
   assert.match(selection, /if \(key.has_value\(\)\) \{[^}]*if \(\(\*current\)->UseForEncryption\(\)\) \{[^}]*GetLinuxStorageBackend\(\)/);

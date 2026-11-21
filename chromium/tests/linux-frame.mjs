@@ -1,4 +1,5 @@
 // node chromium/tests/linux-frame.mjs --display=x11|wayland CANDIDATE_DIR RESULTS_DIR
+// Wayland needs Weston sockets at 1× (WAYLAND_DISPLAY) and 2× (BLANC_WAYLAND_DISPLAY_2X).
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -11,6 +12,7 @@ import { NativeFixture } from './lib/fixture.mjs';
 import { click, doubleClick, drag, windowGeometry } from './lib/native-input-linux.mjs';
 import { assertNodeRuntime, assertRendering } from './lib/render-guard.mjs';
 import { installDriver, nativeCall } from './lib/test-driver.mjs';
+import { measureWaylandStrip } from './lib/wayland-strip.mjs';
 
 const [flag, folder, resultDir, ...extra] = process.argv.slice(2);
 const display = /^--display=(x11|wayland)$/.exec(flag)?.[1];
@@ -23,6 +25,7 @@ assert.equal(fs.readFileSync('/proc/sys/kernel/apparmor_restrict_unprivileged_us
 if (display === 'wayland') {
   delete process.env.DISPLAY;
   assert.ok(process.env.WAYLAND_DISPLAY);
+  assert.ok(process.env.BLANC_WAYLAND_DISPLAY_2X, 'Expected a second Weston socket with output scale 2');
 } else {
   assert.ok(process.env.DISPLAY);
 }
@@ -97,49 +100,33 @@ async function observeLayout(fixture, layout, scale) {
 async function waylandPixels(fixture, state, name) {
   const pictures = path.join(scratch, name + '-capture');
   fs.mkdirSync(pictures);
-  await fixture.host.eval(`new Promise(resolve => {
-    const marker = document.createElement('div');
+  await fixture.host.eval(`(() => {
+    const doc = document.getElementById('strip').contentDocument;
+    const marker = doc.createElement('div');
     marker.id = 'frame-pixel-probe';
     marker.style.cssText = 'position:fixed;inset:0;background:rgb(16,240,123);z-index:2147483647;pointer-events:none';
-    document.body.append(marker);
-    requestAnimationFrame(() => requestAnimationFrame(resolve));
-  })`);
+    doc.body.append(marker);
+  })()`);
   try {
-    run('weston-screenshooter', [], { cwd: pictures, env: { ...process.env, XDG_PICTURES_DIR: pictures } });
-    const files = fs.readdirSync(pictures).filter(file => file.endsWith('.png'));
-    assert.equal(files.length, 1);
     const image = path.join(out, name + '.png');
-    fs.copyFileSync(path.join(pictures, files[0]), image);
-    const { data, info } = await sharp(image).removeAlpha().raw().toBuffer({ resolveWithObject: true });
-    const marker = (x, y) => {
-      const at = (y * info.width + x) * info.channels;
-      return Math.abs(data[at] - 16) < 6 && Math.abs(data[at + 1] - 240) < 6 && Math.abs(data[at + 2] - 123) < 6;
-    };
-    let x0 = info.width, y0 = info.height, x1 = -1, y1 = -1;
-    for (let y = 0; y < info.height; y++) {
-      for (let x = 0; x < info.width; x++) {
-        if (!marker(x, y)) continue;
-        x0 = Math.min(x0, x); y0 = Math.min(y0, y);
-        x1 = Math.max(x1, x); y1 = Math.max(y1, y);
-      }
-    }
-    const ratio = (x1 - x0 + 1) / state.width;
-    assert.ok(ratio > 0 && Math.abs((y1 - y0 + 1) / ratio - state.height) <= 3,
-      'The full WebUI strip must be on the compositor output');
-    const ink = {};
-    for (const b of state.payload.buttons) {
-      let count = 0;
-      for (let y = Math.ceil(y0 + (b.y + b.height * .2) * ratio); y < y0 + (b.y + b.height * .8) * ratio; y++) {
-        for (let x = Math.ceil(x0 + (b.x + b.width * .2) * ratio); x < x0 + (b.x + b.width * .8) * ratio; x++) {
-          if (x >= x0 && x <= x1 && y >= y0 && y <= y1 && !marker(x, y)) count++;
-        }
-      }
-      assert.ok(count >= 3, b.kind + ' must paint above the WebUI');
-      ink[b.kind] = count;
-    }
-    return { image: path.basename(image), ratio, ink };
+    // A renderer animation frame doesn't acknowledge presentation by Weston.
+    // Keep the last capture as evidence even if the probe never appears.
+    const deadline = Date.now() + 5000;
+    do {
+      run('weston-screenshooter', [], { cwd: pictures, env: { ...process.env, XDG_PICTURES_DIR: pictures } });
+      const files = fs.readdirSync(pictures).filter(file => file.endsWith('.png'));
+      assert.equal(files.length, 1);
+      const capture = path.join(pictures, files[0]);
+      fs.copyFileSync(capture, image);
+      fs.unlinkSync(capture);
+      const pixels = await sharp(image).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+      const measurement = measureWaylandStrip(pixels, state);
+      if (measurement) return { image: path.basename(image), ...measurement };
+      await pause(100);
+    } while (Date.now() < deadline);
+    assert.fail('Weston did not present any strip probe pixels in ' + image);
   } finally {
-    await fixture.host.eval("document.getElementById('frame-pixel-probe')?.remove()");
+    await fixture.host.eval("document.getElementById('strip').contentDocument.getElementById('frame-pixel-probe')?.remove()");
   }
 }
 
@@ -292,6 +279,7 @@ async function systemTitlebar(fixture, scale) {
 
 try {
   for (const scale of [1, 2]) {
+    if (display === 'wayland' && scale === 2) process.env.WAYLAND_DISPLAY = process.env.BLANC_WAYLAND_DISPLAY_2X;
     for (const [i, layout] of layouts.entries()) {
       const name = 'layout-' + (i + 1) + '-' + scale + 'x';
       const result = { layout, scale };
@@ -299,8 +287,8 @@ try {
       const fixture = new NativeFixture();
       try {
         result.gtk = configureGtk(path.join(scratch, name + '-config'), layout);
-        fixture.extraArgs = ['--ozone-platform=' + display, '--gtk-version=3',
-          '--force-device-scale-factor=' + scale, '--window-size=900,560', '--window-position=80,80'];
+        fixture.extraArgs = ['--ozone-platform=' + display, '--gtk-version=3', '--window-size=900,560'];
+        if (display === 'x11') fixture.extraArgs.push('--force-device-scale-factor=' + scale, '--window-position=80,80');
         await fixture.launch(config, path.join(scratch, name), { testHooks: true, diskAssets: config.diskAssets });
         await installDriver(fixture.host);
         await assertRendering(expr => fixture.host.eval(expr));

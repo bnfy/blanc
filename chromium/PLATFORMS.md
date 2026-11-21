@@ -94,3 +94,10 @@ desktop places the system title bar above the strip, and GetShowWindowTitleBar
 suppresses Chromium's controls.
 
 The X11 input and Wayland layout checks require a built candidate.
+
+### Crash reporting
+
+Linux local dump capture awaits a hosted install check. The `crashpad` field in
+`install-<system>-<arch>.json` records two forced browser crashes, one with
+the default reporter configuration and one with test crash reporting enabled.
+Each records the exit and the paths and sizes of minidumps in a fresh data folder.

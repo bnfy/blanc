@@ -155,7 +155,17 @@ diff --git a/chrome/common/chrome_paths_linux.cc b/chrome/common/chrome_paths_li
 diff --git a/components/os_crypt/async/browser/BUILD.gn b/components/os_crypt/async/browser/BUILD.gn
 --- a/components/os_crypt/async/browser/BUILD.gn
 +++ b/components/os_crypt/async/browser/BUILD.gn
-@@ -139,7 +139,10 @@
+@@ -48,6 +48,9 @@
+ 
+ source_set("key_provider_interface") {
+   sources = [ "key_provider.h" ]
++  if (is_linux) {
++    sources += [ "key_provider.cc" ]
++  }
+ 
+   public_deps = [
+     "//base",
+@@ -139,7 +142,10 @@
        "//crypto",
        "//dbus",
      ]
@@ -167,6 +177,22 @@ diff --git a/components/os_crypt/async/browser/BUILD.gn b/components/os_crypt/as
    }
  
    source_set("test_secret_portal") {
+diff --git a/components/os_crypt/async/browser/freedesktop_secret_key_provider.cc b/components/os_crypt/async/browser/freedesktop_secret_key_provider.cc
+--- a/components/os_crypt/async/browser/freedesktop_secret_key_provider.cc
++++ b/components/os_crypt/async/browser/freedesktop_secret_key_provider.cc
+@@ -250,6 +250,12 @@
+   return true;
+ }
+ 
++#if BUILDFLAG(IS_LINUX)
++const char* FreedesktopSecretKeyProvider::GetLinuxStorageBackend() const {
++  return kwallet_proxy_ ? "kwallet" : "gnome_libsecret";
++}
++#endif  // BUILDFLAG(IS_LINUX)
++
+ void FreedesktopSecretKeyProvider::InitializeFreedesktopSecretService() {
+   dbus_utils::CheckForServiceAndStart(
+       bus_, kSecretServiceName,
 diff --git a/components/os_crypt/async/browser/freedesktop_secret_key_provider.h b/components/os_crypt/async/browser/freedesktop_secret_key_provider.h
 --- a/components/os_crypt/async/browser/freedesktop_secret_key_provider.h
 +++ b/components/os_crypt/async/browser/freedesktop_secret_key_provider.h
@@ -181,19 +207,17 @@ diff --git a/components/os_crypt/async/browser/freedesktop_secret_key_provider.h
  
  namespace os_crypt_async {
  
-@@ -70,6 +74,11 @@
+@@ -70,6 +74,9 @@
    // KeyProvider:
    void GetKey(KeyCallback callback) override;
    bool UseForEncryption() override;
 +#if BUILDFLAG(IS_LINUX)
-+  const char* GetLinuxStorageBackend() const override {
-+    return kwallet_proxy_ ? "kwallet" : "gnome_libsecret";
-+  }
++  const char* GetLinuxStorageBackend() const override;
 +#endif
  
   private:
    FRIEND_TEST_ALL_PREFIXES(FreedesktopSecretKeyProviderTest, BasicHappyPath);
-@@ -153,7 +162,11 @@
+@@ -153,7 +160,11 @@
    static constexpr int kKWalletInvalidHandle = -1;
    static constexpr int kKWalletInvalidTransactionId = -1;
  
@@ -206,6 +230,22 @@ diff --git a/components/os_crypt/async/browser/freedesktop_secret_key_provider.h
    static constexpr char kKWalletFolder[] = "Chrome Keys";
    static constexpr char kKeyName[] = "Chrome Safe Storage";
    static constexpr char kAppName[] = "chrome";
+diff --git a/components/os_crypt/async/browser/key_provider.cc b/components/os_crypt/async/browser/key_provider.cc
+new file mode 100644
+--- /dev/null
++++ b/components/os_crypt/async/browser/key_provider.cc
+@@ -0,0 +1,11 @@
++// Copyright 2026 Bananify Creative. MIT; see LICENSE.
++
++#include "components/os_crypt/async/browser/key_provider.h"
++
++namespace os_crypt_async {
++
++const char* KeyProvider::GetLinuxStorageBackend() const {
++  return "basic_text";
++}
++
++}  // namespace os_crypt_async
 diff --git a/components/os_crypt/async/browser/key_provider.h b/components/os_crypt/async/browser/key_provider.h
 --- a/components/os_crypt/async/browser/key_provider.h
 +++ b/components/os_crypt/async/browser/key_provider.h
@@ -224,7 +264,7 @@ diff --git a/components/os_crypt/async/browser/key_provider.h b/components/os_cr
 +#if BUILDFLAG(IS_LINUX)
 +  // Called when this provider supplies the selected encryption key. Return a
 +  // string literal. Sync treats the POSIX fallback as an insecure store.
-+  virtual const char* GetLinuxStorageBackend() const { return "basic_text"; }
++  virtual const char* GetLinuxStorageBackend() const;
 +#endif
 +
   protected:
@@ -243,25 +283,36 @@ diff --git a/components/os_crypt/async/browser/os_crypt_async.cc b/components/os
      }
    } else {
      switch (key.error()) {
+@@ -142,6 +145,13 @@
+       number_of_failing_key_providers_);
+ }
+ 
++#if BUILDFLAG(IS_LINUX)
++const char* OSCryptAsync::GetLinuxStorageBackend() const {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  return linux_storage_backend_;
++}
++#endif  // BUILDFLAG(IS_LINUX)
++
+ void OSCryptAsync::GetInstance(InitCallback callback) {
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+ 
 diff --git a/components/os_crypt/async/browser/os_crypt_async.h b/components/os_crypt/async/browser/os_crypt_async.h
 --- a/components/os_crypt/async/browser/os_crypt_async.h
 +++ b/components/os_crypt/async/browser/os_crypt_async.h
-@@ -63,6 +63,14 @@
+@@ -63,6 +63,11 @@
    // Encryptor is already available.
    virtual void GetInstance(InitCallback callback);
  
 +#if BUILDFLAG(IS_LINUX)
 +  // Read on the owning sequence after GetInstance has delivered the Encryptor.
-+  const char* GetLinuxStorageBackend() const {
-+    DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
-+    return linux_storage_backend_;
-+  }
++  const char* GetLinuxStorageBackend() const;
 +#endif
 +
   private:
    using ProviderIterator =
        std::vector<std::unique_ptr<KeyProvider>>::const_iterator;
-@@ -81,6 +89,10 @@
+@@ -81,6 +86,10 @@
    std::list<base::OnceClosure> callbacks_ GUARDED_BY_CONTEXT(sequence_checker_);
    Encryptor::KeyRing key_ring_ GUARDED_BY_CONTEXT(sequence_checker_);
    std::string provider_for_encryption_ GUARDED_BY_CONTEXT(sequence_checker_);
@@ -272,17 +323,31 @@ diff --git a/components/os_crypt/async/browser/os_crypt_async.h b/components/os_
    size_t number_of_failing_key_providers_
        GUARDED_BY_CONTEXT(sequence_checker_) = 0;
  
+diff --git a/components/os_crypt/async/browser/secret_portal_key_provider.cc b/components/os_crypt/async/browser/secret_portal_key_provider.cc
+--- a/components/os_crypt/async/browser/secret_portal_key_provider.cc
++++ b/components/os_crypt/async/browser/secret_portal_key_provider.cc
+@@ -80,6 +80,12 @@
+   return use_for_encryption_;
+ }
+ 
++#if BUILDFLAG(IS_LINUX)
++const char* SecretPortalKeyProvider::GetLinuxStorageBackend() const {
++  return "xdg_secret_portal";
++}
++#endif  // BUILDFLAG(IS_LINUX)
++
+ void SecretPortalKeyProvider::OnPortalServiceStarted(uint32_t version) {
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+   if (version == 0) {
 diff --git a/components/os_crypt/async/browser/secret_portal_key_provider.h b/components/os_crypt/async/browser/secret_portal_key_provider.h
 --- a/components/os_crypt/async/browser/secret_portal_key_provider.h
 +++ b/components/os_crypt/async/browser/secret_portal_key_provider.h
-@@ -105,6 +105,11 @@
+@@ -105,6 +105,9 @@
    // KeyProvider:
    void GetKey(KeyCallback callback) override;
    bool UseForEncryption() override;
 +#if BUILDFLAG(IS_LINUX)
-+  const char* GetLinuxStorageBackend() const override {
-+    return "xdg_secret_portal";
-+  }
++  const char* GetLinuxStorageBackend() const override;
 +#endif
  
    void OnPortalServiceStarted(uint32_t version);

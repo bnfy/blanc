@@ -2,6 +2,7 @@
 #include "blanc/browser/ui/window_buttons_linux.h"
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <utility>
 
@@ -23,11 +24,12 @@ struct Button {
   const char* kind;
   int component;
 };
-constexpr Button kButtons[] = {
+// std::array, not a C array: Chromium's -Wunsafe-buffer-usage rejects raw array indexing.
+constexpr auto kButtons = std::to_array<Button>({
     {VIEW_ID_MINIMIZE_BUTTON, views::FrameButton::kMinimize, "minimize", HTMINBUTTON},
     {VIEW_ID_MAXIMIZE_BUTTON, views::FrameButton::kMaximize, "maximize", HTMAXBUTTON},
     {VIEW_ID_CLOSE_BUTTON, views::FrameButton::kClose, "close", HTCLOSE},
-};
+});
 }  // namespace
 
 LinuxWindowButtons LinuxWindowButtons::Measure(const views::View& origin) {

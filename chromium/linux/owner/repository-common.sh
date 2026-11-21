@@ -11,6 +11,23 @@ export OP_BIOMETRIC_UNLOCK_ENABLED=true
 export BLANC_OP="${BLANC_OP:-op}"
 account=my.1password.com
 
+# GitHub enforces unique asset names on a release. Acquire without --clobber
+# so shipping and signing on different Macs use the same per-architecture lock.
+with_candidate_lock() (
+  local lock_tag=$1 lock_repo=$2 lock_arch=$3 lock="blanc-linux-$3-candidate.lock"
+  shift 3
+  printf 'Writing the %s candidate\n' "$lock_arch" > "$work/$lock"
+  if ! gh release upload "$lock_tag" --repo "$lock_repo" "$work/$lock"; then
+    echo "Could not acquire the $lock_arch draft lock ($lock). Check for an active ship or sign command before retrying." >&2
+    exit 1
+  fi
+  trap 'gh release delete-asset "$lock_tag" "$lock" --repo "$lock_repo" --yes || { echo "Could not release $lock on $lock_tag." >&2; exit 1; }' EXIT
+  trap 'exit 129' HUP
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+  "$@"
+)
+
 cleanup() {
   local code=$?
   set +e
@@ -61,6 +78,22 @@ open_signing_key() {
 sign() {
   password | gpg --batch --pinentry-mode loopback --passphrase-fd 0 --digest-algo SHA256 --armor \
     --local-user "$fingerprint!" --output "$2" "$3" "$1"
+}
+
+open_rpm_database() {
+  mkdir -m 700 "$work/rpmdb"
+  rpmkeys --dbpath "$work/rpmdb" --import "$public"
+}
+
+sign_rpm() {
+  rpmsign --define '_openpgp_sign gpg' --define "_gpg_name $fingerprint" \
+    --define "__gpg $here/repository-rpm-gpg.sh" --define '_gpg_digest_algo sha256' --addsign "$1"
+  python3 "$repo/metadata.py" verify-rpm "$1" "$work/rpmdb"
+}
+
+sign_record() {
+  sign "$1" "$1.asc" --detach-sign
+  verify "$1.asc" "$1"
 }
 
 finish_directory() {

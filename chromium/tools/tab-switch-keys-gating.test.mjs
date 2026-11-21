@@ -4,6 +4,7 @@ import {mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import YAML from 'yaml';
 
 const read = file => readFileSync(new URL('../blanc/' + file, import.meta.url), 'utf8');
 const ui = read('browser/ui/blanc_prototype_ui.cc');
@@ -58,44 +59,56 @@ test('the aura implementation keeps Win32 key polling in the Windows file', () =
   }
 });
 
-const workflow = readFileSync(new URL('../../.github/workflows/chromium-linux-candidate.yml', import.meta.url), 'utf8');
-const keysJob = workflow.split('\n  keys:\n')[1].split('\n  repo-metadata:\n')[0];
+const workflow = YAML.parse(readFileSync(new URL('../../.github/workflows/chromium-linux-candidate.yml', import.meta.url), 'utf8'));
+const keysJob = workflow.jobs.keys;
 
-// Exercise the actual Actions step with a draft inventory and candidate on disk.
-// No release access, keys or package tools are needed for these refusal paths.
-function runKeysStep(name, dir, assets) {
-  const step = keysJob.split('      - name: ' + name + '\n')[1];
+function runKeysStep(name, dir, env, setup = '') {
+  const step = keysJob.steps.find(step => step.name === name);
   assert.ok(step, 'missing keys job step: ' + name);
-  const body = step.split('        run: |\n')[1].split(/^      - /m)[0].replace(/^          /gm, '');
-  return spawnSync('bash', ['-eu', '-o', 'pipefail', '-c',
-    'gh() { printf "%s\\n" "$ASSETS"; }\n' + body], {cwd:dir, encoding:'utf8',
-    env:{...process.env, ARCH:'arm64', ASSETS:assets.join('\n'), DRAFT_TAG:'draft', GITHUB_REPOSITORY:'fixture',
-      RUNNER_TEMP:dir, CANDIDATE_DIR:dir, ASSET:'blanc-linux-arm64-candidate.tar.gz', APPROVAL:'signed-candidate-arm64.json'}});
+  return spawnSync('bash', ['-euo', 'pipefail', '-c', setup + '\n' + step.run], {cwd:dir, encoding:'utf8', env});
 }
 
-const archive = 'blanc-linux-arm64-candidate.tar.gz';
-const approval = 'signed-candidate-arm64.json';
+// Only x64 has a legacy archive. Exercise its refusal on every host.
+const arch = 'x64';
+const archive = 'blanc-linux-x64-candidate.tar.gz';
+const approval = 'signed-candidate-x64.json';
 for (const [reason, assets, key, deb, missing] of [
-  ['unbuilt architecture', ['blanc-linux-x64-candidate.tar.gz'], false, false, archive],
-  ['uncommitted owner key', [archive], false, false, 'chromium/linux/keys/blanc-repository.asc'],
+  ['unbuilt architecture', ['blanc-linux-arm64-candidate.tar.gz'], false, false, archive],
+  ['legacy archive', ['blanc-linux-candidate.tar.gz'], false, false, archive],
+  ['uncommitted owner key', [archive], false, true, 'chromium/linux/keys/blanc-repository.asc'],
   ['runtime-only tarball', [archive], true, false, '.deb'],
   ['unsigned package', [archive], true, true, approval],
   ['missing signature', [archive, approval], true, true, approval + '.asc'],
-  ['packaged and signed candidate', [archive, approval, approval + '.asc'], true, true, null],
+  ['packaged candidate with both approval files', [archive, approval, approval + '.asc'], true, true, null],
 ]) {
   test('keys job prerequisites: ' + reason, t => {
     const dir = mkdtempSync(path.join(tmpdir(), 'blanc-keys-input-'));
     t.after(() => rmSync(dir, {recursive:true, force:true}));
+    const env = {...process.env, ARCH:arch, ASSET:archive, APPROVAL:approval, DRAFT_TAG:'draft',
+      GITHUB_JOB:'keys', GITHUB_REPOSITORY:'fixture', RUNNER_TEMP:dir, CANDIDATE_DIR:dir};
+    if (!assets.includes(archive)) {
+      writeFileSync(path.join(dir, 'release.json'), JSON.stringify({isDraft:true, assets:assets.map(name => ({name}))}));
+      const result = runKeysStep('Download the candidate from the draft release', dir, env, 'gh() { cat release.json; }');
+      assert.notEqual(result.status, 0);
+      assert.ok(result.stderr.includes(missing), result.stderr);
+      return;
+    }
+    writeFileSync(path.join(dir, 'candidate.json'), JSON.stringify({platform:'linux', arch}));
     if (key) {
       mkdirSync(path.join(dir, 'chromium/linux/keys'), {recursive:true});
       writeFileSync(path.join(dir, 'chromium/linux/keys/blanc-repository.asc'), 'fixture');
     }
     if (deb) {
       mkdirSync(path.join(dir, 'packages'));
-      writeFileSync(path.join(dir, 'packages/blanc-prototype_158.0.8127.2-1_arm64.deb'), 'fixture');
+      writeFileSync(path.join(dir, 'packages/blanc-prototype.deb'), 'fixture');
     }
-    let result = runKeysStep('Check the keys archive and repository key', dir, assets);
-    if (!result.status) result = runKeysStep('Check the Debian package and signed approval', dir, assets);
+    let result = runKeysStep("Identify the runner's candidate", dir, env, 'node() { echo "$ARCH"; }');
+    if (!result.status) {
+      // gh can succeed when only one of several requested assets was present.
+      mkdirSync(path.join(dir, 'candidate'));
+      for (const file of assets.filter(name => name !== archive)) writeFileSync(path.join(dir, 'candidate', file), 'fixture');
+      result = runKeysStep('Download the package approval from the draft', dir, env, 'gh() { return 0; }');
+    }
     if (missing) {
       assert.notEqual(result.status, 0);
       assert.ok(result.stderr.includes(missing), result.stderr);
