@@ -864,7 +864,7 @@ struct ContentView: View {
             if let row {
                 paletteTapRegion {
                     IslandDotsView(row: row, ink: islandStyle.text, isLoading: tab?.isLoading == true,
-                                   swipeProgress: min(max(-swipeOffset / max(pageWidth, 1), -1), 1),
+                                   swipeProgress: dotSwipeProgress(row),
                                    reduceMotion: reduceMotion)
                         .frame(minWidth: 44, minHeight: Self.islandHeight)
                 }
@@ -941,6 +941,16 @@ struct ContentView: View {
             .accessibilityElement(children: .ignore)
             .accessibilityAddTraits(.isButton)
             .accessibilityAction { manager.isPalettePresented = true }
+    }
+
+    /// How far the current dot leans toward its neighbor during a sideways
+    /// swipe; none when the tab the swipe goes to isn't in this row (another
+    /// group, or past the window), where the dots change over instead.
+    private func dotSwipeProgress(_ row: IslandDots.Row) -> CGFloat {
+        guard swipeOffset != 0, let id = manager.activeTab?.id,
+              let next = manager.neighbor(of: id, offset: swipeOffset < 0 ? 1 : -1),
+              row.dots.contains(where: { $0.id == next.id }) else { return 0 }
+        return min(max(-swipeOffset / max(pageWidth, 1), -1), 1)
     }
 
     private func dotLabel(_ row: IslandDots.Row) -> String {
