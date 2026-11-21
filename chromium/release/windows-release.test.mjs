@@ -320,3 +320,16 @@ test('a failed deploy keeps what the command said in a private log in the work f
   assert.equal(fs.statSync(log).mode & 0o077, 0);
   assert.ok(!io.calls.some(c => c.includes('release edit')), 'nothing is published after a failed deploy');
 });
+
+test('every 1Password step asks for Touch ID instead of needing a signed-in session', async () => {
+  const work = workFolder({...done(STAGES.slice(0, STAGES.indexOf('publish'))), package: {at: 'test', sha256: 'd'.repeat(64), size: 12, run: 'mini_installer.exe'}});
+  const seen = [];
+  const io = world([
+    ['wrangler deploy', (args, options) => { seen.push(options.env?.OP_BIOMETRIC_UNLOCK_ENABLED); return {}; }],
+    ['smoke.mjs', {stdout: JSON.stringify({pass: true, updatecheck: 'ok', nextversion: release.version})}],
+    [`releases/tags/${release.tag}`, {stdout: JSON.stringify({draft: false, prerelease: true})}],
+    ['releases/latest', {stdout: JSON.stringify({tag_name: 'v1.49.1'})}],
+  ]);
+  await runStage('publish', work, io);
+  assert.deepEqual(seen, ['true']);
+});

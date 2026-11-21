@@ -137,8 +137,11 @@ async function workflowRun(io, inputs, message) {
 
 // A Cloudflare command (op run masks the token in what it prints). If it fails,
 // what it said goes to WORK/logs/NAME.log, owner-only, never to the Terminal.
+// The 1Password CLI asks for Touch ID through the desktop app only when told to;
+// without it a Terminal session answers "not currently signed in".
+const opOptions = (io, options) => ({...options, env: {...(io.env ?? process.env), OP_BIOMETRIC_UNLOCK_ENABLED: 'true'}});
 function logged(io, work, name, args, message, options) {
-  const result = io.exec('op', args, options);
+  const result = io.exec('op', args, opOptions(io, options));
   if (result.status === 0) return result.stdout;
   const dir = path.join(work, 'logs');
   fs.mkdirSync(dir, {recursive: true, mode: 0o700});
@@ -247,7 +250,7 @@ export const RUN = {
     const args = ['run', '--env-file=.env.1password', '--', 'npx', 'wrangler', 'r2', 'object', 'put', `blanc-windows-updates/${pkg.sha256}.crx3`,
       '--file', file, '--remote', '--content-type', 'application/x-chrome-extension'];
     // R2 sometimes answers a large put with an internal error (10001); one retry.
-    if (io.exec('op', args, {cwd: WORKER}).status !== 0) logged(io, ctx.work, 'upload', args, 'could not upload the package to R2', {cwd: WORKER});
+    if (io.exec('op', args, opOptions(io, {cwd: WORKER})).status !== 0) logged(io, ctx.work, 'upload', args, 'could not upload the package to R2', {cwd: WORKER});
     return {key: `${pkg.sha256}.crx3`};
   },
   async 'staging-gate'(ctx, io) {
