@@ -10046,5 +10046,25 @@
   "start.mahjong.play": {
     "message": "Jouer à Blanc Mahjong",
     "source": "sha256:9b62eba2e07c169ab3ee5415185da568ca0fd436fd6cc8730fe661830c6ed9d7"
+  },
+  "android.contextMenu.privateTab": {
+    "message": "Ouvrir dans un onglet privé",
+    "source": "sha256:48a5da257ddfeccb9a6f1d16e4effa493a14e3210f8fe55b689455aebdafa78b"
+  },
+  "android.contextMenu.privateWindow": {
+    "message": "Ouvrir dans une fenêtre privée",
+    "source": "sha256:b582e4f879653c230030e993764003e7103042057459919527e7338c859a563f"
+  },
+  "android.contextMenu.newBlancTab": {
+    "message": "Ouvrir dans un nouvel onglet de Blanc",
+    "source": "sha256:bae530101e3c873c6fd7a7af7cbbcca3fdf632b1fec7677da23d3937a37aaba0"
+  },
+  "android.contextMenu.privateBlancTab": {
+    "message": "Ouvrir dans un onglet privé de Blanc",
+    "source": "sha256:0e45d0d92e3419132c26cee8955c06c4d4284d4ee3bcfcc7e07e6f5e6a1ad577"
+  },
+  "android.contextMenu.newBlancWindow": {
+    "message": "Ouvrir dans une nouvelle fenêtre de Blanc",
+    "source": "sha256:6a0dc809a1aaec64925c436caee39ecb9af2195821b071c134c637072ba5e717"
   }
 }

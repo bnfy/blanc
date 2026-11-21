@@ -1,0 +1,142 @@
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuPopulator.java b/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuPopulator.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuPopulator.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuPopulator.java
+@@ -64,8 +64,6 @@
+ import org.chromium.chrome.browser.lens.LensIdentityUtils;
+ import org.chromium.chrome.browser.lens.LensIntentParams;
+ import org.chromium.chrome.browser.lens.LensMetrics;
+-import org.chromium.chrome.browser.lens.LensSupportStatusHelper;
+-import org.chromium.chrome.browser.locale.LocaleManager;
+ import org.chromium.chrome.browser.multiwindow.MultiWindowUtils;
+ import org.chromium.chrome.browser.preferences.ChromePreferenceKeys;
+ import org.chromium.chrome.browser.preferences.ChromeSharedPreferences;
+@@ -130,8 +128,6 @@
+             1512; // Random id to avoid possible collisions.
+     private static final int MAX_CUSTOM_MENU_ITEMS = 4;
+     private static final String TAG = "CCMenuPopulator";
+-    private static final String LENS_SUPPORT_STATUS_HISTOGRAM_NAME =
+-            "ContextMenu.LensSupportStatus";
+     private static final String UMA_CONTEXTUAL_CUSTOM_ACTION_TYPE_DISPLAYED =
+             "CustomTabs.ContextMenu.DisplayedContextualCustomActionType";
+     private static final String UMA_CONTEXTUAL_CUSTOM_ACTION_TYPE_SELECTED =
+@@ -547,12 +543,6 @@
+             }
+             groupedItems.add(pageNavigationGroup);
+ 
+-            if (shouldShowAskGeminiForPage()) {
+-                ModelList geminiGroup = new ModelList();
+-                geminiGroup.add(createListItem(Item.ASK_GEMINI));
+-                groupedItems.add(geminiGroup);
+-            }
+-
+             if (mMode != ContextMenuMode.THIN_WEB_VIEW) {
+                 ModelList pageGroup = new ModelList();
+                 pageGroup.add(
+@@ -570,16 +560,6 @@
+                 if (enableShareFromContextMenu()) {
+                     pageGroup.add(createShareListItem(Item.SHARE_PAGE, Item.DIRECT_SHARE_LINK));
+                 }
+-                if (shouldShowLensOverlay()) {
+-                    Tab tab = getTab();
+-                    boolean isEnabled = !LensOverlayTabHelper.isOverlayShowing(tab);
+-                    pageGroup.add(
+-                            createListItem(
+-                                    Item.SEARCH_TAB_WITH_GOOGLE_LENS,
+-                                    /* showInProductHelp= */ true,
+-                                    isEnabled));
+-                    maybeRecordUkmLensShown();
+-                }
+                 boolean isChromeOrNativePage =
+                         UrlUtilities.isChromeScheme(mParams.getPageUrl())
+                                 || (getTab() != null && getTab().isNativePage());
+@@ -693,9 +673,6 @@
+                         linkGroup.add(createListItem(Item.OPEN_IN_EPHEMERAL_TAB));
+                     }
+                 }
+-                if (shouldShowAskGeminiForLink()) {
+-                    linkGroup.add(createListItem(Item.ASK_GEMINI));
+-                }
+             }
+             if (!MailTo.isMailTo(mParams.getLinkUrl().getSpec())
+                     && !UrlUtilities.isTelScheme(mParams.getLinkUrl())) {
+@@ -817,46 +794,10 @@
+                 }
+             }
+ 
+-            if (mItemDelegate.supportsSearchByImage()) {
+-                if (checkSupportsGoogleSearchByImage(isSrcDownloadableScheme)) {
+-                    // Determine which image search menu item would be shown.
+-                    @Nullable
+-                    @LensMetrics.LensSupportStatus
+-                    Integer supportStatus =
+-                            LensSupportStatusHelper.getLensSupportStatus(
+-                                    getProfile(), mItemDelegate.isIncognito());
+-                    if (supportStatus != null) {
+-                        LensMetrics.recordLensSupportStatus(
+-                                LENS_SUPPORT_STATUS_HISTOGRAM_NAME, supportStatus);
+-                    }
+-
+-                    boolean shouldShowSearchImageWithLens =
+-                            (supportStatus != null
+-                                            && supportStatus
+-                                                    == LensMetrics.LensSupportStatus
+-                                                            .LENS_SEARCH_SUPPORTED)
+-                                    || shouldShowLensOverlay();
+-                    if (shouldShowSearchImageWithLens) {
+-                        imageGroup.add(createListItem(Item.SEARCH_IMAGE_WITH_GOOGLE_LENS));
+-                        maybeRecordUkmLensShown();
+-                    } else {
+-                        imageGroup.add(createListItem(Item.SEARCH_BY_IMAGE));
+-                    }
+-                } else {
+-                    LensMetrics.recordLensSupportStatus(
+-                            LENS_SUPPORT_STATUS_HISTOGRAM_NAME,
+-                            LensMetrics.LensSupportStatus.SEARCH_BY_IMAGE_UNAVAILABLE);
+-                }
+-            }
+-
+             if (enableShareFromContextMenu()) {
+                 imageGroup.add(createShareListItem(Item.SHARE_IMAGE, Item.DIRECT_SHARE_IMAGE));
+             }
+ 
+-            if (shouldShowAskGeminiForImage()) {
+-                imageGroup.add(createListItem(Item.ASK_GEMINI_IMAGE));
+-            }
+-
+             groupedItems.add(imageGroup);
+         }
+ 
+@@ -1811,11 +1752,6 @@
+         return title;
+     }
+ 
+-    /** If not disabled record a UKM for opening the context menu with the lens item. */
+-    private void maybeRecordUkmLensShown() {
+-        maybeRecordBooleanUkm("ContextMenuAndroid.Shown", "SearchWithGoogleLens");
+-    }
+-
+     /**
+      * Record a boolean UKM if the lens feature is enabled.
+      *
+@@ -1837,21 +1773,6 @@
+             return mItemDelegate.supportsSaveImage();
+         }
+         return true;
+-    }
+-
+-    /**
+-     * Check if the search by image is supported.
+-     *
+-     * @param isSrcDownloadableScheme Whether the source url has a downloadable scheme.
+-     * @return True if search by image is supported.
+-     */
+-    private boolean checkSupportsGoogleSearchByImage(boolean isSrcDownloadableScheme) {
+-        final TemplateUrlService templateUrlServiceInstance = getTemplateUrlService();
+-        return isSrcDownloadableScheme
+-                && templateUrlServiceInstance.isLoaded()
+-                && templateUrlServiceInstance.isSearchByImageAvailable()
+-                && templateUrlServiceInstance.getDefaultSearchEngineTemplateUrl() != null
+-                && !LocaleManager.getInstance().needToCheckForSearchEnginePromo();
+     }
+ 
+     /** Returns the profile of the current tab via the item delegate. */

@@ -32,7 +32,9 @@ const runtimeFile = (data) =>
   + `(typeof self !== 'undefined' ? self : this, ${JSON.stringify(data)});\n`;
 
 export function generate(root) {
-  const { en, translations, registry } = loadCatalog(root);
+  const { en: source, translations, registry } = loadCatalog(root);
+  // android-strings.mjs emits Chromium-only resource overrides directly into the Android APK.
+  const en = Object.fromEntries(Object.entries(source).filter(([, entry]) => !entry.chromiumAndroidResource));
   const files = {};
   const pseudoTr = Object.fromEntries(entryKeys(en).map((k) => [k, { message: pseudoLocalize(en[k].message), source: 'pseudo' }]));
   const locales = [

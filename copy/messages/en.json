@@ -10334,5 +10334,30 @@
   "start.mahjong.play": {
     "message": "Play Blanc Mahjong",
     "note": "Start Page footer: the link that opens Blanc Mahjong."
+  },
+  "android.contextMenu.privateTab": {
+    "message": "Open in private tab",
+    "note": "Blanc for Android: Long-press a link to open it in a private tab.",
+    "chromiumAndroidResource": "contextmenu_open_in_incognito_tab"
+  },
+  "android.contextMenu.privateWindow": {
+    "message": "Open in private window",
+    "note": "Blanc for Android: Long-press a link on a device that opens private tabs in a separate window.",
+    "chromiumAndroidResource": "contextmenu_open_in_incognito_window"
+  },
+  "android.contextMenu.newBlancTab": {
+    "message": "Open in new tab in Blanc",
+    "note": "Blanc for Android: Open a link from a Custom Tab in a new tab in the full Blanc browser.",
+    "chromiumAndroidResource": "contextmenu_open_in_new_chrome_tab"
+  },
+  "android.contextMenu.privateBlancTab": {
+    "message": "Open in private tab in Blanc",
+    "note": "Blanc for Android: Open a link from a Custom Tab in a private tab in the full Blanc browser.",
+    "chromiumAndroidResource": "contextmenu_open_in_chrome_incognito_tab"
+  },
+  "android.contextMenu.newBlancWindow": {
+    "message": "Open in new window in Blanc",
+    "note": "Blanc for Android: Open a link from a Custom Tab on a device that opens a new Blanc window.",
+    "chromiumAndroidResource": "contextmenu_open_in_chrome_window"
   }
 }

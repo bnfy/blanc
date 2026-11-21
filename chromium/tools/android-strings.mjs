@@ -106,10 +106,6 @@ export const ANDROID_KEYS = [
 // ICU plurals, as Android <plurals>: the Island's tab count for TalkBack.
 export const ANDROID_PLURALS = ['sharedSpaces.waitingCount', 'newtab.groups.count', 'shield.count.blocked', 'tabGroups.tucked', 'tabsMenu.header',
   'ws.list.recentlyDeleted'];
-// Chromium's own strings that name Chrome, replaced by a resource overlay so no screen says it (A5a,
-// docs/android/a5a-settings-spike.md R3): copy key -> Chromium's resource name. Found by the wording
-// check in tests/android/settings.mjs.
-export const CHROMIUM_OVERRIDES = {'android.settings.autoRevokeSummary': 'safety_hub_autorevocation_toggle_summary'};
 // Their own folder: Chromium's base-module resources list only the icons from res/, and a resource
 // folder may hold only files its target lists.
 const OVERRIDES = path.join(chromium, 'blanc/android/res_chromium_strings');
@@ -144,6 +140,15 @@ export function androidPlural(message, name) {
 }
 
 const read = locale => JSON.parse(fs.readFileSync(path.join(repo, 'copy/messages', `${locale}.json`), 'utf8'));
+
+// Shared Blanc labels and copy written specifically for a Chromium Android resource.
+export const CHROMIUM_OVERRIDES = {
+  'android.settings.autoRevokeSummary': 'safety_hub_autorevocation_toggle_summary',
+  'mini.openInBlanc': 'menu_open_in_chrome',
+  ...Object.fromEntries(Object.entries(read('en'))
+    .filter(([, entry]) => entry.chromiumAndroidResource)
+    .map(([key, entry]) => [key, entry.chromiumAndroidResource])),
+};
 
 export function render(locale) {
   const english = read('en'), own = read(locale);

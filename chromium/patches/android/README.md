@@ -108,6 +108,11 @@ in the lane file in its place. Numbering starts at 0101.
   stay running while they have one; their services still cancel everything
   when destroyed or unbound. Serial has the same code, but nothing
   calls its clearing at startup, so it is left alone.
+- `0124-android-context-menu.patch` removes Lens, search by image and Ask
+  Gemini from the page, link and image menus. Blanc's `FirstMinute.start`
+  sets Chromium's first-run flag on new and existing installs so links, images
+  and videos get their regular actions. The Android string overlay supplies
+  the private tab, private window and Open in Blanc labels.
 
 A Chromium file dropped from the lane keeps its applied edits in an existing
 checkout: restore it with `git checkout` there. A Blanc file the source drops or
