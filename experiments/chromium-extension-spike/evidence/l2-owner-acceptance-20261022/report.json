@@ -1,0 +1,231 @@
+{
+  "artifactSha256": "18272ab548d0117744209536bc24c0b6cc09ece38c01fec4976cf8e78899306f",
+  "events": [
+    {
+      "time": "2026-10-23T02:10:17.290Z",
+      "name": "shipping ready",
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9860/shipping/one",
+          "http://127.0.0.1:9860/shipping/two"
+        ],
+        "selected": 2
+      }
+    },
+    {
+      "time": "2026-10-23T02:10:25.045Z",
+      "name": "preview ready",
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9860/preview/one",
+          "http://127.0.0.1:9860/preview/two"
+        ],
+        "selected": 2
+      }
+    },
+    {
+      "time": "2026-10-23T02:10:25.046Z",
+      "name": "owner check ready",
+      "details": {}
+    },
+    {
+      "time": "2026-10-23T02:13:02.057Z",
+      "name": "preview exited",
+      "details": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "time": "2026-10-23T02:13:02.360Z",
+      "name": "owner result recorded",
+      "details": {
+        "stage": 1,
+        "result": "passed",
+        "source": "owner reply: Those passed",
+        "checks": [
+          "app identification",
+          "tab independence",
+          "preview Quit/shipping survival"
+        ],
+        "note": "Controller still reports original preview process alive at continuation; ensure actual clean process restart before persistence acceptance."
+      }
+    },
+    {
+      "time": "2026-10-23T02:13:17.532Z",
+      "name": "preview ready",
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9860/preview/one",
+          "http://127.0.0.1:9860/preview/two"
+        ],
+        "selected": 2
+      }
+    },
+    {
+      "time": "2026-10-23T02:14:22.438Z",
+      "name": "preview exited",
+      "details": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "time": "2026-10-23T02:14:42.566Z",
+      "name": "owner result recorded",
+      "details": {
+        "stage": 2,
+        "result": "passed",
+        "source": "owner reply: Those passed",
+        "checks": [
+          "preview Shelf selected",
+          "shipping retained Billboard",
+          "Preview native-menu Quit/shipping survival"
+        ],
+        "processEvidence": "preview exited0 at 2026-10-23T02:14:22.438Z"
+      }
+    },
+    {
+      "time": "2026-10-23T02:14:48.738Z",
+      "name": "preview ready",
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9860/preview/one",
+          "http://127.0.0.1:9860/preview/two",
+          "blanc://newtab/"
+        ],
+        "selected": 3
+      }
+    },
+    {
+      "time": "2026-10-23T02:16:03.986Z",
+      "name": "shipping exited",
+      "details": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "time": "2026-10-23T02:16:23.781Z",
+      "name": "owner result recorded",
+      "details": {
+        "stage": 3,
+        "result": "passed",
+        "source": "Owner confirms Shipping closed, Preview still works with Shelf and all four tabs",
+        "processEvidence": {
+          "time": "2026-10-23T02:16:03.986Z",
+          "name": "shipping exited",
+          "details": {
+            "code": 0,
+            "signal": null
+          }
+        }
+      }
+    },
+    {
+      "time": "2026-10-23T02:16:25.260Z",
+      "name": "shipping ready",
+      "details": {
+        "urls": [
+          "blanc://newtab/"
+        ],
+        "selected": -1
+      }
+    },
+    {
+      "time": "2026-10-23T02:16:44.032Z",
+      "name": "preview exited",
+      "details": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "time": "2026-10-23T02:16:51.906Z",
+      "name": "disposable preview removed",
+      "details": {
+        "profileRetained": true
+      }
+    },
+    {
+      "time": "2026-10-23T02:17:35.432Z",
+      "name": "owner result recorded",
+      "details": {
+        "stage": 4,
+        "result": "passed",
+        "source": "Owner final reply: Passed",
+        "checks": [
+          "Shipping retains all four tabs and remains usable",
+          "Shipping start page remains Billboard",
+          "test Preview window is gone after disposable app removal"
+        ],
+        "acceptance": "L2 isolation accepted for signed artifact 18272ab548d0117744209536bc24c0b6cc09ece38c01fec4976cf8e78899306f"
+      }
+    },
+    {
+      "time": "2026-10-23T02:17:35.712Z",
+      "name": "shipping exited",
+      "details": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "time": "2026-10-23T02:17:39.441Z",
+      "name": "finished",
+      "details": {}
+    }
+  ],
+  "ownerResults": [
+    {
+      "stage": 1,
+      "result": "passed",
+      "source": "owner reply: Those passed",
+      "checks": [
+        "app identification",
+        "tab independence",
+        "preview Quit/shipping survival"
+      ],
+      "note": "Controller still reports original preview process alive at continuation; ensure actual clean process restart before persistence acceptance."
+    },
+    {
+      "stage": 2,
+      "result": "passed",
+      "source": "owner reply: Those passed",
+      "checks": [
+        "preview Shelf selected",
+        "shipping retained Billboard",
+        "Preview native-menu Quit/shipping survival"
+      ],
+      "processEvidence": "preview exited0 at 2026-10-23T02:14:22.438Z"
+    },
+    {
+      "stage": 3,
+      "result": "passed",
+      "source": "Owner confirms Shipping closed, Preview still works with Shelf and all four tabs",
+      "processEvidence": {
+        "time": "2026-10-23T02:16:03.986Z",
+        "name": "shipping exited",
+        "details": {
+          "code": 0,
+          "signal": null
+        }
+      }
+    },
+    {
+      "stage": 4,
+      "result": "passed",
+      "source": "Owner final reply: Passed",
+      "checks": [
+        "Shipping retains all four tabs and remains usable",
+        "Shipping start page remains Billboard",
+        "test Preview window is gone after disposable app removal"
+      ],
+      "acceptance": "L2 isolation accepted for signed artifact 18272ab548d0117744209536bc24c0b6cc09ece38c01fec4976cf8e78899306f"
+    }
+  ]
+}

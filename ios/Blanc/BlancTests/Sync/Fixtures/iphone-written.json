@@ -1,0 +1,44 @@
+{
+  "closed": {
+    "items": [
+      {
+        "closedAt": 1800000000000,
+        "id": "dddddddddddddddddddddddddddddddd",
+        "spaceId": null,
+        "title": "From iPhone",
+        "url": "https://iphone-closed.example/"
+      }
+    ],
+    "name": "iPhone",
+    "platform": "ios",
+    "updatedAt": 1800000000000
+  },
+  "sends": {
+    "items": [
+      {
+        "id": "11111111-2222-4333-8444-555555555555",
+        "sentAt": 1800000000000,
+        "title": "From iPhone",
+        "to": "android-phone",
+        "url": "https://iphone-sent.example/"
+      }
+    ],
+    "name": "unknown device",
+    "platform": "",
+    "updatedAt": 1800000000000
+  },
+  "session": {
+    "groups": [],
+    "name": "iPhone",
+    "platform": "ios",
+    "tabs": [
+      {
+        "groupId": null,
+        "pinned": false,
+        "title": "From iPhone",
+        "url": "https://iphone-tab.example/"
+      }
+    ],
+    "updatedAt": 1800000000000
+  }
+}

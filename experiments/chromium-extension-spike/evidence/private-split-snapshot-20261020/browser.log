@@ -1,0 +1,26 @@
+[17339:8255645:1020/121257.688295:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[17339:8255532:1020/121257.811623:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9277/devtools/browser/2005dfc0-49ec-44b7-ae4b-3d53fd03fedf
+[17339:8255532:1020/121258.499702:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[17339:8255532:1020/121258.500722:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[17339:8255532:1020/121302.629349:ERROR:components/leveldb_proto/public/proto_database_provider.h:101] In memory database cannot use the given database directory
+[17413:8256934:1020/121310.614529:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[17413:8256905:1020/121310.721639:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9277/devtools/browser/a0618e32-4650-4e1a-afb0-0fe7044bffb3
+[17413:8256905:1020/121310.992382:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[17413:8256905:1020/121310.992678:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[17413:8256905:1020/121311.036056:ERROR:chrome/browser/ui/views/user_education/impl/browser_user_education_interface_impl.cc:186] Attempting to show IPH IPH_SideBySidePinnableFeature before browser initialization complete; IPH will not be shown.
+[17413:8256905:1020/121311.176414:ERROR:chrome/browser/ui/views/user_education/impl/browser_user_education_interface_impl.cc:186] Attempting to show IPH IPH_SideBySidePinnableFeature before browser initialization complete; IPH will not be shown.
+[17435:8257292:1020/121313.338136:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up day.blanc.prototype.MachPortRendezvousServer.1: Permission denied (1100)
+[17435:8257292:1020/121313.338336:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)
+[17438:8257377:1020/121314.776890:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[17438:8257351:1020/121314.890612:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9277/devtools/browser/36e617d4-eeb3-4003-aeee-21b0e846725f
+[17438:8257351:1020/121315.150359:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[17438:8257351:1020/121315.150519:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[17438:8257351:1020/121315.192178:ERROR:chrome/browser/ui/views/user_education/impl/browser_user_education_interface_impl.cc:186] Attempting to show IPH IPH_SideBySidePinnableFeature before browser initialization complete; IPH will not be shown.
+[17438:8257351:1020/121315.311023:ERROR:chrome/browser/ui/views/user_education/impl/browser_user_education_interface_impl.cc:186] Attempting to show IPH IPH_SideBySidePinnableFeature before browser initialization complete; IPH will not be shown.
+[17438:8257351:1020/121316.911504:ERROR:base/process/kill_posix.cc:33] waitpid(17445): No child processes (10)

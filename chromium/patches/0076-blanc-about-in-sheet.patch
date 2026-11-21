@@ -1,0 +1,26 @@
+diff --git a/chrome/browser/ui/browser_command_controller.cc b/chrome/browser/ui/browser_command_controller.cc
+--- a/chrome/browser/ui/browser_command_controller.cc
++++ b/chrome/browser/ui/browser_command_controller.cc
+@@ -1403,6 +1403,8 @@
+       ToggleRequestTabletSite(browser_);
+       break;
+     case IDC_ABOUT:
++      // Blanc: About opens in the Settings sheet, as Settings does.
++      if (blanc_prototype::OpenUtilitySheet(browser_, "about")) break;
+       ShowAboutChrome(webui::GetBrowserForOpeningWebUi(browser_));
+       break;
+     case IDC_UPGRADE_DIALOG:
+diff --git a/chrome/browser/app_controller_mac.mm b/chrome/browser/app_controller_mac.mm
+--- a/chrome/browser/app_controller_mac.mm
++++ b/chrome/browser/app_controller_mac.mm
+@@ -2167,6 +2167,10 @@
+   }
+   // Re-use an existing browser, or create a new one.
+   if (BrowserWindowInterface* browser = ActivateBrowser(profile)) {
++    // An Island window opens About in Blanc's Settings sheet, not a tab.
++    if (blanc_prototype::OpenUtilitySheet(browser, "about")) {
++      return;
++    }
+     chrome::ShowAboutChrome(browser);
+   } else {
+     chrome::OpenAboutWindow(profile);

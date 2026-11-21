@@ -1,0 +1,41 @@
+diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
+index 9a920eb2..eef7418f 100644
+--- a/content/public/browser/content_browser_client.h
++++ b/content/public/browser/content_browser_client.h
+@@ -2047,0 +2048,6 @@ class CONTENT_EXPORT ContentBrowserClient {
++  // Wrap the final connection factory for document and worker handshakes.
++  // Called on UI before extension interception; the wrapper sees the final URL.
++  virtual WebSocketFactory WrapWebSocketFactory(
++      int process_id, int frame_routing_id, const url::Origin& initiator_origin,
++      WebSocketFactory factory) { return factory; }
++
+diff --git a/content/browser/websockets/websocket_connector_impl.cc b/content/browser/websockets/websocket_connector_impl.cc
+index e756aaf3..8ec0e5ec 100644
+--- a/content/browser/websockets/websocket_connector_impl.cc
++++ b/content/browser/websockets/websocket_connector_impl.cc
+@@ -145,0 +146,4 @@ void WebSocketConnectorImpl::Connect(
++  factory = GetContentClient()->browser()->WrapWebSocketFactory(
++      frame_id_.child_id.GetUnsafeValue(), frame_id_.frame_routing_id, origin_,
++      std::move(factory));
++
+diff --git a/chrome/browser/chrome_content_browser_client.h b/chrome/browser/chrome_content_browser_client.h
+index 8ba37079..7d8a852a 100644
+--- a/chrome/browser/chrome_content_browser_client.h
++++ b/chrome/browser/chrome_content_browser_client.h
+@@ -731,0 +732,3 @@ class ChromeContentBrowserClient : public content::ContentBrowserClient {
++  WebSocketFactory WrapWebSocketFactory(
++      int process_id, int frame_routing_id, const url::Origin& initiator_origin,
++      WebSocketFactory factory) override;
+diff --git a/chrome/browser/chrome_content_browser_client.cc b/chrome/browser/chrome_content_browser_client.cc
+index 72bdb060..4c0fa825 100644
+--- a/chrome/browser/chrome_content_browser_client.cc
++++ b/chrome/browser/chrome_content_browser_client.cc
+@@ -7044,0 +7045,8 @@ ChromeContentBrowserClient::
++content::ContentBrowserClient::WebSocketFactory
++ChromeContentBrowserClient::WrapWebSocketFactory(
++    int process_id, int frame_routing_id, const url::Origin& initiator_origin,
++    WebSocketFactory factory) {
++  return blanc::WrapWebSocketFactory(process_id, frame_routing_id,
++                                    initiator_origin, std::move(factory));
++}
++

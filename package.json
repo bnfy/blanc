@@ -1,7 +1,7 @@
 {
   "name": "blanc",
   "productName": "Blanc",
-  "version": "1.48.0",
+  "version": "1.52.0",
   "description": "Minimal Electron browser shell: custom chrome UI + built-in ad/tracker blocking, no extension-store dependency.",
   "main": "src/main/main.js",
   "type": "commonjs",
@@ -60,10 +60,12 @@
     "test:mahjong-standalone": "node test/desktop/mahjong-standalone-smoke.mjs",
     "test:i18n:desktop": "node test/desktop/i18n-pseudo-sweep.mjs",
     "test:interface-language:desktop": "node test/desktop/interface-language-smoke.mjs",
-    "test:favorites-picker:desktop": "node test/desktop/favorites-folder-picker-smoke.mjs",
+    "test:favorites-manager:desktop": "node test/desktop/favorites-manager-smoke.mjs",
     "test:wallpaper:desktop": "node test/desktop/newtab-wallpaper-smoke.mjs",
     "test:custom-wallpaper:desktop": "node test/desktop/custom-wallpaper-smoke.mjs",
     "test:billboard-clock:desktop": "node test/desktop/billboard-clock-smoke.mjs",
+    "test:start-widgets:desktop": "node test/desktop/start-widgets-smoke.mjs",
+    "test:start-backdrop:desktop": "node test/desktop/start-backdrop-smoke.mjs",
     "test:dark-websites:desktop": "node test/desktop/dark-websites-smoke.mjs",
     "test:trust-receipt": "node test/desktop/trust-receipt-smoke.mjs",
     "capture:start-page:installed": "node scripts/capture-installed-start-page.mjs",
@@ -84,6 +86,7 @@
     "test:recovery-lifecycle": "node test/desktop/startup-recovery-lifecycle-smoke.mjs",
     "test:window-close-quit": "node test/desktop/window-close-quit-smoke.mjs",
     "test:command-line-urls": "node test/desktop/command-line-urls-smoke.mjs",
+    "test:save-downloads:desktop": "node test/desktop/save-downloads-smoke.mjs",
     "test:window-close-primary": "node test/desktop/window-close-primary-smoke.mjs",
     "test:packaged:external-links": "node test/desktop/packaged-external-links-smoke.mjs",
     "test:packaged:first-run": "node test/desktop/packaged-first-run-smoke.mjs",
@@ -154,7 +157,7 @@
     "pretest:mahjong-standalone": "npm run runtime:check",
     "pretest:i18n:desktop": "npm run runtime:check",
     "pretest:interface-language:desktop": "npm run runtime:check",
-    "pretest:favorites-picker:desktop": "npm run runtime:check",
+    "pretest:favorites-manager:desktop": "npm run runtime:check",
     "pretest:wallpaper:desktop": "npm run runtime:check",
     "pretest:tab-handoff": "npm run runtime:check",
     "pretest:packaged:tab-handoff-protocol": "npm run runtime:check",
@@ -166,6 +169,7 @@
     "pretest:recovery-lifecycle": "npm run runtime:check",
     "pretest:window-close-quit": "npm run runtime:check",
     "pretest:command-line-urls": "npm run runtime:check",
+    "pretest:save-downloads:desktop": "npm run runtime:check",
     "pretest:window-close-primary": "npm run runtime:check",
     "pretest:packaged:external-links": "npm run runtime:check",
     "pretest:packaged:first-run": "npm run runtime:check",
@@ -216,10 +220,10 @@
   },
   "dependencies": {
     "@1password/sdk": "0.5.0",
-    "@ghostery/adblocker-electron": "^2.20.1",
+    "@ghostery/adblocker-electron": "^2.20.3",
     "@mozilla/readability": "0.6.0",
-    "dompurify": "3.4.17",
-    "electron-updater": "^6.8.9"
+    "dompurify": "3.4.18",
+    "electron-updater": "^6.8.11"
   },
   "build": {
     "appId": "me.bnfy.bowser",
@@ -277,7 +281,7 @@
     "beforePack": "scripts/before-pack.js",
     "afterSign": "scripts/after-sign-verify.js",
     "mac": {
-      "bundleVersion": "1480",
+      "bundleVersion": "1520",
       "category": "public.app-category.productivity",
       "icon": "build/app-icons/Icon.icon",
       "hardenedRuntime": true,
@@ -291,6 +295,7 @@
         "NSMicrophoneUsageDescription": "Blanc allows websites you approve to use your microphone.",
         "NSCameraUsageDescription": "Blanc allows websites you approve to use your camera.",
         "NSAudioCaptureUsageDescription": "Blanc lets you share this Mac’s screen and system audio with a website after you choose a source.",
+        "NSDownloadsFolderUsageDescription": "Blanc saves the files you download to your Downloads folder.",
         "CFBundleDocumentTypes": [
           {
             "CFBundleTypeRole": "Viewer",

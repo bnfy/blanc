@@ -35,6 +35,9 @@ const RUNNABLE = [
   '@F41-74',
   '@F41-75', '@F41-76', '@F41-77', '@F41-78', '@F41-79',
   '@F41-80', '@F41-81', '@F41-82',
+  '@F41-83', '@F41-84', '@F41-85', '@F41-86', '@F41-87',
+  '@F41-88', '@F41-89', '@F41-90', '@F41-91', '@F41-92',
+  '@F41-93', '@F41-94',
   '@F41-73',
   '@F41-70', '@F41-71', '@F41-72',
   '@F41-66', '@F41-67', '@F41-68', '@F41-69',
@@ -48,7 +51,7 @@ const RUNNABLE = [
   '@F4-4', '@F4-5',
   '@F5-1', '@F5-2', '@F5-3', '@F5-4', '@F5-5', '@F5-6', '@F5-7', '@F5-8', '@F5-9', '@F5-10', '@F5-11',
   '@F7-2', '@F7-3', '@F7-4',
-  '@F9-1', '@F9-2', '@F9-3',
+  '@F9-1', '@F9-2', '@F9-3', '@F63-1', '@F63-2', '@F63-3',
   '@F10-2', '@F10-3',
   '@F12-3', '@F12-4', '@F12-5', '@F12-6', '@F12-7', '@F12-8', '@F12-9',
   '@F14-1', '@F14-2', '@F14-3', '@F14-4', '@F14-5',
@@ -57,10 +60,11 @@ const RUNNABLE = [
   '@F55-1', '@F55-2', '@F55-3', '@F55-4', '@F55-5', '@F55-6', '@F55-7', '@F55-8',
   '@F17-1', '@F17-3',
   '@F19-2', '@F19-3',
+  '@F13-3', '@F13-4', '@F13-5', '@F13-6', '@F13-7',
   '@F20-1', '@F20-2', '@F20-3', '@F20-4',
   '@F28-1', '@F28-2', '@F28-3', '@F28-4', '@F28-5', '@F28-6',
   '@F28-7', '@F28-8', '@F28-9', '@F28-10', '@F28-11', '@F28-12',
-  '@F28-13', '@F28-14', '@F28-15', '@F28-16', '@F28-17', '@F28-18', '@F28-19', '@F28-20',
+  '@F28-13', '@F28-14', '@F28-15', '@F28-16', '@F28-17', '@F28-18', '@F28-19', '@F28-20', '@F28-21',
   '@F30-1', '@F30-2', '@F30-3', '@F30-4', '@F30-5',
   '@F31-1', '@F31-2', '@F31-3', '@F31-4', '@F31-5',
   '@F53-1', '@F53-2', '@F53-3', '@F53-4', '@F53-5', '@F53-6', '@F53-7', '@F53-8', '@F53-9', '@F53-10', '@F53-11', '@F53-12', '@F53-13', '@F53-14', '@F53-15', '@F53-16', '@F53-17', '@F53-18', '@F53-19', '@F53-20', '@F53-21', '@F53-22', '@F53-23', '@F53-24', '@F53-25', '@F53-26', '@F53-27', '@F53-28', '@F53-29', '@F53-30',
@@ -71,9 +75,9 @@ const RUNNABLE = [
   '@F32-1', '@F32-2',
   '@F33-1', '@F33-2', '@F33-3',
   '@F34-1', '@F34-2', '@F34-3', '@F34-4', '@F34-5', '@F34-6', '@F34-7', '@F34-8', '@F34-9', '@F34-10', '@F34-11', '@F34-12', '@F34-13', '@F34-14', '@F34-15', '@F34-16', '@F34-17', '@F34-18', '@F34-19',
-  '@F37-1', '@F37-2', '@F37-3', '@F37-4',
+  '@F37-1', '@F37-2', '@F37-3', '@F37-4', '@F37-5', '@F37-6', '@F37-7', '@F37-8', '@F37-9',
   '@F38-2', '@F38-3', '@F38-4', '@F38-5', '@F38-6', '@F38-7',
-  '@F39-1', '@F39-2', '@F39-3', '@F39-4', '@F39-5', '@F39-6', '@F39-7', '@F39-8', '@F39-9',
+  '@F39-1', '@F39-2', '@F39-3', '@F39-4', '@F39-5', '@F39-6', '@F39-7', '@F39-8', '@F39-9', '@F39-10', '@F39-11', '@F39-12',
   // F39 is already the current certificate-safety scenario. Migration uses
   // F40 so reconciling PR #205 cannot alias or replace that safety coverage.
   '@F40-1', '@F40-2', '@F40-4', '@F40-5',
@@ -98,14 +102,21 @@ const gateFiles = [
 ];
 const gateReport = gateFiles.length ? { format: ['progress', ...gateFiles] } : {};
 
+// F41-92 reuses the real Shared Spaces fixture. On Linux it runs in the
+// Shared Spaces job, which unlocks a keyring for Electron's test processes.
+// The ordinary workspace job has no keyring. The dry profile still wires it.
+const runnableTags = process.platform === 'linux' && process.env.BLANC_TEST_SECURE_STORAGE !== '1'
+  ? `(${RUNNABLE}) and not @F41-92`
+  : RUNNABLE;
+
 export default { ...common, tags: 'not @mobile' };
-export const runnable = { ...common, tags: RUNNABLE, retry: 1, ...gateReport };
+export const runnable = { ...common, tags: runnableTags, retry: 1, ...gateReport };
 // The gate's one rerun of scenarios that failed `runnable`, in a fresh process:
 // no `paths`, so the positional path:line arguments are the whole selection
 // (Cucumber 13 merges positional paths with a profile's), and no retry, so it
 // is exactly one more attempt.
 export const rerun = {
-  require: common.require, import: common.import, tags: RUNNABLE, retry: 0, ...gateReport,
+  require: common.require, import: common.import, tags: runnableTags, retry: 0, ...gateReport,
 };
 // The press gate's run of the scenarios still owed from an earlier attempt:
 // like `rerun`, the positional path:line arguments are the whole selection, but

@@ -1,0 +1,27 @@
+[
+  {
+    "path": "src/main/main.js",
+    "restoredToHead": true,
+    "sha256": "ff64902e9407ac7008b12667b3b4a7d99b547e30384351002739f504e674ef9e"
+  },
+  {
+    "path": "src/main/tab-navigation.js",
+    "restoredToHead": true,
+    "sha256": "f21762de1941c7d91e73b7ea2ebcc02fc949f5edc99084a420a3420bff7e456b"
+  },
+  {
+    "path": "src/main/tab-view.js",
+    "restoredToHead": true,
+    "sha256": "784ea1289b612110920945fac8e9bec85d040f14468424132f00075f017aa173"
+  },
+  {
+    "path": "src/main/test-hook.js",
+    "restoredToHead": true,
+    "sha256": "41a4403be202f39b63176c988766b8e4c27334308161261eece7e35653e509c5"
+  },
+  {
+    "path": "test/unit/tab-navigation.test.js",
+    "restoredToHead": true,
+    "sha256": "c99925cc6f5b1dc38bf40260841694a2680ecf48f0d7a5fbe7a524aa02815d57"
+  }
+]

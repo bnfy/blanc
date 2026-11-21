@@ -1,0 +1,32 @@
+{
+  "explicit_diagnostic_flag": true,
+  "precreated_file": true,
+  "private_request_records": 3,
+  "sample": [
+    {
+      "decision": "allow",
+      "devtools_request_id": "absent",
+      "engine_result": 0,
+      "event": "decision",
+      "factory_instance": "30E006C9B87627165B403B01B52C013A",
+      "factory_isolation_top_origin": "absent",
+      "factory_kind": "other",
+      "factory_type": 0,
+      "frame_role": "main",
+      "frame_state": "live-at-entry",
+      "hook_to_decision_us": 1494891.0,
+      "initiator_origin": "absent",
+      "initiator_present": false,
+      "loader_request_id": -10,
+      "method": "GET",
+      "profile_kind": "private",
+      "redirect_index": 0,
+      "referrer": "",
+      "request_isolation_top_origin": "http://127.0.0.1:9800",
+      "resource_type": "mainFrame",
+      "status": "ready",
+      "top_frame_origin": "http://127.0.0.1:9800",
+      "url": "http://127.0.0.1:9800/"
+    }
+  ]
+}

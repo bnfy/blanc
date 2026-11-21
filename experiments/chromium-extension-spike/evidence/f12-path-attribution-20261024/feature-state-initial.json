@@ -1,0 +1,10 @@
+{
+  "source": "14706b0e8d4753d2a7ef35ea32a875b516366b0d",
+  "newCheck": "effective pre-prefetch feature overrides",
+  "complete": false,
+  "error": "Error: condition timed out\n    at wait (file:///private/tmp/blanc-f12-path-disposition-20261024/feature-state.mjs:2:477)\n    at async file:///private/tmp/blanc-f12-path-disposition-20261024/feature-state.mjs:3:914",
+  "exit": {
+    "code": 0,
+    "signal": null
+  }
+}

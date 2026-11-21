@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; img-src 'self' data: blanc:;" />
+  <script src="strings.js"></script>
+  <script src="i18n.js"></script>
+  <title data-i18n="app.title">Blanc</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="chrome">
+    <div id="strip">
+      <button
+        id="mainMenuButton"
+        class="no-drag"
+        type="button"
+        data-tooltip="Main menu (Alt+F)"
+        aria-label="Main menu"
+        data-i18n-tooltip="menu.main.title"
+        data-i18n-aria-label="menu.main.label"
+        aria-haspopup="menu"
+        aria-expanded="false"
+        hidden
+      >
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M3 4.5h10M3 8h10M3 11.5h10"/>
+        </svg>
+      </button>
+      <div id="islandPill" class="no-drag" role="button" tabindex="0" aria-label="Search, tabs & commands (Ctrl/Cmd+L)" data-tooltip="Search, tabs & commands (Ctrl/Cmd+L)" data-i18n-aria-label="pill.title" data-i18n-tooltip="pill.title">
+        <button id="pillSpace" class="space-mark" type="button" aria-haspopup="dialog" aria-expanded="false" data-state="none" hidden>
+          <span id="pillSpaceSymbol" class="space-mark-symbol" aria-hidden="true"></span>
+          <span id="pillSpaceName" class="space-mark-name" data-i18n-ignore></span>
+        </button>
+        <div id="pillNav" class="pill-btns"></div>
+        <div id="pillDots"></div>
+        <span id="pillFavicon" class="favicon"></span>
+        <button id="pillInsecure" class="insecure-badge" type="button" aria-expanded="false" aria-label="Not secure — this site uses an unencrypted connection. Open site controls." data-tooltip="Not secure — this site uses an unencrypted connection (HTTP)" data-i18n-aria-label="pill.insecure.label" data-i18n-tooltip="pill.insecure.title" hidden>
+          <svg viewBox="0 0 16 16"><rect x="3.25" y="7.25" width="9.5" height="6" rx="1.75"/><path d="M5.5 7.25V4.9a2.6 2.6 0 0 1 5.1-.72"/></svg>
+        </button>
+        <span id="pillDomain" data-i18n="pill.domainDefault">new tab</span>
+        <span id="pillShortcuts" class="pill-shortcuts">
+          <button id="pillSlash" class="pill-slash" type="button" data-tooltip="Commands (/)" aria-label="Commands (/)" data-i18n-tooltip="pill.commands" data-i18n-aria-label="pill.commands" hidden>/</button>
+        </span>
+        <button id="pillPrivateChip" data-tooltip="Leave private mode — closes this tab" data-i18n-tooltip="pill.private.title" hidden><span data-i18n="pill.private.chip">Private</span>
+          <svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
+        </button>
+        <button id="pillSourceChip" data-tooltip="Close this page source view" data-i18n-tooltip="pill.source.title" hidden><span data-i18n="pill.source.chip">source</span>
+          <svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
+        </button>
+        <button id="pillCapture" class="capture-chip" type="button" aria-expanded="false" hidden>
+          <svg id="pillCaptureMic" viewBox="0 0 16 16" aria-hidden="true" hidden>
+            <rect x="6" y="2.2" width="4" height="7" rx="2"/>
+            <path d="M3.8 8.2a4.2 4.2 0 0 0 8.4 0M8 12.4v1.8"/>
+          </svg>
+          <svg id="pillCaptureCam" viewBox="0 0 16 16" aria-hidden="true" hidden>
+            <rect x="2.2" y="4.6" width="8.2" height="6.8" rx="1.6"/>
+            <path d="M10.4 7.2l3.4-1.8v5.2l-3.4-1.8z"/>
+          </svg>
+        </button>
+        <button id="pillDisplayShare" class="capture-chip display-share-chip" type="button" aria-expanded="false" hidden>
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <rect x="2" y="3" width="12" height="8" rx="1.4"/>
+            <path d="M6 13h4M8 11v2"/>
+          </svg>
+        </button>
+        <button id="pillFillHint" class="fill-hint-chip" type="button" hidden>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="6.4" r="3.1"/><path d="M8.3 8.7 13.2 13.6M10.9 11.3l1.7-1.7M12.7 13.1l1.3-1.3"/></svg>
+        </button>
+        <button id="pillShield" class="shield" aria-expanded="false" hidden>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8l5 1.9v3.8c0 3.1-2.1 5.3-5 6.7-2.9-1.4-5-3.6-5-6.7V3.7z"/><path d="M4.4 11.47 12.61 3.55"/></svg>
+          <span id="pillShieldCount"></span>
+        </button>
+        <span class="pill-sep"></span>
+        <div id="pillActions" class="pill-btns"></div>
+      </div>
+      <header id="glanceHeader" class="glance-header no-drag" role="group" aria-labelledby="glanceEyebrow" data-i18n-ignore="title" hidden>
+        <div class="glance-copy">
+          <span id="glanceEyebrow" class="glance-eyebrow" data-i18n="glance.eyebrow">GLANCE</span>
+          <span class="glance-nav">
+            <button id="glanceBack" class="glance-nav-btn" type="button" data-tooltip="Back" aria-label="Back" data-i18n-tooltip="pill.back" data-i18n-aria-label="pill.back" disabled></button>
+            <button id="glanceReload" class="glance-nav-btn" type="button" data-tooltip="Reload" aria-label="Reload" data-i18n-tooltip="pill.reload" data-i18n-aria-label="pill.reload"></button>
+          </span>
+          <span class="glance-tab-identity">
+            <span id="glanceFavicon" class="favicon" aria-hidden="true"></span>
+            <span id="glanceTitle" data-i18n-ignore></span>
+            <span id="glancePrivate" class="row-private" hidden data-i18n="rail.state.private">private</span>
+          </span>
+        </div>
+        <div class="glance-actions">
+          <button id="glancePromote" class="glance-action glance-promote" type="button" data-tooltip="Make main — swap with the main page" aria-label="Make main — swap with the main page" data-i18n-tooltip="glance.promote" data-i18n-aria-label="glance.promote">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 5.5h9M10 3l2.5 2.5L10 8M12.5 10.5h-9M6 8l-2.5 2.5L6 13"/></svg>
+            <span data-i18n="glance.promoteShort">Make main</span>
+          </button>
+          <button id="glanceChange" class="glance-action" type="button" data-tooltip="Choose a different tab for Glance" data-i18n-tooltip="glance.change.title" aria-expanded="false" data-i18n="glance.change">Change</button>
+          <button id="glanceClose" class="glance-close" type="button" data-tooltip="Close Glance" aria-label="Close Glance" data-i18n-tooltip="glance.close" data-i18n-aria-label="glance.close">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
+          </button>
+        </div>
+      </header>
+      <div id="windowControls" class="no-drag"></div>
+      <div id="glanceStatus" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+    </div>
+    <div
+      id="glanceDivider"
+      class="glance-divider no-drag"
+      role="separator"
+      aria-label="Resize Glance"
+      data-i18n-aria-label="glance.resize"
+      aria-valuemin="50"
+      aria-valuemax="78"
+      aria-valuenow="62"
+      tabindex="0"
+      title="Drag to resize; double-click to reset"
+      data-i18n-title="resize.hint"
+      hidden
+    ><span aria-hidden="true"></span></div>
+  </div>
+  <aside id="verticalTabsRail" class="vertical-tabs-rail no-drag" aria-label="Vertical tabs" data-i18n-aria-label="rail.label" hidden>
+    <div class="vertical-tabs-toolbar">
+      <button
+        id="verticalTabsUseIsland"
+        class="vertical-tabs-layout-button"
+        type="button"
+        data-tooltip="Turn vertical tabs off"
+        aria-label="Turn vertical tabs off"
+        data-i18n-tooltip="rail.islandLayout"
+        data-i18n-aria-label="rail.islandLayout"
+        data-focus-key="layout:island"
+      >
+        <span class="vertical-tabs-layout-icon" aria-hidden="true"></span>
+      </button>
+    </div>
+    <div id="verticalTabsList" class="vertical-tabs-list" role="list" aria-label="Open tabs" data-i18n-aria-label="rail.list"></div>
+    <div class="vertical-tabs-footer">
+      <button
+        id="verticalTabsNew"
+        class="vertical-tabs-new"
+        type="button"
+        aria-label="New tab"
+        data-i18n-aria-label="tab.new"
+        data-focus-key="action:new-tab"
+      >
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+        <span data-i18n="tab.new">New tab</span>
+        <kbd id="verticalTabsNewShortcut" data-i18n-ignore></kbd>
+      </button>
+    </div>
+    <div
+      id="verticalTabsResizeHandle"
+      class="vertical-tabs-resize-handle"
+      role="separator"
+      aria-label="Resize vertical tabs"
+      data-i18n-aria-label="rail.resize"
+      aria-orientation="vertical"
+      aria-valuemin="200"
+      aria-valuemax="360"
+      aria-valuenow="248"
+      tabindex="0"
+      title="Drag to resize; double-click to reset"
+      data-i18n-title="resize.hint"
+    ></div>
+    <div id="verticalTabsAnnouncer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  </aside>
+  <script src="pages/type-to-open.js"></script>
+  <script src="tab-sections.js"></script>
+  <script src="tab-drag.js"></script>
+  <script src="vertical-tabs.js"></script>
+  <script src="space-identity.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>

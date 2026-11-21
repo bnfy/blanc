@@ -1,0 +1,18 @@
+[
+  {
+    "suite": "startup",
+    "exitCode": 0
+  },
+  {
+    "suite": "recovery",
+    "exitCode": 0
+  },
+  {
+    "suite": "core-notice",
+    "exitCode": 0
+  },
+  {
+    "suite": "repeated-targeted",
+    "exitCode": 0
+  }
+]

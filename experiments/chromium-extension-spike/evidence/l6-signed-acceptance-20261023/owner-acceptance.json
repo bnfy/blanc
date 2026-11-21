@@ -1,0 +1,9 @@
+{
+  "recordedAtUtc": "2026-10-23T16:06:35.479735+00:00",
+  "owner": "Anthony Loria",
+  "question": "L6\u2019s 49 current-candidate recovery checks passed. For its owner UI check, do you accept the previously observed \u201cRestoring your tabs\u201d screen (saved tabs kept untouched; automatic resume; \u201cQuit Blanc\u201d), whose implementation is unchanged in this signed candidate, or require a new direct observation? The waiting screen was not reproduced in this run.",
+  "answer": "Accept mapped UI evidence; close L6",
+  "candidateSource": "09985c160803f3432f0d2b40a21caa13e249e53c",
+  "archiveSHA256": "4c86c89e7ec81791ef8bedf525187b302c313f913a5e5b07a26d4d2a45b9ef00",
+  "scope": "L6 signed-candidate recovery acceptance only. Does not claim new waiting-screen observation or actual provider outage; no release/merge/other gate approval."
+}

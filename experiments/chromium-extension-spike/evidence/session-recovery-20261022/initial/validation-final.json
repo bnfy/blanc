@@ -1,0 +1,114 @@
+[
+  [
+    "verified/quit exits without kill",
+    true
+  ],
+  [
+    "verified/quit recovery screen shown",
+    true
+  ],
+  [
+    "verified/quit original records unchanged",
+    true
+  ],
+  [
+    "verified/quit-recovery exits without kill",
+    true
+  ],
+  [
+    "verified/quit-recovery exact restored tabs and selection",
+    true
+  ],
+  [
+    "verified/delay exits without kill",
+    true
+  ],
+  [
+    "verified/delay exact restored tabs and selection",
+    true
+  ],
+  [
+    "verified/delay screen shown and dismissed once",
+    true
+  ],
+  [
+    "verified/delay-recovery exits without kill",
+    true
+  ],
+  [
+    "verified/delay-recovery exact restored tabs and selection",
+    true
+  ],
+  [
+    "verified/temporary exits without kill",
+    true
+  ],
+  [
+    "verified/temporary exact restored tabs and selection",
+    true
+  ],
+  [
+    "verified/temporary-recovery exits without kill",
+    true
+  ],
+  [
+    "verified/temporary-recovery exact restored tabs and selection",
+    true
+  ],
+  [
+    "verified/permanent exits without kill",
+    true
+  ],
+  [
+    "verified/permanent exact restored tabs and selection",
+    true
+  ],
+  [
+    "verified/permanent-recovery exits without kill",
+    true
+  ],
+  [
+    "verified/permanent-recovery exact restored tabs and selection",
+    true
+  ],
+  [
+    "verified-encrypted/quit exits without kill",
+    true
+  ],
+  [
+    "verified-encrypted/quit recovery screen shown",
+    true
+  ],
+  [
+    "verified-encrypted/quit original records unchanged",
+    true
+  ],
+  [
+    "verified-encrypted/quit-recovery exits without kill",
+    true
+  ],
+  [
+    "verified-encrypted/quit-recovery exact restored tabs and selection",
+    true
+  ],
+  [
+    "verified-encrypted/delay exits without kill",
+    true
+  ],
+  [
+    "verified-encrypted/delay exact restored tabs and selection",
+    true
+  ],
+  [
+    "verified-encrypted/delay screen shown and dismissed once",
+    true
+  ],
+  [
+    "verified-encrypted/delay-recovery exits without kill",
+    true
+  ],
+  [
+    "verified-encrypted/delay-recovery exact restored tabs and selection",
+    true
+  ]
+]

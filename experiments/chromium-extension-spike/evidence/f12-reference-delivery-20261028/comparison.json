@@ -1,0 +1,410 @@
+{
+  "referenceChecks": 80,
+  "referencePass": 36,
+  "referenceFail": 44,
+  "sameAuthoredPageSha256": "1500a649f98a0d941363725d6ef5428e985f3272677a4bfd74c17f26f3b60ce9",
+  "nativeEvidence": "../f12-authored-cosmetic-delivery-20261028/report.json",
+  "comparison": [
+    {
+      "case": "regular-0 page script runs under CSP",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "regular-0 timer target defused",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-0 neutral timer runs",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "regular-0 initial text",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-0 initial styled",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-0 initial upward",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-0 initial xpath",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-0 neutral visible",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "regular-0 nonmatch reveals text",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "regular-0 nonmatch reveals styled",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "regular-0 nonmatch reveals upward",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "regular-0 nonmatch reveals xpath",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "regular-0 moved upward follows leaf",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-0 timer mutation rematches text",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-0 timer mutation rematches styled",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-0 timer mutation rematches upward",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-0 timer mutation rematches xpath",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-0 old move parent revealed",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "regular-0 inserted subtree evaluated",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-0 neutral still visible",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "regular-1 page script runs under CSP",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "regular-1 timer target defused",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-1 neutral timer runs",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "regular-1 initial text",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-1 initial styled",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-1 initial upward",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-1 initial xpath",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-1 neutral visible",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "regular-1 nonmatch reveals text",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "regular-1 nonmatch reveals styled",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "regular-1 nonmatch reveals upward",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "regular-1 nonmatch reveals xpath",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "regular-1 moved upward follows leaf",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-1 timer mutation rematches text",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-1 timer mutation rematches styled",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-1 timer mutation rematches upward",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-1 timer mutation rematches xpath",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-1 old move parent revealed",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "regular-1 inserted subtree evaluated",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "regular-1 neutral still visible",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "private-0 page script runs under CSP",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "private-0 timer target defused",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-0 neutral timer runs",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "private-0 initial text",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-0 initial styled",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-0 initial upward",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-0 initial xpath",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-0 neutral visible",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "private-0 nonmatch reveals text",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "private-0 nonmatch reveals styled",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "private-0 nonmatch reveals upward",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "private-0 nonmatch reveals xpath",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "private-0 moved upward follows leaf",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-0 timer mutation rematches text",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-0 timer mutation rematches styled",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-0 timer mutation rematches upward",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-0 timer mutation rematches xpath",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-0 old move parent revealed",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "private-0 inserted subtree evaluated",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-0 neutral still visible",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "private-1 page script runs under CSP",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "private-1 timer target defused",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-1 neutral timer runs",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "private-1 initial text",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-1 initial styled",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-1 initial upward",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-1 initial xpath",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-1 neutral visible",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "private-1 nonmatch reveals text",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "private-1 nonmatch reveals styled",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "private-1 nonmatch reveals upward",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "private-1 nonmatch reveals xpath",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "private-1 moved upward follows leaf",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-1 timer mutation rematches text",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-1 timer mutation rematches styled",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-1 timer mutation rematches upward",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-1 timer mutation rematches xpath",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-1 old move parent revealed",
+      "native": true,
+      "reference": true
+    },
+    {
+      "case": "private-1 inserted subtree evaluated",
+      "native": true,
+      "reference": false
+    },
+    {
+      "case": "private-1 neutral still visible",
+      "native": true,
+      "reference": true
+    }
+  ],
+  "scope": "native observations retained from earlier diagnostic run; no new native repetition"
+}

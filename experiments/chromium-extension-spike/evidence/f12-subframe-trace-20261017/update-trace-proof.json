@@ -1,0 +1,220 @@
+{
+  "verified": true,
+  "runs": [
+    {
+      "runtime": "electron",
+      "profile": "regular",
+      "checkerConstructions": 2,
+      "registrations": 2,
+      "scriptURLs": 1,
+      "constructorArgumentKeys": [
+        "main_script_url",
+        "script_url"
+      ],
+      "nativeProofs": [],
+      "traceRegistrationJoin": "gap",
+      "crossRuntimeAcceptance": false,
+      "reason": "stock-checker-trace-has-no-registration-version-or-hook-request-token"
+    },
+    {
+      "runtime": "electron",
+      "profile": "regular",
+      "checkerConstructions": 2,
+      "registrations": 2,
+      "scriptURLs": 1,
+      "constructorArgumentKeys": [
+        "main_script_url",
+        "script_url"
+      ],
+      "nativeProofs": [],
+      "traceRegistrationJoin": "gap",
+      "crossRuntimeAcceptance": false,
+      "reason": "stock-checker-trace-has-no-registration-version-or-hook-request-token"
+    },
+    {
+      "runtime": "electron",
+      "profile": "private",
+      "checkerConstructions": 2,
+      "registrations": 2,
+      "scriptURLs": 1,
+      "constructorArgumentKeys": [
+        "main_script_url",
+        "script_url"
+      ],
+      "nativeProofs": [],
+      "traceRegistrationJoin": "gap",
+      "crossRuntimeAcceptance": false,
+      "reason": "stock-checker-trace-has-no-registration-version-or-hook-request-token"
+    },
+    {
+      "runtime": "electron",
+      "profile": "private",
+      "checkerConstructions": 2,
+      "registrations": 2,
+      "scriptURLs": 1,
+      "constructorArgumentKeys": [
+        "main_script_url",
+        "script_url"
+      ],
+      "nativeProofs": [],
+      "traceRegistrationJoin": "gap",
+      "crossRuntimeAcceptance": false,
+      "reason": "stock-checker-trace-has-no-registration-version-or-hook-request-token"
+    },
+    {
+      "runtime": "chromium",
+      "profile": "regular",
+      "checkerConstructions": 2,
+      "registrations": 2,
+      "scriptURLs": 1,
+      "constructorArgumentKeys": [
+        "main_script_url",
+        "script_url"
+      ],
+      "nativeProofs": [
+        {
+          "status": "proven-native",
+          "token": "blanc-sw-update/2209B37D875A43246D3352FE4A1A5F3B",
+          "registrationId": "0",
+          "checkedVersionId": "0",
+          "scope": "https://page.blanc-fixture.test/blanc-fixture/registration/a/",
+          "storageKey": "https://page.blanc-fixture.test/",
+          "profile": "regular",
+          "executionRealm": "not-required-for-byte-check",
+          "crossRuntimeAcceptance": false
+        },
+        {
+          "status": "proven-native",
+          "token": "blanc-sw-update/B05538A9EE871B3F23388C41E0E552AB",
+          "registrationId": "1",
+          "checkedVersionId": "1",
+          "scope": "https://page.blanc-fixture.test/blanc-fixture/registration/b/",
+          "storageKey": "https://page.blanc-fixture.test/",
+          "profile": "regular",
+          "executionRealm": "not-required-for-byte-check",
+          "crossRuntimeAcceptance": false
+        }
+      ],
+      "traceRegistrationJoin": "gap",
+      "crossRuntimeAcceptance": false,
+      "reason": "stock-checker-trace-has-no-registration-version-or-hook-request-token"
+    },
+    {
+      "runtime": "chromium",
+      "profile": "regular",
+      "checkerConstructions": 2,
+      "registrations": 2,
+      "scriptURLs": 1,
+      "constructorArgumentKeys": [
+        "main_script_url",
+        "script_url"
+      ],
+      "nativeProofs": [
+        {
+          "status": "proven-native",
+          "token": "blanc-sw-update/383CB18B8832BFD884633A90EB34D225",
+          "registrationId": "0",
+          "checkedVersionId": "0",
+          "scope": "https://page.blanc-fixture.test/blanc-fixture/registration/a/",
+          "storageKey": "https://page.blanc-fixture.test/",
+          "profile": "regular",
+          "executionRealm": "not-required-for-byte-check",
+          "crossRuntimeAcceptance": false
+        },
+        {
+          "status": "proven-native",
+          "token": "blanc-sw-update/9BF4928359F17642506A224011F102DD",
+          "registrationId": "1",
+          "checkedVersionId": "1",
+          "scope": "https://page.blanc-fixture.test/blanc-fixture/registration/b/",
+          "storageKey": "https://page.blanc-fixture.test/",
+          "profile": "regular",
+          "executionRealm": "not-required-for-byte-check",
+          "crossRuntimeAcceptance": false
+        }
+      ],
+      "traceRegistrationJoin": "gap",
+      "crossRuntimeAcceptance": false,
+      "reason": "stock-checker-trace-has-no-registration-version-or-hook-request-token"
+    },
+    {
+      "runtime": "chromium",
+      "profile": "private",
+      "checkerConstructions": 2,
+      "registrations": 2,
+      "scriptURLs": 1,
+      "constructorArgumentKeys": [
+        "main_script_url",
+        "script_url"
+      ],
+      "nativeProofs": [
+        {
+          "status": "proven-native",
+          "token": "blanc-sw-update/BEDCD3EC0AF4CCC40ABD8EF0ED7FF3C8",
+          "registrationId": "0",
+          "checkedVersionId": "0",
+          "scope": "https://page.blanc-fixture.test/blanc-fixture/registration/a/",
+          "storageKey": "https://page.blanc-fixture.test/",
+          "profile": "private",
+          "executionRealm": "not-required-for-byte-check",
+          "crossRuntimeAcceptance": false
+        },
+        {
+          "status": "proven-native",
+          "token": "blanc-sw-update/4819388975C04042F2AF022962D41A80",
+          "registrationId": "1",
+          "checkedVersionId": "1",
+          "scope": "https://page.blanc-fixture.test/blanc-fixture/registration/b/",
+          "storageKey": "https://page.blanc-fixture.test/",
+          "profile": "private",
+          "executionRealm": "not-required-for-byte-check",
+          "crossRuntimeAcceptance": false
+        }
+      ],
+      "traceRegistrationJoin": "gap",
+      "crossRuntimeAcceptance": false,
+      "reason": "stock-checker-trace-has-no-registration-version-or-hook-request-token"
+    },
+    {
+      "runtime": "chromium",
+      "profile": "private",
+      "checkerConstructions": 2,
+      "registrations": 2,
+      "scriptURLs": 1,
+      "constructorArgumentKeys": [
+        "main_script_url",
+        "script_url"
+      ],
+      "nativeProofs": [
+        {
+          "status": "proven-native",
+          "token": "blanc-sw-update/95A2F4CA768C2D338F2A4A2CB6126411",
+          "registrationId": "0",
+          "checkedVersionId": "0",
+          "scope": "https://page.blanc-fixture.test/blanc-fixture/registration/a/",
+          "storageKey": "https://page.blanc-fixture.test/",
+          "profile": "private",
+          "executionRealm": "not-required-for-byte-check",
+          "crossRuntimeAcceptance": false
+        },
+        {
+          "status": "proven-native",
+          "token": "blanc-sw-update/83B03C2B853EAB0585DEE58BE8286984",
+          "registrationId": "1",
+          "checkedVersionId": "1",
+          "scope": "https://page.blanc-fixture.test/blanc-fixture/registration/b/",
+          "storageKey": "https://page.blanc-fixture.test/",
+          "profile": "private",
+          "executionRealm": "not-required-for-byte-check",
+          "crossRuntimeAcceptance": false
+        }
+      ],
+      "traceRegistrationJoin": "gap",
+      "crossRuntimeAcceptance": false,
+      "reason": "stock-checker-trace-has-no-registration-version-or-hook-request-token"
+    }
+  ],
+  "nativeJoins": 8,
+  "electronUpdateIdentityGaps": 8,
+  "crossRuntimeAcceptance": false
+}

@@ -1,0 +1,113 @@
+{
+  "method": "Real Chromium WebUI bridge with actual profile reads; layout controls invoked through DOM, not physical input",
+  "initial": {
+    "url": "chrome://blanc-prototype/pages/newtab.html",
+    "layout": "billboard",
+    "title": "New Tab",
+    "clock": "1:39",
+    "fonts": "loaded",
+    "data": {
+      "layout": "billboard",
+      "dynamicWallpaperEnabled": false,
+      "groups": [],
+      "remoteDevices": [],
+      "blockedThisWeek": 0,
+      "topSites": [
+        {
+          "key": "127.0.0.1",
+          "title": "Blanc fixture a",
+          "url": "http://127.0.0.1:18763/a"
+        },
+        {
+          "key": "127.0.0.1",
+          "title": "New Tab",
+          "url": "http://127.0.0.1:18765/pages/newtab.html"
+        },
+        {
+          "key": "chromewebstore.google.com",
+          "title": "Tampermonkey - Chrome Web Store",
+          "url": "https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo"
+        },
+        {
+          "key": "chromewebstore.google.com",
+          "title": "1Password \u2013 Password Manager - Chrome Web Store",
+          "url": "https://chromewebstore.google.com/detail/1password-%E2%80%93-password-mana/aeblfdkhhhdcdjpifhhbdiojplfjncoa"
+        },
+        {
+          "key": "chromewebstore.google.com",
+          "title": "Grammarly: AI Writing Assistant and Grammar Checker App - Chrome Web Store",
+          "url": "https://chromewebstore.google.com/detail/grammarly-for-chrome/kbfnbcaeplbcioakkpcpgfkobkghlhen"
+        },
+        {
+          "key": "chromewebstore.google.com",
+          "title": "MetaMask - Chrome Web Store",
+          "url": "https://chromewebstore.google.com/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn"
+        },
+        {
+          "key": "127.0.0.1",
+          "title": "Script Installation | Tampermonkey",
+          "url": "http://127.0.0.1:18764/blanc-smoke.user.js"
+        },
+        {
+          "key": "blanc.day",
+          "title": "Blanc Browser \u2014 A Minimal Browser with Built-in Ad Blocking",
+          "url": "https://blanc.day/"
+        },
+        {
+          "key": "chrome.google.com",
+          "title": "Web Store",
+          "url": "https://chrome.google.com/webstore?hl=en"
+        }
+      ],
+      "wallpaperVisible": false
+    },
+    "bookmarks": [
+      {
+        "title": "Blanc native bookmark probe",
+        "url": "https://example.com/?blanc-native-newtab-probe=1"
+      }
+    ]
+  },
+  "layouts": [
+    {
+      "layout": "ledger",
+      "visibleProbeLinks": 1,
+      "unavailableStats": 0
+    },
+    {
+      "layout": "shelf",
+      "visibleProbeLinks": 1,
+      "unavailableStats": 0
+    },
+    {
+      "layout": "tally",
+      "visibleProbeLinks": 1,
+      "unavailableStats": 0
+    },
+    {
+      "layout": "billboard",
+      "visibleProbeLinks": 0,
+      "unavailableStats": 0
+    }
+  ],
+  "wallpaper": {
+    "pressed": "true",
+    "visible": "hidden"
+  },
+  "propagation": {
+    "layout": "billboard",
+    "prefs": {
+      "layout": "billboard",
+      "dynamicWallpaperEnabled": true
+    }
+  },
+  "reload": {
+    "layout": "billboard",
+    "prefs": {
+      "layout": "billboard",
+      "dynamicWallpaperEnabled": true
+    }
+  },
+  "failedResources": [],
+  "brokenImages": []
+}

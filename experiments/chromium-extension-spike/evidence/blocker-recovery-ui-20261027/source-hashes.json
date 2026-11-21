@@ -1,0 +1,7 @@
+{
+  "native/blanc_prototype_ui.cc": "f7347c9f06a279787d7e1e30d519556aac28d8ad79045b4dacef041d7e027127",
+  "native/blanc_prototype_ui.h": "14ff49374b97e46af5ecf2f3fed3baf42e0f2812ba3f710ae3e4b8c31e2fc1bf",
+  "native/blocker/blocker_proxy.cc": "8dd4c2347fd1416871fbb8697994ea823cf5d93073638eed09851ab142e7b059",
+  "native/blocker/blocker_proxy.h": "4e24b709b3c0cca62485921054a3efc811f5b6e8b3f4d0f61b5b5f12043321a7",
+  "prototype/host.js": "53840280b2fe2c8286de92c1ccd048d84c326f5837f0fd94574b29c0c12e2b72"
+}

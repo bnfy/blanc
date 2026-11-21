@@ -28,8 +28,8 @@ test('every Island setting lives in the Island card', () => {
 
 test('every General control id the page script uses is still present', () => {
   for (const id of ['theme', 'islandSiteColors', 'darkWebsites', 'darkExceptionInput', 'darkExceptionAdd',
-    'darkExceptionList', 'newtabLayout', 'newtabDynamicWallpaper', 'newtabCustomWallpaper',
-    'customWallpaperChoose', 'customWallpaperRemove', 'tabLayout', 'islandHoverOpen', 'tabSleep',
+    'darkExceptionList', 'newtabDynamicWallpaper', 'newtabCustomWallpaper',
+    'customWallpaperChoose', 'customWallpaperRemove', 'tabLayout', 'islandHoverOpen', 'tabSleep', 'reuseNewTab',
     'uiLanguage', 'uiLanguageRelaunch', 'mouseGesturesEnabled', 'mouseGestureEditor', 'appIconGrid',
     'defaultBrowserBtn', 'defaultBrowserState', 'showWelcomeTour', 'searchEngine', 'searchEngineCustomRow',
     'searchEngineTemplate', 'bangsEnabled', 'customBangsBlock', 'customBangAdd', 'searchSuggestions',

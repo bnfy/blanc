@@ -1,0 +1,21 @@
+import("//mojo/public/tools/bindings/mojom.gni")
+mojom("mojom") {
+  sources = [ "//blanc/services/blocker/blocker.mojom" ]
+  public_deps = [ "//sandbox/policy/mojom" ]
+}
+source_set("service") {
+  sources = [ "//blanc/services/blocker/blocker_service.cc", "//blanc/services/blocker/blocker_service.h" ]
+  configs += [ "//v8:external_startup_data" ]
+  deps = [ ":mojom", "//base", "//gin", "//mojo/public/cpp/bindings",
+           "//tools/v8_context_snapshot:buildflags", "//v8" ]
+}
+source_set("browser") {
+  sources = [ "//blanc/services/blocker/blocker_proxy.cc", "//blanc/services/blocker/shield_page_count.h", "//blanc/services/blocker/blocker_available.h", "//blanc/services/blocker/blocker_proxy.h", "//blanc/services/blocker/bundle_hash.h" ]
+  deps = [ "//blanc:buildflags", ":mojom", "//base", "//content/public/browser", "//crypto", "//components/sessions", "//chrome/browser/profiles:profile", "//components/prefs",
+           "//mojo/public/cpp/bindings", "//net", "//services/network/public/cpp",
+           "//services/network/public/mojom", "//url" ]
+  # The research hooks are compiled out, so Android (no extension system) builds without these.
+  if (!is_android) {
+    deps += [ "//extensions/browser" ]
+  }
+}

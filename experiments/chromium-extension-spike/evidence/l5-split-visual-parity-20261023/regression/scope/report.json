@@ -1,0 +1,177 @@
+{
+  "app": "/private/tmp/blanc-split-parity-final/Blanc Chromium Preview.app",
+  "checks": [
+    {
+      "name": "owned Island responds",
+      "pass": true
+    },
+    {
+      "name": "createTab refuses javascript:alert(1)",
+      "pass": true,
+      "details": {
+        "ok": false,
+        "value": "Unsupported prototype destination."
+      }
+    },
+    {
+      "name": "navigate refuses javascript:alert(1)",
+      "pass": true,
+      "details": {
+        "ok": false,
+        "value": "Navigation requires an HTTP or HTTPS URL."
+      }
+    },
+    {
+      "name": "createTab refuses file:///etc/passwd",
+      "pass": true,
+      "details": {
+        "ok": false,
+        "value": "Unsupported prototype destination."
+      }
+    },
+    {
+      "name": "navigate refuses file:///etc/passwd",
+      "pass": true,
+      "details": {
+        "ok": false,
+        "value": "Navigation requires an HTTP or HTTPS URL."
+      }
+    },
+    {
+      "name": "createTab refuses chrome://settings/",
+      "pass": true,
+      "details": {
+        "ok": false,
+        "value": "Unsupported prototype destination."
+      }
+    },
+    {
+      "name": "navigate refuses chrome://settings/",
+      "pass": true,
+      "details": {
+        "ok": false,
+        "value": "Navigation requires an HTTP or HTTPS URL."
+      }
+    },
+    {
+      "name": "createTab refuses data:text/html,bad",
+      "pass": true,
+      "details": {
+        "ok": false,
+        "value": "Unsupported prototype destination."
+      }
+    },
+    {
+      "name": "navigate refuses data:text/html,bad",
+      "pass": true,
+      "details": {
+        "ok": false,
+        "value": "Navigation requires an HTTP or HTTPS URL."
+      }
+    },
+    {
+      "name": "foreign or stale tab ID refused",
+      "pass": true,
+      "details": {
+        "ok": false,
+        "value": "Tab no longer exists in this window."
+      }
+    },
+    {
+      "name": "unknown method refused",
+      "pass": true,
+      "details": {
+        "ok": false,
+        "value": "Expected a real tab ID."
+      }
+    },
+    {
+      "name": "store icon cannot target arbitrary endpoint",
+      "pass": true,
+      "details": {
+        "ok": false,
+        "value": "Icon unavailable."
+      }
+    },
+    {
+      "name": "web permission states are not pre-granted",
+      "pass": true,
+      "details": [
+        {
+          "name": "geolocation",
+          "state": "prompt"
+        },
+        {
+          "name": "camera",
+          "state": "prompt"
+        },
+        {
+          "name": "microphone",
+          "state": "prompt"
+        }
+      ]
+    },
+    {
+      "name": "one owner cannot close another window tab",
+      "pass": true,
+      "details": {
+        "ok": false,
+        "value": "Tab no longer exists in this window."
+      }
+    },
+    {
+      "name": "foreign owner sentinel remains",
+      "pass": true,
+      "details": [
+        "http://127.0.0.1:9890/other"
+      ]
+    },
+    {
+      "name": "navigating directly to host URL gives no native owner",
+      "pass": true,
+      "details": {
+        "ok": false,
+        "value": "This bridge belongs to the native Island only."
+      }
+    },
+    {
+      "name": "start page cannot escalate to Island management",
+      "pass": true,
+      "details": {
+        "ok": false,
+        "value": "This bridge belongs to the native Island only."
+      }
+    },
+    {
+      "name": "start-page channel refuses management method",
+      "pass": true,
+      "details": {
+        "ok": false,
+        "value": "Unsupported start-page request"
+      }
+    },
+    {
+      "name": "privileged asset allowlist and theme identity enforced",
+      "pass": true,
+      "details": [
+        {
+          "path": "../../etc/passwd",
+          "denied": true
+        },
+        {
+          "path": "host.js?extra",
+          "denied": true
+        },
+        {
+          "path": "not-allowed.js",
+          "denied": true
+        },
+        {
+          "path": "theme-toolbar.png?aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "denied": true
+        }
+      ]
+    }
+  ],
+  "complete": true
+}

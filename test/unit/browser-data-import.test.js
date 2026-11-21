@@ -123,13 +123,13 @@ function fixture() {
   };
 }
 
-test('parseChromiumBookmarks preserves immediate folders, dates, and http(s)-only URLs', () => {
+test('parseChromiumBookmarks preserves folder paths, dates, and http(s)-only URLs', () => {
   const entries = parseChromiumBookmarks(fixture(), { now: NOW });
   const byUrl = new Map(entries.map((entry) => [entry.url, entry]));
   assert.equal(entries.length, 3);
   assert.equal(byUrl.get('https://top.example/').folder, 'Bookmarks bar');
   assert.equal(byUrl.get('https://top.example/').addedAt, NOW - 10_000);
-  assert.equal(byUrl.get('https://article.example/').folder, 'Reading');
+  assert.equal(byUrl.get('https://article.example/').folder, 'Bookmarks bar › Reading');
   assert.equal(byUrl.get('https://other.example/').title, 'https://other.example/');
   assert.equal([...byUrl].some(([url]) => url.startsWith('chrome:')), false);
 });
@@ -689,4 +689,27 @@ test('listSources reports permission-blocked browsers instead of omitting them',
   } finally {
     fs.chmodSync(chromeRoot, 0o755);
   }
+});
+
+// --- Full folder paths (F63) ---
+
+test('parseChromiumBookmarks keeps roots and nesting, in source order', () => {
+  const data = { roots: {
+    bookmark_bar: { name: 'Bookmarks bar', children: [
+      { type: 'folder', name: 'Work', children: [
+        { type: 'folder', name: 'Clients', children: [{ type: 'url', name: 'A', url: 'https://a.example/' }] },
+        { type: 'url', name: 'B', url: 'https://b.example/' },
+      ] },
+      { type: 'url', name: 'C', url: 'https://c.example/' },
+    ] },
+    other: { name: 'Other bookmarks', children: [
+      { type: 'folder', name: 'x'.repeat(90), children: [{ type: 'url', name: 'D', url: 'https://d.example/' }] },
+    ] },
+  } };
+  assert.deepEqual(parseChromiumBookmarks(data, { t: (k) => k }).map((e) => [e.url, e.folder, e.shortened]), [
+    ['https://a.example/', 'Bookmarks bar › Work › Clients', false],
+    ['https://b.example/', 'Bookmarks bar › Work', false],
+    ['https://c.example/', 'Bookmarks bar', false],
+    ['https://d.example/', 'Other bookmarks', true],
+  ]);
 });

@@ -1,10 +1,11 @@
 'use strict';
 
 // GitHub-hosted runners' default apt mirror, azure.archive.ubuntu.com, failed
-// to resolve on November 11, 2026, so every parity-guards job that installs
-// packages points apt elsewhere first (scripts/ci-apt-mirror.sh), and so does
-// the Site workflow's Playwright install. The release workflow does the same
-// inline; ecs-release-pipeline.test.js guards that.
+// to resolve on November 11, 2026, so every workflow step that installs
+// packages points apt elsewhere first: through scripts/ci-apt-mirror.sh where
+// the job checks out the workflow commit, inline where it may check out an
+// older ref (the release workflow, the hosted published-asset smoke).
+// ecs-release-pipeline.test.js also guards the release path.
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -45,4 +46,25 @@ test('the mirror script leaves azure.archive.ubuntu.com and refuses to run off a
   assert.match(script, /^\s*printf '%s\\n' http:\/\/mirrors\.edge\.kernel\.org\/ubuntu\/ \| sudo tee \/etc\/apt\/apt-mirrors\.txt >\/dev\/null$/m);
   assert.match(script, /azure\.archive\.ubuntu\.com is still configured/);
   assert.doesNotMatch(script, /apt-get/, 'the step itself runs apt, after the script');
+});
+
+test('no workflow step installs apt packages before leaving the default mirror', () => {
+  const dir = path.join(ROOT, '.github', 'workflows');
+  const files = fs.readdirSync(dir).filter(name => /\.ya?ml$/.test(name));
+  let checked = 0;
+  for (const name of files) {
+    const steps = read('.github', 'workflows', name).split(/\n(?=\s+- (?:name|uses|run|id):)/);
+    for (const step of steps) {
+      const apt = step.search(/apt-get (?:update|install)|apt install|--with-deps/);
+      if (apt < 0) continue;
+      checked += 1;
+      const script = step.indexOf('ci-apt-mirror.sh');
+      const inline = step.indexOf("printf '%s\\n' http://mirrors.edge.kernel.org/ubuntu/ | sudo tee /etc/apt/apt-mirrors.txt");
+      const mirror = [script, inline].filter(index => index >= 0);
+      assert.ok(mirror.length && Math.min(...mirror) < apt, `${name}: mirror switch must come first in:\n${step}`);
+      assert.doesNotMatch(step, /archive\.ubuntu\.com\/ubuntu\/ \|/, `${name}: kernel.org alone, no archive.ubuntu.com fallback`);
+      if (inline >= 0) assert.match(step, /azure\.archive\.ubuntu\.com is still configured/, `${name}: inline switch must refuse a leftover Azure host`);
+    }
+  }
+  assert.ok(checked >= 10, `found only ${checked} apt steps; the step splitter may have broken`);
 });

@@ -1,0 +1,57 @@
+{
+  "scope": "standalone same-bundle evaluator in isolated browser world; not production rule selection",
+  "results": [
+    {
+      "name": "has-text",
+      "first": true,
+      "repeated": true,
+      "neutralVisible": true,
+      "metrics": {
+        "runs": 3,
+        "lastMs": 0.10000000149011612,
+        "maxMs": 0.7999999970197678,
+        "matched": 1,
+        "error": null
+      }
+    },
+    {
+      "name": "matches-css",
+      "first": true,
+      "repeated": false,
+      "neutralVisible": true,
+      "metrics": {
+        "runs": 6,
+        "lastMs": 0.19999999552965164,
+        "maxMs": 0.7999999970197678,
+        "matched": 0,
+        "error": null
+      }
+    },
+    {
+      "name": "upward",
+      "first": true,
+      "repeated": true,
+      "neutralVisible": true,
+      "metrics": {
+        "runs": 9,
+        "lastMs": 0.10000000149011612,
+        "maxMs": 0.7999999970197678,
+        "matched": 1,
+        "error": null
+      }
+    },
+    {
+      "name": "xpath",
+      "first": true,
+      "repeated": true,
+      "neutralVisible": true,
+      "metrics": {
+        "runs": 12,
+        "lastMs": 0.10000000149011612,
+        "maxMs": 0.7999999970197678,
+        "matched": 1,
+        "error": null
+      }
+    }
+  ]
+}

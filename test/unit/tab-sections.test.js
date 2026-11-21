@@ -109,3 +109,35 @@ test('an uncolored band is unchanged', () => {
   assert.equal(el.classes.size, 0);
   assert.equal(el.props.size, 0);
 });
+
+// ─── locationLabel: the short address the Island and the tab list show ───────
+const { locationLabel } = require('../../src/renderer/tab-sections');
+
+test('a failed page is labeled with the address that failed, not blanc://error', () => {
+  const failed = `blanc://error/?${new URLSearchParams({ url: 'https://example.com/path', code: '-105', desc: 'ERR_NAME_NOT_RESOLVED' })}`;
+  assert.equal(locationLabel(failed), 'example.com');
+  const local = `blanc://error/?${new URLSearchParams({ url: 'http://127.0.0.1:9/', code: '-312' })}`;
+  assert.equal(locationLabel(local), '127.0.0.1:9');
+  const certificate = `blanc://error/?${new URLSearchParams({ kind: 'certificate', url: 'https://www.expired.test/' })}`;
+  assert.equal(locationLabel(certificate), 'www.expired.test');
+  assert.equal(locationLabel(certificate, { stripWww: true }), 'expired.test');
+});
+
+test('an error page with no usable failed address keeps its internal name', () => {
+  assert.equal(locationLabel('blanc://error/'), 'blanc://error');
+  assert.equal(locationLabel('blanc://error/?url=&code=-3'), 'blanc://error');
+  assert.equal(locationLabel('blanc://error/?url=not%20a%20url'), 'blanc://error');
+});
+
+test('locationLabel keeps the existing labels for other pages', () => {
+  assert.equal(locationLabel('blanc://newtab/'), '');
+  assert.equal(locationLabel('blanc://newtab/?private=1'), '');
+  assert.equal(locationLabel(''), '');
+  assert.equal(locationLabel(undefined), '');
+  assert.equal(locationLabel('blanc://mahjong/'), 'blanc://mahjong');
+  assert.equal(locationLabel('https://www.example.com/a?b=1'), 'www.example.com');
+  assert.equal(locationLabel('https://www.example.com/a?b=1', { stripWww: true }), 'example.com');
+  assert.equal(locationLabel('view-source:https://example.com/x'), 'example.com');
+  assert.equal(locationLabel('view-source:'), '', 'a bare view-source: has no host, as before');
+  assert.equal(locationLabel('not a url'), 'not a url');
+});

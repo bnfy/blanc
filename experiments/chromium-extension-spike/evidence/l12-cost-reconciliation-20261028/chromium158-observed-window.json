@@ -1,0 +1,26 @@
+{
+  "scope": "recorded durable Chromium158 staging start through successful native build and guard; excludes earlier research and later qualification/signing",
+  "startUtc": "2026-10-28T18:59:14.288036+00:00",
+  "finishUtc": "2026-10-28T23:05:46.991977+00:00",
+  "elapsedSeconds": 14792.703940868378,
+  "activeOwnerSeconds": null,
+  "newPaidCosts": null,
+  "interpretation": "Owner confirms no external hands-on work and no new runner/service/hardware charge. Recorded elapsed interval is not an active labor total. Existing signing/hardware/power allocations and time spent on chat approvals are not priced.",
+  "sources": [
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium158/records/20261028/staging.json",
+      "sha256": "a2b263be731a92794097f032bc2ea6b076f4f4550cadfea43d810a208076435b"
+    },
+    {
+      "path": "/Users/anthonyjloria/Projects/BlancChromium158/records/20261028/resume5-receipt.json",
+      "sha256": "3a0787841cf1229ed0eea2b47af2813f4392e81f9154ef94e23b7b62eb729783"
+    }
+  ],
+  "ownerConfirmation": {
+    "question": "Hands-on work outside this chat or new paid runner/service/hardware for Chromium158 rebase?",
+    "answer": "Neither",
+    "source": "direct owner reply in this chat, 2026-10-28"
+  },
+  "externalHandsOnWork": "none reported",
+  "newPaidRunnerServiceHardwareCharge": 0
+}

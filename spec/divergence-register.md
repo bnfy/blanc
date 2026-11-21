@@ -102,6 +102,9 @@ cap** are identical; only where the bytes land and how you re-open them differ.
   Settings open the system's Default Apps screen. Apple rate-limits the check,
   so a refused one keeps the last answer.
 - **Android:** intent filters + the default-browser role; hand-off via `Intent`.
+  The walkthrough and Settings ask with Android's role dialog, at most twice
+  (Android stops showing it to someone who turned it down twice), then open
+  Android's Default apps screen (A5c, unreleased).
 
 **Parity contract:** a bare `mailto:`/`tel:`/etc. is handed to the OS (never
 treated as a search query), unknown schemes do not reach an OS handler, and Blanc
@@ -272,13 +275,23 @@ mobile is a single full-screen surface with system insets.
   strip, its own always-on-top overlay view, and traffic-lights / window controls.
 - **Mobile:** a single surface; the island adapts to safe-area insets; no window
   controls; multi-window is a tablet/foldable consideration, not a phone one.
-- **iOS (2026-11-05, owner request):** Settings → Island → Back and Forward
-  buttons (off by default, device-local `islandHistoryButtons`, never synced)
-  puts them on the iPhone Island in place of Reload and New Tab, after a
-  visitor asked where Back was. The Island has no tab count on any layout:
+- **iOS (2026-11-05, owner request; revised 2026-11-11):** the iPhone Island
+  shows Back, Forward and New Tab after the address, for everyone, after a
+  visitor asked where Back was. It began as a Settings → Island switch
+  (`islandHistoryButtons`, off by default) that swapped them for Reload and
+  New Tab with the address centered; on 2026-11-11 the owner made them the
+  default with the switch kept to turn them off (`islandBackForward`, on by
+  default, device-local, never synced; off shows Reload and New Tab, as
+  before). The old key is dropped rather than carried over. The address
+  stays leading, after the Sunrise mark. Reload is in the Sunrise menu, and
+  pull to refresh still reloads. The Sunrise menu ends with Settings. In the
+  palette's list a tab row has no ×, which was easy to miss for the row:
+  a swipe to the left closes it (a full swipe without a tap), its hold menu
+  has Close Tab, and VoiceOver has Close Tab as an action (owner, 2026-11-11). On the Start Page the Island reads Search or type a
+  URL, dimmed, as the desktop pill does on a blank tab (owner, 2026-11-11). The Island has no tab count on any layout:
   a pinch in on a fully zoomed-out page, as in Safari, or a swipe up from the
-  Island opens the tab grid. The page shrinks into its card as Safari's does. Stop still shows while a page loads. Pull to
-  refresh and the tab grid and palette's New Tab stay. The unfolded Island
+  Island opens the tab grid. The page shrinks into its card as Safari's does. Stop still shows while a page loads,
+  on the Island and in the Sunrise menu. The unfolded Island
   always shows every button. Back and Forward also survive a relaunch: each
   tab's `interactionState` is saved on this device only (never synced, never
   backed up, never a private tab), found through `SavedTab.historyId` and kept
@@ -352,12 +365,12 @@ app can observe individual blocked requests depends on the engine model.
   block (main.js already counts these per tab).
 - **Android:** exact — the fork's blocker counts each block per tab. There's no
   shield chip: the count is a line under the Sunrise menu's blocking row (A3).
-  The Start Page runs the iPhone's script, so it shows protection on or off, not
-  a weekly count.
+  Since A5b the Start Page (the desktop fork's) shows the week's blocked count
+  under the clock.
 - **iOS:** **not directly available** — `WKContentRuleList` blocks silently with no
   per-request callback. Recommended: show a binary "protected / paused" state
   instead of a live count (an approximate number that disagrees with reality is
-  worse than none).
+  worse than none). The Start Page shows no blocked line (D39).
 
 **Parity contract:** protection status is always visible; the *precision* of the
 count differs — exact on desktop/Android, a protected-state indicator on iOS. The
@@ -556,7 +569,9 @@ The available source formats also differ.
 
 **Parity contract:** Both discovery and import begin only after an explicit
 user action — no platform scans for other browsers merely because a migration
-surface was rendered. Import accepts only supported web Favorites, preserves
+surface was rendered. Opening a dialog whose only purpose is bringing things
+over from another browser is such an action; rendering the page or sheet that
+offers it is not. Import accepts only supported web Favorites, preserves
 folders where the source carries them, deduplicates without replacing existing
 data, and never expands into passwords, history, cookies, or sessions without a
 separately specified choice.
@@ -565,7 +580,9 @@ separately specified choice.
 just import — require an explicit action, since profile display names commonly
 carry a person's real name or email address. Amended 2026-10-15 to read
 Chrome's `AccountBookmarks` file beside `Bookmarks`, after signed-in Chrome
-profiles were found to import nothing.
+profiles were found to import nothing. Amended 2026-11-16 (owner): on desktop, opening the Favorites
+sheet's Bring my stuff to Blanc dialog is the explicit action, as Chrome's and
+Edge's import dialogs list browsers when they open.
 
 ## D23 — Who decides when a background tab loses its renderer
 **Features:** F31 (the behaviour itself is D8)
@@ -862,25 +879,33 @@ public v1.43.1. Revisit when a mobile Blanc has profiles.
 
 **Why:** The owner asked for a layered, reflective iPhone icon in the
 standard Light style (2026-10-29). They chose the iPhone's Sunrise Gold as
-its standard icon and added Sunrise Dawn, which is kept off the Mac for now. iOS 26 and later draw Icon
+its standard icon and added Sunrise Dawn, which is kept off the Mac for now.
+On 2026-11-11 they made Sunrise the iPhone's standard icon, as on the Mac,
+and added Sunrise Bronze, also iPhone only. iOS 26 and later draw Icon
 Composer packages in Liquid Glass and store the chosen alternate icon
 themselves.
 
 - **Desktop (macOS):** five icons, `sunrise` standard, chosen in Settings →
   General → App icon and stored as the device-local `appIcon` setting.
-- **iOS:** six icons, the Mac's five plus `sunrise-dawn` (Sunrise Dawn).
-  `sunrise-gold` is the primary icon. They're chosen in Settings → Appearance → App icon and
-  switched with `setAlternateIconName`. iOS remembers the choice, so there's
-  no `appIcon` value in iPhone settings. The iPhone's Sunrise Gold is drawn for
-  the phone: the same cream glass Sunrise on gold, plus a reflection under
-  the water and separate glass pieces.
+- **iOS:** seven icons, the Mac's five plus `sunrise-bronze` (Sunrise Bronze)
+  and `sunrise-dawn` (Sunrise Dawn). `sunrise` is the primary icon (it was
+  `sunrise-gold` until 2026-11-11; a phone that had chosen Sunrise as an
+  alternate still reads as Sunrise). They're chosen in Settings → Appearance →
+  App icon and switched with `setAlternateIconName`. iOS remembers the choice,
+  so there's no `appIcon` value in iPhone settings. The iPhone's Sunrise Gold
+  is drawn for the phone: the same cream glass Sunrise on gold, plus a
+  reflection under the water and separate glass pieces. Sunrise Bronze is
+  Sunrise turned inside out: a cream glass mark on a bronze tile, with a warm
+  glow behind the sun and its reflection in the water.
 - **Android:** not built.
 
 **Parity contract:** shared ids keep the same names and labels, no platform
-reuses a retired id, and every icon is free. `sunrise-dawn` stays out of the
-shared settings schema until the Mac offers it.
+reuses a retired id, and every icon is free. `sunrise-dawn` and
+`sunrise-bronze` stay out of the shared settings schema until the Mac offers
+them.
 
-**Status:** iPhone implemented, unreleased. Spec:
+**Status:** iPhone 1.0 shipped with Sunrise Gold standard; Sunrise standard
+and Sunrise Bronze are implemented for 1.0.2, unreleased. Spec:
 `docs/superpowers/specs/2026-10-29-ios-liquid-glass-app-icons-design.md`.
 
 ---
@@ -968,3 +993,97 @@ and the page staying usable while the bar is open.
 
 **Status:** iOS implemented; Android implemented in A2, unreleased.
 
+---
+
+## D38 — A walkthrough closed before its privacy step saves no choice on Android
+**Features:** F21
+
+**Why:** Measure usage is consent. A choice the person never saw on screen
+isn't one.
+
+- **Desktop:** the fresh-profile privacy choices must be saved before any event.
+- **iOS:** closing the first-minute card at any step saves Measure usage and
+  Search suggestions with the values the privacy step shows, or would show (on
+  by default), so swiping Welcome away saves Measure usage on.
+- **Android:** closing the card saves the privacy step's switch only when that
+  step is on screen. Closed earlier, Measure usage stays unsaved, nothing is
+  sent, and Settings → Privacy reads it off until the person chooses.
+
+**Parity contract that still holds:** nothing is measured before a saved
+choice; the walkthrough is seen once per version; Settings changes the choice
+at any time.
+
+**Status:** Android implemented in A5c, unreleased. Whether the iPhone should
+follow is open.
+
+---
+
+## D39 — The desktop fork's Start Page on phones
+**Features:** F35, F49, F50, F54
+
+**Why:** The owner chose the desktop Chromium fork's Start Page (Billboard plus
+widgets you turn on, no layout picker) as how Android and the iPhone work
+(November 13, 2026), and for the iPhone kept its Liquid Glass clock and moved
+the Start Page's choices into the page's Customize, as on Android (November 15,
+2026).
+
+- **Desktop (shipping Electron):** four layouts, choices synced, Customize on
+  the page.
+- **Desktop fork, Android and iPhone:** the fork's page, byte for byte from
+  `chromium/blanc/island/pages` (Android serves it at `chrome://blanc/`; the
+  iPhone bundles the same copy, `chromium/blanc/android/pages/start/`, at
+  `blanc://newtab/`). Billboard is the one layout; Customize holds the widgets
+  (Favorites, On your other devices), the Shortcuts count (1–12), the clock's
+  Font & color and the wallpaper. The phones keep every choice on the device;
+  the wallpaper and photo stay in the page's own storage. Shortcuts rank the
+  last 90 days of the phone's history by every visit (search engines' results
+  pages don't count), with up to eight pins; a long press on a shortcut or a
+  favorite opens its menu. Settings → Start Page and the Island menu open
+  Customize.
+- **Android:** the clock is solid only (#1504); the Start Page shows the week's
+  blocked count.
+- **iPhone:** the clock keeps Glass or Solid, Glass drawn by iOS in Liquid Glass
+  (`NativeClockOverlay`); no blocked line (D13); a half-second hold on empty
+  space also opens Customize; a private Start Page draws the regular page's
+  wallpaper choices but never its photo. Choices made on the iPhone's earlier
+  Start Page carry over once (Ledger, Shelf and Tally become Billboard).
+- **Both phones:** Play Blanc Mahjong is hidden until the game is laid out for
+  phones (owner, November 14 and 15, 2026).
+
+**Parity contract that still holds:** the Start Page's content and copy (the
+fork's catalog), the clock's fonts, colors and height, the wallpaper sources and
+fades, and nothing fetched to draw a shortcut.
+
+**Status:** Android implemented in A5b, unreleased; iPhone implemented,
+unreleased on main.
+
+---
+
+## D40 — Nested Favorites folders show flat on phones and the fork
+**Features:** F9, F63
+
+**Why:** Nested folders (F63) were built in the shipping desktop first, with a
+sync format the other clients can adopt later (owner, November 16, 2026). A path
+is stored in the `folder` field every client already syncs, so nothing has to
+change elsewhere for nothing to be lost.
+
+- **Desktop (shipping Electron, this release onward):** the tree, a chosen order,
+  and empty folders.
+- **The desktop fork (Blanc Beta, on `chromium/next` since November 18, 2026,
+  unreleased):** the tree, as Chromium's own nested bookmark folders, in a
+  Favorites tab (V30). Its order and empty folders are Chromium's and stay on
+  that Mac: it keeps `favoritesLayout` whole by its clock and doesn't apply it.
+- **iPhone, Android and older desktops:** each path is one flat
+  folder named by the path (`Work › Clients`). A folder edit there acts on that
+  one string: renaming `Work` renames only the favorites directly in it, so the
+  desktop then shows both the new folder and a `Work` that still holds its
+  sub-folders; deleting `Work › Clients` ungroups its favorites to the top level
+  instead of moving them up one level. The iPhone keeps
+  `favoritesLayout` whole by its clock; older desktops drop it, and a newer
+  desktop restores it at most once every 10 minutes.
+
+**Parity contract that still holds:** every favorite and its full path survive
+every sync, and no client rewrites a path it didn't edit.
+
+**Status:** desktop merged, unreleased. Each other client adopts the tree in its
+own follow-up.

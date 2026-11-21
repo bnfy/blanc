@@ -1,0 +1,21 @@
+{
+  "noTaskProcessesBeforeCleanup": true,
+  "removedDisposablePaths": [
+    "/private/tmp/blanc-l5-repair/runtime/profile",
+    "/private/tmp/blanc-l5-repair/regular/profile",
+    "/private/tmp/blanc-l5-repair/private/profile",
+    "/private/tmp/blanc-l5-repair/scope/profile",
+    "/private/tmp/blanc-l5-repair/core/profile-final",
+    "/private/tmp/blanc-l5-repair/core/downloads",
+    "/private/tmp/blanc-l5-repair/recovery/node22-home"
+  ],
+  "remoteSigningJobRemoved": "day.blanc.l5-repair-signing",
+  "remoteStagingRemoved": "/private/tmp/blanc-l5-repair",
+  "retained": [
+    "local signed candidate",
+    "stapled ZIP",
+    "authorized SSH key"
+  ],
+  "googleBaselineTouched": false,
+  "permanentProfilesTouched": false
+}

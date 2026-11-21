@@ -1,0 +1,85 @@
+{
+  "app": "/private/tmp/blanc-l6-restore-final/Blanc Chromium Preview.app",
+  "checks": [
+    {
+      "name": "two loaded pages and selection captured",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9952/one",
+          "http://127.0.0.1:9952/two"
+        ],
+        "selected": 2
+      }
+    },
+    {
+      "name": "normal restart 1 restores exact tabs and selection without restore flag",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9952/one",
+          "http://127.0.0.1:9952/two"
+        ],
+        "selected": 2
+      }
+    },
+    {
+      "name": "normal restart 2 restores exact tabs and selection without restore flag",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9952/one",
+          "http://127.0.0.1:9952/two"
+        ],
+        "selected": 2
+      }
+    },
+    {
+      "name": "explicit native New Tab preference is honored",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/"
+        ],
+        "selected": 0
+      }
+    },
+    {
+      "name": "explicit native startup URL preference is honored",
+      "pass": true,
+      "details": {
+        "urls": [
+          "http://127.0.0.1:9952/policy"
+        ],
+        "selected": 0
+      }
+    },
+    {
+      "name": "private-only launch does not restore regular pages",
+      "pass": true,
+      "details": [
+        {
+          "url": "blanc://newtab/",
+          "private": true
+        }
+      ]
+    },
+    {
+      "name": "regular session survives private-only quit and restart without private page",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9952/one",
+          "http://127.0.0.1:9952/two"
+        ],
+        "selected": 2
+      }
+    }
+  ],
+  "mode": "final",
+  "complete": true
+}

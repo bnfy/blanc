@@ -22,6 +22,9 @@ final class TabUIDelegate: NSObject, WKUIDelegate {
     /// (desktop puts it after Open Link in New Tab).
     func webView(_ webView: WKWebView, contextMenuConfigurationForElement elementInfo: WKContextMenuElementInfo,
                  completionHandler: @escaping (UIContextMenuConfiguration?) -> Void) {
+        if StartPageBridge.isStartPage(webView.url), let link = elementInfo.linkURL, Self.glanceable(link) {
+            return startPageMenu(webView, link: link, completionHandler: completionHandler)
+        }
         // Always a configuration: nil would take the menu away altogether.
         let url = elementInfo.linkURL.flatMap { Self.glanceable($0) && canGlance?() == true ? $0 : nil }
         completionHandler(UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] suggested in
@@ -32,6 +35,47 @@ final class TabUIDelegate: NSObject, WKUIDelegate {
             children.insert(glance, at: min(1, children.count))
             return UIMenu(children: children)
         })
+    }
+
+    /// Opens a link in a new tab (the Start Page shortcut menu's entry).
+    var onOpenInNewTab: ((URL) -> Void)?
+
+    /// A Start Page shortcut or favorite, long-pressed: iOS's own menu (and its
+    /// haptic) with the page's choices first. The page (ios-start.js) says what
+    /// the tile allows and presses its own pin and hide buttons, so these work
+    /// exactly as the fork's page does them; iOS's Copy Link and Share follow.
+    private func startPageMenu(_ webView: WKWebView, link: URL,
+                               completionHandler: @escaping (UIContextMenuConfiguration?) -> Void) {
+        let href = JSONValue.string(link.absoluteString).serialized
+        webView.evaluateJavaScript(PagesBridge.guardedScript(
+            "return JSON.stringify(window.blancIosShortcut?.state(\(href)) ?? null);", host: "newtab")) { [weak self, weak webView] result, _ in
+            let state = (result as? String).flatMap { try? JSONSerialization.jsonObject(with: Data($0.utf8)) as? [String: Any] }
+            completionHandler(UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { suggested in
+                guard let self, let state else { return UIMenu(children: suggested) }
+                let run = { (call: String) in
+                    webView?.evaluateJavaScript(PagesBridge.guardedScript("window.blancIosShortcut?.\(call)(\(href));", host: "newtab"))
+                }
+                var actions: [UIMenuElement] = []
+                if state["canPin"] as? Bool == true {
+                    let pinned = state["pinned"] as? Bool == true
+                    actions.append(UIAction(title: SyncCopy.text(pinned ? "tabMenu.unpinStartPage" : "tabMenu.pinStartPage"),
+                                            image: UIImage(systemName: pinned ? "pin.slash" : "pin")) { _ in run("pin") })
+                }
+                actions.append(UIAction(title: SyncCopy.text("contextMenu.openLinkInNewTab"),
+                                        image: UIImage(systemName: "plus.square.on.square")) { _ in self.onOpenInNewTab?(link) })
+                if self.canGlance?() == true {
+                    actions.append(UIAction(title: SyncCopy.text("contextMenu.openLinkInGlance"),
+                                            image: UIImage(systemName: "rectangle.on.rectangle")) { _ in self.onGlance?(link) })
+                }
+                if state["canHide"] as? Bool == true {
+                    let title = state["title"] as? String ?? ""
+                    actions.append(UIAction(title: SyncCopy.text("newtab.billboard.hideTitle", ["title": title]),
+                                            image: UIImage(systemName: "eye.slash"), attributes: .destructive) { _ in run("hide") })
+                }
+                return UIMenu(children: [UIMenu(options: .displayInline, children: actions),
+                                         UIMenu(options: .displayInline, children: suggested)])
+            })
+        }
     }
 
     /// Only web pages open in Glance; mail, phone and other links keep WebKit's menu.

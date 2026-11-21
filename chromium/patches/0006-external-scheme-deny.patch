@@ -1,0 +1,26 @@
+diff --git a/chrome/browser/chrome_content_browser_client.cc b/chrome/browser/chrome_content_browser_client.cc
+index 23b06ea..5a7a424 100644
+--- a/chrome/browser/chrome_content_browser_client.cc
++++ b/chrome/browser/chrome_content_browser_client.cc
+@@ -7,6 +7,8 @@
+ #include "blanc/services/blocker/blocker_proxy.h"
+ #include "blanc/content/public/browser/blanc_url_loader_gate.h"
+ #include "blanc/content/public/browser/blanc_websocket_gate.h"
++#include "blanc/browser/ui/browser_api/page_handoff.h"
++#include "blanc/common/island_mode.h"
+ 
+ #include <algorithm>
+ #include <iterator>
+@@ -7555,6 +7557,12 @@ bool ChromeContentBrowserClient::HandleExternalProtocol(
+     mojo::PendingRemote<network::mojom::URLLoaderFactory>* out_factory) {
+   CHECK(content::BrowserThread::CurrentlyOn(content::BrowserThread::UI));
+ 
++  // Blanc: schemes on shipping's deny list never reach the OS or a prompt;
++  // the navigation is cancelled silently (N6).
++  if (blanc::IslandMode() && blanc::browser_api::HandlePageExternalProtocol(url)) {
++    return true;
++  }
++
+ #if BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_MAC) || \
+     BUILDFLAG(IS_WIN)
+   // Handle the google-chrome:// scheme (and chromium://).

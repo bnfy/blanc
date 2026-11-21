@@ -1,5 +1,5 @@
 const assert = require('node:assert/strict');
-const { Given, When, Then } = require('@cucumber/cucumber');
+const { Given, When, Then, After } = require('@cucumber/cucumber');
 
 Given('I navigate to a site with an untrusted certificate', async function () {
   this.untrustedCertificateTabId = await this.call('openTab', this.untrustedFixtureUrl('bad-cert'));
@@ -258,4 +258,141 @@ Then('the WebSocket to the local address opens', async function () {
     if (state === 'error' || Date.now() > deadline) throw new Error(`the WebSocket was ${state}, expected open`);
     await new Promise((r) => setTimeout(r, 100));
   }
+});
+
+// F39-10/11: a featureful window.open (Proxmox's console button) becomes a
+// real BrowserWindow, not a tab, so these reach it through the main process.
+const POPUP_PATH = '/site/local-console';
+
+function popupContents(script) {
+  return ctx.app.evaluate(async ({ BrowserWindow }, { path, source }) => {
+    const win = BrowserWindow.getAllWindows().find((w) => !w.isDestroyed() &&
+      w.webContents.getURL().includes(path));
+    if (!win) return { found: false };
+    const wc = win.webContents;
+    const run = new Function('wc', `return (${source})(wc);`);
+    return { found: true, value: await run(wc) };
+  }, { path: POPUP_PATH, source: script.toString() });
+}
+
+// Settled means not loading on two readings 300 ms apart, so a navigation
+// that hasn't started yet can't pass for one that finished.
+async function waitForPopup() {
+  const deadline = Date.now() + 10_000;
+  let settledReadings = 0;
+  for (;;) {
+    const result = await popupContents((wc) => !wc.isLoading());
+    settledReadings = result.found && result.value ? settledReadings + 1 : 0;
+    if (settledReadings >= 2) return;
+    if (Date.now() > deadline) throw new Error('the pop-up window never finished loading');
+    await new Promise((r) => setTimeout(r, 300));
+  }
+}
+
+When('the local page opens a console in a pop-up window', async function () {
+  const url = this.localFixtureUrl('local-console', '?socket=1');
+  // Without this the pop-up's page rides the tab's already-accepted
+  // connection and only its WebSocket handshakes again; closing them makes
+  // the page's own load check the certificate too.
+  const wcId = await this.call('tabWebContentsId', this.localTabId);
+  await ctx.app.evaluate(({ webContents }, id) => webContents.fromId(id).session.closeAllConnections(), wcId);
+  const opened = await this.call('executeTab', this.localTabId,
+    `window.open(${JSON.stringify(url)}, 'console', 'width=640,height=400') !== null`);
+  assert.equal(opened, true);
+  await waitForPopup();
+});
+
+Then("the pop-up window's page loads", async function () {
+  const result = await popupContents((wc) => wc.executeJavaScript('typeof window.__socketState'));
+  assert.equal(result.value, 'string', 'the pop-up window has no page from the local address');
+});
+
+Then("the pop-up window's WebSocket to the local address opens", async function () {
+  const deadline = Date.now() + 10_000;
+  for (;;) {
+    const { value: state } = await popupContents((wc) => wc.executeJavaScript('window.__socketState'));
+    if (state === 'open') return;
+    if (state === 'error' || Date.now() > deadline) throw new Error(`the pop-up's WebSocket was ${state}, expected open`);
+    await new Promise((r) => setTimeout(r, 100));
+  }
+});
+
+Then("the pop-up window's page is refused", async function () {
+  const result = await popupContents((wc) => wc.executeJavaScript('typeof window.__socketState'));
+  assert.equal(result.found, true);
+  assert.equal(result.value, 'undefined', 'the pop-up window loaded a page its tab never accepted');
+});
+
+// F39-12 (#1477): the page objects to unloading only after the person has
+// used it (sticky activation), as a connected Proxmox console does.
+When("the pop-up window's page asks before it is left", async function () {
+  const result = await popupContents((wc) => wc.executeJavaScript(
+    "window.onbeforeunload = (e) => { e.preventDefault(); e.returnValue = ''; return ''; }; true", true));
+  assert.equal(result.value, true);
+});
+
+async function popupLeaveQuestion() {
+  return ctx.app.evaluate(() => {
+    const probe = globalThis.__popupLeaveQuestion;
+    return probe ? { asked: probe.asked, parentUrl: probe.parentUrl } : { asked: 0 };
+  });
+}
+
+// The Leave or Stay question is a native, modal dialog no test can click, so
+// the step answers it in the main process and counts how often it was asked.
+When(/^I close the pop-up window and choose (Leave|Stay)$/, async function (choice) {
+  this.popupLeaveAskedBefore = (await popupLeaveQuestion()).asked;
+  const closed = await ctx.app.evaluate(({ BrowserWindow, dialog }, { path, answer }) => {
+    globalThis.__popupLeaveQuestion ??= { asked: 0, original: dialog.showMessageBoxSync };
+    const probe = globalThis.__popupLeaveQuestion;
+    dialog.showMessageBoxSync = (parent) => {
+      probe.asked += 1;
+      probe.parentUrl = parent instanceof BrowserWindow ? parent.webContents.getURL() : null;
+      return answer === 'Leave' ? 0 : 1;
+    };
+    const win = BrowserWindow.getAllWindows().find((w) => !w.isDestroyed() &&
+      w.webContents.getURL().includes(path));
+    win?.close();
+    return Boolean(win);
+  }, { path: POPUP_PATH, answer: choice });
+  assert.equal(closed, true, 'no pop-up window to close');
+});
+
+Then('the pop-up window stays open', async function () {
+  const deadline = Date.now() + 5_000;
+  let question;
+  do {
+    question = await popupLeaveQuestion();
+    if (question.asked > this.popupLeaveAskedBefore) break;
+    await new Promise((r) => setTimeout(r, 100));
+  } while (Date.now() < deadline);
+  assert.equal(question.asked, this.popupLeaveAskedBefore + 1, 'closing the pop-up never asked whether to leave');
+  assert.match(question.parentUrl ?? '', new RegExp(POPUP_PATH), 'the question did not belong to the pop-up window');
+  await new Promise((r) => setTimeout(r, 500));
+  assert.equal((await popupContents(() => true)).found, true, 'the pop-up window closed after Stay');
+});
+
+Then('the pop-up window closes', async function () {
+  const deadline = Date.now() + 5_000;
+  while ((await popupContents(() => true)).found) {
+    if (Date.now() > deadline) throw new Error('the pop-up window is still open after Leave');
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  assert.equal((await popupLeaveQuestion()).asked, this.popupLeaveAskedBefore + 1);
+});
+
+After({ tags: '@F39-12' }, async function () {
+  await ctx.app?.evaluate(({ dialog }) => {
+    const probe = globalThis.__popupLeaveQuestion;
+    if (probe) dialog.showMessageBoxSync = probe.original;
+    delete globalThis.__popupLeaveQuestion;
+  }).catch(() => {});
+});
+
+After({ tags: '@F39-10 or @F39-11 or @F39-12' }, async function () {
+  await ctx.app?.evaluate(({ BrowserWindow }, path) => {
+    for (const w of BrowserWindow.getAllWindows()) {
+      if (!w.isDestroyed() && w.webContents.getURL().includes(path)) w.destroy();
+    }
+  }, POPUP_PATH).catch(() => {});
 });

@@ -1,0 +1,16 @@
+[
+  {
+    "path": "content/public/browser/content_browser_client.h",
+    "sha256": "8e5b441ca060440049044bd458f7ac07e34647af87aeec851fa89d9c59641c06",
+    "old_mtime_ns": 1792616008930255611,
+    "restored_upstream_mtime": 1792012926,
+    "matches_pre_task_and_upstream": true
+  },
+  {
+    "path": "chrome/browser/chrome_content_browser_client.h",
+    "sha256": "7aa1d29f32c6af53a4d72c1486ad9df45b2ab0b0bf47001dbc80567ca7d516a5",
+    "old_mtime_ns": 1792616008930850864,
+    "restored_upstream_mtime": 1792012926,
+    "matches_pre_task_and_upstream": true
+  }
+]

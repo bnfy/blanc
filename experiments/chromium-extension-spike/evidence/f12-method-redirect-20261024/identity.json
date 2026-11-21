@@ -1,0 +1,23 @@
+{
+  "source_base": "0723ec6363e273e953f02a6515076e20829109a4",
+  "trace_patch_sha256": "b1ca06548b4e6f80dfafe2984f54327937d45a36edd6f544bdb1fa6245d99fa9",
+  "inputs": {
+    "chrome/services/blanc_blocker/blocker_proxy.cc": "e651976907f5dbfb872d2cac859398d2bb0c7e59207823ada1982f4f3cf61313",
+    "third_party/blink/renderer/core/inspector/inspector_network_agent.cc": "a21e526cc2008a2f505f9d6c4fe51f1afb1f657919205a7937eb06510929b0e4",
+    "third_party/blink/renderer/platform/loader/fetch/url_loader/request_conversion.cc": "dd960580a6d5346f9978a01a0175ae835d762e3c0d160ba2ab5ed05b2f3928df",
+    "content/public/common/blanc_research_build.h": "27665fabd5e87d6733f2f26ca2256eb4b1b3fe32305c83290db0eda37aba68a6",
+    "out/BlancPrototype/Blanc Prototype.app/Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Blanc Prototype Framework": "cee7b2041bbc88d9008f7ffffc760133a5fc31a4e96781960907d132d4c238b7"
+  },
+  "build": {
+    "planned_actions": 1,
+    "actual_steps": 6,
+    "seconds": 31.71,
+    "final_guard": 0
+  },
+  "signed_candidate_changed": false,
+  "upstream_inventory": {
+    "files": 73,
+    "hunks": 180,
+    "basis": "unchanged existing upstream patches; copied Blanc file change only"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "candidateSource": "09985c160803f3432f0d2b40a21caa13e249e53c",
+  "archiveSHA256": "4c86c89e7ec81791ef8bedf525187b302c313f913a5e5b07a26d4d2a45b9ef00",
+  "schedules": [
+    {
+      "name": "recovery",
+      "report": "recovery/report.json",
+      "checks": 6
+    },
+    {
+      "name": "verified",
+      "report": "verified/report.json",
+      "checks": 4
+    },
+    {
+      "name": "splits",
+      "report": "splits/report.json",
+      "checks": 5
+    },
+    {
+      "name": "private-lifecycle",
+      "report": "private-lifecycle/runtime.json",
+      "checks": 10
+    },
+    {
+      "name": "grouped",
+      "report": "grouped/runtime.json",
+      "checks": 6
+    },
+    {
+      "name": "close",
+      "report": "close/test.json",
+      "checks": 6
+    },
+    {
+      "name": "nonregular",
+      "report": "nonregular/pipe-report.json",
+      "checks": 6
+    },
+    {
+      "name": "teardown",
+      "report": "teardown-report.json",
+      "checks": 6
+    }
+  ],
+  "totalPassingCheckpoints": 49,
+  "runtime": "Node22.14.0",
+  "mockKeychain": false,
+  "researchHooks": false,
+  "freshRecoveryUIObservation": false,
+  "ownerRecoveryUIAcceptance": "accepted mapped evidence; no new direct waiting-screen observation",
+  "L6": "accepted for this signed candidate"
+}

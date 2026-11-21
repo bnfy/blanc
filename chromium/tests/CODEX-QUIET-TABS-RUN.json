@@ -1,0 +1,738 @@
+{
+  "candidate": "macos-e554011ad2a2b1d2",
+  "platform": "macos",
+  "cases": [
+    {
+      "line": 8,
+      "name": "Quiet then wake preserves identity, history, oversized-state fallback, and redirect safety",
+      "id": "spec/acceptance/quiet-tabs.feature:8:plain",
+      "result": "undefined",
+      "missingSteps": [
+        {
+          "text": "a background tab with restorable history and oversized page state",
+          "sourceLine": 9,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "navigateTab",
+            "tabNavigation"
+          ]
+        },
+        {
+          "text": "that tab is quiet with oversized page state dropped",
+          "sourceLine": 11,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState"
+          ]
+        },
+        {
+          "text": "I wake it through a redirect and activate it",
+          "sourceLine": 12,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState",
+            "tabNavigation",
+            "wakeTab"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "line": 16,
+      "name": "A storage-bearing quiet tab can wake directly into its back history",
+      "id": "spec/acceptance/quiet-tabs.feature:16:plain",
+      "result": "undefined",
+      "missingSteps": [
+        {
+          "text": "a background storage-bearing tab with back history",
+          "sourceLine": 17,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "navigateTab",
+            "tabNavigation"
+          ]
+        },
+        {
+          "text": "I quiet it and wake its previous history entry",
+          "sourceLine": 18,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "wakeTabAtIndex"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "line": 22,
+      "name": "The active tab is never quieted",
+      "id": "spec/acceptance/quiet-tabs.feature:22:plain",
+      "result": "undefined",
+      "missingSteps": [
+        {
+          "text": "every quiet path is asked to quiet the active tab",
+          "sourceLine": 24,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "setSleepThresholdOverride",
+            "runSleepSweep"
+          ]
+        },
+        {
+          "text": "the active tab remains awake",
+          "sourceLine": 25,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "line": 28,
+      "name": "Protected background tabs stay awake and beforeunload remains functional",
+      "id": "spec/acceptance/quiet-tabs.feature:28:example-35",
+      "result": "undefined",
+      "missingSteps": [
+        {
+          "text": "a background tab protected by pinned",
+          "sourceLine": 29,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "armBeforeUnloadObjection",
+            "setQuietProtection"
+          ]
+        },
+        {
+          "text": "the protected tab remains awake and functional",
+          "sourceLine": 31,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState",
+            "tabListenerState",
+            "beforeUnloadProbe"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "line": 28,
+      "name": "Protected background tabs stay awake and beforeunload remains functional",
+      "id": "spec/acceptance/quiet-tabs.feature:28:example-36",
+      "result": "undefined",
+      "missingSteps": [
+        {
+          "text": "a background tab protected by muted",
+          "sourceLine": 29,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "armBeforeUnloadObjection",
+            "setQuietProtection"
+          ]
+        },
+        {
+          "text": "the protected tab remains awake and functional",
+          "sourceLine": 31,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState",
+            "tabListenerState",
+            "beforeUnloadProbe"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "line": 28,
+      "name": "Protected background tabs stay awake and beforeunload remains functional",
+      "id": "spec/acceptance/quiet-tabs.feature:28:example-37",
+      "result": "undefined",
+      "missingSteps": [
+        {
+          "text": "a background tab protected by audible",
+          "sourceLine": 29,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "armBeforeUnloadObjection",
+            "setQuietProtection"
+          ]
+        },
+        {
+          "text": "the protected tab remains awake and functional",
+          "sourceLine": 31,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState",
+            "tabListenerState",
+            "beforeUnloadProbe"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "line": 28,
+      "name": "Protected background tabs stay awake and beforeunload remains functional",
+      "id": "spec/acceptance/quiet-tabs.feature:28:example-38",
+      "result": "undefined",
+      "missingSteps": [
+        {
+          "text": "a background tab protected by used media",
+          "sourceLine": 29,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "armBeforeUnloadObjection",
+            "setQuietProtection"
+          ]
+        },
+        {
+          "text": "the protected tab remains awake and functional",
+          "sourceLine": 31,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState",
+            "tabListenerState",
+            "beforeUnloadProbe"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "line": 28,
+      "name": "Protected background tabs stay awake and beforeunload remains functional",
+      "id": "spec/acceptance/quiet-tabs.feature:28:example-39",
+      "result": "undefined",
+      "missingSteps": [
+        {
+          "text": "a background tab protected by dirty text",
+          "sourceLine": 29,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "armBeforeUnloadObjection",
+            "setQuietProtection"
+          ]
+        },
+        {
+          "text": "the protected tab remains awake and functional",
+          "sourceLine": 31,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState",
+            "tabListenerState",
+            "beforeUnloadProbe"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "line": 28,
+      "name": "Protected background tabs stay awake and beforeunload remains functional",
+      "id": "spec/acceptance/quiet-tabs.feature:28:example-40",
+      "result": "undefined",
+      "missingSteps": [
+        {
+          "text": "a background tab protected by dirty checkbox",
+          "sourceLine": 29,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "armBeforeUnloadObjection",
+            "setQuietProtection"
+          ]
+        },
+        {
+          "text": "the protected tab remains awake and functional",
+          "sourceLine": 31,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState",
+            "tabListenerState",
+            "beforeUnloadProbe"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "line": 28,
+      "name": "Protected background tabs stay awake and beforeunload remains functional",
+      "id": "spec/acceptance/quiet-tabs.feature:28:example-41",
+      "result": "undefined",
+      "missingSteps": [
+        {
+          "text": "a background tab protected by adopted child",
+          "sourceLine": 29,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "armBeforeUnloadObjection",
+            "setQuietProtection"
+          ]
+        },
+        {
+          "text": "the protected tab remains awake and functional",
+          "sourceLine": 31,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState",
+            "tabListenerState",
+            "beforeUnloadProbe"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "line": 28,
+      "name": "Protected background tabs stay awake and beforeunload remains functional",
+      "id": "spec/acceptance/quiet-tabs.feature:28:example-42",
+      "result": "undefined",
+      "missingSteps": [
+        {
+          "text": "a background tab protected by non-refetchable POST",
+          "sourceLine": 29,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "armBeforeUnloadObjection",
+            "setQuietProtection"
+          ]
+        },
+        {
+          "text": "the protected tab remains awake and functional",
+          "sourceLine": 31,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState",
+            "tabListenerState",
+            "beforeUnloadProbe"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "line": 28,
+      "name": "Protected background tabs stay awake and beforeunload remains functional",
+      "id": "spec/acceptance/quiet-tabs.feature:28:example-43",
+      "result": "undefined",
+      "missingSteps": [
+        {
+          "text": "a background tab protected by pending permission",
+          "sourceLine": 29,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "armBeforeUnloadObjection",
+            "setQuietProtection"
+          ]
+        },
+        {
+          "text": "the protected tab remains awake and functional",
+          "sourceLine": 31,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState",
+            "tabListenerState",
+            "beforeUnloadProbe"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "line": 28,
+      "name": "Protected background tabs stay awake and beforeunload remains functional",
+      "id": "spec/acceptance/quiet-tabs.feature:28:example-44",
+      "result": "undefined",
+      "missingSteps": [
+        {
+          "text": "a background tab protected by deep scroll",
+          "sourceLine": 29,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "armBeforeUnloadObjection",
+            "setQuietProtection"
+          ]
+        },
+        {
+          "text": "the protected tab remains awake and functional",
+          "sourceLine": 31,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState",
+            "tabListenerState",
+            "beforeUnloadProbe"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "line": 28,
+      "name": "Protected background tabs stay awake and beforeunload remains functional",
+      "id": "spec/acceptance/quiet-tabs.feature:28:example-45",
+      "result": "undefined",
+      "missingSteps": [
+        {
+          "text": "a background tab protected by beforeunload objection",
+          "sourceLine": 29,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "armBeforeUnloadObjection",
+            "setQuietProtection"
+          ]
+        },
+        {
+          "text": "the protected tab remains awake and functional",
+          "sourceLine": 31,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState",
+            "tabListenerState",
+            "beforeUnloadProbe"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "line": 28,
+      "name": "Protected background tabs stay awake and beforeunload remains functional",
+      "id": "spec/acceptance/quiet-tabs.feature:28:example-46",
+      "result": "undefined",
+      "missingSteps": [
+        {
+          "text": "a background tab protected by stored beforeunload handler",
+          "sourceLine": 29,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "armBeforeUnloadObjection",
+            "setQuietProtection"
+          ]
+        },
+        {
+          "text": "the protected tab remains awake and functional",
+          "sourceLine": 31,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState",
+            "tabListenerState",
+            "beforeUnloadProbe"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "line": 49,
+      "name": "The sleep command quiets eligible rows without closing the panel",
+      "id": "spec/acceptance/quiet-tabs.feature:49:plain",
+      "result": "fail",
+      "missingSteps": null,
+      "error": "Timeout waiting for shipping state assertion: {\"tabs\":[{\"id\":\"465787054\",\"webContentsId\":465787054,\"url\":\"blanc:\\u002f\\u002fnewtab\\u002f\",\"loadedUrl\":\"blanc:\\u002f\\u002fnewtab\\u002f\",\"loading\":false,\"isLoading\":false,\"title\":\"New Tab\",\"customTitle\":null,\"favicon\":\"data:image\\u002fpng;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8\\u002f9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG\\u002f+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7\\u002fz3W8I\\u002fnPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316\\u002f+axDIQeogjG9TMjZCiO0tBPIC5km\\u002f8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp\\u002fHzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO\\u002fkhF\\u002frY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2\\u002faMZX3XuLmyyKUqwfDUTdIauVO\\u002f22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM\\u002fUhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy\\u002fI+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62\\u002fkzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C\\u002fjDwAAAP\\u002f\\u002fGDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==\",\"bounds\":{\"height\":1072,\"width\":1200,\"x\":0,\"y\":68},\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"sessionKind\":\"default\",\"sessionPersistent\":true,\"asleep\":false},{\"id\":\"465787056\",\"webContentsId\":465787056,\"url\":\"http:\\u002f\\u002f127.0.0.1:58991\\u002fsite\\u002fquietable\",\"loadedUrl\":\"http:\\u002f\\u002f127.0.0.1:58991\\u002fsite\\u002fquietable\",\"loading\":false,\"isLoading\":false,\"title\":\"quietable\",\"customTitle\":null,\"favicon\":null,\"bounds\":null,\"groupId\":null,\"splitId\":null,\"pinned\":false,\"muted\":false,\"audible\":false,\"canGoBack\":false,\"canGoForward\":false,\"private\":false,\"sessionKind\":\"default\",\"sessionPersistent\":true,\"asleep\":false}],\"tabOrder\":[\"465787054\",\"465787056\"],\"clusters\":[{\"key\":\"run:465787054\",\"groupId\":null,\"tabIds\":[\"465787054\",\"465787056\"]}],\"groups\":[],\"splits\":[],\"activeTabId\":\"465787054\",\"glanceTabId\":null,\"focusedPaneTabId\":\"465787054\",\"overlayMode\":\"panel\"}"
+    },
+    {
+      "line": 56,
+      "name": "The sleep command explains when no background tab can be quieted",
+      "id": "spec/acceptance/quiet-tabs.feature:56:plain",
+      "result": "undefined",
+      "missingSteps": [
+        {
+          "text": "the panel stays open and explains that no tab can be quieted",
+          "sourceLine": 59,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "addressCommandNotice"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "line": 62,
+      "name": "A directly represented quiet Island dot wakes and activates its tab",
+      "id": "spec/acceptance/quiet-tabs.feature:62:plain",
+      "result": "fail",
+      "missingSteps": [
+        {
+          "text": "the quiet tab remains a direct Island dot without quiet styling",
+          "sourceLine": 65,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "quietChromeState"
+          ]
+        },
+        {
+          "text": "I click that quiet Island dot",
+          "sourceLine": 66,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "clickIslandDot"
+          ]
+        }
+      ],
+      "error": "sleepTab refused to quiet the tab\n\nfalse !== true\n"
+    },
+    {
+      "line": 70,
+      "name": "Quiet is visible and included in accessible names",
+      "id": "spec/acceptance/quiet-tabs.feature:70:plain",
+      "result": "fail",
+      "missingSteps": [
+        {
+          "text": "the panel and rail expose a distinct quiet state",
+          "sourceLine": 74,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "quietChromeState"
+          ]
+        }
+      ],
+      "error": "sleepTab refused to quiet the tab\n\nfalse !== true\n"
+    },
+    {
+      "line": 77,
+      "name": "The panel and rail dim quiet rows identically at rest",
+      "id": "spec/acceptance/quiet-tabs.feature:77:plain",
+      "result": "fail",
+      "missingSteps": [
+        {
+          "text": "both quiet rows are dimmed at rest and render identically",
+          "sourceLine": 81,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "quietRowDimStyles"
+          ]
+        }
+      ],
+      "error": "sleepTab refused to quiet the tab\n\nfalse !== true\n"
+    },
+    {
+      "line": 84,
+      "name": "Every delay value persists and Off leaves quiet tabs quiet",
+      "id": "spec/acceptance/quiet-tabs.feature:84:example-93",
+      "result": "fail",
+      "missingSteps": [
+        {
+          "text": "I choose the quiet delay off",
+          "sourceLine": 87,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "setTabSleep"
+          ]
+        },
+        {
+          "text": "the quiet delay reads back as off",
+          "sourceLine": 88,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "tabSleep"
+          ]
+        },
+        {
+          "text": "choosing Off has not woken the quiet tab",
+          "sourceLine": 89,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState"
+          ]
+        }
+      ],
+      "error": "sleepTab refused to quiet the tab\n\nfalse !== true\n"
+    },
+    {
+      "line": 84,
+      "name": "Every delay value persists and Off leaves quiet tabs quiet",
+      "id": "spec/acceptance/quiet-tabs.feature:84:example-94",
+      "result": "fail",
+      "missingSteps": [
+        {
+          "text": "I choose the quiet delay 30m",
+          "sourceLine": 87,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "setTabSleep"
+          ]
+        },
+        {
+          "text": "the quiet delay reads back as 30m",
+          "sourceLine": 88,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "tabSleep"
+          ]
+        },
+        {
+          "text": "choosing Off has not woken the quiet tab",
+          "sourceLine": 89,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState"
+          ]
+        }
+      ],
+      "error": "sleepTab refused to quiet the tab\n\nfalse !== true\n"
+    },
+    {
+      "line": 84,
+      "name": "Every delay value persists and Off leaves quiet tabs quiet",
+      "id": "spec/acceptance/quiet-tabs.feature:84:example-95",
+      "result": "fail",
+      "missingSteps": [
+        {
+          "text": "I choose the quiet delay 1h",
+          "sourceLine": 87,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "setTabSleep"
+          ]
+        },
+        {
+          "text": "the quiet delay reads back as 1h",
+          "sourceLine": 88,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "tabSleep"
+          ]
+        },
+        {
+          "text": "choosing Off has not woken the quiet tab",
+          "sourceLine": 89,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState"
+          ]
+        }
+      ],
+      "error": "sleepTab refused to quiet the tab\n\nfalse !== true\n"
+    },
+    {
+      "line": 84,
+      "name": "Every delay value persists and Off leaves quiet tabs quiet",
+      "id": "spec/acceptance/quiet-tabs.feature:84:example-96",
+      "result": "fail",
+      "missingSteps": [
+        {
+          "text": "I choose the quiet delay 6h",
+          "sourceLine": 87,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "setTabSleep"
+          ]
+        },
+        {
+          "text": "the quiet delay reads back as 6h",
+          "sourceLine": 88,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "tabSleep"
+          ]
+        },
+        {
+          "text": "choosing Off has not woken the quiet tab",
+          "sourceLine": 89,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState"
+          ]
+        }
+      ],
+      "error": "sleepTab refused to quiet the tab\n\nfalse !== true\n"
+    },
+    {
+      "line": 99,
+      "name": "Lazy-restored tabs are viewless until the selected tab wakes",
+      "id": "spec/acceptance/quiet-tabs.feature:99:plain",
+      "result": "undefined",
+      "missingSteps": [
+        {
+          "text": "two tabs are created through the lazy-restore path",
+          "sourceLine": 100,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "createQuietTab"
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "line": 106,
+      "name": "A private tab wakes inside the private session",
+      "id": "spec/acceptance/quiet-tabs.feature:106:plain",
+      "result": "fail",
+      "missingSteps": null,
+      "error": "sleepTab refused to quiet the tab\n\nfalse !== true\n"
+    },
+    {
+      "line": 113,
+      "name": "Page state never escapes snapshots into persistence, sync, or renderer IPC",
+      "id": "spec/acceptance/quiet-tabs.feature:113:plain",
+      "result": "fail",
+      "missingSteps": [
+        {
+          "text": "the secret is absent from session persistence, tab sync, and tabs updated",
+          "sourceLine": 115,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sessionSyncSnapshot",
+            "sleepState"
+          ]
+        }
+      ],
+      "error": "Expected values to be strictly equal:\n\nfalse !== true\n"
+    },
+    {
+      "line": 118,
+      "name": "Quieting a tab releases a real renderer process, and waking brings one back",
+      "id": "spec/acceptance/quiet-tabs.feature:118:plain",
+      "result": "undefined",
+      "missingSteps": [
+        {
+          "text": "the renderer process count is recorded",
+          "sourceLine": 120,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "tabProcessCount"
+          ]
+        },
+        {
+          "text": "that tab is quiet",
+          "sourceLine": 122,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState"
+          ]
+        },
+        {
+          "text": "the renderer process count has dropped by 1",
+          "sourceLine": 123,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "tabProcessCount"
+          ]
+        },
+        {
+          "text": "that tab is awake",
+          "sourceLine": 125,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "sleepState"
+          ]
+        },
+        {
+          "text": "the renderer process count has returned to what it was",
+          "sourceLine": 127,
+          "reason": "native hook adapter missing",
+          "hooks": [
+            "tabProcessCount"
+          ]
+        }
+      ],
+      "error": null
+    }
+  ]
+}

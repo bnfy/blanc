@@ -1,0 +1,31 @@
+{
+  "reports": [
+    {
+      "path": "/private/tmp/blanc-opaque-late-run01/report.json",
+      "completed": false,
+      "removed": true
+    },
+    {
+      "path": "/private/tmp/blanc-opaque-late-run02/report.json",
+      "completed": false,
+      "removed": true
+    },
+    {
+      "path": "/private/tmp/blanc-opaque-late-run03/report.json",
+      "completed": false,
+      "removed": true
+    },
+    {
+      "path": "/private/tmp/blanc-opaque-late-run04/report.json",
+      "completed": true,
+      "removed": true
+    },
+    {
+      "path": "/private/tmp/blanc-opaque-late-run05/report.json",
+      "completed": true,
+      "removed": true
+    }
+  ],
+  "ownedRuntimeProcesses": [],
+  "inspection": "full executable prefix in ps args; unchanged native binary hashes verified"
+}

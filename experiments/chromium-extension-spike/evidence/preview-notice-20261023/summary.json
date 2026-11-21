@@ -1,0 +1,20 @@
+{
+  "archive": "/private/tmp/blanc-preview-notice-final/Blanc-Chromium-Preview-stapled.zip",
+  "sha256": "f177e0b5100db9a3fc83c7d5522cc343b86582add4d209d49696cef4f3729a55",
+  "notarization": {
+    "id": "dbe289ff-82fd-4ddf-87ea-d2a3023677f6",
+    "status": "Accepted",
+    "message": "Processing complete"
+  },
+  "sourceRevision": "9a1b4fa9b3ad6ebdb1ae7eebf10bea5d74533468",
+  "chromiumVersion": "157.0.8103.15",
+  "noticeChecks": 16,
+  "footerChecks": 2,
+  "resourceHashesUnchangedAfterStapling": true,
+  "releaseApproved": false,
+  "gate": "L9",
+  "accepted": true,
+  "sourceTests": 16,
+  "liveRoute": "https://github.com/bnfy/blanc/pull/1028",
+  "scope": "Manual preview update/withdrawal only; public release unapproved"
+}

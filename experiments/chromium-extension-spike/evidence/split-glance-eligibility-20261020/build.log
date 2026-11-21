@@ -1,0 +1,55 @@
+Dry-run scheduled actions: 4 (generated outputs may add work). Plan: /Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/blanc-build-plan.log
+offline mode
+ninja: Entering directory `/Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype'
+
+
+disable fast local for non-interactive: fastlocal=1->0
+ use `--fast_local` to enable fast local with non-interactive mode
+schedule pending:1+ready:0 (node:86853 edge:2)
+build start: Ready 1 Pending 1
+rebuild manifest finished
+
+loading build.ninja... done 809.252458ms
+load siso config done 8.764625ms
+schedule pending:1+ready:0 (node:433354 edge:2)
+build start: Ready 1 Pending 1
+rebuild manifest finished
+schedule pending:1+ready:0 (node:433354 edge:9)
+build start: Ready 8253 Pending 88010
+[0/15353] 3.54s S COPY_BUNDLE_DATA ../../chrome/app/theme/chromium/mac/Assets.car 'Blanc Prototype Helper (Alerts).app/Contents/Resources/Assets.car'
+[0/15001] 3.54s F COPY_BUNDLE_DATA ../../chrome/app/theme/chromium/mac/Assets.car 'Blanc Prototype Helper (Alerts).app/Contents/Resources/Assets.car'
+[1/14526] 3.56s S ACTION //chrome:verify_libraries_chrome_helper_app_alerts(//build/toolchain/mac:clang_arm64)
+[1/10933] 3.73s F ACTION //chrome:verify_libraries_chrome_helper_app_alerts(//build/toolchain/mac:clang_arm64)
+[2/648] 3.96s S CXX obj/chrome/browser/ui/views/frame/browser_view/blanc_prototype_ui.o
+[2/394] 13.20s F CXX obj/chrome/browser/ui/views/frame/browser_view/blanc_prototype_ui.o
+[3/390] 13.25s S SOLINK 'obj/chrome/chrome_framework_shared_library/Blanc Prototype Framework' 'obj/chrome/chrome_framework_shared_library/Blanc Prototype Framework.TOC'
+[3/349] 51.11s F SOLINK 'obj/chrome/chrome_framework_shared_library/Blanc Prototype Framework' 'obj/chrome/chrome_framework_shared_library/Blanc Prototype Framework.TOC'
+[3/349] 51.11s S COPY_BUNDLE_DATA ../../chrome/app/theme/chromium/mac/Assets.car 'Blanc Prototype Helper (Aperitif Alerts).app/Contents/Resources/Assets.car'
+[4/349] 51.12s F COPY_BUNDLE_DATA ../../chrome/app/theme/chromium/mac/Assets.car 'Blanc Prototype Helper (Aperitif Alerts).app/Contents/Resources/Assets.car'
+[5/347] 51.13s S ACTION //chrome:verify_libraries_chrome_helper_app_aperitif_alerts(//build/toolchain/mac:clang_arm64)
+[5/347] 51.19s F ACTION //chrome:verify_libraries_chrome_helper_app_aperitif_alerts(//build/toolchain/mac:clang_arm64)
+[6/88] 51.19s S COPY_BUNDLE_DATA 'Blanc Prototype Helper (Aperitif Alerts).app' 'Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif Alerts).app'
+[6/86] 51.19s S COPY_BUNDLE_DATA 'obj/chrome/chrome_framework_shared_library/Blanc Prototype Framework' 'Blanc Prototype Framework.framework/Versions/157.0.8103.6/Blanc Prototype Framework'
+[6/86] 51.20s S COPY_BUNDLE_DATA 'Blanc Prototype Helper (Alerts).app' 'Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Alerts).app'
+[6/86] 51.21s F COPY_BUNDLE_DATA 'Blanc Prototype Helper (Aperitif Alerts).app' 'Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif Alerts).app'
+[6/86] 51.21s F COPY_BUNDLE_DATA 'Blanc Prototype Helper (Alerts).app' 'Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Alerts).app'
+[8/86] 51.56s F COPY_BUNDLE_DATA 'obj/chrome/chrome_framework_shared_library/Blanc Prototype Framework' 'Blanc Prototype Framework.framework/Versions/157.0.8103.6/Blanc Prototype Framework'
+[9/84] 51.56s S ACTION //chrome:verify_chrome_framework_order(//build/toolchain/mac:clang_arm64)
+[9/84] 54.33s F ACTION //chrome:verify_chrome_framework_order(//build/toolchain/mac:clang_arm64)
+[10/72] 54.33s S COPY_BUNDLE_DATA ../../chrome/app/theme/chromium/mac/Assets.car 'Blanc Prototype.app/Contents/Resources/Assets.car'
+[10/39] 54.33s S COPY_BUNDLE_DATA 'Blanc Prototype Framework.framework' 'Blanc Prototype.app/Contents/Frameworks/Blanc Prototype Framework.framework'
+[10/17] 54.34s F COPY_BUNDLE_DATA ../../chrome/app/theme/chromium/mac/Assets.car 'Blanc Prototype.app/Contents/Resources/Assets.car'
+[11/17] 54.43s F COPY_BUNDLE_DATA 'Blanc Prototype Framework.framework' 'Blanc Prototype.app/Contents/Frameworks/Blanc Prototype Framework.framework'
+[12/16] 54.43s S ACTION //chrome:verify_libraries_chrome_app(//build/toolchain/mac:clang_arm64)
+[12/16] 54.47s F ACTION //chrome:verify_libraries_chrome_app(//build/toolchain/mac:clang_arm64)
+build finished
+
+	
+noexec:7 local:6 remote:0 cache:0 skip:96250
+  cache-write:0(err:0) fallback:0 retry:0
+fs: ops: 4126(err:586) / r:574(err:0) 1.13GiB / w:5(err:0) 575.31MiB
+
+
+shutdown cloud logging/monitoring done 12.042µs
+
+54.74s Build Succeeded: 13 steps - 0.24/s

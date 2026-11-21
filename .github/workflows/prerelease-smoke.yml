@@ -77,7 +77,8 @@ jobs:
           # failed here for v1.48.0. apt still checks every package against
           # Ubuntu's archive keys; only the download host changes.
           if [ -f /etc/apt/apt-mirrors.txt ]; then
-            printf '%s\n' http://mirrors.edge.kernel.org/ubuntu/ http://archive.ubuntu.com/ubuntu/ | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+            # kernel.org alone, as in #1452: apt tried a failing archive.ubuntu.com first.
+            printf '%s\n' http://mirrors.edge.kernel.org/ubuntu/ | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
           fi
           for file in /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
             if [ -f "$file" ]; then

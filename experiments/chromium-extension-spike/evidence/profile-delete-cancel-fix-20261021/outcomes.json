@@ -1,0 +1,44 @@
+[
+  {
+    "name": "blanc-delete-cancel-fixed-clear",
+    "pass": true,
+    "checkpoints": 18,
+    "error": null
+  },
+  {
+    "name": "blanc-delete-cancel-fixed-encrypted",
+    "pass": true,
+    "checkpoints": 18,
+    "error": null
+  },
+  {
+    "name": "blanc-delete-cancel-fixed-clear-direct",
+    "pass": true,
+    "checkpoints": 17,
+    "error": null
+  },
+  {
+    "name": "blanc-delete-cancel-fixed-encrypted-direct",
+    "pass": true,
+    "checkpoints": 17,
+    "error": null
+  },
+  {
+    "name": "blanc-delete-fixed-remove-clear",
+    "pass": true,
+    "checkpoints": 15,
+    "error": null
+  },
+  {
+    "name": "blanc-delete-fixed-remove-encrypted",
+    "pass": true,
+    "checkpoints": 15,
+    "error": null
+  },
+  {
+    "name": "blanc-delete-cancel-diagnostic",
+    "pass": false,
+    "checkpoints": 13,
+    "error": "Error: {\"exceptionId\":3,\"text\":\"Uncaught (in promise) Error: Tab closed, but history persistence failed or timed out.\",\"lineNumber\":73,\"columnNumber\":64,\"scriptId\":\"6\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancPrototypeReply\",\"scriptId\":\"6\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":72,\"columnNumber\":63},{\"functionName\":\"\",\"scriptId\":\"88\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Tab closed, but history persistence failed or timed out.\\n    at window.blancPrototypeReply (chrome://blanc-prototype/host.js:73:64)\\n    at <anonymous>:1:1\",\"objectId\":\"-8282734418984132649.1.18\"}}\n    at call (file:///private/tmp/blanc-delete-cancel-diagnostic/test.mjs:8:334)\n    at async file:///private/tmp/blanc-delete-cancel-diagnostic/test.mjs:41:461"
+  }
+]

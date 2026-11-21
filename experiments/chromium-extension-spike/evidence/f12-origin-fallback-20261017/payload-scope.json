@@ -1,0 +1,45 @@
+{
+  "baseUnchanged": true,
+  "diagnostics": [
+    {
+      "mode": "about",
+      "changedFiles": [
+        "js/blanc-fallback-diagnostic.js",
+        "manifest.json"
+      ],
+      "entry": {
+        "matches": [
+          "https://page.blanc-fixture.test/*",
+          "https://child.blanc-control.test/*"
+        ],
+        "js": [
+          "js/blanc-fallback-diagnostic.js"
+        ],
+        "all_frames": true,
+        "run_at": "document_idle",
+        "match_about_blank": true
+      },
+      "remainingManifestUnchanged": true
+    },
+    {
+      "mode": "origin",
+      "changedFiles": [
+        "js/blanc-fallback-diagnostic.js",
+        "manifest.json"
+      ],
+      "entry": {
+        "matches": [
+          "https://page.blanc-fixture.test/*",
+          "https://child.blanc-control.test/*"
+        ],
+        "js": [
+          "js/blanc-fallback-diagnostic.js"
+        ],
+        "all_frames": true,
+        "run_at": "document_idle",
+        "match_origin_as_fallback": true
+      },
+      "remainingManifestUnchanged": true
+    }
+  ]
+}

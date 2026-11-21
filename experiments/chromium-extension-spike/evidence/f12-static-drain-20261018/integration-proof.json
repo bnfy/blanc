@@ -1,0 +1,10 @@
+{
+  "verified": true,
+  "automaticStaticDeliveryPasses": 18,
+  "httpEarlyControls": 2,
+  "identityAndGenerationChecks": 13,
+  "receiverGapsInThisMatrix": 0,
+  "fullAcceptance": false,
+  "inFlightReloadAtomicity": false,
+  "latencyMeasured": false
+}

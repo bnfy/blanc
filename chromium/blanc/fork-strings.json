@@ -1,0 +1,178 @@
+{
+  "protectedMedia.title": {
+    "en": "Blanc Beta can't play this video yet",
+    "de": "Blanc Beta kann dieses Video noch nicht abspielen",
+    "es": "Blanc Beta todavía no puede reproducir este vídeo",
+    "fr": "Blanc Beta ne peut pas encore lire cette vidéo",
+    "it": "Blanc Beta non può ancora riprodurre questo video",
+    "pt-BR": "O Blanc Beta ainda não reproduz este vídeo"
+  },
+  "protectedMedia.body": {
+    "en": "Protected video works in the released Blanc app.",
+    "de": "Geschützte Videos laufen in der veröffentlichten Blanc-App.",
+    "es": "El vídeo protegido funciona en la app Blanc publicada.",
+    "fr": "Les vidéos protégées fonctionnent dans l'app Blanc publiée.",
+    "it": "I video protetti funzionano nell'app Blanc pubblicata.",
+    "pt-BR": "Vídeo protegido funciona no app Blanc lançado."
+  },
+  "protectedMedia.open": {
+    "en": "Open in released Blanc",
+    "de": "In veröffentlichtem Blanc öffnen",
+    "es": "Abrir en Blanc publicado",
+    "fr": "Ouvrir dans Blanc publié",
+    "it": "Apri in Blanc pubblicato",
+    "pt-BR": "Abrir no Blanc lançado"
+  },
+  "protectedMedia.getBlanc": {
+    "en": "Get released Blanc",
+    "de": "Veröffentlichtes Blanc laden",
+    "es": "Obtener Blanc publicado",
+    "fr": "Obtenir Blanc publié",
+    "it": "Scarica Blanc pubblicato",
+    "pt-BR": "Baixar o Blanc lançado"
+  },
+  "settings.profileImport.title": {
+    "en": "Bring your data from the released Blanc app",
+    "de": "Daten aus der veröffentlichten Blanc-App übernehmen",
+    "es": "Traer tus datos de la app Blanc publicada",
+    "fr": "Importer vos données depuis l'app Blanc publiée",
+    "it": "Porta i tuoi dati dall'app Blanc pubblicata",
+    "pt-BR": "Trazer seus dados do app Blanc lançado"
+  },
+  "settings.profileImport.hint": {
+    "en": "Copies favorites, history, Spaces, open tabs, settings and Sync from the released Blanc app on this Mac. Its own data is left as it is.",
+    "de": "Kopiert Favoriten, Verlauf, Spaces, geöffnete Tabs, Einstellungen und Sync aus der veröffentlichten Blanc-App auf diesem Mac. Deren eigene Daten bleiben unverändert.",
+    "es": "Copia favoritos, historial, Spaces, pestañas abiertas, ajustes y Sync de la app Blanc publicada en este Mac. Sus propios datos no cambian.",
+    "fr": "Copie les favoris, l'historique, les Spaces, les onglets ouverts, les réglages et Sync depuis l'app Blanc publiée sur ce Mac. Ses propres données restent intactes.",
+    "it": "Copia preferiti, cronologia, Spaces, schede aperte, impostazioni e Sync dall'app Blanc pubblicata su questo Mac. I suoi dati restano come sono.",
+    "pt-BR": "Copia favoritos, histórico, Spaces, abas abertas, ajustes e Sync do app Blanc lançado neste Mac. Os dados dele ficam como estão."
+  },
+  "settings.profileImport.start": {
+    "en": "Import",
+    "de": "Importieren",
+    "es": "Importar",
+    "fr": "Importer",
+    "it": "Importa",
+    "pt-BR": "Importar"
+  },
+  "settings.profileImport.retry": {
+    "en": "Try again",
+    "de": "Erneut versuchen",
+    "es": "Reintentar",
+    "fr": "Réessayer",
+    "it": "Riprova",
+    "pt-BR": "Tentar de novo"
+  },
+  "settings.profileImport.working": {
+    "en": "Importing…",
+    "de": "Wird importiert …",
+    "es": "Importando…",
+    "fr": "Importation…",
+    "it": "Importazione…",
+    "pt-BR": "Importando…"
+  },
+  "settings.profileImport.done": {
+    "en": "Your data is here.",
+    "de": "Deine Daten sind da.",
+    "es": "Tus datos ya están aquí.",
+    "fr": "Vos données sont là.",
+    "it": "I tuoi dati sono qui.",
+    "pt-BR": "Seus dados estão aqui."
+  },
+  "settings.profileImport.doneRestart": {
+    "en": "Your data is here. Sync picks up after you restart.",
+    "de": "Deine Daten sind da. Sync läuft nach einem Neustart weiter.",
+    "es": "Tus datos ya están aquí. Sync continúa cuando reinicies.",
+    "fr": "Vos données sont là. Sync reprend après un redémarrage.",
+    "it": "I tuoi dati sono qui. Sync riprende dopo il riavvio.",
+    "pt-BR": "Seus dados estão aqui. O Sync continua depois que você reiniciar."
+  },
+  "settings.profileImport.doneSyncOff": {
+    "en": "Your data is here. Sign in to Sync again to keep syncing.",
+    "de": "Deine Daten sind da. Melde dich erneut bei Sync an, um weiter zu synchronisieren.",
+    "es": "Tus datos ya están aquí. Vuelve a iniciar sesión en Sync para seguir sincronizando.",
+    "fr": "Vos données sont là. Reconnectez-vous à Sync pour continuer à synchroniser.",
+    "it": "I tuoi dati sono qui. Accedi di nuovo a Sync per continuare a sincronizzare.",
+    "pt-BR": "Seus dados estão aqui. Entre no Sync de novo para continuar sincronizando."
+  },
+  "settings.profileImport.already": {
+    "en": "Your data was already imported.",
+    "de": "Deine Daten wurden bereits importiert.",
+    "es": "Tus datos ya se habían importado.",
+    "fr": "Vos données ont déjà été importées.",
+    "it": "I tuoi dati sono già stati importati.",
+    "pt-BR": "Seus dados já foram importados."
+  },
+  "settings.profileImport.noSource": {
+    "en": "No data from the released Blanc app was found on this Mac.",
+    "de": "Auf diesem Mac wurden keine Daten der veröffentlichten Blanc-App gefunden.",
+    "es": "No se encontraron datos de la app Blanc publicada en este Mac.",
+    "fr": "Aucune donnée de l'app Blanc publiée n'a été trouvée sur ce Mac.",
+    "it": "Su questo Mac non sono stati trovati dati dell'app Blanc pubblicata.",
+    "pt-BR": "Nenhum dado do app Blanc lançado foi encontrado neste Mac."
+  },
+  "settings.profileImport.running": {
+    "en": "Quit the released Blanc app, then try again.",
+    "de": "Beende die veröffentlichte Blanc-App und versuche es erneut.",
+    "es": "Cierra la app Blanc publicada y vuelve a intentarlo.",
+    "fr": "Quittez l'app Blanc publiée, puis réessayez.",
+    "it": "Chiudi l'app Blanc pubblicata, poi riprova.",
+    "pt-BR": "Feche o app Blanc lançado e tente de novo."
+  },
+  "settings.profileImport.old": {
+    "en": "Update the released Blanc app to 1.40 or later, then try again.",
+    "de": "Aktualisiere die veröffentlichte Blanc-App auf 1.40 oder neuer und versuche es erneut.",
+    "es": "Actualiza la app Blanc publicada a la 1.40 o posterior y vuelve a intentarlo.",
+    "fr": "Mettez à jour l'app Blanc publiée vers la 1.40 ou une version ultérieure, puis réessayez.",
+    "it": "Aggiorna l'app Blanc pubblicata alla 1.40 o successiva, poi riprova.",
+    "pt-BR": "Atualize o app Blanc lançado para a 1.40 ou posterior e tente de novo."
+  },
+  "settings.profileImport.partial": {
+    "en": "Some data couldn't be read and was left out. Nothing in the released Blanc app was changed.",
+    "de": "Einige Daten konnten nicht gelesen werden und wurden ausgelassen. In der veröffentlichten Blanc-App wurde nichts geändert.",
+    "es": "Algunos datos no se pudieron leer y se omitieron. No se cambió nada en la app Blanc publicada.",
+    "fr": "Certaines données n'ont pas pu être lues et ont été laissées de côté. Rien n'a été modifié dans l'app Blanc publiée.",
+    "it": "Alcuni dati non sono stati letti e sono stati esclusi. Nulla è cambiato nell'app Blanc pubblicata.",
+    "pt-BR": "Alguns dados não puderam ser lidos e ficaram de fora. Nada foi alterado no app Blanc lançado."
+  },
+  "settings.profileImport.failed": {
+    "en": "The import didn't finish. Nothing in the released Blanc app was changed.",
+    "de": "Der Import wurde nicht abgeschlossen. In der veröffentlichten Blanc-App wurde nichts geändert.",
+    "es": "La importación no terminó. No se cambió nada en la app Blanc publicada.",
+    "fr": "L'importation ne s'est pas terminée. Rien n'a été modifié dans l'app Blanc publiée.",
+    "it": "L'importazione non è terminata. Nulla è cambiato nell'app Blanc pubblicata.",
+    "pt-BR": "A importação não terminou. Nada foi alterado no app Blanc lançado."
+  },
+  "settings.profileImport.pins": {
+    "en": "Start Page pins",
+    "de": "Angeheftet auf der Startseite",
+    "es": "Fijados de la página de inicio",
+    "fr": "Épinglés sur la page d’accueil",
+    "it": "Fissati nella pagina iniziale",
+    "pt-BR": "Fixados na página inicial"
+  },
+  "settings.profileImport.notRead": {
+    "en": "Couldn't be read, so nothing from this profile was imported.",
+    "de": "Konnte nicht gelesen werden, daher wurde aus diesem Profil nichts importiert.",
+    "es": "No se pudo leer, así que no se importó nada de este perfil.",
+    "fr": "Lecture impossible : rien n’a été importé de ce profil.",
+    "it": "Non è stato possibile leggerlo, quindi da questo profilo non è stato importato nulla.",
+    "pt-BR": "Não foi possível ler, então nada deste perfil foi importado."
+  },
+  "settings.profileImport.leftBehind": {
+    "en": "Not imported: website sign-ins, the downloads list and a few settings. You'll need to sign in to websites again.",
+    "de": "Nicht importiert: Website-Anmeldungen, die Download-Liste und einige Einstellungen. Du musst dich bei Websites erneut anmelden.",
+    "es": "No se importaron: los inicios de sesión en sitios web, la lista de descargas y algunos ajustes. Tendrás que volver a iniciar sesión en los sitios web.",
+    "fr": "Non importés : les connexions aux sites web, la liste des téléchargements et quelques réglages. Vous devrez vous reconnecter aux sites web.",
+    "it": "Non importati: gli accessi ai siti web, l’elenco dei download e alcune impostazioni. Dovrai accedere di nuovo ai siti web.",
+    "pt-BR": "Não importados: logins em sites, a lista de downloads e algumas configurações. Você precisará entrar nos sites de novo."
+  },
+  "settings.profileImport.syncFailed": {
+    "en": "Your data is here, but Sync couldn't be set up. Try again to set up Sync.",
+    "de": "Deine Daten sind da, aber Sync konnte nicht eingerichtet werden. Versuche es erneut, um Sync einzurichten.",
+    "es": "Tus datos ya están aquí, pero no se pudo configurar Sync. Vuelve a intentarlo para configurar Sync.",
+    "fr": "Vos données sont là, mais Sync n’a pas pu être configuré. Réessayez pour configurer Sync.",
+    "it": "I tuoi dati sono qui, ma non è stato possibile configurare Sync. Riprova per configurare Sync.",
+    "pt-BR": "Seus dados estão aqui, mas não foi possível configurar o Sync. Tente de novo para configurar o Sync."
+  }
+}

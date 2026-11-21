@@ -1,0 +1,10 @@
+{
+  "incident": "Initial result aggregator incorrectly required per-check pass fields for three existing assertion-based fixtures. Those schemas record value entries and a final top-level pass=true. Corrected aggregator requires that final pass and expected count, with no runtime rerun.",
+  "affectedFixtures": [
+    "private-lifecycle",
+    "grouped",
+    "native-cancellation-close"
+  ],
+  "productFailure": false,
+  "otherSetupIncident": "Optional post-ordering hash helper initially used hashlib.file_digest unavailable on system Python3.9; changed to streaming sha256. No artifact change or runtime rerun."
+}

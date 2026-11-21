@@ -1,0 +1,3 @@
+Blanc file:///Applications/Blanc.app/ <AXValue 0x78c7151cb0> {value = x:440.500000 y:1071.000000 type = kAXValueCGPointType} <AXValue 0x78c7151ad0> {value = w:60.000000 h:76.000000 type = kAXValueCGSizeType}
+Blanc Prototype file:///Users/anthonyjloria/Projects/BlancChromium/src/out/BlancPrototype/Blanc%20Prototype.app/ <AXValue 0x78c7151cb0> {value = x:1400.500000 y:1071.000000 type = kAXValueCGPointType} <AXValue 0x78c7151bf0> {value = w:60.000000 h:76.000000 type = kAXValueCGSizeType}
+Blanc Prototype file:///Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/Blanc%20Prototype.app/ <AXValue 0x78c7151bf0> {value = x:1520.500000 y:1071.000000 type = kAXValueCGPointType} <AXValue 0x78c7151cb0> {value = w:60.000000 h:76.000000 type = kAXValueCGSizeType}

@@ -1,0 +1,17 @@
+{"name":"history-before-clear","history":[{"favicon":null,"title":"http://127.0.0.1:8786/D","url":"http://127.0.0.1:8786/D","visitedAt":1792205770396.599},{"favicon":null,"title":"http://127.0.0.1:8786/E","url":"http://127.0.0.1:8786/E","visitedAt":1792205769589.424},{"favicon":null,"title":"Rebase157 TypedTopSite","url":"http://127.0.0.1:8786/TypedTopSite","visitedAt":1792205767378.392},{"favicon":null,"title":"Rebase157 Persist","url":"http://127.0.0.1:8786/Persist","visitedAt":1792205767372.794},{"favicon":null,"title":"http://127.0.0.1:8786/F","url":"http://127.0.0.1:8786/F","visitedAt":1792205630659.467}]}
+{"name":"topsites-before-clear","sites":[{"key":"127.0.0.1","title":"Rebase157 Persist","url":"http://127.0.0.1:8786/Persist"},{"key":"chrome.google.com","title":"Web Store","url":"https://chrome.google.com/webstore?hl=en"}]}
+{"name":"history-failure","error":"AssertionError [ERR_ASSERTION]: false == true\n    at file:///private/tmp/blanc-task0/history.mjs:10:72"}
+node:internal/modules/run_main:122
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: false == true
+    at file:///private/tmp/blanc-task0/history.mjs:10:72 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '=='
+}
+
+Node.js v22.14.0

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- One group's rows. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/blanc_sync_card_gap"
+    android:background="@drawable/blanc_sync_card"
+    android:clipToOutline="true"
+    android:divider="@drawable/blanc_sync_divider"
+    android:orientation="vertical"
+    android:showDividers="middle" />

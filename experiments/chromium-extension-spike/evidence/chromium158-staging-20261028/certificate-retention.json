@@ -1,0 +1,90 @@
+{
+  "complete": true,
+  "oldEntries": 111,
+  "newEntries": 111,
+  "binaryEntries": 111,
+  "missing": [],
+  "scanned": [
+    {
+      "path": "Contents/MacOS/Blanc Prototype",
+      "entries": 0,
+      "sha256": "356913e1d2e1c334715b7a41f0fd2d4ec4d1aea01cf2f12b8f8be7f29e6e177d"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Blanc Prototype Framework",
+      "entries": 111,
+      "sha256": "d4151628fcbdb4c1d4817915f71de4c00ba82856495951b107ca2650d724e182"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Libraries/libvulkan.dylib",
+      "entries": 0,
+      "sha256": "716f06d64a4ed9728fd362c5309c90f9e794df656474c37235a0de0f1423099d"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Libraries/libvk_swiftshader.dylib",
+      "entries": 0,
+      "sha256": "bbbf0effedfed9a3125b906eedf1239491992f25b9dcb20032f28e8b4caf0b78"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Libraries/libaperitif.dylib",
+      "entries": 0,
+      "sha256": "f4905e6594802a5d8f6e37c32fad7523720cc1fb1d06ef851971aede3148c3f6"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/web_app_shortcut_copier",
+      "entries": 0,
+      "sha256": "ae23ccf4bd95413bfd120739cbae43ac514cec4eca57ebc9e97aeed1ff9bd9fa"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/chrome_crashpad_handler",
+      "entries": 0,
+      "sha256": "52a67a3fed397ab7a2390a6ce3520980541274bc7843a5a8339c6ec9589e1c6f"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/app_mode_loader",
+      "entries": 0,
+      "sha256": "a0cb176e20e2548e22aa5a0d03b6487808e034edd2db3159634f4ba7bc82d28b"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif Alerts).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Alerts)",
+      "entries": 0,
+      "sha256": "7d035ed01ca97dabddb21e1e0517cf05d49b1d41adb8763f587f69b9fac83143"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (GPU).app/Contents/MacOS/Blanc Prototype Helper (GPU)",
+      "entries": 0,
+      "sha256": "97400da16a84ddc8a68f3e60cd8a389b809eab53986c49be7358fcf8e69dafba"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Renderer)",
+      "entries": 0,
+      "sha256": "5c73f96b77d18aa1ed7cd121101e3eb037db0ff8ab185aa032c6b18fd70b425b"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper.app/Contents/MacOS/Blanc Prototype Helper",
+      "entries": 0,
+      "sha256": "3d198349ddd130971109d15639c20cd939cbb8cf920cc369c13acbc434244e11"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif GPU).app/Contents/MacOS/Blanc Prototype Helper (Aperitif GPU)",
+      "entries": 0,
+      "sha256": "e93ca7467634da9ff23cbcafdced0ae59a399d6f1c53a176f20d83e9652bce82"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Renderer).app/Contents/MacOS/Blanc Prototype Helper (Renderer)",
+      "entries": 0,
+      "sha256": "e41216b19541cf9602ac2e9a1dd2b2a2afd8cc883de3bb1729ae55109b21b707"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/MacOS/Blanc Prototype Helper (Aperitif)",
+      "entries": 0,
+      "sha256": "dd9fe08e3a83c1fba1b03720be765f9cd4fb9d49f62fc047d747b12332823bb0"
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/158.0.8127.2/Helpers/Blanc Prototype Helper (Alerts).app/Contents/MacOS/Blanc Prototype Helper (Alerts)",
+      "entries": 0,
+      "sha256": "7683f523d5ccf8dfe6dd5bb70c08bde69b12049bd63d9aacab3aa5702b12115f"
+    }
+  ],
+  "scope": "Source and compiled SPKI retention only; not a new runtime revocation or signed-candidate claim."
+}

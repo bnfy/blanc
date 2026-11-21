@@ -1,0 +1,28 @@
+{
+  "sourceCommit": "85883b1afa11375e1300130914d6f40c5388af21",
+  "sourcePath": "src/main/tabsync-model.js",
+  "sourceSha256": "58f86a172674daed9abc3aecc9741c6439b9f1f501de5a8d80610138a2e3f25c",
+  "moduleSha256": "66db30aa59c3fc21a4fe561c3323821b7c46439827d8dbb551f8d951a189d195",
+  "adapter": "TextEncoder UTF8 byte count; no published model code altered",
+  "scope": "read-only browser model preparation; not native backend, cache, transport or UI integration",
+  "exports": [
+    "PRUNE_MS",
+    "HEARTBEAT_MS",
+    "BUDGET_BYTES",
+    "canonical",
+    "fingerprint",
+    "sanitizeEntry",
+    "winner",
+    "mergeDevices",
+    "rebindDevices",
+    "buildOwnEntry",
+    "retractedEntry",
+    "presenceEntry",
+    "ownEntryFor",
+    "heartbeatDue",
+    "devicesEqual",
+    "applyBudget",
+    "exportDevices",
+    "displayDevices"
+  ]
+}

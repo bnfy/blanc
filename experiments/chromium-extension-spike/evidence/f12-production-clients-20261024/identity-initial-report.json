@@ -1,0 +1,598 @@
+{
+  "source": "14706b0e8d4753d2a7ef35ea32a875b516366b0d",
+  "scope": "focused missing protocol identity join; observer remains attached to surviving client; no repeated functional assertions",
+  "checks": [],
+  "complete": false,
+  "origin": "http://127.0.0.1:50829",
+  "error": "Error: {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":26,\"scriptId\":\"3\",\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"TypeError\",\"description\":\"TypeError: Cannot read properties of undefined (reading 'controller')\\n    at <anonymous>:1:27\",\"objectId\":\"7575726437136909589.1.2\"}}\n    at Object.eval (file:///private/tmp/blanc-f12-production-clients-20261024/identity-run.mjs:6:773)\n    at async until (file:///private/tmp/blanc-f12-production-clients-20261024/identity-run.mjs:5:138)\n    at async file:///private/tmp/blanc-f12-production-clients-20261024/identity-run.mjs:15:197",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "serverHits": [
+    {
+      "path": "/scope/worker.js",
+      "workerGeneration": 1,
+      "sha256": "5f04e51a01703f44f96adfb91a1593a6ea2c8740450123a8fb817595fc00f9eb"
+    }
+  ],
+  "workerEvents": [
+    {
+      "method": "ServiceWorker.workerRegistrationUpdated",
+      "params": {
+        "registrations": [
+          {
+            "registrationId": "1",
+            "scopeURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/",
+            "isDeleted": false
+          },
+          {
+            "registrationId": "0",
+            "scopeURL": "chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/",
+            "isDeleted": false
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+            "runningStatus": "stopped",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": []
+          },
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/background.js",
+            "runningStatus": "stopped",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/background.js",
+            "runningStatus": "stopped",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+            "runningStatus": "stopped",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/background.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/background.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": [],
+            "targetId": "B1F08EBCEE61460363D9E9984EBE4765"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": [],
+            "targetId": "65E62CFFB4E97231918D58A7C3D3B5BC"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/background.js",
+            "runningStatus": "starting",
+            "status": "installing",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": [],
+            "targetId": "B1F08EBCEE61460363D9E9984EBE4765"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerRegistrationUpdated",
+      "params": {
+        "registrations": [
+          {
+            "registrationId": "0",
+            "scopeURL": "chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/",
+            "isDeleted": false
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/background.js",
+            "runningStatus": "running",
+            "status": "installing",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": [],
+            "targetId": "B1F08EBCEE61460363D9E9984EBE4765"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/background.js",
+            "runningStatus": "running",
+            "status": "installed",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": [],
+            "targetId": "B1F08EBCEE61460363D9E9984EBE4765"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/background.js",
+            "runningStatus": "running",
+            "status": "activating",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": [],
+            "targetId": "B1F08EBCEE61460363D9E9984EBE4765"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "0",
+            "registrationId": "0",
+            "scriptURL": "chrome-extension://admccjkmockfdflocgggjfgdacdodkdf/background.js",
+            "runningStatus": "running",
+            "status": "activated",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": [],
+            "targetId": "B1F08EBCEE61460363D9E9984EBE4765"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+            "runningStatus": "starting",
+            "status": "installing",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": [],
+            "targetId": "65E62CFFB4E97231918D58A7C3D3B5BC"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerRegistrationUpdated",
+      "params": {
+        "registrations": [
+          {
+            "registrationId": "1",
+            "scopeURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/",
+            "isDeleted": false
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+            "runningStatus": "running",
+            "status": "installing",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": [],
+            "targetId": "65E62CFFB4E97231918D58A7C3D3B5BC"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+            "runningStatus": "running",
+            "status": "installed",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": [],
+            "targetId": "65E62CFFB4E97231918D58A7C3D3B5BC"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+            "runningStatus": "running",
+            "status": "activating",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": [],
+            "targetId": "65E62CFFB4E97231918D58A7C3D3B5BC"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "1",
+            "registrationId": "1",
+            "scriptURL": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+            "runningStatus": "running",
+            "status": "activated",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": [],
+            "targetId": "65E62CFFB4E97231918D58A7C3D3B5BC"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerRegistrationUpdated",
+      "params": {
+        "registrations": [
+          {
+            "registrationId": "2",
+            "scopeURL": "http://127.0.0.1:50829/scope/",
+            "isDeleted": false
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "2",
+            "scriptURL": "http://127.0.0.1:50829/scope/worker.js",
+            "runningStatus": "stopped",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 0,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "2",
+            "scriptURL": "http://127.0.0.1:50829/scope/worker.js",
+            "runningStatus": "stopped",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792865699.20032,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "2",
+            "scriptURL": "http://127.0.0.1:50829/scope/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792865699.20032,
+            "controlledClients": []
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "2",
+            "scriptURL": "http://127.0.0.1:50829/scope/worker.js",
+            "runningStatus": "starting",
+            "status": "new",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792865699.20032,
+            "controlledClients": [],
+            "targetId": "A36E91CC3F0F43C4202F026976D9030B"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "2",
+            "scriptURL": "http://127.0.0.1:50829/scope/worker.js",
+            "runningStatus": "starting",
+            "status": "installing",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792865699.20032,
+            "controlledClients": [],
+            "targetId": "A36E91CC3F0F43C4202F026976D9030B"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerRegistrationUpdated",
+      "params": {
+        "registrations": [
+          {
+            "registrationId": "2",
+            "scopeURL": "http://127.0.0.1:50829/scope/",
+            "isDeleted": false
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "2",
+            "scriptURL": "http://127.0.0.1:50829/scope/worker.js",
+            "runningStatus": "running",
+            "status": "installing",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792865699.20032,
+            "controlledClients": [],
+            "targetId": "A36E91CC3F0F43C4202F026976D9030B"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "2",
+            "scriptURL": "http://127.0.0.1:50829/scope/worker.js",
+            "runningStatus": "running",
+            "status": "installed",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792865699.20032,
+            "controlledClients": [],
+            "targetId": "A36E91CC3F0F43C4202F026976D9030B"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "2",
+            "scriptURL": "http://127.0.0.1:50829/scope/worker.js",
+            "runningStatus": "running",
+            "status": "activating",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792865699.20032,
+            "controlledClients": [],
+            "targetId": "A36E91CC3F0F43C4202F026976D9030B"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "2",
+            "scriptURL": "http://127.0.0.1:50829/scope/worker.js",
+            "runningStatus": "running",
+            "status": "activating",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792865699.20032,
+            "controlledClients": [
+              "E5E8C58364C85F09D02C1DEEFD765899"
+            ],
+            "targetId": "A36E91CC3F0F43C4202F026976D9030B"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "2",
+            "scriptURL": "http://127.0.0.1:50829/scope/worker.js",
+            "runningStatus": "running",
+            "status": "activated",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792865699.20032,
+            "controlledClients": [
+              "E5E8C58364C85F09D02C1DEEFD765899"
+            ],
+            "targetId": "A36E91CC3F0F43C4202F026976D9030B"
+          }
+        ]
+      }
+    },
+    {
+      "method": "ServiceWorker.workerVersionUpdated",
+      "params": {
+        "versions": [
+          {
+            "versionId": "2",
+            "registrationId": "2",
+            "scriptURL": "http://127.0.0.1:50829/scope/worker.js",
+            "runningStatus": "running",
+            "status": "activated",
+            "scriptLastModified": 0,
+            "scriptResponseTime": 1792865699.20032,
+            "controlledClients": [
+              "E5E8C58364C85F09D02C1DEEFD765899"
+            ],
+            "targetId": "A36E91CC3F0F43C4202F026976D9030B"
+          }
+        ]
+      }
+    }
+  ]
+}

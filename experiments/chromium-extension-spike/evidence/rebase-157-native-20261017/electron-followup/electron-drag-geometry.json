@@ -1,0 +1,58 @@
+{
+  "at": "2026-10-17T16:38:14.907Z",
+  "app": "installed Blanc 1.36.0 (Info.plist verified)",
+  "profile": "/private/tmp/blanc-task0/electron-check",
+  "model": {
+    "top": 65,
+    "bottom": 159.59375,
+    "sections": [
+      {
+        "kind": "pinned",
+        "groupId": null,
+        "top": 65,
+        "bottom": 65,
+        "rows": []
+      },
+      {
+        "kind": "loose",
+        "groupId": null,
+        "top": 65,
+        "bottom": 161,
+        "rows": [
+          {
+            "id": "0aada5ae-7a65-43ed-ab66-337f4e642706",
+            "pinned": false,
+            "top": 65,
+            "bottom": 97
+          },
+          {
+            "id": "bef9ccf4-12df-453a-9706-c45b2a4e7245",
+            "pinned": false,
+            "top": 97,
+            "bottom": 129
+          },
+          {
+            "id": "3fbfaf2d-6cba-4cfa-a24e-11eaf575d68a",
+            "pinned": false,
+            "top": 129,
+            "bottom": 161
+          }
+        ]
+      }
+    ]
+  },
+  "source": {
+    "kind": "tab",
+    "id": "3fbfaf2d-6cba-4cfa-a24e-11eaf575d68a",
+    "pinned": false,
+    "top": 129,
+    "bottom": 161,
+    "groupId": null
+  },
+  "probeY": 69,
+  "result": null,
+  "script": [
+    "blanc-chrome://overlay/tab-drag.js"
+  ],
+  "url": "blanc-chrome://overlay/"
+}

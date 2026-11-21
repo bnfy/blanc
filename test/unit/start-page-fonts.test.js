@@ -9,7 +9,7 @@ const { withoutInterfaceKeys } = require('../support/without-interface-keys');
 const root = path.join(__dirname, '../..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 
-test('product UI uses Inter while Mahjong tile faces retain their separate font', () => {
+test('the Start Page and Mahjong use the shared typography rules', () => {
   const pages = read('src/renderer/pages/pages.css');
   const chrome = read('src/renderer/styles.css');
   const handoff = read('src/renderer/pages/tab-handoff.css');
@@ -20,7 +20,7 @@ test('product UI uses Inter while Mahjong tile faces retain their separate font'
   for (const css of [pages, chrome, handoff, mahjong]) {
     assert.doesNotMatch(css, /--font-mono|--font-kbd/);
   }
-  assert.match(mahjong, /--mj-face-font:\s*"JetBrains Mono"/);
+  assert.doesNotMatch(mahjong, /--mj-face-font/, 'Mahjong tile faces use raster artwork');
   assert.match(newtab, /<body class="ledger-body"/);
   assert.match(game, /<body class="mahjong-body"/);
 });
@@ -40,7 +40,7 @@ const KEEP_INTER = [
   'body.sheet .row .meta, body.sheet .row .url, body.sheet kbd', '.shortcut-row kbd', '.ob-kbd',
 ];
 
-test('Instrument Sans sets the page copy, headings and clock; Inter keeps figures, keys and Mahjong', () => {
+test('Instrument Sans sets page text and the clock, and Inter keeps figures and keys', () => {
   const pages = read('src/renderer/pages/pages.css');
   const handoff = read('src/renderer/pages/tab-handoff.css');
   const chrome = read('src/renderer/styles.css');
@@ -122,8 +122,15 @@ test('Instrument Sans sets the page copy, headings and clock; Inter keeps figure
 
   assert.doesNotMatch(chrome, /Blubird|--font-display|Newsreader/);
   assert.doesNotMatch(mahjong, /Blubird|--font-display/);
-  assert.match(mahjong, /\.mahjong-body \{[^}]*--font-text: var\(--font-ui\);/, 'Mahjong maps shared --font-text rules back to Inter');
-  assert.match(mahjong, /\.mahjong-body \{[^}]*--text-word-spacing: normal;[^}]*--text-tracking: normal;/, 'Mahjong keeps Inter spacing');
+  const mahjongBody = mahjong.match(/\.mahjong-body \{([^}]*)\}/)[1];
+  assert.doesNotMatch(mahjongBody, /--text-tracking\s*:/);
+  // Mahjong may restate the text stack only to drop the Inter fallback
+  // (owner choice, November 12, 2026); it still leads with Instrument Sans.
+  const mahjongStack = mahjongBody.match(/--font-text\s*:\s*([^;]+);/);
+  if (mahjongStack) {
+    assert.match(mahjongStack[1], /^"Instrument Sans",/, 'Mahjong uses the shared Instrument Sans text face');
+    assert.doesNotMatch(mahjongStack[1], /Inter/, 'Mahjong never falls back to Inter');
+  }
 });
 
 test('Instrument Sans ships in the repository with its OFL license', () => {

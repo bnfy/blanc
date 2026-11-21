@@ -1,0 +1,13 @@
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -1732,6 +1732,9 @@
+   registry->RegisterBooleanPref("blanc.telemetry.usage_ping", true);
+   // N16: at most 50 crash events (time, process type, reason); never a page.
+   registry->RegisterListPref("blanc.crash_ledger");
++  // The Electron profile importer's marker: the source version and when each
++  // profile came across (blanc/browser/ui/profile_import.inc).
++  registry->RegisterDictionaryPref("blanc.profile_import");
+   registry->RegisterDictionaryPref("blanc.telemetry.install");
+   registry->RegisterDictionaryPref("blanc.glance.frame");
+   // The moving-in checklist (N11), device-wide as in shipping.

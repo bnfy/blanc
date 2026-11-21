@@ -19,6 +19,8 @@ on:
       - tokens/generated/Tokens.swift
       - adblock/generated/**
       - browser-api/bridges.json
+      - chromium/blanc/android/pages/start/**
+      - chromium/blanc/android/pages/whats-new.js
   pull_request:
     paths:
       - .github/workflows/ios.yml
@@ -28,6 +30,8 @@ on:
       - tokens/generated/Tokens.swift
       - adblock/generated/**
       - browser-api/bridges.json
+      - chromium/blanc/android/pages/start/**
+      - chromium/blanc/android/pages/whats-new.js
   # Nightly, so main's full suite, UI tests included, runs every day even when
   # nothing iOS merged.
   schedule:
@@ -42,7 +46,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  fork-only:
+    # A pull-request push that changes only the Chromium fork (chromium/, its
+    # experiment folder) or docs, since a head of this PR that this workflow
+    # passed on, skips the jobs below: nothing they test changed. Every other event, and any failure here, runs them
+    # (scripts/ci-fork-only-push.sh).
+    runs-on: ubuntu-latest
+    # actions: read lets the classifier check the previous head's run.
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      skip: ${{ steps.classify.outputs.skip }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.event_name == 'pull_request'
+      - id: classify
+        name: Classify this push
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ACTION: ${{ github.event.action }}
+          AFTER: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ github.head_ref }}
+          GH_TOKEN: ${{ github.token }}
+        run: echo "skip=$(sh scripts/ci-fork-only-push.sh)" >> "$GITHUB_OUTPUT"
   xctest:
+    needs: fork-only
+    if: ${{ !cancelled() && needs.fork-only.outputs.skip != 'true' }}
     runs-on: macos-26
     # The build and full suite took 29 minutes on October 29, 2026, after
     # M17c and the icon picker added UI tests; 30 cancelled runs mid-suite.
@@ -134,6 +164,44 @@ jobs:
       - name: Print app crash reports
         # A UI test that ends with "application is not running" crashed the
         # app; the simulator writes the report on the host.
+        if: failure()
+        run: |
+          for f in $(ls -t ~/Library/Logs/DiagnosticReports/Blanc* 2>/dev/null | head -3); do
+            echo "::group::$f"; head -c 60000 "$f"; echo "::endgroup::"
+          done
+
+  # The same app on an iPad: the unit tests, and a smoke of what only the wide
+  # layout and iPad windows show. The iPhone job above runs the full UI suite.
+  xctest-ipad:
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Select the newest Xcode
+        run: |
+          ls -d /Applications/Xcode*.app
+          xcode=$(ls -d /Applications/Xcode_[0-9]*.app | sort -V | tail -1)
+          sudo xcode-select -s "$xcode"
+          xcodebuild -version
+      - name: Pick an iPad simulator
+        id: sim
+        run: |
+          udid=$(xcrun simctl list devices available --json \
+            | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; ios=[(r,x) for r,v in d.items() if "iOS" in r for x in v if x["name"].startswith("iPad Pro 11")]; ios.sort(key=lambda p: [int(n) for n in p[0].rsplit("iOS-",1)[1].split("-")]); print(ios[-1][1]["udid"])')
+          echo "udid=$udid" >> "$GITHUB_OUTPUT"
+      - name: Build and test
+        working-directory: ios/Blanc
+        run: |
+          xcodebuild test \
+            -project Blanc.xcodeproj \
+            -scheme Blanc \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -only-testing:BlancTests \
+            -only-testing:BlancUITests/IPadWindowUITests \
+            -only-testing:BlancUITests/MultipleWindowsUITests \
+            -only-testing:BlancUITests/DuoUITests \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Print app crash reports
         if: failure()
         run: |
           for f in $(ls -t ~/Library/Logs/DiagnosticReports/Blanc* 2>/dev/null | head -3); do

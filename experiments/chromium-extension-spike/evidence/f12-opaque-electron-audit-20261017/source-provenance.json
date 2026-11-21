@@ -1,0 +1,74 @@
+[
+  {
+    "file": "DEPS",
+    "url": "https://raw.githubusercontent.com/electron/electron/v44.8.0/DEPS",
+    "sha256": "c254ca413381a28243b3808e10dc8842ff0bc09629e1663ee7e09ef79dd4514a",
+    "bytes": 8442
+  },
+  {
+    "file": "LICENSE",
+    "url": "https://raw.githubusercontent.com/electron/electron/v44.8.0/LICENSE",
+    "sha256": "5154e165bd6c2cc0cfbcd8916498c7abab0497923bafcd5cb07673fe8480087d",
+    "bytes": 1096
+  },
+  {
+    "file": "shell/browser/api/electron_api_web_request.cc",
+    "url": "https://raw.githubusercontent.com/electron/electron/v44.8.0/shell/browser/api/electron_api_web_request.cc",
+    "sha256": "bac90cbe3f9f7a8b0d746a923de6e1532613ae7967490be08edbae413fdb50a6",
+    "bytes": 35323
+  },
+  {
+    "file": "shell/browser/net/proxying_url_loader_factory.cc",
+    "url": "https://raw.githubusercontent.com/electron/electron/v44.8.0/shell/browser/net/proxying_url_loader_factory.cc",
+    "sha256": "1b5097e121b446127ff53ad347219a1a52bf1b6e5805fecbbbf7e0c215d6e27c",
+    "bytes": 40402
+  },
+  {
+    "file": "shell/browser/net/proxying_url_loader_factory.h",
+    "url": "https://raw.githubusercontent.com/electron/electron/v44.8.0/shell/browser/net/proxying_url_loader_factory.h",
+    "sha256": "4f92c87db2b63327f128600e9c7be09a1c9dd617debdc55e7526e7b18c4e735b",
+    "bytes": 12530
+  },
+  {
+    "file": "shell/browser/electron_browser_client.cc",
+    "url": "https://raw.githubusercontent.com/electron/electron/v44.8.0/shell/browser/electron_browser_client.cc",
+    "sha256": "ed0b6d9e3123228d98ecde85109cc07d706794c9716969b37f279074bfc1103d",
+    "bytes": 85857
+  },
+  {
+    "file": "chromium152/LICENSE",
+    "url": "https://raw.githubusercontent.com/chromium/chromium/152.0.7977.167/LICENSE",
+    "sha256": "368cca1106be99d39ecd32a38d8305585d802a475effb66380b91ffc9bcf709b",
+    "bytes": 1536
+  },
+  {
+    "file": "chromium152/content/browser/service_worker/service_worker_update_checker.cc",
+    "url": "https://raw.githubusercontent.com/chromium/chromium/152.0.7977.167/content/browser/service_worker/service_worker_update_checker.cc",
+    "sha256": "47fa2ba19351fe7ffd9237489958f4b27b6fa0797481c0e9758c781eec34cb06",
+    "bytes": 13937
+  },
+  {
+    "file": "chromium152/content/browser/service_worker/service_worker_single_script_update_checker.cc",
+    "url": "https://raw.githubusercontent.com/chromium/chromium/152.0.7977.167/content/browser/service_worker/service_worker_single_script_update_checker.cc",
+    "sha256": "48f58c6fa25c0c79d367d5098467089d8aa7dfbc79520bc6cbce20ed255542c8",
+    "bytes": 31494
+  },
+  {
+    "file": "chromium152/content/browser/service_worker/service_worker_single_script_update_checker.h",
+    "url": "https://raw.githubusercontent.com/chromium/chromium/152.0.7977.167/content/browser/service_worker/service_worker_single_script_update_checker.h",
+    "sha256": "979a3e0cc2f2877c6cfa19c80486756170d2595128a07a509bd182633c01bc3a",
+    "bytes": 13566
+  },
+  {
+    "file": "chromium152/content/browser/service_worker/service_worker_loader_helpers.cc",
+    "url": "https://raw.githubusercontent.com/chromium/chromium/152.0.7977.167/content/browser/service_worker/service_worker_loader_helpers.cc",
+    "sha256": "1316df688ec0664c0a9abb0b4cdea0928f3e57be35e5e852d5b63e2c42f958e0",
+    "bytes": 27287
+  },
+  {
+    "file": "chromium152/services/network/public/cpp/resource_request.h",
+    "url": "https://raw.githubusercontent.com/chromium/chromium/152.0.7977.167/services/network/public/cpp/resource_request.h",
+    "sha256": "730ab00dbd1e78d16a8b49d9d896f476e6906bbd2e825ba49b1be5d4ae0e3d0f",
+    "bytes": 15070
+  }
+]

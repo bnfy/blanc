@@ -1,0 +1,119 @@
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tasks/ReturnToChromeUtil.java b/chrome/android/java/src/org/chromium/chrome/browser/tasks/ReturnToChromeUtil.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/tasks/ReturnToChromeUtil.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/tasks/ReturnToChromeUtil.java
+@@ -95,6 +95,10 @@
+      * @return true if past threshold, false if not past threshold or experiment cannot be loaded.
+      */
+     public static boolean shouldShowTabSwitcher(final long lastTimeMillis) {
++        // Blanc (patch 0105): coming back reopens the last tab, as on the iPhone. Chrome opened its
++        // new tab page after four hours away and failed its own check on Blanc's Start Page address.
++        // Decided here rather than by the return-time param, which Chrome caches from the last launch.
++        if (true) return false;
+         long tabSwitcherAfterMillis =
+                 getReturnTime(ChromeFeatureList.sStartSurfaceReturnTimeTabletSecs);
+ 
+diff -ruN a/chrome/browser/flags/android/chrome_feature_list.cc b/chrome/browser/flags/android/chrome_feature_list.cc
+--- a/chrome/browser/flags/android/chrome_feature_list.cc
++++ b/chrome/browser/flags/android/chrome_feature_list.cc
+@@ -797,7 +797,8 @@
+ BASE_FEATURE(kCacheIsMultiInstanceApi31Enabled, base::FEATURE_ENABLED_BY_DEFAULT);
+ BASE_FEATURE(kCctTabResumption, base::FEATURE_DISABLED_BY_DEFAULT);
+ BASE_FEATURE(kChangeUnfocusedPriority, base::FEATURE_DISABLED_BY_DEFAULT);
+-BASE_FEATURE(kChromeNativeUrlOverriding, base::FEATURE_DISABLED_BY_DEFAULT);
++// Blanc (patch 0105): on, so new tabs open chrome://blanc/ (UrlConstantResolverFactory).
++BASE_FEATURE(kChromeNativeUrlOverriding, base::FEATURE_ENABLED_BY_DEFAULT);
+ BASE_FEATURE(kChromeSurveyNextAndroid, base::FEATURE_ENABLED_BY_DEFAULT);
+ BASE_FEATURE(kClampAutomotiveScaling, base::FEATURE_ENABLED_BY_DEFAULT);
+ BASE_FEATURE(kClankGlicContextMenu, base::FEATURE_DISABLED_BY_DEFAULT);
+diff -ruN a/chrome/browser/flags/android/java/src/org/chromium/chrome/browser/flags/ChromeFeatureList.java b/chrome/browser/flags/android/java/src/org/chromium/chrome/browser/flags/ChromeFeatureList.java
+--- a/chrome/browser/flags/android/java/src/org/chromium/chrome/browser/flags/ChromeFeatureList.java
++++ b/chrome/browser/flags/android/java/src/org/chromium/chrome/browser/flags/ChromeFeatureList.java
+@@ -1126,7 +1126,7 @@
+     public static final CachedFlag sCctTabSwitcherEnabledForEmbedderExperiment =
+             newCachedFlag(CCT_TAB_SWITCHER_ENABLED_FOR_EMBEDDER_EXPERIMENT, true);
+     public static final CachedFlag sChromeNativeUrlOverriding =
+-            newCachedFlag(CHROME_NATIVE_URL_OVERRIDING, BuildConfig.IS_DESKTOP_ANDROID);
++            newCachedFlag(CHROME_NATIVE_URL_OVERRIDING, true); // Blanc (patch 0105)
+     public static final CachedFlag sClampAutomotiveScaling =
+             newCachedFlag(CLAMP_AUTOMOTIVE_SCALING, true);
+     public static final CachedFlag sClankMiniOmnibox = newCachedFlag(CLANK_MINI_OMNIBOX, false);
+diff -ruN a/chrome/browser/ui/webui/BUILD.gn b/chrome/browser/ui/webui/BUILD.gn
+--- a/chrome/browser/ui/webui/BUILD.gn
++++ b/chrome/browser/ui/webui/BUILD.gn
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//blanc/android/browser/sources.gni")  # Blanc (patch 0105)
+ import("//chrome/common/features.gni")
+ import("//chrome/test/include_js_tests.gni")
+ import("//chromeos/dbus/config/use_real_dbus_clients.gni")
+@@ -153,6 +154,10 @@
+       "//chrome/browser/ui/webui/notifications_internals",
+       "//chrome/browser/ui/webui/webapks",
+     ]
++
++    # Blanc (patch 0105): chrome://blanc/, Blanc's pages.
++    sources += blanc_android_browser_sources
++    deps += [ "//blanc/android/pages_resources" ]
+   }
+ 
+   if (safe_browsing_mode == 1) {
+diff -ruN a/chrome/browser/ui/webui/chrome_web_ui_configs.cc b/chrome/browser/ui/webui/chrome_web_ui_configs.cc
+--- a/chrome/browser/ui/webui/chrome_web_ui_configs.cc
++++ b/chrome/browser/ui/webui/chrome_web_ui_configs.cc
+@@ -143,6 +143,7 @@
+ #include "chrome/browser/ui/webui/webui_gallery/webui_gallery_ui.h"
+ #include "chrome/browser/ui/webui/webui_js_error/webui_js_error_ui.h"
+ #else  // !BUILDFLAG(IS_ANDROID)
++#include "blanc/android/browser/blanc_pages_ui.h"  // Blanc (patch 0105)
+ #include "chrome/browser/ui/webui/chrome_finds_internals/chrome_finds_internals_ui.h"
+ #include "chrome/browser/ui/webui/feed_internals/feed_internals_ui.h"
+ #include "chrome/browser/ui/webui/notifications_internals/notifications_internals_ui.h"
+@@ -344,6 +345,7 @@
+   map.AddWebUIConfig(std::make_unique<FeedInternalsUIConfig>());
+   map.AddWebUIConfig(std::make_unique<NotificationsInternalsUIConfig>());
+   map.AddWebUIConfig(std::make_unique<WebApksUIConfig>());
++  map.AddWebUIConfig(std::make_unique<blanc::android::PagesUIConfig>());  // Blanc (patch 0105)
+ #else  // BUILDFLAG(IS_ANDROID)
+ #if !BUILDFLAG(IS_CHROMEOS)
+   map.AddWebUIConfig(std::make_unique<AppHomeUIConfig>());
+diff -ruN a/chrome/browser/url_constants/android/java/src/org/chromium/chrome/browser/url_constants/UrlConstantResolverFactory.java b/chrome/browser/url_constants/android/java/src/org/chromium/chrome/browser/url_constants/UrlConstantResolverFactory.java
+--- a/chrome/browser/url_constants/android/java/src/org/chromium/chrome/browser/url_constants/UrlConstantResolverFactory.java
++++ b/chrome/browser/url_constants/android/java/src/org/chromium/chrome/browser/url_constants/UrlConstantResolverFactory.java
+@@ -68,6 +68,12 @@
+         return sIncognitoResolver;
+     }
+ 
++    // Blanc (patch 0105): new tabs, Favorites and History open Blanc's pages
++    // (chrome://blanc/, blanc/android/browser/blanc_pages_ui.h), as on Blanc for iPhone, so
++    // Chrome's New Tab page, Discover and native pages are never created. Registered last,
++    // these replace Chrome's overrides.
++    private static final String BLANC_PAGES = "chrome://blanc/";
++
+     private static UrlConstantResolver buildOriginalResolver() {
+         UrlConstantResolver resolver = new UrlConstantResolver();
+         resolver.registerOverride(
+@@ -87,6 +93,11 @@
+         resolver.registerOverride(
+                 getOriginalNativeHistoryUrl(),
+                 () -> isHistoryPageOverrideEnabled() ? getOriginalHistoryUrl() : null);
++        resolver.registerOverride(getOriginalNativeNtpUrl(), () -> BLANC_PAGES + "newtab.html");
++        resolver.registerOverride(
++                getOriginalNativeBookmarksUrl(), () -> BLANC_PAGES + "bookmarks.html");
++        resolver.registerOverride(
++                getOriginalNativeHistoryUrl(), () -> BLANC_PAGES + "history.html");
+         return resolver;
+     }
+ 
+@@ -98,6 +109,10 @@
+         resolver.registerOverride(
+                 getOriginalNativeBookmarksUrl(),
+                 () -> isIncognitoBookmarksPageOverrideEnabled() ? getOriginalBookmarksUrl() : null);
++        resolver.registerOverride(
++                getOriginalNativeNtpUrl(), () -> BLANC_PAGES + "newtab.html?private=1");
++        resolver.registerOverride(
++                getOriginalNativeBookmarksUrl(), () -> BLANC_PAGES + "bookmarks.html");
+         return resolver;
+     }
+ 

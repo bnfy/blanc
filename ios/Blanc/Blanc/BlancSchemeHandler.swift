@@ -68,6 +68,39 @@ enum BlancPageResolver {
         return basename
     }
 
+    /// The Start Page is the desktop fork's (`chromium/blanc/android/pages/start`,
+    /// bundled as `start/`), as on Android. These files of the iPhone's sit
+    /// beside it at the bundle's root: the phone layer and the fork page's
+    /// `../whats-new.js` (a URL can't climb above its host, so it arrives here).
+    static let startRootFiles: Set<String> = ["ios-start.js", "ios-start.css", "whats-new.js"]
+    /// Written per request rather than bundled: the language the fork's
+    /// all-language catalog shows, the phone layer's state, and the photo a
+    /// person chose before the fork's page, read once to carry it over.
+    static let startGeneratedFiles: Set<String> = ["ui-language.js", "ios-start-state.js", "ios-wallpaper.jpg"]
+
+    /// The bundle folder a resolved file comes from: `start` for the Start
+    /// Page's own files, nil for the bundle's root, `pages` for every other page.
+    static func subdirectory(host: String, filename: String) -> String? {
+        guard host == "newtab" else { return "pages" }
+        return startRootFiles.contains(filename) ? nil : "start"
+    }
+
+    /// The fork page's `<head>` with the phone layer first, as Android's WebUI
+    /// serves it: the state, then the script, then the stylesheet.
+    static func startPageHTML(_ html: String) -> String? {
+        guard let head = html.range(of: "<head>") else { return nil }
+        var page = html
+        page.insert(contentsOf: "<script src=\"ios-start-state.js\"></script><script src=\"ios-start.js\"></script>"
+            + "<link rel=\"stylesheet\" href=\"ios-start.css\">", at: head.upperBound)
+        return page
+    }
+
+    /// `ui-language.js`: the fork catalog's pinned language, the one the
+    /// iPhone's other pages are in.
+    static func uiLanguageScript(preferred: [String]) -> String {
+        "window.__blancUiLanguage=\"\(resolvedLocale(preferred: preferred))\";\n"
+    }
+
     /// MIME type by extension, defaulting to octet-stream for anything the
     /// bundle doesn't use.
     static func mimeType(forFilename filename: String) -> String {
@@ -94,15 +127,18 @@ enum BlancPageResolver {
 final class BlancSchemeHandler: NSObject, WKURLSchemeHandler {
     private let wallpaperURL: URL?
     private let wallpaperVersion: () -> String?
+    /// `ios-start-state.js`'s source (`StartPageBridge.stateScript`), set once
+    /// the stores it reads exist.
+    /// Its argument says whether the page is private.
+    var startState: (Bool) -> String = { _ in "" }
 
+    /// `wallpaperURL` is the photo chosen before the fork's page; it is served
+    /// only to the Start Page, only at its current version, until it's carried over.
     init(wallpaperURL: URL? = nil, wallpaperVersion: @escaping () -> String? = { nil }) {
         self.wallpaperURL = wallpaperURL
         self.wallpaperVersion = wallpaperVersion
         super.init()
     }
-
-    /// The bundled folder-reference name (`src/renderer/pages` copies in as `pages`).
-    private static let bundleSubdirectory = "pages"
 
     func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
         let request = urlSchemeTask.request
@@ -121,12 +157,12 @@ final class BlancSchemeHandler: NSObject, WKURLSchemeHandler {
             urlSchemeTask.didFailWithError(URLError(.fileDoesNotExist))
             return
         }
-        let isStrings = requested == "strings.js"
+        // The fork's Start Page brings its own all-language catalog (start/strings.js).
+        let isStrings = requested == "strings.js" && host != "newtab"
         let preferred = Locale.preferredLanguages
         let filename = isStrings ? BlancPageResolver.stringsFilename(preferred: preferred) : requested
-        guard let fileURL = assetURL(filename: filename, host: host),
-              var data = try? Data(contentsOf: fileURL)
-        else {
+        let isPrivate = !webView.configuration.websiteDataStore.isPersistent
+        guard var data = contents(filename: filename, host: host, preferred: preferred, isPrivate: isPrivate) else {
             urlSchemeTask.didFailWithError(URLError(.fileDoesNotExist))
             return
         }
@@ -148,13 +184,25 @@ final class BlancSchemeHandler: NSObject, WKURLSchemeHandler {
         urlSchemeTask.didFinish()
     }
 
-    private func assetURL(filename: String, host: String) -> URL? {
-        if filename == "ios-wallpaper.jpg" {
-            return host == "newtab" ? wallpaperURL : nil
+    private func contents(filename: String, host: String, preferred: [String], isPrivate: Bool) -> Data? {
+        if host == "newtab", BlancPageResolver.startGeneratedFiles.contains(filename) {
+            switch filename {
+            case "ui-language.js": return Data(BlancPageResolver.uiLanguageScript(preferred: preferred).utf8)
+            case "ios-start-state.js": return Data(startState(isPrivate).utf8)
+            default: return wallpaperURL.flatMap { try? Data(contentsOf: $0) }
+            }
         }
-        return Bundle.main.url(forResource: (filename as NSString).deletingPathExtension,
-                               withExtension: (filename as NSString).pathExtension,
-                               subdirectory: Self.bundleSubdirectory)
+        guard let url = Bundle.main.url(forResource: (filename as NSString).deletingPathExtension,
+                                        withExtension: (filename as NSString).pathExtension,
+                                        subdirectory: BlancPageResolver.subdirectory(host: host, filename: filename)),
+              let data = try? Data(contentsOf: url) else { return nil }
+        // The fork's page loads only as the Start Page, with the phone layer first.
+        if host == "newtab", filename.hasSuffix(".html") {
+            guard filename == "newtab.html", let html = String(data: data, encoding: .utf8),
+                  let page = BlancPageResolver.startPageHTML(html) else { return nil }
+            return Data(page.utf8)
+        }
+        return data
     }
 
     func webView(_ webView: WKWebView, stop urlSchemeTask: WKURLSchemeTask) {

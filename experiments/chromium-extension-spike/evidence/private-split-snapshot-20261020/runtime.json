@@ -1,0 +1,331 @@
+{
+  "checks": [
+    {
+      "name": "two regular window split identities",
+      "value": {
+        "source": {
+          "uuid": "69ee07e4-da2c-4add-9e5e-6da8e2738374",
+          "urls": [
+            "blanc://newtab/",
+            "http://127.0.0.1:9278/source-a",
+            "http://127.0.0.1:9278/source-b"
+          ],
+          "active": "http://127.0.0.1:9278/source-b",
+          "splits": [
+            {
+              "focus": 1,
+              "ids": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ]
+            }
+          ]
+        },
+        "decoy": {
+          "uuid": "e1cb76bf-1c0d-4bac-a6d3-c1fb57b62d4b",
+          "urls": [
+            "http://127.0.0.1:9278/decoy-a",
+            "http://127.0.0.1:9278/decoy-b"
+          ],
+          "active": "http://127.0.0.1:9278/decoy-a",
+          "splits": [
+            {
+              "focus": 0,
+              "ids": [
+                "http://127.0.0.1:9278/decoy-a",
+                "http://127.0.0.1:9278/decoy-b"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "private inactive split retains last focus",
+      "value": {
+        "activeTabId": "1055500765",
+        "adblockEnabled": false,
+        "closed": [],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "1055500765",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": false,
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "",
+        "spaceWindowIdentity": "",
+        "splits": [
+          {
+            "focusedIndex": 1,
+            "focusedTabId": "1055500764",
+            "id": "split-0",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.5,
+                0.5
+              ]
+            },
+            "tabIds": [
+              "1055500763",
+              "1055500764"
+            ]
+          }
+        ],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "1055500763",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9278/private-a"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "1055500764",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9278/private-b"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "1055500765",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9278/private-loose"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 3
+      }
+    },
+    {
+      "name": "private split creation and persistence refusals",
+      "value": {
+        "privateSnapshot": {
+          "activeTabId": "1055500764",
+          "adblockEnabled": false,
+          "closed": [],
+          "displayShares": [],
+          "extensionsWidth": 26,
+          "focusedTabId": "1055500764",
+          "glanceTabId": null,
+          "groups": [],
+          "initialWindowSaveFailed": false,
+          "initialWindowSaved": false,
+          "spaceAutosaveError": "",
+          "spaceBusy": false,
+          "spaceName": "",
+          "spaceWindowIdentity": "",
+          "splits": [
+            {
+              "focusedIndex": 1,
+              "focusedTabId": "1055500764",
+              "id": "split-0",
+              "layout": {
+                "kind": "columns",
+                "widths": [
+                  0.5,
+                  0.5
+                ]
+              },
+              "tabIds": [
+                "1055500763",
+                "1055500764"
+              ]
+            }
+          ],
+          "tabLayout": "island",
+          "tabs": [
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": null,
+              "id": "1055500763",
+              "isLoading": false,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": true,
+              "siteMuted": false,
+              "title": "Split fixture",
+              "url": "http://127.0.0.1:9278/private-a"
+            },
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": null,
+              "id": "1055500764",
+              "isLoading": false,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": true,
+              "siteMuted": false,
+              "title": "Split fixture",
+              "url": "http://127.0.0.1:9278/private-b"
+            }
+          ],
+          "verticalTabsDefaultWidth": 248,
+          "verticalTabsMaxWidth": 360,
+          "verticalTabsMinWidth": 200,
+          "verticalTabsPreferredWidth": 248,
+          "verticalTabsWidth": 248,
+          "closedSlot": 2
+        },
+        "refused": {
+          "previewSpaceSave": {
+            "error": "Error: {\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Space operation unavailable.\",\"lineNumber\":73,\"columnNumber\":64,\"scriptId\":\"5\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancPrototypeReply\",\"scriptId\":\"5\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":72,\"columnNumber\":63},{\"functionName\":\"\",\"scriptId\":\"57\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Space operation unavailable.\\n    at window.blancPrototypeReply (chrome://blanc-prototype/host.js:73:64)\\n    at <anonymous>:1:1\",\"objectId\":\"-789520988775168097.1.1\"}}"
+          },
+          "previewSpaceOpen": {
+            "error": "Error: {\"exceptionId\":3,\"text\":\"Uncaught (in promise) Error: Space operation unavailable.\",\"lineNumber\":73,\"columnNumber\":64,\"scriptId\":\"5\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancPrototypeReply\",\"scriptId\":\"5\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":72,\"columnNumber\":63},{\"functionName\":\"\",\"scriptId\":\"59\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Space operation unavailable.\\n    at window.blancPrototypeReply (chrome://blanc-prototype/host.js:73:64)\\n    at <anonymous>:1:1\",\"objectId\":\"-789520988775168097.1.2\"}}"
+          },
+          "previewSpaceRecover": {
+            "error": "Error: {\"exceptionId\":4,\"text\":\"Uncaught (in promise) Error: Space operation unavailable.\",\"lineNumber\":73,\"columnNumber\":64,\"scriptId\":\"5\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancPrototypeReply\",\"scriptId\":\"5\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":72,\"columnNumber\":63},{\"functionName\":\"\",\"scriptId\":\"61\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Space operation unavailable.\\n    at window.blancPrototypeReply (chrome://blanc-prototype/host.js:73:64)\\n    at <anonymous>:1:1\",\"objectId\":\"-789520988775168097.1.3\"}}"
+          }
+        }
+      }
+    },
+    {
+      "name": "private requests leave both regular windows unchanged",
+      "value": true
+    },
+    {
+      "name": "crash restart preserves both regular splits and excludes private",
+      "value": {
+        "source": {
+          "uuid": "69ee07e4-da2c-4add-9e5e-6da8e2738374",
+          "urls": [
+            "blanc://newtab/",
+            "http://127.0.0.1:9278/source-a",
+            "http://127.0.0.1:9278/source-b"
+          ],
+          "active": "http://127.0.0.1:9278/source-b",
+          "splits": [
+            {
+              "focus": 1,
+              "ids": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ]
+            }
+          ]
+        },
+        "decoy": {
+          "uuid": "e1cb76bf-1c0d-4bac-a6d3-c1fb57b62d4b",
+          "urls": [
+            "http://127.0.0.1:9278/decoy-a",
+            "http://127.0.0.1:9278/decoy-b"
+          ],
+          "active": "http://127.0.0.1:9278/decoy-a",
+          "splits": [
+            {
+              "focus": 0,
+              "ids": [
+                "http://127.0.0.1:9278/decoy-a",
+                "http://127.0.0.1:9278/decoy-b"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "interrupted source switch recovers exact owner and preserves decoy",
+      "value": {
+        "source": {
+          "uuid": "69ee07e4-da2c-4add-9e5e-6da8e2738374",
+          "urls": [
+            "blanc://newtab/",
+            "http://127.0.0.1:9278/source-a",
+            "http://127.0.0.1:9278/source-b"
+          ],
+          "active": "http://127.0.0.1:9278/source-b",
+          "splits": [
+            {
+              "focus": 1,
+              "ids": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ]
+            }
+          ]
+        },
+        "decoy": {
+          "uuid": "e1cb76bf-1c0d-4bac-a6d3-c1fb57b62d4b",
+          "urls": [
+            "http://127.0.0.1:9278/decoy-a",
+            "http://127.0.0.1:9278/decoy-b"
+          ],
+          "active": "http://127.0.0.1:9278/decoy-a",
+          "splits": [
+            {
+              "focus": 0,
+              "ids": [
+                "http://127.0.0.1:9278/decoy-a",
+                "http://127.0.0.1:9278/decoy-b"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "cleanup exit status",
+      "value": {
+        "exitCode": 0,
+        "signalCode": null
+      }
+    }
+  ],
+  "pass": true
+}

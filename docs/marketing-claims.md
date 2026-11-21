@@ -56,7 +56,7 @@ Use this order for feature messaging:
 3. **Qualification and action:** preserve material limits and give an honest
    next step.
 
-Prefer “Choose your Start Page layout” to “Start with a view that suits you,”
+Prefer “Choose what your Start Page shows” to “Start with a view that suits you,”
 “View two tabs with Glance” to “Keep a reference beside your page,” and
 “Navigate with mouse gestures” to “Let a small movement take you somewhere.”
 Warmth and personality are welcome when the meaning remains clear. Do not
@@ -385,8 +385,11 @@ original reports:
   eight layouts. Device-local state remembers the last layout, mode, and deal,
   can offer to continue an unfinished board from another tab, and keeps records
   and daily streaks. The game also includes scoring, timed combos, automatic
-  clears, hints, shuffle, undo, and sound controls. Do not describe it as
-  online multiplayer, cloud-synced, or
+  clears, hints, shuffle, undo, and sound controls. Since v1.49.0 it has a
+  Sunrise design in light and dark mode and three tile sets (Porcelain, Carved
+  and Inlay), moving to the next set after three boards cleared in a row, plus
+  a short match trail and board-cleared celebration (a brief glow with reduced
+  motion on). Do not describe it as online multiplayer, cloud-synced, or
   AI-generated.
 - **Call audio buffering:** Automatic, Stable, and Resilient are receive-buffer
   choices for WebRTC calls. Stable targets about 400 ms and Resilient about one
@@ -397,7 +400,8 @@ original reports:
   Settings → General enables bundled Sunrise artwork for dawn (05:00–08:00),
   day (08:00–17:00), dusk (17:00–20:00), and night (20:00–05:00), using the
   device's local clock without location permission or artwork requests.
-  It works across all four layouts and private tabs, with two-second fades
+  It works on the Start Page (all four layouts before v1.51.0) and in private
+  tabs, with two-second fades
   and immediate changes for reduced motion. Optional Sync carries only the
   preference; each device computes its own phase. Physical Windows/Linux
   appearance and lifecycle acceptance was waived, not passed.
@@ -424,11 +428,11 @@ original reports:
   (only on faces that allow it), Automatic or one of the eight Spaces colors
   with a tone, and Glass or Solid. Glass draws as Solid under reduced
   transparency. Every clock has a shadow. The choices sync with Profile Sync.
-  It is the Billboard layout's clock only, and it isn't macOS's native Liquid
+  It is the Start Page's clock only, and it isn't macOS's native Liquid
   Glass. Not yet hand-checked on Windows or Linux.
 - **Start Page pins:** Since v1.41.0 up to eight pages can be pinned, and
-  they come first on every Start Page layout, newest first: from a Billboard
-  tile, a favorite on Ledger, Shelf or Tally, the Favorites page, or Pin to
+  they come first among the Start Page's shortcuts, newest first: from a
+  shortcut tile, the Favorites card or page, or Pin to
   Start Page in a tab's menu (web pages in non-private tabs only). Pins belong
   to a local profile; Profile Sync carries only the Personal profile's, and
   private Start Pages show them read-only. Icons come only from the profile's
@@ -539,6 +543,18 @@ original reports:
   update ships them. There is no Android app. Evidence:
   `docs/ios/app-store-connect.md` item 21 and
   `docs/website-iphone-1.0-claims.json`.
+- **Blanc for iPad (held for App Review):** App Store version 1.0.3 (build
+  202611121714, from `44280ff1d`, with #1479 and #1480) adds iPad to the same
+  listing. Until App Review approves it and it is on sale, don't say Blanc
+  runs on iPad. After that, say it as the App Store description does: Blanc
+  for iPhone and iPad; on iPad a native full-screen app in every orientation,
+  with Split View (two tabs side by side), a floating Glance card for links,
+  tabs in their own windows and hardware-keyboard shortcuts like ⌘L and ⌘T;
+  pages load their desktop layout by default, with Request Mobile Website per
+  site. Never claim trackpad or pointer support (not tested on a real iPad)
+  or Stage Manager, and never present it as a desktop app feature. The site
+  copy waits in `docs/website-ipad-1.0.3-claims.json`, whose test fails until
+  `approvedOn` and `publicRelease` are filled.
 - **Play the Sunrise when Blanc opens:** Since v1.45.0, opt-in in Settings →
   Appearance and set on each device: the Sunrise plays once on the first
   Start Page after launch, ends on any click or key and is skipped when the
@@ -602,6 +618,56 @@ original reports:
   certificate only. Neither was hand-checked against a packaged build before
   release; don't claim a specific console such as Proxmox works until someone
   has tried it.
+- **1.49.0:** The refreshed Mahjong (see Mahjong) is its main change. The
+  closed Island no longer shows the current Space's mark; Spaces open from the
+  ⌘L panel's footer button, which shows the Space's symbol on its color, and
+  vertical tabs still show the mark at the top of the side list. It also
+  fixes windows a page opens on its own (such as Proxmox's separate console)
+  after **Continue** on a certificate warning for a local or private-network
+  address. Neither Mahjong nor the pop-out fix was hand-checked in a packaged
+  build before release; the What's New captures came from a development build.
+  Don't claim a specific console works until someone has tried it.
+- **1.49.1:** New Tab reuse is its main change: when the window already has
+  a new tab that hasn't been used, New Tab (⌘T, Ctrl+T on Windows and Linux)
+  switches to it instead of opening another, and ⌘⇧N does the same for
+  private tabs. It is on by default and can be turned off in Settings →
+  General → Browsing (**Switch to an unused new tab**). Pinned, grouped and
+  split tabs are never reused, and only Blanc's own New Tab page counts, so
+  a custom home page always opens fresh. It wasn't hand-checked in a
+  packaged build before release. With vertical tabs on a Mac, the Space mark
+  sits on its own row below the window controls. Describe New Tab reuse as
+  since v1.49.1.
+- **1.50.0:** Favorites opens a manager with folders inside folders (sidebar
+  tree, drag and drop, multi-select, search across folders); one **Bring my
+  stuff to Blanc** dialog imports favorites and open tabs and keeps another
+  browser's nested folders in its order; the Favorites menu nests folders and
+  `/save` takes a path. Drag and drop was driven only by page events, never
+  a real mouse, before release, and phones, older desktops and the Chromium
+  fork show a nested folder as one folder named by its path (D40). Websites
+  ask before connecting to apps on this device or devices on the local
+  network, per site, revocable in Settings → Privacy → Site permissions;
+  the gate classifies by name, so a public name that resolves to a private
+  address isn't gated, and it was never tried with a real Okta Verify, so
+  don't claim Okta FastPass works. Downloads save straight to the Downloads
+  folder (one per real click; page-started downloads and Save Image As still
+  ask), with **Ask where to save each file** in Settings → General. Describe
+  all three as since v1.50.0.
+- **1.51.0:** Favorites opens as a full page in a tab (folders on the left,
+  a ⋮ menu on every favorite), and **Edit…** changes a favorite's name,
+  address and folder; a pinned favorite stays pinned. The Start Page is one
+  page (the clock with the week's blocked count): Favorites and other
+  devices' tabs are optional cards turned on in **Customize**, moved to
+  either side by drag or arrow keys and resized, with 1 to 12 shortcuts; the
+  Ledger, Shelf and Tally layouts are gone, and a profile that used one keeps
+  what it showed. Over the user's own image the cards are frosted and small
+  text switches between light and dark ink. On the Start Page the wallpaper
+  (Sunrise, a color or the user's image) continues behind the Island's top
+  band, not the vertical tabs rail, and stands aside for private pages, a
+  split, Glance, auto-hide and full screen. Customize shrinks a tall clock to
+  make room rather than covering it. None of this was hand-checked in a
+  packaged build on Windows or Linux before release, and card dragging was
+  never tried with a real mouse or finger, so don't claim either. Describe
+  all of it as since v1.51.0.
 - **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
   (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
   strip so the page fills the window. Pointing at or just above the top edge,

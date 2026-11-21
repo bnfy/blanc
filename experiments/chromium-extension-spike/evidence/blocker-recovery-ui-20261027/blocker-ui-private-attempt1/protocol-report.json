@@ -1,0 +1,61 @@
+{
+  "kind": "private",
+  "binary": "/Users/anthonyjloria/Projects/BlancChromium157Recovery/src/out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype",
+  "args": [
+    "--user-data-dir=/Users/anthonyjloria/Projects/BlancChromium157Recovery/records/20261027/blocker-ui-private-attempt1/profile",
+    "--remote-debugging-port=0",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--use-mock-keychain",
+    "--blanc-prototype-assets=/Users/anthonyjloria/Documents/ChatGPT/Blanc Browser/Chromium Preview/repo/experiments/chromium-extension-spike/generated",
+    "--blanc-blocker-assets=/Users/anthonyjloria/Projects/BlancPreviewArtifacts/candidate-20261027/Blanc Chromium Preview.app/Contents/Resources/BlancBlocker",
+    "--incognito",
+    "http://127.0.0.1:58852/start"
+  ],
+  "checks": [
+    {
+      "name": "healthy request reaches fixture",
+      "pass": true
+    },
+    {
+      "name": "health is ready",
+      "pass": true
+    },
+    {
+      "name": "one owned blocker utility",
+      "pass": true,
+      "detail": [
+        {
+          "pid": 43058,
+          "ppid": 43008
+        }
+      ]
+    },
+    {
+      "name": "health unavailable after owned utility loss",
+      "pass": true
+    },
+    {
+      "name": "fresh request refuses with no arrival",
+      "pass": true,
+      "detail": {
+        "refused": true,
+        "hits": [
+          "/start",
+          "/favicon.ico"
+        ]
+      }
+    },
+    {
+      "name": "recovery button visible and labelled",
+      "pass": true,
+      "detail": {
+        "hidden": false,
+        "label": "Blocking unavailable. Open recovery options",
+        "width": 159.8671875
+      }
+    }
+  ],
+  "complete": true,
+  "stage": "protocol controls passed; native dialog/input/veto/restart acceptance pending"
+}

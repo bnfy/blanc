@@ -1,0 +1,68 @@
+TAP version 13
+# Subtest: private or mixed-private snapshots cannot become saved spaces
+ok 1 - private or mixed-private snapshots cannot become saved spaces
+  ---
+  duration_ms: 0.864125
+  ...
+# Subtest: capture preserves zipped columns, group identity and active selection
+ok 2 - capture preserves zipped columns, group identity and active selection
+  ---
+  duration_ms: 0.989791
+  ...
+# Subtest: unsupported URLs are explicit incomplete captures, not silently lost
+ok 3 - unsupported URLs are explicit incomplete captures, not silently lost
+  ---
+  duration_ms: 0.20425
+  ...
+# Subtest: empty and malformed snapshots cannot claim a complete capture
+ok 4 - empty and malformed snapshots cannot claim a complete capture
+  ---
+  duration_ms: 0.17575
+  ...
+# Subtest: persistent split columns round-trip with focused pane and layout from PR993
+ok 5 - persistent split columns round-trip with focused pane and layout from PR993
+  ---
+  duration_ms: 0.75625
+  ...
+# Subtest: temporary Glance is not captured as a persistent split
+ok 6 - temporary Glance is not captured as a persistent split
+  ---
+  duration_ms: 0.324625
+  ...
+# Subtest: omitted split member leaves incomplete capture and dissolves orphan split
+ok 7 - omitted split member leaves incomplete capture and dissolves orphan split
+  ---
+  duration_ms: 0.259791
+  ...
+# Subtest: identity hooks cover session rebuild and both window restore paths
+not ok 8 - identity hooks cover session rebuild and both window restore paths
+  ---
+  duration_ms: 0.676917
+  location: '/private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/window-identity-test.mjs:5:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    8 !== 6
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 6
+  actual: 8
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/blanc-chromium157-work/experiments/chromium-extension-spike/window-identity-test.mjs:8:10)
+    Test.runInAsyncScope (node:async_hooks:211:14)
+    Test.run (node:internal/test_runner/test:979:25)
+    Test.start (node:internal/test_runner/test:877:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 7
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 89.987667

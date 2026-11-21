@@ -1,0 +1,41 @@
+diff --git a/chrome/browser/prefs/session_startup_pref.cc b/chrome/browser/prefs/session_startup_pref.cc
+index 72fc94f516..9843100b69 100644
+--- a/chrome/browser/prefs/session_startup_pref.cc
++++ b/chrome/browser/prefs/session_startup_pref.cc
+@@ -8,6 +8,7 @@
+ 
+ #include <string>
+ 
++#include "base/command_line.h"
+ #include "base/feature_list.h"
+ #include "base/values.h"
+ #include "build/build_config.h"
+@@ -66,6 +67,10 @@ void SessionStartupPref::RegisterProfilePrefs(
+ 
+ // static
+ SessionStartupPref::Type SessionStartupPref::GetDefaultStartupType() {
++  // Blanc continues its saved session on an ordinary application launch.
++  // This is a registered default, not an override of user or managed prefs.
++  if (base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-prototype-assets"))
++    return SessionStartupPref::LAST;
+ #if BUILDFLAG(IS_CHROMEOS)
+   return SessionStartupPref::LAST;
+ #else
+diff --git a/chrome/browser/ui/startup/startup_browser_creator.cc b/chrome/browser/ui/startup/startup_browser_creator.cc
+index 49f777ff63..62e5b6f4e1 100644
+--- a/chrome/browser/ui/startup/startup_browser_creator.cc
++++ b/chrome/browser/ui/startup/startup_browser_creator.cc
+@@ -954,7 +954,12 @@ SessionStartupPref StartupBrowserCreator::GetSessionStartupPref(
+   // behavior (sync promo, welcome page) is consistently invoked.
+   // This applies only if the pref is still at its default and has not been
+   // set by the user, managed prefs or policy.
+-  if (is_first_run && SessionStartupPref::TypeIsDefault(prefs)) {
++  // A fresh Blanc profile has no previous session, including when its
++  // controlled launcher suppresses the generic Chromium first-run flow.
++  const bool blanc_new_profile =
++      command_line.HasSwitch("blanc-prototype-assets") && profile->IsNewProfile();
++  if ((is_first_run || blanc_new_profile) &&
++      SessionStartupPref::TypeIsDefault(prefs)) {
+     pref.type = SessionStartupPref::DEFAULT;
+   }
+ 

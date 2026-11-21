@@ -42,7 +42,7 @@ struct WalkthroughSheet: View {
         .presentationDetents(Set([detent]), selection: $detent)
         .presentationDragIndicator(.visible)
         .presentationBackground(style.surface)
-        .presentationCornerRadius(30)
+        .modifier(WalkthroughCorners())
         .onAppear {
             measureUsage = manager.settingsStore.usagePingShown
             searchSuggestions = manager.settingsStore.searchSuggestionsShown
@@ -307,5 +307,14 @@ struct WalkthroughArrived: View {
 
     private func count(_ n: Int) -> some View {
         Text("\(n)").font(BrowserStyle.font(15, semibold: true)).monospacedDigit()
+    }
+}
+
+/// On iOS 26 a sheet at a partial height floats inside the screen and its
+/// corners follow the display's; a fixed radius left the bottom ones tighter
+/// than the screen's curve, so the display cut them off. Earlier iOS keeps 30.
+private struct WalkthroughCorners: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26, *) { content } else { content.presentationCornerRadius(30) }
     }
 }

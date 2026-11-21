@@ -1,0 +1,47 @@
+{
+  "runs": [
+    {
+      "label": "regular-document-close",
+      "validated": true
+    },
+    {
+      "label": "regular-dedicated-close",
+      "validated": true
+    },
+    {
+      "label": "regular-shared-close",
+      "validated": true
+    },
+    {
+      "label": "regular-timeout",
+      "validated": true
+    },
+    {
+      "label": "regular-utility-loss",
+      "validated": true
+    },
+    {
+      "label": "private-document-close",
+      "validated": true
+    },
+    {
+      "label": "private-dedicated-close",
+      "validated": true
+    },
+    {
+      "label": "private-shared-close",
+      "validated": true
+    },
+    {
+      "label": "private-timeout",
+      "validated": true
+    },
+    {
+      "label": "private-utility-loss",
+      "validated": true
+    }
+  ],
+  "passed": true,
+  "cleanup": true,
+  "latency_benchmark": false
+}

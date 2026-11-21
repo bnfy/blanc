@@ -1,0 +1,17 @@
+{
+  "authorizedAtUtc": "2026-10-27T13:56:13.997218+00:00",
+  "ownerAnswer": "Approve one recovery build",
+  "scope": "One isolated reviewed recovery build; same compiler/SDK/arguments; retain caches/original builds; only affected cross-origin navigation checks afterward",
+  "reviewedPlan": {
+    "scheduledActions": 53938,
+    "cxxCommands": 44672,
+    "buildflagGenerators": 0,
+    "rawPlanSha256": "6c405cdd7ef2cc352214f2c96e23521c9a08d60acd45f5990a44b54d9f49aa00",
+    "nativeCompilationsExecuted": 0,
+    "previousMetadataOnlySteps": 121,
+    "toolchainArgumentsChanged": false
+  },
+  "Electron": "paused",
+  "GoogleBaseline": "separate/untouched",
+  "latency": "deferred"
+}

@@ -1,0 +1,3 @@
+TypeError: Object has been destroyed
+    at WebContents.<anonymous> (/private/tmp/blanc-chromium157-work/src/main/display-capture-broker.js:103:62)
+    at WebContents.emit (node:events:526:24)

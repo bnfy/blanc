@@ -70,8 +70,33 @@ concurrency:
 permissions:
   contents: read
 jobs:
+  fork-only:
+    # A pull-request push that changes only the Chromium fork (chromium/, its
+    # experiment folder) or docs, since a head of this PR that this workflow
+    # passed on, skips the jobs below: nothing they test changed. Every other event, and any failure here, runs them
+    # (scripts/ci-fork-only-push.sh).
+    runs-on: ubuntu-latest
+    # actions: read lets the classifier check the previous head's run.
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      skip: ${{ steps.classify.outputs.skip }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.event_name == 'pull_request'
+      - id: classify
+        name: Classify this push
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ACTION: ${{ github.event.action }}
+          AFTER: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ github.head_ref }}
+          GH_TOKEN: ${{ github.token }}
+        run: echo "skip=$(sh scripts/ci-fork-only-push.sh)" >> "$GITHUB_OUTPUT"
   ordinary-package:
-    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.intel_audio) }}
+    needs: fork-only
+    if: ${{ !cancelled() && needs.fork-only.outputs.skip != 'true' && (github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.intel_audio)) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -85,7 +110,8 @@ jobs:
       - name: Verify ordinary payload and exclusion boundary
         run: node scripts/verify-packaged-ublock.js dist/linux-unpacked/resources/app.asar
   desktop:
-    if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.intel_audio) }}
+    needs: fork-only
+    if: ${{ !cancelled() && needs.fork-only.outputs.skip != 'true' && (github.event_name != 'workflow_dispatch' || (!inputs.installed_intel && !inputs.linux_native_diagnostics && !inputs.intel_audio)) }}
     strategy:
       fail-fast: false
       matrix:
@@ -265,7 +291,7 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Prepare official native debugger
         run: |
-          command -v gdb || { sudo apt-get update; sudo apt-get install -y gdb; }
+          command -v gdb || { bash scripts/ci-apt-mirror.sh && sudo apt-get update && sudo apt-get install -y gdb; }
           chmod +x test/desktop/support/electron-native-debug.sh
       - name: Capture isolated browser-process native stacks
         shell: bash

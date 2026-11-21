@@ -1,0 +1,21 @@
+{
+  "function": "ShowSessionRecovery",
+  "revisions": [
+    {
+      "revision": "71d12488",
+      "sameSource": true,
+      "sha256": "de18a806e6441f6db4b785094483a39aecd3fbd39b88c186cb3808d94853ea75"
+    },
+    {
+      "revision": "78f92ceb",
+      "sameSource": true,
+      "sha256": "de18a806e6441f6db4b785094483a39aecd3fbd39b88c186cb3808d94853ea75"
+    },
+    {
+      "revision": "09985c16",
+      "sameSource": true,
+      "sha256": "de18a806e6441f6db4b785094483a39aecd3fbd39b88c186cb3808d94853ea75"
+    }
+  ],
+  "note": "Source mapping only; not new runtime observation of encryption readiness timeout on the current candidate. 71d12488 is the signed recovery UI predecessor; 78f92ceb subsequently fixed nonregular-file Quit."
+}

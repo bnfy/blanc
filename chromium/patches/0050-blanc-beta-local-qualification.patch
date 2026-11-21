@@ -1,0 +1,12 @@
+--- a/chrome/BUILD.gn
++++ b/chrome/BUILD.gn
+@@ -546,7 +546,8 @@
+     assert(mac_deployment_target == "13.0" && mac_min_system_version == "13.0")
+     _beta_updater_config_path = "$target_gen_dir/blanc_beta_updater.json"
+     _beta_updater_config = { public_key = blanc_sparkle_public_key
+-                             arch = current_cpu }
++                             arch = current_cpu
++                             local_qualification = blanc_beta_local_qualification }
+     write_file(_beta_updater_config_path, _beta_updater_config, "json")
+     action("blanc_beta_app_plist") {
+       script = "//blanc/branding/beta/metadata.py"

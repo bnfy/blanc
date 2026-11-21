@@ -1,0 +1,11 @@
+# Missing grouped window save repair — October 20, 2026
+
+Before the repair, both live windows reported initialWindowSaved=true, but captured clear session streams contained only the source window type and identity, with no second-window records. Waiting ten seconds did not repair it. Thus flushing the existing command stream was insufficient evidence that a newly created window was represented.
+
+Before the initial-window save/flush acknowledgement, the native path now invokes SessionService's existing ResetFromCurrentBrowsers. This rebuilds the authoritative session commands for currently tracked-profile browser windows (including tabs, groups, splits and existing identity hooks), then uses the existing flush callback. It does not create an alternate session format or restore missing data by URL.
+
+The fixed stream contains both window types and durable UUIDs. Grouped Spaces round trips, actual SIGKILL/session restart and actual journal-boundary SIGKILL/source rollback pass with exact normalized group membership, blue color, collapsed state, split layout/focus, active URL and window UUID. The decoy grouped split remains unchanged. Six recorded checkpoints include normal exit0. Nine private mutation/privacy regressions and eight focused capture/identity tests also pass.
+
+One guarded incremental build35.56seconds/sixsteps; final guard0. No new upstream hook changes; prior footprint49/117 within49/120 unchanged. A diagnostic harness's shortened four-second startup bound expired before assertions; retained in startup-timeout.json. The final run restores the established timeout and uses a fresh profile. Before-fix runtime and structured session command inventories are retained; raw profiles/session stores are not committed.
+
+Limits: this proves the observed missing-window case and grouped source/decoy recovery. It does not exhaust concurrent window creation, pending closes, provider faults, write-error rebuild interleavings, arbitrary counts or power loss. Earlier latency measurements do not cover the rebuild cost; latency remains explicitly deferred. Crash-bubble bypass applies only to disposable tests, not native Restore acceptance. Native input pending; Electron diagnostic build unapproved. Test profiles removed; retained preview untouched.

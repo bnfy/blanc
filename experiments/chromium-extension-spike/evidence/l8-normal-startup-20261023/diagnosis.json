@@ -1,0 +1,30 @@
+{
+  "app": "/private/tmp/blanc-l8-notices-final/Blanc Chromium Preview.app",
+  "checks": [],
+  "before": {
+    "urls": [
+      "blanc://newtab/",
+      "http://127.0.0.1:9952/one",
+      "http://127.0.0.1:9952/two"
+    ],
+    "selected": 2
+  },
+  "preferencesAfterClose": null,
+  "normalRestart": {
+    "urls": [
+      "blanc://newtab/"
+    ],
+    "selected": 0
+  },
+  "normalRestores": false,
+  "forcedRestoreControl": {
+    "urls": [
+      "blanc://newtab/",
+      "http://127.0.0.1:9952/one",
+      "http://127.0.0.1:9952/two"
+    ],
+    "selected": 2
+  },
+  "controlRestores": true,
+  "complete": true
+}

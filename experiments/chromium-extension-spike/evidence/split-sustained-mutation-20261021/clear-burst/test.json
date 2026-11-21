@@ -1,0 +1,829 @@
+{
+  "checks": [
+    {
+      "name": "named Space saved before cancellation",
+      "value": true
+    },
+    {
+      "name": "close awaits unload outcome",
+      "value": true
+    },
+    {
+      "name": "actual write boundary intercepted",
+      "value": {
+        "pid": 27576,
+        "path": "/private/tmp/blanc-sustained-clear-burst/profile/Default/Sessions/Session_13437067730765823",
+        "mode": "write-error",
+        "op": "write",
+        "errno": 5
+      }
+    },
+    {
+      "name": "write failure rejects durability",
+      "value": {
+        "error": "{\"exceptionId\":1,\"text\":\"Uncaught (in promise) Error: Split history/session persistence failed; recovery is not acknowledged.\",\"lineNumber\":73,\"columnNumber\":64,\"scriptId\":\"3\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancPrototypeReply\",\"scriptId\":\"3\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":72,\"columnNumber\":63},{\"functionName\":\"\",\"scriptId\":\"69\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Split history/session persistence failed; recovery is not acknowledged.\\n    at window.blancPrototypeReply (chrome://blanc-prototype/host.js:73:64)\\n    at <anonymous>:1:1\",\"objectId\":\"-3550002917704087985.1.11\"}}"
+      }
+    },
+    {
+      "name": "retry uses normal writes with interposer unarmed",
+      "value": true
+    },
+    {
+      "name": "live ratio changed before retry",
+      "value": true
+    },
+    {
+      "name": "continuous mutation result",
+      "value": {
+        "result": {
+          "success": true
+        },
+        "cycle": 0,
+        "elapsed": 39,
+        "mutations": 32,
+        "observed": [
+          {
+            "requested": 0.33199999999999996,
+            "actual": 0.33199999999999996,
+            "pending": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "bounded mutation-only outcome",
+      "value": {
+        "success": true
+      }
+    },
+    {
+      "name": "mutation stopped; starting stable save",
+      "value": true
+    },
+    {
+      "name": "subsequent close acknowledged",
+      "value": true
+    },
+    {
+      "name": "cancel retains guarded pane",
+      "value": {
+        "activeTabId": "1487036868",
+        "adblockEnabled": false,
+        "closed": [
+          {
+            "id": "1487036863",
+            "tabCount": 1,
+            "title": "about:blank",
+            "url": "about:blank"
+          },
+          {
+            "id": "1487036870",
+            "tabCount": 1,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#flush-retry"
+          },
+          {
+            "id": "1487036872",
+            "tabCount": 1,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#stable-retry"
+          }
+        ],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "1487036868",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": true,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "Recovered source",
+        "spaceWindowIdentity": "1370d8c8-2a19-4567-8184-1e042e45d136",
+        "splitGeometry": {
+          "divider": {
+            "height": 928,
+            "width": 12,
+            "x": 416,
+            "y": 68
+          },
+          "headers": [
+            {
+              "height": 30,
+              "width": 416,
+              "x": 0,
+              "y": 68
+            },
+            {
+              "height": 30,
+              "width": 772,
+              "x": 428,
+              "y": 68
+            }
+          ],
+          "mode": "columns",
+          "originX": 0,
+          "usableWidth": 1188
+        },
+        "splits": [
+          {
+            "focusedIndex": 0,
+            "focusedTabId": "1487036868",
+            "id": "split-0",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.35,
+                0.65
+              ]
+            },
+            "tabIds": [
+              "1487036868",
+              "1487036862"
+            ]
+          }
+        ],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==",
+            "groupId": null,
+            "id": "1487036864",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": null,
+            "title": "New Tab",
+            "url": "blanc://newtab/"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "1487036868",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#cancel-left"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "1487036862",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#cancel-right"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 3
+      }
+    },
+    {
+      "name": "close awaits unload outcome",
+      "value": true
+    },
+    {
+      "name": "actual write boundary intercepted",
+      "value": {
+        "pid": 27576,
+        "path": "/private/tmp/blanc-sustained-clear-burst/profile/Default/Sessions/Session_13437067733318618",
+        "mode": "write-error",
+        "op": "write",
+        "errno": 5
+      }
+    },
+    {
+      "name": "write failure rejects durability",
+      "value": {
+        "error": "{\"exceptionId\":2,\"text\":\"Uncaught (in promise) Error: Split history/session persistence failed; recovery is not acknowledged.\",\"lineNumber\":73,\"columnNumber\":64,\"scriptId\":\"3\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancPrototypeReply\",\"scriptId\":\"3\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":72,\"columnNumber\":63},{\"functionName\":\"\",\"scriptId\":\"158\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Split history/session persistence failed; recovery is not acknowledged.\\n    at window.blancPrototypeReply (chrome://blanc-prototype/host.js:73:64)\\n    at <anonymous>:1:1\",\"objectId\":\"-3550002917704087985.1.48\"}}"
+      }
+    },
+    {
+      "name": "retry uses normal writes with interposer unarmed",
+      "value": true
+    },
+    {
+      "name": "live ratio changed before retry",
+      "value": true
+    },
+    {
+      "name": "continuous mutation result",
+      "value": {
+        "result": {
+          "success": true
+        },
+        "cycle": 1,
+        "elapsed": 32,
+        "mutations": 32,
+        "observed": [
+          {
+            "requested": 0.33199999999999996,
+            "actual": 0.33199999999999996,
+            "pending": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "bounded mutation-only outcome",
+      "value": {
+        "success": true
+      }
+    },
+    {
+      "name": "mutation stopped; starting stable save",
+      "value": true
+    },
+    {
+      "name": "subsequent close acknowledged",
+      "value": true
+    },
+    {
+      "name": "cancel retains guarded pane",
+      "value": {
+        "activeTabId": "1487036876",
+        "adblockEnabled": false,
+        "closed": [
+          {
+            "id": "1487036863",
+            "tabCount": 1,
+            "title": "about:blank",
+            "url": "about:blank"
+          },
+          {
+            "id": "1487036870",
+            "tabCount": 1,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#flush-retry"
+          },
+          {
+            "id": "1487036872",
+            "tabCount": 1,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#stable-retry"
+          },
+          {
+            "id": "1487036878",
+            "tabCount": 1,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#flush-retry"
+          },
+          {
+            "id": "1487036880",
+            "tabCount": 1,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#stable-retry"
+          }
+        ],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "1487036876",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": true,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "Recovered source",
+        "spaceWindowIdentity": "1370d8c8-2a19-4567-8184-1e042e45d136",
+        "splitGeometry": {
+          "divider": {
+            "height": 928,
+            "width": 12,
+            "x": 416,
+            "y": 68
+          },
+          "headers": [
+            {
+              "height": 30,
+              "width": 416,
+              "x": 0,
+              "y": 68
+            },
+            {
+              "height": 30,
+              "width": 772,
+              "x": 428,
+              "y": 68
+            }
+          ],
+          "mode": "columns",
+          "originX": 0,
+          "usableWidth": 1188
+        },
+        "splits": [
+          {
+            "focusedIndex": 0,
+            "focusedTabId": "1487036876",
+            "id": "split-0",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.35,
+                0.65
+              ]
+            },
+            "tabIds": [
+              "1487036876",
+              "1487036862"
+            ]
+          }
+        ],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==",
+            "groupId": null,
+            "id": "1487036864",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": null,
+            "title": "New Tab",
+            "url": "blanc://newtab/"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "1487036876",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "#ffffff",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#cancel-left"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "1487036862",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#cancel-right"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 3
+      }
+    },
+    {
+      "name": "close awaits unload outcome",
+      "value": true
+    },
+    {
+      "name": "actual write boundary intercepted",
+      "value": {
+        "pid": 27576,
+        "path": "/private/tmp/blanc-sustained-clear-burst/profile/Default/Sessions/Session_13437067735947458",
+        "mode": "write-error",
+        "op": "write",
+        "errno": 5
+      }
+    },
+    {
+      "name": "write failure rejects durability",
+      "value": {
+        "error": "{\"exceptionId\":3,\"text\":\"Uncaught (in promise) Error: Split history/session persistence failed; recovery is not acknowledged.\",\"lineNumber\":73,\"columnNumber\":64,\"scriptId\":\"3\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"window.blancPrototypeReply\",\"scriptId\":\"3\",\"url\":\"chrome://blanc-prototype/host.js\",\"lineNumber\":72,\"columnNumber\":63},{\"functionName\":\"\",\"scriptId\":\"239\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Split history/session persistence failed; recovery is not acknowledged.\\n    at window.blancPrototypeReply (chrome://blanc-prototype/host.js:73:64)\\n    at <anonymous>:1:1\",\"objectId\":\"-3550002917704087985.1.86\"}}"
+      }
+    },
+    {
+      "name": "retry uses normal writes with interposer unarmed",
+      "value": true
+    },
+    {
+      "name": "live ratio changed before retry",
+      "value": true
+    },
+    {
+      "name": "continuous mutation result",
+      "value": {
+        "result": {
+          "success": true
+        },
+        "cycle": 2,
+        "elapsed": 35,
+        "mutations": 32,
+        "observed": [
+          {
+            "requested": 0.33199999999999996,
+            "actual": 0.33199999999999996,
+            "pending": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "bounded mutation-only outcome",
+      "value": {
+        "success": true
+      }
+    },
+    {
+      "name": "mutation stopped; starting stable save",
+      "value": true
+    },
+    {
+      "name": "subsequent close acknowledged",
+      "value": true
+    },
+    {
+      "name": "cancel retains guarded pane",
+      "value": {
+        "activeTabId": "1487036884",
+        "adblockEnabled": false,
+        "closed": [
+          {
+            "id": "1487036863",
+            "tabCount": 1,
+            "title": "about:blank",
+            "url": "about:blank"
+          },
+          {
+            "id": "1487036870",
+            "tabCount": 1,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#flush-retry"
+          },
+          {
+            "id": "1487036872",
+            "tabCount": 1,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#stable-retry"
+          },
+          {
+            "id": "1487036878",
+            "tabCount": 1,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#flush-retry"
+          },
+          {
+            "id": "1487036880",
+            "tabCount": 1,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#stable-retry"
+          },
+          {
+            "id": "1487036886",
+            "tabCount": 1,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#flush-retry"
+          },
+          {
+            "id": "1487036888",
+            "tabCount": 1,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#stable-retry"
+          }
+        ],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "1487036884",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": true,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "Recovered source",
+        "spaceWindowIdentity": "1370d8c8-2a19-4567-8184-1e042e45d136",
+        "splitGeometry": {
+          "divider": {
+            "height": 928,
+            "width": 12,
+            "x": 416,
+            "y": 68
+          },
+          "headers": [
+            {
+              "height": 30,
+              "width": 416,
+              "x": 0,
+              "y": 68
+            },
+            {
+              "height": 30,
+              "width": 772,
+              "x": 428,
+              "y": 68
+            }
+          ],
+          "mode": "columns",
+          "originX": 0,
+          "usableWidth": 1188
+        },
+        "splits": [
+          {
+            "focusedIndex": 0,
+            "focusedTabId": "1487036884",
+            "id": "split-0",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.35,
+                0.65
+              ]
+            },
+            "tabIds": [
+              "1487036884",
+              "1487036862"
+            ]
+          }
+        ],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==",
+            "groupId": null,
+            "id": "1487036864",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": null,
+            "title": "New Tab",
+            "url": "blanc://newtab/"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "1487036884",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#cancel-left"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "1487036862",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#cancel-right"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 3
+      }
+    },
+    {
+      "name": "normal-speed save and subsequent close remain usable",
+      "value": {
+        "activeTabId": "1487036884",
+        "adblockEnabled": false,
+        "closed": [
+          {
+            "id": "1487036863",
+            "tabCount": 1,
+            "title": "about:blank",
+            "url": "about:blank"
+          },
+          {
+            "id": "1487036870",
+            "tabCount": 1,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#flush-retry"
+          },
+          {
+            "id": "1487036872",
+            "tabCount": 1,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#stable-retry"
+          },
+          {
+            "id": "1487036878",
+            "tabCount": 1,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#flush-retry"
+          },
+          {
+            "id": "1487036880",
+            "tabCount": 1,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#stable-retry"
+          },
+          {
+            "id": "1487036886",
+            "tabCount": 1,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#flush-retry"
+          },
+          {
+            "id": "1487036888",
+            "tabCount": 1,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#stable-retry"
+          }
+        ],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "1487036884",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": true,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "Recovered source",
+        "spaceWindowIdentity": "1370d8c8-2a19-4567-8184-1e042e45d136",
+        "splitGeometry": {
+          "divider": {
+            "height": 928,
+            "width": 12,
+            "x": 416,
+            "y": 68
+          },
+          "headers": [
+            {
+              "height": 30,
+              "width": 416,
+              "x": 0,
+              "y": 68
+            },
+            {
+              "height": 30,
+              "width": 772,
+              "x": 428,
+              "y": 68
+            }
+          ],
+          "mode": "columns",
+          "originX": 0,
+          "usableWidth": 1188
+        },
+        "splits": [
+          {
+            "focusedIndex": 0,
+            "focusedTabId": "1487036884",
+            "id": "split-0",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.35,
+                0.65
+              ]
+            },
+            "tabIds": [
+              "1487036884",
+              "1487036862"
+            ]
+          }
+        ],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==",
+            "groupId": null,
+            "id": "1487036864",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": null,
+            "title": "New Tab",
+            "url": "blanc://newtab/"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "1487036884",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "#ffffff",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#cancel-left"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "1487036862",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "siteMuted": false,
+            "title": "Split rail fixture",
+            "url": "http://127.0.0.1:9298/#cancel-right"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 3
+      }
+    }
+  ],
+  "pass": true
+}

@@ -1,0 +1,125 @@
+diff --git a/build/util/process_version.gni b/build/util/process_version.gni
+index 3489bba..a554d28 100644
+--- a/build/util/process_version.gni
++++ b/build/util/process_version.gni
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//blanc/config.gni")
+ import("//build/util/lastchange.gni")
+ 
+ # Runs the version processing script over the given template file to produce
+@@ -97,6 +98,13 @@ template("process_version") {
+       }
+     }
+ 
++    # Blanc: a Windows beta's version PATCH is its build number, wherever
++    # chrome/VERSION is read (//blanc/config.gni blanc_win_version_patch).
++    if (blanc_win_version_patch != "" && defined(invoker.sources) &&
++        filter_include(invoker.sources, [ "//chrome/VERSION" ]) != []) {
++      args += [ "-e", "PATCH=$blanc_win_version_patch" ]
++    }
++
+     if (defined(invoker.executable) && invoker.executable) {
+       args += [ "-x" ]
+     }
+diff --git a/chrome/version.gni b/chrome/version.gni
+index c95eb59..06c8516 100644
+--- a/chrome/version.gni
++++ b/chrome/version.gni
+@@ -15,6 +15,8 @@
+ # These values should only be used if you REALLY need to depend on them at
+ # build-time, for example, in the computation of output file names.
+ 
++import("//blanc/config.gni")
++
+ # Give version.py a pattern that will expand to a GN scope consisting of
+ # all values we need at once.
+ _version_dictionary_template = "full = \"@MAJOR@.@MINOR@.@BUILD@.@PATCH@\" " +
+@@ -26,6 +28,12 @@ chrome_version_file = "//chrome/VERSION"
+ 
+ _script_arguments = []
+ 
++# Blanc: a Windows beta's version PATCH is its build number
++# (//blanc/config.gni blanc_win_version_patch).
++if (blanc_win_version_patch != "") {
++  _script_arguments += [ "-e", "PATCH=$blanc_win_version_patch" ]
++}
++
+ if (is_mac) {
+   _version_dictionary_template += "patch_hi = @PATCH_HI@ patch_lo = @PATCH_LO@ "
+ 
+diff --git a/chrome/installer/mini_installer/BUILD.gn b/chrome/installer/mini_installer/BUILD.gn
+index df9408b..109093b 100644
+--- a/chrome/installer/mini_installer/BUILD.gn
++++ b/chrome/installer/mini_installer/BUILD.gn
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//blanc/config.gni")
+ import("//build/config/compiler/compiler.gni")
+ import("//build/config/python.gni")
+ import("//build/config/ui.gni")
+@@ -203,6 +204,12 @@ action("mini_installer_archive") {
+   if (enable_hidpi) {
+     args += [ "--enable_hidpi=1" ]
+   }
++
++  # Blanc: a Windows beta's version PATCH is its build number; this script
++  # reads chrome/VERSION itself (//blanc/config.gni blanc_win_version_patch).
++  if (blanc_win_version_patch != "") {
++    args += [ "--chrome_version_patch=$blanc_win_version_patch" ]
++  }
+   if (is_component_build) {
+     args += [ "--component_build=1" ]
+   }
+diff --git a/chrome/tools/build/win/create_installer_archive.py b/chrome/tools/build/win/create_installer_archive.py
+index d118254..5387b40 100644
+--- a/chrome/tools/build/win/create_installer_archive.py
++++ b/chrome/tools/build/win/create_installer_archive.py
+@@ -43,9 +43,11 @@ VERSION_FILE = "VERSION"
+ g_archive_inputs = []
+ 
+ 
+-def BuildVersion():
++def BuildVersion(version_patch=None):
+     """Returns the full build version string constructed from information in
+     VERSION_FILE.  Any segment not found in that file will default to '0'.
++    Blanc: `version_patch`, when given, replaces PATCH (a Windows beta's build
++    number).
+     """
+     major = 0
+     minor = 0
+@@ -65,6 +67,8 @@ def BuildVersion():
+             build = line[6:]
+         elif line.startswith('PATCH='):
+             patch = line[6:]
++    if version_patch:
++        patch = version_patch
+     return '%s.%s.%s.%s' % (major, minor, build, patch)
+ 
+ 
+@@ -713,7 +717,7 @@ def main(options):
+     """Main method that reads input file, creates archive file and writes
+     resource input file.
+     """
+-    current_version = BuildVersion()
++    current_version = BuildVersion(options.chrome_version_patch)
+ 
+     config = Readconfig(options.input_file, current_version)
+ 
+@@ -828,6 +832,12 @@ def main(options):
+ 
+ def _ParseOptions():
+     parser = optparse.OptionParser()
++    # Blanc: a Windows beta's build number, as its version's PATCH.
++    parser.add_option(
++        '--chrome_version_patch',
++        default=None,
++        help='Replaces PATCH from chrome/VERSION.',
++    )
+     parser.add_option(
+         '-i',
+         '--input_file',

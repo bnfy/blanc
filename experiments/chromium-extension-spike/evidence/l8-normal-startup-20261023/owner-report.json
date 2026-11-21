@@ -1,0 +1,15 @@
+{
+  "report": "Everything worked but the example tabs did not stay",
+  "passed": [
+    "normal Gatekeeper launch",
+    "Shelf persistence",
+    "Bitwarden permission Cancel then retry Add",
+    "popup keyboard focus",
+    "Bitwarden restart persistence",
+    "Shipping tabs intact"
+  ],
+  "failed": [
+    "example.com and example.org retained after normal Cmd+Q/reopen"
+  ],
+  "interpretation": "Owner-reported missing tabs. Not a proof of on-disk data loss; diagnostic fixture restores same saved session under explicit restore flag."
+}

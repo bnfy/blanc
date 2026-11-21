@@ -1,0 +1,43 @@
+{
+  "nativeWindow": {
+    "x": 455,
+    "y": 73,
+    "width": 1200,
+    "height": 928
+  },
+  "closeButton": {
+    "x": 475,
+    "y": 93,
+    "width": 16,
+    "height": 16
+  },
+  "inset": {
+    "left": 20,
+    "top": 20
+  },
+  "build": {
+    "steps": 9,
+    "seconds": 46.95,
+    "repeatPreparationBuildSteps": 0
+  },
+  "tests": {
+    "retest": {
+      "checks": 20,
+      "passed": 20
+    },
+    "layout-final": {
+      "checks": 10,
+      "passed": 10
+    },
+    "extra": {
+      "checks": 4,
+      "passed": 4
+    }
+  },
+  "cleanup": {
+    "originalTabsPreserved": 3,
+    "testWindowsClosed": true,
+    "fixtureServerStopped": true,
+    "prototypeRunning": true
+  }
+}

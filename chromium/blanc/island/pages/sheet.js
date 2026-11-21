@@ -1,0 +1,45 @@
+// Shared glue for utility pages presented in the sheet (body.sheet):
+// dialog semantics, the ✕, scrim-click dismissal, and initial focus on the
+// page heading so keyboard/screen-reader users land on what just opened.
+// Esc is handled main-side (before-input-event). In-page consumers (Settings
+// pickers) arm pages:surface:escape-arm so the first Esc closes them before
+// the sheet dismisses — this file never needs its own Esc handler.
+(() => {
+  const page = document.querySelector('.page');
+  if (!page || !window.bowserPages?.surface) return;
+  // Blanc for iPhone shows these pages as ordinary tabs (ios-pages.css).
+  if (document.documentElement.dataset.platform === 'ios') return;
+
+  page.setAttribute('role', 'dialog');
+  page.setAttribute('aria-modal', 'true');
+  const heading = page.querySelector('h1');
+  if (heading) {
+    if (!heading.id) heading.id = 'sheetTitle';
+    page.setAttribute('aria-labelledby', heading.id);
+    heading.tabIndex = -1;
+    heading.focus();
+  }
+
+  const nav = page.querySelector('.page-nav');
+  if (!nav) return;
+  nav.querySelector('a.current')?.setAttribute('aria-current', 'page');
+  const links = document.createElement('div');
+  links.className = 'page-nav-links';
+  for (const link of [...nav.querySelectorAll('a')]) links.append(link);
+  nav.append(links);
+
+  const close = document.createElement('button');
+  close.type = 'button';
+  close.className = 'sheet-close';
+  close.setAttribute('aria-label', blancI18n.t('sheet.close'));
+  close.textContent = '✕';
+  close.addEventListener('click', () => window.bowserPages.surface.close());
+  // Utility sheet pages have a sticky .page-nav — the ✕ rides it so it
+  // never scrolls away and never stacks under the nav band.
+  nav.append(close);
+
+  // Clicks on the scrim (the body itself, outside the card) dismiss.
+  document.body.addEventListener('mousedown', (e) => {
+    if (e.target === document.body) window.bowserPages.surface.close();
+  });
+})();

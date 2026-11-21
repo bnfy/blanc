@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- The Sync screen: a grouped list, as the iPhone's Form. -->
+<resources>
+    <dimen name="blanc_sync_bar_height">56dp</dimen>
+    <dimen name="blanc_sync_bar_title_size">22sp</dimen>
+    <dimen name="blanc_sync_page_padding">16dp</dimen>
+    <dimen name="blanc_sync_card_radius">16dp</dimen>
+    <dimen name="blanc_sync_card_gap">20dp</dimen>
+    <dimen name="blanc_sync_row_min_height">52dp</dimen>
+    <dimen name="blanc_sync_row_padding_horizontal">16dp</dimen>
+    <dimen name="blanc_sync_row_padding_vertical">12dp</dimen>
+    <dimen name="blanc_sync_row_title_size">16sp</dimen>
+    <dimen name="blanc_sync_row_value_size">14sp</dimen>
+    <dimen name="blanc_sync_note_size">13sp</dimen>
+    <dimen name="blanc_sync_note_padding">6dp</dimen>
+    <dimen name="blanc_sync_heading_size">17sp</dimen>
+    <dimen name="blanc_sync_code_size">32sp</dimen>
+</resources>

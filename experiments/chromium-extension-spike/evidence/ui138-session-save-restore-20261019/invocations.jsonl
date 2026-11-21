@@ -1,0 +1,12 @@
+{"name": "helper-build", "argv": ["clang", "-dynamiclib", "/private/tmp/blanc-session-boundaries/barrier.c", "-o", "/private/tmp/blanc-session-boundaries/barrier.dylib"], "started": "2026-10-19T21:42:40.316121+00:00", "seconds": 0.246293625, "exit_code": 0}
+{"name": "write-start", "argv": ["node", "/private/tmp/blanc-session-boundaries/start.mjs"], "started": "2026-10-19T21:42:55.707003+00:00", "seconds": 0.045857958000000004, "exit_code": 0}
+{"name": "write-seed", "argv": ["node", "/private/tmp/blanc-session-boundaries/check.mjs", "seed"], "started": "2026-10-19T21:42:55.778641+00:00", "seconds": 8.938090082999999, "exit_code": 0}
+{"name": "write-proof", "argv": ["node", "/private/tmp/blanc-session-boundaries/probe.mjs", "write"], "started": "2026-10-19T21:43:04.759601+00:00", "seconds": 0.391807417, "exit_code": 0}
+{"name": "write-cleanup", "argv": ["node", "/private/tmp/blanc-session-boundaries/cleanup.mjs"], "started": "2026-10-19T21:43:05.182863+00:00", "seconds": 0.629727167, "exit_code": 0}
+{"name": "read-start", "argv": ["node", "/private/tmp/blanc-session-boundaries/start.mjs"], "started": "2026-10-19T21:43:05.841435+00:00", "seconds": 0.05187920900000001, "exit_code": 0}
+{"name": "read-seed", "argv": ["node", "/private/tmp/blanc-session-boundaries/check.mjs", "seed"], "started": "2026-10-19T21:43:05.924979+00:00", "seconds": 5.019869416, "exit_code": 0}
+{"name": "read-stop", "argv": ["node", "/private/tmp/blanc-session-boundaries/stop.mjs"], "started": "2026-10-19T21:43:10.981025+00:00", "seconds": 0.131739459, "exit_code": 0}
+{"name": "read-restart", "argv": ["node", "/private/tmp/blanc-session-boundaries/launch-injected.mjs"], "started": "2026-10-19T21:43:11.141562+00:00", "seconds": 0.022564916999999997, "exit_code": 0}
+{"name": "read-proof", "argv": ["node", "/private/tmp/blanc-session-boundaries/probe.mjs", "read"], "started": "2026-10-19T21:43:11.189904+00:00", "seconds": 1.700020041, "exit_code": 0}
+{"name": "read-cleanup", "argv": ["node", "/private/tmp/blanc-session-boundaries/cleanup.mjs"], "started": "2026-10-19T21:43:12.920725+00:00", "seconds": 0.6340440829999999, "exit_code": 0}
+{"name": "guard", "argv": ["node", "experiments/chromium-extension-spike/build.mjs", "/Users/anthonyjloria/Projects/BlancChromium157/src", "--check"], "started": "2026-10-19T21:43:20.041684+00:00", "seconds": 3.2687749999999998, "exit_code": 0}

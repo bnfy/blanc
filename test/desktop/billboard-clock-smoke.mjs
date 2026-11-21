@@ -54,13 +54,10 @@ try {
   assert.equal(before.weight, '500');
   await capture(page, '1-default');
 
-  // Customize offers the clock only while Billboard is the layout.
+  // Customize offers the clock (Billboard is the one layout, V24).
   await page.getByRole('button', { name: 'Customize', exact: true }).click();
   const open = page.getByRole('button', { name: 'Clock font & color…', exact: true });
   await open.waitFor();
-  await page.locator('[data-layout-pick="ledger"]').click();
-  await page.waitForFunction(() => !document.getElementById('clockStyleOpen').checkVisibility());
-  await page.locator('[data-layout-pick="billboard"]').click();
   // Customize's Clock row samples the clock and says what it is set to.
   assert.equal(await page.locator('#clockStyleSummary').textContent(), 'Instrument Sans · Solid');
   assert.equal(await page.locator('#clockStyleSample').getAttribute('data-font'), 'instrument');

@@ -1,0 +1,3191 @@
+{
+  "complete": true,
+  "runs": [
+    {
+      "mode": "regular",
+      "profile": "/private/tmp/blanc-f12-method-redirect-20261024/profile-regular",
+      "cases": [
+        {
+          "status": 303,
+          "outcome": "allow",
+          "body": "regular-303-allow",
+          "value": {
+            "ok": true,
+            "status": 200,
+            "data": {
+              "method": "GET",
+              "body": ""
+            }
+          },
+          "requestId": "61943.2",
+          "serverHits": [
+            {
+              "path": "/start/303/allow",
+              "host": "127.0.0.1:54074",
+              "method": "POST",
+              "body": "regular-303-allow",
+              "contentType": "text/plain",
+              "probe": "method-check"
+            },
+            {
+              "path": "/finish/303/allow",
+              "host": "127.0.0.1:54074",
+              "method": "GET",
+              "body": "",
+              "contentType": null,
+              "probe": "method-check"
+            }
+          ],
+          "nativeDecisions": [
+            {
+              "args": {
+                "method": "POST",
+                "private": false,
+                "redirect_index": 0,
+                "request_digest": "6B601EF158301BC11C46BAD3D560C53F9FBBE4EAB306C68409AE9054FD26380B",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.RequestDecision",
+              "ph": "I",
+              "pid": 61908,
+              "s": "t",
+              "tid": 8869616,
+              "ts": 365843340848,
+              "tts": 694230
+            },
+            {
+              "args": {
+                "method": "GET",
+                "private": false,
+                "redirect_index": 1,
+                "request_digest": "6B601EF158301BC11C46BAD3D560C53F9FBBE4EAB306C68409AE9054FD26380B",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.RequestDecision",
+              "ph": "I",
+              "pid": 61908,
+              "s": "t",
+              "tid": 8869616,
+              "ts": 365843342498,
+              "tts": 694691
+            }
+          ]
+        },
+        {
+          "status": 303,
+          "outcome": "block",
+          "body": "regular-303-block",
+          "value": {
+            "ok": false,
+            "error": "TypeError"
+          },
+          "requestId": "61943.3",
+          "serverHits": [
+            {
+              "path": "/start/303/block",
+              "host": "127.0.0.1:54074",
+              "method": "POST",
+              "body": "regular-303-block",
+              "contentType": "text/plain",
+              "probe": "method-check"
+            }
+          ],
+          "nativeDecisions": [
+            {
+              "args": {
+                "method": "POST",
+                "private": false,
+                "redirect_index": 0,
+                "request_digest": "B025635F86C3B159AF1016A61A0253F505774567F0E08759CA6842CB28363576",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.RequestDecision",
+              "ph": "I",
+              "pid": 61908,
+              "s": "t",
+              "tid": 8869616,
+              "ts": 365843346383,
+              "tts": 696240
+            },
+            {
+              "args": {
+                "method": "GET",
+                "private": false,
+                "redirect_index": 1,
+                "request_digest": "B025635F86C3B159AF1016A61A0253F505774567F0E08759CA6842CB28363576",
+                "result": 1
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.RequestDecision",
+              "ph": "I",
+              "pid": 61908,
+              "s": "t",
+              "tid": 8869616,
+              "ts": 365843347793,
+              "tts": 696547
+            }
+          ]
+        },
+        {
+          "status": 308,
+          "outcome": "allow",
+          "body": "regular-308-allow",
+          "value": {
+            "ok": true,
+            "status": 200,
+            "data": {
+              "method": "POST",
+              "body": "regular-308-allow"
+            }
+          },
+          "requestId": "61943.4",
+          "serverHits": [
+            {
+              "path": "/start/308/allow",
+              "host": "127.0.0.1:54074",
+              "method": "POST",
+              "body": "regular-308-allow",
+              "contentType": "text/plain",
+              "probe": "method-check"
+            },
+            {
+              "path": "/finish/308/allow",
+              "host": "127.0.0.1:54074",
+              "method": "POST",
+              "body": "regular-308-allow",
+              "contentType": "text/plain",
+              "probe": "method-check"
+            }
+          ],
+          "nativeDecisions": [
+            {
+              "args": {
+                "method": "POST",
+                "private": false,
+                "redirect_index": 0,
+                "request_digest": "69DDA98C9AB39A67D0FDE27CE702F1BC45C8DB8E9CE9D469EC8AE7F62EB2268B",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.RequestDecision",
+              "ph": "I",
+              "pid": 61908,
+              "s": "t",
+              "tid": 8869616,
+              "ts": 365843349518,
+              "tts": 697043
+            },
+            {
+              "args": {
+                "method": "POST",
+                "private": false,
+                "redirect_index": 1,
+                "request_digest": "69DDA98C9AB39A67D0FDE27CE702F1BC45C8DB8E9CE9D469EC8AE7F62EB2268B",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.RequestDecision",
+              "ph": "I",
+              "pid": 61908,
+              "s": "t",
+              "tid": 8869616,
+              "ts": 365843350412,
+              "tts": 697305
+            }
+          ]
+        },
+        {
+          "status": 308,
+          "outcome": "block",
+          "body": "regular-308-block",
+          "value": {
+            "ok": false,
+            "error": "TypeError"
+          },
+          "requestId": "61943.5",
+          "serverHits": [
+            {
+              "path": "/start/308/block",
+              "host": "127.0.0.1:54074",
+              "method": "POST",
+              "body": "regular-308-block",
+              "contentType": "text/plain",
+              "probe": "method-check"
+            }
+          ],
+          "nativeDecisions": [
+            {
+              "args": {
+                "method": "POST",
+                "private": false,
+                "redirect_index": 0,
+                "request_digest": "AC4D319E51363DD341F6D42BFA9D730316701FC070F28B537947051FC5151810",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.RequestDecision",
+              "ph": "I",
+              "pid": 61908,
+              "s": "t",
+              "tid": 8869616,
+              "ts": 365843353177,
+              "tts": 698214
+            },
+            {
+              "args": {
+                "method": "POST",
+                "private": false,
+                "redirect_index": 1,
+                "request_digest": "AC4D319E51363DD341F6D42BFA9D730316701FC070F28B537947051FC5151810",
+                "result": 1
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.RequestDecision",
+              "ph": "I",
+              "pid": 61908,
+              "s": "t",
+              "tid": 8869616,
+              "ts": 365843354364,
+              "tts": 698480
+            }
+          ]
+        }
+      ],
+      "browserContextId": null,
+      "decisions": [
+        {
+          "args": {
+            "method": "POST",
+            "private": false,
+            "redirect_index": 0,
+            "request_digest": "6B601EF158301BC11C46BAD3D560C53F9FBBE4EAB306C68409AE9054FD26380B",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61908,
+          "s": "t",
+          "tid": 8869616,
+          "ts": 365843340848,
+          "tts": 694230
+        },
+        {
+          "args": {
+            "method": "GET",
+            "private": false,
+            "redirect_index": 1,
+            "request_digest": "6B601EF158301BC11C46BAD3D560C53F9FBBE4EAB306C68409AE9054FD26380B",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61908,
+          "s": "t",
+          "tid": 8869616,
+          "ts": 365843342498,
+          "tts": 694691
+        },
+        {
+          "args": {
+            "method": "POST",
+            "private": false,
+            "redirect_index": 0,
+            "request_digest": "B025635F86C3B159AF1016A61A0253F505774567F0E08759CA6842CB28363576",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61908,
+          "s": "t",
+          "tid": 8869616,
+          "ts": 365843346383,
+          "tts": 696240
+        },
+        {
+          "args": {
+            "method": "GET",
+            "private": false,
+            "redirect_index": 1,
+            "request_digest": "B025635F86C3B159AF1016A61A0253F505774567F0E08759CA6842CB28363576",
+            "result": 1
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61908,
+          "s": "t",
+          "tid": 8869616,
+          "ts": 365843347793,
+          "tts": 696547
+        },
+        {
+          "args": {
+            "method": "POST",
+            "private": false,
+            "redirect_index": 0,
+            "request_digest": "69DDA98C9AB39A67D0FDE27CE702F1BC45C8DB8E9CE9D469EC8AE7F62EB2268B",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61908,
+          "s": "t",
+          "tid": 8869616,
+          "ts": 365843349518,
+          "tts": 697043
+        },
+        {
+          "args": {
+            "method": "POST",
+            "private": false,
+            "redirect_index": 1,
+            "request_digest": "69DDA98C9AB39A67D0FDE27CE702F1BC45C8DB8E9CE9D469EC8AE7F62EB2268B",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61908,
+          "s": "t",
+          "tid": 8869616,
+          "ts": 365843350412,
+          "tts": 697305
+        },
+        {
+          "args": {
+            "method": "POST",
+            "private": false,
+            "redirect_index": 0,
+            "request_digest": "AC4D319E51363DD341F6D42BFA9D730316701FC070F28B537947051FC5151810",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61908,
+          "s": "t",
+          "tid": 8869616,
+          "ts": 365843353177,
+          "tts": 698214
+        },
+        {
+          "args": {
+            "method": "POST",
+            "private": false,
+            "redirect_index": 1,
+            "request_digest": "AC4D319E51363DD341F6D42BFA9D730316701FC070F28B537947051FC5151810",
+            "result": 1
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61908,
+          "s": "t",
+          "tid": 8869616,
+          "ts": 365843354364,
+          "tts": 698480
+        }
+      ],
+      "networkEvents": [
+        {
+          "method": "Network.requestWillBeSent",
+          "params": {
+            "requestId": "61943.2",
+            "loaderId": "FDF35E99F787A9F98A308072A076FF0F",
+            "documentURL": "http://127.0.0.1:54074/page",
+            "request": {
+              "url": "http://127.0.0.1:54074/start/303/allow",
+              "method": "POST",
+              "headers": {
+                "sec-ch-ua-platform": "\"macOS\"",
+                "Referer": "http://127.0.0.1:54074/page",
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+                "X-Probe": "method-check",
+                "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+                "Content-Type": "text/plain",
+                "sec-ch-ua-mobile": "?0"
+              },
+              "postData": "regular-303-allow",
+              "hasPostData": true,
+              "postDataEntries": [
+                {
+                  "bytes": "cmVndWxhci0zMDMtYWxsb3c="
+                }
+              ],
+              "mixedContentType": "none",
+              "initialPriority": "High",
+              "referrerPolicy": "strict-origin-when-cross-origin",
+              "isSameSite": true
+            },
+            "timestamp": 365843.337642,
+            "wallTime": 1792885511.252536,
+            "initiator": {
+              "type": "script",
+              "stack": {
+                "callFrames": [
+                  {
+                    "functionName": "",
+                    "scriptId": "4",
+                    "url": "",
+                    "lineNumber": 0,
+                    "columnNumber": 29
+                  }
+                ]
+              }
+            },
+            "redirectHasExtraInfo": false,
+            "type": "Fetch",
+            "frameId": "C7B7DF1E16BFA057DFDE50B327AC3508",
+            "hasUserGesture": false
+          }
+        },
+        {
+          "method": "Network.requestWillBeSentExtraInfo",
+          "params": {
+            "requestId": "61943.2",
+            "associatedCookies": [],
+            "headers": {
+              "Accept": "*/*",
+              "Accept-Encoding": "gzip, deflate, br, zstd",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Connection": "keep-alive",
+              "Content-Length": "17",
+              "Content-Type": "text/plain",
+              "Host": "127.0.0.1:54074",
+              "Origin": "http://127.0.0.1:54074",
+              "Referer": "http://127.0.0.1:54074/page",
+              "Sec-Fetch-Dest": "empty",
+              "Sec-Fetch-Mode": "cors",
+              "Sec-Fetch-Site": "same-origin",
+              "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+              "X-Probe": "method-check",
+              "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\""
+            },
+            "connectTiming": {
+              "requestTime": 365843.341185
+            },
+            "clientSecurityState": {
+              "initiatorIsSecureContext": true,
+              "initiatorIPAddressSpace": "Loopback",
+              "localNetworkAccessRequestPolicy": "PermissionBlock"
+            },
+            "siteHasCookieInOtherPartition": false
+          }
+        },
+        {
+          "method": "Network.responseReceivedExtraInfo",
+          "params": {
+            "requestId": "61943.2",
+            "blockedCookies": [],
+            "headers": {
+              "Cache-Control": "no-store",
+              "Connection": "keep-alive",
+              "Date": "Sat, 24 Oct 2026 23:45:11 GMT",
+              "Keep-Alive": "timeout=5",
+              "Location": "http://127.0.0.1:54074/finish/303/allow",
+              "Transfer-Encoding": "chunked"
+            },
+            "resourceIPAddressSpace": "Loopback",
+            "statusCode": 303,
+            "headersText": "HTTP/1.1 303 See Other\r\nLocation: http://127.0.0.1:54074/finish/303/allow\r\nCache-Control: no-store\r\nDate: Sat, 24 Oct 2026 23:45:11 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nTransfer-Encoding: chunked\r\n\r\n",
+            "cookiePartitionKey": {
+              "topLevelSite": "http://127.0.0.1",
+              "hasCrossSiteAncestor": false
+            },
+            "cookiePartitionKeyOpaque": false,
+            "exemptedCookies": []
+          }
+        },
+        {
+          "method": "Network.requestWillBeSent",
+          "params": {
+            "requestId": "61943.2",
+            "loaderId": "FDF35E99F787A9F98A308072A076FF0F",
+            "documentURL": "http://127.0.0.1:54074/page",
+            "request": {
+              "url": "http://127.0.0.1:54074/finish/303/allow",
+              "method": "GET",
+              "headers": {
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+                "Referer": "http://127.0.0.1:54074/page"
+              },
+              "mixedContentType": "none",
+              "initialPriority": "High",
+              "referrerPolicy": "strict-origin-when-cross-origin",
+              "isSameSite": true
+            },
+            "timestamp": 365843.342893,
+            "wallTime": 1792885511.257709,
+            "initiator": {
+              "type": "other"
+            },
+            "redirectHasExtraInfo": true,
+            "redirectResponse": {
+              "url": "http://127.0.0.1:54074/start/303/allow",
+              "status": 303,
+              "statusText": "See Other",
+              "headers": {
+                "Transfer-Encoding": "chunked",
+                "Cache-Control": "no-store",
+                "Location": "http://127.0.0.1:54074/finish/303/allow",
+                "Keep-Alive": "timeout=5",
+                "Date": "Sat, 24 Oct 2026 23:45:11 GMT",
+                "Connection": "keep-alive"
+              },
+              "mimeType": "",
+              "charset": "",
+              "connectionReused": true,
+              "connectionId": 116,
+              "remoteIPAddress": "127.0.0.1",
+              "remotePort": 54074,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "fromPrefetchCache": false,
+              "encodedDataLength": 214,
+              "timing": {
+                "requestTime": 365843.341185,
+                "proxyStart": -1,
+                "proxyEnd": -1,
+                "dnsStart": -1,
+                "dnsEnd": -1,
+                "connectStart": -1,
+                "connectEnd": -1,
+                "sslStart": -1,
+                "sslEnd": -1,
+                "workerStart": -1,
+                "workerReady": -1,
+                "workerFetchStart": -1,
+                "workerRespondWithSettled": -1,
+                "sendStart": 0.213,
+                "sendEnd": 0.275,
+                "pushStart": 0,
+                "pushEnd": 0,
+                "receiveHeadersStart": 0.836,
+                "receiveHeadersEnd": 0.886
+              },
+              "responseTime": 1792885511256.814,
+              "protocol": "http/1.1",
+              "alternateProtocolUsage": "unspecifiedReason",
+              "securityState": "secure"
+            },
+            "type": "Fetch",
+            "frameId": "C7B7DF1E16BFA057DFDE50B327AC3508",
+            "hasUserGesture": false
+          }
+        },
+        {
+          "method": "Network.requestWillBeSentExtraInfo",
+          "params": {
+            "requestId": "61943.2",
+            "associatedCookies": [],
+            "headers": {
+              "Accept": "*/*",
+              "Accept-Encoding": "gzip, deflate, br, zstd",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Connection": "keep-alive",
+              "Host": "127.0.0.1:54074",
+              "Referer": "http://127.0.0.1:54074/page",
+              "Sec-Fetch-Dest": "empty",
+              "Sec-Fetch-Mode": "cors",
+              "Sec-Fetch-Site": "same-origin",
+              "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+              "X-Probe": "method-check",
+              "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\""
+            },
+            "connectTiming": {
+              "requestTime": 365843.343222
+            },
+            "clientSecurityState": {
+              "initiatorIsSecureContext": true,
+              "initiatorIPAddressSpace": "Loopback",
+              "localNetworkAccessRequestPolicy": "PermissionBlock"
+            },
+            "siteHasCookieInOtherPartition": false
+          }
+        },
+        {
+          "method": "Network.responseReceivedExtraInfo",
+          "params": {
+            "requestId": "61943.2",
+            "blockedCookies": [],
+            "headers": {
+              "Cache-Control": "no-store",
+              "Connection": "keep-alive",
+              "Content-Type": "application/json",
+              "Date": "Sat, 24 Oct 2026 23:45:11 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "resourceIPAddressSpace": "Loopback",
+            "statusCode": 200,
+            "headersText": "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nCache-Control: no-store\r\nDate: Sat, 24 Oct 2026 23:45:11 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nTransfer-Encoding: chunked\r\n\r\n",
+            "cookiePartitionKey": {
+              "topLevelSite": "http://127.0.0.1",
+              "hasCrossSiteAncestor": false
+            },
+            "cookiePartitionKeyOpaque": false,
+            "exemptedCookies": []
+          }
+        },
+        {
+          "method": "Network.responseReceived",
+          "params": {
+            "requestId": "61943.2",
+            "loaderId": "FDF35E99F787A9F98A308072A076FF0F",
+            "timestamp": 365843.344388,
+            "type": "Fetch",
+            "response": {
+              "url": "http://127.0.0.1:54074/finish/303/allow",
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "Transfer-Encoding": "chunked",
+                "Cache-Control": "no-store",
+                "Keep-Alive": "timeout=5",
+                "Date": "Sat, 24 Oct 2026 23:45:11 GMT",
+                "Content-Type": "application/json",
+                "Connection": "keep-alive"
+              },
+              "mimeType": "application/json",
+              "charset": "",
+              "connectionReused": true,
+              "connectionId": 116,
+              "remoteIPAddress": "127.0.0.1",
+              "remotePort": 54074,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "fromPrefetchCache": false,
+              "encodedDataLength": 188,
+              "timing": {
+                "requestTime": 365843.343222,
+                "proxyStart": -1,
+                "proxyEnd": -1,
+                "dnsStart": -1,
+                "dnsEnd": -1,
+                "connectStart": -1,
+                "connectEnd": -1,
+                "sslStart": -1,
+                "sslEnd": -1,
+                "workerStart": -1,
+                "workerReady": -1,
+                "workerFetchStart": -1,
+                "workerRespondWithSettled": -1,
+                "sendStart": 0.165,
+                "sendEnd": 0.193,
+                "pushStart": 0,
+                "pushEnd": 0,
+                "receiveHeadersStart": 0.538,
+                "receiveHeadersEnd": 0.568
+              },
+              "responseTime": 1792885511258.553,
+              "protocol": "http/1.1",
+              "alternateProtocolUsage": "unspecifiedReason",
+              "securityState": "unknown"
+            },
+            "hasExtraInfo": true,
+            "frameId": "C7B7DF1E16BFA057DFDE50B327AC3508"
+          }
+        },
+        {
+          "method": "Network.dataReceived",
+          "params": {
+            "requestId": "61943.2",
+            "timestamp": 365843.344823,
+            "dataLength": 26,
+            "encodedDataLength": 37
+          }
+        },
+        {
+          "method": "Network.loadingFinished",
+          "params": {
+            "requestId": "61943.2",
+            "timestamp": 365843.343954,
+            "encodedDataLength": 225,
+            "encodedBodyLength": 26
+          }
+        },
+        {
+          "method": "Network.requestWillBeSent",
+          "params": {
+            "requestId": "61943.3",
+            "loaderId": "FDF35E99F787A9F98A308072A076FF0F",
+            "documentURL": "http://127.0.0.1:54074/page",
+            "request": {
+              "url": "http://127.0.0.1:54074/start/303/block",
+              "method": "POST",
+              "headers": {
+                "sec-ch-ua-platform": "\"macOS\"",
+                "Referer": "http://127.0.0.1:54074/page",
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+                "X-Probe": "method-check",
+                "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+                "Content-Type": "text/plain",
+                "sec-ch-ua-mobile": "?0"
+              },
+              "postData": "regular-303-block",
+              "hasPostData": true,
+              "postDataEntries": [
+                {
+                  "bytes": "cmVndWxhci0zMDMtYmxvY2s="
+                }
+              ],
+              "mixedContentType": "none",
+              "initialPriority": "High",
+              "referrerPolicy": "strict-origin-when-cross-origin",
+              "isSameSite": true
+            },
+            "timestamp": 365843.345888,
+            "wallTime": 1792885511.26074,
+            "initiator": {
+              "type": "script",
+              "stack": {
+                "callFrames": [
+                  {
+                    "functionName": "",
+                    "scriptId": "5",
+                    "url": "",
+                    "lineNumber": 0,
+                    "columnNumber": 29
+                  }
+                ]
+              }
+            },
+            "redirectHasExtraInfo": false,
+            "type": "Fetch",
+            "frameId": "C7B7DF1E16BFA057DFDE50B327AC3508",
+            "hasUserGesture": false
+          }
+        },
+        {
+          "method": "Network.requestWillBeSentExtraInfo",
+          "params": {
+            "requestId": "61943.3",
+            "associatedCookies": [],
+            "headers": {
+              "Accept": "*/*",
+              "Accept-Encoding": "gzip, deflate, br, zstd",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Connection": "keep-alive",
+              "Content-Length": "17",
+              "Content-Type": "text/plain",
+              "Host": "127.0.0.1:54074",
+              "Origin": "http://127.0.0.1:54074",
+              "Referer": "http://127.0.0.1:54074/page",
+              "Sec-Fetch-Dest": "empty",
+              "Sec-Fetch-Mode": "cors",
+              "Sec-Fetch-Site": "same-origin",
+              "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+              "X-Probe": "method-check",
+              "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\""
+            },
+            "connectTiming": {
+              "requestTime": 365843.34654
+            },
+            "clientSecurityState": {
+              "initiatorIsSecureContext": true,
+              "initiatorIPAddressSpace": "Loopback",
+              "localNetworkAccessRequestPolicy": "PermissionBlock"
+            },
+            "siteHasCookieInOtherPartition": false
+          }
+        },
+        {
+          "method": "Network.responseReceivedExtraInfo",
+          "params": {
+            "requestId": "61943.3",
+            "blockedCookies": [],
+            "headers": {
+              "Cache-Control": "no-store",
+              "Connection": "keep-alive",
+              "Date": "Sat, 24 Oct 2026 23:45:11 GMT",
+              "Keep-Alive": "timeout=5",
+              "Location": "http://googleads.g.doubleclick.net:54074/finish/303/block",
+              "Transfer-Encoding": "chunked"
+            },
+            "resourceIPAddressSpace": "Loopback",
+            "statusCode": 303,
+            "headersText": "HTTP/1.1 303 See Other\r\nLocation: http://googleads.g.doubleclick.net:54074/finish/303/block\r\nCache-Control: no-store\r\nDate: Sat, 24 Oct 2026 23:45:11 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nTransfer-Encoding: chunked\r\n\r\n",
+            "cookiePartitionKey": {
+              "topLevelSite": "http://127.0.0.1",
+              "hasCrossSiteAncestor": false
+            },
+            "cookiePartitionKeyOpaque": false,
+            "exemptedCookies": []
+          }
+        },
+        {
+          "method": "Network.loadingFailed",
+          "params": {
+            "requestId": "61943.3",
+            "timestamp": 365843.348362,
+            "type": "Fetch",
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+            "canceled": false,
+            "blockedReason": "other"
+          }
+        },
+        {
+          "method": "Network.requestWillBeSent",
+          "params": {
+            "requestId": "61943.4",
+            "loaderId": "FDF35E99F787A9F98A308072A076FF0F",
+            "documentURL": "http://127.0.0.1:54074/page",
+            "request": {
+              "url": "http://127.0.0.1:54074/start/308/allow",
+              "method": "POST",
+              "headers": {
+                "sec-ch-ua-platform": "\"macOS\"",
+                "Referer": "http://127.0.0.1:54074/page",
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+                "X-Probe": "method-check",
+                "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+                "Content-Type": "text/plain",
+                "sec-ch-ua-mobile": "?0"
+              },
+              "postData": "regular-308-allow",
+              "hasPostData": true,
+              "postDataEntries": [
+                {
+                  "bytes": "cmVndWxhci0zMDgtYWxsb3c="
+                }
+              ],
+              "mixedContentType": "none",
+              "initialPriority": "High",
+              "referrerPolicy": "strict-origin-when-cross-origin",
+              "isSameSite": true
+            },
+            "timestamp": 365843.349145,
+            "wallTime": 1792885511.263989,
+            "initiator": {
+              "type": "script",
+              "stack": {
+                "callFrames": [
+                  {
+                    "functionName": "",
+                    "scriptId": "6",
+                    "url": "",
+                    "lineNumber": 0,
+                    "columnNumber": 29
+                  }
+                ]
+              }
+            },
+            "redirectHasExtraInfo": false,
+            "type": "Fetch",
+            "frameId": "C7B7DF1E16BFA057DFDE50B327AC3508",
+            "hasUserGesture": false
+          }
+        },
+        {
+          "method": "Network.requestWillBeSentExtraInfo",
+          "params": {
+            "requestId": "61943.4",
+            "associatedCookies": [],
+            "headers": {
+              "Accept": "*/*",
+              "Accept-Encoding": "gzip, deflate, br, zstd",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Connection": "keep-alive",
+              "Content-Length": "17",
+              "Content-Type": "text/plain",
+              "Host": "127.0.0.1:54074",
+              "Origin": "http://127.0.0.1:54074",
+              "Referer": "http://127.0.0.1:54074/page",
+              "Sec-Fetch-Dest": "empty",
+              "Sec-Fetch-Mode": "cors",
+              "Sec-Fetch-Site": "same-origin",
+              "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+              "X-Probe": "method-check",
+              "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\""
+            },
+            "connectTiming": {
+              "requestTime": 365843.349667
+            },
+            "clientSecurityState": {
+              "initiatorIsSecureContext": true,
+              "initiatorIPAddressSpace": "Loopback",
+              "localNetworkAccessRequestPolicy": "PermissionBlock"
+            },
+            "siteHasCookieInOtherPartition": false
+          }
+        },
+        {
+          "method": "Network.responseReceivedExtraInfo",
+          "params": {
+            "requestId": "61943.4",
+            "blockedCookies": [],
+            "headers": {
+              "Cache-Control": "no-store",
+              "Connection": "keep-alive",
+              "Date": "Sat, 24 Oct 2026 23:45:11 GMT",
+              "Keep-Alive": "timeout=5",
+              "Location": "http://127.0.0.1:54074/finish/308/allow",
+              "Transfer-Encoding": "chunked"
+            },
+            "resourceIPAddressSpace": "Loopback",
+            "statusCode": 308,
+            "headersText": "HTTP/1.1 308 Permanent Redirect\r\nLocation: http://127.0.0.1:54074/finish/308/allow\r\nCache-Control: no-store\r\nDate: Sat, 24 Oct 2026 23:45:11 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nTransfer-Encoding: chunked\r\n\r\n",
+            "cookiePartitionKey": {
+              "topLevelSite": "http://127.0.0.1",
+              "hasCrossSiteAncestor": false
+            },
+            "cookiePartitionKeyOpaque": false,
+            "exemptedCookies": []
+          }
+        },
+        {
+          "method": "Network.requestWillBeSent",
+          "params": {
+            "requestId": "61943.4",
+            "loaderId": "FDF35E99F787A9F98A308072A076FF0F",
+            "documentURL": "http://127.0.0.1:54074/page",
+            "request": {
+              "url": "http://127.0.0.1:54074/finish/308/allow",
+              "method": "POST",
+              "headers": {
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+                "Referer": "http://127.0.0.1:54074/page"
+              },
+              "postData": "regular-308-allow",
+              "hasPostData": true,
+              "postDataEntries": [
+                {
+                  "bytes": "cmVndWxhci0zMDgtYWxsb3c="
+                }
+              ],
+              "mixedContentType": "none",
+              "initialPriority": "High",
+              "referrerPolicy": "strict-origin-when-cross-origin",
+              "isSameSite": true
+            },
+            "timestamp": 365843.350538,
+            "wallTime": 1792885511.265345,
+            "initiator": {
+              "type": "other"
+            },
+            "redirectHasExtraInfo": true,
+            "redirectResponse": {
+              "url": "http://127.0.0.1:54074/start/308/allow",
+              "status": 308,
+              "statusText": "Permanent Redirect",
+              "headers": {
+                "Transfer-Encoding": "chunked",
+                "Cache-Control": "no-store",
+                "Location": "http://127.0.0.1:54074/finish/308/allow",
+                "Keep-Alive": "timeout=5",
+                "Date": "Sat, 24 Oct 2026 23:45:11 GMT",
+                "Connection": "keep-alive"
+              },
+              "mimeType": "",
+              "charset": "",
+              "connectionReused": true,
+              "connectionId": 116,
+              "remoteIPAddress": "127.0.0.1",
+              "remotePort": 54074,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "fromPrefetchCache": false,
+              "encodedDataLength": 223,
+              "timing": {
+                "requestTime": 365843.349667,
+                "proxyStart": -1,
+                "proxyEnd": -1,
+                "dnsStart": -1,
+                "dnsEnd": -1,
+                "connectStart": -1,
+                "connectEnd": -1,
+                "sslStart": -1,
+                "sslEnd": -1,
+                "workerStart": -1,
+                "workerReady": -1,
+                "workerFetchStart": -1,
+                "workerRespondWithSettled": -1,
+                "sendStart": 0.136,
+                "sendEnd": 0.171,
+                "pushStart": 0,
+                "pushEnd": 0,
+                "receiveHeadersStart": 0.478,
+                "receiveHeadersEnd": 0.504
+              },
+              "responseTime": 1792885511264.938,
+              "protocol": "http/1.1",
+              "alternateProtocolUsage": "unspecifiedReason",
+              "securityState": "secure"
+            },
+            "type": "Fetch",
+            "frameId": "C7B7DF1E16BFA057DFDE50B327AC3508",
+            "hasUserGesture": false
+          }
+        },
+        {
+          "method": "Network.requestWillBeSentExtraInfo",
+          "params": {
+            "requestId": "61943.4",
+            "associatedCookies": [],
+            "headers": {
+              "Accept": "*/*",
+              "Accept-Encoding": "gzip, deflate, br, zstd",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Connection": "keep-alive",
+              "Content-Length": "17",
+              "Content-Type": "text/plain",
+              "Host": "127.0.0.1:54074",
+              "Origin": "http://127.0.0.1:54074",
+              "Referer": "http://127.0.0.1:54074/page",
+              "Sec-Fetch-Dest": "empty",
+              "Sec-Fetch-Mode": "cors",
+              "Sec-Fetch-Site": "same-origin",
+              "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+              "X-Probe": "method-check",
+              "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\""
+            },
+            "connectTiming": {
+              "requestTime": 365843.350673
+            },
+            "clientSecurityState": {
+              "initiatorIsSecureContext": true,
+              "initiatorIPAddressSpace": "Loopback",
+              "localNetworkAccessRequestPolicy": "PermissionBlock"
+            },
+            "siteHasCookieInOtherPartition": false
+          }
+        },
+        {
+          "method": "Network.responseReceivedExtraInfo",
+          "params": {
+            "requestId": "61943.4",
+            "blockedCookies": [],
+            "headers": {
+              "Cache-Control": "no-store",
+              "Connection": "keep-alive",
+              "Content-Type": "application/json",
+              "Date": "Sat, 24 Oct 2026 23:45:11 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "resourceIPAddressSpace": "Loopback",
+            "statusCode": 200,
+            "headersText": "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nCache-Control: no-store\r\nDate: Sat, 24 Oct 2026 23:45:11 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nTransfer-Encoding: chunked\r\n\r\n",
+            "cookiePartitionKey": {
+              "topLevelSite": "http://127.0.0.1",
+              "hasCrossSiteAncestor": false
+            },
+            "cookiePartitionKeyOpaque": false,
+            "exemptedCookies": []
+          }
+        },
+        {
+          "method": "Network.responseReceived",
+          "params": {
+            "requestId": "61943.4",
+            "loaderId": "FDF35E99F787A9F98A308072A076FF0F",
+            "timestamp": 365843.351757,
+            "type": "Fetch",
+            "response": {
+              "url": "http://127.0.0.1:54074/finish/308/allow",
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "Transfer-Encoding": "chunked",
+                "Cache-Control": "no-store",
+                "Keep-Alive": "timeout=5",
+                "Date": "Sat, 24 Oct 2026 23:45:11 GMT",
+                "Content-Type": "application/json",
+                "Connection": "keep-alive"
+              },
+              "mimeType": "application/json",
+              "charset": "",
+              "connectionReused": true,
+              "connectionId": 116,
+              "remoteIPAddress": "127.0.0.1",
+              "remotePort": 54074,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "fromPrefetchCache": false,
+              "encodedDataLength": 188,
+              "timing": {
+                "requestTime": 365843.350673,
+                "proxyStart": -1,
+                "proxyEnd": -1,
+                "dnsStart": -1,
+                "dnsEnd": -1,
+                "connectStart": -1,
+                "connectEnd": -1,
+                "sslStart": -1,
+                "sslEnd": -1,
+                "workerStart": -1,
+                "workerReady": -1,
+                "workerFetchStart": -1,
+                "workerRespondWithSettled": -1,
+                "sendStart": 0.105,
+                "sendEnd": 0.133,
+                "pushStart": 0,
+                "pushEnd": 0,
+                "receiveHeadersStart": 0.777,
+                "receiveHeadersEnd": 0.798
+              },
+              "responseTime": 1792885511266.243,
+              "protocol": "http/1.1",
+              "alternateProtocolUsage": "unspecifiedReason",
+              "securityState": "unknown"
+            },
+            "hasExtraInfo": true,
+            "frameId": "C7B7DF1E16BFA057DFDE50B327AC3508"
+          }
+        },
+        {
+          "method": "Network.dataReceived",
+          "params": {
+            "requestId": "61943.4",
+            "timestamp": 365843.351949,
+            "dataLength": 44,
+            "encodedDataLength": 55
+          }
+        },
+        {
+          "method": "Network.loadingFinished",
+          "params": {
+            "requestId": "61943.4",
+            "timestamp": 365843.351644,
+            "encodedDataLength": 243,
+            "encodedBodyLength": 44
+          }
+        },
+        {
+          "method": "Network.requestWillBeSent",
+          "params": {
+            "requestId": "61943.5",
+            "loaderId": "FDF35E99F787A9F98A308072A076FF0F",
+            "documentURL": "http://127.0.0.1:54074/page",
+            "request": {
+              "url": "http://127.0.0.1:54074/start/308/block",
+              "method": "POST",
+              "headers": {
+                "sec-ch-ua-platform": "\"macOS\"",
+                "Referer": "http://127.0.0.1:54074/page",
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+                "X-Probe": "method-check",
+                "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+                "Content-Type": "text/plain",
+                "sec-ch-ua-mobile": "?0"
+              },
+              "postData": "regular-308-block",
+              "hasPostData": true,
+              "postDataEntries": [
+                {
+                  "bytes": "cmVndWxhci0zMDgtYmxvY2s="
+                }
+              ],
+              "mixedContentType": "none",
+              "initialPriority": "High",
+              "referrerPolicy": "strict-origin-when-cross-origin",
+              "isSameSite": true
+            },
+            "timestamp": 365843.352788,
+            "wallTime": 1792885511.267633,
+            "initiator": {
+              "type": "script",
+              "stack": {
+                "callFrames": [
+                  {
+                    "functionName": "",
+                    "scriptId": "7",
+                    "url": "",
+                    "lineNumber": 0,
+                    "columnNumber": 29
+                  }
+                ]
+              }
+            },
+            "redirectHasExtraInfo": false,
+            "type": "Fetch",
+            "frameId": "C7B7DF1E16BFA057DFDE50B327AC3508",
+            "hasUserGesture": false
+          }
+        },
+        {
+          "method": "Network.requestWillBeSentExtraInfo",
+          "params": {
+            "requestId": "61943.5",
+            "associatedCookies": [],
+            "headers": {
+              "Accept": "*/*",
+              "Accept-Encoding": "gzip, deflate, br, zstd",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Connection": "keep-alive",
+              "Content-Length": "17",
+              "Content-Type": "text/plain",
+              "Host": "127.0.0.1:54074",
+              "Origin": "http://127.0.0.1:54074",
+              "Referer": "http://127.0.0.1:54074/page",
+              "Sec-Fetch-Dest": "empty",
+              "Sec-Fetch-Mode": "cors",
+              "Sec-Fetch-Site": "same-origin",
+              "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+              "X-Probe": "method-check",
+              "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\""
+            },
+            "connectTiming": {
+              "requestTime": 365843.353314
+            },
+            "clientSecurityState": {
+              "initiatorIsSecureContext": true,
+              "initiatorIPAddressSpace": "Loopback",
+              "localNetworkAccessRequestPolicy": "PermissionBlock"
+            },
+            "siteHasCookieInOtherPartition": false
+          }
+        },
+        {
+          "method": "Network.responseReceivedExtraInfo",
+          "params": {
+            "requestId": "61943.5",
+            "blockedCookies": [],
+            "headers": {
+              "Cache-Control": "no-store",
+              "Connection": "keep-alive",
+              "Date": "Sat, 24 Oct 2026 23:45:11 GMT",
+              "Keep-Alive": "timeout=5",
+              "Location": "http://googleads.g.doubleclick.net:54074/finish/308/block",
+              "Transfer-Encoding": "chunked"
+            },
+            "resourceIPAddressSpace": "Loopback",
+            "statusCode": 308,
+            "headersText": "HTTP/1.1 308 Permanent Redirect\r\nLocation: http://googleads.g.doubleclick.net:54074/finish/308/block\r\nCache-Control: no-store\r\nDate: Sat, 24 Oct 2026 23:45:11 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nTransfer-Encoding: chunked\r\n\r\n",
+            "cookiePartitionKey": {
+              "topLevelSite": "http://127.0.0.1",
+              "hasCrossSiteAncestor": false
+            },
+            "cookiePartitionKeyOpaque": false,
+            "exemptedCookies": []
+          }
+        },
+        {
+          "method": "Network.loadingFailed",
+          "params": {
+            "requestId": "61943.5",
+            "timestamp": 365843.354476,
+            "type": "Fetch",
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+            "canceled": false,
+            "blockedReason": "other"
+          }
+        }
+      ],
+      "exit": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "mode": "private",
+      "profile": "/private/tmp/blanc-f12-method-redirect-20261024/profile-private",
+      "cases": [
+        {
+          "status": 303,
+          "outcome": "allow",
+          "body": "private-303-allow",
+          "value": {
+            "ok": true,
+            "status": 200,
+            "data": {
+              "method": "GET",
+              "body": ""
+            }
+          },
+          "requestId": "61969.2",
+          "serverHits": [
+            {
+              "path": "/start/303/allow",
+              "host": "127.0.0.1:54074",
+              "method": "POST",
+              "body": "private-303-allow",
+              "contentType": "text/plain",
+              "probe": "method-check"
+            },
+            {
+              "path": "/finish/303/allow",
+              "host": "127.0.0.1:54074",
+              "method": "GET",
+              "body": "",
+              "contentType": null,
+              "probe": "method-check"
+            }
+          ],
+          "nativeDecisions": [
+            {
+              "args": {
+                "method": "POST",
+                "private": true,
+                "redirect_index": 0,
+                "request_digest": "8F58102CF9990EB3B6079606DF21F719BB23FF01210E9166F5C32E111CF6E3A5",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.RequestDecision",
+              "ph": "I",
+              "pid": 61954,
+              "s": "t",
+              "tid": 8870228,
+              "ts": 365847031431,
+              "tts": 853211
+            },
+            {
+              "args": {
+                "method": "GET",
+                "private": true,
+                "redirect_index": 1,
+                "request_digest": "8F58102CF9990EB3B6079606DF21F719BB23FF01210E9166F5C32E111CF6E3A5",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.RequestDecision",
+              "ph": "I",
+              "pid": 61954,
+              "s": "t",
+              "tid": 8870228,
+              "ts": 365847033932,
+              "tts": 853928
+            }
+          ]
+        },
+        {
+          "status": 303,
+          "outcome": "block",
+          "body": "private-303-block",
+          "value": {
+            "ok": false,
+            "error": "TypeError"
+          },
+          "requestId": "61969.3",
+          "serverHits": [
+            {
+              "path": "/start/303/block",
+              "host": "127.0.0.1:54074",
+              "method": "POST",
+              "body": "private-303-block",
+              "contentType": "text/plain",
+              "probe": "method-check"
+            }
+          ],
+          "nativeDecisions": [
+            {
+              "args": {
+                "method": "POST",
+                "private": true,
+                "redirect_index": 0,
+                "request_digest": "E06A6820B8E51408B0538EAD406B5EF2BB3E5AACDA5B6F0AE2511B0A3FE679B2",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.RequestDecision",
+              "ph": "I",
+              "pid": 61954,
+              "s": "t",
+              "tid": 8870228,
+              "ts": 365847039693,
+              "tts": 856873
+            },
+            {
+              "args": {
+                "method": "GET",
+                "private": true,
+                "redirect_index": 1,
+                "request_digest": "E06A6820B8E51408B0538EAD406B5EF2BB3E5AACDA5B6F0AE2511B0A3FE679B2",
+                "result": 1
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.RequestDecision",
+              "ph": "I",
+              "pid": 61954,
+              "s": "t",
+              "tid": 8870228,
+              "ts": 365847041943,
+              "tts": 857858
+            }
+          ]
+        },
+        {
+          "status": 308,
+          "outcome": "allow",
+          "body": "private-308-allow",
+          "value": {
+            "ok": true,
+            "status": 200,
+            "data": {
+              "method": "POST",
+              "body": "private-308-allow"
+            }
+          },
+          "requestId": "61969.4",
+          "serverHits": [
+            {
+              "path": "/start/308/allow",
+              "host": "127.0.0.1:54074",
+              "method": "POST",
+              "body": "private-308-allow",
+              "contentType": "text/plain",
+              "probe": "method-check"
+            },
+            {
+              "path": "/finish/308/allow",
+              "host": "127.0.0.1:54074",
+              "method": "POST",
+              "body": "private-308-allow",
+              "contentType": "text/plain",
+              "probe": "method-check"
+            }
+          ],
+          "nativeDecisions": [
+            {
+              "args": {
+                "method": "POST",
+                "private": true,
+                "redirect_index": 0,
+                "request_digest": "98C4A7C84D3DC8FDC5667208CB93169CB6A6E6D308F4A32FFFACDB4187589171",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.RequestDecision",
+              "ph": "I",
+              "pid": 61954,
+              "s": "t",
+              "tid": 8870228,
+              "ts": 365847044523,
+              "tts": 858663
+            },
+            {
+              "args": {
+                "method": "POST",
+                "private": true,
+                "redirect_index": 1,
+                "request_digest": "98C4A7C84D3DC8FDC5667208CB93169CB6A6E6D308F4A32FFFACDB4187589171",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.RequestDecision",
+              "ph": "I",
+              "pid": 61954,
+              "s": "t",
+              "tid": 8870228,
+              "ts": 365847046527,
+              "tts": 859283
+            }
+          ]
+        },
+        {
+          "status": 308,
+          "outcome": "block",
+          "body": "private-308-block",
+          "value": {
+            "ok": false,
+            "error": "TypeError"
+          },
+          "requestId": "61969.5",
+          "serverHits": [
+            {
+              "path": "/start/308/block",
+              "host": "127.0.0.1:54074",
+              "method": "POST",
+              "body": "private-308-block",
+              "contentType": "text/plain",
+              "probe": "method-check"
+            }
+          ],
+          "nativeDecisions": [
+            {
+              "args": {
+                "method": "POST",
+                "private": true,
+                "redirect_index": 0,
+                "request_digest": "4E33EC4BC5543823A9CD39400598059F4BF547A1C3E442E8EA40450A8A0EDAF8",
+                "result": 0
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.RequestDecision",
+              "ph": "I",
+              "pid": 61954,
+              "s": "t",
+              "tid": 8870228,
+              "ts": 365847051035,
+              "tts": 861488
+            },
+            {
+              "args": {
+                "method": "POST",
+                "private": true,
+                "redirect_index": 1,
+                "request_digest": "4E33EC4BC5543823A9CD39400598059F4BF547A1C3E442E8EA40450A8A0EDAF8",
+                "result": 1
+              },
+              "cat": "disabled-by-default-blanc.attribution",
+              "name": "Blanc.RequestDecision",
+              "ph": "I",
+              "pid": 61954,
+              "s": "t",
+              "tid": 8870228,
+              "ts": 365847052042,
+              "tts": 861812
+            }
+          ]
+        }
+      ],
+      "browserContextId": "50DAFDD20C422B0FD11E42BB4E146177",
+      "decisions": [
+        {
+          "args": {
+            "method": "POST",
+            "private": true,
+            "redirect_index": 0,
+            "request_digest": "8F58102CF9990EB3B6079606DF21F719BB23FF01210E9166F5C32E111CF6E3A5",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61954,
+          "s": "t",
+          "tid": 8870228,
+          "ts": 365847031431,
+          "tts": 853211
+        },
+        {
+          "args": {
+            "method": "GET",
+            "private": true,
+            "redirect_index": 1,
+            "request_digest": "8F58102CF9990EB3B6079606DF21F719BB23FF01210E9166F5C32E111CF6E3A5",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61954,
+          "s": "t",
+          "tid": 8870228,
+          "ts": 365847033932,
+          "tts": 853928
+        },
+        {
+          "args": {
+            "method": "POST",
+            "private": true,
+            "redirect_index": 0,
+            "request_digest": "E06A6820B8E51408B0538EAD406B5EF2BB3E5AACDA5B6F0AE2511B0A3FE679B2",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61954,
+          "s": "t",
+          "tid": 8870228,
+          "ts": 365847039693,
+          "tts": 856873
+        },
+        {
+          "args": {
+            "method": "GET",
+            "private": true,
+            "redirect_index": 1,
+            "request_digest": "E06A6820B8E51408B0538EAD406B5EF2BB3E5AACDA5B6F0AE2511B0A3FE679B2",
+            "result": 1
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61954,
+          "s": "t",
+          "tid": 8870228,
+          "ts": 365847041943,
+          "tts": 857858
+        },
+        {
+          "args": {
+            "method": "POST",
+            "private": true,
+            "redirect_index": 0,
+            "request_digest": "98C4A7C84D3DC8FDC5667208CB93169CB6A6E6D308F4A32FFFACDB4187589171",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61954,
+          "s": "t",
+          "tid": 8870228,
+          "ts": 365847044523,
+          "tts": 858663
+        },
+        {
+          "args": {
+            "method": "POST",
+            "private": true,
+            "redirect_index": 1,
+            "request_digest": "98C4A7C84D3DC8FDC5667208CB93169CB6A6E6D308F4A32FFFACDB4187589171",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61954,
+          "s": "t",
+          "tid": 8870228,
+          "ts": 365847046527,
+          "tts": 859283
+        },
+        {
+          "args": {
+            "method": "POST",
+            "private": true,
+            "redirect_index": 0,
+            "request_digest": "4E33EC4BC5543823A9CD39400598059F4BF547A1C3E442E8EA40450A8A0EDAF8",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61954,
+          "s": "t",
+          "tid": 8870228,
+          "ts": 365847051035,
+          "tts": 861488
+        },
+        {
+          "args": {
+            "method": "POST",
+            "private": true,
+            "redirect_index": 1,
+            "request_digest": "4E33EC4BC5543823A9CD39400598059F4BF547A1C3E442E8EA40450A8A0EDAF8",
+            "result": 1
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61954,
+          "s": "t",
+          "tid": 8870228,
+          "ts": 365847052042,
+          "tts": 861812
+        }
+      ],
+      "networkEvents": [
+        {
+          "method": "Network.requestWillBeSent",
+          "params": {
+            "requestId": "61969.2",
+            "loaderId": "306C9ED18B889968D4BE29F4F9CD58C3",
+            "documentURL": "http://127.0.0.1:54074/page",
+            "request": {
+              "url": "http://127.0.0.1:54074/start/303/allow",
+              "method": "POST",
+              "headers": {
+                "sec-ch-ua-platform": "\"macOS\"",
+                "Referer": "http://127.0.0.1:54074/page",
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+                "X-Probe": "method-check",
+                "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+                "Content-Type": "text/plain",
+                "sec-ch-ua-mobile": "?0"
+              },
+              "postData": "private-303-allow",
+              "hasPostData": true,
+              "postDataEntries": [
+                {
+                  "bytes": "cHJpdmF0ZS0zMDMtYWxsb3c="
+                }
+              ],
+              "mixedContentType": "none",
+              "initialPriority": "High",
+              "referrerPolicy": "strict-origin-when-cross-origin",
+              "isSameSite": true
+            },
+            "timestamp": 365847.027944,
+            "wallTime": 1792885514.942852,
+            "initiator": {
+              "type": "script",
+              "stack": {
+                "callFrames": [
+                  {
+                    "functionName": "",
+                    "scriptId": "4",
+                    "url": "",
+                    "lineNumber": 0,
+                    "columnNumber": 29
+                  }
+                ]
+              }
+            },
+            "redirectHasExtraInfo": false,
+            "type": "Fetch",
+            "frameId": "57ABD4F8F4DEAAC67E973C327EF696E8",
+            "hasUserGesture": false
+          }
+        },
+        {
+          "method": "Network.requestWillBeSentExtraInfo",
+          "params": {
+            "requestId": "61969.2",
+            "associatedCookies": [],
+            "headers": {
+              "Accept": "*/*",
+              "Accept-Encoding": "gzip, deflate, br, zstd",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Connection": "keep-alive",
+              "Content-Length": "17",
+              "Content-Type": "text/plain",
+              "Host": "127.0.0.1:54074",
+              "Origin": "http://127.0.0.1:54074",
+              "Referer": "http://127.0.0.1:54074/page",
+              "Sec-Fetch-Dest": "empty",
+              "Sec-Fetch-Mode": "cors",
+              "Sec-Fetch-Site": "same-origin",
+              "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+              "X-Probe": "method-check",
+              "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\""
+            },
+            "connectTiming": {
+              "requestTime": 365847.031869
+            },
+            "clientSecurityState": {
+              "initiatorIsSecureContext": true,
+              "initiatorIPAddressSpace": "Loopback",
+              "localNetworkAccessRequestPolicy": "PermissionBlock"
+            },
+            "siteHasCookieInOtherPartition": false
+          }
+        },
+        {
+          "method": "Network.responseReceivedExtraInfo",
+          "params": {
+            "requestId": "61969.2",
+            "blockedCookies": [],
+            "headers": {
+              "Cache-Control": "no-store",
+              "Connection": "keep-alive",
+              "Date": "Sat, 24 Oct 2026 23:45:14 GMT",
+              "Keep-Alive": "timeout=5",
+              "Location": "http://127.0.0.1:54074/finish/303/allow",
+              "Transfer-Encoding": "chunked"
+            },
+            "resourceIPAddressSpace": "Loopback",
+            "statusCode": 303,
+            "headersText": "HTTP/1.1 303 See Other\r\nLocation: http://127.0.0.1:54074/finish/303/allow\r\nCache-Control: no-store\r\nDate: Sat, 24 Oct 2026 23:45:14 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nTransfer-Encoding: chunked\r\n\r\n",
+            "cookiePartitionKey": {
+              "topLevelSite": "http://127.0.0.1",
+              "hasCrossSiteAncestor": false
+            },
+            "cookiePartitionKeyOpaque": false,
+            "exemptedCookies": []
+          }
+        },
+        {
+          "method": "Network.requestWillBeSent",
+          "params": {
+            "requestId": "61969.2",
+            "loaderId": "306C9ED18B889968D4BE29F4F9CD58C3",
+            "documentURL": "http://127.0.0.1:54074/page",
+            "request": {
+              "url": "http://127.0.0.1:54074/finish/303/allow",
+              "method": "GET",
+              "headers": {
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+                "Referer": "http://127.0.0.1:54074/page"
+              },
+              "mixedContentType": "none",
+              "initialPriority": "High",
+              "referrerPolicy": "strict-origin-when-cross-origin",
+              "isSameSite": true
+            },
+            "timestamp": 365847.034258,
+            "wallTime": 1792885514.949096,
+            "initiator": {
+              "type": "other"
+            },
+            "redirectHasExtraInfo": true,
+            "redirectResponse": {
+              "url": "http://127.0.0.1:54074/start/303/allow",
+              "status": 303,
+              "statusText": "See Other",
+              "headers": {
+                "Transfer-Encoding": "chunked",
+                "Cache-Control": "no-store",
+                "Location": "http://127.0.0.1:54074/finish/303/allow",
+                "Keep-Alive": "timeout=5",
+                "Date": "Sat, 24 Oct 2026 23:45:14 GMT",
+                "Connection": "keep-alive"
+              },
+              "mimeType": "",
+              "charset": "",
+              "connectionReused": true,
+              "connectionId": 115,
+              "remoteIPAddress": "127.0.0.1",
+              "remotePort": 54074,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "fromPrefetchCache": false,
+              "encodedDataLength": 214,
+              "timing": {
+                "requestTime": 365847.031869,
+                "proxyStart": -1,
+                "proxyEnd": -1,
+                "dnsStart": -1,
+                "dnsEnd": -1,
+                "connectStart": -1,
+                "connectEnd": -1,
+                "sslStart": -1,
+                "sslEnd": -1,
+                "workerStart": -1,
+                "workerReady": -1,
+                "workerFetchStart": -1,
+                "workerRespondWithSettled": -1,
+                "sendStart": 0.347,
+                "sendEnd": 0.454,
+                "pushStart": 0,
+                "pushEnd": 0,
+                "receiveHeadersStart": 1.182,
+                "receiveHeadersEnd": 1.256
+              },
+              "responseTime": 1792885514947.864,
+              "protocol": "http/1.1",
+              "alternateProtocolUsage": "unspecifiedReason",
+              "securityState": "secure"
+            },
+            "type": "Fetch",
+            "frameId": "57ABD4F8F4DEAAC67E973C327EF696E8",
+            "hasUserGesture": false
+          }
+        },
+        {
+          "method": "Network.requestWillBeSentExtraInfo",
+          "params": {
+            "requestId": "61969.2",
+            "associatedCookies": [],
+            "headers": {
+              "Accept": "*/*",
+              "Accept-Encoding": "gzip, deflate, br, zstd",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Connection": "keep-alive",
+              "Host": "127.0.0.1:54074",
+              "Referer": "http://127.0.0.1:54074/page",
+              "Sec-Fetch-Dest": "empty",
+              "Sec-Fetch-Mode": "cors",
+              "Sec-Fetch-Site": "same-origin",
+              "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+              "X-Probe": "method-check",
+              "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\""
+            },
+            "connectTiming": {
+              "requestTime": 365847.034708
+            },
+            "clientSecurityState": {
+              "initiatorIsSecureContext": true,
+              "initiatorIPAddressSpace": "Loopback",
+              "localNetworkAccessRequestPolicy": "PermissionBlock"
+            },
+            "siteHasCookieInOtherPartition": false
+          }
+        },
+        {
+          "method": "Network.responseReceivedExtraInfo",
+          "params": {
+            "requestId": "61969.2",
+            "blockedCookies": [],
+            "headers": {
+              "Cache-Control": "no-store",
+              "Connection": "keep-alive",
+              "Content-Type": "application/json",
+              "Date": "Sat, 24 Oct 2026 23:45:14 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "resourceIPAddressSpace": "Loopback",
+            "statusCode": 200,
+            "headersText": "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nCache-Control: no-store\r\nDate: Sat, 24 Oct 2026 23:45:14 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nTransfer-Encoding: chunked\r\n\r\n",
+            "cookiePartitionKey": {
+              "topLevelSite": "http://127.0.0.1",
+              "hasCrossSiteAncestor": false
+            },
+            "cookiePartitionKeyOpaque": false,
+            "exemptedCookies": []
+          }
+        },
+        {
+          "method": "Network.responseReceived",
+          "params": {
+            "requestId": "61969.2",
+            "loaderId": "306C9ED18B889968D4BE29F4F9CD58C3",
+            "timestamp": 365847.036507,
+            "type": "Fetch",
+            "response": {
+              "url": "http://127.0.0.1:54074/finish/303/allow",
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "Transfer-Encoding": "chunked",
+                "Cache-Control": "no-store",
+                "Keep-Alive": "timeout=5",
+                "Date": "Sat, 24 Oct 2026 23:45:14 GMT",
+                "Content-Type": "application/json",
+                "Connection": "keep-alive"
+              },
+              "mimeType": "application/json",
+              "charset": "",
+              "connectionReused": true,
+              "connectionId": 115,
+              "remoteIPAddress": "127.0.0.1",
+              "remotePort": 54074,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "fromPrefetchCache": false,
+              "encodedDataLength": 188,
+              "timing": {
+                "requestTime": 365847.034708,
+                "proxyStart": -1,
+                "proxyEnd": -1,
+                "dnsStart": -1,
+                "dnsEnd": -1,
+                "connectStart": -1,
+                "connectEnd": -1,
+                "sslStart": -1,
+                "sslEnd": -1,
+                "workerStart": -1,
+                "workerReady": -1,
+                "workerFetchStart": -1,
+                "workerRespondWithSettled": -1,
+                "sendStart": 0.34,
+                "sendEnd": 0.427,
+                "pushStart": 0,
+                "pushEnd": 0,
+                "receiveHeadersStart": 1.06,
+                "receiveHeadersEnd": 1.116
+              },
+              "responseTime": 1792885514950.581,
+              "protocol": "http/1.1",
+              "alternateProtocolUsage": "unspecifiedReason",
+              "securityState": "unknown"
+            },
+            "hasExtraInfo": true,
+            "frameId": "57ABD4F8F4DEAAC67E973C327EF696E8"
+          }
+        },
+        {
+          "method": "Network.dataReceived",
+          "params": {
+            "requestId": "61969.2",
+            "timestamp": 365847.036864,
+            "dataLength": 26,
+            "encodedDataLength": 37
+          }
+        },
+        {
+          "method": "Network.loadingFinished",
+          "params": {
+            "requestId": "61969.2",
+            "timestamp": 365847.036654,
+            "encodedDataLength": 225,
+            "encodedBodyLength": 26
+          }
+        },
+        {
+          "method": "Network.requestWillBeSent",
+          "params": {
+            "requestId": "61969.3",
+            "loaderId": "306C9ED18B889968D4BE29F4F9CD58C3",
+            "documentURL": "http://127.0.0.1:54074/page",
+            "request": {
+              "url": "http://127.0.0.1:54074/start/303/block",
+              "method": "POST",
+              "headers": {
+                "sec-ch-ua-platform": "\"macOS\"",
+                "Referer": "http://127.0.0.1:54074/page",
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+                "X-Probe": "method-check",
+                "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+                "Content-Type": "text/plain",
+                "sec-ch-ua-mobile": "?0"
+              },
+              "postData": "private-303-block",
+              "hasPostData": true,
+              "postDataEntries": [
+                {
+                  "bytes": "cHJpdmF0ZS0zMDMtYmxvY2s="
+                }
+              ],
+              "mixedContentType": "none",
+              "initialPriority": "High",
+              "referrerPolicy": "strict-origin-when-cross-origin",
+              "isSameSite": true
+            },
+            "timestamp": 365847.038736,
+            "wallTime": 1792885514.953611,
+            "initiator": {
+              "type": "script",
+              "stack": {
+                "callFrames": [
+                  {
+                    "functionName": "",
+                    "scriptId": "5",
+                    "url": "",
+                    "lineNumber": 0,
+                    "columnNumber": 29
+                  }
+                ]
+              }
+            },
+            "redirectHasExtraInfo": false,
+            "type": "Fetch",
+            "frameId": "57ABD4F8F4DEAAC67E973C327EF696E8",
+            "hasUserGesture": false
+          }
+        },
+        {
+          "method": "Network.requestWillBeSentExtraInfo",
+          "params": {
+            "requestId": "61969.3",
+            "associatedCookies": [],
+            "headers": {
+              "Accept": "*/*",
+              "Accept-Encoding": "gzip, deflate, br, zstd",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Connection": "keep-alive",
+              "Content-Length": "17",
+              "Content-Type": "text/plain",
+              "Host": "127.0.0.1:54074",
+              "Origin": "http://127.0.0.1:54074",
+              "Referer": "http://127.0.0.1:54074/page",
+              "Sec-Fetch-Dest": "empty",
+              "Sec-Fetch-Mode": "cors",
+              "Sec-Fetch-Site": "same-origin",
+              "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+              "X-Probe": "method-check",
+              "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\""
+            },
+            "connectTiming": {
+              "requestTime": 365847.040021
+            },
+            "clientSecurityState": {
+              "initiatorIsSecureContext": true,
+              "initiatorIPAddressSpace": "Loopback",
+              "localNetworkAccessRequestPolicy": "PermissionBlock"
+            },
+            "siteHasCookieInOtherPartition": false
+          }
+        },
+        {
+          "method": "Network.responseReceivedExtraInfo",
+          "params": {
+            "requestId": "61969.3",
+            "blockedCookies": [],
+            "headers": {
+              "Cache-Control": "no-store",
+              "Connection": "keep-alive",
+              "Date": "Sat, 24 Oct 2026 23:45:14 GMT",
+              "Keep-Alive": "timeout=5",
+              "Location": "http://googleads.g.doubleclick.net:54074/finish/303/block",
+              "Transfer-Encoding": "chunked"
+            },
+            "resourceIPAddressSpace": "Loopback",
+            "statusCode": 303,
+            "headersText": "HTTP/1.1 303 See Other\r\nLocation: http://googleads.g.doubleclick.net:54074/finish/303/block\r\nCache-Control: no-store\r\nDate: Sat, 24 Oct 2026 23:45:14 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nTransfer-Encoding: chunked\r\n\r\n",
+            "cookiePartitionKey": {
+              "topLevelSite": "http://127.0.0.1",
+              "hasCrossSiteAncestor": false
+            },
+            "cookiePartitionKeyOpaque": false,
+            "exemptedCookies": []
+          }
+        },
+        {
+          "method": "Network.loadingFailed",
+          "params": {
+            "requestId": "61969.3",
+            "timestamp": 365847.04263,
+            "type": "Fetch",
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+            "canceled": false,
+            "blockedReason": "other"
+          }
+        },
+        {
+          "method": "Network.requestWillBeSent",
+          "params": {
+            "requestId": "61969.4",
+            "loaderId": "306C9ED18B889968D4BE29F4F9CD58C3",
+            "documentURL": "http://127.0.0.1:54074/page",
+            "request": {
+              "url": "http://127.0.0.1:54074/start/308/allow",
+              "method": "POST",
+              "headers": {
+                "sec-ch-ua-platform": "\"macOS\"",
+                "Referer": "http://127.0.0.1:54074/page",
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+                "X-Probe": "method-check",
+                "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+                "Content-Type": "text/plain",
+                "sec-ch-ua-mobile": "?0"
+              },
+              "postData": "private-308-allow",
+              "hasPostData": true,
+              "postDataEntries": [
+                {
+                  "bytes": "cHJpdmF0ZS0zMDgtYWxsb3c="
+                }
+              ],
+              "mixedContentType": "none",
+              "initialPriority": "High",
+              "referrerPolicy": "strict-origin-when-cross-origin",
+              "isSameSite": true
+            },
+            "timestamp": 365847.04397,
+            "wallTime": 1792885514.95885,
+            "initiator": {
+              "type": "script",
+              "stack": {
+                "callFrames": [
+                  {
+                    "functionName": "",
+                    "scriptId": "6",
+                    "url": "",
+                    "lineNumber": 0,
+                    "columnNumber": 29
+                  }
+                ]
+              }
+            },
+            "redirectHasExtraInfo": false,
+            "type": "Fetch",
+            "frameId": "57ABD4F8F4DEAAC67E973C327EF696E8",
+            "hasUserGesture": false
+          }
+        },
+        {
+          "method": "Network.requestWillBeSentExtraInfo",
+          "params": {
+            "requestId": "61969.4",
+            "associatedCookies": [],
+            "headers": {
+              "Accept": "*/*",
+              "Accept-Encoding": "gzip, deflate, br, zstd",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Connection": "keep-alive",
+              "Content-Length": "17",
+              "Content-Type": "text/plain",
+              "Host": "127.0.0.1:54074",
+              "Origin": "http://127.0.0.1:54074",
+              "Referer": "http://127.0.0.1:54074/page",
+              "Sec-Fetch-Dest": "empty",
+              "Sec-Fetch-Mode": "cors",
+              "Sec-Fetch-Site": "same-origin",
+              "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+              "X-Probe": "method-check",
+              "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\""
+            },
+            "connectTiming": {
+              "requestTime": 365847.044857
+            },
+            "clientSecurityState": {
+              "initiatorIsSecureContext": true,
+              "initiatorIPAddressSpace": "Loopback",
+              "localNetworkAccessRequestPolicy": "PermissionBlock"
+            },
+            "siteHasCookieInOtherPartition": false
+          }
+        },
+        {
+          "method": "Network.responseReceivedExtraInfo",
+          "params": {
+            "requestId": "61969.4",
+            "blockedCookies": [],
+            "headers": {
+              "Cache-Control": "no-store",
+              "Connection": "keep-alive",
+              "Date": "Sat, 24 Oct 2026 23:45:14 GMT",
+              "Keep-Alive": "timeout=5",
+              "Location": "http://127.0.0.1:54074/finish/308/allow",
+              "Transfer-Encoding": "chunked"
+            },
+            "resourceIPAddressSpace": "Loopback",
+            "statusCode": 308,
+            "headersText": "HTTP/1.1 308 Permanent Redirect\r\nLocation: http://127.0.0.1:54074/finish/308/allow\r\nCache-Control: no-store\r\nDate: Sat, 24 Oct 2026 23:45:14 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nTransfer-Encoding: chunked\r\n\r\n",
+            "cookiePartitionKey": {
+              "topLevelSite": "http://127.0.0.1",
+              "hasCrossSiteAncestor": false
+            },
+            "cookiePartitionKeyOpaque": false,
+            "exemptedCookies": []
+          }
+        },
+        {
+          "method": "Network.requestWillBeSent",
+          "params": {
+            "requestId": "61969.4",
+            "loaderId": "306C9ED18B889968D4BE29F4F9CD58C3",
+            "documentURL": "http://127.0.0.1:54074/page",
+            "request": {
+              "url": "http://127.0.0.1:54074/finish/308/allow",
+              "method": "POST",
+              "headers": {
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+                "Referer": "http://127.0.0.1:54074/page"
+              },
+              "postData": "private-308-allow",
+              "hasPostData": true,
+              "postDataEntries": [
+                {
+                  "bytes": "cHJpdmF0ZS0zMDgtYWxsb3c="
+                }
+              ],
+              "mixedContentType": "none",
+              "initialPriority": "High",
+              "referrerPolicy": "strict-origin-when-cross-origin",
+              "isSameSite": true
+            },
+            "timestamp": 365847.0471,
+            "wallTime": 1792885514.961958,
+            "initiator": {
+              "type": "other"
+            },
+            "redirectHasExtraInfo": true,
+            "redirectResponse": {
+              "url": "http://127.0.0.1:54074/start/308/allow",
+              "status": 308,
+              "statusText": "Permanent Redirect",
+              "headers": {
+                "Transfer-Encoding": "chunked",
+                "Cache-Control": "no-store",
+                "Location": "http://127.0.0.1:54074/finish/308/allow",
+                "Keep-Alive": "timeout=5",
+                "Date": "Sat, 24 Oct 2026 23:45:14 GMT",
+                "Connection": "keep-alive"
+              },
+              "mimeType": "",
+              "charset": "",
+              "connectionReused": true,
+              "connectionId": 115,
+              "remoteIPAddress": "127.0.0.1",
+              "remotePort": 54074,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "fromPrefetchCache": false,
+              "encodedDataLength": 223,
+              "timing": {
+                "requestTime": 365847.044857,
+                "proxyStart": -1,
+                "proxyEnd": -1,
+                "dnsStart": -1,
+                "dnsEnd": -1,
+                "connectStart": -1,
+                "connectEnd": -1,
+                "sslStart": -1,
+                "sslEnd": -1,
+                "workerStart": -1,
+                "workerReady": -1,
+                "workerFetchStart": -1,
+                "workerRespondWithSettled": -1,
+                "sendStart": 0.356,
+                "sendEnd": 0.437,
+                "pushStart": 0,
+                "pushEnd": 0,
+                "receiveHeadersStart": 0.792,
+                "receiveHeadersEnd": 0.859
+              },
+              "responseTime": 1792885514960.463,
+              "protocol": "http/1.1",
+              "alternateProtocolUsage": "unspecifiedReason",
+              "securityState": "secure"
+            },
+            "type": "Fetch",
+            "frameId": "57ABD4F8F4DEAAC67E973C327EF696E8",
+            "hasUserGesture": false
+          }
+        },
+        {
+          "method": "Network.requestWillBeSentExtraInfo",
+          "params": {
+            "requestId": "61969.4",
+            "associatedCookies": [],
+            "headers": {
+              "Accept": "*/*",
+              "Accept-Encoding": "gzip, deflate, br, zstd",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Connection": "keep-alive",
+              "Content-Length": "17",
+              "Content-Type": "text/plain",
+              "Host": "127.0.0.1:54074",
+              "Origin": "http://127.0.0.1:54074",
+              "Referer": "http://127.0.0.1:54074/page",
+              "Sec-Fetch-Dest": "empty",
+              "Sec-Fetch-Mode": "cors",
+              "Sec-Fetch-Site": "same-origin",
+              "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+              "X-Probe": "method-check",
+              "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\""
+            },
+            "connectTiming": {
+              "requestTime": 365847.04754
+            },
+            "clientSecurityState": {
+              "initiatorIsSecureContext": true,
+              "initiatorIPAddressSpace": "Loopback",
+              "localNetworkAccessRequestPolicy": "PermissionBlock"
+            },
+            "siteHasCookieInOtherPartition": false
+          }
+        },
+        {
+          "method": "Network.responseReceivedExtraInfo",
+          "params": {
+            "requestId": "61969.4",
+            "blockedCookies": [],
+            "headers": {
+              "Cache-Control": "no-store",
+              "Connection": "keep-alive",
+              "Content-Type": "application/json",
+              "Date": "Sat, 24 Oct 2026 23:45:14 GMT",
+              "Keep-Alive": "timeout=5",
+              "Transfer-Encoding": "chunked"
+            },
+            "resourceIPAddressSpace": "Loopback",
+            "statusCode": 200,
+            "headersText": "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nCache-Control: no-store\r\nDate: Sat, 24 Oct 2026 23:45:14 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nTransfer-Encoding: chunked\r\n\r\n",
+            "cookiePartitionKey": {
+              "topLevelSite": "http://127.0.0.1",
+              "hasCrossSiteAncestor": false
+            },
+            "cookiePartitionKeyOpaque": false,
+            "exemptedCookies": []
+          }
+        },
+        {
+          "method": "Network.responseReceived",
+          "params": {
+            "requestId": "61969.4",
+            "loaderId": "306C9ED18B889968D4BE29F4F9CD58C3",
+            "timestamp": 365847.049109,
+            "type": "Fetch",
+            "response": {
+              "url": "http://127.0.0.1:54074/finish/308/allow",
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "Transfer-Encoding": "chunked",
+                "Cache-Control": "no-store",
+                "Keep-Alive": "timeout=5",
+                "Date": "Sat, 24 Oct 2026 23:45:14 GMT",
+                "Content-Type": "application/json",
+                "Connection": "keep-alive"
+              },
+              "mimeType": "application/json",
+              "charset": "",
+              "connectionReused": true,
+              "connectionId": 115,
+              "remoteIPAddress": "127.0.0.1",
+              "remotePort": 54074,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "fromPrefetchCache": false,
+              "encodedDataLength": 188,
+              "timing": {
+                "requestTime": 365847.04754,
+                "proxyStart": -1,
+                "proxyEnd": -1,
+                "dnsStart": -1,
+                "dnsEnd": -1,
+                "connectStart": -1,
+                "connectEnd": -1,
+                "sslStart": -1,
+                "sslEnd": -1,
+                "workerStart": -1,
+                "workerReady": -1,
+                "workerFetchStart": -1,
+                "workerRespondWithSettled": -1,
+                "sendStart": 0.436,
+                "sendEnd": 0.526,
+                "pushStart": 0,
+                "pushEnd": 0,
+                "receiveHeadersStart": 1.034,
+                "receiveHeadersEnd": 1.093
+              },
+              "responseTime": 1792885514963.387,
+              "protocol": "http/1.1",
+              "alternateProtocolUsage": "unspecifiedReason",
+              "securityState": "unknown"
+            },
+            "hasExtraInfo": true,
+            "frameId": "57ABD4F8F4DEAAC67E973C327EF696E8"
+          }
+        },
+        {
+          "method": "Network.dataReceived",
+          "params": {
+            "requestId": "61969.4",
+            "timestamp": 365847.04935,
+            "dataLength": 44,
+            "encodedDataLength": 55
+          }
+        },
+        {
+          "method": "Network.loadingFinished",
+          "params": {
+            "requestId": "61969.4",
+            "timestamp": 365847.049037,
+            "encodedDataLength": 243,
+            "encodedBodyLength": 44
+          }
+        },
+        {
+          "method": "Network.requestWillBeSent",
+          "params": {
+            "requestId": "61969.5",
+            "loaderId": "306C9ED18B889968D4BE29F4F9CD58C3",
+            "documentURL": "http://127.0.0.1:54074/page",
+            "request": {
+              "url": "http://127.0.0.1:54074/start/308/block",
+              "method": "POST",
+              "headers": {
+                "sec-ch-ua-platform": "\"macOS\"",
+                "Referer": "http://127.0.0.1:54074/page",
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+                "X-Probe": "method-check",
+                "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+                "Content-Type": "text/plain",
+                "sec-ch-ua-mobile": "?0"
+              },
+              "postData": "private-308-block",
+              "hasPostData": true,
+              "postDataEntries": [
+                {
+                  "bytes": "cHJpdmF0ZS0zMDgtYmxvY2s="
+                }
+              ],
+              "mixedContentType": "none",
+              "initialPriority": "High",
+              "referrerPolicy": "strict-origin-when-cross-origin",
+              "isSameSite": true
+            },
+            "timestamp": 365847.050544,
+            "wallTime": 1792885514.965423,
+            "initiator": {
+              "type": "script",
+              "stack": {
+                "callFrames": [
+                  {
+                    "functionName": "",
+                    "scriptId": "7",
+                    "url": "",
+                    "lineNumber": 0,
+                    "columnNumber": 29
+                  }
+                ]
+              }
+            },
+            "redirectHasExtraInfo": false,
+            "type": "Fetch",
+            "frameId": "57ABD4F8F4DEAAC67E973C327EF696E8",
+            "hasUserGesture": false
+          }
+        },
+        {
+          "method": "Network.requestWillBeSentExtraInfo",
+          "params": {
+            "requestId": "61969.5",
+            "associatedCookies": [],
+            "headers": {
+              "Accept": "*/*",
+              "Accept-Encoding": "gzip, deflate, br, zstd",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Connection": "keep-alive",
+              "Content-Length": "17",
+              "Content-Type": "text/plain",
+              "Host": "127.0.0.1:54074",
+              "Origin": "http://127.0.0.1:54074",
+              "Referer": "http://127.0.0.1:54074/page",
+              "Sec-Fetch-Dest": "empty",
+              "Sec-Fetch-Mode": "cors",
+              "Sec-Fetch-Site": "same-origin",
+              "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+              "X-Probe": "method-check",
+              "sec-ch-ua": "\"Chromium\";v=\"157\", \"Not-A.Brand\";v=\"99\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"macOS\""
+            },
+            "connectTiming": {
+              "requestTime": 365847.051227
+            },
+            "clientSecurityState": {
+              "initiatorIsSecureContext": true,
+              "initiatorIPAddressSpace": "Loopback",
+              "localNetworkAccessRequestPolicy": "PermissionBlock"
+            },
+            "siteHasCookieInOtherPartition": false
+          }
+        },
+        {
+          "method": "Network.responseReceivedExtraInfo",
+          "params": {
+            "requestId": "61969.5",
+            "blockedCookies": [],
+            "headers": {
+              "Cache-Control": "no-store",
+              "Connection": "keep-alive",
+              "Date": "Sat, 24 Oct 2026 23:45:14 GMT",
+              "Keep-Alive": "timeout=5",
+              "Location": "http://googleads.g.doubleclick.net:54074/finish/308/block",
+              "Transfer-Encoding": "chunked"
+            },
+            "resourceIPAddressSpace": "Loopback",
+            "statusCode": 308,
+            "headersText": "HTTP/1.1 308 Permanent Redirect\r\nLocation: http://googleads.g.doubleclick.net:54074/finish/308/block\r\nCache-Control: no-store\r\nDate: Sat, 24 Oct 2026 23:45:14 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nTransfer-Encoding: chunked\r\n\r\n",
+            "cookiePartitionKey": {
+              "topLevelSite": "http://127.0.0.1",
+              "hasCrossSiteAncestor": false
+            },
+            "cookiePartitionKeyOpaque": false,
+            "exemptedCookies": []
+          }
+        },
+        {
+          "method": "Network.loadingFailed",
+          "params": {
+            "requestId": "61969.5",
+            "timestamp": 365847.05218,
+            "type": "Fetch",
+            "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+            "canceled": false,
+            "blockedReason": "other"
+          }
+        }
+      ],
+      "exit": {
+        "code": 0,
+        "signal": null
+      }
+    }
+  ],
+  "checks": [
+    {
+      "name": "regular/303/allow: exact request has initial and redirected decisions",
+      "pass": true,
+      "detail": [
+        {
+          "args": {
+            "method": "POST",
+            "private": false,
+            "redirect_index": 0,
+            "request_digest": "6B601EF158301BC11C46BAD3D560C53F9FBBE4EAB306C68409AE9054FD26380B",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61908,
+          "s": "t",
+          "tid": 8869616,
+          "ts": 365843340848,
+          "tts": 694230
+        },
+        {
+          "args": {
+            "method": "GET",
+            "private": false,
+            "redirect_index": 1,
+            "request_digest": "6B601EF158301BC11C46BAD3D560C53F9FBBE4EAB306C68409AE9054FD26380B",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61908,
+          "s": "t",
+          "tid": 8869616,
+          "ts": 365843342498,
+          "tts": 694691
+        }
+      ]
+    },
+    {
+      "name": "regular/303/allow: native method and profile follow redirect",
+      "pass": true
+    },
+    {
+      "name": "regular/303/allow: expected native terminal decision",
+      "pass": true
+    },
+    {
+      "name": "regular/303/allow: initial POST body and header reach only authored start",
+      "pass": true
+    },
+    {
+      "name": "regular/303/allow: final method body and response match",
+      "pass": true
+    },
+    {
+      "name": "regular/303/allow: content type is removed only on POST to GET",
+      "pass": true
+    },
+    {
+      "name": "regular/303/block: exact request has initial and redirected decisions",
+      "pass": true,
+      "detail": [
+        {
+          "args": {
+            "method": "POST",
+            "private": false,
+            "redirect_index": 0,
+            "request_digest": "B025635F86C3B159AF1016A61A0253F505774567F0E08759CA6842CB28363576",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61908,
+          "s": "t",
+          "tid": 8869616,
+          "ts": 365843346383,
+          "tts": 696240
+        },
+        {
+          "args": {
+            "method": "GET",
+            "private": false,
+            "redirect_index": 1,
+            "request_digest": "B025635F86C3B159AF1016A61A0253F505774567F0E08759CA6842CB28363576",
+            "result": 1
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61908,
+          "s": "t",
+          "tid": 8869616,
+          "ts": 365843347793,
+          "tts": 696547
+        }
+      ]
+    },
+    {
+      "name": "regular/303/block: native method and profile follow redirect",
+      "pass": true
+    },
+    {
+      "name": "regular/303/block: expected native terminal decision",
+      "pass": true
+    },
+    {
+      "name": "regular/303/block: initial POST body and header reach only authored start",
+      "pass": true
+    },
+    {
+      "name": "regular/303/block: blocked redirect rejects without destination arrival",
+      "pass": true
+    },
+    {
+      "name": "regular/308/allow: exact request has initial and redirected decisions",
+      "pass": true,
+      "detail": [
+        {
+          "args": {
+            "method": "POST",
+            "private": false,
+            "redirect_index": 0,
+            "request_digest": "69DDA98C9AB39A67D0FDE27CE702F1BC45C8DB8E9CE9D469EC8AE7F62EB2268B",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61908,
+          "s": "t",
+          "tid": 8869616,
+          "ts": 365843349518,
+          "tts": 697043
+        },
+        {
+          "args": {
+            "method": "POST",
+            "private": false,
+            "redirect_index": 1,
+            "request_digest": "69DDA98C9AB39A67D0FDE27CE702F1BC45C8DB8E9CE9D469EC8AE7F62EB2268B",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61908,
+          "s": "t",
+          "tid": 8869616,
+          "ts": 365843350412,
+          "tts": 697305
+        }
+      ]
+    },
+    {
+      "name": "regular/308/allow: native method and profile follow redirect",
+      "pass": true
+    },
+    {
+      "name": "regular/308/allow: expected native terminal decision",
+      "pass": true
+    },
+    {
+      "name": "regular/308/allow: initial POST body and header reach only authored start",
+      "pass": true
+    },
+    {
+      "name": "regular/308/allow: final method body and response match",
+      "pass": true
+    },
+    {
+      "name": "regular/308/allow: content type is removed only on POST to GET",
+      "pass": true
+    },
+    {
+      "name": "regular/308/block: exact request has initial and redirected decisions",
+      "pass": true,
+      "detail": [
+        {
+          "args": {
+            "method": "POST",
+            "private": false,
+            "redirect_index": 0,
+            "request_digest": "AC4D319E51363DD341F6D42BFA9D730316701FC070F28B537947051FC5151810",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61908,
+          "s": "t",
+          "tid": 8869616,
+          "ts": 365843353177,
+          "tts": 698214
+        },
+        {
+          "args": {
+            "method": "POST",
+            "private": false,
+            "redirect_index": 1,
+            "request_digest": "AC4D319E51363DD341F6D42BFA9D730316701FC070F28B537947051FC5151810",
+            "result": 1
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61908,
+          "s": "t",
+          "tid": 8869616,
+          "ts": 365843354364,
+          "tts": 698480
+        }
+      ]
+    },
+    {
+      "name": "regular/308/block: native method and profile follow redirect",
+      "pass": true
+    },
+    {
+      "name": "regular/308/block: expected native terminal decision",
+      "pass": true
+    },
+    {
+      "name": "regular/308/block: initial POST body and header reach only authored start",
+      "pass": true
+    },
+    {
+      "name": "regular/308/block: blocked redirect rejects without destination arrival",
+      "pass": true
+    },
+    {
+      "name": "regular: trace payload is limited to opaque key method hop profile result",
+      "pass": true
+    },
+    {
+      "name": "regular: clean browser exit",
+      "pass": true
+    },
+    {
+      "name": "private/303/allow: exact request has initial and redirected decisions",
+      "pass": true,
+      "detail": [
+        {
+          "args": {
+            "method": "POST",
+            "private": true,
+            "redirect_index": 0,
+            "request_digest": "8F58102CF9990EB3B6079606DF21F719BB23FF01210E9166F5C32E111CF6E3A5",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61954,
+          "s": "t",
+          "tid": 8870228,
+          "ts": 365847031431,
+          "tts": 853211
+        },
+        {
+          "args": {
+            "method": "GET",
+            "private": true,
+            "redirect_index": 1,
+            "request_digest": "8F58102CF9990EB3B6079606DF21F719BB23FF01210E9166F5C32E111CF6E3A5",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61954,
+          "s": "t",
+          "tid": 8870228,
+          "ts": 365847033932,
+          "tts": 853928
+        }
+      ]
+    },
+    {
+      "name": "private/303/allow: native method and profile follow redirect",
+      "pass": true
+    },
+    {
+      "name": "private/303/allow: expected native terminal decision",
+      "pass": true
+    },
+    {
+      "name": "private/303/allow: initial POST body and header reach only authored start",
+      "pass": true
+    },
+    {
+      "name": "private/303/allow: final method body and response match",
+      "pass": true
+    },
+    {
+      "name": "private/303/allow: content type is removed only on POST to GET",
+      "pass": true
+    },
+    {
+      "name": "private/303/block: exact request has initial and redirected decisions",
+      "pass": true,
+      "detail": [
+        {
+          "args": {
+            "method": "POST",
+            "private": true,
+            "redirect_index": 0,
+            "request_digest": "E06A6820B8E51408B0538EAD406B5EF2BB3E5AACDA5B6F0AE2511B0A3FE679B2",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61954,
+          "s": "t",
+          "tid": 8870228,
+          "ts": 365847039693,
+          "tts": 856873
+        },
+        {
+          "args": {
+            "method": "GET",
+            "private": true,
+            "redirect_index": 1,
+            "request_digest": "E06A6820B8E51408B0538EAD406B5EF2BB3E5AACDA5B6F0AE2511B0A3FE679B2",
+            "result": 1
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61954,
+          "s": "t",
+          "tid": 8870228,
+          "ts": 365847041943,
+          "tts": 857858
+        }
+      ]
+    },
+    {
+      "name": "private/303/block: native method and profile follow redirect",
+      "pass": true
+    },
+    {
+      "name": "private/303/block: expected native terminal decision",
+      "pass": true
+    },
+    {
+      "name": "private/303/block: initial POST body and header reach only authored start",
+      "pass": true
+    },
+    {
+      "name": "private/303/block: blocked redirect rejects without destination arrival",
+      "pass": true
+    },
+    {
+      "name": "private/308/allow: exact request has initial and redirected decisions",
+      "pass": true,
+      "detail": [
+        {
+          "args": {
+            "method": "POST",
+            "private": true,
+            "redirect_index": 0,
+            "request_digest": "98C4A7C84D3DC8FDC5667208CB93169CB6A6E6D308F4A32FFFACDB4187589171",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61954,
+          "s": "t",
+          "tid": 8870228,
+          "ts": 365847044523,
+          "tts": 858663
+        },
+        {
+          "args": {
+            "method": "POST",
+            "private": true,
+            "redirect_index": 1,
+            "request_digest": "98C4A7C84D3DC8FDC5667208CB93169CB6A6E6D308F4A32FFFACDB4187589171",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61954,
+          "s": "t",
+          "tid": 8870228,
+          "ts": 365847046527,
+          "tts": 859283
+        }
+      ]
+    },
+    {
+      "name": "private/308/allow: native method and profile follow redirect",
+      "pass": true
+    },
+    {
+      "name": "private/308/allow: expected native terminal decision",
+      "pass": true
+    },
+    {
+      "name": "private/308/allow: initial POST body and header reach only authored start",
+      "pass": true
+    },
+    {
+      "name": "private/308/allow: final method body and response match",
+      "pass": true
+    },
+    {
+      "name": "private/308/allow: content type is removed only on POST to GET",
+      "pass": true
+    },
+    {
+      "name": "private/308/block: exact request has initial and redirected decisions",
+      "pass": true,
+      "detail": [
+        {
+          "args": {
+            "method": "POST",
+            "private": true,
+            "redirect_index": 0,
+            "request_digest": "4E33EC4BC5543823A9CD39400598059F4BF547A1C3E442E8EA40450A8A0EDAF8",
+            "result": 0
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61954,
+          "s": "t",
+          "tid": 8870228,
+          "ts": 365847051035,
+          "tts": 861488
+        },
+        {
+          "args": {
+            "method": "POST",
+            "private": true,
+            "redirect_index": 1,
+            "request_digest": "4E33EC4BC5543823A9CD39400598059F4BF547A1C3E442E8EA40450A8A0EDAF8",
+            "result": 1
+          },
+          "cat": "disabled-by-default-blanc.attribution",
+          "name": "Blanc.RequestDecision",
+          "ph": "I",
+          "pid": 61954,
+          "s": "t",
+          "tid": 8870228,
+          "ts": 365847052042,
+          "tts": 861812
+        }
+      ]
+    },
+    {
+      "name": "private/308/block: native method and profile follow redirect",
+      "pass": true
+    },
+    {
+      "name": "private/308/block: expected native terminal decision",
+      "pass": true
+    },
+    {
+      "name": "private/308/block: initial POST body and header reach only authored start",
+      "pass": true
+    },
+    {
+      "name": "private/308/block: blocked redirect rejects without destination arrival",
+      "pass": true
+    },
+    {
+      "name": "private: trace payload is limited to opaque key method hop profile result",
+      "pass": true
+    },
+    {
+      "name": "private: clean browser exit",
+      "pass": true
+    }
+  ],
+  "serverHits": [
+    {
+      "path": "/page",
+      "host": "127.0.0.1:54074",
+      "method": "GET",
+      "body": "",
+      "contentType": null,
+      "probe": null
+    },
+    {
+      "path": "/start/303/allow",
+      "host": "127.0.0.1:54074",
+      "method": "POST",
+      "body": "regular-303-allow",
+      "contentType": "text/plain",
+      "probe": "method-check"
+    },
+    {
+      "path": "/finish/303/allow",
+      "host": "127.0.0.1:54074",
+      "method": "GET",
+      "body": "",
+      "contentType": null,
+      "probe": "method-check"
+    },
+    {
+      "path": "/start/303/block",
+      "host": "127.0.0.1:54074",
+      "method": "POST",
+      "body": "regular-303-block",
+      "contentType": "text/plain",
+      "probe": "method-check"
+    },
+    {
+      "path": "/start/308/allow",
+      "host": "127.0.0.1:54074",
+      "method": "POST",
+      "body": "regular-308-allow",
+      "contentType": "text/plain",
+      "probe": "method-check"
+    },
+    {
+      "path": "/finish/308/allow",
+      "host": "127.0.0.1:54074",
+      "method": "POST",
+      "body": "regular-308-allow",
+      "contentType": "text/plain",
+      "probe": "method-check"
+    },
+    {
+      "path": "/start/308/block",
+      "host": "127.0.0.1:54074",
+      "method": "POST",
+      "body": "regular-308-block",
+      "contentType": "text/plain",
+      "probe": "method-check"
+    },
+    {
+      "path": "/page",
+      "host": "127.0.0.1:54074",
+      "method": "GET",
+      "body": "",
+      "contentType": null,
+      "probe": null
+    },
+    {
+      "path": "/start/303/allow",
+      "host": "127.0.0.1:54074",
+      "method": "POST",
+      "body": "private-303-allow",
+      "contentType": "text/plain",
+      "probe": "method-check"
+    },
+    {
+      "path": "/finish/303/allow",
+      "host": "127.0.0.1:54074",
+      "method": "GET",
+      "body": "",
+      "contentType": null,
+      "probe": "method-check"
+    },
+    {
+      "path": "/start/303/block",
+      "host": "127.0.0.1:54074",
+      "method": "POST",
+      "body": "private-303-block",
+      "contentType": "text/plain",
+      "probe": "method-check"
+    },
+    {
+      "path": "/start/308/allow",
+      "host": "127.0.0.1:54074",
+      "method": "POST",
+      "body": "private-308-allow",
+      "contentType": "text/plain",
+      "probe": "method-check"
+    },
+    {
+      "path": "/finish/308/allow",
+      "host": "127.0.0.1:54074",
+      "method": "POST",
+      "body": "private-308-allow",
+      "contentType": "text/plain",
+      "probe": "method-check"
+    },
+    {
+      "path": "/start/308/block",
+      "host": "127.0.0.1:54074",
+      "method": "POST",
+      "body": "private-308-block",
+      "contentType": "text/plain",
+      "probe": "method-check"
+    }
+  ]
+}

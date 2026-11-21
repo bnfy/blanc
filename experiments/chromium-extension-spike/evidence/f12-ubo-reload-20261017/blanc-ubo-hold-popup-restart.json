@@ -1,0 +1,17 @@
+{
+  "scope": "bounded offline blocking and cancellation hold",
+  "checks": [],
+  "hits": [],
+  "profileRemoved": true,
+  "startupNavigationErrors": [],
+  "passed": false,
+  "error": "Error: page.evaluate: Target page, context or browser has been closed",
+  "events": [
+    {
+      "accepted": true,
+      "action": "/begin",
+      "event": "ubo-control"
+    }
+  ],
+  "refusedHostCount": 1
+}

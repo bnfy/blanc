@@ -1,0 +1,1224 @@
+{
+  "commit": "fd12eb2bd0962ca6c11cec199af84179b8ac2bbf",
+  "checks": [
+    {
+      "name": "before-relaunch",
+      "at": "2026-10-16T22:19:10.097Z",
+      "pages": []
+    },
+    {
+      "name": "relaunched",
+      "at": "2026-10-16T22:19:12.015Z",
+      "pages": [
+        {
+          "id": "BF091A565505EB6071FAB9CE7E57FEE9",
+          "title": "New Tab",
+          "url": "chrome://newtab/"
+        }
+      ]
+    },
+    {
+      "name": "baseline",
+      "at": "2026-10-16T22:19:12.124Z",
+      "tabs": [
+        {
+          "audible": false,
+          "blockedCount": 0,
+          "bookmarked": false,
+          "canGoBack": false,
+          "canGoForward": false,
+          "groupId": null,
+          "id": "138413435",
+          "isLoading": false,
+          "muted": false,
+          "pageBg": "#f7f0e6",
+          "pinned": false,
+          "private": false,
+          "title": "New Tab",
+          "url": "blanc://newtab/"
+        }
+      ],
+      "favorites": []
+    },
+    {
+      "name": "native-group-name-reuse-and-active-dots",
+      "at": "2026-10-16T22:19:26.679Z",
+      "groups": [
+        {
+          "collapsed": false,
+          "id": "12F6CF5CC1106BF50B15662C592CFECA",
+          "name": "work"
+        }
+      ],
+      "dots": [
+        "138413467",
+        "138413468",
+        "138413469"
+      ],
+      "tabs": [
+        {
+          "id": "138413435",
+          "url": "blanc://newtab/",
+          "groupId": null
+        },
+        {
+          "id": "138413467",
+          "url": "http://127.0.0.1:8785/GroupsA",
+          "groupId": "12F6CF5CC1106BF50B15662C592CFECA"
+        },
+        {
+          "id": "138413468",
+          "url": "http://127.0.0.1:8785/GroupsB",
+          "groupId": "12F6CF5CC1106BF50B15662C592CFECA"
+        },
+        {
+          "id": "138413469",
+          "url": "http://127.0.0.1:8785/GroupsC",
+          "groupId": "12F6CF5CC1106BF50B15662C592CFECA"
+        },
+        {
+          "id": "138413470",
+          "url": "http://127.0.0.1:8785/GroupsD",
+          "groupId": null
+        },
+        {
+          "id": "138413471",
+          "url": "http://127.0.0.1:8785/GroupsE",
+          "groupId": null
+        },
+        {
+          "id": "138413472",
+          "url": "http://127.0.0.1:8785/GroupsF",
+          "groupId": null
+        }
+      ]
+    },
+    {
+      "name": "native-fold-unfold-preserves-active",
+      "at": "2026-10-16T22:19:29.388Z"
+    },
+    {
+      "name": "quick-switcher-results",
+      "at": "2026-10-16T22:19:33.651Z",
+      "note": "Non-fixture browsing-history rows omitted. Native group-first result and Enter behavior are recorded by native-group-search-enter-unfolds."
+    },
+    {
+      "name": "native-group-search-enter-unfolds",
+      "at": "2026-10-16T22:19:34.774Z"
+    },
+    {
+      "name": "second-native-group",
+      "at": "2026-10-16T22:19:38.752Z",
+      "snapshot": {
+        "activeTabId": "138413470",
+        "adblockEnabled": false,
+        "closed": [],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "glanceTabId": null,
+        "groups": [
+          {
+            "collapsed": false,
+            "id": "12F6CF5CC1106BF50B15662C592CFECA",
+            "name": "work"
+          },
+          {
+            "collapsed": false,
+            "id": "C687592565AF52858E9D42CC1A1D665B",
+            "name": "research"
+          }
+        ],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "groupId": null,
+            "id": "138413435",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "New Tab",
+            "url": "blanc://newtab/"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "groupId": "12F6CF5CC1106BF50B15662C592CFECA",
+            "id": "138413467",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "Controls861 GroupsA",
+            "url": "http://127.0.0.1:8785/GroupsA"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "groupId": "12F6CF5CC1106BF50B15662C592CFECA",
+            "id": "138413468",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "Controls861 GroupsB",
+            "url": "http://127.0.0.1:8785/GroupsB"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "groupId": "12F6CF5CC1106BF50B15662C592CFECA",
+            "id": "138413469",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "Controls861 GroupsC",
+            "url": "http://127.0.0.1:8785/GroupsC"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "groupId": "C687592565AF52858E9D42CC1A1D665B",
+            "id": "138413470",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "#f8f2df",
+            "pinned": false,
+            "private": false,
+            "title": "Controls861 GroupsD",
+            "url": "http://127.0.0.1:8785/GroupsD"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "groupId": null,
+            "id": "138413471",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "Controls861 GroupsE",
+            "url": "http://127.0.0.1:8785/GroupsE"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "groupId": null,
+            "id": "138413472",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": false,
+            "title": "Controls861 GroupsF",
+            "url": "http://127.0.0.1:8785/GroupsF"
+          }
+        ]
+      }
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T22:19:39.879Z",
+      "path": "/private/tmp/blanc-pr867-groups.png"
+    },
+    {
+      "name": "native-drag-loose-into-group",
+      "at": "2026-10-16T22:20:12.156Z",
+      "state": {
+        "groups": [
+          {
+            "collapsed": false,
+            "id": "12F6CF5CC1106BF50B15662C592CFECA",
+            "name": "work"
+          },
+          {
+            "collapsed": false,
+            "id": "C687592565AF52858E9D42CC1A1D665B",
+            "name": "research"
+          }
+        ],
+        "tabs": [
+          {
+            "id": "138413435",
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "138413467",
+            "url": "http://127.0.0.1:8785/GroupsA",
+            "pinned": false,
+            "groupId": "12F6CF5CC1106BF50B15662C592CFECA"
+          },
+          {
+            "id": "138413468",
+            "url": "http://127.0.0.1:8785/GroupsB",
+            "pinned": false,
+            "groupId": "12F6CF5CC1106BF50B15662C592CFECA"
+          },
+          {
+            "id": "138413469",
+            "url": "http://127.0.0.1:8785/GroupsC",
+            "pinned": false,
+            "groupId": "12F6CF5CC1106BF50B15662C592CFECA"
+          },
+          {
+            "id": "138413471",
+            "url": "http://127.0.0.1:8785/GroupsE",
+            "pinned": false,
+            "groupId": "12F6CF5CC1106BF50B15662C592CFECA"
+          },
+          {
+            "id": "138413470",
+            "url": "http://127.0.0.1:8785/GroupsD",
+            "pinned": false,
+            "groupId": "C687592565AF52858E9D42CC1A1D665B"
+          },
+          {
+            "id": "138413472",
+            "url": "http://127.0.0.1:8785/GroupsF",
+            "pinned": false,
+            "groupId": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "native-drag-grouped-into-loose",
+      "at": "2026-10-16T22:20:14.698Z",
+      "state": {
+        "groups": [
+          {
+            "collapsed": false,
+            "id": "12F6CF5CC1106BF50B15662C592CFECA",
+            "name": "work"
+          },
+          {
+            "collapsed": false,
+            "id": "C687592565AF52858E9D42CC1A1D665B",
+            "name": "research"
+          }
+        ],
+        "tabs": [
+          {
+            "id": "138413435",
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "138413467",
+            "url": "http://127.0.0.1:8785/GroupsA",
+            "pinned": false,
+            "groupId": "12F6CF5CC1106BF50B15662C592CFECA"
+          },
+          {
+            "id": "138413468",
+            "url": "http://127.0.0.1:8785/GroupsB",
+            "pinned": false,
+            "groupId": "12F6CF5CC1106BF50B15662C592CFECA"
+          },
+          {
+            "id": "138413469",
+            "url": "http://127.0.0.1:8785/GroupsC",
+            "pinned": false,
+            "groupId": "12F6CF5CC1106BF50B15662C592CFECA"
+          },
+          {
+            "id": "138413470",
+            "url": "http://127.0.0.1:8785/GroupsD",
+            "pinned": false,
+            "groupId": "C687592565AF52858E9D42CC1A1D665B"
+          },
+          {
+            "id": "138413471",
+            "url": "http://127.0.0.1:8785/GroupsE",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "138413472",
+            "url": "http://127.0.0.1:8785/GroupsF",
+            "pinned": false,
+            "groupId": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "native-group-header-drag",
+      "at": "2026-10-16T22:20:17.253Z",
+      "state": {
+        "groups": [
+          {
+            "collapsed": false,
+            "id": "C687592565AF52858E9D42CC1A1D665B",
+            "name": "research"
+          },
+          {
+            "collapsed": false,
+            "id": "12F6CF5CC1106BF50B15662C592CFECA",
+            "name": "work"
+          }
+        ],
+        "tabs": [
+          {
+            "id": "138413435",
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "138413470",
+            "url": "http://127.0.0.1:8785/GroupsD",
+            "pinned": false,
+            "groupId": "C687592565AF52858E9D42CC1A1D665B"
+          },
+          {
+            "id": "138413467",
+            "url": "http://127.0.0.1:8785/GroupsA",
+            "pinned": false,
+            "groupId": "12F6CF5CC1106BF50B15662C592CFECA"
+          },
+          {
+            "id": "138413468",
+            "url": "http://127.0.0.1:8785/GroupsB",
+            "pinned": false,
+            "groupId": "12F6CF5CC1106BF50B15662C592CFECA"
+          },
+          {
+            "id": "138413469",
+            "url": "http://127.0.0.1:8785/GroupsC",
+            "pinned": false,
+            "groupId": "12F6CF5CC1106BF50B15662C592CFECA"
+          },
+          {
+            "id": "138413471",
+            "url": "http://127.0.0.1:8785/GroupsE",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "138413472",
+            "url": "http://127.0.0.1:8785/GroupsF",
+            "pinned": false,
+            "groupId": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "native-keyboard-group-reorder",
+      "at": "2026-10-16T22:20:25.103Z"
+    },
+    {
+      "name": "native-keyboard-grouped-row-reorder",
+      "at": "2026-10-16T22:20:35.461Z",
+      "calls": [
+        {
+          "name": "moveTab",
+          "args": [
+            "138413471",
+            {
+              "groupId": "12F6CF5CC1106BF50B15662C592CFECA",
+              "beforeId": null
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "138413471",
+            {
+              "groupId": null,
+              "beforeId": "138413472"
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "reorderGroup",
+          "args": [
+            "C687592565AF52858E9D42CC1A1D665B",
+            "12F6CF5CC1106BF50B15662C592CFECA"
+          ],
+          "result": true
+        },
+        {
+          "name": "reorderGroup",
+          "args": [
+            "12F6CF5CC1106BF50B15662C592CFECA",
+            "C687592565AF52858E9D42CC1A1D665B"
+          ],
+          "result": true
+        },
+        {
+          "name": "reorderGroup",
+          "args": [
+            "12F6CF5CC1106BF50B15662C592CFECA",
+            null
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "138413468",
+            {
+              "groupId": "12F6CF5CC1106BF50B15662C592CFECA",
+              "beforeId": "138413467"
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "138413468",
+            {
+              "groupId": "12F6CF5CC1106BF50B15662C592CFECA",
+              "beforeId": "138413469"
+            }
+          ],
+          "result": true
+        }
+      ],
+      "state": {
+        "groups": [
+          {
+            "collapsed": false,
+            "id": "C687592565AF52858E9D42CC1A1D665B",
+            "name": "research"
+          },
+          {
+            "collapsed": false,
+            "id": "12F6CF5CC1106BF50B15662C592CFECA",
+            "name": "work"
+          }
+        ],
+        "tabs": [
+          {
+            "id": "138413435",
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "138413470",
+            "url": "http://127.0.0.1:8785/GroupsD",
+            "pinned": false,
+            "groupId": "C687592565AF52858E9D42CC1A1D665B"
+          },
+          {
+            "id": "138413471",
+            "url": "http://127.0.0.1:8785/GroupsE",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "138413472",
+            "url": "http://127.0.0.1:8785/GroupsF",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "138413467",
+            "url": "http://127.0.0.1:8785/GroupsA",
+            "pinned": false,
+            "groupId": "12F6CF5CC1106BF50B15662C592CFECA"
+          },
+          {
+            "id": "138413468",
+            "url": "http://127.0.0.1:8785/GroupsB",
+            "pinned": false,
+            "groupId": "12F6CF5CC1106BF50B15662C592CFECA"
+          },
+          {
+            "id": "138413469",
+            "url": "http://127.0.0.1:8785/GroupsC",
+            "pinned": false,
+            "groupId": "12F6CF5CC1106BF50B15662C592CFECA"
+          }
+        ]
+      }
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T22:20:35.686Z",
+      "path": "/private/tmp/blanc-pr867-moves.png"
+    },
+    {
+      "name": "native-pinned-into-group-refused",
+      "at": "2026-10-16T22:21:05.025Z",
+      "calls": [
+        {
+          "name": "moveTab",
+          "args": [
+            "138413471",
+            {
+              "groupId": "12F6CF5CC1106BF50B15662C592CFECA",
+              "beforeId": null
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "138413471",
+            {
+              "groupId": null,
+              "beforeId": "138413472"
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "reorderGroup",
+          "args": [
+            "C687592565AF52858E9D42CC1A1D665B",
+            "12F6CF5CC1106BF50B15662C592CFECA"
+          ],
+          "result": true
+        },
+        {
+          "name": "reorderGroup",
+          "args": [
+            "12F6CF5CC1106BF50B15662C592CFECA",
+            "C687592565AF52858E9D42CC1A1D665B"
+          ],
+          "result": true
+        },
+        {
+          "name": "reorderGroup",
+          "args": [
+            "12F6CF5CC1106BF50B15662C592CFECA",
+            null
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "138413468",
+            {
+              "groupId": "12F6CF5CC1106BF50B15662C592CFECA",
+              "beforeId": "138413467"
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "138413468",
+            {
+              "groupId": "12F6CF5CC1106BF50B15662C592CFECA",
+              "beforeId": "138413469"
+            }
+          ],
+          "result": true
+        },
+        {
+          "name": "moveTab",
+          "args": [
+            "138413472",
+            {
+              "groupId": "12F6CF5CC1106BF50B15662C592CFECA",
+              "beforeId": null
+            }
+          ],
+          "result": false
+        }
+      ]
+    },
+    {
+      "name": "native-group-command-unpins",
+      "at": "2026-10-16T22:21:09.508Z",
+      "tab": {
+        "audible": false,
+        "blockedCount": 0,
+        "bookmarked": false,
+        "canGoBack": false,
+        "canGoForward": false,
+        "groupId": "12F6CF5CC1106BF50B15662C592CFECA",
+        "id": "138413472",
+        "isLoading": false,
+        "muted": false,
+        "pageBg": "#f8f2df",
+        "pinned": false,
+        "private": false,
+        "title": "Controls861 GroupsF",
+        "url": "http://127.0.0.1:8785/GroupsF"
+      }
+    },
+    {
+      "name": "native-ungroup",
+      "at": "2026-10-16T22:21:13.344Z"
+    },
+    {
+      "name": "native-cmd-1-2-global-tab-order",
+      "at": "2026-10-16T22:21:15.278Z",
+      "first": "blanc://newtab/",
+      "second": "http://127.0.0.1:8785/GroupsD",
+      "active": "http://127.0.0.1:8785/GroupsD"
+    },
+    {
+      "name": "before-group-restart",
+      "at": "2026-10-16T22:21:17.729Z",
+      "state": {
+        "groups": [
+          {
+            "collapsed": false,
+            "id": "C687592565AF52858E9D42CC1A1D665B",
+            "name": "research"
+          },
+          {
+            "collapsed": true,
+            "id": "12F6CF5CC1106BF50B15662C592CFECA",
+            "name": "work"
+          }
+        ],
+        "tabs": [
+          {
+            "id": "138413435",
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "138413470",
+            "url": "http://127.0.0.1:8785/GroupsD",
+            "pinned": false,
+            "groupId": "C687592565AF52858E9D42CC1A1D665B"
+          },
+          {
+            "id": "138413471",
+            "url": "http://127.0.0.1:8785/GroupsE",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "138413472",
+            "url": "http://127.0.0.1:8785/GroupsF",
+            "pinned": false,
+            "groupId": null
+          },
+          {
+            "id": "138413467",
+            "url": "http://127.0.0.1:8785/GroupsA",
+            "pinned": false,
+            "groupId": "12F6CF5CC1106BF50B15662C592CFECA"
+          },
+          {
+            "id": "138413468",
+            "url": "http://127.0.0.1:8785/GroupsB",
+            "pinned": false,
+            "groupId": "12F6CF5CC1106BF50B15662C592CFECA"
+          },
+          {
+            "id": "138413469",
+            "url": "http://127.0.0.1:8785/GroupsC",
+            "pinned": false,
+            "groupId": "12F6CF5CC1106BF50B15662C592CFECA"
+          }
+        ]
+      },
+      "active": "http://127.0.0.1:8785/GroupsD"
+    },
+    {
+      "name": "before-relaunch",
+      "at": "2026-10-16T22:21:17.835Z",
+      "pages": [
+        {
+          "id": "8CEAFAEFDC2D5B7B2EB0F4FB1F8B1358",
+          "title": "Controls861 GroupsD",
+          "url": "http://127.0.0.1:8785/GroupsD"
+        },
+        {
+          "id": "BF091A565505EB6071FAB9CE7E57FEE9",
+          "title": "New Tab",
+          "url": "chrome://newtab/"
+        },
+        {
+          "id": "7BBF7BEEEC0C6246AD0C97B4978F257F",
+          "title": "Controls861 GroupsF",
+          "url": "http://127.0.0.1:8785/GroupsF"
+        },
+        {
+          "id": "9BA4FB6DEA3662DD53E9DBA17BBDF734",
+          "title": "Controls861 GroupsA",
+          "url": "http://127.0.0.1:8785/GroupsA"
+        },
+        {
+          "id": "639138CA0ABE259222A08A3E36C1D0D7",
+          "title": "Controls861 GroupsC",
+          "url": "http://127.0.0.1:8785/GroupsC"
+        },
+        {
+          "id": "3A3EA2E781CCF4A0F02CCAEF1B813418",
+          "title": "Controls861 GroupsB",
+          "url": "http://127.0.0.1:8785/GroupsB"
+        },
+        {
+          "id": "7DCB2DD64349F1F11FE86653833D8556",
+          "title": "Controls861 GroupsE",
+          "url": "http://127.0.0.1:8785/GroupsE"
+        }
+      ]
+    },
+    {
+      "name": "relaunched",
+      "at": "2026-10-16T22:21:20.051Z",
+      "pages": [
+        {
+          "id": "2BE90FE8346D78694A9170014A2AB10C",
+          "title": "Controls861 GroupsD",
+          "url": "http://127.0.0.1:8785/GroupsD"
+        },
+        {
+          "id": "FC1B23DE400AFDA43B70808473AFC529",
+          "title": "New Tab",
+          "url": "chrome://newtab/"
+        },
+        {
+          "id": "ACC9A85D58992C7906BDD034ED80D21B",
+          "title": "Controls861 GroupsF",
+          "url": "http://127.0.0.1:8785/GroupsF"
+        },
+        {
+          "id": "495745140022E71B14881BCE570A4A55",
+          "title": "Controls861 GroupsA",
+          "url": "http://127.0.0.1:8785/GroupsA"
+        },
+        {
+          "id": "02F00D21A55B7AEAC6C7BF69CFFEC196",
+          "title": "Controls861 GroupsC",
+          "url": "http://127.0.0.1:8785/GroupsC"
+        },
+        {
+          "id": "02C46F66B7DC114B9925866405A813C2",
+          "title": "Controls861 GroupsB",
+          "url": "http://127.0.0.1:8785/GroupsB"
+        },
+        {
+          "id": "E83D240463868B4728A65DC63F07F90C",
+          "title": "Controls861 GroupsE",
+          "url": "http://127.0.0.1:8785/GroupsE"
+        }
+      ]
+    },
+    {
+      "name": "group-session-restore-pass",
+      "at": "2026-10-16T22:21:20.667Z",
+      "before": {
+        "groups": [
+          {
+            "name": "research",
+            "collapsed": false
+          },
+          {
+            "name": "work",
+            "collapsed": true
+          }
+        ],
+        "tabs": [
+          {
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "group": null
+          },
+          {
+            "url": "http://127.0.0.1:8785/GroupsD",
+            "pinned": false,
+            "group": "research"
+          },
+          {
+            "url": "http://127.0.0.1:8785/GroupsE",
+            "pinned": false,
+            "group": null
+          },
+          {
+            "url": "http://127.0.0.1:8785/GroupsF",
+            "pinned": false,
+            "group": null
+          },
+          {
+            "url": "http://127.0.0.1:8785/GroupsA",
+            "pinned": false,
+            "group": "work"
+          },
+          {
+            "url": "http://127.0.0.1:8785/GroupsB",
+            "pinned": false,
+            "group": "work"
+          },
+          {
+            "url": "http://127.0.0.1:8785/GroupsC",
+            "pinned": false,
+            "group": "work"
+          }
+        ],
+        "active": "http://127.0.0.1:8785/GroupsD"
+      },
+      "after": {
+        "groups": [
+          {
+            "name": "research",
+            "collapsed": false
+          },
+          {
+            "name": "work",
+            "collapsed": true
+          }
+        ],
+        "tabs": [
+          {
+            "url": "blanc://newtab/",
+            "pinned": false,
+            "group": null
+          },
+          {
+            "url": "http://127.0.0.1:8785/GroupsD",
+            "pinned": false,
+            "group": "research"
+          },
+          {
+            "url": "http://127.0.0.1:8785/GroupsE",
+            "pinned": false,
+            "group": null
+          },
+          {
+            "url": "http://127.0.0.1:8785/GroupsF",
+            "pinned": false,
+            "group": null
+          },
+          {
+            "url": "http://127.0.0.1:8785/GroupsA",
+            "pinned": false,
+            "group": "work"
+          },
+          {
+            "url": "http://127.0.0.1:8785/GroupsB",
+            "pinned": false,
+            "group": "work"
+          },
+          {
+            "url": "http://127.0.0.1:8785/GroupsC",
+            "pinned": false,
+            "group": "work"
+          }
+        ],
+        "active": "http://127.0.0.1:8785/GroupsD"
+      }
+    },
+    {
+      "name": "post-restart-input-check",
+      "at": "2026-10-16T22:23:12.173Z",
+      "tabs": [
+        {
+          "id": "138413549",
+          "url": "blanc://newtab/",
+          "groupId": null
+        },
+        {
+          "id": "138413550",
+          "url": "http://127.0.0.1:8785/GroupsD",
+          "groupId": "00C17D506A1115C539EA34D5EDC60D1A"
+        },
+        {
+          "id": "138413551",
+          "url": "http://127.0.0.1:8785/GroupsE",
+          "groupId": null
+        },
+        {
+          "id": "138413552",
+          "url": "http://127.0.0.1:8785/GroupsF",
+          "groupId": null
+        },
+        {
+          "id": "138413553",
+          "url": "http://127.0.0.1:8785/GroupsA",
+          "groupId": "CDE11C0515EACCC65F690234FD5F2AE2"
+        },
+        {
+          "id": "138413554",
+          "url": "http://127.0.0.1:8785/GroupsB",
+          "groupId": "CDE11C0515EACCC65F690234FD5F2AE2"
+        },
+        {
+          "id": "138413555",
+          "url": "http://127.0.0.1:8785/GroupsC",
+          "groupId": "CDE11C0515EACCC65F690234FD5F2AE2"
+        }
+      ],
+      "host": {
+        "focused": true,
+        "overlay": "",
+        "status": ""
+      }
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T22:23:12.344Z",
+      "path": "/private/tmp/blanc-pr867-post-restart.png"
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T22:26:05.630Z",
+      "path": "/private/tmp/blanc-pr867-focus-diagnostic.png"
+    },
+    {
+      "name": "saved-test-groups-before-close",
+      "at": "2026-10-16T22:26:20.504Z",
+      "tabGroups": [
+        {
+          "id": "5a3b52e1-b965-40d0-a0d2-c0ee0af9ebcc",
+          "color": 0,
+          "title": "work",
+          "isOpen": true
+        },
+        {
+          "id": "b61741f5-b2d3-4934-914e-b5ff50befe51",
+          "color": 0,
+          "title": "research",
+          "isOpen": true
+        }
+      ]
+    },
+    {
+      "name": "restart-overlay-initialization-failure",
+      "at": "2026-10-16T22:26:36.153Z",
+      "stripAPI": true,
+      "overlayAPI": false,
+      "hostAPI": true
+    },
+    {
+      "name": "diagnostic-overlay-reload",
+      "at": "2026-10-16T22:26:36.996Z",
+      "overlayAPI": true
+    },
+    {
+      "name": "native-ungroup-last-member-removes-group",
+      "at": "2026-10-16T22:26:43.184Z"
+    },
+    {
+      "name": "native-close-group",
+      "at": "2026-10-16T22:26:47.058Z",
+      "closedFixtureCount": 3,
+      "tabs": [
+        {
+          "id": "138413549",
+          "url": "blanc://newtab/"
+        },
+        {
+          "id": "138413550",
+          "url": "http://127.0.0.1:8785/GroupsD"
+        },
+        {
+          "id": "138413551",
+          "url": "http://127.0.0.1:8785/GroupsE"
+        },
+        {
+          "id": "138413552",
+          "url": "http://127.0.0.1:8785/GroupsF"
+        },
+        {
+          "id": "138413597",
+          "url": "chrome://organizer-panel.top-chrome/"
+        }
+      ],
+      "groups": []
+    },
+    {
+      "name": "native-close-whole-window-group",
+      "at": "2026-10-16T22:27:06.433Z",
+      "tabs": [
+        {
+          "id": "138413605",
+          "url": "blanc://newtab/"
+        }
+      ],
+      "groups": []
+    },
+    {
+      "name": "whole-window-fixture-closed-main-preserved",
+      "at": "2026-10-16T22:27:07.646Z"
+    },
+    {
+      "name": "saved-test-groups-cleaned",
+      "at": "2026-10-16T22:27:41.056Z",
+      "tabGroups": []
+    },
+    {
+      "name": "cleanup-complete",
+      "at": "2026-10-16T22:27:55.957Z",
+      "tabs": [
+        {
+          "id": "138413549",
+          "url": "blanc://newtab/"
+        }
+      ],
+      "historyRowsRemoved": 8,
+      "favorites": []
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T22:27:56.288Z",
+      "path": "/private/tmp/blanc-pr867-final.png"
+    },
+    {
+      "name": "before-relaunch",
+      "at": "2026-10-16T22:28:29.791Z",
+      "pages": [
+        {
+          "id": "FC1B23DE400AFDA43B70808473AFC529",
+          "title": "New Tab",
+          "url": "chrome://newtab/"
+        }
+      ]
+    },
+    {
+      "name": "relaunched",
+      "at": "2026-10-16T22:28:31.553Z",
+      "pages": [
+        {
+          "id": "95742340AEE20CB6F4E387C7CC45D930",
+          "title": "New Tab",
+          "url": "chrome://newtab/"
+        }
+      ]
+    },
+    {
+      "name": "assets-only-startup-fix-native-relaunch-pass",
+      "at": "2026-10-16T22:28:39.183Z",
+      "round": "1",
+      "checks": [
+        "both-frame-bridges",
+        "native-pill-click-and-typing",
+        "Escape",
+        "Cmd-L-and-typing",
+        "original-tab-preserved"
+      ]
+    },
+    {
+      "name": "before-relaunch",
+      "at": "2026-10-16T22:28:39.252Z",
+      "pages": [
+        {
+          "id": "95742340AEE20CB6F4E387C7CC45D930",
+          "title": "New Tab",
+          "url": "chrome://newtab/"
+        }
+      ]
+    },
+    {
+      "name": "relaunched",
+      "at": "2026-10-16T22:28:41.504Z",
+      "pages": [
+        {
+          "id": "9D372986B24BDD8FDDBD9707CDB443C4",
+          "title": "New Tab",
+          "url": "chrome://newtab/"
+        }
+      ]
+    },
+    {
+      "name": "assets-only-startup-fix-native-relaunch-pass",
+      "at": "2026-10-16T22:28:49.162Z",
+      "round": "2",
+      "checks": [
+        "both-frame-bridges",
+        "native-pill-click-and-typing",
+        "Escape",
+        "Cmd-L-and-typing",
+        "original-tab-preserved"
+      ]
+    },
+    {
+      "name": "before-relaunch",
+      "at": "2026-10-16T22:28:49.211Z",
+      "pages": [
+        {
+          "id": "9D372986B24BDD8FDDBD9707CDB443C4",
+          "title": "New Tab",
+          "url": "chrome://newtab/"
+        }
+      ]
+    },
+    {
+      "name": "relaunched",
+      "at": "2026-10-16T22:28:51.205Z",
+      "pages": [
+        {
+          "id": "AB12EC972FD6729BF2241774E0603EDF",
+          "title": "New Tab",
+          "url": "chrome://newtab/"
+        }
+      ]
+    },
+    {
+      "name": "assets-only-startup-fix-native-relaunch-pass",
+      "at": "2026-10-16T22:28:58.846Z",
+      "round": "3",
+      "checks": [
+        "both-frame-bridges",
+        "native-pill-click-and-typing",
+        "Escape",
+        "Cmd-L-and-typing",
+        "original-tab-preserved"
+      ]
+    },
+    {
+      "name": "final-state",
+      "at": "2026-10-16T22:29:18.505Z",
+      "tabs": [
+        {
+          "id": "138413851",
+          "url": "blanc://newtab/"
+        }
+      ],
+      "groups": [],
+      "favorites": [],
+      "status": "",
+      "extensionWorkers": 6,
+      "assets": "/private/tmp/blanc-pr867-assets-startup-fix"
+    },
+    {
+      "name": "screenshot",
+      "at": "2026-10-16T22:29:18.753Z",
+      "path": "/private/tmp/blanc-pr867-final-startup-fixed.png"
+    }
+  ],
+  "local_startup_fix": "startup-fix.patch (only final three relaunch checks use patched assets)"
+}

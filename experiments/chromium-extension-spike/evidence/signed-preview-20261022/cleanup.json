@@ -1,0 +1,13 @@
+{
+  "runningTaskApps": [],
+  "removed": [
+    "/private/tmp/blanc-signed-preview-20261022/Relocated Preview.app",
+    "/private/tmp/blanc-signed-preview-20261022/Blanc Chromium Preview.app",
+    "/private/tmp/blanc-signed-preview-20261022/checks/isolated-home",
+    "/private/tmp/blanc-signed-preview-20261022/checks/cancel-profile-native",
+    "/private/tmp/blanc-signed-preview-20261022/checks/cancel-profile",
+    "/private/tmp/blanc-signed-preview-20261022/checks/cancel-profile-final",
+    "/private/tmp/blanc-signed-preview-20261022/checks/signed-veto-profile"
+  ],
+  "retainedSignedApp": "/private/tmp/blanc-preview-notarization-local/Blanc Chromium Preview.app"
+}

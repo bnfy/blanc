@@ -1,0 +1,75 @@
+[
+  {
+    "label": "retained",
+    "pid": 25817,
+    "expected": 1,
+    "lastReadError": "Error: {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":0,\"scriptId\":\"4\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"4\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: BlancPrototypeHost is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"-8996368992332802161.1.2\"}}",
+    "states": [
+      {
+        "urls": [
+          "blanc://newtab/"
+        ],
+        "selected": 0
+      }
+    ],
+    "ready": true,
+    "callbacks": [
+      "BLANC_RESTORE begin sync=1 browser=1 apps=0",
+      "BLANC_RESTORE wait",
+      "BLANC_RESTORE session apps=0 windows=1 status=1",
+      "BLANC_RESTORE ready=1 browser=1 apps=0 registry=0",
+      "BLANC_RESTORE resumed"
+    ],
+    "cleanExit": true
+  },
+  {
+    "label": "multi",
+    "pid": 25848,
+    "expected": 3,
+    "lastReadError": "Error: {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":0,\"scriptId\":\"3\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"3\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: BlancPrototypeHost is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"9002992018484594538.1.2\"}}",
+    "states": [
+      {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9470/one",
+          "http://127.0.0.1:9470/two"
+        ],
+        "selected": 1
+      }
+    ],
+    "ready": true,
+    "callbacks": [
+      "BLANC_RESTORE begin sync=1 browser=1 apps=0",
+      "BLANC_RESTORE wait",
+      "BLANC_RESTORE session apps=0 windows=1 status=1",
+      "BLANC_RESTORE ready=1 browser=1 apps=0 registry=0",
+      "BLANC_RESTORE resumed"
+    ],
+    "cleanExit": true
+  },
+  {
+    "label": "multi-repeat",
+    "pid": 25873,
+    "expected": 3,
+    "lastReadError": "Error: {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":0,\"scriptId\":\"3\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"3\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":0}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"ReferenceError\",\"description\":\"ReferenceError: BlancPrototypeHost is not defined\\n    at <anonymous>:1:1\",\"objectId\":\"610036289487793435.1.2\"}}",
+    "states": [
+      {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9470/one",
+          "http://127.0.0.1:9470/two"
+        ],
+        "selected": 1
+      }
+    ],
+    "ready": true,
+    "callbacks": [
+      "BLANC_RESTORE begin sync=1 browser=1 apps=0",
+      "BLANC_RESTORE wait",
+      "BLANC_RESTORE session apps=0 windows=1 status=1",
+      "BLANC_RESTORE ready=1 browser=1 apps=0 registry=0",
+      "BLANC_RESTORE resumed"
+    ],
+    "cleanExit": true
+  }
+]

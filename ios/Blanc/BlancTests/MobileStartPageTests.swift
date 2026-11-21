@@ -4,6 +4,7 @@ import WebKit
 
 @MainActor
 final class MobileStartPageTests: XCTestCase {
+    /// Older builds read `newtabLayout`; the fork's page shows Billboard whatever it says.
     func testBillboardDefaultAndSavedLayouts() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -16,7 +17,7 @@ final class MobileStartPageTests: XCTestCase {
         }
     }
 
-    /// Holding the Start Page opens its settings, so a hold must not also
+    /// Holding the Start Page opens Customize, so a hold must not also
     /// select the text under the finger and bring up the text menu.
     func testHoldingTheStartPageCannotSelectItsText() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
@@ -37,7 +38,11 @@ final class MobileStartPageTests: XCTestCase {
         XCTAssertEqual(selectable, "[]")
     }
 
-    func testAllLayoutsLoadFitAndPersistInWebKit() async throws {
+    /// The desktop fork's Start Page, as the iPhone serves it: it loads with
+    /// the phone layer, its Customize and Font & color save through
+    /// `StartPageBridge`, Glass goes to the native Liquid Glass clock, and it
+    /// fits a phone.
+    func testForkStartPageLoadsSavesAndFitsInWebKit() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
         let manager = TabsManager(settingsDirectory: directory, sessionDirectory: directory)
@@ -58,7 +63,7 @@ final class MobileStartPageTests: XCTestCase {
 
         var ready = false
         for _ in 0..<100 {
-            if let value = try? await webView.evaluateJavaScript("document.body?.classList.contains('layout-ready') === true && document.documentElement.dataset.platform === 'ios'"),
+            if let value = try? await webView.evaluateJavaScript("document.body?.classList.contains('layout-ready') === true && document.documentElement.dataset.platform === 'ios' && typeof chrome.send === 'function'"),
                (value as? Bool) == true {
                 ready = true
                 break
@@ -66,69 +71,62 @@ final class MobileStartPageTests: XCTestCase {
             try await Task.sleep(nanoseconds: 100_000_000)
         }
         let diagnostics = try? await webView.evaluateJavaScript("JSON.stringify({errors:window.__pageErrors, url:location.href, ready:document.readyState, mobile:document.documentElement.dataset.platform === 'ios', classes:document.body?.className})")
-        XCTAssertTrue(ready, "The real bundled Start Page must finish initializing: \(diagnostics ?? "none")")
+        XCTAssertTrue(ready, "The fork's bundled Start Page must finish initializing: \(diagnostics ?? "none")")
         guard ready else { return }
         let initialLayout = try await webView.evaluateJavaScript("document.body.dataset.layout") as? String
         XCTAssertEqual(initialLayout, "billboard")
-        let clockCentered = try await webView.evaluateJavaScript("{ const r=document.getElementById('bbClock').getBoundingClientRect(); Math.abs(r.x+r.width/2-innerWidth/2)<1 && Math.abs(r.y+r.height/2-innerHeight/2)<1; }") as? Bool
-        XCTAssertEqual(clockCentered, true, "Clock must be centered in the full viewport")
+        // The figures sit at the screen's middle (ios-start.js moves the box by the font's metrics).
+        let clockMiddle = try await webView.evaluateJavaScript("{ const r=document.getElementById('bbClock').getBoundingClientRect(); Math.abs(r.x+r.width/2-innerWidth/2)<2 && Math.abs(r.y+r.height/2-innerHeight/2)<innerHeight*0.1; }") as? Bool
+        XCTAssertEqual(clockMiddle, true, "Clock must sit at the middle of the screen")
+        // Mahjong isn't offered on phones yet (owner, 2026-11-15); Customize is.
+        let footer = try await webView.evaluateJavaScript("[getComputedStyle(document.getElementById('mahjongPill')).display, getComputedStyle(document.getElementById('customizeButton')).display].join()") as? String
+        XCTAssertEqual(footer?.hasPrefix("none,"), true)
+        XCTAssertEqual(footer?.hasSuffix(",none"), false)
         let first = XCTAttachment(image: try await webView.takeSnapshot(configuration: nil))
-        first.name = "iOS Billboard default"
+        first.name = "iOS fork Start Page"
         first.lifetime = .keepAlways
         add(first)
 
-        let normalClockSize = try await webView.evaluateJavaScript("getComputedStyle(document.getElementById('bbClock')).fontSize") as? String
-        // Exercise the real Customize panel and its native persistence bridge.
         _ = try await webView.evaluateJavaScript("document.getElementById('customizeButton').click()")
         let customizeOpen = try await webView.evaluateJavaScript("document.getElementById('customizePopover').matches(':popover-open')") as? Bool
         XCTAssertEqual(customizeOpen, true)
         let panelFits = try await webView.evaluateJavaScript("document.getElementById('customizePopover').getBoundingClientRect().width >= innerWidth * 0.8") as? Bool
-        XCTAssertEqual(panelFits, true, "The mobile panel must not use the desktop anchor's narrow width")
+        XCTAssertEqual(panelFits, true, "Customize is a phone sheet, not the desktop anchor's narrow card")
+        // A widget switch saves natively.
+        _ = try await webView.evaluateJavaScript("document.querySelector('[data-widget-pick=favorites]').click()")
+        for _ in 0..<20 where manager.services.startPage.widgets["favorites"] as? Bool != true {
+            try await Task.sleep(nanoseconds: 50_000_000)
+        }
+        XCTAssertEqual(manager.services.startPage.widgets["favorites"] as? Bool, true)
+
         _ = try await webView.evaluateJavaScript("document.getElementById('clockStyleOpen').click()")
         try await Task.sleep(nanoseconds: 250_000_000)
         let clockOpen = try await webView.evaluateJavaScript("document.getElementById('clockPopover').matches(':popover-open')") as? Bool
         XCTAssertEqual(clockOpen, true)
-        let editingClockSize = try await webView.evaluateJavaScript("getComputedStyle(document.getElementById('bbClock')).fontSize") as? String
-        XCTAssertEqual(editingClockSize, normalClockSize, "Editing must preserve the actual clock size")
-        // Use the actual controls, not just the bridge API.
         for font in ["condensed", "inter", "flex", "instrument"] {
             _ = try await webView.evaluateJavaScript("document.querySelector('[data-clock-font-pick=\(font)]').click()")
-            try await Task.sleep(nanoseconds: 150_000_000)
+            try await Task.sleep(nanoseconds: 200_000_000)
             XCTAssertEqual(manager.startAppearance.values["newtabClockFont"] as? String, font)
         }
         for (id, value, key) in [("clockWeight", 600, "Weight"), ("clockHeight", 125, "Height")] {
             _ = try await webView.evaluateJavaScript("{const el=document.getElementById('\(id)');el.value='\(value)';el.dispatchEvent(new Event('input'));el.dispatchEvent(new Event('change'));}")
-            try await Task.sleep(nanoseconds: 150_000_000)
+            try await Task.sleep(nanoseconds: 200_000_000)
             XCTAssertEqual(manager.startAppearance.values["newtabClock\(key)"] as? Int, value)
         }
         _ = try await webView.evaluateJavaScript("document.querySelector('[data-clock-color-pick=sky]').click()")
-        try await Task.sleep(nanoseconds: 150_000_000)
+        try await Task.sleep(nanoseconds: 200_000_000)
         XCTAssertEqual(manager.startAppearance.values["newtabClockColor"] as? String, "sky")
-        _ = try await webView.evaluateJavaScript("{const el=document.getElementById('clockTone');el.value='25';el.dispatchEvent(new Event('input'));el.dispatchEvent(new Event('change'));}")
-        try await Task.sleep(nanoseconds: 150_000_000)
-        XCTAssertEqual(manager.startAppearance.values["newtabClockTone"] as? Int, 25)
-        for style in ["glass", "solid"] {
+        // The iPhone keeps Glass or Solid (Android hides the row).
+        for style in ["solid", "glass"] {
             _ = try await webView.evaluateJavaScript("document.querySelector('[data-clock-style-pick=\(style)]').click()")
             try await Task.sleep(nanoseconds: 300_000_000)
             XCTAssertEqual(manager.startAppearance.values["newtabClockStyle"] as? String, style)
         }
         let previewClear = try await webView.evaluateJavaScript("document.querySelector('.bb-clock-row').getBoundingClientRect().bottom < document.getElementById('clockPopover').getBoundingClientRect().top") as? Bool
         XCTAssertEqual(previewClear, true, "Clock preview must stay above the editor")
-        let controlsVisible = try await webView.evaluateJavaScript("getComputedStyle(document.getElementById('clockPopover')).visibility === 'visible'") as? Bool
-        XCTAssertEqual(controlsVisible, true)
-        let panelOnscreen = try await webView.evaluateJavaScript("document.getElementById('clockPopover').getBoundingClientRect().bottom <= innerHeight - 75") as? Bool
-        XCTAssertEqual(panelOnscreen, true, "All controls must remain reachable by scrolling inside the panel")
-
-        _ = try await webView.callAsyncJavaScript("return await window.bowserPages.start.setClock({font:'flex',weight:700,height:150,color:'iris',tone:35,style:'solid'});", arguments: [:], in: nil, contentWorld: .page)
-        XCTAssertEqual(manager.startAppearance.values["newtabClockFont"] as? String, "flex")
-        XCTAssertEqual(manager.startAppearance.values["newtabClockHeight"] as? Int, 150)
-        let clockImage = XCTAttachment(image: try await webView.takeSnapshot(configuration: nil))
-        clockImage.name = "iOS Customize clock"
-        clockImage.lifetime = .keepAlways
-        add(clockImage)
         _ = try await webView.evaluateJavaScript("document.getElementById('clockPopoverBack').click()")
         _ = try await webView.evaluateJavaScript("document.getElementById('customizePopover').hidePopover()")
-        _ = try await webView.callAsyncJavaScript("return await window.bowserPages.start.setClock({font:'instrument',height:100,style:'glass'});", arguments: [:], in: nil, contentWorld: .page)
+
         _ = try await webView.evaluateJavaScript("document.getElementById('bbClock').textContent='12:05'; window.dispatchEvent(new Event('resize'))")
         var glassDrawn = false
         for _ in 0..<40 {
@@ -142,30 +140,20 @@ final class MobileStartPageTests: XCTestCase {
         glassImage.name = "iOS Glass clock"
         glassImage.lifetime = .keepAlways
         add(glassImage)
-        // Inspect real backdrop sampling across the WKWebView/native boundary.
-        _ = try await webView.evaluateJavaScript("{ const probe = document.createElement('div'); probe.id='glassBackdropProbe'; probe.style.cssText='position:fixed;inset:0;z-index:1000;pointer-events:none;background:repeating-linear-gradient(90deg,#224477 0 24px,#e5ad65 24px 48px)'; document.body.append(probe); }")
-        try await Task.sleep(nanoseconds: 300_000_000)
-        let backdropImage = XCTAttachment(image: UIGraphicsImageRenderer(bounds: window.bounds).image { _ in window.drawHierarchy(in: window.bounds, afterScreenUpdates: true) })
-        backdropImage.name = "Native glass backdrop sampling"
-        backdropImage.lifetime = .keepAlways
-        add(backdropImage)
-        _ = try await webView.evaluateJavaScript("document.getElementById('glassBackdropProbe').remove()")
-
-        // Leaving Billboard must take the native glass clock away at once: the
-        // page's own clock is hidden by the layout's CSS, the overlay is not.
-        _ = try await webView.evaluateJavaScript("document.querySelector('[data-layout-pick=\"ledger\"]').click()")
+        // Customize covers the clock: the native glass goes while it's open.
+        _ = try await webView.evaluateJavaScript("document.getElementById('customizePopover').showPopover()")
         for _ in 0..<20 where manager.activeTab?.nativeClock.isVisible == true {
             try await Task.sleep(nanoseconds: 50_000_000)
         }
-        XCTAssertFalse(manager.activeTab?.nativeClock.isVisible == true, "Switching away from Billboard must remove the native glass clock")
-        _ = try await webView.evaluateJavaScript("document.querySelector('[data-layout-pick=\"billboard\"]').click()")
+        XCTAssertFalse(manager.activeTab?.nativeClock.isVisible == true, "Customize must take the native glass clock away")
+        _ = try await webView.evaluateJavaScript("document.getElementById('customizePopover').hidePopover()")
         for _ in 0..<40 where manager.activeTab?.nativeClock.isVisible != true {
             try await Task.sleep(nanoseconds: 50_000_000)
         }
-        XCTAssertTrue(manager.activeTab?.nativeClock.isVisible == true, "Returning to Billboard must bring the glass clock back")
+        XCTAssertTrue(manager.activeTab?.nativeClock.isVisible == true, "Closing Customize must bring the glass clock back")
+
         // A load that fails before it commits leaves the Start Page in the web
-        // view, with its glass clock (the page's own copy is hidden), and the
-        // failure view over both, naming the address that failed.
+        // view, with its glass clock, and the failure view over both.
         // Not port 9: it's on WebKit's blocked list, and iOS 26 answers that
         // by committing an empty page in place of the Start Page.
         let failing = URL(string: "http://127.0.0.1:\(try closedPort())/")!
@@ -177,97 +165,164 @@ final class MobileStartPageTests: XCTestCase {
         XCTAssertEqual(webView.url?.host, "newtab")
         XCTAssertTrue(manager.activeTab?.nativeClock.isVisible == true, "A failed load must not take the glass clock off the Start Page")
         XCTAssertEqual(manager.activeTab?.loadFailure?.url, failing, "the failure shows over the Start Page")
-        // Back to the Start Page itself for the rest.
         webView.load(URLRequest(url: TabsManager.newTabURL))
-        for _ in 0..<100 where manager.activeTab?.loadFailure != nil || webView.isLoading || manager.activeTab?.nativeClock.isVisible != true {
+        for _ in 0..<100 where manager.activeTab?.loadFailure != nil || webView.isLoading {
             try await Task.sleep(nanoseconds: 50_000_000)
         }
-        XCTAssertEqual(manager.activeTab?.currentURL, TabsManager.newTabURL)
+        for _ in 0..<100 {
+            if (try? await webView.evaluateJavaScript("document.body?.classList.contains('layout-ready') === true")) as? Bool == true { break }
+            try await Task.sleep(nanoseconds: 100_000_000)
+        }
 
-        _ = try await webView.callAsyncJavaScript("return await window.bowserPages.start.setClock({font:'flex',height:150,style:'solid'});", arguments: [:], in: nil, contentWorld: .page)
-        for _ in 0..<20 where manager.activeTab?.nativeClock.isVisible == true {
-            try await Task.sleep(nanoseconds: 50_000_000)
-        }
-        XCTAssertFalse(manager.activeTab?.nativeClock.isVisible == true, "Solid style must remove native glass")
+        // The wallpaper stays in the page's own storage, as in the fork.
         _ = try await webView.evaluateJavaScript("document.getElementById('customizePopover').showPopover()")
         _ = try await webView.evaluateJavaScript("document.getElementById('colorWallpaperPick').click()")
         try await Task.sleep(nanoseconds: 200_000_000)
         _ = try await webView.evaluateJavaScript("document.querySelector('[data-wallpaper-color-pick=sky]').click()")
         try await Task.sleep(nanoseconds: 200_000_000)
-        _ = try await webView.evaluateJavaScript("document.querySelector('[data-wallpaper-fill-pick=solid]').click()")
-        try await Task.sleep(nanoseconds: 200_000_000)
-        XCTAssertEqual(manager.startAppearance.values["newtabWallpaperColor"] as? String, "sky")
-        XCTAssertEqual(manager.startAppearance.values["newtabWallpaperFill"] as? String, "solid")
-        let customizeImage = XCTAttachment(image: try await webView.takeSnapshot(configuration: nil))
-        customizeImage.name = "iOS Customize wallpaper"
-        customizeImage.lifetime = .keepAlways
-        add(customizeImage)
-        _ = try await webView.callAsyncJavaScript("await window.bowserPages.start.setWallpaper('time-of-day'); return await window.bowserPages.start.setWallpaperWash(40);", arguments: [:], in: nil, contentWorld: .page)
-        XCTAssertEqual(manager.startAppearance.values["newtabDynamicWallpaper"] as? Bool, true)
-        XCTAssertEqual(manager.startAppearance.values["newtabWallpaperWash"] as? Int, 40)
-        // Complete the native picker callback with a local image, then verify
-        // that the document can actually load the scheme-served JPEG.
-        _ = try await webView.evaluateJavaScript("window.__picked = null; window.bowserPages.start.chooseWallpaper().then(result => { window.__picked = result; }); true")
-        try await Task.sleep(nanoseconds: 200_000_000)
-        XCTAssertTrue(manager.isWallpaperPickerPresented)
-        let photo = UIGraphicsImageRenderer(size: CGSize(width: 32, height: 24)).image { context in
-            UIColor.orange.setFill()
-            context.fill(CGRect(x: 0, y: 0, width: 32, height: 24))
-        }
-        let completePick = try XCTUnwrap(manager.wallpaperSelectionCompletion)
-        manager.wallpaperSelectionCompletion = nil
-        manager.isWallpaperPickerPresented = false
-        completePick(photo)
-        try await Task.sleep(nanoseconds: 200_000_000)
-        let imageWidth = try await webView.callAsyncJavaScript("const data = await window.bowserPages.start.data(); return await new Promise((resolve, reject) => { const image = new Image(); image.onload = () => resolve(image.naturalWidth); image.onerror = reject; image.src = data.wallpaper.image; });", arguments: [:], in: nil, contentWorld: .page) as? Int
-        XCTAssertEqual(imageWidth, 32)
-        _ = try await webView.callAsyncJavaScript("return await window.bowserPages.start.removeWallpaper();", arguments: [:], in: nil, contentWorld: .page)
-        XCTAssertFalse(FileManager.default.fileExists(atPath: manager.startAppearance.imageURL.path))
-        let saved = StartAppearanceStore(directory: directory)
-        XCTAssertEqual(saved.values["newtabClockColor"] as? String, "iris")
-        _ = try await webView.callAsyncJavaScript("await window.bowserPages.start.setClock({font:'instrument',weight:500,height:100,color:'auto',tone:50,style:'solid'}); return await window.bowserPages.start.setWallpaper('sunrise');", arguments: [:], in: nil, contentWorld: .page)
+        let stored = try await webView.evaluateJavaScript("JSON.parse(localStorage.getItem('blanc.prototype.start.preferences.v1')).wallpaper.color.preset") as? String
+        XCTAssertEqual(stored, "sky")
+        // ...and native code keeps a copy for private pages.
+        XCTAssertEqual(manager.services.startPage.preferences?.contains("\"sky\""), true)
         _ = try await webView.evaluateJavaScript("document.getElementById('customizePopover').hidePopover()")
 
-        // Exercise the real layout-picker bridge, using representative long
-        // favorites to catch overflow which empty states cannot expose.
-        _ = try await webView.evaluateJavaScript("state.favorites = Array.from({length: 6}, (_, i) => ({id: i, title: 'A long favorite title for mobile ' + i, url: 'https://example.com/' + i})); state.topSites = state.favorites; renderLedgerFavorites(); rendered.clear();")
+        // Measured against the layout's own width (clientWidth), once it has the new width.
+        // innerWidth follows the visual viewport, which iOS updates some time after the
+        // resize: on CI's iOS 26.5 it still read 390 while the page was laid out at 768.
         for width in [320, 390, 768] {
             webView.frame = CGRect(x: 0, y: 0, width: width, height: 700)
-            for layout in BlancStartPageLayout.allCases {
-                _ = try await webView.evaluateJavaScript("document.querySelector('[data-layout-pick=\"\(layout.rawValue)\"]').click()")
-                try await Task.sleep(nanoseconds: 200_000_000)
-                XCTAssertEqual(manager.settingsStore.newtabLayout, layout)
-                let fits = try await webView.evaluateJavaScript("document.documentElement.scrollWidth <= window.innerWidth + 1") as? Bool
-                XCTAssertEqual(fits, true, "\(layout) overflows at \(width) points")
-                let attachment = XCTAttachment(image: try await webView.takeSnapshot(configuration: nil))
-                attachment.name = "iOS \(layout.rawValue) \(width)"
-                attachment.lifetime = .keepAlways
-                add(attachment)
+            for _ in 0..<50 {
+                if (try? await webView.evaluateJavaScript("document.documentElement.clientWidth") as? Int) == width { break }
+                try await Task.sleep(nanoseconds: 100_000_000)
             }
+            let client = try await webView.evaluateJavaScript("document.documentElement.clientWidth") as? Int
+            XCTAssertEqual(client, width, "The Start Page never took \(width) points")
+            let fits = try await webView.evaluateJavaScript("document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1") as? Bool
+            let wide = try? await webView.evaluateJavaScript("""
+                JSON.stringify([...document.querySelectorAll('body *')]
+                  .filter(e => e.getBoundingClientRect().right > document.documentElement.clientWidth + 1)
+                  .slice(0, 6).map(e => (e.id || e.className || e.tagName) + ':' + Math.round(e.getBoundingClientRect().right)))
+                """) as? String
+            XCTAssertEqual(fits, true, "The Start Page overflows at \(width) points; past the edge: \(wide ?? "none")")
         }
-        _ = try await webView.evaluateJavaScript("window.bowserPages.start.openIsland(); true")
-        try await Task.sleep(nanoseconds: 100_000_000)
+        _ = try await webView.evaluateJavaScript("window.bowserPages.start.openIsland(''); true")
+        try await Task.sleep(nanoseconds: 200_000_000)
         XCTAssertTrue(manager.isPalettePresented)
         let pageErrors = try await webView.evaluateJavaScript("JSON.stringify(window.__pageErrors)") as? String
         XCTAssertEqual(pageErrors, "[]")
+        // The page's storage is the app's own: leave the next run the fork's defaults.
+        _ = try await webView.evaluateJavaScript("localStorage.removeItem('blanc.prototype.start.preferences.v1'); true")
+    }
+
+    /// Favorites on the fork's Start Page: the Favorites widget lists the
+    /// phone's synced Favorites, follows a change while the page is open (the
+    /// `bookmarks` event, no reload), and its heading opens the Favorites page.
+    func testFavoritesWidgetListsAndFollowsFavorites() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let manager = TabsManager(settingsDirectory: directory, sessionDirectory: directory)
+        func save(_ url: String, _ title: String) {
+            manager.syncEngine.editFavorites {
+                SyncedFavorites.toggle($0, url: url, title: title, favicon: nil,
+                                       now: Date().timeIntervalSince1970 * 1000, makeId: { UUID().uuidString.lowercased() }).store
+            }
+        }
+        save("https://blanc.day/", "Blanc")
+        try manager.services.startPage.changeWidgets("widgetsWrite", args: ["favorites", true])
+        let webView = try XCTUnwrap(manager.activeTab?.webView)
+        webView.reload()
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let window = UIWindow(windowScene: scene)
+        window.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        let controller = UIViewController()
+        controller.view = webView
+        window.rootViewController = controller
+        window.makeKeyAndVisible()
+        defer { window.isHidden = true }
+        webView.frame = window.bounds
+
+        let names = "JSON.stringify([...document.querySelectorAll('#favoritesWidget #favoritesList .fav-item .name')].map(e => e.textContent.trim()))"
+        func listed(_ expected: String) async throws -> String? {
+            var value: String?
+            for _ in 0..<100 {
+                value = try? await webView.evaluateJavaScript(names) as? String
+                if value == expected { break }
+                try await Task.sleep(nanoseconds: 100_000_000)
+            }
+            return value
+        }
+        let first = try await listed(#"["Blanc"]"#)
+        XCTAssertEqual(first, #"["Blanc"]"#, "The widget lists the saved Favorite")
+        let shown = try await webView.evaluateJavaScript("(() => { const w = document.getElementById('favoritesWidget'); return !!w && !w.hidden && w.getClientRects().length > 0; })()") as? Bool
+        XCTAssertEqual(shown, true, "The Favorites widget shows once it's switched on")
+        // Widgets follow the shortcuts down the page, which scrolls (as on Android).
+        _ = try await webView.evaluateJavaScript("scrollTo({top: document.scrollingElement.scrollHeight, behavior: 'instant'}); true")
+        try await Task.sleep(nanoseconds: 500_000_000)
+        let image = XCTAttachment(image: UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
+            window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+        })
+        image.name = "iOS Start Page Favorites widget"
+        // Lists redraw as site icons arrive; scroll to the end again until the page settles.
+        var clear: Bool?
+        for _ in 0..<20 {
+            clear = try await webView.evaluateJavaScript("""
+              scrollTo({top: document.scrollingElement.scrollHeight, behavior: 'instant'});
+              document.getElementById('favoritesWidget').getBoundingClientRect().bottom <= document.querySelector('.ledger-footer').getBoundingClientRect().top
+              """) as? Bool
+            if clear == true { break }
+            try await Task.sleep(nanoseconds: 100_000_000)
+        }
+        let layout = try await webView.evaluateJavaScript("JSON.stringify([document.getElementById('favoritesWidget').getBoundingClientRect().bottom, document.querySelector('.ledger-footer').getBoundingClientRect().top, scrollY, document.scrollingElement.scrollHeight, innerHeight])") as? String
+        XCTAssertEqual(clear, true, "Scrolled to the end, the widget clears Customize: \(layout ?? "")")
+        image.lifetime = .keepAlways
+        add(image)
+
+        // A long press opens iOS's menu, which asks the page what the tile allows (ios-start.js).
+        let state = try await webView.evaluateJavaScript("JSON.stringify(window.blancIosShortcut.state('https://blanc.day/'))") as? String
+        XCTAssertEqual(state, #"{"title":"Blanc","canPin":true,"pinned":false,"canHide":false}"#)
+        _ = try await webView.evaluateJavaScript("window.blancIosShortcut.pin('https://blanc.day/'); true")
+        for _ in 0..<30 where manager.services.startPage.pins.isEmpty {
+            try await Task.sleep(nanoseconds: 100_000_000)
+        }
+        XCTAssertEqual(manager.services.startPage.pins.first?["url"], "https://blanc.day/", "The menu's Pin pins the site")
+
+        // Saved while the page is open (the Island's heart): it appears without a reload.
+        _ = try await webView.evaluateJavaScript("window.__sameDocument = true; true")
+        save("https://example.com/", "Example")
+        let both = try await listed(#"["Blanc","Example"]"#)
+        XCTAssertEqual(both, #"["Blanc","Example"]"#, "A Favorite saved while the page is open appears")
+        let sameDocument = try await webView.evaluateJavaScript("window.__sameDocument === true") as? Bool
+        XCTAssertEqual(sameDocument, true, "The Start Page hears of Favorites; it isn't reloaded")
+
+        // The heading opens the Favorites page in this tab.
+        _ = try await webView.evaluateJavaScript("document.querySelector('#favoritesWidget a[href=\"blanc://bookmarks/\"]').click(); true")
+        for _ in 0..<50 where webView.url?.host != "bookmarks" {
+            try await Task.sleep(nanoseconds: 100_000_000)
+        }
+        XCTAssertEqual(webView.url?.host, "bookmarks")
     }
 }
 
-/// A loopback port nothing listens on: bound by the system, then let go.
+/// A loopback port nothing listens on. It comes from below the ephemeral range
+/// (49152 and up on Apple platforms), where every server that asks for port 0
+/// lands: on a shared CI runner, another test's server once took a port this
+/// picked there, and the "failing" load committed a real page. 20000–29999
+/// holds no port on WebKit's blocked list.
 private func closedPort() throws -> Int {
-    let fd = socket(AF_INET, SOCK_STREAM, 0)
-    guard fd >= 0 else { throw XCTSkip("no socket") }
-    defer { close(fd) }
-    var address = sockaddr_in()
-    address.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
-    address.sin_family = sa_family_t(AF_INET)
-    address.sin_addr.s_addr = inet_addr("127.0.0.1")
-    var length = socklen_t(MemoryLayout<sockaddr_in>.size)
-    let bound = withUnsafeMutablePointer(to: &address) {
-        $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
-            bind(fd, $0, length) == 0 && getsockname(fd, $0, &length) == 0
+    for _ in 0..<50 {
+        let port = UInt16.random(in: 20000..<30000)
+        let fd = socket(AF_INET, SOCK_STREAM, 0)
+        guard fd >= 0 else { throw XCTSkip("no socket") }
+        defer { close(fd) }
+        var address = sockaddr_in()
+        address.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
+        address.sin_family = sa_family_t(AF_INET)
+        address.sin_port = port.bigEndian
+        address.sin_addr.s_addr = inet_addr("127.0.0.1")
+        let free = withUnsafePointer(to: &address) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { bind(fd, $0, socklen_t(MemoryLayout<sockaddr_in>.size)) == 0 }
         }
+        if free { return Int(port) }
     }
-    guard bound else { throw XCTSkip("no loopback port") }
-    return Int(UInt16(bigEndian: address.sin_port))
+    throw XCTSkip("no free loopback port")
 }

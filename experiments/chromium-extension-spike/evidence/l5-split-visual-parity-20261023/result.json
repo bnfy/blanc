@@ -1,0 +1,26 @@
+{
+  "source": "8439cabc865167f0e70cddedd22b390a3bec4438",
+  "archiveSha256": "8783c93501a199b7194957ee2e0672178617aff8e795a2ea4411cc8884b3f985",
+  "notarization": {
+    "status": "Accepted",
+    "message": "Processing complete",
+    "id": "12b32e11-5d97-4639-ad5d-605ff26b2bef"
+  },
+  "version": "157.0.8103.15",
+  "platform": "Apple Silicon macOS27.2",
+  "runtimeRegressionChecks": 75,
+  "geometryChecks": 56,
+  "sourceTests": 21,
+  "captureTests": 7,
+  "counterTests": 11,
+  "upstreamFiles": 70,
+  "upstreamHunks": 173,
+  "finalGuard": 0,
+  "gateProgress": "6/12 (50%), delta0",
+  "L5": "open, current owner visual/VoiceOver acceptance pending",
+  "L6": "open, independent close-history acknowledgement finding",
+  "previewWindow": "/private/tmp/blanc-split-parity-final/profile-signed-owner",
+  "CI": "not qualified for new head",
+  "latency": "deferred",
+  "ElectronDiagnosticBuild": "pending approval/unstarted"
+}

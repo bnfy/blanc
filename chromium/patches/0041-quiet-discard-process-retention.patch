@@ -1,0 +1,79 @@
+diff --git a/chrome/browser/performance_manager/policies/transient_keep_alive_policy.h b/chrome/browser/performance_manager/policies/transient_keep_alive_policy.h
+--- a/chrome/browser/performance_manager/policies/transient_keep_alive_policy.h
++++ b/chrome/browser/performance_manager/policies/transient_keep_alive_policy.h
+@@ -45,6 +45,7 @@
+ // kept-alive processes.
+ class TransientKeepAlivePolicy
+     : public FrameNodeObserver,
++      public PageNodeObserver,
+       public ProcessNodeObserver,
+       public GraphOwnedAndRegistered<TransientKeepAlivePolicy> {
+  public:
+@@ -72,6 +73,10 @@
+       const PageNode* previous_page_node,
+       const ProcessNode* previous_process_node,
+       const FrameNode* previous_parent_or_outer_document_or_embedder) override;
++
++  // Discard is explicitly trying to release memory, not cache a process.
++  void OnAboutToBeDiscarded(const PageNode* page_node,
++                            const PageNode* new_page_node) override;
+ 
+   // ProcessNodeObserver:
+   void OnProcessNodeRemoved(const ProcessNode* process_node) override;
+diff --git a/chrome/browser/performance_manager/policies/transient_keep_alive_policy.cc b/chrome/browser/performance_manager/policies/transient_keep_alive_policy.cc
+--- a/chrome/browser/performance_manager/policies/transient_keep_alive_policy.cc
++++ b/chrome/browser/performance_manager/policies/transient_keep_alive_policy.cc
+@@ -54,6 +54,7 @@
+ void TransientKeepAlivePolicy::OnPassedToGraph(Graph* graph) {
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+   graph->AddFrameNodeObserver(this);
++  graph->AddPageNodeObserver(this);
+   graph->AddProcessNodeObserver(this);
+ }
+ 
+@@ -63,6 +64,7 @@
+   CHECK(tracked_processes_with_frames_.empty() &&
+         empty_kept_alive_processes_.empty());
+   graph->RemoveFrameNodeObserver(this);
++  graph->RemovePageNodeObserver(this);
+   graph->RemoveProcessNodeObserver(this);
+ }
+ 
+@@ -145,6 +147,9 @@
+ 
+   // We only care about processes that are in our "active" set.
+   auto tracked_it = tracked_processes_with_frames_.find(previous_process_node);
++  if (tracked_it == tracked_processes_with_frames_.end()) {
++    return;  // Its keep-alive was already released for discard.
++  }
+ 
+   // The main frame has been removed. Check if the process is now empty of main
+   // frames.
+@@ -173,6 +178,27 @@
+ 
+   empty_kept_alive_processes_.emplace(previous_process_node,
+                                       std::move(keep_alive_info));
++}
++
++void TransientKeepAlivePolicy::OnAboutToBeDiscarded(
++    const PageNode* page_node, const PageNode* new_page_node) {
++  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++  for (const FrameNode* main_frame : page_node->GetMainFrameNodes()) {
++    const ProcessNode* process = main_frame->GetProcessNode();
++    bool shared = false;
++    for (const FrameNode* frame : process->GetFrameNodes()) {
++      shared |= frame->GetPageNode() != page_node;
++    }
++    if (shared || !tracked_processes_with_frames_.erase(process)) {
++      continue;
++    }
++    // Release only this policy's reference. Native discard still protects
++    // unload handlers, workers, keep-alive requests and other pending reuse.
++    // Defer to avoid graph re-entrancy, as ReleaseKeepAlive does.
++    content::GetUIThreadTaskRunner({})->PostTask(
++        FROM_HERE, base::BindOnce(&DecrementPendingReuseRefCountById,
++            process->GetRenderProcessHostProxy().child_process_id()));
++  }
+ }
+ 
+ void TransientKeepAlivePolicy::OnProcessNodeRemoved(

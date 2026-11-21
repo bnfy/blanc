@@ -1,0 +1,74 @@
+[11864:8195144:1020/114551.501884:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[11864:8195051:1020/114551.648103:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9277/devtools/browser/50cea282-5b2d-4a64-b0d1-158fc7d877fd
+[11864:8195051:1020/114552.375834:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[11864:8195051:1020/114552.378187:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[11966:8196755:1020/114617.819875:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[11966:8196705:1020/114617.923876:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9277/devtools/browser/f863ef3c-1d4b-4bb6-91b5-f8f339313698
+[11966:8196705:1020/114618.530233:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[11966:8196705:1020/114618.531213:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[12003:8197581:1020/114633.105504:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[12003:8197554:1020/114633.208019:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9277/devtools/browser/a560dbc1-8d8e-4b34-9fac-e0b0fa89bc02
+[12003:8197554:1020/114633.445608:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[12003:8197554:1020/114633.445769:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[12003:8197554:1020/114633.484129:ERROR:chrome/browser/ui/views/user_education/impl/browser_user_education_interface_impl.cc:186] Attempting to show IPH IPH_SideBySidePinnableFeature before browser initialization complete; IPH will not be shown.
+[12003:8197554:1020/114634.474000:ERROR:base/process/kill_posix.cc:33] waitpid(12010): No child processes (10)
+[12039:8198307:1020/114659.972565:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[12039:8198257:1020/114700.076696:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9277/devtools/browser/1cb5a0fb-d19c-4934-b333-4f0c593cf781
+[12039:8198257:1020/114700.339854:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[12039:8198257:1020/114700.340015:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[12039:8198257:1020/114700.375281:ERROR:chrome/browser/ui/views/user_education/impl/browser_user_education_interface_impl.cc:186] Attempting to show IPH IPH_SideBySidePinnableFeature before browser initialization complete; IPH will not be shown.
+[12814:8203855:1020/115021.053310:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[12814:8203743:1020/115021.191859:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9277/devtools/browser/25a2feeb-dae2-4aa0-a36a-019139d7842a
+[12814:8203743:1020/115021.921020:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[12814:8203743:1020/115021.925116:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[12862:8204961:1020/115036.815982:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[12862:8204929:1020/115036.922579:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9277/devtools/browser/9750ea3e-7f63-4232-9cde-620cf9c01643
+[12862:8204929:1020/115037.160955:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[12862:8204929:1020/115037.161142:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[12862:8204929:1020/115037.205440:ERROR:chrome/browser/ui/views/user_education/impl/browser_user_education_interface_impl.cc:186] Attempting to show IPH IPH_SideBySidePinnableFeature before browser initialization complete; IPH will not be shown.
+[12862:8204929:1020/115038.222186:ERROR:base/process/kill_posix.cc:33] waitpid(12869): No child processes (10)
+[12895:8205510:1020/115050.527394:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[12895:8205481:1020/115050.628824:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9277/devtools/browser/d707088d-d2a7-4e7f-b63e-15e93c99048b
+[12895:8205481:1020/115050.880918:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[12895:8205481:1020/115050.881078:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[12895:8205481:1020/115050.923254:ERROR:chrome/browser/ui/views/user_education/impl/browser_user_education_interface_impl.cc:186] Attempting to show IPH IPH_SideBySidePinnableFeature before browser initialization complete; IPH will not be shown.
+[12914:8205981:1020/115054.722955:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up day.blanc.prototype.MachPortRendezvousServer.1: Permission denied (1100)
+[12914:8205981:1020/115054.723168:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)
+[12916:8206053:1020/115056.372044:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[12916:8206029:1020/115056.471583:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9277/devtools/browser/4323d0e4-5f7d-42f5-bc36-26ea0f773869
+[12916:8206029:1020/115056.700362:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[12916:8206029:1020/115056.700566:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[12916:8206029:1020/115056.736393:ERROR:chrome/browser/ui/views/user_education/impl/browser_user_education_interface_impl.cc:186] Attempting to show IPH IPH_SideBySidePinnableFeature before browser initialization complete; IPH will not be shown.
+[12916:8206029:1020/115058.094683:ERROR:base/process/kill_posix.cc:33] waitpid(12923): No child processes (10)
+[12960:8206972:1020/115135.731558:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[12960:8206909:1020/115135.837836:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9277/devtools/browser/14774892-a3d8-4547-b0aa-43bab7cb41f8
+[12960:8206909:1020/115136.070750:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[12960:8206909:1020/115136.070907:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[12960:8206909:1020/115136.113177:ERROR:chrome/browser/ui/views/user_education/impl/browser_user_education_interface_impl.cc:186] Attempting to show IPH IPH_SideBySidePinnableFeature before browser initialization complete; IPH will not be shown.
+[12960:8206909:1020/115141.867779:ERROR:base/process/kill_posix.cc:33] waitpid(12970): No child processes (10)
+[12992:8207641:1020/115143.055329:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[12992:8207621:1020/115143.159244:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9277/devtools/browser/99b4c052-aa5c-4836-85bd-1465e24cf56f
+[12992:8207621:1020/115143.408794:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[12992:8207621:1020/115143.408970:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[12992:8207621:1020/115143.442331:ERROR:chrome/browser/ui/views/user_education/impl/browser_user_education_interface_impl.cc:186] Attempting to show IPH IPH_SideBySidePinnableFeature before browser initialization complete; IPH will not be shown.
+[12992:8207621:1020/115146.374468:ERROR:base/process/kill_posix.cc:33] waitpid(12999): No child processes (10)

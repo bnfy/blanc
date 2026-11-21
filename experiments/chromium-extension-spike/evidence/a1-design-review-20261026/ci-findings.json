@@ -1,0 +1,47 @@
+{
+  "head": "fb2ca628f60a3cf232a812004ab7579761bf9b6d",
+  "counts": {
+    "success": 24,
+    "failure": 3,
+    "skipped": 2
+  },
+  "hasMore": false,
+  "codeql": {
+    "id": 121846780599,
+    "name": "CodeQL",
+    "head_sha": "fb2ca628f60a3cf232a812004ab7579761bf9b6d",
+    "status": "completed",
+    "conclusion": "success",
+    "details_url": "https://github.com/bnfy/blanc/runs/121846780599",
+    "output": {
+      "title": "No new alerts in code changed by this pull request",
+      "summary": "[View all branch alerts](/bnfy/blanc/security/code-scanning?query=pr%3A1028+tool%3ACodeQL+is%3Aopen).",
+      "text": null,
+      "annotations_count": 0
+    }
+  },
+  "failures": [
+    {
+      "id": 121845288192,
+      "name": "modified-link-clicks (windows-latest)",
+      "url": "https://github.com/bnfy/blanc/actions/runs/40400600720/job/121845288192",
+      "disposition": "Previously observed Electron sandbox duplication failure; paused"
+    },
+    {
+      "id": 121845287956,
+      "name": "modified-link-clicks (ubuntu-latest)",
+      "url": "https://github.com/bnfy/blanc/actions/runs/40400600720/job/121845287956",
+      "disposition": "Previously observed Electron sandbox duplication failure; paused"
+    },
+    {
+      "id": 121845118064,
+      "name": "desktop (macos-15-intel)",
+      "url": "https://github.com/bnfy/blanc/actions/runs/40400601090/job/121845118064",
+      "disposition": "Electron original uBO popup fixture timeout at shield-provider.mjs:478; outside native Chromium acceptance; paused, not rerun"
+    }
+  ],
+  "intelRuntimeVerified": false,
+  "intelFailureExcerpt": "30.2144230Z node:internal/modules/run_main:123\n2026-10-26T21:14:30.2147580Z     triggerUncaughtException(\n2026-10-26T21:14:30.2148820Z     ^\n2026-10-26T21:14:30.2151780Z \n2026-10-26T21:14:30.2154960Z locator.waitFor: Timeout 8000ms exceeded.\n2026-10-26T21:14:30.2155950Z Call log:\n2026-10-26T21:14:30.2156780Z   - waiting for locator('body:not(.loading)') to be visible\n2026-10-26T21:14:30.2157800Z \n2026-10-26T21:14:30.2158510Z     at /Users/runner/work/blanc/blanc/test/desktop/shield-provider.mjs:478:51 {\n2026-10-26T21:14:30.2160550Z   log: [ \"  - waiting for locator('body:not(.loading)') to be visible\" ],\n2026-10-26T21:14:30.2161660Z   name: 'TimeoutError'\n2026-10-26T21:14:30.2162860Z }\n2026-10-26T21:14:30.2163370Z \n2026-10-26T21:14:30.2163800Z Node.js v22.23.2\n2026-10-26T21:14:30.2857510Z ##[error]Process completed with exit code 1.\n2026-10-26T21:14:30.4051020Z Post job cleanup.\n2026-10-26T21:14:30.9439990Z [command]/usr/local/bin/git version\n2026-10-26T21:14:30.9455250Z git version 2.55.0\n2026-10-26T21:14:30.9511700Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/3c8ac7f3-7528-4884-bad8-a8fa46d67eb2/.gitconfig'\n202",
+  "newChromiumDefectDemonstrated": false,
+  "reruns": 0
+}

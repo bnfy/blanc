@@ -1,0 +1,5 @@
+electron-a captured
+electron-b captured
+chromium-a captured
+chromium-b captured
+{"observeInjection":false,"scope":"diagnostic first inline, immediate fetch, reload and fresh navigation; no latency qualification","runs":[{"label":"electron-a"},{"label":"electron-b"},{"label":"chromium-a"},{"label":"chromium-b"}],"completed":true,"nativeBuilds":0,"latencyMeasured":false,"sources":{"scriptlet-timing-run.mjs":"32d66f77ccb32342620d69008231d2d4f9ddbea1b215f05e2dd46eb4c2fcf44c","scriptlet-timing-observer.mjs":"76d043eb72683d51926134150c6030fd43af5a12c9b5ba6da64faf359828d155","session.mjs":"62a19510ef3c1727d670dd0e016b050b744b223bc9c821689db787dbc7da7621","transport.mjs":"2232100bf834a499f133b1c2b2e905e95fbcf5f07180d2a35d38502e1a905e1c"},"cleanup":{"removed":true}}

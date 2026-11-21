@@ -1,0 +1,199 @@
+{
+  "previousSource": "6b9a05a00f321bfbde617c181103d5a455ff45f3",
+  "currentSource": "7c427328100d1ba76cb7e8b651a1f36d74ec86c6",
+  "identicalAssetCount": 60,
+  "identicalAssetPaths": [
+    "adapter.js",
+    "extensions.css",
+    "extensions.js",
+    "host.css",
+    "host.html",
+    "host.js",
+    "i18n.js",
+    "icons/chevron-left.svg",
+    "icons/external-link.svg",
+    "icons/search.svg",
+    "icons/settings.svg",
+    "index.html",
+    "installed-theme.js",
+    "mac-icon/Assets.car",
+    "mac-icon/BlancDK.icns",
+    "mac-icon/manifest.json",
+    "overlay.js",
+    "pages/bangs-catalog.js",
+    "pages/bangs.js",
+    "pages/caveat-latin.woff2",
+    "pages/close.svg",
+    "pages/i18n.js",
+    "pages/icon-sunrise-dark.png",
+    "pages/icon-sunrise.png",
+    "pages/installed-theme.js",
+    "pages/instrument-sans-latin-wdth-normal.woff2",
+    "pages/inter-latin.woff2",
+    "pages/jetbrains-mono-latin.woff2",
+    "pages/newtab-adapter.js",
+    "pages/newtab-prototype.css",
+    "pages/newtab-wallpaper.js",
+    "pages/newtab.js",
+    "pages/onboarding-island-dark.png",
+    "pages/onboarding-island-light.png",
+    "pages/pages.css",
+    "pages/select-caret-dark.svg",
+    "pages/select-caret.svg",
+    "pages/space-identity.js",
+    "pages/start-page-day.png",
+    "pages/start-page-dusk.png",
+    "pages/start-page-night.png",
+    "pages/start-page-paint.js",
+    "pages/start-page-sunrise.png",
+    "pages/start-site-name.js",
+    "pages/strings.js",
+    "pages/sunrise-favicon-mark.png",
+    "pages/sunrise-mark.png",
+    "pages/type-to-open.js",
+    "panel-left.svg",
+    "prototype.css",
+    "renderer.js",
+    "space-identity.js",
+    "space-picker.js",
+    "strings.js",
+    "styles.css",
+    "sunrise-hero-mark.png",
+    "tab-drag.js",
+    "tab-sections.js",
+    "vertical-tabs.js",
+    "workspace-ui.js"
+  ],
+  "changedAssets": [
+    {
+      "path": "overlay.html",
+      "oldSha256": "ec3cb3b3bfaafb46564079f04abf6a64d97fddd2f292dfe86b69f0394b6c1277",
+      "newSha256": "8256dfd5236bd6896ce78e19a2772effa38391e55544e39a94bfc0263b3d105b",
+      "metadataMarkersOld": 1,
+      "metadataMarkersNew": 1,
+      "onlySignedNoticeMetadataChanged": true
+    },
+    {
+      "path": "pages/newtab.html",
+      "oldSha256": "14f1432f6796617b6014d403c306206be1b4b599de250e68ccf1bbc5ad8c9144",
+      "newSha256": "1f8d038befe6abc7b02bfe0b61465725c9680ffedf16c259c563e2c3ec55388b",
+      "metadataMarkersOld": 1,
+      "metadataMarkersNew": 1,
+      "onlySignedNoticeMetadataChanged": true
+    }
+  ],
+  "bundleFields": [
+    {
+      "path": "Contents/Info.plist",
+      "fields": {
+        "CFBundleIdentifier": "me.bnfy.blanc.chromium.preview",
+        "CFBundleExecutable": "Blanc Preview Launcher",
+        "CFBundleShortVersionString": "157.0.8103.15",
+        "CFBundleVersion": "8103.15",
+        "LSMinimumSystemVersion": "26.0"
+      },
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Resources/Info.plist",
+      "fields": {
+        "CFBundleIdentifier": "me.bnfy.blanc.chromium.preview.framework",
+        "CFBundleExecutable": "Blanc Prototype Framework",
+        "CFBundleShortVersionString": "157.0.8103.15",
+        "CFBundleVersion": "8103.15",
+        "LSMinimumSystemVersion": null
+      },
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Alerts).app/Contents/Info.plist",
+      "fields": {
+        "CFBundleIdentifier": "me.bnfy.blanc.chromium.preview.framework.AlertNotificationService",
+        "CFBundleExecutable": "Blanc Prototype Helper (Aperitif Alerts)",
+        "CFBundleShortVersionString": "157.0.8103.15",
+        "CFBundleVersion": "8103.15",
+        "LSMinimumSystemVersion": "13.0"
+      },
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (GPU).app/Contents/Info.plist",
+      "fields": {
+        "CFBundleIdentifier": "me.bnfy.blanc.chromium.preview.helper",
+        "CFBundleExecutable": "Blanc Prototype Helper (GPU)",
+        "CFBundleShortVersionString": "157.0.8103.15",
+        "CFBundleVersion": "8103.15",
+        "LSMinimumSystemVersion": "13.0"
+      },
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/Info.plist",
+      "fields": {
+        "CFBundleIdentifier": "me.bnfy.blanc.chromium.preview.helper.renderer",
+        "CFBundleExecutable": "Blanc Prototype Helper (Aperitif Renderer)",
+        "CFBundleShortVersionString": "157.0.8103.15",
+        "CFBundleVersion": "8103.15",
+        "LSMinimumSystemVersion": "13.0"
+      },
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper.app/Contents/Info.plist",
+      "fields": {
+        "CFBundleIdentifier": "me.bnfy.blanc.chromium.preview.helper",
+        "CFBundleExecutable": "Blanc Prototype Helper",
+        "CFBundleShortVersionString": "157.0.8103.15",
+        "CFBundleVersion": "8103.15",
+        "LSMinimumSystemVersion": "13.0"
+      },
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif GPU).app/Contents/Info.plist",
+      "fields": {
+        "CFBundleIdentifier": "me.bnfy.blanc.chromium.preview.helper",
+        "CFBundleExecutable": "Blanc Prototype Helper (Aperitif GPU)",
+        "CFBundleShortVersionString": "157.0.8103.15",
+        "CFBundleVersion": "8103.15",
+        "LSMinimumSystemVersion": "13.0"
+      },
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Renderer).app/Contents/Info.plist",
+      "fields": {
+        "CFBundleIdentifier": "me.bnfy.blanc.chromium.preview.helper.renderer",
+        "CFBundleExecutable": "Blanc Prototype Helper (Renderer)",
+        "CFBundleShortVersionString": "157.0.8103.15",
+        "CFBundleVersion": "8103.15",
+        "LSMinimumSystemVersion": "13.0"
+      },
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/Info.plist",
+      "fields": {
+        "CFBundleIdentifier": "me.bnfy.blanc.chromium.preview.helper",
+        "CFBundleExecutable": "Blanc Prototype Helper (Aperitif)",
+        "CFBundleShortVersionString": "157.0.8103.15",
+        "CFBundleVersion": "8103.15",
+        "LSMinimumSystemVersion": "13.0"
+      },
+      "same": true
+    },
+    {
+      "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.15/Helpers/Blanc Prototype Helper (Alerts).app/Contents/Info.plist",
+      "fields": {
+        "CFBundleIdentifier": "me.bnfy.blanc.chromium.preview.framework.AlertNotificationService",
+        "CFBundleExecutable": "Blanc Prototype Helper (Alerts)",
+        "CFBundleShortVersionString": "157.0.8103.15",
+        "CFBundleVersion": "8103.15",
+        "LSMinimumSystemVersion": "13.0"
+      },
+      "same": true
+    }
+  ],
+  "allIdentityFieldsUnchanged": true,
+  "readOnly": true
+}

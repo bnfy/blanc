@@ -40,15 +40,24 @@ still send it). The desktop client attempts each product metric at most once per
 app session and never sends a product event for a private tab.
 
 Blanc for iPhone sends the same `/ping` with `"platform": "ios"` and
-`"arch": "arm64"` (iOS M18 design §7.2), and nothing else: `/event` refuses
+`"arch": "arm64"` (iOS M18 design §7.2), plus `"device": "iphone"` or
+`"ipad"` from builds with iPad support, and nothing else: `/event` refuses
 it. Its counts are kept entirely apart from desktop's. Every key an iPhone
 ping touches is stored under an `ios:` prefix (`ios:total`, `ios:day:*`,
-`ios:version:*`, `ios:os:*`, the active, first-seen and return markers), so
+`ios:version:*`, `ios:os:*`, launches in `ios:device:*` and new installs in
+`ios:new:device:*`, the active, first-seen and return markers), so
 iPhone 1.0.0 never adds to desktop 1.0.0. `platform:ios` is the one shared
 key. It is never mirrored to GA4 and never joins the first-day groups. It has
 one figure desktop doesn't: a 30-day return (`ios:return:m1:<D>`, a launch
 again on day 28 to 34 after the first-seen day), for the iPhone kill
 criteria. `/stats` reports all of it in an `ios` object.
+
+Blanc for Android is counted the same way under an `android:` prefix, with
+`"platform": "android"`, `"arch"` `arm64` (or `x64` on an emulator), and an
+optional `"device"` of `phone` or `tablet`. `platform:android` is the one
+shared key; it never reaches GA4, the first-day groups or `/event`, and
+`/stats` reports it in an `android` object. A deployment that predates this
+refuses Android's ping with 400.
 
 There are no URLs, searches, page content, game state, custom labels, names,
 accounts, email addresses, or precise locations. The raw installation UUID is

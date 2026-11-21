@@ -1,0 +1,9 @@
+# Actual automatic keepalive retry admission
+
+Four new schedules pass on restored production native output: regular/private, healthy/utility-loss. FetchRetry is explicitly enabled by isolated fixture flags; this qualifies the experimental route, not default availability. No native code, list, signed-master change or build.
+
+Each schedule loads a same-origin survivor, queues HTTPS GET with maxAttempts1/maxAge10000/retryAfterUnload, confirms sender target destruction, and resets the held connection. Healthy retries have Retry-Attempts:1, a second distinct native KeepAliveURLLoader::Start ID and second allow decision. Failure schedules terminate only the verified owned blocker utility before reset; the second native start receives result-1 and no actual FetchRetry arrives during the bounded observation. Initial requests receive result0. validation.json independently checks four trace/start/decision/header records. Cleanup is true.
+
+Transport reconnects can occur within the first admitted loader. The first two fixture attempts mistook these for FetchRetry without requiring its header/start; the third graceful close did not produce a retry-eligible error. Failed reports are retained as fixture failures. The final fixture forces TCP reset and requires two native starts. Earlier commentary called a second arrival a blocker bypass; that diagnosis was withdrawn after trace inspection. No production repair was justified.
+
+Scope is post-close automatic GET retry and refusal after utility loss, not revocation of already-admitted loaders at every transport reconnect or arbitrary retry settings. Existing307/303/308suites were not rerun. Permanent profiles and Google baseline untouched; Electron paused. This is native diagnostic coverage, not new signed-candidate acceptance or L12 approval.

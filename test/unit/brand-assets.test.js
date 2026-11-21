@@ -288,6 +288,12 @@ test('brand checks treat one-level platform rounding as current but catch real p
     'a two-level colour change is a real change');
   assert.equal(await pngsEquivalent(base, await png([247, 240, 229, 255, 14, 14, 14, 254])), true,
     'alpha rounding gets the same one-level allowance');
+  assert.equal(await pngsEquivalent(await png([255, 0, 0, 1, 14, 14, 14, 255]), await png([0, 0, 0, 1, 14, 14, 14, 255])), true,
+    'a nearly clear pixel whose stored colour swings with premultiplied rounding draws the same');
+  assert.equal(await pngsEquivalent(await png([255, 0, 0, 128, 14, 14, 14, 255]), await png([0, 0, 0, 128, 14, 14, 14, 255])), false,
+    'a visible translucent colour change is a real change');
+  assert.equal(await pngsEquivalent(base, await png([247, 240, 229, 128, 14, 14, 14, 255])), false,
+    'an opacity change is a real change');
   assert.equal(await pngsEquivalent(base, await png([247, 240, 229, 255], 1)), false,
     'different dimensions never match');
   assert.equal(await pngsEquivalent(Buffer.from('<svg/>'), Buffer.from('<svg/>')), false,

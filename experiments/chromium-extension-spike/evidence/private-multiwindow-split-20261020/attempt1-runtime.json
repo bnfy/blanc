@@ -1,0 +1,6 @@
+{
+  "checks": [],
+  "pass": false,
+  "error": "ReferenceError: WebSocket is not defined",
+  "stack": "ReferenceError: WebSocket is not defined\n    at connect (file:///private/tmp/blanc-cdp.mjs:3:41)\n    at attach (file:///private/tmp/blanc-private-multi-split/test.mjs:8:113)\n    at start (file:///private/tmp/blanc-private-multi-split/test.mjs:10:475)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async file:///private/tmp/blanc-private-multi-split/test.mjs:14:9"
+}

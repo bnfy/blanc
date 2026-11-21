@@ -130,7 +130,13 @@ test('published index excludes utility pages and every destination and anchor ex
   const response = await fetch(baseURL + '/search-index.json');
   const docs = await response.json();
   assert.ok(docs.length > 100);
-  assert.ok(JSON.stringify(docs).length < 400000, 'bang directory is excluded');
+  // The bang directory's rows (about 1.6 MB of HTML) have their own search
+  // and must stay out; the /bangs entry keeps only the page's prose.
+  const bangs = docs.filter(doc => doc.url.split('#')[0] === '/bangs');
+  assert.ok(bangs.length > 0 && bangs.every(doc => JSON.stringify(doc).length < 20000), 'bang directory is excluded');
+  // The whole index loads on first search. It grows with every release's
+  // changelog entry (403 KB at v1.49.0), so this is a payload budget.
+  assert.ok(JSON.stringify(docs).length < 600000, 'search index stays within its payload budget');
   assert.ok(!docs.some(doc => /404|import-tabs|faq\.html/.test(doc.url)));
   const pages = new Map();
   for (const doc of docs) {

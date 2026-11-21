@@ -165,7 +165,10 @@ final class PagePinchWatcher: NSObject, UIGestureRecognizerDelegate {
         let scrollView = webView.scrollView
         switch pinch.state {
         case .began:
-            startedZoomedOut = scrollView.zoomScale <= scrollView.minimumZoomScale + 0.01
+            // A page in full screen sits in WebKit's own window, over the
+            // browser: a pinch there is the page's, never the tab grid's.
+            startedZoomedOut = webView.fullscreenState == .notInFullscreen
+                && scrollView.zoomScale <= scrollView.minimumZoomScale + 0.01
             tracking = false
             startPoint = pinch.location(in: nil)
         case .changed:

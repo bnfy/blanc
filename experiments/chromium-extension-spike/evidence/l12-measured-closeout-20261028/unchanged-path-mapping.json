@@ -1,0 +1,15 @@
+{
+  "fromSource": "260f98ff",
+  "toSource": "4a77b414",
+  "paths": [
+    "experiments/chromium-extension-spike/prototype",
+    "experiments/chromium-extension-spike/generated",
+    "experiments/chromium-extension-spike/native/blanc_prototype_ui.cc",
+    "experiments/chromium-extension-spike/native/blanc_prototype_ui.h",
+    "experiments/chromium-extension-spike/preview/package.py",
+    "experiments/chromium-extension-spike/preview/sign.py",
+    "experiments/chromium-extension-spike/preview/distribution.py"
+  ],
+  "changedPaths": [],
+  "scope": "Source-path mapping, not whole-binary identity. Changed blocker/compliance code has separate affected signed checks."
+}

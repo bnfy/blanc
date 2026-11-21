@@ -1,5 +1,576 @@
 [
   {
+    "tag": "v1.51.0",
+    "version": "1.51.0",
+    "name": "1.51.0",
+    "publishedAt": "2026-11-18T22:47:13.000Z",
+    "humanDate": "November 18, 2026",
+    "machineDate": "2026-11-18",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.51.0",
+    "anchor": "v1-51-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Favorites gets a page of its own, and you can edit a favorite."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Favorites (Show Favorites, ⌥⌘B or Ctrl+Shift+O, or "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/favorites"
+                  },
+                  {
+                    "type": "text",
+                    "value": ") now opens as a full page in a tab, with your folders on the left and the open folder's favorites in one list. Every favorite has a ⋮ menu: open it in a new tab, edit it, pin it to the Start Page, move it, or remove it. "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Edit…"
+                  },
+                  {
+                    "type": "text",
+                    "value": " changes a favorite's name, address and folder; a pinned favorite stays pinned. Select several to open, move or remove them together. Dragging, search and the keyboard work as before."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Widgets on your Start Page."
+                  },
+                  {
+                    "type": "text",
+                    "value": " The Start Page is now one page: the clock, with the week's blocked count under it. Favorites and your other devices' tabs are cards you turn on in "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Customize"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", then drag (or move with the arrow keys) to either side of the page and resize. Choose how many shortcuts show, from 1 to 12. If you used Ledger, Shelf or Tally, your Start Page keeps what it showed. Over your own image, the cards are frosted glass and the small text turns light or dark to stay readable."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Your wallpaper runs behind the Island."
+                  },
+                  {
+                    "type": "text",
+                    "value": " On the Start Page, Sunrise, a color or your own photo now continues up behind the Island instead of stopping at a plain band, and the launch Sunrise plays there too. With vertical tabs, the tab list keeps its own look."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Customize fits the window."
+                  },
+                  {
+                    "type": "text",
+                    "value": " It never covers the clock: while it is open, a tall clock shrinks just enough to make room, and grows back when you close it or open "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Font & color"
+                  },
+                  {
+                    "type": "text",
+                    "value": " to style it. Only on the smallest windows do Customize's options scroll."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.50.0",
+    "version": "1.50.0",
+    "name": "1.50.0",
+    "publishedAt": "2026-11-18T01:49:40.000Z",
+    "humanDate": "November 17, 2026",
+    "machineDate": "2026-11-17",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.50.0",
+    "anchor": "v1-50-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Folders inside folders, in the order you choose."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Favorites (Show Favorites, ⌥⌘B or Ctrl+Shift+O) now opens a manager with your folders in a sidebar. Make folders inside folders, drag favorites and folders where you want them, select several at once, and search every folder. Deleting a folder keeps what was in it. Importing from another browser keeps folders inside folders in the browser's order (empty folders aren't brought over, and very long folder paths are shortened), and one "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Bring my stuff to Blanc"
+                  },
+                  {
+                    "type": "text",
+                    "value": " button now handles importing favorites and open tabs. The Favorites menu shows the same folders, and "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/save"
+                  },
+                  {
+                    "type": "text",
+                    "value": " takes a path, such as "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/save Work > Clients"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". On the iPhone, a folder inside a folder shows as one folder named by its path for now."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Websites ask before reaching your device or local network."
+                  },
+                  {
+                    "type": "text",
+                    "value": " The first time a website tries to connect to an app on this device or to a device on your local network, such as a router or printer, Blanc asks. Your answer is remembered for that site and listed in Settings → Privacy → Site permissions, where you can remove it. Private tabs forget it when Blanc quits."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Downloads save straight to your Downloads folder."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Blanc no longer asks where to save each file you download; a file with the same name as one already there gets a number added. Downloads a page starts without your click, and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Save Image As…"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", still ask. To be asked every time, turn on "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Ask where to save each file"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in Settings → General (#1591)."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Websites that check for permission before talking to an app on your computer now get Blanc's prompt instead of being told no without one. This is what Okta Verify FastPass sign-in needs (#1585); it hasn't yet been tried with a real Okta Verify."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.49.1",
+    "version": "1.49.1",
+    "name": "1.49.1",
+    "publishedAt": "2026-11-15T18:47:05.000Z",
+    "humanDate": "November 15, 2026",
+    "machineDate": "2026-11-15",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.49.1",
+    "anchor": "v1-49-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "New Tab goes to an unused new tab."
+                  },
+                  {
+                    "type": "text",
+                    "value": " When the window already has a new tab you haven't used, ⌘T (Ctrl+T on Windows and Linux) switches to it instead of opening another, and ⌘⇧N does the same for private tabs. Pinned and grouped tabs are left alone. To turn it off, use Settings → General → Browsing → "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Switch to an unused new tab"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "With vertical tabs on a Mac, the current Space's mark has its own row below the window's close, minimize and zoom buttons, so longer Space names fit."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On a Mac, the Sunrise Spectrum and Sunrise Amber app icons have a muted warm outline in Dark instead of a bright white one."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A page that fails to load is now named after its site in the Island and the tab list, instead of "
+                  },
+                  {
+                    "type": "code",
+                    "value": "blanc://error"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and \"Page failed to load\"."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On a Mac, the expanded Island no longer runs under the window's close, minimize and zoom buttons when the window is narrow."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The welcome walkthrough points to "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/allow-ads"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", the command that turns blocking off for a site, and shows the Island at blanc.day."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Settings names the Start Page layouts with capitals, as the Start Page does, and the Theme setting no longer names macOS and Windows on every system."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.49.0",
+    "version": "1.49.0",
+    "name": "1.49.0",
+    "publishedAt": "2026-11-13T18:21:57.000Z",
+    "humanDate": "November 13, 2026",
+    "machineDate": "2026-11-13",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.49.0",
+    "anchor": "v1-49-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A refreshed Mahjong."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Mahjong has a new design in Blanc's Sunrise look, in light and dark mode, with new tile artwork, a simpler setup sheet and a smaller results card. On wide windows the Burst rack sits beside the board."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Mahjong tile sets."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Mahjong now has three tile sets, Porcelain, Carved and Inlay, and moves to the next one after every three boards you clear in a row. A board keeps the set it was dealt in. Starting a new game partway through a board you've played on starts the count again."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Mahjong celebrations."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Matching two tiles draws a short trail between them, and clearing a board plays a short celebration before the results card. A click or any key skips straight to the card. With reduced motion on, matched tiles glow briefly in place instead."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Screen readers now name Mahjong's wind and dragon tiles plainly, such as \"north wind\" or \"red dragon\"."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Mahjong's board-cleared card is smaller and fits its content, and its title says what happened, such as a new personal best, a first clear of a layout or three boards in a row, instead of always reading \"A beautiful finish.\""
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Choose your game"
+                  },
+                  {
+                    "type": "text",
+                    "value": " fits without scrolling at ordinary window sizes. While Daily is selected, a note explains how to pick another layout, and "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "copy current deal"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is now "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "copy board link"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and confirms when it has copied."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The stronger free-tile highlight option is gone from Mahjong's setup."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The Island matches Mahjong's background, as it does on the Start Page."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Long Burst scores shrink to fit the rack beside the board."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The closed Island no longer leads with the current Space's mark, so it stays shorter. Spaces open from the Spaces button in the ⌘L panel's footer, which now shows the current Space's symbol on its color (the planet when the window isn't in a Space). With vertical tabs, the side list still shows the mark at the top."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The Island's address field now reads "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Search or type URL"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "After "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Continue"
+                  },
+                  {
+                    "type": "text",
+                    "value": " on a certificate warning for a local or private-network address, windows that page opens on its own, such as Proxmox's separate console, now load and connect too, instead of staying black or white."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.48.0",
     "version": "1.48.0",
     "name": "1.48.0",

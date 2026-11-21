@@ -1,0 +1,22 @@
+Official Chromium152.0.7977.167 (Electron44.9.1 embedded version)
+https://chromium.googlesource.com/chromium/src/+/refs/tags/152.0.7977.167/content/browser/web_contents/web_contents_impl.cc
+4254: std::unique_ptr<WebContents> WebContentsImpl::Clone() {
+4255:   TRACE_EVENT0("content", "WebContentsImpl::Clone");
+4256:
+4257:   // We use our current SiteInstance since the cloned entry will use it anyway.
+4258:   // We pass our own opener so that the cloned page can access it if it was set
+4259:   // before.
+4260:   CreateParams create_params(GetBrowserContext(), GetSiteInstance());
+4261:   FrameTreeNode* opener = primary_frame_tree_.root()->opener();
+4262:   RenderFrameHostImpl* opener_rfh = nullptr;
+4263:   if (opener) {
+4264:     opener_rfh = opener->current_frame_host();
+4265:   }
+4266:   std::unique_ptr<WebContentsImpl> tc =
+4267:       CreateWithOpener(create_params, opener_rfh);
+4268:   tc->GetController().CopyStateFrom(&primary_frame_tree_.controller(), true);
+4269:   observers_.NotifyObservers(&WebContentsObserver::DidCloneToNewWebContents,
+4270:                              this, tc.get());
+4271:   return tc;
+4272: }
+4273:

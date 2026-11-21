@@ -1,0 +1,6 @@
+{
+  "initialAssertion": "Historical Shipping app hashes differ from the current installed app",
+  "classification": "Fixture baseline mismatch; not a Preview mutation finding",
+  "action": "Preserved historical mismatch as false and captured current preflight hashes for post-walkthrough comparison",
+  "productOrProfileMutation": false
+}

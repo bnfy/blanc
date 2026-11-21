@@ -1,0 +1,32 @@
+{
+  "shipping": {
+    "newtab": {
+      "url": "blanc://newtab/",
+      "layout": "billboard"
+    },
+    "tabs": {
+      "urls": [
+        "blanc://newtab/",
+        "http://127.0.0.1:9860/shipping/one",
+        "http://127.0.0.1:9860/shipping/two",
+        "blanc://newtab/"
+      ],
+      "selected": 3
+    }
+  },
+  "preview": {
+    "newtab": {
+      "url": "chrome://newtab/",
+      "layout": "shelf"
+    },
+    "tabs": {
+      "urls": [
+        "blanc://newtab/",
+        "http://127.0.0.1:9860/preview/one",
+        "http://127.0.0.1:9860/preview/two",
+        "blanc://newtab/"
+      ],
+      "selected": 3
+    }
+  }
+}

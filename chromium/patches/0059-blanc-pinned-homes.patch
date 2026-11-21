@@ -1,0 +1,33 @@
+--- a/chrome/browser/sessions/session_service_base.cc
++++ b/chrome/browser/sessions/session_service_base.cc
+@@ -630,6 +630,9 @@
+   if (blanc_prototype::GroupPinned(tab))
+     command_storage_manager()->AppendRebuildCommand(sessions::CreateAddTabExtraDataCommand(
+         session_id, blanc_prototype::kGroupPinKey, "1"));
++  const auto pinned_home = blanc_prototype::PinnedHome(tab);
++  if (!pinned_home.empty()) command_storage_manager()->AppendRebuildCommand(
++      sessions::CreateAddTabExtraDataCommand(session_id, blanc_prototype::kPinnedHomeKey, pinned_home));
+   const auto shared_id = blanc_prototype::SharedTabId(tab);
+   if (!shared_id.empty()) command_storage_manager()->AppendRebuildCommand(
+       sessions::CreateAddTabExtraDataCommand(session_id, blanc_prototype::kSharedTabIdKey, shared_id));
+--- a/chrome/browser/ui/browser_live_tab_context.cc
++++ b/chrome/browser/ui/browser_live_tab_context.cc
+@@ -208,6 +208,8 @@
+ 
+   if (blanc_prototype::GroupPinned(tab_strip_model_->GetWebContentsAt(index)))
+     extra_data[blanc_prototype::kGroupPinKey] = "1";
++  const auto pinned_home = blanc_prototype::PinnedHome(tab_strip_model_->GetWebContentsAt(index));
++  if (!pinned_home.empty()) extra_data[blanc_prototype::kPinnedHomeKey] = pinned_home;
+   const auto replay = blanc_prototype::SharedColdNavigationToken(tab_strip_model_->GetWebContentsAt(index));
+   if (!replay.empty()) extra_data[blanc_prototype::kSharedColdNavigationKey] = replay;
+   const auto shared = blanc_prototype::SharedTabId(tab_strip_model_->GetWebContentsAt(index));
+--- a/chrome/browser/sessions/session_restore.cc
++++ b/chrome/browser/sessions/session_restore.cc
+@@ -785,6 +785,7 @@
+     // The weak callback owns no raw pointer into a destroyed restore job.
+     // No restored view exists yet, including the selected page.
+     blanc_prototype::ApplySharedSessionPlan(&windows_, plan);
++    blanc_prototype::ApplyPinnedHomesOnStartup(profile_, &windows_);
+     shared_close_plan_ready_ = true;
+     ProcessSessionWindowsIfReady();
+   }

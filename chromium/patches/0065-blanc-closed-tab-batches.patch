@@ -1,0 +1,152 @@
+diff --git a/chrome/browser/ui/browser_live_tab_context.cc b/chrome/browser/ui/browser_live_tab_context.cc
+--- a/chrome/browser/ui/browser_live_tab_context.cc
++++ b/chrome/browser/ui/browser_live_tab_context.cc
+@@ -201,6 +201,7 @@
+     int index) const {
+   std::map<std::string, std::string> extra_data;
+   tabs::TabInterface* const tab = tab_strip_model_->GetTabAtIndex(index);
++  extra_data.merge(blanc_prototype::ClosedBatchExtraData(tab_strip_model_->GetWebContentsAt(index)));
+   const auto identity = blanc_prototype::TabIdentity(tab_strip_model_->GetWebContentsAt(index));
+   if (!identity.empty()) extra_data[blanc_prototype::kTabIdentityKey] = identity;
+   if (blanc_prototype::IsPersistentSplitTab(tab_strip_model_->GetWebContentsAt(index)))
+diff --git a/components/sessions/core/tab_restore_service_helper.h b/components/sessions/core/tab_restore_service_helper.h
+--- a/components/sessions/core/tab_restore_service_helper.h
++++ b/components/sessions/core/tab_restore_service_helper.h
+@@ -8,6 +8,7 @@
+ #include <map>
+ #include <optional>
+ #include <set>
++#include <string>
+ #include <vector>
+ 
+ #include "base/memory/raw_ptr.h"
+@@ -68,6 +69,10 @@
+ 
+   // Max number of entries we'll keep around.
+   static const int kMaxEntries = 25;
++  // A Blanc selection batch occupies one history slot, like a native window
++  // or group. Retain/evict all of its entries together, including on reload.
++  static std::string EntryBatchId(const Entry& entry);
++  static size_t EntrySlotCount(const Entries& entries);
+ 
+   // Creates a new TabRestoreServiceHelper and provides an object that provides
+   // the current time. The TabRestoreServiceHelper does not take ownership of
+diff --git a/components/sessions/core/tab_restore_service_helper.cc b/components/sessions/core/tab_restore_service_helper.cc
+--- a/components/sessions/core/tab_restore_service_helper.cc
++++ b/components/sessions/core/tab_restore_service_helper.cc
+@@ -29,6 +29,7 @@
+ #include "base/trace_event/memory_usage_estimator.h"
+ #include "base/trace_event/process_memory_dump.h"
+ #include "base/values.h"
++#include "base/uuid.h"
+ #include "components/dom_distiller/core/url_constants.h"
+ #include "components/sessions/core/live_tab.h"
+ #include "components/sessions/core/live_tab_context.h"
+@@ -1272,10 +1273,38 @@
+   }
+ }
+ 
++std::string TabRestoreServiceHelper::EntryBatchId(const Entry& entry) {
++  std::vector<const Tab*> tabs;
++  if (entry.type == tab_restore::TAB) tabs.push_back(static_cast<const Tab*>(&entry));
++  else if (entry.type == tab_restore::GROUP) for (const auto& tab : static_cast<const Group&>(entry).tabs) tabs.push_back(tab.get());
++  else if (entry.type == tab_restore::SPLIT) for (const auto& tab : static_cast<const Split&>(entry).tabs) tabs.push_back(tab.get());
++  std::string batch;
++  for (const auto* tab : tabs) {
++    const auto value = tab->extra_data.find("blanc.closed.batch.v1");
++    if (value == tab->extra_data.end() || !base::Uuid::ParseLowercase(value->second).is_valid() ||
++        (!batch.empty() && batch != value->second)) return "";
++    batch = value->second;
++  }
++  return batch;
++}
++size_t TabRestoreServiceHelper::EntrySlotCount(const Entries& entries) {
++  base::flat_set<std::string> batches;
++  size_t count = 0;
++  for (const auto& entry : entries) {
++    const auto batch = EntryBatchId(*entry);
++    if (batch.empty() || batches.insert(batch).second) ++count;
++  }
++  return count;
++}
++
+ bool TabRestoreServiceHelper::AddEntry(std::unique_ptr<Entry> entry,
+                                        bool notify,
+                                        bool to_front) {
+-  if (!FilterEntry(*entry) || (entries_.size() >= kMaxEntries && !to_front)) {
++  const auto batch = EntryBatchId(*entry);
++  const bool extends_batch = !batch.empty() && std::ranges::any_of(entries_, [&](const auto& prior) {
++    return EntryBatchId(*prior) == batch;
++  });
++  if (!FilterEntry(*entry) || (!to_front && !extends_batch && EntrySlotCount(entries_) >= kMaxEntries)) {
+     return false;
+   }
+ 
+@@ -1335,11 +1364,15 @@
+ 
+ void TabRestoreServiceHelper::PruneEntries() {
+   Entries new_entries;
+-
++  base::flat_set<std::string> batches;
++  size_t slots = 0;
+   for (auto& entry : entries_) {
+-    if (FilterEntry(*entry) && new_entries.size() < kMaxEntries) {
+-      new_entries.push_back(std::move(entry));
+-    }
++    if (!FilterEntry(*entry)) continue;
++    const auto batch = EntryBatchId(*entry);
++    const bool retained_batch = !batch.empty() && batches.contains(batch);
++    if (!retained_batch && slots >= kMaxEntries) continue;
++    if (!retained_batch) { ++slots; if (!batch.empty()) batches.insert(batch); }
++    new_entries.push_back(std::move(entry));
+   }
+ 
+   entries_ = std::move(new_entries);
+diff --git a/components/sessions/core/tab_restore_service_impl.cc b/components/sessions/core/tab_restore_service_impl.cc
+--- a/components/sessions/core/tab_restore_service_impl.cc
++++ b/components/sessions/core/tab_restore_service_impl.cc
+@@ -865,7 +865,7 @@
+   if (load_state_ != NOT_LOADED) {
+     return;
+   }
+-  if (tab_restore_service_helper_->entries().size() == kMaxEntries) {
++  if (TabRestoreServiceHelper::EntrySlotCount(tab_restore_service_helper_->entries()) >= kMaxEntries) {
+     // We already have the max number of entries we can take. There is no point
+     // in attempting to load since we'll just drop the results. Skip to loaded.
+     load_state_ = (LOADING | LOADED_LAST_SESSION | LOADED_LAST_TABS);
+@@ -1251,7 +1251,7 @@
+ void TabRestoreServiceImpl::PersistenceDelegate::CreateEntriesFromCommands(
+     const std::vector<std::unique_ptr<SessionCommand>>& commands,
+     std::vector<std::unique_ptr<tab_restore::Entry>>* loaded_entries) {
+-  if (tab_restore_service_helper_->entries().size() == kMaxEntries) {
++  if (TabRestoreServiceHelper::EntrySlotCount(tab_restore_service_helper_->entries()) >= kMaxEntries) {
+     return;
+   }
+   // Iterate through the commands, populating |entries|.
+@@ -1757,23 +1757,14 @@
+   load_state_ ^= LOADING;
+ 
+   const Entries& entries = tab_restore_service_helper_->entries();
+-  if (staging_entries_.empty() || entries.size() >= kMaxEntries) {
++  if (staging_entries_.empty() || TabRestoreServiceHelper::EntrySlotCount(entries) >= kMaxEntries) {
+     staging_entries_.clear();
+     tab_restore_service_helper_->NotifyLoaded();
+     return;
+   }
+ 
+-  if (staging_entries_.size() + entries.size() > kMaxEntries) {
+-    // If we add all the staged entries we'll end up with more than
+-    // kMaxEntries. Delete entries such that we only end up with at most
+-    // kMaxEntries.
+-    int surplus = kMaxEntries - entries.size();
+-    CHECK_LE(0, surplus);
+-    CHECK_GE(static_cast<int>(staging_entries_.size()), surplus);
+-    staging_entries_.erase(
+-        staging_entries_.begin() + (kMaxEntries - entries.size()),
+-        staging_entries_.end());
+-  }
++  // AddEntry enforces the logical slot limit. Pre-truncating by physical
++  // entry count here would cut a saved selection batch in half.
+ 
+   // And add them.
+   for (auto& staging_entry : staging_entries_) {

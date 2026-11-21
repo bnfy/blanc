@@ -1,0 +1,83 @@
+{
+  "title": "Settings",
+  "buttons": [
+    {
+      "tag": "CR-ICON-BUTTON",
+      "id": "icon",
+      "text": "",
+      "hidden": false
+    },
+    {
+      "tag": "CR-ICON-BUTTON",
+      "id": "",
+      "text": "",
+      "hidden": false
+    },
+    {
+      "tag": "CR-ICON-BUTTON",
+      "id": "closeButton",
+      "text": "\n  ",
+      "hidden": false
+    },
+    {
+      "tag": "CR-ICON-BUTTON",
+      "id": "infoButton",
+      "text": "\n    ",
+      "hidden": false
+    },
+    {
+      "tag": "CR-ICON-BUTTON",
+      "id": "icon",
+      "text": "\n",
+      "hidden": false
+    },
+    {
+      "tag": "CR-BUTTON",
+      "id": "",
+      "text": "Relaunch",
+      "hidden": true
+    },
+    {
+      "tag": "CR-ICON-BUTTON",
+      "id": "closeButton",
+      "text": "\n  ",
+      "hidden": false
+    },
+    {
+      "tag": "CR-ICON-BUTTON",
+      "id": "infoButton",
+      "text": "\n    ",
+      "hidden": false
+    },
+    {
+      "tag": "CR-ICON-BUTTON",
+      "id": "closeButton",
+      "text": "\n  ",
+      "hidden": false
+    },
+    {
+      "tag": "CR-ICON-BUTTON",
+      "id": "close",
+      "text": "\n      ",
+      "hidden": false
+    },
+    {
+      "tag": "CR-ICON-BUTTON",
+      "id": "closeButton",
+      "text": "\n  ",
+      "hidden": false
+    },
+    {
+      "tag": "CR-ICON-BUTTON",
+      "id": "closeButton",
+      "text": "\n  ",
+      "hidden": false
+    },
+    {
+      "tag": "CR-BUTTON",
+      "id": "",
+      "text": "Relaunch",
+      "hidden": true
+    }
+  ]
+}

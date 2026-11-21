@@ -1,0 +1,30 @@
+{
+  "checks": [
+    {
+      "name": "fresh start page has no closed history",
+      "pass": true,
+      "details": {
+        "tabs": [
+          "blanc://newtab/"
+        ],
+        "closed": []
+      }
+    },
+    {
+      "name": "actual Island close button receives successful native acknowledgement",
+      "pass": true,
+      "details": {
+        "ok": true,
+        "value": null
+      }
+    },
+    {
+      "name": "fresh replacement start page stays usable without warning or phantom history",
+      "pass": true,
+      "details": [
+        "blanc://newtab/"
+      ]
+    }
+  ],
+  "complete": true
+}

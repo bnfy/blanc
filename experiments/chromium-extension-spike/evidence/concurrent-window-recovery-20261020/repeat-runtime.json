@@ -1,0 +1,263 @@
+{
+  "checks": [
+    {
+      "name": "overlapping new windows acknowledged",
+      "value": [
+        {
+          "groups": [],
+          "uuid": "8999fcf1-7b5b-4ea1-ab3f-19d12542d452",
+          "urls": [
+            "http://127.0.0.1:9278/overlap-b"
+          ],
+          "active": "http://127.0.0.1:9278/overlap-b",
+          "splits": []
+        },
+        {
+          "groups": [],
+          "uuid": "08927123-c732-43d1-afae-57edf62cb22f",
+          "urls": [
+            "http://127.0.0.1:9278/overlap-a"
+          ],
+          "active": "http://127.0.0.1:9278/overlap-a",
+          "splits": []
+        },
+        {
+          "groups": [
+            {
+              "name": "Source",
+              "color": "",
+              "collapsed": false,
+              "urls": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ]
+            }
+          ],
+          "uuid": "760a79ee-d6f3-4475-a852-4d6c498b9688",
+          "urls": [
+            "blanc://newtab/",
+            "http://127.0.0.1:9278/source-a",
+            "http://127.0.0.1:9278/source-b"
+          ],
+          "active": "http://127.0.0.1:9278/source-a",
+          "splits": [
+            {
+              "focus": 0,
+              "ids": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ],
+              "widths": [
+                0.5,
+                0.5
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "completed close overlaps replacement save",
+      "value": [
+        {
+          "groups": [],
+          "uuid": "1fadc7b3-b9c0-4053-ab92-bee2054c9eca",
+          "urls": [
+            "http://127.0.0.1:9278/replacement"
+          ],
+          "active": "http://127.0.0.1:9278/replacement",
+          "splits": []
+        },
+        {
+          "groups": [],
+          "uuid": "8999fcf1-7b5b-4ea1-ab3f-19d12542d452",
+          "urls": [
+            "http://127.0.0.1:9278/overlap-b"
+          ],
+          "active": "http://127.0.0.1:9278/overlap-b",
+          "splits": []
+        },
+        {
+          "groups": [
+            {
+              "name": "Source",
+              "color": "",
+              "collapsed": false,
+              "urls": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ]
+            }
+          ],
+          "uuid": "760a79ee-d6f3-4475-a852-4d6c498b9688",
+          "urls": [
+            "blanc://newtab/",
+            "http://127.0.0.1:9278/source-a",
+            "http://127.0.0.1:9278/source-b"
+          ],
+          "active": "http://127.0.0.1:9278/source-a",
+          "splits": [
+            {
+              "focus": 0,
+              "ids": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ],
+              "widths": [
+                0.5,
+                0.5
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "beforeunload pending close survives new window acknowledgement",
+      "value": [
+        {
+          "groups": [],
+          "uuid": "a4216b97-e18a-48e4-9171-03cdc70b8469",
+          "urls": [
+            "http://127.0.0.1:9278/during-pending-close"
+          ],
+          "active": "http://127.0.0.1:9278/during-pending-close",
+          "splits": []
+        },
+        {
+          "groups": [],
+          "uuid": "1fadc7b3-b9c0-4053-ab92-bee2054c9eca",
+          "urls": [
+            "http://127.0.0.1:9278/replacement"
+          ],
+          "active": "http://127.0.0.1:9278/replacement",
+          "splits": []
+        },
+        {
+          "groups": [],
+          "uuid": "8999fcf1-7b5b-4ea1-ab3f-19d12542d452",
+          "urls": [
+            "http://127.0.0.1:9278/overlap-b"
+          ],
+          "active": "http://127.0.0.1:9278/overlap-b",
+          "splits": []
+        },
+        {
+          "groups": [
+            {
+              "name": "Source",
+              "color": "",
+              "collapsed": false,
+              "urls": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ]
+            }
+          ],
+          "uuid": "760a79ee-d6f3-4475-a852-4d6c498b9688",
+          "urls": [
+            "blanc://newtab/",
+            "http://127.0.0.1:9278/source-a",
+            "http://127.0.0.1:9278/source-b"
+          ],
+          "active": "http://127.0.0.1:9278/source-a",
+          "splits": [
+            {
+              "focus": 0,
+              "ids": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ],
+              "widths": [
+                0.5,
+                0.5
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "precrash expected owners",
+      "value": [
+        {
+          "groups": [],
+          "uuid": "1fadc7b3-b9c0-4053-ab92-bee2054c9eca",
+          "urls": [
+            "http://127.0.0.1:9278/replacement"
+          ],
+          "active": "http://127.0.0.1:9278/replacement",
+          "splits": []
+        },
+        {
+          "groups": [
+            {
+              "name": "Source",
+              "color": "",
+              "collapsed": false,
+              "urls": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ]
+            }
+          ],
+          "uuid": "760a79ee-d6f3-4475-a852-4d6c498b9688",
+          "urls": [
+            "blanc://newtab/",
+            "http://127.0.0.1:9278/source-a",
+            "http://127.0.0.1:9278/source-b"
+          ],
+          "active": "http://127.0.0.1:9278/source-a",
+          "splits": [
+            {
+              "focus": 0,
+              "ids": [
+                "http://127.0.0.1:9278/source-a",
+                "http://127.0.0.1:9278/source-b"
+              ],
+              "widths": [
+                0.5,
+                0.5
+              ]
+            }
+          ]
+        },
+        {
+          "groups": [],
+          "uuid": "8999fcf1-7b5b-4ea1-ab3f-19d12542d452",
+          "urls": [
+            "http://127.0.0.1:9278/overlap-b"
+          ],
+          "active": "http://127.0.0.1:9278/overlap-b",
+          "splits": []
+        },
+        {
+          "groups": [],
+          "uuid": "a4216b97-e18a-48e4-9171-03cdc70b8469",
+          "urls": [
+            "http://127.0.0.1:9278/during-pending-close"
+          ],
+          "active": "http://127.0.0.1:9278/during-pending-close",
+          "splits": []
+        }
+      ]
+    },
+    {
+      "name": "first restart actual owners",
+      "value": [
+        {
+          "groups": [],
+          "uuid": "c765a7b9-0df3-4196-93d7-07be1453e7b0",
+          "urls": [
+            "blanc://newtab/"
+          ],
+          "active": "blanc://newtab/",
+          "splits": []
+        }
+      ]
+    }
+  ],
+  "pass": false,
+  "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 4\n",
+  "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 4\n\n    at file:///private/tmp/blanc-window-overlap/repeat.mjs:18:470"
+}

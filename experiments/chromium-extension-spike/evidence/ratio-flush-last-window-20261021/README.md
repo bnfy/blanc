@@ -1,0 +1,9 @@
+# Ratio flush retry and last-window shutdown — October 21, 2026
+
+Four final isolated clear/encrypted schedules pass 30 checkpoints. Two flush schedules inject EIO into native Session fsync/F_BARRIERFSYNC after resize has written its independent recovery intent. The intent remains after the failed flush. Removing the fault and explicitly retrying the same ratio retires the record after successful flush; immediate process crash/restart restores 65/35 and the source pair. This proves explicit live-owner retry, not automatic retry or retry after owner destruction.
+
+Two last-window schedules hold the ratio temporary-file write, request Browser.close, then release it. The process exits cleanly; the pending caller disconnects without success. Restart restores exactly the two source URLs as one split at the previous 50/50 ratio. The unacknowledged 65/35 request is not claimed durable. This is native Browser.close through CDP, not physical window-close input or an abrupt kill during shutdown.
+
+Two initial flush fixtures fail only their final assertion because they read a nonexistent split.ratio field; archived snapshots already contain layout.widths [0.65,0.35]. They remain separate and are excluded from final passing totals. Corrected fixtures use fresh disposable profiles. Static HTTP fixture responses avoid reflected request content.
+
+No product code changes or native compile. Check-only guard schedules zero actions; prior upstream 55 files/129 hunks unchanged. No latency measurements. Abandoned-owner flush-failure retry, power loss, private runtime, crashes during shutdown, and wider concurrent lifecycle remain unqualified. Plan/evidence updated; raw ignored logs remain local. Native input pending; latency deferred; Electron diagnostic build pending approval/unstarted. Permanent profiles/tabs, retained preview and Google upgrade baseline untouched.

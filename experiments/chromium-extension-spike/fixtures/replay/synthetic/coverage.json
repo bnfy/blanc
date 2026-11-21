@@ -1,0 +1,300 @@
+{
+  "schema": 1,
+  "approval": "68892cc1",
+  "scope": "Required runtime matrix; broad rows stay gaps until every listed cell is measured. Bounded checkpoints are linked separately.",
+  "profiles": [
+    "regular",
+    "private"
+  ],
+  "rule_cases": [
+    "blocking-candidate",
+    "exception-candidate",
+    "near-miss-candidate"
+  ],
+  "cell_identity": [
+    "request_path",
+    "resource_type",
+    "party",
+    "profile_kind",
+    "frame_context",
+    "initiator_case",
+    "rule_case"
+  ],
+  "required_statuses": [
+    "passed",
+    "failed",
+    "gap",
+    "inapplicable"
+  ],
+  "rows": [
+    {
+      "priority": 1,
+      "request_path": "renderer-subresource",
+      "resource_types": [
+        "script",
+        "xhr",
+        "image",
+        "stylesheet",
+        "font",
+        "media",
+        "object",
+        "other"
+      ],
+      "party": [
+        "first-party",
+        "third-party"
+      ],
+      "frame_context": [
+        "main",
+        "same-origin-child",
+        "cross-origin-child"
+      ],
+      "initiator_case": [
+        "present",
+        "no-referrer"
+      ],
+      "status": "gap",
+      "reason": "Native paired checkpoint covers four resource types in a single main frame for the admitted corpus and first-party allow controls; fonts/media/object/other, child frames, domain-scoped candidates and broader first-party decisions remain gaps."
+    },
+    {
+      "priority": 1,
+      "request_path": "navigation",
+      "resource_types": [
+        "mainFrame",
+        "subFrame"
+      ],
+      "party": [
+        "first-party",
+        "third-party"
+      ],
+      "frame_context": [
+        "main",
+        "same-origin-child",
+        "cross-origin-child"
+      ],
+      "initiator_case": [
+        "browser-started-absent",
+        "renderer-started-present"
+      ],
+      "status": "gap",
+      "reason": "Browser-started root navigation with absent initiator measured; navigation candidates, renderer-started and subframe cases remain gaps."
+    },
+    {
+      "priority": 1,
+      "request_path": "redirect",
+      "resource_types": [
+        "mainFrame",
+        "script",
+        "xhr"
+      ],
+      "party": [
+        "first-party",
+        "third-party"
+      ],
+      "frame_context": [
+        "main"
+      ],
+      "initiator_case": [
+        "present",
+        "browser-started-absent"
+      ],
+      "status": "gap",
+      "reason": "Two fresh regular/private pairs pass authored GET main-frame, script and fetch chains, allow-to-block, blocked predecessor and two-hop cases with actual hop/context comparison. Non-GET/method-changing redirects, header mutations, replacement URLs and subframes remain gaps."
+    },
+    {
+      "priority": 2,
+      "request_path": "opaque-frame",
+      "resource_types": [
+        "script",
+        "xhr"
+      ],
+      "party": [
+        "unresolved"
+      ],
+      "frame_context": [
+        "sandboxed-child"
+      ],
+      "initiator_case": [
+        "opaque"
+      ],
+      "status": "gap",
+      "reason": "Independent opaque-origin identity mapping pending."
+    },
+    {
+      "priority": 2,
+      "request_path": "dedicated-and-shared-workers",
+      "resource_types": [
+        "script",
+        "xhr"
+      ],
+      "party": [
+        "first-party",
+        "third-party"
+      ],
+      "frame_context": [
+        "worker",
+        "worker-after-owner-close"
+      ],
+      "initiator_case": [
+        "worker-origin"
+      ],
+      "status": "gap",
+      "reason": "Dedicated live-owner probes pass. Shared-worker subrequests pass for one live document, two same-origin document clients, and navigation-driven destruction of one exact owner realm, twice per runtime/profile. More than two owners, embedded/top-site combinations, port transfer/close/GC, target closure followed by requests, in-flight teardown races and opaque/subframe owners remain gaps."
+    },
+    {
+      "priority": 2,
+      "request_path": "service-worker",
+      "resource_types": [
+        "script",
+        "xhr"
+      ],
+      "party": [
+        "first-party",
+        "third-party"
+      ],
+      "frame_context": [
+        "service-worker"
+      ],
+      "initiator_case": [
+        "worker-origin"
+      ],
+      "status": "gap",
+      "reason": "Initial script and bounded imports/fetch/redirect contexts were measured previously. Same-URL update behavior and 16 controlled-fetch contexts pass. Eight token-linked HTTP 404 initial loaders now resolve with execution realm unobserved. Repeated Electron hook occurrences cannot borrow an initial token; all update contexts remain gaps. Other startup failures, cache-only attribution, unchanged-byte/cache-validator updates, multi-client/teardown and restart remain gaps. See evidence/f12-service-loader-20261017."
+    },
+    {
+      "priority": 2,
+      "request_path": "keepalive-and-beacon",
+      "resource_types": [
+        "xhr",
+        "ping"
+      ],
+      "party": [
+        "first-party",
+        "third-party"
+      ],
+      "frame_context": [
+        "main",
+        "after-sender-teardown"
+      ],
+      "initiator_case": [
+        "present"
+      ],
+      "status": "gap",
+      "reason": "Retained identity, redirect and retry observations pending."
+    },
+    {
+      "priority": 2,
+      "request_path": "prefetch-pre-prefetch-prerender",
+      "resource_types": [
+        "mainFrame",
+        "script",
+        "xhr"
+      ],
+      "party": [
+        "first-party",
+        "third-party"
+      ],
+      "frame_context": [
+        "before-activation",
+        "after-activation",
+        "cancelled"
+      ],
+      "initiator_case": [
+        "present"
+      ],
+      "status": "gap",
+      "reason": "Reachability and early interception unresolved in source audit; private applicability must be measured."
+    },
+    {
+      "priority": 2,
+      "request_path": "websocket",
+      "resource_types": [
+        "webSocket"
+      ],
+      "party": [
+        "first-party",
+        "third-party"
+      ],
+      "frame_context": [
+        "main",
+        "worker"
+      ],
+      "initiator_case": [
+        "present",
+        "worker-origin"
+      ],
+      "status": "gap",
+      "reason": "Handshake fixture and native interception pending."
+    },
+    {
+      "priority": 2,
+      "request_path": "webtransport",
+      "resource_types": [
+        "unresolved"
+      ],
+      "party": [
+        "first-party",
+        "third-party"
+      ],
+      "frame_context": [
+        "main",
+        "worker"
+      ],
+      "initiator_case": [
+        "present",
+        "worker-origin"
+      ],
+      "status": "gap",
+      "reason": "HTTP/3 fixture, canonical type and native interception pending."
+    }
+  ],
+  "outcomes": [
+    {
+      "kind": "native-css",
+      "status": "gap",
+      "reason": "Per-frame outcome assertions pending."
+    },
+    {
+      "kind": "procedural-cosmetics",
+      "status": "gap",
+      "reason": "Inserted, moved and re-attributed nodes after load/timers pending."
+    },
+    {
+      "kind": "main-world-scriptlets",
+      "status": "gap",
+      "reason": "Document-start page-global assertions pending."
+    }
+  ],
+  "bounded_checkpoints": [
+    {
+      "evidence": "../../../evidence/f12-native-20261017/README.md",
+      "status": "passed",
+      "scope": "5123 candidate URLs; single main frame; script/xhr/image/stylesheet; two fresh regular and private runs; no-referrer subset separately",
+      "full_acceptance": false
+    },
+    {
+      "evidence": "../../../evidence/f12-paths-latency-20261017/README.md",
+      "status": "passed",
+      "scope": "Authored GET redirects and dedicated workers with live owner, two fresh regular/private pairs; shared/service observations remain gaps",
+      "full_acceptance": false
+    },
+    {
+      "evidence": "../../../evidence/f12-paths-latency-20261017/README.md",
+      "status": "gap",
+      "scope": "Full-corpus one warm-up plus five measured repetitions per profile: native warm p99 below 5 ms in every repetition, but quiet-machine condition never met; formal latency gate open",
+      "full_acceptance": false
+    },
+    {
+      "evidence": "../../../evidence/f12-worker-identity-20261017/README.md",
+      "status": "passed",
+      "scope": "Six service-worker subrequests per regular/private profile with independently observed empty or single-client sets; initial service script and shared connected clients remain gaps; latency deferred",
+      "full_acceptance": false
+    },
+    {
+      "evidence": "../../../evidence/f12-worker-ownership-20261017/README.md",
+      "status": "passed",
+      "scope": "Actual shared-port client proof and new initial service-script token correlation; default, controlled-client and no-referrer; 24 fresh runs; broad worker matrix and latency still open",
+      "full_acceptance": false
+    }
+  ]
+}

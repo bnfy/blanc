@@ -1,0 +1,50 @@
+{
+  "id": 422217800,
+  "draft": true,
+  "html_url": "https://github.com/bnfy/blanc/releases/tag/untagged-b454dbe1150062198007",
+  "target": "57fc3b131a087b3b085dbaf65766d130c6b7baed",
+  "assets": [
+    {
+      "id": 670122829,
+      "name": "Blanc-Chromium-Preview-157.0.8103.15-57fc3b13-arm64.zip",
+      "size": 243877337,
+      "state": "uploaded",
+      "digest": "sha256:a3212c1b6d0750f76825a29d3606f188f9fb17961a21bad35250e72d09d875fd"
+    },
+    {
+      "id": 670122828,
+      "name": "Blanc-Chromium-Preview-157.0.8103.15-57fc3b13.cdx.json",
+      "size": 182479,
+      "state": "uploaded",
+      "digest": "sha256:caf70c488295a31418ecc71739ed723453c098125c1bfc1c8ed99f246c6ea3c0"
+    },
+    {
+      "id": 670122830,
+      "name": "Blanc-Chromium-Preview-157.0.8103.15-57fc3b13.files.json",
+      "size": 113940,
+      "state": "uploaded",
+      "digest": "sha256:ac852a7dc2f6054c282703a1a13e2ad707610e54a226fd213f50f86d1894e4cb"
+    },
+    {
+      "id": 670122825,
+      "name": "Blanc-Chromium-Preview-157.0.8103.15-57fc3b13.provenance.json",
+      "size": 7712,
+      "state": "uploaded",
+      "digest": "sha256:23197ddd9b1c2eb6248b649e77b4cfc4e72f87aff1d78a1de3730e93d471f349"
+    },
+    {
+      "id": 670122835,
+      "name": "SHA256SUMS",
+      "size": 494,
+      "state": "uploaded",
+      "digest": "sha256:bb91087308876b4ecf7e58c385a1ec44ba9a98c0bd519c009681f402c10809bd"
+    },
+    {
+      "id": 670122895,
+      "name": "SHA256SUMS.sigstore.json",
+      "size": 6487,
+      "state": "uploaded",
+      "digest": "sha256:adb329d96ac37d7f511016db73bc9c0077d5beb0122286e2fd0f57bc16d4098c"
+    }
+  ]
+}

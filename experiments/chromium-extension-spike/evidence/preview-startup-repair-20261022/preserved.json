@@ -1,0 +1,15 @@
+{
+  "9225": {
+    "urls": [
+      "blanc://newtab/"
+    ],
+    "selected": 0
+  },
+  "9248": {
+    "urls": [
+      "blanc://newtab/",
+      "blanc://newtab/"
+    ],
+    "selected": 1
+  }
+}

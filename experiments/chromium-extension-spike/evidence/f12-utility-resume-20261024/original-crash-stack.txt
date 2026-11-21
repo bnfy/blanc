@@ -1,0 +1,24 @@
+Received signal 11 SEGV_ACCERR efefefefefefefff
+0   Blanc Prototype Framework           0x000000012fb08c78 base::debug::CollectStackTrace(base::span<void const*, 18446744073709551615ul, void const**>) + 24
+1   Blanc Prototype Framework           0x000000012faf3f20 base::debug::StackTrace::StackTrace(unsigned long) + 224
+2   Blanc Prototype Framework           0x000000012fb08bd0 base::debug::(anonymous namespace)::StackDumpSignalHandler(int, __siginfo*, void*) + 924
+3   libsystem_platform.dylib            0x000000019db12144 _sigtramp + 56
+4   Blanc Prototype Framework           0x0000000132102708 gin::(anonymous namespace)::RunWithLocker(v8::Isolate*, std::__Cr::unique_ptr<v8::Task, std::__Cr::default_delete<v8::Task>>) + 44
+5   Blanc Prototype Framework           0x0000000132102708 gin::(anonymous namespace)::RunWithLocker(v8::Isolate*, std::__Cr::unique_ptr<v8::Task, std::__Cr::default_delete<v8::Task>>) + 44
+6   Blanc Prototype Framework           0x00000001267e200c base::OnceCallback<void ()>::Run() && + 108
+7   Blanc Prototype Framework           0x000000012fa6bbbc base::TaskAnnotator::RunTaskImpl(base::PendingTask&) + 336
+8   Blanc Prototype Framework           0x000000012fa99e38 base::sequence_manager::internal::ThreadControllerWithMessagePumpImpl::DoWorkImpl(base::LazyNow*) + 1968
+9   Blanc Prototype Framework           0x000000012fa9943c base::sequence_manager::internal::ThreadControllerWithMessagePumpImpl::DoWork() + 96
+10  Blanc Prototype Framework           0x000000012fa045d0 base::MessagePumpDefault::Run(base::MessagePump::Delegate*) + 352
+11  Blanc Prototype Framework           0x000000012fa9abe0 base::sequence_manager::internal::ThreadControllerWithMessagePumpImpl::Run(bool, base::TimeDelta) + 868
+12  Blanc Prototype Framework           0x000000012fa422b8 base::RunLoop::Run(base::Location const&) + 1024
+13  Blanc Prototype Framework           0x000000012e6eb0d8 content::UtilityMain(content::MainFunctionParams) + 1956
+14  Blanc Prototype Framework           0x000000012e6c46a4 content::RunOtherNamedProcessTypeMain(std::__Cr::basic_string<char, std::__Cr::char_traits<char>, std::__Cr::allocator<char>> const&, content::MainFunctionParams, content::ContentMainDelegate*) + 788
+15  Blanc Prototype Framework           0x000000012e6c6114 content::ContentMainRunnerImpl::Run() + 1472
+16  Blanc Prototype Framework           0x000000012e6c3a5c content::RunContentProcess(content::ContentMainParams, content::ContentMainRunner*) + 988
+17  Blanc Prototype Framework           0x000000012e6c3c18 content::ContentMain(content::ContentMainParams) + 104
+18  Blanc Prototype Framework           0x00000001265b0e70 ChromeMain + 560
+19  Blanc Prototype Helper (Aperitif)   0x000000010299c608 main + 12
+20  dyld                                0x0000000198a74d7c start + 6652
+[end of stack trace]
+[50128:8581862:1024/145719.335513:ERROR:base/process/kill_posix.cc:33] waitpid(50135): No child processes (10)

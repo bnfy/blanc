@@ -1,0 +1,1041 @@
+{
+  "schema": 2,
+  "observed_at_utc": "2026-10-18T02:13:24.836335+00:00",
+  "upstream_commit": "41520584daa68d0040db7746ae562a0ff82187f6",
+  "git_version": "git version 2.54.0 (Apple Git-157)",
+  "diff_options": [
+    "--unified=0",
+    "--inter-hunk-context=0",
+    "--diff-algorithm=myers",
+    "--no-indent-heuristic",
+    "--no-renames",
+    "--no-ext-diff",
+    "--no-textconv",
+    "--no-color",
+    "--src-prefix=a/",
+    "--dst-prefix=b/"
+  ],
+  "upstream_files": 31,
+  "hunks": 74,
+  "files": [
+    {
+      "path": "chrome/app/app-Info.plist",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "a854057b23414bd87c5158bfa2dfca23b453bbb15ff132c0eb7f6183583b2532"
+    },
+    {
+      "path": "chrome/app/theme/chromium/BRANDING",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "3f4f115c76d6441b7eb05953e33328ae00e5d7957fe6e6d20764d0263e5c9179"
+    },
+    {
+      "path": "chrome/app/theme/chromium/mac/Assets.car",
+      "binary": true,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "5be9b33d0a814337cc87b49b7309d6dca69d9300fbc3fb7fd64f804a9c63b73a"
+    },
+    {
+      "path": "chrome/app/theme/chromium/mac/app.icns",
+      "binary": true,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "09f518a0d219b9a2a0b8ced5aca9e35f8323dbe9076f5520e2293bdca548f332"
+    },
+    {
+      "path": "chrome/browser/BUILD.gn",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "4a3b396fbf216b6ff106d1798245ac5e60aa95ceb400ed04c9db7abb744c8da1"
+    },
+    {
+      "path": "chrome/browser/app_controller_mac.mm",
+      "binary": false,
+      "attributes": {
+        "diff": "objc",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "dc0c708db63fa9c3542faa3f5f538d988fa517c875807f2c4754127efdf92d40"
+    },
+    {
+      "path": "chrome/browser/chrome_content_browser_client.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 3,
+      "patch_sha256": "905da52148c60e0818a1a5fedd147236cf44caa535d6491612505dc5c1a03407"
+    },
+    {
+      "path": "chrome/browser/chrome_content_browser_client_receiver_bindings.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "e34ab3dccb38c00974e1dfdcef89650d05f33ab206adfe8f01d4175aab71f419"
+    },
+    {
+      "path": "chrome/browser/extensions/component_extensions_allowlist/allowlist.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "8632ce3c5bce6eae97bb4f8648549c7ddc8eee1a67c2909dd26043ea84bfca24"
+    },
+    {
+      "path": "chrome/browser/extensions/component_loader.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "bd2e485430f4f1530fe0d671e0207bffa54958370e645c6e234bf43a4cc769aa"
+    },
+    {
+      "path": "chrome/browser/search/search.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "2c7fcebc263fabfb97d723aee15a19cd926bba88ed5f85ccb7e92cb8d3b00acd"
+    },
+    {
+      "path": "chrome/browser/ui/browser_command_controller.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "2220a2cee502bced881bce24ad8760ff9e9483b3fe2b5ce5257f9617378d74fe"
+    },
+    {
+      "path": "chrome/browser/ui/browser_commands.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 4,
+      "patch_sha256": "5b438c2882e24675d139beb649ec2936630f3f7e7dd763ce2174fcf0ddb42bac"
+    },
+    {
+      "path": "chrome/browser/ui/views/extensions/extensions_toolbar_button.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 7,
+      "patch_sha256": "f258ace6866a8cd9e2d20b48dab5b2bb41e694f4c9e5e379652cc5f77eb05c06"
+    },
+    {
+      "path": "chrome/browser/ui/views/extensions/extensions_toolbar_button.h",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "fa99fa45c45e86ca0e723611045d326ae189b01e689632a52f3dd7405ede873c"
+    },
+    {
+      "path": "chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 6,
+      "patch_sha256": "5e528a1b29cdacc050fdd20e45cad7916d06f4ad9bbb5cd9b493bbc5fc4f99d6"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/BUILD.gn",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 3,
+      "patch_sha256": "baa229ef2b3c1b730f5446911a502ac078757d0a09f42634546dd3c24125fa20"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/browser_frame_view_mac.mm",
+      "binary": false,
+      "attributes": {
+        "diff": "objc",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "99bf207384c72436d2fe50f8d467265bf2e144eb665f8a4bb9ea008d9f1badb7"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/browser_native_widget_mac.mm",
+      "binary": false,
+      "attributes": {
+        "diff": "objc",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "0764032bf816615504a0185901bc67357aa6ccc70a193cb5d9395fcdef70a83f"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/browser_view.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 9,
+      "patch_sha256": "a4e861c8dc632c51397bc05b2af83f48027ed65f7b7c4a4b4af5ecce303776ca"
+    },
+    {
+      "path": "chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "faddcc4a618550909a1756dbaf75076e7f01f9583c076056aa24a9dbf20d619e"
+    },
+    {
+      "path": "chrome/browser/ui/webui/chrome_web_ui_configs.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "106e6567c86fedc3b4278b9176645a4abec496494985906d150229cfa7ee78a0"
+    },
+    {
+      "path": "chrome/browser/ui/window_feature_controller/window_feature_controller.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 3,
+      "patch_sha256": "68cf5c0f47608b60c7509952d89dec2c237e668cd9fc153344bda0562eeef237"
+    },
+    {
+      "path": "chrome/renderer/BUILD.gn",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "58ec22c415bafab631fb936134921feddf95199ba08d8c694c7ba96699a3d6d1"
+    },
+    {
+      "path": "chrome/renderer/chrome_content_renderer_client.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 3,
+      "patch_sha256": "6aa43ccd8a1af8f9ef574e2ce97844fcf780881f1c430cd659e18496dacfec8a"
+    },
+    {
+      "path": "chrome/utility/BUILD.gn",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "baf3a1cff68b8c4d3f068c69887866e163059f4fc6859371393fbd83a7012f6d"
+    },
+    {
+      "path": "chrome/utility/services.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 3,
+      "patch_sha256": "27e00a0914e6f23be5efec6a3644258d1a646ea6b0627de321f2fb3915252f1b"
+    },
+    {
+      "path": "components/remote_cocoa/app_shim/browser_native_widget_window_mac.mm",
+      "binary": false,
+      "attributes": {
+        "diff": "objc",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "ee2a995e643efec0ed23c9c6cd2325cbaa1dda4643f0528ae98ddf8cf682e2e4"
+    },
+    {
+      "path": "content/browser/service_worker/service_worker_update_checker.cc",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 2,
+      "patch_sha256": "bda639a97d8f4954e731ea42921a64760e9e1a0af48f640980db4ba4a7fc0b65"
+    },
+    {
+      "path": "ui/webui/resources/tools/eslint/BUILD.gn",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "f4a089cb4cd3a827c39a89ad91c41119d114f02ece22ce64dd38620463471d7c"
+    },
+    {
+      "path": "ui/webui/resources/tools/eslint/tsconfig_base.json",
+      "binary": false,
+      "attributes": {
+        "diff": "unspecified",
+        "binary": "unspecified"
+      },
+      "hunks": 1,
+      "patch_sha256": "a3baf33b5fdd0e21b73561b3530fa0acb58af0ae67c0748ce6580bd669d8362f"
+    }
+  ],
+  "excluded_new_tracked_files": [],
+  "dependencies": {
+    "policy": "Fail closed on changed, missing or revision-drifted Git dependencies; pins from the resolved gclient sync manifest, not re-evaluated DEPS.",
+    "manifest_sha256": "e3cb0333cbbf093e61f843128fee2c2b835966d3068b4bd3bb7a5d65751b110e",
+    "clean_git_checkouts": [
+      {
+        "path": "src/agents/shared",
+        "revision": "868618a8d1327ea3f6ab037b947e51f93b889ce1"
+      },
+      {
+        "path": "src/chrome/test/data/perf/canvas_bench",
+        "revision": "a7b40ea5ae0239517d78845a5fc9b12976bfc732"
+      },
+      {
+        "path": "src/chrome/test/data/perf/frame_rate/content",
+        "revision": "c10272c88463efeef6bb19c9ec07c42bc8fe22b9"
+      },
+      {
+        "path": "src/chrome/test/data/xr/webvr_info",
+        "revision": "c58ae99b9ff9e2aa4c524633519570bf33536248"
+      },
+      {
+        "path": "src/docs/website",
+        "revision": "f1913ba8be7e2f05851aa2f3624ad055c13243cf"
+      },
+      {
+        "path": "src/media/cdm/api",
+        "revision": "d6c4e1ea4c8fc3dcd98ac3ab5a981f63067223a4"
+      },
+      {
+        "path": "src/net/third_party/quiche/src",
+        "revision": "541aa2a7889b7ea7651e41afc58211f2a256850a"
+      },
+      {
+        "path": "src/testing/libfuzzer/fuzzers/wasm_corpus",
+        "revision": "1df5e50a45db9518a56ebb42cb020a94a090258b"
+      },
+      {
+        "path": "src/third_party/angle",
+        "revision": "25078a7740fdebf86b5396ec971aaebf418ce01d"
+      },
+      {
+        "path": "src/third_party/angle/third_party/VK-GL-CTS/src",
+        "revision": "c28b3629309398dc2641c8d4d40079a952160cba"
+      },
+      {
+        "path": "src/third_party/angle/third_party/glmark2/src",
+        "revision": "6edcf02205fd1e8979dc3f3964257a81959b80c8"
+      },
+      {
+        "path": "src/third_party/angle/third_party/rapidjson/src",
+        "revision": "24b5e7a8b27f42fa16b96fc70aade9106cf7102f"
+      },
+      {
+        "path": "src/third_party/anonymous_tokens/src",
+        "revision": "1ae8df5e40bab28959cc182c2c0d88923059e278"
+      },
+      {
+        "path": "src/third_party/boringssl/src",
+        "revision": "5b83e5d1abf0ae0033ae52ab579d906b67633b2c"
+      },
+      {
+        "path": "src/third_party/breakpad/breakpad",
+        "revision": "6598c9c33fc02da7805401f3b0f1a733e6a24071"
+      },
+      {
+        "path": "src/third_party/cast_core/public/src",
+        "revision": "1629985cfc0b065310738512a000b6e68716aa03"
+      },
+      {
+        "path": "src/third_party/catapult",
+        "revision": "3d4673f57764ba5f999699abf34a52a3584e8b6c"
+      },
+      {
+        "path": "src/third_party/ced/src",
+        "revision": "d127078cedef9c6642cbe592dacdd2292b50bb19"
+      },
+      {
+        "path": "src/third_party/clang-format/script",
+        "revision": "9f796802e5d633c96dbe97e0b6683d5e62594f9f"
+      },
+      {
+        "path": "src/third_party/cld_3/src",
+        "revision": "b48dc46512566f5a2d41118c8c1116c4f96dc661"
+      },
+      {
+        "path": "src/third_party/colorama/src",
+        "revision": "3de9f013df4b470069d03d250224062e8cf15c49"
+      },
+      {
+        "path": "src/third_party/compiler-rt/src",
+        "revision": "745ff42c0ef36daa46b309fb0de9b85bea856f54"
+      },
+      {
+        "path": "src/third_party/content_analysis_sdk/src",
+        "revision": "0a0e7ea516249e786d5a8884552bbd6e163d89cb"
+      },
+      {
+        "path": "src/third_party/cpu_features/src",
+        "revision": "81d13c49649f0714dd41fb56bb246398b6584085"
+      },
+      {
+        "path": "src/third_party/cpuinfo/src",
+        "revision": "66ee79c038d70dad9f08705b2c9b3e58f6d8f512"
+      },
+      {
+        "path": "src/third_party/crabbyavif/src",
+        "revision": "70426ba092e1136198239469c9273d1597052b25"
+      },
+      {
+        "path": "src/third_party/crc32c/src",
+        "revision": "2bbb3be42e20a0e6c0f7b39dc07dc863d9ffbc07"
+      },
+      {
+        "path": "src/third_party/cros-components/src",
+        "revision": "8d175bbffcaed7d388701535cc8c95457c179cff"
+      },
+      {
+        "path": "src/third_party/crossbench",
+        "revision": "87113d767a7d9d4f1fbdaccfd877ee36d3f4b2c7"
+      },
+      {
+        "path": "src/third_party/crossbench-web-tests",
+        "revision": "ca67d07edc2937541c38bb57e680f3787c446d0d"
+      },
+      {
+        "path": "src/third_party/dav1d/libdav1d",
+        "revision": "99f3354ed0b9b4bf3c7c9347318dbcc522c94af5"
+      },
+      {
+        "path": "src/third_party/dawn",
+        "revision": "088a8d00efd1c70b58c549d355401d115904b648"
+      },
+      {
+        "path": "src/third_party/dawn/third_party/EGL-Registry/src",
+        "revision": "db3425b8246136faccb5e2782b5694960bd6edf1"
+      },
+      {
+        "path": "src/third_party/dawn/third_party/OpenGL-Registry/src",
+        "revision": "6af574a14089ccfee87efe230ebcdd8742859813"
+      },
+      {
+        "path": "src/third_party/dawn/third_party/directx-headers/src",
+        "revision": "980971e835876dc0cde415e8f9bc646e64667bf7"
+      },
+      {
+        "path": "src/third_party/dawn/third_party/directx-shader-compiler/src",
+        "revision": "9757d44faa47de7e8d1bb731c30551ec608624f9"
+      },
+      {
+        "path": "src/third_party/dawn/third_party/glfw3/src",
+        "revision": "92dcf4ce74f2e2554a98fea09be7c705c17daa5a"
+      },
+      {
+        "path": "src/third_party/dawn/third_party/webgpu-cts",
+        "revision": "cc11994e92512d0a3715e9d28876ec48accb971a"
+      },
+      {
+        "path": "src/third_party/dawn/third_party/webgpu-headers/src",
+        "revision": "a1dc77409bb2b8bd80540cbf4b8db219e123e909"
+      },
+      {
+        "path": "src/third_party/depot_tools",
+        "revision": "96b9c092c0cdaa9f1ec87b0af777ec85977dee91"
+      },
+      {
+        "path": "src/third_party/devtools-frontend/src",
+        "revision": "b0d3487640f473652bb3d4eddd68c6f5d1f1352a"
+      },
+      {
+        "path": "src/third_party/disarm/src",
+        "revision": "2d960dae4b4fb29dba05cfc48210fbed423f3d2c"
+      },
+      {
+        "path": "src/third_party/dom_distiller_js/dist",
+        "revision": "015cda307cf81e293889c0887cffff4f0aa090ce"
+      },
+      {
+        "path": "src/third_party/domato/src",
+        "revision": "fadff396cc45d521cc594d3e2396e27e887b1963"
+      },
+      {
+        "path": "src/third_party/dragonbox/src",
+        "revision": "beeeef91cf6fef89a4d4ba5e95d47ca64ccb3a44"
+      },
+      {
+        "path": "src/third_party/ds_store/src",
+        "revision": "3a85d45dbb9dc08a6d74770010e5053e0561e538"
+      },
+      {
+        "path": "src/third_party/eigen3/src",
+        "revision": "80778f586abc56b544e92e5423e71991007c197f"
+      },
+      {
+        "path": "src/third_party/emoji-segmenter/src",
+        "revision": "955936be8b391e00835257059607d7c5b72ce744"
+      },
+      {
+        "path": "src/third_party/expat/src",
+        "revision": "a851869e111c06fbcdc89edf639abf5fc2b6deba"
+      },
+      {
+        "path": "src/third_party/fadec/src",
+        "revision": "c9f78f532b9004de278489019ab2c6c28ae9746e"
+      },
+      {
+        "path": "src/third_party/farmhash/src",
+        "revision": "9d99331eb762e9ee22fd97d15a594525ad98310a"
+      },
+      {
+        "path": "src/third_party/fast_float/src",
+        "revision": "42f254836ee416ffcf2f4e6576260003ac33d48c"
+      },
+      {
+        "path": "src/third_party/federated_compute/src",
+        "revision": "a9d5262aa05a4b1ff3c23697d644023c5d913840"
+      },
+      {
+        "path": "src/third_party/ffmpeg",
+        "revision": "5c85ff666b3434d9323b83437f910ad8431ab7c9"
+      },
+      {
+        "path": "src/third_party/flac",
+        "revision": "e7108e2ed031547c3759217819a032065c820d73"
+      },
+      {
+        "path": "src/third_party/flatbuffers/src",
+        "revision": "a86afae9399bbe631d1ea0783f8816e780e236cc"
+      },
+      {
+        "path": "src/third_party/fp16/src",
+        "revision": "782eea126dc5c755827be751a099eb01826175cf"
+      },
+      {
+        "path": "src/third_party/freetype/src",
+        "revision": "37515cf56ba3349656049edbed89ffc6f6466f2d"
+      },
+      {
+        "path": "src/third_party/fuzztest/src",
+        "revision": "a8861f3aa71443dabaf42dc9cba78b3982524a51"
+      },
+      {
+        "path": "src/third_party/fxdiv/src",
+        "revision": "63058eff77e11aa15bf531df5dd34395ec3017c8"
+      },
+      {
+        "path": "src/third_party/gemmlowp/src",
+        "revision": "16e8662c34917be0065110bfcd9cc27d30f52fdf"
+      },
+      {
+        "path": "src/third_party/glslang/src",
+        "revision": "79c91f375f7e278cf99d6925c2b8d3de83ef0f53"
+      },
+      {
+        "path": "src/third_party/google_benchmark/src",
+        "revision": "8abf1e701fbd88c8170f48fe0558247e2e5f8e7d"
+      },
+      {
+        "path": "src/third_party/googletest/src",
+        "revision": "4fe3307fb2d9f86d19777c7eb0e4809e9694dde7"
+      },
+      {
+        "path": "src/third_party/harfbuzz/src",
+        "revision": "12ee77ee00514c442bcd28f9aa9d56b708c37382"
+      },
+      {
+        "path": "src/third_party/highway/src",
+        "revision": "2607d3b5b0113992fe84d3848859eae13b3b52c1"
+      },
+      {
+        "path": "src/third_party/hunspell_dictionaries",
+        "revision": "cee14e319bb7603a1157bb4d1e216be64ee82b77"
+      },
+      {
+        "path": "src/third_party/icu",
+        "revision": "19dfb44a62ae60ce6b0060de8c0cef5d5c527177"
+      },
+      {
+        "path": "src/third_party/ink/src",
+        "revision": "b6def591a73a6aa0ffce1e58dc69b39de31484ba"
+      },
+      {
+        "path": "src/third_party/jetstream/main",
+        "revision": "c603c04db8505477867974a69789309ded2cc948"
+      },
+      {
+        "path": "src/third_party/jetstream/v2.2",
+        "revision": "2145cedef4ca2777b792cb0059d3400ee2a6153c"
+      },
+      {
+        "path": "src/third_party/jetstream/v3.0",
+        "revision": "06785cf861ac44855f168cbbe829278c2802e6de"
+      },
+      {
+        "path": "src/third_party/jsoncpp/source",
+        "revision": "3347a4b86bb914cb565f0cbda19c06e109513300"
+      },
+      {
+        "path": "src/third_party/leveldatabase/src",
+        "revision": "bb74ef739973a70ca9f0d90788a1da89b788c0ad"
+      },
+      {
+        "path": "src/third_party/libFuzzer/src",
+        "revision": "c7ea90fb61105752fa78e257e77a7c5d62fff7d3"
+      },
+      {
+        "path": "src/third_party/libaddressinput/src",
+        "revision": "81eb9628382b07d371d8ea0b11badf7de3857fd5"
+      },
+      {
+        "path": "src/third_party/libaom/source/libaom",
+        "revision": "8fbd65b2f354e1d7059f8b1899f3f0373d1b3e2a"
+      },
+      {
+        "path": "src/third_party/libc++/src",
+        "revision": "97b436da4c33663581d394f4ee0a5977fc38c2f4"
+      },
+      {
+        "path": "src/third_party/libc++abi/src",
+        "revision": "0e691bb69ac90450d8d53bc8ee5968c62f9c15a7"
+      },
+      {
+        "path": "src/third_party/libgav1/src",
+        "revision": "085032331f60c10055d32ab52932bd7bd77e6f53"
+      },
+      {
+        "path": "src/third_party/libjpeg_turbo",
+        "revision": "640f254ad0fa03f6b1f29f89b7dd9366f2f6e533"
+      },
+      {
+        "path": "src/third_party/libpfm4/src",
+        "revision": "995ad37079531b7c3a98cbd164b7619f3b0adc0d"
+      },
+      {
+        "path": "src/third_party/libphonenumber/src",
+        "revision": "33be5664343676b27761213d8f5500d682568ea7"
+      },
+      {
+        "path": "src/third_party/libprotobuf-mutator/src",
+        "revision": "4373c81cd7d50a65f7fbd8dc3779c0c3b1dc9d72"
+      },
+      {
+        "path": "src/third_party/libsrtp",
+        "revision": "cd5d177bf1fde755ddb4c7f0d9ff7693f8b49e5e"
+      },
+      {
+        "path": "src/third_party/libunwind/src",
+        "revision": "9c0490ec858b3201b9aedbe219b530b95dc0be7e"
+      },
+      {
+        "path": "src/third_party/libva-fake-driver/src",
+        "revision": "04f902b9ba9f8083b19d22e7b55591bbcaae31c0"
+      },
+      {
+        "path": "src/third_party/libvpx/source/libvpx",
+        "revision": "0a6f769e44989222d99ded46daa1e9763637cc19"
+      },
+      {
+        "path": "src/third_party/libwebm/source",
+        "revision": "6184f4484a826724b5293837134ab9492261b941"
+      },
+      {
+        "path": "src/third_party/libwebp/src",
+        "revision": "68dd1c3040d500f56fe7ffb754b1813fb64b5887"
+      },
+      {
+        "path": "src/third_party/libyuv",
+        "revision": "1e2e3a35993609da1d89ac170b907719d555f4b3"
+      },
+      {
+        "path": "src/third_party/litert/src",
+        "revision": "2a91591eca78fdded805e6f2d924f484b6ac94a7"
+      },
+      {
+        "path": "src/third_party/llvm-libc/src",
+        "revision": "97e60a1e7f7180965cc84e22ddde9f1d4ffd640f"
+      },
+      {
+        "path": "src/third_party/mac_alias/src",
+        "revision": "ecc3ad82459ec92894de5994d1b5c4adacbbc7a7"
+      },
+      {
+        "path": "src/third_party/material_color_utilities/src",
+        "revision": "5b3618b16fdc3825e21d5679bafd144662088ea1"
+      },
+      {
+        "path": "src/third_party/nasm",
+        "revision": "525a09a813be0f75b646ee93fc2a31c27b87d722"
+      },
+      {
+        "path": "src/third_party/nearby/src",
+        "revision": "0bad8b0c9877f92eeeb550654f1ea51a71a085e4"
+      },
+      {
+        "path": "src/third_party/neon_2_sse/src",
+        "revision": "183fc88bcb90dbfaefba33a292eae8a5ce94bd67"
+      },
+      {
+        "path": "src/third_party/nlohmann_json/src",
+        "revision": "55f93686c01528224f448c19128836e7df245f72"
+      },
+      {
+        "path": "src/third_party/oak/src",
+        "revision": "3ec9bd888b4bcfbe5dea1def3c642911e71e1c96"
+      },
+      {
+        "path": "src/third_party/openh264/src",
+        "revision": "9547f96ea5c47f4d465d97b07264b997ecc4b4b6"
+      },
+      {
+        "path": "src/third_party/openscreen/src",
+        "revision": "8978b74badf042795c07fcf99d0a53dccbd3dcf6"
+      },
+      {
+        "path": "src/third_party/openscreen/src/buildtools",
+        "revision": "4277578aa9c45906e51ad33cac1a5a7ad5288010"
+      },
+      {
+        "path": "src/third_party/openscreen/src/third_party/simple_dns/src",
+        "revision": "5c7ec98798d7c9f7d76df7aa3bbe754913ff5159"
+      },
+      {
+        "path": "src/third_party/openscreen/src/third_party/tinycbor/src",
+        "revision": "213155c8729b07dea836c5ac6e807a089486bf7b"
+      },
+      {
+        "path": "src/third_party/ots/src",
+        "revision": "46bea9879127d0ff1c6601b078e2ce98e83fcd33"
+      },
+      {
+        "path": "src/third_party/pdfium",
+        "revision": "686814d06630e1684d302d1629580a991e28d3e5"
+      },
+      {
+        "path": "src/third_party/perfetto",
+        "revision": "b480aedf9171d15257a110f893bcaa940f94b907"
+      },
+      {
+        "path": "src/third_party/protobuf-javascript/src",
+        "revision": "e6d763860001ba1a76a63adcff5efb12b1c96024"
+      },
+      {
+        "path": "src/third_party/pthreadpool/src",
+        "revision": "15a6644ba1c45f1acc16ac1e883efc3e56c6bed2"
+      },
+      {
+        "path": "src/third_party/pywebsocket3/src",
+        "revision": "139224e0d71db84fe1922601cb92ec8c8f3885ba"
+      },
+      {
+        "path": "src/third_party/quic_trace/src",
+        "revision": "6ecf6aa8e604655f1dfa72c4a1ae733c4c7fc883"
+      },
+      {
+        "path": "src/third_party/re2/src",
+        "revision": "2da0056814cf180480a19f5cf811e7e1c054bf6d"
+      },
+      {
+        "path": "src/third_party/readability/src",
+        "revision": "d7949dc47dd9ed9ee1d3b34ffdcf3bce28cde435"
+      },
+      {
+        "path": "src/third_party/ruy/src",
+        "revision": "2264753777198e4393fb83c44c693462d57a2be1"
+      },
+      {
+        "path": "src/third_party/search_engines_data/resources",
+        "revision": "5dc9f1afd38a8ac2b26b1972eb4fc1bbd5754e8c"
+      },
+      {
+        "path": "src/third_party/securemessage/src",
+        "revision": "fa07beb12babc3b25e0c5b1f38c16aa8cb6b8f84"
+      },
+      {
+        "path": "src/third_party/sframe/src",
+        "revision": "6a37f061f4eda0c6594c91ecf99b5ff498c8c124"
+      },
+      {
+        "path": "src/third_party/skia",
+        "revision": "b94213a11b3a2edadfae89f0c57a7f4ab72772c9"
+      },
+      {
+        "path": "src/third_party/smhasher/src",
+        "revision": "07bb4de10a63e8cc2e1724865454eba635742383"
+      },
+      {
+        "path": "src/third_party/snappy/src",
+        "revision": "32ded457c0b1fe78ceb8397632c416568d6714a0"
+      },
+      {
+        "path": "src/third_party/speedometer/main",
+        "revision": "f866d2b077038bc85bea5edb7bff8e05cadef0b2"
+      },
+      {
+        "path": "src/third_party/speedometer/v2.0",
+        "revision": "732af0dfe867f8815e662ac637357e55f285dbbb"
+      },
+      {
+        "path": "src/third_party/speedometer/v2.1",
+        "revision": "8bf7946e39e47c875c00767177197aea5727e84a"
+      },
+      {
+        "path": "src/third_party/speedometer/v3.0",
+        "revision": "8d67f28d0281ac4330f283495b7f48286654ad7d"
+      },
+      {
+        "path": "src/third_party/speedometer/v3.1",
+        "revision": "1386415be8fef2f6b6bbdbe1828872471c5d802a"
+      },
+      {
+        "path": "src/third_party/spirv-cross/src",
+        "revision": "b8fcf307f1f347089e3c46eb4451d27f32ebc8d3"
+      },
+      {
+        "path": "src/third_party/spirv-headers/src",
+        "revision": "86f980c731e62ae4eaf383d320449d71687936bf"
+      },
+      {
+        "path": "src/third_party/spirv-tools/src",
+        "revision": "911d1eaf87fd7763b2365d7e339816fa31ec3f4b"
+      },
+      {
+        "path": "src/third_party/sqlite/src",
+        "revision": "ba8c54c83337618a9f15dd368a267e46b672fc84"
+      },
+      {
+        "path": "src/third_party/swiftshader",
+        "revision": "0f87bb2d3742c2992fd1a7dcb2f051eebf79299c"
+      },
+      {
+        "path": "src/third_party/text-fragments-polyfill/src",
+        "revision": "abc6ed408b3f20e91d9cbda9977748459f5e3877"
+      },
+      {
+        "path": "src/third_party/tflite/src",
+        "revision": "35746aec160345c2de2f243cc774e678028d39d3"
+      },
+      {
+        "path": "src/third_party/ukey2/src",
+        "revision": "0275885d8e6038c39b8a8ca55e75d1d4d1727f47"
+      },
+      {
+        "path": "src/third_party/vulkan-deps",
+        "revision": "da42ef74dde0a6687ad63b4c387732f3d55ea974"
+      },
+      {
+        "path": "src/third_party/vulkan-headers/src",
+        "revision": "c46850864f4661461b0f6cb9922c058ffea4915e"
+      },
+      {
+        "path": "src/third_party/vulkan-loader/src",
+        "revision": "6b45d76280a9525740c38c1796060eadb9267488"
+      },
+      {
+        "path": "src/third_party/vulkan-tools/src",
+        "revision": "a967170a2b8a1ded4dbdf82d533caaec89184efe"
+      },
+      {
+        "path": "src/third_party/vulkan-utility-libraries/src",
+        "revision": "90738f6edfa19561a978fc5f97543ba37075ba9d"
+      },
+      {
+        "path": "src/third_party/vulkan-validation-layers/src",
+        "revision": "5b41089a2b3f2ccf5112279034154c3a4e89bf4c"
+      },
+      {
+        "path": "src/third_party/vulkan_memory_allocator",
+        "revision": "82a9d47e4f9d91f0e32d2b6acd9714fcee1933a0"
+      },
+      {
+        "path": "src/third_party/webdriver/pylib",
+        "revision": "6845a0329408f149fafdbe901f480e2bd47be3fb"
+      },
+      {
+        "path": "src/third_party/webgl/src",
+        "revision": "714857a28445e8f5d8d6ae1c78498578009534d8"
+      },
+      {
+        "path": "src/third_party/webgpu-cts/src",
+        "revision": "cc11994e92512d0a3715e9d28876ec48accb971a"
+      },
+      {
+        "path": "src/third_party/webpagereplay",
+        "revision": "6a31bb0937dccd01bedae8bd6cdeb8c113937cfb"
+      },
+      {
+        "path": "src/third_party/webpagereplay/third_party/clang-format/script",
+        "revision": "9f796802e5d633c96dbe97e0b6683d5e62594f9f"
+      },
+      {
+        "path": "src/third_party/webrtc",
+        "revision": "b321f634929af0af61a8964487fbd7894a008f12"
+      },
+      {
+        "path": "src/third_party/wuffs/src",
+        "revision": "7411f488fe2e2c205c3d3b3d28638b7356522930"
+      },
+      {
+        "path": "src/third_party/xnnpack/src",
+        "revision": "5d067b8f52342ba192ad9f67ebab9e77c1d046bc"
+      },
+      {
+        "path": "src/third_party/zstd/src",
+        "revision": "10da6ba6de05e29169261fa4b68eb99239f770dd"
+      },
+      {
+        "path": "src/v8",
+        "revision": "d2463ed6f2dfd0bdbb642624bd3d0e7d3e792555"
+      }
+    ],
+    "non_git_entries_excluded": [
+      "src/base/tracing/test/data:test_data/chrome_5672_histograms.pftrace.gz-a09bd44078ac71bcfbc901b0544750e8344d0d0f6f96e220f700a5a53fa932ee",
+      "src/base/tracing/test/data:test_data/chrome_custom_navigation_trace.gz-ff68279e3cec94076b69259d756eed181a63eaf834d8b956a7f4ba665fabf939",
+      "src/base/tracing/test/data:test_data/chrome_fcp_lcp_navigations.pftrace-ae01d849fbd75a98be1b7ddd5a8873217c377b393a1d5bbd788ed3364f7fefc3",
+      "src/base/tracing/test/data:test_data/chrome_input_with_frame_view.pftrace-a93548822e481508c728ccc5da3ad34afcd0aec02ca7a7a4dad84ff340ee5975",
+      "src/base/tracing/test/data:test_data/chrome_input_with_frame_view_new.pftrace-e901ad9577088e62c921dd8bfcb43d652ecf49fa69b5b57f81bb3d27dbe94e12",
+      "src/base/tracing/test/data:test_data/chrome_page_load_all_categories_not_extended.pftrace.gz-6586e9e2bbc0c996caddb321a0374328654983733e6ffd7f4635ac07db32a493",
+      "src/base/tracing/test/data:test_data/cpu_powerups_1.pb-70f5511ba0cd6ce1359e3cadb4d1d9301fb6e26be85158e3384b06f41418d386",
+      "src/base/tracing/test/data:test_data/jetstream_3.pftrace.gz-8b5915cdf7f4182a74345cc080c34ce190835e5b46c30e921ce81433119acfda",
+      "src/base/tracing/test/data:test_data/loadline2_phone_perfetto_trace.pb.gz-446e12518282e078360cb1ab55ebb3e3788c3863b269601d2392c9e5d058a92c",
+      "src/base/tracing/test/data:test_data/scroll_jank_with_pinch.pftrace-8587d2016fdb5d39b5f852704b6e3925e9e6527af01696396be767bed04d4a45",
+      "src/base/tracing/test/data:test_data/scroll_m131.pftrace-14171c9e502a65a454f39fe14fce8b313c7012a2c14394bed496fc93b1644b0d",
+      "src/base/tracing/test/data:test_data/scroll_m132.pftrace-779e1fa6cab1abc0ab2dcafa4bbbf826ea8fc052878886ab168c783ca32f3bbe",
+      "src/base/tracing/test/data:test_data/scroll_m132_with_atrace.pftrace-b1fe189738a4a714cef7dd13b12318c89d6c4345fbe65096b4680ffa79f2872a",
+      "src/base/tracing/test/data:test_data/scroll_m133beta.pftrace-2acc70545be1caeb3fb43218ab52872c2c749b49577b973cb8400057c680fc19",
+      "src/base/tracing/test/data:test_data/scroll_m144.pftrace-6a3426ee6a441cf71ec8b634b662fe800700b8c3d2d1e9f247feaba890315843",
+      "src/base/tracing/test/data:test_data/scroll_offsets.pftrace-62101edb5204fec8bea30124f65d4e49bda0808d7b036e95f89445aaad6d8d98",
+      "src/base/tracing/test/data:test_data/scroll_offsets_trace_2.pftrace-2ddd9f78d91d51e39c72c520bb54fdc9dbf1333ae722e87633fc345159296289",
+      "src/base/tracing/test/data:test_data/scroll_with_input_not_forwarded_to_renderer.pftrace-ceb2ff3cb64c99ddb28a29867bc82f1491c4b413bfacd8638551b80936240faf",
+      "src/base/tracing/test/data:test_data/speedometer_21.perfetto_trace.gz-8a159b354d74a3ca0d38ce9cd071ef47de322db4261ee266bfafe04d70310529",
+      "src/base/tracing/test/data:test_data/speedometer_3.perfetto_trace.gz-b2c77fbe2c17363432a1ad0c05c1c1c20d3ebc62bda92c041d39918011af6f02",
+      "src/base/tracing/test/data:test_data/top_level_java_choreographer_slices-8001e73b2458e94f65a606bb558a645ba5bca553b57fe416001f6c2175675a8a",
+      "src/buildtools/mac:gn/gn/mac-${arch}",
+      "src/buildtools/mac_arm64-format:945e45cbcb5443c3e569d5e0783fd012154fc4a7",
+      "src/chrome/test/data/safe_browsing/dmg:chromium/chrome/test/data/safe_browsing/dmg",
+      "src/components/variations/test_data/cipd:chromium/chrome/test/data/variations/cipd",
+      "src/content/test/data/gpu/meet_effects:meet-gpu-tests/994813040.tar.gz",
+      "src/content/test/data/gpu/meet_effects_videos:chromium/testing/meet-effects-videos",
+      "src/third_party/apache-mac-arm64:infra/3pp/tools/httpd-php/mac-arm64",
+      "src/third_party/apache-mac:infra/3pp/tools/httpd-php/mac-amd64",
+      "src/third_party/blink/renderer/core/css/perftest_data:031d5599c8a21118754e30dbea141be66104f556",
+      "src/third_party/blink/renderer/core/css/perftest_data:314e4e0d5e89ea9e9e9a234c617b4413adf48aa9",
+      "src/third_party/blink/renderer/core/css/perftest_data:3a19b42a7c46257b716d55d6733f070c87180b1e",
+      "src/third_party/blink/renderer/core/css/perftest_data:756068da5e551516b23b0ba133e55c144f623d38",
+      "src/third_party/blink/renderer/core/css/perftest_data:7fc9338af75b7d9d185c91ddf262a356def5623d",
+      "src/third_party/blink/renderer/core/css/perftest_data:8aac3db2a8c9e44babec81e539a3d60aeab4985c",
+      "src/third_party/blink/renderer/core/css/perftest_data:c2d7e9ce67522dad138c7feb0a6911b828bfb130",
+      "src/third_party/blink/renderer/core/css/perftest_data:e9ce994346c62f8c9fd6d0cecb2b2b0b93b4c2d8",
+      "src/third_party/blink/renderer/core/css/perftest_data:fdc43ee18cbd65487249441849f58aa13484aaef",
+      "src/third_party/chromium-bidi/node_modules:chromium-bidi/7da310bf46956828c164237a912a201d21f51220dfbe60df454188dbad75889c",
+      "src/third_party/cpython3/host:infra/3pp/tools/cpython3/${platform}",
+      "src/third_party/cpython3/linux-amd64:infra/3pp/tools/cpython3/linux-amd64",
+      "src/third_party/dawn/third_party/ninja:infra/3pp/tools/ninja/${platform}",
+      "src/third_party/dawn/tools/golang/mac-amd64:infra/3pp/tools/go/mac-amd64",
+      "src/third_party/dawn/tools/golang/mac-arm64:infra/3pp/tools/go/mac-arm64",
+      "src/third_party/devtools-frontend/src/third_party/esbuild:infra/3pp/tools/esbuild/${platform}",
+      "src/third_party/enterprise_companion/chromium_mac_amd64/cipd:chromium/third_party/enterprise_companion/chromium_mac_amd64",
+      "src/third_party/enterprise_companion/chromium_mac_arm64/cipd:chromium/third_party/enterprise_companion/chromium_mac_arm64",
+      "src/third_party/js_code_coverage/node_modules:js_code_coverage/e932c86d2d4f250416970dc270002a9cb6acecbec034998cdadf9a394d0f1abc",
+      "src/third_party/llvm-build/Release+Asserts:Mac_arm64/clang-llvmorg-24-init-7747-g62397f8b-67.tar.xz",
+      "src/third_party/llvm-build/Release+Asserts:Mac_arm64/llvmobjdump-llvmorg-24-init-7747-g62397f8b-67.tar.xz",
+      "src/third_party/llvm-libclang:Mac_arm64/rust-libclang-1edd55dcfcd573872c727fa3e086369a71661ee0-1125-llvmorg-24-init-7747-g62397f8b.tar.xz",
+      "src/third_party/ninja:infra/3pp/tools/ninja/${platform}",
+      "src/third_party/node/linux:744e6926ffdd4a4fb2080ae2b9ce4575490261e7",
+      "src/third_party/node/mac:9202c05a8e7c67cb2bb2fec1e50fb6188d26f281",
+      "src/third_party/node/mac_arm64:6661e9b9bd7df6b45daf506c82d06d303597cb27",
+      "src/third_party/node/node_modules:605b17899d6503df7f2ce96d5458976b36c5e456",
+      "src/third_party/openscreen/src/buildtools/mac_arm64-format:945e45cbcb5443c3e569d5e0783fd012154fc4a7",
+      "src/third_party/openscreen/src/third_party/llvm-build/Release+Asserts:Mac_arm64/clang-llvmorg-24-init-7747-g62397f8b-27.tar.xz",
+      "src/third_party/openscreen/src/third_party/llvm-build/Release+Asserts:Mac_arm64/llvmobjdump-llvmorg-24-init-7747-g62397f8b-27.tar.xz",
+      "src/third_party/opus/tests/resources:009a3ee778767c2402b1d2c920bc2449265f5a2c",
+      "src/third_party/rust-toolchain:Mac_arm64/rust-toolchain-1edd55dcfcd573872c727fa3e086369a71661ee0-1125-llvmorg-24-init-7747-g62397f8b.tar.xz",
+      "src/third_party/screen-ai/macos_amd64:chromium/third_party/screen-ai/mac-amd64",
+      "src/third_party/screen-ai/macos_arm64:chromium/third_party/screen-ai/mac-arm64",
+      "src/third_party/siso/cipd:build/siso/${platform}",
+      "src/third_party/subresource-filter-ruleset/data:22a0a5fc9e38d0de4e68eaf7e961dbbd2bebf234bebffbcd21bd496c0813fcde",
+      "src/third_party/swift-format:infra/3pp/tools/swift-format/mac-${arch}",
+      "src/third_party/swift-toolchain:chromium/tools/swift-toolchain/mac-amd64",
+      "src/third_party/test_fonts/test_fonts:9c07d19d9c5ee1ff94f717e6fb17e0c8c354e6f9",
+      "src/third_party/typescript/linux-amd64/src:chromium/third_party/typescript/linux-amd64",
+      "src/third_party/typescript/mac-arm64/src:chromium/third_party/typescript/mac-arm64",
+      "src/third_party/updater/chrome_mac_universal/cipd:chromium/third_party/updater/chrome_mac_universal",
+      "src/third_party/updater/chrome_mac_universal_prod/cipd:chromium/third_party/updater/chrome_mac_universal_prod",
+      "src/third_party/updater/chrome_mac_universal_prod_sans_iid/cipd:chromium/third_party/updater/chrome_mac_universal_prod",
+      "src/third_party/updater/chrome_mac_universal_sans_iid/cipd:chromium/third_party/updater/chrome_mac_universal",
+      "src/third_party/updater/chromium_mac_amd64/cipd:chromium/third_party/updater/chromium_mac_amd64",
+      "src/third_party/updater/chromium_mac_amd64_sans_iid/cipd:chromium/third_party/updater/chromium_mac_amd64",
+      "src/third_party/updater/chromium_mac_arm64/cipd:chromium/third_party/updater/chromium_mac_arm64",
+      "src/third_party/updater/chromium_mac_arm64_sans_iid/cipd:chromium/third_party/updater/chromium_mac_arm64",
+      "src/third_party/webpagereplay/buildtools/mac_arm64-format:8503422f469ae56cc74f0ea2c03f2d872f4a2303",
+      "src/third_party/webpagereplay/third_party/golang/mac/arm64:infra/3pp/tools/go/mac-arm64",
+      "src/third_party/webpagereplay/third_party/golang/mac/x64:infra/3pp/tools/go/mac-amd64",
+      "src/tools/luci-go:infra/tools/luci/cas/${platform}",
+      "src/tools/luci-go:infra/tools/luci/isolate/${platform}",
+      "src/tools/luci-go:infra/tools/luci/swarming/${platform}",
+      "src/tools/perf/page_sets/maps_perf_test/dataset:e6bf26977c2fd80c18789d1f279d474096a7b0d1",
+      "src/tools/resultdb:infra/tools/result_adapter/${platform}",
+      "src/tools/skia_goldctl/mac_amd64:skia/tools/goldctl/mac-amd64",
+      "src/tools/skia_goldctl/mac_arm64:skia/tools/goldctl/mac-arm64",
+      "src/ui/gl/resources/angle-metal:chromium/gpu/angle-metal-shader-libraries"
+    ]
+  },
+  "binary_detection": "NUL in the first 8000 bytes of either upstream or working-tree content; --text for text diffs",
+  "policy": "Existing upstream paths only; untracked/new Blanc files excluded; binary change = one hunk; mode-only = zero hunks; renames disabled.",
+  "budget": {
+    "upstream_files": 40,
+    "hunks": 120
+  },
+  "within_budget": true
+}

@@ -1,0 +1,10 @@
+{
+  "metadata_save_acknowledgement": {
+    "status": "gap reproduced",
+    "switch_accepted_before_first_session_write": true,
+    "held_file_bytes": 0
+  },
+  "delayed_restore_with_new_window": {
+    "status": "bounded pass"
+  }
+}

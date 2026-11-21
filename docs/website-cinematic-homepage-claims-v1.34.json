@@ -799,16 +799,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "cinema-data-22",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Desktop only",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "platforms"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "cinema-data-23",
       "source": "site/src/pages/index.astro",
       "exactWording": "1Password fill",

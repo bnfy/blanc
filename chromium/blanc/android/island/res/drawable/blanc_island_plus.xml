@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Lucide "plus" (ISC license; see THIRD_PARTY_NOTICES). Tinted by IslandView. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="20dp"
+    android:height="20dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path android:strokeColor="#FF000000" android:strokeWidth="2.25" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M5 12h14" />
+    <path android:strokeColor="#FF000000" android:strokeWidth="2.25" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M12 5v14" />
+</vector>

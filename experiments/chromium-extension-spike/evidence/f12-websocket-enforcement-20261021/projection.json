@@ -1,0 +1,27 @@
+{
+  "applied": false,
+  "baseline_files": 55,
+  "baseline_hunks": 129,
+  "new_files": 3,
+  "added_hunks": 4,
+  "projected_files": 58,
+  "projected_hunks": 133,
+  "changes": [
+    {
+      "path": "content/public/browser/content_browser_client.h",
+      "added_hunks": 1
+    },
+    {
+      "path": "content/browser/websockets/websocket_connector_impl.cc",
+      "added_hunks": 1
+    },
+    {
+      "path": "chrome/browser/chrome_content_browser_client.h",
+      "added_hunks": 1
+    },
+    {
+      "path": "chrome/browser/chrome_content_browser_client.cc",
+      "added_hunks": 1
+    }
+  ]
+}

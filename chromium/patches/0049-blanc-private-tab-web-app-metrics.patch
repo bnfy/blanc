@@ -1,0 +1,14 @@
+--- a/chrome/browser/web_applications/sampling_metrics_provider.cc
++++ b/chrome/browser/web_applications/sampling_metrics_provider.cc
+@@ -238,6 +238,11 @@
+       for (tabs::TabInterface* tab : browser->GetAllTabInterfaces()) {
+         auto* web_app_helper =
+             web_app::WebAppTabHelper::FromWebContents(tab->GetContents());
++        // Blanc can host a private WebContents in a regular window. Such a
++        // tab has no web-app helper and must not enter regular-profile metrics.
++        if (!web_app_helper) {
++          continue;
++        }
+         std::optional<webapps::AppId> app_id = web_app_helper->app_id();
+         if (app_id) {
+           ++tabbed_pwas_count;

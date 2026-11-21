@@ -415,7 +415,7 @@ test('the stage list keeps the old press-gate chain, acceptance through the reru
   const { STAGES } = await gate();
   assert.deepEqual(STAGES.map((s) => s.script), [
     'substrate:check', 'icons:windows:check', 'test:unit', 'test:acceptance:dry', 'test:acceptance:gate',
-    'test:favorites-picker:desktop', 'test:wallpaper:desktop', 'test:cold-launch', 'test:browser-shortcuts:desktop',
+    'test:favorites-manager:desktop', 'test:wallpaper:desktop', 'test:cold-launch', 'test:browser-shortcuts:desktop',
     'test:reader:desktop', 'test:web-store', 'test:oauth:desktop', 'test:modified-links:desktop', 'test:dns-smoke',
     'release:security', 'site:build',
   ]);

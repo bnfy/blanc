@@ -1,0 +1,60 @@
+TAP version 13
+# Subtest: cold plans larger than the former capture limit retain their final count
+ok 1 - cold plans larger than the former capture limit retain their final count
+  ---
+  duration_ms: 89.978875
+  ...
+# Subtest: streamed plans preserve safety markers crossing chunk boundaries
+ok 2 - streamed plans preserve safety markers crossing chunk boundaries
+  ---
+  duration_ms: 1.040417
+  ...
+# Subtest: recognizes real Siso dry-run summary without a progress denominator
+ok 3 - recognizes real Siso dry-run summary without a progress denominator
+  ---
+  duration_ms: 0.044958
+  ...
+# Subtest: large and shrinking plans retain the conservative maximum
+ok 4 - large and shrinking plans retain the conservative maximum
+  ---
+  duration_ms: 0.039667
+  ...
+# Subtest: no-work plans return zero; missing or changed formats fail closed
+ok 5 - no-work plans return zero; missing or changed formats fail closed
+  ---
+  duration_ms: 0.053584
+  ...
+# Subtest: detects same-path Xcode replacement and changed build arguments
+ok 6 - detects same-path Xcode replacement and changed build arguments
+  ---
+  duration_ms: 0.260125
+  ...
+# Subtest: added and missing environment inputs require review
+ok 7 - added and missing environment inputs require review
+  ---
+  duration_ms: 0.037042
+  ...
+# Subtest: large builds require an explicit override, small builds proceed
+ok 8 - large builds require an explicit override, small builds proceed
+  ---
+  duration_ms: 0.043041
+  ...
+# Subtest: pending manifest regeneration cannot sneak past the size check
+ok 9 - pending manifest regeneration cannot sneak past the size check
+  ---
+  duration_ms: 0.203916
+  ...
+# Subtest: small plans with generated buildflags cannot conceal dependent compilation
+ok 10 - small plans with generated buildflags cannot conceal dependent compilation
+  ---
+  duration_ms: 0.253
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 127.797541

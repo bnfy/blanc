@@ -1,0 +1,30 @@
+diff --git a/components/content_settings/core/browser/website_settings_registry.cc b/components/content_settings/core/browser/website_settings_registry.cc
+index 8abc6e3..6b3c5f2 100644
+--- a/components/content_settings/core/browser/website_settings_registry.cc
++++ b/components/content_settings/core/browser/website_settings_registry.cc
+@@ -10,6 +10,7 @@
+ #include "base/memory/ptr_util.h"
+ #include "build/blink_buildflags.h"
+ #include "build/build_config.h"
++#include "blanc/common/island_mode.h"
+ #include "components/content_settings/core/common/content_settings.h"
+ 
+ namespace {
+@@ -125,12 +126,16 @@ void WebsiteSettingsRegistry::Init() {
+            WebsiteSettingsInfo::UNSYNCABLE, WebsiteSettingsInfo::NOT_LOSSY,
+            WebsiteSettingsInfo::GENERIC_SINGLE_ORIGIN_SCOPE, ALL_PLATFORMS,
+            WebsiteSettingsInfo::INHERIT_IN_INCOGNITO);
++  // Blanc (owner, 2026-11-03): a private tab never reuses a certificate
++  // warning continued past in a regular tab, as shipping's private tabs keep
++  // their own choices.
+   Register(ContentSettingsType::SSL_CERT_DECISIONS, "ssl-cert-decisions",
+            base::Value(), WebsiteSettingsInfo::UNSYNCABLE,
+            WebsiteSettingsInfo::NOT_LOSSY,
+            WebsiteSettingsInfo::GENERIC_SINGLE_ORIGIN_SCOPE,
+            DESKTOP | PLATFORM_ANDROID,
+-           WebsiteSettingsInfo::INHERIT_IN_INCOGNITO);
++           blanc::IslandMode() ? WebsiteSettingsInfo::DONT_INHERIT_IN_INCOGNITO
++                               : WebsiteSettingsInfo::INHERIT_IN_INCOGNITO);
+   Register(ContentSettingsType::APP_BANNER, "app-banner", base::Value(),
+            WebsiteSettingsInfo::UNSYNCABLE, WebsiteSettingsInfo::LOSSY,
+            WebsiteSettingsInfo::GENERIC_SINGLE_ORIGIN_SCOPE,

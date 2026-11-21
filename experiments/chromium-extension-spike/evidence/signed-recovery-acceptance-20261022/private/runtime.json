@@ -1,0 +1,1279 @@
+{
+  "checks": [
+    {
+      "name": "two inactive private splits retain independent focus",
+      "value": {
+        "activeTabId": "2098450229",
+        "adblockEnabled": false,
+        "closed": [],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "2098450229",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": false,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "",
+        "spaceWindowIdentity": "",
+        "splitGeometry": {},
+        "splits": [
+          {
+            "focusedIndex": 1,
+            "focusedTabId": "2098450226",
+            "id": "split-0",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.5,
+                0.5
+              ]
+            },
+            "tabIds": [
+              "2098450225",
+              "2098450226"
+            ]
+          },
+          {
+            "focusedIndex": 0,
+            "focusedTabId": "2098450227",
+            "id": "split-1",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.5,
+                0.5
+              ]
+            },
+            "tabIds": [
+              "2098450227",
+              "2098450228"
+            ]
+          }
+        ],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450225",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-a"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450226",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-b"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450227",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-c"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450228",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-d"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450229",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-loose"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 5
+      }
+    },
+    {
+      "name": "focus changes only selected private split",
+      "value": {
+        "activeTabId": "2098450228",
+        "adblockEnabled": false,
+        "closed": [],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "2098450228",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": false,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "",
+        "spaceWindowIdentity": "",
+        "splitGeometry": {
+          "divider": {
+            "height": 928,
+            "width": 12,
+            "x": 594,
+            "y": 68
+          },
+          "headers": [
+            {
+              "height": 30,
+              "width": 594,
+              "x": 0,
+              "y": 68
+            },
+            {
+              "height": 30,
+              "width": 594,
+              "x": 606,
+              "y": 68
+            }
+          ],
+          "mode": "columns",
+          "originX": 0,
+          "usableWidth": 1188
+        },
+        "splits": [
+          {
+            "focusedIndex": 1,
+            "focusedTabId": "2098450226",
+            "id": "split-0",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.5,
+                0.5
+              ]
+            },
+            "tabIds": [
+              "2098450225",
+              "2098450226"
+            ]
+          },
+          {
+            "focusedIndex": 1,
+            "focusedTabId": "2098450228",
+            "id": "split-1",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.5,
+                0.5
+              ]
+            },
+            "tabIds": [
+              "2098450227",
+              "2098450228"
+            ]
+          }
+        ],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450225",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-a"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450226",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-b"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450227",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-c"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450228",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-d"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450229",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-loose"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 5
+      }
+    },
+    {
+      "name": "group both members preserves split",
+      "value": {
+        "activeTabId": "2098450228",
+        "adblockEnabled": false,
+        "closed": [],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "2098450228",
+        "glanceTabId": null,
+        "groups": [
+          {
+            "collapsed": false,
+            "color": "",
+            "id": "F7CE79AF04FACA91EAB1F72F6C5CDF29",
+            "name": "Private group"
+          }
+        ],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": false,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "",
+        "spaceWindowIdentity": "",
+        "splitGeometry": {
+          "divider": {
+            "height": 928,
+            "width": 12,
+            "x": 594,
+            "y": 68
+          },
+          "headers": [
+            {
+              "height": 30,
+              "width": 594,
+              "x": 0,
+              "y": 68
+            },
+            {
+              "height": 30,
+              "width": 594,
+              "x": 606,
+              "y": 68
+            }
+          ],
+          "mode": "columns",
+          "originX": 0,
+          "usableWidth": 1188
+        },
+        "splits": [
+          {
+            "focusedIndex": 1,
+            "focusedTabId": "2098450226",
+            "id": "split-0",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.5,
+                0.5
+              ]
+            },
+            "tabIds": [
+              "2098450225",
+              "2098450226"
+            ]
+          },
+          {
+            "focusedIndex": 1,
+            "focusedTabId": "2098450228",
+            "id": "split-1",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.5,
+                0.5
+              ]
+            },
+            "tabIds": [
+              "2098450227",
+              "2098450228"
+            ]
+          }
+        ],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": "F7CE79AF04FACA91EAB1F72F6C5CDF29",
+            "id": "2098450225",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-a"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": "F7CE79AF04FACA91EAB1F72F6C5CDF29",
+            "id": "2098450226",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-b"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450227",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-c"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450228",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-d"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450229",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-loose"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 4
+      }
+    },
+    {
+      "name": "ungroup both members preserves split",
+      "value": {
+        "activeTabId": "2098450228",
+        "adblockEnabled": false,
+        "closed": [],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "2098450228",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": false,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "",
+        "spaceWindowIdentity": "",
+        "splitGeometry": {
+          "divider": {
+            "height": 928,
+            "width": 12,
+            "x": 594,
+            "y": 68
+          },
+          "headers": [
+            {
+              "height": 30,
+              "width": 594,
+              "x": 0,
+              "y": 68
+            },
+            {
+              "height": 30,
+              "width": 594,
+              "x": 606,
+              "y": 68
+            }
+          ],
+          "mode": "columns",
+          "originX": 0,
+          "usableWidth": 1188
+        },
+        "splits": [
+          {
+            "focusedIndex": 1,
+            "focusedTabId": "2098450226",
+            "id": "split-0",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.5,
+                0.5
+              ]
+            },
+            "tabIds": [
+              "2098450225",
+              "2098450226"
+            ]
+          },
+          {
+            "focusedIndex": 1,
+            "focusedTabId": "2098450228",
+            "id": "split-1",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.5,
+                0.5
+              ]
+            },
+            "tabIds": [
+              "2098450227",
+              "2098450228"
+            ]
+          }
+        ],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450225",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-a"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450226",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-b"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450227",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-c"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450228",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-d"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450229",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-loose"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 5
+      }
+    },
+    {
+      "name": "move complete split into existing group",
+      "value": {
+        "activeTabId": "2098450228",
+        "adblockEnabled": false,
+        "closed": [],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "2098450228",
+        "glanceTabId": null,
+        "groups": [
+          {
+            "collapsed": false,
+            "color": "",
+            "id": "C047EC2DA542DFF462AFDFAE3502D389",
+            "name": "Destination"
+          }
+        ],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": false,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "",
+        "spaceWindowIdentity": "",
+        "splitGeometry": {
+          "divider": {
+            "height": 928,
+            "width": 12,
+            "x": 594,
+            "y": 68
+          },
+          "headers": [
+            {
+              "height": 30,
+              "width": 594,
+              "x": 0,
+              "y": 68
+            },
+            {
+              "height": 30,
+              "width": 594,
+              "x": 606,
+              "y": 68
+            }
+          ],
+          "mode": "columns",
+          "originX": 0,
+          "usableWidth": 1188
+        },
+        "splits": [
+          {
+            "focusedIndex": 1,
+            "focusedTabId": "2098450228",
+            "id": "split-0",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.5,
+                0.5
+              ]
+            },
+            "tabIds": [
+              "2098450227",
+              "2098450228"
+            ]
+          },
+          {
+            "focusedIndex": 1,
+            "focusedTabId": "2098450226",
+            "id": "split-1",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.5,
+                0.5
+              ]
+            },
+            "tabIds": [
+              "2098450225",
+              "2098450226"
+            ]
+          }
+        ],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450227",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-c"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450228",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-d"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": "C047EC2DA542DFF462AFDFAE3502D389",
+            "id": "2098450225",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-a"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": "C047EC2DA542DFF462AFDFAE3502D389",
+            "id": "2098450226",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-b"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": "C047EC2DA542DFF462AFDFAE3502D389",
+            "id": "2098450229",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-loose"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 3
+      }
+    },
+    {
+      "name": "pin dissolves only affected split",
+      "value": {
+        "activeTabId": "2098450228",
+        "adblockEnabled": false,
+        "closed": [],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "2098450228",
+        "glanceTabId": null,
+        "groups": [
+          {
+            "collapsed": false,
+            "color": "",
+            "id": "C047EC2DA542DFF462AFDFAE3502D389",
+            "name": "Destination"
+          }
+        ],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": false,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "",
+        "spaceWindowIdentity": "",
+        "splitGeometry": {},
+        "splits": [
+          {
+            "focusedIndex": 1,
+            "focusedTabId": "2098450226",
+            "id": "split-0",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.5,
+                0.5
+              ]
+            },
+            "tabIds": [
+              "2098450225",
+              "2098450226"
+            ]
+          }
+        ],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450227",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": true,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-c"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450228",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-d"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450225",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-a"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450226",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-b"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": "C047EC2DA542DFF462AFDFAE3502D389",
+            "id": "2098450229",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-loose"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 4
+      }
+    },
+    {
+      "name": "unpin appends ordinary tab",
+      "value": {
+        "activeTabId": "2098450228",
+        "adblockEnabled": false,
+        "closed": [],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "2098450228",
+        "glanceTabId": null,
+        "groups": [
+          {
+            "collapsed": false,
+            "color": "",
+            "id": "C047EC2DA542DFF462AFDFAE3502D389",
+            "name": "Destination"
+          }
+        ],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": false,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "",
+        "spaceWindowIdentity": "",
+        "splitGeometry": {},
+        "splits": [
+          {
+            "focusedIndex": 1,
+            "focusedTabId": "2098450226",
+            "id": "split-0",
+            "layout": {
+              "kind": "columns",
+              "widths": [
+                0.5,
+                0.5
+              ]
+            },
+            "tabIds": [
+              "2098450225",
+              "2098450226"
+            ]
+          }
+        ],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450228",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-d"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450225",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-a"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450226",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-b"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": "C047EC2DA542DFF462AFDFAE3502D389",
+            "id": "2098450229",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-loose"
+          },
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": null,
+            "groupId": null,
+            "id": "2098450227",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "",
+            "pinned": false,
+            "private": true,
+            "siteMuted": false,
+            "title": "Split fixture",
+            "url": "http://127.0.0.1:9890/private-c"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 5
+      }
+    },
+    {
+      "name": "mutated private state never enters Spaces store",
+      "value": true
+    },
+    {
+      "name": "private context disposal leaves regular window",
+      "value": {
+        "activeTabId": "2098450223",
+        "adblockEnabled": false,
+        "closed": [],
+        "displayShares": [],
+        "extensionsWidth": 26,
+        "focusedTabId": "2098450223",
+        "glanceTabId": null,
+        "groups": [],
+        "initialWindowSaveFailed": false,
+        "initialWindowSaved": true,
+        "installedTheme": {},
+        "spaceAutosaveError": "",
+        "spaceBusy": false,
+        "spaceName": "Regular",
+        "spaceWindowIdentity": "cf294d42-5736-47bd-ab70-04daae7a4d88",
+        "splitGeometry": {},
+        "splits": [],
+        "tabLayout": "island",
+        "tabs": [
+          {
+            "audible": false,
+            "blockedCount": 0,
+            "bookmarked": false,
+            "canGoBack": false,
+            "canGoForward": false,
+            "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACp0lEQVR4nKRTS2sTURQ+59w7SRr7oGkb22JbhEhp8VG0IBahK5HUjXbhqhv9B4KIG/+Ca0F8LFyriFYFMXRTEFO6qC19txZjMA152UwmmZl7vDNJIG71wgz3zj3fd7/z3W8I/nPI1oVtW1eJ7VEApVylUDS2XXBAEDEAkUJjwzBCH5sYwcyoB316/+axDIQeogjG9TMjZCiO0tBPIC5km/8NRSBORHMP7t8dIiP4NpFIAHos5VxmJtzd+05ZeQcYGUgzkuRcel0vEHoGRlkpB0GxXjJSqFua+ey1Y5HoPPkS2RoDYKUlqlrNlEf5FAEKQ7mO0EDhzcuFFNm2KbVg5dXWMRrhEyh2dd9YrZYpGO7kXGoVKkdZXac3FUPldxayP1YhEOpiu2aSV1vHNExUdk23IrCU2eaiYuwZmoDCrx0OtEdRdwPFzBb3Dp/HzP5X0Go41DWIdUyTQDsOXIHI4FnMfE+CVc5DLr2D5YPnULGqEDl1RfsXZsd2oO/khF/rY5otkCdWn5T7uQId3f2QT29D4sk9KO4lIb26CB8e3YHS4QF0RAagkPoGXi3VG2woqPcBhUKRC4UcrC8vQIXDfFhtR5OC4JDD60ufoaYEkDQ4qmtVa5Bc2/aMZX3XuLmyyKUqwfDUTdIauVO/22MKTRRqf3cTYmOT6Dlre5gmgRckUC6MxE6r6PETYndjGfa2lrlqmd4eSMPgS9Oz2NM/UhfsukJ4mCaBZVubmgCtcgl1+pzRc5dxJHaGvyy88lIKF6dvsAiEsGaZfpDawkH0Md7hXrYmJy/I+ZfPnvZG++b0BYPvqREEcGqNRg09t33XmAiymcMXM7O3bieTSw62/kzba4vX7aozrhPIjuuglAHfYZ1GIEFMQmpeuRYbn3rdxPxF8C/jDwAAAP//GDOC0AAAAAZJREFUAwDhL08TGO9e+gAAAABJRU5ErkJggg==",
+            "groupId": null,
+            "id": "2098450223",
+            "isLoading": false,
+            "muted": false,
+            "pageBg": "#f7f0e6",
+            "pinned": false,
+            "private": false,
+            "siteMuted": null,
+            "title": "New Tab",
+            "url": "blanc://newtab/"
+          }
+        ],
+        "verticalTabsDefaultWidth": 248,
+        "verticalTabsMaxWidth": 360,
+        "verticalTabsMinWidth": 200,
+        "verticalTabsPreferredWidth": 248,
+        "verticalTabsWidth": 248,
+        "closedSlot": 1
+      }
+    },
+    {
+      "name": "restart excludes private tabs",
+      "value": [
+        {
+          "activeTabId": "2098450286",
+          "adblockEnabled": false,
+          "closed": [],
+          "displayShares": [],
+          "extensionsWidth": 26,
+          "focusedTabId": "2098450286",
+          "glanceTabId": null,
+          "groups": [],
+          "initialWindowSaveFailed": false,
+          "initialWindowSaved": false,
+          "installedTheme": {},
+          "spaceAutosaveError": "",
+          "spaceBusy": false,
+          "spaceName": "",
+          "spaceWindowIdentity": "cf294d42-5736-47bd-ab70-04daae7a4d88",
+          "splitGeometry": {},
+          "splits": [],
+          "tabLayout": "island",
+          "tabs": [
+            {
+              "audible": false,
+              "blockedCount": 0,
+              "bookmarked": false,
+              "canGoBack": false,
+              "canGoForward": false,
+              "favicon": null,
+              "groupId": null,
+              "id": "2098450286",
+              "isLoading": true,
+              "muted": false,
+              "pageBg": "",
+              "pinned": false,
+              "private": false,
+              "siteMuted": null,
+              "title": "New Tab",
+              "url": "blanc://newtab/"
+            }
+          ],
+          "verticalTabsDefaultWidth": 248,
+          "verticalTabsMaxWidth": 360,
+          "verticalTabsMinWidth": 200,
+          "verticalTabsPreferredWidth": 248,
+          "verticalTabsWidth": 248,
+          "closedSlot": 0
+        }
+      ]
+    }
+  ],
+  "pass": true
+}

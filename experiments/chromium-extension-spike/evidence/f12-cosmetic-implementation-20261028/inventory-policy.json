@@ -1,0 +1,15 @@
+{
+  "observed_upstream_files": 79,
+  "observed_hunks": 189,
+  "clean_git_dependencies": 151,
+  "previous_budget": {
+    "upstream_files": 77,
+    "hunks": 186
+  },
+  "updated_budget": {
+    "upstream_files": 79,
+    "hunks": 189
+  },
+  "authority": "Existing standing owner authorization recorded in tranche2-request.md section7",
+  "note": "Raw inventory preserves the prior-ceiling failure. Source and dependency observations were not rerun or altered."
+}

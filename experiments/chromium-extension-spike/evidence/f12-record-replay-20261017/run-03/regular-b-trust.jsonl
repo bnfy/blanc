@@ -1,0 +1,2 @@
+{"hostname":"page.blanc-fixture.test","accepted":true,"profileKind":"regular","originalResult":"net::ERR_CERT_AUTHORITY_INVALID"}
+{"hostname":"asset.blanc-fixture.test","accepted":true,"profileKind":"regular","originalResult":"net::ERR_CERT_AUTHORITY_INVALID"}

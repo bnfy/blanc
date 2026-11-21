@@ -1,0 +1,17 @@
+{
+  "observedAt": "2026-10-28T17:22:57.754Z",
+  "command": "top -l 3 -s 2 -n 0",
+  "localIdlePercent": [
+    74.61,
+    78.62,
+    76.54
+  ],
+  "macBookIdlePercent": [
+    0,
+    0,
+    0
+  ],
+  "requiredPercent": 90,
+  "admitted": false,
+  "scope": "Read-only preflight only; no benchmark or workload changes."
+}

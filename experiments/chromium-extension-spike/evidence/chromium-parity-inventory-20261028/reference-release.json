@@ -1,0 +1,98 @@
+{
+  "tag_name": "v1.44.1",
+  "target_commitish": "3b0c000b569ee33a1548dd1b9a60817fae9288a6",
+  "published_at": "2026-10-28T02:32:21Z",
+  "html_url": "https://github.com/bnfy/blanc/releases/tag/v1.44.1",
+  "assets": [
+    {
+      "name": "Blanc-1.44.1-arm64-mac.zip",
+      "digest": "sha256:fb9611bbfe75e1f959ef4a116c33b976277cf14c2ff12c2b1bf3daf19a525602",
+      "size": 176887931
+    },
+    {
+      "name": "Blanc-1.44.1-arm64-mac.zip.blockmap",
+      "digest": "sha256:793b07d5944edccddb638715ed68cac20b30fde1b1779b9ed3cf540801d5beeb",
+      "size": 186246
+    },
+    {
+      "name": "Blanc-1.44.1-arm64.dmg",
+      "digest": "sha256:e32c07fbe313b231302cb50bc085ab7dd3d08eae81ea644d0e735c11820d87c4",
+      "size": 182601399
+    },
+    {
+      "name": "Blanc-1.44.1-arm64.dmg.blockmap",
+      "digest": "sha256:98284b78251143b6879395b6359bbf58b8f8c8182d9d220bcbfa36ab35742e04",
+      "size": 188181
+    },
+    {
+      "name": "Blanc-1.44.1-mac.zip",
+      "digest": "sha256:6ec9600366509c9345ee5e1572ba290ff8047efe3f2c4b55bceb82ea61dffa4c",
+      "size": 183547803
+    },
+    {
+      "name": "Blanc-1.44.1-mac.zip.blockmap",
+      "digest": "sha256:63ffc3bb7888e1c2995a8d4d72b9967c543face4fc197f81cf64316132371706",
+      "size": 194326
+    },
+    {
+      "name": "Blanc-1.44.1.AppImage",
+      "digest": "sha256:5cccabf0036804232489166341be7b1d48c0b589771041e35aeefffe131e66f3",
+      "size": 159568842
+    },
+    {
+      "name": "Blanc-1.44.1.cdx.json",
+      "digest": "sha256:9a77c04c9d4b07ab4696ad872c27501cc95bafc9b38f176633225c36143d534b",
+      "size": 60590
+    },
+    {
+      "name": "Blanc-1.44.1.dmg",
+      "digest": "sha256:701d643d01ba5cd14343921bbfd011163f686fb0bff187e82f5110f595300be7",
+      "size": 189241667
+    },
+    {
+      "name": "Blanc-1.44.1.dmg.blockmap",
+      "digest": "sha256:3e891980a7982b9d6bc7ad5add3ea2f0adcb5e10f5c919fb13ce54c2da459a86",
+      "size": 196280
+    },
+    {
+      "name": "Blanc-Setup-1.44.1.exe",
+      "digest": "sha256:cc4da97d07dadab33ef1f83eb039de54cdba074dfe2950c806acd1406f4b7c4a",
+      "size": 158810368
+    },
+    {
+      "name": "Blanc-Setup-1.44.1.exe.blockmap",
+      "digest": "sha256:644c669b913f052d03eb52fa6fbe4b4a79528fe28c8f5fa6e18e89202c66f651",
+      "size": 166163
+    },
+    {
+      "name": "latest-linux.yml",
+      "digest": "sha256:18df2954f317cb1fcfd620c2de5f6f461f1ddbd02f4c0be16319b75e7b17f243",
+      "size": 365
+    },
+    {
+      "name": "latest-mac.yml",
+      "digest": "sha256:fded123b8f00861a75da31cfc62a9a1327ba0b98ae795f419b8e6ee8b788a69a",
+      "size": 795
+    },
+    {
+      "name": "latest.yml",
+      "digest": "sha256:aea3aa5df8ec095440e83632e70fa275b80d94d2210d251f2cf72d8b1582c1ba",
+      "size": 342
+    },
+    {
+      "name": "SHA256SUMS",
+      "digest": "sha256:f451a9ec77dfa0f34bb14077d81d41a72df41b842a83a2d7688af7ecb5731b47",
+      "size": 1433
+    },
+    {
+      "name": "SHA256SUMS.sigstore.json",
+      "digest": "sha256:f624fd3c7ec1611ebb2486af06c8e6fa0d72321457573941d0a82b66ff2d4490",
+      "size": 6435
+    },
+    {
+      "name": "windows-signature.json",
+      "digest": "sha256:29a874b8fecac493f6c7636bb4b73b8fa70ea632277f98cfa46ea6bc24bb1cd0",
+      "size": 552
+    }
+  ]
+}

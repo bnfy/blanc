@@ -1,0 +1,93 @@
+{
+  "status": "in_progress",
+  "candidate": {
+    "stem": "Blanc-Chromium-Preview-157.0.8103.15-57fc3b13",
+    "source": "57fc3b131a087b3b085dbaf65766d130c6b7baed",
+    "version": "157.0.8103.15",
+    "archive": "Blanc-Chromium-Preview-157.0.8103.15-57fc3b13-arm64.zip",
+    "archiveSha256": "a3212c1b6d0750f76825a29d3606f188f9fb17961a21bad35250e72d09d875fd",
+    "notary": "47535090-0a78-493a-bbe8-7d49e0586dad",
+    "regularFiles": 458,
+    "symlinks": 5,
+    "status": "notarized and authenticated; native acceptance pending"
+  },
+  "readiness": {
+    "count": 8,
+    "total": 12,
+    "delta": 0,
+    "open": [
+      "L4",
+      "L8",
+      "L11",
+      "L12"
+    ]
+  },
+  "localSignedChecks": 39,
+  "sourceTests": {
+    "compliance": 12,
+    "artifactVerifier": 7,
+    "notice": 4
+  },
+  "manifestAuthentication": {
+    "version": "157.0.8103.15",
+    "source": "57fc3b131a087b3b085dbaf65766d130c6b7baed",
+    "archiveSha256": "a3212c1b6d0750f76825a29d3606f188f9fb17961a21bad35250e72d09d875fd",
+    "authenticatedFiles": 4,
+    "signer": "anthony@bnfy.me",
+    "issuer": "https://github.com/login/oauth"
+  },
+  "tamperControls": [
+    {
+      "case": "manifest",
+      "exitCode": 1,
+      "rejected": true
+    },
+    {
+      "case": "artifact",
+      "exitCode": 1,
+      "rejected": true
+    }
+  ],
+  "nextRequired": [
+    "MacBook native HTTPS download with actual Safari quarantine",
+    "normal Gatekeeper launch and isolated native extension integration",
+    "final distribution/provenance acceptance"
+  ],
+  "build": "No Chromium compilation; packaging launcher only; native zero-action guard passes",
+  "scope": "Unpublished draft acceptance fixture; no public release or CI/hermetic-build claim",
+  "hostedDraft": {
+    "id": 422217800,
+    "draft": true,
+    "sixAssetDigestsVerified": true
+  },
+  "localNativeDownload": {
+    "matchedFiles": 458,
+    "matchedSymlinks": 5,
+    "SafariQuarantine": true,
+    "secondMacAcceptance": false
+  },
+  "replacementSource": "57fc3b131a087b3b085dbaf65766d130c6b7baed",
+  "replacementStatus": "notarized and authenticated; native acceptance pending",
+  "replacement": {
+    "source": "57fc3b131a087b3b085dbaf65766d130c6b7baed",
+    "signedChecks": 39,
+    "complianceTests": 12,
+    "readableNativeComponents": 323,
+    "fullLicenseTexts": 320,
+    "notarization": "47535090-0a78-493a-bbe8-7d49e0586dad",
+    "manifest": "verified anthony@bnfy.me / https://github.com/login/oauth",
+    "nativeDownloadAndLaunch": "download: 458 files/5 symlinks match, Safari quarantine/Gatekeeper pass; owner walkthrough pending"
+  },
+  "initialCandidate": {
+    "stem": "Blanc-Chromium-Preview-157.0.8103.15-419b8276",
+    "source": "419b8276fd42e115fdea793d461fb5f4e1642a24",
+    "version": "157.0.8103.15",
+    "archive": "Blanc-Chromium-Preview-157.0.8103.15-419b8276-arm64.zip",
+    "archiveSha256": "1f5741767869d612776df7a7a1ce3a271db7ec4467801bfd1f47ecf7b06306f2",
+    "notary": "a301d8b5-1af8-4d34-a3e8-9bb55ca27cd8",
+    "regularFiles": 458,
+    "symlinks": 5,
+    "status": "superseded: readable credits placeholder"
+  },
+  "remainingOwnerCheck": "MacBook normal first launch, Bitwarden permission Cancel/retry/popup and restart preservation"
+}

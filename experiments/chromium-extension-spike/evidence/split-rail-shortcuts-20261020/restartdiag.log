@@ -1,0 +1,7 @@
+{
+  pass: false,
+  checks: 14,
+  error: 'Error: wait timeout\n' +
+    '    at wait (file:///private/tmp/blanc-split-rail/test.mjs:5:130)\n' +
+    '    at async file:///private/tmp/blanc-split-rail/test.mjs:51:69'
+}

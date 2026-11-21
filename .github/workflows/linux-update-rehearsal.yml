@@ -61,7 +61,7 @@ jobs:
       - name: Verify native ECS launcher regressions
         run: node --test test/unit/ecs-linux-launcher.test.js
       - name: Install isolated UI test dependencies
-        run: sudo apt-get update && sudo apt-get install --yes xvfb xdotool x11-utils dbus-x11
+        run: bash scripts/ci-apt-mirror.sh && sudo apt-get update && sudo apt-get install --yes xvfb xdotool x11-utils dbus-x11
       - name: Resolve and verify current public baseline
         id: baseline
         env:
@@ -233,6 +233,9 @@ jobs:
 
       - name: Install the runtime an existing user has (FUSE 2 included)
         run: |
+          # The harness checkout is the workflow commit, which has the script;
+          # the candidate may be an older ref.
+          bash "$GITHUB_WORKSPACE/harness/scripts/ci-apt-mirror.sh"
           sudo apt-get update
           sudo apt-get install --yes xvfb xdotool imagemagick dbus-x11 libfuse2t64
 

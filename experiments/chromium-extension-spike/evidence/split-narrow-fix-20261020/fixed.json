@@ -1,0 +1,6 @@
+{
+  "label": "fixed",
+  "checks": [],
+  "pass": false,
+  "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n\n    at file:///private/tmp/blanc-split-layout-fix/test.mjs:30:9"
+}

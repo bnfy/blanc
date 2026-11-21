@@ -1,0 +1,188 @@
+---
+// Reserve a Blanc Mail address (Blanc Mail repo spec
+// docs/superpowers/specs/2026-11-18-address-reservations-design.md). Talks to the Mail
+// Worker's /mail/api/v1/reservations/* routes on blanc.day (same origin). Steps: a name
+// with a live availability line, then an email and Cloudflare Turnstile, then a step that
+// says to check the inbox and takes the 6-digit code that confirms it. Every email gets that
+// same step, so the page never says whether an email already holds an address: one that does
+// is emailed which one instead of a code. It lives on /mail/reserve (owner: its own page, not
+// the Mail page). Nothing renders until src/data/mail-reservations.json says "open",
+// so the block can't appear before the Worker can accept it. The widget's site key is
+// public and lives there too; its secret is the Worker's TURNSTILE_SECRET. The privacy page's
+// "Blanc Mail address reservations" section describes this contract — change them together.
+import reservations from '../data/mail-reservations.json';
+import { priceFor } from '../data/mail-commerce.mjs';
+import '../styles/gold-ring.css';
+const siteKey = reservations.open ? reservations.turnstileSiteKey : '';
+const apiBase = import.meta.env.PUBLIC_MAIL_API_BASE ?? '';
+interface Props {
+  endings: readonly string[];
+}
+const { endings } = Astro.props;
+const ending = endings[0];
+---
+{siteKey && (
+  <form class="mail-reserve gold-ring" method="post" data-mail-reserve data-api={apiBase} data-sitekey={siteKey} data-ending={ending} novalidate>
+    <div class="mail-reserve-step" data-step="name">
+      <label class="mail-reserve-label" for="mailReserveName">The address you want</label>
+      <span class="mail-reserve-field">
+        <input id="mailReserveName" name="localPart" type="text" required minlength="3" maxlength="32" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="mira" aria-describedby="mailReserveEndings mailReserveAvailability">
+        <span class="mail-reserve-ending" aria-hidden="true">@{ending}</span>
+      </span>
+      <p class="mail-reserve-hint" id="mailReserveEndings">Reserving holds this name on every ending: {endings.map((e, i) => <>{i === 0 ? '' : i === endings.length - 1 ? ' and ' : ', '}<span class="mail-ending">{e}</span></>)}. You’ll choose one when you claim it.</p>
+      <p class="mail-reserve-availability" id="mailReserveAvailability" role="status" aria-live="polite"></p>
+
+      <label class="mail-reserve-label" for="mailReserveEmail">Your current email</label>
+      <p class="mail-reserve-hint" id="mailReserveEmailHint">We’ll email you here to confirm it’s you. You’ll need this inbox again to claim your address.</p>
+      <input class="mail-reserve-input" id="mailReserveEmail" name="email" type="email" required maxlength="254" placeholder="you@example.com" autocomplete="email" aria-describedby="mailReserveEmailHint">
+      <div class="mail-reserve-turnstile" data-turnstile></div>
+      <button class="mail-reserve-button" type="submit" aria-describedby="mailReservePricing" disabled>Reserve</button>
+      <p class="mail-reserve-hint mail-reserve-pricing" id="mailReservePricing"><strong>Free to reserve.</strong> Claiming requires <span class="mail-reserve-plan">Blanc Mail + Address at {priceFor('mail-address-annual')}/year</span> or <span class="mail-reserve-plan">Blanc Bundle at {priceFor('suite-monthly')}/month</span>. <a href="/mail#pricing">Compare plans</a></p>
+    </div>
+
+    <div class="mail-reserve-step" data-step="code" hidden>
+      <p class="mail-reserve-label" id="mailReserveSent">Check your inbox for next steps.</p>
+      <label class="mail-reserve-hint" for="mailReserveCode">If the email has a 6-digit code, enter it here to finish reserving.</label>
+      <input class="mail-reserve-input mail-reserve-code" id="mailReserveCode" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" aria-describedby="mailReserveSent">
+      <button class="mail-reserve-button" type="button" data-confirm>Confirm</button>
+      <button class="mail-reserve-back" type="button" data-back>Use a different email or send a new code</button>
+    </div>
+
+    <div class="mail-reserve-step mail-reserve-done" data-step="done" hidden>
+      <p class="mail-reserve-address" data-address></p>
+      <p>is yours until Blanc Mail addresses open. We’ve emailed you how to claim it. <a href="/mail#pricing">See the plans</a></p>
+    </div>
+
+    <div class="mail-reserve-step" data-step="closed" hidden>
+      <p>Blanc Mail addresses are open: <a href="/mail#pricing">choose a plan</a> to get yours.</p>
+    </div>
+
+    <p class="mail-reserve-status" role="status" aria-live="polite"></p>
+    <p class="mail-reserve-note">One address per email. We’ll keep the address and your email only to hold the reservation. <a href="/privacy#mail-reservations">How we handle it</a></p>
+    <noscript><p class="mail-reserve-note">Turn on JavaScript to reserve an address.</p></noscript>
+  </form>
+)}
+<script>
+  // The Worker's refusal codes, in the app's words where they match
+  // (Mail repo BlancAccountMessages.refusal).
+  const MESSAGES: Record<string, string> = {
+    taken: 'That name is taken.',
+    reserved: 'That address isn’t available.',
+    format: 'Use 3 to 32 letters, numbers, dots, hyphens or underscores, without a dot at either end.',
+    backup_email: 'Use an email that isn’t a Blanc Mail address.',
+    turnstile: 'We couldn’t check that you’re not a bot. Please try again.',
+    code: 'That code isn’t right, or it has expired.',
+    rate_limited: 'Too many tries. Try again in a minute.',
+    unavailable: 'We can’t check names right now. Please try again in a few minutes.',
+    email_failed: 'We couldn’t send the email just now. Please try again.',
+  };
+  const fallback = 'We couldn’t do that just now. Please try again later.';
+
+  document.querySelectorAll<HTMLFormElement>('form[data-mail-reserve]').forEach((form) => {
+    const api = `${form.dataset.api}/mail/api/v1/reservations`;
+    const name = form.elements.namedItem('localPart') as HTMLInputElement;
+    const email = form.elements.namedItem('email') as HTMLInputElement;
+    const code = form.elements.namedItem('code') as HTMLInputElement;
+    const reserve = form.querySelector<HTMLButtonElement>('[data-step="name"] button')!;
+    const confirm = form.querySelector<HTMLButtonElement>('[data-confirm]')!;
+    const availability = form.querySelector('.mail-reserve-availability')!;
+    const status = form.querySelector('.mail-reserve-status')!;
+    const show = (step: string) => form.querySelectorAll<HTMLElement>('[data-step]').forEach((el) => { el.hidden = el.dataset.step !== step; });
+    const post = (path: string, body: object) => fetch(`${api}/${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const errorOf = async (res: Response) => { try { return (await res.json()).error as string; } catch { return ''; } };
+    let token = '';
+    let available = false;
+
+    // Turnstile loads only once someone starts on the form, not for every visit.
+    const widget = form.querySelector<HTMLElement>('[data-turnstile]')!;
+    const loadTurnstile = () => {
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      script.async = true;
+      script.onload = () => (window as any).turnstile.render(widget, {
+        sitekey: form.dataset.sitekey,
+        // The Worker accepts only tokens for this action (services/mail-worker/src/turnstile.js).
+        action: 'reserve',
+        // Shown only if a challenge needs the visitor, so the form never jumps on focus.
+        appearance: 'interaction-only',
+        callback: (t: string) => { token = t; update(); },
+        'expired-callback': () => { token = ''; update(); },
+        // Interaction-only hides Turnstile's own error state, so say why Reserve stays off.
+        'error-callback': () => { token = ''; update(); status.textContent = 'Couldn’t check that you’re a person. Reload the page and try again.'; },
+      });
+      document.head.append(script);
+    };
+    form.addEventListener('focusin', loadTurnstile, { once: true });
+
+    // Once addresses are on sale the page shows the plans straight away.
+    fetch(`${api}/status`).then((res) => res.json()).then((status) => { if (status.open === false) show('closed'); }).catch(() => {});
+
+    const update = () => { reserve.disabled = !(available && token && email.value.trim()); };
+
+    // The email goes with the check, so a name this email already asked for reads as
+    // available to them (coming back after a typo or a spent code).
+    let timer: number | undefined;
+    const check = () => {
+      available = false; update();
+      availability.textContent = '';
+      window.clearTimeout(timer);
+      const asked = name.value.trim().toLowerCase();
+      const from = email.value.trim();
+      if (asked.length < 3) return;
+      timer = window.setTimeout(async () => {
+        try {
+          const res = await post('availability', from ? { localPart: asked, email: from } : { localPart: asked });
+          if (asked !== name.value.trim().toLowerCase() || from !== email.value.trim()) return;
+          const answer = await res.json();
+          available = res.ok && answer.available === true;
+          availability.textContent = available ? `${asked}@${form.dataset.ending} is available` : (MESSAGES[answer.reason ?? answer.error] ?? fallback);
+          availability.classList.toggle('is-available', available);
+          update();
+        } catch { availability.textContent = ''; }
+      }, 400);
+    };
+    name.addEventListener('input', check);
+    email.addEventListener('input', check);
+
+    form.querySelector('[data-back]')!.addEventListener('click', () => {
+      status.textContent = '';
+      code.value = '';
+      // The first send spent the Turnstile token; a new code needs a new one.
+      (window as any).turnstile?.reset(widget); token = '';
+      show('name');
+      email.focus();
+      check();
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      status.textContent = '';
+      reserve.disabled = true;
+      try {
+        const res = await post('start', { localPart: name.value.trim(), email: email.value.trim(), turnstileToken: token });
+        if (res.ok) { show('code'); code.focus(); return; }
+        const error = await errorOf(res);
+        if (error === 'reservations_closed') { show('closed'); return; }
+        status.textContent = MESSAGES[error] ?? fallback;
+      } catch { status.textContent = fallback; }
+      (window as any).turnstile?.reset(widget); token = ''; update();
+    });
+
+    confirm.addEventListener('click', async () => {
+      status.textContent = '';
+      confirm.disabled = true;
+      try {
+        const res = await post('confirm', { localPart: name.value.trim(), email: email.value.trim(), code: code.value.trim() });
+        if (res.ok) {
+          form.querySelector('[data-address]')!.textContent = (await res.json()).address;
+          show('done');
+          return;
+        }
+        const error = await errorOf(res);
+        if (error === 'reservations_closed') { show('closed'); return; }
+        status.textContent = MESSAGES[error] ?? fallback;
+      } catch { status.textContent = fallback; }
+      finally { confirm.disabled = false; }
+    });
+  });
+</script>

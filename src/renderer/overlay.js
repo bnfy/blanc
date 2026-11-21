@@ -246,6 +246,9 @@
   // a pull-once list would keep showing a stale "active" row after a switch
   // that happened elsewhere (another window, or this window's own command).
   let wsWorkspaces = [];
+  // Other local profiles' Spaces (spec 2026-11-19-spaces-across-profiles):
+  // id, name, colour, symbol and tab count only.
+  let wsOtherProfiles = [];
   let workspaceSwitcherOpen = false;
   let pendingPostImportWorkspacePrompt = false;
   // The theme space colours are drawn for: the private chrome is its own surface.
@@ -507,28 +510,11 @@
   }
 
 
-  /** The page URL behind a `view-source:` URL, else null. Chromium's
-   * view-source: is a non-special scheme, so `new URL(...).host` is '' and
-   * the row would fall back to the literal "new tab".
-   * (Keep in sync with renderer.js.) */
-  function viewSourceTarget(url) {
-    if (!url?.startsWith('view-source:')) return null;
-    // A bare "view-source:" has no page behind it — null, not '', so callers
-    // can trust a truthy result to be a URL worth parsing.
-    return url.slice('view-source:'.length) || null;
-  }
-
   /** Short label for a tab's location: host for web pages (sans the noise
    * "www." carries in a list this dense), page name for internal ones,
    * empty for a blank new tab. */
   function tabDomain(tab) {
-    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';
-    try {
-      const u = new URL(viewSourceTarget(tab.url) ?? tab.url);
-      return u.protocol === 'blanc:' ? `blanc://${u.host}` : u.host.replace(/^www\./, '');
-    } catch {
-      return tab.url;
-    }
+    return TabSections.locationLabel(tab?.url, { stripWww: true });
   }
 
   // `base` kept for parity with renderer.js's twin (the dot-peek reuses it
@@ -1253,6 +1239,7 @@
 
   function commitWorkspacesPayload(payload) {
     wsWorkspaces = Array.isArray(payload?.items) ? payload.items : [];
+    wsOtherProfiles = Array.isArray(payload?.otherProfiles) ? payload.otherProfiles : [];
     workspaceUI.apply({ ...payload, items: wsWorkspaces });
   }
   function applyWorkspacesPayload(payload) {
@@ -1889,6 +1876,14 @@
       const s = matchScore(query, w.name);
       if (s) results.push({ kind: 'space', title: w.name, sub: blancI18n.t('result.groupCount', { count: w.tabCount }), workspace: w, score: s + 0.3 });
     }
+    // Other profiles' Spaces open in a window of their profile; they rank
+    // just below this profile's.
+    for (const profile of wsOtherProfiles) {
+      for (const w of profile.items ?? []) {
+        const s = matchScore(query, w.name);
+        if (s) results.push({ kind: 'space', title: w.name, sub: blancI18n.t('ws.switcher.profileLabel', { profile: profile.name }), workspace: { ...w, profileId: profile.id, profileName: profile.name }, score: s + 0.2 });
+      }
+    }
     // Group names rank above their member tabs — "wor" jumps to the whole
     // work cluster, not one tab in it.
     for (const g of state.groups) {
@@ -1945,7 +1940,7 @@
     return results
       .sort((a, b) => b.score - a.score)
       .filter((r) => {
-        const key = r.kind === 'tab' ? `tab:${r.tab.id}` : r.kind === 'group' ? `group:${r.group.id}` : r.kind === 'space' ? `space:${r.workspace.id}` : r.url;
+        const key = r.kind === 'tab' ? `tab:${r.tab.id}` : r.kind === 'group' ? `group:${r.group.id}` : r.kind === 'space' ? `space:${r.workspace.profileId ?? ''}:${r.workspace.id}` : r.url;
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
@@ -2013,7 +2008,7 @@
   function resultKey(result) {
     if (!result) return '';
     if (result.kind === 'group') return `group:${result.group.id}`;
-    if (result.kind === 'space') return `space:${result.workspace.id}`;
+    if (result.kind === 'space') return result.workspace.profileId ? `space:${result.workspace.profileId}:${result.workspace.id}` : `space:${result.workspace.id}`;
     if (result.kind === 'tab') return `tab:${result.tab.id}`;
     if (result.kind === 'search') return `search:${result.query.toLowerCase()}`;
     if (result.kind === 'bang') return `bang:${result.code}:${result.query}`;
@@ -3575,6 +3570,11 @@
   window.browserAPI.onOverlayShow((show) => {
     const { mode: next, prefill, purpose, pillRect } = show;
     searchPriorityResults = show.searchPriorityResults === true;
+    // The panel's side margin (styles.css #islandPanel): main widens it where
+    // the macOS window buttons sit beside the panel.
+    if (Number.isFinite(show.panelSideClearance)) {
+      document.documentElement.style.setProperty('--panel-side-clear', `${show.panelSideClearance}px`);
+    }
     stepHoverLeave({ type: 'open', hoverOpened: next === 'panel' && purpose?.hoverOpened === true });
     const wasOpen = mode === next;
     endOverlayExit();

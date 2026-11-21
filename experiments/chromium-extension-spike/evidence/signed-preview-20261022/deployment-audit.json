@@ -1,0 +1,121 @@
+[
+  {
+    "path": "Contents/MacOS/Blanc Prototype",
+    "minimums": [
+      "13.0"
+    ],
+    "readOk": true
+  },
+  {
+    "path": "Contents/MacOS/Blanc Preview Launcher",
+    "minimums": [
+      "26.0"
+    ],
+    "readOk": true
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Blanc Prototype Framework",
+    "minimums": [
+      "13.0"
+    ],
+    "readOk": true
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Libraries/libvulkan.dylib",
+    "minimums": [
+      "13.0"
+    ],
+    "readOk": true
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Libraries/libvk_swiftshader.dylib",
+    "minimums": [
+      "13.0"
+    ],
+    "readOk": true
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Libraries/libaperitif.dylib",
+    "minimums": [
+      "13.0"
+    ],
+    "readOk": true
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/web_app_shortcut_copier",
+    "minimums": [
+      "13.0"
+    ],
+    "readOk": true
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/chrome_crashpad_handler",
+    "minimums": [
+      "13.0"
+    ],
+    "readOk": true
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/app_mode_loader",
+    "minimums": [
+      "13.0"
+    ],
+    "readOk": true
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif Alerts).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Alerts)",
+    "minimums": [
+      "13.0"
+    ],
+    "readOk": true
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (GPU).app/Contents/MacOS/Blanc Prototype Helper (GPU)",
+    "minimums": [
+      "13.0"
+    ],
+    "readOk": true
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif Renderer).app/Contents/MacOS/Blanc Prototype Helper (Aperitif Renderer)",
+    "minimums": [
+      "13.0"
+    ],
+    "readOk": true
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper.app/Contents/MacOS/Blanc Prototype Helper",
+    "minimums": [
+      "13.0"
+    ],
+    "readOk": true
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif GPU).app/Contents/MacOS/Blanc Prototype Helper (Aperitif GPU)",
+    "minimums": [
+      "13.0"
+    ],
+    "readOk": true
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Renderer).app/Contents/MacOS/Blanc Prototype Helper (Renderer)",
+    "minimums": [
+      "13.0"
+    ],
+    "readOk": true
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Aperitif).app/Contents/MacOS/Blanc Prototype Helper (Aperitif)",
+    "minimums": [
+      "13.0"
+    ],
+    "readOk": true
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Helpers/Blanc Prototype Helper (Alerts).app/Contents/MacOS/Blanc Prototype Helper (Alerts)",
+    "minimums": [
+      "13.0"
+    ],
+    "readOk": true
+  }
+]

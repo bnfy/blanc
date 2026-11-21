@@ -1,0 +1,13 @@
+diff --git a/chrome/browser/ui/browser_commands.cc b/chrome/browser/ui/browser_commands.cc
+index 5b2fec5..46df416 100644
+--- a/chrome/browser/ui/browser_commands.cc
++++ b/chrome/browser/ui/browser_commands.cc
+@@ -2535,6 +2535,8 @@ void FindNext(BrowserWindowInterface* browser) {
+ }
+ 
+ void FindPrevious(BrowserWindowInterface* browser) {
++  // Blanc: Cmd+Shift+G opens and closes Glance; the find capsule keeps Previous.
++  if (blanc_prototype::ToggleGlance(browser)) return;
+   base::RecordAction(UserMetricsAction("FindPrevious"));
+   FindInPage(browser, true, false);
+ }

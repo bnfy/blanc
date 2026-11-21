@@ -1,0 +1,19 @@
+{
+  "note": "The Spaces menu across profiles (bnfy/blanc#1642, with #1658's two fixes), pinned apart from the Island renderer: tools/island-renderer.mjs takes these files from this commit, and tools/interface-strings.mjs these messages, in every language. Delete this record, and the three styles.css edits for #1642, once blanc/island-renderer.json's release carries #1642.",
+  "commit": "f91530b22eff409b0e5cd72acdc0c01206777dd3",
+  "files": [
+    "workspace-ui.js",
+    "overlay.js"
+  ],
+  "messages": [
+    "ws.row.titleProfile",
+    "ws.row.titleProfileShown",
+    "ws.row.openInProfile",
+    "ws.profile.unreadable",
+    "ws.editor.profile",
+    "ws.editor.profileDisabled",
+    "ws.editor.helpOtherProfile",
+    "ws.switcher.profileLabel",
+    "ws.error.profileUnavailable"
+  ]
+}

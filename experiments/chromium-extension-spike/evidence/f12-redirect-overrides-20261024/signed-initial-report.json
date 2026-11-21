@@ -1,0 +1,13 @@
+{
+  "complete": false,
+  "runs": [
+    {
+      "mode": "regular",
+      "profile": "/private/tmp/blanc-f12-redirect-overrides-20261024/signed/profile-final-regular",
+      "cases": []
+    }
+  ],
+  "checks": [],
+  "error": "Error: condition timeout\n    at until (file:///private/tmp/blanc-f12-redirect-overrides-20261024/signed/run.mjs:20:9)\n    at async file:///private/tmp/blanc-f12-redirect-overrides-20261024/signed/run.mjs:65:14",
+  "serverHits": []
+}

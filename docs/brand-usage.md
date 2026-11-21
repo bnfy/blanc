@@ -53,17 +53,25 @@ The authoritative product/site tokens remain in `site/src/styles/site.css` and
 `src/renderer/styles.css`. Retired feature-specific colorways are not part of
 the general Blanc brand palette.
 
-### Mahjong: classic lacquer
+### Mahjong: Sunrise surfaces
 
-Mahjong is a deliberately scoped in-product exception to the neutral product
-palette. Its restored lacquer table uses `#0B3D31` and the locally bundled
-`mahjong-lacquer.webp` background, with `#0A392F` panels, ivory `#F8F1DC`
-type, and brass `#D8B969` accents. Private Mahjong retains its separate muted
-purple treatment and prominent private chip. These game-local values do not
-replace shared product or website tokens.
-The header uses the unmodified Sunrise artwork with clear space and no glow.
+**Owner decision, October 17, 2026** (design:
+`docs/superpowers/specs/2026-10-17-mahjong-visual-refresh-design.md`).
+Mahjong uses the shared product Sunrise tokens: Blanc White `--sunrise-bg`,
+warm raised surfaces, near-black ink, muted brown-gray and restrained gold.
+The playfield uses the real bundled `start-page-sunrise.png` landscape under a
+quiet warm wash instead of inventing a blue or lilac "sunrise" palette. Dark
+and private modes use the product's warm dark Sunrise surfaces; private mode is
+distinguished by its chip and dashed playfield border, not a purple color cast.
+Tile faces are raster artwork; every game label, count and score uses
+Instrument Sans, and the game never falls back to Inter. The header and board-cleared moment use the unmodified Sunrise artwork
+with clear space and no redraw.
 The B motif on the white-dragon tile remains an intentional historical game
 detail, not a mark for new Blanc creative.
+
+*Superseded 2026-10-17:* "Mahjong: classic lacquer" (`#0B3D31` table,
+`mahjong-lacquer.webp`, `#0A392F` panels, ivory `#F8F1DC` type, brass `#D8B969`
+accents), followed by the unshipped blue-to-peach Dawn sky proposal.
 
 ### Sunrise palette for website and marketing
 
@@ -256,9 +264,10 @@ its license in `src/renderer/pages/`) at width 98 and +0.01em letter spacing.
 Large lines tighten slightly: the Billboard clock to -0.02em and Ledger's
 "Where to?" to -0.015em. Inter stays for key caps, which need ⌘ ⌥ ⇧ ⌃ and
 arrows that Instrument Sans lacks, and for counters and license keys tuned on
-its tabular figures; use a slashed zero for the Patron license key. Only
-Mahjong tile faces keep JetBrains Mono through `--mj-face-font`, and the game
-keeps Inter for its controls. Buttons and form fields must inherit the page's
+its tabular figures; use a slashed zero for the Patron license key. Mahjong's
+tile faces are raster artwork, and every game label, count and score uses
+Instrument Sans with no Inter fallback (November 12, 2026; this supersedes the
+October 17 Inter Bold tile faces and the earlier JetBrains Mono ones). Buttons and form fields must inherit the page's
 letter and word spacing explicitly, because Chromium resets them. The app
 ships no commercially licensed font: Blubird is a website and wordmark face
 only. System v2 radii stand: 8px small, 10px control/row, 14px card/group,
@@ -266,6 +275,15 @@ only. System v2 radii stand: 8px small, 10px control/row, 14px card/group,
 base radius. On warm sheets, page headings are 30px/500, section headings are
 21px/500, card labels are dim 12px/600, and body text is 13px. Avoid uppercase
 letter-spaced labels on these surfaces.
+
+**Website text, November 15, 2026 (owner decision):** Blubird is for headings
+only. Its Text cuts read heavy in eyebrows and paragraphs, so every page's
+body copy, eyebrows, labels, header and footer are set in Instrument Sans, the
+apps' own face, through `--font-brand-text`. Headings, including small card
+titles, stay Blubird Display at regular weight. This supersedes “text in
+Blubird Text” above and in the October 15 decision. The social and Open Graph
+cards are rendered images and still use Blubird Text until they are
+regenerated.
 
 ### Blanc lockup
 
@@ -310,6 +328,30 @@ public, so the `.woff2` files are never committed: they sit in the git-ignored
 them. App, product or corporate use beyond that licence needs Rajesh Rajput's
 written permission first.
 
+### Blanc Mail lockup
+
+The Blanc Mail lockup (owner decision, November 15, 2026, recorded in the Blanc
+Mail repository's `AGENTS.md` under “Wordmark”) follows the Blanc lockup with
+the gold envelope app icon in the Sunrise's place. The icon is beside the
+outlined “Blanc Mail” in Blubird, in one colour, with the same construction:
+the icon is 1.15× the l height, centred on the B, with a 0.3× B-height gap.
+“Blanc” is the outline above, unchanged; “Mail” follows it one word space
+later (190 units in the Display cut, 240 in the Text cut). The word never
+appears without the icon, and it is never recoloured, re-spaced or stacked.
+
+- The website product bar alone uses the short form. `MailBar.astro` pairs
+  the gold app icon with “Mail” in white Blubird SemiBold Text, outlined in
+  `site/public/lockup/mail-word-small-white.svg`. The lettering is 19px
+  tall with a 9px gap beside the icon. The icon uses the full Text lockup’s
+  size and alignment. The link’s accessible name is “Blanc Mail”.
+- The media kit offers it in ink and white, as SVG, a 3000px PNG and WebP
+  previews (`site/public/press/blanc-mail-lockup-*`).
+- Its word outlines live in `assets/wordmark/blanc-mail-word-*`, which
+  `site/scripts/build-lockup-assets.mjs` copies with the Blanc word. The source,
+  build script and review sheet live with the Blanc Mail app, in
+  `docs/brand/wordmark/`.
+- The Blubird licence above applies: web and print only.
+
 ### Email
 
 **Owner direction, October 17, 2026:** every email Blanc sends is branded and
@@ -326,7 +368,16 @@ which would tell a third party whenever someone opens a Blanc email. Apple
 Mail, Outlook for Mac and Thunderbird show it; Gmail and Outlook for Windows
 ignore web fonts and fall back to the system sans. Many clients also drop
 SVG and WebP, so the layout is inline-styled tables and the lockup is a PNG.
-`site/public/_headers` lets other origins load the email lockup and font.
+Blanc Mail's emails (sign-up and reset codes, password and backup-email
+notices, licence keys, mailbox deletion warnings), sent by
+`services/mail-worker/src/email.js` in bnfy/blanc-mail, use the same layout
+with the Blanc Mail lockup in place of the Blanc one
+(`site/public/press/blanc-mail-lockup-ink-480.png`, 480 × 93, drawn 220 × 43
+and linked to blanc.day/mail) and without the browser's tagline in the
+footer, so a Mail email never reads as the browser's (owner, November 17,
+2026). Everything about the browser, the Android beta
+invitations included, keeps the Blanc lockup.
+`site/public/_headers` lets other origins load the email lockups and font.
 Blubird never appears in email: its licence covers the website only. The Worker's
 confirmation emails use it directly, and Resend templates are rendered from
 the same function, so change them together. Copy follows
@@ -336,7 +387,7 @@ the same function, so change them together. Copy follows
 
 The shared website footer is warm ink (`#111`) on every page. It opens with
 the Display lockup (155×40px) as the home link, the tagline “A little less
-browser.” in Blubird Text, and the newsletter field, then three link columns
+browser.” in Instrument Sans, and the newsletter field, then three link columns
 (Explore, Resources, Blanc) and a fine rule above the compact legal and social
 row. Links rest in a light warm grey (`#C0BCB5`) and turn near-white on hover;
 focus rings are gold on dark (`--site-gold-on-dark`). A page may put numbered

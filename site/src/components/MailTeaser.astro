@@ -1,0 +1,29 @@
+---
+// A Blanc Mail design teaser: a mockup of a design the owner approved
+// (November 17, 2026) but that has not shipped, shown as an isolated address setup dialog. It is not a screenshot of a build, so it is
+// labelled "Design preview" rather than MailShot's "Preview build", and this
+// component is the only way the Mail pages show one, so the label can't be
+// left off. The mail in every teaser is made up.
+// The 1024px transparent render and its 512px display copy contain only the dialog.
+interface Props {
+  name: string;
+  alt: string;
+  class?: string;
+  sizes?: string;
+  [key: `data-${string}`]: string;
+}
+const { name, alt, class: className = '', sizes = '(max-width: 556px) calc(100vw - 44px), 512px', ...rest } = Astro.props;
+---
+<figure class={`mail-teaser ${className}`} {...rest}>
+  <img
+    src={`/mail/teasers/${name}-512.webp`}
+    srcset={`/mail/teasers/${name}-512.webp 512w, /mail/teasers/${name}.webp 1024w`}
+    sizes={sizes}
+    alt={alt}
+    width={1024}
+    height={1140}
+    loading="lazy"
+    decoding="async"
+  />
+  <figcaption>Design preview</figcaption>
+</figure>

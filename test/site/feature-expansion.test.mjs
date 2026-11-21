@@ -98,11 +98,12 @@ test('feature hub reaches all sixteen guides and Media kit downloads are real PN
     assert.equal(await page.locator('#small-details-title').innerText(), 'Smaller details that matter.');
     await page.goto(`${baseURL}/media`);
     // The media kit downloads are native 2x captures of one release, the Blanc
-    // logo in ink and white (each as SVG and a 3000 x 888 PNG), the Sunrise
+    // logo in ink and white (each as SVG and a 3000 x 888 PNG), the Blanc Mail
+    // logo in ink and white (each as SVG and a 3000 x 580 PNG), the Sunrise
     // mark in full color and in black, and the 1024px Blanc Mail app icon in
     // its light and dark appearances.
     const downloads = page.locator('.media-kit figcaption a[download]');
-    assert.equal(await downloads.count(), 10);
+    assert.equal(await downloads.count(), 14);
     for (const link of await downloads.all()) {
       const href = await link.getAttribute('href');
       const response = await context.request.get(new URL(href, baseURL).href);
@@ -114,7 +115,7 @@ test('feature hub reaches all sixteen guides and Media kit downloads are real PN
       }
       assert.equal(bytes.subarray(1, 4).toString(), 'PNG', href);
       const size = [bytes.readUInt32BE(16), bytes.readUInt32BE(20)].join('x');
-      assert.ok(['2560x1600', '3000x888', '4096x4096', '1024x1024'].includes(size), `${href}: ${size}`);
+      assert.ok(['2560x1600', '3000x888', '3000x580', '4096x4096', '1024x1024'].includes(size), `${href}: ${size}`);
     }
     // After the checksums, the kit links the current fact sheet ahead of the
     // dated 1.0 announcement.

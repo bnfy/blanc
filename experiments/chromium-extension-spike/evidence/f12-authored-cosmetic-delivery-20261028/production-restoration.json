@@ -1,0 +1,10 @@
+{
+  "productionHeaderExact": true,
+  "productionHashPresentInFramework": true,
+  "diagnosticHashAbsentInFramework": true,
+  "frameworkSha256": "fd1f083267888f641ee4aafc8fbf4996c9b61ffcd7fd29bc8abb5860885239f9",
+  "normalGuardActions": 0,
+  "restoreBuildSteps": 6,
+  "restoreBuildSeconds": 58.04,
+  "signedMasterChanged": false
+}

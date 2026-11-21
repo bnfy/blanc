@@ -1,0 +1,33 @@
+import {performance} from 'node:perf_hooks';
+import {timedOut} from './timing.mjs';
+import {jsLiteral} from './js-literal.mjs';
+// Installed only into the exact native Island of an isolated fixture.
+export async function installDriver(host){
+  const url=await host.eval('location.href');
+  if(url!=='chrome://blanc-prototype/host.html')throw Error('Test driver requires the native Island');
+  const bootstrap=function(){
+    // Multiple adapters may connect to one native Island document. Its
+    // request counter and in-flight replies belong to that document, so a
+    // second CDP connection must reuse them instead of replaying old ids.
+    if(typeof window.__blancNativeCall==='function'&&typeof window.blancTestReply==='function')return;
+    let next=0;const pending=new Map();
+    window.blancTestReply=(id,success,value)=>{
+      const call=pending.get(id);if(!call)return;
+      clearTimeout(call.timer);pending.delete(id);success?call.resolve(value):call.reject(Error(value));
+    };
+    window.__blancNativeCall=(method,args=[],id=String(++next),timeout=15000)=>{
+      next=Math.max(next,Number(id));
+      if(pending.has(id))throw Error('Request is already pending');
+      return new Promise((resolve,reject)=>{
+        const timer=setTimeout(()=>{pending.delete(id);reject(Error('Native test operation timed out: '+method));},timeout);
+        pending.set(id,{resolve,reject,timer});chrome.send('blancTest',[id,method,args]);
+      });
+    };
+  };
+  await host.eval('('+bootstrap.toString()+')()');
+}
+export async function nativeCall(host,method,args=[],id=null,timeout=15000){
+  const start=performance.now();
+  try{return await host.eval(`window.__blancNativeCall(${jsLiteral(method)},${jsLiteral(args)},${id?JSON.stringify(String(id)):'undefined'},${timeout})`,undefined,timeout+1000);}
+  catch(error){if(error.message.includes('Native test operation timed out:'))timedOut('native',method,performance.now()-start);throw error;}
+}

@@ -8,6 +8,7 @@ const { createIco } = require('./build-windows-icons');
 const { pngsEquivalent } = require('./png-equivalence');
 const { colorwaySources } = require('./app-icon-colorways');
 const { iosAppIconFiles } = require('./ios-app-icons');
+const { androidAppIconFiles } = require('./android-app-icons');
 
 const ROOT = path.join(__dirname, '..');
 const SOURCE = path.join(ROOT, 'assets/blanc-mark.svg');
@@ -751,6 +752,11 @@ async function main() {
 
   // The iPhone's Icon Composer packages, after the Mac layers they reuse.
   for (const [file, contents] of Object.entries(await iosAppIconFiles())) {
+    await emit(file, contents);
+  }
+
+  // Blanc for Android's launcher icon, in the fork's canonical source.
+  for (const [file, contents] of Object.entries(await androidAppIconFiles(master, sunrise.inkMotif))) {
     await emit(file, contents);
   }
 

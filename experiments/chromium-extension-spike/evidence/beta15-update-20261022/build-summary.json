@@ -1,0 +1,29 @@
+{
+  "initialInvocation": {
+    "elapsedSeconds": 1708.56,
+    "completedActions": 18003,
+    "failedActions": 0,
+    "result": "gracefully interrupted to reduce memory pressure; outputs preserved"
+  },
+  "resumedInvocation": {
+    "elapsedSeconds": 8444.55,
+    "completedActions": 32396,
+    "result": "Build Succeeded",
+    "localWorkers": 8
+  },
+  "aggregateBuildSeconds": 10153.11,
+  "aggregateCompletedActions": 50399,
+  "note": "Sum across both invocations; includes generator/noexec actions, not a count of C++ compilations or latency benchmark",
+  "finalGuardActions": 0,
+  "originalPreserved": {
+    "chrome/VERSION": true,
+    "out/BlancPrototype/args.gn": true,
+    "out/BlancPrototype/.blanc-build-environment.json": true,
+    "out/BlancPrototype/Blanc Prototype.app/Contents/MacOS/Blanc Prototype": true,
+    "third_party/llvm-build/Release+Asserts/cr_build_revision": true,
+    "head": true
+  },
+  "signing": "Developer ID verified",
+  "notarization": "Accepted and stapled",
+  "signedRuntimeChecks": "76 assertions pass"
+}

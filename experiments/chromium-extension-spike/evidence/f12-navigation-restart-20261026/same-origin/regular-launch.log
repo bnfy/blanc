@@ -1,0 +1,5 @@
+[43573:12485692:1026/214526.120889:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[43573:12485649:1026/214526.569023:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:63520/devtools/browser/ba4f2b11-6756-435d-83d0-6cfef7453971
+[43573:12485649:1026/214529.306344:ERROR:base/process/kill_posix.cc:33] waitpid(43582): No child processes (10)

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Lucide "ellipsis-vertical" (ISC license; see THIRD_PARTY_NOTICES). Tinted by the grid. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="18dp"
+    android:height="18dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path android:fillColor="#FF000000" android:pathData="M12 11a1 1 0 1 0 0 2a1 1 0 1 0 0 -2z M12 4a1 1 0 1 0 0 2a1 1 0 1 0 0 -2z M12 18a1 1 0 1 0 0 2a1 1 0 1 0 0 -2z" />
+    <path android:strokeColor="#FF000000" android:strokeWidth="2" android:pathData="M12 11a1 1 0 1 0 0 2a1 1 0 1 0 0 -2z M12 4a1 1 0 1 0 0 2a1 1 0 1 0 0 -2z M12 18a1 1 0 1 0 0 2a1 1 0 1 0 0 -2z" />
+</vector>

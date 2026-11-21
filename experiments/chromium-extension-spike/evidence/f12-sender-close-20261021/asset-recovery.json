@@ -1,0 +1,74 @@
+{
+  "archive": "experiments/chromium-extension-spike/evidence/f12-codeql-20261017/engine.tar.gz",
+  "archiveSha256": "75878d32109704b417fc3653b98e1b1c3eff2984182ca420fa59d07cf8fd4c02",
+  "restored": "/private/tmp/blanc-f12-native-assets",
+  "verifiedMembers": [
+    {
+      "path": "bundle_hash.h",
+      "sha256": "043b8dbaf73a78cc89dbd52c5c85affe806fa7318e40c6b127292e2a09d23dca",
+      "bytes": 161
+    },
+    {
+      "path": "engine.js",
+      "sha256": "9acdfb68963e89c9c9be04a1a68ae831c7c35b800555790cadc8575a7172382d",
+      "bytes": 4676324
+    },
+    {
+      "path": "licenses/@ghostery_adblocker-LICENSE",
+      "sha256": "9a5743e68333a1959b266bee6905ee8ef1250f799c01a5f1bd98211e00cddd3a",
+      "bytes": 16789
+    },
+    {
+      "path": "licenses/@ghostery_adblocker-extended-selectors-LICENSE",
+      "sha256": "9a5743e68333a1959b266bee6905ee8ef1250f799c01a5f1bd98211e00cddd3a",
+      "bytes": 16789
+    },
+    {
+      "path": "licenses/@ghostery_url-parser-LICENSE",
+      "sha256": "6e3496aca922d1041d0795f9f654a322b2fad023bb90eeed0ea59d6ad7176d23",
+      "bytes": 16786
+    },
+    {
+      "path": "licenses/@remusao_guess-url-type-LICENSE",
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "bytes": 16725
+    },
+    {
+      "path": "licenses/@remusao_small-LICENSE",
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "bytes": 16725
+    },
+    {
+      "path": "licenses/@remusao_smaz-LICENSE",
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "bytes": 16725
+    },
+    {
+      "path": "licenses/@remusao_smaz-compress-LICENSE",
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "bytes": 16725
+    },
+    {
+      "path": "licenses/@remusao_smaz-decompress-LICENSE",
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "bytes": 16725
+    },
+    {
+      "path": "licenses/@remusao_trie-LICENSE",
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "bytes": 16725
+    },
+    {
+      "path": "licenses/tldts-experimental-LICENSE",
+      "sha256": "c64182d48160db948b6aa97a984f1a32974ce4d2053900361264cd33853796cb",
+      "bytes": 1078
+    },
+    {
+      "path": "manifest.json",
+      "sha256": "8e82749b038ab94b191951a904ff4bfe37f4415b98dcecaf4a6fef81d34d86a2",
+      "bytes": 16271
+    }
+  ],
+  "sourceHashHeaderMatches": true,
+  "runtimeAcceptance": false
+}

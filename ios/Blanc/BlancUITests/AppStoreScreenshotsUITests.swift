@@ -150,8 +150,9 @@ final class AppStoreScreenshotsUITests: XCTestCase {
     XCTAssertTrue(item.waitForExistence(timeout: 5))
     item.tap()
     XCTAssertTrue(app.buttons["pill.private"].waitForExistence(timeout: 10))
-    run("https://www.metmuseum.org/art/collection/search/436524")
-    waitForSite("metmuseum.org")
+    // A dark page suits the private theme (owner's choice, 2026-11-11).
+    run("https://noddingoffapp.com")
+    waitForSite("noddingoffapp.com")
     sleep(8)
     // The menu shows Ad & tracker blocking on, in a private tab too.
     app.openIslandMenu()

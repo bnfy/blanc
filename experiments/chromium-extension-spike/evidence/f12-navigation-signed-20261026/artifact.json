@@ -1,0 +1,16 @@
+{
+  "source": "efb1b511efb19fa3cc5a819a5ef701a2b867d7d1",
+  "version": "157.0.8103.15",
+  "archive": "Blanc-Chromium-Preview-stapled.zip",
+  "archiveSha256": "19cdde2731c41f8e33309a50b872fcb0d8092072a7b6ed1bda781328da5840de",
+  "notarization": {
+    "id": "214024e9-4c28-47b3-9575-44db8220ba11",
+    "message": "Processing complete",
+    "status": "Accepted"
+  },
+  "affectedChecks": 20,
+  "broaderTestsRepeated": false,
+  "GoogleBaselineTouched": false,
+  "Electron": "paused",
+  "latency": "deferred"
+}

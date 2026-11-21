@@ -267,6 +267,62 @@
       "w": 1320,
       "x": 7000,
       "y": 0
+    },
+    "IPadStartPage.dc.html": {
+      "h": 2064,
+      "page": "page-ipad-13",
+      "title": "iPad · Start Page",
+      "w": 2752,
+      "x": 0,
+      "y": 0
+    },
+    "IPadSplitView.dc.html": {
+      "h": 2064,
+      "page": "page-ipad-13",
+      "title": "iPad · Split View",
+      "w": 2752,
+      "x": 2952,
+      "y": 0
+    },
+    "IPadGlance.dc.html": {
+      "h": 2064,
+      "page": "page-ipad-13",
+      "title": "iPad · Glance",
+      "w": 2752,
+      "x": 5904,
+      "y": 0
+    },
+    "IPadComputer.dc.html": {
+      "h": 2064,
+      "page": "page-ipad-13",
+      "title": "iPad · Your computer’s tabs",
+      "w": 2752,
+      "x": 8856,
+      "y": 0
+    },
+    "IPadTabGrid.dc.html": {
+      "h": 2064,
+      "page": "page-ipad-13",
+      "title": "iPad · Tab grid",
+      "w": 2752,
+      "x": 11808,
+      "y": 0
+    },
+    "IPadSpaces.dc.html": {
+      "h": 2064,
+      "page": "page-ipad-13",
+      "title": "iPad · Spaces",
+      "w": 2752,
+      "x": 14760,
+      "y": 0
+    },
+    "IPadPrivate.dc.html": {
+      "h": 2064,
+      "page": "page-ipad-13",
+      "title": "iPad · Private tabs",
+      "w": 2752,
+      "x": 17712,
+      "y": 0
     }
   },
   "createdOnFiles": {
@@ -360,6 +416,15 @@
       "x": 0,
       "y": 3040,
       "text": "For: People looking for a private browser: blanc.day's private tabs and privacy pages, and privacy-minded communities.\n\nPromotional text (165/170): Private tabs keep no history, and their cookies and site data go when the last one closes. Ads and trackers are blocked by default, and Sync is end-to-end encrypted.\n\nThe same captures and sky as the default page, in this page's order. Every caption must pass docs/marketing-claims.md; see the Custom product pages section of docs/ios/app-store-listing.md."
+    },
+    "ipad-13-heading": {
+      "kind": "title1",
+      "maxW": 8000,
+      "page": "page-ipad-13",
+      "text": "Blanc for iPad · 13\" App Store screenshots (2752 × 2064)",
+      "w": 240,
+      "x": 0,
+      "y": -420
     }
   },
   "order": [
@@ -396,7 +461,14 @@
     "PrivacyCommands.dc.html",
     "PrivacyTabGrid.dc.html",
     "PrivacySpaces.dc.html",
-    "PrivacyComputer.dc.html"
+    "PrivacyComputer.dc.html",
+    "IPadStartPage.dc.html",
+    "IPadSplitView.dc.html",
+    "IPadGlance.dc.html",
+    "IPadComputer.dc.html",
+    "IPadTabGrid.dc.html",
+    "IPadSpaces.dc.html",
+    "IPadPrivate.dc.html"
   ],
   "pages": [
     {
@@ -406,6 +478,10 @@
     {
       "id": "page-tsyv0r",
       "name": "iPhone Duo"
+    },
+    {
+      "id": "page-ipad-13",
+      "name": "iPad 13\""
     },
     {
       "id": "cpp-companion",

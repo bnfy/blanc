@@ -1,0 +1,14 @@
+[10974:874800:1020/202947.812691:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[10974:874726:1020/202948.116412:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9297/devtools/browser/ae104240-d12a-4c6a-964e-f6e165cd2f05
+[11000:875272:1020/202952.281356:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up day.blanc.prototype.MachPortRendezvousServer.1: Permission denied (1100)
+[11000:875272:1020/202952.281583:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)
+[11001:875333:1020/202952.476555:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[11001:875303:1020/202952.757415:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9297/devtools/browser/ba14d0e6-9e88-4978-afa4-f8b635d4891a
+[11001:875303:1020/202952.981647:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[11001:875303:1020/202952.981805:ERROR:chrome/browser/ui/webui/ntp/new_tab_ui.cc:54] Requested load of chrome://newtab/ for incorrect profile type.
+[11001:875303:1020/202953.022350:ERROR:chrome/browser/ui/views/user_education/impl/browser_user_education_interface_impl.cc:186] Attempting to show IPH IPH_SideBySidePinnableFeature before browser initialization complete; IPH will not be shown.
+[11001:875303:1020/202955.245547:ERROR:base/process/kill_posix.cc:33] waitpid(11008): No child processes (10)

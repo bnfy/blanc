@@ -1,0 +1,6 @@
+{
+  "path": "/Users/anthonyjloria/Downloads/Blanc-Preview-157.0.8103.15-acceptance.zip",
+  "sha256": "d9924b7e5398b95f21e1107cb146eaf0f1e53387e9c850fc720b33e4adbe50cb",
+  "attributes": "com.apple.macl: \ncom.apple.provenance: \u0001\u0002\ncom.apple.quarantine: 0081;6adb7682;Blanc Chromium Preview;\n",
+  "note": "Native download completed at default Downloads location; initial fixture expected the CDP download override. Only this verified fixture moved."
+}

@@ -1,0 +1,34 @@
+{
+  "list": {
+    "names": [
+      "Exit"
+    ]
+  },
+  "withPartialTemporaryFile": {
+    "names": [
+      "Exit"
+    ]
+  },
+  "saved": {
+    "items": {
+      "Exit": {
+        "active": 1,
+        "groups": [],
+        "tabs": [
+          {
+            "group": -1,
+            "pinned": false,
+            "url": "chrome://newtab/"
+          },
+          {
+            "group": -1,
+            "pinned": false,
+            "url": "http://127.0.0.1:9265/exit-tail"
+          }
+        ]
+      }
+    },
+    "version": 1
+  },
+  "pass": true
+}

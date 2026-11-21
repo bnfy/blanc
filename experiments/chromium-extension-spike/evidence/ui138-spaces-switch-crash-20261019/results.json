@@ -1,0 +1,72 @@
+{
+  "cases": [
+    {
+      "mode": "stage-first",
+      "marker": {
+        "live_urls": [
+          "chrome://newtab/",
+          "http://127.0.0.1:9265/source-one",
+          "http://127.0.0.1:9265/source-two",
+          "chrome://newtab/"
+        ],
+        "point": "stage-first",
+        "source_count": 3,
+        "staged_count": 1
+      },
+      "saved_records_unchanged": true,
+      "explicit_reopen_both_and_resave": true
+    },
+    {
+      "mode": "stage-all",
+      "marker": {
+        "live_urls": [
+          "chrome://newtab/",
+          "http://127.0.0.1:9265/source-one",
+          "http://127.0.0.1:9265/source-two",
+          "chrome://newtab/",
+          "http://127.0.0.1:9265/dest-one",
+          "http://127.0.0.1:9265/dest-two"
+        ],
+        "point": "stage-all",
+        "source_count": 3,
+        "staged_count": 3
+      },
+      "saved_records_unchanged": true,
+      "explicit_reopen_both_and_resave": true
+    },
+    {
+      "mode": "remove-first",
+      "marker": {
+        "live_urls": [
+          "chrome://newtab/",
+          "http://127.0.0.1:9265/source-two",
+          "chrome://newtab/",
+          "http://127.0.0.1:9265/dest-one",
+          "http://127.0.0.1:9265/dest-two"
+        ],
+        "point": "remove-first",
+        "source_count": 3,
+        "staged_count": 3
+      },
+      "saved_records_unchanged": true,
+      "explicit_reopen_both_and_resave": true
+    },
+    {
+      "mode": "remove-all",
+      "marker": {
+        "live_urls": [
+          "chrome://newtab/",
+          "http://127.0.0.1:9265/dest-one",
+          "http://127.0.0.1:9265/dest-two"
+        ],
+        "point": "remove-all",
+        "source_count": 3,
+        "staged_count": 3
+      },
+      "saved_records_unchanged": true,
+      "explicit_reopen_both_and_resave": true
+    }
+  ],
+  "normal_source_restored_sha256": "d7d746d1ef3ffc080480168f522b8f5decb359bf3eb69bbe60a7dfade070f8f5",
+  "normal_smoke_pass": true
+}

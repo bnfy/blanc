@@ -1,0 +1,26 @@
+[
+  {
+    "source": "experiments/chromium-extension-spike/evidence/l6-restore-scheduling-20261023/signed-qualification/tests/startup/run.mjs",
+    "sourceSha256": "54642f9c2f7877d779d27bfd0e657e0de7a925792fb5c08af52b381aed72e4c7",
+    "copy": "checks/startup/run.mjs",
+    "adaptations": "local helper import/path only; remove unused targets/create exports fixed to unrelated port9225"
+  },
+  {
+    "source": "experiments/chromium-extension-spike/evidence/l6-restore-scheduling-20261023/signed-qualification/tests/core/run.mjs",
+    "sourceSha256": "7b70b0c552cc52c5062793c86992d432e541a1cf80dd8641261bd2041c85cb23",
+    "copy": "checks/core/run.mjs",
+    "adaptations": "local helper import/path only; remove unused targets/create exports fixed to unrelated port9225"
+  },
+  {
+    "source": "experiments/chromium-extension-spike/evidence/l6-restore-scheduling-20261023/signed-qualification/regression/recovery/run.mjs",
+    "sourceSha256": "a64738b16262b715105414659738955068cc13adaea8a511c65c916cfa9c6a49",
+    "copy": "checks/recovery/run.mjs",
+    "adaptations": "local helper import/path only; remove unused targets/create exports fixed to unrelated port9225"
+  },
+  {
+    "source": "experiments/chromium-extension-spike/evidence/l6-restore-scheduling-20261023/harness/final/test-notice.mjs",
+    "sourceSha256": "6712eb7533fd089ab82d86bd209fcbce3775f4e472be7f979c2c04dad512f35e",
+    "copy": "test-notice.mjs",
+    "adaptations": "local helper import/path only; remove unused targets/create exports fixed to unrelated port9225"
+  }
+]

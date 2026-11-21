@@ -1,0 +1,83 @@
+{
+  "checkedAt": "2026-10-16T14:13:42.913Z",
+  "windowId": 60440609,
+  "fixtureId": 60440610,
+  "method": "Physical macOS CGEvent mouse and keyboard, DevTools geometry and state readback",
+  "results": [
+    {
+      "name": "Island extension menu launches React Developer Tools",
+      "result": "pass",
+      "detail": {
+        "url": "chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/popups/development.html",
+        "text": "This page is using the development build of React. 🚧\n\nNote that the development build is not suitable for production.\nMake sure to use the production build before deployment.\n\nOpen the developer tools, and \"Components\" and \"Profiler\" tabs will appear to the right.",
+        "expectedBrand": "React"
+      }
+    },
+    {
+      "name": "Island extension menu launches Grammarly",
+      "result": "pass",
+      "detail": {
+        "url": "chrome-extension://kbfnbcaeplbcioakkpcpgfkobkghlhen/src/popup.html",
+        "text": "Grammarly is active, but key features are missing.\n\nSign up now to unlock the following:\n\nPersonal dictionary\nSave and access your documents\nGet weekly writing statistics and tips\nSign up\nOpens a new tab\nAlready have an account?\nSign in\nOpens a new tab",
+        "expectedBrand": "Grammarly"
+      }
+    },
+    {
+      "name": "Island extension menu launches Tampermonkey",
+      "result": "pass",
+      "detail": {
+        "url": "chrome-extension://dhdgffkkebhmkfjojejmpbldmpobfkfo/action.html",
+        "text": "Please enable the `Allow User Scripts` extension setting. Click here for more info how to do this.\n\tScan the QR code to use Tampermonkey on your phone or tablet.\nLearn more\n\t",
+        "expectedBrand": "Tampermonkey"
+      }
+    },
+    {
+      "name": "Island extension menu launches 1Password",
+      "result": "pass",
+      "detail": {
+        "url": "chrome-extension://aeblfdkhhhdcdjpifhhbdiojplfjncoa/app/app.html#/page/welcome?language=en",
+        "text": "Start setup\nAdd account\n\nIf you have a 1Password account, sign in to get started.\n\nCreate your 1Password account\nSign in\nLearn how to use 1Password (tutorial)\nPin the 1Password extension to your browser's toolbar",
+        "expectedBrand": "1Password"
+      }
+    },
+    {
+      "name": "Island extension menu launches MetaMask",
+      "result": "pass",
+      "detail": {
+        "url": "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html#/onboarding/welcome",
+        "text": "አማርኛ\nالعربية\nбългарски\nবাংলা\nCatalà\nČeština\nDansk\nDeutsch\nελληνικά\nEnglish\nEspañol (Latinoamérica)\nEstonian\nفارسی\nSuomi\nFrançais\nGaeilge\nગુજરાત\nעברית\nमानक हिन्दी\nहिन्दी\nHrvatski\nKreyòl ayisyen\nMagyar\nBahasa Indonesia\nItaliano\n日本語\nಕನ್ನಡ\n한국어\nLietuviškai\nLatvian\nമലയാളം\nमराठी\nMalay\nNederlands\nNorwegian\nPolskie\nPortuguês\nPortuguês (Brazillian)\nPortuguês (European)\nLimba română\nРусский\nSlovenčina\nSlovenščina\nсрпски\nSvenska\nSwahili\nதமிழ்\nతెలుగు\nไทย\nFilipino\nTürkçe\nУкраїнська мова\nTiếng Việt\n中文(简体)\n中文(繁體)\nCreate a new wallet\nI have an existing wallet",
+        "expectedBrand": "MetaMask"
+      }
+    },
+    {
+      "name": "Header whitespace drags native window",
+      "result": "pass",
+      "detail": {
+        "before": {
+          "left": 477,
+          "top": 30
+        },
+        "after": {
+          "left": 527,
+          "top": 70
+        }
+      }
+    },
+    {
+      "name": "Browser fullscreen retains usable Island and extension popup",
+      "result": "pass",
+      "detail": {
+        "fullscreen": "fullscreen",
+        "restored": "normal"
+      }
+    },
+    {
+      "name": "No host error banner after supported interactions",
+      "result": "pass",
+      "detail": {
+        "text": "",
+        "visible": false
+      }
+    }
+  ]
+}

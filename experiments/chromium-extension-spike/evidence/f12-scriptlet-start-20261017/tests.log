@@ -1,0 +1,720 @@
+TAP version 13
+# Subtest: record once, strip before write/forward, close origin and replay frozen bytes
+ok 1 - record once, strip before write/forward, close origin and replay frozen bytes
+  ---
+  duration_ms: 34.168291
+  ...
+# Subtest: identifier URL is refused before upstream access and bundle cannot freeze
+ok 2 - identifier URL is refused before upstream access and bundle cannot freeze
+  ---
+  duration_ms: 5.100208
+  ...
+# Subtest: sensitive response body never becomes a bundle or browser response
+ok 3 - sensitive response body never becomes a bundle or browser response
+  ---
+  duration_ms: 6.255875
+  ...
+# Subtest: upstream uses normal certificate verification, rejecting an unrelated CA
+ok 4 - upstream uses normal certificate verification, rejecting an unrelated CA
+  ---
+  duration_ms: 6.416167
+  ...
+# Subtest: public IPv4 classification keeps documentation ranges narrow
+ok 5 - public IPv4 classification keeps documentation ranges narrow
+  ---
+  duration_ms: 0.19125
+  ...
+# Subtest: Vary uses upstream identity and refuses a changed forwarded variant offline
+ok 6 - Vary uses upstream identity and refuses a changed forwarded variant offline
+  ---
+  duration_ms: 10.358125
+  ...
+# Subtest: entrypoint preflight follows safe hops, records status, and refuses loops or sensitive locations
+ok 7 - entrypoint preflight follows safe hops, records status, and refuses loops or sensitive locations
+  ---
+  duration_ms: 9.138416
+  ...
+# Subtest: scrub removes duplicate cookie/auth headers without retaining values or names
+ok 8 - scrub removes duplicate cookie/auth headers without retaining values or names
+  ---
+  duration_ms: 2.05
+  ...
+# Subtest: URL identifiers are refused, not rewritten (including encoded forms)
+ok 9 - URL identifiers are refused, not rewritten (including encoded forms)
+  ---
+  duration_ms: 0.34725
+  ...
+# Subtest: decoded compressed payload is scrubbed before persistence
+ok 10 - decoded compressed payload is scrubbed before persistence
+  ---
+  duration_ms: 0.770042
+  ...
+# Subtest: body identifiers, JS escapes, unsupported binaries and redirects are refused
+ok 11 - body identifiers, JS escapes, unsupported binaries and redirects are refused
+  ---
+  duration_ms: 0.91025
+  ...
+# Subtest: duplicate retained headers and unsafe decision metadata fail closed
+ok 12 - duplicate retained headers and unsafe decision metadata fail closed
+  ---
+  duration_ms: 0.502041
+  ...
+# Subtest: bundle hashes and payload hashes are verified before replay
+ok 13 - bundle hashes and payload hashes are verified before replay
+  ---
+  duration_ms: 1.2105
+  ...
+# Subtest: stable complete replays yield only actual offline decisions
+ok 14 - stable complete replays yield only actual offline decisions
+  ---
+  duration_ms: 0.541125
+  ...
+# Subtest: missing or extra requests never become a passing intersection
+ok 15 - missing or extra requests never become a passing intersection
+  ---
+  duration_ms: 0.392958
+  ...
+# Subtest: duplicate same-context requests fail as ambiguous, never deduplicate
+ok 16 - duplicate same-context requests fail as ambiguous, never deduplicate
+  ---
+  duration_ms: 0.587417
+  ...
+# Subtest: decision, referrer, payload and profile differences are all compared
+ok 17 - decision, referrer, payload and profile differences are all compared
+  ---
+  duration_ms: 0.862125
+  ...
+# Subtest: transport misses, opaque origins and insufficient metadata cannot pass
+ok 18 - transport misses, opaque origins and insufficient metadata cannot pass
+  ---
+  duration_ms: 0.636333
+  ...
+# Subtest: unique causally classified requests may arrive in a different order
+ok 19 - unique causally classified requests may arrive in a different order
+  ---
+  duration_ms: 0.153916
+  ...
+# Subtest: matching omissions cannot turn incomplete observations into a stable oracle
+ok 20 - matching omissions cannot turn incomplete observations into a stable oracle
+  ---
+  duration_ms: 0.358083
+  ...
+# Subtest: summary-only observer keeps decisions unchanged and never writes rejected URLs
+ok 21 - summary-only observer keeps decisions unchanged and never writes rejected URLs
+  ---
+  duration_ms: 3.823875
+  ...
+# Subtest: controlled Vary fields are explicit; wildcard, cookies and uncontrolled headers refuse
+ok 22 - controlled Vary fields are explicit; wildcard, cookies and uncontrolled headers refuse
+  ---
+  duration_ms: 0.4345
+  ...
+# Subtest: only genuinely empty untyped 200 or 204 bodies are admitted
+ok 23 - only genuinely empty untyped 200 or 204 bodies are admitted
+  ---
+  duration_ms: 0.131
+  ...
+# Subtest: query prefixes and sensitive substrings retain distinct refusal semantics
+ok 24 - query prefixes and sensitive substrings retain distinct refusal semantics
+  ---
+  duration_ms: 0.117375
+  ...
+# Subtest: no-blocker control counts actual loaded blocked script and executed descendant, never acceptance
+ok 25 - no-blocker control counts actual loaded blocked script and executed descendant, never acceptance
+  ---
+  duration_ms: 3.458833
+  ...
+# Subtest: missing response, missing child execution, HTTP failure and cached response fail completeness
+ok 26 - missing response, missing child execution, HTTP failure and cached response fail completeness
+  ---
+  duration_ms: 2.015667
+  ...
+# Subtest: profile or type mismatch cannot count as a matched comparison
+ok 27 - profile or type mismatch cannot count as a matched comparison
+  ---
+  duration_ms: 0.552291
+  ...
+# Subtest: unmanifested request and oracle/transport fault fail rather than intersect sets
+ok 28 - unmanifested request and oracle/transport fault fail rather than intersect sets
+  ---
+  duration_ms: 0.420959
+  ...
+# Subtest: supported seeds preserve URL/type/domain and never assign decisions
+ok 29 - supported seeds preserve URL/type/domain and never assign decisions
+  ---
+  duration_ms: 0.9565
+  ...
+# Subtest: unsupported rules are accounted for, never approximated
+ok 30 - unsupported rules are accounted for, never approximated
+  ---
+  duration_ms: 0.1335
+  ...
+# Subtest: hash reproducibility and duplicate URLs across lists
+ok 31 - hash reproducibility and duplicate URLs across lists
+  ---
+  duration_ms: 3.478625
+  ...
+# Subtest: near miss changes domain boundary, not random request identifiers
+ok 32 - near miss changes domain boundary, not random request identifiers
+  ---
+  duration_ms: 0.65
+  ...
+# Subtest: every script has executable authored content and declared child response
+ok 33 - every script has executable authored content and declared child response
+  ---
+  duration_ms: 0.440667
+  ...
+# Subtest: first-party seeds keep same source authority and no automatic third-party control
+ok 34 - first-party seeds keep same source authority and no automatic third-party control
+  ---
+  duration_ms: 0.295125
+  ...
+# Subtest: public gate and URL normalization remain fail closed
+ok 35 - public gate and URL normalization remain fail closed
+  ---
+  duration_ms: 0.806583
+  ...
+# Subtest: limits cap seeds without turning surplus candidates into oracle observations
+ok 36 - limits cap seeds without turning surplus candidates into oracle observations
+  ---
+  duration_ms: 0.596667
+  ...
+# Subtest: authored child identifiers cannot trip numeric identifier privacy gate
+ok 37 - authored child identifiers cannot trip numeric identifier privacy gate
+  ---
+  duration_ms: 0.841417
+  ...
+# Subtest: nearest-rank percentiles include the upper-tail sample
+ok 38 - nearest-rank percentiles include the upper-tail sample
+  ---
+  duration_ms: 11.186083
+  ...
+# Subtest: median uses five measured repetitions and refuses warm-up contamination
+ok 39 - median uses five measured repetitions and refuses warm-up contamination
+  ---
+  duration_ms: 0.738417
+  ...
+# Subtest: timing is accepted only with matching decisions, contexts and response evidence
+ok 40 - timing is accepted only with matching decisions, contexts and response evidence
+  ---
+  duration_ms: 0.379458
+  ...
+# Subtest: fast engine failure cannot improve latency results
+ok 41 - fast engine failure cannot improve latency results
+  ---
+  duration_ms: 0.063167
+  ...
+# Subtest: missing or wrong response invalidates timing repetition
+ok 42 - missing or wrong response invalidates timing repetition
+  ---
+  duration_ms: 0.104875
+  ...
+# Subtest: referrer context mismatch invalidates timing despite matching decision
+ok 43 - referrer context mismatch invalidates timing despite matching decision
+  ---
+  duration_ms: 0.052208
+  ...
+# Subtest: extra and duplicate observations cannot pad timing sample
+ok 44 - extra and duplicate observations cannot pad timing sample
+  ---
+  duration_ms: 0.798375
+  ...
+# Subtest: actual cancelled request with exact native context passes the bounded comparison
+ok 45 - actual cancelled request with exact native context passes the bounded comparison
+  ---
+  duration_ms: 0.573875
+  ...
+# Subtest: wrong initiator is a harness fault even if both engines block
+ok 46 - wrong initiator is a harness fault even if both engines block
+  ---
+  duration_ms: 0.119375
+  ...
+# Subtest: matching frame origin never substitutes for absent initiator
+ok 47 - matching frame origin never substitutes for absent initiator
+  ---
+  duration_ms: 0.062875
+  ...
+# Subtest: referrer mismatch is independent of matching initiator
+ok 48 - referrer mismatch is independent of matching initiator
+  ---
+  duration_ms: 0.118583
+  ...
+# Subtest: startup/engine error is not counted as successful blocking
+ok 49 - startup/engine error is not counted as successful blocking
+  ---
+  duration_ms: 0.150875
+  ...
+# Subtest: duplicate native observations cannot inflate the denominator
+ok 50 - duplicate native observations cannot inflate the denominator
+  ---
+  duration_ms: 0.224375
+  ...
+# Subtest: a missed blocked script and its executed child remain a difference, not a replay miss
+ok 51 - a missed blocked script and its executed child remain a difference, not a replay miss
+  ---
+  duration_ms: 0.554583
+  ...
+# Subtest: independent observed context and complete body admit bounded case
+ok 52 - independent observed context and complete body admit bounded case
+  ---
+  duration_ms: 1.562833
+  ...
+# Subtest: matching worker decisions with absent frame stay a gap
+ok 53 - matching worker decisions with absent frame stay a gap
+  ---
+  duration_ms: 0.903208
+  ...
+# Subtest: wrong redirect hop is a failed case
+ok 54 - wrong redirect hop is a failed case
+  ---
+  duration_ms: 0.681833
+  ...
+# Subtest: wrong initiator and referrer are never inferred from the page
+ok 55 - wrong initiator and referrer are never inferred from the page
+  ---
+  duration_ms: 0.271459
+  ...
+# Subtest: blocked request reaching transport faults instead of passing
+ok 56 - blocked request reaching transport faults instead of passing
+  ---
+  duration_ms: 0.261792
+  ...
+# Subtest: missing whole case cannot silently pass
+ok 57 - missing whole case cannot silently pass
+  ---
+  duration_ms: 0.19225
+  ...
+# Subtest: engine failure is not a correct blocking answer
+ok 58 - engine failure is not a correct blocking answer
+  ---
+  duration_ms: 0.192708
+  ...
+# Subtest: two recordings missing an allowed redirect successor are invalid
+ok 59 - two recordings missing an allowed redirect successor are invalid
+  ---
+  duration_ms: 0.22225
+  ...
+# Subtest: partition metadata and visible tab never fill an absent worker frame
+ok 60 - partition metadata and visible tab never fill an absent worker frame
+  ---
+  duration_ms: 0.64975
+  ...
+# Subtest: native worker context alone cannot admit an unresolved Electron context
+ok 61 - native worker context alone cannot admit an unresolved Electron context
+  ---
+  duration_ms: 0.73125
+  ...
+# Subtest: two independent worker contexts admit a bounded request without inventing its document frame
+ok 62 - two independent worker contexts admit a bounded request without inventing its document frame
+  ---
+  duration_ms: 1.461875
+  ...
+# Subtest: one-sided worker enrichment leaves the request as a gap
+ok 63 - one-sided worker enrichment leaves the request as a gap
+  ---
+  duration_ms: 0.2515
+  ...
+# Subtest: stable but different independent worker identities fail comparison
+ok 64 - stable but different independent worker identities fail comparison
+  ---
+  duration_ms: 1.086833
+  ...
+# Subtest: late success never promotes early requirements
+ok 65 - late success never promotes early requirements
+  ---
+  duration_ms: 4.11725
+  ...
+# Subtest: response forgery cannot conceal early network escape
+ok 66 - response forgery cannot conceal early network escape
+  ---
+  duration_ms: 0.683417
+  ...
+# Subtest: post-load sample is not document-start evidence
+ok 67 - post-load sample is not document-start evidence
+  ---
+  duration_ms: 0.189292
+  ...
+# Subtest: actual early pass is recognized without requiring a failure
+ok 68 - actual early pass is recognized without requiring a failure
+  ---
+  duration_ms: 0.18675
+  ...
+# Subtest: initial native script joins exact worker token without a Network event
+ok 69 - initial native script joins exact worker token without a Network event
+  ---
+  duration_ms: 3.800292
+  ...
+# Subtest: Electron initial script uses independent token event and time, not omitted header referrer
+ok 70 - Electron initial script uses independent token event and time, not omitted header referrer
+  ---
+  duration_ms: 0.367625
+  ...
+# Subtest: same script URL never substitutes for a mismatched native token
+ok 71 - same script URL never substitutes for a mismatched native token
+  ---
+  duration_ms: 0.124041
+  ...
+# Subtest: installed versions cannot borrow the initial-script context
+ok 72 - installed versions cannot borrow the initial-script context
+  ---
+  duration_ms: 0.0935
+  ...
+# Subtest: a new version with controlled clients is contradictory evidence
+ok 73 - a new version with controlled clients is contradictory evidence
+  ---
+  duration_ms: 0.116334
+  ...
+# Subtest: a worker in another profile cannot supply initial script evidence
+ok 74 - a worker in another profile cannot supply initial script evidence
+  ---
+  duration_ms: 0.04775
+  ...
+# Subtest: failed worker execution remains a gap instead of fabricating a realm
+ok 75 - failed worker execution remains a gap instead of fabricating a realm
+  ---
+  duration_ms: 0.10825
+  ...
+# Subtest: a stale Electron URL/time correlation stays a gap
+ok 76 - a stale Electron URL/time correlation stays a gap
+  ---
+  duration_ms: 0.052875
+  ...
+# Subtest: missing update CDP event cannot let repeated Electron hooks borrow the initial token
+ok 77 - missing update CDP event cannot let repeated Electron hooks borrow the initial token
+  ---
+  duration_ms: 0.283958
+  ...
+# Subtest: HTTP failure plus exact-token response and detach proves loader identity, never an execution realm
+ok 78 - HTTP failure plus exact-token response and detach proves loader identity, never an execution realm
+  ---
+  duration_ms: 0.434458
+  ...
+# Subtest: actual port challenge proves observed document peer even when receipt follows request
+ok 79 - actual port challenge proves observed document peer even when receipt follows request
+  ---
+  duration_ms: 3.071792
+  ...
+# Subtest: worker connect without independently witnessed challenge never gets an owner
+ok 80 - worker connect without independently witnessed challenge never gets an owner
+  ---
+  duration_ms: 0.156875
+  ...
+# Subtest: unmatched extra constructor prevents claiming a complete client set
+ok 81 - unmatched extra constructor prevents claiming a complete client set
+  ---
+  duration_ms: 0.075291
+  ...
+# Subtest: unmatched extra worker port prevents claiming a complete client set
+ok 82 - unmatched extra worker port prevents claiming a complete client set
+  ---
+  duration_ms: 0.152375
+  ...
+# Subtest: reused challenge is ambiguous
+ok 83 - reused challenge is ambiguous
+  ---
+  duration_ms: 0.06175
+  ...
+# Subtest: page close before request or completed handshake stays a gap
+ok 84 - page close before request or completed handshake stays a gap
+  ---
+  duration_ms: 0.064041
+  ...
+# Subtest: page realm destruction cannot be replaced by a later same-origin realm
+ok 85 - page realm destruction cannot be replaced by a later same-origin realm
+  ---
+  duration_ms: 0.053542
+  ...
+# Subtest: unknown page target cannot borrow the selected page
+ok 86 - unknown page target cannot borrow the selected page
+  ---
+  duration_ms: 0.044292
+  ...
+# Subtest: late observation agent does not establish complete ownership
+ok 87 - late observation agent does not establish complete ownership
+  ---
+  duration_ms: 0.212792
+  ...
+# Subtest: opaque client origin stays unresolved
+ok 88 - opaque client origin stays unresolved
+  ---
+  duration_ms: 0.283209
+  ...
+# Subtest: two observed document realms aggregate as two active owners
+ok 89 - two observed document realms aggregate as two active owners
+  ---
+  duration_ms: 0.280625
+  ...
+# Subtest: complete pagehide plus target detach removes one owner before a later request
+ok 90 - complete pagehide plus target detach removes one owner before a later request
+  ---
+  duration_ms: 0.073
+  ...
+# Subtest: complete pagehide plus realm clear removes one owner before a later request
+ok 91 - complete pagehide plus realm clear removes one owner before a later request
+  ---
+  duration_ms: 0.042125
+  ...
+# Subtest: pagehide without realm destruction or target detach is not complete teardown proof
+ok 92 - pagehide without realm destruction or target detach is not complete teardown proof
+  ---
+  duration_ms: 0.033167
+  ...
+# Subtest: exact attributed target detach proves the observed owner target ended
+ok 93 - exact attributed target detach proves the observed owner target ended
+  ---
+  duration_ms: 0.032167
+  ...
+# Subtest: stable complete replays yield only actual offline decisions
+ok 94 - stable complete replays yield only actual offline decisions
+  ---
+  duration_ms: 0.842417
+  ...
+# Subtest: missing or extra requests never become a passing intersection
+ok 95 - missing or extra requests never become a passing intersection
+  ---
+  duration_ms: 0.394584
+  ...
+# Subtest: duplicate same-context requests fail as ambiguous, never deduplicate
+ok 96 - duplicate same-context requests fail as ambiguous, never deduplicate
+  ---
+  duration_ms: 1.386834
+  ...
+# Subtest: decision, referrer, payload and profile differences are all compared
+ok 97 - decision, referrer, payload and profile differences are all compared
+  ---
+  duration_ms: 0.97575
+  ...
+# Subtest: transport misses, opaque origins and insufficient metadata cannot pass
+ok 98 - transport misses, opaque origins and insufficient metadata cannot pass
+  ---
+  duration_ms: 0.327875
+  ...
+# Subtest: unique causally classified requests may arrive in a different order
+ok 99 - unique causally classified requests may arrive in a different order
+  ---
+  duration_ms: 0.227667
+  ...
+# Subtest: matching omissions cannot turn incomplete observations into a stable oracle
+ok 100 - matching omissions cannot turn incomplete observations into a stable oracle
+  ---
+  duration_ms: 1.465625
+  ...
+# Subtest: image and stylesheet metadata compares without admitting worker/unknown types
+ok 101 - image and stylesheet metadata compares without admitting worker/unknown types
+  ---
+  duration_ms: 0.159375
+  ...
+# Subtest: known blocked-candidate response and its child exist; unknown requests fault offline
+ok 102 - known blocked-candidate response and its child exist; unknown requests fault offline
+  ---
+  duration_ms: 28.028458
+  ...
+# Subtest: tampered response or duplicate candidate fails manifest construction
+ok 103 - tampered response or duplicate candidate fails manifest construction
+  ---
+  duration_ms: 0.738958
+  ...
+# Subtest: CONNECT selects the correct certificate shard; mismatched SNI is refused
+ok 104 - CONNECT selects the correct certificate shard; mismatched SNI is refused
+  ---
+  duration_ms: 137.248292
+  ...
+# Subtest: authored redirect returns exact Location and refuses an unmanifested target
+ok 105 - authored redirect returns exact Location and refuses an unmanifested target
+  ---
+  duration_ms: 3.590417
+  ...
+# Subtest: certificate shards preserve exact-host, exact-leaf, CA and validity checks
+ok 106 - certificate shards preserve exact-host, exact-leaf, CA and validity checks
+  ---
+  duration_ms: 205.2425
+  ...
+# Subtest: matching late injection is not document-start acceptance
+ok 107 - matching late injection is not document-start acceptance
+  ---
+  duration_ms: 3.691625
+  ...
+# Subtest: shared mutation failure is rejected even when parity matches
+ok 108 - shared mutation failure is rejected even when parity matches
+  ---
+  duration_ms: 1.217875
+  ...
+# Subtest: unexpected fixture miss is rejected
+ok 109 - unexpected fixture miss is rejected
+  ---
+  duration_ms: 0.432
+  ...
+# Subtest: fetch bypass cannot be hidden by its DOM response
+ok 110 - fetch bypass cannot be hidden by its DOM response
+  ---
+  duration_ms: 6.13575
+  ...
+# Subtest: negative-control overblocking fails
+ok 111 - negative-control overblocking fails
+  ---
+  duration_ms: 0.184333
+  ...
+# Subtest: cross-runtime timing difference is reported
+ok 112 - cross-runtime timing difference is reported
+  ---
+  duration_ms: 1.014042
+  ...
+# Subtest: independent worker target plus stable empty controlled-client set resolves without a document origin
+ok 113 - independent worker target plus stable empty controlled-client set resolves without a document origin
+  ---
+  duration_ms: 2.643125
+  ...
+# Subtest: Electron requires the independently observed unique request and bounded wall time
+ok 114 - Electron requires the independently observed unique request and bounded wall time
+  ---
+  duration_ms: 0.164333
+  ...
+# Subtest: same URL in multiple workers never becomes an arbitrary join
+ok 115 - same URL in multiple workers never becomes an arbitrary join
+  ---
+  duration_ms: 0.059166
+  ...
+# Subtest: native ID mismatch stays a gap even when every URL matches
+ok 116 - native ID mismatch stays a gap even when every URL matches
+  ---
+  duration_ms: 0.048209
+  ...
+# Subtest: a worker in another profile cannot borrow this page identity
+ok 117 - a worker in another profile cannot borrow this page identity
+  ---
+  duration_ms: 0.095917
+  ...
+# Subtest: shared-worker client set is unknown, never silently empty
+ok 118 - shared-worker client set is unknown, never silently empty
+  ---
+  duration_ms: 0.198542
+  ...
+# Subtest: client transitions across the observed request interval are gaps
+ok 119 - client transitions across the observed request interval are gaps
+  ---
+  duration_ms: 0.103417
+  ...
+# Subtest: a final lifecycle snapshot is required
+ok 120 - a final lifecycle snapshot is required
+  ---
+  duration_ms: 0.052875
+  ...
+# Subtest: opaque or multiple worker execution contexts do not pass
+ok 121 - opaque or multiple worker execution contexts do not pass
+  ---
+  duration_ms: 0.271084
+  ...
+# Subtest: unobserved client IDs cannot borrow the visible page origin
+ok 122 - unobserved client IDs cannot borrow the visible page origin
+  ---
+  duration_ms: 0.28125
+  ...
+# Subtest: observer failures invalidate correlation
+ok 123 - observer failures invalidate correlation
+  ---
+  duration_ms: 0.081958
+  ...
+# Subtest: CDP Other does not rewrite the actual hook script type
+ok 124 - CDP Other does not rewrite the actual hook script type
+  ---
+  duration_ms: 0.053166
+  ...
+# Subtest: native pre-renderer blocked redirect is tied only to its exact parent request ID
+ok 125 - native pre-renderer blocked redirect is tied only to its exact parent request ID
+  ---
+  duration_ms: 0.519333
+  ...
+# Subtest: one independently observed controlled page is retained as a client, never as the worker frame
+ok 126 - one independently observed controlled page is retained as a client, never as the worker frame
+  ---
+  duration_ms: 0.3665
+  ...
+# Subtest: multiple worker realms cannot be collapsed into one identity
+ok 127 - multiple worker realms cannot be collapsed into one identity
+  ---
+  duration_ms: 0.09125
+  ...
+# Subtest: controlled page event is distinct from its worker network event; unknown duplicate remains a gap
+ok 128 - controlled page event is distinct from its worker network event; unknown duplicate remains a gap
+  ---
+  duration_ms: 0.239666
+  ...
+# Subtest: only exact observed session disappearance is a lifecycle interruption
+ok 129 - only exact observed session disappearance is a lifecycle interruption
+  ---
+  duration_ms: 0.312375
+  ...
+# Subtest: unchanged preparation preserves inode and mtime; changes publish complete bytes
+ok 130 - unchanged preparation preserves inode and mtime; changes publish complete bytes
+  ---
+  duration_ms: 2.098125
+  ...
+# Subtest: preparation refuses symlinks and non-files without changing their target
+ok 131 - preparation refuses symlinks and non-files without changing their target
+  ---
+  duration_ms: 1.057167
+  ...
+# Subtest: script literals preserve hostile data without HTML terminators or separators
+ok 132 - script literals preserve hostile data without HTML terminators or separators
+  ---
+  duration_ms: 1.770459
+  ...
+# Subtest: generated response treats hostile ID and child URL only as data
+ok 133 - generated response treats hostile ID and child URL only as data
+  ---
+  duration_ms: 2.434417
+  ...
+# Subtest: component ID is derived from the public key
+ok 134 - component ID is derived from the public key
+  ---
+  duration_ms: 0.482958
+  ...
+# Subtest: verified payload is private-disabled and refuses overwriting
+ok 135 - verified payload is private-disabled and refuses overwriting
+  ---
+  duration_ms: 165.908375
+  ...
+# Subtest: admission uses normal Add and only browser component integration
+ok 136 - admission uses normal Add and only browser component integration
+  ---
+  duration_ms: 0.149959
+  ...
+# Subtest: reload integration is generated from verified upstream with guarded anchors
+ok 137 - reload integration is generated from verified upstream with guarded anchors
+  ---
+  duration_ms: 109.00325
+  ...
+# Subtest: parity observer preserves original decisions and copies input before mutation
+ok 138 - parity observer preserves original decisions and copies input before mutation
+  ---
+  duration_ms: 98.813541
+  ...
+# Subtest: startup release requires successful list completion and observer activation
+ok 139 - startup release requires successful list completion and observer activation
+  ---
+  duration_ms: 2.019083
+  ...
+# Subtest: list completion before activation cannot release startup
+ok 140 - list completion before activation cannot release startup
+  ---
+  duration_ms: 1.117708
+  ...
+# Subtest: failed acknowledgement rejects before caller can reset engine
+ok 141 - failed acknowledgement rejects before caller can reset engine
+  ---
+  duration_ms: 0.621334
+  ...
+# Subtest: reload begin waits for browser acknowledgement
+ok 142 - reload begin waits for browser acknowledgement
+  ---
+  duration_ms: 0.41025
+  ...
+1..142
+# tests 142
+# suites 0
+# pass 142
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 555.445167

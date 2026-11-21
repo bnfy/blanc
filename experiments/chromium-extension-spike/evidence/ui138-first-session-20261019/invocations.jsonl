@@ -1,0 +1,36 @@
+{"name": "clear-fresh-start", "argv": ["node", "/private/tmp/blanc-first-session/start.mjs"], "started": "2026-10-19T23:18:06.560438+00:00", "seconds": 0.048519959, "exit_code": 0}
+{"name": "clear-fresh-seed", "argv": ["node", "/private/tmp/blanc-first-session/check.mjs", "seed"], "started": "2026-10-19T23:18:06.636337+00:00", "seconds": 5.111345249999999, "exit_code": 0}
+{"name": "clear-fresh-proof", "argv": ["node", "/private/tmp/blanc-first-session/normal.mjs"], "started": "2026-10-19T23:18:11.795362+00:00", "seconds": 4.403428333, "exit_code": 1}
+{"name": "clear-fresh-cleanup", "argv": ["node", "/private/tmp/blanc-first-session/cleanup.mjs"], "started": "2026-10-19T23:18:16.240342+00:00", "seconds": 0.872359, "exit_code": 0}
+{"name": "clear-fresh-start", "argv": ["node", "/private/tmp/blanc-first-session/start.mjs"], "started": "2026-10-19T23:18:36.180374+00:00", "seconds": 0.052649458, "exit_code": 0}
+{"name": "clear-fresh-seed", "argv": ["node", "/private/tmp/blanc-first-session/check.mjs", "seed"], "started": "2026-10-19T23:18:36.263833+00:00", "seconds": 5.116717334, "exit_code": 0}
+{"name": "clear-fresh-proof", "argv": ["node", "/private/tmp/blanc-first-session/normal.mjs"], "started": "2026-10-19T23:18:41.416412+00:00", "seconds": 18.808382375, "exit_code": 1}
+{"name": "clear-fresh-cleanup", "argv": ["node", "/private/tmp/blanc-first-session/cleanup.mjs"], "started": "2026-10-19T23:19:00.263259+00:00", "seconds": 0.655706125, "exit_code": 0}
+{"name": "fix-build", "argv": ["node", "experiments/chromium-extension-spike/build.mjs", "/Users/anthonyjloria/Projects/BlancChromium157/src", "--build"], "started": "2026-10-19T23:19:31.028191+00:00", "seconds": 38.376023542000006, "exit_code": 0}
+{"name": "clear-fixed-start", "argv": ["node", "/private/tmp/blanc-first-session/start.mjs"], "started": "2026-10-19T23:20:16.421885+00:00", "seconds": 0.08620104199999999, "exit_code": 0}
+{"name": "clear-fixed-seed", "argv": ["node", "/private/tmp/blanc-first-session/check.mjs", "seed"], "started": "2026-10-19T23:20:16.542832+00:00", "seconds": 9.3430665, "exit_code": 0}
+{"name": "helper-build", "argv": ["clang", "-dynamiclib", "/private/tmp/blanc-first-session/prefs-fault.c", "-o", "/private/tmp/blanc-first-session/prefs-fault.dylib"], "started": "2026-10-19T23:20:27.412409+00:00", "seconds": 0.25939162499999996, "exit_code": 0}
+{"name": "clear-fixed-proof", "argv": ["node", "/private/tmp/blanc-first-session/normal.mjs"], "started": "2026-10-19T23:20:25.933831+00:00", "seconds": 6.506383292000001, "exit_code": 0}
+{"name": "clear-fixed-cleanup", "argv": ["node", "/private/tmp/blanc-first-session/cleanup.mjs"], "started": "2026-10-19T23:20:32.475782+00:00", "seconds": 0.66142475, "exit_code": 0}
+{"name": "encrypted-fixed-start", "argv": ["node", "/private/tmp/blanc-first-session/start.mjs"], "started": "2026-10-19T23:20:37.310196+00:00", "seconds": 0.050684, "exit_code": 0}
+{"name": "encrypted-fixed-seed", "argv": ["node", "/private/tmp/blanc-first-session/check.mjs", "seed"], "started": "2026-10-19T23:20:37.389672+00:00", "seconds": 5.006663958, "exit_code": 0}
+{"name": "encrypted-fixed-proof", "argv": ["node", "/private/tmp/blanc-first-session/normal.mjs"], "started": "2026-10-19T23:20:42.450475+00:00", "seconds": 6.516989084, "exit_code": 0}
+{"name": "encrypted-fixed-cleanup", "argv": ["node", "/private/tmp/blanc-first-session/cleanup.mjs"], "started": "2026-10-19T23:20:48.996594+00:00", "seconds": 0.632981875, "exit_code": 0}
+{"name": "hold-start", "argv": ["node", "/private/tmp/blanc-first-session/start.mjs"], "started": "2026-10-19T23:20:58.038968+00:00", "seconds": 0.049140375, "exit_code": 0}
+{"name": "hold-seed", "argv": ["node", "/private/tmp/blanc-first-session/check.mjs", "seed"], "started": "2026-10-19T23:20:58.115140+00:00", "seconds": 5.232437417000001, "exit_code": 0}
+{"name": "hold-proof", "argv": ["node", "/private/tmp/blanc-first-session/fault.mjs"], "started": "2026-10-19T23:21:03.385738+00:00", "seconds": 0.178207375, "exit_code": 0}
+{"name": "hold-cleanup", "argv": ["node", "/private/tmp/blanc-first-session/cleanup.mjs"], "started": "2026-10-19T23:21:03.619529+00:00", "seconds": 0.652652166, "exit_code": 0}
+{"name": "fail-start", "argv": ["node", "/private/tmp/blanc-first-session/start.mjs"], "started": "2026-10-19T23:21:09.599070+00:00", "seconds": 0.050873791, "exit_code": 0}
+{"name": "fail-seed", "argv": ["node", "/private/tmp/blanc-first-session/check.mjs", "seed"], "started": "2026-10-19T23:21:09.679183+00:00", "seconds": 5.001225791, "exit_code": 0}
+{"name": "fail-proof", "argv": ["node", "/private/tmp/blanc-first-session/fault.mjs"], "started": "2026-10-19T23:21:14.721713+00:00", "seconds": 1.30911625, "exit_code": 0}
+{"name": "focused-tests", "argv": ["node", "--test", "experiments/chromium-extension-spike/window-identity-test.mjs", "experiments/chromium-extension-spike/space-capture-test.mjs"], "started": "2026-10-19T23:21:16.404319+00:00", "seconds": 0.063397458, "exit_code": 0}
+{"name": "fail-cleanup", "argv": ["node", "/private/tmp/blanc-first-session/cleanup.mjs"], "started": "2026-10-19T23:21:16.071805+00:00", "seconds": 0.638123958, "exit_code": 0}
+{"name": "timeout-start", "argv": ["node", "/private/tmp/blanc-first-session/start.mjs"], "started": "2026-10-19T23:21:24.115503+00:00", "seconds": 0.053132500000000006, "exit_code": 0}
+{"name": "timeout-seed", "argv": ["node", "/private/tmp/blanc-first-session/check.mjs", "seed"], "started": "2026-10-19T23:21:24.200004+00:00", "seconds": 5.002343334, "exit_code": 0}
+{"name": "final-guard", "argv": ["node", "experiments/chromium-extension-spike/build.mjs", "/Users/anthonyjloria/Projects/BlancChromium157/src"], "started": "2026-10-19T23:21:27.289414+00:00", "seconds": 3.58894175, "exit_code": 0}
+{"name": "timeout-proof", "argv": ["node", "/private/tmp/blanc-first-session/fault.mjs"], "started": "2026-10-19T23:21:29.276318+00:00", "seconds": 9.302748999999999, "exit_code": 0}
+{"name": "timeout-cleanup", "argv": ["node", "/private/tmp/blanc-first-session/cleanup.mjs"], "started": "2026-10-19T23:21:38.626465+00:00", "seconds": 0.657799875, "exit_code": 0}
+{"name": "changed-start", "argv": ["node", "/private/tmp/blanc-first-session/start.mjs"], "started": "2026-10-19T23:21:43.632887+00:00", "seconds": 0.049493917000000005, "exit_code": 0}
+{"name": "changed-seed", "argv": ["node", "/private/tmp/blanc-first-session/check.mjs", "seed"], "started": "2026-10-19T23:21:43.712207+00:00", "seconds": 5.106402167, "exit_code": 0}
+{"name": "changed-proof", "argv": ["node", "/private/tmp/blanc-first-session/fault.mjs"], "started": "2026-10-19T23:21:48.859857+00:00", "seconds": 1.60533225, "exit_code": 0}
+{"name": "changed-cleanup", "argv": ["node", "/private/tmp/blanc-first-session/cleanup.mjs"], "started": "2026-10-19T23:21:50.503379+00:00", "seconds": 0.631564417, "exit_code": 0}

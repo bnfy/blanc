@@ -1,0 +1,14 @@
+{
+  "id": 1,
+  "result": {
+    "result": {
+      "type": "object",
+      "value": {
+        "title": "Recovery UI fixture",
+        "body": "",
+        "ready": "complete",
+        "visible": "hidden"
+      }
+    }
+  }
+}

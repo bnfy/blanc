@@ -1,7 +1,73 @@
 # Unreleased notes
 
-v1.48.0 is the current public release ([notes](v1.48.0.md)). Changes merged
+v1.52.0 is the current public release ([notes](v1.52.0.md)). Changes merged
 since then are below as they're recorded.
+
+## Still open from 1.52
+
+- **Download peek with Auto-hide on**, by hand in a packaged build on macOS
+  and Windows: a real click on a download link shows the hidden Island in both
+  the float and push styles. CI checks it with real downloads on Linux and
+  Windows; nobody has watched it on screen yet.
+- **Opening local HTML files on Windows** (#1630) by hand from Explorer's
+  Open with in an installed build, including Settings' Set default button.
+  CI checked the rest on a signed ECS package on a Windows runner (run
+  44658492309): the installer's registration and its removal, and a file
+  opening in the static preview at launch and when handed to a running
+  Blanc.
+- **The Windows passkey fix** on a PC with Windows Hello set up, and on real
+  sites. On November 21, 2026 a signed ECS package of `main` (`4c8f5d02f`,
+  run 44887227876) was checked in the Windows VM (no Windows Hello) with a
+  local test page: a quiet passkey request no longer started Windows'
+  passkey dialog, a passkey request the page made directly still did, and
+  public 1.51.0 still showed the bug. A sign-in form inside an iframe can
+  still open the dialog.
+- **The message for a refused local HTML file** in a packaged build on macOS
+  and Windows. Unit tests cover the reasons and the text; nobody has seen the
+  dialog on screen yet.
+- **Closing a real Proxmox console window** (#1477) in a packaged build. The
+  fix was checked in the acceptance suite with a page that asks before it's
+  left, not against Proxmox itself.
+
+## Still open from 1.51
+
+- **The one Start Page** (from the fork's V24) by hand in a packaged build on
+  macOS, Windows and Linux: dragging cards with a real mouse and finger,
+  resizing them, and the light-or-dark text over a real photo.
+- **The wallpaper behind the Island** (#1622) by hand on Windows and Linux,
+  where the window buttons sit over the photo, and with a Space's color wash.
+  It was checked on macOS by hand and in the desktop checks there.
+- **Customize at the smallest windows:** the clock gives way down to half
+  size; below that Customize scrolls, and at 640×480 with a tall clock it
+  can still get short (it never covers the clock, by the owner's rule).
+- **The Favorites page** (#1614) by hand in a packaged build on macOS,
+  Windows and Linux: Edit… with a real address change, the ⋮ menu, and
+  dragging with a real mouse.
+
+## Still open from 1.50
+
+- **Whether macOS asks for Downloads access the first time** Blanc saves a
+  download without asking (#1591). The packaged check on November 17, 2026
+  saw no prompt, but it ran with the same signing identity as an installed
+  Blanc that may already have had access. Saving to the real Downloads folder
+  was checked in signed packaged builds on macOS and Windows.
+- **Favorites drag and drop with a real mouse** in a packaged build on macOS,
+  Windows and Linux. The checks so far drive drags with page events only.
+- **The Favorites menu's nested folders** by hand in a packaged build on
+  each platform.
+
+## Still open from 1.49.1
+
+- **New Tab reuse** (#1505) in a packaged build on macOS, Windows and Linux,
+  including a quiet unused new tab and the Settings switch.
+
+## Still open from 1.49
+
+- **The pop-out certificate fix** (#1478) against a real local console, such
+  as Proxmox's noVNC and xterm.js windows, after **Continue**.
+- **Mahjong** in a packaged build: the three tile sets, the match trail and
+  board-cleared celebration (and the reduced-motion glow), in light and dark
+  mode.
 
 ## Still open from 1.48
 

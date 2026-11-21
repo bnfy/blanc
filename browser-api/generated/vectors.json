@@ -74,11 +74,12 @@
           ]
         },
         {
-          "label": "opts = {\"private\":true}",
+          "label": "opts = {\"private\":true,\"focusAddress\":true}",
           "args": [
             "https://example.com/",
             {
-              "private": true
+              "private": true,
+              "focusAddress": true
             }
           ],
           "sends": [
@@ -88,7 +89,8 @@
               "args": [
                 "https://example.com/",
                 {
-                  "private": true
+                  "private": true,
+                  "focusAddress": true
                 }
               ]
             }
@@ -4365,7 +4367,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspaces-payload-1"
         }
       ]
     },
@@ -4484,7 +4505,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -4630,7 +4670,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -4806,7 +4865,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -4943,7 +5021,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -4981,7 +5078,8 @@
               "decision": "open-workspace-options-1",
               "newWindow": true,
               "color": "open-workspace-options-1",
-              "symbol": "open-workspace-options-1"
+              "symbol": "open-workspace-options-1",
+              "profileId": "open-workspace-options-1"
             }
           ],
           "sends": [
@@ -4994,7 +5092,8 @@
                   "decision": "open-workspace-options-1",
                   "newWindow": true,
                   "color": "open-workspace-options-1",
-                  "symbol": "open-workspace-options-1"
+                  "symbol": "open-workspace-options-1",
+                  "profileId": "open-workspace-options-1"
                 }
               ]
             }
@@ -5084,7 +5183,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -5122,7 +5240,8 @@
               "decision": "open-workspace-options-1",
               "newWindow": true,
               "color": "open-workspace-options-1",
-              "symbol": "open-workspace-options-1"
+              "symbol": "open-workspace-options-1",
+              "profileId": "open-workspace-options-1"
             }
           ],
           "sends": [
@@ -5135,7 +5254,8 @@
                   "decision": "open-workspace-options-1",
                   "newWindow": true,
                   "color": "open-workspace-options-1",
-                  "symbol": "open-workspace-options-1"
+                  "symbol": "open-workspace-options-1",
+                  "profileId": "open-workspace-options-1"
                 }
               ]
             }
@@ -5225,7 +5345,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -5319,7 +5458,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -5413,7 +5571,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -5507,7 +5684,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -5630,7 +5826,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -5726,7 +5941,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -5820,7 +6054,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -6248,7 +6501,26 @@
                 "busy": true,
                 "slowed": true
               },
-              "recoveryNotice": true
+              "recoveryNotice": true,
+              "otherProfiles": [
+                {
+                  "id": "other-profile-spaces-1",
+                  "name": "other-profile-spaces-1",
+                  "status": "saved",
+                  "full": true,
+                  "items": [
+                    {
+                      "id": "workspace-id-1",
+                      "name": "other-profile-space-1",
+                      "color": "other-profile-space-1",
+                      "symbol": "other-profile-space-1",
+                      "tabCount": 1,
+                      "openElsewhere": true
+                    }
+                  ]
+                }
+              ],
+              "profileName": "workspaces-payload-1"
             }
           ],
           "callbacks": [
@@ -6296,7 +6568,26 @@
                   "busy": true,
                   "slowed": true
                 },
-                "recoveryNotice": true
+                "recoveryNotice": true,
+                "otherProfiles": [
+                  {
+                    "id": "other-profile-spaces-1",
+                    "name": "other-profile-spaces-1",
+                    "status": "saved",
+                    "full": true,
+                    "items": [
+                      {
+                        "id": "workspace-id-1",
+                        "name": "other-profile-space-1",
+                        "color": "other-profile-space-1",
+                        "symbol": "other-profile-space-1",
+                        "tabCount": 1,
+                        "openElsewhere": true
+                      }
+                    ]
+                  }
+                ],
+                "profileName": "workspaces-payload-1"
               }
             ]
           ]
@@ -7350,6 +7641,97 @@
         }
       ]
     },
+    "onPageBackdrop": {
+      "kind": "event",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:page-backdrop",
+      "deliveries": [
+        {
+          "emit": [
+            {
+              "id": "tab-id-1",
+              "zoom": 1,
+              "width": 1,
+              "height": 1,
+              "layers": [],
+              "band": 1
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "id": "tab-id-1",
+                "zoom": 1,
+                "width": 1,
+                "height": 1,
+                "layers": [],
+                "band": 1
+              }
+            ]
+          ]
+        },
+        {
+          "emit": [
+            {
+              "id": "tab-id-1",
+              "zoom": 1,
+              "width": 1,
+              "height": 1,
+              "layers": [
+                {
+                  "color": "backdrop-layer-1",
+                  "image": "backdrop-layer-1",
+                  "size": "backdrop-layer-1",
+                  "position": "backdrop-layer-1",
+                  "repeat": "backdrop-layer-1",
+                  "opacity": 1,
+                  "fade": true
+                }
+              ],
+              "band": 1,
+              "sunriseAt": 1
+            }
+          ],
+          "callbacks": [
+            [
+              {
+                "id": "tab-id-1",
+                "zoom": 1,
+                "width": 1,
+                "height": 1,
+                "layers": [
+                  {
+                    "color": "backdrop-layer-1",
+                    "image": "backdrop-layer-1",
+                    "size": "backdrop-layer-1",
+                    "position": "backdrop-layer-1",
+                    "repeat": "backdrop-layer-1",
+                    "opacity": 1,
+                    "fade": true
+                  }
+                ],
+                "band": 1,
+                "sunriseAt": 1
+              }
+            ]
+          ]
+        },
+        {
+          "emit": [
+            null
+          ],
+          "callbacks": [
+            [
+              null
+            ]
+          ]
+        }
+      ]
+    },
     "onDownloadsActivity": {
       "kind": "event",
       "platforms": [
@@ -7446,7 +7828,8 @@
                 "width": 1,
                 "height": 1
               },
-              "searchPriorityResults": true
+              "searchPriorityResults": true,
+              "panelSideClearance": 1
             }
           ],
           "callbacks": [
@@ -7461,7 +7844,8 @@
                   "width": 1,
                   "height": 1
                 },
-                "searchPriorityResults": true
+                "searchPriorityResults": true,
+                "panelSideClearance": 1
               }
             ]
           ]

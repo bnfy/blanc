@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Blanc for Android's names, in place of Chromium's
+chrome/android/java/res_chromium_base/values/channel_constants.xml
+(patch 0101). Brand names are not translated. The widget titles replace Chromium's own, so a
+widget that Chromium builds in never says Chrome; this build ships none, hence the lint note.
+-->
+
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name" translatable="false">Blanc</string>
+    <string name="bookmark_widget_title" translatable="false" tools:ignore="UnusedResources">Blanc favorites</string>
+    <string name="search_widget_title" translatable="false" tools:ignore="UnusedResources">Blanc search</string>
+    <string name="quick_action_search_widget_title" translatable="false" tools:ignore="UnusedResources">Blanc quick action search</string>
+</resources>

@@ -1,0 +1,237 @@
+{
+  "app": "/private/tmp/blanc-l7-repair/Blanc Chromium Preview.app",
+  "checks": [
+    {
+      "name": "launcher refuses --blanc-ubo-reload-probe",
+      "pass": true,
+      "details": {
+        "status": 64
+      }
+    },
+    {
+      "name": "launcher refuses --blanc-ubo-document-start",
+      "pass": true,
+      "details": {
+        "status": 64
+      }
+    },
+    {
+      "name": "launcher refuses --blanc-ubo-component-probe=/missing",
+      "pass": true,
+      "details": {
+        "status": 64
+      }
+    },
+    {
+      "name": "launcher refuses --blanc-renderer-token-mismatch-probe",
+      "pass": true,
+      "details": {
+        "status": 64
+      }
+    },
+    {
+      "name": "launcher refuses --blanc-worker-update-log=/missing",
+      "pass": true,
+      "details": {
+        "status": 64
+      }
+    },
+    {
+      "name": "regular native entry works despite obsolete probe switches",
+      "pass": true
+    },
+    {
+      "name": "regular HTTP allow/block preserved",
+      "pass": true,
+      "details": [
+        {
+          "url": "http://127.0.0.1:9892/allow",
+          "ok": true
+        },
+        {
+          "url": "http://000491b06a.com:9892/block",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "regular WebSocket allow/block preserved",
+      "pass": true,
+      "details": [
+        "ok",
+        "blocked"
+      ]
+    },
+    {
+      "name": "regular denied hosts never reach fixture",
+      "pass": true,
+      "details": {
+        "hits": [
+          {
+            "host": "127.0.0.1:9892",
+            "url": "/entry"
+          },
+          {
+            "host": "127.0.0.1:9892",
+            "url": "/favicon.ico"
+          },
+          {
+            "host": "127.0.0.1:9892",
+            "url": "/allow"
+          },
+          {
+            "host": "127.0.0.1:9892",
+            "url": "/sw.js"
+          },
+          {
+            "host": "127.0.0.1:9892",
+            "url": "/sw.js"
+          }
+        ],
+        "upgrades": [
+          "127.0.0.1:9892"
+        ]
+      }
+    },
+    {
+      "name": "regular worker diagnostic remains disabled",
+      "pass": true
+    },
+    {
+      "name": "regular blocker diagnostic remains disabled",
+      "pass": true
+    },
+    {
+      "name": "regular native instance exits cleanly",
+      "pass": true
+    },
+    {
+      "name": "private native entry works despite obsolete probe switches",
+      "pass": true
+    },
+    {
+      "name": "private HTTP allow/block preserved",
+      "pass": true,
+      "details": [
+        {
+          "url": "http://127.0.0.1:9892/allow",
+          "ok": true
+        },
+        {
+          "url": "http://000491b06a.com:9892/block",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "private WebSocket allow/block preserved",
+      "pass": true,
+      "details": [
+        "ok",
+        "blocked"
+      ]
+    },
+    {
+      "name": "private denied hosts never reach fixture",
+      "pass": true,
+      "details": {
+        "hits": [
+          {
+            "host": "127.0.0.1:9892",
+            "url": "/entry"
+          },
+          {
+            "host": "127.0.0.1:9892",
+            "url": "/favicon.ico"
+          },
+          {
+            "host": "127.0.0.1:9892",
+            "url": "/allow"
+          },
+          {
+            "host": "127.0.0.1:9892",
+            "url": "/sw.js"
+          },
+          {
+            "host": "127.0.0.1:9892",
+            "url": "/sw.js"
+          }
+        ],
+        "upgrades": [
+          "127.0.0.1:9892"
+        ]
+      }
+    },
+    {
+      "name": "private worker diagnostic remains disabled",
+      "pass": true
+    },
+    {
+      "name": "private blocker diagnostic remains disabled",
+      "pass": true
+    },
+    {
+      "name": "private native instance exits cleanly",
+      "pass": true
+    }
+  ],
+  "runs": [
+    {
+      "mode": "regular",
+      "hits": [
+        {
+          "host": "127.0.0.1:9892",
+          "url": "/entry"
+        },
+        {
+          "host": "127.0.0.1:9892",
+          "url": "/favicon.ico"
+        },
+        {
+          "host": "127.0.0.1:9892",
+          "url": "/allow"
+        },
+        {
+          "host": "127.0.0.1:9892",
+          "url": "/sw.js"
+        },
+        {
+          "host": "127.0.0.1:9892",
+          "url": "/sw.js"
+        }
+      ],
+      "upgrades": [
+        "127.0.0.1:9892"
+      ]
+    },
+    {
+      "mode": "private",
+      "hits": [
+        {
+          "host": "127.0.0.1:9892",
+          "url": "/entry"
+        },
+        {
+          "host": "127.0.0.1:9892",
+          "url": "/favicon.ico"
+        },
+        {
+          "host": "127.0.0.1:9892",
+          "url": "/allow"
+        },
+        {
+          "host": "127.0.0.1:9892",
+          "url": "/sw.js"
+        },
+        {
+          "host": "127.0.0.1:9892",
+          "url": "/sw.js"
+        }
+      ],
+      "upgrades": [
+        "127.0.0.1:9892"
+      ]
+    }
+  ],
+  "complete": true
+}

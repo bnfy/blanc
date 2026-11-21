@@ -1,0 +1,9 @@
+{
+  "before": "Extensions\nEsc\nInstalled themes\nTheme fixture a\nApply\nRemove\nTheme fixture b — Active\nApply\nRemove\n\nManage extensions\nBrowse web store\n↑ ↓ to move   Enter to open   Esc to close",
+  "after": "Extensions\nEsc\nInstalled themes\nTheme fixture a — Active\nApply\nRemove\nTheme fixture b\nApply\nRemove\n\nManage extensions\nBrowse web store\n↑ ↓ to move   Enter to open   Esc to close",
+  "icon": {
+    "marker": true,
+    "class": "favicon has-icon",
+    "filter": "brightness(0) invert(1)"
+  }
+}

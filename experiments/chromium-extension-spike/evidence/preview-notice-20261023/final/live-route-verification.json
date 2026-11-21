@@ -1,0 +1,10 @@
+{
+  "url": "https://github.com/bnfy/blanc/pull/1028",
+  "httpStatus": 200,
+  "anonymous": true,
+  "descriptionMatches": true,
+  "bodySha256": "afb6b73cf33f085a7876207c1b75165ddfc84af224281fdde69efb6ca57826e4",
+  "artifactSha256": "f177e0b5100db9a3fc83c7d5522cc343b86582add4d209d49696cef4f3729a55",
+  "draft": true,
+  "base": "codex/chromium157-rebase"
+}

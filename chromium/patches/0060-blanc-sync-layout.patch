@@ -1,0 +1,222 @@
+--- a/chrome/browser/resources/settings/blanc_settings_proxy.ts
++++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+@@ -30,6 +30,7 @@
+   uiLanguages: BlancLanguage[];
+   launchUiLanguage: string|null;
+   surfaceStyle: string;
++  theme: string;
+   pageZoom: number;
+   usagePing: boolean;
+ }
+@@ -229,12 +230,16 @@
+ }
+ 
+ let blancSurface = 'sunrise';
++let blancTheme = 'system';
+ const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+ 
+ function applyBlancTheme() {
+   const palettes = PALETTES[blancSurface] ?? PALETTES['sunrise'];
+-  const palette = darkQuery.matches ? palettes.dark : palettes.light;
++  const dark = blancTheme === 'dark' || (blancTheme === 'system' && darkQuery.matches);
++  const palette = dark ? palettes.dark : palettes.light;
+   const root = document.documentElement;
++  root.dataset['blancAppearance'] = dark ? 'dark' : 'light';
++  root.style.colorScheme = dark ? 'dark' : 'light';
+   for (const [name, value] of Object.entries(blancTokens(palette))) {
+     root.style.setProperty(name, value);
+   }
+@@ -270,13 +275,15 @@
+ 
+ blancSettings.get().then(state => {
+   blancSurface = state.surfaceStyle;
++  blancTheme = state.theme;
+   applyBlancTheme();
+   applyBlancZoom(state.pageZoom);
+ });
+ blancSettings.listen(state => {
+   applyBlancZoom(state.pageZoom);
+-  if (state.surfaceStyle !== blancSurface) {
++  if (state.surfaceStyle !== blancSurface || state.theme !== blancTheme) {
+     blancSurface = state.surfaceStyle;
++    blancTheme = state.theme;
+     applyBlancTheme();
+   }
+ });
+@@ -292,6 +299,8 @@
+   lastError: string|null;
+   origin: string;
+   recoveryPromptDismissed: boolean;
++  deviceName: string;
++  deviceNamePublished: string;
+ }
+ 
+ export interface BlancSyncState {
+@@ -316,7 +325,7 @@
+ 
+ export type BlancSyncMethod = 'desktop.spaces.status'|'desktop.spaces.armPairing'|'desktop.spaces.acknowledge'|'desktop.spaces.preview'|'desktop.spaces.apply'| 'sync.startNew'|'sync.joinWithCode'|
+     'sync.preflight'|'sync.enable'|'sync.syncNow'|'sync.disable'|'sync.status'|'sync.beginPairing'|'sync.cancelPairing'|'sync.pairingState'|
+-    'sync.setPairingWatch'|'sync.setSyncTabs';
++    'sync.setPairingWatch'|'sync.setSyncTabs'|'sync.setThisDeviceName';
+ 
+ interface BlancSyncReply<T> {
+   ok: boolean;
+--- a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.css
++++ b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.css
+@@ -43,7 +43,7 @@
+   margin-bottom: 8px;
+ }
+ 
+-input {
++input:not([type='checkbox']) {
+   background: var(--color-textfield-filled-background);
+   border: var(--cr-separator-line);
+   border-radius: 8px;
+@@ -114,3 +114,48 @@
+   font-size: 24px;
+   letter-spacing: .15em;
+ }
++
++/* Checkboxes never inherit text-field width or padding. */
++label:has(input[type='checkbox']) {
++  display: flex;
++  align-items: center;
++  gap: 8px;
++  line-height: 20px;
++}
++
++input[type='checkbox'] {
++  flex: 0 0 16px;
++  width: 16px;
++  height: 16px;
++  padding: 0;
++  margin: 0;
++}
++
++.sync-heading {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  gap: 16px;
++}
++
++.sync-heading > div { min-width: 0; }
++
++.sync-heading cr-button { flex-shrink: 0;
++ margin: 0; }
++
++.sync-heading h2 { margin: 0 0 4px; }
++
++.sync-always { display: flex;
++ flex-wrap: wrap;
++ gap: 8px 24px;
++ margin: 12px 0 16px; }
++
++#syncDeviceNameHint,
++ #syncTurnOffHint { margin: 8px 0 12px; }
++
++#syncMore { margin-bottom: 8px; }
++@media (max-width: 650px) {
++  .sync-content { padding-inline: 12px; }
++  .sync-turn-off { align-items: flex-start;
++ flex-direction: column; }
++}
+--- a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html
++++ b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html
+@@ -74,22 +74,47 @@
+       </div>
+ 
+       <div id="syncOn" ?hidden="${!this.state_?.status?.enabled}">
+-        <label id="syncTabsShareSetting"><input id="syncTabsShare" type="checkbox"
+-            .checked="${!!this.state_?.status?.syncTabs}" ?disabled="${this.busy_}"
+-            @change="${this.onTabsShareChange_}"> Open tabs — From this device</label>
+-        <label><input id="syncSpacesToggle" type="checkbox" .checked="${!!this.spaces_.enabled || this.spacesOpen_ || this.spacesSaving_}" ?disabled="${this.spacesSaving_}" @change="${this.onSpacesToggleChange_}"> Keep Spaces and groups in sync on this device</label>
+-        <p class="secondary">Tabs in your shared Spaces sync from this device. Turning this off keeps a local copy; your other devices keep syncing.</p>
+-        <cr-button id="syncSpacesChoose" @click="${this.onSpacesChooseClick_}" ?disabled="${this.busy_}">Choose Spaces</cr-button>
+-        <cr-button id="syncSpacesOff" ?hidden="${!this.spaces_.enabled}" @click="${this.onSpacesOffClick_}">Turn off Spaces sync</cr-button>
+-        <p id="syncAccount">${this.state_?.status?.handle ?? ''}</p>
+-        <cr-button id="syncNow" ?disabled="${this.busy_}"
+-            @click="${this.onSyncNowClick_}">$i18n{blancSyncNow}</cr-button>
+-        <cr-button id="syncAddDevice" ?disabled="${this.busy_}" @click="${this.onAddDeviceClick_}">Add device</cr-button>
+-        <p class="secondary">$i18n{blancSyncTurnOffHint}</p>
+-        <label><input id="syncWipe" type="checkbox" .checked="${this.wipeRemote_}" ?disabled="${this.busy_}" @change="${this.onWipeChange_}"> Also delete synced data</label>
+-        <cr-button id="syncEraseRetry" ?hidden="${!this.eraseFailed_ && this.state_?.status?.lastError !== 'erasure-pending'}" ?disabled="${this.busy_}" @click="${this.onEraseRetryClick_}">Try erasing again</cr-button>
+-        <cr-button id="syncDisable" ?disabled="${this.busy_ || this.confirming_}"
+-            @click="${this.onTurnOffClick_}">$i18n{blancSyncDisable}</cr-button>
++        <div class="sync-heading">
++          <div><span class="secondary">Sync name</span><h2 id="syncAccount">${this.state_?.status?.handle ?? ''}</h2></div>
++          <cr-button id="syncNow" ?disabled="${this.busy_}" @click="${this.onSyncNowClick_}">$i18n{blancSyncNow}</cr-button>
++        </div>
++        <section aria-labelledby="syncWhatTitle">
++          <h2 id="syncWhatTitle">What syncs</h2>
++          <div class="sync-always"><span>Favorites — Always on</span><span>Settings — Always on</span></div>
++          <label id="syncTabsShareSetting" class="inline-check"><input id="syncTabsShare" type="checkbox"
++              .checked="${!!this.state_?.status?.syncTabs}" ?disabled="${this.busy_}"
++              @change="${this.onTabsShareChange_}"><span>Open tabs — From this device</span></label>
++          <label class="inline-check"><input id="syncSpacesToggle" type="checkbox" .checked="${!!this.spaces_.enabled || this.spacesOpen_ || this.spacesSaving_}" ?disabled="${this.spacesSaving_}" @change="${this.onSpacesToggleChange_}"><span>Keep Spaces and groups in sync on this device</span></label>
++          <p class="secondary">Tabs in your shared Spaces sync from this device. Turning this off keeps a local copy; your other devices keep syncing.</p>
++          <cr-button id="syncSpacesChoose" @click="${this.onSpacesChooseClick_}" ?disabled="${this.busy_}">Choose Spaces</cr-button>
++          <cr-button id="syncSpacesOff" ?hidden="${!this.spaces_.enabled}" @click="${this.onSpacesOffClick_}">Turn off Spaces sync</cr-button>
++        </section>
++        <section aria-labelledby="syncDevicesTitle">
++          <div class="sync-heading"><h2 id="syncDevicesTitle">Devices</h2>
++            <cr-button id="syncAddDevice" ?disabled="${this.busy_}" @click="${this.onAddDeviceClick_}">Add device</cr-button></div>
++          <label for="syncDeviceName">This device</label>
++          <input id="syncDeviceName" type="text" maxlength="80" autocomplete="off" spellcheck="false"
++              aria-label="This device’s name" aria-describedby="syncDeviceNameHint"
++              .value="${this.state_?.status?.deviceName ?? ''}"
++              .placeholder="${this.state_?.status?.deviceNamePublished ?? ''}"
++              ?disabled="${this.busy_}" @change="${this.onDeviceNameChange_}" @keydown="${this.onDeviceNameKeydown_}">
++          <p id="syncDeviceNameHint" class="secondary">How your other devices list this one. Leave empty to use the computer’s name.</p>
++        </section>
++      <section id="syncRecoveryPrompt" aria-labelledby="syncRecoveryTitle"
++          ?hidden="${!this.state_?.status?.enabled || this.state_.status.origin !== 'generated' || this.state_.status.recoveryPromptDismissed}">
++        <h2 id="syncRecoveryTitle">$i18n{blancSyncRecoveryTitle}</h2>
++        <p>$i18n{blancSyncRecoveryBody}</p>
++        <p class="secondary">$i18n{blancSyncRecoveryUnavailable}</p>
++      </section>
++        <details id="syncMore" class="sync-more"><summary>More options</summary>
++          <div class="sync-heading sync-turn-off"><div>
++            <h2 id="syncTurnOffLabel">Turn off sync</h2>
++            <p id="syncTurnOffHint" class="secondary">$i18n{blancSyncTurnOffHint}</p>
++            <label class="inline-check"><input id="syncWipe" type="checkbox" .checked="${this.wipeRemote_}" ?disabled="${this.busy_}" @change="${this.onWipeChange_}"><span>Also delete synced data</span></label>
++          </div><cr-button id="syncDisable" ?disabled="${this.busy_ || this.confirming_}"
++              aria-describedby="syncTurnOffLabel syncTurnOffHint" @click="${this.onTurnOffClick_}">$i18n{blancSyncDisable}</cr-button></div>
++          <cr-button id="syncEraseRetry" ?hidden="${!this.eraseFailed_ && this.state_?.status?.lastError !== 'erasure-pending'}" ?disabled="${this.busy_}" @click="${this.onEraseRetryClick_}">Try erasing again</cr-button>
++        </details>
+       </div>
+ 
+       <dialog id="syncPairingDialog" aria-labelledby="syncPairingTitle" @cancel="${this.onPairCancel_}">
+@@ -147,12 +172,7 @@
+         </cr-button>
+       </section>
+ 
+-      <section id="syncRecoveryPrompt" aria-labelledby="syncRecoveryTitle"
+-          ?hidden="${!this.state_?.status?.enabled || this.state_.status.origin !== 'generated' || this.state_.status.recoveryPromptDismissed}">
+-        <h2 id="syncRecoveryTitle">$i18n{blancSyncRecoveryTitle}</h2>
+-        <p>$i18n{blancSyncRecoveryBody}</p>
+-        <p class="secondary">$i18n{blancSyncRecoveryUnavailable}</p>
+-      </section>
++
+       <p id="syncBusy" role="status" ?hidden="${!this.busy_}">
+         ${this.state_?.status?.enabled ? '$i18n{blancSyncSyncing}' : '$i18n{blancSyncChecking}'}
+       </p>
+--- a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts
++++ b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts
+@@ -551,6 +551,16 @@
+     }
+   }
+ 
++  protected onDeviceNameChange_(event: Event) {
++    const name = (event.target as HTMLInputElement).value;
++    void this.act_(async () => ({ok: true,
++      status: await blancSync.call<BlancSyncStatus>('sync.setThisDeviceName', [name])}));
++  }
++
++  protected onDeviceNameKeydown_(event: KeyboardEvent) {
++    if (event.key === 'Enter') {event.preventDefault(); (event.target as HTMLInputElement).blur();}
++  }
++
+   protected onTabsShareChange_(event: Event) {
+     const on = (event.target as HTMLInputElement).checked;
+     void this.act_(() => blancSync.call('sync.setSyncTabs', [on]));

@@ -1,0 +1,8 @@
+{
+  "checkedDate": "2026-10-26",
+  "source": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+  "publicStandardCompute": "Free under the documented policy",
+  "largerRunners": "Charged even for public repositories",
+  "storageAndCache": "Separate limits and possible charges; no account billing export was obtained",
+  "observation": "The repository is public; 26 non-skipped jobs in these four runs used standard ubuntu/windows/macos labels. All four runs returned zero artifacts. This is not an account invoice or a statement that all costs are zero."
+}

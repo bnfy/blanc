@@ -1,0 +1,28 @@
+{
+  "scope": "bounded offline blocking and cancellation hold",
+  "checks": [],
+  "hits": [],
+  "profileRemoved": true,
+  "startupNavigationErrors": [
+    "Error: page.goto: Page crashed\nCall log:\n\u001b[2m  - navigating to \"chrome-extension://oddhmofgkplblkmckempfepikkophank/popup-fenix.html\", waiting until \"load\"\u001b[22m\n",
+    "Error: page.goto: Page crashed\nCall log:\n\u001b[2m  - navigating to \"chrome-extension://oddhmofgkplblkmckempfepikkophank/popup-fenix.html\", waiting until \"load\"\u001b[22m\n",
+    "Error: page.goto: Page crashed\nCall log:\n\u001b[2m  - navigating to \"chrome-extension://oddhmofgkplblkmckempfepikkophank/popup-fenix.html\", waiting until \"load\"\u001b[22m\n",
+    "Error: page.goto: Page crashed\nCall log:\n\u001b[2m  - navigating to \"chrome-extension://oddhmofgkplblkmckempfepikkophank/popup-fenix.html\", waiting until \"load\"\u001b[22m\n",
+    "Error: page.goto: Page crashed\nCall log:\n\u001b[2m  - navigating to \"chrome-extension://oddhmofgkplblkmckempfepikkophank/popup-fenix.html\", waiting until \"load\"\u001b[22m\n",
+    "Error: page.goto: Page crashed\nCall log:\n\u001b[2m  - navigating to \"chrome-extension://oddhmofgkplblkmckempfepikkophank/popup-fenix.html\", waiting until \"load\"\u001b[22m\n",
+    "Error: page.goto: Page crashed\nCall log:\n\u001b[2m  - navigating to \"chrome-extension://oddhmofgkplblkmckempfepikkophank/popup-fenix.html\", waiting until \"load\"\u001b[22m\n",
+    "Error: page.goto: Page crashed\nCall log:\n\u001b[2m  - navigating to \"chrome-extension://oddhmofgkplblkmckempfepikkophank/popup-fenix.html\", waiting until \"load\"\u001b[22m\n",
+    "Error: page.goto: Page crashed\nCall log:\n\u001b[2m  - navigating to \"chrome-extension://oddhmofgkplblkmckempfepikkophank/popup-fenix.html\", waiting until \"load\"\u001b[22m\n",
+    "Error: page.goto: Page crashed\nCall log:\n\u001b[2m  - navigating to \"chrome-extension://oddhmofgkplblkmckempfepikkophank/popup-fenix.html\", waiting until \"load\"\u001b[22m\n"
+  ],
+  "passed": false,
+  "error": "Error: page.goto: Page crashed\nCall log:\n\u001b[2m  - navigating to \"chrome-extension://oddhmofgkplblkmckempfepikkophank/popup-fenix.html\", waiting until \"load\"\u001b[22m\n",
+  "events": [
+    {
+      "accepted": true,
+      "action": "/begin",
+      "event": "ubo-control"
+    }
+  ],
+  "refusedHostCount": 1
+}

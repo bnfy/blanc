@@ -89,6 +89,17 @@ async function settle() {
   for (let i = 0; i < 20; i += 1) await new Promise((resolve) => setImmediate(resolve));
 }
 
+// Turns of the event loop until `done()`. A publish that a timer just started
+// still encrypts and sends through real async work, which a slow runner
+// (Windows CI, November 11, 2026) didn't finish in settle()'s 20. A count of
+// turns is only a few milliseconds, and that was not enough either (Windows
+// CI, November 17, 2026), so the bound is real time. Date and performance.now
+// are mocked here; process.hrtime is not.
+async function settleUntil(done, timeoutMs = 10_000) {
+  const deadline = process.hrtime.bigint() + BigInt(timeoutMs) * 1_000_000n;
+  while (!done() && process.hrtime.bigint() < deadline) await new Promise((resolve) => setImmediate(resolve));
+}
+
 const sessionRequests = () => requests.filter(({ url }) => url.endsWith('/session'));
 
 let started = false;
@@ -136,7 +147,15 @@ test('a title that changes every 10 s still publishes within the ceiling', async
     // Let the last armed publish fire: a timer dropped by reset() would leave
     // its pending-since mark behind for the next test's clock.
     mock.timers.tick(60 * SECOND);
-    await settle();
+    // Then nothing may still hold a mocked timer when reset() drops them:
+    // Node's mock clearTimeout of a timer from before a reset removes
+    // whichever new timer sits at its old place in the queue. A save still
+    // pending or in flight here clears its timer during the next test, which
+    // took that test's session publish timer with it (Windows CI and a busy
+    // Mac, November 18, 2026). So the publish finishes, and every store writes
+    // now and waits out its writes, while this test's timers are still live.
+    await settleUntil(() => { const { waiting, running } = sync.sharedStatus(); return !waiting && !running; });
+    await jsonStores.settle();
     mock.timers.reset();
   }
 });
@@ -151,7 +170,7 @@ test('the trailing 15 s still applies when changes stop', async () => {
     await settle();
     assert.equal(sessionRequests().length, 0, 'nothing publishes before the trailing delay elapses');
     mock.timers.tick(2 * SECOND);
-    await settle();
+    await settleUntil(() => sessionRequests().length > 0);
     assert.ok(sessionRequests().length > 0, 'one quiet change publishes after 15 s');
   } finally {
     mock.timers.reset();

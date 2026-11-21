@@ -1,0 +1,167 @@
+{
+  "complete": true,
+  "scope": "authored diagnostic engine using unchanged native delivery; not pinned production selection",
+  "checks": [
+    {
+      "name": "regular page script runs under CSP",
+      "pass": true
+    },
+    {
+      "name": "regular timer target defused",
+      "pass": true
+    },
+    {
+      "name": "regular neutral timer runs",
+      "pass": true
+    },
+    {
+      "name": "regular initial text",
+      "pass": true
+    },
+    {
+      "name": "regular initial styled",
+      "pass": true
+    },
+    {
+      "name": "regular initial upward",
+      "pass": true
+    },
+    {
+      "name": "regular initial xpath",
+      "pass": true
+    },
+    {
+      "name": "regular neutral visible",
+      "pass": true
+    },
+    {
+      "name": "regular nonmatch reveals text",
+      "pass": true
+    },
+    {
+      "name": "regular nonmatch reveals styled",
+      "pass": true
+    },
+    {
+      "name": "regular nonmatch reveals upward",
+      "pass": true
+    },
+    {
+      "name": "regular nonmatch reveals xpath",
+      "pass": true
+    },
+    {
+      "name": "regular moved upward follows leaf",
+      "pass": true
+    },
+    {
+      "name": "regular timer mutation rematches text",
+      "pass": true
+    },
+    {
+      "name": "regular timer mutation rematches styled",
+      "pass": true
+    },
+    {
+      "name": "regular timer mutation rematches upward",
+      "pass": true
+    },
+    {
+      "name": "regular timer mutation rematches xpath",
+      "pass": true
+    },
+    {
+      "name": "regular old move parent revealed",
+      "pass": true
+    },
+    {
+      "name": "regular inserted subtree evaluated",
+      "pass": true
+    },
+    {
+      "name": "regular neutral still visible",
+      "pass": true
+    },
+    {
+      "name": "private page script runs under CSP",
+      "pass": true
+    },
+    {
+      "name": "private timer target defused",
+      "pass": true
+    },
+    {
+      "name": "private neutral timer runs",
+      "pass": true
+    },
+    {
+      "name": "private initial text",
+      "pass": true
+    },
+    {
+      "name": "private initial styled",
+      "pass": true
+    },
+    {
+      "name": "private initial upward",
+      "pass": true
+    },
+    {
+      "name": "private initial xpath",
+      "pass": true
+    },
+    {
+      "name": "private neutral visible",
+      "pass": true
+    },
+    {
+      "name": "private nonmatch reveals text",
+      "pass": true
+    },
+    {
+      "name": "private nonmatch reveals styled",
+      "pass": true
+    },
+    {
+      "name": "private nonmatch reveals upward",
+      "pass": true
+    },
+    {
+      "name": "private nonmatch reveals xpath",
+      "pass": true
+    },
+    {
+      "name": "private moved upward follows leaf",
+      "pass": true
+    },
+    {
+      "name": "private timer mutation rematches text",
+      "pass": true
+    },
+    {
+      "name": "private timer mutation rematches styled",
+      "pass": true
+    },
+    {
+      "name": "private timer mutation rematches upward",
+      "pass": true
+    },
+    {
+      "name": "private timer mutation rematches xpath",
+      "pass": true
+    },
+    {
+      "name": "private old move parent revealed",
+      "pass": true
+    },
+    {
+      "name": "private inserted subtree evaluated",
+      "pass": true
+    },
+    {
+      "name": "private neutral still visible",
+      "pass": true
+    }
+  ],
+  "cleanup": true
+}

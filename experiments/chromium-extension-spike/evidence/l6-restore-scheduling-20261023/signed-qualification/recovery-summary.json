@@ -1,0 +1,50 @@
+[
+  {
+    "schedule": "recovery",
+    "exitCode": 0,
+    "checkpoints": 6,
+    "error": null
+  },
+  {
+    "schedule": "verified",
+    "exitCode": 0,
+    "checkpoints": 4,
+    "error": null
+  },
+  {
+    "schedule": "splits",
+    "exitCode": 0,
+    "checkpoints": 5,
+    "error": null
+  },
+  {
+    "schedule": "private-lifecycle",
+    "exitCode": 0,
+    "checkpoints": 10,
+    "error": null
+  },
+  {
+    "schedule": "grouped",
+    "exitCode": 0,
+    "checkpoints": 6,
+    "error": null
+  },
+  {
+    "schedule": "close",
+    "exitCode": 0,
+    "checkpoints": 6,
+    "error": null
+  },
+  {
+    "schedule": "nonregular",
+    "exitCode": 0,
+    "checkpoints": 6,
+    "error": null
+  },
+  {
+    "schedule": "teardown",
+    "exitCode": 0,
+    "checkpoints": 6,
+    "error": null
+  }
+]

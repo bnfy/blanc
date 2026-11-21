@@ -1,0 +1,280 @@
+[
+  [
+    "https://00e2120672.com/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "application/javascript",
+      "body": "window.blancFixtureExecuted=(window.blancFixtureExecuted||[]).concat(\"case-cigeialdmedaodlf\");\nfetch(\"https://page.blanc-fixture.test/blanc-fixture/child/case-cigeialdmedaodlf.json\",{credentials:'omit'}).then(()=>{window.blancFixtureChildren=(window.blancFixtureChildren||[]).concat(\"case-cigeialdmedaodlf\");}).catch(()=>{});\n",
+      "sha256": "15f62e167f383bc444dea9ef119581eb43d7ad9c6ee6f5446885698787f1e749"
+    }
+  ],
+  [
+    "https://page.blanc-fixture.test/blanc-fixture/child/case-cigeialdmedaodlf.json",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-child\"}",
+      "causedBy": "case-cigeialdmedaodlf"
+    }
+  ],
+  [
+    "https://015ea24446.com/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "application/javascript",
+      "body": "window.blancFixtureExecuted=(window.blancFixtureExecuted||[]).concat(\"case-oonlhkiiohimnfln\");\nfetch(\"https://page.blanc-fixture.test/blanc-fixture/child/case-oonlhkiiohimnfln.json\",{credentials:'omit'}).then(()=>{window.blancFixtureChildren=(window.blancFixtureChildren||[]).concat(\"case-oonlhkiiohimnfln\");}).catch(()=>{});\n",
+      "sha256": "5cb1d92381cc1fa20cfe2152b45fdb28293e7b99750217ac94ca66b788d90f64"
+    }
+  ],
+  [
+    "https://page.blanc-fixture.test/blanc-fixture/child/case-oonlhkiiohimnfln.json",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-child\"}",
+      "causedBy": "case-oonlhkiiohimnfln"
+    }
+  ],
+  [
+    "https://00e2120672.com.blanc-control.test/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "application/javascript",
+      "body": "window.blancFixtureExecuted=(window.blancFixtureExecuted||[]).concat(\"case-kkgddpifilomlfle\");\nfetch(\"https://page.blanc-fixture.test/blanc-fixture/child/case-kkgddpifilomlfle.json\",{credentials:'omit'}).then(()=>{window.blancFixtureChildren=(window.blancFixtureChildren||[]).concat(\"case-kkgddpifilomlfle\");}).catch(()=>{});\n",
+      "sha256": "e1d672c08d1f87948f6fbec8bd3a82d1e3dfc15b2aa3e9856e26255252343cdd"
+    }
+  ],
+  [
+    "https://page.blanc-fixture.test/blanc-fixture/child/case-kkgddpifilomlfle.json",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-child\"}",
+      "causedBy": "case-kkgddpifilomlfle"
+    }
+  ],
+  [
+    "https://015ea24446.com.blanc-control.test/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "application/javascript",
+      "body": "window.blancFixtureExecuted=(window.blancFixtureExecuted||[]).concat(\"case-jgnklpcnfhnpkjmh\");\nfetch(\"https://page.blanc-fixture.test/blanc-fixture/child/case-jgnklpcnfhnpkjmh.json\",{credentials:'omit'}).then(()=>{window.blancFixtureChildren=(window.blancFixtureChildren||[]).concat(\"case-jgnklpcnfhnpkjmh\");}).catch(()=>{});\n",
+      "sha256": "b55cdb2a345c1631a8c427bcd27f394d5f6624194a437617be88d0491e2edaa1"
+    }
+  ],
+  [
+    "https://page.blanc-fixture.test/blanc-fixture/child/case-jgnklpcnfhnpkjmh.json",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-child\"}",
+      "causedBy": "case-jgnklpcnfhnpkjmh"
+    }
+  ],
+  [
+    "https://accuweather.com/bundles/prebid.",
+    {
+      "status": 200,
+      "contentType": "application/javascript",
+      "body": "window.blancFixtureExecuted=(window.blancFixtureExecuted||[]).concat(\"case-kiaipddgomehpejk\");\nfetch(\"https://page.blanc-fixture.test/blanc-fixture/child/case-kiaipddgomehpejk.json\",{credentials:'omit'}).then(()=>{window.blancFixtureChildren=(window.blancFixtureChildren||[]).concat(\"case-kiaipddgomehpejk\");}).catch(()=>{});\n",
+      "sha256": "0fb35e576ee9b6e648eaf11772dd563ee82db65488de4bbeeeb68d6e17dc8417"
+    }
+  ],
+  [
+    "https://page.blanc-fixture.test/blanc-fixture/child/case-kiaipddgomehpejk.json",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-child\"}",
+      "causedBy": "case-kiaipddgomehpejk"
+    }
+  ],
+  [
+    "https://adap.tv/redir/javascript/vpaid.js",
+    {
+      "status": 200,
+      "contentType": "application/javascript",
+      "body": "window.blancFixtureExecuted=(window.blancFixtureExecuted||[]).concat(\"case-dhmobacdhgjbnmbm\");\nfetch(\"https://page.blanc-fixture.test/blanc-fixture/child/case-dhmobacdhgjbnmbm.json\",{credentials:'omit'}).then(()=>{window.blancFixtureChildren=(window.blancFixtureChildren||[]).concat(\"case-dhmobacdhgjbnmbm\");}).catch(()=>{});\n",
+      "sha256": "01009b043dac8813dc488de2ca375ad52953ad4f741625a432cd2f2e3ef57e46"
+    }
+  ],
+  [
+    "https://page.blanc-fixture.test/blanc-fixture/child/case-dhmobacdhgjbnmbm.json",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-child\"}",
+      "causedBy": "case-dhmobacdhgjbnmbm"
+    }
+  ],
+  [
+    "https://00609c257b.com/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-response\"}",
+      "sha256": "0ef571d82881a2367c37eaec11ab63e3e22dd00868954be68cc4aec6469171a9"
+    }
+  ],
+  [
+    "https://00a39e6dfd.com/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-response\"}",
+      "sha256": "0ef571d82881a2367c37eaec11ab63e3e22dd00868954be68cc4aec6469171a9"
+    }
+  ],
+  [
+    "https://00609c257b.com.blanc-control.test/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-response\"}",
+      "sha256": "0ef571d82881a2367c37eaec11ab63e3e22dd00868954be68cc4aec6469171a9"
+    }
+  ],
+  [
+    "https://00a39e6dfd.com.blanc-control.test/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-response\"}",
+      "sha256": "0ef571d82881a2367c37eaec11ab63e3e22dd00868954be68cc4aec6469171a9"
+    }
+  ],
+  [
+    "https://basinnow.com/admin/upload/settings/advertise-img.jpg",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-response\"}",
+      "sha256": "0ef571d82881a2367c37eaec11ab63e3e22dd00868954be68cc4aec6469171a9"
+    }
+  ],
+  [
+    "https://go.xlirdr.com/api/models/vast",
+    {
+      "status": 200,
+      "contentType": "application/json",
+      "body": "{\"fixture\":\"authored-response\"}",
+      "sha256": "0ef571d82881a2367c37eaec11ab63e3e22dd00868954be68cc4aec6469171a9"
+    }
+  ],
+  [
+    "https://00427011ae.com/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "image/svg+xml",
+      "body": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"2\" height=\"2\"><rect width=\"2\" height=\"2\" fill=\"red\"/></svg>",
+      "sha256": "6411f729e80626774fd61d87622a57abcfb740b5af32840b1128b5c6c9cbc8cb"
+    }
+  ],
+  [
+    "https://02228640b9.com/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "image/svg+xml",
+      "body": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"2\" height=\"2\"><rect width=\"2\" height=\"2\" fill=\"red\"/></svg>",
+      "sha256": "6411f729e80626774fd61d87622a57abcfb740b5af32840b1128b5c6c9cbc8cb"
+    }
+  ],
+  [
+    "https://00427011ae.com.blanc-control.test/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "image/svg+xml",
+      "body": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"2\" height=\"2\"><rect width=\"2\" height=\"2\" fill=\"red\"/></svg>",
+      "sha256": "6411f729e80626774fd61d87622a57abcfb740b5af32840b1128b5c6c9cbc8cb"
+    }
+  ],
+  [
+    "https://02228640b9.com.blanc-control.test/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "image/svg+xml",
+      "body": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"2\" height=\"2\"><rect width=\"2\" height=\"2\" fill=\"red\"/></svg>",
+      "sha256": "6411f729e80626774fd61d87622a57abcfb740b5af32840b1128b5c6c9cbc8cb"
+    }
+  ],
+  [
+    "https://airplaydirect.com/openx/www/images/",
+    {
+      "status": 200,
+      "contentType": "image/svg+xml",
+      "body": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"2\" height=\"2\"><rect width=\"2\" height=\"2\" fill=\"red\"/></svg>",
+      "sha256": "6411f729e80626774fd61d87622a57abcfb740b5af32840b1128b5c6c9cbc8cb"
+    }
+  ],
+  [
+    "https://amazon-adsystem.com/widgets/q?",
+    {
+      "status": 200,
+      "contentType": "image/svg+xml",
+      "body": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"2\" height=\"2\"><rect width=\"2\" height=\"2\" fill=\"red\"/></svg>",
+      "sha256": "6411f729e80626774fd61d87622a57abcfb740b5af32840b1128b5c6c9cbc8cb"
+    }
+  ],
+  [
+    "https://000491b06a.com/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "text/css",
+      "body": "#fixture-probe { color: rgb(11, 22, 33); }\n",
+      "sha256": "6564dd53a7b6159776176b899fd28a7d80cc7421d1509ae92d6deea1cec15a26"
+    }
+  ],
+  [
+    "https://0019x.com/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "text/css",
+      "body": "#fixture-probe { color: rgb(11, 22, 33); }\n",
+      "sha256": "6564dd53a7b6159776176b899fd28a7d80cc7421d1509ae92d6deea1cec15a26"
+    }
+  ],
+  [
+    "https://000491b06a.com.blanc-control.test/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "text/css",
+      "body": "#fixture-probe { color: rgb(11, 22, 33); }\n",
+      "sha256": "6564dd53a7b6159776176b899fd28a7d80cc7421d1509ae92d6deea1cec15a26"
+    }
+  ],
+  [
+    "https://0019x.com.blanc-control.test/blanc-fixture/resource.js",
+    {
+      "status": 200,
+      "contentType": "text/css",
+      "body": "#fixture-probe { color: rgb(11, 22, 33); }\n",
+      "sha256": "6564dd53a7b6159776176b899fd28a7d80cc7421d1509ae92d6deea1cec15a26"
+    }
+  ],
+  [
+    "https://aone-soft.com/style/images/ad2.jpg",
+    {
+      "status": 200,
+      "contentType": "text/css",
+      "body": "#fixture-probe { color: rgb(11, 22, 33); }\n",
+      "sha256": "6564dd53a7b6159776176b899fd28a7d80cc7421d1509ae92d6deea1cec15a26"
+    }
+  ],
+  [
+    "https://banmancounselling.com/wp-content/themes/banman/",
+    {
+      "status": 200,
+      "contentType": "text/css",
+      "body": "#fixture-probe { color: rgb(11, 22, 33); }\n",
+      "sha256": "6564dd53a7b6159776176b899fd28a7d80cc7421d1509ae92d6deea1cec15a26"
+    }
+  ],
+  [
+    "https://page.blanc-fixture.test/blanc-fixture/index.html",
+    {
+      "status": 200,
+      "contentType": "text/html",
+      "body": "<!doctype html><meta charset=\"utf-8\"><link rel=\"icon\" href=\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2232%22%20height%3D%2232%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20fill%3D%22red%22%2F%3E%3C%2Fsvg%3E\"><title>Blanc synthetic probe</title>\n<script>window.pilot={done:false,loads:[]};(async()=>{\nfor(const c of [{\"id\":\"case-cigeialdmedaodlf\",\"url\":\"https://00e2120672.com/blanc-fixture/resource.js\",\"type\":\"script\"},{\"id\":\"case-oonlhkiiohimnfln\",\"url\":\"https://015ea24446.com/blanc-fixture/resource.js\",\"type\":\"script\"},{\"id\":\"case-kkgddpifilomlfle\",\"url\":\"https://00e2120672.com.blanc-control.test/blanc-fixture/resource.js\",\"type\":\"script\"},{\"id\":\"case-jgnklpcnfhnpkjmh\",\"url\":\"https://015ea24446.com.blanc-control.test/blanc-fixture/resource.js\",\"type\":\"script\"},{\"id\":\"case-kiaipddgomehpejk\",\"url\":\"https://accuweather.com/bundles/prebid.\",\"type\":\"script\"},{\"id\":\"case-dhmobacdhgjbnmbm\",\"url\":\"https://adap.tv/redir/javascript/vpaid.js\",\"type\":\"script\"},{\"id\":\"case-bcbleakoohnafnnk\",\"url\":\"https://00609c257b.com/blanc-fixture/resource.js\",\"type\":\"xhr\"},{\"id\":\"case-kfcchjbkgcomiamc\",\"url\":\"https://00a39e6dfd.com/blanc-fixture/resource.js\",\"type\":\"xhr\"},{\"id\":\"case-gpfopokkpackdfgl\",\"url\":\"https://00609c257b.com.blanc-control.test/blanc-fixture/resource.js\",\"type\":\"xhr\"},{\"id\":\"case-iffejhfckkpdlknk\",\"url\":\"https://00a39e6dfd.com.blanc-control.test/blanc-fixture/resource.js\",\"type\":\"xhr\"},{\"id\":\"case-jhpankimkclbhklm\",\"url\":\"https://basinnow.com/admin/upload/settings/advertise-img.jpg\",\"type\":\"xhr\"},{\"id\":\"case-ejiimdjlmgpmckim\",\"url\":\"https://go.xlirdr.com/api/models/vast\",\"type\":\"xhr\"},{\"id\":\"case-nloocppdahlambdf\",\"url\":\"https://00427011ae.com/blanc-fixture/resource.js\",\"type\":\"image\"},{\"id\":\"case-hppckcgecbimhlmc\",\"url\":\"https://02228640b9.com/blanc-fixture/resource.js\",\"type\":\"image\"},{\"id\":\"case-pkfkgbhhoagoemac\",\"url\":\"https://00427011ae.com.blanc-control.test/blanc-fixture/resource.js\",\"type\":\"image\"},{\"id\":\"case-pdkmldfhnmcgcghp\",\"url\":\"https://02228640b9.com.blanc-control.test/blanc-fixture/resource.js\",\"type\":\"image\"},{\"id\":\"case-fefppaigganpdiak\",\"url\":\"https://airplaydirect.com/openx/www/images/\",\"type\":\"image\"},{\"id\":\"case-aahcghbnedgofbfa\",\"url\":\"https://amazon-adsystem.com/widgets/q?\",\"type\":\"image\"},{\"id\":\"case-dehdhgbgioekanea\",\"url\":\"https://000491b06a.com/blanc-fixture/resource.js\",\"type\":\"stylesheet\"},{\"id\":\"case-kfmihkegnkmmlicd\",\"url\":\"https://0019x.com/blanc-fixture/resource.js\",\"type\":\"stylesheet\"},{\"id\":\"case-kebagjmhchoeahie\",\"url\":\"https://000491b06a.com.blanc-control.test/blanc-fixture/resource.js\",\"type\":\"stylesheet\"},{\"id\":\"case-fojninndocoijmlj\",\"url\":\"https://0019x.com.blanc-control.test/blanc-fixture/resource.js\",\"type\":\"stylesheet\"},{\"id\":\"case-gfjnjepagaclpiok\",\"url\":\"https://aone-soft.com/style/images/ad2.jpg\",\"type\":\"stylesheet\"},{\"id\":\"case-fclbhmeefdmfchmb\",\"url\":\"https://banmancounselling.com/wp-content/themes/banman/\",\"type\":\"stylesheet\"}]) {\n await new Promise(resolve=>{\n const finish=event=>{pilot.loads.push({id:c.id,event});resolve();};\n if(c.type==='xhr'){fetch(c.url,{credentials:'omit'}).then(r=>r.text()).then(()=>finish('load'),()=>finish('error'));return;}\n const s=document.createElement(c.type==='script'?'script':c.type==='image'?'img':'link');\n if(c.type==='stylesheet'){s.rel='stylesheet';s.href=c.url;}else s.src=c.url;\n s.onload=()=>finish('load');s.onerror=()=>finish('error');document.head.append(s);\n});\n}pilot.done=true;})();</script>"
+    }
+  ]
+]

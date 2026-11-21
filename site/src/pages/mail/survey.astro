@@ -1,0 +1,22 @@
+---
+// The anonymous Blanc Mail feature survey. Temporary: unlisted from the
+// sitemap and noindex, and closed with the site flag below once the Blanc
+// Mail 1.0 scope is decided (runbook: cloudflare/mail-survey-worker/README.md).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MailBar from '../../components/MailBar.astro';
+import MailSurveyForm from '../../components/MailSurveyForm.astro';
+import survey from '../../data/mail-survey.json';
+import '../../styles/mail.css';
+---
+<BaseLayout title="Blanc Mail survey: what would you want?" description="An anonymous one-minute survey about what you would want in Blanc Mail for macOS before it is released." path="/mail/survey" header="legal" analytics={false} social="none" robots="noindex,nofollow">
+  <MailBar />
+  <main id="main-content" class="mail-page mail-doc">
+    <header class="mail-page-head">
+      <h1>What would you want?</h1>
+      {survey.open
+        ? <p class="mail-muted">Blanc Mail isn’t released yet. Tell us what matters to you, anonymously; it takes about a minute. We keep only your answers and the week you sent them, and delete them once we’ve decided what goes into Blanc Mail 1.0. <a href="/privacy#mail-survey">How we handle it</a></p>
+        : <p class="mail-muted">This survey has closed. Thank you to everyone who answered.</p>}
+    </header>
+    {survey.open ? <MailSurveyForm /> : null}
+  </main>
+</BaseLayout>

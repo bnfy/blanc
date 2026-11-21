@@ -1,0 +1,16 @@
+{
+  "version": "2.0.0-beta.9",
+  "build": 9,
+  "tag": "chromium-beta-2.0.0-beta.9",
+  "published": "2026-11-20",
+  "releaseUrl": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.9",
+  "dmg": {
+    "name": "Blanc-Beta-2.0.0-beta.9-mac-arm64.dmg",
+    "url": "https://github.com/bnfy/blanc/releases/download/chromium-beta-2.0.0-beta.9/Blanc-Beta-2.0.0-beta.9-mac-arm64.dmg",
+    "bytes": 246936034,
+    "sha256": "7f8a7abfa928a28d2bfcdfb946226642b9c016112c8be6036a43462a0fdafc15"
+  },
+  "feed": "/updates/chromium-beta/arm64.xml",
+  "requirement": "Apple Silicon Macs · macOS 13 or later",
+  "chromium": "158.0.8127.2"
+}

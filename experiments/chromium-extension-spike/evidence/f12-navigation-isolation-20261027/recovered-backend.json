@@ -1,0 +1,7 @@
+{
+  "source": "/Users/anthonyjloria/Projects/BlancChromium157/src/build/config/siso/backend_config/backend.star",
+  "destination": "/private/tmp/blanc-chromium157-update/src/build/config/siso/backend_config/backend.star",
+  "sha256": "a3688c38e2effddf3c5ee7ba39855ae6efd5994c562f19a250375e4ccee1912a",
+  "matchesPinnedGoogleBackend": true,
+  "executionMode": "existing offline mode retained"
+}

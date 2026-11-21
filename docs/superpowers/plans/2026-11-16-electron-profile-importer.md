@@ -1,0 +1,169 @@
+# Electron profile importer: implementation plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task by task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** On request, read an Electron Blanc data folder without changing it and write its contents into the fork's Chromium profiles, all or nothing per profile, with a marker and a retry.
+
+**Architecture:** Untrusted JSON is read by the browser process (bounded, read-only) and parsed in the sandboxed V8 service the fork already uses for Sync and tab import, running a new pinned "profile import" bundle that turns shipping's stores into one normalized plan. The browser process then applies that plan through the fork's existing stores (BookmarkModel, HistoryService, prefs, `BlancPrototypeSpaces.json`, the Sync store folder), one profile at a time, and records a marker in Local State.
+
+**Tech stack:** C++ in `chromium/blanc/browser/ui/` (`.inc` files included by `blanc_prototype_ui.cc`), the `sync_runner` service and its generated bundles, `node --test` unit tests, native tests on the Mac Studio.
+
+**Spec:** `docs/chromium-replacement/2026-10-30-desktop-replacement-spec.md` §7; plan tasks M.2 and M.3 in `docs/chromium-replacement/2026-10-30-desktop-replacement-plan.md`; fixtures and answer key in `chromium/tools/importer-fixtures.mjs`.
+
+## Global constraints
+
+- **Read-only source.** Nothing under the Electron folder is created, changed, renamed or deleted. Every native test hashes the fixture folder before and after and requires the two to match.
+- **Source versions:** v1.40.0 or later. Anything else is refused with a message, importing nothing.
+- **Owner decisions (2026-11-16):** site cookies and storage are not imported (O3); synced settings go to the first (Personal, `Default`) profile only (O4); Sync stays on, with the device identity kept and the key re-protected (O5).
+- **All or nothing per profile.** A profile's writes are prepared in full and applied only if every part validated; a failure leaves that profile as it was and names the part that failed.
+- **Limits come from the answer key:** 5,000 history entries; tombstones dropped; only promptable permission types; pending profile deletions finished before import.
+- **Test launches never touch the real Electron folder or Keychain.** The source folder is always a fixture written by `writeFixture()` to a temporary directory; the Keychain read has a test stand-in.
+- **Builds:** one at a time, only through `chromium/tools/build.mjs` on the Mac Studio; all browser tests run there (`~/Projects/Blanc/scratch/tests`).
+- **Strings:** shipping's catalog where it has the words; otherwise `chromium/blanc/fork-strings.json`, in all six languages.
+- No change to the Electron app.
+
+## What the survey found (2026-11-16)
+
+| Electron data | Fork destination today | Gap |
+| --- | --- | --- |
+| Favorites | `BookmarkModel` via `browser_import::Import` (`first_run.inc`) | None: reuse |
+| History, site icons | `HistoryService`, `FaviconService` | Only test hooks write them; needs a production bulk path with real visit times |
+| Start Page pins | pref `blanc.prototype.start_page_pins` (`{url,title}`, max 8) | Sync clock and tie-break have no home: dropped, recorded |
+| Tab Archive | prefs `blanc.tabs.archive_entries`, `blanc.tabs.archive_notice` | Entries older than 30 days expire on read, as today |
+| Spaces | `<profile>/BlancPrototypeSpaces.json` + pref `blanc.spaces.meta`, written by `SpaceDisk(…,"importSpaces")` | Shipping's columnar capture must be converted to tab rows; max 25 |
+| Settings | 84 keys mapped in `chromium/settings-keys.json`; Start Page layout keys live in the page's own storage | The table is stale (old pin, no `reuseNewTab`); Start Page keys have no native write path |
+| Open session | Quiet batch through `TabImporter::ApplyTabs` | None for one window; several windows need a loop |
+| Named profiles | None: profiles are only listed | Programmatic profile creation is new (a draft exists in `experiments/…/drafts/native-sync/`) |
+| Sync stores, device identity | `<Default>/BlancSync/*.json` | The same store names; needs the key (below) |
+| Sync key | OSCrypt, the fork's own Keychain item | Electron's is a different Keychain item (`Blanc Safe Storage`); reading it prompts once. Drafts exist |
+| Install id | Local State `blanc.telemetry.install` | None |
+| Downloads list | None (the fork only reads Chromium's list) | New write path, or not imported |
+| Site permissions | None (Chromium saves answers itself) | New `HostContentSettingsMap` writes |
+| Wallpaper | The Start Page's IndexedDB | No native write path |
+| Reader appearance | None (the fork uses Chromium's Reading Mode) | Not imported |
+| Patron licence | No store in the fork | Not imported |
+
+## Review focus
+
+1. A crafted or damaged Electron file: every store is size-capped before it is read, parsed only in the sandbox, and one bad store fails its profile without touching the others.
+2. Running twice: the marker makes a second run import only profiles not yet done, and never duplicates Favorites or history.
+3. The Electron app running during import: refused before anything is read.
+4. A source older than v1.40.0, or with no recognizable stores: refused, nothing written.
+5. A Keychain prompt the person denies: Sync is left off with a clear message; everything else still imports.
+
+## Tasks
+
+Each task ends with its own passing tests and a push to `chromium/next`. Tasks 1 to 4 need no owner input.
+
+### Task 1: The plan builder (no browser)
+
+**Done 2026-11-16** (9 tests). The bundle has no prelude and no host call; embedding it in the service's `BUILD.gn` moves to Task 2, where the runner first uses it and a build can check it. The plan's stores keep shipping's shapes (`profiles.<id>.stores["bookmarks.json"]`, …), as the answer key does; Task 2 converts them as it applies them.
+
+**Files:** create `chromium/blanc/services/sync_runner/shims/profile-import.js`, `chromium/tools/build-profile-import-bundle.mjs`, `chromium/tools/profile-import.test.mjs`; generated `generated/profile-import-bundle.js`, `profile_import_bundle_hash.h`.
+
+**Produces:** `__call('profile.plan', [files])`, `files` mapping each path under the data folder to its text, returning `{ok: true, schema: 1, sourceVersion, profiles: {personal|<id>: {id, name, stores}}, device: {<store>: json} | null, notImported: [{source, reason}], errors: [{profile, store, reason}]}` or `{ok: false, error: 'no-source'|'unknown-version'|'unsupported-version', sourceVersion?}`. Store errors are `invalid-json`, `invalid-shape`, `too-large`.
+
+- [x] Update the answer key: replace the two `undecided` entries in `importer-fixtures.mjs` with the owner's answers (settings: synced keys to Personal only; sync: all fields except the keys) and update its test.
+- [x] Write `profile-import.test.mjs`: for the fixture, `profile.plan` equals `expected.profiles` and `expected.device` store for store; `notImported` equals the answer key's list; a store over its size cap, invalid JSON, and a v1.39 source each give the named error and no plan for that profile.
+- [x] Run it; expect failure (no bundle).
+- [x] Write the shim (pure functions over parsed JSON; no shipping module is needed for reading) and the bundle builder, modeled on `build-handoff-bundle.mjs`.
+- [x] Run the test; expect pass. Commit.
+
+### Task 2: Runner, marker, and the Personal profile's own data
+
+**Done 2026-11-16** (candidate macos-0998ddd2080544a0, patch 0092, 7 checks). Splits inside a Space are not carried yet (the fixture's Space has none): they come with the session in Task 4. Site icons are applied to up to 500 imported pages per host and are counted, not yet checked on screen.
+
+**Files:** create `chromium/blanc/browser/ui/profile_import.inc`, `chromium/tests/native-profile-import.mjs`, `chromium/tests/lib/profile-import-fixture.mjs`; patch `0092` (the marker's Local State registration); modify `blanc_prototype_ui.cc`, the service's `BUILD.gn`.
+
+**Produces:** `ProfileImportRunner` (modeled on `HandoffRunner`: pinned bundle, 60-second limit, host refusing every capability); `ProfileImport::Start(base::FilePath source, callback)`; Local State dict `blanc.profile_import` `{sourceVersion, profiles: {<id>: {importedAt}}}`; test hooks `profileImportRun [dir]`, `profileImportState`.
+
+- [x] Write the native test: import the fixture, then Favorites equal the answer key in order; history has 5,000 entries with the fixture's visit times and site icons; pins and archive match; each Space opens with its tabs, groups and splits; the fixture folder's hashes are unchanged; a second run changes nothing; a fixture with one damaged store leaves the profile untouched and reports the store.
+- [x] Run on the current build; expect failure (unknown hook).
+- [x] Implement reading (regular files only, no symlinks, capped sizes), the runner, the apply steps for Favorites, history, icons, pins, archive and Spaces, and the marker.
+- [x] Build on the Mac Studio; run the test; expect pass. Commit and push.
+
+### Task 3: Settings and install id
+
+**Done 2026-11-16** (candidate macos-2fde2b7b2c1ae676, 8 native checks, 10 plan-builder tests). The table marks each importable key with an `import` field; the bundle builder turns those into the plan builder's rules, with each preference's registered type. 28 keys copy directly, 7 go through Sync's converter, and the rest are named in `settingsPrefs.notCarried` (the Start Page's own settings, link routes, mouse gesture mapping, WebRTC policy, secure DNS and the migration markers among them) for later tasks. Device settings land in the Personal profile; Task 5 applies them to named profiles too.
+
+**Files:** modify `chromium/settings-keys.json`, `chromium/tools/settings-keys.mjs`, `profile_import.inc`; extend the native test.
+
+- [x] Refresh `settings-keys.json` to v1.49.1 and add the keys built since (`reuseNewTab`, `tabSwitchOrder`, link routes, Glance frame, mouse gestures, Mini Window shortcut and the others the survey lists); each key is marked `profile`, `device`, `page` or `not-imported` with a reason.
+- [x] Test: after import, each mapped pref equals the fixture's setting, synced keys only in Personal; the install id equals the fixture's; unmapped keys appear in the import report.
+- [x] Implement, build, pass, commit and push.
+
+### Task 4: The open session
+
+**Done 2026-11-16** (candidate macos-beb93342b0ee850e, 9 native checks). Each of the first profile's saved windows opens as a window of its own (at most ten), through its own `OpenImportedWindow` and not `TabImporter::ApplyTabs`, which has no group color, split or current-tab handling. The saved current tab is added first: the first tab added to a window is always shown and loaded. The two panes of a saved split load because they are on screen. Windows of named profiles wait for Task 5. Splits inside a saved Space are still not carried.
+
+- [x] Test: after import the fixture's windows, tabs, groups, pins and splits are open, all quiet except each window's active tab; no private tab appears.
+- [x] Implement through `TabImporter::ApplyTabs`, one call per saved window.
+- [x] Build, pass, commit and push.
+
+### Task 5: Named profiles
+
+**Done 2026-11-16** (candidate macos-2b57f628562ead96, 10 native checks). `ProfileManager::CreateMultiProfileAsync` with the Blanc profile's name and Chromium's placeholder avatar; the marker records which Chromium profile each Electron profile became. Divergences are listed in STATUS.
+
+**Owner direction (2026-11-16): use Chromium's own profiles to the fullest before building anything custom to match the Electron build.** So an imported named profile is an ordinary Chromium profile and nothing more:
+
+- It is created with Chromium's standard profile creation (`ProfileManager`), with the Blanc profile's name and Chromium's default avatar and color. No Blanc profile registry, no copy of Electron's ids kept beyond the import marker, and none of the earlier `native_local_profile_registry` draft.
+- Its settings are Chromium's per-profile settings at their defaults. Electron's device-wide settings are not copied into each profile.
+- Managing it afterwards (rename, delete, switch, the picker at launch) is Chromium's, unchanged. Blanc's typed-name deletion and crash-resumable deletion are not rebuilt.
+- Where Electron behaves differently, the difference is written down as a divergence for the owner, not coded around.
+
+- [x] Test: the fixture's named profile exists as a Chromium profile with its name and its own Favorites, history, pins, archive and Spaces; its saved window opens in it; the profile pending deletion is not created; the marker lists both profiles and maps each Electron id to its Chromium profile; a second run creates nothing.
+- [x] Implement: create the profile, then Task 2's apply steps and Task 4's windows for it.
+- [x] Build, pass, commit and push.
+- [x] List the divergences found (settings scope, deletion, avatar) in STATUS for the owner.
+
+### Task 6: Permissions and downloads list
+
+**Done 2026-11-16** (candidate macos-a458cc792c40c1c5, 11 native checks). **Owner decision P2: the downloads list is left behind** (the files stay on disk; the fork keeps Chromium's own list), so only permissions were built. The answer key and plan builder name the downloads list as not imported.
+
+- [x] Test: each promptable decision in the fixture answers the same way without a prompt; `clipboard-read` is absent; the downloads list shows the fixture's finished downloads, with files untouched and private ones absent.
+- [x] Implement `HostContentSettingsMap` writes and download-history rows.
+- [x] Build, pass, commit and push.
+
+### Task 7: Sync stores and the key (M.3)
+
+**Done 2026-11-16** (candidate macos-22d3967de015b079, 4 native checks in `native-profile-import-sync.mjs`). The fork's Sync reads its stores once, when it starts, and has no restart, so the stores are **staged** (`<Default>/BlancSyncImport/`) and taken up at the next launch before Sync starts (`AdoptImportedSyncStores`), unless that profile is already syncing. The key is opened with the Electron Keychain item's password (read-only `SecItemCopyMatching`; a stand-in under a test launch) and protected again with the fork's own. The earlier drafts in `experiments/…/drafts/native-sync/` were written for a different Sync design and were not used. **Not done:** the real-account check (the owner's, after a backup); the real Keychain prompt has never been shown.
+
+- [x] Test (stand-in Keychain): the Sync stores land under `BlancSync/`, the device id is the fixture's, the key decrypts with the stand-in and is re-protected with the fork's own; a denied Keychain read leaves Sync off with the message and imports everything else.
+- [x] Implement from the drafts (`legacy_sync_record`, `legacy_recovery_broker`), reading Electron's Keychain item read-only.
+- [x] Build, pass, commit and push. The real-account check is the owner's, after a backup.
+
+### Task 8: The person's side
+
+Unblocked 2026-11-16 (P1, P3 answered).
+
+- [x] Turn off Chromium's "show the picker at startup" setting when the import created a profile; test with a relaunch after a two-profile import.
+- [x] A Settings command in Blanc Beta (and the Prototype) that picks the Electron folder itself (`~/Library/Application Support/Blanc`), never a folder the page names.
+
+- [x] Entry point, a working state, the result in one line, failure and Try again; refused while the Electron app is running. (2026-11-16, candidate macos-91f427ea33bb6e2a, patch 0093, 6 native checks.) Not built: a detailed list of what came across and what did not, and the replacement build's automatic import on first launch.
+- [x] The detailed list (2026-11-16, candidate macos-88c3fcc0786de627): under the row, a line for each profile by its own name with what came across (Favorites, History, Spaces, Archived tabs, Start Page pins, Site permissions; zero counts left out), a line for a profile that could not be read, and one line saying what is never imported (website sign-ins, the downloads list, a few settings). Labels are shipping's strings; three new lines are in `fork-strings.json` in six languages, translations unreviewed. The plan builder now names a refused profile. Not built: the replacement build's automatic import on first launch.
+- [x] Wallpaper and the Start Page's layout settings (2026-11-16, candidate macos-14061c5b07c620fd, 3 native checks in `native-profile-import-start.mjs`). The plan builder names them (`startPage`). The browser sets the layout (`blanc.prototype.start_layout`) and the clock (`blanc.prototype.billboard_clock`, through the clock's own validator). Start Page widgets nobody has changed are taken again from the imported layout, so Ledger's Favorites and other devices appear. The wallpaper choices (time of day, color, preset, fill, wash, style) and the person's image wait in Local State (`blanc.profile_import.startPage`) and `<profile>/BlancStartPageImport/wallpaper.jpg`; the profile's next Start Page takes them through `importRead`, stores them in its own storage, and answers `importDone`, once. The image is read as bytes beside the stores (regular file, JPEG, 12 MiB at most) and never passes through the plan builder; it is carried only when the released app was showing it. Personal only, like the other settings. Not carried: following a Space's color (the fork's Start Page has none).
+
+## Owner decisions this plan needs
+
+Found in task 7: once the import has created a second profile, Chromium opens its **profile picker** at the next launch instead of the saved windows (decision P3 below).
+
+| # | Decision | Needed before |
+| --- | --- | --- |
+| P1 | Where the import starts: **answered 2026-11-16: a command in Blanc Beta's Settings too**, and automatically on the replacement build's first launch | Task 8 |
+| P3 | The profile picker at launch after an import that created profiles: **answered 2026-11-16: the importer turns off Chromium's own "show at startup" setting**, so Blanc reopens its windows; anyone can switch it back on in the picker | Task 8 |
+| P2 | Downloads list: **answered 2026-11-16: leave it behind** | Task 6 |
+
+## Not imported, by design
+
+Site cookies and storage (O3); reader appearance (the fork uses Chromium's Reading Mode); the Patron licence (no store yet); uBlock Origin and Widevine folders; blocker caches; `site-zoom.json`, `bang-icons.json`, `adblock-stats.json` and `crash-ledger.json` (not in the spec's table: listed in the import report as left behind).
+
+## Trials on real data (2026-11-16)
+
+Private copies on the Mac Studio (`~/Projects/Blanc/scratch/real-import/`), counts only, `chromium/tests/real-profile-import.mjs`. Delete the copies when the owner says.
+
+- **Mac Studio's folder** (one profile): no errors. Found: `install.json` with `createdAt: "legacy"`; fixed.
+- **MacBook Pro's folder** (Personal and four named profiles): found a `history.json` with no `siteIcons` list (two named profiles refused) and an empty Space dropped silently; both fixed (candidate macos-a094fb86f8dba413). Rerun: no errors, five profiles, source unchanged.
+
+## Sync's failure paths (2026-11-17)
+
+From a source review the owner passed on. Personal's marker in `blanc.profile_import` now records Sync's state apart from the profile's data (`staged`, `none`, `failed`); a later run stages Sync again after `failed` and imports nothing else twice; Settings names the failure and offers Try again. At launch, `AdoptImportedSyncStores` copies and compares each staged store, `sync.json` last, and removes the staged copy only when every store is in place. Tested by `native-profile-import-sync.mjs` checks 5 and 6 (candidate macos-cbb4a951532f5900).

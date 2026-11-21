@@ -46,8 +46,8 @@
     "source": "sha256:e9916376c8ff6435790e53cb63890d84c7fb6f0841326a391a8c408000f18a62"
   },
   "slash.save.doc": {
-    "message": "Enregistre cette page dans les favoris, dans un dossier si vous en indiquez un",
-    "source": "sha256:9238f1f272ff3660d8448539ce9531df770c04358a2832bb9fd98c57b4443b79"
+    "message": "Enregistre cette page dans les favoris, dans un dossier si vous en indiquez un. Mettez > entre les noms de dossier pour atteindre un dossier dans un dossier, par exemple Travail > Clients",
+    "source": "sha256:1a1708b5caf18b9f26af2a7efcf6a5633c0bb30b43f04a432c62ae60bd3d8e22"
   },
   "slash.history.hint": {
     "message": "Ouvrir l’historique de navigation",
@@ -243,7 +243,7 @@
   },
   "pill.placeholder": {
     "message": "Rechercher ou saisir une URL",
-    "source": "sha256:cfb8ca4be5f793f910258121250c991cd9bc736ccfd07285de5dacff603913cc"
+    "source": "sha256:8d94349d68e65bad7b02e39aa7e4eafbf42f58c875dec41fe663ba8005f16a77"
   },
   "pill.notice.cleanLinkCopied": {
     "message": "Lien épuré copié",
@@ -666,6 +666,18 @@
     "message": "<0>{host}</0> veut afficher des notifications",
     "source": "sha256:719bfda7b224a17a04561ea30b797f4a7751efe9023e82ec9a24aea1880222e7"
   },
+  "permission.prompt.loopbackNetwork": {
+    "message": "<0>{host}</0> veut se connecter à des apps sur cet appareil",
+    "source": "sha256:0c1db9073278b6bf78d873bba5ca69e4dad3f6955a1534f113e017c2f24cca5f"
+  },
+  "permission.prompt.localNetwork": {
+    "message": "<0>{host}</0> veut se connecter à des appareils de votre réseau local",
+    "source": "sha256:9f48a9a589d092ea156a2dc58b83e2e16f7a88ca414410e209bdb433cfe473d4"
+  },
+  "permission.prompt.localNetworkAccess": {
+    "message": "<0>{host}</0> veut se connecter à des apps et des appareils de votre réseau local",
+    "source": "sha256:0d35eb7192121f8a0ba56878188846dc8434aa3cbb0d07e3cd6a862cb99b5023"
+  },
   "permission.prompt.other": {
     "message": "<0>{host}</0> veut utiliser « {permission} »",
     "source": "sha256:d312f8081e0faac7ef3db09f5ac65f8dbcb4d51f3dabb365c3af39093b9d2d9a"
@@ -681,6 +693,34 @@
   "dialog.ok": {
     "message": "OK",
     "source": "sha256:b1a3b3dd5f319182d36007c1a2ecd2497c9a99577155a3cf0700456338e2bc8f"
+  },
+  "localHtml.refused.message": {
+    "message": "Blanc n’a pas pu ouvrir « {name} »",
+    "source": "sha256:9c82790b195c01d18c68ab3f53abbedbf63ece5cafda60c605b4bca21c5b72c2"
+  },
+  "localHtml.refused.messageMany": {
+    "message": "{count, plural, one {Blanc n’a pas pu ouvrir # fichier} many {Blanc n’a pas pu ouvrir # fichiers} other {Blanc n’a pas pu ouvrir # fichiers}}",
+    "source": "sha256:8299a0dc48995e2b17cfbac1bce45fab3275a492385799d3fe3bf12891f62933"
+  },
+  "localHtml.refused.line": {
+    "message": "{name} : {reason}",
+    "source": "sha256:bf12f677d7cca2f724c984888885847294196ed17a9073a37fe6521142a37734"
+  },
+  "localHtml.refused.tooLarge": {
+    "message": "Le fichier dépasse 8 Mo. Blanc ouvre les pages locales jusqu’à 8 Mo.",
+    "source": "sha256:b5c6e53c25a3a506b55b89dc2445cd3bdb320130e8f524bfb457d8f205bf45f1"
+  },
+  "localHtml.refused.notHtml": {
+    "message": "Ce fichier n’est pas une page HTML.",
+    "source": "sha256:7fe7e9bd6850056a59129d57978be2cf935c79821b8b23d0490a2efacf3e6897"
+  },
+  "localHtml.refused.changed": {
+    "message": "Le fichier a changé pendant que Blanc le lisait. Ouvrez-le à nouveau.",
+    "source": "sha256:ea2d3a26ee8bf314bec4e98eee617e755bbf2e0d113281c0f491791c218502a7"
+  },
+  "localHtml.refused.unreadable": {
+    "message": "Blanc n’a pas pu lire le fichier. Vérifiez qu’il existe toujours et que vous pouvez l’ouvrir.",
+    "source": "sha256:d19e7bf51c17b01c4e5d6a50c5b3e128a62d4a5647327cd0a6f2db9f522662e8"
   },
   "fill.setupEnable.title": {
     "message": "Configurer 1Password",
@@ -1101,6 +1141,42 @@
   "ws.row.showWindow": {
     "message": "Afficher fenêtre",
     "source": "sha256:208c2f0a5d1d6eb31e30e1c31757da4026fe58b6be33579bfab3fc64b1982173"
+  },
+  "ws.row.titleProfile": {
+    "message": "{count, plural, one {{name} · {profile} · {context} · # onglet} many {{name} · {profile} · {context} · # onglets} other {{name} · {profile} · {context} · # onglets}}",
+    "source": "sha256:95985a274895d0e9ea45b61903cae855286fcaaa1d1518dc281cf4a16dffbd06"
+  },
+  "ws.row.titleProfileShown": {
+    "message": "{name} · {profile} · {context}",
+    "source": "sha256:5f12d89df15ab0b7d2e5c06edd7da7d4a2c34f44ab70877e85e46c14270ade64"
+  },
+  "ws.editor.profileDisabled": {
+    "message": "{profile} (impossible d’ajouter des Spaces)",
+    "source": "sha256:142fafc05dee7633512b4a915b50f612c88f99232afabbc03aa2d7094c464882"
+  },
+  "ws.row.openInProfile": {
+    "message": "S’ouvre dans une fenêtre de {profile}",
+    "source": "sha256:21a3870cc53fceb80f459ceb9a092d1e8d3eb69171b885f002d4c03eafc2a3fb"
+  },
+  "ws.profile.unreadable": {
+    "message": "Impossible de lire les Spaces de ce profil.",
+    "source": "sha256:127d38b05e88927d4300d822df58f3fff722a4279be4b8f07fc0ad34ecc48f05"
+  },
+  "ws.editor.profile": {
+    "message": "Profil",
+    "source": "sha256:ae784b5ee9733a1787d411caa78539c26aacc83ff2ee315ee5bbf2f992a3fa53"
+  },
+  "ws.editor.helpOtherProfile": {
+    "message": "Les onglets restent dans leur propre profil : un Space dans {profile} commence donc vide.",
+    "source": "sha256:9b2c0fb142313f2a2ca9f4596e46a9ae27cafee04b3ce99d779474bb6db92df5"
+  },
+  "ws.switcher.profileLabel": {
+    "message": "Space · {profile}",
+    "source": "sha256:10fa668010a07248bc9a034cc1ed6f13f21ba69326b706138360313e2910fb67"
+  },
+  "ws.error.profileUnavailable": {
+    "message": "Ce profil n’est plus disponible.",
+    "source": "sha256:89d8ccff126fea81e5bd1008aaefa65d61fafd2abfe330dbfb09cfc21e71679d"
   },
   "ws.row.retained": {
     "message": "Conservé en mémoire",
@@ -2630,6 +2706,10 @@
     "message": "Cette synchronisation n’existe plus. Désactivez-la ici, puis ajoutez de nouveau ce téléphone depuis votre ordinateur.",
     "source": "sha256:342277ecfd5ccbdacb710e5e2298d117d09f2c93ed789df46e65a8c170878f01"
   },
+  "sync.error.accountGone.ipad": {
+    "message": "Cette synchronisation n’existe plus. Désactivez-la ici, puis ajoutez de nouveau cet iPad depuis votre ordinateur.",
+    "source": "sha256:1931925bccfddf21adc23eb371e617e8370dc8250bdd1a9501b4aa24c105d064"
+  },
   "settings.sync.recovery.dialogMessage": {
     "message": "Copier le code de récupération de la synchronisation ?",
     "source": "sha256:f845de77b6c5ee8077b4523af5750307d27f07c5805b9e6d4ef92fb3934817fa"
@@ -3468,8 +3548,8 @@
     "source": "sha256:9f26b42c1f26d6b316e6ba7046aef543e22232ad9046dafd8711f4a0d8932a5c"
   },
   "settings.general.theme.hint": {
-    "message": "Système suit le thème de macOS ou Windows",
-    "source": "sha256:22516f21a7afeda313df03ff52f5d1ed0e885e281c78a19aa66a846495033f9f"
+    "message": "Système suit le mode clair ou sombre de votre ordinateur",
+    "source": "sha256:3f442f768378f67eba00f5e7f504d94f6311d645a8fac42244c79f44c2525046"
   },
   "settings.general.theme.system": {
     "message": "Système",
@@ -3604,20 +3684,20 @@
     "source": "sha256:2e3a7cffee8f1cd31157491641927314e451ab4a5216be878aedb28d21907193"
   },
   "settings.general.newtabLayout.ledger": {
-    "message": "ledger",
-    "source": "sha256:01e1e0e4958435810576fabcd0e5fe2fefae91f9e6814314ffff00517721ba5e"
+    "message": "Ledger",
+    "source": "sha256:8d0abb8e6ff41366f43bdb54c1248e349bdb1b2ce4b61a4347414809bba425d3"
   },
   "settings.general.newtabLayout.billboard": {
-    "message": "billboard",
-    "source": "sha256:a60d80ad209ff595be8db8d3227c15093e119b20fa926b7c9e8ea2342d1b5b17"
+    "message": "Billboard",
+    "source": "sha256:b7396dee01e1a1e198bf6f1681958196cf505bfeb09dfcfa25810faed283171e"
   },
   "settings.general.newtabLayout.shelf": {
-    "message": "shelf",
-    "source": "sha256:14799e36d74c91de53ef4776b3eef701a32630225b4d3cb52c785c4141cd82a5"
+    "message": "Shelf",
+    "source": "sha256:b9c6b86f2add65645faa6dc37355bbf65bd10d8cc1e7dfe726346593cf495d89"
   },
   "settings.general.newtabLayout.tally": {
-    "message": "tally",
-    "source": "sha256:ee74ccc5d66531c210ec1bda1a2bf346c3a22eab88886294dae47e032295c77d"
+    "message": "Tally",
+    "source": "sha256:c8b0d1dc112021795a6c1d94dbaf814ff0271d10be55e86e440b81dcfd1caf7a"
   },
   "settings.general.newtabDynamicWallpaper.label": {
     "message": "Fond selon l’heure",
@@ -3694,6 +3774,22 @@
   "settings.general.tabSwitchOrder.hint": {
     "message": "Maintenez Ctrl et appuyez sur Tab pour revenir aux onglets utilisés en dernier, puis relâchez Ctrl pour changer. Échap vous laisse où vous êtes.",
     "source": "sha256:a1bc7a2aaa5992538e4b286c9711a02136ac03f7e0b81a2febded17a22892803"
+  },
+  "settings.general.reuseNewTab.label": {
+    "message": "Aller à un nouvel onglet inutilisé",
+    "source": "sha256:3cc61e626185cd0b23886d7d9066c4f2432f947eb8767bb4158cebc99187b62d"
+  },
+  "settings.general.reuseNewTab.hint": {
+    "message": "Nouvel onglet va à un nouvel onglet de cette fenêtre que vous n’avez pas encore utilisé, au lieu d’en ouvrir un autre. Nouvel onglet privé fait de même pour les onglets privés.",
+    "source": "sha256:99e5e05a5800398919ea3cf28d48c41a9b109fb8d2a951a5a2d10206132053a6"
+  },
+  "settings.general.askWhereToSave.label": {
+    "message": "Demander où enregistrer chaque fichier",
+    "source": "sha256:b76a33ee6f66a3a942dc934105c61bb667a1a1470c9719187037c601cd65b595"
+  },
+  "settings.general.askWhereToSave.hint": {
+    "message": "Lorsque cette option est désactivée, les téléchargements vont directement dans votre dossier Téléchargements, et un fichier portant le même nom reçoit un numéro.",
+    "source": "sha256:707ca337ae8ad262052b4d64e6e02f0e0e9936dd104700c11fd819b11d0465b1"
   },
   "settings.general.tabSwitchOrder.recent": {
     "message": "Dans l’ordre où vous les avez utilisés",
@@ -4650,6 +4746,14 @@
   "settings.permissions.notifications": {
     "message": "Notifications",
     "source": "sha256:c4680e6dc26649d98acb935fb59000027e2f1b5015b5ba503b916599166eed57"
+  },
+  "settings.permissions.loopbackNetwork": {
+    "message": "Apps sur cet appareil",
+    "source": "sha256:075cb6bb2b371c4665531bd3056c1aa6f64c6d665cc75d341681bb779183ac69"
+  },
+  "settings.permissions.localNetwork": {
+    "message": "Appareils du réseau local",
+    "source": "sha256:13c37de04f384a1d7f8f5f72346331085ebda8c718dc54fc0c3a57573283a762"
   },
   "settings.permissions.audio": {
     "message": "Micro",
@@ -5964,36 +6068,36 @@
     "source": "sha256:6fbb93e65570389bfea1c052fe00d3e09a248ed7f91bdcb42ab7dae32cba352d"
   },
   "onboarding.skip": {
-    "message": "tout passer",
-    "source": "sha256:6e1c80852caf2d033bb547c34317f5719323e92b269f54dda06349ee4edd0f58"
+    "message": "Tout passer",
+    "source": "sha256:64c29a739344f422372425c18a149227e344abd6318139e185ba66f7629e61cf"
   },
   "onboarding.stepLabel": {
     "message": "{step} / {total} — {name}",
     "source": "sha256:fead11ed329fd4b943fa90de31831464f8aded66b883610f84a4cfce7bb44b5e"
   },
   "onboarding.step.default": {
-    "message": "navigateur par défaut",
-    "source": "sha256:b12f95e3b29f367167b6de5b6eb3d760315fadb71d605995486189817b9c7d86"
+    "message": "Navigateur par défaut",
+    "source": "sha256:35a7689ef20dc9333ad5dd0ef2a63cdbde0196ba20af7d839b6bea2f74a15587"
   },
   "onboarding.step.import": {
-    "message": "importation",
-    "source": "sha256:1ae14f5234258298f7652dfb70e5e5895d5f9f1744747f142f8c21bdb20f806a"
+    "message": "Importation",
+    "source": "sha256:d18b28fc7583269241bc019b3a35a1ce2c3797fbe8c29f7af02b4f6d56fd016f"
   },
   "onboarding.step.island": {
-    "message": "l’island",
-    "source": "sha256:bd1508d85ba7499264101441a98f854a999ffc1a9d2d4ffd5afaa1ef1ca5fd4a"
+    "message": "L’Island",
+    "source": "sha256:153de96f1ec036a960c8871fad9522e42292e9b6719b0b981d5fd99a451ce8c3"
   },
   "onboarding.step.blocking": {
-    "message": "blocage des publicités",
-    "source": "sha256:8d785c80fe32b74d2ada949e8f62d6ab982c10f8b6abc527dd2c395845edc5c4"
+    "message": "Blocage des publicités",
+    "source": "sha256:a49964c5ff5dd14d9ae4f2377bdca7a44453401112a7913b3691b5520e546a8a"
   },
   "onboarding.step.privacy": {
-    "message": "confidentialité",
-    "source": "sha256:f755476b92046d0cc6631140f0c8d3478aa8fe790d7cb49eb52658f3188b81c3"
+    "message": "Confidentialité",
+    "source": "sha256:c9f00f2676963bbafb4c1c8274269d6108511b8b6ed2c021ff5b608c611ad561"
   },
   "onboarding.step.theme": {
-    "message": "thème",
-    "source": "sha256:daa960766d97dc095fd5752fb630cf5b37f9c0d3aa4333b7f3ccb87308ec0ee7"
+    "message": "Thème",
+    "source": "sha256:2074a5c422f616206ea056e4446406f1cc0210718631e04703155ddadb0aaa13"
   },
   "onboarding.default.title": {
     "message": "Faire de Blanc votre navigateur par défaut",
@@ -6080,8 +6184,8 @@
     "source": "sha256:39141329a03dab30a78354c71cb982d77235daefcd807c80f5c69587b36664cc"
   },
   "onboarding.island.title": {
-    "message": "Découvrez l’island",
-    "source": "sha256:df6d360cdfec87221db857b3d7cfcf7995b28a914e797a4824293b4829fa341b"
+    "message": "Découvrez l’Island",
+    "source": "sha256:4500c48b28df278ff7e14a4925112cbe60d3367a8eecd5a2b7a838ca35728c03"
   },
   "onboarding.island.body": {
     "message": "Onglets, recherche et navigation, tout au même endroit.",
@@ -6116,8 +6220,8 @@
     "source": "sha256:d7e6c436294d0ff743f61d8a370ef9e2da8ad9f33885cb9fd2cc7cb0868f709e"
   },
   "onboarding.blocking.body": {
-    "message": "Bloque les publicités et traceurs connus grâce à des règles intégrées. Il ne peut pas arrêter tous les traceurs. Désactivez-le site par site avec /off-leash.",
-    "source": "sha256:5c464be0e6cdfdda2e8f28d6ecb015f9e0fb6116b704f2c51e6f86edafa0c95d"
+    "message": "Bloque les publicités et traceurs connus grâce à des règles intégrées. Il ne peut pas arrêter tous les traceurs. Désactivez-le site par site avec /allow-ads.",
+    "source": "sha256:55258d0330c17692ddc6c42f51bdf1b7ed7c1a5b7be98873becfa19b8a00f1ef"
   },
   "onboarding.blocking.toggle": {
     "message": "Bloquer les publicités et traceurs",
@@ -6168,12 +6272,12 @@
     "source": "sha256:76dcf11f28d68d2500525416c3b85dd56cf95922db013e57c6a0d8faaea39ac0"
   },
   "onboarding.theme.light": {
-    "message": "clair",
-    "source": "sha256:53bf1cb352ca64b4904b95c97b0868337d56a789d5204a748eb75b55ad76f2f8"
+    "message": "Clair",
+    "source": "sha256:50074d1390058eb3c1f64f6af3ed07759293e6761b158e83c02cda0ca65dd3fb"
   },
   "onboarding.theme.dark": {
-    "message": "sombre",
-    "source": "sha256:6cad2abfb84589b727106430bf84884b8d32445713b170a059084331e43f9f5f"
+    "message": "Sombre",
+    "source": "sha256:aeda0ea95a6ba51c73ae64edc7962078056ba38e51158a5b770b88564a864d75"
   },
   "onboarding.back": {
     "message": "Retour",
@@ -6347,6 +6451,18 @@
     "message": "{count, plural, one {# déjà enregistré ignoré.} many {# déjà enregistrés ignorés.} other {# déjà enregistrés ignorés.}}",
     "source": "sha256:b0687b46dbc51a7fc5d6cd797109c1d69572b402bc153f104d23383d79ad5d42"
   },
+  "favorites.import.moved": {
+    "message": "{count, plural, one {# déplacé dans son dossier.} many {# déplacés dans leurs dossiers.} other {# déplacés dans leurs dossiers.}}",
+    "source": "sha256:26511ae34f7bdc1f34717e61551f648937b4d2cdbeacf48d7440b1f0c082499f"
+  },
+  "favorites.import.shortened": {
+    "message": "{count, plural, one {# placé dans un dossier parent, car le chemin de son dossier était trop long.} many {# placés dans un dossier parent, car les chemins de leurs dossiers étaient trop longs.} other {# placés dans un dossier parent, car les chemins de leurs dossiers étaient trop longs.}}",
+    "source": "sha256:c312b814b12f37225d01d235054f8b3c4427f895e843a3bdaaa95913484330db"
+  },
+  "favorites.import.orderDropped": {
+    "message": "Certains dossiers sont dans l’ordre par défaut, car la collection est très volumineuse.",
+    "source": "sha256:7a467a3953790b3c9296cc69e32ffe1b2c86d20e16a34d289ae4402ca6b45ddf"
+  },
   "favorites.import.allSaved": {
     "message": "{count, plural, one {Ce favori était déjà enregistré.} many {Les # favoris étaient déjà enregistrés.} other {Les # favoris étaient déjà enregistrés.}}",
     "source": "sha256:8b6c880284a40001a5d6c372521715124ac2ef12827463bb86ca15e93dd28c32"
@@ -6422,6 +6538,186 @@
   "favorites.row.removeLabel": {
     "message": "Retirer {title} des Favoris",
     "source": "sha256:69ac136739dbc47415bc5925a9c1f827f40485cb41149d56bf7ef157e23066bf"
+  },
+  "favorites.manager.all": {
+    "message": "Tous les favoris",
+    "source": "sha256:20ded998648ab1b1bb4d7d837a4e20b7a9d5d8bdbd7bd3105db8130b0621054a"
+  },
+  "favorites.manager.tree": {
+    "message": "Dossiers",
+    "source": "sha256:d9b16d9388e49907e2f68e02ce2ffdb1530e395b7f9be08a70d59d9ff9568a43"
+  },
+  "favorites.manager.breadcrumb": {
+    "message": "Chemin du dossier",
+    "source": "sha256:3133f617da8c3b4cf1be9be96708e07862956ad6f38e919ba1e48120e08207a8"
+  },
+  "favorites.manager.chooseFolder": {
+    "message": "Dossier",
+    "source": "sha256:82f86df173352ee2698c4c3a0ad12e4c03ca20398ba60df166bb476ddf24f4b8"
+  },
+  "favorites.manager.search": {
+    "message": "Rechercher dans les favoris",
+    "source": "sha256:1c47c6a8d5b01ea62a42cef0d3b827a84ada05a47f2750ffd506f3e815d01a97"
+  },
+  "favorites.manager.newFolder": {
+    "message": "Nouveau dossier",
+    "source": "sha256:ad0facc6847071f0f0835d0bac47f49b43cdd695cc567fa8d1b3631d7f5691d1"
+  },
+  "favorites.manager.newFolderPlaceholder": {
+    "message": "Nom du dossier",
+    "source": "sha256:88991c0e3885a5bdcd5fe3f3c163de6713d1833c6b26b4fd6c7b2c98f6641030"
+  },
+  "favorites.manager.newFolderInside": {
+    "message": "Nouveau dossier à l’intérieur",
+    "source": "sha256:dab747bea508930688b45304b4dee12e77d4a164bd98ca66e2d862ea168b8546"
+  },
+  "favorites.manager.open": {
+    "message": "Ouvrir",
+    "source": "sha256:98165cb83a653062e518a74698022d51c9d271dbbadc3f3b833a9f3ef04dd0ca"
+  },
+  "favorites.manager.rename": {
+    "message": "Renommer",
+    "source": "sha256:d19e2c4c9563c366291550fb70f71eb99d064e68c1576f8a84486f52602decc0"
+  },
+  "favorites.manager.moveTo": {
+    "message": "Déplacer vers…",
+    "source": "sha256:89643af2ee7695b419aa9026c07962cea9281591a708d5da9e3f441ec2e8a0fc"
+  },
+  "favorites.manager.moveUp": {
+    "message": "Monter",
+    "source": "sha256:3462406cde0ad03b8642a23b1a166a7e56f5b50e6051e9d7e5951346e14c22a4"
+  },
+  "favorites.manager.moveDown": {
+    "message": "Descendre",
+    "source": "sha256:a792aa25b0ab36a6c7436cc5742655fd635c482dfab74966a52ad0284dcd6d20"
+  },
+  "favorites.manager.remove": {
+    "message": "Retirer",
+    "source": "sha256:37e7549d64f2f88b7944d0fb623f14e1a29dec32ce0b14071407a0c933746ee3"
+  },
+  "favorites.manager.deleteFolder": {
+    "message": "Supprimer le dossier",
+    "source": "sha256:709257dd1f5ed12aa5262faef2e24c9fafecf8ce2fd5b453861305159ba27a50"
+  },
+  "favorites.manager.topLevel": {
+    "message": "Niveau supérieur",
+    "source": "sha256:f63f13705ff75ec6af4469ca8094493040903f8ec50548c689b91cbcb2a6ffc7"
+  },
+  "favorites.manager.more": {
+    "message": "Autres actions pour {title}",
+    "source": "sha256:e8bff454a6c5f075a0cddbd5cf0b6efdc3eb2dbe51efd8c74ce7d23d6f33e6de"
+  },
+  "favorites.manager.items": {
+    "message": "{count, plural, one {# favori} many {# favoris} other {# favoris}}",
+    "source": "sha256:47d261aa98996300edf02d900703b69efc69a3935f953b61d7f6589fe96f1735"
+  },
+  "favorites.manager.selected": {
+    "message": "{count, plural, one {# sélectionné} many {# sélectionnés} other {# sélectionnés}}",
+    "source": "sha256:5373e272db91815325c357ddcd14b9c1f5ef617b72839b467dd0f044afbd3d3f"
+  },
+  "favorites.manager.clearSelection": {
+    "message": "Désélectionner",
+    "source": "sha256:942ac29b767db95da4414316acb56cbb989e61f0a058d4b4ce35b36049c09911"
+  },
+  "favorites.manager.noResults": {
+    "message": "Aucun favori ne correspond.",
+    "source": "sha256:8f86932adf04493deb62b703e3478802df34371a48e148f93b394b97c1af52cd"
+  },
+  "favorites.manager.emptyFolder": {
+    "message": "Ce dossier est vide.",
+    "source": "sha256:a270bd647ef156138e1ea4a35f6bf63c043dca5a4c3f0c9f26e763f6cfa27643"
+  },
+  "favorites.manager.error.tooLong": {
+    "message": "Ce chemin de dossier serait plus long que ce que Blanc peut synchroniser. Utilisez un nom plus court ou moins de niveaux.",
+    "source": "sha256:702fc267b3169ad16ea77f05ea4f5fc45d21492a2d44c0f37be8c90f9c148980"
+  },
+  "favorites.manager.error.cycle": {
+    "message": "Un dossier ne peut pas être déplacé dans lui-même.",
+    "source": "sha256:46ba5c6ce992e8cbdeb3d9d8a35a2946ac4aef894c48876632a6f93186bf155a"
+  },
+  "favorites.manager.error.invalid": {
+    "message": "Ce nom ne peut pas être utilisé.",
+    "source": "sha256:1de200d65ef4bdcc0b788833f6e2a77067c0ed6e18e153b14857d02119d257fd"
+  },
+  "favorites.manager.error.missing": {
+    "message": "Ce dossier n’existe plus.",
+    "source": "sha256:da15e822ea7414bdea99ba50faf98629849cd2c7bc8e38befbdaaea0c4be91e7"
+  },
+  "favorites.manager.edit": {
+    "message": "Modifier…",
+    "source": "sha256:1d26808ffd30c70244202138ef65cd5019e58668ab1ba24a8d57b475b18c276b"
+  },
+  "favorites.manager.editName": {
+    "message": "Nom",
+    "source": "sha256:cb890f3ecd7abc20bfe0257411fb3086e233615d75ca010899a10ccd376e1204"
+  },
+  "favorites.manager.editAddress": {
+    "message": "Adresse",
+    "source": "sha256:1195bd9cb301fce38b8cb8ae55d44bb7ecb2cca552ebe57cfd7186af65e3419e"
+  },
+  "favorites.manager.editSave": {
+    "message": "Enregistrer",
+    "source": "sha256:2dad4acc077e8bb1bfc67b3e331bcca54ff89bdbc1c5fefadc5e0c51e9b4409f"
+  },
+  "favorites.manager.editCancel": {
+    "message": "Annuler",
+    "source": "sha256:28882c39a45a3780a82acb437e2b4611255b7a7942178730fb5ad4a19eb3de11"
+  },
+  "favorites.manager.error.exists": {
+    "message": "Un autre favori a déjà cette adresse.",
+    "source": "sha256:7d2deac5495888ca855b96b96e3ae490d746e6041f7b49d4bfa57537679b57ce"
+  },
+  "favorites.manager.error.invalidUrl": {
+    "message": "Saisissez une adresse web, par exemple example.com.",
+    "source": "sha256:160c9026299f85c39b9174222be67c0ca26710a39a3bd4058918d4b7cb3daad1"
+  },
+  "favorites.manager.error.favoriteMissing": {
+    "message": "Ce favori n’existe plus.",
+    "source": "sha256:0c6bc341a8bf1897163deb5b95e0b853551893b0ce49bfebeb79a8b06c0e8ec8"
+  },
+  "favorites.manager.openNewTab": {
+    "message": "Ouvrir dans un nouvel onglet",
+    "source": "sha256:2b7d097bbb94091a5f0ab83f4260f1a77a378fa82c40d74bce3b0784f829c18e"
+  },
+  "favorites.manager.openAll": {
+    "message": "Tout ouvrir",
+    "source": "sha256:868a0b914e54b1bb9f02dceee88e517d6ef1a4e7106d5cfc6118da59c4eadb78"
+  },
+  "favorites.manager.editTitle": {
+    "message": "Modifier le favori",
+    "source": "sha256:f949fb4ceb57243bb5d34b99be90d8ce0e7304c4dd0b2ce8512eec4aa9eb6250"
+  },
+  "favorites.manager.editFolder": {
+    "message": "Dossier",
+    "source": "sha256:3f41cc3856cd423a9ca0abad559f47e0847bd2a472e1d9ab70683c0b034a2600"
+  },
+  "favorites.manager.moreShort": {
+    "message": "Autres actions",
+    "source": "sha256:c70334a4344de3c08a8812ce82fcbe0a193fc5d79dd2b1e4933dda2260bed7d2"
+  },
+  "favorites.import.menu": {
+    "message": "Apporter mes données dans Blanc",
+    "source": "sha256:7c0b597b34e0d5fc033ac5ac1476dac7ebce2209ba9000c93c7e51abcf813144"
+  },
+  "favorites.manager.results": {
+    "message": "{count, plural, one {# résultat} many {# résultats} other {# résultats}}",
+    "source": "sha256:af1fd513441f4a7b789abaa9483aaeb718cd2677c9bc2bca731345172f7b8a42"
+  },
+  "favorites.manager.removeConfirm": {
+    "message": "{count, plural, one {Retirer # élément ?} many {Retirer # éléments ?} other {Retirer # éléments ?}}",
+    "source": "sha256:7a71259f4ac41a6bba212d7539b7179020d57bb057285db4983dca3a10549eb2"
+  },
+  "favorites.manager.cancel": {
+    "message": "Annuler",
+    "source": "sha256:417d9366fed6571bb49c5677f56393a7f1ed62496af3b7e5508942d42ac8cba0"
+  },
+  "favorites.manager.pin": {
+    "message": "Épingler",
+    "source": "sha256:1d11e161f9a0b77ff9a8865e610bdd563f4ba3620e1ab35fd562d9a27b2d6e9c"
+  },
+  "favorites.manager.unpin": {
+    "message": "Désépingler",
+    "source": "sha256:f85ccf92edab1ffdf0dfbbf0fb291402b6ed6be9ff487641528a69b700d93cbf"
   },
   "favorites.picker.label": {
     "message": "Déplacer {title} vers un dossier",
@@ -7323,6 +7619,10 @@
     "message": "plateau",
     "source": "sha256:3427faa722440de430c983369e0e58b06701bc2990a647d782ad0a1d8df17d67"
   },
+  "mahjong.setup.dailyLayoutHint": {
+    "message": "La donne du jour utilise la disposition du jour. Passez à « Aléatoire » pour en choisir une autre.",
+    "source": "sha256:24ae317b8e6bafdaa017aa28bd5de16c9cad98e1a4d978c34fa769e01922ce47"
+  },
   "mahjong.layout.turtleDetail": {
     "message": "144 tuiles · paisible",
     "source": "sha256:64841fe57365e0fe1eb676f73cf291e3841e56b119084ecade3e5b655713add4"
@@ -7419,17 +7719,17 @@
     "message": "<0>Partie Zen</0> Masque le temps et les points, et exclut cette partie du palmarès.",
     "source": "sha256:e8fdf7aee42c0d71edd6664a8ab56c4d058ce69c39845175dd18db5af5c0741e"
   },
-  "mahjong.setup.freeHighlight": {
-    "message": "<0>Surlignage renforcé des tuiles libres</0> Ajoute un anneau permanent à fort contraste autour de chaque tuile jouable.",
-    "source": "sha256:650c89c61e8a6a0d5510c12d722e090728f1a1e6de5fa1721488b217fc687810"
-  },
   "mahjong.setup.replaces": {
     "message": "Commencer remplace le plateau actuellement sur cette table.",
     "source": "sha256:9aed92ef1a9909b68f6232fec4819c25a5b95b6775c1f6fdb98b9644760bb5d8"
   },
   "mahjong.setup.copyDeal": {
-    "message": "copier la donne actuelle",
-    "source": "sha256:5eb79d2bca875e7438c52b53e1c3c598bc6f59db0360798c907f722367071ef9"
+    "message": "copier le lien",
+    "source": "sha256:e72d235453e7a7f28c0215905385db9ae7471632a9f936085b2f480577cb469c"
+  },
+  "mahjong.setup.linkCopied": {
+    "message": "lien copié",
+    "source": "sha256:1feca2c795efb3afdcb911a8b712f3fb9b5b5227b343581ceb84830dab95a946"
   },
   "mahjong.setup.start": {
     "message": "commencer",
@@ -7595,33 +7895,33 @@
     "message": "dragon blanc, {motif}",
     "source": "sha256:a6bf943e9af21299811463503ef949a13e36ab8d058bd3bd174add09e0456639"
   },
-  "mahjong.tile.motif.sunrise": {
-    "message": "lever de soleil",
-    "source": "sha256:fd26826556dbf0a583900e526636c4d75e3d4aa0df5ad9be34b4dccddc0ff0b2"
+  "mahjong.tile.windEastPlain": {
+    "message": "vent d’est",
+    "source": "sha256:e7c8667b5055ce85371a5cf4e8bc3d8fce72126a14d5c82c088c58e425a94ff7"
   },
-  "mahjong.tile.motif.sun": {
-    "message": "soleil",
-    "source": "sha256:cb8156bf23b6e637692cf64e1eaa490ed46dea42e0bb19b1cbf7979cb45cac19"
+  "mahjong.tile.windSouthPlain": {
+    "message": "vent du sud",
+    "source": "sha256:de27fa7079e569c8aaf88b1ada511e1f53042b745939c7afc2adacf749cf5ccd"
   },
-  "mahjong.tile.motif.moonAndWave": {
-    "message": "lune et vague",
-    "source": "sha256:4dcf189c43f12523227b974b4810938b34d029aeed4d865eab5fa838e849f651"
+  "mahjong.tile.windWestPlain": {
+    "message": "vent d’ouest",
+    "source": "sha256:ea00b1481a4e7963056ee52a50eb4bfcc9e8860c542d1ded6a8af1fc1eb2257f"
   },
-  "mahjong.tile.motif.mountain": {
-    "message": "montagne",
-    "source": "sha256:f72104660aba44adcb1053a54c857f6fd83179df9f701a81a61f860b4b2c701a"
+  "mahjong.tile.windNorthPlain": {
+    "message": "vent du nord",
+    "source": "sha256:7d96b46e40c442f15c489e552797bc2e14b8733372c45607c07a3aa2e361e4b8"
+  },
+  "mahjong.tile.dragonRedPlain": {
+    "message": "dragon rouge",
+    "source": "sha256:f91061d529f95302034707e06f46939fba314c681b9efd8f4887cede141b38f6"
+  },
+  "mahjong.tile.dragonGreenPlain": {
+    "message": "dragon vert",
+    "source": "sha256:1e9c9024c8352f016af6767d8647870992fb4d1e4c68ffd9432012dfa38144f3"
   },
   "mahjong.tile.motif.compass": {
     "message": "boussole",
     "source": "sha256:2df6fdfece5cf4d3e8071d49fe04f6efc39d99bc9564c55cc25972cd9b8f06b9"
-  },
-  "mahjong.tile.motif.flame": {
-    "message": "flamme",
-    "source": "sha256:72af75562afdb2f2ea0ad6d1edfa2ae4acdc5dcf4aa508cdf7f65f347512cd7b"
-  },
-  "mahjong.tile.motif.flourish": {
-    "message": "arabesque",
-    "source": "sha256:b68da143e73e6d42eddc3dd177b6b995873fd78e304927ce8135f45049797f44"
   },
   "mahjong.tile.motif.blancMark": {
     "message": "logo Blanc",
@@ -7838,6 +8138,42 @@
   "mahjong.win.quietTitle": {
     "message": "Une fin paisible.",
     "source": "sha256:02044e13ec6e158bac2a971fc2e2f0ea9a63389de0f00fd67ced1158658b03fa"
+  },
+  "mahjong.win.titleRecord": {
+    "message": "Un nouveau record personnel.",
+    "source": "sha256:296fcbb0bf58ad579037f2e45e127d049b3b1c26f693421cb9020637fa75b48b"
+  },
+  "mahjong.win.titleFirst": {
+    "message": "Première fois que vous terminez {layout}.",
+    "source": "sha256:492d6aee3583db3f28e2578a9b2531ca85caaee02f5a62e02a9991440f275bc7"
+  },
+  "mahjong.win.titleStreak": {
+    "message": "{run} d’affilée. De nouvelles tuiles ensuite.",
+    "source": "sha256:642b6f59f40afb5e5161033f33ce4c7700840ed95dc8a4661e5df6bc0990aca3"
+  },
+  "mahjong.win.titleDaily": {
+    "message": "Le défi du jour est réussi.",
+    "source": "sha256:5c4ba8ca52573baefdc2b9f533cea468af0bf4041862d8d153c58c1d0616bcf5"
+  },
+  "mahjong.win.titleSweep": {
+    "message": "Table rase.",
+    "source": "sha256:ba94fd22d040b82da4dd12d0b04a8cea340475f79ff03ba35c9914619c54242c"
+  },
+  "mahjong.win.titleHome": {
+    "message": "Chaque tuile à sa place.",
+    "source": "sha256:097b24e605ab4fa2f4bd27482d89d76b863ca4429ca966a29adb6b65dc854586"
+  },
+  "mahjong.win.titleLastPair": {
+    "message": "C’était la dernière paire.",
+    "source": "sha256:32c4a8460e463ac717226fee92ed5ebfe95a18bff9fe55598d0f1e5004b347e0"
+  },
+  "mahjong.win.titleTidy": {
+    "message": "Une table bien rangée.",
+    "source": "sha256:a1d6b160c314c1638f860cba6143d4fca81dc29319754587e71336c6f0d7895f"
+  },
+  "mahjong.win.titleWellPlayed": {
+    "message": "Bien joué.",
+    "source": "sha256:100e0ace2b71fb0d9ae9c39be6d84ea1dbd06f5240d3cf33845a984f12350b47"
   },
   "mahjong.win.rules": {
     "message": "{mode} · {rules}",
@@ -8327,6 +8663,10 @@
     "message": "Configurez la synchronisation sur votre ordinateur, puis ajoutez ce téléphone avec un code.",
     "source": "sha256:afd19ac9e6a3c113db62227c93337efcff83cfbd57e0ac89625576ed0a69db94"
   },
+  "settings.sync.createOnComputer.ipad": {
+    "message": "Configurez la synchronisation sur votre ordinateur, puis ajoutez cet iPad avec un code.",
+    "source": "sha256:5c2568d59005c18c7ffc4927335198d152c66c919bf3a3727a192e336fe25b49"
+  },
   "settings.sync.enterSyncName": {
     "message": "Saisissez le nom de votre synchronisation",
     "source": "sha256:21c2e58d05113dfe2f34338ed74a4f308bb6e0f5adf43b77754fc2107cbf540d"
@@ -8779,13 +9119,25 @@
     "message": "Partagez les onglets ouverts ordinaires de cet iPhone avec vos autres appareils. Les onglets privés ne sont jamais partagés.",
     "source": "sha256:83d7996fbe9b9d874ba434cbe43221a9fd2799fc25d6f692d05310d6844e087b"
   },
+  "ios.settings.shareTabsHelp.ipad": {
+    "message": "Partagez les onglets ouverts ordinaires de cet iPad avec vos autres appareils. Les onglets privés ne sont jamais partagés.",
+    "source": "sha256:8856a9ddc34f97998d7b672757de8378f7279da16210ca14f98b79cacd63af7b"
+  },
   "ios.settings.disconnectHelp": {
     "message": "Déconnecter cet iPhone ? Vos favoris et réglages locaux restent ici. Vos autres appareils ne sont pas affectés.",
     "source": "sha256:0d8334eb54e8e7eb72a963a6d65e2b3f72ddcf351d20fe7ec101467fc4b4b1dd"
   },
+  "ios.settings.disconnectHelp.ipad": {
+    "message": "Déconnecter cet iPad ? Vos favoris et réglages locaux restent ici. Vos autres appareils ne sont pas affectés.",
+    "source": "sha256:1cd1481e376119473a304b072dddcc0ee0ebb14c37c5dae99a114acdd25dca1d"
+  },
   "ios.settings.switchHelp": {
     "message": "Cet iPhone quittera sa synchronisation actuelle. Vos favoris et réglages locaux restent ici. Vos autres appareils ne sont pas affectés.",
     "source": "sha256:82889fc299ef71255083ed05c51921fbfccc2eb8977562d6a8ae7c56b793c272"
+  },
+  "ios.settings.switchHelp.ipad": {
+    "message": "Cet iPad quittera sa synchronisation actuelle. Vos favoris et réglages locaux restent ici. Vos autres appareils ne sont pas affectés.",
+    "source": "sha256:a1c1a51482b0d8f4264e4a55dea3e68d240c16cceb90bc27607fe8b94b0a24d1"
   },
   "ios.settings.timeOfDay": {
     "message": "Heure de la journée",
@@ -9081,6 +9433,10 @@
     "message": "Cet iPhone",
     "source": "sha256:872a9b15efd10d5c23b321f11d4d2d26630ac2b462424389c61a940f04e7887c"
   },
+  "spaces.thisPhone": {
+    "message": "Ce téléphone",
+    "source": "sha256:b026046d8dfbc3b8b3eade4d617aecce3c30cbd1b4aa8b741164583a8a88a4a9"
+  },
   "spaces.thisIPad": {
     "message": "Cet iPad",
     "source": "sha256:1585758383f584e1390802e41ffe68d77fa9d99d958b462f50a6cd08561edb39"
@@ -9113,9 +9469,17 @@
     "message": "Garder les Spaces et les groupes synchronisés sur cet iPhone",
     "source": "sha256:37f571fc1dc4b0a7299b0c4062eee63119c24848a52820fa96405910b0ea0683"
   },
+  "sharedSpaces.switch.iphone.ipad": {
+    "message": "Garder les Spaces et les groupes synchronisés sur cet iPad",
+    "source": "sha256:3ce594881d5c46e96863d972e9b48ba9beff75c9a62d1127d3fcd580baf6c9d3"
+  },
   "sharedSpaces.switch.line.iphone": {
     "message": "Les onglets de vos Spaces partagés sont synchronisés depuis cet iPhone.",
     "source": "sha256:3a52ae761ef984f6537ac718ef7cedb34fe1f6b59d01620d9daeb0218cb6c242"
+  },
+  "sharedSpaces.switch.line.iphone.ipad": {
+    "message": "Les onglets de vos Spaces partagés sont synchronisés depuis cet iPad.",
+    "source": "sha256:6b31e8c7523b0c0f758b9cbed0cd67513d03e11b86cb351dad6c08a01f042d91"
   },
   "sharedSpaces.waitingCount": {
     "message": "{count, plural, one {# Space partagé vous attend} many {# Spaces partagés vous attendent} other {# Spaces partagés vous attendent}}",
@@ -9125,13 +9489,25 @@
     "message": "Enregistrer Cet iPhone comme Space",
     "source": "sha256:29322ed63d9fca7aca123a8d29dc57c0a922a43fb008c9200098b0b7ae357249"
   },
+  "sharedSpaces.saveThisIPhone.ipad": {
+    "message": "Enregistrer Cet iPad comme Space",
+    "source": "sha256:eefbb4136228567c028b7d81b8511d4805c5134f50d1f31ada985b95820cdd7b"
+  },
   "sharedSpaces.recoveryName.iphone": {
     "message": "{name} · conservé sur cet iPhone",
     "source": "sha256:4fc90d0e3a8eda549190a942e5b17c1a84a1ce47c17803da49681e2132c32c38"
   },
+  "sharedSpaces.recoveryName.iphone.ipad": {
+    "message": "{name} · conservé sur cet iPad",
+    "source": "sha256:cf35525e5abdf98f03fac55871601309408e05e0b7ec09e8fb382f7326477c6e"
+  },
   "sharedSpaces.deletedEverywhere": {
     "message": "Supprimé partout. Annuler garde une copie sur cet iPhone.",
     "source": "sha256:8321dabd3f5afe88f2cecd37514c421fa323e4e7f662a13e0a34b282c1f484ec"
+  },
+  "sharedSpaces.deletedEverywhere.ipad": {
+    "message": "Supprimé partout. Annuler garde une copie sur cet iPad.",
+    "source": "sha256:6a614aff72b50de906d5d7823c762682f8480cd2cfff0ff7eef2b8713d45c9b6"
   },
   "spaces.onDevice": {
     "message": "Sur {device}",
@@ -9140,6 +9516,10 @@
   "bringSpace.action": {
     "message": "Copier sur l’iPhone",
     "source": "sha256:ea5b99999b3b68bd5611ae0e535c7372be51f0cdc24fdf62fef0d03d1dd70d3e"
+  },
+  "bringSpace.action.ipad": {
+    "message": "Copier sur l’iPad",
+    "source": "sha256:09f4059d161d3ae253303a844736d34f186059a21056d2af5f09eadea8285fe2"
   },
   "bringSpace.copyNote": {
     "message": "Cette copie ne changera pas quand le Space changera sur {device}. Activez la synchronisation des Spaces pour les garder identiques.",
@@ -9163,11 +9543,11 @@
   },
   "ios.settings.islandHistoryButtons": {
     "message": "Boutons Précédent et Suivant",
-    "source": "sha256:7ec1dc0623cd5f25a9dcfa770869e362aafdc346e914ccc97f40dea0f71903bc"
+    "source": "sha256:24b5daf02568586be73f80ddd0aeb9272f802b6b953247fe9c0dc9df17cfa571"
   },
   "ios.settings.islandHistoryButtonsHelp": {
-    "message": "Quand l’Island est étroite, ils remplacent Actualiser et Nouvel onglet. Tirez une page vers le bas pour l’actualiser.",
-    "source": "sha256:9b44c7b2c85805ae6a76e80aab9923e805e4820cfe9a1b0f457ca7be60456265"
+    "message": "Désactivés, ils laissent la place à Actualiser. Vous pouvez aussi tirer une page vers le bas pour l’actualiser.",
+    "source": "sha256:4cc6e57fb31059f5f1acd09b2e8f9790272f49bdd10a4ce96eabcd702c3ec041"
   },
   "ios.settings.islandPosition": {
     "message": "Position",
@@ -9273,6 +9653,10 @@
     "message": "Votre Blanc, dans votre poche.",
     "source": "sha256:9b3d61d7c90b5e7efb6caab1e5abe9561db5d8701d0cfc23ad3291cc847fb9d1"
   },
+  "ios.welcome.title.ipad": {
+    "message": "Votre Blanc, sur votre iPad.",
+    "source": "sha256:0a588438f990307df5acdd5232d9bc88f4745ecd8afef73071aa233ecccc2c08"
+  },
   "ios.welcome.body": {
     "message": "Récupérez les onglets, les Spaces et les favoris de Blanc sur votre ordinateur.",
     "source": "sha256:9cae8f7c784f5c23d22ef226a6915d9672df23dba2df337951c3ed2ce54ed05b"
@@ -9316,6 +9700,26 @@
   "ios.welcome.shareTitle": {
     "message": "Partager depuis cet iPhone",
     "source": "sha256:61dd993df0201b989d53efd771e1d61505b3e653e4c43fdc60c1edc0ad5498fd"
+  },
+  "ios.welcome.shareTitle.ipad": {
+    "message": "Partager depuis cet iPad",
+    "source": "sha256:b2710f3259484b8979dfe18aab1d64924103bac618b8276b8eb518fe0c7b674d"
+  },
+  "ios.menu.requestMobileSite": {
+    "message": "Demander le site web mobile",
+    "source": "sha256:18811c9eb691ba477ea5989dab4bfb497b56f9619ac817b6d56ac9ed31dfbf38"
+  },
+  "ios.menu.requestDesktopSite": {
+    "message": "Demander le site web pour ordinateur",
+    "source": "sha256:527f089f6269388ded9f5cd79a376ca933cd5475dc40b51f79e82bf6256a5d0e"
+  },
+  "menu.focusNextPane": {
+    "message": "Panneau suivant",
+    "source": "sha256:11dc6350ef1ae461ccb42190827924d52f4cad3c6a0120717ebf2ea55825f22f"
+  },
+  "menu.focusPreviousPane": {
+    "message": "Panneau précédent",
+    "source": "sha256:de933dbf93f18b308af517f1758b7f69d31394e277488b353280f907c6b8288e"
   },
   "ios.welcome.shareBody": {
     "message": "Les deux restent désactivés jusqu’à ce que vous les activiez. Vous pourrez les modifier dans Réglages → Synchronisation.",
@@ -9416,5 +9820,263 @@
   "settings.general.miniWindow.shortcut.ctrlShiftSpace": {
     "message": "Ctrl+Maj+Espace",
     "source": "sha256:5f579d29dff6300530617e41e4a883a52c075e51ffb3573d781ced720a7601a8"
+  },
+  "sharedSpaces.switch.android": {
+    "message": "Garder les Spaces et les groupes synchronisés sur ce téléphone",
+    "source": "sha256:3fd5725f20014ae99a8e54ec771f70bbd0aded56cb6824418f77a77cfc7bb6c1"
+  },
+  "sharedSpaces.switch.line.android": {
+    "message": "Les onglets de vos Spaces partagés sont synchronisés depuis ce téléphone.",
+    "source": "sha256:dae75716c578c9f174cf391630377e6676fca184fd18647585425a86875711ab"
+  },
+  "sharedSpaces.saveThisPhone": {
+    "message": "Enregistrer Ce téléphone comme Space",
+    "source": "sha256:3d504e97fd5a0cddac0a501fa8d33ca344ed24a3713465e62185521241253809"
+  },
+  "sharedSpaces.recoveryName.android": {
+    "message": "{name} · conservé sur ce téléphone",
+    "source": "sha256:4ccdeab1c50b3fe66996ffa42c4a38124fde8c3f993668d7eb50aca7d00a2e57"
+  },
+  "sharedSpaces.deletedEverywhere.android": {
+    "message": "Supprimé partout. Annuler garde une copie sur ce téléphone.",
+    "source": "sha256:0b22cfb62b4d2dc6a91b7a64abc4d4013cd2ac2c4ce370e256b185300f2e9dda"
+  },
+  "bringSpace.action.android": {
+    "message": "Copier sur ce téléphone",
+    "source": "sha256:40fcc327dd131cea58c7905b3b43f52fa94da02544a82c79a46c5fea88ca8abf"
+  },
+  "android.settings.more": {
+    "message": "Plus",
+    "note": "Android Settings: heading of the section holding Chromium’s own pages (Site settings, Accessibility, Notifications, Downloads).",
+    "source": "sha256:047283b6437421a2bd68afdf7cf3c7c1d0fcc4bd6e2b6e55449d8b014afbebdf"
+  },
+  "android.settings.islandPosition": {
+    "message": "Position de l’Island",
+    "note": "Android Settings → Appearance: row choosing whether the Island sits at the top or the bottom of the screen.",
+    "source": "sha256:7233ccf8203f09ca9a51bc8a0246b4ebfe922b0057cf7eb3624119a10ab7f703"
+  },
+  "android.settings.islandPosition.top": {
+    "message": "En haut",
+    "note": "Android Settings → Island position: the Island sits at the top of the screen.",
+    "source": "sha256:c223c393b804a6ac07e537be031b49aeb9a01f212380daf57e9095de6011cab3"
+  },
+  "android.settings.islandPosition.bottom": {
+    "message": "En bas",
+    "note": "Android Settings → Island position: the Island sits at the bottom of the screen.",
+    "source": "sha256:206e35c0a394e6a73d39040dd0cab63b48af03b1d6d0ed533d44b3af8f709528"
+  },
+  "android.settings.autofill.title": {
+    "message": "Remplir les mots de passe",
+    "source": "sha256:de81fec134e9003c5f6758bbe9d1bc03eeeb2610a8ca0f960a732333a07669a6"
+  },
+  "android.settings.autofill.summary": {
+    "message": "Le gestionnaire de mots de passe que vous choisissez dans Android, comme Bitwarden, Proton Pass ou 1Password, peut saisir vos mots de passe dans Blanc et remplir les autres formulaires qu’il prend en charge. Le Gestionnaire de mots de passe de Google ne remplit pas les formulaires dans Blanc.",
+    "source": "sha256:d9659b94ad570ed82c70aa4f3b974a638554d68de10687b1d6cc5f4508ee848c"
+  },
+  "android.settings.autofill.managed": {
+    "message": "Votre organisation gère ce paramètre.",
+    "source": "sha256:ffe729844b53b712b64b7ef0e0f62111204900169bb47a35e59f4ad1096b984f"
+  },
+  "android.settings.autofill.choose": {
+    "message": "Choisir un gestionnaire de mots de passe",
+    "source": "sha256:4100ca7b229cbe8a2a16c61a7e89731170f4d1dfcf50c60ca456d5b86c1a83f1"
+  },
+  "android.settings.autofill.chooseSummary": {
+    "message": "Le changement prendra effet au prochain démarrage de Blanc.",
+    "source": "sha256:1a6b58d50536e2a456f657a610b8561561e22cac67a35571f1b79836220cb686"
+  },
+  "android.settings.autofill.restart": {
+    "message": "Redémarrez Blanc pour appliquer la modification",
+    "source": "sha256:5543fb10333442eec51936d21b7267bf0bdfc0adb2d90850f19e2727ac77d16a"
+  },
+  "android.settings.openSourceLicenses": {
+    "message": "Licences open source",
+    "note": "Android Settings → About: row opening the list of open-source licenses.",
+    "source": "sha256:ee73136a612e3f11806cd153e9242381073980855674daf373395a55d4bee467"
+  },
+  "android.welcome.shareTitle": {
+    "message": "Partager depuis ce téléphone",
+    "note": "Blanc for Android walkthrough: the iPhone string ios.welcome.shareTitle with \"this phone\".",
+    "source": "sha256:4734ec05405720aee9f9c2be173c845a1a7c3b3c2a848bb92874cad6d86582ae"
+  },
+  "android.welcome.measureUsageHelp": {
+    "message": "À chaque ouverture, Blanc envoie un comptage anonyme : un identifiant aléatoire pour cette installation, la version de l’app et la version d’Android. Jamais ce que vous consultez. Voir blanc.day/privacy.",
+    "note": "Blanc for Android: under the Measure usage switch in the walkthrough and Settings; ios.welcome.measureUsageHelp with the Android version. Says exactly what the launch ping carries.",
+    "source": "sha256:d4696330c340c778e600462c4e853fb7f6c7d774d64f25d0fa42a3a49913b7dc"
+  },
+  "android.defaultBrowser.body": {
+    "message": "Faites de Blanc votre navigateur par défaut pour que les liens des autres apps s’ouvrent ici.",
+    "note": "Blanc for Android walkthrough: the default-browser step, ios.defaultBrowser.body without iPhone app names.",
+    "source": "sha256:5da61b8d64796e893236b193ddfcafbe8c4185dc942fcca31e150b38aae772e6"
+  },
+  "android.defaultBrowser.open": {
+    "message": "Définir par défaut",
+    "note": "Blanc for Android walkthrough: the button that asks Android to make Blanc the default browser (Android shows its own confirmation).",
+    "source": "sha256:5183a6b5762927630c64cdd4e9f172d64e8284a07f4311b84965a01add5e877f"
+  },
+  "android.settings.autoRevokeSummary": {
+    "message": "Pour protéger vos données, laissez Blanc supprimer les autorisations des sites que vous n’avez pas consultés récemment",
+    "note": "Android Settings → Site settings: summary under the unused-permissions switch (replaces Chromium’s text, which names Chrome).",
+    "source": "sha256:11f7585d6d6ab59263e345cb2858770fa61bbd956373179f8accfe4cf0afb3f8"
+  },
+  "android.licenses.title": {
+    "message": "Licences open source",
+    "source": "sha256:c84920ec51de86f1788fa7c241102677c3bcab126fc3f18a294fe6a05a1fa2b1"
+  },
+  "android.licenses.intro": {
+    "message": "Lis les licences et les mentions de Blanc ci-dessous. Les crédits de Chromium présentent ses propres licences et composants tiers.",
+    "source": "sha256:b73591377c8e30167aace94d5072a1c457e8803308b7b091b28bba583cb40523"
+  },
+  "android.licenses.chromiumCredits": {
+    "message": "Licences et crédits de Chromium",
+    "source": "sha256:836d9421155d5abab34e471f6c036be4b1aa3dbe5e297acd8fd3c5c1d1b6fa6c"
+  },
+  "android.licenses.license": {
+    "message": "Licence du logiciel Blanc",
+    "source": "sha256:fc087b770fad11eaa405006fbb57913b940be11d72cc346fdaa220b2ba3105dd"
+  },
+  "android.licenses.assetLicense": {
+    "message": "Noms, logos et éléments d’identité de Blanc",
+    "source": "sha256:edeff99b2051b835c2aee1afb9fd6afecdc4ac78fe3648143fafb39e831debfa"
+  },
+  "android.licenses.thirdPartyNotices": {
+    "message": "Mentions de tiers du dépôt",
+    "source": "sha256:7cb5a509d3909dc8304f5eabdf751fd9d6930e09f3bf3a62933d8f348dec118f"
+  },
+  "android.licenses.chromiumForkNotices": {
+    "message": "Mentions du fork de Chromium",
+    "source": "sha256:1c29ebb79158e30c9f7198f1be802264df59da16b0b2d18a1a864e1f2202b425"
+  },
+  "android.licenses.loading": {
+    "message": "Chargement de la mention…",
+    "source": "sha256:d0e14ec68bc4b1568a3ca46b44e90022eaae9f56d9eab2009856a32f588631bb"
+  },
+  "android.licenses.loadFailed": {
+    "message": "Cette mention n’a pas pu être chargée. Ouvre le lien de son titre pour lire le fichier inclus.",
+    "source": "sha256:10f1e03f68d92e46522c957048d32e387885e1b7ac56bfbfcaf0b315488731c3"
+  },
+  "favorites.import.lede": {
+    "message": "Copiez vos favoris et onglets ouverts depuis un autre navigateur. Rien n’y change.",
+    "source": "sha256:7b27cd690be548ecaaee09172c868e1c008c44ab16b9f5cbaf756274e6feea26"
+  },
+  "favorites.import.from": {
+    "message": "Depuis",
+    "source": "sha256:079498949d082389942f09acaea05caa852f1259197162cc9b0bb7ef2bdca4ca"
+  },
+  "favorites.import.fileOption": {
+    "message": "Fichier de signets (HTML)…",
+    "source": "sha256:7b8d9a3c934ef85b6eee9fe7e6286694e1a94725ab4d26a1f6dd211ffa5645b8"
+  },
+  "favorites.import.what": {
+    "message": "Quoi importer",
+    "source": "sha256:abf914f00212fcefc08da2e8b764634a8fff7c3d1ee41e403b22aca484c557fa"
+  },
+  "favorites.import.whatTabs": {
+    "message": "Onglets ouverts",
+    "source": "sha256:1f3a10d9d1b7c6a4da7dfb18927334194890a580bd45102018872b8836a9b0e9"
+  },
+  "favorites.import.go": {
+    "message": "Importer",
+    "source": "sha256:886f9f28a5489791fe4fdd9bffc45def05b37f68e7430321759f821910041e4b"
+  },
+  "favorites.import.cancel": {
+    "message": "Annuler",
+    "source": "sha256:5d290921c79b35afa02449fdc247ccd75820b9ae9dd9f7e7f0df8a31ba454947"
+  },
+  "favorites.manager.deleteFolderLabel": {
+    "message": "Supprimer le dossier {title}",
+    "source": "sha256:8985ef05df353e0e17eb14d0dfb0f4a502a7e6a555ef06d37ec5dc698bec68ef"
+  },
+  "favorites.import.tabsSkipped": {
+    "message": "Les onglets ouverts n’ont pas été importés.",
+    "source": "sha256:2151e2cc32789e69ff84dc7e3125d6a0221be22bf0d122a82c7f3a2f6b2da94f"
+  },
+  "start.billboard.blocked": {
+    "message": "{count, plural, one {# publicité bloquée cette semaine} many {# publicités bloquées cette semaine} other {# publicités bloquées cette semaine}}",
+    "source": "sha256:c70aedcc84ab4c77fbc6561ac03ba69ae0dc5593bd1191c7bf59828522f4553a"
+  },
+  "start.widgets.heading": {
+    "message": "Widgets",
+    "source": "sha256:037671197561fb0f945d24ad1b42784bf6d3df9bf8edfe1b9ada33bcadcdf5c0"
+  },
+  "start.widgets.unconfirmed": {
+    "message": "Impossible de confirmer la modification du widget. Réessayez.",
+    "source": "sha256:24f57689b3d85ceaef469d26fe1144c2124090c04bed1706b53831b6829d183f"
+  },
+  "start.widgets.move": {
+    "message": "Déplacer {name}",
+    "source": "sha256:37f946fe9b764bd4c6dfd8536236c3297df81a407f74de41fd7a3b137af1f814"
+  },
+  "start.widgets.movedLeft": {
+    "message": "{name} est maintenant à gauche, position {position}.",
+    "source": "sha256:b5c954756720b6c79c2d0e6bff4140efd20a2ae7e4aafc35b5bbc78c8f82f762"
+  },
+  "start.widgets.movedRight": {
+    "message": "{name} est maintenant à droite, position {position}.",
+    "source": "sha256:46d822967ee9affb835e5224ec8061207e78d207d5616ac8f0bcfbd3da09e4b4"
+  },
+  "start.widgets.resize": {
+    "message": "Redimensionner {name}",
+    "source": "sha256:3ce6b4e2171812a52ed12aeee25c2487ebce8cb057907cd53beb5118156334f2"
+  },
+  "start.widgets.size": {
+    "message": "Taille {size} sur {count}",
+    "source": "sha256:5ba08144a73ea22b8b0d819c4bbf6be0261ce33ca652ff77f461fc6897cf4bb2"
+  },
+  "start.widgets.sizeAuto": {
+    "message": "S’adapte à la colonne",
+    "source": "sha256:904c86556e961bbcc98e67b358426827bcd20547033bdad24fed4708f2864a29"
+  },
+  "start.widgets.resized": {
+    "message": "{name} est maintenant en taille {size} sur {count}.",
+    "source": "sha256:71c7bcf3a4bde554c1c5e9bb8d7543799795666e43b4a9de530d442725bdbb5b"
+  },
+  "start.widgets.resizedAuto": {
+    "message": "{name} s’adapte de nouveau à la colonne.",
+    "source": "sha256:437054b0cc21ffc5426bcf5dd94af57eabf207663cbfc5b4db8df0d995efd551"
+  },
+  "start.shortcuts.heading": {
+    "message": "Raccourcis",
+    "source": "sha256:84a0bd8484b5435c01ea16c2c7b08454a68521cce8741d6b0208a6ee90396070"
+  },
+  "start.shortcuts.fewer": {
+    "message": "Moins de raccourcis",
+    "source": "sha256:f955a7362d14860815316cf4cf8ee56af27b5c5feaa082208d693c7d97bc47f5"
+  },
+  "start.shortcuts.more": {
+    "message": "Plus de raccourcis",
+    "source": "sha256:26556310668592f2969bef46100ae88a6626b628f76733903d2aacfc89143534"
+  },
+  "start.shortcuts.count": {
+    "message": "{count} raccourcis",
+    "source": "sha256:c4dd9b2e426ae55588697815e55f3fae37cf301e3a48a3c224fe3f2957bd5e29"
+  },
+  "start.shortcuts.sofar": {
+    "message": "{count, plural, one {# site pour l’instant.} many {# sites pour l’instant.} other {# sites pour l’instant.}} D’autres apparaîtront au fil de votre navigation.",
+    "source": "sha256:eecc4751be46cf5ca2c3ce4b0b818cf1552e7d7e662e4c8c2d820dbba5d3ef44"
+  },
+  "start.devices.tabs": {
+    "message": "{count, plural, one {# onglet} many {# onglets} other {# onglets}}",
+    "source": "sha256:8fb7e1a212612f0e7035d9bdcce93276a848ea411fdf364e69c7863919ba8256"
+  },
+  "start.devices.more": {
+    "message": "{count, plural, one {# onglet de plus} many {# onglets de plus} other {# onglets de plus}}",
+    "source": "sha256:3e429c29e968ef84d00408069d849859060c18edaa7d440d1ec9f2ede07e1cf2"
+  },
+  "start.devices.fewer": {
+    "message": "Afficher moins",
+    "source": "sha256:29411acbaee4116857c1cb2237fce12622fed9ed823b566335222995cccb00cf"
+  },
+  "start.mahjong.play": {
+    "message": "Jouer à Blanc Mahjong",
+    "source": "sha256:9b62eba2e07c169ab3ee5415185da568ca0fd436fd6cc8730fe661830c6ed9d7"
+  },
+  "android.contextMenu.privateTab": {
+    "message": "Ouvrir dans un onglet privé",
+    "source": "sha256:48a5da257ddfeccb9a6f1d16e4effa493a14e3210f8fe55b689455aebdafa78b"
+  },
+  "android.contextMenu.newBlancTab": {
+    "message": "Ouvrir dans un nouvel onglet de Blanc",
+    "source": "sha256:bae530101e3c873c6fd7a7af7cbbcca3fdf632b1fec7677da23d3937a37aaba0"
   }
 }

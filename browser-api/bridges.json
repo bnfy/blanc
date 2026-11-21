@@ -23,7 +23,9 @@
         "documents": [
           "https://example.com/",
           "http://example.com/",
-          "blanc://newtab/"
+          "blanc://newtab/",
+          "blanc://mahjong/",
+          "blanc://bookmarks/"
         ],
         "doc": "Isolated-world invalidation for the strip's page tint: no arguments, no API exposed to the page."
       }
@@ -35,7 +37,6 @@
         "channel": "pages:surface:close",
         "hosts": [
           "tab-handoff",
-          "bookmarks",
           "history",
           "downloads",
           "shortcuts",
@@ -52,7 +53,6 @@
         "channel": "pages:surface:escape-arm",
         "hosts": [
           "tab-handoff",
-          "bookmarks",
           "history",
           "downloads",
           "shortcuts",
@@ -77,7 +77,6 @@
         "channel": "pages:surface:escape",
         "hosts": [
           "tab-handoff",
-          "bookmarks",
           "history",
           "downloads",
           "shortcuts",
@@ -315,6 +314,144 @@
         "doc": "Remove a Favorites folder, keeping its Favorites."
       },
       {
+        "name": "bookmarks.tree",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:tree",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "The Favorites folder tree in display order (Favorites manager)."
+      },
+      {
+        "name": "bookmarks.createFolder",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:create-folder",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "parentPath",
+            "type": "unknown"
+          },
+          {
+            "name": "name",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Create a Favorites folder inside another, or at the top level with null."
+      },
+      {
+        "name": "bookmarks.moveFolder",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:move-folder",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "path",
+            "type": "unknown"
+          },
+          {
+            "name": "newParentPath",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Move a Favorites folder into another, or to the top level with null."
+      },
+      {
+        "name": "bookmarks.move",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:move",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "ids",
+            "type": "unknown"
+          },
+          {
+            "name": "path",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Move Favorites into a folder path, or to the top level with null."
+      },
+      {
+        "name": "bookmarks.reorder",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:reorder",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "path",
+            "type": "unknown"
+          },
+          {
+            "name": "orderKeys",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Save the order chosen for one folder's children."
+      },
+      {
+        "name": "bookmarks.removeMany",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:remove-many",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "ids",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Remove several Favorites at once."
+      },
+      {
+        "name": "bookmarks.edit",
+        "kind": "invoke",
+        "channel": "pages:bookmarks:edit",
+        "hosts": [
+          "bookmarks"
+        ],
+        "params": [
+          {
+            "name": "id",
+            "type": "unknown"
+          },
+          {
+            "name": "changes",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Change one Favorite's name and address."
+      },
+      {
+        "name": "bookmarks.onChanged",
+        "kind": "event",
+        "channel": "pages:bookmarks:changed",
+        "hosts": [
+          "bookmarks"
+        ],
+        "payload": null,
+        "doc": "Favorites changed somewhere else; read them again.",
+        "unsubscribe": false
+      },
+      {
         "name": "start.data",
         "kind": "invoke",
         "channel": "pages:start:data",
@@ -369,9 +506,9 @@
         "doc": "Open the Spaces menu from the moving-in checklist."
       },
       {
-        "name": "start.setLayout",
+        "name": "start.setWidget",
         "kind": "invoke",
-        "channel": "pages:start:set-layout",
+        "channel": "pages:start:set-widget",
         "hosts": [
           "newtab"
         ],
@@ -379,10 +516,97 @@
           {
             "name": "name",
             "type": "unknown"
+          },
+          {
+            "name": "on",
+            "type": "unknown"
           }
         ],
         "returns": "unknown",
-        "doc": "Save the Start Page layout."
+        "doc": "Turn a Start Page widget (favorites or devices) on or off; resolves to the saved widgets, rejects a value the page cannot show."
+      },
+      {
+        "name": "start.setShortcutCount",
+        "kind": "invoke",
+        "channel": "pages:start:set-shortcut-count",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "count",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Save Billboard's shortcut count (1 to 12); resolves to the saved widgets."
+      },
+      {
+        "name": "start.setWidgetPlace",
+        "kind": "invoke",
+        "channel": "pages:start:set-widget-place",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "left",
+            "type": "unknown"
+          },
+          {
+            "name": "right",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Save the widget cards' columns; resolves to the saved widgets."
+      },
+      {
+        "name": "start.setWidgetSize",
+        "kind": "invoke",
+        "channel": "pages:start:set-widget-size",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "card",
+            "type": "unknown"
+          },
+          {
+            "name": "size",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Save a card's size (240-720, or 0 to fit its column); resolves to the saved widgets."
+      },
+      {
+        "name": "start.reportBackdrop",
+        "kind": "invoke",
+        "channel": "pages:start:backdrop",
+        "hosts": [
+          "newtab"
+        ],
+        "params": [
+          {
+            "name": "spec",
+            "type": "unknown"
+          }
+        ],
+        "returns": "unknown",
+        "doc": "Report the Start Page's wallpaper layers so the Island's band can continue them; resolves to { band }, the band's height above this page (0 where it stands aside)."
+      },
+      {
+        "name": "start.onBackdropBand",
+        "kind": "event",
+        "channel": "pages:start:backdrop-band",
+        "hosts": [
+          "newtab"
+        ],
+        "payload": "unknown",
+        "doc": "The band above this Start Page changed (0 where it stands aside).",
+        "unsubscribe": false
       },
       {
         "name": "start.setDynamicWallpaper",
@@ -441,7 +665,7 @@
           }
         ],
         "returns": "unknown",
-        "doc": "Set how strongly the theme wash covers the Start Page image (integer 0\u2013100)."
+        "doc": "Set how strongly the theme wash covers the Start Page image (integer 0–100)."
       },
       {
         "name": "start.setWallpaperStyle",
@@ -565,22 +789,6 @@
         "ipcArgs": [
           "bool($0)"
         ]
-      },
-      {
-        "name": "start.layoutUsed",
-        "kind": "invoke",
-        "channel": "pages:start:layout-used",
-        "hosts": [
-          "newtab"
-        ],
-        "params": [
-          {
-            "name": "name",
-            "type": "unknown"
-          }
-        ],
-        "returns": "unknown",
-        "doc": "Record the once-per-session newtab_layout usage event (subject to telemetry consent)."
       },
       {
         "name": "start.openIsland",
@@ -1380,7 +1588,7 @@
           }
         ],
         "returns": "unknown",
-        "doc": "Set how strongly the theme wash covers the Start Page image (integer 0\u2013100)."
+        "doc": "Set how strongly the theme wash covers the Start Page image (integer 0–100)."
       },
       {
         "name": "settings.setWallpaperStyle",

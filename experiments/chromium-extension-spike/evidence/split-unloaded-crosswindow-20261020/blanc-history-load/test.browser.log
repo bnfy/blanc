@@ -1,0 +1,4 @@
+[32833:344327:1020/165731.314165:ERROR:chrome/browser/mac/code_sign_clone_manager.mm:93] error removing quarantine attribute "/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/X/"
+[32833:344280:1020/165731.601647:ERROR:chrome/browser/actor/tools/tool_request.cc:32] Not implemented reached in static std::optional<ToolDefinition> actor::ToolRequest::GetToolDefinition(). 
+
+DevTools listening on ws://127.0.0.1:9295/devtools/browser/12801201-dafc-4f39-a693-6f0ec1cd5504

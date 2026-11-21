@@ -1,0 +1,146 @@
+[
+  {
+    "surface": "cream",
+    "screenshotSize": [
+      2880,
+      1920
+    ],
+    "headerPixel": [
+      243,
+      233,
+      216
+    ],
+    "pagePixel": [
+      243,
+      233,
+      216
+    ],
+    "equal": true
+  },
+  {
+    "surface": "dark",
+    "screenshotSize": [
+      2880,
+      1920
+    ],
+    "headerPixel": [
+      22,
+      44,
+      62
+    ],
+    "pagePixel": [
+      22,
+      44,
+      62
+    ],
+    "equal": true
+  },
+  {
+    "surface": "scrolled",
+    "screenshotSize": [
+      2880,
+      1920
+    ],
+    "headerPixel": [
+      22,
+      44,
+      62
+    ],
+    "pagePixel": [
+      22,
+      44,
+      62
+    ],
+    "equal": true
+  },
+  {
+    "surface": "dynamic",
+    "screenshotSize": [
+      2880,
+      1920
+    ],
+    "headerPixel": [
+      84,
+      122,
+      101
+    ],
+    "pagePixel": [
+      84,
+      122,
+      101
+    ],
+    "equal": true
+  },
+  {
+    "surface": "expanded",
+    "screenshotSize": [
+      2880,
+      1920
+    ],
+    "headerPixel": [
+      243,
+      233,
+      216
+    ],
+    "pagePixel": [
+      243,
+      233,
+      216
+    ],
+    "equal": true
+  },
+  {
+    "surface": "metamask",
+    "screenshotSize": [
+      2880,
+      1920
+    ],
+    "headerPixel": [
+      254,
+      242,
+      236
+    ],
+    "pagePixel": [
+      254,
+      242,
+      236
+    ],
+    "equal": true
+  },
+  {
+    "surface": "newtab-final",
+    "screenshotSize": [
+      2880,
+      1920
+    ],
+    "headerPixel": [
+      247,
+      240,
+      231
+    ],
+    "pagePixel": [
+      247,
+      240,
+      231
+    ],
+    "equal": true
+  },
+  {
+    "surface": "narrow",
+    "screenshotSize": [
+      1440,
+      1200
+    ],
+    "headerPixel": [
+      247,
+      240,
+      231
+    ],
+    "pagePixel": [
+      247,
+      240,
+      231
+    ],
+    "equal": true
+  }
+]

@@ -1,0 +1,58 @@
+[
+  {
+    "suite": "prerender-healthy",
+    "exit": 0,
+    "checks": 8,
+    "expectedChecks": 8,
+    "pass": true,
+    "error": null
+  },
+  {
+    "suite": "prerender-loss",
+    "exit": 0,
+    "checks": 12,
+    "expectedChecks": 12,
+    "pass": true,
+    "error": null
+  },
+  {
+    "suite": "prerender-timeout",
+    "exit": 0,
+    "checks": 6,
+    "expectedChecks": 6,
+    "pass": true,
+    "error": null
+  },
+  {
+    "suite": "startup",
+    "exit": 0,
+    "checks": 7,
+    "expectedChecks": 7,
+    "pass": true,
+    "error": null
+  },
+  {
+    "suite": "recovery",
+    "exit": 0,
+    "checks": 6,
+    "expectedChecks": 6,
+    "pass": true,
+    "error": null
+  },
+  {
+    "suite": "core",
+    "exit": 0,
+    "checks": 17,
+    "expectedChecks": 17,
+    "pass": true,
+    "error": null
+  },
+  {
+    "suite": "notice",
+    "exit": 0,
+    "checks": 16,
+    "expectedChecks": 16,
+    "pass": true,
+    "error": null
+  }
+]

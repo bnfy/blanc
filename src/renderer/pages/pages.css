@@ -1967,6 +1967,758 @@ body.sheet .shortcut-row:last-child { border-bottom: 0; }
   font-size: 11.5px;
 }
 
+/* ---------- Favorites manager (F63) ----------
+   Edge's layout (owner's pick, November 16, 2026): search at the top of a
+   folder sidebar; the open folder's name as the heading, New folder beside
+   it; one list of single-line card rows, folders first, each with a select
+   circle, the name, the address in its own column and an × that is always
+   there. favorites-manager.js draws it; the flat list stays for hosts
+   without it. */
+.fav-manager[hidden] { display: none; }
+/* The page head sits closer to the manager; the status line takes room only
+   when it has something to say. */
+body.fav-manager-page .page-head { margin-bottom: 14px; }
+body.fav-manager-page #importStatus:empty { display: none; }
+.fav-manager {
+  display: grid;
+  grid-template-columns: minmax(180px, 230px) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+.fav-manager button { -webkit-tap-highlight-color: transparent; }
+
+/* The sidebar: search, then the folder tree. Sticky under the sheet's 79px
+   nav band, as .settings-nav. */
+.fav-tree {
+  position: sticky;
+  top: 95px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: calc(100vh - 167px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0 -4px;
+  padding: 2px 4px 8px;
+}
+.fav-search {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 32px;
+  padding: 0 12px 0 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised) no-repeat 11px center / 14px 14px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23888' stroke-width='1.5' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='4.75'/%3E%3Cpath d='m10.5 10.5 3.25 3.25'/%3E%3C/svg%3E");
+  color: var(--text);
+  font-family: var(--font-text);
+  font-size: 13px;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+.fav-search::placeholder { color: var(--text-dim); }
+.fav-search:focus { outline: none; border-color: var(--text-dim); box-shadow: 0 0 0 3px var(--accent-dim); }
+.fav-tree-list { display: flex; flex-direction: column; gap: 2px; }
+.fav-tree-row {
+  --depth: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 10px 0 calc(4px + var(--depth) * 14px);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-text);
+  font-size: 13px;
+  cursor: default;
+  user-select: none;
+  transition: background-color 140ms ease;
+}
+.fav-tree-row:hover { background: var(--accent-dim); }
+.fav-tree-row.current { background: var(--accent-dim); font-weight: 600; }
+.fav-tree-row:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 0; }
+.fav-tree-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fav-count {
+  flex: none;
+  font-family: var(--font-text);
+  font-variant-numeric: tabular-nums;
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--text-dim);
+}
+.fav-twisty {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.fav-twisty.none { visibility: hidden; }
+.fav-twisty::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-right: 1.5px solid var(--text-dim);
+  border-bottom: 1.5px solid var(--text-dim);
+  transform: rotate(-45deg);
+  transition: transform 200ms cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+.fav-twisty.open::before { transform: rotate(45deg); }
+.fav-twisty:hover { background: var(--border); }
+
+/* Glyphs: masks, so they take the theme's color. */
+.fav-glyph,
+.fav-row-folder::before,
+.fav-tool-glyph,
+.import-glyph::before {
+  content: "";
+  flex: none;
+  background-color: var(--text-dim);
+  -webkit-mask: var(--fav-glyph) center / contain no-repeat;
+  mask: var(--fav-glyph) center / contain no-repeat;
+}
+.fav-glyph { width: 15px; height: 15px; }
+.fav-glyph-folder,
+.fav-row-folder::before {
+  --fav-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.4' stroke-linejoin='round'%3E%3Cpath d='M1.75 4.25c0-.69.56-1.25 1.25-1.25h3l1.5 1.75H13c.69 0 1.25.56 1.25 1.25v6c0 .69-.56 1.25-1.25 1.25H3c-.69 0-1.25-.56-1.25-1.25z'/%3E%3C/svg%3E");
+}
+.fav-glyph-heart {
+  --fav-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.4' stroke-linejoin='round'%3E%3Cpath d='M8 13.5s-5.25-3.1-5.25-6.9A2.85 2.85 0 0 1 8 4.9a2.85 2.85 0 0 1 5.25 1.7C13.25 10.4 8 13.5 8 13.5z'/%3E%3C/svg%3E");
+}
+.fav-glyph-new-folder {
+  --fav-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.75 4.25c0-.69.56-1.25 1.25-1.25h3l1.5 1.75H13c.69 0 1.25.56 1.25 1.25v6c0 .69-.56 1.25-1.25 1.25H3c-.69 0-1.25-.56-1.25-1.25zM8 7v4M6 9h4'/%3E%3C/svg%3E");
+}
+.fav-glyph-folder { background-color: var(--accent); }
+.fav-tree-row.current .fav-glyph { background-color: var(--accent); }
+
+/* The open folder's head: where it sits, its name, then New folder. */
+.fav-pane { min-width: 0; }
+.fav-pane-head {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  min-height: 40px;
+  margin: 0 0 14px;
+}
+.fav-title-block { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 auto; }
+.fav-crumbs { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px; min-width: 0; margin-left: -5px; }
+.fav-crumbs[hidden] { display: none; }
+body.fav-page .fav-crumb {
+  min-height: 0;
+  padding: 1px 5px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 400;
+}
+body.fav-page .fav-crumb:hover { color: var(--text); background: var(--accent-dim); }
+.fav-crumb-sep { color: var(--text-dim); font-size: 11px; }
+body.fav-page .fav-heading {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  font-family: var(--font-text);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+.fav-folder-select { display: none; }
+.fav-tools { display: flex; align-items: center; gap: 8px; flex: none; }
+body.fav-page .fav-new-folder,
+body.fav-page .fav-bar-button,
+body.fav-page .import-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 0 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color 120ms ease, transform 100ms ease-out;
+}
+body.fav-page .fav-new-folder:hover,
+body.fav-page .fav-bar-button:hover,
+body.fav-page .import-trigger:hover { background: var(--surface); border-color: var(--border); }
+body.fav-page .fav-new-folder:active,
+body.fav-page .fav-bar-button:active,
+body.fav-page .import-trigger:active { transform: scale(0.98); }
+.fav-tool-glyph { width: 16px; height: 16px; background-color: currentColor; }
+body.fav-page .fav-bar-button.danger { color: var(--danger); }
+body.fav-page .fav-bar-button.danger:hover { color: var(--on-danger); background: var(--danger); border-color: var(--danger); }
+
+/* Rows selected: a bar of what can be done to them. */
+.fav-selection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -4px 0 10px;
+  padding: 6px 6px 6px 14px;
+  border-radius: var(--radius-md);
+  background: var(--accent-dim);
+  animation: fav-fade-in 160ms ease;
+}
+.fav-selection[hidden] { display: none; }
+.fav-selection-count {
+  flex: 1 1 auto;
+  color: var(--text);
+  font-family: var(--font-text);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* One list of card rows. The list is the size container, so every row's
+   address column starts at the same place whatever its buttons. */
+.fav-list { container-type: inline-size; }
+.fav-list,
+.fav-group { display: flex; flex-direction: column; gap: 4px; }
+.fav-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 6px 8px 6px 12px;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  cursor: default;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+.fav-row:hover { background: var(--surface); }
+.fav-row.selected,
+.fav-row.selected:hover { background: var(--accent-dim); border-color: var(--accent); }
+.fav-row:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 1px; }
+
+.fav-row .row-icon { flex: 0 0 20px; width: 20px; height: 20px; border-radius: 5px; }
+.fav-row .row-icon img { width: 20px; height: 20px; }
+.fav-row-folder { flex: none; display: grid; place-items: center; width: 20px; height: 20px; }
+.fav-row-folder::before { width: 20px; height: 20px; background-color: var(--accent); }
+/* The name and the address, side by side in two columns. */
+.fav-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 32cqw) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 18px;
+}
+.fav-main .title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.fav-main a.title:hover { text-decoration: underline; text-underline-offset: 2px; }
+.fav-main .url {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-dim);
+  font-family: var(--font-text);
+  font-size: 12.5px;
+  letter-spacing: normal;
+}
+.fav-address { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.fav-address .url { flex: 0 1 auto; min-width: 0; }
+.fav-address .fav-path { flex: 0 0 auto; }
+body.fav-page .fav-folder-open {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-text);
+  text-align: left;
+  cursor: pointer;
+}
+body.fav-page .fav-folder-open:hover { text-decoration: underline; text-underline-offset: 2px; }
+.fav-meta {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-dim);
+  font-family: var(--font-text);
+  font-size: 11.5px;
+}
+.fav-meta:empty { display: none; }
+body.fav-page .fav-path {
+  max-width: 200px;
+  min-height: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 2px 9px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 11.5px;
+}
+body.fav-page .fav-path:hover { color: var(--text); }
+
+body.fav-page .fav-more {
+  min-height: 28px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+body.fav-page .fav-more:hover { background: var(--border); color: var(--text); }
+body.fav-page .fav-more { display: grid; place-items: center; width: 28px; padding: 0; }
+.fav-more::before { content: "\22EE"; font-size: 16px; line-height: 1; }
+
+.fav-name-row { gap: 12px; }
+body.fav-page .fav-name-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+}
+.fav-empty {
+  padding: 26px 16px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-dim);
+  font-family: var(--font-text);
+  text-align: center;
+}
+
+/* Drag and drop: a line for a new place, a wash for into a folder. */
+.fav-manager.dragging .fav-row,
+.fav-manager.dragging .fav-tree-row { transition: none; }
+.fav-row.drop-before { box-shadow: 0 -3px 0 -1px var(--accent); }
+.fav-row.drop-after { box-shadow: 0 3px 0 -1px var(--accent); }
+.fav-tree-row.drop-before { box-shadow: inset 0 2px 0 var(--accent); }
+.fav-tree-row.drop-after { box-shadow: inset 0 -2px 0 var(--accent); }
+.drop-into,
+.drop-into:hover { background: var(--accent-dim); box-shadow: inset 0 0 0 1.5px var(--accent); }
+
+/* Row menus: light, like native ones, growing from their button. */
+.fav-menu {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  box-sizing: border-box;
+  min-width: 200px;
+  max-width: min(320px, calc(100vw - 16px));
+  max-height: var(--menu-max, 320px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 5px;
+  background: var(--surface-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16), 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.fav-menu:popover-open {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  animation: fav-grow-in 150ms cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+body.fav-page .fav-menu-item {
+  --indent: 0;
+  display: block;
+  width: 100%;
+  min-height: 0;
+  padding: 6px 10px 6px calc(10px + var(--indent) * 12px);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 400;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+body.fav-page .fav-menu-item:is(:hover, :focus-visible):not(:disabled) { background: var(--accent-dim); color: var(--text); outline: none; }
+body.fav-page .fav-menu-item:disabled { color: var(--text-dim); opacity: 0.55; cursor: default; }
+/* Out-rank the sheet's filled button.danger: a menu item stays a plain row. */
+body.fav-page .fav-menu-item.danger {
+  padding: 6px 10px 6px calc(10px + var(--indent) * 12px);
+  border: 0;
+  color: var(--danger);
+  background: transparent;
+  box-shadow: none;
+}
+body.fav-page .fav-menu-item.danger:is(:hover, :focus-visible) { color: var(--danger); background: var(--accent-dim); }
+.fav-menu-sep { height: 1px; margin: 4px 8px; background: var(--border); }
+
+/* "Bring my stuff to Blanc": one button, one dialog, as in Chrome and Edge. */
+.import-glyph { display: grid; place-items: center; flex: none; }
+.import-trigger .import-glyph { width: 15px; height: 15px; }
+.import-glyph::before { width: 100%; height: 100%; background-color: currentColor; }
+.import-glyph-arrive::before {
+  --fav-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2v8m-3.25-3.25L8 10l3.25-3.25M2.75 11.5v1.25c0 .55.45 1 1 1h8.5c.55 0 1-.45 1-1V11.5'/%3E%3C/svg%3E");
+}
+.import-dialog,
+.fav-edit-dialog {
+  box-sizing: border-box;
+  width: min(420px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  margin: auto;
+  padding: 0;
+  overflow-y: auto;
+  background: var(--surface-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22), 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+.import-dialog[open],
+.fav-edit-dialog[open] { animation: fav-grow-in 180ms cubic-bezier(0.2, 0.9, 0.25, 1); }
+.import-dialog::backdrop,
+.fav-edit-dialog::backdrop { background: rgba(0, 0, 0, 0.28); animation: fav-fade-in 180ms ease; }
+.import-dialog form,
+.fav-edit-dialog form { display: flex; flex-direction: column; gap: 0; margin: 0; padding: 22px 22px 18px; }
+body.fav-page .import-dialog h2 {
+  margin: 0 0 6px;
+  color: var(--text);
+  font-family: var(--font-text);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.import-lede {
+  margin: 0 0 18px;
+  color: var(--text-dim);
+  font-family: var(--font-text);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.import-field,
+.import-what legend {
+  margin: 0 0 6px;
+  padding: 0;
+  color: var(--text);
+  font-family: var(--font-text);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+body.fav-page .import-source { width: 100%; min-height: 34px; }
+.import-what {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 18px 0 0;
+  padding: 0;
+  border: 0;
+}
+.import-check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--text);
+  font-family: var(--font-text);
+  font-size: 13px;
+  cursor: pointer;
+}
+/* Native controls follow the theme, so an unticked box is not a white tile in Dark. */
+.import-dialog,
+.fav-edit-dialog { color-scheme: light dark; }
+.import-check input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
+.import-guidance,
+.import-note {
+  margin: 8px 0 0;
+  color: var(--text-dim);
+  font-family: var(--font-text);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.import-note:empty, .import-guidance[hidden] { display: none; }
+.import-buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; }
+body.fav-page .import-buttons button {
+  min-height: 32px;
+  padding: 0 16px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color 120ms ease, transform 100ms ease-out;
+}
+body.fav-page #importCancelBtn { border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); }
+body.fav-page #importCancelBtn:hover { background: var(--surface); }
+body.fav-page .import-go { border: 0; background: var(--accent); color: var(--bg); }
+body.fav-page .import-go:hover:not(:disabled) { filter: brightness(1.08); }
+body.fav-page .import-go:disabled { opacity: 0.5; cursor: default; }
+body.fav-page .import-buttons button:active:not(:disabled) { transform: scale(0.98); }
+
+@keyframes fav-grow-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fav-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fav-twisty::before,
+  .fav-tree-row,
+  .fav-row,
+  .fav-new-folder,
+  .fav-bar-button,
+  .import-trigger,
+  .import-buttons button { transition: none; }
+  .fav-menu:popover-open,
+  .import-dialog[open],
+  .fav-edit-dialog[open] { animation: fav-fade-in 120ms ease; }
+  .fav-selection { animation: none; }
+  body.fav-page :is(.fav-new-folder, .fav-bar-button, .import-trigger, .import-buttons button):active { transform: none; }
+}
+/* Narrow sheets: search stays on top; a folder menu replaces the tree, and
+   the address column gives way to the name. */
+@media (max-width: 720px) {
+  .fav-manager { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .fav-tree { position: static; max-height: none; overflow: visible; margin: 0; padding: 0; }
+  .fav-tree-list { display: none; }
+  .fav-pane-head { flex-wrap: wrap; align-items: center; }
+  .fav-title-block { display: none; }
+  .fav-folder-select { display: block; flex: 1 1 160px; max-width: 100%; }
+  .fav-main { grid-template-columns: minmax(0, 1fr) auto; }
+  .fav-main .url { display: none; }
+}
+/* While searching, results span every folder: no folder menu. */
+.fav-pane.searching .fav-folder-select,
+.fav-pane.searching .fav-new-folder { visibility: hidden; }
+
+/* ---------- The Favorites page (direction C) ----------
+   Owner's pick, November 18, 2026: Favorites is a page of its own in a tab,
+   like Chrome's bookmark manager. A header with the search (it becomes the
+   selection bar while rows are selected), the folder tree on the left, one
+   plain list on the right with a menu on every row, and an Edit dialog. It
+   carries the sheets' Sunrise palette. */
+body.fav-page {
+  --bg: var(--sunrise-bg);
+  --surface: var(--sunrise-surface);
+  --surface-raised: var(--sunrise-surface-raised);
+  --border: var(--sunrise-border);
+  --text: var(--sunrise-text);
+  --text-dim: var(--sunrise-text-dim);
+  --accent: var(--sunrise-accent);
+  --accent-dim: var(--sunrise-accent-dim);
+  --radius: var(--radius-md);
+  --fav-head-h: 68px;
+  min-height: 100vh;
+  background: var(--bg);
+}
+html:has(body.fav-page) { background: var(--sunrise-bg); }
+body.fav-page .page { max-width: none; margin: 0; padding: 0 32px 48px; }
+body.fav-page .page-nav { display: none; }
+body.fav-page .fav-top {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: var(--fav-head-h);
+  margin: 0 -32px 22px;
+  padding: 0 32px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+body.fav-page .fav-top h1 {
+  flex: 0 0 auto;
+  width: 230px;
+  margin: 0;
+  font-family: var(--font-text);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+body.fav-page .fav-top .fav-tools { flex: 1 1 auto; display: flex; align-items: center; gap: 8px; min-width: 0; }
+body.fav-page .fav-top .import-actions { display: flex; }
+body.fav-page .fav-top .import-actions[hidden] { display: none; }
+.fav-search-box {
+  flex: 1 1 auto;
+  max-width: 560px;
+  margin-right: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  height: 40px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--text-dim);
+  transition: background-color 140ms ease, box-shadow 140ms ease;
+}
+.fav-search-box:focus-within { background: var(--surface-raised); box-shadow: 0 0 0 1px var(--text-dim); }
+.fav-search-glyph {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='4.75'/%3E%3Cpath d='m10.5 10.5 3.25 3.25'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='4.75'/%3E%3Cpath d='m10.5 10.5 3.25 3.25'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+body.fav-page .fav-search {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--text);
+  font-size: 13.5px;
+}
+body.fav-page .fav-search:focus { outline: none; box-shadow: none; }
+/* Rows selected: the header becomes the selection bar, as in Chrome. */
+body.fav-page .fav-top.selecting > :not(.fav-selection) { display: none; }
+body.fav-page .fav-selection {
+  flex: 1 1 auto;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 8px 0 6px;
+  border-radius: var(--radius-lg);
+}
+body.fav-page .fav-selection-count { flex: 0 0 auto; }
+.fav-selection-spacer { flex: 1 1 auto; }
+body.fav-page .fav-selection-clear {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+}
+body.fav-page .fav-selection-clear:hover { background: var(--accent-dim); }
+.fav-selection-clear::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='m2.5 2.5 7 7m0-7-7 7'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='m2.5 2.5 7 7m0-7-7 7'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+/* The tree sits below the header, sticky as the list scrolls. */
+body.fav-page .fav-manager { grid-template-columns: 230px minmax(0, 1fr); gap: 32px; }
+/* Two rows, as in Chrome: the open folder's head sits above the list, and
+   the tree starts level with the list's top. */
+body.fav-page .fav-manager { grid-template-rows: auto 1fr; row-gap: 0; }
+body.fav-page .fav-pane { display: contents; }
+body.fav-page .fav-pane-head { grid-column: 2; grid-row: 1; }
+body.fav-page .fav-list { grid-column: 2; grid-row: 2; min-width: 0; }
+body.fav-page .fav-tree {
+  grid-column: 1;
+  grid-row: 2;
+  top: calc(var(--fav-head-h) + 22px);
+  max-height: calc(100vh - var(--fav-head-h) - 44px);
+  margin: 0;
+  padding: 0 0 8px;
+}
+/* A sub-folder's row is indented whole, so its fill starts where its
+   content does. */
+body.fav-page .fav-tree-row {
+  min-height: 34px;
+  margin-left: calc(var(--depth) * 18px);
+  padding: 0 12px 0 8px;
+  border-radius: var(--radius-full);
+}
+/* One plain list in one raised card, rows split by hairlines. A filled row
+   (hover, selected) is an inset pill, so two never touch. */
+body.fav-page .fav-list {
+  gap: 0;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+}
+body.fav-page .fav-list:has(> .fav-empty) { padding: 0; border: 0; background: none; }
+body.fav-page .fav-group { gap: 0; }
+body.fav-page .fav-group + .fav-group { margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--border); }
+body.fav-page .fav-row {
+  min-height: 42px;
+  padding: 0 4px 0 12px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+}
+body.fav-page .fav-row + .fav-row { margin-top: 2px; }
+body.fav-page .fav-row + .fav-row::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: 12px;
+  right: 12px;
+  height: 1px;
+  background: var(--border);
+}
+body.fav-page .fav-row:is(:hover, .selected) + .fav-row::before,
+body.fav-page .fav-row:is(:hover, .selected)::before { opacity: 0; }
+body.fav-page .fav-row:hover { background: var(--surface); }
+body.fav-page .fav-row.selected,
+body.fav-page .fav-row.selected:hover { background: var(--accent-dim); border-color: transparent; }
+body.fav-page .fav-more { color: var(--text-dim); }
+.fav-menu-hint { display: block; max-width: 240px; margin-top: 2px; color: var(--text-dim); font-size: 11.5px; font-weight: 400; white-space: normal; }
+/* The Edit dialog: name, address, folder. */
+.fav-edit-title { margin: 0 0 6px; font-family: var(--font-text); font-size: 17px; font-weight: 600; }
+.fav-edit-label { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; color: var(--text-dim); font-family: var(--font-text); font-size: 12px; font-weight: 500; }
+body.fav-page .fav-edit-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 36px;
+  padding: 0 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-raised);
+  color: var(--text);
+  font-family: var(--font-text);
+  font-size: 13.5px;
+  font-weight: 400;
+}
+body.fav-page .fav-edit-folder { padding-right: 28px; }
+body.fav-page .fav-edit-input:focus { outline: none; border-color: var(--text-dim); }
+body.fav-page .fav-edit-input[aria-invalid="true"] { border-color: var(--danger); }
+.fav-edit-error { margin: 0; color: var(--danger); font-size: 12px; font-weight: 400; }
+.fav-edit-error:empty { display: none; }
+.fav-edit-buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; }
+body.fav-page .fav-edit-save { border-color: var(--accent); background: var(--accent); color: var(--bg); }
+body.fav-page .fav-edit-save:hover { border-color: var(--accent); background: var(--accent); filter: brightness(1.08); }
+body.fav-page .fav-edit-save:disabled { opacity: 0.5; }
+@media (max-width: 720px) {
+  body.fav-page .page { padding-inline: 16px; }
+  body.fav-page .fav-top { flex-wrap: wrap; gap: 10px; margin-inline: -16px; padding: 12px 16px; }
+  body.fav-page .fav-top h1 { width: auto; }
+  body.fav-page .fav-top .fav-tools { flex-basis: 100%; }
+  body.fav-page .fav-manager { grid-template-columns: minmax(0, 1fr); }
+  body.fav-page .fav-tree { display: none; }
+  body.fav-page :is(.fav-pane-head, .fav-list) { grid-column: 1; }
+}
+
 /* ---------- Utility sheet presentation (body.sheet) ----------
    The sheet WebContentsView is transparent; the page draws the scrim
    (body) and the card (.page). The shared `html, body` rule paints an
@@ -3825,6 +4577,10 @@ body[data-layout="tally"] #layoutTally { display: grid; }
    The footer too: it sits above the Island on the phone, which in the short
    preview is mid-page, where its frosted band covered the cards. */
 .start-preview :is(.start-customize, .ledger-footer) { display: none !important; }
+/* A Billboard preview shows the clock alone: a tall clock in the short
+   preview otherwise ran over the Sunrise mark and date. Gone rather than
+   hidden, so --start-header-h is 0 and the clock centres in the row. */
+.start-preview body[data-layout="billboard"] .start-header { display: none !important; }
 .start-customize:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 3px; }
 
 /* Level-2 material: near-opaque, because it floats over the translucent footer. */
@@ -5570,3 +6326,458 @@ body:not([data-layout="billboard"]) .customize-clock-section { display: none; }
 
 .shared-spaces-notice { position: fixed; inset: auto 24px 24px auto; max-width: 28rem; padding: 1rem; border-radius: 16px; background: var(--surface, #fff); color: var(--text, #222); box-shadow: 0 8px 32px #0003; z-index: 100; }
 .shared-spaces-notice button { margin-inline-end: .5rem; }
+
+/* ===========================================================================
+   The one Start Page with widgets, ported from the Chromium fork
+   (chromium/blanc/island/pages/newtab-prototype.css on chromium/next; spec
+   docs/superpowers/specs/2026-11-18-start-page-widgets-and-island-backdrop-port-design.md).
+   ======================================================================== */
+/* ---------------------------------------------------------------------------
+   V24 (from the fork, 2026-11-13): Billboard is the one Start Page layout. What Ledger, Shelf
+   and Tally showed comes back as optional widgets, switched on in Customize.
+   ------------------------------------------------------------------------- */
+.bb-widgets {
+  display: flex; align-items: flex-start; gap: 14px; box-sizing: border-box;
+  width: min(760px, calc(100vw - 96px)); margin-top: 30px;
+}
+/* The two columns: side by side under the clock on a narrow window... */
+.bb-rail { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.bb-rail[data-empty="true"] { display: none; }
+body.widget-dragging .bb-rail { display: flex; min-height: 96px; }
+/* ...and one each side of the Start Page on a wide one, beside the clock,
+   level with each other, clear of the header and the footer. */
+@media (min-width: 1200px) {
+  .bb-widgets { display: contents; }
+  .bb-rail {
+    position: fixed; z-index: 2;
+    top: calc(var(--start-header-h, 96px) + 24px);
+    width: clamp(240px, 20vw, 300px);
+    max-height: calc(100vh - var(--start-header-h, 96px) - var(--start-footer-h, 64px) - 48px);
+  }
+  /* An empty column draws nothing here, and stays a place to drop a card. */
+  .bb-rail[data-empty="true"] { display: flex; }
+  /* A column fits between the header and the footer whatever it holds: the
+     cards that can scroll (Favorites, other devices) give up height
+     and scroll inside; the others keep theirs. */
+  .bb-rail > .bb-widget, .bb-rail > .bb-widget-holder { flex: none; }
+  .bb-rail > #remoteSection.widget-on:not([hidden]) {
+    display: flex; flex-direction: column; flex: 0 1 auto; min-height: 0;
+  }
+  .bb-rail > #remoteSection #remoteList.remote-grouped { flex: 1 1 auto; min-height: 132px; max-height: none; }
+  .bb-rail[data-side="left"] { left: var(--start-edge); }
+  .bb-rail[data-side="right"] { right: var(--start-edge); }
+  body.widget-dragging .bb-rail { min-height: calc(100vh - var(--start-header-h, 96px) - var(--start-footer-h, 64px) - 48px); }
+  /* The header holds only the Sunrise and the date, on the left, so the right
+     column rises to the header's own top line (owner, 2026-11-13) and ends
+     level with the left one. It sits above the header's empty right half,
+     which would otherwise take its clicks. */
+  .bb-rail[data-side="right"] {
+    --rail-top: clamp(30px, 5vh, 48px);
+    top: var(--rail-top); z-index: 7;
+    max-height: calc(100vh - var(--rail-top) - var(--start-footer-h, 64px) - 24px);
+  }
+  body.widget-dragging .bb-rail[data-side="right"] { min-height: calc(100vh - var(--rail-top) - var(--start-footer-h, 64px) - 24px); }
+}
+/* Shortcuts wrap into centered rows; newtab.js sets how many fit in a row
+   (shipping's single row never wraps, at most six tiles there). */
+#bbFavorites { flex-wrap: wrap; justify-content: center; }
+/* Too little room beside the columns for three shortcuts (newtab.js
+   layoutShortcutRows): the columns go under the clock as on a narrow window. */
+@media (min-width: 1200px) {
+  body[data-rails-stacked] .bb-widgets { display: flex; }
+  body[data-rails-stacked] .bb-rail[data-side] {
+    position: static; width: auto; top: auto; left: auto; right: auto; z-index: auto; max-height: none;
+  }
+  body[data-rails-stacked] .bb-rail[data-empty="true"] { display: none; }
+}
+#bbWidgets [data-widget]:not(.widget-on) { display: none; }
+body:not(.widget-dragging) .bb-widgets:not(:has(> .bb-rail[data-empty="false"])) { display: none; }
+/* No week's data to show (private, or statistics unavailable): no empty card. */
+.bb-widget.ledger-section { margin: 0; }
+.bb-widget { position: relative; min-width: 0; padding: 14px 18px 16px; text-align: start; }
+/* The grip: on show while the card is hovered or focused; drag it, or use
+   its arrow keys, to move the card. */
+.bb-widget-grip {
+  position: absolute; top: 10px; right: 10px; display: grid; place-items: center;
+  width: 22px; height: 26px; padding: 0; border: 0; border-radius: 6px;
+  background: transparent; color: var(--text-dim); cursor: grab; touch-action: none;
+  opacity: 0; transition: opacity 120ms ease, background-color 120ms ease;
+}
+.bb-widget-grip svg { fill: currentColor; }
+.bb-widget:hover > .bb-widget-grip, .bb-widget-grip:focus-visible, .bb-widget.dragging > .bb-widget-grip { opacity: 1; }
+.bb-widget-grip:hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
+.bb-widget-grip:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 1px; }
+.bb-widget.dragging { cursor: grabbing; box-shadow: 0 22px 48px -20px rgb(0 0 0 / 0.5); transform: scale(1.02); }
+/* A tall card lifts as a short preview of itself, fading out at the bottom,
+   so it and its slot fit wherever it is carried. */
+.bb-widget.dragging.drag-clipped { overflow: hidden; mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent); }
+.bb-widget-holder {
+  border: 1.5px dashed color-mix(in srgb, var(--text-dim) 45%, transparent); border-radius: 18px;
+  background: color-mix(in srgb, var(--text) 4%, transparent);
+}
+@media (prefers-reduced-motion: reduce) { .bb-widget-grip { transition: none; } .bb-widget.dragging { transform: none; } }
+.bb-widget .start-empty-hint { text-wrap: balance; }
+.bb-widget .ledger-list { margin-top: 10px; gap: 10px; }
+/* Favorites in columns (four across a full-width card, two beside the
+   chart), so a page with widgets fits a normal window without scrolling. */
+#bbWidgets #favoritesList { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px 14px; }
+#bbWidgets #favoritesList > * { min-width: 0; }
+/* In a column the page's name wins: it takes the room and the address,
+   which the name already stands for, is left out, as on Shelf's tiles. */
+#bbWidgets #favoritesList .fav .name { min-width: 0; }
+#bbWidgets #favoritesList .fav .host { display: none; }
+/* The blocked line one step heavier than body text (owner). */
+#bbBlocked { font-weight: 500; }
+
+/* Customize (option 3, owner 2026-11-13). Each widget is a skeleton of its
+   card in the old Layout picker's style (a small frame of gray bars), two up,
+   its name beneath; a widget that is on takes the gold outline. Shortcuts is
+   a 1-12 stepper, the clock keeps its live sample card, and the wallpaper
+   sits in a second column where there is room. The popover never covers the
+   clock (its height is capped by the page script) and scrolls inside. */
+.start-customize-popover { width: max-content; overflow: hidden; }
+.start-customize-popover:popover-open { display: flex; flex-direction: column; }
+/* The columns scroll inside the popover (its border, corners and shadow stay
+   whole), with a soft fade at an edge that has more beyond it (owner,
+   2026-11-18: sized to its content, never over the clock, scrolling when it
+   needs more). */
+.customize-cols {
+  display: grid; grid-template-columns: min(300px, calc(100vw - 64px)); gap: 0;
+  flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
+}
+.customize-cols[data-fade-end="true"] { mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent); }
+.customize-cols[data-fade-start="true"] { mask-image: linear-gradient(to bottom, transparent, #000 28px); }
+.customize-cols[data-fade-start="true"][data-fade-end="true"] {
+  mask-image: linear-gradient(to bottom, transparent, #000 28px, #000 calc(100% - 28px), transparent);
+}
+.customize-col { display: flex; flex-direction: column; min-width: 0; }
+.customize-col-wallpaper { margin-top: 14px; padding-top: 14px; border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent); }
+/* A slightly shorter preview lets Color's options fit a 1280 × 800 window
+   without scrolling. */
+.customize-col-wallpaper .wallpaper-cover { height: 110px; }
+@media (min-width: 760px) {
+  .customize-cols { grid-template-columns: 300px 300px; column-gap: 22px; }
+  .customize-col-wallpaper { margin-top: 0; padding-top: 0; border-top: 0; padding-inline-start: 22px;
+    border-inline-start: 1px solid color-mix(in srgb, var(--border) 80%, transparent); }
+}
+.widget-switches { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 2px; }
+.widget-tile {
+  display: flex; flex-direction: column; align-items: stretch; gap: 7px; min-width: 0; padding: 0;
+  border: 0; background: none; color: var(--text-dim); font: 500 12px/1.3 var(--font-text); text-align: start;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.widget-tile-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color 120ms ease-out; }
+.widget-tile:hover, .widget-tile[aria-checked="true"] { color: var(--text); }
+.widget-tile:focus-visible { outline: none; }
+.widget-tile:focus-visible .widget-thumb { outline: 1px solid var(--text-dim); outline-offset: 2px; }
+.widget-tile[aria-disabled="true"] { cursor: progress; }
+.widget-thumb {
+  display: grid; gap: 4px; height: 64px; padding: 9px; box-sizing: border-box;
+  border: 1px solid var(--border); border-radius: 9px; background: var(--surface-raised, #fff);
+  transition: outline-color 140ms ease-out, transform 100ms ease-out;
+  outline: 2px solid transparent; outline-offset: 1px;
+}
+.widget-thumb i, .widget-thumb b { display: block; min-width: 0; min-height: 0; border-radius: 2px; }
+.widget-thumb i { background: color-mix(in srgb, var(--text-dim) 30%, transparent); }
+.widget-thumb b { background: color-mix(in srgb, var(--text-dim) 55%, transparent); }
+.widget-tile:hover .widget-thumb { border-color: color-mix(in srgb, var(--text-dim) 45%, var(--border)); }
+.widget-tile:active .widget-thumb { transform: scale(0.97); }
+.widget-tile[aria-checked="true"] .widget-thumb { outline-color: var(--patron-gold); }
+.widget-tile[aria-checked="true"] .widget-thumb b { background: color-mix(in srgb, var(--patron-gold) 75%, transparent); }
+/* Favorites: icons beside lines. */
+.widget-thumb[data-thumb="favorites"] { grid-template-columns: 9px 1fr; grid-template-rows: repeat(4, 1fr); }
+.widget-thumb[data-thumb="favorites"] i:nth-of-type(2) { width: 70%; }
+.widget-thumb[data-thumb="favorites"] i:nth-of-type(3) { width: 85%; }
+.widget-thumb[data-thumb="favorites"] i:nth-of-type(4) { width: 60%; }
+/* Other devices: a device's name over its tabs, then the next device. */
+.widget-thumb[data-thumb="devices"] { grid-template-columns: 1fr; grid-template-rows: 5px 1fr 1fr 5px 1fr; }
+.widget-thumb[data-thumb="devices"] b:nth-of-type(1) { width: 50%; }
+.widget-thumb[data-thumb="devices"] b:nth-of-type(2) { width: 40%; }
+.widget-thumb[data-thumb="devices"] i:nth-of-type(2) { width: 75%; }
+.widget-thumb[data-thumb="devices"] i:nth-of-type(3) { width: 80%; }
+/* A row: a label at the start, its control at the end. */
+.customize-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+.customize-row-label { color: var(--text); font: 500 13px/1.3 var(--font-text); }
+/* The stepper: minus, the count, plus, in one pill. */
+.shortcut-stepper { display: inline-flex; align-items: center; gap: 2px; padding: 2px; border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 7%, transparent); }
+.shortcut-step { display: grid; place-items: center; width: 28px; height: 26px; padding: 0; border: 0; border-radius: 999px;
+  background: transparent; color: var(--text); cursor: pointer; transition: background-color 100ms ease-out, transform 100ms ease-out; }
+.shortcut-step:hover:not([aria-disabled="true"]) { background: var(--surface-raised, #fff); }
+.shortcut-step:active:not([aria-disabled="true"]) { transform: scale(0.92); }
+.shortcut-step[aria-disabled="true"] { color: color-mix(in srgb, var(--text-dim) 45%, transparent); cursor: default; }
+.shortcut-step:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 1px; }
+.shortcut-count { min-width: 24px; text-align: center; color: var(--text); font: 600 13px/1 var(--font-text); font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) {
+  .widget-thumb, .widget-tile-name, .shortcut-step { transition: none; }
+  .widget-tile:active .widget-thumb, .shortcut-step:active:not([aria-disabled="true"]) { transform: none; }
+}
+
+/* ---------------------------------------------------------------------------
+   Over your image or a theme's image (owner, 2026-11-13): the image stays
+   untouched. The widgets sit on one glass tray, the small text keeps a soft
+   shadow opposite its ink, the footer sits in a fade, and the clock keeps its
+   own shadow (clock-art.js). Tray and fade inks keep 4.5:1 or more over pure
+   black and pure white behind them (test/unit/start-plates.test.js). Each scheme
+   follows the page's light or dark ink.
+   ------------------------------------------------------------------------- */
+.ledger-body {
+  --start-tray: rgba(255, 255, 255, 0.72);
+  --start-tray-rule: rgba(18, 16, 11, 0.1);
+  --start-tray-ink: #12100b;
+  --start-tray-ink-dim: #4d463d;
+  --start-tray-accent: #533a12;
+  --start-footer-fade: 250 247 242;
+}
+@media (prefers-color-scheme: dark) {
+  .ledger-body {
+    --start-tray: rgba(24, 20, 16, 0.78);
+    --start-tray-rule: rgba(247, 240, 229, 0.12);
+    --start-tray-ink: #f7f0e5;
+    --start-tray-ink-dim: #cdbfae;
+    --start-tray-accent: #e0bd7a;
+    --start-footer-fade: 24 20 16;
+  }
+}
+.ledger-body[data-wallpaper-style="light"] {
+  --start-tray: rgba(255, 255, 255, 0.72);
+  --start-tray-rule: rgba(18, 16, 11, 0.1);
+  --start-tray-ink: #12100b;
+  --start-tray-ink-dim: #4d463d;
+  --start-tray-accent: #533a12;
+  --start-footer-fade: 250 247 242;
+}
+.ledger-body[data-wallpaper-style="dark"],
+:root[data-theme="private"] .ledger-body {
+  --start-tray: rgba(24, 20, 16, 0.78);
+  --start-tray-rule: rgba(247, 240, 229, 0.12);
+  --start-tray-ink: #f7f0e5;
+  --start-tray-ink-dim: #cdbfae;
+  --start-tray-accent: #e0bd7a;
+  --start-footer-fade: 24 20 16;
+}
+
+/* Each widget card is glass in the Island's material family (its panel
+   radius, a blurred translucent surface), lighter than the Island itself. */
+.bb-widget {
+  --text: var(--start-tray-ink);
+  --text-dim: var(--start-tray-ink-dim);
+  --accent: var(--start-tray-accent);
+  color: var(--start-tray-ink);
+  background: var(--start-tray);
+  border: 0;
+  border-radius: 18px;
+  -webkit-backdrop-filter: blur(28px) saturate(1.5);
+  backdrop-filter: blur(28px) saturate(1.5);
+  box-shadow: 0 10px 30px -18px rgb(0 0 0 / 0.4);
+}
+
+/* Small text over an image: no backing and no wash. newtab-ink.js reads
+   the image behind each piece and sets data-ink to the ink that stands out
+   more against it (owner: the Lock Screen's way); a faint shadow in the
+   opposite tone gives it a little lift. */
+.ledger-body[data-wallpaper-style] [data-ink="light"] {
+  color: #f7f0e5 !important;
+  text-shadow: 0 0 1px rgb(0 0 0 / 0.3), 0 1px 8px rgb(0 0 0 / 0.35);
+}
+.ledger-body[data-wallpaper-style] [data-ink="dark"] {
+  color: #12100b !important;
+  text-shadow: 0 0 1px rgb(255 255 255 / 0.3), 0 1px 8px rgb(255 255 255 / 0.4);
+}
+/* The Sunrise mark follows the date: over a dark image it becomes a cream,
+   one-color mark beside the cream date; over a light one it keeps its gold. */
+.ledger-body[data-wallpaper-style] .start-brand:has(.start-brand-date[data-ink="light"]) .start-brand-mark {
+  filter: brightness(0) invert(0.95) sepia(0.12) drop-shadow(0 1px 6px rgb(0 0 0 / 0.35));
+}
+.ledger-body[data-wallpaper-style] .group-chip[data-ink] { border-color: color-mix(in srgb, currentColor 35%, transparent); }
+.ledger-body[data-wallpaper-style] .group-chip[data-ink] .chip-dots i { background: currentColor; }
+
+/* The footer over an image: a fade up from the window's bottom edge, strong
+   under the footer's text and gone a little above it. Its items keep their
+   own styles. */
+.ledger-body[data-wallpaper-style] #layoutFooter {
+  --text-dim: var(--start-tray-ink-dim);
+  color: var(--start-tray-ink-dim);
+}
+/* ::after: shipping's ::before is the footer's scroll fade. */
+.ledger-body[data-wallpaper-style] #layoutFooter::after {
+  content: ""; position: absolute; inset: auto 0 0 0; z-index: -1; pointer-events: none;
+  height: calc(var(--start-footer-h, 64px) + 96px);
+  background: linear-gradient(to top,
+    rgb(var(--start-footer-fade) / 0.9) 0,
+    rgb(var(--start-footer-fade) / 0.82) var(--start-footer-h, 64px),
+    rgb(var(--start-footer-fade) / 0) 100%);
+}
+
+
+/* The clock centred on its ink (newtab.js sets --clock-optical). */
+.bb-clock-row {
+  transform: translateX(var(--clock-optical, 0px)) scale(var(--customize-clock-scale, 1));
+  transform-origin: top center;
+}
+/* While Customize is open the clock gives way (newtab.js
+   fitCustomizeBelowClock): it scales from its top and the line under it
+   moves up with it. It grows back only after Customize has gone. */
+#bbBlocked { transform: translateY(var(--customize-clock-lift, 0px)); }
+body.customize-clock-easing .bb-clock-row,
+body.customize-clock-easing #bbBlocked { transition: transform 240ms var(--start-ease); }
+.start-customize-popover.closing-now { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  body.customize-clock-easing .bb-clock-row,
+  body.customize-clock-easing #bbBlocked { transition: none; }
+}
+
+/* On your other devices, grouped by device (fork redesign, 2026-11-13): the
+   device once, as a small header with its glyph and tab count; under it
+   two-line rows (the whole title, the site beneath) that highlight as one
+   rounded row, and a quiet link for the rest. */
+#remoteList.remote-grouped {
+  display: flex; flex-direction: column; gap: 14px; margin-top: 12px;
+  max-height: clamp(220px, calc(100vh - 360px), 620px); overflow-y: auto; overscroll-behavior: contain;
+  /* A thin scrollbar that shows on hover and while the list scrolls (a
+     finger, a wheel or the keyboard), invisible otherwise; its gutter is kept
+     so nothing shifts. No :focus-within rule and no transition on the
+     scrollbar's color: with both, a row taking focus froze the page's
+     painting in this Chromium (found 2026-11-13). A finger pans the list with momentum and a contained bounce;
+     a pinch still zooms the page. */
+  scrollbar-width: thin; scrollbar-color: transparent transparent; scrollbar-gutter: stable;
+  touch-action: pan-y pinch-zoom;
+  margin-inline: -4px; padding-inline: 4px 0;
+  --fade-top: #000; --fade-bottom: #000;
+  mask-image: linear-gradient(to bottom, var(--fade-top), #000 24px, #000 calc(100% - 32px), var(--fade-bottom));
+}
+#remoteList.remote-grouped[data-fade-start="true"] { --fade-top: transparent; }
+#remoteList.remote-grouped[data-fade-end="true"] { --fade-bottom: transparent; }
+#remoteList.remote-grouped:hover, #remoteList.remote-grouped[data-scrolling="true"] {
+  scrollbar-color: color-mix(in srgb, var(--text) 32%, transparent) transparent;
+}
+.remote-device { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.remote-device-head {
+  display: flex; align-items: center; gap: 7px; padding: 0 8px 4px;
+  color: var(--text-dim); font: 600 11.5px/1.2 var(--font-text); letter-spacing: 0.01em;
+}
+.remote-device-glyph {
+  width: 14px; height: 14px; flex: none;
+  fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round;
+}
+.remote-device-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.remote-device-count { margin-inline-start: auto; flex: none; font-weight: 500; font-variant-numeric: tabular-nums; }
+.remote-device-tabs { display: flex; flex-direction: column; }
+#remoteList .fav.remote-tab {
+  width: 100%; max-width: none; box-sizing: border-box; gap: 11px; padding: 6px 8px; border-radius: 10px;
+  transition: background-color 120ms ease-out, transform 100ms ease-out;
+}
+@media (hover: hover) {
+  #remoteList .fav.remote-tab:hover { background: color-mix(in srgb, var(--text) 6%, transparent); }
+  .remote-device-more:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+}
+#remoteList .fav.remote-tab:active { transform: scale(0.985); background: color-mix(in srgb, var(--text) 9%, transparent); }
+#remoteList .fav.remote-tab:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 0; }
+#remoteList .fav.remote-tab:hover .name { color: var(--text); }
+#remoteList .remote-tab .tile { width: 28px; height: 28px; border-radius: 7px; }
+#remoteList .remote-tab .tile.has-icon { background-size: 16px; }
+.remote-tab-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+#remoteList .remote-tab .name { font-size: 14px; font-weight: 500; line-height: 1.25; letter-spacing: -0.005em; }
+#remoteList .remote-tab .host { font-size: 12px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; }
+.remote-device-more {
+  align-self: flex-start; margin: 2px 0 0 39px; padding: 3px 8px; border: 0; border-radius: 999px;
+  background: transparent; color: var(--accent); font: 500 12px/1.3 var(--font-text); cursor: pointer;
+}
+.remote-device-more:focus-visible { outline: 1px solid var(--text-dim); outline-offset: 1px; }
+/* A touchscreen: rows and the more link grow to finger-sized targets, and
+   the grips stay visible, since there is no hover to reveal them. A touch
+   drag on a grip moves its card (the grip takes the finger: touch-action). */
+@media (pointer: coarse) {
+  #remoteList .fav.remote-tab { min-height: 52px; padding-block: 8px; }
+  #remoteList .remote-tab .tile { width: 32px; height: 32px; border-radius: 8px; }
+  .remote-device-more { min-height: 44px; padding-inline: 12px; }
+  #remoteList .fav.remote-tab, .remote-device-more { -webkit-tap-highlight-color: transparent; }
+  .bb-widget-grip { opacity: 1; width: 32px; height: 36px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #remoteList .fav.remote-tab { transition: none; }
+  #remoteList .fav.remote-tab:active { transform: none; }
+}
+
+/* Resizable scrolling cards (owner, 2026-11-13): the bottom edge is a
+   handle with a small grabber, shown on hover, focus and while resizing
+   (always on a touchscreen). A sized card takes one of the fixed sizes
+   (--card-size, outer height) and its list or panel fills it; while it is
+   resized a dashed outline shows the size it will settle on. */
+.bb-widget-resize {
+  position: absolute; left: 24px; right: 24px; bottom: 0; height: 16px;
+  display: grid; place-items: center; border-radius: 8px;
+  cursor: ns-resize; touch-action: none; z-index: 2;
+}
+.bb-widget-resize > span {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: color-mix(in srgb, var(--text) 28%, transparent);
+  opacity: 0; transition: opacity 120ms ease-out, width 160ms ease-out, background-color 120ms ease-out;
+}
+.bb-widget:hover > .bb-widget-resize > span, .bb-widget-resize:focus-visible > span,
+.bb-widget[data-resizing="true"] > .bb-widget-resize > span { opacity: 1; }
+.bb-widget-resize:hover > span, .bb-widget[data-resizing="true"] > .bb-widget-resize > span {
+  width: 48px; background: color-mix(in srgb, var(--text) 48%, transparent);
+}
+.bb-widget-resize:focus-visible { outline: 1px solid var(--text-dim); outline-offset: -2px; }
+body.widget-resizing, body.widget-resizing * { cursor: ns-resize !important; user-select: none; }
+.bb-widget-snap {
+  position: fixed; z-index: 3; pointer-events: none; box-sizing: border-box;
+  border: 1.5px dashed color-mix(in srgb, var(--text-dim) 55%, transparent); border-radius: 18px;
+  transition: height 140ms ease-out;
+}
+#bbWidgets #remoteSection.widget-on:not([hidden])[data-size],
+#bbWidgets #favoritesWidget.widget-on:not([hidden])[data-size] {
+  display: flex; flex-direction: column; box-sizing: border-box;
+  height: var(--card-size); flex: 0 1 var(--card-size); min-height: 0;
+}
+#bbWidgets #remoteSection[data-size] #remoteList.remote-grouped { flex: 1 1 auto; min-height: 0; max-height: none; }
+/* A sized Favorites card lists every favorite and scrolls the way the
+   devices list does: edge fades, a scrollbar on hover and while it moves,
+   a finger pans it. */
+#bbWidgets #favoritesWidget[data-size] #favoritesList {
+  flex: 1 1 auto; min-height: 0; align-content: start; overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: thin; scrollbar-color: transparent transparent; scrollbar-gutter: stable;
+  touch-action: pan-y pinch-zoom; margin-inline: -4px; padding: 2px 0 8px 4px;
+  --fade-top: #000; --fade-bottom: #000;
+  mask-image: linear-gradient(to bottom, var(--fade-top), #000 20px, #000 calc(100% - 28px), var(--fade-bottom));
+}
+#bbWidgets #favoritesWidget[data-size] #favoritesList[data-fade-start="true"] { --fade-top: transparent; }
+#bbWidgets #favoritesWidget[data-size] #favoritesList[data-fade-end="true"] { --fade-bottom: transparent; }
+#bbWidgets #favoritesWidget[data-size] #favoritesList:hover,
+#bbWidgets #favoritesWidget[data-size] #favoritesList[data-scrolling="true"] {
+  scrollbar-color: color-mix(in srgb, var(--text) 32%, transparent) transparent;
+}
+@media (pointer: coarse) {
+  .bb-widget-resize { height: 28px; }
+  .bb-widget-resize > span { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bb-widget-resize > span, .bb-widget-snap { transition: none; }
+}
+
+/* Shortcuts in Customize: the Wallpaper section's segmented control, two
+   choices, and a quiet note when Billboard has fewer sites than chosen. */
+.customize-hint { margin: 8px 2px 0; font: 400 12px/1.4 var(--font-text); color: var(--text-dim); text-wrap: pretty; }
+
+/* The Island's band continues the wallpaper (newtab-backdrop.js; ported from
+   the fork, top band only). While main reports a band, the wallpaper is laid
+   out from the band's top, under it, and the strip paints the band's slice of
+   the same layers. The body's own background (Sunrise's image, a Color fill)
+   is repeated on a fixed ::before laid out the same way; it paints over the
+   body's and under the wallpaper layers. */
+:root[data-island-band] .start-wallpaper-layer {
+  top: calc(-1 * var(--island-band-h, 0px));
+}
+:root[data-island-band] body.ledger-body::before {
+  content: "";
+  position: fixed;
+  top: calc(-1 * var(--island-band-h, 0px));
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: inherit;
+  background-attachment: scroll;
+}

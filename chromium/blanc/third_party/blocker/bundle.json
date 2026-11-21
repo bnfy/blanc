@@ -1,0 +1,162 @@
+{
+  "note": "Provenance of the blocker engine bundle Blanc Beta embeds (Contents/Resources/blanc_blocker/engine.js). The bundle itself is not in git: experiments/chromium-extension-spike/native/blocker/bundle.mjs makes it from the reference app's unmodified npm modules and the pinned lists, and services/blocker/bundle_hash.h pins its SHA-256. These are its manifest's facts and the licence texts it carried; chromium/release/fork-notice.mjs and sbom.mjs read them.",
+  "bundleSha256": "6f5947ad20511daf0defd7ee1d01981b01af200f709ccc746b48a7df6855d797",
+  "engineVersion": "2.18.2",
+  "referenceAppSha256": "5b4b78c8790c3af193a2c893564c674f2b05c75481d1b5673c0428dde60203ab",
+  "filters": {
+    "combinedSha256": "35cfb31efe041f8203e047f9339a59995083b7c33f19ee59e562739739240d7e",
+    "date": "2026-07-09",
+    "lists": [
+      {
+        "id": "easylist-data",
+        "file": "easylist.txt",
+        "sha256": "ceac7bd34d538ad448f05a7237b600485f2185a620d8ce32f77ae7365e1e662b"
+      },
+      {
+        "id": "easyprivacy-data",
+        "file": "easyprivacy.txt",
+        "sha256": "5b69cbb6958485b5688e76bf2a43a548acaa5cc57380aed7d3dc800da7e0bf6b"
+      }
+    ]
+  },
+  "ghosteryResources": {
+    "id": "ghostery-resources",
+    "packageVersion": "2.18.2",
+    "commit": "c4c20aa63e3a72113f66777cf35a3f58877a36ee",
+    "sha256": "e14b498f693c4166d27971f7fdfe49b167c139a8e659cc59bedc9ab29a2348f5"
+  },
+  "packages": [
+    {
+      "name": "@ghostery/adblocker-extended-selectors",
+      "version": "2.18.2",
+      "license": "MPL-2.0",
+      "source": "https://www.npmjs.com/package/@ghostery/adblocker-extended-selectors/v/2.18.2",
+      "licenseFiles": [
+        {
+          "file": "licenses/@ghostery_adblocker-extended-selectors-LICENSE",
+          "sha256": "9a5743e68333a1959b266bee6905ee8ef1250f799c01a5f1bd98211e00cddd3a"
+        }
+      ]
+    },
+    {
+      "name": "@ghostery/adblocker",
+      "version": "2.18.2",
+      "license": "MPL-2.0",
+      "source": "https://www.npmjs.com/package/@ghostery/adblocker/v/2.18.2",
+      "licenseFiles": [
+        {
+          "file": "licenses/@ghostery_adblocker-LICENSE",
+          "sha256": "9a5743e68333a1959b266bee6905ee8ef1250f799c01a5f1bd98211e00cddd3a"
+        }
+      ]
+    },
+    {
+      "name": "@ghostery/url-parser",
+      "version": "1.3.1",
+      "license": "MPL-2.0",
+      "source": "https://www.npmjs.com/package/@ghostery/url-parser/v/1.3.1",
+      "licenseFiles": [
+        {
+          "file": "licenses/@ghostery_url-parser-LICENSE",
+          "sha256": "6e3496aca922d1041d0795f9f654a322b2fad023bb90eeed0ea59d6ad7176d23"
+        }
+      ]
+    },
+    {
+      "name": "@remusao/guess-url-type",
+      "version": "2.1.0",
+      "license": "MPL-2.0",
+      "source": "https://www.npmjs.com/package/@remusao/guess-url-type/v/2.1.0",
+      "licenseFiles": [
+        {
+          "file": "licenses/@remusao_guess-url-type-LICENSE",
+          "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5"
+        }
+      ]
+    },
+    {
+      "name": "@remusao/small",
+      "version": "2.1.0",
+      "license": "MPL-2.0",
+      "source": "https://www.npmjs.com/package/@remusao/small/v/2.1.0",
+      "licenseFiles": [
+        {
+          "file": "licenses/@remusao_small-LICENSE",
+          "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5"
+        }
+      ]
+    },
+    {
+      "name": "@remusao/smaz-compress",
+      "version": "2.2.0",
+      "license": "MPL-2.0",
+      "source": "https://www.npmjs.com/package/@remusao/smaz-compress/v/2.2.0",
+      "licenseFiles": [
+        {
+          "file": "licenses/@remusao_smaz-compress-LICENSE",
+          "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5"
+        }
+      ]
+    },
+    {
+      "name": "@remusao/smaz-decompress",
+      "version": "2.2.0",
+      "license": "MPL-2.0",
+      "source": "https://www.npmjs.com/package/@remusao/smaz-decompress/v/2.2.0",
+      "licenseFiles": [
+        {
+          "file": "licenses/@remusao_smaz-decompress-LICENSE",
+          "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5"
+        }
+      ]
+    },
+    {
+      "name": "@remusao/smaz",
+      "version": "2.2.0",
+      "license": "MPL-2.0",
+      "source": "https://www.npmjs.com/package/@remusao/smaz/v/2.2.0",
+      "licenseFiles": [
+        {
+          "file": "licenses/@remusao_smaz-LICENSE",
+          "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5"
+        }
+      ]
+    },
+    {
+      "name": "@remusao/trie",
+      "version": "2.1.0",
+      "license": "MPL-2.0",
+      "source": "https://www.npmjs.com/package/@remusao/trie/v/2.1.0",
+      "licenseFiles": [
+        {
+          "file": "licenses/@remusao_trie-LICENSE",
+          "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5"
+        }
+      ]
+    },
+    {
+      "name": "tldts-experimental",
+      "version": "7.4.10",
+      "license": "MIT",
+      "source": "https://www.npmjs.com/package/tldts-experimental/v/7.4.10",
+      "licenseFiles": [
+        {
+          "file": "licenses/tldts-experimental-LICENSE",
+          "sha256": "c64182d48160db948b6aa97a984f1a32974ce4d2053900361264cd33853796cb"
+        }
+      ]
+    }
+  ],
+  "proceduralRenderer": {
+    "name": "Ghostery extended-selectors procedural renderer (adapted)",
+    "version": "2.18.2",
+    "license": "MPL-2.0",
+    "bundleSha256": "03c7e11627648bc85ac33e949906796ee0916036a302bb3876b0e43be1a75b4f",
+    "licenseFiles": [
+      {
+        "file": "licenses/procedural-renderer-LICENSE-MPL-2.0",
+        "sha256": "9a5743e68333a1959b266bee6905ee8ef1250f799c01a5f1bd98211e00cddd3a"
+      }
+    ]
+  }
+}

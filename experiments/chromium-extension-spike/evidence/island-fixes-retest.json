@@ -1,0 +1,154 @@
+{
+  "checkedAt": "2026-10-16T13:43:36.726Z",
+  "windowId": 60439048,
+  "fixtureId": 60439049,
+  "method": "Physical macOS CGEvent mouse and keyboard, DevTools geometry and state readback",
+  "results": [
+    {
+      "name": "Cmd+A selects the whole Island address",
+      "result": "pass",
+      "detail": {
+        "before": {
+          "value": "http://127.0.0.1:18763/react",
+          "start": 28,
+          "end": 28,
+          "focused": true,
+          "documentFocused": true
+        },
+        "after": {
+          "value": "http://127.0.0.1:18763/react",
+          "start": 0,
+          "end": 28,
+          "focused": true,
+          "documentFocused": true
+        }
+      }
+    },
+    {
+      "name": "Selected address replaced by native typing and Enter",
+      "result": "pass",
+      "detail": {
+        "url": "http://127.0.0.1:18763/a"
+      }
+    },
+    {
+      "name": "Cmd+L from page opens and selects Island address",
+      "result": "pass",
+      "detail": {
+        "value": "http://127.0.0.1:18763/a",
+        "start": 0,
+        "end": 24,
+        "focused": true,
+        "documentFocused": true
+      }
+    },
+    {
+      "name": "Cmd+L from the native omnibox returns focus to Island",
+      "result": "pass",
+      "detail": {
+        "value": "http://127.0.0.1:18763/a",
+        "start": 0,
+        "end": 24,
+        "focused": true,
+        "documentFocused": true
+      }
+    },
+    {
+      "name": "Cmd+T creates exactly one native tab and focuses blank Island input",
+      "result": "pass",
+      "detail": {
+        "beforeCount": 1,
+        "afterCount": 2,
+        "activeTabId": 60439050,
+        "input": {
+          "value": "",
+          "start": 0,
+          "end": 0,
+          "focused": true,
+          "documentFocused": true
+        }
+      }
+    },
+    {
+      "name": "Repeated Cmd+T while Island open creates one more tab",
+      "result": "pass",
+      "detail": {
+        "beforeCount": 2,
+        "afterCount": 3
+      }
+    },
+    {
+      "name": "Unsupported buttons are hidden; supported footer remains visible",
+      "result": "pass",
+      "detail": {
+        "unsupported": {
+          "heart": false,
+          "panelHeart": false,
+          "pin": false,
+          "glance": false,
+          "history": false,
+          "favorites": false,
+          "private": false,
+          "spaces": false,
+          "settings": false,
+          "vertical": false
+        },
+        "supported": {
+          "newTab": true,
+          "downloads": true
+        }
+      }
+    },
+    {
+      "name": "Slash menu lists only implemented commands",
+      "result": "pass",
+      "detail": [
+        "/downloads",
+        "/new",
+        "/close"
+      ]
+    },
+    {
+      "name": "Long panel fits short window, scrolls, and footer Downloads remains clickable",
+      "result": "pass",
+      "detail": {
+        "viewportHeight": 334,
+        "panelBottom": 322,
+        "footerBottom": 290.5,
+        "listHeight": 183,
+        "listScrollHeight": 608,
+        "rows": 19,
+        "hostHeight": 334,
+        "available": 334,
+        "clickedDestination": "chrome://downloads/"
+      }
+    },
+    {
+      "name": "Expanded panel grows correctly when window is restored",
+      "result": "pass",
+      "detail": {
+        "x": 427,
+        "y": 158,
+        "width": 1200,
+        "height": 640,
+        "source": "native toolbar bottom and host viewport"
+      }
+    },
+    {
+      "name": "Native toolbar extension action still opens",
+      "result": "pass",
+      "detail": {
+        "url": "chrome-extension://nngceckbapebfimnlniiiahkandclblb/popup/index.html",
+        "text": "Make Bitwarden your browser's default password manager\n1\n\nSelect Continue.\n\n2\n\nSelect Allow from the browser prompt to give Bitwarden permission to change your settings.\n\n3\n\nWe'll turn off your browser's built-in password manager so you can enjoy a secure login experience.\n\nContinue\nSkip"
+      }
+    },
+    {
+      "name": "No host error banner after supported interactions",
+      "result": "pass",
+      "detail": {
+        "text": "",
+        "visible": false
+      }
+    }
+  ]
+}

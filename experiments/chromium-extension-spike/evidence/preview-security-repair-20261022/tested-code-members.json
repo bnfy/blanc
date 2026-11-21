@@ -1,0 +1,26 @@
+[
+  {
+    "path": "Contents/MacOS/Blanc Prototype",
+    "sha256": "0b1cb185b3c4dcbe27b62edd9c3ca9b93fdf7fa51ba09ecce25486591802d552"
+  },
+  {
+    "path": "Contents/MacOS/Blanc Preview Launcher",
+    "sha256": "e212e1e7ad48539323143a2038fa9c735e37405d27c7665b4e3670e5900a6c97"
+  },
+  {
+    "path": "Contents/Resources/BlancAssets/renderer.js",
+    "sha256": "288253ddf5bc2ec673ceb20811afd3e1b71d8988984f8fb0604acf769a0f9641"
+  },
+  {
+    "path": "Contents/Resources/BlancAssets/vertical-tabs.js",
+    "sha256": "c0e3c46236025fbbd08c9789be721c675a93ed77fa0b4f33365041067f5f5461"
+  },
+  {
+    "path": "Contents/Resources/BlancAssets/overlay.js",
+    "sha256": "3f2aa810d475515062e032ccc6b90af23a351c0d84f74c546d79aed5e742ee50"
+  },
+  {
+    "path": "Contents/Frameworks/Blanc Prototype Framework.framework/Versions/157.0.8103.6/Blanc Prototype Framework",
+    "sha256": "af07e6886581a8a28dd3fb5062a71f62732daaabeb87e2dbedd08725f4769a5b"
+  }
+]

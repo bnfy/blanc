@@ -1,0 +1,6 @@
+{
+  "native/blocker/blocker.mojom": "2f3b6f1a650f3170f84837c15629116f090ef60f12893122880fe66cfe1bd948",
+  "native/blocker/blocker_service.cc": "dc57f01b48543be19d8a3997fa859b5c706f4247559fea4cad88cd53efab0336",
+  "native/blocker/document_start_renderer.inc": "b7fb8f5710ae687d7f8ebd2f13eb2bc1aab7c7f6de181d295f52c838e26d9459",
+  "native/blocker/bundle.mjs": "bc859b4e7f74cc2845f65a2bb0333677d5a4cd2091523637ad4d5ec09b4b1e30"
+}

@@ -1,0 +1,205 @@
+// Writes Blanc for Android's interface strings from copy/messages (A1 plan,
+// Task 3): one chromium/blanc/android/island/res/values*/blanc_strings.xml per
+// language, holding only ANDROID_KEYS, named blanc_<key> so they never
+// collide with Chromium's resources. --check fails when a file is stale.
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+// The file's text, or null if it isn't there: one read, so nothing can change between a check and it.
+function readIfPresent(file) {
+  try { return fs.readFileSync(file, 'utf8'); } catch (error) { if (error.code === 'ENOENT') return null; throw error; }
+}
+
+const chromium = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const repo = path.dirname(chromium);
+const RES = path.join(chromium, 'blanc/android/island/res');
+
+// The iPhone Island's keys (ContentView.swift), shared so Android needs no new translations.
+export const ANDROID_KEYS = [
+  'ios.island.pageActions', 'ios.island.searchOrSwitch', 'ios.island.showAllTabs',
+  'ios.island.stop', 'ios.palette.placeholder', 'ios.tabs.startPage', 'pagesNav.bookmarks', 'pagesNav.history', 'pill.private.chip',
+  // #1463's Island and Sunrise menu: Back, Forward, the Start Page placeholder, Reload and Settings.
+  'menu.reload', 'menu.settings', 'pill.back', 'pill.forward', 'pill.placeholder',
+  'pill.private.title', 'tab.new',
+  // The Sunrise menu (A1 Task 7), with the iPhone's labels.
+  'menu.newPrivateTab', 'share.picker.share', 'tabMenu.removeFavorite', 'tabMenu.saveFavorite',
+  // A2's slash commands (SlashCommands.available()), the iPhone's hints.
+  'slash.close.hint', 'slash.closeGroup.hint', 'slash.favorites.hint', 'slash.find.hint', 'slash.group.hint',
+  'slash.history.hint', 'slash.new.hint', 'slash.private.hint', 'slash.reopen.hint', 'slash.theme.hint',
+  'slash.ungroup.hint',
+  // The palette (A2 Task 4).
+  'group.fold', 'group.unfold', 'ios.island.collapse', 'ios.palette.clear', 'ios.palette.noCommand',
+  'ios.palette.noMatches', 'ios.tabs.close', 'ios.tabs.openTabs', 'tab.untitled',
+  // The tab grid (A2 Task 5).
+  'groupMenu.close', 'groupMenu.colorLabel', 'groupMenu.colorNone', 'groupMenu.duplicate', 'groupMenu.nameLabel',
+  'groupMenu.newTab', 'groupMenu.options', 'groupMenu.rename', 'groupMenu.ungroup', 'ios.tabs.switchTo', 'menu.undo',
+  'settings.gesture.action.closeTab', 'sharedSpaces.cancel', 'spaces.color.clay', 'spaces.color.graphite',
+  'spaces.color.iris', 'spaces.color.rose', 'spaces.color.sage', 'spaces.color.sand', 'spaces.color.sky',
+  'spaces.color.slate', 'tabGroups.closedToast', 'tabMenu.duplicate', 'tabMenu.moveToGroup', 'tabMenu.mute',
+  'tabMenu.newGroup', 'tabMenu.pin', 'tabMenu.removeFromGroup', 'tabMenu.unmute', 'tabMenu.unpin', 'tabs.closedToast',
+  'ws.editor.done',
+  // Find in page (A2 Task 6).
+  'find.next', 'find.placeholder', 'find.prev', 'menu.findInPage',
+  // Blocking (A3 Task 5), the iPhone's and desktop's words.
+  'newtab.startup.failed', 'newtab.startup.retry', 'shield.adBlocking', 'shield.count.globalOff', 'shield.count.none',
+  'shield.count.siteOff', 'slash.allowAds.hint', 'slash.blockAds.hint',
+  // Sync (A4), with the iPhone's copy.
+  'spaces.thisPhone', 'spaces.menuLabel', 'spaces.menuEdit', 'spaces.mark.current', 'ws.new', 'ws.editor.newTitle',
+  'ws.editor.editTitle', 'ws.editor.name', 'ws.editor.color', 'ws.editor.symbol', 'ws.editor.createButton', 'ws.delete.button',
+  'ws.undo.deleted', 'ws.error.limit', 'ws.error.duplicateName', 'ws.error.invalidName', 'ws.row.current', 'ws.recovery.restoreNamed',
+  'ws.recovery.restore', 'ws.row.edit', 'tabMenu.newSpace',
+  'spaces.symbol.briefcase', 'spaces.symbol.house', 'spaces.symbol.code', 'spaces.symbol.flask', 'spaces.symbol.book', 'spaces.symbol.music', 'spaces.symbol.camera', 'spaces.symbol.plane', 'spaces.symbol.heart', 'spaces.symbol.star', 'spaces.symbol.leaf', 'spaces.symbol.coffee', 'spaces.symbol.cap', 'spaces.symbol.gamepad', 'spaces.symbol.wallet', 'spaces.symbol.sun',
+  'settings.linkRoutes.moveUp', 'settings.linkRoutes.moveDown',
+  'slash.space.hint', 'tabMenu.moveToSpace',
+  'sync.error.localKeyUnlock', 'footer.devices', 'sends.section', 'sends.from', 'sends.dismiss', 'sends.sent', 'sends.none', 'sends.noMatch',
+  'sends.unavailable', 'sends.failed', 'slash.send.hint', 'ios.settings.shareTabs', 'ios.settings.shareTabsHelp',
+  'tabMenu.sendToDevice',
+  'ios.settings.connected', 'ios.settings.notConnected', 'ios.settings.status', 'ios.settings.account',
+  'ios.settings.lastSynced', 'ios.settings.pairingCode', 'ios.settings.switchAccount', 'ios.settings.passphrase',
+  'ios.settings.signIn', 'ios.settings.deviceName', 'ios.settings.saveName', 'ios.settings.saved',
+  'ios.settings.disconnect', 'ios.settings.working', 'ios.settings.syncHelp', 'ios.settings.pairingHelp',
+  'ios.settings.syncOffTitle', 'ios.settings.syncOffBody', 'ios.settings.pairWithBlanc', 'ios.settings.otherWays',
+  'ios.settings.enterCode', 'ios.settings.usePassphrase', 'ios.settings.typeCodeShown', 'ios.settings.disconnectHelp',
+  'settings.nav.sync', 'settings.sync.switch.connect', 'settings.sync.syncName', 'fill.setupEnable.cancelLabel',
+  'settings.sync.syncNow', 'settings.sync.addAnotherDevice', 'settings.sync.recovery.copy', 'settings.sync.recovery.dialogMessage',
+  'settings.sync.createOnComputer', 'settings.sync.pairing.instruction', 'shield.done', 'sync.error.badPassphrase',
+  'sync.error.pairNotFound', 'sync.error.pairUnavailable', 'sync.error.pairInvalid', 'sync.error.rateLimited',
+  'sync.error.offline', 'sync.error.server', 'sync.error.serverError', 'sync.error.syncOn',
+  'sharedSpaces.title', 'sharedSpaces.explanation', 'sharedSpaces.confirm', 'sharedSpaces.count', 'sharedSpaces.tabs',
+  'sharedSpaces.rejoin', 'sharedSpaces.copy', 'sharedSpaces.full', 'sharedSpaces.accountFull', 'sharedSpaces.unavailable',
+  'sharedSpaces.shared', 'sharedSpaces.unsyncedTab', 'sharedSpaces.waiting', 'sharedSpaces.notSynced', 'sharedSpaces.fullState',
+  'sharedSpaces.unavailableState', 'sharedSpaces.accountLine', 'sharedSpaces.offLine', 'sharedSpaces.tombstones',
+  'sharedSpaces.capacity', 'sharedSpaces.busy', 'sharedSpaces.recoveryNote', 'sharedSpaces.switch.android',
+  'sharedSpaces.switch.line.android', 'sharedSpaces.saveThisPhone', 'sharedSpaces.recoveryName.android',
+  'sharedSpaces.deletedEverywhere.android', 'bringSpace.action.android', 'bringSpace.copyNote', 'spaces.onDevice',
+  'closed.header', 'closed.fold', 'closed.unfold', 'closed.clear', 'closed.clearAll', 'closed.forget', 'sharedSpaces.closedOn',
+  'sync.error.off', 'sync.error.credentialsSave', 'sync.error.accountGone', 'slash.sync.hint',
+  // Settings (A5a): the iPhone's Settings sheet keys, and Android's own.
+  'pagesNav.settings', 'slash.settings.hint',
+  'android.settings.islandPosition', 'android.settings.islandPosition.bottom', 'android.settings.islandPosition.top',
+  'android.settings.more', 'android.settings.openSourceLicenses', 'ios.settings.about',
+  'android.settings.autofill.title', 'android.settings.autofill.summary',
+  'android.settings.autofill.managed', 'android.settings.autofill.choose',
+  'android.settings.autofill.chooseSummary', 'android.settings.autofill.restart',
+  'ios.settings.addSite', 'ios.settings.blocker', 'ios.settings.blockerHelp',
+  'ios.settings.duplicateSite', 'ios.settings.exceptions', 'ios.settings.exceptionsHelp', 'ios.settings.invalidSite',
+  'ios.settings.privacy', 'ios.settings.privacyPolicy', 'ios.settings.removeSite',
+  'ios.settings.site', 'ios.settings.support', 'ios.settings.version', 'ios.settings.website',
+  'settings.general.cards.appearance', 'settings.general.cards.browsing', 'settings.general.searchEngine.label',
+  'settings.general.cards.startPage', 'newtab.customize.button',
+  'settings.general.theme.dark', 'settings.general.theme.label', 'settings.general.theme.light',
+  'settings.general.theme.system', 'settings.privacy.clearBrowsingData',
+  'settings.privacy.clearBrowsingData.confirm', 'settings.privacy.clearBrowsingData.done',
+  'settings.privacy.removesCookiesCacheAnd',
+  // The iPhone's palette and Sunrise menu from #1445 and #1466.
+  'ios.palette.editAddress', 'tabMenu.copyLink', 'pill.notice.linkCopied', 'contextMenu.searchFor',
+  'ios.island.pageZoom', 'ios.island.desktopSite',
+  'ios.island.mobileSite',
+  // The first minute (A5c): the iPhone's walkthrough and default-browser copy, Android's where the
+  // iPhone's names iOS, and the Language and Measure usage rows.
+  'ios.welcome.title', 'ios.welcome.body', 'ios.welcome.browse', 'ios.welcome.connected', 'ios.welcome.arrived',
+  'ios.welcome.tabsOn', 'ios.welcome.settings', 'ios.welcome.spaces', 'ios.welcome.spacesLater',
+  'ios.welcome.arriving', 'ios.welcome.continue', 'ios.welcome.shareBody', 'ios.welcome.privacyTitle', 'ios.welcome.measureUsage',
+  'ios.welcome.showAgain', 'ios.defaultBrowser.title', 'ios.defaultBrowser.done', 'ios.defaultBrowser.notNow',
+  'ios.defaultBrowser.row', 'ios.defaultBrowser.notBlanc', 'android.welcome.shareTitle',
+  'android.welcome.measureUsageHelp', 'android.defaultBrowser.body', 'android.defaultBrowser.open',
+  'settings.language.label', 'settings.language.system',
+  // Long-press menu labels use Blanc's default English on untranslated phones.
+  'android.contextMenu.privateTab', 'android.contextMenu.newBlancTab', 'mini.openInBlanc',
+];
+// ICU plurals, as Android <plurals>: the Island's tab count for TalkBack.
+export const ANDROID_PLURALS = ['sharedSpaces.waitingCount', 'newtab.groups.count', 'shield.count.blocked', 'tabGroups.tucked', 'tabsMenu.header',
+  'ws.list.recentlyDeleted'];
+// Their own folder: Chromium's base-module resources list only the icons from res/, and a resource
+// folder may hold only files its target lists.
+const OVERRIDES = path.join(chromium, 'blanc/android/res_chromium_strings');
+export const LOCALES = [['en', 'values'], ['de', 'values-de'], ['es', 'values-es'], ['fr', 'values-fr'],
+  ['it', 'values-it'], ['pt-BR', 'values-pt-rBR']];
+// Android prefers these regional Chromium translations over a base-language override.
+const OVERRIDE_LOCALES = [...LOCALES,
+  ['en', 'values-en-rGB'], ['es', 'values-es-rUS'], ['fr', 'values-fr-rCA'], ['pt-BR', 'values-pt-rPT'],
+];
+
+export const resourceName = key =>
+  'blanc_' + key.replace(/([a-z0-9])([A-Z])/g, '$1_$2').replace(/\./g, '_').toLowerCase();
+
+// Android string-resource text: {name} placeholders become %N$s in the order
+// `names` gives; a literal % doubles only where the string takes arguments.
+export function androidText(message, names) {
+  let text = message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+  if (names.length) text = text.replace(/%/g, '%%');
+  text = text.replace(/\{([A-Za-z0-9_]+)\}/g, (m, name) => {
+    const i = names.indexOf(name);
+    if (i < 0) throw Error(`Unknown placeholder {${name}} in "${message}"`);
+    return `%${i + 1}$s`;
+  });
+  return /^[@?]/.test(text) ? `\\${text}` : text;
+}
+
+// `{count, plural, one {# tab} other {# tabs}}` as an Android <plurals> entry.
+export function androidPlural(message, name) {
+  const body = /^\{\w+, plural,(.*)\}$/s.exec(message.trim());
+  if (!body) throw Error(`Not a plural: "${message}"`);
+  const items = [...body[1].matchAll(/(zero|one|two|few|many|other)\s*\{([^{}]*)\}/g)]
+    .map(([, quantity, text]) => `        <item quantity="${quantity}">${androidText(text, []).replace(/#/g, '%d')}</item>`);
+  if (!items.length) throw Error(`Not a plural: "${message}"`);
+  return `    <plurals name="${name}">\n${items.join('\n')}\n    </plurals>`;
+}
+
+const read = locale => JSON.parse(fs.readFileSync(path.join(repo, 'copy/messages', `${locale}.json`), 'utf8'));
+
+// Chromium chooses the Safety Hub summary by its upstream resource ID.
+export const CHROMIUM_OVERRIDES = {
+  'android.settings.autoRevokeSummary': 'safety_hub_autorevocation_toggle_summary',
+};
+
+export function render(locale) {
+  const english = read('en'), own = read(locale);
+  const lines = ANDROID_KEYS.map(key => {
+    const names = [...english[key].message.matchAll(/\{([A-Za-z0-9_]+)\}/g)].map(m => m[1]);
+    const message = own[key]?.message;
+    if (!message) throw Error(`${locale} lacks ${key}`);
+    return `    <string name="${resourceName(key)}">${androidText(message, names)}</string>`;
+  });
+  for (const key of ANDROID_PLURALS) {
+    const message = own[key]?.message;
+    if (!message) throw Error(`${locale} lacks ${key}`);
+    lines.push(androidPlural(message, resourceName(key)));
+  }
+  return `<?xml version="1.0" encoding="utf-8"?>\n<!-- Generated by chromium/tools/android-strings.mjs from copy/messages; do not edit. -->\n<resources>\n${lines.join('\n')}\n</resources>\n`;
+}
+
+export function renderOverrides(locale) {
+  const own = read(locale);
+  const lines = Object.entries(CHROMIUM_OVERRIDES).map(([key, name]) => {
+    const message = own[key]?.message;
+    if (!message) throw Error(`${locale} lacks ${key}`);
+    return `    <string name="${name}">${androidText(message, [])}</string>`;
+  });
+  return `<?xml version="1.0" encoding="utf-8"?>\n<!-- Generated by chromium/tools/android-strings.mjs from copy/messages; do not edit. -->\n<resources>\n${lines.join('\n')}\n</resources>\n`;
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const check = process.argv.includes('--check');
+  const stale = [];
+  for (const [locale, dir] of LOCALES) {
+    const file = path.join(RES, dir, 'blanc_strings.xml');
+    const next = render(locale);
+    const current = readIfPresent(file);
+    if (current === next) continue;
+    if (check) { stale.push(path.relative(repo, file)); continue; }
+    fs.mkdirSync(path.dirname(file), {recursive: true});
+    fs.writeFileSync(file, next);
+  }
+  for (const [locale, dir] of OVERRIDE_LOCALES) {
+    const file = path.join(OVERRIDES, dir, 'blanc_chromium_strings.xml');
+    const next = renderOverrides(locale);
+    if (readIfPresent(file) === next) continue;
+    if (check) { stale.push(path.relative(repo, file)); continue; }
+    fs.mkdirSync(path.dirname(file), {recursive: true});
+    fs.writeFileSync(file, next);
+  }
+  if (stale.length) { console.error(`Stale Android strings: ${stale.join(', ')}. Run node chromium/tools/android-strings.mjs.`); process.exitCode = 1; }
+}

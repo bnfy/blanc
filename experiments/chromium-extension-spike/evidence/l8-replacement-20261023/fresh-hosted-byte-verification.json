@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Blanc-Chromium-Preview-157.0.8103.15-6b9a05a0-arm64.zip",
+    "bytes": 243868734,
+    "sha256": "a7fe468c648e1b3d096a49e663e06b182bb483353fb5c4bb1c37dc8349994aca",
+    "anonymousAssetGET": 200,
+    "assetHost": "release-assets.githubusercontent.com",
+    "accountAuthorizationForwarded": false
+  },
+  {
+    "name": "Blanc-Chromium-Preview-157.0.8103.15-6b9a05a0.cdx.json",
+    "bytes": 182479,
+    "sha256": "2f218458a3bf67d6e825017bcbb5dfc95cf2698e9918c0835705768223715921",
+    "anonymousAssetGET": 200,
+    "assetHost": "release-assets.githubusercontent.com",
+    "accountAuthorizationForwarded": false
+  },
+  {
+    "name": "Blanc-Chromium-Preview-157.0.8103.15-6b9a05a0.files.json",
+    "bytes": 117088,
+    "sha256": "cbcf9fabba924012434c2697b9aa8f67ffb1d1beeaa6cb42ab7026348551ce0e",
+    "anonymousAssetGET": 200,
+    "assetHost": "release-assets.githubusercontent.com",
+    "accountAuthorizationForwarded": false
+  },
+  {
+    "name": "Blanc-Chromium-Preview-157.0.8103.15-6b9a05a0.provenance.json",
+    "bytes": 7712,
+    "sha256": "a729a974f0609955e4eb094522cd0ac4fa0a2c8716ddb73e383c82b0c939a460",
+    "anonymousAssetGET": 200,
+    "assetHost": "release-assets.githubusercontent.com",
+    "accountAuthorizationForwarded": false
+  },
+  {
+    "name": "SHA256SUMS",
+    "bytes": 494,
+    "sha256": "ccc461e8b8149c7ddd5cbdb3ed3455279306becfca62d1a634df0c0a70ba9250",
+    "anonymousAssetGET": 200,
+    "assetHost": "release-assets.githubusercontent.com",
+    "accountAuthorizationForwarded": false
+  },
+  {
+    "name": "SHA256SUMS.sigstore.json",
+    "bytes": 6387,
+    "sha256": "d6d23d81e396e6e8cd117699d396166caa03820b7d29b18e15ed1510cdfc9486",
+    "anonymousAssetGET": 200,
+    "assetHost": "release-assets.githubusercontent.com",
+    "accountAuthorizationForwarded": false
+  }
+]

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Bananify Creative. MIT; see LICENSE. -->
+<!-- A row: its title, a value under it, and a switch or a chevron at the end. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/blanc_sync_row_min_height"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/blanc_sync_row_padding_horizontal"
+    android:paddingTop="@dimen/blanc_sync_row_padding_vertical"
+    android:paddingEnd="@dimen/blanc_sync_row_padding_horizontal"
+    android:paddingBottom="@dimen/blanc_sync_row_padding_vertical">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/blanc_sync_row_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/blanc_sunrise_text"
+            android:textSize="@dimen/blanc_sync_row_title_size" />
+
+        <TextView
+            android:id="@+id/blanc_sync_row_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/blanc_sunrise_text_dim"
+            android:textSize="@dimen/blanc_sync_row_value_size"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <Switch
+        android:id="@+id/blanc_sync_row_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/blanc_sync_row_chevron"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:importantForAccessibility="no"
+        android:src="@drawable/blanc_palette_chevron_right"
+        android:tint="@color/blanc_sunrise_text_dim"
+        android:visibility="gone" />
+</LinearLayout>

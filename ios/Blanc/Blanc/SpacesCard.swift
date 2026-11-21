@@ -49,7 +49,7 @@ struct SpacesCard: View {
     private var rows: some View {
         VStack(alignment: .leading, spacing: 0) {
             row(id: TabSets.iphoneId, name: TabSets.deviceSetName, identifier: "spaces.iphone") {
-                Image(systemName: "iphone")
+                Image(systemName: ThisDevice.symbol)
                     .font(.system(size: 15))
                     .frame(width: 30, height: 30)
                     .background(style.surface, in: RoundedRectangle(cornerRadius: 9))

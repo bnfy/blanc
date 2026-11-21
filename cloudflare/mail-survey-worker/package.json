@@ -1,0 +1,8 @@
+{
+  "name": "blanc-mail-survey-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy"
+  }
+}

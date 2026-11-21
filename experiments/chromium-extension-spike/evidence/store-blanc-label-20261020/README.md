@@ -1,0 +1,4 @@
+
+## October 20 — Store install label
+
+Exact top-level Store English Add to Chrome text now becomes Add to Blanc, including aria-label. Existing button/handlers/disabled state retained; installed-state text removes the temporary accessibility override. Eight focused tests pass. Disposable native Extensity 1.14.0 flow passes label/accessible name, original permission text, safety delay, Cancel, successful install and Remove from Chrome state. No account or real profile extension installed. Two incremental builds, final zero-action guard; no upstream footprint change from 49/117. Other locales/future markup remain unchanged. Native UI routing briefly opened a media overlay; dismissed before verification. Retained preview restarted with both New Tab and Dashlane listing restored and Add to Blanc visible. Also includes owner-requested single focus border and Browse app store label. Latency deferred; Electron diagnostic build unapproved.

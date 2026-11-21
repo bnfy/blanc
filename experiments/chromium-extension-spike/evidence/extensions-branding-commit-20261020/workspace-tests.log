@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: Workspace POST fixture distinguishes a submission from a replayed GET
+ok 1 - Workspace POST fixture distinguishes a submission from a replayed GET
+  ---
+  duration_ms: 24.725666
+  ...
+# Subtest: Workspace sign-in fixture uses a second origin and a validated opener callback
+ok 2 - Workspace sign-in fixture uses a second origin and a validated opener callback
+  ---
+  duration_ms: 4.870791
+  ...
+# Subtest: Workspace test commands retain the locked runtime gate and runnable acceptance binding
+ok 3 - Workspace test commands retain the locked runtime gate and runnable acceptance binding
+  ---
+  duration_ms: 0.426708
+  ...
+# Subtest: Packaged Workspace smoke uses production projections and requires a graceful owned-process exit
+ok 4 - Packaged Workspace smoke uses production projections and requires a graceful owned-process exit
+  ---
+  duration_ms: 0.206
+  ...
+# Subtest: Workspace regression coverage is wired to platform CI and future signed-package gates
+ok 5 - Workspace regression coverage is wired to platform CI and future signed-package gates
+  ---
+  duration_ms: 0.221
+  ...
+# Subtest: Workspace session-commit failure injection targets the second save on POSIX and Windows
+ok 6 - Workspace session-commit failure injection targets the second save on POSIX and Windows
+  ---
+  duration_ms: 1.221917
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 81.162041

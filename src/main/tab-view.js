@@ -33,6 +33,7 @@ const { isVisiblePaneId, foregroundOpenRole } = require('./glance-focus');
 const { primeLoadingBackground } = require('./tab-loading-background');
 const { mayBuildFreshView, inertViewMayShow, inertPageUrl } = require('./document-policy');
 const { persistableUrl } = require('./session-snapshot');
+const { trackDownloadGestures } = require('./downloads');
 
 let deps = null;
 let mouseGestureSettings = null;
@@ -179,6 +180,34 @@ function unwireTabView(wc) {
   wiredListeners.delete(wc);
 }
 
+/** Ask whether to leave a page that objects to unloading (a beforeunload
+ * handler), over `parent`. Electron's polarity is deliberately inverted:
+ * preventing will-prevent-unload lets the unload proceed, and leaving the
+ * event alone keeps the page, silently when nothing asks (#1477). */
+function answerUnloadObjection(event, parent) {
+  const choice = dialog.showMessageBoxSync(parent, {
+    type: 'question',
+    buttons: [deps.t('tabView.leave.leave'), deps.t('tabView.leave.stay')],
+    defaultId: 0,
+    cancelId: 1,
+    message: deps.t('tabView.leave.message'),
+    detail: deps.t('tabView.leave.detail'),
+  });
+  if (choice === 0) event.preventDefault();
+}
+
+/** Allow a certificate failure that matches a Continue made in a tab of this
+ * session (same origin, certificate and error). Never answers synchronously:
+ * Electron 45 emits certificate-error on the WebContents and then on `app`,
+ * and an answer between the two crashes the browser (#1424). Returns whether
+ * it allowed; a refusal leaves `callback` to Electron's default deny. */
+function allowContinuedCertificate(certificateExceptions, wc, event, { url, error, certificate }, callback) {
+  if (!certificateExceptions.matches(wc.session, { url, error, certificate, now: Date.now() })) return false;
+  event.preventDefault();
+  setImmediate(() => callback(true));
+  return true;
+}
+
 function wireTabView(tab, view, { owner, adopted }) {
   if (!deps) throw new Error('wireTabView called before initTabView');
   const {
@@ -199,6 +228,8 @@ function wireTabView(tab, view, { owner, adopted }) {
   const id = tab.id;
   const wc = view.webContents;
   tabZoom.prepare(wc);
+  // A real click or key press here lets one download skip Save As (#1591).
+  trackDownloadGestures(wc);
   const gesture = createRecognizer();
   const heldModifiers = new Set();
   let gestureButton = null;
@@ -601,10 +632,8 @@ function wireTabView(tab, view, { owner, adopted }) {
   wc.on('certificate-error', boundToTab((event, failedUrl, error, certificate, callback, isMainFrame) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     const sanitized = sanitizeCertificate(certificate);
-    if (certificateExceptions.matches(wc.session, { url: failedUrl, error, certificate: sanitized, now: Date.now() })) {
+    if (allowContinuedCertificate(certificateExceptions, wc, event, { url: failedUrl, error, certificate: sanitized }, callback)) {
       if (isMainFrame) tab.pendingCertificateException = { url: failedUrl, certificate: sanitized };
-      event.preventDefault();
-      setImmediate(() => callback(true));
       return;
     }
     if (isMainFrame) {
@@ -645,19 +674,9 @@ function wireTabView(tab, view, { owner, adopted }) {
       run: contents => contents.loadURL(`blanc://error/?${q}`),
     });
   }));
-  // Electron's polarity is deliberately inverted: preventing this event lets
-  // the underlying unload proceed.
   wc.on('will-prevent-unload', boundToTab((event) => {
     if (tab.sleeping || tab.view?.webContents !== wc || getOwner().resident) return;
-    const choice = dialog.showMessageBoxSync(hasLiveWindow() ? getOwner().window : undefined, {
-      type: 'question',
-      buttons: [deps.t('tabView.leave.leave'), deps.t('tabView.leave.stay')],
-      defaultId: 0,
-      cancelId: 1,
-      message: deps.t('tabView.leave.message'),
-      detail: deps.t('tabView.leave.detail'),
-    });
-    if (choice === 0) event.preventDefault();
+    answerUnloadObjection(event, hasLiveWindow() ? getOwner().window : undefined);
   }));
   wc.on('found-in-page', boundToTab((_e, result) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
@@ -757,6 +776,21 @@ function wireTabView(tab, view, { owner, adopted }) {
         notePopupChild(tab.id, childWindow, targetWc.id, details?.url);
         const childWc = childWindow.webContents;
         const childWcId = childWc.id;
+        // A pop-up (Proxmox's console window, say) shares its opener's
+        // session, so it honors a Continue made in a tab for the same origin
+        // and certificate, for its page and its WebSockets. It has no warning
+        // page and never records a choice: anything else is left to
+        // Electron's default deny.
+        childWc.on('certificate-error', (event, failedUrl, error, certificate, callback) => {
+          allowContinuedCertificate(certificateExceptions, childWc, event,
+            { url: failedUrl, error, certificate: sanitizeCertificate(certificate) }, callback);
+        });
+        // Its page can object to being left (Proxmox's console does while
+        // connected). Unanswered, Electron keeps the window open and its
+        // close button does nothing (#1477), so it asks like a tab does.
+        childWc.on('will-prevent-unload', (event) => {
+          answerUnloadObjection(event, childWindow);
+        });
         windowRuntimes.registerAuxiliaryContent(getOwner(), childWcId);
         // Alongside — not via — auxiliaryOwner: popup capture state must
         // survive detachWindow on macOS close/reopen (spec §3.3).

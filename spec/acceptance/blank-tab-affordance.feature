@@ -35,3 +35,39 @@ Feature: A blank tab shows where to type
     Given a single ordinary page is the only open tab
     When I close the only tab
     Then a blank tab replaces it with the island address field focused
+
+  # #1505: Cmd/Ctrl+T goes to a New Tab page the window already has and
+  # hasn't used, instead of stacking another empty one. Each precondition
+  # leaves an ordinary page active, so the shortcut has somewhere to move from.
+  @F37-5 @all
+  Scenario: New Tab switches to an unused new tab
+    Given an unused new tab and an ordinary page are open, with the page active
+    When I press the New Tab shortcut
+    Then the unused new tab is active with the island address field focused
+    And no tab was opened
+
+  @F37-6 @all
+  Scenario: New Tab opens a tab once the new tab has been used
+    Given a new tab that went to a page and came back, and an ordinary page active
+    When I press the New Tab shortcut
+    Then a new blank tab is opened and active
+
+  @F37-7 @all
+  Scenario: Grouped and pinned new tabs are left alone
+    Given an unused new tab in a group, an unused pinned new tab, and an ordinary page active
+    When I press the New Tab shortcut
+    Then a new blank tab is opened and active
+
+  @F37-8 @all
+  Scenario: With the setting off, New Tab always opens a tab
+    Given an unused new tab and an ordinary page are open, with the page active
+    And switching to an unused new tab is turned off
+    When I press the New Tab shortcut
+    Then a new blank tab is opened and active
+
+  @F37-9 @all
+  Scenario: New Private Tab switches to an unused private new tab
+    Given an unused private new tab, an unused new tab and an ordinary page are open, with the page active
+    When I press the New Private Tab shortcut
+    Then the unused private new tab is active
+    And no tab was opened

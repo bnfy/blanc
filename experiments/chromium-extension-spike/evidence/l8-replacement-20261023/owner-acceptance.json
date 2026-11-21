@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-23",
+  "answer": "All checks passed",
+  "question": "The MacBook download passed all 458-file/5-symlink, Safari-quarantine, signature, ticket and Gatekeeper checks. Its verified name is \u201cBlanc Chromium Preview-2.app.\u201d Please test on the MacBook: (1) ordinary open; normal Open confirmation allowed, stop security rejection/stall; (2) Shelf and Bitwarden present, example.com/example.org loaded, example.org selected; (3) Cmd+Q/reopen same app twice; both tabs/selection/Shelf persist each restart, Bitwarden popup opens and Tab moves focus; (4) Shipping existing tabs intact. Did all checks pass?",
+  "observationType": "Direct owner-reported native UI hand check, supported by actual Safari download/inventory/quarantine and postcheck running-app identity/Shipping hashes. Not an automated UI result.",
+  "sourceRevision": "6b9a05a00f321bfbde617c181103d5a455ff45f3",
+  "version": "157.0.8103.15",
+  "archiveSha256": "a7fe468c648e1b3d096a49e663e06b182bb483353fb5c4bb1c37dc8349994aca",
+  "downloadedApp": "/Users/anthonyjloria/Downloads/Blanc Chromium Preview-2.app",
+  "criteria": {
+    "ordinaryLaunchWithoutSecurityOverrideOrStall": true,
+    "shelfAndStoreBitwardenPresent": true,
+    "twoNormalQuitReopenCycles": true,
+    "exampleTabsAndSelectedTabPersistBothRestarts": true,
+    "shelfPersistsBothRestarts": true,
+    "bitwardenPopupAndTabFocusWork": true,
+    "shippingExistingTabsPreserved": true
+  },
+  "gateDecision": "L8 accepted for this bounded candidate;9/12,delta+1L8",
+  "limits": [
+    "Second physical macOS27.2/arm64 machine, not factory-clean OS",
+    "Unpublished validation draft, no public release or updater change",
+    "Local incremental-build materials, not independent/hermetic or hosted-build attestation",
+    "No production-profile migration, general extension/vendor/autofill compatibility or authentic Google version-upgrade claim"
+  ]
+}

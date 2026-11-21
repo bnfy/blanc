@@ -1,0 +1,140 @@
+#!/usr/bin/env node
+// The release-candidate readiness tracker's data (the "Blanc Chromium RC
+// Readiness" dashboard): how far the fork is from a beta on par with
+// shipping. Writes three JSON files:
+//   cases.json         every shipping acceptance case with its latest result
+//                      on macOS: the full baseline, overlaid by every later
+//                      targeted run in --runs (newest wins), each case
+//                      keeping the candidate and time it ran on
+//   requirements.json  tracker.json's requirement rows with their stages per
+//                      platform and their cases' latest results
+//   gates.json         release gates outside the code, from STATUS.md
+//   node chromium/tools/rc-readiness.mjs --baseline FULL.json --runs DIR --out DIR
+// Latest-per-case mixes candidates; it is a progress measure, not a
+// baseline (Bar A in STATUS.md stays the one-candidate record).
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+// Shipping features the owner chose to leave to Chrome Web Store
+// extensions (STATUS.md, 2026-11-02): their cases are approved divergences.
+export const DIVERGENT_ROWS = new Set(['F38', 'F42']);
+
+// Gates a beta needs beyond the code, each as STATUS.md or the tracker
+// records it. Edit with STATUS.md.
+export const GATES = [
+  {gate: 'Beta signing and notarization', status: 'Done (beta.2 published)', note: '2.0.0-beta.2 was signed with the pinned Developer ID, notarized, stapled, Sigstore-signed and published as a GitHub pre-release on 2026-11-14 (not latest). Logged-out public verification passed. The update key is backed up to 1Password.'},
+  {gate: 'Dedicated beta build', status: 'Published (beta.2)', note: 'The 2.0.0-beta.2 (build 2) production build is public: https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.2. 11 gates passed and 2 were waived by the owner.'},
+  {gate: 'Distribution and updates (F22)', status: 'Local proof done', note: 'local-update-proof.mjs (2026-11-14): an installed local beta.1 found beta.2 on a loopback feed, downloaded it and installed it at quit; with the update signed by another key, or with one byte changed after signing, it downloaded and refused, staying at build 1. Ad-hoc signed copies and a throwaway key; the signed production feed and Developer ID path need the key ceremony and the beta.2 production build.'},
+  {gate: 'Notices, credits and SBOM', status: 'Done (local beta)', note: 'sbom_scan.py and sbom.mjs build the CycloneDX SBOM (349 components) and NOTICES.txt from Chromium\'s own licence metadata. The beta ships its own notice (fork-notice.mjs), which also credits one component Chromium\'s credits page misses. The audit passed on the rebuilt local-qualification beta (2026-11-13); the production beta.2 build needs its own run.'},
+  {gate: 'Blocker in the packaged beta', status: 'Done (local beta)', note: 'The beta embeds the pinned blocker engine and uses it with no development switch. blocker-evidence.mjs (2026-11-14) writes the gate evidence: on the local-qualification beta, ordinary and private windows blocked two EasyList hosts while the page loaded, and copies with a changed or missing engine let nothing through (loopback only). The production beta.2 build needs its own run.'},
+  {gate: 'Outbound isolation (beta)', status: 'Done (beta.2 build)', note: 'The beta.2 production build, run as a person runs it under the owner-approved pf block for a test user (startup and idle, a relaunch, a private window), sent nothing off the Mac beyond the test page\'s own probe lookups, and Chromium\'s network log named no outside host (2026-11-14). The local-qualification build passed earlier the same day.'},
+  {gate: 'No test hooks in the beta', status: 'Done (local beta)', note: 'hooks-evidence.mjs (2026-11-14): no test or research switch name in any of the beta\'s 21 binaries, and with every test switch passed the beta behaved normally. The audit first found four --blanc-test reads outside the test-hooks build flag; they are now compiled out of beta and release builds.'},
+  {gate: 'Profile separation', status: 'Done (local beta)', note: 'profile-evidence.mjs (2026-11-14): the beta keeps to its own Blanc Beta folder, and refuses all nine attempts to use the Electron app\'s, the release fork\'s or the preview\'s folders (including a symlink alias, a cache folder, a climbing profile name and an unattended import), leaving decoys of them byte for byte unchanged.'},
+  {gate: 'Desktop Sync (beta, local)', status: 'Done (local beta)', note: 'beta-sync.mjs (2026-11-14): the beta\'s own Settings → Sync, with no test hooks, against the local Worker: Sync turned on, an independent peer running the iPhone\'s Sync code paired with the code shown, and with tab sharing on it saw the beta\'s open page. All requests stayed on the Mac.'},
+  {gate: 'Hosted smoke check', status: 'Done (beta.2)', note: 'chromium-beta-smoke.yml run 43561295021 on main (2026-11-14), on a GitHub-hosted Apple Silicon Mac: every public asset downloaded logged out, the exact asset set, manifest, checksums and appcast signatures, a published pre-release that is not latest, the DMG through verify.mjs, the app launched and opened a page, and blanc.day\'s live feed equals the release appcast.'},
+  {gate: 'Sync on production', status: 'Waived for beta.2', note: 'The owner waived the real-iPhone Sync pass for the first fork beta (2026-11-14). The beta\'s own Sync passes against the local Worker; production Sync with a real device is owed for a later beta.'},
+  {gate: 'Touch ID passkeys', status: 'Done (beta.2, notarized)', note: 'On the notarized beta.2 installed from its DMG (2026-11-14), the owner registered and signed in with a Touch ID passkey, it still worked after a relaunch, a private window registered one too, and the Electron app was untouched.'},
+  {gate: 'Full macOS run on the current candidate', status: 'Done (beta.2 equivalence)', note: 'Full run on the same-source prototype macos-c38dc309aaefdebe (2026-11-14): 578 pass, 3 fail, 4 undefined, 27 excluded. Two Island auto-hide failures passed when rerun with the Mac idle; vertical-tabs.feature:58 is intermittent (the rail can reopen at its narrow cap after a relaunch) and is a known issue for beta.3.'},
+  {gate: 'Widevine VMP certification (X2)', status: 'Waiting on castLabs', note: 'A custom Chromium build needs castLabs\' commercial certification; NDA signed 2026-10-26, requirements not yet shared. Beta 1 ships without Widevine.'},
+  {gate: 'Protected-video notice (no-drm-handoff)', status: 'Waived for beta.2', note: 'The notice that a site needs Electron Blanc for protected video, with an Open in Blanc action, is not built. The owner waived the gate for 2.0.0-beta.2 only (2026-11-14): protected video simply fails to play in it. Due in beta.3; only this gate and release can be waived.'},
+  {gate: 'Intel Mac build', status: 'Done for beta 1 (waived)', note: 'Beta 1 is Apple Silicon only, with the waiver recorded.'},
+  {gate: 'Windows and Linux fork builds', status: 'Not started', note: 'No fork candidate exists for either platform yet.'},
+];
+
+// tracker.json's stages, with the labels STATUS.md's Bar B gives them.
+export const STAGE_LABELS = new Map([
+  ['not-started', 'Not started'], ['research', 'Research only'], ['drafted', 'Drafted'], ['implemented', 'Implemented'],
+  ['legacy-built-isolated', 'Built, isolated (legacy)'], ['legacy-integrated-partial', 'Integrated, partial (legacy)'],
+  ['integrated', 'Integrated'], ['needs-recheck', 'Needs recheck'], ['verified', 'Verified'], ['release-ready', 'Release-ready'],
+]);
+const STAGE_ORDER = [...STAGE_LABELS.keys()];
+
+// Latest result per case: the baseline, then each run in time order.
+export function latestCases(baseline, runs) {
+  const cases = new Map();
+  // A targeted run lists every case; only those it executed are its news.
+  const take = (run, at) => {
+    for (const scenario of run.scenarios) for (const c of scenario.cases)
+      if (run === baseline || c.executed) cases.set(c.id, {scenario, c, candidate: run.candidate, at});
+  };
+  take(baseline, baseline.at ?? null);
+  for (const run of [...runs].sort((a, b) => a.at.localeCompare(b.at))) take(run, run.at);
+  return [...cases.values()].map(({scenario, c, candidate, at}) => {
+    const rows = scenario.featureRows ?? [];
+    const divergent = rows.some(row => DIVERGENT_ROWS.has(row));
+    return {
+      case: c.id.replace(/^spec\/acceptance\//, ''),
+      feature: path.basename(scenario.file, '.feature'),
+      name: scenario.name,
+      rows: rows.join(' '),
+      result: divergent ? 'divergence' : c.result,
+      candidate,
+      ranAt: at,
+    };
+  }).sort((a, b) => a.case.localeCompare(b.case, 'en', {numeric: true}));
+}
+
+export function requirementRows(tracker, cases) {
+  return tracker.rows.map(row => {
+    const own = cases.filter(c => c.rows.split(' ').includes(row.id));
+    const stage = platform => row.platformProgress?.[platform]?.stage ?? 'not-started';
+    return {
+      id: row.id, requirement: row.requirement, slice: row.slice,
+      macos: stage('macos'), windows: stage('windows'), linux: stage('linux'),
+      macosLabel: STAGE_LABELS.get(stage('macos')) ?? stage('macos'),
+      macosRank: STAGE_ORDER.indexOf(stage('macos')),
+      casesPass: own.filter(c => c.result === 'pass').length,
+      casesTotal: own.filter(c => c.result !== 'divergence').length,
+    };
+  });
+}
+
+// A run's time and its results, from one open of the file, so they always
+// describe the same file. Null when the run wrote no results.
+export function readTimedJson(file) {
+  let fd;
+  try {
+    fd = fs.openSync(file, 'r');
+  } catch (error) {
+    if (error.code === 'ENOENT' || error.code === 'ENOTDIR') return null;
+    throw error;
+  }
+  try {
+    return {time: fs.fstatSync(fd).mtime, data: JSON.parse(fs.readFileSync(fd, 'utf8'))};
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
+function readRuns(dir, after) {
+  const runs = [];
+  for (const name of fs.readdirSync(dir)) {
+    const read = readTimedJson(path.join(dir, name, 'baseline.json'));
+    if (!read || read.time <= after) continue;
+    const run = read.data;
+    if (run.platform !== 'macos' || !Array.isArray(run.scenarios)) continue;
+    runs.push({...run, at: read.time.toISOString()});
+  }
+  return runs;
+}
+
+if (process.argv[1]?.endsWith('rc-readiness.mjs')) {
+  const arg = name => process.argv[process.argv.indexOf(name) + 1];
+  const [baselineFile, runsDir, out] = ['--baseline', '--runs', '--out'].map(arg);
+  if (!baselineFile || !runsDir || !out) throw Error('Usage: rc-readiness.mjs --baseline FULL.json --runs DIR --out DIR');
+  const read = readTimedJson(baselineFile);
+  if (!read) throw Error(`No full baseline at ${baselineFile}`);
+  const baseline = {...read.data, at: read.time.toISOString()};
+  const cases = latestCases(baseline, readRuns(runsDir, read.time));
+  const tracker = JSON.parse(fs.readFileSync(path.join(root, 'tracker.json'), 'utf8'));
+  fs.mkdirSync(out, {recursive: true});
+  fs.writeFileSync(path.join(out, 'cases.json'), JSON.stringify(cases));
+  fs.writeFileSync(path.join(out, 'requirements.json'), JSON.stringify(requirementRows(tracker, cases)));
+  fs.writeFileSync(path.join(out, 'gates.json'), JSON.stringify(GATES));
+  const count = result => cases.filter(c => c.result === result).length;
+  console.log(JSON.stringify({cases: cases.length, pass: count('pass'), fail: count('fail'),
+    undefined: count('undefined'), divergence: count('divergence'), excluded: count('excluded')}));
+}

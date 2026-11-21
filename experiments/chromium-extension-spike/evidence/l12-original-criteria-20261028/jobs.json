@@ -1,0 +1,2630 @@
+[
+  {
+    "runId": 40732848133,
+    "name": "Full uBlock Origin candidate",
+    "total_count": 7,
+    "jobs": [
+      {
+        "id": 122973478898,
+        "run_id": 40732848133,
+        "workflow_name": "Full uBlock Origin candidate",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848133",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcocpf8g",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122973478898",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848133/job/122973478898",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-28T17:08:37Z",
+        "started_at": "2026-10-28T17:08:43Z",
+        "completed_at": "2026-10-28T17:10:27Z",
+        "name": "ordinary-package",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-28T17:08:44Z",
+            "completed_at": "2026-10-28T17:08:44Z"
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-28T17:08:44Z",
+            "completed_at": "2026-10-28T17:10:06Z"
+          },
+          {
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-28T17:10:06Z",
+            "completed_at": "2026-10-28T17:10:06Z"
+          },
+          {
+            "name": "Run npm ci --no-audit --no-fund",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-28T17:10:06Z",
+            "completed_at": "2026-10-28T17:10:16Z"
+          },
+          {
+            "name": "Build ordinary public payload with its production allowlist",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-28T17:10:16Z",
+            "completed_at": "2026-10-28T17:10:24Z"
+          },
+          {
+            "name": "Verify ordinary payload and exclusion boundary",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-28T17:10:24Z",
+            "completed_at": "2026-10-28T17:10:25Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11,
+            "started_at": "2026-10-28T17:10:25Z",
+            "completed_at": "2026-10-28T17:10:25Z"
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12,
+            "started_at": "2026-10-28T17:10:25Z",
+            "completed_at": "2026-10-28T17:10:25Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-28T17:10:25Z",
+            "completed_at": "2026-10-28T17:10:25Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122973478898",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000072477,
+        "runner_name": "GitHub Actions 1000072477",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 122973479344,
+        "run_id": 40732848133,
+        "workflow_name": "Full uBlock Origin candidate",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848133",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcocphsA",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122973479344",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848133/job/122973479344",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-28T17:08:37Z",
+        "started_at": "2026-10-28T17:09:09Z",
+        "completed_at": "2026-10-28T17:14:37Z",
+        "name": "desktop (ubuntu-latest)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-28T17:09:10Z",
+            "completed_at": "2026-10-28T17:09:11Z"
+          },
+          {
+            "name": "Preserve verified bytes on Windows",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 2,
+            "started_at": "2026-10-28T17:09:11Z",
+            "completed_at": "2026-10-28T17:09:11Z"
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-28T17:09:11Z",
+            "completed_at": "2026-10-28T17:10:30Z"
+          },
+          {
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-28T17:10:30Z",
+            "completed_at": "2026-10-28T17:10:33Z"
+          },
+          {
+            "name": "Enable native Linux renderer sandbox",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-28T17:10:33Z",
+            "completed_at": "2026-10-28T17:10:34Z"
+          },
+          {
+            "name": "Run npm ci --no-audit --no-fund",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-28T17:10:34Z",
+            "completed_at": "2026-10-28T17:10:44Z"
+          },
+          {
+            "name": "Run npm run ublock:check",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-28T17:10:44Z",
+            "completed_at": "2026-10-28T17:10:44Z"
+          },
+          {
+            "name": "Run npm run lint",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8,
+            "started_at": "2026-10-28T17:10:44Z",
+            "completed_at": "2026-10-28T17:10:49Z"
+          },
+          {
+            "name": "Run npm run test:unit",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9,
+            "started_at": "2026-10-28T17:10:49Z",
+            "completed_at": "2026-10-28T17:11:50Z"
+          },
+          {
+            "name": "Real blocking, original tools, isolation and lifecycle",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10,
+            "started_at": "2026-10-28T17:11:50Z",
+            "completed_at": "2026-10-28T17:14:34Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 19,
+            "started_at": "2026-10-28T17:14:34Z",
+            "completed_at": "2026-10-28T17:14:35Z"
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 20,
+            "started_at": "2026-10-28T17:14:35Z",
+            "completed_at": "2026-10-28T17:14:35Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 21,
+            "started_at": "2026-10-28T17:14:35Z",
+            "completed_at": "2026-10-28T17:14:35Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122973479344",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000072481,
+        "runner_name": "GitHub Actions 1000072481",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 122973479472,
+        "run_id": 40732848133,
+        "workflow_name": "Full uBlock Origin candidate",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848133",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcocpiMA",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122973479472",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848133/job/122973479472",
+        "status": "queued",
+        "conclusion": null,
+        "created_at": "2026-10-28T17:08:37Z",
+        "started_at": "2026-10-28T17:08:37Z",
+        "completed_at": null,
+        "name": "desktop (macos-15)",
+        "steps": [],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122973479472",
+        "labels": [
+          "macos-15"
+        ],
+        "runner_id": 0,
+        "runner_name": "",
+        "runner_group_id": 0,
+        "runner_group_name": ""
+      },
+      {
+        "id": 122973479617,
+        "run_id": 40732848133,
+        "workflow_name": "Full uBlock Origin candidate",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848133",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcocpiwQ",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122973479617",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848133/job/122973479617",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-28T17:08:37Z",
+        "started_at": "2026-10-28T17:09:41Z",
+        "completed_at": "2026-10-28T17:18:46Z",
+        "name": "desktop (windows-latest)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-28T17:09:42Z",
+            "completed_at": "2026-10-28T17:09:43Z"
+          },
+          {
+            "name": "Preserve verified bytes on Windows",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-28T17:09:43Z",
+            "completed_at": "2026-10-28T17:09:44Z"
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-28T17:09:44Z",
+            "completed_at": "2026-10-28T17:11:01Z"
+          },
+          {
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-28T17:11:01Z",
+            "completed_at": "2026-10-28T17:11:06Z"
+          },
+          {
+            "name": "Enable native Linux renderer sandbox",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 5,
+            "started_at": "2026-10-28T17:11:06Z",
+            "completed_at": "2026-10-28T17:11:06Z"
+          },
+          {
+            "name": "Run npm ci --no-audit --no-fund",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-28T17:11:06Z",
+            "completed_at": "2026-10-28T17:11:40Z"
+          },
+          {
+            "name": "Run npm run ublock:check",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-28T17:11:40Z",
+            "completed_at": "2026-10-28T17:11:41Z"
+          },
+          {
+            "name": "Run npm run lint",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8,
+            "started_at": "2026-10-28T17:11:41Z",
+            "completed_at": "2026-10-28T17:11:49Z"
+          },
+          {
+            "name": "Run npm run test:unit",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9,
+            "started_at": "2026-10-28T17:11:49Z",
+            "completed_at": "2026-10-28T17:15:19Z"
+          },
+          {
+            "name": "Real blocking, original tools, isolation and lifecycle",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10,
+            "started_at": "2026-10-28T17:15:19Z",
+            "completed_at": "2026-10-28T17:18:40Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 19,
+            "started_at": "2026-10-28T17:18:40Z",
+            "completed_at": "2026-10-28T17:18:40Z"
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 20,
+            "started_at": "2026-10-28T17:18:40Z",
+            "completed_at": "2026-10-28T17:18:43Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 21,
+            "started_at": "2026-10-28T17:18:44Z",
+            "completed_at": "2026-10-28T17:18:44Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122973479617",
+        "labels": [
+          "windows-latest"
+        ],
+        "runner_id": 1000072484,
+        "runner_name": "GitHub Actions 1000072484",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 122973480106,
+        "run_id": 40732848133,
+        "workflow_name": "Full uBlock Origin candidate",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848133",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcocpkqg",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122973480106",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848133/job/122973480106",
+        "status": "queued",
+        "conclusion": null,
+        "created_at": "2026-10-28T17:08:37Z",
+        "started_at": "2026-10-28T17:08:37Z",
+        "completed_at": null,
+        "name": "desktop (macos-15-intel)",
+        "steps": [],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122973480106",
+        "labels": [
+          "macos-15-intel"
+        ],
+        "runner_id": 0,
+        "runner_name": "",
+        "runner_group_id": 0,
+        "runner_group_name": ""
+      },
+      {
+        "id": 122973481349,
+        "run_id": 40732848133,
+        "workflow_name": "Full uBlock Origin candidate",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848133",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcocpphQ",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122973481349",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848133/job/122973481349",
+        "status": "completed",
+        "conclusion": "skipped",
+        "created_at": "2026-10-28T17:08:37Z",
+        "started_at": "2026-10-28T17:08:37Z",
+        "completed_at": "2026-10-28T17:08:37Z",
+        "name": "installed-intel",
+        "steps": [],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122973481349",
+        "labels": [
+          "macos-15-intel"
+        ],
+        "runner_id": null,
+        "runner_name": null,
+        "runner_group_id": null,
+        "runner_group_name": null
+      },
+      {
+        "id": 122973481886,
+        "run_id": 40732848133,
+        "workflow_name": "Full uBlock Origin candidate",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848133",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcocprng",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122973481886",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848133/job/122973481886",
+        "status": "completed",
+        "conclusion": "skipped",
+        "created_at": "2026-10-28T17:08:37Z",
+        "started_at": "2026-10-28T17:08:37Z",
+        "completed_at": "2026-10-28T17:08:37Z",
+        "name": "linux-native-diagnostics",
+        "steps": [],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122973481886",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": null,
+        "runner_name": null,
+        "runner_group_id": null,
+        "runner_group_name": null
+      }
+    ]
+  },
+  {
+    "runId": 40732848073,
+    "name": "Unit tests",
+    "total_count": 2,
+    "jobs": [
+      {
+        "id": 122974113932,
+        "run_id": 40732848073,
+        "workflow_name": "Unit tests",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848073",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcodQQjA",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122974113932",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848073/job/122974113932",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-28T17:09:44Z",
+        "started_at": "2026-10-28T17:09:59Z",
+        "completed_at": "2026-10-28T17:17:50Z",
+        "name": "unit (windows-latest)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-28T17:10:00Z",
+            "completed_at": "2026-10-28T17:10:01Z"
+          },
+          {
+            "name": "Preserve verified bytes on Windows",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-28T17:10:01Z",
+            "completed_at": "2026-10-28T17:10:07Z"
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-28T17:10:07Z",
+            "completed_at": "2026-10-28T17:13:17Z"
+          },
+          {
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-28T17:13:17Z",
+            "completed_at": "2026-10-28T17:13:46Z"
+          },
+          {
+            "name": "Run npm ci --no-audit --no-fund",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-28T17:13:46Z",
+            "completed_at": "2026-10-28T17:14:22Z"
+          },
+          {
+            "name": "Run npm run test:unit",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-28T17:14:22Z",
+            "completed_at": "2026-10-28T17:17:46Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11,
+            "started_at": "2026-10-28T17:17:46Z",
+            "completed_at": "2026-10-28T17:17:46Z"
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12,
+            "started_at": "2026-10-28T17:17:46Z",
+            "completed_at": "2026-10-28T17:17:49Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-28T17:17:49Z",
+            "completed_at": "2026-10-28T17:17:49Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122974113932",
+        "labels": [
+          "windows-latest"
+        ],
+        "runner_id": 1000072486,
+        "runner_name": "GitHub Actions 1000072486",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 122974114259,
+        "run_id": 40732848073,
+        "workflow_name": "Unit tests",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848073",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcodQR0w",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122974114259",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848073/job/122974114259",
+        "status": "queued",
+        "conclusion": null,
+        "created_at": "2026-10-28T17:09:44Z",
+        "started_at": "2026-10-28T17:09:44Z",
+        "completed_at": null,
+        "name": "unit (macos-15)",
+        "steps": [],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122974114259",
+        "labels": [
+          "macos-15"
+        ],
+        "runner_id": 0,
+        "runner_name": "",
+        "runner_group_id": 0,
+        "runner_group_name": ""
+      }
+    ]
+  },
+  {
+    "runId": 40732848065,
+    "name": "Parity guards",
+    "total_count": 18,
+    "jobs": [
+      {
+        "id": 122973478365,
+        "run_id": 40732848065,
+        "workflow_name": "Parity guards",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848065",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcocpd3Q",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122973478365",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848065/job/122973478365",
+        "status": "completed",
+        "conclusion": "failure",
+        "created_at": "2026-10-28T17:08:37Z",
+        "started_at": "2026-10-28T17:08:45Z",
+        "completed_at": "2026-10-28T17:13:02Z",
+        "name": "substrate",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-28T17:08:46Z",
+            "completed_at": "2026-10-28T17:08:47Z"
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-28T17:08:47Z",
+            "completed_at": "2026-10-28T17:12:21Z"
+          },
+          {
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-28T17:12:21Z",
+            "completed_at": "2026-10-28T17:12:25Z"
+          },
+          {
+            "name": "tokens / settings / copy / browserAPI / adblock / audit inventory match their sources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-28T17:12:25Z",
+            "completed_at": "2026-10-28T17:12:28Z"
+          },
+          {
+            "name": "Enable Chromium user namespaces in this disposable Linux runner",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-28T17:12:28Z",
+            "completed_at": "2026-10-28T17:12:28Z"
+          },
+          {
+            "name": "Run npm ci",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-28T17:12:28Z",
+            "completed_at": "2026-10-28T17:12:36Z"
+          },
+          {
+            "name": "Generated brand assets match their sources",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-28T17:12:36Z",
+            "completed_at": "2026-10-28T17:12:56Z"
+          },
+          {
+            "name": "Dependency compliance artifacts match the lockfiles",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8,
+            "started_at": "2026-10-28T17:12:56Z",
+            "completed_at": "2026-10-28T17:12:57Z"
+          },
+          {
+            "name": "Compatibility evidence and generated matrix match",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9,
+            "started_at": "2026-10-28T17:12:57Z",
+            "completed_at": "2026-10-28T17:12:57Z"
+          },
+          {
+            "name": "Dependency advisories satisfy the security policy",
+            "status": "completed",
+            "conclusion": "failure",
+            "number": 10,
+            "started_at": "2026-10-28T17:12:57Z",
+            "completed_at": "2026-10-28T17:13:01Z"
+          },
+          {
+            "name": "JavaScript correctness checks",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 11,
+            "started_at": "2026-10-28T17:13:01Z",
+            "completed_at": "2026-10-28T17:13:01Z"
+          },
+          {
+            "name": "Unit regression tests",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 12,
+            "started_at": "2026-10-28T17:13:01Z",
+            "completed_at": "2026-10-28T17:13:01Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 23,
+            "started_at": "2026-10-28T17:13:01Z",
+            "completed_at": "2026-10-28T17:13:01Z"
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24,
+            "started_at": "2026-10-28T17:13:01Z",
+            "completed_at": "2026-10-28T17:13:01Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25,
+            "started_at": "2026-10-28T17:13:01Z",
+            "completed_at": "2026-10-28T17:13:01Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122973478365",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000072478,
+        "runner_name": "GitHub Actions 1000072478",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 122973479078,
+        "run_id": 40732848065,
+        "workflow_name": "Parity guards",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848065",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcocpgpg",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122973479078",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848065/job/122973479078",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-28T17:08:37Z",
+        "started_at": "2026-10-28T17:08:57Z",
+        "completed_at": "2026-10-28T17:12:24Z",
+        "name": "changes",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-28T17:08:58Z",
+            "completed_at": "2026-10-28T17:08:58Z"
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-28T17:08:58Z",
+            "completed_at": "2026-10-28T17:12:21Z"
+          },
+          {
+            "name": "Classify changed paths",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-28T17:12:21Z",
+            "completed_at": "2026-10-28T17:12:21Z"
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-28T17:12:21Z",
+            "completed_at": "2026-10-28T17:12:21Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-28T17:12:21Z",
+            "completed_at": "2026-10-28T17:12:21Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122973479078",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000072479,
+        "runner_name": "GitHub Actions 1000072479",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 122973479377,
+        "run_id": 40732848065,
+        "workflow_name": "Parity guards",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848065",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcocph0Q",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122973479377",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848065/job/122973479377",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-28T17:08:37Z",
+        "started_at": "2026-10-28T17:09:07Z",
+        "completed_at": "2026-10-28T17:10:28Z",
+        "name": "acceptance-wiring",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-28T17:09:08Z",
+            "completed_at": "2026-10-28T17:09:09Z"
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-28T17:09:09Z",
+            "completed_at": "2026-10-28T17:10:09Z"
+          },
+          {
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-28T17:10:09Z",
+            "completed_at": "2026-10-28T17:10:13Z"
+          },
+          {
+            "name": "Enable Chromium user namespaces in this disposable Linux runner",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-28T17:10:13Z",
+            "completed_at": "2026-10-28T17:10:13Z"
+          },
+          {
+            "name": "Run npm ci",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-28T17:10:13Z",
+            "completed_at": "2026-10-28T17:10:20Z"
+          },
+          {
+            "name": "Acceptance step definitions resolve (dry-run)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-28T17:10:20Z",
+            "completed_at": "2026-10-28T17:10:23Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11,
+            "started_at": "2026-10-28T17:10:23Z",
+            "completed_at": "2026-10-28T17:10:23Z"
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12,
+            "started_at": "2026-10-28T17:10:23Z",
+            "completed_at": "2026-10-28T17:10:24Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-28T17:10:24Z",
+            "completed_at": "2026-10-28T17:10:24Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122973479377",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000072480,
+        "runner_name": "GitHub Actions 1000072480",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 122975636024,
+        "run_id": 40732848065,
+        "workflow_name": "Parity guards",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848065",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcoetKOA",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122975636024",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848065/job/122975636024",
+        "status": "completed",
+        "conclusion": "failure",
+        "created_at": "2026-10-28T17:12:24Z",
+        "started_at": "2026-10-28T17:12:27Z",
+        "completed_at": "2026-10-28T17:17:12Z",
+        "name": "modified-link-clicks (windows-latest)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-28T17:12:29Z",
+            "completed_at": "2026-10-28T17:12:30Z"
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-28T17:12:30Z",
+            "completed_at": "2026-10-28T17:16:03Z"
+          },
+          {
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-28T17:16:03Z",
+            "completed_at": "2026-10-28T17:16:13Z"
+          },
+          {
+            "name": "Run npm ci",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-28T17:16:13Z",
+            "completed_at": "2026-10-28T17:16:34Z"
+          },
+          {
+            "name": "Modified link clicks (Linux, headless)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 5,
+            "started_at": "2026-10-28T17:16:34Z",
+            "completed_at": "2026-10-28T17:16:34Z"
+          },
+          {
+            "name": "Modified link clicks (Windows)",
+            "status": "completed",
+            "conclusion": "failure",
+            "number": 6,
+            "started_at": "2026-10-28T17:16:34Z",
+            "completed_at": "2026-10-28T17:16:45Z"
+          },
+          {
+            "name": "Several command-line URLs after -- (Linux)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 7,
+            "started_at": "2026-10-28T17:16:45Z",
+            "completed_at": "2026-10-28T17:16:45Z"
+          },
+          {
+            "name": "Several command-line URLs after -- (Windows)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8,
+            "started_at": "2026-10-28T17:16:45Z",
+            "completed_at": "2026-10-28T17:17:08Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 15,
+            "started_at": "2026-10-28T17:17:08Z",
+            "completed_at": "2026-10-28T17:17:08Z"
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 16,
+            "started_at": "2026-10-28T17:17:08Z",
+            "completed_at": "2026-10-28T17:17:11Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 17,
+            "started_at": "2026-10-28T17:17:11Z",
+            "completed_at": "2026-10-28T17:17:11Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122975636024",
+        "labels": [
+          "windows-latest"
+        ],
+        "runner_id": 1000072496,
+        "runner_name": "GitHub Actions 1000072496",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 122975636041,
+        "run_id": 40732848065,
+        "workflow_name": "Parity guards",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848065",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcoetKSQ",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122975636041",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848065/job/122975636041",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-28T17:12:24Z",
+        "started_at": "2026-10-28T17:12:28Z",
+        "completed_at": "2026-10-28T17:15:10Z",
+        "name": "quiet-tabs (ubuntu-latest)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-28T17:12:29Z",
+            "completed_at": "2026-10-28T17:12:30Z"
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-28T17:12:30Z",
+            "completed_at": "2026-10-28T17:12:46Z"
+          },
+          {
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-28T17:12:46Z",
+            "completed_at": "2026-10-28T17:12:49Z"
+          },
+          {
+            "name": "Run npm ci",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-28T17:12:49Z",
+            "completed_at": "2026-10-28T17:12:57Z"
+          },
+          {
+            "name": "Quiet Tabs (Linux)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-28T17:12:57Z",
+            "completed_at": "2026-10-28T17:13:29Z"
+          },
+          {
+            "name": "Quiet Tabs (Windows)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6,
+            "started_at": "2026-10-28T17:13:29Z",
+            "completed_at": "2026-10-28T17:13:29Z"
+          },
+          {
+            "name": "Tab views keep drawing (Linux)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-28T17:13:29Z",
+            "completed_at": "2026-10-28T17:15:01Z"
+          },
+          {
+            "name": "Tab views keep drawing (Windows)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 8,
+            "started_at": "2026-10-28T17:15:01Z",
+            "completed_at": "2026-10-28T17:15:01Z"
+          },
+          {
+            "name": "Pinned-home crash recovery (Linux)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9,
+            "started_at": "2026-10-28T17:15:01Z",
+            "completed_at": "2026-10-28T17:15:07Z"
+          },
+          {
+            "name": "Pinned-home crash recovery (Windows)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 10,
+            "started_at": "2026-10-28T17:15:07Z",
+            "completed_at": "2026-10-28T17:15:07Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 19,
+            "started_at": "2026-10-28T17:15:07Z",
+            "completed_at": "2026-10-28T17:15:08Z"
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 20,
+            "started_at": "2026-10-28T17:15:08Z",
+            "completed_at": "2026-10-28T17:15:08Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 21,
+            "started_at": "2026-10-28T17:15:08Z",
+            "completed_at": "2026-10-28T17:15:08Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122975636041",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000072499,
+        "runner_name": "GitHub Actions 1000072499",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 122975636054,
+        "run_id": 40732848065,
+        "workflow_name": "Parity guards",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848065",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcoetKVg",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122975636054",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848065/job/122975636054",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-28T17:12:24Z",
+        "started_at": "2026-10-28T17:12:28Z",
+        "completed_at": "2026-10-28T17:13:55Z",
+        "name": "oauth-compatibility",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-28T17:12:29Z",
+            "completed_at": "2026-10-28T17:12:30Z"
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-28T17:12:30Z",
+            "completed_at": "2026-10-28T17:13:04Z"
+          },
+          {
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-28T17:13:04Z",
+            "completed_at": "2026-10-28T17:13:07Z"
+          },
+          {
+            "name": "Enable Chromium user namespaces in this disposable Linux runner",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-28T17:13:07Z",
+            "completed_at": "2026-10-28T17:13:07Z"
+          },
+          {
+            "name": "Run npm ci",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-28T17:13:07Z",
+            "completed_at": "2026-10-28T17:13:14Z"
+          },
+          {
+            "name": "Google OAuth compatibility contract",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-28T17:13:14Z",
+            "completed_at": "2026-10-28T17:13:23Z"
+          },
+          {
+            "name": "Favorites folder picker layering and interaction regression",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-28T17:13:23Z",
+            "completed_at": "2026-10-28T17:13:28Z"
+          },
+          {
+            "name": "Local-clock dynamic wallpaper regression",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8,
+            "started_at": "2026-10-28T17:13:28Z",
+            "completed_at": "2026-10-28T17:13:46Z"
+          },
+          {
+            "name": "Custom Start Page wallpaper (F49)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9,
+            "started_at": "2026-10-28T17:13:46Z",
+            "completed_at": "2026-10-28T17:13:52Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 17,
+            "started_at": "2026-10-28T17:13:52Z",
+            "completed_at": "2026-10-28T17:13:52Z"
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 18,
+            "started_at": "2026-10-28T17:13:52Z",
+            "completed_at": "2026-10-28T17:13:53Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 19,
+            "started_at": "2026-10-28T17:13:53Z",
+            "completed_at": "2026-10-28T17:13:53Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122975636054",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000072500,
+        "runner_name": "GitHub Actions 1000072500",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 122975636066,
+        "run_id": 40732848065,
+        "workflow_name": "Parity guards",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848065",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcoetKYg",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122975636066",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848065/job/122975636066",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-28T17:12:24Z",
+        "started_at": "2026-10-28T17:12:28Z",
+        "completed_at": "2026-10-28T17:15:26Z",
+        "name": "quiet-tabs (windows-latest)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-28T17:12:29Z",
+            "completed_at": "2026-10-28T17:12:30Z"
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-28T17:12:30Z",
+            "completed_at": "2026-10-28T17:12:51Z"
+          },
+          {
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-28T17:12:51Z",
+            "completed_at": "2026-10-28T17:13:02Z"
+          },
+          {
+            "name": "Run npm ci",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-28T17:13:02Z",
+            "completed_at": "2026-10-28T17:13:18Z"
+          },
+          {
+            "name": "Quiet Tabs (Linux)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 5,
+            "started_at": "2026-10-28T17:13:18Z",
+            "completed_at": "2026-10-28T17:13:18Z"
+          },
+          {
+            "name": "Quiet Tabs (Windows)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-28T17:13:18Z",
+            "completed_at": "2026-10-28T17:13:37Z"
+          },
+          {
+            "name": "Tab views keep drawing (Linux)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 7,
+            "started_at": "2026-10-28T17:13:37Z",
+            "completed_at": "2026-10-28T17:13:37Z"
+          },
+          {
+            "name": "Tab views keep drawing (Windows)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8,
+            "started_at": "2026-10-28T17:13:37Z",
+            "completed_at": "2026-10-28T17:15:12Z"
+          },
+          {
+            "name": "Pinned-home crash recovery (Linux)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 9,
+            "started_at": "2026-10-28T17:15:12Z",
+            "completed_at": "2026-10-28T17:15:12Z"
+          },
+          {
+            "name": "Pinned-home crash recovery (Windows)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10,
+            "started_at": "2026-10-28T17:15:12Z",
+            "completed_at": "2026-10-28T17:15:21Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 19,
+            "started_at": "2026-10-28T17:15:21Z",
+            "completed_at": "2026-10-28T17:15:21Z"
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 20,
+            "started_at": "2026-10-28T17:15:21Z",
+            "completed_at": "2026-10-28T17:15:24Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 21,
+            "started_at": "2026-10-28T17:15:24Z",
+            "completed_at": "2026-10-28T17:15:24Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122975636066",
+        "labels": [
+          "windows-latest"
+        ],
+        "runner_id": 1000072494,
+        "runner_name": "GitHub Actions 1000072494",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 122975636097,
+        "run_id": 40732848065,
+        "workflow_name": "Parity guards",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848065",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcoetKgQ",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122975636097",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848065/job/122975636097",
+        "status": "completed",
+        "conclusion": "failure",
+        "created_at": "2026-10-28T17:12:24Z",
+        "started_at": "2026-10-28T17:12:28Z",
+        "completed_at": "2026-10-28T17:13:52Z",
+        "name": "modified-link-clicks (ubuntu-latest)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-28T17:12:29Z",
+            "completed_at": "2026-10-28T17:12:30Z"
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-28T17:12:30Z",
+            "completed_at": "2026-10-28T17:13:34Z"
+          },
+          {
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-28T17:13:34Z",
+            "completed_at": "2026-10-28T17:13:37Z"
+          },
+          {
+            "name": "Run npm ci",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-28T17:13:37Z",
+            "completed_at": "2026-10-28T17:13:43Z"
+          },
+          {
+            "name": "Modified link clicks (Linux, headless)",
+            "status": "completed",
+            "conclusion": "failure",
+            "number": 5,
+            "started_at": "2026-10-28T17:13:43Z",
+            "completed_at": "2026-10-28T17:13:48Z"
+          },
+          {
+            "name": "Modified link clicks (Windows)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6,
+            "started_at": "2026-10-28T17:13:48Z",
+            "completed_at": "2026-10-28T17:13:48Z"
+          },
+          {
+            "name": "Several command-line URLs after -- (Linux)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-28T17:13:48Z",
+            "completed_at": "2026-10-28T17:13:50Z"
+          },
+          {
+            "name": "Several command-line URLs after -- (Windows)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 8,
+            "started_at": "2026-10-28T17:13:50Z",
+            "completed_at": "2026-10-28T17:13:50Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 15,
+            "started_at": "2026-10-28T17:13:50Z",
+            "completed_at": "2026-10-28T17:13:50Z"
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 16,
+            "started_at": "2026-10-28T17:13:50Z",
+            "completed_at": "2026-10-28T17:13:50Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 17,
+            "started_at": "2026-10-28T17:13:50Z",
+            "completed_at": "2026-10-28T17:13:50Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122975636097",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000072502,
+        "runner_name": "GitHub Actions 1000072502",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 122975636100,
+        "run_id": 40732848065,
+        "workflow_name": "Parity guards",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848065",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcoetKhA",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122975636100",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848065/job/122975636100",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-28T17:12:24Z",
+        "started_at": "2026-10-28T17:12:27Z",
+        "completed_at": "2026-10-28T17:13:11Z",
+        "name": "tab-handoff",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-28T17:12:28Z",
+            "completed_at": "2026-10-28T17:12:29Z"
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-28T17:12:29Z",
+            "completed_at": "2026-10-28T17:12:39Z"
+          },
+          {
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-28T17:12:39Z",
+            "completed_at": "2026-10-28T17:12:41Z"
+          },
+          {
+            "name": "Enable Chromium user namespaces in this disposable Linux runner",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-28T17:12:41Z",
+            "completed_at": "2026-10-28T17:12:41Z"
+          },
+          {
+            "name": "Run npm ci",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-28T17:12:41Z",
+            "completed_at": "2026-10-28T17:12:48Z"
+          },
+          {
+            "name": "Run npm ci --prefix cloudflare/tab-import-worker",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-28T17:12:48Z",
+            "completed_at": "2026-10-28T17:12:50Z"
+          },
+          {
+            "name": "Run npm ci --prefix extensions/blanc-tab-import",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-28T17:12:50Z",
+            "completed_at": "2026-10-28T17:12:53Z"
+          },
+          {
+            "name": "SQLite-backed one-time handoff and desktop decryption",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8,
+            "started_at": "2026-10-28T17:12:53Z",
+            "completed_at": "2026-10-28T17:12:57Z"
+          },
+          {
+            "name": "Sync v1 limits in the local Workers runtime",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9,
+            "started_at": "2026-10-28T17:12:57Z",
+            "completed_at": "2026-10-28T17:12:59Z"
+          },
+          {
+            "name": "Firefox manifest and archive",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10,
+            "started_at": "2026-10-28T17:12:59Z",
+            "completed_at": "2026-10-28T17:13:01Z"
+          },
+          {
+            "name": "Both import screens coexist in Electron",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11,
+            "started_at": "2026-10-28T17:13:01Z",
+            "completed_at": "2026-10-28T17:13:05Z"
+          },
+          {
+            "name": "Closing the last window quits Blanc and keeps its tabs (Linux)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12,
+            "started_at": "2026-10-28T17:13:05Z",
+            "completed_at": "2026-10-28T17:13:09Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 23,
+            "started_at": "2026-10-28T17:13:09Z",
+            "completed_at": "2026-10-28T17:13:09Z"
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24,
+            "started_at": "2026-10-28T17:13:09Z",
+            "completed_at": "2026-10-28T17:13:09Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25,
+            "started_at": "2026-10-28T17:13:09Z",
+            "completed_at": "2026-10-28T17:13:09Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122975636100",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000072504,
+        "runner_name": "GitHub Actions 1000072504",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 122975636147,
+        "run_id": 40732848065,
+        "workflow_name": "Parity guards",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848065",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcoetKsw",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122975636147",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848065/job/122975636147",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-28T17:12:24Z",
+        "started_at": "2026-10-28T17:12:28Z",
+        "completed_at": "2026-10-28T17:13:57Z",
+        "name": "favorites-import (windows-latest)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-28T17:12:30Z",
+            "completed_at": "2026-10-28T17:12:31Z"
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-28T17:12:31Z",
+            "completed_at": "2026-10-28T17:13:19Z"
+          },
+          {
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-28T17:13:19Z",
+            "completed_at": "2026-10-28T17:13:27Z"
+          },
+          {
+            "name": "Run npm ci",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-28T17:13:27Z",
+            "completed_at": "2026-10-28T17:13:44Z"
+          },
+          {
+            "name": "Favorites import from detected browser profiles (Linux)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 5,
+            "started_at": "2026-10-28T17:13:44Z",
+            "completed_at": "2026-10-28T17:13:44Z"
+          },
+          {
+            "name": "Favorites import from detected browser profiles (Windows/macOS)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-28T17:13:44Z",
+            "completed_at": "2026-10-28T17:13:53Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11,
+            "started_at": "2026-10-28T17:13:53Z",
+            "completed_at": "2026-10-28T17:13:53Z"
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12,
+            "started_at": "2026-10-28T17:13:53Z",
+            "completed_at": "2026-10-28T17:13:55Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-28T17:13:55Z",
+            "completed_at": "2026-10-28T17:13:55Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122975636147",
+        "labels": [
+          "windows-latest"
+        ],
+        "runner_id": 1000072497,
+        "runner_name": "GitHub Actions 1000072497",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 122975636176,
+        "run_id": 40732848065,
+        "workflow_name": "Parity guards",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848065",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcoetK0A",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122975636176",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848065/job/122975636176",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-28T17:12:24Z",
+        "started_at": "2026-10-28T17:12:27Z",
+        "completed_at": "2026-10-28T17:14:49Z",
+        "name": "browser-shortcuts (windows-latest)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-28T17:12:28Z",
+            "completed_at": "2026-10-28T17:12:29Z"
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-28T17:12:29Z",
+            "completed_at": "2026-10-28T17:12:47Z"
+          },
+          {
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-28T17:12:47Z",
+            "completed_at": "2026-10-28T17:13:01Z"
+          },
+          {
+            "name": "Run npm ci",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-28T17:13:01Z",
+            "completed_at": "2026-10-28T17:13:15Z"
+          },
+          {
+            "name": "Browser commands and Settings (Linux)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 5,
+            "started_at": "2026-10-28T17:13:15Z",
+            "completed_at": "2026-10-28T17:13:15Z"
+          },
+          {
+            "name": "Browser commands and Settings (Windows, five fresh processes)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-28T17:13:15Z",
+            "completed_at": "2026-10-28T17:14:13Z"
+          },
+          {
+            "name": "Browser commands and Settings (macOS)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 7,
+            "started_at": "2026-10-28T17:14:13Z",
+            "completed_at": "2026-10-28T17:14:13Z"
+          },
+          {
+            "name": "Real Chrome Web Store documents (Linux)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 8,
+            "started_at": "2026-10-28T17:14:13Z",
+            "completed_at": "2026-10-28T17:14:13Z"
+          },
+          {
+            "name": "Real Chrome Web Store documents (Windows/macOS)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9,
+            "started_at": "2026-10-28T17:14:13Z",
+            "completed_at": "2026-10-28T17:14:29Z"
+          },
+          {
+            "name": "PDFs render with each blocker (Linux)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 10,
+            "started_at": "2026-10-28T17:14:29Z",
+            "completed_at": "2026-10-28T17:14:29Z"
+          },
+          {
+            "name": "PDFs render with each blocker (Windows/macOS)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11,
+            "started_at": "2026-10-28T17:14:29Z",
+            "completed_at": "2026-10-28T17:14:45Z"
+          },
+          {
+            "name": "Retain private native command failure diagnostics",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 12,
+            "started_at": "2026-10-28T17:14:45Z",
+            "completed_at": "2026-10-28T17:14:45Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 23,
+            "started_at": "2026-10-28T17:14:45Z",
+            "completed_at": "2026-10-28T17:14:45Z"
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24,
+            "started_at": "2026-10-28T17:14:45Z",
+            "completed_at": "2026-10-28T17:14:47Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25,
+            "started_at": "2026-10-28T17:14:47Z",
+            "completed_at": "2026-10-28T17:14:47Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122975636176",
+        "labels": [
+          "windows-latest"
+        ],
+        "runner_id": 1000072495,
+        "runner_name": "GitHub Actions 1000072495",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 122975636188,
+        "run_id": 40732848065,
+        "workflow_name": "Parity guards",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848065",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcoetK3A",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122975636188",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848065/job/122975636188",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-28T17:12:24Z",
+        "started_at": "2026-10-28T17:12:27Z",
+        "completed_at": "2026-10-28T17:14:06Z",
+        "name": "browser-shortcuts (ubuntu-latest)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-28T17:12:28Z",
+            "completed_at": "2026-10-28T17:12:29Z"
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-28T17:12:29Z",
+            "completed_at": "2026-10-28T17:12:40Z"
+          },
+          {
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-28T17:12:40Z",
+            "completed_at": "2026-10-28T17:12:42Z"
+          },
+          {
+            "name": "Run npm ci",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-28T17:12:42Z",
+            "completed_at": "2026-10-28T17:12:48Z"
+          },
+          {
+            "name": "Browser commands and Settings (Linux)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-28T17:12:48Z",
+            "completed_at": "2026-10-28T17:13:42Z"
+          },
+          {
+            "name": "Browser commands and Settings (Windows, five fresh processes)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6,
+            "started_at": "2026-10-28T17:13:42Z",
+            "completed_at": "2026-10-28T17:13:42Z"
+          },
+          {
+            "name": "Browser commands and Settings (macOS)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 7,
+            "started_at": "2026-10-28T17:13:42Z",
+            "completed_at": "2026-10-28T17:13:42Z"
+          },
+          {
+            "name": "Real Chrome Web Store documents (Linux)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8,
+            "started_at": "2026-10-28T17:13:42Z",
+            "completed_at": "2026-10-28T17:13:53Z"
+          },
+          {
+            "name": "Real Chrome Web Store documents (Windows/macOS)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 9,
+            "started_at": "2026-10-28T17:13:53Z",
+            "completed_at": "2026-10-28T17:13:53Z"
+          },
+          {
+            "name": "PDFs render with each blocker (Linux)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10,
+            "started_at": "2026-10-28T17:13:53Z",
+            "completed_at": "2026-10-28T17:14:04Z"
+          },
+          {
+            "name": "PDFs render with each blocker (Windows/macOS)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 11,
+            "started_at": "2026-10-28T17:14:04Z",
+            "completed_at": "2026-10-28T17:14:04Z"
+          },
+          {
+            "name": "Retain private native command failure diagnostics",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 12,
+            "started_at": "2026-10-28T17:14:04Z",
+            "completed_at": "2026-10-28T17:14:04Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 23,
+            "started_at": "2026-10-28T17:14:04Z",
+            "completed_at": "2026-10-28T17:14:04Z"
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 24,
+            "started_at": "2026-10-28T17:14:04Z",
+            "completed_at": "2026-10-28T17:14:05Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 25,
+            "started_at": "2026-10-28T17:14:05Z",
+            "completed_at": "2026-10-28T17:14:05Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122975636188",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000072501,
+        "runner_name": "GitHub Actions 1000072501",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 122975636190,
+        "run_id": 40732848065,
+        "workflow_name": "Parity guards",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848065",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcoetK3g",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122975636190",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848065/job/122975636190",
+        "status": "queued",
+        "conclusion": null,
+        "created_at": "2026-10-28T17:12:24Z",
+        "started_at": "2026-10-28T17:12:24Z",
+        "completed_at": null,
+        "name": "favorites-import (macos-latest)",
+        "steps": [],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122975636190",
+        "labels": [
+          "macos-latest"
+        ],
+        "runner_id": 0,
+        "runner_name": "",
+        "runner_group_id": 0,
+        "runner_group_name": ""
+      },
+      {
+        "id": 122975636206,
+        "run_id": 40732848065,
+        "workflow_name": "Parity guards",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848065",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcoetK7g",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122975636206",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848065/job/122975636206",
+        "status": "queued",
+        "conclusion": null,
+        "created_at": "2026-10-28T17:12:24Z",
+        "started_at": "2026-10-28T17:12:24Z",
+        "completed_at": null,
+        "name": "workspace-regressions (macos-latest)",
+        "steps": [],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122975636206",
+        "labels": [
+          "macos-latest"
+        ],
+        "runner_id": 0,
+        "runner_name": "",
+        "runner_group_id": 0,
+        "runner_group_name": ""
+      },
+      {
+        "id": 122975636208,
+        "run_id": 40732848065,
+        "workflow_name": "Parity guards",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848065",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcoetK8A",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122975636208",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848065/job/122975636208",
+        "status": "queued",
+        "conclusion": null,
+        "created_at": "2026-10-28T17:12:24Z",
+        "started_at": "2026-10-28T17:12:24Z",
+        "completed_at": null,
+        "name": "browser-shortcuts (macos-latest)",
+        "steps": [],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122975636208",
+        "labels": [
+          "macos-latest"
+        ],
+        "runner_id": 0,
+        "runner_name": "",
+        "runner_group_id": 0,
+        "runner_group_name": ""
+      },
+      {
+        "id": 122975636243,
+        "run_id": 40732848065,
+        "workflow_name": "Parity guards",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848065",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcoetLEw",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122975636243",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848065/job/122975636243",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-28T17:12:24Z",
+        "started_at": "2026-10-28T17:12:28Z",
+        "completed_at": "2026-10-28T17:16:25Z",
+        "name": "workspace-regressions (ubuntu-latest)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-28T17:12:28Z",
+            "completed_at": "2026-10-28T17:12:29Z"
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-28T17:12:29Z",
+            "completed_at": "2026-10-28T17:15:32Z"
+          },
+          {
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-28T17:15:32Z",
+            "completed_at": "2026-10-28T17:15:35Z"
+          },
+          {
+            "name": "Run npm ci",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-28T17:15:35Z",
+            "completed_at": "2026-10-28T17:15:43Z"
+          },
+          {
+            "name": "Workspace preservation and opener families (Linux)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-28T17:15:43Z",
+            "completed_at": "2026-10-28T17:16:19Z"
+          },
+          {
+            "name": "Workspace preservation and opener families (Windows/macOS)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6,
+            "started_at": "2026-10-28T17:16:19Z",
+            "completed_at": "2026-10-28T17:16:19Z"
+          },
+          {
+            "name": "Closing the last window quits Blanc and keeps its tabs (Windows)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 7,
+            "started_at": "2026-10-28T17:16:19Z",
+            "completed_at": "2026-10-28T17:16:19Z"
+          },
+          {
+            "name": "A closed primary window stays closed (Linux)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8,
+            "started_at": "2026-10-28T17:16:19Z",
+            "completed_at": "2026-10-28T17:16:22Z"
+          },
+          {
+            "name": "A closed primary window stays closed (Windows)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 9,
+            "started_at": "2026-10-28T17:16:22Z",
+            "completed_at": "2026-10-28T17:16:22Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 17,
+            "started_at": "2026-10-28T17:16:22Z",
+            "completed_at": "2026-10-28T17:16:22Z"
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 18,
+            "started_at": "2026-10-28T17:16:22Z",
+            "completed_at": "2026-10-28T17:16:23Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 19,
+            "started_at": "2026-10-28T17:16:23Z",
+            "completed_at": "2026-10-28T17:16:23Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122975636243",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000072503,
+        "runner_name": "GitHub Actions 1000072503",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 122975636282,
+        "run_id": 40732848065,
+        "workflow_name": "Parity guards",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848065",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcoetLOg",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122975636282",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848065/job/122975636282",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-28T17:12:24Z",
+        "started_at": "2026-10-28T17:12:28Z",
+        "completed_at": "2026-10-28T17:17:36Z",
+        "name": "workspace-regressions (windows-latest)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-28T17:12:29Z",
+            "completed_at": "2026-10-28T17:12:30Z"
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-28T17:12:30Z",
+            "completed_at": "2026-10-28T17:15:49Z"
+          },
+          {
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-28T17:15:49Z",
+            "completed_at": "2026-10-28T17:16:02Z"
+          },
+          {
+            "name": "Run npm ci",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-28T17:16:02Z",
+            "completed_at": "2026-10-28T17:16:28Z"
+          },
+          {
+            "name": "Workspace preservation and opener families (Linux)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 5,
+            "started_at": "2026-10-28T17:16:28Z",
+            "completed_at": "2026-10-28T17:16:28Z"
+          },
+          {
+            "name": "Workspace preservation and opener families (Windows/macOS)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-28T17:16:28Z",
+            "completed_at": "2026-10-28T17:17:20Z"
+          },
+          {
+            "name": "Closing the last window quits Blanc and keeps its tabs (Windows)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-28T17:17:20Z",
+            "completed_at": "2026-10-28T17:17:27Z"
+          },
+          {
+            "name": "A closed primary window stays closed (Linux)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 8,
+            "started_at": "2026-10-28T17:17:27Z",
+            "completed_at": "2026-10-28T17:17:27Z"
+          },
+          {
+            "name": "A closed primary window stays closed (Windows)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9,
+            "started_at": "2026-10-28T17:17:27Z",
+            "completed_at": "2026-10-28T17:17:32Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 17,
+            "started_at": "2026-10-28T17:17:32Z",
+            "completed_at": "2026-10-28T17:17:32Z"
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 18,
+            "started_at": "2026-10-28T17:17:32Z",
+            "completed_at": "2026-10-28T17:17:35Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 19,
+            "started_at": "2026-10-28T17:17:35Z",
+            "completed_at": "2026-10-28T17:17:35Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122975636282",
+        "labels": [
+          "windows-latest"
+        ],
+        "runner_id": 1000072498,
+        "runner_name": "GitHub Actions 1000072498",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 122975636465,
+        "run_id": 40732848065,
+        "workflow_name": "Parity guards",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848065",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcoetL8Q",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122975636465",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848065/job/122975636465",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-28T17:12:24Z",
+        "started_at": "2026-10-28T17:12:27Z",
+        "completed_at": "2026-10-28T17:12:52Z",
+        "name": "favorites-import (ubuntu-latest)",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-28T17:12:28Z",
+            "completed_at": "2026-10-28T17:12:29Z"
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-28T17:12:29Z",
+            "completed_at": "2026-10-28T17:12:39Z"
+          },
+          {
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-28T17:12:39Z",
+            "completed_at": "2026-10-28T17:12:41Z"
+          },
+          {
+            "name": "Run npm ci",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-28T17:12:41Z",
+            "completed_at": "2026-10-28T17:12:45Z"
+          },
+          {
+            "name": "Favorites import from detected browser profiles (Linux)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-28T17:12:45Z",
+            "completed_at": "2026-10-28T17:12:49Z"
+          },
+          {
+            "name": "Favorites import from detected browser profiles (Windows/macOS)",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6,
+            "started_at": "2026-10-28T17:12:49Z",
+            "completed_at": "2026-10-28T17:12:49Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11,
+            "started_at": "2026-10-28T17:12:49Z",
+            "completed_at": "2026-10-28T17:12:50Z"
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12,
+            "started_at": "2026-10-28T17:12:50Z",
+            "completed_at": "2026-10-28T17:12:50Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-28T17:12:50Z",
+            "completed_at": "2026-10-28T17:12:50Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122975636465",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000072505,
+        "runner_name": "GitHub Actions 1000072505",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      }
+    ]
+  },
+  {
+    "runId": 40732848269,
+    "name": "CodeQL",
+    "total_count": 1,
+    "jobs": [
+      {
+        "id": 122973479682,
+        "run_id": 40732848269,
+        "workflow_name": "CodeQL",
+        "head_branch": "codex/f12-socket-speculation",
+        "run_url": "https://api.github.com/repos/bnfy/blanc/actions/runs/40732848269",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOTMt2KM8AAAAcocpjAg",
+        "head_sha": "8c0fcb75c8ad5f078a553b6d83006c1a62eb2b40",
+        "url": "https://api.github.com/repos/bnfy/blanc/actions/jobs/122973479682",
+        "html_url": "https://github.com/bnfy/blanc/actions/runs/40732848269/job/122973479682",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-28T17:08:37Z",
+        "started_at": "2026-10-28T17:09:28Z",
+        "completed_at": "2026-10-28T17:14:17Z",
+        "name": "javascript",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-28T17:09:29Z",
+            "completed_at": "2026-10-28T17:09:30Z"
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-28T17:09:30Z",
+            "completed_at": "2026-10-28T17:09:45Z"
+          },
+          {
+            "name": "Run github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-28T17:09:45Z",
+            "completed_at": "2026-10-28T17:10:04Z"
+          },
+          {
+            "name": "Run github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-28T17:10:04Z",
+            "completed_at": "2026-10-28T17:14:12Z"
+          },
+          {
+            "name": "Post Run github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-28T17:14:12Z",
+            "completed_at": "2026-10-28T17:14:12Z"
+          },
+          {
+            "name": "Post Run github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-28T17:14:12Z",
+            "completed_at": "2026-10-28T17:14:13Z"
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8,
+            "started_at": "2026-10-28T17:14:13Z",
+            "completed_at": "2026-10-28T17:14:13Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9,
+            "started_at": "2026-10-28T17:14:13Z",
+            "completed_at": "2026-10-28T17:14:14Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/bnfy/blanc/check-runs/122973479682",
+        "labels": [
+          "ubuntu-latest"
+        ],
+        "runner_id": 1000072482,
+        "runner_name": "GitHub Actions 1000072482",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      }
+    ]
+  }
+]

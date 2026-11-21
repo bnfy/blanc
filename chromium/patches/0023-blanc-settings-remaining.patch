@@ -1,0 +1,114 @@
+diff --git a/chrome/browser/extensions/api/settings_private/prefs_util.cc b/chrome/browser/extensions/api/settings_private/prefs_util.cc
+index 396a370..282e4d2 100644
+--- a/chrome/browser/extensions/api/settings_private/prefs_util.cc
++++ b/chrome/browser/extensions/api/settings_private/prefs_util.cc
+@@ -231,6 +231,12 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
+       settings_api::PrefType::kString;
+   (*s_allowlist)["blanc.bangs.enabled"] = settings_api::PrefType::kBoolean;
+   (*s_allowlist)["blanc.blocking.enabled"] = settings_api::PrefType::kBoolean;
++  (*s_allowlist)["blanc.island.site_colors"] = settings_api::PrefType::kBoolean;
++  (*s_allowlist)["blanc.island.tab_icons"] = settings_api::PrefType::kBoolean;
++  (*s_allowlist)["blanc.island.search_priority_results"] =
++      settings_api::PrefType::kBoolean;
++  (*s_allowlist)["blanc.appearance.surface_style"] =
++      settings_api::PrefType::kString;
+ 
+   // Miscellaneous
+   (*s_allowlist)[::embedder_support::kAlternateErrorPagesEnabled] =
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+index 0cefdc8..3c8254c 100644
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -2084,6 +2084,13 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
+   registry->RegisterBooleanPref("blanc.island.hover_open", false);
+   registry->RegisterBooleanPref("blanc.island.auto_hide", false);
+   registry->RegisterStringPref("blanc.island.auto_hide_style", "float");
++  // Match site colors, site icons instead of dots, and search priority
++  // results (S1.7), with shipping's defaults.
++  registry->RegisterBooleanPref("blanc.island.site_colors", true);
++  registry->RegisterBooleanPref("blanc.island.tab_icons", false);
++  registry->RegisterBooleanPref("blanc.island.search_priority_results", false);
++  // Blanc's own pages: Sunrise or Neutral (S1.7).
++  registry->RegisterStringPref("blanc.appearance.surface_style", "sunrise");
+ #endif
+ #if __has_include("blanc/browser/ui/blanc_prototype_ui.h")
+   registry->RegisterStringPref("blanc.prototype.preference_write", "");
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+index 13a4478..ef91880 100644
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+@@ -85,6 +85,16 @@ export function getHtml(this: SettingsAppearancePageElement) {
+         label="$i18n{blancIslandHoverOpen}"
+         sub-label="$i18n{blancIslandHoverOpenHint}">
+     </settings-toggle-button>
++    <settings-toggle-button id="blancIslandSiteColors" class="hr"
++        pref-key="blanc.island.site_colors"
++        label="$i18n{blancIslandSiteColors}"
++        sub-label="$i18n{blancIslandSiteColorsHint}">
++    </settings-toggle-button>
++    <settings-toggle-button id="blancIslandTabIcons" class="hr"
++        pref-key="blanc.island.tab_icons"
++        label="$i18n{blancIslandTabIcons}"
++        sub-label="$i18n{blancIslandTabIconsHint}">
++    </settings-toggle-button>
+     <settings-toggle-button id="blancIslandAutoHide" class="hr"
+         pref-key="blanc.island.auto_hide"
+         label="$i18n{blancIslandAutoHide}"
+@@ -103,6 +113,18 @@ export function getHtml(this: SettingsAppearancePageElement) {
+         </settings-dropdown-menu>
+       </div>
+     ` : ''}
++    <!-- Blanc's own pages: Sunrise or Neutral (S1.7). -->
++    <div id="blancSurfaceStyleRow" class="cr-row">
++      <div class="flex cr-padded-text" aria-hidden="true">
++        <div>$i18n{blancSurfaceStyle}</div>
++        <div class="secondary">$i18n{blancSurfaceStyleHint}</div>
++      </div>
++      <settings-dropdown-menu id="blancSurfaceStyle" no-label-float
++          pref-key="blanc.appearance.surface_style"
++          label="$i18n{blancSurfaceStyle}"
++          .menuOptions="${this.blancSurfaceStyleOptions_}">
++      </settings-dropdown-menu>
++    </div>
+     <div class="hr"
+         ?hidden="${!this.showHr_(
+             this.pageVisibility_.setTheme, this.pageVisibility_.homeButton)}">
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
+index 1e916a8..946efb9 100644
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
+@@ -149,6 +149,7 @@ export class SettingsAppearancePageElement extends
+       showHomeButtonPref_: {type: Object},
+       blancIslandAutoHidePref_: {type: Object},
+       blancIslandAutoHideStyleOptions_: {type: Array},
++      blancSurfaceStyleOptions_: {type: Array},
+       sidePanelAlignmentOverridesPref_: {type: Object},
+       sidePanelIsRightAlignedPref_: {type: Object},
+       themeIdPref_: {type: Object},
+@@ -222,6 +223,10 @@ export class SettingsAppearancePageElement extends
+         {value: 'push',
+          name: loadTimeData.getString('blancIslandAutoHideStylePush')},
+       ];
++  protected accessor blancSurfaceStyleOptions_: DropdownMenuOptionList = [
++    {value: 'sunrise', name: loadTimeData.getString('blancSurfaceStyleSunrise')},
++    {value: 'neutral', name: loadTimeData.getString('blancSurfaceStyleNeutral')},
++  ];
+   protected accessor sidePanelAlignmentOverridesPref_:
+       PrefObject<Record<string, boolean>>|undefined = undefined;
+   protected accessor sidePanelIsRightAlignedPref_: PrefObject<boolean>|
+diff --git a/chrome/browser/resources/settings/search_page/search_page.html.ts b/chrome/browser/resources/settings/search_page/search_page.html.ts
+index 3ee4d56..ed3cb4b 100644
+--- a/chrome/browser/resources/settings/search_page/search_page.html.ts
++++ b/chrome/browser/resources/settings/search_page/search_page.html.ts
+@@ -68,6 +68,11 @@ export function getHtml(this: SettingsSearchPageElement) {
+         label="$i18n{blancSearchSuggestions}"
+         sub-label="$i18n{blancSearchSuggestionsHint}">
+     </settings-toggle-button>
++    <settings-toggle-button id="blancSearchPriorityResults" class="hr"
++        pref-key="blanc.island.search_priority_results"
++        label="$i18n{blancSearchPriorityResults}"
++        sub-label="$i18n{blancSearchPriorityResultsHint}">
++    </settings-toggle-button>
+     <settings-toggle-button id="blancBangs" class="hr"
+         pref-key="blanc.bangs.enabled"
+         label="$i18n{blancBangs}"

@@ -1,0 +1,15 @@
+{"name": "helper-build", "argv": ["xcrun", "clang", "-dynamiclib", "-O0", "/private/tmp/blanc-spaces-errors/barrier.c", "-o", "/private/tmp/blanc-spaces-errors/barrier.dylib"], "started": "2026-10-19T20:02:58.254856+00:00", "seconds": 0.3132465, "exit_code": 0}
+{"name": "backup-enospc-start", "argv": ["node", "/private/tmp/blanc-spaces-errors/start.mjs"], "started": "2026-10-19T20:03:19.507966+00:00", "seconds": 0.084759292, "exit_code": 0}
+{"name": "backup-enospc-check", "argv": ["node", "/private/tmp/blanc-spaces-errors/check.mjs", "backup-enospc"], "started": "2026-10-19T20:03:19.624264+00:00", "seconds": 9.97550125, "exit_code": 0}
+{"name": "backup-enospc-cleanup", "argv": ["node", "/private/tmp/blanc-spaces-errors/cleanup.mjs"], "started": "2026-10-19T20:03:29.638637+00:00", "seconds": 0.6421662920000001, "exit_code": 1}
+{"name": "cleanup-observation", "argv": ["node", "/private/tmp/blanc-spaces-errors/cleanup.mjs"], "started": "2026-10-19T20:03:42.157369+00:00", "seconds": 0.580890625, "exit_code": 0}
+{"name": "primary-enospc-start", "argv": ["node", "/private/tmp/blanc-spaces-errors/start.mjs"], "started": "2026-10-19T20:03:42.793758+00:00", "seconds": 0.057121417, "exit_code": 0}
+{"name": "primary-enospc-check", "argv": ["node", "/private/tmp/blanc-spaces-errors/check.mjs", "primary-enospc"], "started": "2026-10-19T20:03:42.902358+00:00", "seconds": 6.254825291, "exit_code": 0}
+{"name": "primary-enospc-cleanup", "argv": ["node", "/private/tmp/blanc-spaces-errors/cleanup.mjs"], "started": "2026-10-19T20:03:49.207889+00:00", "seconds": 0.639940417, "exit_code": 0}
+{"name": "backup-eio-start", "argv": ["node", "/private/tmp/blanc-spaces-errors/start.mjs"], "started": "2026-10-19T20:03:49.877226+00:00", "seconds": 0.061295583, "exit_code": 0}
+{"name": "backup-eio-check", "argv": ["node", "/private/tmp/blanc-spaces-errors/check.mjs", "backup-eio"], "started": "2026-10-19T20:03:49.966885+00:00", "seconds": 6.1000155000000005, "exit_code": 0}
+{"name": "backup-eio-cleanup", "argv": ["node", "/private/tmp/blanc-spaces-errors/cleanup.mjs"], "started": "2026-10-19T20:03:56.110558+00:00", "seconds": 0.647704667, "exit_code": 0}
+{"name": "primary-eio-start", "argv": ["node", "/private/tmp/blanc-spaces-errors/start.mjs"], "started": "2026-10-19T20:03:56.829606+00:00", "seconds": 0.076461917, "exit_code": 0}
+{"name": "primary-eio-check", "argv": ["node", "/private/tmp/blanc-spaces-errors/check.mjs", "primary-eio"], "started": "2026-10-19T20:03:56.934724+00:00", "seconds": 6.039432166, "exit_code": 0}
+{"name": "primary-eio-cleanup", "argv": ["node", "/private/tmp/blanc-spaces-errors/cleanup.mjs"], "started": "2026-10-19T20:04:03.017565+00:00", "seconds": 0.634704458, "exit_code": 0}
+{"name": "guard", "argv": ["node", "experiments/chromium-extension-spike/build.mjs", "/Users/anthonyjloria/Projects/BlancChromium157/src", "--check"], "started": "2026-10-19T20:04:08.300092+00:00", "seconds": 5.234903333, "exit_code": 0}

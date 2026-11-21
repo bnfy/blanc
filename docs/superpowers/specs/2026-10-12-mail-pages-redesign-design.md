@@ -163,7 +163,7 @@ trust.
 ("Get an email when Blanc Mail is ready") is the heading, so no new copy is
 needed.
 
-**"One Blanc family."** Kept as is (two app cards, Suite note,
+**"One Blanc family."** Kept as is (two app cards, Bundle note,
 in-development note).
 
 ## 5. Subpages

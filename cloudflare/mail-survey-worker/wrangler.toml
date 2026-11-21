@@ -1,0 +1,34 @@
+name = "blanc-mail-survey"
+main = "src/index.js"
+compatibility_date = "2026-07-01"
+
+# Created by `wrangler kv namespace create SURVEY`; paste the returned id
+# below before the first deploy. Holds only anonymous answers.
+kv_namespaces = [
+  { binding = "SURVEY", id = "REPLACE_WITH_SURVEY_NAMESPACE_ID" }
+]
+
+# Per-IP limit on answers. The platform limiter keeps its counters itself;
+# the IP is never written to KV or stored with an answer.
+[[ratelimits]]
+name = "SURVEY_RATE_LIMITER"
+namespace_id = "120261112"
+
+  [ratelimits.simple]
+  limit = 4
+  period = 60
+
+# ADMIN_TOKEN is a secret (1Password vault Dev, item "Blanc Mail Survey
+# Admin"); it gates GET /mail-survey/summary and DELETE /mail-survey/answers,
+# and without it both refuse every request.
+
+[vars]
+# Exactly "true" opens the survey; anything else keeps it closed. Open it only
+# in the same window as the site deploy that publishes /mail/survey.
+SURVEY_OPEN = "false"
+
+# Request logging stays off: Workers Logs would record each respondent's IP
+# address and user agent, and the survey promises it keeps neither
+# (owner decision, 2026-11-12). Don't turn this on or add Logpush.
+[observability]
+enabled = false

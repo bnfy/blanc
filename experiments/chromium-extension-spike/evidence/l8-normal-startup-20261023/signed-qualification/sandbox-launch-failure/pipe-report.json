@@ -1,0 +1,14 @@
+{
+  "app": "/private/tmp/blanc-l8-startup-corrected/Blanc Chromium Preview.app",
+  "checks": [
+    {
+      "name": "selected encrypted session is a FIFO with no writer",
+      "pass": true,
+      "details": {
+        "file": "/private/tmp/blanc-l8-startup-corrected/regression/nonregular/pipe-profile/Default/Sessions_Encrypted/Session_13437257612425317"
+      }
+    }
+  ],
+  "error": "AssertionError [ERR_ASSERTION]: startup exited",
+  "stack": "AssertionError [ERR_ASSERTION]: startup exited\n    at boot (file:///private/tmp/blanc-l8-startup-corrected/regression/nonregular/run.mjs:5:392)\n    at async file:///private/tmp/blanc-l8-startup-corrected/regression/nonregular/run.mjs:7:738"
+}

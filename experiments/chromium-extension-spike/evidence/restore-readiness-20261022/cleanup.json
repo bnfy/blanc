@@ -1,0 +1,9 @@
+{
+  "removed": [
+    "/private/tmp/blanc-restore-readiness/Blanc Chromium Preview.app",
+    "/private/tmp/blanc-restore-readiness/retained-profile",
+    "/private/tmp/blanc-restore-readiness/multi-profile"
+  ],
+  "owned_processes_remaining": 0,
+  "original_profiles_retained": true
+}

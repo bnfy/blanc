@@ -1,0 +1,222 @@
+diff --git a/chrome/updater/BUILD.gn b/chrome/updater/BUILD.gn
+index de0c068..3d7defe 100644
+--- a/chrome/updater/BUILD.gn
++++ b/chrome/updater/BUILD.gn
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//blanc/config.gni")
+ import("//build/config/chrome_build.gni")
+ import("//build/config/python.gni")
+ import("//build/config/sanitizers/sanitizers.gni")
+@@ -264,6 +265,12 @@ if (is_win || is_mac || is_linux) {
+ 
+     defines = []
+ 
++    # Blanc: the Windows beta's updater trusts Blanc's update keys
++    # (configurator.cc, //blanc/branding/win-beta/cup_public_key.h).
++    if (blanc_channel == "beta") {
++      defines += [ "BLANC_UPDATER_KEYS" ]
++    }
++
+     if (is_mac) {
+       sources += [
+         "activity_impl_util_mac.cc",
+diff --git a/chrome/updater/configurator.cc b/chrome/updater/configurator.cc
+index 6d968f6..3f4009a 100644
+--- a/chrome/updater/configurator.cc
++++ b/chrome/updater/configurator.cc
+@@ -56,6 +56,11 @@
+ #include "base/win/win_util.h"
+ #endif
+ 
++// Blanc: the Windows beta's updater checks answers with Blanc's CUP key.
++#if defined(BLANC_UPDATER_KEYS)
++#include "blanc/branding/win-beta/cup_public_key.h"
++#endif
++
+ namespace updater {
+ 
+ Configurator::Configurator(scoped_refptr<UpdaterPrefs> prefs,
+@@ -293,6 +298,17 @@ base::TimeDelta Configurator::MinimumEventLoggingCooldown() const {
+   return external_constants_->MinimumEventLoggingCooldown();
+ }
+ 
++std::optional<update_client::CupKey> Configurator::GetCupKey() const {
++#if defined(BLANC_UPDATER_KEYS)
++  return update_client::CupKey{
++      blanc_updater::kCupKeyVersion,
++      std::vector<uint8_t>(blanc_updater::kCupPublicKey.begin(),
++                           blanc_updater::kCupPublicKey.end())};
++#else
++  return std::nullopt;
++#endif
++}
++
+ update_client::UpdaterStateProvider Configurator::GetUpdaterStateProvider()
+     const {
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+diff --git a/chrome/updater/configurator.h b/chrome/updater/configurator.h
+index cb46197..6fb7558 100644
+--- a/chrome/updater/configurator.h
++++ b/chrome/updater/configurator.h
+@@ -84,6 +84,7 @@ class Configurator : public update_client::Configurator {
+   GetProtocolHandlerFactory() const override;
+   std::optional<bool> IsMachineExternallyManaged() const override;
+   update_client::UpdaterStateProvider GetUpdaterStateProvider() const override;
++  std::optional<update_client::CupKey> GetCupKey() const override;
+   scoped_refptr<update_client::CrxCache> GetCrxCache() const override;
+ #if BUILDFLAG(CHROME_FOR_TESTING)
+   std::vector<std::string> GetRequiredComponents() const override;
+diff --git a/chrome/updater/external_constants_default.cc b/chrome/updater/external_constants_default.cc
+index 035ce39..d2c1d81 100644
+--- a/chrome/updater/external_constants_default.cc
++++ b/chrome/updater/external_constants_default.cc
+@@ -58,7 +58,13 @@ class DefaultExternalConstants : public ExternalConstants {
+   }
+ 
+   crx_file::VerifierFormat CrxVerifierFormat() const override {
+-    return crx_file::VerifierFormat::CRX3_WITH_PUBLISHER_PROOF;
++    // Blanc: with a publisher key hash (crx_pkhash), packages must carry that
++    // key's signature instead of Google's publisher proof.
++    if constexpr (!std::string_view(CRX_PKHASH).empty()) {
++      return crx_file::VerifierFormat::CRX3;
++    } else {
++      return crx_file::VerifierFormat::CRX3_WITH_PUBLISHER_PROOF;
++    }
+   }
+ 
+   std::optional<std::vector<uint8_t>> CrxPublicKeyHash() const override {
+diff --git a/components/update_client/configurator.h b/components/update_client/configurator.h
+index 60e90c2..a4afe12 100644
+--- a/components/update_client/configurator.h
++++ b/components/update_client/configurator.h
+@@ -5,6 +5,7 @@
+ #ifndef COMPONENTS_UPDATE_CLIENT_CONFIGURATOR_H_
+ #define COMPONENTS_UPDATE_CLIENT_CONFIGURATOR_H_
+ 
++#include <cstdint>
+ #include <memory>
+ #include <optional>
+ #include <string>
+@@ -40,6 +41,12 @@ using UpdaterStateProvider =
+     base::RepeatingCallback<UpdaterStateAttributes(bool is_machine)>;
+ 
+ // Controls the component updater behavior.
++// Blanc: a CUP key, as its version and ML-DSA-44 SubjectPublicKeyInfo.
++struct CupKey {
++  int version = 0;
++  std::vector<uint8_t> public_key;
++};
++
+ class Configurator : public base::RefCountedThreadSafe<Configurator> {
+  public:
+   // Delay from calling Start() to the first update check.
+@@ -147,6 +154,10 @@ class Configurator : public base::RefCountedThreadSafe<Configurator> {
+   // embedder includes an updater. Returns a null callback otherwise.
+   virtual UpdaterStateProvider GetUpdaterStateProvider() const = 0;
+ 
++  // Blanc: the CUP key this embedder's server signs with, in place of the
++  // built-in one (request_sender.cc). None by default (update_client.cc).
++  virtual std::optional<CupKey> GetCupKey() const;
++
+   // Returns the CrxCache.
+   virtual scoped_refptr<CrxCache> GetCrxCache() const = 0;
+ 
+diff --git a/components/update_client/ping_manager.cc b/components/update_client/ping_manager.cc
+index 657972d..4498c24 100644
+--- a/components/update_client/ping_manager.cc
++++ b/components/update_client/ping_manager.cc
+@@ -79,7 +79,8 @@ void PingManager::SendPing(const std::string& session_id,
+       component.disabled_reasons, /*cached_hashes=*/{},
+       std::nullopt /* update check */, {} /* data */, std::nullopt /* ping */,
+       std::move(events)));
+-  base::MakeRefCounted<RequestSender>(config_->GetNetworkFetcherFactory())
++  base::MakeRefCounted<RequestSender>(config_->GetNetworkFetcherFactory(),
++                                      config_->GetCupKey())
+       ->Send(
+           urls, {},
+           config_->GetProtocolHandlerFactory()->CreateSerializer()->Serialize(
+diff --git a/components/update_client/request_sender.cc b/components/update_client/request_sender.cc
+index 1eac39b..09aaa12 100644
+--- a/components/update_client/request_sender.cc
++++ b/components/update_client/request_sender.cc
+@@ -177,7 +177,13 @@ const std::string& SelectCupServerProof(
+   return response_cup_server_proof;
+ }
+ 
+-client_update_protocol::Cup BuildSigner() {
++client_update_protocol::Cup BuildSigner(
++    const std::optional<CupKey>& cup_key) {
++  // Blanc: an embedder's own key (its updater's), else the built-in one.
++  if (cup_key) {
++    return client_update_protocol::Cup(cup_key->version,
++                                       base::span(cup_key->public_key));
++  }
+   return client_update_protocol::Cup(kCupKeyVersion,
+                                      base::as_byte_span(kCupPublicKey));
+ }
+@@ -185,8 +191,9 @@ client_update_protocol::Cup BuildSigner() {
+ }  // namespace
+ 
+ RequestSender::RequestSender(
+-    scoped_refptr<NetworkFetcherFactory> fetcher_factory)
+-    : fetcher_factory_(fetcher_factory), signer_(BuildSigner()) {}
++    scoped_refptr<NetworkFetcherFactory> fetcher_factory,
++    std::optional<CupKey> cup_key)
++    : fetcher_factory_(fetcher_factory), signer_(BuildSigner(cup_key)) {}
+ 
+ RequestSender::~RequestSender() = default;
+ 
+diff --git a/components/update_client/request_sender.h b/components/update_client/request_sender.h
+index a7e3f10..e5cbb54 100644
+--- a/components/update_client/request_sender.h
++++ b/components/update_client/request_sender.h
+@@ -17,6 +17,7 @@
+ #include "base/memory/ref_counted.h"
+ #include "base/sequence_checker.h"
+ #include "components/client_update_protocol/cup.h"
++#include "components/update_client/configurator.h"
+ #include "components/update_client/network.h"
+ #include "url/gurl.h"
+ 
+@@ -37,7 +38,9 @@ class RequestSender : public base::RefCountedThreadSafe<RequestSender> {
+   using RequestSenderCallback = base::OnceCallback<
+       void(int error, const std::string& response, int retry_after_sec)>;
+ 
+-  explicit RequestSender(scoped_refptr<NetworkFetcherFactory> fetcher_factory);
++  // Blanc: `cup_key`, when given, replaces the built-in CUP key.
++  explicit RequestSender(scoped_refptr<NetworkFetcherFactory> fetcher_factory,
++                         std::optional<CupKey> cup_key = std::nullopt);
+ 
+   RequestSender(const RequestSender&) = delete;
+   RequestSender& operator=(const RequestSender&) = delete;
+diff --git a/components/update_client/update_checker.cc b/components/update_client/update_checker.cc
+index 83d5c22..3d41234 100644
+--- a/components/update_client/update_checker.cc
++++ b/components/update_client/update_checker.cc
+@@ -262,7 +262,8 @@ void UpdateCheckerImpl::CheckForUpdatesHelper(
+       additional_attributes, updater_state_attributes, std::move(apps));
+ 
+   cancellation_->OnCancel(
+-      base::MakeRefCounted<RequestSender>(config_->GetNetworkFetcherFactory())
++      base::MakeRefCounted<RequestSender>(config_->GetNetworkFetcherFactory(),
++                                          config_->GetCupKey())
+           ->Send({url},
+                  BuildUpdateCheckExtraRequestHeaders(
+                      config_->GetProdId(), config_->GetBrowserVersion(),
+diff --git a/components/update_client/update_client.cc b/components/update_client/update_client.cc
+index c5818f6..052199f 100644
+--- a/components/update_client/update_client.cc
++++ b/components/update_client/update_client.cc
+@@ -373,4 +373,9 @@ void RegisterProfilePrefs(PrefRegistrySimple* registry) {
+   RegisterPersistedDataPrefs(registry);
+ }
+ 
++// Blanc: no embedder key unless one is named (configurator.h).
++std::optional<CupKey> Configurator::GetCupKey() const {
++  return std::nullopt;
++}
++
+ }  // namespace update_client

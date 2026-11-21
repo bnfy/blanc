@@ -1,0 +1,85 @@
+{
+  "complete": false,
+  "runs": [
+    {
+      "mode": "regular",
+      "profile": "/private/tmp/blanc-f12-import-validators-20261024/profile-regular",
+      "origin": "http://127.0.0.1:51916",
+      "phases": [],
+      "browserContextId": null
+    }
+  ],
+  "checks": [
+    {
+      "name": "regular: initial imported dependency runs in both registrations",
+      "pass": true
+    }
+  ],
+  "error": "Error: condition timeout\n    at until (file:///private/tmp/blanc-f12-import-validators-20261024/run.mjs:19:9)\n    at async file:///private/tmp/blanc-f12-import-validators-20261024/run.mjs:127:7",
+  "serverHits": [
+    {
+      "path": "/worker.js",
+      "generation": 1,
+      "etag": "\"main-fixed\"",
+      "validator": null,
+      "status": 200,
+      "leakedToken": false
+    },
+    {
+      "path": "/dependency.js",
+      "generation": 1,
+      "etag": "\"dependency-1\"",
+      "validator": null,
+      "status": 200,
+      "leakedToken": false
+    },
+    {
+      "path": "/worker.js",
+      "generation": 1,
+      "etag": "\"main-fixed\"",
+      "validator": "\"main-fixed\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/dependency.js",
+      "generation": 1,
+      "etag": "\"dependency-1\"",
+      "validator": "\"dependency-1\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/worker.js",
+      "generation": 2,
+      "etag": "\"main-fixed\"",
+      "validator": "\"main-fixed\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/worker.js",
+      "generation": 2,
+      "etag": "\"main-fixed\"",
+      "validator": "\"main-fixed\"",
+      "status": 304,
+      "leakedToken": false
+    },
+    {
+      "path": "/dependency.js",
+      "generation": 2,
+      "etag": "\"dependency-2\"",
+      "validator": "\"dependency-1\"",
+      "status": 200,
+      "leakedToken": false
+    },
+    {
+      "path": "/dependency.js",
+      "generation": 2,
+      "etag": "\"dependency-2\"",
+      "validator": "\"dependency-2\"",
+      "status": 304,
+      "leakedToken": false
+    }
+  ]
+}

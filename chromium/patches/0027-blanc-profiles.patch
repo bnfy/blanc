@@ -1,0 +1,127 @@
+diff --git a/chrome/browser/resources/settings/blanc_settings_proxy.ts b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+index eedec79..6954ce4 100644
+--- a/chrome/browser/resources/settings/blanc_settings_proxy.ts
++++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+@@ -52,6 +52,7 @@ export const blancSettings = {
+   setUiLanguage: (code: string) =>
+       sendWithPromise<BlancResult>('blancSettingsSetUiLanguage', code),
+   relaunch: () => sendWithPromise<boolean>('blancSettingsRelaunch'),
++  openProfilePicker: () => sendWithPromise<boolean>('blancSettingsProfilePicker'),
+   font: () => sendWithPromise<string|null>('blancSettingsFont'),
+   listen: (callback: (state: BlancSettingsState) => void): WebUiListener =>
+       addWebUiListener('blanc-settings-changed', callback),
+diff --git a/chrome/browser/resources/settings/page_visibility.ts b/chrome/browser/resources/settings/page_visibility.ts
+index 1b2ecab..b093560 100644
+--- a/chrome/browser/resources/settings/page_visibility.ts
++++ b/chrome/browser/resources/settings/page_visibility.ts
+@@ -45,12 +45,12 @@ export interface PrivacyPageVisibility {
+ function createPageVisibility(): PageVisibility|undefined {
+   if (!loadTimeData.getBoolean('isGuest')) {
+     // Blanc (S1.7, owner): no Google account, Sync, AI or Safety Check
+-    // sections; their routes are left out with them.
++    // sections; their routes are left out with them. The People section
++    // stays for Chromium's profiles (S2, V18), without its Google rows.
+     // Nor the home button, bookmarks bar, hover cards or side panel: the
+     // Island replaces Chromium's toolbar and tab strip (S1.7, owner).
+     return {
+       ai: false,
+-      people: false,
+       safetyHub: false,
+       appearance: {
+         bookmarksBar: false,
+diff --git a/chrome/browser/resources/settings/people_page/people_page.html.ts b/chrome/browser/resources/settings/people_page/people_page.html.ts
+index b330308..969c0b4 100644
+--- a/chrome/browser/resources/settings/people_page/people_page.html.ts
++++ b/chrome/browser/resources/settings/people_page/people_page.html.ts
+@@ -90,19 +90,27 @@ export function getHtml(this: SettingsPeoplePageElement) {
+           </div>
+         </cr-link-row>
+ 
++        <!-- Blanc (S2, V18): no Sync or Google services rows. -->
+         <cr-link-row id="sync-setup"
+             label="$i18n{syncAndNonPersonalizedServices}"
+             .subLabel="${this.getSyncAndNonPersonalizedServicesSubtext_()}"
+             @click="${this.onSyncClick_}"
+             role-description="$i18n{subpageArrowRoleDescription}"
+-            ?hidden="${this.shouldHideSyncSetupLinkRow_()}">
++            hidden>
+         </cr-link-row>
+ 
+         <cr-link-row id="google-services"
+             label="$i18n{googleServicesPageTitle}"
+             @click="${this.onGoogleServicesClick_}"
+             role-description="$i18n{subpageArrowRoleDescription}"
+-            ?hidden="${!this.shouldHideSyncSetupLinkRow_()}">
++            hidden>
++        </cr-link-row>
++
++        <!-- Blanc (S2, V18): Chromium's profile picker, where profiles are
++             added, opened and deleted; the Island has no avatar button. -->
++        <cr-link-row id="blancProfiles"
++            label="$i18n{blancProfiles}"
++            @click="${this.onBlancProfilesClick_}" external>
+         </cr-link-row>
+ 
+ <if expr="not is_chromeos">
+diff --git a/chrome/browser/resources/settings/people_page/people_page.ts b/chrome/browser/resources/settings/people_page/people_page.ts
+index 0dcc177..91c850f 100644
+--- a/chrome/browser/resources/settings/people_page/people_page.ts
++++ b/chrome/browser/resources/settings/people_page/people_page.ts
+@@ -37,6 +37,7 @@ import {isChromeOS} from 'chrome://resources/js/platform.js';
+ import {CrLitElement} from 'chrome://resources/lit/v3_0/lit.rollup.js';
+ import type {PropertyValues} from 'chrome://resources/lit/v3_0/lit.rollup.js';
+ 
++import {blancSettings} from '../blanc_settings_proxy.js';
+ import {loadTimeData} from '../i18n_setup.js';
+ import {routes} from '../route.js';
+ import type {Route} from '../router.js';
+@@ -341,6 +342,10 @@ export class SettingsPeoplePageElement extends SettingsPeoplePageElementBase {
+   }
+ 
+   // <if expr="not is_chromeos">
++  protected onBlancProfilesClick_() {
++    blancSettings.openProfilePicker();
++  }
++
+   protected onImportDataClick_() {
+     Router.getInstance().navigateTo(routes.IMPORT_DATA);
+   }
+diff --git a/chrome/browser/signin/identity_manager_factory.cc b/chrome/browser/signin/identity_manager_factory.cc
+index 469c1bb..ac678cf 100644
+--- a/chrome/browser/signin/identity_manager_factory.cc
++++ b/chrome/browser/signin/identity_manager_factory.cc
+@@ -4,6 +4,8 @@
+ 
+ #include "chrome/browser/signin/identity_manager_factory.h"
+ 
++#include "components/signin/public/base/signin_pref_names.h"
++
+ #include <memory>
+ #include <utility>
+ 
+@@ -52,6 +54,9 @@
+ void IdentityManagerFactory::RegisterProfilePrefs(
+     user_prefs::PrefRegistrySyncable* registry) {
+   signin::IdentityManager::RegisterProfilePrefs(registry);
++  // Blanc (S2, owner): no Google account in the browser, so no sign-in or
++  // Sync promos in Settings, the profile picker or the menus.
++  registry->SetDefaultPrefValue(prefs::kSigninAllowed, base::Value(false));
+ }
+ 
+ IdentityManagerFactory::IdentityManagerFactory()
+diff --git a/chrome/browser/ui/webui/settings/settings_ui.cc b/chrome/browser/ui/webui/settings/settings_ui.cc
+index ff66857..19c1097 100644
+--- a/chrome/browser/ui/webui/settings/settings_ui.cc
++++ b/chrome/browser/ui/webui/settings/settings_ui.cc
+@@ -519,6 +519,11 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
+   // Blanc (S1.7, owner): no Live Translate, a Google service; set after
+   // Chromium's own strings, which include it.
+   html_source->AddBoolean("enableLiveTranslate", false);
++  // Blanc (S2, V18): the People section holds Chromium's profiles, not a
++  // Google account, so it is titled as shipping's Profiles.
++  for (const auto& string : blanc::settings::ForLocale(g_browser_process->GetApplicationLocale()))
++    if (string.name == "blancProfiles")
++      html_source->AddString("peoplePageTitle", std::u16string(string.value));
+   AddSecurityData(html_source);
+ 
+   ManagedUIHandler::Initialize(web_ui, html_source);

@@ -95,4 +95,50 @@ final class BlancSchemeHandlerTests: XCTestCase {
         XCTAssertEqual(BlancPageResolver.stringsSuffix(locale: "de", region: "\";alert(1)//"),
                        "\nself.blancStrings.formatLocale=\"de\";self.blancStrings.strict=false;\n")
     }
+
+    // The Start Page is the desktop fork's: every file its page names comes
+    // from the bundled start/ folder, the iPhone's few from the bundle's root,
+    // the rest are written per request, and other pages keep shipping's.
+    func testForkStartPageFilesResolveAndAreBundled() throws {
+        XCTAssertEqual(BlancPageResolver.subdirectory(host: "newtab", filename: "newtab.html"), "start")
+        XCTAssertEqual(BlancPageResolver.subdirectory(host: "newtab", filename: "pages.css"), "start")
+        XCTAssertNil(BlancPageResolver.subdirectory(host: "newtab", filename: "ios-start.js"))
+        XCTAssertEqual(BlancPageResolver.subdirectory(host: "bookmarks", filename: "pages.css"), "pages")
+        let html = try String(contentsOf: try XCTUnwrap(
+            Bundle.main.url(forResource: "newtab", withExtension: "html", subdirectory: "start")), encoding: .utf8)
+        let named = try NSRegularExpression(pattern: ##"(?:src|href)="([^"#:]+)""##)
+            .matches(in: html, range: NSRange(html.startIndex..., in: html))
+            .map { (html as NSString).substring(with: $0.range(at: 1)) }
+        XCTAssertFalse(named.isEmpty)
+        for path in named {
+            let file = try XCTUnwrap(BlancPageResolver.resolvedFilename(host: "newtab", path: "/" + path), path)
+            if BlancPageResolver.startGeneratedFiles.contains(file) { continue }
+            let folder = BlancPageResolver.subdirectory(host: "newtab", filename: file)
+            XCTAssertNotNil(Bundle.main.url(forResource: (file as NSString).deletingPathExtension,
+                                            withExtension: (file as NSString).pathExtension, subdirectory: folder),
+                            "\(path) is not bundled in \(folder ?? "the bundle's root")")
+        }
+        for file in BlancPageResolver.startRootFiles {
+            XCTAssertNotNil(Bundle.main.url(forResource: (file as NSString).deletingPathExtension,
+                                            withExtension: (file as NSString).pathExtension), file)
+        }
+    }
+
+    func testStartPageHeadLoadsThePhoneLayerFirst() {
+        let page = BlancPageResolver.startPageHTML("<!DOCTYPE html><html><head><meta charset=\"UTF-8\" /></head></html>")
+        XCTAssertEqual(page, "<!DOCTYPE html><html><head><script src=\"ios-start-state.js\"></script><script src=\"ios-start.js\"></script>"
+            + "<link rel=\"stylesheet\" href=\"ios-start.css\"><meta charset=\"UTF-8\" /></head></html>")
+        XCTAssertNil(BlancPageResolver.startPageHTML("<html></html>"))
+        XCTAssertEqual(BlancPageResolver.uiLanguageScript(preferred: ["de-AT"]), "window.__blancUiLanguage=\"de\";\n")
+    }
+
+    func testStartPageStateScript() throws {
+        let script = StartPageBridge.stateScript(islandTop: true, migration: ["photo": "ios-wallpaper.jpg?v=1"], preferences: "{}")
+        XCTAssertTrue(script.hasPrefix("window.__blancIosStart={"))
+        let json = try XCTUnwrap(script.dropFirst("window.__blancIosStart=".count).split(separator: ";").first)
+        let state = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: Any])
+        XCTAssertEqual(state["island"] as? String, "top")
+        XCTAssertEqual((state["migration"] as? [String: Any])?["photo"] as? String, "ios-wallpaper.jpg?v=1")
+        XCTAssertEqual(state["preferences"] as? String, "{}")
+    }
 }

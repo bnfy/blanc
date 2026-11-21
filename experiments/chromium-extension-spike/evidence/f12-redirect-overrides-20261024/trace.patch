@@ -1,0 +1,23 @@
+diff --git a/experiments/chromium-extension-spike/native/blocker/blocker_proxy.cc b/experiments/chromium-extension-spike/native/blocker/blocker_proxy.cc
+index d9668373..7bab033a 100644
+--- a/experiments/chromium-extension-spike/native/blocker/blocker_proxy.cc
++++ b/experiments/chromium-extension-spike/native/blocker/blocker_proxy.cc
+@@ -585,6 +585,18 @@ class Request : public network::mojom::URLLoader, public network::mojom::URLLoad
+   }
+   ~Request() override = default;
+   void FollowRedirect(network::HttpRequestHeadersUpdateParams headers, const std::optional<GURL>& url) override {
++    const perfetto::DynamicCategory category("disabled-by-default-blanc.attribution");
++    bool tracing = false;
++    TRACE_EVENT_CATEGORY_GROUP_ENABLED(category, &tracing);
++    if (tracing && request_.devtools_request_id) {
++      const auto digest = crypto::hash::Sha256(*request_.devtools_request_id);
++      TRACE_EVENT_INSTANT(category, "Blanc.RedirectFollow",
++                          "request_digest", base::HexEncode(digest),
++                          "replacement_url", url.has_value(),
++                          "removed_headers", static_cast<int>(headers.removed_headers.size()),
++                          "modified_headers", static_cast<int>(headers.modified_headers.GetHeaderVector().size()),
++                          "forwarded", redirect_pending_ && !url);
++    }
+     // Forward all validation to the real loader. A caller-supplied replacement
+     // URL is not yet supported: refuse rather than evaluate a different hop.
+     if (!redirect_pending_ || url) { Complete(net::ERR_BLOCKED_BY_CLIENT); return; }

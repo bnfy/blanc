@@ -1,0 +1,7 @@
+{
+  "pinnedNode": "/usr/local/bin/node",
+  "version": "v22.14.0",
+  "reason": "interactive shell changed to Node20.19 during work; original missing WebSocket attempt retained",
+  "noticeFixtureCorrection": "trusted Input.dispatchMouseEvent trigger establishes document focus before Escape; unchanged close-and-return assertion",
+  "timeoutFixtureCorrection": "stop command polling once navigation is armed, to avoid unintended inflight saturation while the blocker utility is held"
+}

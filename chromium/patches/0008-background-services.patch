@@ -1,0 +1,29 @@
+diff --git a/chrome/app/chrome_main_delegate.cc b/chrome/app/chrome_main_delegate.cc
+index 33a3b38..386d4a0 100644
+--- a/chrome/app/chrome_main_delegate.cc
++++ b/chrome/app/chrome_main_delegate.cc
+@@ -93,6 +93,8 @@
+ #include "ui/base/resource/scoped_startup_resource_bundle.h"
+ #include "ui/base/ui_base_switches.h"
+ #include "ui/webui/buildflags.h"
++#include "blanc/common/background_services.h"
++#include "blanc/common/island_mode.h"
+ 
+ #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || \
+     BUILDFLAG(IS_MAC)
+@@ -1228,6 +1230,15 @@ std::optional<int> ChromeMainDelegate::BasicStartupComplete() {
+   }
+ #endif  // !defined(BUILDING_CHROME_RENDERER)
+ 
++#if !defined(BUILDING_CHROME_RENDERER)
++  // Blanc never runs Chromium's component updater, network time queries or
++  // autofill server predictions; this is the earliest callback, before any
++  // of them read the command line or features are set up.
++  if (blanc::IslandMode() && !command_line.HasSwitch(switches::kProcessType)) {
++    blanc::DisableBackgroundServices(*base::CommandLine::ForCurrentProcess());
++  }
++#endif  // !defined(BUILDING_CHROME_RENDERER)
++
+ #if !defined(BUILDING_CHROME_RENDERER)
+   const bool is_browser = !command_line.HasSwitch(switches::kProcessType);
+ #if BUILDFLAG(IS_WIN)

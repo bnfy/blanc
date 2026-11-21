@@ -1,0 +1,26 @@
+The following is a diff from the previous accessibility tree for Window: "Example Domain" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 57-69
++					71 container Blanc Island
++						72 HTML content Blanc, URL: chrome://blanc-prototype/index.html
++							73 container
++								74 button Search, tabs & commands (Ctrl/Cmd+L)
++									75 container
++										76 button (disabled) Back
++										77 button (disabled) Forward
++									78 button Switch to Example Domain
++									79 text E
++									80 text example.com
++									81 button New tab
++									82 container
++										83 button Reload
++										84 button Favorite this page
++										85 button Close tab
++			86 pop up button Extensions menu
++		87 menu
++			88 Extensity
++			89 Unpin from Toolbar
++			90 Options
++			91 Remove from Blanc
++			92 Manage Extension
++			93 View Web Permissions
+The focused UI element is 56 HTML content Blanc Chromium prototype, URL: chrome://blanc-prototype/host.html

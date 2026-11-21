@@ -1,0 +1,10 @@
+{
+  "full_log_local": "/private/tmp/blanc-websocket-lifecycle-build.log",
+  "summary": [
+    "Dry-run scheduled actions: 1 (generated outputs may add work). Plan: /Users/anthonyjloria/Projects/BlancChromium157/src/out/BlancPrototype/blanc-build-plan.log",
+    "31.42s Build Succeeded: 6 steps - 0.19/s"
+  ],
+  "environment_changes": false,
+  "gn_changes": false,
+  "latency_benchmark": false
+}

@@ -1,0 +1,24 @@
+{
+  "app": "/private/tmp/blanc-preview-notice-final/Blanc Chromium Preview.app",
+  "checks": [
+    {
+      "name": "signed candidate accepts probe switch and starts",
+      "pass": true
+    },
+    {
+      "name": "compiled prototype gate activated by launcher argument",
+      "pass": true,
+      "details": [
+        {
+          "event": "ubo-hold-cancel"
+        }
+      ]
+    },
+    {
+      "name": "probe instance exits cleanly",
+      "pass": true
+    }
+  ],
+  "finding": "L7 distribution blocker: prototype-only gate remains reachable from signed launcher; not active by default and not a remote-content privilege escalation",
+  "complete": true
+}

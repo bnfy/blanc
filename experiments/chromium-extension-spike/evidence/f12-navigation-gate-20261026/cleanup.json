@@ -1,0 +1,46 @@
+[
+  {
+    "phase": "before",
+    "mode": "regular",
+    "pid": "20845",
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "absent_before_removal": true,
+    "profile_removed": "/private/tmp/blanc-f12-navigation-20261026/before/profile-regular"
+  },
+  {
+    "phase": "before",
+    "mode": "private",
+    "pid": "20888",
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "absent_before_removal": true,
+    "profile_removed": "/private/tmp/blanc-f12-navigation-20261026/before/profile-private"
+  },
+  {
+    "phase": "after",
+    "mode": "regular",
+    "pid": "22294",
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "absent_before_removal": true,
+    "profile_removed": "/private/tmp/blanc-f12-navigation-20261026/after/profile-regular"
+  },
+  {
+    "phase": "after",
+    "mode": "private",
+    "pid": "22468",
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "absent_before_removal": true,
+    "profile_removed": "/private/tmp/blanc-f12-navigation-20261026/after/profile-private"
+  }
+]

@@ -1,0 +1,73 @@
+diff --git a/private/tmp/blanc-save-ack-plan/before/components/sessions/core/command_storage_backend.h b/private/tmp/blanc-save-ack-plan/after/components/sessions/core/command_storage_backend.h
+index a2e33cee..b67cc557 100644
+--- a/private/tmp/blanc-save-ack-plan/before/components/sessions/core/command_storage_backend.h
++++ b/private/tmp/blanc-save-ack-plan/after/components/sessions/core/command_storage_backend.h
+@@ -121,0 +122,3 @@ class SESSIONS_EXPORT CommandStorageBackend
++  // Flush previously appended commands; false if the current file is invalid.
++  bool FlushCurrentSession();
++
+diff --git a/private/tmp/blanc-save-ack-plan/before/components/sessions/core/command_storage_backend.cc b/private/tmp/blanc-save-ack-plan/after/components/sessions/core/command_storage_backend.cc
+index 9a351407..35b51141 100644
+--- a/private/tmp/blanc-save-ack-plan/before/components/sessions/core/command_storage_backend.cc
++++ b/private/tmp/blanc-save-ack-plan/after/components/sessions/core/command_storage_backend.cc
+@@ -562,0 +563,4 @@ void CommandStorageBackend::AppendCommands(
++bool CommandStorageBackend::FlushCurrentSession() {
++  return open_file_ && open_file_->did_write_marker && open_file_->file->Flush();
++}
++
+diff --git a/private/tmp/blanc-save-ack-plan/before/components/sessions/core/command_storage_manager.h b/private/tmp/blanc-save-ack-plan/after/components/sessions/core/command_storage_manager.h
+index ef742bc3..f15f4e0b 100644
+--- a/private/tmp/blanc-save-ack-plan/before/components/sessions/core/command_storage_manager.h
++++ b/private/tmp/blanc-save-ack-plan/after/components/sessions/core/command_storage_manager.h
+@@ -115,0 +116,2 @@ class SESSIONS_EXPORT CommandStorageManager {
++  void SaveAndFlush(base::OnceCallback<void(bool)> callback);
++
+@@ -141,0 +144,2 @@ class SESSIONS_EXPORT CommandStorageManager {
++  void FlushSavedCommands(base::OnceCallback<void(bool)> callback);
++
+diff --git a/private/tmp/blanc-save-ack-plan/before/components/sessions/core/command_storage_manager.cc b/private/tmp/blanc-save-ack-plan/after/components/sessions/core/command_storage_manager.cc
+index ecc8ce78..d74b25b9 100644
+--- a/private/tmp/blanc-save-ack-plan/before/components/sessions/core/command_storage_manager.cc
++++ b/private/tmp/blanc-save-ack-plan/after/components/sessions/core/command_storage_manager.cc
+@@ -435,0 +436,24 @@ void CommandStorageManager::Save() {
++void CommandStorageManager::SaveAndFlush(base::OnceCallback<void(bool)> callback) {
++  Save();
++  FlushSavedCommands(std::move(callback));
++}
++
++void CommandStorageManager::FlushSavedCommands(
++    base::OnceCallback<void(bool)> callback) {
++  const auto stage = GetEncryptSessionStorageStage();
++  const bool encrypted =
++      stage == EncryptSessionStorageStage::kWriteBothReadPreferEncrypted ||
++      stage == EncryptSessionStorageStage::kWriteEncryptedReadPreferEncrypted;
++  if (encrypted && !encrypted_backend_) {
++    pending_encrypted_ops_.push_back(base::BindOnce(
++        &CommandStorageManager::FlushSavedCommands, weak_factory_.GetWeakPtr(),
++        std::move(callback)));
++    return;
++  }
++  auto backend = encrypted ? encrypted_backend_ : backend_;
++  backend_task_runner_->PostTaskAndReplyWithResult(
++      FROM_HERE,
++      base::BindOnce(&CommandStorageBackend::FlushCurrentSession, backend),
++      std::move(callback));
++}
++
+diff --git a/private/tmp/blanc-save-ack-plan/before/chrome/browser/sessions/session_service_base.h b/private/tmp/blanc-save-ack-plan/after/chrome/browser/sessions/session_service_base.h
+index f13a8a59..0558bd94 100644
+--- a/private/tmp/blanc-save-ack-plan/before/chrome/browser/sessions/session_service_base.h
++++ b/private/tmp/blanc-save-ack-plan/after/chrome/browser/sessions/session_service_base.h
+@@ -207,0 +208,2 @@ class SessionServiceBase : public sessions::CommandStorageManagerDelegate,
++  void SaveAndFlushSession(base::OnceCallback<void(bool)> callback);
++
+diff --git a/private/tmp/blanc-save-ack-plan/before/chrome/browser/sessions/session_service_base.cc b/private/tmp/blanc-save-ack-plan/after/chrome/browser/sessions/session_service_base.cc
+index 43514d3f..fe2a07d2 100644
+--- a/private/tmp/blanc-save-ack-plan/before/chrome/browser/sessions/session_service_base.cc
++++ b/private/tmp/blanc-save-ack-plan/after/chrome/browser/sessions/session_service_base.cc
+@@ -194,0 +195,5 @@ SessionServiceBase::~SessionServiceBase() {
++void SessionServiceBase::SaveAndFlushSession(
++    base::OnceCallback<void(bool)> callback) {
++  command_storage_manager_->SaveAndFlush(std::move(callback));
++}
++

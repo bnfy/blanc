@@ -1,0 +1,5 @@
+{
+  "owned_browsers_remaining": 0,
+  "google_and_dev_tabs_unchanged": true,
+  "snapshot": "{\n  google: { urls: [ 'blanc://newtab/' ], selected: 0 },\n  dev: { urls: [ 'blanc://newtab/', 'blanc://newtab/' ], selected: 1 }\n}\n"
+}

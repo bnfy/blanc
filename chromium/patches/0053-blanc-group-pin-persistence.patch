@@ -1,0 +1,25 @@
+diff --git a/chrome/browser/sessions/session_service_base.cc b/chrome/browser/sessions/session_service_base.cc
+--- a/chrome/browser/sessions/session_service_base.cc
++++ b/chrome/browser/sessions/session_service_base.cc
+@@ -627,6 +627,9 @@
+   sessions::SessionTabHelper* session_tab_helper =
+       sessions::SessionTabHelper::FromWebContents(tab);
+   const SessionID session_id(session_tab_helper->session_id());
++  if (blanc_prototype::GroupPinned(tab))
++    command_storage_manager()->AppendRebuildCommand(sessions::CreateAddTabExtraDataCommand(
++        session_id, blanc_prototype::kGroupPinKey, "1"));
+   const auto custom_name = blanc_prototype::PersistentTabName(tab);
+   if (!custom_name.empty()) command_storage_manager()->AppendRebuildCommand(
+       sessions::CreateAddTabExtraDataCommand(session_id,
+diff --git a/chrome/browser/ui/browser_live_tab_context.cc b/chrome/browser/ui/browser_live_tab_context.cc
+--- a/chrome/browser/ui/browser_live_tab_context.cc
++++ b/chrome/browser/ui/browser_live_tab_context.cc
+@@ -206,6 +206,8 @@
+   if (blanc_prototype::IsPersistentSplitTab(tab_strip_model_->GetWebContentsAt(index)))
+     extra_data[blanc_prototype::kPersistentSplitKey] = blanc_prototype::PersistentSplitState(tab_strip_model_->GetWebContentsAt(index));
+ 
++  if (blanc_prototype::GroupPinned(tab_strip_model_->GetWebContentsAt(index)))
++    extra_data[blanc_prototype::kGroupPinKey] = "1";
+   const auto name = blanc_prototype::PersistentTabName(tab_strip_model_->GetWebContentsAt(index));
+   if (!name.empty()) extra_data[blanc_prototype::kTabNameKey] = name;
+   if (blanc_prototype::HasInheritedDocumentPolicy(tab_strip_model_->GetWebContentsAt(index)))

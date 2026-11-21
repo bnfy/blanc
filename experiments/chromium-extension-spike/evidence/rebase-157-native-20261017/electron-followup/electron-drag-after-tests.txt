@@ -1,0 +1,265 @@
+TAP version 13
+# Subtest: cold plans larger than the former capture limit retain their final count
+ok 1 - cold plans larger than the former capture limit retain their final count
+  ---
+  duration_ms: 145.771292
+  ...
+# Subtest: streamed plans preserve safety markers crossing chunk boundaries
+ok 2 - streamed plans preserve safety markers crossing chunk boundaries
+  ---
+  duration_ms: 0.872083
+  ...
+# Subtest: recognizes real Siso dry-run summary without a progress denominator
+ok 3 - recognizes real Siso dry-run summary without a progress denominator
+  ---
+  duration_ms: 0.041125
+  ...
+# Subtest: large and shrinking plans retain the conservative maximum
+ok 4 - large and shrinking plans retain the conservative maximum
+  ---
+  duration_ms: 0.037792
+  ...
+# Subtest: no-work plans return zero; missing or changed formats fail closed
+ok 5 - no-work plans return zero; missing or changed formats fail closed
+  ---
+  duration_ms: 0.053167
+  ...
+# Subtest: detects same-path Xcode replacement and changed build arguments
+ok 6 - detects same-path Xcode replacement and changed build arguments
+  ---
+  duration_ms: 0.261417
+  ...
+# Subtest: added and missing environment inputs require review
+ok 7 - added and missing environment inputs require review
+  ---
+  duration_ms: 0.036542
+  ...
+# Subtest: large builds require an explicit override, small builds proceed
+ok 8 - large builds require an explicit override, small builds proceed
+  ---
+  duration_ms: 0.049375
+  ...
+# Subtest: pending manifest regeneration cannot sneak past the size check
+ok 9 - pending manifest regeneration cannot sneak past the size check
+  ---
+  duration_ms: 0.184833
+  ...
+# Subtest: small plans with generated buildflags cannot conceal dependent compilation
+ok 10 - small plans with generated buildflags cannot conceal dependent compilation
+  ---
+  duration_ms: 0.233542
+  ...
+# Subtest: lift found the tab-drag API
+ok 11 - lift found the tab-drag API
+  ---
+  duration_ms: 0.539416
+  ...
+# Subtest: a gap inside the source bucket resolves to beforeId
+ok 12 - a gap inside the source bucket resolves to beforeId
+  ---
+  duration_ms: 0.368125
+  ...
+# Subtest: the gap after a bucket's last row resolves to null
+ok 13 - the gap after a bucket's last row resolves to null
+  ---
+  duration_ms: 0.137625
+  ...
+# Subtest: a loose tab dropped among group rows joins that group
+ok 14 - a loose tab dropped among group rows joins that group
+  ---
+  duration_ms: 0.054958
+  ...
+# Subtest: a grouped tab dropped in the loose section leaves its group
+ok 15 - a grouped tab dropped in the loose section leaves its group
+  ---
+  duration_ms: 0.099833
+  ...
+# Subtest: the pin boundary inside a group is valid for both states; deeper gaps only for their own
+ok 16 - the pin boundary inside a group is valid for both states; deeper gaps only for their own
+  ---
+  duration_ms: 0.384375
+  ...
+# Subtest: the middle of a header (collapsed or not) appends to that group
+ok 17 - the middle of a header (collapsed or not) appends to that group
+  ---
+  duration_ms: 0.110667
+  ...
+# Subtest: outside the list resolves to nothing
+ok 18 - outside the list resolves to nothing
+  ---
+  duration_ms: 0.034458
+  ...
+# Subtest: an empty loose zone is a valid target for unpinned tabs only
+ok 19 - an empty loose zone is a valid target for unpinned tabs only
+  ---
+  duration_ms: 0.214083
+  ...
+# Subtest: group drops resolve between group bands
+ok 20 - group drops resolve between group bands
+  ---
+  duration_ms: 0.289791
+  ...
+# Subtest: keyboard swaps inside a bucket
+ok 21 - keyboard swaps inside a bucket
+  ---
+  duration_ms: 0.1595
+  ...
+# Subtest: keyboard crosses into the next eligible bucket, skipping collapsed groups
+ok 22 - keyboard crosses into the next eligible bucket, skipping collapsed groups
+  ---
+  duration_ms: 0.043041
+  ...
+# Subtest: keyboard never enters an opposite-state bucket and stops at the ends
+ok 23 - keyboard never enters an opposite-state bucket and stops at the ends
+  ---
+  duration_ms: 0.054208
+  ...
+# Subtest: keyboard group moves and end stops
+ok 24 - keyboard group moves and end stops
+  ---
+  duration_ms: 0.0495
+  ...
+# Subtest: describeMove names reorders, joins, leaves and dissolving groups
+ok 25 - describeMove names reorders, joins, leaves and dissolving groups
+  ---
+  duration_ms: 0.473125
+  ...
+# Subtest: session: a 3px × 3px diagonal (over 4px in total) starts a drag
+ok 26 - session: a 3px × 3px diagonal (over 4px in total) starts a drag
+  ---
+  duration_ms: 0.213833
+  ...
+# Subtest: session: under 4px stays a click; 4px starts a drag
+ok 27 - session: under 4px stays a click; 4px starts a drag
+  ---
+  duration_ms: 0.148667
+  ...
+# Subtest: session: a valid drop keeps the source dimmed until the IPC settles
+ok 28 - session: a valid drop keeps the source dimmed until the IPC settles
+  ---
+  duration_ms: 4.366042
+  ...
+# Subtest: session: a drop that resolves false restores the source and announces
+ok 29 - session: a drop that resolves false restores the source and announces
+  ---
+  duration_ms: 0.30075
+  ...
+# Subtest: session: a drop that resolves reject restores the source and announces
+ok 30 - session: a drop that resolves reject restores the source and announces
+  ---
+  duration_ms: 0.292833
+  ...
+# Subtest: session: Escape while settling is consumed and does not end the drop
+ok 31 - session: Escape while settling is consumed and does not end the drop
+  ---
+  duration_ms: 0.282417
+  ...
+# Subtest: session: a forced end while settling tears down and ignores a late true
+ok 32 - session: a forced end while settling tears down and ignores a late true
+  ---
+  duration_ms: 0.281708
+  ...
+# Subtest: session: a forced end while settling tears down and ignores a late false
+ok 33 - session: a forced end while settling tears down and ignores a late false
+  ---
+  duration_ms: 0.171167
+  ...
+# Subtest: session: a forced end while settling tears down and ignores a late reject
+ok 34 - session: a forced end while settling tears down and ignores a late reject
+  ---
+  duration_ms: 0.2735
+  ...
+# Subtest: session: Escape cancels with full teardown and no drop
+ok 35 - session: Escape cancels with full teardown and no drop
+  ---
+  duration_ms: 0.085959
+  ...
+# Subtest: session: pointercancel cancels with full teardown and no drop
+ok 36 - session: pointercancel cancels with full teardown and no drop
+  ---
+  duration_ms: 0.121708
+  ...
+# Subtest: session: lostpointercapture cancels with full teardown and no drop
+ok 37 - session: lostpointercapture cancels with full teardown and no drop
+  ---
+  duration_ms: 0.039625
+  ...
+# Subtest: session: release over nothing cancels with full teardown and no drop
+ok 38 - session: release over nothing cancels with full teardown and no drop
+  ---
+  duration_ms: 0.045125
+  ...
+# Subtest: session: escape when idle is not handled
+ok 39 - session: escape when idle is not handled
+  ---
+  duration_ms: 0.125125
+  ...
+# Subtest: session: an invalid gap shows no indicator
+ok 40 - session: an invalid gap shows no indicator
+  ---
+  duration_ms: 0.256583
+  ...
+# Subtest: session: auto-scroll near an edge scrolls and refreshes rects before resolving
+ok 41 - session: auto-scroll near an edge scrolls and refreshes rects before resolving
+  ---
+  duration_ms: 0.387791
+  ...
+# Subtest: session: scrolled() refreshes rects
+ok 42 - session: scrolled() refreshes rects
+  ---
+  duration_ms: 0.12175
+  ...
+# Subtest: session: a payload missing the source cancels; a present source does not
+ok 43 - session: a payload missing the source cancels; a present source does not
+  ---
+  duration_ms: 0.192458
+  ...
+# Subtest: session: a tab drag cancels when its original group or pinned state changes
+ok 44 - session: a tab drag cancels when its original group or pinned state changes
+  ---
+  duration_ms: 0.265458
+  ...
+# Subtest: session: payloads while settling are only deferred
+ok 45 - session: payloads while settling are only deferred
+  ---
+  duration_ms: 1.928583
+  ...
+# Subtest: session: a group drag drops a group intent
+ok 46 - session: a group drag drops a group intent
+  ---
+  duration_ms: 0.354042
+  ...
+# Subtest: session: events for another pointer are ignored
+ok 47 - session: events for another pointer are ignored
+  ---
+  duration_ms: 0.0545
+  ...
+# Subtest: session: releasing beside the list (over the page) is not a drop
+ok 48 - session: releasing beside the list (over the page) is not a drop
+  ---
+  duration_ms: 0.311417
+  ...
+# Subtest: empty pinned section cannot swallow the first loose-tab gap
+ok 49 - empty pinned section cannot swallow the first loose-tab gap
+  ---
+  duration_ms: 0.126333
+  ...
+# Subtest: coincident boundary accepts each source only into its own bucket
+ok 50 - coincident boundary accepts each source only into its own bucket
+  ---
+  duration_ms: 0.061541
+  ...
+# Subtest: a pinned source still prefers the pinned section beside empty loose
+ok 51 - a pinned source still prefers the pinned section beside empty loose
+  ---
+  duration_ms: 0.031625
+  ...
+1..51
+# tests 51
+# suites 0
+# pass 51
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 183.641459

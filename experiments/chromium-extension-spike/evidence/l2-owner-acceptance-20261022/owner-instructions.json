@@ -1,0 +1,62 @@
+{
+  "status": "complete; owner accepted L2",
+  "artifactSha256": "18272ab548d0117744209536bc24c0b6cc09ece38c01fec4976cf8e78899306f",
+  "publishedEvidenceCommit": "04a88217",
+  "stage1": [
+    "Identify green Shipping Blanc and blue Chromium Preview; menu names differ.",
+    "Switch between tab one and tab two in each app; verify pages belong only to that app.",
+    "Quit only Chromium Preview with Cmd+Q; confirm Shipping Blanc remains open with its tabs."
+  ],
+  "later": [
+    "Reopen preview and confirm tab/selection restoration.",
+    "Verify different start-page settings stay separate through restart.",
+    "Quit/reopen shipping while preview remains; remove only test preview app, confirm shipping/data remain."
+  ],
+  "ownerResult": "Passed",
+  "stage1OwnerReport": "passed",
+  "stage1ProcessVerification": "Original process still alive at continuation; controlled clean exit0/restart performed and original tabs/selection match.",
+  "stage2": [
+    "Confirm preview test tabs one/two reappeared.",
+    "Preview New Tab > Customize > Shelf.",
+    "Shipping New Tab > Customize remains Billboard.",
+    "Quit only Preview using its application menu; report settings separation and quit result."
+  ],
+  "stage2OwnerReport": "passed",
+  "stage2Verified": {
+    "previewLayout": "shelf",
+    "shippingLayout": "billboard",
+    "previewExitCode": 0,
+    "previewRestoredTabs": 4,
+    "shippingTabs": 4
+  },
+  "stage3": [
+    "Quit only Shipping Blanc using its application menu.",
+    "Confirm Preview remains usable with Shelf and all four tabs.",
+    "Reply to request shipping restart; agent will reopen only test Shipping."
+  ],
+  "stage3OwnerReport": "Shipping closed; Preview still works with Shelf and four tabs",
+  "stage3Verified": {
+    "shippingExitCode": 0,
+    "shippingRestartedTabs": 4,
+    "shippingRestartedLayout": "billboard",
+    "previewUnchangedLayout": "shelf"
+  },
+  "stage4Verified": {
+    "testPreviewRemoved": true,
+    "previewProfilePreserved": true,
+    "masterSignedCandidatePreserved": true,
+    "shippingTabs": {
+      "urls": [
+        "blanc://newtab/",
+        "http://127.0.0.1:9860/shipping/one",
+        "http://127.0.0.1:9860/shipping/two",
+        "blanc://newtab/"
+      ],
+      "selected": 3
+    },
+    "shippingLayouts": [
+      "billboard"
+    ]
+  },
+  "finalOwnerQuestion": "Confirm Shipping still has four tabs, its start page uses Billboard, and the test Preview window is gone."
+}

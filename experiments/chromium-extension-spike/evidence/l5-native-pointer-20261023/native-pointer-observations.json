@@ -1,0 +1,13 @@
+{
+  "candidateSource": "006ccda1e994f8468baf7b9663453be9aedb61ea",
+  "status": "preflight",
+  "mockKeychain": true,
+  "observations": [
+    "Native UI click on right page input changed native active state to Right view and focused input.",
+    "Typed native right into right input.",
+    "Native UI click on left input changed active state to Left view.",
+    "Typed native left into left input; both fields retain independent strings.",
+    "Window closed with native Cmd+Q before signing."
+  ],
+  "limitations": "Owner signed-candidate retest still required."
+}

@@ -1,0 +1,22 @@
+{
+  "experiments/chromium-extension-spike/prepare.mjs": "461db692f0a6e8e1b3f7c82c5776d4b63ed888d0c4eb6bf91446f5d2ae39e9ce",
+  "experiments/chromium-extension-spike/research-build.mjs": "9575eb32eb31c11bda25b2041b101a5f93ba6921effca9192524b23871f7bfdb",
+  "experiments/chromium-extension-spike/patch-budget.py": "55c3a761c8c36a3a8252a55b2cb03e4d83dfb93f427753ed0ccfd02afcc3a823",
+  "experiments/chromium-extension-spike/native/blocker/prepare.mjs": "8f65b519f3f33a23ddfc3fb0fe2d371e061a84f6fee842efe329c01a44d1639e",
+  "experiments/chromium-extension-spike/native/blocker/prepare_final_factory.mjs": "5e9ad46ab909d0627d483c211c941dbeaa635015b5990849aae3ed534bfcc3fd",
+  "experiments/chromium-extension-spike/native/blocker/blanc_url_loader_gate.h": "f7237607aa43df79e905a0e9fef918f196626b3c0de203c2353c79fdca010b48",
+  "experiments/chromium-extension-spike/native/blocker/blanc_websocket_gate.h": "2e542a56bb7527d2c70f7a8635fe9b689cda749887dd659cce3f45485ff768b2",
+  "experiments/chromium-extension-spike/native/blocker/BUILD.gn": "a672411fad445cb1aa1252a247af5b29bf1318dc94e78b7aa76d1658aa00782a",
+  "experiments/chromium-extension-spike/native/blocker/update_identity.inc": "f4a4c29a41d6a0a1120bc40c387003d5b732b6aa16c2376fe8fbaf90a0dd51bd",
+  "experiments/chromium-extension-spike/native/blanc_prototype_ui.h": "a6261906f6783cabba6bdeaffa86ad7f2474bc6291ac4f9f21bcdc0cc208bfc3",
+  "experiments/chromium-extension-spike/evidence/f12-devtools-signed-20261026/artifact.json": "5b71ac7c0bfcbe9973ef2a983fffbf7e8cfe37b38e23abab27491a658e9350dd",
+  "experiments/chromium-extension-spike/evidence/f12-redirect-repair-20261025/patch-budget.json": "3aedfe2d81ce1f1df9cf747c8ed16869969eefdc8af14612bbf09d047f549333",
+  "experiments/chromium-extension-spike/a1-patch-budget-design.md": "5dacdb28cf21e8eb91c58182028994ce53c28e8b2c831d52de1a510530c6ad03",
+  "experiments/chromium-extension-spike/decision2-input-disposition-20261026.md": "adfa721a89040bd8b46e869d59a9c7fa9e23c0bddab719651a6be31e7d135d33",
+  "experiments/chromium-extension-spike/decision2-operating-proposal-20261026.md": "7b78413cea5130cb15db4539e5ba8ed3a6cb0b64fd479df8ac954ea7e3d285c2",
+  "experiments/chromium-extension-spike/evidence/l5-owner-acceptance-20261023/README.md": "d6b305612ca500552732c126b4a4b4400f8efafe60dcb219e7532a8fd0500614",
+  "experiments/chromium-extension-spike/evidence/l10-functional-smoke-20261023/README.md": "e76f3c19b8873bf8d82430e7b8c52fc698fb32e88a28671c70457952dc8635ac",
+  "experiments/chromium-extension-spike/evidence/l8-prerender-distribution-20261024/README.md": "d69e0e5f307fc2c2aac0e7b42d27548e69827109078fd39c7f0f1f199f54a60c",
+  "experiments/chromium-extension-spike/evidence/l6-restore-scheduling-20261023/README.md": "948695a21aeb92b69ff960452f37c16d5f3f9c536a2a0c9ed48aa5e007f2f5cc",
+  "experiments/chromium-extension-spike/evidence/f12-path-attribution-20261024/README.md": "fe22e12db8e732483c95c588984f7001b146aad9a2e08cf55ae3202970b9b5b8"
+}

@@ -4,7 +4,6 @@ const test = require('node:test');
 const { KNOWN_PAGES, UTILITY_PAGES, isUtilityUrl } = require('../../src/main/utility-pages');
 
 test('isUtilityUrl: utility hosts match, with paths and queries', () => {
-  assert.equal(isUtilityUrl('blanc://bookmarks/'), true);
   assert.equal(isUtilityUrl('blanc://history/'), true);
   assert.equal(isUtilityUrl('blanc://downloads/'), true);
   assert.equal(isUtilityUrl('blanc://settings/'), true);
@@ -27,9 +26,17 @@ test('isUtilityUrl: non-utility internal pages and other schemes do not match', 
   assert.equal(isUtilityUrl(undefined), false);
 });
 
-test('UTILITY_PAGES is exactly the seven sheet pages', () => {
+test('UTILITY_PAGES is exactly the six sheet pages', () => {
   assert.deepEqual([...UTILITY_PAGES].sort(),
-    ['bookmarks', 'downloads', 'history', 'settings', 'shortcuts', 'tab-handoff', 'tab-import']);
+    ['downloads', 'history', 'settings', 'shortcuts', 'tab-handoff', 'tab-import']);
+});
+
+// Owner, November 18, 2026: Favorites is a page of its own in a tab, like
+// Chrome's bookmark manager, not a sheet page.
+test('Favorites is a known page that opens in a tab, not the sheet', () => {
+  assert.ok(KNOWN_PAGES.has('bookmarks'));
+  assert.equal(UTILITY_PAGES.has('bookmarks'), false);
+  assert.equal(isUtilityUrl('blanc://bookmarks/'), false);
 });
 
 test('mahjong is a known page but never a utility page', () => {

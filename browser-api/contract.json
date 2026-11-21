@@ -62,8 +62,8 @@
       "doc": "How an invite left Blanc: opened in the person's mail app, or copied to the clipboard because no mail app opened."
     },
     "CreateTabOptions": {
-      "ts": "{ private?: boolean }",
-      "doc": "Options for a new tab. Only `private` is read by main today."
+      "ts": "{ private?: boolean, focusAddress?: boolean }",
+      "doc": "Options for a new tab. `private` opens a private tab; `focusAddress` says whether the address field takes focus (by default only for a plain new tab)."
     },
     "TabMoveTarget": {
       "doc": "Where a dragged or keyboard-moved tab should land. The pinned state never changes.",
@@ -97,6 +97,11 @@
         },
         "symbol": {
           "type": "string",
+          "optional": true
+        },
+        "profileId": {
+          "type": "string",
+          "doc": "Another local profile whose Space this is (spec 2026-11-19-spaces-across-profiles): opens or creates it in a window of that profile. Omitted, or this window’s own profile, keeps today’s path.",
           "optional": true
         }
       }
@@ -1068,6 +1073,16 @@
         "recoveryNotice": {
           "type": "boolean | null",
           "optional": true
+        },
+        "otherProfiles": {
+          "type": "OtherProfileSpaces[] | undefined",
+          "doc": "Every other live profile, only with two or more live profiles.",
+          "optional": true
+        },
+        "profileName": {
+          "type": "string | undefined",
+          "doc": "This window’s profile name, beside otherProfiles.",
+          "optional": true
         }
       }
     },
@@ -1158,6 +1173,11 @@
         "searchPriorityResults": {
           "type": "boolean",
           "doc": "Settings → Search priority results: search suggestions lead typed results."
+        },
+        "panelSideClearance": {
+          "type": "number",
+          "doc": "The margin the centered panel keeps from each side of the overlay view, wider on macOS where the window buttons sit beside it; absent for the switcher card.",
+          "optional": true
         }
       }
     },
@@ -1198,7 +1218,7 @@
       }
     },
     "WorkspaceErrorCode": {
-      "ts": "'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-color' | 'invalid-symbol' | 'invalid-index' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch' | 'saved-not-moved'",
+      "ts": "'activation-failed' | 'busy' | 'duplicate-name' | 'future-format' | 'invalid-name' | 'invalid-color' | 'invalid-symbol' | 'invalid-index' | 'invalid-record' | 'limit' | 'not-found' | 'protected-pages' | 'read-failed' | 'repair-failed' | 'saved-not-opened' | 'storage-failed' | 'unsaved-scratch' | 'saved-not-moved' | 'profile-unavailable'",
       "doc": "Every error code a Named Workspace action can report, from workspace-controller.js, workspaces.js, workspaces-model.js and the workspace functions in main.js."
     },
     "WorkspaceProtectionReason": {
@@ -1309,6 +1329,16 @@
         },
         "recoveryNotice": {
           "type": "boolean | null",
+          "optional": true
+        },
+        "otherProfiles": {
+          "type": "OtherProfileSpaces[] | undefined",
+          "doc": "Every other live profile, only with two or more live profiles.",
+          "optional": true
+        },
+        "profileName": {
+          "type": "string | undefined",
+          "doc": "This window’s profile name, beside otherProfiles.",
           "optional": true
         }
       }
@@ -1913,6 +1943,104 @@
           "doc": "The generation from the last chrome:glance-layout applied."
         }
       }
+    },
+    "BackdropLayer": {
+      "doc": "One Start Page wallpaper layer's computed background (start-backdrop.js checks it).",
+      "fields": {
+        "color": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string"
+        },
+        "position": {
+          "type": "string"
+        },
+        "repeat": {
+          "type": "string"
+        },
+        "opacity": {
+          "type": "number"
+        },
+        "fade": {
+          "type": "boolean"
+        }
+      }
+    },
+    "PageBackdrop": {
+      "doc": "The active Start Page's wallpaper for the Island's band to continue: the page's size and zoom, its layers, and the band's height above it.",
+      "fields": {
+        "id": {
+          "type": "TabId"
+        },
+        "zoom": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "layers": {
+          "type": "BackdropLayer[]"
+        },
+        "band": {
+          "type": "number"
+        },
+        "sunriseAt": {
+          "type": "number",
+          "optional": true
+        }
+      }
+    },
+    "OtherProfileSpace": {
+      "doc": "Another profile’s Space, limited to the fields allowed to cross profiles (spaces-across-profiles.js).",
+      "fields": {
+        "id": {
+          "type": "WorkspaceId"
+        },
+        "name": {
+          "type": "string"
+        },
+        "color": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "tabCount": {
+          "type": "number"
+        },
+        "openElsewhere": {
+          "type": "boolean",
+          "doc": "A window of that profile shows it."
+        }
+      }
+    },
+    "OtherProfileSpaces": {
+      "doc": "One other live local profile and its Spaces.",
+      "fields": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "type": "WorkspaceSaveStatus"
+        },
+        "full": {
+          "type": "boolean",
+          "doc": "The profile holds the most Spaces it can."
+        },
+        "items": {
+          "type": "OtherProfileSpace[]"
+        }
+      }
     }
   },
   "members": [
@@ -1942,7 +2070,7 @@
         }
       ],
       "returns": "TabId",
-      "doc": "Open a new tab. A plain new tab is always ungrouped. Resolves to the new tab id."
+      "doc": "Open a new tab. A plain new tab (no url) is always ungrouped, and when the reuseNewTab setting is on it switches to an unused New Tab page of the same kind already in the window (#1505). Resolves to the new or reused tab id."
     },
     {
       "name": "closeTab",
@@ -3816,6 +3944,15 @@
       "channel": "chrome:page-tint",
       "payload": "PageTint",
       "doc": "The active page's tint changed."
+    },
+    {
+      "name": "onPageBackdrop",
+      "group": "appearance",
+      "kind": "event",
+      "channel": "chrome:page-backdrop",
+      "payload": "PageBackdrop | null",
+      "doc": "The active Start Page's wallpaper for the band, or null where the band keeps its sampled color.",
+      "payloadCheck": "fixtures"
     },
     {
       "name": "onDownloadsActivity",

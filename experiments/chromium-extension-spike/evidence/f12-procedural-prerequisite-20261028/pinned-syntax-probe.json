@@ -1,0 +1,15 @@
+{
+  "rows": [
+    {
+      "rule": "character.ai#?#.space-y-4 > .w-full:has-text(Advertisement)",
+      "parsedFilter": true,
+      "extended": 0
+    },
+    {
+      "rule": "character.ai##.space-y-4 > .w-full:has-text(Advertisement)",
+      "parsedFilter": true,
+      "extended": 1
+    }
+  ],
+  "runtimeAcceptance": false
+}

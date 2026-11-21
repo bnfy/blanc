@@ -1,0 +1,7 @@
+{
+  "app": "/private/tmp/blanc-l7-repair/Blanc Chromium Preview.app",
+  "profile": "/private/tmp/blanc-l6-acceptance/teardown-profile",
+  "checks": [],
+  "error": "Error: wait deadline",
+  "stack": "Error: wait deadline\n    at wait (file:///private/tmp/blanc-l6-acceptance/teardown.mjs:4:130)\n    at async file:///private/tmp/blanc-l6-acceptance/teardown.mjs:10:573"
+}

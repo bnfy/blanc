@@ -1,0 +1,9 @@
+{
+  "source": "d3eddfd222436ad9b99e58ec3f249946da2d1714",
+  "archive": "/Users/anthonyjloria/Projects/BlancPreviewArtifacts/blocker-recovery-20261028/Blanc-Chromium-Preview-157.0.8103.15-d3eddfd2-arm64.zip",
+  "sha256": "6a661b5d54e1270f1a4f39b30dd4d5683ab9014962836fa996784e233eb7ba39",
+  "notarization": "f045a8fe-dd35-433a-b751-de634c078c40",
+  "status": "Accepted",
+  "signedAffectedChecks": 12,
+  "distributionApproval": false
+}

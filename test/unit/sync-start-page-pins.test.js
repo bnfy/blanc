@@ -49,7 +49,7 @@ function pass(device, server) {
 }
 
 test('sync.js sends pins with settings and syncs after a local pin change', () => {
-  assert.match(SYNC, /export: \(\) => withStartPagePins\(settings\.exportForSync\(\)\)/);
+  assert.match(SYNC, /export: \(\) => withFavoritesLayout\(withStartPagePins\(settings\.exportForSync\(\)\), favoritesLayout\.exportForSync\(\)\)/);
   assert.match(SYNC, /startPagePins\.onChanged\(\(\) => \{\s*if \(isDefaultLocalProfile\(\)\) onDefaultLocalChange\(\);/);
 });
 

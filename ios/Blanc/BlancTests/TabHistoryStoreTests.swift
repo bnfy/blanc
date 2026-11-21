@@ -204,12 +204,4 @@ final class TabHistoryStoreTests: XCTestCase {
         marked.historyId = "local"
         XCTAssertEqual(plain, marked)
     }
-
-    @MainActor private func waitUntil(_ condition: () -> Bool) async throws {
-        for _ in 0..<100 {
-            if condition() { return }
-            try await Task.sleep(for: .milliseconds(50))
-        }
-        XCTFail("timed out")
-    }
 }

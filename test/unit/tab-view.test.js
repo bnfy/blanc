@@ -455,19 +455,70 @@ test('native tool rooting excludes websites, private tabs, macOS and stale owner
   }
 });
 
-test('certificate-error allows only through the exception store and never by default', () => {
+// Tabs and the pop-up windows pages open (#1437 follow-up: Proxmox consoles)
+// answer certificate-error through one helper.
+function certificateSources() {
   const source = require('node:fs').readFileSync(require.resolve('../../src/main/tab-view.js'), 'utf8');
-  const handler = source.slice(source.indexOf("wc.on('certificate-error'"), source.indexOf("wc.once('destroyed'"));
-  assert.match(handler, /certificateExceptions\.matches\(wc\.session/);
-  assert.match(handler, /event\.preventDefault\(\);\s*setImmediate\(\(\) => callback\(true\)\);/);
-  assert.equal((handler.match(/callback\(true\)/g) ?? []).length, 1);
+  const between = (from, to) => source.slice(source.indexOf(from), source.indexOf(to, source.indexOf(from)));
+  return {
+    helper: between('function allowContinuedCertificate(', 'function wireTabView('),
+    tab: between("wc.on('certificate-error'", "wc.once('destroyed'"),
+    popup: between("childWc.on('certificate-error'", 'windowRuntimes.registerAuxiliaryContent'),
+  };
+}
+
+test('certificate-error allows only through the exception store and never by default', () => {
+  const { helper, tab, popup } = certificateSources();
+  assert.match(helper, /certificateExceptions\.matches\(wc\.session/);
+  assert.match(helper, /event\.preventDefault\(\);\s*setImmediate\(\(\) => callback\(true\)\);/);
+  assert.equal((helper.match(/callback\(true\)/g) ?? []).length, 1);
+  for (const handler of [tab, popup]) {
+    assert.match(handler, /allowContinuedCertificate\(certificateExceptions, (wc|childWc), event,/);
+    assert.equal(handler.includes('callback(true)'), false);
+  }
 });
 
 // Electron 45 emits certificate-error on the WebContents and then on app, both
 // reading a URL the request owns. Answering during the first emit frees it, and
 // the second emit crashes the browser (#1424).
 test('certificate-error never answers while Electron is still emitting the event', () => {
-  const source = require('node:fs').readFileSync(require.resolve('../../src/main/tab-view.js'), 'utf8');
-  const handler = source.slice(source.indexOf("wc.on('certificate-error'"), source.indexOf("wc.once('destroyed'"));
-  assert.equal(handler.replace(/setImmediate\(\(\) => callback\(true\)\);/, '').includes('callback('), false);
+  const { helper, tab, popup } = certificateSources();
+  assert.equal(helper.replace(/setImmediate\(\(\) => callback\(true\)\);/, '').includes('callback('), false);
+  for (const handler of [tab, popup]) assert.equal(handler.includes('callback('), false);
+});
+
+// #1477: a page that objects to being left (Proxmox's console while connected)
+// gets the same Leave or Stay question in a pop-up window as in a tab.
+// Unanswered, Electron keeps the pop-up open and its close button does nothing.
+function loadAnswerUnloadObjection(choice) {
+  const source = viewSource.match(/function answerUnloadObjection\(event, parent\) \{[\s\S]*?\n\}/)?.[0];
+  assert.ok(source, 'answerUnloadObjection not found in tab-view.js — update this test with it');
+  const asked = [];
+  const sandbox = {
+    deps: { t: key => key },
+    dialog: { showMessageBoxSync: (parent, options) => { asked.push({ parent, options }); return choice; } },
+  };
+  vm.runInNewContext(`${source}\nthis.__answer = answerUnloadObjection;`, sandbox);
+  return { answer: sandbox.__answer, asked };
+}
+
+test('Leave lets an objecting page unload and Stay keeps it, asking over the given window', () => {
+  for (const [choice, leaves] of [[0, true], [1, false]]) {
+    const { answer, asked } = loadAnswerUnloadObjection(choice);
+    const parent = { id: 7 };
+    let prevented = false;
+    answer({ preventDefault() { prevented = true; } }, parent);
+    assert.equal(prevented, leaves);
+    assert.equal(asked.length, 1);
+    assert.equal(asked[0].parent, parent);
+    assert.deepEqual([...asked[0].options.buttons], ['tabView.leave.leave', 'tabView.leave.stay']);
+    assert.equal(asked[0].options.cancelId, 1);
+  }
+});
+
+test('tabs and pop-up windows both answer will-prevent-unload with the one question', () => {
+  const popup = viewSource.slice(viewSource.indexOf("targetWc.on('did-create-window'"),
+    viewSource.indexOf('applyWindowOpenPolicy(wc);'));
+  assert.match(popup, /childWc\.on\('will-prevent-unload', \(event\) => \{\s*answerUnloadObjection\(event, childWindow\);/);
+  assert.match(wireSource, /wc\.on\('will-prevent-unload', boundToTab\(\(event\) => \{[\s\S]*?answerUnloadObjection\(event, /);
 });

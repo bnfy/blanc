@@ -1,0 +1,108 @@
+{"name": "diagnostic-apply", "argv": ["python3", "/private/tmp/blanc-save-rotation/diagnostic.py", "apply"], "started": "2026-10-19T23:05:41.753687+00:00", "seconds": 0.031529041, "exit_code": 0}
+{"name": "helper-build", "argv": ["clang", "-dynamiclib", "/private/tmp/blanc-save-rotation/barrier.c", "-o", "/private/tmp/blanc-save-rotation/barrier.dylib"], "started": "2026-10-19T23:05:41.817548+00:00", "seconds": 0.276742167, "exit_code": 0}
+{"name": "diagnostic-build", "argv": ["node", "experiments/chromium-extension-spike/build.mjs", "/Users/anthonyjloria/Projects/BlancChromium157/src", "--build"], "started": "2026-10-19T23:05:42.124986+00:00", "seconds": 41.291422292, "exit_code": 0}
+{"name": "clear-identity-start", "argv": ["node", "/private/tmp/blanc-save-rotation/start.mjs"], "started": "2026-10-19T23:06:29.139662+00:00", "seconds": 0.0731305, "exit_code": 0}
+{"name": "clear-identity-seed", "argv": ["node", "/private/tmp/blanc-save-rotation/check.mjs", "seed"], "started": "2026-10-19T23:06:29.240651+00:00", "seconds": 9.282175665999999, "exit_code": 0}
+{"name": "clear-identity-proof", "argv": ["node", "/private/tmp/blanc-save-rotation/probe.mjs", "identity"], "started": "2026-10-19T23:06:38.554966+00:00", "seconds": 0.357581541, "exit_code": 1}
+{"name": "clear-identity-cleanup", "argv": ["node", "/private/tmp/blanc-save-rotation/cleanup.mjs"], "started": "2026-10-19T23:06:38.945470+00:00", "seconds": 0.632724458, "exit_code": 0}
+{"name": "clear-identity-start", "argv": ["node", "/private/tmp/blanc-save-rotation/start.mjs"], "started": "2026-10-19T23:06:50.534939+00:00", "seconds": 0.056709375000000006, "exit_code": 0}
+{"name": "clear-identity-seed", "argv": ["node", "/private/tmp/blanc-save-rotation/check.mjs", "seed"], "started": "2026-10-19T23:06:50.626111+00:00", "seconds": 5.089989792, "exit_code": 0}
+{"name": "clear-identity-proof", "argv": ["node", "/private/tmp/blanc-save-rotation/probe.mjs", "identity"], "started": "2026-10-19T23:06:55.750506+00:00", "seconds": 18.859528125, "exit_code": 1}
+{"name": "clear-identity-cleanup", "argv": ["node", "/private/tmp/blanc-save-rotation/cleanup.mjs"], "started": "2026-10-19T23:07:14.666333+00:00", "seconds": 0.8896320830000001, "exit_code": 0}
+{"name": "patch-budget", "argv": ["python3", "experiments/chromium-extension-spike/patch-budget.py", "/Users/anthonyjloria/Projects/BlancChromium157/src", "--upstream", "41520584daa68d0040db7746ae562a0ff82187f6", "--output", "/private/tmp/blanc-save-rotation/patch-budget.json"], "started": "2026-10-19T23:06:33.572547+00:00", "seconds": 43.452522375, "exit_code": 0}
+{"name": "clear-identity-start", "argv": ["node", "/private/tmp/blanc-save-rotation/start.mjs"], "started": "2026-10-19T23:07:42.238767+00:00", "seconds": 0.0504685, "exit_code": 0}
+{"name": "clear-identity-seed", "argv": ["node", "/private/tmp/blanc-save-rotation/check.mjs", "seed"], "started": "2026-10-19T23:07:42.319463+00:00", "seconds": 5.148475083, "exit_code": 0}
+{"name": "clear-identity-proof", "argv": ["node", "/private/tmp/blanc-save-rotation/probe.mjs", "identity"], "started": "2026-10-19T23:07:47.500528+00:00", "seconds": 19.098363834, "exit_code": 1}
+{"name": "clear-identity-cleanup", "argv": ["node", "/private/tmp/blanc-save-rotation/cleanup.mjs"], "started": "2026-10-19T23:08:06.636047+00:00", "seconds": 0.644981583, "exit_code": 0}
+{"name": "clear-identity-start", "argv": ["node", "/private/tmp/blanc-save-rotation/start.mjs"], "started": "2026-10-19T23:08:28.063913+00:00", "seconds": 0.053865166, "exit_code": 0}
+{"name": "clear-identity-seed", "argv": ["node", "/private/tmp/blanc-save-rotation/check.mjs", "seed"], "started": "2026-10-19T23:08:28.147336+00:00", "seconds": 5.093622000000001, "exit_code": 0}
+{"name": "clear-identity-prime-close", "argv": ["node", "/private/tmp/blanc-save-rotation/close.mjs"], "started": "2026-10-19T23:08:33.274373+00:00", "seconds": 1.091044959, "exit_code": 0}
+{"name": "clear-identity-held-restart", "argv": ["node", "/private/tmp/blanc-save-rotation/launch-injected.mjs"], "started": "2026-10-19T23:08:34.411068+00:00", "seconds": 0.026359167000000003, "exit_code": 0}
+{"name": "clear-identity-proof", "argv": ["node", "/private/tmp/blanc-save-rotation/probe.mjs", "identity"], "started": "2026-10-19T23:08:34.465906+00:00", "seconds": 9.275801625, "exit_code": 0}
+{"name": "clear-identity-cleanup", "argv": ["node", "/private/tmp/blanc-save-rotation/cleanup.mjs"], "started": "2026-10-19T23:08:43.777120+00:00", "seconds": 0.643001291, "exit_code": 0}
+{"name": "clear-identity-start", "argv": ["node", "/private/tmp/blanc-save-rotation/start.mjs"], "started": "2026-10-19T23:09:20.245159+00:00", "seconds": 0.124753292, "exit_code": 1}
+{"name": "clear-identity-cleanup", "argv": ["node", "/private/tmp/blanc-save-rotation/cleanup.mjs"], "started": "2026-10-19T23:09:20.398600+00:00", "seconds": 0.02477625, "exit_code": 1}
+{"name": "clear-identity-start", "argv": ["node", "/private/tmp/blanc-save-rotation/start.mjs"], "started": "2026-10-19T23:09:27.396640+00:00", "seconds": 0.051672499999999996, "exit_code": 0}
+{"name": "clear-identity-seed", "argv": ["node", "/private/tmp/blanc-save-rotation/check.mjs", "seed"], "started": "2026-10-19T23:09:27.477650+00:00", "seconds": 16.129450292, "exit_code": 1}
+{"name": "clear-identity-cleanup", "argv": ["node", "/private/tmp/blanc-save-rotation/cleanup.mjs"], "started": "2026-10-19T23:09:43.640910+00:00", "seconds": 0.69852825, "exit_code": 0}
+{"name": "clear-reset-before-start", "argv": ["node", "/private/tmp/blanc-save-rotation/start.mjs"], "started": "2026-10-19T23:09:54.468852+00:00", "seconds": 0.050913833000000006, "exit_code": 0}
+{"name": "clear-reset-before-seed", "argv": ["node", "/private/tmp/blanc-save-rotation/check.mjs", "seed"], "started": "2026-10-19T23:09:54.549403+00:00", "seconds": 5.098496334, "exit_code": 0}
+{"name": "clear-reset-before-prime-close", "argv": ["node", "/private/tmp/blanc-save-rotation/close.mjs"], "started": "2026-10-19T23:09:59.691296+00:00", "seconds": 1.081347042, "exit_code": 0}
+{"name": "clear-reset-before-held-restart", "argv": ["node", "/private/tmp/blanc-save-rotation/launch-injected.mjs"], "started": "2026-10-19T23:10:00.805318+00:00", "seconds": 0.023291416999999995, "exit_code": 0}
+{"name": "clear-reset-before-proof", "argv": ["node", "/private/tmp/blanc-save-rotation/probe.mjs", "reset-before"], "started": "2026-10-19T23:10:00.856226+00:00", "seconds": 9.30867725, "exit_code": 0}
+{"name": "clear-reset-before-cleanup", "argv": ["node", "/private/tmp/blanc-save-rotation/cleanup.mjs"], "started": "2026-10-19T23:10:10.196851+00:00", "seconds": 0.621640792, "exit_code": 0}
+{"name": "clear-identity-start", "argv": ["node", "/private/tmp/blanc-save-rotation/start.mjs"], "started": "2026-10-19T23:10:14.982354+00:00", "seconds": 0.04979725, "exit_code": 0}
+{"name": "clear-identity-seed", "argv": ["node", "/private/tmp/blanc-save-rotation/check.mjs", "seed"], "started": "2026-10-19T23:10:15.060166+00:00", "seconds": 5.052015, "exit_code": 0}
+{"name": "clear-identity-prime-close", "argv": ["node", "/private/tmp/blanc-save-rotation/close.mjs"], "started": "2026-10-19T23:10:20.151849+00:00", "seconds": 1.071132459, "exit_code": 0}
+{"name": "clear-identity-held-restart", "argv": ["node", "/private/tmp/blanc-save-rotation/launch-injected.mjs"], "started": "2026-10-19T23:10:21.255589+00:00", "seconds": 0.023828916000000002, "exit_code": 0}
+{"name": "clear-identity-proof", "argv": ["node", "/private/tmp/blanc-save-rotation/probe.mjs", "identity"], "started": "2026-10-19T23:10:21.306405+00:00", "seconds": 9.702969625, "exit_code": 0}
+{"name": "clear-identity-cleanup", "argv": ["node", "/private/tmp/blanc-save-rotation/cleanup.mjs"], "started": "2026-10-19T23:10:31.041103+00:00", "seconds": 0.6205419999999999, "exit_code": 0}
+{"name": "clear-reset-before-start", "argv": ["node", "/private/tmp/blanc-save-rotation/start.mjs"], "started": "2026-10-19T23:10:31.697359+00:00", "seconds": 0.062048833000000005, "exit_code": 0}
+{"name": "clear-reset-before-seed", "argv": ["node", "/private/tmp/blanc-save-rotation/check.mjs", "seed"], "started": "2026-10-19T23:10:31.792087+00:00", "seconds": 5.081476792, "exit_code": 0}
+{"name": "clear-reset-before-prime-close", "argv": ["node", "/private/tmp/blanc-save-rotation/close.mjs"], "started": "2026-10-19T23:10:36.906824+00:00", "seconds": 1.1840626669999998, "exit_code": 0}
+{"name": "clear-reset-before-held-restart", "argv": ["node", "/private/tmp/blanc-save-rotation/launch-injected.mjs"], "started": "2026-10-19T23:10:38.136045+00:00", "seconds": 0.025652042, "exit_code": 0}
+{"name": "clear-reset-before-proof", "argv": ["node", "/private/tmp/blanc-save-rotation/probe.mjs", "reset-before"], "started": "2026-10-19T23:10:38.189849+00:00", "seconds": 9.407898750000001, "exit_code": 0}
+{"name": "clear-reset-before-cleanup", "argv": ["node", "/private/tmp/blanc-save-rotation/cleanup.mjs"], "started": "2026-10-19T23:10:47.629720+00:00", "seconds": 0.6463410420000001, "exit_code": 0}
+{"name": "clear-reset-during-start", "argv": ["node", "/private/tmp/blanc-save-rotation/start.mjs"], "started": "2026-10-19T23:10:48.308164+00:00", "seconds": 0.06616708299999999, "exit_code": 0}
+{"name": "clear-reset-during-seed", "argv": ["node", "/private/tmp/blanc-save-rotation/check.mjs", "seed"], "started": "2026-10-19T23:10:48.403915+00:00", "seconds": 5.10327, "exit_code": 0}
+{"name": "clear-reset-during-prime-close", "argv": ["node", "/private/tmp/blanc-save-rotation/close.mjs"], "started": "2026-10-19T23:10:53.547857+00:00", "seconds": 1.178347958, "exit_code": 0}
+{"name": "clear-reset-during-held-restart", "argv": ["node", "/private/tmp/blanc-save-rotation/launch-injected.mjs"], "started": "2026-10-19T23:10:54.776960+00:00", "seconds": 0.027285917000000003, "exit_code": 0}
+{"name": "clear-reset-during-proof", "argv": ["node", "/private/tmp/blanc-save-rotation/probe.mjs", "reset-during"], "started": "2026-10-19T23:10:54.832300+00:00", "seconds": 9.36443825, "exit_code": 0}
+{"name": "clear-reset-during-cleanup", "argv": ["node", "/private/tmp/blanc-save-rotation/cleanup.mjs"], "started": "2026-10-19T23:11:04.237924+00:00", "seconds": 0.647655584, "exit_code": 0}
+{"name": "clear-rotate-before-start", "argv": ["node", "/private/tmp/blanc-save-rotation/start.mjs"], "started": "2026-10-19T23:11:04.916748+00:00", "seconds": 0.053943417, "exit_code": 0}
+{"name": "clear-rotate-before-seed", "argv": ["node", "/private/tmp/blanc-save-rotation/check.mjs", "seed"], "started": "2026-10-19T23:11:05.001156+00:00", "seconds": 5.099819666, "exit_code": 0}
+{"name": "clear-rotate-before-prime-close", "argv": ["node", "/private/tmp/blanc-save-rotation/close.mjs"], "started": "2026-10-19T23:11:10.142937+00:00", "seconds": 1.183328709, "exit_code": 0}
+{"name": "clear-rotate-before-held-restart", "argv": ["node", "/private/tmp/blanc-save-rotation/launch-injected.mjs"], "started": "2026-10-19T23:11:11.360236+00:00", "seconds": 0.032499792, "exit_code": 0}
+{"name": "clear-rotate-before-proof", "argv": ["node", "/private/tmp/blanc-save-rotation/probe.mjs", "rotate-before"], "started": "2026-10-19T23:11:11.460841+00:00", "seconds": 9.577752042, "exit_code": 0}
+{"name": "clear-rotate-before-cleanup", "argv": ["node", "/private/tmp/blanc-save-rotation/cleanup.mjs"], "started": "2026-10-19T23:11:21.070522+00:00", "seconds": 0.6270219159999999, "exit_code": 0}
+{"name": "clear-rotate-during-start", "argv": ["node", "/private/tmp/blanc-save-rotation/start.mjs"], "started": "2026-10-19T23:11:21.728750+00:00", "seconds": 0.05784062500000001, "exit_code": 0}
+{"name": "clear-rotate-during-seed", "argv": ["node", "/private/tmp/blanc-save-rotation/check.mjs", "seed"], "started": "2026-10-19T23:11:21.818362+00:00", "seconds": 5.097857542000001, "exit_code": 0}
+{"name": "clear-rotate-during-prime-close", "argv": ["node", "/private/tmp/blanc-save-rotation/close.mjs"], "started": "2026-10-19T23:11:26.952220+00:00", "seconds": 1.149925667, "exit_code": 0}
+{"name": "clear-rotate-during-held-restart", "argv": ["node", "/private/tmp/blanc-save-rotation/launch-injected.mjs"], "started": "2026-10-19T23:11:28.145622+00:00", "seconds": 0.026864042, "exit_code": 0}
+{"name": "clear-rotate-during-proof", "argv": ["node", "/private/tmp/blanc-save-rotation/probe.mjs", "rotate-during"], "started": "2026-10-19T23:11:28.202185+00:00", "seconds": 9.430446083000001, "exit_code": 0}
+{"name": "clear-rotate-during-cleanup", "argv": ["node", "/private/tmp/blanc-save-rotation/cleanup.mjs"], "started": "2026-10-19T23:11:37.665814+00:00", "seconds": 0.632732666, "exit_code": 0}
+{"name": "encrypted-identity-start", "argv": ["node", "/private/tmp/blanc-save-rotation/start.mjs"], "started": "2026-10-19T23:11:38.329422+00:00", "seconds": 0.057718041, "exit_code": 0}
+{"name": "encrypted-identity-seed", "argv": ["node", "/private/tmp/blanc-save-rotation/check.mjs", "seed"], "started": "2026-10-19T23:11:38.418101+00:00", "seconds": 5.1110183330000005, "exit_code": 0}
+{"name": "encrypted-identity-prime-close", "argv": ["node", "/private/tmp/blanc-save-rotation/close.mjs"], "started": "2026-10-19T23:11:43.575167+00:00", "seconds": 1.1841292079999999, "exit_code": 0}
+{"name": "encrypted-identity-held-restart", "argv": ["node", "/private/tmp/blanc-save-rotation/launch-injected.mjs"], "started": "2026-10-19T23:11:44.805954+00:00", "seconds": 0.026412167, "exit_code": 0}
+{"name": "encrypted-identity-proof", "argv": ["node", "/private/tmp/blanc-save-rotation/probe.mjs", "identity"], "started": "2026-10-19T23:11:44.861646+00:00", "seconds": 9.671275957999999, "exit_code": 0}
+{"name": "encrypted-identity-cleanup", "argv": ["node", "/private/tmp/blanc-save-rotation/cleanup.mjs"], "started": "2026-10-19T23:11:54.569378+00:00", "seconds": 0.628780625, "exit_code": 0}
+{"name": "encrypted-reset-before-start", "argv": ["node", "/private/tmp/blanc-save-rotation/start.mjs"], "started": "2026-10-19T23:11:55.231304+00:00", "seconds": 0.058054708, "exit_code": 0}
+{"name": "encrypted-reset-before-seed", "argv": ["node", "/private/tmp/blanc-save-rotation/check.mjs", "seed"], "started": "2026-10-19T23:11:55.322157+00:00", "seconds": 5.162660667, "exit_code": 0}
+{"name": "encrypted-reset-before-prime-close", "argv": ["node", "/private/tmp/blanc-save-rotation/close.mjs"], "started": "2026-10-19T23:12:00.528066+00:00", "seconds": 1.183532542, "exit_code": 0}
+{"name": "encrypted-reset-before-held-restart", "argv": ["node", "/private/tmp/blanc-save-rotation/launch-injected.mjs"], "started": "2026-10-19T23:12:01.753565+00:00", "seconds": 0.026959333, "exit_code": 0}
+{"name": "encrypted-reset-before-proof", "argv": ["node", "/private/tmp/blanc-save-rotation/probe.mjs", "reset-before"], "started": "2026-10-19T23:12:01.813532+00:00", "seconds": 9.502765833, "exit_code": 0}
+{"name": "encrypted-reset-before-cleanup", "argv": ["node", "/private/tmp/blanc-save-rotation/cleanup.mjs"], "started": "2026-10-19T23:12:11.349113+00:00", "seconds": 0.633519375, "exit_code": 0}
+{"name": "encrypted-reset-during-start", "argv": ["node", "/private/tmp/blanc-save-rotation/start.mjs"], "started": "2026-10-19T23:12:12.016055+00:00", "seconds": 0.058456499999999995, "exit_code": 0}
+{"name": "encrypted-reset-during-seed", "argv": ["node", "/private/tmp/blanc-save-rotation/check.mjs", "seed"], "started": "2026-10-19T23:12:12.106171+00:00", "seconds": 5.074168584000001, "exit_code": 0}
+{"name": "encrypted-reset-during-prime-close", "argv": ["node", "/private/tmp/blanc-save-rotation/close.mjs"], "started": "2026-10-19T23:12:17.220731+00:00", "seconds": 1.182587792, "exit_code": 0}
+{"name": "encrypted-reset-during-held-restart", "argv": ["node", "/private/tmp/blanc-save-rotation/launch-injected.mjs"], "started": "2026-10-19T23:12:18.452516+00:00", "seconds": 0.030373958, "exit_code": 0}
+{"name": "encrypted-reset-during-proof", "argv": ["node", "/private/tmp/blanc-save-rotation/probe.mjs", "reset-during"], "started": "2026-10-19T23:12:18.521067+00:00", "seconds": 9.398366584, "exit_code": 0}
+{"name": "encrypted-reset-during-cleanup", "argv": ["node", "/private/tmp/blanc-save-rotation/cleanup.mjs"], "started": "2026-10-19T23:12:27.952266+00:00", "seconds": 0.642574583, "exit_code": 0}
+{"name": "encrypted-rotate-before-start", "argv": ["node", "/private/tmp/blanc-save-rotation/start.mjs"], "started": "2026-10-19T23:12:28.628112+00:00", "seconds": 0.068241834, "exit_code": 0}
+{"name": "encrypted-rotate-before-seed", "argv": ["node", "/private/tmp/blanc-save-rotation/check.mjs", "seed"], "started": "2026-10-19T23:12:28.734181+00:00", "seconds": 5.229522792, "exit_code": 0}
+{"name": "encrypted-rotate-before-prime-close", "argv": ["node", "/private/tmp/blanc-save-rotation/close.mjs"], "started": "2026-10-19T23:12:34.012054+00:00", "seconds": 1.180680291, "exit_code": 0}
+{"name": "encrypted-rotate-before-held-restart", "argv": ["node", "/private/tmp/blanc-save-rotation/launch-injected.mjs"], "started": "2026-10-19T23:12:35.223323+00:00", "seconds": 0.024848417, "exit_code": 0}
+{"name": "encrypted-rotate-before-proof", "argv": ["node", "/private/tmp/blanc-save-rotation/probe.mjs", "rotate-before"], "started": "2026-10-19T23:12:35.279356+00:00", "seconds": 9.438066334, "exit_code": 0}
+{"name": "encrypted-rotate-before-cleanup", "argv": ["node", "/private/tmp/blanc-save-rotation/cleanup.mjs"], "started": "2026-10-19T23:12:44.749110+00:00", "seconds": 0.63335825, "exit_code": 0}
+{"name": "encrypted-rotate-during-start", "argv": ["node", "/private/tmp/blanc-save-rotation/start.mjs"], "started": "2026-10-19T23:12:45.414453+00:00", "seconds": 0.054856959000000004, "exit_code": 0}
+{"name": "encrypted-rotate-during-seed", "argv": ["node", "/private/tmp/blanc-save-rotation/check.mjs", "seed"], "started": "2026-10-19T23:12:45.500488+00:00", "seconds": 5.061262291999999, "exit_code": 0}
+{"name": "encrypted-rotate-during-prime-close", "argv": ["node", "/private/tmp/blanc-save-rotation/close.mjs"], "started": "2026-10-19T23:12:50.595549+00:00", "seconds": 1.18564075, "exit_code": 0}
+{"name": "encrypted-rotate-during-held-restart", "argv": ["node", "/private/tmp/blanc-save-rotation/launch-injected.mjs"], "started": "2026-10-19T23:12:51.824901+00:00", "seconds": 0.02661225, "exit_code": 0}
+{"name": "encrypted-rotate-during-proof", "argv": ["node", "/private/tmp/blanc-save-rotation/probe.mjs", "rotate-during"], "started": "2026-10-19T23:12:51.880704+00:00", "seconds": 9.444720333, "exit_code": 0}
+{"name": "encrypted-rotate-during-cleanup", "argv": ["node", "/private/tmp/blanc-save-rotation/cleanup.mjs"], "started": "2026-10-19T23:13:01.359340+00:00", "seconds": 0.620186208, "exit_code": 0}
+{"name": "diagnostic-remove", "argv": ["python3", "/private/tmp/blanc-save-rotation/diagnostic.py", "restore"], "started": "2026-10-19T23:13:07.564944+00:00", "seconds": 0.032187916, "exit_code": 0}
+{"name": "normal-build", "argv": ["node", "experiments/chromium-extension-spike/build.mjs", "/Users/anthonyjloria/Projects/BlancChromium157/src", "--build"], "started": "2026-10-19T23:13:11.523394+00:00", "seconds": 41.267749542, "exit_code": 0}
+{"name": "encrypted-normal-start", "argv": ["node", "/private/tmp/blanc-save-rotation/start.mjs"], "started": "2026-10-19T23:13:56.862516+00:00", "seconds": 0.08193616599999999, "exit_code": 0}
+{"name": "encrypted-normal-seed", "argv": ["node", "/private/tmp/blanc-save-rotation/check.mjs", "seed"], "started": "2026-10-19T23:13:56.976129+00:00", "seconds": 9.201567375, "exit_code": 0}
+{"name": "encrypted-normal-prime-close", "argv": ["node", "/private/tmp/blanc-save-rotation/close.mjs"], "started": "2026-10-19T23:14:06.249378+00:00", "seconds": 1.219064959, "exit_code": 0}
+{"name": "encrypted-normal-held-restart", "argv": ["node", "/private/tmp/blanc-save-rotation/launch.mjs"], "started": "2026-10-19T23:14:07.542697+00:00", "seconds": 0.044518417000000005, "exit_code": 0}
+{"name": "final-guard", "argv": ["node", "experiments/chromium-extension-spike/build.mjs", "/Users/anthonyjloria/Projects/BlancChromium157/src"], "started": "2026-10-19T23:14:01.952706+00:00", "seconds": 6.201556833000001, "exit_code": 0}
+{"name": "encrypted-normal-proof", "argv": ["node", "/private/tmp/blanc-save-rotation/normal.mjs", "normal"], "started": "2026-10-19T23:14:07.639400+00:00", "seconds": 14.0320385, "exit_code": 1}
+{"name": "encrypted-normal-cleanup", "argv": ["node", "/private/tmp/blanc-save-rotation/cleanup.mjs"], "started": "2026-10-19T23:14:21.721869+00:00", "seconds": 0.678726542, "exit_code": 0}
+{"name": "encrypted-normal-start", "argv": ["node", "/private/tmp/blanc-save-rotation/start.mjs"], "started": "2026-10-19T23:14:30.821180+00:00", "seconds": 0.05168820799999999, "exit_code": 0}
+{"name": "encrypted-normal-seed", "argv": ["node", "/private/tmp/blanc-save-rotation/check.mjs", "seed"], "started": "2026-10-19T23:14:30.901973+00:00", "seconds": 5.12676925, "exit_code": 0}
+{"name": "encrypted-normal-prime-close", "argv": ["node", "/private/tmp/blanc-save-rotation/close.mjs"], "started": "2026-10-19T23:14:36.071347+00:00", "seconds": 1.089305334, "exit_code": 0}
+{"name": "encrypted-normal-held-restart", "argv": ["node", "/private/tmp/blanc-save-rotation/launch.mjs"], "started": "2026-10-19T23:14:37.213884+00:00", "seconds": 0.025721, "exit_code": 0}
+{"name": "encrypted-normal-proof", "argv": ["node", "/private/tmp/blanc-save-rotation/normal.mjs", "normal"], "started": "2026-10-19T23:14:37.269723+00:00", "seconds": 7.459785125, "exit_code": 0}
+{"name": "encrypted-normal-cleanup", "argv": ["node", "/private/tmp/blanc-save-rotation/cleanup.mjs"], "started": "2026-10-19T23:14:44.759660+00:00", "seconds": 0.640519458, "exit_code": 0}

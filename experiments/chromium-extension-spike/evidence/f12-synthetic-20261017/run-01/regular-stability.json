@@ -1,0 +1,11 @@
+{
+  "stable": false,
+  "faults": [
+    "incomplete-or-faulted-run",
+    "incomplete-or-faulted-run"
+  ],
+  "requestCount": 0,
+  "oracle": [],
+  "captureProvenanceVerified": false,
+  "scope": "single main frame; no redirects, repeated-context ambiguity, workers or opaque origins"
+}

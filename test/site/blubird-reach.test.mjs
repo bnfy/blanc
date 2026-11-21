@@ -1,9 +1,10 @@
 // BLANC_SITE_URL=http://127.0.0.1:4322 node --test test/site/blubird-reach.test.mjs
 //
-// Since October 15, 2026 every page is set in Blubird (site/src/styles/blubird.css):
-// headings in Blubird Display at regular weight and 0 tracking, text in Blubird
-// Text. Both fall back to Inter where the licensed files are absent, as in CI,
-// so these checks match the stack, not the face that rendered. It replaced the
+// Since October 15, 2026 every page sets its headings in Blubird Display at
+// regular weight and 0 tracking (site/src/styles/blubird.css); since November
+// 15, 2026 its text is Instrument Sans (owner: Blubird reads well only as large
+// headings). Both fall back to Inter, Blubird where the licensed files are
+// absent, as in CI, so these checks match the stack, not the face that rendered. It replaced the
 // Newsreader reach decision of 4 Sep 2026; product replicas keep Inter.
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
@@ -29,7 +30,7 @@ async function openPage(path = '/', width = 1440) {
 }
 
 const display = /^"?Blubird Display"?, "?Inter/;
-const text = /^"?Blubird Text"?, "?Inter/;
+const text = /^"?Instrument Sans"?, "?Inter/;
 
 test('the homepage, header and footer are Blubird over Inter, and other pages share its stacks', async () => {
   const { page, context } = await openPage('/');
@@ -67,11 +68,11 @@ test('the homepage, header and footer are Blubird over Inter, and other pages sh
 });
 
 // Legal pages set their headline in Blubird Display; their section headings
-// read as part of the legal text, in Blubird Text.
+// read as part of the legal text, in Instrument Sans.
 const legalRoutes = ['/privacy', '/terms'];
 const routes = ['/features', '/features/island', '/features/security', '/mail', '/features/ad-blocking', '/download', '/changelog', '/about', '/faq', '/media', '/ambassadors', '/roadmap', '/compare', '/support', '/patron', '/privacy', '/terms'];
 
-test('every page headline and section heading is Blubird Display at 0 tracking, text is Blubird Text, and nothing overflows', { timeout: 180000 }, async () => {
+test('every page headline and section heading is Blubird Display at 0 tracking, text is Instrument Sans, and nothing overflows', { timeout: 180000 }, async () => {
   const { page, context } = await openPage('/');
   try {
     for (const width of [390, 768, 1440]) {
@@ -96,9 +97,9 @@ test('every page headline and section heading is Blubird Display at 0 tracking, 
         assert.match(type.font, display, `${width}px ${route} h1 is Blubird Display`);
         assert.equal(type.weight, '400', `${route} h1 weight`);
         assert.equal(type.tracking, 0, `${route} h1 tracking`);
-        assert.match(type.body, text, `${route} text is Blubird Text`);
+        assert.match(type.body, text, `${route} text is Instrument Sans`);
         if (type.h2Font && legalRoutes.includes(route)) {
-          assert.match(type.h2Font, text, `${route} legal section headings are Blubird Text`);
+          assert.match(type.h2Font, text, `${route} legal section headings are Instrument Sans`);
         } else if (type.h2Font) {
           assert.match(type.h2Font, display, `${route} section headings are Blubird Display`);
           assert.equal(type.h2Weight, '400', `${route} section heading weight`);
@@ -118,7 +119,7 @@ test('no page declares Newsreader any more', async () => {
   }
 });
 
-test('the Patron page and the newsletter card set every heading in Blubird Display and their copy in Blubird Text', async () => {
+test('the Patron page and the newsletter card set every heading in Blubird Display and their copy in Instrument Sans', async () => {
   const { page, context } = await openPage('/patron');
   try {
     const patron = await page.evaluate(() => ({

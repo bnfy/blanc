@@ -1,0 +1,93 @@
+{
+  "scope": "14 selected copied native integration files, not an exhaustive owned-source or resource inventory",
+  "files": [
+    {
+      "ownedSource": "native/blanc_prototype_ui.h",
+      "nativeCopy": "chrome/browser/ui/blanc_prototype_ui.h",
+      "sha256": "a6261906f6783cabba6bdeaffa86ad7f2474bc6291ac4f9f21bcdc0cc208bfc3",
+      "lines": 75
+    },
+    {
+      "ownedSource": "native/blanc_prototype_ui.cc",
+      "nativeCopy": "chrome/browser/ui/blanc_prototype_ui.cc",
+      "sha256": "a1f62eaaadc84118376b265b5e41fa4d0279fbd36aa93c8f8e044047410c4dbe",
+      "lines": 4149
+    },
+    {
+      "ownedSource": "native/blocker/BUILD.gn",
+      "nativeCopy": "chrome/services/blanc_blocker/BUILD.gn",
+      "sha256": "a672411fad445cb1aa1252a247af5b29bf1318dc94e78b7aa76d1658aa00782a",
+      "lines": 17
+    },
+    {
+      "ownedSource": "native/blocker/blocker.mojom",
+      "nativeCopy": "chrome/services/blanc_blocker/blocker.mojom",
+      "sha256": "2f3b6f1a650f3170f84837c15629116f090ef60f12893122880fe66cfe1bd948",
+      "lines": 14
+    },
+    {
+      "ownedSource": "native/blocker/blocker_service.cc",
+      "nativeCopy": "chrome/services/blanc_blocker/blocker_service.cc",
+      "sha256": "dc57f01b48543be19d8a3997fa859b5c706f4247559fea4cad88cd53efab0336",
+      "lines": 135
+    },
+    {
+      "ownedSource": "native/blocker/blocker_service.h",
+      "nativeCopy": "chrome/services/blanc_blocker/blocker_service.h",
+      "sha256": "5f148e2b71b50e496226b599859a75814b2cf4579ad71f5e00733068ba2e0ad0",
+      "lines": 25
+    },
+    {
+      "ownedSource": "native/blocker/blocker_proxy.cc",
+      "nativeCopy": "chrome/services/blanc_blocker/blocker_proxy.cc",
+      "sha256": "eaf73aedd7ab0cdcff01ad0fa14503666af1a5628a52ebf26de74a82e9fbf18c",
+      "lines": 908
+    },
+    {
+      "ownedSource": "native/blocker/blocker_proxy.h",
+      "nativeCopy": "chrome/services/blanc_blocker/blocker_proxy.h",
+      "sha256": "794f8a01010a004c45bf3935d0db22cf1b8ddabe7f28e833bd10bdc718bd2d11",
+      "lines": 28
+    },
+    {
+      "ownedSource": "native/blocker/document_start.inc",
+      "nativeCopy": "chrome/services/blanc_blocker/document_start.inc",
+      "sha256": "91d8f9270dec23afdf443c168c4d22ff389395478499c3003da8aa87cf5c9f83",
+      "lines": 131
+    },
+    {
+      "ownedSource": "native/blocker/document_start_renderer.inc",
+      "nativeCopy": "chrome/services/blanc_blocker/document_start_renderer.inc",
+      "sha256": "b7fb8f5710ae687d7f8ebd2f13eb2bc1aab7c7f6de181d295f52c838e26d9459",
+      "lines": 36
+    },
+    {
+      "ownedSource": "native/blocker/update_identity.inc",
+      "nativeCopy": "chrome/services/blanc_blocker/update_identity.inc",
+      "sha256": "f4a4c29a41d6a0a1120bc40c387003d5b732b6aa16c2376fe8fbaf90a0dd51bd",
+      "lines": 156
+    },
+    {
+      "ownedSource": "native/blocker/blanc_websocket_gate.h",
+      "nativeCopy": "content/public/browser/blanc_websocket_gate.h",
+      "sha256": "2e542a56bb7527d2c70f7a8635fe9b689cda749887dd659cce3f45485ff768b2",
+      "lines": 10
+    },
+    {
+      "ownedSource": "native/blocker/blanc_url_loader_gate.h",
+      "nativeCopy": "content/public/browser/blanc_url_loader_gate.h",
+      "sha256": "f7237607aa43df79e905a0e9fef918f196626b3c0de203c2353c79fdca010b48",
+      "lines": 14
+    },
+    {
+      "ownedSource": "native/blocker/update_identity.inc",
+      "nativeCopy": "content/browser/service_worker/blanc_update_identity.inc",
+      "sha256": "f4a4c29a41d6a0a1120bc40c387003d5b732b6aa16c2376fe8fbaf90a0dd51bd",
+      "lines": 156
+    }
+  ],
+  "largestImplementationLines": {
+    "blanc_prototype_ui.cc": 4149,
+    "blocker_proxy.cc": 908
+  }
+}

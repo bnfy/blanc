@@ -1,0 +1,23 @@
+{"name":"native-visible-layout-refresh","layout":"ledger","visible":true}
+{"name":"native-visible-layout-refresh","layout":"shelf","visible":true}
+{"name":"native-visible-layout-refresh","layout":"tally","visible":true}
+{"name":"native-visible-layout-refresh","layout":"billboard","visible":true}
+node:internal/modules/run_main:122
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ 'e'
+- 'native typing bridge'
+
+    at file:///private/tmp/blanc-task0/native-layouts.mjs:20:8 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 'e',
+  expected: 'native typing bridge',
+  operator: 'strictEqual'
+}
+
+Node.js v22.14.0

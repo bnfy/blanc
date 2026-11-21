@@ -1,0 +1,151 @@
+{
+  "app": "/private/tmp/blanc-l8-startup-corrected/Blanc Chromium Preview.app",
+  "profile": "/private/tmp/blanc-l8-startup-corrected/regression/splits/node22-home/Library/Application Support/Blanc Chromium Preview",
+  "mockKeychain": false,
+  "checks": [
+    {
+      "name": "two splits with independent ratios",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9780/a",
+          "http://127.0.0.1:9780/b",
+          "http://127.0.0.1:9780/c",
+          "http://127.0.0.1:9780/d"
+        ],
+        "selected": 4,
+        "splits": [
+          {
+            "urls": [
+              "http://127.0.0.1:9780/a",
+              "http://127.0.0.1:9780/b"
+            ],
+            "focus": 1,
+            "widths": [
+              0.35,
+              0.65
+            ]
+          },
+          {
+            "urls": [
+              "http://127.0.0.1:9780/c",
+              "http://127.0.0.1:9780/d"
+            ],
+            "focus": 1,
+            "widths": [
+              0.65,
+              0.35
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "active and inactive split restart preserves ratios focus order",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9780/a",
+          "http://127.0.0.1:9780/b",
+          "http://127.0.0.1:9780/c",
+          "http://127.0.0.1:9780/d"
+        ],
+        "selected": 4,
+        "splits": [
+          {
+            "urls": [
+              "http://127.0.0.1:9780/a",
+              "http://127.0.0.1:9780/b"
+            ],
+            "focus": 1,
+            "widths": [
+              0.35,
+              0.65
+            ]
+          },
+          {
+            "urls": [
+              "http://127.0.0.1:9780/c",
+              "http://127.0.0.1:9780/d"
+            ],
+            "focus": 1,
+            "widths": [
+              0.65,
+              0.35
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "batch close removes exactly two panes",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9780/a",
+          "http://127.0.0.1:9780/b"
+        ],
+        "selected": 2,
+        "splits": [
+          {
+            "urls": [
+              "http://127.0.0.1:9780/a",
+              "http://127.0.0.1:9780/b"
+            ],
+            "focus": 1,
+            "widths": [
+              0.35,
+              0.65
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Recently Closed restores split without duplication",
+      "pass": true,
+      "details": {
+        "urls": [
+          "blanc://newtab/",
+          "http://127.0.0.1:9780/a",
+          "http://127.0.0.1:9780/b",
+          "http://127.0.0.1:9780/c",
+          "http://127.0.0.1:9780/d"
+        ],
+        "selected": 4,
+        "splits": [
+          {
+            "urls": [
+              "http://127.0.0.1:9780/a",
+              "http://127.0.0.1:9780/b"
+            ],
+            "focus": 1,
+            "widths": [
+              0.35,
+              0.65
+            ]
+          },
+          {
+            "urls": [
+              "http://127.0.0.1:9780/c",
+              "http://127.0.0.1:9780/d"
+            ],
+            "focus": 1,
+            "widths": [
+              0.65,
+              0.35
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "restored split keeps ratio",
+      "pass": true
+    }
+  ],
+  "complete": true
+}

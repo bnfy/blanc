@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {updateTraceEvidence} from './update-trace-verify.mjs';
+function sample(){const url='https://fixture.test/worker.js';return {browserKind:'electron',kind:'regular',workerEvidence:{faults:[],traceEvents:[1,2].map(id=>({name:'ServiceWorkerSingleScriptUpdateChecker::ServiceWorkerSingleScriptUpdateChecker',ph:'X',id,args:{script_url:url,main_script_url:url}}))},identities:[{registrationId:'a'},{registrationId:'b'}],records:[1,2,3,4].map(requestId=>({url,requestId}))};}
+test('same URL and trace flow IDs never imply registration identity',()=>{const r=updateTraceEvidence(sample());assert.equal(r.traceRegistrationJoin,'gap');assert.equal(r.crossRuntimeAcceptance,false);});
+test('partial trace rejected',()=>{const r=sample();r.workerEvidence.faults.push('Incomplete service worker trace');assert.throws(()=>updateTraceEvidence(r));});
+test('new identity fields require a fresh audit',()=>{const r=sample();r.workerEvidence.traceEvents[0].args.registration_id='a';assert.throws(()=>updateTraceEvidence(r));});

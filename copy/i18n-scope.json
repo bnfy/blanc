@@ -145,6 +145,14 @@
       "state": "guarded",
       "allow": []
     },
+    "src/renderer/pages/favorites-manager.js": {
+      "state": "guarded",
+      "allow": []
+    },
+    "src/renderer/pages/favorites-manager-model.js": {
+      "state": "guarded",
+      "allow": []
+    },
     "src/renderer/pages/history.html": {
       "state": "guarded",
       "allow": []
@@ -338,6 +346,10 @@
       "allow": []
     },
     "src/renderer/pages/mahjong-sound.js": {
+      "state": "guarded",
+      "allow": []
+    },
+    "src/renderer/pages/mahjong-fx.js": {
       "state": "guarded",
       "allow": []
     },

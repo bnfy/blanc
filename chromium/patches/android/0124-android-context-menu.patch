@@ -1,0 +1,345 @@
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuItem.java b/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuItem.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuItem.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuItem.java
+@@ -17,7 +17,6 @@
+ import org.chromium.chrome.R;
+ import org.chromium.chrome.browser.DefaultBrowserMenuUtils;
+ import org.chromium.chrome.browser.flags.ChromeFeatureList;
+-import org.chromium.chrome.browser.incognito.IncognitoUtils;
+ import org.chromium.chrome.browser.preferences.ChromePreferenceKeys;
+ import org.chromium.chrome.browser.preferences.ChromeSharedPreferences;
+ import org.chromium.chrome.browser.profiles.Profile;
+@@ -223,12 +222,12 @@
+ 
+     /** Mapping from {@link Item} to the ID of the string that describes the action of the item. */
+     private static final int[] STRING_IDS = {
+-        R.string.contextmenu_open_in_new_chrome_tab, // Item.OPEN_IN_NEW_CHROME_TAB:
++        org.chromium.blanc.island.R.string.blanc_android_context_menu_new_blanc_tab, // Item.OPEN_IN_NEW_CHROME_TAB:
+         R.string.contextmenu_open_in_chrome_incognito_tab, // Item.OPEN_IN_CHROME_INCOGNITO_TAB:
+         0, // Item.OPEN_IN_BROWSER_ID is not handled by this mapping.
+         R.string.contextmenu_open_in_new_tab, // Item.OPEN_IN_NEW_TAB:
+         R.string.contextmenu_open_in_new_tab_group, // Item.OPEN_IN_NEW_TAB_IN_GROUP
+-        R.string.contextmenu_open_in_incognito_tab, // Item.OPEN_IN_INCOGNITO_TAB:
++        org.chromium.blanc.island.R.string.blanc_android_context_menu_private_tab, // Item.OPEN_IN_INCOGNITO_TAB:
+         R.string.contextmenu_open_in_incognito_window, // Item.OPEN_IN_INCOGNITO_WINDOW:
+         R.string.contextmenu_open_in_other_window, // Item.OPEN_IN_OTHER_WINDOW:
+         R.string.contextmenu_open_in_new_window, // Item.OPEN_IN_NEW_WINDOW:
+@@ -257,7 +256,7 @@
+         R.string.contextmenu_copy, // Item.COPY:
+         R.string.contextmenu_save_video, // Item.SAVE_VIDEO:
+         0, // Item.PICTURE_IN_PICTURE is not handled by this mapping.
+-        R.string.menu_open_in_chrome, // Item.OPEN_IN_CHROME:
++        org.chromium.blanc.island.R.string.blanc_mini_open_in_blanc, // Item.OPEN_IN_CHROME:
+         R.string.contextmenu_share_highlight, // Item.SHARE_HIGHLIGHT
+         R.string.contextmenu_remove_highlight, // Item.REMOVE_HIGHLIGHT
+         R.string.contextmenu_learn_more, // Item.LEARN_MORE
+@@ -354,16 +353,6 @@
+                         item,
+                         ChromePreferenceKeys.CONTEXT_MENU_SEARCH_TAB_WITH_GOOGLE_LENS_CLICKED,
+                         showInProductHelp);
+-            case Item.OPEN_IN_CHROME_INCOGNITO_TAB:
+-                if (IncognitoUtils.shouldOpenIncognitoAsWindow()) {
+-                    return context.getString(R.string.contextmenu_open_in_incognito_window);
+-                }
+-                break;
+-            case Item.OPEN_IN_NEW_CHROME_TAB:
+-                if (IncognitoUtils.shouldOpenIncognitoAsWindow()) {
+-                    return context.getString(R.string.contextmenu_open_in_chrome_window);
+-                }
+-                break;
+             case Item.DOWNLOAD_VIDEO_FRAME:
+                 if (isSaveAsEnabled()) {
+                     return context.getString(R.string.contextmenu_save_video_frame_as);
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuPopulator.java b/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuPopulator.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuPopulator.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuPopulator.java
+@@ -46,14 +46,12 @@
+ import org.chromium.build.annotations.NullMarked;
+ import org.chromium.build.annotations.Nullable;
+ import org.chromium.chrome.R;
+-import org.chromium.chrome.browser.bookmarks.BookmarkUtils;
+ import org.chromium.chrome.browser.contextmenu.ChromeContextMenuItem.Item;
+ import org.chromium.chrome.browser.contextmenu.ContextMenuCoordinator.ContextMenuItemType;
+ import org.chromium.chrome.browser.devtools.DevToolsWindowAndroid;
+ import org.chromium.chrome.browser.download.DownloadUtils;
+ import org.chromium.chrome.browser.enterprise.util.DataProtectionBridge;
+ import org.chromium.chrome.browser.ephemeraltab.EphemeralTabCoordinator;
+-import org.chromium.chrome.browser.firstrun.FirstRunStatus;
+ import org.chromium.chrome.browser.flags.ChromeFeatureList;
+ import org.chromium.chrome.browser.glic.GlicContextMenuUtils;
+ import org.chromium.chrome.browser.glic.GlicKeyedService.GlicInvocationSource;
+@@ -64,9 +62,6 @@
+ import org.chromium.chrome.browser.lens.LensIdentityUtils;
+ import org.chromium.chrome.browser.lens.LensIntentParams;
+ import org.chromium.chrome.browser.lens.LensMetrics;
+-import org.chromium.chrome.browser.lens.LensSupportStatusHelper;
+-import org.chromium.chrome.browser.locale.LocaleManager;
+-import org.chromium.chrome.browser.multiwindow.MultiWindowUtils;
+ import org.chromium.chrome.browser.preferences.ChromePreferenceKeys;
+ import org.chromium.chrome.browser.preferences.ChromeSharedPreferences;
+ import org.chromium.chrome.browser.profiles.Profile;
+@@ -130,8 +125,6 @@
+             1512; // Random id to avoid possible collisions.
+     private static final int MAX_CUSTOM_MENU_ITEMS = 4;
+     private static final String TAG = "CCMenuPopulator";
+-    private static final String LENS_SUPPORT_STATUS_HISTOGRAM_NAME =
+-            "ContextMenu.LensSupportStatus";
+     private static final String UMA_CONTEXTUAL_CUSTOM_ACTION_TYPE_DISPLAYED =
+             "CustomTabs.ContextMenu.DisplayedContextualCustomActionType";
+     private static final String UMA_CONTEXTUAL_CUSTOM_ACTION_TYPE_SELECTED =
+@@ -461,8 +454,8 @@
+     }
+ 
+     private boolean areMandatoryFlowsCompleted(Profile profile) {
+-        return FirstRunStatus.getFirstRunFlowComplete()
+-                && !ForcedSigninStatusProvider.getForProfile(profile).isForcedSigninShowing();
++        // Blanc skips Chromium's first run, including when another app launches a Custom Tab.
++        return !ForcedSigninStatusProvider.getForProfile(profile).isForcedSigninShowing();
+     }
+ 
+     @VisibleForTesting
+@@ -547,12 +540,6 @@
+             }
+             groupedItems.add(pageNavigationGroup);
+ 
+-            if (shouldShowAskGeminiForPage()) {
+-                ModelList geminiGroup = new ModelList();
+-                geminiGroup.add(createListItem(Item.ASK_GEMINI));
+-                groupedItems.add(geminiGroup);
+-            }
+-
+             if (mMode != ContextMenuMode.THIN_WEB_VIEW) {
+                 ModelList pageGroup = new ModelList();
+                 pageGroup.add(
+@@ -570,16 +557,6 @@
+                 if (enableShareFromContextMenu()) {
+                     pageGroup.add(createShareListItem(Item.SHARE_PAGE, Item.DIRECT_SHARE_LINK));
+                 }
+-                if (shouldShowLensOverlay()) {
+-                    Tab tab = getTab();
+-                    boolean isEnabled = !LensOverlayTabHelper.isOverlayShowing(tab);
+-                    pageGroup.add(
+-                            createListItem(
+-                                    Item.SEARCH_TAB_WITH_GOOGLE_LENS,
+-                                    /* showInProductHelp= */ true,
+-                                    isEnabled));
+-                    maybeRecordUkmLensShown();
+-                }
+                 boolean isChromeOrNativePage =
+                         UrlUtilities.isChromeScheme(mParams.getPageUrl())
+                                 || (getTab() != null && getTab().isNativePage());
+@@ -622,36 +599,32 @@
+             if (areMandatoryFlowsCompleted(getProfile())
+                     && !isEmptyUrl(mParams.getUrl())
+                     && UrlUtilities.isAcceptedScheme(mParams.getUrl())) {
++                Tab sourceTab = getTab();
++                boolean canOpenInExistingGroup =
++                        !mItemDelegate.isIncognito()
++                                && sourceTab != null
++                                && sourceTab.getTabGroupId() != null;
+                 if (mMode == ContextMenuMode.NORMAL) {
+                     boolean isIncognitoForced = IncognitoUtils.isIncognitoModeForced(getProfile());
+                     ListItem openInNewTabItem =
+                             createManagedListItem(Item.OPEN_IN_NEW_TAB, isIncognitoForced);
+-                    ListItem openInNewTabInGroupItem =
+-                            createManagedListItem(Item.OPEN_IN_NEW_TAB_IN_GROUP, isIncognitoForced);
+                     linkGroup.add(openInNewTabItem);
+-                    linkGroup.add(openInNewTabInGroupItem);
++                    if (canOpenInExistingGroup) {
++                        linkGroup.add(
++                                createManagedListItem(
++                                        Item.OPEN_IN_NEW_TAB_IN_GROUP, isIncognitoForced));
++                    }
+                     if (!mItemDelegate.isIncognito()
+                             && mItemDelegate.isIncognitoSupported()
+                             && !shouldOpenIncognitoAsWindow()) {
+                         linkGroup.add(createListItem(Item.OPEN_IN_INCOGNITO_TAB));
+                     }
+-                    if (MultiWindowUtils.isLinkNavigationToNewWindowSupported()) {
+-                        ListItem openInNewWindowItem =
+-                                createManagedListItem(Item.OPEN_IN_NEW_WINDOW, isIncognitoForced);
+-                        linkGroup.add(openInNewWindowItem);
+-                    } else if (mItemDelegate.isOpenInOtherWindowSupported()) {
+-                        linkGroup.add(createListItem(Item.OPEN_IN_OTHER_WINDOW));
+-                    }
+-                    if (!mItemDelegate.isIncognito()
+-                            && mItemDelegate.isIncognitoSupported()
+-                            && MultiWindowUtils.isLinkNavigationToIncognitoWindowSupported()) {
+-                        linkGroup.add(createListItem(Item.OPEN_IN_INCOGNITO_WINDOW));
+-                    }
+                 } else if (mMode == ContextMenuMode.THIN_WEB_VIEW) {
+                     if (mItemDelegate.supportsOpenInNewTab()) {
+                         linkGroup.add(createListItem(Item.OPEN_IN_NEW_TAB));
+                     }
+-                    if (mItemDelegate.supportsOpenInNewTabInGroup()) {
++                    if (canOpenInExistingGroup
++                            && mItemDelegate.supportsOpenInNewTabInGroup()) {
+                         linkGroup.add(createListItem(Item.OPEN_IN_NEW_TAB_IN_GROUP));
+                     }
+                     if (!mItemDelegate.isIncognito()
+@@ -659,16 +632,6 @@
+                             && !shouldOpenIncognitoAsWindow()
+                             && mItemDelegate.supportsOpenInNewIncognitoTab()) {
+                         linkGroup.add(createListItem(Item.OPEN_IN_INCOGNITO_TAB));
+-                    }
+-                    if (MultiWindowUtils.isLinkNavigationToNewWindowSupported()
+-                            && mItemDelegate.supportsOpenInNewWindow()) {
+-                        linkGroup.add(createListItem(Item.OPEN_IN_NEW_WINDOW));
+-                    }
+-                    if (!mItemDelegate.isIncognito()
+-                            && mItemDelegate.isIncognitoSupported()
+-                            && MultiWindowUtils.isLinkNavigationToIncognitoWindowSupported()
+-                            && mItemDelegate.supportsOpenInIncognitoWindow()) {
+-                        linkGroup.add(createListItem(Item.OPEN_IN_INCOGNITO_WINDOW));
+                     }
+                 }
+                 if (mParams.getOpenedFromInterestFor()) {
+@@ -693,9 +656,6 @@
+                         linkGroup.add(createListItem(Item.OPEN_IN_EPHEMERAL_TAB));
+                     }
+                 }
+-                if (shouldShowAskGeminiForLink()) {
+-                    linkGroup.add(createListItem(Item.ASK_GEMINI));
+-                }
+             }
+             if (!MailTo.isMailTo(mParams.getLinkUrl().getSpec())
+                     && !UrlUtilities.isTelScheme(mParams.getLinkUrl())) {
+@@ -733,12 +693,6 @@
+                                 ContextualCustomActionType.COUNT);
+                     }
+                 }
+-                if (!mParams.isImage()
+-                        && BookmarkUtils.isReadingListSupported(mParams.getLinkUrl())
+-                        && (mMode != ContextMenuMode.THIN_WEB_VIEW
+-                                || mItemDelegate.supportsReadLater())) {
+-                    linkGroup.add(createListItem(Item.READ_LATER));
+-                }
+                 if (enableShareFromContextMenu()) {
+                     linkGroup.add(createShareListItem(Item.SHARE_LINK, Item.DIRECT_SHARE_LINK));
+                 }
+@@ -817,46 +771,10 @@
+                 }
+             }
+ 
+-            if (mItemDelegate.supportsSearchByImage()) {
+-                if (checkSupportsGoogleSearchByImage(isSrcDownloadableScheme)) {
+-                    // Determine which image search menu item would be shown.
+-                    @Nullable
+-                    @LensMetrics.LensSupportStatus
+-                    Integer supportStatus =
+-                            LensSupportStatusHelper.getLensSupportStatus(
+-                                    getProfile(), mItemDelegate.isIncognito());
+-                    if (supportStatus != null) {
+-                        LensMetrics.recordLensSupportStatus(
+-                                LENS_SUPPORT_STATUS_HISTOGRAM_NAME, supportStatus);
+-                    }
+-
+-                    boolean shouldShowSearchImageWithLens =
+-                            (supportStatus != null
+-                                            && supportStatus
+-                                                    == LensMetrics.LensSupportStatus
+-                                                            .LENS_SEARCH_SUPPORTED)
+-                                    || shouldShowLensOverlay();
+-                    if (shouldShowSearchImageWithLens) {
+-                        imageGroup.add(createListItem(Item.SEARCH_IMAGE_WITH_GOOGLE_LENS));
+-                        maybeRecordUkmLensShown();
+-                    } else {
+-                        imageGroup.add(createListItem(Item.SEARCH_BY_IMAGE));
+-                    }
+-                } else {
+-                    LensMetrics.recordLensSupportStatus(
+-                            LENS_SUPPORT_STATUS_HISTOGRAM_NAME,
+-                            LensMetrics.LensSupportStatus.SEARCH_BY_IMAGE_UNAVAILABLE);
+-                }
+-            }
+-
+             if (enableShareFromContextMenu()) {
+                 imageGroup.add(createShareListItem(Item.SHARE_IMAGE, Item.DIRECT_SHARE_IMAGE));
+             }
+ 
+-            if (shouldShowAskGeminiForImage()) {
+-                imageGroup.add(createListItem(Item.ASK_GEMINI_IMAGE));
+-            }
+-
+             groupedItems.add(imageGroup);
+         }
+ 
+@@ -934,18 +852,15 @@
+                                             : groupedItems.size() - 1);
+             if (UrlUtilities.isAcceptedScheme(mParams.getUrl())) {
+                 if (mMode == ContextMenuMode.WEB_APP) {
+-                    items.add(createListItem(Item.OPEN_IN_CHROME));
+-                } else if (mMode == ContextMenuMode.CUSTOM_TAB && !mItemDelegate.isIncognito()) {
+-                    boolean addNewEntries =
+-                            !UrlUtilities.isInternalScheme(mParams.getUrl())
+-                                    && !isEmptyUrl(mParams.getUrl());
+-                    if (isDefaultBrowser() && addNewEntries) {
+-                        if (mItemDelegate.isIncognitoSupported()) {
+-                            items.add(0, createListItem(Item.OPEN_IN_CHROME_INCOGNITO_TAB));
+-                        }
+-                        items.add(0, createListItem(Item.OPEN_IN_NEW_CHROME_TAB));
+-                    } else if (addNewEntries && UrlUtilities.isAcceptedScheme(mParams.getUrl())) {
+-                        items.add(0, createListItem(Item.OPEN_IN_BROWSER_ID));
++                    addBrowserHandoffItem(items, items.size(), Item.OPEN_IN_CHROME);
++                } else if (mMode == ContextMenuMode.CUSTOM_TAB
++                        && !mItemDelegate.isIncognito()
++                        && !UrlUtilities.isInternalScheme(mParams.getUrl())
++                        && !isEmptyUrl(mParams.getUrl())) {
++                    if (isDefaultBrowser()) {
++                        addBrowserHandoffItem(items, 0, Item.OPEN_IN_NEW_CHROME_TAB);
++                    } else {
++                        addBrowserHandoffItem(items, 0, Item.OPEN_IN_BROWSER_ID);
+                     }
+                 }
+             }
+@@ -979,6 +894,16 @@
+         return groupedItems;
+     }
+ 
++    private void addBrowserHandoffItem(ModelList items, int index, @Item int item) {
++        if (item == Item.OPEN_IN_BROWSER_ID) {
++            // onOpenInDefaultBrowser() sends data: links back to Blanc.
++            if (mParams.getUrl().getScheme().equals(UrlConstants.DATA_SCHEME)) return;
++        } else if (shouldOpenIncognitoAsWindow()) {
++            return;
++        }
++        items.add(index, createListItem(item));
++    }
++
+     @Override
+     public boolean isIncognito() {
+         return mItemDelegate.isIncognito();
+@@ -1811,11 +1736,6 @@
+         return title;
+     }
+ 
+-    /** If not disabled record a UKM for opening the context menu with the lens item. */
+-    private void maybeRecordUkmLensShown() {
+-        maybeRecordBooleanUkm("ContextMenuAndroid.Shown", "SearchWithGoogleLens");
+-    }
+-
+     /**
+      * Record a boolean UKM if the lens feature is enabled.
+      *
+@@ -1837,21 +1757,6 @@
+             return mItemDelegate.supportsSaveImage();
+         }
+         return true;
+-    }
+-
+-    /**
+-     * Check if the search by image is supported.
+-     *
+-     * @param isSrcDownloadableScheme Whether the source url has a downloadable scheme.
+-     * @return True if search by image is supported.
+-     */
+-    private boolean checkSupportsGoogleSearchByImage(boolean isSrcDownloadableScheme) {
+-        final TemplateUrlService templateUrlServiceInstance = getTemplateUrlService();
+-        return isSrcDownloadableScheme
+-                && templateUrlServiceInstance.isLoaded()
+-                && templateUrlServiceInstance.isSearchByImageAvailable()
+-                && templateUrlServiceInstance.getDefaultSearchEngineTemplateUrl() != null
+-                && !LocaleManager.getInstance().needToCheckForSearchEnginePromo();
+     }
+ 
+     /** Returns the profile of the current tab via the item delegate. */

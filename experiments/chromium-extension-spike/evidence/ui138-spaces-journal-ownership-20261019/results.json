@@ -1,0 +1,94 @@
+{
+  "journal": {
+    "write-enospc": {
+      "pass": true,
+      "events": [
+        {
+          "pid": 88522,
+          "path": "/private/tmp/blanc-spaces-journal/chromium-profile/Default/.day.blanc.prototype.BlancPrototypeSpaces.json.switch.hplXDu",
+          "mode": "write-enospc",
+          "op": "write",
+          "errno": 28
+        }
+      ]
+    },
+    "write-eio": {
+      "pass": true,
+      "events": [
+        {
+          "pid": 88580,
+          "path": "/private/tmp/blanc-spaces-journal/chromium-profile/Default/.day.blanc.prototype.BlancPrototypeSpaces.json.switch.dlXAX7",
+          "mode": "write-eio",
+          "op": "write",
+          "errno": 5
+        }
+      ]
+    },
+    "flush": {
+      "pass": true,
+      "events": [
+        {
+          "pid": 88638,
+          "path": "/private/tmp/blanc-spaces-journal/chromium-profile/Default/.day.blanc.prototype.BlancPrototypeSpaces.json.switch.wAEeI5",
+          "mode": "flush",
+          "op": "F_BARRIERFSYNC",
+          "errno": 5
+        },
+        {
+          "pid": 88638,
+          "path": "/private/tmp/blanc-spaces-journal/chromium-profile/Default/.day.blanc.prototype.BlancPrototypeSpaces.json.switch.wAEeI5",
+          "mode": "flush",
+          "op": "fsync",
+          "errno": 5
+        }
+      ]
+    },
+    "rename": {
+      "pass": true,
+      "events": [
+        {
+          "pid": 88701,
+          "path": "/private/tmp/blanc-spaces-journal/chromium-profile/Default/BlancPrototypeSpaces.json.switch",
+          "mode": "rename",
+          "op": "rename",
+          "errno": 5
+        }
+      ]
+    },
+    "ack": {
+      "pass": true,
+      "events": [
+        {
+          "pid": 88866,
+          "path": "/private/tmp/blanc-spaces-journal/chromium-profile/Default/BlancPrototypeSpaces.json.switch",
+          "mode": "ack",
+          "op": "unlinkat",
+          "errno": 5
+        }
+      ]
+    }
+  },
+  "ownership": {
+    "regular": {
+      "pass": true,
+      "saved_store_unchanged": true,
+      "kind": "synthetic valid intent with actual journal-read barrier"
+    },
+    "identical": {
+      "pass": true,
+      "saved_store_unchanged": true,
+      "kind": "synthetic valid intent with actual journal-read barrier"
+    },
+    "private": {
+      "pass": true,
+      "saved_store_unchanged": true,
+      "kind": "synthetic valid intent with actual journal-read barrier"
+    },
+    "owner-closed": {
+      "pass": true,
+      "saved_store_unchanged": true,
+      "kind": "synthetic valid intent with actual journal-read barrier"
+    }
+  },
+  "ack_restart_source_recovery": true
+}

@@ -1,0 +1,30 @@
+[
+  {
+    "path": "chrome/browser/ui/webui/version/version_handler.cc",
+    "sha256": "82bbb883017905f8deec68da0f8e75e305a77f76caa911d046d6bffad63a9cc8",
+    "start": 96,
+    "end": 120,
+    "text": "96:   const bool return_raw_variations_cmd = args[1].GetBool();\n97: \n98:   base::DictValue response;\n99:   response.Set(version_ui::kKeyVariationsList, version_ui::GetVariationsList());\n100:   if (return_raw_variations_cmd) {\n101:     response.Set(version_ui::kKeyVariationsCmd,\n102:                  version_ui::GetVariationsCommandLine());\n103:   } else {\n104:     std::string content;\n105:     bool success =\n106:         variations::VariationsCommandLine::GetForCurrentProcess().WriteToString(\n107:             &content);\n108:     if (success) {\n109:       response.Set(version_ui::kKeyVariationsCmd, base::Base64Encode(content));\n110:     }\n111:   }\n112:   ResolveJavascriptCallback(base::Value(callback_id), response);\n113: }\n114: \n115: void VersionHandler::HandleRequestPathInfo(const base::ListValue& args) {\n116:   AllowJavascript();\n117: \n118:   CHECK_EQ(1U, args.size());\n119:   const std::string& callback_id = args[0].GetString();\n120: "
+  },
+  {
+    "path": "components/variations/net/variations_command_line.cc",
+    "sha256": "20ce072ae71263cdc9875e056f23abaabb470e15a7f634324be570a3711f70ff",
+    "start": 159,
+    "end": 168,
+    "text": "159: \n160: VariationsCommandLine VariationsCommandLine::GetForCurrentProcess() {\n161:   VariationsCommandLine result;\n162:   base::FieldTrialList::AllStatesToString(&result.field_trial_states);\n163:   result.field_trial_params =\n164:       base::FieldTrialList::AllParamsToString(&EscapeValue);\n165:   base::FeatureList::GetInstance()->GetFeatureOverrides(\n166:       &result.enable_features, &result.disable_features);\n167:   return result;\n168: }"
+  },
+  {
+    "path": "components/variations/net/variations_command_line.cc",
+    "sha256": "20ce072ae71263cdc9875e056f23abaabb470e15a7f634324be570a3711f70ff",
+    "start": 272,
+    "end": 282,
+    "text": "272: bool VariationsCommandLine::WriteToString(std::string* serialized_json) const {\n273:   base::DictValue dict =\n274:       base::DictValue()\n275:           .Set(::switches::kForceFieldTrials, field_trial_states)\n276:           .Set(switches::kForceFieldTrialParams, field_trial_params)\n277:           .Set(::switches::kEnableFeatures, enable_features)\n278:           .Set(::switches::kDisableFeatures, disable_features);\n279:   JSONStringValueSerializer serializer(serialized_json);\n280:   return serializer.Serialize(dict);\n281: }\n282: "
+  },
+  {
+    "path": "base/feature_list.cc",
+    "sha256": "d3897e8b6a8eccde5d4acb6f731b31914a0715c62cacf58340a2d1824d4aa726",
+    "start": 835,
+    "end": 843,
+    "text": "835: void FeatureList::GetFeatureOverrides(std::string* enable_overrides,\n836:                                       std::string* disable_overrides,\n837:                                       bool include_group_name) const {\n838:   GetFeatureOverridesImpl(enable_overrides, disable_overrides, false,\n839:                           include_group_name);\n840: }\n841: \n842: void FeatureList::GetCommandLineFeatureOverrides(\n843:     std::string* enable_overrides,"
+  }
+]

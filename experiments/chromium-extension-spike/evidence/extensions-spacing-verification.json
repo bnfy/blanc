@@ -1,0 +1,14 @@
+{
+  "metrics": {
+    "parent": "pillActions",
+    "gap": 1.1484375,
+    "slotWidth": 36,
+    "status": ""
+  },
+  "picker": {
+    "open": true,
+    "rows": 6,
+    "status": ""
+  },
+  "popup": "chrome-extension://nngceckbapebfimnlniiiahkandclblb/popup/index.html#/default-password-manager-prompt"
+}
