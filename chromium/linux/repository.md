@@ -17,7 +17,7 @@ After approval, the owner signs on the owner's Mac only. For apt, the owner
 signs `Release` to produce `InRelease` and `Release.gpg`. For dnf, the owner
 signs each `.rpm` and produces `repodata/repomd.xml.asc` for the metadata.
 
-Fingerprint: (pending the owner's key run)
+Fingerprint: 50D361974F477C8C87E117BD95AE97ABCACFEE6C
 
 ## Repository clients
 
