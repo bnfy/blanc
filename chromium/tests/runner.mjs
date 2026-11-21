@@ -16,6 +16,7 @@ import {prepareSyncFixture} from './fork-steps/sync.mjs';
 import {aggregateCases} from './results.mjs';
 import {macosForkExclusions} from './macos-fork-exclusions.mjs';
 import {windowsForkExclusions} from './windows-fork-exclusions.mjs';
+import {linuxForkExclusions} from './linux-fork-exclusions.mjs';
 import {hostPlatform,keepAwake,candidateIdentity,linuxTaggedScenarioRuns} from './lib/platform.mjs';
 import {awaitMemory} from './lib/memory-guard.mjs';
 import {createWorld,missingAdapters} from './world.mjs';
@@ -42,7 +43,7 @@ const inventory=JSON.parse(fs.readFileSync(path.join(root,'scenarios/inventory.j
 // One suite, run on the platform it is on: the tracker, the baseline and
 // the exclusions are all keyed by it.
 const platform=hostPlatform();
-const forkExclusions={macos:macosForkExclusions,windows:windowsForkExclusions}[platform]??{};
+const forkExclusions={macos:macosForkExclusions,windows:windowsForkExclusions,linux:linuxForkExclusions}[platform]??{};
 if(tracker.currentCandidates[platform]?.id!==config.candidate)throw Error('Candidate does not match tracker');
 const forkCommit=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
 const sourceMapSha256=crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'source-map.json'))).digest('hex');
