@@ -1,7 +1,9 @@
 # A nightly for Blanc Beta on Windows (and later Linux): design
 
 **Date:** 2026-11-21
-**Status:** draft for owner approval; builder check by Codex done, its points settled below.
+**Status:** approved by the owner on 2026-11-21. The implementation plan
+(`docs/superpowers/plans/2026-11-21-windows-nightly.md`) states where it differs: one exclusive hold on the
+candidate draft instead of moving the release record to the Mac Studio.
 **Background:** the Mac beta's daily release
 ([2026-11-14 design](2026-11-14-daily-beta-release-design.md), `chromium/release/daily/`),
 the Windows fork ([2026-11-17 design](2026-11-17-windows-fork-design.md)) and its release tool
@@ -134,7 +136,7 @@ Mac releases.
      input and checks that commit out instead of the dispatch ref's tip, and the full suite accepts
      a nightly candidate the committed tracker doesn't name (as development subsets already do),
      recording it as a nightly run rather than a tracker baseline. This is a change to the workflow
-     on `main` (the copy GitHub dispatches) and to `run-suite.mjs`.
+     on `chromium/next` (the copy `--ref chromium/next` runs) and to `run-suite.mjs`.
    - Finally re-upload the **beta** zip, so the draft holds the release candidate when the night
      ends.
 5. **Judge.** Download the suite report. The night passes when the beta's install, launch and icon

@@ -4,9 +4,11 @@
 
 **Goal:** Every night with new source on `chromium/next`, the Mac Studio has the Linux build server build a Windows prototype and a Windows beta from one commit, checks both on GitHub Windows runners, and leaves a judged, release-ready beta candidate that a morning release can use unchanged.
 
-**Architecture:** A Node orchestrator on the Mac Studio (`desktop-nightly.mjs`, LaunchAgent at 04:00) drives the server over SSH through one server-side script, keeps the zips locally, moves them through the existing `fork-windows-candidate` draft, dispatches `chromium-windows-candidate.yml` pinned to the night's commit, and judges the result like the Mac nightly. Draft "holds" (small JSON assets on the draft) keep a night and a release from replacing each other's candidate. Release prep reads the newest passing night and writes the release work folder; the ten `windows-release.mjs` stages stay as they are, except for the claim checks and releasing the hold.
+**Architecture:** A Node orchestrator on the Mac Studio (`desktop-nightly.mjs`, LaunchAgent at 04:00) drives the server over SSH through one server-side script that owns the build checkout from checkout to packaging, keeps the zips locally, uploads them to the `fork-windows-candidate` draft under two asset names (beta and prototype side by side, so nothing is swapped under a running job), dispatches `chromium-windows-candidate.yml` pinned to the night's commit, binds every result to the exact run and candidate, and judges like the Mac nightly. One exclusive hold on the draft keeps a night, a release and a hand upload from replacing each other's candidate. Release prep reads the newest passing night and writes the release work folder; the ten `windows-release.mjs` stages stay, with a schema-2 descriptor carrying the candidate's commit and version, and `verify-public` releasing the hold.
 
-**One change from the spec:** the spec moved the Windows release record to the Mac Studio so that the night and releases share one lock. The plan instead puts both locks on the `fork-windows-candidate` draft itself (the thing being protected), which both Macs already reach with `gh`. The release records and the owner's release stages stay on the MacBook Pro as today, and nothing new has to cross over SSH for a release.
+**Changes from the spec, stated openly:**
+1. The spec moved the Windows release record to the Mac Studio so the night and releases share a lock. The plan puts one exclusive lock on the `fork-windows-candidate` draft itself, which both Macs reach with `gh`; release records and the owner's stages stay on the MacBook Pro.
+2. The spec said the candidate workflow changes on `main`. `gh workflow run --ref chromium/next` runs the copy on `chromium/next` (as `windows-release.mjs` already dispatches it), so the workflow changes there only; `main`'s copy only has to exist and is left alone.
 
 **Tech Stack:** Node 22 ESM (`node:test`), bash, `gh`, SSH/scp, GitHub Actions (PowerShell job), launchd.
 
@@ -15,24 +17,24 @@
 ## Global Constraints
 
 - The build server holds no GitHub credential; every `gh` call runs on the Mac Studio or the MacBook Pro.
-- Build only through `chromium/tools/build.mjs`; never `ninja -t`; never a build while another `siso ninja` runs; never touch the Android checkout or `~/depot_tools` (Windows uses `~/depot_tools-desktop`).
-- A night never re-records the guard's environment unless the only guard difference is `argsSha256` **and** the only `args.gn` lines that differ are `blanc_beta_version` and `blanc_beta_build` (spec: "Argument changes are checked line by line").
-- Refuse any build plan above `BETA_MAX_ACTIONS` (3000, as the Mac nightly) without a person.
+- Build only through `chromium/tools/build.mjs`; never `ninja -t`; never a build while another `siso ninja` runs; never touch the Android checkout or `~/depot_tools` (Windows uses `~/depot_tools-desktop`). Server Node: `~/chromium-desktop/src/third_party/node/linux/node-linux-x64/bin`.
+- A night re-records the guard's environment only when the guard names only `argsSha256` **and** the beta `args.gn` text equals the committed `beta-x64.gn` except the `blanc_beta_version` and `blanc_beta_build` lines, and the prototype `args.gn` equals the committed `prototype-x64.gn` exactly.
+- Build plans are capped like the Mac nightly: `build.mjs --build --allow-large-build --max-actions=3000`.
 - The night never pushes to any branch and never publishes or signs anything.
-- Night records live on the Mac Studio under `~/Projects/Blanc/records/nightly/windows/`; the Mac nightly's checkout (`~/Projects/Blanc/repo`) is never moved; the night uses its own worktree `~/Projects/Blanc/desktop-nightly`.
+- Night records live on the Mac Studio under `~/Projects/Blanc/records/nightly/windows/`; the Mac nightly's checkout `~/Projects/Blanc/repo` is never moved; the night uses its own worktree `~/Projects/Blanc/desktop-nightly`.
 - LaunchAgent label `me.bnfy.blanc.desktop-nightly`, 04:00 local time.
-- Draft hold assets: `release-hold.json` (a release) and `nightly-running.json` (a night); a `nightly-running.json` older than 8 hours is stale and ignored.
-- Claim rule, agreed with the Linux session 2026-11-21: a claim `{build, sourceCommit, platforms[], purpose}` names its source commit; a release checks only claims made before its own; an abandoned claim stays a gap; the release proves its candidate matches the claim (`candidate.treeCommit === sourceCommit`, compiled version `158.0.8127.<build>`).
+- Draft assets: `blanc-windows-candidate.zip` (the beta; the name every release stage reads), `blanc-windows-prototype.zip` (the night's suite build), `draft-hold.json` (the one exclusive hold).
+- Claim rule, agreed with the Linux session 2026-11-21: a claim in `chromium/release/build-reservations.json` (`sequences["desktop-158"]`, Linux L3 Task 5's schema and helper) names its source commit and platforms; a release is valid only if no claim made before its own holds a build number at or above its number for different source; an abandoned claim stays a gap; the release proves its candidate matches the claim (`candidate.json` `treeCommit` = `sourceCommit`, `version` = `158.0.8127.<build>`, channel `beta`). A night that loses its number is never released; the next night builds at a higher one.
 - Never print a secret; failures print fixed messages, as `windows-release.mjs` does.
 - Fork work goes to `chromium/next` by merge; the fork unit suite and both `check-patches.py` lanes must pass before every push.
 
 ## Review Focus
 
-1. **A release starts while a night is mid-upload** (prototype zip on the draft): prep must see `nightly-running.json` and refuse; the night must see `release-hold.json` before each upload and stop. → Task 3 and Task 6 tests.
-2. **A night that dies without cleaning up** (Mac Studio sleeps or reboots): its stale `nightly-running.json` must not block releases forever (8-hour rule), and the server lock must not be left held by the night. → Task 3 test; Task 4 `trap` test.
-3. **A push lands on `chromium/next` between build and dispatch**: the runner must still test the night's commit (`source_commit`), and the report must name that commit. → Task 2 test.
-4. **A morning release after a failed night**: prep re-uploads the last passing beta zip and verifies its digest before writing the work folder. → Task 6 test.
-5. **The committed `beta-x64.gn` gains an unrelated change** (for example `enable_widevine`): the night stops with the differing key named, and does not re-record the environment. → Task 1 test.
+1. **A release and a night start at the same moment.** Only one can create `draft-hold.json` (upload without `--clobber` fails when it exists); the loser stops without touching the draft. → Task 3 test (simultaneous acquire).
+2. **A night dies holding the draft** (Mac Studio reboot): the hold stays until a person breaks it with `draft-hold.mjs break`, which refuses while the Studio's `RUNNING` marker names a live process; prep prints that command. → Task 3 and Task 5 tests.
+3. **A green report from another run or candidate.** The judge accepts only reports whose run id was returned by this night's dispatch and whose `candidate` and fork commit equal the night's prototype. → Task 5 test.
+4. **A push lands on `chromium/next` between build and dispatch.** The runner checks out `source_commit` after proving it is on `chromium/next`, so the test harness is the night's. → Task 2 test.
+5. **The committed `beta-x64.gn` gains an unrelated change** (for example `enable_widevine`): the night stops naming the changed line and does not re-record the environment. → Task 1 test.
 
 ---
 
@@ -43,101 +45,107 @@
 - Test: `chromium/release/daily-desktop-nightly.test.mjs`
 
 **Interfaces:**
-- Consumes: `judgeSuite(baseline, known, rerun)` from `chromium/release/daily/nightly.mjs`; `validateGN` (as `bumpBetaArgs` uses it).
+- Consumes: `judgeSuite(baseline, known, rerun)` from `chromium/release/daily/nightly.mjs`.
 - Produces:
-  - `nextWindowsBuild(ledger, reservations = null) -> number` — `max(ledger.builds[].build, reservations?.builds[].build) + 1`.
-  - `windowsBetaArgs(committedText, build) -> string` — replaces exactly `blanc_beta_version = "2.0.0-beta.<build>"` and `blanc_beta_build = <build>`; throws if either line is missing or appears twice.
-  - `argsDrift(currentText, intendedText) -> string[]` — GN keys whose values differ, excluding `blanc_beta_version` and `blanc_beta_build`.
-  - `skipReason({releaseHold, macMarker, serverLock, sisoRunning, unchangedSinceLastPass}) -> string|null` — checked in that order; fixed messages.
-  - `judgeWindowsNight({checks, suite, known, rerun}) -> {status, ...}` — `checks` is `{betaInstall, betaLaunch, betaIcon, prototypeLaunch, prototypeFrame}` booleans; any false → `fail`; otherwise `judgeSuite(suite, known, rerun)`.
+  - `nextWindowsBuild(ledger, reservations = null) -> number` — `max(ledger.builds[].build, every build in reservations?.sequences['desktop-158']) + 1`.
+  - `windowsBetaArgs(committedText, build) -> string` — replaces exactly the lines `blanc_beta_version = "2.0.0-beta.<build>"` and `blanc_beta_build = <build>`; throws if either is missing or appears twice. No GN validator (the Mac `validateGN` rejects Windows arguments).
+  - `argsDrift(currentText, intendedText) -> string[]` — the lines of `currentText` that differ from `intendedText`, ignoring only the two version lines (exact text, not parsed values); `[]` means no drift.
+  - `skipReason({hold, macMarker, serverLock, sisoRunning, unchangedSinceLastPass}) -> string|null` — in that order; fixed messages.
+  - `judgeWindowsNight({checks, suite, known, rerun, expect}) -> {status, ...}` — `checks`: `{betaInstalled, betaInstalledLaunches, betaIcon, prototypeLaunch, prototypeFrame}` booleans; `expect`: `{runIds: {suite, rerun?}, prototypeId, sourceCommit}`; fails when a check is false, when `suite.runId`/`rerun.runId` isn't in `expect.runIds`, or when `suite.candidate !== expect.prototypeId` or the report's fork commit `!== expect.sourceCommit`; otherwise `judgeSuite(suite, known, rerun)`.
 
-- [ ] **Step 1: Write the failing tests** in `daily-desktop-nightly.test.mjs`:
+- [ ] **Step 1: Write the failing tests:**
 
 ```js
 test('the next build is above every ledger and claimed build', () => {
   assert.equal(nextWindowsBuild({builds: [{build: 902}, {build: 904}]}), 905);
-  assert.equal(nextWindowsBuild({builds: [{build: 904}]}, {builds: [{build: 906, platforms: ['linux']}]}), 907);
+  assert.equal(nextWindowsBuild({builds: [{build: 904}]}, {sequences: {'desktop-158': [{build: 906, platforms: ['linux']}]}}), 907);
 });
 test('only the version lines change', () => {
-  const out = windowsBetaArgs(committed /* beta-x64.gn text with 904 */, 905);
+  const out = windowsBetaArgs(committed, 905); // committed = the real beta-x64.gn text, read from disk
   assert.match(out, /^blanc_beta_version = "2\.0\.0-beta\.905"$/m);
   assert.match(out, /^blanc_beta_build = 905$/m);
   assert.deepEqual(argsDrift(committed, out), []);
 });
 test('an unrelated argument change is named', () => {
-  assert.deepEqual(argsDrift(committed, committed.replace('enable_widevine = false', 'enable_widevine = true')), ['enable_widevine']);
+  assert.deepEqual(argsDrift(committed.replace('enable_widevine = false', 'enable_widevine = true'), committed), ['enable_widevine = true']);
 });
-test('a night skips for a release, a Mac release, a busy server or nothing new', () => {
-  const clear = {releaseHold: false, macMarker: false, serverLock: false, sisoRunning: false, unchangedSinceLastPass: false};
+test('a night skips for a hold, a Mac release, a busy server or nothing new', () => {
+  const clear = {hold: null, macMarker: false, serverLock: false, sisoRunning: false, unchangedSinceLastPass: false};
   assert.equal(skipReason(clear), null);
-  assert.match(skipReason({...clear, releaseHold: true}), /Windows release holds the draft/);
+  assert.match(skipReason({...clear, hold: {kind: 'release'}}), /the candidate draft is held/);
   assert.match(skipReason({...clear, serverLock: true}), /desktop checkout is locked/);
   assert.match(skipReason({...clear, unchangedSinceLastPass: true}), /nothing new since the last passing night/);
 });
-test('a failed release-path check fails the night whatever the suite says', () => {
-  assert.equal(judgeWindowsNight({checks: {...allTrue, betaIcon: false}, suite: passingSuite, known: {cases: []}}).status, 'fail');
+test('evidence from another run or candidate fails the night', () => {
+  assert.equal(judgeWindowsNight({checks: allTrue, suite: {...green, runId: 9}, known, expect}).status, 'fail');
+  assert.equal(judgeWindowsNight({checks: allTrue, suite: {...green, candidate: 'windows-x64-0000000000000000'}, known, expect}).status, 'fail');
+  assert.equal(judgeWindowsNight({checks: {...allTrue, prototypeFrame: false}, suite: green, known, expect}).status, 'fail');
 });
 ```
 
 - [ ] **Step 2: Run** `node --test chromium/release/daily-desktop-nightly.test.mjs`. Expected: FAIL, module not found.
-- [ ] **Step 3: Implement** the five exports in `desktop-nightly-rules.mjs` (no I/O).
-- [ ] **Step 4: Run** the test file. Expected: PASS.
+- [ ] **Step 3: Implement** the five exports (no I/O).
+- [ ] **Step 4: Run.** Expected: PASS.
 - [ ] **Step 5: Commit** `Fork nightly: the Windows night's rules (number, args, skips, judging)`.
 
-### Task 2: The runner tests the night's commit
+### Task 2: The runner tests the night's commit and either asset
 
 **Files:**
-- Modify: `.github/workflows/chromium-windows-candidate.yml` (on `chromium/next`; GitHub runs the ref's copy)
+- Modify: `.github/workflows/chromium-windows-candidate.yml` (on `chromium/next` only)
 - Modify: `chromium/windows/run-suite.mjs`
-- Test: `chromium/tools/windows-candidate-workflow.test.mjs` (extend if it exists, else create), `chromium/tools/windows-run-suite.test.mjs` (extend or create)
+- Test: `chromium/tools/windows-candidate-workflow.test.mjs` (extend or create), `chromium/tools/windows-run-suite.test.mjs` (extend or create)
 
 **Interfaces:**
-- Produces: workflow inputs `source_commit` (optional, `^[0-9a-f]{40}$`) and `nightly` (boolean, default false); `run-suite.mjs ... --nightly=<stamp>`.
+- Produces: workflow inputs `source_commit` (optional, `^[0-9a-f]{40}$`), `asset` (choice `blanc-windows-candidate.zip` | `blanc-windows-prototype.zip`, default the first), `nightly` (boolean, default false); `only` accepts `/` and up to 4000 characters; `run-suite.mjs CANDIDATE RESULTS --slice=f0 [--nightly=<runId>] [--only=...]`.
 
-- [ ] **Step 1: Failing tests**:
-  - workflow text: `inputs.source_commit` validated against `^[0-9a-f]{40}$` in "Validate inputs"; `actions/checkout` has `ref: ${{ inputs.source_commit || github.sha }}`; the suite step passes `--nightly=${{ github.run_id }}` only when `inputs.nightly`.
-  - run-suite: `suiteArguments(['--nightly=123'])` is accepted; with it, the tracker is pointed at the candidate for this run with `qualification: 'nightly run 123; not a tracker baseline'`, and the written report has `nightly: '123'` and `developmentSubset: false`.
-- [ ] **Step 2: Run** both test files. Expected: FAIL.
-- [ ] **Step 3: Implement** the inputs and the `--nightly` branch beside the existing development-subset branch in `run-suite.mjs`.
+- [ ] **Step 1: Failing tests:**
+  - workflow text: "Validate inputs" checks `source_commit`'s pattern; after `actions/checkout` (still the dispatch ref, full enough to reach `source_commit`: `fetch-depth: 0` or a fetch of `origin/chromium/next`), a step runs `git merge-base --is-ancestor $SOURCE_COMMIT origin/chromium/next` and fails otherwise, then `git checkout --detach $SOURCE_COMMIT`, before any step that runs repository scripts; the download step uses `inputs.asset`; the `sign` job's steps are unchanged (it never uses `source_commit`); the suite step adds `--nightly=${{ github.run_id }}` only when `inputs.nightly`; the `only` pattern is `^[A-Za-z0-9 _.,:@/-]{0,4000}$`.
+  - run-suite: `suiteArguments(['--slice=f0', '--nightly=123'])` is accepted; the run points the tracker at the candidate for this run (`qualification: 'nightly run 123; not a tracker baseline'`), and the report has `nightly: '123'`, `runId: '123'`, `developmentSubset: false`; with `--nightly=123 --only=spec/acceptance/F41-named-workspaces.feature:203:plain` the report has `developmentSubset: true` and `nightly: '123'`.
+- [ ] **Step 2: Run** both files. Expected: FAIL.
+- [ ] **Step 3: Implement.**
 - [ ] **Step 4: Run.** Expected: PASS.
-- [ ] **Step 5: Commit** `Fork Windows: candidate runs can pin a source commit and run as a nightly`.
+- [ ] **Step 5: Commit** `Fork Windows: candidate runs can pin a source commit, pick the prototype asset and run as a nightly`.
 
-### Task 3: Draft holds
+### Task 3: One exclusive hold on the draft
 
 **Files:**
 - Create: `chromium/windows/draft-hold.mjs`
+- Modify: `chromium/windows/ship-candidate.sh` (refuse while another owner holds the draft)
 - Test: `chromium/tools/windows-draft-hold.test.mjs`
 
 **Interfaces:**
 - Produces:
-  - `HOLDS = {release: 'release-hold.json', nightly: 'nightly-running.json'}`, `STALE_NIGHT_MS = 8 * 3600 * 1000`.
-  - `readHolds(assets, now = Date.now()) -> {release: object|null, nightly: object|null}` — from `gh release view fork-windows-candidate --json assets`; a nightly hold whose `startedAt` is older than `STALE_NIGHT_MS` reads as `null`.
-  - `placeHold(io, kind, body)` / `releaseHold(io, kind)` — upload (`--clobber`) / `gh release delete-asset ... -y`; `body` gains `startedAt` (ISO).
-  - CLI: `node chromium/windows/draft-hold.mjs release-abandon` removes `release-hold.json` (for an abandoned release).
+  - `HOLD_ASSET = 'draft-hold.json'`; hold body `{kind: 'nightly'|'release'|'manual', owner: '<host>:<pid>:<random>', startedAt, note}`.
+  - `acquireHold(io, kind, note) -> owner` — `gh release upload fork-windows-candidate <file>` **without** `--clobber` (GitHub refuses an existing name); then downloads the asset and checks the owner is its own (otherwise throws "the candidate draft is held by …").
+  - `readHold(io) -> object|null` — downloads the asset's JSON (`gh release download … --pattern draft-hold.json`).
+  - `releaseHold(io, owner)` — deletes the asset only if its body's owner equals `owner`.
+  - CLI: `node chromium/windows/draft-hold.mjs status | acquire-manual <note> | release <owner> | break --confirm` — `break` removes any hold after printing it, and for a `nightly` hold first checks over SSH that the Mac Studio's `records/nightly/windows/RUNNING` is absent or names a dead pid.
+  - `ship-candidate.sh` reads the hold and refuses unless `BLANC_DRAFT_HOLD_OWNER` equals its owner.
 
-- [ ] **Step 1: Failing tests**: two holds read; a 9-hour-old nightly hold reads `null`; a 9-hour-old release hold still reads (releases never go stale); `placeHold` calls `gh release upload fork-windows-candidate <file> --clobber` through the fake `io.exec`.
+- [ ] **Step 1: Failing tests** (fake `io`): a second `acquireHold` while one exists throws and never deletes; two acquisitions racing (the fake upload succeeds once) leave exactly one owner; `releaseHold` with someone else's owner deletes nothing; `break` on a nightly hold refuses while `RUNNING` names a live pid; `ship-candidate.sh`'s text reads `draft-hold.json` before `gh release upload`.
 - [ ] **Step 2: Run.** Expected: FAIL.
 - [ ] **Step 3: Implement.**
 - [ ] **Step 4: Run.** Expected: PASS.
-- [ ] **Step 5: Commit** `Fork Windows: holds on the candidate draft for nights and releases`.
+- [ ] **Step 5: Commit** `Fork Windows: one exclusive hold on the candidate draft`.
 
-### Task 4: The server phase
+### Task 4: The server phase, one owner from checkout to packages
 
 **Files:**
+- Modify: `chromium/tools/build.mjs` (a holder of the checkout lock can build under it)
 - Create: `chromium/windows/server/nightly-build.sh`
-- Test: `chromium/tools/windows-nightly-build-script.test.mjs`
+- Test: `chromium/tools/build.test.mjs` (extend), `chromium/tools/windows-nightly-build-script.test.mjs`
 
 **Interfaces:**
-- Consumes: `apply.py`, `build.mjs`, `package-candidate.mjs`, the committed `chromium/windows/args/{prototype,beta}-x64.gn`.
-- Produces: `nightly-build.sh COMMIT BUILD STAMP` on the server. Prints one final JSON line `{"status":"built"|"busy"|"stopped","reason":...,"prototype":{package.json fields},"beta":{package.json fields}}`; packages land in `~/blanc-evidence/windows/nightly-STAMP/{prototype,beta}/`.
+- `build.mjs`: `acquireCheckoutLock` writes `owner` (a token) into the lock directory; when the environment has `BLANC_CHECKOUT_LOCK_OWNER` equal to the token inside an existing lock, `build.mjs` builds under that lock and does not release it. Any other existing lock refuses as today. `bootstrap.sh` writes its own token the same way. **This file is shared with the Linux lane: bring the diff to the Linux session before it lands.**
+- `nightly-build.sh COMMIT BUILD STAMP`, run on the server by a fixed bootstrap the orchestrator sends over SSH: `PATH` gets the server Node and `~/depot_tools-desktop`; the bootstrap checks `pgrep -f '[s]iso ninja'` (→ `busy`), takes the lock with a fresh owner token (`mkdir` + `owner` file, → `busy` if it exists) and an `EXIT` trap that removes it only if the token is still its own, then `git -C ~/blanc-desktop fetch -q origin chromium/next && git checkout -q --detach COMMIT`, then runs the now-current `chromium/windows/server/nightly-build.sh` with `BLANC_CHECKOUT_LOCK_OWNER` set. The script prints one final JSON line `{"status":"built"|"busy"|"stopped","reason"?,"prototype":{…package.json},"beta":{…package.json}}`; packages land in `~/blanc-evidence/windows/nightly-STAMP/{prototype,beta}/`.
 
-Order, each step stopping the script on failure: refuse if `pgrep -f '[s]iso ninja'` → `busy`; `mkdir ~/chromium-desktop/.blanc-checkout.lock` or `busy`, with `trap 'rmdir …' EXIT`; `git -C ~/blanc-desktop fetch` and `checkout --detach COMMIT`; `apply.py` check then `--apply --backup ~/blanc-evidence/windows/nightly-STAMP/apply-backup`; copy `source-map.json` to `.blanc-applied-source-map.json`; write the beta args with `windowsBetaArgs` (call `node -e` on Task 1's module) and compare with `argsDrift` against `out/BlancWinBeta/args.gn` → `stopped` naming the keys; copy `prototype-x64.gn` unchanged; `gn gen` both outputs; release the lock (`build.mjs` takes it per invocation); for each output `build.mjs --check`, refuse a plan above 3000 actions (`stopped`), `--record-environment` only when the check names only `argsSha256` (`onlyArgsChanged`), then `--build`; `package-candidate.mjs` for each output.
+Script order: `mount-toolchain.sh`; `apply.py` check then `--apply --backup` **with `--previous-map ~/chromium-desktop/.blanc-applied-source-map.json`** (as `bootstrap.sh` does), then record the map; prototype: `argsDrift(out/BlancWinPrototype/args.gn, prototype-x64.gn)` must be `[]` (→ `stopped`); beta: write `windowsBetaArgs(beta-x64.gn, BUILD)` after `argsDrift(out/BlancWinBeta/args.gn, that text)` is `[]`; `gn gen` both; for each output `build.mjs --check`: if it refuses and `onlyArgsChanged` → `--record-environment`, else → `stopped` with the guard's message; then `build.mjs --build --allow-large-build --max-actions=3000` (→ `stopped` on refusal); `package-candidate.mjs` for each, all still under the lock.
 
-- [ ] **Step 1: Failing test**: the script text, read as a string: holds the lock with an `EXIT` trap before `apply.py`; calls `argsDrift` before any `gn gen`; never calls `--allow-large-build`; checks `[s]iso ninja` first; `--record-environment` appears only inside an `onlyArgsChanged` branch; ends by printing one JSON line.
+- [ ] **Step 1: Failing tests:** `build.test.mjs` — with the lock present and the matching owner env, the guard proceeds and leaves the lock; with a different owner it refuses with today's message; the lock file contains the owner. Script test (text): the bootstrap checks `[s]iso ninja` first, takes the lock before `git checkout`, the trap compares tokens; `--previous-map` on both `apply.py` calls; `argsDrift` runs before any `gn gen`; `--record-environment` only inside an `onlyArgsChanged` branch; the build call carries `--max-actions=3000`; packaging happens before the trap releases the lock; the last line is JSON.
 - [ ] **Step 2: Run.** Expected: FAIL.
-- [ ] **Step 3: Write the script.**
-- [ ] **Step 4: Run** the test; run `bash -n chromium/windows/server/nightly-build.sh`. Expected: PASS, no syntax error.
-- [ ] **Step 5: Commit** `Fork Windows: the nightly's server phase`.
+- [ ] **Step 3: Implement**, and send the `build.mjs` diff to the Linux session; land it after they agree.
+- [ ] **Step 4: Run** the tests and `bash -n` on the script. Expected: PASS.
+- [ ] **Step 5: Commit** `Fork Windows: the nightly's server phase holds the checkout from checkout to packages`.
 
 ### Task 5: The orchestrator on the Mac Studio
 
@@ -147,38 +155,33 @@ Order, each step stopping the script on failure: refuse if `pgrep -f '[s]iso nin
 - Test: `chromium/release/daily-desktop-nightly.test.mjs` (extend)
 
 **Interfaces:**
-- Consumes: Task 1 rules, Task 3 holds, Task 4 script, `ship-candidate.sh`'s upload steps (reimplemented in Node with the same `gh` calls).
-- Produces: `node chromium/release/daily/desktop-nightly.mjs [--now]`; records `~/Projects/Blanc/records/nightly/windows/<stamp>/result.json` with `{status, reason?, sourceCommit, build, version, beta: {id, zipSha256, treeCommit, version}, prototype: {id, zipSha256}, runs: {beta, suite, rerun?}, judged}`; `.../LAST-PASS` holds the stamp of the newest passing night; passing nights keep `beta.zip`, failed nights keep nothing; `PLATFORMS = [{name: 'windows', ...}]` (Linux is added here later).
+- Consumes: Task 1 rules, Task 2 inputs, Task 3 holds, Task 4 bootstrap and script.
+- Produces: `node chromium/release/daily/desktop-nightly.mjs [--now]`, records `~/Projects/Blanc/records/nightly/windows/<stamp>/result.json` `{status, reason?, sourceCommit, build, version, beta: {id, zipSha256, treeCommit, version, channel}, prototype: {id, zipSha256, treeCommit}, runs: {betaSmoke, betaCapture, suite, rerun?}, judged}`; `LAST-PASS` holds the newest passing stamp; `PLATFORMS = [{name: 'windows', …}]` (Linux is added here later).
 
-Flow per platform, with `io` injected as in `windows-release.mjs` so tests run without SSH or `gh`: own lock (`records/nightly/windows/RUNNING`); fetch `origin/chromium/next` in the `desktop-nightly` worktree; `skipReason` from the draft holds (`readHolds`), `RELEASE-IN-PROGRESS`, a server probe over SSH (lock dir, `siso`), and `LAST-PASS`'s `sourceCommit`; `placeHold(nightly)`; number from `nextWindowsBuild`; SSH `nightly-build.sh`; copy both zips with `scp` and check their SHA-256; before **each** upload re-read the holds and stop if a release hold appeared; upload beta, dispatch (`source_commit`, `suite=smoke`, `update_expect=capture:<the night's version>`: the install, installed-launch, installer-capture and icon checks); upload prototype, dispatch (`suite=f0`, `nightly=true`, `source_commit`); re-upload beta; wait on both runs; download the suite report; rerun once the cases `judgeSuite` lists in `rerunCandidates` (`only=`); `judgeWindowsNight`; write `result.json` and `LAST-PASS`; finally `releaseHold(nightly)`.
+Flow (`io` injected, as in `windows-release.mjs`): write `RUNNING` (`{pid, stamp}`), removed in `finally`; in the `desktop-nightly` worktree `fetch` and check out `origin/chromium/next`'s SHA detached (the LaunchAgent's entry script does this before loading Node modules, so new rules apply the same night); `skipReason` from `readHold`, `RELEASE-IN-PROGRESS`, an SSH probe (lock dir, `siso`), and `LAST-PASS`'s `sourceCommit`; `acquireHold('nightly')`; number from `nextWindowsBuild` (reading the reservation file when it exists); SSH bootstrap; `scp` both zips and check each SHA-256; unzip each `candidate.json` and require `treeCommit` = the night's commit, the beta's `version` = `158.0.8127.<build>` and channel `beta`, the prototype's channel `preview`; upload the prototype as `blanc-windows-prototype.zip` and the beta as `blanc-windows-candidate.zip` (`--clobber`, owner env set); dispatch three runs, each with `source_commit`, taking the run id from `gh workflow run`'s printed URL (never a time-window search): beta smoke (`suite=smoke`: install and installed launch), beta capture (`update_expect=capture:<version>`: icon), prototype suite (`asset=blanc-windows-prototype.zip`, `suite=f0`, `nightly=true`); wait on all three; download artifacts by run id; read `install.json` (`installed`, `installedLaunches`), `capture.json` (`iconVerdict.ok`), the suite report and the prototype's launch and frame receipts; rerun once the `rerunCandidates` (`only=` exact ids, joined by commas; more than 4000 characters fails the night); `judgeWindowsNight`; write `result.json`; on pass keep both zips under the stamp, point `LAST-PASS` at it, then delete the previous pass's zips here and its `nightly-*` folder on the server; on fail delete this night's zips; `releaseHold` in `finally`.
 
-`windows-known-failures.json` seeds from `chromium/reports/w2-windows-triage.md`: one entry per case it classifies as a known Windows gap, each with its `results` and `reason` citing the triage line.
+`windows-known-failures.json` is seeded only with cases `chromium/reports/w2-windows-triage.md` classifies as known Windows gaps, each with `results` and a `reason` citing the triage line. A new failure that fails its rerun keeps the night failing until it is fixed or a person adds it with evidence; the first supervised night does not add cases in bulk.
 
-- [ ] **Step 1: Failing tests** with a fake `io` recording calls:
-  - a release hold appearing between the beta upload and the prototype upload stops the night before the prototype upload, records `status: 'stopped'`, and still removes the nightly hold;
-  - a passing night writes `LAST-PASS` and keeps `beta.zip`; a failing night keeps the previous `LAST-PASS` and deletes its zips;
-  - both dispatches carry `source_commit` equal to the night's commit;
-  - the draft ends holding the beta zip (last upload is the beta);
-  - `busy` from the server script records a skip, not a failure.
+- [ ] **Step 1: Failing tests** (fake `io`): a hold held by a release stops the night before any upload and records `skipped`; both zips stay on the draft until all three runs finish (no upload after the first dispatch); every dispatch carries the night's `source_commit`; a run id is read from the dispatch output; a beta whose `candidate.json` names another commit stops the night before upload; a repeatable new suite failure leaves `LAST-PASS` unchanged; pass → fail → pass keeps only the newest passing zips on the Studio and asks the server to remove the older night's folder; `busy` from the server records a skip; the hold and `RUNNING` are removed after an exception.
 - [ ] **Step 2: Run.** Expected: FAIL.
-- [ ] **Step 3: Implement** `desktop-nightly.mjs` and seed `windows-known-failures.json`.
-- [ ] **Step 4: Run** the test file and the whole fork suite. Expected: PASS.
+- [ ] **Step 3: Implement** the orchestrator; seed the known failures from the W2 triage.
+- [ ] **Step 4: Run** the file and the whole fork suite. Expected: PASS.
 - [ ] **Step 5: Commit** `Fork nightly: the Windows night on the Mac Studio`.
 
 ### Task 6: Releasing from a night
 
 **Files:**
 - Create: `chromium/release/daily/windows-beta-prep.mjs`
-- Modify: `chromium/release/windows-release.mjs` (`validateWindowsRelease`, `RUN['verify-public']`)
+- Modify: `chromium/release/windows-release.mjs` (descriptor schema 2, claim checks, `verify-public` releases the hold)
 - Test: `chromium/release/daily-windows-prep.test.mjs`, extend `chromium/release/windows-release.test.mjs`
 
 **Interfaces:**
-- Consumes: Task 3 holds; the Mac Studio's `LAST-PASS` and `result.json` over SSH (`ssh -i ~/.ssh/id_ed25519_macmini -o IdentitiesOnly=yes anthonyjloria@Mac-Studio.local`); the kept `beta.zip` (scp); after Linux L3 Task 5 lands, its reservation module (`chromium/release/build-reservations.json` and its claim helper; until then the claim step is skipped and logged).
-- Produces: `node chromium/release/daily/windows-beta-prep.mjs` on the MacBook Pro: refuses while `nightly-running.json` is present; places `release-hold.json` (`{version, sourceCommit, work}`); re-uploads the kept beta zip if the draft's digest differs and re-checks it; claims the build (when the reservation file exists); creates `~/Projects/Blanc/records/windows-release/<version>/` with `windows-release.json` (candidate now carries `{id, zipSha256, treeCommit, version}`) and a draft `release-notes.md` (commits since the last Windows ledger build's `sourceCommit`, owner edits and approves); writes `CURRENT`.
-- `validateWindowsRelease` additionally requires `r.candidate.treeCommit === r.sourceCommit` and `r.candidate.version === r.version`, and, when the reservation file exists, a claim naming `windows` and `r.sourceCommit` for `r.build`, with no earlier claim on that number for different source.
-- `RUN['verify-public']` ends by `releaseHold(io, 'release')`.
+- Consumes: Task 3 holds; the Studio's `LAST-PASS` and `result.json` over SSH (`ssh -i ~/.ssh/id_ed25519_macmini -o IdentitiesOnly=yes anthonyjloria@Mac-Studio.local`), and the kept zips (scp); Linux L3 Task 5's reservation file and claim helper (which owns the rejected-push recovery). Until that lands, prep skips the claim step and says so, and the schema-2 claim checks are skipped when the file is absent.
+- Produces: `node chromium/release/daily/windows-beta-prep.mjs [--records DIR] [--dry-run]` on the MacBook Pro: `acquireHold('release')` (fails if a night or anyone else holds it, printing `draft-hold.mjs status` and `break`); if the draft's `blanc-windows-candidate.zip` digest differs from the night's beta, re-uploads the kept beta zip under that name and re-checks the digest; claims `{build, sourceCommit, platforms: ['windows'], purpose}` through the Linux helper (skipped with `--dry-run`); if the claim loses, releases the hold and stops ("the night's number was taken; the next night builds at a higher one"); writes `<records>/<version>/` (mode 0700) with schema-2 `windows-release.json` (`candidate: {id, zipSha256, treeCommit, version}`, `hold: owner`) and a draft `release-notes.md` (commits since the last ledger build's `sourceCommit`), validates it through the real `load()`, and only then replaces `<records>/CURRENT` (write to a temp file and rename).
+- `validateWindowsRelease`: schema 1 unchanged (completed records still load); schema 2 also requires `candidate.treeCommit === sourceCommit`, `candidate.version === version`, and, when the reservation file exists, a claim for `build` naming `windows` and `sourceCommit` with no earlier claim at or above `build` for different source.
+- `RUN['verify-public']` ends with `releaseHold(io, r.hold)` (schema 2 only); `draft-hold.mjs release <owner>` covers an abandoned release.
 
-- [ ] **Step 1: Failing tests**: prep refuses with a fresh nightly hold and proceeds with a 9-hour-old one; prep re-uploads when the draft digest differs and refuses if the re-uploaded digest still differs; `validateWindowsRelease` rejects a candidate whose `treeCommit` differs from `sourceCommit` and one whose `version` differs; `verify-public`'s fake `io` sees the `delete-asset release-hold.json` call after the online proof passes and not before.
+- [ ] **Step 1: Failing tests:** prep refuses while a nightly hold exists; prep re-uploads when the draft digest differs and refuses if it still differs; an interrupted prep leaves the previous `CURRENT` untouched and releases only its own hold; `validateWindowsRelease` loads a completed schema-1 record unchanged, and rejects a schema-2 one whose `treeCommit` or `version` differs, or with an earlier higher claim for other source (Windows 905 after Linux 906 claimed earlier), and accepts a same-source shared claim; `verify-public` deletes the hold after the online proof and not before.
 - [ ] **Step 2: Run.** Expected: FAIL.
 - [ ] **Step 3: Implement.**
 - [ ] **Step 4: Run** both files and the whole fork suite. Expected: PASS.
@@ -188,10 +191,10 @@ Flow per platform, with `io` injected as in `windows-release.mjs` so tests run w
 
 **Files:**
 - Create: `chromium/release/daily/install-desktop-nightly.sh`
-- Modify: `docs/chromium-beta-release.md` (new section "Windows nightly"), `chromium/STATUS.md` (Windows section)
+- Modify: `docs/chromium-beta-release.md` (section "Windows nightly"), `chromium/STATUS.md` (Windows section)
 
-- [ ] **Step 1: Write the installer**, modelled on `install-nightly.sh`: creates the `~/Projects/Blanc/desktop-nightly` worktree, writes `~/Projects/Blanc/scripts/desktop-nightly.sh` and the `me.bnfy.blanc.desktop-nightly` LaunchAgent (`StartCalendarInterval` Hour 4 Minute 0), `--remove` uninstalls. Test: `bash -n`, and a unit test that the plist text has Hour 4 and the label.
-- [ ] **Step 2: Bring `BlancWinPrototype` current once, by hand** on the server (it has not been built since W2): `build.mjs --check --out=BlancWinPrototype`; if the plan exceeds 3000 actions, review it and run `--allow-large-build` once, coordinating the lock with the Linux session first. Expected: `build ok`.
-- [ ] **Step 3: Push** everything to `chromium/next` (fork suite and both `check-patches.py` lanes passing), then on the Mac Studio run `bash chromium/release/daily/install-desktop-nightly.sh` and one supervised night: `node chromium/release/daily/desktop-nightly.mjs --now`. Expected: `result.json` with `status: "pass"` or a failure whose every unknown case is triaged into `windows-known-failures.json` with its reason before the next night.
-- [ ] **Step 4: Release-path dry check:** run `windows-beta-prep.mjs` against that night up to writing the work folder, check `validateWindowsRelease` accepts it, then run `node chromium/windows/draft-hold.mjs release-abandon` (no release is started). Expected: work folder written, hold placed and removed.
-- [ ] **Step 5: Records and commit:** the runbook section (how a night is read, how to release from it, how to abandon a release hold, the skip messages), STATUS's Windows section with the first night's result; commit `Fork nightly: Windows runs every night on the Mac Studio`; push to `chromium/next`; tell the Linux session the commit so its Task 5 can take the "names the source commit" form.
+- [ ] **Step 1: Write the installer**, modelled on `install-nightly.sh`: creates the `~/Projects/Blanc/desktop-nightly` worktree, writes `~/Projects/Blanc/scripts/desktop-nightly.sh` (fetch, detached checkout of `origin/chromium/next`, then `node chromium/release/daily/desktop-nightly.mjs`) and the `me.bnfy.blanc.desktop-nightly` LaunchAgent (Hour 4, Minute 0), `--remove` uninstalls. Test: `bash -n`, and a unit test that the plist text has the label and Hour 4.
+- [ ] **Step 2: Bring `BlancWinPrototype` current once, by hand** (not built since W2): after asking the Linux session about the lock, `build.mjs --check --out=BlancWinPrototype`; review a large plan, then build it once. Expected: `build ok`.
+- [ ] **Step 3: Push** to `chromium/next` (fork suite and both `check-patches.py` lanes passing); on the Mac Studio run the installer, then one supervised night from a minimal environment (`env -i HOME=$HOME PATH=/usr/bin:/bin bash ~/Projects/Blanc/scripts/desktop-nightly.sh --now`). Expected: `result.json` with `status: "pass"`, or a failure triaged case by case (fix, or add with evidence) before the next night.
+- [ ] **Step 4: Release-path rehearsal, no live effects:** `windows-beta-prep.mjs --records <temp dir> --dry-run` against that night, then `node chromium/release/windows-release.mjs status <temp dir>/<version>` through the real loader, then `draft-hold.mjs release <its owner>`. Expected: work folder valid, real `CURRENT` untouched, no claim pushed, hold removed.
+- [ ] **Step 5: Records and commit:** the runbook section (reading a night, releasing from it, the hold commands, the skip messages), STATUS's Windows section with the first night's result; commit `Fork nightly: Windows runs every night on the Mac Studio`; push to `chromium/next`; tell the Linux session the commit so its Task 5 takes the "names the source commit" form.
