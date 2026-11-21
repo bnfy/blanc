@@ -5,7 +5,9 @@
     <string name="blanc_ios_island_search_or_switch">Buscar o cambiar de pestaña, %1$s</string>
     <string name="blanc_ios_island_show_all_tabs">Mostrar todas las pestañas</string>
     <string name="blanc_ios_island_stop">Detener la carga</string>
-    <string name="blanc_ios_palette_placeholder">Busca, escribe una dirección o un /comando</string>
+    <string name="blanc_ios_island_close_private_tab">Cerrar pestaña privada</string>
+    <string name="blanc_tab_private_label">Pestaña privada</string>
+    <string name="blanc_ios_palette_placeholder">Busca, escribe una URL o / para comandos</string>
     <string name="blanc_ios_tabs_start_page">Página de inicio</string>
     <string name="blanc_pages_nav_bookmarks">Favoritos</string>
     <string name="blanc_pages_nav_history">Historial</string>

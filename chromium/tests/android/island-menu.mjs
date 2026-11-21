@@ -75,6 +75,11 @@ function main(argv) {
   adb('shell', 'pm', 'clear', PACKAGE);
   adb('shell', 'monkey', '-p', PACKAGE, '-c', 'android.intent.category.LAUNCHER', '1');
   sleep(7);
+  // A fresh install opens with the first-run card over the Island: go through it without pairing.
+  for (const text of ['Browse without pairing', 'Continue', 'Not now']) {
+    const b = nodeBounds(dump(), {text});
+    if (b) { adb('shell', 'input', 'tap', String(Math.round((b.left + b.right) / 2)), String(Math.round((b.top + b.bottom) / 2))); sleep(1.5); }
+  }
   // Blanc asks for nothing at startup (patch 0104 removes Chrome's notification prompt).
   check('no startup prompt', nodeBounds(dump(), {text: 'No thanks'}) ? ['a startup prompt covers the Start Page'] : []);
   check('start page', same(openMenu('1-start-page'), ['New Private Tab']));
@@ -100,7 +105,8 @@ function main(argv) {
   if (privateEntry) tap(privateEntry); else close();
   sleep(3);
   shot('6-private');
-  check('private chip', nodeBounds(dump(), {id: 'blanc_island_private'}) ? [] : ['no private chip after New Private Tab']);
+  // #1682: no Private chip; the page menu says the tab is private.
+  check('the page menu says Private tab', /content-desc="Page actions, Private tab"/.test(dump()) ? [] : ['the page menu does not say Private tab after New Private Tab']);
   // The private tab's page, typed in the address sheet, has no favorite.
   const domain = nodeBounds(dump(), {id: 'blanc_island_domain'});
   if (domain) tap(domain);
