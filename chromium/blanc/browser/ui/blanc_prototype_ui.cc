@@ -394,6 +394,8 @@
 #include "blanc/browser/ui/window_buttons_mac.h"
 #endif
 #if BUILDFLAG(IS_LINUX)
+#include "chrome/common/process_singleton_lock_posix.h"
+#include "net/base/network_interfaces.h"
 #include "blanc/browser/ui/tab_switch_keys_aura.h"
 #include "blanc/browser/ui/window_buttons_linux.h"
 #include "ui/compositor/compositor.h"
@@ -8204,7 +8206,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (message[1].GetString() == "windowsContentProtected") {
       int count = 0;
       for (auto* owner : Owner::Live())
+#if BUILDFLAG(IS_LINUX)
+        // F27 observes the pairing window's outstanding request. X11 has no
+        // per-window screenshot protection for the widget to report back.
+        if (owner->view->GetWidget() && owner->sync_capture_requested) ++count;
+#else
         if (auto* widget = owner->view->GetWidget(); widget && !widget->AreScreenshotsAllowed()) ++count;
+#endif
       Reply(id, true, base::Value(count)); return;
     }
     if (message[1].GetString() == "checklistProgress") {

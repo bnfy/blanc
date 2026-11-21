@@ -13,8 +13,8 @@ declare_args() {
   # Folder holding the blocker's engine bundle (engine.js, made by
   # experiments/chromium-extension-spike/native/blocker/bundle.mjs). Beta builds
   # embed it; the build and the browser both refuse any bytes but the pinned
-  # hash in services/blocker/bundle_hash.h. Preview builds take it at run time
-  # from --blanc-blocker-assets instead.
+  # hash in services/blocker/bundle_hash.h. Linux packages install it beside
+  # the executable. Unpacked desktop previews use --blanc-blocker-assets.
   blanc_blocker_bundle = ""
 }
 assert(blanc_channel == "preview" || blanc_channel == "release" || blanc_channel == "beta")

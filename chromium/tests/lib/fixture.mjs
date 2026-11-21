@@ -39,7 +39,7 @@ import {chromeProfileRoot,listProcesses,candidateIdentityFiles,initialWindowFlag
 const digest = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 // Shipping's acceptance home: a Chrome with two profiles to import from.
 function browserHome(fixture){
- const home=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-browser-home-'));fixture.browserHome=home;
+ const home=fs.mkdtempSync(path.join(process.platform==='linux'?fixture.directory:os.tmpdir(),'blanc-browser-home-'));fixture.browserHome=home;
  const root=chromeProfileRoot(home);
  fs.mkdirSync(path.join(root,'Default'),{recursive:true});fs.mkdirSync(path.join(root,'Profile 1'),{recursive:true});
  fs.writeFileSync(path.join(root,'Local State'),JSON.stringify({profile:{info_cache:{Default:{name:'Acceptance profile'},'Profile 1':{name:'Tab migration fixture'}}}}));
@@ -114,15 +114,17 @@ export class NativeFixture {
       tlsFlags=[`--ignore-certificate-errors-spki-list=${secure.spki},${local.trusted.spki}`];
     }
     this.config=config;this.launches=0;this.exits=[];
+    const packagedBlocker = installedHome || (process.platform==='linux' && !config.blockerAssets);
     this.flags=[...(installedHome?[]:[`--user-data-dir=${this.profile}`]),'--remote-debugging-port=0',
       ...(!installedHome&&diskAssets?[`--blanc-prototype-assets=${config.assets}`]:[]),
-      ...(installedHome?[]:[`--blanc-blocker-assets=${config.blockerAssets}`]),
+      ...(packagedBlocker?[]:[`--blanc-blocker-assets=${config.blockerAssets}`]),
       // `direct` (outbound-isolation controls only) drops the proxy and the
       // resolver map and adds its own flags, so the browser itself tries the
       // paths the OS block must stop.
       ...(direct?['--no-proxy-server',...direct]:[`--proxy-server=http://127.0.0.1:${this.proxy.address().port}`,`--proxy-bypass-list=127.0.0.1;localhost;${TLS_HOSTS.join(';')}`,
       `--host-resolver-rules=${TLS_HOSTS.map(h=>'MAP '+h+' 127.0.0.1, ').join('')}MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1`,'--disable-quic']),...tlsFlags,
       ...initialWindowFlags(),
+      ...(process.platform==='linux'&&config.deviceScaleFactor?['--force-device-scale-factor='+config.deviceScaleFactor]:[]),
       '--disable-background-networking','--no-first-run','--no-default-browser-check',...(installedHome?[]:['--use-mock-keychain']),
       ...(testHooks?['--blanc-test',...(installedHome?[]:[`--blanc-test-browser-home=${browserHome(this)}`])]:[]),...(privateMode?['--incognito']:[])];
     await this.start(this.base+'/initial');

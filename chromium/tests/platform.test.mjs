@@ -126,18 +126,36 @@ test('a file the browser holds open is read through a shadow copy on Windows onl
   const missing = () => { throw Object.assign(new Error('ENOENT'), {code: 'ENOENT'}); };
   assert.throws(() => readHeldFile('a', {platform: 'win32', read: missing, copyHeld: copy}), /ENOENT/);
 });
-test('on Windows the browser opens at shipping\'s window size', () => {
+test('on Windows and Linux the browser opens at shipping\'s window size', () => {
   // Chromium's own default on the runner's 1920x1080 display is 929x1004;
   // shipping's window, which its steps assume, is 1280x800.
   assert.deepEqual(initialWindowFlags('win32'), ['--window-size=1280,800']);
   assert.deepEqual(initialWindowFlags('darwin'), []);
-  assert.deepEqual(initialWindowFlags('linux'), []);
+  assert.deepEqual(initialWindowFlags('linux'), ['--window-size=1280,800']);
 });
 test('the OS language is faked as each platform\'s Chromium reads it', () => {
   // macOS: the AppleLanguages default; Windows: --lang, which Chromium uses for
   // its interface language and the default page languages there.
   assert.deepEqual(osLanguageFlags('de-DE', 'darwin'), ['-AppleLanguages', '(de-DE)']);
   assert.deepEqual(osLanguageFlags('de-DE', 'win32'), ['--lang=de-DE']);
-  assert.throws(() => osLanguageFlags('de-DE', 'linux'), /not faked on linux/);
+  assert.deepEqual(osLanguageFlags('de-DE', 'linux'), []);
   assert.throws(() => osLanguageFlags('de DE;', 'win32'), /language tag/);
+});
+
+test('Linux relaunches with the simulated desktop locale only in the child environment', async () => {
+  const {default: register} = await import('./fork-steps/commands.mjs');
+  const steps = new Map();
+  register((name, run) => steps.set(name, run));
+  const parent = {HOME:'/fixture', DISPLAY:':17', LANG:'C'};
+  const {osLanguageEnv} = await import('./lib/platform.mjs');
+  assert.deepEqual(osLanguageEnv('de-DE', parent), {...parent, LANGUAGE:'de_DE:de', LC_ALL:'de_DE.UTF-8', LANG:'de_DE.UTF-8'});
+  assert.deepEqual(osLanguageEnv('en-US', parent).LANG, 'en_US.UTF-8');
+  assert.equal(parent.LANG, 'C');
+  assert.throws(() => osLanguageEnv('de DE', parent), /language tag/);
+  if (process.platform === 'linux') {
+    const fixture = {launchEnv:parent, extraArgs:['--use-fake-device-for-media-stream']};
+    steps.get('the OS prefers {string}').call({fixture}, 'de-DE');
+    assert.deepEqual(fixture.launchEnv, osLanguageEnv('de-DE', parent));
+    assert.deepEqual(fixture.extraArgs, ['--use-fake-device-for-media-stream']);
+  }
 });

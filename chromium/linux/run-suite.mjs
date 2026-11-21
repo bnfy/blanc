@@ -1,8 +1,5 @@
-// Runs the fork's acceptance runner against an unpacked Linux candidate on a
-// hosted runner (.github/workflows/chromium-linux-candidate.yml), as
-// chromium/windows/run-suite.mjs does on Windows:
-//
-//   node chromium/linux/run-suite.mjs CANDIDATE_DIR RESULTS_DIR --slice=f0 [--only=case-id-text]
+// Runs the full shipping inventory (f0) or a development subset under X11.
+// --installed-sha256 comes from verifying the approved .deb in the workflow.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -10,48 +7,82 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { suiteArguments } from '../windows/run-suite.mjs';
 import { runtimeConfig } from './candidate.mjs';
+import { sliceReport } from '../tests/slice-report.mjs';
 
 export { suiteArguments };
 
+export function writeSuiteReport(directory, baseline) {
+  if (baseline.developmentSubset || baseline.incomplete) throw Error('A subset or incomplete run cannot produce an S1 report');
+  if (baseline.platform !== 'linux' || !['x64','arm64'].includes(baseline.arch)) throw Error('Expected a Linux baseline with its architecture');
+  const {report, junit} = sliceReport(baseline, 'S1');
+  const prefix = path.join(directory, 's1-linux-' + baseline.arch);
+  fs.writeFileSync(prefix + '.json', JSON.stringify(report,null,1) + '\n', {flag:'wx'});
+  fs.writeFileSync(prefix + '-junit.xml', junit, {flag:'wx'});
+}
+
+export function compareLayoutRuns(standard,scaled) {
+  if (standard.platform !== 'linux' || scaled.platform !== 'linux' ||
+      standard.candidate !== scaled.candidate || standard.arch !== scaled.arch ||
+      standard.deviceScaleFactor !== 1 || scaled.deviceScaleFactor !== 2)
+    throw Error('Expected 1x and 2x Linux runs of the same architecture and candidate');
+  const results = new Map(standard.scenarios.flatMap(s=>s.cases.map(c=>[c.id,c.result])));
+  const changes = [];
+  let compared = 0;
+  for (const scenario of scaled.scenarios) for (const c of scenario.cases) {
+    if (c.result === 'not-run') continue;
+    const at1x = results.get(c.id);
+    if (!at1x || at1x === 'not-run') throw Error('No 1x result for '+c.id);
+    compared++;
+    if (at1x !== c.result) changes.push({id:c.id,at1x,at2x:c.result});
+  }
+  if (!compared) throw Error('No layout cases were rerun');
+  return {candidate:standard.candidate,arch:standard.arch,compared,changes};
+}
+
 function main() {
   const [candidateFolder, resultsFolder, ...options] = process.argv.slice(2);
-  if (!candidateFolder || !resultsFolder) throw new Error('Usage: run-suite.mjs CANDIDATE_DIR RESULTS_DIR --slice=f0 [--only=case-id-text]');
+  if (!candidateFolder || !resultsFolder) throw Error('Usage: run-suite.mjs CANDIDATE_DIR RESULTS_DIR --slice=f0 [--only=text] [--installed-sha256=SHA256] [--scale=2]');
+  const installed = options.find(arg => /^--installed-sha256=[a-f0-9]{64}$/.test(arg));
+  if (installed) options.splice(options.indexOf(installed),1);
+  const scaled = options.indexOf('--scale=2');
+  if (scaled !== -1) options.splice(scaled,1);
   const extra = suiteArguments(options);
+  if (extra.length) {
+    const inventory = JSON.parse(fs.readFileSync(new URL('../scenarios/inventory.json',import.meta.url)));
+    const ids = inventory.scenarios.flatMap(s=>s.cases.map(c=>c.id));
+    const filters = extra[0].slice('--only='.length).split(',');
+    if (filters.some(filter=>!filter || !ids.some(id=>id.includes(filter)))) throw Error('No suite case matches one or more filters');
+  }
+  if (scaled !== -1 && !extra.length) throw Error('The 2x layout rerun needs a case filter');
   const directory = path.resolve(candidateFolder);
   const out = path.resolve(resultsFolder);
-  if (fs.existsSync(out)) throw new Error('Refusing to overwrite prior results');
+  if (fs.existsSync(out)) throw Error('Refusing to overwrite prior results');
   const candidate = JSON.parse(fs.readFileSync(path.join(directory, 'candidate.json'), 'utf8'));
-  const config = runtimeConfig(directory, candidate);
+  if ((candidate.arch ?? 'x64') !== process.arch) throw Error('Linux candidate architecture does not match runner');
+  const config = runtimeConfig(directory, candidate, installed?.split('=')[1]);
+  config.developmentCandidate = extra.length > 0;
+  config.deviceScaleFactor = scaled === -1 ? 1 : 2;
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-linux-suite-'));
-  const trackerFile = new URL('../tracker.json', import.meta.url);
-  let savedTracker;
   try {
     const configFile = path.join(scratch, 'runtime-config.json');
     fs.writeFileSync(configFile, JSON.stringify(config));
-    // Only development subsets may temporarily use an unrecorded candidate.
-    if (extra.length) {
-      const original = fs.readFileSync(trackerFile, 'utf8');
-      const tracker = JSON.parse(original);
-      if (tracker.currentCandidates.linux?.id !== config.candidate) {
-        savedTracker = original;
-        tracker.currentCandidates.linux = { id: config.candidate, exeSha256: config.executableSha256,
-          qualification: 'development subset on a throwaway checkout; not recorded' };
-        fs.writeFileSync(trackerFile, JSON.stringify(tracker, null, 2) + '\n');
-      }
+    if (installed && !extra.length) {
+      const probe = fileURLToPath(new URL('../tests/linux-import.test.mjs', import.meta.url));
+      const result = spawnSync(process.execPath, ['--test',probe], {stdio:'inherit',env:{...process.env, BLANC_LINUX_IMPORT_CONFIG:configFile}});
+      if (result.status !== 0) throw result.error ?? Error('Linux synthetic browser-home test failed');
     }
     const runner = fileURLToPath(new URL('../tests/runner.mjs', import.meta.url));
-    const run = spawnSync(process.execPath, [runner, configFile, out, ...extra], { stdio: 'inherit' });
+    const run = spawnSync(process.execPath, [runner, configFile, out, ...extra], {stdio:'inherit'});
     if (run.error) throw run.error;
-    // A completed F0 with failing or undefined cases is still a result.
-    if (![0, 1].includes(run.status) || !fs.existsSync(path.join(out, 'baseline.json'))) {
-      throw new Error(`The runner did not complete (exit ${run.status ?? run.signal}).`);
-    }
+    // A completed inventory with failing or undefined cases remains L2 evidence.
+    const baselineFile = path.join(out, 'baseline.json');
+    if (![0, 1].includes(run.status) || !fs.existsSync(baselineFile)) throw Error('The runner did not complete (exit ' + (run.status ?? run.signal) + ')');
+    if (!extra.length) writeSuiteReport(out, JSON.parse(fs.readFileSync(baselineFile)));
   } finally {
-    if (savedTracker !== undefined) fs.writeFileSync(trackerFile, savedTracker);
     fs.rmSync(scratch, { recursive: true, force: true });
   }
 }
 
 if (process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) {
-  try { main(); } catch (error) { console.error(`run-suite: ${error.message}`); process.exitCode = 1; }
+  try { main(); } catch (error) { console.error('run-suite: ' + error.message); process.exitCode = 1; }
 }

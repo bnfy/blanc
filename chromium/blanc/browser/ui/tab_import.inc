@@ -74,6 +74,41 @@ struct SourceRead {
   base::FilePath exact;
   bool running = false;
 };
+#if BUILDFLAG(IS_LINUX)
+bool LinuxSourceRunning(const base::FilePath& lock) {
+  std::string hostname;
+  int pid = -1;
+  if (!ParseProcessSingletonLock(lock, &hostname, &pid) || hostname.empty() || pid <= 0)
+    return false;
+  if (hostname != net::GetHostName()) return true;  // A shared profile on another host.
+
+  // Chromium binds a private listening socket and links SingletonSocket to it.
+  // Match its kernel inode to an open fd in the lock owner. A zombie has no
+  // open fds, and a reused PID (even another browser) does not own this socket.
+  base::FilePath socket_path;
+  if (!base::ReadSymbolicLink(lock.DirName().AppendASCII("SingletonSocket"), &socket_path))
+    return false;
+  const auto proc = base::FilePath("/proc").AppendASCII(base::NumberToString(pid));
+  std::string sockets;
+  if (!base::ReadFileToStringWithMaxSize(proc.AppendASCII("net/unix"), &sockets, 4 * 1024 * 1024))
+    return false;
+  const std::string suffix = " " + socket_path.value();
+  for (auto line : base::SplitStringPiece(sockets, "\n", base::KEEP_WHITESPACE, base::SPLIT_WANT_NONEMPTY)) {
+    if (!line.ends_with(suffix)) continue;
+    // /proc/net/unix: Num RefCount Protocol Flags Type St Inode [Path].
+    const auto fields = base::SplitStringPiece(line.substr(0, line.size() - suffix.size()), " ",
+                                               base::KEEP_WHITESPACE, base::SPLIT_WANT_NONEMPTY);
+    if (fields.size() != 7 || fields[3] != "00010000" || fields[4] != "0001") continue;
+    const base::FilePath inode("socket:[" + std::string(fields[6]) + "]");
+    base::FileEnumerator fds(proc.AppendASCII("fd"), false, base::FileEnumerator::NAMES_ONLY);
+    for (auto fd = fds.Next(); !fd.empty(); fd = fds.Next()) {
+      base::FilePath target;
+      if (base::ReadSymbolicLink(fd, &target) && target == inode) return true;
+    }
+  }
+  return false;
+}
+#endif
 SourceRead ReadSource(const base::FilePath& profile, bool after_quit) {
   SourceRead result;
   const auto files = SessionFiles(profile);
@@ -86,6 +121,9 @@ SourceRead ReadSource(const base::FilePath& profile, bool after_quit) {
   // lockfile it holds open, elsewhere with a SingletonLock symlink.
 #if BUILDFLAG(IS_WIN)
   result.running = base::PathExists(profile.DirName().AppendASCII("lockfile"));
+#elif BUILDFLAG(IS_LINUX)
+  result.running = !after_quit && files.size() > 1 &&
+                   LinuxSourceRunning(profile.DirName().AppendASCII("SingletonLock"));
 #else
   const auto lock = profile.DirName().AppendASCII("SingletonLock");
   result.running = base::PathExists(lock) || base::IsLink(lock);

@@ -4,6 +4,23 @@ function checkArch(arch) {
   if (arch !== 'x64' && arch !== 'arm64') throw new Error('Linux candidate architecture must be x64 or arm64.');
 }
 
+// L0 recorded one x64 candidate before arm64 runners existed.
+export function byArchitecture(current) {
+  if (!current?.id) return current ?? {};
+  const arch = current.arch ?? 'x64';
+  checkArch(arch);
+  return {[arch]:current};
+}
+
+export function matchesLinuxCandidate(current, arch, config) {
+  checkArch(arch);
+  const recorded = byArchitecture(current)[arch];
+  // The installed executable can be stripped. The verified package supplies
+  // its digest; the archive's executable identifies the tracker entry.
+  return !!recorded && recorded.id === config.candidate &&
+    recorded.exeSha256 === (config.archiveExecutableSha256 ?? config.executableSha256);
+}
+
 export function ASSET_NAME(arch) {
   checkArch(arch);
   return `blanc-linux-${arch}-candidate.tar.gz`;
@@ -48,18 +65,28 @@ export function runtimeFiles(lines) {
   return [...files].sort();
 }
 
-export function runtimeConfig(directory, candidate) {
+export function runtimeConfig(directory, candidate, installedSha256) {
   if (candidate?.id !== candidateId(candidate?.exeSha256, candidate?.arch)) {
     throw new Error('candidate.json id does not match its chrome hash.');
+  }
+  const config = {candidate: candidate.id, singleBinary: true, diskAssets: false};
+  if (installedSha256 !== undefined) {
+    if (typeof installedSha256 !== 'string' || !/^[0-9a-f]{64}$/.test(installedSha256)) {
+      throw new Error('Expected the SHA-256 of the installed Linux executable.');
+    }
+    return {
+      ...config,
+      executable: '/opt/bnfy/blanc-prototype/chrome',
+      executableSha256: installedSha256,
+      archiveExecutableSha256: candidate.exeSha256,
+    };
   }
   // L0 tarballs have no packages and put the executable at the archive root.
   const runtime = Object.hasOwn(candidate, 'packages') ? path.join(directory, 'chrome') : directory;
   return {
-    candidate: candidate.id,
+    ...config,
     executable: path.join(runtime, 'chrome'),
     executableSha256: candidate.exeSha256,
-    singleBinary: true,
     blockerAssets: path.join(runtime, 'blocker'),
-    diskAssets: false,
   };
 }

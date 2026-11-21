@@ -15,3 +15,35 @@ test('Electron key input maps to CDP key events',()=>{
  assert.equal(cdpKey({type:'char',keyCode:'g'}).text,'g');
  assert.throws(()=>cdpKey({type:'keyDown',keyCode:'Enter'}),e=>e.code==='BLANC_ADAPTER_UNDEFINED');
 });
+test('Linux window geometry covers native buttons on both sides and the actual Island menu', async () => {
+ const {linuxButtonRects} = await import('./adapters/island.mjs');
+ const menu = {x:48,y:8,width:24,height:24};
+ const buttons = [{kind:'close',x:4,y:1,width:32,height:28},{kind:'maximize',x:974,y:2,width:26,height:30}];
+ assert.deepEqual(linuxButtonRects(buttons,menu),{menuButtonRect:menu,windowControlsRect:{x:4,y:1,width:996,height:31}});
+ assert.deepEqual(linuxButtonRects([],menu),{windowControlsRect:null,menuButtonRect:menu});
+});
+
+test('a Glance resize waits for the Island snapshot to catch up with the native window', async () => {
+ const {waitForLinuxGlanceResize} = await import('./fork-steps/window-layout.mjs');
+ const snapshots = [945,1440].map(width=>({glanceTabId:'2',splitGeometry:{pageArea:{x:0,y:68,width,height:792},islandY:0}}));
+ let reads = 0;
+ const w = {
+   hostEval:async expression => {assert.ok(expression.includes('refresh()')); return snapshots[reads++];},
+   waitFor:async (read,accepts) => {assert.equal(accepts(await read()),false);assert.equal(accepts(await read()),true);},
+ };
+ await waitForLinuxGlanceResize(w,1440,860);
+ assert.equal(reads,2);
+});
+
+test('the Linux picker clicks Custom once the list-to-editor transition finishes', async () => {
+ const {openLinuxSpacePicker} = await import('./fork-steps/window-layout.mjs');
+ const actions=[];
+ const page={click:async s=>actions.push(['click',s]),waitForSelector:async s=>actions.push(['wait',s])};
+ await openLinuxSpacePicker.call({frame:()=>page,call:async()=>({items:[{id:'work-id',name:'Work'}]})},'Work');
+ assert.deepEqual(actions,[
+   ['click','[data-focus-key="edit:work-id"]'],
+   ['wait','#workspaceSwitcher[data-view="edit"]:not(.morphing)'],
+   ['click','[data-focus-key="color:custom"]'],
+   ['wait','.space-picker-hex'],
+ ]);
+});

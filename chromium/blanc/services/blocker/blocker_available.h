@@ -4,11 +4,10 @@
 #include "blanc/buildflags.h"
 #include "build/build_config.h"
 namespace blanc {
-// Whether this build filters at all. Android and Blanc Beta always do: their bundle ships inside
-// the APK or app, and a missing or wrong bundle fails closed. Preview builds filter only when
-// --blanc-blocker-assets names a bundle folder.
+// Linux packages, Android and Blanc Beta ship the engine. Keep filtering
+// enabled so a missing or invalid bundle follows ReadBundle's fail-closed path.
 inline bool BlockerAvailable() {
-#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(BLANC_BETA_CHANNEL)
+#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(BLANC_BETA_CHANNEL) || BUILDFLAG(IS_LINUX)
   return true;
 #else
   return base::CommandLine::ForCurrentProcess()->HasSwitch("blanc-blocker-assets");
