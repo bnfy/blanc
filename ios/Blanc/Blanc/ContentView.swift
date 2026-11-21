@@ -5,6 +5,7 @@ struct ContentView: View {
     let manager: TabsManager
     /// A pairing QR scanned with the Camera app (design 2026-10-28 §7.3).
     var pairLink: Binding<PairLinkRequest?> = .constant(nil)
+    @Namespace private var islandSpace
     @State private var askingPair: PairLinkRequest?
     @Environment(\.colorScheme) private var colorScheme
     private var isPrivate: Bool { manager.activeTab?.isPrivate ?? false }
@@ -183,7 +184,10 @@ struct ContentView: View {
             if manager.isSpacesMenuPresented { spacesMenu }
         }
         .overlay(alignment: islandAtTop ? .top : .bottom) {
-            if isPalettePanelOpen { palettePanel }
+            ZStack {
+                if isPalettePanelOpen { palettePanel.transition(.opacity) }
+            }
+            .animation(panelAnimation, value: isPalettePanelOpen)
         }
         .onChange(of: manager.isPalettePresented) { _, presented in
             // The sheet runs this from its onDismiss; the panel has none.
@@ -250,7 +254,8 @@ struct ContentView: View {
         }
         .sheet(isPresented: paletteSheetPresented,
                onDismiss: { if !manager.isPalettePresented { paletteClosed() } }) {
-            PaletteSheet(manager: manager)
+            PaletteSheet(manager: manager, islandAtTop: islandAtTop)
+                .environment(\.colorScheme, islandScheme)
         }
     }
 
@@ -305,10 +310,16 @@ struct ContentView: View {
     /// Island is dark glass on a dark site, as the system's bars are; before
     /// that, and on a page with no solid background, they follow Blanc's theme.
     private var islandScheme: ColorScheme {
-        if isPrivate { return .dark }
-        if #available(iOS 26, *), let tab = manager.activeTab, let page = ColorScheme(tab.pageStyle) { return page }
-        return colorScheme
+        let glass: Bool
+        if #available(iOS 26, *) { glass = true } else { glass = false }
+        return IslandScheme.resolve(isPrivate: isPrivate, pageScheme: manager.activeTab.flatMap { ColorScheme($0.pageStyle) },
+                                    appScheme: colorScheme, glass: glass)
     }
+
+    private var panelAnimation: Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : Self.swipeSpring
+    }
+
     private var islandStyle: BrowserStyle { BrowserStyle(scheme: islandScheme) }
 
     @ViewBuilder private var islandNotices: some View {
@@ -327,7 +338,9 @@ struct ContentView: View {
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { islandBand = $0 + 20 }
             // The panel takes the Island's place; hidden, not removed, so
             // the page's inset never changes under it.
+            .islandGeometry(in: islandSpace, isSource: !isPalettePanelOpen, reduceMotion: reduceMotion)
             .opacity(isPalettePanelOpen ? 0 : 1)
+            .animation(panelAnimation, value: isPalettePanelOpen)
             .allowsHitTesting(!isPalettePanelOpen)
             .accessibilityHidden(isPalettePanelOpen)
             .simultaneousGesture(DragGesture(minimumDistance: 12)
@@ -384,25 +397,28 @@ struct ContentView: View {
         }
     }
 
-    /// Duo-1: the palette growing from the Island, at its width, over the
-    /// page (not dimmed, as desktop's ⌘L panel). A tap outside or Escape closes it.
+    /// The keyboard lifts the panel within the safe area. The page stays visible around it.
     private var palettePanel: some View {
-        ZStack(alignment: islandAtTop ? .top : .bottom) {
-            Color.black.opacity(0.001)
-                .ignoresSafeArea()
+        let shape = RoundedRectangle(cornerRadius: 22, style: .continuous)
+        return ZStack(alignment: islandAtTop ? .top : .bottom) {
+            Color.clear
+                .contentShape(Rectangle())
+                .ignoresSafeArea(.container)
                 .onTapGesture { manager.isPalettePresented = false }
                 .accessibilityHidden(true)
-            PaletteSheet(manager: manager, placement: .panel)
-                .frame(maxHeight: 520)
-                .clipShape(RoundedRectangle(cornerRadius: 22))
-                .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(style.border.opacity(0.7), lineWidth: 0.5))
-                .shadow(color: .black.opacity(style.scheme == .dark ? 0.25 : 0.10), radius: 10, y: 4)
-                .frame(maxWidth: 600)
+            PaletteSheet(manager: manager, placement: .panel, islandAtTop: islandAtTop)
+                .environment(\.colorScheme, islandScheme)
+                .frame(maxWidth: 600, maxHeight: 520)
+                .clipShape(shape)
+                .overlay(shape.strokeBorder(islandStyle.border.opacity(0.7), lineWidth: 0.5))
+                .shadow(color: .black.opacity(islandScheme == .dark ? 0.25 : 0.10), radius: 10, y: 4)
+                .islandGeometry(in: islandSpace, isSource: isPalettePanelOpen, reduceMotion: reduceMotion)
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("palette.panel")
                 .padding(.horizontal, 16)
-                .padding(.top, islandAtTop ? 10 : 16)
-                .padding(.bottom, islandAtTop ? 16 : 10)
+                // Leave a tap target on the page even when the keyboard is up.
+                .padding(.top, islandAtTop ? 10 : 44)
+                .padding(.bottom, islandAtTop ? 44 : 10)
             Button("") { manager.isPalettePresented = false }
                 .keyboardShortcut(.cancelAction)
                 .opacity(0)
@@ -1094,6 +1110,11 @@ struct ContentView: View {
 #Preview { ContentView(manager: TabsManager()) }
 
 private extension View {
+    @ViewBuilder func islandGeometry(in space: Namespace.ID, isSource: Bool, reduceMotion: Bool) -> some View {
+        if reduceMotion { self }
+        else { matchedGeometryEffect(id: "island", in: space, isSource: isSource) }
+    }
+
     /// An iPad window's close and resize controls sit in its top corner: at
     /// the top of a small window the Island starts after them.
     @ViewBuilder func clearOfWindowControls(_ atTop: Bool) -> some View {

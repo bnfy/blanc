@@ -31,7 +31,7 @@ struct IslandLayout: Equatable {
 
     init(_ horizontal: UserInterfaceSizeClass?, _ vertical: UserInterfaceSizeClass?) {
         let unfolded = horizontal == .regular && vertical == .regular
-        palette = unfolded ? .panel : .sheet
+        palette = vertical == .compact ? .sheet : .panel
         showsSplitView = unfolded
     }
 

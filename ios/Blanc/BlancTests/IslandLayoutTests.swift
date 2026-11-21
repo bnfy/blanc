@@ -6,7 +6,7 @@ import XCTest
 final class IslandLayoutTests: XCTestCase {
     func testCompactIsTheIPhoneLayout() {
         let layout = IslandLayout(.compact, .regular)
-        XCTAssertEqual(layout.palette, .sheet)
+        XCTAssertEqual(layout.palette, .panel)
     }
 
     func testBackLeadsAndForwardOnlyWhenThereIsSomewhereToGo() {
@@ -44,10 +44,12 @@ final class IslandLayoutTests: XCTestCase {
         XCTAssertEqual(IslandLayout(.regular, nil), IslandLayout(.compact, .regular))
     }
 
-    /// A Plus or Pro Max iPhone in landscape is regular width but compact
-    /// height: still an iPhone.
-    func testALargeIPhoneInLandscapeIsTheIPhoneLayout() {
-        XCTAssertEqual(IslandLayout(.regular, .compact), IslandLayout(.compact, .regular))
+    func testLandscapeKeepsTheSheet() {
+        for width in [UserInterfaceSizeClass.regular, .compact] {
+            let layout = IslandLayout(width, .compact)
+            XCTAssertEqual(layout.palette, .sheet)
+            XCTAssertFalse(layout.showsSplitView)
+        }
     }
 
     func testRegularIsTheUnfoldedLayout() {

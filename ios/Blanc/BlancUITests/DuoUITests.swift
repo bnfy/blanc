@@ -20,12 +20,11 @@ final class DuoUITests: XCTestCase {
     let site = app.buttons["pill.palette"]
     let back = app.buttons["pill.back"], forward = app.buttons["pill.forward"]
     XCTAssertTrue(back.waitForExistence(timeout: 5))
-    XCTAssertFalse(forward.isEnabled, "nowhere to go forward yet")
-    // The iPhone's Island (#1463): the address, then Back, Forward and New Tab, no Reload.
+    XCTAssertFalse(forward.exists, "nowhere to go forward yet")
     let plus = app.buttons["New tab"]
-    XCTAssertGreaterThan(back.frame.midX, site.frame.maxX)
-    XCTAssertGreaterThan(forward.frame.midX, back.frame.midX)
-    XCTAssertGreaterThan(plus.frame.midX, forward.frame.midX)
+    XCTAssertTrue(plus.waitForExistence(timeout: 10))
+    XCTAssertLessThanOrEqual(back.frame.maxX, site.frame.minX)
+    XCTAssertGreaterThan(plus.frame.midX, site.frame.maxX)
     XCTAssertFalse(app.buttons["Reload page"].exists)
 
     site.tap()
@@ -40,14 +39,16 @@ final class DuoUITests: XCTestCase {
     back.tap()
     let com = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS %@", "example.com"), object: site)
     XCTAssertEqual(XCTWaiter().wait(for: [com], timeout: 15), .completed, site.label)
+    XCTAssertTrue(forward.waitForExistence(timeout: 5))
     XCTAssertTrue(forward.isEnabled)
   }
 
   func testThePaletteGrowsFromTheIsland() throws {
     let app = try launch()
     let site = app.buttons["pill.palette"]
-    // The Island ends with its New tab button, then the capsule's end padding (#1472).
-    let newTab = app.buttons["New tab"].firstMatch.frame
+    let plus = app.buttons["New tab"]
+    XCTAssertTrue(plus.waitForExistence(timeout: 10))
+    let restingWidth = plus.frame.maxX - app.buttons["pill.back"].frame.minX
     site.tap()
 
     let panel = app.otherElements["palette.panel"]
@@ -55,8 +56,8 @@ final class DuoUITests: XCTestCase {
     let input = app.textFields["island.address"]
     XCTAssertTrue(input.waitForExistence(timeout: 5))
     XCTAssertTrue(input.frame.minY > panel.frame.midY, "the address row is at the panel's bottom")
-    let past = panel.frame.maxX - newTab.maxX
-    XCTAssertTrue(past >= 0 && past < 12, "in the Island's place: panel \(panel.frame), New tab \(newTab), window \(app.windows.firstMatch.frame)")
+    XCTAssertGreaterThan(panel.frame.width, restingWidth)
+    XCTAssertEqual(panel.frame.midX, app.windows.firstMatch.frame.midX, accuracy: 2)
     XCTAssertLessThanOrEqual(panel.frame.width, 600)
     attach(app, "palette panel")
 

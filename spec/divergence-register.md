@@ -290,6 +290,9 @@ mobile is a single full-screen surface with system insets.
   URL, dimmed, as the desktop Island does on a blank tab (owner, 2026-11-11). The Island has no tab count on any layout:
   a pinch in on a fully zoomed-out page, as in Safari, or a swipe up from the
   Island opens the tab grid. The page shrinks into its card as Safari's does. Stop takes New Tab’s slot during a load. New Tab remains in the menu and the palette.
+  Tapping the site or its dots opens the panel in place on iPhone and iPad.
+  The search field takes focus on the Island’s side, clear of the keyboard.
+  Compact-height landscape keeps the sheet. Rotating carries the typed text across.
   The unfolded Island has the same buttons. Back and Forward also survive a relaunch: each
   tab's `interactionState` is saved on this device only (never synced, never
   backed up, never a private tab), found through `SavedTab.historyId` and kept
@@ -304,7 +307,7 @@ mobile is a single full-screen surface with system insets.
   `islandTucksOnScroll`, never synced) keeps it always on screen, and Settings
   → Island position (`islandPosition`, `bottom` by default or `top`, also
   device-local) moves it to the top of the screen, where it tucks upward, its
-  notices, Spaces menu and unfolded-Duo palette hang below it, a swipe down
+  notices, Spaces menu and palette panel hang below it, a swipe down
   opens the tab grid, and the Start Page moves its header below it. This is the
   owner's deliberate choice for the phone, where the Island is under the
   thumb; desktop's August 2026 rejection of a scroll-away Island (it would
