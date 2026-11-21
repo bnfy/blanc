@@ -15,6 +15,21 @@
       "signingRun": 44885396573,
       "stagingGateRun": 44887435753,
       "note": "First Windows Blanc Beta, published 2026-11-21 09:19 UTC as its own GitHub pre-release (not latest) through windows-release.mjs. Signed by Bananify Creative (Azure Trusted Signing), owner-signed update package, staging gate passed, Sigstore-signed checksums."
+    },
+    {
+      "build": 903,
+      "version": "158.0.8127.903",
+      "tag": "chromium-beta-windows-158.0.8127.903",
+      "date": "2026-11-21",
+      "sourceCommit": "96315b04c2c5779c3e7c5f3a3315aede629980fa",
+      "candidate": "windows-x64-f12188c27d3b5d32",
+      "candidateZipSha256": "ca3af9f6ecad45042eeecbcb010b94ca82bd712cf1b7277fc8b34826bd8d5424",
+      "setupSHA256": "81256da83cd9138f26dca977c4b88cf79cd8ce24c43f80bd58c374aff4212890",
+      "installerSHA256": "17710b1866c2ede5bec59ea1e1436a7b483414e6c41dc65db0c26b44948d5923",
+      "packageSHA256": "d119ad511a9eacc1e24642144e362a153f05c2d3da22699b7e71ced1fd12eb3b",
+      "signingRun": 44923135363,
+      "stagingGateRun": 44924443284,
+      "note": "Second Windows Blanc Beta, published 2026-11-21 16:30 UTC as its own GitHub pre-release (not latest) through windows-release.mjs: Blanc's look for Chromium's prompts, window title and installer icon, no API keys bar. Signed by Bananify Creative, owner-signed update package, staging gate passed, Sigstore-signed checksums; verify-public run 44924998686."
     }
   ]
 }

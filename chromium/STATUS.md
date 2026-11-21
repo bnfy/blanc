@@ -3884,6 +3884,18 @@ owner):
 | Seen in dark mode, 2026-11-21 | Chromium's other default-browser prompt, the infobar "Pin Blanc to your taskbar to get to it quickly anytime", still shows Chromium's logo and a blue **Pin Blanc** button, and says Blanc rather than Blanc Beta. The rebranded dialog itself was not seen in dark (the prompt schedule showed the infobar, and `chrome://` addresses from the command line are refused) |
 | Island bars on Windows (fixed 2026-11-21) | Every Chromium bar on Windows kept Chromium's slate, logo and blue button: the Island's band color reached the native side after the bars themed, and `Widget::ThemeChanged()` didn't reach them again (two diagnostic builds in the owner's VM logged it). The bandColor handler now restyles each bar directly; patch 0085 also swaps dark mode's `kChromeProductIcon` for the Sunrise and gives a bar's prominent button the Sunrise accent, kept at 3:1 against the bar; on Windows the pin bar says "Pin Blanc Beta to your taskbar…" (0098). Seen in the VM on `chrome.dll` `e473448a…` with the unsupported-flag bar, dark (ink band, cream text) and light (Sunrise cream); the rebranded default-browser dialog seen in dark. Not seen yet: the pin bar itself on the new build (Chromium's prompt schedule decides when it shows). A multi-agent review with skeptics found two real issues (button contrast, weak tests), both fixed |
 
+**Second Windows beta public (2026-11-21):** Blanc Beta 158.0.8127.903, GitHub
+pre-release `chromium-beta-windows-158.0.8127.903` at `96315b04c` (never latest;
+v1.51.0 stayed latest), published 16:30 UTC through `windows-release.mjs`, all ten
+stages: signing run 44923135363 (owner-approved), owner-signed package `d119ad51…`,
+staging gate 44924443284, Sigstore-signed `SHA256SUMS`, verify-public 44924998686.
+Candidate `windows-x64-f12188c27d3b5d32` passed the runner's install and updater
+checks (44922671476) and the installer capture with the taskbar-icon check
+(44922682745). Carries this session's Blanc-look fixes (0085, 0098, 0109, 0110,
+the bar restyle) and 0107/0108. Spaces across profiles ships in it but is not
+claimed for Windows: its checks need test hooks, which beta builds compile out.
+blanc.day offers 158.0.8127.903.
+
 **First Windows beta public (2026-11-21):** Blanc Beta 158.0.8127.902, GitHub
 pre-release `chromium-beta-windows-158.0.8127.902` at `f64ed2ed9` (never latest;
 v1.51.0 stayed latest), published 09:19 UTC through `windows-release.mjs`, all ten
