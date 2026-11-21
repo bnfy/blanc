@@ -115,11 +115,16 @@ in the lane file in its place. Numbering starts at 0101.
   Tab before Blanc's walkthrough. Patch 0102 skips Chromium's first run. A
   non-private tab can open a link in its existing group. Both normal and Thin
   WebView link menus offer Open in private tab only when the tab is supported
-  and opens in the same window. All menu modes omit window actions because
-  Blanc's Spaces controller is shared across the process.
-  The four private tab and Open in Blanc titles use Blanc's string resources
-  and fall back to English. Regional Chromium overlays still supply the Safety
-  Hub summary where Android prefers a regional translation.
+  and opens in the same window. Custom Tabs omit the private handoff because
+  Blanc closes every private tab on a cold start, including one just requested.
+  When Blanc is the default browser, a Custom Tab offers **Open in new tab in
+  Blanc** only when regular and private tabs share a window. The regular
+  handoff sends a view intent to the browser. If the only window is private,
+  Chromium can open a second window for the regular tab. All menu modes omit
+  window actions because Blanc's Spaces controller is shared across the process.
+  The remaining private tab and Open in Blanc titles use Blanc's string
+  resources and fall back to English. Regional Chromium overlays still supply
+  the Safety Hub summary where Android prefers a regional translation.
 
 A Chromium file dropped from the lane keeps its applied edits in an existing
 checkout: restore it with `git checkout` there. A Blanc file the source drops or

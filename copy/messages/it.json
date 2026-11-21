@@ -10054,9 +10054,5 @@
   "android.contextMenu.newBlancTab": {
     "message": "Apri in una nuova scheda di Blanc",
     "source": "sha256:bae530101e3c873c6fd7a7af7cbbcca3fdf632b1fec7677da23d3937a37aaba0"
-  },
-  "android.contextMenu.privateBlancTab": {
-    "message": "Apri in una scheda privata di Blanc",
-    "source": "sha256:0e45d0d92e3419132c26cee8955c06c4d4284d4ee3bcfcc7e07e6f5e6a1ad577"
   }
 }

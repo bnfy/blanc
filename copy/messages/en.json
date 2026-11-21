@@ -10344,10 +10344,5 @@
     "message": "Open in new tab in Blanc",
     "note": "Blanc for Android: Open a link from a Custom Tab in a new tab in the full Blanc browser.",
     "androidOnly": true
-  },
-  "android.contextMenu.privateBlancTab": {
-    "message": "Open in private tab in Blanc",
-    "note": "Blanc for Android: Open a link from a Custom Tab in a private tab in the full Blanc browser.",
-    "androidOnly": true
   }
 }

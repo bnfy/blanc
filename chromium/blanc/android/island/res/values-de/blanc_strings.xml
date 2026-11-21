@@ -295,7 +295,6 @@
     <string name="blanc_settings_language_system">System (%1$s)</string>
     <string name="blanc_android_context_menu_private_tab">In privatem Tab öffnen</string>
     <string name="blanc_android_context_menu_new_blanc_tab">In neuem Blanc-Tab öffnen</string>
-    <string name="blanc_android_context_menu_private_blanc_tab">In privatem Blanc-Tab öffnen</string>
     <string name="blanc_mini_open_in_blanc">In Blanc öffnen</string>
     <plurals name="blanc_shared_spaces_waiting_count">
         <item quantity="one">%d geteilter Space wartet</item>

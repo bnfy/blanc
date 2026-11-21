@@ -14,9 +14,8 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
      /** Mapping from {@link Item} to the ID of the string that describes the action of the item. */
      private static final int[] STRING_IDS = {
 -        R.string.contextmenu_open_in_new_chrome_tab, // Item.OPEN_IN_NEW_CHROME_TAB:
--        R.string.contextmenu_open_in_chrome_incognito_tab, // Item.OPEN_IN_CHROME_INCOGNITO_TAB:
 +        org.chromium.blanc.island.R.string.blanc_android_context_menu_new_blanc_tab, // Item.OPEN_IN_NEW_CHROME_TAB:
-+        org.chromium.blanc.island.R.string.blanc_android_context_menu_private_blanc_tab, // Item.OPEN_IN_CHROME_INCOGNITO_TAB:
+         R.string.contextmenu_open_in_chrome_incognito_tab, // Item.OPEN_IN_CHROME_INCOGNITO_TAB:
          0, // Item.OPEN_IN_BROWSER_ID is not handled by this mapping.
          R.string.contextmenu_open_in_new_tab, // Item.OPEN_IN_NEW_TAB:
          R.string.contextmenu_open_in_new_tab_group, // Item.OPEN_IN_NEW_TAB_IN_GROUP
@@ -265,7 +264,20 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
              groupedItems.add(imageGroup);
          }
  
-@@ -1811,11 +1729,6 @@
+@@ -940,10 +858,9 @@
+                             !UrlUtilities.isInternalScheme(mParams.getUrl())
+                                     && !isEmptyUrl(mParams.getUrl());
+                     if (isDefaultBrowser() && addNewEntries) {
+-                        if (mItemDelegate.isIncognitoSupported()) {
+-                            items.add(0, createListItem(Item.OPEN_IN_CHROME_INCOGNITO_TAB));
++                        if (!shouldOpenIncognitoAsWindow()) {
++                            items.add(0, createListItem(Item.OPEN_IN_NEW_CHROME_TAB));
+                         }
+-                        items.add(0, createListItem(Item.OPEN_IN_NEW_CHROME_TAB));
+                     } else if (addNewEntries && UrlUtilities.isAcceptedScheme(mParams.getUrl())) {
+                         items.add(0, createListItem(Item.OPEN_IN_BROWSER_ID));
+                     }
+@@ -1811,11 +1728,6 @@
          return title;
      }
  
@@ -277,7 +289,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
      /**
       * Record a boolean UKM if the lens feature is enabled.
       *
-@@ -1837,21 +1750,6 @@
+@@ -1837,21 +1749,6 @@
              return mItemDelegate.supportsSaveImage();
          }
          return true;

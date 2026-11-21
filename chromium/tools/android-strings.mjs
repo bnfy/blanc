@@ -103,8 +103,7 @@ export const ANDROID_KEYS = [
   'android.welcome.measureUsageHelp', 'android.defaultBrowser.body', 'android.defaultBrowser.open',
   'settings.language.label', 'settings.language.system',
   // Long-press menu labels use Blanc's default English on untranslated phones.
-  'android.contextMenu.privateTab', 'android.contextMenu.newBlancTab', 'android.contextMenu.privateBlancTab',
-  'mini.openInBlanc',
+  'android.contextMenu.privateTab', 'android.contextMenu.newBlancTab', 'mini.openInBlanc',
 ];
 // ICU plurals, as Android <plurals>: the Island's tab count for TalkBack.
 export const ANDROID_PLURALS = ['sharedSpaces.waitingCount', 'newtab.groups.count', 'shield.count.blocked', 'tabGroups.tucked', 'tabsMenu.header',

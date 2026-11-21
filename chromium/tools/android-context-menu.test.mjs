@@ -50,9 +50,20 @@ test('normal and Thin WebView link menus offer private tabs only when they stay 
   }
 });
 
-test('no menu mode offers a window action', () => {
-  assert.deepEqual(itemNames.filter(name =>
-    ['OPEN_IN_NEW_WINDOW', 'OPEN_IN_OTHER_WINDOW', 'OPEN_IN_INCOGNITO_WINDOW'].includes(name)), []);
+test('no menu mode offers a window action', async t => {
+  await t.test('window actions and the private Custom Tab handoff never appear', () => {
+    assert.deepEqual(itemNames.filter(name =>
+      name.endsWith('_WINDOW') || name === 'OPEN_IN_CHROME_INCOGNITO_TAB'), []);
+  });
+
+  await t.test('Custom Tabs offer the regular handoff only when private tabs share the window', () => {
+    const customTab = menu.match(/else if \(mMode == ContextMenuMode\.CUSTOM_TAB && !mItemDelegate\.isIncognito\(\)\) \{([\s\S]*?)\n                \}/)[1];
+    assert.ok(customTab.replace(/\s+/g, '').includes(
+      'if(isDefaultBrowser()&&addNewEntries){if(!shouldOpenIncognitoAsWindow()){'
+      + 'items.add(0,createListItem(Item.OPEN_IN_NEW_CHROME_TAB));}}elseif('),
+    'the default browser must guard its regular handoff without falling through to Open in browser');
+    assert.equal(itemNames.filter(name => name === 'OPEN_IN_NEW_CHROME_TAB').length, 1);
+  });
 });
 
 test('the menu offers open, preview, copy, share and download without image search, Lens or Gemini', () => {
@@ -80,7 +91,6 @@ test('the menu offers open, preview, copy, share and download without image sear
 const labels = [
   ['OPEN_IN_INCOGNITO_TAB', 'android.contextMenu.privateTab'],
   ['OPEN_IN_NEW_CHROME_TAB', 'android.contextMenu.newBlancTab'],
-  ['OPEN_IN_CHROME_INCOGNITO_TAB', 'android.contextMenu.privateBlancTab'],
   ['OPEN_IN_CHROME', 'mini.openInBlanc'],
 ];
 
