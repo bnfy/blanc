@@ -31,8 +31,8 @@ Docker `debian:12` and current Fedora), Sigstore (`cosign`) as for every Blanc r
 Task 7 onward needs both gates.
 
 **Approved by the owner on 2026-11-21**, with the decisions below. **Review:** Codex reviewed it the
-same day (11 findings: 7 blockers, 2 errors, 1 gap, 1 scope); ten are folded in below, and its scope
-finding questions decision 4, which waits on the owner.
+same day (11 findings: 7 blockers, 2 errors, 1 gap, 1 scope); all are folded in below, and its scope
+finding changed decision 4 with the owner's agreement.
 
 ## Decisions this plan asks the owner for (approving the plan approves them)
 
@@ -48,10 +48,10 @@ finding questions decision 4, which waits on the owner.
 3. **The first public Linux beta's version is the one the update proof installs as N+1.** The N it
    updates from is a proof-only build (same source, build number one lower), never published and
    recorded in the ledger as `proofOnly: true`, as Windows proved .900 to .901 before going public.
-4. **The first Linux beta ships x64 and arm64 together.** *(As approved: if arm64 fails a gate, it waits
-   for the next beta and x64 doesn't wait. Codex's review points out that the owner's VM is arm64, so
-   without arm64 there is no real-desktop check, and spec §5's L3 gate names both architectures. Pending
-   the owner's answer, this plan treats both architectures as required.)*
+4. **The first Linux beta ships x64 and arm64 together, and both are required** (owner, 2026-11-21,
+   after Codex's review: the owner's VM is arm64, so it is the only real-desktop check, and spec §5's L3
+   gate names both). If arm64 fails a gate, the release waits; if that endangers Friday, the owner hears
+   by Wednesday 2026-11-25.
 5. **What the release notes and Download page say about updates:** "Updates come through your system's
    software updates (apt or dnf)". Ubuntu's unattended upgrades skip third-party repositories unless
    allowed, so the copy says "offered", never "installed automatically" (spec §3).
