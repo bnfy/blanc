@@ -197,11 +197,14 @@ try {
     const count = () => { frames += 1; if (performance.now() - t0 < 35_000) requestAnimationFrame(count); };
     requestAnimationFrame(count);
     const tick = setInterval(() => {
-      note(`tick frames=${frames} opacity=${layers.map((layer) => getComputedStyle(layer).opacity).join(',')} state=${document.visibilityState}`);
+      note(`tick frames=${frames} ${window.__describeLayers?.() ?? ''} state=${document.visibilityState}`);
       frames = 0;
       if (performance.now() - t0 > 8_000) clearInterval(tick);
     }, 250);
     matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (event) => note(`reduced-motion ${event.matches}`));
+    const describe = (layer) => `[${layer.className.replace('start-wallpaper-layer', '').trim()} phase=${layer.dataset.wallpaperPhase ?? '-'} z=${layer.style.zIndex || '-'} opacity=${getComputedStyle(layer).opacity} anims=${layer.getAnimations().map((a) => `${a.transitionProperty ?? a.animationName}:${a.playState}@${Math.round(a.currentTime ?? -1)}`).join('|') || 'none'}]`;
+    window.__describeLayers = () => layers.map(describe).join(' ');
+    note(`before ${window.__describeLayers()} reduce=${matchMedia('(prefers-reduced-motion: reduce)').matches}`);
     note(`start visible=${document.body.dataset.wallpaperVisible} hidden=${document.hidden} pressed=${document.getElementById('dynamicWallpaperToggle').getAttribute('aria-pressed')} focused=${document.activeElement?.id}`);
   });
   let fadeError = null;
