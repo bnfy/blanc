@@ -1,0 +1,7 @@
+# Blanc's desktop fork for Linux, preview channel (x64). Copied to
+# out/BlancLinuxPrototype/args.gn by chromium/linux/server/setup.sh.
+target_os = "linux"
+target_cpu = "x64"
+is_debug = false
+is_component_build = false
+symbol_level = 0
