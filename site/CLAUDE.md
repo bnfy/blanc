@@ -308,13 +308,17 @@ changelog refresh is also when a shipped command comes off it.
 asked for far fewer words. One button for the visitor's system sits under a
 Mac / Windows / Linux / iPhone segmented control (radios that switch the
 panels in CSS, so it works without scripting; `src/scripts/download-switcher.js`
-only preselects the system). Below come three tiles (Blanc Beta first, in dark
-ink; iPhone and iPad; Homebrew) and one line of facts. Keep every `/dl/*`
+only preselects the system). Below come four tiles, two by two (the Mac Blanc
+Beta first and Blanc Beta for Windows beside it, both in dark ink, added
+November 21, 2026; then iPhone and iPad, and Homebrew) and one line of facts. Keep every `/dl/*`
 link, the `#download-options` anchor the rest of the site links to, the
 measurement disclosure before the tiles, the phone note and the iCloud
 Keychain limitation. Every piece of text is recorded in
-`docs/website-download-redesign-2026-11-14-claims.json` (the beta tile in
-`docs/website-blanc-beta-<version>-claims.json`), and
+`docs/website-download-redesign-2026-11-14-claims.json` (the beta tiles in
+`docs/website-blanc-beta-<version>-claims.json` and
+`docs/website-blanc-beta-windows-<version>-claims.json`; `/dl/beta-win` and
+`site/src/data/blanc-beta-windows.json` are updated by hand for each Windows
+beta, and `test/unit/site-blanc-beta-windows.test.js` keeps them equal), and
 `test/unit/site-download-page.test.js` fails on any unrecorded text; large
 headings carry no full stop.
 

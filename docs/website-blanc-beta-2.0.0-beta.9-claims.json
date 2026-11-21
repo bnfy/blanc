@@ -18,7 +18,8 @@
       "Version figures (owner, 2026-11-15): the tile shows the beta's number and the Chromium major version as large figures, with the full version and build, the full Chromium version and the release day beside them; the requirement line no longer carries the version. Every version line is written from the release by chromium/release/daily/site-pr.mjs. The button reads Download Beta for Mac with the Apple logo, so it is clear the beta is Mac-only.",
       "Beta.7 (standing decision, owner 2026-11-14): the tile, its text and both limitations stay as for beta.6; only the release it names changes. Its release notes keep the caution that Sync isn't checked end to end.",
       "Beta.8 (standing decision, owner 2026-11-14): the tile, its text and both limitations stay as for beta.7; only the release it names changes. Its release notes keep the caution that Sync isn't checked end to end.",
-      "Beta.9 (standing decision, owner 2026-11-14): the tile, its text and both limitations stay as for beta.8; only the release it names changes. Its release notes keep the caution that Sync isn't checked end to end."
+      "Beta.9 (standing decision, owner 2026-11-14): the tile, its text and both limitations stay as for beta.8; only the release it names changes. Its release notes keep the caution that Sync isn't checked end to end.",
+      "Blanc Beta for Windows (owner, 2026-11-21): its own tile right after this one, so this tile's list of what isn't in the beta no longer names Windows."
     ]
   },
   "page": "site/src/pages/download.astro#beta",
@@ -86,8 +87,8 @@
       "evidence": "Listed under 'Not in this beta yet'. production-sync-real-device is waived under the owner's standing decision of 2026-11-14 (release.json gateWaivers); the release notes keep the caution that Sync isn't checked end to end."
     },
     {
-      "text": "Intel Macs, Windows and Linux.",
-      "evidence": "Listed under 'Not in this beta yet'. The release ships arm64 only; no fork build exists for Windows or Linux."
+      "text": "Intel Macs and Linux.",
+      "evidence": "The Mac beta is Apple Silicon only (release.json arches [arm64], the owner's standing Intel waiver) and there is no Linux build. Windows left this list on 2026-11-21: Blanc Beta for Windows is its own pre-release with its own tile (docs/website-blanc-beta-windows-158.0.8127.902-claims.json)."
     },
     {
       "text": "Release notes",
