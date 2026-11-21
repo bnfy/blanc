@@ -119,7 +119,14 @@ finding changed decision 4 with the owner's agreement.
   carries `Acquire-By-Hash: yes` with `by-hash/` copies. The previous two generations and every pool
   file they name are kept. One publisher at a time: the upload takes a lock object and refuses if
   another is held.
-- **Build numbers** (agreed with the Windows Beta session, 2026-11-21): one desktop sequence for Windows
+- **Build numbers — ON HOLD (2026-11-21):** the owner approved a Windows nightly that builds at the next
+  free number without committing it, so this rule is changing to "the claim *names* the source commit"
+  (`{build, sourceCommit, platforms[], purpose}`; a release checks only earlier claims; a rejected push
+  re-reads the tip and retries; the committed beta args keep a development number; the release proves
+  the candidate's `treeCommit` and compiled-in build equal its claim). Task 5 waits for the Windows
+  nightly plan (`docs/superpowers/specs/2026-11-21-windows-nightly-design.md`) and is then reworked to
+  that form. The paragraph below is the superseded first agreement.
+- **Build numbers** (first agreement with the Windows Beta session, 2026-11-21, superseded above): one desktop sequence for Windows
   and Linux, kept in `chromium/release/build-reservations.json` on `chromium/next`, keyed by sequence
   (`{"schema": 1, "sequences": {"desktop-158": [{build, platforms, purpose}]}}`, seeded with Windows'
   902, 903 and 904). The Mac beta's own `2.0.0-beta.N` sequence stays out of it. **The reservation commit
