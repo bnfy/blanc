@@ -188,6 +188,10 @@ struct ContentView: View {
                 if isPalettePanelOpen { palettePanel.transition(.opacity) }
             }
             .animation(panelAnimation, value: isPalettePanelOpen)
+            // While it fades out it's already gone: what it opened (the Spaces
+            // card, a sheet) takes the next tap, not the fading panel.
+            .allowsHitTesting(isPalettePanelOpen)
+            .accessibilityHidden(!isPalettePanelOpen)
         }
         .onChange(of: manager.isPalettePresented) { _, presented in
             // The sheet runs this from its onDismiss; the panel has none.
@@ -398,6 +402,10 @@ struct ContentView: View {
                 .opacity(0)
                 .accessibilityHidden(true)
         }
+        // It opens from the palette panel while the panel's keyboard is still
+        // going down; it sits at the Island's edge from the start rather than
+        // riding the keyboard down.
+        .ignoresSafeArea(.keyboard)
     }
 
     /// The palette growing from the Island in its place, at the Island's edge
