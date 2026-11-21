@@ -9,9 +9,17 @@ name: chromium-linux-candidate
 on:
   workflow_dispatch:
     inputs:
+      check:
+        description: Check to run
+        required: false
+        type: choice
+        default: candidate
+        options:
+          - candidate
+          - repo-metadata
       sha256:
-        description: SHA-256 of the packaged Linux candidate tarball
-        required: true
+        description: Candidate tarball SHA-256, or approved-packages.json SHA-256 for repo-metadata (omit for fixtures only)
+        required: false
         type: string
       suite:
         description: Suite to run after the two display checks
@@ -33,6 +41,7 @@ permissions:
 jobs:
   candidate:
     name: candidate (linux x64)
+    if: ${{ inputs.check == 'candidate' || inputs.check == '' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 240
     # Reading the unpublished draft requires write access. Only the download
@@ -149,3 +158,67 @@ jobs:
           path: ${{ runner.temp }}/results
           if-no-files-found: warn
           retention-days: 14
+
+  repo-metadata:
+    if: ${{ inputs.check == 'repo-metadata' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      # As in the candidate job, needed to read the private draft.
+      contents: write
+    env:
+      APPROVAL_SHA256: ${{ inputs.sha256 }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Install repository tools
+        run: |
+          bash scripts/ci-apt-mirror.sh
+          sudo apt-get update
+          sudo apt-get install -y apt-utils createrepo-c dnf rpm gnupg dpkg-dev python3-venv
+          python3 -m venv "$RUNNER_TEMP/repo-verify"
+          "$RUNNER_TEMP/repo-verify/bin/pip" install --only-binary=:all: --no-deps rpmrepo-metadata==0.9.1
+          echo "$RUNNER_TEMP/repo-verify/bin" >> "$GITHUB_PATH"
+      - name: Exercise signed repositories with apt and dnf
+        env:
+          BLANC_REQUIRE_REPO_TOOLS: '1'
+        run: node --test chromium/tools/linux-repository.test.mjs chromium/linux/repository/worker/worker.test.mjs
+      - name: Download the approved packages from the candidate draft
+        if: ${{ inputs.sha256 != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [[ $APPROVAL_SHA256 =~ ^[0-9a-f]{64}$ ]]
+          tag=fork-linux-candidate
+          [[ $(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft) == true ]]
+          dest="$RUNNER_TEMP/approved"
+          mkdir -m 700 "$dest" "$RUNNER_TEMP/repo-gpg"
+          export GNUPGHOME="$RUNNER_TEMP/repo-gpg"
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --dir "$dest" --pattern 'approved-packages.json*'
+          printf '%s  %s\n' "$APPROVAL_SHA256" "$dest/approved-packages.json" | sha256sum --check --strict
+          gpg --batch --dearmor --output "$GNUPGHOME/public.gpg" chromium/linux/keys/blanc-repository.asc
+          gpgv --keyring "$GNUPGHOME/public.gpg" "$dest/approved-packages.json.asc" "$dest/approved-packages.json"
+          python3 chromium/linux/repository/metadata.py names "$dest" > "$RUNNER_TEMP/package-names"
+          while IFS= read -r name; do
+            gh release download "$tag" --repo "$GITHUB_REPOSITORY" --dir "$dest" --pattern "$name"
+          done < "$RUNNER_TEMP/package-names"
+      - name: Build the unsigned release tree
+        if: ${{ inputs.sha256 != '' }}
+        run: chromium/linux/repository/build-metadata.sh "$RUNNER_TEMP/approved" "$RUNNER_TEMP/unsigned-tree"
+      - name: Return the indexes and inventory to the owner
+        if: ${{ inputs.sha256 != '' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: linux-repo-metadata-${{ inputs.sha256 }}
+          path: |
+            ${{ runner.temp }}/unsigned-tree/tree.json
+            ${{ runner.temp }}/unsigned-tree/deb/dists/stable
+            ${{ runner.temp }}/unsigned-tree/rpm/stable/x86_64/repodata
+            ${{ runner.temp }}/unsigned-tree/rpm/stable/aarch64/repodata
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
