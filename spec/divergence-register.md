@@ -322,6 +322,18 @@ mobile is a single full-screen surface with system insets.
   mixes them, and A2's tab grid settles it), and the switched-in page slides
   in from 30% of the width and settles in 350 ms instead of following the
   finger, because Chromium draws one tab's page at a time.
+  Since 2026-11-21 (#1682's Android follow-up) the Android Island matches the
+  iPhone's redesign: 44 dp with 17 dp corners, only as wide as what it holds,
+  Back, Forward only with somewhere to go, the page menu (the site's icon, the
+  Sunrise on Blanc's pages, a globe until the icon arrives), the site, and New
+  Tab, which Stop replaces while a page loads. No dividers and no Private chip:
+  the page menu's label says Private tab, and Close Private Tab leads it. The
+  open Island is still a dialog (Android has no SwiftUI panel): it grows from
+  the Island's own rectangle, hangs from the top when the Island is at the top,
+  hugs its rows up to 520 dp, puts search and the actions (Back, New Tab,
+  Spaces, Favorites, History, Settings) on the Island's side with Copy Link in
+  the search row, and closes on a drag toward the Island. Site icons are kept
+  in memory per tab from Chromium's favicon updates, not in a site-icon store.
 - **Desktop workspace-local state:** reopen-closed history belongs to the native
   window that closed the tab (F2), and Glance can expose a second tab inside
   that same window (F34). Neither operation may cross a workspace/profile edge.

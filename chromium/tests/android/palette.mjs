@@ -72,10 +72,18 @@ function main(argv) {
     if (!field) problems.push('no focused field');
     if (!matching(xml, /^Open tabs {2}\d+$/)) problems.push('the open tabs are not listed');
     if (field && keyboard !== null && field.bottom > keyboard) problems.push(`the field is under the keyboard (${field.bottom} > ${keyboard})`);
-    // The footer (New Tab, Favorites, History) stays reachable above the keyboard too.
-    const footer = matching(xml, /^New tab$/);
+    // The actions (Back, New tab, Favorites, History) stay reachable above the keyboard too; New tab
+    // is a plain button now (#1682), named by its content description.
+    const footer = matching(xml, /^New tab$/, 'content-desc');
     if (!footer) problems.push('no New Tab button');
     else if (keyboard !== null && footer.bottom > keyboard) problems.push(`New Tab is under the keyboard (${footer.bottom} > ${keyboard})`);
+    // #1682: the search field sits on the Island's side (here the bottom), the tabs above it.
+    const heading = matching(xml, /^Open tabs {2}\d+$/);
+    if (field && heading && heading.top > field.top) problems.push('the tabs are under the search field');
+    // Copy Link is a button in the search row, not a row above the tabs.
+    const copy = matching(xml, /^Copy Link$/, 'content-desc');
+    if (!copy) problems.push('no Copy Link button');
+    else if (field && (copy.top > field.bottom || copy.bottom < field.top)) problems.push('Copy Link is not in the search row');
     check(`opens above the keyboard at ${size}`, problems);
     adb('shell', 'input', 'keyevent', 'KEYCODE_BACK'); sleep(1);
     adb('shell', 'input', 'keyevent', 'KEYCODE_BACK'); sleep(1);
@@ -89,7 +97,7 @@ function main(argv) {
   shot('palette-rotated');
   adb('shell', 'settings', 'put', 'system', 'user_rotation', '0'); sleep(3);
   // In landscape with the keyboard up there's room for the field and footer; the list scrolls in.
-  check('survives a rotation', paletteField(rotated) && matching(rotated, /^New tab$/) ? [] : ['the palette is gone after rotating']);
+  check('survives a rotation', paletteField(rotated) && matching(rotated, /^New tab$/, 'content-desc') ? [] : ['the palette is gone after rotating']);
   adb('shell', 'input', 'keyevent', 'KEYCODE_BACK'); sleep(1);
   adb('shell', 'input', 'keyevent', 'KEYCODE_BACK'); sleep(1);
 

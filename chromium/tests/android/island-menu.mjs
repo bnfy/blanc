@@ -100,7 +100,8 @@ function main(argv) {
   if (privateEntry) tap(privateEntry); else close();
   sleep(3);
   shot('6-private');
-  check('private chip', nodeBounds(dump(), {id: 'blanc_island_private'}) ? [] : ['no private chip after New Private Tab']);
+  // #1682: no Private chip; the page menu says the tab is private.
+  check('the page menu says Private tab', /content-desc="Page actions, Private tab"/.test(dump()) ? [] : ['the page menu does not say Private tab after New Private Tab']);
   // The private tab's page, typed in the address sheet, has no favorite.
   const domain = nodeBounds(dump(), {id: 'blanc_island_domain'});
   if (domain) tap(domain);

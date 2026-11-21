@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.content.ClipboardManager;
 import android.graphics.drawable.GradientDrawable;
 import android.view.View;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.EditorInfo;
 
 import org.junit.Before;
@@ -121,10 +122,10 @@ public class PaletteSheetTest {
         return out;
     }
 
-    /** A row by its title; the address row, which repeats the current tab's address, never. */
+    /** A row by its title. */
     private static PaletteSheet.Row row(PaletteSheet sheet, String title) {
         for (PaletteSheet.Row row : sheet.rows()) {
-            if (row.title.equals(title) && row.kind != PaletteSheet.RowKind.ADDRESS) return row;
+            if (row.title.equals(title)) return row;
         }
         throw new AssertionError("no row " + title);
     }
@@ -400,31 +401,52 @@ public class PaletteSheetTest {
         assertEquals("Sent to Mac.", PaletteSheet.sendResult(Robolectric.buildActivity(Activity.class).get(), "sent", "Mac"));
     }
 
-    // #1445: the page's whole address leads the resting list; a tap puts it in the field to
-    // edit, and its button copies it.
+    // #1682: no address row above the tabs; Copy Link is a button in the search row while it's
+    // empty, and TalkBack (or a long press) offers Edit address, which puts the address in the field.
     @Test
-    public void atRestTheCurrentAddressLeadsAndCanBeEditedOrCopied() {
+    public void theSearchRowCopiesTheLinkAndOffersEditAddress() {
         PaletteSheet sheet = show();
-        PaletteSheet.Row address = sheet.rows().get(0);
-        assertEquals(PaletteSheet.RowKind.ADDRESS, address.kind);
-        assertEquals("https://example.com/", address.title);
-        assertEquals("Edit address, https://example.com/", address.view.getContentDescription().toString());
-        address.view.performClick();
+        assertEquals(PaletteSheet.RowKind.HEADING, sheet.rows().get(0).kind);
+        View copy = sheet.copyButton();
+        assertEquals(View.VISIBLE, copy.getVisibility());
+        assertEquals("Copy Link", copy.getContentDescription().toString());
+        type(sheet, "b");
+        assertEquals("typing makes room for the text", View.GONE, copy.getVisibility());
+        type(sheet, "");
+        assertEquals(View.VISIBLE, copy.getVisibility());
+        int edit = -1;
+        for (AccessibilityNodeInfo.AccessibilityAction a : copy.createAccessibilityNodeInfo().getActionList()) {
+            if ("Edit address".contentEquals(String.valueOf(a.getLabel()))) edit = a.getId();
+        }
+        assertTrue("no Edit address action", edit != -1);
+        assertTrue(copy.performAccessibilityAction(edit, null));
         assertEquals("https://example.com/", sheet.field().getText().toString());
         assertTrue(sheet.isShowing());
         PaletteSheet again = show();
-        PaletteSheet.Row copy = again.rows().get(0);
-        assertEquals("Copy Link", copy.button.getContentDescription().toString());
-        copy.button.performClick();
+        again.copyButton().performClick();
         ClipboardManager clipboard = mActivity.getSystemService(ClipboardManager.class);
         assertEquals("https://example.com/", clipboard.getPrimaryClip().getItemAt(0).getText().toString());
         assertFalse(again.isShowing());
     }
 
     @Test
-    public void blancsOwnPagesHaveNoAddressRow() {
+    public void blancsOwnPagesHaveNoCopyButton() {
         mStore.select(mStore.create("chrome://blanc/newtab.html", false, null, -1));
-        assertEquals(PaletteSheet.RowKind.HEADING, show().rows().get(0).kind);
+        PaletteSheet sheet = show();
+        assertEquals(PaletteSheet.RowKind.HEADING, sheet.rows().get(0).kind);
+        assertEquals(View.GONE, sheet.copyButton().getVisibility());
+    }
+
+    // #1682: the actions run along the Island's edge: Back (dimmed with nowhere to go) and New tab
+    // as plain buttons, no filled capsule.
+    @Test
+    public void theActionsLeadWithBackAndNewTab() {
+        PaletteSheet sheet = show();
+        assertEquals("Back", sheet.backButton().getContentDescription().toString());
+        assertFalse("nowhere to go back to", sheet.backButton().isEnabled());
+        assertTrue(sheet.newTabButton() instanceof android.widget.ImageButton);
+        assertEquals("New tab", sheet.newTabButton().getContentDescription().toString());
+        assertFalse(sheet.atTop());
     }
 
     // #1463/#1466: no × to miss; a swipe shows the trash, and TalkBack has Close Tab.

@@ -65,18 +65,24 @@ function main(argv) {
   check('New Tab adds a Start Page tab', !tapped ? ['no New Tab button'] : before === null || after !== before + 1
     ? [`count went from ${before} to ${after}`] : onStartPage(xml) ? [] : ['the new tab is not the Start Page']);
 
+  // #1682: no Private chip; Close Private Tab leads the page menu on a private tab.
   tap({id: 'blanc_island_menu'});
   const opened = tap({text: 'New Private Tab'});
   sleep(2);
-  const privateXml = dump();
-  const chip = nodeBounds(privateXml, {id: 'blanc_island_private'});
   const withPrivate = count();
-  if (chip) { adb('shell', 'input', 'tap', ...center(chip)); sleep(3); }
-  const back = dump();
+  tap({id: 'blanc_island_menu'});
+  sleep(1);
+  const closed = tap({text: 'Close Private Tab'});
+  sleep(3);
   const withoutPrivate = count();
   shot('2-private-closed');
-  check('The private chip closes the private tab', !opened || !chip ? ['no private tab or chip']
-    : nodeBounds(back, {id: 'blanc_island_private'}) ? ['still private']
+  tap({id: 'blanc_island_menu'});
+  sleep(1);
+  const stillPrivate = nodeBounds(dump(), {text: 'Close Private Tab'});
+  adb('shell', 'input', 'keyevent', 'KEYCODE_BACK');
+  sleep(1);
+  check('Close Private Tab closes the private tab', !opened || !closed ? ['no private tab or no Close Private Tab']
+    : stillPrivate ? ['still private']
       : withoutPrivate !== withPrivate - 1 ? [`count ${withPrivate} then ${withoutPrivate}`] : []);
 
   fs.writeFileSync(path.join(evidence, 'tabs.json'), JSON.stringify({results, checkedAt: new Date().toISOString()}, null, 2) + '\n');
