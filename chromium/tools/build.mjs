@@ -94,18 +94,27 @@ export function outputName(options) {
 // The lane decides the output, the target and the machine. Desktop keeps its
 // defaults; Android (chromium/android/) builds the APK on x86-64 Linux only.
 export const ANDROID_OUTPUTS = ['AndroidDebug', 'AndroidDebugX64', 'AndroidRelease', 'AndroidReleaseX64'];
-export function buildLane(options) {
+const linuxRepositoryKey = fileURLToPath(new URL('../linux/keys/blanc-repository.asc', import.meta.url));
+export function buildLane(options, hasLinuxKey) {
   const lanes = options.filter(option => option.startsWith('--lane='));
   if (lanes.length > 1 || (lanes.length && !['--lane=desktop', '--lane=android'].includes(lanes[0])))
     throw new Error('Use one --lane=desktop or --lane=android.');
   const lane = lanes.length ? lanes[0].slice('--lane='.length) : 'desktop';
+  const packagesRequested = options.includes('--linux-packages');
+  if (packagesRequested && (lane !== 'desktop' || !LINUX_OUTPUTS.includes(outputName(options))))
+    throw new Error('--linux-packages requires a Linux desktop output.');
   if (lane === 'desktop') {
     const out = outputName(options);
     const linux = LINUX_OUTPUTS.includes(out);
     if (!MAC_OUTPUTS.includes(out) && options.some(option => option.startsWith('--sdk-root=')))
       throw new Error(`--sdk-root is a macOS option; the ${linux ? 'Linux' : 'Windows'} output has none.`);
-    // The Linux candidate launches with Chromium's setuid sandbox helper.
-    if (linux) return { lane, out, target: 'chrome', extraTargets: ['chrome_sandbox'] };
+    if (linux) {
+      const channel = out.endsWith('Beta') ? 'beta' : 'prototype';
+      const extraTargets = ['chrome_sandbox'];
+      if (packagesRequested || (hasLinuxKey ?? fs.existsSync(linuxRepositoryKey)))
+        extraTargets.push(`chrome/installer/linux:${channel}`);
+      return { lane, out, target: 'chrome', extraTargets };
+    }
     // The Windows output also builds Chromium's installer (W1 Part B), which
     // packs the browser it builds: one named extra target, nothing chosen on
     // the command line. The beta also builds Blanc's updater and its setup
@@ -281,11 +290,27 @@ function environment(src, out, sdkRoot = null) {
   };
   return { inputs, env };
 }
+// The installer action validates this input when it runs. An empty input lets
+// Siso plan a requested installer before the key ceremony and invalidates any
+// cached package key if its source was removed. The checkout lock covers writes.
+export function stageLinuxPackageKey(source, destination) {
+  let armor;
+  try {
+    armor = fs.readFileSync(source);
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+    armor = Buffer.alloc(0);
+  }
+  if (fs.existsSync(destination) && fs.readFileSync(destination).equals(armor)) return;
+  fs.writeFileSync(destination + '.tmp', armor);
+  fs.renameSync(destination + '.tmp', destination);
+}
+
 function main() {
   const [source, ...options] = process.argv.slice(2);
-  const allowed = new Set(['--check', '--build', '--record-environment', '--allow-large-build', '--reject-buildflags']);
+  const allowed = new Set(['--check', '--build', '--record-environment', '--allow-large-build', '--reject-buildflags', '--linux-packages']);
   if (!source || options.some(option => !allowed.has(option) && !option.startsWith('--local-jobs=') && !option.startsWith('--out=') && !option.startsWith('--lane=') && !option.startsWith('--sdk-root=') && !option.startsWith('--max-actions='))) {
-    throw new Error(`Usage: node build.mjs CHROMIUM_SRC [--check | --build | --record-environment] [--allow-large-build] [--reject-buildflags] [--max-actions=N] [--local-jobs=N] [--lane=desktop|android] [--out=${[...MAC_OUTPUTS, ...WINDOWS_OUTPUTS, ...LINUX_OUTPUTS, ...ANDROID_OUTPUTS].join('|')}] [--sdk-root=ABSOLUTE_PATH]`);
+    throw new Error(`Usage: node build.mjs CHROMIUM_SRC [--check | --build | --record-environment] [--allow-large-build] [--reject-buildflags] [--linux-packages] [--max-actions=N] [--local-jobs=N] [--lane=desktop|android] [--out=${[...MAC_OUTPUTS, ...WINDOWS_OUTPUTS, ...LINUX_OUTPUTS, ...ANDROID_OUTPUTS].join('|')}] [--sdk-root=ABSOLUTE_PATH]`);
   }
   const workerArgs = localJobs(options);
   const maxActions = maximumActions(options);
@@ -295,6 +320,7 @@ function main() {
   const src = fs.realpathSync(source);
   const { lane, out: outName, target, extraTargets = [] } = buildLane(options);
   const targets = [target, ...extraTargets];
+  const linuxInstaller = extraTargets.find(label => label.startsWith('chrome/installer/linux:'));
   if (lane === 'android') requireAndroidHost(); else requireDesktopHost(outName);
   const windows = WINDOWS_OUTPUTS.includes(outName);
   const linux = LINUX_OUTPUTS.includes(outName);
@@ -326,6 +352,11 @@ function main() {
     }
     fs.mkdirSync(lock);
     outputLocked = true;
+    if (linuxInstaller) {
+      stageLinuxPackageKey(linuxRepositoryKey, path.join(src, 'blanc/branding/linux/repository-key.input'));
+    } else if (linux) {
+      console.log("Planning chrome and chrome_sandbox. The owner repository key is pending. Use --linux-packages to request installers.");
+    }
     const siso = path.join(src, 'third_party/siso/cipd/siso');
     const args = ['ninja', '-offline', ...workerArgs, '-C', out];
     const planFile = path.join(out, 'blanc-build-plan.log');
@@ -338,7 +369,10 @@ function main() {
     } finally {
       fs.closeSync(planFd);
     }
-    if (result.error || result.status !== 0) throw new Error(`Dry run failed (${result.error?.message ?? result.status ?? result.signal}); inspect ${planFile}. No build started.`);
+    if (result.error || result.status !== 0) {
+      const hint = linuxInstaller ? ` The ${linuxInstaller} target requires browser identity patch 0113 and blanc_blocker_bundle.` : '';
+      throw new Error(`Dry run failed (${result.error?.message ?? result.status ?? result.signal}); inspect ${planFile}.${hint} No build started.`);
+    }
     const output = planSummary(planFile);
     const actions = plannedActions(output);
     console.log(`Dry-run scheduled actions: ${actions} (generated outputs may add work). Plan: ${planFile}`);

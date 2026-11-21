@@ -68,3 +68,24 @@ if (blanc_channel == "release") {
 if (blanc_beta_channel) {
   blanc_product_dir_name = "Blanc Beta"
 }
+
+if (is_linux && target_os == "linux") {
+  declare_args() {
+    # Browser-only outputs can generate their graph before installer inputs land.
+    blanc_linux_build_packages =
+        defined(blanc_linux_package) && blanc_blocker_bundle != ""
+    blanc_linux_channel = "prototype"
+    if (blanc_beta_channel) {
+      blanc_linux_channel = "beta"
+    }
+  }
+  declare_args() {
+    blanc_linux_repository = "https://pkg-staging.blanc.day"
+    if (blanc_linux_channel == "beta") {
+      blanc_linux_repository = "https://pkg.blanc.day"
+    }
+  }
+  assert((blanc_linux_channel == "prototype" && blanc_channel == "preview") ||
+         (blanc_linux_channel == "beta" && blanc_beta_channel),
+         "Linux package and browser channels must match")
+}

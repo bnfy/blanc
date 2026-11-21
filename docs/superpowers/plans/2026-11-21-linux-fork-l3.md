@@ -181,7 +181,7 @@ finding changed decision 4 with the owner's agreement.
   `chromium/windows/args/beta-x64.gn`: official, non-branded, `blanc_channel = "beta"`, Widevine off,
   `blanc_beta_build`, `blanc_beta_version = "2.0.0-beta.<build>"`, `blanc_blocker_bundle =
   "/home/blanc/blanc-assets/blocker"`, `symbol_level = 0`, no `enable_updater`)
-- Create: patch `0115-blanc-linux-update-notifications.patch`
+- Create: patch `0116-blanc-linux-update-notifications.patch`
   (`chrome/browser/buildflags.gni`: `enable_update_notifications = is_chrome_branded ||
   (is_linux && blanc_channel == "beta")`)
 - Create: `chromium/tools/linux-beta-config.test.mjs`
@@ -247,7 +247,7 @@ finding changed decision 4 with the owner's agreement.
 ### Task 3: Packages that add the repository, and an honest opt-out
 
 **Files:**
-- Modify: L1's patch 0114 only if Task 3's test finds the beta's rendered cron, defaults file or
+- Modify: L1's patch 0115 only if Task 3's test finds the beta's rendered cron, defaults file or
   uninstall scripts wrong
 - Create: `chromium/tools/linux-repo-scripts.test.mjs`, `chromium/linux/manual-repository.md` (the
   commands the Download page shows)

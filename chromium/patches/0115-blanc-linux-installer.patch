@@ -1,0 +1,1671 @@
+diff --git a/chrome/app/resources/manpage.1.in b/chrome/app/resources/manpage.1.in
+--- a/chrome/app/resources/manpage.1.in
++++ b/chrome/app/resources/manpage.1.in
+@@ -3,16 +3,16 @@
+ .TH @@PACKAGE 1 "" "" "USER COMMANDS"
+ 
+ .SH NAME
+-@@PACKAGE \- the web browser from Google
++@@PACKAGE \- @@SHORTDESC
+ 
+ .SH SYNOPSIS
+ .B @@PACKAGE
+ [\fIOPTION\fR] [\fIPATH\fR|\fIURL\fR]
+ 
+ .SH DESCRIPTION
+-See the Google Chrome help center for help on using the browser.
++For help with @@MENUNAME, see:
+ .IP
+-<https://support.google.com/chrome/>
++<@@HELPURL>
+ .PP
+ This manpage only describes invocation, environment, and arguments.
+ 
+@@ -156,10 +156,7 @@
+ .SH BUGS
+ Bug tracker:
+ .IP
+-http://code.google.com/p/chromium/issues/list
+-.PP
+-Be sure to do your search within "All Issues" before reporting bugs,
+-and be sure to pick the "Defect on Linux" template when filing a new one.
++@@BUGTRACKERURL
+ 
+ .SH AUTHOR
+-The Chromium team \- <http://www.chromium.org>
++@@DEVELOPER_NAME and The Chromium Authors \- <@@PRODUCTURL>
+diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
+--- a/chrome/installer/linux/BUILD.gn
++++ b/chrome/installer/linux/BUILD.gn
+@@ -28,44 +28,39 @@
+   # distributions.
+   enable_distro_version_check = true
+ 
+-  # Enables building Flatpak package bundles (.flatpak).
++  # Retain the upstream GN argument for existing outputs. Blanc builds DEB and RPM.
+   enable_flatpak = false
+ }
+ 
+ assert(is_linux)
++import("//blanc/config.gni")
++
++_blanc_packages = target_os == "linux" && blanc_linux_build_packages
+ 
+ if (current_cpu == "x86") {
+   deb_arch = "i386"
+   rpm_arch = "i386"
+-  flatpak_arch = "i386"
+ } else if (current_cpu == "x64") {
+   deb_arch = "amd64"
+   rpm_arch = "x86_64"
+-  flatpak_arch = "x86_64"
+ } else if (current_cpu == "arm") {
+   deb_arch = "armhf"
+   rpm_arch = "armhf"
+-  flatpak_arch = "arm"
+ } else if (current_cpu == "arm64") {
+   deb_arch = "arm64"
+   rpm_arch = "aarch64"
+-  flatpak_arch = "aarch64"
+ } else if (current_cpu == "mipsel") {
+   deb_arch = "mipsel"
+   rpm_arch = "mipsel"
+-  flatpak_arch = "mipsel"
+ } else if (current_cpu == "mips64el") {
+   deb_arch = "mips64el"
+   rpm_arch = "mips64el"
+-  flatpak_arch = "mips64el"
+ } else if (current_cpu == "loong64") {
+   deb_arch = "loong64"
+   rpm_arch = "loongarch64"
+-  flatpak_arch = "loongarch64"
+ } else if (current_cpu == "riscv64") {
+   deb_arch = "riscv64"
+   rpm_arch = "riscv64"
+-  flatpak_arch = "riscv64"
+ } else {
+   assert(false, "Linux installer not configured for this architecture.")
+ }
+@@ -111,6 +106,8 @@
+ # (e.g. all locales, resources, etc.)
+ packaging_files = packaging_files_binaries + [
+                     "common/installer.py",
++                    "$root_out_dir/blanc_blocker/engine.js",
++                    "$root_out_dir/installer/common/blanc-repository.gpg",
+                     "$root_out_dir/locales/en-US.pak",
+                     "$root_out_dir/MEIPreload/manifest.json",
+                     "$root_out_dir/MEIPreload/preloaded_data.pb",
+@@ -291,67 +288,17 @@
+ # This target builds all "normal" Linux installers.  You must set
+ # is_component_build=false before building this target.
+ group("linux") {
+-  deps = [
+-    ":beta",
+-    ":canary",
+-    ":deb_repo_package",
+-    ":stable",
+-    ":unstable",
+-  ]
+-}
+-
+-action("deb_repo_package") {
+-  visibility = [ ":*" ]
+-  script = "debian/build_repo_package.py"
+-
+-  inputs = [
+-    "common/installer.py",
+-    "common/apt.include",
+-    "common/key.include",
+-    "common/repo_variables.include",
+-    "common/variables.include",
+-    "debian/build_repo_package.py",
+-    "debian/control_repo.template",
+-    "debian/postinst_repo",
+-    "debian/postrm_repo",
+-    "debian/repo_package.include",
+-  ]
+-
+-  deps = [ ":installer_deps" ]
+-
+-  if (is_chrome_branded) {
+-    package = "google-chrome-repo"
+-  } else {
+-    package = "chromium-browser-repo"
+-  }
+-
+-  outputs = [ "$root_out_dir/${package}_${deb_arch}.deb" ]
+-
+-  args = [
+-    "-a",
+-    deb_arch,
+-    "-b",
+-    build_timestamp,
+-    "-c",
+-    "stable",
+-    "-d",
+-    branding_path_component,
+-    "-o",
+-    rebase_path(root_out_dir, root_build_dir),
+-    "-s",
+-    rebase_path(sysroot, root_build_dir),
+-    "-t",
+-    target_os,
+-  ]
+-}
+-
+-branding_dir = "//chrome/app/theme/$branding_path_component"
+-branding_dir_100 =
+-    "//chrome/app/theme/default_100_percent/$branding_path_component"
++  if (_blanc_packages) {
++    deps = [ ":$blanc_linux_channel" ]
++  }
++}
+ 
+ copy("common_packaging_files") {
+   visibility = [ ":*" ]
+   sources = [
++    "//blanc/notices/LICENSE",
++    "//blanc/notices/ASSET-LICENSE.md",
++    "//blanc/notices/THIRD_PARTY_NOTICES.txt",
+     "//chrome/app/resources/manpage.1.in",
+     "common/apparmor.template",
+     "common/appdata.xml.template",
+@@ -359,7 +306,6 @@
+     "common/default-app-block.template",
+     "common/default-app.template",
+     "common/desktop.template",
+-    "common/key.include",
+     "common/postinst.include",
+     "common/prerm.include",
+     "common/repo.cron",
+@@ -397,40 +343,13 @@
+ 
+ copy("theme_files") {
+   visibility = [ ":*" ]
+-  sources = [
+-    "$branding_dir/BRANDING",
+-    "$branding_dir/linux/product_logo_128.png",
+-    "$branding_dir/linux/product_logo_24.png",
+-    "$branding_dir/linux/product_logo_256.png",
+-    "$branding_dir/linux/product_logo_48.png",
+-    "$branding_dir/linux/product_logo_64.png",
+-    "$branding_dir_100/linux/product_logo_16.png",
+-    "$branding_dir_100/linux/product_logo_32.png",
+-  ]
+-  if (is_chrome_branded) {
+-    sources += [
+-      "$branding_dir/linux/product_logo_128_beta.png",
+-      "$branding_dir/linux/product_logo_128_canary.png",
+-      "$branding_dir/linux/product_logo_128_dev.png",
+-      "$branding_dir/linux/product_logo_24_beta.png",
+-      "$branding_dir/linux/product_logo_24_canary.png",
+-      "$branding_dir/linux/product_logo_24_dev.png",
+-      "$branding_dir/linux/product_logo_256_beta.png",
+-      "$branding_dir/linux/product_logo_256_canary.png",
+-      "$branding_dir/linux/product_logo_256_dev.png",
+-      "$branding_dir/linux/product_logo_48_beta.png",
+-      "$branding_dir/linux/product_logo_48_canary.png",
+-      "$branding_dir/linux/product_logo_48_dev.png",
+-      "$branding_dir/linux/product_logo_64_beta.png",
+-      "$branding_dir/linux/product_logo_64_canary.png",
+-      "$branding_dir/linux/product_logo_64_dev.png",
+-      "$branding_dir_100/linux/product_logo_16_beta.png",
+-      "$branding_dir_100/linux/product_logo_16_canary.png",
+-      "$branding_dir_100/linux/product_logo_16_dev.png",
+-      "$branding_dir_100/linux/product_logo_32_beta.png",
+-      "$branding_dir_100/linux/product_logo_32_canary.png",
+-      "$branding_dir_100/linux/product_logo_32_dev.png",
+-    ]
++  if (blanc_beta_channel) {
++    sources = [ "//blanc/branding/beta/BRANDING" ]
++  } else {
++    sources = [ "//blanc/branding/win/BRANDING" ]  # Blanc Prototype
++  }
++  foreach(size, [ 16, 24, 32, 48, 64, 128, 256 ]) {
++    sources += [ "//blanc/branding/linux/product_logo_${size}.png" ]
+   }
+   outputs = [ "$root_out_dir/installer/theme/{{source_file_part}}" ]
+ }
+@@ -440,18 +359,6 @@
+     visibility = [ ":*" ]
+     sources = [ "rpm/chrome.spec.template" ]
+     outputs = [ "$root_out_dir/installer/rpm/{{source_file_part}}" ]
+-  }
+-
+-  if (enable_flatpak) {
+-    copy("flatpak_packaging_files") {
+-      visibility = [ ":*" ]
+-      sources = [
+-        "flatpak/launcher.template",
+-        "flatpak/metadata.template",
+-        "flatpak/metainfo.xml.template",
+-      ]
+-      outputs = [ "$root_out_dir/installer/flatpak/{{source_file_part}}" ]
+-    }
+   }
+ }
+ 
+@@ -484,6 +391,12 @@
+     ":theme_files",
+     "//chrome",
+   ]
++  if (_blanc_packages) {
++    public_deps += [
++      "//blanc:linux_blocker_engine",
++      "//blanc:linux_repository_keyring",
++    ]
++  }
+   public_deps += [
+     "//chrome:packed_resources",
+     "//chrome/browser/enterprise/connectors/device_trust/key_management/installer/management_service:chrome_management_service",
+@@ -524,9 +437,6 @@
+   }
+   if (!is_chromeos) {
+     public_deps += [ ":rpm_packaging_files" ]
+-    if (enable_flatpak) {
+-      public_deps += [ ":flatpak_packaging_files" ]
+-    }
+   }
+   if (build_with_internal_optimization_guide) {
+     public_deps += [
+@@ -554,19 +464,23 @@
+   }
+ }
+ 
++# Package contents must also invalidate the actions on an incremental build.
++packaging_files += get_target_outputs(":common_packaging_files")
++packaging_files += get_target_outputs(":theme_files")
++packaging_files += [ "$root_out_dir/installer/version.txt" ]
++
+ # Creates .deb and .rpm (RPM for non-ChromeOS only) installer packages.
+ #
+ # channel:
+ #   Name of the channel.
+ template("linux_package") {
+   assert(defined(invoker.channel))
+-  channel = invoker.channel
+-
+-  if (is_chrome_branded) {
+-    package = "google-chrome"
+-  } else {
+-    package = "chromium-browser"
+-  }
++
++  assert(defined(blanc_linux_package),
++         "Linux packages require the browser identity from patch 0113.")
++  assert(blanc_linux_package == "blanc-$blanc_linux_channel",
++         "The installer channel must match the browser identity.")
++  package_name = blanc_linux_package
+ 
+   deb_target_name = "${target_name}_deb"
+ 
+@@ -574,8 +488,8 @@
+     visibility = [ ":*" ]
+     script = "debian/build.py"
+ 
+-    inputs = packaging_files
+-    outputs = [ "$root_out_dir/${package}-${channel}_${chrome_version_full}-1_${deb_arch}.deb" ]
++    inputs = packaging_files + get_target_outputs(":deb_packaging_files")
++    outputs = [ "$root_out_dir/${package_name}_${chrome_version_full}-1_${deb_arch}.deb" ]
+ 
+     args = [
+       "-a",
+@@ -584,6 +498,8 @@
+       build_timestamp,
+       "-c",
+       invoker.channel,
++      "-r",
++      blanc_linux_repository,
+       "-d",
+       branding_path_component,
+       "-o",
+@@ -612,8 +528,8 @@
+       visibility = [ ":*" ]
+       script = "rpm/build.py"
+ 
+-      inputs = packaging_files
+-      outputs = [ "$root_out_dir/${package}-${channel}-${chrome_version_full}-1.${rpm_arch}.rpm" ]
++      inputs = packaging_files + get_target_outputs(":rpm_packaging_files")
++      outputs = [ "$root_out_dir/${package_name}-${chrome_version_full}-1.${rpm_arch}.rpm" ]
+ 
+       args = [
+         "-a",
+@@ -622,6 +538,8 @@
+         build_timestamp,
+         "-c",
+         invoker.channel,
++        "-r",
++        blanc_linux_repository,
+         "-d",
+         branding_path_component,
+         "-o",
+@@ -639,82 +557,18 @@
+       ]
+     }
+ 
+-    if (enable_flatpak) {
+-      flatpak_target_name = "${target_name}_flatpak"
+-
+-      action(flatpak_target_name) {
+-        visibility = [ ":*" ]
+-        script = "flatpak/build.py"
+-
+-        inputs = packaging_files
+-        outputs = [ "$root_out_dir/${package}-${channel}_${chrome_version_full}-1_${flatpak_arch}.flatpak" ]
+-
+-        args = [
+-          "-a",
+-          flatpak_arch,
+-          "-b",
+-          build_timestamp,
+-          "-c",
+-          invoker.channel,
+-          "-d",
+-          branding_path_component,
+-          "-o",
+-          rebase_path(root_out_dir, root_build_dir),
+-          "-t",
+-          target_os,
+-          "--use-static-angle=$use_static_angle",
+-        ]
+-        if (is_official_build) {
+-          args += [ "-f" ]
+-        }
+-        deps = [ ":installer_deps" ]
+-      }
+-    }
+   }
+ 
+   group(target_name) {
+     deps = [ ":$deb_target_name" ]
+     if (!is_chromeos) {
+       deps += [ ":$rpm_target_name" ]
+-      if (enable_flatpak) {
+-        deps += [ ":$flatpak_target_name" ]
+-      }
+     }
+   }
+ }
+ 
+-# Standard packages.
+-linux_package("stable") {
+-  channel = "stable"
+-}
+-
+-linux_package("beta") {
+-  channel = "beta"
+-}
+-
+-linux_package("unstable") {
+-  channel = "unstable"
+-}
+-
+-linux_package("canary") {
+-  channel = "canary"
+-}
+-
+-# For convenience, alias 'dev' to 'unstable'.
+-group("dev") {
+-  deps = [ ":unstable" ]
+-}
+-if (!is_chromeos) {
+-  group("dev_deb") {
+-    deps = [ ":unstable_deb" ]
+-  }
+-
+-  group("dev_rpm") {
+-    deps = [ ":unstable_rpm" ]
+-  }
+-  if (enable_flatpak) {
+-    group("dev_flatpak") {
+-      deps = [ ":unstable_flatpak" ]
+-    }
+-  }
+-}
++if (_blanc_packages) {
++  linux_package(blanc_linux_channel) {
++    channel = blanc_linux_channel
++  }
++}
+diff --git a/chrome/installer/linux/common/appdata.xml.template b/chrome/installer/linux/common/appdata.xml.template
+--- a/chrome/installer/linux/common/appdata.xml.template
++++ b/chrome/installer/linux/common/appdata.xml.template
+@@ -13,12 +13,6 @@
+     </p>
+   </description>
+   <url type="homepage">@@PRODUCTURL</url>
+-  <screenshots>
+-    <screenshot type="default">
+-      <image>@@appstream_screenshot_url</image>
+-      <caption/>
+-    </screenshot>
+-  </screenshots>
+   <translation/>
+   <developer_name>@@DEVELOPER_NAME</developer_name>
+   <url type="bugtracker">@@BUGTRACKERURL</url>
+diff --git a/chrome/installer/linux/common/apt.include b/chrome/installer/linux/common/apt.include
+--- a/chrome/installer/linux/common/apt.include
++++ b/chrome/installer/linux/common/apt.include
+@@ -1,143 +1,37 @@
+-@@include@@repo_variables.include
+-@@include@@key.include
+-
+-APT_CONFIG="$(command -v apt-config 2>/dev/null)"
+-
+ GPG_FILE="/usr/share/keyrings/@@PACKAGE.gpg"
+ 
+-# Set variables for the locations of the apt trusted keyrings.
+-find_apt_trusted() {
+-  eval $("$APT_CONFIG" shell APT_TRUSTEDDIR 'Dir::Etc::trustedparts/d')
++find_apt_sources() {
++  eval "$(apt-config shell APT_SOURCESDIR 'Dir::Etc::sourceparts/d')"
++  SOURCES_FILE="${APT_SOURCESDIR:?}/@@PACKAGE.list"
+ }
+ 
+-# Set variables for the locations of the apt sources lists.
+-find_apt_sources() {
+-  eval $("$APT_CONFIG" shell APT_SOURCESDIR 'Dir::Etc::sourceparts/d')
+-  SOURCES_FILE="$APT_SOURCESDIR/@@PACKAGE.sources"
++gen_sources_content() {
++  echo "deb [arch=@@architecture signed-by=$GPG_FILE] @@repository/deb stable main"
+ }
+ 
+-# Install the repository/package signing keys. The key cannot be part of the
+-# package since it's still needed if the package is removed but not purged.
+-install_key() {
+-  if [ ! -e /usr/share/keyrings ]; then
+-    mkdir -p /usr/share/keyrings
+-    chmod 755 /usr/share/keyrings
++configure_apt_repo() {
++  load_repo_defaults
++  [ "${repo_add_once:-false}" = true ] || [ "${repo_managed:-false}" = true ] || return 0
++  find_apt_sources
++  if [ "${repo_add_once:-false}" != true ] && [ ! -f "$SOURCES_FILE" ]; then
++    return 0
+   fi
+-
+-  # Use a temporary file to ensure atomic updates
+-  echo "$PGP_KEY_DATA" | base64 -d >"$GPG_FILE.$$.tmp"
+-  chmod 644 "$GPG_FILE.$$.tmp"
+-  mv "$GPG_FILE.$$.tmp" "$GPG_FILE"
++  install -d -m 755 /usr/share/keyrings
++  if ! cmp -s "@@INSTALLDIR/blanc-repository.gpg" "$GPG_FILE"; then
++    install -m 644 "@@INSTALLDIR/blanc-repository.gpg" "$GPG_FILE.$$.tmp"
++    mv -f "$GPG_FILE.$$.tmp" "$GPG_FILE"
++  fi
++  [ "${repo_add_once:-false}" = true ] || return 0
++  gen_sources_content > "$SOURCES_FILE.$$.tmp"
++  chmod 644 "$SOURCES_FILE.$$.tmp"
++  mv -f "$SOURCES_FILE.$$.tmp" "$SOURCES_FILE"
++  mark_repo_managed
+ }
+ 
+-uninstall_key() {
+-  rm -f "$GPG_FILE"
++clean_sources_lists() {
++  [ -f "$DEFAULTS_FILE" ] || return 0
++  . "$DEFAULTS_FILE"
++  [ "${repo_managed:-false}" = true ] || return 0
++  find_apt_sources
++  rm -f "$SOURCES_FILE" "$GPG_FILE" "$DEFAULTS_FILE"
+ }
+-
+-remove_legacy_key() {
+-  find_apt_trusted
+-  rm -f "$APT_TRUSTEDDIR/@@PACKAGE.gpg"
+-}
+-
+-remove_legacy_list() {
+-  find_apt_sources
+-  LEGACY_LIST="$APT_SOURCESDIR/@@PACKAGE.list"
+-  if [ ! -f "$LEGACY_LIST" ]; then
+-    return
+-  fi
+-
+-  # Check for other sources (strict check for 'ours')
+-  # If there are any lines starting with 'deb' (commented or not) that do NOT
+-  # match our strict regex, keep the file.
+-  if grep -E "^[[:space:]]*#?[[:space:]]*deb" "$LEGACY_LIST" |
+-    grep -v -E \
+-    "^[[:space:]]*#?[[:space:]]*$REPOCONFIGREGEX" >/dev/null;
+-  then
+-    # Other sources exist, comment out ours (strict match)
+-    sed -i -E "s|^[[:space:]]*($REPOCONFIGREGEX)|# \1|" "$LEGACY_LIST"
+-  else
+-    # No other sources, safe to remove
+-    rm -f "$LEGACY_LIST"
+-  fi
+-}
+-
+-# Generate the content of the .sources file
+-gen_sources_content() {
+-  cat <<EOF
+-### THIS FILE IS AUTOMATICALLY CONFIGURED ###
+-# Changes to this file will not be preserved.
+-# This file will not be recreated if removed.
+-X-Repolib-Name: @@MENUNAME
+-Types: deb
+-URIs: https://dl.google.com/linux/chrome-@@channel/deb/
+-Suites: stable
+-Components: main
+-Architectures: @@architecture
+-Signed-By: $GPG_FILE
+-EOF
+-}
+-
+-# Add the Google repository to the apt sources. The sources cannot be part of
+-# the package since it's still needed if the package is removed but not purged.
+-create_sources_lists() {
+-  find_apt_sources
+-
+-  gen_sources_content >"$SOURCES_FILE.$$.tmp"
+-  chmod 644 "$SOURCES_FILE.$$.tmp"
+-  mv "$SOURCES_FILE.$$.tmp" "$SOURCES_FILE"
+-
+-  if [ -r "$DEFAULTS_FILE" ]; then
+-    if grep -q "^[[:space:]]*repo_add_once=" "$DEFAULTS_FILE"; then
+-      sed -i -e \
+-        's/^[[:space:]]*repo_add_once=.*/repo_add_once="false"/' \
+-        "$DEFAULTS_FILE"
+-    else
+-      echo 'repo_add_once="false"' >>"$DEFAULTS_FILE"
+-    fi
+-  fi
+-}
+-
+-# Remove our custom sources file.
+-clean_sources_lists() {
+-  find_apt_sources
+-  rm -f "$SOURCES_FILE"
+-}
+-
+-install_deb822_sources() {
+-  find_apt_sources
+-  LEGACY_LIST="$APT_SOURCESDIR/@@PACKAGE.list"
+-
+-  SHOULD_INSTALL_SOURCES=0
+-  # Detect new installs.
+-  if [ -r "$DEFAULTS_FILE" ]; then
+-    if grep -E -q \
+-      '^[[:space:]]*repo_add_once=[[:space:]]*["'\'']?true["'\'']?' \
+-      "$DEFAULTS_FILE"; then
+-      SHOULD_INSTALL_SOURCES=1
+-    fi
+-  else
+-    SHOULD_INSTALL_SOURCES=1
+-    echo 'repo_add_once="true"' >"$DEFAULTS_FILE"
+-    echo 'repo_reenable_on_distupgrade="true"' >>"$DEFAULTS_FILE"
+-  fi
+-
+-  if [ -f "$SOURCES_FILE" ]; then
+-    # The new .sources file already exists. Recreate it in case it got disabled
+-    # during a dist upgrade.
+-    SHOULD_INSTALL_SOURCES=1
+-  elif [ -f "$LEGACY_LIST" ]; then
+-    # Migrate a legacy .list file to the new .sources format.
+-    if grep -E -q "^[[:space:]]*$REPOCONFIGREGEX" "$LEGACY_LIST"; then
+-      SHOULD_INSTALL_SOURCES=1
+-    elif grep -E -q \
+-      "^[[:space:]]*#[[:space:]]*$REPOCONFIGREGEX[[:space:]]*# disabled on \
+-upgrade to .*" \
+-      "$LEGACY_LIST"; then
+-      SHOULD_INSTALL_SOURCES=1
+-    fi
+-  fi
+-
+-  if [ "$SHOULD_INSTALL_SOURCES" -eq 1 ]; then
+-    create_sources_lists
+-  fi
+-}
+diff --git a/chrome/installer/linux/common/chromium-browser.info b/chrome/installer/linux/common/chromium-browser.info
+--- a/chrome/installer/linux/common/chromium-browser.info
++++ b/chrome/installer/linux/common/chromium-browser.info
+@@ -6,37 +6,37 @@
+ # chromium-browser packages for various platforms.
+ 
+ # Base name of the package.
+-PACKAGE="chromium-browser"
++PACKAGE="blanc"
+ 
+ # Filename of the main executable (for generating launcher scripts, etc.)
+ PROGNAME=chrome
+ 
+ # Base directory for package installation.
+-INSTALLDIR=/opt/chromium.org/chromium
++INSTALLDIR=/opt/bnfy/blanc
+ 
+ # Directory for device policy enrollments.
+-ENROLLMENTDIR=/etc/chromium/policies/enrollment
++ENROLLMENTDIR=/etc/bnfy/blanc/policies/enrollment
+ 
+ # Display string for desktop menu/icon.
+-MENUNAME="Chromium Web Browser"
++MENUNAME="Blanc"
+ 
+ # Brief package description.
+-SHORTDESC="The web browser from the Chromium projects"
++SHORTDESC="Blanc web browser"
+ 
+ # Detailed package description.
+-FULLDESC="Chromium is a browser that combines a minimal design with sophisticated technology to make the web faster, safer, and easier."
++FULLDESC="Blanc is a Chromium-based web browser with built-in tracker blocking."
+ 
+ # Package maintainer information.
+-MAINTNAME="Chromium Linux Team"
+-MAINTMAIL="chromium-packagers@chromium.org"
+-PRODUCTURL="https://www.chromium.org/Home"
++MAINTNAME="Bananify Creative"
++MAINTMAIL="support@blanc.day"
++PRODUCTURL="https://blanc.day"
+ 
+ PROJECT_LICENSE="BSD-3-Clause and LGPL-2.1+ and Apache-2.0 and IJG and MIT and GPL-2.0+ and ISC and OpenSSL and (MPL-1.1 or GPL-2.0 or LGPL-2.0)"
+ 
+-DEVELOPER_NAME="The Chromium Authors"
++DEVELOPER_NAME="Bananify Creative"
+ 
+-BUGTRACKERURL="https://www.chromium.org/for-testers/bug-reporting-guidelines"
++BUGTRACKERURL="https://github.com/bnfy/blanc/issues"
+ 
+-HELPURL="https://chromium.googlesource.com/chromium/src/+/main/docs/linux/debugging.md"
++HELPURL="https://blanc.day"
+ 
+-RDN="org.chromium.Chromium"
++RDN="me.bnfy.Blanc"
+diff --git a/chrome/installer/linux/common/installer.py b/chrome/installer/linux/common/installer.py
+--- a/chrome/installer/linux/common/installer.py
++++ b/chrome/installer/linux/common/installer.py
+@@ -87,6 +87,7 @@
+     parser.add_argument(
+         "-c", "--channel", required=True, help="package channel"
+     )
++    parser.add_argument("-r", "--repository", required=True, help="Blanc repository origin")
+     parser.add_argument("-d", "--branding", required=True, help="branding")
+     parser.add_argument(
+         "-f", "--official", action="store_true", help="official build"
+@@ -157,28 +158,9 @@
+ 
+ 
+ def normalize_channel(channel: str) -> tuple[str, str]:
+-    if channel == "stable":
+-        return (
+-            "stable",
+-            "https://chromereleases.googleblog.com/search/label/Stable%20updates",
+-        )
+-    elif channel in ["beta", "testing"]:
+-        return (
+-            "beta",
+-            "https://chromereleases.googleblog.com/search/label/Beta%20updates",
+-        )
+-    elif channel in ["dev", "unstable", "alpha"]:
+-        return (
+-            "unstable",
+-            "https://chromereleases.googleblog.com/search/label/Dev%20updates",
+-        )
+-    elif channel == "canary":
+-        return "canary", "N/A"
+-    else:
+-        print(
+-            f"ERROR: '{channel}' is not a valid channel type.", file=sys.stderr
+-        )
+-        sys.exit(1)
++    if channel not in ("prototype", "beta"):
++        raise ValueError(f"Unsupported Blanc Linux package channel: {channel}")
++    return channel, "https://blanc.day/whats-new"
+ 
+ 
+ def gen_changelog(
+@@ -336,7 +318,7 @@
+     common_deps: str = ""
+     common_predeps: str = ""
+     repoconfig: str = ""
+-    repoconfigregex: str = ""
++    repository: str = ""
+ 
+     # Package Format
+     package_format: PackageFormat = PackageFormat.DEB
+@@ -408,18 +390,21 @@
+             }
+         )
+ 
+-        if hasattr(args, "sysroot"):
+-            # Debian specific
+-            (
+-                data["repoconfig"],
+-                data["repoconfigregex"],
+-            ) = cls._compute_deb_repoconfig(args.arch, data["package_orig"])
++        origin = ("https://pkg.blanc.day" if args.channel == "beta"
++                  else "https://pkg-staging.blanc.day")
++        if args.repository != origin:
++            raise ValueError(f"{args.channel} packages require repository {origin}")
++        keyring = output_dir / "installer/common/blanc-repository.gpg"
++        if not keyring.is_file() or not keyring.stat().st_size:
++            raise FileNotFoundError(
++                f"Missing {keyring}; generate-keyring.py needs the owner's "
++                "chromium/linux/keys/blanc-repository.asc"
++            )
++        data["repository"] = args.repository
++        if package_format == PackageFormat.DEB:
++            data["repoconfig"] = f"deb [arch={args.arch}] {args.repository}/deb stable main"
+         else:
+-            # RPM specific
+-            (
+-                data["repoconfig"],
+-                data["repoconfigregex"],
+-            ) = cls._compute_rpm_repoconfig(data["package_orig"])
++            data["repoconfig"] = f"{args.repository}/rpm/stable/$basearch"
+ 
+         config = cls(**data)
+         config.rpm_package_filename = f"{config.package_orig}-{config.channel}"
+@@ -526,7 +511,7 @@
+         if channel != "stable":
+             data["info_vars"]["INSTALLDIR"] += f"-{channel}"
+             data["info_vars"]["PACKAGE"] += f"-{channel}"
+-            data["info_vars"]["MENUNAME"] += f" ({channel})"
++            data["info_vars"]["MENUNAME"] += f" {channel.capitalize()}"
+             data["rdn_desktop"] = f"{data['info_vars']['RDN']}.{channel}"
+         else:
+             data["rdn_desktop"] = data["info_vars"]["RDN"]
+@@ -534,26 +519,6 @@
+         data["startup_wm_class"] = data["info_vars"]["PACKAGE"] or ""
+ 
+         return data
+-
+-    @staticmethod
+-    def _compute_deb_repoconfig(arch: str, package: str) -> tuple[str, str]:
+-        base_repo_config = "dl.google.com/linux/chrome/deb/ stable main"
+-        default = f"deb [arch={arch}] https://{base_repo_config}"
+-        repoconfig = os.environ.get("REPOCONFIG", default)
+-
+-        repo_config_regex = f"deb (\\[arch=[^]]*\\b{arch}\\b[^]]*\\]"
+-        repo_config_regex += f"[[:space:]]*) https?://{base_repo_config}"
+-        return repoconfig, repo_config_regex
+-
+-    @staticmethod
+-    def _compute_rpm_repoconfig(package: str) -> tuple[str, str]:
+-        # ${PACKAGE#google-} removes "google-" prefix.
+-        if package.startswith("google-"):
+-            repo_package = package[7:]
+-        else:
+-            repo_package = package
+-        repoconfig = f"https://dl.google.com/linux/{repo_package}/rpm/stable"
+-        return repoconfig, ""
+ 
+     def get_template_context(self) -> dict[str, str]:
+         ctx = self.info_vars | self.version_vars | self.branding_vars
+@@ -757,6 +722,23 @@
+                 )
+             )
+ 
++        engine = "blanc_blocker/engine.js"
++        artifacts.append(Artifact(engine, engine, ArtifactType.RESOURCE))
++        for notice in ("LICENSE", "ASSET-LICENSE.md", "THIRD_PARTY_NOTICES.txt"):
++            artifacts.append(Artifact(f"installer/common/{notice}",
++                                      f"notices/{notice}", ArtifactType.RESOURCE))
++        keyring = "installer/common/blanc-repository.gpg"
++        if self.package_format == PackageFormat.DEB:
++            artifacts.append(Artifact(keyring, "blanc-repository.gpg", ArtifactType.RESOURCE))
++        elif self.package_format == PackageFormat.RPM:
++            # DNF imports ASCII-armored keys. Armor exactly the same public packets as apt.
++            armored = subprocess.check_output(
++                ["gpg", "--no-options", "--batch", "--enarmor"],
++                input=(self.output_dir / keyring).read_bytes(),
++            ).decode("ascii").replace("PGP ARMORED FILE", "PGP PUBLIC KEY BLOCK")
++            artifacts.append(Artifact("", "blanc-repository.asc", ArtifactType.GENERATED,
++                                      content=armored))
++
+         # Default apps (Recursive)
+         artifacts.append(
+             Artifact(
+@@ -859,23 +841,6 @@
+         if self.package_format == PackageFormat.FLATPAK:
+             return artifacts
+ 
+-        # symlink for PACKAGE_ORIG
+-        package_orig = self.package_orig
+-        if package_orig and package_orig != self.info_vars["PACKAGE"]:
+-            link_target = os.path.join(
+-                self.info_vars["INSTALLDIR"],
+-                self.info_vars["PACKAGE"],
+-            )
+-            artifacts.append(
+-                Artifact(
+-                    "",
+-                    package_orig,
+-                    ArtifactType.SYMLINK,
+-                    dst_base="install_dir",
+-                    symlink_target=link_target,
+-                )
+-            )
+-
+         # /usr/bin symlink
+         if self.usr_bin_symlink_name:
+             link_target = os.path.join(
+@@ -891,13 +856,6 @@
+                     symlink_target=link_target,
+                 )
+             )
+-
+-        # URI_SCHEME logic
+-        if self.branding == "google_chrome":
+-            if self.channel not in ["beta", "unstable", "canary"]:
+-                self.uri_scheme = "x-scheme-handler/google-chrome;"
+-        else:
+-            self.uri_scheme = "x-scheme-handler/chromium;"
+ 
+         # apparmor profile
+         artifacts.append(
+diff --git a/chrome/installer/linux/common/postinst.include b/chrome/installer/linux/common/postinst.include
+--- a/chrome/installer/linux/common/postinst.include
++++ b/chrome/installer/linux/common/postinst.include
+@@ -12,66 +12,6 @@
+ 
+ # Update cache of .desktop file MIME types. Non-fatal since it's just a cache.
+ update-desktop-database > /dev/null 2>&1 || true
+-
+-# Updates defaults.list file if present.
+-update_defaults_list() {
+-  # $1: name of the .desktop file
+-
+-  local DEFAULTS_LIST="/usr/share/applications/defaults.list"
+-
+-  if [ ! -f "${DEFAULTS_LIST}" ]; then
+-    return
+-  fi
+-
+-  # Split key-value pair out of MimeType= line from the .desktop file,
+-  # then split semicolon-separated list of mime types (they should not contain
+-  # spaces).
+-  mime_types="$(grep MimeType= /usr/share/applications/${1} |
+-                cut -d '=' -f 2- |
+-                tr ';' ' ')"
+-  for mime_type in ${mime_types}; do
+-    if egrep -q "^${mime_type}=" "${DEFAULTS_LIST}"; then
+-      if ! egrep -q "^${mime_type}=.*${1}" "${DEFAULTS_LIST}"; then
+-        default_apps="$(grep ${mime_type}= "${DEFAULTS_LIST}" |
+-                        cut -d '=' -f 2-)"
+-        egrep -v "^${mime_type}=" "${DEFAULTS_LIST}" > "${DEFAULTS_LIST}.new"
+-        echo "${mime_type}=${default_apps};${1}" >> "${DEFAULTS_LIST}.new"
+-        mv "${DEFAULTS_LIST}.new" "${DEFAULTS_LIST}"
+-      fi
+-    else
+-      # If there's no mention of the mime type in the file, add it.
+-      echo "${mime_type}=${1};" >> "${DEFAULTS_LIST}"
+-    fi
+-  done
+-}
+-
+-update_defaults_list "@@PACKAGE.desktop"
+-
+-# This function uses sed to insert the contents of one file into another file,
+-# after the first line matching a given regular expression. If there is no
+-# matching line, then the file is unchanged.
+-insert_after_first_match() {
+-  # $1: file to update
+-  # $2: regular expression
+-  # $3: file to insert
+-  sed -i -e "1,/$2/ {
+-    /$2/ r $3
+-    }" "$1"
+-}
+-
+-# If /usr/share/gnome-control-center/default-apps/gnome-default-applications.xml
+-# exists, it may need to be updated to add ourselves to the default applications
+-# list. If we find the file and it does not seem to contain our patch already
+-# (the patch is safe to leave even after uninstall), update it.
+-GNOME_DFL_APPS=/usr/share/gnome-control-center/default-apps/gnome-default-applications.xml
+-if [ -f "$GNOME_DFL_APPS" ]; then
+-# Conditionally insert the contents of the file "default-app-block" after the
+-# first "<web-browsers>" line we find in gnome-default-applications.xml
+-  fgrep -q "@@MENUNAME" "$GNOME_DFL_APPS" || insert_after_first_match \
+-    "$GNOME_DFL_APPS" \
+-    "^[ 	]*<web-browsers>[ 	]*$" \
+-    "@@INSTALLDIR/default-app-block"
+-fi
+ 
+ # This function performs the setup for the chrome management service process.
+ # It creates a new chromemgmt group, creates the signing key file, and updates
+diff --git a/chrome/installer/linux/common/repo.cron b/chrome/installer/linux/common/repo.cron
+--- a/chrome/installer/linux/common/repo.cron
++++ b/chrome/installer/linux/common/repo.cron
+@@ -6,32 +6,9 @@
+ #
+ # This script is part of the @@PACKAGE package.
+ #
+-# It creates the repository configuration file for package updates, and it
+-# monitors that config to see if it has been disabled by the overly aggressive
+-# distro upgrade process (e.g.  intrepid -> jaunty). When this situation is
+-# detected, the respository will be re-enabled. If the respository is disabled
+-# for any other reason, this won't re-enable it.
+-#
+-# This functionality can be controlled by creating the $DEFAULTS_FILE and
+-# setting "repo_reenable_on_distupgrade" to "true" or "false" as desired.
+-# An empty $DEFAULTS_FILE is the same as setting it to "false".
+-#
+-# The $DEFAULTS_FILE also has a setting "repo_add_once" which can be set
+-# to "false" to prevent the package install from adding the repo altogether.
+-
++# Add the scoped repository once and refresh its public key on later runs.
++set -e
+ @@include@@../common/variables.include
+-
+ @@include@@apt.include
+ 
+-## MAIN ##
+-if [ -r "$DEFAULTS_FILE" ]; then
+-  . "$DEFAULTS_FILE"
+-fi
+-
+-install_key
+-
+-if [ "$repo_add_once" = "true" ]; then
+-  create_sources_lists
+-elif [ "$repo_reenable_on_distupgrade" = "true" ]; then
+-  install_deb822_sources
+-fi
++configure_apt_repo
+diff --git a/chrome/installer/linux/common/rpm.include b/chrome/installer/linux/common/rpm.include
+--- a/chrome/installer/linux/common/rpm.include
++++ b/chrome/installer/linux/common/rpm.include
+@@ -1,263 +1,21 @@
+-@@include@@repo_variables.include
+-@@include@@key.include
++YUM_REPO_FILE="/etc/yum.repos.d/@@PACKAGE.repo"
+ 
+-# Install the repository signing key (see also:
+-# https://www.google.com/linuxrepositories/)
+-install_rpm_key() {
+-  # The version of the gpg-pubkey package is the short key ID for rpm < 6.0
+-  # (gpg-pubkey-d38b4796-570c8cd3) and the full key fingerprint for rpm >= 6.0
+-  # (gpg-pubkey-eb4c1bfd4f042f6dddccec917721f63bd38b4796-570c8cd3), so look for
+-  # either form rather than hardcoding a package name.
+-  # Use an explicit query format since the default is configurable via the
+-  # %_query_all_fmt rpm macro.
+-  KEY_PACKAGES=$(rpm -q --qf '%{NAME}-%{VERSION}-%{RELEASE}\n' gpg-pubkey \
+-    2>/dev/null | grep -Ei \
+-    '^gpg-pubkey-(eb4c1bfd4f042f6dddccec917721f63b)?d38b4796-570c8cd3$')
+-
+-  # Check to see if all keys already exist.
+-  # Make sure all the most recent signing subkeys are installed.
+-  NEED_KEYS=0
+-
+-  if [ -z "$KEY_PACKAGES" ]; then
+-    NEED_KEYS=1
+-  else
+-    INSTALLED_SUBKEYS=$(rpm -q --qf '%{Pubkeys:armor}\n' $KEY_PACKAGES \
+-      2>/dev/null | gpg --with-colons - 2>/dev/null)
+-    for SUB_KEY in $PGP_SUBKEYS; do
+-      # The key ID is the fifth field of the colon-delimited subkey record.
+-      if ! printf '%s\n' "$INSTALLED_SUBKEYS" | \
+-          grep -qiE "^sub(:[^:]*){3}:$SUB_KEY:"; then
+-        NEED_KEYS=1
+-        break
+-      fi
+-    done
+-  fi
+-
+-  if [ $NEED_KEYS -ne 1 ]; then
+-    return
+-  fi
+-
+-  # Make sure no older version of the key is installed because it appears
+-  # 'rpm --import' won't overwrite an existing key package.
+-  if [ -n "$KEY_PACKAGES" ]; then
+-    # Note, if this is run during the package install, it will fail because rpm
+-    # can't recursively run rpm, but it should work when run later as part of
+-    # the installed cron job (and probably nothing needs the new keys before
+-    # then).
+-    rpm -e --allmatches $KEY_PACKAGES >/dev/null 2>&1 || return
+-  fi
+-
+-  # RPM on Mandriva 2009 is dumb and does not understand "rpm --import -"
+-  TMPKEY=$(mktemp /tmp/google.sig.XXXXXX)
+-  if [ -n "$TMPKEY" ]; then
+-    cat > "$TMPKEY" <<KEYDATA
+------BEGIN PGP PUBLIC KEY BLOCK-----
+-
+-$PGP_KEY_DATA
+-$PGP_KEY_CHECKSUM
+------END PGP PUBLIC KEY BLOCK-----
+-KEYDATA
+-    rpm --import "$TMPKEY"
+-    rc=$?
+-    rm -f "$TMPKEY"
+-    if [ "$rc" -eq "0" ]; then
+-      return 0
+-    fi
+-  fi
+-  return 1
++gen_repo_content() {
++  cat <<'REPOCONTENT'
++[@@PACKAGE]
++name=@@MENUNAME
++baseurl=@@repoconfig
++enabled=1
++gpgcheck=1
++repo_gpgcheck=1
++gpgkey=file://@@INSTALLDIR/blanc-repository.asc
++REPOCONTENT
+ }
+ 
+-determine_rpm_package_manager() {
+-  local RELEASE
+-
+-  # Modern method using os-release(5)
+-  if [ -f "/etc/os-release" ]; then
+-    RELEASE=$(. "/etc/os-release"; echo "$ID")
+-    case $RELEASE in
+-    "fedora"|"rhel"|"centos"|"amzn"|"mageia"|"openmandriva")
+-      PACKAGEMANAGERS=(yum)
+-      ;;
+-    "suse"|"sles"|"sled"|"opensuse"|"opensuse-leap"|"opensuse-tumbleweed")
+-      PACKAGEMANAGERS=(zypp)
+-      ;;
+-    esac
+-  fi
+-
+-  if [ "$PACKAGEMANAGERS" ]; then
+-    return
+-  fi
+-
+-  # Fallback method using lsb_release(1)
+-  LSB_RELEASE="$(command -v lsb_release 2> /dev/null)"
+-  if [ -x "$LSB_RELEASE" ]; then
+-    RELEASE=$(lsb_release -i 2> /dev/null | sed 's/:\t/:/' | cut -d ':' -f 2-)
+-    case $RELEASE in
+-    "Fedora"|"Amazon"|"Mageia"|"OpenMandrivaLinux")
+-      PACKAGEMANAGERS=(yum)
+-      ;;
+-    "SUSE LINUX"|"openSUSE")
+-      PACKAGEMANAGERS=(zypp)
+-      ;;
+-    esac
+-  fi
+-
+-  if [ "$PACKAGEMANAGERS" ]; then
+-    return
+-  fi
+-
+-  # Fallback methods that are probably unnecessary on modern systems.
+-  if [ -f "/etc/fedora-release" ] || [ -f "/etc/redhat-release" ]; then
+-    PACKAGEMANAGERS=(yum)
+-  elif [ -f "/etc/system-release" ] && grep -Fq "Amazon Linux" "/etc/system-release"; then
+-    PACKAGEMANAGERS=(yum)
+-  elif [ -f "/etc/SuSE-release" ]; then
+-    PACKAGEMANAGERS=(zypp)
+-  fi
++configure_rpm_repo() {
++  load_repo_defaults
++  [ "${repo_add_once:-false}" = true ] || return 0
++  gen_repo_content > "$YUM_REPO_FILE.$$.tmp" || return 1
++  chmod 644 "$YUM_REPO_FILE.$$.tmp" && mv -f "$YUM_REPO_FILE.$$.tmp" "$YUM_REPO_FILE" || return 1
++  mark_repo_managed
+ }
+-
+-DEFAULT_ARCH="@@architecture"
+-YUM_REPO_FILE="/etc/yum.repos.d/@@PACKAGE.repo"
+-ZYPPER_REPO_FILE="/etc/zypp/repos.d/@@PACKAGE.repo"
+-
+-install_yum() {
+-  install_rpm_key
+-
+-  if [ ! "$REPOCONFIG" ]; then
+-    return 0
+-  fi
+-
+-  if [ -d "/etc/yum.repos.d" ]; then
+-cat > "$YUM_REPO_FILE" << REPOCONTENT
+-[@@PACKAGE]
+-name=@@PACKAGE
+-baseurl=$REPOCONFIG/$DEFAULT_ARCH
+-enabled=1
+-gpgcheck=1
+-gpgkey=https://dl.google.com/linux/linux_signing_key.pub
+-REPOCONTENT
+-  fi
+-}
+-
+-install_zypp() {
+-  if [ ! "$REPOCONFIG" ]; then
+-    return 0
+-  fi
+-
+-  # Ideally, we would run: zypper addrepo -t YUM -f \
+-  # "$REPOCONFIG/$DEFAULT_ARCH" "@@PACKAGE"
+-  # but that does not work when zypper is running.
+-  if [ -d "/etc/zypp/repos.d" ]; then
+-cat > "$ZYPPER_REPO_FILE" << REPOCONTENT
+-[@@PACKAGE]
+-name=@@PACKAGE
+-enabled=1
+-autorefresh=1
+-baseurl=$REPOCONFIG/$DEFAULT_ARCH
+-gpgcheck=1
+-gpgkey=https://dl.google.com/linux/linux_signing_key.pub
+-type=rpm-md
+-keeppackages=0
+-REPOCONTENT
+-  fi
+-}
+-
+-# Check if the automatic repository configuration is done, so we know when to
+-# stop trying.
+-verify_install() {
+-  # It's probably enough to see that the repo configs have been created. If they
+-  # aren't configured properly, update_bad_repo should catch that when it's run.
+-  case $1 in
+-  "yum")
+-    [ -f "$YUM_REPO_FILE" ]
+-    ;;
+-  "zypp")
+-    [ -f "$ZYPPER_REPO_FILE" ]
+-    ;;
+-  esac
+-}
+-
+-# Update the Google repository if it's not set correctly.
+-update_bad_repo() {
+-  if [ ! "$REPOCONFIG" ]; then
+-    return 0
+-  fi
+-
+-  determine_rpm_package_manager
+-
+-  for PACKAGEMANAGER in ${PACKAGEMANAGERS[*]}
+-  do
+-    case $PACKAGEMANAGER in
+-    "yum")
+-      update_repo_file "$YUM_REPO_FILE"
+-      ;;
+-    "zypp")
+-      update_repo_file "$ZYPPER_REPO_FILE"
+-      ;;
+-    esac
+-  done
+-}
+-
+-update_repo_file() {
+-  REPO_FILE="$1"
+-
+-  # Don't do anything if the file isn't there, since that probably means the
+-  # user disabled it.
+-  if [ ! -r "$REPO_FILE" ]; then
+-    return 0
+-  fi
+-
+-  # Check if the correct repository configuration is in there.
+-  REPOMATCH=$(grep "^baseurl=$REPOCONFIG/$DEFAULT_ARCH" "$REPO_FILE" \
+-    2>/dev/null)
+-  # If it's there, nothing to do
+-  if [ "$REPOMATCH" ]; then
+-    return 0
+-  fi
+-
+-  # Check if it's there but disabled by commenting out (as opposed to using the
+-  # 'enabled' setting).
+-  MATCH_DISABLED=$(grep "^[[:space:]]*#.*baseurl=$REPOCONFIG/$DEFAULT_ARCH" \
+-    "$REPO_FILE" 2>/dev/null)
+-  if [ "$MATCH_DISABLED" ]; then
+-    # It's OK for it to be disabled, as long as nothing bogus is enabled in its
+-    # place.
+-    ACTIVECONFIGS=$(grep "^baseurl=.*" "$REPO_FILE" 2>/dev/null)
+-    if [ ! "$ACTIVECONFIGS" ]; then
+-      return 0
+-    fi
+-  fi
+-
+-  # If we get here, the correct repository wasn't found, or something else is
+-  # active, so fix it. This assumes there is a 'baseurl' setting, but if not,
+-  # then that's just another way of disabling, so we won't try to add it.
+-  sed -i -e "s,^baseurl=.*,baseurl=$REPOCONFIG/$DEFAULT_ARCH," "$REPO_FILE"
+-}
+-
+-# We only remove the repository configuration during a purge. Since RPM has
+-# no equivalent to dpkg --purge, the code below is actually never used. We
+-# keep it only for reference purposes, should we ever need it.
+-#
+-#remove_yum() {
+-#  rm -f "$YUM_REPO_FILE"
+-#}
+-#
+-#remove_zypp() {
+-#  # Ideally, we would run: zypper removerepo "@@PACKAGE"
+-#  # but that does not work when zypper is running.
+-#  rm -f /etc/zypp/repos.d/@@PACKAGE.repo
+-#}
+-
+-DEFAULT_ARCH="@@architecture"
+-
+-get_lib_dir() {
+-  if [ "$DEFAULT_ARCH" = "i386" ] || [ "$DEFAULT_ARCH" = "armhf" ] || \
+-      [ "$DEFAULT_ARCH" = "mipsel" ]; then
+-    LIBDIR=lib
+-  elif [ "$DEFAULT_ARCH" = "x86_64" ] || [ "$DEFAULT_ARCH" = "aarch64" ] || \
+-        [ "$DEFAULT_ARCH" = "mips64el" ]; then
+-    LIBDIR=lib64
+-  else
+-    echo Unknown CPU Architecture: "$DEFAULT_ARCH"
+-    exit 1
+-  fi
+-}
+diff --git a/chrome/installer/linux/common/rpmrepo.cron b/chrome/installer/linux/common/rpmrepo.cron
+--- a/chrome/installer/linux/common/rpmrepo.cron
++++ b/chrome/installer/linux/common/rpmrepo.cron
+@@ -6,54 +6,89 @@
+ #
+ # This script is part of the @@PACKAGE package.
+ #
+-# It creates the repository configuration file for package updates, since
+-# we cannot do this during the @@PACKAGE installation since the repository
+-# is locked.
+-#
+-# This functionality can be controlled by creating the $DEFAULTS_FILE and
+-# setting "repo_add_once" to "true" or "false" as desired. An empty
+-# $DEFAULTS_FILE is the same as setting the value to "false".
+-
++# Add only this channel's dnf repository, once, unless the admin opted out.
++set -e
+ @@include@@../common/variables.include
+-
+ @@include@@rpm.include
+ 
+-## MAIN ##
+-if [ -r "$DEFAULTS_FILE" ]; then
+-  . "$DEFAULTS_FILE"
++configure_rpm_repo
++
++# RPM's database is locked during %post. Refresh imported certificates here,
++# after enrollment, independently of the one-time repository file write.
++. "$DEFAULTS_FILE"
++[ "${repo_managed:-false}" = true ] && [ -f "$YUM_REPO_FILE" ] || exit 0
++key="@@INSTALLDIR/blanc-repository.asc"
++work=$(mktemp -d)
++trap 'rm -rf "$work"' EXIT
++export GNUPGHOME="$work"
++
++# The owner extends the expiry of the same primary signing key. Limit any
++# replacement to that full fingerprint and never shorten its lifetime.
++key_info() {
++  gpg --batch --with-colons --show-keys "$1" > "$work/info" || return 1
++  awk -F: '$1 == "pub" { count++; expiry=$7; created=$6; primary=1 }
++           $1 == "fpr" && primary { fpr=$10; primary=0 }
++           END { if (count != 1 || !fpr) exit 1; print fpr, (expiry == "" ? "0" : expiry), created }' "$work/info"
++}
++wanted=$(key_info "$key")
++read -r fingerprint expiry created <<END_INFO
++$wanted
++END_INFO
++needs_extension() {
++  current=$(key_info "$1") || return 1
++  read -r current_fpr current_expiry unused <<END_INFO
++$current
++END_INFO
++  [ "$current_fpr" = "$fingerprint" ] && [ "$current_expiry" -ne 0 ] &&
++    { [ "$expiry" -eq 0 ] || [ "$current_expiry" -lt "$expiry" ]; }
++}
++
++if rpmkeys --help | grep -q -- '--export'; then
++  # New RPM merges the certificate on import.
++  rpmkeys --import "$key"
++else
++  # RPM 4 silently ignores a second import. Identify its exact key package
++  # by creation time and short ID, then verify the full fingerprint before
++  # erasing it. Keep the previous certificate if the reimport fails.
++  id=$(printf '%s\n' "$fingerprint" | cut -c33-40 | tr 'A-F' 'a-f')
++  label=$(printf 'gpg-pubkey-%s-%08x' "$id" "$created")
++  if ! rpm -q --qf '%{DESCRIPTION}\n' "$label" > "$work/old.asc"; then
++    rpmkeys --import "$key"
++  elif needs_extension "$work/old.asc"; then
++    rpm -e "$label"
++    if ! rpmkeys --import "$key"; then
++      rpmkeys --import "$work/old.asc"
++      exit 1
++    fi
++  fi
+ fi
+ 
+-install_rpm_key
+-
+-if [ "$repo_add_once" = "true" ]; then
+-  determine_rpm_package_manager
+-
+-  # Let's run through this for each supported package manager as detected...
+-  for PACKAGEMANAGER in ${PACKAGEMANAGERS[*]}
+-  do
+-    # The initial install happens in the post-install scripts, but there have been
+-    # reports of configuration problems, so just verify that everything looks
+-    # good, and if not, try to install again.
+-    verify_install $PACKAGEMANAGER
+-    if [ $? -ne 0 ]; then
+-      install_${PACKAGEMANAGER}
+-    fi
++# DNF 4 and 5 keep metadata trust separate from RPM. Only visit this
++# channel's cache IDs (<repoid>-<16 hex digits>), never another repo's keys.
++dnf4_cache=/var/cache/dnf
++dnf5_cache=/var/cache/libdnf5
++if command -v dnf-3 >/dev/null; then
++  configured=$(python3 -c 'import dnf; conf = dnf.conf.Conf(); conf.read(); print(conf.cachedir)' || :)
++  case "$configured" in /*) dnf4_cache=$configured ;; esac
++fi
++if command -v dnf5 >/dev/null; then
++  configured=$(dnf5 --dump-main-config | sed -n 's/^system_cachedir *= *//p')
++  case "$configured" in /*) dnf5_cache=$configured ;; esac
++fi
++for ring in "$dnf4_cache"/@@PACKAGE-*/pubring "$dnf5_cache"/@@PACKAGE-*/pubring; do
++  [ -d "$ring" ] || continue
++  cache=${ring%/pubring}
++  suffix=${cache##*/@@PACKAGE-}
++  [ "${#suffix}" = 16 ] || continue
++  case "$suffix" in *[!0-9a-fA-F]*) continue ;; esac
++  if [ -f "$ring/pubring.kbx" ] || [ -f "$ring/pubring.gpg" ]; then
++    gpg --batch --homedir "$ring" --import "$key"
++  fi
++  # With librepo's RPM backend the certificates are binary .pub files.
++  for cert in "$ring"/*.pub; do
++    [ -f "$cert" ] && needs_extension "$cert" || continue
++    gpg --batch --yes --dearmor --output "$cert.tmp" "$key"
++    chmod --reference="$cert" "$cert.tmp"
++    mv -f "$cert.tmp" "$cert"
+   done
+-
+-  if [ $? -eq 0 ]; then
+-    # Do this for each supported package manager...
+-    for PACKAGEMANAGER in ${PACKAGEMANAGERS[*]}
+-    do
+-      # Before we quit auto-configuration, check that everything looks sane, since
+-      # part of this happened during package install and we don't have the return
+-      # value of that process.
+-      verify_install $PACKAGEMANAGER
+-      if [ $? -eq 0 ]; then
+-        sed -i -e 's/[[:space:]]*repo_add_once=.*/repo_add_once="false"/' \
+-          "$DEFAULTS_FILE"
+-      fi
+-    done
+-  fi
+-else
+-  update_bad_repo
+-fi
++done
+diff --git a/chrome/installer/linux/common/variables.include b/chrome/installer/linux/common/variables.include
+--- a/chrome/installer/linux/common/variables.include
++++ b/chrome/installer/linux/common/variables.include
+@@ -1,2 +1,19 @@
+ # System-wide package configuration.
+ DEFAULTS_FILE="/etc/default/@@PACKAGE"
++
++load_repo_defaults() {
++  if [ ! -e "$DEFAULTS_FILE" ]; then
++    echo 'repo_add_once="true"' > "$DEFAULTS_FILE"
++  fi
++  . "$DEFAULTS_FILE"
++}
++
++# Only successful enrollment gives the package ownership of the repository
++# files. A preseeded opt-out and a completed enrollment both say add_once=false.
++mark_repo_managed() {
++  config=$(mktemp "$DEFAULTS_FILE.XXXXXX") || return 1
++  cp -p "$DEFAULTS_FILE" "$config" &&
++    sed '/^[[:space:]]*repo_add_once=/d; /^[[:space:]]*repo_managed=/d' "$DEFAULTS_FILE" > "$config" &&
++    printf '%s\n' 'repo_add_once="false"' 'repo_managed="true"' >> "$config" &&
++    mv -f "$config" "$DEFAULTS_FILE"
++}
+diff --git a/chrome/installer/linux/debian/control.template b/chrome/installer/linux/debian/control.template
+--- a/chrome/installer/linux/debian/control.template
++++ b/chrome/installer/linux/debian/control.template
+@@ -2,6 +2,7 @@
+ Section: web
+ Priority: optional
+ Maintainer: @@MAINTNAME <@@MAINTMAIL>
++Homepage: @@PRODUCTURL
+ Build-Depends: dpkg-dev, devscripts, fakeroot, xz-utils
+ Standards-Version: 3.8.0
+ 
+diff --git a/chrome/installer/linux/debian/postinst b/chrome/installer/linux/debian/postinst
+--- a/chrome/installer/linux/debian/postinst
++++ b/chrome/installer/linux/debian/postinst
+@@ -10,58 +10,6 @@
+ 
+ @@include@@../common/postinst.include
+ 
+-# Add to the alternatives system
+-#
+-# On Ubuntu 12.04, we have the following priorities
+-# (which can be obtain be installing browsers and running
+-# update-alternatives --query x-www-browser):
+-#
+-# /usr/bin/epiphany-browser  85
+-# /usr/bin/firefox           40
+-# /usr/bin/konqueror         30
+-#
+-# While we would expect these values to be keyed off the most popular
+-# browser (Firefox), in practice, we treat Epiphany as the lower bound,
+-# resulting in the following scheme:
+-
+-CHANNEL=@@channel
+-case $CHANNEL in
+-  stable )
+-    # Good enough to be the default.
+-    PRIORITY=200
+-    ;;
+-  beta )
+-    # Almost good enough to be the default. (Firefox stable should arguably be
+-    # higher than this, but since that's below the "Epiphany threshold", we're
+-    # not setting our priority below it. Anyone want to poke Firefox to raise
+-    # their priority?)
+-    PRIORITY=150
+-    ;;
+-  unstable )
+-    # Unstable, give it the "lowest" priority.
+-    PRIORITY=120
+-    ;;
+-  * )
+-    PRIORITY=0
+-    ;;
+-esac
+-
+-update-alternatives --install /usr/bin/x-www-browser x-www-browser \
+-  /usr/bin/@@usr_bin_symlink_name $PRIORITY
+-update-alternatives --install /usr/bin/gnome-www-browser gnome-www-browser \
+-  /usr/bin/@@usr_bin_symlink_name $PRIORITY
+-
+-update-alternatives --install /usr/bin/@@package_orig @@package_orig \
+-  /usr/bin/@@usr_bin_symlink_name $PRIORITY
+-
+ @@include@@../common/apt.include
+ 
+-@@include@@../common/symlinks.include
+-
+-remove_udev_symlinks
+-
+-## MAIN ##
+-install_key
+-install_deb822_sources
+-remove_legacy_list
+-remove_legacy_key
++configure_apt_repo
+diff --git a/chrome/installer/linux/debian/postrm b/chrome/installer/linux/debian/postrm
+--- a/chrome/installer/linux/debian/postrm
++++ b/chrome/installer/linux/debian/postrm
+@@ -17,20 +17,4 @@
+ 
+ @@include@@../common/apt.include
+ 
+-@@include@@../common/symlinks.include
+-
+-remove_udev_symlinks
+-
+-# Only remove the defaults file if it is not empty. An empty file was probably
+-# put there by the sysadmin to disable automatic repository configuration, as
+-# per the instructions on the package download page.
+-if [ -s "$DEFAULTS_FILE" ]; then
+-  # Make sure the package defaults are removed before the repository config,
+-  # otherwise it could result in the repository config being removed, but the
+-  # package defaults remain and are set to not recreate the repository config.
+-  # In that case, future installs won't recreate it and won't get auto-updated.
+-  rm "$DEFAULTS_FILE" || exit 1
+-fi
+-# Remove any Google repository added by the package.
+ clean_sources_lists
+-uninstall_key
+diff --git a/chrome/installer/linux/debian/prerm b/chrome/installer/linux/debian/prerm
+--- a/chrome/installer/linux/debian/prerm
++++ b/chrome/installer/linux/debian/prerm
+@@ -17,9 +17,3 @@
+ fi
+ 
+ @@include@@../common/prerm.include
+-
+-# Remove from the alternatives system
+-update-alternatives --remove x-www-browser /usr/bin/@@usr_bin_symlink_name
+-update-alternatives --remove gnome-www-browser /usr/bin/@@usr_bin_symlink_name
+-
+-update-alternatives --remove @@package_orig /usr/bin/@@usr_bin_symlink_name
+diff --git a/chrome/installer/linux/rpm/build.py b/chrome/installer/linux/rpm/build.py
+--- a/chrome/installer/linux/rpm/build.py
++++ b/chrome/installer/linux/rpm/build.py
+@@ -46,7 +46,6 @@
+     version_match = re.match(r'.*version ([.\d]*)', str(version_output))
+     additional_deps = [
+         "/bin/sh",
+-        "/usr/sbin/update-alternatives",
+     ]
+     if version_match and version_match[1] >= '6.0':
+         additional_deps += ['rpmlib(LargeFiles) <= 4.12.0-1']
+@@ -117,12 +116,12 @@
+         # do_package logic
+         logging.info(f"Packaging {args.arch}...")
+ 
+-        config.rpm_provides = config.package_orig
++        config.rpm_provides = config.info_vars["PACKAGE"]
+ 
+         rpm_common_deps_file = output_dir / "rpm_common.deps"
+         with rpm_common_deps_file.open("r") as f:
+-            depends = f.read().replace("\n", ",")
+-        config.rpm_depends = depends
++            depends = f.read().splitlines()
++        config.rpm_depends = ",".join([*depends, "/usr/bin/gpg"])
+ 
+         if config.info_vars["PACKAGE"] != config.usr_bin_symlink_name:
+             symlink = config.usr_bin_symlink_name
+diff --git a/chrome/installer/linux/rpm/chrome.spec.template b/chrome/installer/linux/rpm/chrome.spec.template
+--- a/chrome/installer/linux/rpm/chrome.spec.template
++++ b/chrome/installer/linux/rpm/chrome.spec.template
+@@ -17,8 +17,6 @@
+ 
+ Provides        : @@rpm_provides = %{version}
+ Requires        : @@rpm_depends
+-Requires(post)  : %{_sbindir}/update-alternatives
+-Requires(preun) : %{_sbindir}/update-alternatives
+ Autoreqprov     : No
+ 
+ BuildRoot       : %{_tmppath}/%{name}-%{version}-root
+@@ -86,7 +84,6 @@
+ # Be explicit about the files we scatter throughout the system we don't
+ # accidentally "own" stuff that's not ours (crbug.com/40194046).
+ /etc/cron.daily/@@PACKAGE
+-%ghost %attr(755,root,root) /usr/bin/@@package_orig
+ /usr/bin/@@usr_bin_symlink_name
+ /usr/share/appdata/@@PACKAGE.appdata.xml
+ /usr/share/applications/@@PACKAGE.desktop
+@@ -118,56 +115,7 @@
+ 
+ @@include@@../common/rpm.include
+ 
+-@@include@@../common/symlinks.include
+-
+-remove_nss_symlinks
+-add_nss_symlinks
+-
+-remove_udev_symlinks
+-
+-if [ ! -e "$DEFAULTS_FILE" ]; then
+-  echo 'repo_add_once="true"' > "$DEFAULTS_FILE"
+-fi
+-
+-. "$DEFAULTS_FILE"
+-
+-if [ "$repo_add_once" = "true" ]; then
+-  determine_rpm_package_manager
+-
+-  for PACKAGEMANAGER in ${PACKAGEMANAGERS[*]}
+-  do
+-    case $PACKAGEMANAGER in
+-    "yum")
+-      install_yum
+-      ;;
+-    "zypp")
+-      install_zypp
+-      ;;
+-    esac
+-  done
+-fi
+-
+-CHANNEL=@@channel
+-case $CHANNEL in
+-  stable )
+-    PRIORITY=200
+-    ;;
+-  beta )
+-    PRIORITY=150
+-    ;;
+-  unstable )
+-    PRIORITY=120
+-    ;;
+-  * )
+-    PRIORITY=0
+-    ;;
+-esac
+-
+-%{_sbindir}/update-alternatives --install /usr/bin/@@package_orig \
+-  @@package_orig /usr/bin/@@usr_bin_symlink_name $PRIORITY
+-
+-exit 0
+-
++configure_rpm_repo || exit 1
+ 
+ #------------------------------------------------------------------------------
+ #   Pre uninstallation script
+@@ -180,37 +128,18 @@
+   mode="upgrade"
+ fi
+ 
++@@include@@../common/variables.include
+ @@include@@../common/rpm.include
+ 
+-@@include@@../common/symlinks.include
+-
+-# Only remove menu items and symlinks on uninstall. When upgrading,
+-# old_pkg's %preun runs after new_pkg's %post.
+ if [ "$mode" = "uninstall" ]; then
+ @@include@@../common/prerm.include
+-  remove_nss_symlinks
+-  remove_udev_symlinks
+-
+-  %{_sbindir}/update-alternatives --remove @@package_orig \
+-    /usr/bin/@@usr_bin_symlink_name
++  if [ -f "$DEFAULTS_FILE" ]; then
++    . "$DEFAULTS_FILE"
++    if [ "${repo_managed:-false}" = true ]; then
++      rm -f "$YUM_REPO_FILE" "$DEFAULTS_FILE"
++    fi
++  fi
+ fi
+-
+-# On Debian we only remove when we purge. However, RPM has no equivalent to
+-# dpkg --purge, so this is all disabled.
+-#
+-#determine_rpm_package_manager
+-#
+-#for PACKAGEMANAGER in ${PACKAGEMANAGERS[*]}
+-#do
+-#  case $PACKAGEMANAGER in
+-#  "yum")
+-#    remove_yum
+-#    ;;
+-#  "zypp")
+-#    remove_zypp
+-#    ;;
+-#  esac
+-#done
+ 
+ exit 0
+ 
