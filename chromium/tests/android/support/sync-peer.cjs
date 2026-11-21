@@ -30,6 +30,7 @@ function peer(name, endpoint, {stores = {}, platform = 'linux', emit, source} = 
   let context;
   const host = {
     platform, version: '1.0.0', testEndpoint: endpoint, deviceName: name, keyStore: true,
+    storageBackend: platform === 'linux' ? 'gnome_libsecret' : undefined,
     env: {BLANC_TEST: '1', BLANC_TEST_SYNC_ENDPOINT: endpoint},
     log() {}, emit: (event, text) => emit?.(event, text), monotonicNow: () => performance.now(),
     protect: u8, unprotect: u8,

@@ -104,7 +104,7 @@ are folded in below.
   regenerated with unchanged arguments before the nightly, at most once for all of L1.
 - A new patch to an upstream file not yet in `chromium/upstream/manifest.json` imports its pristine
   copy first; the manifest, the lane's `fileCount`, `source-map.json`'s `upstreamFiles` and the count in
-  `check-patches.test.mjs` change with it. New patches start at 0112.
+  `check-patches.test.mjs` change with it. New Linux patches start at 0113.
 - Preview identity (every name is new; none may equal a name shipping Blanc, Chromium or Chrome uses):
   package `blanc-prototype`, install folder `/opt/bnfy/blanc-prototype`, launcher
   `/usr/bin/blanc-prototype`, desktop file `blanc-prototype.desktop`, window class and Wayland app id
@@ -190,7 +190,7 @@ are folded in below.
 
 **Files:**
 - Modify: `chromium/blanc/config.gni` (new args below), `chromium/lanes/desktop.json`
-- Create: patch `0112-blanc-linux-identity.patch` touching `chrome/common/chrome_paths_linux.cc`,
+- Create: patch `0113-blanc-linux-identity.patch` touching `chrome/common/chrome_paths_linux.cc`,
   `chrome/common/channel_info_posix.cc`,
   `components/os_crypt/async/browser/freedesktop_secret_key_provider.h` (import pristine copies first)
 - Create: `chromium/linux/identity.md`, `chromium/tools/linux-identity.test.mjs`
@@ -229,6 +229,10 @@ are folded in below.
   `sync-key-storage` test makes).
 - [ ] **Step 5: Run** the test, the fork unit suite and `python3 chromium/tools/check-patches.py` for
   both lanes; expected PASS. Commit `Fork Linux: the preview's own names, data folder and keyring (L1)`.
+
+**Task 2 patch budget.** Patch 0113 changes 12 upstream files in 23 hunks.
+Eleven new pristine inputs bring the desktop lane to 230 inputs and 236 verified postimages.
+The browser and provider call paths are recorded in [Linux identity](../../../chromium/linux/identity.md).
 
 ### Task 3: Chromium's caption buttons over the strip
 

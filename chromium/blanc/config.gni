@@ -18,12 +18,24 @@ declare_args() {
   blanc_blocker_bundle = ""
 }
 assert(blanc_channel == "preview" || blanc_channel == "release" || blanc_channel == "beta")
+assert(target_os != "linux" || blanc_channel != "release",
+       "Linux release builds require a dedicated package, profile and keyring identity")
 assert(blanc_android_version_name == "" || target_os == "android",
        "A Blanc Android version is only valid for Android builds")
 assert(target_os != "android" || blanc_channel != "release" ||
            blanc_android_version_name != "",
        "Android release builds need blanc_android_version_name")
 blanc_beta_channel = blanc_channel == "beta"
+if (is_linux) {
+  if (blanc_beta_channel) {
+    blanc_linux_package = "blanc-beta"
+    blanc_linux_menu_name = "Blanc Beta"
+  } else {
+    blanc_linux_package = "blanc-prototype"
+    blanc_linux_menu_name = "Blanc Prototype"
+  }
+  blanc_linux_keyring_label = blanc_linux_menu_name
+}
 assert(!blanc_beta_local_qualification || (blanc_beta_channel && target_cpu == "arm64"))
 if (blanc_beta_channel) {
   # target_os, not is_mac/is_win: GN also reads this in the host toolchain.

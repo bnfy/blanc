@@ -1,0 +1,289 @@
+diff --git a/chrome/browser/BUILD.gn b/chrome/browser/BUILD.gn
+--- a/chrome/browser/BUILD.gn
++++ b/chrome/browser/BUILD.gn
+@@ -1911,6 +1911,7 @@
+     deps += [
+       ":fullscreen",
+       ":shell_integration_linux",
++      "//blanc:buildflags",
+       "//chrome/browser/lifetime",
+       "//components/os_crypt/browser:posix_key_provider",
+       "//third_party/libxml:xml_writer",
+diff --git a/chrome/browser/browser_process_impl.cc b/chrome/browser/browser_process_impl.cc
+--- a/chrome/browser/browser_process_impl.cc
++++ b/chrome/browser/browser_process_impl.cc
+@@ -277,6 +277,7 @@
+ #endif
+ 
+ #if BUILDFLAG(IS_LINUX) && BUILDFLAG(USE_DBUS)
++#include "blanc/buildflags.h"
+ #include "chrome/browser/browser_features.h"
+ #include "components/os_crypt/async/browser/freedesktop_secret_key_provider.h"
+ #include "components/os_crypt/async/browser/secret_portal_key_provider.h"
+@@ -1680,7 +1681,7 @@
+   providers.emplace_back(
+       /*precedence=*/10u,
+       std::make_unique<os_crypt_async::FreedesktopSecretKeyProvider>(
+-          password_store, l10n_util::GetStringUTF8(IDS_PRODUCT_NAME), nullptr));
++          password_store, BUILDFLAG(BLANC_LINUX_KEYRING_LABEL), nullptr));
+ #endif  // BUILDFLAG(IS_LINUX)
+ 
+ #if BUILDFLAG(IS_POSIX) && !BUILDFLAG(IS_MAC)
+diff --git a/chrome/browser/shell_integration_linux.cc b/chrome/browser/shell_integration_linux.cc
+--- a/chrome/browser/shell_integration_linux.cc
++++ b/chrome/browser/shell_integration_linux.cc
+@@ -43,6 +43,10 @@
+ #include "base/threading/thread_restrictions.h"
+ #include "build/branding_buildflags.h"
+ #include "build/build_config.h"
++
++#if BUILDFLAG(IS_LINUX)
++#include "blanc/buildflags.h"
++#endif
+ #include "chrome/browser/shell_integration.h"
+ #include "chrome/browser/ui/ui_features.h"
+ #include "chrome/browser/web_applications/os_integration/web_app_shortcut.h"
+@@ -528,6 +532,12 @@
+   if (command_line.HasSwitch(switches::kWmClass))
+     return command_line.GetSwitchValueASCII(switches::kWmClass);
+   std::string desktop_base_name = GetDesktopBaseName(desktop_file_name);
++#if BUILDFLAG(IS_LINUX)
++  // StartupWMClass and the Wayland desktop id are case-sensitive.
++  if (desktop_base_name == BUILDFLAG(BLANC_LINUX_PACKAGE)) {
++    return desktop_base_name;
++  }
++#endif
+   if (auto* platform_utils =
+           ui::OzonePlatform::GetInstance()->GetPlatformUtils()) {
+     return platform_utils->GetWmWindowClass(desktop_base_name);
+@@ -917,10 +927,17 @@
+     const webapps::AppId& app_id) {
+   CHECK(!profile_path.empty() && !app_id.empty(), base::NotFatalUntil::M162);
+ 
++#if BUILDFLAG(IS_LINUX)
++  // Blanc and Chromium both run an executable named chrome.
++  std::string filename = base::StringPrintf(
++      "%s-%s-%s.xml", BUILDFLAG(BLANC_LINUX_PACKAGE), app_id.c_str(),
++      profile_path.BaseName().value().c_str());
++#else
+   // Use a prefix to clearly group files created by Chrome.
+   std::string filename = base::StringPrintf(
+       "%s-%s-%s%s", chrome::kBrowserProcessExecutableName, app_id.c_str(),
+       profile_path.BaseName().value().c_str(), ".xml");
++#endif
+ 
+   // Replace illegal characters and spaces in |filename|.
+   base::i18n::ReplaceIllegalCharactersInPath(&filename, '_');
+diff --git a/chrome/common/BUILD.gn b/chrome/common/BUILD.gn
+--- a/chrome/common/BUILD.gn
++++ b/chrome/common/BUILD.gn
+@@ -86,6 +86,9 @@
+     "channel_info.h",
+   ]
+   deps = [ "//build:branding_buildflags" ]
++  if (is_linux) {
++    deps += [ "//blanc:buildflags" ]
++  }
+   public_deps = [
+     "//base",
+     "//components/version_info",
+@@ -606,6 +609,9 @@
+     # implemented in //ui/base, so we need that dependency.
+     deps += [ "//ui/base" ]
+   }
++  if (is_linux) {
++    deps += [ "//blanc:buildflags" ]
++  }
+   if (is_linux || is_chromeos) {
+     sources += [ "chrome_paths_linux.cc" ]
+     deps += [ ":channel_info" ]
+diff --git a/chrome/common/channel_info_posix.cc b/chrome/common/channel_info_posix.cc
+--- a/chrome/common/channel_info_posix.cc
++++ b/chrome/common/channel_info_posix.cc
+@@ -16,6 +16,10 @@
+ #include "base/version_info/nix/version_extra_utils.h"
+ #include "build/branding_buildflags.h"
+ #include "build/build_config.h"
++
++#if BUILDFLAG(IS_LINUX)
++#include "blanc/buildflags.h"
++#endif
+ #include "components/version_info/version_info.h"
+ 
+ namespace chrome {
+@@ -148,7 +152,7 @@
+   if (name.has_value() && !name.value().empty()) {
+     return name.value();
+   }
+-  return "chromium-browser.desktop";
++  return base::StrCat({BUILDFLAG(BLANC_LINUX_PACKAGE), ".desktop"});
+ #endif
+ }
+ #endif  // BUILDFLAG(IS_LINUX)
+diff --git a/chrome/common/chrome_paths_linux.cc b/chrome/common/chrome_paths_linux.cc
+--- a/chrome/common/chrome_paths_linux.cc
++++ b/chrome/common/chrome_paths_linux.cc
+@@ -15,6 +15,10 @@
+ #include "base/strings/string_util.h"
+ #include "build/branding_buildflags.h"
+ #include "build/build_config.h"
++
++#if BUILDFLAG(IS_LINUX)
++#include "blanc/buildflags.h"
++#endif
+ #include "chrome/common/channel_info.h"
+ #include "chrome/common/chrome_paths_internal.h"
+ 
+@@ -90,6 +94,9 @@
+         GetXDGDirectory(env.get(), kXdgConfigHomeEnvVar, kDotConfigDir);
+   }
+ 
++#if BUILDFLAG(IS_LINUX)
++  *result = config_dir.Append(BUILDFLAG(BLANC_LINUX_PACKAGE));
++#else
+ #if BUILDFLAG(GOOGLE_CHROME_FOR_TESTING_BRANDING)
+   std::string data_dir_basename = "google-chrome-for-testing";
+ #elif BUILDFLAG(GOOGLE_CHROME_BRANDING)
+@@ -98,6 +105,7 @@
+   std::string data_dir_basename = "chromium";
+ #endif
+   *result = config_dir.Append(data_dir_basename + GetChannelSuffixForDataDir());
++#endif  // BUILDFLAG(IS_LINUX)
+   return true;
+ }
+ 
+diff --git a/components/os_crypt/async/browser/BUILD.gn b/components/os_crypt/async/browser/BUILD.gn
+--- a/components/os_crypt/async/browser/BUILD.gn
++++ b/components/os_crypt/async/browser/BUILD.gn
+@@ -139,7 +139,10 @@
+       "//crypto",
+       "//dbus",
+     ]
+-    public_deps = [ "//build:branding_buildflags" ]
++    public_deps = [
++      "//blanc:buildflags",
++      "//build:branding_buildflags",
++    ]
+   }
+ 
+   source_set("test_secret_portal") {
+diff --git a/components/os_crypt/async/browser/freedesktop_secret_key_provider.h b/components/os_crypt/async/browser/freedesktop_secret_key_provider.h
+--- a/components/os_crypt/async/browser/freedesktop_secret_key_provider.h
++++ b/components/os_crypt/async/browser/freedesktop_secret_key_provider.h
+@@ -26,6 +26,10 @@
+ #include "dbus/bus.h"
+ #include "dbus/object_path.h"
+ #include "dbus/object_proxy.h"
++
++#if BUILDFLAG(IS_LINUX)
++#include "blanc/buildflags.h"
++#endif
+ 
+ namespace os_crypt_async {
+ 
+@@ -70,6 +74,11 @@
+   // KeyProvider:
+   void GetKey(KeyCallback callback) override;
+   bool UseForEncryption() override;
++#if BUILDFLAG(IS_LINUX)
++  const char* GetLinuxStorageBackend() const override {
++    return kwallet_proxy_ ? "kwallet" : "gnome_libsecret";
++  }
++#endif
+ 
+  private:
+   FRIEND_TEST_ALL_PREFIXES(FreedesktopSecretKeyProviderTest, BasicHappyPath);
+@@ -153,7 +162,11 @@
+   static constexpr int kKWalletInvalidHandle = -1;
+   static constexpr int kKWalletInvalidTransactionId = -1;
+ 
+-#if BUILDFLAG(GOOGLE_CHROME_BRANDING)
++#if BUILDFLAG(IS_LINUX)
++  static constexpr char kKWalletFolder[] = BUILDFLAG(BLANC_LINUX_KWALLET_FOLDER);
++  static constexpr char kKeyName[] = BUILDFLAG(BLANC_LINUX_KEY_NAME);
++  static constexpr char kAppName[] = BUILDFLAG(BLANC_LINUX_PACKAGE);
++#elif BUILDFLAG(GOOGLE_CHROME_BRANDING)
+   static constexpr char kKWalletFolder[] = "Chrome Keys";
+   static constexpr char kKeyName[] = "Chrome Safe Storage";
+   static constexpr char kAppName[] = "chrome";
+diff --git a/components/os_crypt/async/browser/key_provider.h b/components/os_crypt/async/browser/key_provider.h
+--- a/components/os_crypt/async/browser/key_provider.h
++++ b/components/os_crypt/async/browser/key_provider.h
+@@ -10,6 +10,7 @@
+ 
+ #include "base/functional/callback.h"
+ #include "base/types/expected.h"
++#include "build/build_config.h"
+ #include "components/os_crypt/async/common/encryptor.h"
+ 
+ namespace os_crypt_async {
+@@ -69,6 +70,12 @@
+   // data encrypted previously with the key.
+   virtual bool UseForEncryption() = 0;
+ 
++#if BUILDFLAG(IS_LINUX)
++  // Called when this provider supplies the selected encryption key. Return a
++  // string literal. Sync treats the POSIX fallback as an insecure store.
++  virtual const char* GetLinuxStorageBackend() const { return "basic_text"; }
++#endif
++
+  protected:
+   KeyProvider() = default;
+ };
+diff --git a/components/os_crypt/async/browser/os_crypt_async.cc b/components/os_crypt/async/browser/os_crypt_async.cc
+--- a/components/os_crypt/async/browser/os_crypt_async.cc
++++ b/components/os_crypt/async/browser/os_crypt_async.cc
+@@ -89,6 +89,9 @@
+     key_ring_.emplace(tag, std::move(*key));
+     if ((*current)->UseForEncryption()) {
+       provider_for_encryption_ = tag;
++#if BUILDFLAG(IS_LINUX)
++      linux_storage_backend_ = (*current)->GetLinuxStorageBackend();
++#endif
+     }
+   } else {
+     switch (key.error()) {
+diff --git a/components/os_crypt/async/browser/os_crypt_async.h b/components/os_crypt/async/browser/os_crypt_async.h
+--- a/components/os_crypt/async/browser/os_crypt_async.h
++++ b/components/os_crypt/async/browser/os_crypt_async.h
+@@ -63,6 +63,14 @@
+   // Encryptor is already available.
+   virtual void GetInstance(InitCallback callback);
+ 
++#if BUILDFLAG(IS_LINUX)
++  // Read on the owning sequence after GetInstance has delivered the Encryptor.
++  const char* GetLinuxStorageBackend() const {
++    DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++    return linux_storage_backend_;
++  }
++#endif
++
+  private:
+   using ProviderIterator =
+       std::vector<std::unique_ptr<KeyProvider>>::const_iterator;
+@@ -81,6 +89,10 @@
+   std::list<base::OnceClosure> callbacks_ GUARDED_BY_CONTEXT(sequence_checker_);
+   Encryptor::KeyRing key_ring_ GUARDED_BY_CONTEXT(sequence_checker_);
+   std::string provider_for_encryption_ GUARDED_BY_CONTEXT(sequence_checker_);
++#if BUILDFLAG(IS_LINUX)
++  const char* linux_storage_backend_ GUARDED_BY_CONTEXT(sequence_checker_) =
++      "basic_text";
++#endif
+   size_t number_of_failing_key_providers_
+       GUARDED_BY_CONTEXT(sequence_checker_) = 0;
+ 
+diff --git a/components/os_crypt/async/browser/secret_portal_key_provider.h b/components/os_crypt/async/browser/secret_portal_key_provider.h
+--- a/components/os_crypt/async/browser/secret_portal_key_provider.h
++++ b/components/os_crypt/async/browser/secret_portal_key_provider.h
+@@ -105,6 +105,11 @@
+   // KeyProvider:
+   void GetKey(KeyCallback callback) override;
+   bool UseForEncryption() override;
++#if BUILDFLAG(IS_LINUX)
++  const char* GetLinuxStorageBackend() const override {
++    return "xdg_secret_portal";
++  }
++#endif
+ 
+   void OnPortalServiceStarted(uint32_t version);
+ 
