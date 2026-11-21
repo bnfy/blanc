@@ -1216,8 +1216,9 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .dl > .download-measurement p { flex: 0 1 auto; max-width: 100%; margin: 0; text-wrap: balance; }
 .dl > .download-measurement button { min-height: 0; padding: 0; border: 0; background: none; color: var(--site-text); font: inherit; text-decoration: underline; text-decoration-color: var(--site-border); text-underline-offset: 3px; cursor: pointer; }
 
-/* Tiles: Blanc Beta first and darkest, so it can't be missed. */
-.dl-more { display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 16px; margin-top: 88px; }
+/* Tiles: the two Blanc Betas first and darkest, so they can't be missed; two by
+   two, the betas above the iPhone and Homebrew tiles. */
+.dl-more { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 88px; }
 .dl-tile { position: relative; display: flex; flex-direction: column; align-items: flex-start; min-height: 340px; padding: 30px 28px 28px; overflow: hidden; border: 1px solid var(--site-border); border-radius: 24px; background: var(--site-surface); }
 .dl-tile h2 { margin: 0; font-family: var(--site-font-display); font-size: 30px; font-weight: 400; letter-spacing: 0; line-height: 1.1; }
 .dl-tile > p:not([class]) { margin: 12px 0 0; color: var(--site-text-dim); font-size: 15px; line-height: 1.5; }

@@ -317,3 +317,53 @@ test('a download left to Save As does not use up the click', () => {
   assert.equal(saved.savePath, path.join(dir, 'kept-click.zip'));
   saved.emit('done', {}, 'completed');
 });
+
+test('main hears once that a download is under way, and when it completes', () => {
+  const heard = [];
+  downloads.setDownloadActivityObserver((event, requester) => heard.push([event, requester === page]));
+  try {
+    // Saved without asking: under way at once, and a progress update says nothing new.
+    const saved = start('peek.zip');
+    saved.emit('updated', {}, 'progressing');
+    saved.emit('done', {}, 'completed');
+    assert.deepEqual(heard, [['started', true], ['completed', true]]);
+
+    // Save As: nothing until it has a file, then once.
+    heard.length = 0;
+    const asked = start('asked-peek.zip', ses, { click: false });
+    assert.equal(asked.savePath, '');
+    asked.emit('updated', {}, 'progressing');
+    assert.deepEqual(heard, []);
+    asked.savePath = path.join(dir, 'chosen.zip');
+    asked.emit('updated', {}, 'progressing');
+    asked.emit('updated', {}, 'progressing');
+    assert.deepEqual(heard, [['started', true]]);
+    asked.emit('done', {}, 'cancelled');
+    assert.deepEqual(heard, [['started', true]], 'a cancelled download never reports completion');
+
+    // A small file can finish before any update: still started, then completed.
+    heard.length = 0;
+    const dialogged = start('quick.zip', ses, { click: false });
+    dialogged.savePath = path.join(dir, 'quick.zip');
+    dialogged.emit('done', {}, 'completed');
+    assert.deepEqual(heard, [['started', true], ['completed', true]]);
+
+    // What the observer returned for the start comes back with the completion.
+    const contexts = [];
+    downloads.setDownloadActivityObserver((event, _requester, context) => {
+      contexts.push([event, context]);
+      return event === 'started' ? 'window-1' : 'ignored';
+    });
+    const remembered = start('remembered.zip');
+    remembered.emit('done', {}, 'completed');
+    assert.deepEqual(contexts, [['started', undefined], ['completed', 'window-1']]);
+
+    // A throwing observer never breaks the download.
+    downloads.setDownloadActivityObserver(() => { throw new Error('boom'); });
+    const sturdy = start('sturdy.zip');
+    sturdy.emit('done', {}, 'completed');
+    assert.equal(rowFor(sturdy).state, 'completed');
+  } finally {
+    downloads.setDownloadActivityObserver(null);
+  }
+});

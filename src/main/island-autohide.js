@@ -140,10 +140,51 @@ function slidingBounds(bounds, { stripTop, animatedTop }) {
  * whatever the pointer does.
  * So does the how-to tip shown when the setting is turned on.
  * (A floating Glance card draws nothing in the strip, so it pins nothing.)
- * @param {{overlayMode?: string|null, popupOpen?: boolean, introducing?: boolean}} state
+ * So does a download's peek (below).
+ * @param {{overlayMode?: string|null, popupOpen?: boolean, introducing?: boolean, peeking?: boolean}} state
  */
-function islandPinned({ overlayMode = null, popupOpen = false, introducing = false } = {}) {
-  return !!overlayMode || popupOpen === true || introducing === true;
+function islandPinned({ overlayMode = null, popupOpen = false, introducing = false, peeking = false } = {}) {
+  return !!overlayMode || popupOpen === true || introducing === true || peeking === true;
+}
+
+/* ---- Download peek -------------------------------------------------------
+ * Since #1591 a clicked download saves without Save As, and the Island's
+ * downloads button is its only sign. An auto-hidden Island showed none of it:
+ * a click on a download link looked like it did nothing. So a download that
+ * starts in a window with its Island hidden shows the Island for a moment, as
+ * Chrome opens its download bubble; one that finishes while it shows keeps it
+ * up long enough for the button's check. */
+
+/** How long a starting download shows the hidden Island, in ms. */
+const DOWNLOAD_PEEK_MS = 3000;
+/** How long it stays up after a download finishes during the peek, in ms:
+ * most of the button's ~3 s check. */
+const DOWNLOAD_PEEK_DONE_MS = 2500;
+/** No peek lasts longer than this from its start, in ms, however many
+ * downloads start or finish during it. */
+const DOWNLOAD_PEEK_MAX_MS = 8000;
+
+/**
+ * The window's peek after a download event, or null for none.
+ * Only a hidden Island peeks: with auto-hide off, or the Island already up
+ * (pointer, ⌘L, a popover), nothing changes. A peek in progress is extended,
+ * never past DOWNLOAD_PEEK_MAX_MS from its start.
+ * @param {{startedAt: number, until: number}|null} peek the peek in progress
+ * @param {'started'|'completed'} event
+ * @param {{autoHide: boolean, revealed: boolean, now: number}} state
+ * @returns {{startedAt: number, until: number}|null}
+ */
+function downloadPeekStep(peek, event, { autoHide, revealed, now }) {
+  if (autoHide !== true || !finite(now)) return null;
+  if (peek) {
+    const ms = event === 'completed' ? DOWNLOAD_PEEK_DONE_MS : DOWNLOAD_PEEK_MS;
+    return {
+      startedAt: peek.startedAt,
+      until: Math.min(peek.startedAt + DOWNLOAD_PEEK_MAX_MS, Math.max(peek.until, now + ms)),
+    };
+  }
+  if (event !== 'started' || revealed === true) return null;
+  return { startedAt: now, until: now + DOWNLOAD_PEEK_MS };
 }
 
 /**
@@ -271,4 +312,8 @@ module.exports = {
   reachAboveWindow,
   islandPinned,
   stripHidden,
+  DOWNLOAD_PEEK_MS,
+  DOWNLOAD_PEEK_DONE_MS,
+  DOWNLOAD_PEEK_MAX_MS,
+  downloadPeekStep,
 };

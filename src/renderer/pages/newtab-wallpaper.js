@@ -108,6 +108,12 @@
       layers.forEach((layer, index) => {
         layer.classList.remove('is-fading');
         if (index !== active) layer.classList.remove('is-visible');
+        // A fade's transition can stall at its start (seen on Linux: running
+        // at currentTime 0 while frames drew), leaving the shown layer at
+        // opacity 0. Removing is-fading doesn't end it, since
+        // transition-property falls back to `all`, so finish it here: every
+        // layer lands at its target.
+        for (const animation of layer.getAnimations?.() ?? []) animation.finish();
       });
     }
     const controller = createController({
