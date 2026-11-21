@@ -138,7 +138,10 @@ struct PaletteSheet: View {
             .listStyle(.plain)
             .environment(\.defaultMinListRowHeight, 44)
             .environment(\.defaultMinListHeaderHeight, 0)
-            .contentMargins(.top, 0, for: .scrollContent)
+            // Room between the panel's rounded edge and the first heading (or
+            // the last row) where the list meets it; none beside the search row.
+            .contentMargins(.top, placement == .panel && !islandAtTop ? 12 : 0, for: .scrollContent)
+            .contentMargins(.bottom, placement == .panel && islandAtTop ? 12 : 0, for: .scrollContent)
             .listSectionSpacing(8)
             .scrollContentBackground(.hidden)
             .scrollDismissesKeyboard(.interactively)
@@ -364,6 +367,8 @@ struct PaletteSheet: View {
         .foregroundStyle(style.secondary)
         .textCase(nil)
         .padding(.top, 8)
+        // Its own room above the first row, which otherwise sat right under it.
+        .padding(.bottom, 6)
         .listRowInsets(EdgeInsets(top: 0, leading: 22, bottom: 0, trailing: 22))
     }
 
