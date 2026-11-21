@@ -1,20 +1,53 @@
 diff --git a/components/autofill/core/common/autofill_prefs.cc b/components/autofill/core/common/autofill_prefs.cc
 --- a/components/autofill/core/common/autofill_prefs.cc
 +++ b/components/autofill/core/common/autofill_prefs.cc
-@@ -141,7 +141,7 @@
+@@ -141,7 +141,8 @@
  #endif
  
  #if BUILDFLAG(IS_ANDROID)
 -  registry->RegisterBooleanPref(kAutofillUsingPlatformAutofill, false);
 +  registry->RegisterBooleanPref(kAutofillUsingPlatformAutofill, true);
++  registry->RegisterBooleanPref(kAutofillPlatformDefaultApplied, false);
    registry->RegisterBooleanPref(kAutofillThirdPartyPasswordManagersAllowed,
                                  true);
    registry->RegisterStringPref(
+diff --git a/components/autofill/core/common/autofill_prefs.h b/components/autofill/core/common/autofill_prefs.h
+--- a/components/autofill/core/common/autofill_prefs.h
++++ b/components/autofill/core/common/autofill_prefs.h
+@@ -235,6 +235,9 @@
+ // filling.
+ inline constexpr char kAutofillUsingPlatformAutofill[] =
+     "autofill.using_virtual_view_structure";
++// Whether this profile has received Blanc's platform autofill default.
++inline constexpr char kAutofillPlatformDefaultApplied[] =
++    "blanc.autofill.platform_default_applied";
+ // Boolean set by the `ThirdPartyPasswordManagersAllowed` policy. Defaults to
+ // true which allows users to set the `kAutofillUsingPlatformAutofill` pref.
+ // If set to false, user can only use the built-in password manager.
 diff --git a/chrome/browser/ui/autofill/autofill_client_provider.cc b/chrome/browser/ui/autofill/autofill_client_provider.cc
 --- a/chrome/browser/ui/autofill/autofill_client_provider.cc
 +++ b/chrome/browser/ui/autofill/autofill_client_provider.cc
-@@ -74,10 +74,9 @@
-           UsesVirtualViewStructureForAutofill(CHECK_DEREF(prefs))) {
+@@ -67,17 +67,26 @@
+ #endif  // BUILDFLAG(IS_ANDROID)
+ }
+ 
++bool ShouldUsePlatformAutofill(PrefService& prefs) {
++#if BUILDFLAG(IS_ANDROID)
++  // Earlier versions saved service availability as the user's preference.
++  if (!prefs.GetBoolean(prefs::kAutofillPlatformDefaultApplied)) {
++    prefs.ClearPref(prefs::kAutofillUsingPlatformAutofill);
++    prefs.SetBoolean(prefs::kAutofillPlatformDefaultApplied, true);
++  }
++#endif  // BUILDFLAG(IS_ANDROID)
++  return UsesVirtualViewStructureForAutofill(prefs);
++}
++
+ }  // namespace
+ 
+ AutofillClientProvider::AutofillClientProvider(PrefService* prefs)
+-    : uses_platform_autofill_(
+-          UsesVirtualViewStructureForAutofill(CHECK_DEREF(prefs))) {
++    : uses_platform_autofill_(ShouldUsePlatformAutofill(CHECK_DEREF(prefs))) {
  #if BUILDFLAG(IS_ANDROID)
    RecordWhetherAndroidPrefResets(*prefs, uses_platform_autofill_);
 -  // Ensure the pref is reset if platform autofill is restricted.

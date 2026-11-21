@@ -10159,6 +10159,26 @@
     "message": "Bottom",
     "note": "Android Settings → Island position: the Island sits at the bottom of the screen."
   },
+  "android.settings.autofill.title": {
+    "message": "Autofill with your password manager",
+    "note": "Label for the switch that lets the Android password manager fill forms in Blanc.",
+    "androidOnly": true
+  },
+  "android.settings.autofill.summary": {
+    "message": "Fills passwords and passkeys from Bitwarden, Proton Pass, 1Password and other managers you choose in Android. Google Password Manager doesn't fill in Blanc.",
+    "note": "Text under the autofill switch explaining which Android password managers work in Blanc.",
+    "androidOnly": true
+  },
+  "android.settings.autofill.choose": {
+    "message": "Choose password manager",
+    "note": "Opens the Android settings where the person chooses a password manager.",
+    "androidOnly": true
+  },
+  "android.settings.autofill.restart": {
+    "message": "Restart Blanc to apply",
+    "note": "Brief message shown after someone changes the autofill switch.",
+    "androidOnly": true
+  },
   "android.settings.openSourceLicenses": {
     "message": "Open-source licenses",
     "note": "Android Settings → About: row opening the list of open-source licenses."

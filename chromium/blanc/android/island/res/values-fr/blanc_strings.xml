@@ -233,6 +233,10 @@
     <string name="blanc_android_settings_more">Plus</string>
     <string name="blanc_android_settings_open_source_licenses">Licences open source</string>
     <string name="blanc_ios_settings_about">À propos de Blanc</string>
+    <string name="blanc_android_settings_autofill_title">Remplissage automatique avec votre gestionnaire de mots de passe</string>
+    <string name="blanc_android_settings_autofill_summary">Utilise les mots de passe et les clés d’accès de Bitwarden, Proton Pass, 1Password et des autres gestionnaires que vous choisissez dans Android. Le Gestionnaire de mots de passe de Google ne peut pas remplir les formulaires dans Blanc.</string>
+    <string name="blanc_android_settings_autofill_choose">Choisir un gestionnaire de mots de passe</string>
+    <string name="blanc_android_settings_autofill_restart">Redémarrez Blanc pour appliquer la modification</string>
     <string name="blanc_ios_settings_add_site">Ajouter un site</string>
     <string name="blanc_ios_settings_blocker">Blanc Blocker</string>
     <string name="blanc_ios_settings_blocker_help">Bloquez les publicités et les traqueurs sur les sites web. Désactiver cette option supprime la protection de tous les onglets et recharge les pages web.</string>

@@ -233,6 +233,10 @@
     <string name="blanc_android_settings_more">Altro</string>
     <string name="blanc_android_settings_open_source_licenses">Licenze open source</string>
     <string name="blanc_ios_settings_about">Informazioni su Blanc</string>
+    <string name="blanc_android_settings_autofill_title">Compilazione automatica con il tuo gestore di password</string>
+    <string name="blanc_android_settings_autofill_summary">Usa le password e le passkey di Bitwarden, Proton Pass, 1Password e degli altri gestori che scegli in Android. Il Gestore delle password di Google non può compilare i moduli in Blanc.</string>
+    <string name="blanc_android_settings_autofill_choose">Scegli il gestore di password</string>
+    <string name="blanc_android_settings_autofill_restart">Riavvia Blanc per applicare la modifica</string>
     <string name="blanc_ios_settings_add_site">Aggiungi sito</string>
     <string name="blanc_ios_settings_blocker">Blanc Blocker</string>
     <string name="blanc_ios_settings_blocker_help">Blocca pubblicità e tracker sui siti web. Disattivando questa opzione, la protezione viene disabilitata per tutte le schede e le pagine web vengono ricaricate.</string>

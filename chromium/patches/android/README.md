@@ -109,6 +109,8 @@ in the lane file in its place. Numbering starts at 0101.
   when destroyed or unbound. Serial has the same code, but nothing
   calls its clearing at startup, so it is left alone.
 - `0125-android-autofill-platform.patch` turns on Android autofill by default.
+  On the first launch with this patch, each profile clears the autofill choice
+  older builds saved at startup, before Blanc checks for an available service.
   If Google Password Manager is selected or no service is available, Blanc
   keeps the switch where the person left it. Someone who chooses Bitwarden
   later can use it the next time Blanc starts. Turning the switch off in

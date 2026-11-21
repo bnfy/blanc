@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="blanc_platform_autofill">Autofill with your password manager</string>
-    <string name="blanc_platform_autofill_summary">Fills passwords and passkeys from Bitwarden, Proton Pass, 1Password and other managers you choose in Android. Google Password Manager doesn\'t fill in Blanc.</string>
-    <string name="blanc_choose_password_manager">Choose password manager</string>
-    <string name="blanc_autofill_restart">Restart Blanc to apply</string>
-</resources>

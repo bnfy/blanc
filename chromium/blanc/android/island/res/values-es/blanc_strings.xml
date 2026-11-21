@@ -233,6 +233,10 @@
     <string name="blanc_android_settings_more">Más</string>
     <string name="blanc_android_settings_open_source_licenses">Licencias de código abierto</string>
     <string name="blanc_ios_settings_about">Acerca de Blanc</string>
+    <string name="blanc_android_settings_autofill_title">Autocompletar con tu gestor de contraseñas</string>
+    <string name="blanc_android_settings_autofill_summary">Usa las contraseñas y llaves de acceso de Bitwarden, Proton Pass, 1Password y otros gestores que elijas en Android. El Gestor de contraseñas de Google no puede autocompletar en Blanc.</string>
+    <string name="blanc_android_settings_autofill_choose">Elegir gestor de contraseñas</string>
+    <string name="blanc_android_settings_autofill_restart">Reinicia Blanc para aplicar el cambio</string>
     <string name="blanc_ios_settings_add_site">Añadir sitio</string>
     <string name="blanc_ios_settings_blocker">Blanc Blocker</string>
     <string name="blanc_ios_settings_blocker_help">Bloquea anuncios y rastreadores en los sitios web. Al desactivarlo, se desactiva la protección de todas las pestañas y se recargan las páginas web.</string>

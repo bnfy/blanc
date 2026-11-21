@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="blanc_platform_autofill">Preenchimento automático com seu gerenciador de senhas</string>
-    <string name="blanc_platform_autofill_summary">Usa senhas e chaves de acesso do Bitwarden, Proton Pass, 1Password e de outros gerenciadores que você escolher no Android. O Gerenciador de senhas do Google não preenche formulários no Blanc.</string>
-    <string name="blanc_choose_password_manager">Escolher gerenciador de senhas</string>
-    <string name="blanc_autofill_restart">Reinicie o Blanc para aplicar a alteração</string>
-</resources>

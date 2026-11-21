@@ -46,6 +46,7 @@
     "chrome/utility/BUILD.gn": "d87297c3d6f9e2fe32e029cb01e97db9e5644277fb5a3ab611ad3be6515497f2",
     "chrome/utility/services.cc": "b2a5353549137293c1a0b6143e544cadd15e647a3a7d75af637fa2aa15e22a10",
     "components/autofill/core/common/autofill_prefs.cc": "1b197147cdc938409ed7a14b6cca4ca65dd14288dcabdb471ef87e0496c27963",
+    "components/autofill/core/common/autofill_prefs.h": "68e8defc98513f50165d92440b7d3cba38a05320d6db0a24b1c2c0695e68edbc",
     "components/background_task_scheduler/android/java/src/org/chromium/components/background_task_scheduler/BackgroundTaskSchedulerExternalUma.java": "cf0da55d7f90621104b962f56de92751a0af9100f499dbd88f8c63a040805494",
     "components/background_task_scheduler/task_ids.h": "a009e174b1ec44c1f750c426a5ef6b20b7472291725ffdaa5bea9304413f8c89",
     "components/signin/internal/identity_manager/gaia_cookie_manager_service.cc": "065fb50c3c08b7577ad3bb5a8bf7065bdec88bdb56cba7294a5f1d317e5bb7e4",

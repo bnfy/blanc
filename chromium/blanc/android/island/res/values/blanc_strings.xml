@@ -233,6 +233,10 @@
     <string name="blanc_android_settings_more">More</string>
     <string name="blanc_android_settings_open_source_licenses">Open-source licenses</string>
     <string name="blanc_ios_settings_about">About</string>
+    <string name="blanc_android_settings_autofill_title">Autofill with your password manager</string>
+    <string name="blanc_android_settings_autofill_summary">Fills passwords and passkeys from Bitwarden, Proton Pass, 1Password and other managers you choose in Android. Google Password Manager doesn\'t fill in Blanc.</string>
+    <string name="blanc_android_settings_autofill_choose">Choose password manager</string>
+    <string name="blanc_android_settings_autofill_restart">Restart Blanc to apply</string>
     <string name="blanc_ios_settings_add_site">Add site</string>
     <string name="blanc_ios_settings_blocker">Blanc Blocker</string>
     <string name="blanc_ios_settings_blocker_help">Block ads and trackers on websites. Turning this off disables protection on all tabs and reloads web pages.</string>

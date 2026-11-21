@@ -8,6 +8,22 @@ test('Android enables platform autofill by default', () => {
   assert.match(source, /#if BUILDFLAG\(IS_ANDROID\)\s+registry->RegisterBooleanPref\(kAutofillUsingPlatformAutofill, true\);/);
 });
 
+test('Android registers the autofill migration marker as false for each profile', () => {
+  const prefs = patchedChromiumFile('components/autofill/core/common/autofill_prefs.cc');
+  assert.ok(/#if BUILDFLAG\(IS_ANDROID\)\s+registry->RegisterBooleanPref\(kAutofillUsingPlatformAutofill, true\);\s+registry->RegisterBooleanPref\(kAutofillPlatformDefaultApplied, false\);/.test(prefs),
+    'the marker defaults to false alongside the Android autofill preference');
+  const header = patchedChromiumFile('components/autofill/core/common/autofill_prefs.h');
+  assert.match(header, /inline constexpr char kAutofillPlatformDefaultApplied\[\] =\s*"blanc\.autofill\.platform_default_applied";/);
+});
+
+test('startup clears the saved autofill choice once before checking availability', () => {
+  const provider = patchedChromiumFile('chrome/browser/ui/autofill/autofill_client_provider.cc');
+  const helper = provider.match(/bool ShouldUsePlatformAutofill\(PrefService& prefs\) \{([\s\S]*?)\n\}/)?.[1];
+  assert.ok(helper, 'startup has a helper for migrating and checking availability');
+  assert.match(helper, /if \(!prefs\.GetBoolean\(prefs::kAutofillPlatformDefaultApplied\)\) \{\s+prefs\.ClearPref\(prefs::kAutofillUsingPlatformAutofill\);\s+prefs\.SetBoolean\(prefs::kAutofillPlatformDefaultApplied, true\);\s+\}\s*#endif[^\n]*\s+return UsesVirtualViewStructureForAutofill\(prefs\);/);
+  assert.match(provider, /: uses_platform_autofill_\(\s*ShouldUsePlatformAutofill\(CHECK_DEREF\(prefs\)\)\)/);
+});
+
 test('startup writes the platform autofill preference only when the service is available', () => {
   const source = patchedChromiumFile('chrome/browser/ui/autofill/autofill_client_provider.cc');
   const write = /prefs->SetBoolean\(\s*prefs::kAutofillUsingPlatformAutofill,/g;

@@ -244,17 +244,18 @@ public final class BlancSettingsScreen {
                 break;
             case "blanc_platform_autofill":
                 SwitchPreferenceCompat autofill = (SwitchPreferenceCompat) row;
-                autofill.setTitle(R.string.blanc_platform_autofill);
-                autofill.setSummary(R.string.blanc_platform_autofill_summary);
+                autofill.setTitle(R.string.blanc_android_settings_autofill_title);
+                autofill.setSummary(R.string.blanc_android_settings_autofill_summary);
                 autofill.setChecked(host.platformAutofillEnabled());
                 autofill.setOnPreferenceChangeListener((p, value) -> {
                     host.setPlatformAutofillEnabled((Boolean) value);
-                    Toast.makeText(context, R.string.blanc_autofill_restart, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, R.string.blanc_android_settings_autofill_restart,
+                            Toast.LENGTH_SHORT).show();
                     return true;
                 });
                 break;
             case "blanc_choose_password_manager":
-                action(row, R.string.blanc_choose_password_manager, 0, host::openPasswordManagerPicker);
+                action(row, R.string.blanc_android_settings_autofill_choose, 0, host::openPasswordManagerPicker);
                 break;
             case "blanc_measure_usage":
                 SwitchPreferenceCompat usage = (SwitchPreferenceCompat) row;

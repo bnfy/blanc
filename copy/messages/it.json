@@ -9865,6 +9865,22 @@
     "note": "Android Settings → Island position: the Island sits at the bottom of the screen.",
     "source": "sha256:206e35c0a394e6a73d39040dd0cab63b48af03b1d6d0ed533d44b3af8f709528"
   },
+  "android.settings.autofill.title": {
+    "message": "Compilazione automatica con il tuo gestore di password",
+    "source": "sha256:d0cbecfaf713162ed0ebe4d7a149e4be2e1800131ca52409f2caa7b3388aecab"
+  },
+  "android.settings.autofill.summary": {
+    "message": "Usa le password e le passkey di Bitwarden, Proton Pass, 1Password e degli altri gestori che scegli in Android. Il Gestore delle password di Google non può compilare i moduli in Blanc.",
+    "source": "sha256:bb5cbe6a8f428da3617d11211a867255f22fd2d0c65eb19d59921a605b9104ce"
+  },
+  "android.settings.autofill.choose": {
+    "message": "Scegli il gestore di password",
+    "source": "sha256:4100ca7b229cbe8a2a16c61a7e89731170f4d1dfcf50c60ca456d5b86c1a83f1"
+  },
+  "android.settings.autofill.restart": {
+    "message": "Riavvia Blanc per applicare la modifica",
+    "source": "sha256:5543fb10333442eec51936d21b7267bf0bdfc0adb2d90850f19e2727ac77d16a"
+  },
   "android.settings.openSourceLicenses": {
     "message": "Licenze open source",
     "note": "Android Settings → About: row opening the list of open-source licenses.",
