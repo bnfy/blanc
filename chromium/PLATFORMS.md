@@ -31,6 +31,37 @@ gap with the milestone that closes it. Windows design:
 
 ## Linux
 
+### Ctrl+Tab
+
+At the 158.0.8127.2 pin, X11Window::DispatchUiEvent forwards the translated
+key to the platform window delegate. WaylandEventSource::OnKeyboardKeyEvent
+decodes the compositor's key with the current XKB modifiers and dispatches to
+the keyboard-focused WaylandWindow. Both reach aura's WindowEventDispatcher.
+If the input method handles the event first, WindowTreeHost::DispatchKeyEventPostIME
+redispatches an unconsumed key to the event sink. DesktopEventClient makes
+aura::Env the root window's parent event target. Its system-priority pre-target
+handler sees the key before the focused view and the browser accelerator. The
+first Island installs the handler before any shortcut can reach its window.
+
+The accelerator table binds Ctrl+Tab and Ctrl+Shift+Tab to
+IDC_CYCLE_TO_NEXT_TAB and IDC_CYCLE_TO_PREV_TAB. In fullscreen,
+BrowserCommandController lets the page handle the key first. An unconsumed
+press returns to the window's FocusManager after the renderer responds.
+The Island registers both accelerators at normal priority after BrowserView.
+It forwards the actual accelerator to BrowserView and identifies Ctrl+Tab for
+the duration of that command. With Chromium's `browser.ctrl_tab_mru` at its
+default false, the command calls SelectNextTab or SelectPreviousTab, where
+patch 0088 calls Blanc. X11's
+KeyboardCodeFromXKeysym maps XK_ISO_Left_Tab to VKEY_TAB. On Wayland the
+XKB mapping yields DomKey::TAB and VKEY_TAB. In both cases EF_SHIFT_DOWN
+selects the reverse accelerator. EF_ALTGR_DOWN is a distinct modifier.
+
+X11Window handles FocusOut as a focus change. WaylandKeyboard::OnLeave
+clears keyboard focus, modifiers and repeat. Neither path synthesizes the
+missing key releases for the old window. Both platforms report top-level
+activation changes to the widget, where Blanc cancels the gesture. Real keys
+need confirmation on X11 under Xvfb and on Wayland in the owner's VM.
+
 ### Caption buttons
 
 At Chromium 158.0.8127.2 an Island is a normal browser window. X11 and

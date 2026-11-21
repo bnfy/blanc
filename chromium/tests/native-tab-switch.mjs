@@ -1,6 +1,7 @@
 // F59, Ctrl+Tab by most recent use (shipping's tab-switcher.js and the
 // MRU switcher spec, docs/superpowers/specs/2026-10-24-mru-tab-switcher-design.md).
-// The keys are real NSEvents posted to the app's own queue for its window
+// The keys are NSEvents on Mac and aura KeyEvents on Windows and Linux, posted
+// to the app's own queue for its window
 // (postTabSwitchKey), so Chromium's Select Next Tab command, the fork's
 // TabSwitchCommand and its Control-release watcher all run. Nothing leaves
 // the process. Shipping: nothing changes until Control comes up; the card
@@ -71,11 +72,51 @@ try{
  await key('ctrlUp');await sleep(300);assert.equal(await active(),ids.b,'expected another key to cancel the switch');
  result.checks.push('any other key cancels the switch');
 
+ if (process.platform === 'linux') {
+   const idle = {pick:null, order:null, card:false};
+   await key('altGrTab'); // Includes EF_CONTROL_DOWN as well as EF_ALTGR_DOWN.
+   await sleep(250);
+   assert.deepEqual(await state(), idle);
+   assert.equal(await active(), ids.b);
+   await key('ctrlDown'); await key('tab');
+   await until(state, s => s.pick === ids.c, 'pick before AltGr');
+   await key('altGrTab');
+   await until(state, s => s.pick === null, 'AltGr interrupts an existing Ctrl gesture');
+   await key('ctrlUp'); await sleep(200);
+   assert.equal(await active(), ids.b);
+   result.checks.push('AltGr+Tab leaves the current tab active, including during a switch');
+
+   await key('ctrlDown'); await key('tab');
+   await until(state, s => s.pick === ids.c && s.card, 'card before deactivation');
+   const {targetId} = await f.browser.send('Target.createTarget', {url:f.base+'/focus', newWindow:true});
+   await f.browser.send('Target.activateTarget', {targetId});
+   await until(state, s => s.pick === null && !s.card, 'losing window activation cancels the card');
+   await f.browser.send('Target.closeTarget', {targetId});
+   const original = (await f.targets()).find(t => t.type === 'page' && t.url === f.base+'/b');
+   await f.browser.send('Target.activateTarget', {targetId:original.id});
+   const originalPage = await f.connectTarget(original);
+   await until(() => originalPage.eval('document.hasFocus()'), Boolean, 'original page regains keyboard focus');
+   assert.equal(await active(), ids.b);
+   // No Control up came back to the first window. A fresh gesture starts at c.
+   await key('ctrlDown'); await key('tab');
+   await until(state, s => s.pick === ids.c, 'new first pick after reactivation');
+   await key('escape'); await key('ctrlUp');
+   await until(state, s => s.pick === null && !s.card, 'fresh switch finishes');
+   assert.equal(await active(), ids.b);
+   result.checks.push('deactivation cancels without a key release and the next Ctrl+Tab starts fresh');
+ }
+
  // Ctrl+W closes the picked tab, not the current one, and the pick moves on.
  await key('ctrlDown');await key('tab');await until(state,s=>s.pick===ids.c,'pick before Ctrl+W');
  await key('w');
  await until(order,tabs=>!tabs.includes(ids.c)&&tabs.includes(ids.b)&&tabs.includes(ids.a),'Ctrl+W closes the picked tab only');
  s=await until(state,s=>s.pick===ids.a,'the pick moves to the next older tab');
+ if (process.platform === 'linux') {
+   await key('repeatW');
+   await key('repeatW');
+   // Follow through to release below. Another close would remove a and
+   // make that landing impossible even if its IPC had not completed yet.
+ }
  assert.equal(await active(),ids.b,'expected the current tab kept');
  await key('ctrlUp');await until(active,id=>id===ids.a,'landing on the moved pick');
  result.checks.push('Ctrl+W during a switch closes the picked tab and moves the pick one step older');

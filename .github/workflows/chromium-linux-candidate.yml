@@ -18,7 +18,16 @@ on:
           - candidate
           - smoke
           - frame
+          - keys
           - repo-metadata
+      arch:
+        description: Candidate architecture for the keys check
+        required: false
+        type: choice
+        default: x64
+        options:
+          - x64
+          - arm64
       sha256:
         description: Candidate tarball SHA-256, or approved-packages.json SHA-256 for repo-metadata (omit for fixtures only)
         required: false
@@ -43,7 +52,7 @@ permissions:
 jobs:
   candidate:
     name: candidate (linux x64)
-    if: ${{ inputs.check != 'repo-metadata' && (inputs.check != 'frame' || inputs.suite == 'f0') }}
+    if: ${{ inputs.check != 'keys' && inputs.check != 'repo-metadata' && (inputs.check != 'frame' || inputs.suite == 'f0') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 240
     # Reading the unpublished draft requires write access. Only the download
@@ -224,6 +233,128 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: chromium-linux-frame-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/results
+          if-no-files-found: warn
+          retention-days: 14
+
+  keys:
+    if: ${{ inputs.check == 'keys' }}
+    name: keys (linux ${{ inputs.arch }})
+    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env: *candidate-env
+    steps:
+      - *validate
+      - *checkout
+      - *node
+      - *pins
+      - name: Select the packaged candidate for this architecture
+        env:
+          ARCH: ${{ inputs.arch }}
+        run: |
+          [[ $ARCH == x64 || $ARCH == arm64 ]]
+          echo "ASSET=blanc-linux-$ARCH-candidate.tar.gz" >> "$GITHUB_ENV"
+          echo "APPROVAL=signed-candidate-$ARCH.json" >> "$GITHUB_ENV"
+      - name: Check the keys archive and repository key
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' > "$RUNNER_TEMP/keys-assets" || {
+            echo "Could not read $DRAFT_TAG to check for candidate archive $ASSET." >&2; exit 1;
+          }
+          missing=0
+          if ! grep -Fxq -- "$ASSET" "$RUNNER_TEMP/keys-assets"; then
+            echo "Missing candidate archive $ASSET on $DRAFT_TAG. Build and upload this architecture first." >&2
+            missing=1
+          fi
+          if [[ ! -s chromium/linux/keys/blanc-repository.asc ]]; then
+            echo "Missing chromium/linux/keys/blanc-repository.asc. The keys check needs a packaged candidate built after the owner's repository key is committed." >&2
+            missing=1
+          fi
+          exit "$missing"
+      - *download
+      - *unpack
+      - name: Check the Debian package and signed approval
+        env:
+          ARCH: ${{ inputs.arch }}
+        run: |
+          deb_arch=$ARCH
+          if [[ $ARCH == x64 ]]; then deb_arch=amd64; fi
+          shopt -s nullglob
+          debs=("$CANDIDATE_DIR"/packages/blanc-prototype_*-1_"$deb_arch".deb)
+          [[ ${#debs[@]} == 1 && -f ${debs[0]} ]] || {
+            echo "$ASSET must contain one packages/blanc-prototype_*-1_$deb_arch.deb. Rebuild with the owner's committed repository key." >&2; exit 1;
+          }
+          for name in "$APPROVAL" "$APPROVAL.asc"; do
+            grep -Fxq -- "$name" "$RUNNER_TEMP/keys-assets" || {
+              echo "Missing signed package approval asset $name on $DRAFT_TAG for $ASSET." >&2; exit 1;
+            }
+          done
+      - name: Download the signed package approval
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --dir "$RUNNER_TEMP" \
+            --pattern "$APPROVAL" --pattern "$APPROVAL.asc"
+      - name: Verify and install the approved preview
+        env:
+          ARCH: ${{ inputs.arch }}
+        run: |
+          export GNUPGHOME="$RUNNER_TEMP/keys-gpg"
+          mkdir -m 700 "$GNUPGHOME"
+          gpg --batch --dearmor --output "$GNUPGHOME/public.gpg" chromium/linux/keys/blanc-repository.asc
+          approval="$RUNNER_TEMP/$APPROVAL"
+          gpgv --keyring "$GNUPGHOME/public.gpg" "$approval.asc" "$approval"
+          metadata="$CANDIDATE_DIR/candidate.json"
+          jq -e --arg sha "$CANDIDATE_SHA256" --arg arch "$ARCH" --slurpfile m "$metadata" '
+            .tarSha256 == $sha and .arch == $arch and .arch == $m[0].arch and
+            .candidate == $m[0].id and (.deb.sha256 | test("^[0-9a-f]{64}$"))
+          ' "$approval"
+          file=$(jq -er .deb.file "$approval")
+          name=${file#packages/}
+          [[ $name =~ ^blanc-prototype_[0-9.]+-1_(amd64|arm64)\.deb$ ]]
+          deb="$CANDIDATE_DIR/packages/$name"
+          [[ -f $deb ]] || { echo "Missing approved Debian package packages/$name in $ASSET." >&2; exit 1; }
+          printf '%s  %s\n' "$(jq -er .deb.sha256 "$approval")" "$deb" | sha256sum --check --strict
+          [[ $(dpkg-deb -f "$deb" Package) == blanc-prototype ]]
+          [[ $(dpkg-deb -f "$deb" Architecture) == "$(dpkg --print-architecture)" ]]
+          # The installer stages chrome.stripped. Bind each launch to the
+          # executable in the approved deb, which can differ from the tar's chrome.
+          set -o pipefail
+          exe_sha=$(dpkg-deb --fsys-tarfile "$deb" | tar -xOf - ./opt/bnfy/blanc-prototype/chrome | sha256sum | cut -d' ' -f1)
+          if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
+          sudo apt-get update
+          sudo apt-get install -y "$deb" xvfb xauth openbox xdotool x11-utils
+          jq -e --arg dir '/opt/bnfy/blanc-prototype' --arg exe "$exe_sha" '
+            select(.id == ("linux-" + .arch + "-" + .exeSha256[:16])) |
+            {candidate:.id, executable:($dir + "/chrome"), executableSha256:$exe,
+             singleBinary:true, diskAssets:false, blockerAssets:($dir + "/blanc_blocker")}
+          ' "$metadata" > "$RUNNER_TEMP/keys-config.json"
+      - *dependencies
+      - name: Posted and real Ctrl+Tab gestures on X11
+        run: |
+          xvfb-run -a --server-args='-screen 0 1920x1080x24' bash <<'X11'
+          set -euo pipefail
+          unset WAYLAND_DISPLAY
+          export GDK_BACKEND=x11
+          # Leave Ctrl+Escape to the browser instead of Openbox's window menu.
+          echo '<openbox_config xmlns="http://openbox.org/3.4/rc"><keyboard/></openbox_config>' > "$RUNNER_TEMP/keys-wm.xml"
+          openbox --sm-disable --config-file "$RUNNER_TEMP/keys-wm.xml" > "$RESULTS/openbox.log" 2>&1 &
+          wm=$!
+          trap 'kill "$wm" 2>/dev/null || true; wait "$wm" 2>/dev/null || true' EXIT
+          timeout 15s bash -c 'until xprop -root _NET_SUPPORTING_WM_CHECK | grep -q "window id"; do sleep 0.1; done'
+          result=0
+          node chromium/tests/native-tab-switch.mjs "$RUNNER_TEMP/keys-config.json" "$RESULTS/posted" || result=1
+          node chromium/tests/linux-tab-switch-keys.mjs "$RUNNER_TEMP/keys-config.json" "$RESULTS/real" || result=1
+          exit "$result"
+          X11
+      - name: Keep the key results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chromium-linux-keys-${{ inputs.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/results
           if-no-files-found: warn
           retention-days: 14
