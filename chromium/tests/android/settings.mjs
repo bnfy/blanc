@@ -24,8 +24,8 @@ const ROWS = ['Blanc', 'Browsing', 'Search engine', 'Default browser',
 const BANNED = [/\bChrome\b/, /\bGoogle\b/, /Sign in/, /Safety/, /Homepage/];
 // DuckDuckGo, Google, Bing, Brave Search and Kagi are engine names, not Google wording.
 const ENGINE_NAMES = /^(Google|DuckDuckGo|Bing|Brave Search|Kagi)$/;
-const AUTOFILL_SUMMARY = 'Fills passwords from Bitwarden, Proton Pass, 1Password and other managers you choose in Android. '
-  + "Google Password Manager doesn't fill in Blanc.";
+const AUTOFILL_SUMMARY = 'Lets the password manager you choose in Android, like Bitwarden, Proton Pass or 1Password, '
+  + "fill passwords, addresses and other forms in Blanc. Google Password Manager doesn't fill in Blanc.";
 
 const bounds = (xml, text) => {
   const escaped = text.replace(/&/g, '&amp;').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

@@ -9870,12 +9870,20 @@
     "source": "sha256:de81fec134e9003c5f6758bbe9d1bc03eeeb2610a8ca0f960a732333a07669a6"
   },
   "android.settings.autofill.summary": {
-    "message": "Füllt Passwörter aus Bitwarden, Proton Pass, 1Password und anderen Passwortmanagern aus, die du in Android auswählst. Der Google Passwortmanager kann in Blanc nichts ausfüllen.",
-    "source": "sha256:5fcf0bc856ea86c8e1f56ca6a2eb89e7a9321e10dbd7966f06c15bb3bac098a5"
+    "message": "Der Passwortmanager, den du in Android auswählst (etwa Bitwarden, Proton Pass oder 1Password), kann in Blanc Passwörter und Adressen eintragen und andere Formulare ausfüllen. Der Google Passwortmanager füllt in Blanc keine Formulare aus.",
+    "source": "sha256:31b53716492dd9f65d7ef4ea1437593fd4d21f0ac3cada8d8fcf8f6b7378e281"
+  },
+  "android.settings.autofill.managed": {
+    "message": "Deine Organisation verwaltet diese Einstellung.",
+    "source": "sha256:ffe729844b53b712b64b7ef0e0f62111204900169bb47a35e59f4ad1096b984f"
   },
   "android.settings.autofill.choose": {
     "message": "Passwortmanager auswählen",
     "source": "sha256:4100ca7b229cbe8a2a16c61a7e89731170f4d1dfcf50c60ca456d5b86c1a83f1"
+  },
+  "android.settings.autofill.chooseSummary": {
+    "message": "Wird beim nächsten Start von Blanc wirksam.",
+    "source": "sha256:1a6b58d50536e2a456f657a610b8561561e22cac67a35571f1b79836220cb686"
   },
   "android.settings.autofill.restart": {
     "message": "Starte Blanc neu, um die Änderung zu übernehmen",

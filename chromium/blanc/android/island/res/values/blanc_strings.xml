@@ -234,8 +234,10 @@
     <string name="blanc_android_settings_open_source_licenses">Open-source licenses</string>
     <string name="blanc_ios_settings_about">About</string>
     <string name="blanc_android_settings_autofill_title">Autofill passwords</string>
-    <string name="blanc_android_settings_autofill_summary">Fills passwords from Bitwarden, Proton Pass, 1Password and other managers you choose in Android. Google Password Manager doesn\'t fill in Blanc.</string>
+    <string name="blanc_android_settings_autofill_summary">Lets the password manager you choose in Android, like Bitwarden, Proton Pass or 1Password, fill passwords, addresses and other forms in Blanc. Google Password Manager doesn\'t fill in Blanc.</string>
+    <string name="blanc_android_settings_autofill_managed">Your organization manages this setting.</string>
     <string name="blanc_android_settings_autofill_choose">Choose password manager</string>
+    <string name="blanc_android_settings_autofill_choose_summary">Takes effect the next time Blanc starts.</string>
     <string name="blanc_android_settings_autofill_restart">Restart Blanc to apply</string>
     <string name="blanc_ios_settings_add_site">Add site</string>
     <string name="blanc_ios_settings_blocker">Blanc Blocker</string>

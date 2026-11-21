@@ -76,9 +76,11 @@ public final class BlancSettingsScreen {
         /** Android's browser-role request, or its Default apps screen (DefaultBrowser). */
         void openDefaultBrowser();
 
-        boolean platformAutofillEnabled();
+        boolean platformAutofillAllowed();
 
-        void setPlatformAutofillEnabled(boolean on);
+        boolean platformAutofillRequested();
+
+        void setPlatformAutofillRequested(boolean on);
 
         void openPasswordManagerPicker();
 
@@ -244,18 +246,23 @@ public final class BlancSettingsScreen {
                 break;
             case "blanc_platform_autofill":
                 SwitchPreferenceCompat autofill = (SwitchPreferenceCompat) row;
+                boolean allowed = host.platformAutofillAllowed();
                 autofill.setTitle(R.string.blanc_android_settings_autofill_title);
-                autofill.setSummary(R.string.blanc_android_settings_autofill_summary);
-                autofill.setChecked(host.platformAutofillEnabled());
+                autofill.setSummary(allowed ? R.string.blanc_android_settings_autofill_summary
+                                           : R.string.blanc_android_settings_autofill_managed);
+                autofill.setEnabled(allowed);
+                autofill.setChecked(allowed && host.platformAutofillRequested());
                 autofill.setOnPreferenceChangeListener((p, value) -> {
-                    host.setPlatformAutofillEnabled((Boolean) value);
+                    if (!host.platformAutofillAllowed()) return false;
+                    host.setPlatformAutofillRequested((Boolean) value);
                     Toast.makeText(context, R.string.blanc_android_settings_autofill_restart,
                             Toast.LENGTH_SHORT).show();
                     return true;
                 });
                 break;
             case "blanc_choose_password_manager":
-                action(row, R.string.blanc_android_settings_autofill_choose, 0, host::openPasswordManagerPicker);
+                action(row, R.string.blanc_android_settings_autofill_choose,
+                        R.string.blanc_android_settings_autofill_choose_summary, host::openPasswordManagerPicker);
                 break;
             case "blanc_measure_usage":
                 SwitchPreferenceCompat usage = (SwitchPreferenceCompat) row;

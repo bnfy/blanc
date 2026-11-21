@@ -58,6 +58,7 @@ import java.util.function.Supplier;
 @NullMarked
 final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
     private static final String TAG = "BlancSettings";
+    private static final String PLATFORM_AUTOFILL_REQUESTED = "blanc.autofill.platform_requested";
 
     private final Activity mActivity;
     private final Supplier<@Nullable WindowAndroid> mWindow;
@@ -245,15 +246,20 @@ final class ChromiumSettingsHost implements BlancSettingsScreen.Host {
     }
 
     @Override
-    public boolean platformAutofillEnabled() {
+    public boolean platformAutofillAllowed() {
         return UserPrefs.get(ProfileManager.getLastUsedRegularProfile())
-                .getBoolean(Pref.AUTOFILL_USING_PLATFORM_AUTOFILL);
+                .getBoolean(Pref.AUTOFILL_THIRD_PARTY_PASSWORD_MANAGERS_ALLOWED);
     }
 
     @Override
-    public void setPlatformAutofillEnabled(boolean on) {
+    public boolean platformAutofillRequested() {
+        return UserPrefs.get(ProfileManager.getLastUsedRegularProfile()).getBoolean(PLATFORM_AUTOFILL_REQUESTED);
+    }
+
+    @Override
+    public void setPlatformAutofillRequested(boolean on) {
         PrefService prefs = UserPrefs.get(ProfileManager.getLastUsedRegularProfile());
-        prefs.setBoolean(Pref.AUTOFILL_USING_PLATFORM_AUTOFILL, on);
+        prefs.setBoolean(PLATFORM_AUTOFILL_REQUESTED, on);
         // A matching remembered service takes precedence over the boolean at startup.
         if (!on) {
             prefs.setString(Pref.AUTOFILL_THIRD_PARTY_PACKAGE_USED_FOR_PLATFORM_AUTOFILL, "");

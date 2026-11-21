@@ -10165,13 +10165,23 @@
     "androidOnly": true
   },
   "android.settings.autofill.summary": {
-    "message": "Fills passwords from Bitwarden, Proton Pass, 1Password and other managers you choose in Android. Google Password Manager doesn't fill in Blanc.",
+    "message": "Lets the password manager you choose in Android, like Bitwarden, Proton Pass or 1Password, fill passwords, addresses and other forms in Blanc. Google Password Manager doesn't fill in Blanc.",
     "note": "Text under the autofill switch explaining which Android password managers work in Blanc.",
+    "androidOnly": true
+  },
+  "android.settings.autofill.managed": {
+    "message": "Your organization manages this setting.",
+    "note": "Replaces the switch summary when policy blocks third-party password managers.",
     "androidOnly": true
   },
   "android.settings.autofill.choose": {
     "message": "Choose password manager",
     "note": "Opens the Android settings where the person chooses a password manager.",
+    "androidOnly": true
+  },
+  "android.settings.autofill.chooseSummary": {
+    "message": "Takes effect the next time Blanc starts.",
+    "note": "Shown under Choose password manager. Blanc checks the selected Android service at startup.",
     "androidOnly": true
   },
   "android.settings.autofill.restart": {

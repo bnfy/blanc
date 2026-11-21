@@ -3,32 +3,36 @@ import {readFileSync} from 'node:fs';
 import test from 'node:test';
 import {patchedChromiumFile} from './android-patched-file.mjs';
 
-test('Android enables platform autofill by default', () => {
-  const source = patchedChromiumFile('components/autofill/core/common/autofill_prefs.cc');
-  assert.match(source, /#if BUILDFLAG\(IS_ANDROID\)\s+registry->RegisterBooleanPref\(kAutofillUsingPlatformAutofill, true\);/);
+const registration = patchedChromiumFile('components/autofill/core/common/autofill_prefs.cc');
+const header = patchedChromiumFile('components/autofill/core/common/autofill_prefs.h');
+const provider = patchedChromiumFile('chrome/browser/ui/autofill/autofill_client_provider.cc');
+const settings = new URL('../blanc/android/java/src/org/chromium/blanc/settings/', import.meta.url);
+const host = readFileSync(new URL('chromium/ChromiumSettingsHost.java', settings), 'utf8');
+const screen = readFileSync(new URL('BlancSettingsScreen.java', settings), 'utf8');
+
+test("Chromium's active autofill pref defaults to false", () => {
+  assert.match(registration, /RegisterBooleanPref\(kAutofillUsingPlatformAutofill, false\);/);
 });
 
-test('Android registers the autofill migration marker as false for each profile', () => {
-  const prefs = patchedChromiumFile('components/autofill/core/common/autofill_prefs.cc');
-  assert.ok(/#if BUILDFLAG\(IS_ANDROID\)\s+registry->RegisterBooleanPref\(kAutofillUsingPlatformAutofill, true\);\s+registry->RegisterBooleanPref\(kAutofillPlatformDefaultApplied, false\);/.test(prefs),
-    'the marker defaults to false alongside the Android autofill preference');
-  const header = patchedChromiumFile('components/autofill/core/common/autofill_prefs.h');
-  assert.match(header, /inline constexpr char kAutofillPlatformDefaultApplied\[\] =\s*"blanc\.autofill\.platform_default_applied";/);
+test("Blanc's Android autofill request defaults to true", () => {
+  assert.match(header, /kAutofillPlatformRequested\[\] =\s*"blanc\.autofill\.platform_requested";/);
+  assert.match(registration, /#if BUILDFLAG\(IS_ANDROID\)(?:(?!#endif)[\s\S])*?RegisterBooleanPref\(kAutofillPlatformRequested, true\);/);
 });
 
-test('startup clears the saved autofill choice once before checking availability', () => {
-  const provider = patchedChromiumFile('chrome/browser/ui/autofill/autofill_client_provider.cc');
-  const helper = provider.match(/bool ShouldUsePlatformAutofill\(PrefService& prefs\) \{([\s\S]*?)\n\}/)?.[1];
-  assert.ok(helper, 'startup has a helper for migrating and checking availability');
-  assert.match(helper, /if \(!prefs\.GetBoolean\(prefs::kAutofillPlatformDefaultApplied\)\) \{\s+prefs\.ClearPref\(prefs::kAutofillUsingPlatformAutofill\);\s+prefs\.SetBoolean\(prefs::kAutofillPlatformDefaultApplied, true\);\s+\}\s*#endif[^\n]*\s+return UsesVirtualViewStructureForAutofill\(prefs\);/);
-  assert.match(provider, /: uses_platform_autofill_\(\s*ShouldUsePlatformAutofill\(CHECK_DEREF\(prefs\)\)\)/);
+test('The provider seeds the active pref from the request before checking availability', () => {
+  const helper = provider.match(/bool UsesVirtualViewStructureForAutofill\(PrefService& prefs\) \{([\s\S]*?)\n\}/)[1];
+  assert.match(helper, /prefs\.SetBoolean\(prefs::kAutofillUsingPlatformAutofill,\s*prefs\.GetBoolean\(prefs::kAutofillPlatformRequested\)\);\s*const AndroidAutofillAvailabilityStatus availability =\s*GetAndroidAutofillAvailabilityStatus\(prefs\);/);
+  assert.match(provider, /: uses_platform_autofill_\(\s*UsesVirtualViewStructureForAutofill\(CHECK_DEREF\(prefs\)\)\)/);
 });
 
-test('startup writes the platform autofill preference only when the service is available', () => {
-  const source = patchedChromiumFile('chrome/browser/ui/autofill/autofill_client_provider.cc');
-  const write = /prefs->SetBoolean\(\s*prefs::kAutofillUsingPlatformAutofill,/g;
-  assert.equal([...source.matchAll(write)].length, 1);
-  assert.match(source, /if \(uses_platform_autofill_\) \{\s+prefs->SetBoolean\(prefs::kAutofillUsingPlatformAutofill,\s*true\);/);
+test('The provider always writes the selected client back to the active pref', () => {
+  assert.match(provider, /RecordWhetherAndroidPrefResets\(\*prefs, uses_platform_autofill_\);\s*(?:\/\/[^\n]*\s*)*prefs->SetBoolean\(prefs::kAutofillUsingPlatformAutofill,\s*uses_platform_autofill_\);\s*if \(uses_platform_autofill_\)/);
+});
+
+test('The one-time autofill migration is gone', () => {
+  for (const source of [header, registration, provider]) {
+    assert.doesNotMatch(source, /kAutofillPlatformDefaultApplied|blanc\.autofill\.platform_default_applied|ClearPref\(prefs::kAutofillUsingPlatformAutofill\)/);
+  }
 });
 
 test('Browsing lists the autofill switch and password manager picker after Default browser', () => {
@@ -40,10 +44,18 @@ test('Browsing lists the autofill switch and password manager picker after Defau
   ]);
 });
 
-test('turning autofill off forgets the service that could turn it back on at startup', () => {
-  const host = readFileSync(new URL('../blanc/android/java/src/org/chromium/blanc/settings/chromium/ChromiumSettingsHost.java', import.meta.url), 'utf8');
-  const setter = host.match(/public void setPlatformAutofillEnabled\(boolean on\) \{([\s\S]*?)\n    \}/)?.[1];
-  assert.ok(setter, 'Settings writes the profile preference');
-  assert.match(setter, /prefs\.setBoolean\(Pref\.AUTOFILL_USING_PLATFORM_AUTOFILL, on\);/);
-  assert.match(setter, /if \(!on\) \{\s+prefs\.setString\(Pref\.AUTOFILL_THIRD_PARTY_PACKAGE_USED_FOR_PLATFORM_AUTOFILL, ""\);/);
+test("Settings reads and writes the person's autofill request", () => {
+  assert.match(host, /PLATFORM_AUTOFILL_REQUESTED\s*=\s*"blanc\.autofill\.platform_requested";/);
+  assert.match(host, /\.getBoolean\(PLATFORM_AUTOFILL_REQUESTED\)/);
+  assert.match(host, /prefs\.setBoolean\(PLATFORM_AUTOFILL_REQUESTED, on\);/);
+  assert.doesNotMatch(host, /Pref\.AUTOFILL_USING_PLATFORM_AUTOFILL/);
+  assert.match(host, /if \(!on\) \{\s+prefs\.setString\(Pref\.AUTOFILL_THIRD_PARTY_PACKAGE_USED_FOR_PLATFORM_AUTOFILL, ""\);/);
+});
+
+test('Settings shows autofill off and disabled when policy blocks it', () => {
+  assert.match(host, /boolean platformAutofillAllowed\(\) \{\s*return UserPrefs\.get\(ProfileManager\.getLastUsedRegularProfile\(\)\)\s*\.getBoolean\(Pref\.AUTOFILL_THIRD_PARTY_PASSWORD_MANAGERS_ALLOWED\);/);
+  assert.match(screen, /boolean allowed = host\.platformAutofillAllowed\(\);/);
+  assert.match(screen, /autofill\.setEnabled\(allowed\);/);
+  assert.match(screen, /autofill\.setChecked\(allowed && host\.platformAutofillRequested\(\)\);/);
+  assert.match(screen, /if \(!host\.platformAutofillAllowed\(\)\) return false;\s*host\.setPlatformAutofillRequested\(/);
 });

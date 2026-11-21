@@ -50,7 +50,8 @@ public class BlancSettingsScreenTest {
     private String mPosition = "bottom";
     private boolean mBlocker = true;
     private Boolean mDefault = false;
-    private boolean mAutofill = true;
+    private boolean mAutofillRequested = true;
+    private boolean mAutofillAllowed = true;
     private boolean mUsage;
 
     private final BlancSettingsScreen.Host mHost = new BlancSettingsScreen.Host() {
@@ -75,8 +76,9 @@ public class BlancSettingsScreenTest {
         @Override public void openStartPage() { mCalls.add("start page"); }
         @Override public Boolean defaultBrowser() { return mDefault; }
         @Override public void openDefaultBrowser() { mCalls.add("default browser"); }
-        @Override public boolean platformAutofillEnabled() { return mAutofill; }
-        @Override public void setPlatformAutofillEnabled(boolean on) { mAutofill = on; }
+        @Override public boolean platformAutofillAllowed() { return mAutofillAllowed; }
+        @Override public boolean platformAutofillRequested() { return mAutofillRequested; }
+        @Override public void setPlatformAutofillRequested(boolean on) { mAutofillRequested = on; }
         @Override public void openPasswordManagerPicker() { mCalls.add("password manager"); }
         @Override public boolean usagePing() { return mUsage; }
         @Override public void setUsagePing(boolean on) { mUsage = on; mCalls.add("usage " + on); }
@@ -235,9 +237,45 @@ public class BlancSettingsScreenTest {
     }
 
     @Test
+    public void autofillShowsTheSavedRequestAndWritesChanges() {
+        BlancSettingsScreen.apply(mScreen, mHost);
+        SwitchPreferenceCompat autofill = (SwitchPreferenceCompat) row("blanc_platform_autofill");
+        assertTrue(autofill.isChecked());
+        assertTrue(autofill.isEnabled());
+        assertTrue(autofill.callChangeListener(false));
+        assertFalse(mAutofillRequested);
+        BlancSettingsScreen.apply(mScreen, mHost);
+        assertFalse(autofill.isChecked());
+        assertTrue(autofill.callChangeListener(true));
+        assertTrue(mAutofillRequested);
+    }
+
+    @Test
+    public void policyDisablesAutofillAndPreservesTheRequestWhenLifted() {
+        BlancSettingsScreen.apply(mScreen, mHost);
+        SwitchPreferenceCompat autofill = (SwitchPreferenceCompat) row("blanc_platform_autofill");
+        CharSequence summary = autofill.getSummary();
+        mAutofillAllowed = false;
+        // Policy can change after the row is drawn and before the person taps it.
+        assertFalse(autofill.callChangeListener(false));
+        BlancSettingsScreen.apply(mScreen, mHost);
+        assertFalse(autofill.isEnabled());
+        assertFalse(autofill.isChecked());
+        assertEquals("Your organization manages this setting.", autofill.getSummary().toString());
+        assertTrue(mAutofillRequested);
+        mAutofillAllowed = true;
+        BlancSettingsScreen.apply(mScreen, mHost);
+        assertTrue(autofill.isEnabled());
+        assertTrue(autofill.isChecked());
+        assertEquals(summary, autofill.getSummary());
+    }
+
+    @Test
     public void allowedSitesAndClearSiteDataAndTheAboutRowsRunTheirActions() {
         BlancSettingsScreen.apply(mScreen, mHost);
-        row("blanc_choose_password_manager").performClick();
+        Preference picker = row("blanc_choose_password_manager");
+        assertEquals("Takes effect the next time Blanc starts.", picker.getSummary().toString());
+        picker.performClick();
         row("blanc_allowed_sites").performClick();
         row("blanc_clear_site_data").performClick();
         row("blanc_website").performClick();
