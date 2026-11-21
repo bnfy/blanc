@@ -117,11 +117,13 @@ in the lane file in its place. Numbering starts at 0101.
   WebView link menus offer Open in private tab only when the tab is supported
   and opens in the same window. Custom Tabs omit the private handoff because
   Blanc closes every private tab on a cold start, including one just requested.
-  When Blanc is the default browser, a Custom Tab offers **Open in new tab in
-  Blanc** only when regular and private tabs share a window. The regular
-  handoff sends a view intent to the browser. If the only window is private,
-  Chromium can open a second window for the regular tab. All menu modes omit
-  window actions because Blanc's Spaces controller is shared across the process.
+  One guard covers all browser handoffs. It hides a web app's **Open in Blanc**
+  and a Custom Tab's **Open in new tab in Blanc** when private tabs use a
+  separate window, because opening a regular tab could create a second Blanc
+  window. When another browser is the default, the Custom Tab can still offer
+  that browser for eligible links. It omits the action for `data:` links
+  because Chromium would send them back to Blanc. All menu modes omit window
+  actions because Blanc's Spaces controller is shared across the process.
   The remaining private tab and Open in Blanc titles use Blanc's string
   resources and fall back to English. Regional Chromium overlays still supply
   the Safety Hub summary where Android prefers a regional translation.

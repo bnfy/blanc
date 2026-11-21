@@ -264,20 +264,52 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
              groupedItems.add(imageGroup);
          }
  
-@@ -940,10 +858,9 @@
-                             !UrlUtilities.isInternalScheme(mParams.getUrl())
-                                     && !isEmptyUrl(mParams.getUrl());
-                     if (isDefaultBrowser() && addNewEntries) {
+@@ -934,18 +852,15 @@
+                                             : groupedItems.size() - 1);
+             if (UrlUtilities.isAcceptedScheme(mParams.getUrl())) {
+                 if (mMode == ContextMenuMode.WEB_APP) {
+-                    items.add(createListItem(Item.OPEN_IN_CHROME));
+-                } else if (mMode == ContextMenuMode.CUSTOM_TAB && !mItemDelegate.isIncognito()) {
+-                    boolean addNewEntries =
+-                            !UrlUtilities.isInternalScheme(mParams.getUrl())
+-                                    && !isEmptyUrl(mParams.getUrl());
+-                    if (isDefaultBrowser() && addNewEntries) {
 -                        if (mItemDelegate.isIncognitoSupported()) {
 -                            items.add(0, createListItem(Item.OPEN_IN_CHROME_INCOGNITO_TAB));
-+                        if (!shouldOpenIncognitoAsWindow()) {
-+                            items.add(0, createListItem(Item.OPEN_IN_NEW_CHROME_TAB));
-                         }
+-                        }
 -                        items.add(0, createListItem(Item.OPEN_IN_NEW_CHROME_TAB));
-                     } else if (addNewEntries && UrlUtilities.isAcceptedScheme(mParams.getUrl())) {
-                         items.add(0, createListItem(Item.OPEN_IN_BROWSER_ID));
+-                    } else if (addNewEntries && UrlUtilities.isAcceptedScheme(mParams.getUrl())) {
+-                        items.add(0, createListItem(Item.OPEN_IN_BROWSER_ID));
++                    addBrowserHandoffItem(items, items.size(), Item.OPEN_IN_CHROME);
++                } else if (mMode == ContextMenuMode.CUSTOM_TAB
++                        && !mItemDelegate.isIncognito()
++                        && !UrlUtilities.isInternalScheme(mParams.getUrl())
++                        && !isEmptyUrl(mParams.getUrl())) {
++                    if (isDefaultBrowser()) {
++                        addBrowserHandoffItem(items, 0, Item.OPEN_IN_NEW_CHROME_TAB);
++                    } else {
++                        addBrowserHandoffItem(items, 0, Item.OPEN_IN_BROWSER_ID);
                      }
-@@ -1811,11 +1728,6 @@
+                 }
+             }
+@@ -979,6 +894,16 @@
+         return groupedItems;
+     }
+ 
++    private void addBrowserHandoffItem(ModelList items, int index, @Item int item) {
++        if (item == Item.OPEN_IN_BROWSER_ID) {
++            // onOpenInDefaultBrowser() sends data: links back to Blanc.
++            if (mParams.getUrl().getScheme().equals(UrlConstants.DATA_SCHEME)) return;
++        } else if (shouldOpenIncognitoAsWindow()) {
++            return;
++        }
++        items.add(index, createListItem(item));
++    }
++
+     @Override
+     public boolean isIncognito() {
+         return mItemDelegate.isIncognito();
+@@ -1811,11 +1736,6 @@
          return title;
      }
  
@@ -289,7 +321,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/contextmenu/Chro
      /**
       * Record a boolean UKM if the lens feature is enabled.
       *
-@@ -1837,21 +1749,6 @@
+@@ -1837,21 +1757,6 @@
              return mItemDelegate.supportsSaveImage();
          }
          return true;

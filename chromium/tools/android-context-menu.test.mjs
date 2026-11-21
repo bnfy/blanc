@@ -11,6 +11,7 @@ const menuItem = patchedChromiumFile(
   'chrome/android/java/src/org/chromium/chrome/browser/contextmenu/ChromeContextMenuItem.java');
 const menu = populator.match(/public List<ModelList> buildContextMenu\(\) \{([\s\S]*?)\n    \}/)[1];
 const itemNames = Array.from(menu.matchAll(/\bItem\.([A-Z_]+)/g), match => match[1]);
+const handoffGuard = populator.match(/private void addBrowserHandoffItem\([^)]+\) \{([\s\S]*?)\n    \}/)?.[1] ?? '';
 const overrideXml = directory =>
   read(`../blanc/android/res_chromium_strings/${directory}/blanc_chromium_strings.xml`);
 
@@ -56,13 +57,29 @@ test('no menu mode offers a window action', async t => {
       name.endsWith('_WINDOW') || name === 'OPEN_IN_CHROME_INCOGNITO_TAB'), []);
   });
 
-  await t.test('Custom Tabs offer the regular handoff only when private tabs share the window', () => {
-    const customTab = menu.match(/else if \(mMode == ContextMenuMode\.CUSTOM_TAB && !mItemDelegate\.isIncognito\(\)\) \{([\s\S]*?)\n                \}/)[1];
+  await t.test('web apps append Open in Blanc through the handoff guard', () => {
+    assert.ok(/if \(mMode == ContextMenuMode\.WEB_APP\) \{\s*addBrowserHandoffItem\(items, items\.size\(\), Item\.OPEN_IN_CHROME\);/.test(menu));
+  });
+
+  await t.test('Custom Tabs offer exactly one destination according to the default browser', () => {
+    const customTab = menu.match(/else if \(mMode == ContextMenuMode\.CUSTOM_TAB\b([\s\S]*?)\n                \}/)[1];
     assert.ok(customTab.replace(/\s+/g, '').includes(
-      'if(isDefaultBrowser()&&addNewEntries){if(!shouldOpenIncognitoAsWindow()){'
-      + 'items.add(0,createListItem(Item.OPEN_IN_NEW_CHROME_TAB));}}elseif('),
-    'the default browser must guard its regular handoff without falling through to Open in browser');
-    assert.equal(itemNames.filter(name => name === 'OPEN_IN_NEW_CHROME_TAB').length, 1);
+      '&&!mItemDelegate.isIncognito()&&!UrlUtilities.isInternalScheme(mParams.getUrl())&&!isEmptyUrl(mParams.getUrl())){'
+      + 'if(isDefaultBrowser()){addBrowserHandoffItem(items,0,Item.OPEN_IN_NEW_CHROME_TAB);}'
+      + 'else{addBrowserHandoffItem(items,0,Item.OPEN_IN_BROWSER_ID);}'));
+  });
+
+  await t.test('the default-browser action excludes data links even when Blanc shares a window', () => {
+    const guard = handoffGuard.replace(/\/\/[^\n]*/g, '').trim();
+    assert.match(guard, /^if \(item == Item\.OPEN_IN_BROWSER_ID\) \{\s*if \(mParams\.getUrl\(\)\.getScheme\(\)\.equals\(UrlConstants\.DATA_SCHEME\)\) return;\s*\} else/);
+  });
+
+  await t.test('every browser handoff ID goes through one guard before insertion', () => {
+    const ids = ['OPEN_IN_CHROME', 'OPEN_IN_NEW_CHROME_TAB', 'OPEN_IN_BROWSER_ID'];
+    const guarded = Array.from(menu.matchAll(/addBrowserHandoffItem\(items, [^,]+, Item\.(\w+)\);/g), match => match[1]);
+    assert.deepEqual(guarded, ids);
+    assert.deepEqual(itemNames.filter(name => ids.includes(name)), guarded);
+    assert.match(handoffGuard, /else if \(shouldOpenIncognitoAsWindow\(\)\) \{\s*return;\s*\}\s*items\.add\(index, createListItem\(item\)\);\s*$/);
   });
 });
 
