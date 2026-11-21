@@ -30,6 +30,8 @@ runner, a frame check and an install check on Ubuntu, Debian and Fedora.
 **Review:** Codex reviewed this plan on 2026-11-21 (13 findings: 6 blockers, 5 errors, 2 gaps); all
 are folded in below.
 
+**Approved by the owner on 2026-11-21**, with the decisions below.
+
 ## Decisions this plan asks the owner for (approving the plan approves them)
 
 1. **The arm64 build:** fetching Chromium's Debian arm64 sysroot into the shared checkout

@@ -27,6 +27,8 @@ install check passes, then the installed one.
 **Review:** Codex reviewed this plan on 2026-11-21 (10 findings: 3 blockers, 5 errors, 2 gaps); all
 are folded in below.
 
+**Approved by the owner on 2026-11-21**, with the decisions below.
+
 ## Decisions this plan asks the owner for (approving the plan approves them)
 
 1. **The owner-decision exclusions apply on Linux** exactly as on Windows (`windows-fork-exclusions.mjs`,

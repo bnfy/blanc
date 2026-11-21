@@ -29,6 +29,8 @@ Docker `debian:12` and current Fedora), Sigstore (`cosign`) as for every Blanc r
 [L2](2026-11-21-linux-fork-l2.md)'s gate. Tasks 1 to 4 can start once L1's Task 4 is on `chromium/next`;
 Task 7 onward needs both gates.
 
+**Approved by the owner on 2026-11-21**, with the decisions below.
+
 ## Decisions this plan asks the owner for (approving the plan approves them)
 
 1. **Two official cold builds and their incremental rebuilds:** `out/BlancLinuxBeta` (x64) and
