@@ -27,11 +27,18 @@ test('Island bars swap every Chromium product icon for the Sunrise, dark mode\'s
 
 test('a bar\'s prominent button takes the Sunrise accent in light and dark', () => {
   const view = added('0085-blanc-infobar-band.patch', 'chrome/browser/ui/views/infobars/infobar_view.cc');
-  assert.match(view, /views::AsViewClass<views::MdTextButton>/);
-  assert.match(view, /ui::ButtonStyle::kProminent/);
-  assert.match(view, /SkColorSetRGB\(0x80, 0x5d, 0x28\)/);
-  assert.match(view, /SkColorSetRGB\(0xd4, 0xad, 0x66\)/);
-  assert.match(view, /SkColorSetRGB\(0x17, 0x13, 0x0f\)/);
+  const start = view.indexOf('views::AsViewClass<views::MdTextButton>');
+  assert.ok(start >= 0, 'the prominent-button branch');
+  const branch = view.slice(start, view.indexOf('continue;', start) + 'continue;'.length);
+  assert.match(branch, /ui::ButtonStyle::kProminent/);
+  // A dark bar takes the light gold, a light bar the deep brown.
+  assert.match(branch, /dark \? SkColorSetRGB\(0xd4, 0xad, 0x66\)\s*:\s*SkColorSetRGB\(0x80, 0x5d, 0x28\)/);
+  // Kept visible against the bar's own color (a site's color can be gold too).
+  assert.match(branch, /color_utils::BlendForMinContrast\([\s\S]*style->background[\s\S]*3\.0f\)/);
+  // The label follows the fill: white on a dark fill, ink on a light one.
+  assert.match(branch, /color_utils::IsDark\(fill\) \? SK_ColorWHITE : SkColorSetRGB\(0x17, 0x13, 0x0f\)/);
+  // The walk stops at the button, so the bar's ink never reaches its label.
+  assert.ok(branch.endsWith('continue;'), 'the branch ends the walk at the button');
 });
 
 test('the Windows pin bar names the channel', () => {

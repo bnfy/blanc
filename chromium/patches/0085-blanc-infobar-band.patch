@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/ui/views/infobars/infobar_view.cc b/chrome/browser/ui/views/infobars/infobar_view.cc
-index 587a396..8dce516 100644
+index 587a396..62de309 100644
 --- a/chrome/browser/ui/views/infobars/infobar_view.cc
 +++ b/chrome/browser/ui/views/infobars/infobar_view.cc
 @@ -32,6 +32,7 @@
@@ -23,7 +23,7 @@ index 587a396..8dce516 100644
  template <typename T>
  void InfoBarView::AssignLabelDetails(T* view) const {
    view->SizeToPreferredSize();
-@@ -292,6 +299,59 @@ void InfoBarView::OnThemeChanged() {
+@@ -292,6 +299,61 @@ void InfoBarView::OnThemeChanged() {
    if (icon_) {
      icon_->SetImage(delegate()->GetIcon());
    }
@@ -45,10 +45,12 @@ index 587a396..8dce516 100644
 +      if (auto* button = views::AsViewClass<views::MdTextButton>(view);
 +          button && button->GetStyle() == ui::ButtonStyle::kProminent) {
 +        const bool dark = color_utils::IsDark(style->background);
-+        button->SetBgColorOverrideDeprecated(
-+            dark ? SkColorSetRGB(0xd4, 0xad, 0x66) : SkColorSetRGB(0x80, 0x5d, 0x28));
++        const SkColor fill = color_utils::BlendForMinContrast(
++            dark ? SkColorSetRGB(0xd4, 0xad, 0x66) : SkColorSetRGB(0x80, 0x5d, 0x28),
++            style->background, std::nullopt, 3.0f).color;
++        button->SetBgColorOverrideDeprecated(fill);
 +        button->SetEnabledTextColors(
-+            dark ? SkColorSetRGB(0x17, 0x13, 0x0f) : SK_ColorWHITE);
++            color_utils::IsDark(fill) ? SK_ColorWHITE : SkColorSetRGB(0x17, 0x13, 0x0f));
 +        continue;
 +      }
 +      if (auto* link = views::AsViewClass<views::Link>(view)) {

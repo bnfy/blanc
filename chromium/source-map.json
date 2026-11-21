@@ -996,7 +996,7 @@
     "chrome/browser/ui/views/frame/browser_view.cc": "e742fca8b5cd881bbc52d9ef9026fb3ff842af063e1a7217c0c4e68547199c0b",
     "chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc": "b66317478418c122ffa49d70afbef5a052849c2cd463f6dc7a916c0ea8194d1f",
     "chrome/browser/ui/views/frame/multi_contents_view.cc": "de88b509d33ea23f09ed49269b59f42f6a13b6d812a60d91d888cad848c74786",
-    "chrome/browser/ui/views/infobars/infobar_view.cc": "49c23462b0f334649b93ee13e5a507c4d8f0bea5c7a661660e8fe5c3152ffb42",
+    "chrome/browser/ui/views/infobars/infobar_view.cc": "fa086175cc2597d2dbc4666d67768ffb63e021c749343bafbd1f05f449fc6b3c",
     "chrome/browser/ui/views/permissions/permission_prompt_factory.cc": "260aaa10d7ba6758666adfa24cbe64d8ea38dea2161f06e3d8137c078a45c7d2",
     "chrome/browser/ui/views/session_crashed_bubble_view.cc": "3bca964638d012e88afcdf75ee53fc64d7ddaf9c260eecf2a1b3fb041bce5e63",
     "chrome/browser/ui/views/toolbar/app_menu.cc": "01f943cd9e3b715adc37977273dfdee1e8878fe5d5b295283cbe1bdfe8145b0c",
