@@ -84,9 +84,14 @@ export function keepAwake(pid=process.pid,platform=process.platform){
  spawn('/usr/bin/caffeinate',['-d','-i','-w',String(pid)],{stdio:'ignore'}).unref();
  return true;
 }
-// The candidate under test is its executable plus its main library: the
-// framework on the Mac, chrome.dll on Windows. Exactly one of the two.
+// Linux identifies chrome itself. Mac and Windows also hash their main library.
 export function candidateIdentityFiles(config){
+ if(config.singleBinary===true){
+  if(!config.executable||!config.executableSha256||config.framework!==undefined||config.dll!==undefined||
+     config.frameworkSha256!==undefined||config.dllSha256!==undefined)
+   throw Error('Single-binary candidate identity needs only an executable and its SHA-256');
+  return [[config.executable,config.executableSha256]];
+ }
  const library=config.framework!==undefined?['framework','frameworkSha256']:['dll','dllSha256'];
  if((config.framework!==undefined)===(config.dll!==undefined)||!config.executable||!config.executableSha256||!config[library[0]]||!config[library[1]])
   throw Error('Candidate identity needs an executable and either a framework or a dll, each with its SHA-256');
@@ -94,6 +99,7 @@ export function candidateIdentityFiles(config){
 }
 export function candidateIdentity(config){
  candidateIdentityFiles(config);
+ if(config.singleBinary===true)return {id:config.candidate,executableSha256:config.executableSha256,singleBinary:true};
  return config.framework!==undefined
   ?{id:config.candidate,frameworkSha256:config.frameworkSha256,executableSha256:config.executableSha256}
   :{id:config.candidate,dllSha256:config.dllSha256,executableSha256:config.executableSha256};

@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { candidateId as linuxCandidateId } from '../linux/candidate.mjs';
 
 const desktopPlatforms = [['macos', 'macOS'], ['windows', 'Windows'], ['linux', 'Linux']];
 // Android is the companion lane: it has its own Bar B column, and Bar A counts
@@ -37,7 +38,8 @@ export function renderProgress(tracker, loadBaseline = () => null) {
     const baseline = ref ? loadBaseline(ref) : null;
     let status = `Not run (${caseTotal} cases)`;
     if (baseline) {
-      if (baseline.candidate !== candidate?.id || baseline.platform !== p || baseline.shippingCommit !== tracker.shippingCommit || (candidate?.frameworkSha256 && baseline.candidateIdentity?.frameworkSha256 !== candidate.frameworkSha256) || (candidate?.executableSha256 && baseline.candidateIdentity?.executableSha256 !== candidate.executableSha256)) {
+      const executableSha256 = p === 'linux' ? candidate?.exeSha256 : candidate?.executableSha256;
+      if (baseline.candidate !== candidate?.id || baseline.platform !== p || baseline.shippingCommit !== tracker.shippingCommit || (candidate?.frameworkSha256 && baseline.candidateIdentity?.frameworkSha256 !== candidate.frameworkSha256) || (executableSha256 && baseline.candidateIdentity?.executableSha256 !== executableSha256)) {
         status = 'Not run for current candidate (previous baseline is stale)';
       } else {
         if (baseline.developmentSubset) throw Error('A development subset run is not a baseline');
@@ -101,12 +103,20 @@ export function windowsCandidate(record) {
   return { id: record.id, exeSha256: record.exeSha256, dllSha256: record.dllSha256, version: record.version, treeCommit: record.treeCommit,
     qualification: 'cross-compiled candidate; runtime acceptance pending' };
 }
+export function linuxCandidate(record) {
+  for (const key of ['id', 'exeSha256', 'version', 'treeCommit']) {
+    if (typeof record?.[key] !== 'string' || !record[key]) throw Error(`Linux candidate record has no ${key}`);
+  }
+  if (record.id !== linuxCandidateId(record.exeSha256)) throw Error('Linux candidate id does not match its chrome hash');
+  return { id: record.id, exeSha256: record.exeSha256, version: record.version, treeCommit: record.treeCommit,
+    qualification: 'compiled candidate; runtime acceptance pending' };
+}
 function main() {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const trackerFile = path.join(root, 'tracker.json');
   const statusFile = path.join(root, 'STATUS.md');
   const args = process.argv.slice(2);
-  const updates = ['--candidate-from-output=', '--windows-candidate=', '--slice-boundary='];
+  const updates = ['--candidate-from-output=', '--windows-candidate=', '--linux-candidate=', '--slice-boundary='];
   if (args.some(a => a !== '--check' && !updates.some(u => a.startsWith(u)))) throw Error('Unknown argument');
   if (args.includes('--check') && args.some(a => updates.some(u => a.startsWith(u)))) throw Error('Check cannot update candidate');
   const tracker = JSON.parse(fs.readFileSync(trackerFile));
@@ -131,6 +141,11 @@ function main() {
   const windowsRecord = args.find(a => a.startsWith('--windows-candidate='))?.slice('--windows-candidate='.length);
   if (windowsRecord) {
     tracker.currentCandidates.windows = windowsCandidate(JSON.parse(fs.readFileSync(windowsRecord)));
+    fs.writeFileSync(trackerFile, trackerText(tracker));
+  }
+  const linuxRecord = args.find(a => a.startsWith('--linux-candidate='))?.slice('--linux-candidate='.length);
+  if (linuxRecord) {
+    tracker.currentCandidates.linux = linuxCandidate(JSON.parse(fs.readFileSync(linuxRecord)));
     fs.writeFileSync(trackerFile, trackerText(tracker));
   }
   const generated = renderProgress(tracker, ref => JSON.parse(fs.readFileSync(path.resolve(root, ref))));

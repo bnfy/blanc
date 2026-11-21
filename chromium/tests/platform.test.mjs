@@ -43,6 +43,15 @@ test('a candidate is identified by its executable and its main library', () => {
     {executable: '/a', executableSha256: 'e', dll: '/d'}, {executable: '/a', executableSha256: 'e', framework: '/f', frameworkSha256: 'f', dll: '/d', dllSha256: 'd'}])
     assert.throws(() => candidateIdentityFiles(bad), /identity/);
 });
+test('single-binary identity requires only the executable and its hash', () => {
+  const config = { candidate: 'linux-x64-abababababababab', executable: '/b/chrome', executableSha256: 'ab'.repeat(32), singleBinary: true };
+  assert.deepEqual(candidateIdentityFiles(config), [[config.executable, config.executableSha256]]);
+  assert.deepEqual(candidateIdentity(config), { id: config.candidate, executableSha256: config.executableSha256, singleBinary: true });
+  for (const change of [{ singleBinary: undefined }, { singleBinary: 'true' }, { executableSha256: undefined },
+    { dll: '/b/chrome.dll' }, { framework: '/b/Framework' }]) {
+    assert.throws(() => candidateIdentityFiles({ ...config, ...change }), /identity/);
+  }
+});
 test('free memory off the Mac reads in the same form the guard parses', () => {
   assert.equal(freePercent(freeMemoryText('win32', {free: 6, total: 16})), 38);
   assert.equal(freePercent(freeMemoryText('win32', {free: 0, total: 16})), 0);

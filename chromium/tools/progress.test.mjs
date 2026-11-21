@@ -115,3 +115,24 @@ test('the tracker is written ASCII-only, byte for byte as it is kept', () => {
   const file = new URL('../tracker.json', import.meta.url);
   assert.equal(trackerText(JSON.parse(fs.readFileSync(file, 'utf8'))), fs.readFileSync(file, 'utf8'));
 });
+
+test('Linux tracker records require an ID derived from chrome', async () => {
+  const { linuxCandidate } = await import('./progress.mjs');
+  const record = { id: 'linux-x64-abababababababab', exeSha256: 'ab'.repeat(32), version: '158.0.8127.2', treeCommit: 'f'.repeat(40) };
+  const tracked = linuxCandidate({ ...record, files: 17 });
+  for (const [key, value] of Object.entries(record)) assert.equal(tracked[key], value);
+  assert.equal(tracked.files, undefined);
+  for (const id of ['windows-x64-abababababababab', 'linux-x64-0000000000000000']) {
+    assert.throws(() => linuxCandidate({ ...record, id }), /does not match/);
+  }
+  for (const key of Object.keys(record)) assert.throws(() => linuxCandidate({ ...record, [key]: undefined }));
+});
+
+test('a stale Linux executable hash invalidates baseline credit', () => {
+  const t = tracker();
+  t.currentCandidates.linux = { id: 'linux-x64-abababababababab', exeSha256: 'ab'.repeat(32) };
+  t.baselines.linux = 'linux.json';
+  const baseline = { platform: 'linux', shippingCommit: t.shippingCommit, candidate: t.currentCandidates.linux.id,
+    candidateIdentity: { id: t.currentCandidates.linux.id, executableSha256: 'ab'.repeat(8) + 'cd'.repeat(24), singleBinary: true }, scenarios: [] };
+  assert.match(renderProgress(t, () => baseline), /Linux \| Not run for current candidate \(previous baseline is stale\)/);
+});
