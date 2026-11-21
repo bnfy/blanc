@@ -2736,7 +2736,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="ios_island_close_private_tab">Chiudi scheda privata</string>
     <string name="ios_island_page_actions">Azioni della pagina</string>
     <string name="ios_island_collapse">Comprimi l’Island</string>
-    <string name="ios_palette_placeholder">Cerca, inserisci un indirizzo o un /comando</string>
+    <string name="ios_palette_placeholder">Cerca, inserisci un URL o / per i comandi</string>
     <string name="ios_palette_clear">Cancella la ricerca</string>
     <string name="ios_palette_no_command">Nessun comando corrispondente</string>
     <string name="ios_palette_no_matches">Nessun risultato. Premi Invio per aprirlo come indirizzo o ricerca.</string>

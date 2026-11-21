@@ -108398,37 +108398,37 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search, enter address, or / command"
+            "value": "Search, enter URL or / for commands"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Suchen, Adresse oder /Befehl eingeben"
+            "value": "Suchen, URL eingeben oder / für Befehle"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Busca, escribe una dirección o un /comando"
+            "value": "Busca, escribe una URL o / para comandos"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rechercher, saisir une adresse ou une /commande"
+            "value": "Rechercher, saisir une URL ou / pour les commandes"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cerca, inserisci un indirizzo o un /comando"
+            "value": "Cerca, inserisci un URL o / per i comandi"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pesquise, digite um endereço ou um /comando"
+            "value": "Pesquise, digite uma URL ou / para comandos"
           }
         }
       }

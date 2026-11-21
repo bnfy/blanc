@@ -2736,7 +2736,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="ios_island_close_private_tab">Fermer l’onglet privé</string>
     <string name="ios_island_page_actions">Actions de la page</string>
     <string name="ios_island_collapse">Réduire l’Island</string>
-    <string name="ios_palette_placeholder">Rechercher, saisir une adresse ou une /commande</string>
+    <string name="ios_palette_placeholder">Rechercher, saisir une URL ou / pour les commandes</string>
     <string name="ios_palette_clear">Effacer la recherche</string>
     <string name="ios_palette_no_command">Aucune commande correspondante</string>
     <string name="ios_palette_no_matches">Aucun résultat. Appuyez sur Retour pour l’ouvrir comme adresse ou recherche.</string>

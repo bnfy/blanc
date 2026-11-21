@@ -50,18 +50,33 @@ final class IslandPanelUITests: XCTestCase {
     }
 
 
-    /// Copy Link is a small button in the search row, not a row of its own;
-    /// it steps aside while there's text, and a tap copies and closes.
-    func testTheCopyButtonSitsInTheSearchRow() {
+    /// The page's whole address is a pill at the start of the search row
+    /// (no search glass, no copy button): typing sets it aside, a tap puts it
+    /// in the field to edit, and holding it offers Copy Link.
+    func testTheAddressPillSitsInTheSearchRow() {
         openPanel()
-        let copy = app.buttons["palette.copyLink"]
-        XCTAssertTrue(copy.waitForExistence(timeout: 5))
-        XCTAssertEqual(copy.frame.midY, field.frame.midY, accuracy: 4, "in the search row")
-        XCTAssertFalse(app.buttons["palette.address"].exists, "no address row above the tabs")
+        let pill = app.buttons["palette.urlPill"]
+        XCTAssertTrue(pill.waitForExistence(timeout: 5))
+        XCTAssertEqual(pill.value as? String, "https://example.com/")
+        XCTAssertEqual(pill.frame.midY, field.frame.midY, accuracy: 4, "in the search row")
+        XCTAssertLessThan(pill.frame.minX, field.frame.minX, "before the field")
+        XCTAssertFalse(app.buttons["palette.copyLink"].exists, "no copy button")
         field.typeText("b")
-        XCTAssertTrue(copy.waitForNonExistence(timeout: 3), "typing makes room for the text")
+        XCTAssertTrue(pill.waitForNonExistence(timeout: 3), "typing sets the address aside")
         field.typeText(XCUIKeyboardKey.delete.rawValue)
-        XCTAssertTrue(copy.waitForExistence(timeout: 3))
+        XCTAssertTrue(pill.waitForExistence(timeout: 3))
+        pill.tap()
+        let edited = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "https://example.com/"), object: field)
+        XCTAssertEqual(XCTWaiter.wait(for: [edited], timeout: 3), .completed, "a tap puts the address in the field")
+        XCTAssertFalse(pill.exists)
+        // Clearing the field brings the address back.
+        let clear = app.buttons["Clear search"]
+        XCTAssertTrue(clear.waitForExistence(timeout: 3))
+        clear.tap()
+        XCTAssertTrue(pill.waitForExistence(timeout: 3))
+        pill.press(forDuration: 1.0)
+        let copy = app.buttons["Copy Link"]
+        XCTAssertTrue(copy.waitForExistence(timeout: 3), "holding the pill offers Copy Link")
         copy.tap()
         XCTAssertTrue(panel.waitForNonExistence(timeout: 5))
         XCTAssertTrue(app.descendants(matching: .any)["send.banner"].waitForExistence(timeout: 3), "Link copied")

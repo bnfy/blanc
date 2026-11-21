@@ -157,12 +157,14 @@ struct PaletteSheet: View {
     private func close() { manager.isPalettePresented = false }
 
     private var addressRow: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 17, weight: .regular))
-                .foregroundStyle(style.secondary)
-                .frame(width: 24)
-            TextField(SyncCopy.text("ios.palette.placeholder"), text: Binding(get: { input }, set: { input = $0 }))
+        // No search glass (owner, 2026-11-21): the row's room goes to the
+        // page's address and what's typed.
+        HStack(spacing: showsUrlPill ? 2 : 8) {
+            urlPill
+            // While the page's address shows as a pill, the placeholder steps
+            // aside for it.
+            TextField(showsUrlPill ? "" : SyncCopy.text("ios.palette.placeholder"),
+                      text: Binding(get: { input }, set: { input = $0 }))
                 .font(BrowserStyle.font(17))
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
@@ -183,8 +185,10 @@ struct PaletteSheet: View {
                     }
                     return openKeyRow() ? .handled : .ignored
                 }
+                // Beside the address pill the field needs only room for its
+                // cursor; the pill gets the rest of the row.
+                .frame(minWidth: showsUrlPill ? 6 : 24, maxWidth: .infinity)
                 .accessibilityIdentifier("island.address")
-            if input.isEmpty { copyLinkButton }
             if !input.isEmpty {
                 Button { input = "" } label: {
                     Image(systemName: "xmark.circle.fill").foregroundStyle(style.secondary)
@@ -199,8 +203,8 @@ struct PaletteSheet: View {
             }
             .accessibilityLabel(SyncCopy.text("ios.island.collapse"))
         }
-        // Its icons line up with the list's: the search glass over the rows'
-        // icons, the collapse caret over Copy Link and Settings.
+        // It starts in line with the list's headings; the collapse caret sits
+        // over the rows' trailing buttons and Settings.
         .padding(.leading, 22)
         .padding(.trailing, 12)
         .padding(.vertical, 8)
@@ -208,35 +212,49 @@ struct PaletteSheet: View {
         .simultaneousGesture(panelDrag, isEnabled: placement == .panel)
     }
 
-    /// The current page's link, in the search row while it's empty: a tap
-    /// copies it, and holding it offers Edit Address, which puts the whole
-    /// address in the field. It used to be a row of its own above the tabs.
-    @ViewBuilder private var copyLinkButton: some View {
-        if let tab = manager.activeTab, ["http", "https"].contains(tab.currentURL.scheme?.lowercased() ?? "") {
-            let editAddress = {
-                input = tab.currentURL.absoluteString
-                inputFocused = true
-            }
+    /// The search row starts with the page's address while nothing's typed.
+    private var showsUrlPill: Bool { input.isEmpty && currentAddress != nil }
+
+    /// The current page's whole address, for a web page.
+    private var currentAddress: String? {
+        guard let url = manager.activeTab?.currentURL,
+              ["http", "https"].contains(url.scheme?.lowercased() ?? "") else { return nil }
+        return url.absoluteString
+    }
+
+    /// The page's whole address as a pill at the start of the search row while
+    /// it's empty (owner, 2026-11-21), cut in the middle when long. A tap puts
+    /// it in the field to edit; holding it offers Copy Link; typing a new
+    /// search sets it aside. It replaced the row above the tabs and then the
+    /// copy button.
+    @ViewBuilder private var urlPill: some View {
+        if input.isEmpty, let tab = manager.activeTab, let address = currentAddress {
             Button {
-                manager.copyLink(tab)
-                close()
+                input = address
+                inputFocused = true
             } label: {
-                Image(systemName: "doc.on.doc").font(.system(size: 14))
-                    .foregroundStyle(style.secondary)
-                    .frame(width: 44, height: 44)
+                FadingAddress(address: address, color: style.secondary)
+                    .padding(.horizontal, 10)
+                    .frame(height: 30)
+                    .background(style.text.opacity(0.06), in: Capsule())
+                    .frame(minHeight: 44)
                     .contentShape(Rectangle())
-                    .pointerHighlight()
             }
             .contextMenu {
                 Button(SyncCopy.text("tabMenu.copyLink"), systemImage: "doc.on.doc") {
                     manager.copyLink(tab)
                     close()
                 }
-                Button(SyncCopy.text("ios.palette.editAddress"), systemImage: "pencil", action: editAddress)
             }
-            .accessibilityLabel(SyncCopy.text("tabMenu.copyLink"))
-            .accessibilityAction(named: SyncCopy.text("ios.palette.editAddress"), editAddress)
-            .accessibilityIdentifier("palette.copyLink")
+            .accessibilityLabel(SyncCopy.text("ios.palette.editAddress"))
+            .accessibilityValue(address)
+            .accessibilityAction(named: SyncCopy.text("tabMenu.copyLink")) {
+                manager.copyLink(tab)
+                close()
+            }
+            .accessibilityIdentifier("palette.urlPill")
+            // It takes the room it needs first; the field keeps enough for the cursor.
+            .layoutPriority(1)
         }
     }
 
@@ -281,7 +299,8 @@ struct PaletteSheet: View {
             }
             pageShortcut(SyncCopy.text("pagesNav.bookmarks"), icon: "bookmark", page: "bookmarks")
             pageShortcut(SyncCopy.text("pagesNav.history"), icon: "clock.arrow.circlepath", page: "history")
-            pageShortcut(SyncCopy.text("pagesNav.settings"), icon: "slider.horizontal.3", page: "settings")
+            // A gear, which reads as Settings even this small (owner, 2026-11-21).
+            pageShortcut(SyncCopy.text("pagesNav.settings"), icon: "gearshape", page: "settings")
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
@@ -797,5 +816,40 @@ struct PaletteSheet: View {
         manager.activeTab?.addressText = trimmed
         manager.submitActiveTabAddress()
         close()
+    }
+}
+
+/// The address whole when it fits; when it's longer than the room, its start
+/// shows and its end fades out, rather than an ellipsis cutting it (owner,
+/// 2026-11-21). Its size comes from an ordinary one-line label (its own width,
+/// at most the room it's given), so the full address drawn over it never
+/// widens the row; the fade shows only when the address is cut.
+private struct FadingAddress: View {
+    let address: String
+    let color: Color
+    @State private var fullWidth: CGFloat = 0
+    @State private var shownWidth: CGFloat = 0
+
+    private var label: Text { Text(address).font(BrowserStyle.font(14)) }
+
+    var body: some View {
+        label.lineLimit(1)
+            .hidden()
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { shownWidth = $0 }
+            .overlay(alignment: .leading) {
+                label.lineLimit(1).fixedSize()
+                    .foregroundStyle(color)
+                    .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { fullWidth = $0 }
+            }
+            .clipped()
+            .mask {
+                HStack(spacing: 0) {
+                    Color.black
+                    if fullWidth > shownWidth + 0.5 {
+                        LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing)
+                            .frame(width: 28)
+                    }
+                }
+            }
     }
 }

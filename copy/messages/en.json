@@ -9882,7 +9882,7 @@
     "note": "iOS palette: accessible name of the button that closes the palette back into the Island."
   },
   "ios.palette.placeholder": {
-    "message": "Search, enter address, or / command",
+    "message": "Search, enter URL or / for commands",
     "note": "iOS palette: placeholder of the address field."
   },
   "ios.palette.clear": {
