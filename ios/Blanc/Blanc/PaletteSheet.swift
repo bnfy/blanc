@@ -223,7 +223,7 @@ struct PaletteSheet: View {
     }
 
     /// The page's whole address as a pill at the start of the search row while
-    /// it's empty (owner, 2026-11-21), cut in the middle when long. A tap puts
+    /// it's empty (owner, 2026-11-21), fading at its end when long. A tap puts
     /// it in the field to edit; holding it offers Copy Link; typing a new
     /// search sets it aside. It replaced the row above the tabs and then the
     /// copy button.
