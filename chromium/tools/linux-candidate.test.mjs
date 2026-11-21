@@ -1,12 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
 import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ASSET_NAME, candidateId, runtimeFiles, runtimeConfig } from '../linux/candidate.mjs';
+import { clean, fingerprint, fixture, hash } from './fixtures/linux-candidate.mjs';
 import { linuxCandidate } from './progress.mjs';
 
 const exeSha256 = 'ab'.repeat(32);
@@ -26,59 +25,7 @@ test('Linux candidate IDs come from the chrome SHA-256', () => {
   }
 });
 
-const hash = bytes => createHash('sha256').update(bytes).digest('hex');
-const version = '158.0.8127.2';
-const fingerprint = 'AB'.repeat(20);
 const linux = fileURLToPath(new URL('../linux/', import.meta.url));
-function fixture(t, arch) {
-  const dir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-candidate-')));
-  t.after(() => fs.rmSync(dir, {recursive: true, force: true}));
-  const out = path.join(dir, 'out');
-  const folder = path.join(dir, 'candidate');
-  const engine = path.join(dir, 'engine.js');
-  const deb = `blanc-prototype_${version}-1_${arch === 'arm64' ? 'arm64' : 'amd64'}.deb`;
-  const rpm = `blanc-prototype-${version}-1.${arch === 'arm64' ? 'aarch64' : 'x86_64'}.rpm`;
-  fs.mkdirSync(out);
-  for (const file of ['chrome', 'chrome_sandbox']) fs.writeFileSync(path.join(out, file), file);
-  // Keep the package readers local. The packager still selects the installed path
-  // from real tar and cpio streams and runs the Chromium strip-script interface.
-  const bin = path.join(dir, 'bin');
-  fs.mkdirSync(bin);
-  const oldPath = process.env.PATH;
-  process.env.PATH = bin + path.delimiter + oldPath;
-  t.after(() => { process.env.PATH = oldPath; });
-  const command = (name, body) => fs.writeFileSync(path.join(bin, name), '#!/bin/bash\nset -eu\n' + body, {mode: 0o755});
-  command('dpkg-deb', '[[ $1 == --fsys-tarfile ]] && cat "$2"');
-  command('rpm2cpio', 'cat "$1"');
-  const script = path.join(dir, 'build/linux/strip_binary.py');
-  fs.mkdirSync(path.dirname(script), {recursive: true});
-  fs.writeFileSync(script, `from pathlib import Path
-import sys
-args = dict(zip(sys.argv[1::2], sys.argv[2::2]))
-assert Path(args['--symbol-output']).name == 'chrome.debug'
-Path(args['--stripped-binary-output']).write_bytes(b'stripped ' + Path(args['--binary-input']).read_bytes())
-`);
-  const member = './opt/bnfy/blanc-prototype/chrome';
-  fs.mkdirSync(path.dirname(path.join(dir, member)), {recursive: true});
-  function writePackage(file, browser) {
-    fs.writeFileSync(path.join(dir, member), browser);
-    const bytes = file === rpm
-      ? execFileSync('cpio', ['-o', '-H', 'newc'], {cwd: dir, input: member + '\n', stdio: ['pipe', 'pipe', 'pipe']})
-      : execFileSync('tar', ['-cf', '-', member], {cwd: dir});
-    fs.writeFileSync(path.join(out, file), bytes);
-  }
-  for (const file of [deb, rpm]) writePackage(file, 'stripped chrome');
-  fs.writeFileSync(engine, 'engine');
-  const build = {arch, version, upstream: 'a'.repeat(40), treeCommit: 'b'.repeat(40),
-    builtAt: '2026-11-21T12:00:00Z', argsSha256: hash('args')};
-  const inputs = {src: dir, files: ['chrome', 'chrome_sandbox'], engine, engineSha256: hash('engine'), fingerprint};
-  const archive = async scan => {
-    const {archiveCandidate} = await import('../linux/package-candidate.mjs');
-    return archiveCandidate(out, folder, build, inputs, scan);
-  };
-  return {dir, out, folder, deb, rpm, archive, inputs, command, writePackage};
-}
-const clean = () => ({ok: true, findings: []});
 
 for (const arch of ['x64', 'arm64']) {
   test(`the ${arch} archive binds both scanned packages and runs from its chrome directory`, async t => {

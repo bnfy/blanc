@@ -50,11 +50,20 @@ export function verifiedSmokePackage(dir, candidate, format) {
   assert.equal(rows.length, 1, `Installed smoke requires one .${format} in the ${candidate.arch} candidate. Packages require the owner's committed repository key`);
   const [row] = rows;
   const name = path.basename(row.file);
-  assert.ok(row.file === name || row.file === 'packages/' + name, 'Invalid candidate package path');
+  assert.equal(row.file, name, 'Invalid candidate package basename');
   const file = path.join(dir, 'packages', name);
   assert.ok(fs.existsSync(file), 'Missing candidate package ' + file);
   assert.equal(hashFile(file), row.sha256, 'Candidate package SHA-256 mismatch for ' + name);
   return file;
+}
+
+export function debExecutableSha256(deb) {
+  const output = execFileSync('bash', ['-o', 'pipefail', '-c',
+    'dpkg-deb --fsys-tarfile "$1" | tar -xOf - "./${2#/}" | sha256sum', 'package-hash', deb, installedChrome],
+    {encoding: 'utf8'});
+  const digest = output.split(' ')[0];
+  assert.match(digest, /^[0-9a-f]{64}$/, 'Missing packaged chrome SHA-256');
+  return digest;
 }
 
 // Chromium's installer takes chrome.stripped, while the tarball hashes chrome.
@@ -73,9 +82,7 @@ export function installedRuntime(executable, metadata) {
     const rows = execFileSync('rpm', ['-qp', '--qf', '[%{FILENAMES} %{FILEDIGESTS}\n]', pkg], {encoding:'utf8'});
     expected = rows.split('\n').find(row => row.startsWith(executable + ' '))?.split(' ')[1];
   } else {
-    expected = execFileSync('bash', ['-o', 'pipefail', '-c',
-      'dpkg-deb --fsys-tarfile "$1" | tar -xOf - "./${2#/}" | sha256sum', 'package-hash', pkg, executable],
-      {encoding:'utf8'}).split(' ')[0];
+    expected = debExecutableSha256(pkg);
   }
   assert.match(expected ?? '', /^[0-9a-f]{64}$/, 'Missing packaged chrome SHA-256');
   return {candidate: candidate.id, executable, executableSha256: expected, singleBinary: true, diskAssets: false};

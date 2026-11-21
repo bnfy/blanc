@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import {createHash} from 'node:crypto';
-import { installDownloads, installManifest, removePackage, repositoryContents, verifyPasswordAcrossReinstall } from './linux-install.mjs';
+import { installDownloads, installManifest, removePackage, repositoryContents, signedRpmAsset, verifyPasswordAcrossReinstall } from './linux-install.mjs';
 import { installedRuntime, standaloneInstalled, verifiedSmokePackage } from './linux-smoke.mjs';
 import { googleRepoSnapshot, profileDigest } from './lib/linux-seed.mjs';
 import { NativeFixture } from './lib/fixture.mjs';
@@ -29,15 +29,13 @@ test('install names the missing architecture archive, owner key and individual s
   const key = path.join(tempFolder(t), 'blanc-repository.asc');
   const archive = 'blanc-linux-arm64-candidate.tar.gz';
   const manifest = 'signed-candidate-arm64.json';
-  const rpm = records('arm64').signed.rpm.file;
   const downloads = names => installDownloads({isDraft: true, assets: names.map(name => ({name}))}, 'arm64', key);
   assert.throws(() => downloads(['blanc-linux-x64-candidate.tar.gz']), /blanc-linux-arm64-candidate\.tar\.gz/);
   assert.throws(() => downloads([archive]), /owner.*public.*key.*blanc-repository\.asc/i);
   fs.writeFileSync(key, 'public test key');
   assert.throws(() => downloads([archive]), /signed-candidate-arm64\.json/);
   assert.throws(() => downloads([archive, manifest]), /signed-candidate-arm64\.json\.asc/);
-  assert.throws(() => downloads([archive, manifest, manifest + '.asc', records('x64').signed.rpm.file]), /aarch64\.rpm/);
-  assert.deepEqual(downloads([archive, manifest, manifest + '.asc', rpm]), [archive, manifest, manifest + '.asc', rpm]);
+  assert.deepEqual(downloads([archive, manifest, manifest + '.asc']), [archive, manifest, manifest + '.asc']);
   const {candidate, signed} = records('arm64');
   delete candidate.packages;
   assert.throws(() => installManifest(candidate, signed, 'arm64', tarSha256), /arm64.*\.deb.*\.rpm/i);
@@ -262,6 +260,8 @@ test('preparation verifies the detached signature and original and signed packag
   };
   sign();
   fs.writeFileSync(path.join(temp, signed.rpm.file), 'signed fixture');
+  assert.throws(() => signedRpmAsset({isDraft: true, assets: []}, 'arm64', temp, signed.tarSha256, publicKey),
+    error => error.message.includes('Missing signed RPM ' + signed.rpm.file));
   const prepare = name => prepareInstallInput('arm64', temp, path.join(temp, name), signed.tarSha256, publicKey);
   prepare('good');
   assert.equal(fs.readFileSync(path.join(temp, 'good', signed.rpm.file), 'utf8'), 'signed fixture');

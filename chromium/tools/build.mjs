@@ -79,7 +79,8 @@ export function maximumActions(options) {
 // x86-64 Linux server (chromium/windows/). It shares the lane's patches and
 // source with the Mac; only the output and the machine differ.
 export const WINDOWS_OUTPUTS = ['BlancWinPrototype', 'BlancWinBeta'];
-export const LINUX_OUTPUTS = ['BlancLinuxPrototype', 'BlancLinuxArm64Prototype'];
+export const LINUX_OUTPUT_ARCH = Object.freeze({BlancLinuxPrototype: 'x64', BlancLinuxArm64Prototype: 'arm64'});
+export const LINUX_OUTPUTS = Object.keys(LINUX_OUTPUT_ARCH);
 const MAC_OUTPUTS = ['BlancPrototype', 'BlancRelease', 'BlancBeta'];
 // The preview candidate's output, or the release channel's own (F0.3); never
 // an arbitrary path, so a typo cannot start a cold build somewhere new.

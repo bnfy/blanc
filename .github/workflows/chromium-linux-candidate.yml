@@ -97,7 +97,13 @@ jobs:
             git fetch --quiet --depth=1 origin "$commit"
             git cat-file -e "$commit:package.json"
           done <<< "$commits"
-          node --input-type=module -e "import { ASSET_NAME } from './chromium/linux/candidate.mjs'; console.log('ASSET=' + ASSET_NAME(process.env.ARCH))" >> "$GITHUB_ENV"
+      - &assets
+        name: Select candidate assets
+        run: |
+          node --input-type=module -e '
+            import { ASSET_NAME, signedCandidateName } from "./chromium/linux/candidate.mjs";
+            console.log("ASSET=" + ASSET_NAME(process.env.ARCH));
+            console.log("APPROVAL=" + signedCandidateName(process.env.ARCH));' >> "$GITHUB_ENV"
       - &download
         name: Download the candidate from the draft release
         env:
@@ -142,9 +148,8 @@ jobs:
           sudo chmod 4755 "$helper"
       - name: Install Xvfb and Weston
         run: |
-          # Leave the runners' default mirror first, as every workflow does
-          # (scripts/ci-apt-mirror.sh; test/unit/ci-apt-mirror.test.js).
-          bash scripts/ci-apt-mirror.sh
+          # The x64 CI mirror serves the Ubuntu archive. Arm64 uses Ubuntu Ports.
+          if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
           sudo apt-get update
           sudo apt-get install -y xvfb weston
       - &dependencies
@@ -212,12 +217,13 @@ jobs:
       - *checkout
       - *node
       - *pins
+      - *assets
       - *download
       - *unpack
       - *sandbox
       - name: Install the display servers, Openbox and real input tools
         run: |
-          bash scripts/ci-apt-mirror.sh
+          if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
           sudo apt-get update
           sudo apt-get install -y xvfb xauth openbox xdotool x11-utils weston libgtk-3-bin gsettings-desktop-schemas
       - *dependencies
@@ -284,6 +290,11 @@ jobs:
       - *validate
       - *checkout
       - *node
+      - name: Install package verification tools
+        run: |
+          if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
+          sudo apt-get update
+          sudo apt-get install -y rpm gnupg
       - name: Check and download the selected archive, signed RPM and authorization
         env:
           GH_TOKEN: ${{ github.token }}
@@ -294,11 +305,10 @@ jobs:
           while IFS= read -r name; do patterns+=(--pattern "$name"); done < "$RUNNER_TEMP/install-assets"
           mkdir "$RUNNER_TEMP/candidate"
           gh release download "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" "${patterns[@]}" --dir "$RUNNER_TEMP/candidate"
+          rpm=$(node chromium/tests/linux-install.mjs rpm-asset "$RUNNER_TEMP/release.json" "$ARCH" "$RUNNER_TEMP/candidate" "$CANDIDATE_SHA256")
+          gh release download "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$rpm" --dir "$RUNNER_TEMP/candidate"
       - name: Authenticate the tarball and both packages before installation
         run: |
-          if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
-          sudo apt-get update
-          sudo apt-get install -y rpm gnupg
           mkdir "$RUNNER_TEMP/results"
           node chromium/tests/linux-install.mjs prepare "$ARCH" "$RUNNER_TEMP/candidate" "$RUNNER_TEMP/input" "$CANDIDATE_SHA256"
       - name: Install, upgrade, capture a crash and purge on Ubuntu
@@ -369,6 +379,7 @@ jobs:
       - *checkout
       - *node
       - *pins
+      - *assets
       - *download
       - *unpack
       - name: Identify the runner's candidate
@@ -382,16 +393,9 @@ jobs:
           [[ ${#packages[@]} == 1 && -f ${packages[0]} && ! -L ${packages[0]} ]] || {
             echo "Quit requires one .deb in $ASSET under packages/. Building packages requires the owner's committed repository key." >&2; exit 1;
           }
-          deb=${packages[0]}
-          name=${deb##*/}
-          [[ $name =~ ^blanc-prototype_[0-9a-zA-Z.+~-]+_(amd64|arm64)\.deb$ ]] || {
-            echo 'Expected a blanc-prototype Debian package filename.' >&2; exit 1;
-          }
           [[ -s chromium/linux/keys/blanc-repository.asc ]] || {
             echo "Missing chromium/linux/keys/blanc-repository.asc. Quit needs the owner's committed public key to verify the package." >&2; exit 1;
           }
-          echo "QUIT_DEB=$deb" >> "$GITHUB_ENV"
-          echo "APPROVAL=signed-candidate-$arch.json" >> "$GITHUB_ENV"
       - name: Download the package approval from the draft
         env:
           GH_TOKEN: ${{ github.token }}
@@ -405,24 +409,10 @@ jobs:
           done
       - name: Verify the approval and the Debian package
         run: |
-          approval="$RUNNER_TEMP/candidate/$APPROVAL"
-          keyring="$RUNNER_TEMP/blanc.gpg"
-          gpg --batch --dearmor --output "$keyring" chromium/linux/keys/blanc-repository.asc
-          gpgv --keyring "$keyring" "$approval.asc" "$approval"
-          deb=$QUIT_DEB
-          name=${deb##*/}
-          id=$(jq -er '.id' "$CANDIDATE_DIR/candidate.json")
-          hash=$(jq -er --arg id "$id" --arg tar "$CANDIDATE_SHA256" --arg arch "$(node -p process.arch)" --arg file "$name" '
-            select(.candidate == $id and .tarSha256 == $tar and .arch == $arch) |
-            .deb | select(.file == $file or .file == ("packages/" + $file)) | .sha256 | select(test("^[0-9a-f]{64}$"))' "$approval")
-          printf '%s  %s\n' "$hash" "$deb" | sha256sum --check --strict
-          [[ $(dpkg-deb -f "$deb" Package) == blanc-prototype && $(dpkg-deb -f "$deb" Architecture) == "$(dpkg --print-architecture)" ]]
-          # Hash the stripped executable directly from the authenticated .deb.
-          installed=$(dpkg-deb --fsys-tarfile "$deb" | tar -xO ./opt/bnfy/blanc-prototype/chrome | sha256sum)
-          echo "QUIT_INSTALLED_SHA256=${installed%% *}" >> "$GITHUB_ENV"
+          node chromium/tests/linux-quit.mjs prepare "$ARCH" "$CANDIDATE_DIR" "$RUNNER_TEMP/candidate" "$CANDIDATE_SHA256" >> "$GITHUB_ENV"
       - name: Install Openbox, X11 input, accessibility and the verified package
         run: |
-          bash scripts/ci-apt-mirror.sh
+          if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
           sudo apt-get update
           sudo apt-get install -y xvfb xauth openbox xdotool x11-utils dbus-daemon at-spi2-core python3-gi gir1.2-atspi-2.0 "$QUIT_DEB"
       - *dependencies

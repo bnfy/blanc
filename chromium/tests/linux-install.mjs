@@ -8,6 +8,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {isDeepStrictEqual} from 'node:util';
+import {ASSET_NAME, candidateId, packageNames, signedCandidateName} from '../linux/candidate.mjs';
 import {installedRuntime, runSmoke} from './linux-smoke.mjs';
 import {defaultBrowser, googleRepoSnapshot, hashFile, launchAppImage, seedDefaultBrowser, seedInstallHome, seedSnapshot, sessionEnvironment} from './lib/linux-seed.mjs';
 import {NativeFixture} from './lib/fixture.mjs';
@@ -27,46 +28,46 @@ const json = file => JSON.parse(read(file));
 const run = (cmd, args, options = {}) => execFileSync(cmd, args, {encoding: 'utf8', ...options});
 const sudo = (...args) => run('sudo', ['-n', ...args], {stdio: 'inherit'});
 const present = file => fs.lstatSync(file, {throwIfNoEntry: false}) !== undefined;
-const archiveName = arch => `blanc-linux-${arch}-candidate.tar.gz`;
 
 function architectures(arch) {
   assert.ok(['x64', 'arm64'].includes(arch), 'Unknown architecture');
   return arch === 'x64' ? {deb: 'amd64', rpm: 'x86_64'} : {deb: 'arm64', rpm: 'aarch64'};
 }
-function packageNames(version, arch) {
-  assert.match(version, /^\d+(?:\.\d+){3}$/);
-  const suffix = architectures(arch);
-  return {deb: `${pkg}_${version}-1_${suffix.deb}.deb`, rpm: `${pkg}-${version}-1.${suffix.rpm}.rpm`};
-}
 // All three install legs need the selected archive and its signed artifacts.
 export function installDownloads(release, arch, publicKey = key) {
-  const suffix = architectures(arch).rpm;
   assert.equal(release.isDraft, true, 'fork-linux-candidate must be an unpublished draft');
   const names = release.assets.map(asset => asset.name);
-  const archive = archiveName(arch);
+  const archive = ASSET_NAME(arch);
   assert.ok(names.includes(archive), `Missing ${arch} candidate archive ${archive} on fork-linux-candidate`);
   assert.ok(fs.existsSync(publicKey), `Install requires the owner's committed public repository key ${publicKey} before producing signed .deb and .rpm candidates`);
-  const descriptor = `signed-candidate-${arch}.json`;
+  const descriptor = signedCandidateName(arch);
   for (const file of [descriptor, descriptor + '.asc']) {
     assert.ok(names.includes(file), `Missing ${file} for ${arch} install. Produce a candidate with .deb and .rpm packages and sign it with the owner's key`);
   }
-  const rpmName = /^blanc-prototype-\d+(?:\.\d+){3}-1\.(x86_64|aarch64)\.rpm$/;
-  const rpms = names.filter(name => rpmName.exec(name)?.[1] === suffix);
-  assert.ok(rpms.length, `Missing signed RPM blanc-prototype-<version>-1.${suffix}.rpm for ${arch} install`);
-  return [archive, descriptor, descriptor + '.asc', ...rpms];
+  return [archive, descriptor, descriptor + '.asc'];
 }
-// Task 6 records either a package basename or its tar-relative packages/ path.
-// Never use an unvalidated descriptor field as a path or release glob.
+
+// A draft can still contain signed RPMs from earlier versions of the same arch.
+export function signedRpmAsset(release, arch, downloads, expected, publicKey = key) {
+  const signed = readSignedDescriptor(downloads, arch, publicKey);
+  assert.match(expected, hex);
+  assert.equal(signed.arch, arch);
+  assert.equal(signed.tarSha256, expected);
+  const {file} = signed.rpm;
+  assert.equal(/^blanc-prototype-\d+(?:\.\d+){3}-1\.(x86_64|aarch64)\.rpm$/.exec(file)?.[1], architectures(arch).rpm);
+  assert.ok(release.isDraft === true && release.assets.some(asset => asset.name === file), 'Missing signed RPM ' + file);
+  return file;
+}
+
 function matchesFile(row, name) {
-  return row && (row.file === name || row.file === 'packages/' + name) && hex.test(row.sha256);
+  return row && row.file === name && hex.test(row.sha256);
 }
 export function installManifest(candidate, signed, arch, tarSha256) {
   assert.match(tarSha256, hex);
   assert.equal(signed.tarSha256, tarSha256);
   assert.equal(candidate.arch, arch);
   assert.equal(signed.arch, arch);
-  assert.match(candidate.exeSha256, hex);
-  assert.equal(candidate.id, `linux-${arch}-${candidate.exeSha256.slice(0, 16)}`);
+  assert.equal(candidate.id, candidateId(candidate.exeSha256, arch));
   assert.equal(signed.candidate, candidate.id);
   const names = packageNames(candidate.version, arch);
   assert.ok(Array.isArray(candidate.packages) && candidate.packages.length === 2,
@@ -80,26 +81,28 @@ export function installManifest(candidate, signed, arch, tarSha256) {
   return names;
 }
 
-function readSignedDescriptor(dir, arch, trust, publicKey = key) {
-  const descriptor = path.join(dir, `signed-candidate-${arch}.json`);
-  const trustedKeys = path.join(trust, 'blanc.gpg');
-  run('gpg', ['--homedir', trust, '--batch', '--dearmor', '--output', trustedKeys, publicKey]);
-  run('gpgv', ['--homedir', trust, '--keyring', trustedKeys, descriptor + '.asc', descriptor], {stdio: 'inherit'});
-  return json(descriptor);
+export function readSignedDescriptor(dir, arch, publicKey = key) {
+  const descriptor = path.join(dir, signedCandidateName(arch));
+  const trust = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-candidate-trust-'));
+  try {
+    const trustedKeys = path.join(trust, 'blanc.gpg');
+    run('gpg', ['--homedir', trust, '--batch', '--dearmor', '--output', trustedKeys, publicKey]);
+    run('gpgv', ['--homedir', trust, '--keyring', trustedKeys, descriptor + '.asc', descriptor], {stdio: 'inherit'});
+    return json(descriptor);
+  } finally { fs.rmSync(trust, {recursive: true, force: true}); }
 }
 
 export function prepareInstallInput(arch, downloads, dest, expected, publicKey = key) {
   architectures(arch);
   assert.match(expected, hex);
-  const archive = path.join(downloads, archiveName(arch));
+  const archive = path.join(downloads, ASSET_NAME(arch));
   assert.ok(fs.existsSync(archive), 'Missing candidate archive ' + archive);
   assert.ok(fs.existsSync(publicKey), "Missing owner's public repository key " + publicKey);
   assert.equal(hashFile(archive), expected, 'Dispatched candidate tarball SHA-256');
-  const trust = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-candidate-trust-'));
   fs.mkdirSync(dest);
   try {
-    const descriptor = path.join(downloads, `signed-candidate-${arch}.json`);
-    const signed = readSignedDescriptor(downloads, arch, trust, publicKey);
+    const descriptor = path.join(downloads, signedCandidateName(arch));
+    const signed = readSignedDescriptor(downloads, arch, publicKey);
     assert.equal(signed.tarSha256, expected);
     assert.equal(signed.arch, arch);
     // Unpack only data consumed by the install leg, never the unpacked browser.
@@ -132,15 +135,13 @@ export function prepareInstallInput(arch, downloads, dest, expected, publicKey =
   } catch (error) {
     fs.rmSync(dest, {recursive: true, force: true});
     throw error;
-  } finally {
-    fs.rmSync(trust, {recursive: true, force: true});
   }
 }
 
 function verifyInstallInput(source, candidate, arch) {
   const trust = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-install-trust-'));
   try {
-    const signed = readSignedDescriptor(source, arch, trust);
+    const signed = readSignedDescriptor(source, arch);
     const names = installManifest(candidate, signed, arch, process.env.CANDIDATE_SHA256);
     const deb = path.join(source, 'packages', names.deb);
     const rpm = path.join(source, names.rpm);
@@ -484,9 +485,10 @@ function startSession(system, arch, source, results) {
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   const [command, ...args] = process.argv.slice(2);
   if (command === 'assets' && args.length === 2) console.log(installDownloads(json(args[0]), args[1]).join('\n'));
+  else if (command === 'rpm-asset' && args.length === 4) console.log(signedRpmAsset(json(args[0]), ...args.slice(1)));
   else if (command === 'prepare' && args.length === 4) prepareInstallInput(...args);
   else if (command === 'run' && args.length === 4) startSession(...args);
   else if (command === 'session' && args.length === 5) await lifecycle(...args);
   else if (command === 'no-keyring' && args.length === 2) await noKeyring(...args);
-  else throw Error('Usage: linux-install.mjs assets RELEASE_JSON ARCH | prepare ARCH DOWNLOADS DEST SHA256 | run SYSTEM ARCH DEST RESULTS');
+  else throw Error('Usage: linux-install.mjs assets RELEASE_JSON ARCH | rpm-asset RELEASE_JSON ARCH DOWNLOADS SHA256 | prepare ARCH DOWNLOADS DEST SHA256 | run SYSTEM ARCH DEST RESULTS');
 }

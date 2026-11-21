@@ -5,9 +5,9 @@ import os from 'node:os';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { acquireCheckoutLock } from '../tools/build.mjs';
+import { acquireCheckoutLock, LINUX_OUTPUT_ARCH } from '../tools/build.mjs';
 import { keepingFile } from '../windows/candidate.mjs';
-import { ASSET_NAME, candidateId, runtimeFiles } from './candidate.mjs';
+import { ASSET_NAME, candidateId, packageNames, runtimeFiles } from './candidate.mjs';
 import { scanPackage } from './package-scan.mjs';
 
 const tree = fileURLToPath(new URL('../', import.meta.url));
@@ -104,9 +104,7 @@ async function stagePackages({src, out, stage, folder, names, fingerprint, scan}
 export async function archiveCandidate(out, folder, build, {src, files, engine, engineSha256, fingerprint}, scan = scanPackage) {
   const {arch, version} = build;
   const asset = ASSET_NAME(arch);
-  if (!/^\d+(?:\.\d+){3}$/.test(version)) throw new Error('Expected a four-part Chromium version.');
-  const names = [`blanc-prototype_${version}-1_${arch === 'arm64' ? 'arm64' : 'amd64'}.deb`,
-    `blanc-prototype-${version}-1.${arch === 'arm64' ? 'aarch64' : 'x86_64'}.rpm`];
+  const names = Object.values(packageNames(version, arch));
   // Reserve the destination before staging so two runs cannot overwrite it.
   fs.mkdirSync(path.dirname(folder), { recursive: true });
   fs.mkdirSync(folder);
@@ -152,16 +150,15 @@ export async function archiveCandidate(out, folder, build, {src, files, engine, 
 
 async function main() {
   const [source, destination, output = '--out=BlancLinuxPrototype', ...extra] = process.argv.slice(2);
-  const outputs = {BlancLinuxPrototype: 'x64', BlancLinuxArm64Prototype: 'arm64'};
   const outName = output.match(/^--out=(\w+)$/)?.[1];
-  if (!source || !destination || extra.length || !Object.hasOwn(outputs, outName)) {
+  if (!source || !destination || extra.length || !Object.hasOwn(LINUX_OUTPUT_ARCH, outName)) {
     throw new Error('Usage: package-candidate.mjs CHROMIUM_SRC OUTPUT_FOLDER [--out=BlancLinuxPrototype|BlancLinuxArm64Prototype]');
   }
   if (process.platform !== 'linux' || process.arch !== 'x64') throw new Error('Packaging runs on the x86-64 Linux build server.');
   const src = fs.realpathSync(source);
   const releaseCheckout = acquireCheckoutLock(src);
   try {
-    console.log(JSON.stringify(await packageCandidate(src, path.resolve(destination), outName, outputs[outName]), null, 2));
+    console.log(JSON.stringify(await packageCandidate(src, path.resolve(destination), outName, LINUX_OUTPUT_ARCH[outName]), null, 2));
   } finally { releaseCheckout(); }
 }
 if (process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) {

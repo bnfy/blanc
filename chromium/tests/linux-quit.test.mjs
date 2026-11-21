@@ -134,11 +134,11 @@ function runSteps(script, dir, env) {
 }
 
 test('quit downloads only the runner architecture archive and names it when unavailable', t => {
-  const pins = quitSteps[stepIndex('Fetch the pinned shipping commits')].run;
+  const assets = quitSteps[stepIndex('Select candidate assets')].run;
   const download = quitSteps[stepIndex('Download the candidate from the draft release')].run;
   const bytes = 'candidate tarball';
   const digest = createHash('sha256').update(bytes).digest('hex');
-  const script = `git() { return 0; }
+  const script = `
     if [[ $(uname -s) == Darwin ]]; then sha256sum() { shasum -a 256 "$@"; }; fi
     gh() {
       case "$2" in
@@ -150,7 +150,7 @@ test('quit downloads only the runner architecture archive and names it when unav
         *) return 1 ;;
       esac
     }
-    ${pins}
+    ${assets}
     source "$GITHUB_ENV"
     ${download}`;
   for (const arch of ['arm64', 'x64']) {
@@ -191,5 +191,4 @@ test('a quit candidate without its Debian package or the committed repository ke
   writeFileSync(path.join(dir, 'chromium/linux/keys/blanc-repository.asc'), 'fixture public key');
   result = run();
   assert.equal(result.status, 0, result.stderr);
-  assert.match(readFileSync(path.join(dir, 'env'), 'utf8'), /^APPROVAL=signed-candidate-arm64\.json$/m);
 });

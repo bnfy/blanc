@@ -6,6 +6,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runtimeConfig } from '../linux/candidate.mjs';
+import { installManifest, readSignedDescriptor } from './linux-install.mjs';
+import { debExecutableSha256, verifiedSmokePackage } from './linux-smoke.mjs';
 import { pause, waitFor } from './lib/cdp.mjs';
 import { NativeFixture } from './lib/fixture.mjs';
 import { click, windowGeometry } from './lib/native-input-linux.mjs';
@@ -16,6 +18,21 @@ const EXIT_MS = 10_000;
 const INSTALLED = '/opt/bnfy/blanc-prototype/chrome';
 const run = (tool, args) => execFileSync(tool, args, { encoding: 'utf8', timeout: 5000 }).trim();
 const x11 = (...args) => run('xdotool', args.map(String));
+
+// The workflow has already checked the archive digest and unpacked it. Bind
+// the installed executable to the DEB authorized for that exact archive.
+export function prepareQuitInput(arch, folder, downloads, tarSha256, publicKey) {
+  const candidate = JSON.parse(fs.readFileSync(path.join(folder, 'candidate.json'), 'utf8'));
+  assert.equal(candidate.platform, 'linux');
+  const signed = readSignedDescriptor(downloads, arch, publicKey);
+  installManifest(candidate, signed, arch, tarSha256);
+  const deb = verifiedSmokePackage(folder, candidate, 'deb');
+  assert.ok(fs.lstatSync(deb).isFile(), 'Expected a regular Debian package');
+  const field = name => execFileSync('dpkg-deb', ['-f', deb, name], {encoding: 'utf8'}).trim();
+  assert.equal(field('Package'), 'blanc-prototype');
+  assert.equal(field('Architecture'), arch === 'arm64' ? 'arm64' : 'amd64');
+  return {deb, executableSha256: debExecutableSha256(deb)};
+}
 
 export function processTable(profile, procDir = '/proc') {
   const rows = [];
@@ -335,5 +352,12 @@ async function main([folder, resultDir, mode, ...extra]) {
   }
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href)
-  await main(process.argv.slice(2));
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  const args = process.argv.slice(2);
+  if (args[0] === 'prepare') {
+    assert.equal(args.length, 5, 'Usage: linux-quit.mjs prepare ARCH CANDIDATE_DIR DOWNLOADS TAR_SHA256');
+    const {deb, executableSha256} = prepareQuitInput(...args.slice(1));
+    console.log('QUIT_DEB=' + deb);
+    console.log('QUIT_INSTALLED_SHA256=' + executableSha256);
+  } else await main(args);
+}

@@ -9,6 +9,20 @@ export function ASSET_NAME(arch) {
   return `blanc-linux-${arch}-candidate.tar.gz`;
 }
 
+export function signedCandidateName(arch) {
+  checkArch(arch);
+  return `signed-candidate-${arch}.json`;
+}
+
+export function packageNames(version, arch) {
+  checkArch(arch);
+  if (!/^\d+(?:\.\d+){3}$/.test(version)) throw new Error('Expected a four-part Chromium version.');
+  return {
+    deb: `blanc-prototype_${version}-1_${arch === 'arm64' ? 'arm64' : 'amd64'}.deb`,
+    rpm: `blanc-prototype-${version}-1.${arch === 'arm64' ? 'aarch64' : 'x86_64'}.rpm`,
+  };
+}
+
 export function candidateId(exeSha256, arch = 'x64') {
   checkArch(arch);
   if (typeof exeSha256 !== 'string' || !/^[0-9a-f]{64}$/.test(exeSha256)) {
