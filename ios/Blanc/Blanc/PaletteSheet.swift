@@ -181,6 +181,7 @@ struct PaletteSheet: View {
                     return openKeyRow() ? .handled : .ignored
                 }
                 .accessibilityIdentifier("island.address")
+            if input.isEmpty { copyLinkButton }
             if !input.isEmpty {
                 Button { input = "" } label: {
                     Image(systemName: "xmark.circle.fill").foregroundStyle(style.secondary)
@@ -202,6 +203,38 @@ struct PaletteSheet: View {
         .padding(.vertical, 8)
         .contentShape(Rectangle())
         .simultaneousGesture(panelDrag, isEnabled: placement == .panel)
+    }
+
+    /// The current page's link, in the search row while it's empty: a tap
+    /// copies it, and holding it offers Edit Address, which puts the whole
+    /// address in the field. It used to be a row of its own above the tabs.
+    @ViewBuilder private var copyLinkButton: some View {
+        if let tab = manager.activeTab, ["http", "https"].contains(tab.currentURL.scheme?.lowercased() ?? "") {
+            let editAddress = {
+                input = tab.currentURL.absoluteString
+                inputFocused = true
+            }
+            Button {
+                manager.copyLink(tab)
+                close()
+            } label: {
+                Image(systemName: "doc.on.doc").font(.system(size: 14))
+                    .foregroundStyle(style.secondary)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+                    .pointerHighlight()
+            }
+            .contextMenu {
+                Button(SyncCopy.text("tabMenu.copyLink"), systemImage: "doc.on.doc") {
+                    manager.copyLink(tab)
+                    close()
+                }
+                Button(SyncCopy.text("ios.palette.editAddress"), systemImage: "pencil", action: editAddress)
+            }
+            .accessibilityLabel(SyncCopy.text("tabMenu.copyLink"))
+            .accessibilityAction(named: SyncCopy.text("ios.palette.editAddress"), editAddress)
+            .accessibilityIdentifier("palette.copyLink")
+        }
     }
 
     private var panelDrag: some Gesture {
@@ -319,6 +352,9 @@ struct PaletteSheet: View {
             .padding(.bottom, bottom ? 2 : 0)
     }
 
+    /// A section's heading, starting in line with the search glass (22 pt in),
+    /// whatever margin the list would give a header: in the panel that margin
+    /// left it almost at the panel's edge.
     private func groupHeading(_ title: String, count: Int? = nil) -> some View {
         HStack(spacing: 6) {
             Text(title).font(BrowserStyle.font(11, semibold: true))
@@ -328,6 +364,7 @@ struct PaletteSheet: View {
         .foregroundStyle(style.secondary)
         .textCase(nil)
         .padding(.top, 8)
+        .listRowInsets(EdgeInsets(top: 0, leading: 22, bottom: 0, trailing: 22))
     }
 
     /// The row under the arrow keys, drawn apart from the current tab's.
@@ -370,51 +407,9 @@ struct PaletteSheet: View {
         return formatter
     }
 
-    /// The current page's whole address, which the Island shows only the site
-    /// of: a tap puts it in the field to edit, and the button copies it.
-    @ViewBuilder private var currentAddress: some View {
-        if let tab = manager.activeTab, ["http", "https"].contains(tab.currentURL.scheme?.lowercased() ?? "") {
-            let address = tab.currentURL.absoluteString
-            HStack(spacing: 0) {
-                Button {
-                    input = address
-                    inputFocused = true
-                } label: {
-                    HStack(spacing: 10) {
-                        Image(systemName: "link").font(.system(size: 14)).foregroundStyle(style.secondary).frame(width: 24)
-                        Text(address).font(BrowserStyle.font(13)).foregroundStyle(style.secondary)
-                            .lineLimit(1).truncationMode(.middle)
-                        Spacer(minLength: 4)
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                    .contentShape(Rectangle())
-                    .pointerHighlight()
-                }
-                .accessibilityLabel(SyncCopy.text("ios.palette.editAddress"))
-                .accessibilityValue(address)
-                .accessibilityIdentifier("palette.address")
-                Button {
-                    manager.copyLink(tab)
-                    close()
-                } label: {
-                    Image(systemName: "doc.on.doc").font(.system(size: 13)).foregroundStyle(style.secondary)
-                        .frame(width: 44, height: 44)
-                        .pointerHighlight()
-                }
-                .accessibilityLabel(SyncCopy.text("tabMenu.copyLink"))
-                .accessibilityIdentifier("palette.copyLink")
-            }
-            .padding(.leading, 10)
-            .listRowSeparator(.hidden)
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12))
-        }
-    }
-
     private var tabList: some View {
         let keyIndex = Dictionary(uniqueKeysWithValues: tabRows.enumerated().map { ($1.id, $0) })
         return List {
-            currentAddress
             Section {
                 ForEach(manager.displaySections, id: \.id) { section in
                     if let group = section.group {

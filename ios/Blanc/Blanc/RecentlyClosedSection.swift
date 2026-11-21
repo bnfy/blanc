@@ -77,6 +77,8 @@ struct RecentlyClosedSection: View {
                 .foregroundStyle(style.secondary)
                 .textCase(nil)
                 .padding(.top, 8)
+                // In line with the palette's other headings and its search glass.
+                .listRowInsets(EdgeInsets(top: 0, leading: 22, bottom: 0, trailing: 22))
             }
         }
     }

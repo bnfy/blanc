@@ -50,6 +50,23 @@ final class IslandPanelUITests: XCTestCase {
     }
 
 
+    /// Copy Link is a small button in the search row, not a row of its own;
+    /// it steps aside while there's text, and a tap copies and closes.
+    func testTheCopyButtonSitsInTheSearchRow() {
+        openPanel()
+        let copy = app.buttons["palette.copyLink"]
+        XCTAssertTrue(copy.waitForExistence(timeout: 5))
+        XCTAssertEqual(copy.frame.midY, field.frame.midY, accuracy: 4, "in the search row")
+        XCTAssertFalse(app.buttons["palette.address"].exists, "no address row above the tabs")
+        field.typeText("b")
+        XCTAssertTrue(copy.waitForNonExistence(timeout: 3), "typing makes room for the text")
+        field.typeText(XCUIKeyboardKey.delete.rawValue)
+        XCTAssertTrue(copy.waitForExistence(timeout: 3))
+        copy.tap()
+        XCTAssertTrue(panel.waitForNonExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["send.banner"].waitForExistence(timeout: 3), "Link copied")
+    }
+
     func testTappingOutsideCloses() {
         openPanel()
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1)).tap()
