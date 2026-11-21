@@ -288,7 +288,7 @@ struct ContentView: View {
     private var islandContainer: some View {
         VStack(spacing: 8) {
             if !islandAtTop { islandNotices }
-            islandPill
+            islandPill.frame(maxWidth: 600)
             if islandAtTop { islandNotices }
         }
             .padding(.horizontal, 16)
@@ -824,125 +824,108 @@ struct ContentView: View {
                        isLoading: manager.activeTab?.isLoading == true)
     }
 
-    /// The closed Island's height: a capsule, like the system's own floating
-    /// bars, a little taller than the 44 pt touch minimum (owner, 2026-11-11).
-    static let islandHeight: CGFloat = 52
+    static let islandHeight: CGFloat = 44
+    static let islandCornerRadius: CGFloat = 17
 
     private var addressPill: some View {
         let buttons = islandButtons
+        let tab = manager.activeTab
+        let row = tab.flatMap { IslandDots.row(manager.tabs.map(IslandDots.Tab.init), activeId: $0.id) }
+        let shape = RoundedRectangle(cornerRadius: Self.islandCornerRadius, style: .continuous)
         return HStack(spacing: 0) {
-            HStack(spacing: 0) {
-                islandMark
-                Rectangle().fill(islandDivider).frame(width: 1, height: 18)
+            if buttons.leading == .back { backButton } else { reloadButton }
+            if buttons.forward {
+                forwardButton.transition(reduceMotion ? .opacity : .move(edge: .leading).combined(with: .opacity))
             }
-
-            // A tap rather than a Button: a Button also fires when a sideways
-            // swipe on the Island lifts inside it, a tap fails once the finger moves.
-            HStack(spacing: 10) {
-                // The Start Page has no site to show, so it invites a search,
-                // dimmed like a placeholder. VoiceOver still hears "Start Page".
-                // The site in SemiBold, as Safari draws its address, so it holds
-                // up over busy pages; the placeholder stays regular.
+            if let row {
+                paletteTapRegion {
+                    IslandDotsView(row: row, ink: islandStyle.text, isLoading: tab?.isLoading == true,
+                                   swipeProgress: min(max(-swipeOffset / max(pageWidth, 1), -1), 1),
+                                   reduceMotion: reduceMotion)
+                        .frame(minWidth: 44, minHeight: Self.islandHeight)
+                }
+                .accessibilityLabel(dotLabel(row))
+                .accessibilityIdentifier("island.dots")
+                .id((row.groupId ?? "") + (row.dots.first?.id.uuidString ?? ""))
+                .transition(.opacity)
+            }
+            islandMark
+            paletteTapRegion {
                 Text(onStartPage ? SyncCopy.text("pill.placeholder") : displayDomain)
                     .font(BrowserStyle.font(15, semibold: !onStartPage))
                     .tracking(0.15)
                     .lineLimit(1)
                     .truncationMode(onStartPage ? .tail : .middle)
                     .opacity(onStartPage ? 0.55 : 1)
-                Spacer(minLength: 0)
+                    .frame(minWidth: 44, minHeight: Self.islandHeight)
             }
-            .padding(.leading, 12)
-            .frame(maxWidth: .infinity, minHeight: Self.islandHeight)
+            .accessibilityLabel(SyncCopy.text("ios.island.searchOrSwitch", ["domain": displayDomain]))
+            .accessibilityValue(SyncCopy.plural("tabsMenu.header", count: manager.tabs.count))
+            .accessibilityIdentifier("pill.palette")
+
+            ZStack {
+                if buttons.trailing == .stop {
+                    Button { tab?.stop() } label: {
+                        Image(systemName: "xmark").frame(width: 44, height: Self.islandHeight).pointerHighlight()
+                    }
+                    .accessibilityLabel(SyncCopy.text("ios.island.stop"))
+                    .transition(.opacity)
+                } else {
+                    Button { manager.createTab() } label: {
+                        Image(systemName: "plus").frame(width: 44, height: Self.islandHeight).pointerHighlight()
+                    }
+                    .accessibilityLabel(SyncCopy.text("tab.new"))
+                    .transition(.opacity)
+                }
+            }
+            .animation(reduceMotion ? .easeOut(duration: 0.2) : Self.swipeSpring, value: buttons.trailing)
+        }
+        .padding(.horizontal, 4)
+        .font(.system(size: 15, weight: .semibold))
+        // Borderless buttons keep their hit areas on glass.
+        .buttonStyle(.borderless)
+        .foregroundStyle(islandStyle.text)
+        .overlay {
+            if let tab {
+                IslandProgress(tab: tab, tint: islandStyle.text.opacity(0.55))
+                    .frame(maxHeight: .infinity, alignment: islandAtTop ? .top : .bottom)
+                    .clipShape(shape)
+            }
+        }
+        .islandSurface(islandStyle, in: shape)
+        .tabDrop(into: manager)
+        .animation(reduceMotion ? nil : Self.swipeSpring, value: displayDomain)
+        .animation(reduceMotion ? nil : Self.swipeSpring, value: buttons.forward)
+        .animation(.easeOut(duration: 0.2), value: row?.dots.first?.id)
+    }
+
+    /// A tap fails once the finger moves, so swiping never opens search.
+    private func paletteTapRegion<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        content()
             .pointerHighlight()
             .contentShape(Rectangle())
             .onTapGesture { manager.isPalettePresented = true }
             .accessibilityElement(children: .ignore)
             .accessibilityAddTraits(.isButton)
             .accessibilityAction { manager.isPalettePresented = true }
-            .accessibilityLabel(SyncCopy.text("ios.island.searchOrSwitch", ["domain": displayDomain]))
-            .accessibilityValue(SyncCopy.plural("tabsMenu.header", count: manager.tabs.count))
-            .accessibilityIdentifier("pill.palette")
-
-            HStack(spacing: 0) {
-                if let tab = manager.activeTab, tab.isPrivate {
-                    // Leaving private mode closes the private tab, as on desktop.
-                    Button { manager.closeTab(tab.id) } label: {
-                        Text(SyncCopy.text("pill.private.chip"))
-                            .font(BrowserStyle.font(12, semibold: true))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .overlay(Capsule().stroke(islandStyle.text.opacity(0.4)))
-                            .frame(minHeight: Self.islandHeight)
-                            .contentShape(Rectangle())
-                            .pointerHighlight()
-                    }
-                    .accessibilityLabel(SyncCopy.text("pill.private.title"))
-                    .accessibilityIdentifier("pill.private")
-                }
-
-
-                if buttons.leading == .reload || buttons.trailing == .stop { reloadButton }
-
-                if buttons.leading == .back { historyButtons }
-
-                Rectangle().fill(islandDivider).frame(width: 1, height: 18)
-                Button { manager.createTab() } label: {
-                    Image(systemName: "plus").frame(width: 44, height: Self.islandHeight)
-                        .pointerHighlight()
-                }
-                .accessibilityLabel(SyncCopy.text("tab.new"))
-            }
-        }
-        // Room inside the capsule's round ends for the mark and New Tab.
-        .padding(.horizontal, 4)
-        .font(.system(size: 15, weight: .semibold))
-        // Not .plain: over Liquid Glass on iOS 26, plain buttons took no taps
-        // at all, while the site's tap still
-        // worked; borderless ones do, and draw in the row's ink all the same
-        // (CI and an iOS 26.5 simulator, 2026-11-03).
-        .buttonStyle(.borderless)
-        .foregroundStyle(islandStyle.text)
-        .overlay {
-            if let tab = manager.activeTab {
-                IslandProgress(tab: tab, tint: islandStyle.text.opacity(0.55))
-                    .frame(maxHeight: .infinity, alignment: islandAtTop ? .top : .bottom)
-                    .clipShape(Capsule())
-            }
-        }
-        .islandSurface(islandStyle, in: Capsule())
-        // A tab dragged from another window's grid or palette moves here.
-        .tabDrop(into: manager)
-        .frame(maxWidth: 600)
     }
 
-    /// The Island's dividers, in its own ink, faded: on glass they follow the
-    /// text over any page; on the solid surface they match the old hairline.
-    private var islandDivider: Color { islandStyle.text.opacity(0.13) }
-
-    /// Back and Forward: on the unfolded Island, or on the iPhone's when the
-    /// setting is on. Dimmed by hand, since the Island's own ink overrides a
-    /// disabled button's. The edge swipe still works.
-    private var historyButtons: some View {
-        HStack(spacing: 0) {
-            backButton
-            forwardButton
+    private func dotLabel(_ row: IslandDots.Row) -> String {
+        var params = ["position": String(row.position), "count": String(row.count)]
+        if let group = manager.groups.first(where: { $0.id == row.groupId }) {
+            params["group"] = group.name
+            return SyncCopy.text("ios.island.tabPositionInGroup", params)
         }
+        return SyncCopy.text("ios.island.tabPosition", params)
     }
 
-    /// Reload, or Stop while the page loads.
     private var reloadButton: some View {
-        Button {
-            if manager.activeTab?.isLoading == true {
-                manager.activeTab?.stop()
-            } else {
-                manager.activeTab?.reload()
-            }
-        } label: {
-            Image(systemName: manager.activeTab?.isLoading == true ? "xmark" : "arrow.clockwise")
+        Button { manager.activeTab?.reload() } label: {
+            Image(systemName: "arrow.clockwise")
                 .frame(width: 44, height: Self.islandHeight)
                 .pointerHighlight()
         }
-        .accessibilityLabel(SyncCopy.text(manager.activeTab?.isLoading == true ? "ios.island.stop" : "ios.island.reload"))
+        .accessibilityLabel(SyncCopy.text("ios.island.reload"))
     }
 
     private var backButton: some View {
@@ -969,12 +952,17 @@ struct ContentView: View {
         .accessibilityIdentifier("pill.forward")
     }
 
-    /// The Sunrise mark: the page's actions, so the Island keeps only the
-    /// site, reload and New tab. Drawn in the theme's ink through the shipped
-    /// mark's alpha, as the interface always draws it.
+    private var menuGlyph: IslandMarkButton.Glyph {
+        guard let url = manager.activeTab?.currentURL, url.scheme != "blanc" else { return .sunrise }
+        if let image = manager.services.siteIcons.image(for: url) { return .favicon(image) }
+        return .globe
+    }
+
     private var islandMark: some View {
-        IslandMarkButton(image: Self.sunriseMark, tint: islandStyle.text, menu: islandMenuElements)
-            .frame(width: 48, height: Self.islandHeight)
+        IslandMarkButton(glyph: menuGlyph, tint: islandStyle.text,
+                         accessibilityValue: isPrivate ? SyncCopy.text("tab.privateLabel") : nil,
+                         menu: islandMenuElements)
+            .frame(width: 36, height: Self.islandHeight)
             .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { sunriseFrame = $0 }
     }
 
@@ -1080,10 +1068,6 @@ struct ContentView: View {
         }
         presenter.present(sheet, animated: true)
     }
-
-    private static let sunriseMark: UIImage? = Bundle.main
-        .path(forResource: "sunrise-mark", ofType: "png", inDirectory: "pages")
-        .flatMap(UIImage.init(contentsOfFile:))
 
     private var onStartPage: Bool {
         guard let url = manager.activeTab?.currentURL else { return true }

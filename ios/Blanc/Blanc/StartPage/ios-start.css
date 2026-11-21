@@ -8,7 +8,7 @@
    drop to the bottom edge it left. */
 html[data-platform="ios"] {
   -webkit-text-size-adjust: 100%;
-  --ios-island: 68px;
+  --ios-island: 60px;
   --ios-footer: 64px;
   /* The Island's room above the page and below it: the Island's height on its side, nothing on the
      other (ios-start.js marks the side). */
