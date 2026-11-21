@@ -20,6 +20,7 @@ on:
           - frame
           - install
           - quit
+          - keys
           - repo-metadata
       arch:
         description: Linux candidate architecture (one tarball SHA-256 per dispatch)
@@ -117,7 +118,7 @@ jobs:
           # Old x64 evidence still names the L0 asset. Always check the downloaded
           # bytes, including when GitHub has no digest on file for a legacy asset.
           archives=$(jq -c --arg name "$ASSET" --arg arch "$ARCH" --arg job "$GITHUB_JOB" '
-            [.assets[] | select(.name == $name or ($job != "quit" and $arch == "x64" and .name == "blanc-linux-candidate.tar.gz"))]' <<< "$draft")
+            [.assets[] | select(.name == $name or (($job == "candidate" or $job == "frame") and $arch == "x64" and .name == "blanc-linux-candidate.tar.gz"))]' <<< "$draft")
           [[ $archives != '[]' ]] || { echo "Missing $ARCH candidate archive $ASSET on $DRAFT_TAG." >&2; exit 1; }
           names=$(jq -r --arg digest "sha256:$CANDIDATE_SHA256" '
             .[] | select((.digest // "") == "" or .digest == $digest) | .name' <<< "$archives")
@@ -382,7 +383,8 @@ jobs:
       - *assets
       - *download
       - *unpack
-      - name: Identify the runner's candidate
+      - &identify-package
+        name: Identify the runner's candidate
         run: |
           arch=$(node -p process.arch)
           jq -e --arg arch "$arch" '.platform == "linux" and .arch == $arch' "$CANDIDATE_DIR/candidate.json" || {
@@ -391,23 +393,25 @@ jobs:
           shopt -s nullglob
           packages=("$CANDIDATE_DIR"/packages/*.deb)
           [[ ${#packages[@]} == 1 && -f ${packages[0]} && ! -L ${packages[0]} ]] || {
-            echo "Quit requires one .deb in $ASSET under packages/. Building packages requires the owner's committed repository key." >&2; exit 1;
+            echo "Expected one .deb in $ASSET under packages/. Building packages requires the owner's committed repository key." >&2; exit 1;
           }
           [[ -s chromium/linux/keys/blanc-repository.asc ]] || {
-            echo "Missing chromium/linux/keys/blanc-repository.asc. Quit needs the owner's committed public key to verify the package." >&2; exit 1;
+            echo "Missing chromium/linux/keys/blanc-repository.asc. This check needs the owner's committed public key to verify the package." >&2; exit 1;
           }
-      - name: Download the package approval from the draft
+      - &download-approval
+        name: Download the package approval from the draft
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release download "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --dir "$RUNNER_TEMP/candidate" \
             --pattern "$APPROVAL" --pattern "$APPROVAL.asc" || {
-              echo "Quit requires $APPROVAL and $APPROVAL.asc from $DRAFT_TAG." >&2; exit 1;
+              echo "Expected $APPROVAL and $APPROVAL.asc from $DRAFT_TAG." >&2; exit 1;
             }
           for file in "$APPROVAL" "$APPROVAL.asc"; do
             [[ -s $RUNNER_TEMP/candidate/$file ]] || { echo "Missing $file from $DRAFT_TAG." >&2; exit 1; }
           done
-      - name: Verify the approval and the Debian package
+      - &verify-package
+        name: Verify the approval and the Debian package
         run: |
           node chromium/tests/linux-quit.mjs prepare "$ARCH" "$CANDIDATE_DIR" "$RUNNER_TEMP/candidate" "$CANDIDATE_SHA256" >> "$GITHUB_ENV"
       - name: Install Openbox, X11 input, accessibility and the verified package
@@ -434,6 +438,64 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: chromium-linux-quit-${{ inputs.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/results
+          if-no-files-found: warn
+          retention-days: 14
+
+  keys:
+    if: ${{ inputs.check == 'keys' }}
+    name: keys (linux ${{ inputs.arch }})
+    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env: *candidate-env
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - *validate
+      - *checkout
+      - *node
+      - *pins
+      - *assets
+      - *download
+      - *unpack
+      - *identify-package
+      - *download-approval
+      - *verify-package
+      - name: Install X11 input tools and the verified package
+        run: |
+          if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth openbox xdotool x11-utils "$QUIT_DEB"
+          jq --arg dir '/opt/bnfy/blanc-prototype' --arg exe "$QUIT_INSTALLED_SHA256" '
+            {candidate:.id, executable:($dir + "/chrome"), executableSha256:$exe,
+             singleBinary:true, diskAssets:false, blockerAssets:($dir + "/blanc_blocker")}
+          ' "$CANDIDATE_DIR/candidate.json" > "$RUNNER_TEMP/keys-config.json"
+      - *dependencies
+      - name: Posted and real Ctrl+Tab gestures on X11
+        run: |
+          xvfb-run -a --server-args='-screen 0 1920x1080x24' bash <<'X11'
+          set -euo pipefail
+          unset WAYLAND_DISPLAY
+          export GDK_BACKEND=x11
+          # Leave Ctrl+Escape to the browser instead of Openbox's window menu.
+          echo '<openbox_config xmlns="http://openbox.org/3.4/rc"><keyboard/></openbox_config>' > "$RUNNER_TEMP/keys-wm.xml"
+          openbox --sm-disable --config-file "$RUNNER_TEMP/keys-wm.xml" > "$RESULTS/openbox.log" 2>&1 &
+          wm=$!
+          trap 'kill "$wm" 2>/dev/null || true; wait "$wm" 2>/dev/null || true' EXIT
+          timeout 15s bash -c 'until xprop -root _NET_SUPPORTING_WM_CHECK | grep -q "window id"; do sleep 0.1; done'
+          result=0
+          node chromium/tests/native-tab-switch.mjs "$RUNNER_TEMP/keys-config.json" "$RESULTS/posted" || result=1
+          node chromium/tests/linux-tab-switch-keys.mjs "$RUNNER_TEMP/keys-config.json" "$RESULTS/real" || result=1
+          exit "$result"
+          X11
+      - name: Keep the key results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chromium-linux-keys-${{ inputs.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/results
           if-no-files-found: warn
           retention-days: 14

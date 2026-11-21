@@ -113,8 +113,9 @@ test('the hosted Linux jobs consume the signed candidate produced for each guard
       assert.equal(hash(fs.readFileSync(path.join(installed, 'packages', f.deb))), record.packages[0].sha256);
       assert.equal(hash(fs.readFileSync(path.join(installed, f.rpm))), read(path.join(draft, approval)).rpm.sha256);
 
-      for (const job of ['candidate', 'frame', 'quit']) {
-        const last = job === 'quit' ? 'Verify the approval and the Debian package' : "Set up the candidate's sandbox helper";
+      for (const job of ['candidate', 'frame', 'quit', 'keys']) {
+        const usesPackage = job === 'quit' || job === 'keys';
+        const last = usesPackage ? 'Verify the approval and the Debian package' : "Set up the candidate's sandbox helper";
         const result = prepareJob(job, 'Select candidate assets', last, workspace, env);
         const candidate = read(path.join(result.CANDIDATE_DIR, 'candidate.json'));
         const runtime = runtimeConfig(result.CANDIDATE_DIR, candidate);
@@ -122,7 +123,7 @@ test('the hosted Linux jobs consume the signed candidate produced for each guard
         assert.equal(runtime.candidate, record.id);
         assert.equal(hash(fs.readFileSync(runtime.executable)), record.exeSha256);
         assert.equal(fs.readFileSync(path.join(runtime.blockerAssets, 'engine.js'), 'utf8'), 'engine');
-        if (job === 'quit') {
+        if (usesPackage) {
           assert.deepEqual(fs.readdirSync(path.join(result.RUNNER_TEMP, 'candidate')).sort(), [archive, approval, approval + '.asc'].sort());
           assert.equal(result.QUIT_DEB, path.join(result.CANDIDATE_DIR, 'packages', f.deb));
           assert.equal(result.QUIT_INSTALLED_SHA256, hash('stripped chrome'));
