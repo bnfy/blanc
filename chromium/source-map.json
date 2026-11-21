@@ -997,6 +997,7 @@
     "chrome/browser/ui/views/frame/multi_contents_view.cc": "de88b509d33ea23f09ed49269b59f42f6a13b6d812a60d91d888cad848c74786",
     "chrome/browser/ui/views/infobars/infobar_view.cc": "b1e736af9ae0bd198212bbb1ccdd13aba088680495a9b64cb0050e86da7376a2",
     "chrome/browser/ui/views/permissions/permission_prompt_factory.cc": "260aaa10d7ba6758666adfa24cbe64d8ea38dea2161f06e3d8137c078a45c7d2",
+    "chrome/browser/ui/views/session_crashed_bubble_view.cc": "3bca964638d012e88afcdf75ee53fc64d7ddaf9c260eecf2a1b3fb041bce5e63",
     "chrome/browser/ui/views/toolbar/app_menu.cc": "01f943cd9e3b715adc37977273dfdee1e8878fe5d5b295283cbe1bdfe8145b0c",
     "chrome/browser/ui/views/toolbar/app_menu.h": "0d07a15c379b96d5860d2520cef2610ec9643296b9d835dac9899c653da8be93",
     "chrome/browser/ui/webui/chrome_web_ui_configs.cc": "6f9730a44b0dd05e798f765fa2c01c99ff8ae9125cfd3f492f05adb7f12e70ab",
