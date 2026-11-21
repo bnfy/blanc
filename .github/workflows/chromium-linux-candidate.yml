@@ -18,7 +18,16 @@ on:
           - candidate
           - smoke
           - frame
+          - quit
           - repo-metadata
+      arch:
+        description: Architecture for the quit check
+        required: false
+        type: choice
+        default: x64
+        options:
+          - x64
+          - arm64
       sha256:
         description: Candidate tarball SHA-256, or approved-packages.json SHA-256 for repo-metadata (omit for fixtures only)
         required: false
@@ -43,7 +52,7 @@ permissions:
 jobs:
   candidate:
     name: candidate (linux x64)
-    if: ${{ inputs.check != 'repo-metadata' && (inputs.check != 'frame' || inputs.suite == 'f0') }}
+    if: ${{ inputs.check != 'quit' && inputs.check != 'repo-metadata' && (inputs.check != 'frame' || inputs.suite == 'f0') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 240
     # Reading the unpublished draft requires write access. Only the download
@@ -85,7 +94,7 @@ jobs:
             git fetch --quiet --depth=1 origin "$commit"
             git cat-file -e "$commit:package.json"
           done <<< "$commits"
-          node --input-type=module -e "import { ASSET_NAME } from './chromium/linux/candidate.mjs'; console.log('ASSET=' + ASSET_NAME)" >> "$GITHUB_ENV"
+          node --input-type=module -e "import { ASSET_NAME } from './chromium/linux/candidate.mjs'; console.log('ASSET=' + (typeof ASSET_NAME === 'function' ? ASSET_NAME(process.arch) : ASSET_NAME))" >> "$GITHUB_ENV"
       - &download
         name: Download the candidate from the draft release
         env:
@@ -94,7 +103,9 @@ jobs:
           draft=$(gh release view "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)
           [[ $draft == true ]] || { echo "$DRAFT_TAG must be an unpublished draft." >&2; exit 1; }
           mkdir "$RUNNER_TEMP/candidate"
-          gh release download "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$ASSET" --dir "$RUNNER_TEMP/candidate"
+          gh release download "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$ASSET" --dir "$RUNNER_TEMP/candidate" || {
+            echo "Could not download the required archive $ASSET from $DRAFT_TAG." >&2; exit 1;
+          }
       - &unpack
         name: Verify and unpack the candidate
         run: |
@@ -224,6 +235,108 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: chromium-linux-frame-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/results
+          if-no-files-found: warn
+          retention-days: 14
+
+  quit:
+    if: ${{ inputs.check == 'quit' }}
+    name: quit (linux ${{ inputs.arch }})
+    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    timeout-minutes: 40
+    permissions:
+      contents: write
+    env: *candidate-env
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - *validate
+      - *checkout
+      - *node
+      - *pins
+      - name: Require the architecture-specific quit archive
+        run: |
+          arch=$(node -p process.arch)
+          expected="blanc-linux-$arch-candidate.tar.gz"
+          [[ $ASSET == "$expected" ]] || {
+            echo "Quit requires $expected with a packaged .deb. The candidate producer selected $ASSET." >&2; exit 1;
+          }
+      - *download
+      - *unpack
+      - name: Identify the runner's candidate
+        run: |
+          arch=$(node -p process.arch)
+          jq -e --arg arch "$arch" '.platform == "linux" and .arch == $arch' "$CANDIDATE_DIR/candidate.json" || {
+            echo "$ASSET must contain a linux $arch candidate." >&2; exit 1;
+          }
+          shopt -s nullglob
+          packages=("$CANDIDATE_DIR"/packages/*.deb)
+          [[ ${#packages[@]} == 1 && -f ${packages[0]} && ! -L ${packages[0]} ]] || {
+            echo "Quit requires one .deb in $ASSET under packages/. Building packages requires the owner's committed repository key." >&2; exit 1;
+          }
+          deb=${packages[0]}
+          name=${deb##*/}
+          [[ $name =~ ^blanc-prototype_[0-9a-zA-Z.+~-]+_(amd64|arm64)\.deb$ ]] || {
+            echo 'Expected a blanc-prototype Debian package filename.' >&2; exit 1;
+          }
+          [[ -s chromium/linux/keys/blanc-repository.asc ]] || {
+            echo "Missing chromium/linux/keys/blanc-repository.asc. Quit needs the owner's committed public key to verify the package." >&2; exit 1;
+          }
+          echo "QUIT_DEB=$deb" >> "$GITHUB_ENV"
+          echo "APPROVAL=signed-candidate-$arch.json" >> "$GITHUB_ENV"
+      - name: Download the package approval from the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --dir "$RUNNER_TEMP/candidate" \
+            --pattern "$APPROVAL" --pattern "$APPROVAL.asc" || {
+              echo "Quit requires $APPROVAL and $APPROVAL.asc from $DRAFT_TAG." >&2; exit 1;
+            }
+          for file in "$APPROVAL" "$APPROVAL.asc"; do
+            [[ -s $RUNNER_TEMP/candidate/$file ]] || { echo "Missing $file from $DRAFT_TAG." >&2; exit 1; }
+          done
+      - name: Verify the approval and the Debian package
+        run: |
+          approval="$RUNNER_TEMP/candidate/$APPROVAL"
+          keyring="$RUNNER_TEMP/blanc.gpg"
+          gpg --batch --dearmor --output "$keyring" chromium/linux/keys/blanc-repository.asc
+          gpgv --keyring "$keyring" "$approval.asc" "$approval"
+          deb=$QUIT_DEB
+          name=${deb##*/}
+          id=$(jq -er '.id' "$CANDIDATE_DIR/candidate.json")
+          hash=$(jq -er --arg id "$id" --arg tar "$CANDIDATE_SHA256" --arg arch "$(node -p process.arch)" --arg file "$name" '
+            select(.candidate == $id and .tarSha256 == $tar and .arch == $arch) |
+            .deb | select(.file == $file or .file == ("packages/" + $file)) | .sha256 | select(test("^[0-9a-f]{64}$"))' "$approval")
+          printf '%s  %s\n' "$hash" "$deb" | sha256sum --check --strict
+          [[ $(dpkg-deb -f "$deb" Package) == blanc-prototype && $(dpkg-deb -f "$deb" Architecture) == "$(dpkg --print-architecture)" ]]
+          # Hash the stripped executable directly from the authenticated .deb.
+          installed=$(dpkg-deb --fsys-tarfile "$deb" | tar -xO ./opt/bnfy/blanc-prototype/chrome | sha256sum)
+          echo "QUIT_INSTALLED_SHA256=${installed%% *}" >> "$GITHUB_ENV"
+      - name: Install Openbox, X11 input, accessibility and the verified package
+        run: |
+          bash scripts/ci-apt-mirror.sh
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth openbox xdotool x11-utils dbus-daemon at-spi2-core python3-gi gir1.2-atspi-2.0 "$QUIT_DEB"
+      - *dependencies
+      - name: Close the last ordinary window under X11
+        env:
+          ACCESSIBILITY_ENABLED: '1'
+          LANG: en_US.UTF-8
+        run: |
+          xvfb-run -a --server-args='-screen 0 1920x1080x24' dbus-run-session -- bash <<'X11'
+          set -euo pipefail
+          openbox --sm-disable > "$RESULTS/openbox.log" 2>&1 &
+          wm=$!
+          trap 'kill "$wm" 2>/dev/null || true; wait "$wm" 2>/dev/null || true' EXIT
+          timeout 15s bash -c 'until xprop -root _NET_SUPPORTING_WM_CHECK | grep -q "window id"; do sleep 0.1; done'
+          node chromium/tests/linux-quit.mjs "$CANDIDATE_DIR" "$RESULTS" "--installed-sha256=$QUIT_INSTALLED_SHA256"
+          X11
+      - name: Keep the quit evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chromium-linux-quit-${{ inputs.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/results
           if-no-files-found: warn
           retention-days: 14
