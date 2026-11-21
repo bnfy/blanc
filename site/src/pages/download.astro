@@ -4,6 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import releases from '../data/releases.json';
 import ios from '../data/ios-availability.json';
 import beta from '../data/blanc-beta.json';
+import betaWin from '../data/blanc-beta-windows.json';
 import pkg from '../../../package.json';
 
 const latest = releases[0];
@@ -11,6 +12,12 @@ const latest = releases[0];
 // writes the same text into the beta's claims ledger.
 const betaNumber = beta.version.split('-beta.')[1];
 const chromiumMajor = beta.chromium.split('.')[0];
+// Blanc Beta for Windows (owner, 2026-11-21): its own tile after the Mac beta's;
+// docs/website-blanc-beta-windows-<version>-claims.json records its sentences.
+const winBuild = betaWin.build;
+const winChromiumMajor = betaWin.chromium.split('.')[0];
+const winReleased = new Date(`${betaWin.published}T00:00:00Z`)
+  .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 const betaReleased = new Date(`${beta.published}T00:00:00Z`)
   .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 ---
@@ -152,9 +159,37 @@ const betaReleased = new Date(`${beta.published}T00:00:00Z`)
         <ul>
           <li>Protected video, such as Netflix or Spotify.</li>
           <li>Sync checked against the live Sync service.</li>
-          <li>Intel Macs, Windows and Linux.</li>
+          <li>Intel Macs and Linux.</li>
         </ul>
         <a href={beta.releaseUrl} target="_blank" rel="noopener">Release notes <span aria-hidden="true">↗</span></a>
+      </details>
+    </article>
+
+    <article class="dl-tile dl-tile--beta dl-tile--beta-win" id="beta-windows" aria-labelledby="beta-windows-title">
+      <p class="dl-tile-label">Preview</p>
+      <h2 id="beta-windows-title">Blanc Beta for Windows</h2>
+      <p>Blanc built directly on Chromium, for Windows. It installs beside Blanc and never replaces it.</p>
+      <dl class="dl-beta-versions">
+        <div>
+          <dt>Build</dt>
+          <dd class="dl-beta-figure">{winBuild}</dd>
+          <dd>{betaWin.version}</dd>
+        </div>
+        <div>
+          <dt>Chromium</dt>
+          <dd class="dl-beta-figure">{winChromiumMajor}</dd>
+          <dd>{betaWin.chromium}</dd>
+        </div>
+      </dl>
+      <p class="dl-tile-meta">{betaWin.requirement}<br />Released {winReleased}</p>
+      <a class="dl-tile-button" href="/dl/beta-win" data-download-link data-track="download_click" data-platform="beta-win" data-cta-position="beta-windows"><PlatformLogo platform="windows" />Download Beta for Windows</a>
+      <details class="dl-notyet">
+        <summary>Not in this beta yet</summary>
+        <ul>
+          <li>Protected video, such as Netflix or Spotify.</li>
+          <li>Some Blanc features still behave differently on Windows.</li>
+        </ul>
+        <a href={betaWin.releaseUrl} target="_blank" rel="noopener">Release notes <span aria-hidden="true">↗</span></a>
       </details>
     </article>
 

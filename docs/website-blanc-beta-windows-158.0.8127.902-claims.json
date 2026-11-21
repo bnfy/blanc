@@ -1,0 +1,34 @@
+{
+  "release": "158.0.8127.902",
+  "tag": "chromium-beta-windows-158.0.8127.902",
+  "sourceCommit": "f64ed2ed9376c8eb59b066798fdecfdf963b8574",
+  "publicRelease": "2026-11-21",
+  "releaseUrl": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-windows-158.0.8127.902",
+  "releaseEvidence": "The release's own files (windows-release.json, windows-signature.json, update-package.json, RELEASE-MANIFEST.json, Sigstore-signed SHA256SUMS), its ten windows-release.mjs stages on chromium/next (signing run 44885396573, staging gate 44887435753, verify-public 44889077445), and chromium/STATUS.md's Windows W3 section on chromium/next.",
+  "ownerDecisions": {
+    "approvedOn": "2026-11-21",
+    "decisions": [
+      "A Windows beta is its own GitHub pre-release, never latest, tagged chromium-beta-windows-<version>, version 158.0.8127.<build> (owner, 2026-11-19).",
+      "On /download it gets its own tile right after the Mac beta's, in the same dark style, never a platform choice (owner, 2026-11-21, from two layouts). The button goes to /dl/beta-win on the blanc-ping Worker, counted like the other /dl/* routes.",
+      "The tile's limits match the release notes the owner approved on 2026-11-21: no protected video, and some Blanc features behave differently on Windows."
+    ]
+  },
+  "page": "site/src/pages/download.astro#beta-windows",
+  "claims": [
+    { "text": "Preview", "kind": "label" },
+    { "text": "Blanc Beta for Windows", "kind": "label" },
+    { "text": "Blanc built directly on Chromium, for Windows.", "evidence": "The release is built from the fork's Chromium 158 tree (windows-release.json's candidate windows-x64-a9f301d5f9c2f316, tree f64ed2ed9); the approved release notes say the same." },
+    { "text": "It installs beside Blanc and never replaces it.", "evidence": "Its own install folder (Blanc Beta), app id and Start menu entry; the runner checks (staging gate 44887435753, verify-public 44889077445) and the 2026-11-21 VM check record Electron Blanc's executable and uninstall entry unchanged through install, update and uninstall." },
+    { "text": "Build 902", "evidence": "windows-release.json build 902; the version's last number." },
+    { "text": "158.0.8127.902", "evidence": "windows-release.json version 158.0.8127.902, the version the installed beta and blanc.day's update server report." },
+    { "text": "Chromium 158", "evidence": "The fork's pinned Chromium 158.0.8127.2; chrome/VERSION is unchanged from upstream, and the Windows beta's version replaces only its last number at build time (patch 0103)." },
+    { "text": "158.0.8127.2", "evidence": "The fork's Chromium pin 158.0.8127.2 (chromium/lanes/desktop.json); the beta replaces only its last number with its build." },
+    { "text": "x64 Windows PCs · tested on Windows 11", "evidence": "The release is windows-x64 (windows-release.json platform); its runner checks ran on Windows Server 2025 and the hand checks on Windows 11, matching the approved release notes (\"Made for x64 Windows PCs and tested on Windows 11\")." },
+    { "text": "Released November 21, 2026", "evidence": "The GitHub pre-release chromium-beta-windows-158.0.8127.902 was published on 2026-11-21 at 09:19 UTC." },
+    { "text": "Download Beta for Windows", "evidence": "/dl/beta-win redirects to the release's public Blanc-Beta-Setup-158.0.8127.902.exe (cloudflare/ping-worker/src/dl.js)." },
+    { "text": "Not in this beta yet", "kind": "label" },
+    { "text": "Protected video, such as Netflix or Spotify.", "evidence": "The Windows beta is built without Widevine (enable_widevine = false in chromium/windows/args/beta-x64.gn); the approved release notes say protected video doesn't play." },
+    { "text": "Some Blanc features still behave differently on Windows.", "evidence": "The fork's suite on Windows does not pass every case (W2: 625 of 667, chromium/reports/w2-windows-triage.md on chromium/next); the approved release notes say the same." },
+    { "text": "Release notes", "kind": "label" }
+  ]
+}

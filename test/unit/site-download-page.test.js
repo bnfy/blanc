@@ -17,9 +17,10 @@ const normalize = (text) => text.replace(/<!--[\s\S]*?-->/g, ' ').replace(/<[^>]
   .replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/↗/g, ' ')
   .replace(/\s+/g, ' ').replace(/\s+([.,?])/g, '$1').trim();
 const main = page.slice(page.indexOf('<main'), page.indexOf('</main>'));
-const withoutBeta = main.replace(/<article class="dl-tile dl-tile--beta"[\s\S]*?<\/article>/, '');
+// Both beta tiles (Mac and Windows) have ledgers of their own.
+const withoutBeta = main.replace(/<article class="dl-tile dl-tile--beta[^"]*"[\s\S]*?<\/article>/g, '');
 
-test('every piece of text on the page is recorded or a label (the beta tile has its own ledger)', () => {
+test('every piece of text on the page is recorded or a label (the beta tiles have their own ledgers)', () => {
   const recorded = new Set([...record.claims.map((claim) => claim.exactWording), ...record.labels]);
   const pieces = [
     ...[...withoutBeta.matchAll(/<(h1|h2|h3|p|li|summary|label|dt|dd|button)\b[^>]*>([\s\S]*?)<\/\1>/g)].map((m) => m[2]),
@@ -54,7 +55,7 @@ test('the system switch works without scripting and every download is a counted 
   }
   const css = read('site/src/styles/site.css');
   for (const os of ['mac', 'win', 'linux', 'iphone', 'android']) assert.ok(css.includes(`#dl-os-${os}:checked ~ .dl-panels .dl-panel[data-os="${os}"]`), `${os} panel switches in CSS`);
-  for (const target of ['mac-arm64', 'mac-x64', 'win', 'linux', 'beta']) assert.match(page, new RegExp(`href="/dl/${target}"`));
+  for (const target of ['mac-arm64', 'mac-x64', 'win', 'linux', 'beta', 'beta-win']) assert.match(page, new RegExp(`href="/dl/${target}"`));
   assert.match(page, /<h1 id="download-title">Download Blanc<\/h1>/);
   assert.doesNotMatch(main, /<h[12][^>]*>[^<]*\.<\/h[12]>/, 'no full stops after large headings');
 });
