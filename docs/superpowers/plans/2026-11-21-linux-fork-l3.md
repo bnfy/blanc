@@ -132,6 +132,9 @@ finding questions decision 4, which waits on the owner.
   number exceeds every reserved or ledger build on every platform; gaps are fine (Chromium's updater
   and apt and dnf compare versions only). `previousBuild` stays the platform's own last released build.
   Reserve once per release, not per candidate. A failed public beta is replaced by a higher number.
+  Any fix that lands after reserving and before the release needs a fresh reservation and number (the
+  old one becomes a gap); `reserve-build.mjs` says so, and a mismatch fails with "sourceCommit didn't
+  introduce a <platform> reservation: reserve a new build", not a bare check failure.
 - **Irreversible writes are journaled:** before tagging, creating a release, switching production's
   generation or publishing, the tool writes its intent to `WORK/journal.json`; on resume it reconciles
   the remote state (tag SHA, release assets' hashes, production's `current.json`) against the journal
