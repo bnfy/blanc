@@ -46,6 +46,31 @@ function setDownloadRequesterCheck(check) {
   downloadRequesterAllowed = typeof check === 'function' ? check : () => true;
 }
 
+// Main shows an auto-hidden Island when a download starts, and keeps it up
+// for the button's check when one finishes then. Told once per download that
+// gets under way ('started': its file is chosen, by Blanc or after Save As)
+// and once when it completes, with the web contents that asked for it. What
+// the observer returns for 'started' comes back with 'completed': the tab a
+// target=_blank download opened is closed by then.
+let activityObserver = null;
+
+function setDownloadActivityObserver(observer) {
+  activityObserver = typeof observer === 'function' ? observer : null;
+}
+
+function notifyActivity(entry, event) {
+  if (event === 'started') {
+    if (entry.announced) return;
+    entry.announced = true;
+  }
+  try {
+    const context = activityObserver?.(event, entry.requester, entry.observerContext);
+    if (event === 'started') entry.observerContext = context;
+  } catch {
+    // A cue must never break the download itself.
+  }
+}
+
 // Where a new download goes when Blanc saves it without asking (#1591). Main
 // supplies the setting and the folder; with no policy, or when asking is on,
 // Electron shows its Save As dialog as before.
@@ -188,7 +213,7 @@ function setupDownloads(
       startedAt: Date.now(),
       private: !!isPrivate,
     };
-    const entry = { record, item, profileId, replaced: false };
+    const entry = { record, item, profileId, replaced: false, requester: requestingWebContents, announced: false };
     active.set(id, entry);
     const retryKey = `${owner}\0${record.url}`;
     const asked = takeSaveDialogRequest(item);
@@ -237,6 +262,8 @@ function setupDownloads(
         reservedPaths.add(entry.reservedKey);
       }
     }
+    // Saved without asking: under way now. Save As waits for its answer.
+    if (item.getSavePath()) notifyActivity(entry, 'started');
 
     item.on('updated', (_e, state) => withLocalProfile(profileId, () => {
       record.state = state; // 'progressing' | 'interrupted'
@@ -244,6 +271,7 @@ function setupDownloads(
       record.savePath = item.getSavePath();
       record.receivedBytes = item.getReceivedBytes();
       record.totalBytes = item.getTotalBytes();
+      if (record.savePath && state === 'progressing') notifyActivity(entry, 'started');
       broadcast();
     }));
 
@@ -286,6 +314,9 @@ function setupDownloads(
         // empties `active` while hasRecent is still true, and that must not
         // read as "your download landed".
         lastCompletedAtByProfile.set(profileId, record.finishedAt);
+        // A small file can finish before any progress update.
+        notifyActivity(entry, 'started');
+        notifyActivity(entry, 'completed');
       }
       broadcast();
     }));
@@ -427,6 +458,7 @@ function downloadsActivity() {
 
 module.exports = {
   setDownloadRequesterCheck,
+  setDownloadActivityObserver,
   setDownloadSavePolicy,
   requestSaveDialog,
   trackDownloadGestures,
