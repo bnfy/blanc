@@ -18,9 +18,10 @@ on:
           - candidate
           - smoke
           - frame
+          - install
           - repo-metadata
       arch:
-        description: Linux candidate architecture
+        description: Linux candidate architecture (one tarball SHA-256 per dispatch)
         required: false
         type: choice
         default: x64
@@ -73,6 +74,7 @@ jobs:
         env:
           LC_ALL: C
         run: |
+          [[ $ARCH == x64 || $ARCH == arm64 ]]
           only_pattern='^[A-Za-z0-9 _.,:@-]{0,600}$'
           [[ $CANDIDATE_SHA256 =~ ^[0-9a-f]{64}$ ]] || { echo 'sha256 must be 64 lowercase hex digits.' >&2; exit 1; }
           [[ $SUITE == none || $SUITE == f0 ]] || { echo 'suite must be none or f0.' >&2; exit 1; }
@@ -260,6 +262,92 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: chromium-linux-frame-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/results
+          if-no-files-found: warn
+          retention-days: 14
+
+  install:
+    if: ${{ inputs.check == 'install' }}
+    name: install (${{ matrix.system }}, ${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        system: [ubuntu, debian, fedora]
+        arch: ["${{ inputs.arch }}"]
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    timeout-minutes: 60
+    permissions:
+      contents: write # GitHub requires write access to read an unpublished draft.
+    env: *candidate-env
+    steps:
+      - *validate
+      - *checkout
+      - *node
+      - name: Check and download the selected archive, signed RPM and authorization
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets > "$RUNNER_TEMP/release.json"
+          node chromium/tests/linux-install.mjs assets "$RUNNER_TEMP/release.json" "$ARCH" > "$RUNNER_TEMP/install-assets"
+          patterns=()
+          while IFS= read -r name; do patterns+=(--pattern "$name"); done < "$RUNNER_TEMP/install-assets"
+          mkdir "$RUNNER_TEMP/candidate"
+          gh release download "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" "${patterns[@]}" --dir "$RUNNER_TEMP/candidate"
+      - name: Authenticate the tarball and both packages before installation
+        run: |
+          if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
+          sudo apt-get update
+          sudo apt-get install -y rpm gnupg
+          mkdir "$RUNNER_TEMP/results"
+          node chromium/tests/linux-install.mjs prepare "$ARCH" "$RUNNER_TEMP/candidate" "$RUNNER_TEMP/input" "$CANDIDATE_SHA256"
+      - name: Install, upgrade, capture a crash and purge on Ubuntu
+        if: matrix.system == 'ubuntu'
+        run: |
+          # scripts/ci-apt-mirror.sh ran above for the x64 Ubuntu archive. Arm uses ubuntu-ports.
+          sudo apt-get install -y xvfb xauth xdotool xdg-utils gnome-keyring libsecret-tools dbus-x11 libglib2.0-bin sqlite3 apparmor squashfs-tools \
+            desktop-file-utils libgtk-3-0t64 libasound2t64 libnss3 libgbm1 libxss1
+          node chromium/tests/linux-install.mjs run ubuntu "$ARCH" "$RUNNER_TEMP/input" "$RUNNER_TEMP/results"
+      - name: Install, upgrade, capture a crash and purge inside the distribution
+        if: matrix.system != 'ubuntu'
+        env:
+          SYSTEM: ${{ matrix.system }}
+        run: |
+          # Debian uses its own mirrors inside the container; ci-apt-mirror.sh is for the Ubuntu host.
+          image=debian:12
+          if [[ $SYSTEM == fedora ]]; then
+            # Fedora 45 OCI index, 2026-11-21. Includes linux/amd64 and linux/arm64.
+            image=registry.fedoraproject.org/fedora:45@sha256:7b6d9048825950573e58b7185631f6bd38f7c24f5c0e68ae902870aedebb86e0
+          fi
+          docker pull "$image"
+          export INSTALL_IMAGE
+          INSTALL_IMAGE=$(docker image inspect --format '{{index .RepoDigests 0}}' "$image")
+          docker run --rm --init --shm-size=1g --security-opt seccomp=unconfined \
+            -e INSTALL_IMAGE -e ARCH -e SYSTEM -e CANDIDATE_SHA256 -e "RESULT_UID=$(id -u)" \
+            -v "$GITHUB_WORKSPACE/chromium:/src/chromium:ro" -v "$RUNNER_TEMP/input:/candidate:ro" \
+            -v "$RUNNER_TEMP/results:/results" -v "$(realpath "$(command -v node)"):/usr/local/bin/node:ro" \
+            "$image" bash -eu -o pipefail -c '
+              if [[ $SYSTEM == debian ]]; then
+                export DEBIAN_FRONTEND=noninteractive
+                apt-get update
+                apt-get install -y --no-install-recommends sudo passwd ca-certificates curl xvfb xauth xdotool procps openssl sqlite3 rpm python3 \
+                  xdg-utils desktop-file-utils dbus-x11 gnome-keyring libsecret-tools libglib2.0-bin gnupg \
+                  libgtk-3-0 libasound2 libnss3 libgbm1 libxss1 libx11-xcb1 libxtst6
+              else
+                dnf install -y sudo shadow-utils util-linux /usr/bin/curl xorg-x11-server-Xvfb xorg-x11-xauth xdotool procps-ng openssl sqlite rpm python3 \
+                  xdg-utils desktop-file-utils dbus-daemon glib2 gnome-keyring libsecret gnupg2 \
+                  gtk3 alsa-lib nss mesa-libgbm cups-libs libXScrnSaver libXtst
+              fi
+              dbus-uuidgen --ensure
+              useradd -m -u "$RESULT_UID" blanc-check
+              echo "blanc-check ALL=(root) NOPASSWD: ALL" > /etc/sudoers.d/blanc-check
+              chmod 0440 /etc/sudoers.d/blanc-check
+              exec runuser -u blanc-check -- node /src/chromium/tests/linux-install.mjs run "$SYSTEM" "$ARCH" /candidate /results
+            '
+      - name: Keep the install evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chromium-linux-install-${{ matrix.system }}-${{ matrix.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/results
           if-no-files-found: warn
           retention-days: 14

@@ -217,8 +217,9 @@ and a GN regeneration on the Mac Studio if L0 touches a build file.
   show a portal's picker, so it is a hand check.
 
 - **No protected video**, as on the Mac and Windows betas, and no "Open in Blanc" handoff on Linux yet.
-- **No crash upload.** Crashpad writes dumps locally (to be confirmed in L1, as Windows did); there is
-  no crash server.
+- **Crash reporting.** There is no crash server. Local dump capture on Linux awaits the L1 installed
+  check. Its per-system, per-architecture report records the browser's crash exit and any minidumps
+  found under the disposable data folder.
 - **The pin is a preview.** The pending rebase (D6, F0.7) will need another full Linux build.
 - **Electron profile import** on Linux reads the platform name but not Electron's Linux key storage
   (libsecret), as on Windows; that belongs to S2.

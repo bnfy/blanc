@@ -54,12 +54,24 @@ function browserHome(fixture){
  return home;
 }
 export class NativeFixture {
-  async launch(config, directory, {testHooks=false, privateMode=false, pages=null, diskAssets=true, direct=null} = {}) {
+  async launch(config, directory, {testHooks=false, privateMode=false, pages=null, diskAssets=true, direct=null, installedHome=null} = {}) {
     this.directory=directory; this.connections=[]; this.sockets=new Set();
     if(fs.existsSync(directory))throw Error('Refusing to overwrite fixture');
     if(candidateIdentityFiles(config).some(([file,sha256])=>digest(file)!==sha256))throw Error('Candidate identity mismatch');
     fs.mkdirSync(directory,{recursive:true,mode:0o700});
-    this.profile=path.join(directory,'profile');fs.mkdirSync(this.profile,{mode:0o700});
+    this.launchEnv=undefined;
+    if(installedHome){
+      if(process.platform!=='linux')throw Error('Installed fixture mode requires Linux');
+      if(!path.isAbsolute(installedHome))throw Error('Expected an absolute disposable home');
+      const configHome=path.join(installedHome,'.config');
+      this.profile=path.join(configHome,'blanc-prototype');
+      this.launchEnv={...process.env,HOME:installedHome,XDG_CONFIG_HOME:configHome,
+        XDG_DATA_HOME:path.join(installedHome,'.local/share'),XDG_CACHE_HOME:path.join(installedHome,'.cache'),
+        XDG_STATE_HOME:path.join(installedHome,'.local/state')};
+      for(const key of ['CHROME_CONFIG_HOME','CHROME_USER_DATA_DIR','CHROME_DESKTOP'])delete this.launchEnv[key];
+    }else{
+      this.profile=path.join(directory,'profile');fs.mkdirSync(this.profile,{mode:0o700});
+    }
     const track=s=>{this.sockets.add(s);s.once('close',()=>this.sockets.delete(s));};
     // `pages` is an already-listening loopback page server ({base, close});
     // without one the fixture serves a single synthetic page.
@@ -102,16 +114,17 @@ export class NativeFixture {
       tlsFlags=[`--ignore-certificate-errors-spki-list=${secure.spki},${local.trusted.spki}`];
     }
     this.config=config;this.launches=0;this.exits=[];
-    this.flags=[`--user-data-dir=${this.profile}`,'--remote-debugging-port=0',
-      ...(diskAssets?[`--blanc-prototype-assets=${config.assets}`]:[]),`--blanc-blocker-assets=${config.blockerAssets}`,
+    this.flags=[...(installedHome?[]:[`--user-data-dir=${this.profile}`]),'--remote-debugging-port=0',
+      ...(!installedHome&&diskAssets?[`--blanc-prototype-assets=${config.assets}`]:[]),
+      ...(installedHome?[]:[`--blanc-blocker-assets=${config.blockerAssets}`]),
       // `direct` (outbound-isolation controls only) drops the proxy and the
       // resolver map and adds its own flags, so the browser itself tries the
       // paths the OS block must stop.
       ...(direct?['--no-proxy-server',...direct]:[`--proxy-server=http://127.0.0.1:${this.proxy.address().port}`,`--proxy-bypass-list=127.0.0.1;localhost;${TLS_HOSTS.join(';')}`,
       `--host-resolver-rules=${TLS_HOSTS.map(h=>'MAP '+h+' 127.0.0.1, ').join('')}MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1`,'--disable-quic']),...tlsFlags,
       ...initialWindowFlags(),
-      '--disable-background-networking','--no-first-run','--no-default-browser-check','--use-mock-keychain',
-      ...(testHooks?['--blanc-test',`--blanc-test-browser-home=${browserHome(this)}`]:[]),...(privateMode?['--incognito']:[])];
+      '--disable-background-networking','--no-first-run','--no-default-browser-check',...(installedHome?[]:['--use-mock-keychain']),
+      ...(testHooks?['--blanc-test',...(installedHome?[]:[`--blanc-test-browser-home=${browserHome(this)}`])]:[]),...(privateMode?['--incognito']:[])];
     await this.start(this.base+'/initial');
     this.page=await connect((await this.targets()).find(t=>t.url===this.base+'/initial'));this.connections.push(this.page);
     await waitFor(this.snapshot,s=>s.tabs.some(t=>t.url===this.base+'/initial'&&!t.isLoading),'local page');
@@ -132,7 +145,7 @@ export class NativeFixture {
     return phase('browserLaunch',async()=>{
     this.exit=null;this.launchError=null;fs.rmSync(path.join(this.profile,'DevToolsActivePort'),{force:true});
     const fd=fs.openSync(path.join(this.directory,'browser.log'),'a');
-    const child=this.process=spawn(this.config.executable,[...this.flags,...(this.extraArgs||[]),...(url?[url]:[])],{stdio:['ignore',fd,fd]});
+    const child=this.process=spawn(this.config.executable,[...this.flags,...(this.extraArgs||[]),...(url?[url]:[])],{stdio:['ignore',fd,fd],env:this.launchEnv});
     fs.closeSync(fd);this.launches++;
     child.on('exit',(code,signal)=>{this.exits.push({code,signal});if(this.process===child)this.exit={code,signal};});
     child.on('error',e=>{this.launchError=e.message;});
