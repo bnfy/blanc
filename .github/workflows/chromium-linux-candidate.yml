@@ -1,6 +1,6 @@
 # Runs a Linux build of the Chromium fork on a hosted Ubuntu 24.04 runner
 # (Linux L0, docs/superpowers/plans/2026-11-21-linux-fork-l0.md). The build
-# travels as the one asset of the unpublished draft release fork-linux-candidate
+# travels in an architecture-specific asset of the unpublished draft release fork-linux-candidate
 # (chromium/linux/ship-candidate.sh). Manual only; run with --ref chromium/next
 # and the SHA-256 the packager printed. Ubuntu's restriction on unprivileged
 # user namespaces stays on: the smoke check fails if it isn't.
@@ -19,6 +19,14 @@ on:
           - smoke
           - frame
           - repo-metadata
+      arch:
+        description: Linux candidate architecture
+        required: false
+        type: choice
+        default: x64
+        options:
+          - x64
+          - arm64
       sha256:
         description: Candidate tarball SHA-256, or approved-packages.json SHA-256 for repo-metadata (omit for fixtures only)
         required: false
@@ -42,9 +50,9 @@ permissions:
 
 jobs:
   candidate:
-    name: candidate (linux x64)
-    if: ${{ inputs.check != 'repo-metadata' && (inputs.check != 'frame' || inputs.suite == 'f0') }}
-    runs-on: ubuntu-24.04
+    name: candidate (linux ${{ inputs.arch }})
+    if: ${{ inputs.check == 'candidate' || inputs.check == 'smoke' || (inputs.check == 'frame' && inputs.suite == 'f0') }}
+    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     timeout-minutes: 240
     # Reading the unpublished draft requires write access. Only the download
     # step receives GH_TOKEN, and only the test results become an artifact.
@@ -54,6 +62,7 @@ jobs:
       run:
         shell: bash
     env: &candidate-env
+      ARCH: ${{ inputs.arch }}
       CANDIDATE_SHA256: ${{ inputs.sha256 }}
       SUITE: ${{ inputs.suite }}
       ONLY: ${{ inputs.only }}
@@ -85,30 +94,46 @@ jobs:
             git fetch --quiet --depth=1 origin "$commit"
             git cat-file -e "$commit:package.json"
           done <<< "$commits"
-          node --input-type=module -e "import { ASSET_NAME } from './chromium/linux/candidate.mjs'; console.log('ASSET=' + ASSET_NAME)" >> "$GITHUB_ENV"
+          node --input-type=module -e "import { ASSET_NAME } from './chromium/linux/candidate.mjs'; console.log('ASSET=' + ASSET_NAME(process.env.ARCH))" >> "$GITHUB_ENV"
       - &download
         name: Download the candidate from the draft release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          draft=$(gh release view "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)
-          [[ $draft == true ]] || { echo "$DRAFT_TAG must be an unpublished draft." >&2; exit 1; }
+          draft=$(gh release view "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets) || {
+            echo "Could not read $DRAFT_TAG to find the $ARCH candidate archive $ASSET." >&2; exit 1;
+          }
+          jq -e '.isDraft == true' <<< "$draft" >/dev/null || { echo "$DRAFT_TAG must be an unpublished draft." >&2; exit 1; }
           mkdir "$RUNNER_TEMP/candidate"
-          gh release download "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$ASSET" --dir "$RUNNER_TEMP/candidate"
+          # Old x64 evidence still names the L0 asset. Always check the downloaded
+          # bytes, including when GitHub has no digest on file for a legacy asset.
+          archives=$(jq -c --arg name "$ASSET" --arg arch "$ARCH" '
+            [.assets[] | select(.name == $name or ($arch == "x64" and .name == "blanc-linux-candidate.tar.gz"))]' <<< "$draft")
+          [[ $archives != '[]' ]] || { echo "Missing $ARCH candidate archive $ASSET on $DRAFT_TAG." >&2; exit 1; }
+          names=$(jq -r --arg digest "sha256:$CANDIDATE_SHA256" '
+            .[] | select((.digest // "") == "" or .digest == $digest) | .name' <<< "$archives")
+          for name in $names; do
+            gh release download "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$name" --dir "$RUNNER_TEMP/candidate"
+            if printf '%s  %s\n' "$CANDIDATE_SHA256" "$RUNNER_TEMP/candidate/$name" | sha256sum --check --strict; then
+              echo "ASSET=$name" >> "$GITHUB_ENV"
+              exit 0
+            fi
+          done
+          echo "No $ARCH candidate matches the requested SHA-256." >&2; exit 1
       - &unpack
-        name: Verify and unpack the candidate
+        name: Unpack the verified candidate
         run: |
           archive="$RUNNER_TEMP/candidate/$ASSET"
-          printf '%s  %s\n' "$CANDIDATE_SHA256" "$archive" | sha256sum --check --strict
           mkdir "$RUNNER_TEMP/blanc" "$RUNNER_TEMP/results"
           tar --extract --gzip --no-same-owner --file "$archive" --directory "$RUNNER_TEMP/blanc"
-          test -f "$RUNNER_TEMP/blanc/candidate.json"
+          jq -e --arg arch "$ARCH" '(.arch // "x64") == $arch' "$RUNNER_TEMP/blanc/candidate.json" >/dev/null
           echo "CANDIDATE_DIR=$RUNNER_TEMP/blanc" >> "$GITHUB_ENV"
           echo "RESULTS=$RUNNER_TEMP/results" >> "$GITHUB_ENV"
       - &sandbox
         name: Set up the candidate's sandbox helper
         run: |
           helper="$CANDIDATE_DIR/chrome-sandbox"
+          if [[ -d $CANDIDATE_DIR/chrome ]]; then helper="$CANDIDATE_DIR/chrome/chrome-sandbox"; fi
           [[ -f $helper && ! -L $helper ]]
           sudo chown root:root "$helper"
           sudo chmod 4755 "$helper"
@@ -173,8 +198,8 @@ jobs:
 
   frame:
     if: ${{ inputs.check == 'frame' }}
-    name: frame (linux x64)
-    runs-on: ubuntu-24.04
+    name: frame (linux ${{ inputs.arch }})
+    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     timeout-minutes: 45
     permissions:
       contents: write
@@ -273,6 +298,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           [[ $APPROVAL_SHA256 =~ ^[0-9a-f]{64}$ ]]
+          public=chromium/linux/keys/blanc-repository.asc
+          [[ -f $public ]] || { echo "Missing $public. Repository metadata requires owner-approved packages." >&2; exit 1; }
           tag=fork-linux-candidate
           [[ $(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft) == true ]]
           dest="$RUNNER_TEMP/approved"
@@ -280,7 +307,7 @@ jobs:
           export GNUPGHOME="$RUNNER_TEMP/repo-gpg"
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --dir "$dest" --pattern 'approved-packages.json*'
           printf '%s  %s\n' "$APPROVAL_SHA256" "$dest/approved-packages.json" | sha256sum --check --strict
-          gpg --batch --dearmor --output "$GNUPGHOME/public.gpg" chromium/linux/keys/blanc-repository.asc
+          gpg --batch --dearmor --output "$GNUPGHOME/public.gpg" "$public"
           gpgv --keyring "$GNUPGHOME/public.gpg" "$dest/approved-packages.json.asc" "$dest/approved-packages.json"
           python3 chromium/linux/repository/metadata.py names "$dest" > "$RUNNER_TEMP/package-names"
           while IFS= read -r name; do
