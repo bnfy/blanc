@@ -15,6 +15,7 @@ enum IslandPosition: String, CaseIterable {
 struct IslandLayout: Equatable {
     enum Palette { case sheet, panel }
 
+    /// The Island's buttons around the dots and the site.
     struct Buttons: Equatable {
         enum Leading: Equatable { case back, reload }
         enum Trailing: Equatable { case newTab, stop }
@@ -31,10 +32,19 @@ struct IslandLayout: Equatable {
 
     init(_ horizontal: UserInterfaceSizeClass?, _ vertical: UserInterfaceSizeClass?) {
         let unfolded = horizontal == .regular && vertical == .regular
+        // The palette grows from the Island everywhere except at compact
+        // height (an iPhone in landscape), where the keyboard leaves no room
+        // for a list and the sheet stays (owner, 2026-11-21).
         palette = vertical == .compact ? .sheet : .panel
         showsSplitView = unfolded
     }
 
+    /// Back leads every Island, iPhone or iPad (owner, 2026-11-12: the iPad
+    /// Island matches the iPhone's); Forward joins it only while there's
+    /// somewhere to go. With the Back and Forward setting off, Reload leads
+    /// instead. Stop takes New Tab's slot while a page loads, so the Island
+    /// never changes width for a load (owner, 2026-11-21); pull to refresh and
+    /// the page menu still reload.
     func buttons(backForward: Bool, canGoForward: Bool, isLoading: Bool) -> Buttons {
         Buttons(leading: backForward ? .back : .reload, forward: backForward && canGoForward,
                 trailing: isLoading ? .stop : .newTab)

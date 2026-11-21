@@ -20,8 +20,11 @@ final class PrivateTabsUITests: XCTestCase {
     app.openIslandMenu()
     let close = app.buttons["Close Private Tab"]
     XCTAssertTrue(close.waitForExistence(timeout: 5))
-    let first = app.collectionViews.buttons.firstMatch
-    XCTAssertEqual(first.label, close.label)
+    // The menu opens toward the page with its first item nearest the
+    // button, so Close Private Tab sits right beside the Island.
+    let nearest = app.collectionViews.buttons.allElementsBoundByIndex
+      .min { abs($0.frame.midY - menu.frame.midY) < abs($1.frame.midY - menu.frame.midY) }
+    XCTAssertEqual(nearest?.label, close.label)
     XCTAssertFalse(app.buttons["Save to Favorites"].exists)
     close.tap()
     let regular = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value != %@", "Private tab"), object: menu)

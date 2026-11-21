@@ -1,5 +1,9 @@
 import SwiftUI
 
+/// The Island's tab dots: faint for the section's tabs, full ink for the
+/// current one, which slides toward its neighbor as a sideways swipe moves the
+/// page and pulses while it loads. A private tab's dot is an outline, as on
+/// the desktop Island.
 struct IslandDotsView: View {
     let row: IslandDots.Row
     let ink: Color
@@ -37,8 +41,6 @@ struct IslandDotsView: View {
             }
         }
         .fixedSize()
-        .accessibilityElement(children: .ignore)
-        .accessibilityIdentifier("island.dots")
     }
 
     private func shape(_ dot: IslandDots.Dot) -> some View {

@@ -2733,6 +2733,9 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="ios_settings_island">Island</string>
     <string name="ios_settings_privacy_sync">Privacidade e sincronização</string>
     <string name="ios_island_stop">Parar de carregar</string>
+    <string name="ios_island_close_private_tab">Fechar aba privada</string>
+    <string name="ios_island_tab_position">Aba %1$s de %2$s</string>
+    <string name="ios_island_tab_position_in_group">Aba %1$s de %2$s, %3$s</string>
     <string name="ios_island_page_actions">Ações da página</string>
     <string name="ios_island_collapse">Recolher a Island</string>
     <string name="ios_palette_placeholder">Pesquise, digite um endereço ou um /comando</string>

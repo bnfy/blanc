@@ -1,5 +1,7 @@
 import XCTest
 
+/// Tapping the Island grows it into the palette panel above the keyboard;
+/// iPhone landscape keeps the sheet.
 final class IslandPanelUITests: XCTestCase {
     private let app = XCUIApplication()
     private var site: XCUIElement { app.buttons["pill.palette"] }

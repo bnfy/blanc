@@ -1,5 +1,10 @@
 import Foundation
 
+/// The resting Island's tab dots, as on the desktop Island: the tabs of the
+/// current tab's section (its group, or the run of ungrouped tabs around it,
+/// by `TabSections`), with ungrouped pins as a section of their own. At most
+/// `cap` dots show, a window that keeps the current tab in view, and "+N"
+/// counts the rest. A lone tab shows none.
 enum IslandDots {
     struct Tab: Equatable {
         let id: UUID

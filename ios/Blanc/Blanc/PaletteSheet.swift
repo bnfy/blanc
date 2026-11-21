@@ -11,8 +11,10 @@ struct PaletteSheet: View {
     }
 
     let manager: TabsManager
-    /// Compact height leaves room only for the sheet.
+    /// A panel growing from the Island in its place; a bottom sheet only at
+    /// compact height (an iPhone in landscape).
     var placement: IslandLayout.Palette = .sheet
+    /// The panel puts its search and actions on the Island's side.
     var islandAtTop = false
     @Environment(\.colorScheme) private var colorScheme
     private var style: BrowserStyle { BrowserStyle(scheme: colorScheme) }
@@ -62,6 +64,7 @@ struct PaletteSheet: View {
                 addressRow
                 divider
                 list
+                divider
                 actionsRow
             case .panel where islandAtTop:
                 actionsRow

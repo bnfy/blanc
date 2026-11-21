@@ -2650,6 +2650,9 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="ios_settings_island">Island</string>
     <string name="ios_settings_privacy_sync">Datenschutz &amp; Synchronisierung</string>
     <string name="ios_island_stop">Laden stoppen</string>
+    <string name="ios_island_close_private_tab">Privaten Tab schließen</string>
+    <string name="ios_island_tab_position">Tab %1$s von %2$s</string>
+    <string name="ios_island_tab_position_in_group">Tab %1$s von %2$s, %3$s</string>
     <string name="ios_island_page_actions">Seitenaktionen</string>
     <string name="ios_island_collapse">Island einklappen</string>
     <string name="ios_palette_placeholder">Suchen, Adresse oder /Befehl eingeben</string>

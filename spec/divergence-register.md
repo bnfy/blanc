@@ -277,7 +277,7 @@ mobile is a single full-screen surface with system insets.
   controls; multi-window is a tablet/foldable consideration, not a phone one.
 - **iOS (2026-11-05, owner request, revised 2026-11-21):** the centered
   44 pt Island fits its contents. Back leads, followed by Forward when available,
-  the current section’s tab dots, the page menu icon, the site and New Tab.
+  the current section's tab dots, the page menu icon, the site and New Tab.
   The menu shows the favicon, a globe if it has none, or Sunrise on a Blanc page.
   Private tabs have outlined dots and Close Private Tab leads their menu.
   Back and Forward began as an opt-in after a visitor asked where Back was.
@@ -289,9 +289,9 @@ mobile is a single full-screen surface with system insets.
   has Close Tab, and VoiceOver has Close Tab as an action (owner, 2026-11-11). On the Start Page the Island reads Search or type a
   URL, dimmed, as the desktop Island does on a blank tab (owner, 2026-11-11). The Island has no tab count on any layout:
   a pinch in on a fully zoomed-out page, as in Safari, or a swipe up from the
-  Island opens the tab grid. The page shrinks into its card as Safari's does. Stop takes New Tab’s slot during a load. New Tab remains in the menu and the palette.
+  Island opens the tab grid. The page shrinks into its card as Safari's does. Stop takes New Tab's slot during a load. New Tab remains in the menu and the palette.
   Tapping the site or its dots opens the panel in place on iPhone and iPad.
-  The search field takes focus on the Island’s side, clear of the keyboard.
+  The search field takes focus on the Island's side, clear of the keyboard.
   Compact-height landscape keeps the sheet. Rotating carries the typed text across.
   The unfolded Island has the same buttons. Back and Forward also survive a relaunch: each
   tab's `interactionState` is saved on this device only (never synced, never

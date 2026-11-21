@@ -397,7 +397,9 @@ struct ContentView: View {
         }
     }
 
-    /// The keyboard lifts the panel within the safe area. The page stays visible around it.
+    /// The palette growing from the Island in its place, at the Island's edge
+    /// and above the keyboard, over the page (not dimmed, as desktop's ⌘L
+    /// panel). A tap outside, a drag toward the Island or Escape closes it.
     private var palettePanel: some View {
         let shape = RoundedRectangle(cornerRadius: 22, style: .continuous)
         return ZStack(alignment: islandAtTop ? .top : .bottom) {
@@ -840,9 +842,15 @@ struct ContentView: View {
                        isLoading: manager.activeTab?.isLoading == true)
     }
 
+    /// The closed Island, in the desktop Island's resting shape: 44 pt, the
+    /// touch minimum, with 17 pt corners rather than a capsule, so it reads as
+    /// Blanc's Island and not a search field (owner, 2026-11-21).
     static let islandHeight: CGFloat = 44
     static let islandCornerRadius: CGFloat = 17
 
+    /// Back (or Reload), Forward when there's somewhere to go, the current
+    /// group's tab dots, the page menu, the site, and New Tab (Stop while a page
+    /// loads). No dividers, and only as wide as what it holds.
     private var addressPill: some View {
         let buttons = islandButtons
         let tab = manager.activeTab
@@ -867,6 +875,10 @@ struct ContentView: View {
             }
             islandMark
             paletteTapRegion {
+                // The Start Page has no site to show, so it invites a search,
+                // dimmed like a placeholder. VoiceOver still hears "Start Page".
+                // The site in SemiBold, as Safari draws its address, so it holds
+                // up over busy pages; the placeholder stays regular.
                 Text(onStartPage ? SyncCopy.text("pill.placeholder") : displayDomain)
                     .font(BrowserStyle.font(15, semibold: !onStartPage))
                     .tracking(0.15)
@@ -898,7 +910,10 @@ struct ContentView: View {
         }
         .padding(.horizontal, 4)
         .font(.system(size: 15, weight: .semibold))
-        // Borderless buttons keep their hit areas on glass.
+        // Not .plain: over Liquid Glass on iOS 26, plain buttons took no taps
+        // at all, while the site's tap still worked; borderless ones do, and
+        // draw in the row's ink all the same (CI and an iOS 26.5 simulator,
+        // 2026-11-03).
         .buttonStyle(.borderless)
         .foregroundStyle(islandStyle.text)
         .overlay {
@@ -909,13 +924,15 @@ struct ContentView: View {
             }
         }
         .islandSurface(islandStyle, in: shape)
+        // A tab dragged from another window's grid or palette moves here.
         .tabDrop(into: manager)
         .animation(reduceMotion ? nil : Self.swipeSpring, value: displayDomain)
         .animation(reduceMotion ? nil : Self.swipeSpring, value: buttons.forward)
         .animation(.easeOut(duration: 0.2), value: row?.dots.first?.id)
     }
 
-    /// A tap fails once the finger moves, so swiping never opens search.
+    /// A tap rather than a Button: a Button also fires when a sideways swipe
+    /// on the Island lifts inside it, a tap fails once the finger moves.
     private func paletteTapRegion<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
         content()
             .pointerHighlight()
@@ -956,18 +973,18 @@ struct ContentView: View {
         .accessibilityIdentifier("pill.back")
     }
 
+    /// Shown only while there's somewhere to go (`IslandLayout.buttons`).
     private var forwardButton: some View {
-        let tab = manager.activeTab
-        return Button { tab?.goForward() } label: {
+        Button { manager.activeTab?.goForward() } label: {
             Image(systemName: "chevron.right").frame(width: 44, height: Self.islandHeight)
-                .opacity(tab?.canGoForward == true ? 1 : 0.35)
                 .pointerHighlight()
         }
-        .disabled(tab?.canGoForward != true)
         .accessibilityLabel(SyncCopy.text("pill.forward"))
         .accessibilityIdentifier("pill.forward")
     }
 
+    /// The site's own icon on the page menu, the Sunrise on Blanc's pages, and
+    /// a globe until a site's icon is known.
     private var menuGlyph: IslandMarkButton.Glyph {
         guard let url = manager.activeTab?.currentURL, url.scheme != "blanc" else { return .sunrise }
         if let image = manager.services.siteIcons.image(for: url) { return .favicon(image) }

@@ -1,10 +1,14 @@
 import XCTest
 
+/// The Island is only as wide as what it holds, and a long site name gives
+/// way before any of its buttons do.
 final class IslandWidthUITests: XCTestCase {
     private func launch(_ seed: String) -> XCUIApplication {
         continueAfterFailure = false
         let app = XCUIApplication()
-        app.launchArguments = [seed, "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        // Default Island settings, so Back leads whatever this simulator was set to.
+        app.launchArguments = [seed, "-BlancUITestSettings", "-BlancUITestSettingsReset",
+                               "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch()
         XCTAssertTrue(app.buttons["New tab"].waitForExistence(timeout: 15))
         return app
