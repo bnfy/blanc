@@ -49,7 +49,9 @@ function setDownloadRequesterCheck(check) {
 // Main shows an auto-hidden Island when a download starts, and keeps it up
 // for the button's check when one finishes then. Told once per download that
 // gets under way ('started': its file is chosen, by Blanc or after Save As)
-// and once when it completes, with the web contents that asked for it.
+// and once when it completes, with the web contents that asked for it. What
+// the observer returns for 'started' comes back with 'completed': the tab a
+// target=_blank download opened is closed by then.
 let activityObserver = null;
 
 function setDownloadActivityObserver(observer) {
@@ -62,7 +64,8 @@ function notifyActivity(entry, event) {
     entry.announced = true;
   }
   try {
-    activityObserver?.(event, entry.requester);
+    const context = activityObserver?.(event, entry.requester, entry.observerContext);
+    if (event === 'started') entry.observerContext = context;
   } catch {
     // A cue must never break the download itself.
   }

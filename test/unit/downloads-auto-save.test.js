@@ -348,6 +348,16 @@ test('main hears once that a download is under way, and when it completes', () =
     dialogged.emit('done', {}, 'completed');
     assert.deepEqual(heard, [['started', true], ['completed', true]]);
 
+    // What the observer returned for the start comes back with the completion.
+    const contexts = [];
+    downloads.setDownloadActivityObserver((event, _requester, context) => {
+      contexts.push([event, context]);
+      return event === 'started' ? 'window-1' : 'ignored';
+    });
+    const remembered = start('remembered.zip');
+    remembered.emit('done', {}, 'completed');
+    assert.deepEqual(contexts, [['started', undefined], ['completed', 'window-1']]);
+
     // A throwing observer never breaks the download.
     downloads.setDownloadActivityObserver(() => { throw new Error('boom'); });
     const sturdy = start('sturdy.zip');

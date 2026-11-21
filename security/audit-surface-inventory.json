@@ -208,7 +208,7 @@
     },
     {
       "file": "src/main/downloads.js",
-      "sha256": "c49a83f559527aa09afe8567d16e026c73213482cbb8c11a868093feb8c828dc",
+      "sha256": "d2c94537d8db49739396e41f5857bd5f655d0ab765c4b25f0b146253e78c5375",
       "literalChannels": [
         "input-event",
         "updated",
@@ -272,7 +272,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "d01503deeacc73ba23c5b536324b8f9feb71b29077188430480b659ff2f5c3fa",
+      "sha256": "be27316b4e6d7f11b2be626fbdb0de1b1d89114702f14672b23cec2fa39d53c8",
       "literalChannels": [
         "activate",
         "bang-icons:changed",

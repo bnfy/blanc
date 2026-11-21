@@ -4568,12 +4568,14 @@ function endIslandDownloadPeek(runtime) {
  * Island for a moment, so its downloads button is seen filling; one that
  * finishes meanwhile keeps it up for the check. The peek pins the Island like
  * the intro tip; when it ends, the usual hide check lets it go once the
- * pointer isn't holding it. Policy: downloadPeekStep in island-autohide.js. */
-function peekIslandForDownload(event, requester) {
-  if (!islandAutoHide || !requester || requester.isDestroyed()) return;
-  const runtime = runtimeForPageWebContents(requester);
-  const window = runtime?.window;
-  if (!window || window.isDestroyed() || !window.isVisible() || window.isMinimized()) return;
+ * pointer isn't holding it. Policy: downloadPeekStep in island-autohide.js.
+ * Returns the window's runtime on 'started', which downloads.js hands back
+ * with 'completed' (the requesting tab may be closed by then). */
+function peekIslandForDownload(event, requester, startedIn = null) {
+  const runtime = startedIn ?? (requester && !requester.isDestroyed() ? runtimeForPageWebContents(requester) : null);
+  if (!islandAutoHide || !runtime) return runtime;
+  const window = runtime.window;
+  if (!window || window.isDestroyed() || !window.isVisible() || window.isMinimized()) return runtime;
   const current = runtime.islandDownloadPeek;
   const next = islandAutoHideModule.downloadPeekStep(current, event, {
     autoHide: islandAutoHide,
@@ -4581,13 +4583,14 @@ function peekIslandForDownload(event, requester) {
     revealed: withWindowRuntime(runtime, () => !islandStripHidden(runtime)),
     now: Date.now(),
   });
-  if (!next || (current && next.until === current.until)) return;
+  if (!next || (current && next.until === current.until)) return runtime;
   if (current) clearTimeout(current.timer);
   runtime.islandDownloadPeek = {
     ...next,
     timer: setTimeout(() => { runtime.islandDownloadPeek = null; }, Math.max(0, next.until - Date.now())),
   };
   if (!current) withWindowRuntime(runtime, () => revealIsland(runtime));
+  return runtime;
 }
 
 /** Turning the setting on would otherwise make the Island vanish with no
