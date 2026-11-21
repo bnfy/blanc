@@ -3,7 +3,10 @@ import { test } from 'node:test';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { changedInputs, plannedActions, checkPlan, planSummary, localJobs, maximumActions, selectedSdk, outputName, buildLane, requireAndroidHost, competingBuild, processListArgs, WINDOWS_OUTPUTS, requireDesktopHost, windowsToolchainPins, windowsToolchainMounted } from './build.mjs';
+import * as guard from './build.mjs';
+const { changedInputs, plannedActions, checkPlan, planSummary, localJobs, maximumActions, selectedSdk, outputName, buildLane,
+  requireAndroidHost, competingBuild, processListArgs, WINDOWS_OUTPUTS, requireDesktopHost, windowsToolchainPins, windowsToolchainMounted,
+  LINUX_OUTPUTS, checkoutLockPath, acquireCheckoutLock, sysrootHash } = guard;
 
 test('cold plans larger than the former capture limit retain their final count', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-plan-test-'));
@@ -193,4 +196,42 @@ test('the Windows build needs its case-insensitive toolchain mount', () => {
   assert.equal(windowsToolchainMounted('/dev/md2 / ext4 rw 0 0\n', src), false);
   assert.equal(windowsToolchainMounted(mounts, '/home/b/other/src'), false);
   assert.equal(windowsToolchainMounted(`/dev/md2 ${mount} ext4 rw 0 0\n`, src), false);
+});
+
+test('Linux preview builds chrome and chrome_sandbox', () => {
+  const options = ['--out=BlancLinuxPrototype'];
+  assert.equal(outputName(options), 'BlancLinuxPrototype');
+  assert.deepEqual(LINUX_OUTPUTS, ['BlancLinuxPrototype']);
+  assert.deepEqual(buildLane(options), { lane: 'desktop', out: 'BlancLinuxPrototype', target: 'chrome', extraTargets: ['chrome_sandbox'] });
+  assert.throws(() => buildLane([...options, '--sdk-root=/tmp']), /macOS option/);
+});
+test('Linux preview requires x86-64 Linux', () => {
+  assert.throws(() => requireDesktopHost('BlancLinuxPrototype', 'darwin', 'arm64'), /x86-64 Linux/);
+  assert.throws(() => requireDesktopHost('BlancLinuxPrototype', 'linux', 'arm64'), /x86-64 Linux/);
+  assert.doesNotThrow(() => requireDesktopHost('BlancLinuxPrototype', 'linux', 'x64'));
+  assert.throws(() => requireDesktopHost('BlancPrototype', 'linux', 'x64'), /only on macOS/);
+});
+test('setup and builds contend for one checkout lock', () => {
+  assert.equal(checkoutLockPath('/h/chromium-desktop/src'), '/h/chromium-desktop/.blanc-checkout.lock');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-checkout-'));
+  try {
+    const src = path.join(dir, 'src'), lock = checkoutLockPath(src);
+    const release = acquireCheckoutLock(src);
+    assert.throws(() => acquireCheckoutLock(src), /locked/);
+    assert.throws(() => fs.mkdirSync(lock), { code: 'EEXIST' });
+    release();
+    fs.mkdirSync(lock); // Setup takes the same lock with mkdir.
+    assert.throws(() => acquireCheckoutLock(src), /locked/);
+    fs.rmdirSync(lock);
+    const releaseAgain = acquireCheckoutLock(src);
+    releaseAgain();
+    assert.equal(fs.existsSync(lock), false);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+test('sysroot requires exactly one bare hash marker', () => {
+  const hash = 'f851add7'.padEnd(64, '0');
+  const sidecars = ['_hash', '_content_names', '_is_first_class_gcs'].map(suffix => '.' + hash + suffix);
+  assert.equal(sysrootHash([...sidecars, '.' + hash]), hash);
+  assert.throws(() => sysrootHash(sidecars));
+  assert.throws(() => sysrootHash(['.' + hash, '.' + '1'.repeat(64)]));
 });
