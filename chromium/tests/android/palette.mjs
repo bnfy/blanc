@@ -43,8 +43,8 @@ export function matching(xml, pattern, attribute = 'text') {
 // The search row's address pill: `address` as a pill on the field's line, before the field, which
 // keeps room for its cursor, and before the collapse caret, which stays on screen.
 export function pillProblems(xml, field, address) {
-  const escaped = address.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
-  const pill = matching(xml, new RegExp(`^${escaped}/?$`), 'content-desc');
+  // The pill's label is the address itself (with or without a closing slash): an exact match.
+  const pill = matching(xml, {test: label => label === address || label === `${address}/`}, 'content-desc');
   const caret = matching(xml, /^Collapse Island$/, 'content-desc');
   if (!pill) return [`no address pill for ${address}`];
   const problems = [];
