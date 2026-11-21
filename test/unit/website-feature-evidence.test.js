@@ -884,6 +884,7 @@ test('public product captures match their reviewed dimensions, hashes, and sourc
     ['docs/website-captures-v1.40.0.json', 'v1.40.0', '17ed22052bc0e1d0c0ce3920cbcb85c4792d306e', 1],
     ['docs/website-captures-float-island-v1.40.0.json', 'v1.40.0', '17ed22052bc0e1d0c0ce3920cbcb85c4792d306e', 2],
     ['docs/website-captures-v1.41.0.json', 'v1.41.0', '9298b0916987ea9628bb2bee014717e85cd11628', 35],
+    ['docs/website-captures-spaces-v1.51.0.json', 'v1.51.0', '2c3d17db9b8573f4047e8732aaf8f0972ef9e724', 2],
   ];
   for (const [file, release, sourceSha, expectedCount] of manifests) {
     const manifest = JSON.parse(read(file));
