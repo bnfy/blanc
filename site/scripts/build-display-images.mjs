@@ -55,16 +55,12 @@ const jobs = [
   // capture-public-shots.sh (scene rule-editor, bnfy/blanc-mail#147): a 1100px
   // copy for MailShot's srcset; the 1400px capture stays as taken.
   { source: 'mail/screens/rule-editor.webp', output: 'mail/screens/rule-editor-1100.webp', width: 1100 },
-  // Blanc Mail design teasers (approved November 17, 2026): mockups of the
-  // next look, not captures, shown only through MailTeaser.astro. Each master
-  // is a 2512px PNG from the Mail repository's design mocks resized to 2000px
-  // WebP (how each was made: docs/website-mail-claims-2026-11-17.md); these
-  // are its 1400px and 800px srcset copies.
-  ...['island-dark', 'island-light', 'island-offer', 'island-address', 'island-arrival'].flatMap(name => [1400, 800].map(width => ({
+  // Address setup dialogs rendered on transparency, shown at up to 512 CSS pixels.
+  ...['address-offer', 'address-choose', 'address-ready'].map(name => ({
     source: `mail/teasers/${name}.webp`,
-    output: `mail/teasers/${name}-${width}.webp`,
-    width,
-  }))),
+    output: `mail/teasers/${name}-512.webp`,
+    width: 512,
+  })),
   // The homepage's first screen: the floating Island from public v1.40.0
   // (docs/website-captures-float-island-v1.40.0.json). The hidden capture is
   // the window; the macOS buttons are cut from the revealed one at their

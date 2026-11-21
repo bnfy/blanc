@@ -51,11 +51,8 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 .mail-bar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,#d9b46b00,#d9b46ba6 22%,#f3dda4 50%,#d9b46ba6 78%,#d9b46b00);box-shadow:0 0 14px #e0c08466;pointer-events:none}
 .mail-bar-inner{display:flex;align-items:center;gap:16px;max-width:1120px;height:var(--mail-bar-h);margin:0 auto;padding:0 24px}
 .mail-bar-title{display:flex;align-items:center;flex:none;color:var(--mail-band-text);text-decoration:none}
-/* The Blanc Mail lockup, by the Blanc lockup's construction in font units of
-   the word's 762-unit-tall Text cut: the icon is 1.15x the l (862.5 units),
-   centred on the B's middle (its top 31.25 units above the word's box), with
-   a gap of 0.3x the B (210 units). --mail-lockup-h is the word's height. */
-.mail-lockup{--mail-lockup-h:19px;display:flex;align-items:flex-start;gap:calc(var(--mail-lockup-h) * 210 / 762)}
+/* Keep the icon's size and alignment from the full Text lockup. */
+.mail-lockup{--mail-lockup-h:19px;display:flex;align-items:flex-start;gap:9px}
 .mail-lockup-word{display:block;width:auto;height:var(--mail-lockup-h)}
 .mail-lockup .mail-icon{display:block;flex:none;width:calc(var(--mail-lockup-h) * 862.5 / 762);aspect-ratio:1;margin-top:calc(var(--mail-lockup-h) * -31.25 / 762)}
 .mail-lockup .mail-icon img{display:block;width:100%;height:100%;filter:drop-shadow(0 0 6px #e0c08440)}
@@ -93,17 +90,17 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 @starting-style{.mail-bar-pop:popover-open{opacity:0;transform:scale(.94);filter:blur(4px)}}
 .mail-bar-waitlist{width:min(440px,calc(100vw - 24px));padding:22px 22px 20px}
 .mail-bar-waitlist .mail-waitlist{max-width:none;margin:0}
-/* The waitlist on dark glass, here and on the Overview: a smoked field and the gold pill. */
-:is(.mail-bar-waitlist,.mail-soon,.mail-closing) .mail-waitlist-controls{border-color:#f2ead826;background:#ffffff0d;box-shadow:inset 0 1px 0 #ffffff0f}
-:is(.mail-bar-waitlist,.mail-soon,.mail-closing) .mail-waitlist-controls:focus-within{border-color:#e0c084;box-shadow:0 0 0 3px #e0c08433}
-:is(.mail-bar-waitlist,.mail-soon,.mail-closing) .mail-waitlist input[type=email]{color:var(--mail-band-text)}
-:is(.mail-bar-waitlist,.mail-soon,.mail-closing) .mail-waitlist input[type=email]::placeholder{color:#8f846f}
-:is(.mail-bar-waitlist,.mail-soon,.mail-closing) .mail-waitlist button{background:var(--mail-gilt);color:#1b1306;box-shadow:inset 0 1px 0 #fff8e2b3,inset 0 -1px 0 #7a5a2699}
-@media(hover:hover){:is(.mail-bar-waitlist,.mail-soon,.mail-closing) .mail-waitlist button:hover{background:var(--mail-gilt);filter:brightness(1.07)}}
-:is(.mail-bar-waitlist,.mail-soon,.mail-closing) .mail-waitlist button:focus-visible{outline-color:#e0c084}
-:is(.mail-bar-waitlist,.mail-soon,.mail-closing) .mail-waitlist .mail-waitlist-note{color:var(--mail-band-muted)}
-:is(.mail-bar-waitlist,.mail-soon,.mail-closing) .mail-waitlist-note a{color:var(--mail-band-text)}
-:is(.mail-bar-waitlist,.mail-soon,.mail-closing) .mail-waitlist .mail-waitlist-status{color:var(--mail-band-text)}
+/* The waitlist on dark glass, with a smoked field and a gold button. */
+:is(.mail-bar-waitlist, .mail-overview) .mail-waitlist-controls{border-color:#f2ead826;background:#ffffff0d;box-shadow:inset 0 1px 0 #ffffff0f}
+:is(.mail-bar-waitlist, .mail-overview) .mail-waitlist-controls:focus-within{border-color:#e0c084;box-shadow:0 0 0 3px #e0c08433}
+:is(.mail-bar-waitlist, .mail-overview) .mail-waitlist input[type=email]{color:var(--mail-band-text)}
+:is(.mail-bar-waitlist, .mail-overview) .mail-waitlist input[type=email]::placeholder{color:#8f846f}
+:is(.mail-bar-waitlist, .mail-overview) .mail-waitlist button{background:var(--mail-gilt);color:#1b1306;box-shadow:inset 0 1px 0 #fff8e2b3,inset 0 -1px 0 #7a5a2699}
+@media(hover:hover){:is(.mail-bar-waitlist, .mail-overview) .mail-waitlist button:hover{background:var(--mail-gilt);filter:brightness(1.07)}}
+:is(.mail-bar-waitlist, .mail-overview) .mail-waitlist button:focus-visible{outline-color:#e0c084}
+:is(.mail-bar-waitlist, .mail-overview) .mail-waitlist .mail-waitlist-note{color:var(--mail-band-muted)}
+:is(.mail-bar-waitlist, .mail-overview) .mail-waitlist-note a{color:var(--mail-band-text)}
+:is(.mail-bar-waitlist, .mail-overview) .mail-waitlist .mail-waitlist-status{color:var(--mail-band-text)}
 
 @media(max-width:480px){
   .mail-bar-inner{gap:6px;padding:0 16px}
@@ -132,18 +129,8 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
 .mail-waitlist .mail-waitlist-status:empty{display:none}
 @media(max-width:480px){.mail-waitlist-controls{flex-direction:column;align-items:stretch;border-radius:22px;padding:6px}.mail-waitlist button{padding:12px 20px}}
 
-/* ---------- Overview: the gold envelope ----------
-   Until Mail launches, /mail is one gold envelope standing under a lamp on a
-   dark stage (docs/superpowers/specs/2026-10-21-mail-gold-envelope-design.md).
-   Gold appears only where gold would be: the envelope, the headline's gilt
-   and the button. The envelope's metal is layered: a fine satin grain, the
-   lamp's broad reflection, a darker rim where it turns away from the light,
-   and the alloy itself. --mx and --my are the pointer's place in the window
-   (0 to 1); at rest the lamp is above centre and nothing leans. */
-@property --mx{syntax:"<number>";inherits:true;initial-value:.5}
-@property --my{syntax:"<number>";inherits:true;initial-value:.5}
+/* The dark address reservation page. */
 .mail-stage{
-  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='b' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 1.6' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .65 -.15'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23b)'/%3E%3C/svg%3E");
   position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:center;
   /* The stage's copy takes Instrument Sans's +0.01em, as in the apps;
      headings keep 0 (the site's display rule). */
@@ -151,226 +138,15 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
   padding:clamp(48px,7vh,80px) 24px clamp(56px,8vh,96px);overflow:hidden;color:var(--mail-band-text);
   background:#050403
 }
-.mail-soon{position:relative;display:flex;flex-direction:column;align-items:center;width:min(880px,100%);text-align:center}
-/* Black above, and a warm pool of light on the floor where the envelope stands. */
-.mail-soon::before{content:"";position:absolute;z-index:-1;top:-120px;bottom:-80px;left:50%;width:100vw;translate:-50% 0;background:radial-gradient(ellipse 58% 30% at 50% 60%,#8c76596b,#8c765900 70%);pointer-events:none}
+
 .mail-stage .mail-eyebrow{margin:0;color:#cfb27a;font-size:12px;font-weight:500;letter-spacing:.24em;text-transform:uppercase}
 .mail-stage h1{margin:18px 0 0;font-family:var(--site-font-patron);font-size:clamp(44px,7vw,96px);font-weight:400;line-height:1.02;letter-spacing:0;text-wrap:balance}
-/* Gilt type: the metal's own gradient, clipped to the letters. */
-/* The example address: bold, in a gold-to-bronze gradient that drifts slowly
-   across the letters; it holds still when motion is unwanted. */
-.mail-shimmer{font-weight:700;background:linear-gradient(100deg,#b07a3c 0%,#e0c084 22%,#f6e7bd 38%,#c08a48 55%,#8c5a2b 70%,#e0c084 86%,#b07a3c 100%) 0 0/250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-box-decoration-break:clone;box-decoration-break:clone}
-@media(prefers-reduced-motion:no-preference){.mail-shimmer{animation:mail-shimmer 6s ease-in-out infinite alternate}}
-@keyframes mail-shimmer{to{background-position:100% 0}}
 .mail-gold-text{background:var(--mail-gilt);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-box-decoration-break:clone;box-decoration-break:clone}
-.mail-envelope{
-  position:relative;width:min(520px,84%);aspect-ratio:8/5;margin:clamp(40px,6vh,64px) 0 0;
-  transform:perspective(1400px) rotateX(calc((.5 - var(--my)) * 4deg)) rotateY(calc((var(--mx) - .5) * 6deg));
-  transition:--mx 900ms var(--mail-arrive),--my 900ms var(--mail-arrive);
-  /* The floor is polished: a faint, fading reflection (Chromium and Safari). */
-  -webkit-box-reflect:below 3px linear-gradient(#0000 62%,#ffffff26)
-}
-/* The contact shadow where it meets the floor. */
-.mail-envelope::before{content:"";position:absolute;left:6%;right:6%;bottom:-10px;height:22px;border-radius:50%;background:#000000d9;filter:blur(10px);z-index:-1}
-.mail-envelope-face{
-  position:absolute;inset:0;overflow:hidden;border-radius:14px;
-  background:
-    var(--grain),
-    radial-gradient(ellipse 70% 90% at calc(var(--mx) * 100%) calc((var(--my) - .55) * 100%),#fff7dfb3,#fff7df00 70%),
-    radial-gradient(ellipse 95% 85% at 50% 40%,#3a230500,#3a230573 100%),
-    linear-gradient(162deg,#f0daa4 0%,#d4b06c 26%,#ae8642 52%,#94702f 70%,#c09a55 88%,#e2c68d 100%);
-  background-size:600px 600px,cover,cover,cover;
-  background-blend-mode:overlay,soft-light,multiply,normal;
-  /* The edge: lit along the top, the thickness of the metal below. */
-  box-shadow:inset 0 1px 0 #fff6d6e6,inset 0 -1px 0 #5a3f13,inset 1px 0 0 #fff3cc59,inset -1px 0 0 #6b4c1a80,0 2px 0 #6f5020,0 3px 0 #3d2a0c,0 24px 40px -18px #000000e6
-}
-/* One band of light crosses the envelope as the page opens (below). */
-.mail-envelope-face::after{content:"";position:absolute;inset:0;pointer-events:none;mix-blend-mode:soft-light;background:linear-gradient(100deg,#fff6d800 30%,#fff6d8 50%,#fff6d800 70%) -80% 0/40% 100% no-repeat}
-/* Folds pressed into the metal: a dark groove with a lit lip just below it. */
-.mail-envelope-folds{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.mail-groove{stroke:#3d2a0ca6;stroke-width:2.2;vector-effect:non-scaling-stroke}
-.mail-groove-lip{stroke:#fff1c3a6;stroke-width:1.1;vector-effect:non-scaling-stroke}
-.mail-hallmark{position:absolute;left:50%;top:14%;width:clamp(56px,13%,76px);aspect-ratio:1;translate:-50% 0}
-.mail-hallmark .blanc-mark{position:absolute;inset:0;width:100%;height:100%}
-.mail-hallmark .mail-hallmark-lip{background:#fff2c4b3;transform:translateY(1.5px)}
-.mail-hallmark .mail-hallmark-cut{background:linear-gradient(180deg,#2e1f07,#6a4c19)}
-.mail-soon-lead{max-width:34ch;margin:clamp(48px,7vh,72px) 0 0;color:var(--mail-band-text);font-size:clamp(18px,2vw,21px);line-height:1.45;text-wrap:balance}
-/* The waitlist takes the bar popover's dark styling (above), a little larger. */
-.mail-soon .mail-waitlist{width:min(480px,100%);margin:26px 0 0}
-:is(.mail-soon,.mail-closing) .mail-waitlist-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-:is(.mail-soon,.mail-closing) .mail-waitlist-controls{gap:6px;padding:5px}
-:is(.mail-soon,.mail-closing) .mail-waitlist input[type=email]{height:44px;padding:0 16px}
-:is(.mail-soon,.mail-closing) .mail-waitlist button{height:44px;padding:0 22px}
-:is(.mail-soon,.mail-closing) .mail-waitlist .mail-waitlist-note{max-width:46ch;margin:14px auto 0;letter-spacing:.03em;line-height:1.6}
-.mail-stage-notes{max-width:60ch;margin-top:clamp(48px,7vh,72px);padding-top:28px;border-top:1px solid #f2ead81a;text-align:center}
-.mail-stage-notes p{margin:0 0 6px;color:var(--mail-band-muted);font-size:14px;line-height:1.6;letter-spacing:.03em;text-wrap:balance}
-.mail-stage-notes a{color:#e6cf9a;text-decoration-thickness:1px;text-underline-offset:3px}
-.mail-stage-notes a:focus-visible{outline:2px solid #e6cf9a;outline-offset:2px;border-radius:2px}
-/* The Island: Mail's open panel, drawn from the app's own metrics
-   (MailWindowLayout.swift, MailIslandPanel.swift): 640 wide, corner 24, a
-   52 field row, 40 rows, a 34 footer, Instrument Sans, the Blanc ink on a
-   near-white canvas. It scales as one drawing (1em = 1/40 of its width),
-   never reflowing, so phones see the same panel smaller. */
-.mail-island{width:min(1080px,100%);margin-top:clamp(96px,14vh,160px);text-align:center}
-.mail-island-lead{max-width:44ch;margin:20px auto 0;color:var(--mail-band-text);font-size:clamp(17px,1.8vw,20px);line-height:1.5;text-wrap:balance}
-.mail-island-figure{position:relative;width:min(640px,100%);margin:56px auto 0;container-type:inline-size}
-/* The lamp again, under the panel, so it reads as lit glass on the stage. */
-.mail-island-figure::before{content:"";position:absolute;z-index:-1;inset:-18% -30% -30%;background:radial-gradient(ellipse 50% 46% at 50% 56%,#c4914238,#c4914200 70%);pointer-events:none}
-.mail-island-panel{
-  --mip-ink:#0e0e0e;--mip-secondary:#6b6b6b;--mip-tertiary:#9a9a9a;--mip-hairline:#0000001a;
-  font-size:calc(100cqw / 40);width:40em;border-radius:1.5em;overflow:hidden;text-align:left;
-  background:#fbfbfb;color:var(--mip-ink);font-family:var(--font-app);font-stretch:98%;letter-spacing:.01em;
-  box-shadow:0 0 0 1px #ffffff40,0 .75em 1.625em #00000057,0 2.5em 5em -1.5em #000000b3
-}
-.mip-field{display:flex;align-items:center;gap:.625em;height:3.25em;padding:0 1em;border-bottom:1px solid var(--mip-hairline)}
-.mip-field svg{flex:none;width:1.125em;height:1.125em;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.mip-chevron{stroke:#111;stroke-width:1.8}
-.mip-clear{stroke:var(--mip-tertiary);stroke-width:1.6}
-.mip-input{flex:1;display:flex;align-items:center;font-size:1.0625em}
-.mip-caret{display:inline-block;width:1px;height:1.1em;margin-left:1px;background:var(--mip-ink)}
-@media(prefers-reduced-motion:no-preference){.mip-caret{animation:mip-blink 1.1s steps(1) infinite}}
-@keyframes mip-blink{50%{opacity:0}}
-.mip-results{padding:0 0 .375em}
-.mail-stage .mip-header{margin:0;padding:.625em 1.125em .25em;color:var(--mip-tertiary);font-family:Inter,var(--font-app);font-size:.6875em;line-height:1.3}
-/* Rows and the footer set their own font size, so their metrics divide by it. */
-.mail-stage .mip-row{display:flex;align-items:center;gap:.625em;height:calc(2.5em / .8125);margin:0 calc(.5em / .8125);padding:0 calc(.625em / .8125);border-radius:calc(.875em / .8125);font-size:.8125em;line-height:1}
-.mip-row b{font-weight:600}
-.mip-row.is-highlighted{background:#11111121}
-.mip-footer{display:flex;align-items:center;gap:calc(.5em / .6875);height:calc(2.125em / .6875);padding:0 calc(1em / .6875);border-top:1px solid var(--mip-hairline);font-family:Inter,var(--font-app);font-size:.6875em}
-.mip-chips{display:flex;gap:.55em}
-.mip-chips span{padding:.18em .73em;border-radius:.64em;box-shadow:inset 0 0 0 1px var(--mip-hairline);color:var(--mip-ink)}
-.mip-hint{margin-left:auto;color:var(--mip-tertiary);white-space:nowrap}
-.mail-island-points,.mail-points{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(20px,3vw,40px);margin:56px 0 0;padding:0;list-style:none;text-align:left}
-.mail-island-points li,.mail-points li{padding-top:20px;border-top:1px solid #e0c08447}
-.mail-island-points p,.mail-points p{margin:0;color:var(--mail-band-muted);font-size:15.5px;line-height:1.6;letter-spacing:.025em;text-wrap:pretty}
-@media(max-width:760px){.mail-island-points,.mail-points{grid-template-columns:1fr}}
-/* The address endings, in gold within their sentence. */
 .mail-ending{color:#e0c084;font-weight:500}
-/* A figure worth calling out in a point's title (15 GB): set on a rounded bar
-   of the gilt, in the dark ink the Join pill uses. */
-.mail-badge{display:inline-block;margin-right:.08em;padding:.06em .42em .1em;border-radius:999px;background:var(--mail-gilt);color:#1b1306;box-shadow:inset 0 1px 0 #fff8e2b3,inset 0 -1px 0 #7a5a2699;line-height:1.15}
-@media(max-width:520px){.mip-hint{display:none}}
-/* Rules: the dark rule editor, shown at its own 1x size (700pt captured at
-   2x). Its "Preview build" caption is MailShot's and can't be left off. */
-.mail-rules{width:min(1080px,100%);margin-top:clamp(96px,14vh,160px);text-align:center}
-.mail-rules-copy p{max-width:52ch;margin:20px auto 0;color:var(--mail-band-text);font-size:clamp(17px,1.8vw,19px);line-height:1.55;text-wrap:balance}
-.mail-shot{position:relative;margin:0}
-.mail-shot img{display:block;width:100%;height:auto}
-.mail-shot figcaption{display:inline-flex;align-items:center;gap:7px;margin-top:16px;padding:3px 10px 3px 8px;border-radius:999px;box-shadow:inset 0 0 0 1px #e0c08459;color:var(--mail-band-muted);font-size:12px;font-weight:600;letter-spacing:.03em;line-height:1.4}
-.mail-shot figcaption::before{content:"";width:6px;height:6px;border-radius:50%;background:#e0c084}
-.mail-rules-shot{width:min(700px,100%);margin:52px auto 0}
-/* The capture keeps the dialog's own rounded corners (transparent outside them),
-   so the shadow follows the panel's shape. */
-.mail-rules-shot img{filter:drop-shadow(0 0 1px #f2ead840) drop-shadow(0 30px 50px #000000d9) drop-shadow(0 0 60px #c4914233)}
-/* Design teasers: the next look in dark and light, then the Blanc Mail address
-   in three steps. Each set is a segmented control over one window at a time;
-   the radios switch it in CSS (:has), and a browser without :has() keeps the
-   first window. The window art carries its own shadow on a transparent ground;
-   a pool of lamplight under it lifts it off the black stage. Its "Design
-   preview" caption is MailTeaser's and can't be left off. */
-.mail-teaser-set{width:min(1080px,100%);margin-top:clamp(96px,14vh,160px);text-align:center}
-.mail-segments{position:relative;display:inline-grid;grid-auto-columns:1fr;grid-auto-flow:column;min-width:200px;margin:36px auto 0;padding:3px;border:0;border-radius:999px;background:#f2ead80f;box-shadow:inset 0 0 0 1px #e0c08433}
-.mail-segments-three{min-width:300px}
-.mail-segments label{position:relative;z-index:1;cursor:pointer}
-.mail-segments input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
-.mail-segments label span{display:block;padding:7px 18px;border-radius:999px;color:var(--mail-band-muted);font-size:13.5px;font-weight:500;letter-spacing:.02em;transition:color 200ms ease}
-.mail-segments input:checked+span{color:#1b1306}
-.mail-segments input:focus-visible+span{outline:2px solid var(--mail-band-gold);outline-offset:2px}
-.mail-segments-thumb{position:absolute;top:3px;bottom:3px;left:3px;z-index:0;width:calc((100% - 6px) / 2);border-radius:999px;background:var(--mail-gilt);box-shadow:inset 0 1px 0 #fff8e2b3,inset 0 -1px 0 #7a5a2699;transition:translate 420ms var(--mail-arrive)}
-.mail-segments-three .mail-segments-thumb{width:calc((100% - 6px) / 3)}
-@media(max-width:480px){.mail-segments-three label span{padding:7px 10px;font-size:13px}}
-.mail-segments:has(label:nth-of-type(2) input:checked) .mail-segments-thumb{translate:100% 0}
-.mail-segments:has(label:nth-of-type(3) input:checked) .mail-segments-thumb{translate:200% 0}
-@media(prefers-reduced-motion:reduce){.mail-segments-thumb,.mail-segments label span{transition:none}}
-.mail-teaser{position:relative;width:min(1000px,100%);margin:28px auto 0}
-.mail-teaser::before{content:"";position:absolute;z-index:-1;inset:-6% -14% -18%;background:radial-gradient(ellipse 50% 46% at 50% 54%,#c491422e,#c4914200 70%);pointer-events:none}
-.mail-teaser img{display:block;width:100%;height:auto}
-.mail-teaser figcaption{display:inline-flex;align-items:center;gap:7px;margin-top:8px;padding:3px 10px 3px 8px;border-radius:999px;box-shadow:inset 0 0 0 1px #e0c08459;color:var(--mail-band-muted);font-size:12px;font-weight:600;letter-spacing:.03em;line-height:1.4}
-.mail-teaser figcaption::before{content:"";width:6px;height:6px;border-radius:50%;background:#e0c084}
-.mail-teaser-set .mail-teaser:not(:first-of-type){display:none}
-.mail-teaser-set:has(input[value=light]:checked) [data-teaser=dark],
-.mail-teaser-set:has(input[value=choose]:checked) [data-teaser=offer],
-.mail-teaser-set:has(input[value=ready]:checked) [data-teaser=offer]{display:none}
-.mail-teaser-set:has(input[value=light]:checked) [data-teaser=light],
-.mail-teaser-set:has(input[value=choose]:checked) [data-teaser=choose],
-.mail-teaser-set:has(input[value=ready]:checked) [data-teaser=ready]{display:block}
-/* What's coming: the features as dark cards with gilt line glyphs, then the
-   four ways Mail is careful, divided by gold hairlines, then the waitlist again. */
-.mail-defs{position:absolute;width:0;height:0;overflow:hidden}
-.mail-stage h2{max-width:20ch;margin:0 auto;font-family:var(--site-font-patron);font-size:clamp(34px,4.6vw,60px);font-weight:400;line-height:1.05;letter-spacing:0;text-wrap:balance}
-/* Small Blubird Display titles take a little air (the site allows up to
-   +0.03em at 24px and under; headlines stay at 0). */
-.mail-stage h3{margin:0 0 8px;color:var(--mail-band-text);font-family:var(--site-font-patron);font-size:22px;font-weight:400;line-height:1.2;letter-spacing:.02em}
-.mail-features,.mail-careful{width:min(1080px,100%);margin-top:clamp(96px,14vh,160px);text-align:center}
-.mail-feature-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:52px 0 0;padding:0;list-style:none;text-align:left}
-.mail-feature{padding:28px 26px 30px;border-radius:22px;background:linear-gradient(180deg,#15110b,#0b0906);box-shadow:inset 0 0 0 1px #f2ead81a,inset 0 1px 0 #fff3d614;transition:box-shadow 240ms ease}
-@media(hover:hover){.mail-feature:hover{box-shadow:inset 0 0 0 1px #e0c08459,inset 0 1px 0 #fff3d626,0 24px 48px -28px #e0c08433}}
-.mail-feature-badge{display:grid;place-items:center;width:52px;height:52px;margin-bottom:22px;border-radius:50%;background:radial-gradient(circle at 50% 30%,#e0c0842e,#e0c08400 72%);box-shadow:inset 0 0 0 1px #e0c08459}
-.mail-feature-badge svg{width:26px;height:26px;fill:none;stroke:url(#mail-gilt-stroke);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.mail-stage :is(.mail-feature,.mail-careful-row) p{margin:0;color:var(--mail-band-muted);font-size:15.5px;line-height:1.6;letter-spacing:.025em;text-wrap:pretty}
-.mail-careful-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:48px 0 0;padding:0;border-top:1px solid #e0c08447;list-style:none;text-align:left}
-.mail-careful-row li{padding:26px 22px 4px}
-.mail-careful-row li:first-child{padding-left:0}
-.mail-careful-row li+li{border-left:1px solid #e0c08433}
-.mail-closing{width:min(640px,100%);margin-top:clamp(96px,14vh,150px);text-align:center}
-.mail-closing .mail-waitlist{width:min(480px,100%);margin:32px auto 0}
-/* Pricing, Support and Download, folded in from their own pages: the plans
-   as dark cards like the features, support as a row like the careful one. */
-.mail-pricing,.mail-support{width:min(1080px,100%);margin-top:clamp(96px,14vh,160px);text-align:center}
-.mail-section-lead{max-width:52ch;margin:20px auto 0;color:var(--mail-band-text);font-size:clamp(17px,1.8vw,19px);line-height:1.55;text-wrap:balance}
-.mail-section-lead a,.mail-support-row a,.mail-pricing-end a{color:#e6cf9a;text-decoration-thickness:1px;text-underline-offset:3px}
-.mail-pricing-status{display:inline-block;max-width:68ch;margin:28px auto 0;padding:14px 20px;border-radius:16px;box-shadow:inset 0 0 0 1px #e0c08459;background:#e0c0840f;color:var(--mail-band-muted);font-size:15px;line-height:1.6;letter-spacing:.025em;text-wrap:pretty}
-.mail-plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;max-width:1080px;margin:40px auto 0;padding:0;list-style:none;text-align:left}
-.mail-plan{display:grid;grid-row:span 3;grid-template-rows:subgrid;row-gap:0;padding:30px 28px 32px;border-radius:22px;background:linear-gradient(180deg,#15110b,#0b0906);box-shadow:inset 0 0 0 1px #f2ead81a,inset 0 1px 0 #fff3d614}
-.mail-stage .mail-plan h3{font-size:24px}
-.mail-plan-price{margin:6px 0 22px;color:var(--mail-band-muted);font-size:15.5px;line-height:1.5;font-variant-numeric:tabular-nums}
-.mail-plan-price strong{background:var(--mail-gilt);-webkit-background-clip:text;background-clip:text;color:transparent;font-family:var(--site-font-patron);font-size:44px;font-weight:400;line-height:1.1;letter-spacing:0}
-.mail-plan-price strong:nth-of-type(2){font-size:24px}
-/* An annual-only plan says what it adds, under its one price. */
-.mail-plan-note{color:var(--mail-band-muted)}
-.mail-plan ul{display:grid;align-content:start;gap:10px;margin:0;padding:20px 0 0;border-top:1px solid #e0c08433;list-style:none}
-.mail-plan li{position:relative;padding-left:22px;color:var(--mail-band-text);font-size:15.5px;line-height:1.5}
-.mail-plan li::before{content:"";position:absolute;left:2px;top:.6em;width:7px;height:7px;border-radius:50%;background:var(--mail-gilt)}
-.mail-plan a{margin-top:20px;color:#e6cf9a}
-.mail-pricing-end{max-width:60ch;margin:44px auto 0}
-.mail-pricing-end p{margin:0;color:var(--mail-band-muted);font-size:15.5px;line-height:1.6;letter-spacing:.025em;text-wrap:pretty}
-.mail-support-row{grid-template-columns:repeat(3,minmax(0,1fr))}
-.mail-requirements{max-width:48ch;margin:28px auto 0;color:var(--mail-band-muted);font-size:14px;line-height:1.6;letter-spacing:.03em;text-wrap:balance}
-@media(max-width:900px){
-  .mail-feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .mail-careful-row{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .mail-careful-row li:nth-child(odd){padding-left:0;border-left:0}
-}
-@media(max-width:900px){.mail-plans{grid-template-columns:1fr;max-width:520px}.mail-plan{grid-row:auto;grid-template-rows:none}}
-@media(max-width:600px){
-  .mail-feature-grid{grid-template-columns:1fr}
-  .mail-careful-row,.mail-support-row{grid-template-columns:1fr}
-  .mail-careful-row li,.mail-careful-row li+li{padding:22px 0;border-left:0;border-bottom:1px solid #e0c08433}
-}
-/* Each card and the careful row rise into place as they scroll in. */
-@media(prefers-reduced-motion:no-preference){
-  @supports (animation-timeline:view()){
-    .mail-feature,.mail-plan,.mail-careful-row li{animation:mail-soon-rise linear both;animation-timeline:view();animation-range:entry 0% entry 60%}
-  }
-}
 @media(max-width:640px){
   .mail-stage{padding:36px 16px 48px}
   .mail-stage .mail-eyebrow{font-size:11px;letter-spacing:.16em}
-  .mail-envelope{width:92%}
-  .mail-envelope-face{border-radius:10px}
 }
-/* Stacked on phones, so the field keeps its own height instead of sharing a column's. */
-@media(max-width:480px){:is(.mail-soon,.mail-closing) .mail-waitlist-controls{border-radius:26px}:is(.mail-soon,.mail-closing) .mail-waitlist input[type=email]{flex:none}}
-@media(prefers-reduced-motion:no-preference){
-  .mail-soon>*{animation:mail-soon-rise 900ms var(--mail-arrive) both}
-  .mail-soon>h1{animation-delay:80ms}
-  .mail-soon>.mail-envelope{animation:mail-envelope-arrive 1300ms var(--mail-arrive) 160ms both}
-  .mail-soon>:nth-child(n+4){animation-delay:300ms}
-  .mail-envelope-face::after{animation:mail-envelope-sweep 2600ms cubic-bezier(.45,.05,.2,1) 900ms both}
-}
-@keyframes mail-soon-rise{from{opacity:0;translate:0 10px}}
-@keyframes mail-envelope-arrive{from{opacity:0;translate:0 24px}}
-@keyframes mail-envelope-sweep{from{background-position:-80% 0}to{background-position:230% 0}}
 
 /* ---------- Privacy and Terms: the document layout ---------- */
 .mail-doc-grid{display:grid;grid-template-columns:200px minmax(0,68ch);gap:clamp(40px,6vw,88px);align-items:start;margin-top:52px}
@@ -410,9 +186,6 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
   .mail-bar::after{background:#e0c084;box-shadow:none}
   .mail-contents a{color:#2b251d}
   .mail-waitlist-controls{border-color:var(--mail-muted)}
-  .mail-soon .mail-waitlist .mail-waitlist-note,.mail-stage-notes p,.mail-stage :is(.mail-feature,.mail-careful-row,.mail-plan,.mail-pricing-end) p,.mail-section-lead,.mail-requirements{color:#e6dccb}
-  .mail-feature,.mail-plan{box-shadow:inset 0 0 0 1px #f2ead899}
-  .mail-soon .mail-waitlist-controls{border-color:#f2ead899}
 }
 
 /* The anonymous Blanc Mail survey (/mail/survey). */
@@ -488,10 +261,6 @@ body .revamp-nav .site-nav-cta:hover{background:none;color:#000}
   .mail-reserve-page.is-open .mail-reserve{grid-area:form;max-width:none;margin:0}
   .mail-reserve-page.is-open .mail-reserve-facts{grid-area:facts;max-width:none;margin:40px 0 0}
 }
-.mail-reserve-cta{display:inline-block;margin-top:48px;padding:13px 26px;border-radius:999px;background:var(--mail-gilt);color:#1b1306;font-size:16px;font-weight:600;text-decoration:none;box-shadow:inset 0 1px 0 #fff8e2b3,inset 0 -1px 0 #7a5a2699;transition:filter 160ms ease,transform 100ms ease-out}
-.mail-reserve-cta:active{transform:scale(.97)}
-@media(hover:hover){.mail-reserve-cta:hover{filter:brightness(1.07)}}
-.mail-reserve-cta:focus-visible{outline:2px solid #e0c084;outline-offset:3px}
 .mail-reserve-step{display:grid;gap:10px}
 .mail-reserve-step[hidden]{display:none}
 .mail-reserve-label{margin-top:6px;color:var(--mail-band-text);font-size:14px;font-weight:600}
