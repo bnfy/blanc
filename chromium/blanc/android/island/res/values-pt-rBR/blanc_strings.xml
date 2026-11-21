@@ -233,8 +233,8 @@
     <string name="blanc_android_settings_more">Mais</string>
     <string name="blanc_android_settings_open_source_licenses">Licenças de código aberto</string>
     <string name="blanc_ios_settings_about">Sobre o Blanc</string>
-    <string name="blanc_android_settings_autofill_title">Preenchimento automático com seu gerenciador de senhas</string>
-    <string name="blanc_android_settings_autofill_summary">Usa senhas e chaves de acesso do Bitwarden, Proton Pass, 1Password e de outros gerenciadores que você escolher no Android. O Gerenciador de senhas do Google não preenche formulários no Blanc.</string>
+    <string name="blanc_android_settings_autofill_title">Preencher senhas</string>
+    <string name="blanc_android_settings_autofill_summary">Usa senhas do Bitwarden, Proton Pass, 1Password e de outros gerenciadores que você escolher no Android. O Gerenciador de senhas do Google não preenche formulários no Blanc.</string>
     <string name="blanc_android_settings_autofill_choose">Escolher gerenciador de senhas</string>
     <string name="blanc_android_settings_autofill_restart">Reinicie o Blanc para aplicar a alteração</string>
     <string name="blanc_ios_settings_add_site">Adicionar site</string>
