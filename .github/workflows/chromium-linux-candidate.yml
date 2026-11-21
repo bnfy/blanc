@@ -96,6 +96,9 @@ jobs:
           sudo chmod 4755 "$helper"
       - name: Install Xvfb and Weston
         run: |
+          # Leave the runners' default mirror first, as every workflow does
+          # (scripts/ci-apt-mirror.sh; test/unit/ci-apt-mirror.test.js).
+          bash scripts/ci-apt-mirror.sh
           sudo apt-get update
           sudo apt-get install -y xvfb weston
       - name: Install the harness's dependencies
