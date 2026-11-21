@@ -540,7 +540,7 @@
     "blanc/browser/ui/spaces_across_profiles.inc": "be27d90ceb19071c95b380bad0e79cc16ffd1e58a4480643207b70ffa9b063de",
     "blanc/browser/ui/start_page_import.inc": "c977e0b822a71577f858586bf6778121c855b0fb36102cbbf23dcb305f31eda2",
     "blanc/browser/ui/start_page_pin_menu.inc": "4a53e5d68f1c8556cc63dfee6e4d66b865b38f5e4f83a9685e57ba62cffc534c",
-    "blanc/browser/ui/start_page_pins.inc": "7e2906fc277c8f5dd8372cbb0574af82d6535831372aea8e2e7c5d5d50cbfdd3",
+    "blanc/browser/ui/start_page_pins.inc": "ead7f435799d915bd2e734d16b87e3d9c8c21a904743b532f268b3748b2eba41",
     "blanc/browser/ui/tab_handoff.inc": "e78bf9d7996f425800e145570918a9a670e52ad19a2c3dcc739d54aae16ab185",
     "blanc/browser/ui/tab_import.inc": "f521ce9300d7fb68741c23bb61a3b1f17ed153d8cb398a3f2378c17b47bbcaad",
     "blanc/browser/ui/tab_import_controller.inc": "090059985031521c225150774215ad90e29d6ca568d7249d169d4b4aad46318e",
