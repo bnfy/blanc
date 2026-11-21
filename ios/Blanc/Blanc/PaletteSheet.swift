@@ -239,6 +239,7 @@ struct PaletteSheet: View {
                     .background(style.text.opacity(0.06), in: Capsule())
                     .frame(minHeight: 44)
                     .contentShape(Rectangle())
+                    .pointerHighlight(cornerRadius: 15)
             }
             .contextMenu {
                 Button(SyncCopy.text("tabMenu.copyLink"), systemImage: "doc.on.doc") {
