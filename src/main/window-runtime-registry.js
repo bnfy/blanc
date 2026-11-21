@@ -220,6 +220,9 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
      * generation it drew under (a newer pill tooltip replaces it). */
     islandAutoHideIntroTimer: null,
     islandAutoHideIntroGeneration: 0,
+    /** A download's brief showing of the auto-hidden Island:
+     * {startedAt, until, timer} (downloadPeekStep in island-autohide.js). */
+    islandDownloadPeek: null,
     /** Pending detach of the overlay view while its panel retracts. */
     overlayExitTimer: null,
     /** Pending show of the Ctrl+Tab card, 150 ms into a held switch. */
