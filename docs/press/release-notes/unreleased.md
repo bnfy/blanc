@@ -41,10 +41,13 @@ since then are below as they're recorded.
   44658492309): the installer's registration and its removal, and a file
   opening in the static preview at launch and when handed to a running
   Blanc.
-- **The Windows passkey fix** in a packaged build and on a PC with Windows
-  Hello set up. It was checked in the Windows VM (no Windows Hello) with a
-  source build and a local test page, not a real site. A sign-in form inside
-  an iframe can still open the dialog.
+- **The Windows passkey fix** on a PC with Windows Hello set up, and on real
+  sites. On November 21, 2026 a signed ECS package of `main` (`4c8f5d02f`,
+  run 44887227876) was checked in the Windows VM (no Windows Hello) with a
+  local test page: a quiet passkey request no longer started Windows'
+  passkey dialog, a passkey request the page made directly still did, and
+  public 1.51.0 still showed the bug. A sign-in form inside an iframe can
+  still open the dialog.
 - **The message for a refused local HTML file** in a packaged build on macOS
   and Windows. Unit tests cover the reasons and the text; nobody has seen the
   dialog on screen yet.
