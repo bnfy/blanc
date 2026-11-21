@@ -103,6 +103,22 @@ test('check fails when a scoped file does not exist (renames cannot silently pas
   assert.match(cli.runCheck(root).failures.join(), /renamed\.js.*missing/);
 });
 
+test('check rejects an Android-only key in desktop code and counts it for translation coverage', (t) => {
+  const file = 'src/renderer/guarded.js';
+  const key = 'android.contextMenu.privateTab';
+  const { root, en } = fixtureRoot(t, { scope: { [file]: { state: 'guarded' } } });
+  const source = require('../../copy/messages/en.json');
+  en[key] = source[key];
+  fs.writeFileSync(path.join(root, 'copy/messages/en.json'), JSON.stringify(en));
+  cli.runBuild(root);
+  fs.writeFileSync(path.join(root, file), `blancI18n.t('slash.new.hint');\nblancI18n.t('${key}');`);
+
+  const { failures, warnings } = cli.runCheck(root);
+  assert.deepEqual(failures, [`${file}: unknown key '${key}'`]);
+  assert.match(warnings.join('\n'), /0\/3 current, 3 missing/);
+  assert.ok(!fs.readFileSync(path.join(root, 'src/renderer/pages/strings.en.js'), 'utf8').includes(key));
+});
+
 test('status lists missing and stale keys with English and note', (t) => {
   const { root } = fixtureRoot(t);
   const out = cli.runStatus(root, 'de');

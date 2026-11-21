@@ -10046,5 +10046,13 @@
   "start.mahjong.play": {
     "message": "Blanc Mahjong spielen",
     "source": "sha256:9b62eba2e07c169ab3ee5415185da568ca0fd436fd6cc8730fe661830c6ed9d7"
+  },
+  "android.contextMenu.privateTab": {
+    "message": "In privatem Tab öffnen",
+    "source": "sha256:48a5da257ddfeccb9a6f1d16e4effa493a14e3210f8fe55b689455aebdafa78b"
+  },
+  "android.contextMenu.newBlancTab": {
+    "message": "In neuem Blanc-Tab öffnen",
+    "source": "sha256:bae530101e3c873c6fd7a7af7cbbcca3fdf632b1fec7677da23d3937a37aaba0"
   }
 }
