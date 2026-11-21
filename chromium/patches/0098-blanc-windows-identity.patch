@@ -152,3 +152,52 @@ index c9b812b..4e45a2a 100644
  }
  
  // static
+diff --git a/chrome/browser/ui/window_metadata/window_metadata_controller.cc b/chrome/browser/ui/window_metadata/window_metadata_controller.cc
+index ae89bca..581254e 100644
+--- a/chrome/browser/ui/window_metadata/window_metadata_controller.cc
++++ b/chrome/browser/ui/window_metadata/window_metadata_controller.cc
+@@ -29,6 +29,14 @@
+ #include "ui/gfx/text_elider.h"
+ #include "ui/gfx/text_utils.h"
+ 
++#if BUILDFLAG(IS_WIN)
++// Blanc: the window title names the channel. install_static_util reaches this
++// target through private dependencies (chrome.dll links it); no BUILD.gn
++// change, so the Mac outputs' GN files stay as they are.
++#include "base/strings/string_util.h"
++#include "chrome/install_static/install_util.h"
++#endif
++
+ #if BUILDFLAG(ENABLE_CAPTIVE_PORTAL_DETECTION)
+ #include "components/captive_portal/content/captive_portal_tab_helper.h"
+ #endif
+@@ -252,12 +260,29 @@ std::u16string WindowMetadataController::GetWindowTitleFromWebContents(
+   }
+   // Include the app name in window titles for tabbed browser windows when
+   // requested with |include_app_name|.
++#if BUILDFLAG(IS_WIN)
++  // Blanc: on Windows the title names the channel ("… - Blanc Beta"), as the
++  // taskbar and Start menu do. Only the format's product word changes, so the
++  // localized format stays and a page title that says Blanc is left alone.
++  if ((browser_->GetType() == BrowserWindowInterface::Type::TYPE_NORMAL ||
++       browser_->GetType() == BrowserWindowInterface::Type::TYPE_POPUP) &&
++      include_app_name) {
++    std::u16string format =
++        l10n_util::GetStringUTF16(IDS_BROWSER_WINDOW_TITLE_FORMAT);
++    base::ReplaceFirstSubstringAfterOffset(
++        &format, 0, u"Blanc",
++        base::WideToUTF16(install_static::GetBaseAppName()));
++    return base::ReplaceStringPlaceholders(format, title, nullptr);
++  }
++  return title;
++#else
+   return ((browser_->GetType() == BrowserWindowInterface::Type::TYPE_NORMAL ||
+            browser_->GetType() == BrowserWindowInterface::Type::TYPE_POPUP) &&
+           include_app_name)
+              ? l10n_util::GetStringFUTF16(IDS_BROWSER_WINDOW_TITLE_FORMAT,
+                                           title)
+              : title;
++#endif  // BUILDFLAG(IS_WIN)
+ #endif  // BUILDFLAG(IS_MAC)
+ }
+ 

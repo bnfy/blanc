@@ -999,6 +999,7 @@
     "chrome/browser/ui/webui/settings/profile_info_handler.cc": "78dad17898f8a966bee7bea25b12dd134ab46c1daa948111451c992a465ecdd4",
     "chrome/browser/ui/webui/settings/settings_ui.cc": "bd972fe18cbf1fd486cd9333a1f287cb9c42016f032b223217b73f510238d48c",
     "chrome/browser/ui/window_feature_controller/window_feature_controller.cc": "d72a4e4e4bfdf386821997f2fbd155e46ffe420eeefb08598dff9cf048a92874",
+    "chrome/browser/ui/window_metadata/window_metadata_controller.cc": "979695e95a743952e3f195f288ee21a6db91b7f8abfa44e32d9dfd281aad83c4",
     "chrome/browser/web_applications/sampling_metrics_provider.cc": "9027cd7e7fe03133438375ce311fde253ec2b5d242f7041b62cad1703e22cf8f",
     "chrome/browser/webauthn/chrome_web_authentication_delegate.cc": "b164738fd7c7431e75cc2bf29122021a3d13fb3f0f6157326ea3025d13cdc756",
     "chrome/common/chrome_isolated_world_ids.h": "072b9ced507ac197d9ac158f1a1f9bf4be28179fbe401f7b3675322d12001fdb",

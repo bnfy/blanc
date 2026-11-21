@@ -117,6 +117,7 @@
     "chrome/browser/ui/webui/settings/profile_info_handler.cc": "a34885a44fa74e1412bd0afa51f234135ed3c87afe127b1101fd53157065abae",
     "chrome/browser/ui/webui/settings/settings_ui.cc": "72b7f786bfbe7fb19335a35aac488dff182600e84e4046e5f8a30d1ed84e4329",
     "chrome/browser/ui/window_feature_controller/window_feature_controller.cc": "267a73f074ee2d19e85b49b4e369804cebe620e84dd89e204f32a879723710b8",
+    "chrome/browser/ui/window_metadata/window_metadata_controller.cc": "a3440a18c3e957380ab4b5caf40db0fe71a3f3f7355de338d879407e4c7acdb5",
     "chrome/browser/web_applications/sampling_metrics_provider.cc": "9173ee2a4afd2f14d75949885ef36f57b27baecb4d57fe1a99d194b4657c4bff",
     "chrome/browser/webauthn/chrome_web_authentication_delegate.cc": "acfca55a1b8ef65fd8ef8d4f70a88f6867353894dc9ee7ddcbcd6d532c307226",
     "chrome/common/chrome_isolated_world_ids.h": "6b5384da3ab0cb04ff100b19b8981e8846d51d0d405acf595ccbaf048d1e219a",
