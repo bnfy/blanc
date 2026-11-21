@@ -145,3 +145,30 @@ if (blanc_beta_channel && is_win) {
     outputs = [ "$root_out_dir/blanc_blocker/engine.js" ]
   }
 }
+
+if (is_linux && target_os == "linux" && blanc_linux_build_packages) {
+  assert(defined(blanc_linux_package),
+         "Linux packages require the browser identity from patch 0112.")
+  assert(blanc_blocker_bundle != "", "Linux packages require the blocker bundle.")
+  action("linux_repository_keyring") {
+    script = "branding/linux/generate-keyring.py"
+    inputs = [ "branding/linux/repository-key.input" ]
+    outputs = [ "$root_out_dir/installer/common/blanc-repository.gpg" ]
+    args = [ "--source", rebase_path(inputs[0], root_build_dir),
+             "--output", rebase_path(outputs[0], root_build_dir) ]
+  }
+
+  action("verify_linux_blocker_bundle") {
+    script = "services/blocker/verify_bundle.py"
+    inputs = [ "$blanc_blocker_bundle/engine.js", "services/blocker/bundle_hash.h" ]
+    outputs = [ "$target_gen_dir/blocker-bundle-verified.stamp" ]
+    args = [ "--bundle", rebase_path(inputs[0], root_build_dir),
+             "--hash-header", rebase_path(inputs[1], root_build_dir),
+             "--stamp", rebase_path(outputs[0], root_build_dir) ]
+  }
+  copy("linux_blocker_engine") {
+    sources = [ "$blanc_blocker_bundle/engine.js" ]
+    outputs = [ "$root_out_dir/blanc_blocker/engine.js" ]
+    public_deps = [ ":verify_linux_blocker_bundle" ]
+  }
+}

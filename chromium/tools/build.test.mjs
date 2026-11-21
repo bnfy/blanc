@@ -198,11 +198,11 @@ test('the Windows build needs its case-insensitive toolchain mount', () => {
   assert.equal(windowsToolchainMounted(`/dev/md2 ${mount} ext4 rw 0 0\n`, src), false);
 });
 
-test('Linux preview builds chrome and chrome_sandbox', () => {
+test('Linux preview builds chrome, chrome_sandbox and both prototype packages', () => {
   const options = ['--out=BlancLinuxPrototype'];
   assert.equal(outputName(options), 'BlancLinuxPrototype');
   assert.deepEqual(LINUX_OUTPUTS, ['BlancLinuxPrototype']);
-  assert.deepEqual(buildLane(options), { lane: 'desktop', out: 'BlancLinuxPrototype', target: 'chrome', extraTargets: ['chrome_sandbox'] });
+  assert.deepEqual(buildLane(options, true), { lane: 'desktop', out: 'BlancLinuxPrototype', target: 'chrome', extraTargets: ['chrome_sandbox', 'chrome/installer/linux:prototype'] });
   assert.throws(() => buildLane([...options, '--sdk-root=/tmp']), /macOS option/);
 });
 test('Linux preview requires x86-64 Linux', () => {
@@ -234,4 +234,14 @@ test('sysroot requires exactly one bare hash marker', () => {
   assert.equal(sysrootHash([...sidecars, '.' + hash]), hash);
   assert.throws(() => sysrootHash(sidecars));
   assert.throws(() => sysrootHash(['.' + hash, '.' + '1'.repeat(64)]));
+});
+
+test('the guard can plan and build the unpackaged Linux browser before the owner key lands', () => {
+  for (const mode of ['--check', '--build']) {
+    const options = ['--out=BlancLinuxPrototype', mode];
+    assert.deepEqual(buildLane(options, false).extraTargets, ['chrome_sandbox']);
+    assert.deepEqual(buildLane([...options, '--linux-packages'], false).extraTargets,
+      ['chrome_sandbox', 'chrome/installer/linux:prototype']);
+    assert.throws(() => buildLane([mode, '--linux-packages']), /Linux/);
+  }
 });

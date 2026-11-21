@@ -290,9 +290,11 @@ are folded in below.
 
 ### Task 4: Packages from Chromium's installer, pointed at Blanc
 
+Patch 0114 touches 17 upstream files in 43 hunks. The desktop queue through 0114 touches 242 distinct upstream files in 880 hunks in this worktree (before integrating Tasks 2 and 3).
+
 **Files:**
 - Create: patch `0114-blanc-linux-installer.patch` touching `chrome/installer/linux/BUILD.gn` (a
-  `linux_package("prototype")` beside Chromium's four, the repository argument passed to both package
+  package group for the active Blanc channel, the repository argument passed to both package
   actions, and a dependency on the blocker copy), `common/installer.py`, `common/chromium-browser.info`,
   `debian/repo_signing_keys.gpg` (replaced by Blanc's public keyring, dearmored), the desktop, cron
   and AppArmor templates only if they name Google or Chromium paths
@@ -312,11 +314,13 @@ are folded in below.
 - Produces: GN args `blanc_linux_channel` (`"prototype"` preview, `"beta"` beta) and
   `blanc_linux_repository` (`"https://pkg-staging.blanc.day"` preview,
   `"https://pkg.blanc.day"` beta). Build targets for a Linux output:
-  `chrome`, `chrome_sandbox`, `//chrome/installer/linux:prototype` (the new `linux_package` the patch
-  adds; `:beta` for the beta channel).
+  `chrome`, `chrome_sandbox`, `//chrome/installer/linux:prototype` (the prototype channel; `:beta` for the beta
+  channel). Before the owner key lands, the guard selects `chrome` and `chrome_sandbox`.
+  Use `--linux-packages` to request the installer explicitly. Its GN graph requires patch 0112,
+  and only the package action validates the key.
 - Produces: `scanPackage(path, {fingerprint}) -> {ok: boolean, findings: string[]}` in
   `package-scan.mjs`. It unpacks a `.deb` (`dpkg-deb -R`, including `DEBIAN/` maintainer scripts) or
-  an `.rpm` (`rpm2cpio | cpio` for files, plus `rpm -qp --scripts --triggers` for the header's
+  an `.rpm` (`rpm2cpio | cpio` for files, plus `rpm -qp --scripts --triggers --filetriggers` for the header's
   scriptlets) and reports: any text file, maintainer script, scriptlet, cron file or desktop file that
   contains `dl.google.com`, `google.com/linux`, `/opt/chromium.org`, `/opt/google` or
   `chromium-browser`; any OpenPGP keyring or armored key in the package (found by content, not name)
