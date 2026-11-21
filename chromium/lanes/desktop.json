@@ -112,6 +112,7 @@
     "patches/0104-blanc-skip-chromium-welcome.patch",
     "patches/0105-blanc-windows-updater-art.patch",
     "patches/0106-blanc-spaces-mirror.patch",
-    "patches/0107-blanc-no-api-keys-infobar.patch"
+    "patches/0107-blanc-no-api-keys-infobar.patch",
+    "patches/0108-blanc-no-environment-api-keys.patch"
   ]
 }

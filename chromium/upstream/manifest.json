@@ -193,6 +193,7 @@
     "extensions/common/mojom/frame.mojom": "feb895fd428ef78f9f87030a54f12ea6ca8322b9b8dca2a334e45f078c210947",
     "extensions/renderer/programmatic_script_injector.cc": "76c5dd8a9ad8d08dc7879c5df48d094329e1728ab65cf78d9b636f917dd7de05",
     "extensions/renderer/script_injection.cc": "0838ba3a94107784d1ed662524ed2ad6e41dafc360b8ac9024964b7fecf538e7",
+    "google_apis/default_api_keys-inc.cc": "aa24c7bd4d1a9875a50a61a62be878c4557885eba29a570a0e5b3fac0d5d94f1",
     "third_party/blink/common/renderer_preferences/renderer_preferences_mojom_traits.cc": "400e46828797b30203218e5520f637ab93963c02acc7245808b3654920d46370",
     "third_party/blink/public/common/renderer_preferences/renderer_preferences.h": "c678694fd348efbea98db4aec04c4eb6ba70d5a8806232b2e782c6c8397cc3f5",
     "third_party/blink/public/common/renderer_preferences/renderer_preferences_mojom_traits.h": "faf3d88f5d4fd913b1ecff481c471b718cb0c60ec030029b68d8377ed12a23b8",
