@@ -29,8 +29,18 @@ Seen: logging in to a test site showed no save prompt, and tapping its username 
   is still reachable from Android's own autofill settings (`AutofillOptionsLauncher` on
   `APPLICATION_PREFERENCES`).
 
-**Ruling P1:** turn third-party mode on by default, and add a Blanc Settings row for it ("Autofill with
-your password manager"). **Owner:** this means Google Password Manager can't fill in Blanc on Android
+- **Chromium resets the switch at every startup.** `AutofillClientProvider` writes the pref back to
+  whether Android autofill is available right now (`autofill_client_provider.cc:74-78`), so a phone whose
+  autofill service is Google's at first launch gets the switch written off for good, and choosing
+  Bitwarden later wouldn't turn it on (`getAndroidAutofillFrameworkAvailability` then answers
+  `SETTING_TURNED_OFF`).
+- Chromium's own options page says "Autofill with Google" and "Restart Chrome", so Blanc doesn't link to
+  it.
+
+**Ruling P1 (owner approved, 2026-11-21):** turn third-party mode on by default (the pref's Android
+default becomes true), write it back only when it is available or the person turned it off, and add
+Blanc's own Settings row: a switch, a link to Android's "Autofill service" choice, and a restart note.
+**Owner** accepted that this means Google Password Manager can't fill in Blanc on Android
 (there is no path for it in an open-source Chromium build), so the design's "Google Password Manager and
 Bitwarden" exit gate becomes "Bitwarden (and one other free manager) fills; Google Password Manager
 doesn't, and Settings says which managers work". The design's claim that "whichever password manager the
