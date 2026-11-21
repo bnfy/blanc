@@ -27,6 +27,9 @@ runner, a frame check and an install check on Ubuntu, Debian and Fedora.
 [L0](2026-11-21-linux-fork-l0.md): its candidate, `reports/f0-linux.json` and the Linux sections of
 `chromium/STATUS.md` and `chromium/PLATFORMS.md` must exist before Task 8.
 
+**Review:** Codex reviewed this plan on 2026-11-21 (13 findings: 6 blockers, 5 errors, 2 gaps); all
+are folded in below.
+
 ## Decisions this plan asks the owner for (approving the plan approves them)
 
 1. **The arm64 build:** fetching Chromium's Debian arm64 sysroot into the shared checkout
@@ -40,7 +43,7 @@ runner, a frame check and an install check on Ubuntu, Debian and Fedora.
    repository to anyone's system. Neither host exists until L3, so `apt update` on a machine with a
    preview installed warns until then.
 3. **The key:** RSA 4096 (accepted by every target's apt and rpm; Chrome's keys are RSA 4096), user id
-   `Blanc Linux Repository <support@blanc.day>`, signing-only, expiring 2028-11-21 and extended before
+   `Blanc Linux Repository <support@blanc.day>`, signing and certification only (no encryption key), expiring 2028-11-21 and extended before
    then per the rotation plan. Made on the owner's Mac in a throwaway `GNUPGHOME`; the secret half goes
    to 1Password (Dev, item **"Blanc Linux Repository Signing"**) and nowhere else.
 4. **Wayland frame evidence:** hosted runners have no Wayland compositor that takes real pointer
@@ -149,7 +152,8 @@ runner, a frame check and an install check on Ubuntu, Debian and Fedora.
 
 - [ ] **Step 1: Write the failing test** `linux-repository-key.test.mjs`: the armored file parses (run
   `gpg --show-keys --with-colons` on it when `gpg` exists, else skip with a reason), has exactly one
-  primary key, algorithm RSA (`1`) of 4096 bits, usage `s` only, expiry `2028-11-21`, user id
+  primary key, algorithm RSA (`1`) of 4096 bits, capabilities signing and certification only (`s`
+  and `c`; GnuPG primary keys always certify) with no `e` or `a` and no subkeys, expiry `2028-11-21`, user id
   `Blanc Linux Repository <support@blanc.day>`, no secret material (`-----BEGIN PGP PRIVATE` absent),
   and its fingerprint equals the one in `repository.md`.
 - [ ] **Step 2: Run it** with `node --test chromium/tools/linux-repository-key.test.mjs`; expected FAIL
@@ -157,17 +161,24 @@ runner, a frame check and an install check on Ubuntu, Debian and Fedora.
 - [ ] **Step 3: Write `make-repository-key.command`** on the model of
   `chromium/windows/owner/` scripts: a temporary `GNUPGHOME` (`mktemp -d`, mode 700, removed on exit),
   `gpg --batch --quick-generate-key 'Blanc Linux Repository <support@blanc.day>' rsa4096 sign 2028-11-21`
-  with a passphrase the owner types, export the secret key armored straight into
-  `op document create --vault Dev --title 'Blanc Linux Repository Signing'` (no file on disk), store the
-  passphrase in the same item's `password` field by hidden input, and write only the public half to
-  `chromium/linux/keys/blanc-repository.asc`. Refuses to run if the 1Password item already exists.
+  with a passphrase the owner types, export the secret key armored on stdin into
+  `op document create - --vault Dev --title 'Blanc Linux Repository Signing' --file-name blanc-repository-secret.asc`
+  (no file on disk), store the passphrase and a revocation certificate (`gpg --gen-revoke`) in a second
+  item, **"Blanc Linux Repository Signing (passphrase and revocation)"**, by hidden input and stdin, then
+  prove the vault copy works before deleting anything: read the document back into a second throwaway
+  `GNUPGHOME`, sign a test string, and verify it with the public half. Only then write the public half to
+  `chromium/linux/keys/blanc-repository.asc` and remove both temporary keyrings. Refuses to run if either
+  1Password item already exists.
 - [ ] **Step 4: Write `chromium/linux/repository.md`:** the decision-2 addresses and layout (apt
   `dists/stable/main/binary-{amd64,arm64}`, `pool/main/b/<package>/`; dnf
   `rpm/stable/{x86_64,aarch64}/` with `repodata/`), what is signed (apt `InRelease` and `Release.gpg`,
   dnf `repomd.xml.asc`, each `.rpm`), where signing runs (owner's Mac only, after approval), the
-  fingerprint line, and the rotation plan: extend expiry a year ahead with the same key; on compromise,
-  publish a new key through a final package signed by the old one whose cron installs the new keyring,
-  and keep the old one trusted for 90 days.
+  fingerprint line, and the rotation plan. Expiry: extend a year ahead with the same key, before it
+  lapses, and republish the public half (packages' crons reinstall it). Compromise: publish the
+  revocation certificate at once (in the repository root and in Git), stop signing with the key, and
+  give testers a replacement key authenticated independently of the compromised one (its fingerprint
+  on blanc.day over HTTPS and in a signed Git commit), installed by hand or by a package they verify
+  against that fingerprint; the compromised key is never trusted for an overlap period.
 - [ ] **Step 5: Owner runs** `chromium/linux/owner/make-repository-key.command` in Terminal (an approval
   point; Claude never runs it). Then fill the fingerprint into `repository.md`.
 - [ ] **Step 6: Run the test**; expected PASS. Commit
@@ -181,7 +192,8 @@ runner, a frame check and an install check on Ubuntu, Debian and Fedora.
   `chrome/common/channel_info_posix.cc`,
   `components/os_crypt/async/browser/freedesktop_secret_key_provider.h` (import pristine copies first)
 - Create: `chromium/linux/identity.md`, `chromium/tools/linux-identity.test.mjs`
-- Modify: `chromium/blanc/services/sync_runner/shims/electron.js` (storage backend on Linux)
+- Modify: `chromium/blanc/browser/sync/desktop_sync_platform.cc` (report the key store's real backend),
+  `chromium/blanc/services/sync_runner/shims/electron.js` and its bundled copy (storage backend on Linux)
 
 **Interfaces:**
 - Produces in `config.gni`: `blanc_linux_package` (`"blanc-prototype"` preview, `"blanc-beta"` beta),
@@ -205,8 +217,14 @@ runner, a frame check and an install check on Ubuntu, Debian and Fedora.
   `BLANC_LINUX_KEYRING_LABEL " Keys"`. Read how X11 `WM_CLASS` and the Wayland `xdg_toplevel` app id are
   derived from the desktop name at the pin (`shell_integration_linux.cc`, `ui/ozone/platform/wayland`)
   and record the call path in `identity.md`; patch it only if they don't follow `GetDesktopName`.
-- [ ] **Step 4: Sync shim:** `electron.js` reports `libsecret` (or `basic` when the provider fell back)
-  on Linux instead of `android_keystore`; extend its existing test.
+- [ ] **Step 4: Sync's key storage:** trace at the pin which `os_crypt_async` provider a Linux profile
+  selects (Secret Service, KWallet, or the fallback) and how a caller learns it. `desktop_sync_platform.cc`
+  today sends only `keyStore: true` (line 43); on Linux it sends the selected backend as well, and the
+  shim reports `gnome_libsecret`, `kwallet` or `basic_text` (the names shipping's
+  `src/main/sync-key-storage.js` uses) instead of `android_keystore`, so Sync's existing refusal of
+  `basic_text` applies. Regenerate the bundled shim as the sync runner's build does. Tests: the shim maps
+  each backend; with `basic_text` Sync refuses to store its key (the same assertion shipping's
+  `sync-key-storage` test makes).
 - [ ] **Step 5: Run** the test, the fork unit suite and `python3 chromium/tools/check-patches.py` for
   both lanes; expected PASS. Commit `Fork Linux: the preview's own names, data folder and keyring (L1)`.
 
@@ -216,16 +234,23 @@ runner, a frame check and an install check on Ubuntu, Debian and Fedora.
 - Create: patch `0113-blanc-linux-frame.patch` (the Linux frame view and layout files, traced in Step 1)
 - Create: `chromium/blanc/browser/ui/window_buttons_linux.{h,cc}`, added under `is_linux` where
   `tab_switch_keys_win.cc` is listed (`chromium/blanc/ui.gni:330`)
-- Modify: `chromium/blanc/island/host.js`, `chromium/blanc/island/prototype.css`,
-  `chromium/blanc/browser/ui/blanc_prototype_ui.cc` (drag band, `IsCaption`), the typed `Window`
-  interface that declares `openMainMenu`
+- Modify: `chromium/blanc/island/host.js`, `chromium/blanc/island/renderer.js` (inside the strip
+  iframe), `chromium/blanc/island/prototype.css` and `styles.css`,
+  `chromium/blanc/browser/ui/blanc_prototype_ui.cc` (drag band, `IsCaption`, the message below). Not
+  `chromium/blanc/common/browser_api/browser_api.mojom`: it is generated from Electron's
+  `browser-api/contract.json` (`chromium/tools/browser-api-mojom.mjs --check` in
+  `chromium-foundation.yml`), and a fork change never changes the Electron contract.
 - Create: `chromium/tests/linux-frame.mjs`, `chromium/tests/lib/native-input-linux.mjs`,
   `chromium/tools/linux-window-buttons.test.mjs`
 
 **Interfaces:**
-- Produces: event `onWindowButtons(WindowButtonsLayout)` with `{leading: number, trailing: number}` in
-  DIPs (0 when a side has none), sent on window creation, maximize/restore, scale change and a GTK
-  settings change. The host sets `--window-controls-leading-w` and `--window-controls-w` from it.
+- Produces: a fork-local message `windowButtons` with `{leading: number, trailing: number, buttons:
+  [{kind: 'minimize'|'maximize'|'close', x, y, width, height}]}` in DIPs (empty side = 0), sent by
+  `blanc_prototype_ui.cc` over the WebUI channel it already uses for fork-only messages, on window
+  creation, maximize/restore, scale change and a GTK settings change. `host.js` forwards it into the
+  strip iframe, where `renderer.js` sets `--window-controls-leading-w` and `--window-controls-w` on the
+  strip's root and moves the menu button (today fixed at `left: 8px`, `styles.css:3472`) past the
+  leading buttons. The `buttons` list is also what the frame and quit checks click.
 - Produces: `native-input-linux.mjs` exports `click(x, y)`, `doubleClick(x, y)`,
   `drag(x1, y1, x2, y2)`, `windowGeometry(windowId)` (`xdotool`, X11 only).
 
@@ -235,10 +260,11 @@ runner, a frame check and an install check on Ubuntu, Debian and Fedora.
   and how `gtk-decoration-layout` reaches the layout. Patch 0095 is the model: the client view starts
   at the window's top, no title or icon is painted, the buttons stay on top. Stop and report if Wayland
   forces server-side decorations for this window.
-- [ ] **Step 2: Write the failing unit test** `linux-window-buttons.test.mjs` for the host's handling:
+- [ ] **Step 2: Write the failing unit test** `linux-window-buttons.test.mjs` for the strip's handling:
   for each layout string in Review Focus 1, given the payload the native side would send for 32 px
-  buttons at 1x and 2x, the host sets the two CSS variables to the sum of the button widths on that
-  side, and `prototype.css` hides `#windowControls` on `linux`.
+  buttons at 1x and 2x, the strip document sets the two CSS variables to the sum of the button widths
+  on that side, the menu button's and pill's computed boxes (in a DOM test of `index.html`) don't
+  intersect any button rect, and `prototype.css` hides `#windowControls` on `linux`.
 - [ ] **Step 3: Run it**; expected FAIL.
 - [ ] **Step 4: Implement** the patch, `window_buttons_linux` (measures the frame's leading and
   trailing button bounds and sends the event), the host and CSS changes, and the Linux drag band and
@@ -248,20 +274,31 @@ runner, a frame check and an install check on Ubuntu, Debian and Fedora.
 - [ ] **Step 5: Run** the unit test, the fork suite and both lanes' patch checks; expected PASS.
 - [ ] **Step 6: Write `linux-frame.mjs`** (runner, X11 under `xvfb-run` with a window manager that
   honors client-side decorations, `xfwm4` or `openbox`): for each of the four layouts, written to
-  `~/.config/gtk-3.0/settings.ini` before launch, real clicks minimize, maximize, restore and close;
+  `~/.config/gtk-3.0/settings.ini` before launch (first confirm at the pin that
+  `settings_provider_gtk.cc` reads `gtk-decoration-layout` from it outside GNOME), the check records the
+  layout and scale it observed, then clicks by real input only the buttons the `windowButtons` payload
+  lists (Close-only clicks Close and checks the window goes): minimize, maximize, restore, close;
   dragging the strip moves the window; double-click maximizes; dragging the bottom-right corner
-  resizes; the Island's pill rect never intersects a button rect; repeated at
-  `--force-device-scale-factor=2`. Under Wayland (headless weston) it checks only that the buttons are
-  drawn on the configured side and the pill doesn't overlap them (decision 4).
+  resizes; the Island's menu button opens Chromium's app menu at the button; the pill and menu button
+  never intersect a button rect; the "Use system title bar and borders" setting, turned on, shows the
+  system title bar above the strip. Repeated at `--force-device-scale-factor=2`. Under Wayland
+  (headless weston) it checks only that the buttons are drawn on the configured side and the pill
+  doesn't overlap them (decision 4).
 - [ ] **Step 7: Commit** `Fork Linux: Chromium's caption buttons over the Island strip (L1)`.
 
 ### Task 4: Packages from Chromium's installer, pointed at Blanc
 
 **Files:**
-- Create: patch `0114-blanc-linux-installer.patch` touching
-  `chrome/installer/linux/common/installer.py`, `common/chromium-browser.info`,
-  `debian/repo_signing_keys.gpg` (replaced by Blanc's public keyring, dearmored), the cron and
-  AppArmor templates only if they name Google or Chromium paths
+- Create: patch `0114-blanc-linux-installer.patch` touching `chrome/installer/linux/BUILD.gn` (a
+  `linux_package("prototype")` beside Chromium's four, the repository argument passed to both package
+  actions, and a dependency on the blocker copy), `common/installer.py`, `common/chromium-browser.info`,
+  `debian/repo_signing_keys.gpg` (replaced by Blanc's public keyring, dearmored), the desktop, cron
+  and AppArmor templates only if they name Google or Chromium paths
+- Create: `chromium/blanc/branding/linux/product_logo_{16,24,32,48,64,128,256}.png` (the Sunrise mark,
+  each byte-identical to a render a test regenerates from `assets/sunrise-mark-4096.png`) and the
+  branding hook that makes the installer's `theme_files` copy them instead of Chromium's
+- Modify: `chromium/linux/args/prototype-x64.gn` (`blanc_blocker_bundle =
+  "/home/blanc/blanc-assets/blocker"`, as the Windows beta's args set it)
 - Modify: `chromium/blanc/BUILD.gn` (copy the blocker engine beside the executable for Linux
   previews' packages), `chromium/blanc/services/blocker/blocker_proxy.cc` (Linux lookup)
 - Modify: `chromium/tools/build.mjs` (`buildLane` Linux targets)
@@ -275,11 +312,16 @@ runner, a frame check and an install check on Ubuntu, Debian and Fedora.
   `"https://pkg.blanc.day"` beta). Build targets for a Linux output:
   `chrome`, `chrome_sandbox`, `//chrome/installer/linux:prototype` (the new `linux_package` the patch
   adds; `:beta` for the beta channel).
-- Produces: `scanPackage(path) -> {ok: boolean, findings: string[]}` in `package-scan.mjs`, which
-  unpacks a `.deb` (`dpkg-deb -R`) or `.rpm` (`rpm2cpio | cpio`) and reports any file, maintainer
-  script or scriptlet that contains `dl.google.com`, `google.com/linux`, a Google key fingerprint from
-  the pristine `repo_signing_keys.gpg`, `/opt/chromium.org`, `chromium-browser`, or a name in Task 2's
-  `FORBIDDEN` list as a path component.
+- Produces: `scanPackage(path, {fingerprint}) -> {ok: boolean, findings: string[]}` in
+  `package-scan.mjs`. It unpacks a `.deb` (`dpkg-deb -R`, including `DEBIAN/` maintainer scripts) or
+  an `.rpm` (`rpm2cpio | cpio` for files, plus `rpm -qp --scripts --triggers` for the header's
+  scriptlets) and reports: any text file, maintainer script, scriptlet, cron file or desktop file that
+  contains `dl.google.com`, `google.com/linux`, `/opt/chromium.org`, `/opt/google` or
+  `chromium-browser`; any OpenPGP keyring or armored key in the package (found by content, not name)
+  whose primary fingerprint differs from `fingerprint`; and identity collisions only where identity
+  lives: the install folder, `/usr/bin` launcher, desktop file name, AppArmor profile name, cron and
+  repository file names, and the `.desktop` `Exec`, `Icon` and `StartupWMClass` values, checked against
+  Task 2's `FORBIDDEN` list. The executable `chrome` inside the install folder is expected.
 
 - [ ] **Step 1: Write the failing tests.** `linux-installer-config.test.mjs` runs the patched
   `installer.py` config step (its `from_args`) for channels `prototype` and `beta` with a fake output
@@ -288,11 +330,20 @@ runner, a frame check and an install check on Ubuntu, Debian and Fedora.
   `StartupWMClass` equals the package; deb repoconfig
   `deb [arch=amd64] https://pkg-staging.blanc.day/deb stable main` (preview) and the `pkg.blanc.day`
   form (beta); rpm baseurl `…/rpm/stable/$basearch`; release-notes URL `https://blanc.day/whats-new`;
-  maintainer and homepage from Global Constraints. `linux-package-scan.test.mjs` feeds `scanPackage`
-  two small fixture packages built in the test (one clean, one with `dl.google.com` in a postinst) and
-  asserts `ok` true and false with the finding named.
+  maintainer and homepage from Global Constraints; the rendered apt source is exactly
+  `deb [arch=amd64 signed-by=/usr/share/keyrings/blanc-prototype.gpg] https://pkg-staging.blanc.day/deb stable main`;
+  the rendered dnf file has `baseurl=https://pkg-staging.blanc.day/rpm/stable/$basearch`,
+  `gpgcheck=1`, `repo_gpgcheck=1` and a `gpgkey` naming only Blanc's key; the desktop file has
+  `Icon=blanc-prototype`, `StartupWMClass=blanc-prototype`, `Categories=Network;WebBrowser;` and
+  `x-scheme-handler/http` and `https` in `MimeType`. `linux-package-scan.test.mjs` feeds `scanPackage`
+  small fixture packages built in the test: one clean; one with `dl.google.com` in a postinst; one
+  `.rpm` with it only in a `%post` scriptlet; one carrying a binary keyring with another key; one with
+  `/opt/bnfy/blanc-prototype/chrome` (must pass); asserts each result and finding.
 - [ ] **Step 2: Run them**; expected FAIL.
-- [ ] **Step 3: Implement the patch and config.** `normalize_channel` accepts `prototype`; the repo
+- [ ] **Step 3: Check the pin first:** with the patch applied, run `gn desc` and a guarded `--check` to
+  read the generated Ninja aliases, the package file names and the installer's arguments and staging
+  list for `:prototype`, and use exactly those names in `build.mjs` (it passes targets to Siso as
+  given). Then **implement the patch and config.** `normalize_channel` accepts `prototype`; the repo
   address comes from GN (`blanc_linux_repository`, passed with a new `-r` argument) instead of
   `dl.google.com`; `chromium-browser.info` carries Blanc's values with `PACKAGE="blanc"` and
   `INSTALLDIR=/opt/bnfy/blanc`; the channel suffix rule yields the names above. Keep Chromium's
@@ -327,7 +378,7 @@ runner, a frame check and an install check on Ubuntu, Debian and Fedora.
 - Modify: `chromium/linux/package-candidate.mjs`, `chromium/linux/candidate.mjs`,
   `chromium/linux/ship-candidate.sh`, `chromium/tools/linux-candidate.test.mjs`,
   `chromium/tools/progress.mjs`
-- Create: `chromium/linux/owner/sign-rpm.command`
+- Create: `chromium/linux/owner/sign-candidate.command`
 
 **Interfaces:**
 - Produces: candidate id `linux-<x64|arm64>-<16 hex>`; tarball `blanc-linux-<arch>-candidate.tar.gz`
@@ -341,45 +392,65 @@ runner, a frame check and an install check on Ubuntu, Debian and Fedora.
   fixture lists both packages with SHA-256 and the arch; packaging refuses when `scanPackage` reports a
   finding. **Step 2: Run**; expected FAIL. **Step 3: Implement**, running `scanPackage` on both packages
   before the tarball is written. **Step 4: Run**; expected PASS.
-- [ ] **Step 5: `sign-rpm.command`** (owner's Mac): downloads the candidate from the draft by SHA-256,
-  imports the key from 1Password into a throwaway `GNUPGHOME`, runs `rpmsign --addsign` (Homebrew `rpm`
-  and `gnupg`), checks `rpm -K` against `blanc-repository.asc`, uploads `…rpm` signed as
-  `blanc-linux-<arch>-signed.rpm` plus its SHA-256 to the draft, and deletes the `GNUPGHOME`. First run
-  is a spike: if `rpmsign` on macOS can't sign, stop and bring the owner the options; do not move the
-  key anywhere else.
+- [ ] **Step 5: `sign-candidate.command`** (owner's Mac): downloads the candidate from the draft by
+  SHA-256, imports the key from 1Password into a throwaway `GNUPGHOME`, runs `rpmsign --addsign` on the
+  `.rpm` (Homebrew `rpm` and `gnupg`), checks it with `rpmkeys --checksig` against an isolated rpm
+  database holding only `blanc-repository.asc`, then writes `signed-candidate-<arch>.json` binding
+  `{candidate, tarSha256, arch, deb: {file, sha256}, rpm: {file, sha256}}` (the `.deb` from the
+  tarball, the `.rpm` as signed) and signs it detached with the same key. It uploads the signed `.rpm`,
+  the JSON and its `.asc` to the draft, and deletes the `GNUPGHOME`. Every later install (Task 7, the
+  VM) verifies the JSON's signature with the committed key, then each file's SHA-256, before
+  installing. First run is a spike: if `rpmsign` on macOS can't sign, stop and bring the owner the
+  options; do not move the key anywhere else.
 - [ ] **Step 6: Commit** `Fork Linux: candidates for x64 and arm64 with both packages (L1)`.
 
 ### Task 7: The install check on Ubuntu, Debian and Fedora
 
 **Files:**
 - Create: `chromium/tests/linux-install.mjs`, `chromium/tests/lib/linux-seed.mjs`
+- Modify: `chromium/tests/linux-smoke.mjs` and `chromium/tests/lib/fixture.mjs` (an installed mode)
 - Modify: `.github/workflows/chromium-linux-candidate.yml` (on `chromium/next`; the file is on `main`
   since L0, so the branch copy dispatches)
 
 **Interfaces:**
-- Consumes: Task 6's candidate and signed `.rpm`; L0's `linux-smoke.mjs` (pointed at the installed
-  `/opt/bnfy/blanc-prototype/chrome` with no `--blanc-blocker-assets`).
+- Consumes: Task 6's candidate, signed `.rpm` and `signed-candidate-<arch>.json`; L0's
+  `linux-smoke.mjs` in a new installed mode: `--installed=/opt/bnfy/blanc-prototype/chrome
+  --metadata=<candidate.json>`, a disposable `HOME` and `XDG_CONFIG_HOME`, no `--user-data-dir` (the
+  fixture reads `DevToolsActivePort` from `$XDG_CONFIG_HOME/blanc-prototype`, proving the real data
+  folder) and no `--blanc-blocker-assets` (the installed engine must load). On Ubuntu it also records
+  that the package's AppArmor profile is loaded for the installed path (`aa-status`) and that renderers
+  are sandboxed (L0's seccomp and namespace checks).
 - Produces: `install-<system>-<arch>.json` per leg: `{installed, launched, sandboxed, blocker,
   untouched: {appimageProfile, chromiumProfile, keyring, defaultBrowser, googleRepoFiles},
   defaultBrowserSet, upgradeKeptData, uninstalled, dataFolderKept, repositoryWritten}`.
 
-- [ ] **Step 1: `linux-seed.mjs`:** before install, download shipping Blanc v1.51.0's AppImage from its
-  public release, run it once headless to create `~/.config/Blanc`; seed `~/.config/chromium` with a
-  profile; store a Secret Service item for `application=chromium` under `gnome-keyring-daemon` in a
-  `dbus-run-session`; set `xdg-settings set default-web-browser chromium.desktop` with a stub desktop
-  file; write Google's apt and yum repo files (Review Focus 4). Record a SHA-256 of each.
+- [ ] **Step 1: `linux-seed.mjs`:** before install, on x64 only, download shipping Blanc v1.51.0's
+  AppImage (x64 is the only Linux build it ships) and run it once headless to create `~/.config/Blanc`;
+  on arm64, write a representative `~/.config/Blanc` tree instead and record that the AppImage
+  launch-before-and-after is x64 coverage only. Seed `~/.config/chromium` with a profile. Under
+  `gnome-keyring-daemon` in a `dbus-run-session`, store two distinct Secret Service items: Electron
+  Blanc's (`application` as shipping's safeStorage writes it, read from shipping's source) and
+  Chromium's (`application=chromium`). Set `xdg-settings set default-web-browser chromium.desktop` with
+  a stub desktop file; write Google's apt and yum repo files (Review Focus 4). Record a SHA-256 or
+  stored secret of each.
 - [ ] **Step 2: `linux-install.mjs` legs:** Ubuntu 24.04 on the runner itself (restriction left at 1);
   Debian 12 and current Fedora in containers (`docker run` with the candidate mounted read-only; a
   container may take `--security-opt seccomp=unconfined` if Chromium's sandbox needs it, recorded in
   the JSON, never `--no-sandbox`). Each leg: install (`apt install ./x.deb` or `dnf install ./x.rpm`
-  after `rpm --import blanc-repository.asc` and `rpm -K` passing); the smoke from the installed path
-  as an ordinary user under `xvfb-run`; the repository file the cron writes names
-  `pkg-staging.blanc.day` with Blanc's key and nothing else; seeded items unchanged; make it the
-  default browser through Chromium's own path and read `xdg-settings get default-web-browser` back as
-  `blanc-prototype.desktop`; upgrade-reinstall keeps a saved password (Review Focus 2); Debian runs
-  with no Secret Service (Review Focus 3); uninstall (`apt remove`, `dnf remove`) removes
-  `/opt/bnfy/blanc-prototype`, the launcher and desktop file, keeps `~/.config/blanc-prototype`, and
-  the AppImage still launches.
+  after verifying `signed-candidate-<arch>.json` and `rpmkeys --checksig` against an isolated database
+  holding only Blanc's key); the installed-mode smoke as an ordinary user under `xvfb-run`; run the
+  package's daily cron by hand and assert the complete files it writes: the apt source line and keyring
+  from Task 4's test, or the dnf file with `gpgcheck=1`, `repo_gpgcheck=1` and only Blanc's key, nothing
+  naming Google or production; seeded items unchanged, both keyring secrets readable as stored; make it
+  the default browser through Chromium's own path and read `xdg-settings get default-web-browser` back
+  as `blanc-prototype.desktop`; save a password, relaunch, and read it back decrypted (Blanc's own
+  keyring entry works); upgrade-reinstall keeps it (Review Focus 2). Opt-out: with
+  `/etc/default/blanc-prototype` set to `repo_add_once="false"` before install and the cron run again,
+  no source is written. Uninstall (`apt remove`, then `apt purge`; `dnf remove`) removes
+  `/opt/bnfy/blanc-prototype`, the launcher and desktop file; the cron run once more after removal adds
+  nothing; the leg records which files survive each step (the data folder must; the source and keyring
+  the package added must not survive purge); both seeded keyring secrets still read back; on x64 the
+  AppImage still launches. A separate Debian run with no Secret Service on D-Bus covers Review Focus 3.
 - [ ] **Step 3: Workflow:** input `arch` (`x64`, `arm64`) selects `ubuntu-24.04` or
   `ubuntu-24.04-arm`; jobs `smoke` (L0's), `frame` (Task 3), `install` (matrix ubuntu, debian,
   fedora). Each verifies its asset's SHA-256 first; tokens stay in the download step only.
@@ -392,21 +463,29 @@ runner, a frame check and an install check on Ubuntu, Debian and Fedora.
 
 - [ ] **Step 1:** Merge `chromium/next`, push the L1 branch's commits to `chromium/next` after the fork
   suite and both patch checks pass (never during a hold on `main`-bound work the owner set).
-- [ ] **Step 2: Server (x64):** `setup.sh --windows-release-idle`; guarded `--check` (expect only the
+- [ ] **Step 2: Server (x64):** `setup.sh --windows-release-idle`, changed first so it exits non-zero
+  when a Windows check fails or a before/after plan pair is missing or differs in anything but timing
+  lines (L0's setup only logs and continues); read both Windows plan pairs before building; guarded
+  `--check` (expect only the
   patched files' dependents plus the installer targets; stop on a large plan); `--build`; package;
   ship; owner signs the `.rpm` (Task 6 Step 5); dispatch with `-f arch=x64 -f sha256=…`.
 - [ ] **Step 3: Server (arm64):** `setup.sh --install-arm64-sysroot --windows-release-idle`; record the
   environment; the approved cold build into `BlancLinuxArm64Prototype` in tmux, logged to
   `~/blanc-evidence/linux/cold-build-arm64-1.log`; package; ship; sign; dispatch with `-f arch=arm64`.
-- [ ] **Step 4: Mac Studio:** syntax-only compile of the shared C++ the patches touch, then one apply
-  and GN regeneration with unchanged arguments, before the nightly and never while
-  `records/RELEASE-IN-PROGRESS` exists.
+- [ ] **Step 4: Mac Studio:** apply L1's source, then a syntax-only compile of the shared C++ the
+  patches touch, then one GN regeneration of both Mac outputs with unchanged arguments; read both
+  outputs' plans (only the expected files' dependents) before the nightly, never while
+  `records/RELEASE-IN-PROGRESS` exists; record the next nightly's result in `l1-linux.json`.
 - [ ] **Step 5: Owner's VM (arm64, Ubuntu 26.04, GNOME Wayland):** `chromium/linux/hand-checks-l1.md`
-  lists what to check and records the answers: install the signed arm64 `.deb` with `apt install`, the
-  dock shows one Sunrise icon and groups windows; buttons on GNOME's default side work by real clicks;
-  drag, double-click and resize (decision 4's Wayland items); Settings → Default Apps lists Blanc
-  Prototype and can select it; the keyring prompt names Blanc Prototype; uninstall leaves the data
-  folder.
+  lists what to check and records the answers: note the VM's current default browser first; verify
+  `signed-candidate-arm64.json`, then install its `.deb` with `apt install`; the dock shows one Sunrise
+  icon and groups windows; for GNOME's default layout and then left, split and Close-only
+  (`gsettings set org.gnome.desktop.wm.preferences button-layout …`), at 100% and 200% scale, the
+  buttons work by real clicks, the strip drags, double-click maximizes, the corner resizes and the menu
+  opens at its button (decision 4's Wayland items); "Use system title bar and borders" shows GNOME's
+  title bar; Settings → Default Apps lists Blanc Prototype and can select it; the keyring prompt names
+  Blanc Prototype; restore the noted default browser and the layout, then uninstall, which leaves the
+  data folder.
 - [ ] **Step 6: Record:** `chromium/reports/l1-linux.json` (runs, candidates, gate items),
   `chromium/STATUS.md` Linux L1 table, `PLATFORMS.md` lines (frame, buttons, identity, installer,
   default browser, data folder, crash capture, arm64), and push.
@@ -420,7 +499,8 @@ runner, a frame check and an install check on Ubuntu, Debian and Fedora.
    arm64, with every `untouched` field true.
 3. `scanPackage` finds nothing in any built package; the cron writes only Blanc's staging repository
    and key.
-4. The `.rpm` verifies with `rpm -K` against `chromium/linux/keys/blanc-repository.asc`.
+4. Each `signed-candidate-<arch>.json` verifies against `chromium/linux/keys/blanc-repository.asc`,
+   and the `.rpm` passes `rpmkeys --checksig` with only that key trusted.
 5. The Mac nightly and both Windows outputs are unaffected (plans compared; nightly passes).
 6. The owner's first look at the arm64 build in the VM is recorded.
 
@@ -434,5 +514,5 @@ Chromium's package declares.
 ## What needs the owner
 
 - Approve decisions 1 to 4 (by approving this plan).
-- Run `make-repository-key.command` (Task 1) and `sign-rpm.command` for each candidate (Task 6).
+- Run `make-repository-key.command` (Task 1) and `sign-candidate.command` for each candidate (Task 6).
 - The VM hand check (Task 8 Step 5).
