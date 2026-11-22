@@ -2,8 +2,11 @@
 # Run on the owner's Mac with the architecture and tarball digest printed by ship-candidate.sh.
 set +x
 set -euo pipefail
+if [[ ${1:-} == beta && $# == 4 ]]; then
+  exec "$(dirname "$0")/repository-approve.command" --candidates "$2" "$3" "$4"
+fi
 [[ $# == 2 && ( $1 == x64 || $1 == arm64 ) && $2 =~ ^[0-9a-f]{64}$ ]] || {
-  echo "Usage: $0 x64|arm64 TAR_SHA256" >&2; exit 2;
+  echo "Usage: $0 x64|arm64 TAR_SHA256 | beta ARCHIVE_SHA256SUMS CANDIDATE_DIR NEW_APPROVED_DIR" >&2; exit 2;
 }
 [[ $(uname -s) == Darwin ]] || { echo "Run this command on the owner's Mac." >&2; exit 1; }
 source "$(dirname "$0")/repository-common.sh"
@@ -25,11 +28,11 @@ require_selected_archive() {
   }
 }
 
-require_selected_archive
 [[ -f $public ]] || {
   echo "Missing $public. Signing requires the owner's committed key and a candidate containing the DEB and RPM." >&2; exit 1;
 }
 open_repository_work
+require_selected_archive
 gh release download "$tag" --repo "$github_repo" --pattern "$asset" --dir "$work"
 python3 "$repo/metadata.py" unpack-candidate "$arch" "$tar_sha" "$work/$asset" "$work/packages"
 open_rpm_database

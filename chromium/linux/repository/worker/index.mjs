@@ -1,7 +1,6 @@
-const pool = /^(?:deb\/pool\/main\/b\/(blanc(?:-beta)?)\/\1_[0-9.]+-1_(?:amd64|arm64)\.deb|rpm\/stable\/(x86_64|aarch64)\/blanc(?:-beta)?-[0-9.]+-1\.\2\.rpm)$/;
-const metadata = /^(?:blanc-repository\.asc|deb\/dists\/stable\/(?:InRelease|Release(?:\.gpg)?|main\/binary-(?:amd64|arm64)\/(?:Packages(?:\.gz)?|by-hash\/SHA256\/[a-f0-9]{64}))|rpm\/stable\/(?:x86_64|aarch64)\/repodata\/(?:repomd\.xml(?:\.asc)?|[a-f0-9]{64}-(?:primary|filelists|other)\.xml\.gz))$/;
+import {isMetadataPath, packageInfo, poolCache} from '../paths.mjs';
+
 const mirrorlist = /^(rpm\/stable\/(?:x86_64|aarch64))\/mirrorlist$/;
-const immutable = 'public, max-age=31536000, immutable';
 
 function miss(status = 404) {
   return new Response(null, {status, headers: {'Cache-Control': 'no-store'}});
@@ -22,20 +21,20 @@ export default {
     if (!['GET', 'HEAD'].includes(request.method)) return miss(405);
     const url = new URL(request.url);
     let path = url.pathname.slice(1);
-    if (pool.test(path)) return objectResponse(bucket, path, request, immutable);
+    if (packageInfo(path)) return objectResponse(bucket, path, request, poolCache);
     if (path === 'current.json') return objectResponse(bucket, path, request, 'no-cache');
 
     const pinned = /^generations\/([1-9]\d*)\/(.*)$/.exec(path);
     if (pinned) path = pinned[2];
     const mirror = !pinned && mirrorlist.exec(path);
-    if (!mirror && !metadata.test(path) && !(pinned && pool.test(path))) return miss();
+    if (!mirror && !isMetadataPath(path) && !(pinned && packageInfo(path))) return miss();
     const current = await bucket.get('current.json');
     if (!current) return miss();
     const {generation, previous} = await current.json();
     const retained = [generation, ...previous];
     if (pinned) {
       if (!retained.includes(Number(pinned[1]))) return miss();
-      if (pool.test(path)) return objectResponse(bucket, path, request, immutable);
+      if (packageInfo(path)) return objectResponse(bucket, path, request, poolCache);
       return objectResponse(bucket, `generations/${pinned[1]}/${path}`, request, 'no-cache');
     }
     if (mirror) {

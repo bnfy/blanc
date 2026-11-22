@@ -639,9 +639,14 @@ jobs:
           "$RUNNER_TEMP/repo-verify/bin/pip" install --only-binary=:all: --no-deps rpmrepo-metadata==0.9.1
           echo "$RUNNER_TEMP/repo-verify/bin" >> "$GITHUB_PATH"
       - name: Exercise signed repositories with apt and dnf
-        env:
-          BLANC_REQUIRE_REPO_TOOLS: '1'
-        run: node --test chromium/tools/linux-repository.test.mjs chromium/linux/repository/worker/worker.test.mjs
+        # Both package managers may reach the fixture HTTP server on loopback.
+        # The fixture key, fake vault and in-memory bucket suffice for the whole suite.
+        run: |
+          sudo unshare --net bash -euc '
+            ip link set lo up
+            exec runuser -u "$1" -- env PATH="$2" BLANC_REQUIRE_REPO_TOOLS=1 node --test \
+              chromium/tools/linux-repository.test.mjs chromium/linux/repository/worker/worker.test.mjs
+          ' -- "$(id -un)" "$PATH"
       - name: Download the approved packages from the candidate draft
         if: ${{ inputs.sha256 != '' }}
         env:

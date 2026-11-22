@@ -1,6 +1,7 @@
 """Exercise the same index parser and rpmkeys result check used by owner signing."""
 import gzip
 import hashlib
+import shutil
 from pathlib import Path
 import sys
 import tempfile
@@ -14,6 +15,31 @@ import metadata
 
 
 class IndexCheck(unittest.TestCase):
+    def test_runner_hashes_the_bytes_it_will_index(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            packages = root / 'inputs'
+            packages.mkdir()
+            for n in (1, 2):
+                for arch in ('amd64', 'arm64'):
+                    (packages / f'blanc-beta_158.0.8127.{n}-1_{arch}.deb').write_bytes(b'deb')
+                for arch in ('x86_64', 'aarch64'):
+                    (packages / f'blanc-beta-158.0.8127.{n}-1.{arch}.rpm').write_bytes(b'rpm')
+            metadata.write_approval(packages)
+            key = root / 'fixture.asc'
+            key.write_bytes(b'key')
+            copyfile = shutil.copyfile
+
+            def changed_during_copy(source, dest):
+                copyfile(source, dest)
+                if source.suffix == '.deb':
+                    dest.write_bytes(b'new')
+
+            with patch.object(shutil, 'copyfile', changed_during_copy), patch('subprocess.check_output') as apt:
+                apt.side_effect = AssertionError('started indexing changed bytes')
+                with self.assertRaisesRegex(ValueError, 'package bytes differ'):
+                    metadata.build(packages, root / 'tree', key, packages)
+
     def test_deb_control_matches_the_approved_package(self):
         header = ("Package: blanc-beta\nVersion: 158.0.8127.2-1\nArchitecture: amd64\n"
                   "Depends: libc6 (>= 2.35),\n zlib1g\nProvides: www-browser\n")

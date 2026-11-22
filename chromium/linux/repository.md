@@ -44,8 +44,22 @@ temporary directory. Filesystem snapshots and SSDs limit overwrite guarantees.
 Install the RPM header reader in the signing Python environment with
 `python3 -m pip install --only-binary=:all: --no-deps rpmrepo-metadata==0.9.1`.
 
-1. Collect the eight packages from the release tool's build-checked candidates
-   into one directory, using their original filenames. Run
+Register the signing Mac once, from that Mac. The owner commands compare its
+hardware UUID with this user-local Git setting before opening the vault or the
+uploader. Keep the setting local.
+
+```sh
+git config --global blanc.linuxRepositoryOwnerUUID \
+  "$(ioreg -rd1 -c IOPlatformExpertDevice | awk -F '"' '/"IOPlatformUUID" =/ {print $(NF-1)}')"
+```
+
+1. Put the four build-checked candidate tarballs in `CANDIDATES`. From the
+   digests selected during build-check, write `ARCHIVE_SHA256SUMS` with one
+   line per archive in the form `<sha256>  blanc-linux-beta-<arch>-<build>-candidate.tar.gz`.
+   Run `chromium/linux/owner/sign-candidate.command beta ARCHIVE_SHA256SUMS CANDIDATES APPROVED`.
+   The signer checks the tarball bytes, candidate manifest, executable and both
+   packages for each architecture and build. All four must share a source commit.
+   An existing handoff of eight individually build-checked packages can also use
    `chromium/linux/owner/repository-approve.command VERIFIED_PACKAGES APPROVED`.
    It signs copies of all four RPMs, checks them against an isolated RPM key
    database, then signs `approved-packages.json`. Its eight rows bind filename,
@@ -78,10 +92,17 @@ Install the RPM header reader in the signing Python environment with
    `null` for the first publication. The uploader compares it under the lock.
    Both commands use Wrangler's authenticated remote R2 binding.
 
-The planned `PACKAGES` binding in `repository/worker/wrangler.toml` names
-`blanc-linux-packages-staging` on `pkg-staging.blanc.day` and
-`blanc-linux-packages` on `pkg.blanc.day`. Provisioning and routing are
-owner Step 5.
+In Task 8 the owner provisions both buckets and fills in the following
+placeholders in `repository/worker/wrangler.toml` before deploying each environment.
+
+| Placeholder | Value |
+| --- | --- |
+| `REPLACE_WITH_CLOUDFLARE_ACCOUNT_ID` | ID of the account hosting the buckets and the blanc.day zone |
+| `REPLACE_WITH_STAGING_BUCKET` | `blanc-linux-packages-staging` |
+| `REPLACE_WITH_PRODUCTION_BUCKET` | `blanc-linux-packages` |
+
+The `PACKAGES` binding and custom-domain routes are already specified for
+`pkg-staging.blanc.day` and `pkg.blanc.day`.
 
 ## Publication and recovery
 

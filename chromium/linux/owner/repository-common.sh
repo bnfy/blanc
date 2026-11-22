@@ -46,6 +46,19 @@ PY
   exit "$code"
 }
 open_repository_work() {
+  # The configured UUID is a machine identifier, not a credential. Checking it
+  # also rejects another Mac with a copy of the owner's Git configuration.
+  local configured actual
+  configured=$(git config --global --get blanc.linuxRepositoryOwnerUUID || true)
+  if [[ $(uname -s) != Darwin || ! "$configured" =~ ^[[:xdigit:]]{8}(-[[:xdigit:]]{4}){3}-[[:xdigit:]]{12}$ ]]; then
+    echo "Run on the owner's Mac registered in blanc.linuxRepositoryOwnerUUID (see repository.md)." >&2
+    return 1
+  fi
+  actual=$(ioreg -rd1 -c IOPlatformExpertDevice | awk -F '"' '/"IOPlatformUUID" =/ {print $(NF-1)}')
+  if [[ -z "$actual" || "$actual" != "$configured" ]]; then
+    echo "This is not the registered owner's Mac." >&2
+    return 1
+  fi
   work=$(mktemp -d "${BLANC_WORK_TMP:-${TMPDIR:-/tmp}}/blanc-sign.XXXXXX")
   export GNUPGHOME="$work/gnupg"
   trap cleanup EXIT

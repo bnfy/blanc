@@ -93,6 +93,44 @@ test('a preview approval binds the original DEB and the verified, signed RPM', a
   });
 });
 
+test('signing checks the compressed digest before it opens the tar or writes any packages', async t => {
+  const f = fixture(t, 'arm64');
+  const record = await f.archive(clean);
+  const metadata = path.join(linux, 'repository/metadata.py');
+  const reject = folder => {
+    const result = spawnSync('python3', [metadata, 'unpack-candidate', 'arm64', '0'.repeat(64),
+      record.tar, folder], {encoding: 'utf8'});
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /candidate tarball SHA-256 mismatch/);
+    assert.deepEqual(fs.existsSync(folder) ? fs.readdirSync(folder) : [], []);
+  };
+  reject(path.join(f.dir, 'wrong-digest'));
+  fs.writeFileSync(record.tar, 'not gzip');
+  reject(path.join(f.dir, 'corrupt-archive'));
+});
+
+test('signing reads the verified snapshot even if the input changes when unpacking starts', async t => {
+  const f = fixture(t, 'x64');
+  const record = await f.archive(clean);
+  const dest = path.join(f.dir, 'packages');
+  execFileSync('python3', ['-c', `
+from pathlib import Path
+import sys
+from unittest.mock import patch
+import metadata
+
+archive, digest, dest = sys.argv[1:]
+open_tar = metadata.tarfile.open
+def replace_input(*args, **kwargs):
+    Path(archive).write_bytes(b'replaced')
+    return open_tar(*args, **kwargs)
+
+with patch.object(metadata.tarfile, 'open', replace_input):
+    metadata.unpack_candidate('x64', digest, Path(archive), Path(dest))
+`, record.tar, record.tarSha256, dest], {cwd: path.join(linux, 'repository')});
+  for (const {file, sha256} of record.packages) assert.equal(hash(fs.readFileSync(path.join(dest, file))), sha256);
+});
+
 test('without the owner key the x64 runtime can be smoked and signing names the missing packages', async t => {
   const f = fixture(t, 'x64');
   const {repositoryFingerprint} = await import('../linux/package-candidate.mjs');
