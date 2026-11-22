@@ -21,9 +21,12 @@ export function matchesLinuxCandidate(current, arch, config) {
     recorded.exeSha256 === (config.archiveExecutableSha256 ?? config.executableSha256);
 }
 
-export function ASSET_NAME(arch) {
+export function ASSET_NAME(arch, channel = 'preview', build) {
   checkArch(arch);
-  return `blanc-linux-${arch}-candidate.tar.gz`;
+  if (channel === 'preview') return `blanc-linux-${arch}-candidate.tar.gz`;
+  if (channel !== 'beta' || !Number.isInteger(build) || build < 1 || build > 9999)
+    throw new Error('Expected a beta channel and build number from 1 to 9999.');
+  return `blanc-linux-beta-${arch}-${build}-candidate.tar.gz`;
 }
 
 export function signedCandidateName(arch) {
@@ -31,12 +34,23 @@ export function signedCandidateName(arch) {
   return `signed-candidate-${arch}.json`;
 }
 
-export function packageNames(version, arch) {
+function packageName(channel) {
+  if (channel === 'beta') return 'blanc-beta';
+  if (channel === 'preview') return 'blanc-prototype';
+  throw new Error(`Unknown Linux channel: ${channel}`);
+}
+
+export function installedChrome(channel = 'preview') {
+  return `/opt/bnfy/${packageName(channel)}/chrome`;
+}
+
+export function packageNames(version, arch, channel = 'preview') {
   checkArch(arch);
   if (!/^\d+(?:\.\d+){3}$/.test(version)) throw new Error('Expected a four-part Chromium version.');
+  const name = packageName(channel);
   return {
-    deb: `blanc-prototype_${version}-1_${arch === 'arm64' ? 'arm64' : 'amd64'}.deb`,
-    rpm: `blanc-prototype-${version}-1.${arch === 'arm64' ? 'aarch64' : 'x86_64'}.rpm`,
+    deb: `${name}_${version}-1_${arch === 'arm64' ? 'arm64' : 'amd64'}.deb`,
+    rpm: `${name}-${version}-1.${arch === 'arm64' ? 'aarch64' : 'x86_64'}.rpm`,
   };
 }
 
@@ -76,7 +90,7 @@ export function runtimeConfig(directory, candidate, installedSha256) {
     }
     return {
       ...config,
-      executable: '/opt/bnfy/blanc-prototype/chrome',
+      executable: installedChrome(candidate.channel),
       executableSha256: installedSha256,
       archiveExecutableSha256: candidate.exeSha256,
     };
@@ -87,6 +101,6 @@ export function runtimeConfig(directory, candidate, installedSha256) {
     ...config,
     executable: path.join(runtime, 'chrome'),
     executableSha256: candidate.exeSha256,
-    blockerAssets: path.join(runtime, 'blocker'),
+    ...(candidate.channel === 'beta' ? {} : {blockerAssets: path.join(runtime, 'blocker')}),
   };
 }

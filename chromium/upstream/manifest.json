@@ -20,6 +20,7 @@
     "chrome/browser/BUILD.gn": "e4098a876ac02db4ab67a4ce1ab3261545d1a4cd4b13433fa0b4bc03969baac3",
     "chrome/browser/app_controller_mac.mm": "b532243a1fd78cf5c77beed511f8e31376809600262147fe0d07585c71e4ef47",
     "chrome/browser/browser_process_impl.cc": "d1fc130bfd4b46bb4975fccb4aa1bd82cb7990f94858e2012984c9d129332ffb",
+    "chrome/browser/buildflags.gni": "aacb7077932338a8cc1f6eae82a8eb14b498ed7213fdc4d59576cbcb06c5debf",
     "chrome/browser/chrome_browser_interface_binders_webui_parts_desktop.cc": "40b3a313ca535be1c008ecbd968d5cf85fa92f2c16c4b463c1ffafcb9a30c8b8",
     "chrome/browser/chrome_content_browser_client.cc": "43829c46f8492d59bf22cf795e9c1745b8b7e68cd2b333674b765890affc9845",
     "chrome/browser/chrome_content_browser_client_receiver_bindings.cc": "247926287b50797456c7ebc8b2b0e2db2213a0a38e979dbbeb39e8d1500f3690",
