@@ -101,19 +101,22 @@ struct UpgradeDetector {
   bool ShouldFetchLastServedDate() const;
 };
 ${method}
-int main() {
+int main(int argc, char**) {
+  const bool blancBeta = argc > 1;  // passed at run time so the check isn't a constant
   for (int days = 0; days <= 2; ++days) {
     for (int fetched = 0; fetched <= 1; ++fetched) {
       UpgradeDetector detector{{days}, bool(fetched)};
-      bool expected = !(${linux} && ${beta}) && days != 0 && !fetched;
+      bool expected = !blancBeta && days != 0 && !fetched;
       if (detector.ShouldFetchLastServedDate() != expected) return 1;
     }
   }
 }`;
     const exe = path.join(dir, 'policy');
-    execFileSync('c++', ['-std=c++20', '-DIS_LINUX=' + linux, '-DBLANC_BETA_CHANNEL=' + beta,
+    // Chromium builds with -Werror,-Wunreachable-code; an early return before
+    // upstream's return failed the first Linux beta build.
+    execFileSync('c++', ['-std=c++20', '-Wunreachable-code', '-Werror', '-DIS_LINUX=' + linux, '-DBLANC_BETA_CHANNEL=' + beta,
       '-x', 'c++', '-', '-o', exe], {input: program});
-    assert.equal(spawnSync(exe).status, 0, 'unexpected fetch decision for linux=' + linux + ', beta=' + beta);
+    assert.equal(spawnSync(exe, linux && beta ? ['beta'] : []).status, 0, 'unexpected fetch decision for linux=' + linux + ', beta=' + beta);
   }
 });
 

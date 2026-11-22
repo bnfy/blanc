@@ -47,17 +47,22 @@
  
  namespace {
  
-@@ -376,6 +381,13 @@
+@@ -376,6 +381,18 @@
  
  bool UpgradeDetector::ShouldFetchLastServedDate() const {
    DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
 +#if BUILDFLAG(IS_LINUX)
++#if BUILDFLAG(BLANC_BETA_CHANNEL)
 +  // Blanc Beta gets its updates from apt or dnf. Even a managed relaunch
 +  // policy must not send the installed version or channel to Google.
-+  if (BUILDFLAG(BLANC_BETA_CHANNEL)) {
-+    return false;
-+  }
++  // (Chosen here, not by an if: Chromium builds with -Wunreachable-code.)
++  return false;
++#else
++  return !fetched_last_served_date_ &&
++         !GetRelaunchFastIfOutdated().is_zero();
 +#endif
++#else
    return !fetched_last_served_date_ &&
           !GetRelaunchFastIfOutdated().is_zero();
++#endif
  }
