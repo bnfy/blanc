@@ -191,6 +191,13 @@ try {
       document.addEventListener('mousedown', e => window.testTileEvents.push({host: e.target.id || e.target.tagName, x: e.clientX, y: e.clientY}), true);
     })()`);
     diagnostics.tile = {tile, strip};
+    diagnostics.layout = await w.hostEval(`(() => {
+      const frame = document.getElementById('overlay'), doc = frame.contentDocument;
+      const rect = el => el && (({x, y, width, height}) => ({x, y, width, height}))(el.getBoundingClientRect());
+      return {hostScroll: [scrollX, scrollY], hostSize: [innerWidth, innerHeight], frame: rect(frame), frameStyle: frame.getAttribute('style'),
+        overlayScroll: [doc.scrollingElement.scrollLeft, doc.scrollingElement.scrollTop], overlaySize: [doc.defaultView.innerWidth, doc.defaultView.innerHeight],
+        card: rect(doc.getElementById('switcherCard')), tiles: rect(doc.getElementById('switcherTiles')), tile3: rect(doc.getElementById('switcher-tile-3'))};
+    })()`);
     xdo('mousemove', String(Math.round((strip.x + tile.x) * tile.scale)),
         String(Math.round((strip.y + tile.y) * tile.scale)),
         'mousedown', '1', 'keyup', 'Control_L', 'mouseup', '1');
