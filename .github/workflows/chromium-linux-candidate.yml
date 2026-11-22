@@ -415,8 +415,12 @@ jobs:
       - name: Install package verification tools
         run: |
           if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
-          sudo apt-get update
-          sudo apt-get install -y rpm gnupg
+          # The mirror can be briefly unreachable (run 45069499269); retry.
+          for attempt in 1 2 3; do
+            if sudo apt-get update && sudo apt-get install -y rpm gnupg; then break; fi
+            [[ $attempt == 3 ]] && exit 1
+            sleep 30
+          done
       - name: Check and download the selected archive, signed RPM and authorization
         if: inputs.check == 'install'
         env:
