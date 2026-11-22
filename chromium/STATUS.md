@@ -3949,6 +3949,40 @@ blanc.day offers 158.0.8127.902 (`cloudflare/update-worker/src/release.json`);
 ledger `chromium/release/windows-ledger.json`. Not done before release: the five
 hands-on checks above, and no website page or download link yet.
 
+### Windows nightly (2026-11-22)
+
+The Mac Studio runs the Windows nightly every day at 04:00 (LaunchAgent
+`me.bnfy.blanc.desktop-nightly`, installed by
+`chromium/release/daily/install-desktop-nightly.sh`; design
+`docs/superpowers/specs/2026-11-21-windows-nightly-design.md`, plan
+`docs/superpowers/plans/2026-11-21-windows-nightly.md`, runbook "Windows nightly"
+in `docs/chromium-beta-release.md`). It builds `BlancWinBeta` and
+`BlancWinPrototype` on the build server at `chromium/next`'s tip under the
+checkout lock, puts both zips on the `fork-windows-candidate` draft under its
+hold, runs the beta's install, launch, hash and icon checks and the prototype's
+launch, frame and suite on GitHub's Windows runners, reruns what failed once, and
+records the night in `records/nightly/windows/<stamp>/result.json` (the Mac
+Studio's), with `LAST-PASS` naming the newest passing night.
+`chromium/release/daily/windows-beta-prep.mjs` starts a release from that night
+on the MacBook Pro; it refuses while shared build claims exist until the Linux
+lane's exact claim helper lands.
+
+Rehearsal (2026-11-21, `5b0b06608`, build 906, a throwaway draft and records):
+every step ran, the checks passed, the hold was released and prep refused the
+failed night. Five suite cases failed on both runs (F41-named-workspaces:435,
+glance:337, interface-language:43, tab-migration:116, vertical-tabs:146).
+
+First night (2026-11-22, stamp `20261122-0400`, `2c0831c41`, build 905):
+**pass**. Beta `windows-x64-7e59824678dae1f5` (zip `ede19df8…`), prototype
+`windows-x64-6d6727b13c63748a` (zip `6a22c55d…`); all eight checks true (beta
+workflow 45016500918, capture 45016502729); suite 45016505006 passed 635, and
+four cases passed only on the rerun 45026829607 (glance:337,
+island-and-commands:61 and :115, vertical-tabs:146). Linux's L2 suite fixes in
+`2c0831c41` (Glance, import, profiles and window-layout steps) made the
+rehearsal's five pass. It ran 4 h 26 min; the hold was released and the build
+server left no lock, build or night folder. Prep has not released from it.
+Open: the four rerun-only cases are flaky on Windows and need fixing, not rerunning.
+
 ## Linux
 
 **L0 first build (PL.1), 2026-11-21.** The desktop lane built Chromium
