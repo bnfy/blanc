@@ -125,6 +125,17 @@ final class StartAppearanceStore {
         if hasLegacyPhoto { try? FileManager.default.removeItem(at: imageURL) }
     }
 
+    #if DEBUG
+    /// The App Store images' wallpaper: Blanc's own sunrise artwork, handed to
+    /// the Start Page as a photo chosen before its page, so the shot shows the
+    /// sunrise whatever the time (UITestSeed.appStore).
+    func seedAppStorePhoto(_ data: Data) throws {
+        guard !migratedToForkPage, !hasLegacyPhoto else { return }
+        try data.write(to: imageURL, options: .atomic)
+        try save(saved.merging(["newtabCustomWallpaper": true, "imageVersion": "appstore"]) { $1 })
+    }
+    #endif
+
     private func save(_ next: [String: Any]) throws {
         let data = try JSONSerialization.data(withJSONObject: next, options: [.sortedKeys])
         try data.write(to: fileURL, options: .atomic)
