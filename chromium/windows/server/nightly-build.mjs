@@ -21,8 +21,6 @@ import {argsDrift, windowsBetaArgs, guardNamesOnlyArgs} from '../../release/dail
 
 const OUTPUTS = [{name: 'BlancWinPrototype', args: 'prototype-x64.gn', beta: false}, {name: 'BlancWinBeta', args: 'beta-x64.gn', beta: true}];
 export const GUARD_FLAGS = Object.freeze(['--allow-large-build', '--max-actions=3000', '--reject-buildflags']);
-// Inputs the Linux lane's guard stages in the shared checkout (not in the desktop map).
-const SHARED_STAGED = new Set(['blanc/branding/linux/repository-key.input']);
 const NO_BYTECODE = {...process.env, PYTHONDONTWRITEBYTECODE: '1'};
 
 class Stop extends Error {}
@@ -97,7 +95,7 @@ export function runNightBuild({commit, build, stamp, io, paths, token}) {
     if (after.changes !== 0) stop('the applied tree does not equal the pin plus the map');
 
     // Nothing else in the Chromium checkout, submodules included, may differ from the pin.
-    const known = new Set([...Object.keys(current.upstreamFiles), ...Object.keys(current.canonicalSha256), ...SHARED_STAGED]);
+    const known = new Set([...Object.keys(current.upstreamFiles), ...Object.keys(current.canonicalSha256)]);
     const status = must(run('git', ['-C', src, 'status', '--porcelain', '--untracked-files=all', '--ignore-submodules=none']), 'git status failed').stdout;
     for (const line of String(status).split('\n').filter(Boolean)) {
       const name = line.slice(3).replace(/^"|"$/g, '');

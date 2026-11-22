@@ -90,6 +90,19 @@ export function uploadUnderHold(io, owner, file, name, draft = draftTag()) {
   }
 }
 
+// Deletes one of the night's own assets (the rerun list) while the hold is
+// still its owner's, by that asset's URL, and checks it is gone.
+export function deleteUnderHold(io, owner, name, draft = draftTag()) {
+  if (!UPLOAD_NAMES.includes(name)) throw new Error('That is not a name the candidate draft takes under a hold.');
+  assertDraft(io, draft);
+  const hold = readHold(io, draft);
+  if (!owner || hold?.body?.owner !== owner) throw new Error('The candidate draft is held by another owner, or not held; nothing deleted.');
+  const list = () => JSON.parse(gh(io, ['release', 'view', draft, '--repo', REPO, '--json', 'assets'], 'GitHub did not list the draft\'s assets') || '{}').assets ?? [];
+  const asset = list().find(a => a.name === name);
+  if (!asset) return;
+  if (io.exec('gh', ['api', '-X', 'DELETE', asset.apiUrl]).status !== 0 || list().some(a => a.name === name)) throw new Error('Could not delete the asset; try again.');
+}
+
 // Deletes the hold only if it still names |owner|, by the URL of the asset
 // that was read; a successor's hold has another URL and survives.
 export function releaseHold(io, owner, draft = draftTag()) {
@@ -103,11 +116,12 @@ export function releaseHold(io, owner, draft = draftTag()) {
 // For a person: removes a hold whose holder is gone. A nightly hold only when
 // its night is not running; a release hold only with that release's work
 // folder, which is marked abandoned first (windows-release.mjs refuses it).
-export function breakHold(io, {nightAlive, work = null, markAbandoned = null}, draft = draftTag()) {
+export function breakHold(io, {nightAlive, work = null, markAbandoned = null, clearNightLock = null}, draft = draftTag()) {
   assertDraft(io, draft);
   const hold = readHold(io, draft);
   if (!hold) return null;
   if (hold.body.kind === 'nightly' && nightAlive()) throw new Error('The night is still running on the Mac Studio; its hold stays.');
+  if (hold.body.kind === 'nightly' && clearNightLock) clearNightLock();
   if (hold.body.kind === 'release') {
     if (!work || !markAbandoned) throw new Error('A release hold needs that release\'s work folder (--work DIR), which is marked abandoned first.');
     markAbandoned(work);
@@ -127,6 +141,14 @@ export function studioNightAlive(io) {
   if (answer.status !== 0) return true;
   const word = answer.stdout.trim();
   return !(word === 'absent' || word === 'dead');
+}
+
+// Removes the Mac Studio's night lock, only when it names a dead process.
+export function clearStudioNightLock(io) {
+  const remove = 'd=~/Projects/Blanc/records/nightly/windows/RUNNING; [ -e "$d" ] || exit 0; ' +
+    'p=$(/usr/bin/sed -n \'s/.*"pid":[[:space:]]*\\([0-9][0-9]*\\).*/\\1/p\' "$d/owner" 2>/dev/null); ' +
+    '[ -n "$p" ] && ! kill -0 "$p" 2>/dev/null && rm -rf "$d"';
+  if (io.exec('ssh', [...STUDIO_SSH, remove]).status !== 0) throw new Error('Could not clear the dead night\'s lock on the Mac Studio.');
 }
 
 export function realIO() {
@@ -156,7 +178,7 @@ async function main() {
     const workAt = rest.indexOf('--work');
     const work = workAt > 0 ? rest[workAt + 1] : null;
     const {markAbandoned} = await import('../release/windows-release.mjs').catch(() => ({}));
-    const broken = breakHold(io, {nightAlive: () => studioNightAlive(io), work, markAbandoned: markAbandoned ?? null});
+    const broken = breakHold(io, {nightAlive: () => studioNightAlive(io), clearNightLock: () => clearStudioNightLock(io), work, markAbandoned: markAbandoned ?? null});
     console.log(broken ? `Removed: ${JSON.stringify({kind: broken.kind, startedAt: broken.startedAt, note: broken.note})}` : 'not held');
   } else {
     throw new Error('Usage: draft-hold.mjs status | acquire-manual NOTE | upload FILE NAME | release OWNER | break --confirm [--work DIR]');

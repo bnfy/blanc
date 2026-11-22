@@ -213,9 +213,9 @@ test('git status sees inside submodules, and apply.py writes no bytecode', () =>
   assert.ok(status.includes('--ignore-submodules=none'));
   s.calls.forEach((c, i) => { if (c.some(a => String(a).endsWith('apply.py'))) assert.equal(s.io.options[i]?.env?.PYTHONDONTWRITEBYTECODE, '1'); });
 });
-test('the Linux guard\'s staged repository key input is not a stray change', () => {
+test('a file the Linux guard used to stage in the source tree is a stray change now (48d92880c stages it under out/)', () => {
   const s = server({status: '?? blanc/branding/linux/repository-key.input\n'});
-  assert.equal(night(s).status, 'built');
+  assert.equal(night(s).status, 'stopped');
 });
 test('guard refusals have specific reasons', () => {
   for (const [stderr, reason] of [['Dry-run scope 4000 exceeds approved maximum 3000.', /larger than 3000/],

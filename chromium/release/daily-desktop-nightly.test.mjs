@@ -159,22 +159,24 @@ test('the rules import cleanly from stdin, as the server script loads them', asy
 
 // Task 5: the orchestrator on the Mac Studio, against a simulated Studio,
 // build server and GitHub.
-import {runNight, parseRunId} from './daily/desktop-nightly.mjs';
+import {runNight, runNights, parseRunId, PLATFORMS} from './daily/desktop-nightly.mjs';
 import crypto2 from 'node:crypto';
 
 const sha2 = text => crypto2.createHash('sha256').update(text).digest('hex');
 const NIGHT_COMMIT = 'a'.repeat(40);
 const BETA_ZIP = 'beta zip bytes', PROTO_ZIP = 'proto zip bytes';
 function world({hold = null, serverReply = null, betaTree = NIGHT_COMMIT, suiteResult = () => 'pass', rerunResult = () => 'pass',
-                lastPass = null, macMarker = false, runningToken = 'tok', throwAt = null} = {}) {
+                lastPass = null, macMarker = false, runningToken = 'tok', throwAt = null, suiteConclusion = 'success', probe = {status: 0, stdout: 'free\n'},
+                holdReadFails = false, reservationsShow = null, failDispatch = 0} = {}) {
   const files = new Map(), calls = [], uploads = [];
   const R = '/rec';
-  files.set(`${R}/RUNNING/owner`, JSON.stringify({pid: 1, token: runningToken}));
+  files.set(`${R}/RUNNING/owner`, JSON.stringify({pid: 1, token: runningToken, stamp: '20261122-0400'}));
   files.set('/wt/chromium/release/windows-ledger.json', JSON.stringify({builds: [{build: 904}]}));
   if (lastPass) { files.set(`${R}/LAST-PASS`, lastPass.stamp); files.set(`${R}/${lastPass.stamp}/result.json`, JSON.stringify({status: 'pass', sourceCommit: lastPass.commit}));
     files.set(`${R}/${lastPass.stamp}/beta.zip`, 'old'); files.set(`${R}/${lastPass.stamp}/prototype.zip`, 'old'); }
   if (macMarker) files.set('/mac/RELEASE-IN-PROGRESS', '');
-  let draftHold = hold, nextRun = 100;
+  let draftHold = hold, nextRun = 100, rerunOnDraft = false;
+  const cancelled = [];
   const runs = new Map();
   const protoId = 'windows-x64-' + 'p'.repeat(16);
   const report = (runId, result, subset) => ({platform: 'windows', candidate: protoId, forkCommit: NIGHT_COMMIT, runId: String(runId),
@@ -186,14 +188,16 @@ function world({hold = null, serverReply = null, betaTree = NIGHT_COMMIT, suiteR
     read: p => { if (!files.has(p)) throw Object.assign(new Error('ENOENT ' + p), {code: 'ENOENT'}); return files.get(p); },
     write: (p, t) => files.set(p, t), exists: p => files.has(p) || [...files.keys()].some(k => k.startsWith(p + '/')),
     remove: p => { for (const k of [...files.keys()]) if (k === p || k.startsWith(p + '/')) files.delete(k); },
-    mkdir: () => {}, sha256: p => sha2(files.get(p)),
+    mkdir: p => { if (files.has(p + '/.dir')) throw Object.assign(new Error('EEXIST'), {code: 'EEXIST'}); files.set(p + '/.dir', ''); }, sha256: p => sha2(files.get(p)),
     copyFile: (from, to) => fs.writeFileSync(to, files.get(from)),
     exec(command, args, options = {}) {
       calls.push([command, ...args]);
       if (throwAt && args.join(' ').includes(throwAt)) throw new Error('boom');
       if (command === 'git' && args.includes('rev-parse')) return {status: 0, stdout: NIGHT_COMMIT + '\n', stderr: ''};
-      if (command === 'git' && args.includes('show')) return {status: 128, stdout: '', stderr: 'no reservations yet'};
-      if (command === 'ssh' && args.some(a => a.includes('pgrep') || a.includes('blanc-checkout.lock')) && !options.input) return {status: 0, stdout: 'free\n', stderr: ''};
+      if (command === 'git' && args.includes('cat-file')) return {status: reservationsShow ? 0 : 1, stdout: '', stderr: ''};
+      if (command === 'git' && args.includes('show')) return reservationsShow ?? {status: 128, stdout: '', stderr: 'fatal'};
+      if (command === 'git' && args.includes('--verify')) return {status: 0, stdout: NIGHT_COMMIT + '\n', stderr: ''};
+      if (command === 'ssh' && args.some(a => a.includes('pgrep') || a.includes('blanc-checkout.lock')) && !options.input) return {stderr: '', ...probe};
       if (command === 'ssh' && options.input) return {status: 0, stdout: JSON.stringify(serverReply ?? {status: 'built',
         beta: {id: 'windows-x64-' + 'b'.repeat(16), zipSha256: sha2(BETA_ZIP)}, prototype: {id: protoId, zipSha256: sha2(PROTO_ZIP)}}) + '\n', stderr: ''};
       if (command === 'ssh') return {status: 0, stdout: '', stderr: ''};
@@ -207,27 +211,35 @@ function world({hold = null, serverReply = null, betaTree = NIGHT_COMMIT, suiteR
       if (command !== 'gh') return {status: 1, stdout: '', stderr: 'unexpected ' + command};
       if (args[0] === 'release' && args[1] === 'view') {
         if (args.includes('isDraft')) return {status: 0, stdout: 'true', stderr: ''};
-        return {status: 0, stdout: JSON.stringify({assets: draftHold ? [{name: 'draft-hold.json', apiUrl: 'https://api.github.com/x/1'}] : []}), stderr: ''};
+        return {status: 0, stdout: JSON.stringify({assets: [...(draftHold ? [{name: 'draft-hold.json', apiUrl: 'https://api.github.com/x/1'}] : []),
+          ...(rerunOnDraft ? [{name: 'nightly-rerun.json', apiUrl: 'https://api.github.com/x/rerun'}] : [])]}), stderr: ''};
       }
       if (args[0] === 'release' && args[1] === 'upload') {
         const name = args[3].split('/').pop();
         if (name === 'draft-hold.json') {
           if (draftHold) return {status: 1, stdout: '', stderr: 'exists'};
           draftHold = JSON.parse(fs.readFileSync(args[3], 'utf8'));
-        } else uploads.push(name);
+        } else { uploads.push(name); if (name === 'nightly-rerun.json') rerunOnDraft = true; }
         return {status: 0, stdout: '', stderr: ''};
       }
       if (args[0] === 'api') {
-        if (args.includes('DELETE')) { draftHold = null; return {status: 0, stdout: '', stderr: ''}; }
+        if (args.includes('DELETE')) {
+          const url = args.at(-1);
+          if (url.endsWith('/rerun')) { rerunOnDraft = false; return {status: 0, stdout: '', stderr: ''}; }
+          draftHold = null; return {status: 0, stdout: '', stderr: ''};
+        }
+        if (holdReadFails) return {status: 1, stdout: '', stderr: 'boom'};
         return {status: 0, stdout: JSON.stringify(draftHold), stderr: ''};
       }
       if (args[0] === 'workflow' && args[1] === 'run') {
+        if (failDispatch && nextRun - 100 === failDispatch - 1) { nextRun++; return {status: 1, stdout: '', stderr: 'dispatch failed'}; }
         const id = nextRun++;
         runs.set(id, Object.fromEntries(args.filter((a, i) => args[i - 1] === '-f').map(kv => kv.split('='))));
         return {status: 0, stdout: '', stderr: `https://github.com/bnfy/blanc/actions/runs/${id}\n`};
       }
       if (args[0] === 'run' && args[1] === 'watch') return {status: 0, stdout: '', stderr: ''};
-      if (args[0] === 'run' && args[1] === 'view') return {status: 0, stdout: JSON.stringify({conclusion: 'success'}), stderr: ''};
+      if (args[0] === 'run' && args[1] === 'cancel') { cancelled.push(args[2]); return {status: 0, stdout: '', stderr: ''}; }
+      if (args[0] === 'run' && args[1] === 'view') return {status: 0, stdout: JSON.stringify({conclusion: runs.get(Number(args[2]))?.asset === 'blanc-windows-prototype.zip' ? suiteConclusion : 'success'}), stderr: ''};
       if (args[0] === 'run' && args[1] === 'download') {
         const id = Number(args[2]), inputs = runs.get(id), dir = args[args.indexOf('--dir') + 1];
         if (inputs.asset === 'blanc-windows-prototype.zip') {
@@ -251,7 +263,7 @@ function world({hold = null, serverReply = null, betaTree = NIGHT_COMMIT, suiteR
   const paths = {records: R, worktree: '/wt', bootstrap: '/wt/chromium/windows/server/nightly-bootstrap.sh', server: 'blanc@server', macMarker: '/mac/RELEASE-IN-PROGRESS',
     sshKey: '/k', knownFailures: {cases: []}, inventory};
   files.set('/wt/chromium/windows/server/nightly-bootstrap.sh', '#!/bin/bash');
-  return {io, files, calls, uploads, runs, paths, hold: () => draftHold};
+  return {io, files, calls, uploads, runs, paths, cancelled, hold: () => draftHold, rerunOnDraft: () => rerunOnDraft};
 }
 const go = (w, token = 'tok') => runNight({io: w.io, paths: w.paths, token});
 
@@ -334,4 +346,62 @@ test('the Windows known failures are inventory cases, each with a reason that ci
     assert.ok(entry.results.every(r => ['fail', 'undefined'].includes(r)));
     assert.match(entry.reason, /w2-windows/);
   }
+});
+
+// Codex review of Task 5 (2026-11-21).
+test('a failed suite workflow fails the night whatever its receipts say', () => {
+  const w = world({suiteConclusion: 'failure'});
+  assert.equal(go(w).status, 'fail');
+  assert.equal(w.files.has('/rec/LAST-PASS'), false);
+});
+test('a failed dispatch cancels the runs already started before the hold is released', () => {
+  const w = world({failDispatch: 2});
+  assert.throws(() => go(w), /run id/);
+  assert.deepEqual(w.cancelled, ['100']);
+  assert.equal(w.hold(), null);
+  const result = JSON.parse(w.files.get('/rec/20261122-0400/result.json'));
+  assert.equal(result.status, 'fail');
+  assert.ok(!w.files.has('/rec/20261122-0400/beta.zip'), 'the failed night keeps no zips');
+});
+test('the rerun list is deleted under the hold, by its asset, before the hold goes', () => {
+  const flaky = applicable[0];
+  const w = world({suiteResult: id => id === flaky ? 'fail' : 'pass', rerunResult: () => 'pass'});
+  go(w);
+  assert.equal(w.rerunOnDraft(), false);
+  const deleteRerun = w.calls.findIndex(c => c.join(' ').includes('DELETE') && c.join(' ').includes('/rerun'));
+  const deleteHold = w.calls.findIndex(c => c.join(' ').includes('DELETE') && c.join(' ').includes('/x/1'));
+  assert.ok(deleteRerun >= 0 && deleteRerun < deleteHold);
+});
+test('an empty or missing launcher token is never a match', () => {
+  const w = world();
+  w.files.set('/rec/RUNNING/owner', JSON.stringify({pid: 1, stamp: '20261122-0400'}));
+  assert.throws(() => runNight({io: w.io, paths: w.paths, token: undefined}), /night lock/);
+});
+test('a draft that cannot be read, or a server that cannot be reached, fails the night instead of skipping it', () => {
+  assert.equal(go(world({holdReadFails: true})).status, 'fail');
+  assert.equal(go(world({probe: {status: 255, stdout: ''}})).status, 'fail');
+});
+test('the reservation file is read from the requested ref, and an unreadable one fails the night', () => {
+  const w = world({reservationsShow: {status: 0, stdout: JSON.stringify({sequences: {'desktop-158': [{build: 910, platforms: ['linux']}]}}), stderr: ''}});
+  w.paths.reservationsRef = 'refs/test/claims';
+  assert.equal(go(w).build, 911);
+  assert.ok(w.calls.some(c => c.join(' ').includes('refs/test/claims:chromium/release/build-reservations.json')));
+  const bad = world({reservationsShow: {status: 128, stdout: '', stderr: 'fatal: bad object'}});
+  assert.equal(go(bad).status, 'fail');
+});
+test('the night uses the launcher\'s stamp, and never overwrites an earlier record', () => {
+  const w = world();
+  assert.equal(go(w).stamp, '20261122-0400');
+  w.files.set('/rec/RUNNING/owner', JSON.stringify({pid: 1, token: 'tok', stamp: '20261122-0400'}));
+  assert.throws(() => go(w), /already/);
+});
+test('the record names the beta\'s executable hash as executableSha256', () => {
+  const result = go(world());
+  assert.equal(result.beta.executableSha256, 'e'.repeat(64));
+  assert.equal(result.beta.exeSha256, undefined);
+});
+test('nights run through the platform list, Windows first and only for now', () => {
+  assert.deepEqual(PLATFORMS.map(p => p.name), ['windows']);
+  const results = runNights({io: world().io, paths: world().paths, token: 'tok'}, PLATFORMS.map(p => ({...p, run: () => ({status: 'pass', platform: p.name})})));
+  assert.deepEqual(results.map(r => r.platform), ['windows']);
 });
