@@ -1,18 +1,18 @@
 name = "blanc-linux-packages"
 main = "index.mjs"
-account_id = "REPLACE_WITH_CLOUDFLARE_ACCOUNT_ID"
+account_id = "4416bdc2e1dfd40864ff4efd7c208584"
 compatibility_date = "2026-11-21"
 workers_dev = false
 preview_urls = false
 
-# The owner fills in the account ID and the two provisioned bucket names in Task 8.
+# Provisioned 2026-11-22 on the BNFY account (owner-approved).
 [env.staging]
 name = "blanc-linux-packages-staging"
 routes = [{ pattern = "pkg-staging.blanc.day", custom_domain = true }]
 
 [[env.staging.r2_buckets]]
 binding = "PACKAGES"
-bucket_name = "REPLACE_WITH_STAGING_BUCKET"
+bucket_name = "blanc-linux-packages-staging"
 remote = true
 
 [env.production]
@@ -21,6 +21,6 @@ routes = [{ pattern = "pkg.blanc.day", custom_domain = true }]
 
 [[env.production.r2_buckets]]
 binding = "PACKAGES"
-bucket_name = "REPLACE_WITH_PRODUCTION_BUCKET"
+bucket_name = "blanc-linux-packages"
 remote = true
 

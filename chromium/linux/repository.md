@@ -94,17 +94,14 @@ git config --global blanc.linuxRepositoryOwnerUUID \
    `null` for the first publication. The uploader compares it under the lock.
    Both commands use Wrangler's authenticated remote R2 binding.
 
-In Task 8 the owner provisions both buckets and fills in the following
-placeholders in `repository/worker/wrangler.toml` before deploying each environment.
-
-| Placeholder | Value |
-| --- | --- |
-| `REPLACE_WITH_CLOUDFLARE_ACCOUNT_ID` | ID of the account hosting the buckets and the blanc.day zone |
-| `REPLACE_WITH_STAGING_BUCKET` | `blanc-linux-packages-staging` |
-| `REPLACE_WITH_PRODUCTION_BUCKET` | `blanc-linux-packages` |
-
-The `PACKAGES` binding and custom-domain routes are already specified for
-`pkg-staging.blanc.day` and `pkg.blanc.day`.
+Both buckets were created on November 22, 2026 with the owner's approval, on the
+BNFY Cloudflare account (`4416bdc2e1dfd40864ff4efd7c208584`, which also holds the
+blanc.day zone): `blanc-linux-packages-staging` and `blanc-linux-packages`.
+`repository/worker/wrangler.toml` names them, and each environment deploys with
+`npx wrangler deploy --env staging` or `--env production` from
+`chromium/linux/repository/worker/`. The Worker is bound as `PACKAGES` and serves
+`pkg-staging.blanc.day` and `pkg.blanc.day` as custom domains; until the first
+publication writes `current.json`, every path answers 404.
 
 ## Publication and recovery
 
