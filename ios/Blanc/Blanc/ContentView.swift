@@ -303,6 +303,7 @@ struct ContentView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity)
+            .centeredOnScreen(safeArea)
             .clearOfWindowControls(islandAtTop)
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { islandHeight = $0 }
             .environment(\.colorScheme, islandScheme)
@@ -395,6 +396,7 @@ struct ContentView: View {
                 }))
                 .frame(maxWidth: 600)
                 .padding(.horizontal, 16)
+                .centeredOnScreen(safeArea)
                 .padding(islandAtTop ? .top : .bottom, islandHeight - 4)
                 .transition(.move(edge: islandAtTop ? .top : .bottom).combined(with: .opacity))
             Button("") { withAnimation(.snappy) { manager.isSpacesMenuPresented = false } }
@@ -432,6 +434,7 @@ struct ContentView: View {
                 .accessibilityIdentifier("palette.panel")
                 .frame(maxHeight: 520, alignment: islandAtTop ? .top : .bottom)
                 .padding(.horizontal, 16)
+                .centeredOnScreen(safeArea)
                 // Leave a tap target on the page even when the keyboard is up.
                 .padding(.top, islandAtTop ? 10 : 44)
                 .padding(.bottom, islandAtTop ? 44 : 10)
@@ -1174,5 +1177,17 @@ struct SplitPaneLayout: Layout {
         let widths = SplitModel.paneWidths(ratio, width: inner.width, gap: gap)
         return [CGRect(x: inner.minX, y: inner.minY, width: widths.leading, height: inner.height),
                 CGRect(x: inner.minX + widths.leading + gap, y: inner.minY, width: widths.trailing, height: inner.height)]
+    }
+}
+
+private extension View {
+    /// Centered on the whole screen rather than its safe area: the unfolded
+    /// iPhone Duo keeps its status bar in a column down one side, which left
+    /// the Island off the page's center (owner, 2026-11-21). A shift of half
+    /// the difference between the side insets, so the view keeps its layout
+    /// (a list inside keeps its own margins); with equal or no side insets it
+    /// changes nothing.
+    func centeredOnScreen(_ insets: EdgeInsets) -> some View {
+        offset(x: (insets.trailing - insets.leading) / 2)
     }
 }
