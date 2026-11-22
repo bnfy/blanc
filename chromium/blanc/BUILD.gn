@@ -160,7 +160,7 @@ if (is_linux && target_os == "linux" && blanc_linux_build_packages) {
   assert(blanc_blocker_bundle != "", "Linux packages require the blocker bundle.")
   action("linux_repository_keyring") {
     script = "branding/linux/generate-keyring.py"
-    inputs = [ "branding/linux/repository-key.input" ]
+    inputs = [ "$root_build_dir/blanc-repository-key.input" ]
     outputs = [ "$root_out_dir/installer/common/blanc-repository.gpg" ]
     args = [ "--source", rebase_path(inputs[0], root_build_dir),
              "--output", rebase_path(outputs[0], root_build_dir) ]
