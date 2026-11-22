@@ -30,7 +30,7 @@ const tap = key => xdo('keydown', key, 'sleep', '0.04', 'keyup', key);
 
 async function runCase(name, gesture) {
   const f = new NativeFixture(), w = createWorld(f);
-  const entry = {name, passed:false};
+  const entry = {name, passed:false}, diagnostics = {};
   report.cases.push(entry);
   try {
     f.extraArgs = ['--ozone-platform=x11'];
@@ -70,7 +70,7 @@ async function runCase(name, gesture) {
       assert.deepEqual(actual.order, [ids.d, ids.b, ids.c, ids.a]);
       assert.equal(await active(), ids.d, 'Ctrl is still held');
     };
-    const {land, actions, closed} = await gesture({ids, picked, active, state, w, f, windowId});
+    const {land, actions, closed} = await gesture({ids, picked, active, state, w, f, windowId, diagnostics});
     if (closed) { entry.passed = true; return; }
     await waitFor(active, id => id === land, 'active tab after gesture', 5000);
     await pause(250);
@@ -84,6 +84,14 @@ async function runCase(name, gesture) {
     entry.passed = true;
   } catch (error) {
     entry.error = String(error.stack || error);
+    if (Object.keys(diagnostics).length) {
+      for (const [key, expr] of [['tileEvents', 'window.testTileEvents'], ['actions', 'window.testTabSwitchActions'],
+        ['state', 'window.BlancPrototypeHost.tabSwitchState()'], ['snapshot', 'null']]) {
+        try { diagnostics[key] = await diagnostics.w?.hostEval(expr); } catch (e) { diagnostics[key] = 'unreadable: ' + e.message; }
+      }
+      delete diagnostics.w;
+      entry.diagnostics = diagnostics;
+    }
   } finally {
     try {
       xdo('keyup', 'Tab', 'Escape', 'w', 'Shift_L', 'Control_L');
@@ -164,7 +172,8 @@ try {
     await waitFor(state, s => s.pick === null, 'outside click cancelled');
     return {land:ids.d, actions:[['step', 1], ['cancel']]};
   });
-  await runCase('click-tile', async ({ids, picked, w}) => {
+  await runCase('click-tile', async ({ids, picked, w, diagnostics}) => {
+    diagnostics.w = w;
     xdo('keydown', 'Control_L'); tap('Tab'); await picked(ids.b);
     const tile = await waitFor(() => w.hostEval(`(() => {
       const frame = document.getElementById('overlay');
@@ -174,6 +183,14 @@ try {
       return r.width && {x:card.x + r.x + r.width / 2, y:card.y + r.y + r.height / 2, scale:devicePixelRatio};
     })()`), Boolean, 'last tile drawn');
     const {strip} = await w.native('linuxFrameGeometry');
+    // Diagnostics for this case: did the tile see the press, and where was it?
+    await w.hostEval(`(() => {
+      const doc = document.getElementById('overlay').contentDocument;
+      window.testTileEvents = [];
+      doc.addEventListener('mousedown', e => window.testTileEvents.push({target: e.target.closest('li')?.id ?? e.target.tagName, x: e.clientX, y: e.clientY}), true);
+      document.addEventListener('mousedown', e => window.testTileEvents.push({host: e.target.id || e.target.tagName, x: e.clientX, y: e.clientY}), true);
+    })()`);
+    diagnostics.tile = {tile, strip};
     xdo('mousemove', String(Math.round((strip.x + tile.x) * tile.scale)),
         String(Math.round((strip.y + tile.y) * tile.scale)),
         'mousedown', '1', 'keyup', 'Control_L', 'mouseup', '1');

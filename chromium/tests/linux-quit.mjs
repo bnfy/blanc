@@ -223,7 +223,9 @@ async function confirmDownload(ctx) {
   // UnloadController asks on Linux. DownloadInProgressDialogView defaults
   // to Continue downloading, so Return would exercise the opposite decision.
   const probe = fileURLToPath(new URL('./lib/linux-download-exit.py', import.meta.url));
-  const buttons = await waitFor(() => JSON.parse(run('/usr/bin/python3', [probe, String(ctx.fixture.process.pid)])),
+  // The accessibility tree can list the same button twice; count positions.
+  const distinct = points => [...new Map(points.map(p => [p.x + ',' + p.y, p])).values()];
+  const buttons = await waitFor(() => distinct(JSON.parse(run('/usr/bin/python3', [probe, String(ctx.fixture.process.pid)]))),
     points => points.length === 1, 'the native download dialog with its Exit button', EXIT_MS);
   return clickTracked(ctx, 'Exit', x11('getactivewindow'), buttons[0]);
 }
