@@ -28,7 +28,7 @@ Mac mouse and keyboard were never used.
 | 5–9 | Buttons, drag, double-click, corner resize, menu | Pass in all four layouts at 100%: GNOME's `appmenu:close` (menu left, Close right), left (`close,minimize,maximize:`), split (`close:minimize,maximize`) and Close only (`:close`). Every button worked by click (Minimize, then the dock icon brings the window back; Maximize ↔ Restore; Close quits). The strip drags the window by the pointer's exact offset; double-click maximizes and restores; top-left and bottom-right corners resize; the menu opens at its button. |
 | 10 | The same at 200% | Pass. GNOME at 2560×1600, scale 2 (`gdctl`; Parallels' resolution agent paused for the duration). Default and left layouts fully; split and Close only for buttons, maximize/restore and Close. In a small window the buttons and the Island sit side by side without overlap (the address text shortens). |
 | 11 | "Use system title bar and borders" | **Not offered on GNOME Wayland**: absent from the strip's context menu and from Settings (search "title" finds only "Vertical tab text size"). Chromium shows it only when the compositor supports server-side decorations (`xdg-decoration`), which GNOME's does not; see `chromium/PLATFORMS.md`. The plan's expectation applies to X11 desktops, not this one. |
-| 12 | Settings → Apps → Default Apps | Blanc Prototype is listed under Apps and under **Web**, where it shows as the current choice. Firefox is not offered there at all (the snap doesn't register for it), so with no default ever chosen GNOME falls back to the only registered browser. Nothing was written to the user's settings. **Finding:** Blanc Prototype appears **twice** in the Web list, because the package's hidden `me.bnfy.Blanc.prototype.desktop` (`NoDisplay=true`) also declares the web MIME types. |
+| 12 | Settings → Apps → Default Apps | Blanc Prototype is listed under Apps and under **Web**, where it shows as the current choice. Firefox is not offered there at all (the snap doesn't register for it), so with no default ever chosen GNOME falls back to the only registered browser. Nothing was written to the user's settings. Blanc Prototype appears **twice** in the Web list: the package's hidden `me.bnfy.Blanc.prototype.desktop` (`NoDisplay=true`) also declares the web types. That file is upstream Chromium's (`chrome/installer/linux/common/installer.py`, the app-ID entry the XDG desktop portals require, which Google Chrome's package ships too), so it is kept as is. |
 | 13 | Keyring prompt | None appeared. The login keyring was unlocked and Blanc stored its key through the desktop's Secret portal (`os_crypt.portal.prev_init_success: true` in `Local State`). |
 | 14 | Restore | Button layout back to `appmenu:close`; display back to scale 1 at the window's size; Parallels' agent resumed. No default-browser setting was changed, so none needed restoring. |
 | 15 | Uninstall | `apt remove` removed the program and the cron job and kept `~/.config/blanc-prototype`; the source list, keyring and `/etc/default` file stay until a purge, as with Chrome's package. Then `apt purge` removed them too (left `/opt` itself). Shipping Electron Blanc's `~/.config/Blanc` untouched; `x-www-browser` still Firefox. |
@@ -39,8 +39,8 @@ Also seen: blocking works (the shield counted 25 requests on a DuckDuckGo result
 
 ## Follow-ups
 
-- Keep `me.bnfy.Blanc.prototype.desktop` from listing twice in Default Apps (drop its `MimeType` or
-  otherwise keep GNOME from offering it), for the prototype and the beta.
+- The double Default Apps entry is upstream's app-ID desktop file; dropping its `MimeType` would
+  diverge from Chromium in a file the Secret portal relies on. Revisit only if a user reports it.
 - Record in `chromium/PLATFORMS.md` that the system title bar option is X11-only on GNOME.
 
 ## Not covered
