@@ -85,8 +85,8 @@ on:
         options:
           - fork-windows-candidate
           - fork-windows-candidate-rehearsal
-      hold_owner:
-        description: "The draft hold's owner token; the signing job re-checks it just before its upload"
+      hold_owner_sha256:
+        description: "SHA-256 of the draft hold's owner token (never the token itself: run logs are public); the signing job re-checks it just before its upload"
         required: false
         default: ''
         type: string
@@ -124,8 +124,9 @@ jobs:
           $ErrorActionPreference = 'Stop'
           if ($env:CANDIDATE_SHA256 -notmatch '^[0-9a-f]{64}$') { throw 'sha256 must be 64 lowercase hex digits.' }
           if ($env:ONLY -notmatch '^[A-Za-z0-9 _.,:@/-]{0,4000}$') { throw 'only holds unsupported characters.' }
-          if ($env:SOURCE_COMMIT -and $env:SOURCE_COMMIT -notmatch '^[0-9a-f]{40}$') { throw 'source_commit must be a full lowercase commit.' }
-          if ($env:CASE_LIST_ASSET -and $env:CASE_LIST_ASSET -ne 'nightly-rerun.json') { throw 'case_list_asset can only be nightly-rerun.json.' }
+          if ($env:SOURCE_COMMIT -and $env:SOURCE_COMMIT -cnotmatch '^[0-9a-f]{40}$') { throw 'source_commit must be a full lowercase commit.' }
+          if ($env:CASE_LIST_ASSET -and $env:CASE_LIST_ASSET -cne 'nightly-rerun.json') { throw 'case_list_asset can only be nightly-rerun.json.' }
+          if ($env:HOLD_OWNER_SHA256 -and $env:HOLD_OWNER_SHA256 -cnotmatch '^[0-9a-f]{64}$') { throw 'hold_owner_sha256 must be 64 lowercase hex digits.' }
           if ($env:CASE_LIST_ASSET -and $env:ONLY) { throw 'Use only or case_list_asset, not both.' }
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -196,7 +197,7 @@ jobs:
           if (-not (Test-Path "$env:RUNNER_TEMP\blanc\candidate.json")) { throw 'The zip has no candidate.json at its top level; it was not made by chromium/windows/package-candidate.mjs.' }
           if ($env:SOURCE_COMMIT) {
             $built = (Get-Content "$env:RUNNER_TEMP\blanc\candidate.json" -Raw | ConvertFrom-Json).treeCommit
-            if ($built -ne $env:SOURCE_COMMIT) { throw 'The candidate was built from another commit than source_commit.' }
+            if ($built -cne $env:SOURCE_COMMIT) { throw 'The candidate was built from another commit than source_commit.' }
           }
           # Chromium's sandboxed processes run as app containers and must be
           # able to read the folder the browser runs from; an installer grants
@@ -433,7 +434,7 @@ jobs:
   # approves the run in the fork-windows-signing environment.
   sign:
     name: sign (windows x64)
-    if: ${{ inputs.sign }}
+    if: ${{ inputs.sign && !inputs.nightly }}
     runs-on: windows-2025
     timeout-minutes: 120
     environment: fork-windows-signing
@@ -446,7 +447,8 @@ jobs:
       CANDIDATE_SHA256: ${{ inputs.sha256 }}
       DRAFT_TAG: ${{ inputs.draft_tag || 'fork-windows-candidate' }}
       ASSET: blanc-windows-candidate.zip
-      HOLD_OWNER: ${{ inputs.hold_owner }}
+      HOLD_OWNER_SHA256: ${{ inputs.hold_owner_sha256 }}
+      SOURCE_COMMIT: ${{ inputs.source_commit }}
       SIGNED_ASSET: blanc-windows-installer-signed.exe
       ONLINE_ASSET: Blanc-Beta-Setup.exe
       UPDATE_EXPECT: ${{ inputs.update_expect }}
@@ -488,6 +490,11 @@ jobs:
           tar -xf "$env:RUNNER_TEMP\candidate\$env:ASSET" -C "$env:RUNNER_TEMP\blanc"
           if ($LASTEXITCODE -ne 0) { throw 'Could not unpack the candidate.' }
           if (-not (Test-Path "$env:RUNNER_TEMP\blanc\mini_installer.exe")) { throw 'The candidate has no mini_installer.exe.' }
+          if ($env:SOURCE_COMMIT) {
+            if ($env:SOURCE_COMMIT -cnotmatch '^[0-9a-f]{40}$') { throw 'source_commit must be a full lowercase commit.' }
+            $built = (Get-Content "$env:RUNNER_TEMP\blanc\candidate.json" -Raw | ConvertFrom-Json).treeCommit
+            if ($built -cne $env:SOURCE_COMMIT) { throw 'The candidate was built from another commit than source_commit.' }
+          }
           "CANDIDATE_DIR=$env:RUNNER_TEMP\blanc" >> $env:GITHUB_ENV
           "WORK=$env:RUNNER_TEMP\repack" >> $env:GITHUB_ENV
           "SIGNED=$env:RUNNER_TEMP\signed" >> $env:GITHUB_ENV
@@ -596,7 +603,7 @@ jobs:
           if ((Get-FileHash "$shipping\Blanc-Setup-1.49.1.exe" -Algorithm SHA256).Hash.ToLower() -ne $expected.ToLower()) { throw 'The shipping installer does not match the release.' }
           npm ci --ignore-scripts
           if ($LASTEXITCODE -ne 0) { throw 'npm ci failed.' }
-          node chromium/tests/windows-install.mjs "$env:CANDIDATE_DIR" "$env:RUNNER_TEMP\results\install-signed" "$shipping\Blanc-Setup-1.49.1.exe" "--installer=$env:SIGNED\$env:SIGNED_ASSET" --signed
+          node chromium/tests/windows-install.mjs "$env:CANDIDATE_DIR" "$env:RUNNER_TEMP\results\install-signed" "$shipping\Blanc-Setup-1.49.1.exe" "--installer=$env:SIGNED\$env:SIGNED_ASSET" --signed "--signature-record=$env:SIGNED\windows-signature.json"
           if ($LASTEXITCODE -ne 0) { throw 'The signed installer failed the install check.' }
           Get-Content "$env:RUNNER_TEMP\results\install-signed\install.json"
       - name: Online install check on the signed online installer
@@ -630,12 +637,19 @@ jobs:
           # still that release's draft (draft-hold.json names its owner).
           $draft = gh release view $env:DRAFT_TAG --repo $env:GITHUB_REPOSITORY --json isDraft --jq .isDraft
           if ($LASTEXITCODE -ne 0 -or $draft -ne 'true') { throw "$env:DRAFT_TAG must still be an unpublished draft." }
-          if ($env:HOLD_OWNER) {
-            $hold = "$env:RUNNER_TEMP\hold"
-            New-Item -ItemType Directory -Force $hold | Out-Null
+          $hold = "$env:RUNNER_TEMP\hold"
+          New-Item -ItemType Directory -Force $hold | Out-Null
+          $held = @(gh release view $env:DRAFT_TAG --repo $env:GITHUB_REPOSITORY --json assets --jq '.assets[].name') -ccontains 'draft-hold.json'
+          if ($env:HOLD_OWNER_SHA256) {
+            if (-not $held) { throw 'The draft has no hold.' }
             gh release download $env:DRAFT_TAG --repo $env:GITHUB_REPOSITORY --pattern draft-hold.json --dir $hold --clobber
-            if ($LASTEXITCODE -ne 0) { throw 'The draft has no hold.' }
-            if ((Get-Content "$hold\draft-hold.json" -Raw | ConvertFrom-Json).owner -ne $env:HOLD_OWNER) { throw 'Another owner holds the draft now.' }
+            if ($LASTEXITCODE -ne 0) { throw 'The draft hold is not readable.' }
+            $owner = (Get-Content "$hold\draft-hold.json" -Raw | ConvertFrom-Json).owner
+            $ownerSha = [System.BitConverter]::ToString([System.Security.Cryptography.SHA256]::HashData([System.Text.Encoding]::UTF8.GetBytes($owner))).Replace('-', '').ToLower()
+            if ($ownerSha -cne $env:HOLD_OWNER_SHA256) { throw 'Another owner holds the draft now.' }
+          } else {
+            # No hold given (a hand run): never write over a held draft.
+            if ($held) { throw 'The draft is held; this signing run has no hold.' }
           }
           gh release upload $env:DRAFT_TAG @assets --repo $env:GITHUB_REPOSITORY --clobber
           if ($LASTEXITCODE -ne 0) { throw 'Could not upload the signed installer.' }

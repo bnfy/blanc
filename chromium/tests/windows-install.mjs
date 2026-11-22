@@ -24,6 +24,8 @@ import {channelNames,installedMatches} from '../windows/candidate.mjs';
 const [candidateFolder,resultsFolder,shippingInstaller,...installOptions]=process.argv.slice(2);
 const installerOption=installOptions.find(o=>o.startsWith('--installer='))?.slice('--installer='.length)??null;
 const signed=installOptions.includes('--signed');
+const signatureRecord=installOptions.find(o=>o.startsWith('--signature-record='))?.slice('--signature-record='.length)??null;
+const signedHashes=signatureRecord?new Set(JSON.parse(fs.readFileSync(signatureRecord,'utf8')).files.map(f=>f.sha256)):null;
 if(installOptions.some(o=>!o.startsWith('--installer=')&&o!=='--signed'))throw Error('Unknown option: '+installOptions.join(' '));
 if(signed&&!installerOption)throw Error('--signed needs the signed installer, through --installer');
 if(!candidateFolder||!resultsFolder||!shippingInstaller)throw Error('Usage: windows-install.mjs CANDIDATE_FOLDER RESULTS_FOLDER SHIPPING_INSTALLER');
@@ -100,7 +102,7 @@ try{
  if(record.checks.installed){
   const bytes=installedMatches(candidate,{installedExe:exe,installedDll:path.join(application,candidate.version,'chrome.dll'),
    originalExe:path.join(directory,'chrome.exe'),originalDll:path.join(directory,'chrome.dll')},
-   {signed,read:f=>fs.readFileSync(f),sha256:b=>crypto.createHash('sha256').update(b).digest('hex')});
+   {signed,signedHashes,read:f=>fs.readFileSync(f),sha256:b=>crypto.createHash('sha256').update(b).digest('hex')});
   record.details.installedSha256=bytes.sha256;
   record.checks.installedMatchesCandidate=bytes.match;
  }else record.checks.installedMatchesCandidate=false;

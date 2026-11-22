@@ -64,30 +64,40 @@ function main() {
   const configFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-suite-')), 'runtime-config.json');
   fs.writeFileSync(configFile, JSON.stringify(config, null, 2) + '\n');
   // The runner refuses a candidate the tracker does not name. A full run keeps
-  // that rule: its tracker entry is committed first. A development subset is
-  // never a baseline, so on this throwaway checkout the tracker is pointed at
-  // the candidate under test.
-  const trackerFile = path.join(path.dirname(fileURLToPath(import.meta.url)), '../tracker.json');
-  if (nightly) {
-    fs.writeFileSync(trackerFile, JSON.stringify(nightlyTracker(JSON.parse(fs.readFileSync(trackerFile, 'utf8')), config, nightly), null, 2) + '\n');
-    console.log(`run-suite: nightly run ${nightly}; tracker pointed at ${config.candidate} for this run only.`);
-  } else if (extra.length) {
-    const tracker = JSON.parse(fs.readFileSync(trackerFile, 'utf8'));
-    if (tracker.currentCandidates.windows?.id !== config.candidate) {
-      tracker.currentCandidates.windows = { id: config.candidate, exeSha256: config.executableSha256, dllSha256: config.dllSha256,
-        qualification: 'development subset on a throwaway checkout; not recorded' };
-      fs.writeFileSync(trackerFile, JSON.stringify(tracker, null, 2) + '\n');
-      console.log(`run-suite: development subset; tracker pointed at ${config.candidate} for this run only.`);
+  // that rule: its tracker entry is committed first. A development subset or a
+  // nightly is never a baseline, so the tracker names the candidate under test
+  // for this run only and is put back afterwards, whatever the runner did.
+  // (BLANC_RUN_SUITE_TRACKER and BLANC_RUN_SUITE_RUNNER are for tests.)
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const trackerFile = process.env.BLANC_RUN_SUITE_TRACKER || path.join(here, '../tracker.json');
+  const runner = process.env.BLANC_RUN_SUITE_RUNNER || path.join(here, '../tests/runner.mjs');
+  const results = path.resolve(resultsFolder);
+  // Only a report this invocation makes is ever stamped.
+  if (fs.existsSync(results)) throw new Error('The results folder already exists; use a new one.');
+  const originalTracker = fs.readFileSync(trackerFile);
+  try {
+    if (nightly) {
+      fs.writeFileSync(trackerFile, JSON.stringify(nightlyTracker(JSON.parse(originalTracker), config, nightly), null, 2) + '\n');
+      console.log(`run-suite: nightly run ${nightly}; tracker pointed at ${config.candidate} for this run only.`);
+    } else if (extra.length) {
+      const tracker = JSON.parse(originalTracker);
+      if (tracker.currentCandidates.windows?.id !== config.candidate) {
+        tracker.currentCandidates.windows = { id: config.candidate, exeSha256: config.executableSha256, dllSha256: config.dllSha256,
+          qualification: 'development subset on a throwaway checkout; not recorded' };
+        fs.writeFileSync(trackerFile, JSON.stringify(tracker, null, 2) + '\n');
+        console.log(`run-suite: development subset; tracker pointed at ${config.candidate} for this run only.`);
+      }
     }
+    const run = spawnSync(process.execPath, [runner, configFile, results, ...extra], { stdio: 'inherit' });
+    if (run.error) throw run.error;
+    // The runner exits 1 when cases fail or are undefined: a recorded result,
+    // not a broken run. Only a crash or a guard stop fails this step.
+    const baseline = path.join(results, 'baseline.json');
+    if (!fs.existsSync(baseline)) throw new Error(`The runner stopped without a baseline (exit ${run.status ?? run.signal}).`);
+    if (nightly) fs.writeFileSync(baseline, JSON.stringify(stampNightly(JSON.parse(fs.readFileSync(baseline, 'utf8')), nightly), null, 2) + '\n');
+  } finally {
+    fs.writeFileSync(trackerFile, originalTracker);
   }
-  const runner = path.join(path.dirname(fileURLToPath(import.meta.url)), '../tests/runner.mjs');
-  const run = spawnSync(process.execPath, [runner, configFile, path.resolve(resultsFolder), ...extra], { stdio: 'inherit' });
-  if (run.error) throw run.error;
-  // The runner exits 1 when cases fail or are undefined: a recorded result,
-  // not a broken run. Only a crash or a guard stop fails this step.
-  const baseline = path.join(path.resolve(resultsFolder), 'baseline.json');
-  if (!fs.existsSync(baseline)) throw new Error(`The runner stopped without a baseline (exit ${run.status ?? run.signal}).`);
-  if (nightly) fs.writeFileSync(baseline, JSON.stringify(stampNightly(JSON.parse(fs.readFileSync(baseline, 'utf8')), nightly), null, 2) + '\n');
 }
 if (process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) {
   try { main(); } catch (error) { console.error(`run-suite: ${error.message}`); process.exitCode = 1; }
