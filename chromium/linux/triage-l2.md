@@ -121,3 +121,15 @@ The seven Arc failures share the native file chooser. Being visible to X11 estab
 | tab-migration:116, arm64 | Both 500-tab reviews succeeded. Each apply evaluation hit exactly 60,000 ms. Submit once and observe the original reply on the host after the sheet closes. The operation has a bounded 120-second completion budget. Check a single full-batch broadcast, one live renderer and 499 quiet tabs. If the reply never arrives, time the native restore loop. |
 
 Closure requires rebuilt candidates with the refreshed embedded Island assets and the full suite on both architectures, including the existing 2× layout subset. The X11 jobs need `xsel`, a GTK location entry that owns PRIMARY after Select All, and focus on the verified dialog. Run the chooser on both the unpacked Xvfb path and the installed Openbox path. Confirm the measured caption bounds track the native frame at 1× and 2×. The arm64-only timing changes have local fixture coverage and await native execution.
+
+## Candidate 6 quit and real-key checks (November 22, 2026)
+
+Candidate 6 (`linux-x64-a8ae62abfb80abd5`, `linux-arm64-38d1e4faa1e2945e`) passed the full suite on
+both architectures: x64 636 of 667 with none failing (run 45041019578); arm64 633 with three
+timing failures (Spaces menu fade, shield popover within 3 s, pointer dwell) that passed on rerun
+(run 45052104498). Both were signed by the owner before the installed-path checks ran.
+
+| Check | Result | Cause and disposition |
+| --- | --- | --- |
+| Real keys (Ctrl+Tab), x64 and arm64 | Passed every case (x64 run 45056247216, arm64 run 45056743311) | `click-tile` had failed on both: the test measured the last tile while the card was still being placed (y 2 instead of about 109) and clicked the window's top edge. It now takes the tile only when two readings 100 ms apart agree and it lies inside the overlay frame. |
+| Quit, x64 | Six of seven cases pass (run 45057217919) | `download in progress`: on Xvfb with Openbox the native dialog can't be operated. The accessibility tree reported Exit twice at a point where no visible window draws it; a real click there and an AT-SPI press both left the dialog, the window and the `.crdownload` in place. The test now deduplicates the button and presses it through AT-SPI, with diagnostics. The behavior itself was checked by real input on GNOME (Wayland) in the owner's Ubuntu 26.04 arm64 VM with candidate 6's signed package: closing the last window during a slow download showed "Download is in progress / Exit Blanc anyway?" with Continue downloading as default; Exit quit every Blanc process within 2 seconds and removed the partial file. Closing a non-last window asked nothing, as in Chrome. Open on the hosted runner until a window manager that maps the dialog is used (L3 keeps it out of the release gates). |
