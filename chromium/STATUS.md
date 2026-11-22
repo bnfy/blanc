@@ -3982,7 +3982,28 @@ island-and-commands:61 and :115, vertical-tabs:146). Linux's L2 suite fixes in
 `2c0831c41` (Glance, import, profiles and window-layout steps) made the
 rehearsal's five pass. It ran 4 h 26 min; the hold was released and the build
 server left no lock, build or night folder. Prep has not released from it.
-Open: the four rerun-only cases are flaky on Windows and need fixing, not rerunning.
+The four rerun-only cases, fixed 2026-11-22 (`tests/windows-nightly-cases.test.mjs`).
+Each was a difference Windows shares with Linux or a hosted-runner condition:
+- glance:337: Windows publishes a woken quiet tab awake and still loading, so
+  the picker remembers the chosen tab's id as Linux's did (the overlay edit is
+  now every platform but the Mac). Checked on a prototype rebuilt by hand at
+  `75d017f2b` (`windows-x64-c0246d1a54192ea0`, zip `fdff76c0…`): all 65 Glance
+  cases passed with no retries (45042056622).
+- island-and-commands:61: the runner's real pointer rested at (650, 570),
+  inside the test window, where no placement clears it. `real-pointer.mjs` reads
+  the Windows pointer and, on a GitHub-hosted Windows runner only, moves it to a
+  screen corner (45037224663 recorded it at (1918, 1030)).
+- island-and-commands:115: Windows moves off a hover-opened panel only after it
+  settles (`moveOffSettledPanel`, as Linux).
+- vertical-tabs:146: quieting a tab released every DevTools session, which let
+  the held loading tab finish; Windows now detaches only the quieted tab
+  (`quietTab`). A control run on the unfixed harness (45036183809) failed it twice.
+- On slower runners island-and-commands:49 failed too, with or without the
+  pointer fix (45039655461, 45039657756): shipping's step allows 600 ms for a
+  300 ms dwell. On Windows the moves and the panel check run side by side and
+  count only if no gap between moves reached the dwell.
+Final check on the rebuilt prototype (45045207804): all of island-and-commands,
+vertical-tabs:146 and glance:264, :273 and :337, 71 cases, every one on the first try.
 
 ## Linux
 
