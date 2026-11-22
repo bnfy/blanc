@@ -175,13 +175,26 @@ try {
   await runCase('click-tile', async ({ids, picked, w, diagnostics}) => {
     diagnostics.w = w;
     xdo('keydown', 'Control_L'); tap('Tab'); await picked(ids.b);
-    const tile = await waitFor(() => w.hostEval(`(() => {
+    // The card is placed after it first lays out: an early reading put the
+    // tile at the window's top edge (y 2) though it settles near y 109. Take
+    // the tile only when two readings 100 ms apart agree and it lies inside
+    // the overlay frame.
+    const measure = () => w.hostEval(`(() => {
       const frame = document.getElementById('overlay');
       const tile = frame.contentDocument?.querySelector('#switcher-tile-3');
       if (!tile || frame.hidden) return null;
       const card = frame.getBoundingClientRect(), r = tile.getBoundingClientRect();
-      return r.width && {x:card.x + r.x + r.width / 2, y:card.y + r.y + r.height / 2, scale:devicePixelRatio};
-    })()`), Boolean, 'last tile drawn');
+      const x = card.x + r.x + r.width / 2, y = card.y + r.y + r.height / 2;
+      const inside = r.width && x > card.x && x < card.x + card.width && y > card.y && y < card.y + card.height;
+      return inside ? {x, y, scale:devicePixelRatio} : null;
+    })()`);
+    const tile = await waitFor(async () => {
+      const first = await measure();
+      if (!first) return null;
+      await pause(100);
+      const second = await measure();
+      return second && second.x === first.x && second.y === first.y ? second : null;
+    }, Boolean, 'last tile settled');
     const {strip} = await w.native('linuxFrameGeometry');
     // Diagnostics for this case: did the tile see the press, and where was it?
     await w.hostEval(`(() => {

@@ -227,7 +227,16 @@ async function confirmDownload(ctx) {
   const distinct = points => [...new Map(points.map(p => [p.x + ',' + p.y, p])).values()];
   const buttons = await waitFor(() => distinct(JSON.parse(run('/usr/bin/python3', [probe, String(ctx.fixture.process.pid)]))),
     points => points.length === 1, 'the native download dialog with its Exit button', EXIT_MS);
-  return clickTracked(ctx, 'Exit', x11('getactivewindow'), buttons[0]);
+  // Diagnostics: every window this browser owns, and the dialog after the click.
+  const windows = () => x11('search', '--onlyvisible', '--pid', String(ctx.fixture.process.pid)).split(/\s+/).filter(Boolean)
+    .map(xid => { try { return { xid, name: x11('getwindowname', xid), ...windowGeometry(xid) }; } catch { return { xid }; } });
+  ctx.result.windows = windows();
+  const deadline = clickTracked(ctx, 'Exit', x11('getactivewindow'), buttons[0]);
+  setTimeout(() => {
+    try { ctx.result.afterClick = { windows: windows(), exit: JSON.parse(run('/usr/bin/python3', [probe, String(ctx.fixture.process.pid)])) }; }
+    catch (error) { ctx.result.afterClick = { error: error.message }; }
+  }, 2000);
+  return deadline;
 }
 
 async function closeWithOtherWindow(ctx) {
