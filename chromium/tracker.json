@@ -2552,11 +2552,19 @@
     },
     "linux": {
       "x64": {
-        "id": "linux-x64-64f8e6871c8fb16f",
+        "id": "linux-x64-abbf0c91ab29a46a",
         "arch": "x64",
-        "exeSha256": "64f8e6871c8fb16fa385d85531fd607a0d9dbe49703c1b394c3933e7ed856b33",
+        "exeSha256": "abbf0c91ab29a46a7248fce92dc32f70ed2f6625e3169e97223d647f71f67d5f",
         "version": "158.0.8127.2",
-        "treeCommit": "9f9a0be93c5ab2cfbf5f4051be906a2e49044c07",
+        "treeCommit": "abe38409821327f585bee6317d8874aa39afde6f",
+        "qualification": "compiled candidate; runtime acceptance pending"
+      },
+      "arm64": {
+        "id": "linux-arm64-7f8c53cb7cb20dff",
+        "arch": "arm64",
+        "exeSha256": "7f8c53cb7cb20dff7f2f54b9c5252d8ddf0f8c399ff4f02b1affa24654086c53",
+        "version": "158.0.8127.2",
+        "treeCommit": "abe38409821327f585bee6317d8874aa39afde6f",
         "qualification": "compiled candidate; runtime acceptance pending"
       }
     }
