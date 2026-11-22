@@ -23,6 +23,57 @@ The [L0 x64 baseline](../scenarios/baseline-linux-x64-2fcae33ab6ecf405.json) rec
 | Single cases | sync:162,181 | Fixed | The Settings handler records a request and calls SetAllowScreenshots. X11's widget readback kept the counter at zero. The Linux test hook counts outstanding requests on live widgets, matching the shipping step. Verify release on join and sheet close, then reacquisition on reopen. These checks establish the request lifecycle only. |
 | Single cases | navigation-and-context-menu:12/example-22,32 | Fixed | Brave was missing in the Change dialog. The adapter now uses Chromium's native Manage search engines form and Make default action when needed. Verify the navigation destination and the changed engine for submission after a Google suggestion. |
 
+## Candidate 2 regressions
+
+Candidate `linux-x64-64f8e6871c8fb16f` ran the harness at `0bab9708f` with patches 0113 and 0114. Of 667 cases, 513 passed, 124 failed, four were undefined and 26 were excluded. Comparing case IDs with L0 gives 102 previously passing cases that failed. The counts below use the completed case after any retry. [Hosted run 44954377054, artifact `f0/baseline.json` and per-case logs](https://github.com/bnfy/blanc/actions/runs/44954377054)
+
+### Window geometry
+
+There are 48 direct content-fill errors and nine resize timeouts containing the same error. In `case-0408`, CDP reported a 945×1060 window at (10, 10). The rendered host was 937×68 and the page was 988 DIP high, giving a 937×1056 client. After a request for 900×600, `case-0611` got an 892×596 client. The (10, 10) is the window position. On uncomposited Xvfb the restored frame contributes four DIP on the left, right and bottom.
+
+Patch 0114 selected Chromium's Linux frame. Its opaque frame layout calculates the client rectangle and Views assigns it to the BrowserView that contains the Island. The Linux frame helper keeps resize borders even when shadows are off. The toolkit can supply different insets, and a maximized frame can have none. CDP reads the widget bounds. The candidate 2 adapter used those bounds directly. L2 already called the W1 hook on Linux, but the Ozone desktop host returns that same whole window from `GetClientAreaBoundsInScreen()`, so the old hook measured zero. [Pinned frame layout](https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/chrome/browser/ui/views/frame/opaque_browser_frame_view_layout.cc) · [Linux frame insets](https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/ui/views/window/frame_view_utils_linux.cc) · [Desktop host bounds](https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/ui/views/widget/desktop_aura/desktop_window_tree_host_platform.cc)
+
+The Linux branch of the existing `windowFrameInsets` test hook measures the laid-out client against the root view in widget DIPs. The adapter subtracts those four edges on reads and adds them to a requested client size after restore. X11's `_NET_FRAME_EXTENTS` comes from a window manager and `_GTK_FRAME_EXTENTS` support depends on the WM. Neither is needed on bare Xvfb. Wayland uses the same view layout regardless of compositor placement. The frame check compares CDP minus the reported insets with the rendered host and page on X11 and Weston at 1× and 2×. [Pinned X11 extents](https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/ui/ozone/platform/x11/x11_window.cc) · [Wayland window geometry](https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/ui/ozone/platform/wayland/host/wayland_toplevel_window.cc)
+
+| Feature | Declarations with this first error |
+| --- | --- |
+| island-and-commands (29) | 61, 131, 140, 149, 156, 166, 173, 180, 190, 200, 211, 222, 234, 241, 251, 258, 267, 276, 286, 295, 312, 320, 339, 348, 359, 372, 383, 394, 403 |
+| glance (10) | 392, 399, 409, 420, 471, 480, 489, both examples at 506, 538 |
+| vertical-tabs (7) | 43, 58, 74, 99, 110, 120, 217 |
+| newtab-layouts (5) | 134, 161, 205, 221, 229 |
+| split-view (3) | 158, 193, 200 |
+| sync (2) | 26, 120 |
+| onboarding (1) | 8 |
+
+Of these 57 cases, 55 passed on L0. The existing dispositions above still apply to glance:506/example-516 and island-and-commands:320.
+
+### Sync and Shared Spaces
+
+Nineteen cases ended at “Timeout waiting for Sync on”, showing `syncOn: false` and “Could not check sync.” Another 24 failed the `sync.enable` result assertion at `fork-steps/shared-spaces.mjs:46`. Browser logs including `case-0009` show repeated session-bus address errors. The unpacked workflow ran plain Xvfb. Patch 0113 reports the selected OSCrypt provider to the Sync service. Without a usable Secret Service the provider falls back to `basic_text` and the shipping key-storage check refuses it. The logs do not print the backend name.
+
+Both workflow paths and direct `linux/run-suite.mjs` invocations now create a disposable GNOME home and D-Bus session, unlock the secrets daemon and verify a default-collection write and read before launching the inventory. Browser relaunches and peers inherit the session. Full, filtered and 2× runs each get a fresh keyring.
+
+| Feature | Declarations blocked at Sync enable |
+| --- | --- |
+| F41-named-workspaces | 46 |
+| send-to-device | 7, 15, 24, 33, 41, 56, 63 |
+| sync | 7, 13, 20, 88, 104, 129, 150, 162, 181, 210 |
+| vertical-tabs | 129 |
+| shared-spaces | 4, 11, 17, 23, 29, 35, 41, 47, 73, 80, 87, 94, 103, 111, 119, 132, 143, 155, 165, 175, 181, 193, 204, 211 |
+
+Of these 43 cases, 41 passed on L0. The existing screenshot-protection triage applies after Sync enables in sync:162 and :181. Confirm on both architectures that OSCrypt selects `gnome_libsecret`, Sync enables, and shared data reaches the local Worker.
+
+### Individual cases and hosted confirmation
+
+| Declaration | Finding and L2 Task 5 check |
+| --- | --- |
+| glance:538 and onboarding:8 | Both hit the direct frame assertion listed above. Verify the later Glance and walkthrough assertions after the client measurement passes. |
+| tabs-and-groups:367 | The 44-DIP pill and 68-DIP strip were correct. `activeGuestBounds` subtracted the page height from the outer height, adding the four-DIP bottom border to the reported page top. Check that the corrected client gives 68. |
+| vertical-tabs:249 | `overlayBounds` scaled coordinates by 945/937, moving the expected 48-DIP anchor to 48.034 after shadow padding. Using the client width gives a scale of one at normal zoom. Check alignment at both display scales. |
+| vertical-tabs:146 | The loading row lost its class. Its fixture holds a response through CDP Fetch, then `sleepTab` detached every page to quiet a different tab. On Linux it now detaches only the tab being quieted when a response is held. Verify both the real loading spinner and the quiet row. |
+| F41-named-workspaces:141 and :152 | Both retries clicked into a resizing Spaces editor, then failed to find the hex field or Undo. A click during the list-to-editor transition is the suspected cause. Both steps now wait for the editor transition before clicking Custom or Delete. Verify the saved color and the restored Space after Undo. |
+| island-and-commands:115 | Open. Both attempts sent an overlay-local mouse move and still saw the panel after its grace period. This path never reads the window bounds. The step caches the first nonempty card rectangle while the panel animates out of the pill, so its computed outside point can land inside the expanded card. The artifact lacks pointer coordinates. At 1× and 2× capture the delivered point, live card rectangle, and hover-open state at the move to distinguish stale geometry from a missed leave event. |
+
 ## Runner evidence still due
 
 - Build the fork-owned C++ changes on Linux x64 and arm64. The import probe discovers Chrome, Chromium, Brave, Edge and Vivaldi under a temporary home. It checks recovery against a second browser's live singleton socket, then checks stale locks naming an unrelated process, a different browser, a zombie and a dead PID. The local check requires read access to the owner's socket table and file descriptors under `/proc`. Another host's process may still own a shared profile.

@@ -487,7 +487,7 @@
     "blanc/browser/ui/app_menus_mac.mm": "0cf9a3d8567de1023502517fea0437e78dbc6c4aa9a1899ab00914f273508aae",
     "blanc/browser/ui/billboard_clock_settings.inc": "57ce0ed0160903e1b90c3d65fd5cd7cd33218d5774a3b2d8fdb448b0d49c9892",
     "blanc/browser/ui/blanc_extensions_branding.h": "17d77bbc267d13477a24bd971021f2291c505567a32383229505c13b53238a02",
-    "blanc/browser/ui/blanc_prototype_ui.cc": "c95fb7fd3742f2c2756afb18865d1234fb68c89559a9babd39a214e074dd0e6c",
+    "blanc/browser/ui/blanc_prototype_ui.cc": "a6bee78430c6fb04562cd1232fa65cdcd83fcb68a5b2085e3dcbf0f25f34697d",
     "blanc/browser/ui/blanc_prototype_ui.h": "56ea291d19d99bafd8ef47028c4b626c7f29040b466c0f73cdb5c68dcda253a9",
     "blanc/browser/ui/blanc_quiet_media.h": "f7fadb778aef96b28c8fb80dda2104897789b510ad2a34abc5adf9cde8761c5f",
     "blanc/browser/ui/blanc_quiet_probe.h": "47467fe0a2004e804cda235613a0aea6b88d494b84b3608bf6af991a6aa07dfd",

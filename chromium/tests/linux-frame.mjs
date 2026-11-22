@@ -292,6 +292,20 @@ try {
         await fixture.launch(config, path.join(scratch, name), { testHooks: true, diskAssets: config.diskAssets });
         await installDriver(fixture.host);
         await assertRendering(expr => fixture.host.eval(expr));
+        // Compare the suite's CDP correction with the two rendered views on
+        // both Ozone backends, before applying any WebUI zoom or auto-hide.
+        if (i === 0) {
+          const targets = await nativeCall(fixture.host, 'tabTargets');
+          const {activeTabId} = await fixture.snapshot();
+          const {bounds} = await fixture.browser.send('Browser.getWindowForTarget', {targetId: targets[activeTabId]});
+          const insets = await nativeCall(fixture.host, 'windowFrameInsets');
+          const host = await fixture.host.eval('({width:innerWidth,height:innerHeight})');
+          const page = await fixture.page.eval('({width:innerWidth,height:innerHeight})');
+          result.contentBounds = {bounds, insets, host, page};
+          assert.equal(bounds.width - insets.left - insets.right, host.width);
+          assert.equal(host.width, page.width);
+          assert.equal(bounds.height - insets.top - insets.bottom, host.height + page.height);
+        }
         result.zoomed = await zoomedControls(fixture, scale);
         if (i === 0) result.dragBand = await dragBandRows(fixture);
         result.strip = await observeLayout(fixture, layout, scale);

@@ -7547,8 +7547,19 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (quiet_method == "windowFrameInsets" && quiet_args.empty()) {
       auto* owner = GetOwner(web_ui()->GetWebContents());
       auto* widget = views::Widget::GetWidgetForNativeWindow(owner->browser->GetWindow()->GetNativeWindow());
+#if BUILDFLAG(IS_LINUX)
+      // DesktopWindowTreeHostPlatform returns the whole platform window for
+      // GetClientAreaBoundsInScreen(). FrameView lays out the BrowserView
+      // inside that window. Compare them in widget DIPs on both Ozone backends.
+      // A restore can report normal before Views lays out the restored frame.
+      widget->LayoutRootViewIfNecessary();
+      const auto* client_view = widget->client_view();
+      const gfx::Rect window = widget->GetRootView()->GetLocalBounds();
+      const gfx::Rect client = client_view->ConvertRectToWidget(client_view->GetLocalBounds());
+#else
       const gfx::Rect window = widget->GetWindowBoundsInScreen();
       const gfx::Rect client = widget->GetClientAreaBoundsInScreen();
+#endif
       Reply(id, true, base::Value(base::DictValue()
           .Set("left", client.x() - window.x()).Set("top", client.y() - window.y())
           .Set("right", window.right() - client.right()).Set("bottom", window.bottom() - client.bottom())));
