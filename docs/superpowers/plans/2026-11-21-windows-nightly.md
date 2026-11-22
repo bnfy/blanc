@@ -101,6 +101,8 @@ test('evidence that is not this night\'s, or not complete, fails it', () => {
 - [ ] **Step 4: Run.** Expected: PASS.
 - [ ] **Step 5: Commit** `Fork nightly: the Windows night's rules (number, args, skips, judging)`.
 
+**Also (Codex, third pass):** `judgeWindowsNight` requires exactly one row per inventory id; `excluded` only for the ids in `chromium/tests/windows-fork-exclusions.mjs`; a terminal result (`pass`, `fail`, `undefined`) for every other row, never `not-run`; and for a rerun, a terminal result for every requested id. Test: a report with every applicable row `not-run` fails; a report with an excluded row that isn't on the list fails.
+
 ### Task 2: The runner tests the night's commit, either asset, and the installed bytes
 
 **Files:**
@@ -134,6 +136,11 @@ test('evidence that is not this night\'s, or not complete, fails it', () => {
 - [ ] **Step 3: Implement.**
 - [ ] **Step 4: Run.** Expected: PASS.
 - [ ] **Step 5: Commit** `Fork Windows: candidate runs pin a source commit, pick the prototype, take a case list, and check the installed bytes`.
+
+**Also (Codex, third pass):**
+- The ancestry check and the `treeCommit` check run only when `source_commit` is given; dispatches without it (today's manual runs, schema-1 releases) behave as now. Test a dispatch text path with the input omitted.
+- Inputs `draft_tag` (choice `fork-windows-candidate` | `fork-windows-candidate-rehearsal`, default the first; the download and signing steps use it) and `hold_owner` (optional). When `hold_owner` is given, the `sign` job reads `draft-hold.json` immediately before its `--clobber` upload and fails unless it names that owner and the target is still a draft.
+- The installed-bytes check reads the packaged field names: `candidate.json` has `exeSha256` and `dllSha256` (`candidate.mjs`'s `runtimeConfig()` renames the first to `executableSha256`); test with metadata in the packager's real shape.
 
 ### Task 3: One exclusive hold on the draft
 
@@ -226,6 +233,11 @@ Script order, all under the lock:
 - [ ] **Step 4: Run** the tests and `bash -n` on both scripts. Expected: PASS.
 - [ ] **Step 5: Commit** `Fork Windows: the nightly's server phase holds the checkout from checkout to packages`.
 
+**Also (Codex, third pass):**
+- Retired patched files: before restoring one, its current SHA-256 must equal the previous applied map's patched hash (otherwise stop: an unrecognised edit); restore it with `git -C ~/chromium-desktop/src show <pin>:<file>` into place, not `git checkout --`.
+- Unexpected source: after applying, `git -C ~/chromium-desktop/src status --porcelain` may list only paths in the current map (patched or added); anything else stops the night.
+- Arguments against the pin: before editing, each output's current `args.gn` SHA-256 must equal the `argsSha256` in its recorded environment; re-recording is allowed only for `BlancWinBeta`, and only when the sole difference from that pin is this invocation's version edit. The prototype is never re-recorded by a night.
+
 ### Task 5: The orchestrator on the Mac Studio
 
 **Files:**
@@ -278,6 +290,8 @@ Flow (`io` injected, as in `windows-release.mjs`):
 - [ ] **Step 4: Run** the file and the whole fork suite. Expected: PASS.
 - [ ] **Step 5: Commit** `Fork nightly: the Windows night on the Mac Studio`.
 
+**Also (Codex, third pass):** the night lock is taken by the launcher, not by Node: `desktop-nightly.sh` creates `RUNNING/` with its token, refuses unless the `desktop-nightly` worktree is clean, then checks out and starts Node with `BLANC_NIGHT_TOKEN`; Node verifies the token before doing anything and the launcher removes `RUNNING/` only if the token is still its own. `draft-hold.mjs break` on a dead night also removes that night's `RUNNING/`. Paths come from launcher arguments (`--records`, `--draft`, `--reservations-ref`), never from inherited environment, so a rehearsal under `env -i` stays isolated.
+
 ### Task 6: Releasing from a night
 
 **Files:**
@@ -327,6 +341,11 @@ Flow (`io` injected, as in `windows-release.mjs`):
 - [ ] **Step 4: Run** both files and the whole fork suite. Expected: PASS.
 - [ ] **Step 5: Commit** `Fork Windows: releases start from a passing night and hold the draft until verify-public`.
 
+**Also (Codex, third pass):**
+- Stages and abandonment are serialized: each stage creates `WORK/STAGE-RUNNING` (pid) for its whole run and removes it at the end; `break` on a release hold refuses while it names a live pid, then writes `abandoned`, then releases the hold. `draft` and `publish` re-check the live hold immediately before their GitHub write. Schema-2 dispatches pass `hold_owner` and `source_commit`, so the signing job re-checks the hold before its upload.
+- The online proofs (`windows-update-proof.mjs`) record the installed `chrome.exe` and `chrome.dll` SHA-256; `proveOnline` requires them to equal the signed files in this release's `windows-signature.json`.
+- `claimExact` refuses whenever an earlier claim holds a number at or above `build`, unless an existing claim has the same number and the same source (then it is a no-op); the reservation file is unchanged on refusal. Test: 906 claimed earlier for the same source, then `claimExact(905)` refuses and pushes nothing.
+
 ### Task 7: Install, first night, records
 
 **Files:**
@@ -339,14 +358,13 @@ Flow (`io` injected, as in `windows-release.mjs`):
   - It writes the `me.bnfy.blanc.desktop-nightly` LaunchAgent (Hour 4, Minute 0). `--remove` uninstalls.
   - Test: `bash -n`, and a unit test that the plist has the label and Hour 4 and that the entry script sets `PATH`.
 - [ ] **Step 2: Bring `BlancWinPrototype` current once, by hand.** It hasn't been built since W2. After asking the Linux session about the lock, run `build.mjs --check --out=BlancWinPrototype`, review the large plan, and build it once. Expected: `build ok`.
-- [ ] **Step 3: Rehearse with no live effects:**
+- [ ] **Step 3: Push first, then rehearse with no live effects** (the runner must run the revised workflow from a trusted ref, so push to `chromium/next` before rehearsing; nothing is installed yet):
   - Make a disposable draft `fork-windows-candidate-rehearsal`, and a reservation file containing a test claim in a temporary ref.
-  - Run one night against both with `BLANC_CANDIDATE_DRAFT` and the reservation override set, from a minimal environment: `env -i HOME=$HOME PATH=/usr/bin:/bin bash ~/Projects/Blanc/scripts/desktop-nightly.sh --now`.
+  - Run one night from a minimal environment with every path isolated through the launcher's arguments: `env -i HOME=$HOME PATH=/usr/bin:/bin bash ~/Projects/Blanc/scripts/desktop-nightly.sh --now --records <temp records> --draft fork-windows-candidate-rehearsal --reservations-ref <temp ref>`; its dispatches pass `draft_tag=fork-windows-candidate-rehearsal`, so the runner never reads the real draft and the real `LAST-PASS` and kept zips are untouched.
   - Then run `windows-beta-prep.mjs --records <temp dir>` against that night, and `windows-release.mjs status <temp dir>/<version>` through the real loader.
   - Then release the rehearsal hold and delete the disposable draft and ref.
   - Expected: a judged `result.json`, a valid work folder, the real draft, `CURRENT` and reservations untouched.
-- [ ] **Step 4: Push and install:**
-  - Push to `chromium/next`, with the fork suite and both `check-patches.py` lanes passing.
+- [ ] **Step 4: Install:**
   - On the Mac Studio, run the installer and one supervised real night with `--now`.
   - Expected: `status: "pass"`, or a failure triaged case by case (fix, or add with evidence) before the next night.
 - [ ] **Step 5: Records and commit:**
