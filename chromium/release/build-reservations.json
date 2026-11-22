@@ -9,6 +9,14 @@
           "linux"
         ],
         "purpose": "proof"
+      },
+      {
+        "build": 906,
+        "sourceCommit": "a52e29005d6237c405ddcc2afd3b0f216c8b390b",
+        "platforms": [
+          "linux"
+        ],
+        "purpose": "release"
       }
     ]
   }
