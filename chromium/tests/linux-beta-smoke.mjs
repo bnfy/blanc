@@ -122,10 +122,13 @@ async function run(version) {
     // The launch's own navigation can end on an error page that keeps the URL
     // (the blocker may still be starting), so a fetch from it fails. Require
     // the smoke page itself, navigating again if needed.
-    const where = () => page.eval('location.href + " | " + document.title');
+    // A navigation can wait while the blocker starts (run 45071338278 timed out
+    // in Page.navigate on a busy runner), so a slow or failed attempt is noted
+    // and retried, for up to about three minutes in all.
+    const where = async () => { try { return await page.eval('location.href + " | " + document.title'); } catch (e) { return 'unreadable: ' + e.message; } };
     let landed = await where();
     for (let attempt = 0; attempt < 6 && !landed.endsWith('| Linux beta smoke'); attempt++) {
-      await page.send('Page.navigate', {url: base + '/'});
+      try { await page.send('Page.navigate', {url: base + '/'}, 30000); } catch (e) { landed = 'navigate: ' + e.message; }
       await pause(2000);
       landed = await where();
     }
