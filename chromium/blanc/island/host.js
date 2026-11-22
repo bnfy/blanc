@@ -28,6 +28,7 @@
   let serialized = '';
   let pillRect = null;
   let windowButtons = null;  // Linux frame bounds in DIPs.
+  let updateVersion = '';  // Kept for pill frames that load after the recommendation.
   let islandZoom = 1;
   const islandDip = cssPixels => Math.round(cssPixels * islandZoom);
   let opened = false;
@@ -148,6 +149,12 @@
       overlayShowDocuments.set(callback, ownerDocument);
     }
     subscribers.get(event).add(callback);
+    if (event === 'onPillNotice' && updateVersion) {
+      queueMicrotask(() => {
+        if (updateVersion && subscribers.get(event)?.has(callback))
+          callback({kind: 'update-ready', version: updateVersion});
+      });
+    }
     // The renderer can subscribe after a Find request was opened. Deliver the
     // pending handoff once its handler has finished registering.
     if (event === 'onOverlayShow' && pendingFindShow) {
@@ -2790,6 +2797,7 @@
   // 2026-11-02): absent, so the Island offers neither /dark-site nor
   // /1password, as shipping does where a member is missing.
   const ABSENT = new Set(['toggleDarkSiteOnActiveSite', 'fillLoginFromOnePassword']);
+  if (hostPlatform === 'linux') ABSENT.add('restartToUpdate');
   const api = new Proxy(implemented, {
     get(target, property) {
       if (property in target) return target[property];
@@ -3285,6 +3293,12 @@
     }, { once: true });
   }
   window.blancPrototypeEvent = (kind, payload) => {
+    if (hostPlatform === 'linux' && (kind === 'update-ready' || kind === 'update-refused') &&
+        typeof payload === 'string' &&
+        payload !== updateVersion) {
+      updateVersion = payload;
+      emit('onPillNotice', {kind: 'update-ready', version: payload});
+    }
     if (kind === 'windowButtons' && hostPlatform === 'linux') {
       windowButtons = payload;
       refreshWindowButtons();

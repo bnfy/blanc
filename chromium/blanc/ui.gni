@@ -334,6 +334,14 @@ source_set(target_name) {
     ]
   }
   if (is_linux) {
+    if (blanc_beta_channel) {
+      deps += [
+        "//chrome/browser:buildflags",
+        "//chrome/browser/lifetime",
+        "//chrome/browser/upgrade_detector",
+        "//components/version_info",
+      ]
+    }
     sources += [
       "//blanc/browser/ui/tab_switch_keys_linux.cc",
       "//blanc/browser/ui/window_buttons_linux.cc",

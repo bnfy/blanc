@@ -12,7 +12,7 @@ version is installed.
 **Architecture:** the beta channel is a third platform of the Windows beta's model: its own ledger and
 release tool (`chromium/release/linux-release.mjs`, owner-run, resumable, typed confirmation before the
 irreversible stages), its own GitHub pre-release (`chromium-beta-linux-<version>`, never latest), and
-build numbers reserved in one shared file that Windows uses too. The repository is two Cloudflare R2
+build numbers claimed in one shared file that Windows uses too. The repository is two Cloudflare R2
 buckets, each served by a small Worker that answers metadata from one atomically switched
 **generation**, so a client never sees half a publish. The owner's Mac signs the `.rpm`s first; a
 GitHub runner builds the repository metadata from exactly those signed packages (no key there); the
@@ -119,29 +119,29 @@ finding changed decision 4 with the owner's agreement.
   carries `Acquire-By-Hash: yes` with `by-hash/` copies. The previous two generations and every pool
   file they name are kept. One publisher at a time: the upload takes a lock object and refuses if
   another is held.
-- **Build numbers — ON HOLD (2026-11-21):** the owner approved a Windows nightly that builds at the next
-  free number without committing it, so this rule is changing to "the claim *names* the source commit"
-  (`{build, sourceCommit, platforms[], purpose}`; a release checks only earlier claims; a rejected push
-  re-reads the tip and retries; the committed beta args keep a development number; the release proves
-  the candidate's `treeCommit` and compiled-in build equal its claim). Task 5 waits for the Windows
-  nightly plan (`docs/superpowers/specs/2026-11-21-windows-nightly-design.md`) and is then reworked to
-  that form. The paragraph below is the superseded first agreement.
-- **Build numbers** (first agreement with the Windows Beta session, 2026-11-21, superseded above): one desktop sequence for Windows
-  and Linux, kept in `chromium/release/build-reservations.json` on `chromium/next`, keyed by sequence
-  (`{"schema": 1, "sequences": {"desktop-158": [{build, platforms, purpose}]}}`, seeded with Windows'
-  902, 903 and 904). The Mac beta's own `2.0.0-beta.N` sequence stays out of it. **The reservation commit
-  is the release's source commit:** one commit adds the entry and bumps the build in each named
-  platform's committed beta args (`chromium/windows/args/beta-x64.gn`,
-  `chromium/linux/args/beta-{x64,arm64}.gn`), and is pushed; a rejected push means someone reserved
-  first, so re-read, pick again and recommit. A reservation may name both platforms (both args bumped
-  in that one commit), so one number can be the same browser on both, as spec §3 wants. A release's
-  `sourceCommit` must be the commit that introduced its build's entry, naming its platform. Every new
-  number exceeds every reserved or ledger build on every platform; gaps are fine (Chromium's updater
-  and apt and dnf compare versions only). `previousBuild` stays the platform's own last released build.
-  Reserve once per release, not per candidate. A failed public beta is replaced by a higher number.
-  Any fix that lands after reserving and before the release needs a fresh reservation and number (the
-  old one becomes a gap); `reserve-build.mjs` says so, and a mismatch fails with "sourceCommit didn't
-  introduce a <platform> reservation: reserve a new build", not a bare check failure.
+- **Build numbers (agreed with the Windows Beta session, 2026-11-22; the Windows nightly design
+  `docs/superpowers/specs/2026-11-21-windows-nightly-design.md`, "Coordination with the Linux lane"):**
+  one desktop sequence for Windows and Linux in `chromium/release/build-reservations.json` on
+  `chromium/next`: `{"schema": 1, "sequences": {"desktop-158": [{build, sourceCommit, platforms,
+  purpose}]}}`, entries in claim order, `platforms` a non-empty subset of `windows`/`linux`, `purpose`
+  `release` or `proof`. The Mac beta's `2.0.0-beta.N` sequence stays out of it. **The number is set at
+  build time and claimed at release; the claim names the source commit.** The committed beta args keep
+  a development number; a build writes the committed args with only `blanc_beta_build` and
+  `blanc_beta_version` replaced and stops if any other line differs from the output's `args.gn`. The
+  next number is `max(every build in both platform ledgers, every claimed build) + 1`. Claiming appends
+  one entry and pushes a commit that changes only that file; a rejected push fetches and re-reads the
+  tip: if an entry now holds that number for other source, the claim fails (build again at a higher
+  number), otherwise the one-entry change is reapplied on the new tip and retried. Claiming an entry
+  that is already there (same build, source and platforms) does nothing, so a resumed release never
+  claims twice. The file is created by the first claim; nothing seeds it. A release needs an entry with
+  its exact build and `sourceCommit` naming its platform, and no entry claimed **before** its own may
+  hold a higher build or the same build for other source; later claims never strand it. Two platforms
+  built from one commit may share a number (one entry naming both, or two entries with the same build
+  and source). An abandoned claim stays a gap; gaps are fine (apt, dnf and Chromium compare versions
+  only). `previousBuild` stays each platform's own last released build. A release also proves its
+  candidate's `treeCommit` equals `sourceCommit` and its compiled-in build equals `build`. The claim
+  helpers live in `chromium/release/build-claims.mjs`, shared by both release tools; the Windows Beta
+  session wires `windows-beta-prep.mjs` and `windows-release.mjs` to it.
 - **Irreversible writes are journaled:** before tagging, creating a release, switching production's
   generation or publishing, the tool writes its intent to `WORK/journal.json`; on resume it reconciles
   the remote state (tag SHA, release assets' hashes, production's `current.json`) against the journal
@@ -171,6 +171,8 @@ finding changed decision 4 with the owner's agreement.
 ---
 
 ### Task 1: The beta channel builds for Linux
+
+Patch 0116 touches 3 upstream files in 6 hunks. The desktop queue through 0116 touches 261 distinct upstream files in 924 hunks.
 
 **Files:**
 - Modify: `chromium/blanc/config.gni` (allow `target_os == "linux"` with x64 or arm64 for the beta;
@@ -203,7 +205,8 @@ finding changed decision 4 with the owner's agreement.
   arm64 and still refuses linux x86; the patch's added line names `is_linux` and `blanc_channel ==
   "beta"` and nothing else changes for Mac or Windows; test hooks are off (`blanc_enable_test_hooks`
   false for the beta channel, unchanged); `setup.sh` copies the committed beta args for the checkout's
-  commit and refuses a build number with no reservation for `linux` introduced by that commit; beta
+  commit with only `blanc_beta_build`/`blanc_beta_version` replaced (`--build=N`) and stops when any
+  other line differs from the output's current `args.gn`; beta
   asset names differ for `B-1` and `B`; `windows-version.test.mjs` admits a
   Linux beta and still refuses a Mac.
 - [ ] **Step 2: Run**; expected FAIL. **Step 3: Check the pin** (after Task 1's patch, on the server): the
@@ -327,13 +330,11 @@ finding changed decision 4 with the owner's agreement.
 - Create: `chromium/release/linux-release.mjs`, `chromium/release/linux-release.test.mjs`,
   `chromium/release/linux-ledger.json` (`{"schema": 1, "builds": []}`),
   `chromium/linux/owner/linux-release.command`
-- Create: `chromium/release/build-reservations.json` (seeded with every Windows ledger build) and
-  `chromium/release/reserve-build.mjs` (reserve, look up, release an unused reservation)
-- Modify: `chromium/release/windows-release.mjs` and its tests (`windows-release*.test.mjs`): keep
-  `previousBuild === ` the Windows ledger's last build; replace "build > the Windows ledger's last" with
-  "build > every reserved or ledger build on every platform, other than its own reservation" and "a
-  reservation naming `windows` was introduced by `sourceCommit`". The Windows Beta session owns that
-  tool: bring it the change to agree, and land it between Windows releases.
+- Create: `chromium/release/build-claims.mjs` and `build-claims.test.mjs` (the shared claim helpers;
+  no `build-reservations.json` is committed: the first claim creates it)
+- Modify: `chromium/release/windows-release.mjs` only to import `claimProblem` from
+  `build-claims.mjs` instead of defining it (same behavior, its tests unchanged); the Windows Beta
+  session owns that tool and `windows-beta-prep.mjs`, and wires prep to `claimExact` itself.
 - Create: `chromium/tests/linux-beta-smoke.mjs` (an installed beta: test hooks absent, a control
   request loads, a request on the blocker's pinned list is blocked, renderers sandboxed)
 
@@ -344,25 +345,30 @@ finding changed decision 4 with the owner's agreement.
   (`158.0.8127.<build>`), `build`, `previousBuild`, `tag` (`chromium-beta-linux-<version>`),
   `prerelease: true`, `makeLatest: false`, `sourceCommit` (40 hex, on `chromium/next`), `candidates`
   `{x64: {id, tarSha256}, arm64?: {id, tarSha256}}`.
-- Produces in `reserve-build.mjs`: `reserveBuild({platforms: ('windows'|'linux')[], purpose:
-  'release'|'proof'}) -> {build, commit}` (one commit adding the entry and bumping each named platform's
-  beta args, pushed to `chromium/next`; on a rejected push, re-read, renumber, recommit, retry) and
-  `checkReserved({build, platform, sourceCommit}) -> void` (throws unless `sourceCommit` introduced an
-  entry for `build` naming `platform`).
+- Produces in `build-claims.mjs`: `nextBuild({ledgers: number[][], claims}) -> number`;
+  `claimProblem(claims, {build, sourceCommit, platform}) -> string|null`;
+  `claimExact({build, sourceCommit, platforms, purpose}, {root, git, remote, branch}) -> {commit,
+  created: boolean}` (the push-and-retry above; throws `ClaimTaken` when another source holds the
+  number); `claimsAtTip({root, git, remote, branch}) -> claims|null` (null while the file is absent);
+  `betaArgsFor(committedArgs, {build}) -> string` and `argsDrift(written, current) -> string[]` (lines
+  other than the two build lines that differ).
 
-- [ ] **Step 1: Failing tests** in `linux-release.test.mjs` and `reserve-build.test.mjs` on the model of
-  `windows-release.test.mjs`: record validation (each field above); reservations (two concurrent
-  reservers against a bare test repository get different numbers; the reservation commit changes only
-  the file and the named platforms' args; a both-platform reservation passes `checkReserved` for each;
-  a release whose `sourceCommit` isn't the reservation commit fails; a Mac beta number never enters the
-  file; a failed public beta's replacement gets a higher number; Windows keeps `previousBuild` from its
-  own ledger);
+- [ ] **Step 1: Failing tests** in `linux-release.test.mjs` and `build-claims.test.mjs` on the model of
+  `windows-release.test.mjs`, and `build-claims.test.mjs`: record validation (each field above); claims
+  against a bare test repository (two concurrent claimers of the same number for different source: one
+  wins, the other gets `ClaimTaken`; a claim racing an unrelated commit is reapplied and lands; the
+  claim commit changes only the file; a repeated identical claim is a no-op; a both-platform entry
+  satisfies `claimProblem` for each; an earlier claim at a higher number fails a release, a later one
+  doesn't; the same build for other source fails; `nextBuild` exceeds every ledger and claimed build;
+  a Mac beta number never enters the file; Windows' existing `claimProblem` tests pass unchanged
+  against the moved helper; `betaArgsFor` replaces only the two lines and `argsDrift` names any other
+  change);
   stage order and resumption; typed confirmation for `draft` and `publish`; interruption after each
   irreversible write (tag created, release created, assets uploaded, generation switched, release
   published) resumes by reconciling the journal with the remote state and never repeats or skips a
   write.
 - [ ] **Step 2: Run**; FAIL. **Step 3: Implement the stages:**
-  1. `preflight`: record valid; `checkReserved` for `build` (and for the proof build `B-1`, recorded as
+  1. `preflight`: record valid; `claimProblem` is null for `build` (and for the proof build `B-1`, recorded as
      `proofBuild`); `previousBuild` is Linux's last released build (none for the first beta, whose
      proof starts from `proofBuild`); tag and release absent; key fingerprint in `repository.md` matches the committed key.
   2. `build-check`: each candidate (both builds, both arches) on the `fork-linux-candidate` draft with
@@ -409,7 +415,7 @@ finding changed decision 4 with the owner's agreement.
   an unsigned `.rpm` (dnf's signature check). Uninstall leg (Review Focus 5). On x64, Electron Blanc's
   AppImage launches afterwards (the AppImage is x64-only; arm64 checks the seeded `~/.config/Blanc` is
   unchanged).
-- [ ] **Step 2: First run (decision 3):** reserve `B-1` and `B` for the same commit, build both, publish
+- [ ] **Step 2: First run (decision 3):** build `B-1` and `B` from the same commit, claim both, publish
   only `B` to staging, run the proof. Record runs in `chromium/reports/l3-linux.json`.
 - [ ] **Step 3: Commit** `Fork Linux: the update proof from staging (L3)`.
 
@@ -432,12 +438,11 @@ finding changed decision 4 with the owner's agreement.
 
 ### Task 8: The first public Linux beta
 
-- [ ] **Step 1: Builds (decision 1):** reserve `B-1` (`purpose: 'proof'`) then `B` (two consecutive
-  reservation commits; `B`'s differs from `B-1`'s only in the file and the Linux args); with no Windows
-  release in progress, `setup.sh` at `B-1`'s commit, then guarded cold builds of `BlancLinuxBeta` and
-  `BlancLinuxArm64Beta` (time the first and tell the owner the measured length); then `setup.sh` at
-  `B`'s commit and incremental builds (only version-stamped files change; stop if the plan says
-  otherwise). Package and ship each.
+- [ ] **Step 1: Builds (decision 1):** from one source commit, with no Windows release in progress:
+  `setup.sh --build=B-1` and guarded cold builds of `BlancLinuxBeta` and `BlancLinuxArm64Beta` (time
+  the first and tell the owner the measured length); then `setup.sh --build=B` and incremental builds
+  (only version-stamped files change; stop if the plan says otherwise). Package and ship each, then
+  claim `B-1` (`purpose: 'proof'`) and `B` (`'release'`) for that commit.
 - [ ] **Step 2: Release stages through `hand-check`** with `linux-release.command` (owner, foreground
   Terminal). At `hand-check`, the owner's VM check, recorded in `chromium/linux/hand-checks-l3.md`:
   install `B-1` from its verified `.deb`; disable the production source and add staging's;

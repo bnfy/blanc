@@ -2,8 +2,9 @@ export class MemoryBucket {
   objects = new Map();
 
   async put(key, value, options = {}) {
-    if (options.onlyIf && this.objects.has(key)) return null;
     const bytes = new Uint8Array(await new Response(value).arrayBuffer());
+    // Test the precondition and commit the write together, as R2 does.
+    if (options.onlyIf?.get('If-None-Match') === '*' && this.objects.has(key)) return null;
     this.objects.set(key, bytes);
     return {key};
   }

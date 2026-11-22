@@ -21,6 +21,7 @@ import {CHROME_VERSION, ReleaseCheckError, check, equal, reason, sha256} from '.
 import {ROOT} from './preflight.mjs';
 import {REPO, COSIGN_IDENTITY, COSIGN_ISSUER, COSIGN_REDIRECT, confirmAbsent, realIO as macIO} from './release.mjs';
 import {releaseData} from './windows-release-data.mjs';
+import {claimProblem as desktopClaimProblem} from './build-claims.mjs';
 import {verifyCrx3} from './windows-crx3.mjs';
 import {parseRunId} from './daily/desktop-nightly.mjs';
 import {readHold, releaseHold} from '../windows/draft-hold.mjs';
@@ -67,19 +68,9 @@ export function validateWindowsRelease(r, ledger) {
   check(r.build > last, 'the build must be above the last Windows build');
   return r;
 }
-// The shared desktop build-number claims (Linux L3; chromium/release/build-reservations.json,
-// sequence desktop-158, in claim order). A release needs a claim for its build
-// naming windows and its source, and no claim made before its own at a higher
-// number, or at its number for other source. A later claim never strands it.
-export function claimProblem(reservations, r) {
-  const entries = reservations?.sequences?.['desktop-158'] ?? [];
-  const own = entries.findIndex(e => e.build === r.build && e.sourceCommit === r.sourceCommit && (e.platforms ?? []).includes('windows'));
-  if (own < 0) return 'no claim names this build, its source commit and windows';
-  for (const earlier of entries.slice(0, own)) {
-    if (earlier.build > r.build) return 'an earlier claim holds a higher build number';
-    if (earlier.build === r.build && earlier.sourceCommit !== r.sourceCommit) return 'an earlier claim holds this build number for other source';
-  }
-  return null;
+// Keep the Windows release-record interface used by prep and existing callers.
+export function claimProblem(claims, r) {
+  return desktopClaimProblem(claims, {...r, platform: 'windows'});
 }
 // The shared claims at chromium/next's fetched tip: null only when that commit
 // is proven not to have the file; a failed fetch or an unreadable file stops.

@@ -624,6 +624,31 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
   let lastActiveTab = null;
   let pillNoticeTimer = null;
   function showPillNotice(kind) {
+    if (platform === 'linux' && kind?.kind === 'update-ready') {
+      if (frameElement?.id !== 'strip' && frameElement?.id !== 'floatPill') return;
+      let button = document.getElementById('pillRestartToUpdate');
+      if (!kind.version) {
+        if (!button) return;
+        button.remove();
+      } else if (button) {
+        button.dataset.version = kind.version;
+        return;
+      } else {
+        button = document.createElement('button');
+        button.id = 'pillRestartToUpdate';
+        button.type = 'button';
+        button.textContent = blancI18n.t('pill.restartToUpdate');
+        button.dataset.version = kind.version;
+        button.addEventListener('click', event => {
+          event.stopPropagation();
+          if (event.isTrusted) location.assign('/restartToUpdate?' + encodeURIComponent(button.dataset.version));
+        });
+        pillDomain.after(button);
+      }
+      fitIslandDots();
+      requestAnimationFrame(reportIslandRect);
+      return;
+    }
     const key = PILL_NOTICE_KEYS[kind];
     if (!key) return;
     pillNoticeKey = key;

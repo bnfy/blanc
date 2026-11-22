@@ -7,6 +7,7 @@ from collections import Counter
 from pathlib import Path
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tarfile
@@ -33,10 +34,12 @@ def require(condition, message):
         raise ValueError(message)
 
 
-def stream_sha(stream):
+def stream_sha(stream, *, copy_to=None):
     digest = hashlib.sha256()
     for block in iter(lambda: stream.read(1024 * 1024), b''):
         digest.update(block)
+        if copy_to is not None:
+            copy_to.write(block)
     return digest.hexdigest()
 
 
@@ -89,7 +92,12 @@ def validate_matrix(names):
             require(f'blanc-beta_{version}-1_{arch}.deb' in names, f'missing {version} {arch} deb')
         for arch in ['x86_64', 'aarch64']:
             require(f'blanc-beta-{version}-1.{arch}.rpm' in names, f'missing {version} {arch} rpm')
-    return max(versions, key=lambda v: tuple(map(int, v.split('.'))))
+    proof, release = sorted(versions, key=lambda v: tuple(map(int, v.split('.'))))
+    old_prefix, old_build = proof.rsplit('.', 1)
+    prefix, build = release.rsplit('.', 1)
+    require(prefix == old_prefix and int(build) == int(old_build) + 1,
+            'expected consecutive proof and release builds of the same Chromium version')
+    return release
 
 
 def inventory(root, exclude=()):
@@ -132,54 +140,95 @@ def write_approval(directory):
     })
 
 
-def unpack_candidate(arch, tar_sha, archive, directory):
+def unpack_candidate(arch, tar_sha, archive, directory, channel='preview'):
     require(arch in ('x64', 'arm64'), 'unknown Linux architecture')
-    require(HASH.fullmatch(tar_sha) and sha(archive) == tar_sha, 'candidate tarball SHA-256 mismatch')
-    directory.mkdir()
+    require(HASH.fullmatch(tar_sha), 'invalid candidate tarball SHA-256')
+    package = 'blanc-beta' if channel == 'beta' else 'blanc-prototype'
     manifest = None
     executable_sha = None
     packages = {}
-    # The runtime can be large. Read the tar sequentially and copy only the two
-    # regular package files into a fresh directory, never extracting archive paths.
-    with tarfile.open(archive, 'r|gz') as tar:
-        for entry in tar:
-            name = entry.name.removeprefix('./')
-            if name == '.' or entry.isdir():
-                continue
-            if name == 'candidate.json':
-                require(entry.isfile() and manifest is None and entry.size <= 65536, 'invalid candidate.json')
-                manifest = json.load(tar.extractfile(entry))
-            elif name == 'chrome/chrome':
-                require(entry.isfile() and executable_sha is None, 'invalid chrome executable')
-                executable_sha = stream_sha(tar.extractfile(entry))
-            elif name.startswith('packages/'):
-                match = re.fullmatch(r'packages/(blanc-prototype[-_][\w.-]+\.(deb|rpm))', name, re.ASCII)
-                require(entry.isfile() and match and match[2] not in packages, f'unexpected package: {name}')
-                file = directory / match[1]
-                with file.open('xb') as out:
-                    shutil.copyfileobj(tar.extractfile(entry), out)
-                packages[match[2]] = package_record(file)
+    # The input may change. Verify the compressed bytes before opening the tar,
+    # then unpack from the same private snapshot without reopening the input.
+    def open_archive(file, flags):
+        return os.open(file, flags | os.O_NOFOLLOW | os.O_NONBLOCK)
+
+    with tempfile.TemporaryFile(dir=directory.parent) as snapshot:
+        with open(archive, 'rb', opener=open_archive) as stream:
+            require(stat.S_ISREG(os.fstat(stream.fileno()).st_mode), 'expected a regular archive')
+            digest = stream_sha(stream, copy_to=snapshot)
+        require(digest == tar_sha, 'candidate tarball SHA-256 mismatch')
+        snapshot.seek(0)
+        directory.mkdir()
+        with tarfile.open(fileobj=snapshot, mode='r|gz') as tar:
+            for entry in tar:
+                name = entry.name.removeprefix('./')
+                if name == '.' or entry.isdir():
+                    continue
+                if name == 'candidate.json':
+                    require(entry.isfile() and manifest is None and entry.size <= 65536, 'invalid candidate.json')
+                    manifest = json.load(tar.extractfile(entry))
+                elif name == 'chrome/chrome':
+                    require(entry.isfile() and executable_sha is None, 'invalid chrome executable')
+                    executable_sha = stream_sha(tar.extractfile(entry))
+                elif name.startswith('packages/'):
+                    match = re.fullmatch(rf'packages/({package}[-_][\w.-]+\.(deb|rpm))', name, re.ASCII)
+                    require(entry.isfile() and match and match[2] not in packages, f'unexpected package: {name}')
+                    file = directory / match[1]
+                    with file.open('xb') as out:
+                        shutil.copyfileobj(tar.extractfile(entry), out)
+                    packages[match[2]] = package_record(file)
 
     require(manifest, 'missing candidate.json')
     if not packages and not manifest.get('packages'):
         raise ValueError('Runtime-only candidate has no DEB or RPM. Build installers after the owner commits '
                          'chromium/linux/keys/blanc-repository.asc.')
-    require(manifest['platform'] == 'linux' and manifest['channel'] == 'preview'
-            and manifest['arch'] == arch, 'expected the selected Linux preview')
+    require(manifest['platform'] == 'linux' and manifest['channel'] == channel
+            and manifest['arch'] == arch, f'expected the selected Linux {channel}')
     require(executable_sha and manifest['exeSha256'] == executable_sha
             and manifest['id'] == f'linux-{arch}-{executable_sha[:16]}', 'candidate executable hash mismatch')
     version = manifest['version']
     require(re.fullmatch(VERSION, version), 'invalid candidate version')
     deb_arch, rpm_arch = ('amd64', 'x86_64') if arch == 'x64' else ('arm64', 'aarch64')
     require(set(packages) == {'deb', 'rpm'} and
-            packages['deb']['file'] == f'blanc-prototype_{version}-1_{deb_arch}.deb' and
-            packages['rpm']['file'] == f'blanc-prototype-{version}-1.{rpm_arch}.rpm',
+            packages['deb']['file'] == f'{package}_{version}-1_{deb_arch}.deb' and
+            packages['rpm']['file'] == f'{package}-{version}-1.{rpm_arch}.rpm',
             'expected both packages for the candidate version and architecture')
-    require(sorted(manifest['packages'], key=lambda row: row['file']) ==
+    rows = manifest['packages']
+    if channel == 'beta':
+        build = manifest.get('build')
+        require(type(build) is int and build == int(version.rsplit('.', 1)[1]),
+                'manifest build must be an integer matching the archive build')
+        # Earlier release inputs also allowed paths relative to the archive root.
+        rows = [{**row, 'file': row['file'].removeprefix('packages/')} for row in rows]
+    require(sorted(rows, key=lambda row: row['file']) ==
             sorted(packages.values(), key=lambda row: row['file']), 'candidate package hashes differ')
-    write_json(directory / 'unsigned-candidate.json', {
-        'candidate': manifest['id'], 'tarSha256': tar_sha, 'arch': arch, **packages,
-    })
+    if channel == 'preview':
+        write_json(directory / 'unsigned-candidate.json', {
+            'candidate': manifest['id'], 'tarSha256': tar_sha, 'arch': arch, **packages,
+        })
+    return manifest
+
+
+def unpack_beta(checksums, archives, directory):
+    lines = checksums.read_text().splitlines()
+    require(len(lines) == 4, 'expected four build-checked candidate tarball digests')
+    directory.mkdir()
+    sources = set()
+    for line in lines:
+        match = re.fullmatch(r'([0-9a-f]{64})  (blanc-linux-beta-(x64|arm64)-([1-9][0-9]*)-candidate\.tar\.gz)', line)
+        require(match, 'invalid beta candidate SHA256SUMS entry')
+        digest, filename, arch, build = match.groups()
+        with tempfile.TemporaryDirectory(dir=directory.parent) as scratch:
+            pair = Path(scratch) / 'packages'
+            manifest = unpack_candidate(arch, digest, archives / filename, pair, 'beta')
+            require(manifest['version'].split('.')[-1] == build, 'archive build differs from its package version')
+            require(re.fullmatch('[a-f0-9]{40}', manifest['treeCommit']), 'missing beta source commit')
+            sources.add(manifest['treeCommit'])
+            for file in pair.iterdir():
+                require(not (directory / file.name).exists(), 'duplicate beta candidate package')
+                file.rename(directory / file.name)
+    require(len(sources) == 1, 'beta candidates have different source commits')
+    package_files(directory)
 
 
 def approve_candidate(directory):
@@ -212,19 +261,20 @@ def control(text):
     return fields
 
 
-def build(directory, tree, key):
-    version, rows = approved(directory)
+def build(directory, tree, key, approval_directory):
+    version, rows = approved(approval_directory)
     files = package_files(directory)
     require(set(rows) == {p.name for p in files}, 'inputs differ from the approval')
     tree.mkdir()
     for file in files:
         row = rows[file.name]
-        check_package(file, rows, row['sha256'], row['size'])
         match = DEB.fullmatch(file.name) or RPM.fullmatch(file.name)
         if match[1] == version:
             dest = tree / package_path(file.name)
             dest.parent.mkdir(exist_ok=True, parents=True)
             shutil.copyfile(file, dest)
+            file = dest
+        check_package(file, rows, row['sha256'], row['size'])
     shutil.copyfile(key, tree / 'blanc-repository.asc')
     apt = ['apt-ftparchive', '-c', str(HERE / 'apt-ftparchive.conf')]
     packages = subprocess.check_output([*apt, 'packages', 'pool'], cwd=tree / 'deb').decode()
@@ -429,14 +479,22 @@ if __name__ == '__main__':
     paths = [Path(arg).absolute() for arg in args]
     if command == 'unpack-candidate':
         unpack_candidate(args[0], args[1], *paths[2:])
+    elif command == 'unpack-beta-candidate':
+        arch, tar_sha, _, _, version = args
+        manifest = unpack_candidate(arch, tar_sha, paths[2], paths[3], 'beta')
+        require(manifest['version'] == version, 'archive version differs from selected beta')
+        print(json.dumps(manifest))
     elif command == 'copy-packages':
+        _, _, expected = args
         paths[1].mkdir()
         for package in package_files(paths[0]):
             shutil.copyfile(package, paths[1] / package.name)
+        actual = [f'{sha(p)}  {p.name}' for p in package_files(paths[1])]
+        require(sorted(expected.splitlines()) == sorted(actual), 'private package SHA-256 differs from build-check')
     elif command == 'names':
         for name in approved(paths[0])[1]:
             print(name)
     else:
-        {'approve': write_approval, 'approve-candidate': approve_candidate, 'build': build, 'check': check_indices,
+        {'approve': write_approval, 'unpack-beta': unpack_beta, 'approve-candidate': approve_candidate, 'build': build, 'check': check_indices,
          'verify-rpm': verify_rpm, 'seal': seal, 'finish': finish_directory}[command](*paths)
 

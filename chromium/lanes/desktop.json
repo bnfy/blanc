@@ -5,7 +5,7 @@
   "upstream": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
   "upstreamDir": "upstream",
   "sourceMap": "source-map.json",
-  "fileCount": 254,
+  "fileCount": 257,
   "patches": [
     "patches/baseline/0001-foundation-baseline.patch",
     "patches/0002-canonical-layout.patch",
@@ -120,6 +120,7 @@
     "patches/0112-blanc-no-update-toast.patch",
     "patches/0113-blanc-linux-identity.patch",
     "patches/0114-blanc-linux-frame.patch",
-    "patches/0115-blanc-linux-installer.patch"
+    "patches/0115-blanc-linux-installer.patch",
+    "patches/0116-blanc-linux-update-notifications.patch"
   ]
 }

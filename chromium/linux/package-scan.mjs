@@ -113,7 +113,7 @@ function scanFile(file, name, fingerprint, home, findings) {
   }
 }
 
-export function scanPackage(packagePath, {fingerprint}) {
+export function scanPackage(packagePath, {fingerprint, noticesDir = path.resolve(import.meta.dirname, '../blanc/notices')}) {
   if (!/^[a-f\d]{40}$/i.test(fingerprint ?? '')) return {ok: false, findings: ['Expected a 40-hex primary fingerprint']};
   const pkg = path.resolve(packagePath);
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-package-'));
@@ -152,7 +152,7 @@ export function scanPackage(packagePath, {fingerprint}) {
       if (!regularFiles.has(install + '/blanc_blocker/engine.js')) continue;
       for (const notice of ['LICENSE', 'ASSET-LICENSE.md', 'THIRD_PARTY_NOTICES.txt']) {
         const file = path.join(install, 'notices', notice);
-        const expected = new URL('../blanc/notices/' + notice, import.meta.url);
+        const expected = path.join(noticesDir, notice);
         if (!regularFiles.has(file) || !fs.readFileSync(path.join(root, file)).equals(fs.readFileSync(expected))) {
           findings.add(`${file}: missing or incorrect fork notice`);
         }

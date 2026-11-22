@@ -173,7 +173,6 @@ async function openShippingWindow(file, log, tmp) {
   fs.closeSync(fd);
   let spawnError;
   child.once('error', error => {spawnError = error;});
-  let page;
   try {
     const ready = async () => {
       if (spawnError || child.exitCode !== null || child.signalCode) return {exited: true};
@@ -183,8 +182,26 @@ async function openShippingWindow(file, log, tmp) {
     };
     const {start} = await waitFor(ready, Boolean, 'shipping Start Page', 90000);
     assert.ok(start, 'Shipping AppImage did not start: ' + (spawnError?.message ?? child.signalCode ?? child.exitCode));
-    page = await connect(start);
-    await waitFor(() => page.eval("document.getElementById('version')?.textContent"), v => v === 'v' + shippingVersion, 'shipping version');
+    // A relaunch restores shipping's saved session, which can close the first
+    // Start Page target, so read the version from whichever one is live.
+    const startVersion = async () => {
+      const targets = await fetch(base + '/json/list').then(r => r.json());
+      let last;
+      for (const target of targets.filter(t => t.type === 'page' && t.url.startsWith('blanc://newtab/'))) {
+        let page;
+        try {
+          page = await connect(target);
+          last = await page.eval("document.getElementById('version')?.textContent");
+          if (last === 'v' + shippingVersion) return last;
+        } catch (error) {
+          last = error.message;
+        } finally {
+          page?.close();
+        }
+      }
+      return last;
+    };
+    await waitFor(startVersion, v => v === 'v' + shippingVersion, 'shipping version');
     // Use shipping's real Quit accelerator, as in ecs-production-updater-linux.mjs.
     const [window] = run('xdotool', ['search', '--onlyvisible', '--class', '^[Bb]lanc$']).trim().split(/\s+/);
     assert.match(window, /^\d+$/);
@@ -192,7 +209,6 @@ async function openShippingWindow(file, log, tmp) {
     await waitFor(() => child.exitCode, code => code === 0, 'shipping AppImage exit');
     assert.ok(fs.statSync(path.join(profile, 'Local State')).isFile(), 'Missing shipping profile');
   } finally {
-    page?.close();
     if (child.pid && child.exitCode === null && !child.signalCode) {
       try {process.kill(-child.pid, 'SIGKILL');} catch {}
     }
