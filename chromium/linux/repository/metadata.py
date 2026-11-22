@@ -7,6 +7,7 @@ from collections import Counter
 from pathlib import Path
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tarfile
@@ -132,54 +133,83 @@ def write_approval(directory):
     })
 
 
-def unpack_candidate(arch, tar_sha, archive, directory):
+class ArchiveReader:
+    """Hash the same compressed bytes the streaming tar reader consumes."""
+
+    def __init__(self, stream):
+        self.stream = stream
+        self.digest = hashlib.sha256()
+
+    def read(self, size):
+        data = self.stream.read(size)
+        self.digest.update(data)
+        return data
+
+
+def unpack_candidate(arch, tar_sha, archive, directory, channel='preview'):
     require(arch in ('x64', 'arm64'), 'unknown Linux architecture')
-    require(HASH.fullmatch(tar_sha) and sha(archive) == tar_sha, 'candidate tarball SHA-256 mismatch')
+    require(HASH.fullmatch(tar_sha), 'invalid candidate tarball SHA-256')
+    package = 'blanc-beta' if channel == 'beta' else 'blanc-prototype'
     directory.mkdir()
     manifest = None
     executable_sha = None
     packages = {}
     # The runtime can be large. Read the tar sequentially and copy only the two
     # regular package files into a fresh directory, never extracting archive paths.
-    with tarfile.open(archive, 'r|gz') as tar:
-        for entry in tar:
-            name = entry.name.removeprefix('./')
-            if name == '.' or entry.isdir():
-                continue
-            if name == 'candidate.json':
-                require(entry.isfile() and manifest is None and entry.size <= 65536, 'invalid candidate.json')
-                manifest = json.load(tar.extractfile(entry))
-            elif name == 'chrome/chrome':
-                require(entry.isfile() and executable_sha is None, 'invalid chrome executable')
-                executable_sha = stream_sha(tar.extractfile(entry))
-            elif name.startswith('packages/'):
-                match = re.fullmatch(r'packages/(blanc-prototype[-_][\w.-]+\.(deb|rpm))', name, re.ASCII)
-                require(entry.isfile() and match and match[2] not in packages, f'unexpected package: {name}')
-                file = directory / match[1]
-                with file.open('xb') as out:
-                    shutil.copyfileobj(tar.extractfile(entry), out)
-                packages[match[2]] = package_record(file)
+    def open_archive(file, flags):
+        return os.open(file, flags | os.O_NOFOLLOW | os.O_NONBLOCK)
+
+    with open(archive, 'rb', opener=open_archive) as stream:
+        require(stat.S_ISREG(os.fstat(stream.fileno()).st_mode), 'expected a regular archive')
+        reader = ArchiveReader(stream)
+        with tarfile.open(fileobj=reader, mode='r|gz') as tar:
+            for entry in tar:
+                name = entry.name.removeprefix('./')
+                if name == '.' or entry.isdir():
+                    continue
+                if name == 'candidate.json':
+                    require(entry.isfile() and manifest is None and entry.size <= 65536, 'invalid candidate.json')
+                    manifest = json.load(tar.extractfile(entry))
+                elif name == 'chrome/chrome':
+                    require(entry.isfile() and executable_sha is None, 'invalid chrome executable')
+                    executable_sha = stream_sha(tar.extractfile(entry))
+                elif name.startswith('packages/'):
+                    match = re.fullmatch(rf'packages/({package}[-_][\w.-]+\.(deb|rpm))', name, re.ASCII)
+                    require(entry.isfile() and match and match[2] not in packages, f'unexpected package: {name}')
+                    file = directory / match[1]
+                    with file.open('xb') as out:
+                        shutil.copyfileobj(tar.extractfile(entry), out)
+                    packages[match[2]] = package_record(file)
+        while reader.read(1024 * 1024):
+            pass
+        require(reader.digest.hexdigest() == tar_sha, 'candidate tarball SHA-256 mismatch')
 
     require(manifest, 'missing candidate.json')
     if not packages and not manifest.get('packages'):
         raise ValueError('Runtime-only candidate has no DEB or RPM. Build installers after the owner commits '
                          'chromium/linux/keys/blanc-repository.asc.')
-    require(manifest['platform'] == 'linux' and manifest['channel'] == 'preview'
-            and manifest['arch'] == arch, 'expected the selected Linux preview')
+    require(manifest['platform'] == 'linux' and manifest['channel'] == channel
+            and manifest['arch'] == arch, f'expected the selected Linux {channel}')
     require(executable_sha and manifest['exeSha256'] == executable_sha
             and manifest['id'] == f'linux-{arch}-{executable_sha[:16]}', 'candidate executable hash mismatch')
     version = manifest['version']
     require(re.fullmatch(VERSION, version), 'invalid candidate version')
     deb_arch, rpm_arch = ('amd64', 'x86_64') if arch == 'x64' else ('arm64', 'aarch64')
     require(set(packages) == {'deb', 'rpm'} and
-            packages['deb']['file'] == f'blanc-prototype_{version}-1_{deb_arch}.deb' and
-            packages['rpm']['file'] == f'blanc-prototype-{version}-1.{rpm_arch}.rpm',
+            packages['deb']['file'] == f'{package}_{version}-1_{deb_arch}.deb' and
+            packages['rpm']['file'] == f'{package}-{version}-1.{rpm_arch}.rpm',
             'expected both packages for the candidate version and architecture')
-    require(sorted(manifest['packages'], key=lambda row: row['file']) ==
+    rows = manifest['packages']
+    if channel == 'beta':
+        # Earlier release inputs also allowed paths relative to the archive root.
+        rows = [{**row, 'file': row['file'].removeprefix('packages/')} for row in rows]
+    require(sorted(rows, key=lambda row: row['file']) ==
             sorted(packages.values(), key=lambda row: row['file']), 'candidate package hashes differ')
-    write_json(directory / 'unsigned-candidate.json', {
-        'candidate': manifest['id'], 'tarSha256': tar_sha, 'arch': arch, **packages,
-    })
+    if channel == 'preview':
+        write_json(directory / 'unsigned-candidate.json', {
+            'candidate': manifest['id'], 'tarSha256': tar_sha, 'arch': arch, **packages,
+        })
+    return manifest
 
 
 def approve_candidate(directory):
@@ -429,6 +459,11 @@ if __name__ == '__main__':
     paths = [Path(arg).absolute() for arg in args]
     if command == 'unpack-candidate':
         unpack_candidate(args[0], args[1], *paths[2:])
+    elif command == 'unpack-beta-candidate':
+        arch, tar_sha, _, _, version = args
+        manifest = unpack_candidate(arch, tar_sha, paths[2], paths[3], 'beta')
+        require(manifest['version'] == version, 'archive version differs from selected beta')
+        print(json.dumps(manifest))
     elif command == 'copy-packages':
         paths[1].mkdir()
         for package in package_files(paths[0]):

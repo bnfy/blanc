@@ -167,3 +167,48 @@ test('interrupted uploads resume without exposing partial metadata or rewriting 
   };
   await publishTree(bucket, dir, signed, options);
 });
+
+test('production advances from the journaled predecessor and resumes the exact published history', async t => {
+  const {publishTree} = await import('../linux/repository/worker/upload.mjs');
+  const {default: worker} = await import('../linux/repository/worker/index.mjs');
+  const bucket = new MemoryBucket();
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'blanc-production-'));
+  t.after(() => rmSync(dir, {recursive: true, force: true}));
+  const readBack = key => worker.fetch(new Request('http://repo.test/' + key), {PACKAGES: bucket});
+  let before = null;
+  for (const generation of [2, 4, 5, 8]) {
+    const name = pkg(generation), signed = tree([name]);
+    await mkdir(path.dirname(path.join(dir, name)), {recursive: true});
+    await writeFile(path.join(dir, name), name);
+    const options = {target: 'production', generation, provenDigest: signed.digest, readBack, expectedPredecessor: before};
+    const current = await publishTree(bucket, dir, signed, options);
+    assert.deepEqual(current.previous, before ? [before.generation, ...before.previous].slice(0, 2) : []);
+    assert.deepEqual(await publishTree(bucket, dir, signed, options), current);
+    before = current;
+  }
+});
+
+test('production compares the full journaled predecessor under the publisher lock before any content write', async () => {
+  const {publishTree} = await import('../linux/repository/worker/upload.mjs');
+  const signed = tree([pkg(5)]), before = {generation: 3, digest: hash('three'), previous: [2, 1]};
+  const advanced = {generation: 4, digest: hash('four'), previous: [3, 2]};
+  for (const [expectedPredecessor, observed] of [
+    [before, advanced], [before, {...before, digest: hash('different')}], [before, {...before, previous: [1]}],
+    [null, advanced], [before, null], [before, {generation: 5, digest: signed.digest, previous: [4, 3]}]
+  ]) {
+    const bucket = new MemoryBucket(), writes = [];
+    const put = bucket.put.bind(bucket);
+    bucket.put = async (key, ...args) => {
+      writes.push(key);
+      if (key === 'publisher.lock' && observed) await put('current.json', JSON.stringify(observed));
+      return put(key, ...args);
+    };
+    await assert.rejects(publishTree(bucket, '', signed, {
+      target: 'production', generation: 5, provenDigest: signed.digest, expectedPredecessor,
+      readBack: () => assert.fail('unexpected read-back')
+    }), /predecessor|journal/);
+    assert.deepEqual(writes, ['publisher.lock']);
+    const pointer = await bucket.get('current.json');
+    assert.deepEqual(pointer && await pointer.json(), observed);
+  }
+});
