@@ -1653,7 +1653,8 @@ body > .tab-drag-ghost[aria-hidden="true"] {
 /* Mini Window (#1138): Open in Blanc leads the Island in a mini window, in
    the place the Space mark takes in an ordinary one (a mini window holds no
    Space, so the mark and the panel's Spaces button are hidden there). */
-#pillMiniOpen {
+#pillMiniOpen,
+:root[data-platform="linux"] #pillRestartToUpdate {
   appearance: none;
   display: inline-flex;
   align-items: center;

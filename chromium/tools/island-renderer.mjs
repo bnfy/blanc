@@ -80,6 +80,33 @@ export const EDITS = {
     ['      <div id="islandHint"></div>\n', '      <button id="previewStatusLink" class="preview-notice-button" type="button" hidden>Security &amp; updates</button>\n<div id="islandHint"></div>\n'],
   ],
   'renderer.js': [
+    // A recommended package update stays actionable across normal pill notices.
+    ['  function showPillNotice(kind) {', `  function showPillNotice(kind) {
+    if (platform === 'linux' && kind?.kind === 'update-ready') {
+      if (frameElement?.id !== 'strip' && frameElement?.id !== 'floatPill') return;
+      let button = document.getElementById('pillRestartToUpdate');
+      if (!kind.version) {
+        if (!button) return;
+        button.remove();
+      } else if (button) {
+        button.dataset.version = kind.version;
+        return;
+      } else {
+        button = document.createElement('button');
+        button.id = 'pillRestartToUpdate';
+        button.type = 'button';
+        button.textContent = blancI18n.t('pill.restartToUpdate');
+        button.dataset.version = kind.version;
+        button.addEventListener('click', event => {
+          event.stopPropagation();
+          if (event.isTrusted) location.assign('/restartToUpdate?' + encodeURIComponent(button.dataset.version));
+        });
+        pillDomain.after(button);
+      }
+      fitIslandDots();
+      requestAnimationFrame(reportIslandRect);
+      return;
+    }`],
     // GTK button bounds arrive from the opaque frame through the strip host.
     ['  new ResizeObserver(reportIslandRect).observe(islandPill);',
 `  if (platform === 'linux') {
@@ -127,6 +154,8 @@ export const EDITS = {
   // commit) draw with; the rest of styles.css stays at the release, since
   // later shipping changes to it (#1622, #1624) aren't in the fork yet.
   'styles.css': [
+    // Both text actions use the shipping pill's button dimensions.
+    ['#pillMiniOpen {', '#pillMiniOpen,\n:root[data-platform="linux"] #pillRestartToUpdate {'],
     // Linux reserves the actual GTK cluster on each side. Other platforms
     // keep the measured shipping clearances for the horizontal and rail layouts.
     [' - 184px) / var(--pill-zoom)', ' - var(--pill-window-clearance, 184px)) / var(--pill-zoom)'],

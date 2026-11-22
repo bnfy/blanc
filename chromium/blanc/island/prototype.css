@@ -79,6 +79,10 @@ html, body { background: transparent; }
 /* GTK allows either cluster, including a single Close button. Keep the pill
    centered within the page pane, including when the left rail owns the menu. */
 :root[data-platform="linux"] #windowControls { display: none; }
+:root[data-platform="linux"] #pillRestartToUpdate {
+  background: var(--accent-dim);
+}
+:root[data-platform="linux"] #pillRestartToUpdate:hover { border-color: var(--accent); }
 :root[data-platform="linux"] {
   --window-controls-leading-w: 0px;
   --window-controls-w: 0px;
