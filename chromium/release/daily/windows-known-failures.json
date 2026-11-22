@@ -1,0 +1,19 @@
+{
+  "note": "Windows cases a night may leave failing, each with why (desktop-nightly-rules.mjs judgeWindowsNight via judgeSuite). Seeded 2026-11-21 only from the cases chromium/reports/w2-windows-triage.md still lists as Open and not intermittent; intermittent ones get the night's one rerun instead. Anything else that fails twice fails the night. Add a case only with its reason and the evidence for it; remove it once fixed.",
+  "cases": [
+    {
+      "id": "spec/acceptance/supporter-and-session.feature:18:plain",
+      "results": [
+        "fail"
+      ],
+      "reason": "not Windows: the Favorites work's V30 step 'exactly one new tab opens on {string}' asserts that no new tab opens, and the Patron scenario uses it (w2-windows-triage.md, Open; w2-windows.json openInFinalRun)"
+    },
+    {
+      "id": "spec/acceptance/F41-named-workspaces.feature:203:plain",
+      "results": [
+        "fail"
+      ],
+      "reason": "the Spaces menu fades at left 0 px instead of 44 px on Windows; cause not found, began with W2's final build (w2-windows-triage.md, Open; w2-windows.json openInFinalRun)"
+    }
+  ]
+}

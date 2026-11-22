@@ -79,7 +79,7 @@ export function uploadUnderHold(io, owner, file, name, draft = draftTag()) {
   if (!UPLOAD_NAMES.includes(name)) throw new Error('That is not a name the candidate draft takes under a hold.');
   const {dir, file: named} = tempFile(name);
   try {
-    fs.copyFileSync(file, named);
+    (io.copyFile ?? fs.copyFileSync)(file, named);
     // Staged first; the draft and the hold are checked just before writing.
     assertDraft(io, draft);
     const hold = readHold(io, draft);

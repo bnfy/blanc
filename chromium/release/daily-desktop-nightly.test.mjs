@@ -156,3 +156,182 @@ test('the rules import cleanly from stdin, as the server script loads them', asy
   const run = spawnSync(process.execPath, ['--input-type=module', '-'], {input: `import(${JSON.stringify('file://' + rules)}).then(m => console.log(typeof m.argsDrift))`, encoding: 'utf8'});
   assert.equal(run.stdout.trim(), 'function', run.stderr);
 });
+
+// Task 5: the orchestrator on the Mac Studio, against a simulated Studio,
+// build server and GitHub.
+import {runNight, parseRunId} from './daily/desktop-nightly.mjs';
+import crypto2 from 'node:crypto';
+
+const sha2 = text => crypto2.createHash('sha256').update(text).digest('hex');
+const NIGHT_COMMIT = 'a'.repeat(40);
+const BETA_ZIP = 'beta zip bytes', PROTO_ZIP = 'proto zip bytes';
+function world({hold = null, serverReply = null, betaTree = NIGHT_COMMIT, suiteResult = () => 'pass', rerunResult = () => 'pass',
+                lastPass = null, macMarker = false, runningToken = 'tok', throwAt = null} = {}) {
+  const files = new Map(), calls = [], uploads = [];
+  const R = '/rec';
+  files.set(`${R}/RUNNING/owner`, JSON.stringify({pid: 1, token: runningToken}));
+  files.set('/wt/chromium/release/windows-ledger.json', JSON.stringify({builds: [{build: 904}]}));
+  if (lastPass) { files.set(`${R}/LAST-PASS`, lastPass.stamp); files.set(`${R}/${lastPass.stamp}/result.json`, JSON.stringify({status: 'pass', sourceCommit: lastPass.commit}));
+    files.set(`${R}/${lastPass.stamp}/beta.zip`, 'old'); files.set(`${R}/${lastPass.stamp}/prototype.zip`, 'old'); }
+  if (macMarker) files.set('/mac/RELEASE-IN-PROGRESS', '');
+  let draftHold = hold, nextRun = 100;
+  const runs = new Map();
+  const protoId = 'windows-x64-' + 'p'.repeat(16);
+  const report = (runId, result, subset) => ({platform: 'windows', candidate: protoId, forkCommit: NIGHT_COMMIT, runId: String(runId),
+    ...(subset ? {developmentSubset: {caseList: subset}} : {}),
+    scenarios: inventory.scenarios.map(s => ({id: s.id, cases: s.cases.map(c => ({id: c.id,
+      result: s.desktopApplicability === 'excluded' || windowsForkExclusions[c.id] ? 'excluded' : (subset ? (subset.includes(c.id) ? result(c.id) : 'not-run') : result(c.id))}))}))});
+  const io = {
+    now: () => new Date('2026-11-22T09:00:00Z'),
+    read: p => { if (!files.has(p)) throw Object.assign(new Error('ENOENT ' + p), {code: 'ENOENT'}); return files.get(p); },
+    write: (p, t) => files.set(p, t), exists: p => files.has(p) || [...files.keys()].some(k => k.startsWith(p + '/')),
+    remove: p => { for (const k of [...files.keys()]) if (k === p || k.startsWith(p + '/')) files.delete(k); },
+    mkdir: () => {}, sha256: p => sha2(files.get(p)),
+    copyFile: (from, to) => fs.writeFileSync(to, files.get(from)),
+    exec(command, args, options = {}) {
+      calls.push([command, ...args]);
+      if (throwAt && args.join(' ').includes(throwAt)) throw new Error('boom');
+      if (command === 'git' && args.includes('rev-parse')) return {status: 0, stdout: NIGHT_COMMIT + '\n', stderr: ''};
+      if (command === 'git' && args.includes('show')) return {status: 128, stdout: '', stderr: 'no reservations yet'};
+      if (command === 'ssh' && args.some(a => a.includes('pgrep') || a.includes('blanc-checkout.lock')) && !options.input) return {status: 0, stdout: 'free\n', stderr: ''};
+      if (command === 'ssh' && options.input) return {status: 0, stdout: JSON.stringify(serverReply ?? {status: 'built',
+        beta: {id: 'windows-x64-' + 'b'.repeat(16), zipSha256: sha2(BETA_ZIP)}, prototype: {id: protoId, zipSha256: sha2(PROTO_ZIP)}}) + '\n', stderr: ''};
+      if (command === 'ssh') return {status: 0, stdout: '', stderr: ''};
+      if (command === 'scp') { const dest = args.at(-1); files.set(dest, dest.includes('beta') ? BETA_ZIP : PROTO_ZIP); return {status: 0, stdout: '', stderr: ''}; }
+      if (command === 'unzip') {
+        const zip = args.find(a => a.endsWith('.zip'));
+        const beta = zip.includes('beta');
+        return {status: 0, stdout: JSON.stringify({id: beta ? 'windows-x64-' + 'b'.repeat(16) : protoId, treeCommit: beta ? betaTree : NIGHT_COMMIT,
+          version: beta ? '158.0.8127.905' : '158.0.8127.2', channel: beta ? 'beta' : 'preview', exeSha256: 'e'.repeat(64), dllSha256: 'd'.repeat(64)}), stderr: ''};
+      }
+      if (command !== 'gh') return {status: 1, stdout: '', stderr: 'unexpected ' + command};
+      if (args[0] === 'release' && args[1] === 'view') {
+        if (args.includes('isDraft')) return {status: 0, stdout: 'true', stderr: ''};
+        return {status: 0, stdout: JSON.stringify({assets: draftHold ? [{name: 'draft-hold.json', apiUrl: 'https://api.github.com/x/1'}] : []}), stderr: ''};
+      }
+      if (args[0] === 'release' && args[1] === 'upload') {
+        const name = args[3].split('/').pop();
+        if (name === 'draft-hold.json') {
+          if (draftHold) return {status: 1, stdout: '', stderr: 'exists'};
+          draftHold = JSON.parse(fs.readFileSync(args[3], 'utf8'));
+        } else uploads.push(name);
+        return {status: 0, stdout: '', stderr: ''};
+      }
+      if (args[0] === 'api') {
+        if (args.includes('DELETE')) { draftHold = null; return {status: 0, stdout: '', stderr: ''}; }
+        return {status: 0, stdout: JSON.stringify(draftHold), stderr: ''};
+      }
+      if (args[0] === 'workflow' && args[1] === 'run') {
+        const id = nextRun++;
+        runs.set(id, Object.fromEntries(args.filter((a, i) => args[i - 1] === '-f').map(kv => kv.split('='))));
+        return {status: 0, stdout: '', stderr: `https://github.com/bnfy/blanc/actions/runs/${id}\n`};
+      }
+      if (args[0] === 'run' && args[1] === 'watch') return {status: 0, stdout: '', stderr: ''};
+      if (args[0] === 'run' && args[1] === 'view') return {status: 0, stdout: JSON.stringify({conclusion: 'success'}), stderr: ''};
+      if (args[0] === 'run' && args[1] === 'download') {
+        const id = Number(args[2]), inputs = runs.get(id), dir = args[args.indexOf('--dir') + 1];
+        if (inputs.asset === 'blanc-windows-prototype.zip') {
+          files.set(`${dir}/smoke/smoke.json`, JSON.stringify({pass: true}));
+          files.set(`${dir}/frame/frame.json`, JSON.stringify({pass: true}));
+          const subset = inputs.case_list_asset ? JSON.parse(uploadsBody.rerun) : null;
+          files.set(`${dir}/f0/baseline.json`, JSON.stringify(report(id, subset ? rerunResult : suiteResult, subset)));
+        } else if (inputs.update_expect) files.set(`${dir}/installer-capture/capture.json`, JSON.stringify({iconVerdict: {ok: true}}));
+        else files.set(`${dir}/install/install.json`, JSON.stringify({pass: true, checks: {installed: true, installedLaunches: true, installedMatchesCandidate: true}}));
+        return {status: 0, stdout: '', stderr: ''};
+      }
+      return {status: 1, stdout: '', stderr: 'unexpected gh ' + args.join(' ')};
+    },
+  };
+  const uploadsBody = {};
+  const exec = io.exec;
+  io.exec = (command, args, options) => {
+    if (command === 'gh' && args[0] === 'release' && args[1] === 'upload' && args[3].endsWith('nightly-rerun.json')) uploadsBody.rerun = fs.readFileSync(args[3], 'utf8');
+    return exec(command, args, options);
+  };
+  const paths = {records: R, worktree: '/wt', bootstrap: '/wt/chromium/windows/server/nightly-bootstrap.sh', server: 'blanc@server', macMarker: '/mac/RELEASE-IN-PROGRESS',
+    sshKey: '/k', knownFailures: {cases: []}, inventory};
+  files.set('/wt/chromium/windows/server/nightly-bootstrap.sh', '#!/bin/bash');
+  return {io, files, calls, uploads, runs, paths, hold: () => draftHold};
+}
+const go = (w, token = 'tok') => runNight({io: w.io, paths: w.paths, token});
+
+test('a run id comes from the dispatch output, never a search', () => {
+  assert.equal(parseRunId({status: 0, stdout: '', stderr: 'https://github.com/bnfy/blanc/actions/runs/123\n'}), '123');
+  assert.throws(() => parseRunId({status: 0, stdout: 'Created workflow_dispatch event', stderr: ''}), /run id/);
+});
+test('a passing night uploads both zips before dispatching, pins every dispatch, and records the pass', () => {
+  const w = world();
+  const result = go(w);
+  assert.equal(result.status, 'pass', result.reason);
+  assert.equal(result.build, 905);
+  assert.deepEqual(w.uploads, ['blanc-windows-prototype.zip', 'blanc-windows-candidate.zip']);
+  const firstDispatch = w.calls.findIndex(c => c[0] === 'gh' && c[1] === 'workflow');
+  const lastUpload = w.calls.findLastIndex(c => c[0] === 'gh' && c[2] === 'upload' && !c[4]?.endsWith('draft-hold.json'));
+  assert.ok(lastUpload < firstDispatch, 'no upload after the first dispatch');
+  for (const inputs of w.runs.values()) assert.equal(inputs.source_commit, NIGHT_COMMIT);
+  assert.equal(w.files.get('/rec/LAST-PASS').trim(), result.stamp);
+  assert.ok(w.files.has(`/rec/${result.stamp}/beta.zip`) && w.files.has(`/rec/${result.stamp}/prototype.zip`));
+  assert.equal(w.hold(), null, 'the night released its hold');
+});
+test('a held draft skips the night without touching it', () => {
+  const w = world({hold: {kind: 'release', owner: 'x'}});
+  const result = go(w);
+  assert.equal(result.status, 'skipped');
+  assert.deepEqual(w.uploads, []);
+  assert.ok(!w.calls.some(c => c[0] === 'ssh' && c.some(a => String(a).includes('bash -s'))));
+});
+test('a night started without the launcher\'s token does nothing', () => {
+  const w = world({runningToken: 'other'});
+  assert.throws(() => go(w), /night lock/);
+  assert.deepEqual(w.calls.filter(c => c[0] === 'gh' && c[2] === 'upload'), []);
+});
+test('a beta built from another commit stops the night before any upload', () => {
+  const w = world({betaTree: 'b'.repeat(40)});
+  assert.equal(go(w).status, 'fail');
+  assert.deepEqual(w.uploads, []);
+  assert.equal(w.hold(), null);
+});
+test('a busy server is a skip, not a failure', () => {
+  const w = world({serverReply: {status: 'busy', reason: 'a build is running on the server'}});
+  assert.equal(go(w).status, 'skipped');
+});
+test('a new failure that fails its rerun leaves LAST-PASS where it was', () => {
+  const failing = applicable[0];
+  const w = world({lastPass: {stamp: '20261121-0400', commit: 'f'.repeat(40)}, suiteResult: id => id === failing ? 'fail' : 'pass', rerunResult: () => 'fail'});
+  const result = go(w);
+  assert.equal(result.status, 'fail');
+  assert.equal(w.files.get('/rec/LAST-PASS').trim(), '20261121-0400');
+  assert.ok(w.uploads.includes('nightly-rerun.json'));
+  assert.ok(!w.files.has(`/rec/${result.stamp}/beta.zip`), 'a failed night keeps no zips');
+});
+test('a failure that passes its rerun passes the night', () => {
+  const flaky = applicable[0];
+  const w = world({suiteResult: id => id === flaky ? 'fail' : 'pass', rerunResult: () => 'pass'});
+  assert.equal(go(w).status, 'pass');
+});
+test('pass after pass keeps only the newest pass\'s zips and asks the server to drop the older folder', () => {
+  const w = world({lastPass: {stamp: '20261121-0400', commit: 'f'.repeat(40)}});
+  const result = go(w);
+  assert.equal(result.status, 'pass');
+  assert.ok(!w.files.has('/rec/20261121-0400/beta.zip'));
+  assert.ok(w.calls.some(c => c[0] === 'ssh' && c.some(a => String(a).includes('nightly-20261121-0400'))));
+});
+test('nothing new since the last pass skips the night', () => {
+  const w = world({lastPass: {stamp: '20261121-0400', commit: NIGHT_COMMIT}});
+  assert.equal(go(w).status, 'skipped');
+});
+test('an exception still releases the night\'s own hold', () => {
+  const w = world({throwAt: 'run watch'});
+  assert.throws(() => go(w), /boom/);
+  assert.equal(w.hold(), null);
+});
+test('the Windows known failures are inventory cases, each with a reason that cites the W2 triage', () => {
+  const known = JSON.parse(fs.readFileSync(file('release/daily/windows-known-failures.json'), 'utf8'));
+  const ids = new Set(inventory.scenarios.flatMap(s => s.cases.map(c => c.id)));
+  assert.ok(known.cases.length > 0);
+  for (const entry of known.cases) {
+    assert.ok(ids.has(entry.id), entry.id);
+    assert.ok(entry.results.every(r => ['fail', 'undefined'].includes(r)));
+    assert.match(entry.reason, /w2-windows/);
+  }
+});
