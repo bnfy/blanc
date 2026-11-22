@@ -1,6 +1,6 @@
 # Runs a Linux build of the Chromium fork on a hosted Ubuntu 24.04 runner
 # (Linux L0, docs/superpowers/plans/2026-11-21-linux-fork-l0.md). The build
-# travels as the one asset of the unpublished draft release fork-linux-candidate
+# travels in an architecture-specific asset of the unpublished draft release fork-linux-candidate
 # (chromium/linux/ship-candidate.sh). Manual only; run with --ref chromium/next
 # and the SHA-256 the packager printed. Ubuntu's restriction on unprivileged
 # user namespaces stays on: the smoke check fails if it isn't.
@@ -9,9 +9,31 @@ name: chromium-linux-candidate
 on:
   workflow_dispatch:
     inputs:
+      check:
+        description: Check to run
+        required: false
+        type: choice
+        default: candidate
+        options:
+          - candidate
+          - smoke
+          - frame
+          - install
+          - quit
+          - keys
+          - suite
+          - repo-metadata
+      arch:
+        description: Linux candidate architecture (one tarball SHA-256 per dispatch)
+        required: false
+        type: choice
+        default: x64
+        options:
+          - x64
+          - arm64
       sha256:
-        description: SHA-256 of the packaged Linux candidate tarball
-        required: true
+        description: Candidate tarball SHA-256, or approved-packages.json SHA-256 for repo-metadata (omit for fixtures only)
+        required: false
         type: string
       suite:
         description: Suite to run after the two display checks
@@ -32,8 +54,9 @@ permissions:
 
 jobs:
   candidate:
-    name: candidate (linux x64)
-    runs-on: ubuntu-24.04
+    name: candidate (linux ${{ inputs.arch }})
+    if: ${{ inputs.check == 'candidate' || inputs.check == 'smoke' || (inputs.check == 'frame' && inputs.suite == 'f0') }}
+    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     timeout-minutes: 240
     # Reading the unpublished draft requires write access. Only the download
     # step receives GH_TOKEN, and only the test results become an artifact.
@@ -42,27 +65,33 @@ jobs:
     defaults:
       run:
         shell: bash
-    env:
+    env: &candidate-env
+      ARCH: ${{ inputs.arch }}
       CANDIDATE_SHA256: ${{ inputs.sha256 }}
       SUITE: ${{ inputs.suite }}
       ONLY: ${{ inputs.only }}
       DRAFT_TAG: fork-linux-candidate
     steps:
-      - name: Validate inputs
+      - &validate
+        name: Validate inputs
         env:
           LC_ALL: C
         run: |
+          [[ $ARCH == x64 || $ARCH == arm64 ]]
           only_pattern='^[A-Za-z0-9 _.,:@-]{0,600}$'
           [[ $CANDIDATE_SHA256 =~ ^[0-9a-f]{64}$ ]] || { echo 'sha256 must be 64 lowercase hex digits.' >&2; exit 1; }
           [[ $SUITE == none || $SUITE == f0 ]] || { echo 'suite must be none or f0.' >&2; exit 1; }
           [[ $ONLY =~ $only_pattern ]] || { echo 'only holds unsupported characters or exceeds 600 characters.' >&2; exit 1; }
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - &checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - &node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
-      - name: Fetch the pinned shipping commits
+      - &pins
+        name: Fetch the pinned shipping commits
         run: |
           commits=$(node chromium/windows/pinned-commits.mjs)
           while IFS= read -r commit; do
@@ -70,38 +99,68 @@ jobs:
             git fetch --quiet --depth=1 origin "$commit"
             git cat-file -e "$commit:package.json"
           done <<< "$commits"
-          node --input-type=module -e "import { ASSET_NAME } from './chromium/linux/candidate.mjs'; console.log('ASSET=' + ASSET_NAME)" >> "$GITHUB_ENV"
-      - name: Download the candidate from the draft release
+      - &assets
+        name: Select candidate assets
+        run: |
+          node --input-type=module -e '
+            import { ASSET_NAME, signedCandidateName } from "./chromium/linux/candidate.mjs";
+            console.log("ASSET=" + ASSET_NAME(process.env.ARCH));
+            console.log("APPROVAL=" + signedCandidateName(process.env.ARCH));' >> "$GITHUB_ENV"
+      - &download
+        name: Download the candidate from the draft release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          draft=$(gh release view "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)
-          [[ $draft == true ]] || { echo "$DRAFT_TAG must be an unpublished draft." >&2; exit 1; }
+          draft=$(gh release view "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets) || {
+            echo "Could not read $DRAFT_TAG to find the $ARCH candidate archive $ASSET." >&2; exit 1;
+          }
+          jq -e '.isDraft == true' <<< "$draft" >/dev/null || { echo "$DRAFT_TAG must be an unpublished draft." >&2; exit 1; }
           mkdir "$RUNNER_TEMP/candidate"
-          gh release download "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$ASSET" --dir "$RUNNER_TEMP/candidate"
-      - name: Verify and unpack the candidate
+          # Old x64 evidence still names the L0 asset. Always check the downloaded
+          # bytes, including when GitHub has no digest on file for a legacy asset.
+          archives=$(jq -c --arg name "$ASSET" --arg arch "$ARCH" --arg job "$GITHUB_JOB" '
+            [.assets[] | select(.name == $name or (($job == "candidate" or $job == "frame") and $arch == "x64" and .name == "blanc-linux-candidate.tar.gz"))]' <<< "$draft")
+          [[ $archives != '[]' ]] || { echo "Missing $ARCH candidate archive $ASSET on $DRAFT_TAG." >&2; exit 1; }
+          names=$(jq -r --arg digest "sha256:$CANDIDATE_SHA256" '
+            .[] | select((.digest // "") == "" or .digest == $digest) | .name' <<< "$archives")
+          for name in $names; do
+            gh release download "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$name" --dir "$RUNNER_TEMP/candidate"
+            if printf '%s  %s\n' "$CANDIDATE_SHA256" "$RUNNER_TEMP/candidate/$name" | sha256sum --check --strict; then
+              echo "ASSET=$name" >> "$GITHUB_ENV"
+              exit 0
+            fi
+          done
+          echo "No $ARCH candidate matches the requested SHA-256." >&2; exit 1
+      - &unpack
+        name: Unpack the verified candidate
         run: |
           archive="$RUNNER_TEMP/candidate/$ASSET"
-          printf '%s  %s\n' "$CANDIDATE_SHA256" "$archive" | sha256sum --check --strict
           mkdir "$RUNNER_TEMP/blanc" "$RUNNER_TEMP/results"
           tar --extract --gzip --no-same-owner --file "$archive" --directory "$RUNNER_TEMP/blanc"
-          test -f "$RUNNER_TEMP/blanc/candidate.json"
+          jq -e --arg arch "$ARCH" '(.arch // "x64") == $arch' "$RUNNER_TEMP/blanc/candidate.json" >/dev/null
           echo "CANDIDATE_DIR=$RUNNER_TEMP/blanc" >> "$GITHUB_ENV"
           echo "RESULTS=$RUNNER_TEMP/results" >> "$GITHUB_ENV"
-      - name: Set up the candidate's sandbox helper
+      - &sandbox
+        name: Set up the candidate's sandbox helper
         run: |
           helper="$CANDIDATE_DIR/chrome-sandbox"
+          if [[ -d $CANDIDATE_DIR/chrome ]]; then helper="$CANDIDATE_DIR/chrome/chrome-sandbox"; fi
           [[ -f $helper && ! -L $helper ]]
           sudo chown root:root "$helper"
           sudo chmod 4755 "$helper"
       - name: Install Xvfb and Weston
         run: |
-          # Leave the runners' default mirror first, as every workflow does
-          # (scripts/ci-apt-mirror.sh; test/unit/ci-apt-mirror.test.js).
-          bash scripts/ci-apt-mirror.sh
+          # The x64 CI mirror serves the Ubuntu archive. Arm64 uses Ubuntu Ports.
+          if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
           sudo apt-get update
           sudo apt-get install -y xvfb weston
-      - name: Install the harness's dependencies
+          if [[ $SUITE == f0 ]]; then
+            sudo apt-get install -y xdotool x11-utils locales
+            sudo localedef -i de_DE -f UTF-8 de_DE.UTF-8
+            sudo localedef -i en_US -f UTF-8 en_US.UTF-8
+          fi
+      - &dependencies
+        name: Install the harness's dependencies
         id: dependencies
         env:
           ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
@@ -129,6 +188,8 @@ jobs:
           if [[ -n $ONLY ]]; then
             # A filter that matches no case would end green having run nothing.
             # Matching is the runner's: any comma-separated text inside a case id.
+            # Keep the JavaScript template literal inside the Node process.
+            # shellcheck disable=SC2016
             node -e '
               const only = process.argv[1].split(",").filter(Boolean);
               const inventory = require("./chromium/scenarios/inventory.json");
@@ -149,3 +210,440 @@ jobs:
           path: ${{ runner.temp }}/results
           if-no-files-found: warn
           retention-days: 14
+
+  frame:
+    if: ${{ inputs.check == 'frame' }}
+    name: frame (linux ${{ inputs.arch }})
+    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env: *candidate-env
+    steps:
+      - *validate
+      - *checkout
+      - *node
+      - *pins
+      - *assets
+      - *download
+      - *unpack
+      - *sandbox
+      - name: Install the display servers, Openbox and real input tools
+        run: |
+          if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth openbox xdotool x11-utils weston libgtk-3-bin gsettings-desktop-schemas
+      - *dependencies
+      - name: X11 frame input
+        run: |
+          xvfb-run -a --server-args='-screen 0 3200x2000x24' bash <<'X11'
+          set -euo pipefail
+          openbox --sm-disable > "$RESULTS/openbox.log" 2>&1 &
+          wm=$!
+          trap 'kill "$wm" 2>/dev/null || true; wait "$wm" 2>/dev/null || true' EXIT
+          timeout 15s bash -c 'until xprop -root _NET_SUPPORTING_WM_CHECK | grep -q "window id"; do sleep 0.1; done'
+          node chromium/tests/linux-frame.mjs --display=x11 "$CANDIDATE_DIR" "$RESULTS"
+          X11
+      - name: Wayland frame layout
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        env:
+          WAYLAND_DISPLAY: wayland-blanc
+          BLANC_WAYLAND_DISPLAY_2X: wayland-blanc-2x
+        run: |
+          export XDG_RUNTIME_DIR="$RUNNER_TEMP/frame-weston"
+          mkdir -m 700 "$XDG_RUNTIME_DIR"
+          compositors=()
+          trap 'kill "${compositors[@]}" 2>/dev/null || true; wait || true' EXIT
+          start_weston() {
+            local scale=$1 socket=$2 log=$3
+            # Headless width and height are logical units. Keep both framebuffers
+            # at 2800x1600 and let Chromium pick up the actual wl_output scale.
+            weston --no-config --backend=headless --use-pixman --debug --scale="$scale" \
+              --width="$((2800 / scale))" --height="$((1600 / scale))" \
+              --socket="$socket" --idle-time=0 --log="$RESULTS/$log" &
+            compositors+=("$!")
+          }
+          start_weston 1 "$WAYLAND_DISPLAY" frame-weston.log
+          start_weston 2 "$BLANC_WAYLAND_DISPLAY_2X" frame-weston-2x.log
+          timeout 15s bash <<'WAIT_FOR_SOCKETS'
+          for socket in "$WAYLAND_DISPLAY" "$BLANC_WAYLAND_DISPLAY_2X"; do
+            until [[ -S "$XDG_RUNTIME_DIR/$socket" ]]; do sleep 0.1; done
+          done
+          WAIT_FOR_SOCKETS
+          node chromium/tests/linux-frame.mjs --display=wayland "$CANDIDATE_DIR" "$RESULTS"
+      - name: Keep the frame evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chromium-linux-frame-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/results
+          if-no-files-found: warn
+          retention-days: 14
+
+  install:
+    if: ${{ inputs.check == 'install' }}
+    name: install (${{ matrix.system }}, ${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        system: [ubuntu, debian, fedora]
+        arch: ["${{ inputs.arch }}"]
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    timeout-minutes: 60
+    permissions:
+      contents: write # GitHub requires write access to read an unpublished draft.
+    env: *candidate-env
+    steps:
+      - *validate
+      - *checkout
+      - *node
+      - name: Install package verification tools
+        run: |
+          if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
+          sudo apt-get update
+          sudo apt-get install -y rpm gnupg
+      - name: Check and download the selected archive, signed RPM and authorization
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets > "$RUNNER_TEMP/release.json"
+          node chromium/tests/linux-install.mjs assets "$RUNNER_TEMP/release.json" "$ARCH" > "$RUNNER_TEMP/install-assets"
+          patterns=()
+          while IFS= read -r name; do patterns+=(--pattern "$name"); done < "$RUNNER_TEMP/install-assets"
+          mkdir "$RUNNER_TEMP/candidate"
+          gh release download "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" "${patterns[@]}" --dir "$RUNNER_TEMP/candidate"
+          rpm=$(node chromium/tests/linux-install.mjs rpm-asset "$RUNNER_TEMP/release.json" "$ARCH" "$RUNNER_TEMP/candidate" "$CANDIDATE_SHA256")
+          gh release download "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$rpm" --dir "$RUNNER_TEMP/candidate"
+      - name: Authenticate the tarball and both packages before installation
+        run: |
+          mkdir "$RUNNER_TEMP/results"
+          node chromium/tests/linux-install.mjs prepare "$ARCH" "$RUNNER_TEMP/candidate" "$RUNNER_TEMP/input" "$CANDIDATE_SHA256"
+      - name: Install, upgrade, capture a crash and purge on Ubuntu
+        if: matrix.system == 'ubuntu'
+        run: |
+          # scripts/ci-apt-mirror.sh ran above for the x64 Ubuntu archive. Arm uses ubuntu-ports.
+          sudo apt-get install -y xvfb xauth xdotool xdg-utils gnome-keyring libsecret-tools dbus-x11 libglib2.0-bin sqlite3 apparmor squashfs-tools \
+            desktop-file-utils libgtk-3-0t64 libasound2t64 libnss3 libgbm1 libxss1
+          node chromium/tests/linux-install.mjs run ubuntu "$ARCH" "$RUNNER_TEMP/input" "$RUNNER_TEMP/results"
+      - name: Install, upgrade, capture a crash and purge inside the distribution
+        if: matrix.system != 'ubuntu'
+        env:
+          SYSTEM: ${{ matrix.system }}
+        run: |
+          # Debian uses its own mirrors inside the container; ci-apt-mirror.sh is for the Ubuntu host.
+          image=debian:12
+          if [[ $SYSTEM == fedora ]]; then
+            # Fedora 45 OCI index, 2026-11-21. Includes linux/amd64 and linux/arm64.
+            image=registry.fedoraproject.org/fedora:45@sha256:7b6d9048825950573e58b7185631f6bd38f7c24f5c0e68ae902870aedebb86e0
+          fi
+          docker pull "$image"
+          export INSTALL_IMAGE
+          INSTALL_IMAGE=$(docker image inspect --format '{{index .RepoDigests 0}}' "$image")
+          docker run --rm --init --shm-size=1g --security-opt seccomp=unconfined \
+            -e INSTALL_IMAGE -e ARCH -e SYSTEM -e CANDIDATE_SHA256 -e "RESULT_UID=$(id -u)" \
+            -v "$GITHUB_WORKSPACE/chromium:/src/chromium:ro" -v "$RUNNER_TEMP/input:/candidate:ro" \
+            -v "$RUNNER_TEMP/results:/results" -v "$(realpath "$(command -v node)"):/usr/local/bin/node:ro" \
+            "$image" bash -eu -o pipefail -c '
+              if [[ $SYSTEM == debian ]]; then
+                export DEBIAN_FRONTEND=noninteractive
+                apt-get update
+                apt-get install -y --no-install-recommends sudo passwd ca-certificates curl xvfb xauth xdotool procps openssl sqlite3 rpm python3 \
+                  xdg-utils desktop-file-utils dbus-x11 gnome-keyring libsecret-tools libglib2.0-bin gnupg \
+                  libgtk-3-0 libasound2 libnss3 libgbm1 libxss1 libx11-xcb1 libxtst6
+              else
+                dnf install -y sudo shadow-utils util-linux /usr/bin/curl xorg-x11-server-Xvfb xorg-x11-xauth xdotool procps-ng openssl sqlite rpm python3 \
+                  xdg-utils desktop-file-utils dbus-daemon glib2 gnome-keyring libsecret gnupg2 \
+                  gtk3 alsa-lib nss mesa-libgbm cups-libs libXScrnSaver libXtst
+              fi
+              dbus-uuidgen --ensure
+              useradd -m -u "$RESULT_UID" blanc-check
+              echo "blanc-check ALL=(root) NOPASSWD: ALL" > /etc/sudoers.d/blanc-check
+              chmod 0440 /etc/sudoers.d/blanc-check
+              exec runuser -u blanc-check -- node /src/chromium/tests/linux-install.mjs run "$SYSTEM" "$ARCH" /candidate /results
+            '
+      - name: Keep the install evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chromium-linux-install-${{ matrix.system }}-${{ matrix.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/results
+          if-no-files-found: warn
+          retention-days: 14
+
+  quit:
+    if: ${{ inputs.check == 'quit' }}
+    name: quit (linux ${{ inputs.arch }})
+    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    timeout-minutes: 40
+    permissions:
+      contents: write
+    env: *candidate-env
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - *validate
+      - *checkout
+      - *node
+      - *pins
+      - *assets
+      - *download
+      - *unpack
+      - &identify-package
+        name: Identify the runner's candidate
+        run: |
+          arch=$(node -p process.arch)
+          jq -e --arg arch "$arch" '.platform == "linux" and .arch == $arch' "$CANDIDATE_DIR/candidate.json" || {
+            echo "$ASSET must contain a linux $arch candidate." >&2; exit 1;
+          }
+          shopt -s nullglob
+          packages=("$CANDIDATE_DIR"/packages/*.deb)
+          [[ ${#packages[@]} == 1 && -f ${packages[0]} && ! -L ${packages[0]} ]] || {
+            echo "Expected one .deb in $ASSET under packages/. Building packages requires the owner's committed repository key." >&2; exit 1;
+          }
+          [[ -s chromium/linux/keys/blanc-repository.asc ]] || {
+            echo "Missing chromium/linux/keys/blanc-repository.asc. This check needs the owner's committed public key to verify the package." >&2; exit 1;
+          }
+      - &download-approval
+        name: Download the package approval from the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --dir "$RUNNER_TEMP/candidate" \
+            --pattern "$APPROVAL" --pattern "$APPROVAL.asc" || {
+              echo "Expected $APPROVAL and $APPROVAL.asc from $DRAFT_TAG." >&2; exit 1;
+            }
+          for file in "$APPROVAL" "$APPROVAL.asc"; do
+            [[ -s $RUNNER_TEMP/candidate/$file ]] || { echo "Missing $file from $DRAFT_TAG." >&2; exit 1; }
+          done
+      - &verify-package
+        name: Verify the approval and the Debian package
+        run: |
+          node chromium/tests/linux-quit.mjs prepare "$ARCH" "$CANDIDATE_DIR" "$RUNNER_TEMP/candidate" "$CANDIDATE_SHA256" >> "$GITHUB_ENV"
+      - name: Install Openbox, X11 input, accessibility and the verified package
+        run: |
+          if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth openbox xdotool x11-utils dbus-daemon at-spi2-core python3-gi gir1.2-atspi-2.0 "$QUIT_DEB"
+      - *dependencies
+      - name: Close the last ordinary window under X11
+        env:
+          ACCESSIBILITY_ENABLED: '1'
+          LANG: en_US.UTF-8
+        run: |
+          xvfb-run -a --server-args='-screen 0 1920x1080x24' dbus-run-session -- bash <<'X11'
+          set -euo pipefail
+          openbox --sm-disable > "$RESULTS/openbox.log" 2>&1 &
+          wm=$!
+          trap 'kill "$wm" 2>/dev/null || true; wait "$wm" 2>/dev/null || true' EXIT
+          timeout 15s bash -c 'until xprop -root _NET_SUPPORTING_WM_CHECK | grep -q "window id"; do sleep 0.1; done'
+          node chromium/tests/linux-quit.mjs "$CANDIDATE_DIR" "$RESULTS" "--installed-sha256=$QUIT_INSTALLED_SHA256"
+          X11
+      - name: Keep the quit evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chromium-linux-quit-${{ inputs.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/results
+          if-no-files-found: warn
+          retention-days: 14
+
+  keys:
+    if: ${{ inputs.check == 'keys' }}
+    name: keys (linux ${{ inputs.arch }})
+    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env: *candidate-env
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - *validate
+      - *checkout
+      - *node
+      - *pins
+      - *assets
+      - *download
+      - *unpack
+      - *identify-package
+      - *download-approval
+      - *verify-package
+      - name: Install X11 input tools and the verified package
+        run: |
+          if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth openbox xdotool x11-utils "$QUIT_DEB"
+          jq --arg dir '/opt/bnfy/blanc-prototype' --arg exe "$QUIT_INSTALLED_SHA256" '
+            {candidate:.id, executable:($dir + "/chrome"), executableSha256:$exe,
+             singleBinary:true, diskAssets:false}
+          ' "$CANDIDATE_DIR/candidate.json" > "$RUNNER_TEMP/keys-config.json"
+      - *dependencies
+      - name: Posted and real Ctrl+Tab gestures on X11
+        run: |
+          xvfb-run -a --server-args='-screen 0 1920x1080x24' bash <<'X11'
+          set -euo pipefail
+          unset WAYLAND_DISPLAY
+          export GDK_BACKEND=x11
+          # Leave Ctrl+Escape to the browser instead of Openbox's window menu.
+          echo '<openbox_config xmlns="http://openbox.org/3.4/rc"><keyboard/></openbox_config>' > "$RUNNER_TEMP/keys-wm.xml"
+          openbox --sm-disable --config-file "$RUNNER_TEMP/keys-wm.xml" > "$RESULTS/openbox.log" 2>&1 &
+          wm=$!
+          trap 'kill "$wm" 2>/dev/null || true; wait "$wm" 2>/dev/null || true' EXIT
+          timeout 15s bash -c 'until xprop -root _NET_SUPPORTING_WM_CHECK | grep -q "window id"; do sleep 0.1; done'
+          result=0
+          node chromium/tests/native-tab-switch.mjs "$RUNNER_TEMP/keys-config.json" "$RESULTS/posted" || result=1
+          node chromium/tests/linux-tab-switch-keys.mjs "$RUNNER_TEMP/keys-config.json" "$RESULTS/real" || result=1
+          exit "$result"
+          X11
+      - name: Keep the key results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chromium-linux-keys-${{ inputs.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/results
+          if-no-files-found: warn
+          retention-days: 14
+
+  suite:
+    if: ${{ inputs.check == 'suite' }}
+    name: suite (linux ${{ inputs.arch }})
+    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    timeout-minutes: 350
+    permissions:
+      contents: write
+    env: *candidate-env
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - *validate
+      - *checkout
+      - *node
+      - *pins
+      - *assets
+      - *download
+      - *unpack
+      - *identify-package
+      - *download-approval
+      - *verify-package
+      - name: Install the verified package and Linux suite dependencies
+        run: |
+          if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth openbox xdotool x11-utils dbus-x11 locales "$QUIT_DEB"
+          sudo localedef -i de_DE -f UTF-8 de_DE.UTF-8
+          sudo localedef -i en_US -f UTF-8 en_US.UTF-8
+          locale -a | grep -ix de_DE.utf8
+          locale -a | grep -ix en_US.utf8
+      - *dependencies
+      - name: Run the shipping inventory and compare Island layout at 2x
+        env:
+          LANG: en_US.UTF-8
+        run: |
+          # Both runs have a 1920x1080 DIP desktop. Only the pixel density changes.
+          run_suite() {
+            local screen=$1
+            shift
+            xvfb-run -a --server-args="-screen 0 ${screen}x24" dbus-run-session -- bash -s -- "$@" <<'X11'
+          set -euo pipefail
+          unset WAYLAND_DISPLAY
+          export GDK_BACKEND=x11
+          # Disable the WM's iconify animation. The suite exercises CSS motion.
+          echo '<openbox_config xmlns="http://openbox.org/3.4/rc"><theme><animateIconify>no</animateIconify></theme><keyboard/></openbox_config>' > "$RUNNER_TEMP/suite-wm.xml"
+          openbox --sm-disable --config-file "$RUNNER_TEMP/suite-wm.xml" >& "$RUNNER_TEMP/suite-openbox.log" &
+          wm=$!
+          trap 'kill "$wm" 2>/dev/null || true; wait "$wm" 2>/dev/null || true' EXIT
+          timeout 15s bash -c 'until xprop -root _NET_SUPPORTING_WM_CHECK | grep -q "window id"; do sleep 0.1; done'
+          node chromium/linux/run-suite.mjs "$CANDIDATE_DIR" "$@" --slice=f0 "--installed-sha256=$QUIT_INSTALLED_SHA256"
+          X11
+          }
+          if [[ -n $ONLY ]]; then
+            run_suite 1920x1080 "$RESULTS/subset-$ARCH" "--only=$ONLY"
+          else
+            run_suite 1920x1080 "$RESULTS/full-$ARCH"
+            run_suite 3840x2160 "$RESULTS/layout-2x-$ARCH" --scale=2 --only=island-and-commands,vertical-tabs,F41-named-workspaces,glance
+            node --input-type=module <<'COMPARE'
+          import fs from 'node:fs';
+          import {compareLayoutRuns} from './chromium/linux/run-suite.mjs';
+          const {RESULTS,ARCH} = process.env;
+          const baseline = dir => JSON.parse(fs.readFileSync(RESULTS+'/'+dir+'-'+ARCH+'/baseline.json'));
+          const diff = compareLayoutRuns(baseline('full'),baseline('layout-2x'));
+          fs.writeFileSync(RESULTS+'/layout-differences-'+ARCH+'.json',JSON.stringify(diff,null,2)+'\n');
+          COMPARE
+          fi
+      - name: Keep architecture and scale evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chromium-linux-suite-${{ inputs.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/results
+          if-no-files-found: warn
+          retention-days: 14
+
+  repo-metadata:
+    if: ${{ inputs.check == 'repo-metadata' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      # As in the candidate job, needed to read the private draft.
+      contents: write
+    env:
+      APPROVAL_SHA256: ${{ inputs.sha256 }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Install repository tools
+        run: |
+          bash scripts/ci-apt-mirror.sh
+          sudo apt-get update
+          sudo apt-get install -y apt-utils createrepo-c dnf rpm gnupg dpkg-dev python3-venv
+          python3 -m venv "$RUNNER_TEMP/repo-verify"
+          "$RUNNER_TEMP/repo-verify/bin/pip" install --only-binary=:all: --no-deps rpmrepo-metadata==0.9.1
+          echo "$RUNNER_TEMP/repo-verify/bin" >> "$GITHUB_PATH"
+      - name: Exercise signed repositories with apt and dnf
+        env:
+          BLANC_REQUIRE_REPO_TOOLS: '1'
+        run: node --test chromium/tools/linux-repository.test.mjs chromium/linux/repository/worker/worker.test.mjs
+      - name: Download the approved packages from the candidate draft
+        if: ${{ inputs.sha256 != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [[ $APPROVAL_SHA256 =~ ^[0-9a-f]{64}$ ]]
+          public=chromium/linux/keys/blanc-repository.asc
+          [[ -f $public ]] || { echo "Missing $public. Repository metadata requires owner-approved packages." >&2; exit 1; }
+          tag=fork-linux-candidate
+          [[ $(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft) == true ]]
+          dest="$RUNNER_TEMP/approved"
+          mkdir -m 700 "$dest" "$RUNNER_TEMP/repo-gpg"
+          export GNUPGHOME="$RUNNER_TEMP/repo-gpg"
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --dir "$dest" --pattern 'approved-packages.json*'
+          printf '%s  %s\n' "$APPROVAL_SHA256" "$dest/approved-packages.json" | sha256sum --check --strict
+          gpg --batch --dearmor --output "$GNUPGHOME/public.gpg" "$public"
+          gpgv --keyring "$GNUPGHOME/public.gpg" "$dest/approved-packages.json.asc" "$dest/approved-packages.json"
+          python3 chromium/linux/repository/metadata.py names "$dest" > "$RUNNER_TEMP/package-names"
+          while IFS= read -r name; do
+            gh release download "$tag" --repo "$GITHUB_REPOSITORY" --dir "$dest" --pattern "$name"
+          done < "$RUNNER_TEMP/package-names"
+      - name: Build the unsigned release tree
+        if: ${{ inputs.sha256 != '' }}
+        run: chromium/linux/repository/build-metadata.sh "$RUNNER_TEMP/approved" "$RUNNER_TEMP/unsigned-tree"
+      - name: Return the indexes and inventory to the owner
+        if: ${{ inputs.sha256 != '' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: linux-repo-metadata-${{ inputs.sha256 }}
+          path: |
+            ${{ runner.temp }}/unsigned-tree/tree.json
+            ${{ runner.temp }}/unsigned-tree/deb/dists/stable
+            ${{ runner.temp }}/unsigned-tree/rpm/stable/x86_64/repodata
+            ${{ runner.temp }}/unsigned-tree/rpm/stable/aarch64/repodata
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7

@@ -1,12 +1,51 @@
 import path from 'node:path';
 
-export const ASSET_NAME = 'blanc-linux-candidate.tar.gz';
+function checkArch(arch) {
+  if (arch !== 'x64' && arch !== 'arm64') throw new Error('Linux candidate architecture must be x64 or arm64.');
+}
 
-export function candidateId(exeSha256) {
+// L0 recorded one x64 candidate before arm64 runners existed.
+export function byArchitecture(current) {
+  if (!current?.id) return current ?? {};
+  const arch = current.arch ?? 'x64';
+  checkArch(arch);
+  return {[arch]:current};
+}
+
+export function matchesLinuxCandidate(current, arch, config) {
+  checkArch(arch);
+  const recorded = byArchitecture(current)[arch];
+  // The installed executable can be stripped. The verified package supplies
+  // its digest; the archive's executable identifies the tracker entry.
+  return !!recorded && recorded.id === config.candidate &&
+    recorded.exeSha256 === (config.archiveExecutableSha256 ?? config.executableSha256);
+}
+
+export function ASSET_NAME(arch) {
+  checkArch(arch);
+  return `blanc-linux-${arch}-candidate.tar.gz`;
+}
+
+export function signedCandidateName(arch) {
+  checkArch(arch);
+  return `signed-candidate-${arch}.json`;
+}
+
+export function packageNames(version, arch) {
+  checkArch(arch);
+  if (!/^\d+(?:\.\d+){3}$/.test(version)) throw new Error('Expected a four-part Chromium version.');
+  return {
+    deb: `blanc-prototype_${version}-1_${arch === 'arm64' ? 'arm64' : 'amd64'}.deb`,
+    rpm: `blanc-prototype-${version}-1.${arch === 'arm64' ? 'aarch64' : 'x86_64'}.rpm`,
+  };
+}
+
+export function candidateId(exeSha256, arch = 'x64') {
+  checkArch(arch);
   if (typeof exeSha256 !== 'string' || !/^[0-9a-f]{64}$/.test(exeSha256)) {
     throw new Error('chrome SHA-256 must be 64 lowercase hex digits.');
   }
-  return `linux-x64-${exeSha256.slice(0, 16)}`;
+  return `linux-${arch}-${exeSha256.slice(0, 16)}`;
 }
 
 // GN reports runtime_deps relative to the build output, including directories.
@@ -26,16 +65,28 @@ export function runtimeFiles(lines) {
   return [...files].sort();
 }
 
-export function runtimeConfig(directory, candidate) {
-  if (candidate?.id !== candidateId(candidate?.exeSha256)) {
+export function runtimeConfig(directory, candidate, installedSha256) {
+  if (candidate?.id !== candidateId(candidate?.exeSha256, candidate?.arch)) {
     throw new Error('candidate.json id does not match its chrome hash.');
   }
+  const config = {candidate: candidate.id, singleBinary: true, diskAssets: false};
+  if (installedSha256 !== undefined) {
+    if (typeof installedSha256 !== 'string' || !/^[0-9a-f]{64}$/.test(installedSha256)) {
+      throw new Error('Expected the SHA-256 of the installed Linux executable.');
+    }
+    return {
+      ...config,
+      executable: '/opt/bnfy/blanc-prototype/chrome',
+      executableSha256: installedSha256,
+      archiveExecutableSha256: candidate.exeSha256,
+    };
+  }
+  // L0 tarballs have no packages and put the executable at the archive root.
+  const runtime = Object.hasOwn(candidate, 'packages') ? path.join(directory, 'chrome') : directory;
   return {
-    candidate: candidate.id,
-    executable: path.join(directory, 'chrome'),
+    ...config,
+    executable: path.join(runtime, 'chrome'),
     executableSha256: candidate.exeSha256,
-    singleBinary: true,
-    blockerAssets: path.join(directory, 'blocker'),
-    diskAssets: false,
+    blockerAssets: path.join(runtime, 'blocker'),
   };
 }

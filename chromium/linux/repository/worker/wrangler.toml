@@ -1,0 +1,23 @@
+name = "blanc-linux-packages"
+main = "index.mjs"
+compatibility_date = "2026-11-21"
+workers_dev = false
+preview_urls = false
+
+# Planned bindings only. Provisioning and domain setup are the owner's Step 5.
+[env.staging]
+name = "blanc-linux-packages-staging"
+
+[[env.staging.r2_buckets]]
+binding = "PACKAGES"
+bucket_name = "blanc-linux-packages-staging"
+remote = true
+
+[env.production]
+name = "blanc-linux-packages"
+
+[[env.production.r2_buckets]]
+binding = "PACKAGES"
+bucket_name = "blanc-linux-packages"
+remote = true
+

@@ -31,4 +31,84 @@ gap with the milestone that closes it. Windows design:
 
 ## Linux
 
-Nothing built.
+| Area | Linux x64 at L0 (2026-11-21) | Milestone |
+| --- | --- | --- |
+| Build | Native x64 on `blanc-android-build`, in the shared desktop checkout at `~/chromium-desktop/src/out/BlancLinuxPrototype` | L0 |
+| Sandbox | The unpacked candidate uses the root-owned, mode-4755 `chrome-sandbox` helper. With Ubuntu's unprivileged user namespace restriction set to 1, all six renderers on each display had seccomp mode 2 and a PID namespace distinct from the browser's. [X11 and Wayland launch checks](https://github.com/bnfy/blanc/actions/runs/44942354424) | L0 unpacked launch. Installed-package sandbox checks belong to L1 |
+| Window frame and buttons | The first build retained Chromium's Linux frame above the Island strip, and the Island drew its own window controls | L1 places Chromium's caption buttons over the strip in the desktop's button order |
+| Data folder | The smoke and suite supplied a temporary `--user-data-dir`. The L0 source still used Chromium's default (`~/.config/chromium` in a default environment). A bare launch was untested | L1 gives the preview its own folder, `~/.config/blanc-prototype` |
+| Platform name | `linux` to the Island, the Sync runner, Sync and telemetry (`blanc/island/host.js`, `blanc/common/host_platform.h`) | L0 |
+| Packaging and updates | L0 used an unpacked preview from the draft candidate tarball | L1 builds `.deb` and `.rpm` packages. L3 proves updates through apt and dnf |
+
+### Ctrl+Tab
+
+At the 158.0.8127.2 pin, X11Window::DispatchUiEvent forwards the translated
+key to the platform window delegate. WaylandEventSource::OnKeyboardKeyEvent
+decodes the compositor's key with the current XKB modifiers and dispatches to
+the keyboard-focused WaylandWindow. Both reach aura's WindowEventDispatcher.
+If the input method handles the event first, WindowTreeHost::DispatchKeyEventPostIME
+redispatches an unconsumed key to the event sink. DesktopEventClient makes
+aura::Env the root window's parent event target. Its system-priority pre-target
+handler sees the key before the focused view and the browser accelerator. The
+first Island installs the handler before any shortcut can reach its window.
+
+The accelerator table binds Ctrl+Tab and Ctrl+Shift+Tab to
+IDC_CYCLE_TO_NEXT_TAB and IDC_CYCLE_TO_PREV_TAB. In fullscreen,
+BrowserCommandController lets the page handle the key first. An unconsumed
+press returns to the window's FocusManager after the renderer responds.
+The Island registers both accelerators at normal priority after BrowserView.
+It forwards the actual accelerator to BrowserView and identifies Ctrl+Tab for
+the duration of that command. With Chromium's `browser.ctrl_tab_mru` at its
+default false, the command calls SelectNextTab or SelectPreviousTab, where
+patch 0088 calls Blanc. X11's
+KeyboardCodeFromXKeysym maps XK_ISO_Left_Tab to VKEY_TAB. On Wayland the
+XKB mapping yields DomKey::TAB and VKEY_TAB. In both cases EF_SHIFT_DOWN
+selects the reverse accelerator. EF_ALTGR_DOWN is a distinct modifier.
+
+X11Window handles FocusOut as a focus change. WaylandKeyboard::OnLeave
+clears keyboard focus, modifiers and repeat. Neither path synthesizes the
+missing key releases for the old window. Both platforms report top-level
+activation changes to the widget, where Blanc cancels the gesture. Real keys
+need confirmation on X11 under Xvfb and on Wayland in the owner's VM.
+
+### Caption buttons
+
+At Chromium 158.0.8127.2 an Island is a normal browser window. X11 and
+Wayland both use CreateBrowserFrameViewLinux. With the system theme and a
+toolkit NavButtonProvider it constructs BrowserFrameViewLinuxNative and
+BrowserFrameViewLayoutLinuxNative. Otherwise it constructs BrowserFrameViewLinux
+and BrowserFrameViewLayoutLinux. Both use OpaqueBrowserFrameView's buttons.
+SettingsProviderGtk reads GtkSettings' gtk-decoration-layout on startup and
+on notify (including outside GNOME). GtkUi sets WindowButtonOrderProvider's
+leading/trailing vectors and notifies the LinuxUi observers. The frame's
+OnWindowButtonOrderingChange copies the order into the layout and relays out
+the root. OpaqueBrowserFrameViewLayout::LayoutWindowControls places the
+visible buttons, substituting Restore when maximized. The native variant
+uses toolkit button images, margins and spacing. CalculateClientAreaBounds
+uses NonClientTopHeight, which includes title/icon height when a title is
+shown and otherwise retains the frame's top border and extra top thickness.
+InitWindowCaptionButton gives each button its own transparent layer, and
+FrameView::GetChildrenInZOrder places the client behind the frame children.
+The Island supplies the hidden tab strip's preferred height for button sizing
+and keeps the resize inset above the client.
+
+BrowserNativeWidgetAuraLinux::UseCustomFrame forces client decorations when
+Ozone has no server decoration support. Otherwise it honors the normal
+window's custom-frame preference. WaylandToplevelWindow requests kClientSide
+for a custom frame and kServerSide for a native frame, and ShouldUseNativeFrame
+requires the xdg decoration manager. Wayland therefore permits the overlay.
+On X11 the upstream default depends on the window manager. The Island defaults
+to a custom frame. Selecting "Use system title bar and borders" on a supporting
+desktop places the system title bar above the strip, and GetShowWindowTitleBar
+suppresses Chromium's controls.
+
+The later candidate `linux-x64-64f8e6871c8fb16f` passed all eight
+hosted checks under X11 (input) and all eight
+under Wayland (layout). [Window-button run 44950261755](https://github.com/bnfy/blanc/actions/runs/44950261755)
+
+### Crash reporting
+
+Linux local dump capture awaits a hosted install check. The `crashpad` field in
+`install-<system>-<arch>.json` records two forced browser crashes, one with
+the default reporter configuration and one with test crash reporting enabled.
+Each records the exit and the paths and sizes of minidumps in a fresh data folder.

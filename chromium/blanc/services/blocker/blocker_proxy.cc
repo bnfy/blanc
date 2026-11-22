@@ -13,7 +13,7 @@
 #if BUILDFLAG(BLANC_BETA_CHANNEL) && BUILDFLAG(IS_MAC)
 #include "base/apple/bundle_locations.h"
 #endif
-#if BUILDFLAG(BLANC_BETA_CHANNEL) && BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_LINUX) || (BUILDFLAG(BLANC_BETA_CHANNEL) && BUILDFLAG(IS_WIN))
 #include "base/base_paths.h"
 #include "base/path_service.h"
 #endif
@@ -147,7 +147,10 @@ std::string ReadBundle() {
   if (command_line->HasSwitch("blanc-blocker-assets")) {
     path = command_line->GetSwitchValuePath("blanc-blocker-assets").AppendASCII("engine.js");
   } else {
-#if BUILDFLAG(BLANC_BETA_CHANNEL)
+#if BUILDFLAG(IS_LINUX)
+    if (!base::PathService::Get(base::DIR_EXE, &path)) return std::string();
+    path = path.AppendASCII("blanc_blocker").AppendASCII("engine.js");
+#elif BUILDFLAG(BLANC_BETA_CHANNEL)
 #if BUILDFLAG(IS_MAC)
     // Embedded by //blanc:beta_blocker_engine; this runs in the browser process.
     path = base::apple::OuterBundlePath().Append("Contents").Append("Resources")

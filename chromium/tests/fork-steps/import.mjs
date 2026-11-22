@@ -8,8 +8,17 @@ import {jsLiteral} from '../lib/js-literal.mjs';
 import {chromeProfileRoot,runningBrowserMarker,readHeldFile} from '../lib/platform.mjs';
 // A running Chrome, as each platform's Chrome marks its profile folder.
 const runningMarker=runningBrowserMarker();
-const markChromeRunning=root=>{const file=path.join(root,runningMarker.name);
- if(runningMarker.kind==='symlink')fs.symlinkSync('synthetic-host-123',file);else fs.writeFileSync(file,'synthetic-host-123');};
+function markChromeRunning(w) {
+ const file=path.join(w.importRoot,runningMarker.name);
+ let owner='synthetic-host-123';
+ if(process.platform==='linux'){
+  // Reuse the disposable browser's live singleton for the synthetic source.
+  owner=fs.readlinkSync(path.join(w.fixture.profile,runningMarker.name));
+  fs.symlinkSync(fs.readlinkSync(path.join(w.fixture.profile,'SingletonSocket')),path.join(w.importRoot,'SingletonSocket'));
+ }
+ if(runningMarker.kind==='symlink')fs.symlinkSync(owner,file);else fs.writeFileSync(file,owner);
+ w.importLockOwner=owner;
+}
 const chromeRunningMark=root=>{const file=path.join(root,runningMarker.name);
  return runningMarker.kind==='symlink'?fs.readlinkSync(file):fs.readFileSync(file,'utf8');};
 const page=(w,body,timeout)=>importSheet(w,`async()=>{${body}}`,timeout);
@@ -116,7 +125,7 @@ export default register=>{
  register('the other imported tabs remain quiet and viewless',async function(){const s=await this.snapshot();for(const t of s.tabs.filter(t=>this.importResult.tabIds.slice(1).includes(String(t.id)))){assert.equal(t.asleep,true);assert.equal(t.rendererLive,false);}});
  register('the newest source session cannot be read while its browser is running',async function(){
   seed(this);await before(this);fs.writeFileSync(path.join(this.importSource,'Sessions/Session_200'),'incomplete snapshot');
-  markChromeRunning(this.importRoot);await open(this);
+  markChromeRunning(this);await open(this);
  });
  register('Blanc can parse an older saved restorable session as preflight evidence',async function(){
   const sources=await this.native('importSources');this.importSourceId=sources.sources.find(s=>s.browserId==='chrome').id;
@@ -127,7 +136,7 @@ export default register=>{
  });
  register('Blanc may ask me to quit the source browser normally',async function(){assert.match(await page(this,`return document.getElementById('tabImportSourceRecovery').textContent;`),/Quit Google Chrome/);});
  register('Blanc says tabs remain saved and restorable without promising automatic reopening',async function(){const text=await page(this,`return document.getElementById('tabImportSourceRecovery').textContent;`);assert.match(text,/saved/);assert.match(text,/restor/i);assert.doesNotMatch(text,/will (?:automatically )?reopen/i);});
- register('Blanc never force-quits or modifies that browser',function(){assert.equal(fs.readFileSync(path.join(this.importSource,'Sessions/Session_200'),'utf8'),'incomplete snapshot');assert.deepEqual(fs.readFileSync(path.join(this.importSource,'Sessions/Session_100')),this.importBytes);assert.equal(chromeRunningMark(this.importRoot),'synthetic-host-123');});
+ register('Blanc never force-quits or modifies that browser',function(){assert.equal(fs.readFileSync(path.join(this.importSource,'Sessions/Session_200'),'utf8'),'incomplete snapshot');assert.deepEqual(fs.readFileSync(path.join(this.importSource,'Sessions/Session_100')),this.importBytes);assert.equal(chromeRunningMark(this.importRoot),this.importLockOwner);});
  register('the destination already has a Named Group named {string}',async function(name){await this.call('openTab',this.fixtureUrl('existing-work'));await this.call('groupActiveByName',name);});
  register('I renamed a reviewed migration group to {string}',async function(name){await reviewed(this);this.importRequest.groups=[{name,candidateIds:this.importProjection.candidates.slice(0,2).map(c=>c.candidateId)}];this.importRequest.ungroupedCandidateIds=this.importProjection.candidates.slice(2).map(c=>c.candidateId);});
  register('those imported tabs join the existing {string} group',async function(name){const s=await this.state(),g=s.groups.find(g=>g.name===name);assert.ok(g);const original=this.importBefore.groups.find(g=>g.name===name);assert.equal(g.id,original.id);for(const id of this.importResult.tabIds.slice(0,2))assert.equal(s.tabs.find(t=>t.id===id).groupId,g.id);});
@@ -149,7 +158,7 @@ export default register=>{
  register('the apply is rejected',function(){assert.equal(this.importOwnershipChecked,true);});
  register('no tabs, groups, Favorites, or workspaces are changed',async function(){assert.deepEqual(identities(await this.state()),identities(this.importBefore));assert.deepEqual(await this.call('bookmarkRecords'),this.importFavorites);assert.equal((await this.call('workspaceAction','list')).items.length,0);});
  register('Blanc asked me to quit the source browser after a successful preflight',async function(){
-  seed(this);await before(this);fs.writeFileSync(path.join(this.importSource,'Sessions/Session_200'),'malformed');markChromeRunning(this.importRoot);await open(this);
+  seed(this);await before(this);fs.writeFileSync(path.join(this.importSource,'Sessions/Session_200'),'malformed');markChromeRunning(this);await open(this);
   const sources=await this.native('importSources');this.importSourceId=sources.sources.find(s=>s.browserId==='chrome').id;
   const r=await this.native('importOpenSource',[this.importSourceId,{}]);assert.equal(r.recoverable,true);
  });

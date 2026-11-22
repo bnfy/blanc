@@ -77,10 +77,12 @@ test('--patched-only recomputes the patched hashes once the patch is rebased', t
   assert.equal(f.run('--src', f.src, '--version', '157.0.2.3').status, 3);
   fs.writeFileSync(path.join(f.root, 'patches/android/0101-x.patch'), [
     'diff --git a/chrome/b.txt b/chrome/b.txt', '--- a/chrome/b.txt', '+++ b/chrome/b.txt',
-    '@@ -1 +1,2 @@', ' something else', '+blanc', ''].join('\n'));
+    '@@ -1 +1,2 @@', ' something else', '+blanc',
+    '--- /dev/null', '+++ b/chrome/new.txt', '@@ -0,0 +1 @@', '+new file', ''].join('\n'));
   const r = f.run('--patched-only');
   assert.equal(r.status, 0, r.stderr);
   assert.equal(f.read('source-map-android.json').upstreamFiles['chrome/b.txt'], sha('something else\nblanc\n'));
+  assert.equal(f.read('source-map-android.json').upstreamFiles['chrome/new.txt'], sha('new file\n'));
 });
 
 test('a version that is not four numbers is refused before anything is read', t => {

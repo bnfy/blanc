@@ -554,7 +554,7 @@ html { --stage-w: 100vw; }
 
 :root[data-tab-layout="vertical"] #islandPill {
   /* Non-mac window buttons remain at the website pane's right edge. */
-  max-width: calc((var(--stage-w) - var(--vertical-tabs-w) - 150px) / var(--pill-zoom));
+  max-width: calc((var(--stage-w) - var(--vertical-tabs-w) - var(--pill-window-clearance, 150px)) / var(--pill-zoom));
 }
 
 /* macOS traffic lights live inside the rail, so only a small pane-side
@@ -1300,7 +1300,7 @@ body > .tab-drag-ghost[aria-hidden="true"] {
      (without this the pill renders 1.15× wider and runs under the controls).
      184px is 92px a side: the traffic lights at macOS's standard 18pt inset
      end 80pt in, plus a 12pt gap. */
-  max-width: calc((var(--stage-w) - 184px) / var(--pill-zoom));
+  max-width: calc((var(--stage-w) - var(--pill-window-clearance, 184px)) / var(--pill-zoom));
   background: transparent;
   /* Keep the one-pixel border in layout while the visible material moves to
      ::after. The resting pill has no transform, which keeps the URL and
@@ -3481,6 +3481,7 @@ body.split-tab-surface.focused { --split-tab-border: var(--split-pane-focused-bo
   justify-content: center;
   color: var(--text-dim);
 }
+:root[data-platform="linux"] #strip > #mainMenuButton { left: calc(8px + var(--window-controls-leading-w, 0px)); }
 #mainMenuButton[hidden] { display: none; }
 #mainMenuButton svg { width: 16px; height: 16px; }
 #mainMenuButton:hover,

@@ -80,6 +80,26 @@ export const EDITS = {
     ['      <div id="islandHint"></div>\n', '      <button id="previewStatusLink" class="preview-notice-button" type="button" hidden>Security &amp; updates</button>\n<div id="islandHint"></div>\n'],
   ],
   'renderer.js': [
+    // GTK button bounds arrive from the opaque frame through the strip host.
+    ['  new ResizeObserver(reportIslandRect).observe(islandPill);',
+`  if (platform === 'linux') {
+    window.addEventListener('blanc-window-buttons', ({ detail: { leading, trailing, buttons, zoom } }) => {
+      const style = document.documentElement.style;
+      style.setProperty('--window-controls-leading-w', leading / zoom + 'px');
+      style.setProperty('--window-controls-w', trailing / zoom + 'px');
+      dragBand.style.height = 'calc(var(--drag-band-h) / ' + zoom + ')';
+      // A narrow vertical rail puts its menu row below a left-hand cluster.
+      const bottom = Math.max(0, ...buttons.filter(b => b.x < leading).map(b => b.y + b.height));
+      style.setProperty('--window-controls-leading-h', bottom / zoom + 'px');
+      dotFitKey = '';
+      fitIslandDots();
+      requestAnimationFrame(reportIslandRect);
+    });
+  }
+  new ResizeObserver(reportIslandRect).observe(islandPill);`],
+    // Real double-clicks on Linux go to WindowEventFilterLinux.
+    ["if (e.target === stripEl && !floatSurface)", "if (platform !== 'linux' && e.target === stripEl && !floatSurface)"],
+    ["  dragBand.addEventListener('dblclick'", "  if (platform !== 'linux') dragBand.addEventListener('dblclick'"],
     ["    pillSpace.hidden = spaceMarkOnIsland();", "    pillSpace.hidden = document.documentElement.hasAttribute('data-mini-window') || spaceMarkOnIsland();"],
     // An extension's page goes by the extension's name, not its 32-letter id.
     // An extension's page shows the extension's name, not its 32-letter id
@@ -107,6 +127,11 @@ export const EDITS = {
   // commit) draw with; the rest of styles.css stays at the release, since
   // later shipping changes to it (#1622, #1624) aren't in the fork yet.
   'styles.css': [
+    // Linux reserves the actual GTK cluster on each side. Other platforms
+    // keep the measured shipping clearances for the horizontal and rail layouts.
+    [' - 184px) / var(--pill-zoom)', ' - var(--pill-window-clearance, 184px)) / var(--pill-zoom)'],
+    [' - 150px) / var(--pill-zoom)', ' - var(--pill-window-clearance, 150px)) / var(--pill-zoom)'],
+    ['#mainMenuButton[hidden]', ':root[data-platform="linux"] #strip > #mainMenuButton { left: calc(8px + var(--window-controls-leading-w, 0px)); }\n#mainMenuButton[hidden]'],
     // Another profile's row has no ••• to make room for, so it keeps its count.
     ['.ws-row:hover .ws-row-count, .ws-row:focus-within .ws-row-count,\n',
      '/* Another profile\'s row has no ••• to make room for, so it keeps its count. */\n.ws-row:not(.ws-row-elsewhere):hover .ws-row-count, .ws-row:not(.ws-row-elsewhere):focus-within .ws-row-count,\n'],

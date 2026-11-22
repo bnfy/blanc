@@ -13,7 +13,34 @@ async function resize(width, height) {
    b => b.width === width && b.height === height, `${width}x${height} rail renderer viewport`, 7000);
  }
 }
+// Browser.setWindowBounds can finish before Views lays out the split and
+// the Island polls it. A drag uses the Island's cached page area.
+export async function waitForLinuxGlanceResize(w,width,height) {
+ await w.waitFor(()=>w.hostEval('window.BlancPrototypeHost.refresh().then(()=>window.BlancPrototypeHost.api.getAllTabs())'),s=>{
+  if (s.glanceTabId == null) return true;
+  const area=s.glanceArea??s.splitGeometry?.pageArea;
+  const islandY=s.glanceArea?.islandY??s.splitGeometry?.islandY??0;
+  return area?.width===width && area.y+islandY+area.height===height;
+ }, 'Glance layout after resize');
+}
+// Opening the editor changes the popup height and moves its scroll area.
+export async function openLinuxSpacePicker(name) {
+ const page=this.frame('overlay');
+ const {items}=await this.call('workspaceAction','list');
+ const space=items.find(s=>s.name===name);
+ assert.ok(space,'Space to edit: '+name);
+ await page.click(`[data-focus-key="edit:${space.id}"]`);
+ await page.waitForSelector('#workspaceSwitcher[data-view="edit"]:not(.morphing)');
+ await page.click('[data-focus-key="color:custom"]');
+ await page.waitForSelector('.space-picker-hex');
+}
 export const WINDOW_LAYOUT_STEPS = new Map([
+ ...(process.platform==='linux'?[
+ ['I open the color picker for {string}',openLinuxSpacePicker],
+ ["the window's page is {int} by {int}",async function(width,height){
+  await resize.call(this,width,height);
+  await waitForLinuxGlanceResize(this,width,height);
+ }]]:[]),
  ['the window is 640 by 480 with the Island at 125%', async function(){await resize.call(this,640,480);}],
  ['the tab list keeps at least two rows and the footer stays in the window', async function(){
   const page=this.frame('overlay');await this.native('setIslandZoomFactor',[1.25]);

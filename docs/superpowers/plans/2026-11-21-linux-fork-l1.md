@@ -104,7 +104,7 @@ are folded in below.
   regenerated with unchanged arguments before the nightly, at most once for all of L1.
 - A new patch to an upstream file not yet in `chromium/upstream/manifest.json` imports its pristine
   copy first; the manifest, the lane's `fileCount`, `source-map.json`'s `upstreamFiles` and the count in
-  `check-patches.test.mjs` change with it. New patches start at 0112.
+  `check-patches.test.mjs` change with it. New Linux patches start at 0113.
 - Preview identity (every name is new; none may equal a name shipping Blanc, Chromium or Chrome uses):
   package `blanc-prototype`, install folder `/opt/bnfy/blanc-prototype`, launcher
   `/usr/bin/blanc-prototype`, desktop file `blanc-prototype.desktop`, window class and Wayland app id
@@ -190,7 +190,7 @@ are folded in below.
 
 **Files:**
 - Modify: `chromium/blanc/config.gni` (new args below), `chromium/lanes/desktop.json`
-- Create: patch `0112-blanc-linux-identity.patch` touching `chrome/common/chrome_paths_linux.cc`,
+- Create: patch `0113-blanc-linux-identity.patch` touching `chrome/common/chrome_paths_linux.cc`,
   `chrome/common/channel_info_posix.cc`,
   `components/os_crypt/async/browser/freedesktop_secret_key_provider.h` (import pristine copies first)
 - Create: `chromium/linux/identity.md`, `chromium/tools/linux-identity.test.mjs`
@@ -230,10 +230,19 @@ are folded in below.
 - [ ] **Step 5: Run** the test, the fork unit suite and `python3 chromium/tools/check-patches.py` for
   both lanes; expected PASS. Commit `Fork Linux: the preview's own names, data folder and keyring (L1)`.
 
+**Task 2 patch budget.** Patch 0113 touches 15 files in 28 hunks, including the new Linux-only `key_provider.cc`.
+Thirteen new pristine inputs bring the desktop lane through 0113 to 232 inputs and 239 verified postimages.
+The browser and provider call paths are recorded in [Linux identity](../../../chromium/linux/identity.md).
+
 ### Task 3: Chromium's caption buttons over the strip
 
+Patch 0114 adds 9 hunks across 3 upstream files. The two Linux frame-view files are new to
+the lane, and earlier patches already touch `browser_view.cc`. Including 0114, the desktop lane
+in this worktree has 113 patches touching 241 distinct upstream files (480 file diffs, 875 hunks).
+Of the 241 files, 234 have pinned pristine inputs and 7 are created by patches.
+
 **Files:**
-- Create: patch `0113-blanc-linux-frame.patch` (the Linux frame view and layout files, traced in Step 1)
+- Create: patch `0114-blanc-linux-frame.patch` (the Linux frame view and layout files, traced in Step 1)
 - Create: `chromium/blanc/browser/ui/window_buttons_linux.{h,cc}`, added under `is_linux` where
   `tab_switch_keys_win.cc` is listed (`chromium/blanc/ui.gni:330`)
 - Modify: `chromium/blanc/island/host.js`, `chromium/blanc/island/renderer.js` (inside the strip
@@ -247,7 +256,9 @@ are folded in below.
 
 **Interfaces:**
 - Produces: a fork-local message `windowButtons` with `{leading: number, trailing: number, buttons:
-  [{kind: 'minimize'|'maximize'|'close', x, y, width, height}]}` in DIPs (empty side = 0), sent by
+  [{kind: 'minimize'|'maximize'|'close', x, y, width, height}], deviceScaleFactor: number}`.
+  The bounds are in DIPs (empty side = 0). The compositor scale lets the host convert them to CSS
+  pixels at the current WebUI zoom for the strip, floating pill and expanded panel. The message is sent by
   `blanc_prototype_ui.cc` over the WebUI channel it already uses for fork-only messages, on window
   creation, maximize/restore, scale change and a GTK settings change. `host.js` forwards it into the
   strip iframe, where `renderer.js` sets `--window-controls-leading-w` and `--window-controls-w` on the
@@ -290,9 +301,11 @@ are folded in below.
 
 ### Task 4: Packages from Chromium's installer, pointed at Blanc
 
+Patch 0115 touches 17 upstream files in 43 hunks. The desktop queue through 0115 touches 258 distinct upstream files in 918 hunks.
+
 **Files:**
-- Create: patch `0114-blanc-linux-installer.patch` touching `chrome/installer/linux/BUILD.gn` (a
-  `linux_package("prototype")` beside Chromium's four, the repository argument passed to both package
+- Create: patch `0115-blanc-linux-installer.patch` touching `chrome/installer/linux/BUILD.gn` (a
+  package group for the active Blanc channel, the repository argument passed to both package
   actions, and a dependency on the blocker copy), `common/installer.py`, `common/chromium-browser.info`,
   `debian/repo_signing_keys.gpg` (replaced by Blanc's public keyring, dearmored), the desktop, cron
   and AppArmor templates only if they name Google or Chromium paths
@@ -312,11 +325,13 @@ are folded in below.
 - Produces: GN args `blanc_linux_channel` (`"prototype"` preview, `"beta"` beta) and
   `blanc_linux_repository` (`"https://pkg-staging.blanc.day"` preview,
   `"https://pkg.blanc.day"` beta). Build targets for a Linux output:
-  `chrome`, `chrome_sandbox`, `//chrome/installer/linux:prototype` (the new `linux_package` the patch
-  adds; `:beta` for the beta channel).
+  `chrome`, `chrome_sandbox`, `//chrome/installer/linux:prototype` (the prototype channel; `:beta` for the beta
+  channel). Before the owner key lands, the guard selects `chrome` and `chrome_sandbox`.
+  Use `--linux-packages` to request the installer explicitly. Its GN graph requires patch 0113,
+  and only the package action validates the key.
 - Produces: `scanPackage(path, {fingerprint}) -> {ok: boolean, findings: string[]}` in
   `package-scan.mjs`. It unpacks a `.deb` (`dpkg-deb -R`, including `DEBIAN/` maintainer scripts) or
-  an `.rpm` (`rpm2cpio | cpio` for files, plus `rpm -qp --scripts --triggers` for the header's
+  an `.rpm` (`rpm2cpio | cpio` for files, plus `rpm -qp --scripts --triggers --filetriggers` for the header's
   scriptlets) and reports: any text file, maintainer script, scriptlet, cron file or desktop file that
   contains `dl.google.com`, `google.com/linux`, `/opt/chromium.org`, `/opt/google` or
   `chromium-browser`; any OpenPGP keyring or armored key in the package (found by content, not name)

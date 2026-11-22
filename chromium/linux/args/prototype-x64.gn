@@ -5,3 +5,4 @@ target_cpu = "x64"
 is_debug = false
 is_component_build = false
 symbol_level = 0
+blanc_blocker_bundle = "/home/blanc/blanc-assets/blocker"

@@ -134,5 +134,67 @@ test('a stale Linux executable hash invalidates baseline credit', () => {
   t.baselines.linux = 'linux.json';
   const baseline = { platform: 'linux', shippingCommit: t.shippingCommit, candidate: t.currentCandidates.linux.id,
     candidateIdentity: { id: t.currentCandidates.linux.id, executableSha256: 'ab'.repeat(8) + 'cd'.repeat(24), singleBinary: true }, scenarios: [] };
-  assert.match(renderProgress(t, () => baseline), /Linux \| Not run for current candidate \(previous baseline is stale\)/);
+  assert.match(renderProgress(t, () => baseline), /Linux x64 \| Not run for current candidate \(previous baseline is stale\)/);
+});
+
+const linuxCandidates = {
+  x64: {id:'linux-x64-' + 'a'.repeat(16), exeSha256:'a'.repeat(64)},
+  arm64: {id:'linux-arm64-' + 'b'.repeat(16), exeSha256:'b'.repeat(64)},
+};
+
+test('Linux verification needs a current receipt for each architecture', () => {
+  for (const [stage,label] of [['verified','Verified'],['release-ready','Release-ready']]) {
+    const t = tracker(), row = t.rows[0];
+    t.currentCandidates.linux = {...linuxCandidates};
+    row.platformProgress.linux.stage = stage;
+    const verification = row.platformVerification;
+    const receipt = arch => ({candidate:linuxCandidates[arch].id, shippingCommit:t.shippingCommit});
+    const counted = text => text.includes(`| ${label} | 0 | 0 | 1 |`);
+    verification.linux = receipt('x64');  // legacy single receipt
+    assert.equal(counted(renderProgress(t)), false);
+    verification.linux = {x64:receipt('x64')};
+    assert.equal(counted(renderProgress(t)), false);
+    verification.linux.arm64 = receipt('x64');
+    assert.equal(counted(renderProgress(t)), false);
+    verification.linux = {x64:receipt('x64'), arm64:receipt('arm64')};
+    assert.equal(counted(renderProgress(t)), true);
+    verification.linux.arm64.shippingCommit = 'old';
+    assert.equal(counted(renderProgress(t)), false);
+    verification.linux.arm64 = receipt('arm64');
+    t.currentCandidates.linux.arm64 = {id:'linux-arm64-new'};
+    const changed = renderProgress(t);
+    assert.equal(counted(changed), false);
+    assert.match(changed, /\| Verification needs recheck \| 0 \| 0 \| 1 \|/);
+    assert.match(changed, /\| Requirement \| Linux x64 receipt \| Linux arm64 receipt \|/);
+    assert.ok(changed.includes(`| F1 | ${linuxCandidates.x64.id} (current) | ${linuxCandidates.arm64.id} (stale) |`));
+    delete t.currentCandidates.linux.arm64;
+    assert.equal(counted(renderProgress(t)), false);
+  }
+});
+
+test('an unverified Linux row can start with empty architecture receipt slots', () => {
+  const t = tracker();
+  t.rows[0].platformVerification.linux = {x64:null, arm64:null};
+  assert.doesNotMatch(renderProgress(t), /Linux x64 receipt/);
+});
+
+test('each Linux baseline is credited only in its architecture and against its own executable', () => {
+  const t = tracker();
+  t.currentCandidates.linux = linuxCandidates;
+  t.baselines.linux = {x64:'x.json',arm64:'arm.json'};
+  const baseline = arch => ({arch,platform:'linux',candidate:linuxCandidates[arch].id,
+    shippingCommit:t.shippingCommit,archiveExecutableSha256:linuxCandidates[arch].exeSha256,
+    scenarios:t.scenarioIds.map(id=>({id,featureRows:['F1'],result:'pass',cases:[{id:t.scenarioCases[id][0],result:'pass'}]}))});
+  const reports = {'x.json':baseline('x64'), 'arm.json':baseline('arm64')};
+  const render = () => renderProgress(t, ref=>reports[ref]);
+  for (const arch of ['x64','arm64']) assert.ok(render().includes(`| Linux ${arch} | 3/3 executable cases pass`));
+  reports['arm.json'].arch = 'x64';
+  assert.match(render(), /Linux arm64 \| Not run for current candidate/);
+  reports['arm.json'] = reports['x.json'];
+  assert.match(render(), /Linux arm64 \| Not run for current candidate/);
+  assert.match(render(), /Linux x64 \| 3\/3 executable cases pass/);
+  t.baselines.linux = 'x.json'; // L0 had a single x64 report and no arch field.
+  delete reports['x.json'].arch;
+  assert.match(render(), /Linux x64 \| 3\/3 executable cases pass/);
+  assert.match(render(), /Linux arm64 \| Not run \(3 cases\)/);
 });
