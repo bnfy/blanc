@@ -13,7 +13,10 @@ const branding = path.join(chromium, 'blanc/branding/linux');
 const keygen = path.join(branding, 'generate-keyring.py');
 const patch = path.join(chromium, 'patches/0115-blanc-linux-installer.patch');
 function temp(t) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-installer-'));
+  // macOS limits socket paths to 104 bytes and its os.tmpdir() is deep, so a
+  // GnuPG home below it can't start gpg-agent; /tmp keeps the path short.
+  const base = process.platform === 'darwin' ? '/tmp' : os.tmpdir();
+  const dir = fs.mkdtempSync(path.join(base, 'blanc-installer-'));
   t.after(() => fs.rmSync(dir, {recursive: true, force: true}));
   return dir;
 }
@@ -203,6 +206,8 @@ test('apt cron preserves first-install opt-outs and refreshes a previously manag
 });
 
 test('RPM cron updates an already-imported certificate in rpm and the channel metadata keyrings', t => {
+  // The cron is a Linux script run with GNU coreutils (chmod --, etc.); CI runs it on Ubuntu.
+  if (process.platform !== 'linux') return t.skip('runs the Linux RPM cron, which needs GNU coreutils');
   if (spawnSync('rpm', ['--version']).error?.code === 'ENOENT') return t.skip('rpm is unavailable');
   const f = repositoryCron(t, 'rpm');
   const rpmdb = path.join(f.root, 'rpmdb');
