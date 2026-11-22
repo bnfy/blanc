@@ -72,3 +72,44 @@ test('Windows moves off a hover-opened panel only after it settles', () => {
   assert.equal(windowLayoutSteps('win32').has('I open the color picker for {string}'), false);
   assert.ok(windowLayoutSteps('linux').has('I open the color picker for {string}'));
 });
+
+// island-and-commands:49 on slower hosted runners (runs 45037224663 and
+// 45039655461): each move waited for the host's state, so the shipping
+// step's 600 ms ran out before the 300 ms dwell's panel was seen.
+function motionWorld({openAfter = 4, slowMove = -1} = {}) {
+  const moves = [];
+  let modeCalls = 0;
+  return {moves, world: {
+    hoverIslandRect: {x: 300, y: 10, width: 120, height: 28},
+    call: async (name, input) => {
+      if (name === 'sendChromeMouseInput') {
+        moves.push(input);
+        if (moves.length === slowMove) await new Promise(resolve => setTimeout(resolve, 320));
+        return true;
+      }
+      assert.equal(name, 'overlayMode');
+      return ++modeCalls > openAfter ? 'panel' : null;
+    },
+  }};
+}
+
+test('Windows keeps moving inside the Island until the panel opens', async () => {
+  const {world, moves} = motionWorld();
+  const run = windowLayoutSteps('win32').get('I move within the Island every 50 milliseconds');
+  await run.call(world);
+  assert.equal(world.hoverOpenedDuringMotion, true);
+  assert.ok(moves.length >= 4);
+  assert.ok(moves.every(m => m.type === 'mouseMove' && m.y === 24 && Math.abs(m.x - 360) <= 10));
+  assert.equal(windowLayoutSteps('darwin').has('I move within the Island every 50 milliseconds'), false);
+});
+
+test('a gap as long as the dwell between moves proves nothing, so it fails', async () => {
+  const {world} = motionWorld({slowMove: 2});
+  await assert.rejects(windowLayoutSteps('win32').get('I move within the Island every 50 milliseconds').call(world), /dwell/);
+});
+
+test('a panel that never opens while moves continue is reported, not passed', async () => {
+  const {world} = motionWorld({openAfter: Infinity});
+  await windowLayoutSteps('win32').get('I move within the Island every 50 milliseconds').call(world);
+  assert.equal(world.hoverOpenedDuringMotion, false);
+});
