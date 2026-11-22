@@ -167,3 +167,111 @@ test('interrupted uploads resume without exposing partial metadata or rewriting 
   };
   await publishTree(bucket, dir, signed, options);
 });
+
+test('all owner repository commands refuse Linux and an unregistered Mac before opening any service', async t => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'repo-guard-'));
+  t.after(() => rmSync(dir, {recursive: true, force: true}));
+  const commands = {
+    uname: 'echo "$PLATFORM"',
+    ioreg: 'echo \'    "IOPlatformUUID" = "00000000-0000-4000-8000-000000000001"\'',
+    git: 'echo 00000000-0000-4000-8000-000000000002',
+    gh: 'echo "unexpected draft access" >&2; exit 70',
+    gpg: 'echo "unexpected key access" >&2; exit 70',
+    op: 'echo "unexpected vault access" >&2; exit 70',
+    node: 'echo "unexpected publisher access" >&2; exit 70',
+  };
+  for (const [name, script] of Object.entries(commands)) {
+    await writeFile(path.join(dir, name), '#!/bin/bash\n' + script + '\n', {mode: 0o755});
+  }
+  const owner = path.join(repository, '../owner');
+  for (const platform of ['Linux', 'Darwin']) {
+    for (const [script, args] of [
+      ['sign-candidate.command', ['x64', 'a'.repeat(64)]],
+      ['sign-candidate.command', ['beta', 'SHA256SUMS', dir, 'APPROVED']],
+      ['repository-approve.command', [dir, 'APPROVED']],
+      ['repository-sign.command', ['APPROVED', 'UNSIGNED', 'SIGNED']],
+      ['repository-upload.command', ['staging', 'SIGNED', '3']],
+    ]) {
+      const result = spawnSync('bash', [path.join(owner, script), ...args], {
+        encoding: 'utf8', env: {...process.env, PLATFORM: platform, BLANC_WORK_TMP: dir,
+          BLANC_OP: path.join(dir, 'op'), PATH: dir + ':' + process.env.PATH},
+      });
+      assert.notEqual(result.status, 0);
+      assert.match(result.stderr, /owner.s Mac/, script + ' on ' + platform + ': ' + result.stderr);
+      assert.doesNotMatch(result.stderr, /unexpected/);
+    }
+  }
+});
+
+test('beta signing binds both architectures and consecutive builds to their selected tarball digests', t => {
+  // The nested GnuPG agent socket must fit in macOS's sockaddr_un.sun_path.
+  const temp = process.platform === 'darwin' ? '/private/tmp' : os.tmpdir();
+  const dir = mkdtempSync(path.join(temp, 'repo-beta-'));
+  t.after(() => rmSync(dir, {recursive: true, force: true}));
+  const result = spawnSync('bash', [path.join(repository, 'fixtures/sign-beta.sh'), dir],
+    {encoding: 'utf8', timeout: 90000});
+  assert.equal(result.status, 0, result.error?.message ?? result.stderr);
+});
+
+test('two simultaneous publishers produce a single lock winner', async () => {
+  const {withPublisherLock} = await plan();
+  const bucket = new MemoryBucket();
+  let entered = 0;
+  const results = await Promise.allSettled([1, 2].map(() =>
+    withPublisherLock(bucket, async () => { entered++; })));
+  assert.equal(entered, 1);
+  assert.match(results.find(r => r.status === 'rejected').reason.message, /lock/);
+});
+
+test('a skipped proof build cannot be approved', () => {
+  const r = spawnSync('python3', ['-c', `
+import metadata
+names = []
+for n in [1, 3]:
+    names.extend(f'blanc-beta_158.0.8127.{n}-1_{a}.deb' for a in ['amd64', 'arm64'])
+    names.extend(f'blanc-beta-158.0.8127.{n}-1.{a}.rpm' for a in ['x86_64', 'aarch64'])
+metadata.validate_matrix(names)
+`], {cwd: repository, encoding: 'utf8'});
+  assert.notEqual(r.status, 0);
+  assert.match(r.stderr, /consecutive/);
+});
+
+test('planUpload rejects a signed path the public Worker cannot serve before any writes', async () => {
+  const {publishTree} = await import('../linux/repository/worker/upload.mjs');
+  for (const file of ['rpm/stable/x86_64/repodata/other.rpm', 'deb/dists/stable/private.json']) {
+    const bucket = new MemoryBucket();
+    bucket.put = () => assert.fail('unexpected bucket write');
+    await assert.rejects(publishTree(bucket, '', tree([pkg(2), file]), {target: 'staging', generation: 2}),
+      /unknown tree path/i);
+  }
+});
+
+test('publication retains two previous generations and prunes only after successful public read-back', async t => {
+  const {publishTree} = await import('../linux/repository/worker/upload.mjs');
+  const {default: worker} = await import('../linux/repository/worker/index.mjs');
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'repo-retention-'));
+  t.after(() => rmSync(dir, {recursive: true, force: true}));
+  const bucket = new MemoryBucket();
+  const readBack = key => worker.fetch(new Request('https://fixture.invalid/' + key), {PACKAGES: bucket});
+  const release = 'deb/dists/stable/InRelease';
+  for (const generation of [2, 4, 5, 9]) {
+    const signed = tree([pkg(generation), release]);
+    for (const {path: file} of signed.files) {
+      await mkdir(path.dirname(path.join(dir, file)), {recursive: true});
+      await writeFile(path.join(dir, file), file);
+    }
+    const options = {generation, target: 'production', provenDigest: signed.digest, readBack};
+    if (generation === 9) {
+      await assert.rejects(publishTree(bucket, dir, signed, {...options, readBack: () => new Response(null, {status: 503})}),
+        /read-back/);
+      assert.ok(await bucket.get('generations/2/' + release));
+      assert.ok(await bucket.get(pkg(2)));
+    }
+    await publishTree(bucket, dir, signed, options);
+  }
+  assert.deepEqual((await (await bucket.get('current.json')).json()).previous, [5, 4]);
+  for (const n of [2, 4, 5, 9]) {
+    assert.equal((await readBack('generations/' + n + '/' + release)).status, n === 2 ? 404 : 200);
+    assert.equal((await readBack(pkg(n))).status, n === 2 ? 404 : 200);
+  }
+});

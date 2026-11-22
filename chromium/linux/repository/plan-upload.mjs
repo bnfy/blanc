@@ -1,19 +1,9 @@
 import {createHash, randomUUID} from 'node:crypto';
+import {isMetadataPath, packageInfo, poolCache} from './paths.mjs';
 
 const SHA256 = /^[a-f0-9]{64}$/;
-const version = '(\\d+\\.\\d+\\.\\d+\\.\\d+)';
-const deb = new RegExp('^deb/pool/main/b/(blanc(?:-beta)?)/\\1_' + version + '-1_(amd64|arm64)\\.deb$');
-const rpm = new RegExp('^rpm/stable/(x86_64|aarch64)/(blanc(?:-beta)?)-' + version + '-1\\.\\1\\.rpm$');
-const poolCache = 'public, max-age=31536000, immutable';
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 export const jsonBytes = value => JSON.stringify(value, null, 2) + '\n';
-
-function packageInfo(key) {
-  let match = deb.exec(key);
-  if (match) return {group: 'deb/' + match[1] + '/' + match[3], version: match[2]};
-  match = rpm.exec(key);
-  if (match) return {group: 'rpm/' + match[2] + '/' + match[1], version: match[3]};
-}
 
 function checkGeneration(value) {
   if (!Number.isSafeInteger(value) || value < 1) throw Error('Expected a positive numeric generation');
@@ -37,8 +27,7 @@ export function planUpload(signedTree, {target, provenDigest, generation, previo
       throw Error('Invalid, unsorted or duplicate tree entry: ' + path);
     }
     prior = path;
-    if (!packageInfo(path) && path !== 'blanc-repository.asc' &&
-        !path.startsWith('deb/dists/stable/') && !/^rpm\/stable\/(x86_64|aarch64)\/repodata\//.test(path)) {
+    if (!packageInfo(path) && !isMetadataPath(path)) {
       throw Error('Unknown tree path: ' + path);
     }
   }

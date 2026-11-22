@@ -48,3 +48,42 @@ test('apt by-hash survives a switch, pool files are immutable, misses and intern
   assert.equal((await fetchFrom(bucket, pkg, 'PUT')).status, 405);
 });
 
+
+function checkDeploymentBindings(config) {
+  const buckets = new Set();
+  for (const [env, host] of [['staging', 'pkg-staging.blanc.day'], ['production', 'pkg.blanc.day']]) {
+    const section = config.split('[env.' + env + ']')[1].split(/\n\[env\.(?:production|staging)\]/)[0];
+    assert.ok(section.includes('pattern = "' + host + '"') && section.includes('custom_domain = true'), env);
+    const packages = section.split('[[env.' + env + '.r2_buckets]]').slice(1)
+      .map(block => block.split(/\n\[/)[0])
+      .filter(block => /^binding\s*=\s*"PACKAGES"\s*$/m.test(block));
+    assert.equal(packages.length, 1, env + ' must bind PACKAGES once');
+    const bucket = packages[0].match(/^bucket_name\s*=\s*"([^"\s]+)"\s*$/m)?.[1];
+    assert.ok(bucket, env + ' must name its PACKAGES bucket');
+    buckets.add(bucket);
+  }
+  assert.equal(buckets.size, 2, 'staging and production must use distinct PACKAGES buckets');
+}
+
+test('each deployment binds its own bucket and custom domain before and after provisioning', async () => {
+  const {readFile} = await import('node:fs/promises');
+  const config = await readFile(new URL('./wrangler.toml', import.meta.url), 'utf8');
+  checkDeploymentBindings(config);
+  checkDeploymentBindings(config
+    .replace('REPLACE_WITH_CLOUDFLARE_ACCOUNT_ID', '1'.repeat(32))
+    .replace('REPLACE_WITH_STAGING_BUCKET', 'blanc-linux-packages-staging')
+    .replace('REPLACE_WITH_PRODUCTION_BUCKET', 'blanc-linux-packages'));
+});
+
+test('the first missing InRelease is immediately visible after the pointer is published', async () => {
+  const bucket = new MemoryBucket();
+  const path = 'deb/dists/stable/InRelease';
+  const miss = await fetchFrom(bucket, path);
+  assert.equal(miss.status, 404);
+  assert.equal(miss.headers.get('cache-control'), 'no-store');
+  await bucket.put('generations/2/' + path, 'signed release');
+  await pointer(bucket, 2);
+  const release = await fetchFrom(bucket, path);
+  assert.equal(await release.text(), 'signed release');
+  assert.equal(release.headers.get('cache-control'), 'no-cache');
+});
