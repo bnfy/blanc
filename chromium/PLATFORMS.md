@@ -31,14 +31,19 @@ gap with the milestone that closes it. Windows design:
 
 ## Linux
 
-| Area | Linux x64 at L0 (2026-11-21) | Milestone |
+| Area | Linux preview at L1 (2026-11-22) | Milestone |
 | --- | --- | --- |
-| Build | Native x64 on `blanc-android-build`, in the shared desktop checkout at `~/chromium-desktop/src/out/BlancLinuxPrototype` | L0 |
-| Sandbox | The unpacked candidate uses the root-owned, mode-4755 `chrome-sandbox` helper. With Ubuntu's unprivileged user namespace restriction set to 1, all six renderers on each display had seccomp mode 2 and a PID namespace distinct from the browser's. [X11 and Wayland launch checks](https://github.com/bnfy/blanc/actions/runs/44942354424) | L0 unpacked launch. Installed-package sandbox checks belong to L1 |
-| Window frame and buttons | The first build retained Chromium's Linux frame above the Island strip, and the Island drew its own window controls | L1 places Chromium's caption buttons over the strip in the desktop's button order |
-| Data folder | The smoke and suite supplied a temporary `--user-data-dir`. The L0 source still used Chromium's default (`~/.config/chromium` in a default environment). A bare launch was untested | L1 gives the preview its own folder, `~/.config/blanc-prototype` |
+| Build | Native x64 on `blanc-android-build`, in the shared desktop checkout at `~/chromium-desktop/src/out/BlancLinuxPrototype`. The L0 cold build took 57,829 steps. | L0 |
+| arm64 | The same x86-64 server cross-compiles `out/BlancLinuxArm64Prototype` with Chromium's Debian arm64 sysroot. The cold build took 95,221 steps in 2 h 02 min. Candidate 5 passed installed checks on arm64 Ubuntu, Debian and Fedora. | L1 |
+| Sandbox | The unpacked candidate uses the root-owned, mode-4755 `chrome-sandbox` helper. At L0 all six renderers per display had seccomp mode 2 and a PID namespace distinct from the browser's. Both installed architectures passed on Ubuntu 24.04 with `kernel.apparmor_restrict_unprivileged_userns=1`. [L0 launch checks](https://github.com/bnfy/blanc/actions/runs/44942354424), [L1 install checks](reports/l1-linux.json) | L0 and L1 |
+| Window frame | The Island strip sits at the top of the custom frame. Its drag area moves the window, double-click maximizes and restores, and the corners resize. On a desktop with server-side decorations the user can choose a system title bar above the strip. | L1. [Caption buttons](#caption-buttons) |
+| Window buttons | Chromium draws the controls over the strip in GTK's configured order. The Island leaves room on each side and anchors its menu at the menu button. Hosted X11 input and Wayland layout checks passed with left, right, split and Close-only layouts at 1× and 2×. | L1. [Frame run](https://github.com/bnfy/blanc/actions/runs/44950261755), [VM input coverage](linux/hand-checks-l1.md#results) |
+| Identity | The menu and dock show **Blanc Prototype** with the Sunrise icon. The default-profile X11 `WM_CLASS` and Wayland app ID are `blanc-prototype`. Secret Service uses that application name and the label `Blanc Prototype Safe Storage`. KWallet uses the folder `Blanc Prototype Keys`. [Linux identity](linux/identity.md) | L1 preview |
+| Installer | Chromium's `.deb` and owner-signed `.rpm` install under `/opt/bnfy/blanc-prototype`, with launcher `/usr/bin/blanc-prototype` and the blocker beside the browser. The daily cron enrolls only `pkg-staging.blanc.day` and Blanc's key. On apt, remove keeps the managed source and keyring until purge. [Package repository](linux/repository.md) | L1 packages. Repository updates through apt and dnf belong to L3 |
+| Default browser | The preview registers `blanc-prototype.desktop` and preserves the existing choice. Explicitly choosing it through the browser made `xdg-settings` return that entry. GNOME's Web list showed Blanc twice because Chromium also installs a hidden app-ID desktop entry for portals. [Install checks](reports/l1-linux.json), [VM Default Apps check](linux/hand-checks-l1.md#results) | L1 |
+| Data folder | A normal preview launch uses `~/.config/blanc-prototype` by default. Uninstall keeps it. The install checks preserved shipping Blanc's `~/.config/Blanc` and Chromium's `~/.config/chromium`. The x64 check launched the shipping AppImage before and after. Arm64 used a representative profile. | L1 |
+| Crash capture | The install runs exercised forced browser crashes on both architectures. Each job records any local minidumps in its artifact. The dump outcomes remain unconfirmed here. [Crash reporting](#crash-reporting) | L1 probe |
 | Platform name | `linux` to the Island, the Sync runner, Sync and telemetry (`blanc/island/host.js`, `blanc/common/host_platform.h`) | L0 |
-| Packaging and updates | L0 used an unpacked preview from the draft candidate tarball | L1 builds `.deb` and `.rpm` packages. L3 proves updates through apt and dnf |
 
 ### Ctrl+Tab
 
@@ -100,7 +105,10 @@ requires the xdg decoration manager. Wayland therefore permits the overlay.
 On X11 the upstream default depends on the window manager. The Island defaults
 to a custom frame. Selecting "Use system title bar and borders" on a supporting
 desktop places the system title bar above the strip, and GetShowWindowTitleBar
-suppresses Chromium's controls.
+suppresses Chromium's controls. Wayland offers "Use system title bar and borders"
+only where the compositor supports server-side decorations through `xdg-decoration`.
+GNOME on Wayland lacks that support. The option was absent from both the strip
+menu and Settings in the owner's Ubuntu VM on 2026-11-22. [VM check 11](linux/hand-checks-l1.md#results)
 
 The later candidate `linux-x64-64f8e6871c8fb16f` passed all eight
 hosted checks under X11 (input) and all eight
@@ -108,7 +116,10 @@ under Wayland (layout). [Window-button run 44950261755](https://github.com/bnfy/
 
 ### Crash reporting
 
-Linux local dump capture awaits a hosted install check. The `crashpad` field in
-`install-<system>-<arch>.json` records two forced browser crashes, one with
-the default reporter configuration and one with test crash reporting enabled.
-Each records the exit and the paths and sizes of minidumps in a fresh data folder.
+Each install leg forced two browser crashes in fresh data folders. The test
+requires an abnormal exit and records whether a dump appeared. To determine
+which systems captured a dump, read `crashpad.default` and `crashpad.testReporter`
+in each job's `install-<system>-<arch>.json`. Their `captured` values and
+dump paths and sizes are absent from the committed evidence. Linux has no
+crash server. [x64 install run](https://github.com/bnfy/blanc/actions/runs/45036361406),
+[arm64 install run](https://github.com/bnfy/blanc/actions/runs/45036363620)

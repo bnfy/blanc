@@ -1,0 +1,199 @@
+{
+ "milestone": "L1 (PL.2)",
+ "platform": "linux",
+ "dates": [
+  "2026-11-21",
+  "2026-11-22"
+ ],
+ "plan": "docs/superpowers/plans/2026-11-21-linux-fork-l1.md",
+ "version": "158.0.8127.2",
+ "changes": [
+  "Patch 0113 gives the preview its own Linux identity and profile.",
+  "Patch 0114 places Chromium's caption buttons over the Island in the desktop's button order.",
+  "Patch 0115 builds Blanc's Debian and RPM packages."
+ ],
+ "build": {
+  "host": "blanc-android-build",
+  "checkout": "~/chromium-desktop/src",
+  "x64": {
+   "output": "out/BlancLinuxPrototype",
+   "coldBuild": "57,829 steps in 1 h 10 min 51 s at L0",
+   "evidence": "chromium/reports/f0-linux.json"
+  },
+  "arm64": {
+   "output": "out/BlancLinuxArm64Prototype",
+   "coldBuild": "95,221 steps in 2 h 02 min",
+   "sysroot": "Chromium's Debian arm64 sysroot on the x86-64 server"
+  }
+ },
+ "candidates": {
+  "number": 5,
+  "treeCommit": "abe38409821327f585bee6317d8874aa39afde6f",
+  "draft": "fork-linux-candidate",
+  "x64": {
+   "id": "linux-x64-abbf0c91ab29a46a",
+   "exeSha256": "abbf0c91ab29a46a7248fce92dc32f70ed2f6625e3169e97223d647f71f67d5f",
+   "tarSha256": "21f9ce7ae13da6312c601356ddf9682c63d319286033962c6989c7ec2ddcc481",
+   "signedRecord": "signed-candidate-x64.json"
+  },
+  "arm64": {
+   "id": "linux-arm64-7f8c53cb7cb20dff",
+   "exeSha256": "7f8c53cb7cb20dff7f2f54b9c5252d8ddf0f8c399ff4f02b1affa24654086c53",
+   "tarSha256": "b05c2194b5c0129f60fd4cbb9ec47f4d640a29ae1bbf43a2f582ae4e8c630d57",
+   "signedRecord": "signed-candidate-arm64.json",
+   "debSha256": "1cc021cdaf0bd581deff2f1d76d993a01db347e8ad7a3cd0e4c5f833f0566492",
+   "signedRpmSha256": "add100cb8d690060473e40812cd9825fa8fd35c76335e3ddc7aa50071ffa084b"
+  }
+ },
+ "frameCheck": {
+  "candidate": "linux-x64-64f8e6871c8fb16f",
+  "treeCommit": "9f9a0be93c5ab2cfbf5f4051be906a2e49044c07",
+  "launchRun": "44948948374",
+  "run": "44950261755",
+  "x11": "8 of 8 by real input",
+  "wayland": "8 of 8 layout checks",
+  "coverage": "Left, right, split and Close-only layouts at 1x and 2x on each display backend.",
+  "previousRun": {
+   "run": "44948958941",
+   "failure": "Wayland screenshot timing",
+   "testFix": "cdf30aa00"
+  }
+ },
+ "installCheck": {
+  "candidateNumber": 5,
+  "workflow": "chromium-linux-candidate.yml",
+  "runs": {
+   "x64": {
+    "run": "45036361406",
+    "passed": [
+     "ubuntu",
+     "debian",
+     "fedora"
+    ]
+   },
+   "arm64": {
+    "run": "45036363620",
+    "passed": [
+     "ubuntu",
+     "debian",
+     "fedora"
+    ]
+   }
+  },
+  "systems": {
+   "ubuntu": "Ubuntu 24.04 with kernel.apparmor_restrict_unprivileged_userns=1",
+   "debian": "Debian 12",
+   "fedora": "registry.fedoraproject.org/fedora:45@sha256:7b6d9048825950573e58b7185631f6bd38f7c24f5c0e68ae902870aedebb86e0"
+  },
+  "untouched": {
+   "appimageProfile": true,
+   "chromiumProfile": true,
+   "keyring": true,
+   "defaultBrowser": true,
+   "googleRepoFiles": true
+  },
+  "shippingCoverage": "The v1.51.0 AppImage launched before and after on x64. Arm64 used a representative shipping profile.",
+  "previousX64Run": {
+   "run": "45035696993",
+   "failure": "At the final shipping AppImage relaunch the restored session closed the CDP target.",
+   "testFix": "b32392b3a"
+  },
+  "evidence": "install-<system>-<arch>.json in each install job's artifact",
+  "crashCapture": "Each leg forced a browser crash with the default reporter and again with --enable-crash-reporter-for-testing. A passing leg requires an abnormal exit. Whether either mode wrote a minidump remains unconfirmed here. The per-leg crashpad.default and crashpad.testReporter results contain captured and dumps."
+ },
+ "suite": {
+  "candidateNumber": 5,
+  "milestone": "L2 triage",
+  "x64": {
+   "run": "44980118597",
+   "pass": 627,
+   "fail": 9,
+   "excluded": 31
+  },
+  "arm64": {
+   "run": "44980125980",
+   "pass": 622,
+   "fail": 14,
+   "excluded": 31
+  },
+  "evidence": "chromium/linux/triage-l2.md#candidate-5"
+ },
+ "packaging": {
+  "scan": "chromium/linux/package-candidate.mjs runs scanPackage on each .deb and .rpm before archiving. Candidates 5 and 6 on both architectures packaged cleanly.",
+  "candidate6": {
+   "treeCommit": "3902e23239f2bddb9f79f83f1bacedef5d058365",
+   "x64": "linux-x64-a8ae62abfb80abd5",
+   "arm64": "linux-arm64-38d1e4faa1e2945e"
+  },
+  "cron": "The install checks verified the pkg-staging.blanc.day repository entry and Blanc key on apt and dnf. The VM confirmed the apt source and its dedicated keyring.",
+  "signing": "On 2026-11-22 the owner ran sign-candidate.command for both candidate 5 architectures. The draft holds each signed RPM, descriptor and detached .asc signature.",
+  "key": "chromium/linux/keys/blanc-repository.asc",
+  "fingerprint": "50D361974F477C8C87E117BD95AE97ABCACFEE6C",
+  "verification": "Both install runs verified the descriptor with gpgv, matched the archive and both package hashes, and ran rpmkeys --checksig with only Blanc's key trusted before installation. The arm64 VM check also verified the descriptor and matched the installed .deb hash."
+ },
+ "regressionChecks": {
+  "macNightly": {
+   "stamp": "20261122-0700",
+   "treeCommit": "2c0831c41",
+   "patches": [
+    "0113",
+    "0114",
+    "0115"
+   ],
+   "pass": true
+  },
+  "windowsNightly": {
+   "stamp": "20261122-0400",
+   "treeCommit": "2c0831c41",
+   "pass": true,
+   "evidence": "chromium/STATUS.md#windows-nightly-2026-11-22"
+  },
+  "windowsPlans": "setup.sh compared BlancWinPrototype and BlancWinBeta before and after each Linux apply. The pairs are in ~/blanc-evidence/linux/plans/ on the build server. The comparison outcomes are not recorded here."
+ },
+ "handCheck": {
+  "evidence": "chromium/linux/hand-checks-l1.md",
+  "candidate": "linux-arm64-7f8c53cb7cb20dff",
+  "desktop": "Ubuntu 26.04 arm64, GNOME Wayland, Parallels",
+  "operator": "Claude at the owner's request, using real kernel pointer and keyboard input on 2026-11-22",
+  "frame": "All four layouts passed the full input check at 100%. At 200%, the full check covered default and left. For split and Close only, the record covers buttons, maximize/restore and Close.",
+  "desktopIntegration": "Two windows grouped under one Sunrise icon. GNOME offered no system title bar. Default Apps listed Blanc twice because Chromium also installs a hidden app-ID desktop file for portals. With Firefox absent from Web and no explicit default, GNOME showed Blanc as the current choice. The unlocked keyring used the Secret portal without prompting. Uninstall kept the preview's data."
+ },
+ "gateItems": [
+  {
+   "item": 1,
+   "gate": "Frame on X11 and Wayland",
+   "status": "passed",
+   "result": "Hosted checks passed on both displays (X11 8 of 8 by real input, Wayland 8 of 8 for layout). In the Wayland VM, every button worked by real input in all four layouts at 100% and 200%. Strip drag, double-click, corner resize and the menu passed in all four layouts at 100% and in the default and left layouts at 200%. At 200% the split and Close-only layouts were checked for their buttons and maximize/restore only; drag and resize act on the whole window, and the menu button sits on the left in the default, split and Close-only layouts alike, so those layouts add no new position to check."
+  },
+  {
+   "item": 2,
+   "gate": "Install on three distributions and both architectures",
+   "status": "passed",
+   "result": "All six candidate 5 legs passed, including every untouched assertion."
+  },
+  {
+   "item": 3,
+   "gate": "Package scan and repository enrollment",
+   "status": "passed",
+   "result": "Both package formats passed the scan. The preview cron enrolled only Blanc's staging repository and its key."
+  },
+  {
+   "item": 4,
+   "gate": "Signed candidate records and RPMs",
+   "status": "passed",
+   "result": "Both install runs authenticated the signed inputs with the committed Blanc key. The VM also verified the arm64 record."
+  },
+  {
+   "item": 5,
+   "gate": "Mac nightly and both Windows outputs unaffected",
+   "status": "passed",
+   "result": "The Mac nightly 20261122-0700 passed at 2c0831c41, which includes patches 0113-0115; before each Mac nightly the Linux changes were applied on the Mac Studio, both outputs regenerated with unchanged arguments and their plans read (3 and 4 actions for the L3 apply on 2026-11-22). The Windows nightly's first night passed. Across 15 Linux setups, the Windows outputs' plans before and after differed only in timing lines, a pending GN regeneration when a Linux change touched shared build files (regenerated with unchanged arguments by the Windows nightly), and once (2026-11-21 22:13 UTC) one compile of tab_switch_keys_aura.cc for the Ctrl+Tab change, which the Windows Beta session asked for and verified on Windows (run 44953442824). Plans are kept in ~/blanc-evidence/linux/plans on the build server."
+  },
+  {
+   "item": 6,
+   "gate": "Owner's first look at arm64 in the VM",
+   "status": "passed",
+   "result": "The owner delegated the VM check to Claude on 2026-11-22 (\"you have to do these tests for me\") and watched it in the Parallels window. Claude drove the owner's Ubuntu 26.04 ARM64 GNOME Wayland VM by real input; results in chromium/linux/hand-checks-l1.md. Blanc Prototype was listed and current under Default Apps' Web (no explicit selection was made, since none existed before). No keyring prompt appeared because the login keyring was unlocked; a locked-keyring prompt was not exercised."
+  }
+ ]
+}
