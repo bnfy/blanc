@@ -9,6 +9,7 @@
 // blanc.day by itself. Either way Electron Blanc is untouched.
 //
 //   node chromium/tests/windows-update-proof.mjs CANDIDATE_N RESULTS SHIPPING_INSTALLER (--expect=V | --expect-refused | --online=V)
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -115,6 +116,9 @@ try {
     for (const deadline = Date.now() + 10 * 60000; Date.now() < deadline && pv() !== online;) await pause(5000);
     record.checks.versionIsExpected = pv() === online;
     record.checks.installedFolderPresent = fs.existsSync(path.join(application, online, 'chrome.dll'));
+    // The installed bytes, so a release can bind this proof to its own signed files.
+    const hash = file => fs.existsSync(file) ? crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex') : null;
+    record.details.installedSha256 = {exe: hash(path.join(application, 'chrome.exe')), dll: hash(path.join(application, online, 'chrome.dll'))};
     record.details.launch = await launches(online);
     record.checks.launches = record.details.launch.running === true;
     record.checks.electronUntouched = JSON.stringify(electronState()) === JSON.stringify(electronBefore);

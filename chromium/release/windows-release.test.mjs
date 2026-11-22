@@ -94,7 +94,7 @@ function signWorld({record, installer = Buffer.from('MZ signed installer'), setu
     files: [{file: 'blanc-windows-installer-signed.exe', sha256: sha(installer), publisher: PUBLISHER},
       {file: 'Blanc-Beta-Setup.exe', sha256: sha(setup), publisher: PUBLISHER}]};
   return world([
-    ['run list', {stdout: JSON.stringify([{databaseId: 77, createdAt: '2026-11-20T00:00:05Z'}])}],
+    ['workflow run', {stderr: 'https://github.com/bnfy/blanc/actions/runs/77\n'}],
     ['run view 77', {stdout: JSON.stringify({conclusion})}],
     ['release download fork-windows-candidate', args => {
       const dir = args[args.indexOf('--dir') + 1];
@@ -194,11 +194,11 @@ function gateWork() {
   return {work, digest};
 }
 function gateWorld({proof, smoke = {pass: true, updatecheck: 'ok', nextversion: release.version}} = {}) {
-  proof ??= {pass: true, details: {staging: STAGING, installed: {setupExit: 0, pv: release.version}}};
+  proof ??= {pass: true, candidate: release.candidate.id, mode: `online ${release.version}`, details: {staging: STAGING, installed: {setupExit: 0, pv: release.version}}};
   return world([
     draftAssets(release.candidate.zipSha256),
     ['smoke.mjs', {stdout: JSON.stringify(smoke)}],
-    ['run list', {stdout: JSON.stringify([{databaseId: 88, createdAt: '2026-11-20T00:00:05Z'}])}],
+    ['workflow run', {stderr: 'https://github.com/bnfy/blanc/actions/runs/88\n'}],
     ['run view 88', {stdout: JSON.stringify({conclusion: proof.pass ? 'success' : 'failure'})}],
     ['run download 88', args => {
       const dir = path.join(args[args.indexOf('-D') + 1], 'chromium-windows-candidate-88', 'update-proof');
@@ -293,13 +293,13 @@ test('verify-public runs the published setup alone on a clean runner, after chec
   for (const [name, bytes] of Object.entries(files)) fs.writeFileSync(path.join(tmp, name), bytes);
   const {json, checksums} = makeManifest(release, tmp);
   Object.assign(files, {'RELEASE-MANIFEST.json': Buffer.from(json), SHA256SUMS: Buffer.from(checksums), 'SHA256SUMS.sigstore.json': Buffer.from('{}')});
-  const proof = {pass: true, details: {installed: {setupExit: 0, pv: release.version}}};
+  const proof = {pass: true, candidate: release.candidate.id, mode: `online ${release.version}`, details: {installed: {setupExit: 0, pv: release.version}}};
   const answers = [
     draftAssets(release.candidate.zipSha256),
     [`releases/tags/${release.tag}`, {stdout: JSON.stringify({assets: Object.keys(files).map(name => ({name, browser_download_url: `https://github.com/x/${name}`}))})}],
     ['/usr/bin/curl', args => { fs.writeFileSync(args[args.indexOf('-o') + 1], files[path.basename(args.at(-1))]); return {}; }],
     ['smoke.mjs', {stdout: JSON.stringify({pass: true, updatecheck: 'ok', nextversion: release.version})}],
-    ['run list', {stdout: JSON.stringify([{databaseId: 99, createdAt: '2026-11-20T00:00:05Z'}])}],
+    ['workflow run', {stderr: 'https://github.com/bnfy/blanc/actions/runs/99\n'}],
     ['run view 99', {stdout: JSON.stringify({conclusion: 'success'})}],
     ['run download 99', args => { const d = path.join(args[args.indexOf('-D') + 1], 'a'); fs.mkdirSync(d); fs.writeFileSync(path.join(d, 'update-proof.json'), JSON.stringify(proof)); return {}; }],
   ];

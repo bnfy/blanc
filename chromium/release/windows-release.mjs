@@ -22,6 +22,8 @@ import {ROOT} from './preflight.mjs';
 import {REPO, COSIGN_IDENTITY, COSIGN_ISSUER, COSIGN_REDIRECT, confirmAbsent, realIO as macIO} from './release.mjs';
 import {releaseData} from './windows-release-data.mjs';
 import {verifyCrx3} from './windows-crx3.mjs';
+import {parseRunId} from './daily/desktop-nightly.mjs';
+import {readHold, releaseHold} from '../windows/draft-hold.mjs';
 
 export const STAGES = ['preflight', 'sign', 'package', 'upload', 'staging-gate', 'manifest', 'draft', 'sigstore', 'publish', 'verify-public'];
 const POINT_OF_NO_RETURN = STAGES.indexOf('draft');
@@ -43,7 +45,7 @@ const LEDGER = path.join(ROOT, 'chromium/release/windows-ledger.json');
 const VERSION_PREFIX = CHROME_VERSION.split('.').slice(0, 3).join('.');
 
 export function validateWindowsRelease(r, ledger) {
-  check(r?.schema === 1, 'windows-release.json schema must be 1');
+  check(r?.schema === 1 || r?.schema === 2, 'windows-release.json schema must be 1 or 2');
   equal(r.product, 'Blanc Beta', 'product');
   equal(r.platform, 'windows-x64', 'platform');
   check(Number.isInteger(r.build) && r.build > 0 && r.build <= 9999, 'build must be an integer 1..9999');
@@ -53,11 +55,54 @@ export function validateWindowsRelease(r, ledger) {
   check(/^[a-f0-9]{40}$/.test(r.sourceCommit ?? ''), 'source commit required');
   check(/^windows-x64-[0-9a-f]{16}$/.test(r.candidate?.id ?? ''), 'Windows candidate id required');
   check(/^[0-9a-f]{64}$/.test(r.candidate?.zipSha256 ?? ''), 'candidate zip SHA-256 required');
+  if (r.schema === 2) {
+    // A release from a night: the candidate's own candidate.json, as prep read it.
+    equal(r.candidate.treeCommit, r.sourceCommit, 'the candidate\'s treeCommit must be the source commit');
+    equal(r.candidate.version, r.version, 'the candidate\'s version must be the release version');
+  }
   const last = ledger.builds.at(-1)?.build ?? 0;
   equal(r.previousBuild, last, 'previousBuild must be the ledger\'s last Windows build');
   check(r.build > last, 'the build must be above the last Windows build');
   return r;
 }
+// The shared desktop build-number claims (Linux L3; chromium/release/build-reservations.json,
+// sequence desktop-158, in claim order). A release needs a claim for its build
+// naming windows and its source, and no claim made before its own at a higher
+// number, or at its number for other source. A later claim never strands it.
+export function claimProblem(reservations, r) {
+  const entries = reservations?.sequences?.['desktop-158'] ?? [];
+  const own = entries.findIndex(e => e.build === r.build && e.sourceCommit === r.sourceCommit && (e.platforms ?? []).includes('windows'));
+  if (own < 0) return 'no claim names this build, its source commit and windows';
+  for (const earlier of entries.slice(0, own)) {
+    if (earlier.build > r.build) return 'an earlier claim holds a higher build number';
+    if (earlier.build === r.build && earlier.sourceCommit !== r.sourceCommit) return 'an earlier claim holds this build number for other source';
+  }
+  return null;
+}
+function reservationsAtTip(io) {
+  const shown = io.exec('/usr/bin/git', ['-C', ROOT, 'show', 'FETCH_HEAD:chromium/release/build-reservations.json']);
+  return shown.status === 0 ? JSON.parse(shown.stdout) : null;
+}
+function checkClaim(io, r) {
+  if (r.schema !== 2) return;
+  must(io, '/usr/bin/git', ['-C', ROOT, 'fetch', '-q', 'origin', 'chromium/next'], 'could not fetch chromium/next');
+  const reservations = reservationsAtTip(io);
+  if (!reservations) return;  // before the shared sequence lands, the ledger rule alone
+  const problem = claimProblem(reservations, r);
+  check(!problem, `the build claim does not hold: ${problem}`);
+}
+// An online proof counts only for this release's candidate, in the expected
+// mode, and (schema 2) with the installed chrome.exe and chrome.dll among the
+// files the signing record verified.
+export function proofPasses(ctx, proof, signedHashes) {
+  const r = ctx.r;
+  if (proof?.pass !== true || proof.details?.installed?.pv !== r.version) return false;
+  if (proof.candidate !== r.candidate.id || proof.mode !== `online ${r.version}`) return false;
+  if (r.schema !== 2) return true;
+  const installed = proof.details?.installedSha256;
+  return Boolean(signedHashes && installed && signedHashes.has(installed.exe) && signedHashes.has(installed.dll));
+}
+
 export const setupName = r => `Blanc-Beta-Setup-${r.version}.exe`;
 export const assetNames = r => [setupName(r), SIGNATURE, 'update-package.json', 'windows-release.json', 'NOTICES.txt'];
 
@@ -117,17 +162,16 @@ const fileSha = file => sha256(fs.readFileSync(file));
 
 // One run of the candidate workflow from chromium/next (the only branch the
 // signing environment accepts), followed in this Terminal until it ends.
-async function workflowRun(io, inputs, message) {
-  const since = (io.now ?? Date.now)() - 5000;
-  must(io, 'gh', ['workflow', 'run', WORKFLOW, '--repo', REPO, '--ref', 'chromium/next',
-    ...Object.entries(inputs).flatMap(([key, value]) => ['-f', `${key}=${value}`])], 'could not start the candidate workflow');
-  let run = null;
-  for (let tries = 0; tries < 30 && !run; tries++) {
-    const list = JSON.parse(must(io, 'gh', ['run', 'list', '--repo', REPO, '--workflow', WORKFLOW, '--branch', 'chromium/next',
-      '--event', 'workflow_dispatch', '--limit', '5', '--json', 'databaseId,createdAt'], 'GitHub did not list runs') || '[]');
-    run = list.filter(r => Date.parse(r.createdAt) >= since).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0]?.databaseId ?? null;
-    if (!run) await pause(io, 2000);
-  }
+async function workflowRun(io, inputs, message, ctx = null) {
+  // A release from a night (schema 2) pins the harness to its commit and lets
+  // the signing job re-check the draft's hold; the token itself never leaves
+  // this Mac (only its SHA-256, since run logs are public).
+  const pinned = ctx?.r?.schema === 2 ? {source_commit: ctx.r.sourceCommit, hold_owner_sha256: sha256(Buffer.from(ctx.state.hold.owner))} : {};
+  const dispatched = io.exec('gh', ['workflow', 'run', WORKFLOW, '--repo', REPO, '--ref', 'chromium/next',
+    ...Object.entries({...inputs, ...pinned}).flatMap(([key, value]) => ['-f', `${key}=${value}`])]);
+  check(dispatched.status === 0, 'could not start the candidate workflow');
+  // The run this dispatch made, from its own output; never the newest run in a time window.
+  const run = Number(parseRunId(dispatched));
   check(run, 'the workflow run did not appear');
   console.log(`${message}: https://github.com/${REPO}/actions/runs/${run}`);
   io.exec('gh', ['run', 'watch', String(run), '--repo', REPO, '--interval', '30'], {interactive: true});
@@ -178,12 +222,14 @@ function proofFrom(dir) {
   return JSON.parse(fs.readFileSync(found[0]));
 }
 async function proveOnline(io, ctx, inputs, message, extra = () => true) {
-  const {run, success} = await workflowRun(io, {sha256: ctx.r.candidate.zipSha256, suite: 'smoke', update_expect: `online:${ctx.r.version}`, ...inputs}, message);
+  const {run, success} = await workflowRun(io, {sha256: ctx.r.candidate.zipSha256, suite: 'smoke', update_expect: `online:${ctx.r.version}`, ...inputs}, message, ctx);
   const dir = scratch('blanc-win-proof-');
   try {
     let proof = null;
     if (io.exec('gh', ['run', 'download', String(run), '--repo', REPO, '-D', dir]).status === 0) { try { proof = proofFrom(dir); } catch {} }
-    const passed = success && proof?.pass === true && proof.details?.installed?.pv === ctx.r.version && extra(proof);
+    const recordFile = path.join(ctx.work ?? '', 'signed', SIGNATURE);
+    const signedHashes = ctx.r.schema === 2 && fs.existsSync(recordFile) ? new Set(JSON.parse(fs.readFileSync(recordFile)).files.map(f => f.sha256)) : null;
+    const passed = success && proofPasses(ctx, proof, signedHashes) && extra(proof);
     return {run, passed};
   } finally { fs.rmSync(dir, {recursive: true, force: true}); }
 }
@@ -201,12 +247,13 @@ export const RUN = {
     must(io, '/usr/bin/git', ['-C', ROOT, 'fetch', '-q', 'origin', 'chromium/next'], 'could not fetch chromium/next');
     must(io, '/usr/bin/git', ['-C', ROOT, 'merge-base', '--is-ancestor', ctx.r.sourceCommit, 'FETCH_HEAD'], 'the source commit is not on chromium/next');
     candidateOnDraft(io, ctx.r);
+    checkClaim(io, ctx.r);
     confirmAbsent(io, ctx.r);
     return {candidate: ctx.r.candidate.id};
   },
   async sign(ctx, io) {
     console.log('GitHub asks you to approve fork-windows-signing (Review deployments) once the run starts.');
-    const {run, success} = await workflowRun(io, {sha256: ctx.r.candidate.zipSha256, sign: 'true'}, 'Signing run');
+    const {run, success} = await workflowRun(io, {sha256: ctx.r.candidate.zipSha256, sign: 'true'}, 'Signing run', ctx);
     check(success, 'the signing run did not succeed');
     const dir = path.join(ctx.work, 'signed');
     fs.rmSync(dir, {recursive: true, force: true});
@@ -281,6 +328,7 @@ export const RUN = {
     return {checksumsSHA256: sha256(Buffer.from(checksums))};
   },
   async draft(ctx, io) {
+    checkClaim(io, ctx.r);
     const r = ctx.r, dir = path.join(ctx.work, 'assets'), names = [...assetNames(r), 'RELEASE-MANIFEST.json', 'SHA256SUMS'];
     confirmAbsent(io, r);
     check(await io.confirm(`tag and draft ${r.tag}`), 'not confirmed; nothing was created');
@@ -349,12 +397,46 @@ export const RUN = {
   },
 };
 
+const STAGE_LOCK = 'STAGE-RUNNING';
+const alive = pid => { try { process.kill(pid, 0); return true; } catch (error) { return error.code === 'EPERM'; } };
+function runningStage(work) {
+  try { const {pid} = JSON.parse(fs.readFileSync(path.join(work, STAGE_LOCK), 'utf8')); return Number.isInteger(pid) && alive(pid) ? pid : null; } catch { return null; }
+}
+// Marks a release abandoned (draft-hold.mjs break, before it removes the
+// release's hold). Never while one of its stages runs.
+export function markAbandoned(work) {
+  check(!runningStage(work), 'a stage is running for this release; wait for it to end');
+  const file = path.join(work, 'state.json');
+  const state = JSON.parse(fs.readFileSync(file, 'utf8'));
+  state.abandoned = new Date().toISOString();
+  fs.writeFileSync(file, JSON.stringify(state, null, 2) + '\n', {mode: 0o600});
+}
+
 export async function runStage(stage, work, io = realIO()) {
   const ctx = load(work, {ledger: io.ledger?.()});
+  check(!ctx.state.abandoned, 'this release was abandoned; start a new one');
   admit(ctx.state, stage);
-  const result = await RUN[stage](ctx, io);
-  ctx.state.done[stage] = {at: new Date().toISOString(), ...result};
-  ctx.save();
+  // One stage at a time: a stage holds WORK/STAGE-RUNNING for its whole run.
+  const lock = path.join(work, STAGE_LOCK);
+  check(!runningStage(work), 'another stage of this release is running');
+  fs.writeFileSync(lock, JSON.stringify({pid: process.pid, stage}) + '\n', {mode: 0o600});
+  try {
+    // A release from a night writes to the shared draft only while it holds it.
+    if (ctx.r.schema === 2) {
+      let hold = null;
+      try { hold = readHold(io)?.body ?? null; } catch { hold = null; }
+      check(hold?.owner && hold.owner === ctx.state.hold?.owner, 'this release does not hold the candidate draft');
+    }
+    const result = await RUN[stage](ctx, io);
+    ctx.state.done[stage] = {at: new Date().toISOString(), ...result};
+    ctx.save();
+  } finally {
+    fs.rmSync(lock, {force: true});
+  }
+  // Only after verify-public is saved: the draft is free for the next night.
+  if (stage === 'verify-public' && ctx.r.schema === 2) {
+    try { releaseHold(io, ctx.state.hold.owner); } catch { console.error('The draft hold is still held; run draft-hold.mjs release <owner from state.json>.'); }
+  }
   return {stage, next: nextStage(ctx.state)};
 }
 export function realIO() { return macIO(); }
