@@ -46,7 +46,7 @@
     "content/public/common/blanc_research_build.h": "blanc/content/public/common/blanc_research_build.h"
   },
   "canonicalSha256": {
-    "blanc/BUILD.gn": "d19fba3d0e50119db01187073ce255d7a699e4337acd9621324deabd82411a39",
+    "blanc/BUILD.gn": "c76d0dc7b4417f05f68a41f4af63e0f396e04c2e66430140f9186189dcf76453",
     "blanc/android/BUILD.gn": "c27b5f4b260d7696df0e5c7a870b5369d7cceaa8b54217dfe86f4de9c3577b06",
     "blanc/android/browser/blanc_pages_ui.cc": "d6a9d8b23cc701cf46162fc69519f438a35943f254f42322fda25734476096e8",
     "blanc/android/browser/blanc_pages_ui.h": "6969cac9a6e8b4b237a1809b8e81f04e07f75737247119f037d9614c06e01387",
@@ -447,6 +447,7 @@
     "blanc/branding/beta/icon-manifest.json": "efac0cbe513f6c7a5e6db2888f2d9f4b5b0ac094e6d46eb241b4a477c1ce9608",
     "blanc/branding/beta/metadata.py": "fb332d2dd432143f86c9f21c5790dfcc3a4a3f31ae7a6c431c92011e9fccc8ff",
     "blanc/branding/beta/render-dock-icons.mjs": "041fd0b74d184f22b85ffbaf2569e41fe1eabb9b1de2ad451743a33851772302",
+    "blanc/branding/linux/blanc-repository.asc": "fe3a9d27051d1d7c71e121a82897d8a222e6f434064061e3d1288a36cd09bedc",
     "blanc/branding/linux/generate-keyring.py": "120f7496323efc056d624e1e9485007628947d6c7eba248379b6f0c5e0f0258f",
     "blanc/branding/linux/product_logo_128.png": "8b0faef1bebe77d3cf87fae74d63fb766563ecb72cf8f83aaeb69dc0e713fe82",
     "blanc/branding/linux/product_logo_16.png": "a8e51a1a174af43a8c0822ac01fa6db162a0453adccc7190f800a78c8717b1f0",

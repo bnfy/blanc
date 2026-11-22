@@ -365,8 +365,8 @@ function main() {
     fs.mkdirSync(lock);
     outputLocked = true;
     if (linuxInstaller) {
-      // Staged in the output folder, never the shared source tree, so the source map stays exact.
-      stageLinuxPackageKey(linuxRepositoryKey, path.join(out, 'blanc-repository-key.input'));
+      // The packages read the committed copy in blanc/branding/linux (a mapped
+      // source file); nothing is staged into the checkout or the output folder.
     } else if (linux) {
       console.log("Planning chrome and chrome_sandbox. The owner repository key is pending. Use --linux-packages to request installers.");
     }

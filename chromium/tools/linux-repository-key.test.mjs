@@ -101,3 +101,10 @@ test('Public signing key', t => {
   assert.ok(recorded, 'record the fingerprint printed by the owner script');
   assert.deepEqual(values('fpr'), [recorded[1].toUpperCase()]);
 });
+
+test('the Chromium build reads a byte-identical copy of the repository key', () => {
+  const root = new URL('../', import.meta.url);
+  const original = fs.readFileSync(new URL('linux/keys/blanc-repository.asc', root));
+  const copy = fs.readFileSync(new URL('blanc/branding/linux/blanc-repository.asc', root));
+  assert.ok(copy.equals(original), 'chromium/blanc/branding/linux/blanc-repository.asc must equal chromium/linux/keys/blanc-repository.asc');
+});
