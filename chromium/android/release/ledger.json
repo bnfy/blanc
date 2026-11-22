@@ -33,7 +33,7 @@
       "versionName": "1.0.0-beta.4",
       "tag": "android-v1.0.0-beta.4-4",
       "commit": "402d8ec60646676b4b3fd1b64ee353fb00d56a0d",
-      "state": "built",
+      "state": "uploaded",
       "date": "2026-11-22T00:34:41.700Z",
       "note": "Verified local Android handoff; release/device evidence pending."
     }
