@@ -3,11 +3,12 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { suiteArguments } from '../windows/run-suite.mjs';
 import { runtimeConfig } from './candidate.mjs';
 import { sliceReport } from '../tests/slice-report.mjs';
+import { sessionEnvironment } from '../tests/lib/linux-seed.mjs';
 
 export { suiteArguments };
 
@@ -39,8 +40,37 @@ export function compareLayoutRuns(standard,scaled) {
   return {candidate:standard.candidate,arch:standard.arch,compared,changes};
 }
 
-function main() {
-  const [candidateFolder, resultsFolder, ...options] = process.argv.slice(2);
+// Start the bus after isolating its activation environment. The keyring and
+// every browser in this inventory (including relaunches and peers) share it.
+export function runSuiteSession(args, parent = process.env, run = execFileSync) {
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-suite-session-'));
+  try {
+    const env = sessionEnvironment(path.join(scratch, 'home'), parent);
+    if (parent.LC_ALL === undefined) delete env.LC_ALL;
+    else env.LC_ALL = parent.LC_ALL;
+    if (env.DISPLAY && !env.XAUTHORITY && parent.HOME) env.XAUTHORITY = path.join(parent.HOME, '.Xauthority');
+    if (env.WAYLAND_DISPLAY && !path.isAbsolute(env.WAYLAND_DISPLAY) && parent.XDG_RUNTIME_DIR) {
+      env.WAYLAND_DISPLAY = path.join(parent.XDG_RUNTIME_DIR, env.WAYLAND_DISPLAY);
+    }
+    run('dbus-run-session', ['--', process.execPath, fileURLToPath(import.meta.url), '--private-session', ...args],
+      {env, stdio: 'inherit'});
+  } finally {
+    fs.rmSync(scratch, {recursive: true, force: true});
+  }
+}
+
+export function unlockSuiteKeyring(run = execFileSync) {
+  const options = {encoding: 'utf8', timeout: 15000};
+  run('gnome-keyring-daemon', ['--unlock', '--components=secrets'], {...options, input: 'disposable session only'});
+  run('gnome-keyring-daemon', ['--start', '--components=secrets'], options);
+  const attribute = ['blanc-suite', 'readiness'];
+  run('secret-tool', ['store', '--label=Blanc suite check', ...attribute], {...options, input: 'ready'});
+  if (run('secret-tool', ['lookup', ...attribute], options).trim() !== 'ready') {
+    throw Error('Secret Service did not return the suite keyring probe');
+  }
+}
+
+function main([candidateFolder, resultsFolder, ...options]) {
   if (!candidateFolder || !resultsFolder) throw Error('Usage: run-suite.mjs CANDIDATE_DIR RESULTS_DIR --slice=f0 [--only=text] [--installed-sha256=SHA256] [--scale=2]');
   const installed = options.find(arg => /^--installed-sha256=[a-f0-9]{64}$/.test(arg));
   if (installed) options.splice(options.indexOf(installed),1);
@@ -84,5 +114,16 @@ function main() {
 }
 
 if (process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) {
-  try { main(); } catch (error) { console.error('run-suite: ' + error.message); process.exitCode = 1; }
+  try {
+    const args = process.argv.slice(2);
+    if (args[0] === '--private-session') {
+      const {HOME, XDG_RUNTIME_DIR, XDG_DATA_HOME, DBUS_SESSION_BUS_ADDRESS} = process.env;
+      if (!DBUS_SESSION_BUS_ADDRESS || !HOME || XDG_RUNTIME_DIR !== path.join(HOME, 'runtime') ||
+          XDG_DATA_HOME !== path.join(HOME, '.local/share')) throw Error('Expected the disposable suite session');
+      unlockSuiteKeyring();
+      main(args.slice(1));
+    } else {
+      runSuiteSession(args);
+    }
+  } catch (error) { console.error('run-suite: ' + error.message); process.exitCode = 1; }
 }

@@ -24,19 +24,32 @@ export async function waitForLinuxGlanceResize(w,width,height) {
  }, 'Glance layout after resize');
 }
 // Opening the editor changes the popup height and moves its scroll area.
-export async function openLinuxSpacePicker(name) {
+async function openLinuxSpaceEditor(name) {
  const page=this.frame('overlay');
  const {items}=await this.call('workspaceAction','list');
  const space=items.find(s=>s.name===name);
  assert.ok(space,'Space to edit: '+name);
  await page.click(`[data-focus-key="edit:${space.id}"]`);
  await page.waitForSelector('#workspaceSwitcher[data-view="edit"]:not(.morphing)');
+ return page;
+}
+export async function openLinuxSpacePicker(name) {
+ const page=await openLinuxSpaceEditor.call(this,name);
  await page.click('[data-focus-key="color:custom"]');
  await page.waitForSelector('.space-picker-hex');
 }
 export const WINDOW_LAYOUT_STEPS = new Map([
  ...(process.platform==='linux'?[
  ['I open the color picker for {string}',openLinuxSpacePicker],
+ ['I give {string} the custom color {string}',async function(name,hex){
+  await openLinuxSpacePicker.call(this,name);
+  await this.frame('overlay').fill('.space-picker-hex',hex);
+ }],
+ ['I delete {string} from its editor',async function(name){
+  const page=await openLinuxSpaceEditor.call(this,name);
+  await page.click('[data-focus-key="delete"]');
+  await page.waitForSelector('[data-focus-key="undo"]');
+ }],
  ["the window's page is {int} by {int}",async function(width,height){
   await resize.call(this,width,height);
   await waitForLinuxGlanceResize(this,width,height);

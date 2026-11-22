@@ -155,7 +155,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y xvfb weston
           if [[ $SUITE == f0 ]]; then
-            sudo apt-get install -y xdotool x11-utils locales
+            sudo apt-get install -y xdotool x11-utils locales dbus-daemon gnome-keyring libsecret-tools
             sudo localedef -i de_DE -f UTF-8 de_DE.UTF-8
             sudo localedef -i en_US -f UTF-8 en_US.UTF-8
           fi
@@ -532,7 +532,7 @@ jobs:
         run: |
           if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
           sudo apt-get update
-          sudo apt-get install -y xvfb xauth openbox xdotool x11-utils dbus-x11 locales "$QUIT_DEB"
+          sudo apt-get install -y xvfb xauth openbox xdotool x11-utils dbus-x11 locales gnome-keyring libsecret-tools "$QUIT_DEB"
           sudo localedef -i de_DE -f UTF-8 de_DE.UTF-8
           sudo localedef -i en_US -f UTF-8 en_US.UTF-8
           locale -a | grep -ix de_DE.utf8
@@ -556,6 +556,7 @@ jobs:
           wm=$!
           trap 'kill "$wm" 2>/dev/null || true; wait "$wm" 2>/dev/null || true' EXIT
           timeout 15s bash -c 'until xprop -root _NET_SUPPORTING_WM_CHECK | grep -q "window id"; do sleep 0.1; done'
+          # run-suite gives the browser its own D-Bus session and unlocked keyring.
           node chromium/linux/run-suite.mjs "$CANDIDATE_DIR" "$@" --slice=f0 "--installed-sha256=$QUIT_INSTALLED_SHA256"
           X11
           }
