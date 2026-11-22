@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Takes a packaged Windows candidate from the build server to GitHub, from the
+# Takes a packaged Windows candidate from the build server to GitHub, under the
+# draft's hold (BLANC_DRAFT_HOLD_OWNER), from the
 # operator's Mac (the server holds no GitHub credential):
 #
 #   bash chromium/windows/ship-candidate.sh blanc@SERVER ~/blanc-evidence/windows/candidate-1 [~/.ssh/key]
@@ -35,6 +36,10 @@ case "${state}" in
              --notes "Carries the current cross-compiled Windows preview build to chromium-windows-candidate.yml. A draft, visible to collaborators only. Never publish it." ;;
   *) die "${DRAFT_TAG} exists and is not a draft; nothing uploaded." ;;
 esac
-gh release upload "${DRAFT_TAG}" "${work}/${ASSET}" --repo "${REPO}" --clobber
+# Only under the draft's hold (chromium/windows/draft-hold.mjs): take one with
+# `node chromium/windows/draft-hold.mjs acquire-manual "<note>"`, set
+# BLANC_DRAFT_HOLD_OWNER to the token it prints, and release it afterwards.
+[[ -n "${BLANC_DRAFT_HOLD_OWNER:-}" ]] || die "set BLANC_DRAFT_HOLD_OWNER to a hold you took with draft-hold.mjs acquire-manual."
+node "$(dirname "$0")/draft-hold.mjs" upload "${work}/${ASSET}" "${ASSET}"
 echo "Uploaded ${candidate} (${actual})."
 echo "Run it: gh workflow run chromium-windows-candidate.yml --repo ${REPO} --ref chromium/next -f sha256=${actual}"
