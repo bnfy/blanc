@@ -1,5 +1,5 @@
 // On a fresh disposable Ubuntu/Debian/Fedora system for each mode and arch:
-// sudo node chromium/tests/linux-repo-lifecycle.mjs managed|opt-out|manual APPROVED SIGNED USER
+// sudo node chromium/tests/linux-repo-lifecycle.mjs managed|opt-out|manual APPROVED SIGNED USER [RESULTS]
 // APPROVED and SIGNED are Task 4's directories. USER is the ordinary fixture user.
 // stdout carries a JSON snapshot after every package/cron transition.
 import assert from 'node:assert/strict';
@@ -14,7 +14,9 @@ import {pipeline} from 'node:stream/promises';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {promisify} from 'node:util';
 import {packageNames} from '../linux/candidate.mjs';
+import {planUpload} from '../linux/repository/plan-upload.mjs';
 import worker from '../linux/repository/worker/index.mjs';
+import {download, proofInputs, stageMetadata, verifyApproval, verifyPackage} from './linux-update-proof.mjs';
 
 const exec = promisify(execFile);
 const pkg = 'blanc-beta';
@@ -35,6 +37,29 @@ env.NO_PROXY = env.no_proxy;
 async function run(cmd, args) {
   const {stdout} = await exec(cmd, args, {env, maxBuffer: 16 * 1024 * 1024});
   return stdout.trimEnd();
+}
+
+// Materialize the native slice of the signed tree. The update proof reads
+// the same generation-pinned metadata and checks the same package approval.
+export async function prepareLifecycleTree(spec, input, tree, readStaging, publicKey = key) {
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'lifecycle-approval-'));
+  try {
+    const approval = verifyApproval(spec, input, scratch, publicKey);
+    const pkgFile = path.join(input, spec.newPackage);
+    verifyPackage(pkgFile, approval);
+    const manifest = path.join(input, 'signed-tree.json');
+    await run('gpgv', ['--homedir', scratch, '--keyring', path.join(scratch, 'owner.gpg'), manifest + '.asc', manifest]);
+    const inventory = JSON.parse(read(manifest));
+    const pointer = await stageMetadata(spec, approval, tree, readStaging);
+    assert.equal(inventory.digest, pointer.digest, 'Signed tree differs from staging');
+    const files = planUpload(inventory, {target: 'staging', generation: spec.to, previous: pointer.previous});
+    const pool = files.filter(f => f.phase === 'pool' && path.basename(f.file) === spec.newPackage);
+    assert.equal(pool.length, 1, 'Native package missing from signed tree');
+    const target = path.join(tree, pool[0].file);
+    fs.mkdirSync(path.dirname(target), {recursive: true});
+    fs.linkSync(pkgFile, target);
+    for (const suffix of ['', '.asc']) fs.copyFileSync(manifest + suffix, path.join(tree, 'signed-tree.json' + suffix));
+  } finally { fs.rmSync(scratch, {recursive: true, force: true}); }
 }
 
 function manual(heading) {
@@ -64,7 +89,7 @@ async function approvedPackages(approved, tree, work, format) {
     assert.equal((await run('sha256sum', [file])).split(' ')[0], row.sha256, name);
     files.push(file);
   }
-  return {files, versions: [previous, releaseVersion], generation};
+  return {files, versions: [previous, releaseVersion], generation, digest: JSON.parse(read(path.join(tree, 'signed-tree.json'))).digest};
 }
 
 // The same Worker as production, backed by the signed local tree and a single pointer.
@@ -156,7 +181,7 @@ async function lifecycle(mode, approved, tree, user) {
   const caches = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-refresh-'));
   let server;
   try {
-    const {files, versions, generation} = await approvedPackages(approved, tree, work, rpm ? 'rpm' : 'deb');
+    const {files, versions, generation, digest} = await approvedPackages(approved, tree, work, rpm ? 'rpm' : 'deb');
     const cert = path.join(work, 'test.crt'), tlsKey = path.join(work, 'test.key');
     await run('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '1', '-subj', '/CN=' + host,
       '-addext', 'subjectAltName=DNS:' + host, '-out', cert, '-keyout', tlsKey]);
@@ -257,6 +282,7 @@ async function lifecycle(mode, approved, tree, user) {
       if (mode === 'managed') Object.assign(state, {enrolled: false, ownership: null});
       await snapshot('purged', state);
     }
+    return {system, arch: process.arch, mode, from: generation - 1, to: generation, digest, pass: true};
   } finally {
     fs.writeFileSync('/etc/hosts', hosts);
     if (server?.listening) {
@@ -271,10 +297,19 @@ async function lifecycle(mode, approved, tree, user) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (process.platform !== 'linux') console.log('SKIP: the Linux lifecycle requires apt or dnf and installed beta packages.');
-  else {
-    const [mode, approved, tree, user] = process.argv.slice(2);
+  else if (['download', 'prepare'].includes(process.argv[2])) {
+    const [action, system, arch, from, to, repository, input, tree] = process.argv.slice(2);
+    const spec = proofInputs(system, arch, from, to, repository);
+    if (action === 'download') download(spec, input, [spec.newPackage, 'signed-tree.json', 'signed-tree.json.asc']);
+    else await prepareLifecycleTree(spec, input, tree);
+  } else {
+    const [mode, approved, tree, user, results] = process.argv.slice(2);
     assert.ok(['managed', 'opt-out', 'manual'].includes(mode) && approved && tree && user,
-      'Usage: linux-repo-lifecycle.mjs managed|opt-out|manual APPROVED SIGNED USER');
-    await lifecycle(mode, path.resolve(approved), path.resolve(tree), user);
+      'Usage: linux-repo-lifecycle.mjs managed|opt-out|manual APPROVED SIGNED USER [RESULTS]');
+    const report = await lifecycle(mode, path.resolve(approved), path.resolve(tree), user);
+    if (results) {
+      const name = ['repo-lifecycle', report.system, report.arch, mode].join('-') + '.json';
+      fs.writeFileSync(path.join(results, name), JSON.stringify(report, null, 2) + '\n', {flag: 'wx'});
+    }
   }
 }

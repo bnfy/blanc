@@ -64,6 +64,7 @@ function world(t) {
     },
     treeDigest: () => digest, upload: () => { }, stagingPointer: () => ({ generation: r.build, digest }),
     async updateProof() { return { digest, run: 11, from: r.proofBuild, to: r.build, legs: legs() }; },
+    async repoLifecycle() { return { digest, run: 13, from: r.proofBuild, to: r.build, legs: legs() }; },
     sourceFile: (commit, file) => file.endsWith('.asc') ? 'key' : 'notices',
     signChecksums: dir => fs.writeFileSync(path.join(dir, signature), 'signed'), verifyChecksums: () => { },
     readDraft: () => { }, readProduction: () => { }, finishProduction: () => { }, async verifyPublic() { return { run: 12, version: r.version, legs: legs() }; },
@@ -97,6 +98,7 @@ test('ordered stages bind the four candidates, proof, hand check, manifest and p
   assert.deepEqual(Object.keys(w.remote.release.assets).sort(), [...names, ...extras, signature].sort());
   assert.deepEqual(w.remote.pointer, { generation: r.build, digest, previous: [] });
   assert.equal(status(w.work, w.io).next, null);
+  assert.deepEqual(json(path.join(w.work, 'state.json')).done['update-proof'].lifecycle, await w.io.repoLifecycle());
 });
 test('typed confirmations precede every external write in draft and publish', async t => {
   for (const s of ['hand-check', 'draft', 'publish']) {
@@ -137,6 +139,50 @@ test('a missing proof leg, another digest or a failed production read-back holds
   w.io.readProduction = () => { throw Error('metadata mismatch'); };
   await assert.rejects(runStage('publish', w.work, w.io), /metadata/);
   assert.equal(w.remote.release.draft, true);
+});
+
+test('update-proof requires all lifecycle legs for the same signed tree and build pair', async t => {
+  const w = world(t); await until(w, 'update-proof');
+  const good = await w.io.repoLifecycle();
+  for (const broken of [null, {...good, legs: {...good.legs, 'arm64-fedora': false}},
+    {...good, digest: sha('wrong')}, {...good, from: 1}, {...good, to: 2}]) {
+    w.io.repoLifecycle = async () => broken;
+    await assert.rejects(runStage('update-proof', w.work, w.io), /workflow|digest|build/);
+    assert.equal(status(w.work).next, 'update-proof');
+  }
+});
+
+test('lifecycle dispatch requires distinct passing mode reports with the staged digest on each native leg', async t => {
+  const {realIO} = await import('./linux-release.mjs');
+  const w = world(t);
+  let omit, drift, failed;
+  const adapter = realIO({exec(cmd, args) {
+    assert.equal(cmd, 'gh');
+    if (args.includes('workflow')) {
+      for (const field of ['check=repo-lifecycle', 'from=158.0.8127.905', 'to=' + r.version, 'repository=staging'])
+        assert.ok(args.includes(field), field);
+      return {status: 0, stdout: 'https://github.com/bnfy/blanc/actions/runs/13'};
+    }
+    if (args.includes('watch')) { assert.ok(args.includes('--exit-status')); return {status: 0}; }
+    assert.ok(args.includes('download'));
+    const dest = args[args.indexOf('--dir') + 1];
+    for (const arch of arches) for (const system of ['ubuntu', 'debian', 'fedora']) {
+      for (const mode of ['managed', 'opt-out', 'manual']) {
+        const name = ['repo-lifecycle', system, arch, mode].join('-');
+        if (name !== omit) fs.writeFileSync(path.join(dest, name + '.json'), JSON.stringify({arch, system, mode,
+          from: r.proofBuild, to: r.build, digest: name === drift ? sha('different') : digest, pass: name !== failed}));
+      }
+    }
+    return {status: 0};
+  }});
+  const check = () => adapter.repoLifecycle({work: w.work, r, state: {done: {staging: {digest}}}});
+  assert.deepEqual(await check(), await w.io.repoLifecycle());
+  omit = 'repo-lifecycle-debian-arm64-opt-out';
+  await assert.rejects(check, /evidence/);
+  drift = omit; omit = null;
+  await assert.rejects(check, /digest/);
+  failed = drift; drift = null;
+  await assert.rejects(check, /failed/);
 });
 
 test('workflow dispatch watches the returned run and rejects skipped or missing evidence', async t => {

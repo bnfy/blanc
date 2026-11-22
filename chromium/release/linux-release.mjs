@@ -233,13 +233,17 @@ const stages = {
   async 'update-proof'(ctx, io) {
     const target = tree(ctx, io);
     equal(await io.stagingPointer(ctx), target, 'staging differs before proof');
-    const report = await io.updateProof(ctx);
-    checkLegs(report);
-    equal(report.from, ctx.r.proofBuild, 'proof started from another build');
-    equal(report.to, ctx.r.build, 'proof installed another build');
-    equal(report.digest, target.digest, 'proof digest differs from staged tree');
+    function checked(report) {
+      checkLegs(report);
+      equal(report.from, ctx.r.proofBuild, 'proof started from another build');
+      equal(report.to, ctx.r.build, 'proof installed another build');
+      equal(report.digest, target.digest, 'proof digest differs from staged tree');
+      return report;
+    }
+    const report = checked(await io.updateProof(ctx));
+    const lifecycle = checked(await io.repoLifecycle(ctx));
     equal(await io.stagingPointer(ctx), target, 'staging changed during proof');
-    return report;
+    return { ...report, lifecycle };
   },
   async 'hand-check'(ctx, io) {
     const target = tree(ctx, io);
@@ -411,16 +415,19 @@ export function realIO(commands = ownerIO()) {
     return { run: Number(id), files: artifactFiles(dir), dir };
   }
   function matrixReport(ctx, checkName, inputs) {
-    // Each leg's proof harness writes its version/digest and aggregate pass
-    // only after all its positive, refusal and uninstall checks have run.
     const { run, files } = workflow(ctx, { check: checkName, ...inputs });
-    const result = { run, legs: {} };
+    const expected = checkName === 'verify-public' ? { version: ctx.r.version }
+      : { from: ctx.r.proofBuild, to: ctx.r.build, digest: ctx.state.done.staging.digest };
+    const modes = checkName === 'repo-lifecycle' ? ['managed', 'opt-out', 'manual'] : [null];
+    const result = { run, legs: {}, ...expected };
     for (const arch of Object.keys(arches)) for (const distro of ['ubuntu', 'debian', 'fedora']) {
-      const report = json(exactFile(files, checkName + '-' + distro + '-' + arch + '.json'));
-      check(report.arch === arch && report.system === distro && report.pass === true, 'failed ' + checkName + ' evidence for ' + distro + ' ' + arch);
-      const expected = checkName === 'update-proof' ? { from: ctx.r.proofBuild, to: ctx.r.build, digest: ctx.state.done.staging.digest } : { version: ctx.r.version };
-      for (const [key, value] of Object.entries(expected)) equal(report[key], value, 'wrong ' + key + ' in ' + checkName + ' evidence');
-      Object.assign(result, expected);
+      for (const mode of modes) {
+        const name = [checkName, distro, arch, mode].filter(Boolean).join('-');
+        const report = json(exactFile(files, name + '.json'));
+        check(report.arch === arch && report.system === distro && report.pass === true, 'failed workflow evidence for ' + name);
+        if (mode) equal(report.mode, mode, 'wrong lifecycle mode in ' + name);
+        for (const [key, value] of Object.entries(expected)) equal(report[key], value, 'wrong ' + key + ' in ' + name);
+      }
       result.legs[arch + '-' + distro] = true;
     }
     return result;
@@ -591,6 +598,14 @@ export function realIO(commands = ownerIO()) {
         equal(matches[0].sha256, row.sha256, 'tree package differs from owner approval');
         return { name, file: path.join('signed-tree', matches[0].path), sha256: row.sha256 };
       });
+      // The staging Worker serves the indexes and packages. Its signed
+      // inventory and detached signature travel on the same private draft as the approval.
+      for (const name of ['signed-tree.json', 'signed-tree.json.asc']) {
+        const file = path.join(signed, name), existing = draft.find(a => a.name === name);
+        if (existing?.digest !== 'sha256:' + fileHash(file)) {
+          gh(['release', 'upload', candidateDraft, file, ...(existing ? ['--clobber'] : [])], 'could not transfer ' + name);
+        }
+      }
       return { digest: inv.digest, packages };
     },
     upload(target, ctx, p) {
@@ -604,6 +619,7 @@ export function realIO(commands = ownerIO()) {
       return p && { generation: p.generation, digest: p.digest };
     },
     updateProof: async ctx => matrixReport(ctx, 'update-proof', { from: version(ctx.r.proofBuild), to: ctx.r.version, repository: 'staging' }),
+    repoLifecycle: async ctx => matrixReport(ctx, 'repo-lifecycle', { from: version(ctx.r.proofBuild), to: ctx.r.version, repository: 'staging' }),
     verifyPublic: async ctx => matrixReport(ctx, 'verify-public', { version: ctx.r.version }),
     async readDraft(ctx, hashes) {
       const dir = scratch(ctx.work, 'read-draft');

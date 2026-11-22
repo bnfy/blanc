@@ -27,6 +27,12 @@ const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const run = (cmd, args, options = {}) => execFileSync(cmd, args, {encoding: 'utf8', timeout: 30000, ...options});
 const config = name => path.join(process.env.XDG_CONFIG_HOME, name);
 
+// The RPM installer re-armors the key and can add its own Comment header.
+export function assertEnrolledKey(installed, owner, rpm) {
+  const packets = file => execFileSync('gpg', ['--no-options', '--batch', '--dearmor'], {input: fs.readFileSync(file)});
+  assert.ok((rpm ? packets(installed) : fs.readFileSync(installed)).equals(packets(owner)), 'Wrong enrolled key');
+}
+
 // Bound memory when hashing candidate archives and browser packages.
 export function hashFile(file) {
   const hash = createHash('sha256');

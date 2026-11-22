@@ -10,7 +10,7 @@ import {fileURLToPath, pathToFileURL} from 'node:url';
 import {isDeepStrictEqual} from 'node:util';
 import {ASSET_NAME, candidateId, packageNames, signedCandidateName} from '../linux/candidate.mjs';
 import {installedRuntime, runSmoke} from './linux-smoke.mjs';
-import {defaultBrowser, googleRepoSnapshot, hashFile, launchAppImage, seedDefaultBrowser, seedInstallHome, seedSnapshot, sessionEnvironment} from './lib/linux-seed.mjs';
+import {assertEnrolledKey, defaultBrowser, googleRepoSnapshot, hashFile, launchAppImage, seedDefaultBrowser, seedInstallHome, seedSnapshot, sessionEnvironment} from './lib/linux-seed.mjs';
 import {NativeFixture} from './lib/fixture.mjs';
 import {pause, waitFor} from './lib/cdp.mjs';
 
@@ -373,8 +373,7 @@ async function lifecycle(system, arch, source, results, scratch) {
     record.installed = true;
     daily();
     assert.equal(read(files.source), repositoryContents(system, arch));
-    const publicPackets = file => execFileSync('gpg', ['--no-options', '--batch', '--dearmor'], {input: fs.readFileSync(file)});
-    assert.ok((rpm ? publicPackets(files.key) : fs.readFileSync(files.key)).equals(publicPackets(key)), 'Wrong enrolled key');
+    assertEnrolledKey(files.key, key, rpm);
     record.repository = {source: files.source, content: read(files.source), key: files.key, keySha256: hashFile(files.key)};
     record.repositoryWritten = true;
     snapshot('enrolled');

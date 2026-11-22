@@ -12,7 +12,7 @@ import {promisify} from 'node:util';
 import {ASSET_NAME, packageNames} from '../linux/candidate.mjs';
 import {planUpload, sha256} from '../linux/repository/plan-upload.mjs';
 import {CHROME_VERSION} from '../release/policy.mjs';
-import {hashFile, launchAppImage, seedInstallHome, seedSnapshot, sessionEnvironment} from './lib/linux-seed.mjs';
+import {assertEnrolledKey, hashFile, launchAppImage, seedInstallHome, seedSnapshot, sessionEnvironment} from './lib/linux-seed.mjs';
 import {proveRelaunch} from './linux-relaunch.mjs';
 
 const self = fileURLToPath(import.meta.url);
@@ -123,6 +123,7 @@ export async function proveUpdate(spec, io) {
         await io.smoke(spec.fromVersion, kind);
       }
       await io.upgrade();
+      await io.assertProductionDisabled();
     });
   } finally { await io.restoreProduction(); }
   await io.smoke(spec.toVersion, 'upgraded');
@@ -131,13 +132,13 @@ export async function proveUpdate(spec, io) {
   return {system: spec.system, arch: spec.arch, from: spec.from, to: spec.to, digest: before.digest, pass: true};
 }
 
-function download(spec, dest) {
+export function download(spec, dest, extra = []) {
   const gh = args => command('gh', ['release', ...args, '--repo', process.env.GITHUB_REPOSITORY]);
   const tag = 'fork-linux-candidate';
   const draft = JSON.parse(gh(['view', tag, '--json', 'isDraft,assets']));
   assert.equal(draft.isDraft, true, 'Expected the private candidate draft');
   const approval = 'approved-packages.json';
-  const names = [spec.oldPackage, approval, approval + '.asc'];
+  const names = [spec.oldPackage, approval, approval + '.asc', ...extra];
   for (const name of [spec.archive, ...names]) {
     assert.equal(draft.assets.filter(asset => asset.name === name).length, 1, 'Missing candidate asset ' + name);
   }
@@ -146,7 +147,7 @@ function download(spec, dest) {
   gh(['download', tag, '--dir', dest, ...names.flatMap(n => ['--pattern', n])]);
 }
 
-function verifyPackage(file, approval) {
+export function verifyPackage(file, approval) {
   const row = approval.packages.find(p => p.file === path.basename(file));
   assert.ok(row && fs.lstatSync(file).isFile(), 'Missing approved package ' + file);
   assert.equal(fs.statSync(file).size, row.size, 'Approved package size differs');
@@ -311,13 +312,11 @@ async function refusal(spec, kind, tree, scratch, results, foreign, trustedMetad
   sudo('rm', '-rf', '--', root, path.join(scratch, 'client-' + kind));
 }
 
-function assertProduction(spec, source) {
+export function assertProduction(spec, source, installedKey = spec.format === 'deb' ? ring : rpmKey) {
   const lines = fs.readFileSync(source, 'utf8').split('\n').map(line => line.trim()).filter(line => line && !line.startsWith('#'));
   if (spec.format === 'deb') {
     assert.deepEqual(lines, ['deb [arch=' + (spec.arch === 'x64' ? 'amd64' : 'arm64') +
       ' signed-by=' + ring + '] ' + production + '/deb stable main']);
-    const packets = command('gpg', ['--batch', '--dearmor'], {input: fs.readFileSync(key), encoding: 'buffer'});
-    assert.deepEqual(fs.readFileSync(ring), packets);
   } else {
     assert.deepEqual(lines.filter(line => line.startsWith('[')), ['[blanc-beta]']);
     for (const line of ['enabled=1', 'gpgcheck=1', 'repo_gpgcheck=1', 'gpgkey=file://' + rpmKey,
@@ -326,14 +325,15 @@ function assertProduction(spec, source) {
       assert.deepEqual(lines.filter(entry => entry.startsWith(setting)), [line], 'Unexpected ' + setting + ' in production source');
     }
     assert.ok(!lines.some(line => line.startsWith('baseurl=') || line.startsWith('metalink=')), 'Unexpected DNF source');
-    assert.equal(hashFile(rpmKey), hashFile(key));
   }
+  assertEnrolledKey(installedKey, key, spec.format === 'rpm');
 }
 
 function nativeLeg(spec, input, results, scratch) {
   const deb = spec.format === 'deb';
   const source = deb ? '/etc/apt/sources.list.d/blanc-beta.list' : '/etc/yum.repos.d/blanc-beta.repo';
   const saved = path.join(scratch, 'saved-production-source');
+  const assertProductionDisabled = () => assert.equal(fs.lstatSync(source, {throwIfNoEntry: false}), undefined, 'Production source reappeared');
   const oldFile = path.join(input, spec.oldPackage);
   const tree = path.join(scratch, 'staged');
   const nativeBase = deb ? pool : 'rpm/stable/' + (spec.arch === 'x64' ? 'x86_64' : 'aarch64');
@@ -372,6 +372,7 @@ function nativeLeg(spec, input, results, scratch) {
       assertProduction(spec, source);
     },
     disableProduction() { sudo('mv', '--', source, saved); },
+    assertProductionDisabled,
     relaunch: upgrade => proveRelaunch({fromVersion: spec.fromVersion, toVersion: spec.toVersion, upgrade,
       resultsDir: path.join(results, 'relaunch')}),
     refuse: kind => refusal(spec, kind, tree, scratch, results, foreign, trustedMetadata),
@@ -382,7 +383,7 @@ function nativeLeg(spec, input, results, scratch) {
       assert.equal(report.pass, true); assert.equal(report.system, spec.system); assert.equal(report.version, version);
     },
     async upgrade() {
-      assert.ok(!fs.existsSync(source), 'Production source reappeared');
+      assertProductionDisabled();
       const client = packageClient(spec, path.join(scratch, 'client-staging'), staging, {mirror: true});
       await client.refresh();
       await client.upgrade();

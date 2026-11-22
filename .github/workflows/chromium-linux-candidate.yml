@@ -22,6 +22,7 @@ on:
           - verify-public
           - beta-install
           - update-proof
+          - repo-lifecycle
           - quit
           - keys
           - suite
@@ -47,15 +48,15 @@ on:
         required: false
         type: string
       from:
-        description: Four-part proof-only Linux beta version for update-proof
+        description: Four-part proof-only Linux beta version for update-proof and repo-lifecycle
         required: false
         type: string
       to:
-        description: Four-part staged Linux beta version for update-proof
+        description: Four-part staged Linux beta version for update-proof and repo-lifecycle
         required: false
         type: string
       repository:
-        description: Package repository for update-proof
+        description: Package repository for update-proof and repo-lifecycle
         required: false
         type: choice
         default: staging
@@ -736,7 +737,7 @@ jobs:
   update-proof:
     if: ${{ inputs.check == 'update-proof' }}
     name: Staging update (${{ matrix.system }}, ${{ matrix.arch }})
-    strategy:
+    strategy: &proof-matrix
       fail-fast: false
       matrix:
         arch: [x64, arm64]
@@ -745,7 +746,7 @@ jobs:
     timeout-minutes: 60
     permissions:
       contents: write # The candidate transfer release is an unpublished draft.
-    env:
+    env: &proof-env
       SYSTEM: ${{ matrix.system }}
       ARCH: ${{ matrix.arch }}
       FROM: ${{ inputs.from }}
@@ -809,6 +810,65 @@ jobs:
           name: chromium-linux-update-proof-${{ matrix.system }}-${{ matrix.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/results
           if-no-files-found: warn
+          retention-days: 14
+
+  repo-lifecycle:
+    if: ${{ inputs.check == 'repo-lifecycle' }}
+    name: Repository lifecycle (${{ matrix.system }}, ${{ matrix.arch }})
+    strategy: *proof-matrix
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    timeout-minutes: 60
+    permissions:
+      contents: write # Reading the private candidate draft requires write permission.
+    defaults:
+      run:
+        shell: bash
+    env: *proof-env
+    steps:
+      - *checkout
+      - *node
+      - name: Download the approved native packages and signed records
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir "$RUNNER_TEMP/input" "$RUNNER_TEMP/tree" "$RUNNER_TEMP/results"
+          node chromium/tests/linux-repo-lifecycle.mjs download "$SYSTEM" "$ARCH" "$FROM" "$TO" "$REPOSITORY" "$RUNNER_TEMP/input"
+      - name: Authenticate the packages and assemble the native slice of the staging tree
+        run: |
+          node chromium/tests/linux-repo-lifecycle.mjs prepare "$SYSTEM" "$ARCH" "$FROM" "$TO" "$REPOSITORY" "$RUNNER_TEMP/input" "$RUNNER_TEMP/tree"
+      - name: Exercise each lifecycle on a fresh system
+        run: |
+          case "$SYSTEM" in
+            ubuntu) image=ubuntu:24.04 ;;
+            debian) image=debian:12 ;;
+            fedora) image=registry.fedoraproject.org/fedora:45@sha256:7b6d9048825950573e58b7185631f6bd38f7c24f5c0e68ae902870aedebb86e0 ;;
+          esac
+          for mode in managed opt-out manual; do
+            mkdir "$RUNNER_TEMP/results/$mode"
+            docker run --rm --init -e SYSTEM -e "mode=$mode" -e DEBIAN_FRONTEND=noninteractive \
+              -v "$GITHUB_WORKSPACE/chromium:/src/chromium:ro" -v "$RUNNER_TEMP/input:/approved:ro" \
+              -v "$RUNNER_TEMP/tree:/signed:ro" -v "$RUNNER_TEMP/results/$mode:/results" \
+              -v "$(realpath "$(command -v node)"):/usr/local/bin/node:ro" \
+              "$image" bash -euo pipefail -c '
+                if [[ $SYSTEM == fedora ]]; then
+                  dnf install -y shadow-utils util-linux ca-certificates /usr/bin/curl gnupg2 openssl libatomic xdg-utils desktop-file-utils
+                else
+                  apt-get update
+                  apt-get install -y --no-install-recommends passwd util-linux ca-certificates curl gnupg openssl libatomic1 xdg-utils desktop-file-utils
+                fi
+                useradd -m blanc-check
+                exec node /src/chromium/tests/linux-repo-lifecycle.mjs "$mode" /approved /signed blanc-check /results
+              ' 2>&1 | tee "$RUNNER_TEMP/results/$mode.log"
+            # A mode that skipped or reported another system or architecture fails the leg.
+            test -s "$RUNNER_TEMP/results/$mode/repo-lifecycle-$SYSTEM-$ARCH-$mode.json"
+          done
+      - name: Keep the lifecycle reports and package manager diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chromium-linux-repo-lifecycle-${{ matrix.system }}-${{ matrix.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/results
+          if-no-files-found: error
           retention-days: 14
 
   repo-metadata:
