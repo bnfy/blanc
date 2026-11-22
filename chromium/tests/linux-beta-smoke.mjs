@@ -122,7 +122,8 @@ async function run(version) {
     let request, blockedError;
     page.on('Network.requestWillBeSent', e => { if (e.request.url === listed) request = e.requestId; });
     page.on('Network.loadingFailed', e => { if (e.requestId === request) blockedError = e.errorText; });
-    const controlLoaded = await page.eval("fetch('/control').then(r=>r.text()).then(s=>s==='control loaded')");
+    // Absolute: the attached page's document needn't carry the server's base URL.
+    const controlLoaded = await page.eval('fetch(' + JSON.stringify(base + '/control') + ').then(r=>r.text()).then(s=>s===\'control loaded\')');
     await page.eval('fetch(' + JSON.stringify(listed) + ',{mode:"no-cors"}).then(()=>true,()=>false)');
     await waitFor(() => blockedError || hits.has(probe.host + ':' + port + ' ' + probe.path), Boolean, 'listed request outcome');
     const report = {
