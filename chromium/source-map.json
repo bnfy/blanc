@@ -399,7 +399,7 @@
     "blanc/android/pages/whats-new.js": "ed48700b7808264312543422d8576320dfcd95ed3497aa1f20e0e5cd89a5e339",
     "blanc/android/pages-adapter/android-pages-adapter.js": "370fa0706bf6fc4c974c8d9ab7e1aca7edf4eed95bcb5358f855fb0db58af1bf",
     "blanc/android/pages-adapter/android-pages-adapter.template.js": "a49a380e88af41c33b612535c78538e1af6b96312030e0d75fef0cfbfe50972c",
-    "blanc/android/pages-adapter/android-start.css": "66dea3c81ada7a9fa1a347bbaf3eb348d25e1872861c666512c71b391d91b261",
+    "blanc/android/pages-adapter/android-start.css": "b063d2588c05376d4c405b55ab17ceba5666a82c283f16b476049c1287bf86ca",
     "blanc/android/pages-adapter/android-start.js": "121e448d7d79fe6fe7c7c32d3d5b546ed0fb7ef50f3d954f2649e25fafc8b0da",
     "blanc/android/pages.json": "5f2e1bf1656e0e66b984b21e0b593ce46580c9b0e565aa9ff843cc838b7f9a4d",
     "blanc/android/pages_resources/BUILD.gn": "ab864dd947ee361d56f16d30d4693a47fb2f84e39efc95ccce9f52f81b4a66f8",
