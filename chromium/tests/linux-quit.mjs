@@ -234,6 +234,14 @@ async function confirmDownload(ctx) {
   const pressed = JSON.parse(run('/usr/bin/python3', [probe, String(ctx.fixture.process.pid), '--press']));
   ctx.result.clicks.push({ action: 'Exit (AT-SPI)', pressed, pids });
   assert.equal(pressed.pressed, true, 'AT-SPI could not press Exit');
+  setTimeout(() => {
+    const look = {};
+    try { look.windows = x11('search', '--pid', String(ctx.fixture.process.pid)).split(/\s+/).filter(Boolean)
+      .map(xid => { try { return { xid, name: x11('getwindowname', xid) }; } catch { return { xid }; } }); } catch (e) { look.windows = e.message; }
+    try { look.dialog = JSON.parse(run('/usr/bin/python3', [probe, String(ctx.fixture.process.pid)])); } catch (e) { look.dialog = e.message; }
+    try { look.downloads = fs.readdirSync(path.join(ctx.fixture.directory, 'downloads')); } catch (e) { look.downloads = e.message; }
+    ctx.result.afterPress = look;
+  }, 2000);
   return deadline;
 }
 
