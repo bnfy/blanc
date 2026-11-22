@@ -30,7 +30,12 @@ An Android Siso build on this server also needs to finish first.
 
 Linux setup, the Windows bootstrap and guarded desktop checks and builds take
 `~/chromium-desktop/.blanc-checkout.lock` with an atomic `mkdir`. Each holder
-releases the directory on exit. Setup runs both Windows checks before taking
+releases the directory on exit. A lock the guard takes holds an `owner` token
+and is removed only by that owner; the Windows nightly holds one lock from
+checkout to packages and runs the guard under it (`BLANC_CHECKOUT_LOCK_OWNER`).
+If a crash leaves the lock behind, first confirm no holder runs (`tmux ls`, no
+`siso`, no setup or nightly process), then remove `owner` if present and
+`rmdir` the lock. Setup runs both Windows checks before taking
 the lock for sysroot installation (when requested), apply and GN generation,
 then repeats them after releasing it.
 A failed Windows check leaves its diagnostic in the timestamped log and setup
