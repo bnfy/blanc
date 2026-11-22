@@ -293,7 +293,8 @@ test('verify-public runs the published setup alone on a clean runner, after chec
   for (const [name, bytes] of Object.entries(files)) fs.writeFileSync(path.join(tmp, name), bytes);
   const {json, checksums} = makeManifest(release, tmp);
   Object.assign(files, {'RELEASE-MANIFEST.json': Buffer.from(json), SHA256SUMS: Buffer.from(checksums), 'SHA256SUMS.sigstore.json': Buffer.from('{}')});
-  const proof = {pass: true, candidate: release.candidate.id, mode: `online ${release.version}`, details: {installed: {setupExit: 0, pv: release.version}}};
+  const proof = {pass: true, candidate: release.candidate.id, mode: `online ${release.version}`,
+    details: {installed: {setupExit: 0, pv: release.version}, setupFile: setupName(release), tag: 'read from the file'}};
   const answers = [
     draftAssets(release.candidate.zipSha256),
     [`releases/tags/${release.tag}`, {stdout: JSON.stringify({assets: Object.keys(files).map(name => ({name, browser_download_url: `https://github.com/x/${name}`}))})}],
@@ -309,6 +310,14 @@ test('verify-public runs the published setup alone on a clean runner, after chec
 
   files[setupName(release)] = Buffer.from('MZ swapped');
   await assert.rejects(runStage('verify-public', workFolder(state.done), world(answers)), /differs|signed one/);
+  files[setupName(release)] = signed;
+
+  // A staging receipt for the same candidate and version is not the public install.
+  for (const details of [{...proof.details, staging: 'https://blanc-update-staging.bnfy-441.workers.dev', setupFile: 'UpdaterSetup_test.exe'},
+      {...proof.details, setupFile: 'UpdaterSetup.exe'}]) {
+    Object.assign(proof, {details});
+    await assert.rejects(runStage('verify-public', workFolder(state.done), world(answers)), /public setup did not install/);
+  }
 });
 
 test('a failed deploy keeps what the command said in a private log in the work folder', async () => {

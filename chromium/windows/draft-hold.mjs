@@ -124,7 +124,7 @@ export function breakHold(io, {nightAlive, work = null, markAbandoned = null, cl
   if (hold.body.kind === 'nightly' && clearNightLock) clearNightLock();
   if (hold.body.kind === 'release') {
     if (!work || !markAbandoned) throw new Error('A release hold needs that release\'s work folder (--work DIR), which is marked abandoned first.');
-    markAbandoned(work);
+    markAbandoned(work, hold.body);
   }
   if (io.exec('gh', ['api', '-X', 'DELETE', hold.apiUrl]).status !== 0) throw new Error('Could not remove the hold.');
   return hold.body;

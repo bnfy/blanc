@@ -73,9 +73,10 @@ test('a schema-2 stage needs the live hold, and an abandoned release runs nothin
 test('only one stage runs at a time, and abandoning waits for a running stage', () => {
   const work = workFolder(v2, {hold: {owner: 'mine'}});
   fs.writeFileSync(path.join(work, 'STAGE-RUNNING'), JSON.stringify({pid: process.pid}));
-  assert.throws(() => markAbandoned(work), /stage is running/);
+  assert.throws(() => markAbandoned(work, {owner: 'mine'}), /stage is running/);
   fs.writeFileSync(path.join(work, 'STAGE-RUNNING'), JSON.stringify({pid: 2 ** 22 + 12345}));
-  markAbandoned(work);
+  markAbandoned(work, {owner: 'mine'});
+  assert.equal(fs.existsSync(path.join(work, 'STAGE-RUNNING')), false, 'the abandonment let go of the lock');
   assert.ok(JSON.parse(fs.readFileSync(path.join(work, 'state.json'))).abandoned);
   // load() still reads an abandoned record, for status.
   assert.ok(load(work, {ledger}).state.abandoned);
@@ -83,12 +84,17 @@ test('only one stage runs at a time, and abandoning waits for a running stage', 
 
 test('an online proof passes only for this release\'s candidate, mode and signed bytes', () => {
   const ctx = {r: v2};
-  const signed = new Set(['e'.repeat(64), 'd'.repeat(64)]);
+  const signed = new Map([['Chrome-bin/chrome.exe', 'e'.repeat(64)], [`Chrome-bin/${v2.version}/chrome.dll`, 'd'.repeat(64)]]);
   const proof = {pass: true, candidate: v2.candidate.id, mode: `online ${v2.version}`, details: {installed: {pv: v2.version}, installedSha256: {exe: 'e'.repeat(64), dll: 'd'.repeat(64)}}};
   assert.equal(proofPasses(ctx, proof, signed), true);
   assert.equal(proofPasses(ctx, {...proof, candidate: 'windows-x64-0000000000000000'}, signed), false);
   assert.equal(proofPasses(ctx, {...proof, mode: 'expect 158.0.8127.905'}, signed), false);
   assert.equal(proofPasses(ctx, {...proof, details: {...proof.details, installedSha256: {exe: 'f'.repeat(64), dll: 'd'.repeat(64)}}}, signed), false);
+  // Each installed file matches its own entry, never any signed hash (or the same one twice).
+  assert.equal(proofPasses(ctx, {...proof, details: {...proof.details, installedSha256: {exe: 'd'.repeat(64), dll: 'e'.repeat(64)}}}, signed), false);
+  assert.equal(proofPasses(ctx, {...proof, details: {...proof.details, installedSha256: {exe: 'e'.repeat(64), dll: 'e'.repeat(64)}}}, signed), false);
+  // Schema 1 keeps its old verdict even without the newer candidate and mode fields.
+  assert.equal(proofPasses({r: v1}, {pass: true, details: {installed: {pv: v2.version}}}, null), true);
   // Schema 1 keeps its old rule (no hashes recorded before the signing record existed).
   assert.equal(proofPasses({r: v1}, {...proof, details: {installed: {pv: v2.version}}}, null), true);
 });
@@ -105,21 +111,88 @@ test('a dispatch\'s run id comes from its own output', () => {
   assert.doesNotMatch(workflowRun, /run', 'list'|'run', 'list'/);
 });
 
+// Codex review of Task 6 (2026-11-21).
+test('two stages can never both take the lock, and abandoning takes the same lock', async () => {
+  const work = workFolder(v2, {hold: {owner: 'mine'}});
+  fs.writeFileSync(path.join(work, 'STAGE-RUNNING'), JSON.stringify({pid: process.pid, stage: 'preflight'}));
+  await assert.rejects(runStage('preflight', work, io(holdAnswers('mine'))), /another stage/);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(work, 'STAGE-RUNNING'), 'utf8')).stage, 'preflight', 'the running stage\'s lock is untouched');
+  // The lock is created exclusively, and taken before the stage reads its state.
+  const source = fs.readFileSync(new URL('./windows-release.mjs', import.meta.url), 'utf8');
+  const locker = source.slice(source.indexOf('function takeStageLock'), source.indexOf('\n}\n', source.indexOf('function takeStageLock')));
+  assert.match(locker, /writeFileSync\(lock, .*flag: 'wx'/);
+  const runner = source.slice(source.indexOf('export async function runStage'));
+  assert.ok(runner.indexOf('takeStageLock(') < runner.indexOf('load(work'), 'lock before load');
+});
+test('abandoning marks only the work folder that owns the live hold', () => {
+  const old = workFolder(v2, {hold: {owner: 'old'}});
+  assert.throws(() => markAbandoned(old, {owner: 'live'}), /does not own/);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(old, 'state.json'))).abandoned, undefined);
+  assert.throws(() => markAbandoned(old, null), /does not own/);
+});
+test('draft and publish check the hold again after the typed confirmation', async () => {
+  const source = fs.readFileSync(new URL('./windows-release.mjs', import.meta.url), 'utf8');
+  for (const stage of ['async draft(', 'async publish(']) {
+    const body = source.slice(source.indexOf(stage), source.indexOf('\n  },\n', source.indexOf(stage)));
+    const confirmAt = body.indexOf('io.confirm(');
+    assert.ok(confirmAt > 0 && body.indexOf('ctx.holdCheck()', confirmAt) > confirmAt, `${stage} rechecks after confirming`);
+    const writes = stage.startsWith('async draft') ? ["'release', 'create'", "'push', 'origin'"] : ["'release', 'edit'"];
+    for (const write of writes) assert.ok(body.lastIndexOf('ctx.holdCheck()', body.indexOf(write)) > confirmAt, `${stage} rechecks before ${write}`);
+  }
+});
+test('a schema-1 stage refuses while anyone holds the draft', async () => {
+  const work = workFolder(v1, {});
+  await assert.rejects(runStage('preflight', work, io(holdAnswers('a-night'))), /held/);
+});
+test('the claims come only from a fetched, readable tip', async () => {
+  const work = () => workFolder(v2, {hold: {owner: 'mine'}});
+  const base = [['release view fork-windows-candidate --repo bnfy/blanc --json assets', {stdout: JSON.stringify({assets: [
+      {name: 'draft-hold.json', apiUrl: 'https://api.github.com/h/1'}, {name: 'blanc-windows-candidate.zip', digest: `sha256:${v2.candidate.zipSha256}`}]})}],
+    holdAnswers('mine')[1], ['rev-parse --verify FETCH_HEAD', {stdout: 'f'.repeat(40) + '\n'}], ['--is-ancestor', {status: 0}]];
+  await assert.rejects(runStage('preflight', work(), io([['fetch -q origin chromium/next', {status: 1}], ...base])), /fetch/);
+  await assert.rejects(runStage('preflight', work(), io([['cat-file -e', {status: 0}], ['show ' + 'f'.repeat(40), {status: 128}], ...base])), /reservations/);
+  await assert.rejects(runStage('preflight', work(), io([['cat-file -e', {status: 0}], ['show ' + 'f'.repeat(40), {stdout: 'not json'}], ...base])), /reservations/);
+});
+test('a schema-2 release uses the draft it was prepared against', async () => {
+  const work = workFolder(v2, {hold: {owner: 'mine'}, draft: 'fork-windows-candidate-rehearsal'});
+  const calls = io([
+    ['release view fork-windows-candidate-rehearsal --repo bnfy/blanc --json assets', {stdout: JSON.stringify({assets: [{name: 'draft-hold.json', apiUrl: 'https://api.github.com/h/1'}]})}],
+    ['api -H Accept: application/octet-stream https://api.github.com/h/1', {stdout: JSON.stringify({kind: 'release', owner: 'mine'})}],
+    ['release view fork-windows-candidate --repo', {status: 1}]]);
+  await assert.rejects(runStage('preflight', work, calls));
+  assert.ok(calls.calls.some(c => c.includes('release view fork-windows-candidate-rehearsal')));
+  assert.ok(!calls.calls.some(c => /release view fork-windows-candidate --repo/.test(c)), 'never the production draft');
+});
+test('status says when a finished release still holds the draft, and how to free it', async () => {
+  const {statusOf} = await import('./windows-release.mjs');
+  const doneAll = Object.fromEntries(['preflight', 'sign', 'package', 'upload', 'staging-gate', 'manifest', 'draft', 'sigstore', 'publish', 'verify-public'].map(s => [s, {at: 'x'}]));
+  const work = workFolder(v2, {hold: {owner: 'mine'}, done: doneAll});
+  const status = statusOf(work, io(holdAnswers('mine')));
+  assert.equal(status.next, null);
+  assert.match(status.hold, /still held/);
+  assert.match(status.recover, /draft-hold\.mjs release/);
+  assert.doesNotMatch(JSON.stringify(status), /mine/, 'the token is never printed');
+  assert.equal(statusOf(work, io(holdAnswers('someone-else'))).hold, undefined);
+});
+
 // Prep, against a simulated MacBook Pro, Mac Studio and GitHub.
-function prepWorld({hold = null, draftDigest = 'b'.repeat(64), lastPass = true, reservations = null} = {}) {
+function prepWorld({hold = null, draftDigest = 'b'.repeat(64), lastPass = true, reservations = null, nightChange = {}, gitLog = 0, fetch = 0} = {}) {
   const records = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-prep-'));
   fs.chmodSync(records, 0o700);
   fs.writeFileSync(path.join(records, 'CURRENT'), '/previous/work');
   let draftHold = hold, digest = draftDigest;
   const calls = [];
   const night = {status: 'pass', stamp: '20261122-0400', sourceCommit: SOURCE, build: 905, version: '158.0.8127.905',
-    beta: {id: v2.candidate.id, zipSha256: 'b'.repeat(64), treeCommit: SOURCE, version: '158.0.8127.905', channel: 'beta'}};
+    beta: {id: v2.candidate.id, zipSha256: 'b'.repeat(64), treeCommit: SOURCE, version: '158.0.8127.905', channel: 'beta'}, ...nightChange};
   const exec = (command, args) => {
     const line = [command, ...args].join(' ');
     calls.push(line);
     if (command === 'ssh' && line.includes('LAST-PASS')) return lastPass ? {status: 0, stdout: JSON.stringify(night), stderr: ''} : {status: 1, stdout: '', stderr: ''};
     if (command === 'scp') { fs.writeFileSync(args.at(-1), 'zip'); return {status: 0, stdout: '', stderr: ''}; }
     if (command === 'git' && line.includes('build-reservations.json')) return reservations ? {status: 0, stdout: JSON.stringify(reservations), stderr: ''} : {status: 128, stdout: '', stderr: ''};
+    if (command === 'git' && args.includes('fetch')) return {status: fetch, stdout: '', stderr: ''};
+    if (command === 'git' && args.includes('rev-parse')) return {status: 0, stdout: 'f'.repeat(40) + '\n', stderr: ''};
+    if (command === 'git' && args.includes('log')) return {status: gitLog, stdout: 'one change\n', stderr: ''};
     if (command === 'git') return {status: 0, stdout: 'one change\n', stderr: ''};
     if (command !== 'gh') return {status: 1, stdout: '', stderr: ''};
     if (args[1] === 'view' && args.includes('isDraft')) return {status: 0, stdout: 'true', stderr: ''};
@@ -162,4 +235,63 @@ test('prep stops, releasing only its own hold, when the reservation file exists 
   assert.throws(() => prepareRelease({io: w.io, records: w.records, ledger}), /claim/);
   assert.equal(w.hold(), null);
   assert.equal(fs.readFileSync(path.join(w.records, 'CURRENT'), 'utf8'), '/previous/work');
+});
+
+// Codex review of Task 6, prep (2026-11-21).
+const ledgerWithSource = {schema: 1, builds: [{build: 904, sourceCommit: 'c'.repeat(40)}]};
+test('prep fails on a failed fetch instead of falling back to the ledger', () => {
+  const w = prepWorld({fetch: 1});
+  assert.throws(() => prepareRelease({io: w.io, records: w.records, ledger}), /fetch/);
+  assert.equal(w.hold(), null);
+});
+test('prep reads the nights and writes to the draft it was given, and saves that draft', () => {
+  const w = prepWorld({draftDigest: 'c'.repeat(64)});
+  const {work} = prepareRelease({io: w.io, records: w.records, ledger, nights: '~/rehearsal/nights', draft: 'fork-windows-candidate-rehearsal'});
+  assert.ok(w.calls.some(c => c.startsWith('ssh') && c.includes('~/rehearsal/nights/LAST-PASS')));
+  assert.ok(w.calls.some(c => c.startsWith('scp') && c.includes('rehearsal/nights/20261122-0400/beta.zip')));
+  assert.ok(!w.calls.some(c => /fork-windows-candidate( |$)/.test(c)), 'never the production draft');
+  assert.equal(JSON.parse(fs.readFileSync(path.join(work, 'state.json'), 'utf8')).draft, 'fork-windows-candidate-rehearsal');
+  assert.throws(() => prepareRelease({io: prepWorld().io, records: w.records, ledger, draft: 'some-other-release'}), /unknown candidate draft/);
+});
+test('prep checks the night\'s beta in full before uploading anything', () => {
+  for (const change of [{beta: {id: v2.candidate.id, zipSha256: 'b'.repeat(64), treeCommit: SOURCE, version: '158.0.8127.905', channel: 'preview'}},
+      {beta: {id: v2.candidate.id, zipSha256: 'b'.repeat(64), treeCommit: 'c'.repeat(40), version: '158.0.8127.905', channel: 'beta'}},
+      {version: '158.0.8127.906'}]) {
+    const w = prepWorld({draftDigest: 'c'.repeat(64), nightChange: change});
+    assert.throws(() => prepareRelease({io: w.io, records: w.records, ledger}), /night/);
+    assert.ok(!w.calls.some(c => c.includes('release upload') && c.includes('blanc-windows-candidate.zip')), JSON.stringify(change));
+    assert.equal(w.hold(), null);
+  }
+});
+test('an interrupted prep lets go of its hold, and a hold it cannot release is recoverable from PREP-HOLD', () => {
+  const w = prepWorld();
+  assert.throws(() => prepareRelease({io: w.io, records: w.records, ledger, interrupted: () => true}), /interrupted/);
+  assert.equal(w.hold(), null);
+  assert.equal(fs.existsSync(path.join(w.records, 'PREP-HOLD')), false);
+  const stuck = prepWorld();
+  const exec = stuck.io.exec;
+  stuck.io.exec = (command, args) => command === 'gh' && args.includes('DELETE') ? {status: 1, stdout: '', stderr: ''} : exec(command, args);
+  assert.throws(() => prepareRelease({io: stuck.io, records: stuck.records, ledger, interrupted: () => true}), /PREP-HOLD/);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(stuck.records, 'PREP-HOLD'), 'utf8')).owner, stuck.hold().owner);
+});
+test('a failed write leaves no version folder behind, so the same night can be prepared again', () => {
+  const w = prepWorld();
+  const rename = fs.renameSync;
+  fs.renameSync = (from, to) => { if (String(to).endsWith('CURRENT')) throw new Error('disk full'); return rename(from, to); };
+  try { assert.throws(() => prepareRelease({io: w.io, records: w.records, ledger})); } finally { fs.renameSync = rename; }
+  assert.deepEqual(fs.readdirSync(w.records).filter(n => n !== 'CURRENT'), []);
+  assert.equal(fs.readFileSync(path.join(w.records, 'CURRENT'), 'utf8'), '/previous/work');
+  assert.ok(prepareRelease({io: w.io, records: w.records, ledger}).work.endsWith('158.0.8127.905'));
+});
+test('a failed git log stops prep before CURRENT moves', () => {
+  const w = prepWorld({gitLog: 128});
+  assert.throws(() => prepareRelease({io: w.io, records: w.records, ledger: ledgerWithSource}), /commits/);
+  assert.equal(fs.readFileSync(path.join(w.records, 'CURRENT'), 'utf8'), '/previous/work');
+});
+test('prep failures are fixed messages that point at the hold status', () => {
+  const w = prepWorld({hold: {kind: 'nightly', owner: 'n'}});
+  assert.throws(() => prepareRelease({io: w.io, records: w.records, ledger}), /draft-hold\.mjs status/);
+  const source = fs.readFileSync(new URL('./daily/windows-beta-prep.mjs', import.meta.url), 'utf8');
+  assert.match(source, /reason\(error\)/, 'the CLI prints reason(), which withholds unexpected errors');
+  assert.match(source, /ledger alone numbers this release/);
 });

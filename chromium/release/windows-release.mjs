@@ -29,7 +29,9 @@ export const STAGES = ['preflight', 'sign', 'package', 'upload', 'staging-gate',
 const POINT_OF_NO_RETURN = STAGES.indexOf('draft');
 export const STAGING = 'https://blanc-update-staging.bnfy-441.workers.dev';
 export const PRODUCTION = 'https://blanc.day';
-const CANDIDATE_DRAFT = 'fork-windows-candidate';
+export const CANDIDATE_DRAFTS = Object.freeze(['fork-windows-candidate', 'fork-windows-candidate-rehearsal']);
+// The draft a release was prepared against (a rehearsal's own), saved in state.json.
+const draftOf = ctx => ctx.state?.draft ?? CANDIDATE_DRAFTS[0];
 const WORKFLOW = 'chromium-windows-candidate.yml';
 const SIGNED_INSTALLER = 'blanc-windows-installer-signed.exe';
 const SIGNED_SETUP = 'Blanc-Beta-Setup.exe';
@@ -79,13 +81,21 @@ export function claimProblem(reservations, r) {
   }
   return null;
 }
-function reservationsAtTip(io) {
-  const shown = io.exec('/usr/bin/git', ['-C', ROOT, 'show', 'FETCH_HEAD:chromium/release/build-reservations.json']);
-  return shown.status === 0 ? JSON.parse(shown.stdout) : null;
+// The shared claims at chromium/next's fetched tip: null only when that commit
+// is proven not to have the file; a failed fetch or an unreadable file stops.
+export function reservationsAtTip(io, root = ROOT, git = '/usr/bin/git') {
+  check(io.exec(git, ['-C', root, 'fetch', '-q', 'origin', 'chromium/next']).status === 0, 'could not fetch chromium/next');
+  const tip = io.exec(git, ['-C', root, 'rev-parse', '--verify', 'FETCH_HEAD^{commit}']);
+  const commit = tip.stdout.trim();
+  check(tip.status === 0 && /^[0-9a-f]{40}$/.test(commit), 'could not read chromium/next\'s fetched commit');
+  const file = `${commit}:chromium/release/build-reservations.json`;
+  if (io.exec(git, ['-C', root, 'cat-file', '-e', file]).status !== 0) return null;
+  const shown = io.exec(git, ['-C', root, 'show', file]);
+  check(shown.status === 0, 'the build reservations could not be read');
+  try { return JSON.parse(shown.stdout); } catch { throw new ReleaseCheckError('the build reservations are not valid JSON'); }
 }
 function checkClaim(io, r) {
   if (r.schema !== 2) return;
-  must(io, '/usr/bin/git', ['-C', ROOT, 'fetch', '-q', 'origin', 'chromium/next'], 'could not fetch chromium/next');
   const reservations = reservationsAtTip(io);
   if (!reservations) return;  // before the shared sequence lands, the ledger rule alone
   const problem = claimProblem(reservations, r);
@@ -94,14 +104,27 @@ function checkClaim(io, r) {
 // An online proof counts only for this release's candidate, in the expected
 // mode, and (schema 2) with the installed chrome.exe and chrome.dll among the
 // files the signing record verified.
-export function proofPasses(ctx, proof, signedHashes) {
+// signedFiles: the signing record's files, name -> SHA-256 (names as the
+// record writes them, Chrome-bin\\chrome.exe and Chrome-bin\\<version>\\chrome.dll).
+export function proofPasses(ctx, proof, signedFiles) {
   const r = ctx.r;
   if (proof?.pass !== true || proof.details?.installed?.pv !== r.version) return false;
+  if (r.schema !== 2) return true;  // schema 1 keeps its old verdict
   if (proof.candidate !== r.candidate.id || proof.mode !== `online ${r.version}`) return false;
-  if (r.schema !== 2) return true;
   const installed = proof.details?.installedSha256;
-  return Boolean(signedHashes && installed && signedHashes.has(installed.exe) && signedHashes.has(installed.dll));
+  const named = name => signedFiles?.get(name);
+  const exe = named('Chrome-bin/chrome.exe'), dll = named(`Chrome-bin/${r.version}/chrome.dll`);
+  return Boolean(installed && exe && dll && installed.exe === exe && installed.dll === dll);
 }
+// The signing record saved by the sign stage, checked against its saved digest.
+function signedFilesOf(ctx) {
+  const file = path.join(ctx.work ?? '', 'signed', SIGNATURE);
+  if (ctx.r.schema !== 2 || !fs.existsSync(file)) return null;
+  equal(fileSha(file), ctx.state.done.sign?.signatureSHA256, 'the signing record changed after signing');
+  return new Map(JSON.parse(fs.readFileSync(file)).files.map(f => [String(f.file).replaceAll('\\', '/'), f.sha256]));
+}
+// The receipt of a clean runner installing from the tagged public setup, not the staging one.
+export const publicProof = r => proof => !proof?.details?.staging && proof?.details?.setupFile === setupName(r) && proof?.details?.tag === 'read from the file';
 
 export const setupName = r => `Blanc-Beta-Setup-${r.version}.exe`;
 export const assetNames = r => [setupName(r), SIGNATURE, 'update-package.json', 'windows-release.json', 'NOTICES.txt'];
@@ -166,7 +189,7 @@ async function workflowRun(io, inputs, message, ctx = null) {
   // A release from a night (schema 2) pins the harness to its commit and lets
   // the signing job re-check the draft's hold; the token itself never leaves
   // this Mac (only its SHA-256, since run logs are public).
-  const pinned = ctx?.r?.schema === 2 ? {source_commit: ctx.r.sourceCommit, hold_owner_sha256: sha256(Buffer.from(ctx.state.hold.owner))} : {};
+  const pinned = ctx?.r?.schema === 2 ? {source_commit: ctx.r.sourceCommit, draft_tag: draftOf(ctx), hold_owner_sha256: sha256(Buffer.from(ctx.state.hold.owner))} : {};
   const dispatched = io.exec('gh', ['workflow', 'run', WORKFLOW, '--repo', REPO, '--ref', 'chromium/next',
     ...Object.entries({...inputs, ...pinned}).flatMap(([key, value]) => ['-f', `${key}=${value}`])]);
   check(dispatched.status === 0, 'could not start the candidate workflow');
@@ -227,17 +250,16 @@ async function proveOnline(io, ctx, inputs, message, extra = () => true) {
   try {
     let proof = null;
     if (io.exec('gh', ['run', 'download', String(run), '--repo', REPO, '-D', dir]).status === 0) { try { proof = proofFrom(dir); } catch {} }
-    const recordFile = path.join(ctx.work ?? '', 'signed', SIGNATURE);
-    const signedHashes = ctx.r.schema === 2 && fs.existsSync(recordFile) ? new Set(JSON.parse(fs.readFileSync(recordFile)).files.map(f => f.sha256)) : null;
-    const passed = success && proofPasses(ctx, proof, signedHashes) && extra(proof);
+    const passed = success && proofPasses(ctx, proof, signedFilesOf(ctx)) && extra(proof);
     return {run, passed};
   } finally { fs.rmSync(dir, {recursive: true, force: true}); }
 }
 
 // Runner checks unpack the candidate from the draft, which holds one zip: a
 // newer upload replaces it, and then this release can't be checked.
-function candidateOnDraft(io, r) {
-  const view = JSON.parse(must(io, 'gh', ['release', 'view', CANDIDATE_DRAFT, '--repo', REPO, '--json', 'assets'], 'GitHub did not show the candidate draft'));
+function candidateOnDraft(io, ctx) {
+  const r = ctx.r;
+  const view = JSON.parse(must(io, 'gh', ['release', 'view', draftOf(ctx), '--repo', REPO, '--json', 'assets'], 'GitHub did not show the candidate draft'));
   const zip = view.assets.find(a => a.name === 'blanc-windows-candidate.zip');
   equal(zip?.digest, `sha256:${r.candidate.zipSha256}`, 'the candidate on the draft is not this release\'s candidate (re-upload it before this stage)');
 }
@@ -246,7 +268,7 @@ export const RUN = {
   async preflight(ctx, io) {
     must(io, '/usr/bin/git', ['-C', ROOT, 'fetch', '-q', 'origin', 'chromium/next'], 'could not fetch chromium/next');
     must(io, '/usr/bin/git', ['-C', ROOT, 'merge-base', '--is-ancestor', ctx.r.sourceCommit, 'FETCH_HEAD'], 'the source commit is not on chromium/next');
-    candidateOnDraft(io, ctx.r);
+    candidateOnDraft(io, ctx);
     checkClaim(io, ctx.r);
     confirmAbsent(io, ctx.r);
     return {candidate: ctx.r.candidate.id};
@@ -258,7 +280,7 @@ export const RUN = {
     const dir = path.join(ctx.work, 'signed');
     fs.rmSync(dir, {recursive: true, force: true});
     fs.mkdirSync(dir, {mode: 0o700});
-    must(io, 'gh', ['release', 'download', CANDIDATE_DRAFT, '--repo', REPO, '--pattern', SIGNED_INSTALLER, '--pattern', SIGNED_SETUP,
+    must(io, 'gh', ['release', 'download', draftOf(ctx), '--repo', REPO, '--pattern', SIGNED_INSTALLER, '--pattern', SIGNED_SETUP,
       '--pattern', SIGNATURE, '--dir', dir], 'could not download the signed files');
     // The draft's copies belong to whichever signing run came last; bind them to this candidate.
     const record = JSON.parse(fs.readFileSync(path.join(dir, SIGNATURE)));
@@ -301,7 +323,7 @@ export const RUN = {
     return {key: `${pkg.sha256}.crx3`};
   },
   async 'staging-gate'(ctx, io) {
-    candidateOnDraft(io, ctx.r);
+    candidateOnDraft(io, ctx);
     deployWorker(io, ctx.work, {staging: true, offer: offerFor(ctx, STAGING)});
     try {
       check(await offers(io, STAGING, ctx.r.version), 'staging does not offer this release');
@@ -333,11 +355,13 @@ export const RUN = {
     confirmAbsent(io, r);
     check(await io.confirm(`tag and draft ${r.tag}`), 'not confirmed; nothing was created');
     confirmAbsent(io, r); // again, immediately before creating anything
+    ctx.holdCheck();
     equal(fileSha(path.join(dir, 'SHA256SUMS')), ctx.state.done.manifest.checksumsSHA256, 'assets changed after the manifest');
     verifyManifest(dir, r);
     check(fs.existsSync(path.join(ctx.work, 'release-notes.md')), 'release notes (WORK/release-notes.md) required');
     must(io, '/usr/bin/git', ['-C', ROOT, 'tag', r.tag, r.sourceCommit], 'could not create the tag');
     must(io, '/usr/bin/git', ['-C', ROOT, 'push', 'origin', `refs/tags/${r.tag}`], 'could not push the tag');
+    ctx.holdCheck();
     must(io, 'gh', ['release', 'create', r.tag, '--repo', REPO, '--verify-tag', '--draft', '--prerelease', '--latest=false',
       '--title', `Blanc Beta ${r.version} for Windows`, '--notes-file', path.join(ctx.work, 'release-notes.md'),
       ...names.map(name => path.join(dir, name))], 'could not create the draft; the tag exists, so fix forward');
@@ -364,9 +388,11 @@ export const RUN = {
   async publish(ctx, io) {
     const r = ctx.r;
     check(await io.confirm(`publish ${r.tag}`), 'not confirmed; the draft stays private and blanc.day offers nothing new');
+    ctx.holdCheck();
     // blanc.day offers the release first, so the setup anyone downloads can install it.
     deployWorker(io, ctx.work, {staging: false, offer: offerFor(ctx, PRODUCTION)});
     check(await offers(io, PRODUCTION, r.version), 'blanc.day does not offer this release; the draft stays private');
+    ctx.holdCheck();
     must(io, 'gh', ['release', 'edit', r.tag, '--repo', REPO, '--draft=false', '--prerelease', '--latest=false'], 'could not publish the draft');
     const view = JSON.parse(must(io, 'gh', ['api', `repos/${REPO}/releases/tags/${r.tag}`], 'GitHub did not show the release'));
     check(view.draft === false && view.prerelease === true, 'GitHub does not show a published pre-release');
@@ -389,9 +415,9 @@ export const RUN = {
       equal(fileSha(path.join(fresh, setupName(r))), ctx.state.done.sign.setupSHA256, 'the public setup is not the signed one');
     } finally { fs.rmSync(fresh, {recursive: true, force: true}); }
     check(await offers(io, PRODUCTION, r.version), 'blanc.day does not offer this release');
-    candidateOnDraft(io, r);
+    candidateOnDraft(io, ctx);
     // A clean runner, the public setup alone, installing from blanc.day.
-    const {run, passed} = await proveOnline(io, ctx, {public_tag: r.tag}, 'Public install check');
+    const {run, passed} = await proveOnline(io, ctx, {public_tag: r.tag}, 'Public install check', publicProof(r));
     check(passed, 'the public setup did not install the release from blanc.day');
     return {run, next: 'records PR: windows-ledger.json entry and cloudflare/update-worker/src/release.json'};
   },
@@ -402,42 +428,81 @@ const alive = pid => { try { process.kill(pid, 0); return true; } catch (error) 
 function runningStage(work) {
   try { const {pid} = JSON.parse(fs.readFileSync(path.join(work, STAGE_LOCK), 'utf8')); return Number.isInteger(pid) && alive(pid) ? pid : null; } catch { return null; }
 }
+// One stage (or the abandonment) at a time: WORK/STAGE-RUNNING is created
+// exclusively and held until the caller lets go. A dead process's lock is
+// cleared once; a live one refuses.
+function takeStageLock(work, what) {
+  const lock = path.join(work, STAGE_LOCK);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      fs.writeFileSync(lock, JSON.stringify({pid: process.pid, stage: what}) + '\n', {mode: 0o600, flag: 'wx'});
+      return () => fs.rmSync(lock, {force: true});
+    } catch (error) { if (error.code !== 'EEXIST') throw error; }
+    check(!runningStage(work), what === 'abandon' ? 'a stage is running for this release; wait for it to end' : 'another stage of this release is running');
+    if (attempt === 0) fs.rmSync(lock, {force: true});
+  }
+  throw new ReleaseCheckError('another stage of this release is running');
+}
 // Marks a release abandoned (draft-hold.mjs break, before it removes the
-// release's hold). Never while one of its stages runs.
-export function markAbandoned(work) {
-  check(!runningStage(work), 'a stage is running for this release; wait for it to end');
-  const file = path.join(work, 'state.json');
-  const state = JSON.parse(fs.readFileSync(file, 'utf8'));
-  state.abandoned = new Date().toISOString();
-  fs.writeFileSync(file, JSON.stringify(state, null, 2) + '\n', {mode: 0o600});
+// release's hold): only the work folder whose state names the live hold, and
+// never while one of its stages runs.
+export function markAbandoned(work, liveHold) {
+  const unlock = takeStageLock(work, 'abandon');
+  try {
+    const file = path.join(work, 'state.json');
+    const state = JSON.parse(fs.readFileSync(file, 'utf8'));
+    check(liveHold?.owner && state.hold?.owner === liveHold.owner, 'this work folder does not own the draft\'s hold; nothing was marked');
+    state.abandoned = new Date().toISOString();
+    fs.writeFileSync(file, JSON.stringify(state, null, 2) + '\n', {mode: 0o600});
+  } finally { unlock(); }
+}
+
+// Whether this release may write to the shared draft now. Schema 2 needs its
+// own live hold; schema 1 (before holds) needs the draft not to be held by anyone.
+function holdCheckFor(ctx, io) {
+  return () => {
+    let hold;
+    try { hold = readHold(io, draftOf(ctx))?.body ?? null; } catch { throw new ReleaseCheckError('the candidate draft\'s hold could not be read'); }
+    if (ctx.r.schema === 2) check(hold?.owner && hold.owner === ctx.state.hold?.owner, 'this release does not hold the candidate draft');
+    else check(!hold, 'the candidate draft is held (draft-hold.mjs status); wait for it to be released');
+  };
 }
 
 export async function runStage(stage, work, io = realIO()) {
-  const ctx = load(work, {ledger: io.ledger?.()});
-  check(!ctx.state.abandoned, 'this release was abandoned; start a new one');
-  admit(ctx.state, stage);
-  // One stage at a time: a stage holds WORK/STAGE-RUNNING for its whole run.
-  const lock = path.join(work, STAGE_LOCK);
-  check(!runningStage(work), 'another stage of this release is running');
-  fs.writeFileSync(lock, JSON.stringify({pid: process.pid, stage}) + '\n', {mode: 0o600});
+  check(STAGES.includes(stage), 'unknown stage');
+  const unlock = takeStageLock(work, stage);
+  let ctx;
   try {
-    // A release from a night writes to the shared draft only while it holds it.
-    if (ctx.r.schema === 2) {
-      let hold = null;
-      try { hold = readHold(io)?.body ?? null; } catch { hold = null; }
-      check(hold?.owner && hold.owner === ctx.state.hold?.owner, 'this release does not hold the candidate draft');
-    }
+    ctx = load(work, {ledger: io.ledger?.()});
+    check(!ctx.state.abandoned, 'this release was abandoned; start a new one');
+    admit(ctx.state, stage);
+    ctx.holdCheck = holdCheckFor(ctx, io);
+    ctx.holdCheck();
     const result = await RUN[stage](ctx, io);
     ctx.state.done[stage] = {at: new Date().toISOString(), ...result};
     ctx.save();
   } finally {
-    fs.rmSync(lock, {force: true});
+    unlock();
   }
   // Only after verify-public is saved: the draft is free for the next night.
   if (stage === 'verify-public' && ctx.r.schema === 2) {
-    try { releaseHold(io, ctx.state.hold.owner); } catch { console.error('The draft hold is still held; run draft-hold.mjs release <owner from state.json>.'); }
+    try { releaseHold(io, ctx.state.hold.owner, draftOf(ctx)); } catch { console.error('The draft hold is still held; run status for the recovery command.'); }
   }
   return {stage, next: nextStage(ctx.state)};
+}
+
+// What status reports; for a finished schema-2 release, whether it still holds the draft.
+export function statusOf(work, io) {
+  const {r, state} = load(work, {ledger: io?.ledger?.()});
+  const status = {done: Object.keys(state.done), next: nextStage(state), ...(state.abandoned ? {abandoned: state.abandoned} : {})};
+  if (r.schema === 2 && state.done['verify-public'] && state.hold?.owner) {
+    let hold;
+    try { hold = readHold(io, draftOf({state}))?.body ?? null; } catch { return {...status, hold: 'unknown: the draft could not be read'}; }
+    if (hold?.owner === state.hold.owner) {
+      return {...status, hold: 'still held by this release', recover: `node chromium/windows/draft-hold.mjs release <hold.owner from ${path.join(work, 'state.json')}>`};
+    }
+  }
+  return status;
 }
 export function realIO() { return macIO(); }
 
@@ -447,8 +512,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
     check(process.platform === 'darwin', 'macOS required');
     check(stage && work && process.argv.length === 4, `usage: windows-release.mjs status|${STAGES.join('|')} WORK`);
     if (stage === 'status') {
-      const {state} = load(path.resolve(work));
-      console.log(JSON.stringify({done: Object.keys(state.done), next: nextStage(state)}));
+      console.log(JSON.stringify(statusOf(path.resolve(work), realIO())));
     } else {
       check(process.stdin.isTTY, 'run release stages from a foreground Terminal');
       console.log(JSON.stringify(await runStage(stage, path.resolve(work))));
