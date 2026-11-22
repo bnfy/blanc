@@ -26,6 +26,8 @@ function betaBuild(t, {comment = false} = {}) {
     return git(cwd, 'rev-parse', 'HEAD');
   }
   write(path.join(src, 'browser.cc'), 'upstream');
+  write(path.join(src, 'unmapped.cc'), 'upstream');
+  write(path.join(src, '.gitignore'), '/out\n/build/\n/buildtools/\n/third_party/\n');
   git(src, 'init', '-q');
   const upstream = commit(src, 'upstream');
   write(path.join(src, 'browser.cc'), 'applied');
@@ -35,7 +37,7 @@ function betaBuild(t, {comment = false} = {}) {
   const map = JSON.stringify({...applied, selection: 'fixture'}, null, 2) + '\n';
   write(path.join(tree, 'chromium/source-map.json'), map);
   write(path.join(tree, 'chromium/lanes/desktop.json'), JSON.stringify({upstream, sourceMap: 'source-map.json', version: '158.0.8127.2'}));
-  for (const file of ['tools/build.mjs', 'linux', 'windows/candidate.mjs', 'release/beta-args.mjs']) {
+  for (const file of ['tools/build.mjs', 'tools/checkout-status.mjs', 'linux', 'windows/candidate.mjs', 'release/beta-args.mjs']) {
     fs.cpSync(path.join(chromium, file), path.join(tree, 'chromium', file), {recursive: true});
   }
   const args = path.join(tree, 'chromium/linux/args/beta-x64.gn');
@@ -108,6 +110,36 @@ test('Linux beta build and packaging verify the applied source map', t => {
   fs.writeFileSync(f.marker, good);
   fs.writeFileSync(f.record, JSON.stringify({...record, appliedSourceMapSha256: hash('wrong map')}));
   assert.match(f.pack().stderr, /guarded.*applied map/i);
+});
+
+test('the Linux beta refuses a change outside the map and preserves the shared checkout', t => {
+  const f = betaBuild(t);
+  const file = path.join(f.src, 'unmapped.cc');
+  fs.writeFileSync(file, 'local edit');
+  const result = f.guard('--build');
+  assert.notEqual(result.status, 0, 'unmapped Chromium edits must stop the build');
+  assert.match(result.stderr, /outside the lane.s map/);
+  assert.equal(fs.readFileSync(file, 'utf8'), 'local edit');
+  assert.equal(fs.existsSync(f.record), false);
+  fs.writeFileSync(file, 'upstream');
+  f.ok(f.guard('--build'));
+  const extra = path.join(f.src, 'untracked.cc');
+  fs.writeFileSync(extra, 'another edit');
+  assert.match(f.pack().stderr, /outside the lane.s map/);
+  assert.equal(fs.readFileSync(extra, 'utf8'), 'another edit');
+});
+
+test('a Linux beta build cannot write provenance if the checkout changes during compilation', t => {
+  const f = betaBuild(t);
+  fs.writeFileSync(path.join(f.src, 'third_party/siso/cipd/siso'), [
+    '#!/bin/sh', 'case " $* " in *" -n "*) echo "Build Succeeded: 1 steps" ;;',
+    '*) echo changed > unmapped.cc ;; esac', ''
+  ].join('\n'));
+  const build = f.guard('--build');
+  assert.notEqual(build.status, 0);
+  assert.match(build.stderr, /outside the lane.s map/);
+  assert.equal(fs.readFileSync(path.join(f.src, 'unmapped.cc'), 'utf8'), 'changed\n');
+  assert.equal(fs.existsSync(f.record), false);
 });
 
 test('a legacy build record or an interrupted Linux beta rebuild cannot qualify a candidate', t => {

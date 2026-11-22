@@ -233,7 +233,7 @@ test('all owner repository commands refuse Linux and an unregistered Mac before 
     for (const [script, args] of [
       ['sign-candidate.command', ['x64', 'a'.repeat(64)]],
       ['sign-candidate.command', ['beta', 'SHA256SUMS', dir, 'APPROVED']],
-      ['repository-approve.command', [dir, 'APPROVED']],
+      ['repository-approve.command', [dir, 'APPROVED', 'fixture checksums']],
       ['repository-sign.command', ['APPROVED', 'UNSIGNED', 'SIGNED']],
       ['repository-upload.command', ['staging', 'SIGNED', '3']],
     ]) {

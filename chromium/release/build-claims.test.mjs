@@ -27,6 +27,11 @@ function fixture(t) {
   const hooks = path.join(dir, 'hooks');
   fs.mkdirSync(hooks);
   git('config', 'core.hooksPath', hooks);
+  fs.mkdirSync(path.join(root, path.dirname(file)), {recursive: true});
+  for (const platform of ['windows', 'linux']) {
+    fs.writeFileSync(path.join(root, 'chromium/release', platform + '-ledger.json'), JSON.stringify({schema: 1, builds: []}));
+  }
+  git('add', 'chromium/release');
   git('commit', '--allow-empty', '-m', 'First source');
   const first = git('rev-parse', 'HEAD');
   git('commit', '--allow-empty', '-m', 'Second source');
@@ -134,6 +139,46 @@ test('a push rejected by an unrelated commit is reapplied on its tip without cha
   assert.equal(f.git('rev-parse', commit + '^'), unrelated);
   assert.equal(f.git('diff', '--name-only', unrelated, commit), file);
   assert.deepEqual(claimsAtTip(f.options), sequence([row]));
+});
+
+for (const platform of ['windows', 'linux']) {
+  test('new claims respect the fetched ' + platform + ' ledger, including after a rejected push', t => {
+    const f = fixture(t);
+    const row = entry(905, f.source);
+    const ledger = 'chromium/release/' + platform + '-ledger.json';
+    fs.writeFileSync(path.join(f.root, ledger), JSON.stringify({schema: 1, builds: [{build: 905, sourceCommit: f.first}]}));
+    f.git('add', ledger);
+    f.git('commit', '-m', 'Release build 905');
+    const released = f.git('rev-parse', 'HEAD');
+    f.git('push', f.remote, 'HEAD:refs/heads/release-fixture');
+    f.git('checkout', '--quiet', '--detach', f.source);
+    fs.writeFileSync(path.join(f.hooks, 'pre-push'),
+      '#!/bin/sh\ngit --git-dir="$2" update-ref refs/heads/chromium/next ' + released + '\n', {mode: 0o755});
+    assert.throws(() => claimExact(row, f.options), ClaimTaken, 'reread the ledger on retry');
+    fs.unlinkSync(path.join(f.hooks, 'pre-push'));
+    assert.throws(() => claimExact(row, f.options), ClaimTaken, 'conflicting published build');
+    assert.throws(() => claimExact(entry(904, f.first), f.options), ClaimTaken, 'below a published build');
+    assert.equal(f.tip(), released);
+    assert.equal(claimsAtTip(f.options), null);
+    const otherPlatform = platform === 'windows' ? 'linux' : 'windows';
+    assert.equal(claimExact(entry(905, f.first, [otherPlatform]), f.options).created, true, 'the same source may share a number');
+  });
+}
+
+test('resuming an identical reservation survives a subsequently published higher build', t => {
+  const f = fixture(t);
+  const row = entry(905, f.first);
+  const claim = claimExact(row, f.options);
+  f.git('fetch', f.remote, ref);
+  f.git('merge', '--ff-only', claim.commit);
+  const ledger = 'chromium/release/windows-ledger.json';
+  fs.writeFileSync(path.join(f.root, ledger), JSON.stringify({schema: 1, builds: [{build: 906, sourceCommit: f.source}]}));
+  f.git('add', ledger);
+  f.git('commit', '-m', 'Later Windows release');
+  f.git('push', f.remote, ref);
+  const before = f.tip();
+  assert.deepEqual(claimExact(row, f.options), {commit: before, created: false});
+  assert.equal(f.tip(), before);
 });
 
 test('invalid remote claims and a rejected push with an unchanged tip fail closed', t => {

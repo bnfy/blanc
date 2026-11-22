@@ -164,7 +164,7 @@ test('the L3 plan records the desktop patch footprint through 0116', () => {
   const change = budget(queue.slice(-1));
   const desktop = budget(queue);
   const plan = fs.readFileSync(path.join(chromium, '../docs/superpowers/plans/2026-11-21-linux-fork-l3.md'), 'utf8');
-  assert.ok(plan.includes(`0116 touches ${change.files} upstream file in ${change.hunks} hunks`));
+  assert.ok(plan.includes(`0116 touches ${change.files} upstream files in ${change.hunks} hunks`));
   assert.ok(plan.includes(`through 0116 touches ${desktop.files} distinct upstream files in ${desktop.hunks} hunks`));
 });
 

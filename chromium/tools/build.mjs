@@ -5,6 +5,7 @@ import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
+import {checkoutStatusProblem} from './checkout-status.mjs';
 
 const digest = value => crypto.createHash('sha256').update(value).digest('hex');
 export function changedInputs(saved, current) {
@@ -321,6 +322,8 @@ export function linuxBetaSource(src) {
       !isDeepStrictEqual(JSON.parse(applied), {upstream, upstreamFiles, canonicalSha256})) {
     throw new Error('The applied source map differs from the Linux beta commit. Run Linux setup for this source.');
   }
+  const statusProblem = checkoutStatusProblem(src, {upstreamFiles, canonicalSha256});
+  if (statusProblem) throw new Error(statusProblem);
   for (const [name, expected] of Object.entries({...upstreamFiles, ...canonicalSha256})) {
     if (digest(fs.readFileSync(path.join(src, name))) !== expected) throw new Error(`Applied Linux beta source differs: ${name}`);
   }
@@ -454,6 +457,9 @@ function main() {
       : spawnSync(siso, [...args, ...targets], { cwd: src, env, stdio: 'inherit' });
     if (build.error) throw build.error;
     if (build.status !== 0) throw new Error(`Build did not complete successfully (${build.status ?? build.signal}). Cached work was preserved.`);
+    if (sourceRecord && !isDeepStrictEqual(sourceRecord, linuxBetaSource(src))) {
+      throw new Error('Linux beta source changed during compilation.');
+    }
     fs.writeFileSync(successFile, JSON.stringify({ inputs, ...sourceRecord, completedAt: new Date().toISOString() }, null, 2) + '\n');
     // Only the preview build is the tracked desktop candidate. The Android
     // candidate is recorded once the tracker holds Android candidates (A0 task 7).

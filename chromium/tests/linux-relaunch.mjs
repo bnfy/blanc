@@ -16,8 +16,7 @@ const launcher = '/usr/bin/blanc-beta';
 const executable = '/opt/bnfy/blanc-beta/chrome';
 const island = 'chrome://blanc-prototype/host.html';
 const updateDomains = [
-  'update.googleapis.com', 'update-pa.googleapis.com', 'clients2.google.com',
-  'clients2.googleusercontent.com', 'tools.google.com', 'dl.google.com', 'dl-ssl.google.com',
+  'google.com', 'googleapis.com', 'googleusercontent.com', 'gstatic.com',
   'gvt1.com', 'chromereleases.googleblog.com', 'chrome-releases.googleblog.com', 'googlechromereleases.blogspot.com',
   'chromiumdash.appspot.com', 'omahaproxy.appspot.com', 'versionhistory.googleapis.com',
 ];
@@ -124,12 +123,21 @@ export async function proveRelaunch({fromVersion, toVersion, upgrade, resultsDir
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-relaunch-'));
   const netlog = path.join(out, 'after-netlog.json');
   const firstLog = path.join(out, 'before-netlog.json');
+  const managed = '/etc/chromium/policies/managed';
+  let policyFile;
   const connections = [];
   const pages = http.createServer((request, response) => {
     response.writeHead(200, {'Content-Type': 'text/plain', 'Cache-Control': 'no-store'});
     response.end(request.url);
   });
   try {
+    // Only on the disposable package runner. Give this run its own policy
+    // file and require the browser to report it active before upgrading.
+    const sudo = (...args) => execFileSync('sudo', ['-n', ...args], {encoding: 'utf8'}).trim();
+    sudo('mkdir', '-p', managed);
+    policyFile = sudo('mktemp', '--suffix=.json', path.join(managed, 'blanc-relaunch-XXXXXXXX'));
+    execFileSync('sudo', ['-n', 'tee', policyFile], {input: JSON.stringify({RelaunchFastIfOutdated: 1})});
+    sudo('chmod', '0644', policyFile);
     await new Promise((resolve, reject) => pages.once('error', reject).listen(0, '127.0.0.1', resolve));
     const base = 'http://127.0.0.1:' + pages.address().port;
     const tabs = [base + '/before-install', base + '/after-install'];
@@ -145,6 +153,19 @@ export async function proveRelaunch({fromVersion, toVersion, upgrade, resultsDir
     } finally { fs.closeSync(fd); }
     const before = await attach(profile, connections);
     assert.equal(before.version, fromVersion);
+    const policyUrl = 'chrome://policy/';
+    const policyTab = await before.browser.send('Target.createTarget', {url: policyUrl});
+    const policyPage = await before.pageForUrl(policyUrl);
+    let policy;
+    try {
+      policy = await waitFor(() => policyPage.eval(`document.querySelector('policy-app')?.policyGroups_
+        ?.find(group => group.id === 'chrome')?.policies.find(row => row.name === 'RelaunchFastIfOutdated')`),
+      row => row?.value === 1 && row.source === 'platform' && row.level === 'mandatory' && row.scope === 'machine' &&
+        !row.error && !row.ignored, 'active managed RelaunchFastIfOutdated policy');
+    } finally {
+      policyPage.close();
+      await before.browser.send('Target.closeTarget', {targetId: policyTab.targetId});
+    }
     await before.browser.send('Target.createTarget', {url: tabs[0]});
     await loadedTabs(before, [tabs[0]]);
     assert.equal(await before.host.eval('Boolean(' + button + ')'), false);
@@ -182,6 +203,7 @@ export async function proveRelaunch({fromVersion, toVersion, upgrade, resultsDir
       catch (error) { if (error.code === 'ENOENT') return true; throw error; }
     }, Boolean, 'restarted browser exit');
     const result = {
+      policy,
       before: {pid: before.pid, version: before.version, hosts: checkUpdateNetLog(fs.readFileSync(firstLog, 'utf8'), tabs[1])},
       after: {pid: after.pid, version: after.version, hosts: checkUpdateNetLog(fs.readFileSync(netlog, 'utf8'), control)},
       restored,
@@ -202,6 +224,7 @@ export async function proveRelaunch({fromVersion, toVersion, upgrade, resultsDir
     pages.closeAllConnections();
     await new Promise(resolve => pages.close(resolve));
     fs.rmSync(profile, {recursive: true, force: true});
+    if (policyFile) execFileSync('sudo', ['-n', 'rm', '--', policyFile]);
   }
 }
 

@@ -16,3 +16,48 @@
 +  enable_update_notifications =
 +      is_chrome_branded || (is_linux && blanc_channel == "beta")
  }
+--- a/chrome/browser/upgrade_detector/BUILD.gn
++++ b/chrome/browser/upgrade_detector/BUILD.gn
+@@ -135,6 +135,7 @@
+   }
+ 
+   if (is_linux) {
++    deps += [ "//blanc:buildflags" ]
+     sources += [
+       "directory_monitor.cc",
+       "get_installed_version_linux.cc",
+--- a/chrome/browser/upgrade_detector/upgrade_detector.cc
++++ b/chrome/browser/upgrade_detector/upgrade_detector.cc
+@@ -21,6 +21,7 @@
+ #include "base/time/clock.h"
+ #include "base/time/tick_clock.h"
+ #include "base/values.h"
++#include "build/build_config.h"
+ #include "chrome/browser/browser_process.h"
+ #include "chrome/browser/lifetime/application_lifetime.h"
+ #include "chrome/browser/ui/browser_otr_state.h"
+@@ -33,6 +34,10 @@
+ #include "components/prefs/pref_service.h"
+ #include "components/version_info/version_info.h"
+ #include "ui/base/idle/idle.h"
++
++#if BUILDFLAG(IS_LINUX)
++#include "blanc/buildflags.h"
++#endif
+ 
+ namespace {
+ 
+@@ -376,6 +381,13 @@
+ 
+ bool UpgradeDetector::ShouldFetchLastServedDate() const {
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
++#if BUILDFLAG(IS_LINUX)
++  // Blanc Beta gets its updates from apt or dnf. Even a managed relaunch
++  // policy must not send the installed version or channel to Google.
++  if (BUILDFLAG(BLANC_BETA_CHANNEL)) {
++    return false;
++  }
++#endif
+   return !fetched_last_served_date_ &&
+          !GetRelaunchFastIfOutdated().is_zero();
+ }

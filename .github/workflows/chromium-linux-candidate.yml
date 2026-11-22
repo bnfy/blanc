@@ -40,6 +40,10 @@ on:
         description: Four-part Linux beta version for beta-install
         required: false
         type: string
+      sourceCommit:
+        description: Full candidate source commit for beta-install reference files
+        required: false
+        type: string
       suite:
         description: Suite to run after the two display checks
         required: true
@@ -329,15 +333,26 @@ jobs:
         if: inputs.check == 'beta-install'
         env:
           VERSION: ${{ inputs.version }}
+          SOURCE_COMMIT: ${{ inputs.sourceCommit }}
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -o pipefail
           [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[1-9][0-9]{0,3}$ ]]
+          [[ $SOURCE_COMMIT =~ ^[0-9a-f]{40}$ ]]
           asset="blanc-linux-beta-$ARCH-${VERSION##*.}-candidate.tar.gz"
           [[ $(gh release view "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft) == true ]]
           mkdir "$RUNNER_TEMP/candidate" "$RUNNER_TEMP/results"
           gh release download "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$asset" --dir "$RUNNER_TEMP/candidate"
           python3 chromium/linux/repository/metadata.py unpack-beta-candidate "$ARCH" "$CANDIDATE_SHA256" \
-            "$RUNNER_TEMP/candidate/$asset" "$RUNNER_TEMP/input" "$VERSION" > /dev/null
+            "$RUNNER_TEMP/candidate/$asset" "$RUNNER_TEMP/input" "$VERSION" |
+            jq -e --arg commit "$SOURCE_COMMIT" '.treeCommit == $commit' >/dev/null
+          git fetch --quiet --no-tags --depth=1 origin "$SOURCE_COMMIT"
+          references="$RUNNER_TEMP/input/references"
+          mkdir "$references"
+          git show "$SOURCE_COMMIT:chromium/linux/repository.md" > "$references/repository.md"
+          for notice in LICENSE ASSET-LICENSE.md THIRD_PARTY_NOTICES.txt; do
+            git show "$SOURCE_COMMIT:chromium/blanc/notices/$notice" > "$references/$notice"
+          done
       - name: Test the installed package on Ubuntu
         if: matrix.system == 'ubuntu'
         env:

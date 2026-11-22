@@ -145,7 +145,7 @@ test('workflow dispatch watches the returned run and rejects skipped or missing 
   const adapter = realIO({
     exec(command, args) {
       calls.push([command, ...args].join(' '));
-      if (args.includes('workflow')) return { status: 0, stdout: 'https://github.com/bnfy/blanc/actions/runs/2345\n' };
+      if (args.includes('workflow')) return { status: 0, stdout: '', stderr: 'https://github.com/bnfy/blanc/actions/runs/2345\n' };
       if (args.includes('download')) return { status: 0, stdout: '' };
       if (args.includes('watch')) return { status: 0, stdout: '' };
       throw Error('Unexpected command');
@@ -262,7 +262,7 @@ test('the command adapter checks draft tar bytes, per-build GN args and installe
   assert.equal(result.run, 98);
   assert.deepEqual(result.packages, packageNames.map(name => ({ name, sha256: sha(name) })));
   assert.ok(calls.some(argv => argv.includes('check=beta-install') && argv.includes('version=' + r.version) &&
-    argv.includes('arch=x64') && argv.includes('sha256=' + tarSha256)));
+    argv.includes('arch=x64') && argv.includes('sha256=' + tarSha256) && argv.includes('sourceCommit=' + r.sourceCommit)));
   omitUbuntu = true;
   await assert.rejects(adapter.buildCheck(ctx, c), /ubuntu/i);
   omitUbuntu = false;
@@ -311,6 +311,56 @@ test('a preexisting approval directory cannot silently replace the verified sign
       }
     }
   }), /fresh owner approval required/);
+});
+
+test('the owner helper checks its private RPM copies against build-check before opening the signing key', async t => {
+  const {realIO} = await import('./linux-release.mjs');
+  const {spawnSync} = await import('node:child_process');
+  const w = world(t), verified = path.join(w.work, 'verified-packages');
+  fs.mkdirSync(verified);
+  const packages = [...names, ...names.map(n => n.replace('.906', '.905'))].map(name => {
+    fs.writeFileSync(path.join(verified, name), name);
+    return {name, sha256: sha(name)};
+  });
+  const ctx = {work: w.work, r, state: {release: 'fixture', done: {'build-check': {checks: [{packages}]}}}};
+  const owner = path.join(w.work, 'owner');
+  fs.mkdirSync(owner);
+  fs.writeFileSync(path.join(owner, 'repository-common.sh'), [
+    'open_repository_work() { work=$(mktemp -d "$PRIVATE_ROOT/private.XXXXXX"); }',
+    'open_signing_key() { echo signing-key-opened >&2; exit 77; }'
+  ].join('\n'));
+  // Swap the RPM for the duration of the copy. A second check of the
+  // mutable original would still see the expected bytes.
+  fs.writeFileSync(path.join(owner, 'sitecustomize.py'), `import os, shutil
+from pathlib import Path
+original_copy = shutil.copyfile
+def copyfile(src, dst):
+    if str(src) != os.getenv("SWAP_RPM"):
+        return original_copy(src, dst)
+    original = Path(src).read_bytes()
+    try:
+        Path(src).write_bytes(b"replacement")
+        return original_copy(src, dst)
+    finally:
+        Path(src).write_bytes(original)
+shutil.copyfile = copyfile
+`);
+  let replace = false;
+  const adapter = realIO({exec(cmd, args) {
+    assert.equal(cmd, 'bash');
+    assert.match(args[0], /repository-approve.command$/);
+    const helper = path.join(owner, 'repository-approve.command');
+    fs.copyFileSync(args[0], helper);
+    const result = spawnSync(cmd, [helper, ...args.slice(1)], {encoding: 'utf8',
+      env: {...process.env, PRIVATE_ROOT: w.work, repo: path.resolve(path.dirname(args[0]), '../repository'),
+        PYTHONPATH: owner, SWAP_RPM: replace ? path.join(verified, names[2]) : ''}});
+    assert.equal(result.status === 77, !replace, result.stderr);
+    if (replace) assert.match(result.stderr, /digest|SHA-256/i);
+    throw Error('fixture stopped before signing');
+  }});
+  await assert.rejects(adapter.sign(ctx), /fixture stopped before signing/);
+  replace = true;
+  await assert.rejects(adapter.sign(ctx), /fixture stopped before signing/);
 });
 
 test('draft rechecks the shared claims against the fetched tip', async t => {

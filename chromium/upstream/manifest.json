@@ -132,6 +132,8 @@
     "chrome/browser/ui/webui/settings/settings_ui.cc": "72b7f786bfbe7fb19335a35aac488dff182600e84e4046e5f8a30d1ed84e4329",
     "chrome/browser/ui/window_feature_controller/window_feature_controller.cc": "267a73f074ee2d19e85b49b4e369804cebe620e84dd89e204f32a879723710b8",
     "chrome/browser/ui/window_metadata/window_metadata_controller.cc": "a3440a18c3e957380ab4b5caf40db0fe71a3f3f7355de338d879407e4c7acdb5",
+    "chrome/browser/upgrade_detector/BUILD.gn": "b01561075562f3b6ee1bc2b7004e602cebcf6616358e17a15acefee434ec8d03",
+    "chrome/browser/upgrade_detector/upgrade_detector.cc": "1ff9e3bfa4fb63c61a0038587884ed5b1acece37279d4aed3d14e9abe3837071",
     "chrome/browser/web_applications/sampling_metrics_provider.cc": "9173ee2a4afd2f14d75949885ef36f57b27baecb4d57fe1a99d194b4657c4bff",
     "chrome/browser/webauthn/chrome_web_authentication_delegate.cc": "acfca55a1b8ef65fd8ef8d4f70a88f6867353894dc9ee7ddcbcd6d532c307226",
     "chrome/common/BUILD.gn": "9fc88e8889adcd51e686221a709bda8b89fab9ba363f9765bfb2ae41166e6555",

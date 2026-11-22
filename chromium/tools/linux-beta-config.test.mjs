@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {execFileSync, spawnSync} from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import {fileURLToPath} from 'node:url';
@@ -70,13 +71,50 @@ test('GN admits Linux x64 and arm64 betas while keeping hooks preview-only', () 
 
 test('the desktop patch enables installed-version notifications only for a Linux beta', () => {
   assert.ok(JSON.parse(read('lanes/desktop.json')).patches.includes(patch));
-  const diff = read(patch);
+  const diff = read(patch).split('--- a/').find(section => section.startsWith('chrome/browser/buildflags.gni\n'));
   assert.match(diff, /\+\+\+ b\/chrome\/browser\/buildflags.gni/);
   assert.deepEqual(diff.split('\n').filter(line => line.startsWith('-') && !line.startsWith('---')),
     ['-  enable_update_notifications = is_chrome_branded']);
   const edits = diff.split('\n').filter(line => line.startsWith('+') && !line.startsWith('+++'))
     .map(line => line.slice(1).trim()).filter(line => line && !line.startsWith('import(')).join(' ');
   assert.equal(edits, 'enable_update_notifications = is_chrome_branded || (is_linux && blanc_channel == "beta")');
+});
+
+test('a managed relaunch policy cannot enable a version-history request on Linux beta', t => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'upgrade-policy-'));
+  t.after(() => fs.rmSync(dir, {recursive: true, force: true}));
+  const source = 'chrome/browser/upgrade_detector/upgrade_detector.cc';
+  const cc = path.join(dir, source);
+  fs.mkdirSync(path.dirname(cc), {recursive: true});
+  fs.copyFileSync(path.join(chromium, 'upstream', source), cc);
+  execFileSync('git', ['apply', '--include=' + source, path.join(chromium, patch)], {cwd: dir});
+  const method = fs.readFileSync(cc, 'utf8').match(/bool UpgradeDetector::ShouldFetchLastServedDate\(\) const \{[^]*?\n\}/)[0];
+  for (const [linux, beta] of [[1, 1], [1, 0], [0, 1]]) {
+    const program = `
+#define BUILDFLAG(flag) (flag)
+#define DCHECK_CALLED_ON_VALID_SEQUENCE(sequence)
+struct Days { int value; bool is_zero() const { return value == 0; } };
+struct UpgradeDetector {
+  Days policy;
+  bool fetched_last_served_date_;
+  Days GetRelaunchFastIfOutdated() const { return policy; }
+  bool ShouldFetchLastServedDate() const;
+};
+${method}
+int main() {
+  for (int days = 0; days <= 2; ++days) {
+    for (int fetched = 0; fetched <= 1; ++fetched) {
+      UpgradeDetector detector{{days}, bool(fetched)};
+      bool expected = !(${linux} && ${beta}) && days != 0 && !fetched;
+      if (detector.ShouldFetchLastServedDate() != expected) return 1;
+    }
+  }
+}`;
+    const exe = path.join(dir, 'policy');
+    execFileSync('c++', ['-std=c++20', '-DIS_LINUX=' + linux, '-DBLANC_BETA_CHANNEL=' + beta,
+      '-x', 'c++', '-', '-o', exe], {input: program});
+    assert.equal(spawnSync(exe).status, 0, 'unexpected fetch decision for linux=' + linux + ', beta=' + beta);
+  }
 });
 
 test('setup requires one build for a beta, and only for a beta, before it calls GN', () => {

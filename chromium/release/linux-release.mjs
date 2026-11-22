@@ -6,7 +6,7 @@
 // the proof candidates can also be pinned, or resolved from their draft assets.
 //
 // Workflow evidence is downloaded by dispatch run ID. The install job runs
-// linux-beta-smoke.mjs VERSION linux-beta-smoke-{deb,rpm}.json --package=FILE.
+// linux-beta-smoke.mjs VERSION RESULT.json --package=FILE --references=DIR.
 // Task 6/7 jobs return CHECK-{ubuntu,debian,fedora}-{x64,arm64}.json with
 // system, arch and pass. The proof also records numeric from/to and digest;
 // verify-public records the installed four-part version.
@@ -397,12 +397,14 @@ export function realIO(commands = ownerIO()) {
     return value;
   }
   function workflow(ctx, inputs) {
-    const output = gh(['workflow', 'run', workflowFile, '--ref', 'chromium/next', ...Object.entries(inputs).flatMap(([key, value]) => ['-f', key + '=' + value])],
-      'could not dispatch ' + inputs.check);
+    const dispatch = commands.exec('gh', ['workflow', 'run', workflowFile, '--ref', 'chromium/next', '--repo', REPO,
+      ...Object.entries(inputs).flatMap(([key, value]) => ['-f', key + '=' + value])]);
+    check(dispatch.status === 0, 'could not dispatch ' + inputs.check);
     const prefix = 'https://github.com/' + REPO + '/actions/runs/';
-    const url = output.trim().split(/\s+/).find(word => word.startsWith(prefix));
-    check(url && /^[1-9]\d*$/.test(url.slice(prefix.length)), 'dispatch returned no unique workflow run URL; inspect the dispatch');
-    const id = url.slice(prefix.length);
+    const urls = new Set([dispatch.stdout, dispatch.stderr].join('\n').split(/\s+/).filter(word => word.startsWith(prefix)));
+    const id = [...urls][0]?.slice(prefix.length);
+    check(urls.size === 1 && /^[1-9]\d*$/.test(id) && Number.isSafeInteger(Number(id)),
+      'dispatch returned no unique workflow run URL; inspect the dispatch');
     gh(['run', 'watch', id, '--exit-status'], 'workflow ' + id + ' did not pass', { interactive: true });
     const dir = scratch(ctx.work, 'run-' + id);
     gh(['run', 'download', id, '--dir', dir], 'could not download workflow evidence for ' + id);
@@ -517,7 +519,8 @@ export function realIO(commands = ownerIO()) {
           fs.copyFileSync(file, path.join(verified, name));
           return { name, sha256: digest };
         });
-        const { run, files } = workflow(ctx, { check: 'beta-install', arch: c.arch, version: c.version, sha256: tarSha256 });
+        const { run, files } = workflow(ctx, { check: 'beta-install', arch: c.arch, version: c.version,
+          sha256: tarSha256, sourceCommit: ctx.r.sourceCommit });
         const fingerprint = ctx.state.done.preflight.fingerprint;
         for (const p of packages) {
           const deb = p.name.endsWith('.deb');
@@ -540,11 +543,9 @@ export function realIO(commands = ownerIO()) {
     async sign(ctx) {
       const verified = path.join(ctx.work, 'verified-packages');
       const inputs = ctx.state.done['build-check'].checks.flatMap(c => c.packages);
-      for (const p of inputs) {
-        equal(fileHash(path.join(verified, p.name)), p.sha256, 'verified package changed before RPM signing');
-      }
+      const checksums = inputs.map(p => p.sha256 + '  ' + p.name).join('\n');
       const name = 'approved-packages.json';
-      const binding = sha256(Buffer.from(format({ record: ctx.state.release, inputs })));
+      const binding = sha256(Buffer.from(format({ record: ctx.state.release, checksums })));
       const receiptFile = path.join(ctx.work, 'signing-receipt.json');
       let approved;
       if (fs.existsSync(receiptFile)) {
@@ -556,7 +557,7 @@ export function realIO(commands = ownerIO()) {
         // The owner helper installs its output atomically. Persist its input
         // and output hashes before handing a single signed file to GitHub.
         approved = path.join(scratch(ctx.work, 'approval'), 'packages');
-        ownerCommand('repository-approve', [verified, approved]);
+        ownerCommand('repository-approve', [verified, approved, checksums]);
         save(receiptFile, { binding, directory: path.relative(ctx.work, approved), sha256: fileHash(path.join(approved, name)) });
       }
       const record = json(path.join(approved, name));

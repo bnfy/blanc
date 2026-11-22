@@ -243,7 +243,7 @@ test('the relaunch proof requires a complete log with the control request and re
   assert.doesNotThrow(() => checkUpdateNetLog(log(control), control));
   assert.throws(() => checkUpdateNetLog(log(control).slice(0, -1), control));
   assert.throws(() => checkUpdateNetLog(log(control + '-other'), control), /control/i);
-  for (const host of ['update.googleapis.com', 'clients2.google.com', 'dl.google.com',
+  for (const host of ['update.googleapis.com', 'clients2.google.com', 'dl.google.com', 'another.googleapis.com', 'other.google.com',
       'chromereleases.googleblog.com', 'googlechromereleases.blogspot.com',
       'chromiumdash.appspot.com', 'versionhistory.googleapis.com']) {
     assert.throws(() => checkUpdateNetLog(log(control, 'https://' + host + '/'), control),

@@ -60,7 +60,9 @@ git config --global blanc.linuxRepositoryOwnerUUID \
    The signer checks the tarball bytes, candidate manifest, executable and both
    packages for each architecture and build. All four must share a source commit.
    An existing handoff of eight individually build-checked packages can also use
-   `chromium/linux/owner/repository-approve.command VERIFIED_PACKAGES APPROVED`.
+   `chromium/linux/owner/repository-approve.command VERIFIED_PACKAGES APPROVED "$(cat PACKAGE_SHA256SUMS)"`,
+   where `PACKAGE_SHA256SUMS` contains the eight filename and digest pairs from build-check
+   in the same two-space format as the archive checksums.
    It signs copies of all four RPMs, checks them against an isolated RPM key
    database, then signs `approved-packages.json`. Its eight rows bind filename,
    SHA-256 and byte size. The newer of the two versions is `releaseVersion`.

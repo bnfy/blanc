@@ -13,4 +13,4 @@ packages=("$input"/*."$format")
 [[ ${#packages[@]} == 1 && -f ${packages[0]} && ! -L ${packages[0]} ]]
 sudo -n "$manager" install -y "${packages[0]}"
 exec xvfb-run -a dbus-run-session -- node "$(dirname "$0")/linux-beta-smoke.mjs" \
-  "$version" "$results/linux-beta-smoke-$format.json" "--package=${packages[0]}"
+  "$version" "$results/linux-beta-smoke-$format.json" "--package=${packages[0]}" "--references=$input/references"

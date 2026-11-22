@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Installed beta, as an ordinary user on a runner with a display:
-// linux-beta-smoke.mjs VERSION RESULT.json [--package=DEB_OR_RPM]
+// linux-beta-smoke.mjs VERSION RESULT.json [--package=DEB_OR_RPM --references=DIR]
 // With a package, also emit the scan, header and installed payload evidence
 // consumed by the release's build-check. No development bundle is supplied.
 import assert from 'node:assert/strict';
@@ -142,12 +142,11 @@ async function run(version) {
     fs.rmSync(dir, { recursive: true, force: true });
   }
 }
-async function packageCheck(file, version, installedSha256) {
-  const root = path.resolve(import.meta.dirname, '../..');
-  const fingerprint = /^Fingerprint: ([A-F0-9]{40})$/m.exec(fs.readFileSync(path.join(root, 'chromium/linux/repository.md'), 'utf8'))?.[1];
+export async function packageCheck(file, version, installedSha256, references) {
+  const fingerprint = /^Fingerprint: ([A-F0-9]{40})$/m.exec(fs.readFileSync(path.join(references, 'repository.md'), 'utf8'))?.[1];
   assert.ok(fingerprint, 'missing pinned repository fingerprint');
   const { scanPackage } = await import('../linux/package-scan.mjs');
-  const scan = await scanPackage(file, { fingerprint });
+  const scan = await scanPackage(file, { fingerprint, noticesDir: references });
   assert.deepEqual(scan.findings, []); assert.equal(scan.ok, true);
   const name = path.basename(file), deb = name.endsWith('.deb');
   const command = (cmd, args) => execFileSync(cmd, args, { encoding: 'utf8' }).trim();
@@ -166,12 +165,13 @@ async function packageCheck(file, version, installedSha256) {
   return { file: name, sha256: hash.digest('hex'), exeSha256, fingerprint, header, scan: true };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
-  const [v, out, pkg, ...extra] = process.argv.slice(2);
+  const [v, out, pkg, refs, ...extra] = process.argv.slice(2);
   try {
-    assert.ok(/^\d+\.\d+\.\d+\.\d+$/.test(v) && out && (!pkg || pkg.startsWith('--package=')) && !extra.length,
-      'Usage: linux-beta-smoke.mjs VERSION RESULT.json [--package=DEB_OR_RPM]');
+    assert.ok(/^\d+\.\d+\.\d+\.\d+$/.test(v) && out &&
+      (pkg === undefined || (/^--package=.+/.test(pkg) && /^--references=.+/.test(refs))) && !extra.length,
+      'Usage: linux-beta-smoke.mjs VERSION RESULT.json [--package=DEB_OR_RPM --references=DIR]');
     const result = await run(v);
-    if (pkg) result.package = await packageCheck(path.resolve(pkg.slice(10)), v, result.exeSha256);
+    if (pkg) result.package = await packageCheck(path.resolve(pkg.slice(10)), v, result.exeSha256, path.resolve(refs.slice(13)));
     fs.writeFileSync(out, JSON.stringify({ ...result, arch: process.arch, pass: true }, null, 2) + '\n', { flag: 'wx' });
   } catch (error) { console.error(error.message); process.exitCode = 1; }
 }

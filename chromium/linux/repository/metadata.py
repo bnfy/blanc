@@ -485,9 +485,12 @@ if __name__ == '__main__':
         require(manifest['version'] == version, 'archive version differs from selected beta')
         print(json.dumps(manifest))
     elif command == 'copy-packages':
+        _, _, expected = args
         paths[1].mkdir()
         for package in package_files(paths[0]):
             shutil.copyfile(package, paths[1] / package.name)
+        actual = [f'{sha(p)}  {p.name}' for p in package_files(paths[1])]
+        require(sorted(expected.splitlines()) == sorted(actual), 'private package SHA-256 differs from build-check')
     elif command == 'names':
         for name in approved(paths[0])[1]:
             print(name)

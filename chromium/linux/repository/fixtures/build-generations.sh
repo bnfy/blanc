@@ -32,7 +32,8 @@ for n in 2 3; do
   input="$work/input$n"
   mkdir "$input"
   for v in "$((n-1))" "$n"; do cp "$work/originals/"*".8127.$v-1"* "$input/"; done
-  "$work/linux/owner/repository-approve.command" "$input" "$work/approved$n"
+  sums=$(cd "$input" && sha256sum -- *.deb *.rpm)
+  "$work/linux/owner/repository-approve.command" "$input" "$work/approved$n" "$sums"
   "$work/linux/repository/build-metadata.sh" "$work/approved$n" "$work/unsigned$n"
   # The public artifact contains only these paths. Reconstruct both arches from the owner copies.
   artifact="$work/artifact$n"

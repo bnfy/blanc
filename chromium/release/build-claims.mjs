@@ -94,6 +94,7 @@ export function claimsAtTip(options = {}) {
 export function claimExact({build, sourceCommit, platforms, purpose}, options = {}) {
   const row = {build, sourceCommit, platforms, purpose};
   validateEntry(row);
+  const conflicts = e => e.build > build || (e.build === build && e.sourceCommit !== sourceCommit);
   return withFetchedTip(options, ({tip, fetchTip, read, target, remote, checked, run}) => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-claim-'));
     const index = {env: {...process.env, GIT_INDEX_FILE: path.join(dir, 'index')}};
@@ -104,8 +105,20 @@ export function claimExact({build, sourceCommit, platforms, purpose}, options = 
         if (platforms.every(platform => claimProblem(claims, {build, sourceCommit, platform}) === null)) {
           return {commit: tip, created: false};
         }
-        if (rows.some(e => e.build > build || (e.build === build && e.sourceCommit !== sourceCommit))) {
+        if (rows.some(conflicts)) {
           throw new ClaimTaken('an earlier claim holds a higher number or this build for other source');
+        }
+        // A platform may have published before reservations existed. Read both
+        // ledgers from this push's parent, including after a lost push race.
+        for (const platform of ['windows', 'linux']) {
+          const ledger = JSON.parse(checked(['show', tip + ':chromium/release/' + platform + '-ledger.json'],
+            'could not read the ' + platform + ' build ledger'));
+          check(ledger?.schema === 1 && Array.isArray(ledger.builds) &&
+            ledger.builds.every(e => validBuild(e.build) && typeof e.sourceCommit === 'string' && commitId.test(e.sourceCommit)),
+          'invalid ' + platform + ' build ledger');
+          if (ledger.builds.some(conflicts)) {
+            throw new ClaimTaken('the ' + platform + ' ledger holds a higher number or this build for other source');
+          }
         }
         checked(['merge-base', '--is-ancestor', sourceCommit, tip], 'claim source is not on the fetched branch');
         rows.push(row);
