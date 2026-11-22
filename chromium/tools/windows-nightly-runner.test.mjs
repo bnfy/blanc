@@ -142,11 +142,31 @@ test('the workflow never takes the hold token itself, only its SHA-256', () => {
   assert.match(workflow, /\n      hold_owner_sha256:\n/);
   assert.doesNotMatch(signJob, /HOLD_OWNER: \$\{\{ inputs\.hold_owner \}\}/);
   const upload = step(signJob, 'Keep the signed installer on the draft release');
-  assert.match(upload, /SHA256[\s\S]*\.owner[\s\S]*-cne \$env:HOLD_OWNER_SHA256/);
+  assert.match(upload, /\.owner[\s\S]*Cryptography\.SHA256[\s\S]*-cne \$env:HOLD_OWNER_SHA256/);
 });
-test('signing without a hold refuses a held draft', () => {
-  const upload = step(signJob, 'Keep the signed installer on the draft release');
-  assert.match(upload, /\$held = [^\n]*'draft-hold\.json'[\s\S]*\} else \{[\s\S]*if \(\$held\) \{ throw 'The draft is held; this signing run has no hold\.' \}/);
+test('every signing run names a hold and a source commit on chromium/next, checked before Azure signs anything', () => {
+  const validate = step(signJob, 'Validate inputs');
+  assert.match(validate, /if \(\$env:HOLD_OWNER_SHA256 -cnotmatch '\^\[0-9a-f\]\{64\}\$'\) \{ throw/);
+  assert.match(validate, /if \(\$env:SOURCE_COMMIT -cnotmatch '\^\[0-9a-f\]\{40\}\$'\) \{ throw/);
+  assert.match(step(signJob, 'Download, verify and unpack the candidate'), /compare\/\$\(\$env:SOURCE_COMMIT\)\.\.\.chromium\/next[\s\S]*'ahead'[\s\S]*'identical'/);
+  const before = signJob.indexOf("- name: Check the draft's hold before signing");
+  assert.ok(before > 0 && before < signJob.indexOf('- name: Sign the files inside'), 'the hold is checked before signing');
+  for (const name of ["Check the draft's hold before signing", 'Keep the signed installer on the draft release']) {
+    const body = step(signJob, name);
+    assert.match(body, /--json assets --jq '\.assets\[\]\.name'\)\s*\n\s*if \(\$LASTEXITCODE -ne 0\) \{ throw/, `${name}: a failed listing fails`);
+    assert.match(body, /-cne \$env:HOLD_OWNER_SHA256/);
+    assert.doesNotMatch(body, /this signing run has no hold/);
+  }
+});
+test('no test harness, installer or browser runs with the repository token in its environment', () => {
+  for (const job of [candidateJob, signJob]) {
+    for (const block of job.split('\n      - name: ').slice(1)) {
+      if (!/GH_TOKEN: \$\{\{ github\.token \}\}/.test(block)) continue;
+      for (const run of block.matchAll(/node chromium\/tests\//g)) {
+        assert.ok(block.lastIndexOf('Remove-Item Env:GH_TOKEN', run.index) > 0, `step "${block.split('\n')[0]}" drops GH_TOKEN before ${block.slice(run.index, run.index + 60)}`);
+      }
+    }
+  }
 });
 test('signing never runs for a nightly, and checks the source commit too', () => {
   assert.match(workflow, /\n  sign:\n[\s\S]*?if: \$\{\{ inputs\.sign && !inputs\.nightly \}\}/);
@@ -220,4 +240,17 @@ test('the tracker is restored after a nightly, even when the runner fails', () =
     const {trackerAfter} = runSuite(['--slice=f0', '--nightly=200'], {runnerExit});
     assert.equal(trackerAfter.currentCandidates.windows.id, 'windows-x64-0000000000000000', `runner exit ${runnerExit}`);
   }
+});
+
+// Codex final review (2026-11-21): the signing job's exact install-check options parse.
+test('the install check accepts the signing job\'s --signature-record option', async () => {
+  const {spawnSync} = await import('node:child_process');
+  const os = await import('node:os');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-sigrec-'));
+  const record = path.join(dir, 'windows-signature.json');
+  fs.writeFileSync(record, JSON.stringify({files: [{file: 'Chrome-bin\\chrome.exe', sha256: 'e'.repeat(64)}]}));
+  const script = new URL('../tests/windows-install.mjs', import.meta.url);
+  const run = spawnSync(process.execPath, [script.pathname.replaceAll('%20', ' '), dir, path.join(dir, 'out'), 'shipping.exe', '--installer=x.exe', '--signed', `--signature-record=${record}`], {encoding: 'utf8'});
+  assert.doesNotMatch(run.stderr, /Unknown option/);
+  assert.match(run.stderr, /runs on Windows/);
 });

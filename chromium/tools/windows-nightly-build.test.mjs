@@ -34,6 +34,7 @@ function server({prevMap, curMap, status = '', checkAfterApply = 0, guard = {}, 
   let applyChecks = 0;
   const io = {
     read: path => { if (!files.has(path)) throw Object.assign(new Error('ENOENT'), {code: 'ENOENT'}); return String(files.get(path)); },
+    readBytes: path => { if (!files.has(path)) throw Object.assign(new Error('ENOENT'), {code: 'ENOENT'}); return Buffer.from(files.get(path)); },
     remove: path => files.delete(path),
     write: (path, text) => files.set(path, text),
     exists: path => files.has(path),
@@ -159,7 +160,7 @@ test('the bootstrap takes the lock before checkout, keeps its token, and runs th
   assert.match(boot, /trap release EXIT/);
   assert.match(boot, /release\(\) \{[^}]*"\$\(cat "\$\{LOCK\}\/owner" 2>\/dev\/null\)" = "\$\{token\}"/);
   assert.match(boot, /test -z "\$\{status_out\}"/);
-  assert.match(boot, /BLANC_CHECKOUT_LOCK_OWNER="\$\{token\}" PYTHONDONTWRITEBYTECODE=1 node "\$\{TREE\}\/chromium\/windows\/server\/nightly-build\.mjs"/);
+  assert.match(boot, /BLANC_CHECKOUT_LOCK_OWNER="\$\{token\}" PYTHONDONTWRITEBYTECODE=1 setsid node "\$\{TREE\}\/chromium\/windows\/server\/nightly-build\.mjs"/);
   assert.match(boot, /export PATH="\$\{HOME\}\/chromium-desktop\/src\/third_party\/node\/linux\/node-linux-x64\/bin:\$\{HOME\}\/depot_tools-desktop:/);
 });
 
@@ -185,7 +186,7 @@ test('restored files go back if the apply stops before the new map is recorded',
   const prevMap = {upstream: PIN, upstreamFiles: {'a.cc': sha('patched-a'), 'retired.cc': sha('patched')}, canonicalSha256: {}};
   const s = server({prevMap, applyFails: true});
   assert.equal(night(s).status, 'stopped');
-  assert.equal(s.files.get(`${P.src}/retired.cc`), 'patched');
+  assert.equal(String(s.files.get(`${P.src}/retired.cc`)), 'patched');
   assert.deepEqual(JSON.parse(s.files.get(P.applied)), prevMap, 'the applied map is the previous one');
 });
 test('a stop before the beta\'s environment is recorded puts its old args.gn back', () => {
@@ -235,4 +236,27 @@ test('the bootstrap forwards signals, checks its own commands, and stops when it
   assert.match(boot, /status_out="\$\(git -C "\$\{TREE\}" status --porcelain\)" \|\| \{ say stopped/);
   assert.match(boot, /pgrep -f '\[s\]iso ninja' >\/dev\/null; rc=\$\?/);
   assert.match(boot, /printf '%s\\n' "\$\{token\}" > "\$\{LOCK\}\/owner" \|\| \{/);
+});
+
+// Codex final review (2026-11-21): the lock outlives every process of the night.
+test('the server phase runs in its own process group, and the lock goes only when the whole group has ended', () => {
+  const boot = fs.readFileSync(file('windows/server/nightly-bootstrap.sh'), 'utf8');
+  assert.match(boot, /setsid node "\$\{TREE\}\/chromium\/windows\/server\/nightly-build\.mjs"/);
+  assert.match(boot, /kill -"\$1" -- -"\$\{child\}"/, 'a signal reaches the whole group');
+  const forward = boot.slice(boot.indexOf('forward()'), boot.indexOf('\n', boot.indexOf('forward()')));
+  assert.ok(forward.indexOf('drain') >= 0 && forward.indexOf('drain') < forward.indexOf('release'), 'forward drains the group before releasing');
+  assert.match(boot, /drain\(\) \{[^\n]*pgrep -g "\$\{child\}"/);
+  assert.ok(boot.lastIndexOf('drain') > boot.indexOf('wait "${child}"'), 'a normal end drains the group too');
+});
+
+test('a retired binary file goes back byte for byte when the apply stops', () => {
+  const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0xff, 0xfe, 0x00, 0x80]);
+  const prevMap = {upstream: PIN, upstreamFiles: {'a.cc': sha('patched-a'), 'retired.cc': sha(png)}, canonicalSha256: {}};
+  const s = server({prevMap, retiredBytes: png, applyFails: true});
+  assert.equal(night(s).status, 'stopped');
+  assert.deepEqual(Buffer.from(s.files.get(`${P.src}/retired.cc`)), png);
+});
+test('every result of the server phase says it ran', () => {
+  assert.equal(night(server()).phase, 'build');
+  assert.equal(night(server({head: 'e'.repeat(40)})).phase, 'build');
 });

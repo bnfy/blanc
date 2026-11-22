@@ -75,7 +75,7 @@ export function runNightBuild({commit, build, stamp, io, paths, token}) {
       if (Object.hasOwn(current.upstreamFiles, name)) continue;
       const file = path.join(src, name);
       if (io.sha256(file) !== placed) stop('a retired patched file was changed by something else');
-      const before = io.read(file);
+      const before = io.readBytes(file);  // exact bytes: a retired file may be binary
       undo.push(() => io.write(file, before));
       if (run('git', ['-C', src, 'cat-file', '-e', `${previous.upstream}:${name}`]).status === 0) {
         const pristine = must(run('git', ['-C', src, 'show', `${previous.upstream}:${name}`], {binary: true}), 'could not read a retired file from the pin');
@@ -147,17 +147,18 @@ export function runNightBuild({commit, build, stamp, io, paths, token}) {
       must(run(node, [path.join(tree, 'chromium/windows/package-candidate.mjs'), src, folder, `--out=${output.name}`]), `${output.name}: did not package`);
       packages[output.beta ? 'beta' : 'prototype'] = readJSON(path.join(folder, 'package.json'));
     }
-    return {status: 'built', ...packages};
+    return {status: 'built', phase: 'build', ...packages};
   } catch (error) {
     for (const put of undo.reverse()) { try { put(); } catch { /* best effort; the next night's checks catch what remains */ } }
-    if (error instanceof Stop) return {status: 'stopped', reason: error.message};
-    return {status: 'stopped', reason: 'the server phase failed unexpectedly'};
+    if (error instanceof Stop) return {status: 'stopped', phase: 'build', reason: error.message};
+    return {status: 'stopped', phase: 'build', reason: 'the server phase failed unexpectedly'};
   }
 }
 
 export function realIO() {
   return {
     read: file => fs.readFileSync(file, 'utf8'),
+    readBytes: file => fs.readFileSync(file),
     write: (file, data) => fs.writeFileSync(file, data),
     remove: file => fs.rmSync(file, {force: true}),
     exists: file => fs.existsSync(file),

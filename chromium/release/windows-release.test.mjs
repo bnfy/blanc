@@ -40,13 +40,16 @@ function world(answers = [], {confirm = true, files = {}} = {}) {
     ...files,
   };
 }
-function workFolder(state, r = release) {
+function workFolder(state, r = release, hold = undefined) {
   const work = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-win-work-'));
   fs.chmodSync(work, 0o700);
   fs.writeFileSync(path.join(work, 'windows-release.json'), JSON.stringify(r));
-  if (state) fs.writeFileSync(path.join(work, 'state.json'), JSON.stringify({schema: 1, release: sha(fs.readFileSync(path.join(work, 'windows-release.json'))), done: state}));
+  if (state) fs.writeFileSync(path.join(work, 'state.json'), JSON.stringify({schema: 1, release: sha(fs.readFileSync(path.join(work, 'windows-release.json'))), done: state, ...(hold ? {hold} : {})}));
   return work;
 }
+// A hand-held draft (draft-hold.mjs acquire-manual), as a schema-1 signing run needs.
+const heldBy = owner => [['release view fork-windows-candidate --repo bnfy/blanc --json assets', {stdout: JSON.stringify({assets: [{name: 'draft-hold.json', apiUrl: 'https://api.github.com/h/1'}]})}],
+  ['application/octet-stream https://api.github.com/h/1', {stdout: JSON.stringify({kind: 'manual', owner})}]];
 const absent = [['rev-parse -q --verify', {status: 1}], ['ls-remote', {status: 2}], ['releases --jq', {status: 0, stdout: 'v1.49.1\n'}]];
 const draftAssets = zip => ['release view fork-windows-candidate', {stdout: JSON.stringify({assets: [{name: 'blanc-windows-candidate.zip', digest: `sha256:${zip}`}]})}];
 
@@ -94,6 +97,7 @@ function signWorld({record, installer = Buffer.from('MZ signed installer'), setu
     files: [{file: 'blanc-windows-installer-signed.exe', sha256: sha(installer), publisher: PUBLISHER},
       {file: 'Blanc-Beta-Setup.exe', sha256: sha(setup), publisher: PUBLISHER}]};
   return world([
+    ...heldBy('hand'),
     ['workflow run', {stderr: 'https://github.com/bnfy/blanc/actions/runs/77\n'}],
     ['run view 77', {stdout: JSON.stringify({conclusion})}],
     ['release download fork-windows-candidate', args => {
@@ -107,12 +111,16 @@ function signWorld({record, installer = Buffer.from('MZ signed installer'), setu
 }
 
 test('sign runs the approved signing job from chromium/next and keeps files bound to this candidate', async () => {
-  const work = workFolder(done(['preflight']));
+  const signFolder = () => workFolder(done(['preflight']), release, {owner: 'hand'});
+  const work = signFolder();
   const io = signWorld();
   await runStage('sign', work, io);
   const dispatch = io.calls.find(c => c.includes('workflow run'));
   assert.match(dispatch, /--ref chromium\/next/);
   assert.match(dispatch, /sign=true/);
+  assert.match(dispatch, new RegExp(`source_commit=${release.sourceCommit}`));
+  assert.match(dispatch, new RegExp(`hold_owner_sha256=${sha(Buffer.from('hand'))}`));
+  await assert.rejects(runStage('sign', workFolder(done(['preflight'])), world([])), /signing needs the draft's hold/);
   assert.match(dispatch, new RegExp(`sha256=${release.candidate.zipSha256}`));
   assert.doesNotMatch(dispatch, /update_expect/);
   assert.ok(fs.existsSync(path.join(work, 'signed', 'Blanc-Beta-Setup.exe')));
@@ -120,14 +128,14 @@ test('sign runs the approved signing job from chromium/next and keeps files boun
   assert.equal(recorded.run, 77);
   assert.equal(recorded.setupSHA256, sha(Buffer.from('MZ tagged setup')));
 
-  await assert.rejects(runStage('sign', workFolder(done(['preflight'])), signWorld({conclusion: 'failure'})), /signing run/);
+  await assert.rejects(runStage('sign', signFolder(), signWorld({conclusion: 'failure'})), /signing run/);
   const other = {schemaVersion: 1, candidateZipSha256: 'c'.repeat(64), installer: 'x', files: []};
-  await assert.rejects(runStage('sign', workFolder(done(['preflight'])), signWorld({record: other})), /candidate/);
+  await assert.rejects(runStage('sign', signFolder(), signWorld({record: other})), /candidate/);
   const unsigned = {schemaVersion: 1, candidateZipSha256: release.candidate.zipSha256, installer: 'blanc-windows-installer-signed.exe',
     files: [{file: 'blanc-windows-installer-signed.exe', sha256: sha(Buffer.from('MZ signed installer')), publisher: 'CN=Someone Else'},
       {file: 'Blanc-Beta-Setup.exe', sha256: sha(Buffer.from('MZ tagged setup')), publisher: PUBLISHER}]};
-  await assert.rejects(runStage('sign', workFolder(done(['preflight'])), signWorld({record: unsigned})), /Bananify/);
-  await assert.rejects(runStage('sign', workFolder(done(['preflight'])), signWorld({served: Buffer.from('MZ other')})), /differs/);
+  await assert.rejects(runStage('sign', signFolder(), signWorld({record: unsigned})), /Bananify/);
+  await assert.rejects(runStage('sign', signFolder(), signWorld({served: Buffer.from('MZ other')})), /differs/);
 });
 
 // A work folder past sign, with a signed installer and setup on disk.

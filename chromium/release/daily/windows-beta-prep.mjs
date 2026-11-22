@@ -24,7 +24,7 @@ import {fileURLToPath} from 'node:url';
 import {ROOT} from '../preflight.mjs';
 import {ReleaseCheckError, reason} from '../policy.mjs';
 import {load, reservationsAtTip, CANDIDATE_DRAFTS} from '../windows-release.mjs';
-import {acquireHold, releaseHold, uploadUnderHold, REPO} from '../../windows/draft-hold.mjs';
+import {acquireHold, newOwner, releaseHold, uploadUnderHold, REPO} from '../../windows/draft-hold.mjs';
 
 const STUDIO = ['-i', path.join(os.homedir(), '.ssh/id_ed25519_macmini'), '-o', 'IdentitiesOnly=yes', '-o', 'BatchMode=yes',
   '-o', 'ConnectTimeout=15', 'anthonyjloria@Mac-Studio.local'];
@@ -51,14 +51,21 @@ export function nightProblem(night) {
 export function prepareRelease({io, records, ledger, nights = NIGHTS, draft = CANDIDATE_DRAFTS[0], interrupted = () => false}) {
   if (!CANDIDATE_DRAFTS.includes(draft)) stop('unknown candidate draft');
   if (!/^~\/[\w./-]+$/.test(nights) || nights.includes('..')) stop('the nights folder must be a plain path under ~/');
-  let taken;
-  try { taken = acquireHold(io, 'release', 'Windows beta release prep', draft); } catch {
-    stop('the candidate draft is held or could not be taken; see node chromium/windows/draft-hold.mjs status');
-  }
-  const {owner, apiUrl} = taken;
-  // Until the work folder holds the owner, this file does: an interrupted prep can still be undone.
+  fs.mkdirSync(records, {recursive: true, mode: 0o700});
+  fs.chmodSync(records, 0o700);
+  // The owner is chosen and saved before the hold is uploaded: until the work
+  // folder holds it, this file does, so a lost take or an interrupted prep can be undone.
+  const owner = newOwner();
   const recovery = path.join(records, PREP_HOLD);
-  fs.writeFileSync(recovery, JSON.stringify({owner, draft, at: new Date().toISOString()}) + '\n', {mode: 0o600});
+  if (fs.existsSync(recovery)) stop(`an earlier prep left a hold owner in ${recovery}; release that hold (draft-hold.mjs release) and remove the file first`);
+  fs.writeFileSync(recovery, JSON.stringify({owner, draft, at: new Date().toISOString()}) + '\n', {mode: 0o600, flag: 'wx'});
+  let apiUrl;
+  try { ({apiUrl} = acquireHold(io, 'release', 'Windows beta release prep', draft, owner)); } catch {
+    let undone = false;
+    try { releaseHold(io, owner, draft); undone = true; } catch { /* the owner stays in PREP-HOLD */ }
+    if (undone) fs.rmSync(recovery, {force: true});
+    stop(`the candidate draft is held or could not be taken; see node chromium/windows/draft-hold.mjs status${undone ? '' : ` (a hold this prep may have taken names the owner in ${recovery})`}`);
+  }
   const step = () => { if (interrupted()) stop('interrupted'); };
   try {
     const shown = io.exec('ssh', [...STUDIO, `cat ${nights}/$(cat ${nights}/LAST-PASS)/result.json`]);
@@ -104,7 +111,13 @@ export function prepareRelease({io, records, ledger, nights = NIGHTS, draft = CA
       previousBuild: last?.build ?? 0, tag: `chromium-beta-windows-${night.version}`, sourceCommit: night.sourceCommit, prerelease: true, makeLatest: false,
       candidate: {id: beta.id, zipSha256: beta.zipSha256, treeCommit: beta.treeCommit, version: beta.version}};
     const work = path.join(records, night.version);
-    if (fs.existsSync(work)) stop('a work folder for this version already exists');
+    if (fs.existsSync(work)) {
+      // An abandoned release of this version (it never tagged) is kept beside, never reused or deleted.
+      let earlier = null;
+      try { earlier = JSON.parse(fs.readFileSync(path.join(work, 'state.json'), 'utf8')); } catch { earlier = null; }
+      if (!earlier?.abandoned) stop('a work folder for this version already exists');
+      fs.renameSync(work, `${work}.abandoned-${new Date().toISOString().replace(/[:.]/g, '-')}`);
+    }
     // Built beside its final place, checked, then moved in whole.
     const staged = fs.mkdtempSync(path.join(records, '.prep-'));
     let placed = false;
@@ -143,12 +156,14 @@ export function prepareRelease({io, records, ledger, nights = NIGHTS, draft = CA
 if (process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) {
   const arg = name => { const at = process.argv.indexOf(name); return at > 0 ? process.argv[at + 1] : null; };
   const records = path.resolve(arg('--records') ?? path.join(os.homedir(), 'Projects/Blanc/records/windows-release'));
-  // A signal reaches ssh or scp too; prep then stops at its next step and lets go of the hold.
+  // A signal reaches ssh, scp or gh too (spawnSync reports it); prep then stops at its next step and lets go of the hold.
   let interrupted = false;
   for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(signal, () => { interrupted = true; });
   const io = {
     exec(command, args) {
       const result = spawnSync(command, args, {encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
+      // Ctrl-C reaches the child in the same process group; its signal is how prep hears it in time.
+      if (result.signal) interrupted = true;
       return {status: result.error ? -1 : result.status, stdout: result.stdout ?? '', stderr: result.stderr ?? ''};
     },
     sha256: file => sha256(fs.readFileSync(file)),

@@ -26,7 +26,7 @@ const installerOption=installOptions.find(o=>o.startsWith('--installer='))?.slic
 const signed=installOptions.includes('--signed');
 const signatureRecord=installOptions.find(o=>o.startsWith('--signature-record='))?.slice('--signature-record='.length)??null;
 const signedHashes=signatureRecord?new Set(JSON.parse(fs.readFileSync(signatureRecord,'utf8')).files.map(f=>f.sha256)):null;
-if(installOptions.some(o=>!o.startsWith('--installer=')&&o!=='--signed'))throw Error('Unknown option: '+installOptions.join(' '));
+if(installOptions.some(o=>!o.startsWith('--installer=')&&!o.startsWith('--signature-record=')&&o!=='--signed'))throw Error('Unknown option: '+installOptions.join(' '));
 if(signed&&!installerOption)throw Error('--signed needs the signed installer, through --installer');
 if(!candidateFolder||!resultsFolder||!shippingInstaller)throw Error('Usage: windows-install.mjs CANDIDATE_FOLDER RESULTS_FOLDER SHIPPING_INSTALLER');
 if(process.platform!=='win32')throw Error('The install check runs on Windows');

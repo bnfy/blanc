@@ -49,6 +49,18 @@ export function runNight({io, paths, token}) {
   const ssh = (remote, options) => exec('ssh', ['-i', paths.sshKey, '-o', 'IdentitiesOnly=yes', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=15',
     '-o', 'ServerAliveInterval=60', paths.server, remote], options);
   const dropZips = () => { for (const kind of ['beta', 'prototype']) io.remove(path.join(night, `${kind}.zip`)); };
+  // GitHub's word that a run ended; null while it hasn't (a failed watch never counts).
+  const completed = id => {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try { exec('gh', ['run', 'watch', id, '--repo', REPO, '--interval', '60']); } catch { /* the view decides */ }
+      let view = {};
+      try { view = JSON.parse(exec('gh', ['run', 'view', id, '--repo', REPO, '--json', 'status,conclusion']).stdout || '{}'); } catch { view = {}; }
+      if (view.status === 'completed') return view.conclusion ?? '';
+    }
+    return null;
+  };
+  // Set once the server phase has run under this night's checkout lock (never for busy).
+  let serverRan = false;
 
   const commit = exec('git', ['-C', worktree, 'rev-parse', 'HEAD']).stdout.trim();
   if (!/^[0-9a-f]{40}$/.test(commit)) return record({status: 'fail', reason: 'could not read the night\'s commit'});
@@ -91,6 +103,7 @@ export function runNight({io, paths, token}) {
     let built;
     try { built = JSON.parse(server.stdout.trim().split('\n').at(-1)); } catch { built = null; }
     if (!built) return (result = record({...base, status: 'fail', reason: 'the build server gave no result'}));
+    serverRan = built.status === 'built' || built.phase === 'build';
     if (built.status === 'busy') return (result = record({...base, status: 'skipped', reason: built.reason}));
     if (built.status !== 'built') return (result = record({...base, status: 'fail', reason: `server: ${built.reason ?? 'stopped'}`}));
 
@@ -116,8 +129,8 @@ export function runNight({io, paths, token}) {
       return id;
     };
     const finish = id => {
-      exec('gh', ['run', 'watch', id, '--repo', REPO, '--interval', '60']);
-      const conclusion = JSON.parse(exec('gh', ['run', 'view', id, '--repo', REPO, '--json', 'conclusion']).stdout || '{}').conclusion;
+      const conclusion = completed(id);
+      if (conclusion === null) throw new Error(`Run ${id} did not complete.`);
       finished.add(id);
       const dir = path.join(night, 'runs', id);
       exec('gh', ['run', 'download', id, '--repo', REPO, '--name', `chromium-windows-candidate-${id}`, '--dir', dir]);
@@ -164,10 +177,12 @@ export function runNight({io, paths, token}) {
         channel: zips.beta.channel, executableSha256: zips.beta.exeSha256, dllSha256: zips.beta.dllSha256},
       prototype: {id: zips.prototype.id, zipSha256: zips.prototype.zipSha256, treeCommit: zips.prototype.treeCommit}});
     if (verdict.status === 'pass') {
-      io.write(path.join(records, 'LAST-PASS'), stamp + '\n');
+      io.write(path.join(records, 'LAST-PASS.tmp'), stamp + '\n');
+      io.rename(path.join(records, 'LAST-PASS.tmp'), path.join(records, 'LAST-PASS'));
+      // The older pass's files go best effort: a failure there never undoes this pass.
       if (lastPassStamp && lastPassStamp !== stamp) {
-        for (const kind of ['beta', 'prototype']) io.remove(path.join(records, lastPassStamp, `${kind}.zip`));
-        ssh(`rm -rf ${SERVER_EVIDENCE}/nightly-${lastPassStamp}`);
+        for (const kind of ['beta', 'prototype']) { try { io.remove(path.join(records, lastPassStamp, `${kind}.zip`)); } catch { /* kept; harmless */ } }
+        try { ssh(`rm -rf ${SERVER_EVIDENCE}/nightly-${lastPassStamp}`); } catch { /* kept on the server */ }
       }
     }
     return result;
@@ -176,16 +191,15 @@ export function runNight({io, paths, token}) {
     throw error;
   } finally {
     if (result?.status !== 'pass') {
-      dropZips();
-      ssh(`rm -rf ${SERVER_EVIDENCE}/nightly-${stamp}`);
+      try { dropZips(); } catch { /* best effort */ }
+      // Only this night's packages, and only if its server phase ran: the apply backup stays.
+      if (serverRan) { try { ssh(`rm -rf ${SERVER_EVIDENCE}/nightly-${stamp}/beta ${SERVER_EVIDENCE}/nightly-${stamp}/prototype`); } catch { /* kept */ } }
     }
     // Every run this night started ends before the draft can change hands.
     // A run whose cancel was refused may still write to the draft, so the hold stays.
     for (const id of started.filter(id => !finished.has(id))) {
-      try {
-        if (exec('gh', ['run', 'cancel', id, '--repo', REPO]).status !== 0) keepHold = true;
-      } catch { keepHold = true; }
-      try { exec('gh', ['run', 'watch', id, '--repo', REPO, '--interval', '30']); } catch { /* cancelled; its end is best effort */ }
+      try { exec('gh', ['run', 'cancel', id, '--repo', REPO]); } catch { /* the status decides */ }
+      if (completed(id) === null) keepHold = true;
     }
     if (rerunUploaded) {
       try { deleteUnderHold(io, owner, 'nightly-rerun.json', draft); } catch { keepHold = true; }
@@ -207,6 +221,7 @@ export function realIO() {
     write: (file, text) => { fs.mkdirSync(path.dirname(file), {recursive: true}); fs.writeFileSync(file, text); },
     exists: file => fs.existsSync(file),
     remove: file => fs.rmSync(file, {recursive: true, force: true}),
+    rename: (from, to) => fs.renameSync(from, to),
     mkdir: dir => fs.mkdirSync(dir),
     sha256: file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),
     exec(command, args, {input} = {}) {

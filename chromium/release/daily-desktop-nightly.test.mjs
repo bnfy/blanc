@@ -167,7 +167,7 @@ const NIGHT_COMMIT = 'a'.repeat(40);
 const BETA_ZIP = 'beta zip bytes', PROTO_ZIP = 'proto zip bytes';
 function world({hold = null, serverReply = null, betaTree = NIGHT_COMMIT, suiteResult = () => 'pass', rerunResult = () => 'pass',
                 lastPass = null, macMarker = false, runningToken = 'tok', throwAt = null, suiteConclusion = 'success', probe = {status: 0, stdout: 'free\n'},
-                holdReadFails = false, reservationsShow = null, failDispatch = 0} = {}) {
+                holdReadFails = false, reservationsShow = null, failDispatch = 0, runStatus = () => 'completed', removeFails = () => false} = {}) {
   const files = new Map(), calls = [], uploads = [];
   const R = '/rec';
   files.set(`${R}/RUNNING/owner`, JSON.stringify({pid: 1, token: runningToken, stamp: '20261122-0400'}));
@@ -187,7 +187,8 @@ function world({hold = null, serverReply = null, betaTree = NIGHT_COMMIT, suiteR
     now: () => new Date('2026-11-22T09:00:00Z'),
     read: p => { if (!files.has(p)) throw Object.assign(new Error('ENOENT ' + p), {code: 'ENOENT'}); return files.get(p); },
     write: (p, t) => files.set(p, t), exists: p => files.has(p) || [...files.keys()].some(k => k.startsWith(p + '/')),
-    remove: p => { for (const k of [...files.keys()]) if (k === p || k.startsWith(p + '/')) files.delete(k); },
+    remove: p => { if (removeFails(p)) throw new Error('EPERM ' + p); for (const k of [...files.keys()]) if (k === p || k.startsWith(p + '/')) files.delete(k); },
+    rename: (from, to) => { if (!files.has(from)) throw new Error('ENOENT ' + from); files.set(to, files.get(from)); files.delete(from); },
     mkdir: p => { if (files.has(p + '/.dir')) throw Object.assign(new Error('EEXIST'), {code: 'EEXIST'}); files.set(p + '/.dir', ''); }, sha256: p => sha2(files.get(p)),
     copyFile: (from, to) => fs.writeFileSync(to, files.get(from)),
     exec(command, args, options = {}) {
@@ -239,7 +240,10 @@ function world({hold = null, serverReply = null, betaTree = NIGHT_COMMIT, suiteR
       }
       if (args[0] === 'run' && args[1] === 'watch') return {status: 0, stdout: '', stderr: ''};
       if (args[0] === 'run' && args[1] === 'cancel') { cancelled.push(args[2]); return {status: 0, stdout: '', stderr: ''}; }
-      if (args[0] === 'run' && args[1] === 'view') return {status: 0, stdout: JSON.stringify({conclusion: runs.get(Number(args[2]))?.asset === 'blanc-windows-prototype.zip' ? suiteConclusion : 'success'}), stderr: ''};
+      if (args[0] === 'run' && args[1] === 'view') {
+        const status = runStatus(Number(args[2]));
+        return {status: 0, stdout: JSON.stringify({status, conclusion: status !== 'completed' ? '' : runs.get(Number(args[2]))?.asset === 'blanc-windows-prototype.zip' ? suiteConclusion : 'success'}), stderr: ''};
+      }
       if (args[0] === 'run' && args[1] === 'download') {
         const id = Number(args[2]), inputs = runs.get(id), dir = args[args.indexOf('--dir') + 1];
         if (inputs.asset === 'blanc-windows-prototype.zip') {
@@ -333,7 +337,7 @@ test('nothing new since the last pass skips the night', () => {
   assert.equal(go(w).status, 'skipped');
 });
 test('an exception still releases the night\'s own hold', () => {
-  const w = world({throwAt: 'run watch'});
+  const w = world({throwAt: 'run download'});
   assert.throws(() => go(w), /boom/);
   assert.equal(w.hold(), null);
 });
@@ -404,4 +408,34 @@ test('nights run through the platform list, Windows first and only for now', () 
   assert.deepEqual(PLATFORMS.map(p => p.name), ['windows']);
   const results = runNights({io: world().io, paths: world().paths, token: 'tok'}, PLATFORMS.map(p => ({...p, run: () => ({status: 'pass', platform: p.name})})));
   assert.deepEqual(results.map(r => r.platform), ['windows']);
+});
+
+// Codex final review (2026-11-21).
+test('a run counts as finished only once GitHub says it completed; an unknown run keeps the hold', () => {
+  const w = world({runStatus: id => id === 102 ? 'in_progress' : 'completed'});
+  const outcome = (() => { try { return go(w); } catch (error) { return {status: 'threw', error}; } })();
+  assert.notEqual(outcome.status, 'pass');
+  assert.ok(w.cancelled.includes('102'), 'the run that never completed was cancelled');
+  assert.ok(w.hold(), 'the hold stays while a run may still use the draft');
+  assert.equal(w.files.has('/rec/LAST-PASS'), false);
+});
+test('a busy server is never cleaned up after; a stopped build loses only its packages', () => {
+  const busy = world({serverReply: {status: 'busy', reason: 'a build is running on the server'}});
+  go(busy);
+  assert.ok(!busy.calls.some(c => c[0] === 'ssh' && c.join(' ').includes('rm ')), 'nothing removed on a busy server');
+  const stopped = world({serverReply: {status: 'stopped', reason: 'the apply check refused the checkout', phase: 'build'}});
+  go(stopped);
+  const removal = stopped.calls.filter(c => c[0] === 'ssh' && c.join(' ').includes('rm '));
+  assert.equal(removal.length, 1);
+  assert.match(removal[0].join(' '), /nightly-20261122-0400\/beta \S*nightly-20261122-0400\/prototype$/);
+  assert.doesNotMatch(removal[0].join(' '), /rm -rf [^ ]*nightly-20261122-0400( |$)/, 'the apply backup stays');
+});
+test('a pass stays a pass when the older pass\'s files cannot be removed, and LAST-PASS moves atomically', () => {
+  const w = world({lastPass: {stamp: '20261121-0400', commit: 'f'.repeat(40)}, removeFails: p => p.includes('20261121-0400')});
+  const result = go(w);
+  assert.equal(result.status, 'pass');
+  assert.equal(w.files.get('/rec/LAST-PASS').trim(), '20261122-0400');
+  assert.ok(w.files.has('/rec/20261122-0400/beta.zip'), 'the new pass keeps its zips');
+  assert.equal(JSON.parse(w.files.get('/rec/20261122-0400/result.json')).status, 'pass');
+  assert.ok(!w.files.has('/rec/LAST-PASS.tmp'));
 });

@@ -120,7 +120,7 @@ test('two stages can never both take the lock, and abandoning takes the same loc
   // The lock is created exclusively, and taken before the stage reads its state.
   const source = fs.readFileSync(new URL('./windows-release.mjs', import.meta.url), 'utf8');
   const locker = source.slice(source.indexOf('function takeStageLock'), source.indexOf('\n}\n', source.indexOf('function takeStageLock')));
-  assert.match(locker, /writeFileSync\(lock, .*flag: 'wx'/);
+  assert.match(locker, /linkSync\(temp, lock\)/);
   const runner = source.slice(source.indexOf('export async function runStage'));
   assert.ok(runner.indexOf('takeStageLock(') < runner.indexOf('load(work'), 'lock before load');
 });
@@ -153,14 +153,15 @@ test('the claims come only from a fetched, readable tip', async () => {
   await assert.rejects(runStage('preflight', work(), io([['cat-file -e', {status: 0}], ['show ' + 'f'.repeat(40), {status: 128}], ...base])), /reservations/);
   await assert.rejects(runStage('preflight', work(), io([['cat-file -e', {status: 0}], ['show ' + 'f'.repeat(40), {stdout: 'not json'}], ...base])), /reservations/);
 });
-test('a schema-2 release uses the draft it was prepared against', async () => {
-  const work = workFolder(v2, {hold: {owner: 'mine'}, draft: 'fork-windows-candidate-rehearsal'});
+test('a schema-2 release reads the draft it was prepared against', async () => {
+  const {statusOf} = await import('./windows-release.mjs');
+  const doneAll = Object.fromEntries(['preflight', 'sign', 'package', 'upload', 'staging-gate', 'manifest', 'draft', 'sigstore', 'publish', 'verify-public'].map(s => [s, {at: 'x'}]));
+  const work = workFolder(v2, {hold: {owner: 'mine'}, draft: 'fork-windows-candidate-rehearsal', done: doneAll});
   const calls = io([
     ['release view fork-windows-candidate-rehearsal --repo bnfy/blanc --json assets', {stdout: JSON.stringify({assets: [{name: 'draft-hold.json', apiUrl: 'https://api.github.com/h/1'}]})}],
     ['api -H Accept: application/octet-stream https://api.github.com/h/1', {stdout: JSON.stringify({kind: 'release', owner: 'mine'})}],
     ['release view fork-windows-candidate --repo', {status: 1}]]);
-  await assert.rejects(runStage('preflight', work, calls));
-  assert.ok(calls.calls.some(c => c.includes('release view fork-windows-candidate-rehearsal')));
+  assert.match(statusOf(work, calls).hold, /still held/);
   assert.ok(!calls.calls.some(c => /release view fork-windows-candidate --repo/.test(c)), 'never the production draft');
 });
 test('status says when a finished release still holds the draft, and how to free it', async () => {
@@ -173,6 +174,14 @@ test('status says when a finished release still holds the draft, and how to free
   assert.match(status.recover, /draft-hold\.mjs release/);
   assert.doesNotMatch(JSON.stringify(status), /mine/, 'the token is never printed');
   assert.equal(statusOf(work, io(holdAnswers('someone-else'))).hold, undefined);
+});
+
+// Codex final review (2026-11-21).
+test('a rehearsal release folder runs no stage, only status', async () => {
+  const work = workFolder(v2, {hold: {owner: 'mine'}, draft: 'fork-windows-candidate-rehearsal'});
+  await assert.rejects(runStage('preflight', work, io(holdAnswers('mine'))), /rehearsal release runs no stages/);
+  const {statusOf} = await import('./windows-release.mjs');
+  assert.equal(statusOf(work, io()).next, 'preflight');
 });
 
 // Prep, against a simulated MacBook Pro, Mac Studio and GitHub.
@@ -294,4 +303,68 @@ test('prep failures are fixed messages that point at the hold status', () => {
   const source = fs.readFileSync(new URL('./daily/windows-beta-prep.mjs', import.meta.url), 'utf8');
   assert.match(source, /reason\(error\)/, 'the CLI prints reason(), which withholds unexpected errors');
   assert.match(source, /ledger alone numbers this release/);
+});
+
+// Codex final review, prep (2026-11-21).
+test('prep creates a missing records folder and keeps the proposed owner before uploading the hold', () => {
+  const w = prepWorld();
+  const records = path.join(w.records, 'new', 'records');
+  const exec = w.io.exec;
+  let ownerAtUpload = null;
+  w.io.exec = (command, args) => {
+    if (command === 'gh' && args[1] === 'upload' && args[3].endsWith('draft-hold.json')) ownerAtUpload = JSON.parse(fs.readFileSync(path.join(records, 'PREP-HOLD'), 'utf8')).owner;
+    return exec(command, args);
+  };
+  const {owner} = prepareRelease({io: w.io, records, ledger});
+  assert.equal(ownerAtUpload, owner, 'PREP-HOLD named the owner before the hold was uploaded');
+  assert.equal(fs.statSync(records).mode & 0o777, 0o700);
+});
+test('a take whose readback is lost is undone by the proposed owner it kept', () => {
+  const w = prepWorld();
+  const exec = w.io.exec;
+  let reads = 0;
+  w.io.exec = (command, args) => (command === 'gh' && args[0] === 'api' && !args.includes('DELETE') && reads++ === 0) ? {status: 1, stdout: '', stderr: ''} : exec(command, args);
+  assert.throws(() => prepareRelease({io: w.io, records: w.records, ledger}), /draft-hold\.mjs status/);
+  assert.equal(w.hold(), null, 'the hold it uploaded was released');
+  assert.equal(fs.existsSync(path.join(w.records, 'PREP-HOLD')), false);
+});
+test('an abandoned release of the same version is moved aside, never reused or deleted', () => {
+  const w = prepWorld();
+  const old = path.join(w.records, '158.0.8127.905');
+  fs.mkdirSync(old, {mode: 0o700});
+  fs.writeFileSync(path.join(old, 'state.json'), JSON.stringify({abandoned: '2026-11-21T00:00:00Z', done: {}}));
+  const {work} = prepareRelease({io: w.io, records: w.records, ledger});
+  assert.equal(work, old);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(work, 'state.json'), 'utf8')).abandoned, undefined);
+  const aside = fs.readdirSync(w.records).filter(n => n.startsWith('158.0.8127.905.abandoned-'));
+  assert.equal(aside.length, 1);
+  assert.ok(JSON.parse(fs.readFileSync(path.join(w.records, aside[0], 'state.json'), 'utf8')).abandoned);
+  // A live (not abandoned) folder still stops prep.
+  const again = prepWorld();
+  fs.mkdirSync(path.join(again.records, '158.0.8127.905'));
+  fs.writeFileSync(path.join(again.records, '158.0.8127.905', 'state.json'), JSON.stringify({done: {}}));
+  assert.throws(() => prepareRelease({io: again.io, records: again.records, ledger}), /already exists/);
+});
+test('a PREP-HOLD left by an earlier prep stops the next one with its recovery step', () => {
+  const w = prepWorld();
+  fs.writeFileSync(path.join(w.records, 'PREP-HOLD'), '{"owner":"x"}');
+  assert.throws(() => prepareRelease({io: w.io, records: w.records, ledger}), /earlier prep left a hold owner/);
+  assert.equal(w.hold(), null, 'nothing was taken');
+});
+test('a lock that is still being written, or unreadable, is never taken for a dead one', async () => {
+  for (const content of ['', '{"pid":', 'not json']) {
+    const work = workFolder(v2, {hold: {owner: 'mine'}});
+    fs.writeFileSync(path.join(work, 'STAGE-RUNNING'), content);
+    await assert.rejects(runStage('preflight', work, io(holdAnswers('mine'))), /another stage/);
+    assert.equal(fs.readFileSync(path.join(work, 'STAGE-RUNNING'), 'utf8'), content, 'left alone');
+    assert.throws(() => markAbandoned(work, {owner: 'mine'}), /stage is running/);
+  }
+  const source = fs.readFileSync(new URL('./windows-release.mjs', import.meta.url), 'utf8');
+  const locker = source.slice(source.indexOf('function takeStageLock'), source.indexOf('\n}\n', source.indexOf('function takeStageLock')));
+  assert.match(locker, /linkSync\(/, 'the lock appears whole, by a hard link of a written file');
+});
+test('a child stopped by a signal counts as an interrupt, since a handler cannot run during synchronous work', () => {
+  const source = fs.readFileSync(new URL('./daily/windows-beta-prep.mjs', import.meta.url), 'utf8');
+  const cli = source.slice(source.indexOf('if (process.argv[1]'));
+  assert.match(cli, /if \(result\.signal\) interrupted = true;/);
 });

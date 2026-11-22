@@ -5,8 +5,9 @@
 # script exists only after the checkout this makes. It takes the desktop
 # checkout lock with an owner token, checks out the night's commit, and runs
 # nightly-build.mjs under that lock. The lock is removed only while it still
-# holds this token, and only after the build process (and its workers) ended:
-# a TERM, INT or HUP is passed on to it and waited for. Prints one JSON line.
+# holds this token, and only after every process of the server phase ended: it
+# runs in its own process group (setsid), a TERM, INT or HUP goes to the whole
+# group, and the lock stays until the group is empty. Prints one JSON line.
 set -uo pipefail
 export PATH="${HOME}/chromium-desktop/src/third_party/node/linux/node-linux-x64/bin:${HOME}/depot_tools-desktop:${PATH}"
 commit="${1:-}"; build="${2:-}"; stamp="${3:-}"
@@ -26,8 +27,10 @@ if ! mkdir "${LOCK}" 2>/dev/null; then
   exit 0
 fi
 child=""
+# Waits until no process of the server phase's group is left (TERM, then KILL after 2 minutes).
+drain() { [ -n "${child}" ] || return 0; local n=0; while pgrep -g "${child}" >/dev/null; do n=$((n + 1)); [ "${n}" -eq 120 ] && kill -KILL -- -"${child}" 2>/dev/null; sleep 1; done; }
 release() { if [ "$(cat "${LOCK}/owner" 2>/dev/null)" = "${token}" ]; then rm -f "${LOCK}/owner"; rmdir "${LOCK}"; fi; }
-forward() { if [ -n "${child}" ]; then kill -"$1" "${child}" 2>/dev/null; wait "${child}" 2>/dev/null; fi; release; trap - EXIT; exit 1; }
+forward() { if [ -n "${child}" ]; then kill -"$1" -- -"${child}" 2>/dev/null; wait "${child}" 2>/dev/null; fi; drain; release; trap - EXIT; exit 1; }
 trap release EXIT
 trap 'forward TERM' TERM
 trap 'forward INT' INT
@@ -39,6 +42,7 @@ git -C "${TREE}" checkout -q --detach "${commit}" || { say stopped "could not ch
 status_out="$(git -C "${TREE}" status --porcelain)" || { say stopped "git status failed in the server's fork checkout"; exit 0; }
 test -z "${status_out}" || { say stopped "the server's fork checkout has local changes"; exit 0; }
 
-BLANC_CHECKOUT_LOCK_OWNER="${token}" PYTHONDONTWRITEBYTECODE=1 node "${TREE}/chromium/windows/server/nightly-build.mjs" "${commit}" "${build}" "${stamp}" &
+BLANC_CHECKOUT_LOCK_OWNER="${token}" PYTHONDONTWRITEBYTECODE=1 setsid node "${TREE}/chromium/windows/server/nightly-build.mjs" "${commit}" "${build}" "${stamp}" &
 child=$!
 wait "${child}"
+drain

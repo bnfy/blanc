@@ -189,7 +189,7 @@ async function workflowRun(io, inputs, message, ctx = null) {
   // A release from a night (schema 2) pins the harness to its commit and lets
   // the signing job re-check the draft's hold; the token itself never leaves
   // this Mac (only its SHA-256, since run logs are public).
-  const pinned = ctx?.r?.schema === 2 ? {source_commit: ctx.r.sourceCommit, draft_tag: draftOf(ctx), hold_owner_sha256: sha256(Buffer.from(ctx.state.hold.owner))} : {};
+  const pinned = ctx?.state?.hold?.owner ? {source_commit: ctx.r.sourceCommit, draft_tag: draftOf(ctx), hold_owner_sha256: sha256(Buffer.from(ctx.state.hold.owner))} : {};
   const dispatched = io.exec('gh', ['workflow', 'run', WORKFLOW, '--repo', REPO, '--ref', 'chromium/next',
     ...Object.entries({...inputs, ...pinned}).flatMap(([key, value]) => ['-f', `${key}=${value}`])]);
   check(dispatched.status === 0, 'could not start the candidate workflow');
@@ -274,6 +274,8 @@ export const RUN = {
     return {candidate: ctx.r.candidate.id};
   },
   async sign(ctx, io) {
+    // The signing job signs only for a run that names the draft's live hold.
+    check(ctx.state.hold?.owner, 'signing needs the draft\'s hold (draft-hold.mjs acquire-manual, its owner in state.json hold.owner)');
     console.log('GitHub asks you to approve fork-windows-signing (Review deployments) once the run starts.');
     const {run, success} = await workflowRun(io, {sha256: ctx.r.candidate.zipSha256, sign: 'true'}, 'Signing run', ctx);
     check(success, 'the signing run did not succeed');
@@ -425,23 +427,32 @@ export const RUN = {
 
 const STAGE_LOCK = 'STAGE-RUNNING';
 const alive = pid => { try { process.kill(pid, 0); return true; } catch (error) { return error.code === 'EPERM'; } };
-function runningStage(work) {
-  try { const {pid} = JSON.parse(fs.readFileSync(path.join(work, STAGE_LOCK), 'utf8')); return Number.isInteger(pid) && alive(pid) ? pid : null; } catch { return null; }
+// 'free' (no lock), 'dead' (a parsed pid that is gone), or 'held' (alive, or unreadable: never reclaimed).
+function lockState(work) {
+  let text;
+  try { text = fs.readFileSync(path.join(work, STAGE_LOCK), 'utf8'); } catch (error) { return error.code === 'ENOENT' ? 'free' : 'held'; }
+  try { const {pid} = JSON.parse(text); return Number.isInteger(pid) && pid > 0 && !alive(pid) ? 'dead' : 'held'; } catch { return 'held'; }
 }
-// One stage (or the abandonment) at a time: WORK/STAGE-RUNNING is created
-// exclusively and held until the caller lets go. A dead process's lock is
-// cleared once; a live one refuses.
+// One stage (or the abandonment) at a time: WORK/STAGE-RUNNING appears whole
+// (a written file hard-linked into place, which fails if the lock exists) and
+// is held until the caller lets go. Only a lock naming a process that is gone
+// is cleared, once; anything else refuses.
 function takeStageLock(work, what) {
   const lock = path.join(work, STAGE_LOCK);
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      fs.writeFileSync(lock, JSON.stringify({pid: process.pid, stage: what}) + '\n', {mode: 0o600, flag: 'wx'});
-      return () => fs.rmSync(lock, {force: true});
-    } catch (error) { if (error.code !== 'EEXIST') throw error; }
-    check(!runningStage(work), what === 'abandon' ? 'a stage is running for this release; wait for it to end' : 'another stage of this release is running');
-    if (attempt === 0) fs.rmSync(lock, {force: true});
-  }
-  throw new ReleaseCheckError('another stage of this release is running');
+  const temp = `${lock}.${process.pid}.${crypto.randomBytes(4).toString('hex')}`;
+  fs.writeFileSync(temp, JSON.stringify({pid: process.pid, stage: what}) + '\n', {mode: 0o600, flag: 'wx'});
+  try {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        fs.linkSync(temp, lock);
+        return () => fs.rmSync(lock, {force: true});
+      } catch (error) { if (error.code !== 'EEXIST') throw error; }
+      const state = lockState(work);
+      check(state === 'dead' || state === 'free', what === 'abandon' ? 'a stage is running for this release; wait for it to end' : 'another stage of this release is running');
+      if (attempt === 0 && state === 'dead') fs.rmSync(lock, {force: true});
+    }
+    throw new ReleaseCheckError(what === 'abandon' ? 'a stage is running for this release; wait for it to end' : 'another stage of this release is running');
+  } finally { fs.rmSync(temp, {force: true}); }
 }
 // Marks a release abandoned (draft-hold.mjs break, before it removes the
 // release's hold): only the work folder whose state names the live hold, and
@@ -463,7 +474,7 @@ function holdCheckFor(ctx, io) {
   return () => {
     let hold;
     try { hold = readHold(io, draftOf(ctx))?.body ?? null; } catch { throw new ReleaseCheckError('the candidate draft\'s hold could not be read'); }
-    if (ctx.r.schema === 2) check(hold?.owner && hold.owner === ctx.state.hold?.owner, 'this release does not hold the candidate draft');
+    if (ctx.r.schema === 2 || ctx.state.hold) check(hold?.owner && hold.owner === ctx.state.hold?.owner, 'this release does not hold the candidate draft');
     else check(!hold, 'the candidate draft is held (draft-hold.mjs status); wait for it to be released');
   };
 }
@@ -475,6 +486,8 @@ export async function runStage(stage, work, io = realIO()) {
   try {
     ctx = load(work, {ledger: io.ledger?.()});
     check(!ctx.state.abandoned, 'this release was abandoned; start a new one');
+    // A rehearsal's work folder is for status only: its stages would sign, tag and offer for real.
+    check(draftOf(ctx) === CANDIDATE_DRAFTS[0], 'a rehearsal release runs no stages; only status');
     admit(ctx.state, stage);
     ctx.holdCheck = holdCheckFor(ctx, io);
     ctx.holdCheck();

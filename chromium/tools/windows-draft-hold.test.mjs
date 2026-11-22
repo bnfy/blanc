@@ -197,3 +197,30 @@ test('ship-candidate.sh no longer creates the draft and prints the chosen draft'
   assert.doesNotMatch(script, /gh release create/);
   assert.match(script, /-f draft_tag=\$\{DRAFT_TAG\}/);
 });
+
+// Codex final review (2026-11-21).
+test('break clears a dead night\'s lock even when the draft has no hold, and never a live one', async () => {
+  const {io} = fakeDraft();
+  let cleared = 0;
+  assert.equal(breakHold(io, {nightAlive: () => false, clearNightLock: () => { cleared++; }}), null);
+  assert.equal(cleared, 1);
+  assert.equal(breakHold(io, {nightAlive: () => true, clearNightLock: () => { cleared++; }}), null);
+  assert.equal(cleared, 1);
+});
+test('the Mac Studio lock checks use the records folder they are given', async () => {
+  const {clearStudioNightLock} = await import('../windows/draft-hold.mjs');
+  const seen = [];
+  const io = {exec: (command, args) => { seen.push(args.at(-1)); return {status: 0, stdout: 'absent\n', stderr: ''}; }};
+  studioNightAlive(io, '~/rehearsal/nights');
+  clearStudioNightLock(io, '~/rehearsal/nights');
+  assert.ok(seen.every(probe => probe.includes('d=~/rehearsal/nights/RUNNING;')), seen.join('\n'));
+  for (const bad of ['/abs', '~/a b', '~/../x', '~/x;rm']) assert.throws(() => studioNightAlive(io, bad), /records/);
+});
+test('every draft-hold command takes --draft for the rehearsal, and break takes --records', () => {
+  const source = fs.readFileSync(fileURLToPath(new URL('../windows/draft-hold.mjs', import.meta.url)), 'utf8');
+  const main = source.slice(source.indexOf('async function main'));
+  assert.match(main, /--draft/);
+  assert.match(main, /studioNightAlive\(io, records\)/);
+  assert.match(main, /clearStudioNightLock\(io, records\)/);
+  for (const call of ['readHold(io, draft)', 'acquireHold(io, \'manual\', note, draft)', 'releaseHold(io, owner, draft)', '}, draft)']) assert.ok(main.includes(call), call);
+});

@@ -33,7 +33,8 @@ cat > "$BASE/scripts/desktop-nightly.sh" <<'BOOT'
 #!/bin/bash
 # The Windows nightly's entry point (install-desktop-nightly.sh writes it).
 #   desktop-nightly.sh [--records DIR] [--draft TAG] [--reservations-ref REF] [--server USER@HOST]
-# Arguments pass to desktop-nightly.mjs; --records also names the lock's folder.
+# Arguments pass to desktop-nightly.mjs, with --records always given as the
+# absolute folder whose lock this script took.
 set -uo pipefail
 export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 BASE="${BLANC_STUDIO_BASE:-$HOME/Projects/Blanc}"
@@ -42,7 +43,12 @@ RECORDS="$BASE/records/nightly/windows"
 args=("$@")
 for ((i = 0; i < ${#args[@]}; i++)); do [ "${args[$i]}" = --records ] && RECORDS="${args[$((i + 1))]:-}"; done
 [ -n "$RECORDS" ] || { echo "--records needs a folder" >&2; exit 1; }
-mkdir -p "$RECORDS"
+mkdir -p "$RECORDS" && RECORDS="$(cd "$RECORDS" && pwd -P)" || { echo "--records is not a usable folder" >&2; exit 1; }
+night_args=()
+for ((i = 0; i < ${#args[@]}; i++)); do
+  if [ "${args[$i]}" = --records ]; then i=$((i + 1)); else night_args+=("${args[$i]}"); fi
+done
+night_args+=(--records "$RECORDS")
 log() { echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) $*" >> "$RECORDS/launcher.log"; }
 LOCK="$RECORDS/RUNNING"
 # One night at a time. A lock whose process is gone stays until a person looks
@@ -57,19 +63,32 @@ stamp="$(date +%Y%m%d-%H%M)"
 printf '{"pid": %d, "token": "%s", "stamp": "%s"}\n' "$$" "$token" "$stamp" > "$LOCK/owner"
 chmod 600 "$LOCK/owner"
 child=""
-release() { if grep -q "\"$token\"" "$LOCK/owner" 2>/dev/null; then rm -f "$LOCK/owner"; rmdir "$LOCK"; fi; }
+# The worktree is shared by every launch (a rehearsal's records included), so it has a lock of its own.
+TLOCK="$TREE.lock"
+tree_held=""
+release() {
+  if [ -n "$tree_held" ] && grep -q "\"$token\"" "$TLOCK/owner" 2>/dev/null; then rm -f "$TLOCK/owner"; rmdir "$TLOCK"; fi
+  if grep -q "\"$token\"" "$LOCK/owner" 2>/dev/null; then rm -f "$LOCK/owner"; rmdir "$LOCK"; fi
+}
 forward() { if [ -n "$child" ]; then kill -"$1" "$child" 2>/dev/null; wait "$child" 2>/dev/null; fi; release; trap - EXIT; exit 1; }
 trap release EXIT
 trap 'forward TERM' TERM
 trap 'forward INT' INT
 trap 'forward HUP' HUP
+if ! mkdir "$TLOCK" 2>/dev/null; then
+  tpid="$(/usr/bin/sed -n 's/.*"pid":[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$TLOCK/owner" 2>/dev/null)"
+  if [ -n "$tpid" ] && ! kill -0 "$tpid" 2>/dev/null; then rm -f "$TLOCK/owner"; rmdir "$TLOCK" 2>/dev/null; fi
+  if ! mkdir "$TLOCK" 2>/dev/null; then log "skipped: another night is using the worktree"; release; trap - EXIT; exit 0; fi
+fi
+tree_held=1
+printf '{"pid": %d, "token": "%s"}\n' "$$" "$token" > "$TLOCK/owner"
 log "start $stamp"
 cd "$TREE" || { log "stopped: no worktree at $TREE"; exit 1; }
 status="$(git status --porcelain)" || { log "stopped: git status failed"; exit 1; }
 [ -z "$status" ] || { log "stopped: the worktree has local changes"; exit 1; }
 git fetch -q origin chromium/next || { log "stopped: could not fetch chromium/next"; exit 1; }
 git checkout -q --detach origin/chromium/next || { log "stopped: could not check out chromium/next"; exit 1; }
-BLANC_NIGHT_TOKEN="$token" node chromium/release/daily/desktop-nightly.mjs "$@" >> "$RECORDS/launcher.log" 2>&1 &
+BLANC_NIGHT_TOKEN="$token" node chromium/release/daily/desktop-nightly.mjs "${night_args[@]}" >> "$RECORDS/launcher.log" 2>&1 &
 child=$!
 wait "$child"
 code=$?
