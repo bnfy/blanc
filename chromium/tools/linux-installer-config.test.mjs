@@ -74,7 +74,8 @@ for (const [channel, host, debArch, rpmArch] of [
     assert.equal(cfg.apt, `deb [arch=${debArch} signed-by=/usr/share/keyrings/${pkg}.gpg] ${repo}/deb stable main`);
     assert.equal(cfg.rpm, repo + '/rpm/stable/$basearch');
     const lines = cfg.dnf.split('\n');
-    for (const line of [`[${pkg}]`, 'baseurl=' + cfg.rpm, 'gpgcheck=1', 'repo_gpgcheck=1',
+    const source = channel === 'beta' ? `mirrorlist=${cfg.rpm}/mirrorlist` : 'baseurl=' + cfg.rpm;
+    for (const line of [`[${pkg}]`, source, 'gpgcheck=1', 'repo_gpgcheck=1',
       `gpgkey=file:///opt/bnfy/${pkg}/blanc-repository.asc`]) assert.ok(lines.includes(line), line);
     assert.equal(lines.filter(l => l.startsWith('gpgkey=')).length, 1);
     for (const line of ['Exec=/usr/bin/' + pkg + ' %U', 'Icon=' + pkg, 'StartupWMClass=' + pkg, 'Categories=Network;WebBrowser;']) {

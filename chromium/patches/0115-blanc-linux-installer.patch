@@ -765,7 +765,7 @@ diff --git a/chrome/installer/linux/common/installer.py b/chrome/installer/linux
              data["rdn_desktop"] = f"{data['info_vars']['RDN']}.{channel}"
          else:
              data["rdn_desktop"] = data["info_vars"]["RDN"]
-@@ -534,26 +519,6 @@
+@@ -534,29 +519,11 @@
          data["startup_wm_class"] = data["info_vars"]["PACKAGE"] or ""
  
          return data
@@ -792,7 +792,12 @@ diff --git a/chrome/installer/linux/common/installer.py b/chrome/installer/linux
  
      def get_template_context(self) -> dict[str, str]:
          ctx = self.info_vars | self.version_vars | self.branding_vars
-@@ -757,6 +722,23 @@
++        ctx["rpm_repo_source"] = (f"mirrorlist={self.repoconfig}/mirrorlist" if self.channel == "beta"
++                                  else f"baseurl={self.repoconfig}")
+         for field in dataclasses.fields(self):
+             val = getattr(self, field.name)
+             if isinstance(val, enum.Enum):
+@@ -757,6 +724,23 @@
                  )
              )
  
@@ -816,7 +821,7 @@ diff --git a/chrome/installer/linux/common/installer.py b/chrome/installer/linux
          # Default apps (Recursive)
          artifacts.append(
              Artifact(
-@@ -859,23 +841,6 @@
+@@ -859,23 +843,6 @@
          if self.package_format == PackageFormat.FLATPAK:
              return artifacts
  
@@ -840,7 +845,7 @@ diff --git a/chrome/installer/linux/common/installer.py b/chrome/installer/linux
          # /usr/bin symlink
          if self.usr_bin_symlink_name:
              link_target = os.path.join(
-@@ -891,13 +856,6 @@
+@@ -891,13 +858,6 @@
                      symlink_target=link_target,
                  )
              )
@@ -1039,7 +1044,7 @@ diff --git a/chrome/installer/linux/common/rpm.include b/chrome/installer/linux/
 +  cat <<'REPOCONTENT'
 +[@@PACKAGE]
 +name=@@MENUNAME
-+baseurl=@@repoconfig
++@@rpm_repo_source
 +enabled=1
 +gpgcheck=1
 +repo_gpgcheck=1
