@@ -222,20 +222,18 @@ async function startDownload({ fixture }) {
 async function confirmDownload(ctx) {
   // UnloadController asks on Linux. DownloadInProgressDialogView defaults
   // to Continue downloading, so Return would exercise the opposite decision.
+  // Exit is pressed through AT-SPI: under Xvfb and Openbox the button's
+  // accessible extents don't match where the dialog is drawn, and a real
+  // click at them missed it (run 45056244980). One button, deduplicated.
   const probe = fileURLToPath(new URL('./lib/linux-download-exit.py', import.meta.url));
-  // The accessibility tree can list the same button twice; count positions.
   const distinct = points => [...new Map(points.map(p => [p.x + ',' + p.y, p])).values()];
-  const buttons = await waitFor(() => distinct(JSON.parse(run('/usr/bin/python3', [probe, String(ctx.fixture.process.pid)]))),
+  await waitFor(() => distinct(JSON.parse(run('/usr/bin/python3', [probe, String(ctx.fixture.process.pid)]))),
     points => points.length === 1, 'the native download dialog with its Exit button', EXIT_MS);
-  // Diagnostics: every window this browser owns, and the dialog after the click.
-  const windows = () => x11('search', '--onlyvisible', '--pid', String(ctx.fixture.process.pid)).split(/\s+/).filter(Boolean)
-    .map(xid => { try { return { xid, name: x11('getwindowname', xid), ...windowGeometry(xid) }; } catch { return { xid }; } });
-  ctx.result.windows = windows();
-  const deadline = clickTracked(ctx, 'Exit', x11('getactivewindow'), buttons[0]);
-  setTimeout(() => {
-    try { ctx.result.afterClick = { windows: windows(), exit: JSON.parse(run('/usr/bin/python3', [probe, String(ctx.fixture.process.pid)])) }; }
-    catch (error) { ctx.result.afterClick = { error: error.message }; }
-  }, 2000);
+  const pids = ctx.tree.sample(processTable(ctx.fixture.profile));
+  const deadline = performance.now() + EXIT_MS;
+  const pressed = JSON.parse(run('/usr/bin/python3', [probe, String(ctx.fixture.process.pid), '--press']));
+  ctx.result.clicks.push({ action: 'Exit (AT-SPI)', pressed, pids });
+  assert.equal(pressed.pressed, true, 'AT-SPI could not press Exit');
   return deadline;
 }
 
