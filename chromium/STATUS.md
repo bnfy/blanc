@@ -3964,8 +3964,9 @@ launch, frame and suite on GitHub's Windows runners, reruns what failed once, an
 records the night in `records/nightly/windows/<stamp>/result.json` (the Mac
 Studio's), with `LAST-PASS` naming the newest passing night.
 `chromium/release/daily/windows-beta-prep.mjs` starts a release from that night
-on the MacBook Pro; it refuses while shared build claims exist until the Linux
-lane's exact claim helper lands.
+on the MacBook Pro. It claims the night's build number for its exact source on
+`chromium/next` (`build-claims.mjs` `claimExact`, shared with Linux since
+2026-11-22) before it touches the draft.
 
 Rehearsal (2026-11-21, `5b0b06608`, build 906, a throwaway draft and records):
 every step ran, the checks passed, the hold was released and prep refused the

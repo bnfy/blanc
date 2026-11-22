@@ -8,10 +8,12 @@
 // only, so a rehearsal never reads production nights or touches the real draft.
 // It takes the draft's hold for the release (its owner is kept in
 // RECORDS/PREP-HOLD until the work folder holds it), reads the night that
-// LAST-PASS names and checks its beta in full, makes sure the draft holds that
-// night's beta zip (uploading the kept copy if a later night replaced it),
-// refuses once shared build claims exist (no exact claim helper yet), builds a
-// schema-2 work folder in a staging folder, checks it through
+// LAST-PASS names and checks its beta in full, claims the night's build for
+// Windows on chromium/next before it touches the draft (build-claims.mjs
+// claimExact: an identical claim is a no-op, and a number held for other
+// source stops), makes sure the draft holds that night's beta zip (uploading
+// the kept copy if a later night replaced it), builds a schema-2 work folder in a
+// staging folder, checks it through
 // windows-release.mjs's own loader, moves it into place and only then points
 // CURRENT at it. Any stop releases the hold it took and leaves CURRENT and the
 // records as they were. Failures print fixed messages.
@@ -23,7 +25,8 @@ import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {ROOT} from '../preflight.mjs';
 import {ReleaseCheckError, reason} from '../policy.mjs';
-import {load, reservationsAtTip, CANDIDATE_DRAFTS} from '../windows-release.mjs';
+import {load, CANDIDATE_DRAFTS} from '../windows-release.mjs';
+import {claimExact} from '../build-claims.mjs';
 import {acquireHold, newOwner, releaseHold, uploadUnderHold, REPO} from '../../windows/draft-hold.mjs';
 
 const STUDIO = ['-i', path.join(os.homedir(), '.ssh/id_ed25519_macmini'), '-o', 'IdentitiesOnly=yes', '-o', 'BatchMode=yes',
@@ -77,11 +80,13 @@ export function prepareRelease({io, records, ledger, nights = NIGHTS, draft = CA
     const beta = night.beta;
     step();
 
-    // The shared claims: once the file exists, a release needs an exact claim,
-    // which the Linux lane's helper makes; until it lands, nothing is released
-    // under the shared sequence.
-    if (reservationsAtTip(io, ROOT, 'git')) stop('the shared build claims exist, but no exact claim helper is here yet; claim the night\'s number first');
-    console.log('No shared build claims on chromium/next yet: the Windows ledger alone numbers this release.');
+    // Windows and Linux share build numbers in claim order on chromium/next:
+    // the night's number is claimed for its exact source before the draft is
+    // touched, and the release stages check that claim again.
+    if (typeof io.claim !== 'function') stop('no build claim helper');
+    const claimed = io.claim({build: night.build, sourceCommit: night.sourceCommit, platforms: ['windows'], purpose: 'release'});
+    console.log(claimed.created ? `Claimed build ${night.build} on chromium/next (${claimed.commit}).`
+      : `Build ${night.build} was already claimed for this source on chromium/next.`);
     step();
 
     // The draft must hold this night's beta zip.
@@ -167,6 +172,7 @@ if (process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(file
       return {status: result.error ? -1 : result.status, stdout: result.stdout ?? '', stderr: result.stderr ?? ''};
     },
     sha256: file => sha256(fs.readFileSync(file)),
+    claim: entry => claimExact(entry, {root: ROOT, git: 'git', remote: 'origin', branch: 'chromium/next'}),
   };
   try {
     const ledger = JSON.parse(fs.readFileSync(path.join(ROOT, 'chromium/release/windows-ledger.json'), 'utf8'));

@@ -185,12 +185,13 @@ test('a rehearsal release folder runs no stage, only status', async () => {
 });
 
 // Prep, against a simulated MacBook Pro, Mac Studio and GitHub.
-function prepWorld({hold = null, draftDigest = 'b'.repeat(64), lastPass = true, reservations = null, nightChange = {}, gitLog = 0, fetch = 0} = {}) {
+function prepWorld({hold = null, draftDigest = 'b'.repeat(64), lastPass = true, reservations = null, nightChange = {}, gitLog = 0, fetch = 0,
+    claimAnswer = {commit: 'e'.repeat(40), created: true}} = {}) {
   const records = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-prep-'));
   fs.chmodSync(records, 0o700);
   fs.writeFileSync(path.join(records, 'CURRENT'), '/previous/work');
   let draftHold = hold, digest = draftDigest;
-  const calls = [];
+  const calls = [], claims = [];
   const night = {status: 'pass', stamp: '20261122-0400', sourceCommit: SOURCE, build: 905, version: '158.0.8127.905',
     beta: {id: v2.candidate.id, zipSha256: 'b'.repeat(64), treeCommit: SOURCE, version: '158.0.8127.905', channel: 'beta'}, ...nightChange};
   const exec = (command, args) => {
@@ -217,7 +218,13 @@ function prepWorld({hold = null, draftDigest = 'b'.repeat(64), lastPass = true, 
     if (args[0] === 'api') return {status: 0, stdout: JSON.stringify(draftHold), stderr: ''};
     return {status: 0, stdout: '', stderr: ''};
   };
-  return {records, calls, io: {exec, sha256: () => 'b'.repeat(64)}, hold: () => draftHold, setDigest: d => { digest = d; }};
+  const claim = entry => {
+    claims.push(entry);
+    if (claimAnswer instanceof Error) throw claimAnswer;
+    calls.push('claim');
+    return claimAnswer;
+  };
+  return {records, calls, claims, io: {exec, claim, sha256: () => 'b'.repeat(64)}, hold: () => draftHold, setDigest: d => { digest = d; }};
 }
 
 test('prep refuses while a night holds the draft', () => {
@@ -239,17 +246,36 @@ test('prep re-uploads the kept beta when the draft holds another zip, writes a v
   assert.equal(fs.statSync(work).mode & 0o777, 0o700);
 });
 
-test('prep stops, releasing only its own hold, when the reservation file exists but no exact claim can be made yet', () => {
-  const w = prepWorld({reservations: seq([claim(904)])});
+test('prep claims the night\'s exact build and source for Windows before it touches the draft', () => {
+  const w = prepWorld({draftDigest: 'c'.repeat(64)});
+  prepareRelease({io: w.io, records: w.records, ledger});
+  assert.deepEqual(w.claims, [{build: 905, sourceCommit: SOURCE, platforms: ['windows'], purpose: 'release'}]);
+  const claimed = w.calls.indexOf('claim');
+  assert.ok(claimed >= 0);
+  assert.ok(w.calls.findIndex(c => c.includes('release upload') && c.includes('blanc-windows-candidate.zip')) > claimed, 'the zip goes up only after the claim');
+});
+
+test('prep stops, releasing only its own hold, when another claim holds the number', async () => {
+  const {ClaimTaken} = await import('./build-claims.mjs');
+  const w = prepWorld({draftDigest: 'c'.repeat(64), claimAnswer: new ClaimTaken('an earlier claim holds a higher number or this build for other source')});
+  assert.throws(() => prepareRelease({io: w.io, records: w.records, ledger}), /earlier claim/);
+  assert.equal(w.hold(), null);
+  assert.ok(!w.calls.some(c => c.includes('release upload') && c.includes('blanc-windows-candidate.zip')), 'no zip for a night that cannot be released');
+  assert.equal(fs.readFileSync(path.join(w.records, 'CURRENT'), 'utf8'), '/previous/work');
+});
+
+test('prep refuses an io with no claim helper rather than releasing unclaimed', () => {
+  const w = prepWorld();
+  delete w.io.claim;
   assert.throws(() => prepareRelease({io: w.io, records: w.records, ledger}), /claim/);
   assert.equal(w.hold(), null);
-  assert.equal(fs.readFileSync(path.join(w.records, 'CURRENT'), 'utf8'), '/previous/work');
 });
 
 // Codex review of Task 6, prep (2026-11-21).
 const ledgerWithSource = {schema: 1, builds: [{build: 904, sourceCommit: 'c'.repeat(40)}]};
-test('prep fails on a failed fetch instead of falling back to the ledger', () => {
-  const w = prepWorld({fetch: 1});
+test('prep fails on a failed fetch instead of falling back to the ledger', async () => {
+  const {ReleaseCheckError} = await import('./policy.mjs');
+  const w = prepWorld({claimAnswer: new ReleaseCheckError('could not fetch the build claims branch')});
   assert.throws(() => prepareRelease({io: w.io, records: w.records, ledger}), /fetch/);
   assert.equal(w.hold(), null);
 });
@@ -302,7 +328,7 @@ test('prep failures are fixed messages that point at the hold status', () => {
   assert.throws(() => prepareRelease({io: w.io, records: w.records, ledger}), /draft-hold\.mjs status/);
   const source = fs.readFileSync(new URL('./daily/windows-beta-prep.mjs', import.meta.url), 'utf8');
   assert.match(source, /reason\(error\)/, 'the CLI prints reason(), which withholds unexpected errors');
-  assert.match(source, /ledger alone numbers this release/);
+  assert.match(source, /Claimed build \$\{night\.build\} on chromium\/next/);
 });
 
 // Codex final review, prep (2026-11-21).

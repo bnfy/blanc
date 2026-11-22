@@ -1408,11 +1408,16 @@ every later night until a person clears it (`draft-hold.mjs break`).
 
 **Releasing from a night.** On the MacBook Pro:
 `node chromium/release/daily/windows-beta-prep.mjs` takes the draft's hold for
-the release, reads the Mac Studio's `LAST-PASS` night, puts that night's beta
-back on the draft if a later night replaced it, writes the schema-2 work folder
-under `~/Projects/Blanc/records/windows-release/<version>` and points `CURRENT`
-at it. It refuses while shared build claims exist and no exact claim helper is
-here (Linux owns `claimExact`). Rewrite `release-notes.md`, then run the ten
+the release, reads the Mac Studio's `LAST-PASS` night, claims the night's
+build number for Windows and its exact source on `chromium/next`
+(`chromium/release/build-claims.mjs` `claimExact`, shared with Linux; an
+identical claim is a no-op, and a number already held for other source or
+below a later claim stops prep before it touches the draft), puts that night's
+beta back on the draft if a later night replaced it, writes the schema-2 work
+folder under `~/Projects/Blanc/records/windows-release/<version>` and points
+`CURRENT` at it. Preflight checks the claim again at `chromium/next`'s tip.
+A night whose number is taken can't be released; the next night numbers
+itself above every claim. Rewrite `release-notes.md`, then run the ten
 `windows-release.mjs` stages as before. The release holds the draft until
 `verify-public` is saved, so no night runs meanwhile; `status WORK` reports a
 finished release that still holds it, with the command that frees it.
