@@ -4070,6 +4070,27 @@ restored session closed the CDP target. The test fix was `b32392b3a`.
 [Frame run 44948958941](https://github.com/bnfy/blanc/actions/runs/44948958941),
 [install run 45035696993](https://github.com/bnfy/blanc/actions/runs/45035696993)
 
+### L2 suite, quit, Ctrl+Tab and screen sharing (PL.3, 2026-11-21 to 11-22)
+
+Candidate 6 from `3902e2323` on both architectures, signed by the owner on November 22.
+[L2 plan](../docs/superpowers/plans/2026-11-21-linux-fork-l2.md#l2-gate-all-must-hold),
+[S1 index](reports/s1-linux.json), [triage](linux/triage-l2.md), [VM hand checks](linux/hand-checks-l2.md)
+
+| Candidate 6 | Candidate ID | Full suite |
+| --- | --- | --- |
+| x64 | `linux-x64-a8ae62abfb80abd5` | 636 of 667 pass, none failing, 31 excluded with named reasons ([run 45041019578](https://github.com/bnfy/blanc/actions/runs/45041019578); L0 was 615, candidate 5 627) |
+| arm64 | `linux-arm64-38d1e4faa1e2945e` | 633 pass, 31 excluded; three timing cases (Spaces menu fade, shield popover, pointer dwell) passed on rerun ([run 45041022075](https://github.com/bnfy/blanc/actions/runs/45041022075), [rerun 45052104498](https://github.com/bnfy/blanc/actions/runs/45052104498)) |
+
+| L2 gate | Result | Evidence |
+| --- | --- | --- |
+| 1. S1 reports from candidates after every L2 fix | Passed. Both per-architecture reports and the index are committed; every non-passing case is excluded with a named reason or passed on rerun. | [s1-linux.json](reports/s1-linux.json) |
+| 2. Quit check on X11 | Partial on the runner, passed on a desktop. Six of seven cases pass on X11. `download in progress` can't be operated under Xvfb with Openbox (the dialog has no reachable window there); by real input on GNOME it shows "Download is in progress", and Exit quits every Blanc process within 2 seconds. | [Run 45057217919](https://github.com/bnfy/blanc/actions/runs/45057217919), [triage](linux/triage-l2.md), [VM check](linux/hand-checks-l2.md) |
+| 3. Ctrl+Tab by real keys | Passed. Every case on X11 on both architectures from a fresh process; the Windows checks passed on the shared change (run 44953442824); the Wayland check passed in the owner's VM. | [x64 run 45056247216](https://github.com/bnfy/blanc/actions/runs/45056247216), [arm64 run 45056743311](https://github.com/bnfy/blanc/actions/runs/45056743311) |
+| 4. Screen sharing | Passed. A tab and the whole screen through Chromium's picker by real input on X11, both architectures; a window through GNOME's portal in the owner's VM. | [x64 run 45059423813](https://github.com/bnfy/blanc/actions/runs/45059423813), [arm64 run 45059705534](https://github.com/bnfy/blanc/actions/runs/45059705534) |
+| 5. Mac nightly and Windows outputs unaffected | Passed. The Mac Studio was regenerated with unchanged arguments before each nightly (plans of 3 and 4 actions on November 22); the Windows plans changed only by pending regenerations. | [L1 gate 5](#l1-identity-frame-and-packages-pl2-2026-11-21-to-11-22) |
+
+Open: a day of ordinary use by the owner; the download-quit case on the hosted runner.
+
 ## Android
 Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
 [PR #1333](https://github.com/bnfy/blanc/pull/1333)). Milestones: **A0

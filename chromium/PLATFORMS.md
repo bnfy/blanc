@@ -44,6 +44,10 @@ gap with the milestone that closes it. Windows design:
 | Data folder | A normal preview launch uses `~/.config/blanc-prototype` by default. Uninstall keeps it. The install checks preserved shipping Blanc's `~/.config/Blanc` and Chromium's `~/.config/chromium`. The x64 check launched the shipping AppImage before and after. Arm64 used a representative profile. | L1 |
 | Crash capture | The install runs exercised forced browser crashes on both architectures. Each job records any local minidumps in its artifact. The dump outcomes remain unconfirmed here. [Crash reporting](#crash-reporting) | L1 probe |
 | Platform name | `linux` to the Island, the Sync runner, Sync and telemetry (`blanc/island/host.js`, `blanc/common/host_platform.h`) | L0 |
+| Quit | Closing the last window quits Blanc. With a download running, Chromium asks "Download is in progress / Exit Blanc anyway?" (Continue downloading is the default); Exit quits within 2 seconds and removes the partial file. Closing a window that isn't the last asks nothing. [VM check](linux/hand-checks-l2.md) | L2 |
+| Ctrl+Tab | Most recent use by default, by real keys on X11 and Wayland; the card shows under the Island while Ctrl is held. [Ctrl+Tab](#ctrltab) | L2 |
+| Arc import | The importer's file choice uses GTK's native chooser; the suite drives it on X11. | L2 |
+| Screen sharing | X11: Chromium's own picker shares a tab or the whole screen. Wayland: the picker's Window choice hands over to the desktop portal (GNOME's Share Screen); the Island shows its sharing chip and Stop ends the stream. Chromium's "is sharing" bar floats over the page's content near the top. [VM check](linux/hand-checks-l2.md) | L2 |
 
 ### Ctrl+Tab
 
@@ -74,7 +78,8 @@ X11Window handles FocusOut as a focus change. WaylandKeyboard::OnLeave
 clears keyboard focus, modifiers and repeat. Neither path synthesizes the
 missing key releases for the old window. Both platforms report top-level
 activation changes to the widget, where Blanc cancels the gesture. Real keys
-need confirmation on X11 under Xvfb and on Wayland in the owner's VM.
+were confirmed on X11 under Xvfb on both architectures and on Wayland in the owner's
+VM on November 22, 2026.
 
 ### Caption buttons
 

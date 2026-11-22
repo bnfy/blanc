@@ -1,0 +1,407 @@
+{
+ "slice": "S1",
+ "platform": "linux",
+ "milestone": "L2 (PL.3)",
+ "sourceCommit": "3902e23239f2bddb9f79f83f1bacedef5d058365",
+ "date": "2026-11-22",
+ "architectures": {
+  "x64": {
+   "candidate": {
+    "id": "linux-x64-a8ae62abfb80abd5",
+    "tarSha256": "dba3b5f131da62a5267092b6febf9cd109ec2777ddf7324ca5d87b99754d6fef"
+   },
+   "fullSuite": {
+    "run": "45041019578",
+    "total": 667,
+    "pass": 636,
+    "fail": 0,
+    "excluded": 31
+   },
+   "s1": {
+    "report": "reports/s1-linux-x64.json",
+    "summary": {
+     "pass": 259,
+     "fail": 0,
+     "undefined": 0,
+     "excluded": 4
+    }
+   },
+   "dispositions": [
+    {
+     "case": "spec/acceptance/glance.feature:187:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/glance.feature:197:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/island-and-commands.feature:320:plain",
+     "disposition": "excluded",
+     "reason": "Linux L2 decision 6: Chromium draws native caption buttons. L1 tests their layout and operation. The Island has no floating window-controls view."
+    },
+    {
+     "case": "spec/acceptance/local-profiles.feature:17:plain",
+     "disposition": "excluded",
+     "reason": "V18 approves Chromium profile management: its native deletion dialog has Cancel/Remove, not shipping typed-name confirmation or profile-name window titles."
+    },
+    {
+     "case": "spec/acceptance/navigation-and-context-menu.feature:83:plain",
+     "disposition": "excluded",
+     "reason": "V12 explicitly uses Chromium validation; it accepts HTTP custom engine URLs, unlike this shipping-only HTTPS policy."
+    },
+    {
+     "case": "spec/acceptance/platform-services.feature:105:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/platform-services.feature:112:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/platform-services.feature:25:plain",
+     "disposition": "excluded",
+     "reason": "The test build has no updater; Linux betas update through apt and dnf from Blanc's repository (spec owner decision 2), proven at L3."
+    },
+    {
+     "case": "spec/acceptance/platform-services.feature:30:plain",
+     "disposition": "excluded",
+     "reason": "Shipping scenario explicitly targets mobile only"
+    },
+    {
+     "case": "spec/acceptance/platform-services.feature:42:plain",
+     "disposition": "excluded",
+     "reason": "Shipping scenario explicitly targets mobile only"
+    },
+    {
+     "case": "spec/acceptance/platform-services.feature:50:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/platform-services.feature:64:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/platform-services.feature:76:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/platform-services.feature:88:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/platform-services.feature:98:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/private-tabs.feature:40:plain",
+     "disposition": "excluded",
+     "reason": "Linux L2 decision 4: a private-tab device-bound passkey uses a security key or phone. Chromium has no Linux platform authenticator."
+    },
+    {
+     "case": "spec/acceptance/quiet-tabs.feature:130:plain",
+     "disposition": "excluded",
+     "reason": "Shipping scenario explicitly targets mobile only"
+    },
+    {
+     "case": "spec/acceptance/quiet-tabs.feature:28:example-45",
+     "disposition": "excluded",
+     "reason": "This outline row asserts Electron WebContents listener counts, which do not exist in Chromium; native protection rows remain applicable."
+    },
+    {
+     "case": "spec/acceptance/reader-mode.feature:13:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: native Chromium Reading Mode replaces the shipping reader sandbox and appearance."
+    },
+    {
+     "case": "spec/acceptance/reader-mode.feature:20:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: native Chromium Reading Mode replaces the shipping reader sandbox and appearance."
+    },
+    {
+     "case": "spec/acceptance/reader-mode.feature:7:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: native Chromium Reading Mode replaces the shipping reader sandbox and appearance."
+    },
+    {
+     "case": "spec/acceptance/settings-and-theming.feature:12:plain",
+     "disposition": "excluded",
+     "reason": "Linux L2 decision 5: resolving a stored app icon in Settings requires the macOS icon catalog."
+    },
+    {
+     "case": "spec/acceptance/settings-and-theming.feature:49:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no built-in Dark Reader; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/settings-and-theming.feature:57:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no built-in Dark Reader; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/settings-and-theming.feature:65:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no built-in Dark Reader; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/settings-and-theming.feature:74:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no built-in Dark Reader; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/supporter-and-session.feature:12:plain",
+     "disposition": "excluded",
+     "reason": "Linux L2 decision 5: the Patron Ember icon selection requires the macOS app icon catalog."
+    },
+    {
+     "case": "spec/acceptance/supporter-and-session.feature:7:plain",
+     "disposition": "excluded",
+     "reason": "Linux L2 decision 5: choosing Sunrise-Dark requires the macOS app icon catalog."
+    },
+    {
+     "case": "spec/acceptance/tab-gestures.feature:18:plain",
+     "disposition": "excluded",
+     "reason": "Shipping scenario explicitly targets mobile only"
+    },
+    {
+     "case": "spec/acceptance/tab-gestures.feature:28:plain",
+     "disposition": "excluded",
+     "reason": "Shipping scenario explicitly targets mobile only"
+    },
+    {
+     "case": "spec/acceptance/tab-gestures.feature:9:plain",
+     "disposition": "excluded",
+     "reason": "Shipping scenario explicitly targets mobile only"
+    }
+   ]
+  },
+  "arm64": {
+   "candidate": {
+    "id": "linux-arm64-38d1e4faa1e2945e",
+    "tarSha256": "81f138a8a19e4448526eb2861b5d2e6413e7ce04b9a6452a8519e11d55507033"
+   },
+   "fullSuite": {
+    "run": "45041022075",
+    "total": 667,
+    "pass": 633,
+    "fail": 3,
+    "excluded": 31
+   },
+   "s1": {
+    "report": "reports/s1-linux-arm64.json",
+    "summary": {
+     "pass": 257,
+     "fail": 2,
+     "undefined": 0,
+     "excluded": 4
+    }
+   },
+   "dispositions": [
+    {
+     "case": "spec/acceptance/F41-named-workspaces.feature:203:plain",
+     "disposition": "passed on rerun",
+     "rerun": "45052104498",
+     "firstFailure": "the menu fades where it opened: {\"mode\":null,\"showing\":true,\"hidden\":true,\"closing\":\"\",\"display\":\"flex\",\"top\":\"16px\",\"left\":\"0px\",\"transform\":\"matrix(0.923697, "
+    },
+    {
+     "case": "spec/acceptance/ad-blocking.feature:77:plain",
+     "disposition": "passed on rerun",
+     "rerun": "45052104498",
+     "firstFailure": "the shield click opened no popover within 3 s: {\"page\":{\"focus\":false,\"visibility\":\"visible\",\"shield\":{\"hidden\":false,\"expanded\":\"false\",\"rect\":{\"x\":693.84375,\""
+    },
+    {
+     "case": "spec/acceptance/glance.feature:187:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/glance.feature:197:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/island-and-commands.feature:320:plain",
+     "disposition": "excluded",
+     "reason": "Linux L2 decision 6: Chromium draws native caption buttons. L1 tests their layout and operation. The Island has no floating window-controls view."
+    },
+    {
+     "case": "spec/acceptance/island-and-commands.feature:61:plain",
+     "disposition": "passed on rerun",
+     "rerun": "45052104498",
+     "firstFailure": "Expected values to be strictly deep-equal: + actual - expected    { +   armed: true, -   armed: false,     dwelling: false, +   inside: false -   inside: true  "
+    },
+    {
+     "case": "spec/acceptance/local-profiles.feature:17:plain",
+     "disposition": "excluded",
+     "reason": "V18 approves Chromium profile management: its native deletion dialog has Cancel/Remove, not shipping typed-name confirmation or profile-name window titles."
+    },
+    {
+     "case": "spec/acceptance/navigation-and-context-menu.feature:83:plain",
+     "disposition": "excluded",
+     "reason": "V12 explicitly uses Chromium validation; it accepts HTTP custom engine URLs, unlike this shipping-only HTTPS policy."
+    },
+    {
+     "case": "spec/acceptance/platform-services.feature:105:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/platform-services.feature:112:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/platform-services.feature:25:plain",
+     "disposition": "excluded",
+     "reason": "The test build has no updater; Linux betas update through apt and dnf from Blanc's repository (spec owner decision 2), proven at L3."
+    },
+    {
+     "case": "spec/acceptance/platform-services.feature:30:plain",
+     "disposition": "excluded",
+     "reason": "Shipping scenario explicitly targets mobile only"
+    },
+    {
+     "case": "spec/acceptance/platform-services.feature:42:plain",
+     "disposition": "excluded",
+     "reason": "Shipping scenario explicitly targets mobile only"
+    },
+    {
+     "case": "spec/acceptance/platform-services.feature:50:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/platform-services.feature:64:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/platform-services.feature:76:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/platform-services.feature:88:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/platform-services.feature:98:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no 1Password SDK/fill capsule; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/private-tabs.feature:40:plain",
+     "disposition": "excluded",
+     "reason": "Linux L2 decision 4: a private-tab device-bound passkey uses a security key or phone. Chromium has no Linux platform authenticator."
+    },
+    {
+     "case": "spec/acceptance/quiet-tabs.feature:130:plain",
+     "disposition": "excluded",
+     "reason": "Shipping scenario explicitly targets mobile only"
+    },
+    {
+     "case": "spec/acceptance/quiet-tabs.feature:28:example-45",
+     "disposition": "excluded",
+     "reason": "This outline row asserts Electron WebContents listener counts, which do not exist in Chromium; native protection rows remain applicable."
+    },
+    {
+     "case": "spec/acceptance/reader-mode.feature:13:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: native Chromium Reading Mode replaces the shipping reader sandbox and appearance."
+    },
+    {
+     "case": "spec/acceptance/reader-mode.feature:20:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: native Chromium Reading Mode replaces the shipping reader sandbox and appearance."
+    },
+    {
+     "case": "spec/acceptance/reader-mode.feature:7:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: native Chromium Reading Mode replaces the shipping reader sandbox and appearance."
+    },
+    {
+     "case": "spec/acceptance/settings-and-theming.feature:12:plain",
+     "disposition": "excluded",
+     "reason": "Linux L2 decision 5: resolving a stored app icon in Settings requires the macOS icon catalog."
+    },
+    {
+     "case": "spec/acceptance/settings-and-theming.feature:49:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no built-in Dark Reader; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/settings-and-theming.feature:57:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no built-in Dark Reader; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/settings-and-theming.feature:65:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no built-in Dark Reader; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/settings-and-theming.feature:74:plain",
+     "disposition": "excluded",
+     "reason": "Owner decision 2026-11-02: no built-in Dark Reader; use the Web Store extension."
+    },
+    {
+     "case": "spec/acceptance/supporter-and-session.feature:12:plain",
+     "disposition": "excluded",
+     "reason": "Linux L2 decision 5: the Patron Ember icon selection requires the macOS app icon catalog."
+    },
+    {
+     "case": "spec/acceptance/supporter-and-session.feature:7:plain",
+     "disposition": "excluded",
+     "reason": "Linux L2 decision 5: choosing Sunrise-Dark requires the macOS app icon catalog."
+    },
+    {
+     "case": "spec/acceptance/tab-gestures.feature:18:plain",
+     "disposition": "excluded",
+     "reason": "Shipping scenario explicitly targets mobile only"
+    },
+    {
+     "case": "spec/acceptance/tab-gestures.feature:28:plain",
+     "disposition": "excluded",
+     "reason": "Shipping scenario explicitly targets mobile only"
+    },
+    {
+     "case": "spec/acceptance/tab-gestures.feature:9:plain",
+     "disposition": "excluded",
+     "reason": "Shipping scenario explicitly targets mobile only"
+    }
+   ]
+  }
+ },
+ "installedChecks": {
+  "install": {
+   "x64": "45036361406",
+   "arm64": "45036363620",
+   "result": "passed, candidate 5 (L1)"
+  },
+  "keys": {
+   "x64": "45056247216",
+   "arm64": "45056743311",
+   "result": "passed every case"
+  },
+  "quit": {
+   "x64": "45057217919",
+   "result": "six of seven; download in progress cannot be operated on Xvfb with Openbox (triage-l2.md); passed by real input on GNOME in the owner VM (hand-checks-l2.md)"
+  },
+  "displayShare": {
+   "x64": "45059423813",
+   "arm64": "45059705534",
+   "result": "tab and whole screen passed"
+  }
+ },
+ "handChecks": "linux/hand-checks-l2.md"
+}
