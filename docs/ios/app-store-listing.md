@@ -369,3 +369,21 @@ submission waits for the owner.
    (`https://apps.apple.com/app/id6828027794?ppid=<page id>`); add a
    campaign token (`&ct=<channel>`) per place it's posted, so App Analytics
    can tell blanc.day, the desktop app and Reddit apart.
+
+**Version 2, for 1.1 (November 22, 2026).** Once 1.1 was on sale, each page got
+a new version through the API with its promotional text unchanged: the 1.1
+renders of its own 6.9" and 6.3" sets (#1698, in file order) and 1.1's ten Duo
+shots. 1.1 supports iPad, so App Review now requires a 13" iPad set on each
+page too; none exists per page, so each takes the default page's seven
+(`ipad-13/`), its own subject first (my call): Your computer's tabs, Private
+tabs, Spaces, then the rest in file order. Every upload was checked against
+the local files by checksum and order, and the three were submitted together
+on November 22, 2026 (review submission
+`19db3167-a1f8-4255-a191-95e82026eda6`, Waiting for Review). The approved
+version 1 stays live until each is approved.
+
+| Page | Version 2 id |
+|---|---|
+| Blanc on your computer | `ccef8cc3-123b-40c3-903f-7c05e005adc4` |
+| Private browsing | `de92ade8-7977-45b2-b5b4-8cd3a1d4ff2d` |
+| Spaces and groups | `ac4e9552-87ef-4305-b432-575a7ee549eb` |
