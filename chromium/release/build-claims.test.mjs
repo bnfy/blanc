@@ -6,6 +6,7 @@ import path from 'node:path';
 import test from 'node:test';
 import {promisify} from 'node:util';
 import {claimExact, claimProblem, claimsAtTip, ClaimTaken, nextBuild} from './build-claims.mjs';
+import {ReleaseCheckError} from './policy.mjs';
 
 const file = 'chromium/release/build-reservations.json';
 const branch = 'chromium/next';
@@ -195,4 +196,26 @@ test('invalid remote claims and a rejected push with an unchanged tip fail close
   assert.throws(() => claimsAtTip(f.options), /claim/);
   assert.throws(() => claimExact(entry(906, f.source), f.options), /claim/);
   assert.equal(before, f.tip());
+});
+
+test('an interrupted git push stops the claim instead of reporting success', t => {
+  const f = fixture(t);
+  // The push reaches the remote, then git dies from SIGINT (Ctrl-C reaching
+  // the process group) before it can exit normally.
+  const wrapper = path.join(f.dir, 'git-interrupted-push');
+  fs.writeFileSync(wrapper, '#!/bin/sh\ngit "$@"; rc=$?\nfor a in "$@"; do [ "$a" = push ] && kill -INT $$; done\nexit $rc\n', {mode: 0o755});
+  const claim = {build: 905, sourceCommit: f.source, platforms: ['windows'], purpose: 'release'};
+  assert.throws(() => claimExact(claim, {...f.options, git: wrapper}), err => err instanceof ReleaseCheckError && /interrupted/.test(err.message));
+  // The claim landed, so the next run finds it and does nothing.
+  assert.deepEqual(claimExact(claim, f.options), {commit: f.tip(), created: false});
+});
+
+test('an interrupted git fetch stops before any claim is pushed', t => {
+  const f = fixture(t);
+  const wrapper = path.join(f.dir, 'git-interrupted-fetch');
+  fs.writeFileSync(wrapper, '#!/bin/sh\nfor a in "$@"; do [ "$a" = fetch ] && kill -INT $$; done\nexec git "$@"\n', {mode: 0o755});
+  const before = f.tip();
+  assert.throws(() => claimExact({build: 905, sourceCommit: f.source, platforms: ['linux'], purpose: 'release'}, {...f.options, git: wrapper}),
+    err => err instanceof ReleaseCheckError && /interrupted/.test(err.message));
+  assert.equal(f.tip(), before);
 });

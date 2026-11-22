@@ -57,7 +57,15 @@ function withFetchedTip({root = rootDirectory, git = 'git', remote = 'origin', b
   const ref = 'refs/blanc/build-claims/' + randomUUID();
   const target = 'refs/heads/' + branch;
   function run(args, options) {
-    return spawnSync(git, ['-C', root, ...args], {encoding: 'utf8', ...options});
+    const result = spawnSync(git, ['-C', root, ...args], {encoding: 'utf8', ...options});
+    // An interrupted git (Ctrl-C reaches the whole process group) may already
+    // have pushed the claim; retrying would read it back and report success.
+    // Stop instead: rerunning is safe, because an identical claim is a no-op.
+    if (result.signal || result.error) {
+      throw new ReleaseCheckError('git ' + args[0] + ' was interrupted (' + (result.signal ?? result.error.code) +
+        '); the claim may already be pushed, and rerunning finds it');
+    }
+    return result;
   }
   function checked(args, message, options) {
     const result = run(args, options);
@@ -79,11 +87,19 @@ function withFetchedTip({root = rootDirectory, git = 'git', remote = 'origin', b
     entries(claims);
     return claims;
   }
+  let failed = true;
   try {
     const tip = fetchTip();
-    return action({tip, fetchTip, read, target, remote, checked, run});
+    const result = action({tip, fetchTip, read, target, remote, checked, run});
+    failed = false;
+    return result;
   } finally {
-    checked(['update-ref', '-d', ref], 'could not remove the temporary claims ref');
+    // Don't let a cleanup failure replace the error that stopped the claim.
+    try {
+      checked(['update-ref', '-d', ref], 'could not remove the temporary claims ref');
+    } catch (error) {
+      if (!failed) throw error;
+    }
   }
 }
 
