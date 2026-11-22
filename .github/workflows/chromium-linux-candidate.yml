@@ -19,6 +19,7 @@ on:
           - smoke
           - frame
           - install
+          - verify-public
           - beta-install
           - update-proof
           - quit
@@ -303,6 +304,93 @@ jobs:
           name: chromium-linux-frame-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/results
           if-no-files-found: warn
+          retention-days: 14
+
+  verify-public:
+    if: ${{ inputs.check == 'verify-public' }}
+    name: verify-public (${{ matrix.system }}, ${{ matrix.arch }})
+    permissions: {}
+    strategy:
+      fail-fast: false
+      matrix:
+        system: [ubuntu, debian, fedora]
+        arch: [x64, arm64]
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    env:
+      SYSTEM: ${{ matrix.system }}
+      ARCH: ${{ matrix.arch }}
+      VERSION: ${{ inputs.version }}
+    steps:
+      - name: Fetch the verifier at the workflow commit anonymously
+        run: |
+          curl -q -fsSL --proto '=https' --proto-redir '=https' \
+            "https://codeload.github.com/$GITHUB_REPOSITORY/tar.gz/$GITHUB_SHA" |
+            tar -xz --strip-components=1 --wildcards '*/chromium/*'
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          token: ''
+          package-manager-cache: false
+      - name: Authenticate every public asset
+        run: |
+          if ! command -v cosign >/dev/null; then
+            # Build the upstream verifier if it is absent from this runner image.
+            commit=11926fa5bbbbde47e88fc006b625a17769b743b2 # Sigstore cosign v3.1.3
+            mkdir "$RUNNER_TEMP/cosign-src" "$RUNNER_TEMP/bin"
+            curl -q -fsSL --proto '=https' --proto-redir '=https' \
+              "https://codeload.github.com/sigstore/cosign/tar.gz/$commit" |
+              tar -xz --strip-components=1 -C "$RUNNER_TEMP/cosign-src"
+            go build -C "$RUNNER_TEMP/cosign-src" -mod=readonly -o "$RUNNER_TEMP/bin/cosign" ./cmd/cosign
+            export PATH="$RUNNER_TEMP/bin:$PATH"
+          fi
+          node chromium/tests/linux-verify-public.mjs download "$VERSION" "$RUNNER_TEMP/assets"
+      - name: Install from the public download and check the production repository
+        run: |
+          case "$SYSTEM" in
+            ubuntu) image=ubuntu:24.04 ;;
+            debian) image=debian:12 ;;
+            fedora) image=registry.fedoraproject.org/fedora:45@sha256:7b6d9048825950573e58b7185631f6bd38f7c24f5c0e68ae902870aedebb86e0 ;;
+          esac
+          # All containers share Ubuntu's restricted host kernel. Load the signed
+          # package's own attachment there; the Ubuntu smoke checks the process label.
+          [[ $(cat /proc/sys/kernel/apparmor_restrict_unprivileged_userns) == 1 ]]
+          deb="$RUNNER_TEMP/assets/blanc-beta_${VERSION}-1_$(dpkg --print-architecture).deb"
+          dpkg-deb --fsys-tarfile "$deb" | tar -xO ./opt/bnfy/blanc-beta/apparmor.d/blanc-beta > "$RUNNER_TEMP/blanc-beta.profile"
+          sudo apparmor_parser -r "$RUNNER_TEMP/blanc-beta.profile"
+          mkdir "$RUNNER_TEMP/results"
+          docker run --rm --init --shm-size=1g \
+            --security-opt seccomp=unconfined --security-opt apparmor=unconfined \
+            -v /sys/kernel/security:/sys/kernel/security:ro \
+            -v "$GITHUB_WORKSPACE/chromium:/src/chromium:ro" -v "$RUNNER_TEMP/assets:/assets:ro" \
+            -v "$RUNNER_TEMP/results:/results" -v "$(realpath "$(command -v node)"):/usr/local/bin/node:ro" \
+            -e SYSTEM -e ARCH -e VERSION -e LC_ALL=C -e DEBIAN_FRONTEND=noninteractive \
+            "$image" bash -euo pipefail -c '
+              if [[ $SYSTEM == fedora ]]; then
+                dnf install -y sudo shadow-utils util-linux ca-certificates gnupg2 dbus-daemon /usr/bin/dbus-uuidgen xorg-x11-server-Xvfb xorg-x11-xauth libatomic
+              else
+                packages=(sudo passwd util-linux ca-certificates gnupg dbus-daemon dbus-bin xvfb xauth libatomic1)
+                if [[ $SYSTEM == ubuntu ]]; then packages+=(apparmor); fi
+                apt-get update
+                apt-get install -y --no-install-recommends "${packages[@]}"
+              fi
+              dbus-uuidgen --ensure
+              useradd -m blanc-check
+              echo "blanc-check ALL=(root) NOPASSWD: ALL" > /etc/sudoers.d/blanc-check
+              chmod 0440 /etc/sudoers.d/blanc-check
+              chown blanc-check /results
+              exec runuser -u blanc-check -- node /src/chromium/tests/linux-verify-public.mjs \
+                install "$SYSTEM" "$ARCH" "$VERSION" /assets /results
+            '
+      - name: Keep the public verification evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: verify-public-${{ matrix.system }}-${{ matrix.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/results/
+          if-no-files-found: error
           retention-days: 14
 
   install:
