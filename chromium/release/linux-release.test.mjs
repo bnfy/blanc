@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { ASSET_NAME } from '../linux/candidate.mjs';
 import { STAGES, validateLinuxRelease, runStage, status } from './linux-release.mjs';
 
 const sha = data => createHash('sha256').update(data).digest('hex');
@@ -208,7 +209,7 @@ test('the command adapter checks draft tar bytes, per-build GN args and installe
   const builtArgs = committedArgs.replaceAll('7', '906'), exeSha256 = sha('archive executable');
   const meta = {
     id: 'linux-x64-' + exeSha256.slice(0, 16), exeSha256, treeCommit: r.sourceCommit,
-    arch: 'x64', platform: 'linux', channel: 'beta', version: r.version, argsSha256: sha(builtArgs), packages: []
+    arch: 'x64', platform: 'linux', channel: 'beta', build: r.build, version: r.version, argsSha256: sha(builtArgs), packages: []
   };
   fs.mkdirSync(path.join(dir, 'chrome'));
   fs.writeFileSync(path.join(dir, 'chrome/chrome'), 'archive executable');
@@ -218,7 +219,7 @@ test('the command adapter checks draft tar bytes, per-build GN args and installe
     fs.writeFileSync(path.join(dir, 'packages', name), name);
   }
   fs.writeFileSync(path.join(dir, 'candidate.json'), JSON.stringify(meta));
-  const archive = 'blanc-linux-beta-x64-906-candidate.tar.gz';
+  const archive = ASSET_NAME(meta.arch, meta.channel, meta.build);
   execFileSync('tar', ['-czf', path.join(w.work, archive), '-C', dir, '.']);
   let tarSha256 = sha(fs.readFileSync(path.join(w.work, archive)));
   let wrongHeader = false, omitUbuntu = false;
@@ -270,6 +271,8 @@ test('the command adapter checks draft tar bytes, per-build GN args and installe
   await assert.rejects(adapter.buildCheck(ctx, { ...c, tarSha256: sha('replaced') }), /digest/);
   wrongHeader = false;
   for (const [field, value, error] of [
+    ['build', r.proofBuild, /build/],
+    ['build', undefined, /build/],
     ['treeCommit', 'b'.repeat(40), /source|treeCommit/],
     ['version', '158.0.8127.905', /version/],
     ['argsSha256', sha(committedArgs), /GN arguments/]

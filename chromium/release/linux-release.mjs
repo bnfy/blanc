@@ -24,7 +24,7 @@ import { ROOT } from './preflight.mjs';
 import { REPO, COSIGN_IDENTITY, COSIGN_ISSUER, COSIGN_REDIRECT, realIO as ownerIO, confirmAbsent } from './release.mjs';
 import { claimProblem } from './build-claims.mjs';
 import { betaArgsFor } from './beta-args.mjs';
-import { candidateId } from '../linux/candidate.mjs';
+import { ASSET_NAME, candidateId } from '../linux/candidate.mjs';
 
 export const STAGES = ['preflight', 'build-check', 'sign', 'staging', 'update-proof', 'hand-check', 'manifest', 'draft', 'sigstore', 'publish', 'verify-public'];
 const arches = { x64: ['amd64', 'x86_64'], arm64: ['arm64', 'aarch64'] };
@@ -487,7 +487,7 @@ export function realIO(commands = ownerIO()) {
     },
     latest: () => api(['repos/' + REPO + '/releases/latest', '--jq', '.tag_name'], 'cannot identify latest release').trim(),
     async buildCheck(ctx, c) {
-      const tarName = 'blanc-linux-beta-' + c.arch + '-' + c.build + '-candidate.tar.gz';
+      const tarName = ASSET_NAME(c.arch, 'beta', c.build);
       const asset = candidateAssets().find(a => a.name === tarName);
       check(asset && /^sha256:[a-f0-9]{64}$/.test(asset.digest), 'candidate missing from draft: ' + tarName);
       const tarSha256 = asset.digest.slice(7);
@@ -500,7 +500,7 @@ export function realIO(commands = ownerIO()) {
         const tar = path.join(dir, tarName);
         const extracted = path.join(dir, 'packages');
         const meta = JSON.parse(must('python3', [path.join(linux, 'repository/metadata.py'), 'unpack-beta-candidate',
-          c.arch, tarSha256, tar, extracted, c.version], 'could not verify candidate archive, version and package hashes'));
+          c.arch, tarSha256, tar, extracted, c.version], 'could not verify candidate archive, build, version and package hashes'));
         const names = packageNames(c.version, c.arch);
         equal(meta.treeCommit, ctx.r.sourceCommit, 'candidate treeCommit does not match release source commit');
         equal(meta.version, version(c.build), 'candidate version does not match claimed build');

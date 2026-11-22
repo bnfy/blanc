@@ -195,6 +195,9 @@ def unpack_candidate(arch, tar_sha, archive, directory, channel='preview'):
             'expected both packages for the candidate version and architecture')
     rows = manifest['packages']
     if channel == 'beta':
+        build = manifest.get('build')
+        require(type(build) is int and build == int(version.rsplit('.', 1)[1]),
+                'manifest build must be an integer matching the archive build')
         # Earlier release inputs also allowed paths relative to the archive root.
         rows = [{**row, 'file': row['file'].removeprefix('packages/')} for row in rows]
     require(sorted(rows, key=lambda row: row['file']) ==
@@ -219,8 +222,6 @@ def unpack_beta(checksums, archives, directory):
             pair = Path(scratch) / 'packages'
             manifest = unpack_candidate(arch, digest, archives / filename, pair, 'beta')
             require(manifest['version'].split('.')[-1] == build, 'archive build differs from its package version')
-            require(type(manifest.get('build')) is int and manifest['build'] == int(build),
-                    'manifest build must be an integer matching the archive build')
             require(re.fullmatch('[a-f0-9]{40}', manifest['treeCommit']), 'missing beta source commit')
             sources.add(manifest['treeCommit'])
             for file in pair.iterdir():

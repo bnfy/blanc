@@ -7,6 +7,7 @@ import path from 'node:path';
 import test from 'node:test';
 import {fileURLToPath} from 'node:url';
 import YAML from 'yaml';
+import {ASSET_NAME} from '../linux/candidate.mjs';
 
 const workflow = YAML.parse(fs.readFileSync(new URL('../../.github/workflows/chromium-linux-candidate.yml', import.meta.url), 'utf8'));
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -27,14 +28,15 @@ test('beta install dispatch prepares only the selected pre-signing archive and e
     t.after(() => fs.rmSync(temp, {recursive: true, force: true}));
     const dir = name => { const d = path.join(temp, name); fs.mkdirSync(d, {recursive: true}); return d; };
     const runtime = dir('tar/chrome'), packages = dir('tar/packages'), bin = dir('bin');
-    const draft = dir('draft'), asset = 'blanc-linux-beta-' + arch + '-906-candidate.tar.gz';
+    const build = 906;
+    const draft = dir('draft'), asset = ASSET_NAME(arch, 'beta', build);
     const exe = 'fixture executable', exeSha256 = sha(exe);
     fs.writeFileSync(path.join(runtime, 'chrome'), exe);
     const files = ['blanc-beta_' + version + '-1_' + (arch === 'x64' ? 'amd64' : 'arm64') + '.deb',
       'blanc-beta-' + version + '-1.' + (arch === 'x64' ? 'x86_64' : 'aarch64') + '.rpm'];
     for (const file of files) fs.writeFileSync(path.join(packages, file), file);
     fs.writeFileSync(path.join(temp, 'tar/candidate.json'), JSON.stringify({id: 'linux-' + arch + '-' + exeSha256.slice(0, 16),
-      arch, version, exeSha256, channel: 'beta', platform: 'linux', packages: files.map(file => ({file, sha256: sha(file)}))}));
+      arch, build, version, exeSha256, channel: 'beta', platform: 'linux', packages: files.map(file => ({file, sha256: sha(file)}))}));
     execFileSync('tar', ['-czf', path.join(draft, asset), '-C', path.join(temp, 'tar'), '.']);
     const stub = (name, script) => fs.writeFileSync(path.join(bin, name), '#!/bin/bash\nset -eu\n' + script, {mode: 0o755});
     stub('gh', `[[ $1 == release && $3 == fork-linux-candidate ]]
