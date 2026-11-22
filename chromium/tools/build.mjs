@@ -4,6 +4,7 @@ import process from 'node:process';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
 
 const digest = value => crypto.createHash('sha256').update(value).digest('hex');
 export function changedInputs(saved, current) {
@@ -79,7 +80,10 @@ export function maximumActions(options) {
 // x86-64 Linux server (chromium/windows/). It shares the lane's patches and
 // source with the Mac; only the output and the machine differ.
 export const WINDOWS_OUTPUTS = ['BlancWinPrototype', 'BlancWinBeta'];
-export const LINUX_OUTPUT_ARCH = Object.freeze({BlancLinuxPrototype: 'x64', BlancLinuxArm64Prototype: 'arm64'});
+export const LINUX_OUTPUT_ARCH = Object.freeze({
+  BlancLinuxPrototype: 'x64', BlancLinuxArm64Prototype: 'arm64',
+  BlancLinuxBeta: 'x64', BlancLinuxArm64Beta: 'arm64',
+});
 export const LINUX_OUTPUTS = Object.keys(LINUX_OUTPUT_ARCH);
 const MAC_OUTPUTS = ['BlancPrototype', 'BlancRelease', 'BlancBeta'];
 // The preview candidate's output, or the release channel's own (F0.3); never
@@ -112,7 +116,7 @@ export function buildLane(options, hasLinuxKey) {
     if (linux) {
       const channel = out.endsWith('Beta') ? 'beta' : 'prototype';
       const extraTargets = ['chrome_sandbox'];
-      if (packagesRequested || (hasLinuxKey ?? fs.existsSync(linuxRepositoryKey)))
+      if (channel === 'beta' || packagesRequested || (hasLinuxKey ?? fs.existsSync(linuxRepositoryKey)))
         extraTargets.push(`chrome/installer/linux:${channel}`);
       return { lane, out, target: 'chrome', extraTargets };
     }
@@ -293,7 +297,7 @@ export function linuxEnvironment(src, out) {
     sysrootHash: sysrootHash(fs.readdirSync(path.join(linux, 'debian_bullseye_amd64-sysroot'))),
     argsSha256: digest(fs.readFileSync(path.join(out, 'args.gn'))),
   };
-  if (path.basename(out) === 'BlancLinuxArm64Prototype') {
+  if (LINUX_OUTPUT_ARCH[path.basename(out)] === 'arm64') {
     // install-sysroot.py writes the verified tarball URL verbatim to .stamp.
     const manifest = JSON.parse(fs.readFileSync(path.join(linux, 'sysroot_scripts/sysroots.json'), 'utf8'));
     const { SysrootDir, Sha256Sum, URL } = manifest.bullseye_arm64;
@@ -303,6 +307,24 @@ export function linuxEnvironment(src, out) {
     inputs.arm64SysrootHash = Sha256Sum;
   }
   return { inputs, env: { ...process.env, DEPOT_TOOLS_UPDATE: '0' } };
+}
+
+// Called under the shared checkout lock. Setup's apply record describes the
+// Chromium sources; the immutable Git map identifies the Blanc commit.
+export function linuxBetaSource(src) {
+  const tree = fileURLToPath(new URL('../', import.meta.url));
+  const git = (cwd, ...args) => run('git', ['-C', cwd, ...args], {stdoutOnly: true});
+  const treeCommit = git(tree, 'rev-parse', 'HEAD');
+  const {upstream, upstreamFiles, canonicalSha256} = JSON.parse(git(tree, 'show', treeCommit + ':chromium/source-map.json'));
+  const applied = fs.readFileSync(path.join(path.dirname(src), '.blanc-applied-source-map.json'));
+  if (git(src, 'rev-parse', 'HEAD') !== upstream ||
+      !isDeepStrictEqual(JSON.parse(applied), {upstream, upstreamFiles, canonicalSha256})) {
+    throw new Error('The applied source map differs from the Linux beta commit. Run Linux setup for this source.');
+  }
+  for (const [name, expected] of Object.entries({...upstreamFiles, ...canonicalSha256})) {
+    if (digest(fs.readFileSync(path.join(src, name))) !== expected) throw new Error(`Applied Linux beta source differs: ${name}`);
+  }
+  return {treeCommit, appliedSourceMapSha256: digest(applied)};
 }
 function environment(src, out, sdkRoot = null) {
   const developerDir = fs.realpathSync(process.env.DEVELOPER_DIR || run('/usr/bin/xcode-select', ['-p']));
@@ -422,13 +444,17 @@ function main() {
     if (changedInputs(inputs, observe().inputs).length) {
       throw new Error('Build environment changed during preflight. No build started.');
     }
+    const sourceRecord = linux && outName.endsWith('Beta') ? linuxBetaSource(src) : null;
     if (!actions) return;
+    const successFile = path.join(out, '.blanc-last-successful-build.json');
+    // An interrupted beta build may already have replaced some of the binaries.
+    if (sourceRecord) fs.rmSync(successFile, {force: true});
     const build = process.platform === 'darwin'
       ? spawnSync('/usr/bin/caffeinate', ['-i', siso, ...args, ...targets], { cwd: src, env, stdio: 'inherit' })
       : spawnSync(siso, [...args, ...targets], { cwd: src, env, stdio: 'inherit' });
     if (build.error) throw build.error;
     if (build.status !== 0) throw new Error(`Build did not complete successfully (${build.status ?? build.signal}). Cached work was preserved.`);
-    fs.writeFileSync(path.join(out, '.blanc-last-successful-build.json'), JSON.stringify({ inputs, completedAt: new Date().toISOString() }, null, 2) + '\n');
+    fs.writeFileSync(successFile, JSON.stringify({ inputs, ...sourceRecord, completedAt: new Date().toISOString() }, null, 2) + '\n');
     // Only the preview build is the tracked desktop candidate. The Android
     // candidate is recorded once the tracker holds Android candidates (A0 task 7).
     if (lane === 'desktop' && outName === 'BlancPrototype') run(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), 'progress.mjs'), `--candidate-from-output=${out}`]);

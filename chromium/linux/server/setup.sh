@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Applies the desktop lane's Blanc source and generates the Linux preview
+# Applies the desktop lane's Blanc source and generates the selected Linux
 # output in the server's existing desktop checkout (the one the Windows build
 # uses), under the shared checkout lock:
 #
@@ -7,6 +7,7 @@
 #   bash chromium/linux/server/setup.sh --windows-release-idle    # run it
 #   bash chromium/linux/server/setup.sh --windows-release-idle --install-arm64-sysroot
 #   bash chromium/linux/server/setup.sh --windows-release-idle --out=BlancLinuxArm64Prototype
+#   bash chromium/linux/server/setup.sh --windows-release-idle --out=BlancLinuxBeta --build=905
 #
 # It never syncs, runs hooks or installs packages. It records both Windows
 # outputs' build plans before and after, so a change to what Windows would
@@ -28,26 +29,36 @@ dry_run=0
 windows_release_idle=0
 install_arm64_sysroot=0
 out_name=
+build=
 for arg in "$@"; do
   case "${arg}" in
     --dry-run) dry_run=1 ;;
     --windows-release-idle) windows_release_idle=1 ;;
     --install-arm64-sysroot) install_arm64_sysroot=1 ;;
-    --out=BlancLinuxPrototype|--out=BlancLinuxArm64Prototype)
+    --out=BlancLinuxPrototype|--out=BlancLinuxArm64Prototype|--out=BlancLinuxBeta|--out=BlancLinuxArm64Beta)
       [[ -z "${out_name}" ]] || die "choose only one --out."
       out_name="${arg#--out=}" ;;
-    *) echo "Usage: setup.sh [--dry-run] [--windows-release-idle] [--out=BlancLinuxPrototype|BlancLinuxArm64Prototype] [--install-arm64-sysroot]" >&2; exit 2 ;;
+    --build=*)
+      [[ -z "${build}" && "${arg#--build=}" =~ ^[1-9][0-9]{0,3}$ ]] || die "use one --build=N (1..9999)."
+      build="${arg#--build=}" ;;
+    *) echo "Usage: setup.sh [--dry-run] [--windows-release-idle] [--out=BlancLinuxPrototype|BlancLinuxArm64Prototype|BlancLinuxBeta|BlancLinuxArm64Beta] [--build=N] [--install-arm64-sysroot]" >&2; exit 2 ;;
   esac
 done
 if (( install_arm64_sysroot )); then
   out_name="${out_name:-BlancLinuxArm64Prototype}"
-  [[ "${out_name}" == BlancLinuxArm64Prototype ]] || die "--install-arm64-sysroot requires the arm64 output."
+  [[ "${out_name}" == BlancLinuxArm64* ]] || die "--install-arm64-sysroot requires an arm64 output."
 fi
 out_name="${out_name:-BlancLinuxPrototype}"
-ARGS="${TREE}/chromium/linux/args/prototype-x64.gn"
-if [[ "${out_name}" == BlancLinuxArm64Prototype ]]; then
-  ARGS="${TREE}/chromium/linux/args/prototype-arm64.gn"
+arch=x64
+[[ "${out_name}" != BlancLinuxArm64* ]] || arch=arm64
+channel=prototype
+if [[ "${out_name}" == *Beta ]]; then
+  channel=beta
+  [[ -n "${build}" ]] || die "a beta output requires --build=N."
+elif [[ -n "${build}" ]]; then
+  die "--build=N is only valid for a beta output."
 fi
+ARGS="${TREE}/chromium/linux/args/${channel}-${arch}.gn"
 OUT="${SRC}/out/${out_name}"
 
 in_dir() { local dir="$1"; shift; (cd "${dir}" && "$@"); }
@@ -118,7 +129,7 @@ snapshot_windows before
   require_idle_build
   if (( install_arm64_sysroot )); then
     step "install the pinned arm64 sysroot" python3 "${SRC}/build/linux/sysroot_scripts/install-sysroot.py" --arch=arm64
-  elif [[ "${out_name}" == BlancLinuxArm64Prototype && ! -s "${SRC}/build/linux/debian_bullseye_arm64-sysroot/.stamp" ]]; then
+  elif [[ "${arch}" == arm64 && ! -s "${SRC}/build/linux/debian_bullseye_arm64-sysroot/.stamp" ]]; then
     die "arm64 sysroot .stamp missing or empty; use --install-arm64-sysroot."
   fi
   previous=()
@@ -127,7 +138,10 @@ snapshot_windows before
   step "apply the lane's Blanc source" python3 "${TREE}/chromium/tools/apply.py" --lane desktop --src "${SRC}" "${previous[@]}" \
     --apply --backup "${EVIDENCE}/backups/apply-${stamp}"
   step "record what was applied" python3 -c 'import json,sys; t=sys.argv[1]; l=json.load(open(t+"/chromium/lanes/desktop.json")); m=json.load(open(t+"/chromium/"+l["sourceMap"])); json.dump({"upstream":m["upstream"],"upstreamFiles":m["upstreamFiles"],"canonicalSha256":m["canonicalSha256"]},open(sys.argv[2],"w"),indent=2)' "${TREE}" "${APPLIED}"
-  if [[ -f "${OUT}/args.gn" ]]; then
+  if [[ "${channel}" == beta ]]; then
+    step "create ${out_name}" mkdir -p "${OUT}"
+    step "set beta build ${build}" "${NODE}" "${TREE}/chromium/release/beta-args.mjs" "--build=${build}" "${ARGS}" "${OUT}/args.gn"
+  elif [[ -f "${OUT}/args.gn" ]]; then
     cmp -s "${ARGS}" "${OUT}/args.gn" || die "${OUT}/args.gn differs from ${ARGS}; review it by hand (nothing was overwritten)."
   else
     step "create ${out_name}" mkdir -p "${OUT}"

@@ -138,21 +138,34 @@ test('the selected Linux package group has only DEB and RPM installers', t => {
   assert.match(gn, /enable_flatpak = false/, 'existing GN overrides remain recognized');
 });
 
+function budget(patches) {
+  const rows = execFileSync('git', ['apply', '--numstat', ...patches], {cwd: path.resolve(chromium, '..'), encoding: 'utf8'});
+  const files = new Set(rows.trim().split('\n').map(row => row.split('\t')[2]));
+  const hunks = patches.reduce((total, name) => total + [...fs.readFileSync(name, 'utf8').matchAll(/^@@ -/gm)].length, 0);
+  return {files: files.size, hunks};
+}
+
 test('patch 0115 and the desktop queue have measured budgets in the L1 plan', () => {
   const lane = JSON.parse(fs.readFileSync(path.join(chromium, 'lanes/desktop.json')));
   const plan = fs.readFileSync(path.join(chromium, '../docs/superpowers/plans/2026-11-21-linux-fork-l1.md'), 'utf8');
   const patches = lane.patches.map(name => path.join(chromium, name));
   const queue = patches.slice(0, patches.indexOf(patch) + 1);
-  function budget(patches) {
-    const rows = execFileSync('git', ['apply', '--numstat', ...patches], {cwd: path.resolve(chromium, '..'), encoding: 'utf8'});
-    const files = new Set(rows.trim().split('\n').map(row => row.split('\t')[2]));
-    const hunks = patches.reduce((total, name) => total + [...fs.readFileSync(name, 'utf8').matchAll(/^@@ -/gm)].length, 0);
-    return {files: files.size, hunks};
-  }
   const installer = budget([patch]);
   const desktop = budget(queue);
   assert.ok(plan.includes(`0115 touches ${installer.files} upstream files in ${installer.hunks} hunks`));
   assert.ok(plan.includes(`through 0115 touches ${desktop.files} distinct upstream files in ${desktop.hunks} hunks`));
+});
+
+test('the L3 plan records the desktop patch footprint through 0116', () => {
+  const {patches} = JSON.parse(fs.readFileSync(path.join(chromium, 'lanes/desktop.json')));
+  const last = patches.indexOf('patches/0116-blanc-linux-update-notifications.patch');
+  assert.ok(last >= 0);
+  const queue = patches.slice(0, last + 1).map(name => path.join(chromium, name));
+  const change = budget(queue.slice(-1));
+  const desktop = budget(queue);
+  const plan = fs.readFileSync(path.join(chromium, '../docs/superpowers/plans/2026-11-21-linux-fork-l3.md'), 'utf8');
+  assert.ok(plan.includes(`0116 touches ${change.files} upstream file in ${change.hunks} hunks`));
+  assert.ok(plan.includes(`through 0116 touches ${desktop.files} distinct upstream files in ${desktop.hunks} hunks`));
 });
 
 function repositoryCron(t, format) {

@@ -198,17 +198,21 @@ test('the Windows build needs its case-insensitive toolchain mount', () => {
   assert.equal(windowsToolchainMounted(`/dev/md2 ${mount} ext4 rw 0 0\n`, src), false);
 });
 
-test('both Linux previews build chrome, chrome_sandbox and patch 0115’s prototype package group', () => {
-  assert.deepEqual(LINUX_OUTPUTS, ['BlancLinuxPrototype', 'BlancLinuxArm64Prototype']);
-  for (const out of LINUX_OUTPUTS) {
+const linuxPreviews = ['BlancLinuxPrototype', 'BlancLinuxArm64Prototype'];
+const linuxBetas = ['BlancLinuxBeta', 'BlancLinuxArm64Beta'];
+test('each Linux output builds chrome, chrome_sandbox and its channel’s package group', () => {
+  assert.deepEqual([...LINUX_OUTPUTS].sort(), [...linuxPreviews, ...linuxBetas].sort());
+  for (const out of [...linuxPreviews, ...linuxBetas]) {
     const options = ['--out=' + out];
     assert.equal(outputName(options), out);
-    assert.deepEqual(buildLane(options, true), { lane: 'desktop', out, target: 'chrome', extraTargets: ['chrome_sandbox', 'chrome/installer/linux:prototype'] });
+    const channel = linuxBetas.includes(out) ? 'beta' : 'prototype';
+    assert.deepEqual(buildLane(options, true), { lane: 'desktop', out, target: 'chrome', extraTargets: ['chrome_sandbox', 'chrome/installer/linux:' + channel] });
+    if (channel === 'beta') assert.deepEqual(buildLane(options, false), buildLane(options, true));
     assert.throws(() => buildLane([...options, '--sdk-root=/tmp']), /macOS option/);
     assert.throws(() => buildLane([...options, '--lane=android']));
   }
 });
-test('Linux preview requires x86-64 Linux', () => {
+test('Linux outputs require x86-64 Linux', () => {
   for (const out of LINUX_OUTPUTS) {
     assert.throws(() => requireDesktopHost(out, 'darwin', 'arm64'), /x86-64 Linux/);
     assert.throws(() => requireDesktopHost(out, 'linux', 'arm64'), /x86-64 Linux/);
@@ -257,10 +261,11 @@ test('the arm64 environment requires both the host hash and the pinned installer
   const scripts = path.join(linux, 'sysroot_scripts');
   const x64 = path.join(src, 'out/BlancLinuxPrototype');
   const arm64 = path.join(src, 'out/BlancLinuxArm64Prototype');
-  for (const dir of [path.join(clang, 'bin'), host, scripts, x64, arm64]) fs.mkdirSync(dir, { recursive: true });
+  const arm64Beta = path.join(src, 'out/BlancLinuxArm64Beta');
+  for (const dir of [path.join(clang, 'bin'), host, scripts, x64, arm64, arm64Beta]) fs.mkdirSync(dir, { recursive: true });
   fs.symlinkSync(process.execPath, path.join(clang, 'bin/clang')); // Supplies --version.
   fs.writeFileSync(path.join(clang, 'cr_build_revision'), 'test');
-  for (const out of [x64, arm64]) fs.writeFileSync(path.join(out, 'args.gn'), '');
+  for (const out of [x64, arm64, arm64Beta]) fs.writeFileSync(path.join(out, 'args.gn'), '');
   const hostHash = 'a'.repeat(64), armHash = 'b'.repeat(64);
   const hostMarker = path.join(host, '.' + hostHash);
   fs.writeFileSync(hostMarker, '');
@@ -274,6 +279,7 @@ test('the arm64 environment requires both the host hash and the pinned installer
   fs.mkdirSync(arm);
   fs.writeFileSync(path.join(arm, '.' + armHash), ''); // The standalone installer requires .stamp.
   assert.throws(() => linuxEnvironment(src, arm64), /\.stamp/);
+  assert.throws(() => linuxEnvironment(src, arm64Beta), /\.stamp/);
   const stamp = path.join(arm, '.stamp');
   for (const value of [armHash, prefix + '/' + hostHash, 'https://other.invalid/' + armHash]) {
     fs.writeFileSync(stamp, value);
@@ -283,6 +289,7 @@ test('the arm64 environment requires both the host hash and the pinned installer
   const current = linuxEnvironment(src, arm64).inputs;
   assert.equal(current.sysrootHash, hostHash);
   assert.equal(current.arm64SysrootHash, armHash);
+  assert.deepEqual(linuxEnvironment(src, arm64Beta).inputs, current);
   assert.deepEqual(linuxEnvironment(src, x64).inputs, original);
   fs.unlinkSync(hostMarker);
   assert.throws(() => linuxEnvironment(src, arm64), /sysroot hash marker/);
@@ -290,7 +297,7 @@ test('the arm64 environment requires both the host hash and the pinned installer
 
 test('the guard can plan and build the unpackaged Linux browser before the owner key lands', () => {
   for (const mode of ['--check', '--build']) {
-    for (const out of LINUX_OUTPUTS) {
+    for (const out of linuxPreviews) {
       const options = ['--out=' + out, mode];
       assert.deepEqual(buildLane(options, false).extraTargets, ['chrome_sandbox']);
       assert.deepEqual(buildLane([...options, '--linux-packages'], false).extraTargets,
