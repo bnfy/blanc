@@ -4,7 +4,7 @@
 // with Linux, not with the Mac.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parsePointer, pointerProbe} from './lib/real-pointer.mjs';
+import {parsePointer, pointerProbe, pointerMover, clearPointerSpot} from './lib/real-pointer.mjs';
 import {quietTab} from './adapters/tabs.mjs';
 import {windowLayoutSteps, moveOffSettledPanel} from './fork-steps/window-layout.mjs';
 
@@ -17,6 +17,24 @@ test('Windows reads the real pointer, so hover cases move the window clear of it
   assert.deepEqual(parsePointer('1215,183\r\n'), {x: 1215, y: 183});
   assert.equal(parsePointer(''), null);
   assert.equal(parsePointer('x,y'), null);
+});
+
+test('a hosted Windows runner moves the real pointer when no window placement clears it', () => {
+  // Run 45036181468: the runner's pointer rested at (650, 570), inside the
+  // 1280x800 window, with no room for the window on any side of it.
+  const bounds = {left: 8, top: 8, width: 1280, height: 800};
+  const screen = {left: 0, top: 0, width: 1920, height: 1080};
+  const spot = clearPointerSpot(bounds, screen);
+  assert.ok(spot.x > 8 + 1280 + 40 || spot.y > 8 + 800 + 40, JSON.stringify(spot));
+  assert.ok(spot.x < 1920 && spot.y < 1080);
+  assert.equal(clearPointerSpot({left: 0, top: 0, width: 1920, height: 1080}, screen), null);
+  const mover = pointerMover('win32', {GITHUB_ACTIONS: 'true'});
+  assert.equal(mover(spot).file, 'powershell.exe');
+  assert.match(mover(spot).args.join(' '), new RegExp(`Point\\(${spot.x}, ${spot.y}\\)`));
+  // Never a person's pointer: not outside Actions, never on the Mac.
+  assert.equal(pointerMover('win32', {}), null);
+  assert.equal(pointerMover('darwin', {GITHUB_ACTIONS: 'true'}), null);
+  assert.equal(pointerMover('linux', {GITHUB_ACTIONS: 'true'}), null);
 });
 
 function quietWorld() {
