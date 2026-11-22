@@ -14,15 +14,16 @@ import {installDriver} from './lib/test-driver.mjs';
 import {assertRendering,assertNodeRuntime} from './lib/render-guard.mjs';
 import {createWorld} from './world.mjs';
 import {tabPage} from './adapters/core.mjs';
+import {relaunchWindowBounds} from './adapters/island.mjs';
 const [configFile,out]=process.argv.slice(2),config=JSON.parse(fs.readFileSync(configFile));
 assertNodeRuntime();assert.equal(fs.existsSync(out),false,'expected a new output folder');fs.mkdirSync(out,{recursive:true});
 const f=new NativeFixture(),w=createWorld(f),result={candidate:config.candidate,checks:[]};
 const parent=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-window-size-'));
 const visible=()=>assertRendering(e=>f.host.eval(e));
-// The window's own frame, from the browser: windowContentBounds also checks
-// that the page fills it, which an infobar after a relaunch legitimately breaks.
+// An infobar after relaunch can shorten the page, so read the window
+// directly without requiring the page and Island to fill it.
 const bounds=async()=>{try{const s=await w.snapshot(),page=await tabPage(w,s.activeTabId);
- return (await f.browser.send('Browser.getWindowForTarget',{targetId:page.targetId})).bounds;}catch{return null;}};
+ return await relaunchWindowBounds(w,page.targetId);}catch{return null;}};
 const dims=async()=>{const b=await w.waitFor(bounds,Boolean,'window bounds',7000);return {width:b.width,height:b.height};};
 const size=async(width,height)=>{await w.call('setWindowContentSize',width,height);
  await w.waitFor(bounds,b=>b?.width===width&&b?.height===height,`${width}x${height} window`,7000);};

@@ -352,7 +352,14 @@ export const tabs={
   return (await w.native('previewPageCommand',[native]))!==false;},
  sleepBackgroundTabsNow:w=>{w.app.releasePages();return w.api('sleepBackgroundTabs');},
  sleepTab:async(w,id)=>{
-  w.app.releasePages();return w.api('quietTab',[id]);
+  if(process.platform==='linux' && w.heldLoadingPages?.length){
+   // Detaching the loading tab's DevTools session also releases its
+   // intercepted response. Only the tab being discarded needs to detach.
+   const page=await tabPage(w,id);
+   page.cdp?.close();
+   page.cdp=null;
+  }else w.app.releasePages();
+  return w.api('quietTab',[id]);
  },
  keepGlanceAsSplit:w=>w.api('keepGlanceAsSplit'),
  moveGroupToNewWindow:async(w,id)=>{await w.api('moveGroupToNewWindow',[id]);return true;},
