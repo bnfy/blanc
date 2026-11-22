@@ -65,6 +65,14 @@ test('palette rows are read from the list, above the field (Island at the bottom
   assert.deepEqual(paletteRows(actions(0) + field(140) + scroll(600) + shifted), expected);
 });
 
+test('a palette hint holding a double quote, which UI Automator quotes with \', still reads', () => {
+  const xml = '<node class="android.widget.ScrollView" bounds="[24,457][1056,649]" />'
+    + '<node text="/group" class="android.widget.TextView" bounds="[192,512][990,573]" />'
+    + `<node index="1" text='Type a space, then a group name — e.g. "work"' class="android.widget.TextView" bounds="[192,573][990,617]" />`
+    + '<node text="/g" class="android.widget.EditText" bounds="[84,675][756,807]" />';
+  assert.deepEqual(paletteRows(xml), [{kind: 'command', title: '/group', subtitle: 'Type a space, then a group name — e.g. "work"'}]);
+});
+
 test('fixture names become hosts under .example and pages title themselves by host and path', () => {
   assert.equal(fixtureUrl('a.example'), 'https://a.example/');
   assert.equal(fixtureUrl('plain'), 'https://plain.example/');

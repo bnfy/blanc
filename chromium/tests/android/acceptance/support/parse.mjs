@@ -2,9 +2,10 @@
 // UI Automator dump, and the names of the fixture sites. No adb here, so they're unit-tested
 // (chromium/tools/android-acceptance.test.mjs).
 
+// UI Automator quotes an attribute with ' when its value holds a " (a hint like e.g. "work").
 const attr = (node, name) => {
-  const m = new RegExp(`\\s${name}="([^"]*)"`).exec(node);
-  return m ? m[1].replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&') : '';
+  const m = new RegExp(`\\s${name}=(?:"([^"]*)"|'([^']*)')`).exec(node);
+  return m ? (m[1] ?? m[2]).replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&') : '';
 };
 const nodes = xml => [...xml.matchAll(/<node\b[^>]*>/g)].map(m => m[0]);
 
