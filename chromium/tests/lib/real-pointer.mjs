@@ -10,16 +10,32 @@ import {nativeCall} from './test-driver.mjs';
 // Tried in order: a comfortable gap first, a tight one when the screen is small.
 const MARGINS = [40, 8];
 
+// How to read the real pointer on this platform, or null where it can't be.
+// Each prints "x,y" in the same units as Chromium's window bounds: macOS
+// points from the top left of the main display, and on Windows the logical
+// pixels of a process that hasn't declared itself DPI-aware (the hosted
+// runners draw at 100%).
+export function pointerProbe(platform = process.platform) {
+  if (platform === 'darwin') return {file: '/usr/bin/osascript', args: ['-l', 'JavaScript', '-e',
+    'ObjC.import("AppKit");var p=$.NSEvent.mouseLocation;var h=$.NSScreen.screens.objectAtIndex(0).frame.size.height;p.x+","+(h-p.y)'], timeout: 5000};
+  // PowerShell takes a few seconds to start on a hosted runner.
+  if (platform === 'win32') return {file: 'powershell.exe', args: ['-NoProfile', '-NonInteractive', '-Command',
+    'Add-Type -AssemblyName System.Windows.Forms; $p = [System.Windows.Forms.Cursor]::Position; "$($p.X),$($p.Y)"'], timeout: 20000};
+  return null;
+}
+
+export function parsePointer(text) {
+  const [x, y] = String(text).trim().split(',').map(part => part.trim() === '' ? NaN : Number(part));
+  return Number.isFinite(x) && Number.isFinite(y) ? {x, y} : null;
+}
+
 // Where the real pointer is, in screen coordinates from the top left of the
 // main display, or null where it can't be read.
 export function realPointer() {
-  if (process.platform !== 'darwin') return null;
+  const probe = pointerProbe();
+  if (!probe) return null;
   try {
-    const out = execFileSync('/usr/bin/osascript', ['-l', 'JavaScript', '-e',
-      'ObjC.import("AppKit");var p=$.NSEvent.mouseLocation;var h=$.NSScreen.screens.objectAtIndex(0).frame.size.height;p.x+","+(h-p.y)'],
-      {encoding: 'utf8', timeout: 5000});
-    const [x, y] = out.trim().split(',').map(Number);
-    return Number.isFinite(x) && Number.isFinite(y) ? {x, y} : null;
+    return parsePointer(execFileSync(probe.file, probe.args, {encoding: 'utf8', timeout: probe.timeout}));
   } catch { return null; }
 }
 

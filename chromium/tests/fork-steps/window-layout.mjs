@@ -40,16 +40,19 @@ export async function openLinuxSpacePicker(name) {
 }
 // The first card rectangle belongs to the opening morph. Aim relative to
 // the fully expanded card, outside hover-panel-leave's eight-pixel slack.
-export async function moveOffLinuxPanel() {
+export async function moveOffSettledPanel() {
  await this.frame('overlay').waitForSelector('body[data-mode="panel"] #islandPanel:not(.morph-start):not(.morph-run):not(.retracting)');
  const card=await this.call('overlayPanelRect');
  assert.ok(card?.left > 9,'space outside the expanded panel: '+JSON.stringify(card));
  const input={type:'mouseMove',x:Math.max(1,Math.floor(card.left)-60),y:Math.round(card.top+20)};
  assert.equal(await this.call('sendOverlayInput',input),true);
 }
-export const WINDOW_LAYOUT_STEPS = new Map([
- ...(process.platform==='linux'?[
- ['I move the pointer off the panel',moveOffLinuxPanel],
+// Linux and Windows both measure the panel mid-morph without the settled
+// step (the first Windows nightly's island-and-commands:115).
+export function windowLayoutSteps(platform=process.platform) {
+ return new Map([
+ ...(platform!=='darwin'?[['I move the pointer off the panel',moveOffSettledPanel]]:[]),
+ ...(platform==='linux'?[
  ['I open the color picker for {string}',openLinuxSpacePicker],
  ['I give {string} the custom color {string}',async function(name,hex){
   await openLinuxSpacePicker.call(this,name);
@@ -97,5 +100,6 @@ export const WINDOW_LAYOUT_STEPS = new Map([
   if (width === 640 && height === 480) await this.call('groupActiveByName', 'minimum-window-group-label');
   await this.frame('strip').waitForFunction(() => document.documentElement.dataset.tabLayout === 'vertical');
   await this.frame('strip').locator('#verticalTabsRail:not([hidden])').waitFor();
- }],
-]);
+ }],]);
+}
+export const WINDOW_LAYOUT_STEPS = windowLayoutSteps();

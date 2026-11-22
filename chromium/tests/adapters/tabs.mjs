@@ -134,6 +134,18 @@ async function spaceAction(api,action,args){
   for(const item of (await api('listWorkspaces',[])).deleted)await api('forgetWorkspace',[item.id]);return {ok:true};}
  throw new UndefinedNativeAdapterError('Space action needs an adapter: '+action);
 }
+// Detaching a loading tab's DevTools session also releases its intercepted
+// response (core.mjs setTabPresentation's isLoading seed), so on Linux and
+// Windows only the tab being discarded detaches. The Mac keeps releasing
+// every page, as it always has.
+export async function quietTab(w,id,platform=process.platform){
+ if(platform!=='darwin' && w.heldLoadingPages?.length){
+  const page=await tabPage(w,id);
+  page.cdp?.close();
+  page.cdp=null;
+ }else w.app.releasePages();
+ return w.api('quietTab',[id]);
+}
 export const tabs={
  selectTabRows:(w,id,mode)=>w.api('selectTab',[id==null?null:String(id),mode]),
  selectedTabIds:async w=>(await w.api('getAllTabs')).selectedTabIds,
@@ -351,16 +363,7 @@ export const tabs={
   if(!native)throw new UndefinedNativeAdapterError('Browser command needs an adapter: '+command);
   return (await w.native('previewPageCommand',[native]))!==false;},
  sleepBackgroundTabsNow:w=>{w.app.releasePages();return w.api('sleepBackgroundTabs');},
- sleepTab:async(w,id)=>{
-  if(process.platform==='linux' && w.heldLoadingPages?.length){
-   // Detaching the loading tab's DevTools session also releases its
-   // intercepted response. Only the tab being discarded needs to detach.
-   const page=await tabPage(w,id);
-   page.cdp?.close();
-   page.cdp=null;
-  }else w.app.releasePages();
-  return w.api('quietTab',[id]);
- },
+ sleepTab:(w,id)=>quietTab(w,id),
  keepGlanceAsSplit:w=>w.api('keepGlanceAsSplit'),
  moveGroupToNewWindow:async(w,id)=>{await w.api('moveGroupToNewWindow',[id]);return true;},
  closedEntrySummaries:async w=>[...(await w.snapshot()).closed].reverse().map(e=>({id:String(e.id),title:e.title,tabCount:e.tabCount})),

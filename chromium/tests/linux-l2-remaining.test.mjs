@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 test('the Linux leave step measures the settled card and sends a point outside its slack', async () => {
-  const {moveOffLinuxPanel} = await import('./fork-steps/window-layout.mjs');
+  const {moveOffSettledPanel} = await import('./fork-steps/window-layout.mjs');
   const rect = {left:140, right:760, top:12, bottom:460};
   const delivered = [];
   const world = {
@@ -15,7 +15,7 @@ test('the Linux leave step measures the settled card and sends a point outside i
       return true;
     },
   };
-  await moveOffLinuxPanel.call(world);
+  await moveOffSettledPanel.call(world);
   assert.equal(delivered.length,1);
   assert.ok(delivered[0].x < rect.left - 8);
 });

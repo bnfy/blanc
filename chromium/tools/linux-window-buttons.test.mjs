@@ -15,7 +15,7 @@ before(async () => {
 });
 after(() => browser?.close());
 
-async function openIsland(t, scale = 1) {
+async function openIsland(t, scale = 1, navigatorPlatform = 'Linux x86_64') {
   const page = await browser.newPage({ viewport: { width, height: 480 }, deviceScaleFactor: scale, reducedMotion: 'reduce' });
   t.after(() => page.close());
   await page.route('https://island.test/**', async route => {
@@ -24,8 +24,8 @@ async function openIsland(t, scale = 1) {
     if (!file.href.startsWith(assets.href) || !fs.existsSync(file)) return route.abort();
     await route.fulfill({ path: fileURLToPath(file) });
   });
-  await page.addInitScript(() => {
-    Object.defineProperty(navigator, 'platform', { value: 'Linux x86_64' });
+  await page.addInitScript(navigatorPlatform => {
+    Object.defineProperty(navigator, 'platform', { value: navigatorPlatform });
     window.nativeCalls = {};
     window.chrome.send = (_, [id, method, args]) => {
       window.nativeCalls[method] = args;
@@ -38,7 +38,7 @@ async function openIsland(t, scale = 1) {
     };
     if (['/index.html', '/overlay.html'].includes(location.pathname))
       window.browserAPI = parent.BlancPrototypeHost.apiForDocument(document);
-  });
+  }, navigatorPlatform);
   await page.goto('https://island.test/host.html');
   const strip = page.frameLocator('#strip');
   await strip.locator('#mainMenuButton').waitFor({ state: 'visible', timeout: 5000 });
@@ -268,8 +268,10 @@ test('the first animated rail panel open after narrowing starts below the GTK co
   assert.deepEqual(opening.target, settled);
 });
 
-test('a chosen quiet Glance row keeps Opening through the first awake, loading snapshot', async t => {
-  const { page } = await openIsland(t);
+// Linux and Windows both publish the woken tab awake and still loading first.
+for (const [os, navigatorPlatform] of [['Linux', 'Linux x86_64'], ['Windows', 'Win32']])
+test(`${os}: a chosen quiet Glance row keeps Opening through the first awake, loading snapshot`, async t => {
+  const { page } = await openIsland(t, 1, navigatorPlatform);
   await page.evaluate(async () => {
     const send = chrome.send;
     const main = {id:'1',title:'main',url:'https://main.test/'};
