@@ -97,10 +97,28 @@ export function runNightBuild({commit, build, stamp, io, paths, token}) {
     // Nothing else in the Chromium checkout, submodules included, may differ from the pin.
     const known = new Set([...Object.keys(current.upstreamFiles), ...Object.keys(current.canonicalSha256)]);
     const status = must(run('git', ['-C', src, 'status', '--porcelain', '--untracked-files=all', '--ignore-submodules=none']), 'git status failed').stdout;
+    // gclient writes inside some submodules itself (a CIPD package, a nested
+    // dependency at its own DEPS revision). Such a submodule passes only at its
+    // gitlink, with every change inside it a path DEPS declares there.
+    const declared = (text, key) => text.includes(`'${key}'`) || text.includes(`"${key}"`);
+    const srcDeps = io.exists(path.join(src, 'DEPS')) ? io.read(path.join(src, 'DEPS')) : '';
+    const gclientOnly = name => {
+      const staged = run('git', ['-C', src, 'ls-files', '-s', '--', name]).stdout;
+      const link = /^160000 ([0-9a-f]{40}) /.exec(String(staged));
+      if (!link) return false;
+      const sub = path.join(src, name);
+      if (run('git', ['-C', sub, 'rev-parse', 'HEAD']).stdout.trim() !== link[1]) return false;
+      const inner = run('git', ['-C', sub, 'status', '--porcelain', '--ignore-submodules=none']);
+      const entries = String(inner.stdout).split('\n').filter(Boolean).map(l => l.slice(3).replace(/^"|"$/g, '').replace(/\/$/, ''));
+      if (inner.status !== 0 || entries.length === 0) return false;
+      const ownDeps = io.exists(path.join(sub, 'DEPS')) ? io.read(path.join(sub, 'DEPS')) : '';
+      const relative = /^use_relative_paths\s*=\s*True/m.test(ownDeps);
+      return entries.every(entry => declared(srcDeps, `src/${name}/${entry}`) || (relative && declared(ownDeps, entry)));
+    };
     for (const line of String(status).split('\n').filter(Boolean)) {
       const name = line.slice(3).replace(/^"|"$/g, '');
       if (name.startsWith('out/')) continue;
-      if (!known.has(name)) stop('the Chromium checkout has a change outside the lane\'s map');
+      if (!known.has(name) && !gclientOnly(name)) stop('the Chromium checkout has a change outside the lane\'s map');
     }
 
     // Arguments: each output's args.gn must still be what its environment

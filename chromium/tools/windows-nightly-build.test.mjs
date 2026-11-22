@@ -16,7 +16,8 @@ const COMMIT = 'c'.repeat(40), PIN = '681cd621e82e606d7536eae8ea2576afb3c7d65c';
 const P = {src: '/s/src', tree: '/s/tree', applied: '/s/applied.json', evidence: '/s/ev', gn: '/s/src/buildtools/linux64/gn', node: '/node', lock: '/s/lock'};
 
 // A simulated server: files by path, and scripted command results.
-function server({prevMap, curMap, status = '', checkAfterApply = 0, guard = {}, retiredBytes = 'patched', head = PIN, lockOwner = 'tok', applyFails = false, pinHas = () => true} = {}) {
+function server({prevMap, curMap, status = '', checkAfterApply = 0, guard = {}, retiredBytes = 'patched', head = PIN, lockOwner = 'tok', applyFails = false, pinHas = () => true,
+                 submodules = {}, deps = ''} = {}) {
   const files = new Map([
     [P.applied, JSON.stringify(prevMap ?? {upstream: PIN, upstreamFiles: {'a.cc': sha('patched-a')}, canonicalSha256: {}})],
     [`${P.tree}/chromium/lanes/desktop.json`, JSON.stringify({sourceMap: 'source-map.json'})],
@@ -29,6 +30,8 @@ function server({prevMap, curMap, status = '', checkAfterApply = 0, guard = {}, 
     [`${P.src}/out/BlancWinPrototype/.blanc-build-environment.json`, JSON.stringify({argsSha256: sha(protoCommitted)})],
     [`${P.src}/retired.cc`, retiredBytes],
     [`${P.lock}/owner`, `${lockOwner}\n`],
+    [`${P.src}/DEPS`, deps],
+    ...Object.entries(submodules).filter(([, m]) => m.deps !== undefined).map(([name, m]) => [`${P.src}/${name}/DEPS`, m.deps]),
   ]);
   const calls = [];
   let applyChecks = 0;
@@ -44,6 +47,14 @@ function server({prevMap, curMap, status = '', checkAfterApply = 0, guard = {}, 
       (io.options ??= []).push(options);
       const joined = [command, ...args].join(' ');
       if (args.includes('mount-toolchain.sh') || joined.includes('mount-toolchain.sh')) return {status: 0, stdout: '', stderr: ''};
+      // A submodule: its gitlink at the pin, its checked-out commit, and what changed inside it.
+      if (command === 'git' && args.includes('ls-files')) {
+        const name = args.at(-1), m = submodules[name];
+        return {status: 0, stdout: m ? `160000 ${m.gitlink} 0\t${name}\n` : `100644 ${'f'.repeat(40)} 0\t${name}\n`, stderr: ''};
+      }
+      const inside = command === 'git' && Object.keys(submodules).find(name => args[1] === `${P.src}/${name}`);
+      if (inside && args.includes('rev-parse')) return {status: 0, stdout: submodules[inside].head + '\n', stderr: ''};
+      if (inside && args.includes('status')) return {status: 0, stdout: submodules[inside].inner, stderr: ''};
       if (command === 'git' && args.includes('rev-parse')) return {status: 0, stdout: head + '\n', stderr: ''};
       if (command === 'git' && args.includes('cat-file')) return {status: pinHas(args.at(-1)) ? 0 : 128, stdout: '', stderr: ''};
       if (command === 'git' && args.includes('show')) return {status: 0, stdout: options.binary ? Buffer.from([0x89, 0x50, 0xff, 0x00]) : 'pristine', stderr: ''};
@@ -265,4 +276,23 @@ test('Python bytecode from the lanes\' apply runs never counts as a change to th
   for (const name of ['chromium/tools/__pycache__/apply.cpython-312.pyc', 'chromium/linux/__pycache__/x.pyc']) {
     assert.equal(spawnSync('git', ['check-ignore', '-q', name], {cwd: fileURLToPath(new URL('../..', import.meta.url))}).status, 0, name);
   }
+});
+
+// The first rehearsal night (2026-11-22): gclient writes inside two submodules on its own.
+const GIT = 'c'.repeat(40);
+const gperf = {gitlink: GIT, head: GIT, inner: '?? cipd/\n'};
+const replay = {gitlink: GIT, head: GIT, inner: ' M third_party/clang-format/script\n',
+  deps: "use_relative_paths = True\ndeps = {\n  'third_party/clang-format/script': Var('clang_format_git') + '@' + Var('rev'),\n}\n"};
+const srcDeps = "deps = {\n  'src/third_party/gperf/cipd': {\n    'packages': [],\n  },\n}\n";
+test('what gclient itself puts inside a submodule, as DEPS declares it, is not a stray change', () => {
+  const s = server({status: ' M third_party/gperf\n M third_party/webpagereplay\n', submodules: {'third_party/gperf': gperf, 'third_party/webpagereplay': replay}, deps: srcDeps});
+  assert.equal(night(s).status, 'built');
+});
+test('an edit inside a dependency, a submodule off its gitlink, or an undeclared nested path still stops the night', () => {
+  const stray = (name, m, deps = srcDeps) => night(server({status: ` M ${name}\n`, submodules: {[name]: m}, deps})).status;
+  assert.equal(stray('v8', {gitlink: GIT, head: GIT, inner: ' M src/api/api.cc\n'}), 'stopped');
+  assert.equal(stray('third_party/gperf', {...gperf, head: 'd'.repeat(40)}), 'stopped');
+  assert.equal(stray('third_party/gperf', {...gperf, inner: '?? cipd/\n?? extra.txt\n'}), 'stopped');
+  assert.equal(stray('third_party/webpagereplay', {...replay, deps: replay.deps.replace('use_relative_paths = True', '')}), 'stopped');
+  assert.equal(stray('third_party/gperf', {...gperf, inner: ''}), 'stopped', 'a submodule shown changed with nothing inside is not explained');
 });
