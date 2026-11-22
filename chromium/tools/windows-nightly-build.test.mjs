@@ -260,3 +260,9 @@ test('every result of the server phase says it ran', () => {
   assert.equal(night(server()).phase, 'build');
   assert.equal(night(server({head: 'e'.repeat(40)})).phase, 'build');
 });
+test('Python bytecode from the lanes\' apply runs never counts as a change to the server\'s fork checkout', async () => {
+  const {spawnSync} = await import('node:child_process');
+  for (const name of ['chromium/tools/__pycache__/apply.cpython-312.pyc', 'chromium/linux/__pycache__/x.pyc']) {
+    assert.equal(spawnSync('git', ['check-ignore', '-q', name], {cwd: fileURLToPath(new URL('../..', import.meta.url))}).status, 0, name);
+  }
+});
