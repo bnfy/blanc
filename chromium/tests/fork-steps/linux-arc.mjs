@@ -8,6 +8,7 @@ const view = w => importSheet(w,`() => {
   const panel = name => document.querySelector('[data-arc-panel="'+name+'"]');
   return {
     ready: document.getElementById('arcImportEntry').hidden === false,
+    status: document.getElementById('tabImportStatus').textContent,
     previewHidden: panel('preview').hidden, previewText: panel('preview').textContent,
     resultHidden: panel('result').hidden, resultText: panel('result').textContent,
   };

@@ -45,6 +45,21 @@ async function select(w){
 }
 async function reviewed(w,count=6){seed(w,count);await before(w);await open(w);await select(w);
  const p=w.importProjection;w.importRequest={generation:p.generation,groups:[],ungroupedCandidateIds:p.candidates.map(c=>c.candidateId)};}
+// The sheet closes itself on success. Keep its single pending native reply
+// on the fixture host so polling survives the sheet's removal.
+export async function applyLinuxImportBatch(w,session,selection) {
+ const started=await page(w,`
+  globalThis.__linuxImportBatch = null;
+  window.bowserPages.tabImport.apply(${jsLiteral(session)},${jsLiteral(selection)}).then(
+   result => {globalThis.__linuxImportBatch = {result};},
+   error => {globalThis.__linuxImportBatch = {error:String(error)};});
+  return true;`);
+ assert.equal(started,true,'large import started from the sheet');
+ const reply=await w.waitFor(()=>w.hostEval('globalThis.__linuxImportBatch'),Boolean,
+  '500-tab native import to finish',120000);
+ if (reply.error) throw Error(reply.error);
+ return reply.result;
+}
 const identities=s=>({tabs:s.tabs.map(t=>({id:t.id,url:t.url,groupId:t.groupId,pinned:t.pinned})),groups:s.groups});
 export default register=>{
  register('I opened Bring Your Tabs without selecting a source',async function(){seed(this);await before(this);await open(this);});
@@ -59,7 +74,9 @@ export default register=>{
  register('I apply the tab migration',async function(){
   // Applying the 500-candidate maximum takes longer than one default
   // evaluation on the slower Windows runner.
-  this.importResult=await page(this,`return window.bowserPages.tabImport.apply(${jsLiteral(this.importProjection.sessionId)},${jsLiteral(this.importRequest)});`,this.importRows.length>100?60000:undefined);
+  this.importResult=process.platform==='linux' && this.importRows.length===500
+   ? await applyLinuxImportBatch(this,this.importProjection.sessionId,this.importRequest)
+   : await page(this,`return window.bowserPages.tabImport.apply(${jsLiteral(this.importProjection.sessionId)},${jsLiteral(this.importRequest)});`,this.importRows.length>100?60000:undefined);
   if(this.importResult?.ok){await this.waitForState(s=>s.tabs.filter(t=>this.importResult.tabIds.includes(t.id)).length===this.importRows.length);}
  });
  register('imported tabs appear in source-window and source-tab order',async function(){

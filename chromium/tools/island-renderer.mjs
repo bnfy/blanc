@@ -149,6 +149,11 @@ export const EDITS = {
      '.ws-select:focus { outline: none; background: var(--surface-raised); border-color: var(--border); }\n'],
   ],
   'overlay.js': [
+    // On Linux a wake publishes an awake, still-loading tab before it finishes.
+    ['  let glancePickerBusy = false;', '  let glancePickerBusy = false;\n  let linuxOpeningTabId = null;'],
+    ['    glancePickerBusy = true;', "    if (platform === 'linux') linuxOpeningTabId = tab.asleep ? tab.id : null;\n    glancePickerBusy = true;"],
+    ['glancePickerBusy && tab.id === glancePickerSelectedId && !!tab.asleep',
+     "glancePickerBusy && (platform === 'linux' ? tab.id === linuxOpeningTabId : tab.id === glancePickerSelectedId && !!tab.asleep)"],
     // F3-3: a collapsed group's membership stays explicit in the panel.
     // Use shipping's translated plural string and existing empty-row style.
     ["          // Collapsed: header alone. Open: indent membership under the group.\n          if (!group.collapsed) bandNodes.push(...tabRowsFor(gtabs, { inGroup: true }));",

@@ -30,7 +30,8 @@ async function openIsland(t, scale = 1) {
     window.chrome.send = (_, [id, method, args]) => {
       window.nativeCalls[method] = args;
       let value = null;
-      if (method === 'snapshot') value = { tabs: [], groups: [], splits: [], closed: [], extensionsWidth: 0 };
+      if (method === 'snapshot') value = { tabs: [], groups: [], splits: [], closed: [], extensionsWidth: 0,
+        verticalTabsWidth: 248, tabLayout: window.nativeCalls.rail?.[0] ? 'vertical' : 'island', ...window.testSnapshot };
       if (method === 'rail') value = args[1];
       if (method === 'syncSurface') value = [];
       queueMicrotask(() => window.blancPrototypeReply(id, true, value));
@@ -158,4 +159,136 @@ test('the Linux auto-hide drag band ends before page row six', async t => {
   const height = await strip.locator('#dragBand').evaluate(el => getComputedStyle(el).height);
   assert.equal(expected, 6);
   assert.equal(height, expected + 'px');
+});
+
+test('the 125% rail panel fits its footer and clears the caption cluster', async t => {
+  const { page } = await openIsland(t);
+  await sendLayout(page, ':minimize,maximize,close');
+  await page.evaluate(() => window.BlancPrototypeHost.api.setTabLayout('vertical'));
+  const cdp = await page.context().newCDPSession(page);
+  // 632x476 client DIPs at 125%, with the same 248-CSS-pixel rail.
+  await cdp.send('Emulation.setDeviceMetricsOverride', {
+    width: 506, height: 381, deviceScaleFactor: 1.25, mobile: false
+  });
+  await page.evaluate(() => window.BlancPrototypeHost.open());
+  const panel = page.frameLocator('#overlay').locator('#islandPanel');
+  await panel.locator('#footerNewTab').waitFor();
+  const box = await panel.boundingBox();
+  assert.ok(box.y >= 32 / 1.25 || box.x + box.width <= (632 - 96) / 1.25, JSON.stringify(box));
+  const overflow = await panel.evaluate(el => {
+    const footer = el.querySelector('#islandFooter').getBoundingClientRect();
+    return [...el.querySelectorAll('#islandFooter button:not([hidden])')]
+      .map(b => ({id:b.id, box:b.getBoundingClientRect()}))
+      .filter(({box}) => box.left < footer.left - 1 || box.right > footer.right + 1 ||
+        box.bottom > footer.bottom + 1 || box.bottom > innerHeight + 1).map(b => b.id);
+  });
+  assert.deepEqual(overflow, []);
+});
+
+test('the minimum-width rail pill holds its visible actions beside GTK controls', async t => {
+  const { page, strip } = await openIsland(t);
+  await sendLayout(page, ':minimize,maximize,close');
+  await page.evaluate(() => window.BlancPrototypeHost.api.setTabLayout('vertical'));
+  await page.evaluate(async () => {
+    window.testSnapshot = {extensionsWidth: 30, activeTabId:'1', groups:[{id:'a',name:'minimum-window-group-label'}],
+      tabs:[{id:'1',url:'https://example.test/',title:'Example',groupId:'a'}]};
+    await window.BlancPrototypeHost.refresh();
+  });
+  const pill = strip.locator('html[data-tab-layout="vertical"] #islandPill');
+  const info = await pill.evaluate(el => {
+    return {left:el.getBoundingClientRect().left, right:el.getBoundingClientRect().right,
+      width:el.clientWidth, content:el.scrollWidth, classes:el.className,
+      children:[...el.children].filter(n => n.offsetWidth).map(n => [n.id,n.offsetWidth,n.offsetLeft])};
+  });
+  assert.ok(info.left >= 248 && info.right <= width - 96, JSON.stringify(info));
+  assert.ok(info.width + 1 >= info.content, JSON.stringify(info));
+  await page.setViewportSize({width:1000,height:700});
+  const wide = await pill.boundingBox();
+  assert.ok(Math.abs(wide.x + wide.width / 2 - (248 + 752 / 2)) <= 1, JSON.stringify(wide));
+});
+
+test('the floating rail pill and extension slot match the resting strip in window coordinates', async t => {
+  const { page, strip } = await openIsland(t);
+  await sendLayout(page, ':minimize,maximize,close');
+  await page.evaluate(async () => {
+    await window.BlancPrototypeHost.api.setTabLayout('vertical');
+    window.testSnapshot = {activeTabId:'1',tabs:[{id:'1',url:'https://example.test/',title:'Example'}],
+      extensionsWidth:60,islandAutoHide:{enabled:true,style:'float',floating:true,stripHidden:false}};
+    await window.BlancPrototypeHost.refresh();
+  });
+  const copy = page.frameLocator('#floatPill');
+  await copy.locator('html.float-shown[data-tab-layout="vertical"]').waitFor();
+  for (const id of ['islandPill','nativeExtensions']) {
+    const resting = await strip.locator('#' + id).boundingBox();
+    const floating = await copy.locator('#' + id).boundingBox();
+    assert.ok(resting.width > 0);
+    for (const key of ['x','y','width','height'])
+      assert.ok(Math.abs(resting[key] - floating[key]) <= 1,
+        JSON.stringify({id,key,resting,floating}));
+  }
+});
+
+test('the first animated rail panel open after narrowing starts below the GTK controls', async t => {
+  const { page } = await openIsland(t);
+  await page.emulateMedia({reducedMotion:'no-preference'});
+  await page.setViewportSize({width:1000,height:480});
+  await sendLayout(page, ':minimize,maximize,close');
+  await page.evaluate(() => window.BlancPrototypeHost.api.setTabLayout('vertical'));
+  await page.setViewportSize({width,height:480});
+  const opening = await page.evaluate(async () => {
+    const overlay = document.getElementById('overlay');
+    const doc = overlay.contentDocument;
+    const panel = doc.getElementById('islandPanel');
+    let target;
+    const measure = panel.getBoundingClientRect.bind(panel);
+    panel.getBoundingClientRect = () => {
+      const box = measure();
+      if (box.width && !panel.style.width) target ??= {width:box.width, top:box.top};
+      return box;
+    };
+    // Deliver the host's opening frame before any incidental strip geometry
+    // callback. The overlay iframe still runs its real animation frames.
+    const scheduleFrame = window.requestAnimationFrame;
+    window.requestAnimationFrame = callback => { callback(performance.now()); return 0; };
+    try {
+      await window.BlancPrototypeHost.open();
+    } finally {
+      window.requestAnimationFrame = scheduleFrame;
+      delete panel.getBoundingClientRect;
+    }
+    return {target,animating:panel.classList.contains('morph-start')};
+  });
+  assert.equal(opening.animating, true);
+  const panel = page.frameLocator('#overlay').locator('#islandPanel:not(.morph-start):not(.morph-run)');
+  const settled = await panel.evaluate(el => {
+    const {width,top} = el.getBoundingClientRect();
+    return {width,top};
+  });
+  assert.ok(settled.top >= 32);
+  assert.deepEqual(opening.target, settled);
+});
+
+test('a chosen quiet Glance row keeps Opening through the first awake, loading snapshot', async t => {
+  const { page } = await openIsland(t);
+  await page.evaluate(async () => {
+    const send = chrome.send;
+    const main = {id:'1',title:'main',url:'https://main.test/'};
+    const reference = {id:'2',title:'reference',url:'https://ref.test/',asleep:true};
+    chrome.send = (name, [id,method,args]) => {
+      if (method === 'wakeTab') Object.assign(reference,{asleep:false,isLoading:true});
+      if (method === 'snapshot') {
+        queueMicrotask(() => window.blancPrototypeReply(id,true,{
+          tabs:[{...main},{...reference}],activeTabId:'1',groups:[],closed:[],splits:[],extensionsWidth:0
+        }));
+      } else send(name,[id,method,args]);
+    };
+    await window.BlancPrototypeHost.refresh();
+    await window.BlancPrototypeHost.api.openGlancePicker('');
+  });
+  const overlay = page.frameLocator('#overlay');
+  await overlay.locator('#glance-picker-option-2').click();
+  const row = overlay.locator('#glance-picker-option-2:not(.quiet)');
+  await row.waitFor();
+  assert.equal(await row.locator('.glance-picker-option-sub').textContent(), 'Opening…');
+  assert.equal(await overlay.locator('#glancePickerLive').textContent(), 'Opening…');
 });

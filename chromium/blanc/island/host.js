@@ -1286,8 +1286,11 @@
       else if (sheet.tabs) sheet.tabs.count = snapshot.tabs.length;
       paintHeader();
       paintSplitHeaders();
-      const slot = strip.contentDocument?.getElementById('nativeExtensions');
-      if (slot) slot.style.width = `${snapshot.extensionsWidth / 1.15}px`;
+      const slotFrames = hostPlatform === 'linux' ? [strip, floatPill] : [strip];
+      for (const frame of slotFrames) {
+        const slot = frame.contentDocument?.getElementById('nativeExtensions');
+        if (slot) slot.style.width = `${snapshot.extensionsWidth / 1.15}px`;
+      }
       reportGeometry();
       syncRailHover();
       warmRailPictures();
@@ -1380,10 +1383,25 @@
     return Math.max(12, hostPlatform === 'darwin' ? 92 - rail : 0);
   }
 
-  function reportGeometry() {
+  function positionOverlay() {
     positionShield();
-    if (windowButtons && opened && (overlayMode === 'panel' || overlayMode === 'palette'))
-      overlay.contentDocument?.documentElement?.style.setProperty('--panel-side-clear', panelSideClearance() + 'px');
+    if (windowButtons && opened && (overlayMode === 'panel' || overlayMode === 'palette')) {
+      const root = overlay.contentDocument?.documentElement;
+      const clearance = panelSideClearance();
+      root?.style.setProperty('--panel-side-clear', clearance + 'px');
+      // The footer's tools need 197px plus 26px of panel padding and borders.
+      // If caption clearance leaves less, put the card below the buttons.
+      const below = overlay.clientWidth - 2 * clearance < 223;
+      root?.toggleAttribute('data-linux-panel-below-controls', below);
+      if (below) {
+        const bottom = Math.max(0, ...windowButtons.buttons.map(b => b.y + b.height));
+        root?.style.setProperty('--linux-panel-top', (bottom / islandZoom + 8) + 'px');
+      }
+    }
+  }
+
+  function reportGeometry() {
+    positionOverlay();
     placeProtected();
     const slot = strip.contentDocument?.getElementById('nativeExtensions');
     const panel = paneMenu ?? (extensionsOpened ? document.getElementById('extensionsPanel')
@@ -1460,6 +1478,8 @@
     // have that text overwritten by this deferred initialization.
     await new Promise(resolve => requestAnimationFrame(() => {
       if (epoch !== findShowEpoch || !opened || overlayMode !== mode) { resolve(); return; }
+      // The renderer measures its morph target synchronously in onOverlayShow.
+      if (windowButtons && (mode === 'panel' || mode === 'palette')) positionOverlay();
       // Search priority results (S1.7) is read where the panel opens, as
       // shipping's overlay:show carries it.
       emit('onOverlayShow', { mode, prefill, pillRect, ...(purpose ? { purpose } : {}),

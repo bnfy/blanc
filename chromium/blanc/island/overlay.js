@@ -125,6 +125,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   let glancePickerSelectedId = null;
   let glancePickerError = '';
   let glancePickerBusy = false;
+  let linuxOpeningTabId = null;
   /** The tab a context-menu "New Group…" is naming via the /group command
    * (arrives in overlay:show's purpose payload; cleared once used, dismissed,
    * or the command is edited away from /group). */
@@ -592,6 +593,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     if (glancePickerBusy || mode !== 'glance') return;
     const tab = filteredGlanceTabs().find((candidate) => candidate.id === tabId);
     if (!tab) return;
+    if (platform === 'linux') linuxOpeningTabId = tab.asleep ? tab.id : null;
     glancePickerBusy = true;
     glancePickerError = '';
     renderGlancePicker();
@@ -655,7 +657,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
       // secondary line is the host and group.
       const metadata = [tabDomain(tab), groupById(tab.groupId)?.name].filter(Boolean);
       // Only a quiet tab has anything to wait for; an awake one attaches at once.
-      const opening = glancePickerBusy && tab.id === glancePickerSelectedId && !!tab.asleep;
+      const opening = glancePickerBusy && (platform === 'linux' ? tab.id === linuxOpeningTabId : tab.id === glancePickerSelectedId && !!tab.asleep);
       const sub = document.createElement('span');
       sub.className = 'glance-picker-option-sub';
       sub.textContent = opening

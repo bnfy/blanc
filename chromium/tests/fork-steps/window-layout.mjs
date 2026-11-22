@@ -38,8 +38,18 @@ export async function openLinuxSpacePicker(name) {
  await page.click('[data-focus-key="color:custom"]');
  await page.waitForSelector('.space-picker-hex');
 }
+// The first card rectangle belongs to the opening morph. Aim relative to
+// the fully expanded card, outside hover-panel-leave's eight-pixel slack.
+export async function moveOffLinuxPanel() {
+ await this.frame('overlay').waitForSelector('body[data-mode="panel"] #islandPanel:not(.morph-start):not(.morph-run):not(.retracting)');
+ const card=await this.call('overlayPanelRect');
+ assert.ok(card?.left > 9,'space outside the expanded panel: '+JSON.stringify(card));
+ const input={type:'mouseMove',x:Math.max(1,Math.floor(card.left)-60),y:Math.round(card.top+20)};
+ assert.equal(await this.call('sendOverlayInput',input),true);
+}
 export const WINDOW_LAYOUT_STEPS = new Map([
  ...(process.platform==='linux'?[
+ ['I move the pointer off the panel',moveOffLinuxPanel],
  ['I open the color picker for {string}',openLinuxSpacePicker],
  ['I give {string} the custom color {string}',async function(name,hex){
   await openLinuxSpacePicker.call(this,name);

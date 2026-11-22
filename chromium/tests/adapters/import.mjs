@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
+import {setTimeout as pause} from 'node:timers/promises';
 import {UndefinedNativeAdapterError} from '../lib/adapters.mjs';
 // Shipping's Arc steps write Arc's file in the Mac layout under the synthetic
 // browser home. On Windows the browser reads Arc's own Store folder
@@ -22,7 +23,9 @@ async function command(tool,...args) {
 export async function chooseLinuxArcFile(file,pid,run=command) {
  if (!path.isAbsolute(file) || !fs.statSync(file).isFile()) throw Error('Expected a copied sidebar file');
  const xdotool = (...args) => run('xdotool',...args);
- const dialog = (await xdotool('search','--sync','--onlyvisible','--name','^Choose StorableSidebar\\.json$')).trim();
+ const match=['--onlyvisible','--name','^Choose StorableSidebar\\.json$'];
+ const dialog=(await xdotool('search','--sync',...match)).trim();
+ const mapped=performance.now();
  if (!/^[1-9][0-9]*$/.test(dialog)) throw Error('Expected one visible Arc file dialog for the fixture process');
  // A portal dialog belongs to its backend process. Chromium exports its X11
  // parent to the portal; only accept a transient of this fixture's browser.
@@ -36,10 +39,36 @@ export async function chooseLinuxArcFile(file,pid,run=command) {
   if (!parent || !await ownedByFixture(parent))
    throw Error('Arc chooser does not belong to the fixture browser');
  }
+ const key=(...keys)=>xdotool('key','--window',dialog,'--clearmodifiers',...keys);
+ const visible=async () => {
+  try { return (await xdotool('search',...match)).trim().split(/\s+/).includes(dialog); }
+  catch (error) { if (error.code===1) return false; throw error; }
+ };
  await xdotool('windowfocus','--sync',dialog);
- await xdotool('key','--clearmodifiers','ctrl+l');
- await xdotool('type','--clearmodifiers','--',file);
- await xdotool('key','--clearmodifiers','Return');
+ // GTK may have mapped its window before realizing the location widget.
+ // Read back its selected text through PRIMARY, on this fixture's X display.
+ let verified=false;
+ const deadline=mapped+12000;
+ while (!verified && performance.now()<deadline) {
+  await key('ctrl+l','ctrl+a');
+  await xdotool('type','--window',dialog,'--clearmodifiers','--',file);
+  await key('ctrl+a');
+  try { verified=await run('xsel','--primary','--output')===file; }
+  catch (error) { if (error.code!==1) throw error; }
+  if (!verified) await pause(100);
+ }
+ if (!verified) throw Error('GTK location entry did not select the exact copied sidebar path');
+ // IsAcceptResponseAllowed in select_file_dialog_linux_gtk.cc ignores
+ // acceptance during the first 500ms. Completion can also consume Return.
+ // Recheck the original XID and focus before sending any further input.
+ while (await visible()) {
+  if (performance.now()>=deadline) throw Error('GTK did not close the verified Arc file dialog');
+  if (performance.now()-mapped>=500 && (await xdotool('getwindowfocus')).trim()===dialog) {
+   try { await key('Return'); }
+   catch (error) { if (await visible()) throw error; return; }
+  }
+  await pause(100);
+ }
 }
 
 export function configureArcImport(w,operation,value,platform=process.platform) {

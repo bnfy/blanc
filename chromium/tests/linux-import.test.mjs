@@ -7,21 +7,33 @@ import {spawn} from 'node:child_process';
 import {once} from 'node:events';
 import {sessionBytes} from './lib/import-fixture.mjs';
 
-test('the Linux chooser types the copied sidebar into the visible browser dialog', async t => {
+test('the Linux chooser waits for the owned GTK location entry and accepts the exact file', async t => {
   const {chooseLinuxArcFile} = await import('./adapters/import.mjs');
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc chooser-'));
   t.after(() => fs.rmSync(home, {recursive:true,force:true}));
   const file = path.join(home, 'StorableSidebar.json');
   fs.writeFileSync(file, '{}');
   const calls = [];
+  let selections=0, accepts=0;
   await chooseLinuxArcFile(file, 701, async (tool,...args) => {
-    assert.equal(tool,'xdotool');
-    calls.push(args);
-    return args[0] === 'search' ? '303\n' : args[0] === 'getwindowpid' ? '701' : '';
+    calls.push([tool,...args]);
+    if (tool==='xsel') return ++selections === 1 ? 'partial path' : file;
+    if (args[0]==='search') {
+      if (args.includes('--sync') || accepts<2) return '303';
+      throw Object.assign(Error('no matching visible window'),{code:1});
+    }
+    if (args[0]==='getwindowpid') return '701';
+    if (args[0]==='getwindowfocus') return '303';
+    if (args.at(-1)==='Return') {
+      assert.ok(selections>=2,'never submits an unverified path');
+      assert.ok(args.includes('--window') && args.includes('303'));
+      accepts++;
+    }
+    return '';
   });
-  assert.deepEqual(calls[0], ['search','--sync','--onlyvisible','--name','^Choose StorableSidebar\\.json$']);
-  assert.ok(calls.some(args => args[0] === 'type' && args.at(-1) === file));
-  assert.equal(calls.at(-1).at(-1), 'Return');
+  assert.deepEqual(calls[0], ['xdotool','search','--sync','--onlyvisible','--name','^Choose StorableSidebar\\.json$']);
+  assert.equal(accepts,2,'an ignored response leaves the original dialog visible');
+  assert.equal(calls.at(-1)[1],'search');
   await assert.rejects(chooseLinuxArcFile(path.join(home,'missing'), 701), /ENOENT/);
 });
 
@@ -116,13 +128,21 @@ test('a portal-owned dialog must be transient for this browser before typing', a
   fs.writeFileSync(file,'{}');
   const calls = [];
   const missing = new Set();
+  let accepted=false;
   const tool = async (command,...args) => {
     calls.push([command,...args]);
     if (command === 'xprop') return 'WM_TRANSIENT_FOR(WINDOW): window id # 0x111';
     if (args[0] === 'getwindowpid' && missing.has(args[1]))
       throw Object.assign(Error('window has no _NET_WM_PID'), {code:1});
     if (args[0] === 'getwindowpid') return args[1] === '0x111' ? '701' : '808';
-    if (args[0] === 'search') return '303';
+    if (args[0] === 'search') {
+      if (args.includes('--sync')) accepted=false;
+      if (accepted) throw Object.assign(Error('no matching window'),{code:1});
+      return '303';
+    }
+    if (command==='xsel') return file;
+    if (args[0]==='getwindowfocus') return '303';
+    if (args.at(-1)==='Return') accepted=true;
     return '';
   };
   await chooseLinuxArcFile(file,701,tool);
