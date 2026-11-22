@@ -4018,11 +4018,35 @@ for outlines. [L2 triage plan](../docs/superpowers/plans/2026-11-21-linux-fork-l
 | Interface-language harness | 5 | 0 | `interface-language:10,18,26,34,43` all stopped because the harness cannot set the simulated OS language on Linux |
 | Single cases for diagnosis | 6 | 2 | `F41-named-workspaces:236` timed out on the hex picker. `glance:506/example-516` saved x = 0 instead of −25. `newtab-layouts:21` put the Mahjong rail outside the board. `split-view:53` left the surviving pane short of full width. `sync:162,181` timed out waiting for a protected window. `navigation-and-context-menu:12/example-22,32` were undefined at the V12 Brave search-engine step |
 
-**Later candidate, L1 evidence.** `linux-x64-64f8e6871c8fb16f` from
-`9f9a0be93` (patches 0113–0115) passed both launch checks and the window-button
-checks, 8 of 8 each on X11 and Wayland. The L0 baseline above belongs to the
-first candidate. [Launch run 44948948374](https://github.com/bnfy/blanc/actions/runs/44948948374),
-[window-button run 44950261755](https://github.com/bnfy/blanc/actions/runs/44950261755)
+### L1 identity, frame and packages (PL.2, 2026-11-21 to 11-22)
+
+The hosted frame check used `linux-x64-64f8e6871c8fb16f` from `9f9a0be93`,
+which also passed both launch checks. The install runs used candidate 5 from
+`abe384098` on both architectures. The owner signed both candidate records
+and RPMs on November 22.
+The arm64 prototype cold build took 2 h 02 min for 95,221 steps on the same
+x86-64 server as the L0 build. [L1 plan](../docs/superpowers/plans/2026-11-21-linux-fork-l1.md#l1-gate-all-must-hold),
+[L1 report](reports/l1-linux.json), [frame candidate launch](https://github.com/bnfy/blanc/actions/runs/44948948374)
+
+| Candidate 5 | Candidate ID | Tarball SHA-256 on the `fork-linux-candidate` draft |
+| --- | --- | --- |
+| x64 | `linux-x64-abbf0c91ab29a46a` | `21f9ce7ae13da6312c601356ddf9682c63d319286033962c6989c7ec2ddcc481` |
+| arm64 | `linux-arm64-7f8c53cb7cb20dff` | `b05c2194b5c0129f60fd4cbb9ec47f4d640a29ae1bbf43a2f582ae4e8c630d57` |
+
+| L1 gate | Result | Evidence |
+| --- | --- | --- |
+| 1. Frame input on X11, layout and VM input on Wayland | Passed. The hosted checks passed 8 of 8 on X11 by real input and 8 of 8 on Wayland for layout. In the VM every button worked by real input in all four layouts at 100% and 200%; strip drag, double-click, corner resize and the menu passed in all four at 100% and in default and left at 200%. Split and Close-only at 200% add no new menu or drag position (the menu button sits on the left as in default). | [Frame run 44950261755](https://github.com/bnfy/blanc/actions/runs/44950261755), [VM results](linux/hand-checks-l1.md#results) |
+| 2. Install on Ubuntu 24.04, Debian 12 and Fedora 45 for x64 and arm64 | Passed all six legs, with Ubuntu’s user namespace restriction at 1. The shipping and Chromium profiles, keyring entries, existing default and Google repository files passed every preservation check. Only x64 ships an Electron AppImage to relaunch. | [x64 run 45036361406](https://github.com/bnfy/blanc/actions/runs/45036361406), [arm64 run 45036363620](https://github.com/bnfy/blanc/actions/runs/45036363620) |
+| 3. Package scan and cron | Passed. Candidates 5 and 6 packaged cleanly on both architectures. The cron enrolled only Blanc’s staging repository and its key. | [Packager](linux/package-candidate.mjs), [install checks](tests/linux-install.mjs), [VM apt check](linux/hand-checks-l1.md#results) |
+| 4. Candidate and RPM signatures | Passed. Both install runs verified the signed descriptors, tarball and package hashes, and RPM signatures using only the committed Blanc key. The VM check also verified the arm64 descriptor and matched the installed Debian package to its hash. | [L1 signing record](reports/l1-linux.json), [repository key](linux/keys/blanc-repository.asc) |
+| 5. Mac nightly and both Windows outputs unaffected | Passed. The Mac nightly `20261122-0700` at `2c0831c41` includes patches 0113–0115 and passed; each Linux apply was mirrored on the Mac Studio with both outputs regenerated with unchanged arguments. The first Windows nightly passed. Across 15 Linux setups the Windows plans changed only in timing lines, pending GN regenerations for shared build files, and one intended compile for the Ctrl+Tab change Windows verified (run 44953442824). | [Windows nightly](#windows-nightly-2026-11-22), `~/blanc-evidence/linux/plans/` on the build server |
+| 6. Owner’s first look at arm64 | Passed, delegated. On November 22 the owner asked Claude to run the check and watched it in the Parallels window; Claude drove the owner’s Ubuntu 26.04 GNOME Wayland VM by real input. Default Apps listed Blanc Prototype as the current Web choice; the login keyring was unlocked, so no prompt appeared (a locked keyring was not exercised). | [VM hand check](linux/hand-checks-l1.md) |
+
+The first frame run failed on screenshot timing, fixed in `cdf30aa00`. The
+first x64 install run reached its final shipping AppImage relaunch, where the
+restored session closed the CDP target. The test fix was `b32392b3a`.
+[Frame run 44948958941](https://github.com/bnfy/blanc/actions/runs/44948958941),
+[install run 45035696993](https://github.com/bnfy/blanc/actions/runs/45035696993)
 
 ## Android
 Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
