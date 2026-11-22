@@ -9,6 +9,9 @@
       Exit 1: a listed file is missing from the checkout; nothing is written.
       Exit 3: a patch no longer applies; the pins moved, the patched hashes did not. Rebase that
       patch, then run --patched-only.
+  refresh-upstream.py --lane desktop --src <files> --version <a.b.c.d> --upstream <commit>
+      The same from a copy of just the pinned files fetched at <commit> (no git checkout, no
+      build tree). With a git checkout, --upstream must equal its HEAD.
   refresh-upstream.py --lane android --patched-only
       Recomputes the patched hashes from the pinned files and the current patches.
 """
@@ -28,12 +31,15 @@ parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parent
                     help='the chromium/ folder (tests pass a fixture)')
 parser.add_argument('--src', type=Path)
 parser.add_argument('--version')
+parser.add_argument('--upstream', help='the Chromium commit --src was fetched at, for a source that is not a git checkout')
 parser.add_argument('--patched-only', action='store_true')
 args = parser.parse_args()
 if not args.patched_only and (args.src is None or args.version is None):
     parser.error('--src and --version are required unless --patched-only')
 if args.version is not None and not re.fullmatch(r'\d+\.\d+\.\d+\.\d+', args.version):
     parser.error('--version must be four numbers, like 157.0.7000.10')
+if args.upstream is not None and not re.fullmatch(r'[0-9a-f]{40}', args.upstream):
+    parser.error('--upstream must be a full 40-character commit hash')
 
 root = args.root.resolve()
 lane_path = root / 'lanes' / f'{args.lane}.json'
@@ -90,7 +96,17 @@ if not args.patched_only:
         for n in missing:
             print(f'  {n}', file=sys.stderr)
         sys.exit(1)
-    head = subprocess.run(['git', '-C', str(src), 'rev-parse', 'HEAD'], capture_output=True, text=True, check=True).stdout.strip()
+    git_head = subprocess.run(['git', '-C', str(src), 'rev-parse', '--verify', '-q', 'HEAD'], capture_output=True, text=True)
+    is_checkout = git_head.returncode == 0 and subprocess.run(
+        ['git', '-C', str(src), 'rev-parse', '--show-toplevel'], capture_output=True, text=True).stdout.strip() == str(src)
+    if is_checkout:
+        head = git_head.stdout.strip()
+        if args.upstream is not None and args.upstream != head:
+            sys.exit(f'--upstream {args.upstream} is not the checkout\'s HEAD ({head}); nothing was written')
+    elif args.upstream is not None:
+        head = args.upstream
+    else:
+        sys.exit(f'{src} is not a git checkout; pass --upstream with the commit its files came from')
     files = {}
     for n in names:
         data = (src / n).read_bytes()
