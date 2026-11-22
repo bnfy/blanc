@@ -1,4 +1,12 @@
 {
+  "pill.restartToUpdate": {
+    "en": "Restart to update",
+    "de": "Zum Aktualisieren neu starten",
+    "es": "Reiniciar para actualizar",
+    "fr": "Redémarrer pour mettre à jour",
+    "it": "Riavvia per aggiornare",
+    "pt-BR": "Reiniciar para atualizar"
+  },
   "protectedMedia.title": {
     "en": "Blanc Beta can't play this video yet",
     "de": "Blanc Beta kann dieses Video noch nicht abspielen",

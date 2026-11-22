@@ -24,6 +24,15 @@
 #include "third_party/blink/public/common/page/page_zoom.h"
 #include "blanc/browser/sync/favorite_helpers.h"
 #include "blanc/buildflags.h"
+#if BUILDFLAG(IS_LINUX) && BUILDFLAG(BLANC_BETA_CHANNEL)
+#include "chrome/browser/buildflags.h"
+#include "chrome/browser/lifetime/application_lifetime_desktop.h"
+#include "chrome/browser/upgrade_detector/build_state.h"
+#include "chrome/browser/upgrade_detector/build_state_observer.h"
+#include "chrome/browser/upgrade_detector/upgrade_detector.h"
+#include "chrome/browser/upgrade_detector/upgrade_observer.h"
+static_assert(BUILDFLAG(ENABLE_UPDATE_NOTIFICATIONS));
+#endif
 #include "blanc/common/test_launch.h"
 #if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
 #include "components/renderer_context_menu/context_menu_delegate.h"
@@ -1256,6 +1265,63 @@ std::optional<std::pair<std::string, std::string>> UtilityPageFor(const GURL& ur
 }
 
 namespace {
+#if BUILDFLAG(IS_LINUX) && BUILDFLAG(BLANC_BETA_CHANNEL)
+std::string CurrentRecommendedVersion() {
+  const auto* state = g_browser_process->GetBuildState();
+  const auto& installed = state->installed_version();
+  if (state->update_type() != BuildState::UpdateType::kNormalUpdate ||
+      !installed || !installed->IsValid() || *installed <= version_info::GetVersion() ||
+      UpgradeDetector::GetInstance()->upgrade_notification_stage() ==
+          UpgradeDetector::UPGRADE_ANNOYANCE_NONE) {
+    return {};
+  }
+  return installed->GetString();
+}
+
+// A pill sends the command as a navigation in its own frame. Unlike the
+// host's chrome.send bridge, this IPC carries Chromium's initiator token.
+// Cancel it before commit so neither the pill nor the overlay loses its UI.
+class RestartToUpdateGate : public content::NavigationThrottle {
+ public:
+  explicit RestartToUpdateGate(content::NavigationThrottleRegistry& registry)
+      : NavigationThrottle(registry) {}
+  const char* GetNameForLogging() override { return "BlancRestartToUpdateGate"; }
+  ThrottleCheckResult WillStartRequest() override {
+    auto* navigation = navigation_handle();
+    auto* contents = navigation->GetWebContents();
+    auto* main = contents->GetPrimaryMainFrame();
+    if (!contents->GetUserData(kOwnerKey) || !main->GetWebUI() ||
+        main->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html")) {
+      return CANCEL_AND_IGNORE;
+    }
+    auto* frame = contents->GetFocusedFrame();
+    const auto& initiator = navigation->GetInitiatorFrameToken();
+    const std::string version = CurrentRecommendedVersion();
+    if (navigation->IsRendererInitiated() && navigation->HasUserGesture() &&
+        frame && frame->GetParent() == main && frame->HasTransientUserActivation() &&
+        frame->GetFrameTreeNodeId() == navigation->GetFrameTreeNodeId() &&
+        initiator && *initiator == frame->GetFrameToken() &&
+        (frame->GetLastCommittedURL() == GURL("chrome://blanc-prototype/index.html") ||
+         frame->GetLastCommittedURL() == GURL("chrome://blanc-prototype/index.html?surface=float")) &&
+        !version.empty() && navigation->GetURL().query() == version) {
+      // Finish cancelling the navigation before a restart can close its window.
+      base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE, base::BindOnce(
+          [](content::WeakDocumentPtr document, std::string advertised) {
+            auto* requester = document.AsRenderFrameHostIfValid();
+            if (requester && requester->HasTransientUserActivation() &&
+                advertised == CurrentRecommendedVersion()) {
+              chrome::AttemptRestart();
+            }
+          }, frame->GetWeakDocumentPtr(), version));
+    } else {
+      // A stale click gets the authoritative version (empty after rollback).
+      main->GetWebUI()->CallJavascriptFunctionUnsafe("blancPrototypeEvent",
+          base::Value("update-refused"), base::Value(version));
+    }
+    return CANCEL_AND_IGNORE;
+  }
+};
+#endif
 // A tab in an Island window that starts loading a utility page shows it in
 // the sheet instead, from wherever the load came (the address field, a
 // Favorite, Chromium's own "Manage" links, a restored entry). A tab opened
@@ -1291,6 +1357,14 @@ class UtilityPageGate : public content::NavigationThrottle {
 };
 }  // namespace
 void AddUtilityPageGate(content::NavigationThrottleRegistry& registry) {
+#if BUILDFLAG(IS_LINUX) && BUILDFLAG(BLANC_BETA_CHANNEL)
+  const GURL& url = registry.GetNavigationHandle().GetURL();
+  if (url.SchemeIs(content::kChromeUIScheme) && url.host() == kHost &&
+      url.path() == "/restartToUpdate") {
+    registry.AddThrottle(std::make_unique<RestartToUpdateGate>(registry));
+    return;
+  }
+#endif
   if (registry.GetNavigationHandle().IsInPrimaryMainFrame() && UtilityPageFor(registry.GetNavigationHandle().GetURL()))
     registry.AddThrottle(std::make_unique<UtilityPageGate>(registry));
 }
@@ -6342,6 +6416,9 @@ class CreatedSearchTabCapture : public TabStripModelObserver {
 };
 
 class Handler : public content::WebUIMessageHandler, public extensions::ExtensionUninstallDialog::Delegate,
+#if BUILDFLAG(IS_LINUX) && BUILDFLAG(BLANC_BETA_CHANNEL)
+                public UpgradeObserver, public BuildStateObserver,
+#endif
                 public base::PowerSuspendObserver, public history::HistoryServiceObserver {
  public:
   ~Handler() override { if (archive_power_observing_) base::PowerMonitor::GetInstance()->RemovePowerSuspendObserver(this); }
@@ -6446,6 +6523,35 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (auto* owner = GetOwner(web_ui()->GetWebContents())) ApplyAutoHide(owner);
     OnIslandSettingChanged();
   }
+#if BUILDFLAG(IS_LINUX) && BUILDFLAG(BLANC_BETA_CHANNEL)
+  // Only the main Island document publishes the recommendation to its pills.
+  bool IsUpdateHost() {
+    return IsIslandHost() && web_ui()->GetRenderFrameHost() ==
+        web_ui()->GetWebContents()->GetPrimaryMainFrame();
+  }
+  void OnJavascriptAllowed() override {
+    if (!IsUpdateHost()) return;
+    upgrade_observation_.Observe(UpgradeDetector::GetInstance());
+    build_observation_.Observe(g_browser_process->GetBuildState());
+    OnUpgradeRecommended();
+  }
+  void OnUpdate(const BuildState*) override {
+    // Withdrawing a package can stop the detector's timer without another
+    // OnUpgradeRecommended notification.
+    OnUpgradeRecommended();
+  }
+  void OnUpgradeRecommended() override {
+    if (!IsJavascriptAllowed() || !IsUpdateHost()) return;
+    const std::string current = CurrentRecommendedVersion();
+    if (recommended_version_ == current) return;
+    recommended_version_ = current;
+    web_ui()->CallJavascriptFunctionUnsafe("blancPrototypeEvent",
+        base::Value("update-ready"), base::Value(current));
+  }
+  base::ScopedObservation<UpgradeDetector, UpgradeObserver> upgrade_observation_{this};
+  base::ScopedObservation<BuildState, BuildStateObserver> build_observation_{this};
+  std::string recommended_version_;
+#endif
 #if BUILDFLAG(IS_LINUX)
   std::optional<base::DictValue> last_window_buttons_;
   bool last_frame_maximized_ = false;
@@ -6473,6 +6579,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
   }
   void OnJavascriptDisallowed() override {
     auto_timer_.Stop();
+#if BUILDFLAG(IS_LINUX) && BUILDFLAG(BLANC_BETA_CHANNEL)
+    upgrade_observation_.Reset();
+    build_observation_.Reset();
+    recommended_version_.clear();
+#endif
     archive_history_.Reset();
     if (archive_power_observing_) { base::PowerMonitor::GetInstance()->RemovePowerSuspendObserver(this); archive_power_observing_ = false; }
     if (archive_running_) {
