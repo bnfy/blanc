@@ -25,6 +25,7 @@ on:
           - repo-lifecycle
           - quit
           - keys
+          - display-share
           - suite
           - repo-metadata
       arch:
@@ -653,6 +654,64 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: chromium-linux-keys-${{ inputs.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/results
+          if-no-files-found: warn
+          retention-days: 14
+
+  display-share:
+    if: ${{ inputs.check == 'display-share' }}
+    name: display-share (linux ${{ inputs.arch }})
+    runs-on: ${{ inputs.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    env: *candidate-env
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - *validate
+      - *checkout
+      - *node
+      - *pins
+      - *assets
+      - *download
+      - *unpack
+      - *identify-package
+      - *download-approval
+      - *verify-package
+      - name: Install X11 input, accessibility and the verified package
+        run: |
+          if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth openbox xdotool x11-utils dbus-daemon at-spi2-core python3-gi gir1.2-atspi-2.0 "$QUIT_DEB"
+          jq --arg dir '/opt/bnfy/blanc-prototype' --arg exe "$QUIT_INSTALLED_SHA256" '
+            {candidate:.id, executable:($dir + "/chrome"), executableSha256:$exe,
+             singleBinary:true, diskAssets:false}
+          ' "$CANDIDATE_DIR/candidate.json" > "$RUNNER_TEMP/display-share-config.json"
+      - *dependencies
+      - name: Share a tab and the whole screen through Chromium's picker on X11
+        env:
+          # AT-SPI only reads the picker between real keys; it presses nothing.
+          ACCESSIBILITY_ENABLED: '1'
+          LANG: en_US.UTF-8
+        run: |
+          xvfb-run -a --server-args='-screen 0 1920x1080x24' dbus-run-session -- bash <<'X11'
+          set -euo pipefail
+          # Chromium's X11 capturer and its own picker, not the desktop portal.
+          unset WAYLAND_DISPLAY
+          export GDK_BACKEND=x11 XDG_SESSION_TYPE=x11
+          openbox --sm-disable > "$RESULTS/openbox.log" 2>&1 &
+          wm=$!
+          trap 'kill "$wm" 2>/dev/null || true; wait "$wm" 2>/dev/null || true' EXIT
+          timeout 15s bash -c 'until xprop -root _NET_SUPPORTING_WM_CHECK | grep -q "window id"; do sleep 0.1; done'
+          node chromium/tests/linux-display-share.mjs "$RUNNER_TEMP/display-share-config.json" "$RESULTS/display-share"
+          X11
+      - name: Keep the screen-share results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chromium-linux-display-share-${{ inputs.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/results
           if-no-files-found: warn
           retention-days: 14
