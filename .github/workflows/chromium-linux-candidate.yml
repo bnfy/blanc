@@ -20,6 +20,7 @@ on:
           - frame
           - install
           - beta-install
+          - update-proof
           - quit
           - keys
           - suite
@@ -44,6 +45,21 @@ on:
         description: Full candidate source commit for beta-install reference files
         required: false
         type: string
+      from:
+        description: Four-part proof-only Linux beta version for update-proof
+        required: false
+        type: string
+      to:
+        description: Four-part staged Linux beta version for update-proof
+        required: false
+        type: string
+      repository:
+        description: Package repository for update-proof
+        required: false
+        type: choice
+        default: staging
+        options:
+          - staging
       suite:
         description: Suite to run after the two display checks
         required: true
@@ -625,6 +641,84 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: chromium-linux-suite-${{ inputs.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/results
+          if-no-files-found: warn
+          retention-days: 14
+
+  update-proof:
+    if: ${{ inputs.check == 'update-proof' }}
+    name: Staging update (${{ matrix.system }}, ${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64, arm64]
+        system: [ubuntu, debian, fedora]
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    timeout-minutes: 60
+    permissions:
+      contents: write # The candidate transfer release is an unpublished draft.
+    env:
+      SYSTEM: ${{ matrix.system }}
+      ARCH: ${{ matrix.arch }}
+      FROM: ${{ inputs.from }}
+      TO: ${{ inputs.to }}
+      REPOSITORY: ${{ inputs.repository }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Download the proof-only package and its signed approval
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir "$RUNNER_TEMP/input" "$RUNNER_TEMP/results"
+          node chromium/tests/linux-update-proof.mjs download "$SYSTEM" "$ARCH" "$FROM" "$TO" "$REPOSITORY" "$RUNNER_TEMP/input"
+      - name: Prove the staging update on the Ubuntu host
+        if: matrix.system == 'ubuntu'
+        run: |
+          if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth xdotool xdg-utils desktop-file-utils dbus-x11 gnome-keyring libsecret-tools \
+            apparmor squashfs-tools gnupg curl libgtk-3-0t64 libasound2t64 libnss3 libgbm1 libxss1
+          node chromium/tests/linux-update-proof.mjs run "$SYSTEM" "$ARCH" "$FROM" "$TO" "$REPOSITORY" "$RUNNER_TEMP/input" "$RUNNER_TEMP/results"
+      - name: Prove the staging update inside the distribution
+        if: matrix.system != 'ubuntu'
+        run: |
+          image=debian:12
+          if [[ $SYSTEM == fedora ]]; then
+            image=registry.fedoraproject.org/fedora:45@sha256:7b6d9048825950573e58b7185631f6bd38f7c24f5c0e68ae902870aedebb86e0
+          fi
+          docker run --rm --init --shm-size=1g --security-opt seccomp=unconfined \
+            -e SYSTEM -e ARCH -e FROM -e TO -e REPOSITORY -e "RESULT_UID=$(id -u)" \
+            -v "$GITHUB_WORKSPACE/chromium:/src/chromium:ro" -v "$RUNNER_TEMP/input:/candidate:ro" \
+            -v "$RUNNER_TEMP/results:/results" -v "$(realpath "$(command -v node)"):/usr/local/bin/node:ro" \
+            "$image" bash -eu -o pipefail -c '
+              if [[ $SYSTEM == debian ]]; then
+                export DEBIAN_FRONTEND=noninteractive
+                apt-get update
+                apt-get install -y --no-install-recommends sudo passwd ca-certificates curl xvfb xauth xdotool python3 \
+                  xdg-utils desktop-file-utils dbus-x11 gnome-keyring libsecret-tools libglib2.0-bin gnupg \
+                  libgtk-3-0 libasound2 libnss3 libgbm1 libxss1 libx11-xcb1 libxtst6
+              else
+                dnf install -y sudo shadow-utils util-linux /usr/bin/curl python3 rpm-sign createrepo_c gnupg2 \
+                  xorg-x11-server-Xvfb xorg-x11-xauth xdotool xdg-utils desktop-file-utils dbus-daemon glib2 \
+                  gnome-keyring libsecret gtk3 alsa-lib nss mesa-libgbm cups-libs libXScrnSaver libXtst
+              fi
+              dbus-uuidgen --ensure
+              useradd -m -u "$RESULT_UID" blanc-check
+              echo "blanc-check ALL=(root) NOPASSWD: ALL" > /etc/sudoers.d/blanc-check
+              chmod 0440 /etc/sudoers.d/blanc-check
+              exec runuser -u blanc-check -- node /src/chromium/tests/linux-update-proof.mjs run \
+                "$SYSTEM" "$ARCH" "$FROM" "$TO" "$REPOSITORY" /candidate /results
+            '
+      - name: Keep the staging proof and package manager diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chromium-linux-update-proof-${{ matrix.system }}-${{ matrix.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/results
           if-no-files-found: warn
           retention-days: 14
