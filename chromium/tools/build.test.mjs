@@ -299,3 +299,39 @@ test('the guard can plan and build the unpackaged Linux browser before the owner
     assert.throws(() => buildLane([mode, '--linux-packages']), /Linux/);
   }
 });
+// The Windows nightly (Task 4): one owner holds the checkout from checkout to
+// packages, and the guard builds under that owner's lock.
+test('a lock owner can run the guard under its own lock, and the lock stays', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-owner-'));
+  try {
+    const src = path.join(dir, 'src'), lock = checkoutLockPath(src);
+    fs.mkdirSync(lock);
+    fs.writeFileSync(path.join(lock, 'owner'), 'token-a\n');
+    const release = acquireCheckoutLock(src, fs.mkdirSync, 'token-a');
+    release();
+    assert.equal(fs.existsSync(lock), true, 'an owner\'s lock is not released by the guard');
+    assert.throws(() => acquireCheckoutLock(src, fs.mkdirSync, 'token-b'), /locked/);
+    assert.throws(() => acquireCheckoutLock(src, fs.mkdirSync, undefined), /locked/);
+    fs.rmSync(lock, {recursive: true});
+    assert.throws(() => acquireCheckoutLock(src, fs.mkdirSync, 'token-a'), /not held/);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+test('the guard writes an owner into a lock it takes, and removes only its own', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-owner-'));
+  try {
+    const src = path.join(dir, 'src'), lock = checkoutLockPath(src);
+    const release = acquireCheckoutLock(src);
+    assert.match(fs.readFileSync(path.join(lock, 'owner'), 'utf8'), /^[0-9a-f]{32}\n$/);
+    release();
+    assert.equal(fs.existsSync(lock), false);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+test('every Windows and Linux mode takes the checkout lock, recording the environment included', () => {
+  const source = fs.readFileSync(new URL('./build.mjs', import.meta.url), 'utf8');
+  assert.match(source, /const releaseCheckout = \(windows \|\| linux\) \? acquireCheckoutLock\(src, fs\.mkdirSync, process\.env\.BLANC_CHECKOUT_LOCK_OWNER\) : null;/);
+});
+test('the nightly cap: 1,001 actions pass with an explicit maximum of 3,000, 3,001 refuse, and pending build flags refuse', () => {
+  assert.equal(checkPlan('Build Succeeded: 1001 steps', true, true, 3000), 1001);
+  assert.throws(() => checkPlan('Build Succeeded: 3001 steps', true, true, 3000), /exceeds approved maximum 3000/);
+  assert.throws(() => checkPlan('Build Succeeded: 5 steps\npython3 ../../build/write_buildflag_header.py', true, true, 3000), /Generated build flags/);
+});

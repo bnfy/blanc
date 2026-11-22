@@ -61,6 +61,13 @@ export function argsDrift(currentText, intendedText, {ignoreVersion}) {
   return drift.length ? drift : ['(the lines are the same but their order, repetition or final newline differs)'];
 }
 
+// Whether the build guard's refusal names only argsSha256 (the beta's version
+// edit); anything else is a person's to review.
+export function guardNamesOnlyArgs(guardOutput) {
+  const m = /Build inputs changed: ([^.]+)\./.exec(guardOutput);
+  return Boolean(m) && m[1].split(',').map(s => s.trim()).join() === 'argsSha256';
+}
+
 export function skipReason({hold, macMarker, serverLock, sisoRunning, unchangedSinceLastPass}) {
   if (hold) return 'the candidate draft is held; the night does not touch it';
   if (macMarker) return 'a Mac release is prepared on the Mac Studio';

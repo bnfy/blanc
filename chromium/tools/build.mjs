@@ -151,13 +151,35 @@ export function requireDesktopHost(outName, platform = process.platform, arch = 
 export function checkoutLockPath(src) {
   return path.join(path.dirname(src), '.blanc-checkout.lock');
 }
-export function acquireCheckoutLock(src, mkdir = fs.mkdirSync) {
+// One owner at a time for the desktop checkout (setup, apply, builds). A lock
+// this guard takes holds an `owner` token and is removed only while it still
+// names that token. A process that already holds the lock (the Windows
+// nightly's server phase, from checkout to packages) passes its token as
+// |owner| (BLANC_CHECKOUT_LOCK_OWNER): the guard then runs under that lock and
+// leaves it for its owner to release.
+export function acquireCheckoutLock(src, mkdir = fs.mkdirSync, owner = undefined) {
   const lock = checkoutLockPath(src);
+  const ownerFile = path.join(lock, 'owner');
+  if (owner) {
+    let held = null;
+    try { held = fs.readFileSync(ownerFile, 'utf8').trim(); } catch { /* not held, or held without an owner */ }
+    if (!fs.existsSync(lock)) throw new Error('The desktop checkout lock is not held by this owner. No build started.');
+    if (held !== owner) throw new Error('The desktop checkout is locked (setup, apply or another build). No build started.');
+    return () => {};
+  }
   try { mkdir(lock); } catch (error) {
     if (error.code === 'EEXIST') throw new Error('The desktop checkout is locked (setup, apply or another build). No build started.');
     throw error;
   }
-  return () => fs.rmdirSync(lock);
+  const token = crypto.randomBytes(16).toString('hex');
+  fs.writeFileSync(ownerFile, token + '\n', {mode: 0o600});
+  return () => {
+    let held = null;
+    try { held = fs.readFileSync(ownerFile, 'utf8').trim(); } catch { return; }
+    if (held !== token) return;
+    fs.rmSync(ownerFile, {force: true});
+    fs.rmdirSync(lock);
+  };
 }
 // The Visual Studio package and SDK the pinned tree asks for. Both are plain
 // string assignments in build/vs_toolchain.py; anything else needs a person.
@@ -341,7 +363,7 @@ function main() {
   const observe = () => lane === 'android' ? androidEnvironment(src, out)
     : windows ? windowsEnvironment(src, out) : linux ? linuxEnvironment(src, out) : environment(src, out, selectedSdk(options, out));
   // Setup can change shared inputs before a dry run, even for another output.
-  const releaseCheckout = (windows || linux) && mode !== '--record-environment' ? acquireCheckoutLock(src) : null;
+  const releaseCheckout = (windows || linux) ? acquireCheckoutLock(src, fs.mkdirSync, process.env.BLANC_CHECKOUT_LOCK_OWNER) : null;
   let outputLocked = false;
   try {
     if (windows && !windowsToolchainMounted(fs.readFileSync('/proc/mounts', 'utf8'), src))
