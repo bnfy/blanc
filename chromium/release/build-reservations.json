@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "sequences": {
+    "desktop-158": [
+      {
+        "build": 905,
+        "sourceCommit": "a52e29005d6237c405ddcc2afd3b0f216c8b390b",
+        "platforms": [
+          "linux"
+        ],
+        "purpose": "proof"
+      }
+    ]
+  }
+}
