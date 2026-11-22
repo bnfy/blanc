@@ -50,29 +50,34 @@ export async function moveOffSettledPanel() {
 // F1-6, "motion inside the Island does not postpone opening", on Windows.
 // Shipping's step waits for the host's hover state after every move and
 // requires the panel within 600 ms of the first; on a hosted Windows runner
-// those round trips alone use that up. Here moves are sent without waiting,
-// and the panel opening while they still arrive proves the point only if no
-// gap between them was as long as the dwell (island-hover-open.js, 300 ms):
-// a postponing timer would then never have run out.
+// those round trips alone use that up. Here moves go out back to back while a
+// separate loop watches for the panel, and the panel opening while they still
+// arrive proves the point only if no gap between them was as long as the
+// dwell (island-hover-open.js, 300 ms): a postponing timer would then never
+// have run out.
 const HOVER_DWELL_MS=300;
+const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 export async function moveWithinIslandUntilOpen() {
  const rect=this.hoverIslandRect,offsets=[-10,-5,0,5,10,5,0,-5];
  const deadline=Date.now()+3000;
- let last=null,gap=0,move=0;
- while(Date.now()<deadline){
+ let opened=false,last=null,gap=0,move=0;
+ const watch=(async()=>{
+  while(!opened&&Date.now()<deadline){
+   if(await this.call('overlayMode')==='panel'){opened=true;return;}
+   await pause(25);
+  }
+ })();
+ while(!opened&&Date.now()<deadline){
   const input={type:'mouseMove',x:Math.round(rect.x+rect.width/2+offsets[move++%offsets.length]),y:Math.round(rect.y+rect.height/2)};
   assert.equal(await this.call('sendChromeMouseInput',input),true,'chrome mouse input was not sent');
   const now=Date.now();
   if(last!==null)gap=Math.max(gap,now-last);
   last=now;
-  if(await this.call('overlayMode')==='panel'){
-   assert.ok(gap<HOVER_DWELL_MS,`a ${gap} ms gap between moves is as long as the hover dwell`);
-   this.hoverOpenedDuringMotion=true;
-   return;
-  }
-  await new Promise(resolve=>setTimeout(resolve,50));
+  await pause(10);
  }
- this.hoverOpenedDuringMotion=false;
+ await watch;
+ if(opened)assert.ok(gap<HOVER_DWELL_MS,`a ${gap} ms gap between moves is as long as the hover dwell`);
+ this.hoverOpenedDuringMotion=opened;
 }
 // Linux and Windows both measure the panel mid-morph without the settled
 // step (the first Windows nightly's island-and-commands:115).

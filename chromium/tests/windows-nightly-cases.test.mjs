@@ -113,3 +113,18 @@ test('a panel that never opens while moves continue is reported, not passed', as
   await windowLayoutSteps('win32').get('I move within the Island every 50 milliseconds').call(world);
   assert.equal(world.hoverOpenedDuringMotion, false);
 });
+
+// Run 45040670757: a 330 ms gap, because each move waited for the panel check.
+test('a slow panel check does not widen the gap between moves', async () => {
+  let checks = 0;
+  const world = {
+    hoverIslandRect: {x: 300, y: 10, width: 120, height: 28},
+    call: async name => {
+      if (name === 'sendChromeMouseInput') return true;
+      await new Promise(resolve => setTimeout(resolve, 280));
+      return ++checks >= 2 ? 'panel' : null;
+    },
+  };
+  await windowLayoutSteps('win32').get('I move within the Island every 50 milliseconds').call(world);
+  assert.equal(world.hoverOpenedDuringMotion, true);
+});

@@ -394,3 +394,34 @@ test('a child stopped by a signal counts as an interrupt, since a handler cannot
   const cli = source.slice(source.indexOf('if (process.argv[1]'));
   assert.match(cli, /if \(result\.signal\) interrupted = true;/);
 });
+
+// Codex review of the claim wiring (2026-11-22).
+test('a rehearsal prep claims no build number', () => {
+  const w = prepWorld({draftDigest: 'c'.repeat(64)});
+  prepareRelease({io: w.io, records: w.records, ledger, nights: '~/rehearsal/nights', draft: 'fork-windows-candidate-rehearsal'});
+  assert.deepEqual(w.claims, []);
+});
+test('once CURRENT names the prepared release, a PREP-HOLD cleanup error keeps the release and its hold', () => {
+  const w = prepWorld();
+  const rm = fs.rmSync;
+  fs.rmSync = (target, options) => { if (String(target).endsWith('PREP-HOLD') && fs.existsSync(path.join(w.records, 'CURRENT'))
+      && fs.readFileSync(path.join(w.records, 'CURRENT'), 'utf8').includes('158.0.8127.905')) throw new Error('busy'); return rm(target, options); };
+  let result;
+  try { result = prepareRelease({io: w.io, records: w.records, ledger}); } finally { fs.rmSync = rm; }
+  assert.equal(fs.readFileSync(path.join(w.records, 'CURRENT'), 'utf8').trim(), result.work);
+  assert.ok(w.hold(), 'the prepared release keeps its hold');
+  assert.ok(fs.existsSync(path.join(result.work, 'windows-release.json')));
+});
+test('a failed retry of an abandoned version leaves the abandoned folder where CURRENT names it', () => {
+  const w = prepWorld();
+  const old = path.join(w.records, '158.0.8127.905');
+  fs.mkdirSync(old, {mode: 0o700});
+  fs.writeFileSync(path.join(old, 'state.json'), JSON.stringify({abandoned: '2026-11-21T00:00:00Z', done: {}}));
+  fs.writeFileSync(path.join(w.records, 'CURRENT'), old + '\n');
+  const write = fs.writeFileSync;
+  fs.writeFileSync = (file, ...rest) => { if (String(file).includes('.prep-') && String(file).endsWith('release-notes.md')) throw new Error('disk full'); return write(file, ...rest); };
+  try { assert.throws(() => prepareRelease({io: w.io, records: w.records, ledger}), /disk full/); } finally { fs.writeFileSync = write; }
+  assert.ok(JSON.parse(fs.readFileSync(path.join(old, 'state.json'), 'utf8')).abandoned, 'the abandoned record is still where CURRENT points');
+  assert.deepEqual(fs.readdirSync(w.records).filter(n => n.includes('.abandoned-') || n.startsWith('.prep-')), []);
+  assert.equal(w.hold(), null);
+});

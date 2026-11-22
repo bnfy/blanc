@@ -83,10 +83,15 @@ export function prepareRelease({io, records, ledger, nights = NIGHTS, draft = CA
     // Windows and Linux share build numbers in claim order on chromium/next:
     // the night's number is claimed for its exact source before the draft is
     // touched, and the release stages check that claim again.
-    if (typeof io.claim !== 'function') stop('no build claim helper');
-    const claimed = io.claim({build: night.build, sourceCommit: night.sourceCommit, platforms: ['windows'], purpose: 'release'});
-    console.log(claimed.created ? `Claimed build ${night.build} on chromium/next (${claimed.commit}).`
-      : `Build ${night.build} was already claimed for this source on chromium/next.`);
+    // A rehearsal's folder runs no stage, so it claims nothing: its number
+    // stays free for a real build.
+    if (draft !== CANDIDATE_DRAFTS[0]) console.log('A rehearsal claims no build number.');
+    else {
+      if (typeof io.claim !== 'function') stop('no build claim helper');
+      const claimed = io.claim({build: night.build, sourceCommit: night.sourceCommit, platforms: ['windows'], purpose: 'release'});
+      console.log(claimed.created ? `Claimed build ${night.build} on chromium/next (${claimed.commit}).`
+        : `Build ${night.build} was already claimed for this source on chromium/next.`);
+    }
     step();
 
     // The draft must hold this night's beta zip.
@@ -116,16 +121,19 @@ export function prepareRelease({io, records, ledger, nights = NIGHTS, draft = CA
       previousBuild: last?.build ?? 0, tag: `chromium-beta-windows-${night.version}`, sourceCommit: night.sourceCommit, prerelease: true, makeLatest: false,
       candidate: {id: beta.id, zipSha256: beta.zipSha256, treeCommit: beta.treeCommit, version: beta.version}};
     const work = path.join(records, night.version);
+    // An abandoned release of this version (it never tagged) is kept beside,
+    // never reused or deleted, and moved aside only once its replacement is
+    // ready, so a failed retry leaves it where CURRENT may name it.
+    let abandonedWork = false;
     if (fs.existsSync(work)) {
-      // An abandoned release of this version (it never tagged) is kept beside, never reused or deleted.
       let earlier = null;
       try { earlier = JSON.parse(fs.readFileSync(path.join(work, 'state.json'), 'utf8')); } catch { earlier = null; }
       if (!earlier?.abandoned) stop('a work folder for this version already exists');
-      fs.renameSync(work, `${work}.abandoned-${new Date().toISOString().replace(/[:.]/g, '-')}`);
+      abandonedWork = true;
     }
     // Built beside its final place, checked, then moved in whole.
     const staged = fs.mkdtempSync(path.join(records, '.prep-'));
-    let placed = false;
+    let placed = false, aside = null;
     try {
       fs.chmodSync(staged, 0o700);
       const bytes = Buffer.from(JSON.stringify(release, null, 2) + '\n');
@@ -135,6 +143,10 @@ export function prepareRelease({io, records, ledger, nights = NIGHTS, draft = CA
       fs.writeFileSync(path.join(staged, 'state.json'), JSON.stringify({schema: 1, release: sha256(bytes), done: {}, hold: {owner, apiUrl}, draft}, null, 2) + '\n', {mode: 0o600});
       load(staged, {ledger});
       step();
+      if (abandonedWork) {
+        aside = `${work}.abandoned-${new Date().toISOString().replace(/[:.]/g, '-')}`;
+        fs.renameSync(work, aside);
+      }
       fs.renameSync(staged, work);
       placed = true;
       const current = path.join(records, 'CURRENT');
@@ -142,10 +154,16 @@ export function prepareRelease({io, records, ledger, nights = NIGHTS, draft = CA
       fs.renameSync(current + '.tmp', current);
     } catch (error) {
       fs.rmSync(placed ? work : staged, {recursive: true, force: true});
+      if (aside && !fs.existsSync(work)) fs.renameSync(aside, work);
       fs.rmSync(path.join(records, 'CURRENT.tmp'), {force: true});
       throw error;
     }
-    fs.rmSync(recovery, {force: true});
+    // CURRENT names the release now, and the work folder holds the hold's
+    // owner: a PREP-HOLD left behind is only a stale note, never a reason to
+    // let go of the hold.
+    try { fs.rmSync(recovery, {force: true}); } catch {
+      console.warn(`The release is prepared, but ${recovery} could not be removed; remove it by hand (its hold now belongs to ${work}).`);
+    }
     return {work, owner};
   } catch (error) {
     try {
