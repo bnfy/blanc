@@ -19,6 +19,7 @@ on:
           - smoke
           - frame
           - install
+          - beta-install
           - quit
           - keys
           - suite
@@ -33,6 +34,10 @@ on:
           - arm64
       sha256:
         description: Candidate tarball SHA-256, or approved-packages.json SHA-256 for repo-metadata (omit for fixtures only)
+        required: false
+        type: string
+      version:
+        description: Four-part Linux beta version for beta-install
         required: false
         type: string
       suite:
@@ -281,7 +286,7 @@ jobs:
           retention-days: 14
 
   install:
-    if: ${{ inputs.check == 'install' }}
+    if: ${{ inputs.check == 'install' || inputs.check == 'beta-install' }}
     name: install (${{ matrix.system }}, ${{ matrix.arch }})
     strategy:
       fail-fast: false
@@ -303,6 +308,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y rpm gnupg
       - name: Check and download the selected archive, signed RPM and authorization
+        if: inputs.check == 'install'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -315,20 +321,42 @@ jobs:
           rpm=$(node chromium/tests/linux-install.mjs rpm-asset "$RUNNER_TEMP/release.json" "$ARCH" "$RUNNER_TEMP/candidate" "$CANDIDATE_SHA256")
           gh release download "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$rpm" --dir "$RUNNER_TEMP/candidate"
       - name: Authenticate the tarball and both packages before installation
+        if: inputs.check == 'install'
         run: |
           mkdir "$RUNNER_TEMP/results"
           node chromium/tests/linux-install.mjs prepare "$ARCH" "$RUNNER_TEMP/candidate" "$RUNNER_TEMP/input" "$CANDIDATE_SHA256"
-      - name: Install, upgrade, capture a crash and purge on Ubuntu
+      - name: Prepare the selected pre-signing beta packages
+        if: inputs.check == 'beta-install'
+        env:
+          VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[1-9][0-9]{0,3}$ ]]
+          asset="blanc-linux-beta-$ARCH-${VERSION##*.}-candidate.tar.gz"
+          [[ $(gh release view "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft) == true ]]
+          mkdir "$RUNNER_TEMP/candidate" "$RUNNER_TEMP/results"
+          gh release download "$DRAFT_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$asset" --dir "$RUNNER_TEMP/candidate"
+          python3 chromium/linux/repository/metadata.py unpack-beta-candidate "$ARCH" "$CANDIDATE_SHA256" \
+            "$RUNNER_TEMP/candidate/$asset" "$RUNNER_TEMP/input" "$VERSION" > /dev/null
+      - name: Test the installed package on Ubuntu
         if: matrix.system == 'ubuntu'
+        env:
+          CHECK: ${{ inputs.check }}
+          VERSION: ${{ inputs.version }}
         run: |
           # scripts/ci-apt-mirror.sh ran above for the x64 Ubuntu archive. Arm uses ubuntu-ports.
           sudo apt-get install -y xvfb xauth xdotool xdg-utils gnome-keyring libsecret-tools dbus-x11 libglib2.0-bin sqlite3 apparmor squashfs-tools \
             desktop-file-utils libgtk-3-0t64 libasound2t64 libnss3 libgbm1 libxss1
+          if [[ $CHECK == beta-install ]]; then
+            exec bash chromium/tests/linux-beta-install.sh ubuntu "$VERSION" "$RUNNER_TEMP/input" "$RUNNER_TEMP/results"
+          fi
           node chromium/tests/linux-install.mjs run ubuntu "$ARCH" "$RUNNER_TEMP/input" "$RUNNER_TEMP/results"
-      - name: Install, upgrade, capture a crash and purge inside the distribution
+      - name: Test the installed package inside the distribution
         if: matrix.system != 'ubuntu'
         env:
           SYSTEM: ${{ matrix.system }}
+          CHECK: ${{ inputs.check }}
+          VERSION: ${{ inputs.version }}
         run: |
           # Debian uses its own mirrors inside the container; ci-apt-mirror.sh is for the Ubuntu host.
           image=debian:12
@@ -340,7 +368,7 @@ jobs:
           export INSTALL_IMAGE
           INSTALL_IMAGE=$(docker image inspect --format '{{index .RepoDigests 0}}' "$image")
           docker run --rm --init --shm-size=1g --security-opt seccomp=unconfined \
-            -e INSTALL_IMAGE -e ARCH -e SYSTEM -e CANDIDATE_SHA256 -e "RESULT_UID=$(id -u)" \
+            -e INSTALL_IMAGE -e ARCH -e SYSTEM -e CHECK -e VERSION -e CANDIDATE_SHA256 -e "RESULT_UID=$(id -u)" \
             -v "$GITHUB_WORKSPACE/chromium:/src/chromium:ro" -v "$RUNNER_TEMP/input:/candidate:ro" \
             -v "$RUNNER_TEMP/results:/results" -v "$(realpath "$(command -v node)"):/usr/local/bin/node:ro" \
             "$image" bash -eu -o pipefail -c '
@@ -351,7 +379,7 @@ jobs:
                   xdg-utils desktop-file-utils dbus-x11 gnome-keyring libsecret-tools libglib2.0-bin gnupg \
                   libgtk-3-0 libasound2 libnss3 libgbm1 libxss1 libx11-xcb1 libxtst6
               else
-                dnf install -y sudo shadow-utils util-linux /usr/bin/curl xorg-x11-server-Xvfb xorg-x11-xauth xdotool procps-ng openssl sqlite rpm python3 \
+                dnf install -y sudo shadow-utils util-linux /usr/bin/curl xorg-x11-server-Xvfb xorg-x11-xauth xdotool procps-ng openssl sqlite rpm cpio python3 \
                   xdg-utils desktop-file-utils dbus-daemon glib2 gnome-keyring libsecret gnupg2 \
                   gtk3 alsa-lib nss mesa-libgbm cups-libs libXScrnSaver libXtst
               fi
@@ -359,6 +387,9 @@ jobs:
               useradd -m -u "$RESULT_UID" blanc-check
               echo "blanc-check ALL=(root) NOPASSWD: ALL" > /etc/sudoers.d/blanc-check
               chmod 0440 /etc/sudoers.d/blanc-check
+              if [[ $CHECK == beta-install ]]; then
+                exec runuser -u blanc-check -- bash /src/chromium/tests/linux-beta-install.sh "$SYSTEM" "$VERSION" /candidate /results
+              fi
               exec runuser -u blanc-check -- node /src/chromium/tests/linux-install.mjs run "$SYSTEM" "$ARCH" /candidate /results
             '
       - name: Keep the install evidence

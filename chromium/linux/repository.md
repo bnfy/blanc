@@ -72,8 +72,10 @@ Install the RPM header reader in the signing Python environment with
    `chromium/linux/owner/repository-upload.command staging SIGNED GENERATION`.
    The generation must match the fourth version component of every signed package.
    The release tool records the
-   staging update proof against the tree digest. For publication, run
-   `chromium/linux/owner/repository-upload.command production SIGNED GENERATION PROVEN_DIGEST`.
+   staging update proof against the tree digest. The release tool runs
+   `chromium/linux/owner/repository-upload.command production SIGNED GENERATION PROVEN_DIGEST PREDECESSOR_JSON`.
+   It passes the complete production pointer recorded in the release journal, or
+   `null` for the first publication. The uploader compares it under the lock.
    Both commands use Wrangler's authenticated remote R2 binding.
 
 The planned `PACKAGES` binding in `repository/worker/wrangler.toml` names
