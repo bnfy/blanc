@@ -164,11 +164,15 @@ export function acquireCheckoutLock(src, mkdir = fs.mkdirSync, owner = undefined
     let held = null;
     try { held = fs.readFileSync(ownerFile, 'utf8').trim(); } catch { /* not held, or held without an owner */ }
     if (!fs.existsSync(lock)) throw new Error('The desktop checkout lock is not held by this owner. No build started.');
-    if (held !== owner) throw new Error('The desktop checkout is locked (setup, apply or another build). No build started.');
+    if (held !== owner) throw new Error(`The desktop checkout is locked (setup, apply or another build${held ? `; held by owner ${held.slice(0, 8)}` : ''}). No build started.`);
     return () => {};
   }
   try { mkdir(lock); } catch (error) {
-    if (error.code === 'EEXIST') throw new Error('The desktop checkout is locked (setup, apply or another build). No build started.');
+    if (error.code === 'EEXIST') {
+      let held = null;
+      try { held = fs.readFileSync(ownerFile, 'utf8').trim(); } catch { /* a setup lock has no owner file */ }
+      throw new Error(`The desktop checkout is locked (setup, apply or another build${held ? `; held by owner ${held.slice(0, 8)}` : ''}). No build started.`);
+    }
     throw error;
   }
   const token = crypto.randomBytes(16).toString('hex');

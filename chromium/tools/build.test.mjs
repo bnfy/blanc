@@ -335,3 +335,15 @@ test('the nightly cap: 1,001 actions pass with an explicit maximum of 3,000, 3,0
   assert.throws(() => checkPlan('Build Succeeded: 3001 steps', true, true, 3000), /exceeds approved maximum 3000/);
   assert.throws(() => checkPlan('Build Succeeded: 5 steps\npython3 ../../build/write_buildflag_header.py', true, true, 3000), /Generated build flags/);
 });
+test('a refusal names the holder\'s token prefix, so a stuck nightly lock is told from a setup lock', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-owner-'));
+  try {
+    const src = path.join(dir, 'src'), lock = checkoutLockPath(src);
+    fs.mkdirSync(lock);
+    fs.writeFileSync(path.join(lock, 'owner'), '1a2b3c4d5e6f\n');
+    assert.throws(() => acquireCheckoutLock(src), /held by owner 1a2b3c4d\)/);
+    assert.throws(() => acquireCheckoutLock(src, fs.mkdirSync, 'zz'), /held by owner 1a2b3c4d\)/);
+    fs.rmSync(path.join(lock, 'owner'));
+    assert.throws(() => acquireCheckoutLock(src), /another build\)\. No build started/);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
