@@ -54,6 +54,42 @@ on:
         required: false
         default: false
         type: boolean
+      source_commit:
+        description: "Windows nightly: the commit the candidate was built from; the harness runs from it after it is proven on chromium/next"
+        required: false
+        default: ''
+        type: string
+      asset:
+        description: "Which zip on the draft to test: the beta candidate or the nightly's prototype"
+        required: false
+        default: blanc-windows-candidate.zip
+        type: choice
+        options:
+          - blanc-windows-candidate.zip
+          - blanc-windows-prototype.zip
+      nightly:
+        description: "Windows nightly: run the full suite as a nightly (the tracker names the candidate for this run only)"
+        required: false
+        default: false
+        type: boolean
+      case_list_asset:
+        description: "Windows nightly rerun: the draft's case list to run instead of the full suite"
+        required: false
+        default: ''
+        type: string
+      draft_tag:
+        description: "The candidate draft: the real one, or the nightly rehearsal's"
+        required: false
+        default: fork-windows-candidate
+        type: choice
+        options:
+          - fork-windows-candidate
+          - fork-windows-candidate-rehearsal
+      hold_owner:
+        description: "The draft hold's owner token; the signing job re-checks it just before its upload"
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -77,17 +113,42 @@ jobs:
       CANDIDATE_SHA256: ${{ inputs.sha256 }}
       SUITE: ${{ inputs.suite }}
       ONLY: ${{ inputs.only }}
-      DRAFT_TAG: fork-windows-candidate
-      ASSET: blanc-windows-candidate.zip
+      DRAFT_TAG: ${{ inputs.draft_tag || 'fork-windows-candidate' }}
+      ASSET: ${{ inputs.asset || 'blanc-windows-candidate.zip' }}
+      SOURCE_COMMIT: ${{ inputs.source_commit }}
+      NIGHTLY: ${{ inputs.nightly }}
+      CASE_LIST_ASSET: ${{ inputs.case_list_asset }}
     steps:
       - name: Validate inputs
         run: |
           $ErrorActionPreference = 'Stop'
           if ($env:CANDIDATE_SHA256 -notmatch '^[0-9a-f]{64}$') { throw 'sha256 must be 64 lowercase hex digits.' }
-          if ($env:ONLY -notmatch '^[A-Za-z0-9 _.,:@-]{0,600}$') { throw 'only holds unsupported characters.' }
+          if ($env:ONLY -notmatch '^[A-Za-z0-9 _.,:@/-]{0,4000}$') { throw 'only holds unsupported characters.' }
+          if ($env:SOURCE_COMMIT -and $env:SOURCE_COMMIT -notmatch '^[0-9a-f]{40}$') { throw 'source_commit must be a full lowercase commit.' }
+          if ($env:CASE_LIST_ASSET -and $env:CASE_LIST_ASSET -ne 'nightly-rerun.json') { throw 'case_list_asset can only be nightly-rerun.json.' }
+          if ($env:CASE_LIST_ASSET -and $env:ONLY) { throw 'Use only or case_list_asset, not both.' }
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # A nightly tests the harness of the commit it built, not chromium/next's
+      # newest. GitHub's compare API proves that commit is on chromium/next
+      # (cheaper than this repository's full history); only then is it checked
+      # out, before any repository script runs.
+      - name: Pin the source commit
+        if: ${{ inputs.source_commit != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:SOURCE_COMMIT) {
+            $status = gh api "repos/$env:GITHUB_REPOSITORY/compare/$($env:SOURCE_COMMIT)...chromium/next" --jq .status
+            if ($LASTEXITCODE -ne 0 -or ($status -ne 'ahead' -and $status -ne 'identical')) { throw "The source commit is not on chromium/next ($status)." }
+            git fetch --quiet --depth=1 origin $env:SOURCE_COMMIT
+            if ($LASTEXITCODE -ne 0) { throw 'Could not fetch the source commit.' }
+            git checkout --quiet --detach $env:SOURCE_COMMIT
+            if ($LASTEXITCODE -ne 0) { throw 'Could not check out the source commit.' }
+            "Harness at $env:SOURCE_COMMIT"
+          }
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
@@ -118,6 +179,10 @@ jobs:
           if ($LASTEXITCODE -ne 0 -or $draft -ne 'true') { throw "$env:DRAFT_TAG must exist and be an unpublished draft." }
           gh release download $env:DRAFT_TAG --repo $env:GITHUB_REPOSITORY --pattern $env:ASSET --dir "$env:RUNNER_TEMP\candidate"
           if ($LASTEXITCODE -ne 0) { throw 'Could not download the candidate.' }
+          if ($env:CASE_LIST_ASSET) {
+            gh release download $env:DRAFT_TAG --repo $env:GITHUB_REPOSITORY --pattern $env:CASE_LIST_ASSET --dir "$env:RUNNER_TEMP\candidate"
+            if ($LASTEXITCODE -ne 0) { throw 'Could not download the case list.' }
+          }
       - name: Verify and unpack it
         run: |
           $ErrorActionPreference = 'Stop'
@@ -129,6 +194,10 @@ jobs:
           tar -xf $zip -C "$env:RUNNER_TEMP\blanc"
           if ($LASTEXITCODE -ne 0) { throw 'Could not unpack the candidate.' }
           if (-not (Test-Path "$env:RUNNER_TEMP\blanc\candidate.json")) { throw 'The zip has no candidate.json at its top level; it was not made by chromium/windows/package-candidate.mjs.' }
+          if ($env:SOURCE_COMMIT) {
+            $built = (Get-Content "$env:RUNNER_TEMP\blanc\candidate.json" -Raw | ConvertFrom-Json).treeCommit
+            if ($built -ne $env:SOURCE_COMMIT) { throw 'The candidate was built from another commit than source_commit.' }
+          }
           # Chromium's sandboxed processes run as app containers and must be
           # able to read the folder the browser runs from; an installer grants
           # this (W1). Without it the browser stops at "Sandbox cannot access
@@ -346,6 +415,8 @@ jobs:
           New-Item -ItemType Directory -Force -Path $env:TEMP | Out-Null
           $arguments = @('chromium/windows/run-suite.mjs', $env:CANDIDATE_DIR, "$env:RESULTS\f0", '--slice=f0')
           if ($env:ONLY) { $arguments += "--only=$env:ONLY" }
+          if ($env:NIGHTLY -eq 'true') { $arguments += "--nightly=$env:GITHUB_RUN_ID" }
+          if ($env:CASE_LIST_ASSET) { $arguments += "--case-list=$env:RUNNER_TEMP\candidate\$env:CASE_LIST_ASSET" }
           node @arguments
       - name: Keep the results
         if: always()
@@ -373,8 +444,9 @@ jobs:
         shell: pwsh
     env:
       CANDIDATE_SHA256: ${{ inputs.sha256 }}
-      DRAFT_TAG: fork-windows-candidate
+      DRAFT_TAG: ${{ inputs.draft_tag || 'fork-windows-candidate' }}
       ASSET: blanc-windows-candidate.zip
+      HOLD_OWNER: ${{ inputs.hold_owner }}
       SIGNED_ASSET: blanc-windows-installer-signed.exe
       ONLINE_ASSET: Blanc-Beta-Setup.exe
       UPDATE_EXPECT: ${{ inputs.update_expect }}
@@ -554,6 +626,17 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $assets = @("$env:SIGNED\$env:SIGNED_ASSET", "$env:SIGNED\windows-signature.json")
           if ($env:UPDATER_WORK) { $assets += "$env:SIGNED\$env:ONLINE_ASSET" }
+          # Just before writing: still a draft, and, for a release that holds it,
+          # still that release's draft (draft-hold.json names its owner).
+          $draft = gh release view $env:DRAFT_TAG --repo $env:GITHUB_REPOSITORY --json isDraft --jq .isDraft
+          if ($LASTEXITCODE -ne 0 -or $draft -ne 'true') { throw "$env:DRAFT_TAG must still be an unpublished draft." }
+          if ($env:HOLD_OWNER) {
+            $hold = "$env:RUNNER_TEMP\hold"
+            New-Item -ItemType Directory -Force $hold | Out-Null
+            gh release download $env:DRAFT_TAG --repo $env:GITHUB_REPOSITORY --pattern draft-hold.json --dir $hold --clobber
+            if ($LASTEXITCODE -ne 0) { throw 'The draft has no hold.' }
+            if ((Get-Content "$hold\draft-hold.json" -Raw | ConvertFrom-Json).owner -ne $env:HOLD_OWNER) { throw 'Another owner holds the draft now.' }
+          }
           gh release upload $env:DRAFT_TAG @assets --repo $env:GITHUB_REPOSITORY --clobber
           if ($LASTEXITCODE -ne 0) { throw 'Could not upload the signed installer.' }
           $sha = (Get-FileHash "$env:SIGNED\$env:SIGNED_ASSET" -Algorithm SHA256).Hash.ToLower()

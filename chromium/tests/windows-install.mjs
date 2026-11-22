@@ -19,7 +19,7 @@ import {execFileSync,spawnSync,spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {pause} from './lib/cdp.mjs';
 import crypto from 'node:crypto';
-import {channelNames} from '../windows/candidate.mjs';
+import {channelNames,installedMatches} from '../windows/candidate.mjs';
 
 const [candidateFolder,resultsFolder,shippingInstaller,...installOptions]=process.argv.slice(2);
 const installerOption=installOptions.find(o=>o.startsWith('--installer='))?.slice('--installer='.length)??null;
@@ -95,6 +95,15 @@ try{
  record.details.installerExit=run.status;
  const exe=path.join(application,'chrome.exe');
  record.checks.installed=run.status===0&&fs.existsSync(exe)&&fs.existsSync(path.join(application,candidate.version,'chrome.dll'));
+ // The installed files are this candidate's (a night reuses its build number
+ // until it ships, so the version alone can name an older payload).
+ if(record.checks.installed){
+  const bytes=installedMatches(candidate,{installedExe:exe,installedDll:path.join(application,candidate.version,'chrome.dll'),
+   originalExe:path.join(directory,'chrome.exe'),originalDll:path.join(directory,'chrome.dll')},
+   {signed,read:f=>fs.readFileSync(f),sha256:b=>crypto.createHash('sha256').update(b).digest('hex')});
+  record.details.installedSha256=bytes.sha256;
+  record.checks.installedMatchesCandidate=bytes.match;
+ }else record.checks.installedMatchesCandidate=false;
  const uninstallKey=`${HKCU}\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${product}`;
  const entry=regValues(uninstallKey);
  record.details.uninstallEntry=entry;
@@ -156,7 +165,7 @@ try{
  record.checks.electronStillStarts=electron.exitCode===null;
  killAll('Blanc.exe');
 }catch(error){failure=error;record.error=String(error.stack||error);}
-const required=['electronInstalled','installed','uninstallEntry','startMenuShortcut','versionResources','registeredAsBrowser','electronUntouchedByInstall',
+const required=['electronInstalled','installed','installedMatchesCandidate','uninstallEntry','startMenuShortcut','versionResources','registeredAsBrowser','electronUntouchedByInstall',
  'installedLaunches','uninstalled','dataKept','electronUntouched','electronStillStarts',...(names.testHooks?[]:['blockerEmbedded'])];
 record.pass=!failure&&required.every(name=>record.checks[name]===true);
 fs.writeFileSync(path.join(out,'install.json'),JSON.stringify(record,null,2)+'\n');
