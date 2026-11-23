@@ -1,7 +1,7 @@
 diff -ruN a/chrome/android/BUILD.gn b/chrome/android/BUILD.gn
 --- a/chrome/android/BUILD.gn
 +++ b/chrome/android/BUILD.gn
-@@ -531,6 +531,12 @@
+@@ -514,6 +514,12 @@
        "//chrome/browser/sync/android:java",
        "//chrome/browser/sync/android:ui_java",
        "//chrome/browser/sync/synced_set_up/android:java",
@@ -17,7 +17,7 @@ diff -ruN a/chrome/android/BUILD.gn b/chrome/android/BUILD.gn
 diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/SwipeRefreshHandler.java b/chrome/android/java/src/org/chromium/chrome/browser/SwipeRefreshHandler.java
 --- a/chrome/android/java/src/org/chromium/chrome/browser/SwipeRefreshHandler.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/SwipeRefreshHandler.java
-@@ -298,6 +298,8 @@
+@@ -303,6 +303,8 @@
              @OverscrollAction int type, @BackGestureEventSwipeEdge int initiatingEdge) {
          mSwipeType = type;
          if (type == OverscrollAction.PULL_TO_REFRESH) {
@@ -29,7 +29,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/SwipeRefreshHand
 diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java b/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
 --- a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
-@@ -57,6 +57,7 @@
+@@ -56,6 +56,7 @@
  import org.chromium.build.BuildConfig;
  import org.chromium.build.annotations.EnsuresNonNull;
  import org.chromium.build.annotations.NullMarked;
@@ -37,15 +37,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
  import org.chromium.build.annotations.Nullable;
  import org.chromium.chrome.R;
  import org.chromium.chrome.browser.ActivityTabProvider;
-@@ -198,6 +199,7 @@
- import org.chromium.chrome.browser.sync.synced_set_up.CrossDeviceSettingImporter;
- import org.chromium.chrome.browser.tab.RequestDesktopUtils;
- import org.chromium.chrome.browser.tab.Tab;
-+import org.chromium.chrome.browser.tab.TabLaunchType;
- import org.chromium.chrome.browser.tab.TabAssociatedApp;
- import org.chromium.chrome.browser.tab.TabFavicon;
- import org.chromium.chrome.browser.tab.TabSelectionType;
-@@ -755,6 +757,12 @@
+@@ -774,6 +775,12 @@
  
          getAppBrowserControlsVisibilityDelegate()
                  .addDelegate(browserControlsManager.getBrowserVisibilityDelegate());
@@ -58,10 +50,10 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          mRootUiTabObserver = new RootUiTabObserver(tabProvider);
          mGestureNavLayoutObserver =
                  new LayoutStateProvider.LayoutStateObserver() {
-@@ -885,6 +893,18 @@
-     @Override
-     @SuppressWarnings({"NullAway", "UseSharedPreferencesManagerFromChromeCheck"})
+@@ -899,6 +906,18 @@
      public void onDestroy() {
+         destroyInAppUpdate();
+ 
 +        if (mBlancIsland != null) {
 +            mBlancIsland.destroy();
 +            mBlancIsland = null;
@@ -77,13 +69,10 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
          if (mVerticalTabsPreferenceListener != null) {
              ContextUtils.getAppSharedPreferences()
                      .unregisterOnSharedPreferenceChangeListener(mVerticalTabsPreferenceListener);
-@@ -1290,12 +1310,516 @@
-                     .asNonNull()
-                     .get()
-                     .setSideUiStateProviderSupplier(mSideUiStateProviderSupplier);
-+        }
-+    }
-+
+@@ -1322,9 +1341,513 @@
+         }
+     }
+ 
 +    // The palette (A2 Task 4), Blanc for iPhone's: the Island's site opens it. Typed addresses load
 +    // in the current tab as typed navigations; an app link goes to Android, whose chooser asks
 +    // which app.
@@ -241,10 +230,10 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                                    item.getUrl().getSpec()));
 +                }
 +            }
-         }
++        }
 +        return out;
-     }
- 
++    }
++
 +    // The tab grid (A2 Task 5), Blanc for iPhone's: the Island's tabs button and a swipe from it
 +    // into the page open it. Card images come from Chromium's tab captures.
 +    private void showBlancTabGrid() {
@@ -593,10 +582,10 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +        createBlancIsland();
          assert mLayoutManager != null;
  
-         if (mCountrySupplier != null && mCountrySupplier.get() == null) {
-@@ -2962,9 +3486,8 @@
-         mNotificationPermissionController =
-                 new NotificationPermissionController(mWindowAndroid, rationaleUIDelegateSupplier);
+         if (ChromeFeatureList.isEnabled(ChromeFeatureList.IN_APP_UPDATE_FLOW)) {
+@@ -3112,9 +3635,8 @@
+                 new NotificationPermissionController(
+                         mWindowAndroid, rationaleUIDelegateSupplier, profile);
          NotificationPermissionController.attach(mWindowAndroid, mNotificationPermissionController);
 -        if (mNotificationPermissionController.requestPermissionIfNeeded(/* contextual= */ false)) {
 -            return true;
@@ -606,15 +595,58 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
  
          assert mAdvancedProtectionCoordinator != null;
          if (mAdvancedProtectionCoordinator.showMessageOnStartupIfNeeded()) {
-diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/undo_tab_close_snackbar/TabUndoBarController.java b/chrome/android/java/src/org/chromium/chrome/browser/undo_tab_close_snackbar/TabUndoBarController.java
---- a/chrome/android/java/src/org/chromium/chrome/browser/undo_tab_close_snackbar/TabUndoBarController.java
-+++ b/chrome/android/java/src/org/chromium/chrome/browser/undo_tab_close_snackbar/TabUndoBarController.java
-@@ -116,8 +116,7 @@
+diff -ruN a/chrome/browser/tab_ui/android/java/src/org/chromium/chrome/browser/tab_ui/undo_tab_close_snackbar/TabUndoBarController.java b/chrome/browser/tab_ui/android/java/src/org/chromium/chrome/browser/tab_ui/undo_tab_close_snackbar/TabUndoBarController.java
+--- a/chrome/browser/tab_ui/android/java/src/org/chromium/chrome/browser/tab_ui/undo_tab_close_snackbar/TabUndoBarController.java
++++ b/chrome/browser/tab_ui/android/java/src/org/chromium/chrome/browser/tab_ui/undo_tab_close_snackbar/TabUndoBarController.java
+@@ -10,12 +10,9 @@
+ import org.chromium.build.annotations.NullMarked;
+ import org.chromium.build.annotations.Nullable;
+ import org.chromium.chrome.browser.flags.ChromeFeatureList;
+-import org.chromium.chrome.browser.profiles.Profile;
+ import org.chromium.chrome.browser.tab.Tab;
+ import org.chromium.chrome.browser.tab.TabId;
+-import org.chromium.chrome.browser.tab.TabRestoreEntryId;
+ import org.chromium.chrome.browser.tab.TabSelectionType;
+-import org.chromium.chrome.browser.tab_group_sync.TabGroupSyncFeatures;
+ import org.chromium.chrome.browser.tabmodel.TabClosingSource;
+ import org.chromium.chrome.browser.tabmodel.TabModel;
+ import org.chromium.chrome.browser.tabmodel.TabModelObserver;
+@@ -24,7 +21,6 @@
+ import org.chromium.chrome.browser.tabmodel.undo.UndoClosureSnapshot;
+ import org.chromium.chrome.browser.tabmodel.undo.UndoClosureSnapshot.ClosedTab;
+ import org.chromium.chrome.browser.tabmodel.undo.UndoClosureSnapshot.GroupData;
+-import org.chromium.chrome.browser.tabmodel.undo.UndoClosureSnapshotFactory;
+ import org.chromium.chrome.browser.ui.messages.snackbar.SnackbarManager.SnackbarManageable;
+ 
+ import java.util.HashSet;
+@@ -121,30 +117,7 @@
                              List<Tab> tabs,
                              boolean isAllTabs,
                              @TabClosingSource int closingSource) {
+-                        if (ChromeFeatureList.sUndoableTabClosureRework.isEnabled()) return;
+-                        mReselectableSnapshot = null;
 -                        if (disableUndo(true)) return;
--                        queueUndoBar(new TabClosureEvent(tabs, isAllTabs));
+-
+-                        TabModel tabModel = mTabModelSelector.getModel(/* incognito= */ false);
+-                        Profile profile = tabModel.getProfile();
+-                        boolean tabGroupSyncEnabled =
+-                                profile != null
+-                                        && profile.isNativeInitialized()
+-                                        && TabGroupSyncFeatures.isTabGroupSyncEnabled(profile);
+-
+-                        UndoClosureSnapshot snapshot =
+-                                UndoClosureSnapshotFactory.captureFromTabModel(
+-                                        tabModel,
+-                                        tabs,
+-                                        isAllTabs,
+-                                        tabGroupSyncEnabled,
+-                                        closingSource,
+-                                        /* entryId= */ TabRestoreEntryId
+-                                                .INVALID_TAB_RESTORE_ENTRY_ID,
+-                                        /* undoRunnable= */ null);
+-                        mReselectableSnapshot =
+-                                mTabModelSelector.isIncognitoSelected() ? null : snapshot;
+-                        queueUndoBar(snapshot);
 +                        // Blanc (patch 0104): Blanc's banner offers Undo (BlancTabs, A2 Task 5).
                      }
  

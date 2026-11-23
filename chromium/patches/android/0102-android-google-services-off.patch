@@ -9,9 +9,9 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompat
  import org.chromium.base.CommandLineInitUtil;
  import org.chromium.base.ContextUtils;
  import org.chromium.base.EarlyTraceEvent;
-@@ -53,6 +54,9 @@
+@@ -51,6 +52,9 @@
+ import org.chromium.components.module_installer.util.ModuleUtil;
  import org.chromium.components.policy.PolicyCache;
- import org.chromium.ui.base.ResourceBundle;
  
 +import java.util.ArrayList;
 +import java.util.Arrays;
@@ -19,7 +19,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompat
  import java.util.function.Supplier;
  
  /**
-@@ -69,6 +73,24 @@
+@@ -67,6 +71,24 @@
      public static final String ON_DEMAND_SPLIT_NAME = "on_demand";
      private static final String TAG = "SplitCompatApp";
      private static final String COMMAND_LINE_FILE = "chrome-command-line";
@@ -44,7 +44,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompat
      private static final String ATTACH_BASE_CONTEXT_EVENT = "ChromeApplication.attachBaseContext";
      // Public to allow use in ChromeBackupAgent
      public static final String PRIVATE_DATA_DIRECTORY_SUFFIX = "chrome";
-@@ -228,6 +250,7 @@
+@@ -224,6 +246,7 @@
              // (see ChildProcessService.java).
              CommandLineInitUtil.initCommandLine(
                      COMMAND_LINE_FILE, SplitCompatApplication::shouldUseDebugFlags);
@@ -52,7 +52,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompat
              PathUtils.setPrivateDataDirectorySuffix(PRIVATE_DATA_DIRECTORY_SUFFIX);
              // Register for activity lifecycle callbacks. Must be done before any activities are
              // created and is needed only by processes that use the ApplicationStatus api (which
-@@ -391,4 +414,17 @@
+@@ -386,4 +409,17 @@
              throw new RuntimeException("App out of date, getResources() null, closing app.");
          }
      }
@@ -73,7 +73,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/base/SplitCompat
 diff -ruN a/components/signin/internal/identity_manager/gaia_cookie_manager_service.cc b/components/signin/internal/identity_manager/gaia_cookie_manager_service.cc
 --- a/components/signin/internal/identity_manager/gaia_cookie_manager_service.cc
 +++ b/components/signin/internal/identity_manager/gaia_cookie_manager_service.cc
-@@ -525,6 +525,12 @@
+@@ -527,6 +527,12 @@
  }
  
  void GaiaCookieManagerService::TriggerListAccounts() {
@@ -86,9 +86,9 @@ diff -ruN a/components/signin/internal/identity_manager/gaia_cookie_manager_serv
    // Callers suspect that a check to Gaia needs to be done, don't rely on the
    // in progress request, conditions might have changed while the request is
    // in-flight.
-@@ -540,6 +546,7 @@
-         base::BindOnce(&GaiaCookieManagerService::StartFetchingListAccounts,
-                        weak_ptr_factory_.GetWeakPtr()));
+@@ -542,6 +548,7 @@
+         &GaiaCookieManagerService::MaybeStartFetchingListAccounts,
+         weak_ptr_factory_.GetWeakPtr()));
    }
 +#endif  // BUILDFLAG(IS_ANDROID)
  }
