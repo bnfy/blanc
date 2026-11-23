@@ -54,7 +54,7 @@ test('the hero shows both ways to use Mail with equal actions before pricing', a
       const address = paths.last().getByRole('link');
       assert.equal(await address.getAttribute('href'), open ? '/mail/reserve' : '#address');
       assert.equal(await address.innerText(), open ? 'Reserve your address' : 'Explore Blanc addresses');
-      assert.equal(/for free/i.test(await paths.last().innerText()), open);
+      assert.equal(/is free/i.test(await paths.last().innerText()), open);
       const [wait, reserve] = await paths.locator('.offer-action').evaluateAll(actions => actions.map(action => action.getBoundingClientRect().toJSON()));
       assert.equal(wait.height, reserve.height);
       assert.equal(wait.width, reserve.width);
