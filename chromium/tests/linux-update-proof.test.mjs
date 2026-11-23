@@ -9,7 +9,7 @@ import YAML from 'yaml';
 import {packageNames} from '../linux/candidate.mjs';
 import {sha256} from '../linux/repository/plan-upload.mjs';
 import {assertProduction, proofInputs, stageMetadata, verifyApproval, checkRefusal, proveUpdate} from './linux-update-proof.mjs';
-import {prepareLifecycleTree} from './linux-repo-lifecycle.mjs';
+import {checkCatalog, prepareLifecycleTree} from './linux-repo-lifecycle.mjs';
 
 const from = '158.0.8127.907', to = '158.0.8127.908';
 const inputs = (system = 'ubuntu', arch = 'x64') => proofInputs(system, arch, from, to, 'staging');
@@ -72,11 +72,19 @@ test('repo-lifecycle runs all three modes in fresh native containers independent
 
 // Model exactly the publicly readable paths. The publisher's signed-tree.json
 // is private. Package hashes come from the owner's authenticated approval.
-function stagingFixture() {
+function stagingFixture({dep11 = false} = {}) {
   const objects = new Map(), rows = [];
   const put = key => objects.set(key, Buffer.from(key));
   const apt = 'deb/dists/stable/';
-  for (const name of ['InRelease', 'Release', 'Release.gpg']) put(apt + name);
+  for (const name of ['InRelease', 'Release.gpg']) put(apt + name);
+  const listed = [];
+  if (dep11) for (const deb of ['amd64', 'arm64']) {
+    const name = 'main/dep11/Components-' + deb + '.yml.gz', bytes = Buffer.from('catalog ' + deb);
+    objects.set(apt + name, bytes);
+    objects.set(apt + 'main/dep11/by-hash/SHA256/' + sha256(bytes), bytes);
+    listed.push(' ' + sha256(bytes) + ' ' + bytes.length + ' ' + name);
+  }
+  objects.set(apt + 'Release', Buffer.from('Origin: Blanc\nSHA256:\n' + listed.join('\n') + '\n'));
   put('blanc-repository.asc');
   for (const [arch, deb, rpm] of [['x64', 'amd64', 'x86_64'], ['arm64', 'arm64', 'aarch64']]) {
     const index = apt + 'main/binary-' + deb + '/';
@@ -110,6 +118,20 @@ function stagingFixture() {
   };
   return {approval: {schema: 1, releaseVersion: to, packages: rows}, pointer, read, objects};
 }
+
+test('captures the DEP-11 catalog exactly when the signed Release lists it', async t => {
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'proof-dep11-'));
+  t.after(() => fs.rmSync(scratch, {recursive: true, force: true}));
+  const fixture = stagingFixture({dep11: true});
+  const dir = fs.mkdtempSync(path.join(scratch, 'tree-'));
+  await stageMetadata(inputs(), fixture.approval, dir, fixture.read);
+  for (const deb of ['amd64', 'arm64']) {
+    assert.equal(fs.readFileSync(path.join(dir, 'deb/dists/stable/main/dep11/Components-' + deb + '.yml.gz'), 'utf8'), 'catalog ' + deb);
+  }
+  const missing = stagingFixture({dep11: true});
+  missing.objects.delete('deb/dists/stable/main/dep11/Components-arm64.yml.gz');
+  await assert.rejects(stageMetadata(inputs(), missing.approval, fs.mkdtempSync(path.join(scratch, 'tree-')), missing.read));
+});
 
 test('rebuilds the Task 4 digest from the generation and the signed package hashes', async t => {
   const {approval, read, pointer, objects} = stagingFixture();
@@ -269,4 +291,14 @@ case "$5" in "$TEST_DIR"/blanc-update-proof-*) exec rm -rf -- "$5";; *) exit 1;;
   const argv = fs.readFileSync(path.join(dir, 'arguments'), 'utf8').trimEnd().split('\n');
   assert.deepEqual(argv.slice(0, -1), ['-a', 'dbus-run-session', '--', process.execPath, bin, 'session', ...selection]);
   assert.equal(fs.existsSync(argv.at(-1)), false);
+});
+
+test('the lifecycle requires apt to have fetched a catalog naming the package', () => {
+  const name = 'pkg.blanc.day_deb_dists_stable_main_dep11_Components-arm64.yml.lz4';
+  const good = '---\nFile: DEP-11\n---\nType: desktop-application\nID: blanc-beta.desktop\nPackage: blanc-beta\n';
+  assert.equal(checkCatalog(['lock', 'partial', name, 'pkg.blanc.day_deb_dists_stable_InRelease'], 'arm64', () => good), name);
+  assert.throws(() => checkCatalog(['pkg.blanc.day_deb_dists_stable_InRelease'], 'arm64', () => good), /did not fetch/);
+  assert.throws(() => checkCatalog([name.replace('arm64', 'amd64')], 'arm64', () => good), /did not fetch/);
+  assert.throws(() => checkCatalog([name], 'arm64', () => good.replace('Package: blanc-beta', 'Package: other')), /names the package/);
+  assert.throws(() => checkCatalog([name + '.bak'], 'arm64', () => good), /did not fetch/);
 });

@@ -72,7 +72,13 @@ export async function stageMetadata(spec, approval, dir, read = readStaging) {
     return bytes;
   }
   await capture('blanc-repository.asc');
-  for (const name of ['InRelease', 'Release', 'Release.gpg']) await capture(apt + '/' + name);
+  let release;
+  for (const name of ['InRelease', 'Release', 'Release.gpg']) {
+    const bytes = await capture(apt + '/' + name);
+    if (name === 'Release') release = bytes.toString();
+  }
+  // The App Center catalog is in a tree exactly when its signed Release lists it.
+  const listed = new Set(release.split('\n').map(line => line.trim().split(/\s+/)[2]).filter(Boolean));
   for (const arch of ['x64', 'arm64']) {
     const debArch = arch === 'x64' ? 'amd64' : 'arm64';
     const rpmBase = 'rpm/stable/' + (arch === 'x64' ? 'x86_64' : 'aarch64');
@@ -80,6 +86,11 @@ export async function stageMetadata(spec, approval, dir, read = readStaging) {
     for (const name of ['Packages', 'Packages.gz']) {
       const bytes = await capture(index + name);
       await capture(index + 'by-hash/SHA256/' + sha256(bytes));
+    }
+    const catalog = 'main/dep11/Components-' + debArch + '.yml.gz';
+    if (listed.has(catalog)) {
+      const bytes = await capture(apt + '/' + catalog);
+      await capture(apt + '/main/dep11/by-hash/SHA256/' + sha256(bytes));
     }
     const xml = await capture(rpmBase + '/repodata/repomd.xml');
     await capture(rpmBase + '/repodata/repomd.xml.asc');

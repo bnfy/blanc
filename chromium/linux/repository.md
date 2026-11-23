@@ -107,14 +107,27 @@ publication writes `current.json`, every path answers 404.
 
 ## AppStream (DEP-11) metadata
 
-Not published yet. Ubuntu 26.04's App Center lists an apt update only when it can match the
-package to an AppStream component by package name, which comes from a repository's DEP-11
-catalog (`main/dep11/Components-<arch>.yml.gz`, listed and hashed in `Release`). Without one it
-hides Blanc's updates; with a local entry naming `Package: blanc-beta` it listed
-"Blanc Beta 905 → 906" ([VM check](hand-checks-l3.md#app-center-and-dep-11)). The owner decided on
-November 22, 2026 to add it before the 158.0.8127.37 update: `metadata.py` builds it on the
-runner from the package's own AppStream file and desktop entry, the Mac's index check verifies
-it with the rest of `Release`, and the lifecycle check covers it. It changes no package.
+Ubuntu 26.04's App Center lists an apt update only when it can match the package to an
+AppStream component by package name, which comes from a repository's DEP-11 catalog. A
+package's own AppStream file names no package. Generation 906 had no catalog, so App Center hid
+Blanc's updates; with a local entry naming `Package: blanc-beta` it listed
+"Blanc Beta 905 → 906" ([VM check](hand-checks-l3.md#app-center-and-dep-11)). The owner decided
+on November 22, 2026 to publish it before the 158.0.8127.37 update.
+
+Each tree from then on carries `deb/dists/stable/main/dep11/Components-{amd64,arm64}.yml.gz`,
+listed and hashed in the signed `Release`, with `by-hash` copies like the `Packages` indexes.
+`metadata.py dep11` writes it from the package's own
+`usr/share/appdata/blanc-beta.appdata.xml` (component `blanc-beta.desktop`, its name, summary,
+description, developer, licence and https links, the installed `blanc-beta` icon and the desktop
+launchable). The runner builds it; the owner's index check rebuilds the same bytes from the
+approved `.deb` and refuses any difference, so the catalog says only what the signed package
+says. It changes no package and no client: once a tree with it is published, apt fetches it on
+any system with the `appstream` package (Ubuntu's desktop has it), and App Center lists the
+update for every existing install. The lifecycle check installs `appstream` on Debian and
+Ubuntu and requires apt to have fetched a catalog naming the package; `stageMetadata` captures
+it whenever the signed `Release` lists it. **Deploy the repository Worker (`--env staging` and
+`--env production`) before the first publication with a catalog,** because `paths.mjs` only
+serves the new paths from that version on.
 
 ## Publication and recovery
 

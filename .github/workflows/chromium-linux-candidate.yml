@@ -929,7 +929,8 @@ jobs:
                   dnf install -y shadow-utils util-linux ca-certificates /usr/bin/curl gnupg2 openssl libatomic xdg-utils desktop-file-utils
                 else
                   apt-get update
-                  apt-get install -y --no-install-recommends passwd util-linux ca-certificates curl gnupg openssl libatomic1 xdg-utils desktop-file-utils
+                  # appstream makes apt fetch DEP-11 catalogs, as on Ubuntu desktops.
+                  apt-get install -y --no-install-recommends passwd util-linux ca-certificates curl gnupg openssl libatomic1 xdg-utils desktop-file-utils appstream
                 fi
                 useradd -m blanc-check
                 exec node /src/chromium/tests/linux-repo-lifecycle.mjs "$mode" /approved /signed blanc-check /results

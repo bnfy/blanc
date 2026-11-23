@@ -4,6 +4,7 @@ import hashlib
 import shutil
 from pathlib import Path
 import sys
+import tarfile
 import tempfile
 from types import SimpleNamespace
 import unittest
@@ -15,6 +16,100 @@ import metadata
 
 
 class IndexCheck(unittest.TestCase):
+    APPDATA = b"""<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2024 The Chromium Authors -->
+<component type="desktop">
+  <id>blanc-beta.desktop</id>
+  <update_contact>support@blanc.day</update_contact>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>BSD-3-Clause and LGPL-2.1+ and (MPL-1.1 or GPL-2.0)</project_license>
+  <name>Blanc Beta</name>
+  <summary>Blanc web browser</summary>
+  <description>
+    <p>
+    Blanc is a Chromium-based web browser with built-in tracker blocking.
+    </p>
+  </description>
+  <url type="homepage">https://blanc.day</url>
+  <translation/>
+  <developer_name>Bananify Creative</developer_name>
+  <url type="bugtracker">https://github.com/bnfy/blanc/issues</url>
+  <url type="help">https://blanc.day</url>
+</component>
+"""
+
+    def test_dep11_names_the_package_for_the_desktop_component(self):
+        self.assertEqual(metadata.dep11(self.APPDATA).decode(), '\n'.join([
+            '---', 'File: DEP-11', "Version: '1.0'", 'Origin: blanc-stable-main', '---',
+            'Type: desktop-application', 'ID: blanc-beta.desktop', 'Package: blanc-beta',
+            'Name:', '  C: "Blanc Beta"', 'Summary:', '  C: "Blanc web browser"',
+            'Description:', '  C: "<p>Blanc is a Chromium-based web browser with built-in tracker blocking.</p>"',
+            'DeveloperName:', '  C: "Bananify Creative"',
+            'ProjectLicense: "BSD-3-Clause and LGPL-2.1+ and (MPL-1.1 or GPL-2.0)"',
+            'Url:', '  bugtracker: "https://github.com/bnfy/blanc/issues"', '  help: "https://blanc.day"',
+            '  homepage: "https://blanc.day"',
+            'Icon:', '  stock: blanc-beta', 'Launchable:', '  desktop-id:', '  - blanc-beta.desktop', '']))
+
+    def test_dep11_quotes_text_and_refuses_another_component(self):
+        quoted = self.APPDATA.replace(b'Blanc web browser', b'A "quoted" summary: \\ and \xc3\xa9')
+        self.assertIn('  C: "A \\"quoted\\" summary: \\\\ and \\u00e9"', metadata.dep11(quoted).decode())
+        for changed in [self.APPDATA.replace(b'<id>blanc-beta.desktop', b'<id>other.desktop'),
+                        self.APPDATA.replace(b'<name>Blanc Beta</name>', b''),
+                        self.APPDATA.replace(b'<p>', b'<script>').replace(b'</p>', b'</script>'),
+                        self.APPDATA.replace(b'type="desktop"', b'type="addon"'),
+                        b'<!DOCTYPE c [<!ENTITY x "y">]>' + self.APPDATA.split(b'?>', 1)[1]]:
+            with self.subTest(changed=changed[:60]), self.assertRaises(ValueError):
+                metadata.dep11(changed)
+
+    def test_appdata_is_read_from_the_package_itself(self):
+        import io
+        with tempfile.TemporaryDirectory() as tmp:
+            payload = io.BytesIO()
+            with tarfile.open(fileobj=payload, mode='w') as tar:
+                for name, data in [('./usr/share/doc/x', b'doc'), ('./usr/share/appdata/blanc-beta.appdata.xml', self.APPDATA)]:
+                    info = tarfile.TarInfo(name); info.size = len(data)
+                    tar.addfile(info, io.BytesIO(data))
+            with patch('subprocess.Popen') as popen:
+                popen.return_value.stdout = io.BytesIO(payload.getvalue())
+                popen.return_value.wait.return_value = 0
+                self.assertEqual(metadata.deb_appdata(Path(tmp) / 'p.deb'), self.APPDATA)
+                self.assertEqual(popen.call_args.args[0][:2], ['dpkg-deb', '--fsys-tarfile'])
+            empty = io.BytesIO()
+            tarfile.open(fileobj=empty, mode='w').close()
+            with patch('subprocess.Popen') as popen:
+                popen.return_value.stdout = io.BytesIO(empty.getvalue())
+                popen.return_value.wait.return_value = 0
+                with self.assertRaisesRegex(ValueError, 'AppStream'):
+                    metadata.deb_appdata(Path(tmp) / 'p.deb')
+
+    def test_owner_check_rebuilds_dep11_from_the_approved_package(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tree = Path(tmp)
+            deb = tree / 'pkg.deb'
+            deb.write_bytes(b'deb')
+            index = metadata.APT / 'main/dep11/Components-amd64.yml.gz'
+            (tree / index).parent.mkdir(parents=True)
+
+            def publish(data):
+                (tree / index).write_bytes(gzip.compress(data, mtime=0))
+                digest = metadata.sha(tree / index)
+                by_hash = tree / index.parent / 'by-hash/SHA256'
+                by_hash.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(tree / index, by_hash / digest)
+                return digest
+            with patch.object(metadata, 'deb_appdata', return_value=self.APPDATA):
+                digest = publish(metadata.dep11(self.APPDATA))
+                sums, paths = metadata.check_dep11(tree, deb, 'amd64')
+                self.assertEqual(sums, [[digest, str((tree / index).stat().st_size), 'main/dep11/Components-amd64.yml.gz']])
+                self.assertEqual(paths, {str(index), str(index.parent / 'by-hash/SHA256' / digest)})
+                publish(metadata.dep11(self.APPDATA).replace(b'Package: blanc-beta', b'Package: other'))
+                with self.assertRaisesRegex(ValueError, 'DEP-11'):
+                    metadata.check_dep11(tree, deb, 'amd64')
+                good = publish(metadata.dep11(self.APPDATA))
+                (tree / index.parent / 'by-hash/SHA256' / good).write_bytes(b'changed')
+                with self.assertRaisesRegex(ValueError, 'by-hash'):
+                    metadata.check_dep11(tree, deb, 'amd64')
+
     def test_runner_hashes_the_bytes_it_will_index(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

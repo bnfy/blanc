@@ -11,7 +11,7 @@ for n in 1 2 3; do
   version="158.0.8127.$n"
   for arch in amd64 arm64; do
     deb="$work/deb-$arch"
-    mkdir -p "$deb/DEBIAN" "$deb/usr/share/blanc-fixture"
+    mkdir -p "$deb/DEBIAN" "$deb/usr/share/blanc-fixture" "$deb/usr/share/appdata"
     chmod 0755 "$deb/DEBIAN"
     cat > "$deb/DEBIAN/control" <<CONTROL
 Package: blanc-beta
@@ -23,6 +23,19 @@ Depends: libc6
 Provides: blanc-browser-fixture
 CONTROL
     echo "$version" > "$deb/usr/share/blanc-fixture/version"
+    # The runner's DEP-11 catalog comes from the package's own AppStream file.
+    cat > "$deb/usr/share/appdata/blanc-beta.appdata.xml" <<'APPDATA'
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>blanc-beta.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>BSD-3-Clause</project_license>
+  <name>Blanc Beta</name>
+  <summary>Package manager fixture</summary>
+  <description><p>Fixture.</p></description>
+  <developer_name>Fixture</developer_name>
+</component>
+APPDATA
     dpkg-deb --root-owner-group --build "$deb" "$work/originals/blanc-beta_${version}-1_${arch}.deb"
   done
   build_fixture_rpms "$version"
