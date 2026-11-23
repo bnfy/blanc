@@ -19,7 +19,7 @@ the small lockup and the direct links fed by `src/data/navigation.mjs` and kept
 in step by `test/unit/site-navigation.test.js`. At 920px and narrower the links
 fold behind a Menu button (an inline script, so phones never flash the full
 row; without scripting they wrap onto a second row). It never hides on scroll:
-the homepage's sticky scenes sit just below it. While `src/data/mail-reservations.json`
+the homepage's sticky Island stage sits just below it. While `src/data/mail-reservations.json`
 says `open`, `components/MailReserveBanner.astro` puts a slim dark strip above
 the bar, one link to `/mail/reserve` naming the default ending, which scrolls
 away while the bar stays put; Header.astro leaves it off the Mail, legal and
@@ -191,7 +191,8 @@ Add `?newsletter-card` to a page's URL to show it at once for checking; that
 ignores and never writes the memory.
 
 **Blanc Patron (`/patron`):** the footer and the homepage's Patron section
-point here (the header dropped its Patron link on November 23, 2026). It explains the plans, the single Polar checkout link (the buyer picks
+point here (the header dropped its Patron link on November 23, 2026). It
+explains the plans, the single Polar checkout link (the buyer picks
 monthly or annual there; the same link as the app's Patron settings) and
 activation with the license key. Its copy repeats claims from the Terms,
 Privacy and About pages; keep it in step with them.

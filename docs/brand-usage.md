@@ -93,8 +93,9 @@ These website and marketing tokens are separate from the released product palett
 
 **Blanc White** is the brand name for `#F8F2E8` (owner decision, October 15,
 2026). Call it Blanc White, not ivory or cream, in briefs, creative and press
-material. On the same day the owner set the palette above: the page, surface,
-raised and border colours are the ones blanc.day was already serving, and the
+material. On the same day the owner set the website palette: the page, surface,
+raised and border colours were the ones blanc.day was already serving (the page,
+surface and border were lightened on November 23, 2026; see below), and the
 muted text and gold keep this guide's warmer `#6B6257` and `#805D28`, not the
 cooler `#696865` and `#7D653D` the site had been rendering. Blanc White is a shade
 lighter than `#F7F0E5`, the original sample from the Sunrise art, which the
@@ -105,8 +106,10 @@ and the media kit's icon tiles still use.
 section and border colors moved one step lighter, to `#FBF7F0`, `#F5EFE5` and
 `#E6DDD0`, so pages read brighter. Only the website changed: **Blanc White stays
 `#F8F2E8`** and remains the brand color for creative, press, email and the
-app's Sunrise surfaces, and cream text on the site's dark tiles stays Blanc
-White. Muted text and gold measure 5.6:1 on the new page color and 5.2:1 on
+app's Sunrise surfaces. Cream text hard-coded as `#F8F2E8` on the site's dark
+tiles stays Blanc White, while text that uses `--site-bg` or `--paper` on ink
+follows the website cream. "Cream" here names the website color only; the
+brand color is still called Blanc White. Muted text and gold measure 5.6:1 on the new page color and 5.2:1 on
 sections. `test/unit/site-cream.test.js` keeps `site.css`, `revamp.css` and
 `home.css` equal and checks that contrast.
 
@@ -165,7 +168,7 @@ replace the canonical Sunrise symbol with a letterform.
 The homepage offer pairs the monochrome Sunrise symbol with this display name
 on a warm ink (`--site-ink-warm`) section. The display name and the main price
 numeral are set in gold (`--site-gold-on-dark`); supporting copy, currency,
-billing labels, and the symbol stay Blanc White (`--site-bg`), and the filled gold
+billing labels, and the symbol take the website cream (`--site-bg`), and the filled gold
 button keeps its ink text. One radial gold light spill, anchored to the
 section's top edge at no more than about a quarter strength, is the section's
 only gradient; the symbol sits below its brightest point and is never backed

@@ -29,7 +29,7 @@
 
 - Muted text (`#6B6257`) and gold (`#805D28`) must still meet **4.5:1** on the page and section colors (`docs/brand-usage.md`, *Sunrise palette*). With A they measure 5.60:1 on the page and 5.22:1 on sections; with B, 5.74 and 5.36.
 - `site.css` and `revamp.css` must carry equal page, surface and border values (the comment at `site.css:34` requires it).
-- Website-only PR: touch only `site/`, `docs/` and `test/unit/` (CLAUDE.md: such PRs skip the Electron CI jobs; memory: split website-only PRs).
+- Website-only PR: touch only `site/`, `docs/` and `test/` (memory: split website-only PRs). Because it changes `test/unit/`, CI's website-only gate doesn't apply and the Electron jobs run too.
 - Don't merge to `main` while a desktop release is being prepared (CLAUDE.md, *Merges to `main` during a release*).
 - Deploying is a separate step (`npm run site:deploy`, then confirm the commit is `Production` on `main`); this plan stops at the merged PR.
 
