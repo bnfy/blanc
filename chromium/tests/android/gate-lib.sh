@@ -11,3 +11,7 @@ gate_wants() {
   if [[ -n "${BLANC_GATE_SKIP:-}" && " $BLANC_GATE_SKIP " == *" $name "* ]]; then return 1; fi
   return 0
 }
+
+# Every gate needs an accessibility service on for UI Automator to see page text (Chromium 159);
+# see support/accessibility-on.sh.
+bash "$(dirname "${BASH_SOURCE[0]}")/support/accessibility-on.sh"
