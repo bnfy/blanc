@@ -104,6 +104,7 @@ const popular = [
 >
   <main id="main-content" class="support-page">
     <header class="support-hero">
+      <div class="support-hero-inner">
       <div class="support-hero-text">
         <p class="section-kicker">Blanc Support</p><h1>
           A little help<br />goes a long way.
@@ -140,7 +141,20 @@ const popular = [
           </ul>
         </nav>
       </div>
+      <img
+        class="support-hero-mark"
+        src="/lockup/sunrise-mark-2048.webp"
+        srcset="/lockup/sunrise-mark-256.webp 256w, /lockup/sunrise-mark-2048.webp 2048w"
+        sizes="(max-width: 760px) 140px, 380px"
+        width="2048"
+        height="2048"
+        alt=""
+        decoding="async"
+        fetchpriority="high"
+      />
+      </div>
     </header>
+    <div class="support-body">
 
     <div class="support-products" data-support-products>
       {products.map(({ id }, index) => (
@@ -299,6 +313,7 @@ const popular = [
         ))
       }</div><!--/email_off-->
     </section>
+    </div>
   </main>
   <script src="../scripts/answers.js"></script>
 </BaseLayout>

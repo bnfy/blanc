@@ -93,3 +93,12 @@ test('the new answers stay inside what the releases back', () => {
   const iphone = newAnswers.filter((answer) => answer.id.startsWith('iphone-')).map((answer) => answer.a.join(' ')).join(' ');
   assert.doesNotMatch(iphone, /passkey|ad[- ]block/i);
 });
+
+test('the hero shows the full-resolution gold Sunrise under the clear header', () => {
+  const mark = page.match(/<img\s+class="support-hero-mark"[\s\S]*?\/>/)?.[0] ?? '';
+  assert.match(mark, /src="\/lockup\/sunrise-mark-2048\.webp"/);
+  assert.match(mark, /\/lockup\/sunrise-mark-2048\.webp 2048w/);
+  assert.match(mark, /alt=""/);
+  assert.doesNotMatch(page, /sunrise-hero-mark\.png/, 'the 256px share-card mark looks soft at hero size');
+  assert.match(read('site/src/components/Header.astro'), /\["\/trust", "\/support"\]\.includes/);
+});

@@ -123,8 +123,8 @@ main .section-kicker {
 .site-header.revamp-header[data-overlay]:is([data-scrolled], [data-menu="open"]) {
   background: #fff;
 }
-/* Privacy & Security's bar is clear over its night hero on wide windows, in
-   light ink; narrower windows, with their Menu button, keep the solid bar. */
+/* Privacy & Security's and Support's bar is clear over their night heroes on
+   wide windows, in light ink; narrower windows, with their Menu button, keep the solid bar. */
 @media (max-width: 920px) {
   .site-header.revamp-header[data-overlay][data-overlay-tone="dark"] {
     margin-bottom: 0;
