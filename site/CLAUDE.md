@@ -59,7 +59,7 @@ action buttons and footer come from `components/IslandPanelActions.astro` and
 security, vertical tabs) are `components/NativeWindowFigure.astro`, which
 renders a whole Blanc window from the app's own markup and CSS
 (`nativeWindowArt` in `src/lib/native-island-art.mjs`) and scales it as one
-piece; never hand-draw a pill again. Blanc is desktop only,
+piece; never hand-draw a pill again. An Island figure is a desktop drawing,
 so a narrow figure shows the same 620px drawing scaled down (container steps on
 `.island-figure` in `site.css`), never a reflowed, icon-only or chrome-shedding
 "phone" version, and the page behind a figure is always a desktop capture.
@@ -99,7 +99,19 @@ scroll-to-reveal opening on October 15. The rest of the motion is
 scroll-driven CSS behind `@supports (animation-timeline: view())` as well;
 every keyframe ends on the static layout, so other browsers and reduced
 motion get the finished page. The Island is a sticky stage under the 52px
-header. The switching
+header. Below Download, the hero is a **device tour** (November 23, 2026,
+`docs/superpowers/specs/2026-11-23-homepage-device-tour-design.md`): tabs for
+Desktop, iPhone, iPad and iPhone Duo, one slide at a time
+(`scripts/device-tour.js`). The desktop slide is the floating Island window
+without its traffic lights (`<FloatingIslandWindow lights={false} />`, owner);
+the others are App Store 1.1 captures from `docs/ios/app-store/captures/`,
+exported unchanged but resized by `scripts/build-device-hero-images.mjs` into
+`public/devices/` and framed in CSS like the App Store screenshots. It moves on
+by itself only with motion allowed and nothing holding it (pointer, focus, off
+screen, a hidden tab); a chosen tab or the pause button holds it until play.
+Without script only the desktop slide shows. Its captions are in
+`docs/website-homepage-devices-claims.json`. When the App Store captures are
+re-shot, re-run the export and update that ledger's release. The switching
 steps, the Chrome comparison and the questions are data in the frontmatter;
 without the script every path shows, and with it `home.js` shows one at a time
 and preselects the visitor's system from the page itself, sending nothing.

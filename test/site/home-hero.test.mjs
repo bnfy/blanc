@@ -117,3 +117,78 @@ test('without script the Island still keeps its captured size at every width', a
     } finally { await close(); }
   }
 });
+
+// The device tour: the floating Island window is its first slide, then Blanc
+// on iPhone, iPad and iPhone Duo (docs/superpowers/specs/2026-11-23-homepage-device-tour-design.md).
+const shownPanels = page => page.evaluate(() => [...document.querySelectorAll('.tour-panel')]
+  .filter(panel => getComputedStyle(panel).visibility === 'visible').map(panel => panel.id));
+
+test('the tour’s tabs show one device at a time, inside the page at every width', async () => {
+  for (const width of [390, 768, 1440]) {
+    const { page, close } = await openHome({ width });
+    try {
+      assert.deepEqual(await shownPanels(page), ['device-desktop'], `${width}: opens on the desktop`);
+      for (const device of ['iphone', 'ipad', 'duo', 'desktop']) {
+        await page.click(`[data-device-tab="${device}"]`);
+        assert.deepEqual(await shownPanels(page), [`device-${device}`], `${width}: ${device}`);
+        assert.equal(await page.getAttribute(`[data-device-tab="${device}"]`, 'aria-selected'), 'true');
+        const fits = await page.evaluate(id => {
+          const stage = document.querySelector(`#${id} .tour-stage`).getBoundingClientRect();
+          const frames = [...document.querySelectorAll(`#${id} .tour-frame, #${id} .float-window`)].map(el => el.getBoundingClientRect());
+          return {
+            scroll: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+            inside: frames.every(box => box.left >= stage.left - 1 && box.right <= stage.right + 1 && box.top >= stage.top - 1 && box.bottom <= stage.bottom + 1),
+            onPage: frames.every(box => box.left >= 0 && box.right <= innerWidth),
+          };
+        }, `device-${device}`);
+        assert.ok(fits.scroll <= 0, `${width} ${device}: page scrolls sideways by ${fits.scroll}px`);
+        assert.ok(fits.inside, `${width} ${device}: a device spills out of the stage`);
+        assert.ok(fits.onPage, `${width} ${device}: a device is cropped`);
+      }
+      const tabsFit = await page.evaluate(() => {
+        const tabs = document.querySelector('.tour-tabs');
+        return tabs.scrollWidth <= tabs.clientWidth;
+      });
+      assert.ok(tabsFit, `${width}: every tab fits without scrolling`);
+    } finally { await close(); }
+  }
+});
+
+test('with motion the tour moves on to the iPhone, and the pause button holds it', async () => {
+  const { page, close } = await openHome({ reducedMotion: 'no-preference' });
+  try {
+    await page.mouse.move(2, 300);
+    assert.equal(await page.isVisible('[data-device-toggle]'), true);
+    await page.waitForFunction(() => document.querySelector('[data-device-tour]').dataset.device === 'iphone', null, { timeout: 9000 });
+    await page.click('[data-device-toggle]');
+    assert.equal(await page.getAttribute('[data-device-toggle]', 'aria-label'), 'Play the device tour');
+    await page.mouse.move(2, 300);
+    await page.evaluate(() => document.activeElement.blur());
+    await page.waitForTimeout(5600);
+    assert.equal(await page.evaluate(() => document.querySelector('[data-device-tour]').dataset.device), 'iphone');
+  } finally { await close(); }
+});
+
+test('with the pause button showing, the tabs still fit one row on a phone', async () => {
+  for (const width of [360, 390]) {
+    const { page, close } = await openHome({ width, reducedMotion: 'no-preference' });
+    try {
+      assert.equal(await page.isVisible('[data-device-toggle]'), true);
+      const fit = await page.evaluate(() => {
+        const tabs = document.querySelector('.tour-tabs');
+        const row = document.querySelector('.tour-controls').getBoundingClientRect();
+        return { tabs: tabs.scrollWidth <= tabs.clientWidth, row: row.left >= 0 && row.right <= innerWidth };
+      });
+      assert.deepEqual(fit, { tabs: true, row: true }, `${width}`);
+    } finally { await close(); }
+  }
+});
+
+test('without script only the desktop slide shows and the tabs stay hidden', async () => {
+  const { page, close } = await openHome({ javaScriptEnabled: false });
+  try {
+    assert.deepEqual(await shownPanels(page), ['device-desktop']);
+    assert.equal(await page.isVisible('.tour-controls'), false);
+    assert.equal(await page.isVisible('.float-window-lights'), false, 'no traffic lights');
+  } finally { await close(); }
+});

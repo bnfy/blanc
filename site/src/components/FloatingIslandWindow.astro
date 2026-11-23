@@ -13,6 +13,10 @@ import { nativeIslandArt, namespaceNativeArt } from '../lib/native-island-art.mj
 import { fitFloatIsland } from '../scripts/floating-island-hero.js';
 import '../styles/float-window.css';
 
+// The homepage's device tour shows the window without its macOS traffic
+// lights (owner, November 23, 2026), since that slide stands for macOS,
+// Windows and Linux alike.
+const { lights: showLights = true } = Astro.props;
 const { measured } = ledger;
 const art = nativeIslandArt({ styles, document, renderer });
 // The captured state: one tab on The Met, opened fresh (Back and Forward both
@@ -50,7 +54,7 @@ const geometry = [
     <source media="(max-width: 760px)" srcset="/revamp/float-island-hidden-v1.40.0-800.webp" width="800" height="500" />
     <img src="/revamp/float-island-hidden-v1.40.0-display.webp" width="2560" height="1600" alt="" decoding="async" fetchpriority="high" draggable="false" />
   </picture>
-  <img class="float-window-lights" src="/revamp/float-island-lights-v1.40.0.webp" width={lights.width * measured.scale} height={lights.height * measured.scale} alt="" decoding="async" draggable="false" />
+  {showLights && <img class="float-window-lights" src="/revamp/float-island-lights-v1.40.0.webp" width={lights.width * measured.scale} height={lights.height * measured.scale} alt="" decoding="async" draggable="false" />}
   <div class="float-window-island">
     <blanc-native-island class="hero-native-model" data-appearance="light" aria-hidden="true" inert>
       <template shadowrootmode="open">
