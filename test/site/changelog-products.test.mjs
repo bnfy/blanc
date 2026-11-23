@@ -117,3 +117,26 @@ test('each entry names its product', async () => {
   assert.equal(await page.locator('#ios-1-1 .release-links a').getAttribute('href'), 'https://apps.apple.com/app/id6828027794');
   await page.close();
 });
+
+test('the header shows the latest release of each product', async () => {
+  const page = await open('/changelog');
+  assert.equal(await page.locator('.changelog-hero h1').innerText(), 'What’s new in Blanc');
+  const cards = await page.$$eval('.changelog-latest a', (links) => links.map((link) => ({
+    href: link.getAttribute('href'), kind: link.querySelector('.changelog-latest-kind').textContent.trim(),
+  })));
+  assert.deepEqual(cards.map((card) => card.kind.split(' for ')[0]), ['Desktop', 'iPhone & iPad', 'Blanc Beta']);
+  const firstOf = (product) => page.$eval(`.release[data-product="${product}"]`, (item) => `#${item.id}`);
+  assert.equal(cards[0].href, await firstOf('desktop'));
+  assert.equal(cards[1].href, await firstOf('ios'));
+  assert.equal(cards[2].href, await firstOf('beta'));
+  await page.close();
+});
+
+test('the Blanc Beta card opens its entry under All', async () => {
+  const page = await open('/changelog');
+  const href = await page.locator('.changelog-latest a').nth(2).getAttribute('href');
+  await page.locator('.changelog-latest a').nth(2).click();
+  await page.waitForFunction((id) => !document.getElementById(id).hidden, href.slice(1));
+  assert.equal(await pressed(page), 'all');
+  await page.close();
+});

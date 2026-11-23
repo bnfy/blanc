@@ -34,6 +34,16 @@ const filters = PRODUCT_FILTERS.map((filter) => ({
 const stableCount = filters[0].count;
 const featureReleaseCount = displayReleases.filter((release) => release.hasNewFeatures).length;
 const linkLabel = { desktop: 'GitHub release', beta: 'GitHub release', ios: 'App Store' };
+// The header's cards: the newest release of each product, linking to its entry.
+const newest = (product) => displayReleases.find((release) => release.product === product);
+const latestCards = [
+  { kind: 'Desktop', note: 'Mac, Windows and Linux', release: newest('desktop') },
+  { kind: 'iPhone & iPad', note: 'App Store', release: newest('ios') },
+  { kind: 'Blanc Beta', note: 'Built on Chromium', release: newest('beta') },
+].filter((card) => card.release).map((card) => ({
+  ...card,
+  kind: card.release.product === 'beta' ? card.release.label : card.kind,
+}));
 const feeds = [
   { href: '/changelog.xml', label: 'Desktop', title: 'Blanc Browser Changelog' },
   { href: '/changelog/iphone.xml', label: 'iPhone & iPad', title: 'Blanc for iPhone and iPad Changelog' },
@@ -51,8 +61,22 @@ const feeds = [
   {feeds.map((feed) => <link slot="head" rel="alternate" type="application/rss+xml" title={feed.title} href={feed.href}>)}
 <main id="main-content" class="changelog-page">
   <header class="changelog-hero">
-    <h1>Every Blanc release, in one place.</h1>
-    <p>Every release of Blanc for Mac, Windows and Linux and Blanc for iPhone and iPad, newest first. Blanc Beta, the early preview built directly on Chromium, is under its own filter; the regular Blanc is the one we recommend. <a href="/changelog.xml">Subscribe via RSS</a>, or <a href="/roadmap">see what’s coming next</a>.</p>
+    <div class="changelog-hero-copy">
+      <p class="changelog-eyebrow">Changelog</p>
+      <h1>What’s new in Blanc</h1>
+      <p>Every release of Blanc for desktop, iPhone and iPad, and Blanc Beta, newest first. Blanc Beta is the early preview built directly on Chromium; the regular Blanc is the one we recommend. <a href="/changelog.xml">Subscribe via RSS</a>, or <a href="/roadmap">see what’s coming next</a>.</p>
+    </div>
+    {latestCards.length > 0 && (
+      <ul class="changelog-latest" aria-label="Latest releases">
+        {latestCards.map((card) => (
+          <li><a href={'#' + card.release.anchor}>
+            <span class="changelog-latest-kind">{card.kind}</span>
+            <span class="changelog-latest-version">{card.release.version}</span>
+            <span class="changelog-latest-meta"><time datetime={card.release.machineDate}>{card.release.humanDate}</time> · {card.note}</span>
+          </a></li>
+        ))}
+      </ul>
+    )}
   </header>
   {displayReleases.length > 0 && (
     <div class="changelog-tools">
