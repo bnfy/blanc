@@ -29,7 +29,7 @@
 .bento-download:hover { background: #000; }
 .bento-new { color: var(--site-text); font-size: 15px; text-decoration: none; border-bottom: 1px solid var(--site-border); }
 .bento-new:hover { border-color: currentColor; }
-.bento-head a:focus-visible { outline: 2px solid var(--site-gold); outline-offset: 3px; }
+.bento-head a:focus-visible { outline: 1px solid rgb(65 64 61 / 0.55); outline-offset: 3px; }
 @media (max-width: 760px) {
   .bento-head { grid-template-columns: 1fr; gap: 20px; padding: 32px 0 40px; }
 }

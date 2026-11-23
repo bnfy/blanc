@@ -248,7 +248,7 @@
     {
       "id": "bento-152-015",
       "source": "site/src/pages/features.astro",
-      "exactWording": "Turn on Auto-hide the Island in Settings → General, and the page fills the window to its top edge. The Island comes back when you point at the top edge or press ⌘L.",
+      "exactWording": "Turn on Auto-hide the Island in Settings → General, and the page fills the window to its top edge. The Island comes back when you point at the top edge or press ⌘L (Ctrl+L on Windows and Linux).",
       "subject": "Blanc",
       "evidenceGroups": [
         "autoHide"
