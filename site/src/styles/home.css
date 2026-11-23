@@ -214,6 +214,243 @@
 .opening-window {
   margin-top: clamp(36px, 5vh, 56px);
 }
+
+/* The device tour (scripts/hero-tour.js): Blanc on the desktop, iPhone,
+   iPad and iPhone Duo, one at a time, on a stage the desktop window's shape.
+   The devices are App Store 1.1 captures in the same plain dark frame as the
+   App Store screenshots. Without script only the desktop slide shows. */
+.tour-panels {
+  display: grid;
+}
+.tour-panel {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s;
+}
+.tour-panel[data-state="off"] {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(16px) scale(0.985);
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0.3s;
+}
+.tour-stage {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  container-type: size;
+}
+.tour-stage > .float-window {
+  width: 100%;
+}
+.tour-frame {
+  --bezel: calc(var(--frame-h) * 0.016);
+  box-sizing: border-box;
+  padding: var(--bezel);
+  border-radius: var(--radius);
+  background: linear-gradient(145deg, #4a4743 0%, #1a1917 42%, #2e2c29 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14), 0 30px 80px -30px rgba(14, 14, 14, 0.45);
+}
+.tour-frame img {
+  display: block;
+  width: auto;
+  height: calc(var(--frame-h) - 2 * var(--bezel));
+  border-radius: calc(var(--radius) - var(--bezel));
+  background: var(--raised);
+}
+.tour-frame.is-phone {
+  --frame-h: 96cqh;
+  --radius: calc(var(--frame-h) * 0.075);
+}
+.tour-frame.is-tablet {
+  --frame-h: min(94cqh, 100cqw / 1.34);
+  --bezel: calc(var(--frame-h) * 0.022);
+  --radius: calc(var(--frame-h) * 0.05);
+}
+/* The Duo unfolded, with the folded phone standing in front of its corner. */
+.tour-pair {
+  --duo-h: min(86cqh, 100cqw / 1.9);
+  display: flex;
+  align-items: flex-end;
+}
+.tour-frame.is-unfolded {
+  --frame-h: var(--duo-h);
+  --bezel: calc(var(--frame-h) * 0.02);
+  --radius: calc(var(--frame-h) * 0.065);
+}
+.tour-frame.is-folded {
+  --frame-h: calc(var(--duo-h) * 0.78);
+  --bezel: calc(var(--frame-h) * 0.02);
+  --radius: calc(var(--frame-h) * 0.09);
+  position: relative;
+  margin: 0 0 calc(var(--duo-h) * -0.04) calc(var(--duo-h) * -0.12);
+}
+.tour-caption {
+  max-width: 34em;
+  margin: 28px auto 0;
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1.45;
+  text-wrap: balance;
+}
+.home-cinema .tour-store {
+  margin-top: 4px;
+  color: var(--gold);
+  font-size: 15px;
+  font-weight: 500;
+  text-underline-offset: 3px;
+}
+.tour-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+}
+.tour-controls[hidden] {
+  display: none;
+}
+.tour-tabs {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+  padding: 4px;
+  /* Only below 320px; from there up the tabs fit, the pause button wrapping
+     under them on the narrowest phones. */
+  overflow-x: auto;
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+  scrollbar-width: none;
+}
+/* The chosen tab's plate slides to it (its place comes from the script). */
+.tour-tabs::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: var(--tab-w, 0);
+  border-radius: 999px;
+  background: var(--raised);
+  box-shadow: 0 1px 3px rgba(14, 14, 14, 0.08), 0 0 0 1px var(--line);
+  transform: translateX(var(--tab-x, 0));
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.tour-tabs [role="tab"] {
+  position: relative;
+  flex: none;
+  min-height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--dim);
+  font: 500 15px/1 var(--font-brand-text);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.tour-tabs [role="tab"]:hover,
+.tour-tabs [aria-selected="true"] {
+  color: var(--ink);
+}
+/* Inside the pill, so its scrolling edge never clips the ring. */
+.home-cinema .tour-tabs [role="tab"]:focus-visible {
+  outline-offset: -2px;
+  border-radius: 999px;
+}
+.home-cinema .tour-toggle:focus-visible {
+  border-radius: 50%;
+}
+/* The chosen tab's bar fills while its slide waits to move on. */
+.tour-progress {
+  position: absolute;
+  right: 18px;
+  bottom: 7px;
+  left: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--gold);
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.hero-tour[data-running] [aria-selected="true"] .tour-progress {
+  opacity: 1;
+  animation: tour-progress var(--tour-dwell, 5s) linear both;
+}
+.tour-toggle {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--dim);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.tour-toggle:hover {
+  color: var(--ink);
+}
+.tour-toggle[hidden] {
+  display: none;
+}
+.tour-toggle svg {
+  grid-area: 1 / 1;
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+.tour-toggle[data-state="playing"] .tour-toggle-play,
+.tour-toggle[data-state="paused"] .tour-toggle-pause {
+  display: none;
+}
+/* A phone's stage is square, so the iPhone and iPad aren't drawn tiny. */
+@media (max-width: 640px) {
+  .tour-stage {
+    aspect-ratio: 1;
+  }
+  .tour-caption {
+    margin-top: 22px;
+    font-size: 16px;
+  }
+  /* The tabs and the pause button share one row down to a 360px phone. */
+  .tour-tabs {
+    --tab-pad: clamp(6px, (100vw - 300px) / 10, 11px);
+  }
+  .tour-tabs [role="tab"] {
+    padding: 0 var(--tab-pad);
+    font-size: 14px;
+  }
+  .tour-progress {
+    right: var(--tab-pad);
+    left: var(--tab-pad);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-panel,
+  .tour-panel[data-state="off"],
+  .tour-tabs::before {
+    transition: none;
+  }
+  .tour-panel[data-state="off"] {
+    transform: none;
+  }
+}
+@keyframes tour-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
 .sunrise .lead {
   max-width: 31em;
   text-wrap: balance;

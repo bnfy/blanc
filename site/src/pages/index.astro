@@ -186,8 +186,57 @@ const faqs = [
           <p class="handheld-note" data-handheld-note hidden>
             <span id="hero-share-status" role="status" aria-live="polite"></span>
           </p>
-          <div class="opening-window">
-            <FloatingIslandWindow />
+          <div class="opening-window hero-tour" data-device-tour>
+            <div class="tour-panels">
+              <div class="tour-panel" id="device-desktop" role="tabpanel" aria-labelledby="device-tab-desktop" data-state="on">
+                <div class="tour-stage is-desktop"><FloatingIslandWindow lights={false} /></div>
+                <p class="tour-caption">On your computer, the Island can hide until your pointer reaches the top edge.</p>
+              </div>
+              <div class="tour-panel" id="device-iphone" role="tabpanel" aria-labelledby="device-tab-iphone" data-state="off" inert>
+                <div class="tour-stage">
+                  <div class="tour-frame is-phone">
+                    <img src="/devices/iphone-start-1.1-660.webp" width="660" height="1434" alt="Blanc on iPhone: the Start Page’s clock, with the Island at the bottom of the screen" loading="lazy" decoding="async" fetchpriority="low" />
+                  </div>
+                </div>
+                <p class="tour-caption">On iPhone, the Island holds your address and tabs at the bottom. Swipe it to switch tabs.</p>
+                <a class="tour-store" href={ios.storeUrl} rel="noopener">Get it on the App Store</a>
+              </div>
+              <div class="tour-panel" id="device-ipad" role="tabpanel" aria-labelledby="device-tab-ipad" data-state="off" inert>
+                <div class="tour-stage">
+                  <div class="tour-frame is-tablet">
+                    <img src="/devices/ipad-split-view-1.1-1680.webp" srcset="/devices/ipad-split-view-1.1-840.webp 840w, /devices/ipad-split-view-1.1-1680.webp 1680w" sizes="(max-width: 640px) 92vw, 840px" width="1680" height="1260" alt="Split View in Blanc on iPad: Van Gogh’s Wheat Field with Cypresses beside Hokusai’s Under the Wave off Kanagawa" loading="lazy" decoding="async" fetchpriority="low" />
+                  </div>
+                </div>
+                <p class="tour-caption">On iPad, Split View shows two pages at once.</p>
+                <a class="tour-store" href={ios.storeUrl} rel="noopener">Get it on the App Store</a>
+              </div>
+              <div class="tour-panel" id="device-duo" role="tabpanel" aria-labelledby="device-tab-duo" data-state="off" inert>
+                <div class="tour-stage">
+                  <div class="tour-pair">
+                    <div class="tour-frame is-unfolded">
+                      <img src="/devices/duo-unfolded-start-1.1-1560.webp" srcset="/devices/duo-unfolded-start-1.1-780.webp 780w, /devices/duo-unfolded-start-1.1-1560.webp 1560w" sizes="(max-width: 640px) 66vw, 780px" width="1560" height="1097" alt="Blanc on the unfolded iPhone Duo: the Start Page" loading="lazy" decoding="async" fetchpriority="low" />
+                    </div>
+                    <div class="tour-frame is-folded">
+                      <img src="/devices/duo-folded-spaces-1.1-640.webp" width="640" height="931" alt="Blanc on the folded iPhone Duo: the Spaces menu over a Van Gogh painting" loading="lazy" decoding="async" fetchpriority="low" />
+                    </div>
+                  </div>
+                </div>
+                <p class="tour-caption">On iPhone Duo, use Blanc folded, or unfold it for Split View.</p>
+                <a class="tour-store" href={ios.storeUrl} rel="noopener">Get it on the App Store</a>
+              </div>
+            </div>
+            <div class="tour-controls" data-device-controls hidden>
+              <div class="tour-tabs" role="tablist" aria-label="Blanc on each device">
+                <button type="button" role="tab" id="device-tab-desktop" aria-controls="device-desktop" aria-selected="true" data-device-tab="desktop">Desktop<span class="tour-progress" aria-hidden="true"></span></button>
+                <button type="button" role="tab" id="device-tab-iphone" aria-controls="device-iphone" aria-selected="false" tabindex="-1" data-device-tab="iphone">iPhone<span class="tour-progress" aria-hidden="true"></span></button>
+                <button type="button" role="tab" id="device-tab-ipad" aria-controls="device-ipad" aria-selected="false" tabindex="-1" data-device-tab="ipad">iPad<span class="tour-progress" aria-hidden="true"></span></button>
+                <button type="button" role="tab" id="device-tab-duo" aria-controls="device-duo" aria-selected="false" tabindex="-1" data-device-tab="duo">iPhone Duo<span class="tour-progress" aria-hidden="true"></span></button>
+              </div>
+              <button type="button" class="tour-toggle" data-device-toggle data-state="playing" aria-label="Pause the device tour">
+                <svg class="tour-toggle-pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.5h2v9H5zM9 3.5h2v9H9z" /></svg>
+                <svg class="tour-toggle-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 3.2v9.6L13 8z" /></svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>

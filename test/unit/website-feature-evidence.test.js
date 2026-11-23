@@ -24,6 +24,7 @@ const compareLedger = JSON.parse(read('docs/website-compare-claims-v1.52.0.json'
 const iphoneLedger = JSON.parse(read('docs/website-iphone-1.0-claims.json'));
 const spacesButtonLedger = JSON.parse(read('docs/website-spaces-button-claims.json'));
 const ipadLedger = JSON.parse(read('docs/website-ipad-1.0.3-claims.json'));
+const devicesLedger = JSON.parse(read('docs/website-homepage-devices-claims.json'));
 const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
 // Compare source text only; consume incomplete tags and decode entities once.
 const normalize = text => text.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
@@ -347,7 +348,7 @@ test('every sentence on the homepage is recorded in a claims ledger or named as 
   const file = 'site/src/pages/index.astro';
   const source = read(file);
   const recorded = [cinemaLedger, ledger, v132Ledger, v133Ledger, v134Ledger, JSON.parse(read('docs/website-reorder-claims-v1.30.json')),
-    JSON.parse(read('docs/website-v1.36-claims.json')), JSON.parse(read('docs/website-v1.38-claims.json')), v140Ledger, JSON.parse(read('docs/website-v1.43-claims.json')), v145Ledger, iphoneLedger, ipadLedger, JSON.parse(read('docs/website-homepage-measurement-claims.json')), JSON.parse(read('docs/website-homepage-mail-reservation-claims.json')), JSON.parse(read('docs/website-homepage-start-widgets-claims.json'))]
+    JSON.parse(read('docs/website-v1.36-claims.json')), JSON.parse(read('docs/website-v1.38-claims.json')), v140Ledger, JSON.parse(read('docs/website-v1.43-claims.json')), v145Ledger, iphoneLedger, ipadLedger, JSON.parse(read('docs/website-homepage-measurement-claims.json')), JSON.parse(read('docs/website-homepage-mail-reservation-claims.json')), JSON.parse(read('docs/website-homepage-start-widgets-claims.json')), devicesLedger]
     .flatMap(item => [...item.claims, ...(item.externalClaims || [])])
     .filter(claim => claim.source === file)
     .map(claim => claim.exactWording)
@@ -369,6 +370,44 @@ test('every sentence on the homepage is recorded in a claims ledger or named as 
       assert.ok(recorded.some(wording => wording.includes(sentence)), `homepage sentence is not recorded: “${sentence}”`);
     }
   }
+});
+
+// The hero's device tour: desktop wording from public v1.52.0, the rest from
+// Blanc for iPhone and iPad 1.1, the App Store version on sale since November 22.
+test('the homepage device tour resolves to v1.52.0 and App Store version 1.1', () => {
+  const record = devicesLedger;
+  assert.equal(record.iosRelease, '1.1 (202611220258)');
+  assert.equal(execFileSync('git', ['rev-parse', `${record.iosSourceSha}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), record.iosSourceSha);
+  const project = execFileSync('git', ['show', `${record.iosSourceSha}:ios/Blanc/Blanc.xcodeproj/project.pbxproj`], { cwd: root, encoding: 'utf8' });
+  assert.match(project, /MARKETING_VERSION = 1\.1;/);
+  assert.match(project, /TARGETED_DEVICE_FAMILY = "1,2";/);
+  // App Store Connect records 1.1 on sale, from this build and source.
+  const row = read(record.releaseEvidence).split('\n').find(line => /^\| \d+ \| Version 1\.1 \| on sale \d{4}-\d{2}-\d{2} \|/.test(line));
+  assert.ok(row, 'docs/ios/app-store-connect.md records 1.1 on sale');
+  assert.ok(row.includes('202611220258') && row.includes(record.iosSourceSha.slice(0, 9)), 'that row names build 202611220258 and its source');
+  assert.ok(row.includes('iPhone Duo'), 'with its iPhone Duo screenshots');
+  const page = normalize(read('site/src/pages/index.astro'));
+  for (const claim of record.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    assert.ok(claim.evidenceGroups.length, `${claim.id}: no release evidence`);
+    for (const key of claim.evidenceGroups) {
+      const group = record.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${group.ref}:${evidence}`], { cwd: root });
+      for (const file of group.records || []) assert.ok(fs.existsSync(path.join(root, file)), `${claim.id}: ${file}`);
+    }
+  }
+  for (const prohibited of record.prohibitedClaims) assert.ok(!page.includes(prohibited), `homepage says “${prohibited}”`);
+  // Every device the tour shows is one of these captures, and the capture is in the 1.1 set.
+  const shown = [...read('site/src/pages/index.astro').matchAll(/\/devices\/[a-z0-9.-]+\.webp/g)].map(match => `site/public${match[0]}`);
+  assert.ok(shown.length >= 4);
+  const recorded = record.captures.map(item => item.shown.replace(/-\d+\.webp$/, ''));
+  for (const file of shown) {
+    assert.ok(fs.existsSync(path.join(root, file)), file);
+    assert.ok(recorded.includes(file.replace(/-\d+\.webp$/, '')), `${file} is not a recorded 1.1 capture`);
+  }
+  for (const { capture } of record.captures) assert.ok(fs.existsSync(path.join(root, capture)), capture);
 });
 
 // The reservation banner shows on the homepage too, from the header, so the

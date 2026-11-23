@@ -158,6 +158,7 @@ test('homepage titles are phrases without a closing period; section headlines ke
   // The one section headline without a period: the Patron section's name
   // (owner, November 23, 2026).
   assert.match(home, /<h2 class="patron-title" id="patron-title">Blanc Patron<\/h2>/);
-  // The first screen: the floating Island window below Download.
-  assert.match(home, /<FloatingIslandWindow \/>/);
+  // The first screen: the device tour below Download, opening on the
+  // floating Island window.
+  assert.match(home, /<FloatingIslandWindow lights=\{false\} \/>/);
 });
