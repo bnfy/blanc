@@ -1,0 +1,284 @@
+[
+  {
+    "id": "desktop",
+    "label": "Blanc for desktop",
+    "groups": [
+      {
+        "id": "get-started",
+        "title": "Get started",
+        "rows": [
+          {
+            "answer": "bookmark-import"
+          },
+          {
+            "answer": "arc-import"
+          },
+          {
+            "answer": "updates"
+          },
+          {
+            "answer": "languages"
+          }
+        ]
+      },
+      {
+        "id": "island-commands",
+        "title": "The Island & commands",
+        "rows": [
+          {
+            "guide": "island"
+          },
+          {
+            "guide": "command-palette"
+          },
+          {
+            "guide": "mouse-gestures"
+          },
+          {
+            "guide": "glance"
+          },
+          {
+            "guide": "start-page"
+          }
+        ]
+      },
+      {
+        "id": "tabs-windows",
+        "title": "Tabs, Spaces & windows",
+        "rows": [
+          {
+            "guide": "tab-groups"
+          },
+          {
+            "guide": "vertical-tabs"
+          },
+          {
+            "guide": "quiet-tabs"
+          },
+          {
+            "guide": "reopen-closed-tabs"
+          },
+          {
+            "guide": "workspaces"
+          },
+          {
+            "guide": "profiles"
+          },
+          {
+            "answer": "tabs-on-quit"
+          }
+        ]
+      },
+      {
+        "id": "sync-devices",
+        "title": "Sync & devices",
+        "rows": [
+          {
+            "guide": "sync"
+          },
+          {
+            "answer": "sync-retention"
+          },
+          {
+            "answer": "shared-spaces"
+          }
+        ]
+      },
+      {
+        "id": "passwords-privacy",
+        "title": "Passwords & privacy",
+        "rows": [
+          {
+            "guide": "1password"
+          },
+          {
+            "answer": "1password"
+          },
+          {
+            "answer": "privacy"
+          },
+          {
+            "answer": "first-day-signals"
+          },
+          {
+            "answer": "start-page-data"
+          },
+          {
+            "answer": "independent-audit"
+          }
+        ]
+      },
+      {
+        "id": "sites-compatibility",
+        "title": "Sites & compatibility",
+        "rows": [
+          {
+            "answer": "protected-streaming"
+          },
+          {
+            "answer": "extensions"
+          },
+          {
+            "answer": "vpn"
+          },
+          {
+            "answer": "architecture"
+          },
+          {
+            "answer": "electron"
+          }
+        ]
+      },
+      {
+        "id": "about-blanc",
+        "title": "About Blanc",
+        "rows": [
+          {
+            "answer": "open-source"
+          },
+          {
+            "answer": "maker"
+          },
+          {
+            "answer": "development"
+          },
+          {
+            "answer": "ai"
+          },
+          {
+            "answer": "patron"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "iphone",
+    "label": "iPhone & iPad",
+    "groups": [
+      {
+        "id": "iphone-start",
+        "title": "Get started",
+        "rows": [
+          {
+            "answer": "iphone-get"
+          },
+          {
+            "answer": "iphone-pair"
+          },
+          {
+            "answer": "iphone-sync"
+          }
+        ]
+      },
+      {
+        "id": "iphone-using",
+        "title": "Using Blanc",
+        "rows": [
+          {
+            "answer": "iphone-island"
+          },
+          {
+            "answer": "iphone-private"
+          },
+          {
+            "answer": "iphone-default"
+          },
+          {
+            "answer": "iphone-ipad"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "beta",
+    "label": "Blanc Beta",
+    "groups": [
+      {
+        "id": "beta-start",
+        "title": "Get started",
+        "rows": [
+          {
+            "answer": "beta-what"
+          },
+          {
+            "answer": "beta-requirements"
+          },
+          {
+            "answer": "beta-data"
+          }
+        ]
+      },
+      {
+        "id": "beta-using",
+        "title": "Updates & feedback",
+        "rows": [
+          {
+            "answer": "beta-updates"
+          },
+          {
+            "answer": "beta-not-yet"
+          },
+          {
+            "answer": "beta-report"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mail",
+    "label": "Mail",
+    "groups": [
+      {
+        "id": "mail-before",
+        "title": "Before launch",
+        "rows": [
+          {
+            "mail": "mail-new-address"
+          },
+          {
+            "mail": "mail-tools"
+          },
+          {
+            "mail": "mail-ghost-mode"
+          },
+          {
+            "mail": "mail-reserve"
+          },
+          {
+            "mail": "mail-trial"
+          },
+          {
+            "mail": "mail-encryption"
+          },
+          {
+            "mail": "mail-password"
+          },
+          {
+            "mail": "mail-subscription-ends"
+          },
+          {
+            "mail": "mail-bundle"
+          }
+        ]
+      },
+      {
+        "id": "mail-app",
+        "title": "The Mac app",
+        "rows": [
+          {
+            "mail": "mail-accounts"
+          },
+          {
+            "mail": "mail-uninstall"
+          },
+          {
+            "mail": "mail-updates"
+          }
+        ]
+      }
+    ]
+  }
+]

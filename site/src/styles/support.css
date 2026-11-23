@@ -1,0 +1,333 @@
+/* Support (redesign of November 23, 2026). The answer rows themselves
+   (.answer-topic, .answer-body) stay in reference.css, shared with the
+   Privacy & Security page's guides. */
+.support-page {
+  max-width: 1100px;
+  margin: auto;
+  padding: 72px 40px 100px;
+}
+.support-page :is(section, [id]) {
+  scroll-margin-top: 74px;
+}
+.support-page .section-kicker {
+  font-family: var(--font-brand-text);
+  letter-spacing: 0.09em;
+  font-size: 11px;
+}
+
+/* Hero: headline on the left, search and popular answers on the right. */
+.support-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 56px;
+  align-items: end;
+  margin-bottom: 64px;
+}
+.support-hero h1 {
+  font: 400 clamp(48px, 6.4vw, 84px) / 1.02 var(--site-font-display);
+  letter-spacing: 0;
+  margin: 18px 0 22px;
+}
+.support-lede {
+  max-width: 440px;
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--dim);
+}
+.support-search > label {
+  display: block;
+  font-size: 12px;
+  color: var(--dim);
+  margin-bottom: 10px;
+}
+.support-search > div {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid #cfc4b4;
+  border-radius: 12px;
+  padding: 13px 18px;
+  background: var(--site-surface-raised);
+}
+.support-search > div:has(input:focus-visible) {
+  border-color: var(--gold);
+}
+.support-search svg {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  color: var(--dim);
+}
+.support-search input {
+  font: 400 15px/1.5 var(--font-brand-text);
+  background: none;
+  min-width: 0;
+  width: 100%;
+  border: 0;
+}
+.support-search input:focus-visible {
+  outline: none;
+}
+.support-search button {
+  background: none;
+  border: 0;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--gold);
+}
+.support-search > p {
+  min-height: 20px;
+  font-size: 12px;
+  margin: 8px 0 0;
+  color: var(--dim);
+}
+.support-shortcuts > p {
+  margin: 6px 0 10px;
+  font-size: 12px;
+  color: var(--dim);
+}
+.support-shortcuts ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.support-shortcuts a {
+  display: inline-block;
+  padding: 7px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--site-surface-raised);
+  font-size: 13px;
+  text-decoration: none;
+  transition: border-color 160ms, color 160ms;
+}
+.support-shortcuts a:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* Product tabs: radios switch the panels in CSS; answers.js only preselects
+   and follows deep links. The radios stay focusable for the keyboard. */
+.support-product-radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.support-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding: 6px;
+  margin-bottom: 40px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--site-surface);
+}
+.support-tabs label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 10px 14px;
+  border-radius: 11px;
+  font-size: 15px;
+  color: var(--dim);
+  cursor: pointer;
+  transition: background-color 160ms, color 160ms, box-shadow 160ms;
+}
+.support-tabs svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+.support-tabs label:hover {
+  color: var(--ink);
+}
+.support-panel,
+.support-panel-label {
+  display: none;
+}
+/* The checked tab, and the panel it shows. */
+.support-products:has(#support-product-desktop:checked) :is(label[data-product="desktop"]),
+.support-products:has(#support-product-iphone:checked) :is(label[data-product="iphone"]),
+.support-products:has(#support-product-beta:checked) :is(label[data-product="beta"]),
+.support-products:has(#support-product-mail:checked) :is(label[data-product="mail"]) {
+  background: var(--site-surface-raised);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(18, 16, 11, 0.08), 0 4px 14px rgba(18, 16, 11, 0.05);
+}
+.support-products:has(#support-product-desktop:checked) [data-panel="desktop"],
+.support-products:has(#support-product-iphone:checked) [data-panel="iphone"],
+.support-products:has(#support-product-beta:checked) [data-panel="beta"],
+.support-products:has(#support-product-mail:checked) [data-panel="mail"] {
+  display: block;
+}
+.support-products:has(#support-product-desktop:focus-visible) label[data-product="desktop"],
+.support-products:has(#support-product-iphone:focus-visible) label[data-product="iphone"],
+.support-products:has(#support-product-beta:focus-visible) label[data-product="beta"],
+.support-products:has(#support-product-mail:focus-visible) label[data-product="mail"] {
+  outline: 2px solid var(--site-gold);
+  outline-offset: 2px;
+}
+/* While searching, every product's matches show, each under its name. */
+.support-products[data-searching] .support-tabs {
+  display: none;
+}
+.support-products[data-searching] .support-panel:not([hidden]) {
+  display: block;
+}
+.support-products[data-searching] .support-panel-label {
+  display: block;
+  margin: 40px 0 0;
+  font-size: 12px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+/* Topic groups: a two-column list of headings and their answers. */
+.support-group {
+  display: grid;
+  grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+  gap: 0 48px;
+  margin: 0;
+  padding: 34px 0;
+  border-top: 1px solid var(--line);
+}
+.support-group:first-of-type {
+  border-top: 0;
+}
+.support-group > h2 {
+  grid-column: 1;
+  grid-row: 1 / span 40;
+  margin: 18px 0 0;
+  font: 400 28px/1.15 var(--site-font-display);
+  letter-spacing: 0;
+}
+.support-group > .answer-topic {
+  grid-column: 2;
+}
+.support-group > .answer-topic:first-of-type {
+  border-top: 0;
+}
+.support-group > .answer-topic:last-child {
+  border-bottom: 0;
+}
+
+.search-empty {
+  padding: 28px 0;
+  font-size: 15px;
+  color: var(--dim);
+}
+
+/* Still need help? */
+.support-contact {
+  margin-top: 64px;
+  padding: 44px 48px 48px;
+  border-radius: 24px;
+  background: var(--site-surface);
+}
+.support-contact h2 {
+  font: 400 38px/1.1 var(--site-font-display);
+  letter-spacing: 0;
+  margin: 0 0 14px;
+}
+.support-contact > p {
+  max-width: 590px;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--dim);
+}
+.contact-groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 56px;
+  margin-top: 28px;
+}
+.contact-groups h3 {
+  margin: 0 0 8px;
+  font: 400 12px/1.4 var(--font-brand-text);
+  letter-spacing: 0.06em;
+  color: var(--gold);
+}
+.contact-groups ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--line);
+}
+.contact-groups a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 0;
+  border-top: 1px solid var(--line);
+  color: inherit;
+  font-size: 15px;
+  text-decoration: none;
+}
+.contact-groups a:hover {
+  color: var(--gold);
+}
+.contact-groups svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  color: var(--gold);
+}
+.contact-groups small {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--dim);
+}
+
+@media (max-width: 900px) {
+  .support-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+  .support-group {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .support-group > h2 {
+    grid-row: auto;
+    margin: 0 0 8px;
+  }
+  .support-group > .answer-topic {
+    grid-column: 1;
+  }
+}
+@media (max-width: 760px) {
+  .support-page {
+    padding: 48px 20px 66px;
+  }
+  .support-hero {
+    margin-bottom: 40px;
+  }
+  .support-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .support-tabs label {
+    justify-content: flex-start;
+    font-size: 14px;
+  }
+  .support-contact {
+    padding: 32px 22px 36px;
+  }
+  .contact-groups {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .support-tabs label,
+  .support-shortcuts a {
+    transition: none;
+  }
+}

@@ -1,9 +1,32 @@
 ---
+// Support (redesign of November 23, 2026,
+// docs/superpowers/specs/2026-11-23-support-page-redesign-design.md): one
+// page for all of Blanc. Product tabs are radios that switch their panels in
+// CSS (support.css), so the page works without scripting; answers.js adds
+// search across every tab, deep links that open the right tab, ?product= and
+// an iPhone & iPad preselect. Every <details id> is a deep link that other
+// pages, the site search and the build's fragment check rely on: never drop
+// or rename one.
 import BaseLayout from "../layouts/BaseLayout.astro";
 import GuideTopics from "../components/GuideTopics.astro";
 import questions from "../data/support-questions.json";
+import products from "../data/support-products.json";
+import { mailQuestions, mailSupportTopics } from "../data/mail-questions.mjs";
 import "../styles/reference.css";
+import "../styles/support.css";
 import { CRISP_WEBSITE_ID } from "../lib/crisp.mjs";
+
+const answers = new Map(questions.map((question) => [question.id, question]));
+const mail = new Map([...mailQuestions, ...mailSupportTopics].map((item) => [item.id, item]));
+// The 1Password guide already uses id="1password", so its answer takes another.
+const answerId = (id) => (id === "1password" ? "1password-faq" : id);
+
+const productIcons = {
+  desktop: ["M3 5h18v11H3z", "M9 20h6M12 16v4"],
+  iphone: ["M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z", "M11 18h2"],
+  beta: ["M10 3h4M11 3v6l-5 9a2 2 0 0 0 1.7 3h8.6a2 2 0 0 0 1.7-3l-5-9V3", "M8 15h8"],
+  mail: ["M4 6h16v12H4z", "m4 7 8 6 8-6"],
+};
 
 const supportEmail = "support@blanc.day";
 const crispWebsiteId = CRISP_WEBSITE_ID;
@@ -62,48 +85,185 @@ const contactGroups = [
     ],
   },
 ];
+const popular = [
+  { href: "#bookmark-import", text: "Bring your bookmarks" },
+  { href: "#updates", text: "Update Blanc" },
+  { href: "#iphone-pair", text: "Pair your iPhone" },
+  { href: "#1password", text: "Set up 1Password" },
+  { href: "#patron", text: "Activate Patron" },
+  { href: "#contact", text: "Contact us" },
+];
 ---
 
 <BaseLayout
-  title="Blanc Support — Setup, everyday tools and answers"
-  description="Find your way around Blanc: import bookmarks, manage tabs, set up 1Password, activate Patron, and get straightforward answers about the browser."
+  title="Blanc Support — Help for Blanc on every device"
+  description="Answers for Blanc on Mac, Windows and Linux, Blanc for iPhone and iPad, Blanc Beta and Blanc Mail: import bookmarks, pair your iPhone, set up 1Password, and get in touch."
   path="/support"
   page="support"
   current="support"
 >
-  <main id="main-content" class="reference-page">
-    <header class="reference-heading">
-      <p class="section-kicker">Blanc Support</p><h1>
-        A little help<br />goes a long way.
-      </h1><p>Find an answer. Get back to what you were doing.</p>
+  <main id="main-content" class="support-page">
+    <header class="support-hero">
+      <div class="support-hero-text">
+        <p class="section-kicker">Blanc Support</p><h1>
+          A little help<br />goes a long way.
+        </h1><p class="support-lede">
+          Answers for Blanc on your computer, iPhone and iPad, Blanc Beta and Blanc Mail.
+        </p>
+      </div>
+      <div class="support-hero-tools">
+        <div class="support-search" hidden data-search-ui>
+          <label for="answer-search">Search Support</label><div>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              aria-hidden="true"
+              ><circle cx="10" cy="10" r="6.5"></circle><path d="m15 15 6 6"
+              ></path></svg
+            ><input
+              id="answer-search"
+              type="search"
+              placeholder="Try bookmarks, pairing or 1Password"
+              autocomplete="off"
+              aria-describedby="search-count"
+            /><button type="button" id="clear-search" hidden>Clear</button>
+          </div><p id="search-count" role="status" aria-live="polite"></p>
+        </div>
+        <nav class="support-shortcuts" aria-label="Popular answers">
+          <p>Popular</p>
+          <ul>
+            {popular.map(({ href, text }) => (
+              <li><a href={href}>{text}</a></li>
+            ))}
+          </ul>
+        </nav>
+      </div>
     </header>
-    <div class="support-search" hidden data-search-ui>
-      <label for="answer-search">Search Support</label><div>
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-          aria-hidden="true"
-          ><circle cx="10" cy="10" r="6.5"></circle><path d="m15 15 6 6"
-          ></path></svg
-        ><input
-          id="answer-search"
-          type="search"
-          placeholder="Try bookmarks, tabs or 1Password"
-          autocomplete="off"
-          aria-describedby="search-count"
-        /><button type="button" id="clear-search" hidden>Clear</button>
-      </div><p id="search-count" role="status" aria-live="polite"></p>
+
+    <div class="support-products" data-support-products>
+      {products.map(({ id }, index) => (
+        <input
+          class="support-product-radio"
+          type="radio"
+          name="support-product"
+          id={`support-product-${id}`}
+          value={id}
+          checked={index === 0}
+        />
+      ))}
+      <div class="support-tabs" role="group" aria-label="Choose a product">
+        {products.map(({ id, label }) => (
+          <label for={`support-product-${id}`} data-product={id}>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              {productIcons[id].map((d) => <path d={d} />)}
+            </svg>
+            {label}
+          </label>
+        ))}
+      </div>
+      {products.map(({ id, label, groups }) => (
+        <div
+          class="support-panel"
+          data-panel={id}
+          data-panel-radio={`support-product-${id}`}
+          data-search-panel
+        >
+          <p class="support-panel-label" aria-hidden="true">{label}</p>
+          {groups.map(({ title, rows }) => (
+            <section class="answer-group support-group">
+              <h2>{title}</h2>
+              {rows.map((row) => {
+                if (row.guide) return <GuideTopics page="support" ids={[row.guide]} />;
+                if (row.mail) {
+                  const item = mail.get(row.mail);
+                  return (
+                    <details class="answer-topic" id={item.id} data-search-topic>
+                      <summary>
+                        {item.title}
+                        <span aria-hidden="true">+</span>
+                      </summary>
+                      <div class="answer-body">
+                        {item.html ? <p set:html={item.html} /> : <p>{item.answer}</p>}
+                      </div>
+                    </details>
+                  );
+                }
+                const { id: dataId, q, a, links = [] } = answers.get(row.answer);
+                return (
+                  <details class="answer-topic" id={answerId(dataId)} data-search-topic>
+                    <summary>
+                      {q}
+                      <span aria-hidden="true">+</span>
+                    </summary>
+                    <div class="answer-body">
+                      {a.map((paragraph) => <p>{paragraph}</p>)}
+                      {/* Two of these sentences are pinned by claims ledgers
+                          (v1.27, Arc switching v1.38); keep them word for word. */}
+                      {dataId === "bookmark-import" && (
+                        <p>
+                          <a href="/arc-alternative">
+                            Moving from Arc? See what transfers and how to bring your Spaces into Blanc.
+                          </a>
+                        </p>
+                      )}
+                      {dataId === "independent-audit" && (
+                        <p>
+                          <a href="/trust#security-audit-title">
+                            Audit status and known limitations →
+                          </a>
+                        </p>
+                      )}
+                      {dataId === "electron" && (
+                        <p>
+                          <a href="/trust#blocking-memory-title">
+                            Read the dated benchmark and its method →
+                          </a>
+                        </p>
+                      )}
+                      {dataId === "open-source" && (
+                        <p>
+                          <a href="https://github.com/bnfy/blanc/tree/v1.26.0">
+                            Source, license and third-party notices →
+                          </a>
+                        </p>
+                      )}
+                      {dataId === "patron" && (
+                        <p>
+                          <a href="https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf">
+                            Become a Patron →
+                          </a>
+                        </p>
+                      )}
+                      {links.map((link) => (
+                        <p>
+                          <a href={link.href}>{link.text}</a>
+                        </p>
+                      ))}
+                    </div>
+                  </details>
+                );
+              })}
+            </section>
+          ))}
+        </div>
+      ))}
     </div>
-    <nav class="support-shortcuts" aria-label="Common questions">
-      <a href="#bookmark-import">Bring your bookmarks <span>↗</span></a><a
-        href="#updates">Update Blanc <span>↗</span></a
-      ><a href="#1password">Set up 1Password <span>↗</span></a><a
-        href="#patron">Activate Patron <span>↗</span></a>
-    </nav>
-    <section class="reference-contact" id="contact" aria-labelledby="contact-title">
-      <h2 id="contact-title">Get in touch</h2><p>
+    <p class="search-empty" id="search-empty" hidden>
+      No matching answers. Try a different word, or get in touch below.
+    </p>
+
+    <section class="support-contact" id="contact" aria-labelledby="contact-title">
+      <h2 id="contact-title">Still need help?</h2><p>
         Include your Blanc version and operating system. Keep passwords and
         private browsing information out of your message.
       </p><!--email_off-->
@@ -139,70 +299,6 @@ const contactGroups = [
         ))
       }</div><!--/email_off-->
     </section>
-    <section class="answer-group">
-      <h2>Using Blanc</h2><GuideTopics page="support" />
-    </section>
-    <section class="answer-group">
-      <h2>Straight answers</h2>{
-        questions.map(({ id, q, a }) => (
-          <details
-            class="answer-topic"
-            id={id === "1password" ? "1password-faq" : id}
-            data-search-topic
-          >
-            <>
-              <summary>
-                {q}
-                <span aria-hidden="true">+</span>
-              </summary>
-              <div class="answer-body">
-                {a.map((paragraph) => (
-                  <p>{paragraph}</p>
-                ))}
-                {id === "bookmark-import" && (
-                  <p>
-                    <a href="/arc-alternative">
-                      Moving from Arc? See what transfers and how to bring your Spaces into Blanc.
-                    </a>
-                  </p>
-                )}
-                {id === "independent-audit" && (
-                  <p>
-                    <a href="/trust#security-audit-title">
-                      Audit status and known limitations →
-                    </a>
-                  </p>
-                )}
-                {id === "electron" && (
-                  <p>
-                    <a href="/trust#blocking-memory-title">
-                      Read the dated benchmark and its method →
-                    </a>
-                  </p>
-                )}
-                {id === "open-source" && (
-                  <p>
-                    <a href="https://github.com/bnfy/blanc/tree/v1.26.0">
-                      Source, license and third-party notices →
-                    </a>
-                  </p>
-                )}
-                {id === "patron" && (
-                  <p>
-                    <a href="https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf">
-                      Become a Patron →
-                    </a>
-                  </p>
-                )}
-              </div>
-            </>
-          </details>
-        ))
-      }
-    </section>
-    <p class="search-empty" id="search-empty" hidden>
-      No matching answers. Try a different word, or get in touch above.
-    </p>
   </main>
   <script src="../scripts/answers.js"></script>
 </BaseLayout>
