@@ -28,11 +28,6 @@ const KEYLESS_ROLES = new Set([
   'toggleSmartDashes', 'toggleTextReplacement', 'startSpeaking', 'stopSpeaking',
 ]);
 
-// Pre-existing and left for its own change: on Windows, Show History's Ctrl+Y
-// alias takes Edit → Redo's Ctrl+Y, so Ctrl+Y opens History even in a text
-// field. Don't add to this list; fix the clash instead.
-const KNOWN_TAKEN = { win32: { 'role-redo': 'Control+Y' } };
-
 test('every menu accelerator comes from the shared tables', () => {
   const values = [...menuSource.matchAll(/accelerator: ([^,\n}]+)/g)].map((match) => match[1].trim());
   for (const value of values) {
@@ -91,7 +86,6 @@ for (const platform of PLATFORMS) {
       ['platform-main-menu', (input) => isPlatformMainMenuShortcut(input, platform) && 'platform-main-menu'],
     ];
     for (const [owner, accelerator] of menuBindings(platform)) {
-      if (KNOWN_TAKEN[platform]?.[owner] === accelerator) continue;
       const chord = acceleratorChord(accelerator, platform).split('+');
       const raw = chord.pop();
       const key = { plus: '+', left: 'ArrowLeft', right: 'ArrowRight', up: 'ArrowUp', down: 'ArrowDown' }[raw] ?? raw;

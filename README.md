@@ -356,7 +356,7 @@ entirely.
 | `Cmd/Ctrl+1…9` | jump to tab (9 = last) |
 | `Cmd/Ctrl+D` | add to favorites |
 | `Cmd+Alt+B` / `Ctrl+Shift+O` | favorites |
-| `Cmd/Ctrl+Y` | history |
+| `Cmd+Y` / `Ctrl+H` | history |
 | `Cmd/Ctrl+Shift+J` | downloads |
 | `Cmd/Ctrl+Shift+G` | open / close Glance |
 | `Cmd/Ctrl+,` | settings |
