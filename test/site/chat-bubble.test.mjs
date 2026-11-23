@@ -1,8 +1,8 @@
 // BLANC_SITE_URL=http://127.0.0.1:4322 node --test test/site/chat-bubble.test.mjs
 // The live chat button (components/ChatBubble.astro) is a gold pill labeled
 // "Live chat" (owner, November 23, 2026), so it shows on cream pages and over
-// the homepage's dark sections alike. It wears the Sunrise mark's gold, lit
-// from above like the disc (assets/sunrise-mark.svg, gradient "rim").
+// the homepage's dark sections alike. It wears the Blanc Mail icon's brushed
+// gold (site/public/blanc-mail-icon.webp), light at the top, bronze below.
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { chromium } from 'playwright';
@@ -39,7 +39,7 @@ for (const width of [1440, 390]) {
           const box = el.getBoundingClientRect();
           return { image: s.backgroundImage, color: s.color, underline: s.textDecorationLine, height: box.height, bottom: innerHeight - box.bottom, left: box.left };
         });
-        assert.match(style.image, /^linear-gradient\(rgb\(255, 241, 179\) 0%/, `${path}: Sunrise gold, pale at the top`);
+        assert.match(style.image, /^linear-gradient\(rgb\(226, 193, 129\) 0%/, `${path}: Mail icon gold, light at the top`);
         // The label sits across the middle of the pill: every stop from 20% to
         // 80% must keep it at AA contrast.
         const stops = [...style.image.matchAll(/rgb\(([\d, ]+)\) ([\d.]+)%/g)].map(m => ({ color: m[1].split(', ').map(Number), at: Number(m[2]) }));
