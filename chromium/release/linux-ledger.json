@@ -6,6 +6,7 @@
       "version": "158.0.8127.905",
       "date": "2026-11-22",
       "sourceCommit": "a52e29005d6237c405ddcc2afd3b0f216c8b390b",
+      "proofOnly": true,
       "purpose": "proof",
       "candidates": {
         "x64": {
