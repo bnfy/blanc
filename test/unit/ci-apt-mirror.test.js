@@ -45,6 +45,7 @@ test('the mirror script leaves azure.archive.ubuntu.com and refuses to run off a
   // archive.ubuntu.com was tried first on every index and timed out.
   assert.match(script, /^\s*printf '%s\\n' http:\/\/mirrors\.edge\.kernel\.org\/ubuntu\/ \| sudo tee \/etc\/apt\/apt-mirrors\.txt >\/dev\/null$/m);
   assert.match(script, /azure\.archive\.ubuntu\.com is still configured/);
+  assert.match(script, /Acquire::ForceIPv4 "true";/, 'runners have no IPv6 route to the mirror');
   assert.doesNotMatch(script, /apt-get/, 'the step itself runs apt, after the script');
 });
 
