@@ -119,7 +119,11 @@ export function buildLane(options) {
   if (values.length > 1 || (values.length && !ANDROID_OUTPUTS.includes(values[0].slice('--out='.length))))
     throw new Error(`Use one --out=${ANDROID_OUTPUTS.join(' or --out=')} with --lane=android.`);
   const out = values.length ? values[0].slice('--out='.length) : ANDROID_OUTPUTS[0];
-  return { lane, out, target: out === 'AndroidRelease' ? 'chrome_public_bundle' : 'chrome_public_apk' };
+  if (out === 'AndroidRelease') return { lane, out, target: 'chrome_public_bundle' };
+  // The emulator gates run Blanc's Robolectric suite from this output (a1-gate.sh, a5a-gate.sh), so it
+  // is built with the app; otherwise it keeps an earlier build's jars, which a Chromium update breaks.
+  if (out === 'AndroidDebugX64') return { lane, out, target: 'chrome_public_apk', extraTargets: ['blanc/android:blanc_android_junit_tests'] };
+  return { lane, out, target: 'chrome_public_apk' };
 }
 export function requireAndroidHost(platform = process.platform, arch = process.arch) {
   if (platform !== 'linux' || arch !== 'x64') throw new Error(`The Android lane builds only on x86-64 Linux (this is ${platform} ${arch}). No build started.`);
