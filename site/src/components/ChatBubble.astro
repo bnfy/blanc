@@ -26,6 +26,7 @@ const href = `mailto:support@blanc.day?subject=${encodeURIComponent("Blanc suppo
         <path d="M5 5h14v10h-8l-4 4v-4H5z" />
         <path d="M9 10h.01M12 10h.01M15 10h.01" />
       </svg>
+      <span aria-hidden="true">Live chat</span>
     </a>
     <!--/email_off-->
     <script src="../scripts/live-chat.js"></script>
@@ -33,39 +34,54 @@ const href = `mailto:support@blanc.day?subject=${encodeURIComponent("Blanc suppo
 )}
 
 <style>
+  /* A gold pill labeled "Live chat" (owner, November 23, 2026): the black
+     circle it replaced vanished over the homepage's dark sections and dark
+     footer. The gold reads on cream and dark alike. */
   .chat-bubble {
     position: fixed;
     left: max(20px, env(safe-area-inset-left, 0px));
     bottom: max(20px, env(safe-area-inset-bottom, 0px));
     z-index: 90;
-    display: grid;
-    place-items: center;
-    width: 54px;
-    height: 54px;
-    border-radius: 50%;
-    background: var(--ink);
-    color: var(--paper);
-    box-shadow: 0 6px 20px rgb(29 26 22 / 22%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 48px;
+    padding: 0 18px 0 14px;
+    border-radius: 999px;
+    /* The Blanc Mail icon's brushed gold (site/public/blanc-mail-icon.webp),
+       light at the top and bronze below; the label sits in the middle band,
+       where every stop keeps the ink at AA contrast. */
+    background: #be9e64 linear-gradient(180deg, #e2c181 0%, #c9a76a 30%, #be9e64 50%, #a3804b 75%, #7f582c 100%);
+    color: var(--site-text);
+    font: 500 15px/1 var(--font-brand-text);
+    text-decoration: none;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 30%);
     transition: transform 0.2s, box-shadow 0.2s;
   }
   .chat-bubble:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 26px rgb(29 26 22 / 28%);
+    box-shadow: 0 12px 28px rgb(0 0 0 / 34%);
   }
+  /* Ink outline with a cream ring behind it, so focus shows on cream pages
+     and over dark sections. */
   .chat-bubble:focus-visible {
-    outline: 2px solid var(--gold);
-    outline-offset: 3px;
+    outline: 2px solid var(--site-text);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 6px var(--site-bg), 0 8px 24px rgb(0 0 0 / 30%);
   }
   .chat-bubble svg {
-    width: 24px;
-    height: 24px;
+    flex: none;
+    width: 22px;
+    height: 22px;
+    stroke-width: 2;
   }
   @media (max-width: 760px) {
     .chat-bubble {
       left: max(12px, env(safe-area-inset-left, 0px));
       bottom: max(12px, env(safe-area-inset-bottom, 0px));
-      width: 48px;
-      height: 48px;
+      height: 44px;
+      padding: 0 16px 0 12px;
+      font-size: 14px;
     }
   }
   @media (prefers-reduced-motion: reduce) {
