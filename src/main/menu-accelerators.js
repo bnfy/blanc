@@ -100,8 +100,9 @@ function acceleratorChord(accelerator, platform = process.platform) {
 
 /**
  * Whether a before-input-event `input` is this accelerator's chord. On macOS
- * Option changes the key value (⌥B is ∫), so the physical key counts too; on
- * Windows and Linux Ctrl+Alt is AltGr, so only the letter counts there.
+ * Option changes the key value (⌥B is ∫), so with Option the physical key
+ * counts too; on Windows and Linux Ctrl+Alt is AltGr, so only the letter
+ * counts there.
  */
 function inputMatchesAccelerator(input, accelerator, platform = process.platform) {
   if (!accelerator || input?.type !== 'keyDown') return false;
@@ -109,7 +110,7 @@ function inputMatchesAccelerator(input, accelerator, platform = process.platform
   const key = chord.pop();
   const modifiers = new Set(chord);
   const keyMatches = String(input.key).toLowerCase() === key ||
-    (mac(platform) && /^[a-z]$/.test(key) && input.code === `Key${key.toUpperCase()}`);
+    (mac(platform) && modifiers.has('alt') && /^[a-z]$/.test(key) && input.code === `Key${key.toUpperCase()}`);
   return keyMatches &&
     !!input.meta === modifiers.has('meta') &&
     !!input.control === modifiers.has('ctrl') &&

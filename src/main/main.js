@@ -7581,17 +7581,7 @@ function installOnePasswordShortcut(webContents, owner = rt()) {
 
 function installGlanceShortcut(webContents, owner = rt()) {
   webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
-    const primaryModifier = process.platform === 'darwin'
-      ? input.meta && !input.control
-      : input.control && !input.meta;
-    if (
-      input.type !== 'keyDown' ||
-      input.isAutoRepeat ||
-      String(input.key).toLowerCase() !== 'g' ||
-      !input.shift ||
-      input.alt ||
-      !primaryModifier
-    ) return;
+    if (input.isAutoRepeat || !inputMatchesAccelerator(input, menuAccelerator('toggle-glance'))) return;
     // Browser-level shortcut: handle it whichever page or trusted surface has
     // focus, then suppress the duplicate native-menu accelerator dispatch.
     event.preventDefault();

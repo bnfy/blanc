@@ -84,6 +84,7 @@ for (const platform of PLATFORMS) {
         return id && `browser-${id}`;
       }],
       ['toggle-vertical-tabs', (input) => inputMatchesAccelerator(input, menuAccelerator('toggle-vertical-tabs', platform), platform) && 'toggle-vertical-tabs'],
+      ['toggle-glance', (input) => inputMatchesAccelerator(input, menuAccelerator('toggle-glance', platform), platform) && 'toggle-glance'],
       ['toggle-island-autohide', (input) => inputMatchesAccelerator(input, menuAccelerator('toggle-island-autohide', platform), platform) && 'toggle-island-autohide'],
       ['fill-onepassword', (input) => matchesOnePasswordShortcut(input, platform) && 'fill-onepassword'],
       // Alt+F opens the whole menu on Windows and Linux.
