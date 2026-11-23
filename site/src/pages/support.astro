@@ -145,31 +145,28 @@ const popular = [
         class="support-hero-mark"
         src="/lockup/sunrise-mark-2048.webp"
         srcset="/lockup/sunrise-mark-256.webp 256w, /lockup/sunrise-mark-2048.webp 2048w"
-        sizes="(max-width: 760px) 140px, 380px"
+        sizes="(max-width: 900px) 140px, 380px"
         width="2048"
         height="2048"
         alt=""
         decoding="async"
-        fetchpriority="high"
       />
       </div>
     </header>
     <div class="support-body">
 
     <div class="support-products" data-support-products>
-      {products.map(({ id }, index) => (
-        <input
-          class="support-product-radio"
-          type="radio"
-          name="support-product"
-          id={`support-product-${id}`}
-          value={id}
-          checked={index === 0}
-        />
-      ))}
-      <div class="support-tabs" role="group" aria-label="Choose a product">
-        {products.map(({ id, label }) => (
-          <label for={`support-product-${id}`} data-product={id}>
+      <div class="support-tabs" role="radiogroup" aria-label="Choose a product">
+        {products.map(({ id, label }, index) => (
+          <label data-product={id}>
+            <input
+              class="support-product-radio"
+              type="radio"
+              name="support-product"
+              id={`support-product-${id}`}
+              value={id}
+              checked={index === 0}
+            />
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -192,7 +189,7 @@ const popular = [
           data-panel-radio={`support-product-${id}`}
           data-search-panel
         >
-          <p class="support-panel-label" aria-hidden="true">{label}</p>
+          <p class="support-panel-label">{label}</p>
           {groups.map(({ title, rows }) => (
             <section class="answer-group support-group">
               <h2>{title}</h2>

@@ -87,3 +87,41 @@ test('the tabs fit a phone without scrolling sideways', async () => {
     }
   } finally { await context.close(); }
 });
+
+test('while searching, no hidden tab can take keyboard focus', async () => {
+  const { page, context } = await open('/support');
+  try {
+    await page.locator('#answer-search').fill('sync');
+    await page.waitForFunction(() => document.querySelector('[data-support-products]').hasAttribute('data-searching'));
+    const focusable = await page.evaluate(() => [...document.querySelectorAll('input[name="support-product"]')]
+      .some(radio => radio.checkVisibility()));
+    assert.equal(focusable, false);
+  } finally { await context.close(); }
+});
+
+test('a crafted ?product= value leaves deep links working', async () => {
+  const { page, context } = await open('/support?product=%22#updates');
+  try {
+    await page.waitForFunction(() => document.getElementById('updates')?.open);
+    assert.deepEqual(await shown(page), ['desktop']);
+  } finally { await context.close(); }
+});
+
+test('choosing a tab after a deep link makes the address reopen that tab', async () => {
+  const { page, context } = await open('/support#iphone-pair');
+  try {
+    await page.waitForFunction(() => document.getElementById('iphone-pair')?.open);
+    assert.equal(new URL(page.url()).searchParams.get('product'), 'iphone');
+    await page.locator('label[data-product="mail"]').click();
+    const url = new URL(page.url());
+    assert.equal(url.hash, '');
+    assert.equal(url.searchParams.get('product'), 'mail');
+  } finally { await context.close(); }
+});
+
+test('without scripting, a deep link into another tab shows that tab', async () => {
+  const { page, context } = await open('/support#iphone-pair', { javaScriptEnabled: false });
+  try {
+    assert.deepEqual(await shown(page), ['iphone']);
+  } finally { await context.close(); }
+});

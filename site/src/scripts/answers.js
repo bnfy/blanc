@@ -73,7 +73,11 @@ function openDestination() {
     search();
   }
   const panel = target.closest("[data-panel-radio]");
-  if (panel) document.getElementById(panel.dataset.panelRadio).checked = true;
+  if (panel) {
+    const radio = document.getElementById(panel.dataset.panelRadio);
+    radio.checked = true;
+    writeProduct(radio.value, true);
+  }
   let parent = target;
   while (parent) {
     if (parent instanceof HTMLDetailsElement) parent.open = true;
@@ -91,25 +95,30 @@ function openDestination() {
 // an iPhone or iPad, else the desktop tab checked in the markup. A deep link
 // to an answer, handled by openDestination below, wins over both. iPadOS
 // asks for desktop sites with a Mac user agent, so touch decides it is an
-// iPad. Nothing is stored or sent.
-function preselectProduct() {
-  if (!products) return;
-  const radio = (id) => products.querySelector(`input[value="${id}"]`);
-  const asked = new URLSearchParams(location.search).get("product");
-  const agent = navigator.userAgent;
-  const apple =
-    /iPhone|iPad|iPod/.test(agent) ||
-    (/Macintosh/.test(agent) && navigator.maxTouchPoints > 1);
-  const choice = (asked && radio(asked)) || (apple && radio("iphone"));
-  if (choice) choice.checked = true;
-  products.addEventListener("change", (event) => {
-    const url = new URL(location.href);
-    if (event.target.value === "desktop") url.searchParams.delete("product");
-    else url.searchParams.set("product", event.target.value);
-    history.replaceState(null, "", url.pathname + url.search + url.hash);
-  });
+// iPad. Nothing is stored or sent. The address names the tab whenever it
+// differs from the one the page would open by itself, so a reload or a
+// shared link shows what the reader chose.
+const appleDevice =
+  /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+  (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+const ownProduct = appleDevice ? "iphone" : "desktop";
+function writeProduct(id, keepHash) {
+  const url = new URL(location.href);
+  if (id === ownProduct) url.searchParams.delete("product");
+  else url.searchParams.set("product", id);
+  if (!keepHash) url.hash = "";
+  history.replaceState(null, "", url.pathname + url.search + url.hash);
 }
-preselectProduct();
+if (products) {
+  products.dataset.scripted = "";
+  const asked = new URLSearchParams(location.search).get("product");
+  const radios = [...products.querySelectorAll('input[name="support-product"]')];
+  const choice =
+    radios.find((radio) => radio.value === asked) ||
+    radios.find((radio) => radio.value === ownProduct);
+  if (choice) choice.checked = true;
+  products.addEventListener("change", (event) => writeProduct(event.target.value, false));
+}
 window.addEventListener("hashchange", openDestination);
 // Same-hash links must also reopen an answer that the reader has closed.
 document.addEventListener("click", (event) => {

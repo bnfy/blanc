@@ -105,8 +105,17 @@
   background: rgb(255 255 255 / 0.96);
   color: var(--ink);
 }
-.support-search > div:has(input:focus-visible) {
-  border-color: var(--gold);
+/* The box shows focus where :has() works; elsewhere the input keeps its own
+   outline. */
+@supports selector(:has(*)) {
+  .support-search > div:has(input:focus-visible) {
+    border-color: var(--gold);
+    outline: 2px solid var(--site-gold-on-dark);
+    outline-offset: 3px;
+  }
+  .support-search input:focus-visible {
+    outline: none;
+  }
 }
 .support-search svg {
   width: 22px;
@@ -121,9 +130,6 @@
   width: 100%;
   border: 0;
 }
-.support-search input:focus-visible {
-  outline: none;
-}
 .support-search button {
   background: none;
   border: 0;
@@ -136,9 +142,6 @@
   font-size: 12px;
   margin: 8px 0 0;
   color: #b9b2a6;
-}
-.support-search button {
-  color: var(--gold);
 }
 .support-shortcuts > p {
   margin: 6px 0 10px;
@@ -173,18 +176,21 @@
 }
 
 /* Product tabs: radios switch the panels in CSS; answers.js only preselects
-   and follows deep links. The radios stay focusable for the keyboard. */
+   and follows deep links. The radios sit inside their labels, out of sight
+   but focusable for the keyboard. */
 .support-product-radio {
   position: absolute;
+  inset: 0;
+  margin: 0;
   opacity: 0;
   pointer-events: none;
 }
 .support-tabs {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
   padding: 6px;
-  position: relative;
   margin: -40px 0 40px;
   border: 1px solid var(--line);
   border-radius: 16px;
@@ -192,6 +198,7 @@
   box-shadow: 0 30px 60px -36px rgb(14 10 6 / 0.55);
 }
 .support-tabs label {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -212,31 +219,53 @@
 .support-tabs label:hover {
   color: var(--ink);
 }
-.support-panel,
-.support-panel-label {
-  display: none;
-}
-/* The checked tab, and the panel it shows. */
-.support-products:has(#support-product-desktop:checked) :is(label[data-product="desktop"]),
-.support-products:has(#support-product-iphone:checked) :is(label[data-product="iphone"]),
-.support-products:has(#support-product-beta:checked) :is(label[data-product="beta"]),
-.support-products:has(#support-product-mail:checked) :is(label[data-product="mail"]) {
+.support-tabs label:has(:checked) {
   background: var(--site-surface);
   color: var(--ink);
   box-shadow: inset 0 0 0 1px var(--line);
 }
-.support-products:has(#support-product-desktop:checked) [data-panel="desktop"],
-.support-products:has(#support-product-iphone:checked) [data-panel="iphone"],
-.support-products:has(#support-product-beta:checked) [data-panel="beta"],
-.support-products:has(#support-product-mail:checked) [data-panel="mail"] {
-  display: block;
-}
-.support-products:has(#support-product-desktop:focus-visible) label[data-product="desktop"],
-.support-products:has(#support-product-iphone:focus-visible) label[data-product="iphone"],
-.support-products:has(#support-product-beta:focus-visible) label[data-product="beta"],
-.support-products:has(#support-product-mail:focus-visible) label[data-product="mail"] {
+.support-tabs label:has(:focus-visible) {
   outline: 2px solid var(--site-gold);
   outline-offset: 2px;
+}
+.support-panel-label {
+  display: none;
+}
+/* Where :has() works, the checked tab's panel is the one that shows. Without
+   scripting, a link into another tab (/support#iphone-pair) shows that tab;
+   answers.js marks the products [data-scripted] and checks the radio itself. */
+@supports selector(:has(*)) {
+  .support-panel {
+    display: none;
+  }
+  .support-products:has(#support-product-desktop:checked) [data-panel="desktop"],
+  .support-products:has(#support-product-iphone:checked) [data-panel="iphone"],
+  .support-products:has(#support-product-beta:checked) [data-panel="beta"],
+  .support-products:has(#support-product-mail:checked) [data-panel="mail"] {
+    display: block;
+  }
+  /* The checked tab's rule matches by id, so only !important can hide it
+     here; this applies only without scripting. */
+  .support-products:not([data-scripted]):has(.support-panel :target) .support-panel:not(:has(:target)) {
+    display: none !important;
+  }
+  .support-products:not([data-scripted]) .support-panel:has(:target) {
+    display: block;
+  }
+}
+/* Without :has(), every product shows, each under its name, as in a search. */
+@supports not selector(:has(*)) {
+  .support-tabs {
+    display: none;
+  }
+  .support-panel-label {
+    display: block;
+    margin: 40px 0 0;
+    font-size: 12px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
 }
 /* While searching, every product's matches show, each under its name. */
 .support-products[data-searching] .support-tabs {

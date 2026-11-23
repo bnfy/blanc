@@ -89,7 +89,7 @@ test('the new answers stay inside what the releases back', () => {
   const beta = newAnswers.filter((answer) => answer.id.startsWith('beta-')).map((answer) => answer.a.join(' ')).join(' ');
   assert.doesNotMatch(beta, /installed automatically|installs updates automatically|plays (Netflix|Spotify|protected)/i);
   assert.doesNotMatch(beta, /\b(2\.0\.0-beta\.\d+|158\.0\.\d+)/, 'beta answers name no version');
-  assert.match(beta, /Protected video, such as Netflix or Spotify, doesn't play yet/);
+  assert.match(beta, /Protected video, such as Netflix or Spotify, doesn’t play yet/);
   const iphone = newAnswers.filter((answer) => answer.id.startsWith('iphone-')).map((answer) => answer.a.join(' ')).join(' ');
   assert.doesNotMatch(iphone, /passkey|ad[- ]block/i);
 });
@@ -101,4 +101,37 @@ test('the hero shows the full-resolution gold Sunrise under the clear header', (
   assert.match(mark, /alt=""/);
   assert.doesNotMatch(page, /sunrise-hero-mark\.png/, 'the 256px share-card mark looks soft at hero size');
   assert.match(read('site/src/components/Header.astro'), /\["\/trust", "\/support"\]\.includes/);
+});
+
+test('the tabs fail open where :has() is missing: every panel shows, labeled', () => {
+  const css = read('site/src/styles/support.css');
+  const outside = css.replace(/@supports[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, '');
+  assert.doesNotMatch(outside, /\.support-panel\s*(,|\{)[^}]*display:\s*none/, 'panels may only be hidden where :has() works');
+  assert.match(css, /@supports not selector\(:has\(\*\)\)\s*\{[^@]*\.support-tabs\s*\{\s*display:\s*none/);
+  assert.match(css, /@supports selector\(:has\(\*\)\)/);
+});
+
+test('the radios sit inside one labeled radio group, and product names reach screen readers', () => {
+  const group = page.match(/<div class="support-tabs"[^>]*>/)?.[0] ?? '';
+  assert.match(group, /role="radiogroup"/);
+  assert.match(group, /aria-label="Choose a product"/);
+  const tabs = page.slice(page.indexOf('<div class="support-tabs"'), page.indexOf('</div>', page.indexOf('<div class="support-tabs"')));
+  assert.match(tabs, /type="radio"/);
+  assert.doesNotMatch(page, /class="support-panel-label" aria-hidden/);
+});
+
+test('Beta and iPhone copy keeps the owners’ caveats and links', () => {
+  const byId = Object.fromEntries(questions.map((question) => [question.id, question]));
+  const linux = byId['beta-requirements'].a.join(' ');
+  assert.ok(linux.includes('Install and update checks ran on Ubuntu 24.04, Debian 12 and Fedora 45, on x64 and arm64.'), linux);
+  assert.ok(linux.includes('KDE and x64 desktops haven’t been checked by hand.'), linux);
+  const notYet = byId['beta-not-yet'].a.join(' ');
+  assert.doesNotMatch(notYet, /On Mac and Linux, Sync/, 'the Sync caveat applies on every platform');
+  assert.match(notYet, /don’t rely on it yet/);
+  assert.equal(byId['iphone-get'].links[0].href, '/download#iphone');
+  for (const answer of newAnswers) {
+    for (const text of [answer.q, ...answer.a, ...(answer.links ?? []).map((link) => link.text)]) {
+      assert.doesNotMatch(text, /'/, `straight apostrophe in ${answer.id}: ${text}`);
+    }
+  }
 });

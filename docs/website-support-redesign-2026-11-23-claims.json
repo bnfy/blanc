@@ -11,7 +11,8 @@
   "ownerDecisions": [
     "Product tabs on one page for Blanc for desktop, iPhone & iPad, Blanc Beta and Mail; starter answers for iPhone & iPad and Blanc Beta; contact at the bottom as Still need help? (owner, 2026-11-23).",
     "Look 1 of three mock-ups: a night hero like Privacy & Security's with the gold Sunrise export of assets/sunrise-mark.svg (owner, 2026-11-23).",
-    "Every new string in this ledger approved by the owner on 2026-11-23."
+    "Every new string in this ledger approved by the owner on 2026-11-23.",
+    "Review fixes after approval (2026-11-23): the Beta Sync caveat now covers every platform with the release notes’ “don’t rely on it yet”; the Linux requirement carries the Linux ledger’s tested-systems and KDE/x64 sentences word for word; Get the app links /download#iphone; new copy uses curly apostrophes. Wording changes are confined to these corrections."
   ],
   "evidenceGroups": {
     "iosRelease": {
@@ -378,7 +379,7 @@
     {
       "id": "support-1123-032",
       "source": "site/src/data/support-questions.json",
-      "exactWording": "Blanc for iPhone and iPad is available on Apple's App Store, and as a beta through Apple's TestFlight, where new builds arrive first.",
+      "exactWording": "Blanc for iPhone and iPad is available on Apple’s App Store, and as a beta through Apple’s TestFlight, where new builds arrive first.",
       "evidenceGroups": [
         "iosLedgers"
       ],
@@ -408,7 +409,7 @@
     {
       "id": "support-1123-035",
       "source": "site/src/data/support-questions.json",
-      "exactWording": "On your computer, open Blanc's Settings → Sync → Connect your iPhone. Open Blanc on your iPhone or iPad, choose Pair with your Blanc in Settings → Sync, and point it at the code on your computer.",
+      "exactWording": "On your computer, open Blanc’s Settings → Sync → Connect your iPhone. Open Blanc on your iPhone or iPad, choose Pair with your Blanc in Settings → Sync, and point it at the code on your computer.",
       "evidenceGroups": [
         "desktopPairing",
         "iosLedgers"
@@ -449,7 +450,7 @@
     {
       "id": "support-1123-039",
       "source": "site/src/data/support-questions.json",
-      "exactWording": "Turn on Shared Spaces and the Spaces you choose stay the same on your computer and your iPhone or iPad: open, close or move a tab on one, and the other follows. It's off until you turn it on.",
+      "exactWording": "Turn on Shared Spaces and the Spaces you choose stay the same on your computer and your iPhone or iPad: open, close or move a tab on one, and the other follows. It’s off until you turn it on.",
       "evidenceGroups": [
         "iosListing",
         "iosLedgers"
@@ -459,7 +460,7 @@
     {
       "id": "support-1123-040",
       "source": "site/src/data/support-questions.json",
-      "exactWording": "You can also send the page you're reading to another of your Blanc devices, and find pages sent to you waiting there. Sync is end-to-end encrypted: Blanc stores only data it can't read.",
+      "exactWording": "You can also send the page you’re reading to another of your Blanc devices, and find pages sent to you waiting there. Sync is end-to-end encrypted: Blanc stores only data it can’t read.",
       "evidenceGroups": [
         "iosListing",
         "iosLedgers"
@@ -479,7 +480,7 @@
     {
       "id": "support-1123-042",
       "source": "site/src/data/support-questions.json",
-      "exactWording": "The Island is only as wide as what's in it: Back, the site's icon and the site, and New Tab.",
+      "exactWording": "The Island is only as wide as what’s in it: Back, the site’s icon and the site, and New Tab.",
       "evidenceGroups": [
         "iosRelease"
       ],
@@ -488,7 +489,7 @@
     {
       "id": "support-1123-043",
       "source": "site/src/data/support-questions.json",
-      "exactWording": "Tap the site and the Island grows into a panel just above the keyboard. It starts with the page's address: tap it to edit, hold it to copy the link.",
+      "exactWording": "Tap the site and the Island grows into a panel just above the keyboard. It starts with the page’s address: tap it to edit, hold it to copy the link.",
       "evidenceGroups": [
         "iosRelease"
       ],
@@ -593,7 +594,7 @@
     {
       "id": "support-1123-054",
       "source": "site/src/data/support-questions.json",
-      "exactWording": "On a Mac: Apple Silicon Macs with macOS 13 or later. Intel Macs aren't supported yet.",
+      "exactWording": "On a Mac: Apple Silicon Macs with macOS 13 or later. Intel Macs aren’t supported yet.",
       "evidenceGroups": [
         "betaLedgers"
       ],
@@ -602,7 +603,7 @@
     {
       "id": "support-1123-055",
       "source": "site/src/data/support-questions.json",
-      "exactWording": "On Windows: x64 PCs. It's tested on Windows 11.",
+      "exactWording": "On Windows: x64 PCs. It’s tested on Windows 11.",
       "evidenceGroups": [
         "betaLedgers"
       ],
@@ -611,7 +612,7 @@
     {
       "id": "support-1123-056",
       "source": "site/src/data/support-questions.json",
-      "exactWording": "On Linux: Debian, Ubuntu and Fedora, on x64 and arm64. Use the .deb on Debian and Ubuntu, the .rpm on Fedora.",
+      "exactWording": "On Linux: Debian, Ubuntu and Fedora, on x64 and arm64. Use the .deb on Debian and Ubuntu, the .rpm on Fedora. Install and update checks ran on Ubuntu 24.04, Debian 12 and Fedora 45, on x64 and arm64. KDE and x64 desktops haven’t been checked by hand.",
       "evidenceGroups": [
         "betaLedgers"
       ],
@@ -631,7 +632,7 @@
     {
       "id": "support-1123-058",
       "source": "site/src/data/support-questions.json",
-      "exactWording": "On a Mac, beta updates come from blanc.day, signed with the beta's own key, and the app menu has Check for Updates.",
+      "exactWording": "On a Mac, beta updates come from blanc.day, signed with the beta’s own key, and the app menu has Check for Updates.",
       "evidenceGroups": [
         "betaNotes",
         "betaLedgers"
@@ -641,7 +642,7 @@
     {
       "id": "support-1123-059",
       "source": "site/src/data/support-questions.json",
-      "exactWording": "On Windows, Blanc Beta keeps itself up to date through Blanc's own updater. Every update is signed with Blanc's key and checked before it's installed, and Settings → About Blanc Beta shows whether it's up to date.",
+      "exactWording": "On Windows, Blanc Beta keeps itself up to date through Blanc’s own updater. Every update is signed with Blanc’s key and checked before it’s installed, and Settings → About Blanc Beta shows whether it’s up to date.",
       "evidenceGroups": [
         "betaNotes",
         "betaLedgers"
@@ -680,7 +681,7 @@
     {
       "id": "support-1123-063",
       "source": "site/src/data/support-questions.json",
-      "exactWording": "What isn't in Blanc Beta yet?",
+      "exactWording": "What isn’t in Blanc Beta yet?",
       "evidenceGroups": [
         "betaLedgers"
       ],
@@ -690,7 +691,7 @@
     {
       "id": "support-1123-064",
       "source": "site/src/data/support-questions.json",
-      "exactWording": "Protected video, such as Netflix or Spotify, doesn't play yet. On Mac and Linux, Sync hasn't yet been checked against the live Sync service, and on Windows some Blanc features still behave differently.",
+      "exactWording": "Protected video, such as Netflix or Spotify, doesn’t play yet. Sync hasn’t been checked against the live Sync service, so don’t rely on it yet. On Windows, some Blanc features still behave differently.",
       "evidenceGroups": [
         "betaLedgers"
       ],
@@ -699,7 +700,7 @@
     {
       "id": "support-1123-065",
       "source": "site/src/data/support-questions.json",
-      "exactWording": "Each release's notes list what's new and what's still missing.",
+      "exactWording": "Each release’s notes list what’s new and what’s still missing.",
       "evidenceGroups": [
         "betaLedgers"
       ],
@@ -728,7 +729,7 @@
     {
       "id": "support-1123-068",
       "source": "site/src/data/support-questions.json",
-      "exactWording": "Use Report a bug or Email Support below. Say that you're using Blanc Beta, and include its version from Settings → About.",
+      "exactWording": "Use Report a bug or Email Support below. Say that you’re using Blanc Beta, and include its version from Settings → About.",
       "evidenceGroups": [
         "betaNotes"
       ],
