@@ -169,8 +169,8 @@ test('with motion the tour moves on to the iPhone, and the pause button holds it
   } finally { await close(); }
 });
 
-test('with the pause button showing, the tabs still fit one row on a phone', async () => {
-  for (const width of [360, 390]) {
+test('with the pause button showing, every tab still fits on a phone', async () => {
+  for (const width of [320, 360, 390]) {
     const { page, close } = await openHome({ width, reducedMotion: 'no-preference' });
     try {
       assert.equal(await page.isVisible('[data-device-toggle]'), true);

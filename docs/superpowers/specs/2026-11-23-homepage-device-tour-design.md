@@ -60,5 +60,7 @@ public v1.52.0 (desktop) and App Store 1.1 (build 202611220258 from
 ## Calls left to the builder
 
 Caption wording (kept to one or two lines on a phone), the slide timings, the
-Duo arrangement and the square phone stage were the builder's calls. A 320px
-screen scrolls the tab row sideways; 360px and wider fit it on one row.
+Duo arrangement and the square phone stage were the builder's calls. Below
+360px the pause button wraps under the tabs. Hidden slides' images load at low
+priority. Pressing play starts the tour at once, even with the pointer and
+focus still on the button.

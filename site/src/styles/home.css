@@ -305,6 +305,7 @@
 }
 .tour-controls {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -318,6 +319,8 @@
   display: inline-flex;
   max-width: 100%;
   padding: 4px;
+  /* Only below 320px; from there up the tabs fit, the pause button wrapping
+     under them on the narrowest phones. */
   overflow-x: auto;
   border-radius: 999px;
   background: var(--surface);

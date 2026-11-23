@@ -148,6 +148,32 @@ test('picking a tab shows it and holds the tour there until play', async () => {
   assert.equal(t.shown(), 'duo', 'play moves on from where it stood');
 });
 
+test('play starts the tour at once, with the pointer and focus still on the button', async () => {
+  const { initDeviceTour, DWELL } = await loadTour();
+  const t = fakeTour();
+  initDeviceTour(t.tour, { view: t.view });
+  t.intersect(true);
+  t.fireTour('pointerenter', { pointerType: 'mouse' });
+  t.fireTour('focusin');
+  t.fire(t.toggle, 'click'); // pause
+  t.fire(t.toggle, 'click'); // play
+  assert.equal(t.tour.dataset.running, '');
+  t.advance(DWELL.desktop);
+  assert.equal(t.shown(), 'iphone');
+});
+
+test('a wait already running isn’t restarted, so the bar and the timer stay together', async () => {
+  const { initDeviceTour, DWELL } = await loadTour();
+  const t = fakeTour();
+  initDeviceTour(t.tour, { view: t.view });
+  t.intersect(true);
+  t.advance(DWELL.desktop - 1000);
+  t.intersect(true); // the observer reports again mid-slide
+  t.setVisibility('visible');
+  t.advance(1000);
+  assert.equal(t.shown(), 'iphone');
+});
+
 test('the pause button holds the tour', async () => {
   const { initDeviceTour, DWELL } = await loadTour();
   const t = fakeTour();

@@ -44,14 +44,17 @@ export function initDeviceTour(root, { view = window } = {}) {
     toggle.dataset.state = held ? 'paused' : 'playing';
     toggle.setAttribute('aria-label', held ? 'Play the device tour' : 'Pause the device tour');
   };
-  // Restarts the current slide's wait; the active tab's bar fills over it.
+  // Starts the current slide's wait; the active tab's bar fills over it. A
+  // wait already running is left alone, so the bar and the timer stay together.
   const schedule = () => {
+    if (timer !== null && canRun()) return;
     clear();
     if (!canRun()) return;
     const device = tabs[index].dataset.deviceTab;
     root.style.setProperty('--tour-dwell', `${dwellFor(device)}ms`);
     root.dataset.running = '';
     timer = view.setTimeout(() => {
+      timer = null;
       select((index + 1) % tabs.length);
       schedule();
     }, dwellFor(device));
@@ -95,8 +98,10 @@ export function initDeviceTour(root, { view = window } = {}) {
     event.preventDefault();
     choose((next + tabs.length) % tabs.length, { focus: true });
   };
+  // Play starts at once, though the pointer and focus are still on the button.
   const onToggle = () => {
     held = !held;
+    if (!held) hovering = focused = false;
     refreshToggle();
     schedule();
   };
