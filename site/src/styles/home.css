@@ -1,15 +1,15 @@
 /* Homepage (index.astro): the cinematic redesign of October 15, 2026.
    Headlines are Blubird Display and copy Instrument Sans (src/styles/blubird.css;
-   Inter where the licensed files are absent). Light sections sit on Blanc
-   White, dark ones on warm ink. The opening sunrise plays once on load; the
+   Inter where the licensed files are absent). Light sections sit on the
+   website cream, dark ones on warm ink. The opening sunrise plays once on load; the
    rest of the motion is scroll-driven CSS that needs animation-timeline
    support. All of it needs no reduced-motion preference, and without it the
    page shows its finished, static state. */
 .home-cinema {
-  --paper: #f8f2e8;
-  --surface: #f2eade;
+  --paper: #fbf7f0;
+  --surface: #f5efe5;
   --raised: #fff;
-  --line: #e1d7c9;
+  --line: #e6ddd0;
   --ink: #0e0e0e;
   --text: #4a453e;
   --dim: #6b6257;
@@ -2266,7 +2266,7 @@ details[open] .faq-sign::after {
 @keyframes home-device { from { transform: translateY(60px) scale(0.82); } to { transform: none; } }
 @keyframes home-screen { from { transform: scale(1.22); filter: brightness(0.35); } to { transform: none; filter: none; } }
 @keyframes home-fade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes sun-sky { 0%, 20% { background-color: #0b0a09; } 48% { background-color: #3a2a17; } 76%, 100% { background-color: #f8f2e8; } }
+@keyframes sun-sky { 0%, 20% { background-color: #0b0a09; } 48% { background-color: #3a2a17; } 76%, 100% { background-color: var(--paper); } }
 @keyframes sun-mark { 0% { transform: translateY(9vh); } 58%, 70% { transform: none; } 86%, 100% { transform: scale(0.5); } }
 @keyframes sun-horizon { 0% { clip-path: inset(0 46% 0 46%); } 14%, 100% { clip-path: inset(0 0 0 0); } }
 @keyframes sun-reflect { 0%, 8% { clip-path: inset(0 50% 0 50%); opacity: 0.4; } 28%, 100% { clip-path: inset(0 0 0 0); opacity: 1; } }

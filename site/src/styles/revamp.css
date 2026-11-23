@@ -1,9 +1,9 @@
 :root {
-  --site-bg: #f8f2e8;
-  --site-bg-rgb: 248, 242, 232;
-  --site-surface: #f2eade;
+  --site-bg: #fbf7f0;
+  --site-bg-rgb: 251, 247, 240;
+  --site-surface: #f5efe5;
   --site-surface-raised: #fff;
-  --site-border: #e1d7c9;
+  --site-border: #e6ddd0;
   --site-text-dim: #6b6257;
   --site-gold: #805d28;
   --line: var(--site-border);
