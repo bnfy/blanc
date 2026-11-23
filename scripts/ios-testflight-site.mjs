@@ -83,7 +83,12 @@ async function run(argv = process.argv.slice(2), env = process.env) {
   const json = `${JSON.stringify(data, null, 2)}\n`;
   const ledgerBefore = fs.readFileSync(LEDGER, 'utf8');
   const ledger = applyToLedger(ledgerBefore, data);
-  const current = fs.existsSync(OUTPUT) ? fs.readFileSync(OUTPUT, 'utf8') : '';
+  let current = '';
+  try {
+    current = fs.readFileSync(OUTPUT, 'utf8');
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
   const changed = current !== json || ledgerBefore !== ledger;
   if (check) {
     if (changed) throw new Error(`the site names an older TestFlight build; newest is ${claimText(data)}`);
