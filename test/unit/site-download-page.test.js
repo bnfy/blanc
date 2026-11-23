@@ -17,8 +17,11 @@ const normalize = (text) => text.replace(/<!--[\s\S]*?-->/g, ' ').replace(/<[^>]
   .replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/↗/g, ' ')
   .replace(/\s+/g, ' ').replace(/\s+([.,?])/g, '$1').trim();
 const main = page.slice(page.indexOf('<main'), page.indexOf('</main>'));
-// Both beta tiles (Mac and Windows) have ledgers of their own.
-const withoutBeta = main.replace(/<article class="dl-tile dl-tile--beta[^"]*"[\s\S]*?<\/article>/g, '');
+// The Betas panel's heading and sentence and its Mac, Windows and Linux rows are
+// recorded in the beta ledgers; its iPhone and Android rows are checked here.
+const withoutBeta = main
+  .replace(/<div class="dl-betas-head">[\s\S]*?<\/div>/, '')
+  .replace(/<article class="dl-beta-row(?! dl-beta-row--mobile)[^"]*"[\s\S]*?<\/article>/g, '');
 
 test('every piece of text on the page is recorded or a label (the beta tiles have their own ledgers)', () => {
   const recorded = new Set([...record.claims.map((claim) => claim.exactWording), ...record.labels]);
@@ -51,13 +54,36 @@ test('the system switch works without scripting and every download is a counted 
   assert.deepEqual(radios.filter((m) => m[3]).map((m) => m[2]), ['mac'], 'Mac shows without scripting');
   for (const os of ['mac', 'win', 'linux', 'iphone', 'android']) {
     assert.match(page, new RegExp(`<label for="dl-os-${os}">`));
-    assert.match(page, new RegExp(`<div class="dl-panel" data-os="${os}">`));
+    assert.match(page, new RegExp(`<div class="dl-panel" data-os="${os}"( id="\\w+")?>`));
   }
   const css = read('site/src/styles/site.css');
   for (const os of ['mac', 'win', 'linux', 'iphone', 'android']) assert.ok(css.includes(`#dl-os-${os}:checked ~ .dl-panels .dl-panel[data-os="${os}"]`), `${os} panel switches in CSS`);
   for (const target of ['mac-arm64', 'mac-x64', 'win', 'linux', 'beta', 'beta-win']) assert.match(page, new RegExp(`href="/dl/${target}"`));
+  const mobile = [...main.matchAll(/<article class="dl-beta-row dl-beta-row--mobile" id="(beta-\w+)"[\s\S]*?<\/article>/g)];
+  assert.deepEqual(mobile.map((m) => m[1]), ['beta-iphone', 'beta-android'], 'the Betas panel ends with the iPhone and Android betas');
+  assert.match(mobile[0][0], /href=\{ios\.joinUrl\}/);
+  assert.deepEqual([...mobile[1][0].matchAll(/href="([^"]+)"/g)].map((m) => m[1]), ['/android-beta'], 'the Android row leads only to the beta signup');
   assert.match(page, /<h1 id="download-title">Download Blanc<\/h1>/);
   assert.doesNotMatch(main, /<h[12][^>]*>[^<]*\.<\/h[12]>/, 'no full stops after large headings');
+});
+
+test('the Mac panel switches between the download and Homebrew without scripting', () => {
+  const panel = page.slice(page.indexOf('<div class="dl-panel" data-os="mac">'), page.indexOf('<div class="dl-panel" data-os="win">'));
+  const radios = [...panel.matchAll(/<input class="dl-method-radio" type="radio" name="dl-mac-method" id="dl-mac-method-(\w+)" value="(\w+)"( checked)? \/>/g)];
+  assert.deepEqual(radios.map((m) => [m[1], m[2], Boolean(m[3])]), [['dmg', 'dmg', true], ['brew', 'brew', false]], 'Download shows without scripting');
+  const css = read('site/src/styles/site.css');
+  for (const method of ['dmg', 'brew']) {
+    assert.ok(css.includes(`#dl-mac-method-${method}:checked ~ .dl-method-panes .dl-method-pane[data-method="${method}"]`), `${method} pane switches in CSS`);
+    assert.match(panel, new RegExp(`<div class="dl-method-pane" data-method="${method}">`));
+  }
+  // site.js reveals the Intel link only as a direct child of [data-download-options].
+  const options = panel.match(/<div class="dl-actions dl-actions--mac" data-download-options>([\s\S]*?)\n {16}<\/div>/)?.[1] ?? '';
+  assert.match(options, /<a class="dl-button" id="dl-mac-arm64"[^>]*href="\/dl\/mac-arm64">Download for Mac<\/a>/);
+  assert.match(options, /<a class="dl-alt" id="dl-mac-x64"[^>]*href="\/dl\/mac-x64" hidden>Intel Mac<\/a>/);
+  assert.match(panel, /<code><span class="terminal-prompt" aria-hidden="true">% <\/span>brew install --cask bnfy\/tap\/blanc<\/code>/);
+  assert.match(panel, /<button type="button" class="terminal-copy" data-terminal-copy="brew install --cask bnfy\/tap\/blanc"[^>]* hidden>Copy<\/button>/);
+  assert.equal((page.match(/data-terminal-status/g) || []).length, 1, 'one status line for the Copy button');
+  assert.doesNotMatch(page, /dl-tile--brew/, 'Homebrew has no tile of its own any more');
 });
 
 test('the switcher preselects the visitor’s system and nothing else', async () => {
@@ -74,4 +100,15 @@ test('the switcher preselects the visitor’s system and nothing else', async ()
   assert.equal(initDownloadSwitcher(view), 'linux');
   assert.equal(radios.find((r) => r.value === 'linux').checked, true);
   assert.equal(initDownloadSwitcher({ document: { querySelector: () => null }, navigator: view.navigator }), null);
+  // The site navigation links /download#iphone: that opens the iPhone tab whatever the system.
+  assert.match(page, /<div class="dl-panel" data-os="iphone" id="iphone">/);
+  const nav = await import('../../site/src/data/navigation.mjs');
+  assert.ok(JSON.stringify(nav).includes('/download#iphone'), 'the navigation still links the iPhone tab');
+  radios.forEach((r) => { r.checked = r.value === 'mac'; });
+  const panels = { iphone: { dataset: { os: 'iphone' } } };
+  const linked = { querySelector: (selector) => (selector.startsWith('.dl-panel') ? panels[selector.match(/id="(\w+)"/)[1]] ?? null : chooser.querySelector(selector)) };
+  const viaHash = { document: { querySelector: () => linked }, navigator: view.navigator, location: { hash: '#iphone' } };
+  assert.equal(initDownloadSwitcher(viaHash), 'iphone');
+  assert.equal(radios.find((r) => r.value === 'iphone').checked, true);
+  assert.equal(initDownloadSwitcher({ ...viaHash, location: { hash: '#"]x' } }), 'linux', 'an odd address falls back to the system');
 });
