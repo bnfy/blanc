@@ -1,6 +1,6 @@
 {
   "scope": "Website-only Blanc Mail address reservation copy shown while site/src/data/mail-reservations.json says open: the homepage band, and the banner above the site header on every page but the Mail, legal and What's New pages (the homepage included). Not a claim about a desktop release.",
-  "verified": "2026-11-19",
+  "verified": "2026-11-23",
   "websiteSourceSha": "78506300c",
   "evidence": [
     "site/src/data/mail-reservations.json",
@@ -9,7 +9,7 @@
     "docs/website-mail-claims-2026-11-17.md",
     "site/src/components/MailReserveBanner.astro"
   ],
-  "qualification": "Reserving is free and holds the name on every ending listed in mail-reservations.json (inbox.day, blnc.day and blancmail.me since November 19, 2026) until Blanc Mail addresses open, as the reserve page says; claiming one later needs a paid plan, which the reserve page states beside its button. The band and the banner render only while reservations are open; the banner names the first ending in mail-reservations.json.",
+  "qualification": "Reserving is free and holds the name on every ending listed in mail-reservations.json (inbox.day, blnc.day and blancmail.me since November 19, 2026) until Blanc Mail addresses open, as the reserve page says; claiming one later needs a paid plan, which the reserve page states beside its button. On November 23, 2026 the owner had the banner's “, free” replaced with “Free to reserve.”, because “Reserve yours on @inbox.day, free.” could read as a free address; phones show only “Reserve yours on @inbox.day.” The band and the banner render only while reservations are open; the banner names the first ending in mail-reservations.json.",
   "claims": [
     {
       "id": "home-mail-reserve-001",
@@ -35,8 +35,15 @@
     {
       "id": "home-mail-reserve-004",
       "source": "site/src/components/MailReserveBanner.astro",
-      "exactWording": "Reserve yours on @inbox.day, free.",
+      "exactWording": "Reserve yours on @inbox.day.",
       "subject": "Blanc Mail address reservations (the banner above the site header)",
+      "verdict": "verified"
+    },
+    {
+      "id": "home-mail-reserve-005",
+      "source": "site/src/components/MailReserveBanner.astro",
+      "exactWording": "Free to reserve.",
+      "subject": "Blanc Mail address reservations (the banner above the site header; hidden on phones)",
       "verdict": "verified"
     }
   ]
