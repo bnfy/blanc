@@ -160,8 +160,10 @@ export async function proveRelaunch({fromVersion, toVersion, upgrade, resultsDir
     try {
       policy = await waitFor(() => policyPage.eval(`document.querySelector('policy-app')?.policyGroups_
         ?.find(group => group.id === 'chrome')?.policies.find(row => row.name === 'RelaunchFastIfOutdated')`),
-      row => row?.value === 1 && row.source === 'platform' && row.level === 'mandatory' && row.scope === 'machine' &&
-        !row.error && !row.ignored, 'active managed RelaunchFastIfOutdated policy');
+      // chrome://policy keeps the C++ enums as numbers (policy_types.h):
+      // POLICY_LEVEL_MANDATORY and POLICY_SCOPE_MACHINE are both 1.
+      row => row?.value === 1 && row.source === 'platform' && row.level === 1 && row.scope === 1 &&
+        row.status === 'OK' && !row.error && !row.ignored, 'active managed RelaunchFastIfOutdated policy');
     } finally {
       policyPage.close();
       await before.browser.send('Target.closeTarget', {targetId: policyTab.targetId});
