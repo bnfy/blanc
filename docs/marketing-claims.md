@@ -685,6 +685,12 @@ original reports:
   passkey fix with Windows Hello or on real sites, or closed a real Proxmox
   console window, so don't claim any of these beyond what the notes say.
   Describe all of it as since v1.52.0.
+- **Favorites shortcut on the Mac:** Through v1.52.0, ⌥⌘B on the Mac turns
+  Auto-hide the Island on or off and never opens Favorites, because both
+  were bound to it and Auto-hide's handler won (bnfy/blanc#1737 moves
+  Auto-hide to ⇧⌘B on the Mac, unreleased). Until a release ships that fix,
+  don't tell Mac users a key opens Favorites: say **Favorites → Show
+  Favorites**, or `/favorites`. Ctrl+Shift+O on Windows and Linux works.
 - **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
   (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
   strip so the page fills the window. Pointing at or just above the top edge,
