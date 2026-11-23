@@ -17,8 +17,8 @@ const ledger = JSON.parse(read(`docs/website-blanc-beta-linux-${linux.version}-c
 const page = read('site/src/pages/download.astro');
 
 const section = () => {
-  const start = page.indexOf('<article class="dl-tile dl-tile--beta dl-tile--beta-linux" id="beta-linux"');
-  assert.ok(start > 0, 'the Download page has the Blanc Beta for Linux tile');
+  const start = page.indexOf('<article class="dl-beta-row dl-beta-row--linux" id="beta-linux"');
+  assert.ok(start > 0, 'the Download page has the Blanc Beta for Linux row');
   return page.slice(start, page.indexOf('</article>', start));
 };
 const releaseDay = new Date(`${linux.published}T00:00:00Z`)
@@ -63,14 +63,21 @@ test('the data and ledger name the same published Linux pre-release', () => {
 
 test('each package button goes through its own counted /dl route to its own asset', async () => {
   const tile = section();
-  const buttons = [...tile.matchAll(/<a class="dl-tile-button" href="\/dl\/beta-linux-(x64|arm64)-(deb|rpm)" data-download-link data-track="download_click" data-platform="beta-linux-\1-\2" data-cta-position="beta-linux">[\s\S]*?\/>([^<]+)<\/a>/g)];
-  assert.deepEqual(buttons.map((m) => [m[1], m[2], m[3]]), [
+  // An x64 / arm64 switch shows that architecture's .deb and .rpm; each button
+  // names its architecture for screen readers.
+  const buttons = [...tile.matchAll(/<li data-arch="(x64|arm64)"><a class="dl-tile-button" href="\/dl\/beta-linux-\1-(deb|rpm)" data-download-link data-track="download_click" data-platform="beta-linux-\1-\2" data-cta-position="beta-linux"><span class="dl-pkg-arch">\1 <\/span>(\.\2)<\/a><\/li>/g)];
+  assert.deepEqual(buttons.map((m) => [m[1], m[2], `${m[1]} ${m[3]}`]), [
     ['x64', 'deb', 'x64 .deb'], ['x64', 'rpm', 'x64 .rpm'], ['arm64', 'deb', 'arm64 .deb'], ['arm64', 'rpm', 'arm64 .rpm'],
   ]);
   assert.doesNotMatch(tile, /href="https:\/\/github\.com\/[^"]*\.(?:deb|rpm)"/, 'packages are never linked around the counter');
   const dl = await import('../../cloudflare/ping-worker/src/dl.js');
   const targets = linux.packages.map((p) => `beta-linux-${p.arch}-${p.format}`);
   assert.deepEqual(Object.keys(dl.BETA_LINUX_DOWNLOADS).sort(), targets.toSorted());
+  assert.match(tile, /<input type="radio" name="dl-beta-linux-arch" id="dl-beta-linux-x64" value="x64" checked \/>/, 'x64 shows without scripting');
+  const css = read('site/src/styles/site.css');
+  assert.match(css, /@supports not selector\(:has\(\*\)\) \{\n  \.dl-beta-arch \{ display: none; \}/, 'without :has() all four packages show, named');
+  assert.ok(css.includes('.dl-beta-row--linux:has(#dl-beta-linux-x64:checked) .dl-linux-packages [data-arch="arm64"]'), 'x64 hides the arm64 packages');
+  assert.ok(css.includes('.dl-beta-row--linux:has(#dl-beta-linux-arm64:checked) .dl-linux-packages [data-arch="x64"]'), 'arm64 hides the x64 packages');
   for (const p of linux.packages) {
     const target = `beta-linux-${p.arch}-${p.format}`;
     assert.ok(dl.DL_TARGETS.has(target), target);
@@ -119,15 +126,15 @@ test('the repository commands are the manual guide’s, with Blanc’s address a
   assert.match(tile, /<a href=\{betaLinux\.manualSetup\.guideUrl\} target="_blank" rel="noopener">/);
 });
 
-test('it follows the Windows beta, spans the row, and is never one of the platform choices', () => {
+test('it follows the Windows beta, its panel spans the row, and it is never one of the platform choices', () => {
   const chooser = page.slice(page.indexOf('data-download-chooser'), page.indexOf('class="dl-version"'));
   assert.doesNotMatch(chooser, /beta-linux|Blanc Beta for Linux/);
   const tiles = page.slice(page.indexOf('id="download-more"'));
   assert.ok(tiles.indexOf('id="beta-windows"') < tiles.indexOf('id="beta-linux"'));
-  assert.ok(tiles.indexOf('id="beta-linux"') < tiles.indexOf('id="iphone"'));
+  assert.ok(tiles.indexOf('id="beta-linux"') < tiles.indexOf('id="beta-iphone"'));
   const css = read('site/src/styles/site.css');
-  assert.match(css, /\.dl-tile--beta-linux \{ grid-column: 1 \/ -1;/);
-  assert.match(section(), /<a href=\{betaLinux\.releaseUrl\} target="_blank" rel="noopener">Release notes/);
+  assert.match(css, /\.dl-betas \{ grid-column: 1 \/ -1;/);
+  assert.match(section(), /<a class="dl-beta-notes" href=\{betaLinux\.releaseUrl\} target="_blank" rel="noopener">Release notes/);
 });
 
 test('the update wording promises what the release proved, and no more', () => {

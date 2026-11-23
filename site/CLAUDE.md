@@ -308,17 +308,30 @@ changelog refresh is also when a shipped command comes off it.
 asked for far fewer words. One button for the visitor's system sits under a
 Mac / Windows / Linux / iPhone segmented control (radios that switch the
 panels in CSS, so it works without scripting; `src/scripts/download-switcher.js`
-only preselects the system). Below come five tiles (the Mac Blanc Beta first
-and Blanc Beta for Windows beside it, both in dark ink, added November 21,
-2026; Blanc Beta for Linux under them across the whole row, added for
-158.0.8127.906; then iPhone and iPad, and Homebrew, two by two) and one line
-of facts. Keep every `/dl/*`
+only preselects the system). The Mac panel has two quiet tabs, Download and
+Homebrew (owner, November 23, 2026): two more radios swap the download
+(button, requirement and the Intel link, which must stay a direct child of
+`[data-download-options]` for `site.js` to reveal it) and the Homebrew
+command with its Copy button, in panes that share one grid cell so the panel
+keeps its height. Below come the tiles and one line of facts. First, across the row in dark
+ink, the **Betas** panel (owner, November 23, 2026: compact cards that
+expand): one row each for Blanc Beta for Mac, Windows and Linux, showing the
+platform, its beta or build number and Chromium major version and its
+download, every row closed until its Details (`<details>`, so it works
+without scripting) opens the full versions, the requirement and release day,
+what isn't in the beta yet and the release notes; Linux shows an x64 / arm64
+switch (two radios, CSS `:has()`) beside .deb and .rpm buttons; then rows
+without details for the iPhone and iPad TestFlight beta and the Android beta
+signup. The iPhone and iPad and Homebrew tiles were removed on November 23,
+2026: the App Store button stays in the iPhone tab, and Homebrew moved into the
+Mac panel. Keep every `/dl/*`
 link, the `#download-options` anchor the rest of the site links to, the
 measurement disclosure before the tiles, the phone note and the iCloud
 Keychain limitation. Every piece of text is recorded in
-`docs/website-download-redesign-2026-11-14-claims.json` (the beta tiles in
-`docs/website-blanc-beta-<version>-claims.json` and
-`docs/website-blanc-beta-windows-<version>-claims.json`; `/dl/beta-win` and
+`docs/website-download-redesign-2026-11-14-claims.json` (the Betas panel's heading and sentence and its Mac row in
+`docs/website-blanc-beta-<version>-claims.json`, which records the beta and
+Chromium lines twice because they show in the row and in its details; the
+Windows row in `docs/website-blanc-beta-windows-<version>-claims.json`; `/dl/beta-win` and
 `site/src/data/blanc-beta-windows.json` are updated by hand for each Windows
 beta, and `test/unit/site-blanc-beta-windows.test.js` keeps them equal; the
 Linux tile's sentences are in `docs/website-blanc-beta-linux-<version>-claims.json`,

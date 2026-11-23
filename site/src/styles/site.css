@@ -1189,7 +1189,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .dl-switch label:active { transform: scale(0.97); }
 
 /* One panel at a time; it arrives with a short rise. */
-.dl-panels { display: grid; width: 100%; margin-top: 30px; }
+.dl-panels { display: grid; grid-template-columns: minmax(0, 1fr); width: 100%; margin-top: 30px; }
 .dl-panel { grid-area: 1 / 1; display: none; flex-direction: column; align-items: center; }
 #dl-os-mac:checked ~ .dl-panels .dl-panel[data-os="mac"],
 #dl-os-win:checked ~ .dl-panels .dl-panel[data-os="win"],
@@ -1210,15 +1210,41 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .dl-hint::before { content: ""; display: block; width: 28px; height: 1px; margin: 12px auto; background: var(--site-gold); opacity: 0.6; }
 .dl-hint code { padding: 1px 6px; border-radius: 6px; background: rgb(0 0 0 / 0.05); font-size: 13px; }
 .dl-hint a { color: var(--site-text); text-decoration-color: var(--site-gold); text-underline-offset: 3px; }
+/* The Mac panel's two ways to install (owner, 2026-11-23): Download and
+   Homebrew as quiet text tabs above two panes that share one grid cell, so the
+   panel keeps its height when they switch. Radios, so no scripting is needed. */
+.dl-method { display: flex; flex-direction: column; align-items: center; width: 100%; }
+.dl-method-radio { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.dl-method-tabs { display: flex; gap: 24px; margin-bottom: 20px; font-size: 14px; }
+.dl-method-tabs label { padding-bottom: 4px; border-bottom: 1.5px solid transparent; color: var(--site-text-dim); cursor: pointer; transition: color 0.18s ease, border-color 0.18s ease; -webkit-tap-highlight-color: transparent; }
+.dl-method-tabs label:hover { color: var(--site-text); }
+#dl-mac-method-dmg:checked ~ .dl-method-tabs label[for="dl-mac-method-dmg"],
+#dl-mac-method-brew:checked ~ .dl-method-tabs label[for="dl-mac-method-brew"] { border-bottom-color: var(--site-gold); color: var(--site-text); }
+#dl-mac-method-dmg:focus-visible ~ .dl-method-tabs label[for="dl-mac-method-dmg"],
+#dl-mac-method-brew:focus-visible ~ .dl-method-tabs label[for="dl-mac-method-brew"] { outline: 2px solid var(--site-gold); outline-offset: 4px; border-radius: 2px; }
+.dl-method-panes { display: grid; grid-template-columns: minmax(0, 1fr); width: 100%; }
+.dl-method-pane { grid-area: 1 / 1; display: flex; min-width: 0; flex-direction: column; align-items: center; visibility: hidden; }
+#dl-mac-method-dmg:checked ~ .dl-method-panes .dl-method-pane[data-method="dmg"],
+#dl-mac-method-brew:checked ~ .dl-method-panes .dl-method-pane[data-method="brew"] { visibility: visible; animation: dl-panel-in 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+/* The button on its own line, then the requirement and, once site.js shows it,
+   the Intel link on one centred line. */
+.dl-actions--mac { column-gap: 0; row-gap: 16px; }
+.dl-actions-break { flex-basis: 100%; height: 0; }
+.dl-actions--mac .dl-meta { margin: 0; }
+.dl-actions--mac:has(.dl-alt:not([hidden])) .dl-meta::after { content: "·"; margin: 0 0.3em; }
+.dl-actions--mac .dl-alt { font-size: 14px; text-underline-offset: 3px; }
+.dl-brew { display: inline-flex; align-items: center; gap: 14px; text-align: left; max-width: 100%; min-height: 56px; margin: 0; padding: 8px 8px 8px 22px; box-sizing: border-box; border-radius: 999px; background: var(--site-ink-warm); color: #F8F2E8; box-shadow: 0 12px 28px -14px rgb(18 16 11 / 0.6); }
+.dl-brew pre { min-width: 0; margin: 0; overflow-x: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; line-height: 1.5; white-space: pre; }
+.dl-brew .terminal-copy { padding: 7px 14px; }
+.dl-brew + .dl-meta { margin-top: 16px; }
 .dl-version { margin: 26px 0 0; color: var(--site-text-dim); font-family: var(--font-mono); font-size: 12px; }
 .dl-version a { color: inherit; text-decoration-color: var(--site-border); text-underline-offset: 3px; }
 .dl > .download-measurement { display: flex; align-items: center; justify-content: center; gap: 6px 14px; flex-wrap: wrap; margin: 40px 0 0; padding: 0; border: 0; color: var(--site-text-dim); font-size: 12px; }
 .dl > .download-measurement p { flex: 0 1 auto; max-width: 100%; margin: 0; text-wrap: balance; }
 .dl > .download-measurement button { min-height: 0; padding: 0; border: 0; background: none; color: var(--site-text); font: inherit; text-decoration: underline; text-decoration-color: var(--site-border); text-underline-offset: 3px; cursor: pointer; }
 
-/* Tiles: the Blanc Betas first and darkest, so they can't be missed; two by
-   two, the Mac and Windows betas above the wide Linux beta, then the iPhone and
-   Homebrew tiles. */
+/* Tiles: the Blanc Betas, darkest, so they can't be missed (one panel across
+   the row). */
 .dl-more { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 88px; }
 .dl-tile { position: relative; display: flex; flex-direction: column; align-items: flex-start; min-height: 340px; padding: 30px 28px 28px; overflow: hidden; border: 1px solid var(--site-border); border-radius: 24px; background: var(--site-surface); }
 .dl-tile h2 { margin: 0; font-family: var(--site-font-display); font-size: 30px; font-weight: 400; letter-spacing: 0; line-height: 1.1; }
@@ -1229,24 +1255,72 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .dl-tile--beta .dl-tile-label, .dl-tile--beta > p:not([class]), .dl-tile--beta .dl-tile-meta { color: rgb(248 242 232 / 0.66); }
 .dl-tile--beta .dl-tile-label { color: var(--site-gold-on-dark); }
 .dl-tile--beta .dl-tile-meta { margin-top: 18px; line-height: 1.6; }
+/* The Blanc Betas (owner, 2026-11-23: compact cards that expand): one dark panel,
+   one row per platform, like a release list. A row shows the platform, its beta
+   and Chromium, and its download; its <details> opens the full versions, the
+   requirement, what isn't in the beta yet and the release notes. Every row
+   starts closed. */
+.dl-betas { grid-column: 1 / -1; display: block; min-height: 0; padding: 30px 28px 6px; }
+.dl-betas-head { padding-bottom: 22px; }
+.dl-betas-head > p:not([class]) { margin: 12px 0 0; color: rgb(248 242 232 / 0.66); font-size: 15px; line-height: 1.5; }
+.dl-beta-row { position: relative; border-top: 1px solid rgb(248 242 232 / 0.14); }
+.dl-beta-line { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: start; gap: 16px; min-height: 44px; padding: 16px 52px 16px 0; }
+.dl-beta-logo { display: grid; place-items: center; width: 40px; height: 40px; margin-top: 2px; border-radius: 12px; background: rgb(248 242 232 / 0.08); }
+.dl-beta-logo .platform-logo { width: 17px; height: 19px; fill: #F8F2E8; }
+.dl-beta-name h3 { margin: 0; font-family: var(--font-brand-text); font-size: 17px; font-weight: 500; line-height: 1.3; }
+.dl-beta-brief { display: flex; flex-wrap: wrap; margin: 3px 0 0; color: rgb(248 242 232 / 0.66); font-family: var(--font-mono); font-size: 12px; }
+.dl-beta-brief span + span::before { content: "·"; margin: 0 6px; }
+.dl-beta-line .dl-tile-button { margin-top: 0; padding: 9px 18px; font-size: 14px; white-space: nowrap; }
+.dl-beta-linux { display: flex; align-items: center; gap: 8px; }
+/* Everything in a row lines up on its first 44px line, where the Details arrow
+   sits, even when the name wraps. */
+.dl-beta-line > .dl-tile-button, .dl-beta-linux { margin-top: 3px; }
+/* Each package button names its architecture to screen readers; where :has()
+   can't drive the x64 / arm64 switch, all four show with their architecture
+   and the switch goes. */
+@supports selector(:has(*)) {
+  .dl-pkg-arch { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+}
+@supports not selector(:has(*)) {
+  .dl-beta-arch { display: none; }
+}
+.dl-beta-arch { display: inline-flex; padding: 3px; border-radius: 999px; background: rgb(248 242 232 / 0.08); }
+.dl-beta-arch input { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.dl-beta-arch label { padding: 6px 12px; border-radius: 999px; color: rgb(248 242 232 / 0.66); font-size: 13px; cursor: pointer; transition: background 0.18s ease, color 0.18s ease; }
+.dl-beta-arch input:checked + label { background: rgb(248 242 232 / 0.16); color: #F8F2E8; }
+.dl-beta-arch input:focus-visible + label { outline: 2px solid var(--site-gold-on-dark); outline-offset: 1px; }
+.dl-linux-packages { display: flex; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.dl-beta-row--linux:has(#dl-beta-linux-x64:checked) .dl-linux-packages [data-arch="arm64"],
+.dl-beta-row--linux:has(#dl-beta-linux-arm64:checked) .dl-linux-packages [data-arch="x64"] { display: none; }
+.dl-beta-more > summary { position: absolute; top: 20px; right: 0; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: rgb(248 242 232 / 0.08); color: #F8F2E8; cursor: pointer; list-style: none; transition: background 0.18s ease; }
+.dl-beta-more > summary::-webkit-details-marker { display: none; }
+.dl-beta-more > summary:hover { background: rgb(248 242 232 / 0.16); }
+.dl-beta-more > summary:focus-visible { outline: 2px solid var(--site-gold-on-dark); outline-offset: 2px; }
+.dl-beta-more > summary svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+.dl-beta-more[open] > summary svg { transform: rotate(180deg); }
+.dl-beta-detail { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 48px; padding: 4px 0 26px 56px; }
+.dl-beta-detail .dl-tile-meta { margin: 0; color: rgb(248 242 232 / 0.66); line-height: 1.6; }
+.dl-beta-facts { min-width: 0; color: rgb(248 242 232 / 0.66); font-size: 14px; }
+.dl-beta-facts > p:not([class]) { margin: 12px 0 0; line-height: 1.5; }
+.dl-beta-sub { margin: 20px 0 0; color: var(--site-gold-on-dark); font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; }
+.dl-beta-facts ul { display: grid; gap: 4px; margin: 8px 0 0; padding-left: 18px; font-size: 13.5px; line-height: 1.5; }
+.dl-beta-notes { display: inline-block; margin-top: 12px; color: #F8F2E8; font-size: 13.5px; text-decoration-color: var(--site-gold-on-dark); text-underline-offset: 3px; }
+/* The row opens smoothly where the browser can animate to auto height. */
+@supports (interpolate-size: allow-keywords) {
+  .dl-beta-more { interpolate-size: allow-keywords; }
+  .dl-beta-more::details-content { block-size: 0; overflow: hidden; transition: block-size 0.38s cubic-bezier(0.22, 1, 0.36, 1), content-visibility 0.38s allow-discrete; }
+  .dl-beta-more[open]::details-content { block-size: auto; }
+}
 /* The beta's number and its Chromium as large figures, each over a caption and
    its full version (owner, 2026-11-15). The figure leads visually; the caption
    stays first in the markup so it reads "Beta 6". */
-.dl-beta-versions { display: flex; margin: 24px 0 0; }
+.dl-beta-versions { display: flex; align-self: start; margin: 0; }
 .dl-beta-versions > div { display: flex; flex-direction: column; padding: 0 24px; border-left: 1px solid rgb(248 242 232 / 0.16); }
 .dl-beta-versions > div:first-child { padding-left: 0; border-left: 0; }
 .dl-beta-versions dt { order: 2; margin-top: 10px; color: rgb(248 242 232 / 0.66); font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; }
 .dl-beta-versions dd { order: 3; margin: 4px 0 0; color: rgb(248 242 232 / 0.86); font-family: var(--font-mono); font-size: 12px; }
-.dl-beta-versions .dl-beta-figure { order: 1; margin: 0; color: #F8F2E8; font-family: var(--site-font-display); font-size: 64px; font-variant-numeric: lining-nums; line-height: 0.9; }
+.dl-beta-versions .dl-beta-figure { order: 1; margin: 0; color: #F8F2E8; font-family: var(--site-font-display); font-size: 56px; font-variant-numeric: lining-nums; line-height: 0.9; }
 .dl-beta-versions > div:first-child .dl-beta-figure { color: var(--site-gold-on-dark); }
-/* Sized by the tile, not the window: it is narrowest in the three-column row
-   just above 900px and on phones. */
-.dl-tile--beta { container-type: inline-size; }
-@container (max-width: 290px) {
-  .dl-beta-versions > div { padding: 0 16px; }
-  .dl-beta-versions dd { font-size: 11.5px; }
-  .dl-beta-versions .dl-beta-figure { font-size: 48px; }
-}
 .dl-tile-button { display: inline-flex; align-items: center; gap: 8px; margin-top: auto; padding: 12px 22px; border-radius: 999px; background: #F8F2E8; color: var(--site-ink-warm); font-size: 15px; font-weight: 500; text-decoration: none; transition: background 0.18s ease, transform 0.1s ease-out; }
 .dl-tile-button:is(:hover, :focus-visible) { background: var(--site-gold-on-dark); }
 .dl-tile-button:active { transform: scale(0.97); }
@@ -1256,30 +1330,14 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .dl-notyet summary::-webkit-details-marker { display: none; }
 .dl-notyet summary::after { content: " +"; }
 .dl-notyet[open] summary::after { content: " −"; }
-.dl-notyet ul { display: grid; gap: 4px; margin: 10px 0 0; padding-left: 18px; line-height: 1.5; }
 .dl-notyet a { display: inline-block; margin-top: 8px; color: #F8F2E8; text-decoration-color: var(--site-gold-on-dark); text-underline-offset: 3px; }
-/* Blanc Beta for Linux: one wide tile under the Mac and Windows betas, the
-   download on the left and how updates work on the right. */
-.dl-tile--beta-linux { grid-column: 1 / -1; flex-direction: row; align-items: stretch; gap: 48px; }
-.dl-linux-main { display: flex; flex: 1 1 0; flex-direction: column; align-items: flex-start; min-width: 0; }
-.dl-linux-more { flex: 1.15 1 0; min-width: 0; padding-top: 30px; }
-.dl-linux-main > p:not([class]), .dl-linux-more > p { margin: 12px 0 0; color: rgb(248 242 232 / 0.66); font-size: 15px; line-height: 1.5; }
-.dl-linux-more > p:first-child { margin-top: 0; }
-.dl-linux-packages { display: grid; grid-template-columns: repeat(2, max-content); gap: 10px; margin: 0; padding: 0; list-style: none; }
-.dl-linux-packages .dl-tile-button { justify-content: center; width: 100%; margin-top: 0; }
-.dl-linux-hint { margin: 12px 0 0; color: rgb(248 242 232 / 0.66); font-family: var(--font-mono); font-size: 12px; }
-.dl-tile--beta-linux .dl-notyet { margin-top: 18px; }
+.dl-linux-manual { margin-top: 16px; }
+.dl-linux-manual summary { color: #F8F2E8; font-family: var(--font-brand-text); font-size: 13.5px; text-decoration: underline; text-decoration-color: var(--site-gold-on-dark); text-underline-offset: 3px; }
+.dl-linux-manual summary::after { content: none; }
 .dl-linux-manual p { margin: 14px 0 8px; line-height: 1.5; }
 .dl-linux-manual p code { padding: 1px 6px; border-radius: 6px; background: rgb(248 242 232 / 0.08); color: #F8F2E8; font-size: 12.5px; }
 .dl-linux-code { display: flex; align-items: flex-start; gap: 12px; padding: 14px 14px 14px 16px; border-radius: 12px; background: rgb(248 242 232 / 0.06); color: #F8F2E8; }
 .dl-linux-code pre { flex: 1; min-width: 0; margin: 0; overflow-x: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; line-height: 1.5; white-space: pre; }
-.dl-tile-link { margin-top: 18px; color: var(--site-text); font-size: 15px; font-weight: 500; text-decoration: underline; text-decoration-color: var(--site-gold); text-underline-offset: 4px; }
-.dl-tile--iphone { padding-bottom: 0; }
-.dl-tile-phone { align-self: center; width: 62%; height: 150px; margin: auto 0 0; padding-top: 22px; overflow: hidden; }
-.dl-tile-phone img { display: block; width: 100%; height: auto; border: 5px solid rgb(32 26 18 / 0.1); border-bottom: 0; border-radius: 30px 30px 0 0; }
-.dl-tile--brew .terminal-window { align-self: stretch; margin-top: auto; }
-.dl-tile--brew .terminal-body { flex-wrap: wrap; gap: 12px; padding: 18px 16px 18px 18px; }
-.dl-tile--brew .terminal-body pre { flex: 1 1 100%; overflow: visible; font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* Facts: one line. */
 .dl-facts { margin-top: 56px; color: var(--site-text-dim); font-size: 13px; text-align: center; }
@@ -1289,29 +1347,33 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .dl-facts p:last-child { font-family: var(--font-mono); font-size: 12px; }
 .dl-facts p a { color: inherit; text-decoration-color: var(--site-border); text-underline-offset: 3px; }
 
-@media (max-width: 900px) {
-  .dl-more { grid-template-columns: 1fr 1fr; }
-  .dl-tile--beta { grid-column: 1 / -1; min-height: 0; }
-  .dl-tile--beta .dl-tile-button { margin-top: 0; }
-  .dl-tile--beta-linux { flex-direction: column; gap: 0; }
-  .dl-linux-more { padding-top: 24px; }
+@media (max-width: 720px) {
+  .dl-beta-detail { grid-template-columns: minmax(0, 1fr); gap: 22px; padding-left: 0; }
 }
 @media (max-width: 600px) {
   .dl { padding: 36px 18px 72px; }
   .dl-icon { width: 96px; height: 96px; }
   .dl-switch label { gap: 0; font-size: 13px; }
   .dl-switch label .platform-logo { display: none; }
+  .dl-brew { padding-left: 16px; border-radius: 18px; }
+  .dl-brew pre { font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
   .dl-more { grid-template-columns: 1fr; margin-top: 64px; }
   .dl-tile { min-height: 0; }
   .dl-tile-button { margin-top: 0; }
-  .dl-tile--brew .terminal-window { margin-top: 22px; }
+  .dl-betas { padding: 26px 20px 4px; }
+  .dl-beta-line { grid-template-columns: 40px minmax(0, 1fr); }
+  .dl-beta-line > .dl-tile-button, .dl-beta-linux { grid-column: 1 / -1; justify-self: start; }
+  .dl-beta-versions .dl-beta-figure { font-size: 48px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .dl-switch-pill { transition: none; }
+  #dl-mac-method-dmg:checked ~ .dl-method-panes .dl-method-pane[data-method="dmg"],
+  #dl-mac-method-brew:checked ~ .dl-method-panes .dl-method-pane[data-method="brew"] { animation: none; }
   #dl-os-mac:checked ~ .dl-panels .dl-panel[data-os="mac"],
   #dl-os-win:checked ~ .dl-panels .dl-panel[data-os="win"],
   #dl-os-linux:checked ~ .dl-panels .dl-panel[data-os="linux"],
   #dl-os-iphone:checked ~ .dl-panels .dl-panel[data-os="iphone"],
   #dl-os-android:checked ~ .dl-panels .dl-panel[data-os="android"] { animation: none; }
   .dl-button:active, .dl-tile-button:active, .dl-switch label:active { transform: none; }
+  .dl-beta-more::details-content, .dl-beta-more > summary svg { transition: none; }
 }

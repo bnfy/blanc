@@ -13,26 +13,31 @@
       "The Download page's Linux tile offers both packages for each architecture and the commands of chromium/linux/manual-repository.md (L3 plan); its update wording says 'offered', never 'installed automatically' (L3 plan decision 5, spec section 3).",
       "Public copy names only the systems a gate ran on, and says KDE and x64 desktops weren't checked by eye (spec sections 1 and 2).",
       "The update wording doesn't promise that the desktop's graphical updater lists Blanc's updates: Ubuntu 26.04's App Center doesn't list them until the repository publishes DEP-11 metadata (chromium/linux/hand-checks-l3.md).",
-      "Each package has its own counted blanc-ping route, /dl/beta-linux-<arch>-<format> (owner, 2026-11-23), answering with that package on the pre-release, like /dl/beta and /dl/beta-win."
+      "Each package has its own counted blanc-ping route, /dl/beta-linux-<arch>-<format> (owner, 2026-11-23), answering with that package on the pre-release, like /dl/beta and /dl/beta-win.",
+      "Compact release list (owner, 2026-11-23): the three betas share one dark panel across the row, headed Preview, Betas and one sentence, recorded in the Mac beta's ledger, so this row no longer repeats them; each beta is one row with its platform, its build number and Chromium major version and its download, and a Details control (closed by default) opens the full versions, the requirement and release day, what isn't in the beta yet and the release notes. The build number and Chromium lines appear twice, in the row and in the opened details, so they are recorded twice. The four packages become an x64 / arm64 switch beside a .deb and an .rpm button: each button is still its own counted /dl/beta-linux-<arch>-<format> link, named in full for screen readers (x64 .deb, and so on)."
     ]
   },
   "page": "site/src/pages/download.astro#beta-linux",
   "claims": [
     {
-      "text": "Preview",
+      "text": "Linux",
       "kind": "label"
     },
     {
-      "text": "Blanc Beta for Linux",
+      "text": "Build 906",
+      "evidence": "linux-release.json build 906; the version's last number."
+    },
+    {
+      "text": "Chromium 158",
+      "evidence": "The fork's pinned Chromium 158.0.8127.2 (chromium/reports/l3-linux.json chromiumVersion); the beta replaces only its last number with its build."
+    },
+    {
+      "text": "x64",
       "kind": "label"
     },
     {
-      "text": "Blanc built directly on Chromium, for Linux.",
-      "evidence": "The release is built from the fork's Chromium 158 tree (linux-release.json sourceCommit a52e29005, candidates linux-x64-400b354c5624ec89 and linux-arm64-4834316238c1f96d); the approved release notes say the same."
-    },
-    {
-      "text": "It installs beside Blanc and never replaces it.",
-      "evidence": "Its own package name (blanc-beta), install folder (/opt/bnfy/blanc-beta) and data folder (~/.config/blanc-beta); the release notes say the regular Blanc and its data are left untouched, and the update proof and verify-public legs (45103487653, 45108455963) install it from packages alone."
+      "text": "arm64",
+      "kind": "label"
     },
     {
       "text": "Build 906",
@@ -73,6 +78,10 @@
     {
       "text": "arm64 .rpm",
       "evidence": "Links to blanc-beta-158.0.8127.906-1.aarch64.rpm on the release (140540729 bytes, SHA-256 6ba06bdb…, in SHA256SUMS and RELEASE-MANIFEST.json)."
+    },
+    {
+      "text": "Details",
+      "kind": "label"
     },
     {
       "text": "Use the .deb on Debian and Ubuntu, the .rpm on Fedora.",
@@ -146,6 +155,11 @@
   "commands": {
     "source": "chromium/linux/manual-repository.md at 07f74ae01db4cdf0947c3236315dc1ee893dc111 on chromium/next",
     "note": "The page shows four of the guide's command blocks verbatim, each with a Copy button that appears only with scripting; site/src/data/blanc-beta-linux.json holds them, and test/unit/site-blanc-beta-linux.test.js checks they keep Blanc's repository address and key fingerprint.",
-    "blocks": ["optOut", "key", "deb", "rpm"]
+    "blocks": [
+      "optOut",
+      "key",
+      "deb",
+      "rpm"
+    ]
   }
 }
