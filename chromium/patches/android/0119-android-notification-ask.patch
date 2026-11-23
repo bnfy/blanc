@@ -81,7 +81,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/incognito/Incogn
 diff -ruN a/chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java b/chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java
 --- a/chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java
 +++ b/chrome/browser/notifications/android/java/src/org/chromium/chrome/browser/notifications/permissions/NotificationPermissionController.java
-@@ -260,14 +260,10 @@
+@@ -306,14 +306,10 @@
              return PermissionRequestMode.DO_NOT_REQUEST;
          }
  
@@ -100,7 +100,7 @@ diff -ruN a/chrome/browser/notifications/android/java/src/org/chromium/chrome/br
      }
  
      /**
-@@ -432,13 +428,6 @@
+@@ -479,13 +475,6 @@
          return TimeUnit.DAYS.toMillis(delayDays);
      }
  

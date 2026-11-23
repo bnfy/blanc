@@ -1,7 +1,7 @@
 diff -ruN a/chrome/android/BUILD.gn b/chrome/android/BUILD.gn
 --- a/chrome/android/BUILD.gn
 +++ b/chrome/android/BUILD.gn
-@@ -142,24 +142,28 @@
+@@ -119,24 +119,28 @@
        "java/res_base/font/chrome_google_sans_text_medium.xml",
        "java/res_base/values/values.xml",
        "java/res_base/xml/network_security_config.xml",
@@ -48,7 +48,7 @@ diff -ruN a/chrome/android/BUILD.gn b/chrome/android/BUILD.gn
      ]
    }
  
-@@ -1803,24 +1807,28 @@
+@@ -1813,24 +1817,28 @@
    android_resources("chrome_public_apk_base_module_resources") {
      resource_overlay = true
      sources = [
@@ -95,17 +95,6 @@ diff -ruN a/chrome/android/BUILD.gn b/chrome/android/BUILD.gn
      ]
  
      # Dep needed to ensure override works properly.
-diff -ruN a/chrome/android/java/res_base/drawable/ic_launcher_round.xml b/chrome/android/java/res_base/drawable/ic_launcher_round.xml
---- a/chrome/android/java/res_base/drawable/ic_launcher_round.xml
-+++ b/chrome/android/java/res_base/drawable/ic_launcher_round.xml
-@@ -7,6 +7,6 @@
- 
- <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android" >
-     <background android:drawable="@mipmap/layered_app_icon_background"/>
--    <foreground android:drawable="@mipmap/layered_app_icon_foreground"/>
-+    <foreground android:drawable="@mipmap/layered_app_icon"/>
-     <monochrome android:drawable="@drawable/themed_app_icon"/>
- </adaptive-icon>
 diff -ruN a/chrome/android/java/res_base/drawable/ic_launcher.xml b/chrome/android/java/res_base/drawable/ic_launcher.xml
 --- a/chrome/android/java/res_base/drawable/ic_launcher.xml
 +++ b/chrome/android/java/res_base/drawable/ic_launcher.xml
@@ -116,5 +105,16 @@ diff -ruN a/chrome/android/java/res_base/drawable/ic_launcher.xml b/chrome/andro
 -    <background android:drawable="@android:color/white"/>
 +    <background android:drawable="@mipmap/layered_app_icon_background"/>
      <foreground android:drawable="@mipmap/layered_app_icon"/>
+     <monochrome android:drawable="@drawable/themed_app_icon"/>
+ </adaptive-icon>
+diff -ruN a/chrome/android/java/res_base/drawable/ic_launcher_round.xml b/chrome/android/java/res_base/drawable/ic_launcher_round.xml
+--- a/chrome/android/java/res_base/drawable/ic_launcher_round.xml
++++ b/chrome/android/java/res_base/drawable/ic_launcher_round.xml
+@@ -7,6 +7,6 @@
+ 
+ <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android" >
+     <background android:drawable="@mipmap/layered_app_icon_background"/>
+-    <foreground android:drawable="@mipmap/layered_app_icon_foreground"/>
++    <foreground android:drawable="@mipmap/layered_app_icon"/>
      <monochrome android:drawable="@drawable/themed_app_icon"/>
  </adaptive-icon>

@@ -1,8 +1,8 @@
 {
   "lane": "android",
   "channel": "stable",
-  "version": "156.0.8078.79",
-  "upstream": "a21ce95c24ce3964416f09ae1862f53f319eb4d0",
+  "version": "159.0.8154.18",
+  "upstream": "ee456dcc432646f3d9941126a2c0730fa223e098",
   "upstreamDir": "upstream-android",
   "sourceMap": "source-map-android.json",
   "fileCount": 60,
