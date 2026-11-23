@@ -483,3 +483,8 @@ test('offline CLI writes beta data beside release data and --check names it when
   assert.match(stale.stderr, /beta-releases\.json/);
   assert.doesNotMatch(stale.stderr, /- .*\/releases\.json/);
 });
+
+test('site:deploy refuses a changelog behind GitHub', () => {
+  const scripts = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).scripts;
+  assert.ok(scripts['site:deploy'].startsWith('npm run site:changelog:check && '), scripts['site:deploy']);
+});
