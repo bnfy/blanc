@@ -40,7 +40,9 @@ export function applyToLedger(text, data) {
   const lines = text.split('\n');
   const index = lines.findIndex((line) => line.includes(`"field": "${CLAIM_FIELD}"`));
   if (index === -1) throw new Error(`the Download ledger has no ${CLAIM_FIELD} claim`);
-  const [, indent, body, comma] = lines[index].match(/^(\s*)(\{.*\})(,?)$/);
+  const match = lines[index].match(/^(\s*)(\{.*\})(,?)$/);
+  if (!match) throw new Error(`the ${CLAIM_FIELD} claim must stay on one line of the Download ledger`);
+  const [, indent, body, comma] = match;
   const claim = JSON.parse(body);
   claim.exactWording = claimText(data);
   claim.evidence = `App Store Connect: build ${data.version} (${data.build}), uploaded ${data.uploaded} (UTC), is the newest build in testing (IN_BETA_TESTING, not expired) in the Public beta group, which the TestFlight link in ios-availability.json joins.`;
@@ -63,7 +65,7 @@ async function fetchRows(env) {
   const groups = await get(`/apps/${APP_ID}/betaGroups?limit=50`);
   const group = groups.data.find((g) => !g.attributes.isInternalGroup && g.attributes.publicLinkEnabled);
   if (!group) throw new Error('no public TestFlight group');
-  const builds = await get(`/builds?filter[betaGroups]=${group.id}&include=preReleaseVersion,buildBetaDetail&limit=200`);
+  const builds = await get(`/builds?filter[betaGroups]=${group.id}&sort=-uploadedDate&include=preReleaseVersion,buildBetaDetail&limit=200`);
   const included = new Map((builds.included || []).map((item) => [`${item.type}:${item.id}`, item]));
   return builds.data.map((b) => {
     const pre = included.get(`preReleaseVersions:${b.relationships?.preReleaseVersion?.data?.id}`);

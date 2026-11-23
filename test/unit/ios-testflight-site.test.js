@@ -35,3 +35,9 @@ test('only the TestFlight claim line changes, and the ledger stays valid JSON', 
   assert.ok(claim.evidence.includes('2099-12-31'));
   assert.equal(applyToLedger(applyToLedger(before, data), data), after, 'running twice changes nothing more');
 });
+
+test('a claim spread over several lines is refused with a clear message', async () => {
+  const { applyToLedger } = await load();
+  const text = '{\n  "claims": [\n    {\n      "field": "testflight-build",\n      "exactWording": ""\n    }\n  ]\n}\n';
+  assert.throws(() => applyToLedger(text, { version: '1.1', build: '202611220258', uploaded: '2026-11-22' }), /must stay on one line/);
+});

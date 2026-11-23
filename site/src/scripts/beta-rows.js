@@ -18,7 +18,7 @@ export function updatedText(published, now = new Date()) {
   return relative.format(-Math.floor(days / 365), 'year');
 }
 
-const INTERACTIVE = 'a, button, input, label, select, textarea, summary';
+const INTERACTIVE = 'a, button, input, label, select, textarea, summary, .dl-beta-arch, .dl-linux-packages';
 
 export function initBetaRows(root = document) {
   for (const time of root.querySelectorAll('time[data-beta-updated]')) {
@@ -35,7 +35,8 @@ export function initBetaRows(root = document) {
     if (!line || !details) continue;
     line.classList.add('dl-beta-line--toggle');
     line.addEventListener('click', (event) => {
-      if (event.target.closest(INTERACTIVE)) return;
+      // The second click of a double-click (selecting a word) changes nothing.
+      if (event.detail > 1 || event.target.closest(INTERACTIVE)) return;
       // Leave a text selection alone.
       if (String(globalThis.getSelection?.() ?? '')) return;
       details.open = !details.open;
