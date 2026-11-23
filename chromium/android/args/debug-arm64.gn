@@ -9,6 +9,9 @@ is_debug = false
 # work on a non-rooted Pixel (the outbound gate). It also skips the stable
 # channel's release-size manifest checks, which expect 32-bit variants.
 is_java_debug = true
+# Chromium 159 marks an APK debuggable only with wrap.sh on, so say it: `run-as` (every
+# emulator gate reads the app's files with it) needs a debuggable APK.
+debuggable_apks = true
 is_component_build = false
 symbol_level = 1
 # Run lint, Error Prone and bytecode checks inside the build. The default,
