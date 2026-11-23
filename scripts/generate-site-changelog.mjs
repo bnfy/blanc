@@ -438,9 +438,20 @@ function writeOutputs(data, outputDir = DEFAULT_OUTPUT_DIR) {
   return outputPaths(outputDir);
 }
 
+// A file's text, or null when it doesn't exist: one read, with no separate
+// existence check the file could change after.
+function readIfPresent(file) {
+  try {
+    return fs.readFileSync(file, 'utf8');
+  } catch (error) {
+    if (error.code === 'ENOENT') return null;
+    throw error;
+  }
+}
+
 function checkOutputs(data, outputDir = DEFAULT_OUTPUT_DIR) {
   return renderedOutputs(data, outputDir)
-    .filter(([file, text]) => !fs.existsSync(file) || fs.readFileSync(file, 'utf8') !== text)
+    .filter(([file, text]) => readIfPresent(file) !== text)
     .map(([file]) => file);
 }
 
