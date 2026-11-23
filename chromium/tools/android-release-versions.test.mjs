@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { NAME, nextRelease, tagFor, validateLedger } from '../android/release/versions.mjs';
+import { NAME, TAG, channelOf, stableOf, currentProduction, nextRelease, tagFor, validateLedger } from '../android/release/versions.mjs';
 
 const ledger = (...builds) => ({ schema: 1, builds });
 const entry = (versionCode, overrides = {}) => ({
@@ -74,14 +74,36 @@ test('every previous use of a retried version name must be abandoned', () => {
   assert.throws(() => nextRelease(ledger(first, second, third), first.versionName), /versionName.*abandoned/);
 });
 
-test('version helpers and the ledger reject names outside the Android beta format', () => {
-  assert.equal(NAME.source, /^1\.0\.0-beta\.[1-9]\d*$/.source);
+test('version helpers and the ledger reject names outside the stable and beta formats', () => {
+  assert.ok(NAME.test('1.0.0-beta.1') && NAME.test('1.0.0') && NAME.test('2.10.3') && NAME.test('1.1.0-beta.12'));
   assert.equal(tagFor('1.0.0-beta.12', 23), 'android-v1.0.0-beta.12-23');
-  for (const versionName of ['', '1.0.0', '2.0.0-beta.1', '1.0.0-beta.0', '1.0.0-beta.01', '1.0.0-beta.-1', '1.0.0-beta.1\n', null, 1]) {
-    assert.throws(() => tagFor(versionName, 1), /versionName/);
+  for (const versionName of ['', '1.0', '01.0.0', '0.1.0', '1.00.0', '1.0.00', '1.0.0-beta.0', '1.0.0-beta.01', '1.0.0-beta.-1',
+    '1.0.0-rc.1', '1.0.0-beta', 'v1.0.0', '1.0.0 ', '1.0.0-beta.1\n', null, 1]) {
+    assert.throws(() => tagFor(versionName, 1), /versionName/, String(versionName));
     assert.throws(() => nextRelease(ledger(), versionName), /versionName/);
     assert.throws(() => validateLedger(ledger(entry(1, { versionName }))), /versionName/);
   }
+});
+
+test('stable and beta names both make tags, and each knows its channel', () => {
+  assert.equal(tagFor('1.0.0', 6), 'android-v1.0.0-6');
+  assert.equal(tagFor('1.1.0-beta.1', 7), 'android-v1.1.0-beta.1-7');
+  assert.equal(channelOf('1.0.0'), 'stable');
+  assert.equal(channelOf('1.1.0-beta.2'), 'beta');
+  assert.equal(stableOf('1.1.0-beta.2'), '1.1.0');
+  assert.equal(stableOf('1.1.0'), '1.1.0');
+  assert.throws(() => channelOf('1.1'), /versionName/);
+  assert.deepEqual(TAG.exec('android-v1.1.0-beta.2-9').slice(1), ['1.1.0-beta.2', '9']);
+  assert.deepEqual(TAG.exec('android-v1.0.0-6').slice(1), ['1.0.0', '6']);
+  for (const tag of ['android-v1.0.0-beta-6', 'android-v1.0-6', 'android-v1.0.0-0', 'android-v1.0.0', 'xandroid-v1.0.0-6'])
+    assert.equal(TAG.exec(tag), null, tag);
+});
+
+test('a stable name follows the betas in one code sequence', () => {
+  const l = ledger(entry(1, { state: 'uploaded' }), entry(2, { versionName: '1.0.0', tag: 'android-v1.0.0-2', state: 'uploaded' }));
+  assert.equal(validateLedger(l), undefined);
+  assert.deepEqual(nextRelease(l, '1.1.0-beta.1'), { versionCode: 3, versionName: '1.1.0-beta.1', tag: 'android-v1.1.0-beta.1-3' });
+  assert.throws(() => nextRelease(l, '1.0.0'), /versionName.*abandoned/);
 });
 
 test('tagFor rejects codes that are not positive safe integers', () => {
@@ -134,4 +156,33 @@ test('ledger dates also accept canonical ISO timestamps', () => {
   for (const date of ['2026-02-30T12:34:56.789Z', '2026-11-15T12:34:56.789Z\n', '2026-11-15T12:34:56.789+00:00']) {
     assert.throws(() => validateLedger(ledger(entry(1, { date }))), /date/, date);
   }
+});
+
+const at = '2026-12-01T12:00:00.000Z';
+const pub = (track, status, extra = {}) => ({ track, status, date: at, editId: 'edit', ...extra });
+test('published entries record each track change on an uploaded build', () => {
+  const ok = ledger(entry(1, { state: 'uploaded', published: [pub('internal', 'draft'), pub('alpha', 'completed')] }),
+    entry(2, { versionName: '1.0.0', tag: 'android-v1.0.0-2', state: 'uploaded', published: [pub('production', 'inProgress', { fraction: 0.1 }), pub('production', 'halted', { fraction: 0.1 })] }));
+  assert.equal(validateLedger(ok), undefined);
+  for (const bad of [
+    { state: 'built', published: [pub('alpha', 'completed')] },
+    { state: 'uploaded', published: [pub('qa', 'completed')] },
+    { state: 'uploaded', published: [pub('alpha', 'rolling')] },
+    { state: 'uploaded', published: [pub('production', 'inProgress')] },
+    { state: 'uploaded', published: [pub('production', 'inProgress', { fraction: 1 })] },
+    { state: 'uploaded', published: [pub('alpha', 'completed', { fraction: 0.5 })] },
+    { state: 'uploaded', published: [pub('alpha', 'completed', { date: '2026-12-01' })] },
+    { state: 'uploaded', published: [pub('alpha', 'completed', { editId: '' })] },
+    { state: 'uploaded', published: {} },
+  ]) assert.throws(() => validateLedger(ledger(entry(1, bad))), /published/, JSON.stringify(bad));
+});
+test('currentProduction is the newest build whose production rollout is not halted', () => {
+  assert.equal(currentProduction(ledger(entry(1, { state: 'uploaded' }))), null);
+  const l = ledger(
+    entry(1, { versionName: '1.0.0', tag: 'android-v1.0.0-1', state: 'uploaded', published: [pub('production', 'completed')] }),
+    entry(2, { versionName: '1.0.1', tag: 'android-v1.0.1-2', state: 'uploaded', published: [pub('production', 'inProgress', { fraction: 0.2 }), pub('production', 'halted', { fraction: 0.2 })] }),
+    entry(3, { versionName: '1.1.0-beta.1', tag: 'android-v1.1.0-beta.1-3', state: 'uploaded', published: [pub('beta', 'completed')] }));
+  assert.deepEqual(currentProduction(l), { versionCode: 1, status: 'completed' });
+  l.builds[1].published.push(pub('production', 'inProgress', { fraction: 0.5 }));
+  assert.deepEqual(currentProduction(l), { versionCode: 2, status: 'inProgress', fraction: 0.5 });
 });
