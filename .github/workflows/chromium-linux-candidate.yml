@@ -311,7 +311,8 @@ jobs:
   verify-public:
     if: ${{ inputs.check == 'verify-public' }}
     name: verify-public (${{ matrix.system }}, ${{ matrix.arch }})
-    permissions: {}
+    permissions:
+      contents: read # Release metadata only; every download stays logged out.
     strategy:
       fail-fast: false
       matrix:
@@ -338,6 +339,10 @@ jobs:
           token: ''
           package-manager-cache: false
       - name: Authenticate every public asset
+        env:
+          # Only the three api.github.com metadata reads use it (on stdin);
+          # anonymous calls share the runner address's 60-an-hour limit.
+          GH_TOKEN: ${{ github.token }}
         run: |
           if ! command -v cosign >/dev/null; then
             # Build the upstream verifier if it is absent from this runner image.
@@ -924,7 +929,8 @@ jobs:
                   dnf install -y shadow-utils util-linux ca-certificates /usr/bin/curl gnupg2 openssl libatomic xdg-utils desktop-file-utils
                 else
                   apt-get update
-                  apt-get install -y --no-install-recommends passwd util-linux ca-certificates curl gnupg openssl libatomic1 xdg-utils desktop-file-utils
+                  # appstream makes apt fetch DEP-11 catalogs, as on Ubuntu desktops.
+                  apt-get install -y --no-install-recommends passwd util-linux ca-certificates curl gnupg openssl libatomic1 xdg-utils desktop-file-utils appstream
                 fi
                 useradd -m blanc-check
                 exec node /src/chromium/tests/linux-repo-lifecycle.mjs "$mode" /approved /signed blanc-check /results

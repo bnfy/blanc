@@ -16,8 +16,8 @@ const manifestFile = 'RELEASE-MANIFEST.json';
 const sums = 'SHA256SUMS', bundle = sums + '.sigstore.json';
 const origin = 'https://pkg.blanc.day';
 const read = file => fs.readFileSync(file, 'utf8');
-function runCommand(command, args) {
-  const result = spawnSync(command, args, {encoding: 'utf8', maxBuffer: 16 * 1024 * 1024,
+function runCommand(command, args, input) {
+  const result = spawnSync(command, args, {encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, input,
     env: {...process.env, LC_ALL: 'C'}});
   if (result.error) throw result.error;
   if (result.status !== 0) throw Error(command + ' failed: ' + (result.stdout + result.stderr).slice(-4000));
@@ -37,7 +37,13 @@ export function verifyPublicAssets(version, dir, run = runCommand) {
     .concat(['blanc-repository.asc', 'NOTICES.txt', 'linux-release.json']);
   const names = [...payload, manifestFile, sums, bundle];
   const curl = ['-q', '-fsSL', '--proto', '=https', '--proto-redir', '=https', '--retry', '2'];
-  const api = route => JSON.parse(run('curl', [...curl, 'https://api.github.com/repos/' + REPO + '/' + route]).stdout);
+  // Anonymous API calls share a 60-an-hour limit with everyone on the runner's
+  // address, which refused two jobs of the first public check with 403. The
+  // workflow token reads only the release's metadata, on stdin so it never
+  // appears in an argument list; every download below stays logged out.
+  const token = process.env.GH_TOKEN;
+  const api = route => JSON.parse(run('curl', [...curl, ...(token ? ['--header', '@-'] : []),
+    'https://api.github.com/repos/' + REPO + '/' + route], token ? 'Authorization: Bearer ' + token + '\n' : undefined).stdout);
   const view = api('releases/tags/' + tag);
   assert.equal(view.tag_name, tag);
   assert.equal(view.draft, false, 'the public release is still a draft');

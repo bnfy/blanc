@@ -1,8 +1,10 @@
 # Linux package repository
 
 Preview packages (`blanc-prototype`) use staging at `https://pkg-staging.blanc.day`.
-Only `blanc-beta` uses production at `https://pkg.blanc.day`. Both hosts are planned
-for L3. Until then, `apt update` warns on machines with a preview installed.
+Only `blanc-beta` uses production at `https://pkg.blanc.day`. Both hosts serve
+signed trees since November 22–23, 2026: staging took generation 906 first, and
+production published the same tree (digest `32459e866305910dad7bac5881b458580e4841f8b8a4c247477c166de25fce93`)
+with the first public Blanc Beta for Linux, 158.0.8127.906.
 
 | Source | Staging | Production |
 | --- | --- | --- |
@@ -102,6 +104,31 @@ blanc.day zone): `blanc-linux-packages-staging` and `blanc-linux-packages`.
 `chromium/linux/repository/worker/`. The Worker is bound as `PACKAGES` and serves
 `pkg-staging.blanc.day` and `pkg.blanc.day` as custom domains; until the first
 publication writes `current.json`, every path answers 404.
+
+## AppStream (DEP-11) metadata
+
+Ubuntu 26.04's App Center lists an apt update only when it can match the package to an
+AppStream component by package name, which comes from a repository's DEP-11 catalog. A
+package's own AppStream file names no package. Generation 906 had no catalog, so App Center hid
+Blanc's updates; with a local entry naming `Package: blanc-beta` it listed
+"Blanc Beta 905 → 906" ([VM check](hand-checks-l3.md#app-center-and-dep-11)). The owner decided
+on November 22, 2026 to publish it before the 158.0.8127.37 update.
+
+Each tree from then on carries `deb/dists/stable/main/dep11/Components-{amd64,arm64}.yml.gz`,
+listed and hashed in the signed `Release`, with `by-hash` copies like the `Packages` indexes.
+`dep11()` in `metadata.py` writes it from the package's own
+`usr/share/appdata/blanc-beta.appdata.xml` (component `blanc-beta.desktop`, its name, summary,
+description, developer, licence and https links, the installed `blanc-beta` icon and the desktop
+launchable). The runner builds it; the owner's index check rebuilds the same bytes from the
+approved `.deb` and refuses any difference, so the catalog says only what the signed package
+says. It changes no package and no client: once a tree with it is published, apt fetches it on
+any system with the `appstream` package (Ubuntu's desktop has it), and App Center lists the
+update for every existing install. The lifecycle check installs `appstream` on Debian and
+Ubuntu and requires apt to have fetched a catalog naming the package; `stageMetadata` captures
+it whenever the signed `Release` lists it. The repository Worker serves the new paths from
+the versions deployed on November 23, 2026 (staging `4fd3e641`, production `edbed54c`, from
+`chromium/next` 045092a18); both kept serving generation 906 unchanged, and apt in a clean
+Ubuntu 24.04 container still fetched production's signed index and offered 906.
 
 ## Publication and recovery
 

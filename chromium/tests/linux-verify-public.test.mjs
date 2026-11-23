@@ -46,7 +46,8 @@ function releaseFixture(t, mutate = {}) {
   }))};
   mutate.view?.(view);
   const received = [], sigstore = [];
-  function run(command, args) {
+  const apiCalls = [];
+  function run(command, args, input) {
     if (command === 'cosign') {
       sigstore.push(args);
       if (mutate.badSignature) throw Error('signature verification failed');
@@ -55,6 +56,13 @@ function releaseFixture(t, mutate = {}) {
       assert.equal(args[0], '-q', 'ignore curlrc credentials');
       assert.ok(!args.some(a => /(?:authorization|token|netrc|oauth)/i.test(a)));
       const url = args.at(-1), api = 'https://api.github.com/repos/bnfy/blanc/';
+      if (url.startsWith(api)) {
+        apiCalls.push({header: args.includes('@-'), input});
+        if (args.includes('@-')) assert.equal(input, 'Authorization: Bearer fixture-token\n');
+        else assert.equal(input, undefined);
+      } else {
+        assert.ok(!args.includes('--header') && input === undefined, 'downloads stay logged out');
+      }
       if (url === api + 'releases/tags/' + tag) return {stdout: JSON.stringify(view), stderr: ''};
       if (url === api + 'releases/latest') return {stdout: JSON.stringify({tag_name: mutate.latest ?? 'v1.51.0'}), stderr: ''};
       if (url === api + 'git/ref/tags/' + tag) return {stdout: JSON.stringify({object: {type: 'commit', sha: sourceCommit}}), stderr: ''};
@@ -68,7 +76,7 @@ function releaseFixture(t, mutate = {}) {
     }
     return {stdout: '', stderr: ''};
   }
-  return {dir, run, received, sigstore, files};
+  return {dir, run, received, sigstore, files, apiCalls};
 }
 
 test('logged-out download authenticates all ten public assets using the owner’s pinned identity and issuer', async t => {
@@ -79,6 +87,28 @@ test('logged-out download authenticates all ten public assets using the owner’
   assert.deepEqual(f.sigstore, [['verify-blob', '--bundle', path.join(f.dir, 'SHA256SUMS.sigstore.json'),
     '--certificate-identity', 'anthony@bnfy.me', '--certificate-oidc-issuer', 'https://github.com/login/oauth',
     path.join(f.dir, 'SHA256SUMS')]]);
+});
+
+test('the workflow token reaches only the metadata calls, on stdin', async t => {
+  const {verifyPublicAssets} = await import('./linux-verify-public.mjs');
+  const f = releaseFixture(t);
+  const saved = process.env.GH_TOKEN;
+  process.env.GH_TOKEN = 'fixture-token';
+  t.after(() => { if (saved === undefined) delete process.env.GH_TOKEN; else process.env.GH_TOKEN = saved; });
+  await verifyPublicAssets(version, f.dir, f.run);
+  assert.equal(f.apiCalls.length, 3);
+  assert.ok(f.apiCalls.every(call => call.header));
+  assert.deepEqual(f.received.sort(), Object.keys(f.files).sort());
+});
+
+test('without a token the metadata calls are anonymous too', async t => {
+  const {verifyPublicAssets} = await import('./linux-verify-public.mjs');
+  const f = releaseFixture(t);
+  const saved = process.env.GH_TOKEN;
+  delete process.env.GH_TOKEN;
+  t.after(() => { if (saved !== undefined) process.env.GH_TOKEN = saved; });
+  await verifyPublicAssets(version, f.dir, f.run);
+  assert.ok(f.apiCalls.length === 3 && f.apiCalls.every(call => !call.header));
 });
 
 for (const [why, mutation] of Object.entries({
@@ -210,7 +240,7 @@ for (const [system, why, change] of [
   assert.equal(fs.existsSync(f.report), false);
 });
 
-test('Task 5 dispatch selects six fresh native containers and uploads the reports without a GitHub token', () => {
+test('Task 5 dispatch selects six fresh native containers; only the metadata step holds a read-only token', () => {
   const workflow = YAML.parse(read(new URL('../../.github/workflows/chromium-linux-candidate.yml', import.meta.url)));
   assert.ok(workflow.on.workflow_dispatch.inputs.check.options.includes('verify-public'));
   assert.equal(workflow.on.workflow_dispatch.inputs.version.type, 'string');
@@ -219,9 +249,13 @@ test('Task 5 dispatch selects six fresh native containers and uploads the report
   assert.deepEqual(job.strategy.matrix.arch.toSorted(), ['arm64', 'x64']);
   assert.deepEqual(job.strategy.matrix.system.toSorted(), ['debian', 'fedora', 'ubuntu']);
   assert.match(job['runs-on'], /matrix.arch.*ubuntu-24\.04-arm.*ubuntu-24\.04/);
-  assert.deepEqual(job.permissions, {});
+  assert.deepEqual(job.permissions, {contents: 'read'});
+  const holders = job.steps.filter(step => /github\.token|GH_TOKEN|GITHUB_TOKEN|secrets\./i.test(JSON.stringify(step)));
+  assert.deepEqual(holders.map(step => step.name), ['Authenticate every public asset']);
+  assert.deepEqual(holders[0].env, {GH_TOKEN: '${{ github.token }}'});
+  assert.doesNotMatch(holders[0].run, /GH_TOKEN|docker/);
   const steps = JSON.stringify(job.steps);
-  assert.doesNotMatch(steps, /gh release|github\.token|secrets\.|GH_TOKEN|GITHUB_TOKEN|fork-linux-candidate/i);
+  assert.doesNotMatch(steps, /gh release|fork-linux-candidate/i);
   for (const image of ['ubuntu:24.04', 'debian:12', 'fedora:45@sha256:']) assert.ok(steps.includes(image));
   assert.ok(steps.includes('docker run') && steps.includes('actions/upload-artifact@'));
 });

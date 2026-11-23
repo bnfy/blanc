@@ -4091,6 +4091,34 @@ Candidate 6 from `3902e2323` on both architectures, signed by the owner on Novem
 
 Open: a day of ordinary use by the owner; the download-quit case on the hosted runner.
 
+### L3 first public Linux beta (PL.4, 2026-11-22 to 11-23)
+
+**Blanc Beta for Linux 158.0.8127.906 is public.** It was published at 03:45 UTC on November 23
+as GitHub pre-release
+[`chromium-beta-linux-158.0.8127.906`](https://github.com/bnfy/blanc/releases/tag/chromium-beta-linux-158.0.8127.906),
+not latest (v1.52.0 stayed latest), and as generation 906 of the signed apt and dnf repository at
+`https://pkg.blanc.day` (digest `32459e86…`, the same tree proven on staging). It ships `.deb` and
+`.rpm` packages for x64 and arm64, built from `a52e29005` on Chromium 158.0.8127.2. Build 905 was the
+proof-only N-1, from the same source and never published. Both numbers are claimed in
+`build-reservations.json` and recorded in the [Linux ledger](release/linux-ledger.json).
+[L3 plan](../docs/superpowers/plans/2026-11-21-linux-fork-l3.md#l3-gate-all-must-hold),
+[L3 report](reports/l3-linux.json)
+
+| L3 gate | Result | Evidence |
+| --- | --- | --- |
+| 1. Update proof on every leg, refusals refused | Passed. On Ubuntu 24.04, Debian 12 and Fedora 45, x64 and arm64: 905 installed by file, 906 came from staging through apt or dnf, Blanc offered to restart and relaunched into 906 with its tabs, and foreign-key, unsigned and bad-metadata repositories were refused. The repository add, update and remove check passed on all six. The first two runs failed on test assumptions, fixed in `32b7db2e2` and `ffdf6f60f`. | [Update proof 45103487653](https://github.com/bnfy/blanc/actions/runs/45103487653), [lifecycle 45103802669](https://github.com/bnfy/blanc/actions/runs/45103802669) |
+| 2. Verify-public on x64 and arm64 | Passed on all six systems. Each downloaded every public asset logged out, checked the Sigstore signature, `SHA256SUMS` and the manifest, and installed from `pkg.blanc.day`. The first run's two x64 jobs got 403 on anonymous `api.github.com` reads (a rate limit shared on the runner's address); only the three metadata reads now use the job's read-only token. | [Run 45108455963](https://github.com/bnfy/blanc/actions/runs/45108455963), [first run 45107889525](https://github.com/bnfy/blanc/actions/runs/45107889525) |
+| 3. Owner's VM hand checks | Passed, one item partial. In Ubuntu 26.04 arm64 the Island's Restart to update relaunched 905 into 906 with tabs restored. The Dock icon, keyring, default browser and screen sharing matched L1 and L2. Ubuntu 26.04 has no Software Updater; App Center lists the update only when the repository publishes DEP-11 metadata, which the owner chose to add before the .37 update. | [VM hand check](linux/hand-checks-l3.md) |
+| 4. Latest release still Electron's; Mac and Windows betas unaffected | Passed. Latest stayed v1.52.0 (checked by the publish stage and verify-public). The release created only its own tag, pre-release and repository generation and wrote no Mac or Windows asset or feed. | [Release](https://github.com/bnfy/blanc/releases/tag/chromium-beta-linux-158.0.8127.906) |
+| 5. Website copy approved by the owner | Passed. The owner approved the Download page's Linux tile on November 23; it merged as `139394045` and deployed to blanc.day (Pages `71c36fae`, Production, `main`), with counted `/dl/beta-linux-<arch>-<format>` routes on blanc-ping (version `defe9dac`). | [bnfy/blanc#1708](https://github.com/bnfy/blanc/pull/1708) |
+
+Found during the release: on Linux, spell checking downloads its Hunspell dictionary from
+`redirector.gvt1.com/edgedl/chrome/dict/`, as shipping Electron Blanc does. No other Google update
+or release host appeared in the update proof's network logs.
+
+Open: DEP-11 metadata before the 158.0.8127.37 update; the 158.0.8127.37 Linux betas after the
+build server moves to .37; the ship note to the release-notes list (owner).
+
 ## Android
 Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
 [PR #1333](https://github.com/bnfy/blanc/pull/1333)). Milestones: **A0

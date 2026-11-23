@@ -60,6 +60,82 @@ def read_index(file):
     return data
 
 
+APPDATA = './usr/share/appdata/blanc-beta.appdata.xml'
+DEP11_ID = 'blanc-beta.desktop'
+MAX_APPDATA_BYTES = 64 * 1024
+
+
+def deb_appdata(deb):
+    """The package's own AppStream file, streamed out of its data archive."""
+    proc = subprocess.Popen(['dpkg-deb', '--fsys-tarfile', str(deb)], stdout=subprocess.PIPE)
+    found = None
+    try:
+        with tarfile.open(fileobj=proc.stdout, mode='r|') as tar:
+            for member in tar:
+                if member.name == APPDATA:
+                    require(member.isreg() and member.size <= MAX_APPDATA_BYTES, 'invalid AppStream file in package')
+                    found = tar.extractfile(member).read()
+                    break
+    finally:
+        proc.stdout.close()
+        proc.kill()
+        proc.wait()
+    require(found is not None, f'package has no AppStream file: {deb.name}')
+    return found
+
+
+def _quote(text):
+    return json.dumps(' '.join(text.split()))
+
+
+def _markup(element):
+    tags = {'p': [], 'ul': ['li'], 'ol': ['li'], 'li': []}
+    require(element.tag in tags and not element.attrib, f'unsupported AppStream markup: {element.tag}')
+    if tags[element.tag]:
+        require(not (element.text or '').strip(), 'text outside list items')
+        require(all(child.tag == 'li' for child in element), 'list item expected')
+        inner = ''.join(_markup(child) for child in element)
+    else:
+        require(len(element) == 0, 'nested markup in a paragraph')
+        inner = ' '.join((element.text or '').split()).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+    return f'<{element.tag}>{inner}</{element.tag}>'
+
+
+def dep11(appdata):
+    """DEP-11 catalog text for the package's desktop component, from its AppStream file.
+
+    Ubuntu's App Center matches an apt update to an app by the catalog's Package
+    name; a package's own metainfo names no package. Both the runner and the
+    owner's index check build these bytes from the approved .deb."""
+    require(b'<!DOCTYPE' not in appdata and b'<!ENTITY' not in appdata, 'AppStream file declares entities')
+    root = ET.fromstring(appdata)
+    require(root.tag == 'component' and root.get('type') in ('desktop', 'desktop-application'), 'not a desktop component')
+
+    def one(tag):
+        found = [e for e in root.findall(tag) if '{http://www.w3.org/XML/1998/namespace}lang' not in e.attrib]
+        require(len(found) == 1 and (found[0].text or '').strip(), f'AppStream file needs one {tag}')
+        return found[0].text
+    require(' '.join(one('id').split()) == DEP11_ID, 'unexpected AppStream component id')
+    description = root.findall('description')
+    require(len(description) == 1 and len(description[0]) > 0, 'AppStream file needs a description')
+    urls = {}
+    for url in root.findall('url'):
+        require(url.get('type') in ('homepage', 'bugtracker', 'help') and url.get('type') not in urls,
+                'unexpected AppStream url')
+        require(re.fullmatch(r'https://[^\s"]+', (url.text or '').strip()), 'AppStream urls must be https')
+        urls[url.get('type')] = url.text.strip()
+    lines = ['---', 'File: DEP-11', "Version: '1.0'", 'Origin: blanc-stable-main', '---',
+             'Type: desktop-application', f'ID: {DEP11_ID}', 'Package: blanc-beta',
+             'Name:', '  C: ' + _quote(one('name')), 'Summary:', '  C: ' + _quote(one('summary')),
+             'Description:', '  C: ' + json.dumps(''.join(_markup(e) for e in description[0])),
+             'DeveloperName:', '  C: ' + _quote(one('developer_name')),
+             'ProjectLicense: ' + _quote(one('project_license'))]
+    if urls:
+        lines += ['Url:', *(f'  {kind}: {json.dumps(urls[kind])}' for kind in sorted(urls))]
+    lines += ['Icon:', '  stock: blanc-beta', 'Launchable:', '  desktop-id:', f'  - {DEP11_ID}', '']
+    return '\n'.join(lines).encode()
+
+
 def write_json(file, value):
     file.write_text(json.dumps(value, indent=2) + '\n')
 
@@ -287,9 +363,13 @@ def build(directory, tree, key, approval_directory):
         data = (entries[0] + '\n\n').encode()
         (dest / 'Packages').write_bytes(data)
         (dest / 'Packages.gz').write_bytes(gzip.compress(data, mtime=0))
+        dep11_dir = tree / APT / 'main' / 'dep11'
+        dep11_dir.mkdir(exist_ok=True)
+        deb = tree / package_path(f'blanc-beta_{version}-1_{arch}.deb')
+        (dep11_dir / f'Components-{arch}.yml.gz').write_bytes(gzip.compress(dep11(deb_appdata(deb)), mtime=0))
     release = subprocess.check_output([*apt, 'release', '.'], cwd=tree / APT)
     (tree / APT / 'Release').write_bytes(release)
-    for p in (tree / APT).glob('main/binary-*/Packages*'):
+    for p in [*(tree / APT).glob('main/binary-*/Packages*'), *(tree / APT).glob('main/dep11/Components-*')]:
         by_hash = p.parent / 'by-hash/SHA256'
         by_hash.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(p, by_hash / sha(p))
@@ -375,6 +455,17 @@ def check_primary(raw, base, rows):
     return location, header
 
 
+def check_dep11(tree, deb, arch):
+    """Rebuild one architecture's DEP-11 catalog from the approved package and require the runner's bytes."""
+    index = APT / 'main' / 'dep11' / f'Components-{arch}.yml.gz'
+    require(read_index(tree / index) == dep11(deb_appdata(deb)), f'DEP-11 catalog differs for {arch}')
+    digest = sha(tree / index)
+    copy = index.parent / 'by-hash/SHA256' / digest
+    require(sha(tree / copy) == digest, 'DEP-11 by-hash copy differs')
+    return ([[digest, str((tree / index).stat().st_size), str(index.relative_to(APT))]],
+            {str(index), str(copy)})
+
+
 def check_indices(directory, tree, key, db, package_directory):
     version, rows = approved(directory)
     selected = {name: row for name, row in rows.items()
@@ -423,6 +514,9 @@ def check_indices(directory, tree, key, db, package_directory):
             require(sha(tree / copy) == digest, 'by-hash copy differs')
             expected.update([str(local), str(copy)])
             sums.append([digest, str((tree / local).stat().st_size), str(local.relative_to(APT))])
+        dep11_sums, dep11_paths = check_dep11(tree, tree / deb, arch)
+        sums += dep11_sums
+        expected.update(dep11_paths)
     require(sorted(sums) == sorted(line.split() for line in release['sha256'].splitlines() if line.strip()),
             'apt Release checksums differ')
 

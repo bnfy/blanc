@@ -87,3 +87,24 @@ test('the first missing InRelease is immediately visible after the pointer is pu
   assert.equal(await release.text(), 'signed release');
   assert.equal(release.headers.get('cache-control'), 'no-cache');
 });
+
+test('the DEP-11 catalog is served like the apt indexes, by name and by hash across a switch', async () => {
+  const {isMetadataPath} = await import('../paths.mjs');
+  const bucket = new MemoryBucket();
+  const dep11 = 'deb/dists/stable/main/dep11/';
+  const hashPath = dep11 + 'by-hash/SHA256/' + 'b'.repeat(64);
+  await bucket.put('generations/1/' + hashPath, 'old catalog');
+  await bucket.put('generations/2/' + dep11 + 'Components-arm64.yml.gz', 'catalog');
+  await pointer(bucket, 2, [1]);
+  assert.equal(await (await fetchFrom(bucket, hashPath)).text(), 'old catalog');
+  const current = await fetchFrom(bucket, dep11 + 'Components-arm64.yml.gz');
+  assert.equal(await current.text(), 'catalog');
+  assert.equal(current.headers.get('cache-control'), 'no-cache');
+  for (const name of ['Components-amd64.yml.gz', 'Components-arm64.yml.gz', 'by-hash/SHA256/' + 'c'.repeat(64)]) {
+    assert.ok(isMetadataPath(dep11 + name), name);
+  }
+  for (const name of ['Components-i386.yml.gz', 'Components-amd64.yml', 'icons-64x64.tar', 'by-hash/SHA256/short',
+    '../binary-amd64/Packages', 'Components-amd64.yml.gz/extra']) {
+    assert.ok(!isMetadataPath(dep11 + name), name);
+  }
+});

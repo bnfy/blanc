@@ -3,7 +3,7 @@
 // APPROVED and SIGNED are Task 4's directories. USER is the ordinary fixture user.
 // stdout carries a JSON snapshot after every package/cron transition.
 import assert from 'node:assert/strict';
-import {execFile} from 'node:child_process';
+import {execFile, execFileSync} from 'node:child_process';
 import {once} from 'node:events';
 import fs from 'node:fs';
 import {createServer} from 'node:https';
@@ -120,6 +120,18 @@ function repositoryServer(tree, generation, cert, tlsKey) {
   return {server, setFailure: value => { unavailable = value; }};
 }
 
+// apt fetched Blanc's App Center catalog (with the appstream package installed,
+// as on Ubuntu desktops) through the signed Release, and it names the package.
+export function checkCatalog(names, arch, readCatalog) {
+  const prefix = host + '_deb_dists_stable_main_dep11_Components-' + arch + '.yml';
+  const found = names.filter(name => name === prefix || /^\.(?:gz|xz|lz4|zst)$/.test(name.slice(prefix.length)) && name.startsWith(prefix));
+  assert.equal(found.length, 1, 'apt did not fetch Blanc\'s DEP-11 catalog for ' + arch + ': ' + names.join(' '));
+  const text = readCatalog(found[0]);
+  assert.match(text, /^ID: blanc-beta\.desktop$/m, 'catalog component');
+  assert.match(text, /^Package: blanc-beta$/m, 'catalog names the package');
+  return found[0];
+}
+
 export function checkRefresh({status, log, distro, blanc}, mode, expectedDistro) {
   assert.ok(distro.length, 'No distribution metadata was refreshed');
   assert.deepEqual(distro, expectedDistro, 'Distribution repositories missing after refresh');
@@ -158,6 +170,14 @@ async function refresh(rpm, work, mode, expectedDistro) {
   const distro = indexes.filter(name => !isBlanc(name)).sort();
   console.log(JSON.stringify({refresh: mode, status, indexes, log}));
   checkRefresh({status, log, distro, blanc: indexes.some(isBlanc)}, mode, expectedDistro ?? distro);
+  if (!rpm && mode === 'healthy') {
+    const arch = process.arch === 'x64' ? 'amd64' : 'arm64';
+    const {stdout} = await exec('dpkg-query', ['-W', '-f=${Status}', 'appstream'], {env}).catch(() => ({stdout: ''}));
+    assert.match(stdout, /install ok installed/, 'The lifecycle needs the appstream package so apt fetches DEP-11');
+    const catalog = checkCatalog(fs.readdirSync(cache), arch,
+      name => execFileSync('/usr/lib/apt/apt-helper', ['cat-file', path.join(cache, name)], {encoding: 'utf8'}));
+    console.log(JSON.stringify({refresh: mode, catalog}));
+  }
   return distro;
 }
 
