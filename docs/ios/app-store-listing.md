@@ -379,8 +379,10 @@ page too; none exists per page, so each takes the default page's seven
 tabs, Spaces, then the rest in file order. Every upload was checked against
 the local files by checksum and order, and the three were submitted together
 on November 22, 2026 (review submission
-`19db3167-a1f8-4255-a191-95e82026eda6`, Waiting for Review). The approved
-version 1 stays live until each is approved.
+`19db3167-a1f8-4255-a191-95e82026eda6`). App Review approved all three by
+November 23, 2026, as the owner reported that day: each version 2 reads
+Approved and each version 1 Replaced with New Version, and all three pages are
+visible.
 
 | Page | Version 2 id |
 |---|---|
