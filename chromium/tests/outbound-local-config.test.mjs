@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {appBundleOf, outboundConfig} from './outbound/local-config.mjs';
+import {appBundleOf, outboundConfig, checkIdentity} from './outbound/local-config.mjs';
 
 const APP = '/Users/x/Projects/Blanc/chromium/src/out/BlancPrototype/Blanc Prototype.app';
 const config = {
@@ -34,4 +34,12 @@ test('setup.sh copies the Prototype and writes the config from local-config.mjs'
   assert.match(sh, /local-config\.mjs/);
   assert.match(sh, /cp -Rc "\$APP" "\$DIR\/prototype\/"/);
   assert.doesNotMatch(sh, /c\.evidence=/, 'the config is no longer rewritten inline');
+});
+
+test('a config whose files changed since it was written is refused', () => {
+  const sums = {[config.executable]: 'cca2', [config.framework]: 'e686'};
+  assert.doesNotThrow(() => checkIdentity(config, file => sums[file]));
+  assert.throws(() => checkIdentity(config, file => file === config.framework ? 'rebuilt' : sums[file]), /doesn't match .*Blanc Prototype Framework.*Write the config again/);
+  const sh = fs.readFileSync(new URL('./outbound/setup.sh', import.meta.url), 'utf8');
+  assert.match(sh, /local-config\.mjs" --check "\$DIR\/runtime-config\.json"/, 'setup.sh checks the copy too');
 });
