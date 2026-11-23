@@ -43,3 +43,31 @@ promise that the desktop lists Blanc's updates on Ubuntu 26.04.
 
 Screens: `chromium/reports/l3-hand-check/` (App Center without and with the DEP-11 entry, Restart
 to update, after the relaunch, screen sharing live).
+
+## 909: the first update, with App Center (November 23, 2026)
+
+The same VM, the same way, for release `chromium-beta-linux-158.0.8127.909` (Chromium
+158.0.8127.37, source `b82e4fab7`): `B-1` is 908 (`blanc-beta_158.0.8127.908-1_arm64.deb`,
+SHA-256 `d68902cf4d9f175c5b2d2d2c286233ebdeddfc4e8e18b45b9c7f7a092055e7ee`, the hash in the
+owner-signed approval, verified in the VM), staging generation 909, digest
+`7dc9f99f87d48f40e57810baab839ec5a5336642aa3e13c47e90e104adf0eb45`. The VM's clock had fallen
+10½ hours behind while suspended, so apt first refused staging's `Release` as not yet valid; it
+was set from the Mac before the check.
+
+| # | Check | Result |
+|---|---|---|
+| 1 | Install 908, staging source | Pass. 908 installed; apt verified staging's `InRelease` and offered 909. |
+| 2 | **App Center offers the update** | **Pass.** apt fetched Blanc's DEP-11 catalog with the package lists (`…dep11_Components-arm64.yml.gz`), AppStream reported `blanc-beta.desktop` → `Package: blanc-beta`, and App Center's Manage page listed **Blanc Beta 158.0.8127.908-1 → 158.0.8127.909-1** with an Update button — from the repository's own catalog, with nothing added by hand. |
+| 3 | Restart to update | Pass. With 908 running (`--check-for-update-interval=10`), apt installed 909 from staging; the Island showed **Restart to update**; a real click relaunched Blanc (pid 1336612 → 1346409, started after the upgrade), both tabs restored, no update button. |
+| 4 | Dock, keyring | Pass. One Sunrise icon before and after; no keyring prompt, Secret portal in use. |
+| 5 | Screen sharing | Pass, as in L2: Window through GNOME's portal gave a live `window` track with the Island's chip and GNOME's indicator; Stop sharing ended it and cleared both. |
+| 6 | Restore | Staging list removed, `apt-get purge blanc-beta` (removed the program, source, key and cron job), test profile deleted, Parallels' agent resumed. |
+
+Getting here took two repository fixes found by this release's checks: the update proof's
+staging copy now captures a by-hash file the two architectures share once (c45d61473), and the
+repository publishes the catalog under its plain name `Components-<arch>.yml` as well as `.gz`,
+because apt only fetches an index whose plain name `Release` lists (5537dcf13). Staging, which
+had generation 909 without the plain name, was reset to 906 with the owner's approval and 909
+re-signed and re-staged.
+
+Screens: `chromium/reports/l3-hand-check-909/`.
