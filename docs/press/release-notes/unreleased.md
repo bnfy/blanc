@@ -5,6 +5,11 @@ since then are below as they're recorded.
 
 ## Fixed
 
+- **Favorites opens with ⌥⌘B on the Mac again.** Since 1.39, ⌥⌘B also
+  turned Auto-hide the Island on or off, and Auto-hide always won, so Show
+  Favorites never opened from the keyboard. Auto-hide the Island is now ⇧⌘B on
+  the Mac; Windows and Linux keep Ctrl+Alt+B. Close Window in the File menu is
+  now ⇧⌘W, since ⌘W already closes the tab.
 - **Open local HTML files on Linux.** Choosing Blanc under a file manager's
   **Open With** for an `.html` file now opens it in the static preview
   window, as on Windows and the Mac. Before, Blanc only came to the front

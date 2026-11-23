@@ -192,7 +192,7 @@ These ship in v1.45.1 (source paths at the tag) but have no tracker row. They ar
 
 Shipping's table in `src/main/browser-shortcuts.js` and the menu template in `main.js` (v1.45.1) is the contract. Codex extracts it into `chromium/tests/data/shortcuts-v1.45.1.json` and generates the fork's accelerator table and the shortcut test from it. Notable cases:
 - Ctrl+Tab recent-order needs Ctrl release detection.
-- ⌘⌥B means Auto-hide on macOS, while Favorites is ⌘⌥B in the Favorites menu; preserve shipping's resolution exactly.
+- ⌘⌥B means Auto-hide on macOS, while Favorites is ⌘⌥B in the Favorites menu; preserve shipping's resolution exactly. *(Superseded November 23, 2026: shipping now gives ⌥⌘B to Favorites and ⇧⌘B to Auto-hide on macOS, from `src/main/menu-accelerators.js`; the fork should follow.)*
 - Fill from 1Password depends on D2.
 
 The menu bar structure follows shipping: Profiles, Tabs, Favorites and Help menus.

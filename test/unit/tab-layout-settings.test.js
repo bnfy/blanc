@@ -217,7 +217,11 @@ test('native menu binds a mnemonic vertical-tabs toggle without taking paste sho
     'utf8'
   );
 
-  assert.match(main, /label: t\('menu\.toggleVerticalTabs'\),\s+accelerator: 'CmdOrCtrl\+Alt\+V'/);
+  assert.match(main, /label: t\('menu\.toggleVerticalTabs'\),\s+accelerator: menuAccelerator\('toggle-vertical-tabs'\)/);
+  const { menuAccelerator } = require('../../src/main/menu-accelerators');
+  for (const platform of ['darwin', 'win32', 'linux']) {
+    assert.equal(menuAccelerator('toggle-vertical-tabs', platform), 'CmdOrCtrl+Alt+V');
+  }
   assert.match(main, /tabLayout === 'vertical' \? 'island' : 'vertical'/);
   assert.doesNotMatch(main, /menu\.toggleVerticalTabs'\)[^}]+CmdOrCtrl\+(?:Shift\+)?V'/s);
 });
