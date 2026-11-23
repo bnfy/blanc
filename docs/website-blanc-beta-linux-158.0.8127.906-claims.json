@@ -6,8 +6,8 @@
   "releaseUrl": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-linux-158.0.8127.906",
   "releaseEvidence": "The release's own files (linux-release.json, RELEASE-MANIFEST.json, Sigstore-signed SHA256SUMS, blanc-repository.asc) and its approved release notes; chromium/reports/l3-linux.json on chromium/next (build checks 45076009487 and 45076276413, update proof 45103487653, repository lifecycle 45103802669, verify-public 45108455963) and the owner's VM hand checks in chromium/linux/hand-checks-l3.md on chromium/next.",
   "ownerDecisions": {
-    "approvedOn": null,
-    "status": "Pending: the owner approves this copy in its website PR before it merges or deploys (L3 gate item 5 in chromium/reports/l3-linux.json).",
+    "approvedOn": "2026-11-23",
+    "status": "Approved by the owner on 2026-11-23 in PR #1708, with the counted /dl/beta-linux-* routes (L3 gate item 5 in chromium/reports/l3-linux.json).",
     "decisions": [
       "A Linux beta is its own GitHub pre-release, never latest, tagged chromium-beta-linux-<version>, version 158.0.8127.<build>, with .deb and .rpm packages for x64 and arm64 (docs/superpowers/specs/2026-11-21-linux-fork-design.md and the L3 plan on chromium/next).",
       "The Download page's Linux tile offers both packages for each architecture and the commands of chromium/linux/manual-repository.md (L3 plan); its update wording says 'offered', never 'installed automatically' (L3 plan decision 5, spec section 3).",
