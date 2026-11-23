@@ -102,7 +102,9 @@ const reasons = {
   'apt-metadata': /NO_PUBKEY\s+[0-9A-F]+|missing key [0-9A-F]+|public key is not available/i,
   'deb-hash': /Hash Sum mismatch/i,
   'dnf-metadata': /repomd\.xml[^\n]*(?:signature|OpenPGP|GPG)[^\n]*(?:not found|unknown|missing|bad|invalid|couldn.t be verified|verification failed)/i,
-  'rpm-foreign': /(?:public|signing) key[^\n]*(?:not installed|not found|unknown)|\bNOKEY\b/i,
+  // dnf5 imports the repository's gpgkey, re-checks, and reports that the
+  // package is still signed by a key it does not hold.
+  'rpm-foreign': /(?:public|signing) key[^\n]*(?:not installed|not found|unknown)|\bNOKEY\b|OpenPGP check for package "[^"\n]+"[^\n]* has failed: Import of the key didn't help, wrong key\?/i,
   'rpm-unsigned': /(?:package|rpm)[^\n]*(?:is not signed|is unsigned)|no (?:OpenPGP )?signature for package/i,
 };
 export function checkRefusal(kind, status, diagnostic) {

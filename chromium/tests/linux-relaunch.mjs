@@ -21,14 +21,25 @@ const updateDomains = [
   'chromiumdash.appspot.com', 'omahaproxy.appspot.com', 'versionhistory.googleapis.com',
 ];
 
+// Linux spell checking is Hunspell, whose dictionary Chromium downloads from
+// Google's CDN (SpellcheckHunspellDictionary; shipping Electron Blanc fetches
+// the same file). It is not an update check, so a host passes only when every
+// request naming it is exactly a dictionary download.
+const dictionaryHost = 'redirector.gvt1.com';
+const dictionaryUrl = /^https:\/\/redirector\.gvt1\.com\/edgedl\/chrome\/dict\/[a-z]{2,3}(?:-[a-z]{2,4})?-\d+-\d+\.bdic$/;
+
 export function checkUpdateNetLog(text, controlUrl) {
   // Each process must have flushed its log through shutdown and recorded its
   // own probe. A partial log or yesterday's file cannot establish the result.
   const {events} = JSON.parse(text);
   assert.ok(events.some(({params}) => params?.url === controlUrl), 'Missing NetLog control ' + controlUrl);
   const hosts = netlogHosts(text);
+  const dictionaryUrls = events.flatMap(({params}) => ['url', 'original_url'].map(key => params?.[key]))
+    .filter(value => typeof value === 'string' && /^[a-z][a-z0-9+.-]*:\/\/redirector\.gvt1\.com\.?(?:[/:?#]|$)/i.test(value));
+  const dictionaryOnly = dictionaryUrls.length > 0 && dictionaryUrls.every(url => dictionaryUrl.test(url));
   for (const host of hosts.keys()) {
     const name = host.replace(/\.$/, '');
+    if (name === dictionaryHost && dictionaryOnly) continue;
     assert.ok(!updateDomains.some(domain => name === domain || name.endsWith('.' + domain)),
       'Browser contacted an update or Chrome releases host: ' + host);
   }
