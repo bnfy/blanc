@@ -163,6 +163,7 @@ test('lifecycle dispatch requires distinct passing mode reports with the staged 
         assert.ok(args.includes(field), field);
       return {status: 0, stdout: 'https://github.com/bnfy/blanc/actions/runs/13'};
     }
+    if (args[0] === 'run' && args[1] === 'view') return {status: 0, stdout: '{}'};
     if (args.includes('watch')) { assert.ok(args.includes('--exit-status')); return {status: 0}; }
     assert.ok(args.includes('download'));
     const dest = args[args.indexOf('--dir') + 1];
@@ -194,6 +195,7 @@ test('workflow dispatch watches the returned run and rejects skipped or missing 
       if (args.includes('workflow')) return { status: 0, stdout: '', stderr: 'https://github.com/bnfy/blanc/actions/runs/2345\n' };
       if (args.includes('download')) return { status: 0, stdout: '' };
       if (args.includes('watch')) return { status: 0, stdout: '' };
+      if (args[0] === 'run' && args[1] === 'view') return { status: 0, stdout: '{}' };
       throw Error('Unexpected command');
     }
   });
@@ -298,7 +300,8 @@ test('the command adapter checks draft tar bytes, per-build GN args and installe
           };
           fs.writeFileSync(path.join(dest, 'linux-beta-smoke-' + (deb ? 'deb' : 'rpm') + '.json'), JSON.stringify(e));
         }
-      } else assert.deepEqual(argv.slice(0, 2), ['run', 'watch']);
+      } else if (argv[0] === 'run' && argv[1] === 'view') stdout = '{}';
+      else assert.deepEqual(argv.slice(0, 2), ['run', 'watch']);
       return { status: 0, stdout };
     }
   });
@@ -596,5 +599,35 @@ test('Ubuntu smoke requires restricted user namespaces and the loaded beta profi
     {apparmor: {...good.apparmor, mode: undefined}}, {apparmor: {...good.apparmor, attachment: '/usr/bin/other'}},
     {apparmor: {...good.apparmor, label: 'unconfined'}}, {apparmor: {...good.apparmor, label: 'blanc-beta-other'}}]) {
     assert.throws(() => verifySmoke({...good, ...change}), /Ubuntu|AppArmor|profile/i);
+  }
+});
+
+test('a just-dispatched run that GitHub doesn\'t list yet is waited for, not failed', async t => {
+  const { realIO } = await import('./linux-release.mjs');
+  const w = world(t);
+  for (const [missing, outcome] of [[2, 'watched'], [Infinity, 'never']]) {
+    const calls = [];
+    let views = 0, slept = 0;
+    const adapter = realIO({
+      sleep: () => { slept++; },
+      exec(command, args) {
+        calls.push([command, ...args].join(' '));
+        if (args.includes('workflow')) return { status: 0, stdout: '', stderr: 'https://github.com/bnfy/blanc/actions/runs/45067527269\n' };
+        if (args[0] === 'run' && args[1] === 'view') return ++views > missing ? { status: 0, stdout: '{}' } : { status: 1, stdout: '', stderr: 'HTTP 404: Not Found' };
+        if (args.includes('download')) return { status: 0, stdout: '' };
+        if (args.includes('watch')) return { status: 0, stdout: '' };
+        throw Error('Unexpected command');
+      }
+    });
+    const run = adapter.verifyPublic({ work: w.work, r });
+    if (outcome === 'watched') {
+      await assert.rejects(run, /evidence|report/);
+      assert.equal(views, 3);
+      assert.equal(slept, 2);
+      assert.match(calls.join('\n'), /run watch 45067527269/);
+    } else {
+      await assert.rejects(run, /never became visible/);
+      assert.ok(!calls.some(c => c.includes('run watch')));
+    }
   }
 });

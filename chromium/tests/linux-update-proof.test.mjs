@@ -192,6 +192,14 @@ const failures = {
   'rpm-foreign': 'OpenPGP check for package "blanc-beta.rpm" failed: Public key is not installed.',
   'rpm-unsigned': 'OpenPGP check for package "blanc-beta.rpm" failed: The package is not signed.',
 };
+test('rpm-foreign accepts the dnf5 wording seen on Fedora', () => {
+  const dnf5 = 'Transaction failed: Signature verification failed.\nOpenPGP check for package "blanc-beta-158.0.8127.906-1.x86_64" ' +
+    '(/tmp/client-rpm-foreign/packages/blanc-beta-158.0.8127.906-1.x86_64.rpm) from repo "client-rpm-foreign" has failed: ' +
+    "Import of the key didn't help, wrong key?";
+  assert.doesNotThrow(() => checkRefusal('rpm-foreign', 1, dnf5));
+  assert.throws(() => checkRefusal('rpm-unsigned', 1, dnf5));
+  assert.throws(() => checkRefusal('rpm-foreign', 1, "Import of the key didn't help, wrong key?"));
+});
 for (const [kind, diagnostic] of Object.entries(failures)) {
   test(kind + ' requires a failed transaction with the matching trust error', () => {
     assert.doesNotThrow(() => checkRefusal(kind, 1, diagnostic));

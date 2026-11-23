@@ -409,6 +409,14 @@ export function realIO(commands = ownerIO()) {
     const id = [...urls][0]?.slice(prefix.length);
     check(urls.size === 1 && /^[1-9]\d*$/.test(id) && Number.isSafeInteger(Number(id)),
       'dispatch returned no unique workflow run URL; inspect the dispatch');
+    // GitHub can answer 404 for a run for a few seconds after dispatching it
+    // (run 45067527269 on 2026-11-22); wait up to a minute for it to appear.
+    const sleep = commands.sleep ?? (ms => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms));
+    for (let attempt = 0; ; attempt++) {
+      if (commands.exec('gh', ['run', 'view', id, '--repo', REPO, '--json', 'status']).status === 0) break;
+      check(attempt < 30, 'workflow ' + id + ' never became visible; inspect the dispatch before rerunning');
+      sleep(2000);
+    }
     gh(['run', 'watch', id, '--exit-status'], 'workflow ' + id + ' did not pass', { interactive: true });
     const dir = scratch(ctx.work, 'run-' + id);
     gh(['run', 'download', id, '--dir', dir], 'could not download workflow evidence for ' + id);

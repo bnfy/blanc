@@ -183,7 +183,8 @@ test('the release tool accepts the six artifacts from one verify-public dispatch
         fs.cpSync(f.options.results, path.join(dir, 'verify-public-' + system + '-' + arch + '-123-1'), {recursive: true});
         legs[arch + '-' + system] = true;
       }
-    } else assert.equal(args[1], 'watch');
+    } else if (args[0] === 'run' && args[1] === 'view') return {status: 0, stdout: '{}'};
+    else assert.equal(args[1], 'watch');
     return {status: 0, stdout: ''};
   }});
   const report = await adapter.verifyPublic({work: temp(t), r: {version}});

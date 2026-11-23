@@ -21,14 +21,25 @@ const updateDomains = [
   'chromiumdash.appspot.com', 'omahaproxy.appspot.com', 'versionhistory.googleapis.com',
 ];
 
+// Linux spell checking is Hunspell, whose dictionary Chromium downloads from
+// Google's CDN (SpellcheckHunspellDictionary; shipping Electron Blanc fetches
+// the same file). It is not an update check, so a host passes only when every
+// request naming it is exactly a dictionary download.
+const dictionaryHost = 'redirector.gvt1.com';
+const dictionaryUrl = /^https:\/\/redirector\.gvt1\.com\/edgedl\/chrome\/dict\/[a-z]{2,3}(?:-[a-z]{2,4})?-\d+-\d+\.bdic$/;
+
 export function checkUpdateNetLog(text, controlUrl) {
   // Each process must have flushed its log through shutdown and recorded its
   // own probe. A partial log or yesterday's file cannot establish the result.
   const {events} = JSON.parse(text);
   assert.ok(events.some(({params}) => params?.url === controlUrl), 'Missing NetLog control ' + controlUrl);
   const hosts = netlogHosts(text);
+  const dictionaryUrls = events.flatMap(({params}) => ['url', 'original_url'].map(key => params?.[key]))
+    .filter(value => typeof value === 'string' && /^[a-z][a-z0-9+.-]*:\/\/redirector\.gvt1\.com\.?(?:[/:?#]|$)/i.test(value));
+  const dictionaryOnly = dictionaryUrls.length > 0 && dictionaryUrls.every(url => dictionaryUrl.test(url));
   for (const host of hosts.keys()) {
     const name = host.replace(/\.$/, '');
+    if (name === dictionaryHost && dictionaryOnly) continue;
     assert.ok(!updateDomains.some(domain => name === domain || name.endsWith('.' + domain)),
       'Browser contacted an update or Chrome releases host: ' + host);
   }
@@ -160,8 +171,10 @@ export async function proveRelaunch({fromVersion, toVersion, upgrade, resultsDir
     try {
       policy = await waitFor(() => policyPage.eval(`document.querySelector('policy-app')?.policyGroups_
         ?.find(group => group.id === 'chrome')?.policies.find(row => row.name === 'RelaunchFastIfOutdated')`),
-      row => row?.value === 1 && row.source === 'platform' && row.level === 'mandatory' && row.scope === 'machine' &&
-        !row.error && !row.ignored, 'active managed RelaunchFastIfOutdated policy');
+      // chrome://policy keeps the C++ enums as numbers (policy_types.h):
+      // POLICY_LEVEL_MANDATORY and POLICY_SCOPE_MACHINE are both 1.
+      row => row?.value === 1 && row.source === 'platform' && row.level === 1 && row.scope === 1 &&
+        row.status === 'OK' && !row.error && !row.ignored, 'active managed RelaunchFastIfOutdated policy');
     } finally {
       policyPage.close();
       await before.browser.send('Target.closeTarget', {targetId: policyTab.targetId});

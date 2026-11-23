@@ -12,7 +12,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { once } from 'node:events';
 import { pathToFileURL } from 'node:url';
-import { connect, waitFor } from './lib/cdp.mjs';
+import { connect, pause, waitFor } from './lib/cdp.mjs';
 import { TEST_SWITCHES, hasCString } from '../release/hooks-evidence.mjs';
 import { PROBES } from '../release/blocker-evidence.mjs';
 
@@ -119,10 +119,25 @@ async function run(version) {
     const targets = await waitFor(async () => await (await fetch(api + 'list')).json(), ts => ts.some(t => t.url === base + '/'), 'installed page');
     page = await connect(targets.find(t => t.url === base + '/'));
     await page.send('Network.enable');
+    // The launch's own navigation can end on an error page that keeps the URL
+    // (the blocker may still be starting), so a fetch from it fails. Require
+    // the smoke page itself, navigating again if needed.
+    // A navigation can wait while the blocker starts (run 45071338278 timed out
+    // in Page.navigate on a busy runner), so a slow or failed attempt is noted
+    // and retried, for up to about three minutes in all.
+    const where = async () => { try { return await page.eval('location.href + " | " + document.title'); } catch (e) { return 'unreadable: ' + e.message; } };
+    let landed = await where();
+    for (let attempt = 0; attempt < 6 && !landed.endsWith('| Linux beta smoke'); attempt++) {
+      try { await page.send('Page.navigate', {url: base + '/'}, 30000); } catch (e) { landed = 'navigate: ' + e.message; }
+      await pause(2000);
+      landed = await where();
+    }
+    assert.ok(landed.endsWith('| Linux beta smoke'), 'installed beta never loaded the smoke page: ' + landed);
     let request, blockedError;
     page.on('Network.requestWillBeSent', e => { if (e.request.url === listed) request = e.requestId; });
     page.on('Network.loadingFailed', e => { if (e.requestId === request) blockedError = e.errorText; });
-    const controlLoaded = await page.eval("fetch('/control').then(r=>r.text()).then(s=>s==='control loaded')");
+    // Absolute: the attached page's document needn't carry the server's base URL.
+    const controlLoaded = await page.eval('fetch(' + JSON.stringify(base + '/control') + ').then(r=>r.text()).then(s=>s===\'control loaded\')');
     await page.eval('fetch(' + JSON.stringify(listed) + ',{mode:"no-cors"}).then(()=>true,()=>false)');
     await waitFor(() => blockedError || hits.has(probe.host + ':' + port + ' ' + probe.path), Boolean, 'listed request outcome');
     const report = {

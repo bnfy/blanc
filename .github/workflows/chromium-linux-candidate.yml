@@ -415,8 +415,12 @@ jobs:
       - name: Install package verification tools
         run: |
           if [[ $ARCH == x64 ]]; then bash scripts/ci-apt-mirror.sh; fi
-          sudo apt-get update
-          sudo apt-get install -y rpm gnupg
+          # The mirror can be briefly unreachable (run 45069499269); retry.
+          for attempt in 1 2 3; do
+            if sudo apt-get update && sudo apt-get install -y rpm gnupg; then break; fi
+            [[ $attempt == 3 ]] && exit 1
+            sleep 30
+          done
       - name: Check and download the selected archive, signed RPM and authorization
         if: inputs.check == 'install'
         env:
@@ -466,8 +470,15 @@ jobs:
           VERSION: ${{ inputs.version }}
         run: |
           # scripts/ci-apt-mirror.sh ran above for the x64 Ubuntu archive. Arm uses ubuntu-ports.
-          sudo apt-get install -y xvfb xauth xdotool xdg-utils gnome-keyring libsecret-tools dbus-x11 libglib2.0-bin sqlite3 apparmor squashfs-tools \
-            desktop-file-utils libgtk-3-0t64 libasound2t64 libnss3 libgbm1 libxss1
+          # Refresh the lists first and retry: the mirror can sync between an earlier
+          # step's update and this install, leaving lists that name removed files
+          # (libegl-mesa0, 404, run 45068156832).
+          for attempt in 1 2 3; do
+            if sudo apt-get update && sudo apt-get install -y xvfb xauth xdotool xdg-utils gnome-keyring libsecret-tools dbus-x11 libglib2.0-bin sqlite3 apparmor squashfs-tools \
+              desktop-file-utils libgtk-3-0t64 libasound2t64 libnss3 libgbm1 libxss1; then break; fi
+            [[ $attempt == 3 ]] && exit 1
+            sleep 30
+          done
           if [[ $CHECK == beta-install ]]; then
             exec bash chromium/tests/linux-beta-install.sh ubuntu "$VERSION" "$RUNNER_TEMP/input" "$RUNNER_TEMP/results"
           fi
