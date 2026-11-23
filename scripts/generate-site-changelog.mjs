@@ -169,7 +169,13 @@ function withoutLinks(spans) {
 // Release bodies are parsed into ordered sections so the page can render them
 // in the order they were written: an intro paragraph belongs above the bullets
 // it introduces, not below them, and each heading keeps its own list.
-function parseGeneratedNotes(body = '') {
+//
+// Blanc Beta notes mark their sections with a line that is nothing but bold
+// text (`**New in this beta**`) rather than a markdown heading; with
+// `boldHeadings` such a line opens a section the same way.
+const BOLD_HEADING = /^\*\*([^*]+)\*\*$/;
+
+function parseGeneratedNotes(body = '', { boldHeadings = false } = {}) {
   const sections = [];
   let compareUrl = null;
 
@@ -208,6 +214,14 @@ function parseGeneratedNotes(body = '') {
       // renders as its own heading.
       if (heading[1].length === 1 && !seenContent) continue;
       sections.push(current = { heading: title, blocks: [] });
+      seenContent = true;
+      continue;
+    }
+
+    const boldHeading = boldHeadings && line.match(BOLD_HEADING);
+    if (boldHeading) {
+      endList();
+      sections.push(current = { heading: scrubLegacyName(boldHeading[1].trim()), blocks: [] });
       seenContent = true;
       continue;
     }
@@ -294,6 +308,91 @@ function normalizeReleases(raw) {
     .sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
 }
 
+// ---------- Blanc Beta releases ----------
+//
+// The fork's betas are pre-releases in the same repository. They go to their
+// own file, beta-releases.json, which only the changelog page and its feeds
+// read, so a beta can never become "the latest release" anywhere else.
+const BETA_TAG = /^chromium-beta-(?:(windows|linux)-)?(.+)$/i;
+
+function betaPlatform(tag) {
+  const match = String(tag || '').trim().match(BETA_TAG);
+  if (!match) return null;
+  return match[1] ? match[1].toLowerCase() : 'mac';
+}
+
+// Sections that describe the beta rather than what changed in it. They repeat
+// on every release and stay on the GitHub release the entry links to.
+const BETA_BOILERPLATE = /^(?:What to know|Checking the download|Tested on)$/i;
+const BETA_LIMITS = /^Not in this beta yet$/i;
+
+// Keeps what changed and what the beta can't do yet; drops the intro and the
+// sections that are the same on every release. A platform's first beta has
+// no "what changed", so it keeps What to know instead. Kept text is never
+// edited, only whole sections are left out.
+function trimBetaSections(sections, { platform, first = false }) {
+  if (platform === 'windows') {
+    // Windows notes have no section lines: every paragraph leads with its own
+    // bold label. The first is the intro, and the unlabeled last line is
+    // about the installer's signature.
+    return sections
+      .map((section) => ({
+        ...section,
+        blocks: section.blocks.filter((block, index) => !(section === sections[0] && index === 0)
+          && !(block.type === 'paragraph' && block.spans[0]?.type !== 'strong')),
+      }))
+      .filter((section) => section.blocks.length > 0);
+  }
+  const withHeading = sections.filter((section) => section.heading);
+  const hasChanges = withHeading.some((section) => !BETA_BOILERPLATE.test(section.heading) && !BETA_LIMITS.test(section.heading));
+  return withHeading.filter((section) => {
+    if (!BETA_BOILERPLATE.test(section.heading)) return true;
+    return first && !hasChanges && /^What to know$/i.test(section.heading);
+  });
+}
+
+function normalizeBetaReleases(raw) {
+  const flattened = Array.isArray(raw) ? raw.flatMap((item) => Array.isArray(item) ? item : [item]) : [];
+  const entries = flattened
+    .filter((release) => release && !release.draft && release.prerelease && release.published_at)
+    .map((release) => {
+      const tag = String(release.tag_name || '').trim();
+      const match = tag.match(BETA_TAG);
+      if (!match) return null;
+      const publishedAt = new Date(release.published_at);
+      if (Number.isNaN(publishedAt.getTime())) return null;
+      const platform = betaPlatform(tag);
+      const version = match[2];
+      const publishedIso = publishedAt.toISOString();
+      return {
+        tag,
+        product: 'beta',
+        platform,
+        version,
+        name: String(release.name || tag),
+        publishedAt: publishedIso,
+        humanDate: humanDate(publishedIso),
+        machineDate: machineDate(publishedIso),
+        url: blancGithubUrl(release.html_url, ['releases']) || `${REPOSITORY_URL}/releases/tag/${encodeURIComponent(tag)}`,
+        anchor: `beta-${platform}-${version}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+        compareUrl: null,
+        body: release.body,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
+
+  const earliest = new Map();
+  for (const entry of entries) earliest.set(entry.platform, entry.tag);
+  return entries.map(({ body, ...entry }) => {
+    const first = earliest.get(entry.platform) === entry.tag;
+    const { sections } = parseGeneratedNotes(body, { boldHeadings: true });
+    const kept = trimBetaSections(sections, { platform: entry.platform, first });
+    if (!kept.length && !first) console.warn(`Blanc Beta ${entry.tag} has no change notes to show; its entry links to the release.`);
+    return { ...entry, sections: kept };
+  });
+}
+
 // Releases are cut by the maker in New York, but GitHub's published_at is UTC — an
 // evening-EDT release lands on the next UTC day, so a UTC-rendered date reads as
 // "tomorrow". Render changelog dates in the project's home timezone so they match
@@ -319,22 +418,28 @@ function renderReleasesJson(releases) {
 }
 
 function outputPaths(outputDir = DEFAULT_OUTPUT_DIR) {
-  return { json: path.join(outputDir, 'releases.json') };
+  return {
+    json: path.join(outputDir, 'releases.json'),
+    beta: path.join(outputDir, 'beta-releases.json'),
+  };
 }
 
-function writeOutputs(releases, outputDir = DEFAULT_OUTPUT_DIR) {
+// releases.json (desktop) and beta-releases.json (Blanc Beta) from one fetch.
+function renderedOutputs({ releases, betas }, outputDir) {
+  const paths = outputPaths(outputDir);
+  return [[paths.json, renderReleasesJson(releases)], [paths.beta, renderReleasesJson(betas)]];
+}
+
+function writeOutputs(data, outputDir = DEFAULT_OUTPUT_DIR) {
   fs.mkdirSync(outputDir, { recursive: true });
-  const paths = outputPaths(outputDir);
-  fs.writeFileSync(paths.json, renderReleasesJson(releases));
-  return paths;
+  for (const [file, text] of renderedOutputs(data, outputDir)) fs.writeFileSync(file, text);
+  return outputPaths(outputDir);
 }
 
-function checkOutputs(releases, outputDir = DEFAULT_OUTPUT_DIR) {
-  const paths = outputPaths(outputDir);
-  const expected = renderReleasesJson(releases);
-  const stale = [];
-  if (!fs.existsSync(paths.json) || fs.readFileSync(paths.json, 'utf8') !== expected) stale.push(paths.json);
-  return stale;
+function checkOutputs(data, outputDir = DEFAULT_OUTPUT_DIR) {
+  return renderedOutputs(data, outputDir)
+    .filter(([file, text]) => !fs.existsSync(file) || fs.readFileSync(file, 'utf8') !== text)
+    .map(([file]) => file);
 }
 
 function parseArgs(argv) {
@@ -356,25 +461,30 @@ function run(argv = process.argv.slice(2)) {
     ? JSON.parse(fs.readFileSync(path.resolve(options.input), 'utf8'))
     : fetchReleases();
   const releases = normalizeReleases(raw);
+  const betas = normalizeBetaReleases(raw);
 
   if (options.check) {
-    const stale = checkOutputs(releases, options.outputDir);
+    const stale = checkOutputs({ releases, betas }, options.outputDir);
     if (stale.length) {
       console.error(`Release data is stale or missing:\n${stale.map((file) => `- ${file}`).join('\n')}\nRun: npm run site:changelog`);
       return 1;
     }
-    console.log(`Release data is current (${releases.length} releases).`);
+    console.log(`Release data is current (${releases.length} releases, ${betas.length} Blanc Beta releases).`);
     return 0;
   }
 
-  const paths = writeOutputs(releases, options.outputDir);
-  console.log(`Rendered ${releases.length} releases to ${paths.json}.`);
+  const paths = writeOutputs({ releases, betas }, options.outputDir);
+  console.log(`Rendered ${releases.length} releases to ${paths.json} and ${betas.length} Blanc Beta releases to ${paths.beta}.`);
   return 0;
 }
 
 export {
+  betaPlatform,
   checkOutputs,
   fetchReleases,
+  humanDate,
+  machineDate,
+  normalizeBetaReleases,
   normalizeReleases,
   parseGeneratedNotes,
   parseInline,
@@ -383,6 +493,7 @@ export {
   run,
   scrubLegacyName,
   spansToText,
+  trimBetaSections,
   writeOutputs,
 };
 
