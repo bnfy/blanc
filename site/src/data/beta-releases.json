@@ -1,5 +1,100 @@
 [
   {
+    "tag": "chromium-beta-linux-158.0.8127.909",
+    "product": "beta",
+    "platform": "linux",
+    "version": "158.0.8127.909",
+    "name": "Blanc Beta 158.0.8127.909 for Linux",
+    "publishedAt": "2026-11-23T15:00:17.000Z",
+    "humanDate": "November 23, 2026",
+    "machineDate": "2026-11-23",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-linux-158.0.8127.909",
+    "anchor": "beta-linux-158-0-8127-909",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "What's new",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Chromium 158.0.8127.37."
+                  },
+                  {
+                    "type": "text",
+                    "value": " This beta moves to Chromium 158.0.8127.37, the current Chrome 158 release."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "App Center lists Blanc's updates."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Blanc's repository now publishes AppStream data, so Ubuntu's App Center shows this update and later ones beside your other updates. "
+                  },
+                  {
+                    "type": "code",
+                    "value": "sudo apt upgrade"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and dnf work as before."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Not in this beta yet",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Protected video"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (such as Netflix or Spotify) doesn't play."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sync"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is included but still being checked against the live service, so don't rely on it yet."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "chromium-beta-windows-158.0.8127.907",
     "product": "beta",
     "platform": "windows",
