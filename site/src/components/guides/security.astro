@@ -23,7 +23,7 @@
         Blanc Blocker runs inside the browser, not as an extension.
         Reviewed EasyList and EasyPrivacy snapshots are hash-pinned into each
         Blanc release; the browser does not fetch changing filter scriptlets at
-        startup. The shield shows what was blocked on each page. <a
+        startup. The shield shows how much was blocked on each page. <a
           href="/trust#ad-blocking">How blocking works</a
         >.
       </p>
@@ -62,9 +62,9 @@
           href="/support#sync">open-tab snapshots</a
         > and, since Blanc 1.45, Spaces you choose to share are encrypted on
         your device. The current v1 server stores ciphertext under an opaque
-        account locator and cannot read or merge it. The passphrase is never
-        stored or sent, and the retained key is wrapped by the operating system
-        credential service.
+        account locator and cannot read or merge it. A passphrase, if you use
+        one, is never stored or sent, and the retained key is wrapped by the
+        operating system credential service.
       </p>
     </article>
     <article>
@@ -72,12 +72,14 @@
         On a Mac with Touch ID, Blanc creates device-bound passkeys inside
         Apple&rsquo;s Secure Enclave. The private key never leaves the chip, and
         Blanc is signed with an Apple-issued Developer ID and provisioned to
-        hold its own keychain access group. macOS only for now.
+        hold its own keychain access group. Secure Enclave passkeys are macOS
+        only for now.
       </p>
     </article>
     <article>
       <h3>Permissions ask first.</h3><p>
-        Camera, microphone, location, notifications — each request raises a
+        Camera, microphone, location, notifications, the local network — each
+        request raises a
         Blanc prompt, and each decision is remembered for that site. Decisions
         made in a private tab are never written to disk.
       </p>
@@ -134,7 +136,7 @@
   </div>
   <div class="feature-copy-list">
     <article>
-      <h3>Optional 1Password fill on macOS, Windows and Linux.</h3><p>
+      <h3>Optional 1Password fill on macOS, Windows and Linux (not Windows on Arm).</h3><p>
         Use matching Login items from your installed 1Password desktop app and
         account. Blanc’s narrow SDK integration is off by default, and
         credential lookup and fill require your explicit action. It is not
