@@ -19,11 +19,20 @@
 }
 
 /* Header */
-.bento-head { max-width: 860px; margin: 0 auto; padding: 88px 0 48px; text-align: center; }
-.bento-head h1 { margin: 0; font-family: var(--site-font-display); font-size: clamp(44px, 6vw, 76px); font-weight: 400; letter-spacing: 0; line-height: 1; }
-.bento-lead { max-width: 44ch; margin: 18px auto 0; color: var(--site-text-dim); font-size: clamp(18px, 1.5vw, 20px); font-weight: 600; letter-spacing: -.01em; line-height: 1.45; text-wrap: balance; }
-/* Wrap between the lede's two sentences, never inside one. */
-.bento-lead span { display: inline-block; }
+/* The header: the headline on the left, and the lead, Download and What's
+   new on the right, bottom-aligned (owner, November 23, 2026). */
+.bento-head { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 64px); align-items: end; width: var(--W); margin: 0 calc(50% - var(--W) / 2); padding: 56px 0; }
+.bento-head h1 { margin: 0; font-family: var(--site-font-display); font-size: clamp(44px, 5.4vw, 72px); font-weight: 400; letter-spacing: 0; line-height: 1.02; text-wrap: balance; }
+.bento-lead { margin: 0; color: var(--site-text-dim); font-size: clamp(17px, 1.4vw, 19px); line-height: 1.55; text-wrap: pretty; }
+.bento-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; margin-top: 24px; }
+.bento-download { display: inline-flex; align-items: center; min-height: 44px; padding: 0 22px; border-radius: 999px; background: var(--ink); color: var(--paper); font-size: 15px; font-weight: 500; text-decoration: none; }
+.bento-download:hover { background: #000; }
+.bento-new { color: var(--site-text); font-size: 15px; text-decoration: none; border-bottom: 1px solid var(--site-border); }
+.bento-new:hover { border-color: currentColor; }
+.bento-head a:focus-visible { outline: 2px solid var(--site-gold); outline-offset: 3px; }
+@media (max-width: 760px) {
+  .bento-head { grid-template-columns: 1fr; gap: 20px; padding: 32px 0 40px; }
+}
 .bento-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; font-family: var(--site-font-display); font-weight: 400; }
 
 /* Band: full-bleed surface behind the board, no added scroll */

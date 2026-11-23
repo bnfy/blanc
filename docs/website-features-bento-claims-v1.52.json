@@ -1,5 +1,5 @@
 {
-  "scope": "Features page (/features), brought up to public v1.52.0 on November 23, 2026: nine smaller-details tiles and their popovers for features shipped from v1.39.0 to v1.51.0 (Split View, Reader Mode, Favorites folders, Auto-hide the Island, Mini Window, Tab Archive, Shared Spaces, Send to Device, protected video), and the Blanc Spaces badge. Every evidence path is at the publicRelease tag. Popover wording follows each feature’s owner-approved What’s New highlight, re-checked against v1.52.0 (Favorites now opens in a tab; Send to Device no longer names the retired Ledger layout). Tile and popover icons are decorative. The sample group names in the tile mock-ups now keep their capital letters, as group names have since v1.37.0.",
+  "scope": "Features page (/features), brought up to public v1.52.0 on November 23, 2026: nine smaller-details tiles and their popovers for features shipped from v1.39.0 to v1.51.0 (Split View, Reader Mode, Favorites folders, Auto-hide the Island, Mini Window, Tab Archive, Shared Spaces, Send to Device, protected video), the Blanc Spaces badge, and a new page header (owner pick, November 23, 2026) with a Download button and a link to the latest What’s New page. Every evidence path is at the publicRelease tag. Popover wording follows each feature’s owner-approved What’s New highlight, re-checked against v1.52.0 (Favorites now opens in a tab; Send to Device no longer names the retired Ledger layout). Tile and popover icons are decorative. The sample group names in the tile mock-ups now keep their capital letters, as group names have since v1.37.0.",
   "publicRelease": "v1.52.0",
   "sourceSha": "a0506da144b6be952fe49f241e54dd2063d333a3",
   "releaseEvidence": "docs/release-incidents/2026-11-21-v1.52.0.md",
@@ -91,6 +91,16 @@
       "evidence": [
         "src/main/spaces-across-profiles.js",
         "src/main/workspaces.js"
+      ]
+    },
+    "header": {
+      "qualification": "The resting Island holds the tab dots, address, back/forward, reload and other page controls in one bar; Split View and Reader Mode are opened by the person (a tab menu, /reader) and never shown until asked. Download leads to /download; See what’s new to /whats-new, which redirects to the newest released What’s New page.",
+      "evidence": [
+        "src/renderer/index.html",
+        "src/renderer/overlay.js",
+        "src/main/split-model.js",
+        "src/main/reader-mode.js",
+        "package.json"
       ]
     }
   },
@@ -464,6 +474,46 @@
         "spacesAcrossProfiles"
       ],
       "verdict": "verified"
+    },
+    {
+      "id": "bento-152-038",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "A quiet browser with a lot built in.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "header"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-039",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "The Island keeps tabs, search and page controls in one bar. Other tools, from Split View to Reader Mode, stay out of sight until you ask for them. Click any tile to see it at work.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "header"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-040",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Download Blanc",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "header"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-041",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "See what’s new →",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "header"
+      ],
+      "verdict": "verified"
     }
   ],
   "retired": [
@@ -471,6 +521,16 @@
       "source": "site/src/pages/features.astro",
       "exactWording": "Now free",
       "reason": "Blanc Spaces has been free since v1.33.0; the badge now names v1.52.0’s Spaces across profiles."
+    },
+    {
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Everything in Blanc.",
+      "reason": "The header became a two-column header with a new headline (owner pick, November 23, 2026)."
+    },
+    {
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Quiet on the screen, with a lot built in. Click any tile to see it at work.",
+      "reason": "Replaced by the new header’s lead."
     }
   ]
 }

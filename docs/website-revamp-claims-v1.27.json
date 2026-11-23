@@ -13101,8 +13101,12 @@
       },
       {
         "source": "site/src/pages/features.astro",
-        "reason": "November 23, 2026, brought up to public v1.52.0: nine smaller-details tiles and their pop-ups for features shipped from v1.39.0 to v1.51.0 (Split View, Reader Mode, Favorites folders, Auto-hide the Island, Mini Window, Tab Archive, Shared Spaces, Send to Device, protected video), and the Blanc Spaces badge now names Spaces across profiles (v1.52.0) instead of Now free. Recorded in docs/website-features-bento-claims-v1.52.json.",
+        "reason": "November 23, 2026, brought up to public v1.52.0: nine smaller-details tiles and their pop-ups for features shipped from v1.39.0 to v1.51.0 (Split View, Reader Mode, Favorites folders, Auto-hide the Island, Mini Window, Tab Archive, Shared Spaces, Send to Device, protected video), and the Blanc Spaces badge now names Spaces across profiles (v1.52.0) instead of Now free. Recorded in docs/website-features-bento-claims-v1.52.json. The header was reworked the same day (owner pick of three drawn directions): a new headline and lead beside a Download button and a link to What’s New.",
         "replacements": [
+          {
+            "before": "<h1 id=\"features-title\">Everything in Blanc.</h1>\n<p class=\"bento-lead\"><span>Quiet on the screen, with a lot built in.</span> <span>Click any tile to see it at work.</span></p>",
+            "after": "<h1 id=\"features-title\">A quiet browser with a lot built in.</h1>\n<p class=\"bento-lead\">The Island keeps tabs, search and page controls in one bar. Other tools, from Split View to Reader Mode, stay out of sight until you ask for them. Click any tile to see it at work.</p>"
+          },
           {
             "before": "<p class=\"bento-badge\">Now free</p>",
             "after": "<p class=\"bento-badge\">Now across profiles</p>"
