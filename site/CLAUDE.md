@@ -19,7 +19,7 @@ the small lockup and the direct links fed by `src/data/navigation.mjs` and kept
 in step by `test/unit/site-navigation.test.js`. At 920px and narrower the links
 fold behind a Menu button (an inline script, so phones never flash the full
 row; without scripting they wrap onto a second row). It never hides on scroll:
-the homepage's sticky scenes sit just below it. While `src/data/mail-reservations.json`
+the homepage's sticky Island stage sits just below it. While `src/data/mail-reservations.json`
 says `open`, `components/MailReserveBanner.astro` puts a slim dark strip above
 the bar, one link to `/mail/reserve` naming the default ending, which scrolls
 away while the bar stays put; Header.astro leaves it off the Mail, legal and
@@ -93,7 +93,7 @@ licence: *Blanc lockup* in `docs/brand-usage.md`.
 
 **Homepage:** the cinematic redesign of October 15, 2026 (`pages/index.astro`,
 `styles/home.css`, `scripts/home.js`). The opening sunrise plays once on
-load (2.2 s, behind `prefers-reduced-motion: no-preference` only), so the
+load (1.4 s, behind `prefers-reduced-motion: no-preference` only), so the
 first screen always ends on the headline and Download; the owner rejected a
 scroll-to-reveal opening on October 15. The rest of the motion is
 scroll-driven CSS behind `@supports (animation-timeline: view())` as well;
@@ -190,8 +190,9 @@ Worker contract stays in one place; `test/site/newsletter-prompt.test.mjs`.
 Add `?newsletter-card` to a page's URL to show it at once for checking; that
 ignores and never writes the memory.
 
-**Blanc Patron (`/patron`):** the header's Patron link and the footer point
-here. It explains the plans, the single Polar checkout link (the buyer picks
+**Blanc Patron (`/patron`):** the footer and the homepage's Patron section
+point here (the header dropped its Patron link on November 23, 2026). It
+explains the plans, the single Polar checkout link (the buyer picks
 monthly or annual there; the same link as the app's Patron settings) and
 activation with the license key. Its copy repeats claims from the Terms,
 Privacy and About pages; keep it in step with them.
