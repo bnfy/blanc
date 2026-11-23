@@ -1,4 +1,7 @@
-export const NAME = /^1\.0\.0-beta\.[1-9]\d*$/;
+// Stable releases are MAJOR.MINOR.PATCH; a beta is named after the stable it leads to (1.1.0-beta.3).
+const BODY = '[1-9]\\d*\\.(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)(?:-beta\\.[1-9]\\d*)?';
+export const NAME = new RegExp(`^${BODY}$`);
+export const TAG = new RegExp(`^android-v(${BODY})-([1-9]\\d*)$`);
 
 function check(condition, message) {
   if (!condition) throw new Error(message);
@@ -6,11 +9,21 @@ function check(condition, message) {
 
 function validateName(versionName) {
   check(typeof versionName === 'string' && versionName === versionName.trim() && NAME.test(versionName),
-    'versionName must match 1.0.0-beta.N with a positive beta number');
+    'versionName must be a stable MAJOR.MINOR.PATCH or a beta MAJOR.MINOR.PATCH-beta.N');
 }
 
 function validateCode(versionCode) {
   check(Number.isSafeInteger(versionCode) && versionCode > 0, 'versionCode must be a positive safe integer');
+}
+
+export function channelOf(versionName) {
+  validateName(versionName);
+  return versionName.includes('-beta.') ? 'beta' : 'stable';
+}
+
+export function stableOf(versionName) {
+  validateName(versionName);
+  return versionName.split('-')[0];
 }
 
 export function tagFor(versionName, versionCode) {

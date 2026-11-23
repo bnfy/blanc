@@ -4,7 +4,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import { nextRelease, tagFor, validateLedger } from './versions.mjs';
+import { TAG, nextRelease, tagFor, validateLedger } from './versions.mjs';
 import { competingBuild, processListArgs } from '../../tools/build.mjs';
 const SHA = /^[a-f0-9]{64}$/;
 const COMMIT = /^[a-f0-9]{40}$/;
@@ -28,16 +28,18 @@ export function releaseArgs(template, versionName, versionCode) {
   return template + `\nblanc_android_version_name = "${versionName}"\nandroid_override_version_name = "${versionName}"\nandroid_override_version_code = "${versionCode}"\n`;
 }
 // The build guard pins each output's arguments, and every release changes them by its version
-// lines. When the pin is exactly this template with an earlier version (any 1.0.0-beta.N with a
-// lower version code, whether or not that build reached the ledger), only the version changed:
+// lines. When the pin is exactly this template with an earlier version (any 1.0.0-beta.N, or any
+// name in `earlierNames` (the ledger's), with a lower version code, whether or not that build
+// reached the ledger), only the version changed:
 // the pin with the new arguments' hash, every toolchain field untouched. Otherwise null, and the
 // guard stops the build for a review.
-export function pinForNewVersion(pin, template, versionCode, args) {
+export function pinForNewVersion(pin, template, versionCode, args, earlierNames = []) {
   const next = digest(args);
   if (pin?.argsSha256 === next) return null;
   for (let code = 1; code < versionCode; code++) {
-    for (let beta = 1; beta <= code; beta++) {
-      if (digest(releaseArgs(template, `1.0.0-beta.${beta}`, code)) === pin?.argsSha256) return { ...pin, argsSha256: next };
+    const names = new Set([...Array.from({ length: code }, (_, beta) => `1.0.0-beta.${beta + 1}`), ...earlierNames]);
+    for (const name of names) {
+      if (digest(releaseArgs(template, name, code)) === pin?.argsSha256) return { ...pin, argsSha256: next };
     }
   }
   return null;
@@ -71,7 +73,7 @@ function releaseEntry(tree, tag) {
     check(found.state === 'built', 'ledger state must be built (pending); uploaded or abandoned builds cannot rebuild');
     return found;
   }
-  const match = /^android-v(1\.0\.0-beta\.[1-9]\d*)-([1-9]\d*)$/.exec(tag);
+  const match = TAG.exec(tag);
   check(match, 'invalid release tag');
   const pending = nextRelease(ledger, match[1]);
   check(pending.tag === tag, 'release tag is not the next ledger versionCode');
@@ -89,7 +91,7 @@ function archive(tree, commit, destination) {
 }
 function main() {
   const [tag, ...options] = process.argv.slice(2);
-  check(tag && /^android-v1\.0\.0-beta\.[1-9]\d*-[1-9]\d*$/.test(tag), 'Usage: release-build.sh TAG --previous-map COMMIT [--dry-run] [--gates]');
+  check(tag && TAG.test(tag), 'Usage: release-build.sh TAG --previous-map COMMIT [--dry-run] [--gates]');
   const previousIndex = options.indexOf('--previous-map');
   check(previousIndex >= 0 && COMMIT.test(options[previousIndex + 1] ?? ''), '--previous-map requires a full lowercase commit');
   const previous = options[previousIndex + 1];
@@ -174,7 +176,8 @@ Would write ${evidence}/build.json. No changes made.`);
     catch (error) { if (error.code !== 'ENOENT') throw error; }
     if (pin === null) run(process.execPath, [...buildTool, '--record-environment'], { stdio: 'inherit' });
     else {
-      const moved = pinForNewVersion(pin, argsTemplate, entry.versionCode, args);
+      const earlierNames = jsonAt(clone, entry.commit, 'chromium/android/release/ledger.json').builds.map(build => build.versionName);
+      const moved = pinForNewVersion(pin, argsTemplate, entry.versionCode, args, earlierNames);
       if (moved) fs.writeFileSync(pinFile, JSON.stringify(moved, null, 2) + '\n');
     }
     // A release is an intentional full rebuild, so the large-plan guard is waived here only.

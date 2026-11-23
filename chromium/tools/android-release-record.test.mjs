@@ -158,4 +158,32 @@ test('a new version moves the pinned arguments only when nothing but the version
   // The first release has no earlier version.
   assert.equal(pinForNewVersion(pin, template, 1, releaseArgs(template, '1.0.0-beta.1', 1)), null);
   assert.equal(pinForNewVersion({}, template, 2, next), null);
+  // After a stable release the pin holds a stable name's arguments; the ledger's names count as earlier versions.
+  const stablePin = { ...pin, argsSha256: sha(releaseArgs(template, '1.0.0', 6)) };
+  const beta = releaseArgs(template, '1.1.0-beta.1', 7);
+  assert.equal(pinForNewVersion(stablePin, template, 7, beta), null);
+  assert.equal(pinForNewVersion(stablePin, template, 7, beta, ['1.0.0-beta.5', '1.0.0']).argsSha256, sha(beta));
+});
+
+// A stable release (1.0.0) follows the betas in the same code sequence; a malformed tag never reaches Git.
+for (const [tag, ok] of [['android-v1.0.0-6', true], ['android-v1.1.0-beta.1-6', true], ['android-v1.0.0-beta-6', false], ['android-v1.0-6', false]]) test(`release build preflight ${ok ? 'accepts' : 'refuses'} ${tag}`, () => {
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'release-tag-'));
+  try {
+    fs.mkdirSync(path.join(temp, 'blanc-release'));
+    fs.writeFileSync(path.join(temp, 'uname'), '#!/bin/sh\ncase "$1" in -s) echo Linux;; -m) echo x86_64;; esac\n', { mode: 0o755 });
+    fs.writeFileSync(path.join(temp, 'ps'), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+    const builds = [1, 2, 3, 4, 5].map(code => ({ versionCode: code, versionName: `1.0.0-beta.${code}`, tag: `android-v1.0.0-beta.${code}-${code}`, commit: 'c'.repeat(40), state: 'uploaded', date: '2026-11-22', note: '' }));
+    fs.writeFileSync(path.join(temp, 'git'), `#!/bin/sh
+shift 2
+case "$1" in
+status) ;;
+rev-parse) printf '%s\\n' '${entry.commit}';;
+show) printf '%s\\n' '${JSON.stringify({ schema: 1, builds })}';;
+*) exit 99;;
+esac
+`, { mode: 0o755 });
+    const result = spawnSync('bash', [fileURLToPath(script), tag, '--previous-map', 'b'.repeat(40), '--dry-run'], { encoding: 'utf8', env: { ...process.env, PATH: `${temp}:${process.env.PATH}`, HOME: temp } });
+    if (ok) { assert.equal(result.status, 0, result.stderr); assert.match(result.stdout, new RegExp(tag.replaceAll('.', '\\.'))); }
+    else { assert.notEqual(result.status, 0); assert.match(result.stderr, /Usage/); }
+  } finally { fs.rmSync(temp, { recursive: true, force: true }); }
 });
