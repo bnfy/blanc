@@ -53,6 +53,13 @@
   background: linear-gradient(90deg, transparent, rgb(212 173 102 / 0.55) 30%, rgb(244 210 150 / 0.85) 50%, rgb(212 173 102 / 0.55) 70%, transparent);
   box-shadow: 0 0 24px 2px rgb(232 170 90 / 0.35);
 }
+/* On wide windows the clear header sits over the hero (Header.astro sets
+   data-overlay; without scripting the header stays solid above it). */
+@media (min-width: 921px) {
+  :root:has(.revamp-header[data-overlay-tone="dark"][data-overlay]) .trust-intro {
+    padding-top: calc(72px + var(--site-header-h));
+  }
+}
 .trust-intro-inner {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);

@@ -7,6 +7,14 @@ import { browserMenu, directLinks, pagePath } from "../data/navigation.mjs";
 const { current = null, variant = "solid" } = Astro.props;
 const minimal = variant === "minimal";
 const onHome = pagePath(Astro.url.pathname) === "/";
+// Pages whose first screen sits under a clear bar: the homepage's sunrise
+// (dark ink) and Privacy & Security's night hero (light ink, wide windows
+// only; revamp.css).
+const overlayTone = onHome
+  ? "light"
+  : pagePath(Astro.url.pathname) === "/trust"
+    ? "dark"
+    : undefined;
 const mailPath = pagePath(Astro.url.pathname);
 const onMail = mailPath === "/mail" || mailPath.startsWith("/mail/");
 // The reservation banner shows on the full header only, and not on the Mail
@@ -19,7 +27,7 @@ const hrefFor = (href) =>
 
 <a class="skip-link" href="#main-content">Skip to content</a>
 {showReserveBanner && <MailReserveBanner />}
-<header class="site-header revamp-header" data-home-overlay={onHome ? "" : undefined}>
+<header class="site-header revamp-header" data-overlay-tone={overlayTone}>
   <nav class="site-nav revamp-nav" aria-label="Primary navigation">
     <a class="site-brand" href="/" aria-label="Blanc Browser home"
       ><span class="site-lockup site-lockup--small" aria-hidden="true"
@@ -131,11 +139,12 @@ const hrefFor = (href) =>
 </header>
 {!minimal && <SiteSearch />}
 <script is:inline>
-  // On the homepage the bar starts clear over the sunrise and turns solid once
-  // the page scrolls (owner, November 19, 2026). Set here, before first paint,
-  // so without scripting the bar simply stays solid.
+  // On the homepage (owner, November 19, 2026) and Privacy & Security (owner,
+  // November 23, 2026) the bar starts clear over the first screen and turns
+  // solid once the page scrolls. Set here, before first paint, so without
+  // scripting the bar simply stays solid.
   (() => {
-    const header = document.querySelector(".revamp-header[data-home-overlay]");
+    const header = document.querySelector(".revamp-header[data-overlay-tone]");
     if (!header) return;
     header.dataset.overlay = "";
     let queued = false;
