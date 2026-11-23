@@ -11,6 +11,7 @@ import android.widget.PopupMenu;
 import org.chromium.base.ContextUtils;
 import org.chromium.blanc.settings.StartPageCustomize;
 import org.chromium.build.annotations.NullMarked;
+import org.chromium.build.annotations.Nullable;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -60,8 +61,19 @@ public final class IslandMenuPopup {
         }
     }
 
+    /**
+     * What only the Island can do for its menu: a new tab, and closing the private tab. The Island
+     * tags its menu button with these (R.id.blanc_island_menu_actions), so each window's menu
+     * acts on its own Island.
+     */
+    public interface IslandActions {
+        void newTab();
+
+        void closePrivateTab();
+    }
+
     static final Set<IslandMenu.Kind> BUILT =
-            EnumSet.of(IslandMenu.Kind.CUSTOMIZE_START_PAGE, IslandMenu.Kind.BLOCKING, IslandMenu.Kind.BLOCKING_SETTINGS, IslandMenu.Kind.BLOCKING_UNAVAILABLE,
+            EnumSet.of(IslandMenu.Kind.CLOSE_PRIVATE_TAB, IslandMenu.Kind.NEW_TAB, IslandMenu.Kind.CUSTOMIZE_START_PAGE, IslandMenu.Kind.BLOCKING, IslandMenu.Kind.BLOCKING_SETTINGS, IslandMenu.Kind.BLOCKING_UNAVAILABLE,
                     IslandMenu.Kind.FAVORITE, IslandMenu.Kind.SEND, IslandMenu.Kind.SHARE, IslandMenu.Kind.COPY_LINK,
                     IslandMenu.Kind.FIND, IslandMenu.Kind.PAGE_ZOOM, IslandMenu.Kind.DESKTOP_SITE,
                     IslandMenu.Kind.NEW_PRIVATE_TAB, IslandMenu.Kind.RELOAD, IslandMenu.Kind.SETTINGS);
@@ -72,9 +84,13 @@ public final class IslandMenuPopup {
     public static PopupMenu show(View anchor, IslandMenu.Context context, Actions actions) {
         PopupMenu popup = new PopupMenu(anchor.getContext(), anchor);
         Menu menu = popup.getMenu();
+        @Nullable IslandActions island =
+                anchor.getTag(R.id.blanc_island_menu_actions) instanceof IslandActions a ? a : null;
         int order = 0;
         for (IslandMenu.Item item : IslandMenu.items(context)) {
             if (!BUILT.contains(item.kind)) continue;
+            boolean islandOnly = item.kind == IslandMenu.Kind.CLOSE_PRIVATE_TAB || item.kind == IslandMenu.Kind.NEW_TAB;
+            if (islandOnly && island == null) continue;
             if (item.kind == IslandMenu.Kind.BLOCKING || item.kind == IslandMenu.Kind.BLOCKING_SETTINGS
                     || item.kind == IslandMenu.Kind.BLOCKING_UNAVAILABLE) {
                 order = addBlocking(menu, order, item, context, actions, anchor);
@@ -83,6 +99,18 @@ public final class IslandMenuPopup {
             final Runnable run;
             final int title;
             switch (item.kind) {
+                case CLOSE_PRIVATE_TAB:
+                    title = R.string.blanc_ios_island_close_private_tab;
+                    run = () -> {
+                        if (island != null) island.closePrivateTab();
+                    };
+                    break;
+                case NEW_TAB:
+                    title = R.string.blanc_tab_new;
+                    run = () -> {
+                        if (island != null) island.newTab();
+                    };
+                    break;
                 case FAVORITE:
                     title = item.on ? R.string.blanc_tab_menu_remove_favorite : R.string.blanc_tab_menu_save_favorite;
                     run = actions::toggleFavorite;

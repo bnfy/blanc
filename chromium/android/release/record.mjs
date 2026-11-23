@@ -4,7 +4,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import { nextRelease, tagFor, validateLedger } from './versions.mjs';
+import { TAG, nextRelease, tagFor, validateLedger } from './versions.mjs';
 import { competingBuild, processListArgs } from '../../tools/build.mjs';
 const SHA = /^[a-f0-9]{64}$/;
 const COMMIT = /^[a-f0-9]{40}$/;
@@ -28,16 +28,18 @@ export function releaseArgs(template, versionName, versionCode) {
   return template + `\nblanc_android_version_name = "${versionName}"\nandroid_override_version_name = "${versionName}"\nandroid_override_version_code = "${versionCode}"\n`;
 }
 // The build guard pins each output's arguments, and every release changes them by its version
-// lines. When the pin is exactly this template with an earlier version (any 1.0.0-beta.N with a
-// lower version code, whether or not that build reached the ledger), only the version changed:
+// lines. When the pin is exactly this template with an earlier version (any 1.0.0-beta.N, or any
+// name in `earlierNames` (the ledger's), with a lower version code, whether or not that build
+// reached the ledger), only the version changed:
 // the pin with the new arguments' hash, every toolchain field untouched. Otherwise null, and the
 // guard stops the build for a review.
-export function pinForNewVersion(pin, template, versionCode, args) {
+export function pinForNewVersion(pin, template, versionCode, args, earlierNames = []) {
   const next = digest(args);
   if (pin?.argsSha256 === next) return null;
   for (let code = 1; code < versionCode; code++) {
-    for (let beta = 1; beta <= code; beta++) {
-      if (digest(releaseArgs(template, `1.0.0-beta.${beta}`, code)) === pin?.argsSha256) return { ...pin, argsSha256: next };
+    const names = new Set([...Array.from({ length: code }, (_, beta) => `1.0.0-beta.${beta + 1}`), ...earlierNames]);
+    for (const name of names) {
+      if (digest(releaseArgs(template, name, code)) === pin?.argsSha256) return { ...pin, argsSha256: next };
     }
   }
   return null;
@@ -71,13 +73,48 @@ function releaseEntry(tree, tag) {
     check(found.state === 'built', 'ledger state must be built (pending); uploaded or abandoned builds cannot rebuild');
     return found;
   }
-  const match = /^android-v(1\.0\.0-beta\.[1-9]\d*)-([1-9]\d*)$/.exec(tag);
+  const match = TAG.exec(tag);
   check(match, 'invalid release tag');
   const pending = nextRelease(ledger, match[1]);
   check(pending.tag === tag, 'release tag is not the next ledger versionCode');
   return { ...pending, commit };
 }
-function archive(tree, commit, destination) {
+// Applies an exported Blanc tree to the shared Chromium checkout over `previous` (the Blanc commit
+// applied last), copies the assets git doesn't hold, and refuses a checkout off the pin or with
+// changes Blanc doesn't apply. Records `commit` as the applied one, for the next run's previous map.
+export function applyToCheckout({ clone, previous, exported, attempt, src, home, commit }) {
+  const read = name => JSON.parse(fs.readFileSync(path.join(exported, name), 'utf8'));
+  const oldAndroid = jsonAt(clone, previous, 'chromium/source-map-android.json');
+  const oldCanonical = jsonAt(clone, previous, 'chromium/source-map.json');
+  const previousMap = path.join(attempt, 'previous-map.json');
+  fs.writeFileSync(previousMap, JSON.stringify({ upstream: oldAndroid.upstream, upstreamFiles: oldAndroid.upstreamFiles, canonicalSha256: oldCanonical.canonicalSha256 }, null, 2) + '\n', { flag: 'wx' });
+  const tools = path.join(exported, 'chromium/tools');
+  run('python3', [path.join(tools, 'apply.py'), '--lane', 'android', '--src', src, '--previous-map', previousMap, '--apply', '--backup', path.join(attempt, 'backup')], { stdio: 'inherit' });
+  fs.writeFileSync(appliedFile(home), commit + '\n');
+  for (const [asset, destination] of [['zxing/core-3.5.3.jar', 'blanc/android/zxing/core-3.5.3.jar'], ['blocker/engine.js', 'blanc/android/blocker_assets/engine.js']]) {
+    const target = path.join(src, destination);
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.copyFileSync(path.join(home, 'blanc-assets', asset), target);
+  }
+  // The bundle is only what the tag says if Chromium is at the pinned upstream and its only changes are
+  // the files Blanc applies: an edit left in from debugging would otherwise ship.
+  const androidMap = read('chromium/source-map-android.json');
+  const upstream = git(src, 'rev-parse', 'HEAD');
+  check(upstream === androidMap.upstream, `Chromium checkout is at ${upstream}, not the pinned ${androidMap.upstream}`);
+  const stray = unexpectedChromiumChanges(git(src, 'status', '--porcelain', '--untracked-files=no'), new Set(Object.keys(androidMap.upstreamFiles)));
+  check(!stray.length, `Chromium checkout has changes Blanc doesn't apply: ${stray.slice(0, 5).join(', ')}${stray.length > 5 ? ', …' : ''}`);
+  return { upstream, androidMap };
+}
+// The Blanc commit last applied to the shared checkout (the next apply's previous map), and the lock a
+// release build and the nightly each hold while they change that checkout.
+export const appliedFile = home => path.join(home, 'chromium-android/.blanc-applied-commit');
+export function withAndroidLock(home, work) {
+  const lock = path.join(home, 'chromium-android/.blanc-android.lock');
+  try { fs.mkdirSync(lock); }
+  catch (error) { if (error.code === 'EEXIST') throw new Error('the Android checkout is in use (a release build or the nightly holds its lock)'); throw error; }
+  try { return work(); } finally { fs.rmSync(lock, { recursive: true, force: true }); }
+}
+export function archive(tree, commit, destination) {
   fs.mkdirSync(destination, { recursive: true });
   // Stream the archive through a file: never hold the source tree in memory.
   const archiveFile = path.join(destination, '.source.tar');
@@ -89,7 +126,7 @@ function archive(tree, commit, destination) {
 }
 function main() {
   const [tag, ...options] = process.argv.slice(2);
-  check(tag && /^android-v1\.0\.0-beta\.[1-9]\d*-[1-9]\d*$/.test(tag), 'Usage: release-build.sh TAG --previous-map COMMIT [--dry-run] [--gates]');
+  check(tag && TAG.test(tag), 'Usage: release-build.sh TAG --previous-map COMMIT [--dry-run] [--gates]');
   const previousIndex = options.indexOf('--previous-map');
   check(previousIndex >= 0 && COMMIT.test(options[previousIndex + 1] ?? ''), '--previous-map requires a full lowercase commit');
   const previous = options[previousIndex + 1];
@@ -103,6 +140,11 @@ function main() {
   const src = path.join(home, 'chromium-android/src');
   const evidence = path.join(home, 'blanc-evidence/android/release', tag);
   check(!competingBuild(run('ps', processListArgs())), 'A Siso build is already running; no shared checkout was changed');
+  // The nightly moves the shared checkout too: the previous map must be the commit applied last.
+  let applied = null;
+  try { applied = fs.readFileSync(appliedFile(home), 'utf8').trim(); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; }
+  check(applied === null || applied === previous, `--previous-map must be the last applied commit (${applied} in ~/chromium-android/.blanc-applied-commit)`);
   const checkIsolation = () => {
     const development = path.join(home, 'blanc');
     check(!fs.existsSync(development) || fs.realpathSync(clone) !== fs.realpathSync(development), 'refusing the development clone');
@@ -121,6 +163,7 @@ ${gates ? 'Would build out/AndroidReleaseX64 chrome_public_apk through build.mjs
 Would write ${evidence}/build.json. No changes made.`);
     return;
   }
+  withAndroidLock(home, () => {
   check(!fs.existsSync(path.join(evidence, 'build.json')), 'build record already exists; preserve it and reconcile by hand');
   if (!fs.existsSync(clone)) run('git', ['clone', '--filter=blob:none', git(tree, 'remote', 'get-url', 'origin'), clone]);
   checkIsolation();
@@ -135,24 +178,8 @@ Would write ${evidence}/build.json. No changes made.`);
   const exported = path.join(attempt, 'source');
   archive(clone, entry.commit, exported);
   const read = name => JSON.parse(fs.readFileSync(path.join(exported, name), 'utf8'));
-  const oldAndroid = jsonAt(clone, previous, 'chromium/source-map-android.json');
-  const oldCanonical = jsonAt(clone, previous, 'chromium/source-map.json');
-  const previousMap = path.join(attempt, 'previous-map.json');
-  fs.writeFileSync(previousMap, JSON.stringify({ upstream: oldAndroid.upstream, upstreamFiles: oldAndroid.upstreamFiles, canonicalSha256: oldCanonical.canonicalSha256 }, null, 2) + '\n', { flag: 'wx' });
+  const { upstream } = applyToCheckout({ clone, previous, exported, attempt, src, home, commit: entry.commit });
   const tools = path.join(exported, 'chromium/tools');
-  run('python3', [path.join(tools, 'apply.py'), '--lane', 'android', '--src', src, '--previous-map', previousMap, '--apply', '--backup', path.join(attempt, 'backup')], { stdio: 'inherit' });
-  for (const [asset, destination] of [['zxing/core-3.5.3.jar', 'blanc/android/zxing/core-3.5.3.jar'], ['blocker/engine.js', 'blanc/android/blocker_assets/engine.js']]) {
-    const target = path.join(src, destination);
-    fs.mkdirSync(path.dirname(target), { recursive: true });
-    fs.copyFileSync(path.join(home, 'blanc-assets', asset), target);
-  }
-  // The bundle is only what the tag says if Chromium is at the pinned upstream and its only changes are
-  // the files Blanc applies: an edit left in from debugging would otherwise ship.
-  const androidMap = read('chromium/source-map-android.json');
-  const upstream = git(src, 'rev-parse', 'HEAD');
-  check(upstream === androidMap.upstream, `Chromium checkout is at ${upstream}, not the pinned ${androidMap.upstream}`);
-  const stray = unexpectedChromiumChanges(git(src, 'status', '--porcelain', '--untracked-files=no'), new Set(Object.keys(androidMap.upstreamFiles)));
-  check(!stray.length, `Chromium checkout has changes Blanc doesn't apply: ${stray.slice(0, 5).join(', ')}${stray.length > 5 ? ', …' : ''}`);
   const outputs = [['AndroidRelease', 'release-arm64.gn'], ...(gates ? [['AndroidReleaseX64', 'release-x64.gn']] : [])];
   for (const [outName, template] of outputs) {
     const out = path.join(src, 'out', outName);
@@ -174,7 +201,8 @@ Would write ${evidence}/build.json. No changes made.`);
     catch (error) { if (error.code !== 'ENOENT') throw error; }
     if (pin === null) run(process.execPath, [...buildTool, '--record-environment'], { stdio: 'inherit' });
     else {
-      const moved = pinForNewVersion(pin, argsTemplate, entry.versionCode, args);
+      const earlierNames = jsonAt(clone, entry.commit, 'chromium/android/release/ledger.json').builds.map(build => build.versionName);
+      const moved = pinForNewVersion(pin, argsTemplate, entry.versionCode, args, earlierNames);
       if (moved) fs.writeFileSync(pinFile, JSON.stringify(moved, null, 2) + '\n');
     }
     // A release is an intentional full rebuild, so the large-plan guard is waived here only.
@@ -188,6 +216,7 @@ Would write ${evidence}/build.json. No changes made.`);
   if (gates) record.gatesApk = { sha256: digest(fs.readFileSync(path.join(src, 'out/AndroidReleaseX64/apks/ChromePublic.apk'))) };
   validateBuildRecord(record, entry);
   fs.writeFileSync(path.join(evidence, 'build.json'), JSON.stringify(record, null, 2) + '\n', { flag: 'wx' });
+  });
 }
 // Real paths: on macOS a temp or symlinked path (/var → /private/var) would otherwise never match.
 if (process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) {

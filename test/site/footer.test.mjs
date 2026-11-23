@@ -132,6 +132,96 @@ test('a gold horizon rule marks the footer seam on every page profile without ov
   } finally { await page.close(); }
 });
 
+// docs/brand-usage.md → Editorial website footer: a white band since
+// November 23, 2026, except the homepage, whose footer stays dark after its
+// dark closing section. Every piece of footer text must stay readable on it.
+test('footer text meets AA contrast on its band, white everywhere but the dark homepage', async () => {
+  const page = await openPage();
+  try {
+    for (const [path, band, word] of [
+      ['/', 'rgb(17, 17, 17)', 'white'],
+      ['/features/island', 'rgb(255, 255, 255)', 'ink'],
+      ['/privacy', 'rgb(255, 255, 255)', 'ink'],
+      ['/mail', 'rgb(255, 255, 255)', 'ink'],
+    ]) {
+      await page.goto(`${baseURL}${path}`);
+      const result = await page.locator('#site-footer').evaluate(footer => {
+        const rgb = value => value.match(/[\d.]+/g).slice(0, 3).map(Number);
+        const luminance = ([r, g, b]) => [r, g, b].map(c => {
+          c /= 255;
+          return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+        }).reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i], 0);
+        // Each piece of text against the nearest painted background behind it
+        // (the Subscribe pill paints its own).
+        const behind = el => {
+          for (let node = el; node; node = node.parentElement) {
+            const color = getComputedStyle(node).backgroundColor;
+            if (!/rgba\(.*, 0\)$|transparent/.test(color)) return color;
+          }
+          return 'rgb(255, 255, 255)';
+        };
+        const background = getComputedStyle(footer).backgroundColor;
+        const low = [...footer.querySelectorAll('a, h2, p, li, button, .foot-news-status')]
+          .filter(el => !el.closest('.foot-news-hp'))
+          .map(el => {
+            const base = luminance(rgb(behind(el)));
+            const text = luminance(rgb(getComputedStyle(el).color));
+            const ratio = (Math.max(base, text) + 0.05) / (Math.min(base, text) + 0.05);
+            return { text: (el.textContent || el.className).trim().slice(0, 40), ratio };
+          })
+          .filter(item => item.ratio < 4.5);
+        const lockupWord = footer.querySelector('.site-lockup-word').getAttribute('src');
+        return { background, low, lockupWord };
+      });
+      assert.equal(result.background, band, `${path}: footer band`);
+      assert.equal(result.lockupWord, `/lockup/blanc-word-display-${word}.svg`, `${path}: lockup word`);
+      assert.deepEqual(result.low, [], `${path}: text below 4.5:1`);
+    }
+  } finally { await page.close(); }
+});
+
+// Column links sit closer with a mouse or trackpad; touch screens keep the
+// rows they had before the white band (9px padding, about 36px).
+test('footer column links sit closer with a mouse and keep their rows on touch screens', async () => {
+  const rowHeights = async page => {
+    await page.route('**/*', route => new URL(route.request().url()).origin === new URL(baseURL).origin
+      ? route.continue() : route.abort());
+    await page.goto(`${baseURL}/features/island`);
+    await page.evaluate(() => document.fonts.ready);
+    return page.locator('.website-footer-grid nav a').evaluateAll(links => links.map(a => a.getBoundingClientRect().height));
+  };
+  const desktop = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
+  const touch = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: 'reduce' });
+  try {
+    const fine = await rowHeights(desktop);
+    const coarse = await rowHeights(await touch.newPage());
+    assert.ok(fine.length > 0 && coarse.length === fine.length);
+    for (const height of fine) assert.ok(height <= 31, `mouse row height ${height}`);
+    for (const height of coarse) assert.ok(height >= 36, `touch row height ${height}`);
+  } finally { await desktop.close(); await touch.close(); }
+});
+
+// The social row is icons (Simple Icons, CC0): each link is named for screen
+// readers, shows a glyph and no visible text, and keeps a 36 × 44px target.
+test('social links are named icons with room to tap', async () => {
+  const page = await openPage();
+  try {
+    for (const path of ['/', '/features/island']) {
+      await page.goto(`${baseURL}${path}`);
+      const links = await page.locator('#site-footer nav[aria-label="Follow Blanc"] a').evaluateAll(as => as.map(a => {
+        const box = a.getBoundingClientRect();
+        return { label: a.getAttribute('aria-label'), text: a.textContent.trim(), glyph: !!a.querySelector('svg[aria-hidden="true"] path'), width: box.width, height: box.height };
+      }));
+      assert.deepEqual(links.map(link => link.label), ['Substack', 'Instagram', 'Threads', 'Facebook', 'TikTok', 'Reddit'].map(name => `Blanc on ${name}`), path);
+      for (const link of links) {
+        assert.equal(link.text, '', `${path}: ${link.label} shows no text`);
+        assert.equal(link.glyph, true, `${path}: ${link.label} glyph`);
+        assert.ok(link.width >= 36 && link.height >= 44, `${path}: ${link.label} target ${link.width}×${link.height}`);
+      }
+    }
+  } finally { await page.close(); }
+});
+
 test('the newsletter field keeps its label for screen readers only', async () => {
   const page = await openPage();
   try {

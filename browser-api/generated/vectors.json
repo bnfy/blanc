@@ -4367,7 +4367,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspaces-payload-1"
         }
       ]
     },
@@ -4486,7 +4505,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -4632,7 +4670,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -4808,7 +4865,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -4945,7 +5021,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -4983,7 +5078,8 @@
               "decision": "open-workspace-options-1",
               "newWindow": true,
               "color": "open-workspace-options-1",
-              "symbol": "open-workspace-options-1"
+              "symbol": "open-workspace-options-1",
+              "profileId": "open-workspace-options-1"
             }
           ],
           "sends": [
@@ -4996,7 +5092,8 @@
                   "decision": "open-workspace-options-1",
                   "newWindow": true,
                   "color": "open-workspace-options-1",
-                  "symbol": "open-workspace-options-1"
+                  "symbol": "open-workspace-options-1",
+                  "profileId": "open-workspace-options-1"
                 }
               ]
             }
@@ -5086,7 +5183,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -5124,7 +5240,8 @@
               "decision": "open-workspace-options-1",
               "newWindow": true,
               "color": "open-workspace-options-1",
-              "symbol": "open-workspace-options-1"
+              "symbol": "open-workspace-options-1",
+              "profileId": "open-workspace-options-1"
             }
           ],
           "sends": [
@@ -5137,7 +5254,8 @@
                   "decision": "open-workspace-options-1",
                   "newWindow": true,
                   "color": "open-workspace-options-1",
-                  "symbol": "open-workspace-options-1"
+                  "symbol": "open-workspace-options-1",
+                  "profileId": "open-workspace-options-1"
                 }
               ]
             }
@@ -5227,7 +5345,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -5321,7 +5458,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -5415,7 +5571,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -5509,7 +5684,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -5632,7 +5826,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -5728,7 +5941,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -5822,7 +6054,26 @@
             "busy": true,
             "slowed": true
           },
-          "recoveryNotice": true
+          "recoveryNotice": true,
+          "otherProfiles": [
+            {
+              "id": "other-profile-spaces-1",
+              "name": "other-profile-spaces-1",
+              "status": "saved",
+              "full": true,
+              "items": [
+                {
+                  "id": "workspace-id-1",
+                  "name": "other-profile-space-1",
+                  "color": "other-profile-space-1",
+                  "symbol": "other-profile-space-1",
+                  "tabCount": 1,
+                  "openElsewhere": true
+                }
+              ]
+            }
+          ],
+          "profileName": "workspace-action-result-1"
         }
       ]
     },
@@ -6250,7 +6501,26 @@
                 "busy": true,
                 "slowed": true
               },
-              "recoveryNotice": true
+              "recoveryNotice": true,
+              "otherProfiles": [
+                {
+                  "id": "other-profile-spaces-1",
+                  "name": "other-profile-spaces-1",
+                  "status": "saved",
+                  "full": true,
+                  "items": [
+                    {
+                      "id": "workspace-id-1",
+                      "name": "other-profile-space-1",
+                      "color": "other-profile-space-1",
+                      "symbol": "other-profile-space-1",
+                      "tabCount": 1,
+                      "openElsewhere": true
+                    }
+                  ]
+                }
+              ],
+              "profileName": "workspaces-payload-1"
             }
           ],
           "callbacks": [
@@ -6298,7 +6568,26 @@
                   "busy": true,
                   "slowed": true
                 },
-                "recoveryNotice": true
+                "recoveryNotice": true,
+                "otherProfiles": [
+                  {
+                    "id": "other-profile-spaces-1",
+                    "name": "other-profile-spaces-1",
+                    "status": "saved",
+                    "full": true,
+                    "items": [
+                      {
+                        "id": "workspace-id-1",
+                        "name": "other-profile-space-1",
+                        "color": "other-profile-space-1",
+                        "symbol": "other-profile-space-1",
+                        "tabCount": 1,
+                        "openElsewhere": true
+                      }
+                    ]
+                  }
+                ],
+                "profileName": "workspaces-payload-1"
               }
             ]
           ]

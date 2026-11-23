@@ -188,6 +188,16 @@
     <string name="fill_surface_title">Fill status</string>
     <string name="fill_dismiss">Dismiss</string>
     <string name="dialog_ok">OK</string>
+    <string name="local_html_refused_message">Blanc couldn’t open “%1$s”</string>
+    <plurals name="local_html_refused_message_many">
+        <item quantity="one">Blanc couldn’t open %1$d file</item>
+        <item quantity="other">Blanc couldn’t open %1$d files</item>
+    </plurals>
+    <string name="local_html_refused_line">%1$s: %2$s</string>
+    <string name="local_html_refused_too_large">The file is larger than 8 MB. Blanc opens local pages up to 8 MB.</string>
+    <string name="local_html_refused_not_html">This file isn’t an HTML page.</string>
+    <string name="local_html_refused_changed">The file changed while Blanc was reading it. Open it again.</string>
+    <string name="local_html_refused_unreadable">Blanc couldn’t read the file. Check that it still exists and that you can open it.</string>
     <string name="fill_setup_enable_title">Set up 1Password</string>
     <string name="fill_setup_enable_body">Turn on “Fill logins from 1Password” in Settings. Blanc only reads a matching login when you ask.</string>
     <string name="fill_setup_enable_primary_label">Open Settings</string>
@@ -305,6 +315,18 @@
     <string name="ws_decision_close_and_switch">Close tabs and switch</string>
     <string name="ws_row_current">Current space</string>
     <string name="ws_row_show_window">Show window</string>
+    <plurals name="ws_row_title_profile">
+        <item quantity="one">%2$s · %3$s · %4$s · %1$d tab</item>
+        <item quantity="other">%2$s · %3$s · %4$s · %1$d tabs</item>
+    </plurals>
+    <string name="ws_row_title_profile_shown">%1$s · %2$s · %3$s</string>
+    <string name="ws_editor_profile_disabled">%1$s (can’t add Spaces)</string>
+    <string name="ws_row_open_in_profile">Opens in a %1$s window</string>
+    <string name="ws_profile_unreadable">Couldn’t read this profile’s Spaces.</string>
+    <string name="ws_editor_profile">Profile</string>
+    <string name="ws_editor_help_other_profile">Tabs stay in their own profile, so a Space in %1$s starts empty.</string>
+    <string name="ws_switcher_profile_label">Space · %1$s</string>
+    <string name="ws_error_profile_unavailable">That profile is no longer available.</string>
     <string name="ws_row_retained">Retained in memory</string>
     <string name="ws_row_open">Open space</string>
     <plurals name="ws_row_title">
@@ -2628,9 +2650,10 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="ios_settings_island">Island</string>
     <string name="ios_settings_privacy_sync">Privacy &amp; Sync</string>
     <string name="ios_island_stop">Stop loading</string>
+    <string name="ios_island_close_private_tab">Close Private Tab</string>
     <string name="ios_island_page_actions">Page actions</string>
     <string name="ios_island_collapse">Collapse Island</string>
-    <string name="ios_palette_placeholder">Search, enter address, or / command</string>
+    <string name="ios_palette_placeholder">Search, enter URL or / for commands</string>
     <string name="ios_palette_clear">Clear search</string>
     <string name="ios_palette_no_command">No matching command</string>
     <string name="ios_palette_no_matches">No matches. Press Return to open it as an address or search.</string>

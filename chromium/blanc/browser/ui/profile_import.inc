@@ -110,7 +110,7 @@ void ProfileImportRunner::Plan(std::string args, Reply reply) {
   service_ = content::ServiceProcessHost::Launch<blanc::mojom::SyncRunner>(
       content::ServiceProcessHost::Options().WithDisplayName("Blanc Profile Import").Pass());
   service_.set_disconnect_handler(base::BindOnce(&ProfileImportRunner::Fail, weak_.GetWeakPtr(), "import-ended"));
-  service_->Start(script, {}, R"({"platform":"darwin","version":"profile-import","env":{}})", host_.BindNewPipeAndPassRemote(),
+  service_->Start(script, {}, blanc::RunnerConfigJson("profile-import"), host_.BindNewPipeAndPassRemote(),
       base::BindOnce([](base::WeakPtr<ProfileImportRunner> self, std::string args, bool ready) {
         if (!self) return;
         if (!ready) { self->Fail("import-start-failed"); return; }
@@ -691,8 +691,13 @@ base::DictValue ApplyImportedStartPage(Profile* profile, const base::DictValue& 
       base::BindOnce([](base::FilePath folder, std::string bytes) {
         base::DeletePathRecursively(folder);
         if (bytes.empty()) return true;
-        return base::CreateDirectory(folder) && base::SetPosixFilePermissions(folder, 0700) &&
-               base::WriteFile(folder.AppendASCII(kStartPageImportImage), bytes);
+        if (!base::CreateDirectory(folder)) return false;
+#if BUILDFLAG(IS_POSIX)
+        // Owner-only. On Windows the profile folder's own access list, which
+        // this folder inherits, already admits only its owner.
+        if (!base::SetPosixFilePermissions(folder, 0700)) return false;
+#endif
+        return base::WriteFile(folder.AppendASCII(kStartPageImportImage), bytes);
       }, profile->GetPath().AppendASCII(kStartPageImportFolder), with_image ? std::move(*image) : std::string()),
       base::BindOnce([](base::DictValue pending, bool staged) {
         if (!staged) pending.Set("image", false);

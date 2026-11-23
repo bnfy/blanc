@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { shouldSkip, bumpBetaArgs, onlyArgsChanged, judgeSuite, onlyCandidateLine } from './daily/nightly.mjs';
+import { shouldSkip, bumpBetaArgs, onlyArgsChanged, judgeSuite, onlyCandidateLine, onlyGeneratedProgress } from './daily/nightly.mjs';
 import { planTargeted, loadAreas } from './daily/targeted.mjs';
 
 const args = `target_os = "mac"
@@ -137,4 +137,17 @@ test('the build\'s own candidate line in STATUS.md is not stale source; any othe
   assert.equal(onlyCandidateLine(head + '-Candidate identities: macOS: macos-aaaa.\n+Candidate identities: macOS: macos-bbbb.\n+- **A new entry**\n'), false);
   assert.equal(onlyCandidateLine(head + '-Some line\n+Another line\n'), false);
   assert.equal(onlyCandidateLine(''), false);
+});
+
+test('a new candidate may rewrite the generated progress block; any change outside it is stale', () => {
+  const block = rows => `<!-- BEGIN GENERATED PROGRESS -->\n${rows}\n<!-- END GENERATED PROGRESS -->`;
+  const status = (before, rows, after = '') => `# Status\n${before}\n${block(rows)}\n${after}`;
+  const committed = status('- notes', '| macOS | 635/667 |\nCandidate identities: macOS: macos-aaaa.');
+  // The first night that compiled new shared code (2026-11-18): the row and the line both change.
+  assert.equal(onlyGeneratedProgress(committed, status('- notes', '| macOS | Not run for current candidate (previous baseline is stale) |\nCandidate identities: macOS: macos-bbbb.')), true);
+  assert.equal(onlyGeneratedProgress(committed, committed), true);
+  assert.equal(onlyGeneratedProgress(committed, status('- notes\n- a new entry', '| macOS | 635/667 |\nCandidate identities: macOS: macos-aaaa.')), false);
+  assert.equal(onlyGeneratedProgress(committed, status('- notes', '| macOS | 635/667 |', 'tail')), false);
+  assert.equal(onlyGeneratedProgress(committed, '# Status\n- notes\n'), false);
+  assert.equal(onlyGeneratedProgress('# Status\n', '# Status\n'), false);
 });

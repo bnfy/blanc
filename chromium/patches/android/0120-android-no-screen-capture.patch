@@ -14,7 +14,7 @@ diff -ruN a/chrome/android/java/AndroidManifest.xml b/chrome/android/java/Androi
      <!-- TODO(crbug.com/40259231): Remove this tools:ignore attribute once it's no longer necessary. -->
      <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" tools:ignore="SystemPermissionTypo" />
      <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" tools:ignore="SystemPermissionTypo" />
-@@ -1260,11 +1258,7 @@
+@@ -1251,11 +1249,7 @@
              android:exported="false"/>
  
          <service android:name="org.chromium.chrome.browser.media.MediaCaptureNotificationService"
@@ -29,7 +29,7 @@ diff -ruN a/chrome/android/java/AndroidManifest.xml b/chrome/android/java/Androi
 diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java b/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java
 --- a/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java
-@@ -392,11 +392,6 @@
+@@ -429,11 +429,6 @@
      private int getRequiredForegroundServiceType() {
          // Since we can only have one media notification on the large screen device at a time,
          // we use it to include all of the necessary foreground service types.
@@ -41,7 +41,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptu
          int foregroundServiceType = 0;
          if (ActivityCompat.checkSelfPermission(getService(), Manifest.permission.CAMERA)
                  == PackageManager.PERMISSION_GRANTED) {
-@@ -406,14 +401,8 @@
+@@ -443,14 +438,8 @@
                  == PackageManager.PERMISSION_GRANTED) {
              foregroundServiceType |= ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE;
          }

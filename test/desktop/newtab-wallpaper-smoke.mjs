@@ -165,8 +165,62 @@ try {
       const opacity = Number(getComputedStyle(layer).opacity);
       return opacity > 0 && opacity < 0.8;
     }));
-  await privateSwitch.click();
-  await fadingOut;
+  // Settle the wait's outcome now: the timeline setup below awaits the page,
+  // and a timeout during that await was an unhandled rejection that ended the
+  // run before the timeline could be reported (#1655, 2026-11-20).
+  const fadeResult = fadingOut.then(() => null, (error) => error);
+  // A timeline of the fade, reported if the wait fails: which classes the
+  // layers took and when, and any visibility, focus or motion change.
+  await privatePage.evaluate(() => {
+    const t0 = performance.now();
+    const log = window.__fadeLog = [];
+    const note = (what) => log.push(`${Math.round(performance.now() - t0)}ms ${what}`);
+    const layers = [...document.querySelectorAll('.start-wallpaper-layer')];
+    new MutationObserver(() => note(`layers ${layers.map((layer) => `[${layer.className.replace('start-wallpaper-layer', '').trim()} ${getComputedStyle(layer).opacity}]`).join(' ')} phase=${document.body.dataset.wallpaperPhase ?? '-'}`))
+      .observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class', 'data-wallpaper-phase'] });
+    for (const type of ['visibilitychange', 'focus', 'blur', 'pageshow']) addEventListener(type, () => note(`${type} hidden=${document.hidden}`), true);
+    for (const popover of document.querySelectorAll('[popover]')) popover.addEventListener('toggle', (event) => note(`popover #${popover.id} ${event.newState}`));
+    // Where the switch is on each frame it moves (a click waits for it to hold still).
+    let last = '', moves = 0;
+    const sample = () => {
+      const box = document.getElementById('dynamicWallpaperToggle').getBoundingClientRect();
+      const now = `${Math.round(box.x)},${Math.round(box.y)} ${Math.round(box.width)}x${Math.round(box.height)}`;
+      if (now !== last && moves++ < 40) note(`switch at ${now}`);
+      last = now;
+      if (performance.now() - t0 < 35_000) requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+    // Every 250ms, frames drawn since the last tick and each layer's opacity.
+    // A timer, not a frame callback, so it keeps reporting if the page stops
+    // drawing frames (a CSS transition only advances on frames).
+    let frames = 0;
+    const count = () => { frames += 1; if (performance.now() - t0 < 35_000) requestAnimationFrame(count); };
+    requestAnimationFrame(count);
+    const tick = setInterval(() => {
+      note(`tick frames=${frames} ${window.__describeLayers?.() ?? ''} state=${document.visibilityState}`);
+      frames = 0;
+      if (performance.now() - t0 > 8_000) clearInterval(tick);
+    }, 250);
+    matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (event) => note(`reduced-motion ${event.matches}`));
+    const describe = (layer) => `[${layer.className.replace('start-wallpaper-layer', '').trim()} phase=${layer.dataset.wallpaperPhase ?? '-'} z=${layer.style.zIndex || '-'} opacity=${getComputedStyle(layer).opacity} anims=${layer.getAnimations().map((a) => `${a.transitionProperty ?? a.animationName}:${a.playState}@${Math.round(a.currentTime ?? -1)}`).join('|') || 'none'}]`;
+    window.__describeLayers = () => layers.map(describe).join(' ');
+    note(`before ${window.__describeLayers()} reduce=${matchMedia('(prefers-reduced-motion: reduce)').matches}`);
+    note(`start visible=${document.body.dataset.wallpaperVisible} hidden=${document.hidden} pressed=${document.getElementById('dynamicWallpaperToggle').getAttribute('aria-pressed')} focused=${document.activeElement?.id}`);
+  });
+  let fadeError = null;
+  try {
+    await privateSwitch.click({ timeout: 20_000 });
+  } catch (error) {
+    fadeError = error;
+  }
+  fadeError ??= await fadeResult;
+  if (fadeError) {
+    const state = await privatePage.evaluate(() => [...window.__fadeLog,
+      `end visible=${document.body.dataset.wallpaperVisible} hidden=${document.hidden} pressed=${document.getElementById('dynamicWallpaperToggle').getAttribute('aria-pressed')} popover=${document.getElementById('customizePopover').matches(':popover-open')}`]);
+    // A new error: Node prints a Playwright error's stack, which was written
+    // when it was created, so a message appended to it never reached the log.
+    throw new Error(`${fadeError.message}\nFade timeline:\n${state.join('\n')}`, { cause: fadeError });
+  }
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-fading').count(), 2);
   assert.equal(await privatePage.locator('.start-wallpaper-layer.is-fading').first().evaluate((layer) =>
     getComputedStyle(layer).transitionDuration), '2s');

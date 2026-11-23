@@ -20,19 +20,33 @@ const cinemaLedger = JSON.parse(read('docs/website-cinematic-homepage-claims-v1.
 const v140Ledger = JSON.parse(read('docs/website-v1.40-claims.json'));
 const v145Ledger = JSON.parse(read('docs/website-v1.45-claims.json'));
 const arcWelcomeLedger = JSON.parse(read('docs/website-arc-welcome-claims.json'));
-const compareLedger = JSON.parse(read('docs/website-compare-claims-v1.51.0.json'));
+const compareLedger = JSON.parse(read('docs/website-compare-claims-v1.52.0.json'));
 const iphoneLedger = JSON.parse(read('docs/website-iphone-1.0-claims.json'));
+const spacesButtonLedger = JSON.parse(read('docs/website-spaces-button-claims.json'));
 const ipadLedger = JSON.parse(read('docs/website-ipad-1.0.3-claims.json'));
+const devicesLedger = JSON.parse(read('docs/website-homepage-devices-claims.json'));
 const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
 // Compare source text only; consume incomplete tags and decode entities once.
 const normalize = text => text.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
+// Public v1.51.0 replaced the four Start Page layouts with one Start Page and
+// widgets; the layout wording it retired leaves these ledgers' checks, and its
+// new wording is recorded there (docs/website-v1.51-start-page-claims.json).
+const v151StartLedger = JSON.parse(read('docs/website-v1.51-start-page-claims.json'));
+const retiredWording = new Set(v151StartLedger.retiredWording);
+// The Privacy & Security page was re-checked against public v1.52.0
+// (docs/website-trust-v1.52-claims.json). Its retired wording leaves these
+// checks only for the file it was retired from: other pages that still carry
+// the same sentence stay guarded.
+const v152TrustLedger = JSON.parse(read('docs/website-trust-v1.52-claims.json'));
+const retiredInFile = new Set(v152TrustLedger.retired.map(({ source, exactWording }) => `${source}\n${exactWording}`));
+const live = claims => claims.filter(claim => !retiredWording.has(claim.exactWording) && !retiredInFile.has(`${claim.source}\n${claim.exactWording}`));
 
 test('the public-release claim ledger resolves to verified v1.27.0, including blocking providers', () => {
   assert.equal(ledger.publicRelease, 'v1.27.0');
   assert.equal(execFileSync('git', ['rev-parse', ledger.publicRelease], { cwd: root, encoding: 'utf8' }).trim(), ledger.sourceSha);
   assert.ok(ledger.claims.length > 200);
   const paths = new Set();
-  for (const claim of ledger.claims) {
+  for (const claim of live(ledger.claims)) {
     assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
     const source = read(claim.source);
     assert.ok(normalize(source).includes(claim.exactWording) || source.replace(/\s+/g, ' ').includes(claim.exactWording), `${claim.id}: exact wording drifted`);
@@ -50,7 +64,33 @@ test('current authentication claims link completed evidence rather than the prep
   assert.ok(completed.includes(ledger.sourceSha));
   assert.match(completed, /Publication and independent verification/);
   assert.match(completed, /Adjacent public updater handoffs/);
-  assert.ok(read('site/src/components/ReleaseEvidence.astro').includes(ledger.completedReleaseEvidenceRevision));
+});
+
+// Public v1.52.0: the Privacy & Security page's release evidence, guides and
+// connections, re-checked against the tag (docs/website-trust-v1.52-claims.json).
+test('the Privacy & Security page resolves to verified public v1.52.0 evidence', () => {
+  const record = v152TrustLedger;
+  assert.equal(record.publicRelease, 'v1.52.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${record.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), record.sourceSha);
+  // The release record was completed after the tag, so it is read at the
+  // revision that finished it, and the page links that revision.
+  const completed = execFileSync('git', ['show', `${record.completedReleaseEvidenceRevision}:${record.releaseEvidence}`], { cwd: root, encoding: 'utf8' });
+  assert.ok(completed.includes(record.sourceSha));
+  assert.match(completed, /^## Independent verification$/m);
+  assert.match(completed, /^## Updater handoffs$/m);
+  assert.ok(read('site/src/components/ReleaseEvidence.astro').includes(record.completedReleaseEvidenceRevision));
+  for (const claim of record.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    assert.ok(claim.evidenceGroups.length, `${claim.id}: no release evidence`);
+    for (const key of claim.evidenceGroups) {
+      const group = record.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${record.publicRelease}:${evidence}`], { cwd: root });
+    }
+  }
+  // Retired wording is gone from the page it was on.
+  for (const { source, exactWording } of record.retired) assert.ok(!normalize(read(source)).includes(exactWording), `${source} still says “${exactWording}”`);
 });
 
 test('the v1.15 claim ledger remains paired with its immutable release evidence', () => {
@@ -64,7 +104,7 @@ test('the v1.15 claim ledger remains paired with its immutable release evidence'
 test('new guide benefit and qualification paragraphs remain covered by the exact-wording ledger', () => {
   for (const slug of ['start-page', 'glance', 'workspaces', 'profiles', 'reopen-closed-tabs', '1password']) {
     const file = `site/src/components/guides/${slug}.astro`;
-    const claims = new Set([...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v140Ledger.claims, ...v145Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording));
+    const claims = new Set([...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v140Ledger.claims, ...v145Ledger.claims, ...spacesButtonLedger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording));
     for (const match of read(file).matchAll(/<(h[123]|p|figcaption)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
       const wording = normalize(match[2]);
       if (wording.length > 20) assert.ok(claims.has(wording), `${slug}: unrecorded wording: ${wording}`);
@@ -92,9 +132,9 @@ test('search landing pages are fully covered by the exact-wording ledger and lin
   }
 });
 
-test('the compare chart resolves to public v1.51.0 and every other-browser answer to a page it links', () => {
+test('the compare chart resolves to public v1.52.0 and every other-browser answer to a page it links', () => {
   const record = compareLedger;
-  assert.equal(record.publicRelease, 'v1.51.0');
+  assert.equal(record.publicRelease, 'v1.52.0');
   assert.equal(execFileSync('git', ['rev-parse', `${record.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), record.sourceSha);
   assert.ok(read(record.releaseEvidence).includes(record.sourceSha));
   for (const group of Object.values(record.evidenceGroups)) {
@@ -289,7 +329,7 @@ test('v1.34.0 Kagi and custom search copy resolves to verified public v1.34.0 ev
   assert.equal(v134Ledger.publicRelease, 'v1.34.0');
   assert.equal(execFileSync('git', ['rev-parse', `${v134Ledger.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v134Ledger.sourceSha);
   assert.ok(read(v134Ledger.releaseEvidence).includes(v134Ledger.sourceSha));
-  for (const claim of v134Ledger.claims) {
+  for (const claim of live(v134Ledger.claims)) {
     assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
     const source = read(claim.source);
     assert.ok(normalize(source).includes(claim.exactWording) || source.replace(/\s+/g, ' ').includes(claim.exactWording), `${claim.id}: exact wording drifted`);
@@ -340,7 +380,7 @@ test('every sentence on the homepage is recorded in a claims ledger or named as 
   const file = 'site/src/pages/index.astro';
   const source = read(file);
   const recorded = [cinemaLedger, ledger, v132Ledger, v133Ledger, v134Ledger, JSON.parse(read('docs/website-reorder-claims-v1.30.json')),
-    JSON.parse(read('docs/website-v1.36-claims.json')), JSON.parse(read('docs/website-v1.38-claims.json')), v140Ledger, JSON.parse(read('docs/website-v1.43-claims.json')), v145Ledger, iphoneLedger, ipadLedger, JSON.parse(read('docs/website-homepage-measurement-claims.json'))]
+    JSON.parse(read('docs/website-v1.36-claims.json')), JSON.parse(read('docs/website-v1.38-claims.json')), v140Ledger, JSON.parse(read('docs/website-v1.43-claims.json')), v145Ledger, iphoneLedger, ipadLedger, JSON.parse(read('docs/website-homepage-measurement-claims.json')), JSON.parse(read('docs/website-homepage-mail-reservation-claims.json')), JSON.parse(read('docs/website-homepage-start-widgets-claims.json')), devicesLedger]
     .flatMap(item => [...item.claims, ...(item.externalClaims || [])])
     .filter(claim => claim.source === file)
     .map(claim => claim.exactWording)
@@ -362,6 +402,59 @@ test('every sentence on the homepage is recorded in a claims ledger or named as 
       assert.ok(recorded.some(wording => wording.includes(sentence)), `homepage sentence is not recorded: “${sentence}”`);
     }
   }
+});
+
+// The hero's device tour: desktop wording from public v1.52.0, the rest from
+// Blanc for iPhone and iPad 1.1, the App Store version on sale since November 22.
+test('the homepage device tour resolves to v1.52.0 and App Store version 1.1', () => {
+  const record = devicesLedger;
+  assert.equal(record.iosRelease, '1.1 (202611220258)');
+  assert.equal(execFileSync('git', ['rev-parse', `${record.iosSourceSha}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), record.iosSourceSha);
+  const project = execFileSync('git', ['show', `${record.iosSourceSha}:ios/Blanc/Blanc.xcodeproj/project.pbxproj`], { cwd: root, encoding: 'utf8' });
+  assert.match(project, /MARKETING_VERSION = 1\.1;/);
+  assert.match(project, /TARGETED_DEVICE_FAMILY = "1,2";/);
+  // App Store Connect records 1.1 on sale, from this build and source.
+  const row = read(record.releaseEvidence).split('\n').find(line => /^\| \d+ \| Version 1\.1 \| on sale \d{4}-\d{2}-\d{2} \|/.test(line));
+  assert.ok(row, 'docs/ios/app-store-connect.md records 1.1 on sale');
+  assert.ok(row.includes('202611220258') && row.includes(record.iosSourceSha.slice(0, 9)), 'that row names build 202611220258 and its source');
+  assert.ok(row.includes('iPhone Duo'), 'with its iPhone Duo screenshots');
+  const page = normalize(read('site/src/pages/index.astro'));
+  for (const claim of record.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    assert.ok(claim.evidenceGroups.length, `${claim.id}: no release evidence`);
+    for (const key of claim.evidenceGroups) {
+      const group = record.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${group.ref}:${evidence}`], { cwd: root });
+      for (const file of group.records || []) assert.ok(fs.existsSync(path.join(root, file)), `${claim.id}: ${file}`);
+    }
+  }
+  for (const prohibited of record.prohibitedClaims) assert.ok(!page.includes(prohibited), `homepage says “${prohibited}”`);
+  // Every device the tour shows is one of these captures, and the capture is in the 1.1 set.
+  const shown = [...read('site/src/pages/index.astro').matchAll(/\/devices\/[a-z0-9.-]+\.webp/g)].map(match => `site/public${match[0]}`);
+  assert.ok(shown.length >= 4);
+  const recorded = record.captures.map(item => item.shown.replace(/-\d+\.webp$/, ''));
+  for (const file of shown) {
+    assert.ok(fs.existsSync(path.join(root, file)), file);
+    assert.ok(recorded.includes(file.replace(/-\d+\.webp$/, '')), `${file} is not a recorded 1.1 capture`);
+  }
+  for (const { capture } of record.captures) assert.ok(fs.existsSync(path.join(root, capture)), capture);
+});
+
+// The reservation banner shows on the homepage too, from the header, so the
+// homepage scan above never reads it: its sentences are checked here.
+test('every sentence in the Blanc Mail reservation banner is recorded in its ledger', () => {
+  const file = 'site/src/components/MailReserveBanner.astro';
+  const recorded = JSON.parse(read('docs/website-homepage-mail-reservation-claims.json')).claims
+    .filter(claim => claim.source === file).map(claim => claim.exactWording);
+  const ending = JSON.parse(read('site/src/data/mail-reservations.json')).endings[0];
+  const link = read(file).match(/<a class="mail-reserve-banner"[\s\S]*?<\/a>/)[0]
+    .replace(/<span[^>]*aria-hidden="true"[^>]*>[\s\S]*?<\/span>/g, '')
+    .replaceAll('{ending}', ending);
+  const sentences = normalize(link).split(/(?<=[.?!])\s+(?=[A-Z“])/);
+  assert.deepEqual(sentences, ['Blanc Mail addresses are coming.', `Reserve yours for free @${ending}.`]);
+  for (const sentence of sentences) assert.ok(recorded.includes(sentence), `banner sentence is not recorded: “${sentence}”`);
 });
 
 test('feature guide pages show only ledger-recorded captures or same-size WebP companions of them', async () => {
@@ -388,7 +481,7 @@ test('Features bento copy resolves to verified public v1.30.1 evidence, and ever
   assert.equal(execFileSync('git', ['rev-parse', `${bento.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), bento.sourceSha);
   assert.ok(read(bento.releaseEvidence).includes(bento.sourceSha));
   const page = read(file);
-  for (const claim of bento.claims) {
+  for (const claim of live(bento.claims)) {
     assert.equal(claim.source, file, claim.id);
     assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
     assert.ok(normalize(page).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
@@ -422,7 +515,7 @@ test('Features bento copy resolves to verified public v1.30.1 evidence, and ever
   // Every text element above the unchanged Patron and download sections is a
   // recorded claim in this ledger, the reorder ledger, or the v1.27 ledger.
   const v135Ledger = JSON.parse(read('docs/website-v1.35-claims.json'));
-  const recorded = [...bento.claims, ...reorder.claims, ...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v134Ledger.claims, ...v135Ledger.claims, ...JSON.parse(read('docs/website-v1.36-claims.json')).claims, ...JSON.parse(read('docs/website-v1.38-claims.json')).claims, ...v140Ledger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording);
+  const recorded = [...bento.claims, ...reorder.claims, ...ledger.claims, ...v132Ledger.claims, ...v133Ledger.claims, ...v134Ledger.claims, ...v135Ledger.claims, ...JSON.parse(read('docs/website-v1.36-claims.json')).claims, ...JSON.parse(read('docs/website-v1.38-claims.json')).claims, ...v140Ledger.claims, ...v151StartLedger.claims].filter(claim => claim.source === file).map(claim => claim.exactWording);
   const scope = page.slice(page.indexOf('<main'), page.indexOf('class="bento-patron"'));
   for (const [, , text] of scope.matchAll(/<(h[1-6]|p|figcaption|li|button)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
     const wording = normalize(text);
@@ -489,7 +582,7 @@ test('v1.38.0 Start Page wallpaper copy resolves to verified public v1.38.0 evid
   assert.equal(v138.publicRelease, 'v1.38.0');
   assert.equal(execFileSync('git', ['rev-parse', `${v138.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v138.sourceSha);
   assert.ok(read(v138.releaseEvidence).includes(v138.sourceSha));
-  for (const claim of v138.claims) {
+  for (const claim of live(v138.claims)) {
     assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
     assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
     for (const key of claim.evidenceGroups) {
@@ -503,7 +596,7 @@ test('v1.38.0 Start Page wallpaper copy resolves to verified public v1.38.0 evid
   const raw = read('site/src/pages/features/start-page.astro');
   const section = raw.slice(raw.indexOf('<section class="feature-copy-grid" aria-labelledby="start-page-wallpaper-title">'), raw.indexOf('aria-labelledby="start-page-clock-title"'));
   assert.ok(section.includes('Your image'), 'the wallpaper section is on the page');
-  const recorded = new Set([...v138.claims, ...v138.labels].map(entry => entry.exactWording));
+  const recorded = new Set([...v138.claims, ...v138.labels, ...v151StartLedger.claims].map(entry => entry.exactWording));
   const sentences = section.split(/<[^>]+>/).map(node => normalize(node)).filter(node => /\p{L}/u.test(node))
     .flatMap(node => node.split(/(?<=\.)\s+/));
   assert.ok(sentences.length >= 14, 'every wallpaper sentence is read');
@@ -670,7 +763,7 @@ test('v1.45.0 Shared Spaces and Sync copy resolves to verified public v1.45.0 ev
   assert.equal(v145Ledger.publicRelease, 'v1.45.0');
   assert.equal(execFileSync('git', ['rev-parse', `${v145Ledger.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v145Ledger.sourceSha);
   assert.ok(read(v145Ledger.releaseEvidence).includes(v145Ledger.sourceSha));
-  for (const claim of v145Ledger.claims) {
+  for (const claim of live(v145Ledger.claims)) {
     assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
     assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
     assert.ok(claim.evidenceGroups.length, `${claim.id}: no release evidence`);
@@ -688,6 +781,34 @@ test('v1.45.0 Shared Spaces and Sync copy resolves to verified public v1.45.0 ev
   assert.match(notes, /\*\*Shared Spaces\.\*\*/);
   assert.match(notes, /\*\*Turn on Sync without a passphrase\.\*\*/);
   assert.match(notes, /\*\*Connect your iPhone\.\*\*/);
+});
+
+// The Spaces button (#1450, #1454): the resting Island carries no Space mark,
+// and the command panel's Spaces button shows the current space. Both first
+// shipped in public v1.49.0 (November 13, 2026); v1.48.0 has neither.
+test('the Spaces button copy resolves to the public release that ships #1450 and #1454', () => {
+  const record = spacesButtonLedger;
+  assert.equal(record.publicRelease, 'v1.49.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${record.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), record.sourceSha);
+  for (const commit of Object.keys(record.requiredCommits)) {
+    execFileSync('git', ['merge-base', '--is-ancestor', commit, record.publicRelease], { cwd: root });
+  }
+  assert.ok(read(record.releaseEvidence).includes(record.sourceSha));
+  const retired = new Map(record.supersededClaims.map(claim => [claim.id, claim]));
+  for (const claim of record.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    assert.equal(retired.get(claim.replaces)?.source, claim.source, `${claim.id}: records the wording it replaces`);
+    for (const key of claim.evidenceGroups) {
+      const group = record.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${record.publicRelease}:${evidence}`], { cwd: root });
+    }
+  }
+  for (const file of new Set(record.claims.map(claim => claim.source))) {
+    const text = normalize(read(file));
+    for (const retiredWording of record.prohibitedClaims) assert.ok(!text.includes(retiredWording), `${file}: still says “${retiredWording}”`);
+  }
 });
 
 // Blanc for iPhone and iPad 1.0.3, the first App Store version that runs on
@@ -791,7 +912,7 @@ test('v1.41.0 Start Page clock copy resolves to verified public v1.41.0 evidence
   assert.equal(v141.publicRelease, 'v1.41.0');
   assert.equal(execFileSync('git', ['rev-parse', `${v141.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v141.sourceSha);
   assert.ok(read(v141.releaseEvidence).includes(v141.sourceSha));
-  for (const claim of v141.claims) {
+  for (const claim of live(v141.claims)) {
     assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
     assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
     for (const key of claim.evidenceGroups) {
@@ -803,7 +924,7 @@ test('v1.41.0 Start Page clock copy resolves to verified public v1.41.0 evidence
   // Every sentence in the clock section is recorded.
   const raw = read('site/src/pages/features/start-page.astro');
   const section = raw.slice(raw.indexOf('aria-labelledby="start-page-clock-title"'), raw.indexOf('aria-labelledby="start-page-section-1"'));
-  const recorded = new Set(v141.claims.map(claim => claim.exactWording));
+  const recorded = new Set([...v141.claims, ...v151StartLedger.claims].map(claim => claim.exactWording));
   const units = [...section.matchAll(/<(h[1-6]|p)\b[^>]*>([\s\S]*?)<\/\1>/g)].map(match => normalize(match[2]));
   assert.ok(units.length >= 9, 'every clock heading and paragraph is read');
   for (const unit of units) assert.ok(recorded.has(unit), `unrecorded clock copy: ${unit}`);
@@ -834,6 +955,7 @@ test('public product captures match their reviewed dimensions, hashes, and sourc
     ['docs/website-captures-v1.40.0.json', 'v1.40.0', '17ed22052bc0e1d0c0ce3920cbcb85c4792d306e', 1],
     ['docs/website-captures-float-island-v1.40.0.json', 'v1.40.0', '17ed22052bc0e1d0c0ce3920cbcb85c4792d306e', 2],
     ['docs/website-captures-v1.41.0.json', 'v1.41.0', '9298b0916987ea9628bb2bee014717e85cd11628', 35],
+    ['docs/website-captures-spaces-v1.51.0.json', 'v1.51.0', '2c3d17db9b8573f4047e8732aaf8f0972ef9e724', 2],
   ];
   for (const [file, release, sourceSha, expectedCount] of manifests) {
     const manifest = JSON.parse(read(file));
@@ -862,10 +984,10 @@ test('the new homepage capture is tied to public v1.25.0 and its faithful export
     const bytes = fs.readFileSync(path.join(root, item.file));
     assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), item.sha256);
   }
+  // The homepage's time-of-day MacBook section was removed on November 23,
+  // 2026 (owner); the Features page still shows those captures.
   const homepage = read('site/src/pages/index.astro');
-  const startPage = JSON.parse(read('docs/website-captures-v1.38.0.json'));
-  assert.ok(homepage.includes(startPage.wallpapers[0].displayAsset.file.replace('site/public', '')));
-  assert.match(homepage, /aria-label="Blanc’s Billboard Start Page with the time-of-day wallpaper/);
+  assert.doesNotMatch(homepage, /home-wallpaper-|time-of-day wallpaper/);
 });
 
 
@@ -960,7 +1082,10 @@ test('Start Page captures are tied to public v1.38.0 and are all the homepage sh
   // Every Start Page capture on the homepage is one of these public captures.
   const homepage = read('site/src/pages/index.astro');
   const shown = [...homepage.matchAll(/\/feature-captures\/(?:home-wallpaper-|ledger-|billboard-|shelf-|tally-|\$\{name\.toLowerCase\(\)\}-)[^"`]*\.webp/g)].map(match => match[0]);
-  assert.ok(shown.length >= 4);
+  // None since the owner removed the time-of-day stage (November 23, 2026);
+  // the layouts card gave way to v1.51.0's one Start Page
+  // (docs/website-homepage-start-widgets-claims.json). Any that return must
+  // still be public v1.38.0 captures.
   const homeKnown = new Set([...manifest.wallpapers.map(item => item.displayAsset.file), ...manifest.captures.map(item => item.webp.file)].map(file => file.replace('site/public', '')));
   for (const file of shown) {
     assert.match(file, /-v1\.38\.0\.webp$/, `${file} is not a v1.38.0 capture`);
@@ -976,8 +1101,30 @@ test('Start Page captures are tied to public v1.38.0 and are all the homepage sh
     ...manifest.wallpapers.map(item => item.displayAsset.file),
     ...manifest.captures.map(item => item.webp.file),
     ...island.captures.flatMap(item => ['-800.webp', '-1400.webp'].map(copy => item.file.replace('.webp', copy))),
+    // Mahjong after its v1.49.0 refresh, and v1.51.0's one Start Page.
+    ...JSON.parse(read('docs/website-mahjong-capture-v1.49.0.json')).captures.map(item => item.webp.file),
+    ...JSON.parse(read('docs/website-start-widgets-capture-v1.51.0.json')).captures.map(item => item.file),
   ].map(file => file.replace('site/public', '')));
-  const featureCaptures = [...features.matchAll(/\/(?:feature-captures|revamp)\/(?:home-wallpaper|ledger|billboard|shelf|tally|mahjong|start-page|island)[^"\s,]*\.webp/g)].map(match => match[0]);
-  assert.ok(featureCaptures.length >= 12);
-  for (const file of featureCaptures) assert.ok(known.has(file), `${file} on /features is not a v1.38.0 or v1.36.0 capture`);
+  const featureCaptures = [...features.matchAll(/\/(?:feature-captures|revamp)\/(?:home-wallpaper|ledger|billboard|shelf|tally|mahjong|start-page|start-widgets|island)[^"\s,]*\.webp/g)].map(match => match[0]);
+  assert.ok(featureCaptures.length >= 8);
+  for (const file of featureCaptures) assert.ok(known.has(file), `${file} on /features is not a recorded public capture`);
+});
+
+// Public v1.51.0's one Start Page with widgets (docs/website-v1.51-start-page-claims.json).
+test('v1.51.0 Start Page copy resolves to the tagged release, and its retired layout wording is gone', () => {
+  assert.equal(v151StartLedger.publicRelease, 'v1.51.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${v151StartLedger.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v151StartLedger.sourceSha);
+  for (const claim of v151StartLedger.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    for (const key of claim.evidenceGroups) {
+      const group = v151StartLedger.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${v151StartLedger.publicRelease}:${evidence}`], { cwd: root });
+    }
+  }
+  for (const file of ['site/src/pages/features/start-page.astro', 'site/src/pages/features.astro', 'site/src/pages/index.astro']) {
+    const text = normalize(read(file));
+    for (const wording of retiredWording) assert.ok(!text.includes(wording), `${file}: still says “${wording}”`);
+  }
 });

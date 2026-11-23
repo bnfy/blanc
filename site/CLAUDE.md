@@ -8,18 +8,25 @@ sharing `src/layouts/BaseLayout.astro` with three explicit page profiles —
 island (index: rich OG), standard, legal
 (privacy/terms: **no** analytics/consent, **no**
 OG/Twitter meta). Don't flatten these differences — they're deliberate. The
-footer is one unified dark component on every page (`components/Footer.astro`,
-`.website-footer`: the Display Blanc lockup, tagline and newsletter, three link
+footer is one shared component (`components/Footer.astro`, `.website-footer`),
+a white band like the masthead since November 23, 2026, except on the
+homepage, which passes BaseLayout `footer="dark"` to keep the dark footer after
+its dark closing section (the `--footer-*` variables in `revamp.css` hold both
+looks). It has the Display Blanc lockup, tagline and newsletter, three link
 columns, then a legal and social row; a page can put numbered notes above the
 columns through BaseLayout's `footnotes` slot, as the homepage does). Its top
 edge is the horizon rule — a gold hairline with a soft glow rising into the page
 above (`revamp.css`; see `docs/brand-usage.md`). The masthead is
-`components/Header.astro`: one dark, sticky 52px bar (`--site-header-h`) with
+`components/Header.astro`: one white, sticky 52px bar (`--site-header-h`) with
 the small lockup and the direct links fed by `src/data/navigation.mjs` and kept
 in step by `test/unit/site-navigation.test.js`. At 920px and narrower the links
 fold behind a Menu button (an inline script, so phones never flash the full
 row; without scripting they wrap onto a second row). It never hides on scroll:
-the homepage's sticky scenes sit just below it. Site-wide styles are `src/styles/site.css`
+the homepage's sticky Island stage sits just below it. While `src/data/mail-reservations.json`
+says `open`, `components/MailReserveBanner.astro` puts a slim dark strip above
+the bar, one link to `/mail/reserve` naming the default ending, which scrolls
+away while the bar stays put; Header.astro leaves it off the Mail, legal and
+What's New pages (`test/site/mail-reserve-banner.test.mjs`). Site-wide styles are `src/styles/site.css`
 plus `revamp.css`, both imported by `BaseLayout.astro`; pages add their own
 (`home.css`, `features-bento.css`, `mail.css` …)
 (bundled + hashed). **Every page's headings are Blubird Display** since October 15, 2026
@@ -55,7 +62,7 @@ action buttons and footer come from `components/IslandPanelActions.astro` and
 security, vertical tabs) are `components/NativeWindowFigure.astro`, which
 renders a whole Blanc window from the app's own markup and CSS
 (`nativeWindowArt` in `src/lib/native-island-art.mjs`) and scales it as one
-piece; never hand-draw a pill again. Blanc is desktop only,
+piece; never hand-draw a pill again. An Island figure is a desktop drawing,
 so a narrow figure shows the same 620px drawing scaled down (container steps on
 `.island-figure` in `site.css`), never a reflowed, icon-only or chrome-shedding
 "phone" version, and the page behind a figure is always a desktop capture.
@@ -66,7 +73,9 @@ Newsreader is no longer loaded by any page; its condensed build
 (`scripts/build-condensed-newsreader.py`, `src/fonts/`) is unused and can be
 removed. These files are NOT under the root `tokens/` substrate guard.
 `src/scripts/site.js` (release-link resolution + region-dependent website measurement with an opt-out, all pages
-except legal) is Astro-processed. Anything needing a **stable URL** — favicons,
+except legal) is Astro-processed. The Privacy choices panel never opens by itself (owner, November 19, 2026):
+it opens only from a footer or note button, so where a choice is required, or the location is unknown,
+measurement stays off until the visitor turns it on there. Anything needing a **stable URL** — favicons,
 `og-image.png`, `logo.png`, `feature-*.png` (OG images), `robots.txt`,
 `shots/**` (the Island figures' page captures) — lives in `public/`; never hash or
 rename these.
@@ -87,13 +96,25 @@ licence: *Blanc lockup* in `docs/brand-usage.md`.
 
 **Homepage:** the cinematic redesign of October 15, 2026 (`pages/index.astro`,
 `styles/home.css`, `scripts/home.js`). The opening sunrise plays once on
-load (2.2 s, behind `prefers-reduced-motion: no-preference` only), so the
+load (1.4 s, behind `prefers-reduced-motion: no-preference` only), so the
 first screen always ends on the headline and Download; the owner rejected a
 scroll-to-reveal opening on October 15. The rest of the motion is
 scroll-driven CSS behind `@supports (animation-timeline: view())` as well;
 every keyframe ends on the static layout, so other browsers and reduced
 motion get the finished page. The Island is a sticky stage under the 52px
-header. The switching
+header. Below Download, the hero is a **device tour** (November 23, 2026,
+`docs/superpowers/specs/2026-11-23-homepage-device-tour-design.md`): tabs for
+Desktop, iPhone, iPad and iPhone Duo, one slide at a time
+(`scripts/device-tour.js`). The desktop slide is the floating Island window
+without its traffic lights (`<FloatingIslandWindow lights={false} />`, owner);
+the others are App Store 1.1 captures from `docs/ios/app-store/captures/`,
+exported unchanged but resized by `scripts/build-device-hero-images.mjs` into
+`public/devices/` and framed in CSS like the App Store screenshots. It moves on
+by itself only with motion allowed and nothing holding it (pointer, focus, off
+screen, a hidden tab); a chosen tab or the pause button holds it until play.
+Without script only the desktop slide shows. Its captions are in
+`docs/website-homepage-devices-claims.json`. When the App Store captures are
+re-shot, re-run the export and update that ledger's release. The switching
 steps, the Chrome comparison and the questions are data in the frontmatter;
 without the script every path shows, and with it `home.js` shows one at a time
 and preselects the visitor's system from the page itself, sending nothing.
@@ -150,9 +171,30 @@ from contributor-supplied PR titles, so Astro's auto-escaping is what keeps
 release notes from introducing markup. Inline link hrefs are pinned to
 https/mailto. RSS flattens the same spans back to plain text.
 `npm run site:changelog` regenerates; `npm run site:changelog:check` is the
-freshness guard (release-time/manual — not in CI; needs `gh`). Never hand-edit
-`releases.json`. `release-feature-names.json` is the hand-maintained editorial
-overlay that gives feature-bearing builds their short, scannable names on the
+freshness guard (release-time/manual — not in CI; needs `gh`), and
+`npm run site:deploy` runs it first, so a deploy refuses a changelog behind
+GitHub. Never hand-edit `releases.json`.
+
+**Every build on the changelog (November 23, 2026, spec
+`docs/superpowers/specs/2026-11-23-changelog-all-builds-design.md`):** the
+same generator also writes **`beta-releases.json`** from the published
+`chromium-beta-*` pre-releases (Mac, Windows and Linux, keeping what changed
+and *Not in this beta yet*, dropping intros and download boilerplate), and
+`npm run site:ios-changelog` (owner's Mac only, App Store Connect through
+1Password) writes **`ios-releases.json`** after each App Store version goes on
+sale. Only `src/lib/changelog-entries.mjs` reads those two files, so a beta
+never becomes "the latest release" on Download, What's New, Roadmap or Bangs.
+`/changelog` opens on **Stable** (desktop and iPhone; chips Stable, Desktop,
+iPhone & iPad, Blanc Beta, All, kept as `?product=`), its header cards link
+the newest release of each product, and `/changelog/{beta,iphone,all}.xml`
+sit beside the unchanged desktop feed. The Mac beta's website PR
+(`chromium/release/daily/site-pr.mjs`) refreshes `beta-releases.json` itself;
+the hand-made Windows and Linux website PRs (`blanc-beta-windows.json`,
+`blanc-beta-linux.json`) must run `npm run site:changelog` and include
+`site/src/data/beta-releases.json`.
+
+`release-feature-names.json` is the hand-maintained editorial
+overlay (desktop releases only) that gives feature-bearing builds their short, scannable names on the
 page; every detected feature release must have at least one, enforced by the
 unit suite. A new hand-written release can avoid an overlay entry by starting
 each feature bullet with a bold name (`- **Glance.** ...`), which the page
@@ -184,8 +226,9 @@ Worker contract stays in one place; `test/site/newsletter-prompt.test.mjs`.
 Add `?newsletter-card` to a page's URL to show it at once for checking; that
 ignores and never writes the memory.
 
-**Blanc Patron (`/patron`):** the header's Patron link and the footer point
-here. It explains the plans, the single Polar checkout link (the buyer picks
+**Blanc Patron (`/patron`):** the footer and the homepage's Patron section
+point here (the header dropped its Patron link on November 23, 2026). It
+explains the plans, the single Polar checkout link (the buyer picks
 monthly or annual there; the same link as the app's Patron settings) and
 activation with the license key. Its copy repeats claims from the Terms,
 Privacy and About pages; keep it in step with them.
@@ -302,13 +345,38 @@ changelog refresh is also when a shipped command comes off it.
 asked for far fewer words. One button for the visitor's system sits under a
 Mac / Windows / Linux / iPhone segmented control (radios that switch the
 panels in CSS, so it works without scripting; `src/scripts/download-switcher.js`
-only preselects the system). Below come three tiles (Blanc Beta first, in dark
-ink; iPhone and iPad; Homebrew) and one line of facts. Keep every `/dl/*`
+only preselects the system). The Mac panel has two quiet tabs, Download and
+Homebrew (owner, November 23, 2026): two more radios swap the download
+(button, requirement and the Intel link, which must stay a direct child of
+`[data-download-options]` for `site.js` to reveal it) and the Homebrew
+command with its Copy button, in panes that share one grid cell so the panel
+keeps its height. Below come the tiles and one line of facts. First, across the row in dark
+ink, the **Betas** panel (owner, November 23, 2026: compact cards that
+expand): one row each for Blanc Beta for Mac, Windows and Linux, showing the
+platform, its beta or build number and Chromium major version and its
+download, every row closed until its Details (`<details>`, so it works
+without scripting) opens the full versions, the requirement and release day,
+what isn't in the beta yet and the release notes; Linux shows an x64 / arm64
+switch (two radios, CSS `:has()`) beside .deb and .rpm buttons; then rows
+without details for the iPhone and iPad TestFlight beta and the Android beta
+signup. The iPhone and iPad and Homebrew tiles were removed on November 23,
+2026: the App Store button stays in the iPhone tab, and Homebrew moved into the
+Mac panel. Keep every `/dl/*`
 link, the `#download-options` anchor the rest of the site links to, the
 measurement disclosure before the tiles, the phone note and the iCloud
 Keychain limitation. Every piece of text is recorded in
-`docs/website-download-redesign-2026-11-14-claims.json` (the beta tile in
-`docs/website-blanc-beta-<version>-claims.json`), and
+`docs/website-download-redesign-2026-11-14-claims.json` (the Betas panel's heading and sentence and its Mac row in
+`docs/website-blanc-beta-<version>-claims.json`, which records the beta and
+Chromium lines twice because they show in the row and in its details; the
+Windows row in `docs/website-blanc-beta-windows-<version>-claims.json`; `/dl/beta-win` and
+`site/src/data/blanc-beta-windows.json` are updated by hand for each Windows
+beta, and `test/unit/site-blanc-beta-windows.test.js` keeps them equal; the
+Linux tile's sentences are in `docs/website-blanc-beta-linux-<version>-claims.json`,
+its four packages go through counted `/dl/beta-linux-<arch>-<format>` routes
+(`BETA_LINUX_DOWNLOADS` in blanc-ping's `dl.js`, updated by hand with each Linux
+beta), and `site/src/data/blanc-beta-linux.json` carries those assets and the
+repository commands copied verbatim from `chromium/linux/manual-repository.md`
+on `chromium/next`, checked by `test/unit/site-blanc-beta-linux.test.js`), and
 `test/unit/site-download-page.test.js` fails on any unrecorded text; large
 headings carry no full stop.
 

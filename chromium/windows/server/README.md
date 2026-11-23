@@ -31,8 +31,9 @@ source and the same Chromium pin as the Mac.
 - Never run hooks, clean an output or change `args.gn` as a routine step.
 - The server holds no signing key and no GitHub credential. A built candidate
   is copied off by the operator's Mac (`chromium/windows/ship-candidate.sh`).
-- A cross build cannot report crashes: Chromium stubs out the assembly files a
-  Linux host cannot assemble, which Crashpad needs.
+- Crash capture works in this cross build (W1 Part B): Chromium's docs say the
+  assembly Crashpad needs is stubbed, but this tree assembles it with llvm-ml.
+  Dumps are written locally; there is no crash server to upload to.
 
 ## The Visual Studio package
 
@@ -62,6 +63,13 @@ bash chromium/windows/server/bootstrap.sh
 node chromium/tools/build.mjs ~/chromium-desktop/src --record-environment --out=BlancWinPrototype
 node chromium/tools/build.mjs ~/chromium-desktop/src --check --out=BlancWinPrototype
 ```
+
+After a reboot, run `bash chromium/windows/server/mount-toolchain.sh` before
+building. The Windows SDK is served through a case-insensitive FUSE mount
+(ciopfs) that a reboot removes, and the script also gives that process a
+build-sized open-file limit; with the default 1024 a parallel build fails with
+"Too many open files" on SDK headers (the first cold build did, 2026-11-17).
+The build guard refuses to start while the mount is missing.
 
 Node on the server is Chromium's own
 (`~/chromium-desktop/src/third_party/node/linux/node-linux-x64/bin`); it is not

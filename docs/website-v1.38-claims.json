@@ -321,45 +321,6 @@
       "replaces": "website-115-072"
     },
     {
-      "id": "v138-020",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Or choose your own image or a color from Customize on the Start Page.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "customImage",
-        "colorWallpaper"
-      ],
-      "verdict": "verified"
-    },
-    {
-      "id": "v138-021",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Start Page layouts and wallpaper",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "layouts",
-        "timeOfDay",
-        "customImage",
-        "colorWallpaper"
-      ],
-      "verdict": "verified",
-      "replaces": "cinema-tools-start"
-    },
-    {
-      "id": "v138-022",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Choose Ledger, Billboard, Shelf or Tally, and set the wallpaper to the time of day, your own image or a color.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "layouts",
-        "timeOfDay",
-        "customImage",
-        "colorWallpaper"
-      ],
-      "verdict": "verified",
-      "replaces": "cinema-tools-start"
-    },
-    {
       "id": "v138-023",
       "source": "site/src/pages/index.astro",
       "exactWording": "Your own image stays on this device and never shows in private tabs.",
@@ -462,6 +423,20 @@
       ],
       "verdict": "qualified",
       "replaces": "cinema-proof-memory"
+    }
+  ],
+  "supersededClaims": [
+    {
+      "id": "v138-020",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Or choose your own image or a color from Customize on the Start Page.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "customImage",
+        "colorWallpaper"
+      ],
+      "verdict": "verified",
+      "reason": "November 23, 2026: the owner removed the homepage's time-of-day Start Page section (the MacBook that moves from dawn to night). The sentence no longer appears on the homepage; the Start Page feature page and the homepage's Start Page tool card still describe the wallpaper."
     }
   ]
 }

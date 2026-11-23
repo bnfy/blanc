@@ -1,9 +1,9 @@
 :root {
-  --site-bg: #f8f2e8;
-  --site-bg-rgb: 248, 242, 232;
-  --site-surface: #f2eade;
+  --site-bg: #fbf7f0;
+  --site-bg-rgb: 251, 247, 240;
+  --site-surface: #f5efe5;
   --site-surface-raised: #fff;
-  --site-border: #e1d7c9;
+  --site-border: #e6ddd0;
   --site-text-dim: #6b6257;
   --site-gold: #805d28;
   --line: var(--site-border);
@@ -112,6 +112,59 @@ main .section-kicker {
   z-index: 30;
   background: #fff;
   font-family: var(--font-brand-text);
+}
+/* The homepage's bar overlays the sunrise, clear until the page scrolls (set
+   by Header.astro's script; the open phone menu is always solid). */
+.site-header.revamp-header[data-overlay] {
+  margin-bottom: calc(-1 * var(--site-header-h));
+  background: transparent;
+  transition: background-color 240ms ease;
+}
+.site-header.revamp-header[data-overlay]:is([data-scrolled], [data-menu="open"]) {
+  background: #fff;
+}
+/* Privacy & Security's bar is clear over its night hero on wide windows, in
+   light ink; narrower windows, with their Menu button, keep the solid bar. */
+@media (max-width: 920px) {
+  .site-header.revamp-header[data-overlay][data-overlay-tone="dark"] {
+    margin-bottom: 0;
+    background: #fff;
+  }
+}
+@media (min-width: 921px) {
+  .site-header[data-overlay-tone="dark"] :is(.revamp-nav-link, .site-search-trigger, .site-nav-cta, .site-lockup-word) {
+    transition: color 240ms ease, background-color 240ms ease, filter 240ms ease;
+  }
+  .site-header.revamp-header[data-overlay-tone="dark"][data-overlay]:not([data-scrolled]) {
+    --overlay-ink: #f2efe9;
+    --overlay-ink-dim: rgb(242 239 233 / 0.78);
+  }
+  .site-header[data-overlay-tone="dark"][data-overlay]:not([data-scrolled]) .revamp-nav-link,
+  .site-header[data-overlay-tone="dark"][data-overlay]:not([data-scrolled]) .site-search-trigger {
+    color: var(--overlay-ink-dim);
+  }
+  .site-header[data-overlay-tone="dark"][data-overlay]:not([data-scrolled]) .revamp-nav-link:is(:hover, [aria-current="page"]),
+  .site-header[data-overlay-tone="dark"][data-overlay]:not([data-scrolled]) .site-search-trigger:hover {
+    color: var(--overlay-ink);
+  }
+  .site-header[data-overlay-tone="dark"][data-overlay]:not([data-scrolled]) .site-lockup-word {
+    filter: brightness(0) invert(1);
+  }
+  .site-header[data-overlay-tone="dark"][data-overlay]:not([data-scrolled]) .site-nav-cta {
+    background: var(--overlay-ink);
+    color: #1b1a18;
+  }
+  .site-header[data-overlay-tone="dark"][data-overlay]:not([data-scrolled]) .site-nav-cta:hover {
+    background: #fff;
+  }
+  .site-header[data-overlay-tone="dark"][data-overlay]:not([data-scrolled]) :is(a, button):focus-visible {
+    outline-color: var(--overlay-ink);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-header.revamp-header[data-overlay] {
+    transition: none;
+  }
 }
 .site-header .revamp-nav {
   max-width: 1040px;
@@ -309,29 +362,6 @@ main .section-kicker {
   font-size: 14px;
   cursor: pointer;
 }
-/* Scroll progress on the homepage: a gold hairline along the bar's edge. */
-.site-progress {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  height: 2px;
-  background: var(--site-gold);
-  transform: scaleX(0);
-  transform-origin: 0 50%;
-}
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: scroll()) {
-    .site-progress {
-      animation: site-progress linear both;
-      animation-timeline: scroll(root);
-    }
-  }
-}
-@keyframes site-progress {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
-}
 /* Mail pages name the Browser download, shortened where the longer label
    would crowd the bar. */
 .revamp-nav .cta-narrow {
@@ -375,7 +405,8 @@ main .section-kicker {
     flex-direction: column;
     align-items: stretch;
     gap: 0;
-    max-height: calc(100vh - var(--site-header-h));
+    /* --site-banner-h: the reservation banner above the bar, while it shows. */
+    max-height: calc(100vh - var(--site-header-h) - var(--site-banner-h, 0px));
     overflow-y: auto;
     padding: 4px 22px 18px;
     background: #fff;
@@ -407,15 +438,43 @@ main .section-kicker {
 }
 
 /* ---------- Site footer (components/Footer.astro) ----------
-   Dark on every page. Its top edge is the horizon rule: a gold hairline at the
-   seam with a soft glow rising into the page above (docs/brand-usage.md). The
-   rule is a decorative seam, not a focus indicator, and never sits behind a
-   mark. */
+   A white band, like the header (November 23, 2026), except on the
+   homepage, whose footer stays dark after its dark closing section
+   (.website-footer--dark). Its colors are the --footer-* variables below. Its
+   top edge is the horizon rule: a gold hairline at the seam with a soft glow
+   rising into the page above (docs/brand-usage.md). The rule is a decorative
+   seam, not a focus indicator, and never sits behind a mark. */
 .website-footer {
+  --footer-bg: var(--site-surface-raised);
+  --footer-text: var(--site-text-dim);
+  --footer-link: var(--site-text-dim);
+  --footer-strong: var(--site-text);
+  --footer-tagline: var(--site-text);
+  --footer-rule: var(--site-border);
+  --footer-focus: var(--site-gold);
+  --footer-social: var(--site-gold);
+  --footer-field-border: var(--site-border);
+  --footer-field-bg: var(--site-surface-raised);
+  --footer-button-ink: var(--site-bg);
+  --footer-button-hover: #000;
   position: relative;
-  background: #111;
-  color: #8f8a82;
+  background: var(--footer-bg);
+  color: var(--footer-text);
   font-family: var(--font-brand-text);
+}
+.website-footer--dark {
+  --footer-bg: #111;
+  --footer-text: #8f8a82;
+  --footer-link: #c0bcb5;
+  --footer-strong: #f2f2f0;
+  --footer-tagline: #c0bcb5;
+  --footer-rule: rgb(242 242 240 / 0.1);
+  --footer-focus: var(--site-gold-on-dark);
+  --footer-social: var(--site-gold-on-dark);
+  --footer-field-border: rgb(242 242 240 / 0.22);
+  --footer-field-bg: rgb(242 242 240 / 0.06);
+  --footer-button-ink: #1b1a18;
+  --footer-button-hover: #fff;
 }
 .website-footer::before {
   content: "";
@@ -440,18 +499,18 @@ main .section-kicker {
 .website-footer-inner {
   max-width: 1040px;
   margin: 0 auto;
-  padding: 56px 22px 44px;
+  padding: 64px 22px 36px;
 }
 .website-footer a {
-  color: #c0bcb5;
+  color: var(--footer-link);
   text-decoration: none;
 }
 .website-footer a:hover {
-  color: #f2f2f0;
+  color: var(--footer-strong);
   text-decoration: underline;
 }
 .website-footer :is(a, button, input):focus-visible {
-  outline: 2px solid var(--site-gold-on-dark);
+  outline: 2px solid var(--footer-focus);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -459,7 +518,7 @@ main .section-kicker {
 .website-footer-notes {
   margin-bottom: 48px;
   padding-bottom: 48px;
-  border-bottom: 1px solid rgb(242 242 240 / 0.1);
+  border-bottom: 1px solid var(--footer-rule);
   font-size: 12px;
   line-height: 1.6;
 }
@@ -496,7 +555,7 @@ main .section-kicker {
 }
 .website-footer-identity > p {
   margin: 18px 0 0;
-  color: #c0bcb5;
+  color: var(--footer-tagline);
   font-size: 15px;
 }
 .website-footer-grid nav {
@@ -505,8 +564,8 @@ main .section-kicker {
   align-items: flex-start;
 }
 .website-footer-grid h2 {
-  margin: 0 0 6px;
-  color: #f2f2f0;
+  margin: 0 0 8px;
+  color: var(--footer-strong);
   font: 600 13px/1.5 var(--font-brand-text);
   letter-spacing: 0;
 }
@@ -515,14 +574,20 @@ main .section-kicker {
   font-size: 14px;
   line-height: 1.3;
 }
+/* Closer rows with a mouse or trackpad; touch keeps the 9px rows. */
+@media (pointer: fine) {
+  .website-footer-grid nav a {
+    padding: 6px 0;
+  }
+}
 .website-footer-bottom {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 28px;
-  margin-top: 44px;
+  margin-top: 48px;
   padding-top: 20px;
-  border-top: 1px solid rgb(242 242 240 / 0.1);
+  border-top: 1px solid var(--footer-rule);
   font-size: 13px;
 }
 .website-footer-bottom p {
@@ -541,19 +606,36 @@ main .section-kicker {
   min-height: 44px;
 }
 .website-footer-bottom .footer-social {
+  /* Each glyph sits centered in its 36px target; pull the row out by the
+     9px inset so the outer glyphs line up with the footer's edges. */
+  margin-right: -9px;
   margin-left: auto;
-  gap: 0 18px;
+  gap: 0 4px;
+}
+/* Social glyphs: bronze at rest, ink (near-white on the dark footer) on hover
+   and focus (docs/brand-usage.md). Each keeps a 36 × 44px target. */
+.website-footer .footer-social a {
+  justify-content: center;
+  width: 36px;
+  color: var(--footer-social);
+}
+.website-footer .footer-social a:is(:hover, :focus-visible) {
+  color: var(--footer-strong);
+}
+.footer-social svg {
+  display: block;
+  fill: currentColor;
 }
 .footer-privacy-choice {
   padding: 0;
   border: 0;
   background: none;
-  color: #c0bcb5;
+  color: var(--footer-link);
   font: inherit;
   cursor: pointer;
 }
 .footer-privacy-choice:hover {
-  color: #f2f2f0;
+  color: var(--footer-strong);
   text-decoration: underline;
 }
 .website-footer .foot-news {
@@ -573,14 +655,14 @@ main .section-kicker {
   min-height: 44px;
   box-sizing: border-box;
   padding: 0 16px;
-  border: 1px solid rgb(242 242 240 / 0.22);
+  border: 1px solid var(--footer-field-border);
   border-radius: 999px;
-  background: rgb(242 242 240 / 0.06);
-  color: #f2f2f0;
+  background: var(--footer-field-bg);
+  color: var(--footer-strong);
   font-size: 16px;
 }
 .website-footer .foot-news-controls input::placeholder {
-  color: #8f8a82;
+  color: var(--footer-text);
   opacity: 1;
 }
 .website-footer .foot-news-controls button {
@@ -589,19 +671,19 @@ main .section-kicker {
   padding: 0 18px;
   border: 0;
   border-radius: 999px;
-  background: #f2f2f0;
-  color: #1b1a18;
+  background: var(--footer-strong);
+  color: var(--footer-button-ink);
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
 }
 .website-footer .foot-news-controls button:hover {
-  background: #fff;
+  background: var(--footer-button-hover);
 }
 .website-footer .foot-news-status {
   display: block;
   margin-top: 8px;
-  color: #c0bcb5;
+  color: var(--footer-link);
   font-size: 13px;
 }
 .website-footer .foot-news-status:empty {
@@ -616,7 +698,7 @@ main .section-kicker {
     grid-column: 1 / -1;
   }
   .website-footer-bottom .footer-social {
-    margin-left: 0;
+    margin-left: -9px;
     width: 100%;
   }
 }

@@ -55,6 +55,7 @@
 #include "blanc/common/browser_api/browser_api_factory_base.h"
 #include "services/network/public/mojom/web_sandbox_flags.mojom.h"
 #include "blanc/browser/ui/blanc_tab_name_rules.h"
+#include "blanc/browser/ui/spaces_across_profiles.h"
 #include "blanc/browser/ui/blanc_quiet_probe.h"
 #include "blanc/browser/ui/blanc_quiet_strings.h"
 #include "blanc/browser/ui/blanc_quiet_media.h"
@@ -201,9 +202,16 @@
 #include "chrome/browser/profiles/profile_manager.h"
 #include "chrome/browser/profiles/profile_attributes_entry.h"
 #include "chrome/browser/profiles/profile_attributes_storage.h"
+#include "chrome/browser/profiles/delete_profile_helper.h"
+#include "chrome/browser/profiles/nuke_profile_directory_utils.h"
+#include "chrome/browser/profiles/profile_metrics.h"
+#include "chrome/browser/profiles/profile_manager_observer.h"
+#include "chrome/browser/profiles/profile_observer.h"
+#include "chrome/browser/profiles/profile_window.h"
 #include "chrome/browser/shell_integration.h"
 #include "chrome/browser/sessions/tab_restore_service_factory.h"
 #include "blanc/common/held_page.h"
+#include "blanc/common/host_platform.h"
 #include "blanc/common/local_file_gate.h"
 #include "net/base/network_change_notifier.h"
 #include "chrome/browser/media/webrtc/media_capture_devices_dispatcher.h"
@@ -302,6 +310,8 @@
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/browser/ui/views/infobars/infobar_container_view.h"
 #include "chrome/browser/ui/views/frame/toolbar_button_provider.h"
+#include "chrome/browser/ui/toolbar/app_menu_model.h"
+#include "chrome/browser/ui/views/toolbar/app_menu.h"
 #include "chrome/browser/ui/views/toolbar/app_menu_control.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_view.h"
 #include "chrome/browser/ui/views/extensions/extensions_toolbar_desktop.h"
@@ -375,9 +385,11 @@
 #include "components/page_load_metrics/browser/page_load_tracker.h"
 #include "third_party/blink/public/common/use_counter/use_counter_feature.h"
 #include "third_party/blink/public/mojom/use_counter/metrics/web_feature.mojom.h"
+#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
+#include "blanc/browser/ui/tab_switch_keys.h"
+#endif
 #if BUILDFLAG(IS_MAC)
 #include "blanc/browser/ui/app_menus_mac.h"
-#include "blanc/browser/ui/tab_switch_keys_mac.h"
 #include "blanc/browser/ui/window_buttons_mac.h"
 #endif
 #include "ui/base/resource/resource_bundle.h"
@@ -400,6 +412,8 @@ void IslandBackdrop(content::WebContents* tab, const base::DictValue* spec, int*
 namespace {
 base::Value SiteLinkRoute(BrowserWindowInterface* browser, content::WebContents* page);
 void ObserveLinkRouteProfiles();
+// Spaces across profiles: the Local State mirror (spaces_across_profiles.inc).
+void StartSpacesMirror();
 constexpr char kSpacesMetaPref[] = "blanc.spaces.meta";
 // The remembered Glance card: device-wide, never synced (F34).
 constexpr char kGlanceFramePref[] = "blanc.glance.frame";
@@ -1174,6 +1188,9 @@ ClosedSessionRepair* SessionRepair(Profile* profile) {
 
 void InitializeMiniShortcut();
 void ForgetMiniWindow(BrowserWindowInterface* browser);
+// A window that closes before its Island answered spacePendingOpen tells
+// the window that asked (below PendingSpaceOpens).
+void AbandonPendingSpaceOpen(int session_id);
 void MiniWindowFocusChanged(BrowserWindowInterface* browser);
 
 // Favorites is a page in a tab of its own (F63; owner, November 18, 2026),
@@ -1287,7 +1304,23 @@ class Owner : public base::SupportsUserData::Data,
     static base::NoDestructor<std::set<Owner*>> owners;
     return *owners;
   }
-  ~Owner() override { ForgetMiniWindow(browser); Live().erase(this); }
+  ~Owner() override {
+    ForgetMiniWindow(browser);
+    AbandonPendingSpaceOpen(session_id);
+    Live().erase(this);
+#if !BUILDFLAG(IS_MAC)
+    base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
+        FROM_HERE, base::BindOnce(&CloseHoldsIfNoOrdinaryWindow));
+#endif
+  }
+  // Chromium's app menu, opened from the strip's menu button where the
+  // Island draws one (Windows and Linux; the Mac has its menu bar). The menu
+  // points into its model, so the model is declared first and outlives it.
+  std::unique_ptr<AppMenuModel> main_menu_model;
+  std::unique_ptr<AppMenu> main_menu;
+  // Both point at the window's toolbar and browser, so they are dropped as
+  // soon as the menu closes and before the window tears those down.
+  void DropMainMenu() { main_menu.reset(); main_menu_model.reset(); }
   std::set<std::string> ratio_recovery_checked;
   int pending_ratio_writes = 0;
   base::WeakPtr<Owner> GetWeakPtr() { return weak_factory_.GetWeakPtr(); }
@@ -1313,9 +1346,12 @@ class Owner : public base::SupportsUserData::Data,
   std::string space_error;
   std::string space_transaction;
   std::optional<base::DictValue> space_expected;
-  explicit Owner(BrowserWindowInterface* value) : browser(value) {
+  // The window's session id, kept for ~Owner, when the window is going.
+  int session_id = 0;
+  explicit Owner(BrowserWindowInterface* value) : session_id(value->GetSessionID().id()), browser(value) {
     blanc::SetUiNavigationGate(&AddUtilityPageGate);
     ObserveLinkRouteProfiles();
+    StartSpacesMirror();
     InitializeMiniShortcut();
 #if BUILDFLAG(IS_MAC)
     blanc::InstallMiniWindowMenu();
@@ -1429,6 +1465,9 @@ class Owner : public base::SupportsUserData::Data,
   int rail_width = 248;
   gfx::Rect extension_bounds;
   gfx::Rect interactive_bounds;
+  // The strip's own menu button, where it draws one (Windows and Linux), in
+  // the Island view's coordinates: never part of the window's drag handle.
+  gfx::Rect menu_button_bounds;
   // The Island band's current color (host.js syncBandColor): the page's
   // sampled top edge, a theme's frame, the private band or the Start Page
   // backdrop's color. Chromium's infobars take it (InfoBarStyleFor).
@@ -2712,15 +2751,26 @@ class SpaceHold : public base::SupportsUserData::Data, public TabStripModelObser
   std::map<int, HeldClosedTab> closed_;
   base::WeakPtrFactory<SpaceHold> weak_{this};
 };
-// Spaces waiting for their new window's Island, by window session id: the
-// Space, and how to tell the window that asked.
+// Spaces waiting for their new window's Island, by window session id: an
+// `open` of Space `id`, or a `create` of a Space `name` with its `color` and
+// `symbol` (in another profile, spaces_across_profiles.inc), and how to tell
+// the window that asked: {ok, detail, error?, workspaceId?}.
 struct PendingSpaceOpen {
-  std::string name;
-  base::OnceCallback<void(bool, std::string)> done;
+  std::string kind, id, name, color, symbol;
+  base::OnceCallback<void(base::DictValue)> done;
 };
 std::map<int, PendingSpaceOpen>& PendingSpaceOpens() {
   static base::NoDestructor<std::map<int, PendingSpaceOpen>> pending;
   return *pending;
+}
+void AbandonPendingSpaceOpen(int session_id) {
+  const auto found = PendingSpaceOpens().find(session_id);
+  if (found == PendingSpaceOpens().end()) return;
+  auto done = std::move(found->second.done);
+  PendingSpaceOpens().erase(found);
+  // Not from inside the window's teardown.
+  if (done) base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE, base::BindOnce(std::move(done),
+      base::DictValue().Set("ok", false).Set("detail", "The new window closed before it opened the Space.")));
 }
 std::string& LastRoomPass() { static base::NoDestructor<std::string> outcome; return *outcome; }
 // What makes a set-aside page worth more than the room it takes: it can't come
@@ -4941,6 +4991,13 @@ class NewTabHandler : public content::WebUIMessageHandler,
         if (copies.size() == layers->size()) {
           spec = base::DictValue().Set("zoom", *zoom).Set("width", *width)
               .Set("height", *height).Set("layers", std::move(copies));
+          // The launch Sunrise plays its sky over the page; the band plays
+          // the same sky from when the page started it. Only a recent whole
+          // millisecond start counts; anything else is dropped, never
+          // refusing the wallpaper.
+          const double now = base::Time::Now().InMillisecondsFSinceUnixEpoch();
+          const auto sunrise_at = number(in.Find("sunriseAt"), now - 10000, now + 1000);
+          if (sunrise_at && *sunrise_at == std::floor(*sunrise_at)) spec->Set("sunriseAt", *sunrise_at);
         }
       }
       int band = 0, rail = 0;
@@ -6016,6 +6073,7 @@ BrowserWindowInterface* RouteWindow(Profile* profile = nullptr, const std::strin
   return found;
 }
 #include "blanc/browser/ui/mini_window_controller.inc"
+#include "blanc/browser/ui/spaces_across_profiles.inc"
 
 BrowserWindowInterface* EnsureRouteWindow() {
   if (auto* browser = RouteWindow()) return browser;
@@ -7223,7 +7281,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       auto* personal = g_browser_process->profile_manager()->GetProfileByPath(
           g_browser_process->profile_manager()->user_data_dir().AppendASCII("Default"));
       if (!personal) { reject("The first profile is not loaded."); return; }
-      ProfileImport::Get()->Start(base::FilePath(quiet_args[0].GetString()), personal,
+      ProfileImport::Get()->Start(base::FilePath::FromUTF8Unsafe(quiet_args[0].GetString()), personal,
           base::BindOnce([](base::WeakPtr<Handler> self, std::string id, base::Value result) {
             if (self) self->Reply(id, true, std::move(result));
           }, weak_factory_.GetWeakPtr(), id));
@@ -7365,7 +7423,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // The Settings import command's source and the released app's state, for a
     // test launch (profile_import.inc FindImportSource).
     if (quiet_method == "setImportSource" && quiet_args.size() == 1) {
-      if (quiet_args[0].is_string()) TestImportSource() = base::FilePath(quiet_args[0].GetString());
+      if (quiet_args[0].is_string()) TestImportSource() = base::FilePath::FromUTF8Unsafe(quiet_args[0].GetString());
       else TestImportSource().reset();
       Reply(id, true, base::Value(true)); return;
     }
@@ -7407,6 +7465,19 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           }, weak_factory_.GetWeakPtr(), id, meta ? meta->Clone() : base::DictValue()));
       return;
     }
+    // What the OS window has outside its client area, in DIPs. Windows keeps
+    // invisible resize borders there, which a window's reported bounds
+    // include; the Island's content fills the client area inside them.
+    if (quiet_method == "windowFrameInsets" && quiet_args.empty()) {
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      auto* widget = views::Widget::GetWidgetForNativeWindow(owner->browser->GetWindow()->GetNativeWindow());
+      const gfx::Rect window = widget->GetWindowBoundsInScreen();
+      const gfx::Rect client = widget->GetClientAreaBoundsInScreen();
+      Reply(id, true, base::Value(base::DictValue()
+          .Set("left", client.x() - window.x()).Set("top", client.y() - window.y())
+          .Set("right", window.right() - client.right()).Set("bottom", window.bottom() - client.bottom())));
+      return;
+    }
     if (quiet_method == "windowButtonPosition" && quiet_args.empty()) {
 #if BUILDFLAG(IS_MAC)
       auto* owner = GetOwner(web_ui()->GetWebContents());
@@ -7425,6 +7496,31 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       Reply(id, true, base::Value(base::DictValue()
           .Set("directory", profile->GetPath().BaseName().AsUTF8Unsafe())
           .Set("name", entry ? base::UTF16ToUTF8(entry->GetLocalProfileName()) : std::string()))); return;
+    }
+    // Spaces across profiles: the Local State mirror and the regular profiles
+    // loaded now, so a check can tell a listed profile from a loaded one.
+    if (quiet_method == "spacesMirrorProbe" && quiet_args.empty()) {
+      base::ListValue loaded;
+      for (auto* profile : g_browser_process->profile_manager()->GetLoadedProfiles())
+        if (profile->IsRegularProfile()) loaded.Append(profile->GetPath().BaseName().AsUTF8Unsafe());
+      Reply(id, true, base::Value(base::DictValue()
+          .Set("mirror", g_browser_process->local_state()->GetDict(kSpacesMirrorPref).Clone())
+          .Set("loaded", std::move(loaded)))); return;
+    }
+    // Marks a profile's directory for deletion (or cancels it) the way
+    // Chromium does before removing it, without removing it.
+    // F41-91: Chromium's own deletion of a test profile, as the picker's
+    // Remove does. It can't be undone, so the check uses a throwaway profile.
+    if (quiet_method == "profileDeleteTest" && quiet_args.size() == 1 && quiet_args[0].is_string() &&
+        quiet_args[0].GetString() != "Default") {
+      ProfileAttributesEntry* found = nullptr;
+      for (auto* entry : g_browser_process->profile_manager()->GetProfileAttributesStorage().GetAllProfilesAttributes())
+        if (entry->GetPath().BaseName().AsUTF8Unsafe() == quiet_args[0].GetString()) found = entry;
+      if (!found) { reject("Unknown profile directory"); return; }
+      g_browser_process->profile_manager()->GetDeleteProfileHelper().MaybeScheduleProfileForDeletion(
+          found->GetPath(), base::DoNothing(), ProfileMetrics::DELETE_PROFILE_SETTINGS);
+      NotifySpacesMenus(nullptr);
+      Reply(id, true, base::Value(true)); return;
     }
     if (quiet_method == "contextSpaceLink" && quiet_args.size() == 4 && quiet_args[0].is_int() && quiet_args[1].is_string() && quiet_args[2].is_string() && quiet_args[3].is_string()) {
       auto* owner = GetOwner(web_ui()->GetWebContents()); auto* model = owner->browser->GetTabStripModel();
@@ -7864,7 +7960,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (args.size() == 2) next.Set("mapping", args[1].GetDict().Clone());
       const bool ok = SaveGestureSettings(profile, next);Reply(id, ok, base::Value(std::move(before)));return;
     }
-#if BUILDFLAG(IS_MAC)
+#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
     // F59: one key of a Ctrl+Tab gesture, posted to this app's own event
     // queue for this window, so the real key path runs (the Select Next Tab
     // command and the Control-release watcher). Nothing leaves the process.
@@ -9075,8 +9171,17 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     NoteSpaceTabCount(owner->browser->GetProfile(), owner->space_name, capture.FindList("tabs")->size());
     owner->space_saved = std::move(capture);
   }
-  void SpaceOpenedElsewhere(std::string id, bool ok, std::string detail) {
-    Reply(id, ok, ok ? base::Value(true) : base::Value(std::move(detail)));
+  void SpaceOpenedElsewhere(std::string id, base::DictValue answer) {
+    const bool ok = answer.FindBool("ok").value_or(false);
+    const auto* detail = answer.FindString("detail");
+    Reply(id, ok, ok ? base::Value(true) : base::Value(detail ? *detail : std::string()));
+  }
+  // Another profile's Space opened or created (spaces_across_profiles.inc):
+  // the menu's {ok, action, error, workspaceId}.
+  base::OnceCallback<void(base::DictValue)> SpaceElsewhereReply(std::string id) {
+    return base::BindOnce([](base::WeakPtr<Handler> self, std::string id, base::DictValue result) {
+      if (self) self->Reply(id, true, base::Value(std::move(result)));
+    }, weak_factory_.GetWeakPtr(), std::move(id));
   }
   void SwitchCommitted(base::DictValue result) {
     auto* owner = GetOwner(web_ui()->GetWebContents());
@@ -10244,6 +10349,53 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     // development-build path: the other channels' bundle icon is Sunrise
     // Dark, kept for Dock testing, so Sunrise there takes its flat Light or
     // Dark image like the rest.
+    // The strip's menu button: Chromium's own app menu, opening downward
+    // from the point the strip gives (the button's bottom-left corner, in the
+    // Island view's coordinates). Built as WebUIAppMenuControl::RunMenu
+    // builds it. The reply comes when the menu closes, as shipping's does,
+    // so the button stays marked open meanwhile.
+    if (method == "openMainMenu" && args.size() == 2 && args[0].is_int() && args[1].is_int()) {
+      auto* browser_view = BrowserView::GetBrowserViewForBrowser(browser);
+      auto* island = browser_view ? browser_view->GetViewByID(kIslandViewId) : nullptr;
+      auto* toolbar = browser_view ? browser_view->toolbar() : nullptr;
+      if (!island || !toolbar) { reply(true, base::Value(false)); return; }
+      if (owner->main_menu && owner->main_menu->IsShowing()) {
+        owner->main_menu->CloseMenu();
+        reply(true, base::Value(false)); return;
+      }
+      owner->main_menu.reset();
+      owner->main_menu_model = std::make_unique<AppMenuModel>(toolbar, browser,
+          toolbar->app_menu_icon_controller(), AppMenuModel::GetAlertItemForRunningTutorial(browser));
+      owner->main_menu_model->Init();
+      owner->main_menu = std::make_unique<AppMenu>(browser, owner->main_menu_model.get(),
+          views::MenuRunner::HAS_MNEMONICS,
+          base::BindRepeating([](base::WeakPtr<Handler> self, base::WeakPtr<Owner> owner, std::string id, bool* replied) {
+            if (*replied) return;
+            *replied = true;
+            if (self) self->Reply(id, true, base::Value(true));
+            // The menu is still on the stack here; drop it on the next turn.
+            base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE,
+                base::BindOnce([](base::WeakPtr<Owner> owner) {
+                  if (owner && owner->main_menu && !owner->main_menu->IsShowing()) owner->DropMainMenu();
+                }, owner));
+          }, weak_factory_.GetWeakPtr(), owner->GetWeakPtr(), id, base::Owned(new bool(false))));
+      const gfx::Rect anchor(island->GetBoundsInScreen().origin() +
+          gfx::Vector2d(args[0].GetInt(), args[1].GetInt()), gfx::Size());
+      owner->main_menu->RunMenu(island->GetWidget(), anchor, ui::mojom::MenuSourceType::kMouse,
+          views::MenuAnchorPosition::kTopLeft);
+      return;
+    }
+    // The window commands the strip's own buttons and its double-click call
+    // where the Island draws window controls (browser_api.mojom, Window).
+    if ((method == "minimizeWindow" || method == "maximizeWindow" || method == "closeWindow") && args.empty()) {
+      auto* browser_view = BrowserView::GetBrowserViewForBrowser(browser);
+      auto* widget = browser_view ? browser_view->GetWidget() : nullptr;
+      if (!widget) { reply(true, base::Value(false)); return; }
+      if (method == "minimizeWindow") widget->Minimize();
+      else if (method == "maximizeWindow") widget->IsMaximized() ? widget->Restore() : widget->Maximize();
+      else chrome::ExecuteCommand(browser, IDC_CLOSE_WINDOW);
+      reply(true, base::Value(true)); return;
+    }
     if (method == "applyAppIcon" && args.size() == 2 && args[0].is_string() && args[1].is_bool()) {
 #if BUILDFLAG(IS_MAC)
       static bool replaced = false;
@@ -10468,36 +10620,73 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       }
       reply(true, base::Value(true)); return;
     }
+    // Spaces across profiles (spaces_across_profiles.inc): the menu's other
+    // profiles, and opening or creating a Space in one of them.
+    if (method == "spaceOtherProfiles" && args.empty()) {
+      reply(true, base::Value(OtherProfilesPayload(browser))); return;
+    }
+    if (method == "spaceOpenInProfile" && args.size() == 2 && args[0].is_string() && args[1].is_string() &&
+        args[0].GetString().size() <= 255 && !args[1].GetString().empty() && args[1].GetString().size() <= 120) {
+      OpenSpaceInProfile(browser, args[0].GetString(), args[1].GetString(), SpaceElsewhereReply(id)); return;
+    }
+    if (method == "spaceCreateInProfile" && args.size() == 4 &&
+        std::ranges::all_of(args, [](const base::Value& value) { return value.is_string(); }) &&
+        args[0].GetString().size() <= 255) {
+      // A name is at most 60 characters: refuse a long one before converting it.
+      if (args[1].GetString().size() > 4096) {
+        reply(true, base::Value(SpaceElsewhereError("invalid-name"))); return;
+      }
+      CreateSpaceInProfile(browser, args[0].GetString(), args[1].GetString(), args[2].GetString(),
+          args[3].GetString(), SpaceElsewhereReply(id));
+      return;
+    }
+    // Answers whether a window showing the Space came forward, so the
+    // caller's Island leaves the focus with it only when one did.
     if (method == "spaceFocus" && args.size() == 1 && args[0].is_string()) {
-      for (auto* other : Owner::Live())
-        if (other->browser->GetProfile() == profile && other->space_name == args[0].GetString())
-          other->browser->GetWindow()->Activate();
-      reply(true, base::Value(true)); return;
+      reply(true, base::Value(FocusSpaceWindow(profile, args[0].GetString()))); return;
     }
     const bool space_named = args.size() >= 1 && args[0].is_string() && !args[0].GetString().empty() &&
         args[0].GetString().size() <= 120;
     if (method == "spaceOpenNewWindow" && args.size() == 1 && space_named) {
-      if (profile->IsOffTheRecord() ||
-          GetBrowserWindowCreationStatusForProfile(*profile) != BrowserWindowInterface::CreationStatus::kOk) {
-        reply(false, base::Value("A new window can't open now.")); return;
-      }
-      auto* created = CreateBrowserWindow(BrowserWindowCreateParams(profile, true));
-      chrome::AddAndReturnTabAt(created, GURL("chrome://newtab/"), -1, true);
-      PendingSpaceOpens()[created->GetSessionID().id()] = {args[0].GetString(),
-          base::BindOnce(&Handler::SpaceOpenedElsewhere, weak_factory_.GetWeakPtr(), id)};
-      created->GetWindow()->Show();
+      PendingSpaceOpen pending;
+      pending.kind = "open";
+      pending.id = args[0].GetString();
+      pending.done = base::BindOnce(&Handler::SpaceOpenedElsewhere, weak_factory_.GetWeakPtr(), id);
+      if (!NewSpaceWindow(profile, std::move(pending))) reply(false, base::Value("A new window can't open now."));
       return;
     }
+    // Asked once by every new window's Island: "" or the Space it exists for,
+    // {kind: 'open', id} or {kind: 'create', name, color, symbol}.
     if (method == "spacePendingOpen" && args.empty()) {
       const auto found = PendingSpaceOpens().find(browser->GetSessionID().id());
-      reply(true, base::Value(found == PendingSpaceOpens().end() ? std::string() : found->second.name)); return;
+      if (found == PendingSpaceOpens().end()) {reply(true, base::Value(std::string())); return;}
+      const auto& pending = found->second;
+      reply(true, base::Value(pending.kind == "open"
+          ? base::DictValue().Set("kind", pending.kind).Set("id", pending.id)
+          : base::DictValue().Set("kind", pending.kind).Set("name", pending.name)
+                .Set("color", pending.color).Set("symbol", pending.symbol)));
+      return;
     }
-    if (method == "spacePendingDone" && args.size() == 2 && args[0].is_bool() && args[1].is_string()) {
+    // [ok, detail, extra?: {error?, workspaceId?}]: an error that isn't one of
+    // the Spaces codes, or a workspaceId that isn't a lowercase UUID, is dropped.
+    if (method == "spacePendingDone" && args.size() >= 2 && args.size() <= 3 && args[0].is_bool() &&
+        args[1].is_string() && (args.size() == 2 || args[2].is_dict() || args[2].is_none())) {
       const auto found = PendingSpaceOpens().find(browser->GetSessionID().id());
       if (found != PendingSpaceOpens().end()) {
         auto done = std::move(found->second.done);
         PendingSpaceOpens().erase(found);
-        std::move(done).Run(args[0].GetBool(), args[1].GetString());
+        auto answer = base::DictValue().Set("ok", args[0].GetBool()).Set("detail", args[1].GetString());
+        if (args.size() == 3 && args[2].is_dict()) {
+          const auto& extra = args[2].GetDict();
+          if (const auto* error = extra.FindString("error"); error && IsSpaceErrorCode(*error))
+            answer.Set("error", *error);
+          if (const auto* space = extra.FindString("workspaceId");
+              space && base::Uuid::ParseLowercase(*space).is_valid()) answer.Set("workspaceId", *space);
+        }
+        // The window made for the Space comes forward now that it shows it
+        // (NewSpaceWindow staged it without focus); on failure it closes.
+        if (args[0].GetBool()) browser->GetWindow()->Activate();
+        if (done) std::move(done).Run(std::move(answer));
       }
       reply(true, base::Value(true)); return;
     }
@@ -11539,6 +11728,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           !browser_view->infobar_container()->children().empty() && browser_view->GetWidget())
         browser_view->GetWidget()->ThemeChanged();
       reply(true, base::Value(true));
+      return;
+    }
+    if (method == "menuButtonBounds" && args.size() == 4 &&
+        std::ranges::all_of(args, [](const auto& v) { return v.is_int(); })) {
+      owner->menu_button_bounds = gfx::Rect(args[0].GetInt(), args[1].GetInt(),
+          std::max(0, args[2].GetInt()), std::max(0, args[3].GetInt()));
+      reply(true, base::Value());
       return;
     }
     if (method == "geometry" && (args.size() == 8 || args.size() == 10) &&
@@ -14242,6 +14438,35 @@ bool IsHoldWindow(BrowserWindowInterface* browser) {
   return hold && hold->IsWindow(browser);
 }
 
+// W2 A2: on Windows and Linux, closing the last ordinary window quits Blanc,
+// as shipping does there and Cmd+Q does on the Mac. Held Space pages and
+// Recently closed live in a hidden window per profile, and mini windows don't
+// count (shipping's rule), so neither may keep the browser running alone.
+// Other windows (a page's popup, DevTools) keep it running as in Chromium.
+bool ShouldCloseHolds(const std::vector<BrowserKind>& remaining) {
+  return std::ranges::none_of(remaining, [](BrowserKind kind) { return kind == BrowserKind::kOrdinary; });
+}
+
+void CloseHoldsIfNoOrdinaryWindow() {
+#if !BUILDFLAG(IS_MAC)
+  std::vector<BrowserKind> kinds;
+  std::vector<base::WeakPtr<BrowserWindowInterface>> closing;
+  GlobalBrowserCollection::GetInstance()->ForEach([&](BrowserWindowInterface* browser) {
+    if (browser->IsDeleteScheduled()) return true;
+    const BrowserKind kind = IsHoldWindow(browser) ? BrowserKind::kHold
+                           : IsMiniWindow(browser) ? BrowserKind::kMini
+                           : IsIslandWindow(browser) ? BrowserKind::kOrdinary
+                                                     : BrowserKind::kOther;
+    kinds.push_back(kind);
+    if (kind == BrowserKind::kHold || kind == BrowserKind::kMini) closing.push_back(browser->GetWeakPtr());
+    return true;
+  });
+  if (!ShouldCloseHolds(kinds)) return;
+  for (auto& browser : closing)
+    if (browser) browser->GetWindow()->Close();
+#endif
+}
+
 void AddProtectedMediaObserver(page_load_metrics::PageLoadTracker* tracker) {
   if (IsEnabled()) tracker->AddObserver(std::make_unique<ProtectedMediaObserver>());
 }
@@ -14309,7 +14534,7 @@ content::WebContents* ReuseNewTab(BrowserWindowInterface* browser, bool is_priva
 // positional step: the setting on "list", another key (Ctrl+PageDown, the ⌘
 // shortcuts), a menu click, or a window without the Island.
 bool TabSwitchCommand(BrowserWindowInterface* browser, int direction) {
-#if BUILDFLAG(IS_MAC)
+#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
   if (!IsIslandWindow(browser) ||
       browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetString(kTabSwitchOrderPref) != "recent" ||
       blanc::CurrentTabSwitchKey() != blanc::TabSwitchKey::kCtrlTab) {
@@ -14434,14 +14659,22 @@ bool IsCaption(views::View* parent, int x, int y) {
   // While the page covers the strip (hidden, or floating), a thin band along
   // the page pane's top is the window's only drag handle, as shipping's
   // #dragBand.
+  // Windows' top 5 rows are the window's resize border, so its band is 10px
+  // (shipping's WINDOWS_DRAG_BAND_PX); a 6px one left a single row to drag.
+#if BUILDFLAG(IS_WIN)
+  constexpr int kDragBand = 10;
+#else
+  constexpr int kDragBand = 6;
+#endif
   if (owner && (StripHiddenFor(owner) || IslandFloating(owner)) && !owner->autohide_slide)
-    return y >= 0 && y < 6 && x >= RailWidth(parent);
+    return y >= 0 && y < kDragBand && x >= RailWidth(parent);
   if (y < view->y() || y >= view->y() + (owner ? owner->strip_height : 68)) return false;
   // The vertical tabs rail is never a drag handle, as shipping marks the
   // whole rail no-drag: its header shares the band, and a caption there
   // turned the layout toggle's click into a window drag.
   if (x < RailWidth(parent)) return false;
-  return owner && !owner->interactive_bounds.Contains(x, y - view->y());
+  return owner && !owner->interactive_bounds.Contains(x, y - view->y()) &&
+      !owner->menu_button_bounds.Contains(x, y - view->y());
 }
 
 std::optional<InfoBarStyle> InfoBarStyleFor(const views::View* infobar) {
@@ -14475,6 +14708,8 @@ ui::ImageModel InfoBarMark() {
 void RestoreExtensions(views::View* parent) {
   auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
   if (!view) return;
+  // The window is going away: nothing of the Island's may still point at it.
+  if (auto* owner = GetOwner(view->GetWebContents())) owner->DropMainMenu();
   auto* browser_view = static_cast<BrowserView*>(parent);
   if (!browser_view->toolbar()) return;
   auto* toolbar = browser_view->toolbar();

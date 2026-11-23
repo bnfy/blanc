@@ -15,15 +15,13 @@ enum IslandPosition: String, CaseIterable {
 struct IslandLayout: Equatable {
     enum Palette { case sheet, panel }
 
-    /// Where Back and Forward sit on the Island, if anywhere.
-    enum History: Equatable { case hidden, afterAddress }
-
-    /// The Island's buttons around the address. New Tab is always on it, and
-    /// the address always leads.
+    /// The Island's buttons around the dots and the site.
     struct Buttons: Equatable {
-        let history: History
-        /// Reload, which is Stop while a page loads.
-        let reload: Bool
+        enum Leading: Equatable { case back, reload }
+        enum Trailing: Equatable { case newTab, stop }
+        let leading: Leading
+        let forward: Bool
+        let trailing: Trailing
     }
 
     /// A bottom sheet, or a panel growing up from the Island in its place.
@@ -34,18 +32,21 @@ struct IslandLayout: Equatable {
 
     init(_ horizontal: UserInterfaceSizeClass?, _ vertical: UserInterfaceSizeClass?) {
         let unfolded = horizontal == .regular && vertical == .regular
-        palette = unfolded ? .panel : .sheet
+        // The palette grows from the Island everywhere except at compact
+        // height (an iPhone in landscape), where the keyboard leaves no room
+        // for a list and the sheet stays (owner, 2026-11-21).
+        palette = vertical == .compact ? .sheet : .panel
         showsSplitView = unfolded
     }
 
-    /// Every Island, iPhone or iPad, has Back, Forward and New Tab after the
-    /// address, but not Reload as well (owner, 2026-11-12: the iPad Island
-    /// matches the iPhone's): pull to refresh and the Sunrise menu
-    /// reload a page, and Stop still shows while a page loads, since nothing
-    /// else can stop one. With the Back and Forward setting off, Reload takes
-    /// their place.
-    func buttons(backForward: Bool, isLoading: Bool) -> Buttons {
-        if backForward { return Buttons(history: .afterAddress, reload: isLoading) }
-        return Buttons(history: .hidden, reload: true)
+    /// Back leads every Island, iPhone or iPad (owner, 2026-11-12: the iPad
+    /// Island matches the iPhone's); Forward joins it only while there's
+    /// somewhere to go. With the Back and Forward setting off, Reload leads
+    /// instead. Stop takes New Tab's slot while a page loads, so the Island
+    /// never changes width for a load (owner, 2026-11-21); pull to refresh and
+    /// the page menu still reload.
+    func buttons(backForward: Bool, canGoForward: Bool, isLoading: Bool) -> Buttons {
+        Buttons(leading: backForward ? .back : .reload, forward: backForward && canGoForward,
+                trailing: isLoading ? .stop : .newTab)
     }
 }

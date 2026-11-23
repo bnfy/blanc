@@ -2,9 +2,10 @@
 // UI Automator dump, and the names of the fixture sites. No adb here, so they're unit-tested
 // (chromium/tools/android-acceptance.test.mjs).
 
+// UI Automator quotes an attribute with ' when its value holds a " (a hint like e.g. "work").
 const attr = (node, name) => {
-  const m = new RegExp(`\\s${name}="([^"]*)"`).exec(node);
-  return m ? m[1].replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&') : '';
+  const m = new RegExp(`\\s${name}=(?:"([^"]*)"|'([^']*)')`).exec(node);
+  return m ? (m[1] ?? m[2]).replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&') : '';
 };
 const nodes = xml => [...xml.matchAll(/<node\b[^>]*>/g)].map(m => m[0]);
 
@@ -40,13 +41,22 @@ export function gridState(xml) {
   return {tabs, groups};
 }
 
-// The palette's rows after its field: each a title and a subtitle. A command's title starts
-// with "/", a group's subtitle counts its tabs, a favorite's is its address and an open tab's
-// is its host.
+// The palette's rows: each a title and a subtitle. A command's title starts with "/", a group's
+// subtitle counts its tabs, a favorite's is its address and an open tab's is its host. They are the
+// texts inside the list (its ScrollView), which since #1693 sits above the field when the Island is
+// at the bottom and below it when the Island is at the top; a dump without a list reads what follows
+// the field.
 export function paletteRows(xml) {
   const all = nodes(xml);
+  const box = node => /\sbounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/.exec(node)?.slice(1).map(Number);
   const field = all.findIndex(n => /class="android\.widget\.EditText"/.test(n));
-  const texts = all.slice(field + 1).map(n => attr(n, 'text')).filter(t => t && t !== 'No matches');
+  const list = box(all.find(n => /class="android\.widget\.ScrollView"/.test(n)) ?? '');
+  const inList = node => {
+    const b = box(node);
+    return b && b[0] >= list[0] && b[1] >= list[1] && b[2] <= list[2] && b[3] <= list[3];
+  };
+  const candidates = list ? all.filter((n, i) => i !== field && inList(n)) : all.slice(field + 1);
+  const texts = candidates.map(n => attr(n, 'text')).filter(t => t && t !== 'No matches');
   const rows = [];
   for (let i = 0; i + 1 < texts.length; i += 2) {
     const [title, subtitle] = [texts[i], texts[i + 1]];

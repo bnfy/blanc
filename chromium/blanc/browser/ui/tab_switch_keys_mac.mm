@@ -1,5 +1,5 @@
 // Copyright 2026 Bananify Creative. MIT; see the Blanc repository LICENSE.
-#include "blanc/browser/ui/tab_switch_keys_mac.h"
+#include "blanc/browser/ui/tab_switch_keys.h"
 
 #import <AppKit/AppKit.h>
 

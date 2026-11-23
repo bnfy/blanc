@@ -1,15 +1,15 @@
 /* Homepage (index.astro): the cinematic redesign of October 15, 2026.
    Headlines are Blubird Display and copy Instrument Sans (src/styles/blubird.css;
-   Inter where the licensed files are absent). Light sections sit on Blanc
-   White, dark ones on warm ink. The opening sunrise plays once on load; the
+   Inter where the licensed files are absent). Light sections sit on the
+   website cream, dark ones on warm ink. The opening sunrise plays once on load; the
    rest of the motion is scroll-driven CSS that needs animation-timeline
    support. All of it needs no reduced-motion preference, and without it the
    page shows its finished, static state. */
 .home-cinema {
-  --paper: #f8f2e8;
-  --surface: #f2eade;
+  --paper: #fbf7f0;
+  --surface: #f5efe5;
   --raised: #fff;
-  --line: #e1d7c9;
+  --line: #e6ddd0;
   --ink: #0e0e0e;
   --text: #4a453e;
   --dim: #6b6257;
@@ -155,7 +155,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 40px 22px 72px;
+  /* The header overlays the top of the sunrise, so the sun starts below it. */
+  padding: calc(var(--site-header-h) + 28px) 22px 72px;
   text-align: center;
 }
 .sun-sky {
@@ -213,6 +214,243 @@
 .opening-window {
   margin-top: clamp(36px, 5vh, 56px);
 }
+
+/* The device tour (scripts/hero-tour.js): Blanc on the desktop, iPhone,
+   iPad and iPhone Duo, one at a time, on a stage the desktop window's shape.
+   The devices are App Store 1.1 captures in the same plain dark frame as the
+   App Store screenshots. Without script only the desktop slide shows. */
+.tour-panels {
+  display: grid;
+}
+.tour-panel {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s;
+}
+.tour-panel[data-state="off"] {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(16px) scale(0.985);
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0.3s;
+}
+.tour-stage {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  container-type: size;
+}
+.tour-stage > .float-window {
+  width: 100%;
+}
+.tour-frame {
+  --bezel: calc(var(--frame-h) * 0.016);
+  box-sizing: border-box;
+  padding: var(--bezel);
+  border-radius: var(--radius);
+  background: linear-gradient(145deg, #4a4743 0%, #1a1917 42%, #2e2c29 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14), 0 30px 80px -30px rgba(14, 14, 14, 0.45);
+}
+.tour-frame img {
+  display: block;
+  width: auto;
+  height: calc(var(--frame-h) - 2 * var(--bezel));
+  border-radius: calc(var(--radius) - var(--bezel));
+  background: var(--raised);
+}
+.tour-frame.is-phone {
+  --frame-h: 96cqh;
+  --radius: calc(var(--frame-h) * 0.075);
+}
+.tour-frame.is-tablet {
+  --frame-h: min(94cqh, 100cqw / 1.34);
+  --bezel: calc(var(--frame-h) * 0.022);
+  --radius: calc(var(--frame-h) * 0.05);
+}
+/* The Duo unfolded, with the folded phone standing in front of its corner. */
+.tour-pair {
+  --duo-h: min(86cqh, 100cqw / 1.9);
+  display: flex;
+  align-items: flex-end;
+}
+.tour-frame.is-unfolded {
+  --frame-h: var(--duo-h);
+  --bezel: calc(var(--frame-h) * 0.02);
+  --radius: calc(var(--frame-h) * 0.065);
+}
+.tour-frame.is-folded {
+  --frame-h: calc(var(--duo-h) * 0.78);
+  --bezel: calc(var(--frame-h) * 0.02);
+  --radius: calc(var(--frame-h) * 0.09);
+  position: relative;
+  margin: 0 0 calc(var(--duo-h) * -0.04) calc(var(--duo-h) * -0.12);
+}
+.tour-caption {
+  max-width: 34em;
+  margin: 28px auto 0;
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1.45;
+  text-wrap: balance;
+}
+.home-cinema .tour-store {
+  margin-top: 4px;
+  color: var(--gold);
+  font-size: 15px;
+  font-weight: 500;
+  text-underline-offset: 3px;
+}
+.tour-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+}
+.tour-controls[hidden] {
+  display: none;
+}
+.tour-tabs {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+  padding: 4px;
+  /* Only below 320px; from there up the tabs fit, the pause button wrapping
+     under them on the narrowest phones. */
+  overflow-x: auto;
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+  scrollbar-width: none;
+}
+/* The chosen tab's plate slides to it (its place comes from the script). */
+.tour-tabs::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: var(--tab-w, 0);
+  border-radius: 999px;
+  background: var(--raised);
+  box-shadow: 0 1px 3px rgba(14, 14, 14, 0.08), 0 0 0 1px var(--line);
+  transform: translateX(var(--tab-x, 0));
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.tour-tabs [role="tab"] {
+  position: relative;
+  flex: none;
+  min-height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--dim);
+  font: 500 15px/1 var(--font-brand-text);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.tour-tabs [role="tab"]:hover,
+.tour-tabs [aria-selected="true"] {
+  color: var(--ink);
+}
+/* Inside the pill, so its scrolling edge never clips the ring. */
+.home-cinema .tour-tabs [role="tab"]:focus-visible {
+  outline-offset: -2px;
+  border-radius: 999px;
+}
+.home-cinema .tour-toggle:focus-visible {
+  border-radius: 50%;
+}
+/* The chosen tab's bar fills while its slide waits to move on. */
+.tour-progress {
+  position: absolute;
+  right: 18px;
+  bottom: 7px;
+  left: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--gold);
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.hero-tour[data-running] [aria-selected="true"] .tour-progress {
+  opacity: 1;
+  animation: tour-progress var(--tour-dwell, 5s) linear both;
+}
+.tour-toggle {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--dim);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.tour-toggle:hover {
+  color: var(--ink);
+}
+.tour-toggle[hidden] {
+  display: none;
+}
+.tour-toggle svg {
+  grid-area: 1 / 1;
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+.tour-toggle[data-state="playing"] .tour-toggle-play,
+.tour-toggle[data-state="paused"] .tour-toggle-pause {
+  display: none;
+}
+/* A phone's stage is square, so the iPhone and iPad aren't drawn tiny. */
+@media (max-width: 640px) {
+  .tour-stage {
+    aspect-ratio: 1;
+  }
+  .tour-caption {
+    margin-top: 22px;
+    font-size: 16px;
+  }
+  /* The tabs and the pause button share one row down to a 360px phone. */
+  .tour-tabs {
+    --tab-pad: clamp(6px, (100vw - 300px) / 10, 11px);
+  }
+  .tour-tabs [role="tab"] {
+    padding: 0 var(--tab-pad);
+    font-size: 14px;
+  }
+  .tour-progress {
+    right: var(--tab-pad);
+    left: var(--tab-pad);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-panel,
+  .tour-panel[data-state="off"],
+  .tour-tabs::before {
+    transition: none;
+  }
+  .tour-panel[data-state="off"] {
+    transform: none;
+  }
+}
+@keyframes tour-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
 .sunrise .lead {
   max-width: 31em;
   text-wrap: balance;
@@ -237,84 +475,6 @@
 }
 .handheld-note[hidden] {
   display: none;
-}
-/* ---------- The device ---------- */
-.home-cinema .device {
-  overflow: hidden;
-  padding: 120px 22px 0;
-  background: var(--paper);
-}
-.device-copy {
-  max-width: 1100px;
-  margin: 0 auto;
-  text-align: center;
-}
-.device-copy h2 {
-  margin: 0;
-  font-size: clamp(40px, 5vw, 72px);
-  line-height: 0.98;
-}
-.home-cinema .device-copy .lead {
-  max-width: 34em;
-  margin: 18px auto 0;
-}
-.device-frame {
-  position: relative;
-  max-width: 1180px;
-  margin: 56px auto 0;
-}
-/* The labels follow the scroll-driven wallpaper (motion below); without it
-   the screen stays at dawn, so they stay hidden. */
-.device-phases {
-  display: none;
-}
-.device-shell {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: auto;
-  pointer-events: none;
-}
-/* The screen aperture of the laptop artwork, as a share of the frame. */
-.device-screen {
-  position: absolute;
-  z-index: 1;
-  left: 12.0443%;
-  top: 9.668%;
-  width: 75.9766%;
-  height: 69.1406%;
-  overflow: hidden;
-  border-radius: 3px;
-  background: #12100b;
-}
-.device-screen img {
-  position: absolute;
-  top: 0;
-  left: -2.5%;
-  display: block;
-  width: 105%;
-  height: auto;
-}
-/* Time-of-day wallpaper: day, dusk and night fade in over dawn as the laptop
-   passes (motion below). Without scroll-driven animation, or with reduced
-   motion, the screen stays at dawn. */
-.device-screen :is(.wallpaper-day, .wallpaper-dusk, .wallpaper-night) {
-  opacity: 0;
-}
-/* The captures are native windows: a patch in the strip's own color (dawn
-   here; motion below follows the wallpaper) covers the traffic lights in the
-   top-left corner, x 0-5.6% and y 0-3.1% of each capture. The capture is
-   105% of the screen, so in screen widths the lights end 3.4% across and
-   2% down. */
-.device-screen::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4.2%;
-  aspect-ratio: 7 / 4;
-  background: rgb(248 240 231);
-  pointer-events: none;
 }
 
 /* ---------- First launch ---------- */
@@ -474,59 +634,11 @@
   color: var(--night-dim);
 }
 /* The Blocker shield: the bronze artwork, turned once in 3D as it scrolls
-   by (horizon-shield.js), upright with reduced motion or without WebGL. */
+   by (horizon-shield.js), upright with reduced motion or without WebGL.
+   Its stage, light and shadow are in horizon-shield.css. */
 .horizon-study {
   width: min(100%, 440px);
   margin: 48px auto 0;
-}
-.horizon-stage {
-  position: relative;
-  padding: 24px 0 42px;
-  isolation: isolate;
-}
-.horizon-light {
-  position: absolute;
-  inset: -12% -20%;
-  z-index: -1;
-  background: radial-gradient(ellipse at 50% 48%, #e7bf7540, #e7bf7514 38%, transparent 66%);
-  pointer-events: none;
-}
-.horizon-turn {
-  position: relative;
-  aspect-ratio: 1;
-  width: 100%;
-  margin: auto;
-}
-.horizon-turn img,
-.horizon-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-.horizon-turn img {
-  object-fit: contain;
-  user-select: none;
-}
-.horizon-turn.is-3d .horizon-fallback {
-  visibility: hidden;
-}
-.horizon-shadow {
-  position: absolute;
-  bottom: 6px;
-  left: 18%;
-  width: 64%;
-  height: 20px;
-  border-radius: 50%;
-  background: rgb(0 0 0 / 0.55);
-  filter: blur(10px);
-  transform: scaleX(var(--shield-shadow, 1));
-}
-@media (prefers-reduced-motion: reduce) {
-  .horizon-shadow {
-    transform: none;
-  }
 }
 /* Four items that always divide evenly: four across where each gets about
    220 px, two by two below that, one column on phones. */
@@ -665,31 +777,8 @@
   margin-top: 6px;
   font-size: 15px;
 }
-/* Start Page layouts: the four captures, one at a time (home.js). The
-   outgoing capture fades out on top (image-preview.js). */
 .tool-media {
   position: relative;
-}
-.tool-media .scene-outgoing {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-.home-cinema .layout-switch {
-  display: flex;
-  width: fit-content;
-  margin: 18px 0 4px;
-  background: rgb(255 255 255 / 0.08);
-}
-.home-cinema .layout-switch button {
-  min-height: 40px;
-  padding: 0 16px;
-  color: var(--night-text);
-  font-size: 14px;
-}
-.home-cinema .layout-switch button[aria-pressed="true"] {
-  background: var(--night-text);
-  color: var(--ink);
 }
 /* Live demos in place of a capture: Glance keeps the cards' 16:10 media,
    its split centered on the surface; the wide gestures card sizes to its
@@ -1811,43 +1900,6 @@ details[open] .faq-sign::after {
   text-decoration: none;
 }
 
-/* Phones: drop the device frames. A laptop drawn at phone width leaves its
-   screen too small to read, so the capture stands alone, cropped to the
-   Start Page's centre. */
-@media (max-width: 760px) {
-  .device-frame .device-shell {
-    display: none;
-  }
-  /* Without the laptop's base the capture would sit on the dark section. */
-  .home-cinema .device {
-    padding-bottom: 56px;
-  }
-  .device-frame {
-    margin-top: 40px;
-  }
-  .device-frame .device-screen {
-    position: relative;
-    inset: auto;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 4 / 3;
-    border-radius: 20px;
-    box-shadow: 0 30px 60px -30px rgb(21 20 17 / 0.45);
-  }
-  /* Centered with object-fit, not a transform: the scroll motion's
-     home-screen keyframes end on transform: none and hold it, which would
-     undo a translateX centering. */
-  .device-frame .device-screen img {
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  /* The 4:3 crop already leaves the traffic lights out. */
-  .device-screen::after {
-    display: none;
-  }
-}
 @media (max-width: 760px) {
   .home-cinema section {
     padding: 96px 22px;
@@ -1881,6 +1933,120 @@ details[open] .faq-sign::after {
   .compare-table tbody th {
     padding-top: 16px;
     padding-bottom: 16px;
+  }
+}
+
+/* Blanc Mail address reservations: a dark band between the Island and Blanc
+   Spaces while reservations are open (src/data/mail-reservations.json). The
+   card wears the reserve form's turning gold ring (gold-ring.css) and the
+   example address cycles through the endings, so the band and
+   /mail/reserve read as one (owner, November 19, 2026). Mail's gilt is copied
+   here because mail.css restyles the site header and can't load on this page. */
+.home-cinema .mail-promo {
+  --promo-gilt: linear-gradient(180deg, #f6e7bd 0%, #e0c084 38%, #b48c4a 64%, #d9bb7d 86%, #f0dca6 100%);
+  padding: 120px 22px;
+  text-align: center;
+}
+.mail-promo-card {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: clamp(48px, 7vw, 80px) clamp(24px, 5vw, 64px);
+  border-radius: 32px;
+  background: radial-gradient(ellipse 70% 60% at 50% 0%, #e0c08417, #e0c08400 70%), #0a0907;
+  box-shadow: 0 40px 90px -50px #e0c08440;
+}
+.mail-promo h2 {
+  max-width: 16ch;
+  margin: 0 auto;
+  background: var(--promo-gilt);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: clamp(38px, 5.4vw, 68px);
+  line-height: 1.02;
+  text-wrap: balance;
+  /* Room for descenders under the clipped gilt, as with .sweep. */
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+.mail-promo-address {
+  margin: 36px 0 0;
+  color: var(--night-text);
+  font-family: var(--font-brand-display);
+  font-size: clamp(30px, 5.6vw, 64px);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+/* The endings share one cell. home.js (mail-promo.js) shows one at a time and
+   sets the cell to that ending's width, so the address stays centred and
+   glides to its new width while the endings cross-fade. */
+.mail-promo-endings {
+  display: inline-grid;
+  justify-items: start;
+  width: var(--ending-width, auto);
+  text-align: left;
+  vertical-align: bottom;
+}
+.mail-promo-endings span {
+  grid-area: 1 / 1;
+  background: linear-gradient(100deg, #e0c084 0%, #f6e7bd 28%, #d4a35a 52%, #f6e7bd 76%, #e0c084 100%) 0 0 / 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  white-space: nowrap;
+  opacity: 0;
+}
+.mail-promo-endings .is-current {
+  opacity: 1;
+}
+.home-cinema .mail-promo-lead {
+  max-width: 34em;
+  margin: 20px auto 0;
+  color: var(--night-dim);
+}
+.home-cinema .mail-promo .actions {
+  margin-top: 36px;
+}
+.home-cinema .mail-promo a.mail-promo-action {
+  background: var(--promo-gilt);
+  color: #1b1306;
+  font-weight: 600;
+  box-shadow: inset 0 1px 0 #fff8e2b3, inset 0 -1px 0 #7a5a2699;
+  transition: filter 160ms ease, transform 100ms ease-out;
+}
+.home-cinema .mail-promo a.mail-promo-action:hover {
+  background: var(--promo-gilt);
+  color: #1b1306;
+  filter: brightness(1.07);
+}
+.home-cinema .mail-promo a.mail-promo-action:active {
+  transform: scale(0.97);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .mail-promo-endings {
+    transition: width 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .mail-promo-endings span {
+    transform: translateY(0.18em);
+    transition: opacity 450ms ease, transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+    animation: mail-promo-shimmer 6s ease-in-out infinite alternate;
+  }
+  .mail-promo-endings .is-current {
+    transform: none;
+  }
+  .mail-promo-endings .is-leaving {
+    transform: translateY(-0.18em);
+  }
+}
+@keyframes mail-promo-shimmer {
+  to { background-position: 100% 0; }
+}
+@media (max-width: 760px) {
+  .home-cinema .mail-promo {
+    padding: 80px 16px;
+  }
+  .mail-promo-card {
+    border-radius: 24px;
   }
 }
 
@@ -1936,100 +2102,10 @@ details[open] .faq-sign::after {
       animation: home-sweep linear both;
       animation-timeline: view();
       animation-range: entry 50% cover 55%;
-    }
-    .device-frame {
-      transform-origin: 50% 100%;
-      animation: home-device linear both;
-      animation-timeline: view();
-      animation-range: entry 0% contain 10%;
-    }
-    .device-screen img {
-      animation: home-screen linear both;
-      animation-timeline: view();
-      animation-range: entry 0% contain 10%;
-    }
-    /* The wallpaper: heading, laptop and phase labels share one pinned
-       screen while the screen moves from dawn to night, as the Island stage
-       does. overflow: clip, not hidden, so the section is no scroll
-       container and the stage can stick. The fades follow the section's own
-       timeline: the screen clips its images, which makes it their nearest
-       scroll container. */
-    .home-cinema .device {
-      height: 220vh;
-      box-sizing: border-box;
-      padding-top: 0;
-      padding-bottom: 0;
-      overflow: clip;
-      view-timeline: --device block;
-    }
-    .device-stage {
-      position: sticky;
-      top: var(--site-header-h);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: calc(100vh - var(--site-header-h));
-      height: calc(100svh - var(--site-header-h));
-      box-sizing: border-box;
-      padding: 24px 0;
-    }
-    .device-copy h2 {
-      font-size: clamp(32px, min(4.4vw, 6.5vh), 64px);
-    }
-    .home-cinema .device-copy .lead {
-      margin-top: 12px;
-      font-size: clamp(15px, 2.2vh, 19px);
-    }
-    /* The laptop (3:2) takes the height the copy and labels leave. */
-    .device-frame {
-      width: min(100%, 1180px, calc((100svh - var(--site-header-h) - 300px) * 1.5));
-      margin-top: clamp(16px, 3.5vh, 40px);
-    }
-    .device-phases {
-      display: flex;
-      gap: 10px;
-      margin-top: clamp(14px, 2.5vh, 24px);
-    }
-    .device-phases span {
-      width: 64px;
-      padding-top: 8px;
-      border-top: 3px solid rgb(14 14 14 / 0.15);
-      color: var(--dim);
-      font-size: 13px;
-      text-align: center;
-      animation-timing-function: linear;
-      animation-fill-mode: both;
-      animation-timeline: --device;
-      animation-range: contain 0% contain 100%;
-    }
-    .device-screen::after {
-      animation: screen-tint linear both;
-      animation-timeline: --device;
-      animation-range: contain 0% contain 100%;
-    }
-    .device-phases .phase-dawn { animation-name: phase-dawn; }
-    .device-phases .phase-day { animation-name: phase-day; }
-    .device-phases .phase-dusk { animation-name: phase-dusk; }
-    .device-phases .phase-night { animation-name: phase-night; }
-    @media (max-width: 760px) {
-      /* Phones show the capture alone, at 4:3. */
-      .device-frame {
-        width: min(100%, calc((100svh - var(--site-header-h) - 300px) * 4 / 3));
-      }
-    }
-    .device-screen :is(.wallpaper-day, .wallpaper-dusk, .wallpaper-night) {
-      animation: home-screen linear both, home-fade linear both;
-      animation-timeline: view(), --device;
-    }
-    .device-screen .wallpaper-day {
-      animation-range: entry 0% contain 10%, contain 18% contain 28%;
-    }
-    .device-screen .wallpaper-dusk {
-      animation-range: entry 0% contain 10%, contain 45% contain 55%;
-    }
-    .device-screen .wallpaper-night {
-      animation-range: entry 0% contain 10%, contain 72% contain 82%;
+      /* Clipped text paints only inside the box, and the tight leading would cut
+         descenders (the y of "you"); extend the box without moving the layout. */
+      padding-bottom: 0.14em;
+      margin-bottom: -0.14em;
     }
     .website-footer::before {
       animation: home-fade linear both;
@@ -2133,7 +2209,7 @@ details[open] .faq-sign::after {
   .sun-stage {
     --w: min(34vmin, 300px);
     overflow: hidden;
-    padding-top: 28px;
+    padding-top: calc(var(--site-header-h) + 20px);
     padding-bottom: 72px;
   }
   .sun-sky,
@@ -2143,7 +2219,7 @@ details[open] .faq-sign::after {
   .sun-mark .sun-disc,
   .sun-rays,
   .sun-copy {
-    animation-duration: 2.2s;
+    animation-duration: 1.4s;
     animation-delay: 0.15s;
     animation-timing-function: cubic-bezier(0.33, 0, 0.2, 1);
     animation-fill-mode: both;
@@ -2167,25 +2243,14 @@ details[open] .faq-sign::after {
 @keyframes home-zoom { from { transform: scale(1.28); } to { transform: none; } }
 @keyframes home-grow { from { opacity: 0.15; transform: scale(0.72); } to { opacity: 1; transform: none; } }
 @keyframes home-sweep { from { background-position: 100% 0; } to { background-position: 0% 0; } }
-@keyframes home-device { from { transform: translateY(60px) scale(0.82); } to { transform: none; } }
-@keyframes home-screen { from { transform: scale(1.22); filter: brightness(0.35); } to { transform: none; filter: none; } }
 @keyframes home-fade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes sun-sky { 0%, 20% { background-color: #0b0a09; } 48% { background-color: #3a2a17; } 76%, 100% { background-color: #f8f2e8; } }
+@keyframes sun-sky { 0%, 20% { background-color: #0b0a09; } 48% { background-color: #3a2a17; } 76%, 100% { background-color: var(--paper); } }
 @keyframes sun-mark { 0% { transform: translateY(9vh); } 58%, 70% { transform: none; } 86%, 100% { transform: scale(0.5); } }
 @keyframes sun-horizon { 0% { clip-path: inset(0 46% 0 46%); } 14%, 100% { clip-path: inset(0 0 0 0); } }
 @keyframes sun-reflect { 0%, 8% { clip-path: inset(0 50% 0 50%); opacity: 0.4; } 28%, 100% { clip-path: inset(0 0 0 0); opacity: 1; } }
 @keyframes sun-disc { 0%, 20% { transform: translateY(22%); } 54%, 100% { transform: none; } }
 @keyframes sun-rays { 0%, 44% { clip-path: circle(21% at 49.9% 64.2%); opacity: 0; } 48% { opacity: 1; } 70%, 100% { clip-path: circle(75% at 49.9% 64.2%); opacity: 1; } }
 @keyframes sun-copy { 0%, 72% { opacity: 0; transform: translateY(40px); } 100% { opacity: 1; transform: none; } }
-/* The strip color of each wallpaper capture as Chromium draws it, cross-
-   fading with the captures. */
-@keyframes screen-tint { 0%, 18% { background-color: rgb(248 240 231); } 28%, 45% { background-color: rgb(226 231 232); } 55%, 72% { background-color: rgb(240 230 222); } 82%, 100% { background-color: rgb(232 227 217); } }
-/* Each label is lit while its wallpaper shows: the fades run at 18–28%,
-   45–55% and 72–82% of the --device timeline. */
-@keyframes phase-dawn { 0%, 21% { color: var(--ink); border-top-color: var(--gold); } 25%, 100% { color: var(--dim); border-top-color: rgb(14 14 14 / 0.15); } }
-@keyframes phase-day { 0%, 21% { color: var(--dim); border-top-color: rgb(14 14 14 / 0.15); } 25%, 48% { color: var(--ink); border-top-color: var(--gold); } 52%, 100% { color: var(--dim); border-top-color: rgb(14 14 14 / 0.15); } }
-@keyframes phase-dusk { 0%, 48% { color: var(--dim); border-top-color: rgb(14 14 14 / 0.15); } 52%, 75% { color: var(--ink); border-top-color: var(--gold); } 79%, 100% { color: var(--dim); border-top-color: rgb(14 14 14 / 0.15); } }
-@keyframes phase-night { 0%, 75% { color: var(--dim); border-top-color: rgb(14 14 14 / 0.15); } 79%, 100% { color: var(--ink); border-top-color: var(--gold); } }
 @keyframes pin-a { 0%, 26% { opacity: 1; transform: none; } 36%, 100% { opacity: 0; transform: scale(0.96); } }
 @keyframes pin-b { 0%, 26% { opacity: 0; transform: scale(1.04); } 36%, 60% { opacity: 1; transform: none; } 70%, 100% { opacity: 0; transform: scale(0.96); } }
 @keyframes pin-c { 0%, 60% { opacity: 0; transform: scale(1.04); } 70%, 100% { opacity: 1; transform: none; } }

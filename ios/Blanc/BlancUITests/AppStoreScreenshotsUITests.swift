@@ -149,7 +149,8 @@ final class AppStoreScreenshotsUITests: XCTestCase {
     let item = app.buttons["New Private Tab"]
     XCTAssertTrue(item.waitForExistence(timeout: 5))
     item.tap()
-    XCTAssertTrue(app.buttons["pill.private"].waitForExistence(timeout: 10))
+    let privateMenu = app.buttons.matching(identifier: "island.menu").matching(NSPredicate(format: "value == %@", "Private tab"))
+    XCTAssertTrue(privateMenu.firstMatch.waitForExistence(timeout: 10))
     // A dark page suits the private theme (owner's choice, 2026-11-11).
     run("https://noddingoffapp.com")
     waitForSite("noddingoffapp.com")

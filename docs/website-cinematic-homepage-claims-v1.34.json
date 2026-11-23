@@ -224,16 +224,6 @@
   },
   "claims": [
     {
-      "id": "cinema-wallpaper",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Your Start Page, from dawn to night. Turn on Time-of-day wallpaper in Settings → General, and the Start Page follows your computer’s clock.",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "startPage"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "cinema-proof-heading",
       "source": "site/src/pages/index.astro",
       "exactWording": "What you get from the first launch.",
@@ -1063,7 +1053,7 @@
     "Can Blanc translate web pages?",
     "Does Blanc organize my tabs for me?",
     "Can I go back to my old browser?",
-    "Blanc Patron.",
+    "Blanc Patron",
     "Blanc",
     "Chrome",
     "Feature",
@@ -1134,6 +1124,17 @@
       ],
       "verdict": "qualified",
       "reason": "October 29, 2026, after public v1.45.0 shipped Shared Spaces, Recently closed for shared Spaces and Turn on Sync without a passphrase (and Connect your iPhone, for Blanc for iPhone’s public TestFlight beta). The replacement wording is recorded in docs/website-v1.45-claims.json."
+    },
+    {
+      "id": "cinema-wallpaper",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Your Start Page, from dawn to night. Turn on Time-of-day wallpaper in Settings → General, and the Start Page follows your computer’s clock.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "startPage"
+      ],
+      "verdict": "qualified",
+      "reason": "November 23, 2026: the owner removed the homepage's time-of-day Start Page section (the MacBook that moves from dawn to night). The sentence no longer appears on the homepage; the Start Page feature page and the homepage's Start Page tool card still describe the wallpaper."
     }
   ]
 }

@@ -1,0 +1,1581 @@
+[
+  {
+    "tag": "chromium-beta-windows-158.0.8127.907",
+    "product": "beta",
+    "platform": "windows",
+    "version": "158.0.8127.907",
+    "name": "Blanc Beta 158.0.8127.907 for Windows",
+    "publishedAt": "2026-11-23T13:20:15.000Z",
+    "humanDate": "November 23, 2026",
+    "machineDate": "2026-11-23",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-windows-158.0.8127.907",
+    "anchor": "beta-windows-158-0-8127-907",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "No \"Chrome was updated\" message."
+              },
+              {
+                "type": "text",
+                "value": " After Blanc Beta updates itself, Chromium's \"Chrome was updated\" notice no longer appears. Settings → About Blanc Beta still shows the version and whether it's up to date."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Fewer requests to Google."
+              },
+              {
+                "type": "text",
+                "value": " With Google as your search engine, Blanc Beta no longer checks with Google about AI Mode when it starts, and no longer warms up or connects to Google Search in the background before you search."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Updating."
+              },
+              {
+                "type": "text",
+                "value": " If you have 158.0.8127.904, Blanc Beta updates itself through Blanc's updater; About Blanc Beta checks right away. To install fresh, download "
+              },
+              {
+                "type": "code",
+                "value": "Blanc-Beta-Setup-158.0.8127.907.exe"
+              },
+              {
+                "type": "text",
+                "value": " and run it. Made for x64 Windows PCs and tested on Windows 11."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Not yet."
+              },
+              {
+                "type": "text",
+                "value": " Protected video (Netflix, Spotify and similar) doesn't play. Some Blanc features still behave differently on Windows."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "chromium-beta-linux-158.0.8127.906",
+    "product": "beta",
+    "platform": "linux",
+    "version": "158.0.8127.906",
+    "name": "Blanc Beta 158.0.8127.906 for Linux",
+    "publishedAt": "2026-11-23T03:45:35.000Z",
+    "humanDate": "November 22, 2026",
+    "machineDate": "2026-11-22",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-linux-158.0.8127.906",
+    "anchor": "beta-linux-158-0-8127-906",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "What to know",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Packages for Debian, Ubuntu and Fedora."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Download the "
+                  },
+                  {
+                    "type": "code",
+                    "value": ".deb"
+                  },
+                  {
+                    "type": "text",
+                    "value": " or "
+                  },
+                  {
+                    "type": "code",
+                    "value": ".rpm"
+                  },
+                  {
+                    "type": "text",
+                    "value": " for your computer ("
+                  },
+                  {
+                    "type": "code",
+                    "value": "amd64"
+                  },
+                  {
+                    "type": "text",
+                    "value": "/"
+                  },
+                  {
+                    "type": "code",
+                    "value": "x86_64"
+                  },
+                  {
+                    "type": "text",
+                    "value": " or "
+                  },
+                  {
+                    "type": "code",
+                    "value": "arm64"
+                  },
+                  {
+                    "type": "text",
+                    "value": "/"
+                  },
+                  {
+                    "type": "code",
+                    "value": "aarch64"
+                  },
+                  {
+                    "type": "text",
+                    "value": ") and install it with your package manager."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Updates come with your system updates."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Installing the package adds Blanc's own package repository at "
+                  },
+                  {
+                    "type": "code",
+                    "value": "pkg.blanc.day"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", signed with Blanc's repository key (fingerprint "
+                  },
+                  {
+                    "type": "code",
+                    "value": "50D3 6197 4F47 7C8C 87E1 17BD 95AE 97AB CACF EE6C"
+                  },
+                  {
+                    "type": "text",
+                    "value": "). New betas then arrive with your other updates through apt or dnf ("
+                  },
+                  {
+                    "type": "code",
+                    "value": "sudo apt upgrade"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", "
+                  },
+                  {
+                    "type": "code",
+                    "value": "sudo dnf upgrade"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", or your system's updater), and within about two hours of one being installed Blanc shows "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Restart to update"
+                  },
+                  {
+                    "type": "text",
+                    "value": " in the Island. To install without adding the repository, see the manual setup guide."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A separate app."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Blanc Beta has its own name and its own data folder ("
+                  },
+                  {
+                    "type": "code",
+                    "value": "~/.config/blanc-beta"
+                  },
+                  {
+                    "type": "text",
+                    "value": "). The regular Blanc and its data are left untouched. Installing Blanc Beta doesn't set itself as your default browser, but on a desktop where no default has been chosen, as on a fresh Ubuntu 26.04, links from other apps may open in it until you choose one in Settings → Apps → Default Apps."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Blocking is built in."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Ads and trackers are blocked from the first page, including in private windows."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Your desktop's window buttons."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Blanc Beta follows GNOME's button layout and draws its Island between them."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Not in this beta yet",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Protected video"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (such as Netflix or Spotify) doesn't play."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sync"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is included but still being checked against the live service, so don't rely on it yet."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Chromium version."
+                  },
+                  {
+                    "type": "text",
+                    "value": " This beta is built on Chromium 158.0.8127.2. An update to the current Chrome 158 release follows shortly through the same repository."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "chromium-beta-windows-158.0.8127.904",
+    "product": "beta",
+    "platform": "windows",
+    "version": "158.0.8127.904",
+    "name": "Blanc Beta 158.0.8127.904 for Windows",
+    "publishedAt": "2026-11-21T17:54:15.000Z",
+    "humanDate": "November 21, 2026",
+    "machineDate": "2026-11-21",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-windows-158.0.8127.904",
+    "anchor": "beta-windows-158-0-8127-904",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Check for updates."
+              },
+              {
+                "type": "text",
+                "value": " Settings → About Blanc Beta now shows whether Blanc Beta is up to date, with a "
+              },
+              {
+                "type": "strong",
+                "value": "Check for Updates…"
+              },
+              {
+                "type": "text",
+                "value": " button that checks again right away."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "About tells the truth on Windows."
+              },
+              {
+                "type": "text",
+                "value": " About now names Windows as the platform, shows the Windows build number, and checks that the installed copy is signed by Bananify Creative. The row about importing from Blanc only appears on the Mac, where that import works."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Updating."
+              },
+              {
+                "type": "text",
+                "value": " If you have 158.0.8127.903, Blanc Beta updates itself through Blanc's updater; About Blanc Beta checks right away. To install fresh, download "
+              },
+              {
+                "type": "code",
+                "value": "Blanc-Beta-Setup-158.0.8127.904.exe"
+              },
+              {
+                "type": "text",
+                "value": " and run it. Made for x64 Windows PCs and tested on Windows 11."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Not yet."
+              },
+              {
+                "type": "text",
+                "value": " Protected video (Netflix, Spotify and similar) doesn't play. Some Blanc features still behave differently on Windows."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "chromium-beta-windows-158.0.8127.903",
+    "product": "beta",
+    "platform": "windows",
+    "version": "158.0.8127.903",
+    "name": "Blanc Beta 158.0.8127.903 for Windows",
+    "publishedAt": "2026-11-21T16:30:30.000Z",
+    "humanDate": "November 21, 2026",
+    "machineDate": "2026-11-21",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-windows-158.0.8127.903",
+    "anchor": "beta-windows-158-0-8127-903",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Blanc's own look."
+              },
+              {
+                "type": "text",
+                "value": " Chromium's prompts now look like Blanc: the \"make it your default browser\" dialog shows Blanc's Sunrise and says only what Blanc does, and the bars at the top of a window and the Restore pages button use Blanc's Sunrise colors. Window titles end in \"Blanc Beta\", and the installer's taskbar icon is the plain Sunrise."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "One bar fewer."
+              },
+              {
+                "type": "text",
+                "value": " Blanc Beta no longer shows Chromium's \"Google API keys are missing\" bar."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Updating."
+              },
+              {
+                "type": "text",
+                "value": " If you have 158.0.8127.902, Blanc Beta updates itself through Blanc's updater; About Blanc Beta checks right away. To install fresh, download "
+              },
+              {
+                "type": "code",
+                "value": "Blanc-Beta-Setup-158.0.8127.903.exe"
+              },
+              {
+                "type": "text",
+                "value": " and run it. Made for x64 Windows PCs and tested on Windows 11."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Not yet."
+              },
+              {
+                "type": "text",
+                "value": " Protected video (Netflix, Spotify and similar) doesn't play. Some Blanc features still behave differently on Windows."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "chromium-beta-windows-158.0.8127.902",
+    "product": "beta",
+    "platform": "windows",
+    "version": "158.0.8127.902",
+    "name": "Blanc Beta 158.0.8127.902 for Windows",
+    "publishedAt": "2026-11-21T09:19:28.000Z",
+    "humanDate": "November 21, 2026",
+    "machineDate": "2026-11-21",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-windows-158.0.8127.902",
+    "anchor": "beta-windows-158-0-8127-902",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Install."
+              },
+              {
+                "type": "text",
+                "value": " Download "
+              },
+              {
+                "type": "code",
+                "value": "Blanc-Beta-Setup-158.0.8127.902.exe"
+              },
+              {
+                "type": "text",
+                "value": " and run it. It sets up Blanc's updater, which downloads Blanc Beta from blanc.day and installs it for your Windows user. Made for x64 Windows PCs and tested on Windows 11."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Updates."
+              },
+              {
+                "type": "text",
+                "value": " Blanc Beta keeps itself up to date through Blanc's own updater. Every update is signed with Blanc's key and checked before it's installed."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Beside Blanc."
+              },
+              {
+                "type": "text",
+                "value": " Blanc Beta installs next to Blanc for Windows, with its own Start menu entry and data folder, and doesn't change Blanc or its settings."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Not yet."
+              },
+              {
+                "type": "text",
+                "value": " Protected video (Netflix, Spotify and similar) doesn't play. Some Blanc features still behave differently on Windows."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "chromium-beta-2.0.0-beta.9",
+    "product": "beta",
+    "platform": "mac",
+    "version": "2.0.0-beta.9",
+    "name": "Blanc Beta 2.0.0-beta.9",
+    "publishedAt": "2026-11-20T13:55:53.000Z",
+    "humanDate": "November 20, 2026",
+    "machineDate": "2026-11-20",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.9",
+    "anchor": "beta-mac-2-0-0-beta-9",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed in this beta",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "No \"Google API keys are missing\" bar."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Chromium could show it for a moment when Blanc Beta started, such as after an update."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "New in this beta",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Spaces across profiles."
+                  },
+                  {
+                    "type": "text",
+                    "value": " With more than one profile, the Spaces menu and the Quick Switcher list every profile's Spaces. Opening one from another profile opens it in a window of that profile, and you can create a Space in another profile."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Not in this beta yet",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Protected video"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (such as Netflix or Spotify) doesn't play. Blanc Beta shows a notice offering to open the site in the regular Blanc."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sync"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is included but still being checked against the live service, so don't rely on it yet."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "chromium-beta-2.0.0-beta.8",
+    "product": "beta",
+    "platform": "mac",
+    "version": "2.0.0-beta.8",
+    "name": "Blanc Beta 2.0.0-beta.8",
+    "publishedAt": "2026-11-20T01:49:16.000Z",
+    "humanDate": "November 19, 2026",
+    "machineDate": "2026-11-19",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.8",
+    "anchor": "beta-mac-2-0-0-beta-8",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed in this beta",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A new profile goes straight to Blanc's welcome."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Chromium's own welcome page could appear first."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "The Start Page fits medium-size windows."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Shortcut tiles and tab groups no longer slip under the side columns, the clock steps aside while Customize is open, and the launch Sunrise now covers the top of the window too."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "New in this beta",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Favorites opens in a tab of its own,"
+                  },
+                  {
+                    "type": "text",
+                    "value": " where you can sort favorites into folders, nest folders, and reorder, rename, move or remove them."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Not in this beta yet",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Protected video"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (such as Netflix or Spotify) doesn't play. Blanc Beta shows a notice offering to open the site in the regular Blanc."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sync"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is included but still being checked against the live service, so don't rely on it yet."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "chromium-beta-2.0.0-beta.7",
+    "product": "beta",
+    "platform": "mac",
+    "version": "2.0.0-beta.7",
+    "name": "Blanc Beta 2.0.0-beta.7",
+    "publishedAt": "2026-11-17T19:01:31.000Z",
+    "humanDate": "November 17, 2026",
+    "machineDate": "2026-11-17",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.7",
+    "anchor": "beta-mac-2-0-0-beta-7",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed in this beta",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A window reopens at the size you left it."
+                  },
+                  {
+                    "type": "text",
+                    "value": " After a relaunch, Blanc Beta could restore a window at another size than the one it had."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "⌘⇧N opens a private tab."
+                  },
+                  {
+                    "type": "text",
+                    "value": " It opened a private window instead."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "New in this beta",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Bring your data from Blanc."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Settings → About can bring over your Favorites, history, Start Page pins and appearance, Spaces, archived tabs, site permissions, settings and open windows from the regular Blanc on this Mac, each profile as its own profile here. Your regular Blanc and its data are left as they are. Website sign-ins and the downloads list stay behind, so you'll sign in to websites again."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Protected video points you to Blanc."
+                  },
+                  {
+                    "type": "text",
+                    "value": " On a site that asks for protected video, such as Netflix or Spotify, Blanc Beta says it can't play it yet and offers to open the page in the regular Blanc."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Ctrl+Tab goes back through the tabs you used last."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Hold Ctrl and press Tab, then let go to switch. Settings → Appearance switches it back to tab order."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Mute Site stays on after a relaunch."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A site you muted stays muted until you unmute it."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "The Dock menu leads with the current tab,"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and the app menu has Check for Updates."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Settings → About shows what this build is and does:"
+                  },
+                  {
+                    "type": "text",
+                    "value": " its version, signature, blocker lists and Sync choices, checked on this Mac, with a diagnostics report you can save."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A screen you share shows on the Island,"
+                  },
+                  {
+                    "type": "text",
+                    "value": " with Stop."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Not in this beta yet",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Protected video"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (such as Netflix or Spotify) doesn't play. Blanc Beta shows a notice offering to open the site in the regular Blanc."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sync"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is included but still being checked against the live service, so don't rely on it yet."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "chromium-beta-2.0.0-beta.6",
+    "product": "beta",
+    "platform": "mac",
+    "version": "2.0.0-beta.6",
+    "name": "Blanc Beta 2.0.0-beta.6",
+    "publishedAt": "2026-11-15T15:33:10.000Z",
+    "humanDate": "November 15, 2026",
+    "machineDate": "2026-11-15",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.6",
+    "anchor": "beta-mac-2-0-0-beta-6",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed in this beta",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sunrise Gold shows in the Dock after an update."
+                  },
+                  {
+                    "type": "text",
+                    "value": " With Sunrise Gold chosen, a Blanc Beta that updated over an earlier beta could keep showing the old dark icon in the Dock. It now shows Sunrise Gold, in Light and Dark."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "New in this beta",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "New Tab goes to a Start Page you haven't used yet."
+                  },
+                  {
+                    "type": "text",
+                    "value": " ⌘T, ⌘⇧N and the Island's New Tab switch to an unused Start Page in the window instead of opening another one. Pinned, grouped and split tabs never count. Turn it off in Settings → Appearance."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Not in this beta yet",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Protected video"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (such as Netflix or Spotify) doesn't play. Use the regular Blanc for those sites; a notice offering to open them there is coming in a later beta."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sync"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is included but still being checked against the live service, so don't rely on it yet."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "chromium-beta-2.0.0-beta.5",
+    "product": "beta",
+    "platform": "mac",
+    "version": "2.0.0-beta.5",
+    "name": "Blanc Beta 2.0.0-beta.5",
+    "publishedAt": "2026-11-15T12:09:04.000Z",
+    "humanDate": "November 15, 2026",
+    "machineDate": "2026-11-15",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.5",
+    "anchor": "beta-mac-2-0-0-beta-5",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed in this beta",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "The Dock icon follows Dark mode."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Sunrise, Sunrise Dark, Sunrise Spectrum and Sunrise Amber now switch to their Dark versions in the Dock when your Mac does. Sunrise Gold, the default, already did."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Turning vertical tabs off works."
+                  },
+                  {
+                    "type": "text",
+                    "value": " The button at the top of the vertical tabs rail hides the rail again. A click there used to move the window instead."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Settings opens when it's asked for as Blanc Beta starts."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Settings, History, Downloads or Favorites requested in the first moment after launch, such as a restored page, now opens instead of not appearing."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "The welcome walkthrough"
+                  },
+                  {
+                    "type": "text",
+                    "value": " names the right command for allowing ads on a site, /allow-ads, and its picture of the Island shows blanc.day."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "New in this beta",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Hover previews in vertical tabs."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Rest the pointer on a tab in the rail to see its title, its site and a picture of the page. Rest it on a tab group to see the tabs inside, then on one of those to see its picture. Private tabs show no picture, and a quiet tab is never woken just to show one."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Chromium's notices look like Blanc."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Bars such as \"Continue where you left off\" take the color of the Island's band above them, with Blanc's Sunrise mark in place of Chromium's logo."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Not in this beta yet",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Protected video"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (such as Netflix or Spotify) doesn't play. Use the regular Blanc for those sites; a notice offering to open them there is coming in a later beta."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sync"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is included but still being checked against the live service, so don't rely on it yet."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "chromium-beta-2.0.0-beta.4",
+    "product": "beta",
+    "platform": "mac",
+    "version": "2.0.0-beta.4",
+    "name": "Blanc Beta 2.0.0-beta.4",
+    "publishedAt": "2026-11-14T19:02:06.000Z",
+    "humanDate": "November 14, 2026",
+    "machineDate": "2026-11-14",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.4",
+    "anchor": "beta-mac-2-0-0-beta-4",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed in this beta",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Password managers' Unlock buttons work."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Extensions that open their own menu, such as 1Password's \"Unlock 1Password\" button on a sign-in page, now open it under the Island."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Closing the window keeps your tabs."
+                  },
+                  {
+                    "type": "text",
+                    "value": " On a Mac, the red button on your main window now hides it with its tabs still open, as the regular Blanc does. Click the Dock icon to bring it back."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sync keeps going after you close every window,"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and joining an existing Sync with a code says which Sync it connected to."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Your Mac's name."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Blanc Beta now names your Mac the way the regular Blanc does."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "New in this beta",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sunrise Gold"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is Blanc Beta's icon."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "The Island answers your pointer:"
+                  },
+                  {
+                    "type": "text",
+                    "value": " as the cursor comes near, it rises a little and grows slightly."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Vertical tabs:"
+                  },
+                  {
+                    "type": "text",
+                    "value": " the Space mark has its own row under the window buttons."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Not in this beta yet",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Protected video"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (such as Netflix or Spotify) doesn't play. Use the regular Blanc for those sites; a notice offering to open them there is coming in a later beta."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sync"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is included but still being checked against the live service, so don't rely on it yet."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "chromium-beta-2.0.0-beta.3",
+    "product": "beta",
+    "platform": "mac",
+    "version": "2.0.0-beta.3",
+    "name": "Blanc Beta 2.0.0-beta.3",
+    "publishedAt": "2026-11-14T07:16:27.000Z",
+    "humanDate": "November 14, 2026",
+    "machineDate": "2026-11-14",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.3",
+    "anchor": "beta-mac-2-0-0-beta-3",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed in this beta",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sync settings no longer get stuck."
+                  },
+                  {
+                    "type": "text",
+                    "value": " After you added Blanc Beta to an existing Sync, Settings → Sync could keep saying \"Could not check sync\" until you quit and reopened the app, even though syncing went on in the background. It now shows Sync's real state."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "No more background Safe Browsing checks."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Earlier betas could download Google's Safe Browsing lists in the background, which the regular Blanc never does. Safe Browsing is now off by default."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Not in this beta yet",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Protected video"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (such as Netflix or Spotify) doesn't play. Use the regular Blanc for those sites; a notice offering to open them there is coming in a later beta."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sync"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is included, but this beta doesn't share its open tabs with your other devices yet, and it hasn't passed a full check against the live Sync service, so don't rely on it yet."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "chromium-beta-2.0.0-beta.2",
+    "product": "beta",
+    "platform": "mac",
+    "version": "2.0.0-beta.2",
+    "name": "Blanc Beta 2.0.0-beta.2",
+    "publishedAt": "2026-11-14T04:24:33.000Z",
+    "humanDate": "November 13, 2026",
+    "machineDate": "2026-11-13",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.2",
+    "anchor": "beta-mac-2-0-0-beta-2",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "What to know",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A separate app."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Blanc Beta has its own name, its own data folder and its own passkeys. Your regular Blanc, its data, settings and passkeys are left untouched."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Apple Silicon Macs, macOS 13 or later."
+                  },
+                  {
+                    "type": "text",
+                    "value": " There is no Intel build of this beta."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Blocking is built in."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Ads and trackers are blocked from the first page, including in private windows."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Its own updates."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Beta updates come from blanc.day, signed with the beta's own key. They never touch the regular Blanc."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Touch ID passkeys"
+                  },
+                  {
+                    "type": "text",
+                    "value": " work, in ordinary and private windows."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Not in this beta yet",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Protected video"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (such as Netflix or Spotify) doesn't play. Use the regular Blanc for those sites; a notice offering to open them there is coming in a later beta."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sync"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is included but hasn't been checked end to end against the live Sync service for this beta, so don't rely on it yet."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

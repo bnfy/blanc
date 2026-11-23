@@ -1,5 +1,21 @@
 {
   "schema": 1,
   "note": "One row per Chrome stable rebase of the Android lane (docs/android/rebase.md). Times are UTC; hours is wall time from starting the fetch to the lane PR merging.",
-  "rebases": []
+  "rebases": [
+    {
+      "from": "156.0.8078.79",
+      "to": "159.0.8154.18",
+      "startedAt": "2026-11-23T10:00:53Z",
+      "finishedAt": null,
+      "hours": null,
+      "patchesConflicted": [
+        "patches/android/0104-android-island.patch",
+        "patches/android/0110-android-settings.patch",
+        "patches/android/0114-android-first-minute.patch",
+        "patches/android/0124-android-context-menu.patch",
+        "patches/android/0125-android-autofill-platform.patch"
+      ],
+      "notes": "First rebase (A7 drill), from chromium a21ce95c to ee456dcc. TabUndoBarController.java moved to chrome/browser/tab_ui/android (refresh exit 1; pin and 0104 renamed). Conflicts resolved with a three-way rebase of the patch commits: 0104 keeps upstream's new destroyInAppUpdate() and its TabLaunchType import, and drops the imports its undo-bar hunk leaves unused; 0110 keeps only its search guard (upstream removed the callback it used to replace); 0114 adds localeConfig beside upstream's literal zygotePreloadName; 0124 drops 159's new Ask Gemini rows with the rest and keeps upstream's KeyboardShortcuts import; 0125 keeps upstream's restart-dialog flag and profile flush. The server's gclient sync hit googlesource 429 rate limits and was retried."
+    }
+  ]
 }

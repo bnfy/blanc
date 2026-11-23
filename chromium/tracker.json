@@ -1105,7 +1105,7 @@
         "macos": {
           "stage": "integrated",
           "candidate": "macos-1400e3914b1a7bdf",
-          "basis": "84 of 84 applicable cases pass in the nightly full suite 20261117-0700 (2026-11-17, fork ded39777f, shipping 673ff2eb0) on macos-1400e3914b1a7bdf; manual accessibility/visual checklist pending for Verified"
+          "basis": "84 of 84 applicable cases pass in the nightly full suite 20261117-0700 (2026-11-17, fork ded39777f, shipping 673ff2eb0) on macos-1400e3914b1a7bdf; manual accessibility/visual checklist pending for Verified. Spaces across profiles (2026-11-19): the native check tests/native-spaces-across-profiles.mjs passes 20 of 20 (F41-83 to F41-92 through the real menu, plus the mirror, open, create and deletion checks), and the F41 slice still passes 84 of 84, on macos-8614a3a373fe16f9"
         },
         "windows": {
           "stage": "not-started",
@@ -2541,10 +2541,19 @@
       "version": "156.0.8078.79",
       "treeCommit": "27355bbe75d602a24c56f84bbb10adf04497f93d",
       "qualification": "debug build; launches and loads pages on the emulator; Pixel pending"
+    },
+    "windows": {
+      "id": "windows-x64-7edd9da4f45532ea",
+      "exeSha256": "5b41adfdf93bbebbcda2c6e935ac399c2327c1b0da7a635e694b6f3a8620a995",
+      "dllSha256": "7edd9da4f45532ea68acaec879b779ee6967e527ae775a307fa8697524dc139a",
+      "version": "158.0.8127.2",
+      "treeCommit": "c8db069c4a184652b1e72526d9aab375e2a56f05",
+      "qualification": "cross-compiled candidate; runtime acceptance pending"
     }
   },
   "baselines": {
-    "macos": "scenarios/baseline-macos-1400e3914b1a7bdf.json"
+    "macos": "scenarios/baseline-macos-1400e3914b1a7bdf.json",
+    "windows": "scenarios/baseline-windows-x64-e42f9e5a532cdf96.json"
   },
   "scenarioIds": [
     "spec/acceptance/F41-named-workspaces.feature:4",

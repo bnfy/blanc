@@ -10,7 +10,8 @@ import Foundation
 /// All start with one tab on example.com.
 enum UITestSeed {
   static var sends: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestSends") }
-  static var favorites: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestFavorites") }
+  static var longHost: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestLongHost") }
+  static var favorites: Bool { longHost || ProcessInfo.processInfo.arguments.contains("-BlancUITestFavorites") }
   static var privateTab: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestPrivate") }
   /// `-BlancUITestReduceMotion`: as if Reduce Motion were on.
   static var reduceMotion: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestReduceMotion") }
@@ -47,7 +48,8 @@ enum UITestSeed {
   static var glance: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestGlance") }
   /// Two tabs side by side (F53), restored from the session as at a relaunch.
   static var split: Bool { ProcessInfo.processInfo.arguments.contains("-BlancUITestSplit") }
-  static let pageURL = URL(string: "https://example.com/")!
+  static let pageURL = URL(string: longHost
+    ? "https://a-very-long-subdomain-name-that-keeps-going.example.com/" : "https://example.com/")!
   /// `-BlancUITestGroups`: sync off; This iPhone has example.com and
   /// example.org loose and a "Research" group of two example.net pages, and
   /// a "Work" Space holds example.edu (M17).

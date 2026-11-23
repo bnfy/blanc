@@ -78,7 +78,7 @@ export function maximumActions(options) {
 // Windows is a second build of the desktop lane, cross-compiled on the
 // x86-64 Linux server (chromium/windows/). It shares the lane's patches and
 // source with the Mac; only the output and the machine differ.
-export const WINDOWS_OUTPUTS = ['BlancWinPrototype'];
+export const WINDOWS_OUTPUTS = ['BlancWinPrototype', 'BlancWinBeta'];
 const MAC_OUTPUTS = ['BlancPrototype', 'BlancRelease', 'BlancBeta'];
 // The preview candidate's output, or the release channel's own (F0.3); never
 // an arbitrary path, so a typo cannot start a cold build somewhere new.
@@ -102,7 +102,17 @@ export function buildLane(options) {
     const out = outputName(options);
     if (WINDOWS_OUTPUTS.includes(out) && options.some(option => option.startsWith('--sdk-root=')))
       throw new Error('--sdk-root is a macOS option; the Windows output has none.');
-    return { lane, out, target: 'chrome' };
+    // The Windows output also builds Chromium's installer (W1 Part B), which
+    // packs the browser it builds: one named extra target, nothing chosen on
+    // the command line. The beta also builds Blanc's updater and its setup
+    // program, UpdaterSetup.exe (W3 Task B2), Chromium's tag tool, which tags
+    // the signed setup as the online installer, and the test setup
+    // UpdaterSetup_test.exe, which reads overrides.json, for the release's
+    // staging gate (W3 Task E1).
+    if (out === 'BlancWinBeta')
+      return { lane, out, target: 'chrome', extraTargets: ['mini_installer', 'chrome/updater/win/installer:installer', 'chrome/updater/tools:tag',
+        'chrome/updater/win/installer:installer_test'] };
+    return WINDOWS_OUTPUTS.includes(out) ? { lane, out, target: 'chrome', extraTargets: ['mini_installer'] } : { lane, out, target: 'chrome' };
   }
   if (options.some(option => option.startsWith('--sdk-root='))) throw new Error('--sdk-root is a macOS option; the Android lane has none.');
   const values = options.filter(option => option.startsWith('--out='));
@@ -193,6 +203,12 @@ function androidEnvironment(src, out) {
   };
   return { inputs, env };
 }
+// The unpacked Windows SDK is served through a case-insensitive FUSE mount
+// that a reboot removes; without it every compile fails on a missing header.
+export function windowsToolchainMounted(procMounts, src) {
+  const mount = path.join(src, 'third_party/depot_tools/win_toolchain/vs_files');
+  return procMounts.split('\n').some(line => { const [, where, type] = line.split(' '); return where === mount && type === 'fuse.ciopfs'; });
+}
 // The Windows output's pinned inputs: Chromium's own clang, the Visual Studio
 // package the tree asks for, and the package gclient actually unpacked
 // (build/win_toolchain.json, written by its hook).
@@ -244,9 +260,12 @@ function main() {
   if (modes.length > 1) throw new Error('Choose one mode.');
   const mode = modes[0] || '--check';
   const src = fs.realpathSync(source);
-  const { lane, out: outName, target } = buildLane(options);
+  const { lane, out: outName, target, extraTargets = [] } = buildLane(options);
+  const targets = [target, ...extraTargets];
   if (lane === 'android') requireAndroidHost(); else requireDesktopHost(outName);
   const windows = WINDOWS_OUTPUTS.includes(outName);
+  if (windows && !windowsToolchainMounted(fs.readFileSync('/proc/mounts', 'utf8'), src))
+    throw new Error('The Windows toolchain is not mounted. Run chromium/windows/server/mount-toolchain.sh, then rerun. No build started.');
   const out = path.join(src, 'out', outName);
   const pinFile = path.join(out, '.blanc-build-environment.json');
   const lock = path.join(out, '.blanc-build-guard.lock');
@@ -274,7 +293,7 @@ function main() {
     const planFd = fs.openSync(planFile, 'w');
     let result;
     try {
-      result = spawnSync(siso, [...args, '-n', target], {
+      result = spawnSync(siso, [...args, '-n', ...targets], {
         cwd: src, env, stdio: ['ignore', planFd, planFd],
       });
     } finally {
@@ -293,8 +312,8 @@ function main() {
     }
     if (!actions) return;
     const build = process.platform === 'darwin'
-      ? spawnSync('/usr/bin/caffeinate', ['-i', siso, ...args, target], { cwd: src, env, stdio: 'inherit' })
-      : spawnSync(siso, [...args, target], { cwd: src, env, stdio: 'inherit' });
+      ? spawnSync('/usr/bin/caffeinate', ['-i', siso, ...args, ...targets], { cwd: src, env, stdio: 'inherit' })
+      : spawnSync(siso, [...args, ...targets], { cwd: src, env, stdio: 'inherit' });
     if (build.error) throw build.error;
     if (build.status !== 0) throw new Error(`Build did not complete successfully (${build.status ?? build.signal}). Cached work was preserved.`);
     fs.writeFileSync(path.join(out, '.blanc-last-successful-build.json'), JSON.stringify({ inputs, completedAt: new Date().toISOString() }, null, 2) + '\n');

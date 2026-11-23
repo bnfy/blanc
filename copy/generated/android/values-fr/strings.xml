@@ -193,6 +193,17 @@
     <string name="fill_surface_title">État du remplissage</string>
     <string name="fill_dismiss">Ignorer</string>
     <string name="dialog_ok">OK</string>
+    <string name="local_html_refused_message">Blanc n’a pas pu ouvrir « %1$s »</string>
+    <plurals name="local_html_refused_message_many">
+        <item quantity="one">Blanc n’a pas pu ouvrir %1$d fichier</item>
+        <item quantity="many">Blanc n’a pas pu ouvrir %1$d fichiers</item>
+        <item quantity="other">Blanc n’a pas pu ouvrir %1$d fichiers</item>
+    </plurals>
+    <string name="local_html_refused_line">%1$s : %2$s</string>
+    <string name="local_html_refused_too_large">Le fichier dépasse 8 Mo. Blanc ouvre les pages locales jusqu’à 8 Mo.</string>
+    <string name="local_html_refused_not_html">Ce fichier n’est pas une page HTML.</string>
+    <string name="local_html_refused_changed">Le fichier a changé pendant que Blanc le lisait. Ouvrez-le à nouveau.</string>
+    <string name="local_html_refused_unreadable">Blanc n’a pas pu lire le fichier. Vérifiez qu’il existe toujours et que vous pouvez l’ouvrir.</string>
     <string name="fill_setup_enable_title">Configurer 1Password</string>
     <string name="fill_setup_enable_body">Activez « Remplir les identifiants depuis 1Password » (Réglages). Blanc ne lit que sur demande.</string>
     <string name="fill_setup_enable_primary_label">Réglages</string>
@@ -314,6 +325,19 @@
     <string name="ws_decision_close_and_switch">Fermer les onglets et changer</string>
     <string name="ws_row_current">Space actuel</string>
     <string name="ws_row_show_window">Afficher fenêtre</string>
+    <plurals name="ws_row_title_profile">
+        <item quantity="one">%2$s · %3$s · %4$s · %1$d onglet</item>
+        <item quantity="many">%2$s · %3$s · %4$s · %1$d onglets</item>
+        <item quantity="other">%2$s · %3$s · %4$s · %1$d onglets</item>
+    </plurals>
+    <string name="ws_row_title_profile_shown">%1$s · %2$s · %3$s</string>
+    <string name="ws_editor_profile_disabled">%1$s (impossible d’ajouter des Spaces)</string>
+    <string name="ws_row_open_in_profile">S’ouvre dans une fenêtre de %1$s</string>
+    <string name="ws_profile_unreadable">Impossible de lire les Spaces de ce profil.</string>
+    <string name="ws_editor_profile">Profil</string>
+    <string name="ws_editor_help_other_profile">Les onglets restent dans leur propre profil : un Space dans %1$s commence donc vide.</string>
+    <string name="ws_switcher_profile_label">Space · %1$s</string>
+    <string name="ws_error_profile_unavailable">Ce profil n’est plus disponible.</string>
     <string name="ws_row_retained">Conservé en mémoire</string>
     <string name="ws_row_open">Ouvrir le Space</string>
     <plurals name="ws_row_title">
@@ -2709,9 +2733,10 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="ios_settings_island">Island</string>
     <string name="ios_settings_privacy_sync">Confidentialité &amp; synchronisation</string>
     <string name="ios_island_stop">Arrêter le chargement</string>
+    <string name="ios_island_close_private_tab">Fermer l’onglet privé</string>
     <string name="ios_island_page_actions">Actions de la page</string>
     <string name="ios_island_collapse">Réduire l’Island</string>
-    <string name="ios_palette_placeholder">Rechercher, saisir une adresse ou une /commande</string>
+    <string name="ios_palette_placeholder">Rechercher, saisir une URL ou / pour les commandes</string>
     <string name="ios_palette_clear">Effacer la recherche</string>
     <string name="ios_palette_no_command">Aucune commande correspondante</string>
     <string name="ios_palette_no_matches">Aucun résultat. Appuyez sur Retour pour l’ouvrir comme adresse ou recherche.</string>

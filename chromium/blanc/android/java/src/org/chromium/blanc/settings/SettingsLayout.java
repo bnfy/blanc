@@ -50,7 +50,8 @@ public final class SettingsLayout {
         if (state.debugBuild) more.add("developer");
         return List.of(
                 new Section("blanc_header_section", List.of("blanc_header")),
-                new Section("blanc_browsing_section", List.of("blanc_search_engine", "blanc_default_browser")),
+                new Section("blanc_browsing_section", List.of("blanc_search_engine", "blanc_default_browser",
+                        "blanc_platform_autofill", "blanc_choose_password_manager")),
                 new Section("blanc_appearance_section", List.of("blanc_theme", "blanc_island_position", "blanc_start_page")),
                 new Section("blanc_privacy_section", List.of("blanc_blocker", "blanc_allowed_sites", "blanc_clear_site_data",
                         "blanc_measure_usage")),

@@ -50,23 +50,29 @@ public class IslandViewTest {
         assertEquals("Search or switch tabs, example.com, 3 tabs", heard(domain));
     }
 
-    // #1463: the Island has no Reload (the Sunrise menu and pull to refresh reload); Stop shows only
-    // while a page loads, just before Back and Forward.
+    // #1682: the Island has no Reload (the page menu and pull to refresh reload); Stop takes New tab's
+    // place while a page loads, so the Island keeps its width.
     @Test
-    public void stopShowsOnlyWhileLoading() {
+    public void stopTakesNewTabsPlaceWhileLoading() {
         View stop = mView.findViewById(R.id.blanc_island_stop);
+        View newTab = mView.findViewById(R.id.blanc_island_new_tab);
         mView.bind(state("example.com", false, 1, false));
         assertEquals(View.GONE, stop.getVisibility());
+        assertEquals(View.VISIBLE, newTab.getVisibility());
         mView.bind(state("example.com", true, 1, false));
         assertEquals(View.VISIBLE, stop.getVisibility());
+        assertEquals(View.GONE, newTab.getVisibility());
         assertEquals("Stop loading", stop.getContentDescription().toString());
     }
 
+    // #1682: Back leads, then Forward, the page menu and the site, and New tab (or Stop) last.
     @Test
-    public void backForwardAndNewTabFollowTheAddressInThatOrder() {
-        mView.bind(state("example.com", true, 1, false));
-        int[] order = {R.id.blanc_island_menu, R.id.blanc_island_domain, R.id.blanc_island_stop,
-            R.id.blanc_island_back, R.id.blanc_island_forward, R.id.blanc_island_new_tab};
+    public void backLeadsAndNewTabEnds() {
+        IslandView.State s = state("example.com", true, 1, false);
+        s.canGoForward = true;
+        mView.bind(s);
+        int[] order = {R.id.blanc_island_back, R.id.blanc_island_forward, R.id.blanc_island_menu,
+            R.id.blanc_island_domain, R.id.blanc_island_new_tab, R.id.blanc_island_stop};
         android.view.ViewGroup pill = mView.findViewById(R.id.blanc_island_pill);
         int last = -1;
         for (int id : order) {
@@ -78,13 +84,22 @@ public class IslandViewTest {
         assertEquals("Forward", mView.findViewById(R.id.blanc_island_forward).getContentDescription().toString());
     }
 
+    // #1682: Back always shows, dimmed with nowhere to go; Forward shows only with somewhere to go.
     @Test
-    public void backAndForwardAreOffWhenThereIsNowhereToGo() {
+    public void forwardShowsOnlyWithSomewhereToGo() {
+        View back = mView.findViewById(R.id.blanc_island_back);
+        View forward = mView.findViewById(R.id.blanc_island_forward);
+        mView.bind(state("example.com", false, 1, false));
+        assertEquals(View.VISIBLE, back.getVisibility());
+        assertFalse(back.isEnabled());
+        assertTrue(back.getAlpha() < 1f);
+        assertEquals(View.GONE, forward.getVisibility());
         IslandView.State s = state("example.com", false, 1, false);
         s.canGoBack = true;
+        s.canGoForward = true;
         mView.bind(s);
-        assertTrue(mView.findViewById(R.id.blanc_island_back).isEnabled());
-        assertFalse(mView.findViewById(R.id.blanc_island_forward).isEnabled());
+        assertTrue(back.isEnabled());
+        assertEquals(View.VISIBLE, forward.getVisibility());
     }
 
     // #1463: the Start Page invites a search, dimmed like a placeholder; TalkBack still hears the page.
@@ -153,14 +168,19 @@ public class IslandViewTest {
         return out;
     }
 
+    // #1682: no Private chip; the page menu tells TalkBack the tab is private.
     @Test
-    public void thePrivateChipShowsOnlyOnPrivateTabs() {
-        View chip = mView.findViewById(R.id.blanc_island_private);
-        mView.bind(state("example.com", false, 1, false));
-        assertEquals(View.GONE, chip.getVisibility());
+    public void aPrivateTabHasNoChipAndItsMenuSaysPrivate() {
         mView.bind(state("example.com", false, 1, true));
-        assertEquals(View.VISIBLE, chip.getVisibility());
-        assertEquals("Private", ((TextView) chip).getText().toString());
+        for (View view : all(mView)) {
+            if (view instanceof TextView t && "Private".contentEquals(t.getText())) {
+                throw new AssertionError("the Island still shows a Private chip");
+            }
+        }
+        View menu = mView.menuButton();
+        assertEquals("Page actions, Private tab", heard(menu));
+        mView.bind(state("example.com", false, 1, false));
+        assertEquals("Page actions", heard(menu));
     }
 
     @Test
@@ -173,23 +193,32 @@ public class IslandViewTest {
         assertEquals("New tab", newTab.getContentDescription().toString());
         mView.measure(MeasureSpec.makeMeasureSpec((int) (390 * d), MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec((int) (200 * d), MeasureSpec.AT_MOST));
-        assertEquals(Math.round(48 * d), menu.getMeasuredWidth());
+        assertEquals(Math.round(36 * d), menu.getMeasuredWidth());
         assertEquals(Math.round(44 * d), newTab.getMeasuredWidth());
-        // #1472: the closed Island is a 52 tall capsule.
-        assertEquals(Math.round(52 * d), newTab.getMeasuredHeight());
+        // #1682: the closed Island is 44 tall.
+        assertEquals(Math.round(44 * d), newTab.getMeasuredHeight());
     }
 
-    // #1472: a capsule with 4 more at its round ends for the mark and New tab.
+    // #1682: the desktop Island's resting shape, 17 corners at any height, never a capsule, with 4
+    // at its ends.
     @Test
-    public void thePillIsACapsuleWithRoomAtItsEnds() {
+    public void thePillIsARoundedRectangleWithRoomAtItsEnds() {
         float d = mActivity.getResources().getDisplayMetrics().density;
         View pill = mView.findViewById(R.id.blanc_island_pill);
+        mView.bind(state("example.com", false, 1, false));
         mView.measure(MeasureSpec.makeMeasureSpec((int) (390 * d), MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec((int) (200 * d), MeasureSpec.AT_MOST));
-        assertEquals(Math.round(52 * d), pill.getMeasuredHeight());
-        assertEquals(26 * d, ((GradientDrawable) pill.getBackground()).getCornerRadius(), 0.5f);
+        assertEquals(Math.round(44 * d), pill.getMeasuredHeight());
+        assertEquals(17 * d, ((GradientDrawable) pill.getBackground()).getCornerRadius(), 0.5f);
         assertEquals(Math.round(4 * d), pill.getPaddingStart());
         assertEquals(Math.round(4 * d), pill.getPaddingEnd());
+        // A large font makes the Island taller; its corners stay 17.
+        ((TextView) mView.findViewById(R.id.blanc_island_domain)).setTextSize(40);
+        mView.measure(MeasureSpec.makeMeasureSpec((int) (390 * d), MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec((int) (200 * d), MeasureSpec.AT_MOST));
+        mView.layout(0, 0, mView.getMeasuredWidth(), mView.getMeasuredHeight());
+        assertTrue(pill.getMeasuredHeight() > Math.round(44 * d));
+        assertEquals(17 * d, ((GradientDrawable) pill.getBackground()).getCornerRadius(), 0.5f);
     }
 
     // #1472: the site in SemiBold, as Safari draws its address; the Start Page placeholder stays regular.
@@ -200,16 +229,28 @@ public class IslandViewTest {
         assertEquals(400, IslandView.siteWeight(true));
     }
 
+    // #1682: only as wide as what it holds; a long site fills at most the room inside 16 of padding,
+    // and never more than 600.
     @Test
-    public void thePillIsAtMost600WideAndPadded16() {
+    public void thePillFitsItsSiteUpTo600AndPadded16() {
         float d = mActivity.getResources().getDisplayMetrics().density;
         View pill = mView.findViewById(R.id.blanc_island_pill);
-        mView.measure(MeasureSpec.makeMeasureSpec((int) (900 * d), MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec((int) (200 * d), MeasureSpec.AT_MOST));
-        assertEquals(Math.round(600 * d), pill.getMeasuredWidth());
-        mView.measure(MeasureSpec.makeMeasureSpec((int) (390 * d), MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec((int) (200 * d), MeasureSpec.AT_MOST));
-        assertEquals(Math.round((390 - 32) * d), pill.getMeasuredWidth());
+        mView.bind(state("example.com", false, 1, false));
+        measure(390 * d);
+        assertTrue("a short site leaves the Island narrow", pill.getMeasuredWidth() < 0.75f * 390 * d);
+        String longSite = "a-very-long-subdomain-name-that-keeps-going-and-going-and-going-and-going.example.com";
+        mView.bind(state(longSite, false, 1, false));
+        measure(390 * d);
+        assertEquals(Math.round((390 - 32) * d), pill.getMeasuredWidth(), 1);
+        measure(900 * d);
+        assertTrue(pill.getMeasuredWidth() <= Math.round(600 * d));
+        // Every button stays whole; the site gives way.
+        assertEquals(Math.round(44 * d), mView.findViewById(R.id.blanc_island_new_tab).getMeasuredWidth());
+    }
+
+    private void measure(float width) {
+        mView.measure(MeasureSpec.makeMeasureSpec((int) width, MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec(Integer.MAX_VALUE >> 2, MeasureSpec.AT_MOST));
     }
 
     // What TalkBack reads: the label, then the state (Android 11+), or the label alone before.
@@ -255,7 +296,7 @@ public class IslandViewTest {
         float d = mActivity.getResources().getDisplayMetrics().density;
         View pill = mView.findViewById(R.id.blanc_island_pill);
         IslandProgress line = (IslandProgress) pill.getForeground();
-        Rect bounds = new Rect(0, 0, Math.round(300 * d), Math.round(52 * d));
+        Rect bounds = new Rect(0, 0, Math.round(300 * d), Math.round(44 * d));
         mView.setLoadProgress(true, 0.5f);
         assertEquals(0.5f, line.target(), 0f);
         assertTrue(line.showing());
@@ -267,14 +308,22 @@ public class IslandViewTest {
         assertFalse(line.showing());
     }
 
-    // #1463: the Sunrise mark in its own gold, as the Start Page shows it, never in the Island's
-    // ink, private tabs included.
+    // #1682: the page menu shows the site's icon, the Sunrise in its own gold on Blanc's pages, and
+    // a globe in the Island's ink until the site's icon is known.
     @Test
-    public void theSunriseMarkKeepsItsOwnColors() {
+    public void thePageMenuShowsTheSitesIconTheSunriseOrAGlobe() {
         android.widget.ImageButton menu = mView.findViewById(R.id.blanc_island_menu);
+        float d = mActivity.getResources().getDisplayMetrics().density;
+        IslandView.State blanc = state("Start Page", false, 1, false);
+        blanc.blancPage = true;
+        mView.bind(blanc);
+        assertEquals(null, menu.getImageTintList());
+        IslandView.State site = state("example.com", false, 1, false);
+        site.favicon = android.graphics.Bitmap.createBitmap(32, 32, android.graphics.Bitmap.Config.ARGB_8888);
+        mView.bind(site);
+        assertEquals(null, menu.getImageTintList());
+        assertEquals(Math.round(16 * d), menu.getDrawable().getIntrinsicWidth());
         mView.bind(state("example.com", false, 1, false));
-        assertEquals(null, menu.getImageTintList());
-        mView.bind(state("example.com", true, 1, false));
-        assertEquals(null, menu.getImageTintList());
+        assertTrue("the globe takes the Island's ink", menu.getImageTintList() != null);
     }
 }

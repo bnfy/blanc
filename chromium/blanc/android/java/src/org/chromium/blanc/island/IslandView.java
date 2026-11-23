@@ -2,12 +2,20 @@
 
 package org.chromium.blanc.island;
 
+import android.animation.LayoutTransition;
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -26,10 +34,12 @@ import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
 
 /**
- * Blanc for iPhone's Island pill as an Android view (ContentView.addressPill): the Sunrise mark,
- * the site, the private chip, Stop while loading, Back, Forward and New tab, on the theme's raised
- * surface with a hairline and soft shadow, at most 600 wide inside 16 of padding. It only draws
- * {@link State}; IslandCoordinator wires it to the browser.
+ * Blanc for iPhone's Island as an Android view (ContentView.addressPill, #1682): Back, Forward while
+ * there's somewhere to go, the page menu (the site's icon, or the Sunrise on Blanc's pages), the
+ * site, and New tab, which Stop replaces while a page loads. A 44 tall rounded rectangle with 17
+ * corners on the theme's raised surface with a hairline and soft shadow, only as wide as what it
+ * holds and at most 600 inside 16 of padding. It only draws {@link State}; IslandCoordinator wires
+ * it to the browser.
  */
 @NullMarked
 public class IslandView extends FrameLayout {
@@ -48,7 +58,7 @@ public class IslandView extends FrameLayout {
         /** The Start Page: the address shows the dimmed placeholder instead of `title`. */
         public boolean startPage;
 
-        /** The page's history, for Back and Forward. */
+        /** The page's history: Back dims without it, and Forward shows only with it. */
         public boolean canGoBack;
 
         public boolean canGoForward;
@@ -57,6 +67,12 @@ public class IslandView extends FrameLayout {
         public boolean hasPrevious;
 
         public boolean hasNext;
+
+        /** The site's own icon for the page menu, or null for a globe. */
+        public @Nullable Bitmap favicon;
+
+        /** One of Blanc's own pages: the page menu shows the Sunrise. */
+        public boolean blancPage;
     }
 
     /** The sideways swipe on the Island (IslandSwipe), and the swipe into the page. */
@@ -90,14 +106,18 @@ public class IslandView extends FrameLayout {
     private final LinearLayout mPill;
     private final ImageButton mMenu;
     private final TextView mDomain;
-    private final TextView mPrivate;
     private final ImageButton mStop;
     private final ImageButton mBack;
     private final ImageButton mForward;
     private final ImageButton mNewTab;
-    private final View mDividerStart;
-    private final View mDividerEnd;
     private final IslandProgress mProgress;
+    private final String mPageActions;
+    private final String mPrivateLabel;
+    private int mInk;
+    /** The page menu shows the globe, the one glyph drawn in the Island's ink. */
+    private boolean mGlobe;
+    private @Nullable Bitmap mFavicon;
+    private @Nullable BitmapDrawable mFaviconDrawable;
     private final int mMaxWidth;
     private final float mDensity;
 
@@ -117,20 +137,21 @@ public class IslandView extends FrameLayout {
         mProgress = new IslandProgress(Math.round(2 * mDensity));
         mPill.setForeground(mProgress);
         mPill.setClipToOutline(true);
-        // A capsule at any height: a large font can make the pill taller than 52.
-        mPill.addOnLayoutChangeListener((pill, l, t, r, b, ol, ot, or, ob) -> {
-            if (pill.getBackground() instanceof GradientDrawable surface) surface.setCornerRadius((b - t) / 2f);
-        });
+        // The Island changes size as it changes: Forward slides in and out and a new site resizes
+        // it, as the iPhone's springs do. Nothing moves with animations off.
+        if (ValueAnimator.areAnimatorsEnabled()) {
+            LayoutTransition transition = new LayoutTransition();
+            transition.enableTransitionType(LayoutTransition.CHANGING);
+            mPill.setLayoutTransition(transition);
+        }
         mMenu = findViewById(R.id.blanc_island_menu);
         mDomain = findViewById(R.id.blanc_island_domain);
-        mPrivate = findViewById(R.id.blanc_island_private);
         mStop = findViewById(R.id.blanc_island_stop);
         mBack = findViewById(R.id.blanc_island_back);
         mForward = findViewById(R.id.blanc_island_forward);
         mNewTab = findViewById(R.id.blanc_island_new_tab);
-        mDividerStart = findViewById(R.id.blanc_island_divider_start);
-        mDividerEnd = findViewById(R.id.blanc_island_divider_end);
-        mPrivate.setContentDescription(res.getString(R.string.blanc_pill_private_title));
+        mPageActions = res.getString(R.string.blanc_ios_island_page_actions);
+        mPrivateLabel = res.getString(R.string.blanc_tab_private_label);
         // Sighted people swipe from the Island into the page for the tab grid; TalkBack gets the same
         // as an action on the address, where the iPhone has it.
         String showAllTabs = res.getString(R.string.blanc_ios_island_show_all_tabs);
@@ -166,13 +187,16 @@ public class IslandView extends FrameLayout {
         // #1472: the site in SemiBold, as Safari draws its address, so it holds up over busy pages;
         // the Start Page's placeholder stays regular.
         mDomain.setTypeface(Typeface.create(Typeface.DEFAULT, siteWeight(state.startPage), false));
-        // No Reload on the Island (#1463): the Sunrise menu and pull to refresh reload. Stop shows
-        // while a page loads, since nothing else can stop one.
+        // No Reload on the Island (#1463): the page menu and pull to refresh reload. Stop takes New
+        // tab's place while a page loads (#1682), so the Island never changes width for a load; New
+        // tab is in the page menu meanwhile.
         mStop.setVisibility(state.loading ? View.VISIBLE : View.GONE);
+        mNewTab.setVisibility(state.loading ? View.GONE : View.VISIBLE);
+        // Back always leads, dimmed with nowhere to go, so the Island's start never jumps; Forward
+        // shows only while there's somewhere to go.
         mBack.setEnabled(state.canGoBack);
         mBack.setAlpha(state.canGoBack ? 1f : DISABLED_ALPHA);
-        mForward.setEnabled(state.canGoForward);
-        mForward.setAlpha(state.canGoForward ? 1f : DISABLED_ALPHA);
+        mForward.setVisibility(state.canGoForward ? View.VISIBLE : View.GONE);
         // No tab count on the Island, as on the iPhone since November 5 (#1372): the address carries
         // the count as its accessibility value, so TalkBack hears "Search or switch tabs, example.com,
         // 3 tabs", and a Show all tabs action opens the grid as the swipe into the page does.
@@ -185,7 +209,9 @@ public class IslandView extends FrameLayout {
         } else {
             mDomain.setContentDescription(search + ", " + count);
         }
-        mPrivate.setVisibility(state.privateTab ? View.VISIBLE : View.GONE);
+        // No Private chip (#1682): a private tab's Island is dark, and the page menu tells TalkBack
+        // it's private and leads with Close Private Tab.
+        bindMenu(state);
         boolean systemDark =
                 (res.getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
                         == Configuration.UI_MODE_NIGHT_YES;
@@ -195,8 +221,8 @@ public class IslandView extends FrameLayout {
     private void applyStyle(IslandStyle style) {
         GradientDrawable surface = new GradientDrawable();
         surface.setColor(style.raised);
-        int height = mPill.getHeight();
-        surface.setCornerRadius(height > 0 ? height / 2f : getResources().getDimension(R.dimen.blanc_island_corner_radius));
+        // 17 at any height, the desktop Island's resting corners (#1682), never a capsule.
+        surface.setCornerRadius(getResources().getDimension(R.dimen.blanc_island_corner_radius));
         surface.setStroke(
                 getResources().getDimensionPixelSize(R.dimen.blanc_island_border_width),
                 style.border);
@@ -208,36 +234,75 @@ public class IslandView extends FrameLayout {
         mPill.setOutlineAmbientShadowColor(shadow);
         mPill.setOutlineSpotShadowColor(shadow);
         ColorStateList ink = ColorStateList.valueOf(style.text);
-        // The Sunrise mark keeps its own gold, as the Start Page shows it, never the Island's ink
-        // (#1463, the owner's call of November 11, 2026).
-        mMenu.setImageTintList(null);
+        mInk = style.text;
+        tintMenu();
         mStop.setImageTintList(ink);
         mBack.setImageTintList(ink);
         mForward.setImageTintList(ink);
         mNewTab.setImageTintList(ink);
         mDomain.setTextColor(style.text);
         mProgress.setInk((style.text & 0x00FFFFFF) | 0x8C000000);
-        mPrivate.setTextColor(style.text);
-        GradientDrawable chip = new GradientDrawable();
-        chip.setCornerRadius(100 * mDensity);
-        chip.setStroke(
-                getResources().getDimensionPixelSize(R.dimen.blanc_island_chip_stroke),
-                (style.text & 0x00FFFFFF) | 0x66000000);
-        mPrivate.setBackground(chip);
-        mDividerStart.setBackgroundColor(style.divider);
-        mDividerEnd.setBackgroundColor(style.divider);
+    }
+
+    /**
+     * The page menu's glyph: the Sunrise in its own gold on Blanc's pages (the owner's call of
+     * November 11, 2026), the site's icon at 16 with 4 corners, or a globe in the Island's ink
+     * until the site's icon is known. A private tab's menu tells TalkBack it's private.
+     */
+    private void bindMenu(State state) {
+        mGlobe = !state.blancPage && state.favicon == null;
+        if (state.blancPage) {
+            mFavicon = null;
+            mFaviconDrawable = null;
+            mMenu.setImageResource(R.drawable.blanc_island_mark);
+        } else if (state.favicon != null) {
+            if (state.favicon != mFavicon || mFaviconDrawable == null) {
+                mFavicon = state.favicon;
+                mFaviconDrawable = new BitmapDrawable(getResources(), rounded(state.favicon));
+            }
+            mMenu.setImageDrawable(mFaviconDrawable);
+        } else {
+            mFavicon = null;
+            mFaviconDrawable = null;
+            mMenu.setImageResource(R.drawable.blanc_palette_globe);
+        }
+        tintMenu();
+        // In the label itself, which screen readers and UI dumps both carry.
+        mMenu.setContentDescription(state.privateTab ? mPageActions + ", " + mPrivateLabel : mPageActions);
+    }
+
+    /** Only the globe takes the Island's ink; the Sunrise and a site's icon keep their colors. */
+    private void tintMenu() {
+        mMenu.setImageTintList(mGlobe && mInk != 0 ? ColorStateList.valueOf(mInk) : null);
+    }
+
+    /** `icon` at 16 square with 4 corners, as the iPhone draws a site's icon on its Island. */
+    private Bitmap rounded(Bitmap icon) {
+        int side = getResources().getDimensionPixelSize(R.dimen.blanc_island_favicon);
+        float corner = getResources().getDimension(R.dimen.blanc_island_favicon_corner);
+        Bitmap out = Bitmap.createBitmap(side, side, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(out);
+        Path clip = new Path();
+        clip.addRoundRect(new RectF(0, 0, side, side), corner, corner, Path.Direction.CW);
+        canvas.clipPath(clip);
+        canvas.drawBitmap(Bitmap.createScaledBitmap(icon, side, side, true), 0, 0, new Paint(Paint.FILTER_BITMAP_FLAG));
+        return out;
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        // The pill is at most 600 wide and centered, as on the iPhone (frame(maxWidth: 600)).
+        // The pill is only as wide as what it holds, at most 600 and centered, as on the iPhone
+        // (#1682). The site gives way first: it gets what the buttons leave, cut in the middle.
         int available = MeasureSpec.getSize(widthMeasureSpec) - getPaddingLeft() - getPaddingRight();
-        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) mPill.getLayoutParams();
         int width = Math.min(Math.max(available, 0), mMaxWidth);
-        if (lp.width != width) {
-            lp.width = width;
-            mPill.setLayoutParams(lp);
+        int others = mPill.getPaddingLeft() + mPill.getPaddingRight();
+        for (int i = 0; i < mPill.getChildCount(); i++) {
+            View child = mPill.getChildAt(i);
+            if (child == mDomain || child.getVisibility() == View.GONE) continue;
+            others += child.getLayoutParams().width;
         }
+        int max = Math.max(width - others, mDomain.getMinWidth());
+        if (mDomain.getMaxWidth() != max) mDomain.setMaxWidth(max);
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
@@ -365,10 +430,6 @@ public class IslandView extends FrameLayout {
 
     public View domainView() {
         return mDomain;
-    }
-
-    public View privateChip() {
-        return mPrivate;
     }
 
     public View stopButton() {

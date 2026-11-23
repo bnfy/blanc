@@ -4,6 +4,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import releases from '../data/releases.json';
 import ios from '../data/ios-availability.json';
 import beta from '../data/blanc-beta.json';
+import betaWin from '../data/blanc-beta-windows.json';
+import betaLinux from '../data/blanc-beta-linux.json';
 import pkg from '../../../package.json';
 
 const latest = releases[0];
@@ -11,6 +13,22 @@ const latest = releases[0];
 // writes the same text into the beta's claims ledger.
 const betaNumber = beta.version.split('-beta.')[1];
 const chromiumMajor = beta.chromium.split('.')[0];
+// Blanc Beta for Windows (owner, 2026-11-21): its own tile after the Mac beta's;
+// docs/website-blanc-beta-windows-<version>-claims.json records its sentences.
+const winBuild = betaWin.build;
+const winChromiumMajor = betaWin.chromium.split('.')[0];
+const winReleased = new Date(`${betaWin.published}T00:00:00Z`)
+  .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+// Blanc Beta for Linux: its own wide tile after the Windows beta's, with one counted
+// /dl/beta-linux-<arch>-<format> route per package (blanc-ping answers with that
+// package on the GitHub pre-release) and the manual repository
+// commands from chromium/linux/manual-repository.md (copied verbatim into
+// src/data/blanc-beta-linux.json); docs/website-blanc-beta-linux-<version>-claims.json
+// records its sentences.
+const linuxBuild = betaLinux.build;
+const linuxChromiumMajor = betaLinux.chromium.split('.')[0];
+const linuxReleased = new Date(`${betaLinux.published}T00:00:00Z`)
+  .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 const betaReleased = new Date(`${beta.published}T00:00:00Z`)
   .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 ---
@@ -80,13 +98,39 @@ const betaReleased = new Date(`${beta.published}T00:00:00Z`)
       </div>
 
       <div class="dl-panels">
+        <!-- The Mac panel offers two ways to install (owner, 2026-11-23): two
+             radios switch between the download and the Homebrew command in
+             CSS, so it works without scripting, with Download checked. Both
+             panes share one grid cell, so switching never moves the page. The
+             Intel link stays a direct child of [data-download-options]: site.js
+             reveals it only there, once the release is known to have it. -->
         <div class="dl-panel" data-os="mac">
-          <div class="dl-actions" data-download-options>
-            <a class="dl-button" id="dl-mac-arm64" data-download-link data-platform="mac-arm64" data-track="download_click" data-cta-position="download-hero" href="/dl/mac-arm64">Download for Mac</a>
-            <a class="dl-alt" id="dl-mac-x64" data-download-link data-platform="mac-x64" data-track="download_click" data-cta-position="download-hero" href="/dl/mac-x64" hidden>Intel Mac</a>
+          <div class="dl-method">
+            <input class="dl-method-radio" type="radio" name="dl-mac-method" id="dl-mac-method-dmg" value="dmg" checked />
+            <input class="dl-method-radio" type="radio" name="dl-mac-method" id="dl-mac-method-brew" value="brew" />
+            <div class="dl-method-tabs" role="presentation">
+              <label for="dl-mac-method-dmg">Download</label>
+              <label for="dl-mac-method-brew">Homebrew</label>
+            </div>
+            <div class="dl-method-panes">
+              <div class="dl-method-pane" data-method="dmg">
+                <div class="dl-actions dl-actions--mac" data-download-options>
+                  <a class="dl-button" id="dl-mac-arm64" data-download-link data-platform="mac-arm64" data-track="download_click" data-cta-position="download-hero" href="/dl/mac-arm64">Download for Mac</a>
+                  <span class="dl-actions-break" aria-hidden="true"></span>
+                  <p class="dl-meta">Apple Silicon · macOS 13 or later</p>
+                  <a class="dl-alt" id="dl-mac-x64" data-download-link data-platform="mac-x64" data-track="download_click" data-cta-position="download-hero" href="/dl/mac-x64" hidden>Intel Mac</a>
+                </div>
+              </div>
+              <div class="dl-method-pane" data-method="brew">
+                <figure class="dl-brew" aria-label="Homebrew command">
+                  <pre><code><span class="terminal-prompt" aria-hidden="true">% </span>brew install --cask bnfy/tap/blanc</code></pre>
+                  <button type="button" class="terminal-copy" data-terminal-copy="brew install --cask bnfy/tap/blanc" data-track="feature_cta_click" data-feature="homebrew" data-cta-position="install-terminal" hidden>Copy</button>
+                  <p class="sr-only" role="status" aria-live="polite" data-terminal-status></p>
+                </figure>
+                <p class="dl-meta">The same signed and notarized build.</p>
+              </div>
+            </div>
           </div>
-          <p class="dl-meta">Apple Silicon · macOS 13 or later</p>
-          <p class="dl-hint">Open the DMG and drag Blanc to Applications.</p>
         </div>
         <div class="dl-panel" data-os="win">
           <div class="dl-actions">
@@ -102,7 +146,9 @@ const betaReleased = new Date(`${beta.published}T00:00:00Z`)
           <p class="dl-meta">AppImage, 64-bit</p>
           <p class="dl-hint"><code>chmod +x Blanc-*.AppImage</code>, then run it.</p>
         </div>
-        <div class="dl-panel" data-os="iphone">
+        <!-- The site navigation's iPhone and iPad link (/download#iphone) opens
+             this tab by its id; download-switcher.js reads the address. -->
+        <div class="dl-panel" data-os="iphone" id="iphone">
           <div class="dl-actions">
             <a class="dl-button" href={ios.storeUrl} target="_blank" rel="noopener">Get it on the App Store</a>
           </div>
@@ -126,58 +172,198 @@ const betaReleased = new Date(`${beta.published}T00:00:00Z`)
 
   <section class="dl-more" id="download-more" aria-label="More ways to get Blanc">
     <!-- Blanc Beta (owner, 2026-11-14): never a platform choice, so the regular
-         Blanc stays the download, but first among the tiles. Every sentence is in
-         docs/website-blanc-beta-<version>-claims.json for the version in
-         src/data/blanc-beta.json. -->
-    <article class="dl-tile dl-tile--beta" id="beta" aria-labelledby="beta-title">
-      <p class="dl-tile-label">Preview</p>
-      <h2 id="beta-title">Blanc Beta</h2>
-      <p>Blanc built directly on Chromium. It installs beside Blanc and never replaces it.</p>
-      <dl class="dl-beta-versions">
-        <div>
-          <dt>Beta</dt>
-          <dd class="dl-beta-figure">{betaNumber}</dd>
-          <dd>{beta.version} · build {beta.build}</dd>
-        </div>
-        <div>
-          <dt>Chromium</dt>
-          <dd class="dl-beta-figure">{chromiumMajor}</dd>
-          <dd>{beta.chromium}</dd>
-        </div>
-      </dl>
-      <p class="dl-tile-meta">{beta.requirement}<br />Released {betaReleased}</p>
-      <a class="dl-tile-button" href="/dl/beta" data-download-link data-track="download_click" data-platform="beta" data-cta-position="beta"><PlatformLogo platform="apple" />Download Beta for Mac</a>
-      <details class="dl-notyet">
-        <summary>Not in this beta yet</summary>
-        <ul>
-          <li>Protected video, such as Netflix or Spotify.</li>
-          <li>Sync checked against the live Sync service.</li>
-          <li>Intel Macs, Windows and Linux.</li>
-        </ul>
-        <a href={beta.releaseUrl} target="_blank" rel="noopener">Release notes <span aria-hidden="true">↗</span></a>
-      </details>
-    </article>
+         Blanc stays the download, but first among the tiles. The iPhone and iPad
+         tile left on 2026-11-23 (owner); the App Store button stays in the
+         iPhone tab above, and TestFlight in the Betas panel. Homebrew moved up
+         into the Mac panel the same day. Since 2026-11-23
+         (owner: compact cards that expand) the three betas share one dark panel
+         across the row, one row each, every row closed until its Details opens;
+         the iPhone and iPad TestFlight beta and the Android beta signup follow
+         as rows without details. The panel's heading and sentence, and the Mac
+         row, are recorded in docs/website-blanc-beta-<version>-claims.json; the
+         Windows and Linux rows in their own ledgers; the iPhone and Android rows
+         in docs/website-download-redesign-2026-11-14-claims.json. Each row's
+         detail is a <details>, so it opens without scripting. -->
+    <section class="dl-tile dl-tile--beta dl-betas" id="betas" aria-labelledby="betas-title">
+      <div class="dl-betas-head">
+        <p class="dl-tile-label">Preview</p>
+        <h2 id="betas-title">Betas</h2>
+        <p>Blanc Beta is Blanc built directly on Chromium, for Mac, Windows and Linux. It installs beside Blanc and never replaces it.</p>
+      </div>
 
-    <article class="dl-tile dl-tile--iphone" id="iphone" aria-labelledby="iphone-title">
-      <p class="dl-tile-label">iPhone and iPad</p>
-      <h2 id="iphone-title">Blanc for iPhone and iPad</h2>
-      <p>Free on the App Store. With Sync, your Favorites and your other devices’ tabs come with you.</p>
-      <a class="dl-tile-link" href={ios.storeUrl} target="_blank" rel="noopener">App Store <span aria-hidden="true">↗</span></a>
-      <figure class="dl-tile-phone"><img src="/iphone/blanc-day-on-iphone.webp" width="921" height="2000" alt="Blanc for iPhone showing blanc.day" loading="lazy" decoding="async" /></figure>
-    </article>
-
-    <article class="dl-tile dl-tile--brew" aria-labelledby="terminal-title">
-      <p class="dl-tile-label">Mac, from the terminal</p>
-      <h2 id="terminal-title">Homebrew</h2>
-      <p>The same signed and notarized build.</p>
-      <figure class="terminal-window" aria-labelledby="terminal-title">
-        <div class="terminal-body">
-          <pre><code><span class="terminal-prompt" aria-hidden="true">% </span>brew install --cask bnfy/tap/blanc</code></pre>
-          <button type="button" class="terminal-copy" data-terminal-copy="brew install --cask bnfy/tap/blanc" data-track="feature_cta_click" data-feature="homebrew" data-cta-position="install-terminal" hidden>Copy</button>
+      <article class="dl-beta-row" id="beta" aria-labelledby="beta-title">
+        <div class="dl-beta-line">
+          <span class="dl-beta-logo" aria-hidden="true"><PlatformLogo platform="apple" /></span>
+          <div class="dl-beta-name">
+            <h3 id="beta-title">Mac</h3>
+            <p class="dl-beta-brief"><span>Beta {betaNumber}</span><span>Chromium {chromiumMajor}</span></p>
+          </div>
+          <a class="dl-tile-button" href="/dl/beta" data-download-link data-track="download_click" data-platform="beta" data-cta-position="beta"><PlatformLogo platform="apple" />Download Beta for Mac</a>
         </div>
-        <p class="sr-only" role="status" aria-live="polite" data-terminal-status></p>
-      </figure>
-    </article>
+        <details class="dl-beta-more">
+          <summary><span class="sr-only">Details</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" /></svg></summary>
+          <div class="dl-beta-detail">
+            <dl class="dl-beta-versions">
+              <div>
+                <dt>Beta</dt>
+                <dd class="dl-beta-figure">{betaNumber}</dd>
+                <dd>{beta.version} · build {beta.build}</dd>
+              </div>
+              <div>
+                <dt>Chromium</dt>
+                <dd class="dl-beta-figure">{chromiumMajor}</dd>
+                <dd>{beta.chromium}</dd>
+              </div>
+            </dl>
+            <div class="dl-beta-facts">
+              <p class="dl-tile-meta">{beta.requirement}<br />Released {betaReleased}</p>
+              <p class="dl-beta-sub">Not in this beta yet</p>
+              <ul>
+                <li>Protected video, such as Netflix or Spotify.</li>
+                <li>Sync checked against the live Sync service.</li>
+                <li>Intel Macs.</li>
+              </ul>
+              <a class="dl-beta-notes" href={beta.releaseUrl} target="_blank" rel="noopener">Release notes <span aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <!-- Blanc Beta for Windows (owner, 2026-11-21); docs/website-blanc-beta-windows-<version>-claims.json. -->
+      <article class="dl-beta-row" id="beta-windows" aria-labelledby="beta-windows-title">
+        <div class="dl-beta-line">
+          <span class="dl-beta-logo" aria-hidden="true"><PlatformLogo platform="windows" /></span>
+          <div class="dl-beta-name">
+            <h3 id="beta-windows-title">Windows</h3>
+            <p class="dl-beta-brief"><span>Build {winBuild}</span><span>Chromium {winChromiumMajor}</span></p>
+          </div>
+          <a class="dl-tile-button" href="/dl/beta-win" data-download-link data-track="download_click" data-platform="beta-win" data-cta-position="beta-windows"><PlatformLogo platform="windows" />Download Beta for Windows</a>
+        </div>
+        <details class="dl-beta-more">
+          <summary><span class="sr-only">Details</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" /></svg></summary>
+          <div class="dl-beta-detail">
+            <dl class="dl-beta-versions">
+              <div>
+                <dt>Build</dt>
+                <dd class="dl-beta-figure">{winBuild}</dd>
+                <dd>{betaWin.version}</dd>
+              </div>
+              <div>
+                <dt>Chromium</dt>
+                <dd class="dl-beta-figure">{winChromiumMajor}</dd>
+                <dd>{betaWin.chromium}</dd>
+              </div>
+            </dl>
+            <div class="dl-beta-facts">
+              <p class="dl-tile-meta">{betaWin.requirement}<br />Released {winReleased}</p>
+              <p class="dl-beta-sub">Not in this beta yet</p>
+              <ul>
+                <li>Protected video, such as Netflix or Spotify.</li>
+                <li>Some Blanc features still behave differently on Windows.</li>
+              </ul>
+              <a class="dl-beta-notes" href={betaWin.releaseUrl} target="_blank" rel="noopener">Release notes <span aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <!-- Blanc Beta for Linux; docs/website-blanc-beta-linux-<version>-claims.json.
+           The x64 / arm64 switch is two radios: CSS shows that architecture's
+           .deb and .rpm, each its own counted /dl/beta-linux-<arch>-<format>
+           route (no /dl/* link goes around the counter). The repository
+           commands are manual-repository.md's, verbatim. -->
+      <article class="dl-beta-row dl-beta-row--linux" id="beta-linux" aria-labelledby="beta-linux-title">
+        <div class="dl-beta-line">
+          <span class="dl-beta-logo" aria-hidden="true"><PlatformLogo platform="linux" /></span>
+          <div class="dl-beta-name">
+            <h3 id="beta-linux-title">Linux</h3>
+            <p class="dl-beta-brief"><span>Build {linuxBuild}</span><span>Chromium {linuxChromiumMajor}</span></p>
+          </div>
+          <div class="dl-beta-linux">
+            <div class="dl-beta-arch" role="radiogroup" aria-label="Architecture">
+              <input type="radio" name="dl-beta-linux-arch" id="dl-beta-linux-x64" value="x64" checked /><label for="dl-beta-linux-x64">x64</label>
+              <input type="radio" name="dl-beta-linux-arch" id="dl-beta-linux-arm64" value="arm64" /><label for="dl-beta-linux-arm64">arm64</label>
+            </div>
+            <ul class="dl-linux-packages" aria-label="Download Beta for Linux">
+              <li data-arch="x64"><a class="dl-tile-button" href="/dl/beta-linux-x64-deb" data-download-link data-track="download_click" data-platform="beta-linux-x64-deb" data-cta-position="beta-linux"><span class="dl-pkg-arch">x64 </span>.deb</a></li>
+              <li data-arch="x64"><a class="dl-tile-button" href="/dl/beta-linux-x64-rpm" data-download-link data-track="download_click" data-platform="beta-linux-x64-rpm" data-cta-position="beta-linux"><span class="dl-pkg-arch">x64 </span>.rpm</a></li>
+              <li data-arch="arm64"><a class="dl-tile-button" href="/dl/beta-linux-arm64-deb" data-download-link data-track="download_click" data-platform="beta-linux-arm64-deb" data-cta-position="beta-linux"><span class="dl-pkg-arch">arm64 </span>.deb</a></li>
+              <li data-arch="arm64"><a class="dl-tile-button" href="/dl/beta-linux-arm64-rpm" data-download-link data-track="download_click" data-platform="beta-linux-arm64-rpm" data-cta-position="beta-linux"><span class="dl-pkg-arch">arm64 </span>.rpm</a></li>
+            </ul>
+          </div>
+        </div>
+        <details class="dl-beta-more">
+          <summary><span class="sr-only">Details</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" /></svg></summary>
+          <div class="dl-beta-detail">
+            <dl class="dl-beta-versions">
+              <div>
+                <dt>Build</dt>
+                <dd class="dl-beta-figure">{linuxBuild}</dd>
+                <dd>{betaLinux.version}</dd>
+              </div>
+              <div>
+                <dt>Chromium</dt>
+                <dd class="dl-beta-figure">{linuxChromiumMajor}</dd>
+                <dd>{betaLinux.chromium}</dd>
+              </div>
+            </dl>
+            <div class="dl-beta-facts">
+              <p class="dl-tile-meta">{betaLinux.requirement}<br />Released {linuxReleased}</p>
+              <p>Use the .deb on Debian and Ubuntu, the .rpm on Fedora.</p>
+              <p>Installing the package adds Blanc’s own signed package repository. New betas are then offered with your system updates through apt or dnf, and within about two hours of installing one, Blanc shows Restart to update in the Island.</p>
+              <p>Install and update checks ran on Ubuntu 24.04, Debian 12 and Fedora 45, on x64 and arm64. Ubuntu 26.04 with GNOME on Wayland was also checked by hand on arm64. KDE and x64 desktops haven’t been checked by hand.</p>
+              <p>It doesn’t make itself your default browser, but where none is chosen yet, as on a fresh Ubuntu 26.04, links from other apps may open in it until you pick one in Settings.</p>
+              <details class="dl-notyet dl-linux-manual">
+                <summary>Set up the repository yourself</summary>
+                <p>To install the package without adding the repository, run this before installing it.</p>
+                <div class="dl-linux-code"><pre><code>{betaLinux.manualSetup.optOut}</code></pre><button type="button" class="terminal-copy" data-terminal-copy={betaLinux.manualSetup.optOut} hidden>Copy</button></div>
+                <p>To add the repository by hand instead, first download Blanc’s key and check it.</p>
+                <div class="dl-linux-code"><pre><code>{betaLinux.manualSetup.key}</code></pre><button type="button" class="terminal-copy" data-terminal-copy={betaLinux.manualSetup.key} hidden>Copy</button></div>
+                <p>Then, on Debian and Ubuntu, add the source and install with <code>sudo apt-get install blanc-beta</code>.</p>
+                <div class="dl-linux-code"><pre><code>{betaLinux.manualSetup.deb}</code></pre><button type="button" class="terminal-copy" data-terminal-copy={betaLinux.manualSetup.deb} hidden>Copy</button></div>
+                <p>On Fedora, add the source and install with <code>sudo dnf install blanc-beta</code>.</p>
+                <div class="dl-linux-code"><pre><code>{betaLinux.manualSetup.rpm}</code></pre><button type="button" class="terminal-copy" data-terminal-copy={betaLinux.manualSetup.rpm} hidden>Copy</button></div>
+                <a href={betaLinux.manualSetup.guideUrl} target="_blank" rel="noopener">Full guide, including how to turn the repository off <span aria-hidden="true">↗</span></a>
+              </details>
+              <p class="dl-beta-sub">Not in this beta yet</p>
+              <ul>
+                <li>Protected video, such as Netflix or Spotify.</li>
+                <li>Sync checked against the live Sync service.</li>
+              </ul>
+              <a class="dl-beta-notes" href={betaLinux.releaseUrl} target="_blank" rel="noopener">Release notes <span aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <!-- Blanc for iPhone and iPad's public TestFlight beta, for early builds,
+           and the Android beta signup (Blanc for Android isn't released: this
+           row says only that and leads to the signup; CLAUDE.md, Blanc for
+           Android). Neither is Blanc Beta, so neither has details. -->
+      <article class="dl-beta-row dl-beta-row--mobile" id="beta-iphone" aria-labelledby="beta-iphone-title">
+        <div class="dl-beta-line">
+          <span class="dl-beta-logo" aria-hidden="true"><PlatformLogo platform="apple" /></span>
+          <div class="dl-beta-name">
+            <h3 id="beta-iphone-title">iPhone and iPad</h3>
+            <p class="dl-beta-brief">Early builds on TestFlight</p>
+          </div>
+          <a class="dl-tile-button" href={ios.joinUrl} target="_blank" rel="noopener">Join the beta on TestFlight <span aria-hidden="true">↗</span></a>
+        </div>
+      </article>
+
+      <article class="dl-beta-row dl-beta-row--mobile" id="beta-android" aria-labelledby="beta-android-title">
+        <div class="dl-beta-line">
+          <span class="dl-beta-logo" aria-hidden="true"><PlatformLogo platform="android" /></span>
+          <div class="dl-beta-name">
+            <h3 id="beta-android-title">Android</h3>
+            <p class="dl-beta-brief">Not released yet</p>
+          </div>
+          <a class="dl-tile-button" href="/android-beta">Join the Android beta</a>
+        </div>
+      </article>
+    </section>
+
+
   </section>
 
   <section class="dl-facts" aria-label="Good to know">

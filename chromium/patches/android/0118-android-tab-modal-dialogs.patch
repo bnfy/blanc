@@ -19,7 +19,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/modaldialog/Chro
          assert mTabObscuringToken == null;
          mTabObscuringToken =
                  mTabObscuringHandlerSupplier.get().obscure(TabObscuringHandler.Target.TAB_CONTENT);
-@@ -382,7 +379,9 @@
+@@ -388,7 +385,9 @@
       * @return The container top margin.
       */
      public static int getContainerTopMargin(BrowserControlsStateProvider provider) {

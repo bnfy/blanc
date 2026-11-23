@@ -1,0 +1,151 @@
+---
+// The Blanc Mail reservation banner: a slim dark strip above the site header
+// while reservations are open (src/data/mail-reservations.json). It scrolls
+// away with the page, so the sticky header and the homepage's sticky scenes
+// keep their places. The whole strip is one link to /mail/reserve. It wears
+// the home band's ink and gilt (home.css, .mail-promo) so the two read as one.
+// Header.astro leaves it off the legal pages, the What's New pages and the
+// Mail pages, which already lead to the reserve form. The icon is a 96px copy
+// of /blanc-mail-icon.webp (2 KB against the full file's 58 KB), since the
+// banner loads on nearly every page.
+import reservations from '../data/mail-reservations.json';
+
+const ending = reservations.endings[0];
+---
+{reservations.open && ending && (
+  <a class="mail-reserve-banner" href="/mail/reserve" data-track="feature_cta_click" data-feature="blanc-mail" data-cta-position="header-banner">
+    <span class="mail-reserve-banner-inner">
+      <img class="mail-reserve-banner-icon" src="/blanc-mail-icon-96.webp" width="96" height="96" alt="" />
+      <span class="mail-reserve-banner-text">
+        <span class="mail-reserve-banner-lead">Blanc Mail addresses are coming.</span>
+        <span class="mail-reserve-banner-ask">Reserve yours<span class="mail-reserve-banner-free"> for free</span> <span class="mail-reserve-banner-ending">@{ending}</span>.</span>
+      </span>
+      <span class="mail-reserve-banner-action" aria-hidden="true">Reserve<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8h9M9 4.5 12.5 8 9 11.5" /></svg></span>
+    </span>
+  </a>
+)}
+
+<style>
+  /* The open phone menu (revamp.css) leaves room for the banner above the bar. */
+  :global(:root:has(.mail-reserve-banner)) {
+    --site-banner-h: 40px;
+  }
+  .mail-reserve-banner {
+    position: relative;
+    display: block;
+    background: radial-gradient(ellipse 50% 160% at 50% 0%, #e0c0841c, #e0c08400 70%), #0a0907;
+    color: #f2f2f0;
+    font: 400 13.5px/1.3 var(--font-brand-text);
+    text-decoration: none;
+  }
+  /* The horizon rule's gold hairline, fading out at both ends. */
+  .mail-reserve-banner::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, #e0c08400, #e0c08499 30%, #f6e7bd 50%, #e0c08499 70%, #e0c08400);
+    opacity: 0.55;
+  }
+  .mail-reserve-banner-inner {
+    max-width: 1040px;
+    min-height: 40px;
+    margin: 0 auto;
+    padding: 6px 22px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+  .mail-reserve-banner-icon {
+    display: block;
+    flex: none;
+    width: 22px;
+    height: 22px;
+  }
+  .mail-reserve-banner-text {
+    min-width: 0;
+  }
+  .mail-reserve-banner-lead {
+    color: #a8a39b;
+    margin-right: 0.3em;
+  }
+  .mail-reserve-banner-ending {
+    background: linear-gradient(100deg, #e0c084 0%, #f6e7bd 28%, #d4a35a 52%, #f6e7bd 76%, #e0c084 100%) 0 0 / 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .mail-reserve-banner-action {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 26px;
+    padding: 0 10px 0 13px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #f6e7bd 0%, #e0c084 38%, #b48c4a 64%, #d9bb7d 86%, #f0dca6 100%);
+    color: #1b1306;
+    font-size: 12.5px;
+    font-weight: 600;
+    box-shadow: inset 0 1px 0 #fff8e2b3, inset 0 -1px 0 #7a5a2699;
+    transition: filter 160ms ease, transform 100ms ease-out;
+  }
+  .mail-reserve-banner-action svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 160ms ease;
+  }
+  .mail-reserve-banner:hover .mail-reserve-banner-action {
+    filter: brightness(1.07);
+  }
+  .mail-reserve-banner:hover .mail-reserve-banner-action svg {
+    transform: translateX(2px);
+  }
+  .mail-reserve-banner:active .mail-reserve-banner-action {
+    transform: scale(0.97);
+  }
+  .mail-reserve-banner:focus-visible {
+    outline: 2px solid #e0c084;
+    outline-offset: -4px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .mail-reserve-banner-ending {
+      animation: mail-reserve-banner-shine 6s ease-in-out infinite alternate;
+    }
+  }
+  @keyframes mail-reserve-banner-shine {
+    to { background-position: 100% 0; }
+  }
+  /* Phones keep the ask and the button; the lead and "for free" step aside. */
+  @media (max-width: 640px) {
+    .mail-reserve-banner-inner {
+      padding: 6px 16px;
+      gap: 10px;
+    }
+    .mail-reserve-banner-lead,
+    .mail-reserve-banner-free {
+      display: none;
+    }
+  }
+  /* The narrowest phones also drop the icon, so the ask stays on one line. */
+  @media (max-width: 360px) {
+    .mail-reserve-banner-icon {
+      display: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mail-reserve-banner-action,
+    .mail-reserve-banner-action svg {
+      transition: none;
+    }
+  }
+</style>

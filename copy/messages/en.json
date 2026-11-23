@@ -711,6 +711,34 @@
     "note": "Single button of an informational native dialog.",
     "maxLength": 6
   },
+  "localHtml.refused.message": {
+    "message": "Blanc couldn’t open “{name}”",
+    "note": "Native dialog title when a local HTML file handed to Blanc (Finder, Open with) can’t be shown; {name} is the file name."
+  },
+  "localHtml.refused.messageMany": {
+    "message": "{count, plural, one {Blanc couldn’t open # file} other {Blanc couldn’t open # files}}",
+    "note": "Native dialog title when several local HTML files handed to Blanc can’t be shown; {count} is how many."
+  },
+  "localHtml.refused.line": {
+    "message": "{name}: {reason}",
+    "note": "One line per refused file in that dialog; {name} is the file name, {reason} one of the localHtml.refused reasons."
+  },
+  "localHtml.refused.tooLarge": {
+    "message": "The file is larger than 8 MB. Blanc opens local pages up to 8 MB.",
+    "note": "Why a local HTML file wasn’t shown: over the 8 MB limit of Blanc’s local page preview."
+  },
+  "localHtml.refused.notHtml": {
+    "message": "This file isn’t an HTML page.",
+    "note": "Why a local HTML file wasn’t shown: it turned out not to be an HTML file (for example, a shortcut to another kind of file)."
+  },
+  "localHtml.refused.changed": {
+    "message": "The file changed while Blanc was reading it. Open it again.",
+    "note": "Why a local HTML file wasn’t shown: it changed while Blanc read it."
+  },
+  "localHtml.refused.unreadable": {
+    "message": "Blanc couldn’t read the file. Check that it still exists and that you can open it.",
+    "note": "Why a local HTML file wasn’t shown: it is missing, unreadable or not an ordinary file."
+  },
   "fill.setupEnable.title": {
     "message": "Set up 1Password",
     "note": "Fill capsule title when 1Password fill is turned off in Settings."
@@ -1150,6 +1178,42 @@
     "message": "Show window",
     "note": "Workspace row: the space is open in another window; choosing it brings that window forward. Also part of the row tooltip.",
     "maxLength": 16
+  },
+  "ws.row.titleProfile": {
+    "message": "{count, plural, one {{name} · {profile} · {context} · # tab} other {{name} · {profile} · {context} · # tabs}}",
+    "note": "Tooltip and accessible name of another profile's Space row in the Spaces menu; {name} is the Space, {profile} its profile's name, {context} what choosing it does (ws.row.openInProfile or ws.row.showWindow)."
+  },
+  "ws.row.titleProfileShown": {
+    "message": "{name} · {profile} · {context}",
+    "note": "Tooltip and accessible name of another profile's Space row when a window of that profile already shows it; {context} is ws.row.showWindow."
+  },
+  "ws.editor.profileDisabled": {
+    "message": "{profile} (can’t add Spaces)",
+    "note": "New Space editor: a profile in the Profile choice that can't take a new Space (it's full or its Spaces can't be read); the reason is in its tooltip."
+  },
+  "ws.row.openInProfile": {
+    "message": "Opens in a {profile} window",
+    "note": "Part of another profile's Space row tooltip: choosing it opens the Space in a window of that profile; {profile} is the profile's name."
+  },
+  "ws.profile.unreadable": {
+    "message": "Couldn’t read this profile’s Spaces.",
+    "note": "Spaces menu: shown under another profile's name when its saved Spaces file can't be read."
+  },
+  "ws.editor.profile": {
+    "message": "Profile",
+    "note": "New Space editor: label of the choice of which local profile the new Space belongs to (shown only with two or more profiles)."
+  },
+  "ws.editor.helpOtherProfile": {
+    "message": "Tabs stay in their own profile, so a Space in {profile} starts empty.",
+    "note": "New Space editor help when another profile is chosen; {profile} is that profile's name."
+  },
+  "ws.switcher.profileLabel": {
+    "message": "Space · {profile}",
+    "note": "Quick Switcher result label for a Space in another profile; {profile} is the profile's name."
+  },
+  "ws.error.profileUnavailable": {
+    "message": "That profile is no longer available.",
+    "note": "Spaces menu error when the other profile chosen was deleted or is being deleted."
   },
   "ws.row.retained": {
     "message": "Retained in memory",
@@ -9805,6 +9869,10 @@
     "message": "Stop loading",
     "note": "iOS Island: accessible name of the reload button while a page loads."
   },
+  "ios.island.closePrivateTab": {
+    "message": "Close Private Tab",
+    "note": "iOS Island page menu: first item on a private tab; closes it and leaves private browsing"
+  },
   "ios.island.pageActions": {
     "message": "Page actions",
     "note": "iOS Island: accessible name of the leading mark that opens the page menu."
@@ -9814,7 +9882,7 @@
     "note": "iOS palette: accessible name of the button that closes the palette back into the Island."
   },
   "ios.palette.placeholder": {
-    "message": "Search, enter address, or / command",
+    "message": "Search, enter URL or / for commands",
     "note": "iOS palette: placeholder of the address field."
   },
   "ios.palette.clear": {
@@ -10095,6 +10163,36 @@
     "message": "Bottom",
     "note": "Android Settings → Island position: the Island sits at the bottom of the screen."
   },
+  "android.settings.autofill.title": {
+    "message": "Autofill passwords",
+    "note": "Label for the switch that lets the Android password manager fill forms in Blanc.",
+    "androidOnly": true
+  },
+  "android.settings.autofill.summary": {
+    "message": "Lets the password manager you choose in Android, like Bitwarden, Proton Pass or 1Password, fill passwords in Blanc, and other forms where it supports them. Google Password Manager doesn't fill in Blanc.",
+    "note": "Text under the autofill switch explaining which Android password managers work in Blanc.",
+    "androidOnly": true
+  },
+  "android.settings.autofill.managed": {
+    "message": "Your organization manages this setting.",
+    "note": "Replaces the switch summary when policy blocks third-party password managers.",
+    "androidOnly": true
+  },
+  "android.settings.autofill.choose": {
+    "message": "Choose password manager",
+    "note": "Opens the Android settings where the person chooses a password manager.",
+    "androidOnly": true
+  },
+  "android.settings.autofill.chooseSummary": {
+    "message": "Takes effect the next time Blanc starts.",
+    "note": "Shown under Choose password manager. Blanc checks the selected Android service at startup.",
+    "androidOnly": true
+  },
+  "android.settings.autofill.restart": {
+    "message": "Restart Blanc to apply",
+    "note": "Brief message shown after someone changes the autofill switch.",
+    "androidOnly": true
+  },
   "android.settings.openSourceLicenses": {
     "message": "Open-source licenses",
     "note": "Android Settings → About: row opening the list of open-source licenses."
@@ -10270,5 +10368,15 @@
   "start.mahjong.play": {
     "message": "Play Blanc Mahjong",
     "note": "Start Page footer: the link that opens Blanc Mahjong."
+  },
+  "android.contextMenu.privateTab": {
+    "message": "Open in private tab",
+    "note": "Blanc for Android: Long-press a link to open it in a private tab.",
+    "androidOnly": true
+  },
+  "android.contextMenu.newBlancTab": {
+    "message": "Open in new tab in Blanc",
+    "note": "Blanc for Android: Open a link from a Custom Tab in a new tab in the full Blanc browser.",
+    "androidOnly": true
   }
 }

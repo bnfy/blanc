@@ -24,7 +24,7 @@ class TabImportRunner : public blanc::mojom::SyncHost {
     service_ = content::ServiceProcessHost::Launch<blanc::mojom::SyncRunner>(
         content::ServiceProcessHost::Options().WithDisplayName("Blanc Import").Pass());
     service_.set_disconnect_handler(base::BindOnce(&TabImportRunner::Fail, weak_.GetWeakPtr(), "import-ended"));
-    service_->Start(script, {}, R"({"platform":"darwin","version":"local-import","env":{}})", host_.BindNewPipeAndPassRemote(),
+    service_->Start(script, {}, blanc::RunnerConfigJson("local-import"), host_.BindNewPipeAndPassRemote(),
         base::BindOnce([](base::WeakPtr<TabImportRunner> self, bool ready) {
           if (!self) return;
           if (!ready) {self->Fail("import-start-failed"); return;}

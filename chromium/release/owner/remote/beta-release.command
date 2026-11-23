@@ -12,7 +12,10 @@ trap 'echo; read -r -p "Press Return to close this window. " _' EXIT
 echo "Blanc Beta: the daily release"
 echo "Approve 1Password with Touch ID when it asks."
 echo
-OP_BIOMETRIC_UNLOCK_ENABLED=true op signin >/dev/null || { echo "1Password didn't sign in. Nothing was sent. Tell Claude."; exit 1; }
+# Every op call needs the app's Touch ID unlock, not only the sign-in: without it
+# the reads below find no session ("You are not currently signed in", 2026-11-17).
+export OP_BIOMETRIC_UNLOCK_ENABLED=true
+op signin >/dev/null || { echo "1Password didn't sign in. Nothing was sent. Tell Claude."; exit 1; }
 # Read every value here first; nothing reaches the Mac Studio unless all are present.
 # Only an error message ever reaches the screen.
 APPLE_ID=$(op read "op://Dev/Apple Notarization/username") || APPLE_ID=

@@ -193,6 +193,17 @@
     <string name="fill_surface_title">Status do preenchimento</string>
     <string name="fill_dismiss">Dispensar</string>
     <string name="dialog_ok">OK</string>
+    <string name="local_html_refused_message">O Blanc não conseguiu abrir “%1$s”</string>
+    <plurals name="local_html_refused_message_many">
+        <item quantity="one">O Blanc não conseguiu abrir %1$d arquivo</item>
+        <item quantity="many">O Blanc não conseguiu abrir %1$d arquivos</item>
+        <item quantity="other">O Blanc não conseguiu abrir %1$d arquivos</item>
+    </plurals>
+    <string name="local_html_refused_line">%1$s: %2$s</string>
+    <string name="local_html_refused_too_large">O arquivo tem mais de 8 MB. O Blanc abre páginas locais de até 8 MB.</string>
+    <string name="local_html_refused_not_html">Este arquivo não é uma página HTML.</string>
+    <string name="local_html_refused_changed">O arquivo mudou enquanto o Blanc o lia. Abra-o novamente.</string>
+    <string name="local_html_refused_unreadable">O Blanc não conseguiu ler o arquivo. Verifique se ele ainda existe e se você pode abri-lo.</string>
     <string name="fill_setup_enable_title">Configurar o 1Password</string>
     <string name="fill_setup_enable_body">Ative “Preencher logins do 1Password” nas Configurações. O Blanc só lê um login quando você pede.</string>
     <string name="fill_setup_enable_primary_label">Configurações</string>
@@ -314,6 +325,19 @@
     <string name="ws_decision_close_and_switch">Fechar abas e trocar</string>
     <string name="ws_row_current">Space atual</string>
     <string name="ws_row_show_window">Mostrar janela</string>
+    <plurals name="ws_row_title_profile">
+        <item quantity="one">%2$s · %3$s · %4$s · %1$d aba</item>
+        <item quantity="many">%2$s · %3$s · %4$s · %1$d abas</item>
+        <item quantity="other">%2$s · %3$s · %4$s · %1$d abas</item>
+    </plurals>
+    <string name="ws_row_title_profile_shown">%1$s · %2$s · %3$s</string>
+    <string name="ws_editor_profile_disabled">%1$s (não aceita mais Spaces)</string>
+    <string name="ws_row_open_in_profile">Abre em uma janela de %1$s</string>
+    <string name="ws_profile_unreadable">Não foi possível ler os Spaces deste perfil.</string>
+    <string name="ws_editor_profile">Perfil</string>
+    <string name="ws_editor_help_other_profile">As abas ficam no próprio perfil, então um Space em %1$s começa vazio.</string>
+    <string name="ws_switcher_profile_label">Space · %1$s</string>
+    <string name="ws_error_profile_unavailable">Esse perfil não está mais disponível.</string>
     <string name="ws_row_retained">Mantido na memória</string>
     <string name="ws_row_open">Abrir Space</string>
     <plurals name="ws_row_title">
@@ -2709,9 +2733,10 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="ios_settings_island">Island</string>
     <string name="ios_settings_privacy_sync">Privacidade e sincronização</string>
     <string name="ios_island_stop">Parar de carregar</string>
+    <string name="ios_island_close_private_tab">Fechar aba privada</string>
     <string name="ios_island_page_actions">Ações da página</string>
     <string name="ios_island_collapse">Recolher a Island</string>
-    <string name="ios_palette_placeholder">Pesquise, digite um endereço ou um /comando</string>
+    <string name="ios_palette_placeholder">Pesquise, digite uma URL ou / para comandos</string>
     <string name="ios_palette_clear">Limpar a pesquisa</string>
     <string name="ios_palette_no_command">Nenhum comando corresponde</string>
     <string name="ios_palette_no_matches">Nenhum resultado. Toque em Retorno para abrir como endereço ou pesquisa.</string>

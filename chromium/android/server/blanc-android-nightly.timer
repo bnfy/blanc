@@ -1,0 +1,9 @@
+[Unit]
+Description=Blanc Android nightly at 01:00 US Eastern
+
+[Timer]
+OnCalendar=*-*-* 01:00:00 America/New_York
+Persistent=false
+
+[Install]
+WantedBy=timers.target

@@ -47,8 +47,9 @@ test('every Mail page names the product, leads back to /mail and links to its se
         const nav = document.querySelector('.mail-bar nav');
         return {
           name: nav.getAttribute('aria-label'),
-          // The name is the lockup's outlined word, so it is the image's alt.
+          // The bar displays “Mail” and names the full product to assistive technology.
           title: nav.querySelector('.mail-bar-title .mail-lockup-word').alt,
+          word: nav.querySelector('.mail-lockup-word').getAttribute('src'),
           href: nav.querySelector('.mail-bar-title').getAttribute('href'),
           sections: [...nav.querySelectorAll('.mail-bar-links a')].map(a => a.getAttribute('href')),
           labels: [...nav.querySelectorAll('.mail-bar-links a')].map(a => a.textContent.trim()),
@@ -56,7 +57,8 @@ test('every Mail page names the product, leads back to /mail and links to its se
           popovers: [...document.querySelectorAll('.mail-bar [popover]')].map(pop => pop.id),
         };
       });
-      assert.deepEqual(bar, { name: 'Blanc Mail', title: 'Blanc Mail', href: '/mail', sections: ['/mail#design', '/mail#address', '/mail#island', '/mail#features', '/mail#pricing'], labels: ['Design', 'Blanc email address', 'Island', 'Features', 'Pricing'], menu: ['/mail#design', '/mail#address', '/mail#island', '/mail#features', '/mail#pricing'], popovers: ['mail-bar-menu', 'mail-bar-waitlist'] }, path);
+      const sections = ['/mail#pricing', '/mail#address', '/mail#features', '/mail#support'];
+      assert.deepEqual(bar, { name: 'Blanc Mail', title: 'Blanc Mail', word: '/lockup/mail-word-small-white.svg', href: '/mail', sections, labels: ['Plans', 'Blanc addresses', 'App features', 'FAQ'], menu: sections, popovers: ['mail-bar-menu', 'mail-bar-waitlist'] }, path);
     }
   } finally { await context.close(); }
 });
@@ -160,7 +162,7 @@ test('the ≡ menu lists the sections, and choosing one closes it and lands the 
     await page.locator('.mail-bar-sections').click();
     await waitOpen(page, 'mail-bar-menu');
     // Focus moves in the popover's toggle event, a task after it opens.
-    await page.waitForFunction(() => document.activeElement?.textContent.trim() === 'Design');
+    await page.waitForFunction(() => document.activeElement?.textContent.trim() === 'Plans');
     assert.equal(await page.locator('.mail-bar-sections').getAttribute('aria-label'), 'Sections');
     await page.locator('#mail-bar-menu a[href="/mail#pricing"]').click();
     await waitOpen(page, 'mail-bar-menu', false);
@@ -176,12 +178,12 @@ test('the link for the section in view is marked as the current location', async
   try {
     const current = () => page.evaluate(() => [...document.querySelectorAll('.mail-bar-links a[aria-current="location"]')].map(a => a.getAttribute('href')));
     assert.deepEqual(await current(), [], 'none at the top of the page');
-    for (const id of ['design', 'address', 'island', 'features', 'pricing']) {
+    for (const id of ['pricing', 'address', 'features', 'support']) {
       await page.evaluate(id => document.getElementById(id).scrollIntoView(), id);
       await page.waitForFunction(id => document.querySelector(`.mail-bar-links a[href="/mail#${id}"]`).getAttribute('aria-current') === 'location', id);
       assert.deepEqual(await current(), [`/mail#${id}`], id);
     }
-    await page.evaluate(() => document.getElementById('support').scrollIntoView());
+    await page.evaluate(() => document.getElementById('download').scrollIntoView());
     await page.waitForFunction(() => !document.querySelector('.mail-bar-links a[aria-current]'));
   } finally { await context.close(); }
 });

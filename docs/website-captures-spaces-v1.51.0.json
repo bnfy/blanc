@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "status": "public",
+  "release": "v1.51.0",
+  "sourceSha": "2c3d17db9b8573f4047e8732aaf8f0972ef9e724",
+  "captureDate": "2026-11-21",
+  "timezone": "America/New_York",
+  "replaces": "On /features/workspaces and /arc-alternative: workspaces-v1.36.0 and workspaces-edit-v1.36.0 (docs/website-captures-v1.36.0.json), which show the Spaces menu opened from the Island's space mark. Since v1.49.0 (#1450, #1454) the resting Island shows no space mark and the menu opens from the command panel's Spaces button. The older files stay in place with their ledger.",
+  "source": {
+    "artifact": "The installed /Applications/Blanc.app (public v1.51.0), launched as a separate instance in a disposable profile; the owner's own profile was not used",
+    "executableSha256": "d2c2198ae4b9f3a88891f2e6b54419c2d53fbe2de8cf04c75317da50aa500d5c",
+    "version": "1.51.0",
+    "bundleBuild": "1510",
+    "architecture": "arm64",
+    "teamId": "XYGUCY4498",
+    "verification": "On November 21, 2026, Gatekeeper accepted the installed app (Notarized Developer ID, Anthony Loria (XYGUCY4498)) and strict deep codesign verification passed.",
+    "releaseEvidence": "docs/release-incidents/2026-11-18-v1.51.0.md"
+  },
+  "settings": {
+    "usagePing": false,
+    "searchSuggestions": false,
+    "theme": "light",
+    "tabSleep": "off",
+    "profile": "Isolated disposable user-data directory",
+    "sync": "not configured",
+    "patron": "not configured"
+  },
+  "method": "BLANC_CAPTURE_VERSION=1.51.0 npm run capture:spaces:installed (scripts/capture-installed-spaces.mjs as changed in #1683), in a disposable profile seeded with four sample spaces (Work, Home, Painting class, Lisbon trip) and no Wikipedia pages, the window restored into Painting class. Over Chromium's debugging surface the script calls the shipped openIsland preload action, checks the Spaces button names Painting class and shows its tile, opens the Spaces menu from it with a real click and opens Painting class's editor from its row; nothing is patched. Each state is captured natively with screencapture -o -x -l for that window (2560×1600), resized to 1440×900 with lanczos3 and converted from Display P3 to sRGB with sharp, with a WebP companion (quality 85). The Met's page is drawn as it loaded. Nothing is retouched. The owner approved both captures on November 21, 2026.",
+  "captures": [
+    {
+      "file": "site/public/feature-captures/workspaces-v1.51.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "8774f27cb844bd3f5fc9927faa7cc1c55570c84555e12ef1cff8eccbb60d7b03",
+      "capturedAt": "2026-11-21T17:52:20Z",
+      "state": "The window in the Painting class space on The Met's Wheat Field with Cypresses page, with the command panel open (the space's three tabs, New tab, Private and the footer buttons) and the Spaces menu opened from the footer's Spaces button, which shows Painting class's tile: Work (4 tabs), Home (3), Painting class (3, current, checked) and Lisbon trip (2), each with its color and symbol, and New space….",
+      "shownOn": [
+        "/features/workspaces",
+        "/arc-alternative"
+      ],
+      "evidence": [
+        "v1.51.0:src/renderer/renderer.js",
+        "v1.51.0:src/renderer/overlay.html",
+        "v1.51.0:src/renderer/overlay.js",
+        "v1.51.0:src/renderer/workspace-ui.js",
+        "v1.51.0:src/renderer/space-identity.js",
+        "docs/release-incidents/2026-11-18-v1.51.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/workspaces-v1.51.0.webp",
+        "sha256": "aee6441e950aa340580010499599fe069199582396fb805a8cf4c470c9ba7905"
+      }
+    },
+    {
+      "file": "site/public/feature-captures/workspaces-edit-v1.51.0.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "ced28b7630920b06678dadcf475868d5f112d0af151c43da6bb465519e186d35",
+      "capturedAt": "2026-11-21T17:52:22Z",
+      "state": "The same window with the menu reshaped into Painting class's editor (Edit space): the name field, the eight preset color swatches and the custom color swatch with purple selected, the sixteen symbols with the graduation cap selected, and Delete space and Done.",
+      "shownOn": [
+        "/features/workspaces",
+        "/arc-alternative"
+      ],
+      "evidence": [
+        "v1.51.0:src/renderer/renderer.js",
+        "v1.51.0:src/renderer/overlay.html",
+        "v1.51.0:src/renderer/overlay.js",
+        "v1.51.0:src/renderer/workspace-ui.js",
+        "v1.51.0:src/renderer/space-identity.js",
+        "docs/release-incidents/2026-11-18-v1.51.0.md"
+      ],
+      "verdict": "verified",
+      "webp": {
+        "file": "site/public/feature-captures/workspaces-edit-v1.51.0.webp",
+        "sha256": "5e1ec1d48c0ecb399bd82946e78474593d60f89adcc3a9cd052ced8413bc4075"
+      }
+    }
+  ]
+}

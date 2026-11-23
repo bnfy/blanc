@@ -34,7 +34,7 @@ function fixture(t) {
     return {status: 0, stdout};
   };
   const io = {run, platform: 'darwin', tty: true, env: {BLANC_COSIGN_IDENTITY: 'fixture@example.com', BLANC_COSIGN_OIDC_ISSUER: 'https://fixture.invalid'}, prompt: async text => { prompts.push(text); return 'upload 1.0.0-beta.1 (1) to internal'; },
-    worker: async stage => { if (stage === 'sign') { write(path.join(work, 'Blanc-Android.aab'), 'fixture signed bundle'); return {certSha256: '1'.repeat(64)}; } return {editId: 'fixture-edit', versionCode: 1, aabSha256: sha('fixture signed bundle')}; },
+    worker: async stage => { if (stage === 'sign') { write(path.join(work, 'Blanc-Android.aab'), 'fixture signed bundle'); return {certSha256: '1'.repeat(64)}; } return {editId: 'fixture-edit', versionCode: 1, aabSha256: sha('fixture signed bundle'), track: 'internal'}; },
     attest: (target, env, runner) => { assert.equal(target, work); assert.equal(runner, run); assert.equal(env.BLANC_COSIGN_IDENTITY, 'fixture@example.com'); for (const name of ['Blanc-Android.cdx.json', 'SHA256SUMS', 'SHA256SUMS.sigstore.json']) write(path.join(work, name), 'fixture ' + name); return {sbom: 'Blanc-Android.cdx.json', checksums: 'SHA256SUMS', sigstore: 'SHA256SUMS.sigstore.json'}; }};
   return {dir, work, source, ledger, record, refs, io, calls, prompts};
 }
@@ -95,7 +95,7 @@ test('ledger advances only after the upload resolves and a public receipt is rec
   const f = fixture(t), {runStage} = await api(); await through(f, 'attest'); let finish, started;
   const ready = new Promise(resolve => { started = resolve; }); f.io.worker = async () => { started(); return new Promise(resolve => { finish = resolve; }); };
   const pending = runStage('upload', f.work, f.io); await ready; assert.equal(read(f.ledger).builds[0].state, 'built'); assert.equal(read(path.join(f.work, 'state.json')).stages.upload, undefined);
-  finish({editId: 'committed', versionCode: 1, aabSha256: sha('fixture signed bundle')}); await pending;
+  finish({editId: 'committed', versionCode: 1, aabSha256: sha('fixture signed bundle'), track: 'internal'}); await pending;
   assert.equal(read(f.ledger).builds[0].state, 'uploaded'); assert.equal(read(path.join(f.work, 'upload-receipt.json')).editId, 'committed'); assert.ok(read(path.join(f.work, 'state.json')).stages.upload);
 });
 test('failed upload preserves built state and a retry makes a fresh worker request', async t => {
@@ -125,8 +125,8 @@ test('production credential stages launch only the op run worker with file-held 
 });
 test('worker keeps credential and token inside its boundary and returns only public upload receipt', async t => {
   const f = fixture(t), {secretWorker} = await api(); await through(f, 'attest'); const token = 'fixture-private-token', credential = 'fixture-private-credential'; const trace = [];
-  const result = await secretWorker('upload', f.work, {...f.io, env: {...f.io.env, BLANC_ANDROID_OP_RUN: '1'}, run: (command, args, options) => { if (command === 'git') return f.io.run(command, args, options); trace.push([command, args]); assert.deepEqual([command, ...args], ['op', 'read', f.refs.credentialRef, '--no-newline']); return {status: 0, stdout: credential}; }, accessToken: async value => { assert.equal(value, credential); return token; }, uploadToInternal: async value => { assert.equal(value.token, token); assert.equal(value.aabPath, path.join(f.work, 'Blanc-Android.aab')); return {editId: 'fixture-edit', versionCode: 1}; }});
-  assert.deepEqual(result, {editId: 'fixture-edit', versionCode: 1, aabSha256: sha('fixture signed bundle')}); assert.equal(JSON.stringify(read(path.join(f.work, 'upload-receipt.json'))).includes(token), false); assert.equal(trace.length, 1); assert.equal(read(f.ledger).builds[0].state, 'built');
+  const result = await secretWorker('upload', f.work, {...f.io, env: {...f.io.env, BLANC_ANDROID_OP_RUN: '1'}, run: (command, args, options) => { if (command === 'git') return f.io.run(command, args, options); trace.push([command, args]); assert.deepEqual([command, ...args], ['op', 'read', f.refs.credentialRef, '--no-newline']); return {status: 0, stdout: credential}; }, accessToken: async value => { assert.equal(value, credential); return token; }, uploadToTrack: async value => { assert.equal(value.token, token); assert.equal(value.aabPath, path.join(f.work, 'Blanc-Android.aab')); assert.deepEqual([value.track, value.status, value.notes], ['internal', 'draft', undefined]); return {editId: 'fixture-edit', versionCode: 1, track: 'internal'}; }});
+  assert.deepEqual(result, {editId: 'fixture-edit', versionCode: 1, aabSha256: sha('fixture signed bundle'), track: 'internal'}); assert.equal(JSON.stringify(read(path.join(f.work, 'upload-receipt.json'))).includes(token), false); assert.equal(trace.length, 1); assert.equal(read(f.ledger).builds[0].state, 'built');
 });
 test('worker rejects missing marker and sanitizes tool diagnostics', async t => {
   const f = fixture(t), {secretWorker} = await api(); await through(f, 'attest');
@@ -238,4 +238,170 @@ test('finished older release remains idempotent status after a newer code upload
   const ledger = read(f.ledger); ledger.builds.push({...ledger.builds[0], versionName: '1.0.0-beta.2', versionCode: 2, tag: 'android-v1.0.0-beta.2-2', state: 'uploaded'}); write(f.ledger, ledger);
   f.io.run = () => { throw new Error('must not rerun'); }; f.io.worker = () => { throw new Error('must not rerun'); }; f.io.prompt = () => { throw new Error('must not prompt'); };
   assert.ok((await runStage('upload', f.work, f.io)).stages.upload); assert.ok((await runStage('status', f.work, f.io)).stages.upload);
+});
+
+// Track plans: which Play track a build goes to, and the exact words the owner types.
+const beta1 = {versionName: '1.1.0-beta.1', versionCode: 7}, stable6 = {versionName: '1.0.0', versionCode: 6};
+test('trackPlan keeps the internal default and its old phrase', async () => {
+  const {trackPlan} = await api();
+  assert.deepEqual(trackPlan({}, stable6), {track: 'internal', status: 'draft', phrase: 'upload 1.0.0 (6) to internal'});
+  assert.equal(trackPlan({track: 'internal'}, beta1).phrase, 'upload 1.1.0-beta.1 (7) to internal');
+});
+test('a beta goes to alpha or beta, completed, with its notes', async () => {
+  const {trackPlan} = await api();
+  assert.deepEqual(trackPlan({track: 'beta', notes: 'notes.txt'}, beta1, 'New Start Page.'), {track: 'beta', status: 'completed', notes: 'New Start Page.', phrase: 'upload 1.1.0-beta.1 (7) to beta'});
+  assert.equal(trackPlan({track: 'alpha', notes: 'notes.txt'}, beta1, 'x').phrase, 'upload 1.1.0-beta.1 (7) to alpha');
+});
+test('a stable build goes to production staged or complete', async () => {
+  const {trackPlan} = await api();
+  assert.deepEqual(trackPlan({track: 'production', rollout: 10, notes: 'n.txt'}, stable6, 'First stable.'), {track: 'production', status: 'inProgress', userFraction: 0.1, notes: 'First stable.', phrase: 'upload 1.0.0 (6) to production at 10%'});
+  assert.deepEqual(trackPlan({track: 'production', rollout: 'complete', notes: 'n.txt'}, stable6, 'First stable.'), {track: 'production', status: 'completed', notes: 'First stable.', phrase: 'upload 1.0.0 (6) to production, complete'});
+});
+test('trackPlan refuses a beta name on production and a stable name on alpha or beta', async () => {
+  const {trackPlan} = await api();
+  assert.throws(() => trackPlan({track: 'production', rollout: 10, notes: 'n.txt'}, beta1, 'x'), /beta build.*production/);
+  for (const track of ['alpha', 'beta']) assert.throws(() => trackPlan({track, notes: 'n.txt'}, stable6, 'x'), /stable build.*testing track/);
+  assert.throws(() => trackPlan({track: 'qa'}, beta1), /track/);
+});
+test('notes are required off internal and limited to 500 characters', async () => {
+  const {trackPlan} = await api();
+  for (const notes of [undefined, '', '   ', 'x'.repeat(501)]) assert.throws(() => trackPlan({track: 'beta', notes: 'n.txt'}, beta1, notes), /notes/, String(notes));
+  assert.throws(() => trackPlan({track: 'beta'}, beta1, 'x'), /notes/);
+  assert.equal(trackPlan({track: 'beta', notes: 'n.txt'}, beta1, 'x'.repeat(500)).notes.length, 500);
+});
+test('rollout must be a whole number from 1 to 99 or "complete", and only on production', async () => {
+  const {trackPlan} = await api();
+  for (const rollout of [undefined, 0, 100, 150, 10.5, ' 10', '10%', '10', 'halt']) assert.throws(() => trackPlan({track: 'production', rollout, notes: 'n.txt'}, stable6, 'x'), /rollout/, String(rollout));
+  assert.throws(() => trackPlan({track: 'beta', rollout: 10, notes: 'n.txt'}, beta1, 'x'), /rollout/);
+});
+test('an upload to the beta track asks for the beta phrase, binds the notes and records the track', async t => {
+  const f = fixture(t), {runStage} = await api();
+  const configFile = path.join(f.work, 'config.json'), config = read(configFile);
+  config.track = 'beta'; config.notes = 'release-notes.txt'; write(configFile, config); write(path.join(f.work, 'release-notes.txt'), 'New Start Page.\n');
+  await through(f, 'attest');
+  let plan; f.io.prompt = async text => { f.prompts.push(text); return text; };
+  f.io.worker = async () => ({editId: 'e', versionCode: 1, aabSha256: sha('fixture signed bundle'), track: 'beta'});
+  const state = await runStage('upload', f.work, f.io);
+  assert.deepEqual(f.prompts, ['upload 1.0.0-beta.1 (1) to beta']);
+  assert.equal(state.stages.upload.outputs['release-notes.txt'], sha('New Start Page.\n'));
+  assert.equal(read(path.join(f.work, 'upload-receipt.json')).track, 'beta');
+});
+test('a receipt for another track than planned is refused', async t => {
+  const f = fixture(t), {runStage} = await api(); await through(f, 'attest');
+  f.io.worker = async () => ({editId: 'e', versionCode: 1, aabSha256: sha('fixture signed bundle'), track: 'beta'});
+  await assert.rejects(runStage('upload', f.work, f.io), /receipt/); assert.equal(read(f.ledger).builds[0].state, 'built');
+});
+test('a bad track plan asks nothing and starts no worker', async t => {
+  const f = fixture(t), {runStage} = await api();
+  const configFile = path.join(f.work, 'config.json'), config = read(configFile); config.track = 'production'; config.rollout = 10; config.notes = 'n.txt'; write(configFile, config); write(path.join(f.work, 'n.txt'), 'x');
+  await through(f, 'attest'); f.io.worker = () => { throw new Error('must not run'); };
+  await assert.rejects(runStage('upload', f.work, f.io), /beta build.*production/); assert.equal(f.prompts.length, 0);
+});
+
+// Promotion and rollout of builds Play already has.
+const when = '2026-12-01T12:00:00.000Z';
+const row = (code, name, published, state = 'uploaded') => ({versionCode: code, versionName: name, tag: `android-v${name}-${code}`, commit: 'a'.repeat(40), state, date: '2026-12-01', note: '', ...(published ? {published} : {})});
+const p = (track, status, fraction) => ({track, status, date: when, editId: 'e', ...(fraction === undefined ? {} : {fraction})});
+const betas = (...extra) => ({schema: 1, builds: [row(1, '1.0.0-beta.1', [p('alpha', 'completed')]), row(2, '1.0.0', [p('internal', 'draft')]), ...extra]});
+test('promote sends an uploaded beta to the beta track, and a stable build to production staged', async () => {
+  const {promotionPlan} = await api();
+  const l = betas();
+  assert.deepEqual(promotionPlan(l, l.builds[0], 'beta', undefined, 'Notes.'), {command: 'promote', track: 'beta', phrase: 'promote 1.0.0-beta.1 (1) to beta',
+    release: {name: '1.0.0-beta.1', versionCodes: ['1'], status: 'completed', releaseNotes: [{language: 'en-US', text: 'Notes.'}]}, published: {track: 'beta', status: 'completed'}});
+  const prod = promotionPlan(l, l.builds[1], 'production', 10, 'First stable.');
+  assert.equal(prod.phrase, 'promote 1.0.0 (2) to production at 10%');
+  assert.deepEqual(prod.release, {name: '1.0.0', versionCodes: ['2'], status: 'inProgress', userFraction: 0.1, releaseNotes: [{language: 'en-US', text: 'First stable.'}]});
+  assert.equal(promotionPlan(l, l.builds[1], 'production', 'complete', 'x').phrase, 'promote 1.0.0 (2) to production, complete');
+});
+test('promote refuses the wrong channel, a build not uploaded, and missing notes', async () => {
+  const {promotionPlan} = await api();
+  const l = betas(row(3, '1.0.1', null, 'built'));
+  assert.throws(() => promotionPlan(l, l.builds[0], 'production', 10, 'x'), /beta build.*production/);
+  assert.throws(() => promotionPlan(l, l.builds[1], 'beta', undefined, 'x'), /stable build.*testing track/);
+  assert.throws(() => promotionPlan(l, l.builds[2], 'internal', undefined), /uploaded/);
+  assert.throws(() => promotionPlan(l, l.builds[0], 'beta', undefined, ''), /notes/);
+  assert.throws(() => promotionPlan(l, l.builds[0], 'beta', 10, 'x'), /rollout/);
+});
+test('a beta below the production build is not promoted to a testing track', async () => {
+  const {promotionPlan} = await api();
+  const l = {schema: 1, builds: [row(1, '1.0.0-beta.1', [p('alpha', 'completed')]), row(2, '1.0.0', [p('production', 'completed')])]};
+  assert.throws(() => promotionPlan(l, l.builds[0], 'beta', undefined, 'x'), /below the production build/);
+});
+test('rollout only goes up, and complete or halt need a rollout in progress', async () => {
+  const {promotionPlan} = await api();
+  const l = {schema: 1, builds: [row(1, '1.0.0', [p('production', 'inProgress', 0.1)])]};
+  const up = promotionPlan(l, l.builds[0], 'production', 50, 'x');
+  assert.equal(up.command, 'rollout'); assert.equal(up.phrase, 'roll out 1.0.0 (1) to 50%'); assert.deepEqual(up.published, {track: 'production', status: 'inProgress', fraction: 0.5});
+  assert.throws(() => promotionPlan(l, l.builds[0], 'production', 10, 'x'), /above the current 10%/);
+  assert.equal(promotionPlan(l, l.builds[0], 'production', 'halt', 'x').phrase, 'halt rollout of 1.0.0 (1)');
+  assert.deepEqual(promotionPlan(l, l.builds[0], 'production', 'halt', 'x').release, {name: '1.0.0', versionCodes: ['1'], status: 'halted', userFraction: 0.1, releaseNotes: [{language: 'en-US', text: 'x'}]});
+  assert.equal(promotionPlan(l, l.builds[0], 'production', 'complete', 'x').phrase, 'complete rollout of 1.0.0 (1)');
+  const done = {schema: 1, builds: [row(1, '1.0.0', [p('production', 'completed')])]};
+  for (const arg of ['halt', 'complete', 50]) assert.throws(() => promotionPlan(done, done.builds[0], 'production', arg, 'x'), /not rolling out/);
+  const halted = {schema: 1, builds: [row(1, '1.0.0', [p('production', 'inProgress', 0.1), p('production', 'halted', 0.1)])]};
+  assert.equal(promotionPlan(halted, halted.builds[0], 'production', 10, 'x').phrase, 'roll out 1.0.0 (1) to 10%');
+  assert.throws(() => promotionPlan(halted, halted.builds[0], 'production', 'halt', 'x'), /not rolling out/);
+});
+test('parseRollout takes 1 to 99, complete or halt, and nothing else', async () => {
+  const {parseRollout} = await api();
+  assert.equal(parseRollout('10'), 10); assert.equal(parseRollout('99'), 99); assert.equal(parseRollout('complete'), 'complete'); assert.equal(parseRollout('halt'), 'halt');
+  for (const bad of ['0', '100', '150', '10.5', ' 10', '10%', '010', '', 'Complete']) assert.throws(() => parseRollout(bad), /rollout/, bad);
+});
+test('an upload records where the build went in the ledger', async t => {
+  const f = fixture(t), {runStage} = await api(); await through(f, 'attest');
+  await runStage('upload', f.work, f.io);
+  const [published] = read(f.ledger).builds[0].published;
+  assert.deepEqual([published.track, published.status, published.editId], ['internal', 'draft', 'fixture-edit']);
+});
+test('promote asks for its phrase, runs the worker, writes a receipt and appends to the ledger', async t => {
+  const f = fixture(t), {runStage, runAction} = await api(); await through(f, 'attest');
+  const configFile = path.join(f.work, 'config.json');
+  await runStage('upload', f.work, f.io);
+  write(path.join(f.work, 'promo-notes.txt'), 'For testers.');
+  f.io.prompt = async text => { f.prompts.push(text); return text; };
+  f.io.worker = async (stage, work, io, action) => { assert.deepEqual([stage, action], ['promote', {track: 'alpha', arg: undefined, notes: 'promo-notes.txt'}]); return {editId: 'promo-edit'}; };
+  await runAction('promote', f.work, 'alpha', undefined, 'promo-notes.txt', f.io);
+  assert.equal(f.prompts.at(-1), 'promote 1.0.0-beta.1 (1) to alpha');
+  assert.deepEqual(read(path.join(f.work, 'promote-alpha-1.json')), {editId: 'promo-edit', versionCode: 1, track: 'alpha', status: 'completed'});
+  assert.deepEqual(read(f.ledger).builds[0].published.map(e => e.track), ['internal', 'alpha']);
+  assert.ok(fs.existsSync(configFile));
+});
+test('a wrong phrase for promote makes no request and records nothing', async t => {
+  const f = fixture(t), {runStage, runAction} = await api(); await through(f, 'attest'); await runStage('upload', f.work, f.io);
+  write(path.join(f.work, 'n.txt'), 'x'); f.io.prompt = async () => 'yes'; f.io.worker = () => { throw new Error('must not run'); };
+  await assert.rejects(runAction('promote', f.work, 'alpha', undefined, 'n.txt', f.io), /confirmation/);
+  assert.equal(read(f.ledger).builds[0].published.length, 1);
+});
+test('promote needs a finished upload in this WORK', async t => {
+  const f = fixture(t), {runAction} = await api(); await through(f, 'attest');
+  await assert.rejects(runAction('promote', f.work, 'alpha', undefined, 'n.txt', f.io), /upload/); assert.equal(f.prompts.length, 0);
+});
+test('the promote worker updates the planned track with the credential kept inside', async t => {
+  const f = fixture(t), {runStage, secretWorker} = await api(); await through(f, 'attest'); await runStage('upload', f.work, f.io);
+  write(path.join(f.work, 'n.txt'), 'For testers.');
+  let seen;
+  const result = await secretWorker('promote', f.work, {...f.io, env: {...f.io.env, BLANC_ANDROID_OP_RUN: '1'},
+    run: (command, args, options) => command === 'op' ? {status: 0, stdout: 'credential'} : f.io.run(command, args, options),
+    accessToken: async () => 'fixture-token', updateTrack: async value => { seen = value; return {editId: 'w'}; }}, {track: 'alpha', notes: 'n.txt'});
+  assert.deepEqual(result, {editId: 'w'});
+  assert.deepEqual([seen.track, seen.token, seen.release.status, seen.release.releaseNotes[0].text], ['alpha', 'fixture-token', 'completed', 'For testers.']);
+});
+
+test('production plans act only on the newest build production has had', async () => {
+  const {promotionPlan} = await api();
+  // 1.0.0 (6) was staged; 1.0.1 (8) then went to production. Build 6's own row still says inProgress.
+  const l = {schema: 1, builds: [row(1, '1.0.0-beta.1', [p('alpha', 'completed')]), row(2, '1.0.0', [p('production', 'inProgress', 0.1)]), row(3, '1.0.1', [p('production', 'inProgress', 0.2)]), row(4, '1.0.2', null)]};
+  for (const arg of ['complete', 50, 'halt']) assert.throws(() => promotionPlan(l, l.builds[1], 'production', arg, 'x'), /newer build.*production/, String(arg));
+  assert.equal(promotionPlan(l, l.builds[2], 'production', 50, 'x').phrase, 'roll out 1.0.1 (3) to 50%');
+  // A stable build older than production's never goes to production.
+  const older = {schema: 1, builds: [row(1, '1.0.0', null), row(2, '1.0.1', [p('production', 'completed')])]};
+  assert.throws(() => promotionPlan(older, older.builds[0], 'production', 10, 'x'), /below the production build/);
+  // Even a halted newer build counts: rolling an older one forward would replace it.
+  const halted = {schema: 1, builds: [row(1, '1.0.0', [p('production', 'completed')]), row(2, '1.0.1', [p('production', 'inProgress', 0.1), p('production', 'halted', 0.1)])]};
+  assert.throws(() => promotionPlan(halted, halted.builds[0], 'production', 'complete', 'x'), /newer build.*production/);
+});
+test('halt or complete on a build never on production says it is not rolling out', async () => {
+  const {promotionPlan} = await api();
+  const l = {schema: 1, builds: [row(1, '1.0.0', null)]};
+  for (const arg of ['halt']) assert.throws(() => promotionPlan(l, l.builds[0], 'production', arg, 'x'), /not rolling out/);
 });

@@ -203,74 +203,25 @@
     "height": 585
   },
   {
-    "source": "mail/teasers/island-dark.webp",
-    "sourceSha256": "8227f022faf568254fdb63e22b54d3dbab37486de66f4149dd33203e7a4835f7",
-    "output": "mail/teasers/island-dark-1400.webp",
-    "width": 1400,
-    "height": 860
+    "source": "mail/teasers/address-offer.webp",
+    "sourceSha256": "f479caa4b690060faed24b27213a2ac04f91270232e33fb7ff39483693921b04",
+    "output": "mail/teasers/address-offer-512.webp",
+    "width": 512,
+    "height": 570
   },
   {
-    "source": "mail/teasers/island-dark.webp",
-    "sourceSha256": "8227f022faf568254fdb63e22b54d3dbab37486de66f4149dd33203e7a4835f7",
-    "output": "mail/teasers/island-dark-800.webp",
-    "width": 800,
-    "height": 492
+    "source": "mail/teasers/address-choose.webp",
+    "sourceSha256": "c8b000ba395285962a79358561d5790b1254b405ee0289243ed6bd3e236455bf",
+    "output": "mail/teasers/address-choose-512.webp",
+    "width": 512,
+    "height": 570
   },
   {
-    "source": "mail/teasers/island-light.webp",
-    "sourceSha256": "03939be302b13b7922f536ee7ca50192b55ec8d2d04e40566475a1667ca0f1fe",
-    "output": "mail/teasers/island-light-1400.webp",
-    "width": 1400,
-    "height": 860
-  },
-  {
-    "source": "mail/teasers/island-light.webp",
-    "sourceSha256": "03939be302b13b7922f536ee7ca50192b55ec8d2d04e40566475a1667ca0f1fe",
-    "output": "mail/teasers/island-light-800.webp",
-    "width": 800,
-    "height": 492
-  },
-  {
-    "source": "mail/teasers/island-offer.webp",
-    "sourceSha256": "92cf2badbf4359c3278ad44ad3d251b2393dcdc1eb0508ecd660303ad9cdb343",
-    "output": "mail/teasers/island-offer-1400.webp",
-    "width": 1400,
-    "height": 860
-  },
-  {
-    "source": "mail/teasers/island-offer.webp",
-    "sourceSha256": "92cf2badbf4359c3278ad44ad3d251b2393dcdc1eb0508ecd660303ad9cdb343",
-    "output": "mail/teasers/island-offer-800.webp",
-    "width": 800,
-    "height": 492
-  },
-  {
-    "source": "mail/teasers/island-address.webp",
-    "sourceSha256": "cda73a599ba381963e4867d9bf946eeee6b8955006fc5593c7f027b01a8d6d5b",
-    "output": "mail/teasers/island-address-1400.webp",
-    "width": 1400,
-    "height": 860
-  },
-  {
-    "source": "mail/teasers/island-address.webp",
-    "sourceSha256": "cda73a599ba381963e4867d9bf946eeee6b8955006fc5593c7f027b01a8d6d5b",
-    "output": "mail/teasers/island-address-800.webp",
-    "width": 800,
-    "height": 492
-  },
-  {
-    "source": "mail/teasers/island-arrival.webp",
-    "sourceSha256": "56df31dd1413d843dc8aba54fbcc9aa7913048ed6b49db78da54a85588f6b833",
-    "output": "mail/teasers/island-arrival-1400.webp",
-    "width": 1400,
-    "height": 860
-  },
-  {
-    "source": "mail/teasers/island-arrival.webp",
-    "sourceSha256": "56df31dd1413d843dc8aba54fbcc9aa7913048ed6b49db78da54a85588f6b833",
-    "output": "mail/teasers/island-arrival-800.webp",
-    "width": 800,
-    "height": 492
+    "source": "mail/teasers/address-ready.webp",
+    "sourceSha256": "c90665f3806ea77f55a71730806d5b1e1043826fbff05a8f27572efae291f2b5",
+    "output": "mail/teasers/address-ready-512.webp",
+    "width": 512,
+    "height": 570
   },
   {
     "source": "feature-captures/float-island-hidden-v1.40.0.png",

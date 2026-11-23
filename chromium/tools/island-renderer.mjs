@@ -17,6 +17,15 @@ import {hardenMarkup} from './trusted-markup.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const island = path.join(root, 'blanc/island');
 const record = path.join(root, 'blanc/island-renderer.json');
+// The Spaces menu across profiles (#1642) has a pin of its own, ahead of the
+// release: the files it lists come from its commit (blanc/spaces-menu.json).
+// Delete the record, and the styles.css edits for #1642 below, once the
+// release carries #1642 (spaces-menu-pin.test.mjs says when).
+const spacesMenuRecord = path.join(root, 'blanc/spaces-menu.json');
+export const spacesMenuPin = () => {
+  try { return JSON.parse(fs.readFileSync(spacesMenuRecord, 'utf8')); }
+  catch (error) { if (error.code === 'ENOENT') return null; throw error; }
+};
 
 // The utility sheet's pages (S1.5): History and Downloads, shown in a frame
 // of the Island host over Chromium's own models. Favorites is a page in a tab
@@ -94,6 +103,26 @@ export const EDITS = {
     ["    primary.title = tab.pageTitle || title;", "    if (document.documentElement.dataset.railPreviews !== 'on') primary.title = tab.pageTitle || title;"],
     ["    if (primary && !primary.hasAttribute('title')) {", "    if (primary && !primary.hasAttribute('title') && document.documentElement.dataset.railPreviews !== 'on') {"],
   ],
+  // #1642's three hunks, which its menu files (from blanc/spaces-menu.json's
+  // commit) draw with; the rest of styles.css stays at the release, since
+  // later shipping changes to it (#1622, #1624) aren't in the fork yet.
+  'styles.css': [
+    // Another profile's row has no ••• to make room for, so it keeps its count.
+    ['.ws-row:hover .ws-row-count, .ws-row:focus-within .ws-row-count,\n',
+     '/* Another profile\'s row has no ••• to make room for, so it keeps its count. */\n.ws-row:not(.ws-row-elsewhere):hover .ws-row-count, .ws-row:not(.ws-row-elsewhere):focus-within .ws-row-count,\n'],
+    // The profile names over each group of rows.
+    ['.ws-empty { margin: 8px 10px 4px; color: var(--text-dim); font: 12.5px/1.45 var(--font-text); }\n',
+     '.ws-empty { margin: 8px 10px 4px; color: var(--text-dim); font: 12.5px/1.45 var(--font-text); }\n' +
+     '/* Spaces across profiles: the profile names over each group of rows, in the\n   menu\'s quiet label style; never a button, so the arrow keys pass over it. */\n' +
+     '.ws-profile-heading { margin: 12px 10px 6px; color: var(--text-dim); font: 550 11.5px/1 var(--font-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n' +
+     '.ws-profile-heading:first-child { margin-top: 4px; }\n'],
+    // The New Space editor's Profile choice.
+    ['.ws-name:focus { outline: none; background: var(--surface-raised); border-color: var(--border); }\n',
+     '.ws-name:focus { outline: none; background: var(--surface-raised); border-color: var(--border); }\n' +
+     '/* The New Space editor\'s Profile choice (two or more profiles), drawn like the name field. */\n' +
+     '.ws-select { width: 100%; height: 34px; padding: 0 10px; border: 1px solid transparent; border-radius: var(--radius-md); background: var(--surface); color: var(--text); font: 13px/1 var(--font-text); }\n' +
+     '.ws-select:focus { outline: none; background: var(--surface-raised); border-color: var(--border); }\n'],
+  ],
   'overlay.js': [
     // F3-3: a collapsed group's membership stays explicit in the panel.
     // Use shipping's translated plural string and existing empty-row style.
@@ -129,12 +158,12 @@ window.${name} = Object.freeze(module.exports);
 })();
 `;
 
-export function generate(ref, files = FILES) {
+export function generate(ref, files = FILES, menu = spacesMenuPin()) {
   const out = {};
   for (const [file, name] of Object.entries(MAIN_FILES))
     out[file] = wrapMain(execFileSync('git', ['show', `${ref}:src/main/${file}`], {cwd: root, encoding: 'utf8'}), name);
   for (const file of files) {
-    let text = show(ref, file).toString('utf8');
+    let text = show(menu?.files.includes(file) ? menu.commit : ref, file).toString('utf8');
     for (const [find, replace] of EDITS[file] ?? []) {
       const count = text.split(find).length - 1;
       if (count !== 1) throw Error(`${file}: expected the anchor once, found ${count}: ${JSON.stringify(find.slice(0, 80))}`);

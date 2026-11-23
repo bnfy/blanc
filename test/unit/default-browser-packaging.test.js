@@ -175,4 +175,10 @@ test('packaged Linux desktop entry verifier requires browser URL handlers', (t) 
     'MimeType=text/html;x-scheme-handler/http;',
   ));
   assert.throws(() => verifyLinuxDesktopEntry(entry), /unsupported local-file MIME type/);
+
+  // #1630: a file manager's Open With hands Blanc the file through %U.
+  fs.writeFileSync(entry, fs.readFileSync(entry, 'utf8')
+    .replace('MimeType=text/html;', 'MimeType=')
+    .replace('Exec=AppRun %U', 'Exec=AppRun'));
+  assert.throws(() => verifyLinuxDesktopEntry(entry), /must pass URLs and files with %U/);
 });

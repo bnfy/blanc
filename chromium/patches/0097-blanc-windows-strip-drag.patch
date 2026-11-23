@@ -1,0 +1,25 @@
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+index f4b454d..59454eb 100644
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -4560,6 +4560,20 @@ void BrowserView::GetAccessiblePanes(std::vector<views::View*>* panes) {
+ bool BrowserView::ShouldDescendIntoChildForEventHandling(
+     gfx::NativeView child,
+     const gfx::Point& location) {
++#if BUILDFLAG(IS_WIN)
++  // Blanc: the Island's strip is web content. Its drag areas belong to the
++  // window, as a web app's draggable regions do, so a press there starts a
++  // window move instead of going to the strip.
++  if (blanc_prototype::IsIslandWindow(browser_)) {
++    gfx::Point island_point(location);
++    views::View::ConvertPointToTarget(GetWidget()->GetRootView(), this,
++                                      &island_point);
++    if (blanc_prototype::IsCaption(this, island_point.x(), island_point.y()) &&
++        !WidgetOwnedByAnchorContainsPoint(island_point)) {
++      return false;
++    }
++  }
++#endif
+   // Window for PWAs with window-controls-overlay display override should claim
+   // mouse events that fall within the draggable region.
+   web_app::AppBrowserController* controller =

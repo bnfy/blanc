@@ -16,19 +16,17 @@ import MailWaitlistForm from './MailWaitlistForm.astro';
 
 // In page order. Each id is a section of mail.astro.
 const sections = [
-  ['design', 'Design'],
-  ['address', 'Blanc email address'],
-  ['island', 'Island'],
-  ['features', 'Features'],
-  ['pricing', 'Pricing'],
+  ['pricing', 'Plans'],
+  ['address', 'Blanc addresses'],
+  ['features', 'App features'],
+  ['support', 'FAQ'],
 ];
 ---
 <div class="mail-bar" data-mail-bar>
   <nav class="mail-bar-inner" aria-label="Blanc Mail">
-    <!-- The Blanc Mail lockup (docs/brand-usage.md, "Blanc Mail lockup"): the
-         gold icon beside the outlined Blubird word, in its Text cut. -->
+    <!-- The product bar uses the short form of the Blubird Text lockup. -->
     <a class="mail-bar-title" href="/mail"><span class="mail-lockup"><MailIcon decorative /><img
-      class="mail-lockup-word" src="/lockup/blanc-mail-word-small-white.svg" width="4531" height="762" alt="Blanc Mail" /></span></a>
+      class="mail-lockup-word" src="/lockup/mail-word-small-white.svg" width="1817" height="763" alt="Blanc Mail" /></span></a>
     <ul class="mail-bar-links">
       {sections.map(([id, label]) => <li><a href={`/mail#${id}`} data-mail-section={id}>{label}</a></li>)}
     </ul>
@@ -56,11 +54,11 @@ const sections = [
   if (header) new ResizeObserver(syncHeader).observe(header);
 
   // On /mail, mark the links for the section in view: the last one whose top
-  // has passed under the bars. Past Pricing (Support, Download) none is.
+  // has passed under the bars. The closing waitlist ends the last section.
   const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-mail-section]')];
   const ids = [...new Set(links.map(link => link.dataset.mailSection ?? ''))];
   const targets = ids.map(id => document.getElementById(id));
-  const end = document.getElementById('support');
+  const end = document.getElementById('download');
   const bar = document.querySelector<HTMLElement>('[data-mail-bar]');
   if (targets.every(Boolean) && bar) {
     let frame = 0;

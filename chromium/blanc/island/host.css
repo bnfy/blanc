@@ -38,6 +38,20 @@ iframe { position: absolute; inset: 0; width: 100%; border: 0; }
 #bandBackdrop > div { position: absolute; inset: 0; }
 #bandBackdrop > div.fade { transition: opacity 2s ease; }
 @media (prefers-reduced-motion: reduce) { #bandBackdrop > div.fade { transition: none; } }
+/* The launch Sunrise's sky over the band, in step with the page's
+   (newtab-prototype.css .launch-sunrise-sky and .launch-sunrise; the same
+   keyframes, so keep them equal). host.js sets the delay from when the page
+   began it. */
+#bandSunrise {
+  position: absolute;
+  inset: 0;
+  animation-name: band-sunrise-sky, band-sunrise-out;
+  animation-duration: 2.6s;
+  animation-timing-function: cubic-bezier(0.33, 0, 0.2, 1);
+  animation-fill-mode: both;
+}
+@keyframes band-sunrise-sky { 0% { background-color: rgb(11 10 9 / 0); } 10%, 20% { background-color: #0b0a09; } 48% { background-color: #3a2a17; } 76% { background-color: #a9814f; } 100% { background-color: rgb(248 242 232 / 0); } }
+@keyframes band-sunrise-out { 0%, 96% { opacity: 1; } 100% { opacity: 0; } }
 
 #prototypeTooltip { position:fixed; z-index:1000; max-width:240px; padding:4px 8px;
   border-radius:6px; background:#24211d; color:#faf7f0; font:12px/16px system-ui;

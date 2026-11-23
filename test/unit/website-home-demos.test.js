@@ -15,15 +15,14 @@ test('the homepage keeps the live demos in the redesign, each working without th
   assert.match(spaces, /<div class="spaces-demo">\s*<SpacesDemo \/>/);
   assert.doesNotMatch(spaces, /<img/);
   // Tools: Glance and the gestures in compact cards; the Start Page card shows
-  // Billboard until the script reveals the four layouts.
+  // the one Start Page with its widgets (v1.51.0).
   const tools = home.slice(home.indexOf('id="tools"'), home.indexOf('id="compare"'));
   assert.match(tools, /<GlanceDemo compact \/>/);
   assert.match(tools, /<article class="tool-card tool-card-wide rise">\s*<div class="tool-media tool-demo"><GestureDemo compact \/>/);
-  assert.match(tools, /id="layout-image" src="\/feature-captures\/billboard-[^"]+\.webp"/);
-  assert.match(tools, /data-layouts hidden>/);
-  assert.match(tools, /\["Ledger", "Billboard", "Shelf", "Tally"\]/);
+  assert.match(tools, /src="\/feature-captures\/start-widgets-v1\.51\.0\.webp"/);
+  assert.doesNotMatch(tools, /Ledger|Billboard|Shelf|Tally|data-layouts/);
   const script = read('site/src/scripts/home.js');
-  for (const call of ['initHorizonShield', 'initGlanceDemo', 'initGestureDemo', 'initLayouts(']) assert.ok(script.includes(call), call);
+  for (const call of ['initHorizonShield', 'initGlanceDemo', 'initGestureDemo']) assert.ok(script.includes(call), call);
   // The compact demos drop their own headings, tool switch and Replay.
   const glance = read('site/src/components/GlanceDemo.astro');
   assert.match(glance, /\{!compact && <h3 id="glance-title">/);
@@ -58,34 +57,13 @@ test('the tools grid carries a wide Bangs card after 1Password that links to /ba
   assert.match(card, /<h3>Bangs<\/h3>\s*<p>Type a site’s code before your search, like <kbd class="bang-chip">!yt lofi<\/kbd>, to go straight to its results\.<\/p>\s*<p class="tool-limit">Works with any search engine\.<\/p>\s*<a class="more-link" href="\/bangs">How bangs work <span aria-hidden="true">›<\/span><\/a>/);
 });
 
-test('the MacBook screen moves from dawn to night only with scroll-driven motion, and says so', () => {
-  const device = home.slice(home.indexOf('class="device"'), home.indexOf('id="first-launch"'));
-  // A heading and one line say what the screen shows; the phase labels light
-  // with the wallpaper and are hidden where it does not move.
-  assert.match(device, /<h2 id="wallpaper-title">Your Start Page, from dawn to night\.<\/h2>/);
-  assert.match(device, /<div class="device-phases" aria-hidden="true">(<span class="phase-(dawn|day|dusk|night)">[A-Z][a-z]+<\/span>){4}<\/div>/);
-  assert.match(css, /\.device-phases \{\s*display: none;/);
-  assert.match(device, /src="\/feature-captures\/home-wallpaper-dawn-[^"]+\.webp"/);
-  assert.match(device, /\["day", "dusk", "night"\]\.map/);
-  assert.match(device, /loading="lazy"/);
-  // Without the motion, the later wallpapers stay hidden over dawn.
-  assert.match(css, /\.device-screen :is\(\.wallpaper-day, \.wallpaper-dusk, \.wallpaper-night\) \{\s*opacity: 0;/);
-  const motion = css.slice(css.indexOf('@media (prefers-reduced-motion: no-preference) {\n  @supports (animation-timeline: view())'));
-  assert.ok(motion.length > 0, 'scroll-driven motion block found');
-  assert.match(motion, /view-timeline: --device block;/);
-  assert.match(motion, /overflow: clip;/);
-  for (const time of ['day', 'dusk', 'night']) assert.match(motion, new RegExp(`\\.device-screen \\.wallpaper-${time} \\{\\s*animation-range: entry 0% contain 10%, contain \\d+% contain \\d+%;`));
-  assert.match(motion, /\.device-stage \{\s*position: sticky;/);
-  // The captures' traffic lights are covered by a patch in each strip's
-  // color that crossfades with the wallpaper; phones crop them off.
-  assert.match(css, /\.device-screen::after \{\s*content: "";[^}]*width: 4\.2%;\s*aspect-ratio: 7 \/ 4;\s*background: rgb\(248 240 231\);/);
-  assert.match(css, /@keyframes screen-tint \{ 0%, 18% \{[^}]+\} 28%, 45% \{[^}]+\} 55%, 72% \{[^}]+\} 82%, 100% \{[^}]+\} \}/);
-  assert.match(motion, /\.device-screen::after \{\s*animation: screen-tint linear both;\s*animation-timeline: --device;/);
-  assert.match(css, /The 4:3 crop already leaves the traffic lights out\. \*\/\s*\.device-screen::after \{\s*display: none;/);
-  for (const time of ['dawn', 'day', 'dusk', 'night']) {
-    assert.match(motion, new RegExp(`\\.device-phases \\.phase-${time} \\{ animation-name: phase-${time}; \\}`));
-    assert.match(css, new RegExp(`@keyframes phase-${time} \\{`));
-  }
+test('the homepage no longer has the time-of-day MacBook section', () => {
+  // The owner removed it on November 23, 2026; its sentences moved to the
+  // ledgers' supersededClaims. The Start Page tool card and the Features page
+  // still show the wallpaper.
+  assert.doesNotMatch(home, /id="wallpaper"|class="device"|from dawn to night/);
+  assert.doesNotMatch(css, /\.device(-|\b)|--device|@keyframes (phase-|screen-tint|home-device|home-screen)/);
+  assert.match(home, /<a class="more-link" href="\/features\/start-page">Start Page widgets and wallpaper/);
 });
 
 function glanceFixture() {
@@ -177,6 +155,10 @@ test('homepage titles are phrases without a closing period; section headlines ke
   for (const [, lead] of pin.matchAll(/<strong>([^<]+)<\/strong>/g)) assert.doesNotMatch(lead, /\.$/, lead);
   assert.match(css, /\.pin-media figcaption strong \{\s*display: block;/);
   assert.match(home, /<h1 id="opening-title">A little less browser\.<\/h1>/);
-  // The first screen: the floating Island window below Download.
-  assert.match(home, /<FloatingIslandWindow \/>/);
+  // The one section headline without a period: the Patron section's name
+  // (owner, November 23, 2026).
+  assert.match(home, /<h2 class="patron-title" id="patron-title">Blanc Patron<\/h2>/);
+  // The first screen: the device tour below Download, opening on the
+  // floating Island window.
+  assert.match(home, /<FloatingIslandWindow lights=\{false\} \/>/);
 });

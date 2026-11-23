@@ -8,7 +8,7 @@
    drop to the bottom edge it left. */
 html[data-platform="ios"] {
   -webkit-text-size-adjust: 100%;
-  --ios-island: 68px;
+  --ios-island: 60px;
   --ios-footer: 64px;
   /* The Island's room above the page and below it: the Island's height on its side, nothing on the
      other (ios-start.js marks the side). */
@@ -52,13 +52,18 @@ html[data-platform="ios"] .bb-clock { font-size: clamp(64px, 30vw, 120px); }
 html[data-platform="ios"] body:not(:has(#clockPopover:popover-open)) .bb-clock-row {
   position: absolute;
   inset: var(--ios-clock-top) 16px auto;
-  /* Shrunk only when shortcuts need the room (ios-start.js sets the fit). */
+  /* Shrunk only when shortcuts need the room (ios-start.js sets the fit), about its middle: the
+     shared page scales the row from its top for desktop's Customize, which put a shrunk clock over
+     the date. */
   transform: translateY(-50%) scale(var(--ios-clock-fit, 1));
+  transform-origin: center;
   justify-content: center;
   margin: 0;
 }
 html[data-platform="ios"] body:not(:has(#clockPopover:popover-open)) .bb-blocked {
   position: absolute;
+  /* Customize is a sheet here and the clock doesn't give way, so the line under it stays put. */
+  transform: none;
   inset: calc(var(--ios-clock-top) + var(--ios-clock-height, 100px) * var(--ios-clock-fit, 1) / 2 + 12px) 16px auto;
   text-align: center;
   margin: 0;

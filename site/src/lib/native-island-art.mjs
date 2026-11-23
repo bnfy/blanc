@@ -213,7 +213,7 @@ const svgMarkup = (elements, className) => `<svg viewBox="0 0 24 24" aria-hidden
 
 // The open Island's rules the Spaces demo draws: the panel card, its address
 // row, the tab rows at rest and the footer with its Spaces button (in a
-// space, it carries the bound fill).
+// space, it carries the bound fill and the space's tile).
 const SPACES_PANEL_SELECTORS = [
   '#islandPanel', '.panel-row', '#addressInput', '.panel-actions', '.act-btn', '.act-btn:disabled',
   '.island-row', '.island-row.active', '.island-row.active .row-title, .island-row.active .row-cmd',
@@ -221,6 +221,7 @@ const SPACES_PANEL_SELECTORS = [
   '#islandFooter', '.footer-launchers, .footer-tools', '.footer-launchers', '.footer-tools',
   '.footer-new', '.footer-new svg', '.footer-new.private', '.footer-kbd', '.footer-act', '.footer-act svg',
   '#footerWorkspace svg', '.footer-act.ws.bound',
+  '#footerWorkspace .ws-trigger-tile', '#footerWorkspace .ws-trigger-tile svg',
 ];
 
 // The tab rows overlay.js draws for a space's tabs at rest (tabRow): favicon
@@ -233,11 +234,15 @@ function spaceTabRows(pages) {
 
 // The open Island in a space, with the Spaces menu open below its footer's
 // Spaces button. The resting Island carries no Space mark: Spaces open from
-// the panel's footer (overlay.html #footerWorkspace). `spaces` are sample
-// records {name, color, symbol, tabs, pages: [{title, url, favicon}]}; the
-// first is current. Each menu row is a real button carrying what the demo
-// script needs to show that space's tabs (its pages as JSON) when chosen.
-export function nativeSpacesArt({ styles, overlay, overlayScript, workspaceUi, identity, spaces, newSpaceLabel }) {
+// the panel's footer (overlay.html #footerWorkspace), whose button shows the
+// current space's tile in place of the planet, named by `triggerLabel`
+// (copy/messages/en.json ws.trigger.current, with {name}), as workspace-ui.js
+// draws it. `spaces` are sample records {name, color, symbol, tabs, pages:
+// [{title, url, favicon}]}; the first is current. Each menu row is a real
+// button carrying what the demo script needs to show that space's tabs (its
+// pages as JSON) when chosen.
+export function nativeSpacesArt({ styles, overlay, overlayScript, workspaceUi, identity, spaces, newSpaceLabel, triggerLabel }) {
+  if (!triggerLabel?.includes('{name}')) throw new Error('Spaces demo: the Spaces button label needs {name}');
   const { take, tokens } = nativeRules(styles);
   const base = ['*', '*, *::before, *::after', 'button, input, select, textarea', 'button', 'button svg', '.favicon', '.favicon.has-icon'];
   const css = [tokens, ...[...base, ...SPACES_PANEL_SELECTORS, ...SPACES_MENU_SELECTORS].map(take)].join('\n');
@@ -268,6 +273,14 @@ export function nativeSpacesArt({ styles, overlay, overlayScript, workspaceUi, i
   set('<div id="islandList"></div>', `<div id="islandList">${spaceTabRows(current.pages)}</div>`);
   set('<span id="footerNewTabKbd" class="footer-kbd"></span>', '<span id="footerNewTabKbd" class="footer-kbd">⌘T</span>');
   set('class="footer-act ws"', 'class="footer-act ws bound"');
+  // In a space, workspace-ui.js syncIdentity names the button after it and
+  // replaces the planet with the space's tile ('ws-tile ws-trigger-tile').
+  const named = escapeHtml(triggerLabel.replace('{name}', current.name));
+  set('data-tooltip="Spaces"', `data-tooltip="${named}"`);
+  set('aria-label="Spaces"', `aria-label="${named}"`);
+  const planet = panel.match(/(id="footerWorkspace"[^>]*>)\s*(<svg\b[\s\S]*?<\/svg>)\s*(<\/button>)/);
+  if (!planet) throw new Error('Missing native Island panel markup: the Spaces planet');
+  set(planet[2], `<span class="ws-tile ws-trigger-tile" style="--space-fill:${current.fill};--space-on:${current.on}" data-edge="${current.edge.light}">${svgMarkup(identity.SYMBOLS[current.symbol], 'ws-symbol')}</span>`);
   set('aria-expanded="false"\n          aria-haspopup="true"', 'aria-expanded="true"\n          aria-haspopup="true"');
   panel = panel.trim();
   // Reload is drawn by overlay.js (ICONS.reload); the others are inline in the markup.

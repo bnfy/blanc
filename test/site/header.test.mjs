@@ -10,7 +10,7 @@ import { after, before, test } from 'node:test';
 import { chromium, webkit } from 'playwright';
 
 const baseURL = process.env.BLANC_SITE_URL || 'http://127.0.0.1:4322';
-const links = ['Browser', 'Privacy & Security', 'Patron', 'About', 'Support', 'Mail'];
+const links = ['Browser', 'Privacy & Security', 'Support', 'Mail'];
 const linksAt = width => width <= 920 ? [] : links;
 let browser;
 before(async () => { browser = await (process.env.BLANC_SITE_BROWSER === 'webkit' ? webkit : chromium).launch(); });
@@ -49,14 +49,14 @@ test('the header stays at the top, marks the current section and points Download
   try {
     for (const [path, current, cta] of [
       ['/', [], '/download'], ['/features', ['Browser'], '/download'], ['/features/island', ['Browser'], '/download'],
-      ['/trust', ['Privacy & Security'], '/download'], ['/patron', ['Patron'], '/download'], ['/support', ['Support'], '/download'], ['/mail', ['Mail'], '/download'],
+      ['/trust', ['Privacy & Security'], '/download'], ['/patron', [], '/download'], ['/support', ['Support'], '/download'], ['/mail', ['Mail'], '/download'],
       ['/download', [], '#download-options'],
     ]) {
       await page.goto(`${baseURL}${path}`);
       const bar = await header(page);
       assert.equal(bar.position, 'sticky', path);
       assert.equal(bar.top, '0px', path);
-      assert.deepEqual(bar.shown, links, `${path}: all six links on desktop`);
+      assert.deepEqual(bar.shown, links, `${path}: all four links on desktop`);
       assert.deepEqual(bar.current, current, `${path}: current section`);
       assert.equal(bar.cta, cta, `${path}: Download target`);
       assert.equal(bar.home, '/', path);

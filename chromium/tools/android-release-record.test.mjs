@@ -106,6 +106,10 @@ fs.mkdirSync(path.join(out, 'apks'), {recursive:true}); fs.writeFileSync(path.jo
     const stray = spawnSync('bash', args, { encoding: 'utf8', env: { ...env, FIXTURE_CHROMIUM_STATUS: ' M chrome/android/BUILD.gn\\n M chrome/browser/left-over.cc\\n' } });
     assert.notEqual(stray.status, 0); assert.match(stray.stderr, /changes Blanc doesn't apply: chrome\/browser\/left-over\.cc/);
     fs.rmSync(path.join(temp, 'blanc-evidence'), { recursive: true, force: true });
+    // That attempt applied the tag before the stray check stopped it, so later attempts apply over the tag's commit.
+    assert.equal(fs.readFileSync(path.join(temp, 'chromium-android/.blanc-applied-commit'), 'utf8').trim(), entry.commit);
+    assert.match(spawnSync('bash', args, { encoding: 'utf8', env }).stderr, /previous-map must be the last applied commit/);
+    args[3] = entry.commit;
     const refused = spawnSync('bash', args, { encoding: 'utf8', env: { ...env, FIXTURE_REFUSE: '1' } });
     assert.notEqual(refused.status, 0); assert.match(refused.stderr, /No pinned environment/);
     // The refused run already wrote both outputs' arguments. GN still runs again: a changed BUILD.gn
@@ -116,7 +120,7 @@ fs.mkdirSync(path.join(out, 'apks'), {recursive:true}); fs.writeFileSync(path.jo
     assert.deepEqual(fs.readFileSync(path.join(temp, 'gn-calls'), 'utf8').trim().split('\n').map(line => path.basename(line.replace(/^gen /, ''))), ['AndroidRelease', 'AndroidReleaseX64']);
     const record = JSON.parse(fs.readFileSync(path.join(temp, 'blanc-evidence/android/release', entry.tag, 'build.json')));
     assert.equal(record.upstream, 'c'.repeat(40));
-    assert.equal(record.appliedOver, 'b'.repeat(40)); assert.equal(record.aab.bytes, 16); assert.match(record.gatesApk.sha256, /^[a-f0-9]{64}$/);
+    assert.equal(record.appliedOver, entry.commit); assert.equal(record.aab.bytes, 16); assert.match(record.gatesApk.sha256, /^[a-f0-9]{64}$/);
     const duplicate = spawnSync('bash', args, { encoding: 'utf8', env });
     assert.notEqual(duplicate.status, 0); assert.match(duplicate.stderr, /build record already exists/);
   } finally { fs.rmSync(temp, { recursive: true, force: true }); }
@@ -158,4 +162,68 @@ test('a new version moves the pinned arguments only when nothing but the version
   // The first release has no earlier version.
   assert.equal(pinForNewVersion(pin, template, 1, releaseArgs(template, '1.0.0-beta.1', 1)), null);
   assert.equal(pinForNewVersion({}, template, 2, next), null);
+  // After a stable release the pin holds a stable name's arguments; the ledger's names count as earlier versions.
+  const stablePin = { ...pin, argsSha256: sha(releaseArgs(template, '1.0.0', 6)) };
+  const beta = releaseArgs(template, '1.1.0-beta.1', 7);
+  assert.equal(pinForNewVersion(stablePin, template, 7, beta), null);
+  assert.equal(pinForNewVersion(stablePin, template, 7, beta, ['1.0.0-beta.5', '1.0.0']).argsSha256, sha(beta));
+});
+
+// A stable release (1.0.0) follows the betas in the same code sequence; a malformed tag never reaches Git.
+for (const [tag, ok] of [['android-v1.0.0-6', true], ['android-v1.1.0-beta.1-6', true], ['android-v1.0.0-beta-6', false], ['android-v1.0-6', false]]) test(`release build preflight ${ok ? 'accepts' : 'refuses'} ${tag}`, () => {
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'release-tag-'));
+  try {
+    fs.mkdirSync(path.join(temp, 'blanc-release'));
+    fs.writeFileSync(path.join(temp, 'uname'), '#!/bin/sh\ncase "$1" in -s) echo Linux;; -m) echo x86_64;; esac\n', { mode: 0o755 });
+    fs.writeFileSync(path.join(temp, 'ps'), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+    const builds = [1, 2, 3, 4, 5].map(code => ({ versionCode: code, versionName: `1.0.0-beta.${code}`, tag: `android-v1.0.0-beta.${code}-${code}`, commit: 'c'.repeat(40), state: 'uploaded', date: '2026-11-22', note: '' }));
+    fs.writeFileSync(path.join(temp, 'git'), `#!/bin/sh
+shift 2
+case "$1" in
+status) ;;
+rev-parse) printf '%s\\n' '${entry.commit}';;
+show) printf '%s\\n' '${JSON.stringify({ schema: 1, builds })}';;
+*) exit 99;;
+esac
+`, { mode: 0o755 });
+    const result = spawnSync('bash', [fileURLToPath(script), tag, '--previous-map', 'b'.repeat(40), '--dry-run'], { encoding: 'utf8', env: { ...process.env, PATH: `${temp}:${process.env.PATH}`, HOME: temp } });
+    if (ok) { assert.equal(result.status, 0, result.stderr); assert.match(result.stdout, new RegExp(tag.replaceAll('.', '\\.'))); }
+    else { assert.notEqual(result.status, 0); assert.match(result.stderr, /Usage/); }
+  } finally { fs.rmSync(temp, { recursive: true, force: true }); }
+});
+
+test('a release build and the nightly never change the Android checkout at the same time', async () => {
+  const { withAndroidLock } = await import(moduleURL);
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'android-lock-'));
+  try {
+    fs.mkdirSync(path.join(home, 'chromium-android'));
+    assert.equal(withAndroidLock(home, () => assert.throws(() => withAndroidLock(home, () => 1), /in use/) ?? 'held'), 'held');
+    assert.equal(withAndroidLock(home, () => 2), 2, 'released after the first holder finished');
+    assert.throws(() => withAndroidLock(home, () => { throw new Error('build failed'); }), /build failed/);
+    assert.equal(fs.existsSync(path.join(home, 'chromium-android/.blanc-android.lock')), false, 'released after a failure');
+  } finally { fs.rmSync(home, { recursive: true, force: true }); }
+});
+
+// The nightly moves the shared checkout, so a release's previous map must be what was applied last.
+for (const [applied, ok] of [['b'.repeat(40), true], ['d'.repeat(40), false], [null, true]]) test(`release build preflight with applied commit ${applied ? applied.slice(0, 1) : 'unrecorded'} ${ok ? 'goes on' : 'refuses a different --previous-map'}`, () => {
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'release-applied-'));
+  try {
+    fs.mkdirSync(path.join(temp, 'blanc-release'));
+    fs.mkdirSync(path.join(temp, 'chromium-android'));
+    if (applied) fs.writeFileSync(path.join(temp, 'chromium-android/.blanc-applied-commit'), applied + '\n');
+    fs.writeFileSync(path.join(temp, 'uname'), '#!/bin/sh\ncase "$1" in -s) echo Linux;; -m) echo x86_64;; esac\n', { mode: 0o755 });
+    fs.writeFileSync(path.join(temp, 'ps'), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+    fs.writeFileSync(path.join(temp, 'git'), `#!/bin/sh
+shift 2
+case "$1" in
+status) ;;
+rev-parse) printf '%s\\n' '${entry.commit}';;
+show) echo '{"schema":1,"builds":[]}';;
+*) exit 99;;
+esac
+`, { mode: 0o755 });
+    const result = spawnSync('bash', [fileURLToPath(script), entry.tag, '--previous-map', 'b'.repeat(40), '--dry-run'], { encoding: 'utf8', env: { ...process.env, PATH: `${temp}:${process.env.PATH}`, HOME: temp } });
+    if (ok) assert.equal(result.status, 0, result.stderr);
+    else { assert.notEqual(result.status, 0); assert.match(result.stderr, /previous-map.*applied/); }
+  } finally { fs.rmSync(temp, { recursive: true, force: true }); }
 });

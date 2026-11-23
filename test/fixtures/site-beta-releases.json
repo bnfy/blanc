@@ -1,0 +1,65 @@
+[
+  {
+    "tag_name": "chromium-beta-2.0.0-beta.2",
+    "name": "Blanc Beta 2.0.0-beta.2",
+    "body": "Blanc Beta is an early preview of Blanc built directly on Chromium. It installs as a separate app beside the regular Blanc and never replaces it.\n\n**What to know**\n\n- **A separate app.** Blanc Beta has its own name, its own data folder and its own passkeys. Your regular Blanc, its data, settings and passkeys are left untouched.\n- **Apple Silicon Macs, macOS 13 or later.** There is no Intel build of this beta.\n- **Blocking is built in.** Ads and trackers are blocked from the first page, including in private windows.\n- **Its own updates.** Beta updates come from blanc.day, signed with the beta's own key. They never touch the regular Blanc.\n- **Touch ID passkeys** work, in ordinary and private windows.\n\n**Not in this beta yet**\n\n- **Protected video** (such as Netflix or Spotify) doesn't play. Use the regular Blanc for those sites; a notice offering to open them there is coming in a later beta.\n- **Sync** is included but hasn't been checked end to end against the live Sync service for this beta, so don't rely on it yet.\n\n**Checking the download**\n\nThe app is signed with Developer ID and notarized by Apple. `SHA256SUMS` lists every file in this release and is signed with Sigstore (`SHA256SUMS.sigstore.json`); `RELEASE-MANIFEST.json` and `acceptance.json` record what was checked before release.\n\nThis is a pre-release. The regular Blanc remains the recommended browser.\n",
+    "draft": false,
+    "prerelease": true,
+    "published_at": "2026-11-14T04:24:33Z",
+    "html_url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.2"
+  },
+  {
+    "tag_name": "chromium-beta-2.0.0-beta.9",
+    "name": "Blanc Beta 2.0.0-beta.9",
+    "body": "Blanc Beta is an early preview of Blanc built directly on Chromium. It installs as a separate app beside the regular Blanc and never replaces it.\n\n**Fixed in this beta**\n\n- **No \"Google API keys are missing\" bar.** Chromium could show it for a moment when Blanc Beta started, such as after an update.\n\n**New in this beta**\n\n- **Spaces across profiles.** With more than one profile, the Spaces menu and the Quick Switcher list every profile's Spaces. Opening one from another profile opens it in a window of that profile, and you can create a Space in another profile.\n\n**What to know**\n\n- **A separate app.** Blanc Beta has its own name, its own data folder and its own passkeys. Your regular Blanc, its data, settings and passkeys are left untouched.\n- **Apple Silicon Macs, macOS 13 or later.** There is no Intel build of this beta.\n- **Blocking is built in.** Ads and trackers are blocked from the first page, including in private windows.\n- **Its own updates.** Beta updates come from blanc.day, signed with the beta's own key. They never touch the regular Blanc.\n- **Touch ID passkeys** work, in ordinary and private windows.\n\n**Not in this beta yet**\n\n- **Protected video** (such as Netflix or Spotify) doesn't play. Blanc Beta shows a notice offering to open the site in the regular Blanc.\n- **Sync** is included but still being checked against the live service, so don't rely on it yet.\n\n**Checking the download**\n\nThe app is signed with Developer ID and notarized by Apple. `SHA256SUMS` lists every file in this release and is signed with Sigstore (`SHA256SUMS.sigstore.json`); `RELEASE-MANIFEST.json` and `acceptance.json` record what was checked before release.\n\nThis is a pre-release. The regular Blanc remains the recommended browser.\n",
+    "draft": false,
+    "prerelease": true,
+    "published_at": "2026-11-20T13:55:53Z",
+    "html_url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.9"
+  },
+  {
+    "tag_name": "chromium-beta-windows-158.0.8127.902",
+    "name": "Blanc Beta 158.0.8127.902 for Windows",
+    "body": "The first Windows build of Blanc Beta, the Chromium-based Blanc. It's a pre-release: Blanc 1.51 stays the version to use every day.\n\n**Install.** Download `Blanc-Beta-Setup-158.0.8127.902.exe` and run it. It sets up Blanc's updater, which downloads Blanc Beta from blanc.day and installs it for your Windows user. Made for x64 Windows PCs and tested on Windows 11.\n\n**Updates.** Blanc Beta keeps itself up to date through Blanc's own updater. Every update is signed with Blanc's key and checked before it's installed.\n\n**Beside Blanc.** Blanc Beta installs next to Blanc for Windows, with its own Start menu entry and data folder, and doesn't change Blanc or its settings.\n\n**Not yet.** Protected video (Netflix, Spotify and similar) doesn't play. Some Blanc features still behave differently on Windows.\n\nThe installer is signed by Bananify Creative. `SHA256SUMS` lists every file's checksum and is signed with Sigstore.\n",
+    "draft": false,
+    "prerelease": true,
+    "published_at": "2026-11-21T09:19:28Z",
+    "html_url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-windows-158.0.8127.902"
+  },
+  {
+    "tag_name": "chromium-beta-windows-158.0.8127.904",
+    "name": "Blanc Beta 158.0.8127.904 for Windows",
+    "body": "The third Windows build of Blanc Beta, the Chromium-based Blanc. It's a pre-release: Blanc 1.51 stays the version to use every day.\n\n**Check for updates.** Settings → About Blanc Beta now shows whether Blanc Beta is up to date, with a **Check for Updates…** button that checks again right away.\n\n**About tells the truth on Windows.** About now names Windows as the platform, shows the Windows build number, and checks that the installed copy is signed by Bananify Creative. The row about importing from Blanc only appears on the Mac, where that import works.\n\n**Updating.** If you have 158.0.8127.903, Blanc Beta updates itself through Blanc's updater; About Blanc Beta checks right away. To install fresh, download `Blanc-Beta-Setup-158.0.8127.904.exe` and run it. Made for x64 Windows PCs and tested on Windows 11.\n\n**Not yet.** Protected video (Netflix, Spotify and similar) doesn't play. Some Blanc features still behave differently on Windows.\n\nThe installer is signed by Bananify Creative. `SHA256SUMS` lists every file's checksum and is signed with Sigstore.\n",
+    "draft": false,
+    "prerelease": true,
+    "published_at": "2026-11-21T17:54:15Z",
+    "html_url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-windows-158.0.8127.904"
+  },
+  {
+    "tag_name": "chromium-beta-linux-158.0.8127.906",
+    "name": "Blanc Beta 158.0.8127.906 for Linux",
+    "body": "Blanc Beta for Linux is an early preview of Blanc built directly on Chromium, for x64 and arm64. It installs as a separate app beside the regular Blanc and never replaces it.\n\n**What to know**\n\n- **Packages for Debian, Ubuntu and Fedora.** Download the `.deb` or `.rpm` for your computer (`amd64`/`x86_64` or `arm64`/`aarch64`) and install it with your package manager.\n- **Updates come with your system updates.** Installing the package adds Blanc's own package repository at `pkg.blanc.day`, signed with Blanc's repository key (fingerprint `50D3 6197 4F47 7C8C 87E1 17BD 95AE 97AB CACF EE6C`). New betas then arrive with your other updates through apt or dnf (`sudo apt upgrade`, `sudo dnf upgrade`, or your system's updater), and within about two hours of one being installed Blanc shows **Restart to update** in the Island. To install without adding the repository, see the manual setup guide.\n- **A separate app.** Blanc Beta has its own name and its own data folder (`~/.config/blanc-beta`). The regular Blanc and its data are left untouched. Installing Blanc Beta doesn't set itself as your default browser, but on a desktop where no default has been chosen, as on a fresh Ubuntu 26.04, links from other apps may open in it until you choose one in Settings → Apps → Default Apps.\n- **Blocking is built in.** Ads and trackers are blocked from the first page, including in private windows.\n- **Your desktop's window buttons.** Blanc Beta follows GNOME's button layout and draws its Island between them.\n\n**Tested on**\n\nUbuntu 24.04, Debian 12 and Fedora 45 on x64 and arm64, and Ubuntu 26.04 with GNOME on Wayland on arm64.\n\n**Not in this beta yet**\n\n- **Protected video** (such as Netflix or Spotify) doesn't play.\n- **Sync** is included but still being checked against the live service, so don't rely on it yet.\n- **Chromium version.** This beta is built on Chromium 158.0.8127.2. An update to the current Chrome 158 release follows shortly through the same repository.\n\n**Checking the download**\n\nThe `.rpm` packages are signed with Blanc's repository key, and the repository's metadata is signed with the same key. `SHA256SUMS` lists every file in this release and is signed with Sigstore (`SHA256SUMS.sigstore.json`); `RELEASE-MANIFEST.json` records what was checked before release.\n\nThis is a pre-release. The regular Blanc remains the recommended browser.\n",
+    "draft": false,
+    "prerelease": true,
+    "published_at": "2026-11-23T03:45:35Z",
+    "html_url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-linux-158.0.8127.906"
+  },
+  {
+    "tag_name": "blanc-chromium-preview-l8-20261024-14706b0e",
+    "name": "Blanc Chromium Preview — L8 replacement validation (unpublished)",
+    "body": "Unpublished validation fixture for PR #1028. Not approved for public release.\n\nPrerender utility-loss repair: source 14706b0e8d4753d2a7ef35ea32a875b516366b0d, Chromium 157.0.8103.15, Apple Silicon/macOS 27.2. Developer ID signed, Apple accepted and stapled; 72 bounded post-notarization checks passed. Authenticate SHA256SUMS as anthony@bnfy.me / https://github.com/login/oauth.\n\nNative Safari download and second-machine acceptance for these exact bytes remain pending. Google upgrade and final release gates remain open. No public release, merge or hermetic reproduction claim. Google baseline separate; Electron paused; latency deferred.\n",
+    "draft": true,
+    "prerelease": true,
+    "published_at": null,
+    "html_url": "https://github.com/bnfy/blanc/releases/tag/untagged-71b48b75290a0fb62215"
+  },
+  {
+    "tag_name": "chromium-beta-2.0.0-beta.99",
+    "name": "Blanc Beta 2.0.0-beta.99",
+    "body": "Blanc Beta is an early preview of Blanc built directly on Chromium. It installs as a separate app beside the regular Blanc and never replaces it.\n\n**Fixed in this beta**\n\n- **No \"Google API keys are missing\" bar.** Chromium could show it for a moment when Blanc Beta started, such as after an update.\n\n**New in this beta**\n\n- **Spaces across profiles.** With more than one profile, the Spaces menu and the Quick Switcher list every profile's Spaces. Opening one from another profile opens it in a window of that profile, and you can create a Space in another profile.\n\n**What to know**\n\n- **A separate app.** Blanc Beta has its own name, its own data folder and its own passkeys. Your regular Blanc, its data, settings and passkeys are left untouched.\n- **Apple Silicon Macs, macOS 13 or later.** There is no Intel build of this beta.\n- **Blocking is built in.** Ads and trackers are blocked from the first page, including in private windows.\n- **Its own updates.** Beta updates come from blanc.day, signed with the beta's own key. They never touch the regular Blanc.\n- **Touch ID passkeys** work, in ordinary and private windows.\n\n**Not in this beta yet**\n\n- **Protected video** (such as Netflix or Spotify) doesn't play. Blanc Beta shows a notice offering to open the site in the regular Blanc.\n- **Sync** is included but still being checked against the live service, so don't rely on it yet.\n\n**Checking the download**\n\nThe app is signed with Developer ID and notarized by Apple. `SHA256SUMS` lists every file in this release and is signed with Sigstore (`SHA256SUMS.sigstore.json`); `RELEASE-MANIFEST.json` and `acceptance.json` record what was checked before release.\n\nThis is a pre-release. The regular Blanc remains the recommended browser.\n",
+    "draft": true,
+    "prerelease": true,
+    "published_at": null,
+    "html_url": "https://github.com/bnfy/blanc/releases/tag/untagged-0000"
+  }
+]

@@ -10,8 +10,10 @@ import { captureOutputDirectory, installedBlanc, poll, run, settle, sha256, writ
 // disposable profile seeded with four sample spaces, each with its colour and
 // symbol (space-identity.js presets): Work, Home, Painting class and Lisbon
 // trip. The window opens in Painting class with The Met's public-domain Van
-// Gogh as its active page, and the Spaces menu is opened by clicking the
-// Island's space mark, as a person would:
+// Gogh as its active page. The Island opens through its shipped openIsland
+// action, and the Spaces menu opens from the command panel's Spaces button,
+// which shows the current space's tile, with a real click, as a person would
+// (since v1.49.0 the resting Island shows no space mark, #1450 and #1454):
 //   workspaces       the Spaces menu listing the four spaces
 //   workspaces-edit  Painting class's editor: name, colour and symbol
 // The menu is a separate view over the page, so each state is a native macOS
@@ -22,7 +24,8 @@ import { captureOutputDirectory, installedBlanc, poll, run, settle, sha256, writ
 // Output goes to a temporary directory unless BLANC_CAPTURE_OUTPUT_DIR is set
 // (captures carry live page content, so a rerun never matches a ledger's hashes).
 
-const expectedVersion = process.env.BLANC_CAPTURE_VERSION || '1.33.0';
+// Needs v1.49.0 or later: earlier builds open the menu from the Island's mark.
+const expectedVersion = process.env.BLANC_CAPTURE_VERSION || '1.51.0';
 const { executablePath, version, build } = await installedBlanc(expectedVersion);
 const outputDirectory = captureOutputDirectory('spaces');
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-installed-spaces-'));
@@ -42,10 +45,10 @@ const spaces = [
   ['capture-painting', 'Painting class', '#6757a3', 'cap', 5, [
     ['https://www.metmuseum.org/art/collection/search/436535', 'Wheat Field with Cypresses'],
     ['https://www.metmuseum.org/art/collection/search/45434', 'The Met'],
-    ['https://en.wikipedia.org/wiki/Impasto', 'Impasto - Wikipedia'],
+    ['https://www.metmuseum.org/art/collection/search/436528', 'Irises - The Met'],
   ]],
   ['capture-lisbon', 'Lisbon trip', '#974f2a', 'plane', 90, [
-    ['https://en.wikipedia.org/wiki/Lisbon', 'Lisbon - Wikipedia'], ['https://www.nytimes.com/section/travel', 'Travel'],
+    ['https://www.visitlisboa.com/en', 'Visit Lisboa'], ['https://www.nytimes.com/section/travel', 'Travel'],
   ]],
 ];
 const workspaces = spaces.map(([id, name, color, symbol, minutesAgo, tabs]) => ({
@@ -64,6 +67,10 @@ writeJson('settings', {
   theme: 'light',
   tabSleep: 'off',
   presentationDefaultsResetVersion: 1,
+  // Already on this version, its What's New page already shown: no extra tab.
+  lastRunVersion: expectedVersion,
+  whatsNewPageVersion: expectedVersion,
+  whatsNewTabRelease: expectedVersion.split('.').slice(0, 2).join('.'),
 });
 writeJson('workspaces', { version: 2, workspaces, deleted: [] });
 // The window restores bound to Painting class, with the same tabs the space holds.
@@ -124,11 +131,12 @@ try {
   const chrome = await findPage(async (page) => page.url().startsWith('blanc-chrome://index/')
     && await page.evaluate(() => typeof window.browserAPI?.openIsland === 'function'), 'Blanc chrome document did not appear');
 
-  // The window restored into Painting class: its mark shows that space.
+  // The window restored into Painting class. The resting Island keeps its
+  // (hidden) space mark up to date, so it names the window's space.
   await poll(() => chrome.evaluate(() => {
     const mark = document.getElementById('pillSpace');
-    return mark && !mark.hidden && mark.dataset.state === 'space' && document.getElementById('pillSpaceName').textContent;
-  }), (name) => name === 'Painting class', 'the space mark did not show Painting class');
+    return mark && mark.dataset.state === 'space' && document.getElementById('pillSpaceName').textContent;
+  }), (name) => name === 'Painting class', 'the window did not restore into Painting class');
 
   // Only the selected tab wakes on restore; wait for The Met to finish
   // loading with its own title and favicon (tab ids come from the shipped
@@ -144,20 +152,35 @@ try {
   // Let the page's images settle.
   await settle(4_000);
 
-  // Open the Spaces menu from the mark with a real click. Window activation
-  // can swallow the first one, so click again until an overlay reports the
-  // spaces mode (each window has its own overlay document).
+  // Open the Island's command panel, then the Spaces menu from its Spaces
+  // button with a real click. The button shows Painting class's tile and
+  // names it. Window activation can swallow the first click, so click again
+  // until the menu reports open (each window has its own overlay document).
+  // The panel closes when its window loses focus (a window capture can do
+  // that), so the editor step reopens it the same way.
   await chrome.bringToFront();
   await settle(400);
-  const spacesOpen = async (page) => /overlay/.test(page.url())
-    && await page.evaluate(() => document.body.dataset.mode === 'spaces' && !document.getElementById('workspaceSwitcher').hidden);
-  let overlay = null;
-  for (let attempt = 0; attempt < 5 && !overlay; attempt += 1) {
-    await chrome.locator('#pillSpace').click();
-    await settle(700);
-    for (const page of app.pages()) if (!page.isClosed() && await spacesOpen(page).catch(() => false)) overlay = page;
+  const isOverlay = (page) => /overlay/.test(page.url());
+  const overlay = await findPage(async (page) => isOverlay(page) && await page.evaluate(() => typeof window.browserAPI?.closeOverlay === 'function'), 'the overlay document did not appear');
+  const panelOpen = () => overlay.evaluate(() => document.body.dataset.mode === 'panel');
+  const spacesOpen = () => overlay.evaluate(() => document.body.dataset.mode === 'panel' && !document.getElementById('workspaceSwitcher').hidden);
+  const button = overlay.locator('#footerWorkspace');
+  async function openSpacesMenu() {
+    if (await spacesOpen()) return;
+    if (!await panelOpen()) {
+      await chrome.evaluate(() => window.browserAPI.openIsland());
+      await poll(panelOpen, Boolean, 'the command panel did not open');
+      await settle(500);
+    }
+    assert.equal(await button.getAttribute('aria-label'), 'Space · Painting class', 'the Spaces button must name the current space');
+    assert.equal(await button.locator('.ws-trigger-tile').count(), 1, 'the Spaces button must show the current space\'s tile');
+    for (let attempt = 0; attempt < 5 && !await spacesOpen(); attempt += 1) {
+      await button.click();
+      await settle(700);
+    }
+    assert.ok(await spacesOpen(), 'Spaces menu did not open from the Spaces button');
   }
-  assert.ok(overlay, 'Spaces menu did not open from the mark');
+  await openSpacesMenu();
   const rows = await poll(() => overlay.locator('#workspaceSwitcherList .ws-row-name').allInnerTexts(), (names) => names.length === spaces.length, 'spaces not listed');
   assert.deepEqual(rows, spaces.map(([, name]) => name));
   // Opening the menu focuses its current row. A plain click on the menu's own
@@ -170,7 +193,7 @@ try {
     const switcher = document.getElementById('workspaceSwitcher');
     return { open: !switcher.hidden, mode: document.body.dataset.mode, focusInMenu: switcher.contains(document.activeElement) && document.activeElement !== switcher };
   });
-  assert.deepEqual(menuState, { open: true, mode: 'spaces', focusInMenu: false }, 'Spaces menu must stay open with no control focused');
+  assert.deepEqual(menuState, { open: true, mode: 'panel', focusInMenu: false }, 'Spaces menu must stay open with no control focused');
   await settle();
   await captureWindow('workspaces', overlay);
 
@@ -178,6 +201,7 @@ try {
   // when its row's ••• button (shown on hover) is clicked. Focus lands in the
   // name field; a click on the editor's title moves it off without changing
   // anything, so no caret or focus ring is captured.
+  await openSpacesMenu();
   const row = overlay.locator('#workspaceSwitcherList .ws-row', { hasText: 'Painting class' });
   await row.hover();
   await row.locator('.ws-row-more').click();
@@ -194,7 +218,7 @@ try {
       focusInEditor: editor.contains(document.activeElement),
     };
   });
-  assert.deepEqual(editorState, { mode: 'spaces', name: 'Painting class', title: 'Edit space', focusInEditor: false }, 'the editor must be open on Painting class with no control focused');
+  assert.deepEqual(editorState, { mode: 'panel', name: 'Painting class', title: 'Edit space', focusInEditor: false }, 'the editor must be open on Painting class with no control focused');
   await settle();
   await captureWindow('workspaces-edit', overlay);
   process.stdout.write(`Captured installed Blanc ${version} (${build}) Spaces set to ${outputDirectory}.\n`);

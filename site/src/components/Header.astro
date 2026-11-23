@@ -1,20 +1,33 @@
 ---
 import SiteSearch from "./SiteSearch.astro";
+import MailReserveBanner from "./MailReserveBanner.astro";
 import { browserMenu, directLinks, pagePath } from "../data/navigation.mjs";
 // variant "minimal" (the What's New pages) keeps only the lockup: the page
 // Blanc opens after an update has its own way forward and needs no site nav.
 const { current = null, variant = "solid" } = Astro.props;
 const minimal = variant === "minimal";
 const onHome = pagePath(Astro.url.pathname) === "/";
+// Pages whose first screen sits under a clear bar: the homepage's sunrise
+// (dark ink) and Privacy & Security's night hero (light ink, wide windows
+// only; revamp.css).
+const overlayTone = onHome
+  ? "light"
+  : pagePath(Astro.url.pathname) === "/trust"
+    ? "dark"
+    : undefined;
 const mailPath = pagePath(Astro.url.pathname);
 const onMail = mailPath === "/mail" || mailPath.startsWith("/mail/");
+// The reservation banner shows on the full header only, and not on the Mail
+// pages, which already lead to the reserve form.
+const showReserveBanner = (variant === "solid" || variant === "island") && !onMail;
 const isCurrent = (link) => current === link.key || (link.key === "mail" && onMail);
 const hrefFor = (href) =>
   onHome && href.startsWith("/#") ? href.slice(1) : href;
 ---
 
 <a class="skip-link" href="#main-content">Skip to content</a>
-<header class="site-header revamp-header">
+{showReserveBanner && <MailReserveBanner />}
+<header class="site-header revamp-header" data-overlay-tone={overlayTone}>
   <nav class="site-nav revamp-nav" aria-label="Primary navigation">
     <a class="site-brand" href="/" aria-label="Blanc Browser home"
       ><span class="site-lockup site-lockup--small" aria-hidden="true"
@@ -123,10 +136,27 @@ const hrefFor = (href) =>
     >
     </>)}
   </nav>
-  {onHome && <div class="site-progress" aria-hidden="true" />}
 </header>
 {!minimal && <SiteSearch />}
 <script is:inline>
+  // On the homepage (owner, November 19, 2026) and Privacy & Security (owner,
+  // November 23, 2026) the bar starts clear over the first screen and turns
+  // solid once the page scrolls. Set here, before first paint, so without
+  // scripting the bar simply stays solid.
+  (() => {
+    const header = document.querySelector(".revamp-header[data-overlay-tone]");
+    if (!header) return;
+    header.dataset.overlay = "";
+    let queued = false;
+    const update = () => {
+      queued = false;
+      header.toggleAttribute("data-scrolled", scrollY > 8);
+    };
+    update();
+    addEventListener("scroll", () => {
+      if (!queued) { queued = true; requestAnimationFrame(update); }
+    }, { passive: true });
+  })();
   // Runs right after the bar, before first paint, so a phone never flashes the
   // full link row. Without scripting the links wrap onto a second row instead.
   (() => {

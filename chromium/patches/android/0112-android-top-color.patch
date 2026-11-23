@@ -1,13 +1,13 @@
 diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/ChromeTabbedActivity.java b/chrome/android/java/src/org/chromium/chrome/browser/ChromeTabbedActivity.java
 --- a/chrome/android/java/src/org/chromium/chrome/browser/ChromeTabbedActivity.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/ChromeTabbedActivity.java
-@@ -3393,7 +3393,18 @@
-         }
+@@ -3552,6 +3552,17 @@
+         TabbedStartupCoordinator.onWindowCreated(mWindowId, newWindowAppSource);
      }
  
 +    // Blanc (patch 0112): behind the status icons, the color drawn at the page's top, as Safari
 +    // does; Chrome's own color where there is none (private tabs, a page not read yet).
-     @Override
++    @Override
 +    public int getBaseStatusBarColor(@Nullable Tab tab) {
 +        if (mRootUiCoordinator instanceof TabbedRootUiCoordinator coordinator) {
 +            int color = coordinator.blancTopColor(tab);
@@ -16,18 +16,16 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/ChromeTabbedActi
 +        return super.getBaseStatusBarColor(tab);
 +    }
 +
-+    @Override
+     @Override
      protected RootUiCoordinator createRootUiCoordinator() {
-         return new TabbedRootUiCoordinator(
-                 this,
+         var windowAndroid = assertNonNull(getWindowAndroid());
 diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java b/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
 --- a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
-@@ -1831,8 +1831,24 @@
-                             @Override
+@@ -1860,9 +1860,25 @@
                              public @Nullable View pageView() {
                                  return mCompositorViewHolderSupplier.get();
-+                            }
+                             }
 +
 +                            // Blanc (patch 0112): the color at the page's top changed.
 +                            @Override
@@ -35,23 +33,25 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/Tabb
 +                                if (mStatusBarColorController != null) {
 +                                    mStatusBarColorController.updateStatusBarColor();
 +                                }
-                             }
++                            }
                          });
-+    }
-+
+     }
+ 
 +    /**
 +     * Blanc (patch 0112): the color drawn at the top of this tab's page, for the status bar behind
 +     * it, as Safari takes it; 0 for Chrome's own (IslandCoordinator#topColor).
 +     */
 +    public int blancTopColor(@Nullable Tab tab) {
 +        return mBlancIsland == null ? 0 : mBlancIsland.topColor(tab);
-     }
- 
++    }
++
      @Override
+     public void onFinishNativeInitialization() {
+         super.onFinishNativeInitialization();
 diff -ruN a/chrome/browser/BUILD.gn b/chrome/browser/BUILD.gn
 --- a/chrome/browser/BUILD.gn
 +++ b/chrome/browser/BUILD.gn
-@@ -924,6 +924,7 @@
+@@ -1086,6 +1086,7 @@
      ":universal_web_contents_observers",
      "//blanc/android:blocker_bridge",
      "//blanc/android:page_pinch_bridge",

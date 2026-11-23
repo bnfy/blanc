@@ -188,6 +188,16 @@
     <string name="fill_surface_title">Ausfüllstatus</string>
     <string name="fill_dismiss">Schließen</string>
     <string name="dialog_ok">OK</string>
+    <string name="local_html_refused_message">Blanc konnte „%1$s“ nicht öffnen</string>
+    <plurals name="local_html_refused_message_many">
+        <item quantity="one">Blanc konnte %1$d Datei nicht öffnen</item>
+        <item quantity="other">Blanc konnte %1$d Dateien nicht öffnen</item>
+    </plurals>
+    <string name="local_html_refused_line">%1$s: %2$s</string>
+    <string name="local_html_refused_too_large">Die Datei ist größer als 8 MB. Blanc öffnet lokale Seiten bis 8 MB.</string>
+    <string name="local_html_refused_not_html">Diese Datei ist keine HTML-Seite.</string>
+    <string name="local_html_refused_changed">Die Datei hat sich geändert, während Blanc sie gelesen hat. Öffne sie erneut.</string>
+    <string name="local_html_refused_unreadable">Blanc konnte die Datei nicht lesen. Prüfe, ob sie noch existiert und ob du sie öffnen darfst.</string>
     <string name="fill_setup_enable_title">1Password einrichten</string>
     <string name="fill_setup_enable_body">Aktiviere „Logins aus 1Password ausfüllen“ in den Einstellungen. Blanc liest Logins nur auf Anfrage.</string>
     <string name="fill_setup_enable_primary_label">Einstellungen</string>
@@ -305,6 +315,18 @@
     <string name="ws_decision_close_and_switch">Tabs schließen und wechseln</string>
     <string name="ws_row_current">Aktueller Space</string>
     <string name="ws_row_show_window">Fenster zeigen</string>
+    <plurals name="ws_row_title_profile">
+        <item quantity="one">%2$s · %3$s · %4$s · %1$d Tab</item>
+        <item quantity="other">%2$s · %3$s · %4$s · %1$d Tabs</item>
+    </plurals>
+    <string name="ws_row_title_profile_shown">%1$s · %2$s · %3$s</string>
+    <string name="ws_editor_profile_disabled">%1$s (keine weiteren Spaces möglich)</string>
+    <string name="ws_row_open_in_profile">Öffnet in einem Fenster von %1$s</string>
+    <string name="ws_profile_unreadable">Die Spaces dieses Profils konnten nicht gelesen werden.</string>
+    <string name="ws_editor_profile">Profil</string>
+    <string name="ws_editor_help_other_profile">Tabs bleiben in ihrem eigenen Profil, deshalb beginnt ein Space in %1$s leer.</string>
+    <string name="ws_switcher_profile_label">Space · %1$s</string>
+    <string name="ws_error_profile_unavailable">Dieses Profil ist nicht mehr verfügbar.</string>
     <string name="ws_row_retained">Im Speicher gehalten</string>
     <string name="ws_row_open">Space öffnen</string>
     <plurals name="ws_row_title">
@@ -2628,9 +2650,10 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="ios_settings_island">Island</string>
     <string name="ios_settings_privacy_sync">Datenschutz &amp; Synchronisierung</string>
     <string name="ios_island_stop">Laden stoppen</string>
+    <string name="ios_island_close_private_tab">Privaten Tab schließen</string>
     <string name="ios_island_page_actions">Seitenaktionen</string>
     <string name="ios_island_collapse">Island einklappen</string>
-    <string name="ios_palette_placeholder">Suchen, Adresse oder /Befehl eingeben</string>
+    <string name="ios_palette_placeholder">Suchen, URL eingeben oder / für Befehle</string>
     <string name="ios_palette_clear">Suche löschen</string>
     <string name="ios_palette_no_command">Kein passender Befehl</string>
     <string name="ios_palette_no_matches">Keine Treffer. Drücke die Eingabetaste, um es als Adresse oder Suche zu öffnen.</string>

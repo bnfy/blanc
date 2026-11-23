@@ -193,6 +193,17 @@
     <string name="fill_surface_title">Stato della compilazione</string>
     <string name="fill_dismiss">Ignora</string>
     <string name="dialog_ok">OK</string>
+    <string name="local_html_refused_message">Blanc non è riuscito ad aprire «%1$s»</string>
+    <plurals name="local_html_refused_message_many">
+        <item quantity="one">Blanc non è riuscito ad aprire %1$d file</item>
+        <item quantity="many">Blanc non è riuscito ad aprire %1$d file</item>
+        <item quantity="other">Blanc non è riuscito ad aprire %1$d file</item>
+    </plurals>
+    <string name="local_html_refused_line">%1$s: %2$s</string>
+    <string name="local_html_refused_too_large">Il file supera gli 8 MB. Blanc apre pagine locali fino a 8 MB.</string>
+    <string name="local_html_refused_not_html">Questo file non è una pagina HTML.</string>
+    <string name="local_html_refused_changed">Il file è cambiato mentre Blanc lo leggeva. Aprilo di nuovo.</string>
+    <string name="local_html_refused_unreadable">Blanc non è riuscito a leggere il file. Controlla che esista ancora e di poterlo aprire.</string>
     <string name="fill_setup_enable_title">Configura 1Password</string>
     <string name="fill_setup_enable_body">Attiva «Compila gli accessi da 1Password» in Impostazioni. Blanc legge solo su tua richiesta.</string>
     <string name="fill_setup_enable_primary_label">Impostazioni</string>
@@ -314,6 +325,19 @@
     <string name="ws_decision_close_and_switch">Chiudi le schede e cambia</string>
     <string name="ws_row_current">Space attuale</string>
     <string name="ws_row_show_window">Mostra finestra</string>
+    <plurals name="ws_row_title_profile">
+        <item quantity="one">%2$s · %3$s · %4$s · %1$d scheda</item>
+        <item quantity="many">%2$s · %3$s · %4$s · %1$d schede</item>
+        <item quantity="other">%2$s · %3$s · %4$s · %1$d schede</item>
+    </plurals>
+    <string name="ws_row_title_profile_shown">%1$s · %2$s · %3$s</string>
+    <string name="ws_editor_profile_disabled">%1$s (impossibile aggiungere Spaces)</string>
+    <string name="ws_row_open_in_profile">Si apre in una finestra di %1$s</string>
+    <string name="ws_profile_unreadable">Impossibile leggere gli Spaces di questo profilo.</string>
+    <string name="ws_editor_profile">Profilo</string>
+    <string name="ws_editor_help_other_profile">Le schede restano nel proprio profilo, quindi uno Space in %1$s parte vuoto.</string>
+    <string name="ws_switcher_profile_label">Space · %1$s</string>
+    <string name="ws_error_profile_unavailable">Questo profilo non è più disponibile.</string>
     <string name="ws_row_retained">Mantenuto in memoria</string>
     <string name="ws_row_open">Apri lo Space</string>
     <plurals name="ws_row_title">
@@ -2709,9 +2733,10 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="ios_settings_island">Island</string>
     <string name="ios_settings_privacy_sync">Privacy e sincronizzazione</string>
     <string name="ios_island_stop">Interrompi il caricamento</string>
+    <string name="ios_island_close_private_tab">Chiudi scheda privata</string>
     <string name="ios_island_page_actions">Azioni della pagina</string>
     <string name="ios_island_collapse">Comprimi l’Island</string>
-    <string name="ios_palette_placeholder">Cerca, inserisci un indirizzo o un /comando</string>
+    <string name="ios_palette_placeholder">Cerca, inserisci un URL o / per i comandi</string>
     <string name="ios_palette_clear">Cancella la ricerca</string>
     <string name="ios_palette_no_command">Nessun comando corrispondente</string>
     <string name="ios_palette_no_matches">Nessun risultato. Premi Invio per aprirlo come indirizzo o ricerca.</string>

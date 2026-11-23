@@ -3,7 +3,8 @@ import { initHorizonShield } from "./horizon-shield.js";
 import { initGlanceDemo } from "./glance-demo.js";
 import { initGestureDemo } from "./gesture-demo.js";
 import { initFloatingIslandHero } from "./floating-island-hero.js";
-import { createImagePreview } from "./image-preview.js";
+import { initDeviceTour } from "./device-tour.js";
+import { initMailPromo } from "./mail-promo.js";
 
 // The homepage works without this script: every switching path and every
 // system's default-browser steps are in the page, and the questions are
@@ -59,34 +60,16 @@ export function initFaq(toggle, questions) {
 
 // The Start Page card shows one layout's capture at a time; without the
 // script it shows Billboard.
-export function initLayouts(group, image, { view = window } = {}) {
-  if (!group || !image) return;
-  const preview = createImagePreview(image, { view });
-  const buttons = [...group.querySelectorAll("button")];
-  buttons.forEach((button) =>
-    button.addEventListener("click", () =>
-      preview.show(button.dataset.layoutSrc, button.dataset.layoutAlt, () =>
-        buttons.forEach((other) =>
-          other.setAttribute("aria-pressed", String(other === button)),
-        ),
-      ),
-    ),
-  );
-  group.hidden = false;
-}
-
 export function initHome({ document = window.document, view = window } = {}) {
   initHandheldDownload({ document, view });
   initFloatingIslandHero(document.querySelector("[data-float-window]"), { view });
+  // The hero shows Blanc on each device in turn (device-tour.js).
+  initDeviceTour(document.querySelector("[data-device-tour]"), { view });
   // The Blocker shield turns as it scrolls by (three.js, loaded lazily).
   initHorizonShield(document.querySelector(".horizon-study"), { view });
   initGlanceDemo(document.querySelector("#glance"), { view });
   initGestureDemo(document.querySelector(".gesture-study"), { view });
-  initLayouts(
-    document.querySelector("[data-layouts]"),
-    document.querySelector("#layout-image"),
-    { view },
-  );
+  initMailPromo(document.querySelector("#blanc-mail"), { view });
   const selectSource = initSwitcher(
     document.querySelector("[data-switch-sources]"),
     [...document.querySelectorAll("[data-source-panel]")],

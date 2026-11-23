@@ -153,6 +153,33 @@ public class IslandMenuPopupTest {
                 titles(IslandMenuPopup.show(mAnchor, page(true, false), mActions)));
     }
 
+    // #1682: the Island tags its menu button with what only it can do. A private tab's menu leads with
+    // Close Private Tab, and New tab joins the menu while Stop holds its place on the Island.
+    @Test
+    public void theIslandsOwnActionsComeFromItsButton() {
+        mAnchor.setTag(R.id.blanc_island_menu_actions, new IslandMenuPopup.IslandActions() {
+            @Override
+            public void newTab() {
+                mRan.add("new-tab");
+            }
+
+            @Override
+            public void closePrivateTab() {
+                mRan.add("close-private");
+            }
+        });
+        PopupMenu popup = IslandMenuPopup.show(mAnchor, page(true, false), mActions);
+        assertEquals("Close Private Tab", titles(popup).get(0));
+        popup.getMenu().performIdentifierAction(popup.getMenu().getItem(0).getItemId(), 0);
+        IslandMenu.Context loading = page(false, false);
+        loading.loading = true;
+        List<String> titles = titles(IslandMenuPopup.show(mAnchor, loading, mActions));
+        assertEquals(titles.indexOf("New Private Tab") - 1, titles.indexOf("New tab"));
+        PopupMenu again = IslandMenuPopup.show(mAnchor, loading, mActions);
+        again.getMenu().performIdentifierAction(again.getMenu().getItem(titles.indexOf("New tab")).getItemId(), 0);
+        assertEquals(List.of("close-private", "new-tab"), mRan);
+    }
+
     @Test
     public void eachEntryRunsItsAction() {
         PopupMenu popup = IslandMenuPopup.show(mAnchor, page(false, false), mActions);

@@ -694,6 +694,34 @@
     "message": "OK",
     "source": "sha256:b1a3b3dd5f319182d36007c1a2ecd2497c9a99577155a3cf0700456338e2bc8f"
   },
+  "localHtml.refused.message": {
+    "message": "Blanc konnte „{name}“ nicht öffnen",
+    "source": "sha256:9c82790b195c01d18c68ab3f53abbedbf63ece5cafda60c605b4bca21c5b72c2"
+  },
+  "localHtml.refused.messageMany": {
+    "message": "{count, plural, one {Blanc konnte # Datei nicht öffnen} other {Blanc konnte # Dateien nicht öffnen}}",
+    "source": "sha256:8299a0dc48995e2b17cfbac1bce45fab3275a492385799d3fe3bf12891f62933"
+  },
+  "localHtml.refused.line": {
+    "message": "{name}: {reason}",
+    "source": "sha256:bf12f677d7cca2f724c984888885847294196ed17a9073a37fe6521142a37734"
+  },
+  "localHtml.refused.tooLarge": {
+    "message": "Die Datei ist größer als 8 MB. Blanc öffnet lokale Seiten bis 8 MB.",
+    "source": "sha256:b5c6e53c25a3a506b55b89dc2445cd3bdb320130e8f524bfb457d8f205bf45f1"
+  },
+  "localHtml.refused.notHtml": {
+    "message": "Diese Datei ist keine HTML-Seite.",
+    "source": "sha256:7fe7e9bd6850056a59129d57978be2cf935c79821b8b23d0490a2efacf3e6897"
+  },
+  "localHtml.refused.changed": {
+    "message": "Die Datei hat sich geändert, während Blanc sie gelesen hat. Öffne sie erneut.",
+    "source": "sha256:ea2d3a26ee8bf314bec4e98eee617e755bbf2e0d113281c0f491791c218502a7"
+  },
+  "localHtml.refused.unreadable": {
+    "message": "Blanc konnte die Datei nicht lesen. Prüfe, ob sie noch existiert und ob du sie öffnen darfst.",
+    "source": "sha256:d19e7bf51c17b01c4e5d6a50c5b3e128a62d4a5647327cd0a6f2db9f522662e8"
+  },
   "fill.setupEnable.title": {
     "message": "1Password einrichten",
     "source": "sha256:75c6f5733bc9fa69bbad65b8b961247889275d3c9fca22f13e12c17ba6ce9df7"
@@ -1113,6 +1141,42 @@
   "ws.row.showWindow": {
     "message": "Fenster zeigen",
     "source": "sha256:208c2f0a5d1d6eb31e30e1c31757da4026fe58b6be33579bfab3fc64b1982173"
+  },
+  "ws.row.titleProfile": {
+    "message": "{count, plural, one {{name} · {profile} · {context} · # Tab} other {{name} · {profile} · {context} · # Tabs}}",
+    "source": "sha256:95985a274895d0e9ea45b61903cae855286fcaaa1d1518dc281cf4a16dffbd06"
+  },
+  "ws.row.titleProfileShown": {
+    "message": "{name} · {profile} · {context}",
+    "source": "sha256:5f12d89df15ab0b7d2e5c06edd7da7d4a2c34f44ab70877e85e46c14270ade64"
+  },
+  "ws.editor.profileDisabled": {
+    "message": "{profile} (keine weiteren Spaces möglich)",
+    "source": "sha256:142fafc05dee7633512b4a915b50f612c88f99232afabbc03aa2d7094c464882"
+  },
+  "ws.row.openInProfile": {
+    "message": "Öffnet in einem Fenster von {profile}",
+    "source": "sha256:21a3870cc53fceb80f459ceb9a092d1e8d3eb69171b885f002d4c03eafc2a3fb"
+  },
+  "ws.profile.unreadable": {
+    "message": "Die Spaces dieses Profils konnten nicht gelesen werden.",
+    "source": "sha256:127d38b05e88927d4300d822df58f3fff722a4279be4b8f07fc0ad34ecc48f05"
+  },
+  "ws.editor.profile": {
+    "message": "Profil",
+    "source": "sha256:ae784b5ee9733a1787d411caa78539c26aacc83ff2ee315ee5bbf2f992a3fa53"
+  },
+  "ws.editor.helpOtherProfile": {
+    "message": "Tabs bleiben in ihrem eigenen Profil, deshalb beginnt ein Space in {profile} leer.",
+    "source": "sha256:9b2c0fb142313f2a2ca9f4596e46a9ae27cafee04b3ce99d779474bb6db92df5"
+  },
+  "ws.switcher.profileLabel": {
+    "message": "Space · {profile}",
+    "source": "sha256:10fa668010a07248bc9a034cc1ed6f13f21ba69326b706138360313e2910fb67"
+  },
+  "ws.error.profileUnavailable": {
+    "message": "Dieses Profil ist nicht mehr verfügbar.",
+    "source": "sha256:89d8ccff126fea81e5bd1008aaefa65d61fafd2abfe330dbfb09cfc21e71679d"
   },
   "ws.row.retained": {
     "message": "Im Speicher gehalten",
@@ -9509,6 +9573,10 @@
     "message": "Laden stoppen",
     "source": "sha256:7afd60900cf4554c372a6974840bee623d3a7ad10fa18559cd951051493b6ba8"
   },
+  "ios.island.closePrivateTab": {
+    "message": "Privaten Tab schließen",
+    "source": "sha256:70725014f209df31a338d0133337aa4c726cd266766537da8e08786bfad6b054"
+  },
   "ios.island.pageActions": {
     "message": "Seitenaktionen",
     "source": "sha256:0b926606bca19deecf9e0d633786f8643b649905978b53d66a1453980a9215f7"
@@ -9518,8 +9586,8 @@
     "source": "sha256:ab5674348d6cbc0f0e6397f7be9b29a93ebebdff3030e6407f5bb74b573a381b"
   },
   "ios.palette.placeholder": {
-    "message": "Suchen, Adresse oder /Befehl eingeben",
-    "source": "sha256:e0ba598be2d25b91629b28568d437a2bf5cfc137f9adda1e32015dc3c6ad766c"
+    "message": "Suchen, URL eingeben oder / für Befehle",
+    "source": "sha256:fc9b9cf5467ef76a900cd05905a523e7bf5f9a05bd0814e586f19c0ba9ee00fe"
   },
   "ios.palette.clear": {
     "message": "Suche löschen",
@@ -9801,6 +9869,30 @@
     "note": "Android Settings → Island position: the Island sits at the bottom of the screen.",
     "source": "sha256:206e35c0a394e6a73d39040dd0cab63b48af03b1d6d0ed533d44b3af8f709528"
   },
+  "android.settings.autofill.title": {
+    "message": "Passwörter ausfüllen",
+    "source": "sha256:de81fec134e9003c5f6758bbe9d1bc03eeeb2610a8ca0f960a732333a07669a6"
+  },
+  "android.settings.autofill.summary": {
+    "message": "Der Passwortmanager, den du in Android auswählst (etwa Bitwarden, Proton Pass oder 1Password), kann in Blanc Passwörter eintragen und andere Formulare ausfüllen, sofern er sie unterstützt. Der Google Passwortmanager füllt in Blanc keine Formulare aus.",
+    "source": "sha256:d9659b94ad570ed82c70aa4f3b974a638554d68de10687b1d6cc5f4508ee848c"
+  },
+  "android.settings.autofill.managed": {
+    "message": "Deine Organisation verwaltet diese Einstellung.",
+    "source": "sha256:ffe729844b53b712b64b7ef0e0f62111204900169bb47a35e59f4ad1096b984f"
+  },
+  "android.settings.autofill.choose": {
+    "message": "Passwortmanager auswählen",
+    "source": "sha256:4100ca7b229cbe8a2a16c61a7e89731170f4d1dfcf50c60ca456d5b86c1a83f1"
+  },
+  "android.settings.autofill.chooseSummary": {
+    "message": "Wird beim nächsten Start von Blanc wirksam.",
+    "source": "sha256:1a6b58d50536e2a456f657a610b8561561e22cac67a35571f1b79836220cb686"
+  },
+  "android.settings.autofill.restart": {
+    "message": "Starte Blanc neu, um die Änderung zu übernehmen",
+    "source": "sha256:5543fb10333442eec51936d21b7267bf0bdfc0adb2d90850f19e2727ac77d16a"
+  },
   "android.settings.openSourceLicenses": {
     "message": "Open-Source-Lizenzen",
     "note": "Android Settings → About: row opening the list of open-source licenses.",
@@ -9982,5 +10074,13 @@
   "start.mahjong.play": {
     "message": "Blanc Mahjong spielen",
     "source": "sha256:9b62eba2e07c169ab3ee5415185da568ca0fd436fd6cc8730fe661830c6ed9d7"
+  },
+  "android.contextMenu.privateTab": {
+    "message": "In privatem Tab öffnen",
+    "source": "sha256:48a5da257ddfeccb9a6f1d16e4effa493a14e3210f8fe55b689455aebdafa78b"
+  },
+  "android.contextMenu.newBlancTab": {
+    "message": "In neuem Blanc-Tab öffnen",
+    "source": "sha256:bae530101e3c873c6fd7a7af7cbbcca3fdf632b1fec7677da23d3937a37aaba0"
   }
 }

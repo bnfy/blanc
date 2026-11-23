@@ -1,43 +1,43 @@
 # Unreleased notes
 
-v1.51.0 is the current public release ([notes](v1.51.0.md)). Changes merged
+v1.52.0 is the current public release ([notes](v1.52.0.md)). Changes merged
 since then are below as they're recorded.
-
-## Added
-
-- **Open local HTML files on Windows.** Choosing Blanc under **Open with** for
-  an `.html` file now opens it, as on a Mac, instead of opening Blanc with
-  nothing in it (#1630). The file shows in a separate, static preview window:
-  scripts, network requests and other files on the disk (such as a page's own
-  stylesheets and images) are blocked, so some pages look plainer than they do
-  in other browsers, and files over 8 MB don't open. Blanc is added to the
-  Open with list for HTML files, and making Blanc your default browser
-  doesn't make it the default for them. A preview closes with Blanc's last
-  window.
 
 ## Fixed
 
-- **Pop-up windows close when their page asks first.** A page in a separate
-  pop-up window, such as Proxmox's console while it's connected, can ask
-  before you leave it. Blanc now asks **Leave** or **Stay**, as it does in a
-  tab; before, the window's close button did nothing (#1477).
-- **No passkey prompt on page load on Windows.** Many sign-in pages quietly
-  ask the browser for passkeys as they load. On Windows that opened Windows'
-  **Sign in with a passkey** dialog on every visit, even with no passkey
-  saved. Blanc now tells those pages it can't list passkeys, so they show
-  their own passkey button; choosing it still opens the dialog.
+- **Open local HTML files on Linux.** Choosing Blanc under a file manager's
+  **Open With** for an `.html` file now opens it in the static preview
+  window, as on Windows and the Mac. Before, Blanc only came to the front
+  with nothing opened (#1630).
 
-## Still open for the next release
+## Still open from 1.52
 
+- **Opening local HTML files on Linux** (#1630) by hand from a file manager's
+  Open With (GNOME Files and Dolphin) with the AppImage, at launch and while
+  Blanc is running. CI opens a file in the static preview from the packaged
+  AppImage's command line, as a `file:///` URI at launch and as a path handed
+  to a running Blanc.
+
+- **Download peek with Auto-hide on**, by hand in a packaged build on macOS
+  and Windows: a real click on a download link shows the hidden Island in both
+  the float and push styles. CI checks it with real downloads on Linux and
+  Windows; nobody has watched it on screen yet.
 - **Opening local HTML files on Windows** (#1630) by hand from Explorer's
-  Open with in an installed build. CI checked the installer's registration
-  and its removal on a real Windows runner. The packaged check that opens a
-  file at launch and while Blanc runs is in the Windows release job but
-  hasn't passed on an ECS build yet.
-- **The Windows passkey fix** in a packaged build and on a PC with Windows
-  Hello set up. It was checked in the Windows VM (no Windows Hello) with a
-  source build and a local test page, not a real site. A sign-in form inside
-  an iframe can still open the dialog.
+  Open with in an installed build, including Settings' Set default button.
+  CI checked the rest on a signed ECS package on a Windows runner (run
+  44658492309): the installer's registration and its removal, and a file
+  opening in the static preview at launch and when handed to a running
+  Blanc.
+- **The Windows passkey fix** on a PC with Windows Hello set up, and on real
+  sites. On November 21, 2026 a signed ECS package of `main` (`4c8f5d02f`,
+  run 44887227876) was checked in the Windows VM (no Windows Hello) with a
+  local test page: a quiet passkey request no longer started Windows'
+  passkey dialog, a passkey request the page made directly still did, and
+  public 1.51.0 still showed the bug. A sign-in form inside an iframe can
+  still open the dialog.
+- **The message for a refused local HTML file** in a packaged build on macOS
+  and Windows. Unit tests cover the reasons and the text; nobody has seen the
+  dialog on screen yet.
 - **Closing a real Proxmox console window** (#1477) in a packaged build. The
   fix was checked in the acceptance suite with a page that asks before it's
   left, not against Proxmox itself.
@@ -68,9 +68,6 @@ since then are below as they're recorded.
   Windows and Linux. The checks so far drive drags with page events only.
 - **The Favorites menu's nested folders** by hand in a packaged build on
   each platform.
-- **Okta Verify FastPass** (#1585) against a real enrolled Okta Verify. The
-  local-network prompt was checked against a test server on `127.0.0.1`
-  only, and a public name that resolves to a private address isn't gated.
 
 ## Still open from 1.49.1
 
