@@ -186,7 +186,9 @@ const feeds = [
   // A link to an entry the current filter hides (a beta, while Stable shows)
   // widens the filter to All so the link always lands on its entry.
   function reveal() {
-    var target = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    var id;
+    try { id = decodeURIComponent(location.hash.slice(1)); } catch (error) { return; }
+    var target = id && document.getElementById(id);
     if (!target || !target.classList.contains('release') || !target.hidden) return;
     state.product = 'all';
     state.features = false;

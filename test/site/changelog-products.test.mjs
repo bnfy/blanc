@@ -140,3 +140,24 @@ test('the Blanc Beta card opens its entry under All', async () => {
   assert.equal(await pressed(page), 'all');
   await page.close();
 });
+
+for (const width of [375, 768, 900]) {
+  test(`at ${width} px nothing scrolls sideways and every chip shows`, async () => {
+    const page = await browser.newPage({ viewport: { width, height: 900 } });
+    await page.goto(new URL('/changelog', baseURL).href);
+    await page.waitForFunction(() => document.documentElement.dataset.changelogReady === 'true');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
+    const outside = await page.$$eval('[data-product-filter], [data-features-toggle], #changelog-search', (items) =>
+      items.filter((item) => { const box = item.getBoundingClientRect(); return box.left < 0 || box.right > window.innerWidth; })
+        .map((item) => item.dataset.productFilter || item.id || 'toggle'));
+    assert.deepEqual(outside, []);
+    await page.close();
+  });
+}
+
+test('a malformed link fragment leaves the filters working', async () => {
+  const page = await open('/changelog#%E0%A4%A');
+  await page.click('[data-product-filter="beta"]');
+  assert.equal(await pressed(page), 'beta');
+  await page.close();
+});
