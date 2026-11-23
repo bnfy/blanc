@@ -313,6 +313,7 @@ android_library("tabs_ui_java") {
     ":sync_java",
     ":tabs_java",
     "//base:base_java",
+    "//base:tristate_java",
     "//build/android:build_java",
     "//third_party/jni_zero:jni_zero_java",
     "//chrome/browser/android/crypto:java",

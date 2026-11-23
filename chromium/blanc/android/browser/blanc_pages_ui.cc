@@ -343,12 +343,12 @@ class PagesHandler : public content::WebUIMessageHandler {
       const bool background = args.size() == 1 && args[0].is_bool() && args[0].GetBool();
       // A private Start Page's game stays private, as its link says (blanc://mahjong/?private=1).
       OpenPage(off_the_record ? "mahjong.html?private=1" : "mahjong.html",
-               background ? WindowOpenDisposition::NEW_BACKGROUND_TAB : WindowOpenDisposition::NEW_FOREGROUND_TAB);
+               background ? WindowOpenDisposition::kNewBackgroundTab : WindowOpenDisposition::kNewForegroundTab);
       return StartReply(id, true, base::Value(true));
     }
     // The Favorites heading opens Android's Favorites page, in this tab.
     if (method == "openSheet" && args.size() == 1 && args[0].is_string() && args[0].GetString() == "bookmarks") {
-      OpenPage("bookmarks.html", WindowOpenDisposition::CURRENT_TAB);
+      OpenPage("bookmarks.html", WindowOpenDisposition::kCurrentTab);
       return StartReply(id, true, base::Value(true));
     }
     // Desktop's installed browser themes, the Island's band, Patron, the moving-in checklist and

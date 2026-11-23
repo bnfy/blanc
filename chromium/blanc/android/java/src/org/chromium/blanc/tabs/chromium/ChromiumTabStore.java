@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 
 import org.chromium.base.ContextUtils;
 import org.chromium.base.Token;
+import org.chromium.base.TriState;
 import org.chromium.blanc.tabs.TabStore;
 import org.chromium.build.annotations.NullMarked;
 import org.chromium.build.annotations.Nullable;
@@ -15,6 +16,7 @@ import org.chromium.chrome.browser.tab.TabLaunchType;
 import org.chromium.chrome.browser.tab.TabSelectionType;
 import org.chromium.chrome.browser.tabmodel.TabClosureParams;
 import org.chromium.chrome.browser.tabmodel.TabCreatorManager;
+import org.chromium.chrome.browser.tabmodel.TabGroupMergeNotificationType;
 import org.chromium.chrome.browser.tabmodel.TabModel;
 import org.chromium.chrome.browser.tabmodel.TabModelSelector;
 import org.chromium.chrome.browser.tabmodel.TabModelUtils;
@@ -30,6 +32,7 @@ import org.chromium.content_public.browser.WebContents;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -215,7 +218,9 @@ public final class ChromiumTabStore implements TabStore {
 
     /** Brings a frozen tab back without loading it. Its id, group and pin come with it. */
     public String thaw(int id, File directory, int index) {
-        TabState state = TabStateFileManager.restoreTabState(directory, id, mCipher);
+        TabState state =
+                TabStateFileManager.restoreTabState(
+                        directory, id, mCipher, /* isIncognito= */ TriState.FALSE);
         if (state == null) return "";
         Tab tab = mCreators.getTabCreator(false).createFrozenTab(state, id, index);
         if (tab == null) return "";
@@ -363,7 +368,10 @@ public final class ChromiumTabStore implements TabStore {
         if (members.isEmpty() || token.equals(tab.getTabGroupId())) return;
         leaveGroup(tab);
         carryPinIntoGroup(tab);
-        model.mergeTabsToGroup(tab.getId(), members.get(0).getId());
+        model.mergeListOfTabsToGroup(
+                Collections.singletonList(tab),
+                members.get(0),
+                TabGroupMergeNotificationType.NOTIFY_IF_NOT_NEW_GROUP);
     }
 
     @Override
