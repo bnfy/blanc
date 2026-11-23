@@ -299,8 +299,8 @@ main .section-kicker {
   left: -28px;
   z-index: 40;
   display: grid;
-  grid-template-columns: 120px minmax(190px, auto);
-  gap: 30px;
+  grid-template-columns: max-content minmax(190px, auto);
+  gap: 56px;
   padding: 24px 28px;
   border: 1px solid #ece6dc;
   border-radius: 18px;
@@ -415,10 +415,12 @@ main .section-kicker {
 .revamp-nav .site-nav-cta:hover {
   background: #000;
 }
+/* A quiet hairline for keyboard focus in the bar and its menu (owner,
+   November 23, 2026: the 2px gold ring read as heavy). */
 .site-header :is(a, button):focus-visible {
-  outline: 2px solid var(--site-gold);
-  outline-offset: 2px;
-  border-radius: 4px;
+  outline: 1px solid rgb(65 64 61 / 0.55);
+  outline-offset: 3px;
+  border-radius: 6px;
 }
 .revamp-nav .site-menu-toggle {
   display: none;
