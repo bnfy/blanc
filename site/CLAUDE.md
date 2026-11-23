@@ -93,7 +93,7 @@ licence: *Blanc lockup* in `docs/brand-usage.md`.
 
 **Homepage:** the cinematic redesign of October 15, 2026 (`pages/index.astro`,
 `styles/home.css`, `scripts/home.js`). The opening sunrise plays once on
-load (2.2 s, behind `prefers-reduced-motion: no-preference` only), so the
+load (1.4 s, behind `prefers-reduced-motion: no-preference` only), so the
 first screen always ends on the headline and Download; the owner rejected a
 scroll-to-reveal opening on October 15. The rest of the motion is
 scroll-driven CSS behind `@supports (animation-timeline: view())` as well;

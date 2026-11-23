@@ -2030,7 +2030,7 @@ details[open] .faq-sign::after {
   .sun-mark .sun-disc,
   .sun-rays,
   .sun-copy {
-    animation-duration: 2.2s;
+    animation-duration: 1.4s;
     animation-delay: 0.15s;
     animation-timing-function: cubic-bezier(0.33, 0, 0.2, 1);
     animation-fill-mode: both;
