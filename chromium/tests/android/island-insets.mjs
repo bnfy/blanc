@@ -119,9 +119,15 @@ function main(argv) {
         const rest = boundsOf(xml, 'blanc_island_pill');
         const problems = placementProblems({pill: rest, screen, bars, density, position});
         const cy = Math.round(screen.height * 0.6), dy = Math.round(screen.height * 0.25);
-        adb('shell', 'input', 'swipe', '540', String(cy), '540', String(cy - dy), '400');
-        sleep(1.5);
-        if (pill()) problems.push('scrolling down did not tuck it');
+        // Up to three swipes, as a person would scroll on: with Chromium 159 the Island along the top of a
+        // tall screen sometimes needs a little more than one quarter-screen swipe before it tucks.
+        let tucked = false;
+        for (let i = 0; i < 3 && !tucked; i++) {
+          adb('shell', 'input', 'swipe', '540', String(cy), '540', String(cy - dy), '400');
+          sleep(1.5);
+          tucked = !pill();
+        }
+        if (!tucked) problems.push('scrolling down did not tuck it');
         adb('shell', 'input', 'swipe', '540', String(cy - dy), '540', String(cy - Math.round(dy / 2)), '400');
         sleep(1.5);
         if (!pill()) problems.push('scrolling back up did not return it');

@@ -21,7 +21,9 @@ import {fileURLToPath} from 'node:url';
 import {hostPort} from './support/host-ports.mjs';
 
 const PACKAGE = 'me.bnfy.blanc.dev';
-const PAGES = ['newtab', 'bookmarks', 'history', 'shortcuts', 'error', 'mahjong'];
+// No Mahjong: Blanc doesn't offer it on phones yet (owner, November 14, 2026; the Start Page hides
+// its link), so this doesn't check the copy the lane still carries.
+const PAGES = ['newtab', 'bookmarks', 'history', 'shortcuts', 'error'];
 const PHONE_LAYOUT = ['newtab', 'bookmarks', 'history', 'shortcuts'];
 // The Start Page is the desktop fork's, marked by android-start.js; the rest are shipping's, which
 // the adapter marks with the iPhone's phone layout.
@@ -117,7 +119,13 @@ async function devtools() {
     if (message.id && waiting.has(message.id)) { waiting.get(message.id)(message); waiting.delete(message.id); }
     if (message.method === 'Runtime.exceptionThrown') errors.push(message.params.exceptionDetails.exception?.description || message.params.exceptionDetails.text);
   };
-  const send = (method, params = {}) => new Promise(resolve => { const id = ++seq; waiting.set(id, resolve); ws.send(JSON.stringify({id, method, params})); });
+  // A page whose renderer died never answers: fail in 30 s instead of waiting for ever.
+  const send = (method, params = {}) => new Promise((resolve, reject) => {
+    const id = ++seq;
+    const timer = setTimeout(() => { waiting.delete(id); reject(Error(`no answer to ${method} in 30 s`)); }, 30000);
+    waiting.set(id, message => { clearTimeout(timer); resolve(message); });
+    ws.send(JSON.stringify({id, method, params}));
+  });
   await send('Runtime.enable');
   return {url: target.url, send, errors, close: () => ws.close()};
 }
