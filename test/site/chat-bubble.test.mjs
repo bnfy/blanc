@@ -71,3 +71,36 @@ test('the chat button shows a two-tone focus ring that reads on cream and dark',
     assert.match(ring.shadow, /0px 0px 0px \d+px/, 'a solid ring behind the outline');
   } finally { await page.close(); }
 });
+
+// Crisp loads only after a click, except for a visitor who has chatted before
+// in this browser: Crisp's session cookie is still there, so Crisp loads,
+// closed, to show a reply that came after they left.
+for (const returning of [false, true]) {
+  test(`Crisp ${returning ? 'loads closed for a returning chat visitor' : 'waits for a click from a new visitor'}`, async () => {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await context.newPage();
+    try {
+      await page.goto(`${baseURL}/features/island`);
+      const websiteId = await page.locator('[data-live-chat-bubble]').getAttribute('data-live-chat');
+      if (returning) {
+        await context.addCookies([{ name: encodeURIComponent(`crisp-client/session/${websiteId}`), value: 'session_test', url: baseURL }]);
+      }
+      const crispRequests = [];
+      await page.route('**/*', route => {
+        const url = new URL(route.request().url());
+        if (url.origin === new URL(baseURL).origin) return route.continue();
+        if (url.hostname.endsWith('crisp.chat')) crispRequests.push(url.href);
+        return route.abort();
+      });
+      await page.reload();
+      await page.waitForLoadState('networkidle');
+      if (returning) {
+        assert.deepEqual(crispRequests, ['https://client.crisp.chat/l.js']);
+        assert.equal(await page.evaluate(() => window.$crisp.some(cmd => cmd[0] === 'do' && cmd[1] === 'chat:open')), false, 'stays closed');
+      } else {
+        assert.deepEqual(crispRequests, []);
+        assert.equal(await page.evaluate(() => window.$crisp), undefined);
+      }
+    } finally { await context.close(); }
+  });
+}
