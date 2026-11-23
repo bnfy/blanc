@@ -19,8 +19,9 @@ const winBuild = betaWin.build;
 const winChromiumMajor = betaWin.chromium.split('.')[0];
 const winReleased = new Date(`${betaWin.published}T00:00:00Z`)
   .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
-// Blanc Beta for Linux: its own wide tile after the Windows beta's, with the four
-// packages linked straight from the GitHub pre-release and the manual repository
+// Blanc Beta for Linux: its own wide tile after the Windows beta's, with one counted
+// /dl/beta-linux-<arch>-<format> route per package (blanc-ping answers with that
+// package on the GitHub pre-release) and the manual repository
 // commands from chromium/linux/manual-repository.md (copied verbatim into
 // src/data/blanc-beta-linux.json); docs/website-blanc-beta-linux-<version>-claims.json
 // records its sentences.
@@ -28,7 +29,6 @@ const linuxBuild = betaLinux.build;
 const linuxChromiumMajor = betaLinux.chromium.split('.')[0];
 const linuxReleased = new Date(`${betaLinux.published}T00:00:00Z`)
   .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
-const linuxPackage = (arch, format) => betaLinux.packages.find((p) => p.arch === arch && p.format === format).url;
 const betaReleased = new Date(`${beta.published}T00:00:00Z`)
   .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 ---
@@ -227,10 +227,10 @@ const betaReleased = new Date(`${beta.published}T00:00:00Z`)
         </dl>
         <p class="dl-tile-meta">{betaLinux.requirement}<br />Released {linuxReleased}</p>
         <ul class="dl-linux-packages" aria-label="Download Beta for Linux">
-          <li><a class="dl-tile-button" href={linuxPackage('x64', 'deb')}><PlatformLogo platform="linux" />x64 .deb</a></li>
-          <li><a class="dl-tile-button" href={linuxPackage('x64', 'rpm')}><PlatformLogo platform="linux" />x64 .rpm</a></li>
-          <li><a class="dl-tile-button" href={linuxPackage('arm64', 'deb')}><PlatformLogo platform="linux" />arm64 .deb</a></li>
-          <li><a class="dl-tile-button" href={linuxPackage('arm64', 'rpm')}><PlatformLogo platform="linux" />arm64 .rpm</a></li>
+          <li><a class="dl-tile-button" href="/dl/beta-linux-x64-deb" data-download-link data-track="download_click" data-platform="beta-linux-x64-deb" data-cta-position="beta-linux"><PlatformLogo platform="linux" />x64 .deb</a></li>
+          <li><a class="dl-tile-button" href="/dl/beta-linux-x64-rpm" data-download-link data-track="download_click" data-platform="beta-linux-x64-rpm" data-cta-position="beta-linux"><PlatformLogo platform="linux" />x64 .rpm</a></li>
+          <li><a class="dl-tile-button" href="/dl/beta-linux-arm64-deb" data-download-link data-track="download_click" data-platform="beta-linux-arm64-deb" data-cta-position="beta-linux"><PlatformLogo platform="linux" />arm64 .deb</a></li>
+          <li><a class="dl-tile-button" href="/dl/beta-linux-arm64-rpm" data-download-link data-track="download_click" data-platform="beta-linux-arm64-rpm" data-cta-position="beta-linux"><PlatformLogo platform="linux" />arm64 .rpm</a></li>
         </ul>
         <p class="dl-linux-hint">Use the .deb on Debian and Ubuntu, the .rpm on Fedora.</p>
       </div>

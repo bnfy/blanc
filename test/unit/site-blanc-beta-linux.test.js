@@ -1,7 +1,8 @@
 'use strict';
 // Blanc Beta for Linux on /download: its own wide tile after the Windows beta's.
 // The tile and its data describe the same published pre-release, its four
-// packages link straight to that release's assets (Linux has no /dl/* route),
+// packages go through counted /dl/beta-linux-<arch>-<format> routes that answer
+// with that release's assets,
 // the repository commands are chromium/linux/manual-repository.md's, and every
 // sentence in the tile is in its claims ledger.
 const test = require('node:test');
@@ -60,16 +61,24 @@ test('the data and ledger name the same published Linux pre-release', () => {
   }
 });
 
-test('each package button links to its own asset on the release, and nothing goes through /dl', () => {
+test('each package button goes through its own counted /dl route to its own asset', async () => {
   const tile = section();
-  const buttons = [...tile.matchAll(/<a class="dl-tile-button" href=\{linuxPackage\('(x64|arm64)', '(deb|rpm)'\)\}>[\s\S]*?\/>([^<]+)<\/a>/g)];
+  const buttons = [...tile.matchAll(/<a class="dl-tile-button" href="\/dl\/beta-linux-(x64|arm64)-(deb|rpm)" data-download-link data-track="download_click" data-platform="beta-linux-\1-\2" data-cta-position="beta-linux">[\s\S]*?\/>([^<]+)<\/a>/g)];
   assert.deepEqual(buttons.map((m) => [m[1], m[2], m[3]]), [
     ['x64', 'deb', 'x64 .deb'], ['x64', 'rpm', 'x64 .rpm'], ['arm64', 'deb', 'arm64 .deb'], ['arm64', 'rpm', 'arm64 .rpm'],
   ]);
-  assert.match(page, /const linuxPackage = \(arch, format\) => betaLinux\.packages\.find\(\(p\) => p\.arch === arch && p\.format === format\)\.url;/);
-  assert.doesNotMatch(tile, /\/dl\//, 'Linux has no counted /dl/* route yet');
-  // A GitHub asset link must not carry the site's ad-click reference or count as a download conversion.
-  assert.doesNotMatch(tile, /data-download-link|data-download-cta|data-track="download_click"/);
+  assert.doesNotMatch(tile, /href="https:\/\/github\.com\/[^"]*\.(?:deb|rpm)"/, 'packages are never linked around the counter');
+  const dl = await import('../../cloudflare/ping-worker/src/dl.js');
+  const targets = linux.packages.map((p) => `beta-linux-${p.arch}-${p.format}`);
+  assert.deepEqual(Object.keys(dl.BETA_LINUX_DOWNLOADS).sort(), targets.toSorted());
+  for (const p of linux.packages) {
+    const target = `beta-linux-${p.arch}-${p.format}`;
+    assert.ok(dl.DL_TARGETS.has(target), target);
+    assert.equal(dl.BETA_LINUX_DOWNLOADS[target], p.url);
+    assert.equal(dl.fixedDownload(target), p.url);
+  }
+  assert.notEqual(dl.fixedDownload('beta'), linux.packages[0].url, 'the Mac beta keeps its own download');
+  assert.equal(dl.fixedDownload('beta-linux-x64-AppImage'), null);
 });
 
 test('every sentence in the tile is in the claims ledger, and nothing else is', () => {

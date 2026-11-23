@@ -13,7 +13,7 @@
       "The Download page's Linux tile offers both packages for each architecture and the commands of chromium/linux/manual-repository.md (L3 plan); its update wording says 'offered', never 'installed automatically' (L3 plan decision 5, spec section 3).",
       "Public copy names only the systems a gate ran on, and says KDE and x64 desktops weren't checked by eye (spec sections 1 and 2).",
       "The update wording doesn't promise that the desktop's graphical updater lists Blanc's updates: Ubuntu 26.04's App Center doesn't list them until the repository publishes DEP-11 metadata (chromium/linux/hand-checks-l3.md).",
-      "No /dl/* route for Linux in this change: the four packages link straight to the release's assets."
+      "Each package has its own counted blanc-ping route, /dl/beta-linux-<arch>-<format> (owner, 2026-11-23), answering with that package on the pre-release, like /dl/beta and /dl/beta-win."
     ]
   },
   "page": "site/src/pages/download.astro#beta-linux",

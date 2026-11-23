@@ -322,8 +322,9 @@ Keychain limitation. Every piece of text is recorded in
 `site/src/data/blanc-beta-windows.json` are updated by hand for each Windows
 beta, and `test/unit/site-blanc-beta-windows.test.js` keeps them equal; the
 Linux tile's sentences are in `docs/website-blanc-beta-linux-<version>-claims.json`,
-its four packages link straight to the release's assets with no `/dl/*` route,
-and `site/src/data/blanc-beta-linux.json` carries those assets and the
+its four packages go through counted `/dl/beta-linux-<arch>-<format>` routes
+(`BETA_LINUX_DOWNLOADS` in blanc-ping's `dl.js`, updated by hand with each Linux
+beta), and `site/src/data/blanc-beta-linux.json` carries those assets and the
 repository commands copied verbatim from `chromium/linux/manual-repository.md`
 on `chromium/next`, checked by `test/unit/site-blanc-beta-linux.test.js`), and
 `test/unit/site-download-page.test.js` fails on any unrecorded text; large
