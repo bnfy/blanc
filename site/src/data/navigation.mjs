@@ -23,7 +23,7 @@ export const browserMenu = {
     { href: '/features/start-page', label: 'Start Page' },
   ],
   more: [
-    { href: '/features', label: 'All features' },
+    { href: '/features', label: 'All features', primary: true },
     { href: '/#compare', label: 'Blanc vs. Chrome' },
     { href: '/compare', label: 'Compare browsers' },
     { href: '/arc-alternative', label: 'Switching from Arc' },

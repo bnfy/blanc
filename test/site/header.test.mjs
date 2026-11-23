@@ -138,6 +138,14 @@ test('the Browser menu opens on click with Download and Features, and closes wit
       assert.equal(open.inBounds, true, `${width}px: panel inside the viewport`);
       assert.equal(new URL(page.url()).pathname, '/trust', 'the trigger does not navigate');
       assert.deepEqual(open.links.map(([label]) => label), ['macOS', 'Windows', 'Linux', 'iPhone and iPad', 'The Island', 'Blanc Spaces', 'Tab groups', 'Ad and tracker blocking', 'Private tabs', 'Glance', 'Start Page', 'All features', 'Blanc vs. Chrome', 'Compare browsers', 'Switching from Arc']);
+      // All features is the panel's one primary button, and the download links are bold.
+      const styled = await page.evaluate(() => ({
+        primary: [...document.querySelectorAll('#site-browser-panel .site-browser-cta')].map(a => [a.textContent.trim(), new URL(a.href).pathname, getComputedStyle(a).borderRadius]),
+        downloadWeights: [...document.querySelectorAll('#site-browser-panel .site-browser-downloads a')].map(a => getComputedStyle(a).fontWeight),
+      }));
+      assert.deepEqual(styled.primary.map(([label, path]) => [label, path]), [['All features', '/features']], `${width}px: one primary button`);
+      assert.notEqual(styled.primary[0][2], '0px', `${width}px: drawn as a pill`);
+      assert.deepEqual(styled.downloadWeights, ['600', '600', '600', '600'], `${width}px: bold download links`);
       await page.keyboard.press('Escape');
       assert.equal((await browserPanel(page)).open, false, 'Escape closes it');
       assert.equal(await page.evaluate(() => document.activeElement?.hasAttribute('data-browser-trigger')), true, 'focus returns to Browser');

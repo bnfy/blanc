@@ -229,6 +229,37 @@ main .section-kicker {
   align-items: center;
   gap: 22px;
 }
+/* Search, Download and Menu, spaced like the rest of the bar. */
+.site-nav-actions {
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: inherit;
+}
+/* Wide windows centre the links under the reservation banner's line, with the
+   lockup and the actions at the two ends (owner, November 23, 2026). The side
+   columns never shrink below their content, so a wide action keeps its room. */
+@media (min-width: 921px) {
+  .site-header .revamp-nav {
+    display: grid;
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
+  }
+  .revamp-nav .site-brand {
+    justify-self: start;
+    margin-right: 0;
+  }
+  .revamp-nav .site-nav-links {
+    justify-self: center;
+  }
+  .revamp-nav .site-nav-actions {
+    justify-self: end;
+  }
+}
+@media (min-width: 1051px) {
+  .revamp-nav .site-nav-links {
+    gap: 28px;
+  }
+}
 .revamp-nav .revamp-nav-link {
   display: flex;
   align-items: center;
@@ -268,8 +299,8 @@ main .section-kicker {
   left: -28px;
   z-index: 40;
   display: grid;
-  grid-template-columns: 120px minmax(190px, auto);
-  gap: 30px;
+  grid-template-columns: max-content minmax(190px, auto);
+  gap: 56px;
   padding: 24px 28px;
   border: 1px solid #ece6dc;
   border-radius: 18px;
@@ -303,6 +334,10 @@ main .section-kicker {
   text-decoration: none;
   white-space: nowrap;
 }
+/* The download links are set bold (owner, November 23, 2026). */
+.site-browser-downloads a {
+  font-weight: 600;
+}
 .site-browser-panel a:hover {
   color: var(--site-gold);
 }
@@ -322,6 +357,41 @@ main .section-kicker {
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+/* "All features" is the panel's one primary action, drawn like the bar's
+   Download button (owner, November 23, 2026). */
+.site-browser-panel a.site-browser-cta {
+  gap: 6px;
+  min-height: 36px;
+  margin: 2px 0 4px;
+  padding: 0 14px 0 16px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 14px;
+  font-weight: 500;
+}
+.site-browser-panel a.site-browser-cta:hover {
+  background: #000;
+  color: var(--paper);
+}
+.site-browser-cta svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 160ms ease;
+}
+.site-browser-cta:hover svg {
+  transform: translateX(2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-browser-cta svg {
+    transition: none;
+  }
 }
 .site-browser-more {
   margin-top: 6px;
@@ -345,10 +415,12 @@ main .section-kicker {
 .revamp-nav .site-nav-cta:hover {
   background: #000;
 }
+/* A quiet hairline for keyboard focus in the bar and its menu (owner,
+   November 23, 2026: the 2px gold ring read as heavy). */
 .site-header :is(a, button):focus-visible {
-  outline: 2px solid var(--site-gold);
-  outline-offset: 2px;
-  border-radius: 4px;
+  outline: 1px solid rgb(65 64 61 / 0.55);
+  outline-offset: 3px;
+  border-radius: 6px;
 }
 .revamp-nav .site-menu-toggle {
   display: none;

@@ -76,7 +76,7 @@
           "title": "Favorites gets a page of its own",
           "body": "Favorites now opens as a full page in a tab, with your folders on the left. Every favorite has a `⋮` menu to open, pin, move or remove it, and Edit… changes its name, address and folder. A pinned favorite stays pinned.",
           "steps": [
-            "Press `⌥⌘B`, or `Ctrl+Shift+O` on Windows and Linux.",
+            "Type `/favorites` in the Island, or press `Ctrl+Shift+O` on Windows and Linux.",
             "Click `⋮` beside a favorite, then Edit…"
           ],
           "media": {
@@ -98,7 +98,7 @@
           "title": "Folders inside folders, in your order",
           "body": "Favorites now opens a manager with your folders in a sidebar. Make folders inside folders, drag favorites and folders where you want them, select several at once, and search every folder. Deleting a folder keeps what was in it. One Bring my stuff to Blanc button imports favorites and open tabs from another browser, keeping its folders and their order.",
           "steps": [
-            "Press `⌥⌘B`, or `Ctrl+Shift+O` on Windows and Linux.",
+            "Type `/favorites` in the Island, or press `Ctrl+Shift+O` on Windows and Linux.",
             "Click New folder, or drag a favorite onto a folder in the sidebar."
           ],
           "media": {
