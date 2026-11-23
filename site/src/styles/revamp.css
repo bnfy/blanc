@@ -229,6 +229,37 @@ main .section-kicker {
   align-items: center;
   gap: 22px;
 }
+/* Search, Download and Menu, spaced like the rest of the bar. */
+.site-nav-actions {
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: inherit;
+}
+/* Wide windows centre the links under the reservation banner's line, with the
+   lockup and the actions at the two ends (owner, November 23, 2026). The side
+   columns never shrink below their content, so a wide action keeps its room. */
+@media (min-width: 921px) {
+  .site-header .revamp-nav {
+    display: grid;
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
+  }
+  .revamp-nav .site-brand {
+    justify-self: start;
+    margin-right: 0;
+  }
+  .revamp-nav .site-nav-links {
+    justify-self: center;
+  }
+  .revamp-nav .site-nav-actions {
+    justify-self: end;
+  }
+}
+@media (min-width: 1051px) {
+  .revamp-nav .site-nav-links {
+    gap: 28px;
+  }
+}
 .revamp-nav .revamp-nav-link {
   display: flex;
   align-items: center;
