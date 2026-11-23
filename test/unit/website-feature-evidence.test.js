@@ -421,7 +421,7 @@ test('every sentence in the Blanc Mail reservation banner is recorded in its led
     .replace(/<span[^>]*aria-hidden="true"[^>]*>[\s\S]*?<\/span>/g, '')
     .replaceAll('{ending}', ending);
   const sentences = normalize(link).split(/(?<=[.?!])\s+(?=[A-Z“])/);
-  assert.deepEqual(sentences, ['Blanc Mail addresses are coming.', `Reserve yours on @${ending}.`, 'Free to reserve.']);
+  assert.deepEqual(sentences, ['Blanc Mail addresses are coming.', `Reserve yours for free @${ending}.`]);
   for (const sentence of sentences) assert.ok(recorded.includes(sentence), `banner sentence is not recorded: “${sentence}”`);
 });
 

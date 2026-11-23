@@ -18,7 +18,7 @@ const ending = reservations.endings[0];
       <img class="mail-reserve-banner-icon" src="/blanc-mail-icon-96.webp" width="96" height="96" alt="" />
       <span class="mail-reserve-banner-text">
         <span class="mail-reserve-banner-lead">Blanc Mail addresses are coming.</span>
-        <span class="mail-reserve-banner-ask">Reserve yours on <span class="mail-reserve-banner-ending">@{ending}</span>.<span class="mail-reserve-banner-free"> Free to reserve.</span></span>
+        <span class="mail-reserve-banner-ask">Reserve yours<span class="mail-reserve-banner-free"> for free</span> <span class="mail-reserve-banner-ending">@{ending}</span>.</span>
       </span>
       <span class="mail-reserve-banner-action" aria-hidden="true">Reserve<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8h9M9 4.5 12.5 8 9 11.5" /></svg></span>
     </span>
@@ -125,19 +125,14 @@ const ending = reservations.endings[0];
   @keyframes mail-reserve-banner-shine {
     to { background-position: 100% 0; }
   }
-  /* "Free to reserve." steps aside where the line would wrap. */
-  @media (max-width: 760px) {
-    .mail-reserve-banner-free {
-      display: none;
-    }
-  }
-  /* Phones keep the ask and the button; the lead steps aside too. */
+  /* Phones keep the ask and the button; the lead and "for free" step aside. */
   @media (max-width: 640px) {
     .mail-reserve-banner-inner {
       padding: 6px 16px;
       gap: 10px;
     }
-    .mail-reserve-banner-lead {
+    .mail-reserve-banner-lead,
+    .mail-reserve-banner-free {
       display: none;
     }
   }

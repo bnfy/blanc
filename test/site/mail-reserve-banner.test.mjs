@@ -66,7 +66,7 @@ test('the banner scrolls away while the header stays at the top', { skip }, asyn
 });
 
 test('phones keep the ask and the button on one 40px line, with nothing overflowing', { skip }, async () => {
-  for (const width of [320, 375, 640, 641, 760, 761, 1440]) {
+  for (const width of [320, 375, 640, 641, 1440]) {
     const { page, context } = await openPage('/', width);
     try {
       const state = await page.evaluate(() => {
@@ -85,7 +85,7 @@ test('phones keep the ask and the button on one 40px line, with nothing overflow
       assert.ok(Math.abs(state.height - 40) < 1, `${width}px: one 40px line (${state.height})`);
       assert.equal(state.lead, width > 640, `${width}px: lead text`);
       assert.equal(state.ask, true, `${width}px: the ask stays`);
-      assert.equal(state.free, width > 760, `${width}px: Free to reserve.`);
+      assert.equal(state.free, width > 640, `${width}px: for free`);
       assert.equal(state.action, true, `${width}px: Reserve stays`);
       assert.equal(state.overflow, false, `${width}px: no horizontal overflow`);
     } finally { await context.close(); }
