@@ -74,9 +74,9 @@ test('it follows the Mac beta and is never one of the platform choices', () => {
   assert.ok(tiles.indexOf('id="beta-windows"') < tiles.indexOf('id="iphone"'));
 });
 
-test('the Mac beta tile no longer lists Windows as missing', () => {
+test('the Mac beta tile no longer lists Windows (or Linux) as missing', () => {
   const start = page.indexOf('<article class="dl-tile dl-tile--beta" id="beta"');
   const mac = page.slice(start, page.indexOf('</article>', start));
-  assert.doesNotMatch(mac, /Windows/);
-  assert.match(mac, /Intel Macs and Linux\./);
+  assert.doesNotMatch(mac, /Windows|Linux/);
+  assert.match(mac, /<li>Intel Macs\.<\/li>/);
 });

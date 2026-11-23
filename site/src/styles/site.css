@@ -1216,8 +1216,9 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .dl > .download-measurement p { flex: 0 1 auto; max-width: 100%; margin: 0; text-wrap: balance; }
 .dl > .download-measurement button { min-height: 0; padding: 0; border: 0; background: none; color: var(--site-text); font: inherit; text-decoration: underline; text-decoration-color: var(--site-border); text-underline-offset: 3px; cursor: pointer; }
 
-/* Tiles: the two Blanc Betas first and darkest, so they can't be missed; two by
-   two, the betas above the iPhone and Homebrew tiles. */
+/* Tiles: the Blanc Betas first and darkest, so they can't be missed; two by
+   two, the Mac and Windows betas above the wide Linux beta, then the iPhone and
+   Homebrew tiles. */
 .dl-more { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 88px; }
 .dl-tile { position: relative; display: flex; flex-direction: column; align-items: flex-start; min-height: 340px; padding: 30px 28px 28px; overflow: hidden; border: 1px solid var(--site-border); border-radius: 24px; background: var(--site-surface); }
 .dl-tile h2 { margin: 0; font-family: var(--site-font-display); font-size: 30px; font-weight: 400; letter-spacing: 0; line-height: 1.1; }
@@ -1257,6 +1258,21 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .dl-notyet[open] summary::after { content: " −"; }
 .dl-notyet ul { display: grid; gap: 4px; margin: 10px 0 0; padding-left: 18px; line-height: 1.5; }
 .dl-notyet a { display: inline-block; margin-top: 8px; color: #F8F2E8; text-decoration-color: var(--site-gold-on-dark); text-underline-offset: 3px; }
+/* Blanc Beta for Linux: one wide tile under the Mac and Windows betas, the
+   download on the left and how updates work on the right. */
+.dl-tile--beta-linux { grid-column: 1 / -1; flex-direction: row; align-items: stretch; gap: 48px; }
+.dl-linux-main { display: flex; flex: 1 1 0; flex-direction: column; align-items: flex-start; min-width: 0; }
+.dl-linux-more { flex: 1.15 1 0; min-width: 0; padding-top: 30px; }
+.dl-linux-main > p:not([class]), .dl-linux-more > p { margin: 12px 0 0; color: rgb(248 242 232 / 0.66); font-size: 15px; line-height: 1.5; }
+.dl-linux-more > p:first-child { margin-top: 0; }
+.dl-linux-packages { display: grid; grid-template-columns: repeat(2, max-content); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.dl-linux-packages .dl-tile-button { justify-content: center; width: 100%; margin-top: 0; }
+.dl-linux-hint { margin: 12px 0 0; color: rgb(248 242 232 / 0.66); font-family: var(--font-mono); font-size: 12px; }
+.dl-tile--beta-linux .dl-notyet { margin-top: 18px; }
+.dl-linux-manual p { margin: 14px 0 8px; line-height: 1.5; }
+.dl-linux-manual p code { padding: 1px 6px; border-radius: 6px; background: rgb(248 242 232 / 0.08); color: #F8F2E8; font-size: 12.5px; }
+.dl-linux-code { display: flex; align-items: flex-start; gap: 12px; padding: 14px 14px 14px 16px; border-radius: 12px; background: rgb(248 242 232 / 0.06); color: #F8F2E8; }
+.dl-linux-code pre { flex: 1; min-width: 0; margin: 0; overflow-x: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; line-height: 1.5; white-space: pre; }
 .dl-tile-link { margin-top: 18px; color: var(--site-text); font-size: 15px; font-weight: 500; text-decoration: underline; text-decoration-color: var(--site-gold); text-underline-offset: 4px; }
 .dl-tile--iphone { padding-bottom: 0; }
 .dl-tile-phone { align-self: center; width: 62%; height: 150px; margin: auto 0 0; padding-top: 22px; overflow: hidden; }
@@ -1277,6 +1293,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   .dl-more { grid-template-columns: 1fr 1fr; }
   .dl-tile--beta { grid-column: 1 / -1; min-height: 0; }
   .dl-tile--beta .dl-tile-button { margin-top: 0; }
+  .dl-tile--beta-linux { flex-direction: column; gap: 0; }
+  .dl-linux-more { padding-top: 24px; }
 }
 @media (max-width: 600px) {
   .dl { padding: 36px 18px 72px; }

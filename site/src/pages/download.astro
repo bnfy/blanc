@@ -5,6 +5,7 @@ import releases from '../data/releases.json';
 import ios from '../data/ios-availability.json';
 import beta from '../data/blanc-beta.json';
 import betaWin from '../data/blanc-beta-windows.json';
+import betaLinux from '../data/blanc-beta-linux.json';
 import pkg from '../../../package.json';
 
 const latest = releases[0];
@@ -17,6 +18,16 @@ const chromiumMajor = beta.chromium.split('.')[0];
 const winBuild = betaWin.build;
 const winChromiumMajor = betaWin.chromium.split('.')[0];
 const winReleased = new Date(`${betaWin.published}T00:00:00Z`)
+  .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+// Blanc Beta for Linux: its own wide tile after the Windows beta's, with one counted
+// /dl/beta-linux-<arch>-<format> route per package (blanc-ping answers with that
+// package on the GitHub pre-release) and the manual repository
+// commands from chromium/linux/manual-repository.md (copied verbatim into
+// src/data/blanc-beta-linux.json); docs/website-blanc-beta-linux-<version>-claims.json
+// records its sentences.
+const linuxBuild = betaLinux.build;
+const linuxChromiumMajor = betaLinux.chromium.split('.')[0];
+const linuxReleased = new Date(`${betaLinux.published}T00:00:00Z`)
   .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 const betaReleased = new Date(`${beta.published}T00:00:00Z`)
   .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
@@ -159,7 +170,7 @@ const betaReleased = new Date(`${beta.published}T00:00:00Z`)
         <ul>
           <li>Protected video, such as Netflix or Spotify.</li>
           <li>Sync checked against the live Sync service.</li>
-          <li>Intel Macs and Linux.</li>
+          <li>Intel Macs.</li>
         </ul>
         <a href={beta.releaseUrl} target="_blank" rel="noopener">Release notes <span aria-hidden="true">↗</span></a>
       </details>
@@ -191,6 +202,63 @@ const betaReleased = new Date(`${beta.published}T00:00:00Z`)
         </ul>
         <a href={betaWin.releaseUrl} target="_blank" rel="noopener">Release notes <span aria-hidden="true">↗</span></a>
       </details>
+    </article>
+
+    <!-- Blanc Beta for Linux: one wide tile after the two other betas, so the
+         iPhone and Homebrew tiles stay two by two below it. Its four packages
+         link straight to the GitHub pre-release (no /dl/* route), and the
+         repository commands are manual-repository.md's, verbatim. -->
+    <article class="dl-tile dl-tile--beta dl-tile--beta-linux" id="beta-linux" aria-labelledby="beta-linux-title">
+      <div class="dl-linux-main">
+        <p class="dl-tile-label">Preview</p>
+        <h2 id="beta-linux-title">Blanc Beta for Linux</h2>
+        <p>Blanc built directly on Chromium, for Linux. It installs beside Blanc and never replaces it.</p>
+        <dl class="dl-beta-versions">
+          <div>
+            <dt>Build</dt>
+            <dd class="dl-beta-figure">{linuxBuild}</dd>
+            <dd>{betaLinux.version}</dd>
+          </div>
+          <div>
+            <dt>Chromium</dt>
+            <dd class="dl-beta-figure">{linuxChromiumMajor}</dd>
+            <dd>{betaLinux.chromium}</dd>
+          </div>
+        </dl>
+        <p class="dl-tile-meta">{betaLinux.requirement}<br />Released {linuxReleased}</p>
+        <ul class="dl-linux-packages" aria-label="Download Beta for Linux">
+          <li><a class="dl-tile-button" href="/dl/beta-linux-x64-deb" data-download-link data-track="download_click" data-platform="beta-linux-x64-deb" data-cta-position="beta-linux"><PlatformLogo platform="linux" />x64 .deb</a></li>
+          <li><a class="dl-tile-button" href="/dl/beta-linux-x64-rpm" data-download-link data-track="download_click" data-platform="beta-linux-x64-rpm" data-cta-position="beta-linux"><PlatformLogo platform="linux" />x64 .rpm</a></li>
+          <li><a class="dl-tile-button" href="/dl/beta-linux-arm64-deb" data-download-link data-track="download_click" data-platform="beta-linux-arm64-deb" data-cta-position="beta-linux"><PlatformLogo platform="linux" />arm64 .deb</a></li>
+          <li><a class="dl-tile-button" href="/dl/beta-linux-arm64-rpm" data-download-link data-track="download_click" data-platform="beta-linux-arm64-rpm" data-cta-position="beta-linux"><PlatformLogo platform="linux" />arm64 .rpm</a></li>
+        </ul>
+        <p class="dl-linux-hint">Use the .deb on Debian and Ubuntu, the .rpm on Fedora.</p>
+      </div>
+      <div class="dl-linux-more">
+        <p>Installing the package adds Blanc’s own signed package repository. New betas are then offered with your system updates through apt or dnf, and within about two hours of installing one, Blanc shows Restart to update in the Island.</p>
+        <p>Install and update checks ran on Ubuntu 24.04, Debian 12 and Fedora 45, on x64 and arm64. Ubuntu 26.04 with GNOME on Wayland was also checked by hand on arm64. KDE and x64 desktops haven’t been checked by hand.</p>
+        <p>It doesn’t make itself your default browser, but where none is chosen yet, as on a fresh Ubuntu 26.04, links from other apps may open in it until you pick one in Settings.</p>
+        <details class="dl-notyet dl-linux-manual">
+          <summary>Set up the repository yourself</summary>
+          <p>To install the package without adding the repository, run this before installing it.</p>
+          <div class="dl-linux-code"><pre><code>{betaLinux.manualSetup.optOut}</code></pre><button type="button" class="terminal-copy" data-terminal-copy={betaLinux.manualSetup.optOut} hidden>Copy</button></div>
+          <p>To add the repository by hand instead, first download Blanc’s key and check it.</p>
+          <div class="dl-linux-code"><pre><code>{betaLinux.manualSetup.key}</code></pre><button type="button" class="terminal-copy" data-terminal-copy={betaLinux.manualSetup.key} hidden>Copy</button></div>
+          <p>Then, on Debian and Ubuntu, add the source and install with <code>sudo apt-get install blanc-beta</code>.</p>
+          <div class="dl-linux-code"><pre><code>{betaLinux.manualSetup.deb}</code></pre><button type="button" class="terminal-copy" data-terminal-copy={betaLinux.manualSetup.deb} hidden>Copy</button></div>
+          <p>On Fedora, add the source and install with <code>sudo dnf install blanc-beta</code>.</p>
+          <div class="dl-linux-code"><pre><code>{betaLinux.manualSetup.rpm}</code></pre><button type="button" class="terminal-copy" data-terminal-copy={betaLinux.manualSetup.rpm} hidden>Copy</button></div>
+          <a href={betaLinux.manualSetup.guideUrl} target="_blank" rel="noopener">Full guide, including how to turn the repository off <span aria-hidden="true">↗</span></a>
+        </details>
+        <details class="dl-notyet">
+          <summary>Not in this beta yet</summary>
+          <ul>
+            <li>Protected video, such as Netflix or Spotify.</li>
+            <li>Sync checked against the live Sync service.</li>
+          </ul>
+          <a href={betaLinux.releaseUrl} target="_blank" rel="noopener">Release notes <span aria-hidden="true">↗</span></a>
+        </details>
+      </div>
     </article>
 
     <article class="dl-tile dl-tile--iphone" id="iphone" aria-labelledby="iphone-title">

@@ -20,7 +20,8 @@
       "Beta.8 (standing decision, owner 2026-11-14): the tile, its text and both limitations stay as for beta.7; only the release it names changes. Its release notes keep the caution that Sync isn't checked end to end.",
       "Beta.9 (standing decision, owner 2026-11-14): the tile, its text and both limitations stay as for beta.8; only the release it names changes. Its release notes keep the caution that Sync isn't checked end to end.",
       "Blanc Beta for Windows (owner, 2026-11-21): its own tile right after this one, so this tile's list of what isn't in the beta no longer names Windows.",
-      "Title (owner, 2026-11-21): the tile is named Blanc Beta for Mac, beside Blanc Beta for Windows."
+      "Title (owner, 2026-11-21): the tile is named Blanc Beta for Mac, beside Blanc Beta for Windows.",
+      "Blanc Beta for Linux (website PR for chromium-beta-linux-158.0.8127.906, pending the owner's approval of its copy): its own tile after the Windows beta's, so this tile's list of what isn't in the beta no longer names Linux."
     ]
   },
   "page": "site/src/pages/download.astro#beta",
@@ -88,8 +89,8 @@
       "evidence": "Listed under 'Not in this beta yet'. production-sync-real-device is waived under the owner's standing decision of 2026-11-14 (release.json gateWaivers); the release notes keep the caution that Sync isn't checked end to end."
     },
     {
-      "text": "Intel Macs and Linux.",
-      "evidence": "The Mac beta is Apple Silicon only (release.json arches [arm64], the owner's standing Intel waiver) and there is no Linux build. Windows left this list on 2026-11-21: Blanc Beta for Windows is its own pre-release with its own tile (docs/website-blanc-beta-windows-158.0.8127.902-claims.json)."
+      "text": "Intel Macs.",
+      "evidence": "The Mac beta is Apple Silicon only (release.json arches [arm64], the owner's standing Intel waiver). Windows left this list on 2026-11-21 and Linux on 2026-11-23: Blanc Beta for Windows and Blanc Beta for Linux are pre-releases of their own with their own tiles (docs/website-blanc-beta-windows-158.0.8127.902-claims.json, docs/website-blanc-beta-linux-158.0.8127.906-claims.json)."
     },
     {
       "text": "Release notes",
