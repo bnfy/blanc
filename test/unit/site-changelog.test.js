@@ -481,7 +481,7 @@ test('offline CLI writes beta data beside release data and --check names it when
   const stale = spawnSync(process.execPath, [SCRIPT_PATH, ...args, '--check'], { encoding: 'utf8' });
   assert.equal(stale.status, 1);
   assert.match(stale.stderr, /beta-releases\.json/);
-  assert.doesNotMatch(stale.stderr, /- .*\/releases\.json/);
+  assert.doesNotMatch(stale.stderr, /- .*[\\/]releases\.json/);
 });
 
 test('site:deploy refuses a changelog behind GitHub', () => {

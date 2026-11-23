@@ -84,7 +84,7 @@ test("only the changelog reads the other products' files", () => {
     for (const name of fs.readdirSync(dir, { withFileTypes: true })) {
       const file = path.join(dir, name.name);
       if (name.isDirectory()) walk(file);
-      else if (/\.(astro|js|mjs|ts)$/.test(name.name) && /(beta|ios)-releases\.json/.test(fs.readFileSync(file, 'utf8'))) found.push(path.relative(ROOT, file));
+      else if (/\.(astro|js|mjs|ts)$/.test(name.name) && /(beta|ios)-releases\.json/.test(fs.readFileSync(file, 'utf8'))) found.push(path.relative(ROOT, file).split(path.sep).join('/'));
     }
   };
   walk(path.join(ROOT, 'site/src'));
