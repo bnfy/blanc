@@ -53,6 +53,8 @@ cp -Rc "$APP" "$DIR/prototype/"
 printf '%s' "$LOCAL" | /usr/local/bin/node -e "
 const c=JSON.parse(require('fs').readFileSync(0,'utf8')).config;
 require('fs').writeFileSync('$DIR/runtime-config.json',JSON.stringify(c,null,2)+'\n');"
+# The copy must still be the build the config names (local-config.mjs checked the original).
+/usr/local/bin/node "$REPO/chromium/tests/outbound/local-config.mjs" --check "$DIR/runtime-config.json"
 if [ -n "$BETA" ]; then
   rm -rf "$DIR/beta"; mkdir -p "$DIR/beta"
   cp -Rc "$BETA" "$DIR/beta/Blanc Beta.app"
