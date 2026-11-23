@@ -80,6 +80,15 @@ test('New features with Blanc Beta shows the empty state', async () => {
   await page.close();
 });
 
+test('the desktop chip says Desktop', async () => {
+  const page = await open('/changelog?product=desktop');
+  assert.equal(await pressed(page), 'desktop');
+  assert.match(await page.locator('[data-product-filter="desktop"]').innerText(), /^Desktop \d+$/);
+  assert.deepEqual(await visibleProducts(page), ['desktop']);
+  assert.match(await page.locator('#changelog-results').innerText(), /desktop releases$/);
+  await page.close();
+});
+
 test('choosing a chip updates the address', async () => {
   const page = await open('/changelog');
   await page.click('[data-product-filter="iphone"]');
@@ -100,7 +109,7 @@ test('existing anchors still work', async () => {
 test('each entry names its product', async () => {
   const page = await open('/changelog?product=all');
   const label = (id) => page.locator(`#${id} .release-product`).innerText();
-  assert.equal(await label('v1-52-0'), 'Blanc');
+  assert.equal(await label('v1-52-0'), 'Blanc for desktop');
   assert.equal(await label('ios-1-1'), 'Blanc for iPhone and iPad');
   assert.equal(await label('ios-1-0-2'), 'Blanc for iPhone');
   assert.equal(await label('beta-windows-158-0-8127-904'), 'Blanc Beta for Windows');

@@ -20,7 +20,7 @@ const displayReleases = allEntries().map((release) => {
   };
 });
 
-const FILTER_LABELS = { stable: 'Stable', blanc: 'Blanc', iphone: 'iPhone & iPad', beta: 'Blanc Beta', all: 'All' };
+const FILTER_LABELS = { stable: 'Stable', desktop: 'Desktop', iphone: 'iPhone & iPad', beta: 'Blanc Beta', all: 'All' };
 const FILTER_PRODUCTS = Object.fromEntries(PRODUCT_FILTERS.map((filter) => [
   filter,
   ['desktop', 'ios', 'beta'].filter((product) => matchesFilter({ product }, filter)),
@@ -35,7 +35,7 @@ const stableCount = filters[0].count;
 const featureReleaseCount = displayReleases.filter((release) => release.hasNewFeatures).length;
 const linkLabel = { desktop: 'GitHub release', beta: 'GitHub release', ios: 'App Store' };
 const feeds = [
-  { href: '/changelog.xml', label: 'Blanc', title: 'Blanc Browser Changelog' },
+  { href: '/changelog.xml', label: 'Desktop', title: 'Blanc Browser Changelog' },
   { href: '/changelog/iphone.xml', label: 'iPhone & iPad', title: 'Blanc for iPhone and iPad Changelog' },
   { href: '/changelog/beta.xml', label: 'Blanc Beta', title: 'Blanc Beta Changelog' },
   { href: '/changelog/all.xml', label: 'Everything', title: 'Blanc Browser Changelog — every build' },
@@ -124,7 +124,7 @@ const feeds = [
   var filters = Array.prototype.slice.call(document.querySelectorAll('[data-product-filter]'));
   var featuresToggle = document.querySelector('[data-features-toggle]');
   var haystack = releases.map(function (el) { return el.textContent.toLowerCase(); });
-  var NAMES = { stable: 'stable releases', blanc: 'Blanc releases', iphone: 'iPhone and iPad releases', beta: 'Blanc Beta releases', all: 'releases' };
+  var NAMES = { stable: 'stable releases', desktop: 'desktop releases', iphone: 'iPhone and iPad releases', beta: 'Blanc Beta releases', all: 'releases' };
   var state = { product: 'stable', features: false };
 
   function filterFor(id) {
