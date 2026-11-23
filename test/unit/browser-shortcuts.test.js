@@ -17,7 +17,7 @@ test('every command names its menu label in the interface catalog', () => {
 test('Windows and Linux essentials and retained aliases dispatch to the same commands', () => {
   for (const platform of ['win32', 'linux']) {
     for (const [key, modifiers, command] of [
-      ['h', { control: true }, 'history'], ['y', { control: true }, 'history'],
+      ['h', { control: true }, 'history'],
       ['j', { control: true }, 'downloads'], ['j', { control: true, shift: true }, 'downloads'],
       ['d', { alt: true }, 'address'], ['l', { control: true }, 'address'],
       ['F5', {}, 'reload'], ['r', { control: true }, 'reload'],
@@ -25,6 +25,8 @@ test('Windows and Linux essentials and retained aliases dispatch to the same com
       ['PageUp', { control: true }, 'previous-tab-in-order'], ['Tab', { control: true, shift: true }, 'previous-tab'],
       [',', { control: true }, 'settings'], ['w', { control: true }, 'close-tab'],
     ]) assert.equal(matchBrowserShortcut(input(key, modifiers), platform), command);
+    // Ctrl+Y is Redo there, as in Chrome: it reaches the page and the Edit menu.
+    assert.equal(matchBrowserShortcut(input('y', { control: true }), platform), null);
   }
 });
 

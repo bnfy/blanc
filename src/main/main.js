@@ -71,6 +71,7 @@ const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-excepti
 const { createReaderMode } = require('./reader-mode');
 const { createDarkWebsitesService } = require('./dark-websites-service');
 const { browserCommandDefinition, createBrowserCommandExecutor, installBrowserShortcuts, matchBrowserShortcut } = require('./browser-shortcuts');
+const { inputMatchesAccelerator, menuAccelerator } = require('./menu-accelerators');
 const { queueTabNavigation, reloadContents } = require('./tab-navigation');
 const { outageReloadTarget } = require('./ublock-recovery');
 const islandProximity = require('./island-proximity');
@@ -7543,17 +7544,7 @@ function toggleTabLayout() {
 
 function installVerticalTabsShortcut(webContents, owner = rt()) {
   webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
-    const primaryModifier = process.platform === 'darwin'
-      ? input.meta && !input.control
-      : input.control && !input.meta;
-    if (
-      input.type !== 'keyDown' ||
-      input.isAutoRepeat ||
-      String(input.key).toLowerCase() !== 'v' ||
-      !input.alt ||
-      !primaryModifier ||
-      input.shift
-    ) return;
+    if (input.isAutoRepeat || !inputMatchesAccelerator(input, menuAccelerator('toggle-vertical-tabs'))) return;
     // Handle this before page dispatch so the shortcut is reliable no matter
     // which WebContentsView owns focus. preventDefault also suppresses the
     // duplicate native-menu accelerator dispatch for this same key event.
@@ -7562,24 +7553,13 @@ function installVerticalTabsShortcut(webContents, owner = rt()) {
   }));
 }
 
-// Cmd/Ctrl+Alt+B: same before-dispatch handling as the vertical tabs shortcut.
+// ⇧⌘B on macOS (⌥⌘B is Favorites), Ctrl+Alt+B on Windows and Linux: same
+// before-dispatch handling as the vertical tabs shortcut. On Windows and Linux
+// Ctrl+Alt is AltGr, and AltGr+B types a character on some layouts
+// (Hungarian: {), so only the letter counts there (inputMatchesAccelerator).
 function installIslandAutoHideShortcut(webContents, owner = rt()) {
   webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
-    const primaryModifier = process.platform === 'darwin'
-      ? input.meta && !input.control
-      : input.control && !input.meta;
-    // On macOS Option changes the key value (⌥B is ∫), so the physical key
-    // counts too. On Windows and Linux Ctrl+Alt is AltGr, and AltGr+B types a
-    // character on some layouts (Hungarian: {), so only the letter counts.
-    const keyMatches = String(input.key).toLowerCase() === 'b'
-      || (process.platform === 'darwin' && input.code === 'KeyB');
-    if (
-      input.type !== 'keyDown' ||
-      !keyMatches ||
-      !input.alt ||
-      !primaryModifier ||
-      input.shift
-    ) return;
+    if (!inputMatchesAccelerator(input, menuAccelerator('toggle-island-autohide'))) return;
     event.preventDefault();
     if (input.isAutoRepeat) return;
     toggleIslandAutoHide();
@@ -7601,17 +7581,7 @@ function installOnePasswordShortcut(webContents, owner = rt()) {
 
 function installGlanceShortcut(webContents, owner = rt()) {
   webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
-    const primaryModifier = process.platform === 'darwin'
-      ? input.meta && !input.control
-      : input.control && !input.meta;
-    if (
-      input.type !== 'keyDown' ||
-      input.isAutoRepeat ||
-      String(input.key).toLowerCase() !== 'g' ||
-      !input.shift ||
-      input.alt ||
-      !primaryModifier
-    ) return;
+    if (input.isAutoRepeat || !inputMatchesAccelerator(input, menuAccelerator('toggle-glance'))) return;
     // Browser-level shortcut: handle it whichever page or trusted surface has
     // focus, then suppress the duplicate native-menu accelerator dispatch.
     event.preventDefault();
@@ -12853,14 +12823,10 @@ const SLASH_COMMANDS = [
 // exhaustive by design, "Show All Shortcuts…" links to the rest.
 // This chord is deliberately macOS-only: Ctrl+Alt is AltGr on international
 // Windows/Linux layouts, where Ctrl+Alt+Z may be ordinary text input.
-const LAST_ACTIVE_TAB_ACCELERATOR = process.platform === 'darwin'
-  ? 'Cmd+Alt+Z'
-  : null;
+const LAST_ACTIVE_TAB_ACCELERATOR = menuAccelerator('switch-last-active-tab');
 // macOS-only for the same reason: Ctrl+Alt+Shift+C is AltGr+Shift+C on
 // international layouts, which types a character (Ć on Polish keyboards).
-const COPY_CLEAN_LINK_ACCELERATOR = process.platform === 'darwin'
-  ? 'Cmd+Alt+Shift+C'
-  : null;
+const COPY_CLEAN_LINK_ACCELERATOR = menuAccelerator('copy-clean-link');
 const ONE_PASSWORD_ACCELERATOR = onePasswordAccelerator();
 // [catalog key, accelerator]; labels are translated when the menu is built.
 const COMMON_KEYSTROKES = [
@@ -12878,8 +12844,8 @@ const COMMON_KEYSTROKES = [
   ...(ONE_PASSWORD_ACCELERATOR
     ? [['menu.fillOnePassword', ONE_PASSWORD_ACCELERATOR]]
     : []),
-  ['menu.toggleVerticalTabs', 'CmdOrCtrl+Alt+V'],
-  ['menu.toggleGlance', 'CmdOrCtrl+Shift+G'],
+  ['menu.toggleVerticalTabs', menuAccelerator('toggle-vertical-tabs')],
+  ['menu.toggleGlance', menuAccelerator('toggle-glance')],
   ...(LAST_ACTIVE_TAB_ACCELERATOR
     ? [['menu.switchLastTab', LAST_ACTIVE_TAB_ACCELERATOR]]
     : []),
@@ -12976,14 +12942,14 @@ function buildMenuForRuntime(runtime) {
           ...command('reopen-tab'),
           enabled: (runtime.closedEntries?.length ?? 0) > 0,
         },
-        { id: 'print', label: t('menu.print'), accelerator: 'CmdOrCtrl+P', click: bound(() => presentationContents(browserCommandTab(rt()))?.print()) },
+        { id: 'print', label: t('menu.print'), accelerator: menuAccelerator('print'), click: bound(() => presentationContents(browserCommandTab(rt()))?.print()) },
         { type: 'separator' },
         command('downloads'),
         command('settings'),
         { type: 'separator' },
         ...(isMac ? [] : [{ label: t('menu.checkForUpdates'), click: bound(checkForUpdatesManually) }, { type: 'separator' }]),
         // Electron's own labels for these roles: Close Window; Exit on Windows, Quit on Linux.
-        isMac ? { role: 'close', label: t('menu.closeWindow') }
+        isMac ? { role: 'close', label: t('menu.closeWindow'), accelerator: menuAccelerator('close-window') }
           : { role: 'quit', label: t(process.platform === 'win32' ? 'menu.exit' : 'menu.quit') },
       ],
     },
@@ -13059,23 +13025,23 @@ function buildMenuForRuntime(runtime) {
         { label: t('reader.title'), click: bound(() => toggleReaderMode(browserCommandTab(rt()))) },
         ...(ONE_PASSWORD_AVAILABLE ? [{
           label: t('menu.fillOnePassword'),
-          accelerator: ONE_PASSWORD_ACCELERATOR,
+          accelerator: menuAccelerator('fill-onepassword'),
           click: bound(fillLoginFromOnePassword),
         }] : []),
         command('back'),
         command('forward'),
         command('reload'),
         command('hard-reload'),
-        { id: 'zoom-in', label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+Plus', click: bound(() => zoomActiveTab(1)) },
+        { id: 'zoom-in', label: t('menu.zoomIn'), accelerator: menuAccelerator('zoom-in'), click: bound(() => zoomActiveTab(1)) },
         // Plus requires Shift on most keyboards; Cmd/Ctrl+= is the common alternate, bound silently to the same action.
-        { label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+=', visible: false, click: bound(() => zoomActiveTab(1)) },
-        { id: 'zoom-out', label: t('menu.zoomOut'), accelerator: 'CmdOrCtrl+-', click: bound(() => zoomActiveTab(-1)) },
-        { id: 'zoom-reset', label: t('menu.actualSize'), accelerator: 'CmdOrCtrl+0', click: bound(resetZoomForActiveTab) },
+        { label: t('menu.zoomIn'), accelerator: menuAccelerator('zoom-in-alternate'), visible: false, click: bound(() => zoomActiveTab(1)) },
+        { id: 'zoom-out', label: t('menu.zoomOut'), accelerator: menuAccelerator('zoom-out'), click: bound(() => zoomActiveTab(-1)) },
+        { id: 'zoom-reset', label: t('menu.actualSize'), accelerator: menuAccelerator('zoom-reset'), click: bound(resetZoomForActiveTab) },
         { type: 'separator' },
         {
           id: 'toggle-vertical-tabs',
           label: t('menu.toggleVerticalTabs'),
-          accelerator: 'CmdOrCtrl+Alt+V',
+          accelerator: menuAccelerator('toggle-vertical-tabs'),
           click: bound(toggleTabLayout),
         },
         {
@@ -13100,13 +13066,13 @@ function buildMenuForRuntime(runtime) {
           label: t('menu.autoHideIsland'),
           type: 'checkbox',
           checked: islandAutoHide,
-          accelerator: 'CmdOrCtrl+Alt+B',
+          accelerator: menuAccelerator('toggle-island-autohide'),
           click: bound(toggleIslandAutoHide),
         },
         {
           id: 'toggle-glance',
           label: t(activeGlanceTab() ? 'menu.closeGlance' : 'menu.openGlance'),
-          accelerator: 'CmdOrCtrl+Shift+G',
+          accelerator: menuAccelerator('toggle-glance'),
           click: bound(toggleGlance),
         },
         { type: 'separator' },
@@ -13130,10 +13096,10 @@ function buildMenuForRuntime(runtime) {
         command('previous-tab'),
         command('next-tab-in-order'),
         command('previous-tab-in-order'),
-        { label: t('menu.nextTabInGroup'), accelerator: 'Alt+CmdOrCtrl+Right', click: bound(() => cycleTabInCluster(1)) },
-        { label: t('menu.previousTabInGroup'), accelerator: 'Alt+CmdOrCtrl+Left', click: bound(() => cycleTabInCluster(-1)) },
-        { label: t('menu.nextGroup'), accelerator: 'Alt+CmdOrCtrl+Down', click: bound(() => cycleCluster(1)) },
-        { label: t('menu.previousGroup'), accelerator: 'Alt+CmdOrCtrl+Up', click: bound(() => cycleCluster(-1)) },
+        { label: t('menu.nextTabInGroup'), accelerator: menuAccelerator('next-tab-in-group'), click: bound(() => cycleTabInCluster(1)) },
+        { label: t('menu.previousTabInGroup'), accelerator: menuAccelerator('previous-tab-in-group'), click: bound(() => cycleTabInCluster(-1)) },
+        { label: t('menu.nextGroup'), accelerator: menuAccelerator('next-group'), click: bound(() => cycleCluster(1)) },
+        { label: t('menu.previousGroup'), accelerator: menuAccelerator('previous-group'), click: bound(() => cycleCluster(-1)) },
         { type: 'separator' },
         { label: t('tabMenu.duplicate'), enabled: !!rt().activeTabId && !tabs.get(rt().activeTabId)?.inheritsDocumentPolicy, click: bound(() => rt().activeTabId && duplicateTab(rt().activeTabId)) },
         { label: t(pinLabelKey(tabs.get(rt().activeTabId))), enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && toggleTabPinned(rt().activeTabId)) },
@@ -13161,7 +13127,7 @@ function buildMenuForRuntime(runtime) {
         // "Tab or Group": with groups these jump to the nth pill cluster.
         ...Array.from({ length: 9 }, (_, i) => ({
           label: i === 8 ? t('menu.lastTabOrGroup') : t('menu.tabOrGroup', { number: i + 1 }),
-          accelerator: `CmdOrCtrl+${i + 1}`,
+          accelerator: menuAccelerator(`tab-${i + 1}`),
           click: bound(() => selectTabAtIndex(i)),
         })),
         { type: 'separator' },
@@ -13173,7 +13139,7 @@ function buildMenuForRuntime(runtime) {
       submenu: [
         {
           label: t(tabs.get(rt().activeTabId)?.bookmarked ? 'tabMenu.removeFavorite' : 'menu.addFavorite'),
-          accelerator: 'CmdOrCtrl+D',
+          accelerator: menuAccelerator('favorites-add'),
           // Same guard as toggleBookmarkForActiveTab itself — blanc://
           // pages and blank tabs can't be favorited, so don't offer to.
           enabled: /^https?:\/\//.test(tabs.get(rt().activeTabId)?.url ?? ''),
@@ -13192,7 +13158,7 @@ function buildMenuForRuntime(runtime) {
         // Only divide the favorites list from Show Favorites when there ARE
         // favorites — otherwise the two separators would collapse into one gap.
         ...(favItems.length ? [{ type: 'separator' }] : []),
-        { id: 'favorites-show', label: t('menu.showFavorites'), accelerator: isMac ? 'Cmd+Alt+B' : 'Ctrl+Shift+O', click: bound(() => openInternalPage('blanc://bookmarks/')) },
+        { id: 'favorites-show', label: t('menu.showFavorites'), accelerator: menuAccelerator('favorites-show'), click: bound(() => openInternalPage('blanc://bookmarks/')) },
         command('history'),
       ],
     },
@@ -13214,7 +13180,7 @@ function buildMenuForRuntime(runtime) {
             ...COMMON_KEYSTROKES.map(([key, accelerator]) => ({ label: mn(`${t(key)} — ${formatAccelerator(accelerator)}`) })),
             { label: `${t('menu.tabOrGroupRange')} — ${formatAccelerator('CmdOrCtrl+1')}–9` },
             { type: 'separator' },
-            { label: t('menu.showAllShortcuts'), accelerator: 'CmdOrCtrl+/', click: bound(() => openInternalPage('blanc://shortcuts/')) },
+            { label: t('menu.showAllShortcuts'), accelerator: menuAccelerator('show-shortcuts'), click: bound(() => openInternalPage('blanc://shortcuts/')) },
           ],
         },
         { type: 'separator' },
