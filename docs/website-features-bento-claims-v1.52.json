@@ -1,0 +1,476 @@
+{
+  "scope": "Features page (/features), brought up to public v1.52.0 on November 23, 2026: nine smaller-details tiles and their popovers for features shipped from v1.39.0 to v1.51.0 (Split View, Reader Mode, Favorites folders, Auto-hide the Island, Mini Window, Tab Archive, Shared Spaces, Send to Device, protected video), and the Blanc Spaces badge. Every evidence path is at the publicRelease tag. Popover wording follows each feature’s owner-approved What’s New highlight, re-checked against v1.52.0 (Favorites now opens in a tab; Send to Device no longer names the retired Ledger layout). Tile and popover icons are decorative. The sample group names in the tile mock-ups now keep their capital letters, as group names have since v1.37.0.",
+  "publicRelease": "v1.52.0",
+  "sourceSha": "a0506da144b6be952fe49f241e54dd2063d333a3",
+  "releaseEvidence": "docs/release-incidents/2026-11-21-v1.52.0.md",
+  "verified": "2026-11-23",
+  "evidenceGroups": {
+    "splitView": {
+      "qualification": "Split with in a tab menu pairs it with another tab; in v1.52.0 a split holds two panes (PR1_MAX_PANES). The focused pane is the active tab, splits persist in session.json, and Remove from Split / Close Split end it.",
+      "evidence": [
+        "src/main/split-model.js",
+        "src/main/split-layout.js",
+        "src/main/tab-context-menu-model.js",
+        "spec/acceptance/split-view.feature",
+        "copy/messages/en.json"
+      ]
+    },
+    "readerMode": {
+      "qualification": "/reader or Enter Reader Mode in the expanded Island; extraction runs locally on the loaded page and keeps headings, links, images and tables; leaving restores the page without reloading; non-articles are reported and left unchanged.",
+      "evidence": [
+        "src/main/reader-mode.js",
+        "src/main/reader-extract.js",
+        "copy/slash-commands.json",
+        "spec/acceptance/reader-mode.feature",
+        "copy/messages/en.json"
+      ]
+    },
+    "favorites": {
+      "qualification": "Since v1.51.0 Favorites opens as a page in a tab with folders in a sidebar; folder paths nest; drag reorders favorites and folders; search covers every folder; deleting a folder moves its contents up rather than deleting them.",
+      "evidence": [
+        "src/main/favorites-tree.js",
+        "src/main/favorites-layout.js",
+        "src/main/bookmark-data.js",
+        "src/renderer/pages/bookmarks.js",
+        "copy/messages/en.json"
+      ]
+    },
+    "autoHide": {
+      "qualification": "Auto-hide the Island is a Settings → General switch, off by default; the page fills the window and the Island returns on pointing at the top edge or Cmd/Ctrl+L.",
+      "evidence": [
+        "src/main/island-autohide.js",
+        "src/main/main.js",
+        "copy/messages/en.json"
+      ]
+    },
+    "miniWindow": {
+      "qualification": "File → New Mini Window, or an opt-in global shortcut (off by default) in Settings → General; never saved; closes after an hour unused (MINI_WINDOW_IDLE_MS) unless a page is in use or has unsaved work; Open in Blanc keeps it as an ordinary window.",
+      "evidence": [
+        "src/main/mini-window.js",
+        "src/main/main.js",
+        "copy/messages/en.json"
+      ]
+    },
+    "tabArchive": {
+      "qualification": "Archive inactive tabs in Settings → General (12 hours, 1 day, 7 days, 30 days; off by default); loose tabs close into a device-local Archive kept 30 days, shown in the ⌘L panel and History; pinned, grouped, split and private tabs are never archived.",
+      "evidence": [
+        "src/main/tab-archive.js",
+        "src/main/archive.js",
+        "src/renderer/overlay.js",
+        "copy/messages/en.json"
+      ]
+    },
+    "sharedSpaces": {
+      "qualification": "Settings → Sync → Spaces and groups, per device and off by default, Personal profile only; shared Spaces keep tabs, tab names, groups and pinned tabs in step, end-to-end encrypted like the rest of Sync; private tabs never sync.",
+      "evidence": [
+        "src/main/shared-spaces.js",
+        "src/main/shared-spaces-model.js",
+        "src/main/shared-spaces-service.js",
+        "copy/messages/en.json"
+      ]
+    },
+    "sendToDevice": {
+      "qualification": "Send to Device in the tab menu or /send; items wait under Sent to this device and expire 7 days after sending (ITEM_TTL_MS); nothing opens automatically; needs Profile Sync on both devices; private tabs and internal pages cannot be sent.",
+      "evidence": [
+        "src/main/sends.js",
+        "src/main/sends-model.js",
+        "copy/slash-commands.json",
+        "copy/messages/en.json"
+      ]
+    },
+    "protectedVideo": {
+      "qualification": "castLabs ECS runtime with the Widevine CDM component, downloaded from Google in the background, on macOS, Windows and Linux; playback depends on each site (Netflix and Spotify tried on Apple Silicon for v1.43.0).",
+      "evidence": [
+        "src/main/drm-support.js",
+        "src/main/drm-runtime.js",
+        "src/main/drm-startup.js"
+      ]
+    },
+    "spacesAcrossProfiles": {
+      "qualification": "With two or more profiles the Spaces menu and Quick Switcher list every profile’s Spaces under profile headings; choosing one opens it in a window of that profile.",
+      "evidence": [
+        "src/main/spaces-across-profiles.js",
+        "src/main/workspaces.js"
+      ]
+    }
+  },
+  "claims": [
+    {
+      "id": "bento-152-001",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Two tabs side by side in Split View",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "splitView"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-002",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Show two tabs side by side in one window.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "splitView"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-003",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Right-click a tab, choose Split with, then pick the tab to show beside it. The pane you click is the current tab, and the split stays together after a relaunch.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "splitView"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-004",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "To end it, choose Remove from Split or Close Split in a tab’s menu.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "splitView"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-005",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Reader Mode for articles",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "readerMode"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-006",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Read articles without the clutter.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "readerMode"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-007",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Type /reader, or choose Enter Reader Mode when the expanded Island offers it. Blanc lifts the article out of the page on your computer and keeps its headings, links, images and tables. Leaving returns to the page as you left it.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "readerMode"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-008",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Some pages aren’t articles. On those, Blanc says so and leaves the page as it was.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "readerMode"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-009",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Favorites with folders inside folders",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "favorites"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-010",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Keep Favorites in folders, in your order.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "favorites"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-011",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Favorites opens as a page in a tab, with your folders on the left. Make folders inside folders, drag favorites and folders where you want them, and search every folder.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "favorites"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-012",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Deleting a folder keeps what was in it.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "favorites"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-013",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Auto-hide the Island",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "autoHide"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-014",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Give the page the whole window.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "autoHide"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-015",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Turn on Auto-hide the Island in Settings → General, and the page fills the window to its top edge. The Island comes back when you point at the top edge or press ⌘L.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "autoHide"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-016",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "It’s off by default.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "autoHide"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-017",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Mini windows over any app",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "miniWindow"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-018",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Open a small Blanc window over any app.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "miniWindow"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-019",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Choose File → New Mini Window, or set a shortcut in Settings → General to open one from any app. A mini window isn’t saved and closes by itself after an hour unused. Choose Open in Blanc to keep it.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "miniWindow"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-020",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "The shortcut is off by default. A mini window with a page in use or unsaved changes stays open.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "miniWindow"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-021",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Tab Archive tidies idle tabs",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "tabArchive"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-022",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Let idle tabs tidy themselves away.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "tabArchive"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-023",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Choose a time under Archive inactive tabs in Settings → General, and loose tabs you haven’t looked at in that long close into an Archive. Find them in the ⌘L panel or in History, and bring one back with a click.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "tabArchive"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-024",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Pinned, grouped and private tabs are never archived. The Archive stays on this device for 30 days.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "tabArchive"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-025",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Shared Spaces on every computer",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sharedSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-026",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Keep your Spaces the same on every computer.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sharedSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-027",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "With Sync on, choose Spaces to share in Settings → Sync. Their tabs, tab names, groups and pinned tabs match on each computer that has them turned on, end-to-end encrypted.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sharedSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-028",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Off by default, and for the Personal profile only. Private tabs never sync.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sharedSpaces"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-029",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Send a page to another device",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sendToDevice"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-030",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Send a page to your other devices.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sendToDevice"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-031",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Right-click a tab and choose Send to Device, or type /send. The page waits on the other device under Sent to this device for up to 7 days, and nothing opens by itself.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sendToDevice"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-032",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Sending needs Sync on both devices. Private tabs can’t be sent.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "sendToDevice"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "bento-152-033",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Protected video and music",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "protectedVideo"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bento-152-034",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Play video and music that sites protect.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "protectedVideo"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bento-152-035",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Blanc plays video and music protected with Widevine on Mac, Windows and Linux. It downloads the Widevine component from Google in the background the first time.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "protectedVideo"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bento-152-036",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Whether a particular site plays still depends on that site.",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "protectedVideo"
+      ],
+      "verdict": "qualified"
+    },
+    {
+      "id": "bento-152-037",
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Now across profiles",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "spacesAcrossProfiles"
+      ],
+      "verdict": "verified"
+    }
+  ],
+  "retired": [
+    {
+      "source": "site/src/pages/features.astro",
+      "exactWording": "Now free",
+      "reason": "Blanc Spaces has been free since v1.33.0; the badge now names v1.52.0’s Spaces across profiles."
+    }
+  ]
+}
