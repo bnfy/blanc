@@ -187,3 +187,15 @@ esac
     else { assert.notEqual(result.status, 0); assert.match(result.stderr, /Usage/); }
   } finally { fs.rmSync(temp, { recursive: true, force: true }); }
 });
+
+test('a release build and the nightly never change the Android checkout at the same time', async () => {
+  const { withAndroidLock } = await import(moduleURL);
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'android-lock-'));
+  try {
+    fs.mkdirSync(path.join(home, 'chromium-android'));
+    assert.equal(withAndroidLock(home, () => assert.throws(() => withAndroidLock(home, () => 1), /in use/) ?? 'held'), 'held');
+    assert.equal(withAndroidLock(home, () => 2), 2, 'released after the first holder finished');
+    assert.throws(() => withAndroidLock(home, () => { throw new Error('build failed'); }), /build failed/);
+    assert.equal(fs.existsSync(path.join(home, 'chromium-android/.blanc-android.lock')), false, 'released after a failure');
+  } finally { fs.rmSync(home, { recursive: true, force: true }); }
+});

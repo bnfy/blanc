@@ -129,3 +129,41 @@ does not sign or upload anything.
 
 The server dry run, first official release build, emulator build and wall-time
 measurement are **pending**; local verification uses fixtures and stubs only.
+
+## The nightly
+
+Every night at 01:00 US Eastern a systemd user timer builds `main`'s Android lane and runs the
+release gate on it, so a beta can start from a night that already passed
+(`docs/android/channels.md`). `nightly.sh` moves the dedicated `~/blanc-nightly` clone to `main`'s
+tip and runs that commit's `chromium/android/release/nightly.mjs`, which:
+
+- skips the night (recording why) while the desktop checkout's lock
+  (`~/chromium-desktop/.blanc-checkout.lock`) exists or any Siso build runs, while the Android
+  checkout is in use, at or after 03:15 Eastern (the Windows nightly starts at 04:00 and skips while
+  a Siso build runs), when `main` hasn't changed since the last passing night, or when
+  `~/chromium-android/.blanc-applied-commit` is missing;
+- holds `~/chromium-android/.blanc-android.lock` (a release build holds it too) while it applies the
+  commit to `~/chromium-android/src`, writes the night's arguments (the tagged
+  `release-x64.gn` with the version `0.0.0-nightly`, which no release can use) and regenerates GN,
+  then builds `out/AndroidNightlyX64` through `build.mjs` at `nice 10`, without
+  `--allow-large-build`;
+- runs `chromium/tests/android/release-gate.sh` on the APK on emulator-5556;
+- writes `~/blanc-evidence/android/nightly/<YYYYMMDD-HHMM>/result.json`
+  (`verdict` pass, fail or skip, `sourceCommit`, `apkSHA256`, the gate's results) and, on a pass,
+  `LAST-PASS`.
+
+After a night, the shared checkout holds that night's commit: `.blanc-applied-commit` names it,
+and the next release build's `--previous-map` is that commit.
+
+**Setting it up (owner approval):** the first `out/AndroidNightlyX64` is a cold build, prepared
+by hand like any output: write its arguments with the version above, run `gn gen`, review the
+plan, record its environment with `build.mjs --record-environment`, and build it once with
+`--allow-large-build`. The first release build after this change writes
+`.blanc-applied-commit` (or write the last applied commit there by hand). Then:
+
+```sh
+mkdir -p ~/.config/systemd/user
+cp ~/blanc/chromium/android/server/blanc-android-nightly.{service,timer} ~/.config/systemd/user/
+systemctl --user daemon-reload && systemctl --user enable --now blanc-android-nightly.timer
+loginctl enable-linger "$USER"
+```
