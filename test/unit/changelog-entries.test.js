@@ -36,8 +36,8 @@ test('stable shows desktop and iPhone, never betas', () => {
   assert.ok(lib.matchesFilter({ product: 'desktop' }, 'stable'));
   assert.ok(lib.matchesFilter({ product: 'ios' }, 'stable'));
   assert.ok(!lib.matchesFilter({ product: 'beta' }, 'stable'));
-  assert.ok(lib.matchesFilter({ product: 'desktop' }, 'blanc'));
-  assert.ok(!lib.matchesFilter({ product: 'ios' }, 'blanc'));
+  assert.ok(lib.matchesFilter({ product: 'desktop' }, 'desktop'));
+  assert.ok(!lib.matchesFilter({ product: 'ios' }, 'desktop'));
   assert.ok(lib.matchesFilter({ product: 'ios' }, 'iphone'));
   assert.ok(lib.matchesFilter({ product: 'beta' }, 'beta'));
   assert.ok(!lib.matchesFilter({ product: 'desktop' }, 'beta'));
@@ -48,7 +48,7 @@ test('all shows everything', () => {
 });
 
 test('an unknown filter is stable', () => {
-  assert.deepEqual(lib.PRODUCT_FILTERS, ['stable', 'blanc', 'iphone', 'beta', 'all']);
+  assert.deepEqual(lib.PRODUCT_FILTERS, ['stable', 'desktop', 'iphone', 'beta', 'all']);
   assert.equal(lib.normalizeFilter('bogus'), 'stable');
   assert.equal(lib.normalizeFilter(undefined), 'stable');
   assert.equal(lib.normalizeFilter('BETA'), 'beta');
@@ -57,7 +57,7 @@ test('an unknown filter is stable', () => {
 
 test('titles and labels', () => {
   const d = { ...desktop('1.52.0', ''), product: 'desktop' };
-  assert.equal(lib.productLabel(d), 'Blanc');
+  assert.equal(lib.productLabel(d), 'Blanc for desktop');
   assert.equal(lib.entryTitle(d), 'Blanc 1.52.0');
   assert.equal(lib.productLabel(beta('2.0.0-beta.9', 'mac', '')), 'Blanc Beta for Mac');
   assert.equal(lib.entryTitle(beta('2.0.0-beta.9', 'mac', '')), 'Blanc Beta 2.0.0-beta.9');

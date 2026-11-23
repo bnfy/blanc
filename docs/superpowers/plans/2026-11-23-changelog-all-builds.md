@@ -17,8 +17,8 @@
 - New anchors: `beta-mac-<version>`, `beta-windows-<version>`, `beta-linux-<version>`, `ios-<version>`, each with non-alphanumerics collapsed to `-` (`beta-mac-2-0-0-beta-9`, `beta-windows-158-0-8127-904`, `ios-1-0-4`).
 - Only published, non-draft GitHub pre-releases whose tag matches `^chromium-beta-` enter `beta-releases.json`. Never: `v*-rc.*`, `blanc-chromium-preview-*`, `fork-windows-candidate`, untagged drafts, Android anything.
 - Every sentence shown is word for word from the published GitHub body or the App Store What's New text; sections may be dropped, never edited. The legacy-name scrub (`scrubLegacyName`) and span typing apply to the new files too.
-- Page default (`/changelog` with no `?product`) is **Stable**: desktop and iPhone entries, no betas. Chips: Stable, Blanc, iPhone & iPad, Blanc Beta, All; `?product=blanc|iphone|beta|all`; any other value means Stable.
-- Product labels: "Blanc", "Blanc Beta for Mac", "Blanc Beta for Windows", "Blanc Beta for Linux", "Blanc for iPhone", "Blanc for iPhone and iPad". Entry titles: "Blanc 1.52.0", "Blanc Beta 2.0.0-beta.9", "Blanc Beta for Windows 158.0.8127.904", "Blanc Beta for Linux 158.0.8127.906", "Blanc for iPhone 1.1".
+- Page default (`/changelog` with no `?product`) is **Stable**: desktop and iPhone entries, no betas. Chips: Stable, Desktop, iPhone & iPad, Blanc Beta, All; `?product=desktop|iphone|beta|all`; any other value means Stable.
+- Product labels: "Blanc for desktop", "Blanc Beta for Mac", "Blanc Beta for Windows", "Blanc Beta for Linux", "Blanc for iPhone", "Blanc for iPhone and iPad". Entry titles: "Blanc 1.52.0", "Blanc Beta 2.0.0-beta.9", "Blanc Beta for Windows 158.0.8127.904", "Blanc Beta for Linux 158.0.8127.906", "Blanc for iPhone 1.1".
 - iPhone devices: versions ≥ 1.0.3 are `["iphone","ipad"]`, earlier `["iphone"]`. App Store link: `https://apps.apple.com/app/id6828027794`.
 - The App Store Connect script runs only on the owner's Mac through `op run --env-file=ios/.env.1password` (`ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8`), never in CI, never prints the key.
 - No inline styles; new CSS goes in `site/src/styles/site.css` beside `.changelog-filter`, using existing tokens.
@@ -171,7 +171,7 @@ git commit -m "Site deploy: refuse a changelog that is behind GitHub"
 
 **Interfaces:**
 - Produces (from `changelog-entries.mjs`):
-  - `PRODUCT_FILTERS = ['stable','blanc','iphone','beta','all']`
+  - `PRODUCT_FILTERS = ['stable','desktop','iphone','beta','all']`
   - `mergeEntries({ desktop, beta, ios }) -> Entry[]`: adds `product: 'desktop'` to desktop entries (without mutating input), sorts by `publishedAt` descending, ties broken by product order `desktop, ios, beta` then `platform` `mac, windows, linux`.
   - `productLabel(entry) -> string`, `entryTitle(entry) -> string` (values in Global Constraints).
   - `matchesFilter(entry, filter) -> boolean`: `stable` = desktop or ios; `blanc` = desktop; `iphone` = ios; `beta` = beta; `all` = every entry; unknown filter behaves as `stable`.
