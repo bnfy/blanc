@@ -91,6 +91,20 @@ The handoff contains exactly these imported inputs:
 Symlinks and nonregular handoff files are refused. The raw capture and large
 server logs stay on the server; retain them under the server evidence record.
 
+### Track, rollout and notes
+
+`config.json` also says where `upload` sends the build ([channels.md](channels.md)). Set these
+before `fetch`: the stages bind the configuration's digest from then on, so changing them later
+means a new `WORK`.
+
+- `track`: `internal` (the default), `alpha`, `beta` or `production`. A beta name (`X.Y.Z-beta.K`)
+  goes only to `internal`, `alpha` or `beta`; a stable name (`X.Y.Z`) only to `internal` or
+  `production`.
+- `rollout`: production only. A whole number from 1 to 99 (a staged rollout at that percentage), or
+  `"complete"`.
+- `notes`: a file inside `WORK` holding the owner-approved release notes, en-US, 1–500 characters.
+  Required on every track but `internal`. Its digest is recorded with the upload.
+
 ## The six stages
 
 Set `WORK` to that directory, then invoke each command separately:
@@ -138,22 +152,27 @@ node chromium/android/release/release.mjs upload "$WORK"
    is preserved and requires explicit reconciliation, as documented by Task 7.
 6. **upload** revalidates the release/privacy evidence, ledger and all recorded
    inputs, then asks for `upload 1.0.0-beta.1 (1) to internal` for that example
-   version. Any other response, including added spaces, stops without a Play
+   version. Other tracks ask for `upload 1.1.0-beta.1 (7) to beta`,
+   `upload 1.1.0 (9) to production at 10%` or `upload 1.1.0 (9) to production, complete`. Any other response, including added spaces, stops without a Play
    request. After approval it rechecks inputs and runs an `op run` worker.
    The parent rejects an unfinished code below the highest uploaded code before
    asking for approval; the worker independently rechecks that condition before
    credential reads or Play requests.
    The worker reads the Play credential, exchanges the in-memory JWT for a
-   token, and calls the existing internal-track adapter. No credential or token
+   token, and calls the Play adapter (`uploadToTrack`). No credential or token
    crosses the worker's stdout or a file. The adapter creates a fresh edit,
-   uploads the signed AAB, updates only `internal` with a **draft** release, and
-   commits. Play accepts nothing but drafts until the app has been published once,
-   so the owner then opens the internal testing track in Play Console and rolls the
-   draft out to testers. Only after the commit resolves does the worker persist a
-   public `upload-receipt.json` containing edit ID, version code and signed-AAB
-   digest. The parent then marks the ledger `uploaded` and records the finished
-   stage. This does not publish production.
-7. **Commit the ledger row.** Commit `chromium/android/release/ledger.json` with the
+   uploads the signed AAB, updates only the planned track, and commits. On
+   `internal` that is a **draft** release, as Play required until the app was
+   first published, so the owner rolls it out to testers in Play Console. On
+   `alpha` and `beta` it is a completed release with the notes, and on
+   `production` it is a staged rollout or a completed release. Only after the
+   commit resolves does the worker persist a public `upload-receipt.json`
+   containing edit ID, version code, track and signed-AAB digest. The parent then
+   marks the ledger `uploaded` and records the finished stage. Production needs
+   the owner's Release to production right on the service account
+   ([play-console.md](play-console.md)).
+7. **Commit the ledger row.** The row is `uploaded` and its `published` list holds the upload
+   (`{track, status, fraction?, date, editId}`). Commit `chromium/android/release/ledger.json` with the
    new `uploaded` row and merge it before tagging the next release: the server reads
    the ledger from the tag, so a tag without the row would be given the same version
    code again, and the Mac would refuse it only after the build.
@@ -164,6 +183,28 @@ otherwise an unsigned APK set. That APK set is size evidence only. The measured
 range is a bundletool estimate for the pinned device, not an observed Play
 download. Primary-source review established the command/CSV shape; compatibility
 with the installed bundletool version and a real AAB still needs the owner run.
+
+## Promotion and rollout
+
+After `upload`, the same `WORK` moves the build on Play without uploading it again:
+
+```sh
+node chromium/android/release/release.mjs promote "$WORK" TRACK [PERCENT|complete] [--notes FILE]
+node chromium/android/release/release.mjs rollout "$WORK" PERCENT|complete|halt [--notes FILE]
+```
+
+- `promote` puts the uploaded build on another track. For example, a beta that went to `internal`
+  moves to `alpha`, or a stable build moves to `production` with a percentage or `complete`. It
+  refuses a build below the one production users get, for every track but production.
+- `rollout` changes a production rollout. A percentage must be above the current one (or equal, to
+  resume a halt). `complete` finishes it, and `halt` stops it.
+- Notes default to `config.json`'s `notes`. Play replaces a track's release whole, so a rollout
+  change sends them again.
+- Each asks for its exact phrase (`promote 1.1.0-beta.2 (9) to beta`, `roll out 1.1.0 (10) to 50%`,
+  `complete rollout of 1.1.0 (10)`, `halt rollout of 1.1.0 (10)`), then runs an `op run` worker that
+  reads the Play credential and commits one edit.
+- It writes a public receipt (`promote-beta-1.json`, `rollout-production-2.json`, …) and appends to
+  the ledger row's `published` list. Commit the ledger afterwards.
 
 ## Privacy evidence binding
 
