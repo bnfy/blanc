@@ -58,6 +58,10 @@
       "evidence": "release.json chromiumVersion 158.0.8127.2, the fork's Chromium tree (chrome/VERSION unchanged from upstream)."
     },
     {
+      "text": "Last updated:",
+      "kind": "label"
+    },
+    {
       "text": "Download Beta for Mac",
       "evidence": "The only build is for Apple Silicon Macs (release.json arches [arm64]); the button names the platform beside the Apple logo (owner, 2026-11-15)."
     },

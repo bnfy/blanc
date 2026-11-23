@@ -32,6 +32,10 @@
       "evidence": "The fork's pinned Chromium 158.0.8127.37 (chromium/reports/l3-linux.json chromiumVersion); the beta replaces only its last number with its build."
     },
     {
+      "text": "Last updated:",
+      "kind": "label"
+    },
+    {
       "text": "x64",
       "kind": "label"
     },

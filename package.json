@@ -18,6 +18,7 @@
     "site:changelog": "node scripts/generate-site-changelog.mjs",
     "site:changelog:check": "node scripts/generate-site-changelog.mjs --check",
     "site:ios-changelog": "op run --env-file=ios/.env.1password --no-masking -- node scripts/ios-changelog.mjs",
+    "site:ios-testflight": "op run --env-file=ios/.env.1password --no-masking -- node scripts/ios-testflight-site.mjs",
     "site:bangs": "node site/scripts/build-bangs-data.mjs",
     "site:bangs:check": "node site/scripts/build-bangs-data.mjs --check",
     "site:whats-new": "node site/scripts/whats-new-draft.mjs",

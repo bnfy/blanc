@@ -16,7 +16,12 @@ const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '�
 const normalize = (text) => text.replace(/<!--[\s\S]*?-->/g, ' ').replace(/<[^>]*>/g, ' ')
   .replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/↗/g, ' ')
   .replace(/\s+/g, ' ').replace(/\s+([.,?])/g, '$1').trim();
-const main = page.slice(page.indexOf('<main'), page.indexOf('</main>'));
+const testflight = JSON.parse(read('site/src/data/ios-testflight.json'));
+// The iPhone and iPad row names the TestFlight build from ios-testflight.json
+// (scripts/ios-testflight-site.mjs); its brief's spans are separate pieces.
+const main = page.slice(page.indexOf('<main'), page.indexOf('</main>'))
+  .replace(/\{testflight\.(version|build)\}/g, (_, key) => testflight[key])
+  .replace(/<p class="dl-beta-brief">([\s\S]*?)<\/p>/g, (_, inner) => inner.replace(/<span>/g, '<p>').replace(/<\/span>/g, '</p>'));
 // The Betas panel's heading and sentence and its Mac, Windows and Linux rows are
 // recorded in the beta ledgers; its iPhone and Android rows are checked here.
 const withoutBeta = main
@@ -34,7 +39,7 @@ test('every piece of text on the page is recorded or a label (the beta tiles hav
     for (const sentence of sentences) assert.ok(recorded.has(sentence), `unrecorded text on /download: ${sentence}`);
   }
   for (const claim of record.claims) {
-    assert.ok(normalize(page).includes(claim.exactWording), `${claim.id}: wording drifted`);
+    assert.ok(normalize(main).includes(claim.exactWording), `${claim.id}: wording drifted`);
     assert.ok(['verified', 'qualified'].includes(claim.verdict) && claim.evidence.length > 20, `${claim.id}: verdict and evidence`);
   }
 });
@@ -111,4 +116,14 @@ test('the switcher preselects the visitor’s system and nothing else', async ()
   assert.equal(initDownloadSwitcher(viaHash), 'iphone');
   assert.equal(radios.find((r) => r.value === 'iphone').checked, true);
   assert.equal(initDownloadSwitcher({ ...viaHash, location: { hash: '#"]x' } }), 'linux', 'an odd address falls back to the system');
+});
+
+test('the iPhone and iPad beta row names the TestFlight build its ledger records', () => {
+  assert.match(testflight.version, /^\d+(\.\d+)+$/);
+  assert.match(testflight.build, /^\d{12}$/);
+  assert.match(testflight.uploaded, /^\d{4}-\d{2}-\d{2}$/);
+  const claim = record.claims.find((c) => c.field === 'testflight-build');
+  assert.equal(claim.exactWording, `${testflight.version} (${testflight.build})`);
+  assert.ok(claim.evidence.includes(testflight.uploaded), 'the evidence names the upload day');
+  assert.match(page, /<time datetime=\{testflight\.uploaded\} data-beta-updated><\/time>/);
 });

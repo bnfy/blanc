@@ -32,6 +32,10 @@
       "evidence": "The fork's pinned Chromium 158.0.8127.2; chrome/VERSION is unchanged from upstream, and the Windows beta's version replaces only its last number at build time (patch 0103)."
     },
     {
+      "text": "Last updated:",
+      "kind": "label"
+    },
+    {
       "text": "Build 907",
       "evidence": "windows-release.json build 907; the version's last number."
     },
