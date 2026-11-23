@@ -65,6 +65,71 @@
       "checksumsSigstoreSha256": "2df45ea925e2980c158323cf39af9e3c125512bbc64281f411bbcaab862ea866",
       "publishedAt": "2026-11-23T03:45:35Z",
       "note": "First public Blanc Beta for Linux: x64 and arm64 .deb and .rpm, a GitHub pre-release (not latest; v1.52.0 stayed latest) and generation 906 of the signed apt and dnf repository at pkg.blanc.day, the same tree proven on staging. Update proof 905 -> 906 and repository add/update/remove passed on Ubuntu 24.04, Debian 12 and Fedora 45, x64 and arm64; VM hand check on Ubuntu 26.04 arm64 (chromium/linux/hand-checks-l3.md). Owner decision 2026-11-22: ship on Chromium 158.0.8127.2; the first update moves to 158.0.8127.37 and the repository adds DEP-11 (App Center) metadata before it."
+    },
+    {
+      "build": 908,
+      "version": "158.0.8127.908",
+      "date": "2026-11-23",
+      "sourceCommit": "b82e4fab7bb0400932a047beff0eaab5ba34b36f",
+      "proofOnly": true,
+      "purpose": "proof",
+      "candidates": {
+        "x64": {
+          "id": "linux-x64-a198ff326d0ef2ed",
+          "tarSha256": "7a1bb6374009226633df264b608d961b7824b4e09c188acf97298e21757959dd"
+        },
+        "arm64": {
+          "id": "linux-arm64-8ec1abe47f3d9602",
+          "tarSha256": "591b05402fe0bc1a1410d429400f301fa1de25f71980cfd9c2172193fe55cbc3"
+        }
+      },
+      "packages": {
+        "blanc-beta_158.0.8127.908-1_amd64.deb": "a6343382861fba8dfe4a4e26913117c54c78adb52bcd02f0f1c3ff30a5704cd9",
+        "blanc-beta-158.0.8127.908-1.x86_64.rpm": "57d27ea9819a932a93f73bb9fbae3870f54d8100ab4e348140e48b4ef752c44f",
+        "blanc-beta_158.0.8127.908-1_arm64.deb": "d68902cf4d9f175c5b2d2d2c286233ebdeddfc4e8e18b45b9c7f7a092055e7ee",
+        "blanc-beta-158.0.8127.908-1.aarch64.rpm": "dae918ae9bea97edcb8d0f47aa8b2b8bf1ef7d42bf465713d0cb09c413043997"
+      },
+      "buildCheckRuns": {
+        "x64": 45184002901,
+        "arm64": 45184601290
+      },
+      "note": "Proof-only N-1 for 909's update proof and VM hand check; never published."
+    },
+    {
+      "build": 909,
+      "version": "158.0.8127.909",
+      "tag": "chromium-beta-linux-158.0.8127.909",
+      "date": "2026-11-23",
+      "sourceCommit": "b82e4fab7bb0400932a047beff0eaab5ba34b36f",
+      "chromiumVersion": "158.0.8127.37",
+      "candidates": {
+        "x64": {
+          "id": "linux-x64-2e9c70e9316b57dc",
+          "tarSha256": "5ee9b504ece89dc28319c340862eca0a15557b414e9843c301e67e065934fb85"
+        },
+        "arm64": {
+          "id": "linux-arm64-0d3ee65bf38e34da",
+          "tarSha256": "e5730d9d46f61c5536edc5591942c382564aabb8c9f9648dbedfdba66850e000"
+        }
+      },
+      "packages": {
+        "blanc-beta_158.0.8127.909-1_amd64.deb": "884e80bb31213d521f2da45623eea6bc70a246b180e6cdc60fa3c83f0fcf260b",
+        "blanc-beta-158.0.8127.909-1.x86_64.rpm": "dbe5e55ccac709d182ccb8067025046fb6ace18b2c4a0a5897e37f8a21aedcee",
+        "blanc-beta_158.0.8127.909-1_arm64.deb": "2572d5b35fde7f827e0726db2e440dcfce456efa9630aa859f69837a5cc70cfe",
+        "blanc-beta-158.0.8127.909-1.aarch64.rpm": "b1b330e638cc175bbef0b330987b3f14b30a8dd06150524b43eaefa1145acb53"
+      },
+      "buildCheckRuns": {
+        "x64": 45185037743,
+        "arm64": 45185525873
+      },
+      "repositoryGeneration": 909,
+      "repositoryDigest": "7dc9f99f87d48f40e57810baab839ec5a5336642aa3e13c47e90e104adf0eb45",
+      "updateProofRun": 45193475116,
+      "repoLifecycleRun": 45194073223,
+      "verifyPublicRun": 45200391610,
+      "checksumsSigstoreSha256": "7b535aa25eb6a2cf096dcb1fae606f62bc96a21f6b2af592d2e719cada8c2518",
+      "publishedAt": "2026-11-23T15:00:17Z",
+      "note": "First Linux beta update: Chromium 158.0.8127.37, and the first repository tree with a DEP-11 (AppStream) catalog, so Ubuntu's App Center lists Blanc's updates (seen in the VM hand check, 908 -> 909). Staging's first 909 tree lacked the plain catalog name apt needs; with the owner's approval staging was reset to 906 and 909 re-signed and re-staged before any proof passed."
     }
   ]
 }
