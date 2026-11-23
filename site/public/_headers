@@ -98,6 +98,10 @@
 /press/blanc-mail-envelope-256.png
   ! Cross-Origin-Resource-Policy
 
+# Images shown inside release-notes broadcasts (newsletter screenshots).
+/email/*
+  ! Cross-Origin-Resource-Policy
+
 /fonts/instrument-sans/*
   ! Cross-Origin-Resource-Policy
   Access-Control-Allow-Origin: *
