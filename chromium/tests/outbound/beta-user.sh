@@ -27,6 +27,26 @@ trap 'kill $NETTOP 2>/dev/null' EXIT
 say() { echo "$(stamp) $1" | tee -a "$OUT/user.log"; }
 run() { say "$1"; shift; caffeinate -d -i "$@"; }
 run "controls (before)" $NODE tests/outbound/controls.mjs "$CFG" "$OUT/controls-before.json"
+# The beta keeps its cookie key in a Keychain item that only the code hash
+# that created it may read without asking, and an unsigned beta's hash changes
+# whenever its main executable does (158.0.8127.37, 2026-11-23). Asked in this
+# background session, nobody sees the prompt, and every cookie read waits for
+# it. Start as a new install would: without the item; the first launch makes
+# one for this build.
+# Each removal gets 15 seconds, in case macOS asks about that too.
+KEYCHAIN=$HOME/Library/Keychains/login.keychain-db
+remove_item() {
+  security delete-generic-password -s "Blanc Beta Safe Storage" "$KEYCHAIN" >/dev/null 2>&1 &
+  pid=$!
+  ( sleep 15; kill "$pid" 2>/dev/null ) &
+  timer=$!
+  wait "$pid"; status=$?
+  kill "$timer" 2>/dev/null
+  return $status
+}
+removed=0
+while [ $removed -lt 10 ] && remove_item; do removed=$((removed + 1)); done
+say "removed $removed earlier Blanc Beta Safe Storage item(s)"
 run "beta scenarios" $NODE tests/outbound/beta-scenarios.mjs "$APP" "$OUT" > "$OUT/beta-scenarios.log" 2>&1
 run "controls (after)" $NODE tests/outbound/controls.mjs "$CFG" "$OUT/controls-after.json"
 # Chromium writes its network logs owner-only; the owner analyzes them.
