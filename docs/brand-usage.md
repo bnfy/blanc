@@ -397,13 +397,24 @@ the same function, so change them together. Copy follows
 
 ### Editorial website footer
 
-The shared website footer is warm ink (`#111`) on every page. It opens with
-the Display lockup (155×40px) as the home link, the tagline “A little less
-browser.” in Instrument Sans, and the newsletter field, then three link columns
-(Explore, Resources, Blanc) and a fine rule above the compact legal and social
-row. Links rest in a light warm grey (`#C0BCB5`) and turn near-white on hover;
-focus rings are gold on dark (`--site-gold-on-dark`). A page may put numbered
-method notes above the columns (the homepage's footnotes do).
+The shared website footer is a white band (`--site-surface-raised`), like the
+masthead (owner, November 23, 2026: the dark `#111` footer read heavy once the
+site moved to its lighter cream). The homepage keeps the dark footer, because
+it follows the page's dark closing section (owner, the same day): warm ink
+`#111`, the white word, links in a light warm grey (`#C0BCB5`) that turn
+near-white on hover, and gold-on-dark focus rings. Both looks come from the
+footer's `--footer-*` variables in `site/src/styles/revamp.css`; a page asks
+for the dark one with BaseLayout's `footer="dark"`. It opens with the Display
+lockup (155×40px, the ink word) as the home link, the tagline “A little less
+browser.” in Instrument Sans, and the newsletter field (a white field with a
+`--site-border` outline and an ink Subscribe pill), then three link columns
+(Explore, Resources, Blanc) and a fine `--site-border` rule above the compact
+legal row and the social icons (Simple Icons glyphs, named for screen readers,
+each with a 36 × 44px target; owner, November 23, 2026). Headings and the tagline are ink; links rest in
+`--site-text-dim` and turn ink on hover; focus rings are gold on light
+(`--site-gold`). With a mouse or trackpad the column links sit closer together;
+touch screens keep the taller rows. A page may put numbered method notes above
+the columns (the homepage's footnotes do).
 
 ### Horizon rule
 

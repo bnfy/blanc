@@ -84,3 +84,5 @@ SOFTWARE.
 
 
 The Chromium symbol uses the shared three-sector browser-mark geometry from Simple Icons googlechrome.svg. Only its decorative title is changed; the upstream vector path is unchanged. This identifies the bundled Chromium engine, not the Google Chrome app.
+
+The website footer's social icons (Substack, Instagram, Threads, Facebook, TikTok and Reddit) come from Simple Icons 16.38.1 (CC0 1.0, https://github.com/simple-icons/simple-icons). Their vector paths are unchanged and inlined in site/src/components/Footer.astro. Names and marks retain their owners' trademark rights.
