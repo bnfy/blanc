@@ -297,3 +297,92 @@ test('a bad track plan asks nothing and starts no worker', async t => {
   await through(f, 'attest'); f.io.worker = () => { throw new Error('must not run'); };
   await assert.rejects(runStage('upload', f.work, f.io), /beta build.*production/); assert.equal(f.prompts.length, 0);
 });
+
+// Promotion and rollout of builds Play already has.
+const when = '2026-12-01T12:00:00.000Z';
+const row = (code, name, published, state = 'uploaded') => ({versionCode: code, versionName: name, tag: `android-v${name}-${code}`, commit: 'a'.repeat(40), state, date: '2026-12-01', note: '', ...(published ? {published} : {})});
+const p = (track, status, fraction) => ({track, status, date: when, editId: 'e', ...(fraction === undefined ? {} : {fraction})});
+const betas = (...extra) => ({schema: 1, builds: [row(1, '1.0.0-beta.1', [p('alpha', 'completed')]), row(2, '1.0.0', [p('internal', 'draft')]), ...extra]});
+test('promote sends an uploaded beta to the beta track, and a stable build to production staged', async () => {
+  const {promotionPlan} = await api();
+  const l = betas();
+  assert.deepEqual(promotionPlan(l, l.builds[0], 'beta', undefined, 'Notes.'), {command: 'promote', track: 'beta', phrase: 'promote 1.0.0-beta.1 (1) to beta',
+    release: {name: '1.0.0-beta.1', versionCodes: ['1'], status: 'completed', releaseNotes: [{language: 'en-US', text: 'Notes.'}]}, published: {track: 'beta', status: 'completed'}});
+  const prod = promotionPlan(l, l.builds[1], 'production', 10, 'First stable.');
+  assert.equal(prod.phrase, 'promote 1.0.0 (2) to production at 10%');
+  assert.deepEqual(prod.release, {name: '1.0.0', versionCodes: ['2'], status: 'inProgress', userFraction: 0.1, releaseNotes: [{language: 'en-US', text: 'First stable.'}]});
+  assert.equal(promotionPlan(l, l.builds[1], 'production', 'complete', 'x').phrase, 'promote 1.0.0 (2) to production, complete');
+});
+test('promote refuses the wrong channel, a build not uploaded, and missing notes', async () => {
+  const {promotionPlan} = await api();
+  const l = betas(row(3, '1.0.1', null, 'built'));
+  assert.throws(() => promotionPlan(l, l.builds[0], 'production', 10, 'x'), /beta build.*production/);
+  assert.throws(() => promotionPlan(l, l.builds[1], 'beta', undefined, 'x'), /stable build.*testing track/);
+  assert.throws(() => promotionPlan(l, l.builds[2], 'internal', undefined), /uploaded/);
+  assert.throws(() => promotionPlan(l, l.builds[0], 'beta', undefined, ''), /notes/);
+  assert.throws(() => promotionPlan(l, l.builds[0], 'beta', 10, 'x'), /rollout/);
+});
+test('a beta below the production build is not promoted to a testing track', async () => {
+  const {promotionPlan} = await api();
+  const l = {schema: 1, builds: [row(1, '1.0.0-beta.1', [p('alpha', 'completed')]), row(2, '1.0.0', [p('production', 'completed')])]};
+  assert.throws(() => promotionPlan(l, l.builds[0], 'beta', undefined, 'x'), /below the production build/);
+});
+test('rollout only goes up, and complete or halt need a rollout in progress', async () => {
+  const {promotionPlan} = await api();
+  const l = {schema: 1, builds: [row(1, '1.0.0', [p('production', 'inProgress', 0.1)])]};
+  const up = promotionPlan(l, l.builds[0], 'production', 50, 'x');
+  assert.equal(up.command, 'rollout'); assert.equal(up.phrase, 'roll out 1.0.0 (1) to 50%'); assert.deepEqual(up.published, {track: 'production', status: 'inProgress', fraction: 0.5});
+  assert.throws(() => promotionPlan(l, l.builds[0], 'production', 10, 'x'), /above the current 10%/);
+  assert.equal(promotionPlan(l, l.builds[0], 'production', 'halt', 'x').phrase, 'halt rollout of 1.0.0 (1)');
+  assert.deepEqual(promotionPlan(l, l.builds[0], 'production', 'halt', 'x').release, {name: '1.0.0', versionCodes: ['1'], status: 'halted', userFraction: 0.1, releaseNotes: [{language: 'en-US', text: 'x'}]});
+  assert.equal(promotionPlan(l, l.builds[0], 'production', 'complete', 'x').phrase, 'complete rollout of 1.0.0 (1)');
+  const done = {schema: 1, builds: [row(1, '1.0.0', [p('production', 'completed')])]};
+  for (const arg of ['halt', 'complete', 50]) assert.throws(() => promotionPlan(done, done.builds[0], 'production', arg, 'x'), /not rolling out/);
+  const halted = {schema: 1, builds: [row(1, '1.0.0', [p('production', 'inProgress', 0.1), p('production', 'halted', 0.1)])]};
+  assert.equal(promotionPlan(halted, halted.builds[0], 'production', 10, 'x').phrase, 'roll out 1.0.0 (1) to 10%');
+  assert.throws(() => promotionPlan(halted, halted.builds[0], 'production', 'halt', 'x'), /not rolling out/);
+});
+test('parseRollout takes 1 to 99, complete or halt, and nothing else', async () => {
+  const {parseRollout} = await api();
+  assert.equal(parseRollout('10'), 10); assert.equal(parseRollout('99'), 99); assert.equal(parseRollout('complete'), 'complete'); assert.equal(parseRollout('halt'), 'halt');
+  for (const bad of ['0', '100', '150', '10.5', ' 10', '10%', '010', '', 'Complete']) assert.throws(() => parseRollout(bad), /rollout/, bad);
+});
+test('an upload records where the build went in the ledger', async t => {
+  const f = fixture(t), {runStage} = await api(); await through(f, 'attest');
+  await runStage('upload', f.work, f.io);
+  const [published] = read(f.ledger).builds[0].published;
+  assert.deepEqual([published.track, published.status, published.editId], ['internal', 'draft', 'fixture-edit']);
+});
+test('promote asks for its phrase, runs the worker, writes a receipt and appends to the ledger', async t => {
+  const f = fixture(t), {runStage, runAction} = await api(); await through(f, 'attest');
+  const configFile = path.join(f.work, 'config.json');
+  await runStage('upload', f.work, f.io);
+  write(path.join(f.work, 'promo-notes.txt'), 'For testers.');
+  f.io.prompt = async text => { f.prompts.push(text); return text; };
+  f.io.worker = async (stage, work, io, action) => { assert.deepEqual([stage, action], ['promote', {track: 'alpha', arg: undefined, notes: 'promo-notes.txt'}]); return {editId: 'promo-edit'}; };
+  await runAction('promote', f.work, 'alpha', undefined, 'promo-notes.txt', f.io);
+  assert.equal(f.prompts.at(-1), 'promote 1.0.0-beta.1 (1) to alpha');
+  assert.deepEqual(read(path.join(f.work, 'promote-alpha-1.json')), {editId: 'promo-edit', versionCode: 1, track: 'alpha', status: 'completed'});
+  assert.deepEqual(read(f.ledger).builds[0].published.map(e => e.track), ['internal', 'alpha']);
+  assert.ok(fs.existsSync(configFile));
+});
+test('a wrong phrase for promote makes no request and records nothing', async t => {
+  const f = fixture(t), {runStage, runAction} = await api(); await through(f, 'attest'); await runStage('upload', f.work, f.io);
+  write(path.join(f.work, 'n.txt'), 'x'); f.io.prompt = async () => 'yes'; f.io.worker = () => { throw new Error('must not run'); };
+  await assert.rejects(runAction('promote', f.work, 'alpha', undefined, 'n.txt', f.io), /confirmation/);
+  assert.equal(read(f.ledger).builds[0].published.length, 1);
+});
+test('promote needs a finished upload in this WORK', async t => {
+  const f = fixture(t), {runAction} = await api(); await through(f, 'attest');
+  await assert.rejects(runAction('promote', f.work, 'alpha', undefined, 'n.txt', f.io), /upload/); assert.equal(f.prompts.length, 0);
+});
+test('the promote worker updates the planned track with the credential kept inside', async t => {
+  const f = fixture(t), {runStage, secretWorker} = await api(); await through(f, 'attest'); await runStage('upload', f.work, f.io);
+  write(path.join(f.work, 'n.txt'), 'For testers.');
+  let seen;
+  const result = await secretWorker('promote', f.work, {...f.io, env: {...f.io.env, BLANC_ANDROID_OP_RUN: '1'},
+    run: (command, args, options) => command === 'op' ? {status: 0, stdout: 'credential'} : f.io.run(command, args, options),
+    accessToken: async () => 'fixture-token', updateTrack: async value => { seen = value; return {editId: 'w'}; }}, {track: 'alpha', notes: 'n.txt'});
+  assert.deepEqual(result, {editId: 'w'});
+  assert.deepEqual([seen.track, seen.token, seen.release.status, seen.release.releaseNotes[0].text], ['alpha', 'fixture-token', 'completed', 'For testers.']);
+});

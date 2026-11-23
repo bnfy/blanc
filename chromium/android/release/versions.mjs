@@ -53,9 +53,38 @@ export function validateLedger(ledger) {
     check(typeof entry.note === 'string', 'ledger note must be a string');
     check(!names.has(entry.versionName) || names.get(entry.versionName) === 'abandoned',
       'versionName can be reused only when every earlier use is abandoned');
+    validatePublished(entry);
     tags.add(entry.tag);
     names.set(entry.versionName, entry.state);
   }
+}
+
+const TRACKS = ['internal', 'alpha', 'beta', 'production'];
+const STATUSES = ['draft', 'completed', 'inProgress', 'halted'];
+
+// Where an uploaded build went, in order: each upload, promotion and rollout change Play committed.
+function validatePublished(entry) {
+  if (entry.published === undefined) return;
+  check(Array.isArray(entry.published), 'ledger published must be an array');
+  check(entry.published.length === 0 || entry.state === 'uploaded', 'ledger published entries need an uploaded build');
+  for (const item of entry.published) {
+    check(item !== null && typeof item === 'object' && TRACKS.includes(item.track) && STATUSES.includes(item.status), 'ledger published entry needs a known track and status');
+    const staged = item.status === 'inProgress' || item.status === 'halted';
+    check(staged ? typeof item.fraction === 'number' && item.fraction > 0 && item.fraction < 1 : item.fraction === undefined,
+      'ledger published fraction belongs only to a staged rollout (0 < fraction < 1)');
+    check(typeof item.date === 'string' && !Number.isNaN(Date.parse(item.date)) && new Date(Date.parse(item.date)).toISOString() === item.date, 'ledger published date must be a canonical ISO timestamp');
+    check(typeof item.editId === 'string' && item.editId.length > 0, 'ledger published entry needs its Play edit ID');
+  }
+}
+
+// The newest build whose latest production change isn't a halt: what production users are getting.
+export function currentProduction(ledger) {
+  validateLedger(ledger);
+  for (const entry of [...ledger.builds].reverse()) {
+    const last = (entry.published ?? []).filter(item => item.track === 'production').at(-1);
+    if (last && last.status !== 'halted') return { versionCode: entry.versionCode, status: last.status, ...(last.fraction === undefined ? {} : { fraction: last.fraction }) };
+  }
+  return null;
 }
 
 export function nextRelease(ledger, versionName) {
