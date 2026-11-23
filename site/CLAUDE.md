@@ -8,13 +8,16 @@ sharing `src/layouts/BaseLayout.astro` with three explicit page profiles —
 island (index: rich OG), standard, legal
 (privacy/terms: **no** analytics/consent, **no**
 OG/Twitter meta). Don't flatten these differences — they're deliberate. The
-footer is one unified dark component on every page (`components/Footer.astro`,
-`.website-footer`: the Display Blanc lockup, tagline and newsletter, three link
+footer is one shared component (`components/Footer.astro`, `.website-footer`),
+a white band like the masthead since November 23, 2026, except on the
+homepage, which passes BaseLayout `footer="dark"` to keep the dark footer after
+its dark closing section (the `--footer-*` variables in `revamp.css` hold both
+looks). It has the Display Blanc lockup, tagline and newsletter, three link
 columns, then a legal and social row; a page can put numbered notes above the
 columns through BaseLayout's `footnotes` slot, as the homepage does). Its top
 edge is the horizon rule — a gold hairline with a soft glow rising into the page
 above (`revamp.css`; see `docs/brand-usage.md`). The masthead is
-`components/Header.astro`: one dark, sticky 52px bar (`--site-header-h`) with
+`components/Header.astro`: one white, sticky 52px bar (`--site-header-h`) with
 the small lockup and the direct links fed by `src/data/navigation.mjs` and kept
 in step by `test/unit/site-navigation.test.js`. At 920px and narrower the links
 fold behind a Menu button (an inline script, so phones never flash the full

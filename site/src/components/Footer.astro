@@ -1,11 +1,14 @@
 ---
 import NewsletterForm from "./NewsletterForm.astro";
 // notes: the page passes numbered notes (its footnotes slot) to show above the links.
-const { measurementControls = true, notes = false } = Astro.props;
+// tone: a white band everywhere; the homepage passes "dark" to follow its dark
+// closing section.
+const { measurementControls = true, notes = false, tone = "light" } = Astro.props;
+const dark = tone === "dark";
 ---
 
 <footer
-  class="website-footer"
+  class:list={["website-footer", { "website-footer--dark": dark }]}
   id="site-footer"
   aria-label="Blanc website footer"
 >
@@ -29,7 +32,7 @@ const { measurementControls = true, notes = false } = Astro.props;
               alt=""
             /><img
               class="site-lockup-word"
-              src="/lockup/blanc-word-display-white.svg"
+              src={dark ? "/lockup/blanc-word-display-white.svg" : "/lockup/blanc-word-display-ink.svg"}
               width="2217"
               height="742"
               alt=""
