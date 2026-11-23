@@ -62,7 +62,7 @@ test('every consolidated destination exists and every old route has a direct 301
 });
 test('primary navigation and footer keep supporting pages and trust one click away',async()=>{
  const {browserMenu,directLinks}=await import(pathToFileURL(path.join(ROOT,'site/src/data/navigation.mjs')).href);
- assert.deepEqual([browserMenu,...directLinks].map(link=>link.label),['Browser','Privacy & Security','Patron','About','Support','Mail']);
+ assert.deepEqual([browserMenu,...directLinks].map(link=>link.label),['Browser','Privacy & Security','Support','Mail']);
  // The Browser menu keeps Download and the main feature pages one click away.
  assert.deepEqual(browserMenu.downloads.map(link=>link.label),['macOS','Windows','Linux','iPhone and iPad']);
  for(const link of browserMenu.features){const id=link.href.replace('/features/','');assert.ok(topics.some(topic=>topic.id===id),link.href);}
@@ -71,7 +71,8 @@ test('primary navigation and footer keep supporting pages and trust one click aw
  for(const route of ['/patron','/mail','/features','/support','/trust','/about','/media','/ambassadors','/download','/changelog','/roadmap','/privacy','/terms'])assert.ok(footer.includes(`href="${route}"`),route);
  assert.equal(browserMenu.key,'features');assert.equal(browserMenu.href,'/features');
  assert.equal(directLinks.find(link=>link.key==='privacy').href,'/trust');
- assert.equal(directLinks.find(link=>link.key==='patron').href,'/patron');
+ // Patron and About left the header on November 23, 2026 (owner); the footer still links both.
+ assert.ok(!directLinks.some(link=>['/patron','/about'].includes(link.href)));
  assert.ok(footer.includes('href="/features/security"'));
  assert.match(footer, /Security guide/);
  assert.match(footer, /Privacy &amp; Security/);
