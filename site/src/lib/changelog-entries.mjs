@@ -10,11 +10,11 @@ import betaReleases from '../data/beta-releases.json' with { type: 'json' };
 import iosReleases from '../data/ios-releases.json' with { type: 'json' };
 import { SITE_ORIGIN } from './site-origin.mjs';
 
-export const PRODUCT_FILTERS = ['stable', 'blanc', 'iphone', 'beta', 'all'];
+export const PRODUCT_FILTERS = ['stable', 'desktop', 'iphone', 'beta', 'all'];
 
 const FILTER_PRODUCTS = {
   stable: ['desktop', 'ios'],
-  blanc: ['desktop'],
+  desktop: ['desktop'],
   iphone: ['ios'],
   beta: ['beta'],
   all: ['desktop', 'ios', 'beta'],
@@ -46,7 +46,7 @@ export function mergeEntries({ desktop = [], beta = [], ios = [] }) {
 export function productLabel(entry) {
   if (entry.product === 'beta') return `Blanc Beta for ${BETA_PLATFORM_NAMES[entry.platform]}`;
   if (entry.product === 'ios') return (entry.devices || []).includes('ipad') ? 'Blanc for iPhone and iPad' : 'Blanc for iPhone';
-  return 'Blanc';
+  return 'Blanc for desktop';
 }
 
 export function entryTitle(entry) {
