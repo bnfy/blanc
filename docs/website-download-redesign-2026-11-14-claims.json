@@ -31,6 +31,7 @@
     {"id": "dl-2026-11-14-18", "exactWording": "Blanc for Android isn’t released yet.", "verdict": "verified", "rests": ["android-beta-01"], "evidence": "The Android tab's panel; same wording as the beta page. The tab leads only to the beta signup."},
     {"id": "dl-2026-11-14-19", "exactWording": "You can sign up to test it on Google Play.", "verdict": "qualified", "rests": ["android-beta-02"], "evidence": "The Android tab's panel; its button opens blanc.day/android-beta, whose form joins the beta list. Qualified like android-beta-02: the beta has no date."},
     {"id": "dl-2026-11-23-01", "exactWording": "Early builds on TestFlight", "verdict": "verified", "rests": ["ipad103-006", "ipad103-012"], "evidence": "The Betas panel's iPhone and iPad row: Blanc for iPhone and iPad is also a beta through Apple's TestFlight, which gets new builds first (iPad 1.0.3 ledger); ios-availability.json joinUrl is the public TestFlight link, which stays open for early builds."},
+    {"id": "dl-2026-11-23-03", "field": "testflight-build", "exactWording": "1.1 (202611220258)", "verdict": "verified", "rests": ["dl-2026-11-23-01"], "evidence": "App Store Connect: build 1.1 (202611220258), uploaded 2026-11-22 (UTC), is the newest build in testing (IN_BETA_TESTING, not expired) in the Public beta group, which the TestFlight link in ios-availability.json joins."},
     {"id": "dl-2026-11-23-02", "exactWording": "Not released yet", "verdict": "verified", "rests": ["android-beta-01", "dl-2026-11-14-18"], "evidence": "The Betas panel's Android row, the Android tab's 'Blanc for Android isn't released yet.' shortened; its only link is the beta signup at /android-beta, and it says nothing about what the app does."}
   ],
   "retiredClaims": [
@@ -43,6 +44,6 @@
     "iPhone and iPad", "Download", "Homebrew", "brew install --cask bnfy/tap/blanc", "Copy",
     "Verify a release", "Blanc 1.49 has no general extension support, and doesn’t support synced provider passkeys such as iCloud Keychain.",
     "Download didn’t start? Open the release page · support@blanc.day",
-    "Android", "Join the Android beta"
+    "Android", "Join the Android beta", "Last updated:"
   ]
 }

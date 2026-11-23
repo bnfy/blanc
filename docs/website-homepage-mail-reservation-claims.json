@@ -28,15 +28,23 @@
     {
       "id": "home-mail-reserve-003",
       "source": "site/src/components/MailReserveBanner.astro",
-      "exactWording": "Blanc Mail addresses are coming.",
+      "exactWording": "Private email from Blanc is coming.",
       "subject": "Blanc Mail address reservations (the banner above the site header)",
-      "verdict": "verified"
+      "verdict": "qualified",
+      "qualification": "Owner wording, November 23, 2026, chosen over \"encrypted email\", which would read as end-to-end encryption (not built; a later step in the hosted mailboxes spec §12). \"Private\" rests on docs/website-mail-claims-2026-11-17.md (Encrypted where it’s stored, Qualified): stored messages and attachments are encrypted with a key made on the Mac. Senders, recipients, subjects and dates aren’t encrypted, and the server can read mail as it arrives and as it’s sent; the Mail page states those limits."
     },
     {
       "id": "home-mail-reserve-004",
       "source": "site/src/components/MailReserveBanner.astro",
       "exactWording": "Reserve yours for free @inbox.day.",
       "subject": "Blanc Mail address reservations (the banner above the site header)",
+      "verdict": "verified"
+    },
+    {
+      "id": "home-mail-reserve-005",
+      "source": "site/src/components/MailReserveBanner.astro",
+      "exactWording": "Get your @inbox.day email address.",
+      "subject": "Blanc Mail address reservations (the banner's only text on phones, owner, November 23, 2026)",
       "verdict": "verified"
     }
   ]

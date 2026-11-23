@@ -5,9 +5,8 @@
 // keep their places. The whole strip is one link to /mail/reserve. It wears
 // the home band's ink and gilt (home.css, .mail-promo) so the two read as one.
 // Header.astro leaves it off the legal pages, the What's New pages and the
-// Mail pages, which already lead to the reserve form. The icon is a 96px copy
-// of /blanc-mail-icon.webp (2 KB against the full file's 58 KB), since the
-// banner loads on nearly every page.
+// Mail pages, which already lead to the reserve form. It carries no app icon
+// (owner, November 23, 2026).
 import reservations from '../data/mail-reservations.json';
 
 const ending = reservations.endings[0];
@@ -15,10 +14,10 @@ const ending = reservations.endings[0];
 {reservations.open && ending && (
   <a class="mail-reserve-banner" href="/mail/reserve" data-track="feature_cta_click" data-feature="blanc-mail" data-cta-position="header-banner">
     <span class="mail-reserve-banner-inner">
-      <img class="mail-reserve-banner-icon" src="/blanc-mail-icon-96.webp" width="96" height="96" alt="" />
       <span class="mail-reserve-banner-text">
-        <span class="mail-reserve-banner-lead">Blanc Mail addresses are coming.</span>
+        <span class="mail-reserve-banner-lead">Private email from Blanc is coming.</span>
         <span class="mail-reserve-banner-ask">Reserve yours<span class="mail-reserve-banner-free"> for free</span> <span class="mail-reserve-banner-ending">@{ending}</span>.</span>
+        <span class="mail-reserve-banner-short">Get your <span class="mail-reserve-banner-ending">@{ending}</span> email address.</span>
       </span>
       <span class="mail-reserve-banner-action" aria-hidden="true">Reserve<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8h9M9 4.5 12.5 8 9 11.5" /></svg></span>
     </span>
@@ -57,12 +56,6 @@ const ending = reservations.endings[0];
     align-items: center;
     justify-content: center;
     gap: 12px;
-  }
-  .mail-reserve-banner-icon {
-    display: block;
-    flex: none;
-    width: 22px;
-    height: 22px;
   }
   .mail-reserve-banner-text {
     min-width: 0;
@@ -125,21 +118,37 @@ const ending = reservations.endings[0];
   @keyframes mail-reserve-banner-shine {
     to { background-position: 100% 0; }
   }
-  /* Phones keep the ask and the button; the lead and "for free" step aside. */
+  /* Phones show only the short ask and the Reserve button (owner, November 23, 2026). */
+  .mail-reserve-banner-short {
+    display: none;
+  }
   @media (max-width: 640px) {
     .mail-reserve-banner-inner {
       padding: 6px 16px;
       gap: 10px;
     }
     .mail-reserve-banner-lead,
-    .mail-reserve-banner-free {
+    .mail-reserve-banner-ask {
       display: none;
     }
+    .mail-reserve-banner-short {
+      display: inline;
+    }
   }
-  /* The narrowest phones also drop the icon, so the ask stays on one line. */
+  /* The narrowest phones tighten up so the ask and Reserve stay on one line. */
   @media (max-width: 360px) {
-    .mail-reserve-banner-icon {
+    .mail-reserve-banner-inner {
+      padding: 6px 12px;
+      gap: 8px;
+    }
+    .mail-reserve-banner-short {
+      font-size: 12.5px;
+    }
+    .mail-reserve-banner-action svg {
       display: none;
+    }
+    .mail-reserve-banner-action {
+      padding: 0 11px;
     }
   }
   @media (prefers-reduced-motion: reduce) {

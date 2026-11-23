@@ -65,7 +65,7 @@ test('the banner scrolls away while the header stays at the top', { skip }, asyn
   }
 });
 
-test('phones keep the ask and the button on one 40px line, with nothing overflowing', { skip }, async () => {
+test('phones show only the short ask and the Reserve button, on one 40px line, with nothing overflowing', { skip }, async () => {
   for (const width of [320, 375, 640, 641, 1440]) {
     const { page, context } = await openPage('/', width);
     try {
@@ -76,7 +76,7 @@ test('phones keep the ask and the button on one 40px line, with nothing overflow
           height: banner.getBoundingClientRect().height,
           lead: shown('.mail-reserve-banner-lead'),
           ask: shown('.mail-reserve-banner-ask'),
-          free: shown('.mail-reserve-banner-free'),
+          short: shown('.mail-reserve-banner-short'),
           action: shown('.mail-reserve-banner-action'),
           overflow: document.documentElement.scrollWidth > innerWidth,
         };
@@ -84,8 +84,8 @@ test('phones keep the ask and the button on one 40px line, with nothing overflow
       // One line is 40px; allow for subpixel rounding, not a second line.
       assert.ok(Math.abs(state.height - 40) < 1, `${width}px: one 40px line (${state.height})`);
       assert.equal(state.lead, width > 640, `${width}px: lead text`);
-      assert.equal(state.ask, true, `${width}px: the ask stays`);
-      assert.equal(state.free, width > 640, `${width}px: for free`);
+      assert.equal(state.ask, width > 640, `${width}px: the full ask`);
+      assert.equal(state.short, width <= 640, `${width}px: the short ask`);
       assert.equal(state.action, true, `${width}px: Reserve stays`);
       assert.equal(state.overflow, false, `${width}px: no horizontal overflow`);
     } finally { await context.close(); }

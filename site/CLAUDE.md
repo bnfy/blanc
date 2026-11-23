@@ -359,7 +359,14 @@ without scripting) opens the full versions, the requirement and release day,
 what isn't in the beta yet and the release notes; Linux shows an x64 / arm64
 switch (two radios, CSS `:has()`) beside .deb and .rpm buttons; then rows
 without details for the iPhone and iPad TestFlight beta and the Android beta
-signup. The iPhone and iPad and Homebrew tiles were removed on November 23,
+signup. A click anywhere on a desktop beta row opens its details, and each
+beta row shows "Last updated" as a relative date filled in by
+`src/scripts/beta-rows.js` from the data's published day (hidden without
+scripting). The iPhone and iPad row names the newest build in the public
+TestFlight group from `src/data/ios-testflight.json`: after a build reaches
+that group, run `npm run site:ios-testflight` on the owner's Mac (App Store
+Connect through 1Password), which also rewrites that row's claim in the
+Download ledger. The iPhone and iPad and Homebrew tiles were removed on November 23,
 2026: the App Store button stays in the iPhone tab, and Homebrew moved into the
 Mac panel. Keep every `/dl/*`
 link, the `#download-options` anchor the rest of the site links to, the

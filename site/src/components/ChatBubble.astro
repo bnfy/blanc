@@ -75,13 +75,23 @@ const href = `mailto:support@blanc.day?subject=${encodeURIComponent("Blanc suppo
     height: 22px;
     stroke-width: 2;
   }
+  /* Phones: the desktop shadow reaches ~32px below the pill, which a web view
+     that ends at its own bottom edge (Blanc for iPhone) cuts off. This one
+     reaches 14px (4px offset + 10px blur), inside the 16px gap. */
   @media (max-width: 760px) {
     .chat-bubble {
       left: max(12px, env(safe-area-inset-left, 0px));
-      bottom: max(12px, env(safe-area-inset-bottom, 0px));
+      bottom: max(16px, env(safe-area-inset-bottom, 0px));
       height: 44px;
       padding: 0 16px 0 12px;
       font-size: 14px;
+      box-shadow: 0 1px 2px rgb(0 0 0 / 20%), 0 4px 10px rgb(0 0 0 / 22%);
+    }
+    .chat-bubble:hover {
+      box-shadow: 0 1px 2px rgb(0 0 0 / 20%), 0 6px 10px rgb(0 0 0 / 24%);
+    }
+    .chat-bubble:focus-visible {
+      box-shadow: 0 0 0 6px var(--site-bg), 0 4px 10px rgb(0 0 0 / 22%);
     }
   }
   @media (prefers-reduced-motion: reduce) {

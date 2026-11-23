@@ -3,6 +3,7 @@ import PlatformLogo from '../components/PlatformLogo.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import releases from '../data/releases.json';
 import ios from '../data/ios-availability.json';
+import testflight from '../data/ios-testflight.json';
 import beta from '../data/blanc-beta.json';
 import betaWin from '../data/blanc-beta-windows.json';
 import betaLinux from '../data/blanc-beta-linux.json';
@@ -197,6 +198,7 @@ const betaReleased = new Date(`${beta.published}T00:00:00Z`)
           <div class="dl-beta-name">
             <h3 id="beta-title">Mac</h3>
             <p class="dl-beta-brief"><span>Beta {betaNumber}</span><span>Chromium {chromiumMajor}</span></p>
+            <p class="dl-beta-updated" hidden>Last updated: <time datetime={beta.published} data-beta-updated></time></p>
           </div>
           <a class="dl-tile-button" href="/dl/beta" data-download-link data-track="download_click" data-platform="beta" data-cta-position="beta"><PlatformLogo platform="apple" />Download Beta for Mac</a>
         </div>
@@ -236,6 +238,7 @@ const betaReleased = new Date(`${beta.published}T00:00:00Z`)
           <div class="dl-beta-name">
             <h3 id="beta-windows-title">Windows</h3>
             <p class="dl-beta-brief"><span>Build {winBuild}</span><span>Chromium {winChromiumMajor}</span></p>
+            <p class="dl-beta-updated" hidden>Last updated: <time datetime={betaWin.published} data-beta-updated></time></p>
           </div>
           <a class="dl-tile-button" href="/dl/beta-win" data-download-link data-track="download_click" data-platform="beta-win" data-cta-position="beta-windows"><PlatformLogo platform="windows" />Download Beta for Windows</a>
         </div>
@@ -278,6 +281,7 @@ const betaReleased = new Date(`${beta.published}T00:00:00Z`)
           <div class="dl-beta-name">
             <h3 id="beta-linux-title">Linux</h3>
             <p class="dl-beta-brief"><span>Build {linuxBuild}</span><span>Chromium {linuxChromiumMajor}</span></p>
+            <p class="dl-beta-updated" hidden>Last updated: <time datetime={betaLinux.published} data-beta-updated></time></p>
           </div>
           <div class="dl-beta-linux">
             <div class="dl-beta-arch" role="radiogroup" aria-label="Architecture">
@@ -345,7 +349,8 @@ const betaReleased = new Date(`${beta.published}T00:00:00Z`)
           <span class="dl-beta-logo" aria-hidden="true"><PlatformLogo platform="apple" /></span>
           <div class="dl-beta-name">
             <h3 id="beta-iphone-title">iPhone and iPad</h3>
-            <p class="dl-beta-brief">Early builds on TestFlight</p>
+            <p class="dl-beta-brief"><span>Early builds on TestFlight</span><span>{testflight.version} ({testflight.build})</span></p>
+            <p class="dl-beta-updated" hidden>Last updated: <time datetime={testflight.uploaded} data-beta-updated></time></p>
           </div>
           <a class="dl-tile-button" href={ios.joinUrl} target="_blank" rel="noopener">Join the beta on TestFlight <span aria-hidden="true">↗</span></a>
         </div>
@@ -387,7 +392,9 @@ const betaReleased = new Date(`${beta.published}T00:00:00Z`)
 <script>
   import { initTerminalCopy } from '../scripts/terminal-copy.js';
   import { initDownloadSwitcher } from '../scripts/download-switcher.js';
+  import { initBetaRows } from '../scripts/beta-rows.js';
   initTerminalCopy();
   initDownloadSwitcher();
+  initBetaRows();
 </script>
 </BaseLayout>
