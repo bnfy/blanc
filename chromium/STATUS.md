@@ -3911,6 +3911,18 @@ disabled by default in Blanc builds. Seen in the owner's VM with a fresh profile
 whose Local State says .903: the signed .904 showed the toast; with `chrome.dll`
 `213bab3c…` placed over it, no toast in two captures 4 s apart.
 
+**Fourth Windows beta public, the first from a nightly (2026-11-23):** Blanc Beta
+158.0.8127.907, GitHub pre-release `chromium-beta-windows-158.0.8127.907` at
+`ed21560a7` (never latest; v1.52.0 stayed latest), published 13:20 UTC through
+`windows-beta-prep.mjs` and `windows-release.mjs`, all ten stages: night
+`20261123-0400` passed 635 suite cases on the first try (suite 45145367631, beta
+install 45145357992, capture 45145362651), signing run 45179328653
+(owner-approved), owner-signed package `7f0953a0…`, staging gate 45181495395,
+Sigstore-signed `SHA256SUMS`, verify-public 45182987084. Candidate
+`windows-x64-357453694e3d4366`. Its changes: no "Chrome was updated" toast (0112)
+and no Google AI Mode check, search prewarm or preconnects. blanc.day offers
+158.0.8127.907.
+
 **Third Windows beta public (2026-11-21):** Blanc Beta 158.0.8127.904, GitHub
 pre-release `chromium-beta-windows-158.0.8127.904` at `7721085b0` (never latest;
 v1.51.0 stayed latest), published 17:54 UTC through `windows-release.mjs`, all ten

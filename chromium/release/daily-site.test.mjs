@@ -100,3 +100,19 @@ test('a limitation kept after its waiver is retired stays on the page, with the 
   // Without the kept limitation the page's text would change, which needs the owner.
   assert.throws(() => siteFiles({ ...input, r: passing, standing: standingThen }), /needs the owner/);
 });
+
+test('the beta website PR carries the changelog once main has the beta changelog file', async () => {
+  const { changelogFiles } = await import('./daily/site-pr.mjs');
+  const fsm = await import('node:fs');
+  const pathm = await import('node:path');
+  const osm = await import('node:os');
+  const tree = fsm.mkdtempSync(pathm.join(osm.tmpdir(), 'site-pr-changelog-'));
+  const calls = [];
+  const runner = (command, args, options) => { calls.push([command, args, options.cwd]); };
+  assert.deepEqual(changelogFiles(tree, runner), []);
+  assert.equal(calls.length, 0);
+  fsm.mkdirSync(pathm.join(tree, 'site/src/data'), { recursive: true });
+  fsm.writeFileSync(pathm.join(tree, 'site/src/data/beta-releases.json'), '[]\n');
+  assert.deepEqual(changelogFiles(tree, runner), ['site/src/data/beta-releases.json', 'site/src/data/releases.json']);
+  assert.deepEqual(calls, [['node', ['scripts/generate-site-changelog.mjs'], tree]]);
+});

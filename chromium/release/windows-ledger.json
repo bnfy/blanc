@@ -45,6 +45,21 @@
       "signingRun": 44930878823,
       "stagingGateRun": 44931963974,
       "note": "Third Windows Blanc Beta, published 2026-11-21 17:54 UTC as its own GitHub pre-release (not latest) through windows-release.mjs: About checks for updates and reports Windows' platform, build and publisher. Signed by Bananify Creative, owner-signed update package, staging gate passed, Sigstore-signed checksums; verify-public run 44932619481."
+    },
+    {
+      "build": 907,
+      "version": "158.0.8127.907",
+      "tag": "chromium-beta-windows-158.0.8127.907",
+      "date": "2026-11-23",
+      "sourceCommit": "ed21560a73b270f61ce5bc810241310df88b4ab8",
+      "candidate": "windows-x64-357453694e3d4366",
+      "candidateZipSha256": "815d64ee5f23a568f2564e278facaac52e570815610bbe77b495b185e7cff703",
+      "setupSHA256": "d35c827ace25e6a0501ed303c7c77dfe7d70e2157e0391169663794a2aae77c6",
+      "installerSHA256": "806e048e68d9f2063ef38997c592d9430a910559f12b25f2855892ed2899a234",
+      "packageSHA256": "7f0953a0efe448f5f321538e0ef4c946125d56718c76e7f939ef8aa6e054d1f2",
+      "signingRun": 45179328653,
+      "stagingGateRun": 45181495395,
+      "note": "Fourth Windows Blanc Beta and the first from a nightly (20261123-0400, 635 suite cases first try), published 2026-11-23 13:20 UTC as its own GitHub pre-release (not latest) through windows-release.mjs: no \"Chrome was updated\" toast after an update, and no Google AI Mode check, search prewarm or preconnects. Signed by Bananify Creative, owner-signed update package, staging gate passed, Sigstore-signed checksums; verify-public run 45182987084."
     }
   ]
 }

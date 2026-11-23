@@ -17,6 +17,14 @@
           "linux"
         ],
         "purpose": "release"
+      },
+      {
+        "build": 907,
+        "sourceCommit": "ed21560a73b270f61ce5bc810241310df88b4ab8",
+        "platforms": [
+          "windows"
+        ],
+        "purpose": "release"
       }
     ]
   }
