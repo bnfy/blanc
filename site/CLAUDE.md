@@ -171,9 +171,30 @@ from contributor-supplied PR titles, so Astro's auto-escaping is what keeps
 release notes from introducing markup. Inline link hrefs are pinned to
 https/mailto. RSS flattens the same spans back to plain text.
 `npm run site:changelog` regenerates; `npm run site:changelog:check` is the
-freshness guard (release-time/manual — not in CI; needs `gh`). Never hand-edit
-`releases.json`. `release-feature-names.json` is the hand-maintained editorial
-overlay that gives feature-bearing builds their short, scannable names on the
+freshness guard (release-time/manual — not in CI; needs `gh`), and
+`npm run site:deploy` runs it first, so a deploy refuses a changelog behind
+GitHub. Never hand-edit `releases.json`.
+
+**Every build on the changelog (November 23, 2026, spec
+`docs/superpowers/specs/2026-11-23-changelog-all-builds-design.md`):** the
+same generator also writes **`beta-releases.json`** from the published
+`chromium-beta-*` pre-releases (Mac, Windows and Linux, keeping what changed
+and *Not in this beta yet*, dropping intros and download boilerplate), and
+`npm run site:ios-changelog` (owner's Mac only, App Store Connect through
+1Password) writes **`ios-releases.json`** after each App Store version goes on
+sale. Only `src/lib/changelog-entries.mjs` reads those two files, so a beta
+never becomes "the latest release" on Download, What's New, Roadmap or Bangs.
+`/changelog` opens on **Stable** (desktop and iPhone; chips Stable, Desktop,
+iPhone & iPad, Blanc Beta, All, kept as `?product=`), its header cards link
+the newest release of each product, and `/changelog/{beta,iphone,all}.xml`
+sit beside the unchanged desktop feed. The Mac beta's website PR
+(`chromium/release/daily/site-pr.mjs`) refreshes `beta-releases.json` itself;
+the hand-made Windows and Linux website PRs (`blanc-beta-windows.json`,
+`blanc-beta-linux.json`) must run `npm run site:changelog` and include
+`site/src/data/beta-releases.json`.
+
+`release-feature-names.json` is the hand-maintained editorial
+overlay (desktop releases only) that gives feature-bearing builds their short, scannable names on the
 page; every detected feature release must have at least one, enforced by the
 unit suite. A new hand-written release can avoid an overlay entry by starting
 each feature bullet with a bold name (`- **Glance.** ...`), which the page

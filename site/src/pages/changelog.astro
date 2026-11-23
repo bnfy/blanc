@@ -1,59 +1,114 @@
 ---
+// Every Blanc build's releases in one timeline
+// (docs/superpowers/specs/2026-11-23-changelog-all-builds-design.md). The page
+// opens on Stable: desktop and iPhone releases, Blanc Beta behind its chip.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ReleaseText from '../components/ReleaseText.astro';
 import featureNamesByVersion from '../data/release-feature-names.json';
-import releases from '../data/releases.json';
+import { allEntries, entryTitle, matchesFilter, productLabel, PRODUCT_FILTERS } from '../lib/changelog-entries.mjs';
 import { featureNamesForRelease, hasNewFeatures } from '../lib/release-features.mjs';
 
-const displayReleases = releases.map((release) => {
-  const featureNames = featureNamesForRelease(release, featureNamesByVersion);
+const displayReleases = allEntries().map((release) => {
+  // Feature names are an editorial overlay for the desktop app only.
+  const featureNames = release.product === 'desktop' ? featureNamesForRelease(release, featureNamesByVersion) : [];
   return {
     ...release,
+    title: entryTitle(release),
+    label: productLabel(release),
     featureNames,
-    hasNewFeatures: featureNames.length > 0 || hasNewFeatures(release),
+    hasNewFeatures: release.product === 'desktop' && (featureNames.length > 0 || hasNewFeatures(release)),
   };
 });
+
+const FILTER_LABELS = { stable: 'Stable', desktop: 'Desktop', iphone: 'iPhone & iPad', beta: 'Blanc Beta', all: 'All' };
+const FILTER_PRODUCTS = Object.fromEntries(PRODUCT_FILTERS.map((filter) => [
+  filter,
+  ['desktop', 'ios', 'beta'].filter((product) => matchesFilter({ product }, filter)),
+]));
+const filters = PRODUCT_FILTERS.map((filter) => ({
+  id: filter,
+  label: FILTER_LABELS[filter],
+  products: FILTER_PRODUCTS[filter].join(' '),
+  count: displayReleases.filter((release) => matchesFilter(release, filter)).length,
+}));
+const stableCount = filters[0].count;
 const featureReleaseCount = displayReleases.filter((release) => release.hasNewFeatures).length;
+const linkLabel = { desktop: 'GitHub release', beta: 'GitHub release', ios: 'App Store' };
+// The header's cards: the newest release of each product, linking to its entry.
+const newest = (product) => displayReleases.find((release) => release.product === product);
+const latestCards = [
+  { kind: 'Desktop', note: 'Mac, Windows and Linux', release: newest('desktop') },
+  { kind: 'iPhone & iPad', note: 'App Store', release: newest('ios') },
+  { kind: 'Blanc Beta', note: 'Built on Chromium', release: newest('beta') },
+].filter((card) => card.release).map((card) => ({
+  ...card,
+  kind: card.release.product === 'beta' ? card.release.label : card.kind,
+}));
+const feeds = [
+  { href: '/changelog.xml', label: 'Desktop', title: 'Blanc Browser Changelog' },
+  { href: '/changelog/iphone.xml', label: 'iPhone & iPad', title: 'Blanc for iPhone and iPad Changelog' },
+  { href: '/changelog/beta.xml', label: 'Blanc Beta', title: 'Blanc Beta Changelog' },
+  { href: '/changelog/all.xml', label: 'Everything', title: 'Blanc Browser Changelog — every build' },
+];
 ---
 <BaseLayout
   title="Blanc Browser Changelog — What’s new"
-  description="See what changed in each Blanc Browser release, from new features to security, privacy, and platform fixes."
+  description="See what changed in every Blanc release, for desktop, iPhone and iPad, and Blanc Beta."
   path="/changelog"
   page="changelog"
   current="changelog"
 >
-  <link slot="head" rel="alternate" type="application/rss+xml" title="Blanc Browser Changelog" href="/changelog.xml">
+  {feeds.map((feed) => <link slot="head" rel="alternate" type="application/rss+xml" title={feed.title} href={feed.href}>)}
 <main id="main-content" class="changelog-page">
   <header class="changelog-hero">
-    <h1>Every Blanc release, in one place.</h1>
-    <p>This page mirrors Blanc’s published GitHub releases, newest first. <a href="/changelog.xml">Subscribe via RSS</a>, or <a href="/roadmap">see what’s coming next</a>.</p>
+    <div class="changelog-hero-copy">
+      <p class="changelog-eyebrow">Changelog</p>
+      <h1>What’s new in Blanc</h1>
+      <p>Every release of Blanc for desktop, iPhone and iPad, and Blanc Beta, newest first. Blanc Beta is the early preview built directly on Chromium; the regular Blanc is the one we recommend. <a href="/changelog.xml">Subscribe via RSS</a>, or <a href="/roadmap">see what’s coming next</a>.</p>
+    </div>
+    {latestCards.length > 0 && (
+      <ul class="changelog-latest" aria-label="Latest releases">
+        {latestCards.map((card) => (
+          <li><a href={'#' + card.release.anchor}>
+            <span class="changelog-latest-kind">{card.kind}</span>
+            <span class="changelog-latest-version">{card.release.version}</span>
+            <span class="changelog-latest-meta"><time datetime={card.release.machineDate}>{card.release.humanDate}</time> · {card.note}</span>
+          </a></li>
+        ))}
+      </ul>
+    )}
   </header>
   {displayReleases.length > 0 && (
     <div class="changelog-tools">
-      <div class="changelog-filters" role="group" aria-label="Filter releases">
-        <button class="changelog-filter" type="button" data-release-filter="all" aria-pressed="true" aria-controls="release-list">
-          All releases <span>{displayReleases.length}</span>
-        </button>
-        <button class="changelog-filter" type="button" data-release-filter="features" aria-pressed="false" aria-controls="release-list">
-          New features <span>{featureReleaseCount}</span>
-        </button>
+      <div class="changelog-filters" role="group" aria-label="Show releases for">
+        {filters.map((filter) => (
+          <button class="changelog-filter" type="button" data-product-filter={filter.id} data-products={filter.products}
+            aria-pressed={String(filter.id === 'stable')} aria-controls="release-list">
+            {filter.label} <span>{filter.count}</span>
+          </button>
+        ))}
       </div>
+      <button class="changelog-toggle" type="button" data-features-toggle aria-pressed="false" aria-controls="release-list">
+        <span class="changelog-toggle-dot" aria-hidden="true"></span>New features <span class="changelog-toggle-count">{featureReleaseCount}</span>
+      </button>
       <input type="search" id="changelog-search" class="changelog-search-input" placeholder="Search releases…" aria-label="Search releases" autocomplete="off" spellcheck="false">
-      <p class="changelog-results" id="changelog-results" role="status" aria-live="polite">Showing all {displayReleases.length} releases</p>
+      <p class="changelog-results" id="changelog-results" role="status" aria-live="polite">Showing {stableCount} releases</p>
     </div>
   )}
   <section class="release-list" id="release-list" aria-label="Blanc releases">
     {displayReleases.length === 0 && <p>No published releases yet.</p>}
     {displayReleases.map((release) => (
-      <article class="release" id={release.anchor} data-has-features={String(release.hasNewFeatures)}>
+      <article class="release" id={release.anchor} data-product={release.product}
+        data-has-features={String(release.hasNewFeatures)} hidden={!matchesFilter(release, 'stable')}>
         <div class="release-meta">
           <time datetime={release.machineDate}>{release.humanDate}</time>
+          <span class="release-product">{release.label}</span>
           {release.hasNewFeatures && <span class="release-feature-badge"><span aria-hidden="true"></span>new features</span>}
         </div>
         <div class="release-body">
-          <h2><a href={'#' + release.anchor}>Blanc {release.version}</a></h2>
+          <h2><a href={'#' + release.anchor}>{release.title}</a></h2>
           {release.featureNames.length > 0 && (
-            <ul class="release-feature-names" aria-label={`New features in Blanc ${release.version}`}>
+            <ul class="release-feature-names" aria-label={`New features in ${release.title}`}>
               {release.featureNames.map((name, index) => (
                 <li>{index > 0 && <span class="release-feature-separator" aria-hidden="true">·</span>}{name}</li>
               ))}
@@ -75,12 +130,13 @@ const featureReleaseCount = displayReleases.filter((release) => release.hasNewFe
               ))}
             </div>
           ))}
-          <p class="release-links">{release.compareUrl && <><a href={release.compareUrl} target="_blank" rel="noopener">full changelog</a><span aria-hidden="true"> · </span></>}<a href={release.url} target="_blank" rel="noopener">GitHub release</a></p>
+          <p class="release-links">{release.compareUrl && <><a href={release.compareUrl} target="_blank" rel="noopener">full changelog</a><span aria-hidden="true"> · </span></>}<a href={release.url} target="_blank" rel="noopener">{linkLabel[release.product]}</a></p>
         </div>
       </article>
     ))}
     <p class="release-empty" hidden>No releases match your search.</p>
   </section>
+  <p class="changelog-feeds">RSS: {feeds.map((feed, index) => <>{index > 0 && <span aria-hidden="true"> · </span>}<a href={feed.href}>{feed.label}</a></>)}</p>
 </main>
 <script is:inline>
 (function () {
@@ -89,39 +145,84 @@ const featureReleaseCount = displayReleases.filter((release) => release.hasNewFe
   var releases = Array.prototype.slice.call(document.querySelectorAll('.release-list .release'));
   var empty = document.querySelector('.release-empty');
   var results = document.getElementById('changelog-results');
-  var filters = Array.prototype.slice.call(document.querySelectorAll('[data-release-filter]'));
+  var filters = Array.prototype.slice.call(document.querySelectorAll('[data-product-filter]'));
+  var featuresToggle = document.querySelector('[data-features-toggle]');
   var haystack = releases.map(function (el) { return el.textContent.toLowerCase(); });
-  var activeFilter = 'all';
+  var NAMES = { stable: 'stable releases', desktop: 'desktop releases', iphone: 'iPhone and iPad releases', beta: 'Blanc Beta releases', all: 'releases' };
+  var state = { product: 'stable', features: false };
+
+  function filterFor(id) {
+    return filters.filter(function (button) { return button.dataset.productFilter === id; })[0];
+  }
+  function productsOf(id) { return (filterFor(id) || filterFor('stable')).dataset.products.split(' '); }
+  function normalize(value) { var id = String(value || '').toLowerCase(); return filterFor(id) ? id : 'stable'; }
+
   function apply() {
     var query = input.value.trim().toLowerCase();
+    var products = productsOf(state.product);
     var visible = 0;
     for (var i = 0; i < releases.length; i++) {
-      var matchesSearch = !query || haystack[i].indexOf(query) !== -1;
-      var matchesFilter = activeFilter === 'all' || releases[i].dataset.hasFeatures === 'true';
-      var match = matchesSearch && matchesFilter;
+      var match = products.indexOf(releases[i].dataset.product) !== -1
+        && (!state.features || releases[i].dataset.hasFeatures === 'true')
+        && (!query || haystack[i].indexOf(query) !== -1);
       releases[i].hidden = !match;
       if (match) visible++;
     }
-    if (empty) {
-      empty.hidden = visible !== 0;
-      empty.textContent = query ? 'No releases match your search.' : 'No feature releases found.';
-    }
-    if (results) {
-      var noun = visible === 1 ? 'release' : 'releases';
-      var scope = activeFilter === 'features' ? ' with new features' : '';
-      results.textContent = 'Showing ' + visible + ' ' + noun + scope;
-    }
+    filters.forEach(function (button) { button.setAttribute('aria-pressed', String(button.dataset.productFilter === state.product)); });
+    featuresToggle.setAttribute('aria-pressed', String(state.features));
+    empty.hidden = visible !== 0;
+    empty.textContent = query ? 'No releases match your search.' : 'No feature releases found.';
+    var noun = visible === 1 ? NAMES[state.product].replace(/releases$/, 'release') : NAMES[state.product];
+    results.textContent = 'Showing ' + visible + ' ' + noun + (state.features ? ' with new features' : '');
   }
+
+  function remember() {
+    var url = new URL(location.href);
+    if (state.product === 'stable') url.searchParams.delete('product');
+    else url.searchParams.set('product', state.product);
+    history.replaceState(null, '', url.pathname + url.search + url.hash);
+  }
+
+  // A link to an entry the current filter hides (a beta, while Stable shows)
+  // widens the filter to All so the link always lands on its entry.
+  function reveal() {
+    var id;
+    try { id = decodeURIComponent(location.hash.slice(1)); } catch (error) { return; }
+    var target = id && document.getElementById(id);
+    if (!target || !target.classList.contains('release') || !target.hidden) return;
+    state.product = 'all';
+    state.features = false;
+    input.value = '';
+    apply();
+    remember();
+    target.scrollIntoView();
+  }
+
+  state.product = normalize(new URLSearchParams(location.search).get('product'));
+  apply();
+  reveal();
+  window.addEventListener('hashchange', reveal);
   input.addEventListener('input', apply);
   filters.forEach(function (button) {
     button.addEventListener('click', function () {
-      activeFilter = button.dataset.releaseFilter;
-      filters.forEach(function (candidate) {
-        candidate.setAttribute('aria-pressed', String(candidate === button));
-      });
+      state.product = button.dataset.productFilter;
       apply();
+      remember();
     });
   });
+  featuresToggle.addEventListener('click', function () {
+    state.features = !state.features;
+    apply();
+  });
+  // The tools bar gains a hairline once it sticks under the header.
+  var tools = document.querySelector('.changelog-tools');
+  function stuck() {
+    var top = parseFloat(getComputedStyle(tools).top) || 0;
+    tools.classList.toggle('is-stuck', getComputedStyle(tools).position === 'sticky' && window.scrollY > 0 && tools.getBoundingClientRect().top <= top + 0.5);
+  }
+  window.addEventListener('scroll', stuck, { passive: true });
+  stuck();
+  document.documentElement.dataset.changelogReady = 'true';
 })();
 </script>
 </BaseLayout>
