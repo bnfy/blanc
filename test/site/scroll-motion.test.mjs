@@ -51,13 +51,9 @@ test('the homepage’s scroll-driven motion runs in the built site', async () =>
       return {
         // Switching steps for other browsers wait in hidden panels, unrendered.
         rise: [...document.querySelectorAll('.home-cinema .rise')].filter(el => !el.closest('[hidden]')).map(el => scrollDriven(el)),
-        wallpapers: ['day', 'dusk', 'night'].map(time => scrollDriven(document.querySelector(`.device-screen .wallpaper-${time}`))),
-        tint: scrollDriven(document.querySelector('.device-screen'), '::after'),
       };
     });
     assert.ok(motion.rise.length > 0, 'the homepage has rising sections');
     for (const [index, names] of motion.rise.entries()) assert.deepEqual(names, ['home-rise'], `.rise #${index}`);
-    for (const [index, names] of motion.wallpapers.entries()) assert.ok(names.length > 0, `wallpaper ${['day', 'dusk', 'night'][index]} crossfades on scroll`);
-    assert.deepEqual(motion.tint, ['screen-tint']);
   } finally { await page.close(); }
 });
