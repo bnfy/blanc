@@ -1,5 +1,85 @@
 [
   {
+    "tag": "chromium-beta-windows-158.0.8127.907",
+    "product": "beta",
+    "platform": "windows",
+    "version": "158.0.8127.907",
+    "name": "Blanc Beta 158.0.8127.907 for Windows",
+    "publishedAt": "2026-11-23T13:20:15.000Z",
+    "humanDate": "November 23, 2026",
+    "machineDate": "2026-11-23",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-windows-158.0.8127.907",
+    "anchor": "beta-windows-158-0-8127-907",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "No \"Chrome was updated\" message."
+              },
+              {
+                "type": "text",
+                "value": " After Blanc Beta updates itself, Chromium's \"Chrome was updated\" notice no longer appears. Settings → About Blanc Beta still shows the version and whether it's up to date."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Fewer requests to Google."
+              },
+              {
+                "type": "text",
+                "value": " With Google as your search engine, Blanc Beta no longer checks with Google about AI Mode when it starts, and no longer warms up or connects to Google Search in the background before you search."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Updating."
+              },
+              {
+                "type": "text",
+                "value": " If you have 158.0.8127.904, Blanc Beta updates itself through Blanc's updater; About Blanc Beta checks right away. To install fresh, download "
+              },
+              {
+                "type": "code",
+                "value": "Blanc-Beta-Setup-158.0.8127.907.exe"
+              },
+              {
+                "type": "text",
+                "value": " and run it. Made for x64 Windows PCs and tested on Windows 11."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Not yet."
+              },
+              {
+                "type": "text",
+                "value": " Protected video (Netflix, Spotify and similar) doesn't play. Some Blanc features still behave differently on Windows."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "chromium-beta-linux-158.0.8127.906",
     "product": "beta",
     "platform": "linux",
