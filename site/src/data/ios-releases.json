@@ -1,0 +1,387 @@
+[
+  {
+    "tag": "ios-1.1",
+    "product": "ios",
+    "devices": [
+      "iphone",
+      "ipad"
+    ],
+    "version": "1.1",
+    "name": "1.1",
+    "publishedAt": "2026-11-22T17:00:00.000Z",
+    "humanDate": "November 22, 2026",
+    "machineDate": "2026-11-22",
+    "url": "https://apps.apple.com/app/id6828027794",
+    "anchor": "ios-1-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": null,
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A new Island: smaller, shaped like Blanc's Island on the Mac, and only as wide as what's in it: Back, the site's icon and the site, and New Tab."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Tap the site and the Island grows into a panel just above the keyboard. It starts with the page's address: tap it to edit, hold it to copy the link."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "In a private tab the Island turns dark, and Close Private Tab is first in the page menu."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "ios-1.0.4",
+    "product": "ios",
+    "devices": [
+      "iphone",
+      "ipad"
+    ],
+    "version": "1.0.4",
+    "name": "1.0.4",
+    "publishedAt": "2026-11-16T17:00:00.000Z",
+    "humanDate": "November 16, 2026",
+    "machineDate": "2026-11-16",
+    "url": "https://apps.apple.com/app/id6828027794",
+    "anchor": "ios-1-0-4",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": null,
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A new Start Page: the time over your wallpaper, with shortcuts to the sites you visit most, each with its own icon. Customize adds your Favorites and your other devices’ tabs, sets how many shortcuts show, and changes the clock and wallpaper."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Hold a shortcut to pin it, hide it or open it in a new tab."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On iPad, a website’s full screen button now works, so videos can fill the screen."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "ios-1.0.3",
+    "product": "ios",
+    "devices": [
+      "iphone",
+      "ipad"
+    ],
+    "version": "1.0.3",
+    "name": "1.0.3",
+    "publishedAt": "2026-11-12T17:00:00.000Z",
+    "humanDate": "November 12, 2026",
+    "machineDate": "2026-11-12",
+    "url": "https://apps.apple.com/app/id6828027794",
+    "anchor": "ios-1-0-3",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": null,
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc now runs on iPad: full screen in every orientation, with Split View, Glance, windows of their own, and keyboard shortcuts like ⌘L and ⌘T."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Websites open below the status bar again, instead of starting under the clock until you pull them down. In landscape they stay clear of the Dynamic Island."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On iOS 26, tapping the trash after swiping a tab to the left in the tab list closes the tab."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "ios-1.0.2",
+    "product": "ios",
+    "devices": [
+      "iphone"
+    ],
+    "version": "1.0.2",
+    "name": "1.0.2",
+    "publishedAt": "2026-11-12T17:00:00.000Z",
+    "humanDate": "November 12, 2026",
+    "machineDate": "2026-11-12",
+    "url": "https://apps.apple.com/app/id6828027794",
+    "anchor": "ios-1-0-2",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": null,
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Back, Forward and New Tab are on the Island, and you can turn Back and Forward off in Settings. Reload and Settings are in the Sunrise menu, and you can pull down on a page to reload it."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The Island is a little taller and rounder, with an easier-to-read address. On iOS 26, a site's own bottom bars and banners sit above it instead of under it."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Swipe a tab to the left in the tab list to close it."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Sunrise is the standard app icon. Sunrise Gold and the new Sunrise Bronze are in Settings → Appearance → App icon."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Search suggestions from your search engine, off until you turn them on in Settings → Privacy."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Files a page can't show open in the share sheet, so you can save them to Files or send them."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Page Zoom and Request Desktop Website in the Sunrise menu."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Alerts and prompts from websites now appear, and a page that doesn't load says why, with Try again."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "ios-1.0.1",
+    "product": "ios",
+    "devices": [
+      "iphone"
+    ],
+    "version": "1.0.1",
+    "name": "1.0.1",
+    "publishedAt": "2026-11-09T17:00:00.000Z",
+    "humanDate": "November 9, 2026",
+    "machineDate": "2026-11-09",
+    "url": "https://apps.apple.com/app/id6828027794",
+    "anchor": "ios-1-0-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": null,
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Make Blanc your default browser."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The Island floats over the page and tucks away as you scroll, at the top or bottom of the screen."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Pinch a page or swipe up on the Island to see your tabs. The tab grid opens and closes more smoothly and has more room for tabs."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Choose whether the Island shows Back and Forward."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Tabs keep their Back and Forward history after a relaunch."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On iOS 26 and later, the Island is Liquid Glass."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Holding the Start Page no longer selects its text."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "ios-1.0",
+    "product": "ios",
+    "devices": [
+      "iphone"
+    ],
+    "version": "1.0",
+    "name": "1.0",
+    "publishedAt": "2026-11-06T17:00:00.000Z",
+    "humanDate": "November 6, 2026",
+    "machineDate": "2026-11-06",
+    "url": "https://apps.apple.com/app/id6828027794",
+    "anchor": "ios-1-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "The first release of Blanc for iPhone: pair with Blanc on your computer, see its tabs, share Spaces, send tabs, and browse with the Island."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
