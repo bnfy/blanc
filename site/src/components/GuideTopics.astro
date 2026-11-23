@@ -1,7 +1,9 @@
 ---
 import topics from "../data/guide-topics.json";
+import TrustIcon from "./TrustIcon.astro";
 const components = import.meta.glob("./guides/*.astro", { eager: true });
-const { page } = Astro.props;
+// icons: optional { topicId: TrustIcon name } drawn before each label.
+const { page, icons = {} } = Astro.props;
 ---
 
 {
@@ -13,6 +15,7 @@ const { page } = Astro.props;
         <details class="answer-topic" id={topic.id} data-search-topic>
           <>
             <summary>
+              {icons[topic.id] && <TrustIcon name={icons[topic.id]} />}
               {topic.label}
               <span aria-hidden="true">+</span>
             </summary>

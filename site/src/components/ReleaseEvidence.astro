@@ -1,3 +1,7 @@
+---
+import PlatformLogo from "./PlatformLogo.astro";
+---
+
 <section
   class="release-verification"
   aria-labelledby="release-verification-title"
@@ -17,7 +21,7 @@
       ></thead
     ><tbody role="rowgroup">
       <tr role="row"
-        ><th role="rowheader" scope="row">macOS</th><td role="cell"
+        ><th role="rowheader" scope="row"><PlatformLogo platform="apple" />macOS</th><td role="cell"
           >Developer ID signature, notarization, Gatekeeper assessment and the
           app’s stapled ticket.</td
         ><td role="cell"
@@ -33,7 +37,7 @@
         ></tr
       >
       <tr role="row"
-        ><th role="rowheader" scope="row">Windows</th><td role="cell"
+        ><th role="rowheader" scope="row"><PlatformLogo platform="windows" />Windows</th><td role="cell"
           >Valid, timestamped Authenticode signature with the exact expected
           publisher; installer digest bound to windows-signature.json.</td
         ><td role="cell"
@@ -49,7 +53,7 @@
         ></tr
       >
       <tr role="row"
-        ><th role="rowheader" scope="row">Linux</th><td role="cell"
+        ><th role="rowheader" scope="row"><PlatformLogo platform="linux" />Linux</th><td role="cell"
           >AppImage checksum authenticated by the Sigstore-signed SHA256SUMS
           manifest. Linux has no equivalent OS-level publisher signature here.</td
         ><td role="cell"
