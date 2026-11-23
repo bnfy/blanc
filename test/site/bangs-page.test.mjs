@@ -51,6 +51,25 @@ const search = async (page, text) => {
   await page.waitForFunction((q) => document.querySelector('[data-view]')?.dataset.query === q, text);
 };
 
+// Waits for the list to show exactly this many rows. When it never does, the
+// failure says what the page thought: its own count line, the query and view
+// it last rendered, and whether Show more was still offered. A bare count
+// told us nothing when this failed once in about a hundred CI runs.
+const expectRows = async (page, count) => {
+  try {
+    await page.waitForFunction((n) => document.querySelectorAll('#bangs-rows li:not([hidden])').length === n, count, { timeout: 5000 });
+  } catch {
+    const state = await page.evaluate(() => ({
+      rows: document.querySelectorAll('#bangs-rows li:not([hidden])').length,
+      showing: document.getElementById('bangs-showing')?.textContent.trim(),
+      query: document.querySelector('[data-view]')?.dataset.query,
+      view: document.querySelector('[data-view]')?.dataset.view,
+      moreHidden: document.getElementById('bangs-more')?.hidden,
+    }));
+    assert.fail(`expected ${count} visible rows; the page has ${JSON.stringify(state)}`);
+  }
+};
+
 test('the page leads with its headline, search and the popular bangs', async () => {
   const { context, page } = await open();
   try {
@@ -163,13 +182,14 @@ test('clearing the search brings the cards back and resets the list', async () =
   const { context, page } = await open();
   try {
     await search(page, 'a');
+    await expectRows(page, 50);
     await page.locator('#bangs-more').click();
-    assert.equal(await visibleRows(page).count(), 100);
+    await expectRows(page, 100);
     await search(page, '');
     assert.equal(await page.locator('#bangs-cards').isVisible(), true);
     assert.equal(await page.locator('#bangs-list').isVisible(), false);
     await search(page, 'a');
-    assert.equal(await visibleRows(page).count(), 50);
+    await expectRows(page, 50);
   } finally { await context.close(); }
 });
 
