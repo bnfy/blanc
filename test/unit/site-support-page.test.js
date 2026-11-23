@@ -9,6 +9,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 
 const root = path.join(__dirname, '..', '..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
@@ -41,7 +42,7 @@ test('every Support guide and answer is on the page exactly once, in its own tab
 });
 
 test('Mail rows come from the module /mail renders, with unique mail- ids', async () => {
-  const { mailQuestions, mailSupportTopics } = await import(path.join(root, 'site/src/data/mail-questions.mjs'));
+  const { mailQuestions, mailSupportTopics } = await import(pathToFileURL(path.join(root, 'site/src/data/mail-questions.mjs')).href);
   const ids = [...mailQuestions, ...mailSupportTopics].map((item) => item.id);
   assert.ok(ids.every((id) => /^mail-[a-z-]+$/.test(id)), ids.join());
   assert.equal(new Set(ids).size, ids.length);
