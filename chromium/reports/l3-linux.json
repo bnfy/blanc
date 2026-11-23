@@ -97,7 +97,11 @@
   {
    "item": 5,
    "check": "Owner approves the website copy before it deploys",
-   "result": "pending (website PR)"
+   "result": "passed",
+   "pr": 1708,
+   "mergeCommit": "139394045c3879bf5f59f690177aa21ce77e8ffc",
+   "pagesDeployment": "71c36fae",
+   "pingWorkerVersion": "defe9dac-caa7-4d3c-8aa6-85ef6450f7c8"
   }
  ],
  "privacyNotes": [

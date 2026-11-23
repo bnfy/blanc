@@ -4110,14 +4110,14 @@ proof-only N-1, from the same source and never published. Both numbers are claim
 | 2. Verify-public on x64 and arm64 | Passed on all six systems. Each downloaded every public asset logged out, checked the Sigstore signature, `SHA256SUMS` and the manifest, and installed from `pkg.blanc.day`. The first run's two x64 jobs got 403 on anonymous `api.github.com` reads (a rate limit shared on the runner's address); only the three metadata reads now use the job's read-only token. | [Run 45108455963](https://github.com/bnfy/blanc/actions/runs/45108455963), [first run 45107889525](https://github.com/bnfy/blanc/actions/runs/45107889525) |
 | 3. Owner's VM hand checks | Passed, one item partial. In Ubuntu 26.04 arm64 the Island's Restart to update relaunched 905 into 906 with tabs restored. The Dock icon, keyring, default browser and screen sharing matched L1 and L2. Ubuntu 26.04 has no Software Updater; App Center lists the update only when the repository publishes DEP-11 metadata, which the owner chose to add before the .37 update. | [VM hand check](linux/hand-checks-l3.md) |
 | 4. Latest release still Electron's; Mac and Windows betas unaffected | Passed. Latest stayed v1.52.0 (checked by the publish stage and verify-public). The release created only its own tag, pre-release and repository generation and wrote no Mac or Windows asset or feed. | [Release](https://github.com/bnfy/blanc/releases/tag/chromium-beta-linux-158.0.8127.906) |
-| 5. Website copy approved by the owner | Open: the website PR. | |
+| 5. Website copy approved by the owner | Passed. The owner approved the Download page's Linux tile on November 23; it merged as `139394045` and deployed to blanc.day (Pages `71c36fae`, Production, `main`), with counted `/dl/beta-linux-<arch>-<format>` routes on blanc-ping (version `defe9dac`). | [bnfy/blanc#1708](https://github.com/bnfy/blanc/pull/1708) |
 
 Found during the release: on Linux, spell checking downloads its Hunspell dictionary from
 `redirector.gvt1.com/edgedl/chrome/dict/`, as shipping Electron Blanc does. No other Google update
 or release host appeared in the update proof's network logs.
 
-Open: DEP-11 metadata before the 158.0.8127.37 update; the website PR; the 158.0.8127.37 Linux
-betas after the build server moves to .37.
+Open: DEP-11 metadata before the 158.0.8127.37 update; the 158.0.8127.37 Linux betas after the
+build server moves to .37; the ship note to the release-notes list (owner).
 
 ## Android
 Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
