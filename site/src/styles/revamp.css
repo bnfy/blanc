@@ -414,6 +414,7 @@ main .section-kicker {
   --footer-tagline: var(--site-text);
   --footer-rule: var(--site-border);
   --footer-focus: var(--site-gold);
+  --footer-social: var(--site-gold);
   --footer-field-border: var(--site-border);
   --footer-field-bg: var(--site-surface-raised);
   --footer-button-ink: var(--site-bg);
@@ -431,6 +432,7 @@ main .section-kicker {
   --footer-tagline: #c0bcb5;
   --footer-rule: rgb(242 242 240 / 0.1);
   --footer-focus: var(--site-gold-on-dark);
+  --footer-social: var(--site-gold-on-dark);
   --footer-field-border: rgb(242 242 240 / 0.22);
   --footer-field-bg: rgb(242 242 240 / 0.06);
   --footer-button-ink: #1b1a18;
@@ -566,8 +568,25 @@ main .section-kicker {
   min-height: 44px;
 }
 .website-footer-bottom .footer-social {
+  /* Each glyph sits centered in its 36px target; pull the row out by the
+     9px inset so the outer glyphs line up with the footer's edges. */
+  margin-right: -9px;
   margin-left: auto;
-  gap: 0 18px;
+  gap: 0 4px;
+}
+/* Social glyphs: bronze at rest, ink (near-white on the dark footer) on hover
+   and focus (docs/brand-usage.md). Each keeps a 36 × 44px target. */
+.website-footer .footer-social a {
+  justify-content: center;
+  width: 36px;
+  color: var(--footer-social);
+}
+.website-footer .footer-social a:is(:hover, :focus-visible) {
+  color: var(--footer-strong);
+}
+.footer-social svg {
+  display: block;
+  fill: currentColor;
 }
 .footer-privacy-choice {
   padding: 0;
@@ -641,7 +660,7 @@ main .section-kicker {
     grid-column: 1 / -1;
   }
   .website-footer-bottom .footer-social {
-    margin-left: 0;
+    margin-left: -9px;
     width: 100%;
   }
 }

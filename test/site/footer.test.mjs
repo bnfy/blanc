@@ -201,6 +201,27 @@ test('footer column links sit closer with a mouse and keep their rows on touch s
   } finally { await desktop.close(); await touch.close(); }
 });
 
+// The social row is icons (Simple Icons, CC0): each link is named for screen
+// readers, shows a glyph and no visible text, and keeps a 36 × 44px target.
+test('social links are named icons with room to tap', async () => {
+  const page = await openPage();
+  try {
+    for (const path of ['/', '/features/island']) {
+      await page.goto(`${baseURL}${path}`);
+      const links = await page.locator('#site-footer nav[aria-label="Follow Blanc"] a').evaluateAll(as => as.map(a => {
+        const box = a.getBoundingClientRect();
+        return { label: a.getAttribute('aria-label'), text: a.textContent.trim(), glyph: !!a.querySelector('svg[aria-hidden="true"] path'), width: box.width, height: box.height };
+      }));
+      assert.deepEqual(links.map(link => link.label), ['Substack', 'Instagram', 'Threads', 'Facebook', 'TikTok', 'Reddit'].map(name => `Blanc on ${name}`), path);
+      for (const link of links) {
+        assert.equal(link.text, '', `${path}: ${link.label} shows no text`);
+        assert.equal(link.glyph, true, `${path}: ${link.label} glyph`);
+        assert.ok(link.width >= 36 && link.height >= 44, `${path}: ${link.label} target ${link.width}×${link.height}`);
+      }
+    }
+  } finally { await page.close(); }
+});
+
 test('the newsletter field keeps its label for screen readers only', async () => {
   const page = await openPage();
   try {

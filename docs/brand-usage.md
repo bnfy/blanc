@@ -409,7 +409,8 @@ lockup (155×40px, the ink word) as the home link, the tagline “A little less
 browser.” in Instrument Sans, and the newsletter field (a white field with a
 `--site-border` outline and an ink Subscribe pill), then three link columns
 (Explore, Resources, Blanc) and a fine `--site-border` rule above the compact
-legal and social row. Headings and the tagline are ink; links rest in
+legal row and the social icons (Simple Icons glyphs, named for screen readers,
+each with a 36 × 44px target; owner, November 23, 2026). Headings and the tagline are ink; links rest in
 `--site-text-dim` and turn ink on hover; focus rings are gold on light
 (`--site-gold`). With a mouse or trackpad the column links sit closer together;
 touch screens keep the taller rows. A page may put numbered method notes above
