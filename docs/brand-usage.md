@@ -75,16 +75,16 @@ accents), followed by the unshipped blue-to-peach Dawn sky proposal.
 
 ### Sunrise palette for website and marketing
 
-The website carries the Sunrise icon's warmth through Blanc White backgrounds,
+The website carries the Sunrise icon's warmth through a light cream background,
 warm surfaces, and muted gold details. Keep the existing typography,
 near-black headings, dark primary buttons, and a white desktop masthead.
 These website and marketing tokens are separate from the released product palette:
 
-- page background, **Blanc White**: `#F8F2E8` (`--site-bg`);
-- section surfaces: `#F2EADE` (`--site-surface`);
+- page background, the website cream: `#FBF7F0` (`--site-bg`);
+- section surfaces: `#F5EFE5` (`--site-surface`);
 - raised surfaces and forms, the masthead and the footer: white `#FFFFFF`
   (`--site-surface-raised`);
-- decorative borders and dividers: `#E1D7C9` (`--site-border`);
+- decorative borders and dividers: `#E6DDD0` (`--site-border`);
 - muted text: `#6B6257` (`--site-text-dim`);
 - gold on light backgrounds: `#805D28` (`--site-gold`);
 - gold on dark backgrounds: `#D4AD66` (`--site-gold-on-dark`);
@@ -93,19 +93,31 @@ These website and marketing tokens are separate from the released product palett
 
 **Blanc White** is the brand name for `#F8F2E8` (owner decision, October 15,
 2026). Call it Blanc White, not ivory or cream, in briefs, creative and press
-material. On the same day the owner set the palette above: the page, surface,
-raised and border colours are the ones blanc.day was already serving, and the
+material. On the same day the owner set the website palette: the page, surface,
+raised and border colours were the ones blanc.day was already serving (the page,
+surface and border were lightened on November 23, 2026; see below), and the
 muted text and gold keep this guide's warmer `#6B6257` and `#805D28`, not the
 cooler `#696865` and `#7D653D` the site had been rendering. Blanc White is a shade
 lighter than `#F7F0E5`, the original sample from the Sunrise art, which the
 product's Sunrise surfaces (`--sunrise-bg`), the share cards, the press card
 and the media kit's icon tiles still use.
 
+**The website's lighter cream (owner, November 23, 2026).** The website's page,
+section and border colors moved one step lighter, to `#FBF7F0`, `#F5EFE5` and
+`#E6DDD0`, so pages read brighter. Only the website changed: **Blanc White stays
+`#F8F2E8`** and remains the brand color for creative, press, email and the
+app's Sunrise surfaces. Cream text hard-coded as `#F8F2E8` on the site's dark
+tiles stays Blanc White, while text that uses `--site-bg` or `--paper` on ink
+follows the website cream. "Cream" here names the website color only; the
+brand color is still called Blanc White. Muted text and gold measure 5.6:1 on the new page color and 5.2:1 on
+sections. `test/unit/site-cream.test.js` keeps `site.css`, `revamp.css` and
+`home.css` equal and checks that contrast.
+
 Use gold for eyebrows, section kickers, text-link arrows and interaction
 states, FAQ disclosure markers, navigation states, and the changelog's small
 new-feature dot. The pale background belongs only to selected mobile menu
 items. Keep underlines, focus outlines, and other state indicators alongside
-color. Gold and muted text meet 4.5:1 contrast on the specified Blanc White, section,
+color. Gold and muted text meet 4.5:1 contrast on the specified page, section,
 raised, and pale selection surfaces. Use the dark-background gold token on
 dark sections and navigation; it meets 4.5:1 on both the shared ink and the
 warm ink. The warm ink belongs to the Patron offer alone: the shared
@@ -156,7 +168,7 @@ replace the canonical Sunrise symbol with a letterform.
 The homepage offer pairs the monochrome Sunrise symbol with this display name
 on a warm ink (`--site-ink-warm`) section. The display name and the main price
 numeral are set in gold (`--site-gold-on-dark`); supporting copy, currency,
-billing labels, and the symbol stay Blanc White (`--site-bg`), and the filled gold
+billing labels, and the symbol take the website cream (`--site-bg`), and the filled gold
 button keeps its ink text. One radial gold light spill, anchored to the
 section's top edge at no more than about a quarter strength, is the section's
 only gradient; the symbol sits below its brightest point and is never backed
@@ -406,9 +418,9 @@ on the glow; the footer's lockup sits below the line.
 
 The homepage opens on the gold Sunrise alone, with no wordmark, at
 `min(56vmin, 540px)`. Unless the visitor has asked for reduced motion, the
-sunrise plays once as the page opens (2.2 seconds, in one screen): it draws the
+sunrise plays once as the page opens (1.4 seconds, in one screen): it draws the
 horizon and its reflection, raises the disc, opens the rays and brings the sky
-from night to Blanc White, then shrinks the mark above the headline and brings
+from night to the website cream, then shrinks the mark above the headline and brings
 in the copy. It used to be driven by scrolling a stage 4.2 screens tall; the
 owner rejected that on October 15, 2026, because the first screen showed
 neither what Blanc is nor how to get it. The stage is cut from one export

@@ -193,50 +193,6 @@ const faqs = [
       </div>
     </section>
 
-    <section class="device" id="wallpaper" aria-labelledby="wallpaper-title">
-      <div class="device-stage">
-        <div class="device-copy">
-          <h2 id="wallpaper-title">Your Start Page, from dawn to night.</h2>
-          <p class="lead">Turn on Time-of-day wallpaper in Settings → General, and the Start Page follows your computer’s clock.</p>
-          <p class="lead">Or choose your own image or a color from Customize on the Start Page.</p>
-        </div>
-        <div class="device-frame">
-          <img
-            class="device-shell"
-            src="/revamp/space-black-laptop-v2-display.webp"
-            width="1536"
-            height="1024"
-            alt=""
-          />
-          <div
-            class="device-screen"
-            role="img"
-            aria-label="Blanc’s Start Page with the time-of-day wallpaper, from dawn to night, on a MacBook"
-          >
-            <img
-              src="/feature-captures/home-wallpaper-dawn-v1.38.0.webp"
-              width="1440"
-              height="900"
-              alt=""
-            />{
-              ["day", "dusk", "night"].map((time) => (
-                <img
-                  class={`wallpaper-${time}`}
-                  src={`/feature-captures/home-wallpaper-${time}-v1.38.0.webp`}
-                  width="1440"
-                  height="900"
-                  loading="lazy"
-                  decoding="async"
-                  alt=""
-                />
-              ))
-            }
-          </div>
-        </div>
-        <div class="device-phases" aria-hidden="true"><span class="phase-dawn">Dawn</span><span class="phase-day">Day</span><span class="phase-dusk">Dusk</span><span class="phase-night">Night</span></div>
-      </div>
-    </section>
-
     <section class="proof dark" id="first-launch" aria-labelledby="proof-title">
       <div class="wrap">
         <h2 id="proof-title" class="rise">What you get from the first launch.</h2>
@@ -586,7 +542,7 @@ const faqs = [
       <div class="wrap patron-card">
         <div class="patron-intro">
           <img class="patron-mark" src="/lockup/sunrise-mark-256.webp" width="256" height="256" alt="" />
-          <h2 class="patron-title" id="patron-title">Blanc Patron.</h2>
+          <h2 class="patron-title" id="patron-title">Blanc Patron</h2>
           <p class="patron-description">
             Blanc Patron is how you support Blanc’s development. Every
             feature, including Blanc Spaces, is free for everyone; Patron

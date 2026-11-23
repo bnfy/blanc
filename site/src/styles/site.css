@@ -31,20 +31,23 @@
   --accent-dim: rgba(17, 17, 17, 0.08);
   --island-panel-radius: 18px;
 
-  /* Website presentation only. --site-bg is Blanc White, the brand cream. revamp.css
-     repeats the page, surface, raised, border, muted and gold values; keep them equal. */
+  /* Website presentation only. --site-bg is the website's own lighter cream
+     (owner, November 23, 2026); Blanc White (#F8F2E8) stays the brand and app
+     color. revamp.css repeats the page, surface, raised, border, muted and gold
+     values, and home.css the page, surface and border; keep them equal
+     (test/unit/site-cream.test.js). */
   /* Headings on every page are Blubird Display at 0 tracking (October 15,
      2026; src/styles/blubird.css). Text is Instrument Sans (November 15, 2026),
      through --font-brand-text. Product replicas (Island figures, demo UI)
      keep their own faces. */
   --site-font-patron: var(--font-brand-display);
   --site-font-display: var(--font-brand-display);
-  --site-bg: #F8F2E8;
-  --site-bg-rgb: 248, 242, 232;
-  --site-surface: #F2EADE;
+  --site-bg: #FBF7F0;
+  --site-bg-rgb: 251, 247, 240;
+  --site-surface: #F5EFE5;
   --site-surface-raised: #FFFFFF;
   --site-surface-raised-rgb: 255, 252, 247;
-  --site-border: #E1D7C9;
+  --site-border: #E6DDD0;
   --site-text: #0e0e0e;
   --site-text-dim: #6B6257;
   --site-accent: #111111;
