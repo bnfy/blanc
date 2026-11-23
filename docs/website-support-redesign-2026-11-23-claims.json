@@ -7,7 +7,12 @@
     "chromium-beta-windows-158.0.8127.907",
     "chromium-beta-linux-158.0.8127.909"
   ],
-  "approvedOn": null,
+  "approvedOn": "2026-11-23",
+  "ownerDecisions": [
+    "Product tabs on one page for Blanc for desktop, iPhone & iPad, Blanc Beta and Mail; starter answers for iPhone & iPad and Blanc Beta; contact at the bottom as Still need help? (owner, 2026-11-23).",
+    "Look 1 of three mock-ups: a night hero like Privacy & Security's with the gold Sunrise export of assets/sunrise-mark.svg (owner, 2026-11-23).",
+    "Every new string in this ledger approved by the owner on 2026-11-23."
+  ],
   "evidenceGroups": {
     "iosRelease": {
       "qualification": "Blanc for iPhone and iPad release notes as published on the App Store (newest: 1.1, November 22, 2026), recorded by the site's iOS changelog data.",
