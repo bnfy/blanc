@@ -1,4 +1,6 @@
 ---
+import TrustIcon from "../TrustIcon.astro";
+
 const connections = [
   [
     "Websites you open",
@@ -37,81 +39,158 @@ const connections = [
     "A handoff transfers selected tab metadata after your request. The ChatGPT path processes that metadata through OpenAI; the Firefox/Safari companion encrypts locally. Neither path transfers logins or cookies.",
   ],
 ];
+// The Privacy & Security page draws each connection with an icon.
+const connectionIcons = {
+  "Websites you open": "globe",
+  "App updates": "download",
+  "Protected media": "play",
+  "Search and suggestions": "search",
+  "Usage measurement": "chart",
+  DNS: "network",
+  "Optional Sync": "cloud",
+  "Optional Patron and 1Password": "key",
+  "Optional tab handoff": "handoff",
+};
 ---
 
-<section id="engine">
-  <h2>Chromium renders the web. Electron brings it to your desktop.</h2><p>
-    Blanc is a desktop browser built with Electron, which bundles Chromium for
-    rendering websites. Blanc supplies its own interface, tab management,
-    blocking and permission controls. Electron lets one application support
-    macOS, Windows and Linux. <a
-      href="https://www.electronjs.org/docs/latest/tutorial/process-model"
-      >Electron’s process model</a
-    > explains how the runtime and rendering engine fit together.
-  </p><p>
-    Chromium is the open-source browser engine used by several browsers. Blanc
-    is not the Google Chrome application: it has its own features and update
-    channel. Using Chromium does not, by itself, describe every connection a
-    browser makes. Those connections are explained below.
-  </p><p>
-    Since Blanc 1.43, Blanc runs on castLabs’ Electron for Content Security,
-    a build of Electron that can play Widevine-protected video and music.
-    Engine changes arrive through a new Blanc release; the running app cannot
-    independently swap in a newer Chromium.
-  </p>
-</section>
-<section id="updates">
-  <h2>An app update includes the browser engine.</h2><p>
-    Installed release builds check Blanc’s official GitHub Releases channel. An
-    update includes the application and its bundled Electron/Chromium runtime.
-    Applying it requires restarting Blanc; a new engine is not downloaded into
-    the running browser separately.
-  </p><p>
-    On Linux, Blanc is distributed as an AppImage. Make the downloaded file
-    executable and run it. Its updater replaces the application image when the
-    environment permits; if automatic updating fails, download the new AppImage
-    from the official channel. A writable location and a working AppImage
-    environment are required. AppImage packaging does not keep Chromium updated
-    independently.
-  </p><p>
-    macOS releases are signed and notarized. Windows installers carry
-    timestamped Authenticode signatures. Linux AppImages are authenticated
-    through the signed checksum manifest; they do not have the same OS-level
-    signing model. <a href="/trust#security"
-      >Read the verification instructions</a
-    > and <a href="/download">choose your download</a>.
-  </p>
-</section>
-<section id="blocking">
-  <h2>Blocking is built into Blanc.</h2><p>
-    Blanc Blocker applies network rules and cosmetic filters from bundled,
-    hash-verified EasyList and EasyPrivacy snapshots. It does not fetch changing
-    filter lists or remote scriptlet resources at startup. Reviewed list updates
-    arrive with a new Blanc release.
-  </p><p>
-    The blocker is independent of an extension store. You can turn it off for a
-    site when something breaks, or change its setting in the app. Lists target
-    known ads and trackers; blocking cannot guarantee that every tracker is
-    stopped. <a href="/trust#ad-blocking">Explore Blanc Blocker</a>.
-  </p>
-</section>
+<!-- The technical background opens on request; each row keeps its old
+     anchor (/trust#engine opens and scrolls to it through answers.js). -->
+<div class="trust-rows">
+  <details class="trust-row" id="engine">
+    <summary>
+      <TrustIcon name="chip" /><span
+        >Chromium renders the web. Electron brings it to your desktop.</span
+      ><span class="trust-row-toggle" aria-hidden="true">+</span>
+    </summary>
+    <div class="trust-row-body">
+      <p>
+        Blanc is a desktop browser built with Electron, which bundles Chromium for
+        rendering websites. Blanc supplies its own interface, tab management,
+        blocking and permission controls. Electron lets one application support
+        macOS, Windows and Linux. <a
+          href="https://www.electronjs.org/docs/latest/tutorial/process-model"
+          >Electron’s process model</a
+        > explains how the runtime and rendering engine fit together.
+      </p><p>
+        Chromium is the open-source browser engine used by several browsers. Blanc
+        is not the Google Chrome application: it has its own features and update
+        channel. Using Chromium does not, by itself, describe every connection a
+        browser makes. Those connections are explained below.
+      </p><p>
+        Since Blanc 1.43, Blanc runs on castLabs’ Electron for Content Security,
+        a build of Electron that can play Widevine-protected video and music.
+        Engine changes arrive through a new Blanc release; the running app cannot
+        independently swap in a newer Chromium.
+      </p>
+    </div>
+  </details>
+  <details class="trust-row" id="updates">
+    <summary>
+      <TrustIcon name="refresh" /><span
+        >An app update includes the browser engine.</span
+      ><span class="trust-row-toggle" aria-hidden="true">+</span>
+    </summary>
+    <div class="trust-row-body">
+      <p>
+        Installed release builds check Blanc’s official GitHub Releases channel. An
+        update includes the application and its bundled Electron/Chromium runtime.
+        Applying it requires restarting Blanc; a new engine is not downloaded into
+        the running browser separately.
+      </p><p>
+        On Linux, Blanc is distributed as an AppImage. Make the downloaded file
+        executable and run it. Its updater replaces the application image when the
+        environment permits; if automatic updating fails, download the new AppImage
+        from the official channel. A writable location and a working AppImage
+        environment are required. AppImage packaging does not keep Chromium updated
+        independently.
+      </p><p>
+        macOS releases are signed and notarized. Windows installers carry
+        timestamped Authenticode signatures. Linux AppImages are authenticated
+        through the signed checksum manifest; they do not have the same OS-level
+        signing model. <a href="/trust#security"
+          >Read the verification instructions</a
+        > and <a href="/download">choose your download</a>.
+      </p>
+    </div>
+  </details>
+  <details class="trust-row" id="blocking">
+    <summary>
+      <TrustIcon name="shield-slash" /><span>Blocking is built into Blanc.</span
+      ><span class="trust-row-toggle" aria-hidden="true">+</span>
+    </summary>
+    <div class="trust-row-body">
+      <p>
+        Blanc Blocker applies network rules and cosmetic filters from bundled,
+        hash-verified EasyList and EasyPrivacy snapshots. It does not fetch changing
+        filter lists or remote scriptlet resources at startup. Reviewed list updates
+        arrive with a new Blanc release.
+      </p><p>
+        The blocker is independent of an extension store. You can turn it off for a
+        site when something breaks, or change its setting in the app. Lists target
+        known ads and trackers; blocking cannot guarantee that every tracker is
+        stopped. <a href="/trust#ad-blocking">Explore Blanc Blocker</a>.
+      </p>
+    </div>
+  </details>
+  <details class="trust-row" id="limits">
+    <summary>
+      <TrustIcon name="scale" /><span
+        >Understand the trade-offs before choosing.</span
+      ><span class="trust-row-toggle" aria-hidden="true">+</span>
+    </summary>
+    <div class="trust-row-body">
+      <p>
+        Blanc has no general extension runtime or built-in AI assistant. Private
+        tabs stay out of Blanc’s history and session restore; they do not make you
+        anonymous to websites or your network. Blocking cannot guarantee that every
+        tracker is stopped.
+      </p><p>
+        Memory use depends on the workload, engine version and platform. Published
+        measurements are specific runs, not a promise for every computer. <a
+          href="/support#electron">Read the benchmark qualifications</a
+        >.
+      </p><p>
+        Blanc-owned code is MIT licensed. Names and logos remain reserved, and
+        bundled third-party material keeps its own terms. Read the <a
+          href="https://github.com/bnfy/blanc/blob/v1.25.0/LICENSE">license</a
+        >, <a href="https://github.com/bnfy/blanc/blob/v1.25.0/ASSET-LICENSE.md"
+          >identity carve-outs</a
+        >, and <a
+          href="https://github.com/bnfy/blanc/blob/v1.25.0/THIRD-PARTY-NOTICES.md"
+          >third-party notices</a
+        >.
+      </p><p class="works-evidence">
+        App explanations checked against public <a
+          href="https://github.com/bnfy/blanc/releases/tag/v1.25.0">Blanc v1.25.0</a
+        >. Read its <a href="https://github.com/bnfy/blanc/tree/v1.25.0">source</a> and
+        <a
+          href="https://github.com/bnfy/blanc/blob/5b8fa03bda00cbd7fbcafba16384e63c7e85ff9a/docs/release-incidents/2026-10-01-v1.25.0.md"
+          >release evidence</a
+        >. Signed manifests authenticate downloads; they do not establish
+        reproducible builds. <a href="/support">More questions?</a>
+      </p>
+    </div>
+  </details>
+</div>
 <section id="connections">
   <h2>What can leave your device?</h2><p>
     This is an explanation of shipped behavior, not a live network monitor.
     Optional features have separate controls; ordinary website traffic is still
     part of browsing.
-  </p><dl class="connections-list">
+  </p><div class="connections-list">
     {
       connections.map(([name, explanation]) => (
-        <div>
-          <>
-            <dt>{name}</dt>
-            <dd>{explanation}</dd>
-          </>
-        </div>
+        <details class="trust-row">
+          <summary>
+            <TrustIcon name={connectionIcons[name]} />
+            <span>{name}</span>
+            <span class="trust-row-toggle" aria-hidden="true">+</span>
+          </summary>
+          <p class="trust-row-body">{explanation}</p>
+        </details>
       ))
     }
-  </dl><p>
+  </div><p class="connections-site-note">
     <strong>This website has separate choices.</strong> Cloudflare counts page views
     without cookies, and the download redirect counts aggregate downloads. Google
     analytics and limited ad-conversion measurement load only after you choose Allow
@@ -131,37 +210,5 @@ const connections = [
     measurement is controlled through this site’s footer. The <a href="/privacy"
       >privacy policy</a
     > lists data fields, recipients and retention in more detail.
-  </p>
-</section>
-<section id="limits">
-  <h2>Understand the trade-offs before choosing.</h2><p>
-    Blanc has no general extension runtime or built-in AI assistant. Private
-    tabs stay out of Blanc’s history and session restore; they do not make you
-    anonymous to websites or your network. Blocking cannot guarantee that every
-    tracker is stopped.
-  </p><p>
-    Memory use depends on the workload, engine version and platform. Published
-    measurements are specific runs, not a promise for every computer. <a
-      href="/support#electron">Read the benchmark qualifications</a
-    >.
-  </p><p>
-    Blanc-owned code is MIT licensed. Names and logos remain reserved, and
-    bundled third-party material keeps its own terms. Read the <a
-      href="https://github.com/bnfy/blanc/blob/v1.25.0/LICENSE">license</a
-    >, <a href="https://github.com/bnfy/blanc/blob/v1.25.0/ASSET-LICENSE.md"
-      >identity carve-outs</a
-    >, and <a
-      href="https://github.com/bnfy/blanc/blob/v1.25.0/THIRD-PARTY-NOTICES.md"
-      >third-party notices</a
-    >.
-  </p><p class="works-evidence">
-    App explanations checked against public <a
-      href="https://github.com/bnfy/blanc/releases/tag/v1.25.0">Blanc v1.25.0</a
-    >. Read its <a href="https://github.com/bnfy/blanc/tree/v1.25.0">source</a> and
-    <a
-      href="https://github.com/bnfy/blanc/blob/5b8fa03bda00cbd7fbcafba16384e63c7e85ff9a/docs/release-incidents/2026-10-01-v1.25.0.md"
-      >release evidence</a
-    >. Signed manifests authenticate downloads; they do not establish
-    reproducible builds. <a href="/support">More questions?</a>
   </p>
 </section>

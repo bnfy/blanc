@@ -123,6 +123,44 @@ main .section-kicker {
 .site-header.revamp-header[data-overlay]:is([data-scrolled], [data-menu="open"]) {
   background: #fff;
 }
+/* Privacy & Security's bar is clear over its night hero on wide windows, in
+   light ink; narrower windows, with their Menu button, keep the solid bar. */
+@media (max-width: 920px) {
+  .site-header.revamp-header[data-overlay][data-overlay-tone="dark"] {
+    margin-bottom: 0;
+    background: #fff;
+  }
+}
+@media (min-width: 921px) {
+  .site-header[data-overlay-tone="dark"] :is(.revamp-nav-link, .site-search-trigger, .site-nav-cta, .site-lockup-word) {
+    transition: color 240ms ease, background-color 240ms ease, filter 240ms ease;
+  }
+  .site-header.revamp-header[data-overlay-tone="dark"][data-overlay]:not([data-scrolled]) {
+    --overlay-ink: #f2efe9;
+    --overlay-ink-dim: rgb(242 239 233 / 0.78);
+  }
+  .site-header[data-overlay-tone="dark"][data-overlay]:not([data-scrolled]) .revamp-nav-link,
+  .site-header[data-overlay-tone="dark"][data-overlay]:not([data-scrolled]) .site-search-trigger {
+    color: var(--overlay-ink-dim);
+  }
+  .site-header[data-overlay-tone="dark"][data-overlay]:not([data-scrolled]) .revamp-nav-link:is(:hover, [aria-current="page"]),
+  .site-header[data-overlay-tone="dark"][data-overlay]:not([data-scrolled]) .site-search-trigger:hover {
+    color: var(--overlay-ink);
+  }
+  .site-header[data-overlay-tone="dark"][data-overlay]:not([data-scrolled]) .site-lockup-word {
+    filter: brightness(0) invert(1);
+  }
+  .site-header[data-overlay-tone="dark"][data-overlay]:not([data-scrolled]) .site-nav-cta {
+    background: var(--overlay-ink);
+    color: #1b1a18;
+  }
+  .site-header[data-overlay-tone="dark"][data-overlay]:not([data-scrolled]) .site-nav-cta:hover {
+    background: #fff;
+  }
+  .site-header[data-overlay-tone="dark"][data-overlay]:not([data-scrolled]) :is(a, button):focus-visible {
+    outline-color: var(--overlay-ink);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .site-header.revamp-header[data-overlay] {
     transition: none;

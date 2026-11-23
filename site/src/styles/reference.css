@@ -170,8 +170,9 @@
   margin: 18px 0;
 }
 .answer-body .truth-note {
-  border-left: 2px solid var(--line);
-  padding-left: 22px;
+  padding: 4px 22px 20px;
+  border-radius: 16px;
+  background: var(--site-surface);
 }
 .answer-body table {
   display: block;
@@ -293,97 +294,7 @@
 [hidden] {
   display: none !important;
 }
-.trust-overview {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 32px;
-  margin: 60px 0;
-}
-.trust-overview article {
-  border-top: 1px solid var(--line);
-  padding-top: 22px;
-}
-.trust-overview span {
-  font: 400 30px var(--site-font-display);
-  color: var(--gold);
-}
-.trust-overview h2 {
-  font: 500 17px/1.5 var(--font-brand-text);
-  margin: 18px 0 10px;
-}
-.trust-overview .trust-baseline {
-  display: inline-flex;
-  margin-top: 14px;
-  border-radius: 3px;
-  transition: opacity 160ms ease;
-}
-.trust-overview .trust-baseline:hover {
-  opacity: 0.78;
-}
-.trust-overview .trust-baseline img {
-  display: block;
-  max-width: 100%;
-  height: auto;
-}
-.trust-overview p {
-  font-size: 14px;
-  line-height: 1.8;
-  color: var(--dim);
-}
-.reference-contents {
-  display: flex;
-  gap: 16px 28px;
-  flex-wrap: wrap;
-  border-block: 1px solid var(--line);
-  padding: 20px 0;
-  margin: 0 0 64px;
-}
-.reference-contents a {
-  font-size: 12px;
-  color: var(--gold);
-  text-decoration: none;
-}
-.reference-contents a:hover {
-  text-decoration: underline;
-}
-.foundations > section {
-  display: grid;
-  grid-template-columns: 1fr 1.6fr;
-  column-gap: 60px;
-  margin: 44px 0;
-}
-.foundations > section h2 {
-  grid-column: 1;
-  grid-row: 1/20;
-  font: 400 27px/1.2 var(--site-font-display);
-  letter-spacing: 0;
-  margin: 0;
-}
-.foundations > section p,
-.foundations > section ul,
-.foundations > section dl {
-  grid-column: 2;
-  font-size: 14px;
-  line-height: 1.85;
-  color: var(--dim);
-  margin: 0 0 18px;
-}
-.foundations > section a {
-  color: var(--gold);
-  text-underline-offset: 4px;
-}
-.foundations dt {
-  font-weight: 500;
-  color: var(--ink);
-  margin: 18px 0 4px;
-}
-.foundations dd {
-  margin: 0 0 18px;
-}
-.foundations #connections {
-  border-block: 1px solid var(--line);
-  padding: 32px 0;
-}
+/* The Privacy & Security page's own layout is in trust.css. */
 .reference-page :is(section, [id]) {
   scroll-margin-top: 74px;
 }
@@ -416,75 +327,9 @@
   .answer-body {
     font-size: 14px;
   }
-  .trust-overview {
-    grid-template-columns: 1fr;
-    gap: 22px;
-    margin: 38px 0;
-  }
-  .trust-overview article {
-    display: grid;
-    grid-template-columns: 40px 1fr;
-    gap: 0 14px;
-  }
-  .trust-overview h2 {
-    margin: 0 0 8px;
-  }
-  .trust-overview p,
-  .trust-overview .trust-baseline {
-    grid-column: 2;
-  }
-  .trust-overview .trust-baseline {
-    justify-self: start;
-  }
-  .trust-overview span {
-    grid-row: 1/3;
-  }
-  .foundations > section {
-    display: block;
-    margin: 34px 0;
-  }
-  .foundations > section h2 {
-    margin-bottom: 20px;
-  }
-  .reference-contents {
-    margin-bottom: 42px;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .answer-topic > summary > span {
     transition: none;
   }
-}
-.trust-evidence {
-  max-width: none;
-  margin: 55px 0 0;
-}
-.trust-evidence .release-verification {
-  border-top: 1px solid var(--line);
-  padding-top: 30px;
-}
-.trust-evidence .release-verification h2,
-.trust-evidence #security-audit-title {
-  font: 400 35px/1.1 var(--site-font-display);
-  letter-spacing: 0;
-}
-.trust-evidence table {
-  font-size: 12px;
-}
-.trust-evidence .feature-copy-grid {
-  border-top: 1px solid var(--line);
-  padding-top: 25px;
-}
-.trust-overview a {
-  color: var(--gold);
-  text-underline-offset: 4px;
-}
-
-@media (max-width: 600px) {
-  .trust-evidence table { display: table; width: 100%; }
-  .trust-evidence table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-  .trust-evidence table tbody, .trust-evidence table tr, .trust-evidence table th, .trust-evidence table td { display: block; }
-  .trust-evidence table tr { padding: 18px 0; border-bottom: 1px solid var(--line); }
-  .trust-evidence table th { font-size: 17px; }
-  .trust-evidence table th, .trust-evidence table td { padding: 6px 0; border: 0; min-width: 0; width: auto; }
 }
