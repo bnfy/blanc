@@ -388,7 +388,9 @@ function normalizeBetaReleases(raw) {
     const first = earliest.get(entry.platform) === entry.tag;
     const { sections } = parseGeneratedNotes(body, { boldHeadings: true });
     const kept = trimBetaSections(sections, { platform: entry.platform, first });
-    if (!kept.length && !first) console.warn(`Blanc Beta ${entry.tag} has no change notes to show; its entry links to the release.`);
+    // What a beta can't do yet is always kept, so it doesn't count as notes.
+    const changes = kept.filter((section) => !BETA_LIMITS.test(section.heading || ''));
+    if (!changes.length && !first) console.warn(`Blanc Beta ${entry.tag} has no change notes to show; its entry links to the release.`);
     return { ...entry, sections: kept };
   });
 }
