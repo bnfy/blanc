@@ -45,7 +45,7 @@ test('the data and ledger name the same published Linux pre-release', () => {
   assert.equal(linux.releaseUrl, `https://github.com/bnfy/blanc/releases/tag/${linux.tag}`);
   assert.equal(ledger.releaseUrl, linux.releaseUrl);
   assert.equal(linux.published, ledger.publicRelease);
-  assert.equal(linux.chromium, '158.0.8127.2');
+  assert.equal(linux.chromium, '158.0.8127.37');
   const expected = {
     'x64 deb': `blanc-beta_${linux.version}-1_amd64.deb`,
     'x64 rpm': `blanc-beta-${linux.version}-1.x86_64.rpm`,
