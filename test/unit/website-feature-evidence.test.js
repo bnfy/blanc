@@ -32,7 +32,11 @@ const normalize = text => text.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*(?:>|
 // widgets; the layout wording it retired leaves these ledgers' checks, and its
 // new wording is recorded there (docs/website-v1.51-start-page-claims.json).
 const v151StartLedger = JSON.parse(read('docs/website-v1.51-start-page-claims.json'));
-const retiredWording = new Set(v151StartLedger.retiredWording);
+// The Privacy & Security page was re-checked against public v1.52.0; the
+// wording it replaced leaves these checks the same way
+// (docs/website-trust-v1.52-claims.json).
+const v152TrustLedger = JSON.parse(read('docs/website-trust-v1.52-claims.json'));
+const retiredWording = new Set([...v151StartLedger.retiredWording, ...v152TrustLedger.retired.map(entry => entry.exactWording)]);
 const live = claims => claims.filter(claim => !retiredWording.has(claim.exactWording));
 
 test('the public-release claim ledger resolves to verified v1.27.0, including blocking providers', () => {
@@ -58,7 +62,33 @@ test('current authentication claims link completed evidence rather than the prep
   assert.ok(completed.includes(ledger.sourceSha));
   assert.match(completed, /Publication and independent verification/);
   assert.match(completed, /Adjacent public updater handoffs/);
-  assert.ok(read('site/src/components/ReleaseEvidence.astro').includes(ledger.completedReleaseEvidenceRevision));
+});
+
+// Public v1.52.0: the Privacy & Security page's release evidence, guides and
+// connections, re-checked against the tag (docs/website-trust-v1.52-claims.json).
+test('the Privacy & Security page resolves to verified public v1.52.0 evidence', () => {
+  const record = v152TrustLedger;
+  assert.equal(record.publicRelease, 'v1.52.0');
+  assert.equal(execFileSync('git', ['rev-parse', `${record.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), record.sourceSha);
+  // The release record was completed after the tag, so it is read at the
+  // revision that finished it, and the page links that revision.
+  const completed = execFileSync('git', ['show', `${record.completedReleaseEvidenceRevision}:${record.releaseEvidence}`], { cwd: root, encoding: 'utf8' });
+  assert.ok(completed.includes(record.sourceSha));
+  assert.match(completed, /^## Independent verification$/m);
+  assert.match(completed, /^## Updater handoffs$/m);
+  assert.ok(read('site/src/components/ReleaseEvidence.astro').includes(record.completedReleaseEvidenceRevision));
+  for (const claim of record.claims) {
+    assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
+    assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
+    assert.ok(claim.evidenceGroups.length, `${claim.id}: no release evidence`);
+    for (const key of claim.evidenceGroups) {
+      const group = record.evidenceGroups[key];
+      assert.ok(group?.qualification && group.evidence.length, `${claim.id}: evidence and qualification`);
+      for (const evidence of group.evidence) execFileSync('git', ['cat-file', '-e', `${record.publicRelease}:${evidence}`], { cwd: root });
+    }
+  }
+  // Retired wording is gone from the page it was on.
+  for (const { source, exactWording } of record.retired) assert.ok(!normalize(read(source)).includes(exactWording), `${source} still says “${exactWording}”`);
 });
 
 test('the v1.15 claim ledger remains paired with its immutable release evidence', () => {
@@ -297,7 +327,7 @@ test('v1.34.0 Kagi and custom search copy resolves to verified public v1.34.0 ev
   assert.equal(v134Ledger.publicRelease, 'v1.34.0');
   assert.equal(execFileSync('git', ['rev-parse', `${v134Ledger.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v134Ledger.sourceSha);
   assert.ok(read(v134Ledger.releaseEvidence).includes(v134Ledger.sourceSha));
-  for (const claim of v134Ledger.claims) {
+  for (const claim of live(v134Ledger.claims)) {
     assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
     const source = read(claim.source);
     assert.ok(normalize(source).includes(claim.exactWording) || source.replace(/\s+/g, ' ').includes(claim.exactWording), `${claim.id}: exact wording drifted`);
@@ -731,7 +761,7 @@ test('v1.45.0 Shared Spaces and Sync copy resolves to verified public v1.45.0 ev
   assert.equal(v145Ledger.publicRelease, 'v1.45.0');
   assert.equal(execFileSync('git', ['rev-parse', `${v145Ledger.publicRelease}^{commit}`], { cwd: root, encoding: 'utf8' }).trim(), v145Ledger.sourceSha);
   assert.ok(read(v145Ledger.releaseEvidence).includes(v145Ledger.sourceSha));
-  for (const claim of v145Ledger.claims) {
+  for (const claim of live(v145Ledger.claims)) {
     assert.ok(['verified', 'qualified'].includes(claim.verdict), claim.id);
     assert.ok(normalize(read(claim.source)).includes(claim.exactWording), `${claim.id}: exact wording drifted`);
     assert.ok(claim.evidenceGroups.length, `${claim.id}: no release evidence`);
