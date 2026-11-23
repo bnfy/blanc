@@ -56,16 +56,26 @@ export async function accessToken(serviceAccountJson, now = Date.now(), fetchImp
   return result.access_token;
 }
 
-export async function uploadToInternal({packageName, aabPath, versionCode, releaseName, token}, fetchImpl = globalThis.fetch) {
-  check(typeof packageName === 'string' && /^[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+$/.test(packageName), 'Invalid Play package name');
-  check(Number.isSafeInteger(versionCode) && versionCode > 0, 'Invalid Play version code');
+const TRACKS = ['internal', 'alpha', 'beta', 'production'];
+const PACKAGE = /^[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+$/;
+
+// One Play release on one track: a draft or completed release, or a staged rollout (inProgress with
+// 0 < userFraction < 1), with optional en-US notes of 1 to 500 characters (Play's limit).
+function trackRelease({releaseName, versionCodes, status, userFraction, notes}) {
   check(typeof releaseName === 'string' && releaseName.trim(), 'Missing Play release name');
-  check(bearer(token), 'Invalid Play access token');
-  // Buffer owns its bytes and readFile closes the descriptor before fetch,
-  // including recording fakes that do not consume a streaming request body.
-  let bytes;
-  try { bytes = await readFile(aabPath); }
-  catch { throw new Error('Cannot read Play upload bundle'); }
+  check(Array.isArray(versionCodes) && versionCodes.length > 0 && versionCodes.every(code => /^[1-9]\d*$/.test(code)), 'Invalid Play version codes');
+  check(['draft', 'completed', 'inProgress', 'halted'].includes(status), 'Invalid Play release status');
+  const staged = status === 'inProgress' || status === 'halted';
+  check(staged ? typeof userFraction === 'number' && userFraction > 0 && userFraction < 1 : userFraction === undefined, 'Invalid Play rollout fraction');
+  const release = {name: releaseName, versionCodes, status, ...(staged ? {userFraction} : {})};
+  if (notes !== undefined) {
+    check(typeof notes === 'string' && notes.trim().length > 0 && notes.trim().length <= 500, 'Play release notes must be 1 to 500 characters');
+    release.releaseNotes = [{language: 'en-US', text: notes.trim()}];
+  }
+  return release;
+}
+
+async function withEdit({packageName, token}, fetchImpl, work) {
   const edits = `${ORIGIN}/androidpublisher/v3/applications/${packageName}/edits`;
   const headers = {'authorization': `Bearer ${token}`, 'content-type': 'application/json'};
   let editId;
@@ -73,19 +83,10 @@ export async function uploadToInternal({packageName, aabPath, versionCode, relea
     const edit = await request(fetchImpl, edits, {method: 'POST', headers, body: '{}'}, 'edit creation');
     check(typeof edit?.id === 'string' && edit.id.length > 0, 'Play returned no edit ID');
     editId = edit.id;
-    const encoded = encodeURIComponent(editId), editURL = `${edits}/${encoded}`;
-    const uploaded = await request(fetchImpl, `${ORIGIN}/upload/androidpublisher/v3/applications/${packageName}/edits/${encoded}/bundles?uploadType=media`, {
-      method: 'POST', headers: {...headers, 'content-type': 'application/octet-stream'}, body: bytes,
-    }, 'bundle upload');
-    check(uploaded?.versionCode === versionCode, 'Uploaded Play bundle version code differs from requested version code');
-    await request(fetchImpl, `${editURL}/tracks/internal`, {
-      method: 'PUT', headers,
-      // A draft: Play refuses any other status until the app has been published once, and the owner rolls
-      // it out to testers from Play Console.
-      body: JSON.stringify({track: 'internal', releases: [{name: releaseName, versionCodes: [String(versionCode)], status: 'draft'}]}),
-    }, 'internal track update', false);
+    const editURL = `${edits}/${encodeURIComponent(editId)}`;
+    const result = await work({editURL, headers, encoded: encodeURIComponent(editId)});
     await request(fetchImpl, `${editURL}:commit`, {method: 'POST', headers}, 'edit commit', false);
-    return {editId, versionCode};
+    return {editId, ...result};
   } catch (error) {
     if (editId !== undefined) {
       try { await request(fetchImpl, `${edits}/${encodeURIComponent(editId)}`, {method: 'DELETE', headers}, 'edit deletion', false); }
@@ -93,4 +94,42 @@ export async function uploadToInternal({packageName, aabPath, versionCode, relea
     }
     throw error;
   }
+}
+
+const putTrack = (fetchImpl, editURL, headers, track, release) => request(fetchImpl, `${editURL}/tracks/${track}`, {
+  method: 'PUT', headers, body: JSON.stringify({track, releases: [release]}),
+}, `${track} track update`, false);
+
+// Uploads the signed bundle and puts it on one track. Internal uploads stay drafts (the owner rolls
+// them out in Play Console); testing tracks take completed releases; production a staged rollout.
+export async function uploadToTrack({packageName, aabPath, versionCode, releaseName, token, track, status, userFraction, notes}, fetchImpl = globalThis.fetch) {
+  check(typeof packageName === 'string' && PACKAGE.test(packageName), 'Invalid Play package name');
+  check(Number.isSafeInteger(versionCode) && versionCode > 0, 'Invalid Play version code');
+  check(TRACKS.includes(track), 'Invalid Play track');
+  check(status !== 'halted', 'A new upload cannot start halted');
+  const release = trackRelease({releaseName, versionCodes: [String(versionCode)], status, userFraction, notes});
+  check(bearer(token), 'Invalid Play access token');
+  // Buffer owns its bytes and readFile closes the descriptor before fetch,
+  // including recording fakes that do not consume a streaming request body.
+  let bytes;
+  try { bytes = await readFile(aabPath); }
+  catch { throw new Error('Cannot read Play upload bundle'); }
+  return withEdit({packageName, token}, fetchImpl, async ({editURL, headers, encoded}) => {
+    const uploaded = await request(fetchImpl, `${ORIGIN}/upload/androidpublisher/v3/applications/${packageName}/edits/${encoded}/bundles?uploadType=media`, {
+      method: 'POST', headers: {...headers, 'content-type': 'application/octet-stream'}, body: bytes,
+    }, 'bundle upload');
+    check(uploaded?.versionCode === versionCode, 'Uploaded Play bundle version code differs from requested version code');
+    await putTrack(fetchImpl, editURL, headers, track, release);
+    return {versionCode, track};
+  });
+}
+
+// Replaces one track's release with a build Play already has: promotion and rollout changes.
+export async function updateTrack({packageName, token, track, release}, fetchImpl = globalThis.fetch) {
+  check(typeof packageName === 'string' && PACKAGE.test(packageName), 'Invalid Play package name');
+  check(TRACKS.includes(track), 'Invalid Play track');
+  const body = trackRelease({releaseName: release?.name, versionCodes: release?.versionCodes, status: release?.status,
+    userFraction: release?.userFraction, notes: release?.releaseNotes?.[0]?.text});
+  check(bearer(token), 'Invalid Play access token');
+  return withEdit({packageName, token}, fetchImpl, async ({editURL, headers}) => { await putTrack(fetchImpl, editURL, headers, track, body); return {}; });
 }

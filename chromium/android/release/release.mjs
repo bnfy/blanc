@@ -6,11 +6,11 @@ import crypto from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {createInterface} from 'node:readline/promises';
 import {fileURLToPath} from 'node:url';
-import {nextRelease, tagFor, validateLedger} from './versions.mjs';
+import {channelOf, nextRelease, tagFor, validateLedger} from './versions.mjs';
 import {validateBuildRecord} from './record.mjs';
 import {verifyBundle, signBundle} from './aab.mjs';
 import {attest} from './attest.mjs';
-import {accessToken, uploadToInternal} from './play-api.mjs';
+import {accessToken, uploadToTrack} from './play-api.mjs';
 
 const ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 const SCRIPT = fileURLToPath(import.meta.url);
@@ -124,9 +124,39 @@ function privacy(work, record, run) {
   const capture = load(path.join(work, 'privacy-capture.json'));
   check(capture.schema === 1 && capture.verdict === 'pass' && capture.sourceCommit === record.commit && capture.apkSHA256 === record.gatesApk.sha256 && SHA.test(capture.captureSHA256 ?? '') && typeof capture.reason === 'string' && capture.reason.trim(), 'privacy capture review is missing, failed or bound to another source/APK');
 }
-function receiptCheck(receipt, work, record) {
-  check(typeof receipt?.editId === 'string' && receipt.editId.length && receipt.versionCode === record.versionCode && receipt.aabSha256 === digest(read(path.join(work, 'Blanc-Android.aab'))), 'invalid public upload receipt');
-  return {editId: receipt.editId, versionCode: receipt.versionCode, aabSha256: receipt.aabSha256};
+function receiptCheck(receipt, work, record, track) {
+  check(typeof receipt?.editId === 'string' && receipt.editId.length && receipt.versionCode === record.versionCode && receipt.aabSha256 === digest(read(path.join(work, 'Blanc-Android.aab'))) && receipt.track === track, 'invalid public upload receipt');
+  return {editId: receipt.editId, versionCode: receipt.versionCode, aabSha256: receipt.aabSha256, track: receipt.track};
+}
+
+const TRACKS = ['internal', 'alpha', 'beta', 'production'];
+// Where config.json sends this build, and the exact words the owner types. Internal stays a draft
+// with today's phrase. A beta goes to a testing track (alpha until production access, then beta);
+// a stable build goes to production as a staged rollout (1–99%) or complete. Off internal, notes
+// (1–500 characters, Play's limit) are required.
+export function trackPlan(config, record, notesText) {
+  const track = config.track ?? 'internal';
+  check(TRACKS.includes(track), 'config track must be internal, alpha, beta or production');
+  const channel = channelOf(record.versionName), base = `upload ${record.versionName} (${record.versionCode}) to ${track}`;
+  check(track !== 'production' || channel === 'stable', 'a beta build cannot go to production; build the stable name from the same commit');
+  check(!['alpha', 'beta'].includes(track) || channel === 'beta', 'a stable build does not go to a testing track; testers receive it from production');
+  check(track === 'production' || config.rollout === undefined, 'rollout applies only to production');
+  let notes;
+  if (track !== 'internal') {
+    check(typeof config.notes === 'string' && config.notes.length, 'release notes file (config notes) is required off internal');
+    notes = typeof notesText === 'string' ? notesText.trim() : '';
+    check(notes.length > 0 && notes.length <= 500, 'release notes must be 1 to 500 characters');
+  }
+  if (track === 'internal') return {track, status: 'draft', phrase: base};
+  if (track !== 'production') return {track, status: 'completed', notes, phrase: base};
+  if (config.rollout === 'complete') return {track, status: 'completed', notes, phrase: `${base}, complete`};
+  check(Number.isInteger(config.rollout) && config.rollout >= 1 && config.rollout <= 99, 'rollout must be a whole number from 1 to 99, or "complete"');
+  return {track, status: 'inProgress', userFraction: config.rollout / 100, notes, phrase: `${base} at ${config.rollout}%`};
+}
+// The plan for this WORK: notes come from config.notes, a file inside WORK.
+function planFor(work, config, record) {
+  const notesText = config.notes === undefined ? undefined : read(relative(work, config.notes)).toString('utf8');
+  return trackPlan(config, record, notesText);
 }
 const defaults = () => ({run: spawnSync, platform: process.platform, tty: Boolean(process.stdin.isTTY && process.stdout.isTTY), env: process.env, pinFile: PIN,
   prompt: async text => { const terminal = createInterface({input: process.stdin, output: process.stdout}); try { return await terminal.question(text + '\n> '); } finally { terminal.close(); } }, attest});
@@ -200,13 +230,14 @@ export async function runStage(stage, workDir, injected = {}) {
       } else {
         privacy(work, record, io.run);
         check(!optional(path.join(work, 'upload-receipt.json')), 'upload receipt exists; reconcile the committed edit before retrying');
-        const phrase = `upload ${record.versionName} (${record.versionCode}) to internal`;
+        const plan = planFor(work, config, record), phrase = plan.phrase;
         check(await io.prompt(phrase) === phrase, 'upload confirmation did not match exactly');
         // Recheck mutable inputs/ledger after the owner has typed approval.
         const fresh = context(work, io.pinFile); entryFor(record, fresh.ledger); privacy(work, record, io.run);
-        const result = receiptCheck(await (io.worker ?? launchWorker)('upload', work, io), work, record);
+        const result = receiptCheck(await (io.worker ?? launchWorker)('upload', work, io), work, record, plan.track);
         writeSame(path.join(work, 'upload-receipt.json'), json(result)); names.push('upload-receipt.json');
-        // uploadToInternal resolves only after Google acknowledges edit commit.
+        if (config.notes !== undefined) names.push(config.notes);
+        // uploadToTrack resolves only after Google acknowledges edit commit.
         const latest = load(ledgerPath); validateLedger(latest); entryFor(record, latest).state = 'uploaded'; save(ledgerPath, latest);
       }
     }
@@ -218,7 +249,7 @@ export async function runStage(stage, workDir, injected = {}) {
 // This marker prevents accidental direct use; it is not authentication. Only
 // the owner invokes this program. Credentials never leave this process.
 export async function secretWorker(stage, workDir, injected = {}) {
-  const io = {...defaults(), accessToken, uploadToInternal, signBundle, ...injected};
+  const io = {...defaults(), accessToken, uploadToTrack, signBundle, ...injected};
   check(io.env.BLANC_ANDROID_OP_RUN === '1', 'secret stage requires the orchestrator op run worker');
   check(io.platform === 'darwin' && (injected.tty ?? Boolean(process.stdin.isTTY)), 'owner Mac foreground Terminal is required');
   check(['sign', 'upload'].includes(stage), 'invalid secret worker stage');
@@ -231,8 +262,10 @@ export async function secretWorker(stage, workDir, injected = {}) {
   check(!optional(path.join(work, 'upload-receipt.json')), 'upload receipt exists; reconcile before retrying');
   const credential = execute(io.run, 'op', ['read', refs.credentialRef, '--no-newline']);
   const token = await io.accessToken(credential);
-  const uploaded = await io.uploadToInternal({packageName: 'me.bnfy.blanc', aabPath: path.join(work, 'Blanc-Android.aab'), versionCode: record.versionCode, releaseName: record.versionName, token});
-  const receipt = receiptCheck({...uploaded, aabSha256: digest(read(path.join(work, 'Blanc-Android.aab')))}, work, record);
+  const plan = planFor(work, config, record);
+  const uploaded = await io.uploadToTrack({packageName: 'me.bnfy.blanc', aabPath: path.join(work, 'Blanc-Android.aab'), versionCode: record.versionCode, releaseName: record.versionName, token,
+    track: plan.track, status: plan.status, userFraction: plan.userFraction, notes: plan.notes});
+  const receipt = receiptCheck({...uploaded, aabSha256: digest(read(path.join(work, 'Blanc-Android.aab')))}, work, record, plan.track);
   writeSame(path.join(work, 'upload-receipt.json'), json(receipt)); return receipt;
 }
 
