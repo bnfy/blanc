@@ -184,9 +184,21 @@ function parseArgs(argv) {
   return options;
 }
 
+// The recorded file, or '' when there is none yet. One read, no separate
+// existence check that the file could change after.
+function readOutput() {
+  try {
+    return fs.readFileSync(OUTPUT, 'utf8');
+  } catch (error) {
+    if (error.code === 'ENOENT') return '';
+    throw error;
+  }
+}
+
 async function run(argv = process.argv.slice(2), env = process.env) {
   const options = parseArgs(argv);
-  const existing = fs.existsSync(OUTPUT) ? JSON.parse(fs.readFileSync(OUTPUT, 'utf8')) : [];
+  const current = readOutput();
+  const existing = current ? JSON.parse(current) : [];
   const { versions, localizations } = await fetchAppStore(env);
   const entries = buildIosEntries({
     versions, localizations, existing,
@@ -196,7 +208,6 @@ async function run(argv = process.argv.slice(2), env = process.env) {
   });
   const text = JSON.stringify(entries, null, 2) + '\n';
   if (options.check) {
-    const current = fs.existsSync(OUTPUT) ? fs.readFileSync(OUTPUT, 'utf8') : '';
     if (current !== text) {
       console.error(`${path.relative(ROOT, OUTPUT)} is behind App Store Connect. Run: npm run site:ios-changelog`);
       return 1;
