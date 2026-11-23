@@ -12,6 +12,7 @@ gate_wants() {
   return 0
 }
 
-# Every gate needs an accessibility service on for UI Automator to see page text (Chromium 159);
-# see support/accessibility-on.sh.
-bash "$(dirname "${BASH_SOURCE[0]}")/support/accessibility-on.sh"
+# UI Automator sees a page's text only while an accessibility service is on (Chromium 159); each
+# emulator gate calls this before its checks. See support/accessibility-on.sh.
+GATE_LIB_DIR="$(dirname "${BASH_SOURCE[0]}")"
+gate_accessibility_on() { bash "$GATE_LIB_DIR/support/accessibility-on.sh"; }
