@@ -3855,7 +3855,7 @@ Patron checkout. Owner items: the D1 hand checks on a real Windows desktop, and
 whether Windows' caption buttons should come and go with the floating Island.
 
 ## Android
-Betas and stable on Play, once production exists: `docs/android/channels.md` (nightly, weekly beta, four-weekly stable, security clock).
+Betas and stable on Play, once production exists: `docs/android/channels.md` (nightly, weekly beta, four-weekly stable, security releases).
 
 Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
 [PR #1333](https://github.com/bnfy/blanc/pull/1333)). Milestones: **A0

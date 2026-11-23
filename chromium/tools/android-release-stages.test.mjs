@@ -386,3 +386,22 @@ test('the promote worker updates the planned track with the credential kept insi
   assert.deepEqual(result, {editId: 'w'});
   assert.deepEqual([seen.track, seen.token, seen.release.status, seen.release.releaseNotes[0].text], ['alpha', 'fixture-token', 'completed', 'For testers.']);
 });
+
+test('production plans act only on the newest build production has had', async () => {
+  const {promotionPlan} = await api();
+  // 1.0.0 (6) was staged; 1.0.1 (8) then went to production. Build 6's own row still says inProgress.
+  const l = {schema: 1, builds: [row(1, '1.0.0-beta.1', [p('alpha', 'completed')]), row(2, '1.0.0', [p('production', 'inProgress', 0.1)]), row(3, '1.0.1', [p('production', 'inProgress', 0.2)]), row(4, '1.0.2', null)]};
+  for (const arg of ['complete', 50, 'halt']) assert.throws(() => promotionPlan(l, l.builds[1], 'production', arg, 'x'), /newer build.*production/, String(arg));
+  assert.equal(promotionPlan(l, l.builds[2], 'production', 50, 'x').phrase, 'roll out 1.0.1 (3) to 50%');
+  // A stable build older than production's never goes to production.
+  const older = {schema: 1, builds: [row(1, '1.0.0', null), row(2, '1.0.1', [p('production', 'completed')])]};
+  assert.throws(() => promotionPlan(older, older.builds[0], 'production', 10, 'x'), /below the production build/);
+  // Even a halted newer build counts: rolling an older one forward would replace it.
+  const halted = {schema: 1, builds: [row(1, '1.0.0', [p('production', 'completed')]), row(2, '1.0.1', [p('production', 'inProgress', 0.1), p('production', 'halted', 0.1)])]};
+  assert.throws(() => promotionPlan(halted, halted.builds[0], 'production', 'complete', 'x'), /newer build.*production/);
+});
+test('halt or complete on a build never on production says it is not rolling out', async () => {
+  const {promotionPlan} = await api();
+  const l = {schema: 1, builds: [row(1, '1.0.0', null)]};
+  for (const arg of ['halt']) assert.throws(() => promotionPlan(l, l.builds[0], 'production', arg, 'x'), /not rolling out/);
+});

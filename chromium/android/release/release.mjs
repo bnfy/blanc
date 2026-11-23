@@ -182,7 +182,11 @@ export function promotionPlan(ledger, record, track, arg, notesText) {
     ...(fraction === undefined ? {} : {userFraction: fraction}), ...(notes === undefined ? {} : {releaseNotes: [{language: 'en-US', text: notes}]})});
   const plan = (command, phrase, status, fraction) => ({command, track, phrase, release: release(status, fraction), published: {track, status, ...(fraction === undefined ? {} : {fraction})}});
   const last = (row.published ?? []).filter(item => item.track === 'production').at(-1);
+  // The newest build production has had, halted or not: Play's production track holds one release,
+  // so rolling an older build forward or promoting one would replace it.
+  const newest = Math.max(0, ...ledger.builds.filter(entry => (entry.published ?? []).some(item => item.track === 'production')).map(entry => entry.versionCode));
   if (track === 'production' && last) {
+    check(record.versionCode === newest, `a newer build (${newest}) is on production; ${label} can't be rolled out again`);
     check(last.status === 'inProgress' || last.status === 'halted', `${label} is not rolling out (production says ${last.status})`);
     if (arg === 'halt') {
       check(last.status === 'inProgress', `${label} is not rolling out (already halted)`);
@@ -200,6 +204,8 @@ export function promotionPlan(ledger, record, track, arg, notesText) {
     check(!production || record.versionCode >= production.versionCode, `${label} is below the production build (${production?.versionCode}); its testers would get production instead`);
     return plan('promote', `promote ${label} to ${track}`, 'completed');
   }
+  check(arg !== 'halt', `${label} is not rolling out (it isn't on production)`);
+  check(record.versionCode > newest, `${label} is below the production build (${newest})`);
   if (arg === 'complete') return plan('promote', `promote ${label} to production, complete`, 'completed');
   check(Number.isInteger(arg) && arg >= 1 && arg <= 99, 'rollout must be a whole number from 1 to 99, or "complete"');
   return plan('promote', `promote ${label} to production at ${arg}%`, 'inProgress', arg / 100);

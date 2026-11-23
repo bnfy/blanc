@@ -106,6 +106,10 @@ fs.mkdirSync(path.join(out, 'apks'), {recursive:true}); fs.writeFileSync(path.jo
     const stray = spawnSync('bash', args, { encoding: 'utf8', env: { ...env, FIXTURE_CHROMIUM_STATUS: ' M chrome/android/BUILD.gn\\n M chrome/browser/left-over.cc\\n' } });
     assert.notEqual(stray.status, 0); assert.match(stray.stderr, /changes Blanc doesn't apply: chrome\/browser\/left-over\.cc/);
     fs.rmSync(path.join(temp, 'blanc-evidence'), { recursive: true, force: true });
+    // That attempt applied the tag before the stray check stopped it, so later attempts apply over the tag's commit.
+    assert.equal(fs.readFileSync(path.join(temp, 'chromium-android/.blanc-applied-commit'), 'utf8').trim(), entry.commit);
+    assert.match(spawnSync('bash', args, { encoding: 'utf8', env }).stderr, /previous-map must be the last applied commit/);
+    args[3] = entry.commit;
     const refused = spawnSync('bash', args, { encoding: 'utf8', env: { ...env, FIXTURE_REFUSE: '1' } });
     assert.notEqual(refused.status, 0); assert.match(refused.stderr, /No pinned environment/);
     // The refused run already wrote both outputs' arguments. GN still runs again: a changed BUILD.gn
@@ -116,7 +120,7 @@ fs.mkdirSync(path.join(out, 'apks'), {recursive:true}); fs.writeFileSync(path.jo
     assert.deepEqual(fs.readFileSync(path.join(temp, 'gn-calls'), 'utf8').trim().split('\n').map(line => path.basename(line.replace(/^gen /, ''))), ['AndroidRelease', 'AndroidReleaseX64']);
     const record = JSON.parse(fs.readFileSync(path.join(temp, 'blanc-evidence/android/release', entry.tag, 'build.json')));
     assert.equal(record.upstream, 'c'.repeat(40));
-    assert.equal(record.appliedOver, 'b'.repeat(40)); assert.equal(record.aab.bytes, 16); assert.match(record.gatesApk.sha256, /^[a-f0-9]{64}$/);
+    assert.equal(record.appliedOver, entry.commit); assert.equal(record.aab.bytes, 16); assert.match(record.gatesApk.sha256, /^[a-f0-9]{64}$/);
     const duplicate = spawnSync('bash', args, { encoding: 'utf8', env });
     assert.notEqual(duplicate.status, 0); assert.match(duplicate.stderr, /build record already exists/);
   } finally { fs.rmSync(temp, { recursive: true, force: true }); }
@@ -198,4 +202,28 @@ test('a release build and the nightly never change the Android checkout at the s
     assert.throws(() => withAndroidLock(home, () => { throw new Error('build failed'); }), /build failed/);
     assert.equal(fs.existsSync(path.join(home, 'chromium-android/.blanc-android.lock')), false, 'released after a failure');
   } finally { fs.rmSync(home, { recursive: true, force: true }); }
+});
+
+// The nightly moves the shared checkout, so a release's previous map must be what was applied last.
+for (const [applied, ok] of [['b'.repeat(40), true], ['d'.repeat(40), false], [null, true]]) test(`release build preflight with applied commit ${applied ? applied.slice(0, 1) : 'unrecorded'} ${ok ? 'goes on' : 'refuses a different --previous-map'}`, () => {
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'release-applied-'));
+  try {
+    fs.mkdirSync(path.join(temp, 'blanc-release'));
+    fs.mkdirSync(path.join(temp, 'chromium-android'));
+    if (applied) fs.writeFileSync(path.join(temp, 'chromium-android/.blanc-applied-commit'), applied + '\n');
+    fs.writeFileSync(path.join(temp, 'uname'), '#!/bin/sh\ncase "$1" in -s) echo Linux;; -m) echo x86_64;; esac\n', { mode: 0o755 });
+    fs.writeFileSync(path.join(temp, 'ps'), '#!/bin/sh\nexit 0\n', { mode: 0o755 });
+    fs.writeFileSync(path.join(temp, 'git'), `#!/bin/sh
+shift 2
+case "$1" in
+status) ;;
+rev-parse) printf '%s\\n' '${entry.commit}';;
+show) echo '{"schema":1,"builds":[]}';;
+*) exit 99;;
+esac
+`, { mode: 0o755 });
+    const result = spawnSync('bash', [fileURLToPath(script), entry.tag, '--previous-map', 'b'.repeat(40), '--dry-run'], { encoding: 'utf8', env: { ...process.env, PATH: `${temp}:${process.env.PATH}`, HOME: temp } });
+    if (ok) assert.equal(result.status, 0, result.stderr);
+    else { assert.notEqual(result.status, 0); assert.match(result.stderr, /previous-map.*applied/); }
+  } finally { fs.rmSync(temp, { recursive: true, force: true }); }
 });

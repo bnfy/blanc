@@ -222,6 +222,8 @@ test('a night passes only with a built APK and a passing gate', () => { /* … *
 
 ### Task 5: Chrome stable watch and the security clock
 
+> **Dropped in review (2026-11-23):** `chromium-release-watch.yml` (`scripts/chromium-release-watch.mjs`, owner rule of 2026-11-22) already watches the Android lane with the same 7-day and 72-hour clocks. `channels.md` points at it instead.
+
 **Files:**
 - Create: `chromium/android/release/stable-watch.mjs`, `.github/workflows/android-stable-watch.yml` (on `main`, daily at 13:00 UTC and on manual dispatch)
 - Test: `chromium/tools/android-stable-watch.test.mjs`

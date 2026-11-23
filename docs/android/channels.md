@@ -89,12 +89,13 @@ A stable build that went to `internal` first moves to production with
 
 ## Security releases
 
-`.github/workflows/android-stable-watch.yml` checks Chrome stable for Android every day. When it
-moves past the lane's pin, the workflow opens one issue labeled `android-security-clock`. The
-issue names the due date:
+The existing Chromium release watch (`.github/workflows/chromium-release-watch.yml`,
+`scripts/chromium-release-watch.mjs`, `docs/chromium-updates.md`) checks Chrome stable for Android
+every day against `chromium/lanes/android.json`. While the lane is behind, it keeps one issue open,
+titled "Chromium update due: Blanc for Android", with the due date:
 
 - **7 days** from the first newer stable;
-- **72 hours** when Google's post for that build says an exploit exists in the wild.
+- **72 hours** when Google's Chrome for Android post says an exploit exists in the wild.
 
 To ship it:
 
@@ -106,7 +107,7 @@ To ship it:
 4. The rebase is on `main`, so the next beta carries it too.
 
 A missed clock goes in `chromium/STATUS.md` with its reason. Two misses in a quarter open the
-kill-criteria review (design §8.4). The issue closes itself when the pin reaches that version.
+kill-criteria review (design §8.4). The issue closes itself when the pin reaches the newest stable.
 
 ## Before production access
 

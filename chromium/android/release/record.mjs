@@ -140,6 +140,11 @@ function main() {
   const src = path.join(home, 'chromium-android/src');
   const evidence = path.join(home, 'blanc-evidence/android/release', tag);
   check(!competingBuild(run('ps', processListArgs())), 'A Siso build is already running; no shared checkout was changed');
+  // The nightly moves the shared checkout too: the previous map must be the commit applied last.
+  let applied = null;
+  try { applied = fs.readFileSync(appliedFile(home), 'utf8').trim(); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; }
+  check(applied === null || applied === previous, `--previous-map must be the last applied commit (${applied} in ~/chromium-android/.blanc-applied-commit)`);
   const checkIsolation = () => {
     const development = path.join(home, 'blanc');
     check(!fs.existsSync(development) || fs.realpathSync(clone) !== fs.realpathSync(development), 'refusing the development clone');
