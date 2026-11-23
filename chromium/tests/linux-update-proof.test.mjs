@@ -79,7 +79,8 @@ function stagingFixture({dep11 = false} = {}) {
   for (const name of ['InRelease', 'Release.gpg']) put(apt + name);
   const listed = [];
   if (dep11) for (const deb of ['amd64', 'arm64']) {
-    const name = 'main/dep11/Components-' + deb + '.yml.gz', bytes = Buffer.from('catalog ' + deb);
+    // As in a real tree, both architectures' catalogs are the same bytes and share one by-hash file.
+    const name = 'main/dep11/Components-' + deb + '.yml.gz', bytes = Buffer.from('catalog');
     objects.set(apt + name, bytes);
     objects.set(apt + 'main/dep11/by-hash/SHA256/' + sha256(bytes), bytes);
     listed.push(' ' + sha256(bytes) + ' ' + bytes.length + ' ' + name);
@@ -126,7 +127,7 @@ test('captures the DEP-11 catalog exactly when the signed Release lists it', asy
   const dir = fs.mkdtempSync(path.join(scratch, 'tree-'));
   await stageMetadata(inputs(), fixture.approval, dir, fixture.read);
   for (const deb of ['amd64', 'arm64']) {
-    assert.equal(fs.readFileSync(path.join(dir, 'deb/dists/stable/main/dep11/Components-' + deb + '.yml.gz'), 'utf8'), 'catalog ' + deb);
+    assert.equal(fs.readFileSync(path.join(dir, 'deb/dists/stable/main/dep11/Components-' + deb + '.yml.gz'), 'utf8'), 'catalog');
   }
   const missing = stagingFixture({dep11: true});
   missing.objects.delete('deb/dists/stable/main/dep11/Components-arm64.yml.gz');

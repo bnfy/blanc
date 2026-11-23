@@ -63,9 +63,13 @@ export async function stageMetadata(spec, approval, dir, read = readStaging) {
   assert.equal(pointer.generation, spec.to, 'Unexpected staging generation');
   assert.ok(Array.isArray(pointer.previous), 'Missing staging generation history');
   assert.equal(approval.releaseVersion, spec.toVersion);
-  const files = [];
+  const files = [], captured = new Map();
   async function capture(file) {
+    // Content-addressed copies can be shared (both architectures' identical
+    // DEP-11 catalogs have one by-hash file); the tree lists each path once.
+    if (captured.has(file)) return captured.get(file);
     const bytes = await read('generations/' + pointer.generation + '/' + file);
+    captured.set(file, bytes);
     files.push({path: file, sha256: sha256(bytes)});
     mkdir(path.dirname(path.join(dir, file)));
     fs.writeFileSync(path.join(dir, file), bytes, {flag: 'wx'});
