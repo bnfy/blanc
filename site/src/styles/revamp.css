@@ -334,6 +334,10 @@ main .section-kicker {
   text-decoration: none;
   white-space: nowrap;
 }
+/* The download links are set bold (owner, November 23, 2026). */
+.site-browser-downloads a {
+  font-weight: 600;
+}
 .site-browser-panel a:hover {
   color: var(--site-gold);
 }
