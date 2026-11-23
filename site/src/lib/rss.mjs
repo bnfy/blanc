@@ -35,14 +35,24 @@ function spansToText(spans = []) {
   return spans.map((span) => span.value).join('');
 }
 
-export function renderRss(releases) {
+// Options let the per-product feeds reuse the template; the defaults are the
+// desktop feed at /changelog.xml, byte for byte as before.
+const DEFAULT_DESCRIPTION = 'New features, fixes, and platform updates in Blanc Browser.';
+
+export function renderRss(releases, {
+  title = 'Blanc Browser Changelog',
+  link = CHANGELOG_URL,
+  description = DEFAULT_DESCRIPTION,
+  itemTitle = (release) => `Blanc ${release.version}`,
+  itemLink = (release) => release.url,
+} = {}) {
   const newest = releases[0]?.publishedAt;
   const items = releases.slice(0, 20).map((release) => {
     const summary = summarize(release);
     return `    <item>
-      <title>${escapeXml(`Blanc ${release.version}`)}</title>
-      <link>${escapeXml(release.url)}</link>
-      <guid isPermaLink="true">${escapeXml(release.url)}</guid>
+      <title>${escapeXml(itemTitle(release))}</title>
+      <link>${escapeXml(itemLink(release))}</link>
+      <guid isPermaLink="true">${escapeXml(itemLink(release))}</guid>
       <pubDate>${escapeXml(new Date(release.publishedAt).toUTCString())}</pubDate>
       <description>${escapeXml(summary)}</description>
     </item>`;
@@ -51,9 +61,9 @@ export function renderRss(releases) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
-    <title>Blanc Browser Changelog</title>
-    <link>${CHANGELOG_URL}</link>
-    <description>New features, fixes, and platform updates in Blanc Browser.</description>
+    <title>${escapeXml(title)}</title>
+    <link>${escapeXml(link)}</link>
+    <description>${escapeXml(description)}</description>
     <language>en-us</language>${newest ? `
     <lastBuildDate>${escapeXml(new Date(newest).toUTCString())}</lastBuildDate>` : ''}
 ${items}
