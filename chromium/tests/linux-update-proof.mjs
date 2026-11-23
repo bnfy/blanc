@@ -91,8 +91,9 @@ export async function stageMetadata(spec, approval, dir, read = readStaging) {
       const bytes = await capture(index + name);
       await capture(index + 'by-hash/SHA256/' + sha256(bytes));
     }
-    const catalog = 'main/dep11/Components-' + debArch + '.yml.gz';
-    if (listed.has(catalog)) {
+    for (const name of ['.yml', '.yml.gz']) {
+      const catalog = 'main/dep11/Components-' + debArch + name;
+      if (!listed.has(catalog)) continue;
       const bytes = await capture(apt + '/' + catalog);
       await capture(apt + '/main/dep11/by-hash/SHA256/' + sha256(bytes));
     }

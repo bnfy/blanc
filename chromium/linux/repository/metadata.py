@@ -366,7 +366,10 @@ def build(directory, tree, key, approval_directory):
         dep11_dir = tree / APT / 'main' / 'dep11'
         dep11_dir.mkdir(exist_ok=True)
         deb = tree / package_path(f'blanc-beta_{version}-1_{arch}.deb')
-        (dep11_dir / f'Components-{arch}.yml.gz').write_bytes(gzip.compress(dep11(deb_appdata(deb)), mtime=0))
+        # apt treats an index as present only when Release lists its plain name, as with Packages.
+        catalog = dep11(deb_appdata(deb))
+        (dep11_dir / f'Components-{arch}.yml').write_bytes(catalog)
+        (dep11_dir / f'Components-{arch}.yml.gz').write_bytes(gzip.compress(catalog, mtime=0))
     release = subprocess.check_output([*apt, 'release', '.'], cwd=tree / APT)
     (tree / APT / 'Release').write_bytes(release)
     for p in [*(tree / APT).glob('main/binary-*/Packages*'), *(tree / APT).glob('main/dep11/Components-*')]:
@@ -457,13 +460,17 @@ def check_primary(raw, base, rows):
 
 def check_dep11(tree, deb, arch):
     """Rebuild one architecture's DEP-11 catalog from the approved package and require the runner's bytes."""
-    index = APT / 'main' / 'dep11' / f'Components-{arch}.yml.gz'
-    require(read_index(tree / index) == dep11(deb_appdata(deb)), f'DEP-11 catalog differs for {arch}')
-    digest = sha(tree / index)
-    copy = index.parent / 'by-hash/SHA256' / digest
-    require(sha(tree / copy) == digest, 'DEP-11 by-hash copy differs')
-    return ([[digest, str((tree / index).stat().st_size), str(index.relative_to(APT))]],
-            {str(index), str(copy)})
+    expected = dep11(deb_appdata(deb))
+    sums, paths = [], set()
+    for name in (f'Components-{arch}.yml', f'Components-{arch}.yml.gz'):
+        index = APT / 'main' / 'dep11' / name
+        require(read_index(tree / index) == expected, f'DEP-11 catalog differs for {arch}')
+        digest = sha(tree / index)
+        copy = index.parent / 'by-hash/SHA256' / digest
+        require(sha(tree / copy) == digest, 'DEP-11 by-hash copy differs')
+        sums.append([digest, str((tree / index).stat().st_size), str(index.relative_to(APT))])
+        paths.update([str(index), str(copy)])
+    return sums, paths
 
 
 def check_indices(directory, tree, key, db, package_directory):

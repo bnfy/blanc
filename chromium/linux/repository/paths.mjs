@@ -11,7 +11,7 @@ export function packageInfo(key) {
 }
 
 // dep11/ holds the AppStream catalog App Center matches updates to apps with.
-const aptMetadata = /^deb\/dists\/stable\/(?:InRelease|Release(?:\.gpg)?|main\/binary-(?:amd64|arm64)\/(?:Packages(?:\.gz)?|by-hash\/SHA256\/[a-f0-9]{64})|main\/dep11\/(?:Components-(?:amd64|arm64)\.yml\.gz|by-hash\/SHA256\/[a-f0-9]{64}))$/;
+const aptMetadata = /^deb\/dists\/stable\/(?:InRelease|Release(?:\.gpg)?|main\/binary-(?:amd64|arm64)\/(?:Packages(?:\.gz)?|by-hash\/SHA256\/[a-f0-9]{64})|main\/dep11\/(?:Components-(?:amd64|arm64)\.yml(?:\.gz)?|by-hash\/SHA256\/[a-f0-9]{64}))$/;
 const rpmMetadata = /^rpm\/stable\/(?:x86_64|aarch64)\/repodata\/(?:repomd\.xml(?:\.asc)?|[a-f0-9]{64}-(?:primary|filelists|other)\.xml\.gz)$/;
 
 export function isMetadataPath(key) {

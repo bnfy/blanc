@@ -100,10 +100,11 @@ test('the DEP-11 catalog is served like the apt indexes, by name and by hash acr
   const current = await fetchFrom(bucket, dep11 + 'Components-arm64.yml.gz');
   assert.equal(await current.text(), 'catalog');
   assert.equal(current.headers.get('cache-control'), 'no-cache');
-  for (const name of ['Components-amd64.yml.gz', 'Components-arm64.yml.gz', 'by-hash/SHA256/' + 'c'.repeat(64)]) {
+  for (const name of ['Components-amd64.yml.gz', 'Components-arm64.yml.gz', 'Components-amd64.yml', 'Components-arm64.yml',
+    'by-hash/SHA256/' + 'c'.repeat(64)]) {
     assert.ok(isMetadataPath(dep11 + name), name);
   }
-  for (const name of ['Components-i386.yml.gz', 'Components-amd64.yml', 'icons-64x64.tar', 'by-hash/SHA256/short',
+  for (const name of ['Components-i386.yml.gz', 'Components-amd64.yml.xz', 'icons-64x64.tar', 'by-hash/SHA256/short',
     '../binary-amd64/Packages', 'Components-amd64.yml.gz/extra']) {
     assert.ok(!isMetadataPath(dep11 + name), name);
   }

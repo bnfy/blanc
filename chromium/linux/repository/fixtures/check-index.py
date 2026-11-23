@@ -87,27 +87,38 @@ class IndexCheck(unittest.TestCase):
             tree = Path(tmp)
             deb = tree / 'pkg.deb'
             deb.write_bytes(b'deb')
-            index = metadata.APT / 'main/dep11/Components-amd64.yml.gz'
-            (tree / index).parent.mkdir(parents=True)
+            base = metadata.APT / 'main/dep11'
+            (tree / base / 'by-hash/SHA256').mkdir(parents=True)
 
-            def publish(data):
-                (tree / index).write_bytes(gzip.compress(data, mtime=0))
-                digest = metadata.sha(tree / index)
-                by_hash = tree / index.parent / 'by-hash/SHA256'
-                by_hash.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(tree / index, by_hash / digest)
-                return digest
+            def publish(data, gz_data=None):
+                (tree / base / 'Components-amd64.yml').write_bytes(data)
+                (tree / base / 'Components-amd64.yml.gz').write_bytes(gzip.compress(gz_data or data, mtime=0))
+                digests = []
+                for name in ('Components-amd64.yml', 'Components-amd64.yml.gz'):
+                    digest = metadata.sha(tree / base / name)
+                    shutil.copyfile(tree / base / name, tree / base / 'by-hash/SHA256' / digest)
+                    digests.append(digest)
+                return digests
             with patch.object(metadata, 'deb_appdata', return_value=self.APPDATA):
-                digest = publish(metadata.dep11(self.APPDATA))
+                catalog = metadata.dep11(self.APPDATA)
+                plain, packed = publish(catalog)
                 sums, paths = metadata.check_dep11(tree, deb, 'amd64')
-                self.assertEqual(sums, [[digest, str((tree / index).stat().st_size), 'main/dep11/Components-amd64.yml.gz']])
-                self.assertEqual(paths, {str(index), str(index.parent / 'by-hash/SHA256' / digest)})
-                publish(metadata.dep11(self.APPDATA).replace(b'Package: blanc-beta', b'Package: other'))
-                with self.assertRaisesRegex(ValueError, 'DEP-11'):
-                    metadata.check_dep11(tree, deb, 'amd64')
-                good = publish(metadata.dep11(self.APPDATA))
-                (tree / index.parent / 'by-hash/SHA256' / good).write_bytes(b'changed')
+                # apt only fetches an index whose plain name Release lists, so both are required.
+                self.assertEqual([s[2] for s in sums], ['main/dep11/Components-amd64.yml', 'main/dep11/Components-amd64.yml.gz'])
+                self.assertEqual(sums[0][:2], [plain, str(len(catalog))])
+                self.assertEqual(paths, {str(base / 'Components-amd64.yml'), str(base / 'Components-amd64.yml.gz'),
+                                         str(base / 'by-hash/SHA256' / plain), str(base / 'by-hash/SHA256' / packed)})
+                other = catalog.replace(b'Package: blanc-beta', b'Package: other')
+                for changed in [(other, None), (catalog, other)]:
+                    publish(*changed)
+                    with self.subTest(changed=changed[1] is None), self.assertRaisesRegex(ValueError, 'DEP-11'):
+                        metadata.check_dep11(tree, deb, 'amd64')
+                plain, _ = publish(catalog)
+                (tree / base / 'by-hash/SHA256' / plain).write_bytes(b'changed')
                 with self.assertRaisesRegex(ValueError, 'by-hash'):
+                    metadata.check_dep11(tree, deb, 'amd64')
+                (tree / base / 'Components-amd64.yml').unlink()
+                with self.assertRaises(FileNotFoundError):
                     metadata.check_dep11(tree, deb, 'amd64')
 
     def test_runner_hashes_the_bytes_it_will_index(self):
