@@ -125,9 +125,10 @@ says. It changes no package and no client: once a tree with it is published, apt
 any system with the `appstream` package (Ubuntu's desktop has it), and App Center lists the
 update for every existing install. The lifecycle check installs `appstream` on Debian and
 Ubuntu and requires apt to have fetched a catalog naming the package; `stageMetadata` captures
-it whenever the signed `Release` lists it. **Deploy the repository Worker (`--env staging` and
-`--env production`) before the first publication with a catalog,** because `paths.mjs` only
-serves the new paths from that version on.
+it whenever the signed `Release` lists it. The repository Worker serves the new paths from
+the versions deployed on November 23, 2026 (staging `4fd3e641`, production `edbed54c`, from
+`chromium/next` 045092a18); both kept serving generation 906 unchanged, and apt in a clean
+Ubuntu 24.04 container still fetched production's signed index and offered 906.
 
 ## Publication and recovery
 
